@@ -1,0 +1,33 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<databaseChangeLog
+        xmlns="http://www.liquibase.org/xml/ns/dbchangelog"
+        xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance"
+        xsi:schemaLocation="http://www.liquibase.org/xml/ns/dbchangelog
+                      http://www.liquibase.org/xml/ns/dbchangelog/dbchangelog-4.24.xsd">
+    <changeSet id="1720360772920-1" author="Artem Prokudin">
+        <sql>
+            UPDATE exercise e
+            INNER JOIN (
+                SELECT
+                    e.id as `exercise_id`,
+                    e.`stages_json` as `orignal`,
+                    JSON_ARRAYAGG(JSON_SET(`stages`.`_json`, '$.complexity', e.`complexity`)) AS `stages_json`,
+                    COUNT(*) AS stages_count,
+                    e.complexity
+                FROM
+                  `exercise` e,
+                  JSON_TABLE(e.`stages_json`,
+                  '$[*]'
+                  COLUMNS(
+                    `_json` JSON PATH '$'
+                  )
+                ) `stages`
+                GROUP BY e.id
+            ) AS `update` ON e.id = `update`.exercise_id
+            SET e.`stages_json` = `update`.`stages_json`
+            WHERE id > 0;
+
+            ALTER TABLE exercise DROP COLUMN complexity;
+        </sql>
+    </changeSet>
+</databaseChangeLog>

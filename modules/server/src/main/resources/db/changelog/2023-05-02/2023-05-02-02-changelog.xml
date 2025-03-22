@@ -1,0 +1,22 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<databaseChangeLog
+        xmlns="http://www.liquibase.org/xml/ns/dbchangelog"
+        xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance"
+        xsi:schemaLocation="http://www.liquibase.org/xml/ns/dbchangelog
+                      http://www.liquibase.org/xml/ns/dbchangelog/dbchangelog-4.5.xsd"
+        objectQuotingStrategy="QUOTE_ONLY_RESERVED_WORDS">
+    <changeSet id="1683022406368-32" author="Mikhail Denisov">
+        <validCheckSum>ANY</validCheckSum>
+        <preConditions onFail="MARK_RAN">
+            <tableExists tableName="questions_meta"/>
+            <not>
+            	<sqlCheck expectedResult="0">SELECT COUNT(*) FROM questions_meta WHERE is_draft IS NULL</sqlCheck>
+            </not>
+        </preConditions>
+        <sql>
+            UPDATE questions_meta SET is_draft = 0 WHERE is_draft IS NULL AND id > 0;
+        </sql>
+    </changeSet>
+
+</databaseChangeLog>
+

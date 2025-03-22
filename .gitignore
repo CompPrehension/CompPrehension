@@ -4,6 +4,10 @@ target/
 !**/src/main/**
 !**/src/test/**
 
+modules/expr-domain-question-generator/dependency-reduced-pom.xml
+/generator_py/
+*.env
+
 ### STS ###
 .apt_generated
 .classpath
@@ -12,6 +16,9 @@ target/
 .settings
 .springBeans
 .sts4-cache
+
+**/*.exe
+*.c
 
 ### IntelliJ IDEA ###
 .idea

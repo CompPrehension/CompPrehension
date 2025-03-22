@@ -1,0 +1,82 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<databaseChangeLog
+        xmlns="http://www.liquibase.org/xml/ns/dbchangelog"
+        xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance"
+        xsi:schemaLocation="http://www.liquibase.org/xml/ns/dbchangelog
+                      http://www.liquibase.org/xml/ns/dbchangelog/dbchangelog-4.5.xsd">
+    <include file="db/changelog/2021-10-03/2021-10-03-01-changelog.xml"/>
+    <include file="db/changelog/2021-10-04/2021-10-04-01-changelog.xml"/>
+    <include file="db/changelog/2021-10-04/2021-10-04-02-changelog.xml"/>
+    <include file="db/changelog/2021-10-05/2021-10-05-01-changelog.xml"/>
+    <include file="db/changelog/2021-10-13/2021-10-13-01-changelog.xml"/>
+    <include file="db/changelog/2021-10-19/2021-10-19-01-changelog.xml"/>
+    <include file="db/changelog/2022-01-06/2022-01-06-01-changelog.xml"/>
+    <include file="db/changelog/2022-05-25/2022-05-25-01-changelog.xml"/>
+    <include file="db/changelog/2022-05-25/2022-05-25-02-changelog.xml"/>
+    <include file="db/changelog/2022-05-26/2022-05-26-01-changelog.xml"/>
+    <include file="db/changelog/2022-06-04/2022-06-04-01-changelog.xml"/>
+    <include file="db/changelog/2022-06-07/2022-06-07-01-changelog.xml"/>
+    <!-- Storage path: C:\data\compp -->
+    <include file="db/changelog/2022-06-07/2022-06-07-02-changelog.xml"/>
+    <!-- Change survey wording -->
+    <include file="db/changelog/2022-06-09/2022-06-09-01-changelog.xml"/>
+    <!-- Storage path: tmp/compprehension/  (OFF by default) -->
+    <!-- <include file="db/changelog/2022-06-08/2022-06-08-01-changelog.xml"/> -->
+    <include file="db/changelog/2022-06-13/2022-06-13-01-changelog.xml"/>
+    <include file="db/changelog/2022-06-28/2022-06-28-01-changelog.xml"/>
+    <include file="db/changelog/2022-07-04/2022-07-04-01-changelog.xml"/>
+    <include file="db/changelog/2022-10-30/2022-10-30-01-changelog.xml"/>
+    <include file="db/changelog/2022-10-31/2022-10-31-01-changelog.xml"/>
+    <include file="db/changelog/2022-11-06/2022-11-06-01-changelog.xml"/>
+    <include file="db/changelog/2022-11-07/2022-11-07-01-changelog.xml"/>
+    <include file="db/changelog/2022-11-07/2022-11-07-02-changelog.xml"/>
+    <include file="db/changelog/2022-11-07/2022-11-07-03-changelog.xml"/>
+    <include file="db/changelog/2022-11-17/2022-11-17-01-changelog.xml"/>
+    <include file="db/changelog/2022-11-17/2022-11-17-02-changelog.xml"/>
+    <include file="db/changelog/2022-11-19/2022-11-19-01-changelog.xml"/>
+    <include file="db/changelog/2022-11-24/2022-11-24-01-changelog.xml"/>
+    <include file="db/changelog/2022-11-24/2022-11-24-02-changelog.xml"/>
+    <include file="db/changelog/2022-11-27/2022-11-27-01-changelog.xml"/>
+    <include file="db/changelog/2022-12-11/2022-12-11-01-changelog.xml"/>
+    <include file="db/changelog/2022-12-12/2022-12-12-01-changelog.xml"/>
+    <include file="db/changelog/2023-01-24/2023-01-24-01-changelog.xml"/>
+    <include file="db/changelog/2023-02-14/2023-02-14-01-changelog.xml"/>
+    <include file="db/changelog/2023-03-10/2023-03-10-01-changelog.xml"/>
+    <include file="db/changelog/2023-03-13/2023-03-13-01-changelog.xml"/>
+    <include file="db/changelog/2023-03-15/2023-03-15-01-changelog.xml"/>
+    <include file="db/changelog/2023-03-16/2023-03-16-01-changelog.xml"/>
+    <include file="db/changelog/2023-03-16/2023-03-16-02-changelog.xml"/>
+    <include file="db/changelog/2023-03-25/2023-03-25-01-changelog.xml"/>
+    <include file="db/changelog/2023-03-25/2023-03-25-02-changelog.xml"/>
+    <include file="db/changelog/2023-03-25/2023-03-25-03-changelog.xml"/>
+    <include file="db/changelog/2023-03-25/2023-03-25-04-changelog.xml"/>
+    <include file="db/changelog/2023-03-25/2023-03-25-05-changelog.xml"/>
+    <include file="db/changelog/2023-03-31/2023-03-31-01-changelog.xml"/>
+    <include file="db/changelog/2023-05-02/2023-05-02-01-changelog.xml"/>
+    <include file="db/changelog/2023-05-02/2023-05-02-02-changelog.xml"/>
+    <include file="db/changelog/2023-05-10/2023-05-10-01-changelog.xml"/>
+    <include file="db/changelog/2023-05-17/2023-05-17-01-changelog.xml"/>
+    <include file="db/changelog/2023-05-23/2023-05-23-01-changelog.xml"/>
+    <include file="db/changelog/2024-01-23/2024-01-23-01-changelog.xml"/>
+    <include file="db/changelog/2024-02-18/2024-02-18-01-changelog.xml"/>
+    <include file="db/changelog/2024-03-27/2024-03-27-01-changelog.xml"/>
+    <include file="db/changelog/2024-04-06/2024-04-06-01-changelog.xml"/>
+    <include file="db/changelog/2024-04-06/2024-04-06-02-changelog.xml"/>
+    <include file="db/changelog/2024-04-07/2024-04-07-01-changelog.xml"/>
+    <include file="db/changelog/2024-04-30/2024-04-30-01-changelog.xml"/>
+    <include file="db/changelog/2024-05-09/2024-05-09-01-changelog.xml"/>
+    <include file="db/changelog/2024-05-09/2024-05-09-02-changelog.xml"/>
+    <include file="db/changelog/2024-05-17/2024-05-17-01-changelog.xml"/>
+    <include file="db/changelog/2024-05-17/2024-05-17-02-changelog.xml"/>
+    <include file="db/changelog/2024-05-19/2024-05-19-01-changelog.xml"/>
+    <include file="db/changelog/2024-05-31/2024-05-31-01-changelog.xml"/>
+    <include file="db/changelog/2024-06-03/2024-06-03-01-changelog.xml"/>
+    <include file="db/changelog/2024-06-08/2024-06-08-01-changelog.xml"/>
+    <include file="db/changelog/2024-06-30/2024-06-30-01-changelog.xml"/>
+    <include file="db/changelog/2024-07-01/2024-07-01-01-changelog.xml"/>
+    <include file="db/changelog/2024-07-04/2024-07-04-01-changelog.xml"/>
+    <include file="db/changelog/2024-07-05/2024-07-05-01-changelog.xml"/>
+    <include file="db/changelog/2024-07-07/2024-07-07-01-changelog.xml"/>
+    <include file="db/changelog/2024-11-06/2024-11-06-01-changelog.xml"/>
+    <include file="db/changelog/2024-11-23/2024-11-23-01-changelog.xml"/>
+</databaseChangeLog>

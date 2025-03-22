@@ -6,7 +6,7 @@ https://taiga.seschool.ru/project/oasychev-modelirovanie-ponimaniia-iadro/wiki/h
 
 To build and run this project you must have the following items installed:
 
-+ [Java 12](http://www.oracle.com/technetwork/java/javase/downloads/index.html)
++ [Java 21](http://www.oracle.com/technetwork/java/javase/downloads/index.html)
 + A tool for checking out a [Git](http://git-scm.com/) repository
 + Apache's [Maven](http://maven.apache.org/index.html)
 + [MySQL server](https://dev.mysql.com/downloads/mysql/)

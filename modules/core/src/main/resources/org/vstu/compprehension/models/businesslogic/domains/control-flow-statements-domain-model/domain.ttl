@@ -1,0 +1,999 @@
+@prefix : <http://vstu.ru/poas/code#> .
+@prefix owl: <http://www.w3.org/2002/07/owl#> .
+@prefix rdfs: <http://www.w3.org/2000/01/rdf-schema#> .
+@prefix skos: <http://www.w3.org/2004/02/skos/core#> .
+@prefix xsd: <http://www.w3.org/2001/XMLSchema#> .
+
+<http://anonymous> a owl:Ontology .
+
+<http://vstu.ru/poas/code> a owl:Ontology .
+
+### Object Properties
+
+:_insert_act_executing a owl:ObjectProperty ;
+    rdfs:domain :act ;
+    rdfs:range :boundary .
+
+:after_act a owl:ObjectProperty ;
+    rdfs:domain owl:Thing ;
+    rdfs:range :act .
+
+:AltBegin a owl:ObjectProperty ;
+    rdfs:subPropertyOf :always_consequent .
+
+:AltBranchBegin a owl:ObjectProperty ;
+    rdfs:subPropertyOf :on_true_consequent .
+
+:AltElseBranchBegin a owl:ObjectProperty ;
+    rdfs:subPropertyOf :on_false_consequent .
+
+:AltEndAfterBranch a owl:ObjectProperty ;
+    rdfs:subPropertyOf :always_consequent .
+
+:AltEndAllFalse a owl:ObjectProperty ;
+    rdfs:subPropertyOf :on_false_consequent .
+
+:always_consequent a owl:ObjectProperty ;
+    rdfs:subPropertyOf :has_upcoming,
+        :normal_consequent .
+
+:begin_of a owl:ObjectProperty ;
+    rdfs:subPropertyOf :boundary_of ;
+    :act_class :act_begin ;
+    :EN.localizedName "the beginning of"^^xsd:string ;
+    :RU.localizedName "начало"^^xsd:string .
+
+:body a owl:ObjectProperty ;
+    rdfs:subPropertyOf :parent_of .
+
+:body_item a owl:ObjectProperty ;
+    rdfs:subPropertyOf :parent_of .
+
+:boundary_of a owl:FunctionalProperty,
+        owl:ObjectProperty ;
+    rdfs:domain :boundary ;
+    rdfs:range :action .
+
+:branches_item a owl:ObjectProperty ;
+    rdfs:subPropertyOf :parent_of .
+
+:cause a owl:ObjectProperty ;
+    rdfs:domain :Erroneous ;
+    rdfs:range owl:Thing .
+
+:child_executes a owl:ObjectProperty ;
+    rdfs:domain :act ;
+    rdfs:range :boundary .
+
+:collapse_bound a owl:ObjectProperty,
+        owl:TransitiveProperty ;
+    rdfs:domain :boundary ;
+    rdfs:range :boundary .
+
+:consequent a owl:ObjectProperty ;
+    rdfs:domain owl:Thing ;
+    rdfs:range owl:Thing .
+
+:context_should_be a owl:ObjectProperty ;
+    rdfs:domain :Erroneous ;
+    rdfs:range owl:Thing .
+
+:corresponding_end a owl:ObjectProperty ;
+    rdfs:domain :act_begin ;
+    rdfs:range :act_end .
+
+:end_of a owl:ObjectProperty ;
+    rdfs:subPropertyOf :boundary_of ;
+    :act_class :act_end ;
+    :EN.localizedName "the ending of"^^xsd:string ;
+    :RU.localizedName "окочание"^^xsd:string .
+
+:entry_point a owl:FunctionalProperty,
+        owl:ObjectProperty ;
+    rdfs:domain :algorithm ;
+    rdfs:range :action .
+
+:executes a owl:FunctionalProperty,
+        owl:ObjectProperty ;
+    rdfs:domain owl:Thing ;
+    rdfs:range owl:Thing .
+
+:ExprEnd a owl:ObjectProperty ;
+    rdfs:subPropertyOf :always_consequent .
+
+:fetch_kind_of_loop a owl:ObjectProperty ;
+    rdfs:domain owl:Thing ;
+    rdfs:range :action .
+
+:field_A_bound a owl:ObjectProperty ;
+    skos:broader :string_placeholder .
+
+:field_EXTRA_bound a owl:ObjectProperty ;
+    skos:broader :string_placeholder .
+
+:field_MISSING_bound a owl:ObjectProperty ;
+    skos:broader :string_placeholder .
+
+:from_reason a owl:ObjectProperty ;
+    rdfs:domain owl:Thing ;
+    rdfs:range owl:Thing .
+
+:functions_item a owl:ObjectProperty .
+
+:gather_child_exec_till a owl:ObjectProperty ;
+    rdfs:subPropertyOf :gathered_child_exec_till .
+
+:gathered_child_exec_till a owl:ObjectProperty ;
+    rdfs:domain :act ;
+    rdfs:range :act .
+
+:global_code a owl:FunctionalProperty,
+        owl:ObjectProperty ;
+    rdfs:domain :algorithm ;
+    rdfs:range :action .
+
+:GlobalCodeBegin a owl:ObjectProperty ;
+    rdfs:subPropertyOf :always_consequent .
+
+:halt_of a owl:ObjectProperty ;
+    rdfs:subPropertyOf :boundary_of ;
+    :act_class :act_end .
+
+:has_causing_condition a owl:ObjectProperty ;
+    rdfs:domain :Erroneous ;
+    rdfs:range owl:Thing .
+
+:has_func_call a owl:ObjectProperty ;
+    rdfs:domain :action ;
+    rdfs:range :func_call .
+
+:has_upcoming a owl:ObjectProperty,
+        owl:TransitiveProperty ;
+    rdfs:domain :boundary ;
+    rdfs:range :boundary .
+
+:hasPartTransitive a owl:ObjectProperty,
+        owl:TransitiveProperty ;
+    rdfs:domain owl:Thing ;
+    rdfs:range owl:Thing .
+
+:in_trace a owl:ObjectProperty ;
+    rdfs:domain :act ;
+    rdfs:range :trace .
+
+:init a owl:ObjectProperty ;
+    rdfs:subPropertyOf :parent_of .
+
+:interrupt_origin a owl:ObjectProperty ;
+    rdfs:domain :boundary ;
+    rdfs:range :boundary .
+
+:interrupt_target a owl:ObjectProperty ;
+    rdfs:domain owl:Thing ;
+    rdfs:range owl:Thing .
+
+:Interrupted a owl:ObjectProperty ;
+    rdfs:subPropertyOf :always_consequent .
+
+:IterationAfterUpdate a owl:ObjectProperty ;
+    rdfs:subPropertyOf :always_consequent .
+
+:IterationBeginOnTrueCond a owl:ObjectProperty ;
+    rdfs:subPropertyOf :on_true_consequent .
+
+:list_item_role a owl:ObjectProperty ;
+    rdfs:domain :action ;
+    rdfs:range owl:Thing .
+
+:LoopCondAfterUpdate a owl:ObjectProperty ;
+    rdfs:subPropertyOf :always_consequent .
+
+:LoopCondBeginAfterInit a owl:ObjectProperty ;
+    rdfs:subPropertyOf :always_consequent .
+
+:LoopCondBeginAfterIteration a owl:ObjectProperty ;
+    rdfs:subPropertyOf :always_consequent .
+
+:LoopEndOnFalseCond a owl:ObjectProperty ;
+    rdfs:subPropertyOf :on_false_consequent .
+
+:LoopUpdateAfterIteration a owl:ObjectProperty ;
+    rdfs:subPropertyOf :always_consequent .
+
+:LoopUpdateOnTrueCond a owl:ObjectProperty ;
+    rdfs:subPropertyOf :on_true_consequent .
+
+:LoopWithInitBegin a owl:ObjectProperty ;
+    rdfs:subPropertyOf :always_consequent .
+
+:next a owl:ObjectProperty ;
+    rdfs:domain owl:Thing ;
+    rdfs:range owl:Thing .
+
+:next_act a owl:FunctionalProperty,
+        owl:InverseFunctionalProperty,
+        owl:ObjectProperty ;
+    rdfs:domain :correct_act ;
+    rdfs:range :correct_act .
+
+:next_sibling a owl:ObjectProperty ;
+    rdfs:domain owl:Thing ;
+    rdfs:range owl:Thing .
+
+:NextAltCondition a owl:ObjectProperty ;
+    rdfs:subPropertyOf :on_false_consequent .
+
+:normal_consequent a owl:ObjectProperty ;
+    rdfs:subPropertyOf :consequent .
+
+:on_false_consequent a owl:ObjectProperty ;
+    rdfs:subPropertyOf :normal_consequent .
+
+:on_true_consequent a owl:ObjectProperty ;
+    rdfs:subPropertyOf :normal_consequent .
+
+:parent_of a owl:InverseFunctionalProperty,
+        owl:ObjectProperty ;
+    rdfs:subPropertyOf :hasPartTransitive .
+
+:possible_violation a owl:ObjectProperty .
+
+:PostCondLoopBegin a owl:ObjectProperty ;
+    rdfs:subPropertyOf :always_consequent .
+
+:PreCondLoopBegin a owl:ObjectProperty ;
+    rdfs:subPropertyOf :always_consequent .
+
+:precursor a owl:ObjectProperty ;
+    rdfs:domain :Erroneous ;
+    rdfs:range owl:Thing .
+
+:reason a owl:ObjectProperty ;
+    rdfs:domain :correct_act ;
+    rdfs:range owl:Thing .
+
+:reason_kind a owl:ObjectProperty ;
+    rdfs:domain owl:Thing ;
+    rdfs:range owl:Thing .
+
+:SequenceBegin a owl:ObjectProperty ;
+    rdfs:subPropertyOf :always_consequent .
+
+:SequenceEnd a owl:ObjectProperty ;
+    rdfs:subPropertyOf :always_consequent .
+
+:SequenceNext a owl:ObjectProperty ;
+    rdfs:subPropertyOf :always_consequent .
+
+:should_be a owl:ObjectProperty ;
+    rdfs:domain :Erroneous ;
+    rdfs:range owl:Thing .
+
+:should_be_after a owl:ObjectProperty ;
+    rdfs:domain :Erroneous ;
+    rdfs:range owl:Thing .
+
+:should_be_before a owl:ObjectProperty ;
+    rdfs:domain :Erroneous ;
+    rdfs:range owl:Thing .
+
+:StmtEnd a owl:ObjectProperty ;
+    rdfs:subPropertyOf :always_consequent .
+
+:student_corresponding_end a owl:ObjectProperty ;
+    rdfs:domain :act_begin ;
+    rdfs:range :act_end .
+
+:student_next a owl:ObjectProperty ;
+    rdfs:domain :act ;
+    rdfs:range owl:Thing .
+
+:student_next_latest a owl:ObjectProperty ;
+    rdfs:subPropertyOf :student_next ;
+    rdfs:domain :act ;
+    rdfs:range :act .
+
+:student_parent_of a owl:InverseFunctionalProperty,
+        owl:ObjectProperty ;
+    rdfs:domain owl:Thing ;
+    rdfs:range owl:Thing .
+
+:to_reason a owl:ObjectProperty ;
+    rdfs:domain owl:Thing ;
+    rdfs:range owl:Thing .
+
+:update a owl:ObjectProperty ;
+    rdfs:subPropertyOf :parent_of .
+
+:wrong_next_act a owl:ObjectProperty ;
+    rdfs:domain owl:Thing ;
+    rdfs:range owl:Thing .
+
+### Annotation Properties
+
+:act_class a owl:AnnotationProperty .
+
+:act_kind a owl:AnnotationProperty .
+
+:action_kind a owl:AnnotationProperty .
+
+:atom_action a owl:AnnotationProperty .
+
+:continues_on_true_condition a owl:AnnotationProperty .
+
+:EN.localizedName a owl:AnnotationProperty .
+
+:has_bitflags a owl:AnnotationProperty .
+
+:has_interrupt_kind a owl:AnnotationProperty .
+
+:has_role a owl:AnnotationProperty .
+
+:involves_concept a owl:AnnotationProperty .
+
+:law_bitflags a owl:AnnotationProperty .
+
+:principal_violation a owl:AnnotationProperty .
+
+:RU.localizedName a owl:AnnotationProperty .
+
+skos:broader a owl:AnnotationProperty ;
+    rdfs:domain owl:Thing ;
+    rdfs:range owl:Thing .
+
+### Data Properties
+
+:depth a owl:DatatypeProperty,
+        owl:FunctionalProperty ;
+    rdfs:domain owl:Thing ;
+    rdfs:range xsd:integer .
+
+:exec_time a owl:DatatypeProperty,
+        owl:FunctionalProperty ;
+    rdfs:domain owl:Thing ;
+    rdfs:range xsd:integer .
+
+:executes_id a owl:DatatypeProperty,
+        owl:FunctionalProperty ;
+    rdfs:domain :act ;
+    rdfs:range xsd:integer .
+
+:expr_value a owl:DatatypeProperty,
+        owl:FunctionalProperty .
+
+:field_A a owl:DatatypeProperty ;
+    skos:broader :string_placeholder .
+
+:field_ALT a owl:DatatypeProperty ;
+    skos:broader :string_placeholder .
+
+:field_ALT_COND a owl:DatatypeProperty ;
+    skos:broader :string_placeholder .
+
+:field_BEGIN a owl:DatatypeProperty ;
+    skos:broader :string_placeholder .
+
+:field_BRANCH a owl:DatatypeProperty ;
+    skos:broader :string_placeholder .
+
+:field_BRANCH2 a owl:DatatypeProperty ;
+    skos:broader :string_placeholder .
+
+:field_COND a owl:DatatypeProperty ;
+    skos:broader :string_placeholder .
+
+:field_CONTEXT a owl:DatatypeProperty ;
+    skos:broader :string_placeholder .
+
+:field_CURRENT_ALT_COND a owl:DatatypeProperty ;
+    skos:broader :string_placeholder .
+
+:field_EXPECTED_ALT_COND a owl:DatatypeProperty ;
+    skos:broader :string_placeholder .
+
+:field_EXPECTED_BRANCH a owl:DatatypeProperty ;
+    skos:broader :string_placeholder .
+
+:field_EXTRA a owl:DatatypeProperty ;
+    skos:broader :string_placeholder .
+
+:field_INIT a owl:DatatypeProperty ;
+    skos:broader :string_placeholder .
+
+:field_INNER a owl:DatatypeProperty ;
+    skos:broader :string_placeholder .
+
+:field_kind_of_action a owl:DatatypeProperty ;
+    skos:broader :string_placeholder .
+
+:field_kind_of_loop a owl:DatatypeProperty ;
+    skos:broader :string_placeholder .
+
+:field_LATEST_ALT_COND a owl:DatatypeProperty ;
+    skos:broader :string_placeholder .
+
+:field_LOOP a owl:DatatypeProperty ;
+    skos:broader :string_placeholder .
+
+:field_LOOP_COND a owl:DatatypeProperty ;
+    skos:broader :string_placeholder .
+
+:field_MISSING a owl:DatatypeProperty ;
+    skos:broader :string_placeholder .
+
+:field_NEXT a owl:DatatypeProperty ;
+    skos:broader :string_placeholder .
+
+:field_NEXT_COND a owl:DatatypeProperty ;
+    skos:broader :string_placeholder .
+
+:field_PARENT a owl:DatatypeProperty ;
+    skos:broader :string_placeholder .
+
+:field_PREVIOUS a owl:DatatypeProperty ;
+    skos:broader :string_placeholder .
+
+:field_REQUIRED_COND a owl:DatatypeProperty ;
+    skos:broader :string_placeholder .
+
+:field_SEQ a owl:DatatypeProperty ;
+    skos:broader :string_placeholder .
+
+:field_TrueFalse a owl:DatatypeProperty ;
+    skos:broader :string_placeholder .
+
+:field_UNEXPECTED_ALT_COND a owl:DatatypeProperty ;
+    skos:broader :string_placeholder .
+
+:field_UNEXPECTED_BRANCH a owl:DatatypeProperty ;
+    skos:broader :string_placeholder .
+
+:field_UPDATE a owl:DatatypeProperty ;
+    skos:broader :string_placeholder .
+
+:func_args a owl:DatatypeProperty ;
+    rdfs:domain owl:Thing ;
+    rdfs:range xsd:string .
+
+:func_id a owl:DatatypeProperty ;
+    rdfs:domain :action,
+        :func_call ;
+    rdfs:range xsd:integer .
+
+:func_name a owl:DatatypeProperty ;
+    rdfs:domain owl:Thing ;
+    rdfs:range xsd:string .
+
+:id a owl:DatatypeProperty,
+        owl:FunctionalProperty ;
+    rdfs:domain owl:Thing ;
+    rdfs:range xsd:integer .
+
+:index a owl:DatatypeProperty,
+        owl:FunctionalProperty ;
+    rdfs:domain owl:Thing ;
+    rdfs:range xsd:integer .
+
+:item_index a owl:DatatypeProperty,
+        owl:FunctionalProperty ;
+    rdfs:domain owl:Thing ;
+    rdfs:range xsd:integer .
+
+:iteration_n a owl:DatatypeProperty,
+        owl:FunctionalProperty ;
+    rdfs:domain :act ;
+    rdfs:range xsd:integer .
+
+:merge_child_begin_act a owl:DatatypeProperty ;
+    rdfs:domain :action ;
+    rdfs:range xsd:boolean .
+
+:merge_child_end_act a owl:DatatypeProperty ;
+    rdfs:domain :action ;
+    rdfs:range xsd:boolean .
+
+:stmt_name a owl:DatatypeProperty,
+        owl:FunctionalProperty ;
+    rdfs:domain owl:Thing ;
+    rdfs:range xsd:string .
+
+:string_placeholder a owl:DatatypeProperty ;
+    rdfs:domain owl:Thing ;
+    rdfs:range xsd:string .
+
+:student_index a owl:DatatypeProperty,
+        owl:FunctionalProperty ;
+    rdfs:domain owl:Thing ;
+    rdfs:range xsd:integer .
+
+:student_iteration_n a owl:DatatypeProperty,
+        owl:FunctionalProperty ;
+    rdfs:domain :act ;
+    rdfs:range xsd:integer .
+
+:text_line a owl:DatatypeProperty,
+        owl:FunctionalProperty ;
+    rdfs:domain owl:Thing ;
+    rdfs:range xsd:integer .
+
+### Classes
+
+:act a owl:Class ;
+    rdfs:subClassOf owl:Thing ;
+    :EN.localizedName "execution"^^xsd:string ;
+    :RU.localizedName "выполнение"^^xsd:string .
+
+:act_begin a owl:Class ;
+    rdfs:subClassOf :act ;
+    :EN.localizedName "the beginning of execution"^^xsd:string ;
+    :RU.localizedName "начало выполнения"^^xsd:string .
+
+:act_end a owl:Class ;
+    rdfs:subClassOf :act ;
+    :EN.localizedName "the ending of execution"^^xsd:string ;
+    :RU.localizedName "окочание выполнения"^^xsd:string .
+
+:action a owl:Class ;
+    rdfs:subClassOf owl:Thing ;
+    :atom_action false ;
+    :EN.localizedName "action"^^xsd:string ;
+    :RU.localizedName "действие"^^xsd:string .
+
+:algorithm a owl:Class ;
+    rdfs:subClassOf :boundary .
+
+:alt_branch a owl:Class ;
+    rdfs:subClassOf :sequence ;
+    :action_kind :sequence ;
+    :atom_action false ;
+    :EN.localizedName "branch"^^xsd:string ;
+    :RU.localizedName "ветка"^^xsd:string .
+
+:alternative a owl:Class ;
+    rdfs:subClassOf :action ;
+    :action_kind :alternative ;
+    :atom_action false ;
+    :EN.localizedName "selection statement"^^xsd:string ;
+    :RU.localizedName "развилка"^^xsd:string .
+
+:alternative_multi_with_else a owl:Class ;
+    rdfs:subClassOf :alternative ;
+    :atom_action false .
+
+:alternative_multi_without_else a owl:Class ;
+    rdfs:subClassOf :alternative ;
+    :atom_action false .
+
+:alternative_simple a owl:Class ;
+    rdfs:subClassOf :alternative ;
+    :atom_action false .
+
+:alternative_single_with_else a owl:Class ;
+    rdfs:subClassOf :alternative ;
+    :atom_action false .
+
+:AlternativeEndAfterTrueCondition a owl:Class ;
+    rdfs:subClassOf :ConditionMisuse .
+
+:AnotherExtraBranch a owl:Class ;
+    rdfs:subClassOf :NoAlternativeEndAfterBranch .
+
+:BadBeginOfTrace a owl:Class ;
+    rdfs:subClassOf :TooEarlyInSequence .
+
+:body_then_cond a owl:Class ;
+    rdfs:subClassOf :conditional_loop ;
+    :atom_action false .
+
+:boundary a owl:Class ;
+    rdfs:subClassOf owl:Thing .
+
+:BranchNotNextToCondition a owl:Class ;
+    rdfs:subClassOf :BranchWithoutCondition .
+
+:BranchOfFalseCondition a owl:Class ;
+    rdfs:subClassOf :ConditionMisuse .
+
+:BranchWithoutCondition a owl:Class ;
+    rdfs:subClassOf :Erroneous .
+
+:break a owl:Class ;
+    rdfs:label "break"^^xsd:string ;
+    rdfs:subClassOf :interrupt_action ;
+    :action_kind :stmt ;
+    :atom_action true ;
+    :EN.localizedName "operator"^^xsd:string ;
+    :has_interrupt_kind :break ;
+    :RU.localizedName "оператор"^^xsd:string .
+
+:call a owl:Class ;
+    rdfs:subClassOf owl:Thing .
+
+:cond_then_body a owl:Class ;
+    rdfs:subClassOf :conditional_loop ;
+    :atom_action false .
+
+:ConditionAfterBranch a owl:Class ;
+    rdfs:subClassOf :CondtionNotNextToPrevCondition,
+        :NoAlternativeEndAfterBranch .
+
+:conditional_loop a owl:Class ;
+    rdfs:subClassOf :loop ;
+    :atom_action false ;
+    :continues_on_true_condition true .
+
+:ConditionMisuse a owl:Class ;
+    rdfs:subClassOf :WrongNext ;
+    :law_bitflags 3 .
+
+:ConditionTooEarly a owl:Class ;
+    rdfs:subClassOf :CondtionNotNextToPrevCondition,
+        :NoFirstCondition,
+        :NoNextCondition .
+
+:ConditionTooLate a owl:Class ;
+    rdfs:subClassOf :CondtionNotNextToPrevCondition,
+        :NoNextCondition .
+
+:CondtionNotNextToPrevCondition a owl:Class ;
+    rdfs:subClassOf :Erroneous .
+
+:continue a owl:Class ;
+    rdfs:label "continue"^^xsd:string ;
+    rdfs:subClassOf :interrupt_action ;
+    :action_kind :stmt ;
+    :atom_action true ;
+    :EN.localizedName "operator"^^xsd:string ;
+    :has_interrupt_kind :continue ;
+    :RU.localizedName "оператор"^^xsd:string .
+
+:correct_act a owl:Class ;
+    rdfs:subClassOf :act .
+
+:CorrespondingEndMismatched a owl:Class ;
+    rdfs:subClassOf :Erroneous .
+
+:do_while_loop a owl:Class ;
+    rdfs:label "DO-WHILE"^^xsd:string ;
+    rdfs:subClassOf :body_then_cond,
+        :cond_then_body,
+        :start_with_body ;
+    :atom_action false ;
+    :EN.localizedName "DO-WHILE loop"^^xsd:string ;
+    :RU.localizedName "цикл DO-WHILE"^^xsd:string .
+
+:DuplicateOfAct a owl:Class ;
+    rdfs:subClassOf :Erroneous .
+
+:DuplicateOfCondition a owl:Class ;
+    rdfs:subClassOf :ConditionAfterBranch,
+        :CondtionNotNextToPrevCondition .
+
+:else a owl:Class ;
+    rdfs:subClassOf :alt_branch ;
+    :atom_action false ;
+    :EN.localizedName "ELSE branch"^^xsd:string ;
+    :RU.localizedName "ветка ELSE"^^xsd:string .
+
+:else-if a owl:Class ;
+    rdfs:subClassOf :alt_branch ;
+    :atom_action false ;
+    :EN.localizedName "ELSE-IF branch"^^xsd:string ;
+    :RU.localizedName "ветка ELSE-IF"^^xsd:string .
+
+:ElseBranchAfterTrueCondition a owl:Class ;
+    rdfs:subClassOf :BranchWithoutCondition,
+        :ConditionMisuse,
+        :ElseBranchNotNextToLastCondition .
+
+:ElseBranchNotNextToLastCondition a owl:Class ;
+    rdfs:subClassOf :BranchWithoutCondition .
+
+:EndedDeeper a owl:Class ;
+    rdfs:subClassOf :WrongContext .
+
+:EndedShallower a owl:Class ;
+    rdfs:subClassOf :CorrespondingEndMismatched,
+        :WrongContext .
+
+:Erroneous a owl:Class ;
+    rdfs:subClassOf owl:Thing .
+
+:expr a owl:Class ;
+    rdfs:subClassOf :action ;
+    :action_kind :expr ;
+    :atom_action true ;
+    :EN.localizedName "condition"^^xsd:string ;
+    :RU.localizedName "условие"^^xsd:string .
+
+:finish_trace_act a owl:Class ;
+    rdfs:subClassOf :act .
+
+:first_item a owl:Class ;
+    rdfs:subClassOf owl:Thing .
+
+:for_loop a owl:Class ;
+    rdfs:label "FOR"^^xsd:string ;
+    rdfs:subClassOf :cond_then_body,
+        :post_update_loop,
+        :start_with_init ;
+    :atom_action false ;
+    :EN.localizedName "FOR loop"^^xsd:string ;
+    :RU.localizedName "цикл FOR"^^xsd:string .
+
+:ForConditionAfterIteration a owl:Class ;
+    rdfs:subClassOf :UpdateNotAfterIteration .
+
+:foreach_loop a owl:Class ;
+    rdfs:label "FOREACH"^^xsd:string ;
+    rdfs:subClassOf :body_then_cond,
+        :pre_update_loop,
+        :start_with_cond ;
+    :atom_action false ;
+    :EN.localizedName "FOREACH loop"^^xsd:string ;
+    :RU.localizedName "цикл FOREACH"^^xsd:string .
+
+:ForeachUpdateNotAfterSuccessfulCondition a owl:Class ;
+    rdfs:subClassOf :Erroneous .
+
+:func a owl:Class ;
+    rdfs:subClassOf :action ;
+    :action_kind :func ;
+    :atom_action false .
+
+:func_call a owl:Class ;
+    rdfs:subClassOf :action ;
+    :action_kind :call ;
+    :atom_action false .
+
+:if a owl:Class ;
+    rdfs:subClassOf :alt_branch ;
+    :atom_action false ;
+    :EN.localizedName "IF branch"^^xsd:string ;
+    :RU.localizedName "ветка IF"^^xsd:string .
+
+:IgnoreInterruptingFlow a owl:Class ;
+    rdfs:subClassOf :UnexpectedWhenInterrupting .
+
+:implicit_act a owl:Class ;
+    rdfs:subClassOf :act .
+
+:infinite_loop a owl:Class ;
+    rdfs:subClassOf :unconditional_loop ;
+    :atom_action false .
+
+:InitNotAtLoopStart a owl:Class ;
+    rdfs:subClassOf :Erroneous .
+
+:interrupt_action a owl:Class ;
+    rdfs:subClassOf :action ;
+    :action_kind :stmt ;
+    :atom_action true .
+
+:IterationAfterFailedCondition a owl:Class ;
+    rdfs:subClassOf :LoopContinuedAfterFailedCondition .
+
+:IterationAfterForInit a owl:Class ;
+    rdfs:subClassOf :NoConditionAfterForInit .
+
+:IterationNotAfterForeachUpdate a owl:Class ;
+    rdfs:subClassOf :Erroneous .
+
+:last_item a owl:Class ;
+    rdfs:subClassOf owl:Thing .
+
+:LastConditionIsFalseButNoElse a owl:Class ;
+    rdfs:subClassOf :Erroneous .
+
+:LastFalseNoEnd a owl:Class ;
+    rdfs:subClassOf :Erroneous .
+
+:linked_list a owl:Class ;
+    rdfs:subClassOf owl:Thing .
+
+:loop a owl:Class ;
+    rdfs:subClassOf :action ;
+    :action_kind :loop ;
+    :atom_action false ;
+    :EN.localizedName "loop"^^xsd:string ;
+    :RU.localizedName "цикл"^^xsd:string .
+
+:loop_body a owl:Class ;
+    rdfs:subClassOf :sequence ;
+    :action_kind :sequence ;
+    :atom_action false ;
+    :EN.localizedName "iteration"^^xsd:string ;
+    :RU.localizedName "итерация"^^xsd:string .
+
+:loop_with_initialization a owl:Class ;
+    rdfs:subClassOf :loop_with_pre_condition ;
+    :atom_action false .
+
+:loop_with_post_condition a owl:Class ;
+    rdfs:subClassOf :conditional_loop ;
+    :atom_action false .
+
+:loop_with_pre_condition a owl:Class ;
+    rdfs:subClassOf :conditional_loop ;
+    :atom_action false .
+
+:LoopContinuedAfterFailedCondition a owl:Class ;
+    rdfs:subClassOf :ConditionMisuse,
+        :NoLoopEndAfterFailedCondition .
+
+:LoopEndAfterSuccessfulCondition a owl:Class ;
+    rdfs:subClassOf :ConditionMisuse,
+        :NoIterationAfterSuccessfulCondition .
+
+:LoopEndsWithoutCondition a owl:Class ;
+    rdfs:subClassOf :Erroneous .
+
+:LoopStartIsNotCondition a owl:Class ;
+    rdfs:subClassOf :Erroneous .
+
+:LoopStartIsNotIteration a owl:Class ;
+    rdfs:subClassOf :Erroneous .
+
+:LoopStartsNotWithInit a owl:Class ;
+    rdfs:subClassOf :Erroneous .
+
+:MisplacedDeeper a owl:Class ;
+    rdfs:subClassOf :WrongContext .
+
+:NeighbourhoodError a owl:Class ;
+    rdfs:subClassOf :WrongNext .
+
+:NoAlternativeEndAfterBranch a owl:Class ;
+    rdfs:subClassOf :Erroneous .
+
+:NoBranchWhenConditionIsTrue a owl:Class ;
+    rdfs:subClassOf :ConditionMisuse .
+
+:NoConditionAfterForInit a owl:Class ;
+    rdfs:subClassOf :Erroneous .
+
+:NoConditionAfterForUpdate a owl:Class ;
+    rdfs:subClassOf :Erroneous .
+
+:NoConditionAfterIteration a owl:Class ;
+    rdfs:subClassOf :Erroneous .
+
+:NoConditionBetweenIterations a owl:Class ;
+    rdfs:subClassOf :NoConditionAfterIteration .
+
+:NoFirstCondition a owl:Class ;
+    rdfs:subClassOf :Erroneous .
+
+:NoForeachUpdateAfterSuccessfulCondition a owl:Class ;
+    rdfs:subClassOf :Erroneous .
+
+:NoIterationAfterForeachUpdate a owl:Class ;
+    rdfs:subClassOf :Erroneous .
+
+:NoIterationAfterSuccessfulCondition a owl:Class ;
+    rdfs:subClassOf :Erroneous .
+
+:NoLoopEndAfterFailedCondition a owl:Class ;
+    rdfs:subClassOf :Erroneous .
+
+:NoNextCondition a owl:Class ;
+    rdfs:subClassOf :Erroneous .
+
+:normal_flow_correct_act a owl:Class ;
+    rdfs:subClassOf :correct_act .
+
+:NotNeighbour a owl:Class ;
+    rdfs:subClassOf :NeighbourhoodError .
+
+:NoUpdateAfterIteration a owl:Class ;
+    rdfs:subClassOf :Erroneous .
+
+:ntimes_loop a owl:Class ;
+    rdfs:subClassOf :unconditional_loop ;
+    :atom_action false .
+
+:OneLevelShallower a owl:Class ;
+    rdfs:subClassOf :WrongContext .
+
+:post_update_loop a owl:Class ;
+    rdfs:subClassOf :loop_with_initialization ;
+    owl:disjointWith :pre_update_loop ;
+    :atom_action false .
+
+:pre_update_loop a owl:Class ;
+    rdfs:subClassOf :loop_with_initialization ;
+    :atom_action false .
+
+:return a owl:Class ;
+    rdfs:label "return"^^xsd:string ;
+    rdfs:subClassOf :interrupt_action ;
+    :action_kind :stmt ;
+    :atom_action true ;
+    :EN.localizedName "operator"^^xsd:string ;
+    :has_interrupt_kind :return ;
+    :RU.localizedName "оператор"^^xsd:string .
+
+:sequence a owl:Class ;
+    rdfs:subClassOf :action ;
+    :action_kind :sequence ;
+    :atom_action false ;
+    :EN.localizedName "sequence"^^xsd:string ;
+    :RU.localizedName "последовательность"^^xsd:string .
+
+:SequenceFinishedNotInOrder a owl:Class ;
+    rdfs:subClassOf :Erroneous .
+
+:SequenceFinishedTooEarly a owl:Class ;
+    rdfs:subClassOf :SequenceFinishedNotInOrder .
+
+:start_with_body a owl:Class ;
+    rdfs:subClassOf :loop_with_post_condition ;
+    :atom_action false .
+
+:start_with_cond a owl:Class ;
+    rdfs:subClassOf :loop_with_pre_condition ;
+    :atom_action false .
+
+:start_with_init a owl:Class ;
+    rdfs:subClassOf :loop_with_pre_condition ;
+    :atom_action false .
+
+:stmt a owl:Class ;
+    rdfs:subClassOf :action ;
+    :action_kind :stmt ;
+    :atom_action true ;
+    :EN.localizedName "statement"^^xsd:string ;
+    :RU.localizedName "действие"^^xsd:string .
+
+:stmt_with_calls a owl:Class ;
+    rdfs:subClassOf :action ;
+    :action_kind :stmt_with_calls ;
+    :atom_action false .
+
+:TooEarlyInSequence a owl:Class ;
+    rdfs:subClassOf :WrongNext .
+
+:TooEarlyWhenInterrupting a owl:Class ;
+    rdfs:subClassOf :UpcomingNeighbour .
+
+:TooLateInSequence a owl:Class ;
+    rdfs:subClassOf :WrongNext .
+
+:trace a owl:Class ;
+    rdfs:subClassOf :act_begin ;
+    :EN.localizedName "the beginning of the trace execution"^^xsd:string ;
+    :RU.localizedName "начало трассы выполнения"^^xsd:string .
+
+:unconditional_loop a owl:Class ;
+    rdfs:subClassOf :loop ;
+    :atom_action false .
+
+:UnexpectedWhenInterrupting a owl:Class ;
+    rdfs:subClassOf :NotNeighbour .
+
+:UpcomingNeighbour a owl:Class ;
+    rdfs:subClassOf :NeighbourhoodError .
+
+:UpdateNotAfterIteration a owl:Class ;
+    rdfs:subClassOf :Erroneous .
+
+:while_loop a owl:Class ;
+    rdfs:label "WHILE"^^xsd:string ;
+    rdfs:subClassOf :body_then_cond,
+        :cond_then_body,
+        :start_with_cond ;
+    :atom_action false ;
+    :EN.localizedName "WHILE loop"^^xsd:string ;
+    :RU.localizedName "цикл WHILE"^^xsd:string .
+
+:WrongCondNeighbour a owl:Class ;
+    rdfs:subClassOf :ConditionMisuse,
+        :NotNeighbour .
+
+:WrongContext a owl:Class ;
+    rdfs:subClassOf :Erroneous .
+
+:WrongNext a owl:Class ;
+    rdfs:subClassOf :Erroneous .
+
+### Serialized using the ttlser deterministic serializer v1.2.1

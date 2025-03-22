@@ -8,4 +8,13 @@
       </database-info>
     </database-infos>
   </component>
+  <component name="PersistenceUnitSettings">
+    <persistence-units>
+      <persistence-unit name="Default" defaultIncludeChangeLogFile="modules/server/src/main/resources/db/changelog/db.changelog-master.xml">
+        <packages>
+          <package value="org.vstu.compprehension" />
+        </packages>
+      </persistence-unit>
+    </persistence-units>
+  </component>
 </project>

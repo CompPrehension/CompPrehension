@@ -1,0 +1,19 @@
+{
+  "compilerOptions": {
+    "lib": ["dom", "esnext", "es2018.promise"],
+    "experimentalDecorators": true,
+    "emitDecoratorMetadata": true,
+    "strict": true,
+    "moduleResolution": "Node",
+    "module": "esnext",
+    "target": "es6",
+    "jsx": "react",
+    "allowJs": true,
+    "allowSyntheticDefaultImports": true,
+    "useDefineForClassFields": true,
+    "sourceMap": true,
+    "skipLibCheck": true,
+  },
+  "include": ["src/main/js/**/*"],
+  "exclude": ["node_modules"],
+}

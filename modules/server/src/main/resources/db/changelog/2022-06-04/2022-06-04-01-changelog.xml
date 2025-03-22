@@ -1,0 +1,87 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<databaseChangeLog
+        xmlns="http://www.liquibase.org/xml/ns/dbchangelog"
+        xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance"
+        xsi:schemaLocation="http://www.liquibase.org/xml/ns/dbchangelog
+                      http://www.liquibase.org/xml/ns/dbchangelog/dbchangelog-4.5.xsd"
+        objectQuotingStrategy="QUOTE_ONLY_RESERVED_WORDS">
+    <changeSet id="1654357132418-1" author="Artem Prokudin">
+        <createTable tableName="survey_answers">
+            <column name="survey_question_id" type="BIGINT">
+                <constraints nullable="false" primaryKey="true" primaryKeyName="pk_surveyanswers"/>
+            </column>
+            <column name="question_id" type="BIGINT">
+                <constraints nullable="false" primaryKey="true" primaryKeyName="pk_surveyanswers"/>
+            </column>
+            <column name="user_id" type="BIGINT">
+                <constraints nullable="false" primaryKey="true" primaryKeyName="pk_surveyanswers"/>
+            </column>
+            <column name="result" type="VARCHAR(255)"/>
+        </createTable>
+    </changeSet>
+    <changeSet id="1654357132418-2" author="Artem Prokudin">
+        <createTable tableName="survey_questions">
+            <column autoIncrement="true" name="id" type="BIGINT">
+                <constraints nullable="false" primaryKey="true" primaryKeyName="pk_surveyquestions"/>
+            </column>
+            <column name="type" type="VARCHAR(100)">
+                <constraints nullable="false"/>
+            </column>
+            <column name="text" type="TEXT">
+                <constraints nullable="false"/>
+            </column>
+            <column name="options_json" type="json">
+                <constraints nullable="false"/>
+            </column>
+            <column name="survey_id" type="VARCHAR(255)"/>
+        </createTable>
+    </changeSet>
+    <changeSet id="1654357132418-3" author="Artem Prokudin">
+        <createTable tableName="surveys">
+            <column name="id" type="VARCHAR(255)">
+                <constraints nullable="false" primaryKey="true" primaryKeyName="pk_surveys"/>
+            </column>
+            <column name="name" type="VARCHAR(255)">
+                <constraints nullable="false"/>
+            </column>
+        </createTable>
+    </changeSet>
+    <changeSet id="1654357132418-6" author="Artem Prokudin">
+        <addForeignKeyConstraint baseColumnNames="question_id" baseTableName="survey_answers"
+                                 constraintName="FK_SURVEYANSWERS_ON_QUESTION" referencedColumnNames="id"
+                                 referencedTableName="question"/>
+    </changeSet>
+    <changeSet id="1654357132418-7" author="Artem Prokudin">
+        <addForeignKeyConstraint baseColumnNames="survey_question_id" baseTableName="survey_answers"
+                                 constraintName="FK_SURVEYANSWERS_ON_SURVEY_QUESTION" referencedColumnNames="id"
+                                 referencedTableName="survey_questions"/>
+    </changeSet>
+    <changeSet id="1654357132418-8" author="Artem Prokudin">
+        <addForeignKeyConstraint baseColumnNames="user_id" baseTableName="survey_answers"
+                                 constraintName="FK_SURVEYANSWERS_ON_USER" referencedColumnNames="id"
+                                 referencedTableName="user"/>
+    </changeSet>
+    <changeSet id="1654357132418-9" author="Artem Prokudin">
+        <addForeignKeyConstraint baseColumnNames="survey_id" baseTableName="survey_questions"
+                                 constraintName="FK_SURVEYQUESTIONS_ON_SURVEY" referencedColumnNames="id"
+                                 referencedTableName="surveys"/>
+    </changeSet>
+    <changeSet id="1654357132418-10" author="Artem Prokudin">
+        <insert tableName="surveys">
+            <column name="id" value="IsCreatedByHuman"/>
+            <column name="name" value="Опрос для определения, сделан ли вопрос человеком или программным способом"/>
+        </insert>
+        <insert tableName="survey_questions">
+            <column name="survey_id" value="IsCreatedByHuman"/>
+            <column name="text" value="Как Вы думаете, был ли вопрос сгенерирован человеком или машиной?" />
+            <column name="type" value="yes-no" />
+            <column name="options_json" value='{"yesText":"машина","yesValue":"1","noText":"человек","noValue":"0"}' />
+        </insert>
+    </changeSet>
+    <changeSet id="1654357132418-11" author="Artem Prokudin">
+        <update tableName="exercise">
+            <column name="options_json" value='{"newQuestionGenerationEnabled":true,"supplementaryQuestionsEnabled":true,"correctAnswerGenerationEnabled":true,"surveyOptions":{"enabled":true,"surveyId":"IsCreatedByHuman"}}' />
+            <where>id = 6 or id = 10</where>
+        </update>
+    </changeSet>
+</databaseChangeLog>
