@@ -12,7 +12,6 @@ import org.vstu.compprehension.models.businesslogic.domains.ProgrammingLanguageE
 import org.vstu.compprehension.models.businesslogic.storage.SerializableQuestion;
 import org.vstu.compprehension.models.businesslogic.storage.SerializableQuestionTemplate;
 import org.vstu.compprehension.models.entities.BackendFactEntity;
-import org.vstu.compprehension.models.entities.EnumData.Language;
 import org.vstu.compprehension.models.entities.EnumData.QuestionType;
 import org.vstu.compprehension.models.entities.QuestionMetadataEntity;
 import org.vstu.compprehension.models.entities.QuestionOptions.OrderQuestionOptionsEntity;
@@ -101,10 +100,9 @@ public class MeaningTreeOrderQuestionBuilder {
     /***
      * Построить новый вопрос из старого с помощью MeaningTree
      * @param q объект вопроса
-     * @param domain поддерживаемый домен
      * @return построитель вопроса
      */
-    public static MeaningTreeOrderQuestionBuilder fromExistingQuestion(Question q, ProgrammingLanguageExpressionDTDomain domain) {
+    public MeaningTreeOrderQuestionBuilder existingQuestion(Question q) {
         MeaningTree mt;
         if (q.getMetadata().getVersion() >= MIN_VERSION) {
             mt = MeaningTreeRDFHelper.backendFactsToMeaningTree(
@@ -114,11 +112,10 @@ public class MeaningTreeOrderQuestionBuilder {
             log.info("Converting old-format question with metadata id={}", q.getMetadata().getId());
             mt = extractExpression(q.getQuestionData().getStatementFacts());
         }
-        MeaningTreeOrderQuestionBuilder builder = new MeaningTreeOrderQuestionBuilder(domain);
-        builder.sourceExpressionTree = mt;
-        builder.existingMetadata = q.getMetadata();
-        builder.questionOrigin(q.getMetadata().getOrigin(), q.getMetadata().getOriginLicense());
-        return builder;
+        sourceExpressionTree = mt;
+        existingMetadata = q.getMetadata();
+        questionOrigin(q.getMetadata().getOrigin(), q.getMetadata().getOriginLicense());
+        return this;
     }
 
     // Извлечение выражения из существующего вопроса в старом формате и превращение его в общее дерево
@@ -182,30 +179,19 @@ public class MeaningTreeOrderQuestionBuilder {
         return SupportedLanguage.CPP;
     }
 
-    /**
-     * Создать новый вопрос из выражения
-     * @param expression строковое представление выражения
-     * @param language язык программирования
-     * @param domain домен, для которого создаем вопрос
-     * @return построитель вопроса
-     */
-    public static MeaningTreeOrderQuestionBuilder newQuestion(String expression,
-                                                              SupportedLanguage language,
-                                                              ProgrammingLanguageExpressionDTDomain domain) {
-        MeaningTreeOrderQuestionBuilder builder = new MeaningTreeOrderQuestionBuilder(domain);
+    public MeaningTreeOrderQuestionBuilder expression(String expression, SupportedLanguage language) {
         try {
-            builder.sourceExpressionTree = language.createTranslator(new MeaningTreeDefaultExpressionConfig()).getMeaningTree(expression);
-            return builder;
+            sourceExpressionTree = language.createTranslator(new MeaningTreeDefaultExpressionConfig()).getMeaningTree(expression);
+            return this;
         } catch (NoSuchMethodException | InvocationTargetException | InstantiationException | IllegalAccessException e) {
             throw new MeaningTreeException("Cannot create source translator with ".concat(language.toString()));
         }
-
     }
 
     public static QuestionMetadataEntity metadataRecalculate(ProgrammingLanguageExpressionDTDomain domain,
                                                                                     QuestionMetadataEntity qMeta) {
         Question q = qMeta.getQuestionData().getData().toQuestion(domain, qMeta);
-        MeaningTreeOrderQuestionBuilder builder = MeaningTreeOrderQuestionBuilder.fromExistingQuestion(q, domain);
+        MeaningTreeOrderQuestionBuilder builder = MeaningTreeOrderQuestionBuilder.newQuestion(domain).existingQuestion(q);
         SupportedLanguage language = detectLanguageFromTags(qMeta.getTagBits(), domain);
         builder.processTokensDebug(language);
         if (!builder.allChecksArePassed) {
@@ -259,15 +245,17 @@ public class MeaningTreeOrderQuestionBuilder {
 
     /**
      * Построить новый вопрос из общего дерева под заданный язык
-     * @param mt общее дерево
-     * @param language заданный язык программирования
      * @param domain домен, под который будет осуществляться генерация
      * @return построитель вопроса
      */
-    public static MeaningTreeOrderQuestionBuilder newQuestion(MeaningTree mt, SupportedLanguage language, ProgrammingLanguageExpressionDTDomain domain) {
+    public static MeaningTreeOrderQuestionBuilder newQuestion(ProgrammingLanguageExpressionDTDomain domain) {
         MeaningTreeOrderQuestionBuilder builder = new MeaningTreeOrderQuestionBuilder(domain);
-        builder.sourceExpressionTree = mt;
         return builder;
+    }
+
+    public MeaningTreeOrderQuestionBuilder meaningTree(MeaningTree mt) {
+        sourceExpressionTree = mt;
+        return this;
     }
 
     /**
@@ -278,8 +266,8 @@ public class MeaningTreeOrderQuestionBuilder {
      * @return сгенерированный вопрос
      */
     public static Question fastBuildFromExisting(Question data, SupportedLanguage lang, ProgrammingLanguageExpressionDTDomain domain) {
-        return MeaningTreeOrderQuestionBuilder.fromExistingQuestion(data, domain)
-                .buildQuestion(lang).getFirst();
+        return MeaningTreeOrderQuestionBuilder.newQuestion(domain).existingQuestion(data)
+                .buildQuestions(lang).getFirst();
     }
 
     /**
@@ -337,7 +325,7 @@ public class MeaningTreeOrderQuestionBuilder {
      * @param lang язык, под который нужно сгенерировать вопрос
      * @return
      */
-    public List<Question> buildQuestion(SupportedLanguage lang) {
+    public List<Question> buildQuestions(SupportedLanguage lang) {
         return build(lang).stream().map(
                 (Pair<SerializableQuestion, SerializableQuestionTemplate.QuestionMetadata> q) ->
                         q.getKey().toQuestion(domain, q.getValue().toMetadataEntity())).toList();
@@ -404,7 +392,7 @@ public class MeaningTreeOrderQuestionBuilder {
             return List.of(generateFromTemplate(language));
         }
         List<Pair<SerializableQuestion, SerializableQuestionTemplate.QuestionMetadata>> generated = new ArrayList<>();
-        OperandEvaluationMap map = new OperandEvaluationMap(this, language);
+        OperandRuntimeValueGenerator map = new OperandRuntimeValueGenerator(this, language);
         List<Pair<MeaningTree, Integer>> generatedValues = map.generate();
         MeaningTree initial = sourceExpressionTree;
         for (Pair<MeaningTree, Integer> pair : generatedValues) {
@@ -1179,60 +1167,4 @@ public class MeaningTreeOrderQuestionBuilder {
         return set;
     }
 
-    /**
-     * Создание текста вопроса, рекомендуемое для вызова перед выдачей вопроса
-     * @param tokens токены результирующего вопроса
-     * @param domain домен, для которого генерируется
-     * @param lang язык локализации пользователя
-     * @return строка вопроса в HTML
-     */
-    static String questionToHtml(TokenList tokens,
-                                 ProgrammingLanguageExpressionDTDomain domain,
-                                 Language lang, int metaId
-    ) {
-        StringBuilder sb = new StringBuilder();
-        sb.append(domain.getMessage("BASE_QUESTION_TEXT", lang));
-        sb.append("<p class='comp-ph-expr'>");
-        HashMap<Integer, Integer> complexEndingsIds = new HashMap<>();
-        int idx = 0;
-        int answerIdx = -1;
-        for (Token t: tokens) {
-            String tokenValue = t.value;
-            if (t instanceof OperatorToken) {
-                sb.append("<span data-comp-ph-pos='").append(++idx).append("' id='answer_")
-                        .append(complexEndingsIds.containsKey(idx - 1) ? complexEndingsIds.get(idx - 1) : ++answerIdx)
-                        .append("' class='comp-ph-expr-op-btn'").append(">").append(tokenValue).append("</span>");
-
-                if (t instanceof ComplexOperatorToken complex && complex.isOpening()) {
-                    int pos = tokens.findClosingComplex(idx - 1);
-                    if (pos != -1) {
-                        complexEndingsIds.put(pos, answerIdx);
-                    }
-                }
-            } else {
-                sb.append("<span data-comp-ph-pos='").append(++idx).append("' class='comp-ph-expr-const'").append(">").append(tokenValue).append("</span>");
-            }
-        }
-
-        sb.append("<br/><button data-comp-ph-pos='").append(++idx).append("' id='answer_").append(++answerIdx).append("' class='btn comp-ph-complete-btn' data-comp-ph-value=''>").append(
-                lang != null && domain != null ? domain.getMessage("student_end_evaluation", lang) : "everything is evaluated"
-        ).append("</button>");
-
-        sb.append("<!-- Original expression: ");
-        sb.append(tokens.stream().map((Token t) -> t.value).collect(Collectors.joining(" ")));
-        sb.append(' ');
-        sb.append("-->");
-        sb.append("<!-- Metadata id: ");
-        sb.append(metaId);
-        sb.append("-->");
-        sb.append("</p>");
-        String text = sb.toString();
-
-        sb = new StringBuilder(text
-                .replaceAll("\\*", "&#8727")
-                .replaceAll("\\n", "<br>")
-                .replaceAll("\\t", "&nbsp;&nbsp;&nbsp;&nbsp;"));
-        sb.insert(0, "<div class='comp-ph-question'>"); sb.append("</div>");
-        return sb.toString();
-    }
 }

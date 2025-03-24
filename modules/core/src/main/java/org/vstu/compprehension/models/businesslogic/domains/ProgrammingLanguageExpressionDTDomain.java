@@ -495,7 +495,9 @@ public class ProgrammingLanguageExpressionDTDomain extends DecisionTreeReasoning
                         }
                     }
 
-                    builder = MeaningTreeOrderQuestionBuilder.newQuestion(mt, currentLang, this).questionOrigin(origin, license);
+                    builder = MeaningTreeOrderQuestionBuilder.newQuestion(this)
+                            .meaningTree(mt)
+                            .questionOrigin(origin, license);
                 } else if (parsedQuestionName.endsWith(".ttl")) {
                     for (SupportedLanguage language : SupportedLanguage.getMap().keySet()) {
                         String languageStr = language.toString().toLowerCase();
@@ -545,8 +547,9 @@ public class ProgrammingLanguageExpressionDTDomain extends DecisionTreeReasoning
                 log.debug("Creating questions for template: {}", templateName);
                 if (builder == null) {
                     builder =
-                            MeaningTreeOrderQuestionBuilder.
-                                    newQuestion(expressionText, currentLang, this)
+                            MeaningTreeOrderQuestionBuilder
+                                    .newQuestion(this)
+                                    .expression(expressionText, currentLang)
                                     .questionOrigin(origin, license);
                 }
 
