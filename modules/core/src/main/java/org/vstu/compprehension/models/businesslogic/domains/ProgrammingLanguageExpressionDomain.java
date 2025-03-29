@@ -1416,7 +1416,7 @@ public class ProgrammingLanguageExpressionDomain extends JenaReasoningDomain {
                     correctAnswer.question = q.getQuestionData();
                     correctAnswer.answers = answers;
                     correctAnswer.lawName = answerImpl.lawName;
-                    correctAnswer.explanation = getCorrectExplanation(q, answer);
+                    correctAnswer.explanation = new Explanation(getCorrectExplanation(q, answer), Explanation.Type.HINT);
                     return correctAnswer;
                 }
             }
@@ -2075,12 +2075,12 @@ public class ProgrammingLanguageExpressionDomain extends JenaReasoningDomain {
     }
 
     @Override
-    public List<HyperText> makeExplanation(List<ViolationEntity> mistakes, FeedbackType feedbackType, Language lang) {
-        ArrayList<HyperText> result = new ArrayList<>();
+    public Explanation makeExplanation(List<ViolationEntity> mistakes, FeedbackType feedbackType, Language lang) {
+        ArrayList<Explanation> result = new ArrayList<>();
         for (ViolationEntity mistake : mistakes) {
-            result.add(makeExplanation(mistake, feedbackType, lang));
+            result.add(new Explanation(makeExplanation(mistake, feedbackType, lang).getText(), Explanation.Type.ERROR));
         }
-        return result;
+        return new Explanation("", Explanation.Type.ERROR, result);
     }
 
     private String getOperatorTextDescription(String errorText, Language lang) {

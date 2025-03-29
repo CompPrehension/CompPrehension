@@ -342,7 +342,7 @@ public class ProgrammingLanguageExpressionRDFTransformer {
         int tokenPrecedence = baseToken.getProperty(precedenceProperty).getInt();
         return new ParsedClassName(
             possibleClasses.stream()
-                .filter(classDef -> Integer.valueOf(tokenPrecedence).equals(classDef.getPropertyValue("precedence")))
+                .filter(classDef -> Integer.valueOf(tokenPrecedence).equals(classDef.getPropertyValue("precedence", Map.of())))
                 .findFirst()
                 .map(ClassDef::getName)
                 .orElseThrow()

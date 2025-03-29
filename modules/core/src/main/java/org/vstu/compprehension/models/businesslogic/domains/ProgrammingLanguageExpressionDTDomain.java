@@ -7,9 +7,14 @@ import its.model.DomainSolvingModel;
 import its.model.definition.DomainModel;
 import its.model.definition.EnumValueRef;
 import its.model.definition.ObjectDef;
+import its.model.nodes.AggregationMethod;
+import its.model.nodes.AggregationNode;
+import its.model.nodes.BranchResultNode;
 import its.model.nodes.DecisionTree;
 import its.questions.gen.QuestioningSituation;
 import its.reasoner.LearningSituation;
+import its.reasoner.nodes.DecisionTreeTrace;
+import its.reasoner.nodes.DecisionTreeTraceElement;
 import lombok.SneakyThrows;
 import lombok.extern.log4j.Log4j2;
 import lombok.val;
@@ -40,6 +45,7 @@ import java.io.IOException;
 import java.nio.file.Files;
 import java.nio.file.Path;
 import java.util.*;
+import java.util.stream.Collectors;
 
 @Log4j2
 public class ProgrammingLanguageExpressionDTDomain extends DecisionTreeReasoningDomain {
@@ -321,25 +327,22 @@ public class ProgrammingLanguageExpressionDTDomain extends DecisionTreeReasoning
                 Question judgedQuestion,
                 LearningSituation preparedSituation
         ) {
+            ProgrammingLanguageExpressionsSolver solver = new ProgrammingLanguageExpressionsSolver();
+            ProgrammingLanguageExpressionsSolver.SolveResult solveResult = solver.solveNoVars(preparedSituation.getDomainModel(),
+                    domainSolvingModel.decisionTree("earlyfinish")
+            );
+
             ViolationEntity violation = new ViolationEntity();
             violation.setLawName(STILL_UNEVALUATED_LEFT_VIOLATION_NAME);
             violation.setViolationFacts(new ArrayList<>());
             InterpretSentenceResult result = new InterpretSentenceResult();
             result.violations = List.of(violation);
-            result.explanations = List.of(new HyperText(
-                    locCodeToStillUnevaluatedElementsLeftFormulationsMap().get(
-                            getUserLanguageByQuestion(judgedQuestion).toLocaleString().toUpperCase()
-                    )
-            ));
+
+            result.explanation = DecisionTreeReasonerBackend.collectExplanationsFromTrace(
+                    Explanation.Type.ERROR, solveResult.trace(),
+                    preparedSituation.getDomainModel(), getUserLanguageByQuestion(judgedQuestion));
             updateInterpretationResult(result, preparedSituation);
             return result;
-        }
-
-        private Map<String, String> locCodeToStillUnevaluatedElementsLeftFormulationsMap() {
-            return Map.ofEntries(
-                    Pair.of("RU", "В выражении всё ещё есть невычисленные операторы"),
-                    Pair.of("EN", "There are still unevaluated operators in the expression")
-            );
         }
 
         @Override
@@ -390,7 +393,7 @@ public class ProgrammingLanguageExpressionDTDomain extends DecisionTreeReasoning
                 // Ошибок уже быть не может — сбросим их все.
                 interpretationResult.isAnswerCorrect = true;
                 interpretationResult.violations = List.of();
-                interpretationResult.explanations = List.of();
+                interpretationResult.explanation = Explanation.empty(Explanation.Type.HINT);
             }
         }
 
@@ -403,7 +406,7 @@ public class ProgrammingLanguageExpressionDTDomain extends DecisionTreeReasoning
             if (!object.isInstanceOf("operand")) {
                 return false;
             }
-            return new EnumValueRef("state", stateValueName).equals(object.getPropertyValue("state"));
+            return new EnumValueRef("state", stateValueName).equals(object.getPropertyValue("state", Map.of()));
         }
 
         @Override
@@ -774,19 +777,14 @@ public class ProgrammingLanguageExpressionDTDomain extends DecisionTreeReasoning
             for (AnswerObjectEntity answer : q.getAnswerObjects()) {
                 if (answer.getDomainInfo().endsWith(String.valueOf(tokenPos))) {
 
-                    //TODO: temporary solution (print all result green node explanation)
-                    var explanationNodeList = solveRes.dtNodes().stream().filter(x ->
-                                    x.getNode().getMetadata().containsAny("explanation") && x.getNode().getValue()
-                            ).toList();
-                    QuestioningSituation questioningSituation = null;
-                    StringBuilder explanation = new StringBuilder();
-
-                    for (var explanationNode : explanationNodeList) {
-                        questioningSituation = new QuestioningSituation(domain, lang.toLocaleString());
-                        questioningSituation.getDecisionTreeVariables().putAll(explanationNodeList.getLast().getVariablesSnapshot());
-                        explanation.append(DecisionTreeReasonerBackend.Interface.getExplanation(explanationNode.getNode(), questioningSituation,
-                                DecisionTreeReasonerBackend.ExplanationType.HINT));
-                        explanation.append("</br>");
+                    Explanation explanation = DecisionTreeReasonerBackend.collectExplanationsFromTrace(
+                            Explanation.Type.HINT,
+                            solveRes.trace(), domain,
+                            lang
+                    );
+                    if (explanation.isEmpty()) {
+                        explanation.children.add(new Explanation(getMessage("service.missing_correct_answer_explanation", lang),
+                                Explanation.Type.HINT));
                     }
 
                     CorrectAnswer correctAnswer = new CorrectAnswer();
@@ -794,10 +792,7 @@ public class ProgrammingLanguageExpressionDTDomain extends DecisionTreeReasoning
                     correctAnswer.question = q.getQuestionData();
                     correctAnswer.lawName = null;
                     correctAnswer.skillName = solveRes.skills().getFirst();
-                    correctAnswer.explanation = explanation.isEmpty() ?
-                            new HyperText(getMessage("service.missing_correct_answer_explanation", lang)) :
-                            new HyperText(explanation.toString())
-                    ;
+                    correctAnswer.explanation = explanation;
                     return correctAnswer;
                 }
             }
@@ -845,12 +840,12 @@ public class ProgrammingLanguageExpressionDTDomain extends DecisionTreeReasoning
     }
 
     @Override
-    public List<HyperText> makeExplanation(List<ViolationEntity> mistakes, FeedbackType feedbackType, Language lang) {
-        ArrayList<HyperText> result = new ArrayList<>();
+    public Explanation makeExplanation(List<ViolationEntity> mistakes, FeedbackType feedbackType, Language lang) {
+        ArrayList<Explanation> result = new ArrayList<>();
         for (ViolationEntity mistake : mistakes) {
-            result.add(makeSingleExplanation(mistake, feedbackType, lang));
+            result.add(new Explanation(makeSingleExplanation(mistake, feedbackType, lang).getText(), Explanation.Type.ERROR));
         }
-        return result;
+        return Explanation.aggregate(Explanation.Type.ERROR, result);
     }
 
     private HyperText makeSingleExplanation(ViolationEntity mistake, FeedbackType feedbackType, Language lang) {
