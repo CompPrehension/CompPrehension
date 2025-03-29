@@ -1883,15 +1883,21 @@
                                 <ForAllQuantifier varName="a_" type="operand">
                                     <Compare operator="EQUAL">
                                         <Variable name="a_"/>
-                                        <GetExtreme varName="a" extremeVarName="a_ex" type="operand">
+                                        <GetExtreme varName="a" extremeVarName="a_ex">
                                             <LogicalAnd>
-                                                <Compare operator="EQUAL">
-                                                    <GetPropertyValue>
+                                                <LogicalAnd>
+                                                    <CheckClass>
                                                         <Variable name="a" />
-                                                        <Property name="state" />
-                                                    </GetPropertyValue>
-                                                    <Enum owner="state" value="evaluated" />
-                                                </Compare>
+                                                        <Class name="operand" />
+                                                    </CheckClass>
+                                                    <Compare operator="EQUAL">
+                                                        <GetPropertyValue>
+                                                            <Variable name="a" />
+                                                            <Property name="state" />
+                                                        </GetPropertyValue>
+                                                        <Enum owner="state" value="evaluated" />
+                                                    </Compare>
+                                                </LogicalAnd>
                                                 <CheckRelationship>
                                                     <Relationship name="leftOf" />
                                                     <Variable name="a" />
