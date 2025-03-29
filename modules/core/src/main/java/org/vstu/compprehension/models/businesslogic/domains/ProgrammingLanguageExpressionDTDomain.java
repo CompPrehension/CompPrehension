@@ -129,7 +129,9 @@ public class ProgrammingLanguageExpressionDTDomain extends DecisionTreeReasoning
         addSkill("expression_strict_order_operators_present", List.of(strictOrder));
         addSkill("earlyfinish_strict_order_operators_present", List.of(strictOrder));
 
-        addSkill("is_current_operator_strict_order");
+        Skill currentStrictOrder = addSkill("is_current_operator_strict_order");
+        addSkill(currentStrictOrder.name + "_while_solving", List.of(currentStrictOrder));
+        addSkill(currentStrictOrder.name + "_while_earlyfinish", List.of(currentStrictOrder));
 
         Skill strictOrderFirstOperandToBeEvaluated = addSkill("strict_order_first_operand_to_be_evaluated");
         addSkill(strictOrderFirstOperandToBeEvaluated.name + "_while_solving", List.of(strictOrderFirstOperandToBeEvaluated));
@@ -898,6 +900,8 @@ public class ProgrammingLanguageExpressionDTDomain extends DecisionTreeReasoning
         name2bit.put("no_omitted_operands_despite_strict_order_while_earlyfinish", 0x20000000000L);
         name2bit.put("should_strict_order_current_operand_be_omitted_while_solving", 0x40000000000L);
         name2bit.put("should_strict_order_current_operand_be_omitted_while_earlyfinish", 0x80000000000L);
+        name2bit.put("is_current_operator_strict_order_while_solving", 0x100000000000L);
+        name2bit.put("is_current_operator_strict_order_while_earlyfinish", 0x200000000000L);
         return name2bit;
     }
 }
