@@ -35,7 +35,6 @@ public class Concept implements TreeNodeWithBitmask {
     @Getter @Setter
     long bitmask;
 
-    @Builder.Default
     @Getter @Setter
     int sortOrder = 999;
 

@@ -2357,7 +2357,6 @@ public class ProgrammingLanguageExpressionDomain extends JenaReasoningDomain {
     /**
      * @param questionName name for the question
      * @param model solved model
-     * @param rs instance of Storage
      * @return fresh Ordering Question
      */
     private Question createQuestionFromModel(String questionName, String templateName, String origin, Model model) {
