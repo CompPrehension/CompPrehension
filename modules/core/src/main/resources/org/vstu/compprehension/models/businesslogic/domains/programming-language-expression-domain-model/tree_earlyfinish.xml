@@ -1,0 +1,457 @@
+<?xml version="1.0"?>
+<StartNode>
+    <ThoughtBranch type="bool" _RU_description="полностью вычислены все операторы в выражении"
+        _RU_nextStepQuestion="Необходимо определить, полностью ли вычислены все операторы в выражении"
+        _RU_nextStepExplanation="Неверно. Необходимо проверить, что полностью вычислены все операторы в выражении"
+        _EN_description="all operators in the expression are fully evaluated"
+        _EN_nextStepQuestion="It is necessary to determine whether all operators in the expression are fully evaluated"
+        _EN_nextStepExplanation="Incorrect. It is necessary to check if all operators in the expression are completely evaluated"
+        _RU_hint_prefix="Выражение полностью вычислено потому, что "
+        _EN_hint_prefix="Expression is fully evaluated, because "
+        _RU_error_prefix="Выражение не полностью вычислено потому, что "
+        _EN_error_prefix="Expression is not fully evaluated, because "
+    >
+        <CycleAggregationNode operator="AND"
+            _RU_question="Найдите все невычисленные операторы в выражении."
+            _RU_asNextStep="Необходимо найти все невычисленные операторы в выражении."
+            _RU_endingCause=" потому что ${result ? '' : 'не'} все операторы вычислены."
+            _EN_question="Find all unevaluated operators in the expression."
+            _EN_asNextStep="You need to find all unevaluated operators in the expression."
+            _EN_endingCause= "because ${result ? '' : 'not'} all operators are evaluated."
+        >
+            <SelectorExpression>
+                <Compare operator="EQUAL">
+                    <GetPropertyValue>
+                        <Variable name="X" />
+                        <Property name="state" />
+                    </GetPropertyValue>
+                    <Enum owner="state" value="unevaluated" />
+                </Compare>
+            </SelectorExpression>
+            <DecisionTreeVarDecl name="X" type="operator" />
+            <ThoughtBranch type="bool" paramName="X"
+                _RU_description="Найден невычисленный оператор в выражении."
+                _RU_nextStepQuestion="Учитывая, что найден невычисленный оператор в выражении, что следует сделать дальше?"
+                _RU_nextStepExplanation="Это неверно. Найден невычисленный оператор в выражении."
+                _EN_description="An unevaluated operator in the expression has been found."
+                _EN_nextStepQuestion="Given that we found an unevaluated operator in the expression, what should we do next?"
+                _EN_nextStepExplanation="That is incorrect. An unevaluated operator in the expression has been found."
+            >
+                <CycleAggregationNode operator="OR"
+                    _RU_question="Определите, находится ли ${Y} в операндах ${X}[case='р']?"
+                    _RU_asNextStep="Необходимо проверить, находится ли ${Y} в операндах ${X}[case='р']. "
+                    _RU_endingCause="потому что ${Y} ${result ? '' : 'не'} находится в операндах ${X}[case='р']. "
+                    _EN_question="Determine if ${Y} is in operands ${X}[case='p']?"
+                    _EN_asNextStep="You need to check whether ${Y} is in the operands of ${X}[case='p']. "
+                    _EN_endingCause="because ${Y} is ${result ? '' : 'not'} in operands ${X}[case='p']. "
+                >
+                    <SelectorExpression>
+                        <CheckRelationship>
+                            <Relationship name="isInOperandOf" />
+                            <Variable name="Y" />
+                            <DecisionTreeVar name="X" />
+                        </CheckRelationship>
+                    </SelectorExpression>
+                    <DecisionTreeVarDecl name="Y" type=" operator" />
+                    <Outcome value="Null"
+                        _RU_text="Не найден невычисленный оператор внутри ${X}[case='р']"
+                        _RU_explanation="Нет невычисленных операторов внутри ${X}[case='р']"
+                        _RU_nextStepQuestion="Учитывая, что нет невычисленных операторов внутри
+                    ${X}[case='р'], что следует делать дальше?"
+                        _RU_nextStepExplanation="Это неверно. Нет невычисленных операторов внутри ${X}[case='р']"
+                        _EN_text="No unevaluated statement found inside ${X}[case='p']"
+                        _EN_explanation="No unevaluated statements inside ${X}[case='p']"
+                        _EN_nextStepQuestion="Given that there are no unevaluated statements inside
+${X}[case='p'], what should you do next?"
+                        _EN_nextStepExplanation="That's incorrect. There are no unevaluated statements inside ${X}[case='p']"
+                    >
+                        <BranchResultNode value="false"
+                            _skill="earlyfinish_strict_order_operators_present"
+                            _RU_explanation="что его родитель не требует строгого порядка вычисления операндов и не может блокировать его вычисление"
+                            _EN_explanation="its parent does not evaluates its operands in a strict order and so cannot block its evaluation"
+                        />
+                    </Outcome>
+                    <ThoughtBranch type="bool" paramName="Y"
+                        _RU_description="Найден невычисленный оператор ${Y} внутри ${X}[case='р']."
+                        _RU_nextStepQuestion="Учитывая, что найден невычисленный оператор ${Y} внутри ${X}[case='р'], что необходимо сделать дальше?"
+                        _RU_nextStepExplanation="Это неверно. Найден невычисленный оператор ${Y} внутри ${X}[case='р']."
+                        _EN_description="Found unevaluated operator ${Y} inside ${X}[case='р']."
+                        _EN_nextStepQuestion="Given that unevaluated operator ${Y} inside ${X}[case='р'] was found, what should be done next?"
+                        _EN_nextStepExplanation="That's incorrect. Found unevaluated operator ${Y} inside ${X}[case='р']."
+                    >
+                        <QuestionNode type="bool" isSwitch="false"
+                            _RU_question="Имеет ли оператор ${Y} имеет строгий порядок вычисления операндов?"
+                            _RU_asNextStep="Необходимо проверить, что оператор ${Y} имеет строгий порядок вычисления операндов"
+                            _RU_endingCause="оператор ${Y} ${result ? '' : 'не'} имеет строгий порядок вычисления операндов"
+                            _EN_question="Does the operator ${Y} have a strict order of evaluation of operands?"
+                            _EN_asNextStep="We need to check that the operator ${Y} has a strict order of evaluation of operands"
+                            _EN_endingCause="the operator ${Y} ${result ? '' : 'not'} has a strict order of evaluation of operands"
+                        >
+                            <Expression>
+                                <CheckClass>
+                                    <DecisionTreeVar name="Y" />
+                                    <Class name="StrictOrderOperator"/>
+                                </CheckClass>
+                            </Expression>
+                            <Outcome
+                                _RU_text="${Y} не является оператором строгого порядка вычисления операндов"
+                                _RU_explanation="${Y} не является оператором строгого порядка вычисления операндов, и ${X} является верхним оператором выражения и не может быть блокирован"
+                                _RU_nextStepQuestion="Учитывая, что ${Y} не является оператором строгого порядка вычисления операндов, и он еще не вычислен, что следует делать дальше?"
+                                _RU_nextStepExplanation="Это неверно. ${Y} не является оператором строго порядка вычисления операндов"
+                                _EN_text="${Y} is not a strict order operator"
+                                _EN_explanation="${Y} is not a strict order operator, and it has not yet been evaluated"
+                                _EN_nextStepQuestion="Given that ${Y} is not a strict order operator, and it has not yet been evaluated, what should you do next?"
+                                _EN_nextStepExplanation="That's incorrect. ${Y} is not a strict order operator"
+                                value="False">
+                                <BranchResultNode value="false"
+                                    _skill="is_current_operator_strict_order_earlyfinish"
+                                    _RU_explanation="что он является верхним оператором выражения и не может быть блокирован"
+                                    _EN_explanation="it is the top-level operator whose evaluation cannot be blocked"
+                                />
+                            </Outcome>
+                            <Outcome
+                                _RU_text="Оператор ${Y} имеет строгий порядок вычисления операторов"
+                                _RU_explanation="Оператор ${Y} имеет строгий порядок вычисления операторов"
+                                _RU_nextStepQuestion="Учитывая, что оператор ${Y} не имеет строгого порядка вычисления операторов?"
+                                _RU_nextStepExplanation="Это неверно. Оператор ${Y} не имеет строгого порядка вычисления операторов"
+                                _EN_text="The ${Y} operator has a strict operator evaluation order"
+                                _EN_explanation="The ${Y} operator has a strict operator evaluation order"
+                                _EN_nextStepQuestion="Given that the ${Y} operator does not have a strict operator evaluation order?"
+                                _EN_nextStepExplanation="That's incorrect. The ${Y} operator does not have a strict operator evaluation order"
+                                value="True">
+                                <QuestionNode type="bool" isSwitch="false"
+                                    _RU_question="Находится ли ${X} в первом вычисляемом операнде ${Y}[case='р']?"
+                                    _RU_asNextStep="Необходимо проверить, что ${X} находится в первом вычисляемом операнде ${Y}[case='р']"
+                                    _RU_endingCause="потому что ${X} ${result ? 'есть' : 'отсутствует'} в первом вычисляемом операнде ${Y}[case='р']"
+                                    _EN_question="Is ${X} in the first operand of ${Y}[case='p'] to be evaluated?"
+                                    _EN_asNextStep="We need to check that ${X} is in the first operand of ${Y}[case='p'] to be evaluated"
+                                    _EN_endingCause="because ${X} ${result ? 'is' : 'is not'} in the first operand of ${Y}[case='p'] to be evaluated"
+                                >
+                                    <Expression>
+                                        <LogicalOr>
+                                            <LogicalOr>
+                                                <Compare operator="EQUAL">
+                                                    <GetRelationshipParamValue
+                                                        relationshipName="isInOperandOf"
+                                                        paramName="placement">
+                                                        <DecisionTreeVar name="X" />
+                                                        <DecisionTreeVar name="Y" />
+                                                    </GetRelationshipParamValue>
+                                                    <Enum owner="OperandPosition" value="left" />
+                                                </Compare>
+                                                <Compare operator="EQUAL">
+                                                    <GetRelationshipParamValue
+                                                        relationshipName="isInOperandOf"
+                                                        paramName="placement">
+                                                        <DecisionTreeVar name="X" />
+                                                        <DecisionTreeVar name="Y" />
+                                                    </GetRelationshipParamValue>
+                                                    <Enum owner="OperandPosition" value="right" />
+                                                </Compare>
+                                            </LogicalOr>
+                                            <Compare operator="EQUAL">
+                                                <GetRelationshipParamValue
+                                                    relationshipName="isInOperandOf"
+                                                    paramName="placement">
+                                                    <DecisionTreeVar name="X" />
+                                                    <DecisionTreeVar name="Y" />
+                                                </GetRelationshipParamValue>
+                                                <Enum owner="OperandPosition" value="center" />
+                                            </Compare>
+                                        </LogicalOr>
+                                    </Expression>
+                                    <Outcome
+                                        _RU_text="${X} находится в первом вычисляемом операнде ${Y}[case='р']"
+                                        _RU_explanation="${X} находится в первом вычисляемом операнде ${Y}[case='р']"
+                                        _RU_nextStepQuestion="Учитывая, что ${X} находится в первом вычисляемом операнде ${Y}[case='р'], что нужно сделать дальше?"
+                                        _RU_nextStepExplanation="Это неверно. ${X} находится в первом вычисляемом операнде ${Y}[case='р']"
+                                        _EN_text="${X} is in the first operand of ${Y}[case='p']"
+                                        _EN_explanation="${X} is in the first operand of ${Y}[case='p']"
+                                        _EN_nextStepQuestion="Given that ${X} is in the first operand of ${Y}[case='p'], what should you do next?"
+                                        _EN_nextStepExplanation="That's incorrect. ${X} is in the first operand of ${Y}[case='p']"
+                                        value="True">
+                                        <BranchResultNode value="false"
+                                            _skill="strict_order_first_operand_to_be_evaluated_while_earlyfinish"
+                                            _RU_explanation="что он находится в ${X->isInOperandOf(Y).placement}[case='р'] операнде ${Y}, который вычисляется первым и не может быть блокирован"
+                                            _EN_explanation="it belongs to ${X->isInOperandOf(Y).placement}[case='р'] operand ${val('Y','р')} that is evaluated first and so cannot be blocked"
+                                        />
+                                    </Outcome>
+                                    <Outcome
+                                        _RU_text="${X} не находится в первом вычисляемом операнде ${Y}[case='р']."
+                                        _RU_explanation="${X} не находится в первом вычисляемом операнде ${Y}[case='р']."
+                                        _RU_nextStepQuestion="Учитывая, что ${X} не находится в первом вычисляемом операнде ${Y}[case='р'], что следует дальше?"
+                                        _RU_nextStepExplanation="Это неверно. ${X} не находится в первом вычисляемом операнде ${Y}[case='р']."
+                                        _EN_text="${X} is not in the first operand of ${Y}[case='p']."
+                                        _EN_explanation="${X} is not in the first operand of ${Y}[case='p']."
+                                        _EN_nextStepQuestion="Given that ${X} is not in the first operand of ${Y}[case='p'], what follows?"
+                                        _EN_nextStepExplanation="That is incorrect. ${X} is not in the first operand of ${Y}[case='p']."
+                                        value="False">
+                                        <QuestionNode type="bool" isSwitch="false"
+                                            _RU_question="Убедитесь, что требуемое значение для ${X->isInOperandOf(Y).placement}[case='р'] операнда в ${Y}[case='п'] - любое для вычисления правого операнда."
+                                            _RU_asNextStep="Необходимо проверить, что требуемое значение для ${X->isInOperandOf(Y).placement}[case='р'] операнда в ${Y}[case='п'] - любое для вычисления правого операнда."
+                                            _RU_endingCause="потому что требуемое значение для ${X->isInOperandOf(Y).placement}[case='р'] операнда в ${Y}[case='п'] - ${result ? '' : 'не'} любое для вычисления правого операнда."
+                                            _EN_question="Make sure that the required value for the ${X->isInOperandOf(Y).placement}[case='р'] operand in ${Y}[case='п'] is any for evaluating the right operand."
+                                            _EN_asNextStep="We need to check that the required value for the ${X->isInOperandOf(Y).placement}[case='р'] operand in ${Y}[case='п'] is any for evaluating the right operand."
+                                            _EN_endingCause="because the required value for the ${X->isInOperandOf(Y).placement}[case='р'] operand in ${Y}[case='п'] is ${result ? '' : 'not'} any for evaluating the right operand."
+                                        >
+                                            <Expression>
+                                                <LogicalOr>
+                                                    <LogicalOr>
+                                                        <LogicalAnd>
+                                                            <Compare operator="EQUAL">
+                                                                <GetRelationshipParamValue
+                                                                    relationshipName="isInOperandOf"
+                                                                    paramName="placement">
+                                                                    <DecisionTreeVar name="X" />
+                                                                    <DecisionTreeVar name="Y" />
+                                                                </GetRelationshipParamValue>
+                                                                <Enum owner="OperandPosition"
+                                                                    value="left" />
+                                                            </Compare>
+                                                            <Compare operator="EQUAL">
+                                                                <GetPropertyValue>
+                                                                    <DecisionTreeVar name="Y" />
+                                                                    <Property
+                                                                        name="requiredFirstValForLeft" />
+                                                                </GetPropertyValue>
+                                                                <Enum owner="ExpectedValue"
+                                                                    value="any" />
+                                                            </Compare>
+                                                        </LogicalAnd>
+                                                        <LogicalAnd>
+                                                            <Compare operator="EQUAL">
+                                                                <GetRelationshipParamValue
+                                                                    relationshipName="isInOperandOf"
+                                                                    paramName="placement">
+                                                                    <DecisionTreeVar name="X" />
+                                                                    <DecisionTreeVar name="Y" />
+                                                                </GetRelationshipParamValue>
+                                                                <Enum owner="OperandPosition"
+                                                                    value="right" />
+                                                            </Compare>
+                                                            <Compare operator="EQUAL">
+                                                                <GetPropertyValue>
+                                                                    <DecisionTreeVar name="Y" />
+                                                                    <Property
+                                                                        name="requiredFirstValForRight" />
+                                                                </GetPropertyValue>
+                                                                <Enum owner="ExpectedValue"
+                                                                    value="any" />
+                                                            </Compare>
+                                                        </LogicalAnd>
+                                                    </LogicalOr>
+                                                    <LogicalAnd>
+                                                        <Compare operator="EQUAL">
+                                                            <GetRelationshipParamValue
+                                                                relationshipName="isInOperandOf"
+                                                                paramName="placement">
+                                                                <DecisionTreeVar name="X" />
+                                                                <DecisionTreeVar name="Y" />
+                                                            </GetRelationshipParamValue>
+                                                            <Enum owner="OperandPosition"
+                                                                value="сenter" />
+                                                        </Compare>
+                                                        <Compare operator="EQUAL">
+                                                            <GetPropertyValue>
+                                                                <DecisionTreeVar name="Y" />
+                                                                <Property
+                                                                    name="requiredFirstValForCenter" />
+                                                            </GetPropertyValue>
+                                                            <Enum owner="ExpectedValue" value="any" />
+                                                        </Compare>
+                                                    </LogicalAnd>
+                                                </LogicalOr>
+                                            </Expression>
+                                            <Outcome
+                                                _RU_text="Требуемое значение для ${X->isInOperandOf(Y).placement}[case='р'] операнда в ${Y}[case='п'] - любое для вычисления правого операнда"
+                                                _RU_explanation="${X->isInOperandOf(Y).placement} операнд в ${Y}[case='р'] может принимать любое значение, при котором вычислится правый операнд"
+                                                _RU_nextStepQuestion="Учитывая, что ${X->isInOperandOf(Y).placement} операнд в ${Y}[case='р'] может принимать любое значение, при котором вычислится правый операнд, что следует сделать далее?"
+                                                _RU_nextStepExplanation="Это неверно. Требуемое значение для ${X->isInOperandOf(Y).placement}[case='р'] операнда в ${Y}[case='п'] - любое для вычисления правого операнда"
+                                                _EN_text="The required value for the ${X->isInOperandOf(Y).placement}[case='р'] operand in ${Y}[case='п'] is any value for evaluating the right operand"
+                                                _EN_explanation="The ${X->isInOperandOf(Y).placement} operand in ${Y}[case='р'] can take any value for which the right operand will be evaluated"
+                                                _EN_nextStepQuestion="Given that the ${X->isInOperandOf(Y).placement} operand in ${Y}[case='р'] can take any value for which the right operand will be evaluated, what should be done next?"
+                                                _EN_nextStepExplanation="This is incorrect. The required value for the ${X->isInOperandOf(Y).placement}[case='р'] operand in ${Y}[case='п'] is any value for evaluating the right operand"
+                                                value="True">
+                                                <BranchResultNode value="false"
+                                                    _skill="no_omitted_operands_despite_strict_order_while_earlyfinish"
+                                                    _RU_explanation="его родитель ${Y} всегда вычисляет все свои операнды и не может блокировать ${X}[case='в']"
+                                                    _EN_explanation="its parent ${Y} always evaluates all its operands and cannot block ${X}[case='в']'s evaluation"
+                                                />
+                                            </Outcome>
+                                            <Outcome
+                                                _RU_text="Требуемое значение для ${X->isInOperandOf(Y).placement}[case='р'] операнда в ${Y}[case='п'] определено для вычисления правого операнда"
+                                                _RU_explanation="Требуемое значение для ${X->isInOperandOf(Y).placement}[case='р'] операнда в ${Y}[case='п'] определено для вычисления правого операнда"
+                                                _RU_nextStepQuestion="Учитывая, что требуемое значение для ${X->isInOperandOf(Y).placement}[case='р'] операнда в ${Y}[case='п'] определено для вычисления правого операнда, что следует сделать дальше?"
+                                                _RU_nextStepExplanation="Это неверно. Требуемое значение для ${X->isInOperandOf(Y).placement}[case='р'] операнда в ${Y}[case='п'] определено для вычисления правого операнда"
+                                                _EN_text="The required value for the ${X->isInOperandOf(Y).placement}[case='р'] operand in ${Y}[case='п'] is defined to evaluate the right operand"
+                                                _EN_explanation="The required value for the ${X->isInOperandOf(Y).placement}[case='р'] operand in ${Y}[case='п'] is defined to evaluate the right operand"
+                                                _EN_nextStepQuestion="Given that the required value for the ${X->isInOperandOf(Y).placement}[case='р'] operand in ${Y}[case='п'] is defined to evaluate the right operand, what should be done next?"
+                                                _EN_nextStepExplanation="That's incorrect. The required value for the ${X->isInOperandOf(Y).placement}[case='p'] operand in ${Y}[case='n'] is defined to evaluate the right operand"
+                                                value="False">
+                                                <QuestionNode type="bool" isSwitch="false"
+                                                    _RU_question="Проверьте, что требуемое значение для ${X->isInOperandOf(Y).placement}[case='р'] операнда в ${Y}[case='п'] для вычисления правого операнда эквивалентно таковому значению для ${Y}[case='п']"
+                                                    _RU_asNextStep="Необходимо проверить, что требуемое значение для ${X->isInOperandOf(Y).placement}[case='р'] операнда в ${Y}[case='п'] для вычисления правого операнда эквивалентно таковому значению для ${Y}[case='п']"
+                                                    _RU_endingCause="потому что требуемое значение для ${X->isInOperandOf(Y).placement}[case='р'] операнда в ${Y}[case='п'] для вычисления правого операнда ${result ? '' : 'не'} эквивалентно таковому значению для ${Y}[case='п']"
+                                                    _EN_question="Check that the required value for the ${X->isInOperandOf(Y).placement}[case='р'] operand in ${Y}[case='п'] to evaluate the right operand is equivalent to that for ${Y}[case='п']"
+                                                    _EN_asNextStep="Check that the required value for the ${X->isInOperandOf(Y).placement}[case='р'] operand in ${Y}[case='п'] to evaluate the right operand is equivalent to that for ${Y}[case='п']"
+                                                    _EN_endingCause="because the required value for the ${X->isInOperandOf(Y).placement}[case='р'] operand in ${Y}[case='п'] to evaluate the right operand of ${result ? '' : 'not'} is equivalent to this value for ${Y}[case='п']"
+                                                >
+                                                    <Expression>
+                                                        <LogicalOr>
+                                                            <LogicalOr>
+                                                                <LogicalAnd>
+                                                                    <Compare operator="EQUAL">
+                                                                        <GetRelationshipParamValue
+                                                                            relationshipName="isInOperandOf"
+                                                                            paramName="placement">
+                                                                            <DecisionTreeVar
+                                                                                name="X" />
+                                                                            <DecisionTreeVar
+                                                                                name="Y" />
+                                                                        </GetRelationshipParamValue>
+                                                                        <Enum
+                                                                            owner="OperandPosition"
+                                                                            value="left" />
+                                                                    </Compare>
+                                                                    <Compare operator="EQUAL">
+                                                                        <GetPropertyValue>
+                                                                            <DecisionTreeVar name="Y" />
+                                                                            <Property
+                                                                                name="requiredFirstValForLeft" />
+                                                                        </GetPropertyValue>
+                                                                        <GetPropertyValue>
+                                                                            <GetByCondition
+                                                                                type="operand"
+                                                                                varName="op">
+                                                                                <CheckRelationship>
+                                                                                    <Relationship
+                                                                                        name="isLeftOperandOf" />
+                                                                                    <Variable
+                                                                                        name="op" />
+                                                                                    <DecisionTreeVar
+                                                                                        name="Y" />
+                                                                                </CheckRelationship>
+                                                                            </GetByCondition>
+                                                                            <Property
+                                                                                name="evaluatesTo" />
+                                                                        </GetPropertyValue>
+                                                                    </Compare>
+                                                                </LogicalAnd>
+                                                                <LogicalAnd>
+                                                                    <Compare operator="EQUAL">
+                                                                        <GetRelationshipParamValue
+                                                                            relationshipName="isInOperandOf"
+                                                                            paramName="placement">
+                                                                            <DecisionTreeVar
+                                                                                name="X" />
+                                                                            <DecisionTreeVar
+                                                                                name="Y" />
+                                                                        </GetRelationshipParamValue>
+                                                                        <Enum
+                                                                            owner="OperandPosition"
+                                                                            value="right" />
+                                                                    </Compare>
+                                                                    <Compare operator="EQUAL">
+                                                                        <GetPropertyValue>
+                                                                            <DecisionTreeVar name="Y" />
+                                                                            <Property
+                                                                                name="requiredFirstValForRight" />
+                                                                        </GetPropertyValue>
+                                                                        <GetPropertyValue>
+                                                                            <GetByCondition
+                                                                                type="operand"
+                                                                                varName="op">
+                                                                                <CheckRelationship>
+                                                                                    <Relationship
+                                                                                        name="isRightOperandOf" />
+                                                                                    <Variable
+                                                                                        name="op" />
+                                                                                    <Variable
+                                                                                        name="Y" />
+                                                                                </CheckRelationship>
+                                                                            </GetByCondition>
+                                                                            <Property
+                                                                                name="evaluatesTo" />
+                                                                        </GetPropertyValue>
+                                                                    </Compare>
+                                                                </LogicalAnd>
+                                                            </LogicalOr>
+                                                            <LogicalAnd>
+                                                                <Compare operator="EQUAL">
+                                                                    <GetRelationshipParamValue
+                                                                        relationshipName="isInOperandOf"
+                                                                        paramName="placement">
+                                                                        <DecisionTreeVar name="X" />
+                                                                        <DecisionTreeVar name="Y" />
+                                                                    </GetRelationshipParamValue>
+                                                                    <Enum owner="OperandPosition"
+                                                                        value="center" />
+                                                                </Compare>
+                                                                <Compare operator="EQUAL">
+                                                                    <GetPropertyValue>
+                                                                        <DecisionTreeVar name="Y" />
+                                                                        <Property
+                                                                            name="requiredFirstValForCenter" />
+                                                                    </GetPropertyValue>
+                                                                    <GetPropertyValue>
+                                                                        <GetByCondition
+                                                                            type="operand"
+                                                                            varName="op">
+                                                                            <CheckRelationship>
+                                                                                <Relationship
+                                                                                    name="isCenterOperandOf" />
+                                                                                <Variable name="op" />
+                                                                                <DecisionTreeVar name="Y" />
+                                                                            </CheckRelationship>
+                                                                        </GetByCondition>
+                                                                        <Property name="evaluatesTo" />
+                                                                    </GetPropertyValue>
+                                                                </Compare>
+                                                            </LogicalAnd>
+                                                        </LogicalOr>
+                                                    </Expression>
+                                                    <Outcome
+                                                        _RU_text="Требуемое значение для ${X->isInOperandOf(Y).placement}[case='р'] операнда в ${Y}[case='п'] для вычисления правого операнда эквивалентно таковому значению для ${Y}[case='п']"
+                                                        _RU_explanation="Невычисленный ${X} имеет требуемое значение для вычисления правого операнда ${Y}[case='п']"
+                                                        _RU_nextStepQuestion="Учитывая, что требуемое значение для ${X->isInOperandOf(Y).placement}[case='р'] операнда в ${Y}[case='п'] для вычисления правого операнда эквивалентно таковому значению для ${Y}[case='п']"
+                                                        _RU_nextStepExplanation="Это неверно. Требуемое значение для ${X->isInOperandOf(Y).placement}[case='р'] операнда в ${Y}[case='п'] для вычисления правого операнда эквивалентно таковому значению для ${Y}[case='п']"
+                                                        _EN_text="The required value for the ${X->isInOperandOf(Y).placement}[case='р'] operand in ${Y}[case='п'] for evaluating the right operand is equivalent to that for ${Y}[case='п']"
+                                                        _EN_explanation="The unevaluated ${X} has the required value for evaluating the right operand of ${Y}[case='п']"
+                                                        _EN_nextStepQuestion="Given that the required value for the ${X->isInOperandOf(Y).placement}[case='р'] operand in ${Y}[case='п'] for evaluating the right operand is equivalent to that for ${Y}[case='п']"
+                                                        _EN_nextStepExplanation="This is incorrect. The required value for ${X->isInOperandOf(Y).placement}[case='р'] of the operand in ${Y}[case='п'] for evaluating the right operand is equivalent to that of ${Y}[case='п']"
+                                                        value="True">
+                                                        <BranchResultNode value="false"
+                                                            _skill="should_strict_order_current_operand_be_omitted_while_earlyfinish"
+                                                            _RU_explanation="он находится в ${X->isInOperandOf(Y).placement}[case='п'] операнде ${Y}[case='р'], чей ${Y.firstOperandPlacement} операнд имеет значение ${$Y->hasOperand&lt;placement=Y.firstOperandPlacement>.evaluatesTo}, что требует вычисления ${X}[case='р']"
+                                                            _EN_explanation="it belongs to ${X->isInOperandOf(Y).placement}[case='п'] operand of ${Y}[case='р'], whoe ${Y.firstOperandPlacement} operand has the value ${Y->hasOperand&lt;placement=Y.firstOperandPlacement>.evaluatesTo}, which requires evaluation of ${X}[case='р']}"
+                                                        />
+                                                    </Outcome>
+                                                    <Outcome
+                                                        _RU_text="Требуемое значение для ${X->isInOperandOf(Y).placement}[case='р'] операнда в ${Y}[case='п'] для вычисления правого операнда эквивалентно таковому значению для ${Y}[case='п']"
+                                                        _RU_explanation="Невычисленный ${X} не имеет требуемое значение для вычисления правого операнда ${Y}[case='п']"
+                                                        _RU_nextStepQuestion="Учитывая, что требуемое значение для ${X->isInOperandOf(Y).placement}[case='р'] операнда в ${Y}[case='п'] для вычисления правого операнда эквивалентно таковому значению для ${Y}[case='п'], что следует делать дальше?"
+                                                        _RU_nextStepExplanation="Это неверно. Требуемое значение для ${X->isInOperandOf(Y).placement}[case='р'] операнда в ${Y}[case='п'] для вычисления правого операнда эквивалентно таковому значению для ${Y}[case='п']"
+                                                        _EN_text="The required value for the ${X->isInOperandOf(Y).placement}[case='р'] operand in ${Y}[case='п'] for evaluating the right operand is equivalent to that of ${Y}[case='п']"
+                                                        _EN_explanation="Unevaluated ${X} does not have the required value for evaluating the right operand of ${Y}[case='п']"
+                                                        _EN_nextStepQuestion="Given that the required value for the ${X->isInOperandOf(Y).placement}[case='р'] operand in ${Y}[case='п'] for evaluating the right operand is equivalent to that of ${Y}[case='п'], what should be done next?"
+                                                        _EN_nextStepExplanation="This is incorrect. The required value for the ${X->isInOperandOf(Y).placement}[case='р'] operand in ${Y}[case='п'] to evaluate the right operand is equivalent to that of ${Y}[case='п']"
+                                                        value="False">
+                                                        <BranchResultNode value="true"
+                                                            _skill="should_strict_order_current_operand_be_omitted_while_earlyfinish"
+                                                            _RU_explanation="он находится в ${X->isInOperandOf(Y).placement}[case='п'] операнде ${Y}[case='р'], чей ${Y.firstOperandPlacement} операнд имеет значение ${$Y->hasOperand&lt;placement=Y.firstOperandPlacement>.evaluatesTo}, что блокирует вычисления ${X}[case='р']"
+                                                            _EN_explanation="it belongs to ${X->isInOperandOf(Y).placement}[case='п'] operand of ${Y}[case='р'], whoe ${Y.firstOperandPlacement} operand has the value ${Y->hasOperand&lt;placement=Y.firstOperandPlacement>.evaluatesTo}, which blocks evaluation of ${X}[case='р']}"
+                                                        />
+                                                    </Outcome>
+                                                </QuestionNode>
+                                            </Outcome>
+                                        </QuestionNode>
+                                    </Outcome>
+                                </QuestionNode>
+                            </Outcome>
+                        </QuestionNode>
+                    </ThoughtBranch>
+                </CycleAggregationNode>
+            </ThoughtBranch>
+        </CycleAggregationNode>
+    </ThoughtBranch>
+</StartNode>

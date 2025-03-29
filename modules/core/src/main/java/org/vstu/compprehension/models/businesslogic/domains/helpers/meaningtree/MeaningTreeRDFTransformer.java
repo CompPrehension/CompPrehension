@@ -2,10 +2,7 @@ package org.vstu.compprehension.models.businesslogic.domains.helpers.meaningtree
 
 
 import its.model.DomainSolvingModel;
-import its.model.definition.ClassDef;
-import its.model.definition.DomainModel;
-import its.model.definition.InvalidDomainDefinitionException;
-import its.model.definition.ObjectDef;
+import its.model.definition.*;
 import its.model.definition.loqi.DomainLoqiWriter;
 import its.model.nodes.DecisionTree;
 import org.apache.commons.lang3.tuple.Pair;
@@ -219,7 +216,7 @@ public class MeaningTreeRDFTransformer {
         int tokenPrecedence = ((OperatorToken)token).precedence;
         return new ParsedClassName(
                 possibleClasses.stream()
-                        .filter(classDef -> classDef.isSubclassOf("operator") && Integer.valueOf(tokenPrecedence).equals(classDef.getPropertyValue("precedence")))
+                        .filter(classDef -> classDef.isSubclassOf("operator") && Integer.valueOf(tokenPrecedence).equals(classDef.getPropertyValue("precedence", Map.of())))
                         .filter(classDef -> {
                             if (((OperatorToken)token).additionalOpType == OperatorType.METHOD_CALL) {
                                 return classDef.getName().contains("method_call");
@@ -298,7 +295,7 @@ public class MeaningTreeRDFTransformer {
             Map<Token, ObjectDef> baseTokensToTokens
     ) {
         ProgrammingLanguageExpressionsSolver solver = new ProgrammingLanguageExpressionsSolver();
-        appendTreeInfo(allTokens, baseTokensToElements);
+        appendTreeInfo(allTokens, baseTokensToElements, situationDomain);
         solver.solveStrict(situationDomain, decisionTreeMap);
 
 
@@ -336,11 +333,8 @@ public class MeaningTreeRDFTransformer {
         }
     }
 
-    private static void appendTreeInfo(TokenList tokens, Map<Token, ObjectDef> baseTokensToElements) {
+    private static void appendTreeInfo(TokenList tokens, Map<Token, ObjectDef> baseTokensToElements, DomainModel model) {
         for (Map.Entry<Token, ObjectDef> entry : baseTokensToElements.entrySet()) {
-            if ((entry.getKey().type == TokenType.SEPARATOR || entry.getKey().type == TokenType.COMMA) && entry.getKey().belongsTo() != null) {
-                addRelationship(entry.getValue(), "belongsToOperator", String.format("element_op_%d", tokens.indexOf(entry.getKey().belongsTo())));
-            }
             if (entry.getKey() instanceof OperandToken op && op.operandOf() != null
                     && op.type != TokenType.SEPARATOR
                     && op.type != TokenType.CALLABLE_IDENTIFIER // чтобы не объединять имя функции и открывающую скобку
@@ -350,25 +344,18 @@ public class MeaningTreeRDFTransformer {
                     && op.type != TokenType.UNKNOWN
                     && !(op.type.isBrace() && !(op instanceof OperatorToken))
                     ) {
-                addRelationship(entry.getValue(), "isOperandOf",
-                        String.format("element_op_%d", tokens.indexOf(op.operandOf())));
-                Map<OperandPosition, TokenList> operands = tokens.findOperandsAsList(tokens.indexOf(op.operandOf()));
-                if (op.operandPosition() != OperandPosition.CENTER && operands.containsKey(op.operandPosition()) && operands.get(op.operandPosition()).size() > 1
-                    && operands.get(op.operandPosition()).stream().filter(baseTokensToElements::containsKey).count() == operands.get(op.operandPosition()).size()
-                ) {
-                    throw new InvalidDomainDefinitionException(String.format(
-                            "Invalid operand token count (supported only one operand of another operand) for position %s, new operand: %s, existing operands: %s",
-                            op.operandPosition(), entry.getValue(), operands.get(op.operandPosition())
-                    ));
-                }
-                switch (op.operandPosition()) {
-                    case LEFT -> addRelationship(entry.getValue(), "isLeftOperandOf",
-                            String.format("element_op_%d", tokens.indexOf(op.operandOf())));
-                    case CENTER -> addRelationship(entry.getValue(), "isCenterOperandOf",
-                            String.format("element_op_%d", tokens.indexOf(op.operandOf())));
-                    case RIGHT -> addRelationship(entry.getValue(), "isRightOperandOf",
-                            String.format("element_op_%d", tokens.indexOf(op.operandOf())));
+                EnumDef positionEnum = model.getEnums().get("OperandPlacement");
+                EnumValueRef pos = switch (op.operandPosition()) {
+                    case LEFT -> positionEnum.getValues().get("left").getReference();
+                    case CENTER -> positionEnum.getValues().get("center").getReference();
+                    case RIGHT -> positionEnum.getValues().get("right").getReference();
                 };
+                entry.getValue().getRelationshipLinks().add(new RelationshipLinkStatement(
+                        entry.getValue(),
+                        "isOperandOf",
+                        List.of(String.format("element_op_%d", tokens.indexOf(op.operandOf()))),
+                        new NamedParamsValues(Map.of("placement", pos))
+                ));
             }
         }
     }
