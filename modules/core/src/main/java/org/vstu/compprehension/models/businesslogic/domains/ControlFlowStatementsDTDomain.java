@@ -70,10 +70,15 @@ public class ControlFlowStatementsDTDomain extends DecisionTreeReasoningDomain {
 
     private static DomainSolvingModel domainSolvingModel = null;
     private void loadDTModel() {
-        if (domainSolvingModel == null)
+        if (domainSolvingModel == null) {
+
+        }
+            // TODO: temporarily disabled
+            /*
             domainSolvingModel = DecisionTreeHelper.buildDomainModelFromDict(
                 this.getClass().getClassLoader().getResource(DOMAIN_MODEL_LOCATION)
             );
+             */
     }
 
     @Override
@@ -562,12 +567,12 @@ public class ControlFlowStatementsDTDomain extends DecisionTreeReasoningDomain {
     }
 
     @Override
-    public List<HyperText> makeExplanation(List<ViolationEntity> mistakes, FeedbackType feedbackType, Language lang) {
-        ArrayList<HyperText> result = new ArrayList<>();
+    public Explanation makeExplanation(List<ViolationEntity> mistakes, FeedbackType feedbackType, Language lang) {
+        ArrayList<Explanation> result = new ArrayList<>();
         for (ViolationEntity mistake : mistakes) {
-            result.add(makeSingleExplanation(mistake, feedbackType, lang));
+            result.add(new Explanation(makeSingleExplanation(mistake, feedbackType, lang).getText(), Explanation.Type.ERROR));
         }
-        return result;
+        return Explanation.aggregate(Explanation.Type.ERROR, result);
     }
 
     @Override
