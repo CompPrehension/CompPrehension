@@ -66,8 +66,8 @@
                         _EN_nextStepExplanation="That's incorrect. Because ${X.class()} has just one token, it can't have an inner operand at all (only a left and a right one). Therefore, no inner operand to prevent its evaluation."
                     >
                         <BranchResultNode value='true' _skill="central_operand_needed"
-                            _RU_explanation="${X}[case='и']  имеет одну лексему и поэтому не может иметь центрального операнда."
-                            _EN_explanation="${X} has one token and so does not have a central operand."
+                            _RU_explanation="он имеет одну лексему и поэтому не может иметь центрального операнда."
+                            _EN_explanation="it has one token and so does not have a central operand."
                         />
                     </Outcome>
                     <Outcome value="2"
@@ -932,7 +932,7 @@
                                                         <BranchResultNode value="true"
                                                             _skill="right_competing_to_left_precedence"
                                                             _RU_explanation="он имеет приоритет выше, чем ${Y}[case='в']."
-                                                            _EN_explanation="it has a higher priority than ${Y}."
+                                                            _EN_explanation="it has a higher precedence than ${Y}."
                                                         />
                                                     </Outcome>
                                                     <Outcome value="Comparison:greater"
@@ -1678,7 +1678,7 @@
                                                         <BranchResultNode value="true"
                                                             _skill="left_competing_to_right_precedence"
                                                             _RU_explanation="он имеет приоритет выше, чем ${Z}[case='в']."
-                                                            _EN_explanation="it has a higher priority than ${Z}."
+                                                            _EN_explanation="it has a higher precedence than ${Z}."
                                                         />
                                                     </Outcome>
                                                     <Outcome value="Comparison:greater"
@@ -1902,8 +1902,8 @@
                             <Outcome value="True">
                                 <BranchResultNode value="true"
                                     _skill="is_current_operator_strict_order"
-                                    _RU_explanation="${X}[case='и'] не находится в операнде ${T}[case='п'] который имеет строгий порядок вычисления операндов."
-                                    _EN_explanation="${X} is not a part of any operand of ${T} which has a strict order of operand evaluation"
+                                    _RU_explanation="он не находится в операнде ${T}[case='п'] который имеет строгий порядок вычисления операндов."
+                                    _EN_explanation="it is not a part of any operand of ${T} which has a strict order of operand evaluation"
                                 />
                             </Outcome>
                             <Outcome value="False">
@@ -2171,8 +2171,8 @@
                                                                     _law="error_base_student_error_strict_operands_order"
                                                                     value="false"
                                                                     _error="strict.leftShouldBeTrue_omittedInRight"
-                                                                    _RU_explanation="${X}[case='и'] опускается оператором со строгим порядком операндов (${T}[case='и'])"
-                                                                    _EN_explanation="${X} is omitted by an operator with a strict operand order (${T})"
+                                                                    _RU_explanation="он опускается оператором со строгим порядком операндов (${T}[case='и'])"
+                                                                    _EN_explanation="it is omitted by an operator with a strict operand order (${T})"
                                                                 >
                                                                     <Expression>
                                                                         <AssignToProperty>

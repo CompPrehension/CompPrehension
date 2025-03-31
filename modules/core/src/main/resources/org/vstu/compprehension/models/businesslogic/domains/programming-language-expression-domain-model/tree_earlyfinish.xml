@@ -6,9 +6,9 @@
         _EN_description="all operators in the expression are fully evaluated"
         _EN_nextStepQuestion="It is necessary to determine whether all operators in the expression are fully evaluated"
         _EN_nextStepExplanation="Incorrect. It is necessary to check if all operators in the expression are completely evaluated"
-        _RU_hint_prefix="Выражение полностью вычислено потому, что "
+        _RU_hint_prefix="Выражение полностью вычислено, потому что "
         _EN_hint_prefix="Expression is fully evaluated, because "
-        _RU_error_prefix="Выражение не полностью вычислено потому, что "
+        _RU_error_prefix="Выражение не полностью вычислено, потому что"
         _EN_error_prefix="Expression is not fully evaluated, because "
     >
         <CycleAggregationNode operator="AND"
@@ -52,7 +52,7 @@
                             <DecisionTreeVar name="X" />
                         </CheckRelationship>
                     </SelectorExpression>
-                    <DecisionTreeVarDecl name="Y" type=" operator" />
+                    <DecisionTreeVarDecl name="Y" type="operator" />
                     <Outcome value="Null"
                         _RU_text="Не найден невычисленный оператор внутри ${X}[case='р']"
                         _RU_explanation="Нет невычисленных операторов внутри ${X}[case='р']"
@@ -67,7 +67,7 @@ ${X}[case='p'], what should you do next?"
                     >
                         <BranchResultNode value="false"
                             _skill="earlyfinish_strict_order_operators_present"
-                            _RU_explanation="что его родитель не требует строгого порядка вычисления операндов и не может блокировать его вычисление"
+                            _RU_explanation="его родитель не требует строгого порядка вычисления операндов и не может блокировать его вычисление"
                             _EN_explanation="its parent does not evaluates its operands in a strict order and so cannot block its evaluation"
                         />
                     </Outcome>
@@ -105,7 +105,7 @@ ${X}[case='p'], what should you do next?"
                                 value="False">
                                 <BranchResultNode value="false"
                                     _skill="is_current_operator_strict_order_earlyfinish"
-                                    _RU_explanation="что он является верхним оператором выражения и не может быть блокирован"
+                                    _RU_explanation="он является верхним оператором выражения и не может быть блокирован"
                                     _EN_explanation="it is the top-level operator whose evaluation cannot be blocked"
                                 />
                             </Outcome>
@@ -172,7 +172,7 @@ ${X}[case='p'], what should you do next?"
                                         value="True">
                                         <BranchResultNode value="false"
                                             _skill="strict_order_first_operand_to_be_evaluated_while_earlyfinish"
-                                            _RU_explanation="что он находится в ${X->isInOperandOf(Y).placement}[case='р'] операнде ${Y}, который вычисляется первым и не может быть блокирован"
+                                            _RU_explanation="он находится в ${X->isInOperandOf(Y).placement}[case='р'] операнде ${Y}, который вычисляется первым и не может быть блокирован"
                                             _EN_explanation="it belongs to ${X->isInOperandOf(Y).placement}[case='р'] operand ${val('Y','р')} that is evaluated first and so cannot be blocked"
                                         />
                                     </Outcome>
