@@ -114,7 +114,7 @@ public class ProgrammingLanguageExpressionDTDomainTest {
                 if (!result.isAnswerCorrect) {
                     Assertions.fail(String.format("%s: %s", responses.stream()
                             .map(ResponseEntity::getLeftAnswerObject)
-                            .map(AnswerObjectEntity::getDomainInfo).toList(), result.explanation.children
+                            .map(AnswerObjectEntity::getDomainInfo).toList(), result.explanation.getChildren()
                             .stream().map(e -> e.toHyperText(Language.ENGLISH).getText())
                             .collect(Collectors.joining("\n"))));
                 }
