@@ -6,10 +6,10 @@
         _EN_description="all operators in the expression are fully evaluated"
         _EN_nextStepQuestion="It is necessary to determine whether all operators in the expression are fully evaluated"
         _EN_nextStepExplanation="Incorrect. It is necessary to check if all operators in the expression are completely evaluated"
-        _RU_hint_prefix="Выражение полностью вычислено, потому что "
-        _EN_hint_prefix="Expression is fully evaluated, because "
-        _RU_error_prefix="Выражение не полностью вычислено, потому что"
-        _EN_error_prefix="Expression is not fully evaluated, because "
+        _RU_hint_prefix="Вычисление выражения можно закончить, потому что "
+        _EN_hint_prefix="Expression evaluation can be finished because "
+        _RU_error_prefix="Вычисление выражения нельзя закончить, потому что "
+        _EN_error_prefix="Expression evaluation cannot be finished now because "
     >
         <CycleAggregationNode operator="AND"
             _RU_question="Найдите все невычисленные операторы в выражении."
@@ -17,7 +17,7 @@
             _RU_endingCause=" потому что ${result ? '' : 'не'} все операторы вычислены."
             _EN_question="Find all unevaluated operators in the expression."
             _EN_asNextStep="You need to find all unevaluated operators in the expression."
-            _EN_endingCause= "because ${result ? '' : 'not'} all operators are evaluated."
+            _EN_endingCause="because ${result ? '' : 'not'} all operators are evaluated."
         >
             <SelectorExpression>
                 <Compare operator="EQUAL">
@@ -48,8 +48,8 @@
                     <SelectorExpression>
                         <CheckRelationship>
                             <Relationship name="isInOperandOf" />
-                            <Variable name="Y" />
                             <DecisionTreeVar name="X" />
+                            <Variable name="Y" />
                         </CheckRelationship>
                     </SelectorExpression>
                     <DecisionTreeVarDecl name="Y" type="operator" />
@@ -67,8 +67,8 @@ ${X}[case='p'], what should you do next?"
                     >
                         <BranchResultNode value="false"
                             _skill="earlyfinish_strict_order_operators_present"
-                            _RU_explanation="его родитель не требует строгого порядка вычисления операндов и не может блокировать его вычисление"
-                            _EN_explanation="its parent does not evaluates its operands in a strict order and so cannot block its evaluation"
+                            _RU_explanation="${X} должен вычислиться потому что, его родитель не требует строгого порядка вычисления операндов и не может блокировать его вычисление"
+                            _EN_explanation="${X} should be evaluated because its parent does not evaluates its operands in a strict order and so cannot block its evaluation"
                         />
                     </Outcome>
                     <ThoughtBranch type="bool" paramName="Y"
@@ -105,8 +105,8 @@ ${X}[case='p'], what should you do next?"
                                 value="False">
                                 <BranchResultNode value="false"
                                     _skill="is_current_operator_strict_order_earlyfinish"
-                                    _RU_explanation="он является верхним оператором выражения и не может быть блокирован"
-                                    _EN_explanation="it is the top-level operator whose evaluation cannot be blocked"
+                                    _RU_explanation="${X} должен вычислиться потому что, он является верхним оператором выражения и не может быть блокирован"
+                                    _EN_explanation="${X} should be evaluated because it is the top-level operator whose evaluation cannot be blocked"
                                 />
                             </Outcome>
                             <Outcome
@@ -172,8 +172,8 @@ ${X}[case='p'], what should you do next?"
                                         value="True">
                                         <BranchResultNode value="false"
                                             _skill="strict_order_first_operand_to_be_evaluated_while_earlyfinish"
-                                            _RU_explanation="он находится в ${X->isInOperandOf(Y).placement}[case='р'] операнде ${Y}, который вычисляется первым и не может быть блокирован"
-                                            _EN_explanation="it belongs to ${X->isInOperandOf(Y).placement}[case='р'] operand ${val('Y','р')} that is evaluated first and so cannot be blocked"
+                                            _RU_explanation="${X} должен вычислиться, потому что он находится в ${X->isInOperandOf(Y).placement}[case='р'] операнде ${Y}, который вычисляется первым и не может быть блокирован"
+                                            _EN_explanation="${X} should be evaluated because it belongs to ${X->isInOperandOf(Y).placement}[case='р'] operand ${val('Y','р')} that is evaluated first and so cannot be blocked"
                                         />
                                     </Outcome>
                                     <Outcome
@@ -274,8 +274,8 @@ ${X}[case='p'], what should you do next?"
                                                 value="True">
                                                 <BranchResultNode value="false"
                                                     _skill="no_omitted_operands_despite_strict_order_while_earlyfinish"
-                                                    _RU_explanation="его родитель ${Y} всегда вычисляет все свои операнды и не может блокировать ${X}[case='в']"
-                                                    _EN_explanation="its parent ${Y} always evaluates all its operands and cannot block ${X}[case='в']'s evaluation"
+                                                    _RU_explanation="${X} должен вычислиться, потому что его родитель ${Y} всегда вычисляет все свои операнды и не может блокировать ${X}[case='в']"
+                                                    _EN_explanation="${X} should be evaluated because its parent ${Y} always evaluates all its operands and cannot block ${X}[case='в']'s evaluation"
                                                 />
                                             </Outcome>
                                             <Outcome
@@ -422,8 +422,8 @@ ${X}[case='p'], what should you do next?"
                                                         value="True">
                                                         <BranchResultNode value="false"
                                                             _skill="should_strict_order_current_operand_be_omitted_while_earlyfinish"
-                                                            _RU_explanation="он находится в ${X->isInOperandOf(Y).placement}[case='п'] операнде ${Y}[case='р'], чей ${Y.firstOperandPlacement} операнд имеет значение ${$Y->hasOperand&lt;placement=Y.firstOperandPlacement>.evaluatesTo}, что требует вычисления ${X}[case='р']"
-                                                            _EN_explanation="it belongs to ${X->isInOperandOf(Y).placement}[case='п'] operand of ${Y}[case='р'], whoe ${Y.firstOperandPlacement} operand has the value ${Y->hasOperand&lt;placement=Y.firstOperandPlacement>.evaluatesTo}, which requires evaluation of ${X}[case='р']}"
+                                                            _RU_explanation="${X} должен вычислиться, потому что он находится в ${X->isInOperandOf(Y).placement}[case='п'] операнде ${Y}[case='р'], чей ${Y.firstOperandPlacement} операнд имеет значение ${$Y->hasOperand&lt;placement=Y.firstOperandPlacement>.evaluatesTo}, что требует вычисления ${X}[case='р']"
+                                                            _EN_explanation="${X} should be evaluated because it belongs to ${X->isInOperandOf(Y).placement}[case='п'] operand of ${Y}[case='р'], whoe ${Y.firstOperandPlacement} operand has the value ${Y->hasOperand&lt;placement=Y.firstOperandPlacement>.evaluatesTo}, which requires evaluation of ${X}[case='р']}"
                                                         />
                                                     </Outcome>
                                                     <Outcome
@@ -438,8 +438,8 @@ ${X}[case='p'], what should you do next?"
                                                         value="False">
                                                         <BranchResultNode value="true"
                                                             _skill="should_strict_order_current_operand_be_omitted_while_earlyfinish"
-                                                            _RU_explanation="он находится в ${X->isInOperandOf(Y).placement}[case='п'] операнде ${Y}[case='р'], чей ${Y.firstOperandPlacement} операнд имеет значение ${$Y->hasOperand&lt;placement=Y.firstOperandPlacement>.evaluatesTo}, что блокирует вычисления ${X}[case='р']"
-                                                            _EN_explanation="it belongs to ${X->isInOperandOf(Y).placement}[case='п'] operand of ${Y}[case='р'], whoe ${Y.firstOperandPlacement} operand has the value ${Y->hasOperand&lt;placement=Y.firstOperandPlacement>.evaluatesTo}, which blocks evaluation of ${X}[case='р']}"
+                                                            _RU_explanation="${X} не должен вычисляться, он находится в ${X->isInOperandOf(Y).placement}[case='п'] операнде ${Y}[case='р'], чей ${Y.firstOperandPlacement} операнд имеет значение ${$Y->hasOperand&lt;placement=Y.firstOperandPlacement>.evaluatesTo}, что блокирует вычисления ${X}[case='р']"
+                                                            _EN_explanation="${X} is not evaluated because it belongs to ${X->isInOperandOf(Y).placement}[case='п'] operand of ${Y}[case='р'], whoe ${Y.firstOperandPlacement} operand has the value ${Y->hasOperand&lt;placement=Y.firstOperandPlacement>.evaluatesTo}, which blocks evaluation of ${X}[case='р']}"
                                                         />
                                                     </Outcome>
                                                 </QuestionNode>

@@ -1104,7 +1104,7 @@
                             <DecisionTreeVar name="X" />
                             <Property name="needsOperand" />
                             <ParamsValues>
-                                <Enum owner="OperandPlacement" value="left" />
+                                <Enum owner="OperandPlacement" value="right" />
                             </ParamsValues>
                         </GetPropertyValue>
                     </Expression>
@@ -1928,65 +1928,43 @@
                                         />
                                     </Outcome>
                                     <Outcome value="False">
-                                        <QuestionNode
-                                            _alias="Есть ли в первом операнде T невычисленный оператор (u)?"
+                                        <CycleAggregationNode operator="AND"
+                                            _alias="Есть ли в первом операнде T невычисленный оператор (U)?"
                                             type="bool" isSwitch="false"
                                             _RU_asNextStep="Необходимо проверить, остались ли в левом операнде ${T}[case='р'] невычисленные операторы."
-                                            _RU_question="Остались ли в левом операнде ${T}[case='р'] невычисленные операторы?"
+                                            _RU_description="В левом операнде ${T}[case='р'] ${$params.branchResult == BranchResult:CORRECT ? 'не' : ''} остались невычисленные операторы?"
                                             _RU_endingCause="Поскольку в левом операнде ${T} не осталось невычисленных операторов"
                                             _EN_asNextStep="We need to check if there are any unevaluated operators in the left operand of ${T}."
-                                            _EN_question="Are there any unevaluated operators in the left operand of ${T}?"
+                                            _EN_description="There ${$params.branchResult == BranchResult:CORRECT ? 'are' : 'aren't'} any unevaluated operators in the left operand of ${T}?"
                                             _EN_endingCause="Because there are no unevaluated operators in the left operand of ${T}"
                                         >
-                                            <Expression>
-                                                <ExistenceQuantifier varName="u">
-                                                    <CheckClass>
-                                                        <Variable name="u" />
-                                                        <Class name="operator" />
-                                                    </CheckClass>
-                                                    <LogicalAnd>
-                                                        <Compare operator="EQUAL">
-                                                            <GetPropertyValue>
-                                                                <Variable name="u" />
-                                                                <Property name="state" />
+                                            <SelectorExpression>
+                                                <LogicalAnd>
+                                                    <Compare operator="EQUAL">
+                                                        <GetPropertyValue>
+                                                            <Variable name="U" />
+                                                            <Property name="state" />
+                                                        </GetPropertyValue>
+                                                        <Enum owner="state" value="unevaluated" />
+                                                    </Compare>
+                                                    <CheckRelationship
+                                                        relationshipName="isInOperandOf">
+                                                        <Variable name="U" />
+                                                        <DecisionTreeVar name="T" />
+                                                        <ParamsValues>
+                                                            <GetPropertyValue
+                                                                propertyName="firstOperandPlacement">
+                                                                <DecisionTreeVar name="T" />
                                                             </GetPropertyValue>
-                                                            <Enum owner="state" value="unevaluated" />
-                                                        </Compare>
-                                                        <CheckRelationship relationshipName="isInOperandOf">
-                                                            <Variable name="u" />
-                                                            <DecisionTreeVar name="T" />
-                                                            <ParamsValues>
-                                                                <GetPropertyValue propertyName="firstOperandPlacement">
-                                                                    <DecisionTreeVar name="T" />
-                                                                </GetPropertyValue>
-                                                            </ParamsValues>
-                                                        </CheckRelationship>
-                                                    </LogicalAnd>
-                                                </ExistenceQuantifier>
-                                            </Expression>
+                                                        </ParamsValues>
+                                                    </CheckRelationship>
+                                                </LogicalAnd>
+                                            </SelectorExpression>
+                                            <DecisionTreeVarDecl name="U" type="operator" />
                                             <Outcome value="True"
-                                                _RU_explanation="Это неверно, поскольку такие операторы все еще есть."
-                                                _RU_nextStepQuestion="Какой вывод можно сделать, если у оператора со строгим порядком операндов не вычислен левый операнд?"
-                                                _RU_nextStepBranchResult="Левый операнд ${$params.branchResult == BranchResult:CORRECT ? 'не' : ''} мешает вычислению ${X}[case='р']."
-                                                _RU_nextStepExplanation="Это неверно. В операторах со строгим порядком операндов левый операнд всегда должен вычисляться первым, и значит ${X}[case='и'] пока не может быть вычислен."
-                                                _EN_explanation="That's incorrect, because there are still unevaluated operators."
-                                                _EN_nextStepQuestion="What can we decide if an operator with a strict order of operands has yet-unevaluated operand?"
-                                                _EN_nextStepBranchResult="Left operand of ${$params.branchResult == BranchResult:CORRECT ? 'not' : ''} hinder the evaluation of ${X}."
-                                                _EN_nextStepExplanation="That's incorrect. In operators with strict operand order, the left operand must always be evaluated first, and so ${X} cannot be evaluated yet."
-                                            >
-                                                <BranchResultNode value="false"
-                                                    _skill="is_first_operand_of_strict_order_operator_fully_evaluated"
-                                                    _law="error_base_student_error_strict_operands_order"
-                                                    _error="strict.leftShouldBeEvaluatedFirst"
-                                                    _RU_explanation="${U} стоящий в ${$U->isInOperandOf(T).placement}[case='р'] операнде ${T}[case='р'] должен быть вычислен ранее"
-                                                    _EN_explanation="${U} that belongs to ${$U->isInOperandOf(T).placement}[case='р'] operand ${T}[case='р'] should be evaluated before it"
-                                                />
-                                            </Outcome>
-                                            <Outcome value="False"
                                                 _RU_explanation="Это неверно, поскольку таких операторов нет - все вычислены."
                                                 _RU_nextStepQuestion="Какие дальнейшие шаги нужны при рассмотрении операторов со строгим порядком операндов?"
-                                                _RU_nextStepExplanation="Это неверно. Большинство операторов со строгим порядком операндов также предполагают,
-                                что в некоторых ситуациях их операнды могут быть опущены. Поэтому далее нужно проверить, применимо ли это в данном случае."
+                                                _RU_nextStepExplanation="Это неверно. Большинство операторов со строгим порядком операндов также предполагают, что в некоторых ситуациях их операнды могут быть опущены. Поэтому далее нужно проверить, применимо ли это в данном случае."
                                                 _EN_explanation="This is incorrect, because there are no such operators - they are all evaluated."
                                                 _EN_nextStepQuestion="What further steps are needed when considering operators with strict operand order?"
                                                 _EN_nextStepExplanation="This is incorrect. Most operators with strict operand ordering also involve their operands
@@ -2218,7 +2196,23 @@
                                                     </Outcome>
                                                 </QuestionNode>
                                             </Outcome>
-                                        </QuestionNode>
+                                            <ThoughtBranch type="bool" paramName="U"
+                                                _RU_nextStepQuestion="Какой вывод можно сделать, если у оператора со строгим порядком операндов не вычислен левый операнд?"
+                                                _RU_nextStepBranchResult="Левый операнд ${$params.branchResult == BranchResult:CORRECT ? 'не' : ''} мешает вычислению ${X}[case='р']."
+                                                _RU_nextStepExplanation="Это неверно. В операторах со строгим порядком операндов левый операнд всегда должен вычисляться первым, и значит ${X}[case='и'] пока не может быть вычислен."
+                                                _EN_nextStepQuestion="What can we decide if an operator with a strict order of operands has yet-unevaluated operand?"
+                                                _EN_nextStepBranchResult="Left operand of ${$params.branchResult == BranchResult:CORRECT ? 'not' : ''} hinder the evaluation of ${X}."
+                                                _EN_nextStepExplanation="That's incorrect. In operators with strict operand order, the left operand must always be evaluated first, and so ${X} cannot be evaluated yet."
+                                            >
+                                                <BranchResultNode value="false"
+                                                    _skill="is_first_operand_of_strict_order_operator_fully_evaluated"
+                                                    _law="error_base_student_error_strict_operands_order"
+                                                    _error="strict.leftShouldBeEvaluatedFirst"
+                                                    _RU_explanation="${U} стоящий в ${U->isInOperandOf(T).placement}[case='р'] операнде ${T}[case='р'] должен быть вычислен ранее"
+                                                    _EN_explanation="${U} that belongs to ${U->isInOperandOf(T).placement}[case='р'] operand ${T}[case='р'] should be evaluated before it"
+                                                />
+                                            </ThoughtBranch>
+                                        </CycleAggregationNode>
                                     </Outcome>
                                 </QuestionNode>
                             </Outcome>
