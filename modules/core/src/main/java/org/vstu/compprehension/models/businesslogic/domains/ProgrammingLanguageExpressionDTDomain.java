@@ -811,7 +811,8 @@ public class ProgrammingLanguageExpressionDTDomain extends DecisionTreeReasoning
 
     @Override
     public boolean needSupplementaryQuestion(ViolationEntity violation) {
-        return !STILL_UNEVALUATED_LEFT_VIOLATION_NAME.equals(violation.getLawName());
+        // TODO: temporary changes due to broken question generator library
+        return false;
     }
 
     private DomainModel mainQuestionToModel(InteractionEntity lastMainQuestionInteraction) {
