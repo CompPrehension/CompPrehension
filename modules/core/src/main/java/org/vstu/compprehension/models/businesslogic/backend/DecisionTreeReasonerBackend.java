@@ -19,6 +19,7 @@ import org.vstu.compprehension.models.businesslogic.Explanation;
 import org.vstu.compprehension.models.businesslogic.Question;
 import org.vstu.compprehension.models.entities.EnumData.Language;
 import org.vstu.compprehension.models.entities.ViolationEntity;
+import org.vstu.compprehension.utils.HyperText;
 
 import java.util.*;
 import java.util.stream.Collectors;
@@ -42,12 +43,12 @@ public class DecisionTreeReasonerBackend
 
     private static final Map<String, Map<String, String>> utilLoc = Map.ofEntries(
             Pair.of("RU", Map.ofEntries(
-                    Pair.of("andAlsoHint", "на решение влияют все нижеперечисленные..."),
-                    Pair.of("orAlsoHint", "на решение влияет любое из нижеперечисленных")
+                    Pair.of("andAlsoHint", "влияет всё из нижеперечисленного..."),
+                    Pair.of("orAlsoHint", "влияет любое из нижеперечисленного...")
             )),
             Pair.of("EN", Map.ofEntries(
-                    Pair.of("andAlsoHint", "all of the following factors affect the choice..."),
-                    Pair.of("orAlsoHint", "any of the following factors affect the choice...")
+                    Pair.of("andAlsoHint", "it is influenced by all of the following..."),
+                    Pair.of("orAlsoHint", "it is influenced by any of the following...")
             ))
     );
 
@@ -108,10 +109,7 @@ public class DecisionTreeReasonerBackend
                                                             DecisionTreeTrace trace,
                                                             DomainModel domain,
                                                             Language lang) {
-        return new Explanation("", type,
-                new ArrayList<>(_collectExplanations(
-                        type, trace, null, domain, lang, 1)
-                ));
+        return Explanation.aggregate(type, _collectExplanations(type, trace, null, domain, lang, 1));
     }
 
     private static List<Explanation> _collectExplanations(Explanation.Type type,
@@ -138,21 +136,22 @@ public class DecisionTreeReasonerBackend
                 if (element.getNode() instanceof AggregationNode agg && agg.getAggregationMethod().equals(AggregationMethod.AND)) {
                     if (type == Explanation.Type.HINT) {
                         if (level != 1) prefix = String.format("<i>%s</i>", utilLoc.get(lang.toLocaleString()).get("andAlsoHint"));
-                        newParent = new Explanation(prefix, type);
+                        newParent = new Explanation(type, prefix);
                         traceExplanations.add(newParent);
                     }
                 } else if (element.getNode() instanceof AggregationNode agg && agg.getAggregationMethod().equals(AggregationMethod.OR)) {
                     if (type == Explanation.Type.ERROR) {
                         if (level != 1) prefix = String.format("<i>%s</i>", utilLoc.get(lang.toLocaleString()).get("orAlsoHint"));
-                        newParent = new Explanation(prefix, type);
+                        newParent = new Explanation(type, prefix);
                         traceExplanations.add(newParent);
                     }
                 }
                 for (DecisionTreeTrace subTrace : Objects.requireNonNullElse(element.nestedTraces(), new ArrayList<DecisionTreeTrace>())) {
                     traceExplanations.addAll(_collectExplanations(type, subTrace, newParent, domain, lang, level + 1));
                 }
-                if (newParent != null && newParent.getChildren().isEmpty()) {
+                if (newParent != null && (newParent.getChildren().isEmpty() || newParent.getChildren().size() == 1)) {
                     traceExplanations.remove(newParent);
+                    if (newParent.getChildren().size() == 1) traceExplanations.add(newParent.getChildren().getFirst());
                 }
             }
         }
@@ -160,11 +159,11 @@ public class DecisionTreeReasonerBackend
         if (parent == null) {
             return traceExplanations.stream()
                     .filter(e -> !e.isEmpty())
-                    .toList();
+                    .toList().reversed();
         } else {
             parent.getChildren().addAll(traceExplanations.stream()
                     .filter(e -> !e.isEmpty())
-                    .toList());
+                    .toList().reversed());
             return List.of();
         }
     }
@@ -220,24 +219,7 @@ public class DecisionTreeReasonerBackend
             }
             List<DecisionTreeTraceElement<?, ?>> traceElements = nestedTraceElements(backendOutput.results);
 
-            List<DecisionTreeTraceElement<?,?>> errResults = traceElements.stream()
-                    .filter(result -> result.getNode() instanceof BranchResultNode
-                            && !result.getNodeResult().equals(BranchResult.CORRECT) && result.getNode().getMetadata().containsAny("skill"))
-                    .toList();
-            List<ViolationEntity> mistakes = errResults.stream()
-                .map(result -> {
-                    String errorName = result.getNode().getMetadata().get("skill").toString();
-                    ViolationEntity violation = new ViolationEntity();
-                    violation.setLawName(errorName);
-                    violation.setViolationFacts(new ArrayList<>());
-                    return violation;
-                })
-                .collect(Collectors.toList());
-
             InterpretSentenceResult result = new InterpretSentenceResult();
-            result.violations = mistakes;
-            result.correctlyAppliedLaws = new ArrayList<>();
-            result.isAnswerCorrect = mistakes.isEmpty();
             for (DecisionTreeTraceElement<?,?> res : traceElements) {
                 String[] resSkill = res.getNode().getMetadata().containsAny("skill") && res.getNode().getMetadata().get("skill") != null ?
                         res.getNode().getMetadata().get("skill").toString().split(";") : new String[0];
@@ -247,22 +229,6 @@ public class DecisionTreeReasonerBackend
                 Collections.addAll(result.domainNegativeLaws, resLaw);
             }
 
-            /*
-            // Used for debug purposes, uncomment if debugging of DT reasoner is required
-            result.debugInfo.put("variables", backendOutput.situation.getDecisionTreeVariables().entrySet().stream()
-                    .filter(entry -> entry.getValue().findIn(backendOutput.situation.getDomainModel()) != null &&
-                            entry.getValue().findIn(backendOutput.situation.getDomainModel()).getMetadata().containsLocalized("EN", "localizedName"))
-                    .map(entry -> entry.getKey() + "=" + entry.getValue().findIn(backendOutput.situation.getDomainModel())
-                            .getMetadata().get("EN", "localizedName"))
-                    .collect(Collectors.joining(", ")));
-            result.debugInfo.put("states", backendOutput.situation.getDomainModel().getObjects().stream()
-                    .filter(ref -> ref.getMetadata().containsLocalized("EN", "localizedName") && ref.getAllProperties().stream().anyMatch(
-                            def -> def.getName().equals("state")))
-                    .map(
-                    ref -> ref.getMetadata().get("EN", "localizedName").toString().concat("-> ")
-                            .concat(ref.getPropertyValue("state").toString())).collect(Collectors.joining(";\n")));
-             */
-
             updateJudgeInterpretationResult(result, backendOutput);
 
             Language lang = getUserLanguageByQuestion(judgedQuestion);
@@ -270,6 +236,17 @@ public class DecisionTreeReasonerBackend
                     backendOutput.situation.getDomainModel(),
                     lang
             );
+            List<ViolationEntity> mistakes = result.explanation.getDomainLawNames()
+                    .stream().map(errorName -> {
+                        ViolationEntity violation = new ViolationEntity();
+                        violation.setLawName(errorName);
+                        violation.setViolationFacts(new ArrayList<>());
+                        return violation;
+                    })
+                    .collect(Collectors.toList());
+            result.violations = mistakes;
+            result.correctlyAppliedLaws = new ArrayList<>();
+            result.isAnswerCorrect = mistakes.isEmpty();
             return result;
         }
 
@@ -347,7 +324,12 @@ public class DecisionTreeReasonerBackend
                     expanded = expanded.replaceAll("operato ", "operator ");
                 }
             }
-            return new Explanation(expanded, type, new ArrayList<>());
+            Explanation expl = new Explanation(type, expanded);
+            if (resultNode.getMetadata().containsAny("skill")) {
+                String skillName = resultNode.getMetadata().getString("skill");
+                expl.setCurrentDomainLawName(skillName);
+            }
+            return expl;
         }
 
         @Override

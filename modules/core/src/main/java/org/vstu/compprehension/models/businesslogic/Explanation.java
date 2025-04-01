@@ -1,16 +1,17 @@
 package org.vstu.compprehension.models.businesslogic;
 
-import lombok.AllArgsConstructor;
 import lombok.Getter;
+import lombok.Setter;
 import org.vstu.compprehension.models.entities.EnumData.Language;
 import org.vstu.compprehension.utils.HyperText;
 
-import java.util.ArrayList;
-import java.util.List;
+import java.util.*;
+import java.util.stream.Collectors;
+import java.util.stream.Stream;
 
-@AllArgsConstructor
 @Getter
 public class Explanation {
+
     /**
      * Type of explanation
      */
@@ -19,26 +20,34 @@ public class Explanation {
         ERROR
     }
 
-    public final HyperText rawMessage;
-    public final Type type;
-    public final ArrayList<Explanation> children;
+    private final HyperText rawMessage;
+    private final Type type;
+    private SequencedSet<Explanation> children = new LinkedHashSet<>();
 
-    public Explanation(String rawMessage, Type type) {
-        this.rawMessage = new HyperText(rawMessage);
-        this.type = type;
-        this.children = new ArrayList<>();
+    @Setter
+    private String currentDomainLawName;
+
+    public Explanation(Type t, String message) {
+        this(t, new HyperText(message));
     }
 
-    public Explanation(HyperText rawMessage, Type type) {
-        this(rawMessage.getText(), type);
+    public Explanation(Type t, HyperText message) {
+        this.type = t;
+        this.rawMessage = message;
     }
 
-    public Explanation(String rawMessage, Type type, ArrayList<Explanation> explanations) {
-        this(new HyperText(rawMessage), type, explanations);
+    public Explanation(Type t, String message, List<Explanation> children) {
+        this(t, new HyperText(message), children);
+    }
+
+    public Explanation(Type t, HyperText message, List<Explanation> children) {
+        this.type = t;
+        this.rawMessage = message;
+        this.children = new LinkedHashSet<>(children);
     }
 
     public static Explanation empty(Type t) {
-        return new Explanation("", t);
+        return new Explanation(t, "");
     }
 
     public boolean isEmpty() {
@@ -50,7 +59,29 @@ public class Explanation {
     }
 
     public static Explanation aggregate(Type t, List<Explanation> explanationList) {
-        return new Explanation("", t, new ArrayList<>(explanationList));
+        return new Explanation(t, "", explanationList);
+    }
+
+    @Override
+    public boolean equals(Object o) {
+        if (!(o instanceof Explanation that)) return false;
+        return Objects.equals(rawMessage, that.rawMessage) && type == that.type && Objects.equals(getChildrenList(), that.getChildrenList()) && Objects.equals(currentDomainLawName, that.currentDomainLawName);
+    }
+
+    @Override
+    public int hashCode() {
+        return Objects.hash(rawMessage, type, getChildrenList(), currentDomainLawName);
+    }
+
+    public List<Explanation> getChildrenList() {
+        return children.stream().toList();
+    }
+
+    public Set<String> getDomainLawNames() {
+        return Stream.concat(
+                Stream.of(currentDomainLawName),
+                children.stream().map(Explanation::getDomainLawNames).flatMap(Set<String>::stream)
+        ).filter(Objects::nonNull).collect(Collectors.toSet());
     }
 
     public HyperText toHyperText(Language lang) {
@@ -60,7 +91,7 @@ public class Explanation {
     public HyperText toHyperText(Language lang, boolean collapse) {
         if (children.isEmpty()) {
             return new HyperText(rawMessage.getText());
-        } else if (children.size() == 1) {
+        } else if (children.size() == 1 && rawMessage.getText().isEmpty()) {
             return children.getFirst().toHyperText(lang, collapse);
         } else {
             return _recursiveToHyperText(lang, collapse, this);

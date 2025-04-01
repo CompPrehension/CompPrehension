@@ -1416,7 +1416,7 @@ public class ProgrammingLanguageExpressionDomain extends JenaReasoningDomain {
                     correctAnswer.question = q.getQuestionData();
                     correctAnswer.answers = answers;
                     correctAnswer.lawName = answerImpl.lawName;
-                    correctAnswer.explanation = new Explanation(getCorrectExplanation(q, answer), Explanation.Type.HINT);
+                    correctAnswer.explanation = new Explanation(Explanation.Type.HINT, getCorrectExplanation(q, answer));
                     return correctAnswer;
                 }
             }
@@ -1532,8 +1532,8 @@ public class ProgrammingLanguageExpressionDomain extends JenaReasoningDomain {
                     .map(a -> a.getUser().getPreferred_language())
                     .orElse(Language.RUSSIAN/*ENGLISH*/);
             val message = judgeResult.isAnswerCorrect
-                    ? FeedbackDto.Message.Success(localizationService.getMessage("exercise_correct-sup-question-answer", locale), violation)
-                    : FeedbackDto.Message.Error(localizationService.getMessage("exercise_wrong-sup-question-answer", locale), violation);
+                    ? FeedbackDto.Message.Success(localizationService.getMessage("exercise_correct-sup-question-answer", locale), List.of(violation))
+                    : FeedbackDto.Message.Error(localizationService.getMessage("exercise_wrong-sup-question-answer", locale), List.of(violation));
             val feedback =  new SupplementaryFeedbackDto(
                     message,
                     judgeResult.isAnswerCorrect ? SupplementaryFeedbackDto.Action.ContinueAuto : SupplementaryFeedbackDto.Action.ContinueManual);
@@ -2078,9 +2078,9 @@ public class ProgrammingLanguageExpressionDomain extends JenaReasoningDomain {
     public Explanation makeExplanation(List<ViolationEntity> mistakes, FeedbackType feedbackType, Language lang) {
         ArrayList<Explanation> result = new ArrayList<>();
         for (ViolationEntity mistake : mistakes) {
-            result.add(new Explanation(makeExplanation(mistake, feedbackType, lang).getText(), Explanation.Type.ERROR));
+            result.add(new Explanation(Explanation.Type.ERROR, makeExplanation(mistake, feedbackType, lang)));
         }
-        return new Explanation("", Explanation.Type.ERROR, result);
+        return Explanation.aggregate(Explanation.Type.ERROR, result);
     }
 
     private String getOperatorTextDescription(String errorText, Language lang) {

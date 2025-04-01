@@ -849,9 +849,8 @@ public class ControlFlowStatementsDomain extends JenaReasoningDomain {
             // rearrange mistakes ..?
 
             ArrayList<Explanation> explanation = new ArrayList<>();
-            violations.forEach(ve -> explanation.add(new Explanation(
-                    makeExplanation(ve, feedbackType, lang).getText(),
-                    Explanation.Type.ERROR)));
+            violations.forEach(ve -> explanation.add(new Explanation(Explanation.Type.ERROR,
+                    makeExplanation(ve, feedbackType, lang))));
             return Explanation.aggregate(Explanation.Type.ERROR, explanation);
         }
     }
@@ -1940,7 +1939,7 @@ public class ControlFlowStatementsDomain extends JenaReasoningDomain {
         else {
             explanation = new HyperText("explanation for " + Optional.ofNullable(reasonName).orElse("<unknown reason>") + ": not found in domain localization");
         }
-        correctAnswer.explanation = new Explanation(explanation, Explanation.Type.HINT); // getCorrectExplanation(answerImpl.lawName);
+        correctAnswer.explanation = new Explanation(Explanation.Type.HINT, explanation); // getCorrectExplanation(answerImpl.lawName);
         return correctAnswer;
     }
 

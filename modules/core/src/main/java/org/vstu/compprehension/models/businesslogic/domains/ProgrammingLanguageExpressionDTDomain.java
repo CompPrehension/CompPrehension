@@ -45,7 +45,6 @@ import java.io.IOException;
 import java.nio.file.Files;
 import java.nio.file.Path;
 import java.util.*;
-import java.util.stream.Collectors;
 
 @Log4j2
 public class ProgrammingLanguageExpressionDTDomain extends DecisionTreeReasoningDomain {
@@ -338,11 +337,17 @@ public class ProgrammingLanguageExpressionDTDomain extends DecisionTreeReasoning
             violation.setLawName(STILL_UNEVALUATED_LEFT_VIOLATION_NAME);
             violation.setViolationFacts(new ArrayList<>());
             InterpretSentenceResult result = new InterpretSentenceResult();
-            result.violations = List.of(violation);
+            result.violations = new ArrayList<>(List.of(violation));
 
             result.explanation = DecisionTreeReasonerBackend.collectExplanationsFromTrace(
                     Explanation.Type.ERROR, solveResult.trace(),
                     preparedSituation.getDomainModel(), getUserLanguageByQuestion(judgedQuestion));
+            result.violations.addAll(result.explanation.getDomainLawNames().stream().map(skill -> {
+                ViolationEntity v = new ViolationEntity();
+                v.setLawName(skill);
+                v.setViolationFacts(new ArrayList<>());
+                return v;
+            }).toList());
             updateInterpretationResult(result, preparedSituation);
             return result;
         }
@@ -785,8 +790,8 @@ public class ProgrammingLanguageExpressionDTDomain extends DecisionTreeReasoning
                             lang
                     );
                     if (explanation.isEmpty()) {
-                        explanation.children.add(new Explanation(getMessage("service.missing_correct_answer_explanation", lang),
-                                Explanation.Type.HINT));
+                        explanation.getChildren().add(new Explanation(Explanation.Type.HINT, new HyperText(
+                                        getMessage("service.missing_correct_answer_explanation", lang))));
                     }
 
                     CorrectAnswer correctAnswer = new CorrectAnswer();
@@ -845,7 +850,7 @@ public class ProgrammingLanguageExpressionDTDomain extends DecisionTreeReasoning
     public Explanation makeExplanation(List<ViolationEntity> mistakes, FeedbackType feedbackType, Language lang) {
         ArrayList<Explanation> result = new ArrayList<>();
         for (ViolationEntity mistake : mistakes) {
-            result.add(new Explanation(makeSingleExplanation(mistake, feedbackType, lang).getText(), Explanation.Type.ERROR));
+            result.add(new Explanation(Explanation.Type.ERROR, makeSingleExplanation(mistake, feedbackType, lang)));
         }
         return Explanation.aggregate(Explanation.Type.ERROR, result);
     }

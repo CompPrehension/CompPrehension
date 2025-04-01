@@ -570,7 +570,7 @@ public class ControlFlowStatementsDTDomain extends DecisionTreeReasoningDomain {
     public Explanation makeExplanation(List<ViolationEntity> mistakes, FeedbackType feedbackType, Language lang) {
         ArrayList<Explanation> result = new ArrayList<>();
         for (ViolationEntity mistake : mistakes) {
-            result.add(new Explanation(makeSingleExplanation(mistake, feedbackType, lang).getText(), Explanation.Type.ERROR));
+            result.add(new Explanation(Explanation.Type.ERROR, makeSingleExplanation(mistake, feedbackType, lang)));
         }
         return Explanation.aggregate(Explanation.Type.ERROR, result);
     }

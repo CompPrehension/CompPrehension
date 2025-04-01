@@ -1,5 +1,7 @@
 package org.vstu.compprehension.utils;
 
+import java.util.Objects;
+
 public class HyperText {
 
     private StringBuilder text;
@@ -25,5 +27,16 @@ public class HyperText {
     @Override
     public String toString() {
         return text.toString();
+    }
+
+    @Override
+    public boolean equals(Object o) {
+        if (!(o instanceof HyperText hyperText)) return false;
+        return Objects.equals(text.toString(), hyperText.text.toString());
+    }
+
+    @Override
+    public int hashCode() {
+        return Objects.hashCode(text.toString());
     }
 }
