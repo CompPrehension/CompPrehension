@@ -6,23 +6,36 @@ import { Button } from 'react-bootstrap';
 import { container } from "tsyringe";
 import { ExerciseStore } from "../../stores/exercise-store";
 import { useTranslation } from "react-i18next";
+import { QuestionStore } from '../../stores/question-store';
 
-export const GenerateNextAnswerBtn = observer(() => {    
-    const [exerciseStore] = useState(() => container.resolve(ExerciseStore));
+type GenerateNextAnswerBtnProps = {
+    explicitQuestionStore?: QuestionStore;
+};
+
+export const GenerateNextAnswerBtn = observer(({ explicitQuestionStore }: GenerateNextAnswerBtnProps) => {    
+    const [store] = useState(() => explicitQuestionStore == undefined ? 
+        container.resolve(ExerciseStore) : explicitQuestionStore);
     const { t } = useTranslation();
-    if (!exerciseStore.exercise?.options.correctAnswerGenerationEnabled) {
-        return null;
-    }    
-    const { exercise, currentAttempt, currentQuestion } = exerciseStore;
-    const { question, feedback } = currentQuestion;
-    const isFeedbackLoading = currentQuestion.questionState === 'ANSWER_EVALUATING';
-    const isQuestionLoading = currentQuestion.questionState === 'LOADING';
-    if (!question || !exercise || !currentAttempt || isFeedbackLoading || isQuestionLoading || feedback?.stepsLeft === 0) {
+    if (store instanceof ExerciseStore && !store.exercise?.options.correctAnswerGenerationEnabled) {
         return null;
     }
 
+    if (store instanceof ExerciseStore) {
+        const { exercise, currentAttempt, currentQuestion } = store;
+        const { question, feedback } = currentQuestion;
+        const isFeedbackLoading = currentQuestion.questionState === 'ANSWER_EVALUATING';
+        const isQuestionLoading = currentQuestion.questionState === 'LOADING';
+        if (!question || !exercise || !currentAttempt || isFeedbackLoading || isQuestionLoading || feedback?.stepsLeft === 0) {
+            return null;
+        }
+    }
+    
     const onClicked = () => {
-        exerciseStore.currentQuestion.generateNextCorrectAnswer();
+        if (store instanceof ExerciseStore) {
+            store.currentQuestion.generateNextCorrectAnswer();
+        } else {
+            store.generateNextCorrectAnswer();
+        }
     };
 
     return (        
