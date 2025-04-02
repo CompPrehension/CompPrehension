@@ -391,6 +391,9 @@ public class MeaningTreeOrderQuestionBuilder {
      */
     protected List<Pair<SerializableQuestion, SerializableQuestionTemplate.QuestionMetadata>> generateManyQuestions(SupportedLanguage language) {
         processTokens(language);
+        if (!allChecksArePassed) {
+            return List.of();
+        }
         answerObjects = generateAnswerObjects(tokens);
 
         if (tokens.stream().anyMatch((Token t) -> t.getAssignedValue() != null) || skipRuntimeValuesGeneration) {
