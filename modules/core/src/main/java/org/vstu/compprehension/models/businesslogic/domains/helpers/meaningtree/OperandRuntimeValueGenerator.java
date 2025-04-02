@@ -159,13 +159,14 @@ public class OperandRuntimeValueGenerator {
                 for (int j = i + 1; j < array.length; j++) {
                     DisposableIndex nextTokenIndex = groupFeatures.sequencedKeySet().stream().toList().get(j);
                     // Два оператора зависимы друг от друга (один операнд другого)
-                    // и поэтому в зависимом операторе значение не должно противоречить независимому
-                    if (array[i] != array[j]
+                    // и поэтому в зависимом операторе значение не должно противоречить независимому.
+                    // Актуально для бинарных операторов (в роли независимых)
+                    if (array[i] != array[j] && !tokenIndex.id.partialEval
                             && isTransitiveDependency(nextTokenIndex.getNodeId(),
                                 ((BinaryExpression)tokenIndex.getNode()).getLeft().getId())
                     ) {
                         array[i] = array[j];
-                    } else if (array[j] != array[i] && isTransitiveDependency(tokenIndex.getNodeId(),
+                    } else if (array[j] != array[i] && !nextTokenIndex.id.partialEval && isTransitiveDependency(tokenIndex.getNodeId(),
                             ((BinaryExpression)nextTokenIndex.getNode()).getLeft().getId())) {
                         array[j] = array[i];
                     }
