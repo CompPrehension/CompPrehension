@@ -84,6 +84,7 @@ public class MeaningTreeOrderQuestionBuilder {
     protected static final int TARGET_VERSION = 12;
 
     private boolean allChecksArePassed = true;
+    private boolean skipRuntimeValuesGeneration = false;
 
     private static final List<String> defaultTags = new ArrayList<>(List.of("basics", "operators", "order", "evaluation", "errors"));
 
@@ -115,6 +116,11 @@ public class MeaningTreeOrderQuestionBuilder {
         sourceExpressionTree = mt;
         existingMetadata = q.getMetadata();
         questionOrigin(q.getMetadata().getOrigin(), q.getMetadata().getOriginLicense());
+        return this;
+    }
+
+    public MeaningTreeOrderQuestionBuilder skipRuntimeValueGeneration(boolean value) {
+        skipRuntimeValuesGeneration = value;
         return this;
     }
 
@@ -387,9 +393,9 @@ public class MeaningTreeOrderQuestionBuilder {
         processTokens(language);
         answerObjects = generateAnswerObjects(tokens);
 
-        if (tokens.stream().anyMatch((Token t) -> t.getAssignedValue() != null)) {
+        if (tokens.stream().anyMatch((Token t) -> t.getAssignedValue() != null) || skipRuntimeValuesGeneration) {
             log.debug("Given data already contains values paired with tokens");
-            return List.of(generateFromTemplate(language));
+            return !allChecksArePassed ? List.of() : List.of(generateFromTemplate(language));
         }
         List<Pair<SerializableQuestion, SerializableQuestionTemplate.QuestionMetadata>> generated = new ArrayList<>();
         OperandRuntimeValueGenerator map = new OperandRuntimeValueGenerator(this, language);
@@ -400,7 +406,7 @@ public class MeaningTreeOrderQuestionBuilder {
             generated.add(generateFromTemplate(language, pair.getLeft(), pair.getRight()));
         }
         if (generatedValues.isEmpty()) {
-            return List.of(generateFromTemplate(language));
+            return !allChecksArePassed ? List.of() : List.of(generateFromTemplate(language));
         }
         sourceExpressionTree = initial;
 

@@ -360,13 +360,25 @@ public class MeaningTreeRDFTransformer {
         }
     }
 
-    public static void debugDumpLoqi(DomainModel model, String filename) {
+    private static void debugDumpLoqi(DomainModel model, String filename) {
         if(!ENABLE_DEBUG_SAVE) return;
         String filePath = new File(DEBUG_DIR).exists() ? DEBUG_DIR : "./";
         try {
             DomainLoqiWriter.saveDomain(
                     model,
                     new FileWriter(filePath + filename),
+                    new HashSet<>()
+            );
+        } catch (IOException e) {
+            throw new RuntimeException(e);
+        }
+    }
+
+    public static void dumpModelLoqi(DomainModel model, File filePath) {
+        try {
+            DomainLoqiWriter.saveDomain(
+                    model,
+                    new FileWriter(filePath),
                     new HashSet<>()
             );
         } catch (IOException e) {
