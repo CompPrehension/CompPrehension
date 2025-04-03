@@ -26,7 +26,7 @@ import java.util.stream.Collectors;
  * В зависимости от найденных групп генерируются значения операндов, создающие уникальные по возможным типам ошибок и концептов вопросы
  */
 @Log4j2
-public class OperandRuntimeValueGenerator {
+class OperandRuntimeValueGenerator {
 
     /**
      * Информация о возможного отключаемого участка в дереве, представляющее узел.

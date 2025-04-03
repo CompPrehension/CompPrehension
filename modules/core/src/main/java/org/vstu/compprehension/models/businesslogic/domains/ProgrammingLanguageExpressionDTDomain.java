@@ -7,14 +7,8 @@ import its.model.DomainSolvingModel;
 import its.model.definition.DomainModel;
 import its.model.definition.EnumValueRef;
 import its.model.definition.ObjectDef;
-import its.model.nodes.AggregationMethod;
-import its.model.nodes.AggregationNode;
-import its.model.nodes.BranchResultNode;
 import its.model.nodes.DecisionTree;
-import its.questions.gen.QuestioningSituation;
 import its.reasoner.LearningSituation;
-import its.reasoner.nodes.DecisionTreeTrace;
-import its.reasoner.nodes.DecisionTreeTraceElement;
 import lombok.SneakyThrows;
 import lombok.extern.log4j.Log4j2;
 import lombok.val;
@@ -194,7 +188,7 @@ public class ProgrammingLanguageExpressionDTDomain extends DecisionTreeReasoning
     public @NotNull Question makeQuestion(@NotNull QuestionRequest questionRequest,
                                           @Nullable ExerciseAttemptEntity exerciseAttempt,
                                           @NotNull Language userLanguage) {
-        SupportedLanguage lang = MeaningTreeOrderQuestionBuilder.detectLanguageFromTags(questionRequest.getTargetTags().stream().map(Tag::getName).toList());
+        SupportedLanguage lang = MeaningTreeUtils.detectLanguageFromTags(questionRequest.getTargetTags().stream().map(Tag::getName).toList());
 
         return QuestionDynamicDataAppender.appendQuestionData(baseDomain.makeQuestion(questionRequest, exerciseAttempt, userLanguage), exerciseAttempt, qMetaStorage, lang, this, userLanguage);
     }
@@ -204,7 +198,7 @@ public class ProgrammingLanguageExpressionDTDomain extends DecisionTreeReasoning
                                           @Nullable ExerciseAttemptEntity exerciseAttemptEntity,
                                           @NotNull List<Tag> tags,
                                           @NotNull Language userLang) {
-        SupportedLanguage lang = MeaningTreeOrderQuestionBuilder.detectLanguageFromTags(tags.stream().map(Tag::getName).toList());
+        SupportedLanguage lang = MeaningTreeUtils.detectLanguageFromTags(tags.stream().map(Tag::getName).toList());
 
         return QuestionDynamicDataAppender.appendQuestionData(baseDomain.makeQuestion(metadata, exerciseAttemptEntity, tags, userLang), exerciseAttemptEntity, qMetaStorage, lang, this, userLang);
     }
@@ -685,7 +679,7 @@ public class ProgrammingLanguageExpressionDTDomain extends DecisionTreeReasoning
         Language lang = Optional.ofNullable(question.getQuestionData().getExerciseAttempt())
             .map(a -> a.getUser().getPreferred_language())
             .orElse(Language.RUSSIAN/*ENGLISH*/);
-        SupportedLanguage plang = MeaningTreeOrderQuestionBuilder.detectLanguageFromTags(question.getTagNames());
+        SupportedLanguage plang = MeaningTreeUtils.detectLanguageFromTags(question.getTagNames());
 
         ArrayList<HyperText> result = new ArrayList<>();
 
@@ -765,6 +759,7 @@ public class ProgrammingLanguageExpressionDTDomain extends DecisionTreeReasoning
         );
         DecisionTree dt = domainSolvingModel.getDecisionTree();
         ProgrammingLanguageExpressionsSolver solver = new ProgrammingLanguageExpressionsSolver();
+        // Проверить в ризонере все возможные варианты интеракций и понять, какая из них правильная и выдать подсказку
         Optional<Pair<ObjectDef, ProgrammingLanguageExpressionsSolver.SolveResult>> found = domain.getObjects().stream()
                 .filter(domainObj ->
                     domainObj.getClazz().isSubclassOf("operator") && domainObj.getRelationshipLinks().stream().filter(rel ->rel.getRelationshipName().equals("has")).allMatch(

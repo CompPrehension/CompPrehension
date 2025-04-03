@@ -8,7 +8,7 @@ import org.jetbrains.annotations.Nullable;
 import java.util.List;
 
 /**
- * Один из форматов входных данных для генерируемого вопроса, передаваемого в генератор
+ * One of input format for expression domain generator
  */
 @Getter
 @AllArgsConstructor

@@ -21,15 +21,15 @@ import java.util.stream.Collectors;
 
 public class QuestionDynamicDataAppender {
     /**
-     * Добавить информацию в вопрос перед его выдачей в зависимости от языка программирования
-     * В вопрос добавляется объекты ответа, текст вопроса.
-     * Если вопрос в старом формате, то перед выдачей он преобразуется и сохраняется в новом формате
-     * @param q вопрос
-     * @param attempt попытка выполнения упражнения
-     * @param bank банк вопросов
-     * @param lang язык программирования, на котором должен быть вопрос
-     * @param domain домен, для которого вопрос предназначается
-     * @return заполненный вопрос или новый объект вопроса в новом формате
+     * Adds dynamic data required for student interaction
+     * Method create question text and answer objects.
+     * Old question format will be automatically converted to new format
+     * @param q domain question object
+     * @param attempt exercise attempt
+     * @param bank question bank
+     * @param lang programming language of question
+     * @param domain target domain
+     * @return filled domain question object
      */
     public static Question appendQuestionData(Question q, @Nullable ExerciseAttemptEntity attempt, QuestionBank bank,
                                               SupportedLanguage lang, ProgrammingLanguageExpressionDTDomain domain, Language userLang) {
@@ -60,11 +60,11 @@ public class QuestionDynamicDataAppender {
     }
 
     /**
-     * Создание текста вопроса, рекомендуемое для вызова перед выдачей вопроса
-     * @param tokens токены результирующего вопроса
-     * @param domain домен, для которого генерируется
-     * @param lang язык локализации пользователя
-     * @return строка вопроса в HTML
+     * Creates question HTML representation
+     * @param tokens tokens of question
+     * @param domain target domain
+     * @param lang user locale
+     * @return question html string
      */
     static String questionToHtml(TokenList tokens,
                                  ProgrammingLanguageExpressionDTDomain domain,

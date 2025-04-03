@@ -46,32 +46,29 @@ import java.lang.reflect.InvocationTargetException;
 import java.util.*;
 import java.util.stream.Collectors;
 
-
+/***
+ * Builder of questions for expression domain in various formats (serializable or domain format).
+ * Can build question from any syntax-correct expression of any SupportedLanguage by using the Meaning Tree (MT) library
+ * Can be used by question generator
+ * Can convert old expression domain to new MT format
+ */
 @Log4j2
 public class MeaningTreeOrderQuestionBuilder {
-    /***
-     * Построитель сериализованного вопроса SerializableQuestion, пригодного для сохранения в хранилище
-     * Выражение может быть построено на любом поддерживаемом языке программирования
-     * и преобразовано в другой поддерживаемый язык программирования с помощью использования общего дерева языков проекта MeaningTree
-     *
-     * Представляет собой прослойку, пригодную для генерирования и выдачи уже существующих вопросов на любом поддерживаемом языке программирования
-     */
+    protected MeaningTree sourceExpressionTree = null; // expression in MT format
+    protected QuestionMetadataEntity existingMetadata = null; // existing metadata (if existing question regenerates)
 
-    protected MeaningTree sourceExpressionTree = null; // выражение
-    protected QuestionMetadataEntity existingMetadata = null;
+    // Additional information for question source
+    protected String questionOrigin = null; // source of question (for example, source code repository full name)
+    protected String originLicense = null; // license of source (for example, GPLv3)
 
-    // Дополнительные входные данные для нового вопроса: источник вопроса
-    protected String questionOrigin = null; // источник вопроса для метаданных
-    protected String originLicense = null; // лицензия источника для метаданных
-
-    // Домен, для которого выполняется преобразование
+    // Target domain for question is generated
     protected ProgrammingLanguageExpressionDTDomain domain;
 
-    // Данные, получаемые на первом этапе
-    protected TokenList tokens; // токены сконвертированного выражения
-    protected String rawTranslatedCode; // код сконвертированного выражения
+    // Tokens and code in question target language
+    protected TokenList tokens; // expression tokens
+    protected String rawTranslatedCode; // expression code
 
-    // Данные, из которых сформируется вопрос
+    // Preparing question data components
     protected List<SerializableQuestion.StatementFact> stmtFacts;
     protected List<SerializableQuestion.AnswerObject> answerObjects;
     protected SerializableQuestionTemplate.QuestionMetadata metadata;
@@ -80,28 +77,32 @@ public class MeaningTreeOrderQuestionBuilder {
     protected Set<String> concepts;
     protected Set<String> possibleViolations;
 
+    // Version of MT format
     protected static final int MIN_VERSION = 12;
     protected static final int TARGET_VERSION = 12;
 
-    private boolean allChecksArePassed = true;
+    private boolean allChecksArePassed = true; // expression generator has failed some stages (questions won't be generated if false)
     private boolean skipRuntimeValuesGeneration = false;
 
-    private static final List<String> defaultTags = new ArrayList<>(List.of("basics", "operators", "order", "evaluation", "errors"));
+    // default tags for each question in MT format
+    private static final List<String> defaultQuestionTags = new ArrayList<>(
+            List.of("basics", "operators", "order", "evaluation", "errors")
+    );
 
     static {
         for (String lang : SupportedLanguage.getStringMap().keySet()) {
-            defaultTags.add(lang.substring(0, 1).toUpperCase() + lang.substring(1));
+            defaultQuestionTags.add(lang.substring(0, 1).toUpperCase() + lang.substring(1));
         }
     }
 
-    MeaningTreeOrderQuestionBuilder(ProgrammingLanguageExpressionDTDomain domain) {
+    protected MeaningTreeOrderQuestionBuilder(ProgrammingLanguageExpressionDTDomain domain) {
         this.domain = domain;
     }
 
     /***
-     * Построить новый вопрос из старого с помощью MeaningTree
-     * @param q объект вопроса
-     * @return построитель вопроса
+     * Set existing question to regenerate
+     * @param q question in domain format
+     * @return builder
      */
     public MeaningTreeOrderQuestionBuilder existingQuestion(Question q) {
         MeaningTree mt;
@@ -119,12 +120,21 @@ public class MeaningTreeOrderQuestionBuilder {
         return this;
     }
 
+    /**
+     * Skip generation of runtime values for target expression
+     * @param value value of this option
+     * @return builder
+     */
     public MeaningTreeOrderQuestionBuilder skipRuntimeValueGeneration(boolean value) {
         skipRuntimeValuesGeneration = value;
         return this;
     }
 
-    // Извлечение выражения из существующего вопроса в старом формате и превращение его в общее дерево
+    /**
+     * Extract expression from old-format C++ question statement facts
+     * @param facts old-format facts
+     * @return meaning tree
+     */
     protected static MeaningTree extractExpression(List<BackendFactEntity> facts) {
         CppTranslator cppTranslator = new CppTranslator(new MeaningTreeDefaultExpressionConfig());
         StringBuilder tokenBuilder = new StringBuilder();
@@ -160,31 +170,12 @@ public class MeaningTreeOrderQuestionBuilder {
         return cppTranslator.getMeaningTree(tokenList, semanticValuesIndexes);
     }
 
-
-    // Определить по тегам язык программирования
-    public static SupportedLanguage detectLanguageFromTags(Collection<String> tags) {
-        // Считаем, что в тегах может быть указан только один язык
-        List<String> languages = SupportedLanguage.getMap().keySet().stream().map(SupportedLanguage::toString).toList();
-        for (String tag : tags) {
-            if (languages.contains(tag.toLowerCase())) {
-                return SupportedLanguage.fromString(tag.toLowerCase());
-            }
-        }
-        return SupportedLanguage.CPP;
-    }
-
-    // Определить по тегам язык программирования
-    public static SupportedLanguage detectLanguageFromTags(long tags, ProgrammingLanguageExpressionDTDomain domain) {
-        // Считаем, что в тегах может быть указан только один язык
-        List<String> languages = SupportedLanguage.getMap().keySet().stream().map(SupportedLanguage::toString).toList();
-        for (Tag tag : domain.tagsFromBitmask(tags)) {
-            if (languages.contains(tag.getName().toLowerCase())) {
-                return SupportedLanguage.fromString(tag.getName().toLowerCase());
-            }
-        }
-        return SupportedLanguage.CPP;
-    }
-
+    /**
+     * Set custom expression for question generation
+     * @param expression code
+     * @param language supported language in MT
+     * @return builder
+     */
     public MeaningTreeOrderQuestionBuilder expression(String expression, SupportedLanguage language) {
         try {
             sourceExpressionTree = language.createTranslator(new MeaningTreeDefaultExpressionConfig()).getMeaningTree(expression);
@@ -194,12 +185,18 @@ public class MeaningTreeOrderQuestionBuilder {
         }
     }
 
+    /**
+     * Recalculate only metadata of question. Useful for testing purposes
+     * @param domain target DT domain
+     * @param qMeta metadata entity from DB
+     * @return new metadata entity
+     */
     public static QuestionMetadataEntity metadataRecalculate(ProgrammingLanguageExpressionDTDomain domain,
                                                                                     QuestionMetadataEntity qMeta) {
         Question q = qMeta.getQuestionData().getData().toQuestion(domain, qMeta);
         MeaningTreeOrderQuestionBuilder builder = MeaningTreeOrderQuestionBuilder.newQuestion(domain).existingQuestion(q);
-        SupportedLanguage language = detectLanguageFromTags(qMeta.getTagBits(), domain);
-        builder.processTokensDebug(language);
+        SupportedLanguage language = MeaningTreeUtils.detectLanguageFromTags(qMeta.getTagBits(), domain);
+        builder.processTokensAccurate(language);
         if (!builder.allChecksArePassed) {
             return null;
         }
@@ -212,9 +209,9 @@ public class MeaningTreeOrderQuestionBuilder {
     }
 
     /**
-     * Отдельная генерация объектов ответа под заданные токены. Обычно вызывается перед выдачей самого вопроса
-     * @param tokens токены
-     * @return список объектов ответа
+     * Standalone generation of answer objects. Required in runtime question assignment
+     * @param tokens tokens of expression
+     * @return serializable answer objects for exercise
      */
     public static List<SerializableQuestion.AnswerObject> generateAnswerObjects(TokenList tokens) {
         List<SerializableQuestion.AnswerObject> result = new ArrayList<>();
@@ -250,15 +247,20 @@ public class MeaningTreeOrderQuestionBuilder {
     }
 
     /**
-     * Построить новый вопрос из общего дерева под заданный язык
-     * @param domain домен, под который будет осуществляться генерация
-     * @return построитель вопроса
+     * Initialize new question builder
+     * @param domain target domain
+     * @return builder
      */
     public static MeaningTreeOrderQuestionBuilder newQuestion(ProgrammingLanguageExpressionDTDomain domain) {
         MeaningTreeOrderQuestionBuilder builder = new MeaningTreeOrderQuestionBuilder(domain);
         return builder;
     }
 
+    /**
+     * Set existing meaning tree as expression source
+     * @param mt meaning tree
+     * @return builder
+     */
     public MeaningTreeOrderQuestionBuilder meaningTree(MeaningTree mt) {
         sourceExpressionTree = mt;
         return this;
@@ -277,9 +279,10 @@ public class MeaningTreeOrderQuestionBuilder {
     }
 
     /**
-     * Указать источник вопроса (откуда он взят)
-     * @param name - название источника
-     * @return построитель вопроса
+     * Set question origin info
+     * @param name origin name (for example, repository full name)
+     * @param license license of origin (for example, GPLv3)
+     * @return builder
      */
     public MeaningTreeOrderQuestionBuilder questionOrigin(String name, String license) {
         questionOrigin = name;
@@ -289,11 +292,10 @@ public class MeaningTreeOrderQuestionBuilder {
 
 
     /**
-     * Построить один или несколько вопросов по заданным входным данным
-     * Если источником был существующий конкретный вопрос, то результатом также будет один вопрос
-     * Если источником было новое выражение на любом языке, то оно будет использовано как шаблон,
-     * из которого сгенерируются несколько конкретных вопросов
-     * @return один или несколько сериализуемых вопросов
+     * Build one or many question for given expression data
+     * If one existing question with runtime values is given, one new format question will be prepared
+     * If new expression is given and runtime value generation enabled, many new format question with various runtime data will be generated
+     * @return one or many pairs of serializable question and its metadata
      */
     public List<Pair<SerializableQuestion, SerializableQuestionTemplate.QuestionMetadata>> build(SupportedLanguage language) {
         answerObjects = new ArrayList<>();
@@ -302,8 +304,8 @@ public class MeaningTreeOrderQuestionBuilder {
     }
 
     /**
-     * Построить вопрос для всех поддерживаемых языков
-     * @return список вопросов для каждого языка в формате: один общий вопрос, содержащий общее дерево для всех языков и несколько метаданных для разных языков
+     * Build all questions (many runtime values variants) in one serializable template
+     * @return list of templates: in each template: one MT of question and much metadata for each supported language
      */
     public List<SerializableQuestionTemplate> buildAll() {
         List<SerializableQuestionTemplate> resultList = new ArrayList<>();
@@ -327,9 +329,9 @@ public class MeaningTreeOrderQuestionBuilder {
     }
 
     /**
-     * Построить объекты вопроса приложения по заданному построителю вопроса
-     * @param lang язык, под который нужно сгенерировать вопрос
-     * @return
+     * Build all questions (with many runtime values) with one metadata for target language
+     * @param lang target language for metadata
+     * @return list of domain questions
      */
     public List<Question> buildQuestions(SupportedLanguage lang) {
         return build(lang).stream().map(
@@ -358,8 +360,11 @@ public class MeaningTreeOrderQuestionBuilder {
     }
 
     /**
-     * Формирование уникального вопроса из шаблона и значений токенов
-     * @return сериализуемый вопрос
+     * Generate one question for language
+     * @param lang target language
+     * @param mt meaning tree
+     * @param treeHash MT hash
+     * @return pair of serializable question and its metadata
      */
     protected Pair<SerializableQuestion, SerializableQuestionTemplate.QuestionMetadata> generateFromTemplate(SupportedLanguage lang, MeaningTree mt, int treeHash) {
         Model model = new RDFSerializer().serialize(mt.getRootNode());
@@ -371,7 +376,7 @@ public class MeaningTreeOrderQuestionBuilder {
                 .questionData(qdata)
                 .concepts(List.of())
                 .negativeLaws(List.of())
-                .tags(defaultTags)
+                .tags(defaultQuestionTags)
                 .build();
         log.info("Created question: {}", debugTokensString(mt, lang));
         return new ImmutablePair<>(serialized, metadata);
@@ -386,8 +391,9 @@ public class MeaningTreeOrderQuestionBuilder {
     }
 
     /**
-     * Генерирование нескольких вопросов из одного шаблона
-     * @return много сериализуемых вопросов из одного шаблона
+     * Generate many questions (for various runtime data) for target language
+     * @param language target language
+     * @return list of serializable questions and its metadata
      */
     protected List<Pair<SerializableQuestion, SerializableQuestionTemplate.QuestionMetadata>> generateManyQuestions(SupportedLanguage language) {
         processTokens(language);
@@ -417,7 +423,8 @@ public class MeaningTreeOrderQuestionBuilder {
     }
 
     /**
-     * Создание токенов выражения из результирующего общего дерева (т.е. для выходных данных)
+     * Obtains tokens of given expression
+     * @param language target language
      */
     protected void processTokens(SupportedLanguage language) {
         LanguageTranslator toTranslator;
@@ -439,9 +446,11 @@ public class MeaningTreeOrderQuestionBuilder {
     }
 
     /**
-     * Для целей отладки и переклассификации, точная проверка несовместимости преобразований
+     * Process tokens with accurate check of translation compatibility
+     * Works slowly than usual `processTokens`
+     * @param language target language
      */
-    private void processTokensDebug(SupportedLanguage language) {
+    private void processTokensAccurate(SupportedLanguage language) {
         LanguageTranslator toTranslator;
         try {
             toTranslator = language.createTranslator(new MeaningTreeDefaultExpressionConfig());
@@ -465,8 +474,8 @@ public class MeaningTreeOrderQuestionBuilder {
     }
 
     /**
-     * Формирование данных уникального вопроса
-     * @param facts - содержимое вопроса
+     * Create question data from MT facts
+     * @param facts MT facts
      */
     protected void processQuestionData(List<SerializableQuestion.StatementFact> facts) {
         String questionText = "";
@@ -492,7 +501,9 @@ public class MeaningTreeOrderQuestionBuilder {
 
 
     /**
-     * Построение метаданных для вопроса с поиском возможных ошибок и понятий предметной области, формированием тегов
+     * Create metadata from given question data
+     * @param language target language
+     * @param treeHash hash of MT, required for accurate classification of runtime values
      */
     protected void processMetadata(SupportedLanguage language, int treeHash) {
         QuestionMetadataEntity metadata = existingMetadata == null ? null : existingMetadata;
@@ -512,7 +523,7 @@ public class MeaningTreeOrderQuestionBuilder {
         var violations = findAllPossibleViolations(tokens);
         var skills = findAllSkills(tokens, language);
 
-        // Отсеиваем вопросы, в которых много шагов и при этом больше есть повторяющиеся скиллы и ошибки
+        // Filter question with repeated skills and violations
         final int targetSolutionLength = 16;
         final int maxSkillRepeatCount = 8;
         final int maxErrorRepeatCount = 5;
@@ -570,9 +581,9 @@ public class MeaningTreeOrderQuestionBuilder {
     }
 
     /**
-     * Найти в сгенерированном дереве вопроса опущенные для вычисления операнды, сокращающие число шагов
-     * @param tree - заданное дерево
-     * @return число опущенных операндов
+     * Find omitted operands count in Meaning Tree with assigned runtime values
+     * @param tree meaning tree
+     * @return omitted operands integer count
      */
     static int findOmitted(MeaningTree tree) {
         int count = 0;
@@ -591,7 +602,7 @@ public class MeaningTreeOrderQuestionBuilder {
     }
 
     /**
-     * Построение StatementFacts для шаблона вопроса
+     * Create statement facts from Meaning Tree
      */
     protected void processTemplateStatementFacts() {
         RDFSerializer rdfSerializer = new RDFSerializer();
@@ -601,8 +612,10 @@ public class MeaningTreeOrderQuestionBuilder {
 
 
     /**
-     * Поиск понятий предметной области для домена DecisionTree
-     * @return множество уникальных понятий предметной области (концептов)
+     * Find concept names in Meaning Tree
+     * @param mt meaning tree
+     * @param toLanguage target language
+     * @return set of unique concept names of given expression
      */
      static Set<String> findConcepts(MeaningTree mt, SupportedLanguage toLanguage) {
         HashSet<String> result = new HashSet<>();
@@ -723,16 +736,18 @@ public class MeaningTreeOrderQuestionBuilder {
     }
 
     /**
-     * Поиск возможных допускаемых студентом ошибок в выражении вопроса
-     * @return набор уникальных возможных ошибок
+     * Find possible violations in given expression
+     * @param tokens tokens of expression
+     * @return set of violation names
      */
     public static Set<String> findPossibleViolations(TokenList tokens) {
         return new HashSet<>(findAllPossibleViolations(tokens));
     }
 
     /**
-     * Поиск возможных допускаемых студентом ошибок в выражении вопроса
-     * @return набор уникальных возможных ошибок
+     * Find all (contains repeats) possible violations in given expression
+     * @param tokens tokens of expression
+     * @return list of found violation names
      */
     public static List<String> findAllPossibleViolations(TokenList tokens) {
         List<String> set = new ArrayList<>();
@@ -893,19 +908,20 @@ public class MeaningTreeOrderQuestionBuilder {
     }
 
     /**
-     * Поиск возможных навыков, которые может получить студент
-     * @return набор уникальных возможных навыков
+     * Find  possible skills in given expression
+     * @param tokens tokens of expression
+     * @return set of found skill names
      */
     public static Set<String> findSkills(TokenList tokens, SupportedLanguage lang) {
         return new TreeSet<>(findAllSkills(tokens, lang));
     }
 
     /***
-     * Определить токен-операнд из двух переданных, заключенный в обычных скобках (не скобках - частей оператора)
-     * @param op1 - первый токен, не являющийся скобкой
-     * @param op2 - второй токен, не являющийся скобкой
-     * @param tokens - все токены выражения
-     * @return индекс заключенного в скобки, либо Integer.MAX_VALUE - если оба в разных скобках, -1 - ни один не в скобках
+     * Determine which token in token list is parenthesized
+     * @param op1 - first operator token index (not simple parentheses)
+     * @param op2 - second operator token index (not simple parentheses)
+     * @param tokens - expression tokens
+     * @return index of parenthesized operator token, or else Integer.MAX_VALUE - if all are in parentheses, -1 - if all are not in parentheses
      */
     private static int getParenthesizedOperand(int op1, int op2, TokenList tokens) {
         /**
@@ -942,8 +958,9 @@ public class MeaningTreeOrderQuestionBuilder {
     }
 
     /**
-     * Поиск возможных навыков, которые может получить студент
-     * @return набор уникальных возможных навыков
+     * Find all (contains repeats) possible skills in given expression
+     * @param tokens tokens of expression
+     * @return list of found skill names
      */
     public static List<String> findAllSkills(TokenList tokens, SupportedLanguage lang) {
         List<String> set = new ArrayList<>();
