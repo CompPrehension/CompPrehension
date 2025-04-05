@@ -6,9 +6,9 @@
         _EN_description="all operators in the expression are fully evaluated"
         _EN_nextStepQuestion="It is necessary to determine whether all operators in the expression are fully evaluated"
         _EN_nextStepExplanation="Incorrect. It is necessary to check if all operators in the expression are completely evaluated"
-        _RU_hint_prefix="Вычисление выражения можно закончить, потому что "
+        _RU_hint_prefix="Вычисление выражения можно закончить потому, что "
         _EN_hint_prefix="Expression evaluation can be finished because "
-        _RU_error_prefix="Вычисление выражения нельзя закончить, потому что "
+        _RU_error_prefix="Вычисление выражения нельзя закончить потому, что "
         _EN_error_prefix="Expression evaluation cannot be finished now because "
     >
         <CycleAggregationNode operator="AND"
@@ -66,9 +66,9 @@ ${X}[case='p'], what should you do next?"
                         _EN_nextStepExplanation="That's incorrect. There are no unevaluated statements inside ${X}[case='p']"
                     >
                         <BranchResultNode value="false"
-                            _skill="earlyfinish_strict_order_operators_present"
-                            _RU_explanation="${X} должен вычислиться потому, что его родитель не требует строгого порядка вычисления операндов и не может блокировать его вычисление"
-                            _EN_explanation="${X} should be evaluated because its parent does not evaluates its operands in a strict order and so cannot block its evaluation"
+                            _skill="is_current_operator_strict_order_earlyfinish"
+                            _RU_explanation="${X} должен вычислиться потому, что он является верхним оператором выражения и не может быть блокирован"
+                            _EN_explanation="${X} should be evaluated because it is the top-level operator whose evaluation cannot be blocked"
                         />
                     </Outcome>
                     <ThoughtBranch type="bool" paramName="Y"
@@ -104,9 +104,9 @@ ${X}[case='p'], what should you do next?"
                                 _EN_nextStepExplanation="That's incorrect. ${Y} is not a strict order operator"
                                 value="False">
                                 <BranchResultNode value="false"
-                                    _skill="is_current_operator_strict_order_earlyfinish"
-                                    _RU_explanation="${X} должен вычислиться потому, что он является верхним оператором выражения и не может быть блокирован"
-                                    _EN_explanation="${X} should be evaluated because it is the top-level operator whose evaluation cannot be blocked"
+                                    _skill="earlyfinish_strict_order_operators_present"
+                                    _RU_explanation="${X} должен вычислиться потому, что его родитель не требует строгого порядка вычисления операндов и не может блокировать его вычисление"
+                                    _EN_explanation="${X} should be evaluated because its parent does not evaluates its operands in a strict order and so cannot block its evaluation"
                                 />
                             </Outcome>
                             <Outcome
@@ -128,37 +128,18 @@ ${X}[case='p'], what should you do next?"
                                     _EN_endingCause="because ${X} ${result ? 'is' : 'is not'} in the first operand of ${Y}[case='p'] to be evaluated"
                                 >
                                     <Expression>
-                                        <LogicalOr>
-                                            <LogicalOr>
-                                                <Compare operator="EQUAL">
-                                                    <GetRelationshipParamValue
-                                                        relationshipName="isInOperandOf"
-                                                        paramName="placement">
-                                                        <DecisionTreeVar name="X" />
+                                        <CheckRelationship relationshipName="isInOperandOf">
+                                            <DecisionTreeVar name="X" />
+                                            <DecisionTreeVar name="Y" />
+                                            <ParamsValues>
+                                                <GetPropertyValue propertyName="firstOperandPlacement">
+                                                    <Cast>
                                                         <DecisionTreeVar name="Y" />
-                                                    </GetRelationshipParamValue>
-                                                    <Enum owner="OperandPosition" value="left" />
-                                                </Compare>
-                                                <Compare operator="EQUAL">
-                                                    <GetRelationshipParamValue
-                                                        relationshipName="isInOperandOf"
-                                                        paramName="placement">
-                                                        <DecisionTreeVar name="X" />
-                                                        <DecisionTreeVar name="Y" />
-                                                    </GetRelationshipParamValue>
-                                                    <Enum owner="OperandPosition" value="right" />
-                                                </Compare>
-                                            </LogicalOr>
-                                            <Compare operator="EQUAL">
-                                                <GetRelationshipParamValue
-                                                    relationshipName="isInOperandOf"
-                                                    paramName="placement">
-                                                    <DecisionTreeVar name="X" />
-                                                    <DecisionTreeVar name="Y" />
-                                                </GetRelationshipParamValue>
-                                                <Enum owner="OperandPosition" value="center" />
-                                            </Compare>
-                                        </LogicalOr>
+                                                        <Class name="StrictOrderOperator" />
+                                                    </Cast>
+                                                </GetPropertyValue>
+                                            </ParamsValues>
+                                        </CheckRelationship>
                                     </Expression>
                                     <Outcome
                                         _RU_text="${X} находится в первом вычисляемом операнде ${Y}[case='р']"
@@ -172,8 +153,8 @@ ${X}[case='p'], what should you do next?"
                                         value="True">
                                         <BranchResultNode value="false"
                                             _skill="strict_order_first_operand_to_be_evaluated_while_earlyfinish"
-                                            _RU_explanation="${X} должен вычислиться, потому что он находится в ${X->isInOperandOf(Y).placement}[case='р'] операнде ${Y}, который вычисляется первым и не может быть блокирован"
-                                            _EN_explanation="${X} should be evaluated because it belongs to ${X->isInOperandOf(Y).placement}[case='р'] operand ${val('Y','р')} that is evaluated first and so cannot be blocked"
+                                            _RU_explanation="${X} должен вычислиться, потому что он находится в ${X->isInOperandOf(Y).placement}[case='п'] операнде ${Y}, который вычисляется первым и не может быть блокирован"
+                                            _EN_explanation="${X} should be evaluated because it belongs to ${X->isInOperandOf(Y).placement}[case='п'] operand ${val('Y','р')} that is evaluated first and so cannot be blocked"
                                         />
                                     </Outcome>
                                     <Outcome
@@ -195,72 +176,21 @@ ${X}[case='p'], what should you do next?"
                                             _EN_endingCause="because the required value for the ${X->isInOperandOf(Y).placement}[case='р'] operand in ${Y}[case='п'] is ${result ? '' : 'not'} any for evaluating the right operand."
                                         >
                                             <Expression>
-                                                <LogicalOr>
-                                                    <LogicalOr>
-                                                        <LogicalAnd>
-                                                            <Compare operator="EQUAL">
-                                                                <GetRelationshipParamValue
-                                                                    relationshipName="isInOperandOf"
-                                                                    paramName="placement">
-                                                                    <DecisionTreeVar name="X" />
-                                                                    <DecisionTreeVar name="Y" />
-                                                                </GetRelationshipParamValue>
-                                                                <Enum owner="OperandPosition"
-                                                                    value="left" />
-                                                            </Compare>
-                                                            <Compare operator="EQUAL">
-                                                                <GetPropertyValue>
-                                                                    <DecisionTreeVar name="Y" />
-                                                                    <Property
-                                                                        name="requiredFirstValForLeft" />
-                                                                </GetPropertyValue>
-                                                                <Enum owner="ExpectedValue"
-                                                                    value="any" />
-                                                            </Compare>
-                                                        </LogicalAnd>
-                                                        <LogicalAnd>
-                                                            <Compare operator="EQUAL">
-                                                                <GetRelationshipParamValue
-                                                                    relationshipName="isInOperandOf"
-                                                                    paramName="placement">
-                                                                    <DecisionTreeVar name="X" />
-                                                                    <DecisionTreeVar name="Y" />
-                                                                </GetRelationshipParamValue>
-                                                                <Enum owner="OperandPosition"
-                                                                    value="right" />
-                                                            </Compare>
-                                                            <Compare operator="EQUAL">
-                                                                <GetPropertyValue>
-                                                                    <DecisionTreeVar name="Y" />
-                                                                    <Property
-                                                                        name="requiredFirstValForRight" />
-                                                                </GetPropertyValue>
-                                                                <Enum owner="ExpectedValue"
-                                                                    value="any" />
-                                                            </Compare>
-                                                        </LogicalAnd>
-                                                    </LogicalOr>
-                                                    <LogicalAnd>
-                                                        <Compare operator="EQUAL">
-                                                            <GetRelationshipParamValue
-                                                                relationshipName="isInOperandOf"
-                                                                paramName="placement">
+                                                <Compare operator="EQ">
+                                                    <GetPropertyValue propertyName="requiredFirstOperandValueToEvaluate">
+                                                        <Cast>
+                                                            <DecisionTreeVar name="Y" />
+                                                            <Class name="StrictOrderOperator" />
+                                                        </Cast>
+                                                        <ParamsValues>
+                                                            <GetRelationshipParamValue relationshipName="isInOperandOf" paramName="placement">
                                                                 <DecisionTreeVar name="X" />
                                                                 <DecisionTreeVar name="Y" />
                                                             </GetRelationshipParamValue>
-                                                            <Enum owner="OperandPosition"
-                                                                value="сenter" />
-                                                        </Compare>
-                                                        <Compare operator="EQUAL">
-                                                            <GetPropertyValue>
-                                                                <DecisionTreeVar name="Y" />
-                                                                <Property
-                                                                    name="requiredFirstValForCenter" />
-                                                            </GetPropertyValue>
-                                                            <Enum owner="ExpectedValue" value="any" />
-                                                        </Compare>
-                                                    </LogicalAnd>
-                                                </LogicalOr>
+                                                        </ParamsValues>
+                                                    </GetPropertyValue>
+                                                    <Enum owner="ExpectedValue" value="any" />
+                                                </Compare>
                                             </Expression>
                                             <Outcome
                                                 _RU_text="Требуемое значение для ${X->isInOperandOf(Y).placement}[case='р'] операнда в ${Y}[case='п'] - любое для вычисления правого операнда"
@@ -297,118 +227,37 @@ ${X}[case='p'], what should you do next?"
                                                     _EN_endingCause="because the required value for the ${X->isInOperandOf(Y).placement}[case='р'] operand in ${Y}[case='п'] to evaluate the right operand of ${result ? '' : 'not'} is equivalent to this value for ${Y}[case='п']"
                                                 >
                                                     <Expression>
-                                                        <LogicalOr>
-                                                            <LogicalOr>
-                                                                <LogicalAnd>
-                                                                    <Compare operator="EQUAL">
-                                                                        <GetRelationshipParamValue
-                                                                            relationshipName="isInOperandOf"
-                                                                            paramName="placement">
-                                                                            <DecisionTreeVar
-                                                                                name="X" />
-                                                                            <DecisionTreeVar
-                                                                                name="Y" />
-                                                                        </GetRelationshipParamValue>
-                                                                        <Enum
-                                                                            owner="OperandPosition"
-                                                                            value="left" />
-                                                                    </Compare>
-                                                                    <Compare operator="EQUAL">
-                                                                        <GetPropertyValue>
-                                                                            <DecisionTreeVar name="Y" />
-                                                                            <Property
-                                                                                name="requiredFirstValForLeft" />
-                                                                        </GetPropertyValue>
-                                                                        <GetPropertyValue>
-                                                                            <GetByCondition
-                                                                                type="operand"
-                                                                                varName="op">
-                                                                                <CheckRelationship>
-                                                                                    <Relationship
-                                                                                        name="isLeftOperandOf" />
-                                                                                    <Variable
-                                                                                        name="op" />
-                                                                                    <DecisionTreeVar
-                                                                                        name="Y" />
-                                                                                </CheckRelationship>
-                                                                            </GetByCondition>
-                                                                            <Property
-                                                                                name="evaluatesTo" />
-                                                                        </GetPropertyValue>
-                                                                    </Compare>
-                                                                </LogicalAnd>
-                                                                <LogicalAnd>
-                                                                    <Compare operator="EQUAL">
-                                                                        <GetRelationshipParamValue
-                                                                            relationshipName="isInOperandOf"
-                                                                            paramName="placement">
-                                                                            <DecisionTreeVar
-                                                                                name="X" />
-                                                                            <DecisionTreeVar
-                                                                                name="Y" />
-                                                                        </GetRelationshipParamValue>
-                                                                        <Enum
-                                                                            owner="OperandPosition"
-                                                                            value="right" />
-                                                                    </Compare>
-                                                                    <Compare operator="EQUAL">
-                                                                        <GetPropertyValue>
-                                                                            <DecisionTreeVar name="Y" />
-                                                                            <Property
-                                                                                name="requiredFirstValForRight" />
-                                                                        </GetPropertyValue>
-                                                                        <GetPropertyValue>
-                                                                            <GetByCondition
-                                                                                type="operand"
-                                                                                varName="op">
-                                                                                <CheckRelationship>
-                                                                                    <Relationship
-                                                                                        name="isRightOperandOf" />
-                                                                                    <Variable
-                                                                                        name="op" />
-                                                                                    <Variable
-                                                                                        name="Y" />
-                                                                                </CheckRelationship>
-                                                                            </GetByCondition>
-                                                                            <Property
-                                                                                name="evaluatesTo" />
-                                                                        </GetPropertyValue>
-                                                                    </Compare>
-                                                                </LogicalAnd>
-                                                            </LogicalOr>
-                                                            <LogicalAnd>
-                                                                <Compare operator="EQUAL">
-                                                                    <GetRelationshipParamValue
-                                                                        relationshipName="isInOperandOf"
-                                                                        paramName="placement">
-                                                                        <DecisionTreeVar name="X" />
+                                                        <Compare operator="EQ">
+                                                            <Compare operator="EQ">
+                                                                <GetPropertyValue propertyName="requiredFirstOperandValueToEvaluate">
+                                                                    <Cast>
                                                                         <DecisionTreeVar name="Y" />
-                                                                    </GetRelationshipParamValue>
-                                                                    <Enum owner="OperandPosition"
-                                                                        value="center" />
-                                                                </Compare>
-                                                                <Compare operator="EQUAL">
-                                                                    <GetPropertyValue>
-                                                                        <DecisionTreeVar name="Y" />
-                                                                        <Property
-                                                                            name="requiredFirstValForCenter" />
-                                                                    </GetPropertyValue>
-                                                                    <GetPropertyValue>
-                                                                        <GetByCondition
-                                                                            type="operand"
-                                                                            varName="op">
-                                                                            <CheckRelationship>
-                                                                                <Relationship
-                                                                                    name="isCenterOperandOf" />
-                                                                                <Variable name="op" />
+                                                                        <Class name="StrictOrderOperator" />
+                                                                    </Cast>
+                                                                    <ParamsValues>
+                                                                        <GetRelationshipParamValue relationshipName="isInOperandOf" paramName="placement">
+                                                                            <DecisionTreeVar name="X" />
+                                                                            <DecisionTreeVar name="Y" />
+                                                                        </GetRelationshipParamValue>
+                                                                    </ParamsValues>
+                                                                </GetPropertyValue>
+                                                                <Enum owner="ExpectedValue" value="true" />
+                                                            </Compare>
+                                                            <GetPropertyValue>
+                                                                <GetByRelationship relationshipName="hasOperand">
+                                                                    <DecisionTreeVar name="Y" />
+                                                                    <ParamsValues>
+                                                                        <GetPropertyValue propertyName="firstOperandPlacement">
+                                                                            <Cast>
                                                                                 <DecisionTreeVar name="Y" />
-                                                                            </CheckRelationship>
-                                                                        </GetByCondition>
-                                                                        <Property name="evaluatesTo" />
-                                                                    </GetPropertyValue>
-                                                                </Compare>
-                                                            </LogicalAnd>
-                                                        </LogicalOr>
+                                                                                <Class name="StrictOrderOperator" />
+                                                                            </Cast>
+                                                                        </GetPropertyValue>
+                                                                    </ParamsValues>
+                                                                </GetByRelationship>
+                                                                <Property name="evaluatesTo" />
+                                                            </GetPropertyValue>
+                                                        </Compare>
                                                     </Expression>
                                                     <Outcome
                                                         _RU_text="Требуемое значение для ${X->isInOperandOf(Y).placement}[case='р'] операнда в ${Y}[case='п'] для вычисления правого операнда эквивалентно таковому значению для ${Y}[case='п']"

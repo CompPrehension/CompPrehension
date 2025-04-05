@@ -159,11 +159,11 @@ public class DecisionTreeReasonerBackend
         if (parent == null) {
             return traceExplanations.stream()
                     .filter(e -> !e.isEmpty())
-                    .toList().reversed();
+                    .toList();
         } else {
             parent.getChildren().addAll(traceExplanations.stream()
                     .filter(e -> !e.isEmpty())
-                    .toList().reversed());
+                    .toList());
             return List.of();
         }
     }

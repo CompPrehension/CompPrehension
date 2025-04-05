@@ -207,7 +207,7 @@ public class ProgrammingLanguageExpressionDTDomain extends DecisionTreeReasoning
     private final DomainSolvingModel domainSolvingModel = new DomainSolvingModel(
             this.getClass().getClassLoader().getResource(DOMAIN_MODEL_LOCATION), //FIXME
             DomainSolvingModel.BuildMethod.LOQI
-    );
+    ).validate();
 
     @NotNull
     @Override
