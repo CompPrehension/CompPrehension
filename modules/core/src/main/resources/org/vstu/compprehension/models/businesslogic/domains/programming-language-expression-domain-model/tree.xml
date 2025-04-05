@@ -2208,8 +2208,8 @@
                                                     _skill="is_first_operand_of_strict_order_operator_fully_evaluated"
                                                     _law="error_base_student_error_strict_operands_order"
                                                     _error="strict.leftShouldBeEvaluatedFirst"
-                                                    _RU_explanation="${U} стоящий в ${U->isInOperandOf(T).placement}[case='р'] операнде ${T}[case='р'] должен быть вычислен ранее"
-                                                    _EN_explanation="${U} that belongs to ${U->isInOperandOf(T).placement}[case='р'] operand ${T}[case='р'] should be evaluated before it"
+                                                    _RU_explanation="${U}, стоящий в ${U->isInOperandOf(T).placement}[case='п'] операнде ${T}[case='р'], должен быть вычислен ранее"
+                                                    _EN_explanation="${U} that belongs to ${U->isInOperandOf(T).placement}[case='п'] operand ${T}[case='р'] should be evaluated before it"
                                                 />
                                             </ThoughtBranch>
                                         </CycleAggregationNode>
