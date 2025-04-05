@@ -1,4 +1,4 @@
-import * as io from 'io-ts'
+import * as io from 'io-ts';
 import { Answer, TAnswer } from './answer';
 import { MergeIntersections } from './utils';
 
@@ -14,29 +14,25 @@ const TFeedbackViolationLaw: io.Type<FeedbackViolationLaw> = io.type({
 export type FeedbackSuccessMessage = {
     type: 'SUCCESS',
     message: string,
-    violationLaw?: FeedbackViolationLaw | null,
+    violationLaws: FeedbackViolationLaw[] | null,
 }
 export type FeedbackErrorMessage = {
     type: 'ERROR',
     message: string,
-    violationLaw: FeedbackViolationLaw,
+    violationLaws: FeedbackViolationLaw[] | null,
 }
 
 export type FeedbackMessage = FeedbackSuccessMessage | FeedbackErrorMessage
 export const TFeedbackMessage: io.Type<FeedbackMessage> = io.union([
-    io.intersection([
-        io.type({
+    io.type({
             type: io.literal('SUCCESS'),
             message: io.string,
-        }),
-        io.partial({
-            violationLaw: io.union([TFeedbackViolationLaw, io.null]),
-        }),
-    ]),    
+            violationLaws: io.union([io.array(TFeedbackViolationLaw), io.null])
+        }),    
     io.type({
         type: io.literal('ERROR'),
         message: io.string,
-        violationLaw: TFeedbackViolationLaw,
+        violationLaws: io.union([io.array(TFeedbackViolationLaw), io.null]),
     }),
 ])
 

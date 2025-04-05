@@ -1416,7 +1416,7 @@ public class ProgrammingLanguageExpressionDomain extends JenaReasoningDomain {
                     correctAnswer.question = q.getQuestionData();
                     correctAnswer.answers = answers;
                     correctAnswer.lawName = answerImpl.lawName;
-                    correctAnswer.explanation = getCorrectExplanation(q, answer);
+                    correctAnswer.explanation = new Explanation(Explanation.Type.HINT, getCorrectExplanation(q, answer));
                     return correctAnswer;
                 }
             }
@@ -1532,8 +1532,8 @@ public class ProgrammingLanguageExpressionDomain extends JenaReasoningDomain {
                     .map(a -> a.getUser().getPreferred_language())
                     .orElse(Language.RUSSIAN/*ENGLISH*/);
             val message = judgeResult.isAnswerCorrect
-                    ? FeedbackDto.Message.Success(localizationService.getMessage("exercise_correct-sup-question-answer", locale), violation)
-                    : FeedbackDto.Message.Error(localizationService.getMessage("exercise_wrong-sup-question-answer", locale), violation);
+                    ? FeedbackDto.Message.Success(localizationService.getMessage("exercise_correct-sup-question-answer", locale), List.of(violation))
+                    : FeedbackDto.Message.Error(localizationService.getMessage("exercise_wrong-sup-question-answer", locale), List.of(violation));
             val feedback =  new SupplementaryFeedbackDto(
                     message,
                     judgeResult.isAnswerCorrect ? SupplementaryFeedbackDto.Action.ContinueAuto : SupplementaryFeedbackDto.Action.ContinueManual);
@@ -2075,12 +2075,12 @@ public class ProgrammingLanguageExpressionDomain extends JenaReasoningDomain {
     }
 
     @Override
-    public List<HyperText> makeExplanation(List<ViolationEntity> mistakes, FeedbackType feedbackType, Language lang) {
-        ArrayList<HyperText> result = new ArrayList<>();
+    public Explanation makeExplanation(List<ViolationEntity> mistakes, FeedbackType feedbackType, Language lang) {
+        ArrayList<Explanation> result = new ArrayList<>();
         for (ViolationEntity mistake : mistakes) {
-            result.add(makeExplanation(mistake, feedbackType, lang));
+            result.add(new Explanation(Explanation.Type.ERROR, makeExplanation(mistake, feedbackType, lang)));
         }
-        return result;
+        return Explanation.aggregate(Explanation.Type.ERROR, result);
     }
 
     private String getOperatorTextDescription(String errorText, Language lang) {
@@ -2357,7 +2357,6 @@ public class ProgrammingLanguageExpressionDomain extends JenaReasoningDomain {
     /**
      * @param questionName name for the question
      * @param model solved model
-     * @param rs instance of Storage
      * @return fresh Ordering Question
      */
     private Question createQuestionFromModel(String questionName, String templateName, String origin, Model model) {

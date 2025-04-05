@@ -10,7 +10,6 @@ import org.vstu.compprehension.Service.QuestionService;
 import org.vstu.compprehension.models.businesslogic.domains.Domain;
 import org.vstu.compprehension.models.businesslogic.domains.DomainFactory;
 import org.vstu.compprehension.models.businesslogic.domains.ProgrammingLanguageExpressionDTDomain;
-import org.vstu.compprehension.models.businesslogic.domains.helpers.meaningtree.MeaningTreeOrderQuestionBuilder;
 import org.vstu.compprehension.models.businesslogic.domains.helpers.meaningtree.MeaningTreeRDFHelper;
 import org.vstu.compprehension.models.businesslogic.domains.helpers.meaningtree.MeaningTreeUtils;
 import org.vstu.compprehension.models.businesslogic.domains.helpers.meaningtree.QuestionDynamicDataAppender;
@@ -99,7 +98,7 @@ public class ExpressionDTDomainMetadataValidationTest {
                     continue;
                 }
                 Question q = prepareQuestion(meta);
-                SupportedLanguage lang = MeaningTreeOrderQuestionBuilder.detectLanguageFromTags(meta.getTagBits(), domain);
+                SupportedLanguage lang = MeaningTreeUtils.detectLanguageFromTags(meta.getTagBits(), domain);
                 String text;
                 try {
                     text = MeaningTreeUtils.viewExpression(MeaningTreeRDFHelper.backendFactsToMeaningTree(q.getStatementFacts()), lang);
@@ -202,7 +201,7 @@ public class ExpressionDTDomainMetadataValidationTest {
     }
 
     public Question prepareQuestion(QuestionMetadataEntity meta) {
-        SupportedLanguage lang = MeaningTreeOrderQuestionBuilder.detectLanguageFromTags(meta.getTagBits(), domain);
+        SupportedLanguage lang = MeaningTreeUtils.detectLanguageFromTags(meta.getTagBits(), domain);
         Question q = meta.getQuestionData().getData().toQuestion(domain, meta);
         return QuestionDynamicDataAppender.appendQuestionData(q, attempt, qBank, lang, domain, Language.ENGLISH);
     }

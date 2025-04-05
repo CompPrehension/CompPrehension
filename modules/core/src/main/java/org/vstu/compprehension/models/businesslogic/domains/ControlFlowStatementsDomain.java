@@ -835,7 +835,7 @@ public class ControlFlowStatementsDomain extends JenaReasoningDomain {
      * @return explanation for each violation in random order
      */
     @Override
-    public List<HyperText> makeExplanation(List<ViolationEntity> violations, FeedbackType feedbackType, Language lang) {
+    public Explanation makeExplanation(List<ViolationEntity> violations, FeedbackType feedbackType, Language lang) {
 
 //        if (feedbackType != FeedbackType.EXPLANATION) {
 //            //
@@ -844,13 +844,14 @@ public class ControlFlowStatementsDomain extends JenaReasoningDomain {
         /// violations.forEach(System.out::println);
 
         if (violations.isEmpty())
-            return new ArrayList<>();
+            return Explanation.empty(Explanation.Type.ERROR);
         else {
             // rearrange mistakes ..?
 
-            ArrayList<HyperText> explanation = new ArrayList<>();
-            violations.forEach(ve -> explanation.add(makeExplanation(ve, feedbackType, lang)));
-            return explanation;
+            ArrayList<Explanation> explanation = new ArrayList<>();
+            violations.forEach(ve -> explanation.add(new Explanation(Explanation.Type.ERROR,
+                    makeExplanation(ve, feedbackType, lang))));
+            return Explanation.aggregate(Explanation.Type.ERROR, explanation);
         }
     }
 
@@ -1938,7 +1939,7 @@ public class ControlFlowStatementsDomain extends JenaReasoningDomain {
         else {
             explanation = new HyperText("explanation for " + Optional.ofNullable(reasonName).orElse("<unknown reason>") + ": not found in domain localization");
         }
-        correctAnswer.explanation = explanation; // getCorrectExplanation(answerImpl.lawName);
+        correctAnswer.explanation = new Explanation(Explanation.Type.HINT, explanation); // getCorrectExplanation(answerImpl.lawName);
         return correctAnswer;
     }
 

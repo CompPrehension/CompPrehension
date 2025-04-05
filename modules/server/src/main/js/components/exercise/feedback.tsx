@@ -41,7 +41,7 @@ export const Feedback = observer(({ store, showExtendedFeedback }: FeedbackProps
                                 message={m}
                                 supQuestionStore={store.supplementaryQuestion}
                                 showGenerateSupQuestion={showExtendedFeedback && question.options.showSupplementaryQuestions && 
-                                    m.type === 'ERROR' && m.violationLaw.canCreateSupplementaryQuestion} 
+                                    m.type === 'ERROR' && m.violationLaws?.every(e => e.canCreateSupplementaryQuestion)} 
                             />)}                
                     </div>
                     {showExtendedFeedback && 
@@ -70,11 +70,13 @@ export const FeedbackAlert = observer((props: FeedbackAlertProps) => {
     const variant = message.type === 'SUCCESS' ? 'success' : 'danger';
     return(
         <Alert variant={variant}>
-            <div dangerouslySetInnerHTML={{ __html: message.message }} />
-            {showGenerateSupQuestion && message.type === 'ERROR' && message.violationLaw &&
+            <div data-domain-laws={message.violationLaws?.map(v => v.name).join(";")}
+                dangerouslySetInnerHTML={{ __html: message.message }} 
+                />
+            {showGenerateSupQuestion && message.type === 'ERROR' && message.violationLaws &&
                 <GenerateSupQuestion 
                     store={supQuestionStore!}
-                    violationLaw={message.violationLaw}/> || null
+                    violationLaw={message.violationLaws}/> || null
             }
         </Alert>
     )

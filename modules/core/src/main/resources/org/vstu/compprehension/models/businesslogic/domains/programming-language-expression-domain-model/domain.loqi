@@ -83,6 +83,13 @@ enum state {
 
 //-------------------------КЛАССЫ-------------------------
 
+class language {
+    obj prop isStrictOrderCentralOperands: bool ;
+} [
+    RU.localizedName = "язык программирования" ;
+    EN.localizedName = "programming Language" ;
+]
+
 class element {
 	class prop countOfTokens: int[1,2] ;
 
@@ -117,12 +124,9 @@ class operand : element {
 	obj prop evaluatesTo : bool; //!b4 нужно только для логическх операций
 
 	//b4
-	rel isOperandOf(operand) : partial ; 
-	rel isOperatorTo(operand) : opposite to isOperandOf ;
+	rel isOperandOf<placement : OperandPlacement>(operand) : partial ; 
+	rel hasOperand(operand) : opposite to isOperandOf ;
 	rel isInOperandOf(operand) : transitive to isOperandOf;
-	rel isLeftOperandOf(operator) : {1->1};
-	rel isCenterOperandOf(operator) : {*->1};
-	rel isRightOperandOf(operator) : {1->1};
 
 	countOfTokens = 1 ;
 } [
@@ -143,7 +147,6 @@ class parenthesis : element {
 class separator : element {
 
 	countOfTokens = 1 ;
-	rel belongsToOperator(operator) : {* -> 1};
 } [
 	RU.localizedName = "разделитель" ;
 	EN.localizedName = "separator" ;
@@ -154,9 +157,7 @@ class operator : operand {
 	class prop place: place ; //Вообще не очень нужная характеристика, можно выкинуть
 	class prop precedence: int ;
 	class prop associativity: associativity ;
-	class prop needsLeftOperand: bool ;
-	class prop needsRightOperand: bool ;
-	class prop needsInnerOperand: bool ;
+	class prop needsOperand<placement : OperandPlacement>: bool ;
 	class prop hasStrictOperandOrder: bool = false; //можно убрать т.к. есть StrictOrderOperator
 
 	class prop isNot: bool = false;
@@ -164,11 +165,7 @@ class operator : operand {
 	class prop isOr: bool = false;
 	class prop isComma: bool = false;
 	class prop isTConditional: bool = false;
-
-	// rel isOperatorTo(operand) ;
-	rel hasLeftOperand(operand) : opposite to operand->isLeftOperandOf; //b4
-	rel hasCenterOperand(operand) : opposite to operand->isCenterOperandOf;
-	rel hasRightOperand(operand) : opposite to operand->isRightOperandOf;
+	class prop canHaveManyCentralOperands: bool = false;
 } [
 	RU.localizedName = "оператор" ;
 	EN.localizedName = "operator" ;
@@ -194,7 +191,7 @@ enum ExpectedValue { //b4
 	EN.localizedName = "value" ;
 ]
 
-enum OperandPosition {
+enum OperandPlacement {
 	left[
 		RU.localizedName = "левый" ;
 		EN.localizedName = "left" ;
@@ -214,10 +211,12 @@ enum OperandPosition {
 
 
 class StrictOrderOperator : operator { //b4
-	class prop requiredFirstValForRight : ExpectedValue = ExpectedValue:any;
-	class prop requiredFirstValForCenter : ExpectedValue = ExpectedValue:any;
-	class prop requiredFirstValForLeft : ExpectedValue = ExpectedValue:any;
-	class prop firstOperandPosition : OperandPosition;
+	class prop firstOperandPlacement : OperandPlacement;
+	class prop requiredFirstOperandValueToEvaluate<placement : OperandPlacement> : ExpectedValue;
+
+	requiredFirstOperandValueToEvaluate<OperandPlacement:left> = ExpectedValue:any ;
+	requiredFirstOperandValueToEvaluate<OperandPlacement:right> = ExpectedValue:any ;
+	requiredFirstOperandValueToEvaluate<OperandPlacement:center> = ExpectedValue:any ;
 	
 	hasStrictOperandOrder = true;
 }

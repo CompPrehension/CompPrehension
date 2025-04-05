@@ -139,7 +139,7 @@ public abstract class FactBackend implements Backend<FactBackend.Input, Collecti
             } catch (NullPointerException e) {
                 lang = Language.RUSSIAN/*ENGLISH*/;  // fallback if it cannot be figured out
             }
-            result.explanations = domain.makeExplanation(result.violations, FeedbackType.EXPLANATION, lang);
+            result.explanation = domain.makeExplanation(result.violations, FeedbackType.EXPLANATION, lang);
             return result;
         }
 

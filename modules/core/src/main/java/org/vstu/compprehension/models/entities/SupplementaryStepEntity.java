@@ -3,6 +3,7 @@ package org.vstu.compprehension.models.entities;
 import com.vladmihalcea.hibernate.type.json.JsonType;
 import its.model.definition.DomainModel;
 import its.model.definition.ObjectRef;
+import its.model.nodes.BranchResult;
 import its.questions.gen.QuestioningSituation;
 import its.reasoner.LearningSituation;
 import jakarta.persistence.*;
@@ -34,7 +35,7 @@ public class SupplementaryStepEntity {
         private Map<String, String> reasoningVariables;
         private Map<String, String> discussedVariables;
         private Map<Integer, Integer> givenAnswers;
-        private Map<String, Boolean> assumedResults;
+        private Map<String, BranchResult> assumedResults;
         private String localizationCode;
         
         public SupplementarySituation(QuestioningSituation situation){
