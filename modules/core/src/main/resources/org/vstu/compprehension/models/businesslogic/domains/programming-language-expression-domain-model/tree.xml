@@ -1045,7 +1045,7 @@
                                                                             _skill="right_competing_to_left_associativity"
                                                                             _law="error_base_same_precedence_left_associativity_left"
                                                                             _error="left.associativity"
-                                                                            _RU_explanation=" имеет одинаковый приоритет с ${Y}[case='р'] и правую ассоциативность (вычисляются справа налево) ."
+                                                                            _RU_explanation=" имеет одинаковый приоритет с ${Y}[case='т'] и правую ассоциативность (вычисляются справа налево) ."
                                                                             _EN_explanation=" ${Y} on its left must be evaluated first - these operators have the same precedence, but are evaluated from left to right (have left associativity)."
                                                                         />
                                                                     </Outcome>
@@ -1055,7 +1055,7 @@
                                                                         _RU_explanation="Это неверно, поскольку ${X.class()}[case='и'] и ${Y.class()}[case='и'] имеют правую ассоциативность."
                                                                         _RU_nextStepQuestion="Какой из двух рядом стоящих операторов выполнится первым, если операторы имеют правую ассоциативность?"
                                                                         _RU_nextStepBranchResult="${$params.branchResult == BranchResult:CORRECT ? 'Правый' : 'Левый'}"
-                                                                        _RU_nextStepExplanation="Это неверно. При правой ассоциативности операторы выполняются справа налево. В данном случае это значит, ${X.class()}[case='и'] должен быть вычислен первым. Получается, левый операнд ${X}[case='и'] не требует дальнейших вычислений."
+                                                                        _RU_nextStepExplanation="Это неверно. При правой ассоциативности операторы выполняются справа налево. В данном случае это значит, что ${X.class()}[case='и'] должен быть вычислен первым. Получается, левый операнд ${X}[case='р'] не требует дальнейших вычислений."
                                                                         _EN_text="right"
                                                                         _EN_explanation="That's incorrect, because ${X.class()} and ${Y.class()} have right associativity."
                                                                         _EN_nextStepQuestion="Which of the two nearby operators evaluates first if they have right associativity?"
@@ -1065,7 +1065,7 @@
                                                                         <BranchResultNode
                                                                             value="true"
                                                                             _skill="right_competing_to_left_associativity"
-                                                                            _RU_explanation=" имеет одинаковый приоритет с ${Y}[case='р'] и правую ассоциативность (вычисляются справа налево) ."
+                                                                            _RU_explanation=" имеет одинаковый приоритет с ${Y}[case='т'] и правую ассоциативность (вычисляются справа налево) ."
                                                                             _EN_explanation="it has the same precedence as ${Y} and right associativity."
                                                                         />
                                                                     </Outcome>
@@ -1811,7 +1811,7 @@
                                                                         <BranchResultNode
                                                                             value="true"
                                                                             _skill="left_competing_to_right_associativity"
-                                                                            _RU_explanation=" имеет одинаковый приоритет с ${Z}[case='р'] и левую ассоциативность (вычисляются слева направо) ."
+                                                                            _RU_explanation=" имеет одинаковый приоритет с ${Z}[case='т'] и левую ассоциативность (вычисляются слева направо) ."
                                                                             _EN_explanation="it has the same precedence as ${Z} and left associativity."
                                                                         />
                                                                     </Outcome>
