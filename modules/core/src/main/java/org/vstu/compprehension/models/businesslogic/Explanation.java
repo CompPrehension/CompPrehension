@@ -65,16 +65,16 @@ public class Explanation {
     @Override
     public boolean equals(Object o) {
         if (!(o instanceof Explanation that)) return false;
-        return Objects.equals(rawMessage, that.rawMessage) && type == that.type && Objects.equals(getChildrenList(), that.getChildrenList()) && Objects.equals(currentDomainLawName, that.currentDomainLawName);
+        return Objects.equals(rawMessage, that.rawMessage) && type == that.type && Objects.equals(children, that.children) && Objects.equals(currentDomainLawName, that.currentDomainLawName);
     }
 
     @Override
     public int hashCode() {
-        return Objects.hash(rawMessage, type, getChildrenList(), currentDomainLawName);
+        return Objects.hash(rawMessage, type, children, currentDomainLawName);
     }
 
     public List<Explanation> getChildrenList() {
-        return children.stream().toList();
+        return new ArrayList<>(children);
     }
 
     public Set<String> getDomainLawNames() {
@@ -94,11 +94,11 @@ public class Explanation {
         } else if (children.size() == 1 && rawMessage.getText().isEmpty()) {
             return children.getFirst().toHyperText(lang, collapse);
         } else {
-            return _recursiveToHyperText(lang, collapse, this);
+            return recursiveBuildHyperText(lang, collapse, this);
         }
     }
 
-    private HyperText _recursiveToHyperText(Language lang, boolean collapse, Explanation parent) {
+    private HyperText recursiveBuildHyperText(Language lang, boolean collapse, Explanation parent) {
         HyperText details = new HyperText(String.format("<details class=\"rounded\" %s>", collapse ? "" : "open"));
         details.append("<summary>").append(rawMessage).append("</summary>");
 
