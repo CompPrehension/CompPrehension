@@ -296,7 +296,7 @@
                                     <Outcome value="true"
                                         _RU_explanation="Это неверно. Внутри ${X}[case='р'] присутствуют невычисленные операторы."
                                         _RU_nextStepQuestion="Какие выводы можно сделать, если внутри ${X}[case='р'] присутствуют невычисленные операторы?"
-                                        _RU_nextStepExplanation="Это неверно. Т.к. внутри ${X}[case='р'] присутствуют невычисленные операторы, это значит, что его внутренний операнд невычислен и мешает дальнейшему вычислению ${X}[case='р']."
+                                        _RU_nextStepExplanation="Это неверно. Т.к. внутри ${X}[case='р'] присутствуют невычисленные операторы, это значит, что его внутренний операнд не вычислен и мешает дальнейшему вычислению ${X}[case='р']."
                                         _EN_explanation="That's incorrect. There are unevaluated operators between ${X1} and ${X2}."
                                         _EN_nextStepQuestion="What can we conclude if there are unevaluated operators between ${X1} and ${X2}?"
                                         _EN_nextStepExplanation="That's incorrect. Any unevaluated operator between ${X1} and ${X2}, means that the inner operand of ${X} is not fully evaluated. Therefore, it is preventing its further evaluation.."
@@ -370,7 +370,7 @@
                     <Outcome value="true"
                         _RU_explanation="Это неверно. ${X.class()}[case='д'] всегда необходим левый операнд."
                         _RU_nextStepQuestion="Какие выводы можно сделать, если ${X}[case='д'] нужен левый операнд?"
-                        _RU_nextStepExplanation="Это неверно. Необходимо дальше рассмотреть потенциально конкурирующие с ${X}[case='т'] операторы, и делать выводы исходя из их наличия/отсуствия."
+                        _RU_nextStepExplanation="Это неверно. Необходимо дальше рассмотреть потенциально конкурирующие с ${X}[case='т'] операторы, и делать выводы исходя из их наличия/отсутствия."
                         _EN_explanation="That's incorrect, because ${X.class()} does require a left operand."
                         _EN_nextStepQuestion="What is the next reasoning step if we know that ${X.class()} needs a left operand?"
                         _EN_nextStepExplanation="That's incorrect. From here, one should check if there are any operators that should still be evaluated in the left operand, and then reason based on that."
@@ -713,7 +713,7 @@
                                                 <ThoughtBranch type="bool"
                                                     _alias="left.predetermining.2"
                                                     _RU_description="${$params.branchResult == BranchResult:CORRECT ? '${X}[case='и'] находится в скобках, а ${Y}[case='и'] - за их пределами' : 'не существует скобок, окружающих ${X}[case='и'], но не окружающих ${Y}[case='в']'}"
-                                                    _EN_description="${$params.branchResult == BranchResult:CORRECT ? '${X} is inside of parenthesis, and ${Y} is ouside of them' : 'there are no parenthesis that enclose ${X} but not ${Y}'}"
+                                                    _EN_description="${$params.branchResult == BranchResult:CORRECT ? '${X} is inside of parenthesis, and ${Y} is outside of them' : 'there are no parenthesis that enclose ${X} but not ${Y}'}"
                                                 >
                                                 <!-- Вопросы не задаются, поскольку ветка
                                                 тривиальна, так что формулировки не прописал-->
@@ -793,7 +793,7 @@
                                                 <ThoughtBranch type="bool"
                                                     _alias="left.predetermining.3"
                                                     _RU_description="${$params.branchResult == BranchResult:CORRECT ? '${Y}[case='и'] находится в скобках, а ${X}[case='и'] - за их пределами' : 'не существует скобок, окружающих ${Y}[case='и'], но не окружающих ${X}[case='в']'}"
-                                                    _EN_description="${$params.branchResult == BranchResult:CORRECT ? '${Y} is inside of parenthesis, and ${X} is ouside of them' : 'there are no parenthesis that enclose ${Y} but not ${X}'}"
+                                                    _EN_description="${$params.branchResult == BranchResult:CORRECT ? '${Y} is inside of parenthesis, and ${X} is outside of them' : 'there are no parenthesis that enclose ${Y} but not ${X}'}"
                                                 >
                                                 <!-- Вопросы не задаются, поскольку ветка
                                                     тривиальна,
@@ -887,11 +887,11 @@
                                                     _RU_asNextStep="Необходимо сравнить приоритеты ${X.class()}[case='р'] и ${Y.class()}[case='р']"
                                                     _RU_question="Сравните приоритеты ${X.class()}[case='р'] и ${Y.class()}[case='р']"
                                                     _RU_endingCause="Из-за соотношения приоритетов ${X.class()} и ${Y.class()}"
-                                                    _EN_asNextStep="We should compare the precendence of ${X.class()} and ${Y.class()}."
-                                                    _EN_question="Compare the precendence of ${X.class()} and ${Y.class()}."
-                                                    _EN_endingCause="Because of the precendences of ${X.class()} and ${Y.class()}."
+                                                    _EN_asNextStep="We should compare the precedence of ${X.class()} and ${Y.class()}."
+                                                    _EN_question="Compare the precedence of ${X.class()} and ${Y.class()}."
+                                                    _EN_endingCause="Because of the precedences of ${X.class()} and ${Y.class()}."
                                                     _RU_triviality="Приоритеты ${X}[case='р'] и ${Y}[case='р'] очевидно равны, так как это один и тот же оператор."
-                                                    _EN_triviality="Precendences of ${X} and ${Y} are obviously equal as they are the same operator."
+                                                    _EN_triviality="The precedence of ${X} and ${Y} is obviously the same, since they are the same operator."
                                                 >
                                                     <Expression>
                                                         <Compare>
@@ -923,8 +923,8 @@
                                                         _RU_nextStepQuestion="Как определяется порядок выполнения операторов, имеющих разные приоритеты?"
                                                         _RU_nextStepBranchResult="Оператор с ${$params.branchResult == BranchResult:CORRECT ? 'большим' : 'меньшим'} приоритетом всегда выполняется первым"
                                                         _RU_nextStepExplanation="Это неверно. Оператор с большим приоритетом всегда выполняется первым. Т.к. ${X.class()}[case='и'] имеет больший приоритет, а значит может быть вычислен первым. Получается, левый операнд ${X}[case='и'] не требует дальнейших вычислений."
-                                                        _EN_text="${X.class()} has higher precendence."
-                                                        _EN_explanation="That's incorrect, because ${X.class()} has higher precendence than ${Y.class()}."
+                                                        _EN_text="${X.class()} has higher precedence."
+                                                        _EN_explanation="That's incorrect, because ${X.class()} has higher precedence than ${Y.class()}."
                                                         _EN_nextStepQuestion="How should one determine the order of evaluation between two operators that have different precedences?"
                                                         _EN_nextStepBranchResult="Operator with a ${$params.branchResult == BranchResult:CORRECT ? 'higher' : 'lower'} precedence is always evaluated first"
                                                         _EN_nextStepExplanation="That's incorrect. The operator with a higher precedence is always evaluated first. Therefore, in this case, the ${X} should be evaluated first, and we can conclude that its left operand does not prevent its evaluation."
@@ -941,8 +941,8 @@
                                                         _RU_nextStepQuestion="Как определяется порядок выполнения операторов, имеющих разные приоритеты?"
                                                         _RU_nextStepBranchResult="Оператор с ${$params.branchResult == BranchResult:CORRECT ? 'меньшим' : 'большим'} приоритетом всегда выполняется первым"
                                                         _RU_nextStepExplanation="Это неверно. Оператор с большим приоритетом всегда выполняется первым. Т.к. ${Y.class()}[case='и'] имеет больший приоритет, он должен быть вычислен первым. Получается, левый операнд ${X}[case='и'] требует дальнейших вычислений."
-                                                        _EN_text="${Y.class()} has higher precendence."
-                                                        _EN_explanation="That's incorrect, because ${Y.class()} has higher precendence than ${X.class()}."
+                                                        _EN_text="${Y.class()} has higher precedence."
+                                                        _EN_explanation="That's incorrect, because ${Y.class()} has higher precedence than ${X.class()}."
                                                         _EN_nextStepQuestion="How should one determine the order of evaluation between two operators that have different precedences?"
                                                         _EN_nextStepBranchResult="Operator with a ${$params.branchResult == BranchResult:CORRECT ? 'lower' : 'higher'} precedence is always evaluated first"
                                                         _EN_nextStepExplanation="That's incorrect. The operator with a higher precedence is always evaluated first. Therefore, in this case, the ${Y} should be evaluated first, and we can conclude that the left operand of ${X} does prevent its evaluation."
@@ -1004,7 +1004,7 @@
                                                             <Outcome value="true"
                                                                 _RU_explanation="Это неверно. ${X.class()}[case='д'] всегда необходим правый операнд."
                                                                 _RU_nextStepQuestion="Какие выводы можно сделать, если ${X}[case='д'] нужен правый операнд?"
-                                                                _RU_nextStepExplanation="Это неверно. Необходимо дальше рассмотреть потенциально конкурирующие с ${X}[case='т'] операторы, и делать выводы исходя из их наличия/отсуствия."
+                                                                _RU_nextStepExplanation="Это неверно. Необходимо дальше рассмотреть потенциально конкурирующие с ${X}[case='т'] операторы, и делать выводы исходя из их наличия/отсутствия."
                                                                 _EN_explanation="That's incorrect, because ${X.class()} does require a right operand."
                                                                 _EN_nextStepQuestion="What is the next reasoning step if we know that ${X.class()} needs a right operand?"
                                                                 _EN_nextStepExplanation="That's incorrect. From here, one should check if there are any operators that should still be evaluated in the right operand, and then reason based on that."
@@ -1017,7 +1017,7 @@
                                                                     _RU_endingCause="Из-за ассоциативности ${X.class()} и ${Y.class()}"
                                                                     _EN_asNextStep="We should determine the associativity of ${X.class()} and ${Y.class()}"
                                                                     _EN_question="What's the associativity of ${X.class()} and ${Y.class()}?"
-                                                                    _EN_endingCause="Because of the associatity of ${X.class()} and ${Y.class()}"
+                                                                    _EN_endingCause="Because of the associativity of ${X.class()} and ${Y.class()}"
                                                                 >
                                                                     <Expression>
                                                                         <GetPropertyValue>
@@ -1124,7 +1124,7 @@
                     <Outcome value="true"
                         _RU_explanation="Это неверно. ${X.class()}[case='д'] всегда необходим правый операнд."
                         _RU_nextStepQuestion="Какие выводы можно сделать, если ${X}[case='д'] нужен правый операнд?"
-                        _RU_nextStepExplanation="Это неверно. Необходимо дальше рассмотреть потенциально конкурирующие с ${X}[case='т'] операторы, и делать выводы исходя из их наличия/отсуствия."
+                        _RU_nextStepExplanation="Это неверно. Необходимо дальше рассмотреть потенциально конкурирующие с ${X}[case='т'] операторы, и делать выводы исходя из их наличия/отсутствия."
                         _EN_explanation="That's incorrect, because ${X.class()} does require a right operand."
                         _EN_nextStepQuestion="What is the next reasoning step if we know that ${X.class()} needs a right operand?"
                         _EN_nextStepExplanation="That's incorrect. From here, one should check if there are any operators that should still be evaluated in the right operand, and then reason based on that."
@@ -1464,7 +1464,7 @@
                                                 <ThoughtBranch type="bool"
                                                     _alias="right.predetermining.2"
                                                     _RU_description="${$params.branchResult == BranchResult:CORRECT ? '${X}[case='и'] находится в скобках, а ${Z}[case='и'] - за их пределами' : 'не существует скобок, окружающих ${X}[case='и'], но не окружающих ${Z}[case='в']'}"
-                                                    _EN_description="${$params.branchResult == BranchResult:CORRECT ? '${X} is inside of parenthesis, and ${Z} is ouside of them' : 'there are no parenthesis that enclose ${X} but not ${Z}'}"
+                                                    _EN_description="${$params.branchResult == BranchResult:CORRECT ? '${X} is inside of parenthesis, and ${Z} is outside of them' : 'there are no parenthesis that enclose ${X} but not ${Z}'}"
                                                 >
                                                 <!-- Вопросы не задаются, поскольку ветка
                                                     тривиальна,
@@ -1539,7 +1539,7 @@
                                                 <ThoughtBranch type="bool"
                                                     _alias="right.predetermining.3"
                                                     _RU_description="${$params.branchResult == BranchResult:CORRECT ? '${Z}[case='и'] находится в скобках, а ${X}[case='и'] - за их пределами' : 'не существует скобок, окружающих ${Z}[case='и'], но не окружающих ${X}[case='в']'}"
-                                                    _EN_description="${$params.branchResult == BranchResult:CORRECT ? '${Z} is inside of parenthesis, and ${X} is ouside of them' : 'there are no parenthesis that enclose ${Z} but not ${X}'}"
+                                                    _EN_description="${$params.branchResult == BranchResult:CORRECT ? '${Z} is inside of parenthesis, and ${X} is outside of them' : 'there are no parenthesis that enclose ${Z} but not ${X}'}"
                                                 >
                                                 <!-- Вопросы не задаются, поскольку ветка
                                                     тривиальна,
@@ -1629,11 +1629,11 @@
                                                     _RU_asNextStep="Необходимо сравнить приоритеты ${X.class()}[case='р'] и ${Z.class()}[case='р']"
                                                     _RU_question="Сравните приоритеты ${X.class()}[case='р'] и ${Z.class()}[case='р']"
                                                     _RU_endingCause="Из-за соотношения приоритетов ${X.class()} и ${Z.class()}"
-                                                    _EN_asNextStep="We should compare the precendence of ${X.class()} and ${Z.class()}."
-                                                    _EN_question="Compare the precendence of ${X.class()} and ${Z.class()}."
-                                                    _EN_endingCause="Because of the precendences of ${X.class()} and ${Z.class()}."
+                                                    _EN_asNextStep="We should compare the precedence of ${X.class()} and ${Z.class()}."
+                                                    _EN_question="Compare the precedence of ${X.class()} and ${Z.class()}."
+                                                    _EN_endingCause="Because of the precedences of ${X.class()} and ${Z.class()}."
                                                     _RU_triviality="Приоритеты ${X}[case='р'] и ${Z}[case='р'] очевидно равны, так как это один и тот же оператор."
-                                                    _EN_triviality="Precendences of ${X} and ${Z} are obviously equal as they are the same operator."
+                                                    _EN_triviality="Precedences of ${X} and ${Z} are obviously equal as they are the same operator."
                                                 >
                                                     <!-- ${class('X','р') != class('Z','р')  ?
                                                     class('X','р')
@@ -1669,8 +1669,8 @@
                                                         _RU_nextStepQuestion="Как определяется порядок выполнения операторов, имеющих разные приоритеты?"
                                                         _RU_nextStepBranchResult="Оператор с ${$params.branchResult == BranchResult:CORRECT ? 'большим' : 'меньшим'} приоритетом всегда выполняется первым"
                                                         _RU_nextStepExplanation="Это неверно. Оператор с большим приоритетом всегда выполняется первым. Т.к. ${X.class()}[case='и'] имеет больший приоритет, а значит может быть вычислен первым. Получается, правый операнд ${X}[case='и'] не требует дальнейших вычислений."
-                                                        _EN_text="${X.class()} has higher precendence."
-                                                        _EN_explanation="That's incorrect, because ${X.class()} has higher precendence than ${Z.class()}."
+                                                        _EN_text="${X.class()} has higher precedence."
+                                                        _EN_explanation="That's incorrect, because ${X.class()} has higher precedence than ${Z.class()}."
                                                         _EN_nextStepQuestion="How should one determine the order of evaluation between two operators that have different precedences?"
                                                         _EN_nextStepBranchResult="Operator with a ${$params.branchResult == BranchResult:CORRECT ? 'higher' : 'lower'} precedence is always evaluated first"
                                                         _EN_nextStepExplanation="That's incorrect. The operator with a higher precedence is always evaluated first. Therefore, in this case, the ${X} should be evaluated first, and we can conclude that its left operand does not prevent its evaluation."
@@ -1687,8 +1687,8 @@
                                                         _RU_nextStepQuestion="Как определяется порядок выполнения операторов, имеющих разные приоритеты?"
                                                         _RU_nextStepBranchResult="Оператор с ${$params.branchResult == BranchResult:CORRECT ? 'меньшим' : 'большим'} приоритетом всегда выполняется первым"
                                                         _RU_nextStepExplanation="Это неверно. Оператор с большим приоритетом всегда выполняется первым. Т.к. ${Z.class()}[case='и'] имеет больший приоритет, он должен быть вычислен первым. Получается, правый операнд ${X}[case='и'] требует дальнейших вычислений."
-                                                        _EN_text="${Z.class()} has higher precendence."
-                                                        _EN_explanation="That's incorrect, because ${Z.class()} has higher precendence than ${X.class()}."
+                                                        _EN_text="${Z.class()} has higher precedence."
+                                                        _EN_explanation="That's incorrect, because ${Z.class()} has higher precedence than ${X.class()}."
                                                         _EN_nextStepQuestion="How should one determine the order of evaluation between two operators that have different precedences?"
                                                         _EN_nextStepBranchResult="Operator with a ${$params.branchResult == BranchResult:CORRECT ? 'lower' : 'higher'} precedence is always evaluated first"
                                                         _EN_nextStepExplanation="That's incorrect. The operator with a higher precedence is always evaluated first. Therefore, in this case, the ${Z} should be evaluated first, and we can conclude that the left operand of ${X} does prevent its evaluation."
@@ -1750,7 +1750,7 @@
                                                             <Outcome value="true"
                                                                 _RU_explanation="Это неверно. ${X.class()}[case='д'] всегда необходим левый операнд."
                                                                 _RU_nextStepQuestion="Какие выводы можно сделать, если ${X}[case='д'] нужен левый операнд?"
-                                                                _RU_nextStepExplanation="Это неверно. Необходимо дальше рассмотреть потенциально конкурирующие с ${X}[case='т'] операторы, и делать выводы исходя из их наличия/отсуствия."
+                                                                _RU_nextStepExplanation="Это неверно. Необходимо дальше рассмотреть потенциально конкурирующие с ${X}[case='т'] операторы, и делать выводы исходя из их наличия/отсутствия."
                                                                 _EN_explanation="That's incorrect, because ${X.class()} does require a left operand."
                                                                 _EN_nextStepQuestion="What is the next reasoning step if we know that ${X.class()} needs a left operand?"
                                                                 _EN_nextStepExplanation="That's incorrect. From here, one should check if there are any operators that should still be evaluated in the left operand, and then reason based on that."
@@ -1763,7 +1763,7 @@
                                                                     _RU_endingCause="Из-за ассоциативности ${X.class()} и ${Z.class()}"
                                                                     _EN_asNextStep="We should determine the associativity of ${X.class()} and ${Z.class()}"
                                                                     _EN_question="What's the associativity of ${X.class()} and ${Z.class()}?"
-                                                                    _EN_endingCause="Because of the associatity of ${X.class()} and ${Z.class()}"
+                                                                    _EN_endingCause="Because of the associativity of ${X.class()} and ${Z.class()}"
                                                                 >
                                                                     <Expression>
                                                                         <GetPropertyValue>
@@ -2254,7 +2254,7 @@
                         <BranchResultNode value="correct"
                             _skill="are_central_operands_strict_order"
                             _RU_explanation="${obj:currentLanguage} разрешает вычисление аргументов функции в любом порядке"
-                            _EN_explanation="${obj:currentLanguage} allows evaluting of function arguments in any order"
+                            _EN_explanation="${obj:currentLanguage} allows evaluating of function arguments in any order"
                         />
                     </Outcome>
                     <Outcome
