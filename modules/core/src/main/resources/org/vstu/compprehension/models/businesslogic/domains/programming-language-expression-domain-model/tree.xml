@@ -997,8 +997,8 @@
                                                             >
                                                                 <BranchResultNode value="false"
                                                                     _skill="associativity_without_right_opposing_operand"
-                                                                    _RU_explanation="сначала должен быть вычислен ${Y}[case='и'] слева от него: эти операторы имеют одинаковый приоритет, и вычисляются слева направо (левоассоциативны)."
-                                                                    _EN_explanation=" ${Y} on its left must be evaluated first - these operators have the same precedence, but are evaluated from left to right (have left associativity)."
+                                                                    _RU_explanation="сначала должен быть вычислен ${Y}[case='и'] справа от него: эти операторы имеют одинаковый приоритет, и вычисляются справа налево (правоассоциативны)."
+                                                                    _EN_explanation=" ${Y} on its left must be evaluated first - these operators have the same precedence, but are evaluated from right to left (have right associativity)."
                                                                 />
                                                             </Outcome>
                                                             <Outcome value="true"
@@ -1045,7 +1045,7 @@
                                                                             _skill="right_competing_to_left_associativity"
                                                                             _law="error_base_same_precedence_left_associativity_left"
                                                                             _error="left.associativity"
-                                                                            _RU_explanation=" имеет одинаковый приоритет с ${Y}[case='т'] и правую ассоциативность (вычисляются справа налево)."
+                                                                            _RU_explanation=" имеет одинаковый приоритет с ${Y}[case='т'] и левую ассоциативность (вычисляются слева направо)."
                                                                             _EN_explanation=" ${Y} on its left must be evaluated first - these operators have the same precedence, but are evaluated from left to right (have left associativity)."
                                                                         />
                                                                     </Outcome>
@@ -1065,8 +1065,8 @@
                                                                         <BranchResultNode
                                                                             value="true"
                                                                             _skill="right_competing_to_left_associativity"
-                                                                            _RU_explanation=" имеет одинаковый приоритет с ${Y}[case='т'] и правую ассоциативность (вычисляются справа налево)."
-                                                                            _EN_explanation="it has the same precedence as ${Y} and right associativity."
+                                                                            _RU_explanation=" имеет одинаковый приоритет с ${Y}[case='т'] и левую ассоциативность (вычисляются слева направо)."
+                                                                            _EN_explanation="it has the same precedence as ${Y} and left associativity."
                                                                         />
                                                                     </Outcome>
                                                                 </QuestionNode>
@@ -1743,8 +1743,8 @@
                                                             >
                                                                 <BranchResultNode value="false"
                                                                     _skill="associativity_without_left_opposing_operand"
-                                                                    _RU_explanation="сначала должен быть вычислен ${Z}[case='и'] справа от него: эти операторы имеют одинаковый приоритет, и вычисляются справа налево (правоассоциативны)."
-                                                                    _EN_explanation=" ${Z} on its right must be evaluated first - these operators have the same precedence, but are evaluated from right to left (have right associativity)."
+                                                                    _RU_explanation="сначала должен быть вычислен ${Z}[case='и'] слева от него: эти операторы имеют одинаковый приоритет, и вычисляются слева направо (левоассоциативны)."
+                                                                    _EN_explanation=" ${Z} on its right must be evaluated first - these operators have the same precedence, but are evaluated from left to right (have left associativity)."
                                                                 />
                                                             </Outcome>
                                                             <Outcome value="true"
@@ -1811,7 +1811,7 @@
                                                                         <BranchResultNode
                                                                             value="true"
                                                                             _skill="left_competing_to_right_associativity"
-                                                                            _RU_explanation=" имеет одинаковый приоритет с ${Z}[case='т'] и левую ассоциативность (вычисляются слева направо)."
+                                                                            _RU_explanation=" имеет одинаковый приоритет с ${Z}[case='т'] и правую ассоциативность (вычисляются справа налево)."
                                                                             _EN_explanation=" it has the same precedence as ${Z} and left associativity."
                                                                         />
                                                                     </Outcome>
