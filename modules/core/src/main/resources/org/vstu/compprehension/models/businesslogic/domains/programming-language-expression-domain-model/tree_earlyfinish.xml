@@ -153,8 +153,8 @@ ${X}[case='p'], what should you do next?"
                                         value="True">
                                         <BranchResultNode value="false"
                                             _skill="strict_order_first_operand_to_be_evaluated_while_earlyfinish"
-                                            _RU_explanation="${X} должен вычислиться, потому что он находится в ${X->isInOperandOf(Y).placement}[case='п'] операнде ${Y}, который вычисляется первым и не может быть блокирован"
-                                            _EN_explanation="${X} should be evaluated because it belongs to ${X->isInOperandOf(Y).placement}[case='п'] operand ${val('Y','р')} that is evaluated first and so cannot be blocked"
+                                            _RU_explanation="${X} должен вычислиться, потому что он находится в ${X->isInOperandOf(Y).placement}[case='п'] операнде ${Y}[case='р'], который вычисляется первым и не может быть блокирован"
+                                            _EN_explanation="${X} should be evaluated because it belongs to ${X->isInOperandOf(Y).placement}[case='п'] operand ${val('Y')}[case='р'] that is evaluated first and so cannot be blocked"
                                         />
                                     </Outcome>
                                     <Outcome
