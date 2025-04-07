@@ -271,7 +271,7 @@ ${X}[case='p'], what should you do next?"
                                                         value="True">
                                                         <BranchResultNode value="false"
                                                             _skill="should_strict_order_current_operand_be_omitted_while_earlyfinish"
-                                                            _RU_explanation="${X} должен вычислиться, потому что он находится в ${X->isInOperandOf(Y).placement}[case='п'] операнде ${Y}[case='р'], чей ${Y.firstOperandPlacement} операнд имеет значение ${$Y->hasOperand&lt;placement=Y.firstOperandPlacement>.evaluatesTo}, что требует вычисления ${X}[case='р']"
+                                                            _RU_explanation="${X} должен вычислиться, потому что он находится в ${X->isInOperandOf(Y).placement}[case='п'] операнде ${Y}[case='р'], чей ${Y.firstOperandPlacement} операнд имеет значение ${Y->hasOperand&lt;placement=Y.firstOperandPlacement>.evaluatesTo}, что требует вычисления ${X}[case='р']"
                                                             _EN_explanation="${X} should be evaluated because it belongs to ${X->isInOperandOf(Y).placement}[case='п'] operand of ${Y}[case='р'], whose ${Y.firstOperandPlacement} operand has the value ${Y->hasOperand&lt;placement=Y.firstOperandPlacement>.evaluatesTo}, which requires evaluating ${X}[case='р']}"
                                                         />
                                                     </Outcome>
@@ -287,7 +287,7 @@ ${X}[case='p'], what should you do next?"
                                                         value="False">
                                                         <BranchResultNode value="true"
                                                             _skill="should_strict_order_current_operand_be_omitted_while_earlyfinish"
-                                                            _RU_explanation="${X} не должен вычисляться, он находится в ${X->isInOperandOf(Y).placement}[case='п'] операнде ${Y}[case='р'], чей ${Y.firstOperandPlacement} операнд имеет значение ${$Y->hasOperand&lt;placement=Y.firstOperandPlacement>.evaluatesTo}, что блокирует вычисления ${X}[case='р']"
+                                                            _RU_explanation="${X} не должен вычисляться, он находится в ${X->isInOperandOf(Y).placement}[case='п'] операнде ${Y}[case='р'], чей ${Y.firstOperandPlacement} операнд имеет значение ${Y->hasOperand&lt;placement=Y.firstOperandPlacement>.evaluatesTo}, что блокирует вычисления ${X}[case='р']"
                                                             _EN_explanation="${X} is not evaluated because it belongs to ${X->isInOperandOf(Y).placement}[case='п'] operand of ${Y}[case='р'], whose ${Y.firstOperandPlacement} operand has the value ${Y->hasOperand&lt;placement=Y.firstOperandPlacement>.evaluatesTo}, which blocks evaluation of ${X}[case='р']}"
                                                         />
                                                     </Outcome>
