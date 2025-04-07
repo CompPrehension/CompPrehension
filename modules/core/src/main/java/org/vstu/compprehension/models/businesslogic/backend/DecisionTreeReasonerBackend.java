@@ -109,15 +109,14 @@ public class DecisionTreeReasonerBackend
                                                             DecisionTreeTrace trace,
                                                             DomainModel domain,
                                                             Language lang) {
-        return Explanation.aggregate(type, _collectExplanations(type, trace, null, domain, lang, 1));
+        return Explanation.aggregate(type, _collectExplanations(type, trace, null, domain, lang));
     }
 
     private static List<Explanation> _collectExplanations(Explanation.Type type,
                                      DecisionTreeTrace trace,
                                      Explanation parent,
                                      DomainModel domain,
-                                     Language lang,
-                                     int level
+                                     Language lang
     ) {
         List<Explanation> traceExplanations = new ArrayList<>();
         for (DecisionTreeTraceElement<?, ?> element : trace) {
@@ -135,19 +134,23 @@ public class DecisionTreeReasonerBackend
                 Explanation newParent = parent;
                 if (element.getNode() instanceof AggregationNode agg && agg.getAggregationMethod().equals(AggregationMethod.AND)) {
                     if (type == Explanation.Type.HINT) {
-                        if (level != 1) prefix = String.format("<i>%s</i>", utilLoc.get(lang.toLocaleString()).get("andAlsoHint"));
-                        newParent = new Explanation(type, prefix);
+                        String andAlso = String.format("<i>%s</i>", utilLoc.get(lang.toLocaleString()).get("andAlsoHint"));
+                        String newPrefix = prefix.concat(andAlso);
+                        if (parent != null && newPrefix.equals(parent.getRawMessage().getText())) newPrefix = andAlso;
+                        newParent = new Explanation(type, newPrefix);
                         traceExplanations.add(newParent);
                     }
                 } else if (element.getNode() instanceof AggregationNode agg && agg.getAggregationMethod().equals(AggregationMethod.OR)) {
                     if (type == Explanation.Type.ERROR) {
-                        if (level != 1) prefix = String.format("<i>%s</i>", utilLoc.get(lang.toLocaleString()).get("orAlsoHint"));
-                        newParent = new Explanation(type, prefix);
+                        String orAlso = String.format("<i>%s</i>", utilLoc.get(lang.toLocaleString()).get("orAlsoHint"));
+                        String newPrefix = prefix.concat(orAlso);
+                        if (parent != null && newPrefix.equals(parent.getRawMessage().getText())) newPrefix = orAlso;
+                        newParent = new Explanation(type, newPrefix);
                         traceExplanations.add(newParent);
                     }
                 }
                 for (DecisionTreeTrace subTrace : Objects.requireNonNullElse(element.nestedTraces(), new ArrayList<DecisionTreeTrace>())) {
-                    traceExplanations.addAll(_collectExplanations(type, subTrace, newParent, domain, lang, level + 1));
+                    traceExplanations.addAll(_collectExplanations(type, subTrace, newParent, domain, lang));
                 }
                 if (newParent != null && (newParent.getChildren().isEmpty() || newParent.getChildren().size() == 1)) {
                     traceExplanations.remove(newParent);

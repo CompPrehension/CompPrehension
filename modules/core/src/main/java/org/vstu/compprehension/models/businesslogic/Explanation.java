@@ -2,6 +2,8 @@ package org.vstu.compprehension.models.businesslogic;
 
 import lombok.Getter;
 import lombok.Setter;
+import org.apache.commons.lang3.StringUtils;
+import org.jetbrains.annotations.NotNull;
 import org.vstu.compprehension.models.entities.EnumData.Language;
 import org.vstu.compprehension.utils.HyperText;
 
@@ -20,27 +22,28 @@ public class Explanation {
         ERROR
     }
 
-    private final HyperText rawMessage;
     private final Type type;
     private SequencedSet<Explanation> children = new LinkedHashSet<>();
 
     @Setter
+    private HyperText rawMessage;
+    @Setter
     private String currentDomainLawName;
 
-    public Explanation(Type t, String message) {
+    public Explanation(Type t, @NotNull String message) {
         this(t, new HyperText(message));
     }
 
-    public Explanation(Type t, HyperText message) {
+    public Explanation(Type t, @NotNull HyperText message) {
         this.type = t;
         this.rawMessage = message;
     }
 
-    public Explanation(Type t, String message, List<Explanation> children) {
+    public Explanation(Type t, @NotNull String message, List<Explanation> children) {
         this(t, new HyperText(message), children);
     }
 
-    public Explanation(Type t, HyperText message, List<Explanation> children) {
+    public Explanation(Type t, @NotNull HyperText message, List<Explanation> children) {
         this.type = t;
         this.rawMessage = message;
         this.children = new LinkedHashSet<>(children);
@@ -105,7 +108,8 @@ public class Explanation {
         details.append("<ul>");
         for (Explanation child : children) {
             HyperText ht = child.toHyperText(lang, collapse);
-            details.append("<li class=\"p-1\">").append(ht.getText().replace(parent.rawMessage.getText(), "")).append("</li>");
+            String commonPrefix = StringUtils.getCommonPrefix(parent.getRawMessage().getText(), ht.getText());
+            details.append("<li class=\"p-1\">").append(ht.getText().replace(commonPrefix, "")).append("</li>");
         }
         details.append("</ul>");
 

@@ -20,6 +20,10 @@ public class HyperText {
         return this;
     }
 
+    public boolean isEmpty() {
+        return text.isEmpty();
+    }
+
     public String getText() {
         return text.toString();
     }
