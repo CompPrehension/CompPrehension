@@ -972,6 +972,7 @@ public class MeaningTreeOrderQuestionBuilder {
 
         // Ни одной операции строгого порядка
         if (tokens.stream().noneMatch(t -> t instanceof OperatorToken op && op.isStrictOrder)) {
+            set.add("strict_order_operators_present");
             set.add("expression_strict_order_operators_present");
         }
 
