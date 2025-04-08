@@ -58,8 +58,8 @@ class `operator_?` : StrictOrderOperator {
 } [
 	text = "?" ;
 	token2text = ":";
-	RU.localizedName = "оператор ?" ;
-	EN.localizedName = "operator ?" ;
+	RU.localizedName = "оператор ? :" ;
+	EN.localizedName = "operator ? :" ;
 ]
 
 class `operator_||` : StrictOrderOperator {
@@ -656,7 +656,7 @@ class operator_cast : operator {
 	countOfTokens = 1 ;
 } [
 	text = "cast" ;
-	RU.localizedName = "оператор cast" ;
+	RU.localizedName = "оператор приведения типов" ;
 	EN.localizedName = "operator cast" ;
 ]
 
@@ -753,8 +753,8 @@ class operator_subscript : operator {
 } [
 	text = "[" ;
 	token2text = "]";
-	RU.localizedName = "оператор [" ;
-	EN.localizedName = "operator [" ;
+	RU.localizedName = "оператор [ ]" ;
+	EN.localizedName = "operator [ ]" ;
 	isComplex = true ;
 ]
 
@@ -771,8 +771,8 @@ class operator_function_call : operator {
  } [
  	text = "(" ;
  	token2text = ")";
- 	RU.localizedName = "вызов функции" ;
- 	EN.localizedName = "function call" ;
+ 	RU.localizedName = "оператор вызова функции" ;
+ 	EN.localizedName = "function call operator" ;
  	isComplex = true ;
  ]
 
@@ -789,8 +789,8 @@ class operator_method_call : operator {
 } [
     text = "(" ;
     token2text = ")";
-    RU.localizedName = "вызов метода" ;
-    EN.localizedName = "method call" ;
+    RU.localizedName = "оператор вызова метода" ;
+    EN.localizedName = "method call operator" ;
     isComplex = true ;
 ]
 

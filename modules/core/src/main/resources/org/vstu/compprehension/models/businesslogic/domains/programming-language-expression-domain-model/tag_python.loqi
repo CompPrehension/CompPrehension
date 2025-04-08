@@ -582,8 +582,6 @@ class operator_await : operator {
 	EN.localizedName = "operator await" ;
 ]
 
-
-
 class operator_if : StrictOrderOperator {
 
 	arity = arity:ternary ;
@@ -602,8 +600,8 @@ class operator_if : StrictOrderOperator {
 } [
 	text = "if" ;
 	token2text = "else";
-	RU.localizedName = "оператор if" ;
-	EN.localizedName = "operator if" ;
+	RU.localizedName = "оператор if else" ;
+	EN.localizedName = "operator if else" ;
 ]
 
 class operator_in : operator {
@@ -720,8 +718,8 @@ class operator_subscript : operator {
 } [
 	text = "[" ;
 	token2text = "]";
-	RU.localizedName = "оператор [" ;
-	EN.localizedName = "operator [" ;
+	RU.localizedName = "оператор [ ]" ;
+	EN.localizedName = "operator [ ]" ;
 	isComplex = true ;
 ]
 
@@ -738,8 +736,8 @@ class operator_call : operator {
 } [
 	text = "(" ;
 	token2text = ")";
-	RU.localizedName = "вызов функции или метода" ;
-	EN.localizedName = "function or method call" ;
+	RU.localizedName = "оператор вызова" ;
+	EN.localizedName = "call operator" ;
 	isComplex = true ;
 ]
 
