@@ -106,7 +106,7 @@ ${X}[case='p'], what should you do next?"
                                 <BranchResultNode value="false"
                                     _skill="earlyfinish_strict_order_operators_present"
                                     _RU_explanation="${X} должен вычислиться, потому что его родитель (${Y}) не требует строгого порядка вычисления операндов и не может блокировать его вычисление"
-                                    _EN_explanation="${X} should be evaluated because its parent ({$Y}) does not evaluates its operands in a strict order and so cannot block its evaluation"
+                                    _EN_explanation="${X} should be evaluated because its parent (${Y}) does not evaluates its operands in a strict order and so cannot block its evaluation"
                                 />
                             </Outcome>
                             <Outcome
@@ -154,7 +154,7 @@ ${X}[case='p'], what should you do next?"
                                         <BranchResultNode value="false"
                                             _skill="strict_order_first_operand_to_be_evaluated_while_earlyfinish"
                                             _RU_explanation="${X} должен вычислиться, потому что он находится в ${X->isInOperandOf(Y).placement}[case='п'] операнде ${Y}[case='р'], который вычисляется первым и не может быть блокирован"
-                                            _EN_explanation="${X} should be evaluated because it belongs to ${X->isInOperandOf(Y).placement}[case='п'] operand ${val('Y')}[case='р'] that is evaluated first and so cannot be blocked"
+                                            _EN_explanation="${X} should be evaluated because it belongs to ${X->isInOperandOf(Y).placement}[case='п'] operand ${Y}[case='р'] that is evaluated first and so cannot be blocked"
                                         />
                                     </Outcome>
                                     <Outcome
