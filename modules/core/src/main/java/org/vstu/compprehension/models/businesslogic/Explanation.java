@@ -22,11 +22,10 @@ public class Explanation {
         ERROR
     }
 
+    private final HyperText rawMessage;
     private final Type type;
     private SequencedSet<Explanation> children = new LinkedHashSet<>();
 
-    @Setter
-    private HyperText rawMessage;
     @Setter
     private String currentDomainLawName;
 
