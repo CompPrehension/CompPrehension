@@ -2149,8 +2149,8 @@
                                                                     _law="error_base_student_error_strict_operands_order"
                                                                     value="false"
                                                                     _error="strict.leftShouldBeTrue_omittedInRight"
-                                                                    _RU_explanation="он опускается оператором со строгим порядком операндов (${T}[case='и'])"
-                                                                    _EN_explanation="it is omitted by an operator with a strict operand order (${T})"
+                                                                    _RU_explanation="он находится в ${X->isInOperandOf(T).placement}[case='п'] операнде ${T}[case='р'], чей ${T.firstOperandPlacement} операнд имеет значение ${T->hasOperand&lt;placement=T.firstOperandPlacement>.evaluatesTo}, что блокирует вычисление ${X}[case='р']."
+                                                                    _EN_explanation="it belongs to ${X->isInOperandOf(T).placement}[case='п'] operand of ${T}[case='р'] whose ${T.firstOperandPlacement} operand evaluates to ${T->hasOperand&lt;placement=T.firstOperandPlacement>.evaluatesTo} which forbids evaluation of ${X}[case='р']."
                                                                 >
                                                                     <Expression>
                                                                         <AssignToProperty>

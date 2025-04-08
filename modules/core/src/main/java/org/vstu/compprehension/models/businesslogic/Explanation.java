@@ -135,7 +135,7 @@ public class Explanation {
 
         details.append("<ul>");
         for (Explanation child : children) {
-            HyperText ht = child.toHyperText(lang, true);
+            HyperText ht = child.toHyperText(lang, collapse);
             details.append("<li class=\"p-1\">").append(ht.getText().replace(commonChildrenPrefix, "")).append("</li>");
         }
         details.append("</ul>");
