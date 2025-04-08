@@ -1065,8 +1065,8 @@
                                                                         <BranchResultNode
                                                                             value="true"
                                                                             _skill="right_competing_to_left_associativity"
-                                                                            _RU_explanation=" имеет одинаковый приоритет с ${Y}[case='т'] и левую ассоциативность (вычисляются слева направо)."
-                                                                            _EN_explanation="it has the same precedence as ${Y} and left associativity."
+                                                                            _RU_explanation="имеет одинаковый приоритет с ${Y}[case='т'] и правую ассоциативность (вычисляются справа налево)."
+                                                                            _EN_explanation="it has the same precedence as ${Y} and right associativity."
                                                                         />
                                                                     </Outcome>
                                                                 </QuestionNode>
@@ -1811,7 +1811,7 @@
                                                                         <BranchResultNode
                                                                             value="true"
                                                                             _skill="left_competing_to_right_associativity"
-                                                                            _RU_explanation=" имеет одинаковый приоритет с ${Z}[case='т'] и правую ассоциативность (вычисляются справа налево)."
+                                                                            _RU_explanation=" имеет одинаковый приоритет с ${Z}[case='т'] и левую ассоциативность (вычисляются слева направо)."
                                                                             _EN_explanation=" it has the same precedence as ${Z} and left associativity."
                                                                         />
                                                                     </Outcome>
