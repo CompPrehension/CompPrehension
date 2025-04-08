@@ -9,6 +9,7 @@ import its.reasoner.nodes.DecisionTreeReasoner;
 import its.reasoner.nodes.DecisionTreeTrace;
 import its.reasoner.nodes.DecisionTreeTraceElement;
 import lombok.extern.log4j.Log4j2;
+import org.apache.commons.lang3.StringUtils;
 import org.apache.commons.lang3.tuple.Pair;
 import org.jetbrains.annotations.NotNull;
 import org.springframework.context.annotation.Primary;
@@ -40,15 +41,20 @@ public class DecisionTreeReasonerBackend
     implements Backend<DecisionTreeReasonerBackend.Input, DecisionTreeReasonerBackend.Output>
 {
     public static String BACKEND_ID = "DTReasoner";
+    public final static int MAX_SIMILAR_EXPLANATION_COUNT = 3;
 
     private static final Map<String, Map<String, String>> utilLoc = Map.ofEntries(
             Pair.of("RU", Map.ofEntries(
                     Pair.of("andAlsoHint", "влияет всё из нижеперечисленного..."),
-                    Pair.of("orAlsoHint", "влияет любое из нижеперечисленного...")
+                    Pair.of("orAlsoHint", "влияет любое из нижеперечисленного..."),
+                    Pair.of("moreErrorHint", "...и еще %d похожих ошибок"),
+                    Pair.of("moreHint", "...и еще %d похожих подсказок")
             )),
             Pair.of("EN", Map.ofEntries(
                     Pair.of("andAlsoHint", "it is influenced by all of the following..."),
-                    Pair.of("orAlsoHint", "it is influenced by any of the following...")
+                    Pair.of("orAlsoHint", "it is influenced by any of the following..."),
+                    Pair.of("moreErrorHint", "...and also %d more similar errors"),
+                    Pair.of("moreHint", "...and also %d more similar hints")
             ))
     );
 
@@ -105,53 +111,71 @@ public class DecisionTreeReasonerBackend
         }
     }
 
+    /**
+     * Собрать все объяснения с учетом агрегаций в древовидную структуру
+     * @param type тип объяснения, например объяснение ошибки
+     * @param trace трасса путей интерпретатора по Decision Tree
+     * @param domain домен Decision Tree
+     * @param lang язык пользователя
+     * @return объект объяснения в виде агрегированных в него других объяснений
+     */
     public static Explanation collectExplanationsFromTrace(Explanation.Type type,
                                                             DecisionTreeTrace trace,
                                                             DomainModel domain,
                                                             Language lang) {
-        return Explanation.aggregate(type, _collectExplanations(type, trace, null, domain, lang));
+        Explanation result = Explanation.aggregate(type, _collectExplanations(type, trace, null, domain, lang));
+        String prefix = Explanation.getCommonPrefix(result.getChildren(), "");
+        if (result.getChildren().size() > 1 && !prefix.isEmpty()) {
+            result.setRawMessage(new HyperText(prefix));
+        }
+        // Если в ветви все объяснения принадлежат одному навыку, то у всей ветви этот навык
+        if (result.getChildren().stream().map(Explanation::getDomainLawNames).collect(Collectors.toSet()).size() == 1) {
+            result.setCurrentDomainLawName(result.getChildren().getFirst().getCurrentDomainLawName());
+        }
+        reduceSimilarExplanations(result.getChildren(), type, lang);
+        return result;
     }
 
+    // Рекурсивный сбор объяснений для очередной трассы дерева
     private static List<Explanation> _collectExplanations(Explanation.Type type,
                                      DecisionTreeTrace trace,
                                      Explanation parent,
                                      DomainModel domain,
                                      Language lang
     ) {
-        List<Explanation> traceExplanations = new ArrayList<>();
+        List<Explanation> traceExplanations = new ArrayList<>(); // временный буфер
         for (DecisionTreeTraceElement<?, ?> element : trace) {
             LearningSituation learningSituation = new LearningSituation(domain, element.getVariablesSnapshot());
             if (Objects.requireNonNullElse(element.nestedTraces(), new ArrayList<DecisionTreeTrace>()).isEmpty()
                     && element.getNode() instanceof BranchResultNode res
                     && (type == Explanation.Type.ERROR) != element.getNodeResult().equals(BranchResult.CORRECT)
                     && element.getNode().getMetadata().containsAny("explanation")) {
+                // одиночное объяснение по заданному типу объяснения
                 traceExplanations.add(Interface.extractExplanation(res,
                         lang.toLocaleString(), learningSituation));
             } else {
-                String prefix = Interface.getCommonExplanationPrefix(
-                        learningSituation, trace.getResultingNode().getDecisionTree(), type, lang.toLocaleString()
-                );
+                // Элемент трассы может включать другие трассы
                 Explanation newParent = parent;
                 if (element.getNode() instanceof AggregationNode agg && agg.getAggregationMethod().equals(AggregationMethod.AND)) {
                     if (type == Explanation.Type.HINT) {
-                        String andAlso = String.format("<i>%s</i>", utilLoc.get(lang.toLocaleString()).get("andAlsoHint"));
-                        String newPrefix = prefix.concat(andAlso);
-                        if (parent != null && newPrefix.equals(parent.getRawMessage().getText())) newPrefix = andAlso;
-                        newParent = new Explanation(type, newPrefix);
+                        // Для Sim:AND и подсказок элементы агрегаций должны быть объединены
+                        String msg = String.format("<i>%s</i>", utilLoc.get(lang.toLocaleString()).get("andAlsoHint"));
+                        newParent = new Explanation(type, msg);
                         traceExplanations.add(newParent);
                     }
                 } else if (element.getNode() instanceof AggregationNode agg && agg.getAggregationMethod().equals(AggregationMethod.OR)) {
                     if (type == Explanation.Type.ERROR) {
-                        String orAlso = String.format("<i>%s</i>", utilLoc.get(lang.toLocaleString()).get("orAlsoHint"));
-                        String newPrefix = prefix.concat(orAlso);
-                        if (parent != null && newPrefix.equals(parent.getRawMessage().getText())) newPrefix = orAlso;
-                        newParent = new Explanation(type, newPrefix);
+                        // Для Sim:OR и ошибок элементы агрегаций должны быть объединены в новую ветвь
+                        String msg = String.format("<i>%s</i>", utilLoc.get(lang.toLocaleString()).get("orAlsoHint"));
+                        newParent = new Explanation(type, msg);
                         traceExplanations.add(newParent);
                     }
                 }
+                // Собрать с дочерних трасс элементы
                 for (DecisionTreeTrace subTrace : Objects.requireNonNullElse(element.nestedTraces(), new ArrayList<DecisionTreeTrace>())) {
                     traceExplanations.addAll(_collectExplanations(type, subTrace, newParent, domain, lang));
                 }
+                // Если в агрегированной ветви один элемент - хранить в буфере только его, а если вообще нет элементов - удалить ветвь
                 if (newParent != null && (newParent.getChildren().isEmpty() || newParent.getChildren().size() == 1)) {
                     traceExplanations.remove(newParent);
                     if (newParent.getChildren().size() == 1) traceExplanations.add(newParent.getChildren().getFirst());
@@ -160,14 +184,41 @@ public class DecisionTreeReasonerBackend
         }
 
         if (parent == null) {
-            return traceExplanations.stream()
+            ArrayList<Explanation> list = new ArrayList<>(traceExplanations.stream()
                     .filter(e -> !e.isEmpty())
-                    .toList();
+                    .toList());
+            reduceSimilarExplanations(list, type, lang);
+            return list;
         } else {
             parent.getChildren().addAll(traceExplanations.stream()
                     .filter(e -> !e.isEmpty())
                     .toList());
+            reduceSimilarExplanations(parent.getChildren(), type, lang);
+            // Если в ветви все объяснения принадлежат одному навыку, то у всей ветви этот навык
+            if (parent.getChildren().stream().map(Explanation::getDomainLawNames).collect(Collectors.toSet()).size() == 1) {
+                parent.setCurrentDomainLawName(parent.getChildren().getFirst().getCurrentDomainLawName());
+            }
             return List.of();
+        }
+    }
+
+    // Сокращает число схожих объяснений (схожесть по навыкам) в списке/ветви, схожие элементы заменяются подсказкой с числом
+    private static void reduceSimilarExplanations(Collection<Explanation> explanations, Explanation.Type type, Language lang) {
+        Map<String, Integer> skillCounter = new HashMap<>();
+        List<Explanation> deleteCandidates = new ArrayList<>();
+        for (Explanation item : explanations) {
+            int total = skillCounter.getOrDefault(item.getCurrentDomainLawName(), 0) + 1;
+            skillCounter.put(item.getCurrentDomainLawName(), total);
+            if (total > MAX_SIMILAR_EXPLANATION_COUNT && item.getCurrentDomainLawName() != null) {
+                deleteCandidates.add(item);
+            }
+        }
+        explanations.removeAll(deleteCandidates);
+        if (!deleteCandidates.isEmpty()) {
+            String skipTemplate = type == Explanation.Type.ERROR ? utilLoc.get(lang.toLocaleString()).get("moreErrorHint") :
+                    utilLoc.get(lang.toLocaleString()).get("moreHint");
+            skipTemplate = String.format(skipTemplate, deleteCandidates.size());
+            explanations.add(new Explanation(type, String.format("<i>%s</i>", skipTemplate)));
         }
     }
 

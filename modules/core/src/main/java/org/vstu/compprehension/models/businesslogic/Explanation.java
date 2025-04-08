@@ -22,9 +22,12 @@ public class Explanation {
         ERROR
     }
 
-    private final HyperText rawMessage;
+
     private final Type type;
     private SequencedSet<Explanation> children = new LinkedHashSet<>();
+
+    @Setter
+    private @NotNull HyperText rawMessage;
 
     @Setter
     private String currentDomainLawName;
@@ -75,10 +78,6 @@ public class Explanation {
         return Objects.hash(rawMessage, type, children, currentDomainLawName);
     }
 
-    public List<Explanation> getChildrenList() {
-        return new ArrayList<>(children);
-    }
-
     public Set<String> getDomainLawNames() {
         return Stream.concat(
                 Stream.of(currentDomainLawName),
@@ -100,15 +99,44 @@ public class Explanation {
         }
     }
 
+    /**
+     * Получить общий префикс для сообщений объяснений из списка
+     * @param explanations список объяснений
+     * @param defaultVal значение префикса, если ничего не совпало
+     * @return общий префикс
+     */
+    public static String getCommonPrefix(Collection<Explanation> explanations, String defaultVal) {
+        String commonChildrenPrefix = StringUtils.getCommonPrefix(explanations.stream().
+                map(Explanation::getRawMessage).map(HyperText::getText)
+                .filter(x -> !x.startsWith("<i>"))
+                .toList().toArray(new String[0]));
+        if (commonChildrenPrefix.isEmpty()) {
+            commonChildrenPrefix = defaultVal;
+        }
+
+        String[] stopWords = {"because", "что"};
+        for (String stopWord : stopWords) {
+            if (commonChildrenPrefix.lastIndexOf(stopWord) != -1) {
+                commonChildrenPrefix = commonChildrenPrefix.substring(0,
+                        commonChildrenPrefix.lastIndexOf(stopWord) + stopWord.length()) + " ";
+            }
+        }
+        return commonChildrenPrefix;
+    }
+
     private HyperText recursiveBuildHyperText(Language lang, boolean collapse, Explanation parent) {
+        String commonChildrenPrefix = getCommonPrefix(children, "");
         HyperText details = new HyperText(String.format("<details class=\"rounded\" %s>", collapse ? "" : "open"));
-        details.append("<summary>").append(rawMessage).append("</summary>");
+        String headerPrefix = commonChildrenPrefix;
+        if (commonChildrenPrefix.equals(rawMessage.getText())) {
+            headerPrefix = "";
+        }
+        details.append("<summary>").append(headerPrefix.concat(rawMessage.getText())).append("</summary>");
 
         details.append("<ul>");
         for (Explanation child : children) {
-            HyperText ht = child.toHyperText(lang, collapse);
-            String commonPrefix = StringUtils.getCommonPrefix(parent.getRawMessage().getText(), ht.getText());
-            details.append("<li class=\"p-1\">").append(ht.getText().replace(commonPrefix, "")).append("</li>");
+            HyperText ht = child.toHyperText(lang, true);
+            details.append("<li class=\"p-1\">").append(ht.getText().replace(commonChildrenPrefix, "")).append("</li>");
         }
         details.append("</ul>");
 

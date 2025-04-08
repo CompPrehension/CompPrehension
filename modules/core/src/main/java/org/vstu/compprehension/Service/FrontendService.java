@@ -16,6 +16,7 @@ import org.vstu.compprehension.dto.*;
 import org.vstu.compprehension.dto.feedback.FeedbackDto;
 import org.vstu.compprehension.dto.feedback.FeedbackViolationLawDto;
 import org.vstu.compprehension.dto.question.QuestionDto;
+import org.vstu.compprehension.models.businesslogic.Explanation;
 import org.vstu.compprehension.models.businesslogic.domains.DomainFactory;
 import org.vstu.compprehension.models.businesslogic.strategies.AbstractStrategyFactory;
 import org.vstu.compprehension.models.entities.*;
@@ -132,7 +133,8 @@ public class FrontendService {
         val violations = judgeResult.violations.stream()
                 .map(v -> FeedbackViolationLawDto.builder().name(v.getLawName()).canCreateSupplementaryQuestion(domain.needSupplementaryQuestion(v)).build())
                 .filter(Objects::nonNull).toList();
-        val errors = judgeResult.explanation.getChildren().stream().map(e -> Pair.of(
+        Collection<Explanation> explanationSource = judgeResult.explanation.getRawMessage().isEmpty() ? judgeResult.explanation.getChildren() : List.of(judgeResult.explanation);
+        val errors = explanationSource.stream().map(e -> Pair.of(
                 violations.stream().filter(v -> e.getDomainLawNames().contains(v.getName())).toList(),
                 e.toHyperText(locale).getText())).toList();
         val messages = !errors.isEmpty() && !judgeResult.isAnswerCorrect ? errors.stream().map(pair -> FeedbackDto.Message.Error(pair.getRight(), pair.getLeft())).toArray(FeedbackDto.Message[]::new)
