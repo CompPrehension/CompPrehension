@@ -152,6 +152,7 @@ public class MeaningTreeRDFTransformer {
         if(!parsedClassName.isCorrect){
             parseResult.errorPos.add(tokenIndex);
         }
+        ClassDef classDef = domainModel.getClasses().get(className);
         ObjectDef resElement = newObject(situationDomain, String.format("element_op_%d", tokenIndex), className);
         setEnumProperty(
                 resElement, "state",
@@ -163,7 +164,7 @@ public class MeaningTreeRDFTransformer {
         }
         ObjectDef resToken = resTokenFromBase(tokenIndex, resElement);
 
-        Pair<String, String> loc = getLocalizedName(baseToken, tokenIndex, className);
+        Pair<String, String> loc = getLocalizedName(baseToken, complexPairsMap, tokenIndex, classDef);
         addLocalizedName(resElement, loc);
         addLocalizedName(resToken, loc);
 
@@ -174,7 +175,7 @@ public class MeaningTreeRDFTransformer {
             Token otherBaseToken = complexPairsMap.get(baseToken);
             int otherTokenIndex = tokens.indexOf(otherBaseToken);
             ObjectDef otherResToken = resTokenFromBase(otherTokenIndex, resElement);
-            Pair<String, String> otherloc = getLocalizedName(otherBaseToken, otherTokenIndex, className);
+            Pair<String, String> otherloc = getLocalizedName(otherBaseToken, complexPairsMap, otherTokenIndex, classDef);
             addLocalizedName(otherResToken, otherloc);
 
             baseTokensToTokens.put(otherBaseToken, otherResToken);
@@ -264,20 +265,39 @@ public class MeaningTreeRDFTransformer {
         addMeta(object, "EN", "localizedName", localization.getRight());
     }
 
-    private static org.apache.commons.lang3.tuple.Pair<String, String> getLocalizedName(Token baseToken, int tokenIndex, String classname){
+    private static org.apache.commons.lang3.tuple.Pair<String, String> getLocalizedName(Token baseToken,
+                                                                                        Map<Token, Token> complexPairs,
+                                                                                        int tokenIndex,
+                                                                                        ClassDef classdef) {
+        String classname = classdef.getName();
+        String baseTokens = baseToken.value;
+        if (complexPairs.containsKey(baseToken)) {
+            baseTokens = baseTokens.concat(" ");
+            baseTokens = baseTokens.concat(complexPairs.get(baseToken).value);
+        }
         String ru;
         String en;
-        if(classname.equals("parenthesis")){
+        if (classname.equals("parenthesis")){
             ru = "скобки";
             en = "parenthesis";
+        } else if (classname.equals("operand")) {
+            ru = "операнд " + String.format("<code>%s</code>", baseTokens);
+            en = "operand " + String.format("<code>%s</code>", baseTokens);
         }
-        else if(classname.equals("operand")){
-            ru = "операнд " + baseToken.value;
-            en = "variable " + baseToken.value;
-        }
-        else {
-            ru = "оператор " + baseToken.value;
-            en = "operator " + baseToken.value;
+        else if (classname.startsWith("operator")){
+            if (classdef.getMetadata().get("EN", "localizedName")
+                    .toString().endsWith(baseTokens)) {
+                ru = "оператор " + String.format("<code>%s</code>", baseTokens);
+                en = "operator " + String.format("<code>%s</code>", baseTokens);
+            } else {
+                ru = classdef.getMetadata().get("RU", "localizedName")
+                        .toString();
+                en = classdef.getMetadata().get("EN", "localizedName")
+                        .toString();
+            }
+        } else {
+            ru = String.format("<code>%s</code>", baseTokens);
+            en = String.format("<code>%s</code>", baseTokens);
         }
         int pos = tokenIndex + 1;
         ru += " на позиции " + pos;
