@@ -163,14 +163,14 @@ public class DecisionTreeReasonerBackend
                 if (element.getNode() instanceof AggregationNode agg && agg.getAggregationMethod().equals(AggregationMethod.AND)) {
                     newPolicy = AggregationPolicy.SimAND;
                     if (type == Explanation.Type.HINT && policy != newPolicy) {
-                        // Для Sim:AND и подсказок элементы агрегаций должны быть объединены, если только он не находится в агрегации AND уже
+                        // Для Sim:AND и подсказок элементы агрегаций должны быть объединены
                         newParent = new Explanation(type, ":");
                         traceExplanations.add(newParent);
                     }
                 } else if (element.getNode() instanceof AggregationNode agg && agg.getAggregationMethod().equals(AggregationMethod.OR)) {
                     newPolicy = AggregationPolicy.SimOR;
-                    if (type == Explanation.Type.ERROR) {
-                        // Для Sim:OR и ошибок элементы агрегаций должны быть объединены в новую ветвь
+                    if (type == Explanation.Type.ERROR && policy != newPolicy) {
+                        // Для Sim:OR и ошибок элементы агрегаций должны быть объединены в новую ветвь, если только он не находится в агрегации OR уже
                         String msg = String.format("<i>%s</i>", utilLoc.get(lang.toLocaleString()).get("orAlsoHint"));
                         newParent = new Explanation(type, msg);
                         traceExplanations.add(newParent);
