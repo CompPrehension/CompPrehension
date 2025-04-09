@@ -163,7 +163,7 @@ public class DecisionTreeReasonerBackend
                 if (element.getNode() instanceof AggregationNode agg && agg.getAggregationMethod().equals(AggregationMethod.AND)) {
                     newPolicy = AggregationPolicy.SimAND;
                     if (type == Explanation.Type.HINT && policy != newPolicy) {
-                        // Для Sim:AND и подсказок элементы агрегаций должны быть объединены
+                        // Для Sim:AND и подсказок элементы агрегаций должны быть объединены, если только он не находится в агрегации AND уже
                         newParent = new Explanation(type, ":");
                         traceExplanations.add(newParent);
                     }
