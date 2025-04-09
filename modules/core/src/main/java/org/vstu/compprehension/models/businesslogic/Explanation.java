@@ -128,7 +128,7 @@ public class Explanation {
         String commonChildrenPrefix = getCommonPrefix(children, "");
         HyperText details = new HyperText(String.format("<details class=\"rounded\" %s>", collapse ? "" : "open"));
         String headerPrefix = commonChildrenPrefix;
-        if (rawMessage.getText().startsWith(commonChildrenPrefix)) {
+        if (rawMessage.getText().trim().startsWith(commonChildrenPrefix.trim())) {
             headerPrefix = "";
         }
         details.append("<summary>").append(headerPrefix.concat(rawMessage.getText())).append("</summary>");
