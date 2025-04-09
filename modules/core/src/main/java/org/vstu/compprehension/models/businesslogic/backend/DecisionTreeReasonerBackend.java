@@ -123,7 +123,9 @@ public class DecisionTreeReasonerBackend
                                                             DecisionTreeTrace trace,
                                                             DomainModel domain,
                                                             Language lang) {
-        Explanation result = Explanation.aggregate(type, _collectExplanations(type, trace, null, domain, lang));
+        Explanation result = Explanation.aggregate(type, _collectExplanations(type, trace, null,
+                AggregationPolicy.Default,
+                domain, lang));
         String prefix = Explanation.getCommonPrefix(result.getChildren(), "");
         if (result.getChildren().size() > 1 && !prefix.isEmpty()) {
             result.setRawMessage(new HyperText(prefix.trim().concat(":")));
@@ -140,6 +142,7 @@ public class DecisionTreeReasonerBackend
     private static List<Explanation> _collectExplanations(Explanation.Type type,
                                      DecisionTreeTrace trace,
                                      Explanation parent,
+                                     AggregationPolicy policy,
                                      DomainModel domain,
                                      Language lang
     ) {
@@ -156,14 +159,16 @@ public class DecisionTreeReasonerBackend
             } else {
                 // Элемент трассы может включать другие трассы
                 Explanation newParent = parent;
+                AggregationPolicy newPolicy = policy;
                 if (element.getNode() instanceof AggregationNode agg && agg.getAggregationMethod().equals(AggregationMethod.AND)) {
-                    if (type == Explanation.Type.HINT) {
-                        // Для Sim:AND и подсказок элементы агрегаций должны быть объединены
-                        String msg = String.format("<i>%s</i>", utilLoc.get(lang.toLocaleString()).get("andAlsoHint"));
-                        newParent = new Explanation(type, msg);
+                    newPolicy = AggregationPolicy.SimAND;
+                    if (type == Explanation.Type.HINT && policy != newPolicy) {
+                        // Для Sim:AND и подсказок элементы агрегаций должны быть объединены, если только он не находится в агрегации AND уже
+                        newParent = new Explanation(type, ":");
                         traceExplanations.add(newParent);
                     }
                 } else if (element.getNode() instanceof AggregationNode agg && agg.getAggregationMethod().equals(AggregationMethod.OR)) {
+                    newPolicy = AggregationPolicy.SimOR;
                     if (type == Explanation.Type.ERROR) {
                         // Для Sim:OR и ошибок элементы агрегаций должны быть объединены в новую ветвь
                         String msg = String.format("<i>%s</i>", utilLoc.get(lang.toLocaleString()).get("orAlsoHint"));
@@ -173,7 +178,7 @@ public class DecisionTreeReasonerBackend
                 }
                 // Собрать с дочерних трасс элементы
                 for (DecisionTreeTrace subTrace : Objects.requireNonNullElse(element.nestedTraces(), new ArrayList<DecisionTreeTrace>())) {
-                    traceExplanations.addAll(_collectExplanations(type, subTrace, newParent, domain, lang));
+                    traceExplanations.addAll(_collectExplanations(type, subTrace, newParent, newPolicy, domain, lang));
                 }
                 // Если в агрегированной ветви один элемент - хранить в буфере только его, а если вообще нет элементов - удалить ветвь
                 if (newParent != null && (newParent.getChildren().isEmpty() || newParent.getChildren().size() == 1)) {

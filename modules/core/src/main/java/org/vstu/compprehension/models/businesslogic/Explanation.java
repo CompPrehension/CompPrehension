@@ -125,13 +125,13 @@ public class Explanation {
     }
 
     private HyperText recursiveBuildHyperText(Language lang, boolean collapse, Explanation parent) {
-        String commonChildrenPrefix = getCommonPrefix(children, "");
+        String commonChildrenPrefix = getCommonPrefix(children, "").trim();
         HyperText details = new HyperText(String.format("<details class=\"rounded\" %s>", collapse ? "" : "open"));
         String headerPrefix = commonChildrenPrefix;
-        if (rawMessage.getText().trim().startsWith(commonChildrenPrefix.trim())) {
+        if (rawMessage.getText().trim().startsWith(commonChildrenPrefix)) {
             headerPrefix = "";
         }
-        details.append("<summary>").append(headerPrefix.concat(rawMessage.getText())).append("</summary>");
+        details.append("<summary>").append(headerPrefix.concat(rawMessage.getText().trim())).append("</summary>");
 
         details.append("<ul>");
         for (Explanation child : children) {

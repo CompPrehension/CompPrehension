@@ -628,8 +628,8 @@
                             >
                                 <BranchResultNode value="true"
                                     _skill="left_competing_operator_present"
-                                    _RU_explanation="все операторы слева от него уже вычислены."
-                                    _EN_explanation="all operators to the left of it have been already evaluated."
+                                    _RU_explanation="все операторы слева от него уже вычислены или опущены."
+                                    _EN_explanation="all operators to the left of it have been already evaluated or omitted."
                                 />
                             </Outcome>
                             <Outcome value="found"
@@ -692,7 +692,7 @@
                                     >
                                         <BranchResultNode value="true"
                                             _skill="left_operator_enclosed"
-                                            _RU_explanation="он заключен в ближайший оператор слева к нему ${Y}[case='и']"
+                                            _RU_explanation="он заключен в ближайший оператор слева от него - ${Y}[case='и']"
                                             _EN_explanation="it is enclosed in the ${Y}, which is closest to it from the left"
                                         />
                                     </Outcome>
@@ -784,8 +784,8 @@
                                                         <Outcome value="true">
                                                         <BranchResultNode value="correct"
                                                             _skill="is_current_parenthesized_left_not"
-                                                            _RU_explanation="он находится в скобках, в которых нет ближайшего слева к нему ${Y}[case='р']"
-                                                            _EN_explanation="it is in parentheses, which do not contain the ${Y}[case='р'] closest to it"
+                                                            _RU_explanation="он находится в скобках, а ближайший слева к нему ${Y} находится за их пределами."
+                                                            _EN_explanation="it is in parentheses, which do not contain the ${Y} closest to it"
                                                         />
                                                         </Outcome>
                                                     </QuestionNode>
@@ -997,8 +997,8 @@
                                                             >
                                                                 <BranchResultNode value="false"
                                                                     _skill="associativity_without_right_opposing_operand"
-                                                                    _RU_explanation="сначала должен быть вычислен ${Y}[case='и'] справа от него: эти операторы имеют одинаковый приоритет, и вычисляются справа налево (правоассоциативны)."
-                                                                    _EN_explanation=" ${Y} on its left must be evaluated first - these operators have the same precedence, but are evaluated from right to left (have right associativity)."
+                                                                    _RU_explanation="имеет одинаковый приоритет с ${Y}[case='т'] и левую ассоциативность (вычисляются слева направо)."
+                                                                    _EN_explanation="${Y} on its left must be evaluated first - these operators have the same precedence, but are evaluated from left to right (have left associativity)."
                                                                 />
                                                             </Outcome>
                                                             <Outcome value="true"
@@ -1045,8 +1045,8 @@
                                                                             _skill="right_competing_to_left_associativity"
                                                                             _law="error_base_same_precedence_left_associativity_left"
                                                                             _error="left.associativity"
-                                                                            _RU_explanation=" имеет одинаковый приоритет с ${Y}[case='т'] и левую ассоциативность (вычисляются слева направо)."
-                                                                            _EN_explanation=" ${Y} on its left must be evaluated first - these operators have the same precedence, but are evaluated from left to right (have left associativity)."
+                                                                            _RU_explanation="имеет одинаковый приоритет с ${Y}[case='т'] и левую ассоциативность (вычисляются слева направо)."
+                                                                            _EN_explanation="${Y} on its left must be evaluated first - these operators have the same precedence, but are evaluated from left to right (have left associativity)."
                                                                         />
                                                                     </Outcome>
                                                                     <Outcome
@@ -1382,8 +1382,8 @@
                             >
                                 <BranchResultNode value="true"
                                     skill="right_competing_operator_present"
-                                    _RU_explanation="все операторы справа от него уже вычислены."
-                                    _EN_explanation="all operators to the right of it have been already evaluated."
+                                    _RU_explanation="все операторы справа от него уже вычислены или опущены."
+                                    _EN_explanation="all operators to the right of it have been already evaluated or omitted."
                                 />
                             </Outcome>
                             <Outcome value="found"
@@ -1443,7 +1443,7 @@
                                     >
                                         <BranchResultNode value="true"
                                             _skill="right_operator_enclosed"
-                                            _RU_explanation="он заключен в ближайший оператор справа к нему ${Z}[case='и']"
+                                            _RU_explanation="он заключен в ближайший оператор справа от него - ${Z}[case='и']"
                                             _EN_explanation="it is enclosed in the ${Z}, which is closest to it from the right"
                                         />
                                     </Outcome>
@@ -1530,8 +1530,8 @@
                                                         <Outcome value="true">
                                                         <BranchResultNode value="true"
                                                             _skill="is_current_parenthesized_right_not"
-                                                            _RU_explanation="он находится в скобках, в которых нет ближайшего справа к нему ${Z}[case='р']"
-                                                            _EN_explanation="it is in parentheses, which do not contain the ${Z}[case='р'] closest to it"
+                                                            _RU_explanation="он находится в скобках, а ближайший справа к нему ${Z} находится за их пределами."
+                                                            _EN_explanation="it is in parentheses, which do not contain the ${Z} closest to it"
                                                         />
                                                         </Outcome>
                                                     </QuestionNode>
@@ -1677,7 +1677,7 @@
                                                     >
                                                         <BranchResultNode value="true"
                                                             _skill="left_competing_to_right_precedence"
-                                                            _RU_explanation="он имеет приоритет выше, чем ${Z}[case='в']."
+                                                            _RU_explanation="он имеет приоритет выше, чем у ${Z}[case='в']."
                                                             _EN_explanation="it has a higher precedence than ${Z}."
                                                         />
                                                     </Outcome>
@@ -1743,8 +1743,8 @@
                                                             >
                                                                 <BranchResultNode value="false"
                                                                     _skill="associativity_without_left_opposing_operand"
-                                                                    _RU_explanation="сначала должен быть вычислен ${Z}[case='и'] слева от него: эти операторы имеют одинаковый приоритет, и вычисляются слева направо (левоассоциативны)."
-                                                                    _EN_explanation=" ${Z} on its right must be evaluated first - these operators have the same precedence, but are evaluated from left to right (have left associativity)."
+                                                                    _RU_explanation="сначала должен быть вычислен ${Z}[case='и'] справа от него: эти операторы имеют одинаковый приоритет, и вычисляются справа налево (правоассоциативны)."
+                                                                    _EN_explanation=" ${Z} on its right must be evaluated first - these operators have the same precedence, but are evaluated from right to left (have right associativity)."
                                                                 />
                                                             </Outcome>
                                                             <Outcome value="true"
@@ -1902,7 +1902,7 @@
                             <Outcome value="True">
                                 <BranchResultNode value="true"
                                     _skill="is_current_operator_strict_order"
-                                    _RU_explanation="он не находится в операнде ${T}[case='п'] который имеет строгий порядок вычисления операндов."
+                                    _RU_explanation="он не находится в ${T}[case='п'], который имеет строгий порядок вычисления операндов."
                                     _EN_explanation="it is not a part of any operand of ${T} which has a strict order of operand evaluation"
                                 />
                             </Outcome>
@@ -2412,8 +2412,8 @@
                                         value="Not found">
                                         <BranchResultNode value="correct"
                                             _skill="no_comma_in_central_operands"
-                                            _RU_explanation="${obj:currentLanguage} вычисляет аргументы функций слева направо, но ${X} находится в первом аргументе функции ${V}"
-                                            _EN_explanation="${obj:currentLanguage} evaluates function arguments from left to right but ${X} is in the first argument of function ${V}"
+                                            _RU_explanation="${obj:currentLanguage} вычисляет аргументы функций слева направо, но ${X} находится в первом аргументе ${V}[case='р']"
+                                            _EN_explanation="${obj:currentLanguage} evaluates function arguments from left to right but ${X} is in the first argument of ${V}"
                                         />
                                     </Outcome>
                                     <Outcome
