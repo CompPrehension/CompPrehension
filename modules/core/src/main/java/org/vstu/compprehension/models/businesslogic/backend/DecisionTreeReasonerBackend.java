@@ -126,7 +126,7 @@ public class DecisionTreeReasonerBackend
         Explanation result = Explanation.aggregate(type, _collectExplanations(type, trace, null, domain, lang));
         String prefix = Explanation.getCommonPrefix(result.getChildren(), "");
         if (result.getChildren().size() > 1 && !prefix.isEmpty()) {
-            result.setRawMessage(new HyperText(prefix));
+            result.setRawMessage(new HyperText(prefix.trim().concat(":")));
         }
         // Если в ветви все объяснения принадлежат одному навыку, то у всей ветви этот навык
         if (result.getChildren().stream().map(Explanation::getDomainLawNames).collect(Collectors.toSet()).size() == 1) {
