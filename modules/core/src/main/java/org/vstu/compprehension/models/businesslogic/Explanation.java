@@ -131,7 +131,13 @@ public class Explanation {
         if (rawMessage.getText().trim().startsWith(commonChildrenPrefix)) {
             headerPrefix = "";
         }
-        details.append("<summary>").append(headerPrefix.concat(rawMessage.getText().trim())).append("</summary>");
+        if (!rawMessage.getText().isEmpty() && !headerPrefix.isEmpty() &&
+                rawMessage.getText().charAt(0) != ':') {
+            headerPrefix = headerPrefix.concat(" ");
+        }
+        details.append("<summary>")
+                .append(headerPrefix.concat(rawMessage.getText().trim()))
+                .append("</summary>");
 
         details.append("<ul>");
         for (Explanation child : children) {
