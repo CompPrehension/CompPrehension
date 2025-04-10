@@ -1530,8 +1530,8 @@
                                                         <Outcome value="true">
                                                         <BranchResultNode value="true"
                                                             _skill="is_current_parenthesized_right_not"
-                                                            _RU_explanation="он находится в скобках, а ближайший справа к нему ${Z} находится за их пределами."
-                                                            _EN_explanation="it is in parentheses, which do not contain the ${Z} closest to it"
+                                                            _RU_explanation="он находится в скобках, а ближайший к нему справа ${Z} находится за их пределами."
+                                                            _EN_explanation="it is inside parentheses, while the closest ${Z} to its right lies outside them."
                                                         />
                                                         </Outcome>
                                                     </QuestionNode>
@@ -1923,8 +1923,8 @@
                                     <Outcome value="True">
                                         <BranchResultNode value="true"
                                             _skill="strict_order_first_operand_to_be_evaluated_while_solving"
-                                            _RU_explanation="что он находится в ${X->isInOperandOf(T).placement}[case='п'] операнде ${T}[case='р'], который вычисляется первым"
-                                            _EN_explanation="it belongs to the ${X->isInOperandOf(T).placement}[case='п'] operand of ${T}[case='р'] that is evaluated first."
+                                            _RU_explanation="он находится в ${X->isInOperandOf(T).placement}[case='п'] операнде ${T}[case='р'], а этот операнд вычисляется раньше остальных."
+                                            _EN_explanation="it belongs to the ${X->isInOperandOf(T).placement}[case='п'] operand of ${T}[case='р'], which is evaluated before the other operands of the latter."
                                         />
                                     </Outcome>
                                     <Outcome value="False">
@@ -2253,8 +2253,8 @@
                         value="False">
                         <BranchResultNode value="correct"
                             _skill="are_central_operands_strict_order"
-                            _RU_explanation="${obj:currentLanguage} разрешает вычисление аргументов функции в любом порядке"
-                            _EN_explanation="${obj:currentLanguage} allows evaluating of function arguments in any order"
+                            _RU_explanation="${obj:currentLanguage} разрешает вычисление аргументов функции в любом порядке."
+                            _EN_explanation="${obj:currentLanguage} allows evaluating of function arguments in any order."
                         />
                     </Outcome>
                     <Outcome
