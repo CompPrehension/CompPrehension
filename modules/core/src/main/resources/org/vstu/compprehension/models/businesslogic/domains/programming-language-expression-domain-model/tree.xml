@@ -1845,9 +1845,22 @@
                     _EN_question="Choose all operators with strict operand order that can influence the evaluation of ${X}"
                 >
                     <SelectorExpression>
-                        <!-- Patch: операторы строгого порядка не обязательно должны быть
-                        невычисленными-->
-                        <Boolean value="true" />
+                        <LogicalOr>
+                            <Compare operator="EQUAL">
+                                <GetPropertyValue>
+                                    <Variable name="T" />
+                                    <Property name="state" />
+                                </GetPropertyValue>
+                                <Enum owner="state" value="unevaluated" />
+                            </Compare>
+                            <Compare operator="EQUAL">
+                                <GetPropertyValue>
+                                    <Variable name="T" />
+                                    <Property name="state" />
+                                </GetPropertyValue>
+                                <Enum owner="state" value="omitted" />
+                            </Compare>
+                        </LogicalOr>
                     </SelectorExpression>
                     <FindError priority="1" type="operator" _alias="T_notStrict"
                         _RU_explanation="${$checked}[case='и'] не является оператором со строгим порядком операндов"
@@ -1869,12 +1882,15 @@
                         </Expression>
                     </FindError>
                     <DecisionTreeVarDecl name="T" type="StrictOrderOperator" />
-                    <Outcome value="True">
+                    <Outcome value="Null">
                         <BranchResultNode value="true"
                             _skill="expression_strict_order_operators_present"
                             _RU_explanation="в выражении нет операторов со строгим порядком вычисления операндов."
                             _EN_explanation="the expression does not contain operators with strict order of operand evaluation."
                         />
+                    </Outcome>
+                    <Outcome value="True">
+                        <BranchResultNode value="true" />
                     </Outcome>
                     <Outcome value="False">
                         <BranchResultNode value="false" />
@@ -1900,11 +1916,26 @@
                                 </LogicalNot>
                             </Expression>
                             <Outcome value="True">
-                                <BranchResultNode value="true"
-                                    _skill="is_current_operator_strict_order"
-                                    _RU_explanation="он не находится в ${T}[case='п'], который имеет строгий порядок вычисления операндов."
-                                    _EN_explanation="it is not a part of any operand of ${T} which has a strict order of operand evaluation"
-                                />
+                                <!-- Нужно для отображения этой подсказки в интерфейсе-->
+                                <QuestionNode _alias="X - это не T" type="bool" isSwitch="false">
+                                    <Expression>
+                                        <Compare operator="NOT_EQUAL">
+                                            <DecisionTreeVar name="X" />
+                                            <DecisionTreeVar name="T" />
+                                        </Compare>
+                                    </Expression>
+                                    <Outcome value="True">
+                                        <BranchResultNode value="true"
+                                            _skill="is_current_operator_strict_order"
+                                            _RU_explanation="он не находится в ${T}[case='п'], который имеет строгий порядок вычисления операндов."
+                                            _EN_explanation="it is not a part of any operand of ${T} which has a strict order of operand evaluation"
+                                        />
+                                    </Outcome>
+                                    <Outcome value="False">
+                                        <BranchResultNode value="true"/> 
+                                    </Outcome>
+                                </QuestionNode>
+                                
                             </Outcome>
                             <Outcome value="False">
                                 <QuestionNode _alias="X в его первом операнде"
