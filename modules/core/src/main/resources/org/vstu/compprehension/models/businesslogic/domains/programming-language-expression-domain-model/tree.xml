@@ -1853,6 +1853,7 @@
                                 </GetPropertyValue>
                                 <Enum owner="state" value="unevaluated" />
                             </Compare>
+                            <!-- Чтобы в некоторых ситуациях не блокировался выбор опущенных операторов -->
                             <Compare operator="EQUAL">
                                 <GetPropertyValue>
                                     <Variable name="T" />
@@ -1932,7 +1933,8 @@
                                         />
                                     </Outcome>
                                     <Outcome value="False">
-                                        <BranchResultNode value="true"/> 
+                                        <BranchResultNode value="true"
+                                            _skill="is_current_operator_strict_order" /> 
                                     </Outcome>
                                 </QuestionNode>
                                 
