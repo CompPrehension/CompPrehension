@@ -95,9 +95,15 @@ class OperandRuntimeValueGenerator {
 
     private LanguageTranslator languageTranslator;
 
+    private final Random randomizer;
+
+    private final int initialTreeHash;
+
     OperandRuntimeValueGenerator(MeaningTreeOrderQuestionBuilder builder, SupportedLanguage language) {
         this.builder = builder;
         initialTree = builder.sourceExpressionTree.clone();
+        initialTreeHash = initialTree.hashCode();
+        randomizer = new Random(initialTreeHash);
         this.language = language;
 
         log.info("Processing question for {} values generation: {}", language.toString(), builder.rawTranslatedCode);
@@ -121,7 +127,6 @@ class OperandRuntimeValueGenerator {
     public List<Pair<MeaningTree, Integer>> generate() {
         // Предпочтительные значения для операндов, которые увеличат число возможных типов ошибок
         MeaningTree preferred = initialTree.clone();
-        int initialHash = preferred.hashCode();
         List<Pair<Integer, Boolean>> preferredValues = new ArrayList<>();
 
         // Заполнение начальных данных
@@ -145,7 +150,7 @@ class OperandRuntimeValueGenerator {
         // Больше 256 комбинаций не экономно по памяти и производительности
         if (groupFeatures.size() > 8) {
             log.info("Too many values can be generated for question. Generated questions will be shorten");
-            return List.of(new ImmutablePair<>(preferred, Objects.hash(preferredValues, initialHash)));
+            return List.of(new ImmutablePair<>(preferred, Objects.hash(preferredValues, initialTreeHash)));
         }
 
         // Здесь будут отфильтрованные комбинации, без бесполезных комбинаций
@@ -180,7 +185,7 @@ class OperandRuntimeValueGenerator {
         }
 
         List<List<Boolean>> values = new ArrayList<>(combinations);
-        Collections.shuffle(values, new Random(initialHash));
+        Collections.shuffle(values, randomizer);
         values = values.stream().limit(10).toList();
 
         List<Pair<MeaningTree, Integer>> result = new ArrayList<>();
@@ -188,7 +193,7 @@ class OperandRuntimeValueGenerator {
             result.add(makeTreeFromValues(initialTree, combination));
         }
         if (result.stream().map((e) -> e.getLeft().hashCode()).noneMatch((e) -> e == preferred.hashCode())) {
-            result.add(new ImmutablePair<>(preferred, Objects.hash(preferredValues, initialHash)));
+            result.add(new ImmutablePair<>(preferred, Objects.hash(preferredValues, initialTreeHash)));
         }
 
         return result;
@@ -210,6 +215,9 @@ class OperandRuntimeValueGenerator {
                     ternary.getCondition().setAssignedValueTag(combination.get(index));
                 } else if (nodeInfo.node() instanceof BinaryExpression expr) {
                     expr.getLeft().setAssignedValueTag(combination.get(index));
+                    if (findDisposableIndex(expr.getRight().getId()).isEmpty()) {
+                        expr.getRight().setAssignedValueTag(randomizer.nextBoolean());
+                    }
                 }
                 preferredValues.add(new ImmutablePair<>(grp.getNode().hashCode(), combination.get(index)));
             }
