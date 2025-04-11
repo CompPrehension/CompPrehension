@@ -34,7 +34,8 @@ import org.vstu.compprehension.models.businesslogic.backend.JenaBackend;
 import org.vstu.compprehension.models.businesslogic.backend.facts.Fact;
 import org.vstu.compprehension.models.businesslogic.backend.facts.JenaFactList;
 import org.vstu.compprehension.models.businesslogic.domains.helpers.FactsGraph;
-import org.vstu.compprehension.models.businesslogic.domains.helpers.ProgrammingLanguageExpressionRDFTransformer;
+import org.vstu.compprehension.models.businesslogic.domains.helpers.meaningtree.MeaningTreeOrderQuestionBuilder;
+import org.vstu.compprehension.models.businesslogic.domains.helpers.meaningtree.MeaningTreeRDFTransformer;
 import org.vstu.compprehension.models.businesslogic.storage.GraphRole;
 import org.vstu.compprehension.models.businesslogic.storage.NamespaceUtil;
 import org.vstu.compprehension.models.businesslogic.storage.QuestionBank;
@@ -48,6 +49,7 @@ import org.vstu.compprehension.models.entities.QuestionOptions.*;
 import org.vstu.compprehension.utils.ExpressionSituationPythonCaller;
 import org.vstu.compprehension.utils.HyperText;
 import org.vstu.compprehension.utils.RandomProvider;
+import org.vstu.meaningtree.SupportedLanguage;
 
 import java.io.InputStream;
 import java.io.InputStreamReader;
@@ -1491,11 +1493,13 @@ public class ProgrammingLanguageExpressionDomain extends JenaReasoningDomain {
     static final String DOMAIN_MODEL_DIRECTORY = RESOURCES_LOCATION + "programming-language-expression-domain-model/";
 
     private DomainModel mainQuestionToModel(InteractionEntity lastMainQuestionInteraction) {
-        return ProgrammingLanguageExpressionRDFTransformer.questionToDomainModel(
-            dtSupplementaryQuestionHelper.domainModel.getMergedTagDomain("c++"),
-            dtSupplementaryQuestionHelper.domainModel.getDecisionTrees(),
-            new Question(lastMainQuestionInteraction.getQuestion(), this),
-            lastMainQuestionInteraction.getResponses()
+        List<Tag> tags = lastMainQuestionInteraction.getQuestion().getTags().stream().map(this::getTag).filter(Objects::nonNull).toList();
+        Question q = new Question(lastMainQuestionInteraction.getQuestion(), this);
+        q = MeaningTreeOrderQuestionBuilder.fastBuildFromExisting(q, SupportedLanguage.CPP, null);
+        return MeaningTreeRDFTransformer.questionToDomainModel(
+                dtSupplementaryQuestionHelper.domainModel,
+                q.getStatementFacts(),
+                lastMainQuestionInteraction.getResponses(), tags
         );
     }
 

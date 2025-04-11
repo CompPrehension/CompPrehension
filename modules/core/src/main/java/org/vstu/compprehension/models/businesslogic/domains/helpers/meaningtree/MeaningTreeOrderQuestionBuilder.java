@@ -4,6 +4,7 @@ import lombok.extern.log4j.Log4j2;
 import org.apache.commons.lang3.tuple.ImmutablePair;
 import org.apache.commons.lang3.tuple.Pair;
 import org.apache.jena.rdf.model.Model;
+import org.jetbrains.annotations.Nullable;
 import org.vstu.compprehension.common.MathHelper;
 import org.vstu.compprehension.common.StringHelper;
 import org.vstu.compprehension.common.Utils;
@@ -62,7 +63,7 @@ public class MeaningTreeOrderQuestionBuilder {
     protected String originLicense = null; // license of source (for example, GPLv3)
 
     // Target domain for question is generated
-    protected ProgrammingLanguageExpressionDTDomain domain;
+    protected @Nullable ProgrammingLanguageExpressionDTDomain domain;
 
     // Tokens and code in question target language
     protected TokenList tokens; // expression tokens
@@ -506,6 +507,11 @@ public class MeaningTreeOrderQuestionBuilder {
      * @param treeHash hash of MT, required for accurate classification of runtime values
      */
     protected void processMetadata(SupportedLanguage language, int treeHash) {
+        if (domain == null && existingMetadata != null) {
+            return;
+        } else if (domain == null) {
+            throw new MeaningTreeException("No valid data present for metadata");
+        }
         QuestionMetadataEntity metadata = existingMetadata == null ? null : existingMetadata;
         tags = new ArrayList<>(List.of("basics", "operators", "order", "evaluation", "errors"));
         String languageStr = language.toString();
