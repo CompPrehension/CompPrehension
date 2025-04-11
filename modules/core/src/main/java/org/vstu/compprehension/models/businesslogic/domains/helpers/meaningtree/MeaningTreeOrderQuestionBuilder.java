@@ -96,7 +96,7 @@ public class MeaningTreeOrderQuestionBuilder {
         }
     }
 
-    protected MeaningTreeOrderQuestionBuilder(ProgrammingLanguageExpressionDTDomain domain) {
+    protected MeaningTreeOrderQuestionBuilder(@Nullable ProgrammingLanguageExpressionDTDomain domain) {
         this.domain = domain;
     }
 
@@ -345,11 +345,11 @@ public class MeaningTreeOrderQuestionBuilder {
             TokenList list = lang.createTranslator(new MeaningTreeDefaultExpressionConfig()).getTokenizer().tokenizeExtended(mt);
 
             StringBuilder builder = new StringBuilder();
-            for (int i = 0; i < list.size(); i++) {
-                builder.append(list.get(i).value);
-                if (list.get(i).getAssignedValue() != null) {
+            for (Token token : list) {
+                builder.append(token.value);
+                if (token.getAssignedValue() != null) {
                     builder.append("<--");
-                    builder.append(list.get(i).getAssignedValue().toString().toUpperCase());
+                    builder.append(token.getAssignedValue().toString().toUpperCase());
                     builder.append(';');
                 }
                 builder.append(' ');
