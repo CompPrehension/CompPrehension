@@ -693,7 +693,7 @@
                                         <BranchResultNode value="true"
                                             _skill="left_operator_enclosed"
                                             _RU_explanation="он заключен в ближайший оператор слева от него - ${Y}[case='и']"
-                                            _EN_explanation="it is enclosed in the ${Y}, which is closest to it from the left"
+                                            _EN_explanation="it is wrapped by the closest ${Y} to its left"
                                         />
                                     </Outcome>
                                     <Outcome value="false"
@@ -784,8 +784,8 @@
                                                         <Outcome value="true">
                                                         <BranchResultNode value="correct"
                                                             _skill="is_current_parenthesized_left_not"
-                                                            _RU_explanation="он находится в скобках, а ближайший слева к нему ${Y} находится за их пределами."
-                                                            _EN_explanation="it is in parentheses, which do not contain the ${Y} closest to it"
+                                                            _RU_explanation="он находится в скобках, а ближайший к нему слева ${Y} находится за их пределами."
+                                                            _EN_explanation="it is inside parentheses, while the closest ${Y} to its left lies outside them."
                                                         />
                                                         </Outcome>
                                                     </QuestionNode>
@@ -1444,7 +1444,7 @@
                                         <BranchResultNode value="true"
                                             _skill="right_operator_enclosed"
                                             _RU_explanation="он заключен в ближайший оператор справа от него - ${Z}[case='и']"
-                                            _EN_explanation="it is enclosed in the ${Z}, which is closest to it from the right"
+                                            _EN_explanation="it is wrapped by the closest ${Z} to its right"
                                         />
                                     </Outcome>
                                     <Outcome value="false"

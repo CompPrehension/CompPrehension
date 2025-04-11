@@ -106,7 +106,7 @@ ${X}[case='p'], what should you do next?"
                                 <BranchResultNode value="false"
                                     _skill="earlyfinish_strict_order_operators_present"
                                     _RU_explanation="${X} должен вычислиться, потому что его родитель (${Y}) не требует строгого порядка вычисления операндов и не может блокировать его вычисление"
-                                    _EN_explanation="${X} should be evaluated because its parent (${Y}) does not evaluates its operands in a strict order and so cannot block its evaluation"
+                                    _EN_explanation="${X} should be evaluated because its parent (${Y}) does not evaluate its operands in a strict order and so cannot block its evaluation"
                                 />
                             </Outcome>
                             <Outcome
