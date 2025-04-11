@@ -130,7 +130,7 @@ public class MeaningTreeRDFTransformer {
                 baseTokensToTokens
         );
         situationDomain.validateAndThrow();
-        debugDumpLoqi(situationDomain, "out.loqi");
+        debugDumpLoqi(situationDomain, "out.loqi", domainModel);
         return parseResult.domainModel;
     }
 
@@ -380,18 +380,14 @@ public class MeaningTreeRDFTransformer {
         }
     }
 
-    private static void debugDumpLoqi(DomainModel model, String filename) {
+    private static void debugDumpLoqi(DomainModel model, String filename, DomainModel toExclude) {
         if(!ENABLE_DEBUG_SAVE) return;
-        String filePath = new File(DEBUG_DIR).exists() ? DEBUG_DIR : "./";
-        try {
-            DomainLoqiWriter.saveDomain(
-                    model,
-                    new FileWriter(filePath + filename),
-                    new HashSet<>()
-            );
-        } catch (IOException e) {
-            throw new RuntimeException(e);
+        if (toExclude != null) {
+            model = model.copy();
+            model.subtract(toExclude);
         }
+        String filePath = new File(DEBUG_DIR).exists() ? DEBUG_DIR : "./";
+        dumpModelLoqi(model, new File(filePath, filename));
     }
 
     public static void dumpModelLoqi(DomainModel model, File filePath) {
