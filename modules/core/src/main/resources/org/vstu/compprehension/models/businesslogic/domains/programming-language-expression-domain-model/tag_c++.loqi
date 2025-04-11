@@ -58,8 +58,8 @@ class `operator_?` : StrictOrderOperator {
 } [
 	text = "?" ;
 	token2text = ":";
-	RU.localizedName = "оператор ? :" ;
-	EN.localizedName = "operator ? :" ;
+	RU.localizedName = "оператор ?:" ;
+	EN.localizedName = "operator ?:" ;
 ]
 
 class `operator_||` : StrictOrderOperator {
@@ -648,7 +648,7 @@ class operator_cast : operator {
 
 	arity = arity:unary ;
 	place = place:prefix ;
-	precedence = 2 ;
+	precedence = 3 ;
 	associativity = associativity:right ;
 	needsOperand<OperandPlacement:left> = false ;
 	needsOperand<OperandPlacement:right> = true ;
@@ -657,7 +657,7 @@ class operator_cast : operator {
 } [
 	text = "cast" ;
 	RU.localizedName = "оператор приведения типов" ;
-	EN.localizedName = "operator cast" ;
+	EN.localizedName = "cast operator" ;
 ]
 
 class `operator_postfix_++` : operator {

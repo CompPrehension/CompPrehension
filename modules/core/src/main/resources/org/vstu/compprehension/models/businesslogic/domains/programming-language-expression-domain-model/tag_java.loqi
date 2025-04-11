@@ -6,7 +6,7 @@ class `operator_&&` : StrictOrderOperator {
 
 	arity = arity:binary ;
 	place = place:infix ;
-	precedence = 12 ;
+	precedence = 13 ;
 	associativity = associativity:left ;
 	needsOperand<OperandPlacement:left> = true ;
 	needsOperand<OperandPlacement:right> = true ;
@@ -78,7 +78,7 @@ class operator_cast : operator {
 
 	arity = arity:unary ;
 	place = place:prefix ;
-	precedence = 1 ;
+	precedence = 4 ;
 	associativity = associativity:right ;
 	needsOperand<OperandPlacement:left> = false ;
 	needsOperand<OperandPlacement:right> = true ;
@@ -86,15 +86,15 @@ class operator_cast : operator {
 	countOfTokens = 1 ;
 } [
 	text = "cast" ;
-	RU.localizedName = "оператор cast" ;
-	EN.localizedName = "operator cast" ;
+	RU.localizedName = "оператор приведения типов" ;
+	EN.localizedName = "cast operator" ;
 ]
 
 class `operator_?` : StrictOrderOperator {
 
 	arity = arity:ternary ;
 	place = place:infix ;
-	precedence = 14 ;
+	precedence = 15 ;
 	associativity = associativity:right ;
 	needsOperand<OperandPlacement:left> = true ;
 	needsOperand<OperandPlacement:right> = true ;
@@ -108,15 +108,15 @@ class `operator_?` : StrictOrderOperator {
 } [
 	text = "?" ;
 	token2text = ":";
-	RU.localizedName = "оператор ? :" ;
-	EN.localizedName = "operator ? :" ;
+	RU.localizedName = "оператор ?:" ;
+	EN.localizedName = "operator ?:" ;
 ]
 
 class `operator_||` : StrictOrderOperator {
 
 	arity = arity:binary ;
 	place = place:infix ;
-	precedence = 13 ;
+	precedence = 14 ;
 	associativity = associativity:left ;
 	needsOperand<OperandPlacement:left> = true ;
 	needsOperand<OperandPlacement:right> = true ;
@@ -154,7 +154,7 @@ class `operator_!=` : operator {
 
 	arity = arity:binary ;
 	place = place:infix ;
-	precedence = 8 ;
+	precedence = 9 ;
 	associativity = associativity:left ;
 	needsOperand<OperandPlacement:left> = true ;
 	needsOperand<OperandPlacement:right> = true ;
@@ -170,7 +170,7 @@ class `operator_%` : operator {
 
 	arity = arity:binary ;
 	place = place:infix ;
-	precedence = 4 ;
+	precedence = 5 ;
 	associativity = associativity:left ;
 	needsOperand<OperandPlacement:left> = true ;
 	needsOperand<OperandPlacement:right> = true ;
@@ -186,7 +186,7 @@ class `operator_%=` : operator {
 
 	arity = arity:binary ;
 	place = place:infix ;
-	precedence = 15 ;
+	precedence = 16 ;
 	associativity = associativity:right ;
 	needsOperand<OperandPlacement:left> = true ;
 	needsOperand<OperandPlacement:right> = true ;
@@ -202,7 +202,7 @@ class `operator_&=` : operator {
 
 	arity = arity:binary ;
 	place = place:infix ;
-	precedence = 15 ;
+	precedence = 16 ;
 	associativity = associativity:right ;
 	needsOperand<OperandPlacement:left> = true ;
 	needsOperand<OperandPlacement:right> = true ;
@@ -218,7 +218,7 @@ class `operator_*=` : operator {
 
 	arity = arity:binary ;
 	place = place:infix ;
-	precedence = 15 ;
+	precedence = 16 ;
 	associativity = associativity:right ;
 	needsOperand<OperandPlacement:left> = true ;
 	needsOperand<OperandPlacement:right> = true ;
@@ -234,7 +234,7 @@ class `operator_+=` : operator {
 
 	arity = arity:binary ;
 	place = place:infix ;
-	precedence = 15 ;
+	precedence = 16 ;
 	associativity = associativity:right ;
 	needsOperand<OperandPlacement:left> = true ;
 	needsOperand<OperandPlacement:right> = true ;
@@ -250,7 +250,7 @@ class `operator_-=` : operator {
 
 	arity = arity:binary ;
 	place = place:infix ;
-	precedence = 15 ;
+	precedence = 16 ;
 	associativity = associativity:right ;
 	needsOperand<OperandPlacement:left> = true ;
 	needsOperand<OperandPlacement:right> = true ;
@@ -282,7 +282,7 @@ class `operator_/` : operator {
 
 	arity = arity:binary ;
 	place = place:infix ;
-	precedence = 4 ;
+	precedence = 5 ;
 	associativity = associativity:left ;
 	needsOperand<OperandPlacement:left> = true ;
 	needsOperand<OperandPlacement:right> = true ;
@@ -298,7 +298,7 @@ class `operator_/=` : operator {
 
 	arity = arity:binary ;
 	place = place:infix ;
-	precedence = 15 ;
+	precedence = 16 ;
 	associativity = associativity:right ;
 	needsOperand<OperandPlacement:left> = true ;
 	needsOperand<OperandPlacement:right> = true ;
@@ -314,7 +314,7 @@ class `operator_<` : operator {
 
 	arity = arity:binary ;
 	place = place:infix ;
-	precedence = 7 ;
+	precedence = 8 ;
 	associativity = associativity:left ;
 	needsOperand<OperandPlacement:left> = true ;
 	needsOperand<OperandPlacement:right> = true ;
@@ -330,7 +330,7 @@ class `operator_<<` : operator {
 
 	arity = arity:binary ;
 	place = place:infix ;
-	precedence = 6 ;
+	precedence = 7 ;
 	associativity = associativity:left ;
 	needsOperand<OperandPlacement:left> = true ;
 	needsOperand<OperandPlacement:right> = true ;
@@ -346,7 +346,7 @@ class `operator_<<=` : operator {
 
 	arity = arity:binary ;
 	place = place:infix ;
-	precedence = 15 ;
+	precedence = 16 ;
 	associativity = associativity:right ;
 	needsOperand<OperandPlacement:left> = true ;
 	needsOperand<OperandPlacement:right> = true ;
@@ -362,7 +362,7 @@ class `operator_<=` : operator {
 
 	arity = arity:binary ;
 	place = place:infix ;
-	precedence = 7 ;
+	precedence = 8 ;
 	associativity = associativity:left ;
 	needsOperand<OperandPlacement:left> = true ;
 	needsOperand<OperandPlacement:right> = true ;
@@ -378,7 +378,7 @@ class `operator_=` : operator {
 
 	arity = arity:binary ;
 	place = place:infix ;
-	precedence = 15 ;
+	precedence = 16 ;
 	associativity = associativity:right ;
 	needsOperand<OperandPlacement:left> = true ;
 	needsOperand<OperandPlacement:right> = true ;
@@ -394,7 +394,7 @@ class `operator_==` : operator {
 
 	arity = arity:binary ;
 	place = place:infix ;
-	precedence = 8 ;
+	precedence = 9 ;
 	associativity = associativity:left ;
 	needsOperand<OperandPlacement:left> = true ;
 	needsOperand<OperandPlacement:right> = true ;
@@ -410,7 +410,7 @@ class `operator_>` : operator {
 
 	arity = arity:binary ;
 	place = place:infix ;
-	precedence = 7 ;
+	precedence = 8 ;
 	associativity = associativity:left ;
 	needsOperand<OperandPlacement:left> = true ;
 	needsOperand<OperandPlacement:right> = true ;
@@ -426,7 +426,7 @@ class `operator_>=` : operator {
 
 	arity = arity:binary ;
 	place = place:infix ;
-	precedence = 7 ;
+	precedence = 8 ;
 	associativity = associativity:left ;
 	needsOperand<OperandPlacement:left> = true ;
 	needsOperand<OperandPlacement:right> = true ;
@@ -442,7 +442,7 @@ class `operator_>>` : operator {
 
 	arity = arity:binary ;
 	place = place:infix ;
-	precedence = 6 ;
+	precedence = 7 ;
 	associativity = associativity:left ;
 	needsOperand<OperandPlacement:left> = true ;
 	needsOperand<OperandPlacement:right> = true ;
@@ -458,7 +458,7 @@ class `operator_>>>` : operator {
 
 	arity = arity:binary ;
 	place = place:infix ;
-	precedence = 6 ;
+	precedence = 7 ;
 	associativity = associativity:left ;
 	needsOperand<OperandPlacement:left> = true ;
 	needsOperand<OperandPlacement:right> = true ;
@@ -474,7 +474,7 @@ class `operator_>>=` : operator {
 
 	arity = arity:binary ;
 	place = place:infix ;
-	precedence = 15 ;
+	precedence = 16 ;
 	associativity = associativity:right ;
 	needsOperand<OperandPlacement:left> = true ;
 	needsOperand<OperandPlacement:right> = true ;
@@ -490,7 +490,7 @@ class `operator_^` : operator {
 
 	arity = arity:binary ;
 	place = place:infix ;
-	precedence = 10 ;
+	precedence = 11 ;
 	associativity = associativity:left ;
 	needsOperand<OperandPlacement:left> = true ;
 	needsOperand<OperandPlacement:right> = true ;
@@ -506,7 +506,7 @@ class `operator_^=` : operator {
 
 	arity = arity:binary ;
 	place = place:infix ;
-	precedence = 15 ;
+	precedence = 16 ;
 	associativity = associativity:right ;
 	needsOperand<OperandPlacement:left> = true ;
 	needsOperand<OperandPlacement:right> = true ;
@@ -522,7 +522,7 @@ class `operator_binary_&` : operator {
 
 	arity = arity:binary ;
 	place = place:infix ;
-	precedence = 9 ;
+	precedence = 10 ;
 	associativity = associativity:left ;
 	needsOperand<OperandPlacement:left> = true ;
 	needsOperand<OperandPlacement:right> = true ;
@@ -538,7 +538,7 @@ class `operator_binary_*` : operator {
 
 	arity = arity:binary ;
 	place = place:infix ;
-	precedence = 4 ;
+	precedence = 5 ;
 	associativity = associativity:left ;
 	needsOperand<OperandPlacement:left> = true ;
 	needsOperand<OperandPlacement:right> = true ;
@@ -554,7 +554,7 @@ class `operator_binary_+` : operator {
 
 	arity = arity:binary ;
 	place = place:infix ;
-	precedence = 5 ;
+	precedence = 6 ;
 	associativity = associativity:left ;
 	needsOperand<OperandPlacement:left> = true ;
 	needsOperand<OperandPlacement:right> = true ;
@@ -566,11 +566,27 @@ class `operator_binary_+` : operator {
 	EN.localizedName = "operator +" ;
 ]
 
+class `operator_instanceof` : operator {
+
+	arity = arity:binary ;
+	place = place:infix ;
+	precedence = 8 ;
+	associativity = associativity:left ;
+	needsOperand<OperandPlacement:left> = true ;
+	needsOperand<OperandPlacement:right> = true ;
+	needsOperand<OperandPlacement:center> = false ;
+	countOfTokens = 1 ;
+} [
+	text = "instanceof" ;
+	RU.localizedName = "оператор instanceof" ;
+	EN.localizedName = "instanceof operator" ;
+]
+
 class `operator_binary_-` : operator {
 
 	arity = arity:binary ;
 	place = place:infix ;
-	precedence = 5 ;
+	precedence = 6 ;
 	associativity = associativity:left ;
 	needsOperand<OperandPlacement:left> = true ;
 	needsOperand<OperandPlacement:right> = true ;
@@ -700,7 +716,7 @@ class `operator_|` : operator {
 
 	arity = arity:binary ;
 	place = place:infix ;
-	precedence = 11 ;
+	precedence = 12 ;
 	associativity = associativity:left ;
 	needsOperand<OperandPlacement:left> = true ;
 	needsOperand<OperandPlacement:right> = true ;
@@ -716,7 +732,7 @@ class `operator_|=` : operator {
 
 	arity = arity:binary ;
 	place = place:infix ;
-	precedence = 15 ;
+	precedence = 16 ;
 	associativity = associativity:right ;
 	needsOperand<OperandPlacement:left> = true ;
 	needsOperand<OperandPlacement:right> = true ;
