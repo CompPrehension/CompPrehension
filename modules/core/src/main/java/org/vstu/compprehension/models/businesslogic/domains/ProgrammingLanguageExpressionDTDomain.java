@@ -361,6 +361,18 @@ public class ProgrammingLanguageExpressionDTDomain extends DecisionTreeReasoning
                 LearningSituation situation
         ) {
             interpretationResult.CountCorrectOptions = 1; //TODO? Непонятно зачем оно надо
+            interpretationResult.IterationsLeft = calculateLeftInteractions(situation);
+
+            if (interpretationResult.IterationsLeft == 0) {
+                // Достигли полного завершения задачи.
+                // Ошибок уже быть не может — сбросим их все.
+                interpretationResult.isAnswerCorrect = true;
+                interpretationResult.violations = List.of();
+                interpretationResult.explanation = Explanation.empty(Explanation.Type.HINT);
+            }
+        }
+
+        public int calculateLeftInteractions(LearningSituation situation) {
             int unevaluatedCount = (int) situation.getDomainModel().getObjects()
                     .stream().filter(objectDef ->
                             hasState(objectDef, "unevaluated")
@@ -389,15 +401,7 @@ public class ProgrammingLanguageExpressionDTDomain extends DecisionTreeReasoning
             // Потребовать нажать кнопку "ничего больше не выполнится", если есть корректно опущенные операторы (чтобы проверить, понимает ли студент это).
             int oneMoreStepForEndEvaluation = omittedCount > 0 && !endEvaluationClicked ? 1 : 0;
 
-            interpretationResult.IterationsLeft = unevaluatedCount + omittedDistractorCount + oneMoreStepForEndEvaluation;
-
-            if (interpretationResult.IterationsLeft == 0) {
-                // Достигли полного завершения задачи.
-                // Ошибок уже быть не может — сбросим их все.
-                interpretationResult.isAnswerCorrect = true;
-                interpretationResult.violations = List.of();
-                interpretationResult.explanation = Explanation.empty(Explanation.Type.HINT);
-            }
+            return unevaluatedCount + omittedDistractorCount + oneMoreStepForEndEvaluation;
         }
 
         private Optional<ObjectDef> getParent(ObjectDef object) {
@@ -765,7 +769,7 @@ public class ProgrammingLanguageExpressionDTDomain extends DecisionTreeReasoning
         lastCorrectInteraction.ifPresent(interactionEntity -> responses.addAll(interactionEntity.getResponses()));
         List<Integer> responseTokenIndexes = responses.stream()
                 .map(res ->
-                        Integer.parseInt(res.getLeftAnswerObject().getDomainInfo().split("_")[1]))
+                        answerObjectToTokenIndex(res.getLeftAnswerObject()))
                 .toList();
         List<Tag> tags = q.getTags();
         DomainModel domain = MeaningTreeRDFTransformer.questionToDomainModel(
@@ -800,7 +804,7 @@ public class ProgrammingLanguageExpressionDTDomain extends DecisionTreeReasoning
                     );
                     if (explanation.isEmpty()) {
                         explanation.getChildren().add(new Explanation(Explanation.Type.HINT, new HyperText(
-                                        getMessage("service.missing_correct_answer_explanation", lang))));
+                                        getMessage("explanations.missing_correct_answer_explanation", lang))));
                     }
 
                     CorrectAnswer correctAnswer = new CorrectAnswer();
@@ -813,7 +817,27 @@ public class ProgrammingLanguageExpressionDTDomain extends DecisionTreeReasoning
                 }
             }
         }
-        return null;
+        List<Domain.CorrectAnswer.Response> answers = q.getAnswerObjects().stream().filter(ans -> {
+            int index = answerObjectToTokenIndex(ans);
+            return index != -1 && !responseTokenIndexes.contains(index);
+        }).map(ans -> new CorrectAnswer.Response(ans, ans)).toList();
+
+        CorrectAnswer correctAnswer = new CorrectAnswer();
+        correctAnswer.answers = answers;
+        correctAnswer.question = q.getQuestionData();
+        correctAnswer.lawName = null;
+        correctAnswer.skillName = null;
+        correctAnswer.explanation = new Explanation(Explanation.Type.HINT, new HyperText(
+                getMessage("explanations.already_solved", lang)));
+        return correctAnswer;
+    }
+
+    private int answerObjectToTokenIndex(AnswerObjectEntity ans) {
+        String domainInfo = ans.getDomainInfo();
+        if (!domainInfo.isEmpty() && Character.isDigit(domainInfo.charAt(domainInfo.length() - 1))) {
+            return Integer.parseInt(domainInfo.split("_")[1]);
+        }
+        return -1;
     }
 
     //----------Вспомогательные вопросы------------
