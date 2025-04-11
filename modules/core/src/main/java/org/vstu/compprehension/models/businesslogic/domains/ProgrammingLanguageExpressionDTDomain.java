@@ -33,6 +33,8 @@ import org.vstu.compprehension.utils.HyperText;
 import org.vstu.meaningtree.MeaningTree;
 import org.vstu.meaningtree.SupportedLanguage;
 import org.vstu.meaningtree.serializers.rdf.RDFDeserializer;
+import org.vstu.meaningtree.utils.tokens.ComplexOperatorToken;
+import org.vstu.meaningtree.utils.tokens.Token;
 import org.vstu.meaningtree.utils.tokens.TokenList;
 
 import java.io.IOException;
@@ -695,12 +697,24 @@ public class ProgrammingLanguageExpressionDTDomain extends DecisionTreeReasoning
                     continue;
                 }
                 StringJoiner builder = new StringJoiner(" ");
-                builder.add("<span>" + getMessage("OPERATOR", lang) + "</span>");
                 String[] domainInfoComponents = domainInfo.split("_");
                 int tokenIndex = Integer.parseInt(domainInfoComponents[domainInfoComponents.length - 1]);
                 int tokenPositionInUI = tokenIndex + 1;
-                builder.add("<span style='color: #700;text-decoration: underline;'>" +
-                        tokens.get(tokenIndex).value +
+                Token mainToken = tokens.get(tokenIndex);
+                Token pairedToken = null;
+                if (mainToken instanceof ComplexOperatorToken) {
+                    int closingTokenIndex = tokens.findClosingComplex(tokenIndex);
+                    pairedToken = closingTokenIndex > 0 && closingTokenIndex < tokens.size() ?
+                            tokens.get(closingTokenIndex) : null;
+                }
+                String tokenType = switch (mainToken.type) {
+                    case CALL_OPENING_BRACE -> getMessage("FUNC_CALL", lang);
+                    default -> getMessage("OPERATOR", lang);
+                };
+                String tokensRepr = mainToken.value + (pairedToken != null ? " ".concat(pairedToken.value) : "");
+                builder.add("<span>" + tokenType + "</span>");
+                builder.add("<span style='color: #700;'>" +
+                        tokensRepr +
                         "</span>");
                 builder.add("<span>" + getMessage("AT_POS", lang) + "</span>");
                 builder.add("<span style='color: #f00;font-weight: bold;'>" +
