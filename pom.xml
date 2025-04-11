@@ -29,7 +29,7 @@
         <springcore.version>6.0.12</springcore.version>
         <jackson.version>2.15.2</jackson.version>
         <log4j2.version>2.20.0</log4j2.version>
-        <meaningtree.version>daa37e4afc</meaningtree.version>
+        <meaningtree.version>9781d3dec4</meaningtree.version>
     </properties>
 
 
