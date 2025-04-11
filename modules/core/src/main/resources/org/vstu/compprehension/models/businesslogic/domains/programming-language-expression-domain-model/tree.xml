@@ -1886,8 +1886,8 @@
                     <Outcome value="Null">
                         <BranchResultNode value="true"
                             _skill="expression_strict_order_operators_present"
-                            _RU_explanation="в выражении нет операторов со строгим порядком вычисления операндов."
-                            _EN_explanation="the expression does not contain operators with strict order of operand evaluation."
+                            _RU_explanation="в выражении нет невычисленных операторов со строгим порядком вычисления операндов."
+                            _EN_explanation="the expression does not contain unevaluated operators with strict order of operand evaluation."
                         />
                     </Outcome>
                     <Outcome value="True">
