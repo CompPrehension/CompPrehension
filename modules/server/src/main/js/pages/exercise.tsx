@@ -1,19 +1,18 @@
 import { observer } from "mobx-react";
 import React, { useCallback, useEffect, useState } from "react";
-import { GenerateNextQuestionBtn } from "../components/exercise/generate-next-question-btn";
-import { ExerciseHeader } from "../components/exercise/header";
+import { Alert } from "react-bootstrap";
+import { useTranslation } from "react-i18next";
+import { container } from "tsyringe";
 import { LoadingWrapper } from "../components/common/loader";
 import { Modal } from "../components/common/modal";
-import { GenerateNextAnswerBtn } from "../components/exercise/generate-next-answer-btn";
-import { container } from "tsyringe";
-import { ExerciseStore } from "../stores/exercise-store";
-import { CurrentQuestion } from "../components/exercise/current-question";
 import { Optional } from "../components/common/optional";
-import { useTranslation } from "react-i18next";
-import { Alert } from "react-bootstrap";
+import { CurrentQuestion } from "../components/exercise/current-question";
+import { GenerateNextQuestionBtn } from "../components/exercise/generate-next-question-btn";
+import { ExerciseHeader } from "../components/exercise/header";
 import { SurveyComponent } from "../components/exercise/survey";
+import { ExerciseStore } from "../stores/exercise-store";
 import { Survey } from "../types/survey";
-import { getUrlParameterByName } from "../types/utils";
+import { GenerateNextAnswerBtn } from "../components/exercise/generate-next-answer-btn";
 
 export const Exercise = observer(() => {
     const [exerciseStore] = useState(() => container.resolve(ExerciseStore));
@@ -117,7 +116,7 @@ export const Exercise = observer(() => {
                             <Optional isVisible={exerciseState === 'EXERCISE'}>
                                 <Optional isVisible={exerciseStore.currentQuestion.questionState === 'LOADED'}>
                                     <div className="mt-3">
-                                        <GenerateNextAnswerBtn />
+                                        {exerciseStore.exercise?.options.correctAnswerGenerationEnabled && <GenerateNextAnswerBtn store={exerciseStore.currentQuestion}/>}
                                     </div>
                                 </Optional>
                                 <Optional isVisible={

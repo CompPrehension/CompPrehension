@@ -12,8 +12,8 @@
     "allowSyntheticDefaultImports": true,
     "useDefineForClassFields": true,
     "sourceMap": true,
-    "skipLibCheck": true,
+    "skipLibCheck": true
   },
   "include": ["src/main/js/**/*"],
-  "exclude": ["node_modules"],
+  "exclude": ["node_modules"]
 }

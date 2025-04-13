@@ -89,7 +89,7 @@ public class ProgrammingLanguageExpressionDTDomainTest {
     }
 
     public boolean generateAndSolve(String expression, SupportedLanguage inLang, SupportedLanguage outLang, List<Integer> sequence) {
-        List<Question> questions = MeaningTreeOrderQuestionBuilder.newQuestion(expression, inLang, domain).questionOrigin("test", "MIT").buildQuestion(outLang);
+        List<Question> questions = MeaningTreeOrderQuestionBuilder.newQuestion(domain).expression(expression, inLang).questionOrigin("test", "MIT").buildQuestions(outLang);
         String outLangStr = outLang.toString().substring(0, 1).toUpperCase() + outLang.toString().substring(1);
 
         boolean allPassed = true;
@@ -114,8 +114,8 @@ public class ProgrammingLanguageExpressionDTDomainTest {
                 if (!result.isAnswerCorrect) {
                     Assertions.fail(String.format("%s: %s", responses.stream()
                             .map(ResponseEntity::getLeftAnswerObject)
-                            .map(AnswerObjectEntity::getDomainInfo).toList(), result.explanations
-                            .stream().map(HyperText::getText)
+                            .map(AnswerObjectEntity::getDomainInfo).toList(), result.explanation.getChildren()
+                            .stream().map(e -> e.toHyperText(Language.ENGLISH).getText())
                             .collect(Collectors.joining("\n"))));
                 }
                 if (result.IterationsLeft == 0) {

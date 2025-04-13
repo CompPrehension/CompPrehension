@@ -10,6 +10,7 @@ import org.jetbrains.annotations.Nullable;
 import java.util.Collection;
 import java.util.List;
 
+
 @AllArgsConstructor
 public abstract class Law implements TreeNodeWithBitmask {
     /** When present, this flag enables a concept to be shown to teacher at exercise configuration page. */
@@ -38,7 +39,6 @@ public abstract class Law implements TreeNodeWithBitmask {
     @Getter
     List<Tag> tags;
 
-    @Builder.Default
     @Getter @Setter
     int sortOrder = 999;
 

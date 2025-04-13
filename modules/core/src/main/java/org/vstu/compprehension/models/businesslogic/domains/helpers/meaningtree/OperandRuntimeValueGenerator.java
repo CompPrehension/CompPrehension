@@ -7,6 +7,7 @@ import org.vstu.meaningtree.MeaningTree;
 import org.vstu.meaningtree.SupportedLanguage;
 import org.vstu.meaningtree.exceptions.MeaningTreeException;
 import org.vstu.meaningtree.languages.LanguageTranslator;
+import org.vstu.meaningtree.nodes.Expression;
 import org.vstu.meaningtree.nodes.Node;
 import org.vstu.meaningtree.nodes.expressions.BinaryExpression;
 import org.vstu.meaningtree.nodes.expressions.logical.ShortCircuitAndOp;
@@ -25,7 +26,7 @@ import java.util.stream.Collectors;
  * В зависимости от найденных групп генерируются значения операндов, создающие уникальные по возможным типам ошибок и концептов вопросы
  */
 @Log4j2
-public class OperandEvaluationMap {
+class OperandRuntimeValueGenerator {
 
     /**
      * Информация о возможного отключаемого участка в дереве, представляющее узел.
@@ -33,7 +34,9 @@ public class OperandEvaluationMap {
      * partialEval - если true, то в операторе вычислится только один операнд всегда (независимо от значения) (тернарный)
      * varRequiredForEval - значение, которое должен иметь левый операнд, чтобы быть вычислен (только для логических операторов)
      */
-    private record DisposableNodeInfo(Node.Info node, boolean partialEval, boolean valRequiredForEval) {
+    private record DisposableNodeInfo(Node.Info node, boolean partialEval,
+                                      boolean valRequiredForEval,
+                                      boolean blockRemoval) {
         public long getNodeId() {
             return node.node().getId();
         }
@@ -92,9 +95,15 @@ public class OperandEvaluationMap {
 
     private LanguageTranslator languageTranslator;
 
-    OperandEvaluationMap(MeaningTreeOrderQuestionBuilder builder, SupportedLanguage language) {
+    private final Random randomizer;
+
+    private final int initialTreeHash;
+
+    OperandRuntimeValueGenerator(MeaningTreeOrderQuestionBuilder builder, SupportedLanguage language) {
         this.builder = builder;
         initialTree = builder.sourceExpressionTree.clone();
+        initialTreeHash = initialTree.hashCode();
+        randomizer = new Random(initialTreeHash);
         this.language = language;
 
         log.info("Processing question for {} values generation: {}", language.toString(), builder.rawTranslatedCode);
@@ -118,7 +127,6 @@ public class OperandEvaluationMap {
     public List<Pair<MeaningTree, Integer>> generate() {
         // Предпочтительные значения для операндов, которые увеличат число возможных типов ошибок
         MeaningTree preferred = initialTree.clone();
-        int initialHash = preferred.hashCode();
         List<Pair<Integer, Boolean>> preferredValues = new ArrayList<>();
 
         // Заполнение начальных данных
@@ -139,56 +147,53 @@ public class OperandEvaluationMap {
             }
         }
 
-        // Больше 128 комбинаций не экономно по памяти и производительности
-        if (groupFeatures.size() > 7) {
+        // Больше 256 комбинаций не экономно по памяти и производительности
+        if (groupFeatures.size() > 8) {
             log.info("Too many values can be generated for question. Generated questions will be shorten");
-            return List.of(new ImmutablePair<>(preferred, Objects.hash(preferredValues, initialHash)));
+            return List.of(new ImmutablePair<>(preferred, Objects.hash(preferredValues, initialTreeHash)));
         }
 
         // Здесь будут отфильтрованные комбинации, без бесполезных комбинаций
         Set<List<Boolean>> combinations = new HashSet<>();
 
         for (boolean[] array : generateCombinations(groupFeatures.size())) {
-            boolean[] arrayCopy = new boolean[array.length];
-            System.arraycopy(array, 0, arrayCopy, 0, array.length);
-
             for (int i = 0; i < array.length; i++) {
                 // Приводим одинаковые по смыслу комбинации к одному виду, чтобы они не дублировались в результирующем множестве
                 DisposableIndex tokenIndex = groupFeatures.sequencedKeySet().stream().toList().get(i);
-                if (tokenIndex.id().node.node() instanceof BinaryExpression binary) {
-                    int leftOperandValueIndex = groupFeatures.sequencedKeySet()
-                            .stream()
-                            .map(DisposableIndex::getNode)
-                            .toList().indexOf(binary.getLeft());
 
-                    if (binary instanceof ShortCircuitAndOp && !array[i] && leftOperandValueIndex != -1) {
-                        array[leftOperandValueIndex] = false;
-                    } else if (binary instanceof ShortCircuitOrOp && array[i] && leftOperandValueIndex != -1) {
-                        array[leftOperandValueIndex] = true;
-                    }
-                }
                 for (int j = i + 1; j < array.length; j++) {
-                    DisposableIndex nextTokenIndex = groupFeatures.sequencedKeySet().stream().toList().get(i);
-                    if (tokenIndex.id().valRequiredForEval() != array[j]
-                            && isTransitiveDependency(nextTokenIndex.getNodeId(), tokenIndex.getNodeId())) {
-                        array[j] = tokenIndex.id().valRequiredForEval();
+                    DisposableIndex nextTokenIndex = groupFeatures.sequencedKeySet().stream().toList().get(j);
+                    // Два оператора зависимы друг от друга (один операнд другого)
+                    // и поэтому в зависимом операторе значение не должно противоречить независимому.
+                    // Актуально для бинарных операторов (в роли независимых)
+                    if (array[i] != array[j] && !tokenIndex.id.partialEval
+                            && isTransitiveDependency(nextTokenIndex.getNodeId(),
+                                ((BinaryExpression)tokenIndex.getNode()).getLeft().getId())
+                    ) {
+                        array[i] = array[j];
+                    } else if (array[j] != array[i] && !nextTokenIndex.id.partialEval && isTransitiveDependency(tokenIndex.getNodeId(),
+                            ((BinaryExpression)nextTokenIndex.getNode()).getLeft().getId())) {
+                        array[j] = array[i];
                     }
                 }
             }
             List<Boolean> combination = new ArrayList<>();
-            for (boolean val : arrayCopy) {
+            for (boolean val : array) {
                 combination.add(val);
             }
             combinations.add(combination);
         }
 
-        List<List<Boolean>> values = new ArrayList<>(combinations.stream().limit(10).toList());
+        List<List<Boolean>> values = new ArrayList<>(combinations);
+        Collections.shuffle(values, randomizer);
+        values = values.stream().limit(10).toList();
+
         List<Pair<MeaningTree, Integer>> result = new ArrayList<>();
         for (List<Boolean> combination : values) {
             result.add(makeTreeFromValues(initialTree, combination));
         }
         if (result.stream().map((e) -> e.getLeft().hashCode()).noneMatch((e) -> e == preferred.hashCode())) {
-            result.add(new ImmutablePair<>(preferred, Objects.hash(preferredValues, initialHash)));
+            result.add(new ImmutablePair<>(preferred, Objects.hash(preferredValues, initialTreeHash)));
         }
 
         return result;
@@ -210,6 +215,9 @@ public class OperandEvaluationMap {
                     ternary.getCondition().setAssignedValueTag(combination.get(index));
                 } else if (nodeInfo.node() instanceof BinaryExpression expr) {
                     expr.getLeft().setAssignedValueTag(combination.get(index));
+                    if (findDisposableIndex(expr.getRight().getId()).isEmpty()) {
+                        expr.getRight().setAssignedValueTag(randomizer.nextBoolean());
+                    }
                 }
                 preferredValues.add(new ImmutablePair<>(grp.getNode().hashCode(), combination.get(index)));
             }
@@ -222,7 +230,8 @@ public class OperandEvaluationMap {
         Set<DisposableIndex> deleteCandidates = new HashSet<>();
 
         long nonPartialCount = groupFeatures.entrySet().stream()
-                .filter((e) -> !e.getKey().id.partialEval).count();
+                .filter((e) -> !e.getKey().id.partialEval
+                        && !e.getKey().id.blockRemoval).count();
 
         HashMap<DisposableNodeInfo, List<DisposableIndex>> partialEvalMap = new HashMap<>();
         for (DisposableIndex index : groupFeatures.keySet()) {
@@ -254,22 +263,24 @@ public class OperandEvaluationMap {
             }
         }
 
-        // Если больше 8 отключаемых групп, отсечем 25%
+        // Если больше 10 отключаемых групп, отсечем 25%
         Set<DisposableIndex> redundant = groupFeatures.keySet().stream()
                 .filter((e) -> !e.id.partialEval)
-                .skip((long) (nonPartialCount > 5 ? 0.75 * nonPartialCount : nonPartialCount)).collect(Collectors.toSet());
+                .skip((long) (0.75 * nonPartialCount)).collect(Collectors.toSet());
 
-        if (nonPartialCount > 8) deleteCandidates.addAll(redundant);
+        if (nonPartialCount > 10) deleteCandidates.addAll(redundant);
 
         for (var entry : groupFeatures.entrySet()) {
-            // для остальных операндов (не тернарный) отбираем только то, что полезно (больше 3 фич), но только если отключаемых групп больше 2
-            if (!entry.getKey().id.partialEval && entry.getValue().size() < 4 && nonPartialCount > 2) {
+            // для остальных операндов (не тернарный) отбираем только то, что полезно (больше 2 фич), но только если отключаемых групп больше 5
+            if (!entry.getKey().id.partialEval && entry.getValue().size() < 3 && nonPartialCount > 4) {
                 deleteCandidates.add(entry.getKey());
             }
         }
 
         for (DisposableIndex key : deleteCandidates) {
-            groupFeatures.remove(key);
+            if (!key.id.blockRemoval) {
+                groupFeatures.remove(key);
+            }
         }
     }
 
@@ -288,11 +299,11 @@ public class OperandEvaluationMap {
     }
 
     // Зависит ли один узел от другого транзитивно
-    private boolean isTransitiveDependency(long nodeId1, long nodeId2) {
-        long base = nodeId1;
+    private boolean isTransitiveDependency(long child, long parent) {
+        long base = child;
         do {
             base = deps.getOrDefault(base, -1L);
-        } while (base != -1L && base != nodeId2);
+        } while (base != -1L && base != parent);
 
         return base != -1L;
     }
@@ -377,11 +388,11 @@ public class OperandEvaluationMap {
             Node node = nodeInfo.node();
             if (isDisposableNode(node) && node instanceof BinaryExpression binOp) {
                 possibleDisposableOperands.add(
-                        new DisposableNodeInfo(nodeInfo, false, binOp instanceof ShortCircuitAndOp)
+                        new DisposableNodeInfo(nodeInfo, false, binOp instanceof ShortCircuitAndOp, false)
                 );
             } else if (isDisposableNode(node) && node instanceof TernaryOperator){
                 possibleDisposableOperands.add(
-                        new DisposableNodeInfo(nodeInfo, true, false)
+                        new DisposableNodeInfo(nodeInfo, true, false, false)
                 );
             }
             if (nodeInfo.parent() != null) deps.put(node.getId(), nodeInfo.parent().getId());

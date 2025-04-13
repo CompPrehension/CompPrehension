@@ -1,6 +1,5 @@
 package org.vstu.compprehension.Service;
 
-import com.github.jsonldjava.shaded.com.google.common.collect.Streams;
 import jakarta.persistence.EntityManager;
 import lombok.extern.log4j.Log4j2;
 import lombok.val;
@@ -17,6 +16,7 @@ import org.vstu.compprehension.dto.*;
 import org.vstu.compprehension.dto.feedback.FeedbackDto;
 import org.vstu.compprehension.dto.feedback.FeedbackViolationLawDto;
 import org.vstu.compprehension.dto.question.QuestionDto;
+import org.vstu.compprehension.models.businesslogic.Explanation;
 import org.vstu.compprehension.models.businesslogic.domains.DomainFactory;
 import org.vstu.compprehension.models.businesslogic.strategies.AbstractStrategyFactory;
 import org.vstu.compprehension.models.entities.*;
@@ -28,13 +28,9 @@ import org.vstu.compprehension.models.entities.QuestionOptions.OrderQuestionOpti
 import org.vstu.compprehension.models.entities.exercise.ExerciseStageEntity;
 import org.vstu.compprehension.models.repository.*;
 import org.vstu.compprehension.utils.Checkpointer;
-import org.vstu.compprehension.utils.HyperText;
 import org.vstu.compprehension.utils.Mapper;
 
-import java.util.ArrayList;
-import java.util.Arrays;
-import java.util.Collection;
-import java.util.Objects;
+import java.util.*;
 import java.util.stream.Collectors;
 
 import static org.vstu.compprehension.models.entities.EnumData.InteractionType.REQUEST_CORRECT_ANSWER;
@@ -55,6 +51,7 @@ public class FrontendService {
     private final DomainFactory domainFactory;
     private final EntityManager entityManager;
     private final UserRepository userRepository;
+
 
     public FrontendService(ExerciseAttemptRepository exerciseAttemptRepository, QuestionRepository questionRepository, ExerciseAttemptService exerciseAttemptService, ExerciseService exerciseService, EntityManager entityManager, QuestionService questionService, LocalizationService localizationService, AbstractStrategyFactory strategyFactory, DomainFactory domainFactory, UserRepository userRepository, FeedbackRepository feedbackRepository, InteractionRepository interactionRepository) {
         this.exerciseAttemptRepository = exerciseAttemptRepository;
@@ -131,23 +128,24 @@ public class FrontendService {
         feedbackRepository.save(feedback);
         ch.hit("add feedback ("+judgeResult.IterationsLeft+" interactions left)");
 
+        val locale = getQuestionLanguage(attempt);
         // calculate error message
         val violations = judgeResult.violations.stream()
                 .map(v -> FeedbackViolationLawDto.builder().name(v.getLawName()).canCreateSupplementaryQuestion(domain.needSupplementaryQuestion(v)).build())
-                .filter(Objects::nonNull);
-        val explanations = judgeResult.explanations.stream().map(HyperText::getText);
-        val errors = Streams.zip(violations, explanations, Pair::of)
-                .collect(Collectors.toList());
-        val locale = getQuestionLanguage(attempt);
+                .filter(Objects::nonNull).toList();
+        Collection<Explanation> explanationSource = judgeResult.explanation.getRawMessage().isEmpty() ? judgeResult.explanation.getChildren() : List.of(judgeResult.explanation);
+        val errors = explanationSource.stream().map(e -> Pair.of(
+                violations.stream().filter(v -> e.getDomainLawNames().contains(v.getName())).toList(),
+                e.toHyperText(locale).getText())).toList();
         val messages = !errors.isEmpty() && !judgeResult.isAnswerCorrect ? errors.stream().map(pair -> FeedbackDto.Message.Error(pair.getRight(), pair.getLeft())).toArray(FeedbackDto.Message[]::new)
-                : judgeResult.IterationsLeft == 0 && judgeResult.isAnswerCorrect ? new FeedbackDto.Message[] { FeedbackDto.Message.Success(localizationService.getMessage("exercise_correct-last-question-answer", locale)) }
-                : judgeResult.IterationsLeft > 0 && judgeResult.isAnswerCorrect ? new FeedbackDto.Message[] { FeedbackDto.Message.Success(localizationService.getMessage("exercise_correct-question-answer", locale)) }
+                : judgeResult.IterationsLeft == 0 && judgeResult.isAnswerCorrect ? new FeedbackDto.Message[] { FeedbackDto.Message.Success(localizationService.getMessage("exercise_correct-last-question-answer", locale), violations) }
+                : judgeResult.IterationsLeft > 0 && judgeResult.isAnswerCorrect ? new FeedbackDto.Message[] { FeedbackDto.Message.Success(localizationService.getMessage("exercise_correct-question-answer", locale), violations) }
                 : null;
         // ch.hit("calculate error message ("+ (messages != null ? messages.length : 0) +")");
 
         // return result of the last correct interaction
         val correctInteraction = existingInteractions.stream()
-                .filter(i -> i.getFeedback().getInteractionsLeft() >= 0 && i.getViolations().size() == 0) // select only interactions without mistakes
+                .filter(i -> i.getFeedback().getInteractionsLeft() >= 0 && i.getViolations().isEmpty()) // select only interactions without mistakes
                 .reduce((first, second) -> second);
         val correctAnswers = correctInteraction
                 .map(InteractionEntity::getResponses).stream()
@@ -157,7 +155,7 @@ public class FrontendService {
 
         // special case for order question
         // force complete answer if the last but one answer is correct
-        val isAnswerCorrect = errors.size() == 0 && judgeResult.isAnswerCorrect;
+        val isAnswerCorrect = errors.isEmpty() && judgeResult.isAnswerCorrect;
         val orderQuestionOptions = Utils.tryCast(question.getQuestionData().getOptions(), OrderQuestionOptionsEntity.class).orElse(null);
         if (isAnswerCorrect && question.getQuestionData().getQuestionType().equals(QuestionType.ORDER) &&
                 orderQuestionOptions != null && !orderQuestionOptions.isMultipleSelectionEnabled() &&
@@ -180,7 +178,7 @@ public class FrontendService {
         return Mapper.toFeedbackDto(question,
                 messages,
                 correctInteractionsCount,
-                (int)existingInteractions.stream().filter(i -> i.getViolations().size() > 0).count(),
+                (int)existingInteractions.stream().filter(i -> !i.getViolations().isEmpty()).count(),
                 ie.getFeedback().getGrade(),
                 ie.getFeedback().getInteractionsLeft(),
                 correctAnswers,
@@ -244,7 +242,7 @@ public class FrontendService {
 
         // get last correct interaction responses
         val lastCorrectInteraction = question.getQuestionData().getInteractions().stream()
-                .filter(i -> i.getFeedback().getInteractionsLeft() >= 0 && i.getViolations().size() == 0)
+                .filter(i -> i.getFeedback().getInteractionsLeft() >= 0 && i.getViolations().isEmpty())
                 .reduce((first, second) -> second);
         val lastCorrectInteractionResponses = lastCorrectInteraction
                 .map(InteractionEntity::getResponses)
@@ -264,7 +262,7 @@ public class FrontendService {
         var existingInteractions = question.getQuestionData().getInteractions();
         val ie = new InteractionEntity(REQUEST_CORRECT_ANSWER, question.getQuestionData(), judgeResult.violations, judgeResult.correctlyAppliedLaws, responses, newResponses);
         existingInteractions.add(ie);
-        val correctInteractionsCount = (int)existingInteractions.stream().filter(i -> i.getViolations().size() == 0).count();
+        val correctInteractionsCount = (int)existingInteractions.stream().filter(i -> i.getViolations().isEmpty()).count();
 
         // add feedback & decide next exercise state
         var feedback = ie.getFeedback();
@@ -282,12 +280,18 @@ public class FrontendService {
         feedbackRepository.save(feedback);
 
         // build feedback message
-        val messages = new FeedbackDto.Message[] { FeedbackDto.Message.Success(correctAnswer.explanation.toString()) };
+        val messages = correctAnswer.explanation.getChildren().stream()
+                .map(e -> FeedbackDto.Message.Success(e.toHyperText(getQuestionLanguage(attempt)).getText(),
+                        e.getDomainLawNames().stream().map(law ->
+                                FeedbackViolationLawDto.builder()
+                                        .name(law)
+                                        .canCreateSupplementaryQuestion(false).build()).toList()))
+                .toList().toArray(new FeedbackDto.Message[0]);
 
         return Mapper.toFeedbackDto(question,
                 messages,
                 correctInteractionsCount,
-                (int)existingInteractions.stream().filter(i -> i.getViolations().size() > 0).count(),
+                (int)existingInteractions.stream().filter(i -> !i.getViolations().isEmpty()).count(),
                 ie.getFeedback().getGrade(),
                 ie.getFeedback().getInteractionsLeft(),
                 ie.getResponses().stream().map(Mapper::toDto).toArray(AnswerDto[]::new),

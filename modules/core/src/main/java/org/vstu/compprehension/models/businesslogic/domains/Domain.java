@@ -106,7 +106,7 @@ public interface Domain {
      * @param lang user preferred language
      * @return explanation for each violation in random order
      */
-    List<HyperText> makeExplanation(List<ViolationEntity> violations, FeedbackType feedbackType, Language lang);
+    Explanation makeExplanation(List<ViolationEntity> violations, FeedbackType feedbackType, Language lang);
 
     /**
      * Check that violation has supplementary questions
@@ -227,7 +227,7 @@ public interface Domain {
         /**
          * Text explanation why it has chosen
          */
-        public HyperText explanation;
+        public Explanation explanation;
         /**
          * Positive law name for this answer
          */
@@ -276,7 +276,7 @@ public interface Domain {
 
         public List<String> domainNegativeLaws = new ArrayList<>();
 
-        public List<HyperText> explanations;
+        public Explanation explanation;
         /**
          * List of all negative laws that not occurred
          * (all answers where this answer would be the cause of the violation)

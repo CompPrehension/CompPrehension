@@ -15,7 +15,7 @@ import { toJS } from 'mobx';
 
 type GenerateSupQuestionProps = {
     store: SupplementaryQuestionStore,
-    violationLaw: FeedbackViolationLaw,
+    violationLaw: FeedbackViolationLaw[],
 }
 
 export const GenerateSupQuestion = observer((props : GenerateSupQuestionProps) => {
@@ -29,7 +29,7 @@ export const GenerateSupQuestion = observer((props : GenerateSupQuestionProps) =
     const onDetailsClicked = async () => { 
         setIsButtonsVisible(false);
         setIsModalVisible(true);
-        await store.generateSupplementaryQuestion([currentViolationLaw].map(v => v.name));
+        await store.generateSupplementaryQuestion(currentViolationLaw.map(v => v.name));
         if (!store.question || store.feedback?.action === 'FINISH') {
             console.log(`no need to generate sup question`);
             setAllVisible(false);
@@ -56,7 +56,7 @@ export const GenerateSupQuestion = observer((props : GenerateSupQuestionProps) =
         await tryContinueAuto();
     }
     const onNextQuestionClicked = async () => {
-        const newViolationLaw = store.feedback?.message?.violationLaw || null;
+        const newViolationLaw = store.feedback?.message?.violationLaws || null;
         if (!newViolationLaw) {
             console.log(`empty violation laws`);
             setAllVisible(false);
@@ -64,7 +64,7 @@ export const GenerateSupQuestion = observer((props : GenerateSupQuestionProps) =
         }
 
         setCurrentViolationLaw(newViolationLaw)
-        await store.generateSupplementaryQuestion([newViolationLaw].map(v => v.name));
+        await store.generateSupplementaryQuestion(newViolationLaw.map(v => v.name));
         await tryContinueAuto();
     }
 
@@ -112,7 +112,7 @@ const SupQuestion = observer((props: SupQuestionProps) => {
     const showSendAnswerButton = store.questionSubmitMode === 'EXPLICIT' && store.canSendQuestionAnswers;
     const showQuestionFeedback = store.questionState === 'COMPLETED' && !!store.feedback && !!questionData;
     const showMessageFeedback = store.questionState === 'COMPLETED' && !!store.feedback && !questionData;
-    const showNextQBtn = store.feedback?.action === 'CONTINUE_MANUAL' && (showQuestionFeedback || showMessageFeedback) && !!store.feedback?.message.violationLaw;
+    const showNextQBtn = store.feedback?.action === 'CONTINUE_MANUAL' && (showQuestionFeedback || showMessageFeedback) && !!store.feedback?.message.violationLaws;
 
     return (
         <>

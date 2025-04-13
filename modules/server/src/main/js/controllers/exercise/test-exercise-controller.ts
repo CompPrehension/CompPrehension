@@ -273,7 +273,7 @@ export class TestExerciseController implements IExerciseController, IQuestionCon
         console.log('addSupplementaryQuestionAnswer', interaction);
         await delayPromise(3000);
         return E.right({
-            message: { type: 'SUCCESS', message: 'test'},
+            message: { type: 'SUCCESS', message: 'test', violationLaws: [] },
             action: 'CONTINUE_AUTO',
         });
     }

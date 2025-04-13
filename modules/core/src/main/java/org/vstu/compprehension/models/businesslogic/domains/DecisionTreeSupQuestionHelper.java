@@ -191,7 +191,8 @@ public class DecisionTreeSupQuestionHelper {
     private static SupplementaryFeedbackDto stateChangeAsSupplementaryFeedbackDto(QuestionStateChange change){
         Explanation expl = change.getExplanation();
         return new SupplementaryFeedbackDto(
-                new FeedbackDto.Message(expl != null && expl.getType() == ExplanationType.Error ? FeedbackDto.MessageType.ERROR : FeedbackDto.MessageType.SUCCESS, expl != null ? expl.getText() : "...", new FeedbackViolationLawDto("", true)),
+                new FeedbackDto.Message(expl != null && expl.getType() == ExplanationType.Error ? FeedbackDto.MessageType.ERROR : FeedbackDto.MessageType.SUCCESS, expl != null ? expl.getText() : "...", List.of(
+                        new FeedbackViolationLawDto("", true))),
                 change.getNextState() == null ||
                         change.getNextState() instanceof EndQuestionState ||
                         (change.getNextState() instanceof RedirectQuestionState && ((RedirectQuestionState) change.getNextState()).redirectsTo() instanceof EndQuestionState)

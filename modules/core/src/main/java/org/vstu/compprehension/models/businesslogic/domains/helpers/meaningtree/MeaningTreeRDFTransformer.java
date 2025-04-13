@@ -2,10 +2,7 @@ package org.vstu.compprehension.models.businesslogic.domains.helpers.meaningtree
 
 
 import its.model.DomainSolvingModel;
-import its.model.definition.ClassDef;
-import its.model.definition.DomainModel;
-import its.model.definition.InvalidDomainDefinitionException;
-import its.model.definition.ObjectDef;
+import its.model.definition.*;
 import its.model.definition.loqi.DomainLoqiWriter;
 import its.model.nodes.DecisionTree;
 import org.apache.commons.lang3.tuple.Pair;
@@ -133,7 +130,7 @@ public class MeaningTreeRDFTransformer {
                 baseTokensToTokens
         );
         situationDomain.validateAndThrow();
-        debugDumpLoqi(situationDomain, "out.loqi");
+        debugDumpLoqi(situationDomain, "out.loqi", domainModel);
         return parseResult.domainModel;
     }
 
@@ -155,6 +152,7 @@ public class MeaningTreeRDFTransformer {
         if(!parsedClassName.isCorrect){
             parseResult.errorPos.add(tokenIndex);
         }
+        ClassDef classDef = domainModel.getClasses().get(className);
         ObjectDef resElement = newObject(situationDomain, String.format("element_op_%d", tokenIndex), className);
         setEnumProperty(
                 resElement, "state",
@@ -166,7 +164,7 @@ public class MeaningTreeRDFTransformer {
         }
         ObjectDef resToken = resTokenFromBase(tokenIndex, resElement);
 
-        Pair<String, String> loc = getLocalizedName(baseToken, tokenIndex, className);
+        Pair<String, String> loc = getLocalizedName(baseToken, complexPairsMap, tokenIndex, classDef);
         addLocalizedName(resElement, loc);
         addLocalizedName(resToken, loc);
 
@@ -177,7 +175,7 @@ public class MeaningTreeRDFTransformer {
             Token otherBaseToken = complexPairsMap.get(baseToken);
             int otherTokenIndex = tokens.indexOf(otherBaseToken);
             ObjectDef otherResToken = resTokenFromBase(otherTokenIndex, resElement);
-            Pair<String, String> otherloc = getLocalizedName(otherBaseToken, otherTokenIndex, className);
+            Pair<String, String> otherloc = getLocalizedName(otherBaseToken, complexPairsMap, otherTokenIndex, classDef);
             addLocalizedName(otherResToken, otherloc);
 
             baseTokensToTokens.put(otherBaseToken, otherResToken);
@@ -219,7 +217,7 @@ public class MeaningTreeRDFTransformer {
         int tokenPrecedence = ((OperatorToken)token).precedence;
         return new ParsedClassName(
                 possibleClasses.stream()
-                        .filter(classDef -> classDef.isSubclassOf("operator") && Integer.valueOf(tokenPrecedence).equals(classDef.getPropertyValue("precedence")))
+                        .filter(classDef -> classDef.isSubclassOf("operator") && Integer.valueOf(tokenPrecedence).equals(classDef.getPropertyValue("precedence", Map.of())))
                         .filter(classDef -> {
                             if (((OperatorToken)token).additionalOpType == OperatorType.METHOD_CALL) {
                                 return classDef.getName().contains("method_call");
@@ -267,20 +265,39 @@ public class MeaningTreeRDFTransformer {
         addMeta(object, "EN", "localizedName", localization.getRight());
     }
 
-    private static org.apache.commons.lang3.tuple.Pair<String, String> getLocalizedName(Token baseToken, int tokenIndex, String classname){
+    private static org.apache.commons.lang3.tuple.Pair<String, String> getLocalizedName(Token baseToken,
+                                                                                        Map<Token, Token> complexPairs,
+                                                                                        int tokenIndex,
+                                                                                        ClassDef classdef) {
+        String classname = classdef.getName();
+        String baseTokens = baseToken.value;
+        if (complexPairs.containsKey(baseToken)) {
+            baseTokens = baseTokens.concat(" ");
+            baseTokens = baseTokens.concat(complexPairs.get(baseToken).value);
+        }
         String ru;
         String en;
-        if(classname.equals("parenthesis")){
+        if (classname.equals("parenthesis")){
             ru = "скобки";
             en = "parenthesis";
+        } else if (classname.equals("operand")) {
+            ru = "операнд " + String.format("<code>%s</code>", baseTokens);
+            en = "operand " + String.format("<code>%s</code>", baseTokens);
         }
-        else if(classname.equals("operand")){
-            ru = "операнд " + baseToken.value;
-            en = "variable " + baseToken.value;
-        }
-        else {
-            ru = "оператор " + baseToken.value;
-            en = "operator " + baseToken.value;
+        else if (classname.startsWith("operator")){
+            if (classdef.getMetadata().get("EN", "localizedName")
+                    .toString().endsWith(baseTokens)) {
+                ru = "оператор " + String.format("<code>%s</code>", baseTokens);
+                en = "operator " + String.format("<code>%s</code>", baseTokens);
+            } else {
+                ru = classdef.getMetadata().get("RU", "localizedName")
+                        .toString();
+                en = classdef.getMetadata().get("EN", "localizedName")
+                        .toString();
+            }
+        } else {
+            ru = String.format("<code>%s</code>", baseTokens);
+            en = String.format("<code>%s</code>", baseTokens);
         }
         int pos = tokenIndex + 1;
         ru += " на позиции " + pos;
@@ -298,7 +315,7 @@ public class MeaningTreeRDFTransformer {
             Map<Token, ObjectDef> baseTokensToTokens
     ) {
         ProgrammingLanguageExpressionsSolver solver = new ProgrammingLanguageExpressionsSolver();
-        appendTreeInfo(allTokens, baseTokensToElements);
+        appendTreeInfo(allTokens, baseTokensToElements, situationDomain);
         solver.solveStrict(situationDomain, decisionTreeMap);
 
 
@@ -336,11 +353,8 @@ public class MeaningTreeRDFTransformer {
         }
     }
 
-    private static void appendTreeInfo(TokenList tokens, Map<Token, ObjectDef> baseTokensToElements) {
+    private static void appendTreeInfo(TokenList tokens, Map<Token, ObjectDef> baseTokensToElements, DomainModel model) {
         for (Map.Entry<Token, ObjectDef> entry : baseTokensToElements.entrySet()) {
-            if ((entry.getKey().type == TokenType.SEPARATOR || entry.getKey().type == TokenType.COMMA) && entry.getKey().belongsTo() != null) {
-                addRelationship(entry.getValue(), "belongsToOperator", String.format("element_op_%d", tokens.indexOf(entry.getKey().belongsTo())));
-            }
             if (entry.getKey() instanceof OperandToken op && op.operandOf() != null
                     && op.type != TokenType.SEPARATOR
                     && op.type != TokenType.CALLABLE_IDENTIFIER // чтобы не объединять имя функции и открывающую скобку
@@ -350,36 +364,37 @@ public class MeaningTreeRDFTransformer {
                     && op.type != TokenType.UNKNOWN
                     && !(op.type.isBrace() && !(op instanceof OperatorToken))
                     ) {
-                addRelationship(entry.getValue(), "isOperandOf",
-                        String.format("element_op_%d", tokens.indexOf(op.operandOf())));
-                Map<OperandPosition, TokenList> operands = tokens.findOperandsAsList(tokens.indexOf(op.operandOf()));
-                if (op.operandPosition() != OperandPosition.CENTER && operands.containsKey(op.operandPosition()) && operands.get(op.operandPosition()).size() > 1
-                    && operands.get(op.operandPosition()).stream().filter(baseTokensToElements::containsKey).count() == operands.get(op.operandPosition()).size()
-                ) {
-                    throw new InvalidDomainDefinitionException(String.format(
-                            "Invalid operand token count (supported only one operand of another operand) for position %s, new operand: %s, existing operands: %s",
-                            op.operandPosition(), entry.getValue(), operands.get(op.operandPosition())
-                    ));
-                }
-                switch (op.operandPosition()) {
-                    case LEFT -> addRelationship(entry.getValue(), "isLeftOperandOf",
-                            String.format("element_op_%d", tokens.indexOf(op.operandOf())));
-                    case CENTER -> addRelationship(entry.getValue(), "isCenterOperandOf",
-                            String.format("element_op_%d", tokens.indexOf(op.operandOf())));
-                    case RIGHT -> addRelationship(entry.getValue(), "isRightOperandOf",
-                            String.format("element_op_%d", tokens.indexOf(op.operandOf())));
+                EnumDef positionEnum = model.getEnums().get("OperandPlacement");
+                EnumValueRef pos = switch (op.operandPosition()) {
+                    case LEFT -> positionEnum.getValues().get("left").getReference();
+                    case CENTER -> positionEnum.getValues().get("center").getReference();
+                    case RIGHT -> positionEnum.getValues().get("right").getReference();
                 };
+                entry.getValue().getRelationshipLinks().add(new RelationshipLinkStatement(
+                        entry.getValue(),
+                        "isOperandOf",
+                        List.of(String.format("element_op_%d", tokens.indexOf(op.operandOf()))),
+                        new NamedParamsValues(Map.of("placement", pos))
+                ));
             }
         }
     }
 
-    public static void debugDumpLoqi(DomainModel model, String filename) {
+    private static void debugDumpLoqi(DomainModel model, String filename, DomainModel toExclude) {
         if(!ENABLE_DEBUG_SAVE) return;
+        if (toExclude != null) {
+            model = model.copy();
+            model.subtract(toExclude);
+        }
         String filePath = new File(DEBUG_DIR).exists() ? DEBUG_DIR : "./";
+        dumpModelLoqi(model, new File(filePath, filename));
+    }
+
+    public static void dumpModelLoqi(DomainModel model, File filePath) {
         try {
             DomainLoqiWriter.saveDomain(
                     model,
-                    new FileWriter(filePath + filename),
+                    new FileWriter(filePath),
                     new HashSet<>()
             );
         } catch (IOException e) {
