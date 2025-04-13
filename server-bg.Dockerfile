@@ -7,7 +7,7 @@ COPY ./modules/expr-domain-question-generator/target/expr-domain-question-genera
 
 # download parser for expr_domain
 RUN mkdir /parser && \
-    wget "https://github.com/brookite/ExpressionExtractor/releases/download/1.2/extr-extractor-generator.jar" -O /parser/expr-extractor-generator.jar
+    wget "https://github.com/brookite/ExpressionExtractor/releases/download/1.2/expr-extractor-generator.jar" -O /parser/expr-extractor-generator.jar
 
 # download parser for ctrlflow
 RUN wget "https://github.com/CompPrehension/top-learning-generator/releases/download/v0.4.0/compph-task-generator" -O /parser/clang-task-generator && \
