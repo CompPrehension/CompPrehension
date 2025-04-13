@@ -7,12 +7,12 @@ import { LoadingWrapper } from "../components/common/loader";
 import { Modal } from "../components/common/modal";
 import { Optional } from "../components/common/optional";
 import { CurrentQuestion } from "../components/exercise/current-question";
-import { ExerciseGenerateNextAnswerBtn } from "../components/exercise/exercise-generate-next-answer-btn";
 import { GenerateNextQuestionBtn } from "../components/exercise/generate-next-question-btn";
 import { ExerciseHeader } from "../components/exercise/header";
 import { SurveyComponent } from "../components/exercise/survey";
 import { ExerciseStore } from "../stores/exercise-store";
 import { Survey } from "../types/survey";
+import { GenerateNextAnswerBtn } from "../components/exercise/generate-next-answer-btn";
 
 export const Exercise = observer(() => {
     const [exerciseStore] = useState(() => container.resolve(ExerciseStore));
@@ -116,7 +116,7 @@ export const Exercise = observer(() => {
                             <Optional isVisible={exerciseState === 'EXERCISE'}>
                                 <Optional isVisible={exerciseStore.currentQuestion.questionState === 'LOADED'}>
                                     <div className="mt-3">
-                                        <ExerciseGenerateNextAnswerBtn />
+                                        {exerciseStore.exercise?.options.correctAnswerGenerationEnabled && <GenerateNextAnswerBtn store={exerciseStore.currentQuestion}/>}
                                     </div>
                                 </Optional>
                                 <Optional isVisible={
