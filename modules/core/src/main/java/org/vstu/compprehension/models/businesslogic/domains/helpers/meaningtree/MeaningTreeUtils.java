@@ -6,6 +6,7 @@ import org.vstu.meaningtree.MeaningTree;
 import org.vstu.meaningtree.SupportedLanguage;
 import org.vstu.meaningtree.exceptions.MeaningTreeException;
 import org.vstu.meaningtree.languages.LanguageTranslator;
+import org.vstu.meaningtree.utils.tokens.Token;
 
 import java.lang.reflect.InvocationTargetException;
 import java.util.Collection;
@@ -43,5 +44,17 @@ public class MeaningTreeUtils {
             }
         }
         return SupportedLanguage.CPP;
+    }
+
+    static void appendJoinTokenValues(StringBuilder builder, CharSequence delimiter, Iterable<Token> elements) {
+        boolean first = true;
+        for (Token element : elements) {
+            if (!first) {
+                builder.append(delimiter);
+            } else {
+                first = false;
+            }
+            builder.append(element.value);
+        }
     }
 }

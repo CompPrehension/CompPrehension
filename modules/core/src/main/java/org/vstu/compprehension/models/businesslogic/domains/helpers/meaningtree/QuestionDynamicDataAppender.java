@@ -70,7 +70,7 @@ public class QuestionDynamicDataAppender {
                                  ProgrammingLanguageExpressionDTDomain domain,
                                  Language lang, int metaId
     ) {
-        StringBuilder sb = new StringBuilder();
+        StringBuilder sb = new StringBuilder("<div class='comp-ph-question'>");
         sb.append(domain.getMessage("BASE_QUESTION_TEXT", lang));
         sb.append("<p class='comp-ph-expr'>");
         HashMap<Integer, Integer> complexEndingsIds = new HashMap<>();
@@ -95,24 +95,22 @@ public class QuestionDynamicDataAppender {
         }
 
         sb.append("<br/><button data-comp-ph-pos='").append(++idx).append("' id='answer_").append(++answerIdx).append("' class='btn comp-ph-complete-btn' data-comp-ph-value=''>").append(
-                lang != null && domain != null ? domain.getMessage("student_end_evaluation", lang) : "everything is evaluated"
+                lang != null ? domain.getMessage("student_end_evaluation", lang) : "everything is evaluated"
         ).append("</button>");
 
         sb.append("<!-- Original expression: ");
-        sb.append(tokens.stream().map((Token t) -> t.value).collect(Collectors.joining(" ")));
+        MeaningTreeUtils.appendJoinTokenValues(sb, " ", tokens);
         sb.append(' ');
         sb.append("-->");
         sb.append("<!-- Metadata id: ");
         sb.append(metaId);
         sb.append("-->");
         sb.append("</p>");
-        String text = sb.toString();
-
-        sb = new StringBuilder(text
-                .replaceAll("\\*", "&#8727")
+        sb.append("</div>");
+        return sb.toString().replaceAll("\\*", "&#8727")
                 .replaceAll("\\n", "<br>")
-                .replaceAll("\\t", "&nbsp;&nbsp;&nbsp;&nbsp;"));
-        sb.insert(0, "<div class='comp-ph-question'>"); sb.append("</div>");
-        return sb.toString();
+                .replaceAll("\\t", "&nbsp;&nbsp;&nbsp;&nbsp;");
     }
+
+
 }
