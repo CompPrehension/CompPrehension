@@ -4,20 +4,14 @@ import java.util.Objects;
 
 public class HyperText {
 
-    private StringBuilder text;
+    private String text;
 
     public HyperText(String text) {
-        this.text = new StringBuilder(text);
+        this.text = text;
     }
 
-    public HyperText append(String t) {
-        text.append(t);
-        return this;
-    }
-
-    public HyperText append(HyperText t) {
-        text.append(t.getText());
-        return this;
+    public HyperText(StringBuilder text) {
+        this.text = text.toString();
     }
 
     public boolean isEmpty() {
@@ -25,22 +19,22 @@ public class HyperText {
     }
 
     public String getText() {
-        return text.toString();
+        return toString();
     }
 
     @Override
     public String toString() {
-        return text.toString();
+        return text;
     }
 
     @Override
     public boolean equals(Object o) {
         if (!(o instanceof HyperText hyperText)) return false;
-        return Objects.equals(text.toString(), hyperText.text.toString());
+        return Objects.equals(text, hyperText.text);
     }
 
     @Override
     public int hashCode() {
-        return Objects.hashCode(text.toString());
+        return Objects.hashCode(text);
     }
 }
