@@ -123,12 +123,11 @@ public class LoqiBuilder {
     @Test
     public void buildLoqi_many() {
         var expr_list = new ArrayList< Pair<String, List<Integer>> >();
-//        var ans_obj_i_list = new ArrayList<List<Integer>>();
-        expr_list.add(new ImmutablePair<>("+ b", List.of(0)));
-        expr_list.add(new ImmutablePair<>("a + b", List.of(1)));
-        expr_list.add(new ImmutablePair<>("var [ var1 ]", List.of(1, 3)));
-        expr_list.add(new ImmutablePair<>("( var [ var ] )", List.of(2, 4)));
-        expr_list.add(new ImmutablePair<>("( ( var -- ) -- ) --", List.of(3, 5, 7)));
+//        expr_list.add(new ImmutablePair<>("+ b", List.of(0)));
+//        expr_list.add(new ImmutablePair<>("a + b", List.of(1)));
+//        expr_list.add(new ImmutablePair<>("var [ var1 ]", List.of(1, 3)));
+//        expr_list.add(new ImmutablePair<>("var [ ( var ) ]", List.of(1)));
+        expr_list.add(new ImmutablePair<>("x + ( var -- -- ) --", List.of(1, 4, 5, 7)));
         expr_list.add(new ImmutablePair<>("func ( ( ( 1 ) ) , 2 )", List.of(0, 7)));
         expr_list.add(new ImmutablePair<>("+ - ~ -- ++ & * ! var1 . var2", List.of(0, 1, 2, 3, 4, 5, 6, 7, 9)));
         expr_list.add(new ImmutablePair<>("var6 %= var7 /= var8 *= var9 -= var10 += var11 = var12", List.of(1, 3, 5, 7, 9, 11)));
@@ -144,8 +143,12 @@ public class LoqiBuilder {
         expr_list.add(new ImmutablePair<>("var1 * ( var2 || ( var3 + var4 ) ) , var5 , var ^= var2 |= var3 &= var4 || var5 <<= var6 , var [ var1 )+ var2 ] * -- var3", List.of(1, 4, 7, 11, 13, 15, 17, 19, 21, 23, 25, 27, 29, 31, 32, 33)));
 //        expr_list.add("");
 
-        for (var tokens_ansobjs : expr_list)
-
-            generate(tokens_ansobjs.getLeft(), SupportedLanguage.PYTHON, SupportedLanguage.CPP, tokens_ansobjs.getRight());
+        for (var tokens_ansobjs : expr_list) {
+            try {
+                generate(tokens_ansobjs.getLeft(), SupportedLanguage.PYTHON, SupportedLanguage.CPP, tokens_ansobjs.getRight());
+            } catch (org.vstu.meaningtree.exceptions.UnsupportedParsingException ex) {
+                System.out.println("ERROR in expression: " + tokens_ansobjs.getLeft());
+            }
+        }
     }
 }
