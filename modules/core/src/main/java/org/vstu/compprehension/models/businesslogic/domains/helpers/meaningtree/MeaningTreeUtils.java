@@ -24,10 +24,10 @@ public class MeaningTreeUtils {
     // Определить по тегам язык программирования
     public static SupportedLanguage detectLanguageFromTags(Collection<String> tags) {
         // Считаем, что в тегах может быть указан только один язык
-        List<String> languages = SupportedLanguage.getMap().keySet().stream().map(SupportedLanguage::toString).toList();
         for (String tag : tags) {
-            if (languages.contains(tag.toLowerCase())) {
-                return SupportedLanguage.fromString(tag.toLowerCase());
+            SupportedLanguage result = SupportedLanguage.fromString(tag);
+            if (result != null) {
+                return result;
             }
         }
         return SupportedLanguage.CPP;
@@ -36,10 +36,10 @@ public class MeaningTreeUtils {
     // Определить по тегам язык программирования
     public static SupportedLanguage detectLanguageFromTags(long tags, ProgrammingLanguageExpressionDTDomain domain) {
         // Считаем, что в тегах может быть указан только один язык
-        List<String> languages = SupportedLanguage.getMap().keySet().stream().map(SupportedLanguage::toString).toList();
         for (Tag tag : domain.tagsFromBitmask(tags)) {
-            if (languages.contains(tag.getName().toLowerCase())) {
-                return SupportedLanguage.fromString(tag.getName().toLowerCase());
+            SupportedLanguage result = SupportedLanguage.fromString(tag.getName());
+            if (result != null) {
+                return result;
             }
         }
         return SupportedLanguage.CPP;
