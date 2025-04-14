@@ -160,7 +160,7 @@ public class FakeQuestionMetadataRepository implements QuestionMetadataRepositor
 
     @NotNull
     @Override
-    public HashSet<String> findAllOrigins(String domainName, LocalDateTime from) {
+    public HashSet<String> findProcessedOrigins(String domainName, LocalDateTime from) {
         return new HashSet<>();
     }
 

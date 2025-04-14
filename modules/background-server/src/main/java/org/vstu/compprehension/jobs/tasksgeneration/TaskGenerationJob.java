@@ -254,8 +254,8 @@ public class TaskGenerationJob {
         var outputFolderPath = Path.of(downloaderConfig.getOutputFolderPath());
         Files.createDirectories(outputFolderPath);
 
-        // Учесть историю по использованным репозиториям (обработанные меньше дня назад или есть папка в директории скачки)
-        var seenReposNames = metadataRep.findAllOrigins(config.getDomainShortName(), LocalDateTime.now(ZoneId.of("UTC")).minusDays(1));
+        // Учесть историю по использованным репозиториям (обработанные меньше 6 часов назад или есть папка в директории скачки)
+        var seenReposNames = metadataRep.findProcessedOrigins(config.getDomainShortName(), LocalDateTime.now(ZoneId.of("UTC")).minusHours(6));
         if (downloaderConfig.isSkipDownloadedRepositories()) {
             // add repo names (on disk) to seenReposNames
             try (var list = Files.list(outputFolderPath)) {
@@ -394,7 +394,7 @@ public class TaskGenerationJob {
     }
 
     @SneakyThrows
-    private List<Path> parseRepositories(TaskGenerationJobConfig.TaskConfig config,List<Path> downloadedRepos) {
+    private List<Path> parseRepositories(TaskGenerationJobConfig.TaskConfig config, List<Path> downloadedRepos) {
         var parserConfig = config.getParser();
         var outputFolderPath = Path.of(parserConfig.getOutputFolderPath()).toAbsolutePath();
         if (!parserConfig.isEnabled()) {
