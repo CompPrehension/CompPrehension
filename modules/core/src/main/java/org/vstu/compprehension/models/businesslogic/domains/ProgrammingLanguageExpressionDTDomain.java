@@ -461,6 +461,8 @@ public class ProgrammingLanguageExpressionDTDomain extends DecisionTreeReasoning
         int count = 0;  // templates
         int qCount = 0;
         int savedCount = 0;
+        // TODO: please set value of this var to null in production code. Temporary changes
+        Set<SupportedLanguage> targetLanguages = Set.of(SupportedLanguage.CPP);
 
         Gson gson = new GsonBuilder()
                 .setDateFormat("yyyy-MM-dd'T'HH:mm:ss'Z'")
@@ -507,6 +509,7 @@ public class ProgrammingLanguageExpressionDTDomain extends DecisionTreeReasoning
 
                     builder = MeaningTreeOrderQuestionBuilder.newQuestion(this)
                             .meaningTree(mt)
+                            .setTargetLanguages(targetLanguages)
                             .questionOrigin(origin, license);
                 } else if (parsedQuestionName.endsWith(".ttl")) {
                     for (SupportedLanguage language : SupportedLanguage.getMap().keySet()) {
@@ -559,6 +562,7 @@ public class ProgrammingLanguageExpressionDTDomain extends DecisionTreeReasoning
                     builder =
                             MeaningTreeOrderQuestionBuilder
                                     .newQuestion(this)
+                                    .setTargetLanguages(targetLanguages)
                                     .expression(expressionText, currentLang)
                                     .questionOrigin(origin, license);
                 }
