@@ -7,7 +7,6 @@ import org.vstu.compprehension.models.businesslogic.QuestionBankSearchRequest;
 import org.vstu.compprehension.models.entities.QuestionMetadataEntity;
 import org.vstu.compprehension.models.repository.QuestionMetadataRepository;
 
-import java.time.LocalDateTime;
 import java.util.HashSet;
 import java.util.List;
 import java.util.Optional;
@@ -160,7 +159,7 @@ public class FakeQuestionMetadataRepository implements QuestionMetadataRepositor
 
     @NotNull
     @Override
-    public HashSet<String> findProcessedOrigins(String domainName, LocalDateTime from) {
+    public HashSet<String> findFullyProcessedOrigins(String domainName) {
         return new HashSet<>();
     }
 
