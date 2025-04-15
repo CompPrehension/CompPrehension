@@ -116,43 +116,46 @@ public class TaskGenerationJob {
             // filter & save questions
             saveQuestions(config, generatedRepos);
         }
-        
-        log.info("completed");
     }
     
     private synchronized void runImpl(TaskGenerationJobConfig.TaskConfig config, TaskGenerationJobConfig.RunMode.Incremental mode) {
-        // проверка на то, что нужны новые вопросы
-        var generationRequests = generatorRequestsQueue.findAllActual(config.getDomainShortName(), LocalDateTime.now().minusMonths(3));        
-        if (generationRequests.isEmpty()) {
-            log.info("No generation requests found. Finish job");
-            return;
+        var incrementalTriesCount = 0;
+        while (true) {
+            // проверка на то, что нужны новые вопросы
+            var generationRequests = generatorRequestsQueue.findAllActual(config.getDomainShortName(), LocalDateTime.now().minusMonths(3));
+            if (generationRequests.isEmpty()) {
+                log.info("No generation requests found. Finish job");
+                break;
+            }
+            if (incrementalTriesCount++ >= 50) {
+                log.info("Too many unsuccessful incremental generation. Finish job");
+                break;
+            }
+
+            log.info("Found {} generation requests", generationRequests.size());
+            if (generationRequests.size() > 5_000) {
+                generationRequests = generationRequests.subList(0, 5_000);
+                log.info("Too many generation requests found. Limiting to 5000.");
+            }
+
+            var generationRequestIds = generationRequests.stream().map(GenerationRequest::getGenerationRequestIds).collect(Collectors.toList());
+            log.debug("Generation requests ids: {}", generationRequestIds);
+
+            // folders cleanup
+            ensureFoldersCleaned(config);
+
+            // download repositories
+            var downloadedRepos = downloadRepositories(config);
+
+            // do parsing
+            var parsedRepos = parseRepositories(config, downloadedRepos);
+
+            // do question generation
+            var generatedRepos = generateQuestions(config, parsedRepos);
+
+            // filter & save questions
+            saveQuestions(config, generatedRepos, generationRequests);
         }
-        log.info("Found {} generation requests", generationRequests.size());
-
-        if (generationRequests.size() > 5_000) {
-            generationRequests = generationRequests.subList(0, 5_000);
-            log.info("Too many generation requests found. Limiting to 5000.");
-        }
-        
-        var generationRequestIds = generationRequests.stream().map(GenerationRequest::getGenerationRequestIds).collect(Collectors.toList());
-        log.debug("Generation requests ids: {}", generationRequestIds);
-
-        // folders cleanup
-        ensureFoldersCleaned(config);
-
-        // download repositories
-        var downloadedRepos = downloadRepositories(config);
-
-        // do parsing
-        var parsedRepos = parseRepositories(config, downloadedRepos);
-
-        // do question generation
-        var generatedRepos = generateQuestions(config, parsedRepos);
-
-        // filter & save questions
-        saveQuestions(config, generatedRepos, generationRequests);
-
-        log.info("completed");
     }
 
     @SneakyThrows
