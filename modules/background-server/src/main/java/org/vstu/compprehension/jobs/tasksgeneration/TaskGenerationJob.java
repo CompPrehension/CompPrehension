@@ -637,9 +637,6 @@ public class TaskGenerationJob {
             if (generatorConfig.isSaveToDb()) {
                 for (var gr : generationRequests) {
                     generatorRequestsQueue.updateGeneratorRequest(gr.getGenerationRequestIds());
-                    if (gr.getQuestionsGenerated() + questionsGenerated.getOrDefault(gr, 0) >= gr.getQuestionsToGenerate()) {
-                        log.info("Generation request [{}] finished with {} questions added.", gr.getGenerationRequestIds(), gr.getQuestionsGenerated());
-                    }
                 }
             } else {
                 log.info("Saving updates actually SKIPPED due to DEBUG mode.");
