@@ -535,8 +535,6 @@ public class TaskGenerationJob {
             int savedQuestions = 0;
             int skippedQuestions = 0; // loaded but not kept since not required by any QR
 
-            var metadataToRemove = new ArrayList<QuestionMetadataEntity>();
-
             for (val file : allJsonFiles) {
                 val q = SerializableQuestionTemplate.deserialize(file);
                 if (q == null) {
@@ -553,7 +551,7 @@ public class TaskGenerationJob {
                     continue;
                 }
 
-                metadataToRemove.clear();
+                var metadataToRemove = new ArrayList<QuestionMetadataEntity>();
                 for (QuestionMetadataEntity meta : metaList) {
                     if (metadataRep.existsByNameOrTemplateId(config.getDomainShortName(), meta.getName(), meta.getTemplateId())) {
                         skippedQuestions += 1;
@@ -569,38 +567,32 @@ public class TaskGenerationJob {
 
                 // Проверить, подходит ли он нам
                 // если да, то сразу импортировать его в боевой банк, создав запись метаданных, записав в них информацию о затребовавших QR-логах, и сохранив данные вопроса в базу данных
-                boolean shouldSave = false;
-                Integer matchedGenerationRequestId = null;
+                HashMap<QuestionMetadataEntity, Integer> matchedMetadata = new HashMap<>();
                 if (generationRequests == null) {
-                    shouldSave = true;
+                    for (QuestionMetadataEntity meta : metaList) {
+                        matchedMetadata.put(meta, null);
+                    }
                 } else {
-                    for (var gr : generationRequests) {
-                        if (gr.getQuestionsGenerated() + questionsGenerated.getOrDefault(gr, 0) >= gr.getQuestionsToGenerate())
-                            continue;
+                    for (QuestionMetadataEntity meta : metaList) {
+                        for (var gr : generationRequests) {
+                            if (gr.getQuestionsGenerated() + questionsGenerated.getOrDefault(gr, 0) >= gr.getQuestionsToGenerate())
+                                continue;
+                            if (matchedMetadata.containsKey(meta))
+                                break; // already matched
                         
-                        var searchRequest = gr.getQuestionRequest();
-
-                        metadataToRemove.clear();
-                        for (QuestionMetadataEntity meta : metaList) {
+                            var searchRequest = gr.getQuestionRequest();
                             if (!storage.isMatch(meta, searchRequest)) {
                                 log.debug("Question [{}] does not match generation requests {}", q.getCommonQuestion().getQuestionData().getQuestionName(), gr.getGenerationRequestIds());
-                                metadataToRemove.add(meta);
+                            } else {
+                                log.debug("Question [{}] matches generation requests {}", q.getCommonQuestion().getQuestionData().getQuestionName(), gr.getGenerationRequestIds());
+                                matchedMetadata.put(meta, gr.getGenerationRequestIds()[0]);
+                                questionsGenerated.compute(gr, (k, v) -> v == null ? 1 : v + 1);
                             }
-                        }
-                        metadataToRemove.forEach(metaList::remove);
-
-                        if (!metaList.isEmpty()) {
-                            log.debug("Question [{}] matches generation requests {}", q.getCommonQuestion().getQuestionData().getQuestionName(), gr.getGenerationRequestIds());
-
-                            // set flag to use this question
-                            shouldSave = true;
-                            questionsGenerated.compute(gr, (k, v) -> v == null ? 1 : v + 1);
-                            matchedGenerationRequestId = matchedGenerationRequestId == null ? Arrays.stream(gr.getGenerationRequestIds()).findFirst().orElse(null) : matchedGenerationRequestId;
                         }
                     }
                 }
 
-                if (!shouldSave || metaList.isEmpty()) {
+                if (matchedMetadata.isEmpty()) {
                     skippedQuestions += 1;
                     log.debug("Question [{}] skipped because zero qr matches: ", q.getCommonQuestion().getQuestionData().getQuestionName());
                     continue;
@@ -613,8 +605,10 @@ public class TaskGenerationJob {
                     questionData = storage.saveQuestionDataEntity(questionData);
 
                     // then save metadata
-                    for (QuestionMetadataEntity meta : metaList) {
-                        meta.setGenerationRequestId(matchedGenerationRequestId);
+                    for (var kv : matchedMetadata.entrySet()) {
+                        var meta = kv.getKey();
+                        var genRequestId = kv.getValue();
+                        meta.setGenerationRequestId(genRequestId);
                         meta.setQuestionData(questionData);
                         meta = storage.saveMetadataEntity(meta);
                     }
