@@ -201,7 +201,8 @@ public class QuestionBank {
         int generatorThreshold = 7;
         if (foundQuestionMetas.size() < generatorThreshold) {
             log.info("no enough candidates found, need additional generation");
-            generationRequestRepository.save(new QuestionGenerationRequestEntity(preparedQuery, 10 - foundQuestionMetas.size(), qr.getExerciseAttemptId()));
+            var genRequest = generationRequestRepository.save(new QuestionGenerationRequestEntity(preparedQuery, 10 - foundQuestionMetas.size(), qr.getExerciseAttemptId()));
+            log.info("created generation request with id {}", genRequest.getId());
         }
         
         if (foundQuestionMetas.isEmpty()) {

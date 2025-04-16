@@ -1,9 +1,11 @@
 package org.vstu.compprehension.models.businesslogic.domains.helpers.meaningtree;
 
+import lombok.Getter;
 import lombok.extern.log4j.Log4j2;
 import org.apache.commons.lang3.tuple.ImmutablePair;
 import org.apache.commons.lang3.tuple.Pair;
 import org.apache.jena.rdf.model.Model;
+import org.jetbrains.annotations.NotNull;
 import org.jetbrains.annotations.Nullable;
 import org.vstu.compprehension.common.MathHelper;
 import org.vstu.compprehension.common.StringHelper;
@@ -85,6 +87,9 @@ public class MeaningTreeOrderQuestionBuilder {
     private boolean allChecksArePassed = true; // expression generator has failed some stages (questions won't be generated if false)
     private boolean skipRuntimeValuesGeneration = false;
 
+    @Getter
+    protected @NotNull Set<SupportedLanguage> targetLanguages = SupportedLanguage.getMap().keySet();
+
     // default tags for each question in MT format
     private static final List<String> defaultQuestionTags = new ArrayList<>(
             List.of("basics", "operators", "order", "evaluation", "errors")
@@ -128,6 +133,15 @@ public class MeaningTreeOrderQuestionBuilder {
      */
     public MeaningTreeOrderQuestionBuilder skipRuntimeValueGeneration(boolean value) {
         skipRuntimeValuesGeneration = value;
+        return this;
+    }
+
+    /**
+     * Set languages for question generation
+     * @param langs languages
+     */
+    public MeaningTreeOrderQuestionBuilder setTargetLanguages(@Nullable Set<SupportedLanguage> langs) {
+        targetLanguages = Objects.requireNonNullElseGet(langs, () -> SupportedLanguage.getMap().keySet());
         return this;
     }
 
@@ -312,7 +326,7 @@ public class MeaningTreeOrderQuestionBuilder {
         List<SerializableQuestionTemplate> resultList = new ArrayList<>();
 
         List<Pair<SerializableQuestion, SerializableQuestionTemplate.QuestionMetadata>> metadata = new ArrayList<>();
-        for (SupportedLanguage language : SupportedLanguage.getMap().keySet()) {
+        for (SupportedLanguage language : targetLanguages) {
             metadata.addAll(build(language));
         }
 
