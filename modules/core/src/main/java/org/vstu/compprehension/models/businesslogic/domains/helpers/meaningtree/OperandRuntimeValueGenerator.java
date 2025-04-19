@@ -99,14 +99,14 @@ class OperandRuntimeValueGenerator {
 
     private final int initialTreeHash;
 
-    OperandRuntimeValueGenerator(MeaningTreeOrderQuestionBuilder builder, SupportedLanguage language) {
+    OperandRuntimeValueGenerator(MeaningTreeOrderQuestionBuilder builder, MeaningTree mt, SupportedLanguage language) {
         this.builder = builder;
-        initialTree = builder.sourceExpressionTree.clone();
-        initialTreeHash = initialTree.hashCode();
+        initialTree = mt.clone();
+        initialTreeHash = mt.hashCode();
         randomizer = new Random(initialTreeHash);
         this.language = language;
 
-        log.info("Processing question for {} values generation: {}", language.toString(), builder.rawTranslatedCode);
+        log.info("Processing question for {} values generation: {}", language.toString(), MeaningTreeUtils.viewExpression(mt, language));
 
         try {
             languageTranslator = language.createTranslator(new MeaningTreeDefaultExpressionConfig());
@@ -320,7 +320,7 @@ class OperandRuntimeValueGenerator {
                     if (node.parent() != null) {
                         node.parent().substituteNodeChildren(disposable.node.fieldName(),
                                 ternary.getElseExpr(),
-                                disposable.node.pos() == -1 ? null : disposable.node.pos());
+                                disposable.node.index());
                     } else {
                         calculationTree.changeRoot(ternary.getElseExpr());
                     }
@@ -329,7 +329,7 @@ class OperandRuntimeValueGenerator {
                     if (node.parent() != null) {
                         node.parent().substituteNodeChildren(disposable.node.fieldName(),
                                 binOp.getLeft(),
-                                disposable.node.pos() == -1 ? null : disposable.node.pos()
+                                disposable.node.index()
                         );
                     } else {
                         calculationTree.changeRoot(binOp.getLeft());
