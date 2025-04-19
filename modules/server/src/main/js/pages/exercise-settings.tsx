@@ -20,10 +20,13 @@ import {Loader} from "../components/common/loader";
 import {useTranslation} from "react-i18next";
 import {Header} from "../components/common/header";
 import { API_URL } from "../appconfig";
+import { useCurrentUser, useSession } from "../hooks/session-context";
 
 export const ExerciseSettings = observer(() => {
     const [exerciseStore] = useState(() => container.resolve(ExerciseSettingsStore));
     const { t } = useTranslation();
+    const user = useCurrentUser();
+    const session = useSession();
     useEffect(() => {
         (async () => {
             await exerciseStore.loadExercises();
@@ -41,19 +44,16 @@ export const ExerciseSettings = observer(() => {
         })()
     }, [exerciseStore.exercises?.length]);
 
-    /*
     const onLangClicked = useCallback(() => {
-        const currentLang = exerciseStore.user?.language;
+        const currentLang = user?.language;
         const newLang = currentLang === "RU" ? "EN" : "RU";
-        exerciseStore.changeLanguage(newLang);
-    }, [exerciseStore])
-    */
+        session.changeLanguage(newLang);
+    }, [session, user?.language]);
 
     if (exerciseStore.exercisesLoadStatus === 'LOADING') {
         return <Loader />;
     }
 
-    const { user } = exerciseStore;
     if (!user)
         return <Loader />;
 
@@ -62,8 +62,8 @@ export const ExerciseSettings = observer(() => {
             <div className="pt-1 pb-3">
                 <Header text={t('exercisesettings_title')}
                         languageHint={t('language_header')}
-                        language={exerciseStore.user?.language ?? "EN"}
-                        onLanguageClicked={/*onLangClicked*/null}
+                        language={user?.language ?? "EN"}
+                        onLanguageClicked={onLangClicked}
                         userHint={t('signedin_as_header')}
                         user={user.displayName} 
                         userHref={/*`${window.location.origin}/logout`*/null} />
@@ -109,9 +109,10 @@ type ExerciseCardElementProps = {
 const ExerciseCardElement = observer((props: ExerciseCardElementProps) => {
     const { card, domains, backends, strategies, store } = props;
     const { t } = useTranslation();
+    const user = useCurrentUser();
     const conceptFlagNames = useMemo(() => {
         return [t('exercisesettings_optDenied'), t('exercisesettings_optAllowed'), t('exercisesettings_optTarget')]
-    }, [store.user?.language])
+    }, [user?.language])
 
     if (store.exercisesLoadStatus === 'EXERCISELOADING')
         return <Loader delay={200} />;
@@ -144,14 +145,14 @@ const ExerciseCardElement = observer((props: ExerciseCardElementProps) => {
                 <div className="form-group">
                     <label className="font-weight-bold">{t('exercisesettings_domain')}</label>
                     <select id="domainId" className="form-control" aria-describedby="domainDescription" value={card.domainId} onChange={e => store.setCardDomain(e.target.value)} title={currentDomain?.displayName}>
-                        {domains?.map(d => <option value={d.id} title={d.description ?? d.displayName}>{d.displayName}</option>)}
+                        {domains?.map(d => <option key={d.id} value={d.id} title={d.description ?? d.displayName}>{d.displayName}</option>)}
                     </select>
                     <small id="domainDescription" className="form-text text-muted">{currentDomain?.description ?? ""}</small>
                 </div>
                 <div className="form-group">
                     <label className="font-weight-bold">{t('exercisesettings_strategy')}</label>
                     <select id="strategyId" className="form-control" aria-describedby="strategyDescription" value={card.strategyId} onChange={e => store.setCardStrategy(e.target.value)} title={currentStrategy?.displayName}>
-                        {strategies?.map(d => <option value={d.id} title={d.description ?? d.displayName}>{d.displayName}</option>)}
+                        {strategies?.map(d => <option key={d.id} value={d.id} title={d.description ?? d.displayName}>{d.displayName}</option>)}
                     </select>
                     <small id="strategyDescription" className="form-text text-muted">{currentStrategy?.description ?? ""}</small>
                 </div>
@@ -212,8 +213,8 @@ const ExerciseCardElement = observer((props: ExerciseCardElementProps) => {
                 </div>
                 <div className="form-group">
                     <label htmlFor="exTagsValues" className="font-weight-bold">{t('exercisesettings_tags')}</label>
-                    {currentDomain?.tags.map(t => 
-                        <div className="form-check">
+                    {currentDomain?.tags.map((t, i) => 
+                        <div key={i} className="form-check">
                             <input 
                                 checked={card.tags.includes(t)} 
                                 onChange={x => x.target.checked
@@ -318,7 +319,7 @@ const ExerciseCardElement = observer((props: ExerciseCardElementProps) => {
                     : null
                 }
             </form >
-            {store.user?.roles.includes('ADMIN') && // TODO временный фикс, убрать в будущем
+            {user?.roles.includes('ADMIN') && // TODO временный фикс, убрать в будущем
                 <div className="mt-5">
                     <button type="button" className="btn btn-primary" onClick={() => store.saveCard()}>{t('exercisesettings_save')}</button>
                     <button type="button" className="btn btn-primary ml-2" onClick={() => store.saveCard().then(() => window.open(`${window.location.origin}/pages/exercise?exerciseId=${card.id}`, '_blank')?.focus()) }>{t('exercisesettings_saveNopen')}</button>
@@ -496,10 +497,11 @@ const ExerciseConcepts = observer((props: ExerciseConceptsProps) => {
     const card = store.currentCard;
     if (!card)
         throw new Error('card not set');
+    const user = useCurrentUser();
     
     const conceptFlagNames = useMemo(() => {
         return [t('exercisesettings_optDenied'), t('exercisesettings_optAllowed'), t('exercisesettings_optTarget')]
-    }, [store.user?.language])
+    }, [user?.language])
     
 
     return (
@@ -552,11 +554,12 @@ const ExerciseLaws = observer((props: ExerciseLawsProps) => {
     const { t  } = useTranslation();
     const card = store.currentCard;
     if (!card)
-        throw new Error('card not set');   
+        throw new Error('card not set');
+    const user = useCurrentUser();   
     
     const lawFlagNames = useMemo(() => {
         return [t('exercisesettings_optDenied'), t('exercisesettings_optAllowed'), t('exercisesettings_optTarget')]
-    }, [store.user?.language])
+    }, [user?.language])
 
     return(
     <>
@@ -608,10 +611,11 @@ const ExerciseSkills = observer((props: ExerciseSkillsProps) => {
     const card = store.currentCard;
     if (!card)
         throw new Error('card not set');   
+    const user = useCurrentUser();
     
     const skillFlagNames = useMemo(() => {
         return [t('exercisesettings_optDenied'), t('exercisesettings_optAllowed'), t('exercisesettings_optTarget')]
-    }, [store.user?.language])
+    }, [user?.language])
 
     return(
     <>

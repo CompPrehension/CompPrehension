@@ -106,7 +106,6 @@ export class ExerciseSettingsStore {
     backends: string[] | null = null;
     strategies: Strategy[] | null = null;
     currentCard: ExerciseCardViewModel | null = null;
-    user: UserInfo | null = null;
 
     constructor(
         @inject(ExerciseSettingsController) private readonly exerciseSettingsController: ExerciseSettingsController,
@@ -164,18 +163,10 @@ export class ExerciseSettingsStore {
                 this.domains = domains.right;
                 this.backends = backends.right;
                 this.strategies = strategies.right;
-                this.user = user.right;
                 i18next.changeLanguage(user.right.language);
             });
         }
         runInAction(() => this.exercisesLoadStatus = 'LOADED');
-    }
-    
-    changeLanguage = (newLang: Language) => {
-        if (this.user && this.user.language !== newLang) {
-            this.user.language = newLang;
-            i18next.changeLanguage(newLang);
-        }
     }
 
     async loadExercise(exerciseId: number) {

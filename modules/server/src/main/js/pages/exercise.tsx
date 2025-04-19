@@ -32,7 +32,7 @@ export const Exercise = observer(() => {
                 return;
             }
 
-            await exerciseStore.loadSessionInfo();
+            await exerciseStore.loadExercise();
             
             if (exerciseStore.isDebug) {
                 setExerciseState('EXERCISE');
@@ -98,7 +98,7 @@ export const Exercise = observer(() => {
     return (
         <>
             <div className={`compph-exercise ${exerciseStore.isDebug && 'compph-exercise--debug'}` || ''}>
-                <LoadingWrapper isLoading={exerciseStore.isSessionLoading === true || exerciseState === 'INITIAL'}>
+                <LoadingWrapper isLoading={exerciseStore.isExerciseLoading === true || exerciseState === 'INITIAL'}>
                     <Optional isVisible={exerciseState === 'EXERCISE' || exerciseState === 'COMPLETED'}>
                         <ExerciseHeader />
                         <div className="mt-5">

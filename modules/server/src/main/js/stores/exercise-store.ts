@@ -17,8 +17,7 @@ import { IUserController, UserController } from "../controllers/exercise/user-co
 
 @injectable()
 export class ExerciseStore {
-    @observable isSessionLoading: boolean = false;
-    @observable user?: UserInfo = undefined;
+    @observable isExerciseLoading: boolean = false;
     @observable exerciseId: number;
     @observable exercise?: Exercise = undefined;
     @observable currentAttemptId?: number = undefined;
@@ -86,47 +85,33 @@ export class ExerciseStore {
         })
     }
 
-    loadSessionInfo = async () => {
+    loadExercise = async () => {
         if (this.exercise) {
             throw new Error("exerciseInfo loaded");
         }
-        if (this.isSessionLoading) {
+        if (this.isExerciseLoading) {
             return;
         }
 
         runInAction(() => {
             this.forceSetValidState();
-            this.isSessionLoading = true;
+            this.isExerciseLoading = true;
         })
 
-        const [user, exercise] = await Promise.all([
-            this.userController.getCurrentUser(),
-            this.exerciseController.getExerciseShortInfo(this.exerciseId)
-        ])
+        const exercise = await this.exerciseController.getExerciseShortInfo(this.exerciseId);
         
-        if (E.isRight(user) && E.isRight(exercise)) {
+        if (E.isRight(exercise)) {
             runInAction(() => {
-                this.isSessionLoading = false;
-                this.onSessionLoaded(user.right, exercise.right);
+                this.isExerciseLoading = false;
+                this.exercise = exercise.right;
             })
-        } else if (E.isLeft(user) && E.isLeft(exercise)) {
+        } else {
             runInAction(() => {
-                this.isSessionLoading = false;
-                this.storeState = { tag: 'ERROR', error: user.left ?? exercise.left };
+                this.isExerciseLoading = false;
+                this.storeState = { tag: 'ERROR', error: exercise.left };
             })
         }
     };
-
-    private onSessionLoaded(user: UserInfo, exercise: Exercise) {
-        runInAction(() => {
-            this.user = user;
-            this.exercise = exercise;
-
-            if (user.language !== i18next.language) {
-                i18next.changeLanguage(user.language);
-            }
-        });
-    }
 
 
     loadExerciseAttempt = flow(function* (this: ExerciseStore, attemptId: number) {
@@ -228,14 +213,6 @@ export class ExerciseStore {
         yield this.currentQuestion.generateQuestion(currentAttempt.attemptId);
         currentAttempt.questionIds.push(this.currentQuestion.question?.questionId ?? -1);
     });
-
-    @action
-    changeLanguage = (newLang: Language) => {
-        if (this.user && this.user.language !== newLang) {
-            this.user.language = newLang;
-            i18next.changeLanguage(newLang);
-        }
-    }
 
     @action
     loadSurvey = async () => {
