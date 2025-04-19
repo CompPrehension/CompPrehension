@@ -312,7 +312,7 @@ const ExerciseCardElement = observer((props: ExerciseCardElementProps) => {
                         }
                     </div>
                 </div>
-                {card.stages.length < 5 && currentStrategy?.options.multiStagesEnabled
+                {currentStrategy?.options.multiStagesEnabled
                     ? <div style={{marginTop: "-1rem"}}>
                         <button type="button" className="btn btn-success" onClick={() => store.addStage()}>{t('exercisesettings_addStage')}</button>
                       </div>
