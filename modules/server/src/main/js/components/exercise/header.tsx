@@ -36,7 +36,7 @@ export const ExerciseHeader = observer(() => {
             language={user.language}
             userHint={t('signedin_as_header')}
             user={user.displayName}
-            onLanguageClicked={onLangClicked}
+            onLanguageClicked={null/*onLangClicked*/}
         />
     );
 });
