@@ -430,7 +430,7 @@ public class MeaningTreeOrderQuestionBuilder {
      */
     protected List<Pair<SerializableQuestion, SerializableQuestionTemplate.QuestionMetadata>> generateManyQuestions(SupportedLanguage language) {
         var initialData = generateExpressionData(sourceExpressionTree, language);
-        allChecksArePassed = initialData.allCorrect;
+        allChecksArePassed &= initialData.allCorrect;
         if (!allChecksArePassed) {
             return List.of();
         }
@@ -467,7 +467,6 @@ public class MeaningTreeOrderQuestionBuilder {
 
     /**
      * Obtains tokens and expr text of given expression
-     * This method has a side effect: it possesses checks of generation correctness
      * @param language target language
      */
     protected ExpressionData generateExpressionData(MeaningTree mt, SupportedLanguage language) {
@@ -493,7 +492,6 @@ public class MeaningTreeOrderQuestionBuilder {
     /**
      * Process tokens with accurate check of translation compatibility
      * Works slowly than usual `generateExpressionData`
-     * This method has a side effect: it possesses checks of generation correctness
      * @param language target language
      */
     private ExpressionData generateExpressionDataAccurate(MeaningTree mt, SupportedLanguage language) {

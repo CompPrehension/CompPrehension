@@ -68,7 +68,13 @@ public abstract class Mutation {
                 source.random = this.random;
                 other.random = this.random;
                 Mutation selected = selector.apply(source, other);
-                if (selected.isEligible(info)) selected.perform(origin, info);
+                if (selected.isEligible(info)) {
+                    selected.perform(origin, info);
+                } else if (selected == source && other.isEligible(info)) {
+                    other.perform(origin, info);
+                } else if (selected == other && source.isEligible(info)) {
+                    source.perform(origin, info);
+                }
             }
         };
     }
