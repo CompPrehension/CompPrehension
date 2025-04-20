@@ -107,7 +107,10 @@ public class StaticStrategy implements AbstractStrategy {
             List<InteractionEntity> interactions = q.getInteractions();
             int knownInteractions = interactions.size();
             long correctInteractions = interactions.stream()
-                    .filter(inter -> inter != null && inter.getInteractionType() == InteractionType.SEND_RESPONSE)
+                    .filter(inter -> inter != null
+                            && inter.getInteractionType() == InteractionType.SEND_RESPONSE
+                            && (inter.getViolations() == null || inter.getViolations().isEmpty())
+                    )
                     .count();
             if (knownInteractions == 0)
                 continue;  // nothing done yet.
