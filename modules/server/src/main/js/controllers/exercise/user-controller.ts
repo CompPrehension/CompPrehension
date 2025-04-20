@@ -21,6 +21,6 @@ export class UserController implements IUserController {
     }
 
     async setLanguage(language: Language): PromiseEither<RequestError, Language> {
-        return ajaxPost(`${API_URL}/api/users/language`, { language }, undefined, undefined, 'raw');
+        return ajaxPost(`${API_URL}/api/users/language`, { language }, TLanguage, undefined, 'raw');
     }
 }

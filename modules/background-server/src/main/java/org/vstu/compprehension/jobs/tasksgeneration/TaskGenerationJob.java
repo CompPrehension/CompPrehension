@@ -15,6 +15,7 @@ import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Service;
 import org.vstu.compprehension.common.FileHelper;
 import org.vstu.compprehension.dto.GenerationRequest;
+import org.vstu.compprehension.dto.GenerationRequestGroup;
 import org.vstu.compprehension.models.businesslogic.SourceCodeRepositoryInfo;
 import org.vstu.compprehension.models.businesslogic.storage.QuestionBank;
 import org.vstu.compprehension.models.businesslogic.storage.SerializableQuestionTemplate;
@@ -138,7 +139,7 @@ public class TaskGenerationJob {
                 log.info("Too many generation requests found. Limiting to 5000.");
             }
 
-            var generationRequestIds = generationRequests.stream().map(GenerationRequest::getGenerationRequestIds).collect(Collectors.toList());
+            var generationRequestIds = generationRequests.stream().map(GenerationRequestGroup::getGenerationRequestIds).collect(Collectors.toList());
             log.debug("Generation requests ids: {}", generationRequestIds);
 
             // folders cleanup
@@ -513,7 +514,7 @@ public class TaskGenerationJob {
     }
 
     @SneakyThrows
-    private void saveQuestions(TaskGenerationJobConfig.TaskConfig config, List<Path> generatedRepos, @Nullable List<GenerationRequest> generationRequests) {
+    private void saveQuestions(TaskGenerationJobConfig.TaskConfig config, List<Path> generatedRepos, @Nullable List<GenerationRequestGroup> generationRequests) {
         var generatorConfig = config.getGenerator();
         if (!generatorConfig.isEnabled()) {
             log.info("generator is disabled by config");
@@ -521,8 +522,12 @@ public class TaskGenerationJob {
         }
 
         log.info("Start saving questions generated from {} repositories ...", generatedRepos.size());
-        
+
         var questionsGenerated = new HashMap<GenerationRequest, Integer>();
+        var incompletedRequests = new HashMap<GenerationRequestGroup, HashSet<GenerationRequest>>();
+        for (var gr : (generationRequests == null ? List.<GenerationRequestGroup>of() : generationRequests)) {
+            incompletedRequests.put(gr, Arrays.stream(gr.getGenerationRequests()).collect(Collectors.toCollection(HashSet::new)));
+        }
 
         for (var repoDir : generatedRepos) {
             String repoName = repoDir.getFileName().toString();
@@ -574,19 +579,28 @@ public class TaskGenerationJob {
                     }
                 } else {
                     for (QuestionMetadataEntity meta : metaList) {
-                        for (var gr : generationRequests) {
-                            if (gr.getQuestionsGenerated() + questionsGenerated.getOrDefault(gr, 0) >= gr.getQuestionsToGenerate())
-                                continue;
+                        if (matchedMetadata.containsKey(meta))
+                            continue; // already matched
+
+                        for (var gr : incompletedRequests.entrySet()) {
                             if (matchedMetadata.containsKey(meta))
                                 break; // already matched
-                        
-                            var searchRequest = gr.getQuestionRequest();
+                            if (gr.getValue().isEmpty()) {
+                                continue;
+                            }
+
+                            var searchRequest = gr.getKey().getQuestionRequest();
+                            var genRequest = gr.getValue().stream().findFirst().orElse(null);
                             if (!storage.isMatch(meta, searchRequest)) {
-                                log.debug("Question [{}] does not match generation requests {}", q.getCommonQuestion().getQuestionData().getQuestionName(), gr.getGenerationRequestIds());
+                                log.debug("Question [{}] does not match generation requests group {}", q.getCommonQuestion().getQuestionData().getQuestionName(), gr.getKey().getGenerationRequestIds());
                             } else {
-                                log.debug("Question [{}] matches generation requests {}", q.getCommonQuestion().getQuestionData().getQuestionName(), gr.getGenerationRequestIds());
-                                matchedMetadata.put(meta, gr.getGenerationRequestIds()[0]);
-                                questionsGenerated.compute(gr, (k, v) -> v == null ? 1 : v + 1);
+                                log.debug("Question [{}] matches generation requests group {}", q.getCommonQuestion().getQuestionData().getQuestionName(), gr.getKey().getGenerationRequestIds());
+                                matchedMetadata.put(meta, genRequest.id());
+                                var qGenerated = questionsGenerated.compute(genRequest, (k, v) -> v == null ? 1 : v + 1);
+
+                                if (qGenerated >= genRequest.questionsToGenerate()) {
+                                    gr.getValue().remove(genRequest);
+                                }
                             }
                         }
                     }
@@ -633,7 +647,7 @@ public class TaskGenerationJob {
         if (generationRequests != null) {
             if (generatorConfig.isSaveToDb()) {
                 for (var gr : generationRequests) {
-                    generatorRequestsQueue.updateGeneratorRequest(gr.getGenerationRequestIds());
+                    generatorRequestsQueue.updateGenerationRequests(gr.getGenerationRequestIds());
                 }
             } else {
                 log.info("Saving updates actually SKIPPED due to DEBUG mode.");
