@@ -25,9 +25,9 @@ public class QuestionGenerationRequestComplexQueriesRepositoryImpl implements Qu
         var query = entityManager.createNativeQuery(
                         "SELECT " +
                                 "JSON_UNQUOTE(JSON_ARRAYAGG(r.id)) AS generationrequestids, " +
-                                "JSON_UNQUOTE(JSON_ARRAYAGG(JSON_OBJECT('id', r.id, 'questionsToGenerate', r.questions_to_generate - qcount.count))) AS generationrequests, " +
+                                "JSON_UNQUOTE(JSON_ARRAYAGG(JSON_OBJECT('id', r.id, 'questionsToGenerate', GREATEST(0, r.questions_to_generate - qcount.count)))) AS generationrequests, " +
                                 "JSON_UNQUOTE(MAX(r.question_request)) AS questionrequest, " +
-                                "CAST(SUM(r.questions_to_generate) - SUM(qcount.count) AS SIGNED) AS questionstogenerate " +
+                                "CAST(GREATEST(0, SUM(r.questions_to_generate) - SUM(qcount.count)) AS SIGNED) AS questionstogenerate " +
                             "FROM question_generation_requests r " +
                             "LEFT JOIN (" +
                                 "SELECT question_generation_requests.id AS id, COUNT(questions_meta.id) as count " +
@@ -44,7 +44,7 @@ public class QuestionGenerationRequestComplexQueriesRepositoryImpl implements Qu
                             " r.target_laws_bitmask," +
                             " r.target_skills_bitmask," +
                             " r.target_tags_bitmask, " +
-                            " TRUNCATE(r.complexity, 3), " +
+                            " TRUNCATE(CAST(r.complexity AS decimal), 3), " +
                             " r.steps_min, " +
                             " r.steps_max", RawFindAllActualResult.class)
                 .setParameter("domainShortname", domainShortname)
@@ -71,7 +71,7 @@ public class QuestionGenerationRequestComplexQueriesRepositoryImpl implements Qu
     public int findNumberOfCurrentlyGeneratingQuestions(String domainShortname, QuestionBankSearchRequest request) {
         var query = entityManager.createNativeQuery(
                         "SELECT " +
-                                "CAST((SUM(r.questions_to_generate) - SUM(qcount.count)) AS SIGNED) " +
+                                "CAST(GREATEST(0, SUM(r.questions_to_generate) - SUM(qcount.count)) AS SIGNED) " +
                                 "FROM question_generation_requests r " +
                                 "LEFT JOIN (" +
                                     "SELECT question_generation_requests.id AS id, COUNT(questions_meta.id) as count " +
@@ -98,7 +98,7 @@ public class QuestionGenerationRequestComplexQueriesRepositoryImpl implements Qu
                                 " r.target_laws_bitmask," +
                                 " r.target_skills_bitmask," +
                                 " r.target_tags_bitmask, " +
-                                " TRUNCATE(r.complexity, 3)," +
+                                " TRUNCATE(CAST(r.complexity AS decimal), 3)," +
                                 " r.steps_min, " +
                                 " r.steps_max", Integer.class)
                 .setParameter("domainShortname", domainShortname)
