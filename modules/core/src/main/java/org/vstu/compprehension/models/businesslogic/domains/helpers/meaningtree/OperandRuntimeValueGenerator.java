@@ -7,13 +7,12 @@ import org.vstu.meaningtree.MeaningTree;
 import org.vstu.meaningtree.SupportedLanguage;
 import org.vstu.meaningtree.exceptions.MeaningTreeException;
 import org.vstu.meaningtree.languages.LanguageTranslator;
-import org.vstu.meaningtree.nodes.Expression;
 import org.vstu.meaningtree.nodes.Node;
 import org.vstu.meaningtree.nodes.expressions.BinaryExpression;
 import org.vstu.meaningtree.nodes.expressions.logical.ShortCircuitAndOp;
 import org.vstu.meaningtree.nodes.expressions.logical.ShortCircuitOrOp;
 import org.vstu.meaningtree.nodes.expressions.other.TernaryOperator;
-import org.vstu.meaningtree.utils.NodeLabel;
+import org.vstu.meaningtree.utils.Label;
 import org.vstu.meaningtree.utils.tokens.TokenList;
 
 import java.lang.reflect.InvocationTargetException;
@@ -136,11 +135,11 @@ class OperandRuntimeValueGenerator {
                 DisposableIndex grp = foundDisposable.get();
                 if (grp.id().partialEval && nodeInfo.node() instanceof TernaryOperator ternary) {
                     ternary.getCondition().setAssignedValueTag(grp.alt == 0);
-                    ternary.getCondition().removeLabel(NodeLabel.DUMMY);
+                    ternary.getCondition().removeLabel(Label.DUMMY);
                     preferredValues.add(new ImmutablePair<>(grp.getNode().hashCode(), grp.alt == 0));
                 } else {
                     BinaryExpression expr = (BinaryExpression) nodeInfo.node();
-                    expr.getLeft().removeLabel(NodeLabel.DUMMY);
+                    expr.getLeft().removeLabel(Label.DUMMY);
                     expr.getLeft().setAssignedValueTag(!grp.id().valRequiredForEval);
                     preferredValues.add(new ImmutablePair<>(grp.getNode().hashCode(), grp.id().valRequiredForEval));
                 }
