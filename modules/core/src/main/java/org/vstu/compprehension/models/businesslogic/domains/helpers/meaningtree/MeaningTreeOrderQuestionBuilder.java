@@ -43,6 +43,7 @@ import org.vstu.meaningtree.nodes.expressions.unary.*;
 import org.vstu.meaningtree.nodes.io.InputCommand;
 import org.vstu.meaningtree.nodes.io.PrintCommand;
 import org.vstu.meaningtree.serializers.rdf.RDFSerializer;
+import org.vstu.meaningtree.utils.Label;
 import org.vstu.meaningtree.utils.tokens.*;
 
 import java.lang.reflect.InvocationTargetException;
@@ -604,6 +605,9 @@ public class MeaningTreeOrderQuestionBuilder {
         String customTemplateId = StringHelper.truncate(input.code.replaceAll(
                 " ", "_").replaceAll("[/:*?\"<>|\\\\]", ""),
                 64).concat("_").concat(languageStr);
+        if (input.mt.hasLabel(Label.MUTATION_FLAG)) {
+            customTemplateId = customTemplateId.concat("mut_");
+        }
         String customQuestionId = customTemplateId.concat(Integer.toString(input.hash)).concat("_v");
 
         this.metadata = SerializableQuestionTemplate.QuestionMetadata.builder()

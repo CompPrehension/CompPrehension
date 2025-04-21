@@ -1,10 +1,10 @@
 package org.vstu.compprehension.models.businesslogic.domains.helpers.meaningtree;
 
-import org.apache.jena.sparql.expr.Expr;
 import org.vstu.meaningtree.MeaningTree;
 import org.vstu.meaningtree.nodes.Expression;
 import org.vstu.meaningtree.nodes.Node;
 import org.vstu.meaningtree.nodes.expressions.ParenthesizedExpression;
+import org.vstu.meaningtree.nodes.expressions.UnaryExpression;
 import org.vstu.meaningtree.nodes.expressions.bitwise.InversionOp;
 import org.vstu.meaningtree.nodes.expressions.identifiers.SimpleIdentifier;
 import org.vstu.meaningtree.nodes.expressions.other.IndexExpression;
@@ -13,11 +13,13 @@ import org.vstu.meaningtree.nodes.expressions.other.TernaryOperator;
 import org.vstu.meaningtree.nodes.expressions.pointers.PointerPackOp;
 import org.vstu.meaningtree.nodes.expressions.pointers.PointerUnpackOp;
 import org.vstu.meaningtree.nodes.expressions.unary.PostfixDecrementOp;
+import org.vstu.meaningtree.nodes.expressions.unary.PostfixIncrementOp;
 import org.vstu.meaningtree.nodes.expressions.unary.PrefixDecrementOp;
 import org.vstu.meaningtree.nodes.expressions.unary.PrefixIncrementOp;
 
 import java.util.List;
 import java.util.Random;
+import java.util.function.BiFunction;
 
 class PredefinedMutations {
 
@@ -49,17 +51,32 @@ class PredefinedMutations {
         }
     };
 
-    private static final Mutation pointerMutation = new Mutation() {
+    private static final Mutation addPostfixToPointerMutation = new Mutation() {
         @Override
         public boolean isEligible(Node.Info child) {
-            return child.parent() instanceof PointerUnpackOp;
+            return child.parent() instanceof PointerUnpackOp &&
+                    !(child.node() instanceof PostfixDecrementOp || child.node() instanceof PostfixIncrementOp);
         }
 
         @Override
         protected void perform(MeaningTree origin, Node.Info info) {
             boolean isSub = random.nextBoolean();
             origin.substitute(info.id(), isSub ? new PostfixDecrementOp((Expression) info.node()) :
-                    new PrefixIncrementOp((Expression) info.node()));
+                    new PostfixIncrementOp((Expression) info.node()));
+        }
+    };
+
+    private static final Mutation addPointerToPostfixMutation = new Mutation() {
+        @Override
+        public boolean isEligible(Node.Info child) {
+            return (child.node() instanceof PostfixDecrementOp || child.node() instanceof PostfixIncrementOp)
+                    && !(child.parent() instanceof PointerUnpackOp) && !(child.parent() instanceof PointerPackOp);
+        }
+
+        @Override
+        protected void perform(MeaningTree origin, Node.Info info) {
+            UnaryExpression unaryExpr = (UnaryExpression) info.node();
+            origin.substitute(info.id(), new PointerUnpackOp(unaryExpr));
         }
     };
 
@@ -77,19 +94,29 @@ class PredefinedMutations {
         @Override
         protected void perform(MeaningTree origin, Node.Info info) {
             Expression expr = (Expression) info.node();
-            int option = random.nextInt(5);
-            Expression changed = switch (option) {
-                case 1 -> new PrefixDecrementOp(expr);
-                case 2 -> new InversionOp(expr);
-                case 3 -> new PointerPackOp(expr);
-                case 4 -> new PointerUnpackOp(expr);
-                default -> new PrefixIncrementOp(expr);
-            };
+            Expression changed;
+            if (info.node() instanceof IndexExpression) {
+                changed = new PointerPackOp(expr);
+            } else {
+                int option = random.nextInt(5);
+                changed = switch (option) {
+                    case 1 -> new PrefixDecrementOp(expr);
+                    case 2 -> new InversionOp(expr);
+                    case 3 -> new PointerPackOp(expr);
+                    case 4 -> new PointerUnpackOp(expr);
+                    default -> new PrefixIncrementOp(expr);
+                };
+            }
             origin.substitute(info.id(), changed);
         }
     };
 
-    static final Mutation unaryMutation = unaryAppend.combine(pointerMutation,
-            (mut1, mut2) -> new Random().nextBoolean() ? mut2 : mut1);
+    private static final BiFunction<Mutation, Mutation, Mutation> combiner =
+            (mut1, mut2) -> new Random().nextBoolean() ? mut2 : mut1;
+
+
+    static final Mutation unaryMutation = unaryAppend
+            .combine(addPointerToPostfixMutation, combiner)
+            .combine(addPostfixToPointerMutation, combiner);
 
 }

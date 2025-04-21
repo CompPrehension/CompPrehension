@@ -3,9 +3,9 @@ package org.vstu.compprehension.models.businesslogic.domains.helpers.meaningtree
 import lombok.Setter;
 import org.vstu.meaningtree.MeaningTree;
 import org.vstu.meaningtree.nodes.Node;
+import org.vstu.meaningtree.utils.Label;
 
 import java.util.Random;
-import java.util.function.BiConsumer;
 import java.util.function.BiFunction;
 
 /**
@@ -34,6 +34,7 @@ public abstract class Mutation {
         }
         random = new Random(origin.hashCode());
         perform(target, target.getNodeById(info.id()));
+        target.setLabel(Label.MUTATION_FLAG);
         return target;
     }
 
