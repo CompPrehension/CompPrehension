@@ -28,7 +28,7 @@ import org.vstu.meaningtree.MeaningTree;
 import org.vstu.meaningtree.SupportedLanguage;
 import org.vstu.meaningtree.nodes.Node;
 import org.vstu.meaningtree.serializers.rdf.RDFDeserializer;
-import org.vstu.meaningtree.utils.NodeLabel;
+import org.vstu.meaningtree.utils.Label;
 
 import java.lang.reflect.InvocationTargetException;
 import java.util.ArrayList;
@@ -217,7 +217,7 @@ public class ProgrammingLanguageExpressionDTDomainTest {
         // Check values
         boolean hasValues = false;
         for (Node.Info info : mt) {
-            if (info.node().hasLabel(NodeLabel.VALUE)) {
+            if (info.node().hasLabel(Label.VALUE)) {
                 hasValues = true;
                 break;
             }
