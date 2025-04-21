@@ -199,10 +199,10 @@ public class QuestionBank {
         }
         
         int generatorThreshold = 7;
-        if (foundQuestionMetas.size() < generatorThreshold) {
+        if (foundQuestionMetas.size() <= generatorThreshold) {
             log.info("no enough candidates found (found {}/{}), need additional generation", foundQuestionMetas.size(), generatorThreshold);
 
-            var rawQuestionsToGenerate = generatorThreshold - foundQuestionMetas.size();
+            var rawQuestionsToGenerate = generatorThreshold + 3 - foundQuestionMetas.size(); // +3 additional questions to be sure that we have enough (10 in total)
             var currentlyGeneratingQuestions = generationRequestRepository.findNumberOfCurrentlyGeneratingQuestions(qr.getDomainShortname(), preparedQuery);
             var questionsToGenerate = Math.max(1, rawQuestionsToGenerate - currentlyGeneratingQuestions);
 
