@@ -49,7 +49,7 @@ public class MeaningTreeRDFHelper {
 
     public static TokenList backendFactsToTokens(List<BackendFactEntity> stmtFacts, SupportedLanguage language) {
         Model model = backendFactsToModel(stmtFacts);
-        MeaningTree mt = new MeaningTree(new RDFDeserializer().deserialize(model));
+        MeaningTree mt = new RDFDeserializer().deserializeTree(model);
         try {
             var result = language.createTranslator(new MeaningTreeDefaultExpressionConfig()).getTokenizer().tryTokenizeExtended(mt);
             if (result.getLeft()) {
@@ -63,6 +63,6 @@ public class MeaningTreeRDFHelper {
     }
 
     public static MeaningTree backendFactsToMeaningTree(List<BackendFactEntity> facts) {
-        return new MeaningTree(new RDFDeserializer().deserialize(backendFactsToModel(facts)));
+        return new RDFDeserializer().deserializeTree(backendFactsToModel(facts));
     }
 }

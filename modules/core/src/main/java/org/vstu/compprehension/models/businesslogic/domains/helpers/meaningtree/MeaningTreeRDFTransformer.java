@@ -49,7 +49,7 @@ public class MeaningTreeRDFTransformer {
 
     public static TokenList tokenize(List<BackendFactEntity> facts, SupportedLanguage language) {
         Model m = MeaningTreeRDFHelper.backendFactsToModel(facts);
-        MeaningTree mt = new MeaningTree(new RDFDeserializer().deserialize(m));
+        MeaningTree mt = new RDFDeserializer().deserializeTree(m);
         try {
             return language.createTranslator(new MeaningTreeDefaultExpressionConfig()).getTokenizer().tokenizeExtended(mt.getRootNode());
         } catch (NoSuchMethodException | InvocationTargetException | InstantiationException | IllegalAccessException e) {
@@ -195,6 +195,9 @@ public class MeaningTreeRDFTransformer {
             return new ParsedClassName("separator");
         } else if (token.type == TokenType.CAST) {
             return new ParsedClassName("operator_cast");
+        } else if (token.type == TokenType.INITIALIZER_LIST_OPENING_BRACE ||
+                token.type == TokenType.INITIALIZER_LIST_CLOSING_BRACE) {
+            return new ParsedClassName("operator_list");
         }
         List<ClassDef> possibleClasses = domainModel.getClasses().stream()
                 .filter(classDef -> classDef.getMetadata().getEntries().stream()

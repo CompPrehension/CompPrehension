@@ -75,6 +75,8 @@ public class ProgrammingLanguageExpressionDTDomain extends DecisionTreeReasoning
         put("order", new Tag("order", 32L));    // (2 ^ 5)
         put("Python", new Tag("Python", 64L));    // (2 ^ 6)
         put("Java", new Tag("Java", 128L));    // (2 ^ 7)
+        put("mutation", new Tag("mutation", 256L));    // (2 ^ 8)
+        put("original", new Tag("original", 512L));    // (2 ^ 9)
     }};
 
     @NotNull
@@ -498,7 +500,7 @@ public class ProgrammingLanguageExpressionDTDomain extends DecisionTreeReasoning
                     RDFDeserializer deserializer = new RDFDeserializer();
                     Model templateModel = ModelFactory.createDefaultModel();
                     RDFDataMgr.read(templateModel, file);
-                    MeaningTree mt = new MeaningTree(deserializer.deserialize(templateModel));
+                    MeaningTree mt = deserializer.deserializeTree(templateModel);
                     for (SupportedLanguage language : SupportedLanguage.getMap().keySet()) {
                         String languageStr = language.toString().toLowerCase();
                         if (parsedQuestionName.endsWith(String.format("_%s.mt.ttl", languageStr))) {
@@ -717,6 +719,7 @@ public class ProgrammingLanguageExpressionDTDomain extends DecisionTreeReasoning
                 }
                 String tokenType = switch (mainToken.type) {
                     case CALL_OPENING_BRACE -> getMessage("FUNC_CALL", lang);
+                    case INITIALIZER_LIST_OPENING_BRACE ->  getMessage("LITERAL", lang);
                     default -> getMessage("OPERATOR", lang);
                 };
                 String tokensRepr = mainToken.value + (pairedToken != null ? " ".concat(pairedToken.value) : "");

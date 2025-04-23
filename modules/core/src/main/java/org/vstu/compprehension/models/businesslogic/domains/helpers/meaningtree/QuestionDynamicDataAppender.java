@@ -9,6 +9,7 @@ import org.vstu.compprehension.models.entities.AnswerObjectEntity;
 import org.vstu.compprehension.models.entities.EnumData.Language;
 import org.vstu.compprehension.models.entities.ExerciseAttemptEntity;
 import org.vstu.compprehension.models.entities.QuestionDataEntity;
+import org.vstu.compprehension.models.entities.QuestionMetadataEntity;
 import org.vstu.meaningtree.SupportedLanguage;
 import org.vstu.meaningtree.utils.tokens.ComplexOperatorToken;
 import org.vstu.meaningtree.utils.tokens.OperatorToken;
@@ -53,7 +54,7 @@ public class QuestionDynamicDataAppender {
                     ansEntity.setRightCol(obj.isRightCol());
                     return ansEntity;
                 }).toList()));
-        q.getQuestionData().setQuestionText(questionToHtml(tokens, domain, userLang, q.getMetadata() == null ? -1 : q.getMetadata().getId()));
+        q.getQuestionData().setQuestionText(questionToHtml(tokens, domain, userLang, q.getMetadata()));
         q.getQuestionData().setExerciseAttempt(attempt);
         q.getQuestionData().setDomainEntity(domain.getDomainEntity());
         return q;
@@ -68,7 +69,7 @@ public class QuestionDynamicDataAppender {
      */
     static String questionToHtml(TokenList tokens,
                                  ProgrammingLanguageExpressionDTDomain domain,
-                                 Language lang, int metaId
+                                 Language lang, QuestionMetadataEntity metadata
     ) {
         StringBuilder sb = new StringBuilder("<div class='comp-ph-question'>");
         sb.append(domain.getMessage("BASE_QUESTION_TEXT", lang));
@@ -102,9 +103,14 @@ public class QuestionDynamicDataAppender {
         MeaningTreeUtils.appendJoinTokenValues(sb, " ", tokens);
         sb.append(' ');
         sb.append("-->");
-        sb.append("<!-- Metadata id: ");
-        sb.append(metaId);
-        sb.append("-->");
+        if (metadata != null) {
+            sb.append("<!-- Metadata id: ");
+            sb.append(metadata.getId());
+            sb.append("-->");
+            sb.append("<!-- Question name: ");
+            sb.append(metadata.getName());
+            sb.append("-->");
+        }
         sb.append("</p>");
         sb.append("</div>");
         return sb.toString().replaceAll("\\*", "&#8727")

@@ -23,7 +23,6 @@ import org.vstu.compprehension.models.entities.exercise.ExerciseStageEntity;
 import org.vstu.compprehension.models.repository.ExerciseAttemptRepository;
 import org.vstu.compprehension.models.repository.ExerciseRepository;
 import org.vstu.compprehension.models.repository.UserRepository;
-import org.vstu.compprehension.utils.HyperText;
 import org.vstu.meaningtree.MeaningTree;
 import org.vstu.meaningtree.SupportedLanguage;
 import org.vstu.meaningtree.nodes.Node;
@@ -171,7 +170,7 @@ public class ProgrammingLanguageExpressionDTDomainTest {
         // Check tree correctness
         Model m = MeaningTreeRDFHelper.backendFactsToModel(q.getStatementFacts());
         RDFDeserializer deserializer = new RDFDeserializer();
-        MeaningTree mt = new MeaningTree(deserializer.deserialize(m));
+        MeaningTree mt = deserializer.deserializeTree(m);
 
         // Check metadata
         Assert.isTrue(q.getMetadata() != null
@@ -205,7 +204,7 @@ public class ProgrammingLanguageExpressionDTDomainTest {
         // Check tree correctness
         Model m = MeaningTreeRDFHelper.backendFactsToModel(q.getStatementFacts());
         RDFDeserializer deserializer = new RDFDeserializer();
-        MeaningTree mt = new MeaningTree(deserializer.deserialize(m));
+        MeaningTree mt = deserializer.deserializeTree(m);
         try {
             System.out.println(
                     SupportedLanguage.CPP.createTranslator(new MeaningTreeDefaultExpressionConfig()).getCode(mt)

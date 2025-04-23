@@ -64,7 +64,6 @@ public class MeaningTreeOrderQuestionBuilder {
     // Additional information for question source
     protected String questionOrigin = null; // source of question (for example, source code repository full name)
     protected String originLicense = null; // license of source (for example, GPLv3)
-
     // Target domain for question is generated
     protected @Nullable ProgrammingLanguageExpressionDTDomain domain;
 
@@ -73,7 +72,6 @@ public class MeaningTreeOrderQuestionBuilder {
     protected List<SerializableQuestion.AnswerObject> answerObjects;
     protected SerializableQuestionTemplate.QuestionMetadata metadata;
     protected SerializableQuestion.QuestionData qdata;
-    protected List<String> tags;
     protected Set<String> concepts;
     protected Set<String> possibleViolations;
 
@@ -397,7 +395,7 @@ public class MeaningTreeOrderQuestionBuilder {
      * @return pair of serializable question and its metadata
      */
     protected Pair<SerializableQuestion, SerializableQuestionTemplate.QuestionMetadata> generateFromTemplate(SupportedLanguage lang, Input input) {
-        Model model = new RDFSerializer().serialize(input.mt.getRootNode());
+        Model model = new RDFSerializer().serialize(input.mt);
         List<SerializableQuestion.StatementFact> facts = MeaningTreeRDFHelper.backendFactsToSerialized(
                 MeaningTreeRDFHelper.factsFromModel(model));
         processMetadata(lang, input);
@@ -557,9 +555,18 @@ public class MeaningTreeOrderQuestionBuilder {
             throw new MeaningTreeException("No valid data present for metadata");
         }
         QuestionMetadataEntity metadata = existingMetadata == null ? null : existingMetadata;
-        tags = new ArrayList<>(List.of("basics", "operators", "order", "evaluation", "errors"));
+        List<String> tags = new ArrayList<>(List.of("basics", "operators", "order", "evaluation", "errors"));
         String languageStr = language.toString();
         tags.add(languageStr.substring(0, 1).toUpperCase() + languageStr.substring(1));
+        Label nodeOrigin = input.mt.getLabel(Label.ORIGIN);
+        if (nodeOrigin != null && !input.mt.hasLabel(Label.MUTATION_FLAG) && nodeOrigin.hasAttribute()
+                && nodeOrigin.getAttribute().equals(language.getId())) {
+            tags.add("original");
+        }
+        if (input.mt.hasLabel(Label.MUTATION_FLAG)) {
+            tags.add("mutation");
+        }
+
         if (questionOrigin == null || questionOrigin.isEmpty()) {
             throw new MeaningTreeException("Question origin didn't specified");
         }
@@ -659,7 +666,7 @@ public class MeaningTreeOrderQuestionBuilder {
      */
     protected void processTemplateStatementFacts() {
         RDFSerializer rdfSerializer = new RDFSerializer();
-        Model m = rdfSerializer.serialize(sourceExpressionTree.getRootNode());
+        Model m = rdfSerializer.serialize(sourceExpressionTree);
         this.stmtFacts = MeaningTreeRDFHelper.backendFactsToSerialized(MeaningTreeRDFHelper.factsFromModel(m));
     }
 
