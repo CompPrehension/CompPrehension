@@ -642,13 +642,13 @@
                                 _EN_nextStepBranchResult="The one on the ${$params.branchResult == BranchResult:CORRECT ? 'right' : 'left'} is always evaluated first"
                                 _EN_nextStepExplanation="That's incorrect. One should first determine if parentheses have any effect on the precedence of the two operators."
                             >
-                                <QuestionNode type="bool" _alias="left.predetermining.1.isXinY"
-                                    _RU_asNextStep="Необходимо проверить, находится ли ${X}[case='и'] между ${Y1}[case='р'] И ${Y2}[case='р']"
-                                    _RU_question="Верно ли, что ${X}[case='и'] находится между ${Y1}[case='р'] И ${Y2}[case='р']?"
-                                    _RU_endingCause="Потому что ${X} находится между ${Y1} И ${Y2}"
-                                    _EN_asNextStep="We should check if ${X} is between ${Y1} and ${Y2}"
-                                    _EN_question="Is ${X} between ${Y1} and ${Y2}?"
-                                    _EN_endingCause="Because ${X} is between ${Y1} and ${Y2}"
+                                <QuestionNode type="bool" _alias="left.isXinY"
+                                              _RU_asNextStep="Необходимо проверить, находится ли ${X}[case='и'] внутри ${Y}[case='р']"
+                                              _RU_question="Верно ли, что ${X}[case='и'] находится внутри ${Y}[case='р']?"
+                                              _RU_endingCause="Потому что ${X} находится внутри ${Y}[case='р']"
+                                              _EN_asNextStep="We should check if ${X} is inside ${Y}"
+                                              _EN_question="Is ${X} inside ${Y}?"
+                                              _EN_endingCause="Because ${X} is inside ${Y}"
                                 >
                                     <Expression>
                                         <ExistenceQuantifier varName="y2">
@@ -712,8 +712,10 @@
                                         >
                                                 <ThoughtBranch type="bool"
                                                     _alias="left.predetermining.2"
-                                                    _RU_description="${$params.branchResult == BranchResult:CORRECT ? '${X}[case='и'] находится в скобках, а ${Y}[case='и'] - за их пределами' : 'не существует скобок, окружающих ${X}[case='и'], но не окружающих ${Y}[case='в']'}"
-                                                    _EN_description="${$params.branchResult == BranchResult:CORRECT ? '${X} is inside of parenthesis, and ${Y} is outside of them' : 'there are no parenthesis that enclose ${X} but not ${Y}'}"
+                                                               _RU_description_correct="${X} находится в скобках, а ${Y} - за их пределами"
+                                                               _RU_description_null="не существует скобок, окружающих ${X}, но не окружающих ${Y}[case='в']"
+                                                               _EN_description_correct="${X} is inside of parenthesis, and ${Y} is outside of them"
+                                                               _EN_description_null="there are no parenthesis that enclose ${X} but not ${Y}"
                                                 >
                                                 <!-- Вопросы не задаются, поскольку ветка
                                                 тривиальна, так что формулировки не прописал-->
@@ -792,8 +794,10 @@
                                                 </ThoughtBranch>
                                                 <ThoughtBranch type="bool"
                                                     _alias="left.predetermining.3"
-                                                    _RU_description="${$params.branchResult == BranchResult:CORRECT ? '${Y}[case='и'] находится в скобках, а ${X}[case='и'] - за их пределами' : 'не существует скобок, окружающих ${Y}[case='и'], но не окружающих ${X}[case='в']'}"
-                                                    _EN_description="${$params.branchResult == BranchResult:CORRECT ? '${Y} is inside of parenthesis, and ${X} is outside of them' : 'there are no parenthesis that enclose ${Y} but not ${X}'}"
+                                                               _RU_description_error="${Y} находится в скобках, а ${X} - за их пределами"
+                                                               _RU_description_null="не существует скобок, окружающих ${Y}, но не окружающих ${X}[case='в']"
+                                                               _EN_description_error="${Y} is inside of parenthesis, and ${X} is outside of them"
+                                                               _EN_description_null="there are no parenthesis that enclose ${Y} but not ${X}"
                                                 >
                                                 <!-- Вопросы не задаются, поскольку ветка
                                                     тривиальна,
@@ -871,13 +875,10 @@
                                                     </QuestionNode>
                                                 </ThoughtBranch>
                                             <Outcome value="null"
-                                                _RU_text="Никак - скобки не влияют на порядок вычисления ${X}[case='р'] и ${Y}[case='р']"
-                                                _RU_explanation="${$params.branchResult == BranchResult:CORRECT ? 'скобки не влияют на порядок вычисления ${X}[case='р'] и ${Y}[case='р']' : 'скобки имеют влияние на порядок вычисления ${X}[case='р'] и ${Y}[case='р']'}"
                                                 _RU_nextStepQuestion="В отсутствии влияния скобок, как определяется порядок выполнения стоящих рядом операторов?"
                                                 _RU_nextStepBranchResult="${$params.branchResult == BranchResult:CORRECT ? 'Правый' : 'Левый'} оператор всегда выполняется первым"
                                                 _RU_nextStepExplanation="Это неверно. В отсутствии скобок, порядок выполнения стоящих рядом операторов определяется их приоритетом - его и надо рассматривать следующим."
-                                                _EN_text="They don't - parentheses have no effect on ${X} and ${Y}"
-                                                _EN_explanation="parentheses do ${$params.branchResult == BranchResult:CORRECT ? 'not' : ''} affect the evaluation of ${X} and ${Y}"
+
                                                 _EN_nextStepQuestion="In the absence of parentheses' effect, how should one determine the order of evaluation between two operator?"
                                                 _EN_nextStepBranchResult="The operator on the ${$params.branchResult == BranchResult:CORRECT ? 'right' : 'left'} is always evaluated first."
                                                 _EN_nextStepExplanation="That's incorrect. In the absence of parentheses' effect, the order of evaluation is determined by the precedence of the operators - so it should be considered next."
@@ -886,7 +887,7 @@
                                                     _alias="left.precedence"
                                                     _RU_asNextStep="Необходимо сравнить приоритеты ${X.class()}[case='р'] и ${Y.class()}[case='р']"
                                                     _RU_question="Сравните приоритеты ${X.class()}[case='р'] и ${Y.class()}[case='р']"
-                                                    _RU_endingCause="Из-за соотношения приоритетов ${X.class()} и ${Y.class()}"
+                                                              _RU_endingCause="Из-за соотношения приоритетов ${X.class()}[case='р'] и ${Y.class()}[case='р']"
                                                     _EN_asNextStep="We should compare the precedence of ${X.class()} and ${Y.class()}."
                                                     _EN_question="Compare the precedence of ${X.class()} and ${Y.class()}."
                                                     _EN_endingCause="Because of the precedences of ${X.class()} and ${Y.class()}."
@@ -1396,14 +1397,13 @@
                                 _EN_nextStepBranchResult="The one on the ${$params.branchResult == BranchResult:CORRECT ? 'left' : 'right'} is always evaluated first"
                                 _EN_nextStepExplanation="That's incorrect. One should first determine if parentheses have any effect on the precedence of the two operators."
                             >
-                                <QuestionNode type="bool"
-                                    _alias="right.predetermining.1.isXinZ"
-                                    _RU_asNextStep="Необходимо проверить, находится ли ${X}[case='и'] между ${Z1}[case='р'] и между ${Z2}[case='р']"
-                                    _RU_question="Верно ли, что ${X}[case='и'] находится между ${Z1}[case='р'] и между ${Z2}[case='р']?"
-                                    _RU_endingCause="Потому что ${X} находится между ${Z1} и между ${Z2}"
-                                    _EN_asNextStep="We should check if ${X} is between ${Z1} and ${Z2}"
-                                    _EN_question="Is ${X} between ${Z1} and ${Z2}?"
-                                    _EN_endingCause="Because ${X} is between ${Z1} and ${Z2}"
+                                <QuestionNode type="bool" _alias="right.isXinZ"
+                                              _RU_asNextStep="Необходимо проверить, находится ли ${X}[case='и'] внутри ${Z}[case='р']"
+                                              _RU_question="Верно ли, что ${X}[case='и'] находится внутри ${Z}[case='р']?"
+                                              _RU_endingCause="Потому что ${X} находится внутри ${Z}[case='р']"
+                                              _EN_asNextStep="We should check if ${X} is inside ${Z}"
+                                              _EN_question="Is ${X} inside ${Z}?"
+                                              _EN_endingCause="Because ${X} is inside ${Z}"
                                 >
                                     <Expression>
                                         <ExistenceQuantifier varName="z2">
@@ -1463,8 +1463,10 @@
                                         >
                                                 <ThoughtBranch type="bool"
                                                     _alias="right.predetermining.2"
-                                                    _RU_description="${$params.branchResult == BranchResult:CORRECT ? '${X}[case='и'] находится в скобках, а ${Z}[case='и'] - за их пределами' : 'не существует скобок, окружающих ${X}[case='и'], но не окружающих ${Z}[case='в']'}"
-                                                    _EN_description="${$params.branchResult == BranchResult:CORRECT ? '${X} is inside of parenthesis, and ${Z} is outside of them' : 'there are no parenthesis that enclose ${X} but not ${Z}'}"
+                                                               _RU_description_correct="${X} находится в скобках, а ${Z} - за их пределами"
+                                                               _RU_description_null="не существует скобок, окружающих ${X}, но не окружающих ${Z}[case='в']"
+                                                               _EN_description_correct="${X} is inside of parenthesis, and ${Z} is outside of them"
+                                                               _EN_description_null="there are no parenthesis that enclose ${X} but not ${Z}"
                                                 >
                                                 <!-- Вопросы не задаются, поскольку ветка
                                                     тривиальна,
@@ -1538,8 +1540,10 @@
                                                 </ThoughtBranch>
                                                 <ThoughtBranch type="bool"
                                                     _alias="right.predetermining.3"
-                                                    _RU_description="${$params.branchResult == BranchResult:CORRECT ? '${Z}[case='и'] находится в скобках, а ${X}[case='и'] - за их пределами' : 'не существует скобок, окружающих ${Z}[case='и'], но не окружающих ${X}[case='в']'}"
-                                                    _EN_description="${$params.branchResult == BranchResult:CORRECT ? '${Z} is inside of parenthesis, and ${X} is outside of them' : 'there are no parenthesis that enclose ${Z} but not ${X}'}"
+                                                               _RU_description_error="${Z} находится в скобках, а ${X} - за их пределами"
+                                                               _RU_description_null="не существует скобок, окружающих ${Z}, но не окружающих ${X}[case='в']"
+                                                               _EN_description_error="${Z} is inside of parenthesis, and ${X} is outside of them"
+                                                               _EN_description_null="there are no parenthesis that enclose ${Z} but not ${X}"
                                                 >
                                                 <!-- Вопросы не задаются, поскольку ветка
                                                     тривиальна,
@@ -1613,14 +1617,11 @@
                                                     </QuestionNode>
                                                 </ThoughtBranch>
                                             <Outcome value="null"
-                                                _RU_text="Никак - скобки не влияют на порядок вычисления ${X}[case='р'] и ${Z}[case='р']"
-                                                _RU_explanation="${$params.branchResult == BranchResult:CORRECT ? 'скобки не влияют на порядок вычисления ${X}[case='р'] и ${Z}[case='р']' : 'скобки имеют влияние на порядок вычисления ${X}[case='р'] и ${Z}[case='р']'}"
-                                                _RU_nextStepQuestion="В отсутствии влияния скобок, как определяется порядок выполнения стоящих рядом операторов?"
+                                                     _RU_nextStepQuestion="В отсутствии влияния скобок, как определяется порядок выполнения стоящих рядом операторов?"
                                                 _RU_nextStepBranchResult="${$params.branchResult == BranchResult:CORRECT ? 'Левый' : 'Правый'} оператор всегда выполняется первым"
                                                 _RU_nextStepExplanation="Это неверно. В отсутствии скобок, порядок выполнения стоящих рядом операторов определяется их приоритетом - его и надо рассматривать следующим."
-                                                _EN_text="They don't - parentheses have no effect on ${X} and ${Z}"
-                                                _EN_explanation="parentheses do ${$params.branchResult == BranchResult:CORRECT ? 'not' : ''} affect the evaluation of ${X} and ${Z}"
-                                                _EN_nextStepQuestion="In the absence of parentheses' effect, how should one determine the order of evaluation between two operator?"
+
+                                                     _EN_nextStepQuestion="In the absence of parentheses' effect, how should one determine the order of evaluation between two operator?"
                                                 _EN_nextStepBranchResult="The operator on the ${$params.branchResult == BranchResult:CORRECT ? 'right' : 'left'} is always evaluated first."
                                                 _EN_nextStepExplanation="That's incorrect. In the absence of parentheses' effect, the order of evaluation is determined by the precedence of the operators - so it should be considered next."
                                             >
@@ -1628,7 +1629,7 @@
                                                     _alias="right.precedence"
                                                     _RU_asNextStep="Необходимо сравнить приоритеты ${X.class()}[case='р'] и ${Z.class()}[case='р']"
                                                     _RU_question="Сравните приоритеты ${X.class()}[case='р'] и ${Z.class()}[case='р']"
-                                                    _RU_endingCause="Из-за соотношения приоритетов ${X.class()} и ${Z.class()}"
+                                                              _RU_endingCause="Из-за соотношения приоритетов ${X.class()}[case='р'] и ${Z.class()}[case='р']"
                                                     _EN_asNextStep="We should compare the precedence of ${X.class()} and ${Z.class()}."
                                                     _EN_question="Compare the precedence of ${X.class()} and ${Z.class()}."
                                                     _EN_endingCause="Because of the precedences of ${X.class()} and ${Z.class()}."
@@ -1926,10 +1927,10 @@
                                     </Outcome>
                                     <Outcome value="False">
                                         <BranchResultNode value="true"
-                                            _skill="is_current_operator_strict_order" /> 
+                                                          _skill="is_current_operator_strict_order"/>
                                     </Outcome>
                                 </QuestionNode>
-                                
+
                             </Outcome>
                             <Outcome value="False">
                                 <QuestionNode _alias="X в его первом операнде"

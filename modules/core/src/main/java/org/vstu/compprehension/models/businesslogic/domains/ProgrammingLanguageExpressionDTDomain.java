@@ -28,6 +28,7 @@ import org.vstu.compprehension.models.businesslogic.storage.QuestionBank;
 import org.vstu.compprehension.models.businesslogic.storage.SerializableQuestionTemplate;
 import org.vstu.compprehension.models.entities.*;
 import org.vstu.compprehension.models.entities.EnumData.FeedbackType;
+import org.vstu.compprehension.models.entities.EnumData.InteractionType;
 import org.vstu.compprehension.models.entities.EnumData.Language;
 import org.vstu.compprehension.utils.HyperText;
 import org.vstu.meaningtree.MeaningTree;
@@ -851,8 +852,8 @@ public class ProgrammingLanguageExpressionDTDomain extends DecisionTreeReasoning
 
     @Override
     public boolean needSupplementaryQuestion(ViolationEntity violation) {
-        // TODO: temporary changes due to broken question generator library
-        return false;
+        Skill skill = getSkill(violation.getLawName());
+        return skill != null && violation.getInteraction().getInteractionType() != InteractionType.REQUEST_CORRECT_ANSWER;
     }
 
     private DomainModel mainQuestionToModel(InteractionEntity lastMainQuestionInteraction) {
