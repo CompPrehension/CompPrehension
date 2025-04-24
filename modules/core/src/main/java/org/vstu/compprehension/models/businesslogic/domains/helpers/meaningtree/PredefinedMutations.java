@@ -7,6 +7,7 @@ import org.vstu.meaningtree.nodes.expressions.ParenthesizedExpression;
 import org.vstu.meaningtree.nodes.expressions.UnaryExpression;
 import org.vstu.meaningtree.nodes.expressions.bitwise.InversionOp;
 import org.vstu.meaningtree.nodes.expressions.identifiers.SimpleIdentifier;
+import org.vstu.meaningtree.nodes.expressions.other.AssignmentExpression;
 import org.vstu.meaningtree.nodes.expressions.other.IndexExpression;
 import org.vstu.meaningtree.nodes.expressions.other.MemberAccess;
 import org.vstu.meaningtree.nodes.expressions.other.TernaryOperator;
@@ -84,7 +85,9 @@ class PredefinedMutations {
         @Override
         public boolean isEligible(Node.Info child) {
             for (Class<? extends Expression> clazz : List.of(MemberAccess.class, IndexExpression.class)) {
-                if (clazz.isInstance(child.node())) {
+                if (clazz.isInstance(child.node()) &&
+                        !(child.parent() instanceof AssignmentExpression &&
+                                child.readableFieldName().equals("left"))) {
                     return true;
                 }
             }
