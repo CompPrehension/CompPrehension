@@ -32,9 +32,12 @@ public abstract class Mutation {
         } else {
             target = origin;
         }
-        random = new Random(origin.hashCode());
+        int originHashCode = origin.hashCode();
+        random = new Random(originHashCode);
         perform(target, target.getNodeById(info.id()));
-        target.setLabel(Label.MUTATION_FLAG);
+        if (originHashCode != target.hashCode()) {
+            target.setLabel(Label.MUTATION_FLAG);
+        }
         return target;
     }
 
