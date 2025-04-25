@@ -59,9 +59,13 @@ public class MeaningTreeRDFHelper {
                 boolean leftVal = op.getLeft().getAssignedValueTag() != null && (boolean) op.getLeft().getAssignedValueTag();
                 boolean rightVal = op.getLeft().getAssignedValueTag() != null && (boolean) op.getLeft().getAssignedValueTag();
 
-                if (op instanceof ShortCircuitAndOp || op instanceof ShortCircuitOrOp && opVal != leftVal) {
-                    op.getLeft().setAssignedValueTag(opVal);
+                if (op instanceof ShortCircuitAndOp && opVal != leftVal && opVal) {
+                    op.getLeft().setAssignedValueTag(true);
                 }
+                if (op instanceof ShortCircuitOrOp && opVal != leftVal && !opVal) {
+                    op.getLeft().setAssignedValueTag(false);
+                }
+
                 if (op instanceof ShortCircuitAndOp && opVal) {
                     op.getRight().setAssignedValueTag(true);
                 }
