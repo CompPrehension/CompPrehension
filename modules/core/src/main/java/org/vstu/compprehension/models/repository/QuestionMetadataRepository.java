@@ -11,6 +11,7 @@ import org.springframework.stereotype.Repository;
 import org.vstu.compprehension.dto.ComplexityStats;
 import org.vstu.compprehension.models.entities.QuestionMetadataEntity;
 
+import java.util.Collection;
 import java.util.HashSet;
 import java.util.List;
 
@@ -70,9 +71,11 @@ public interface QuestionMetadataRepository extends CrudRepository<QuestionMetad
     @Query
     boolean existsByName(String questionName);
 
-    @Query("select exists(select 1 from QuestionMetadataEntity m where m.domainShortname = :domainShortname and m.name = :questionName) " +
-            "or exists(select 1 from QuestionMetadataEntity m where m.domainShortname = :domainShortname and m.templateId = :templateId)")
-    boolean existsByNameOrTemplateId(@Param("domainShortname") String domainShortname, @Param("questionName") String questionName, @Param("templateId") String templateId);
+    @Query("select distinct m.name from QuestionMetadataEntity m where m.domainShortname = :domainShortname and m.name in :questionNames")
+    HashSet<String> findExistingNames(@Param("domainShortname") String domainShortname, @Param("questionNames") Collection<String> questionNames);
+
+    @Query("select distinct m.templateId from QuestionMetadataEntity m where m.domainShortname = :domainShortname and m.templateId in :templateIds")
+    HashSet<String> findExistingTemplateIds(@Param("domainShortname") String domainShortname, @Param("templateIds") Collection<String> templateIds);
 
     @Query(value = "select new org.vstu.compprehension.dto.ComplexityStats(" +
             "count(*), " +

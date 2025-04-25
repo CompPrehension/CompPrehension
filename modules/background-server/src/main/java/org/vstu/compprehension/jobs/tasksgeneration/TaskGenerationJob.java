@@ -13,6 +13,7 @@ import org.jobrunr.jobs.annotations.Job;
 import org.kohsuke.github.*;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Service;
+import org.vstu.compprehension.common.BatchingIterator;
 import org.vstu.compprehension.common.FileHelper;
 import org.vstu.compprehension.dto.GenerationRequest;
 import org.vstu.compprehension.dto.GenerationRequestGroup;
@@ -35,6 +36,7 @@ import java.time.ZoneId;
 import java.time.ZoneOffset;
 import java.util.*;
 import java.util.concurrent.*;
+import java.util.concurrent.atomic.AtomicInteger;
 import java.util.stream.Collectors;
 import java.util.stream.Stream;
 import java.util.stream.StreamSupport;
@@ -533,111 +535,127 @@ public class TaskGenerationJob {
             String repoName = repoDir.getFileName().toString();
             log.info("Start processing repo [{}]", repoName);
 
-            // загрузить из папки полученные вопросы
             var allJsonFiles = FileUtility.findFiles(repoDir, new String[]{".json"});
             log.info("Found {} json files in: {}", allJsonFiles.size(), repoDir);
 
-            int savedQuestions = 0;
-            int skippedQuestions = 0; // loaded but not kept since not required by any QR
+            AtomicInteger savedQuestions = new AtomicInteger();
+            AtomicInteger skippedQuestions = new AtomicInteger(); // loaded but not kept since not required by any QR
 
-            for (val file : allJsonFiles) {
-                val q = SerializableQuestionTemplate.deserialize(file);
-                if (q == null) {
-                    continue;
-                }
+            var allJsonBatches = BatchingIterator.batchedStreamOf(
+                    allJsonFiles.stream()
+                        .map(SerializableQuestionTemplate::deserialize)
+                        .filter(Objects::nonNull),
+                    1000);
+            allJsonBatches.forEach(batch -> {
 
-                HashSet<QuestionMetadataEntity> metaList = q.getMetadataList().stream()
-                        .map(SerializableQuestionTemplate.QuestionMetadata::toMetadataEntity)
-                        .collect(Collectors.toCollection(HashSet::new));
-                if (metaList.isEmpty()) {
-                    skippedQuestions += 1;
-                    // в вопросе нет метаданных, невозможно проверить
-                    log.warn("[info] cannot save question which does not contain metadata. Source file: {}", file);
-                    continue;
-                }
+                var questionNames = batch.stream()
+                        .flatMap(q -> q.getMetadataList().stream())
+                        .map(SerializableQuestionTemplate.QuestionMetadata::getName)
+                        .filter(Objects::nonNull)
+                        .collect(Collectors.toSet());
+                var existingQuestionNames = metadataRep.findExistingNames(config.getDomainShortName(), questionNames);
 
-                var metadataToRemove = new ArrayList<QuestionMetadataEntity>();
-                for (QuestionMetadataEntity meta : metaList) {
-                    if (metadataRep.existsByNameOrTemplateId(config.getDomainShortName(), meta.getName(), meta.getTemplateId())) {
-                        skippedQuestions += 1;
-                        log.info("Template [{}] or question [{}] already exists. Skipping...", meta.getTemplateId(), meta.getName());
-                        metadataToRemove.add(meta);
+                var templateIds = batch.stream()
+                        .flatMap(q -> q.getMetadataList().stream())
+                        .map(SerializableQuestionTemplate.QuestionMetadata::getTemplateId)
+                        .filter(Objects::nonNull)
+                        .collect(Collectors.toSet());
+                var existingTemplateIds = metadataRep.findExistingTemplateIds(config.getDomainShortName(), templateIds);
+
+                for (var q : batch) {
+                    HashSet<QuestionMetadataEntity> metaList = q.getMetadataList().stream()
+                            .map(SerializableQuestionTemplate.QuestionMetadata::toMetadataEntity)
+                            .collect(Collectors.toCollection(HashSet::new));
+                    if (metaList.isEmpty()) {
+                        skippedQuestions.addAndGet(1);
+                        // в вопросе нет метаданных, невозможно проверить
+                        log.warn("[info] cannot save question which does not contain metadata. Question name: {}", q.getCommonQuestion().getQuestionData().getQuestionName());
+                        continue;
                     }
-                }
-                metadataToRemove.forEach(metaList::remove);
-                if (metaList.isEmpty()) {
-                    log.info("All metadata already exists for file [{}]. Skipping...", file);
-                    continue;
-                }
 
-                // Проверить, подходит ли он нам
-                // если да, то сразу импортировать его в боевой банк, создав запись метаданных, записав в них информацию о затребовавших QR-логах, и сохранив данные вопроса в базу данных
-                HashMap<QuestionMetadataEntity, Integer> matchedMetadata = new HashMap<>();
-                if (generationRequests == null) {
+                    var metadataToRemove = new ArrayList<QuestionMetadataEntity>();
                     for (QuestionMetadataEntity meta : metaList) {
-                        matchedMetadata.put(meta, null);
+                        if (existingQuestionNames.contains(meta.getName()) || existingTemplateIds.contains(meta.getTemplateId())) {
+                            skippedQuestions.addAndGet(1);
+                            log.info("Template [{}] or question [{}] already exists. Skipping...", meta.getTemplateId(), meta.getName());
+                            metadataToRemove.add(meta);
+                        }
                     }
-                } else {
-                    for (QuestionMetadataEntity meta : metaList) {
-                        if (matchedMetadata.containsKey(meta))
-                            continue; // already matched
+                    metadataToRemove.forEach(metaList::remove);
+                    if (metaList.isEmpty()) {
+                        log.info("All metadata already exists for question [{}]. Skipping...", q.getCommonQuestion().getQuestionData().getQuestionName());
+                        continue;
+                    }
 
-                        for (var gr : incompletedRequests.entrySet()) {
+                    // Проверить, подходит ли он нам
+                    // если да, то сразу импортировать его в боевой банк, создав запись метаданных, записав в них информацию о затребовавших QR-логах, и сохранив данные вопроса в базу данных
+                    HashMap<QuestionMetadataEntity, Integer> matchedMetadata = new HashMap<>();
+                    if (generationRequests == null) {
+                        for (QuestionMetadataEntity meta : metaList) {
+                            matchedMetadata.put(meta, null);
+                        }
+                    } else {
+                        for (QuestionMetadataEntity meta : metaList) {
                             if (matchedMetadata.containsKey(meta))
-                                break; // already matched
-                            if (gr.getValue().isEmpty()) {
-                                continue;
-                            }
+                                continue; // already matched
 
-                            var searchRequest = gr.getKey().getQuestionRequest();
-                            var genRequest = gr.getValue().stream().findFirst().orElse(null);
-                            if (!storage.isMatch(meta, searchRequest)) {
-                                log.debug("Question [{}] does not match generation requests group {}", q.getCommonQuestion().getQuestionData().getQuestionName(), gr.getKey().getGenerationRequestIds());
-                            } else {
-                                log.debug("Question [{}] matches generation requests group {}", q.getCommonQuestion().getQuestionData().getQuestionName(), gr.getKey().getGenerationRequestIds());
-                                matchedMetadata.put(meta, genRequest.id());
-                                var qGenerated = questionsGenerated.compute(genRequest, (k, v) -> v == null ? 1 : v + 1);
+                            for (var gr : incompletedRequests.entrySet()) {
+                                if (matchedMetadata.containsKey(meta))
+                                    break; // already matched
+                                if (gr.getValue().isEmpty()) {
+                                    continue;
+                                }
 
-                                if (qGenerated >= genRequest.questionsToGenerate()) {
-                                    gr.getValue().remove(genRequest);
+                                var searchRequest = gr.getKey().getQuestionRequest();
+                                var genRequest = gr.getValue().stream().findFirst().orElse(null);
+                                if (!storage.isMatch(meta, searchRequest)) {
+                                    log.debug("Question [{}] does not match generation requests group {}", q.getCommonQuestion().getQuestionData().getQuestionName(), gr.getKey().getGenerationRequestIds());
+                                } else {
+                                    log.debug("Question [{}] matches generation requests group {}", q.getCommonQuestion().getQuestionData().getQuestionName(), gr.getKey().getGenerationRequestIds());
+                                    matchedMetadata.put(meta, genRequest.id());
+                                    var qGenerated = questionsGenerated.compute(genRequest, (k, v) -> v == null ? 1 : v + 1);
+
+                                    if (qGenerated >= genRequest.questionsToGenerate()) {
+                                        gr.getValue().remove(genRequest);
+                                    }
                                 }
                             }
                         }
                     }
-                }
 
-                if (matchedMetadata.isEmpty()) {
-                    skippedQuestions += 1;
-                    log.debug("Question [{}] skipped because zero qr matches: ", q.getCommonQuestion().getQuestionData().getQuestionName());
-                    continue;
-                }
-
-                if (generatorConfig.isSaveToDb()) {
-                    // save question data in the database
-                    QuestionDataEntity questionData = new QuestionDataEntity();
-                    questionData.setData(q.getCommonQuestion());
-                    questionData = storage.saveQuestionDataEntity(questionData);
-
-                    // then save metadata
-                    for (var kv : matchedMetadata.entrySet()) {
-                        var meta = kv.getKey();
-                        var genRequestId = kv.getValue();
-                        meta.setGenerationRequestId(genRequestId);
-                        meta.setQuestionData(questionData);
-                        meta = storage.saveMetadataEntity(meta);
+                    if (matchedMetadata.isEmpty()) {
+                        skippedQuestions.addAndGet(1);
+                        log.debug("Question [{}] skipped because zero qr matches: ", q.getCommonQuestion().getQuestionData().getQuestionName());
+                        continue;
                     }
 
-                    log.info("* * *");
-                    log.info("Question [{}] saved with data in database. Metadata id: {}", q.getCommonQuestion().getQuestionData().getQuestionName(),
-                            metaList.stream()
-                                    .map(QuestionMetadataEntity::getId)
-                                    .map((Integer i) -> Integer.toString(i))
-                                    .collect(Collectors.joining(", ")));
-                    savedQuestions += 1;
-                } else {
-                    log.info("Saving updates to DB actually SKIPPED due to DEBUG mode:");
+                    if (generatorConfig.isSaveToDb()) {
+                        // save question data in the database
+                        QuestionDataEntity questionData = new QuestionDataEntity();
+                        questionData.setData(q.getCommonQuestion());
+                        questionData = storage.saveQuestionDataEntity(questionData);
+
+                        // then save metadata
+                        for (var kv : matchedMetadata.entrySet()) {
+                            var meta = kv.getKey();
+                            var genRequestId = kv.getValue();
+                            meta.setGenerationRequestId(genRequestId);
+                            meta.setQuestionData(questionData);
+                            meta = storage.saveMetadataEntity(meta);
+                        }
+
+                        log.info("* * *");
+                        log.info("Question [{}] saved with data in database. Metadata id: {}", q.getCommonQuestion().getQuestionData().getQuestionName(),
+                                metaList.stream()
+                                        .map(QuestionMetadataEntity::getId)
+                                        .map((Integer i) -> Integer.toString(i))
+                                        .collect(Collectors.joining(", ")));
+                        savedQuestions.addAndGet(1);
+                    } else {
+                        log.info("Saving updates to DB actually SKIPPED due to DEBUG mode:");
+                    }
                 }
-            }
+            });
 
             log.info("Skipped {} questions of {} generated.", skippedQuestions, allJsonFiles.size());
             log.info("Saved {} questions of {} generated.", savedQuestions, allJsonFiles.size());
