@@ -8,10 +8,6 @@ import org.vstu.compprehension.models.entities.BackendFactEntity;
 import org.vstu.meaningtree.MeaningTree;
 import org.vstu.meaningtree.SupportedLanguage;
 import org.vstu.meaningtree.exceptions.MeaningTreeException;
-import org.vstu.meaningtree.nodes.Node;
-import org.vstu.meaningtree.nodes.expressions.BinaryExpression;
-import org.vstu.meaningtree.nodes.expressions.logical.ShortCircuitAndOp;
-import org.vstu.meaningtree.nodes.expressions.logical.ShortCircuitOrOp;
 import org.vstu.meaningtree.serializers.rdf.RDFDeserializer;
 import org.vstu.meaningtree.utils.tokens.Token;
 import org.vstu.meaningtree.utils.tokens.TokenList;
@@ -51,35 +47,10 @@ public class MeaningTreeRDFHelper {
         return jback.getModel();
     }
 
-    //TODO: improve
-    static void quickFixValues(MeaningTree mt) {
-        for (Node.Info info : mt) {
-            if (info.node() instanceof BinaryExpression op) {
-                boolean opVal = op.getAssignedValueTag() != null && (boolean) op.getAssignedValueTag();
-                boolean leftVal = op.getLeft().getAssignedValueTag() != null && (boolean) op.getLeft().getAssignedValueTag();
-                boolean rightVal = op.getLeft().getAssignedValueTag() != null && (boolean) op.getLeft().getAssignedValueTag();
-
-                if (op instanceof ShortCircuitAndOp && opVal != leftVal && opVal) {
-                    op.getLeft().setAssignedValueTag(true);
-                }
-                if (op instanceof ShortCircuitOrOp && opVal != leftVal && !opVal) {
-                    op.getLeft().setAssignedValueTag(false);
-                }
-
-                if (op instanceof ShortCircuitAndOp && opVal) {
-                    op.getRight().setAssignedValueTag(true);
-                }
-                if (op instanceof ShortCircuitOrOp && !opVal) {
-                    op.getRight().setAssignedValueTag(false);
-                }
-            }
-        }
-    }
-
     public static TokenList backendFactsToTokens(List<BackendFactEntity> stmtFacts, SupportedLanguage language) {
         Model model = backendFactsToModel(stmtFacts);
         MeaningTree mt = new RDFDeserializer().deserializeTree(model);
-        quickFixValues(mt);
+        OperandRuntimeValueGenerator.checkFixInconsistency(mt);
         try {
             var result = language.createTranslator(new MeaningTreeDefaultExpressionConfig()).getTokenizer().tryTokenizeExtended(mt);
             if (result.getLeft()) {

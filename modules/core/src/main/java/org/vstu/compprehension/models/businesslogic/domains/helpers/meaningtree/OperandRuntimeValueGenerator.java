@@ -27,6 +27,29 @@ import java.util.stream.Collectors;
 @Log4j2
 class OperandRuntimeValueGenerator {
 
+    public static void checkFixInconsistency(MeaningTree mt) {
+        for (Node.Info info : mt) {
+            if (info.node() instanceof BinaryExpression op) {
+                boolean opVal = op.getAssignedValueTag() != null && (boolean) op.getAssignedValueTag();
+                boolean leftVal = op.getLeft().getAssignedValueTag() != null && (boolean) op.getLeft().getAssignedValueTag();
+
+                if (op instanceof ShortCircuitAndOp && opVal != leftVal && opVal) {
+                    op.getLeft().setAssignedValueTag(true);
+                }
+                if (op instanceof ShortCircuitOrOp && opVal != leftVal && !opVal) {
+                    op.getLeft().setAssignedValueTag(false);
+                }
+
+                if (op instanceof ShortCircuitAndOp && opVal) {
+                    op.getRight().setAssignedValueTag(true);
+                }
+                if (op instanceof ShortCircuitOrOp && !opVal) {
+                    op.getRight().setAssignedValueTag(false);
+                }
+            }
+        }
+    }
+
     /**
      * Информация о возможного отключаемого участка в дереве, представляющее узел.
      * Представляет собой информацию о тернарном операторе или операторе И/ИЛИ
