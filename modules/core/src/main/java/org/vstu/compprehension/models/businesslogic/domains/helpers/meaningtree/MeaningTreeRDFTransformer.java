@@ -50,6 +50,7 @@ public class MeaningTreeRDFTransformer {
     public static TokenList tokenize(List<BackendFactEntity> facts, SupportedLanguage language) {
         Model m = MeaningTreeRDFHelper.backendFactsToModel(facts);
         MeaningTree mt = new RDFDeserializer().deserializeTree(m);
+        MeaningTreeRDFHelper.quickFixValues(mt);
         try {
             return language.createTranslator(new MeaningTreeDefaultExpressionConfig()).getTokenizer().tokenizeExtended(mt.getRootNode());
         } catch (NoSuchMethodException | InvocationTargetException | InstantiationException | IllegalAccessException e) {

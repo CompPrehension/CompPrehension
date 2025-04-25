@@ -204,7 +204,6 @@ class OperandRuntimeValueGenerator {
         int initialHash = preferred.hashCode();
         List<Pair<Integer, Boolean>> preferredValues = new ArrayList<>();
 
-        // Заполнение начальных данных
         for (Node.Info nodeInfo : preferred) {
             Optional<DisposableIndex> foundDisposable = findDisposableIndex(nodeInfo.node().getId());
             if (foundDisposable.isPresent()) {
@@ -215,7 +214,15 @@ class OperandRuntimeValueGenerator {
                 } else if (nodeInfo.node() instanceof BinaryExpression expr) {
                     expr.getLeft().setAssignedValueTag(combination.get(index));
                     if (findDisposableIndex(expr.getRight().getId()).isEmpty()) {
-                        expr.getRight().setAssignedValueTag(randomizer.nextBoolean());
+                        Optional<DisposableIndex> parentDisposable = nodeInfo.parent() != null ?
+                                findDisposableIndex(nodeInfo.parent().getId()) : Optional.empty();
+                        Optional<Boolean> parValue = Optional.empty();
+                        if (parentDisposable.isPresent()) {
+                            int parIndex = groupFeatures.sequencedKeySet().stream().toList().indexOf(parentDisposable.get());
+                            parValue = Optional.of(combination.get(parIndex));
+                        }
+                        boolean value = parValue.orElseGet(randomizer::nextBoolean);
+                        expr.getRight().setAssignedValueTag(value);
                     }
                 }
                 preferredValues.add(new ImmutablePair<>(grp.getNode().hashCode(), combination.get(index)));
@@ -300,9 +307,9 @@ class OperandRuntimeValueGenerator {
     // Зависит ли один узел от другого транзитивно
     private boolean isTransitiveDependency(long child, long parent) {
         long base = child;
-        do {
+        while (base != -1L && base != parent) {
             base = deps.getOrDefault(base, -1L);
-        } while (base != -1L && base != parent);
+        }
 
         return base != -1L;
     }

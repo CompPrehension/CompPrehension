@@ -33,9 +33,7 @@ import org.vstu.compprehension.utils.HyperText;
 import org.vstu.meaningtree.MeaningTree;
 import org.vstu.meaningtree.SupportedLanguage;
 import org.vstu.meaningtree.serializers.rdf.RDFDeserializer;
-import org.vstu.meaningtree.utils.tokens.ComplexOperatorToken;
-import org.vstu.meaningtree.utils.tokens.Token;
-import org.vstu.meaningtree.utils.tokens.TokenList;
+import org.vstu.meaningtree.utils.tokens.*;
 
 import java.io.IOException;
 import java.nio.file.Files;
@@ -737,7 +735,14 @@ public class ProgrammingLanguageExpressionDTDomain extends DecisionTreeReasoning
 
                 if (!responseIsWrong) {
                     // Show the value only if this is a correct choice.
-                    Object value = tokens.get(tokenIndex).getAssignedValue();
+                    Token t = tokens.get(tokenIndex);
+                    Object value = t.getAssignedValue();
+                    if (value == null && t instanceof OperatorToken op
+                            && (op.additionalOpType == OperatorType.OR ||
+                                op.additionalOpType == OperatorType.AND ||
+                                op.arity == OperatorArity.TERNARY)) {
+                        value = false;
+                    }
                     if (value != null) {
                         builder.add("<span>" + getMessage("WITH_VALUE", lang) + "</span>");
                         builder.add("<span style='color: #f08;font-style: italic;font-weight: bold;'>" +

@@ -1845,15 +1845,9 @@
                     _EN_question="Choose all operators with strict operand order that can influence the evaluation of ${X}"
                 >
                     <SelectorExpression>
-                        <!-- Чтобы в некоторых ситуациях не блокировался выбор опущенных
-                            операторов и корректно отображались подсказки решено включить сюда omitted и used-->
-                        <Compare operator="NOT_EQUAL">
-                            <GetPropertyValue>
-                                <Variable name="T" />
-                                <Property name="state" />
-                            </GetPropertyValue>
-                            <Enum owner="state" value="evaluated" />
-                        </Compare>
+                        <!-- Patch: операторы строгого порядка не обязательно должны быть
+                        невычисленными-->
+                        <Boolean value="true" />
                     </SelectorExpression>
                     <FindError priority="1" type="operator" _alias="T_notStrict"
                         _RU_explanation="${$checked}[case='и'] не является оператором со строгим порядком операндов"
