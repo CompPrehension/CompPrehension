@@ -15,12 +15,12 @@ RUN wget "https://github.com/CompPrehension/top-learning-generator/releases/down
 
 # Generate the runner.sh script for parser
 RUN echo '#!/bin/bash' > /parser/runner.sh && \
-    echo 'java -jar /parser/expr-extractor-generator.jar "$@"' >> /parser/runner.sh && \
+    echo 'java -DLOG_LEVEL_OVERRIDE=${TASK_GENERATION_PARSER_LOG_LEVEL} -jar /parser/expr-extractor-generator.jar "$@"' >> /parser/runner.sh && \
     chmod +x /parser/runner.sh
 
 # Generate the runner.sh script for generator
 RUN echo '#!/bin/bash' > /generator/runner.sh && \
-    echo 'java -jar /generator/generator.jar "$@"' >> /generator/runner.sh && \
+    echo 'java -DLOG_LEVEL_OVERRIDE=${TASK_GENERATION_GENERATOR_LOG_LEVEL} -jar /generator/generator.jar "$@"' >> /generator/runner.sh && \
     chmod +x /generator/runner.sh
 
 # Install Python and clean up
@@ -30,7 +30,9 @@ RUN apt-get update && \
     apt-get clean && \
     rm -rf /var/lib/apt/lists/*
 
-ENV TASK_GENERATION_GENERATOR_PATH_TO_EXECUTABLE=/generator/runner.sh
-ENV TASK_GENERATION_PARSER_PATH_TO_EXECUTABLE=/parser/runner.sh
+ENV TASK_GENERATION_PARSER_PATH_TO_EXECUTABLE=/parser/runner.sh \
+    TASK_GENERATION_PARSER_LOG_LEVEL=INFO \
+    TASK_GENERATION_GENERATOR_PATH_TO_EXECUTABLE=/generator/runner.sh \
+    TASK_GENERATION_GENERATOR_LOG_LEVEL=INFO
 
 ENTRYPOINT ["java","-jar","/app.jar"]
