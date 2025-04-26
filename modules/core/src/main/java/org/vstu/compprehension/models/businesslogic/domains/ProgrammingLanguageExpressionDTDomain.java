@@ -689,7 +689,7 @@ public class ProgrammingLanguageExpressionDTDomain extends DecisionTreeReasoning
         Language lang = Optional.ofNullable(question.getQuestionData().getExerciseAttempt())
             .map(a -> a.getUser().getPreferred_language())
             .orElse(Language.RUSSIAN/*ENGLISH*/);
-        SupportedLanguage plang = MeaningTreeUtils.detectLanguageFromTags(question.getTagNames());
+        SupportedLanguage plang = MeaningTreeUtils.detectLanguageFromTags(question.getMetadata().getTagBits(), this);
 
         ArrayList<HyperText> result = new ArrayList<>();
 
@@ -823,24 +823,24 @@ public class ProgrammingLanguageExpressionDTDomain extends DecisionTreeReasoning
                     correctAnswer.answers = List.of(new CorrectAnswer.Response(answer, answer));
                     correctAnswer.question = q.getQuestionData();
                     correctAnswer.lawName = null;
-                    correctAnswer.skillName = solveRes.skills().getFirst();
+                    correctAnswer.skillName = solveRes.skills();
                     correctAnswer.explanation = explanation;
                     return correctAnswer;
                 }
             }
         }
-        List<Domain.CorrectAnswer.Response> answers = q.getAnswerObjects().stream().filter(ans -> {
-            int index = answerObjectToTokenIndex(ans);
-            return index != -1 && !responseTokenIndexes.contains(index);
-        }).map(ans -> new CorrectAnswer.Response(ans, ans)).toList();
-
+        AnswerObjectEntity everythingIsEvaluated = q.getAnswerObjects().getLast();
         CorrectAnswer correctAnswer = new CorrectAnswer();
-        correctAnswer.answers = answers;
+        correctAnswer.answers = List.of(new CorrectAnswer.Response(everythingIsEvaluated, everythingIsEvaluated));
         correctAnswer.question = q.getQuestionData();
         correctAnswer.lawName = null;
-        correctAnswer.skillName = null;
-        correctAnswer.explanation = new Explanation(Explanation.Type.HINT, new HyperText(
-                getMessage("explanations.already_solved", lang)));
+        correctAnswer.skillName = List.of();
+        correctAnswer.explanation = Explanation.aggregate(Explanation.Type.HINT,
+                List.of(
+                        new Explanation(Explanation.Type.HINT, new HyperText(
+                                getMessage("explanations.already_solved", lang)
+                        ))
+                ));
         return correctAnswer;
     }
 

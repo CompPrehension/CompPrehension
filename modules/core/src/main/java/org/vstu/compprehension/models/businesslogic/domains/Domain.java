@@ -233,9 +233,9 @@ public interface Domain {
          */
         public String lawName;
         /**
-         * Skill name for this answer
+         * Skill names for this answer
          */
-        public String skillName;
+        public List<String> skillName;
 
         @AllArgsConstructor
         @Data

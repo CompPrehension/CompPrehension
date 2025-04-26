@@ -1604,8 +1604,8 @@
                                                         </Outcome>
                                                         <Outcome value="true">
                                                         <BranchResultNode value="error"
-                                                            _RU_explanation="сначала должен быть вычислен ${X} справа от него, так как ${Z} окружен круглыми скобками."
-                                                            _EN_explanation="${X} on its left must be evaluated first because ${Z} is in parentheses."
+                                                            _RU_explanation="сначала должен быть вычислен ${Z} справа от него, так как ${Z} окружен круглыми скобками."
+                                                            _EN_explanation="${Z} on its right must be evaluated first because ${Z} is in parentheses."
                                                             _skill="is_right_parenthesized_current_not"
                                                             _law="error_base_parenthesized_operators;error_base_student_error_in_complex"
                                                         />
