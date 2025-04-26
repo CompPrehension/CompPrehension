@@ -2,6 +2,7 @@ package org.vstu.compprehension.models.businesslogic.domains.helpers.meaningtree
 
 import org.jetbrains.annotations.Nullable;
 import org.vstu.compprehension.models.businesslogic.Question;
+import org.vstu.compprehension.models.businesslogic.Tag;
 import org.vstu.compprehension.models.businesslogic.domains.ProgrammingLanguageExpressionDTDomain;
 import org.vstu.compprehension.models.businesslogic.storage.QuestionBank;
 import org.vstu.compprehension.models.businesslogic.storage.SerializableQuestion;
@@ -43,6 +44,7 @@ public class QuestionDynamicDataAppender {
             bank.saveMetadataEntity(q.getMetadata());
         }
 
+        q.getQuestionData().setStatementFacts(MeaningTreeRDFHelper.applyRuntimeFixes(q.getStatementFacts()));
         TokenList tokens = MeaningTreeRDFHelper.backendFactsToTokens(q.getStatementFacts(), lang);
         q.setAnswerObjects(new ArrayList<>(MeaningTreeOrderQuestionBuilder.generateAnswerObjects(tokens).stream().map(
                 (SerializableQuestion.AnswerObject obj) -> {
@@ -107,8 +109,11 @@ public class QuestionDynamicDataAppender {
             sb.append("<!-- Metadata id: ");
             sb.append(metadata.getId());
             sb.append("-->");
-            sb.append("<!-- Question name: ");
-            sb.append(metadata.getName());
+            sb.append("<!-- Question tags: ");
+            for (Tag tag : domain.tagsFromBitmask(metadata.getTagBits())) {
+                sb.append(tag.getName());
+                sb.append(" ");
+            }
             sb.append("-->");
         }
         sb.append("</p>");
