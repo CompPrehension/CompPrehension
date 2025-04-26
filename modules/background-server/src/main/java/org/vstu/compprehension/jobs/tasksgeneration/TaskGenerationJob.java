@@ -124,8 +124,10 @@ public class TaskGenerationJob {
     private synchronized void runImpl(TaskGenerationJobConfig.TaskConfig config, TaskGenerationJobConfig.RunMode.Incremental mode) {
         var incrementalTriesCount = 0;
         while (true) {
-            // проверка на то, что нужны новые вопросы
-            var generationRequests = generatorRequestsQueue.findAllActual(config.getDomainShortName(), LocalDateTime.now().minusMonths(3));
+            var startTime = System.currentTimeMillis();
+
+            var generationRequests = getGenerationRequests(config.getDomainShortName());
+
             if (generationRequests.isEmpty()) {
                 log.info("No generation requests found. Finish job");
                 break;
@@ -135,13 +137,9 @@ public class TaskGenerationJob {
                 break;
             }
 
-            log.info("Found {} generation requests", generationRequests.size());
-            if (generationRequests.size() > 5_000) {
-                generationRequests = generationRequests.subList(0, 5_000);
-                log.info("Too many generation requests found. Limiting to 5000.");
-            }
-
-            var generationRequestIds = generationRequests.stream().map(GenerationRequestGroup::getGenerationRequestIds).collect(Collectors.toList());
+            var generationRequestIds = generationRequests.stream()
+                    .map(GenerationRequestGroup::getGenerationRequestIds)
+                    .collect(Collectors.toList());
             log.debug("Generation requests ids: {}", generationRequestIds);
 
             // folders cleanup
@@ -157,8 +155,34 @@ public class TaskGenerationJob {
             var generatedRepos = generateQuestions(config, parsedRepos);
 
             // filter & save questions
+            var endTime = System.currentTimeMillis();
+            if (endTime - startTime > 10_000) {
+                log.info("Re-fetching generation requests");
+
+                generationRequests = getGenerationRequests(config.getDomainShortName());
+                if (generationRequests.isEmpty()) {
+                    log.info("No generation requests found. Finish job");
+                    break;
+                }
+            }
+
             saveQuestions(config, generatedRepos, generationRequests);
         }
+    }
+
+    private List<GenerationRequestGroup> getGenerationRequests(String domainShortName) {
+        var requests = generatorRequestsQueue.findAllActual(domainShortName, LocalDateTime.now().minusMonths(3));
+
+        if (!requests.isEmpty()) {
+            log.info("Found {} generation requests", requests.size());
+
+            if (requests.size() > 5_000) {
+                requests = requests.subList(0, 5_000);
+                log.info("Too many generation requests found. Limiting to 5000.");
+            }
+        }
+
+        return requests;
     }
 
     @SneakyThrows
