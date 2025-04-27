@@ -48,7 +48,7 @@ export const ExerciseSettings = observer(() => {
         const currentLang = user?.language;
         const newLang = currentLang === "RU" ? "EN" : "RU";
         session.changeLanguage(newLang);
-    }, [session, user?.language]);
+    }, [session, user]);
 
     if (exerciseStore.exercisesLoadStatus === 'LOADING') {
         return <Loader />;
