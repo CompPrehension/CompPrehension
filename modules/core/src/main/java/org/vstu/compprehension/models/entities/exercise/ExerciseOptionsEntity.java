@@ -5,6 +5,7 @@ import com.fasterxml.jackson.annotation.JsonInclude;
 import lombok.AllArgsConstructor;
 import lombok.Data;
 import lombok.NoArgsConstructor;
+import lombok.Builder;
 import lombok.experimental.SuperBuilder;
 import lombok.extern.jackson.Jacksonized;
 
@@ -21,7 +22,8 @@ public class ExerciseOptionsEntity {
     private boolean debugButtonEnabled;
     private boolean forceNewAttemptCreationEnabled;
     private boolean preferDecisionTreeBasedSupplementaryEnabled;
-    private int maxExpectedConcurrentStudents;
+    @Builder.Default
+    private int maxExpectedConcurrentStudents = 10;
 
     @Data
     @AllArgsConstructor @NoArgsConstructor
