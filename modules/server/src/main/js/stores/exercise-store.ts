@@ -1,19 +1,15 @@
-import { action, autorun, flow, makeObservable, observable, runInAction, toJS } from "mobx";
-import { ExerciseController, IExerciseController } from "../controllers/exercise/exercise-controller";
 import * as E from "fp-ts/lib/Either";
-import { ExerciseAttempt } from "../types/exercise-attempt";
+import { action, autorun, flow, makeObservable, observable, runInAction, toJS } from "mobx";
 import { inject, injectable } from "tsyringe";
-import { QuestionStore } from "./question-store";
-import i18next from "i18next";
-import { Language } from "../types/language";
-import { RequestError } from "../types/request-error";
-import { Survey, SurveyQuestion, SurveyResultItem } from "../types/survey";
+import { ExerciseController, IExerciseController } from "../controllers/exercise/exercise-controller";
 import { SurveyController } from "../controllers/exercise/survey-controller";
-import { zero } from "fp-ts/lib/OptionT";
-import { getUrlParameterByName } from "../types/utils";
-import { UserInfo } from "../types/user-info";
-import { Exercise } from "../types/exercise";
 import { IUserController, UserController } from "../controllers/exercise/user-controller";
+import { Exercise } from "../types/exercise";
+import { ExerciseAttempt } from "../types/exercise-attempt";
+import { RequestError } from "../types/request-error";
+import { Survey, SurveyQuestion } from "../types/survey";
+import { getUrlParameterByName } from "../types/utils";
+import { QuestionStore } from "./question-store";
 
 @injectable()
 export class ExerciseStore {

@@ -75,6 +75,13 @@ PERFORMANCE OF THIS SOFTWARE.
  */
 
 /**
+ * @license lucide-react v0.503.0 - ISC
+ *
+ * This source code is licensed under the ISC license.
+ * See the LICENSE file in the root directory of this source tree.
+ */
+
+/**
  * @remix-run/router v1.15.3
  *
  * Copyright (c) Remix Software Inc.

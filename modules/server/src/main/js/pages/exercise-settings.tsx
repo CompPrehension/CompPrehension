@@ -189,6 +189,12 @@ const ExerciseCardElement = observer((props: ExerciseCardElementProps) => {
                                type="checkbox" className="form-check-input" id="preferDecisionTreeBasedSupplementaryEnabled" />
                         <label className="form-check-label" htmlFor="preferDecisionTreeBasedSupplementaryEnabled">{t('exercisesettings_qopt_preferDTsup')}</label>
                     </div>
+                    <div className="form-check">
+                        <input checked={card.options.debugButtonEnabled}
+                               onChange={x => store.setCardOption('debugButtonEnabled', x.target.checked)}
+                               type="checkbox" className="form-check-input" id="debugButtonEnabled" />
+                        <label className="form-check-label" htmlFor="debugButtonEnabled">{t('exercisesettings_qopt_debugBtn')}</label>
+                    </div>
                 </div>
 
                 <div className="form-group">

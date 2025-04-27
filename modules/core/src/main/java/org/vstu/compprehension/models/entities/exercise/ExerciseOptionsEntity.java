@@ -18,6 +18,7 @@ public class ExerciseOptionsEntity {
     private boolean newQuestionGenerationEnabled;
     private boolean supplementaryQuestionsEnabled;
     private boolean correctAnswerGenerationEnabled;
+    private boolean debugButtonEnabled;
     private boolean forceNewAttemptCreationEnabled;
     private boolean preferDecisionTreeBasedSupplementaryEnabled;
     private int maxExpectedConcurrentStudents;
