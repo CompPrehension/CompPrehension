@@ -66,7 +66,7 @@ public class ProgrammingLanguageExpressionDTDomainTest {
         exercise.setBackendId("DTReasoner");
         exercise.setTags("");
         exercise.setOptions(new ExerciseOptionsEntity(null, true,
-                true, true, true,
+                true, true, true, true,
                 true, 7));
         exercise.setName("test");
         exercise.setStages(Collections.singletonList(new ExerciseStageEntity()));
