@@ -456,11 +456,10 @@ export class ExerciseSettingsStore {
         this.currentCard.tags = tags;
     }
 
-    
-    setCardFlag(optionId: KeysWithValsOfType<ExerciseOptions, boolean>, checked: boolean) {
+    setCardOption<TKey extends keyof ExerciseOptions, TValue extends ExerciseOptions[TKey]>(optionId: TKey, value: TValue) {
         if (!this.currentCard)
             return;
-        this.currentCard.options[optionId] = checked;
+        this.currentCard.options[optionId] = value;
     }
     
     addStage() {

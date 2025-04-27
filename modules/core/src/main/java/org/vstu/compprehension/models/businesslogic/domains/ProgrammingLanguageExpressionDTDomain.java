@@ -188,7 +188,7 @@ public class ProgrammingLanguageExpressionDTDomain extends DecisionTreeReasoning
 
     @Override
     public @NotNull Question makeQuestion(@NotNull QuestionRequest questionRequest,
-                                          @Nullable ExerciseAttemptEntity exerciseAttempt,
+                                          @NotNull ExerciseAttemptEntity exerciseAttempt,
                                           @NotNull Language userLanguage) {
         SupportedLanguage lang = MeaningTreeUtils.detectLanguageFromTags(questionRequest.getTargetTags().stream().map(Tag::getName).toList());
 

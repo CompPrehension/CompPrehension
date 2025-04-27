@@ -145,7 +145,7 @@ public interface Domain {
      * @return generated question
      */
     @NotNull Question makeQuestion(@NotNull QuestionRequest questionRequest,
-                                   @Nullable ExerciseAttemptEntity exerciseAttempt,
+                                   @NotNull ExerciseAttemptEntity exerciseAttempt,
                                    @NotNull Language userLanguage);
 
     /**

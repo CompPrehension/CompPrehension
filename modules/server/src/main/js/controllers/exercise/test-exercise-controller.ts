@@ -39,6 +39,7 @@ export class TestExerciseController implements IExerciseController, IQuestionCon
                 newQuestionGenerationEnabled: true,
                 supplementaryQuestionsEnabled: true,
                 preferDecisionTreeBasedSupplementaryEnabled: false,
+                maxExpectedConcurrentStudents: 7,
             },
         })
     }
