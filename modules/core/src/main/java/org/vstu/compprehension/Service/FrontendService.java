@@ -119,7 +119,7 @@ public class FrontendService {
         var strategyAttemptDecision = Decision.CONTINUE;
         if (attempt != null) {
             bktService.updateBktRoster(
-                    domain.getDomainEntity(),
+                    domain.getDomainId(),
                     attempt.getUser().getId().toString(),
                     judgeResult.isAnswerCorrect,
                     judgeResult.domainSkills

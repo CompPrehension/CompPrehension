@@ -5,10 +5,30 @@
         xsi:schemaLocation="http://www.liquibase.org/xml/ns/dbchangelog
                       http://www.liquibase.org/xml/ns/dbchangelog/dbchangelog-4.24.xsd">
 
-    <changeSet id="20250414-01-add-bkt-roster-to-domain" author="Andrey Krygin">
-        <addColumn tableName="domain">
-            <column name="bkt_roster" type="TEXT"/>
-        </addColumn>
+    <changeSet id="20250414-01-create-bkt-data-table" author="Andrey Krygin">
+        <createTable tableName="bkt_data">
+            <column name="domain_name" type="VARCHAR(255)" />
+            <column name="version" type="BIGINT" />
+            <column name="roster" type="TEXT" />
+        </createTable>
+        <addPrimaryKey
+                tableName="bkt_data"
+                columnNames="domain_name"
+                constraintName="pk_bkt_data"/>
+        <addForeignKeyConstraint
+                baseTableName="bkt_data"
+                baseColumnNames="domain_name"
+                constraintName="fk_bkt_data_domain"
+                referencedTableName="domain"
+                referencedColumnNames="name"/>
+        <addNotNullConstraint
+                tableName="bkt_data"
+                columnName="version"
+                columnDataType="BIGINT" />
+        <addNotNullConstraint
+                tableName="bkt_data"
+                columnName="roster"
+                columnDataType="TEXT" />
     </changeSet>
 
 </databaseChangeLog>
