@@ -17,7 +17,6 @@ import org.vstu.compprehension.dto.feedback.FeedbackDto;
 import org.vstu.compprehension.dto.feedback.FeedbackViolationLawDto;
 import org.vstu.compprehension.dto.question.QuestionDto;
 import org.vstu.compprehension.models.businesslogic.Explanation;
-import org.vstu.compprehension.models.businesslogic.domains.Domain;
 import org.vstu.compprehension.models.businesslogic.domains.DomainFactory;
 import org.vstu.compprehension.models.businesslogic.strategies.AbstractStrategyFactory;
 import org.vstu.compprehension.models.entities.*;
@@ -31,7 +30,6 @@ import org.vstu.compprehension.models.repository.*;
 import org.vstu.compprehension.utils.Checkpointer;
 import org.vstu.compprehension.utils.Mapper;
 
-import java.nio.charset.StandardCharsets;
 import java.util.*;
 import java.util.stream.Collectors;
 
@@ -53,10 +51,10 @@ public class FrontendService {
     private final DomainFactory domainFactory;
     private final EntityManager entityManager;
     private final UserRepository userRepository;
-    private DomainRepository domainRepository;
+    private final BktService bktService;
 
 
-    public FrontendService(ExerciseAttemptRepository exerciseAttemptRepository, QuestionRepository questionRepository, ExerciseAttemptService exerciseAttemptService, ExerciseService exerciseService, EntityManager entityManager, QuestionService questionService, LocalizationService localizationService, AbstractStrategyFactory strategyFactory, DomainFactory domainFactory, UserRepository userRepository, FeedbackRepository feedbackRepository, InteractionRepository interactionRepository, DomainRepository domainRepository) {
+    public FrontendService(ExerciseAttemptRepository exerciseAttemptRepository, QuestionRepository questionRepository, ExerciseAttemptService exerciseAttemptService, ExerciseService exerciseService, EntityManager entityManager, QuestionService questionService, LocalizationService localizationService, AbstractStrategyFactory strategyFactory, DomainFactory domainFactory, UserRepository userRepository, FeedbackRepository feedbackRepository, InteractionRepository interactionRepository, BktService bktService) {
         this.exerciseAttemptRepository = exerciseAttemptRepository;
         this.questionRepository = questionRepository;
         this.exerciseAttemptService = exerciseAttemptService;
@@ -69,7 +67,7 @@ public class FrontendService {
         this.userRepository = userRepository;
         this.feedbackRepository = feedbackRepository;
         this.interactionRepository = interactionRepository;
-        this.domainRepository = domainRepository;
+        this.bktService = bktService;
     }
 
     @Transactional(propagation = Propagation.REQUIRED)
@@ -120,7 +118,12 @@ public class FrontendService {
         var grade = 1f;
         var strategyAttemptDecision = Decision.CONTINUE;
         if (attempt != null) {
-            updateBktRoster(attempt.getUser(), domain.getDomainEntity(), judgeResult);
+            bktService.updateBktRoster(
+                    domain.getDomainEntity(),
+                    attempt.getUser().getId().toString(),
+                    judgeResult.isAnswerCorrect,
+                    judgeResult.domainSkills
+            );
 
             var strategy = strategyFactory.getStrategy(attempt.getExercise().getStrategyId());
             grade = strategy.grade(attempt);
@@ -428,32 +431,5 @@ public class FrontendService {
         exerciseAttemptRepository.save(ea);
 
         return ea;
-    }
-
-    private void updateBktRoster(UserEntity user, DomainEntity domain, Domain.InterpretSentenceResult judgeResult) {
-        val roster = domain.getBktRoster();
-        if (roster != null && !roster.isBlank()) {
-            try {
-                // TODO файл из ресурсов или отдельный сервер
-                val process = new ProcessBuilder(
-                        "python3", "/Users/andreykrygin/Documents/Diplom/projects/CompPrehension/modules/core/src/main/resources/org/vstu/compprehension/bkt-scripts/update-bkt-roster.py",
-                        "--roster", roster,
-                        "--student", user.getId().toString(),
-                        "--correct", judgeResult.isAnswerCorrect ? "1" : "0",
-                        "--skills", String.join(",", judgeResult.domainSkills)
-                ).start();
-
-                int exitCode = process.waitFor();
-                if (exitCode != 0) {
-                    throw new RuntimeException("Python завершился с кодом " + exitCode);
-                }
-
-                String updatedRoster = new String(process.getInputStream().readAllBytes(), StandardCharsets.UTF_8);
-                val updatedDomain = new DomainEntity(domain);
-                updatedDomain.setBktRoster(updatedRoster);
-                domainRepository.save(updatedDomain);
-            } catch (Exception e) {
-            }
-        }
     }
 }

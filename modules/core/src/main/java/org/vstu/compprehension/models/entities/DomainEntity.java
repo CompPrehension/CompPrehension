@@ -2,7 +2,6 @@ package org.vstu.compprehension.models.entities;
 
 import com.vladmihalcea.hibernate.type.json.JsonType;
 import jakarta.persistence.*;
-import lombok.AllArgsConstructor;
 import lombok.Data;
 import lombok.NoArgsConstructor;
 import org.hibernate.annotations.Type;
@@ -10,18 +9,8 @@ import org.hibernate.annotations.Type;
 @Entity
 @Data
 @NoArgsConstructor
-@AllArgsConstructor
 @Table(name = "Domain", uniqueConstraints = @UniqueConstraint(columnNames = {"name", "version"}))
 public class DomainEntity {
-
-    public DomainEntity(DomainEntity other) {
-        setName(other.getName());
-        setShortName(other.getShortName());
-        setVersion(other.getVersion());
-        setOptions(other.getOptions());
-        setBktRoster(other.getBktRoster());
-    }
-
     @Id
     @Column(name = "name")
     private String name;
