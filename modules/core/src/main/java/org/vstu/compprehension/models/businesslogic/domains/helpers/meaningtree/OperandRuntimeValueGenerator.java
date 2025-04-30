@@ -18,6 +18,7 @@ import org.vstu.meaningtree.utils.tokens.TokenList;
 import java.lang.reflect.InvocationTargetException;
 import java.util.*;
 import java.util.stream.Collectors;
+import java.util.stream.Stream;
 
 /**
  * Класс предназначен для генерации уникальных значений операндов в вопросе, которые влияют на вычисление выражения.
@@ -28,23 +29,39 @@ import java.util.stream.Collectors;
 class OperandRuntimeValueGenerator {
 
     public static void checkFixInconsistency(MeaningTree mt) {
+        // TODO: too many allocations!
+        List<Node.Info> ops = new ArrayList<>();
         for (Node.Info info : mt) {
-            if (info.node() instanceof BinaryExpression op) {
-                boolean opVal = op.getAssignedValueTag() != null && (boolean) op.getAssignedValueTag();
-                boolean leftVal = op.getLeft().getAssignedValueTag() != null && (boolean) op.getLeft().getAssignedValueTag();
-
-                if (op instanceof ShortCircuitAndOp && opVal != leftVal && opVal) {
-                    op.getLeft().setAssignedValueTag(true);
-                }
-                if (op instanceof ShortCircuitOrOp && opVal != leftVal && !opVal) {
-                    op.getLeft().setAssignedValueTag(false);
-                }
+            if (info.node() instanceof BinaryExpression op && isDisposableNode(op)) {
+                ops.add(info);
+            }
+        }
+        List<Node> nodes = ops.stream()
+                                .sorted(Comparator.comparingInt(Node.Info::depth))
+                                .map(Node.Info::node)
+                                .toList();
+        nodes = nodes.reversed();
+        for (Node node : nodes) {
+            if (node instanceof BinaryExpression op) {
+                boolean leftOpVal = op.getLeft().getAssignedValueTag() == null ? false : (boolean) op.getLeft().getAssignedValueTag();
+                boolean rightOpVal = op.getRight().getAssignedValueTag() == null ? false : (boolean) op.getRight().getAssignedValueTag();;
+                boolean opVal = op.getAssignedValueTag() == null ? false : (boolean) op.getAssignedValueTag();
 
                 if (op instanceof ShortCircuitAndOp && opVal) {
-                    op.getRight().setAssignedValueTag(true);
+                    if (!leftOpVal) {
+                        op.setAssignedValueTag(false);
+                    }
+                    if (!rightOpVal) {
+                        op.setAssignedValueTag(false);
+                    }
                 }
                 if (op instanceof ShortCircuitOrOp && !opVal) {
-                    op.getRight().setAssignedValueTag(false);
+                    if (leftOpVal) {
+                        op.setAssignedValueTag(true);
+                    }
+                    if (rightOpVal) {
+                        op.setAssignedValueTag(true);
+                    }
                 }
             }
         }
@@ -428,7 +445,7 @@ class OperandRuntimeValueGenerator {
         }
     }
 
-    private boolean isDisposableNode(Node node) {
+    private static boolean isDisposableNode(Node node) {
         return node instanceof ShortCircuitAndOp || node instanceof ShortCircuitOrOp || node instanceof TernaryOperator;
     }
 
