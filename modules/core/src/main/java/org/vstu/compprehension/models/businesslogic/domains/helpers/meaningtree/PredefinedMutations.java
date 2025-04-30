@@ -15,8 +15,6 @@ import org.vstu.meaningtree.nodes.expressions.pointers.PointerPackOp;
 import org.vstu.meaningtree.nodes.expressions.pointers.PointerUnpackOp;
 import org.vstu.meaningtree.nodes.expressions.unary.PostfixDecrementOp;
 import org.vstu.meaningtree.nodes.expressions.unary.PostfixIncrementOp;
-import org.vstu.meaningtree.nodes.expressions.unary.PrefixDecrementOp;
-import org.vstu.meaningtree.nodes.expressions.unary.PrefixIncrementOp;
 
 import java.util.List;
 import java.util.Random;
@@ -101,13 +99,11 @@ class PredefinedMutations {
             if (info.node() instanceof IndexExpression) {
                 changed = new PointerPackOp(expr);
             } else {
-                int option = random.nextInt(5);
+                int option = random.nextInt(3);
                 changed = switch (option) {
-                    case 1 -> new PrefixDecrementOp(expr);
-                    case 2 -> new InversionOp(expr);
-                    case 3 -> new PointerPackOp(expr);
-                    case 4 -> new PointerUnpackOp(expr);
-                    default -> new PrefixIncrementOp(expr);
+                    case 1 -> new InversionOp(expr);
+                    case 2 -> new PointerPackOp(expr);
+                    default -> new PointerUnpackOp(expr);
                 };
             }
             origin.substitute(info.id(), changed);

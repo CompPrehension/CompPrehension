@@ -17,16 +17,17 @@ export const ExerciseHeader = observer(() => {
     const session = useSession();
     const user = useCurrentUser();
     const { currentAttempt, exercise, currentQuestion } = exerciseStore;
-    if (!currentAttempt || !exercise || !user) {
-        return null;
-    }
-    const currentQuestionIdx = currentAttempt.questionIds.findIndex(id => currentQuestion.question?.questionId === id);
     
     const onLangClicked = useCallback(() => {
         const currentLang = user?.language;
         const newLang = currentLang === "RU" ? "EN" : "RU";
         session.changeLanguage(newLang);
-    }, [session, user?.language]);
+    }, [session, user]);
+
+    if (!currentAttempt || !exercise || !user) {
+        return null;
+    }
+    const currentQuestionIdx = currentAttempt.questionIds.findIndex(id => currentQuestion.question?.questionId === id);
 
     return (
         <Header

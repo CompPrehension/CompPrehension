@@ -145,7 +145,7 @@ public interface Domain {
      * @return generated question
      */
     @NotNull Question makeQuestion(@NotNull QuestionRequest questionRequest,
-                                   @Nullable ExerciseAttemptEntity exerciseAttempt,
+                                   @NotNull ExerciseAttemptEntity exerciseAttempt,
                                    @NotNull Language userLanguage);
 
     /**
@@ -233,9 +233,9 @@ public interface Domain {
          */
         public String lawName;
         /**
-         * Skill name for this answer
+         * Skill names for this answer
          */
-        public String skillName;
+        public List<String> skillName;
 
         @AllArgsConstructor
         @Data

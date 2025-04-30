@@ -56,9 +56,10 @@ public class QuestionBankTests {
                 }
                 for (var m : next) {
                     if (matchedIds.contains(m.getId())) {
-                        continue;
+                        Assertions.assertTrue(questionBank.isMatch(m, questionSearchRequest), "Not matched metadata should not match the search request for metadata " + m.getId());
+                    } else {
+                        Assertions.assertFalse(questionBank.isMatch(m, questionSearchRequest), "Not matched metadata should not match the search request for metadata " + m.getId());
                     }
-                    Assertions.assertFalse(questionBank.isMatch(m, questionSearchRequest), "Not matched metadata should not match the search request for metadata " + m.getId());
                 }
                 lastLoadedMetadataId = next.getLast().getId();
 

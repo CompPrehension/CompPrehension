@@ -1,16 +1,16 @@
 <?xml version="1.0" encoding="UTF-8"?>
 <Configuration>
+    <Properties>
+        <Property name="CUSTOM_LEVEL">${sys:LOG_LEVEL_OVERRIDE:-INFO}</Property>
+    </Properties>
     <Appenders>
         <Console name="Console" target="SYSTEM_OUT">
             <PatternLayout pattern="%msg%n"/>
         </Console>
     </Appenders>
     <Loggers>
-        <Root level="INFO">
-            <AppenderRef ref="Console" level="ERROR"/>
+        <Root level="${CUSTOM_LEVEL}">
+            <AppenderRef ref="Console" level="${CUSTOM_LEVEL}"/>
         </Root>
-        <Logger name="org.vstu.compprehension" level="INFO">
-            <AppenderRef ref="Console" level="INFO"/>
-        </Logger>
     </Loggers>
 </Configuration>

@@ -48,7 +48,7 @@ export const ExerciseSettings = observer(() => {
         const currentLang = user?.language;
         const newLang = currentLang === "RU" ? "EN" : "RU";
         session.changeLanguage(newLang);
-    }, [session, user?.language]);
+    }, [session, user]);
 
     if (exerciseStore.exercisesLoadStatus === 'LOADING') {
         return <Loader />;
@@ -161,34 +161,49 @@ const ExerciseCardElement = observer((props: ExerciseCardElementProps) => {
                     <label className="font-weight-bold">{t('exercisesettings_qopt')}</label>
                     <div className="form-check">
                         <input checked={card.options.forceNewAttemptCreationEnabled} 
-                               onChange={x => store.setCardFlag('forceNewAttemptCreationEnabled', x.target.checked)} 
+                               onChange={x => store.setCardOption('forceNewAttemptCreationEnabled', x.target.checked)} 
                                type="checkbox" className="form-check-input" id="forceNewAttemptCreationEnabled" />
                         <label className="form-check-label" htmlFor="forceNewAttemptCreationEnabled">{t('exercisesettings_qopt_forceAttCreation')}</label>
                     </div>
                     <div className="form-check">
                         <input checked={card.options.correctAnswerGenerationEnabled} 
-                               onChange={x => store.setCardFlag('correctAnswerGenerationEnabled', x.target.checked)} 
+                               onChange={x => store.setCardOption('correctAnswerGenerationEnabled', x.target.checked)} 
                                type="checkbox" className="form-check-input" id="correctAnswerGenerationEnabled" />
                         <label className="form-check-label" htmlFor="correctAnswerGenerationEnabled">{t('exercisesettings_qopt_genCorAnsw')}</label>
                     </div>
                     <div className="form-check">
                         <input checked={card.options.newQuestionGenerationEnabled} 
-                               onChange={x => store.setCardFlag('newQuestionGenerationEnabled', x.target.checked)} 
+                               onChange={x => store.setCardOption('newQuestionGenerationEnabled', x.target.checked)} 
                                type="checkbox" className="form-check-input" id="newQuestionGenerationEnabled" />
                         <label className="form-check-label" htmlFor="newQuestionGenerationEnabled">{t('exercisesettings_qopt_forceShowGenNextQ')}</label>
                     </div>
                     <div className="form-check">
                         <input checked={card.options.supplementaryQuestionsEnabled} 
-                               onChange={x => store.setCardFlag('supplementaryQuestionsEnabled', x.target.checked)} 
+                               onChange={x => store.setCardOption('supplementaryQuestionsEnabled', x.target.checked)} 
                                type="checkbox" className="form-check-input" id="supplementaryQuestionsEnabled" />
                         <label className="form-check-label" htmlFor="supplementaryQuestionsEnabled">{t('exercisesettings_qopt_supQ')}</label>
                     </div>
                     <div className="form-check">
                         <input checked={card.options.preferDecisionTreeBasedSupplementaryEnabled}
-                               onChange={x => store.setCardFlag('preferDecisionTreeBasedSupplementaryEnabled', x.target.checked)}
+                               onChange={x => store.setCardOption('preferDecisionTreeBasedSupplementaryEnabled', x.target.checked)}
                                type="checkbox" className="form-check-input" id="preferDecisionTreeBasedSupplementaryEnabled" />
                         <label className="form-check-label" htmlFor="preferDecisionTreeBasedSupplementaryEnabled">{t('exercisesettings_qopt_preferDTsup')}</label>
                     </div>
+                    <div className="form-check">
+                        <input checked={card.options.debugButtonEnabled}
+                               onChange={x => store.setCardOption('debugButtonEnabled', x.target.checked)}
+                               type="checkbox" className="form-check-input" id="debugButtonEnabled" />
+                        <label className="form-check-label" htmlFor="debugButtonEnabled">{t('exercisesettings_qopt_debugBtn')}</label>
+                    </div>
+                </div>
+
+                <div className="form-group">
+                    <label className="font-weight-bold" htmlFor={`maxExpectedConcurrentStudents`}>{t('exercisesettings_max_concurrent_students')}</label>
+                    <input type="number"
+                        className="form-control"
+                        id={`maxExpectedConcurrentStudents`}
+                        value={store.currentCard?.options.maxExpectedConcurrentStudents}
+                        onChange={e => store.setCardOption('maxExpectedConcurrentStudents', +e.target.value)} />
                 </div>
 
                 <div className="form-group">

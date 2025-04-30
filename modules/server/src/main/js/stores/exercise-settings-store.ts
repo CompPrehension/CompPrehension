@@ -149,21 +149,19 @@ export class ExerciseSettingsStore {
             return;
 
         runInAction(() => this.exercisesLoadStatus = 'LOADING');
-        const [rawExercises, domains, backends, strategies, user] = await Promise.all([
+        const [rawExercises, domains, backends, strategies] = await Promise.all([
             this.exerciseSettingsController.getAllExercises(),
             this.exerciseSettingsController.getDomains(),
             this.exerciseSettingsController.getBackends(),
-            this.exerciseSettingsController.getStrategies(),
-            this.userController.getCurrentUser(),
+            this.exerciseSettingsController.getStrategies()
         ])
         if (E.isRight(rawExercises) && E.isRight(domains) &&
-            E.isRight(backends) && E.isRight(strategies) && E.isRight(user)) {
+            E.isRight(backends) && E.isRight(strategies)) {
             runInAction(() => {
                 this.exercises = rawExercises.right;
                 this.domains = domains.right;
                 this.backends = backends.right;
                 this.strategies = strategies.right;
-                i18next.changeLanguage(user.right.language);
             });
         }
         runInAction(() => this.exercisesLoadStatus = 'LOADED');
@@ -458,11 +456,10 @@ export class ExerciseSettingsStore {
         this.currentCard.tags = tags;
     }
 
-    
-    setCardFlag(optionId: KeysWithValsOfType<ExerciseOptions, boolean>, checked: boolean) {
+    setCardOption<TKey extends keyof ExerciseOptions, TValue extends ExerciseOptions[TKey]>(optionId: TKey, value: TValue) {
         if (!this.currentCard)
             return;
-        this.currentCard.options[optionId] = checked;
+        this.currentCard.options[optionId] = value;
     }
     
     addStage() {

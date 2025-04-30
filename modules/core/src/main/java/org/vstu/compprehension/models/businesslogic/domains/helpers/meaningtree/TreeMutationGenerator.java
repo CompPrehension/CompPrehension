@@ -17,6 +17,7 @@ class TreeMutationGenerator {
 
     TreeMutationGenerator(MeaningTree source) {
         this.mt = source;
+        mutatedTrees.add(mt);
     }
 
     private void analyze() {
@@ -40,7 +41,7 @@ class TreeMutationGenerator {
     public List<MeaningTree> generate() {
         analyze();
         process();
-        return mutatedTrees.isEmpty() ? List.of(mt) : mutatedTrees;
+        return mutatedTrees;
     }
 
 }

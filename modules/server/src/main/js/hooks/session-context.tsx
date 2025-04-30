@@ -2,10 +2,11 @@
 import React, { createContext, useContext, useEffect, useState } from 'react';
 import { ReactNode } from 'react';
 import { SessionStore } from '../stores/session-store';
+import { observer } from 'mobx-react';
 
 const SessionContext = createContext<SessionStore | null>(null);
 
-export const SessionProvider = ({ children }: { children: ReactNode }) => {
+export const SessionProvider = observer(({ children }: { children: ReactNode }) => {
   const [session] = useState(() => new SessionStore());
 
   useEffect(() => {
@@ -17,7 +18,7 @@ export const SessionProvider = ({ children }: { children: ReactNode }) => {
       {children}
     </SessionContext.Provider>
   );
-};
+});
 
 export const useSession = () => {
   const session = useContext(SessionContext);
