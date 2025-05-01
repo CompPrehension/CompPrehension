@@ -122,7 +122,7 @@ public class Mapper {
                         .toArray(String[]::new);
                 return OrderQuestionDto.builder()
                         .questionId(question.getId())
-                        .questionMetadataId(question.getMetadata().getId())
+                        .questionMetadataId(question.getMetadata() == null ? -1: question.getMetadata().getId())
                         .type(question.getQuestionType().toString())
                         .answers(answerDtos)
                         .text(question.getQuestionText())
@@ -135,7 +135,7 @@ public class Mapper {
             case SINGLE_CHOICE:
                 return QuestionDto.builder()
                         .questionId(question.getId())
-                        .questionMetadataId(question.getMetadata().getId())
+                        .questionMetadataId(question.getMetadata() == null ? -1: question.getMetadata().getId())
                         .type(question.getQuestionType().toString())
                         .answers(answerDtos)
                         .text(question.getQuestionText())
@@ -155,7 +155,7 @@ public class Mapper {
 
                 return MatchingQuestionDto.builder()
                         .questionId(question.getId())
-                        .questionMetadataId(question.getMetadata().getId())
+                        .questionMetadataId(question.getMetadata() == null ? -1: question.getMetadata().getId())
                         .type(question.getQuestionType().toString())
                         .answers(left)
                         .groups(right)
