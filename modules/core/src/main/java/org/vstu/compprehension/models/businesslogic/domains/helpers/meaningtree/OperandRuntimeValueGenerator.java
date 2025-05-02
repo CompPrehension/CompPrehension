@@ -6,6 +6,7 @@ import org.apache.commons.lang3.tuple.Pair;
 import org.vstu.meaningtree.MeaningTree;
 import org.vstu.meaningtree.SupportedLanguage;
 import org.vstu.meaningtree.exceptions.MeaningTreeException;
+import org.vstu.meaningtree.iterators.utils.NodeInfo;
 import org.vstu.meaningtree.languages.LanguageTranslator;
 import org.vstu.meaningtree.nodes.Node;
 import org.vstu.meaningtree.nodes.expressions.BinaryExpression;
@@ -18,7 +19,6 @@ import org.vstu.meaningtree.utils.tokens.TokenList;
 import java.lang.reflect.InvocationTargetException;
 import java.util.*;
 import java.util.stream.Collectors;
-import java.util.stream.Stream;
 
 /**
  * Класс предназначен для генерации уникальных значений операндов в вопросе, которые влияют на вычисление выражения.
@@ -29,19 +29,8 @@ import java.util.stream.Stream;
 class OperandRuntimeValueGenerator {
 
     public static void checkFixInconsistency(MeaningTree mt) {
-        // TODO: too many allocations!
-        List<Node.Info> ops = new ArrayList<>();
-        for (Node.Info info : mt) {
-            if (info.node() instanceof BinaryExpression op && isDisposableNode(op)) {
-                ops.add(info);
-            }
-        }
-        List<Node> nodes = ops.stream()
-                                .sorted(Comparator.comparingInt(Node.Info::depth))
-                                .map(Node.Info::node)
-                                .toList();
-        nodes = nodes.reversed();
-        for (Node node : nodes) {
+        for (NodeInfo nodeInfo : mt) {
+            Node node = nodeInfo.node();
             if (node instanceof BinaryExpression op) {
                 boolean leftOpVal = op.getLeft().getAssignedValueTag() == null ? false : (boolean) op.getLeft().getAssignedValueTag();
                 boolean rightOpVal = op.getRight().getAssignedValueTag() == null ? false : (boolean) op.getRight().getAssignedValueTag();;
@@ -73,7 +62,7 @@ class OperandRuntimeValueGenerator {
      * partialEval - если true, то в операторе вычислится только один операнд всегда (независимо от значения) (тернарный)
      * varRequiredForEval - значение, которое должен иметь левый операнд, чтобы быть вычислен (только для логических операторов)
      */
-    private record DisposableNodeInfo(Node.Info node, boolean partialEval,
+    private record DisposableNodeInfo(NodeInfo node, boolean partialEval,
                                       boolean valRequiredForEval,
                                       boolean blockRemoval) {
         public long getNodeId() {
@@ -169,7 +158,7 @@ class OperandRuntimeValueGenerator {
         List<Pair<Integer, Boolean>> preferredValues = new ArrayList<>();
 
         // Заполнение начальных данных
-        for (Node.Info nodeInfo : preferred) {
+        for (NodeInfo nodeInfo : preferred) {
             Optional<DisposableIndex> foundDisposable = findDisposableIndex(nodeInfo.node().getId());
             if (foundDisposable.isPresent()) {
                 DisposableIndex grp = foundDisposable.get();
@@ -244,7 +233,7 @@ class OperandRuntimeValueGenerator {
         int initialHash = preferred.hashCode();
         List<Pair<Integer, Boolean>> preferredValues = new ArrayList<>();
 
-        for (Node.Info nodeInfo : preferred) {
+        for (NodeInfo nodeInfo : preferred) {
             Optional<DisposableIndex> foundDisposable = findDisposableIndex(nodeInfo.node().getId());
             if (foundDisposable.isPresent()) {
                 DisposableIndex grp = foundDisposable.get();
@@ -358,25 +347,20 @@ class OperandRuntimeValueGenerator {
     private void calculateInitialFeatures() {
         MeaningTree calculationTree = initialTree.clone();
 
-        for (Node.Info node : calculationTree) {
+        for (NodeInfo node : calculationTree) {
             Optional<DisposableNodeInfo> foundDisposable = findDisposable(node.node().getId());
             if (foundDisposable.isPresent()) {
                 DisposableNodeInfo disposable = foundDisposable.get();
                 if (disposable.partialEval && node.node() instanceof TernaryOperator ternary) {
                     if (node.parent() != null) {
-                        node.parent().substituteNodeChildren(disposable.node.fieldName(),
-                                ternary.getElseExpr(),
-                                disposable.node.index());
+                        node.parent().getFieldDescriptor(disposable.node.field().getName()).substitute(ternary.getElseExpr());
                     } else {
                         calculationTree.changeRoot(ternary.getElseExpr());
                     }
                 } else if (node.node() instanceof BinaryExpression binOp) {
                     log.debug("Possible disposable question element: {}", binOp.getRight());
                     if (node.parent() != null) {
-                        node.parent().substituteNodeChildren(disposable.node.fieldName(),
-                                binOp.getLeft(),
-                                disposable.node.index()
-                        );
+                        node.parent().getFieldDescriptor(disposable.node.field().getName()).substitute(binOp.getLeft());
                     } else {
                         calculationTree.changeRoot(binOp.getLeft());
                     }
@@ -384,7 +368,7 @@ class OperandRuntimeValueGenerator {
                 }
             }
         }
-        for (Node.Info node : initialTree) {
+        for (NodeInfo node : initialTree) {
             Optional<DisposableNodeInfo> foundDisposable = findDisposable(node.node().getId());
             if (foundDisposable.isPresent()) {
                 if (node.node() instanceof BinaryExpression binOp) {
@@ -430,7 +414,7 @@ class OperandRuntimeValueGenerator {
 
     // Найти отключаемые группы, т.е. те, что полностью или частично не могут быть вычислены
     private void findDisposableGroups() {
-        for (Node.Info nodeInfo : initialTree) {
+        for (NodeInfo nodeInfo : initialTree) {
             Node node = nodeInfo.node();
             if (isDisposableNode(node) && node instanceof BinaryExpression binOp) {
                 possibleDisposableOperands.add(

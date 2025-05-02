@@ -22,6 +22,7 @@ import org.vstu.compprehension.models.entities.QuestionOptions.QuestionOptionsEn
 import org.vstu.meaningtree.MeaningTree;
 import org.vstu.meaningtree.SupportedLanguage;
 import org.vstu.meaningtree.exceptions.MeaningTreeException;
+import org.vstu.meaningtree.iterators.utils.NodeInfo;
 import org.vstu.meaningtree.languages.CppTranslator;
 import org.vstu.meaningtree.languages.LanguageTranslator;
 import org.vstu.meaningtree.nodes.Node;
@@ -647,7 +648,7 @@ public class MeaningTreeOrderQuestionBuilder {
      */
     static int findOmitted(MeaningTree tree) {
         int count = 0;
-        for (Node.Info info : tree) {
+        for (NodeInfo info : tree) {
             if (info.node() instanceof ShortCircuitAndOp op
                     && op.getLeft().getAssignedValueTag() instanceof Boolean bool && !bool) {
                 count++;
@@ -679,7 +680,7 @@ public class MeaningTreeOrderQuestionBuilder {
      */
      static Set<String> findConcepts(MeaningTree mt, SupportedLanguage toLanguage) {
         HashSet<String> result = new HashSet<>();
-        for (Node.Info nodeInfo: mt) {
+        for (NodeInfo nodeInfo: mt) {
             Node node = nodeInfo.node();
             if (node instanceof AddOp) result.add("operator_binary_+");
             else if (node instanceof MulOp) result.add("operator_binary_*");

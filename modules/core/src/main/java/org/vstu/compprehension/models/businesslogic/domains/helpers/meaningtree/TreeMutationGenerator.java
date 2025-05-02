@@ -1,9 +1,12 @@
 package org.vstu.compprehension.models.businesslogic.domains.helpers.meaningtree;
 
 import org.vstu.meaningtree.MeaningTree;
-import org.vstu.meaningtree.nodes.Node;
+import org.vstu.meaningtree.iterators.utils.NodeInfo;
 
-import java.util.*;
+import java.util.ArrayList;
+import java.util.HashMap;
+import java.util.List;
+import java.util.Map;
 
 class TreeMutationGenerator {
     private static final List<Mutation> requiredMutations = List.of(
@@ -12,7 +15,7 @@ class TreeMutationGenerator {
     );
 
     private final MeaningTree mt;
-    private Map<Node.Info, List<Mutation>> mutationNodes;
+    private Map<NodeInfo, List<Mutation>> mutationNodes;
     private final ArrayList<MeaningTree> mutatedTrees = new ArrayList<>();
 
     TreeMutationGenerator(MeaningTree source) {
@@ -22,7 +25,7 @@ class TreeMutationGenerator {
 
     private void analyze() {
         mutationNodes = new HashMap<>();
-        for (Node.Info node : mt) {
+        for (NodeInfo node : mt) {
             if (node == null) continue;
             List<Mutation> mutList = requiredMutations.stream().filter(mut -> mut.isEligible(node)).toList();
             if (!mutList.isEmpty()) mutationNodes.put(node, mutList);

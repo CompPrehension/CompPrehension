@@ -25,7 +25,7 @@ import org.vstu.compprehension.models.repository.ExerciseRepository;
 import org.vstu.compprehension.models.repository.UserRepository;
 import org.vstu.meaningtree.MeaningTree;
 import org.vstu.meaningtree.SupportedLanguage;
-import org.vstu.meaningtree.nodes.Node;
+import org.vstu.meaningtree.iterators.utils.NodeInfo;
 import org.vstu.meaningtree.serializers.rdf.RDFDeserializer;
 import org.vstu.meaningtree.utils.Label;
 
@@ -215,7 +215,7 @@ public class ProgrammingLanguageExpressionDTDomainTest {
 
         // Check values
         boolean hasValues = false;
-        for (Node.Info info : mt) {
+        for (NodeInfo info : mt) {
             if (info.node().hasLabel(Label.VALUE)) {
                 hasValues = true;
                 break;
