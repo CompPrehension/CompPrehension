@@ -1,20 +1,20 @@
 package org.vstu.compprehension.strategies;
 
 import lombok.extern.log4j.Log4j2;
+import lombok.val;
 import org.jetbrains.annotations.NotNull;
 import org.jetbrains.annotations.Nullable;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.vstu.compprehension.Service.BktService;
+import org.vstu.compprehension.dto.ExerciseSkillDto;
 import org.vstu.compprehension.models.businesslogic.Concept;
 import org.vstu.compprehension.models.businesslogic.QuestionRequest;
+import org.vstu.compprehension.models.businesslogic.SkillState;
 import org.vstu.compprehension.models.businesslogic.domains.Domain;
 import org.vstu.compprehension.models.businesslogic.domains.DomainFactory;
 import org.vstu.compprehension.models.businesslogic.strategies.AbstractStrategy;
 import org.vstu.compprehension.models.businesslogic.strategies.StrategyOptions;
-import org.vstu.compprehension.models.entities.EnumData.Decision;
-import org.vstu.compprehension.models.entities.EnumData.DisplayingFeedbackType;
-import org.vstu.compprehension.models.entities.EnumData.FeedbackType;
-import org.vstu.compprehension.models.entities.EnumData.Language;
+import org.vstu.compprehension.models.entities.EnumData.*;
 import org.vstu.compprehension.models.entities.ExerciseAttemptEntity;
 import org.vstu.compprehension.models.entities.InteractionEntity;
 import org.vstu.compprehension.models.entities.QuestionEntity;
@@ -137,46 +137,67 @@ public class BktStrategy implements AbstractStrategy {
 
     @Override
     public Decision decide(ExerciseAttemptEntity exerciseAttempt) {
-        exerciseAttempt.getExercise().getStages().get(0).getSkills().get(0).getKind();
+        val exercise = exerciseAttempt.getExercise();
+        val domain = domainFactory.getDomain(exercise.getDomain().getName());
 
+        val targetSkills = exerciseAttempt
+                .getExercise()
+                .getStages()
+                .stream()
+                .flatMap( stage -> stage.getSkills().stream())
+                .filter(skill -> skill.getKind().equals(RoleInExercise.TARGETED))
+                .map(ExerciseSkillDto::getName)
+                .toList();
+
+        val skillStates = bktService.getSkillStates(
+                domain.getDomainId(),
+                exerciseAttempt.getUser().getId(),
+                targetSkills
+        );
 
         List<QuestionEntity> questions = exerciseAttempt.getQuestions();
 
-        // get limit of questions defined by teacher in exercise GUI
-        int minimumQuestionsToAsk = getNumberOfQuestionsToAsk(exerciseAttempt.getExercise());
-
-        // Должно быть задано не менее X вопросов и последний вопрос должен быть завершён (завершение упражнения возможно только в момент завершения вопроса)
-        if(questions.size() < minimumQuestionsToAsk ||
-                questions.stream().anyMatch(q -> (long)(q.getId()) == questions.get(questions.size() - 1).getId() && (q.getInteractions().size() == 0 || q.getInteractions().get(q.getInteractions().size() - 1).getFeedback().getInteractionsLeft() > 0))){
+        // 1. Ограничение: последний вопрос должен быть завершён
+        QuestionEntity lastQuestion = questions.getLast();
+        if (!isQuestionCompleted(lastQuestion)) {
             return Decision.CONTINUE;
         }
 
-        // Должно быть задано не менее X вопросов, которые были завершены
-        long completedQuestions = questions.stream()
-                .filter(q -> q.getInteractions().size() > 0 && q.getInteractions().get(q.getInteractions().size() - 1).getFeedback().getInteractionsLeft() == 0)
-                .count();
-        if(completedQuestions < minimumQuestionsToAsk)
-            return Decision.CONTINUE;
-
-        /*Integer timeLimit = exerciseAttempt.getExercise().getTimeLimit(); // assuming minutes - NO! steps.
-
-        if (timeLimit == null) {
-            return Decision.CONTINUE;
-        } else {
-            if (timeLimit <= 0 || questions.isEmpty())
-                return Decision.CONTINUE;
-            else if (!questions.isEmpty()) {
-                List<InteractionEntity> interactions = questions.get(0).getInteractions();
-                if (interactions == null || interactions.isEmpty())
-                    return Decision.CONTINUE;
-
-                Instant beginExerciseTime = interactions.get(0).getDate().toInstant();
-                Instant now = new Date().toInstant();
-                boolean tooLate = beginExerciseTime.plusSeconds(timeLimit * 60).compareTo(now) < 0;
-                if (!tooLate)
-                    return Decision.CONTINUE;
+        // 2. Быстрый выход: все целевые навыки уже освоены
+        if (skillStates != null && !skillStates.isEmpty()) {
+            boolean allMastered = skillStates
+                    .stream()
+                    .allMatch(skill ->
+                            SkillState.fromValue(skill.getState()).equals(SkillState.MASTERED)
+                    );
+            if (allMastered) {
+                return Decision.FINISH;
             }
-        }*/
+        }
+
+        // 3. Проверка на минимальное число завершённых вопросов (как в static strategy)
+        int minimumQuestionsToAsk = getNumberOfQuestionsToAsk(exerciseAttempt.getExercise());
+
+        long completedQuestions = questions.stream()
+                .filter(this::isQuestionCompleted)
+                .count();
+
+        if (completedQuestions < minimumQuestionsToAsk) {
+            return Decision.CONTINUE;
+        }
+
         return Decision.FINISH;
+    }
+
+    /**
+     * Вопрос считается завершённым, когда в последнем взаимодействии
+     * feedback.interactionsLeft == 0.
+     */
+    private boolean isQuestionCompleted(QuestionEntity q) {
+        if (q.getInteractions().isEmpty()) {
+            return false;
+        }
+        InteractionEntity last = q.getInteractions().getLast();
+        return last.getFeedback().getInteractionsLeft() == 0;
     }
 }

@@ -39,12 +39,23 @@ class BktServiceStub(object):
                 request_serializer=bkt__service__pb2.UpdateRosterRequest.SerializeToString,
                 response_deserializer=bkt__service__pb2.UpdateRosterResponse.FromString,
                 _registered_method=True)
+        self.GetSkillStates = channel.unary_unary(
+                '/bkt.BktService/GetSkillStates',
+                request_serializer=bkt__service__pb2.GetSkillStatesRequest.SerializeToString,
+                response_deserializer=bkt__service__pb2.GetSkillStatesResponse.FromString,
+                _registered_method=True)
 
 
 class BktServiceServicer(object):
     """Missing associated documentation comment in .proto file."""
 
     def UpdateRoster(self, request, context):
+        """Missing associated documentation comment in .proto file."""
+        context.set_code(grpc.StatusCode.UNIMPLEMENTED)
+        context.set_details('Method not implemented!')
+        raise NotImplementedError('Method not implemented!')
+
+    def GetSkillStates(self, request, context):
         """Missing associated documentation comment in .proto file."""
         context.set_code(grpc.StatusCode.UNIMPLEMENTED)
         context.set_details('Method not implemented!')
@@ -57,6 +68,11 @@ def add_BktServiceServicer_to_server(servicer, server):
                     servicer.UpdateRoster,
                     request_deserializer=bkt__service__pb2.UpdateRosterRequest.FromString,
                     response_serializer=bkt__service__pb2.UpdateRosterResponse.SerializeToString,
+            ),
+            'GetSkillStates': grpc.unary_unary_rpc_method_handler(
+                    servicer.GetSkillStates,
+                    request_deserializer=bkt__service__pb2.GetSkillStatesRequest.FromString,
+                    response_serializer=bkt__service__pb2.GetSkillStatesResponse.SerializeToString,
             ),
     }
     generic_handler = grpc.method_handlers_generic_handler(
@@ -86,6 +102,33 @@ class BktService(object):
             '/bkt.BktService/UpdateRoster',
             bkt__service__pb2.UpdateRosterRequest.SerializeToString,
             bkt__service__pb2.UpdateRosterResponse.FromString,
+            options,
+            channel_credentials,
+            insecure,
+            call_credentials,
+            compression,
+            wait_for_ready,
+            timeout,
+            metadata,
+            _registered_method=True)
+
+    @staticmethod
+    def GetSkillStates(request,
+            target,
+            options=(),
+            channel_credentials=None,
+            call_credentials=None,
+            insecure=False,
+            compression=None,
+            wait_for_ready=None,
+            timeout=None,
+            metadata=None):
+        return grpc.experimental.unary_unary(
+            request,
+            target,
+            '/bkt.BktService/GetSkillStates',
+            bkt__service__pb2.GetSkillStatesRequest.SerializeToString,
+            bkt__service__pb2.GetSkillStatesResponse.FromString,
             options,
             channel_credentials,
             insecure,

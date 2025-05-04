@@ -9,6 +9,7 @@ import org.apache.commons.lang3.tuple.Pair;
 import org.jetbrains.annotations.NotNull;
 import org.jetbrains.annotations.Nullable;
 import org.springframework.stereotype.Service;
+import org.springframework.transaction.annotation.Isolation;
 import org.springframework.transaction.annotation.Propagation;
 import org.springframework.transaction.annotation.Transactional;
 import org.vstu.compprehension.common.Utils;
@@ -84,7 +85,7 @@ public class FrontendService {
         return questionService.judgeSupplementaryQuestion(question, responses);
     }
 
-    @Transactional(propagation = Propagation.REQUIRED)
+    @Transactional(propagation = Propagation.REQUIRED, isolation = Isolation.READ_COMMITTED)
     public @NotNull FeedbackDto addQuestionAnswer(@NotNull InteractionDto interaction) throws Exception {
         Checkpointer ch = new Checkpointer(log);
 
@@ -119,8 +120,8 @@ public class FrontendService {
         var strategyAttemptDecision = Decision.CONTINUE;
         if (attempt != null) {
             bktService.updateBktRoster(
-                    domain,
-                    attempt.getUser(),
+                    domain.getDomainId(),
+                    attempt.getUser().getId(),
                     judgeResult.isAnswerCorrect,
                     judgeResult.domainSkills
             );

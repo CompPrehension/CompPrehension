@@ -19,19 +19,17 @@ public class BktDataEntity {
     @AllArgsConstructor
     @NoArgsConstructor
     public static class BktDataId implements Serializable {
-        private Long user;
-        private String domain;
+        private Long userId;
+        private String domainName;
     }
 
     @Id
-    @ManyToOne
-    @JoinColumn(name = "user_id", nullable = false)
-    private @NotNull UserEntity user;
+    @Column(name = "user_id")
+    private @NotNull Long userId;
 
     @Id
-    @ManyToOne
-    @JoinColumn(name = "domain_name", nullable = false)
-    private @NotNull DomainEntity domain;
+    @Column(name = "domain_name")
+    private @NotNull String domainName;
 
     @Version
     @Column(name = "version", columnDefinition = "BIGINT", nullable = false)

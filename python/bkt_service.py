@@ -7,37 +7,72 @@ from proto import bkt_service_pb2, bkt_service_pb2_grpc
 
 class BktServiceServicer(bkt_service_pb2_grpc.BktServiceServicer):
 
-    def UpdateRoster(self, request, context):
-        # ---------- 1. Десериализация ----------
+    def _deserialize_roster(self, raw_b64: str, context):
         try:
-            roster: Roster = pickle.loads(base64.b64decode(request.roster))
+            return pickle.loads(base64.b64decode(raw_b64))
         except Exception as e:
             context.abort(StatusCode.INVALID_ARGUMENT, str(e))
+
+    def _serialize_roster(self, roster):
+        return base64.b64encode(pickle.dumps(roster)).decode("utf-8")
+
+    def _ensure_skill_and_student(self, roster: Roster, skill: str, student: str):
+        """Гарантирует, что у roster есть нужный skill и student."""
+        # если навык впервые встречается – заводим пустой SkillRoster,
+        # используя тот же pyBKT Model и настройки, что в исходном roster
+        if skill not in roster.skill_rosters:
+            roster.skill_rosters[skill] = SkillRoster(
+                students=list(roster.students),
+                skill=skill,
+                mastery_state=roster.mastery_state,
+                track_progress=roster.track_progress,
+                model=roster.model,
+            )
+        # если студент новый – добавляем
+        if student not in roster.skill_rosters[skill].students:
+            roster.skill_rosters[skill].add_student(student)
+        return roster
+
+    def UpdateRoster(self, request, context):
+        # ---------- 1. Десериализация ----------
+        roster = self._deserialize_roster(request.roster, context)
 
         try:
             # ---------- 2. Обновление ----------
             skills_list = request.skills
             for skill in skills_list:
-                # 2.1. если навык впервые встречается – заводим пустой SkillRoster,
-                #      используя тот же pyBKT Model и настройки, что в исходном roster
-                if skill not in roster.skill_rosters:
-                    roster.skill_rosters[skill] = SkillRoster(
-                        students=list(roster.students),
-                        skill=skill,
-                        mastery_state=roster.mastery_state,
-                        track_progress=roster.track_progress,
-                        model=roster.model,
-                    )
-                # 2.2. если студент новый – добавляем
-                if request.student not in roster.skill_rosters[skill].students:
-                    roster.skill_rosters[skill].add_student(request.student)
-                # 2.3. апдейт состояния
+                roster = self._ensure_skill_and_student(roster, skill, request.student)
+                # апдейт состояния
                 roster.update_state(skill, request.student, int(request.correct == True))
         except Exception as e:
             context.abort(StatusCode.INTERNAL, f"Python error: {e}")
 
         # ---------- 3. Сериализация результата ----------
-        return bkt_service_pb2.UpdateRosterResponse(roster = base64.b64encode(pickle.dumps(roster)).decode("utf-8"))
+        return bkt_service_pb2.UpdateRosterResponse(roster = self._serialize_roster(roster))
+
+    def GetSkillStates(self, request, context):
+        # ---------- 1. Десериализация ----------
+        roster = self._deserialize_roster(request.roster, context)
+        skill_states = []
+
+        try:
+            # ---------- 2. Получаем состояния ----------
+            skills_list = request.skills
+            for skill in skills_list:
+                roster = self._ensure_skill_and_student(roster, skill, request.student)
+                # получение состояния
+                state = roster.get_state(skill, request.student)
+                skill_states.append(bkt_service_pb2.SkillState(
+                    skill = skill,
+                    state = state.state_type.value,
+                    correctPrediction = state.get_correct_prob(),
+                    statePrediction = state.get_mastery_prob(),
+                ))
+        except Exception as e:
+            context.abort(StatusCode.INTERNAL, f"Python error: {e}")
+
+        # ---------- 3. Сериализация результата ----------
+        return bkt_service_pb2.GetSkillStatesResponse(skillStates = skill_states)
 
 def build_server(port: int = 50051) -> grpc.Server:
     server = grpc.server(futures.ThreadPoolExecutor(max_workers=8))
