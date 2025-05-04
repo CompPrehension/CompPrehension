@@ -24,4 +24,7 @@ public class DomainEntity {
     @Type(JsonType.class)
     @Column(name = "options_json", columnDefinition = "json", nullable = false)
     private DomainOptionsEntity options;
+
+    @Column(name = "empty_roster", columnDefinition = "TEXT")
+    private String emptyRoster;
 }

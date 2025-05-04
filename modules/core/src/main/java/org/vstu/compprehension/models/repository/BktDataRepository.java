@@ -5,6 +5,6 @@ import org.springframework.stereotype.Repository;
 import org.vstu.compprehension.models.entities.BktDataEntity;
 
 @Repository
-public interface BktDataRepository extends CrudRepository<BktDataEntity, String> {
+public interface BktDataRepository extends CrudRepository<BktDataEntity, BktDataEntity.BktDataId> {
 
 }

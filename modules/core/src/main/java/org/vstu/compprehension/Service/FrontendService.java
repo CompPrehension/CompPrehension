@@ -119,11 +119,12 @@ public class FrontendService {
         var strategyAttemptDecision = Decision.CONTINUE;
         if (attempt != null) {
             bktService.updateBktRoster(
-                    domain.getDomainId(),
-                    attempt.getUser().getId().toString(),
+                    domain,
+                    attempt.getUser(),
                     judgeResult.isAnswerCorrect,
                     judgeResult.domainSkills
             );
+            ch.hit("updateBktRoster done");
 
             var strategy = strategyFactory.getStrategy(attempt.getExercise().getStrategyId());
             grade = strategy.grade(attempt);
