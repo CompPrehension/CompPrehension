@@ -720,7 +720,7 @@ public class MeaningTreeOrderQuestionBuilder {
             else if (node instanceof PostfixDecrementOp) result.add("operator_postfix_--");
             else if (node instanceof MemberAccess) result.add("operator_.");
             else if (node instanceof TernaryOperator) result.add("operator_?");
-            else if (node instanceof ExpressionSequence && toLanguage == SupportedLanguage.CPP) result.add("operator_,");
+            else if (node instanceof CommaExpression) result.add("operator_,");
             else if (node instanceof FunctionCall) {
                 result.add("operator_function_call");
                 result.add("function_call");
