@@ -562,6 +562,7 @@ public class TaskGenerationJob {
             var allJsonFiles = FileUtility.findFiles(repoDir, new String[]{".json"});
             log.info("Found {} json files in: {}", allJsonFiles.size(), repoDir);
 
+            AtomicInteger processed = new AtomicInteger(0);
             AtomicInteger savedQuestions = new AtomicInteger();
             AtomicInteger skippedQuestions = new AtomicInteger(); // loaded but not kept since not required by any QR
 
@@ -599,15 +600,15 @@ public class TaskGenerationJob {
 
                     var metadataToRemove = new ArrayList<QuestionMetadataEntity>();
                     for (QuestionMetadataEntity meta : metaList) {
-                        if (existingQuestionNames.contains(meta.getName()) || existingTemplateIds.contains(meta.getTemplateId())) {
-                            skippedQuestions.addAndGet(1);
-                            log.info("Template [{}] or question [{}] already exists. Skipping...", meta.getTemplateId(), meta.getName());
+                        if (existingQuestionNames.contains(meta.getName()) || existingTemplateIds.contains(meta.getTemplateId())) {                            
+                            log.debug("Template [{}] or question [{}] already exists. Skipping...", meta.getTemplateId(), meta.getName());
                             metadataToRemove.add(meta);
                         }
                     }
                     metadataToRemove.forEach(metaList::remove);
                     if (metaList.isEmpty()) {
-                        log.info("All metadata already exists for question [{}]. Skipping...", q.getCommonQuestion().getQuestionData().getQuestionName());
+                        log.debug("All metadata already exists for question [{}]. Skipping...", q.getCommonQuestion().getQuestionData().getQuestionName());
+                        skippedQuestions.addAndGet(1);
                         continue;
                     }
 
@@ -668,21 +669,20 @@ public class TaskGenerationJob {
                             meta = storage.saveMetadataEntity(meta);
                         }
 
-                        log.info("* * *");
-                        log.info("Question [{}] saved with data in database. Metadata id: {}", q.getCommonQuestion().getQuestionData().getQuestionName(),
+                        log.debug("* * *");
+                        log.debug("Question [{}] saved with data in database. Metadata id: {}", q.getCommonQuestion().getQuestionData().getQuestionName(),
                                 metaList.stream()
                                         .map(QuestionMetadataEntity::getId)
                                         .map((Integer i) -> Integer.toString(i))
                                         .collect(Collectors.joining(", ")));
                         savedQuestions.addAndGet(1);
                     } else {
-                        log.info("Saving updates to DB actually SKIPPED due to DEBUG mode:");
+                        log.debug("Saving updates to DB actually SKIPPED due to DEBUG mode:");
                     }
                 }
-            });
 
-            log.info("Skipped {} questions of {} generated.", skippedQuestions, allJsonFiles.size());
-            log.info("Saved {} questions of {} generated.", savedQuestions, allJsonFiles.size());
+                log.info("Processed {}/{} questions ({} skipped, {} saved).", processed.addAndGet(batch.size()), allJsonFiles.size(), skippedQuestions, savedQuestions);
+            });
         }
 
         // update QR-log: statistics and possibly status
