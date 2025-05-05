@@ -505,6 +505,8 @@ public class TaskGenerationJob {
                 cmd.addAll(Arrays.stream(generatorConfig.getPathToExecutable().split("\\s")).toList());
             cmd.add("--source");
             cmd.add(String.valueOf(repoDir));
+            cmd.add("--limit");
+            cmd.add(String.valueOf(3000)); // TODO для исправления затупов на больших репозиториях
             cmd.add("--output");
             cmd.add(String.valueOf(destination));
             cmd.add("--sourceId");
