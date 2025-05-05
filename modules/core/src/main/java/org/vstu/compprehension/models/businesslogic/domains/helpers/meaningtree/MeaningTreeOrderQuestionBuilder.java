@@ -120,6 +120,9 @@ public class MeaningTreeOrderQuestionBuilder {
         } else {
             log.info("Converting old-format question with metadata id={}", q.getMetadata().getId());
             mt = extractExpression(q.getQuestionData().getStatementFacts());
+            if (mt != null) {
+                allChecksArePassed = false;
+            }
         }
         sourceExpressionTree = mt;
         existingMetadata = q.getMetadata();
@@ -186,7 +189,11 @@ public class MeaningTreeOrderQuestionBuilder {
         }
         String tokens = tokenBuilder.substring(0, tokenBuilder.length() - 1);
         log.info("Extracted expression text from existing question: {}", tokens);
-        TokenList tokenList = cppTranslator.getTokenizer().tokenizeExtended(tokens);
+        var tokenizeResult = cppTranslator.getTokenizer().tryTokenizeExtended(tokens);
+        if (tokenizeResult == null) {
+            return null;
+        }
+        var tokenList = tokenizeResult.getRight();
         HashMap<TokenGroup, Object> semanticValuesIndexes = new HashMap<>();
         for (int i = 0; i < indexes.keySet().stream().max(Long::compare).orElse(0); i++) {
             if (semanticValues.containsKey(indexes.get(i))) {
@@ -371,15 +378,19 @@ public class MeaningTreeOrderQuestionBuilder {
 
     private String debugTokensString(MeaningTree mt, SupportedLanguage lang) {
         try {
-            TokenList list = lang.createTranslator(new MeaningTreeDefaultExpressionConfig()).getTokenizer().tokenizeExtended(mt);
+            var tokRes = lang.createTranslator(new MeaningTreeDefaultExpressionConfig()).getTokenizer().tryTokenizeExtended(mt);
+            var list = tokRes.getRight();
+            if (!tokRes.getLeft()) {
+                return "error:tokenizer";
+            }
 
             StringBuilder builder = new StringBuilder();
             for (Token token : list) {
                 builder.append(token.value);
                 if (token.getAssignedValue() != null) {
-                    builder.append("<--");
-                    builder.append(token.getAssignedValue().toString().toUpperCase());
-                    builder.append(';');
+                    builder.append("<-");
+                    builder.append(token.getAssignedValue().toString());
+                    builder.append(";>");
                 }
                 builder.append(' ');
             }
