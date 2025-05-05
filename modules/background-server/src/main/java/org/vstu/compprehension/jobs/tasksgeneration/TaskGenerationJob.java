@@ -586,6 +586,7 @@ public class TaskGenerationJob {
                         .filter(Objects::nonNull)
                         .collect(Collectors.toSet());
                 var existingTemplateIds = metadataRep.findExistingTemplateIds(config.getDomainShortName(), templateIds);
+                var metadataToSave = new ArrayList<QuestionMetadataEntity>(batch.size());
 
                 for (var q : batch) {
                     HashSet<QuestionMetadataEntity> metaList = q.getMetadataList().stream()
@@ -658,7 +659,6 @@ public class TaskGenerationJob {
                         // save question data in the database
                         QuestionDataEntity questionData = new QuestionDataEntity();
                         questionData.setData(q.getCommonQuestion());
-                        questionData = storage.saveQuestionDataEntity(questionData);
 
                         // then save metadata
                         for (var kv : matchedMetadata.entrySet()) {
@@ -666,9 +666,11 @@ public class TaskGenerationJob {
                             var genRequestId = kv.getValue();
                             meta.setGenerationRequestId(genRequestId);
                             meta.setQuestionData(questionData);
-                            meta = storage.saveMetadataEntity(meta);
+
+                            metadataToSave.add(meta);
                         }
 
+                        /*
                         log.debug("* * *");
                         log.debug("Question [{}] saved with data in database. Metadata id: {}", q.getCommonQuestion().getQuestionData().getQuestionName(),
                                 metaList.stream()
@@ -676,9 +678,15 @@ public class TaskGenerationJob {
                                         .map((Integer i) -> Integer.toString(i))
                                         .collect(Collectors.joining(", ")));
                         savedQuestions.addAndGet(1);
+                        */
                     } else {
                         log.debug("Saving updates to DB actually SKIPPED due to DEBUG mode:");
                     }
+                }
+                
+                if (!metadataToSave.isEmpty()) {
+                    storage.saveMetadataWithDataEntities(metadataToSave);
+                    savedQuestions.addAndGet(metadataToSave.size());
                 }
 
                 log.info("Processed {}/{} questions ({} skipped, {} saved).", processed.addAndGet(batch.size()), allJsonFiles.size(), skippedQuestions, savedQuestions);
@@ -756,6 +764,8 @@ public class TaskGenerationJob {
         private void loadAll() {
             while (!loadingFinished) {
                 try {
+                    log.info("Start crawling repositories...");
+                    
                     GitHub github = new GitHubBuilder()
                             .withOAuthToken(githubOAuthToken)
                             .withRateLimitChecker(new RateLimitChecker.LiteralValue(20), RateLimitTarget.SEARCH)
