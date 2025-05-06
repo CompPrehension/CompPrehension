@@ -91,6 +91,10 @@ public interface QuestionMetadataRepository extends CrudRepository<QuestionMetad
     @Query("select distinct(q.origin) from QuestionMetadataEntity q where q.domainShortname = :domainShortname and q.generatedBy is null")
     HashSet<String> findFullyProcessedOrigins(@Param("domainShortname") String domainShortname);
 
+    @NotNull
+    @Query("select distinct(q.origin) from QuestionMetadataEntity q where q.domainShortname = :domainShortname")
+    HashSet<String> findProcessedOrigins(@Param("domainShortname") String domainShortname);
+
     @Query("select exists(select m.id from QuestionMetadataEntity m where m.domainShortname = :domainShortname and m.templateId = :templateId)")
     boolean templateExists(@Param("domainShortname") String domainShortname, @Param("templateId") String templateId);
 

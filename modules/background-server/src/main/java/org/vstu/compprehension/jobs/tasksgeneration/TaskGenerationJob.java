@@ -293,7 +293,8 @@ public class TaskGenerationJob {
         Files.createDirectories(outputFolderPath);
 
         // Учесть историю по полностью использованным репозиториям + загруженным недавно -- игнорируем их
-        var seenReposNames = metadataRep.findFullyProcessedOrigins(config.getDomainShortName())
+        // TODO временно для эксперимента используем только ни разу не обработанные репозитории
+        var seenReposNames = metadataRep.findProcessedOrigins(config.getDomainShortName())
             .stream().map(s -> s.replaceAll("/", "_"))
             .collect(Collectors.toSet());
         if (downloaderConfig.isSkipDownloadedRepositories()) {

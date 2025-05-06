@@ -169,6 +169,12 @@ public class FakeQuestionMetadataRepository implements QuestionMetadataRepositor
         return new HashSet<>();
     }
 
+    @NotNull
+    @Override
+    public HashSet<String> findProcessedOrigins(String domainShortname) {
+        return new HashSet<>();
+    }
+
     @Override
     public boolean templateExists(String domainShortname, String templateId) {
         return false;
