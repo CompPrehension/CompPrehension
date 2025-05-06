@@ -10,10 +10,7 @@ import org.vstu.compprehension.models.businesslogic.domains.Domain;
 import org.vstu.compprehension.models.businesslogic.domains.DomainFactory;
 import org.vstu.compprehension.models.businesslogic.strategies.AbstractStrategy;
 import org.vstu.compprehension.models.businesslogic.strategies.StrategyOptions;
-import org.vstu.compprehension.models.entities.EnumData.Decision;
-import org.vstu.compprehension.models.entities.EnumData.DisplayingFeedbackType;
-import org.vstu.compprehension.models.entities.EnumData.FeedbackType;
-import org.vstu.compprehension.models.entities.EnumData.Language;
+import org.vstu.compprehension.models.entities.EnumData.*;
 import org.vstu.compprehension.models.entities.ExerciseAttemptEntity;
 import org.vstu.compprehension.models.entities.InteractionEntity;
 import org.vstu.compprehension.models.entities.QuestionEntity;
@@ -110,7 +107,10 @@ public class StaticStrategy implements AbstractStrategy {
             List<InteractionEntity> interactions = q.getInteractions();
             int knownInteractions = interactions.size();
             long correctInteractions = interactions.stream()
-                    .filter(inter -> inter != null && (inter.getViolations() == null || inter.getViolations().isEmpty()))
+                    .filter(inter -> inter != null
+                            && inter.getInteractionType() == InteractionType.SEND_RESPONSE
+                            && (inter.getViolations() == null || inter.getViolations().isEmpty())
+                    )
                     .count();
             if (knownInteractions == 0)
                 continue;  // nothing done yet.

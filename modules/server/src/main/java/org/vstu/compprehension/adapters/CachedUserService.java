@@ -1,9 +1,8 @@
 package org.vstu.compprehension.adapters;
 
 import org.springframework.security.core.context.SecurityContextHolder;
-import org.springframework.security.core.userdetails.UserDetails;
-import org.springframework.web.context.request.RequestContextHolder;
 import org.vstu.compprehension.Service.UserService;
+import org.vstu.compprehension.models.entities.EnumData.Language;
 import org.vstu.compprehension.models.entities.UserEntity;
 
 import javax.annotation.Nullable;
@@ -29,5 +28,16 @@ public class CachedUserService implements UserService {
         cachedCurrentUserPrincipal = principal;
 
         return cachedCurrentUser;
+    }
+
+
+    @Override
+    public void setLanguage(Language language) throws Exception {
+        decoratee.setLanguage(language);
+
+        // Update the cached user after setting the language
+        Object principal = SecurityContextHolder.getContext().getAuthentication().getPrincipal();
+        cachedCurrentUser = decoratee.getCurrentUser();
+        cachedCurrentUserPrincipal = principal;
     }
 }

@@ -10,7 +10,7 @@
             <AppenderRef ref="Console" level="ERROR"/>
         </Root>
         <AsyncLogger name="org.vstu.compprehension" level="DEBUG">
-            <AppenderRef ref="Console" level="DEBUG"/>
+            <AppenderRef ref="Console" level="INFO"/>
         </AsyncLogger>
     </Loggers>
 </Configuration>

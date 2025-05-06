@@ -40,6 +40,8 @@ public class Main {
     String sourcePath;
     @Parameter(names={"--sourceId", "-id"}, description = "Import id", required = true)
     String sourceId;
+    @Parameter(names={"--limit"}, description = "Limit for ttl to process", required = false)
+    Integer sourceLimit;
     @Parameter(names={"--output", "-o"}, description = "Path to output directory", required = true)
     String outputPath;
 
@@ -72,6 +74,10 @@ public class Main {
         }
 
         log.info("{} parsed files to generate questions from", files.size());
+        if (sourceLimit != null && sourceLimit > 0) {
+            files = files.subList(0, Math.min(sourceLimit, files.size()));
+            log.info("limited to {} parsed files", files.size());
+        }
 
         int qCountLimit = 1000;
 

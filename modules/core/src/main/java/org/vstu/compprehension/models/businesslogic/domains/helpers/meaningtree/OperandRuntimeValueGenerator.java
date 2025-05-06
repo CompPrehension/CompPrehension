@@ -7,18 +7,18 @@ import org.vstu.meaningtree.MeaningTree;
 import org.vstu.meaningtree.SupportedLanguage;
 import org.vstu.meaningtree.exceptions.MeaningTreeException;
 import org.vstu.meaningtree.languages.LanguageTranslator;
-import org.vstu.meaningtree.nodes.Expression;
 import org.vstu.meaningtree.nodes.Node;
 import org.vstu.meaningtree.nodes.expressions.BinaryExpression;
 import org.vstu.meaningtree.nodes.expressions.logical.ShortCircuitAndOp;
 import org.vstu.meaningtree.nodes.expressions.logical.ShortCircuitOrOp;
 import org.vstu.meaningtree.nodes.expressions.other.TernaryOperator;
-import org.vstu.meaningtree.utils.NodeLabel;
+import org.vstu.meaningtree.utils.Label;
 import org.vstu.meaningtree.utils.tokens.TokenList;
 
 import java.lang.reflect.InvocationTargetException;
 import java.util.*;
 import java.util.stream.Collectors;
+import java.util.stream.Stream;
 
 /**
  * Класс предназначен для генерации уникальных значений операндов в вопросе, которые влияют на вычисление выражения.
@@ -27,6 +27,45 @@ import java.util.stream.Collectors;
  */
 @Log4j2
 class OperandRuntimeValueGenerator {
+
+    public static void checkFixInconsistency(MeaningTree mt) {
+        // TODO: too many allocations!
+        List<Node.Info> ops = new ArrayList<>();
+        for (Node.Info info : mt) {
+            if (info.node() instanceof BinaryExpression op && isDisposableNode(op)) {
+                ops.add(info);
+            }
+        }
+        List<Node> nodes = ops.stream()
+                                .sorted(Comparator.comparingInt(Node.Info::depth))
+                                .map(Node.Info::node)
+                                .toList();
+        nodes = nodes.reversed();
+        for (Node node : nodes) {
+            if (node instanceof BinaryExpression op) {
+                boolean leftOpVal = op.getLeft().getAssignedValueTag() == null ? false : (boolean) op.getLeft().getAssignedValueTag();
+                boolean rightOpVal = op.getRight().getAssignedValueTag() == null ? false : (boolean) op.getRight().getAssignedValueTag();;
+                boolean opVal = op.getAssignedValueTag() == null ? false : (boolean) op.getAssignedValueTag();
+
+                if (op instanceof ShortCircuitAndOp && opVal) {
+                    if (!leftOpVal) {
+                        op.setAssignedValueTag(false);
+                    }
+                    if (!rightOpVal) {
+                        op.setAssignedValueTag(false);
+                    }
+                }
+                if (op instanceof ShortCircuitOrOp && !opVal) {
+                    if (leftOpVal) {
+                        op.setAssignedValueTag(true);
+                    }
+                    if (rightOpVal) {
+                        op.setAssignedValueTag(true);
+                    }
+                }
+            }
+        }
+    }
 
     /**
      * Информация о возможного отключаемого участка в дереве, представляющее узел.
@@ -99,14 +138,14 @@ class OperandRuntimeValueGenerator {
 
     private final int initialTreeHash;
 
-    OperandRuntimeValueGenerator(MeaningTreeOrderQuestionBuilder builder, SupportedLanguage language) {
+    OperandRuntimeValueGenerator(MeaningTreeOrderQuestionBuilder builder, MeaningTree mt, SupportedLanguage language) {
         this.builder = builder;
-        initialTree = builder.sourceExpressionTree.clone();
-        initialTreeHash = initialTree.hashCode();
+        initialTree = mt.clone();
+        initialTreeHash = mt.hashCode();
         randomizer = new Random(initialTreeHash);
         this.language = language;
 
-        log.info("Processing question for {} values generation: {}", language.toString(), builder.rawTranslatedCode);
+        log.info("Processing question for {} values generation: {}", language.toString(), MeaningTreeUtils.viewExpression(mt, language));
 
         try {
             languageTranslator = language.createTranslator(new MeaningTreeDefaultExpressionConfig());
@@ -136,11 +175,11 @@ class OperandRuntimeValueGenerator {
                 DisposableIndex grp = foundDisposable.get();
                 if (grp.id().partialEval && nodeInfo.node() instanceof TernaryOperator ternary) {
                     ternary.getCondition().setAssignedValueTag(grp.alt == 0);
-                    ternary.getCondition().removeLabel(NodeLabel.DUMMY);
+                    ternary.getCondition().removeLabel(Label.DUMMY);
                     preferredValues.add(new ImmutablePair<>(grp.getNode().hashCode(), grp.alt == 0));
                 } else {
                     BinaryExpression expr = (BinaryExpression) nodeInfo.node();
-                    expr.getLeft().removeLabel(NodeLabel.DUMMY);
+                    expr.getLeft().removeLabel(Label.DUMMY);
                     expr.getLeft().setAssignedValueTag(!grp.id().valRequiredForEval);
                     preferredValues.add(new ImmutablePair<>(grp.getNode().hashCode(), grp.id().valRequiredForEval));
                 }
@@ -205,7 +244,6 @@ class OperandRuntimeValueGenerator {
         int initialHash = preferred.hashCode();
         List<Pair<Integer, Boolean>> preferredValues = new ArrayList<>();
 
-        // Заполнение начальных данных
         for (Node.Info nodeInfo : preferred) {
             Optional<DisposableIndex> foundDisposable = findDisposableIndex(nodeInfo.node().getId());
             if (foundDisposable.isPresent()) {
@@ -216,7 +254,15 @@ class OperandRuntimeValueGenerator {
                 } else if (nodeInfo.node() instanceof BinaryExpression expr) {
                     expr.getLeft().setAssignedValueTag(combination.get(index));
                     if (findDisposableIndex(expr.getRight().getId()).isEmpty()) {
-                        expr.getRight().setAssignedValueTag(randomizer.nextBoolean());
+                        Optional<DisposableIndex> parentDisposable = nodeInfo.parent() != null ?
+                                findDisposableIndex(nodeInfo.parent().getId()) : Optional.empty();
+                        Optional<Boolean> parValue = Optional.empty();
+                        if (parentDisposable.isPresent()) {
+                            int parIndex = groupFeatures.sequencedKeySet().stream().toList().indexOf(parentDisposable.get());
+                            parValue = Optional.of(combination.get(parIndex));
+                        }
+                        boolean value = parValue.orElseGet(randomizer::nextBoolean);
+                        expr.getRight().setAssignedValueTag(value);
                     }
                 }
                 preferredValues.add(new ImmutablePair<>(grp.getNode().hashCode(), combination.get(index)));
@@ -301,9 +347,9 @@ class OperandRuntimeValueGenerator {
     // Зависит ли один узел от другого транзитивно
     private boolean isTransitiveDependency(long child, long parent) {
         long base = child;
-        do {
+        while (base != -1L && base != parent) {
             base = deps.getOrDefault(base, -1L);
-        } while (base != -1L && base != parent);
+        }
 
         return base != -1L;
     }
@@ -320,7 +366,7 @@ class OperandRuntimeValueGenerator {
                     if (node.parent() != null) {
                         node.parent().substituteNodeChildren(disposable.node.fieldName(),
                                 ternary.getElseExpr(),
-                                disposable.node.pos() == -1 ? null : disposable.node.pos());
+                                disposable.node.index());
                     } else {
                         calculationTree.changeRoot(ternary.getElseExpr());
                     }
@@ -329,7 +375,7 @@ class OperandRuntimeValueGenerator {
                     if (node.parent() != null) {
                         node.parent().substituteNodeChildren(disposable.node.fieldName(),
                                 binOp.getLeft(),
-                                disposable.node.pos() == -1 ? null : disposable.node.pos()
+                                disposable.node.index()
                         );
                     } else {
                         calculationTree.changeRoot(binOp.getLeft());
@@ -399,7 +445,7 @@ class OperandRuntimeValueGenerator {
         }
     }
 
-    private boolean isDisposableNode(Node node) {
+    private static boolean isDisposableNode(Node node) {
         return node instanceof ShortCircuitAndOp || node instanceof ShortCircuitOrOp || node instanceof TernaryOperator;
     }
 
