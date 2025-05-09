@@ -1,10 +1,14 @@
-import React, { useState, useEffect } from 'react';
-import { Button, Form, Table, Spinner, Alert, Container, InputGroup } from 'react-bootstrap';
-import { API_URL } from "../appconfig";
+import React, {useEffect, useState} from 'react';
+import {Alert, Button, Container, Form, InputGroup, Spinner, Table} from 'react-bootstrap';
+import {API_URL} from "../appconfig";
 
 interface TextTemplateEdit {
+  templateLocation: string;
+  subLocationName: string;
   id: number;
-  key: string;
+  ownerName: string;
+  locCode: string;
+  propertyName: string;
   value: string;
 }
 
@@ -145,25 +149,25 @@ export const TextTemplateEditTable: React.FC = () => {
       <Table striped bordered hover responsive>
         <thead className="table-light">
           <tr>
-            <th>Key</th>
-            <th>Value</th>
+            <th style={{width: '30%'}}>Key</th>
+            <th style={{width: '70%'}}>Value</th>
           </tr>
         </thead>
         <tbody>
-          {data.map(item => (
+        {data.map((item, index) => (
             <tr key={item.id}>
               <td className="align-middle">
-                {item.key}
+                {item.templateLocation}/{item.subLocationName}/{item.ownerName} - {item.locCode}.{item.propertyName}
               </td>
               <td>
                 <Form.Control
+                    as="textarea"
+                    rows={Math.ceil(item.value.length / 60)}
                   type="text"
                   value={item.value}
                   onChange={(e) => {
                     setData(prevData =>
-                      prevData.map(i =>
-                        i.id === item.id ? { ...i, value: e.target.value } : i
-                      )
+                        prevData.toSpliced(index, 1, {...item, value: e.target.value})
                     );
                   }}
                 />

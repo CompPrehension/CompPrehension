@@ -1,5 +1,6 @@
 package org.vstu.compprehension.models.businesslogic.domains;
 
+import its.model.DomainSolvingModel;
 import org.jetbrains.annotations.NotNull;
 import org.vstu.compprehension.models.businesslogic.Question;
 import org.vstu.compprehension.models.businesslogic.Tag;
@@ -18,6 +19,8 @@ public abstract class DecisionTreeReasoningDomain extends DomainBase {
 
         this.backendInterface = backendInterface;
     }
+
+    public abstract DomainSolvingModel getDomainSolvingModel();
 
     @NotNull
     public String getSolvingBackendId() {

@@ -81,6 +81,11 @@ public class ControlFlowStatementsDTDomain extends DecisionTreeReasoningDomain {
     }
 
     @Override
+    public DomainSolvingModel getDomainSolvingModel() {
+        return domainSolvingModel;
+    }
+
+    @Override
     public QuestionRequest ensureQuestionRequestValid(QuestionRequest questionRequest) {
         return baseDomain.ensureQuestionRequestValid(questionRequest);
     }

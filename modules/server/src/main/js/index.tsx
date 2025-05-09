@@ -1,18 +1,18 @@
-import { createRoot } from 'react-dom/client';
+import {createRoot} from 'react-dom/client';
 import React from 'react';
 import "./bootstrapper";
 import "./styles/index.css";
 import 'bootstrap/dist/css/bootstrap.min.css';
-import { Navigate, Route, BrowserRouter as Router, Routes, redirect } from 'react-router-dom';
-import { Exercise } from './pages/exercise';
-import { Statistics } from './pages/statistics';
-import { ExercisesList } from './pages/exercises-list';
-import { SurveyPage } from './pages/survey';
-import { ExerciseSettings } from './pages/exercise-settings';
-import { StrategySettings } from './pages/strategy-settings';
-import { QuestionPage } from './pages/question';
-import { SessionProvider } from './hooks/session-context';
-import { TextTemplateEditTable } from'./pages/text-template-edit'
+import {BrowserRouter as Router, Navigate, Route, Routes} from 'react-router-dom';
+import {Exercise} from './pages/exercise';
+import {Statistics} from './pages/statistics';
+import {ExercisesList} from './pages/exercises-list';
+import {SurveyPage} from './pages/survey';
+import {ExerciseSettings} from './pages/exercise-settings';
+import {StrategySettings} from './pages/strategy-settings';
+import {QuestionPage} from './pages/question';
+import {SessionProvider} from './hooks/session-context';
+import {TextTemplateEditTable} from './pages/text-template-edit'
 
 const Home = () => (
     <SessionProvider>
@@ -26,7 +26,7 @@ const Home = () => (
                     <Route path="/pages/survey" element={<SurveyPage />} />
                     <Route path="/pages/question" element={<QuestionPage />} />
                     <Route path="/pages/exercises-list" element={<ExercisesList />} />
-                    <Route path="/pages/aboba" element={<TextTemplateEditTable />} />
+                    <Route path="/pages/templates" element={<TextTemplateEditTable/>}/>
                     <Route path="/" element={<Navigate to="/pages/exercise-settings" replace />} />
                 </Routes>
             </Router>

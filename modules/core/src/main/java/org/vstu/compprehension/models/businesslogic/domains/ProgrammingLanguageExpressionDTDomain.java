@@ -212,6 +212,11 @@ public class ProgrammingLanguageExpressionDTDomain extends DecisionTreeReasoning
             DomainSolvingModel.BuildMethod.LOQI
     ).validate();
 
+    @Override
+    public DomainSolvingModel getDomainSolvingModel() {
+        return domainSolvingModel;
+    }
+
     @NotNull
     @Override
     public String getDisplayName(Language language) {
