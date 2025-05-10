@@ -9,8 +9,11 @@ import org.vstu.compprehension.Service.BktService;
 import org.vstu.compprehension.dto.ExerciseSkillDto;
 import org.vstu.compprehension.models.businesslogic.Concept;
 import org.vstu.compprehension.models.businesslogic.QuestionRequest;
-import org.vstu.compprehension.models.businesslogic.SkillState;
+import org.vstu.compprehension.models.businesslogic.Skill;
+import org.vstu.compprehension.models.businesslogic.SkillMasteryState;
+import org.vstu.compprehension.bkt.grpc.SkillState;
 import org.vstu.compprehension.models.businesslogic.domains.Domain;
+import org.vstu.compprehension.models.businesslogic.domains.DomainBase;
 import org.vstu.compprehension.models.businesslogic.domains.DomainFactory;
 import org.vstu.compprehension.models.businesslogic.strategies.AbstractStrategy;
 import org.vstu.compprehension.models.businesslogic.strategies.StrategyOptions;
@@ -21,7 +24,11 @@ import org.vstu.compprehension.models.entities.QuestionEntity;
 import org.vstu.compprehension.models.entities.exercise.ExerciseEntity;
 import org.vstu.compprehension.models.entities.exercise.ExerciseStageEntity;
 
+import java.util.ArrayList;
+import java.util.Collections;
 import java.util.List;
+import java.util.stream.Collectors;
+import java.util.stream.Stream;
 
 @Log4j2
 public class BktStrategy implements AbstractStrategy {
@@ -114,25 +121,95 @@ public class BktStrategy implements AbstractStrategy {
         return adjustQuestionRequest(qr, exerciseAttempt);
     }
 
-
     @Override
-    public float grade(ExerciseAttemptEntity exerciseAttempt) {
-        // all questions defined by exercise
-        int nQuestionsExpected = exerciseAttempt.getExercise().getStages().stream().mapToInt(ExerciseStageEntity::getNumberOfQuestions).reduce(Integer::sum).orElse(1);
-        // current progress over all questions
-        float cumulativeGrade = 0;
-        for(QuestionEntity q : exerciseAttempt.getQuestions()) {
-            List<InteractionEntity> interactions = q.getInteractions();
-            int knownInteractions = interactions.size();
-            long correctInteractions = interactions.stream()
-                    .filter(inter -> inter != null && (inter.getViolations() == null || inter.getViolations().isEmpty()))
+    public float grade(ExerciseAttemptEntity attempt) {
+        val exercise = attempt.getExercise();
+        val domain = (DomainBase) domainFactory.getDomain(exercise.getDomain().getName());
+
+        val targetSkills = attempt
+                .getExercise()
+                .getStages()
+                .stream()
+                .flatMap( stage -> stage.getSkills().stream())
+                .filter(skill -> skill.getKind().equals(RoleInExercise.TARGETED))
+                .map(ExerciseSkillDto::getName)
+                .toList();
+
+        val userId = attempt.getUser().getId();
+
+        // 1. Сколько вопросов планировалось в упражнении
+        val nQuestionsExpected = attempt.getExercise()
+                .getStages()
+                .stream()
+                .mapToInt(ExerciseStageEntity::getNumberOfQuestions)
+                .reduce(Integer::sum)
+                .orElse(1);
+
+        // 2. Собираем все навыки, встречавшиеся в уже отвеченных вопросах
+        val targetSkillsInAnswers = attempt.getQuestions().stream()
+                .flatMap(q -> {
+                    if (q.getMetadata() == null) return Stream.empty();
+                    return domain.skillsFromBitmask(q.getMetadata().getSkillBits()).stream();
+                })
+                .map(Skill::getName)
+                .filter(targetSkills::contains)
+                .collect(Collectors.toSet());
+
+        // 3. Получаем состояние всех навыков в рамках attempt
+        val skillStates = bktService.getSkillStates(domain.getDomainId(), userId, new ArrayList<>(targetSkillsInAnswers));
+
+        // 3a. Преобразуем в Map<skillId, pCorrect>
+        val pCorr = skillStates.stream()
+                .collect(Collectors.toMap(SkillState::getSkill, SkillState::getCorrectPrediction));
+
+        float cumulative = 0f;
+
+        // 4. Подсчитываем оценку за уже выполненные вопросы
+        for (QuestionEntity q : attempt.getQuestions()) {
+
+            // 4.1 Ожидаемая корректность по target-навыкам вопроса
+            List<String> qTargets;
+            if (q.getMetadata() == null) {
+                qTargets = Collections.emptyList();
+            } else {
+                qTargets = domain.skillsFromBitmask(q.getMetadata().getSkillBits()).stream()
+                        .map(Skill::getName)
+                        .filter(targetSkills::contains)
+                        .toList();
+            }
+            val expected = qTargets.isEmpty()
+                    ? 1.0 // вопрос без target-умений
+                    : qTargets.stream()
+                    .mapToDouble(skill -> pCorr.getOrDefault(skill, 0.0))
+                    .reduce(1, (f, s) -> f * s);
+
+            // 4.2 Доля корректных действий (сглаженная)
+            val interactions = q.getInteractions();
+            val totalInteractions = interactions.size();
+            val correctInteractions = interactions.stream()
+                    .filter(i -> i != null &&
+                            (i.getViolations() == null || i.getViolations().isEmpty()))
                     .count();
-            if (knownInteractions == 0)
-                continue;  // nothing done yet.
-            cumulativeGrade += correctInteractions / (float) Math.max(4, knownInteractions);  // don't give best score for just first 1..3 interactions
+            val accuracy = totalInteractions == 0
+                    ? 0f
+                    : (float) correctInteractions / Math.max(4, totalInteractions);
+
+            // 4.3 Оценка за вопрос
+            val questionScore = (accuracy == 1f)
+                    ? 1.0
+                    : expected * accuracy;
+
+            cumulative += (float) questionScore;
         }
 
-        return cumulativeGrade / nQuestionsExpected;
+        // 5. Если стратегия уже решила «FINISH», назначаем полный балл за оставшиеся вопросы
+        if (decide(attempt) == Decision.FINISH) {
+            val remaining = nQuestionsExpected - attempt.getQuestions().size();
+            cumulative += remaining; // Считаем, что все не выданные вопросы решены верно
+        }
+
+        // 6. Итоговая относительная оценка (0..1)
+        return cumulative / nQuestionsExpected;
     }
 
     @Override
@@ -168,7 +245,7 @@ public class BktStrategy implements AbstractStrategy {
             boolean allMastered = skillStates
                     .stream()
                     .allMatch(skill ->
-                            SkillState.fromValue(skill.getState()).equals(SkillState.MASTERED)
+                            SkillMasteryState.fromValue(skill.getState()).equals(SkillMasteryState.MASTERED)
                     );
             if (allMastered) {
                 return Decision.FINISH;
