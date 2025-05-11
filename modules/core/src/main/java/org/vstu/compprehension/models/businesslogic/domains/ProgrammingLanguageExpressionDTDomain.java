@@ -584,7 +584,7 @@ public class ProgrammingLanguageExpressionDTDomain extends DecisionTreeReasoning
                     log.info("Successfully generated {} question(s) for template {}", templateQuestionsCount, file);
                 }
             } catch (Exception e) {
-                log.error("Error generating questions for template {}: {}", file, e.getMessage(), e);
+                log.error("Generator exception {} on {} with msg: {}", file, e.getClass().getName(), e.getMessage(), e);
             }
         }
 

@@ -1,6 +1,6 @@
-import React, { useState } from "react";
-import { Bug } from "lucide-react";
-import { Optional } from "./optional";
+import React, {useEffect, useState} from "react";
+import {Bug} from "lucide-react";
+import {Optional} from "./optional";
 
 interface DebugButtonProps {
   metadataId: number;
@@ -9,6 +9,10 @@ interface DebugButtonProps {
 
 const DebugButton: React.FC<DebugButtonProps> = ({ metadataId, attemptId }) => {
   const [clicked, setClicked] = useState(false);
+
+  useEffect(() => {
+    setClicked(false);
+  }, [metadataId, attemptId]);
 
   return (
     <div

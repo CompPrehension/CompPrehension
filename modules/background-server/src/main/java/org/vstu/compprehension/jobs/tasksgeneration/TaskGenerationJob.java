@@ -672,7 +672,7 @@ public class TaskGenerationJob {
                         log.info("Question [{}] saved with data in database. Metadata id: {}", q.getCommonQuestion().getQuestionData().getQuestionName(),
                                 metaList.stream()
                                         .map(QuestionMetadataEntity::getId)
-                                        .map((Integer i) -> Integer.toString(i))
+                                        .map((Integer i) -> i == null ? "ERROR" : Integer.toString(i))
                                         .collect(Collectors.joining(", ")));
                         savedQuestions.addAndGet(1);
                     } else {
