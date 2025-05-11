@@ -47,7 +47,7 @@ public class TextTemplatesService {
         }
         if (value instanceof String string) {
             try {
-                Optional.of(Integer.parseInt(string));
+                return Optional.of(Integer.parseInt(string));
             } catch (NumberFormatException e) {
                 return Optional.empty();
             }
@@ -96,6 +96,9 @@ public class TextTemplatesService {
         Map<Integer, MetaOwner> resultingMap,
         List<MetaOwner> unmarkedElements
     ) {
+        if (currentElement.getMetadata().isEmpty()) {
+            return;
+        }
         parseInt(currentElement.getMetadata().get(ID_METADATA_PROPERTY))
             .filter(id -> !resultingMap.containsKey(id))
             .ifPresentOrElse(
@@ -119,6 +122,12 @@ public class TextTemplatesService {
         Map<Integer, MetaOwner> resultingMap = new HashMap<>();
         List<MetaOwner> unmarkedElements = new ArrayList<>();
         filler.accept(resultingMap, unmarkedElements);
+
+        if (!unmarkedElements.isEmpty()) {
+            log.warn("Not all templating IDs (set with '" + ID_METADATA_PROPERTY + "' metadata property) " +
+                "were provided for " + location + " '" + subLocationName + "'. " +
+                "The model was probably edited manually. You should probably save it with the new IDs present.");
+        }
 
         int newId = resultingMap.keySet().stream().max(Comparator.naturalOrder()).orElse(0);
         for (MetaOwner element : unmarkedElements) {
