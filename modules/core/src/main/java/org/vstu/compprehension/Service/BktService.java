@@ -91,7 +91,7 @@ public class BktService {
                 .setRoster(roster)
                 .setStudent(userId.toString())
                 .addAllAllSkills(skills)
-                .setMaxQuestionSkillsCount(5) // TODO вынести в настройки exercise мб
+                .setMaxQuestionSkillsCount(3) // TODO вынести в настройки exercise мб
                 .build();
 
         try {

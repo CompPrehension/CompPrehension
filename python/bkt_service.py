@@ -95,7 +95,7 @@ class BktServiceServicer(bkt_service_pb2_grpc.BktServiceServicer):
                 max_question_skills_count = None
             else:
                 candidate_questions = None
-                max_question_skills_count = request.maxQuestionSkillsCount or 5
+                max_question_skills_count = request.maxQuestionSkillsCount or 3
 
             best_question = choose_best_question(
                 roster,

@@ -87,7 +87,7 @@ def choose_best_question(
     roster: Roster,
     all_skills: List[str],
     student: str,
-    max_question_skills_count: int = 5,
+    max_question_skills_count: int = 3,
     candidate_questions: Optional[Iterable[Tuple[str, ...]]] = None,
 ) -> List[str]:
     """

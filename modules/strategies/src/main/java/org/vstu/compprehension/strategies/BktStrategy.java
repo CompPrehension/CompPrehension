@@ -21,12 +21,9 @@ import org.vstu.compprehension.models.entities.EnumData.*;
 import org.vstu.compprehension.models.entities.ExerciseAttemptEntity;
 import org.vstu.compprehension.models.entities.InteractionEntity;
 import org.vstu.compprehension.models.entities.QuestionEntity;
-import org.vstu.compprehension.models.entities.exercise.ExerciseEntity;
 import org.vstu.compprehension.models.entities.exercise.ExerciseStageEntity;
 
-import java.util.ArrayList;
-import java.util.Collections;
-import java.util.List;
+import java.util.*;
 import java.util.stream.Collectors;
 import java.util.stream.Stream;
 
@@ -89,36 +86,55 @@ public class BktStrategy implements AbstractStrategy {
         return null;
     }
 
-
-
-
-
-
-
-
-
-
     @Override
-    public QuestionRequest generateQuestionRequest(ExerciseAttemptEntity exerciseAttempt) {
-        ExerciseEntity exercise = exerciseAttempt.getExercise();
-        Domain domain = domainFactory.getDomain(exercise.getDomain().getName());
+    public QuestionRequest generateQuestionRequest(ExerciseAttemptEntity attempt) {
+        val exercise = attempt.getExercise();
+        val domain = domainFactory.getDomain(exercise.getDomain().getName());
 
-        ExerciseStageEntity exerciseStage = getStageForNextQuestion(exerciseAttempt);
+        val exerciseTargetSkills = getTargetSkills(attempt, domain);
 
-        QuestionRequest qr = initQuestionRequest(exerciseAttempt, exerciseStage, domain);
+        val userId = attempt.getUser().getId();
+
+        val questionTargetSkillsNames =
+                bktService.chooseBestQuestion(domain.getDomainId(), userId, exerciseTargetSkills);
+        val questionTargetSkills = questionTargetSkillsNames.stream()
+                .map(domain::getSkill)
+                .toList();
+
+        ExerciseStageEntity exerciseStage = getStageForNextQuestion(attempt);
+        QuestionRequest qr = initQuestionRequest(attempt, exerciseStage, domain);
 
         Concept badConcept = domain.getConcept("SystemIntegrationTest");
-        if (badConcept != null)
+        if (badConcept != null) {
             qr.getDeniedConcepts().add(badConcept);
+        }
 
-//        Random random = domain.getRandomProvider().getRandom();
-//
-//        //  * (0.8 .. 1.2)
-//        float changeCoeff = 0.8f + 0.4f * random.nextFloat();
-//        float complexity = qr.getComplexity() * changeCoeff;
-//        qr.setComplexity(complexity);
+        if (!questionTargetSkills.isEmpty()) {
 
-        return adjustQuestionRequest(qr, exerciseAttempt);
+            // 1. Заменяем Target-skills на список от BKT
+            qr.setTargetSkills(new ArrayList<>(questionTargetSkills));
+
+            // 2. Denied-skills не трогаем
+            val denied = new HashSet<>(qr.getDeniedSkills());
+
+            // 3. Все остальные skills считаем Allowed,
+            //    даже если раньше они были Target в initQuestionRequest.
+            Set<Skill> allowed = new HashSet<>();
+
+            // 3.1) добавим то, что уже лежало в Allowed
+            allowed.addAll(qr.getAllowedSkills());
+
+            // 3.2) добавим старые Target (initQuestionRequest), чтобы «перекрасить» их в Allowed
+            allowed.addAll(getExerciseStageSkillsWithImplied(exerciseStage.getSkills(), domain, RoleInExercise.TARGETED));
+
+            // 3.3) удаляем из Allowed всё, что теперь Target или Denied
+            questionTargetSkills.forEach(allowed::remove);
+            denied.forEach(allowed::remove);
+
+            qr.setAllowedSkills(List.copyOf(allowed));
+        }
+
+        return adjustQuestionRequest(qr, attempt);
     }
 
     @Override
@@ -126,14 +142,7 @@ public class BktStrategy implements AbstractStrategy {
         val exercise = attempt.getExercise();
         val domain = (DomainBase) domainFactory.getDomain(exercise.getDomain().getName());
 
-        val targetSkills = attempt
-                .getExercise()
-                .getStages()
-                .stream()
-                .flatMap( stage -> stage.getSkills().stream())
-                .filter(skill -> skill.getKind().equals(RoleInExercise.TARGETED))
-                .map(ExerciseSkillDto::getName)
-                .toList();
+        val targetSkills = getTargetSkills(attempt, domain);
 
         val userId = attempt.getUser().getId();
 
@@ -217,14 +226,7 @@ public class BktStrategy implements AbstractStrategy {
         val exercise = exerciseAttempt.getExercise();
         val domain = domainFactory.getDomain(exercise.getDomain().getName());
 
-        val targetSkills = exerciseAttempt
-                .getExercise()
-                .getStages()
-                .stream()
-                .flatMap( stage -> stage.getSkills().stream())
-                .filter(skill -> skill.getKind().equals(RoleInExercise.TARGETED))
-                .map(ExerciseSkillDto::getName)
-                .toList();
+        val targetSkills = getTargetSkills(exerciseAttempt, domain);
 
         val skillStates = bktService.getSkillStates(
                 domain.getDomainId(),
@@ -264,6 +266,30 @@ public class BktStrategy implements AbstractStrategy {
         }
 
         return Decision.FINISH;
+    }
+
+    private List<String> getTargetSkills(ExerciseAttemptEntity attempt, Domain domain) {
+        return attempt
+                .getExercise()
+                .getStages()
+                .stream()
+                .flatMap(stage -> stage.getSkills().stream())
+                .filter(skill -> skill.getKind().equals(RoleInExercise.TARGETED))
+                .map(ExerciseSkillDto::getName)
+                .map(domain::getSkill)
+                .filter(Objects::nonNull)
+                .flatMap(s -> {
+                    assert s != null;
+                    val children = s.getChildSkills();
+                    if (children == null || children.isEmpty()) {
+                        return Stream.of(s);
+                    } else {
+                        return children.stream();
+                    }
+                })
+                .map(Skill::getName)
+                .distinct()
+                .toList();
     }
 
     /**
