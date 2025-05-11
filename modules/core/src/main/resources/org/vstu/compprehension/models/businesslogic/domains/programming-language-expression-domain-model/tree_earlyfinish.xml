@@ -153,8 +153,8 @@ ${X}[case='p'], what should you do next?"
                                         value="True">
                                         <BranchResultNode value="false"
                                             _skill="strict_order_first_operand_to_be_evaluated_while_earlyfinish"
-                                            _RU_explanation="${X} должен вычислиться, потому что он находится в ${X->isInOperandOf(Y).placement}[case='п'] операнде ${Y}[case='р'], который вычисляется первым и не может быть блокирован"
-                                            _EN_explanation="${X} should be evaluated because it belongs to ${X->isInOperandOf(Y).placement}[case='п'] operand ${Y}[case='р'] that is evaluated first and so cannot be blocked"
+                                                          _RU_explanation="${X} должен вычислиться, потому что он находится в ${X=>isInOperandOf(Y).placement}[case='п'] операнде ${Y}[case='р'], который вычисляется первым и не может быть блокирован"
+                                                          _EN_explanation="${X} should be evaluated because it belongs to ${X=>isInOperandOf(Y).placement}[case='п'] operand ${Y}[case='р'] that is evaluated first and so cannot be blocked"
                                         />
                                     </Outcome>
                                     <Outcome
@@ -168,12 +168,12 @@ ${X}[case='p'], what should you do next?"
                                         _EN_nextStepExplanation="That is incorrect. ${X} is not in the first operand of ${Y}[case='p']."
                                         value="False">
                                         <QuestionNode type="bool" isSwitch="false"
-                                            _RU_question="Убедитесь, что требуемое значение для ${X->isInOperandOf(Y).placement}[case='р'] операнда в ${Y}[case='п'] - любое для вычисления правого операнда."
-                                            _RU_asNextStep="Необходимо проверить, что требуемое значение для ${X->isInOperandOf(Y).placement}[case='р'] операнда в ${Y}[case='п'] - любое для вычисления правого операнда."
-                                            _RU_endingCause="потому что требуемое значение для ${X->isInOperandOf(Y).placement}[case='р'] операнда в ${Y}[case='п'] - ${result ? '' : 'не'} любое для вычисления правого операнда."
-                                            _EN_question="Make sure that the required value for the ${X->isInOperandOf(Y).placement}[case='р'] operand in ${Y}[case='п'] is any for evaluating the right operand."
-                                            _EN_asNextStep="We need to check that the required value for the ${X->isInOperandOf(Y).placement}[case='р'] operand in ${Y}[case='п'] is any for evaluating the right operand."
-                                            _EN_endingCause="because the required value for the ${X->isInOperandOf(Y).placement}[case='р'] operand in ${Y}[case='п'] is ${result ? '' : 'not'} any for evaluating the right operand."
+                                                      _RU_question="Убедитесь, что требуемое значение для ${X=>isInOperandOf(Y).placement}[case='р'] операнда в ${Y}[case='п'] - любое для вычисления правого операнда."
+                                                      _RU_asNextStep="Необходимо проверить, что требуемое значение для ${X=>isInOperandOf(Y).placement}[case='р'] операнда в ${Y}[case='п'] - любое для вычисления правого операнда."
+                                                      _RU_endingCause="потому что требуемое значение для ${X=>isInOperandOf(Y).placement}[case='р'] операнда в ${Y}[case='п'] - ${result ? '' : 'не'} любое для вычисления правого операнда."
+                                                      _EN_question="Make sure that the required value for the ${X=>isInOperandOf(Y).placement}[case='р'] operand in ${Y}[case='п'] is any for evaluating the right operand."
+                                                      _EN_asNextStep="We need to check that the required value for the ${X=>isInOperandOf(Y).placement}[case='р'] operand in ${Y}[case='п'] is any for evaluating the right operand."
+                                                      _EN_endingCause="because the required value for the ${X=>isInOperandOf(Y).placement}[case='р'] operand in ${Y}[case='п'] is ${result ? '' : 'not'} any for evaluating the right operand."
                                         >
                                             <Expression>
                                                 <Compare operator="EQ">
@@ -193,14 +193,14 @@ ${X}[case='p'], what should you do next?"
                                                 </Compare>
                                             </Expression>
                                             <Outcome
-                                                _RU_text="Требуемое значение для ${X->isInOperandOf(Y).placement}[case='р'] операнда в ${Y}[case='п'] - любое для вычисления правого операнда"
-                                                _RU_explanation="${X->isInOperandOf(Y).placement} операнд в ${Y}[case='р'] может принимать любое значение, при котором вычислится правый операнд"
-                                                _RU_nextStepQuestion="Учитывая, что ${X->isInOperandOf(Y).placement} операнд в ${Y}[case='р'] может принимать любое значение, при котором вычислится правый операнд, что следует сделать далее?"
-                                                _RU_nextStepExplanation="Это неверно. Требуемое значение для ${X->isInOperandOf(Y).placement}[case='р'] операнда в ${Y}[case='п'] - любое для вычисления правого операнда"
-                                                _EN_text="The required value for the ${X->isInOperandOf(Y).placement}[case='р'] operand in ${Y}[case='п'] is any value for evaluating the right operand"
-                                                _EN_explanation="The ${X->isInOperandOf(Y).placement} operand in ${Y}[case='р'] can take any value for which the right operand will be evaluated"
-                                                _EN_nextStepQuestion="Given that the ${X->isInOperandOf(Y).placement} operand in ${Y}[case='р'] can take any value for which the right operand will be evaluated, what should be done next?"
-                                                _EN_nextStepExplanation="This is incorrect. The required value for the ${X->isInOperandOf(Y).placement}[case='р'] operand in ${Y}[case='п'] is any value for evaluating the right operand"
+                                                    _RU_text="Требуемое значение для ${X=>isInOperandOf(Y).placement}[case='р'] операнда в ${Y}[case='п'] - любое для вычисления правого операнда"
+                                                    _RU_explanation="${X=>isInOperandOf(Y).placement} операнд в ${Y}[case='р'] может принимать любое значение, при котором вычислится правый операнд"
+                                                    _RU_nextStepQuestion="Учитывая, что ${X=>isInOperandOf(Y).placement} операнд в ${Y}[case='р'] может принимать любое значение, при котором вычислится правый операнд, что следует сделать далее?"
+                                                    _RU_nextStepExplanation="Это неверно. Требуемое значение для ${X=>isInOperandOf(Y).placement}[case='р'] операнда в ${Y}[case='п'] - любое для вычисления правого операнда"
+                                                    _EN_text="The required value for the ${X=>isInOperandOf(Y).placement}[case='р'] operand in ${Y}[case='п'] is any value for evaluating the right operand"
+                                                    _EN_explanation="The ${X=>isInOperandOf(Y).placement} operand in ${Y}[case='р'] can take any value for which the right operand will be evaluated"
+                                                    _EN_nextStepQuestion="Given that the ${X=>isInOperandOf(Y).placement} operand in ${Y}[case='р'] can take any value for which the right operand will be evaluated, what should be done next?"
+                                                    _EN_nextStepExplanation="This is incorrect. The required value for the ${X=>isInOperandOf(Y).placement}[case='р'] operand in ${Y}[case='п'] is any value for evaluating the right operand"
                                                 value="True">
                                                 <BranchResultNode value="false"
                                                     _skill="no_omitted_operands_despite_strict_order_while_earlyfinish"
@@ -209,22 +209,22 @@ ${X}[case='p'], what should you do next?"
                                                 />
                                             </Outcome>
                                             <Outcome
-                                                _RU_text="Требуемое значение для ${X->isInOperandOf(Y).placement}[case='р'] операнда в ${Y}[case='п'] определено для вычисления правого операнда"
-                                                _RU_explanation="Требуемое значение для ${X->isInOperandOf(Y).placement}[case='р'] операнда в ${Y}[case='п'] определено для вычисления правого операнда"
-                                                _RU_nextStepQuestion="Учитывая, что требуемое значение для ${X->isInOperandOf(Y).placement}[case='р'] операнда в ${Y}[case='п'] определено для вычисления правого операнда, что следует сделать дальше?"
-                                                _RU_nextStepExplanation="Это неверно. Требуемое значение для ${X->isInOperandOf(Y).placement}[case='р'] операнда в ${Y}[case='п'] определено для вычисления правого операнда"
-                                                _EN_text="The required value for the ${X->isInOperandOf(Y).placement}[case='р'] operand in ${Y}[case='п'] is defined to evaluate the right operand"
-                                                _EN_explanation="The required value for the ${X->isInOperandOf(Y).placement}[case='р'] operand in ${Y}[case='п'] is defined to evaluate the right operand"
-                                                _EN_nextStepQuestion="Given that the required value for the ${X->isInOperandOf(Y).placement}[case='р'] operand in ${Y}[case='п'] is defined to evaluate the right operand, what should be done next?"
-                                                _EN_nextStepExplanation="That's incorrect. The required value for the ${X->isInOperandOf(Y).placement}[case='p'] operand in ${Y}[case='n'] is defined to evaluate the right operand"
+                                                    _RU_text="Требуемое значение для ${X=>isInOperandOf(Y).placement}[case='р'] операнда в ${Y}[case='п'] определено для вычисления правого операнда"
+                                                    _RU_explanation="Требуемое значение для ${X=>isInOperandOf(Y).placement}[case='р'] операнда в ${Y}[case='п'] определено для вычисления правого операнда"
+                                                    _RU_nextStepQuestion="Учитывая, что требуемое значение для ${X=>isInOperandOf(Y).placement}[case='р'] операнда в ${Y}[case='п'] определено для вычисления правого операнда, что следует сделать дальше?"
+                                                    _RU_nextStepExplanation="Это неверно. Требуемое значение для ${X=>isInOperandOf(Y).placement}[case='р'] операнда в ${Y}[case='п'] определено для вычисления правого операнда"
+                                                    _EN_text="The required value for the ${X=>isInOperandOf(Y).placement}[case='р'] operand in ${Y}[case='п'] is defined to evaluate the right operand"
+                                                    _EN_explanation="The required value for the ${X=>isInOperandOf(Y).placement}[case='р'] operand in ${Y}[case='п'] is defined to evaluate the right operand"
+                                                    _EN_nextStepQuestion="Given that the required value for the ${X=>isInOperandOf(Y).placement}[case='р'] operand in ${Y}[case='п'] is defined to evaluate the right operand, what should be done next?"
+                                                    _EN_nextStepExplanation="That's incorrect. The required value for the ${X=>isInOperandOf(Y).placement}[case='p'] operand in ${Y}[case='n'] is defined to evaluate the right operand"
                                                 value="False">
                                                 <QuestionNode type="bool" isSwitch="false"
-                                                    _RU_question="Проверьте, что требуемое значение для ${X->isInOperandOf(Y).placement}[case='р'] операнда в ${Y}[case='п'] для вычисления правого операнда эквивалентно таковому значению для ${Y}[case='п']"
-                                                    _RU_asNextStep="Необходимо проверить, что требуемое значение для ${X->isInOperandOf(Y).placement}[case='р'] операнда в ${Y}[case='п'] для вычисления правого операнда эквивалентно таковому значению для ${Y}[case='п']"
-                                                    _RU_endingCause="потому что требуемое значение для ${X->isInOperandOf(Y).placement}[case='р'] операнда в ${Y}[case='п'] для вычисления правого операнда ${result ? '' : 'не'} эквивалентно таковому значению для ${Y}[case='п']"
-                                                    _EN_question="Check that the required value for the ${X->isInOperandOf(Y).placement}[case='р'] operand in ${Y}[case='п'] to evaluate the right operand is equivalent to that for ${Y}[case='п']"
-                                                    _EN_asNextStep="Check that the required value for the ${X->isInOperandOf(Y).placement}[case='р'] operand in ${Y}[case='п'] to evaluate the right operand is equivalent to that for ${Y}[case='п']"
-                                                    _EN_endingCause="because the required value for the ${X->isInOperandOf(Y).placement}[case='р'] operand in ${Y}[case='п'] to evaluate the right operand of ${result ? '' : 'not'} is equivalent to this value for ${Y}[case='п']"
+                                                              _RU_question="Проверьте, что требуемое значение для ${X=>isInOperandOf(Y).placement}[case='р'] операнда в ${Y}[case='п'] для вычисления правого операнда эквивалентно таковому значению для ${Y}[case='п']"
+                                                              _RU_asNextStep="Необходимо проверить, что требуемое значение для ${X=>isInOperandOf(Y).placement}[case='р'] операнда в ${Y}[case='п'] для вычисления правого операнда эквивалентно таковому значению для ${Y}[case='п']"
+                                                              _RU_endingCause="потому что требуемое значение для ${X=>isInOperandOf(Y).placement}[case='р'] операнда в ${Y}[case='п'] для вычисления правого операнда ${result ? '' : 'не'} эквивалентно таковому значению для ${Y}[case='п']"
+                                                              _EN_question="Check that the required value for the ${X=>isInOperandOf(Y).placement}[case='р'] operand in ${Y}[case='п'] to evaluate the right operand is equivalent to that for ${Y}[case='п']"
+                                                              _EN_asNextStep="Check that the required value for the ${X=>isInOperandOf(Y).placement}[case='р'] operand in ${Y}[case='п'] to evaluate the right operand is equivalent to that for ${Y}[case='п']"
+                                                              _EN_endingCause="because the required value for the ${X=>isInOperandOf(Y).placement}[case='р'] operand in ${Y}[case='п'] to evaluate the right operand of ${result ? '' : 'not'} is equivalent to this value for ${Y}[case='п']"
                                                 >
                                                     <Expression>
                                                         <Compare operator="EQ">
@@ -260,35 +260,35 @@ ${X}[case='p'], what should you do next?"
                                                         </Compare>
                                                     </Expression>
                                                     <Outcome
-                                                        _RU_text="Требуемое значение для ${X->isInOperandOf(Y).placement}[case='р'] операнда в ${Y}[case='п'] для вычисления правого операнда эквивалентно таковому значению для ${Y}[case='п']"
+                                                            _RU_text="Требуемое значение для ${X=>isInOperandOf(Y).placement}[case='р'] операнда в ${Y}[case='п'] для вычисления правого операнда эквивалентно таковому значению для ${Y}[case='п']"
                                                         _RU_explanation="Невычисленный ${X} имеет требуемое значение для вычисления правого операнда ${Y}[case='п']"
-                                                        _RU_nextStepQuestion="Учитывая, что требуемое значение для ${X->isInOperandOf(Y).placement}[case='р'] операнда в ${Y}[case='п'] для вычисления правого операнда эквивалентно таковому значению для ${Y}[case='п']"
-                                                        _RU_nextStepExplanation="Это неверно. Требуемое значение для ${X->isInOperandOf(Y).placement}[case='р'] операнда в ${Y}[case='п'] для вычисления правого операнда эквивалентно таковому значению для ${Y}[case='п']"
-                                                        _EN_text="The required value for the ${X->isInOperandOf(Y).placement}[case='р'] operand in ${Y}[case='п'] for evaluating the right operand is equivalent to that for ${Y}[case='п']"
+                                                            _RU_nextStepQuestion="Учитывая, что требуемое значение для ${X=>isInOperandOf(Y).placement}[case='р'] операнда в ${Y}[case='п'] для вычисления правого операнда эквивалентно таковому значению для ${Y}[case='п']"
+                                                            _RU_nextStepExplanation="Это неверно. Требуемое значение для ${X=>isInOperandOf(Y).placement}[case='р'] операнда в ${Y}[case='п'] для вычисления правого операнда эквивалентно таковому значению для ${Y}[case='п']"
+                                                            _EN_text="The required value for the ${X=>isInOperandOf(Y).placement}[case='р'] operand in ${Y}[case='п'] for evaluating the right operand is equivalent to that for ${Y}[case='п']"
                                                         _EN_explanation="The unevaluated ${X} has the required value for evaluating the right operand of ${Y}[case='п']"
-                                                        _EN_nextStepQuestion="Given that the required value for the ${X->isInOperandOf(Y).placement}[case='р'] operand in ${Y}[case='п'] for evaluating the right operand is equivalent to that for ${Y}[case='п']"
-                                                        _EN_nextStepExplanation="This is incorrect. The required value for ${X->isInOperandOf(Y).placement}[case='р'] of the operand in ${Y}[case='п'] for evaluating the right operand is equivalent to that of ${Y}[case='п']"
+                                                            _EN_nextStepQuestion="Given that the required value for the ${X=>isInOperandOf(Y).placement}[case='р'] operand in ${Y}[case='п'] for evaluating the right operand is equivalent to that for ${Y}[case='п']"
+                                                            _EN_nextStepExplanation="This is incorrect. The required value for ${X=>isInOperandOf(Y).placement}[case='р'] of the operand in ${Y}[case='п'] for evaluating the right operand is equivalent to that of ${Y}[case='п']"
                                                         value="True">
                                                         <BranchResultNode value="false"
                                                             _skill="should_strict_order_current_operand_be_omitted_while_earlyfinish"
-                                                            _RU_explanation="${X} должен вычислиться, потому что он находится в ${X->isInOperandOf(Y).placement}[case='п'] операнде ${Y}[case='р'], чей ${Y.firstOperandPlacement} операнд имеет значение ${Y->hasOperand&lt;placement=Y.firstOperandPlacement>.evaluatesTo}, что требует вычисления ${X}[case='р']"
-                                                            _EN_explanation="${X} should be evaluated because it belongs to ${X->isInOperandOf(Y).placement}[case='п'] operand of ${Y}[case='р'], whose ${Y.firstOperandPlacement} operand has the value ${Y->hasOperand&lt;placement=Y.firstOperandPlacement>.evaluatesTo}, which requires evaluating ${X}[case='р']}"
+                                                                          _RU_explanation="${X} должен вычислиться, потому что он находится в ${X=>isInOperandOf(Y).placement}[case='п'] операнде ${Y}[case='р'], чей ${Y.firstOperandPlacement} операнд имеет значение ${Y->hasOperand&lt;placement=Y.firstOperandPlacement>.evaluatesTo}, что требует вычисления ${X}[case='р']"
+                                                                          _EN_explanation="${X} should be evaluated because it belongs to ${X=>isInOperandOf(Y).placement}[case='п'] operand of ${Y}[case='р'], whose ${Y.firstOperandPlacement} operand has the value ${Y->hasOperand&lt;placement=Y.firstOperandPlacement>.evaluatesTo}, which requires evaluating ${X}[case='р']}"
                                                         />
                                                     </Outcome>
                                                     <Outcome
-                                                        _RU_text="Требуемое значение для ${X->isInOperandOf(Y).placement}[case='р'] операнда в ${Y}[case='п'] для вычисления правого операнда эквивалентно таковому значению для ${Y}[case='п']"
+                                                            _RU_text="Требуемое значение для ${X=>isInOperandOf(Y).placement}[case='р'] операнда в ${Y}[case='п'] для вычисления правого операнда эквивалентно таковому значению для ${Y}[case='п']"
                                                         _RU_explanation="Невычисленный ${X} не имеет требуемое значение для вычисления правого операнда ${Y}[case='п']"
-                                                        _RU_nextStepQuestion="Учитывая, что требуемое значение для ${X->isInOperandOf(Y).placement}[case='р'] операнда в ${Y}[case='п'] для вычисления правого операнда эквивалентно таковому значению для ${Y}[case='п'], что следует делать дальше?"
-                                                        _RU_nextStepExplanation="Это неверно. Требуемое значение для ${X->isInOperandOf(Y).placement}[case='р'] операнда в ${Y}[case='п'] для вычисления правого операнда эквивалентно таковому значению для ${Y}[case='п']"
-                                                        _EN_text="The required value for the ${X->isInOperandOf(Y).placement}[case='р'] operand in ${Y}[case='п'] for evaluating the right operand is equivalent to that of ${Y}[case='п']"
+                                                            _RU_nextStepQuestion="Учитывая, что требуемое значение для ${X=>isInOperandOf(Y).placement}[case='р'] операнда в ${Y}[case='п'] для вычисления правого операнда эквивалентно таковому значению для ${Y}[case='п'], что следует делать дальше?"
+                                                            _RU_nextStepExplanation="Это неверно. Требуемое значение для ${X=>isInOperandOf(Y).placement}[case='р'] операнда в ${Y}[case='п'] для вычисления правого операнда эквивалентно таковому значению для ${Y}[case='п']"
+                                                            _EN_text="The required value for the ${X=>isInOperandOf(Y).placement}[case='р'] operand in ${Y}[case='п'] for evaluating the right operand is equivalent to that of ${Y}[case='п']"
                                                         _EN_explanation="Unevaluated ${X} does not have the required value for evaluating the right operand of ${Y}[case='п']"
-                                                        _EN_nextStepQuestion="Given that the required value for the ${X->isInOperandOf(Y).placement}[case='р'] operand in ${Y}[case='п'] for evaluating the right operand is equivalent to that of ${Y}[case='п'], what should be done next?"
-                                                        _EN_nextStepExplanation="This is incorrect. The required value for the ${X->isInOperandOf(Y).placement}[case='р'] operand in ${Y}[case='п'] to evaluate the right operand is equivalent to that of ${Y}[case='п']"
+                                                            _EN_nextStepQuestion="Given that the required value for the ${X=>isInOperandOf(Y).placement}[case='р'] operand in ${Y}[case='п'] for evaluating the right operand is equivalent to that of ${Y}[case='п'], what should be done next?"
+                                                            _EN_nextStepExplanation="This is incorrect. The required value for the ${X=>isInOperandOf(Y).placement}[case='р'] operand in ${Y}[case='п'] to evaluate the right operand is equivalent to that of ${Y}[case='п']"
                                                         value="False">
                                                         <BranchResultNode value="true"
                                                             _skill="should_strict_order_current_operand_be_omitted_while_earlyfinish"
-                                                            _RU_explanation="${X} не должен вычисляться, он находится в ${X->isInOperandOf(Y).placement}[case='п'] операнде ${Y}[case='р'], чей ${Y.firstOperandPlacement} операнд имеет значение ${Y->hasOperand&lt;placement=Y.firstOperandPlacement>.evaluatesTo}, что блокирует вычисления ${X}[case='р']"
-                                                            _EN_explanation="${X} is not evaluated because it belongs to ${X->isInOperandOf(Y).placement}[case='п'] operand of ${Y}[case='р'], whose ${Y.firstOperandPlacement} operand has the value ${Y->hasOperand&lt;placement=Y.firstOperandPlacement>.evaluatesTo}, which blocks evaluation of ${X}[case='р']}"
+                                                                          _RU_explanation="${X} не должен вычисляться, он находится в ${X=>isInOperandOf(Y).placement}[case='п'] операнде ${Y}[case='р'], чей ${Y.firstOperandPlacement} операнд имеет значение ${Y->hasOperand&lt;placement=Y.firstOperandPlacement>.evaluatesTo}, что блокирует вычисления ${X}[case='р']"
+                                                                          _EN_explanation="${X} is not evaluated because it belongs to ${X=>isInOperandOf(Y).placement}[case='п'] operand of ${Y}[case='р'], whose ${Y.firstOperandPlacement} operand has the value ${Y->hasOperand&lt;placement=Y.firstOperandPlacement>.evaluatesTo}, which blocks evaluation of ${X}[case='р']}"
                                                         />
                                                     </Outcome>
                                                 </QuestionNode>

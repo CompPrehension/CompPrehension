@@ -20,8 +20,8 @@
         </AdditionalVarDecl>
     </InputVariables>
     <ThoughtBranch type="bool" _alias="main"
-        _RU_description="${X}[case='и'] ${$params.branchResult == BranchResult:CORRECT ? '' : 'не'} может выполниться следующим"
-        _EN_description="${X} ${$params.branchResult == BranchResult:CORRECT ? 'can' : 'cant'} be evaluated next"
+                   _RU_description="${X}[case='и'] ${$branchResult == BranchResult:CORRECT ? '' : 'не'} может выполниться следующим"
+                   _EN_description="${X} ${$branchResult == BranchResult:CORRECT ? 'can' : 'cant'} be evaluated next"
         _RU_hint_prefix="${X}[case='и'] может быть вычислен в настоящее время потому, что "
         _EN_hint_prefix="${X} can be evaluated, because "
         _RU_error_prefix="${X}[case='и'] не может быть вычислен в настоящее время потому, что "
@@ -29,17 +29,17 @@
     >
         <LogicAggregationNode id="3" operator="and" _alias="main.and"
             _RU_asNextStep="Необходимо проверить, может ли ${X}[case='и'] выполниться следующим."
-            _RU_description="${X}[case='и'] ${$params.branchResult == BranchResult:CORRECT ? '' : 'не'} может выполниться следующим"
+                              _RU_description="${X}[case='и'] ${$branchResult == BranchResult:CORRECT ? '' : 'не'} может выполниться следующим"
             _RU_endingCause="Потому что есть факторы, мешающие дальнейшему вычислению ${X}"
             _EN_asNextStep="We should check if ${X} can be evaluated next."
-            _EN_description="${X} ${$params.branchResult == BranchResult:CORRECT ? 'can' : 'cant'} be evaluated next"
+                              _EN_description="${X} ${$branchResult == BranchResult:CORRECT ? 'can' : 'cant'} be evaluated next"
             _EN_endingCause="Because one of the operands of ${X} prevents its evaluation"
         >
             <ThoughtBranch type="bool" _alias="central"
-                _RU_description="внутренний операнд ${X}[case='р'] ${$params.branchResult == BranchResult:CORRECT ? 'не' : ''} требует дальнейших вычислений"
+                           _RU_description="внутренний операнд ${X}[case='р'] ${$branchResult == BranchResult:CORRECT ? 'не' : ''} требует дальнейших вычислений"
                 _RU_nextStepQuestion="С чего надо начать при рассмотрении внутреннего операнда?"
                 _RU_nextStepExplanation="Это неверно. Прежде всего необходимо проверить, нужен ли оператору внутренний операнд."
-                _EN_description="inner operand of ${X} ${$params.branchResult == BranchResult:CORRECT ? 'doesnt require' : 'requires'} further evaluation"
+                           _EN_description="inner operand of ${X} ${$branchResult == BranchResult:CORRECT ? 'doesnt require' : 'requires'} further evaluation"
                 _EN_nextStepQuestion="What is the first step when considering operator's inner operand?"
                 _EN_nextStepExplanation="That's incorrect. One should first check if the operator needs inner operand at all."
             >
@@ -330,10 +330,10 @@
                 </QuestionNode>
             </ThoughtBranch>
             <ThoughtBranch type="bool" _alias="left"
-                _RU_description="левый операнд ${X}[case='р'] ${$params.branchResult == BranchResult:CORRECT ? 'не' : ''} требует дальнейших вычислений"
+                           _RU_description="левый операнд ${X}[case='р'] ${$branchResult == BranchResult:CORRECT ? 'не' : ''} требует дальнейших вычислений"
                 _RU_nextStepQuestion="С чего надо начать при рассмотрении левого операнда?"
                 _RU_nextStepExplanation="Это неверно. Прежде всего необходимо проверить, нужен ли оператору левый операнд."
-                _EN_description="left operand of ${X} ${$params.branchResult == BranchResult:CORRECT ? 'doesnt require' : 'requires'} further evaluation"
+                           _EN_description="left operand of ${X} ${$branchResult == BranchResult:CORRECT ? 'doesnt require' : 'requires'} further evaluation"
                 _EN_nextStepQuestion="What is the first step when considering operator's left operand?"
                 _EN_nextStepExplanation="That's incorrect. One should first check if the operator needs left operand at all."
             >
@@ -635,11 +635,11 @@
                             <Outcome value="found"
                                 _RU_explanation="слева от ${X}[case='р'] есть потенциально мешающий оператор - это ${Y}[case='и']"
                                 _RU_nextStepQuestion="Как определяется порядок вычисления двух конкурирующих операторов?"
-                                _RU_nextStepBranchResult="${$params.branchResult == BranchResult:CORRECT ? 'Правый' : 'Левый'} оператор всегда выполняется первым"
+                                     _RU_nextStepBranchResult="${$branchResult == BranchResult:CORRECT ? 'Правый' : 'Левый'} оператор всегда выполняется первым"
                                 _RU_nextStepExplanation="Это неверно. Определение порядка вычислений двух операторов надо начинать с рассмотрения влияния скобок на их приоритет."
                                 _EN_explanation="there is a potentially blocking operator to the left of ${X} - it's ${Y}"
                                 _EN_nextStepQuestion="How should one determine the order of evaluation between two operators?"
-                                _EN_nextStepBranchResult="The one on the ${$params.branchResult == BranchResult:CORRECT ? 'right' : 'left'} is always evaluated first"
+                                     _EN_nextStepBranchResult="The one on the ${$branchResult == BranchResult:CORRECT ? 'right' : 'left'} is always evaluated first"
                                 _EN_nextStepExplanation="That's incorrect. One should first determine if parentheses have any effect on the precedence of the two operators."
                             >
                                 <QuestionNode type="bool" _alias="left.isXinY"
@@ -876,11 +876,11 @@
                                                 </ThoughtBranch>
                                             <Outcome value="null"
                                                 _RU_nextStepQuestion="В отсутствии влияния скобок, как определяется порядок выполнения стоящих рядом операторов?"
-                                                _RU_nextStepBranchResult="${$params.branchResult == BranchResult:CORRECT ? 'Правый' : 'Левый'} оператор всегда выполняется первым"
+                                                     _RU_nextStepBranchResult="${$branchResult == BranchResult:CORRECT ? 'Правый' : 'Левый'} оператор всегда выполняется первым"
                                                 _RU_nextStepExplanation="Это неверно. В отсутствии скобок, порядок выполнения стоящих рядом операторов определяется их приоритетом - его и надо рассматривать следующим."
 
                                                 _EN_nextStepQuestion="In the absence of parentheses' effect, how should one determine the order of evaluation between two operator?"
-                                                _EN_nextStepBranchResult="The operator on the ${$params.branchResult == BranchResult:CORRECT ? 'right' : 'left'} is always evaluated first."
+                                                     _EN_nextStepBranchResult="The operator on the ${$branchResult == BranchResult:CORRECT ? 'right' : 'left'} is always evaluated first."
                                                 _EN_nextStepExplanation="That's incorrect. In the absence of parentheses' effect, the order of evaluation is determined by the precedence of the operators - so it should be considered next."
                                             >
                                                 <QuestionNode type="comparison"
@@ -922,12 +922,12 @@
                                                         _RU_text="Приоритет ${X.class()}[case='р'] больше."
                                                         _RU_explanation="Это неверно, поскольку ${X.class()}[case='и'] имеет больший приоритет, чем ${Y.class()}[case='и']."
                                                         _RU_nextStepQuestion="Как определяется порядок выполнения операторов, имеющих разные приоритеты?"
-                                                        _RU_nextStepBranchResult="Оператор с ${$params.branchResult == BranchResult:CORRECT ? 'большим' : 'меньшим'} приоритетом всегда выполняется первым"
+                                                             _RU_nextStepBranchResult="Оператор с ${$branchResult == BranchResult:CORRECT ? 'большим' : 'меньшим'} приоритетом всегда выполняется первым"
                                                         _RU_nextStepExplanation="Это неверно. Оператор с большим приоритетом всегда выполняется первым. Т.к. ${X.class()}[case='и'] имеет больший приоритет, а значит может быть вычислен первым. Получается, левый операнд ${X}[case='и'] не требует дальнейших вычислений."
                                                         _EN_text="${X.class()} has higher precedence."
                                                         _EN_explanation="That's incorrect, because ${X.class()} has higher precedence than ${Y.class()}."
                                                         _EN_nextStepQuestion="How should one determine the order of evaluation between two operators that have different precedences?"
-                                                        _EN_nextStepBranchResult="Operator with a ${$params.branchResult == BranchResult:CORRECT ? 'higher' : 'lower'} precedence is always evaluated first"
+                                                             _EN_nextStepBranchResult="Operator with a ${$branchResult == BranchResult:CORRECT ? 'higher' : 'lower'} precedence is always evaluated first"
                                                         _EN_nextStepExplanation="That's incorrect. The operator with a higher precedence is always evaluated first. Therefore, in this case, the ${X} should be evaluated first, and we can conclude that its left operand does not prevent its evaluation."
                                                     >
                                                         <BranchResultNode value="true"
@@ -940,12 +940,12 @@
                                                         _RU_text="Приоритет ${Y.class()}[case='р'] больше."
                                                         _RU_explanation="Это неверно, поскольку ${Y.class()}[case='и'] имеет больший приоритет, чем ${X.class()}[case='и']."
                                                         _RU_nextStepQuestion="Как определяется порядок выполнения операторов, имеющих разные приоритеты?"
-                                                        _RU_nextStepBranchResult="Оператор с ${$params.branchResult == BranchResult:CORRECT ? 'меньшим' : 'большим'} приоритетом всегда выполняется первым"
+                                                             _RU_nextStepBranchResult="Оператор с ${$branchResult == BranchResult:CORRECT ? 'меньшим' : 'большим'} приоритетом всегда выполняется первым"
                                                         _RU_nextStepExplanation="Это неверно. Оператор с большим приоритетом всегда выполняется первым. Т.к. ${Y.class()}[case='и'] имеет больший приоритет, он должен быть вычислен первым. Получается, левый операнд ${X}[case='и'] требует дальнейших вычислений."
                                                         _EN_text="${Y.class()} has higher precedence."
                                                         _EN_explanation="That's incorrect, because ${Y.class()} has higher precedence than ${X.class()}."
                                                         _EN_nextStepQuestion="How should one determine the order of evaluation between two operators that have different precedences?"
-                                                        _EN_nextStepBranchResult="Operator with a ${$params.branchResult == BranchResult:CORRECT ? 'lower' : 'higher'} precedence is always evaluated first"
+                                                             _EN_nextStepBranchResult="Operator with a ${$branchResult == BranchResult:CORRECT ? 'lower' : 'higher'} precedence is always evaluated first"
                                                         _EN_nextStepExplanation="That's incorrect. The operator with a higher precedence is always evaluated first. Therefore, in this case, the ${Y} should be evaluated first, and we can conclude that the left operand of ${X} does prevent its evaluation."
                                                     >
                                                         <BranchResultNode value="false"
@@ -960,12 +960,12 @@
                                                         _RU_text="Их приоритеты одинаковы."
                                                         _RU_explanation="Это неверно, поскольку приоритеты ${X.class()}[case='р'] и ${Y.class()}[case='р'] одинаковы."
                                                         _RU_nextStepQuestion="Как определяется порядок выполнения операторов, имеющих равные приоритеты?"
-                                                        _RU_nextStepBranchResult="${$params.branchResult == BranchResult:CORRECT ? 'Правый' : 'Левый'} оператор всегда выполняется первым"
+                                                             _RU_nextStepBranchResult="${$branchResult == BranchResult:CORRECT ? 'Правый' : 'Левый'} оператор всегда выполняется первым"
                                                         _RU_nextStepExplanation="Это неверно. Порядок выполнения операторов, имеющих одинаковые приоритеты, задается ассоциативностью, а значит следующим шагом необходимо проверить ассоциативность ${X.class()}[case='р'] и ${Y.class()}[case='р']."
                                                         _EN_text="They have the same precedence."
                                                         _EN_explanation="That's incorrect because ${X.class()} and ${Y.class()} have the same precedence."
                                                         _EN_nextStepQuestion="How should one determine the order of evaluation between two operators that have the same precedence?"
-                                                        _EN_nextStepBranchResult="The operator on the ${$params.branchResult == BranchResult:CORRECT ? 'right' : 'left'} is always evaluated first."
+                                                             _EN_nextStepBranchResult="The operator on the ${$branchResult == BranchResult:CORRECT ? 'right' : 'left'} is always evaluated first."
                                                         _EN_nextStepExplanation="That's incorrect. The order of evaluation between two operators that have the same precedence is determined by their associativity. Therefore we should next check the associativity of ${X.class()} and ${Y.class()}."
                                                     >
                                                         <QuestionNode
@@ -1033,12 +1033,12 @@
                                                                         _RU_text="левая"
                                                                         _RU_explanation="Это неверно, поскольку ${X.class()}[case='и'] и ${Y.class()}[case='и'] имеют левую ассоциативность."
                                                                         _RU_nextStepQuestion="Какой из двух рядом стоящих операторов выполнится первым, если операторы имеют левую ассоциативность?"
-                                                                        _RU_nextStepBranchResult="${$params.branchResult == BranchResult:CORRECT ? 'Правый' : 'Левый'}"
+                                                                        _RU_nextStepBranchResult="${$branchResult == BranchResult:CORRECT ? 'Правый' : 'Левый'}"
                                                                         _RU_nextStepExplanation="Это неверно. При левой ассоциативности операторы выполняются слева направо. В данном случае это значит, ${Y.class()}[case='и'] должен быть вычислен первым. Получается, левый операнд ${X}[case='и'] требует дальнейших вычислений."
                                                                         _EN_text="left"
                                                                         _EN_explanation="That's incorrect, because ${X.class()} and ${Y.class()} have left associativity."
                                                                         _EN_nextStepQuestion="Which of the two nearby operators evaluates first if they have left associativity?"
-                                                                        _EN_nextStepBranchResult="The one on the ${$params.branchResult == BranchResult:CORRECT ? 'right' : 'left'}"
+                                                                        _EN_nextStepBranchResult="The one on the ${$branchResult == BranchResult:CORRECT ? 'right' : 'left'}"
                                                                         _EN_nextStepExplanation="That's incorrect. Operators that have left associativity evaluate from left to right. Therefore, in this case, ${Y.class()} should be evaluated first, and we can conclude that the left operand of ${X} does prevent its evaluation."
                                                                     >
                                                                         <BranchResultNode
@@ -1055,12 +1055,12 @@
                                                                         _RU_text="правая"
                                                                         _RU_explanation="Это неверно, поскольку ${X.class()}[case='и'] и ${Y.class()}[case='и'] имеют правую ассоциативность."
                                                                         _RU_nextStepQuestion="Какой из двух рядом стоящих операторов выполнится первым, если операторы имеют правую ассоциативность?"
-                                                                        _RU_nextStepBranchResult="${$params.branchResult == BranchResult:CORRECT ? 'Правый' : 'Левый'}"
+                                                                        _RU_nextStepBranchResult="${$branchResult == BranchResult:CORRECT ? 'Правый' : 'Левый'}"
                                                                         _RU_nextStepExplanation="Это неверно. При правой ассоциативности операторы выполняются справа налево. В данном случае это значит, что ${X.class()}[case='и'] должен быть вычислен первым. Получается, левый операнд ${X}[case='р'] не требует дальнейших вычислений."
                                                                         _EN_text="right"
                                                                         _EN_explanation="That's incorrect, because ${X.class()} and ${Y.class()} have right associativity."
                                                                         _EN_nextStepQuestion="Which of the two nearby operators evaluates first if they have right associativity?"
-                                                                        _EN_nextStepBranchResult="The one on the ${$params.branchResult == BranchResult:CORRECT ? 'right' : 'left'}"
+                                                                        _EN_nextStepBranchResult="The one on the ${$branchResult == BranchResult:CORRECT ? 'right' : 'left'}"
                                                                         _EN_nextStepExplanation="That's incorrect. Operators that have right associativity evaluate from right to left. Therefore, in this case, ${X.class()} should be evaluated first, anand we can conclude that its left operand does not prevent its evaluation."
                                                                     >
                                                                         <BranchResultNode
@@ -1085,10 +1085,10 @@
                 </QuestionNode>
             </ThoughtBranch>
             <ThoughtBranch type="bool" _alias="right"
-                _RU_description="правый операнд ${X}[case='р'] ${$params.branchResult == BranchResult:CORRECT ? 'не' : ''} требует дальнейших вычислений"
+                           _RU_description="правый операнд ${X}[case='р'] ${$branchResult == BranchResult:CORRECT ? 'не' : ''} требует дальнейших вычислений"
                 _RU_nextStepQuestion="С чего надо начать при рассмотрении правого операнда?"
                 _RU_nextStepExplanation="Это неверно. Прежде всего необходимо проверить, нужен ли оператору правый операнд."
-                _EN_description="right operand of ${X} ${$params.branchResult == BranchResult:CORRECT ? 'doesnt require' : 'requires'} further evaluation"
+                           _EN_description="right operand of ${X} ${$branchResult == BranchResult:CORRECT ? 'doesnt require' : 'requires'} further evaluation"
                 _EN_nextStepQuestion="What is the first step when considering operator's right operand?"
                 _EN_nextStepExplanation="That's incorrect. One should first check if the operator needs right operand at all."
             >
@@ -1390,11 +1390,11 @@
                             <Outcome value="found"
                                 _RU_explanation="справа от ${X}[case='р'] есть потенциально мешающий оператор - это ${Z}[case='и']"
                                 _RU_nextStepQuestion="Как определяется порядок вычисления двух конкурирующих операторов?"
-                                _RU_nextStepBranchResult="${$params.branchResult == BranchResult:CORRECT ? 'Левый' : 'Правый'} оператор всегда выполняется первым"
+                                     _RU_nextStepBranchResult="${$branchResult == BranchResult:CORRECT ? 'Левый' : 'Правый'} оператор всегда выполняется первым"
                                 _RU_nextStepExplanation="Это неверно. Определение порядка вычислений двух операторов надо начинать с рассмотрения влияния скобок на их приоритет."
                                 _EN_explanation="there is a potentially blocking operator to the right of ${X} - it's ${Z}"
                                 _EN_nextStepQuestion="How should one determine the order of evaluation between two operators?"
-                                _EN_nextStepBranchResult="The one on the ${$params.branchResult == BranchResult:CORRECT ? 'left' : 'right'} is always evaluated first"
+                                     _EN_nextStepBranchResult="The one on the ${$branchResult == BranchResult:CORRECT ? 'left' : 'right'} is always evaluated first"
                                 _EN_nextStepExplanation="That's incorrect. One should first determine if parentheses have any effect on the precedence of the two operators."
                             >
                                 <QuestionNode type="bool" _alias="right.isXinZ"
@@ -1618,11 +1618,11 @@
                                                 </ThoughtBranch>
                                             <Outcome value="null"
                                                      _RU_nextStepQuestion="В отсутствии влияния скобок, как определяется порядок выполнения стоящих рядом операторов?"
-                                                _RU_nextStepBranchResult="${$params.branchResult == BranchResult:CORRECT ? 'Левый' : 'Правый'} оператор всегда выполняется первым"
+                                                     _RU_nextStepBranchResult="${$branchResult == BranchResult:CORRECT ? 'Левый' : 'Правый'} оператор всегда выполняется первым"
                                                 _RU_nextStepExplanation="Это неверно. В отсутствии скобок, порядок выполнения стоящих рядом операторов определяется их приоритетом - его и надо рассматривать следующим."
 
                                                      _EN_nextStepQuestion="In the absence of parentheses' effect, how should one determine the order of evaluation between two operator?"
-                                                _EN_nextStepBranchResult="The operator on the ${$params.branchResult == BranchResult:CORRECT ? 'right' : 'left'} is always evaluated first."
+                                                     _EN_nextStepBranchResult="The operator on the ${$branchResult == BranchResult:CORRECT ? 'right' : 'left'} is always evaluated first."
                                                 _EN_nextStepExplanation="That's incorrect. In the absence of parentheses' effect, the order of evaluation is determined by the precedence of the operators - so it should be considered next."
                                             >
                                                 <QuestionNode type="comparison"
@@ -1668,12 +1668,12 @@
                                                         _RU_text="Приоритет ${X.class()}[case='р'] больше."
                                                         _RU_explanation="Это неверно, поскольку ${X.class()}[case='и'] имеет больший приоритет, чем ${Z.class()}[case='и']."
                                                         _RU_nextStepQuestion="Как определяется порядок выполнения операторов, имеющих разные приоритеты?"
-                                                        _RU_nextStepBranchResult="Оператор с ${$params.branchResult == BranchResult:CORRECT ? 'большим' : 'меньшим'} приоритетом всегда выполняется первым"
+                                                             _RU_nextStepBranchResult="Оператор с ${$branchResult == BranchResult:CORRECT ? 'большим' : 'меньшим'} приоритетом всегда выполняется первым"
                                                         _RU_nextStepExplanation="Это неверно. Оператор с большим приоритетом всегда выполняется первым. Т.к. ${X.class()}[case='и'] имеет больший приоритет, а значит может быть вычислен первым. Получается, правый операнд ${X}[case='и'] не требует дальнейших вычислений."
                                                         _EN_text="${X.class()} has higher precedence."
                                                         _EN_explanation="That's incorrect, because ${X.class()} has higher precedence than ${Z.class()}."
                                                         _EN_nextStepQuestion="How should one determine the order of evaluation between two operators that have different precedences?"
-                                                        _EN_nextStepBranchResult="Operator with a ${$params.branchResult == BranchResult:CORRECT ? 'higher' : 'lower'} precedence is always evaluated first"
+                                                             _EN_nextStepBranchResult="Operator with a ${$branchResult == BranchResult:CORRECT ? 'higher' : 'lower'} precedence is always evaluated first"
                                                         _EN_nextStepExplanation="That's incorrect. The operator with a higher precedence is always evaluated first. Therefore, in this case, the ${X} should be evaluated first, and we can conclude that its left operand does not prevent its evaluation."
                                                     >
                                                         <BranchResultNode value="true"
@@ -1686,12 +1686,12 @@
                                                         _RU_text="Приоритет ${Z.class()}[case='р'] больше."
                                                         _RU_explanation="Это неверно, поскольку ${Z.class()}[case='и'] имеет больший приоритет, чем ${X.class()}[case='и']."
                                                         _RU_nextStepQuestion="Как определяется порядок выполнения операторов, имеющих разные приоритеты?"
-                                                        _RU_nextStepBranchResult="Оператор с ${$params.branchResult == BranchResult:CORRECT ? 'меньшим' : 'большим'} приоритетом всегда выполняется первым"
+                                                             _RU_nextStepBranchResult="Оператор с ${$branchResult == BranchResult:CORRECT ? 'меньшим' : 'большим'} приоритетом всегда выполняется первым"
                                                         _RU_nextStepExplanation="Это неверно. Оператор с большим приоритетом всегда выполняется первым. Т.к. ${Z.class()}[case='и'] имеет больший приоритет, он должен быть вычислен первым. Получается, правый операнд ${X}[case='и'] требует дальнейших вычислений."
                                                         _EN_text="${Z.class()} has higher precedence."
                                                         _EN_explanation="That's incorrect, because ${Z.class()} has higher precedence than ${X.class()}."
                                                         _EN_nextStepQuestion="How should one determine the order of evaluation between two operators that have different precedences?"
-                                                        _EN_nextStepBranchResult="Operator with a ${$params.branchResult == BranchResult:CORRECT ? 'lower' : 'higher'} precedence is always evaluated first"
+                                                             _EN_nextStepBranchResult="Operator with a ${$branchResult == BranchResult:CORRECT ? 'lower' : 'higher'} precedence is always evaluated first"
                                                         _EN_nextStepExplanation="That's incorrect. The operator with a higher precedence is always evaluated first. Therefore, in this case, the ${Z} should be evaluated first, and we can conclude that the left operand of ${X} does prevent its evaluation."
                                                     >
                                                         <BranchResultNode value="false"
@@ -1706,12 +1706,12 @@
                                                         _RU_text="Их приоритеты одинаковы."
                                                         _RU_explanation="Это неверно, поскольку приоритеты ${X.class()}[case='р'] и ${Z.class()}[case='р'] одинаковы."
                                                         _RU_nextStepQuestion="Как определяется порядок выполнения операторов, имеющих равные приоритеты?"
-                                                        _RU_nextStepBranchResult="${$params.branchResult == BranchResult:CORRECT ? 'Левый' : 'Правый'} оператор всегда выполняется первым"
+                                                             _RU_nextStepBranchResult="${$branchResult == BranchResult:CORRECT ? 'Левый' : 'Правый'} оператор всегда выполняется первым"
                                                         _RU_nextStepExplanation="Это неверно. Порядок выполнения операторов, имеющих одинаковые приоритеты, задается ассоциативностью, а значит следующим шагом необходимо проверить ассоциативность ${X.class()}[case='р'] и ${Z.class()}[case='р']."
                                                         _EN_text="They have the same precedence."
                                                         _EN_explanation="That's incorrect because ${X.class()} and ${Z.class()} have the same precedence."
                                                         _EN_nextStepQuestion="How should one determine the order of evaluation between two operators that have the same precedence?"
-                                                        _EN_nextStepBranchResult="The operator on the ${$params.branchResult == BranchResult:CORRECT ? 'right' : 'left'} is always evaluated first."
+                                                             _EN_nextStepBranchResult="The operator on the ${$branchResult == BranchResult:CORRECT ? 'right' : 'left'} is always evaluated first."
                                                         _EN_nextStepExplanation="That's incorrect. The order of evaluation between two operators that have the same precedence is determined by their associativity. Therefore we should next check the associativity of ${X.class()} and ${Z.class()}."
                                                     >
                                                         <QuestionNode type="bool"
@@ -1779,12 +1779,12 @@
                                                                         _RU_text="правая"
                                                                         _RU_explanation="Это неверно, поскольку ${X.class()}[case='и'] и ${Z.class()}[case='и'] имеют правую ассоциативность."
                                                                         _RU_nextStepQuestion="Какой из двух рядом стоящих операторов выполнится первым, если операторы имеют правую ассоциативность?"
-                                                                        _RU_nextStepBranchResult="${$params.branchResult == BranchResult:CORRECT ? 'Левый' : 'Правый'}"
+                                                                        _RU_nextStepBranchResult="${$branchResult == BranchResult:CORRECT ? 'Левый' : 'Правый'}"
                                                                         _RU_nextStepExplanation="Это неверно. При правой ассоциативности операторы выполняются справа налево. В данном случае это значит, ${Z.class()}[case='и'] должен быть вычислен первым. Получается, правый операнд ${X}[case='и'] требует дальнейших вычислений."
                                                                         _EN_text="right"
                                                                         _EN_explanation="That's incorrect, because ${X.class()} and ${Z.class()} have right associativity."
                                                                         _EN_nextStepQuestion="Which of the two nearby operators evaluates first if they have right associativity?"
-                                                                        _EN_nextStepBranchResult="The one on the ${$params.branchResult == BranchResult:CORRECT ? 'left' : 'right'}"
+                                                                        _EN_nextStepBranchResult="The one on the ${$branchResult == BranchResult:CORRECT ? 'left' : 'right'}"
                                                                         _EN_nextStepExplanation="That's incorrect. Operators that have right associativity evaluate from right to left. Therefore, in this case, ${Z.class()} should be evaluated first, and we can conclude that the right operand of ${X} does prevent its evaluation."
                                                                     >
                                                                         <BranchResultNode
@@ -1801,12 +1801,12 @@
                                                                         _RU_text="правая"
                                                                         _RU_explanation="Это неверно, поскольку ${X.class()}[case='и'] и ${Z.class()}[case='и'] имеют правую ассоциативность."
                                                                         _RU_nextStepQuestion="Какой из двух рядом стоящих операторов выполнится первым, если операторы имеют правую ассоциативность?"
-                                                                        _RU_nextStepBranchResult="${$params.branchResult == BranchResult:CORRECT ? 'Правый' : 'Левый'}"
+                                                                        _RU_nextStepBranchResult="${$branchResult == BranchResult:CORRECT ? 'Правый' : 'Левый'}"
                                                                         _RU_nextStepExplanation="Это неверно. При левой ассоциативности операторы выполняются слева направо. В данном случае это значит, ${X.class()}[case='и'] должен быть вычислен первым. Получается, правый операнд ${X}[case='и'] не требует дальнейших вычислений."
                                                                         _EN_text="left"
                                                                         _EN_explanation="That's incorrect, because ${X.class()} and ${Z.class()} have left associativity."
                                                                         _EN_nextStepQuestion="Which of the two nearby operators evaluates first if they have left associativity?"
-                                                                        _EN_nextStepBranchResult="The one on the ${$params.branchResult == BranchResult:CORRECT ? 'left' : 'right'}"
+                                                                        _EN_nextStepBranchResult="The one on the ${$branchResult == BranchResult:CORRECT ? 'left' : 'right'}"
                                                                         _EN_nextStepExplanation="That's incorrect. Operators that have left associativity evaluate from left to right. Therefore, in this case, ${X.class()} should be evaluated first, anand we can conclude that its left operand does not prevent its evaluation."
                                                                     >
                                                                         <BranchResultNode
@@ -1831,18 +1831,18 @@
                 </QuestionNode>
             </ThoughtBranch>
             <ThoughtBranch type="bool" _alias="strict"
-                _RU_description="вычислению ${X}[case='р'] ${$params.branchResult == BranchResult:CORRECT ? 'не' : ''} мешают операторы со строгим порядком операндов"
+                           _RU_description="вычислению ${X}[case='р'] ${$branchResult == BranchResult:CORRECT ? 'не' : ''} мешают операторы со строгим порядком операндов"
                 _RU_nextStepQuestion="С чего надо начать при определении того, мешают ли вычислению ${X}[case='р'] операторы со строгим порядком операндов?"
                 _RU_nextStepExplanation="Это неверно. Прежде всего необходимо найти все подобные операторы, которые могут помешать вычислению ${X}[case='р']"
-                _EN_description="${$params.branchResult == BranchResult:CORRECT ? 'no' : 'some'} operators with strict operand order should be considered before ${X} can be evaluated"
+                           _EN_description="${$branchResult == BranchResult:CORRECT ? 'no' : 'some'} operators with strict operand order should be considered before ${X} can be evaluated"
                 _EN_nextStepQuestion="What is the first step when considering operators with strict operand order?"
                 _EN_nextStepExplanation="That's incorrect. One should first find all such operators and check if they really hinder the evaluation of ${X}."
             >
                 <CycleAggregationNode operator="AND"
                     _alias="Для всех операторов со строгим порядком - T"
-                    _RU_description="вычислению ${X}[case='р'] ${$params.branchResult == BranchResult:CORRECT ? 'не' : ''} мешают операторы со строгим порядком операндов"
+                                      _RU_description="вычислению ${X}[case='р'] ${$branchResult == BranchResult:CORRECT ? 'не' : ''} мешают операторы со строгим порядком операндов"
                     _RU_question="Выберите все операторы со строгим порядком операндов, которые могут помешать вычислению ${X}[case='р']"
-                    _EN_description="${$params.branchResult == BranchResult:CORRECT ? 'no' : 'some'} operators with strict operand order should be considered before ${X} can be evaluated"
+                                      _EN_description="${$branchResult == BranchResult:CORRECT ? 'no' : 'some'} operators with strict operand order should be considered before ${X} can be evaluated"
                     _EN_question="Choose all operators with strict operand order that can influence the evaluation of ${X}"
                 >
                     <SelectorExpression>
@@ -1884,10 +1884,10 @@
                         <BranchResultNode value="false" />
                     </Outcome>
                     <ThoughtBranch type="bool" paramName="T" _alias="strict.Tcycle"
-                        _RU_description="${T}[case='и'] ${$params.branchResult == BranchResult:CORRECT ? 'не' : ''} мешает вычислению ${X}[case='р'] как оператор со строгим порядком операндов"
+                                   _RU_description="${T}[case='и'] ${$branchResult == BranchResult:CORRECT ? 'не' : ''} мешает вычислению ${X}[case='р'] как оператор со строгим порядком операндов"
                         _RU_nextStepQuestion="С чего надо начать, чтобы определить, мешают ли ${T}[case='и'] вычислению ${X}[case='р']?"
                         _RU_nextStepExplanation="Это неверно. Прежде всего необходимо определить, вычислен ли уже левый операнд ${T}[case='р']."
-                        _EN_description="${T} does ${$params.branchResult == BranchResult:CORRECT ? 'not' : ''} hinder evaluation of ${X} as an operator with strict order of operands"
+                                   _EN_description="${T} does ${$branchResult == BranchResult:CORRECT ? 'not' : ''} hinder evaluation of ${X} as an operator with strict order of operands"
                         _EN_nextStepQuestion="What is the first step to determine if ${T} hinders the evaluation of ${X}?"
                         _EN_nextStepExplanation="That's incorrect. We should first determine, if the left operand of ${T} is fully evaluated."
                     >
@@ -1943,8 +1943,8 @@
                                     <Outcome value="True">
                                         <BranchResultNode value="true"
                                             _skill="strict_order_first_operand_to_be_evaluated_while_solving"
-                                            _RU_explanation="он находится в ${X->isInOperandOf(T).placement}[case='п'] операнде ${T}[case='р'], а этот операнд вычисляется раньше остальных."
-                                            _EN_explanation="it belongs to the ${X->isInOperandOf(T).placement}[case='п'] operand of ${T}[case='р'], which is evaluated before the other operands of the latter."
+                                                          _RU_explanation="он находится в ${X=>isInOperandOf(T).placement}[case='п'] операнде ${T}[case='р'], а этот операнд вычисляется раньше остальных."
+                                                          _EN_explanation="it belongs to the ${X=>isInOperandOf(T).placement}[case='п'] operand of ${T}[case='р'], which is evaluated before the other operands of the latter."
                                         />
                                     </Outcome>
                                     <Outcome value="False">
@@ -1952,10 +1952,10 @@
                                             _alias="Есть ли в первом операнде T невычисленный оператор (U)?"
                                             type="bool" isSwitch="false"
                                             _RU_asNextStep="Необходимо проверить, остались ли в левом операнде ${T}[case='р'] невычисленные операторы."
-                                            _RU_description="В левом операнде ${T}[case='р'] ${$params.branchResult == BranchResult:CORRECT ? 'не' : ''} остались невычисленные операторы?"
+                                                              _RU_description="В левом операнде ${T}[case='р'] ${$branchResult == BranchResult:CORRECT ? 'не' : ''} остались невычисленные операторы?"
                                             _RU_endingCause="Поскольку в левом операнде ${T} не осталось невычисленных операторов"
                                             _EN_asNextStep="We need to check if there are any unevaluated operators in the left operand of ${T}."
-                                            _EN_description="There ${$params.branchResult == BranchResult:CORRECT ? 'are' : 'aren't'} any unevaluated operators in the left operand of ${T}?"
+                                                              _EN_description="There ${$branchResult == BranchResult:CORRECT ? 'are' : 'aren't'} any unevaluated operators in the left operand of ${T}?"
                                             _EN_endingCause="Because there are no unevaluated operators in the left operand of ${T}"
                                         >
                                             <SelectorExpression>
@@ -2127,40 +2127,40 @@
                                                     <Outcome
                                                                 value="(true;true)"
                                                                 _RU_nextStepQuestion="Какой вывод можно сделать в таком случае?"
-                                                                _RU_nextStepBranchResult="${$params.branchResult == BranchResult:CORRECT ? 'может быть вычислен' : 'опускается'}."
+                                                                _RU_nextStepBranchResult="${$branchResult == BranchResult:CORRECT ? 'может быть вычислен' : 'опускается'}."
                                                                 _RU_nextStepExplanation="Это неверно. С учетом сказанного выше, ${X}[case='и'] не опускается, и может быть свободно вычислен."
                                                                 _EN_nextStepQuestion="What can we conclude in this case?"
-                                                                _EN_nextStepBranchResult="${$params.branchResult == BranchResult:CORRECT ? 'can be evaluated' : 'is omitted'}."
+                                                                _EN_nextStepBranchResult="${$branchResult == BranchResult:CORRECT ? 'can be evaluated' : 'is omitted'}."
                                                                 _EN_nextStepExplanation="This is incorrect. Given the above, ${X} is not omitted, and can be evaluated."
                                                             >
                                                                 <BranchResultNode value="true"
                                                                     _skill="should_strict_order_current_operand_be_omitted_while_solving"
-                                                                    _RU_explanation="он находится в ${X->isInOperandOf(T).placement}[case='п'] операнде ${T}[case='р'], чей ${T.firstOperandPlacement} операнд имеет значение ${T->hasOperand&lt;placement=T.firstOperandPlacement>.evaluatesTo}."
-                                                                    _EN_explanation="it belongs to ${X->isInOperandOf(T).placement}[case='п'] operand of ${T}[case='р'] whose ${T.firstOperandPlacement} operand evaluates to ${T->hasOperand&lt;placement=T.firstOperandPlacement>.evaluatesTo}."
+                                                                                  _RU_explanation="он находится в ${X=>isInOperandOf(T).placement}[case='п'] операнде ${T}[case='р'], чей ${T.firstOperandPlacement} операнд имеет значение ${T->hasOperand&lt;placement=T.firstOperandPlacement>.evaluatesTo}."
+                                                                                  _EN_explanation="it belongs to ${X=>isInOperandOf(T).placement}[case='п'] operand of ${T}[case='р'] whose ${T.firstOperandPlacement} operand evaluates to ${T->hasOperand&lt;placement=T.firstOperandPlacement>.evaluatesTo}."
                                                                 />
                                                             </Outcome>
                                                     <Outcome
                                                                 value="(false;false)"
                                                                 _RU_nextStepQuestion="Какой вывод можно сделать в таком случае?"
-                                                                _RU_nextStepBranchResult="${$params.branchResult == BranchResult:CORRECT ? 'может быть вычислен' : 'опускается'}."
+                                                                _RU_nextStepBranchResult="${$branchResult == BranchResult:CORRECT ? 'может быть вычислен' : 'опускается'}."
                                                                 _RU_nextStepExplanation="Это неверно. С учетом сказанного выше, ${X}[case='и'] не опускается, и может быть свободно вычислен."
                                                                 _EN_nextStepQuestion="What can we conclude in this case?"
-                                                                _EN_nextStepBranchResult="${$params.branchResult == BranchResult:CORRECT ? 'can be evaluated' : 'is omitted'}."
+                                                                _EN_nextStepBranchResult="${$branchResult == BranchResult:CORRECT ? 'can be evaluated' : 'is omitted'}."
                                                                 _EN_nextStepExplanation="This is incorrect. Given the above, ${X} is not omitted, and can be evaluated."
                                                             >
                                                                 <BranchResultNode value="true"
                                                                     _skill="should_strict_order_current_operand_be_omitted_while_solving"
-                                                                    _RU_explanation="он находится в ${X->isInOperandOf(T).placement}[case='п'] операнде ${T}[case='р'], чей ${T.firstOperandPlacement} операнд имеет значение ${T->hasOperand&lt;placement=T.firstOperandPlacement>.evaluatesTo}."
-                                                                    _EN_explanation="it belongs to ${X->isInOperandOf(T).placement}[case='п'] operand of ${T}[case='р'] whose ${T.firstOperandPlacement} operand evaluates to ${T->hasOperand&lt;placement=T.firstOperandPlacement>.evaluatesTo}."
+                                                                                  _RU_explanation="он находится в ${X=>isInOperandOf(T).placement}[case='п'] операнде ${T}[case='р'], чей ${T.firstOperandPlacement} операнд имеет значение ${T->hasOperand&lt;placement=T.firstOperandPlacement>.evaluatesTo}."
+                                                                                  _EN_explanation="it belongs to ${X=>isInOperandOf(T).placement}[case='п'] operand of ${T}[case='р'] whose ${T.firstOperandPlacement} operand evaluates to ${T->hasOperand&lt;placement=T.firstOperandPlacement>.evaluatesTo}."
                                                                 />
                                                             </Outcome>
                                                     <Outcome
                                                                 value="(true;false)"
                                                                 _RU_nextStepQuestion="Какой вывод можно сделать в таком случае?"
-                                                                _RU_nextStepBranchResult="${$params.branchResult == BranchResult:CORRECT ? 'может быть вычислен' : 'опускается'}."
+                                                                _RU_nextStepBranchResult="${$branchResult == BranchResult:CORRECT ? 'может быть вычислен' : 'опускается'}."
                                                                 _RU_nextStepExplanation="Это неверно. С учетом сказанного выше, ${X}[case='и'] опускается, а значит не может быть вычислен."
                                                                 _EN_nextStepQuestion="What can we conclude in this case?"
-                                                                _EN_nextStepBranchResult="${$params.branchResult == BranchResult:CORRECT ? 'can be evaluated' : 'is omitted'}."
+                                                                _EN_nextStepBranchResult="${$branchResult == BranchResult:CORRECT ? 'can be evaluated' : 'is omitted'}."
                                                                 _EN_nextStepExplanation="This is incorrect. Given the above, ${X} is omitted, and so cannot be evaluated now."
                                                             >
                                                                 <BranchResultNode
@@ -2169,8 +2169,8 @@
                                                                     _law="error_base_student_error_strict_operands_order"
                                                                     value="false"
                                                                     _error="strict.leftShouldBeTrue_omittedInRight"
-                                                                    _RU_explanation="он находится в ${X->isInOperandOf(T).placement}[case='п'] операнде ${T}[case='р'], чей ${T.firstOperandPlacement} операнд имеет значение ${T->hasOperand&lt;placement=T.firstOperandPlacement>.evaluatesTo}, что блокирует вычисление ${X}[case='р']."
-                                                                    _EN_explanation="it belongs to ${X->isInOperandOf(T).placement}[case='п'] operand of ${T}[case='р'] whose ${T.firstOperandPlacement} operand evaluates to ${T->hasOperand&lt;placement=T.firstOperandPlacement>.evaluatesTo} which forbids evaluation of ${X}[case='р']."
+                                                                    _RU_explanation="он находится в ${X=>isInOperandOf(T).placement}[case='п'] операнде ${T}[case='р'], чей ${T.firstOperandPlacement} операнд имеет значение ${T->hasOperand&lt;placement=T.firstOperandPlacement>.evaluatesTo}, что блокирует вычисление ${X}[case='р']."
+                                                                    _EN_explanation="it belongs to ${X=>isInOperandOf(T).placement}[case='п'] operand of ${T}[case='р'] whose ${T.firstOperandPlacement} operand evaluates to ${T->hasOperand&lt;placement=T.firstOperandPlacement>.evaluatesTo} which forbids evaluation of ${X}[case='р']."
                                                                 >
                                                                     <Expression>
                                                                         <AssignToProperty>
@@ -2186,10 +2186,10 @@
                                                             ` <Outcome
                                                                 value="(false;true)"
                                                                 _RU_nextStepQuestion="Какой вывод можно сделать в таком случае?"
-                                                                _RU_nextStepBranchResult="${$params.branchResult == BranchResult:CORRECT ? 'может быть вычислен' : 'опускается'}."
+                                                                _RU_nextStepBranchResult="${$branchResult == BranchResult:CORRECT ? 'может быть вычислен' : 'опускается'}."
                                                                 _RU_nextStepExplanation="Это неверно. С учетом сказанного выше, ${X}[case='и'] опускается, а значит не может быть вычислен."
                                                                 _EN_nextStepQuestion="What can we conclude in this case?"
-                                                                _EN_nextStepBranchResult="${$params.branchResult == BranchResult:CORRECT ? 'can be evaluated' : 'is omitted'}."
+                                                                _EN_nextStepBranchResult="${$branchResult == BranchResult:CORRECT ? 'can be evaluated' : 'is omitted'}."
                                                                 _EN_nextStepExplanation="This is incorrect. Given the above, ${X} is omitted, and so cannot be evaluated now."
                                                             >
                                                                 <BranchResultNode
@@ -2198,8 +2198,8 @@
                                                                     _skill="should_strict_order_current_operand_be_omitted_while_solving"
                                                                     _law="error_base_student_error_strict_operands_order"
                                                                     _error="strict.leftShouldBeFalse_omittedInRight"
-                                                                    _RU_explanation="он находится в ${X->isInOperandOf(T).placement}[case='п'] операнде ${T}[case='р'], чей ${T.firstOperandPlacement} операнд имеет значение ${T->hasOperand&lt;placement=T.firstOperandPlacement>.evaluatesTo}, что блокирует вычисление ${X}[case='р']."
-                                                                    _EN_explanation="it belongs to ${X->isInOperandOf(T).placement}[case='п'] operand of ${T}[case='р'] whose ${T.firstOperandPlacement} operand evaluates to ${T->hasOperand&lt;placement=T.firstOperandPlacement>.evaluatesTo} which forbids evaluation of ${X}[case='р']."
+                                                                    _RU_explanation="он находится в ${X=>isInOperandOf(T).placement}[case='п'] операнде ${T}[case='р'], чей ${T.firstOperandPlacement} операнд имеет значение ${T->hasOperand&lt;placement=T.firstOperandPlacement>.evaluatesTo}, что блокирует вычисление ${X}[case='р']."
+                                                                    _EN_explanation="it belongs to ${X=>isInOperandOf(T).placement}[case='п'] operand of ${T}[case='р'] whose ${T.firstOperandPlacement} operand evaluates to ${T->hasOperand&lt;placement=T.firstOperandPlacement>.evaluatesTo} which forbids evaluation of ${X}[case='р']."
                                                                 >
                                                                     <Expression>
                                                                         <AssignToProperty>
@@ -2218,18 +2218,18 @@
                                             </Outcome>
                                             <ThoughtBranch type="bool" paramName="U"
                                                 _RU_nextStepQuestion="Какой вывод можно сделать, если у оператора со строгим порядком операндов не вычислен левый операнд?"
-                                                _RU_nextStepBranchResult="Левый операнд ${$params.branchResult == BranchResult:CORRECT ? 'не' : ''} мешает вычислению ${X}[case='р']."
+                                                           _RU_nextStepBranchResult="Левый операнд ${$branchResult == BranchResult:CORRECT ? 'не' : ''} мешает вычислению ${X}[case='р']."
                                                 _RU_nextStepExplanation="Это неверно. В операторах со строгим порядком операндов левый операнд всегда должен вычисляться первым, и значит ${X}[case='и'] пока не может быть вычислен."
                                                 _EN_nextStepQuestion="What can we decide if an operator with a strict order of operands has yet-unevaluated operand?"
-                                                _EN_nextStepBranchResult="Left operand of ${$params.branchResult == BranchResult:CORRECT ? 'not' : ''} hinder the evaluation of ${X}."
+                                                           _EN_nextStepBranchResult="Left operand of ${$branchResult == BranchResult:CORRECT ? 'not' : ''} hinder the evaluation of ${X}."
                                                 _EN_nextStepExplanation="That's incorrect. In operators with strict operand order, the left operand must always be evaluated first, and so ${X} cannot be evaluated yet."
                                             >
                                                 <BranchResultNode value="false"
                                                     _skill="is_first_operand_of_strict_order_operator_fully_evaluated"
                                                     _law="error_base_student_error_strict_operands_order"
                                                     _error="strict.leftShouldBeEvaluatedFirst"
-                                                    _RU_explanation="${U}, стоящий в ${U->isInOperandOf(T).placement}[case='п'] операнде ${T}[case='р'], должен быть вычислен ранее"
-                                                    _EN_explanation="${U} that belongs to ${U->isInOperandOf(T).placement}[case='п'] operand ${T}[case='р'] should be evaluated before it"
+                                                                  _RU_explanation="${U}, стоящий в ${U=>isInOperandOf(T).placement}[case='п'] операнде ${T}[case='р'], должен быть вычислен ранее"
+                                                                  _EN_explanation="${U} that belongs to ${U=>isInOperandOf(T).placement}[case='п'] operand ${T}[case='р'] should be evaluated before it"
                                                 />
                                             </ThoughtBranch>
                                         </CycleAggregationNode>
@@ -2241,7 +2241,7 @@
                 </CycleAggregationNode>
             </ThoughtBranch>
             <ThoughtBranch type="bool" _alias="strict_central"
-                _RU_description="вычислению ${X}[case='р'] ${$params.branchResult == BranchResult:CORRECT ? 'не' : ''} мешают операторы вызова функций со строгим порядком вычисления аргументов"
+                           _RU_description="вычислению ${X}[case='р'] ${$branchResult == BranchResult:CORRECT ? 'не' : ''} мешают операторы вызова функций со строгим порядком вычисления аргументов"
                 _RU_nextStepQuestion="С чего надо начать при определении того, мешают ли вычислению ${X}[case='р'] операторы вызова функций со строгим порядком аргументов?"
                 _RU_nextStepExplanation="Это неверно. Прежде всего необходимо найти все вызовы функций с несколькими аргументами, которые могут помешать вычислению ${X}[case='р']"
             >
