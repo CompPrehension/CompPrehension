@@ -1,4 +1,5 @@
 import grpc, base64, pickle, sys, signal
+from bkt_pomdp import choose_best_question
 from grpc import StatusCode
 from concurrent import futures
 from pyBKT.models import Roster
@@ -73,6 +74,43 @@ class BktServiceServicer(bkt_service_pb2_grpc.BktServiceServicer):
 
         # ---------- 3. Сериализация результата ----------
         return bkt_service_pb2.GetSkillStatesResponse(skillStates = skill_states)
+
+    def ChooseBestQuestion(self, request, context):
+        src = request.WhichOneof("questionsSource")
+
+        # ---------- 1. Десериализация ----------
+        roster = self._deserialize_roster(request.roster, context)
+
+        try:
+            # ---------- 2. Выбираем лучший вопрос ----------
+            skills_list = request.allSkills
+            for skill in skills_list:
+                roster = self._ensure_skill_and_student(roster, skill, request.student)
+
+            if src == "candidateQuestions":
+                candidate_questions = [
+                    tuple(q.targetSkills)
+                    for q in request.candidateQuestions.questions
+                ]
+                max_question_skills_count = None
+            else:
+                candidate_questions = None
+                max_question_skills_count = request.maxQuestionSkillsCount or 5
+
+            best_question = choose_best_question(
+                roster,
+                skills_list, 
+                request.student,
+                max_question_skills_count,
+                candidate_questions,
+            )
+        except ValueError as e:
+            context.abort(StatusCode.INVALID_ARGUMENT, str(e))
+        except Exception as e:
+            context.abort(StatusCode.INTERNAL, f"Python error: {e}")
+
+        # ---------- 3. Сериализация результата ----------
+        return bkt_service_pb2.ChooseBestQuestionResponse(bestTargetSkills = best_question)
 
 def build_server(port: int = 50051) -> grpc.Server:
     server = grpc.server(futures.ThreadPoolExecutor(max_workers=8))

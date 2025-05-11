@@ -24,7 +24,7 @@ _sym_db = _symbol_database.Default()
 
 
 
-DESCRIPTOR = _descriptor_pool.Default().AddSerializedFile(b'\n\x11\x62kt-service.proto\x12\x03\x62kt\"W\n\x13UpdateRosterRequest\x12\x0e\n\x06roster\x18\x01 \x01(\t\x12\x0f\n\x07student\x18\x02 \x01(\t\x12\x0f\n\x07\x63orrect\x18\x03 \x01(\x08\x12\x0e\n\x06skills\x18\x04 \x03(\t\"&\n\x14UpdateRosterResponse\x12\x0e\n\x06roster\x18\x01 \x01(\t\"^\n\nSkillState\x12\r\n\x05skill\x18\x01 \x01(\t\x12\r\n\x05state\x18\x02 \x01(\t\x12\x19\n\x11\x63orrectPrediction\x18\x03 \x01(\x01\x12\x17\n\x0fstatePrediction\x18\x04 \x01(\x01\"H\n\x15GetSkillStatesRequest\x12\x0e\n\x06roster\x18\x01 \x01(\t\x12\x0f\n\x07student\x18\x02 \x01(\t\x12\x0e\n\x06skills\x18\x03 \x03(\t\">\n\x16GetSkillStatesResponse\x12$\n\x0bskillStates\x18\x01 \x03(\x0b\x32\x0f.bkt.SkillState2\x9c\x01\n\nBktService\x12\x43\n\x0cUpdateRoster\x12\x18.bkt.UpdateRosterRequest\x1a\x19.bkt.UpdateRosterResponse\x12I\n\x0eGetSkillStates\x12\x1a.bkt.GetSkillStatesRequest\x1a\x1b.bkt.GetSkillStatesResponseB.\n org.vstu.compprehension.bkt.grpcB\x08\x42ktProtoP\x01\x62\x06proto3')
+DESCRIPTOR = _descriptor_pool.Default().AddSerializedFile(b'\n\x11\x62kt-service.proto\x12\x03\x62kt\"W\n\x13UpdateRosterRequest\x12\x0e\n\x06roster\x18\x01 \x01(\t\x12\x0f\n\x07student\x18\x02 \x01(\t\x12\x0f\n\x07\x63orrect\x18\x03 \x01(\x08\x12\x0e\n\x06skills\x18\x04 \x03(\t\"&\n\x14UpdateRosterResponse\x12\x0e\n\x06roster\x18\x01 \x01(\t\"^\n\nSkillState\x12\r\n\x05skill\x18\x01 \x01(\t\x12\r\n\x05state\x18\x02 \x01(\t\x12\x19\n\x11\x63orrectPrediction\x18\x03 \x01(\x01\x12\x17\n\x0fstatePrediction\x18\x04 \x01(\x01\"H\n\x15GetSkillStatesRequest\x12\x0e\n\x06roster\x18\x01 \x01(\t\x12\x0f\n\x07student\x18\x02 \x01(\t\x12\x0e\n\x06skills\x18\x03 \x03(\t\">\n\x16GetSkillStatesResponse\x12$\n\x0bskillStates\x18\x01 \x03(\x0b\x32\x0f.bkt.SkillState\" \n\x08Question\x12\x14\n\x0ctargetSkills\x18\x01 \x03(\t\":\n\x16\x43\x61ndidateQuestionsList\x12 \n\tquestions\x18\x01 \x03(\x0b\x32\r.bkt.Question\"\xbf\x01\n\x19\x43hooseBestQuestionRequest\x12\x0e\n\x06roster\x18\x01 \x01(\t\x12\x0f\n\x07student\x18\x02 \x01(\t\x12\x11\n\tallSkills\x18\x03 \x03(\t\x12\x39\n\x12\x63\x61ndidateQuestions\x18\x04 \x01(\x0b\x32\x1b.bkt.CandidateQuestionsListH\x00\x12 \n\x16maxQuestionSkillsCount\x18\x05 \x01(\rH\x00\x42\x11\n\x0fquestionsSource\"6\n\x1a\x43hooseBestQuestionResponse\x12\x18\n\x10\x62\x65stTargetSkills\x18\x01 \x03(\t2\xf3\x01\n\nBktService\x12\x43\n\x0cUpdateRoster\x12\x18.bkt.UpdateRosterRequest\x1a\x19.bkt.UpdateRosterResponse\x12I\n\x0eGetSkillStates\x12\x1a.bkt.GetSkillStatesRequest\x1a\x1b.bkt.GetSkillStatesResponse\x12U\n\x12\x43hooseBestQuestion\x12\x1e.bkt.ChooseBestQuestionRequest\x1a\x1f.bkt.ChooseBestQuestionResponseB.\n org.vstu.compprehension.bkt.grpcB\x08\x42ktProtoP\x01\x62\x06proto3')
 
 _globals = globals()
 _builder.BuildMessageAndEnumDescriptors(DESCRIPTOR, _globals)
@@ -42,6 +42,14 @@ if not _descriptor._USE_C_DESCRIPTORS:
   _globals['_GETSKILLSTATESREQUEST']._serialized_end=323
   _globals['_GETSKILLSTATESRESPONSE']._serialized_start=325
   _globals['_GETSKILLSTATESRESPONSE']._serialized_end=387
-  _globals['_BKTSERVICE']._serialized_start=390
-  _globals['_BKTSERVICE']._serialized_end=546
+  _globals['_QUESTION']._serialized_start=389
+  _globals['_QUESTION']._serialized_end=421
+  _globals['_CANDIDATEQUESTIONSLIST']._serialized_start=423
+  _globals['_CANDIDATEQUESTIONSLIST']._serialized_end=481
+  _globals['_CHOOSEBESTQUESTIONREQUEST']._serialized_start=484
+  _globals['_CHOOSEBESTQUESTIONREQUEST']._serialized_end=675
+  _globals['_CHOOSEBESTQUESTIONRESPONSE']._serialized_start=677
+  _globals['_CHOOSEBESTQUESTIONRESPONSE']._serialized_end=731
+  _globals['_BKTSERVICE']._serialized_start=734
+  _globals['_BKTSERVICE']._serialized_end=977
 # @@protoc_insertion_point(module_scope)

@@ -44,6 +44,11 @@ class BktServiceStub(object):
                 request_serializer=bkt__service__pb2.GetSkillStatesRequest.SerializeToString,
                 response_deserializer=bkt__service__pb2.GetSkillStatesResponse.FromString,
                 _registered_method=True)
+        self.ChooseBestQuestion = channel.unary_unary(
+                '/bkt.BktService/ChooseBestQuestion',
+                request_serializer=bkt__service__pb2.ChooseBestQuestionRequest.SerializeToString,
+                response_deserializer=bkt__service__pb2.ChooseBestQuestionResponse.FromString,
+                _registered_method=True)
 
 
 class BktServiceServicer(object):
@@ -61,6 +66,12 @@ class BktServiceServicer(object):
         context.set_details('Method not implemented!')
         raise NotImplementedError('Method not implemented!')
 
+    def ChooseBestQuestion(self, request, context):
+        """Missing associated documentation comment in .proto file."""
+        context.set_code(grpc.StatusCode.UNIMPLEMENTED)
+        context.set_details('Method not implemented!')
+        raise NotImplementedError('Method not implemented!')
+
 
 def add_BktServiceServicer_to_server(servicer, server):
     rpc_method_handlers = {
@@ -73,6 +84,11 @@ def add_BktServiceServicer_to_server(servicer, server):
                     servicer.GetSkillStates,
                     request_deserializer=bkt__service__pb2.GetSkillStatesRequest.FromString,
                     response_serializer=bkt__service__pb2.GetSkillStatesResponse.SerializeToString,
+            ),
+            'ChooseBestQuestion': grpc.unary_unary_rpc_method_handler(
+                    servicer.ChooseBestQuestion,
+                    request_deserializer=bkt__service__pb2.ChooseBestQuestionRequest.FromString,
+                    response_serializer=bkt__service__pb2.ChooseBestQuestionResponse.SerializeToString,
             ),
     }
     generic_handler = grpc.method_handlers_generic_handler(
@@ -129,6 +145,33 @@ class BktService(object):
             '/bkt.BktService/GetSkillStates',
             bkt__service__pb2.GetSkillStatesRequest.SerializeToString,
             bkt__service__pb2.GetSkillStatesResponse.FromString,
+            options,
+            channel_credentials,
+            insecure,
+            call_credentials,
+            compression,
+            wait_for_ready,
+            timeout,
+            metadata,
+            _registered_method=True)
+
+    @staticmethod
+    def ChooseBestQuestion(request,
+            target,
+            options=(),
+            channel_credentials=None,
+            call_credentials=None,
+            insecure=False,
+            compression=None,
+            wait_for_ready=None,
+            timeout=None,
+            metadata=None):
+        return grpc.experimental.unary_unary(
+            request,
+            target,
+            '/bkt.BktService/ChooseBestQuestion',
+            bkt__service__pb2.ChooseBestQuestionRequest.SerializeToString,
+            bkt__service__pb2.ChooseBestQuestionResponse.FromString,
             options,
             channel_credentials,
             insecure,

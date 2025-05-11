@@ -12,10 +12,7 @@ import org.springframework.transaction.annotation.Transactional;
 import lombok.RequiredArgsConstructor;
 import lombok.val;
 import org.springframework.stereotype.Service;
-import org.vstu.compprehension.bkt.grpc.BktServiceGrpc;
-import org.vstu.compprehension.bkt.grpc.GetSkillStatesRequest;
-import org.vstu.compprehension.bkt.grpc.SkillState;
-import org.vstu.compprehension.bkt.grpc.UpdateRosterRequest;
+import org.vstu.compprehension.bkt.grpc.*;
 import org.vstu.compprehension.models.entities.BktDataEntity;
 import org.vstu.compprehension.models.repository.BktDataRepository;
 import org.vstu.compprehension.models.repository.DomainRepository;
@@ -79,6 +76,28 @@ public class BktService {
             val response = stub.getSkillStates(request); // blocking
 
             return response.getSkillStatesList();
+        } catch (StatusRuntimeException ignored) {
+            throw new ThisShouldNotHappen();
+        }
+    }
+
+    public List<String> chooseBestQuestion(String domainId, Long userId, List<String> skills) {
+        val data = getBktData(domainId, userId);
+        if (data == null) return Collections.emptyList();
+        val roster = data.getRoster();
+        if (roster.isBlank()) return Collections.emptyList();
+
+        val request = ChooseBestQuestionRequest.newBuilder()
+                .setRoster(roster)
+                .setStudent(userId.toString())
+                .addAllAllSkills(skills)
+                .setMaxQuestionSkillsCount(5) // TODO вынести в настройки exercise мб
+                .build();
+
+        try {
+            val response = stub.chooseBestQuestion(request); // blocking
+
+            return response.getBestTargetSkillsList();
         } catch (StatusRuntimeException ignored) {
             throw new ThisShouldNotHappen();
         }
