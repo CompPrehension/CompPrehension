@@ -5,6 +5,7 @@ import com.fasterxml.jackson.annotation.JsonInclude;
 import lombok.AllArgsConstructor;
 import lombok.Data;
 import lombok.NoArgsConstructor;
+import lombok.Builder;
 import lombok.experimental.SuperBuilder;
 import lombok.extern.jackson.Jacksonized;
 
@@ -15,11 +16,14 @@ import lombok.extern.jackson.Jacksonized;
 @JsonInclude(JsonInclude.Include.NON_NULL)
 public class ExerciseOptionsEntity {
     private ExerciseSurveyOptionsEntity surveyOptions;
-    private Boolean newQuestionGenerationEnabled;
-    private Boolean supplementaryQuestionsEnabled;
-    private Boolean correctAnswerGenerationEnabled;
-    private Boolean forceNewAttemptCreationEnabled;
-    private boolean preferDecisionTreeBasedSupplementaryEnabled; //FIXME ? почему все остальные тоже не boolean - нуллабельность здесь только мешает
+    private boolean newQuestionGenerationEnabled;
+    private boolean supplementaryQuestionsEnabled;
+    private boolean correctAnswerGenerationEnabled;
+    private boolean debugButtonEnabled;
+    private boolean forceNewAttemptCreationEnabled;
+    private boolean preferDecisionTreeBasedSupplementaryEnabled;
+    @Builder.Default
+    private int maxExpectedConcurrentStudents = 10;
 
     @Data
     @AllArgsConstructor @NoArgsConstructor

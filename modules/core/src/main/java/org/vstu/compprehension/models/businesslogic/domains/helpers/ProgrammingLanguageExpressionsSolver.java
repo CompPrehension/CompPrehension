@@ -6,6 +6,7 @@ import its.model.definition.ObjectDef;
 import its.model.nodes.BranchResult;
 import its.model.nodes.DecisionTree;
 import its.reasoner.LearningSituation;
+import its.reasoner.ReasoningException;
 import its.reasoner.nodes.DecisionTreeReasoner;
 import its.reasoner.nodes.DecisionTreeTrace;
 import its.reasoner.nodes.DecisionTreeTraceElement;
@@ -70,7 +71,11 @@ public class ProgrammingLanguageExpressionsSolver {
             for(ObjectDef obj : unevaluated){
                 solveForX(obj, situationDomain, decisionTree);
             }
-            unevaluated = getUnevaluated(situationDomain);
+            var newUnevaluated = getUnevaluated(situationDomain);
+            if (newUnevaluated.size() == unevaluated.size()) {
+                throw new ReasoningException("Decision tree can't find any correct step");
+            }
+            unevaluated = newUnevaluated;
         }
 
         domain.getObjects().forEach(domainObj -> retain.accept(

@@ -34,11 +34,13 @@ export class TestExerciseController implements IExerciseController, IQuestionCon
         return E.right({
             id: -1,
             options: {
+                debugButtonEnabled: false,
                 forceNewAttemptCreationEnabled: false,
                 correctAnswerGenerationEnabled: true,
                 newQuestionGenerationEnabled: true,
                 supplementaryQuestionsEnabled: true,
                 preferDecisionTreeBasedSupplementaryEnabled: false,
+                maxExpectedConcurrentStudents: 7,
             },
         })
     }
@@ -72,6 +74,7 @@ export class TestExerciseController implements IExerciseController, IQuestionCon
             result = {
                 type: 'SINGLE_CHOICE',
                 questionId: 1,
+                questionMetadataId: 1,
                 text: 'question text',
                 answers: [
                     { id: 0, text: 'answer1 answer1 answer1answer1answer1answer1answer1 answer1answer1 answer1 answer1 answer1answer1answer1answer1answer1 answer1answer1 answer1 answer1 answer1answer1answer1answer1answer1 answer1answer1 answer1 answer1 answer1answer1answer1answer1answer1 answer1answer1 answer1 answer1 answer1answer1answer1answer1answer1 answer1answer1 ' },
@@ -91,6 +94,7 @@ export class TestExerciseController implements IExerciseController, IQuestionCon
             result = {
                 type: 'MULTI_CHOICE',
                 questionId: 2,
+                questionMetadataId: 2,
                 text: 'question text',
                 answers: [
                     { id: 0, text: 'answer1 answer1 answer1answer1answer1answer1answer1 answer1answer1 answer1 answer1 answer1answer1answer1answer1answer1 answer1answer1 answer1 answer1 answer1answer1answer1answer1answer1 answer1answer1 answer1 answer1 answer1answer1answer1answer1answer1 answer1answer1 answer1 answer1 answer1answer1answer1answer1answer1 answer1answer1 ' },
@@ -111,6 +115,7 @@ export class TestExerciseController implements IExerciseController, IQuestionCon
             result = {
                 type: 'SINGLE_CHOICE',
                 questionId: 3,
+                questionMetadataId: 3,
                 text: 'question text with <span id="answer_0">select1</span> and <span id="answer_1">select2</span>',
                 answers: [],
                 responses: [],
@@ -126,6 +131,7 @@ export class TestExerciseController implements IExerciseController, IQuestionCon
             result = {
                 type: 'MULTI_CHOICE',
                 questionId: 4,
+                questionMetadataId: 4,
                 text: 'question text with <span id="answer_0"></span> and <span id="answer_1"></span>',
                 answers: [],
                 responses: [],
@@ -141,6 +147,7 @@ export class TestExerciseController implements IExerciseController, IQuestionCon
             result = {
                 type: 'MATCHING',
                 questionId: 5,
+                questionMetadataId: 5,
                 text: 'question text ',
                 answers: [
                     {
@@ -183,6 +190,7 @@ export class TestExerciseController implements IExerciseController, IQuestionCon
         if (questionId === 6) {
             result = {
                 type: 'MATCHING',
+                questionMetadataId: 6,
                 questionId: 6,
                 text: 'question text with <span id="answer_0">drop</span> and <span id="answer_1">drop</span>',
                 answers: [],
@@ -214,6 +222,7 @@ export class TestExerciseController implements IExerciseController, IQuestionCon
             result = {
                 type: 'MULTI_CHOICE',
                 questionId: 7,
+                questionMetadataId: 7,
                 text: `question text with <span id="answer_0"></span> and <span id="answer_1"></span>`,
                 answers: [],
                 responses: [],
