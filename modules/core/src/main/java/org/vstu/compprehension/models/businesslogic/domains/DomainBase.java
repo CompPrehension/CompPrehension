@@ -280,7 +280,7 @@ public abstract class DomainBase implements Domain {
     public Map<Skill, List<Skill>> getSkillSimplifiedHierarchy(int bitflags) {
         Map<Skill, List<Skill>> res = new TreeMap<>();
         for (Skill skill : getAllSkills()) {
-            if (skill.getBaseSkills().isEmpty() && skill.hasFlag(bitflags)) {
+            if (skill.hasFlag(bitflags)) {
                 res.put(skill, new ArrayList<>());
             }
         }
@@ -480,6 +480,10 @@ public abstract class DomainBase implements Domain {
 
     protected Skill addSkill(String name, List<Skill> baseSkills) {
         return addSkill(new Skill(name, baseSkills));
+    }
+
+    protected Skill addSkill(String name, int bitflags) {
+        return addSkill(new Skill(name, List.of(), bitflags));
     }
 
     protected Skill addSkill(String name, List<Skill> baseSkills, int bitflags) {
