@@ -87,65 +87,65 @@ public class ProgrammingLanguageExpressionDTDomain extends DecisionTreeReasoning
     public void fillSkills() {
         skills = new HashMap<>();
 
-        addSkill("central_operand_needed");
-        addSkill("is_central_operand_evaluated");
+        addSkill("central_operand_needed", Skill.FLAG_VISIBLE_TO_TEACHER);
+        addSkill("is_central_operand_evaluated", Skill.FLAG_VISIBLE_TO_TEACHER);
 
-        Skill nearestOperandNeeded = addSkill("nearest_operand_needed");
+        Skill nearestOperandNeeded = addSkill("nearest_operand_needed", Skill.FLAG_VISIBLE_TO_TEACHER);
         addSkill("left_operand_needed", List.of(nearestOperandNeeded));
         addSkill("right_operand_needed", List.of(nearestOperandNeeded));
 
-        Skill competingOperandPresent = addSkill("competing_operator_present");
+        Skill competingOperandPresent = addSkill("competing_operator_present", Skill.FLAG_VISIBLE_TO_TEACHER);
         addSkill("left_competing_operator_present", List.of(competingOperandPresent));
         addSkill("right_competing_operator_present", List.of(competingOperandPresent));
 
-        Skill currentOperatorEnclosed = addSkill("current_operator_enclosed");
+        Skill currentOperatorEnclosed = addSkill("current_operator_enclosed", Skill.FLAG_VISIBLE_TO_TEACHER);
         addSkill("left_operator_enclosed", List.of(currentOperatorEnclosed));
         addSkill("right_operator_enclosed", List.of(currentOperatorEnclosed));
 
-        Skill parenthesizedSkills = addSkill("order_determined_by_parentheses");
+        Skill parenthesizedSkills = addSkill("order_determined_by_parentheses", Skill.FLAG_VISIBLE_TO_TEACHER);
         addSkill("is_current_parenthesized_left_not", List.of(parenthesizedSkills));
         addSkill("is_current_parenthesized_right_not", List.of(parenthesizedSkills));
         addSkill("is_left_parenthesized_current_not", List.of(parenthesizedSkills));
         addSkill("is_right_parenthesized_current_not", List.of(parenthesizedSkills));
 
-        Skill prec = addSkill("order_determined_by_precedence");
+        Skill prec = addSkill("order_determined_by_precedence", Skill.FLAG_VISIBLE_TO_TEACHER);
         addSkill("left_competing_to_right_precedence", List.of(prec));
         addSkill("right_competing_to_left_precedence", List.of(prec));
 
         Skill assoc = addSkill("order_determined_by_associativity");
-        addSkill("left_competing_to_right_associativity", List.of(assoc));
-        addSkill("right_competing_to_left_associativity", List.of(assoc));
+        addSkill("left_competing_to_right_associativity", List.of(assoc), Skill.FLAG_VISIBLE_TO_TEACHER);
+        addSkill("right_competing_to_left_associativity", List.of(assoc), Skill.FLAG_VISIBLE_TO_TEACHER);
 
-        Skill associativityWithoutOpposingOperand = addSkill("associativity_without_opposing_operand");
+        Skill associativityWithoutOpposingOperand = addSkill("associativity_without_opposing_operand", Skill.FLAG_VISIBLE_TO_TEACHER);
         addSkill("associativity_without_left_opposing_operand", List.of(associativityWithoutOpposingOperand));
         addSkill("associativity_without_right_opposing_operand", List.of(associativityWithoutOpposingOperand));
 
-        Skill strictOrder = addSkill("strict_order_operators_present");
+        Skill strictOrder = addSkill("strict_order_operators_present", Skill.FLAG_VISIBLE_TO_TEACHER);
         addSkill("expression_strict_order_operators_present", List.of(strictOrder));
         addSkill("earlyfinish_strict_order_operators_present", List.of(strictOrder));
 
-        Skill currentStrictOrder = addSkill("is_current_operator_strict_order");
+        Skill currentStrictOrder = addSkill("is_current_operator_strict_order", Skill.FLAG_VISIBLE_TO_TEACHER);
         addSkill(currentStrictOrder.name + "_while_solving", List.of(currentStrictOrder));
         addSkill(currentStrictOrder.name + "_while_earlyfinish", List.of(currentStrictOrder));
 
-        Skill strictOrderFirstOperandToBeEvaluated = addSkill("strict_order_first_operand_to_be_evaluated");
+        Skill strictOrderFirstOperandToBeEvaluated = addSkill("strict_order_first_operand_to_be_evaluated", Skill.FLAG_VISIBLE_TO_TEACHER);
         addSkill(strictOrderFirstOperandToBeEvaluated.name + "_while_solving", List.of(strictOrderFirstOperandToBeEvaluated));
         addSkill(strictOrderFirstOperandToBeEvaluated.name + "_while_earlyfinish", List.of(strictOrderFirstOperandToBeEvaluated));
 
-        addSkill("is_first_operand_of_strict_order_operator_fully_evaluated");
+        addSkill("is_first_operand_of_strict_order_operator_fully_evaluated", Skill.FLAG_VISIBLE_TO_TEACHER);
 
-        Skill noOmittedOperandsDespiteStrictOrder = addSkill("no_omitted_operands_despite_strict_order");
+        Skill noOmittedOperandsDespiteStrictOrder = addSkill("no_omitted_operands_despite_strict_order", Skill.FLAG_VISIBLE_TO_TEACHER);
         addSkill(noOmittedOperandsDespiteStrictOrder.name + "_while_solving", List.of(noOmittedOperandsDespiteStrictOrder));
         addSkill(noOmittedOperandsDespiteStrictOrder.name + "_while_earlyfinish", List.of(noOmittedOperandsDespiteStrictOrder));
 
-        Skill shouldStrictOrderCurrentOperandBeOmitted = addSkill("should_strict_order_current_operand_be_omitted");
+        Skill shouldStrictOrderCurrentOperandBeOmitted = addSkill("should_strict_order_current_operand_be_omitted", Skill.FLAG_VISIBLE_TO_TEACHER);
         addSkill(shouldStrictOrderCurrentOperandBeOmitted.name + "_while_solving", List.of(shouldStrictOrderCurrentOperandBeOmitted));
         addSkill(shouldStrictOrderCurrentOperandBeOmitted.name + "_while_earlyfinish", List.of(shouldStrictOrderCurrentOperandBeOmitted));
 
-        addSkill("are_central_operands_strict_order");
-        addSkill("no_current_in_many_central_operands");
-        addSkill("no_comma_in_central_operands");
-        addSkill("previous_central_operands_are_unevaluated");
+        addSkill("are_central_operands_strict_order", Skill.FLAG_VISIBLE_TO_TEACHER);
+        addSkill("no_current_in_many_central_operands", Skill.FLAG_VISIBLE_TO_TEACHER);
+        addSkill("no_comma_in_central_operands", Skill.FLAG_VISIBLE_TO_TEACHER);
+        addSkill("previous_central_operands_are_unevaluated", Skill.FLAG_VISIBLE_TO_TEACHER);
 
         fillSkillTree();
 
@@ -462,7 +462,7 @@ public class ProgrammingLanguageExpressionDTDomain extends DecisionTreeReasoning
         int qCount = 0;
         int savedCount = 0;
         // TODO: please set value of this var to null in production code. Temporary changes
-        Set<SupportedLanguage> targetLanguages = Set.of(SupportedLanguage.CPP);
+        Set<SupportedLanguage> targetLanguages = null;
 
         Gson gson = new GsonBuilder()
                 .setDateFormat("yyyy-MM-dd'T'HH:mm:ss'Z'")
