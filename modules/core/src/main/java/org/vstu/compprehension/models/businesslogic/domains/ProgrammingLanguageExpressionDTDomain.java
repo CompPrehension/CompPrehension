@@ -462,7 +462,7 @@ public class ProgrammingLanguageExpressionDTDomain extends DecisionTreeReasoning
         int qCount = 0;
         int savedCount = 0;
         // TODO: please set value of this var to null in production code. Temporary changes
-        Set<SupportedLanguage> targetLanguages = null;
+        Set<SupportedLanguage> targetLanguages = Set.of(SupportedLanguage.CPP);
 
         Gson gson = new GsonBuilder()
                 .setDateFormat("yyyy-MM-dd'T'HH:mm:ss'Z'")
