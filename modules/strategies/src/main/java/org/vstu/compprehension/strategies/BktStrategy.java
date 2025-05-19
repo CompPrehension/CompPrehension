@@ -12,7 +12,6 @@ import org.vstu.compprehension.models.businesslogic.QuestionRequest;
 import org.vstu.compprehension.models.businesslogic.Skill;
 import org.vstu.compprehension.models.businesslogic.SkillMasteryState;
 import org.vstu.compprehension.bkt.grpc.SkillState;
-import org.vstu.compprehension.models.businesslogic.domains.Domain;
 import org.vstu.compprehension.models.businesslogic.domains.DomainBase;
 import org.vstu.compprehension.models.businesslogic.domains.DomainFactory;
 import org.vstu.compprehension.models.businesslogic.strategies.AbstractStrategy;
@@ -91,7 +90,7 @@ public class BktStrategy implements AbstractStrategy {
         val exercise = attempt.getExercise();
         val domain = domainFactory.getDomain(exercise.getDomain().getName());
 
-        val exerciseTargetSkills = getTargetSkills(attempt, domain);
+        val exerciseTargetSkills = getTargetSkills(attempt);
 
         val userId = attempt.getUser().getId();
 
@@ -142,7 +141,7 @@ public class BktStrategy implements AbstractStrategy {
         val exercise = attempt.getExercise();
         val domain = (DomainBase) domainFactory.getDomain(exercise.getDomain().getName());
 
-        val targetSkills = getTargetSkills(attempt, domain);
+        val targetSkills = getTargetSkills(attempt);
 
         val userId = attempt.getUser().getId();
 
@@ -226,7 +225,7 @@ public class BktStrategy implements AbstractStrategy {
         val exercise = exerciseAttempt.getExercise();
         val domain = domainFactory.getDomain(exercise.getDomain().getName());
 
-        val targetSkills = getTargetSkills(exerciseAttempt, domain);
+        val targetSkills = getTargetSkills(exerciseAttempt);
 
         val skillStates = bktService.getSkillStates(
                 domain.getDomainId(),
@@ -268,7 +267,7 @@ public class BktStrategy implements AbstractStrategy {
         return Decision.FINISH;
     }
 
-    private List<String> getTargetSkills(ExerciseAttemptEntity attempt, Domain domain) {
+    private List<String> getTargetSkills(ExerciseAttemptEntity attempt) {
         return attempt
                 .getExercise()
                 .getStages()
@@ -276,18 +275,6 @@ public class BktStrategy implements AbstractStrategy {
                 .flatMap(stage -> stage.getSkills().stream())
                 .filter(skill -> skill.getKind().equals(RoleInExercise.TARGETED))
                 .map(ExerciseSkillDto::getName)
-                .map(domain::getSkill)
-                .filter(Objects::nonNull)
-                .flatMap(s -> {
-                    assert s != null;
-                    val children = s.getChildSkills();
-                    if (children == null || children.isEmpty()) {
-                        return Stream.of(s);
-                    } else {
-                        return children.stream();
-                    }
-                })
-                .map(Skill::getName)
                 .distinct()
                 .toList();
     }
