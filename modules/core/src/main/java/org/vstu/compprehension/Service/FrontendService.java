@@ -120,7 +120,13 @@ public class FrontendService {
         var grade = 1f;
         var strategyAttemptDecision = Decision.CONTINUE;
         if (attempt != null) {
-            val engagedSkills = domain.calculateEngagedSkills(judgeResult.domainSkills)
+            List<String> leafEngagedSkills;
+            if (judgeResult.isAnswerCorrect) {
+                leafEngagedSkills = judgeResult.correctlyAppliedSkills;
+            } else {
+                leafEngagedSkills = judgeResult.violatedSkills;
+            }
+            val engagedSkills = domain.calculateEngagedSkills(leafEngagedSkills)
                     .stream()
                     .map(Skill::getName)
                     .toList();

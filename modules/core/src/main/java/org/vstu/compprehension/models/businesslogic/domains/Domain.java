@@ -284,6 +284,19 @@ public interface Domain {
 
         public List<String> domainSkills = new ArrayList<>();
 
+        /**
+         * Correctly applied skills in answering.
+         * All visited green nodes that resulted in a correct answer are counted
+         */
+        public List<String> correctlyAppliedSkills = new ArrayList<>();
+
+        /**
+         * Violated skills when answering.
+         * All visited red nodes that led to an incorrect answer are counted
+         * (e.g. red nodes inside OR are not counted if at least one green result are present)
+         */
+        public List<String> violatedSkills = new ArrayList<>();
+
         public List<String> domainNegativeLaws = new ArrayList<>();
 
         public Explanation explanation;
