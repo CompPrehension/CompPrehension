@@ -198,6 +198,8 @@ public class MeaningTreeRDFTransformer {
         } else if (token.type == TokenType.INITIALIZER_LIST_OPENING_BRACE ||
                 token.type == TokenType.INITIALIZER_LIST_CLOSING_BRACE) {
             return new ParsedClassName("operator_list");
+        } else if (token.type == TokenType.KEYWORD) {
+            return new ParsedClassName("operand", true);
         }
         List<ClassDef> possibleClasses = domainModel.getClasses().stream()
                 .filter(classDef -> classDef.getMetadata().getEntries().stream()

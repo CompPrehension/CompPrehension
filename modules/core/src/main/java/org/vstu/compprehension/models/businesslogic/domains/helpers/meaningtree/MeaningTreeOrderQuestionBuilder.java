@@ -592,10 +592,10 @@ public class MeaningTreeOrderQuestionBuilder {
         var skills = findAllSkills(input.tokens, language);
 
         // Filter question with repeated skills and violations
-        final int targetSolutionLength = 16;
+        final int maxSolutionLength = 16;
         final int maxSkillRepeatCount = 8;
         final int maxErrorRepeatCount = 5;
-        if (solutionLength > targetSolutionLength) {
+        if (solutionLength <= maxSolutionLength) {
             var counter = Utils.countElements(skills);
             for (var entry : counter.entrySet()) {
                 if (entry.getValue() > maxSkillRepeatCount) {
@@ -608,6 +608,8 @@ public class MeaningTreeOrderQuestionBuilder {
                     allChecksArePassed = false;
                 }
             }
+        } else {
+            allChecksArePassed = false;
         }
 
         possibleViolations = new HashSet<>(violations);
