@@ -287,6 +287,10 @@ public abstract class DomainBase implements Domain {
         return res;
     }
 
+    public List<Skill> calculateEngagedSkills(List<String> observedSkills) {
+        return List.of(); // Заглушка, реальна реализация ожидается в DT доменах
+    }
+
     /** Get concepts with given flags (e.g. visible) organized into two-level hierarchy
      * @param requiredFlags e.g. Concept.FLAG_VISIBLE_TO_TEACHER
      * @return map representing groups of concepts (base concept -> concepts in the group)

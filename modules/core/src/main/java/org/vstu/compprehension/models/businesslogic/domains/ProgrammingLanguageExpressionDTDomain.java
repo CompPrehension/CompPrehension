@@ -840,6 +840,11 @@ public class ProgrammingLanguageExpressionDTDomain extends DecisionTreeReasoning
         return -1;
     }
 
+    @Override
+    public List<Skill> calculateEngagedSkills(List<String> observedSkills) {
+        return super.calculateEngagedSkills(observedSkills);
+    }
+
     //----------Вспомогательные вопросы------------
 
     @Override

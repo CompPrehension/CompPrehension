@@ -18,6 +18,7 @@ import org.vstu.compprehension.dto.feedback.FeedbackDto;
 import org.vstu.compprehension.dto.feedback.FeedbackViolationLawDto;
 import org.vstu.compprehension.dto.question.QuestionDto;
 import org.vstu.compprehension.models.businesslogic.Explanation;
+import org.vstu.compprehension.models.businesslogic.Skill;
 import org.vstu.compprehension.models.businesslogic.domains.DomainFactory;
 import org.vstu.compprehension.models.businesslogic.strategies.AbstractStrategyFactory;
 import org.vstu.compprehension.models.entities.*;
@@ -119,11 +120,15 @@ public class FrontendService {
         var grade = 1f;
         var strategyAttemptDecision = Decision.CONTINUE;
         if (attempt != null) {
+            val engagedSkills = domain.calculateEngagedSkills(judgeResult.domainSkills)
+                    .stream()
+                    .map(Skill::getName)
+                    .toList();
             bktService.updateBktRoster(
                     domain.getDomainId(),
                     attempt.getUser().getId(),
                     judgeResult.isAnswerCorrect,
-                    judgeResult.domainSkills
+                    engagedSkills
             );
             ch.hit("updateBktRoster done");
 
