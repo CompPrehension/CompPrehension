@@ -739,8 +739,7 @@ public class ProgrammingLanguageExpressionDTDomain extends DecisionTreeReasoning
                     Object value = t.getAssignedValue();
                     if (value == null && t instanceof OperatorToken op
                             && (op.additionalOpType == OperatorType.OR ||
-                                op.additionalOpType == OperatorType.AND ||
-                                op.arity == OperatorArity.TERNARY)) {
+                                op.additionalOpType == OperatorType.AND)) {
                         value = false;
                     }
                     if (value != null) {
