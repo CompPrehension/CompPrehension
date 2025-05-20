@@ -287,7 +287,8 @@ public abstract class DomainBase implements Domain {
         return res;
     }
 
-    public List<Skill> calculateEngagedSkills(List<String> observedSkills) {
+    @Override
+    public List<Skill> calculateEngagedSkills(List<String> observedSkills, boolean isCorrect) {
         return List.of(); // Заглушка, реальна реализация ожидается в DT доменах
     }
 

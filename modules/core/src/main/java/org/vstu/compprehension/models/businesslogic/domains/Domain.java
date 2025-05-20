@@ -207,9 +207,10 @@ public interface Domain {
      * Некоторые навыки считаются примененными/нарушенными,
      * даже если в узел дерева с этим навыком интерпретатор не заходил
      * @param observedSkills Список наблюдаемых, в ответе студента, навыков (например, из трассы интерпретатора)
+     * @param isCorrect Корректен ли ответ студента
      * @return Список задействованных навыков
      */
-    List<Skill> calculateEngagedSkills(List<String> observedSkills);
+    List<Skill> calculateEngagedSkills(List<String> observedSkills, boolean isCorrect);
 
     Question solveQuestion(Question question, List<Tag> tags);
 

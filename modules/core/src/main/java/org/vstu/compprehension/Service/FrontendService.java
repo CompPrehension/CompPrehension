@@ -126,7 +126,7 @@ public class FrontendService {
             } else {
                 leafEngagedSkills = judgeResult.violatedSkills;
             }
-            val engagedSkills = domain.calculateEngagedSkills(leafEngagedSkills)
+            val engagedSkills = domain.calculateEngagedSkills(leafEngagedSkills, judgeResult.isAnswerCorrect)
                     .stream()
                     .map(Skill::getName)
                     .toList();
