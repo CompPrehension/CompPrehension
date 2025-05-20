@@ -1,13 +1,13 @@
 import React from "react";
-import { QuestionStore } from "../../stores/question-store";
-import { Loader } from "../common/loader";
-import { FeedbackMessage, FeedbackSuccessMessage } from "../../types/feedback";
-import { SupplementaryQuestionStore } from "../../stores/sup-question-store";
-import { GenerateSupQuestion } from "./generate-sup-question";
-import { observer } from "mobx-react";
-import { Alert, Badge } from "react-bootstrap";
-import { useTranslation } from "react-i18next";
-import { isNullOrUndefined } from "../../utils/helpers";
+import {QuestionStore} from "../../stores/question-store";
+import {Loader} from "../common/loader";
+import {FeedbackMessage, FeedbackSuccessMessage} from "../../types/feedback";
+import {SupplementaryQuestionStore} from "../../stores/sup-question-store";
+import {GenerateSupQuestion} from "./generate-sup-question";
+import {observer} from "mobx-react";
+import {Alert, Badge} from "react-bootstrap";
+import {useTranslation} from "react-i18next";
+import {isNullOrUndefined} from "../../utils/helpers";
 
 type FeedbackProps = { 
     store: QuestionStore,
@@ -27,9 +27,11 @@ export const Feedback = observer(({ store, showExtendedFeedback }: FeedbackProps
         return null;
     }
 
-    const feedbackMessages = store.questionState === 'COMPLETED'
-        ? [{ type: 'SUCCESS', message: t('issolved_feeback') }] as FeedbackSuccessMessage[]
-        : feedback.messages;
+    const defaultFeedbackMessage: FeedbackSuccessMessage = { type: 'SUCCESS',
+         message: t('issolved_feeback'), violationLaws: [] };
+    const feedbackMessages = feedback.messages !== null && feedback.messages?.length == 0
+        ? [defaultFeedbackMessage]
+        : feedback.messages?.concat(defaultFeedbackMessage) || [defaultFeedbackMessage];
 
     return (
         <div className="comp-ph-feedback-wrapper mt-2">

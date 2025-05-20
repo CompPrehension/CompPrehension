@@ -840,12 +840,9 @@ public class ProgrammingLanguageExpressionDTDomain extends DecisionTreeReasoning
         correctAnswer.question = q.getQuestionData();
         correctAnswer.lawName = null;
         correctAnswer.skillName = List.of();
-        correctAnswer.explanation = Explanation.aggregate(Explanation.Type.HINT,
-                List.of(
-                        new Explanation(Explanation.Type.HINT, new HyperText(
-                                getMessage("explanations.already_solved", lang)
-                        ))
-                ));
+        correctAnswer.explanation = DecisionTreeReasonerBackend.collectExplanationsFromTrace(Explanation.Type.HINT,
+                solver.solveNoVars(domain, domainSolvingModel.decisionTree("earlyfinish")).trace(), domain, lang
+        );
         return correctAnswer;
     }
 
