@@ -6,6 +6,7 @@ import lombok.Setter;
 import org.apache.commons.lang3.builder.ToStringExclude;
 
 import java.util.*;
+import java.util.stream.Collectors;
 
 @Getter
 @EqualsAndHashCode(onlyExplicitlyIncluded = true)
@@ -123,5 +124,21 @@ public class Skill implements TreeNodeWithBitmask {
             set.addAll(childSkill.getDescendants());
         }
         return set;
+    }
+
+    /**
+     * Рекурсивно находит все корневые навыки для данного
+     * @return Множество (Set) всех корневых навыков
+     */
+    public Set<Skill> getRootSkills() {
+        // Если у навыка нет базовых – это уже корневой
+        if (this.getBaseSkills() == null || this.getBaseSkills().isEmpty()) {
+            return Set.of(this);
+        }
+
+        // Иначе рекурсивно берем корни для каждого базового навыка
+        return this.getBaseSkills().stream()
+                .flatMap(s -> s.getRootSkills().stream())
+                .collect(Collectors.toSet());
     }
 }
