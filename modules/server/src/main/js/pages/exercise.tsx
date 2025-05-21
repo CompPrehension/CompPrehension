@@ -3,16 +3,17 @@ import React, { useCallback, useEffect, useState } from "react";
 import { Alert } from "react-bootstrap";
 import { useTranslation } from "react-i18next";
 import { container } from "tsyringe";
+import DebugButton from "../components/common/debug";
 import { LoadingWrapper } from "../components/common/loader";
 import { Modal } from "../components/common/modal";
 import { Optional } from "../components/common/optional";
 import { CurrentQuestion } from "../components/exercise/current-question";
+import { GenerateNextAnswerBtn } from "../components/exercise/generate-next-answer-btn";
 import { GenerateNextQuestionBtn } from "../components/exercise/generate-next-question-btn";
 import { ExerciseHeader } from "../components/exercise/header";
 import { SurveyComponent } from "../components/exercise/survey";
 import { ExerciseStore } from "../stores/exercise-store";
 import { Survey } from "../types/survey";
-import { GenerateNextAnswerBtn } from "../components/exercise/generate-next-answer-btn";
 
 export const Exercise = observer(() => {
     const [exerciseStore] = useState(() => container.resolve(ExerciseStore));
@@ -32,7 +33,7 @@ export const Exercise = observer(() => {
                 return;
             }
 
-            await exerciseStore.loadSessionInfo();
+            await exerciseStore.loadExercise();
             
             if (exerciseStore.isDebug) {
                 setExerciseState('EXERCISE');
@@ -98,10 +99,10 @@ export const Exercise = observer(() => {
     return (
         <>
             <div className={`compph-exercise ${exerciseStore.isDebug && 'compph-exercise--debug'}` || ''}>
-                <LoadingWrapper isLoading={exerciseStore.isSessionLoading === true || exerciseState === 'INITIAL'}>
+                <LoadingWrapper isLoading={exerciseStore.isExerciseLoading === true || exerciseState === 'INITIAL'}>
                     <Optional isVisible={exerciseState === 'EXERCISE' || exerciseState === 'COMPLETED'}>
                         <ExerciseHeader />
-                        <div className="mt-5">
+                        <div className="mt-5 position-relative">
                             <CurrentQuestion />
                             {survey != null 
                                 && (exerciseStore.currentQuestion.questionState === 'COMPLETED' || exerciseState === 'COMPLETED') 
@@ -134,7 +135,15 @@ export const Exercise = observer(() => {
                                         {t('exercise_completed')!}
                                     </Alert>
                                 </div>
-                            </Optional>                        
+                            </Optional>
+                            <Optional isVisible={
+                                (exerciseStore.exercise?.options.debugButtonEnabled ?? false)
+                                && currentQuestion.question !== undefined}>
+                                <DebugButton 
+                                    metadataId={currentQuestion.question?.questionMetadataId ?? -1} 
+                                    attemptId={exerciseStore.currentAttempt?.attemptId}
+                                /> 
+                            </Optional>
                         </div>                
                     </Optional>
                     <Optional isVisible={exerciseState === 'MODAL'}>

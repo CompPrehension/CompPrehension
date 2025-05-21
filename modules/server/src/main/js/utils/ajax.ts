@@ -42,14 +42,14 @@ export async function ajaxGetWithParams<T = unknown>(url: string, params: Record
  * @param {io.Type<T, T, unknown>} [validator] Optional response validator
  * @returns Pair of either RequestError or ResposeBody
  */
-export async function ajaxPost<T = unknown>(url: string, body: object, validator?: io.Type<T, T, unknown>, signal?: AbortSignal) : PromiseEither<RequestError, T> {
+export async function ajaxPost<T = unknown>(url: string, body: object, validator?: io.Type<T, T, unknown>, signal?: AbortSignal, payloadType?: 'json' | 'raw') : PromiseEither<RequestError, T> {
     const params: RequestInit = {
         ...commonParams,
         method: 'POST',
         body: JSON.stringify(body),
         signal,
     };
-    return await ajax(url, params, validator);
+    return await ajax(url, params, validator, payloadType);
 }
 
 /**
@@ -85,11 +85,13 @@ export async function ajaxPost<T = unknown>(url: string, body: object, validator
     return await ajax(url, params, validator);
 }
 
-async function ajax<T = unknown>(url: string, params?: RequestInit, validator?: io.Type<T, T, unknown>): PromiseEither<RequestError, T> {
+async function ajax<T = unknown>(url: string, params?: RequestInit, validator?: io.Type<T, T, unknown>, payloadType?: 'json' | 'raw'): PromiseEither<RequestError, T> {
+    payloadType ??= 'json';
+    
     const result = await fetch(url, params)
         .then(async (data) => {
             if (data.ok) {                
-                return { status: 'ok', payload: validator && validator.decode(await data.json()) || io.success<T>(await data.json()) } as const;
+                return { status: 'ok', payload: validator && validator.decode(payloadType === 'json' ? await data.json() : await data.text()) || io.success<T>(payloadType === 'json' ? await data.json() : await data.text()) } as const;
             }
 
             if (data.status === 401) {

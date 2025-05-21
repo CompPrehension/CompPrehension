@@ -57,6 +57,7 @@ public class ExerciseService {
                 .correctAnswerGenerationEnabled(true)
                 .newQuestionGenerationEnabled(true)
                 .supplementaryQuestionsEnabled(true)
+                .debugButtonEnabled(false)
                 .preferDecisionTreeBasedSupplementaryEnabled(false)
                 .build());
         exercise.setStages(new ArrayList<>(List.of(new ExerciseStageEntity(5, 0.5f, new ArrayList<>(), new ArrayList<>(), new ArrayList<>()))));

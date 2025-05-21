@@ -27,11 +27,10 @@ public class UserServiceImpl implements UserService {
     public UserEntity getCurrentUser() throws Exception {
         Authentication authentication = SecurityContextHolder.getContext().getAuthentication();
         var parsedIdToken = getToken(authentication);
+        var externalId = getExternalId(authentication, parsedIdToken);
 
-        var principalName = authentication.getName();
         var fullName = parsedIdToken.getFullName();
         var email = parsedIdToken.getEmail();
-        var externalId = parsedIdToken.getIssuer() + "_" + principalName;
 
         var entity = userRepository.findByExternalId(externalId).orElseGet(UserEntity::new);
 
@@ -65,6 +64,17 @@ public class UserServiceImpl implements UserService {
         return userRepository.save(entity);
     }
 
+    @Override
+    public void setLanguage(Language language) throws Exception {
+        Authentication authentication = SecurityContextHolder.getContext().getAuthentication();
+        var parsedIdToken = getToken(authentication);
+        var externalId = getExternalId(authentication, parsedIdToken);
+
+        var entity = userRepository.findByExternalId(externalId).orElseThrow(() -> new Exception("User not found"));
+        entity.setPreferred_language(language);
+        userRepository.save(entity);
+    }
+
     @NotNull
     private static OidcIdToken getToken(Authentication authentication) throws Exception {
         if (authentication instanceof AnonymousAuthenticationToken) {
@@ -80,6 +90,11 @@ public class UserServiceImpl implements UserService {
             throw new Exception("No id_token found");
         }
         return parsedIdToken;
+    }
+
+    private static String getExternalId(Authentication authentication, OidcIdToken token) {
+        var principalName = authentication.getName();
+        return token.getIssuer() + "_" + principalName;
     }
 
     private HashSet<Role> fromLtiRoles(Collection<String> roles) {

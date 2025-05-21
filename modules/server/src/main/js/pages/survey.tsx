@@ -30,7 +30,7 @@ export const SurveyPage = observer(() => {
                 return;
             }
 
-            await exerciseStore.loadSessionInfo();
+            await exerciseStore.loadExercise();
             setExerciseState('EXERCISE');
             await createAttemptAndLoadQuestion();    
             /*    
@@ -83,7 +83,7 @@ export const SurveyPage = observer(() => {
 
     return (
         <>
-            <LoadingWrapper isLoading={exerciseStore.isSessionLoading === true || exerciseState === 'INITIAL'}>
+            <LoadingWrapper isLoading={exerciseStore.isExerciseLoading === true || exerciseState === 'INITIAL'}>
                 <Optional isVisible={exerciseState === 'EXERCISE' || exerciseState === 'COMPLETED'}>
                     <ExerciseHeader />
                     <div className="mt-5">

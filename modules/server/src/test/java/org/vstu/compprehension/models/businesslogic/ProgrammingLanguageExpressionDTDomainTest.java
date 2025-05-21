@@ -23,12 +23,11 @@ import org.vstu.compprehension.models.entities.exercise.ExerciseStageEntity;
 import org.vstu.compprehension.models.repository.ExerciseAttemptRepository;
 import org.vstu.compprehension.models.repository.ExerciseRepository;
 import org.vstu.compprehension.models.repository.UserRepository;
-import org.vstu.compprehension.utils.HyperText;
 import org.vstu.meaningtree.MeaningTree;
 import org.vstu.meaningtree.SupportedLanguage;
 import org.vstu.meaningtree.nodes.Node;
 import org.vstu.meaningtree.serializers.rdf.RDFDeserializer;
-import org.vstu.meaningtree.utils.NodeLabel;
+import org.vstu.meaningtree.utils.Label;
 
 import java.lang.reflect.InvocationTargetException;
 import java.util.ArrayList;
@@ -67,8 +66,8 @@ public class ProgrammingLanguageExpressionDTDomainTest {
         exercise.setBackendId("DTReasoner");
         exercise.setTags("");
         exercise.setOptions(new ExerciseOptionsEntity(null, true,
-                true, true, true,
-                true));
+                true, true, true, true,
+                true, 7));
         exercise.setName("test");
         exercise.setStages(Collections.singletonList(new ExerciseStageEntity()));
         exercise.setStrategyId("StaticStrategy");
@@ -171,7 +170,7 @@ public class ProgrammingLanguageExpressionDTDomainTest {
         // Check tree correctness
         Model m = MeaningTreeRDFHelper.backendFactsToModel(q.getStatementFacts());
         RDFDeserializer deserializer = new RDFDeserializer();
-        MeaningTree mt = new MeaningTree(deserializer.deserialize(m));
+        MeaningTree mt = deserializer.deserializeTree(m);
 
         // Check metadata
         Assert.isTrue(q.getMetadata() != null
@@ -205,7 +204,7 @@ public class ProgrammingLanguageExpressionDTDomainTest {
         // Check tree correctness
         Model m = MeaningTreeRDFHelper.backendFactsToModel(q.getStatementFacts());
         RDFDeserializer deserializer = new RDFDeserializer();
-        MeaningTree mt = new MeaningTree(deserializer.deserialize(m));
+        MeaningTree mt = deserializer.deserializeTree(m);
         try {
             System.out.println(
                     SupportedLanguage.CPP.createTranslator(new MeaningTreeDefaultExpressionConfig()).getCode(mt)
@@ -217,7 +216,7 @@ public class ProgrammingLanguageExpressionDTDomainTest {
         // Check values
         boolean hasValues = false;
         for (Node.Info info : mt) {
-            if (info.node().hasLabel(NodeLabel.VALUE)) {
+            if (info.node().hasLabel(Label.VALUE)) {
                 hasValues = true;
                 break;
             }

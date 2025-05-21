@@ -17,7 +17,7 @@ public class Skill implements TreeNodeWithBitmask {
     public static int FLAG_DENIED_DISABLED = 2;
 
     /** All flags are OFF by default */
-    public static int DEFAULT_FLAGS = FLAG_VISIBLE_TO_TEACHER;
+    public static int DEFAULT_FLAGS = 0;
 
     @EqualsAndHashCode.Include
     public String name;

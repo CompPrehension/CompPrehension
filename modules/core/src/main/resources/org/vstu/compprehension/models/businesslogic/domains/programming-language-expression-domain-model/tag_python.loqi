@@ -65,6 +65,23 @@ class `operator_*` : operator {
 	EN.localizedName = "operator *" ;
 ]
 
+class `operator_list` : operator {
+	arity = arity:binary ;
+    place = place:infix ;
+    precedence = 2 ;
+    associativity = associativity:left ;
+    needsOperand<OperandPlacement:left> = false ;
+    needsOperand<OperandPlacement:right> = false ;
+    needsOperand<OperandPlacement:center> = true ;
+    countOfTokens = 2 ;
+} [
+	text = "[" ;
+	token2text = "]" ;
+	isComplex = true ;
+	RU.localizedName = "литерал коллекции" ;
+	EN.localizedName = "collection operator" ;
+]
+
 class `operator_**` : operator {
 
 	arity = arity:binary ;

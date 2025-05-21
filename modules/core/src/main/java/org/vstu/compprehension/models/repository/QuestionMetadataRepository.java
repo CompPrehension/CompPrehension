@@ -12,6 +12,7 @@ import org.vstu.compprehension.dto.ComplexityStats;
 import org.vstu.compprehension.models.entities.QuestionMetadataEntity;
 
 import java.time.LocalDateTime;
+import java.util.Collection;
 import java.util.HashSet;
 import java.util.List;
 
@@ -71,9 +72,11 @@ public interface QuestionMetadataRepository extends CrudRepository<QuestionMetad
     @Query
     boolean existsByName(String questionName);
 
-    @Query("select exists(select 1 from QuestionMetadataEntity m where m.domainShortname = :domainShortname and m.name = :questionName) " +
-            "or exists(select 1 from QuestionMetadataEntity m where m.domainShortname = :domainShortname and m.templateId = :templateId)")
-    boolean existsByNameOrTemplateId(@Param("domainShortname") String domainShortname, @Param("questionName") String questionName, @Param("templateId") String templateId);
+    @Query("select distinct m.name from QuestionMetadataEntity m where m.domainShortname = :domainShortname and m.name in :questionNames")
+    HashSet<String> findExistingNames(@Param("domainShortname") String domainShortname, @Param("questionNames") Collection<String> questionNames);
+
+    @Query("select distinct m.templateId from QuestionMetadataEntity m where m.domainShortname = :domainShortname and m.templateId in :templateIds")
+    HashSet<String> findExistingTemplateIds(@Param("domainShortname") String domainShortname, @Param("templateIds") Collection<String> templateIds);
 
     @Query(value = "select new org.vstu.compprehension.dto.ComplexityStats(" +
             "count(*), " +
@@ -86,8 +89,16 @@ public interface QuestionMetadataRepository extends CrudRepository<QuestionMetad
     );
 
     @NotNull
-    @Query("select distinct(q.origin) from QuestionMetadataEntity q where q.domainShortname = :domainShortname and q.createdAt >= :from")
-    HashSet<String> findAllOrigins(@Param("domainShortname") String domainShortname, @Param("from") LocalDateTime from);
+    @Query("select distinct(q.origin) from QuestionMetadataEntity q where q.domainShortname = :domainShortname and q.generatedBy is null")
+    HashSet<String> findFullyProcessedOrigins(@Param("domainShortname") String domainShortname);
+
+    @NotNull
+    @Query("select distinct(q.origin) from QuestionMetadataEntity q where q.domainShortname = :domainShortname")
+    HashSet<String> findProcessedOrigins(@Param("domainShortname") String domainShortname);
+
+    @NotNull
+    @Query("select distinct(q.origin) from QuestionMetadataEntity q where q.domainShortname = :domainShortname and q.createdAt >= :dateFrom")
+    HashSet<String> findProcessedOrigins(@Param("domainShortname") String domainShortname, @Param("dateFrom") LocalDateTime dateFrom);
 
     @Query("select exists(select m.id from QuestionMetadataEntity m where m.domainShortname = :domainShortname and m.templateId = :templateId)")
     boolean templateExists(@Param("domainShortname") String domainShortname, @Param("templateId") String templateId);

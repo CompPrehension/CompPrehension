@@ -18,6 +18,7 @@ import org.vstu.compprehension.models.repository.QuestionMetadataRepository;
 
 import java.util.ArrayList;
 import java.util.List;
+import java.util.stream.Collectors;
 
 @Log4j2
 public class QuestionBank {
@@ -128,7 +129,7 @@ public class QuestionBank {
         return new QuestionBankSearchResultDto(ordinaryCount, topRatedCount, metadata);
     }
 
-    public List<QuestionMetadataEntity> searchQuestions(@NotNull QuestionRequest qr, int limit) {
+    public List<QuestionMetadataEntity> searchQuestions(@NotNull QuestionRequest qr, int limit, int generatorThreshold) {
 
         var bankSearchRequest = createBankSearchRequest(qr);
         
@@ -179,9 +180,18 @@ public class QuestionBank {
                 .unwantedSkillsBitmask(unwantedSkillsBitmask)
                 .unwantedViolationsBitmask(unwantedViolationsBitmask)
                 .build();
-        log.info("search query prepared: {}", new Gson().toJson(preparedQuery));
-        List<QuestionMetadataEntity> foundQuestionMetas = questionMetadataRepository.findTopRatedUnusedMetadata(preparedQuery, COMPLEXITY_WINDOW, 10);
-        log.info("search query executed with {} candidates", foundQuestionMetas.size());
+
+        // ensure generatorThreshold is valid
+        if (generatorThreshold < 0) {
+            generatorThreshold = 0;
+        } else if (generatorThreshold < 7) {
+            generatorThreshold = 7;
+        }
+        int topRatedLimit = generatorThreshold + 3;
+
+        log.info("search query prepared: {}, generatorThreshold: {}, limit: {}", new Gson().toJson(preparedQuery), generatorThreshold, topRatedLimit);
+        List<QuestionMetadataEntity> foundQuestionMetas = questionMetadataRepository.findTopRatedUnusedMetadata(preparedQuery, COMPLEXITY_WINDOW, topRatedLimit);
+        log.info("search query executed with {} top rated candidates", foundQuestionMetas.size());
 
         // runtime assert to find possible desync between findTopRatedMetadata and isMatch methods
         {
@@ -198,22 +208,29 @@ public class QuestionBank {
             }
         }
         
-        int generatorThreshold = 7;
-        if (foundQuestionMetas.size() < generatorThreshold) {
-            log.info("no enough candidates found, need additional generation");
-            generationRequestRepository.save(new QuestionGenerationRequestEntity(preparedQuery, 10 - foundQuestionMetas.size(), qr.getExerciseAttemptId()));
+        if (generatorThreshold > 0 && foundQuestionMetas.size() <= generatorThreshold) {
+            log.info("no enough candidates found (found {}/{}), need additional generation", foundQuestionMetas.size(), generatorThreshold);
+
+            // calculate how many questions to generate based on the number of found questions and existing generation requests
+            var rawQuestionsToGenerate = generatorThreshold + 3 - foundQuestionMetas.size(); // +3 additional questions to be sure that we have enough (10 in total)
+            var currentlyGeneratingQuestions = generationRequestRepository.findNumberOfCurrentlyGeneratingQuestions(qr.getDomainShortname(), preparedQuery);
+            var questionsToGenerate = Math.max(1, rawQuestionsToGenerate - currentlyGeneratingQuestions);
+
+            var generationRequest = new QuestionGenerationRequestEntity(preparedQuery, questionsToGenerate, qr.getExerciseAttemptId());
+            var genRequest = generationRequestRepository.save(generationRequest);
+            log.info("created generation request with id {} with {} questions to generate", genRequest.getId(), genRequest.getQuestionsToGenerate());
         }
         
         if (foundQuestionMetas.isEmpty()) {
             log.info("zero candidates found, trying to do relaxed search");
             foundQuestionMetas = questionMetadataRepository.findMetadata(preparedQuery, COMPLEXITY_WINDOW, 10);
-            log.info("search query executed with {} candidates", foundQuestionMetas.size());            
+            log.info("relaxed search query executed with {} candidates", foundQuestionMetas.size());
         }
         
         if (foundQuestionMetas.isEmpty()) {
             log.warn("no candidates found, trying to do max relaxed search");
             foundQuestionMetas = questionMetadataRepository.findMetadataRelaxed(preparedQuery, COMPLEXITY_WINDOW, 10);
-            log.info("search query executed with {} candidates", foundQuestionMetas.size());
+            log.info("max relaxed search query executed with {} candidates", foundQuestionMetas.size());
         }
 
         foundQuestionMetas = foundQuestionMetas.subList(0, Math.min(limit, foundQuestionMetas.size()));
@@ -262,6 +279,14 @@ public class QuestionBank {
     @NotNull
     public QuestionMetadataEntity saveMetadataEntity(QuestionMetadataEntity meta) {
         return questionMetadataRepository.save(meta);
+    }
+
+    public void saveMetadataWithDataEntities(List<QuestionMetadataEntity> metas) {
+        var allData = metas.stream()
+                .map(QuestionMetadataEntity::getQuestionData)
+                .collect(Collectors.toSet());
+        questionDataRepository.saveAll(allData);
+        questionMetadataRepository.saveAll(metas);
     }
 
     public QuestionDataEntity saveQuestionDataEntity(QuestionDataEntity questionData) {

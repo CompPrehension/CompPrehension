@@ -425,7 +425,7 @@ public class ProgrammingLanguageExpressionDomain extends JenaReasoningDomain {
 
     @Override
     public @NotNull Question makeQuestion(@NotNull QuestionRequest questionRequest,
-                                          @Nullable ExerciseAttemptEntity exerciseAttempt,
+                                          @NotNull ExerciseAttemptEntity exerciseAttempt,
                                           @NotNull Language userLanguage) {
         HashSet<String> conceptNames = new HashSet<>();
         for (Concept concept : questionRequest.getTargetConcepts()) {
@@ -435,14 +435,14 @@ public class ProgrammingLanguageExpressionDomain extends JenaReasoningDomain {
         List<QuestionMetadataEntity> foundQuestions = null;
         if (!conceptNames.contains("SystemIntegrationTest")) {
             try {
-                // new version - invoke rdfStorage search
-                foundQuestions = qMetaStorage.searchQuestions(questionRequest, 1);
+                int generatorThreshold = (int)(exerciseAttempt.getExercise().getOptions().getMaxExpectedConcurrentStudents() * 1.5);
+                foundQuestions = qMetaStorage.searchQuestions(questionRequest, 1, generatorThreshold);
 
                 // search again if nothing found with "TO_COMPLEX"
                 SearchDirections lawsSearchDir = questionRequest.getLawsSearchDirection();
                 if (foundQuestions.isEmpty() && lawsSearchDir == SearchDirections.TO_COMPLEX) {
                     questionRequest.setLawsSearchDirection(SearchDirections.TO_SIMPLE);
-                    foundQuestions = qMetaStorage.searchQuestions(questionRequest, 1);
+                    foundQuestions = qMetaStorage.searchQuestions(questionRequest, 1, generatorThreshold);
                 }
             } catch (Exception e) {
                 // file storage was not configured properly...

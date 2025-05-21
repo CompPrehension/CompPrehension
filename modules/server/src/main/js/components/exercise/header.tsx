@@ -6,24 +6,28 @@ import { Optional } from '../common/optional';
 import { Pagination } from './pagination';
 import { container } from "tsyringe";
 import { ExerciseStore } from "../../stores/exercise-store";
-import { useState } from 'react';
+import { useCallback, useState } from 'react';
 import { useTranslation } from "react-i18next";
 import { Header } from '../common/header';
+import { useCurrentUser, useSession } from '../../hooks/session-context';
 
 export const ExerciseHeader = observer(() => {
     const [exerciseStore] = useState(() => container.resolve(ExerciseStore));
     const { t, i18n } = useTranslation();
-    const { currentAttempt, exercise, user, currentQuestion } = exerciseStore;
+    const session = useSession();
+    const user = useCurrentUser();
+    const { currentAttempt, exercise, currentQuestion } = exerciseStore;
+    
+    const onLangClicked = useCallback(() => {
+        const currentLang = user?.language;
+        const newLang = currentLang === "RU" ? "EN" : "RU";
+        session.changeLanguage(newLang);
+    }, [session, user]);
+
     if (!currentAttempt || !exercise || !user) {
         return null;
     }
     const currentQuestionIdx = currentAttempt.questionIds.findIndex(id => currentQuestion.question?.questionId === id);
-    
-    const onLangClicked = () => {
-        const currentLang = user.language;
-        const newLang = currentLang === "RU" ? "EN" : "RU";
-        exerciseStore.changeLanguage(newLang);
-    }
 
     return (
         <Header
@@ -33,6 +37,7 @@ export const ExerciseHeader = observer(() => {
             language={user.language}
             userHint={t('signedin_as_header')}
             user={user.displayName}
+            onLanguageClicked={null/*onLangClicked*/}
         />
     );
 });
