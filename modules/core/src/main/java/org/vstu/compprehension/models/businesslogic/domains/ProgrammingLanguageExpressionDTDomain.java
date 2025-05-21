@@ -193,7 +193,7 @@ public class ProgrammingLanguageExpressionDTDomain extends DecisionTreeReasoning
                                           @NotNull Language userLanguage) {
         SupportedLanguage lang = MeaningTreeUtils.detectLanguageFromTags(questionRequest.getTargetTags().stream().map(Tag::getName).toList());
 
-        return QuestionDynamicDataAppender.appendQuestionData(baseDomain.makeQuestion(questionRequest, exerciseAttempt, userLanguage), exerciseAttempt, qMetaStorage, lang, this, userLanguage);
+        return QuestionDynamicDataAppender.appendQuestionData(baseDomain.makeQuestion(questionRequest, exerciseAttempt, userLanguage, this), exerciseAttempt, qMetaStorage, lang, this, userLanguage);
     }
 
     @Override
@@ -203,7 +203,7 @@ public class ProgrammingLanguageExpressionDTDomain extends DecisionTreeReasoning
                                           @NotNull Language userLang) {
         SupportedLanguage lang = MeaningTreeUtils.detectLanguageFromTags(tags.stream().map(Tag::getName).toList());
 
-        return QuestionDynamicDataAppender.appendQuestionData(baseDomain.makeQuestion(metadata, exerciseAttemptEntity, tags, userLang), exerciseAttemptEntity, qMetaStorage, lang, this, userLang);
+        return QuestionDynamicDataAppender.appendQuestionData(baseDomain.makeQuestion(metadata, exerciseAttemptEntity, tags, userLang, this), exerciseAttemptEntity, qMetaStorage, lang, this, userLang);
     }
 
     public static final String DOMAIN_MODEL_LOCATION = ProgrammingLanguageExpressionDomain.RESOURCES_LOCATION + "programming-language-expression-domain-model/";
