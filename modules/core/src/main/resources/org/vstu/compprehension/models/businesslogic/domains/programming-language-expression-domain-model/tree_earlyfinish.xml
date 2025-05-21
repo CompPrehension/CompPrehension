@@ -20,12 +20,20 @@
                               operator="AND">
             <DecisionTreeVarDecl name="X" type="operator"/>
             <SelectorExpression>
-                <Compare operator="Equal">
-                    <GetPropertyValue propertyName="state">
-                        <Variable name="X"/>
-                    </GetPropertyValue>
-                    <Enum owner="state" value="unevaluated"/>
-                </Compare>
+                <LogicalOr>
+                    <Compare operator="Equal">
+                        <GetPropertyValue propertyName="state">
+                            <Variable name="X" />
+                        </GetPropertyValue>
+                        <Enum owner="state" value="omitted" />
+                    </Compare>
+                    <Compare operator="Equal">
+                        <GetPropertyValue propertyName="state">
+                            <Variable name="X" />
+                        </GetPropertyValue>
+                        <Enum owner="state" value="unevaluated" />
+                    </Compare>
+                </LogicalOr>
             </SelectorExpression>
             <ThoughtBranch _EN_description="An unevaluated operator in the expression has been found."
                            _EN_nextStepExplanation="That is incorrect. An unevaluated operator in the expression has been found."

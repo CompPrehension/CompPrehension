@@ -29,9 +29,11 @@ export const Feedback = observer(({ store, showExtendedFeedback }: FeedbackProps
 
     const defaultFeedbackMessage: FeedbackSuccessMessage = { type: 'SUCCESS',
          message: t('issolved_feeback'), violationLaws: [] };
-    const feedbackMessages = feedback.messages !== null && feedback.messages?.length == 0
-        ? [defaultFeedbackMessage]
-        : feedback.messages?.concat(defaultFeedbackMessage) || [defaultFeedbackMessage];
+
+    const feedbackMessages = feedback.messages;
+    if (feedbackMessages !== null && store.questionState === 'COMPLETED') {
+        feedbackMessages?.push(defaultFeedbackMessage);
+    }
 
     return (
         <div className="comp-ph-feedback-wrapper mt-2">
