@@ -158,7 +158,7 @@ public class BktStrategy implements AbstractStrategy {
                 .flatMap(q -> {
                     if (q.getMetadata() == null) return Stream.empty();
                     return domain.skillsFromBitmask(q.getMetadata().getSkillBits()).stream()
-                            .flatMap(s -> s.getRootSkills().stream()); // BKT учитывает только главные навыки
+                            .flatMap(s -> s.getClosestVisibleParents(new HashSet<>()).stream()); // BKT учитывает только главные навыки
                 })
                 .map(Skill::getName)
                 .filter(targetSkills::contains)
@@ -182,7 +182,7 @@ public class BktStrategy implements AbstractStrategy {
                 qTargets = Collections.emptyList();
             } else {
                 qTargets = domain.skillsFromBitmask(q.getMetadata().getSkillBits()).stream()
-                        .flatMap(s -> s.getRootSkills().stream()) // BKT учитывает только главные навыки
+                        .flatMap(s -> s.getClosestVisibleParents(new HashSet<>()).stream()) // BKT учитывает только главные навыки
                         .map(Skill::getName)
                         .filter(targetSkills::contains)
                         .distinct()

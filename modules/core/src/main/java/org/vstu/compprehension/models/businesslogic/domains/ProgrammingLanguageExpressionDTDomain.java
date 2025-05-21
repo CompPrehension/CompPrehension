@@ -910,11 +910,17 @@ public class ProgrammingLanguageExpressionDTDomain extends DecisionTreeReasoning
                             Stream.of("associativity_without_opposing_operand", "order_determined_by_precedence", "order_determined_by_parentheses", "current_operator_enclosed", "competing_operator_present", "nearest_operand_needed");
 
                     // 9, 10
-                    case "order_determined_by_associativity",
-                         "left_competing_to_right_associativity",
-                         "right_competing_to_left_associativity" -> isCorrect ?
-                            Stream.of("order_determined_by_associativity", "associativity_without_opposing_operand", "order_determined_by_precedence", "order_determined_by_parentheses") :
-                            Stream.of("order_determined_by_associativity", "order_determined_by_precedence", "order_determined_by_parentheses", "current_operator_enclosed", "competing_operator_present", "nearest_operand_needed");
+                    case "order_determined_by_associativity" -> isCorrect ?
+                            Stream.of("left_competing_to_right_associativity", "right_competing_to_left_associativity", "associativity_without_opposing_operand", "order_determined_by_precedence", "order_determined_by_parentheses") :
+                            Stream.of("left_competing_to_right_associativity", "right_competing_to_left_associativity", "order_determined_by_precedence", "order_determined_by_parentheses", "current_operator_enclosed", "competing_operator_present", "nearest_operand_needed");
+                    // 9, 10
+                    case "left_competing_to_right_associativity" -> isCorrect ?
+                            Stream.of("left_competing_to_right_associativity", "associativity_without_opposing_operand", "order_determined_by_precedence", "order_determined_by_parentheses") :
+                            Stream.of("left_competing_to_right_associativity", "order_determined_by_precedence", "order_determined_by_parentheses", "current_operator_enclosed", "competing_operator_present", "nearest_operand_needed");
+                    // 9, 10
+                    case "right_competing_to_left_associativity" -> isCorrect ?
+                            Stream.of("right_competing_to_left_associativity", "associativity_without_opposing_operand", "order_determined_by_precedence", "order_determined_by_parentheses") :
+                            Stream.of("right_competing_to_left_associativity", "order_determined_by_precedence", "order_determined_by_parentheses", "current_operator_enclosed", "competing_operator_present", "nearest_operand_needed");
 
                     // 11
                     case "strict_order_operators_present",
