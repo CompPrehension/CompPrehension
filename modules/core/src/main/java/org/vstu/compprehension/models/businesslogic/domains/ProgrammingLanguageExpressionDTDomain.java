@@ -863,7 +863,7 @@ public class ProgrammingLanguageExpressionDTDomain extends DecisionTreeReasoning
                 .stream()
                 .distinct()
                 .flatMap(skill -> switch (skill) {
-                    // 1 (номер на схеме дерева )
+                    // 1 (номер на схеме дерева)
                     case "central_operand_needed" -> Stream.of("central_operand_needed");
 
                     // 2
@@ -910,13 +910,10 @@ public class ProgrammingLanguageExpressionDTDomain extends DecisionTreeReasoning
                             Stream.of("associativity_without_opposing_operand", "order_determined_by_precedence", "order_determined_by_parentheses", "current_operator_enclosed", "competing_operator_present", "nearest_operand_needed");
 
                     // 9, 10
-                    case "order_determined_by_associativity" -> isCorrect ?
+                    case "order_determined_by_associativity",
+                         "left_competing_to_right_associativity" -> isCorrect ?
                             Stream.of("left_competing_to_right_associativity", "right_competing_to_left_associativity", "associativity_without_opposing_operand", "order_determined_by_precedence", "order_determined_by_parentheses") :
                             Stream.of("left_competing_to_right_associativity", "right_competing_to_left_associativity", "order_determined_by_precedence", "order_determined_by_parentheses", "current_operator_enclosed", "competing_operator_present", "nearest_operand_needed");
-                    // 9, 10
-                    case "left_competing_to_right_associativity" -> isCorrect ?
-                            Stream.of("left_competing_to_right_associativity", "associativity_without_opposing_operand", "order_determined_by_precedence", "order_determined_by_parentheses") :
-                            Stream.of("left_competing_to_right_associativity", "order_determined_by_precedence", "order_determined_by_parentheses", "current_operator_enclosed", "competing_operator_present", "nearest_operand_needed");
                     // 9, 10
                     case "right_competing_to_left_associativity" -> isCorrect ?
                             Stream.of("right_competing_to_left_associativity", "associativity_without_opposing_operand", "order_determined_by_precedence", "order_determined_by_parentheses") :
@@ -930,28 +927,28 @@ public class ProgrammingLanguageExpressionDTDomain extends DecisionTreeReasoning
                     // 12
                     case "is_current_operator_strict_order",
                          "is_current_operator_strict_order_while_solving",
-                         "is_current_operator_strict_order_while_earlyfinish" -> Stream.of("is_current_operator_strict_order");
+                         "is_current_operator_strict_order_while_earlyfinish" -> Stream.of("is_current_operator_strict_order", "strict_order_first_operand_to_be_evaluated", "should_strict_order_current_operand_be_omitted", "no_omitted_operands_despite_strict_order", "is_first_operand_of_strict_order_operator_fully_evaluated");
 
                     // 13
                     case "strict_order_first_operand_to_be_evaluated",
                          "strict_order_first_operand_to_be_evaluated_while_solving",
-                         "strict_order_first_operand_to_be_evaluated_while_earlyfinish" -> Stream.of("strict_order_first_operand_to_be_evaluated");
+                         "strict_order_first_operand_to_be_evaluated_while_earlyfinish" -> Stream.of("strict_order_first_operand_to_be_evaluated", "should_strict_order_current_operand_be_omitted", "no_omitted_operands_despite_strict_order", "is_first_operand_of_strict_order_operator_fully_evaluated");
 
                     // 14
                     case "is_first_operand_of_strict_order_operator_fully_evaluated" -> isCorrect ?
-                            Stream.of("is_first_operand_of_strict_order_operator_fully_evaluated") :
+                            Stream.of("is_first_operand_of_strict_order_operator_fully_evaluated", "strict_order_first_operand_to_be_evaluated", "should_strict_order_current_operand_be_omitted", "no_omitted_operands_despite_strict_order") :
                             Stream.of("is_first_operand_of_strict_order_operator_fully_evaluated", "strict_order_first_operand_to_be_evaluated", "is_current_operator_strict_order", "strict_order_operators_present");
 
                     // 15
                     case "no_omitted_operands_despite_strict_order",
                          "no_omitted_operands_despite_strict_order_while_solving",
-                         "no_omitted_operands_despite_strict_order_while_earlyfinish" -> Stream.of("no_omitted_operands_despite_strict_order");
+                         "no_omitted_operands_despite_strict_order_while_earlyfinish" -> Stream.of("no_omitted_operands_despite_strict_order", "strict_order_first_operand_to_be_evaluated", "should_strict_order_current_operand_be_omitted");
 
                     // 16
                     case "should_strict_order_current_operand_be_omitted",
                          "should_strict_order_current_operand_be_omitted_while_solving",
                          "should_strict_order_current_operand_be_omitted_while_earlyfinish" -> isCorrect ?
-                            Stream.of("should_strict_order_current_operand_be_omitted") :
+                            Stream.of("should_strict_order_current_operand_be_omitted", "no_omitted_operands_despite_strict_order", "strict_order_first_operand_to_be_evaluated") :
                             Stream.of("should_strict_order_current_operand_be_omitted", "no_omitted_operands_despite_strict_order", "strict_order_first_operand_to_be_evaluated", "is_current_operator_strict_order", "strict_order_operators_present");
 
                     // 17
