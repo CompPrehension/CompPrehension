@@ -761,7 +761,9 @@ public class ProgrammingLanguageExpressionDTDomain extends DecisionTreeReasoning
 
             // find operands that value can't be obvious
             for (int i = 0; i < tokens.size(); i++) {
-                if (tokens.get(i) instanceof OperatorToken op && op.arity == OperatorArity.TERNARY) {
+                if (tokens.get(i) instanceof ComplexOperatorToken op
+                        && op.positionOfToken == 0
+                        && op.arity == OperatorArity.TERNARY) {
                     var operands = tokens.findOperands(i);
                     OperandPosition condPos = plang.name().equals("python") ?
                             OperandPosition.CENTER : OperandPosition.LEFT;
