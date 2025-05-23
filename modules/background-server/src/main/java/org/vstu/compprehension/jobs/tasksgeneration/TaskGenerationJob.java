@@ -293,7 +293,8 @@ public class TaskGenerationJob {
         Files.createDirectories(outputFolderPath);
 
         // Учесть историю по полностью использованным репозиториям + загруженным недавно -- игнорируем их
-        var seenReposNames = metadataRep.findFullyProcessedOrigins(config.getDomainShortName())
+        // TODO временно для эксперимента используем только ни разу не обработанные за 24ч репозитории
+        var seenReposNames = metadataRep.findProcessedOrigins(config.getDomainShortName(), LocalDateTime.now().minusHours(24))
             .stream().map(s -> s.replaceAll("/", "_"))
             .collect(Collectors.toSet());
         if (downloaderConfig.isSkipDownloadedRepositories()) {
@@ -505,6 +506,8 @@ public class TaskGenerationJob {
                 cmd.addAll(Arrays.stream(generatorConfig.getPathToExecutable().split("\\s")).toList());
             cmd.add("--source");
             cmd.add(String.valueOf(repoDir));
+            cmd.add("--limit");
+            cmd.add(String.valueOf(3000)); // TODO для исправления затупов на больших репозиториях
             cmd.add("--output");
             cmd.add(String.valueOf(destination));
             cmd.add("--sourceId");
@@ -562,6 +565,7 @@ public class TaskGenerationJob {
             var allJsonFiles = FileUtility.findFiles(repoDir, new String[]{".json"});
             log.info("Found {} json files in: {}", allJsonFiles.size(), repoDir);
 
+            AtomicInteger processed = new AtomicInteger(0);
             AtomicInteger savedQuestions = new AtomicInteger();
             AtomicInteger skippedQuestions = new AtomicInteger(); // loaded but not kept since not required by any QR
 
@@ -585,6 +589,7 @@ public class TaskGenerationJob {
                         .filter(Objects::nonNull)
                         .collect(Collectors.toSet());
                 var existingTemplateIds = metadataRep.findExistingTemplateIds(config.getDomainShortName(), templateIds);
+                var metadataToSave = new ArrayList<QuestionMetadataEntity>(batch.size());
 
                 for (var q : batch) {
                     HashSet<QuestionMetadataEntity> metaList = q.getMetadataList().stream()
@@ -599,15 +604,15 @@ public class TaskGenerationJob {
 
                     var metadataToRemove = new ArrayList<QuestionMetadataEntity>();
                     for (QuestionMetadataEntity meta : metaList) {
-                        if (existingQuestionNames.contains(meta.getName()) || existingTemplateIds.contains(meta.getTemplateId())) {
-                            skippedQuestions.addAndGet(1);
-                            log.info("Template [{}] or question [{}] already exists. Skipping...", meta.getTemplateId(), meta.getName());
+                        if (existingQuestionNames.contains(meta.getName()) || existingTemplateIds.contains(meta.getTemplateId())) {                            
+                            log.debug("Template [{}] or question [{}] already exists. Skipping...", meta.getTemplateId(), meta.getName());
                             metadataToRemove.add(meta);
                         }
                     }
                     metadataToRemove.forEach(metaList::remove);
                     if (metaList.isEmpty()) {
-                        log.info("All metadata already exists for question [{}]. Skipping...", q.getCommonQuestion().getQuestionData().getQuestionName());
+                        log.debug("All metadata already exists for question [{}]. Skipping...", q.getCommonQuestion().getQuestionData().getQuestionName());
+                        skippedQuestions.addAndGet(1);
                         continue;
                     }
 
@@ -657,7 +662,6 @@ public class TaskGenerationJob {
                         // save question data in the database
                         QuestionDataEntity questionData = new QuestionDataEntity();
                         questionData.setData(q.getCommonQuestion());
-                        questionData = storage.saveQuestionDataEntity(questionData);
 
                         // then save metadata
                         for (var kv : matchedMetadata.entrySet()) {
@@ -665,24 +669,31 @@ public class TaskGenerationJob {
                             var genRequestId = kv.getValue();
                             meta.setGenerationRequestId(genRequestId);
                             meta.setQuestionData(questionData);
-                            meta = storage.saveMetadataEntity(meta);
+
+                            metadataToSave.add(meta);
                         }
 
-                        log.info("* * *");
-                        log.info("Question [{}] saved with data in database. Metadata id: {}", q.getCommonQuestion().getQuestionData().getQuestionName(),
+                        /*
+                        log.debug("* * *");
+                        log.debug("Question [{}] saved with data in database. Metadata id: {}", q.getCommonQuestion().getQuestionData().getQuestionName(),
                                 metaList.stream()
                                         .map(QuestionMetadataEntity::getId)
                                         .map((Integer i) -> i == null ? "ERROR" : Integer.toString(i))
                                         .collect(Collectors.joining(", ")));
                         savedQuestions.addAndGet(1);
+                        */
                     } else {
-                        log.info("Saving updates to DB actually SKIPPED due to DEBUG mode:");
+                        log.debug("Saving updates to DB actually SKIPPED due to DEBUG mode:");
                     }
                 }
-            });
+                
+                if (!metadataToSave.isEmpty()) {
+                    storage.saveMetadataWithDataEntities(metadataToSave);
+                    savedQuestions.addAndGet(metadataToSave.size());
+                }
 
-            log.info("Skipped {} questions of {} generated.", skippedQuestions, allJsonFiles.size());
-            log.info("Saved {} questions of {} generated.", savedQuestions, allJsonFiles.size());
+                log.info("Processed {}/{} questions ({} skipped, {} saved).", processed.addAndGet(batch.size()), allJsonFiles.size(), skippedQuestions, savedQuestions);
+            });
         }
 
         // update QR-log: statistics and possibly status
@@ -756,6 +767,8 @@ public class TaskGenerationJob {
         private void loadAll() {
             while (!loadingFinished) {
                 try {
+                    log.info("Start crawling repositories...");
+                    
                     GitHub github = new GitHubBuilder()
                             .withOAuthToken(githubOAuthToken)
                             .withRateLimitChecker(new RateLimitChecker.LiteralValue(20), RateLimitTarget.SEARCH)

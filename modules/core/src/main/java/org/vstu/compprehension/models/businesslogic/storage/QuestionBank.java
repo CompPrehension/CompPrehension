@@ -18,6 +18,7 @@ import org.vstu.compprehension.models.repository.QuestionMetadataRepository;
 
 import java.util.ArrayList;
 import java.util.List;
+import java.util.stream.Collectors;
 
 @Log4j2
 public class QuestionBank {
@@ -278,6 +279,14 @@ public class QuestionBank {
     @NotNull
     public QuestionMetadataEntity saveMetadataEntity(QuestionMetadataEntity meta) {
         return questionMetadataRepository.save(meta);
+    }
+
+    public void saveMetadataWithDataEntities(List<QuestionMetadataEntity> metas) {
+        var allData = metas.stream()
+                .map(QuestionMetadataEntity::getQuestionData)
+                .collect(Collectors.toSet());
+        questionDataRepository.saveAll(allData);
+        questionMetadataRepository.saveAll(metas);
     }
 
     public QuestionDataEntity saveQuestionDataEntity(QuestionDataEntity questionData) {

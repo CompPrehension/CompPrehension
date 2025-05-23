@@ -603,13 +603,13 @@ public class MeaningTreeOrderQuestionBuilder {
             throw new MeaningTreeException("Question origin didn't specified");
         }
 
-        int omitted = findOmitted(input.mt);
+        int omitted = findOmitted(input.mt, language);
         int solutionLength = answerObjects.size() - omitted;
         if (solutionLength <= 0) {
             solutionLength = 1;
         }
 
-        var allConcepts = findAllConcepts(sourceExpressionTree, language);
+        var allConcepts = findAllConcepts(sourceExpressionTree.getRootNode(), language);
         var concepts = new HashSet<>(allConcepts);
         if (concepts.isEmpty() || solutionLength == 1) {
             allChecksArePassed = false;
@@ -630,10 +630,12 @@ public class MeaningTreeOrderQuestionBuilder {
                     allChecksArePassed = false;
                 }
             }
-            var conceptCounter = Utils.countElements(allConcepts);
-            for (var entry : conceptCounter.entrySet()) {
-                if ((entry.getValue() / allConcepts.size()) > 0.9) {
-                    allChecksArePassed = false;
+            if (allChecksArePassed) {
+                var conceptCounter = Utils.countElements(allConcepts);
+                for (var entry : conceptCounter.entrySet()) {
+                    if ((entry.getValue() / allConcepts.size()) > 0.9) {
+                        allChecksArePassed = false;
+                    }
                 }
             }
         }
@@ -677,18 +679,31 @@ public class MeaningTreeOrderQuestionBuilder {
      * @param tree meaning tree
      * @return omitted operands integer count
      */
-    static int findOmitted(MeaningTree tree) {
+    static int findOmitted(MeaningTree tree, SupportedLanguage lang) {
         int count = 0;
+        HashSet<Node> visited = new HashSet<>();
         for (NodeInfo info : tree) {
+            if (visited.contains(info)) {
+                continue;
+            }
             if (info.node() instanceof ShortCircuitAndOp op
                     && op.getLeft().getAssignedValueTag() instanceof Boolean bool && !bool) {
-                count++;
+                count += countInternalOperators(op.getLeft(), lang);
+                visited.add(op.getLeft());
             } else if (info.node() instanceof ShortCircuitOrOp op
                     && op.getLeft().getAssignedValueTag() instanceof Boolean bool && bool) {
-                count++;
-            } else if (info.node() instanceof TernaryOperator) {
-                count++;
+                count += countInternalOperators(op.getLeft(), lang);
+                visited.add(op.getLeft());
+            } else if (info.node() instanceof TernaryOperator op) {
+                if (op.getCondition().getAssignedValueTag() instanceof Boolean bool && !bool) {
+                    count += countInternalOperators(op.getThenExpr(), lang);
+                    visited.add(op.getThenExpr());
+                } else {
+                    count += countInternalOperators(op.getElseExpr(), lang);
+                    visited.add(op.getElseExpr());
+                }
             }
+            visited.add(info.node());
         }
         return count;
     }
@@ -709,13 +724,23 @@ public class MeaningTreeOrderQuestionBuilder {
      * @return set of unique concept names of given expression
      */
     static Set<String> findConcepts(MeaningTree mt, SupportedLanguage toLanguage) {
-        return new HashSet<>(findAllConcepts(mt, toLanguage));
+        return new HashSet<>(findAllConcepts(mt.getRootNode(), toLanguage));
     }
 
-    static List<String> findAllConcepts(MeaningTree mt, SupportedLanguage toLanguage) {
+    static int countInternalOperators(Node root, SupportedLanguage toLanguage) {
+        var list = findAllConcepts(root, toLanguage);
+        list.remove("operator_(");
+        list.remove("operator_call");
+        if (!list.isEmpty()) {
+            return list.size() - 1;
+        }
+        return list.size();
+    }
+
+    static List<String> findAllConcepts(Node root, SupportedLanguage toLanguage) {
         ArrayList<String> result = new ArrayList<>();
-        for (NodeInfo nodeInfo: mt) {
-            Node node = nodeInfo.node();
+        for (NodeInfo child : root) {
+            Node node = child.node();
             if (node instanceof AddOp) result.add("operator_binary_+");
             else if (node instanceof MulOp) result.add("operator_binary_*");
             else if (node instanceof DivOp) result.add("operator_/");
