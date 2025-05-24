@@ -27,6 +27,7 @@ export const TQuestionAnswer : io.Type<QuestionAnswer> = io.type({
 
 type QuestionBase = {
     questionId: number,
+    questionMetadataId: number,
     type: QuestionType,
     options: QuestionOptions,
     text: Html,
@@ -36,6 +37,7 @@ type QuestionBase = {
 }
 const TQuestionBase : io.Type<QuestionBase> = io.type({
     questionId: io.number,
+    questionMetadataId: io.number,
     type: TQuestionType,
     options: TQuestionOptions,
     text: THtml,
