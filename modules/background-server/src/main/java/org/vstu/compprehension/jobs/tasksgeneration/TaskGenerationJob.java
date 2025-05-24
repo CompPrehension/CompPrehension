@@ -776,14 +776,14 @@ public class TaskGenerationJob {
 
                     List<PagedSearchIterable<GHRepository>> repoSearchQueries = new ArrayList<>();
                     repoSearchQueries.add(github.searchRepositories()
-                            .language("c")
+                            .q("language:C language:C++ language:Python language:Java")
                             .size("50..100000")
                             .fork(GHFork.PARENT_ONLY)
                             .sort(GHRepositorySearchBuilder.Sort.STARS)
                             .order(GHDirection.DESC)
                             .list());
                     repoSearchQueries.add(github.searchRepositories()
-                            .language("c")
+                            .language("language:C language:C++ language:Python language:Java")
                             .size("50..100000")
                             .fork(GHFork.PARENT_ONLY)
                             .sort(GHRepositorySearchBuilder.Sort.UPDATED)
@@ -791,7 +791,7 @@ public class TaskGenerationJob {
                             .list()
                             .withPageSize(100));
                     repoSearchQueries.add(github.searchRepositories()
-                            .language("c")
+                            .language("language:C language:C++ language:Python language:Java")
                             .size("50..100000")
                             .fork(GHFork.PARENT_ONLY)
                             .sort(GHRepositorySearchBuilder.Sort.FORKS)
