@@ -32,12 +32,17 @@ public class TextTemplatesService {
         this.domainFactory = domainFactory;
         this.textTemplateEditRepository = textTemplateEditRepository;
 
-        domainFactory.getDomainIds().stream()
-            .map(domainFactory::getDomain)
-            .filter(domain -> domain instanceof DecisionTreeReasoningDomain)
-            .map(domain -> (DecisionTreeReasoningDomain) domain)
-            .filter(domain -> domain.getDomainSolvingModel() != null)
-            .forEach(this::init);
+        try {
+            domainFactory.getDomainIds().stream()
+                    .map(domainFactory::getDomain)
+                    .filter(domain -> domain instanceof DecisionTreeReasoningDomain)
+                    .map(domain -> (DecisionTreeReasoningDomain) domain)
+                    .filter(domain -> domain.getDomainSolvingModel() != null)
+                    .forEach(this::init);
+        } catch (RuntimeException e) {
+            log.warn("TextTemplatesService failed to initialize");
+        }
+
     }
 
 
