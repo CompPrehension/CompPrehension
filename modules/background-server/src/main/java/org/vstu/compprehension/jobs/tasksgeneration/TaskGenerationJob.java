@@ -368,7 +368,7 @@ public class TaskGenerationJob {
                 });
 
                 try {
-                    future.get(30, TimeUnit.SECONDS);  // Timeout after 30 seconds
+                    future.get(45, TimeUnit.SECONDS);  // Timeout after 45 seconds
                 } catch (TimeoutException e) {
                     log.warn("Timeout while downloading repo [{}] from GitHub", repo.getFullName());
                     future.cancel(true);  // Cancel the task if it times out
