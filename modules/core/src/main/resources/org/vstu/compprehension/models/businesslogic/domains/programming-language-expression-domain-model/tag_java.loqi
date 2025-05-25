@@ -603,6 +603,7 @@ class operator_list : operator {
 	needsOperand<OperandPlacement:left> = false ;
 	needsOperand<OperandPlacement:right> = false ;
 	needsOperand<OperandPlacement:center> = true ;
+    canHaveManyCentralOperands = true ;
 	countOfTokens = 2 ;
 } [
 	text = "{" ;
