@@ -218,12 +218,12 @@ class operator : operand {
 	class prop precedence: int ;
 	class prop associativity: associativity ;
 	class prop needsOperand<placement : OperandPlacement>: bool ;
-	class prop hasStrictOperandOrder: bool ;
-	class prop isNot: bool ;
-	class prop isAnd: bool ;
-	class prop isOr: bool ;
-	class prop isComma: bool ;
-	class prop isTConditional: bool ;
+	class prop hasStrictOperandOrder: bool = false ;
+	class prop isNot: bool = false ;
+	class prop isAnd: bool = false ;
+	class prop isOr: bool = false ;
+	class prop isComma: bool = false ;
+	class prop isTConditional: bool = false ;
 	class prop canHaveManyCentralOperands: bool = false ;
 
 } [

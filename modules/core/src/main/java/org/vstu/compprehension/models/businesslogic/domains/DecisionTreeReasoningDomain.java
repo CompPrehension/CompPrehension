@@ -9,7 +9,10 @@ import org.vstu.compprehension.models.entities.DomainEntity;
 import org.vstu.compprehension.models.entities.ResponseEntity;
 import org.vstu.compprehension.utils.RandomProvider;
 
+import java.io.File;
+import java.net.URL;
 import java.util.List;
+import java.util.Optional;
 
 public abstract class DecisionTreeReasoningDomain extends DomainBase {
     private DecisionTreeReasonerBackend.Interface backendInterface;
@@ -18,6 +21,26 @@ public abstract class DecisionTreeReasoningDomain extends DomainBase {
         super(domainEntity, randomProvider);
 
         this.backendInterface = backendInterface;
+    }
+
+    public Optional<File> getDomainSolvingModelSourceDirectory() {
+        URL domainSolvingModelResource = getDomainSolvingModelResource();
+        File directory = new File("modules/core/src/main/resources", getDomainSolvingModelResourceLocation());
+        if ("file".equals(domainSolvingModelResource.getProtocol()) && directory.isDirectory()) {
+            // if running locally (from files)
+            return Optional.of(directory);
+        }
+        return Optional.empty();
+    }
+
+    protected abstract String getDomainSolvingModelResourceLocation();
+
+    private URL getDomainSolvingModelResource() {
+        return this.getClass().getClassLoader().getResource(getDomainSolvingModelResourceLocation());
+    }
+
+    protected DomainSolvingModel createDomainSolvingModelWithLoqi() {
+        return new DomainSolvingModel(getDomainSolvingModelResource(), DomainSolvingModel.BuildMethod.LOQI).validate();
     }
 
     public abstract DomainSolvingModel getDomainSolvingModel();

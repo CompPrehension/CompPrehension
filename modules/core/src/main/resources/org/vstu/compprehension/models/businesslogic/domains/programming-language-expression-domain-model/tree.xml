@@ -1756,7 +1756,8 @@
                                                         _alias="Может ли опускать операнд, в котором X">
                                                     <Expression>
                                                         <Compare operator="NotEqual">
-                                                            <GetPropertyValue propertyName="requiredFirstOperandValueToEvaluate">
+                                                            <GetPropertyValue
+                                                                    propertyName="requiredFirstOperandValueToEvaluate">
                                                                 <DecisionTreeVar name="T"/>
                                                                 <ParamsValues type="ordered">
                                                                     <GetRelationshipParamValue paramName="placement"
@@ -1803,7 +1804,8 @@
                                                                   _alias="Какое значение должно быть у левого чтобы правый вычислился">
                                                                 <Expression>
                                                                     <Compare operator="Equal">
-                                                                        <GetPropertyValue propertyName="requiredFirstOperandValueToEvaluate">
+                                                                        <GetPropertyValue
+                                                                                propertyName="requiredFirstOperandValueToEvaluate">
                                                                             <DecisionTreeVar name="T"/>
                                                                             <ParamsValues type="ordered">
                                                                                 <GetRelationshipParamValue
@@ -1833,10 +1835,12 @@
                                                                   _alias="Какое значение у первого">
                                                                 <Expression>
                                                                     <GetPropertyValue propertyName="evaluatesTo">
-                                                                        <GetByRelationship relationshipName="hasOperand">
+                                                                        <GetByRelationship
+                                                                                relationshipName="hasOperand">
                                                                             <DecisionTreeVar name="T"/>
                                                                             <ParamsValues type="ordered">
-                                                                                <GetPropertyValue propertyName="firstOperandPlacement">
+                                                                                <GetPropertyValue
+                                                                                        propertyName="firstOperandPlacement">
                                                                                     <DecisionTreeVar name="T"/>
                                                                                 </GetPropertyValue>
                                                                             </ParamsValues>

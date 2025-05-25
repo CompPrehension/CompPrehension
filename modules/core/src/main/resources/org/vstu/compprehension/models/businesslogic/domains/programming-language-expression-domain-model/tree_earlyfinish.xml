@@ -23,15 +23,15 @@
                 <LogicalOr>
                     <Compare operator="Equal">
                         <GetPropertyValue propertyName="state">
-                            <Variable name="X" />
+                            <Variable name="X"/>
                         </GetPropertyValue>
-                        <Enum owner="state" value="omitted" />
+                        <Enum owner="state" value="omitted"/>
                     </Compare>
                     <Compare operator="Equal">
                         <GetPropertyValue propertyName="state">
-                            <Variable name="X" />
+                            <Variable name="X"/>
                         </GetPropertyValue>
-                        <Enum owner="state" value="unevaluated" />
+                        <Enum owner="state" value="unevaluated"/>
                     </Compare>
                 </LogicalOr>
             </SelectorExpression>
@@ -160,7 +160,8 @@
                                                 _TEMPLATING_ID="14">
                                             <Expression>
                                                 <Compare operator="Equal">
-                                                    <GetPropertyValue propertyName="requiredFirstOperandValueToEvaluate">
+                                                    <GetPropertyValue
+                                                            propertyName="requiredFirstOperandValueToEvaluate">
                                                         <Cast>
                                                             <DecisionTreeVar name="Y"/>
                                                             <Class name="StrictOrderOperator"/>
@@ -214,7 +215,8 @@
                                                     <Expression>
                                                         <Compare operator="Equal">
                                                             <Compare operator="Equal">
-                                                                <GetPropertyValue propertyName="requiredFirstOperandValueToEvaluate">
+                                                                <GetPropertyValue
+                                                                        propertyName="requiredFirstOperandValueToEvaluate">
                                                                     <Cast>
                                                                         <DecisionTreeVar name="Y"/>
                                                                         <Class name="StrictOrderOperator"/>
@@ -233,7 +235,8 @@
                                                                 <GetByRelationship relationshipName="hasOperand">
                                                                     <DecisionTreeVar name="Y"/>
                                                                     <ParamsValues type="ordered">
-                                                                        <GetPropertyValue propertyName="firstOperandPlacement">
+                                                                        <GetPropertyValue
+                                                                                propertyName="firstOperandPlacement">
                                                                             <Cast>
                                                                                 <DecisionTreeVar name="Y"/>
                                                                                 <Class name="StrictOrderOperator"/>

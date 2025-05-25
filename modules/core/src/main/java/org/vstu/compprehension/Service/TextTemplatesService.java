@@ -289,6 +289,13 @@ public class TextTemplatesService {
                 .collect(Collectors.toList()),
             domain
         );
+        //uncomment to update the domainSolvingModel
+//        domain.getDomainSolvingModelSourceDirectory().ifPresent(directory ->
+//            DomainSolvingModel.writeModelToDirectory(
+//                domain.getDomainSolvingModel(),
+//                directory.getAbsolutePath()
+//            )
+//        );
     }
 
 }

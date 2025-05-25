@@ -207,10 +207,13 @@ public class ProgrammingLanguageExpressionDTDomain extends DecisionTreeReasoning
     }
 
     public static final String DOMAIN_MODEL_LOCATION = ProgrammingLanguageExpressionDomain.RESOURCES_LOCATION + "programming-language-expression-domain-model/";
-    private final DomainSolvingModel domainSolvingModel = new DomainSolvingModel(
-            this.getClass().getClassLoader().getResource(DOMAIN_MODEL_LOCATION), //FIXME
-            DomainSolvingModel.BuildMethod.LOQI
-    ).validate();
+
+    @Override
+    protected String getDomainSolvingModelResourceLocation() {
+        return DOMAIN_MODEL_LOCATION;
+    }
+
+    private final DomainSolvingModel domainSolvingModel = createDomainSolvingModelWithLoqi();
 
     @Override
     public DomainSolvingModel getDomainSolvingModel() {

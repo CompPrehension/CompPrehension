@@ -1809,7 +1809,8 @@
                                                     <Variable name="x_op"/>
                                                 </CheckRelationship>
                                                 <Compare operator="Equal">
-                                                    <GetPropertyValue propertyName="requiredFirstOperandValueToEvaluate">
+                                                    <GetPropertyValue
+                                                            propertyName="requiredFirstOperandValueToEvaluate">
                                                         <Cast>
                                                             <DecisionTreeVar name="X"/>
                                                             <Class name="StrictOrderOperator"/>
