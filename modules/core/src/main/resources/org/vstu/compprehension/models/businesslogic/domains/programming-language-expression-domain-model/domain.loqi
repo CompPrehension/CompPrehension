@@ -224,7 +224,7 @@ class operator : operand {
 	class prop isOr: bool ;
 	class prop isComma: bool ;
 	class prop isTConditional: bool ;
-	class prop canHaveManyCentralOperands: bool ;
+	class prop canHaveManyCentralOperands: bool = false ;
 
 } [
 	RU.localizedName = "оператор" ;

@@ -200,6 +200,8 @@ public class MeaningTreeRDFTransformer {
             return new ParsedClassName("operator_list");
         } else if (token.type == TokenType.KEYWORD) {
             return new ParsedClassName("operand", true);
+        } else if (token instanceof OperatorToken op && op.additionalOpType == OperatorType.NEW_ARRAY) {
+            return new ParsedClassName("operator_newarray");
         }
         List<ClassDef> possibleClasses = domainModel.getClasses().stream()
                 .filter(classDef -> classDef.getMetadata().getEntries().stream()

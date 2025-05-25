@@ -803,6 +803,42 @@ class `operator_~` : operator {
 	TEMPLATING_ID = 46 ;
 ]
 
+class operator_list : operator {
+
+	arity = arity:binary ;
+	place = place:infix ;
+	precedence = 1 ;
+	associativity = associativity:left ;
+	needsOperand<OperandPlacement:left> = false ;
+	needsOperand<OperandPlacement:right> = false ;
+	needsOperand<OperandPlacement:center> = true ;
+	countOfTokens = 2 ;
+} [
+	text = "{" ;
+	token2text = "}" ;
+	isComplex = true ;
+	RU.localizedName = "литерал массива" ;
+	EN.localizedName = "array literal" ;
+	TEMPLATING_ID = 48 ;
+]
+
+class operator_newarray : operator {
+
+	arity = arity:unary ;
+	place = place:prefix ;
+	precedence = 1 ;
+	associativity = associativity:right ;
+	needsOperand<OperandPlacement:left> = false ;
+	needsOperand<OperandPlacement:right> = true ;
+	needsOperand<OperandPlacement:center> = true ;
+	countOfTokens = 1 ;
+} [
+	text = "new[]" ;
+	RU.localizedName = "оператор new[]" ;
+	EN.localizedName = "operator new[]" ;
+	TEMPLATING_ID = 49 ;
+]
+
 //-----------------------OBJECT SECTION-----------------------
 //------------------------------------------------------------
 
