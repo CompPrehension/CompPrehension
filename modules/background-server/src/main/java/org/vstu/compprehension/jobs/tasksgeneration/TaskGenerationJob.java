@@ -569,6 +569,9 @@ public class TaskGenerationJob {
             AtomicInteger processed = new AtomicInteger(0);
             AtomicInteger savedQuestions = new AtomicInteger();
             AtomicInteger skippedQuestions = new AtomicInteger(); // loaded but not kept since not required by any QR
+            AtomicInteger existingQuestions = new AtomicInteger();
+
+            AtomicInteger matchesRequest = new AtomicInteger();
 
             var allJsonBatches = BatchingIterator.batchedStreamOf(
                     allJsonFiles.stream()
@@ -613,6 +616,7 @@ public class TaskGenerationJob {
                     metadataToRemove.forEach(metaList::remove);
                     if (metaList.isEmpty()) {
                         log.debug("All metadata already exists for question [{}]. Skipping...", q.getCommonQuestion().getQuestionData().getQuestionName());
+                        existingQuestions.addAndGet(1);
                         skippedQuestions.addAndGet(1);
                         continue;
                     }
@@ -641,6 +645,7 @@ public class TaskGenerationJob {
                                 if (!storage.isMatch(meta, searchRequest)) {
                                     log.debug("Question [{}] does not match generation requests group {}", q.getCommonQuestion().getQuestionData().getQuestionName(), gr.getKey().getGenerationRequestIds());
                                 } else {
+                                    matchesRequest.addAndGet(1);
                                     log.debug("Question [{}] matches generation requests group {}", q.getCommonQuestion().getQuestionData().getQuestionName(), gr.getKey().getGenerationRequestIds());
                                     matchedMetadata.put(meta, genRequest.id());
                                     var qGenerated = questionsGenerated.compute(genRequest, (k, v) -> v == null ? 1 : v + 1);
@@ -693,7 +698,12 @@ public class TaskGenerationJob {
                     savedQuestions.addAndGet(metadataToSave.size());
                 }
 
-                log.info("Processed {}/{} questions ({} skipped, {} saved).", processed.addAndGet(batch.size()), allJsonFiles.size(), skippedQuestions, savedQuestions);
+                if (matchesRequest.get() == 0 && !incompletedRequests.isEmpty()) {
+                    log.info("None of the questions matched to any of incompleted generation requests. Skipping...");
+                }
+                log.info("Processed {}/{} questions ({} skipped (as existing {}), {} saved).",
+                        processed.addAndGet(batch.size()), allJsonFiles.size(),
+                        skippedQuestions, existingQuestions, savedQuestions);
             });
         }
 
