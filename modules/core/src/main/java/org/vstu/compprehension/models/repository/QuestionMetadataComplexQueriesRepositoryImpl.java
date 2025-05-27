@@ -240,10 +240,10 @@ public class QuestionMetadataComplexQueriesRepositoryImpl implements QuestionMet
                                 " + bit_count(q.violation_bits & :unwantedViolationsBitmask)" +
                                 " + bit_count(q.skill_bits & :unwantedSkillsBitmask)" +
                                 ") DIV 4 ASC, " +  // lower rating of questions with unwanted bits
-                                "GREATEST(" +
+                                "(GREATEST(" +
                                 "bit_count(q.trace_concept_bits & :targetConceptsBitmask), " +
                                 "bit_count(q.concept_bits & :targetConceptsBitmask))" +
-                                " + bit_count(q.violation_bits & :targetLawsBitmask" +
+                                " + bit_count(q.violation_bits & :targetLawsBitmask)" +
                                 " + bit_count(q.skill_bits & :targetSkillsBitmask)" +
                                 ") DESC " +  // raise rating of questions with target bits
                                 "limit :lim "
@@ -324,10 +324,10 @@ public class QuestionMetadataComplexQueriesRepositoryImpl implements QuestionMet
                                 " + bit_count(q.violation_bits & :unwantedViolationsBitmask)" +
                                 " + bit_count(q.skill_bits & :unwantedSkillsBitmask)" +
                                 ") DIV 4 ASC, " +  // lower rating of questions with unwanted bits
-                                "GREATEST(" +
+                                "(GREATEST(" +
                                      "bit_count(q.trace_concept_bits & :targetConceptsBitmask), " +
                                      "bit_count(q.concept_bits & :targetConceptsBitmask))" +
-                                " + bit_count(q.violation_bits & :targetLawsBitmask" +
+                                " + bit_count(q.violation_bits & :targetLawsBitmask)" +
                                 " + bit_count(q.skill_bits & :targetSkillsBitmask)" +
                                 ") DESC " +  // raise rating of questions with target bits
                                 "limit :lim "
@@ -407,10 +407,10 @@ public class QuestionMetadataComplexQueriesRepositoryImpl implements QuestionMet
                                 " + bit_count(q.violation_bits & :unwantedViolationsBitmask)" +
                                 " + bit_count(q.skill_bits & :unwantedSkillsBitmask)" +
                                 ") DIV 4 ASC, " +  // lower rating of questions with unwanted bits
-                                "GREATEST(" +
+                                "(GREATEST(" +
                                      "bit_count(q.trace_concept_bits & :targetConceptsBitmask), " +
                                      "bit_count(q.concept_bits & :targetConceptsBitmask))" +
-                                " + bit_count(q.violation_bits & :targetLawsBitmask" +
+                                " + bit_count(q.violation_bits & :targetLawsBitmask)" +
                                 " + bit_count(q.skill_bits & :targetSkillsBitmask)" +
                                 ") DESC " +  // raise rating of questions with target bits
                                 "limit :lim "
