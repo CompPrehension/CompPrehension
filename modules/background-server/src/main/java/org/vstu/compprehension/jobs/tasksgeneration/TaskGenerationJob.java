@@ -275,7 +275,8 @@ public class TaskGenerationJob {
     @SneakyThrows
     private List<Path> downloadRepositories(TaskGenerationJobConfig.TaskConfig config) {
         if (repositories == null) {
-            repositories = new RepositoriesCrawler(config.getSearcher().getGithubOAuthToken(), 10_000);
+            repositories = new RepositoriesCrawler(config.getSearcher().getGithubOAuthToken(), 10_000,
+                    config.getSearcher().getQuery());
         }
 
         var downloaderConfig = config.getSearcher();
@@ -717,13 +718,15 @@ public class TaskGenerationJob {
         private final LinkedHashSet<GHRepository> repositories = new LinkedHashSet<>();
         private final String githubOAuthToken;
         private final int maxRepositories;
+        private final String defaultQuery;
         private final Object lock = new Object();
         private volatile boolean loadingFinished = false;
         private final ScheduledExecutorService scheduledExecutor = Executors.newSingleThreadScheduledExecutor();
 
-        public RepositoriesCrawler(String githubOAuthToken, int maxRepositories) {
+        public RepositoriesCrawler(String githubOAuthToken, int maxRepositories, String defaultQuery) {
             this.githubOAuthToken = githubOAuthToken;
             this.maxRepositories = maxRepositories;
+            this.defaultQuery = defaultQuery;
 
             // Start background loading
             startBackgroundLoading();
@@ -774,16 +777,18 @@ public class TaskGenerationJob {
                             .withRateLimitChecker(new RateLimitChecker.LiteralValue(20), RateLimitTarget.SEARCH)
                             .build();
 
+                    String query = defaultQuery != null ? defaultQuery :
+                            "language:C language:C++ language:Python language:Java";
                     List<PagedSearchIterable<GHRepository>> repoSearchQueries = new ArrayList<>();
                     repoSearchQueries.add(github.searchRepositories()
-                            .q("language:C language:C++ language:Python language:Java")
+                            .q(query)
                             .size("50..100000")
                             .fork(GHFork.PARENT_ONLY)
                             .sort(GHRepositorySearchBuilder.Sort.STARS)
                             .order(GHDirection.DESC)
                             .list());
                     repoSearchQueries.add(github.searchRepositories()
-                            .language("language:C language:C++ language:Python language:Java")
+                            .language(query)
                             .size("50..100000")
                             .fork(GHFork.PARENT_ONLY)
                             .sort(GHRepositorySearchBuilder.Sort.UPDATED)
@@ -791,7 +796,7 @@ public class TaskGenerationJob {
                             .list()
                             .withPageSize(100));
                     repoSearchQueries.add(github.searchRepositories()
-                            .language("language:C language:C++ language:Python language:Java")
+                            .language(query)
                             .size("50..100000")
                             .fork(GHFork.PARENT_ONLY)
                             .sort(GHRepositorySearchBuilder.Sort.FORKS)
