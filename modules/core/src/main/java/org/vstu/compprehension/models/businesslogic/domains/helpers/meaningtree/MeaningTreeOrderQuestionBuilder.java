@@ -448,6 +448,10 @@ public class MeaningTreeOrderQuestionBuilder {
      */
     protected Pair<SerializableQuestion, SerializableQuestionTemplate.QuestionMetadata> generateFromTemplate(SupportedLanguage lang) {
         var data = generateExpressionData(sourceExpressionTree, lang);
+        allChecksArePassed &= data.allCorrect;
+        if (!allChecksArePassed) {
+            return null;
+        }
         return generateFromTemplate(lang, new Input(
                 sourceExpressionTree, sourceExpressionTree.hashCode(),
                 data.tokens(), data.code()
@@ -469,7 +473,11 @@ public class MeaningTreeOrderQuestionBuilder {
 
         if (initialData.tokens().stream().anyMatch((Token t) -> t.getAssignedValue() != null) || skipRuntimeValuesGeneration) {
             log.debug("Given data already contains values paired with tokens");
-            return !allChecksArePassed ? List.of() : List.of(generateFromTemplate(language));
+            if (!allChecksArePassed) {
+                return List.of();
+            }
+            var res = generateFromTemplate(language);
+            return res == null ? List.of() : List.of(res);
         }
         List<Pair<SerializableQuestion, SerializableQuestionTemplate.QuestionMetadata>> generated = new ArrayList<>();
 
@@ -483,15 +491,19 @@ public class MeaningTreeOrderQuestionBuilder {
 
         for (MeaningTree mt : mutations) {
             var data = generateExpressionData(mt, language);
+            if (!data.allCorrect) {
+                continue;
+            }
             OperandRuntimeValueGenerator map = new OperandRuntimeValueGenerator(this, mt, language);
             List<Pair<MeaningTree, Integer>> generatedValues = map.generate();
             for (Pair<MeaningTree, Integer> pair : generatedValues) {
                 generated.add(generateFromTemplate(language, new Input(pair.getKey(), pair.getValue(),
                         data.tokens(), data.code())));
             }
-            if (generatedValues.isEmpty()) {
-                return !allChecksArePassed || !data.allCorrect ? List.of() : List.of(generateFromTemplate(language));
-            }
+        }
+        if (generated.isEmpty()) {
+            var defaultGen = generateFromTemplate(language);
+            if (defaultGen != null) generated.add(defaultGen);
         }
         return !allChecksArePassed ? List.of() : generated;
     }
