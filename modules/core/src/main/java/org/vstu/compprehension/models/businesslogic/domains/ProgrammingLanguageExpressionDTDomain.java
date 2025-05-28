@@ -33,9 +33,7 @@ import org.vstu.compprehension.utils.HyperText;
 import org.vstu.meaningtree.MeaningTree;
 import org.vstu.meaningtree.SupportedLanguage;
 import org.vstu.meaningtree.serializers.rdf.RDFDeserializer;
-import org.vstu.meaningtree.utils.tokens.ComplexOperatorToken;
-import org.vstu.meaningtree.utils.tokens.Token;
-import org.vstu.meaningtree.utils.tokens.TokenList;
+import org.vstu.meaningtree.utils.tokens.*;
 
 import java.io.IOException;
 import java.nio.file.Files;
@@ -75,6 +73,8 @@ public class ProgrammingLanguageExpressionDTDomain extends DecisionTreeReasoning
         put("order", new Tag("order", 32L));    // (2 ^ 5)
         put("Python", new Tag("Python", 64L));    // (2 ^ 6)
         put("Java", new Tag("Java", 128L));    // (2 ^ 7)
+        put("mutation", new Tag("mutation", 256L));    // (2 ^ 8)
+        put("original", new Tag("original", 512L));    // (2 ^ 9)
     }};
 
     @NotNull
@@ -87,65 +87,65 @@ public class ProgrammingLanguageExpressionDTDomain extends DecisionTreeReasoning
     public void fillSkills() {
         skills = new HashMap<>();
 
-        addSkill("central_operand_needed");
-        addSkill("is_central_operand_evaluated");
+        addSkill("central_operand_needed", Skill.FLAG_VISIBLE_TO_TEACHER);
+        addSkill("is_central_operand_evaluated", Skill.FLAG_VISIBLE_TO_TEACHER);
 
-        Skill nearestOperandNeeded = addSkill("nearest_operand_needed");
+        Skill nearestOperandNeeded = addSkill("nearest_operand_needed", Skill.FLAG_VISIBLE_TO_TEACHER);
         addSkill("left_operand_needed", List.of(nearestOperandNeeded));
         addSkill("right_operand_needed", List.of(nearestOperandNeeded));
 
-        Skill competingOperandPresent = addSkill("competing_operator_present");
+        Skill competingOperandPresent = addSkill("competing_operator_present", Skill.FLAG_VISIBLE_TO_TEACHER);
         addSkill("left_competing_operator_present", List.of(competingOperandPresent));
         addSkill("right_competing_operator_present", List.of(competingOperandPresent));
 
-        Skill currentOperatorEnclosed = addSkill("current_operator_enclosed");
+        Skill currentOperatorEnclosed = addSkill("current_operator_enclosed", Skill.FLAG_VISIBLE_TO_TEACHER);
         addSkill("left_operator_enclosed", List.of(currentOperatorEnclosed));
         addSkill("right_operator_enclosed", List.of(currentOperatorEnclosed));
 
-        Skill parenthesizedSkills = addSkill("order_determined_by_parentheses");
+        Skill parenthesizedSkills = addSkill("order_determined_by_parentheses", Skill.FLAG_VISIBLE_TO_TEACHER);
         addSkill("is_current_parenthesized_left_not", List.of(parenthesizedSkills));
         addSkill("is_current_parenthesized_right_not", List.of(parenthesizedSkills));
         addSkill("is_left_parenthesized_current_not", List.of(parenthesizedSkills));
         addSkill("is_right_parenthesized_current_not", List.of(parenthesizedSkills));
 
-        Skill prec = addSkill("order_determined_by_precedence");
+        Skill prec = addSkill("order_determined_by_precedence", Skill.FLAG_VISIBLE_TO_TEACHER);
         addSkill("left_competing_to_right_precedence", List.of(prec));
         addSkill("right_competing_to_left_precedence", List.of(prec));
 
         Skill assoc = addSkill("order_determined_by_associativity");
-        addSkill("left_competing_to_right_associativity", List.of(assoc));
-        addSkill("right_competing_to_left_associativity", List.of(assoc));
+        addSkill("left_competing_to_right_associativity", List.of(assoc), Skill.FLAG_VISIBLE_TO_TEACHER);
+        addSkill("right_competing_to_left_associativity", List.of(assoc), Skill.FLAG_VISIBLE_TO_TEACHER);
 
-        Skill associativityWithoutOpposingOperand = addSkill("associativity_without_opposing_operand");
+        Skill associativityWithoutOpposingOperand = addSkill("associativity_without_opposing_operand", Skill.FLAG_VISIBLE_TO_TEACHER);
         addSkill("associativity_without_left_opposing_operand", List.of(associativityWithoutOpposingOperand));
         addSkill("associativity_without_right_opposing_operand", List.of(associativityWithoutOpposingOperand));
 
-        Skill strictOrder = addSkill("strict_order_operators_present");
+        Skill strictOrder = addSkill("strict_order_operators_present", Skill.FLAG_VISIBLE_TO_TEACHER);
         addSkill("expression_strict_order_operators_present", List.of(strictOrder));
         addSkill("earlyfinish_strict_order_operators_present", List.of(strictOrder));
 
-        Skill currentStrictOrder = addSkill("is_current_operator_strict_order");
+        Skill currentStrictOrder = addSkill("is_current_operator_strict_order", Skill.FLAG_VISIBLE_TO_TEACHER);
         addSkill(currentStrictOrder.name + "_while_solving", List.of(currentStrictOrder));
         addSkill(currentStrictOrder.name + "_while_earlyfinish", List.of(currentStrictOrder));
 
-        Skill strictOrderFirstOperandToBeEvaluated = addSkill("strict_order_first_operand_to_be_evaluated");
+        Skill strictOrderFirstOperandToBeEvaluated = addSkill("strict_order_first_operand_to_be_evaluated", Skill.FLAG_VISIBLE_TO_TEACHER);
         addSkill(strictOrderFirstOperandToBeEvaluated.name + "_while_solving", List.of(strictOrderFirstOperandToBeEvaluated));
         addSkill(strictOrderFirstOperandToBeEvaluated.name + "_while_earlyfinish", List.of(strictOrderFirstOperandToBeEvaluated));
 
-        addSkill("is_first_operand_of_strict_order_operator_fully_evaluated");
+        addSkill("is_first_operand_of_strict_order_operator_fully_evaluated", Skill.FLAG_VISIBLE_TO_TEACHER);
 
-        Skill noOmittedOperandsDespiteStrictOrder = addSkill("no_omitted_operands_despite_strict_order");
+        Skill noOmittedOperandsDespiteStrictOrder = addSkill("no_omitted_operands_despite_strict_order", Skill.FLAG_VISIBLE_TO_TEACHER);
         addSkill(noOmittedOperandsDespiteStrictOrder.name + "_while_solving", List.of(noOmittedOperandsDespiteStrictOrder));
         addSkill(noOmittedOperandsDespiteStrictOrder.name + "_while_earlyfinish", List.of(noOmittedOperandsDespiteStrictOrder));
 
-        Skill shouldStrictOrderCurrentOperandBeOmitted = addSkill("should_strict_order_current_operand_be_omitted");
+        Skill shouldStrictOrderCurrentOperandBeOmitted = addSkill("should_strict_order_current_operand_be_omitted", Skill.FLAG_VISIBLE_TO_TEACHER);
         addSkill(shouldStrictOrderCurrentOperandBeOmitted.name + "_while_solving", List.of(shouldStrictOrderCurrentOperandBeOmitted));
         addSkill(shouldStrictOrderCurrentOperandBeOmitted.name + "_while_earlyfinish", List.of(shouldStrictOrderCurrentOperandBeOmitted));
 
-        addSkill("are_central_operands_strict_order");
-        addSkill("no_current_in_many_central_operands");
-        addSkill("no_comma_in_central_operands");
-        addSkill("previous_central_operands_are_unevaluated");
+        addSkill("are_central_operands_strict_order", Skill.FLAG_VISIBLE_TO_TEACHER);
+        addSkill("no_current_in_many_central_operands", Skill.FLAG_VISIBLE_TO_TEACHER);
+        addSkill("no_comma_in_central_operands", Skill.FLAG_VISIBLE_TO_TEACHER);
+        addSkill("previous_central_operands_are_unevaluated", Skill.FLAG_VISIBLE_TO_TEACHER);
 
         fillSkillTree();
 
@@ -188,7 +188,7 @@ public class ProgrammingLanguageExpressionDTDomain extends DecisionTreeReasoning
 
     @Override
     public @NotNull Question makeQuestion(@NotNull QuestionRequest questionRequest,
-                                          @Nullable ExerciseAttemptEntity exerciseAttempt,
+                                          @NotNull ExerciseAttemptEntity exerciseAttempt,
                                           @NotNull Language userLanguage) {
         SupportedLanguage lang = MeaningTreeUtils.detectLanguageFromTags(questionRequest.getTargetTags().stream().map(Tag::getName).toList());
 
@@ -461,6 +461,8 @@ public class ProgrammingLanguageExpressionDTDomain extends DecisionTreeReasoning
         int count = 0;  // templates
         int qCount = 0;
         int savedCount = 0;
+        // TODO: please set value of this var to null in production code. Temporary changes
+        Set<SupportedLanguage> targetLanguages = Set.of(SupportedLanguage.CPP);
 
         Gson gson = new GsonBuilder()
                 .setDateFormat("yyyy-MM-dd'T'HH:mm:ss'Z'")
@@ -496,7 +498,7 @@ public class ProgrammingLanguageExpressionDTDomain extends DecisionTreeReasoning
                     RDFDeserializer deserializer = new RDFDeserializer();
                     Model templateModel = ModelFactory.createDefaultModel();
                     RDFDataMgr.read(templateModel, file);
-                    MeaningTree mt = new MeaningTree(deserializer.deserialize(templateModel));
+                    MeaningTree mt = deserializer.deserializeTree(templateModel);
                     for (SupportedLanguage language : SupportedLanguage.getMap().keySet()) {
                         String languageStr = language.toString().toLowerCase();
                         if (parsedQuestionName.endsWith(String.format("_%s.mt.ttl", languageStr))) {
@@ -507,6 +509,7 @@ public class ProgrammingLanguageExpressionDTDomain extends DecisionTreeReasoning
 
                     builder = MeaningTreeOrderQuestionBuilder.newQuestion(this)
                             .meaningTree(mt)
+                            .setTargetLanguages(targetLanguages)
                             .questionOrigin(origin, license);
                 } else if (parsedQuestionName.endsWith(".ttl")) {
                     for (SupportedLanguage language : SupportedLanguage.getMap().keySet()) {
@@ -559,6 +562,7 @@ public class ProgrammingLanguageExpressionDTDomain extends DecisionTreeReasoning
                     builder =
                             MeaningTreeOrderQuestionBuilder
                                     .newQuestion(this)
+                                    .setTargetLanguages(targetLanguages)
                                     .expression(expressionText, currentLang)
                                     .questionOrigin(origin, license);
                 }
@@ -574,7 +578,7 @@ public class ProgrammingLanguageExpressionDTDomain extends DecisionTreeReasoning
                     log.info("Successfully generated {} question(s) for template {}", templateQuestionsCount, file);
                 }
             } catch (Exception e) {
-                log.error("Error generating questions for template {}: {}", file, e.getMessage(), e);
+                log.error("Generator exception {} on {} with msg: {}", file, e.getClass().getName(), e.getMessage(), e);
             }
         }
 
@@ -685,7 +689,7 @@ public class ProgrammingLanguageExpressionDTDomain extends DecisionTreeReasoning
         Language lang = Optional.ofNullable(question.getQuestionData().getExerciseAttempt())
             .map(a -> a.getUser().getPreferred_language())
             .orElse(Language.RUSSIAN/*ENGLISH*/);
-        SupportedLanguage plang = MeaningTreeUtils.detectLanguageFromTags(question.getTagNames());
+        SupportedLanguage plang = MeaningTreeUtils.detectLanguageFromTags(question.getMetadata().getTagBits(), this);
 
         ArrayList<HyperText> result = new ArrayList<>();
 
@@ -713,6 +717,7 @@ public class ProgrammingLanguageExpressionDTDomain extends DecisionTreeReasoning
                 }
                 String tokenType = switch (mainToken.type) {
                     case CALL_OPENING_BRACE -> getMessage("FUNC_CALL", lang);
+                    case INITIALIZER_LIST_OPENING_BRACE ->  getMessage("LITERAL", lang);
                     default -> getMessage("OPERATOR", lang);
                 };
                 String tokensRepr = mainToken.value + (pairedToken != null ? " ".concat(pairedToken.value) : "");
@@ -730,7 +735,13 @@ public class ProgrammingLanguageExpressionDTDomain extends DecisionTreeReasoning
 
                 if (!responseIsWrong) {
                     // Show the value only if this is a correct choice.
-                    Object value = tokens.get(tokenIndex).getAssignedValue();
+                    Token t = tokens.get(tokenIndex);
+                    Object value = t.getAssignedValue();
+                    if (value == null && t instanceof OperatorToken op
+                            && (op.additionalOpType == OperatorType.OR ||
+                                op.additionalOpType == OperatorType.AND)) {
+                        value = false;
+                    }
                     if (value != null) {
                         builder.add("<span>" + getMessage("WITH_VALUE", lang) + "</span>");
                         builder.add("<span style='color: #f08;font-style: italic;font-weight: bold;'>" +
@@ -780,10 +791,10 @@ public class ProgrammingLanguageExpressionDTDomain extends DecisionTreeReasoning
         // Проверить в ризонере все возможные варианты интеракций и понять, какая из них правильная и выдать подсказку
         Optional<Pair<ObjectDef, ProgrammingLanguageExpressionsSolver.SolveResult>> found = domain.getObjects().stream()
                 .filter(domainObj ->
-                    domainObj.getClazz().isSubclassOf("operator") && domainObj.getRelationshipLinks().stream().filter(rel ->rel.getRelationshipName().equals("has")).allMatch(
-                            rel -> rel.getObjects().stream().noneMatch(obj ->
-                                    responseTokenIndexes.contains((Integer) obj.getMetadata().get("index")))
-                    )
+                        domainObj.getClazz().isSubclassOf("operator") && domainObj.getRelationshipLinks().stream().filter(rel ->rel.getRelationshipName().equals("has")).allMatch(
+                                rel -> rel.getObjects().stream().noneMatch(obj ->
+                                        responseTokenIndexes.contains((Integer) obj.getMetadata().get("index")))
+                        )
                 ).map(
                         domainObj -> Pair.of(domainObj, solver.solveForX(domainObj, domain, dt))
                 ).filter(
@@ -804,31 +815,28 @@ public class ProgrammingLanguageExpressionDTDomain extends DecisionTreeReasoning
                     );
                     if (explanation.isEmpty()) {
                         explanation.getChildren().add(new Explanation(Explanation.Type.HINT, new HyperText(
-                                        getMessage("explanations.missing_correct_answer_explanation", lang))));
+                                getMessage("explanations.missing_correct_answer_explanation", lang))));
                     }
 
                     CorrectAnswer correctAnswer = new CorrectAnswer();
                     correctAnswer.answers = List.of(new CorrectAnswer.Response(answer, answer));
                     correctAnswer.question = q.getQuestionData();
                     correctAnswer.lawName = null;
-                    correctAnswer.skillName = solveRes.skills().getFirst();
+                    correctAnswer.skillName = solveRes.skills();
                     correctAnswer.explanation = explanation;
                     return correctAnswer;
                 }
             }
         }
-        List<Domain.CorrectAnswer.Response> answers = q.getAnswerObjects().stream().filter(ans -> {
-            int index = answerObjectToTokenIndex(ans);
-            return index != -1 && !responseTokenIndexes.contains(index);
-        }).map(ans -> new CorrectAnswer.Response(ans, ans)).toList();
-
+        AnswerObjectEntity everythingIsEvaluated = q.getAnswerObjects().getLast();
         CorrectAnswer correctAnswer = new CorrectAnswer();
-        correctAnswer.answers = answers;
+        correctAnswer.answers = List.of(new CorrectAnswer.Response(everythingIsEvaluated, everythingIsEvaluated));
         correctAnswer.question = q.getQuestionData();
         correctAnswer.lawName = null;
-        correctAnswer.skillName = null;
-        correctAnswer.explanation = new Explanation(Explanation.Type.HINT, new HyperText(
-                getMessage("explanations.already_solved", lang)));
+        correctAnswer.skillName = List.of();
+        correctAnswer.explanation = DecisionTreeReasonerBackend.collectExplanationsFromTrace(Explanation.Type.HINT,
+                solver.solveNoVars(domain, domainSolvingModel.decisionTree("earlyfinish")).trace(), domain, lang
+        );
         return correctAnswer;
     }
 

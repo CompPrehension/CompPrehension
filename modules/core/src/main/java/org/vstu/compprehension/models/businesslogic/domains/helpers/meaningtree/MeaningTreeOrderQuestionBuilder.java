@@ -1,9 +1,11 @@
 package org.vstu.compprehension.models.businesslogic.domains.helpers.meaningtree;
 
+import lombok.Getter;
 import lombok.extern.log4j.Log4j2;
 import org.apache.commons.lang3.tuple.ImmutablePair;
 import org.apache.commons.lang3.tuple.Pair;
 import org.apache.jena.rdf.model.Model;
+import org.jetbrains.annotations.NotNull;
 import org.jetbrains.annotations.Nullable;
 import org.vstu.compprehension.common.MathHelper;
 import org.vstu.compprehension.common.StringHelper;
@@ -41,6 +43,7 @@ import org.vstu.meaningtree.nodes.expressions.unary.*;
 import org.vstu.meaningtree.nodes.io.InputCommand;
 import org.vstu.meaningtree.nodes.io.PrintCommand;
 import org.vstu.meaningtree.serializers.rdf.RDFSerializer;
+import org.vstu.meaningtree.utils.Label;
 import org.vstu.meaningtree.utils.tokens.*;
 
 import java.lang.reflect.InvocationTargetException;
@@ -55,28 +58,20 @@ import java.util.stream.Collectors;
  */
 @Log4j2
 public class MeaningTreeOrderQuestionBuilder {
-    protected MeaningTree sourceExpressionTree = null; // expression in MT format
+    protected MeaningTree sourceExpressionTree = null; // initial expression in MT format (not mutations)
     protected QuestionMetadataEntity existingMetadata = null; // existing metadata (if existing question regenerates)
 
     // Additional information for question source
     protected String questionOrigin = null; // source of question (for example, source code repository full name)
     protected String originLicense = null; // license of source (for example, GPLv3)
-
     // Target domain for question is generated
     protected @Nullable ProgrammingLanguageExpressionDTDomain domain;
-
-    // Tokens and code in question target language
-    protected TokenList tokens; // expression tokens
-    protected String rawTranslatedCode; // expression code
 
     // Preparing question data components
     protected List<SerializableQuestion.StatementFact> stmtFacts;
     protected List<SerializableQuestion.AnswerObject> answerObjects;
     protected SerializableQuestionTemplate.QuestionMetadata metadata;
     protected SerializableQuestion.QuestionData qdata;
-    protected List<String> tags;
-    protected Set<String> concepts;
-    protected Set<String> possibleViolations;
 
     // Version of MT format
     protected static final int MIN_VERSION = 12;
@@ -84,11 +79,20 @@ public class MeaningTreeOrderQuestionBuilder {
 
     private boolean allChecksArePassed = true; // expression generator has failed some stages (questions won't be generated if false)
     private boolean skipRuntimeValuesGeneration = false;
+    private boolean skipMutations = false;
+    private boolean saveQuestionOnlyForSourceLanguage = false;
+
+    @Getter
+    protected @NotNull Set<SupportedLanguage> targetLanguages = SupportedLanguage.getMap().keySet();
 
     // default tags for each question in MT format
     private static final List<String> defaultQuestionTags = new ArrayList<>(
             List.of("basics", "operators", "order", "evaluation", "errors")
     );
+
+    protected record Input(MeaningTree mt, int hash, TokenList tokens, String code) {}
+
+    protected record ExpressionData(boolean allCorrect, TokenList tokens, String code) {};
 
     static {
         for (String lang : SupportedLanguage.getStringMap().keySet()) {
@@ -114,6 +118,9 @@ public class MeaningTreeOrderQuestionBuilder {
         } else {
             log.info("Converting old-format question with metadata id={}", q.getMetadata().getId());
             mt = extractExpression(q.getQuestionData().getStatementFacts());
+            if (mt != null) {
+                allChecksArePassed = false;
+            }
         }
         sourceExpressionTree = mt;
         existingMetadata = q.getMetadata();
@@ -128,6 +135,35 @@ public class MeaningTreeOrderQuestionBuilder {
      */
     public MeaningTreeOrderQuestionBuilder skipRuntimeValueGeneration(boolean value) {
         skipRuntimeValuesGeneration = value;
+        return this;
+    }
+
+    /**
+     * Skip generation of mutations for source expression tree
+     * @param value value of this option
+     * @return builder
+     */
+    public MeaningTreeOrderQuestionBuilder skipMutations(boolean value) {
+        skipMutations = value;
+        return this;
+    }
+
+    /**
+     * Set languages for question generation
+     * @param langs languages
+     */
+    public MeaningTreeOrderQuestionBuilder setTargetLanguages(@Nullable Set<SupportedLanguage> langs) {
+        targetLanguages = Objects.requireNonNullElseGet(langs, () -> SupportedLanguage.getMap().keySet());
+        return this;
+    }
+
+    /**
+     * Deny generate questions for all possible languages
+     * Generate will create question only in source language
+     * @param state
+     */
+    public MeaningTreeOrderQuestionBuilder saveQuestionOnlyForSourceLanguage(boolean state) {
+        saveQuestionOnlyForSourceLanguage = state;
         return this;
     }
 
@@ -161,7 +197,11 @@ public class MeaningTreeOrderQuestionBuilder {
         }
         String tokens = tokenBuilder.substring(0, tokenBuilder.length() - 1);
         log.info("Extracted expression text from existing question: {}", tokens);
-        TokenList tokenList = cppTranslator.getTokenizer().tokenizeExtended(tokens);
+        var tokenizeResult = cppTranslator.getTokenizer().tryTokenizeExtended(tokens);
+        if (tokenizeResult == null) {
+            return null;
+        }
+        var tokenList = tokenizeResult.getRight();
         HashMap<TokenGroup, Object> semanticValuesIndexes = new HashMap<>();
         for (int i = 0; i < indexes.keySet().stream().max(Long::compare).orElse(0); i++) {
             if (semanticValues.containsKey(indexes.get(i))) {
@@ -197,12 +237,16 @@ public class MeaningTreeOrderQuestionBuilder {
         Question q = qMeta.getQuestionData().getData().toQuestion(domain, qMeta);
         MeaningTreeOrderQuestionBuilder builder = MeaningTreeOrderQuestionBuilder.newQuestion(domain).existingQuestion(q);
         SupportedLanguage language = MeaningTreeUtils.detectLanguageFromTags(qMeta.getTagBits(), domain);
-        builder.processTokensAccurate(language);
+        var data = builder.generateExpressionDataAccurate(builder.sourceExpressionTree, language);
+        builder.allChecksArePassed &= data.allCorrect;
         if (!builder.allChecksArePassed) {
             return null;
         }
-        builder.answerObjects = generateAnswerObjects(builder.tokens);
-        builder.processMetadata(language, builder.sourceExpressionTree.hashCode());
+        builder.answerObjects = generateAnswerObjects(data.tokens());
+        builder.processMetadata(language, new Input(
+                builder.sourceExpressionTree, builder.sourceExpressionTree.hashCode(),
+                data.tokens(), data.code()
+        ));
         if (!builder.allChecksArePassed) {
             return null;
         }
@@ -301,7 +345,12 @@ public class MeaningTreeOrderQuestionBuilder {
     public List<Pair<SerializableQuestion, SerializableQuestionTemplate.QuestionMetadata>> build(SupportedLanguage language) {
         answerObjects = new ArrayList<>();
         processTemplateStatementFacts();
-        return generateManyQuestions(language);
+        boolean bufAllChecksArePassed = allChecksArePassed;
+        var result = generateManyQuestions(language);
+        if (allChecksArePassed != bufAllChecksArePassed) {
+            allChecksArePassed = bufAllChecksArePassed;
+        }
+        return result;
     }
 
     /**
@@ -312,7 +361,13 @@ public class MeaningTreeOrderQuestionBuilder {
         List<SerializableQuestionTemplate> resultList = new ArrayList<>();
 
         List<Pair<SerializableQuestion, SerializableQuestionTemplate.QuestionMetadata>> metadata = new ArrayList<>();
-        for (SupportedLanguage language : SupportedLanguage.getMap().keySet()) {
+
+        for (SupportedLanguage language : targetLanguages) {
+            Label origin = sourceExpressionTree.getLabel(Label.ORIGIN);
+            if (origin != null && saveQuestionOnlyForSourceLanguage &&
+                    !language.equals(SupportedLanguage.from((short) origin.getAttribute()))) {
+                continue;
+            }
             metadata.addAll(build(language));
         }
 
@@ -342,15 +397,19 @@ public class MeaningTreeOrderQuestionBuilder {
 
     private String debugTokensString(MeaningTree mt, SupportedLanguage lang) {
         try {
-            TokenList list = lang.createTranslator(new MeaningTreeDefaultExpressionConfig()).getTokenizer().tokenizeExtended(mt);
+            var tokRes = lang.createTranslator(new MeaningTreeDefaultExpressionConfig()).getTokenizer().tryTokenizeExtended(mt);
+            var list = tokRes.getRight();
+            if (!tokRes.getLeft()) {
+                return "error:tokenizer";
+            }
 
             StringBuilder builder = new StringBuilder();
             for (Token token : list) {
                 builder.append(token.value);
                 if (token.getAssignedValue() != null) {
-                    builder.append("<--");
-                    builder.append(token.getAssignedValue().toString().toUpperCase());
-                    builder.append(';');
+                    builder.append("<-");
+                    builder.append(token.getAssignedValue().toString());
+                    builder.append(";>");
                 }
                 builder.append(' ');
             }
@@ -363,15 +422,14 @@ public class MeaningTreeOrderQuestionBuilder {
     /**
      * Generate one question for language
      * @param lang target language
-     * @param mt meaning tree
-     * @param treeHash MT hash
+     * @param input input data for generation
      * @return pair of serializable question and its metadata
      */
-    protected Pair<SerializableQuestion, SerializableQuestionTemplate.QuestionMetadata> generateFromTemplate(SupportedLanguage lang, MeaningTree mt, int treeHash) {
-        Model model = new RDFSerializer().serialize(mt.getRootNode());
+    protected Pair<SerializableQuestion, SerializableQuestionTemplate.QuestionMetadata> generateFromTemplate(SupportedLanguage lang, Input input) {
+        Model model = new RDFSerializer().serialize(input.mt);
         List<SerializableQuestion.StatementFact> facts = MeaningTreeRDFHelper.backendFactsToSerialized(
                 MeaningTreeRDFHelper.factsFromModel(model));
-        processMetadata(lang, treeHash);
+        processMetadata(lang, input);
         processQuestionData(facts);
         SerializableQuestion serialized = SerializableQuestion.builder()
                 .questionData(qdata)
@@ -379,7 +437,7 @@ public class MeaningTreeOrderQuestionBuilder {
                 .negativeLaws(List.of())
                 .tags(defaultQuestionTags)
                 .build();
-        log.info("Created question: {}", debugTokensString(mt, lang));
+        log.info("Created question: {}", debugTokensString(input.mt, lang));
         return new ImmutablePair<>(serialized, metadata);
     }
 
@@ -388,7 +446,11 @@ public class MeaningTreeOrderQuestionBuilder {
      * @return сериализуемый вопрос
      */
     protected Pair<SerializableQuestion, SerializableQuestionTemplate.QuestionMetadata> generateFromTemplate(SupportedLanguage lang) {
-        return generateFromTemplate(lang, sourceExpressionTree, sourceExpressionTree.hashCode());
+        var data = generateExpressionData(sourceExpressionTree, lang);
+        return generateFromTemplate(lang, new Input(
+                sourceExpressionTree, sourceExpressionTree.hashCode(),
+                data.tokens(), data.code()
+        ));
     }
 
     /**
@@ -397,80 +459,91 @@ public class MeaningTreeOrderQuestionBuilder {
      * @return list of serializable questions and its metadata
      */
     protected List<Pair<SerializableQuestion, SerializableQuestionTemplate.QuestionMetadata>> generateManyQuestions(SupportedLanguage language) {
-        processTokens(language);
+        var initialData = generateExpressionData(sourceExpressionTree, language);
+        allChecksArePassed &= initialData.allCorrect;
         if (!allChecksArePassed) {
             return List.of();
         }
-        answerObjects = generateAnswerObjects(tokens);
+        answerObjects = generateAnswerObjects(initialData.tokens());
 
-        if (tokens.stream().anyMatch((Token t) -> t.getAssignedValue() != null) || skipRuntimeValuesGeneration) {
+        if (initialData.tokens().stream().anyMatch((Token t) -> t.getAssignedValue() != null) || skipRuntimeValuesGeneration) {
             log.debug("Given data already contains values paired with tokens");
             return !allChecksArePassed ? List.of() : List.of(generateFromTemplate(language));
         }
         List<Pair<SerializableQuestion, SerializableQuestionTemplate.QuestionMetadata>> generated = new ArrayList<>();
-        OperandRuntimeValueGenerator map = new OperandRuntimeValueGenerator(this, language);
-        List<Pair<MeaningTree, Integer>> generatedValues = map.generate();
-        MeaningTree initial = sourceExpressionTree;
-        for (Pair<MeaningTree, Integer> pair : generatedValues) {
-            sourceExpressionTree = pair.getLeft();
-            generated.add(generateFromTemplate(language, pair.getLeft(), pair.getRight()));
-        }
-        if (generatedValues.isEmpty()) {
-            return !allChecksArePassed ? List.of() : List.of(generateFromTemplate(language));
-        }
-        sourceExpressionTree = initial;
 
+        List<MeaningTree> mutations;
+        if (!skipMutations) {
+            TreeMutationGenerator mutationGenerator = new TreeMutationGenerator(sourceExpressionTree);
+            mutations = mutationGenerator.generate();
+        } else {
+            mutations = List.of(sourceExpressionTree);
+        }
+
+        for (MeaningTree mt : mutations) {
+            var data = generateExpressionData(mt, language);
+            OperandRuntimeValueGenerator map = new OperandRuntimeValueGenerator(this, mt, language);
+            List<Pair<MeaningTree, Integer>> generatedValues = map.generate();
+            for (Pair<MeaningTree, Integer> pair : generatedValues) {
+                generated.add(generateFromTemplate(language, new Input(pair.getKey(), pair.getValue(),
+                        data.tokens(), data.code())));
+            }
+            if (generatedValues.isEmpty()) {
+                return !allChecksArePassed || !data.allCorrect ? List.of() : List.of(generateFromTemplate(language));
+            }
+        }
         return !allChecksArePassed ? List.of() : generated;
     }
 
     /**
-     * Obtains tokens of given expression
+     * Obtains tokens and expr text of given expression
      * @param language target language
      */
-    protected void processTokens(SupportedLanguage language) {
+    protected ExpressionData generateExpressionData(MeaningTree mt, SupportedLanguage language) {
         LanguageTranslator toTranslator;
         try {
             toTranslator = language.createTranslator(new MeaningTreeDefaultExpressionConfig());
         } catch (NoSuchMethodException | InvocationTargetException | InstantiationException | IllegalAccessException e) {
             throw new MeaningTreeException("Cannot create source translator with ".concat(language.toString()));
         }
-        var result = toTranslator.tryGetCode(sourceExpressionTree);
-        allChecksArePassed &= result.getLeft();
-        rawTranslatedCode = result.getRight();
+        var result = toTranslator.tryGetCode(mt);
+        boolean checkSuccess = result.getLeft();
+        String rawTranslatedCode = result.getRight();
         if (rawTranslatedCode != null) {
-            var tokenRes = toTranslator.getTokenizer().tryTokenizeExtended(sourceExpressionTree);
-            allChecksArePassed &= tokenRes.getLeft();
-            tokens = tokenRes.getLeft() ? tokenRes.getRight() : new TokenList();
+            var tokenRes = toTranslator.getTokenizer().tryTokenizeExtended(mt);
+            checkSuccess &= tokenRes.getLeft();
+            return new ExpressionData(checkSuccess, tokenRes.getLeft() ? tokenRes.getRight() : new TokenList(), rawTranslatedCode);
+
         } else {
-            tokens = new TokenList();
+            return new ExpressionData(checkSuccess, new TokenList(), "");
         }
     }
 
     /**
      * Process tokens with accurate check of translation compatibility
-     * Works slowly than usual `processTokens`
+     * Works slowly than usual `generateExpressionData`
      * @param language target language
      */
-    private void processTokensAccurate(SupportedLanguage language) {
+    private ExpressionData generateExpressionDataAccurate(MeaningTree mt, SupportedLanguage language) {
         LanguageTranslator toTranslator;
         try {
             toTranslator = language.createTranslator(new MeaningTreeDefaultExpressionConfig());
         } catch (NoSuchMethodException | InvocationTargetException | InstantiationException | IllegalAccessException e) {
             throw new MeaningTreeException("Cannot create source translator with ".concat(language.toString()));
         }
-        var result = toTranslator.tryGetCode(sourceExpressionTree);
-        allChecksArePassed &= result.getLeft();
-        rawTranslatedCode = result.getRight();
+        var result = toTranslator.tryGetCode(mt);
+        boolean checkSuccess = result.getLeft();
+        String rawTranslatedCode = result.getRight();
         if (rawTranslatedCode != null) {
-            var tokenRes = toTranslator.getTokenizer().tryTokenizeExtended(sourceExpressionTree);
-            allChecksArePassed &= tokenRes.getLeft();
+            var tokenRes = toTranslator.getTokenizer().tryTokenizeExtended(mt);
+            checkSuccess &= tokenRes.getLeft();
             if (tokenRes.getLeft()) {
                 var tokenRes2 = toTranslator.getTokenizer().tryTokenizeExtended(rawTranslatedCode);
-                allChecksArePassed &= tokenRes2.getLeft();
+                checkSuccess &= tokenRes2.getLeft();
             }
-            tokens = tokenRes.getLeft() ? tokenRes.getRight() : new TokenList();
+            return new ExpressionData(checkSuccess, tokenRes.getLeft() ? tokenRes.getRight() : new TokenList(), rawTranslatedCode);
         } else {
-            tokens = new TokenList();
+            return new ExpressionData(checkSuccess, new TokenList(), "");
         }
     }
 
@@ -504,64 +577,78 @@ public class MeaningTreeOrderQuestionBuilder {
     /**
      * Create metadata from given question data
      * @param language target language
-     * @param treeHash hash of MT, required for accurate classification of runtime values
+     * @param input input data for generation
      */
-    protected void processMetadata(SupportedLanguage language, int treeHash) {
+    protected void processMetadata(SupportedLanguage language, Input input) {
         if (domain == null && existingMetadata != null) {
             return;
         } else if (domain == null) {
             throw new MeaningTreeException("No valid data present for metadata");
         }
         QuestionMetadataEntity metadata = existingMetadata == null ? null : existingMetadata;
-        tags = new ArrayList<>(List.of("basics", "operators", "order", "evaluation", "errors"));
+        List<String> tags = new ArrayList<>(List.of("basics", "operators", "order", "evaluation", "errors"));
         String languageStr = language.toString();
         tags.add(languageStr.substring(0, 1).toUpperCase() + languageStr.substring(1));
+        Label nodeOrigin = input.mt.getLabel(Label.ORIGIN);
+        if (nodeOrigin != null && !input.mt.hasLabel(Label.MUTATION_FLAG) && nodeOrigin.hasAttribute()
+                && nodeOrigin.getAttribute().equals(language.getId())) {
+            tags.add("original");
+        }
+        if (input.mt.hasLabel(Label.MUTATION_FLAG)) {
+            tags.add("mutation");
+        }
+
         if (questionOrigin == null || questionOrigin.isEmpty()) {
             throw new MeaningTreeException("Question origin didn't specified");
         }
 
-        int omitted = findOmitted(sourceExpressionTree);
+        int omitted = findOmitted(input.mt, language);
         int solutionLength = answerObjects.size() - omitted;
         if (solutionLength <= 0) {
             solutionLength = 1;
         }
 
-        var violations = findAllPossibleViolations(tokens);
-        var skills = findAllSkills(tokens, language);
+        var allConcepts = findAllConcepts(sourceExpressionTree.getRootNode(), language);
+        var concepts = new HashSet<>(allConcepts);
+        if (concepts.isEmpty() || solutionLength == 1) {
+            allChecksArePassed = false;
+        }
+        var violations = findAllPossibleViolations(input.tokens);
+        var skills = findAllSkills(input.tokens, language);
+        var possibleViolations = new HashSet<>(violations);
+
+        Set<String> possibleSkills = new HashSet<>(skills);
 
         // Filter question with repeated skills and violations
-        final int targetSolutionLength = 16;
+        final int stepsCheckThreshold = 12;
         final int maxSkillRepeatCount = 8;
-        final int maxErrorRepeatCount = 5;
-        if (solutionLength > targetSolutionLength) {
+        if (solutionLength > stepsCheckThreshold) {
             var counter = Utils.countElements(skills);
             for (var entry : counter.entrySet()) {
                 if (entry.getValue() > maxSkillRepeatCount) {
                     allChecksArePassed = false;
                 }
             }
-            counter = Utils.countElements(violations);
-            for (var entry : counter.entrySet()) {
-                if (entry.getValue() > maxErrorRepeatCount) {
-                    allChecksArePassed = false;
+            if (allChecksArePassed) {
+                var conceptCounter = Utils.countElements(allConcepts);
+                for (var entry : conceptCounter.entrySet()) {
+                    if ((entry.getValue() / allConcepts.size()) > 0.9) {
+                        allChecksArePassed = false;
+                    }
                 }
             }
-        }
-
-        possibleViolations = new HashSet<>(violations);
-        Set<String> possibleSkills = new HashSet<>(skills);
-        concepts = findConcepts(sourceExpressionTree, language);
-        if (concepts.isEmpty() || solutionLength == 1) {
-            allChecksArePassed = false;
         }
         double complexity = 0.18549906 * solutionLength - 0.01883239 * possibleViolations.size();
         complexity = MathHelper.sigmoid(complexity * 4 - 2);
         long conceptBits = concepts.stream().map(domain::getConcept).filter(Objects::nonNull).map(Concept::getBitmask).reduce((a, b) -> a|b).orElse(0L);
 
-        String customTemplateId = StringHelper.truncate(rawTranslatedCode.replaceAll(
+        String customTemplateId = StringHelper.truncate(input.code.replaceAll(
                 " ", "_").replaceAll("[/:*?\"<>|\\\\]", ""),
                 64).concat("_").concat(languageStr);
-        String customQuestionId = customTemplateId.concat(Integer.toString(treeHash)).concat("_v");
+        if (input.mt.hasLabel(Label.MUTATION_FLAG)) {
+            customTemplateId = customTemplateId.concat("mut_");
+        }
+        String customQuestionId = customTemplateId.concat(Integer.toString(input.hash)).concat("_v");
 
         this.metadata = SerializableQuestionTemplate.QuestionMetadata.builder()
                 .name(customQuestionId)
@@ -578,7 +665,7 @@ public class MeaningTreeOrderQuestionBuilder {
                 .solutionSteps(solutionLength)
                 .distinctErrorsCount(possibleViolations.size())
                 .version(TARGET_VERSION)
-                .treeHashCode(treeHash)
+                .treeHashCode(input.hash)
                 .language(language.toString())
                 .structureHash(metadata != null ? metadata.getStructureHash() : "")
                 .origin(questionOrigin)
@@ -591,18 +678,31 @@ public class MeaningTreeOrderQuestionBuilder {
      * @param tree meaning tree
      * @return omitted operands integer count
      */
-    static int findOmitted(MeaningTree tree) {
+    static int findOmitted(MeaningTree tree, SupportedLanguage lang) {
         int count = 0;
+        HashSet<Node> visited = new HashSet<>();
         for (Node.Info info : tree) {
+            if (visited.contains(info)) {
+                continue;
+            }
             if (info.node() instanceof ShortCircuitAndOp op
                     && op.getLeft().getAssignedValueTag() instanceof Boolean bool && !bool) {
-                count++;
+                count += countInternalOperators(op.getLeft(), lang);
+                visited.add(op.getLeft());
             } else if (info.node() instanceof ShortCircuitOrOp op
                     && op.getLeft().getAssignedValueTag() instanceof Boolean bool && bool) {
-                count++;
-            } else if (info.node() instanceof TernaryOperator) {
-                count++;
+                count += countInternalOperators(op.getLeft(), lang);
+                visited.add(op.getLeft());
+            } else if (info.node() instanceof TernaryOperator op) {
+                if (op.getCondition().getAssignedValueTag() instanceof Boolean bool && !bool) {
+                    count += countInternalOperators(op.getThenExpr(), lang);
+                    visited.add(op.getThenExpr());
+                } else {
+                    count += countInternalOperators(op.getElseExpr(), lang);
+                    visited.add(op.getElseExpr());
+                }
             }
+            visited.add(info.node());
         }
         return count;
     }
@@ -612,10 +712,9 @@ public class MeaningTreeOrderQuestionBuilder {
      */
     protected void processTemplateStatementFacts() {
         RDFSerializer rdfSerializer = new RDFSerializer();
-        Model m = rdfSerializer.serialize(sourceExpressionTree.getRootNode());
+        Model m = rdfSerializer.serialize(sourceExpressionTree);
         this.stmtFacts = MeaningTreeRDFHelper.backendFactsToSerialized(MeaningTreeRDFHelper.factsFromModel(m));
     }
-
 
     /**
      * Find concept names in Meaning Tree
@@ -623,10 +722,24 @@ public class MeaningTreeOrderQuestionBuilder {
      * @param toLanguage target language
      * @return set of unique concept names of given expression
      */
-     static Set<String> findConcepts(MeaningTree mt, SupportedLanguage toLanguage) {
-        HashSet<String> result = new HashSet<>();
-        for (Node.Info nodeInfo: mt) {
-            Node node = nodeInfo.node();
+    static Set<String> findConcepts(MeaningTree mt, SupportedLanguage toLanguage) {
+        return new HashSet<>(findAllConcepts(mt.getRootNode(), toLanguage));
+    }
+
+    static int countInternalOperators(Node root, SupportedLanguage toLanguage) {
+        var list = findAllConcepts(root, toLanguage);
+        list.remove("operator_(");
+        list.remove("operator_call");
+        if (!list.isEmpty()) {
+            return list.size() - 1;
+        }
+        return list.size();
+    }
+
+    static List<String> findAllConcepts(Node root, SupportedLanguage toLanguage) {
+        ArrayList<String> result = new ArrayList<>();
+        root.iterateChildren().forEachRemaining(child -> {
+            Node node = child.node();
             if (node instanceof AddOp) result.add("operator_binary_+");
             else if (node instanceof MulOp) result.add("operator_binary_*");
             else if (node instanceof DivOp) result.add("operator_/");
@@ -666,7 +779,7 @@ public class MeaningTreeOrderQuestionBuilder {
             else if (node instanceof PostfixDecrementOp) result.add("operator_postfix_--");
             else if (node instanceof MemberAccess) result.add("operator_.");
             else if (node instanceof TernaryOperator) result.add("operator_?");
-            else if (node instanceof ExpressionSequence && toLanguage == SupportedLanguage.CPP) result.add("operator_,");
+            else if (node instanceof CommaExpression) result.add("operator_,");
             else if (node instanceof FunctionCall) {
                 result.add("operator_function_call");
                 result.add("function_call");
@@ -737,7 +850,7 @@ public class MeaningTreeOrderQuestionBuilder {
                     }
                 }
             }
-        }
+        });
         return result;
     }
 

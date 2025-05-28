@@ -8,6 +8,7 @@ import org.vstu.compprehension.models.entities.QuestionMetadataEntity;
 import org.vstu.compprehension.models.repository.QuestionMetadataRepository;
 
 import java.time.LocalDateTime;
+import java.util.Collection;
 import java.util.HashSet;
 import java.util.List;
 import java.util.Optional;
@@ -79,8 +80,13 @@ public class FakeQuestionMetadataRepository implements QuestionMetadataRepositor
     }
 
     @Override
-    public boolean existsByNameOrTemplateId(String domainShortname, String questionName, @Nullable String templateId) {
-        return false;
+    public HashSet<String> findExistingNames(String domainShortname, Collection<String> questionNames) {
+        return new HashSet<>();
+    }
+
+    @Override
+    public HashSet<String> findExistingTemplateIds(String domainShortname, Collection<String> templateIds) {
+        return new HashSet<>();
     }
 
     @Override
@@ -160,7 +166,19 @@ public class FakeQuestionMetadataRepository implements QuestionMetadataRepositor
 
     @NotNull
     @Override
-    public HashSet<String> findAllOrigins(String domainName, LocalDateTime from) {
+    public HashSet<String> findFullyProcessedOrigins(String domainName) {
+        return new HashSet<>();
+    }
+
+    @NotNull
+    @Override
+    public HashSet<String> findProcessedOrigins(String domainShortname) {
+        return new HashSet<>();
+    }
+
+    @NotNull
+    @Override
+    public HashSet<String> findProcessedOrigins(String domainShortname, LocalDateTime dateFrom) {
         return new HashSet<>();
     }
 
