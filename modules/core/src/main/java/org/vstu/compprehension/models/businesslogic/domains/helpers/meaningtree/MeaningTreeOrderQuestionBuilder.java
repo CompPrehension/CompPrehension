@@ -320,8 +320,12 @@ public class MeaningTreeOrderQuestionBuilder {
      * @return сгенерированный вопрос
      */
     public static Question fastBuildFromExisting(Question data, SupportedLanguage lang, ProgrammingLanguageExpressionDTDomain domain) {
-        return MeaningTreeOrderQuestionBuilder.newQuestion(domain).existingQuestion(data)
-                .buildQuestions(lang).getFirst();
+        var result = MeaningTreeOrderQuestionBuilder.newQuestion(domain).existingQuestion(data)
+                .buildQuestions(lang);
+        if (result.isEmpty()) {
+            return null;
+        }
+        return result.getFirst();
     }
 
     /**

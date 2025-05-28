@@ -19,7 +19,6 @@ import org.vstu.meaningtree.utils.tokens.TokenList;
 
 import java.util.ArrayList;
 import java.util.HashMap;
-import java.util.stream.Collectors;
 
 public class QuestionDynamicDataAppender {
     /**
@@ -38,6 +37,9 @@ public class QuestionDynamicDataAppender {
         var meta = q.getMetadata();
         if (meta != null && meta.getVersion() < MeaningTreeOrderQuestionBuilder.MIN_VERSION) {
             q = MeaningTreeOrderQuestionBuilder.fastBuildFromExisting(q, lang, domain);
+            if (q == null) {
+                return null;
+            }
             QuestionDataEntity dataEntity = new QuestionDataEntity(null, SerializableQuestion.fromQuestion(q));
             bank.saveQuestionDataEntity(dataEntity);
             meta.setQuestionData(dataEntity);
