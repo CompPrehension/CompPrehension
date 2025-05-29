@@ -276,7 +276,7 @@
                                                             _TEMPLATING_ID="21" value="false">
                                                         <BranchResultNode
                                                                 _EN_explanation="${X} is not evaluated because it belongs to ${X=&gt;isInOperandOf(Y).placement}[case='п'] operand of ${Y}[case='р'], whose ${Y.firstOperandPlacement} operand has the value ${Y-&gt;hasOperand&lt;placement=Y.firstOperandPlacement&gt;.evaluatesTo}, which blocks evaluation of ${X}[case='р']}"
-                                                                _RU_explanation="${X} не должен вычисляться, он находится в ${X=&gt;isInOperandOf(Y).placement}[case='п'] операнде ${Y}[case='р'], чей ${Y.firstOperandPlacement} операнд имеет значение ${Y-&gt;hasOperand&lt;placement=Y.firstOperandPlacement&gt;.evaluatesTo}, что блокирует вычисления ${X}[case='р']"
+                                                                _RU_explanation="${X} не должен вычисляться, он находится в ${X=&gt;isInOperandOf(Y).placement}[case='п'] операнде ${Y}[case='р'], чей ${Y.firstOperandPlacement} операнд имеет значение ${Y-&gt;hasOperand&lt;placement=Y.firstOperandPlacement&gt;.evaluatesTo}, что блокирует вычисление ${X}[case='р']"
                                                                 _TEMPLATING_ID="22"
                                                                 _skill="should_strict_order_current_operand_be_omitted_while_earlyfinish"
                                                                 value="CORRECT"/>
