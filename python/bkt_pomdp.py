@@ -11,9 +11,9 @@ from pyBKT.models import Roster
 def _get_param(df: pd.DataFrame, skill: str,
                aliases: Tuple[str, ...]) -> float:
     """
-    Берём значение параметра по приоритету:
+    Достает значение параметров из pyBKT.model.params() по приоритету:
         1) строка (skill, alias, 'default')
-        2) среднее по всем классам alias
+        2) среднее по всем классам alias (может быть несколько значений для одного параметра из-за настроек модели)
     """
     for a in aliases:
         idx_default = (skill, a, 'default')
@@ -48,7 +48,7 @@ def extract_skills_params(roster: Roster,
 
 def enumerate_questions(skills: List[str],
                         max_count: int) -> List[Tuple[str, ...]]:
-    """Все сочетания от 1 до max_count."""
+    """Все сочетания от 1 до max_count"""
     result = []
     for k in range(1, max_count + 1):
         result.extend(combinations(skills, k))
@@ -56,9 +56,6 @@ def enumerate_questions(skills: List[str],
 
 
 def exp_posterior(b: float, g: float, s: float, l: float) -> float:
-    """
-    E[b'] по формулам (3)(5)(9) статьи «BKT-POMDP».
-    """
     p_corr = b * (1 - s) + (1 - b) * g
     if 0.0 < p_corr < 1.0:
         p_knw_c = (b * (1 - s)) / p_corr
@@ -74,7 +71,7 @@ def exp_posterior(b: float, g: float, s: float, l: float) -> float:
 def expected_reward(question: Tuple[str, ...],
                     beliefs: Dict[str, float],
                     params: Dict[str, Tuple[float, float, float]]) -> float:
-    """Суммарный положительный прирост знания (формула 8)."""
+    """Суммарный положительный прирост знания"""
     reward = 0.0
     for skill in question:
         b = beliefs[skill]
@@ -91,22 +88,22 @@ def choose_best_question(
     candidate_questions: Optional[Iterable[Tuple[str, ...]]] = None,
 ) -> List[str]:
     """
-    Возвращает оптимальный набор навыков для следующего вопроса.
+    Возвращает оптимальный набор навыков для следующего вопроса
     """
-    # 1. параметры навыков
+    # параметры навыков
     skills_params = extract_skills_params(roster, all_skills)
 
-    # 2. актуальные вероятности мастерства ученика
+    # актуальные вероятности мастерства ученика
     beliefs = {
         skill: float(roster.get_mastery_prob(skill, student))
         for skill in all_skills
     }
 
-    # 3. пул вопросов
+    # пул вопросов
     if candidate_questions is None:
         candidate_questions = enumerate_questions(all_skills, max_question_skills_count)
 
-    # 4. выбор максимального ожидаемого прироста
+    # выбор максимального ожидаемого прироста
     best_q, best_r = (), -1.0
     for q in candidate_questions:
         r = expected_reward(q, beliefs, skills_params)

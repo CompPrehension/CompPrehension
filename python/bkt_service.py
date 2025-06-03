@@ -18,7 +18,7 @@ class BktServiceServicer(bkt_service_pb2_grpc.BktServiceServicer):
         return base64.b64encode(pickle.dumps(roster)).decode("utf-8")
 
     def _ensure_skill_and_student(self, roster: Roster, skill: str, student: str):
-        """Гарантирует, что у roster есть нужный skill и student."""
+        """Гарантирует, что у roster есть нужный skill и student"""
         # если навык впервые встречается – заводим пустой SkillRoster,
         # используя тот же pyBKT Model и настройки, что в исходном roster
         if skill not in roster.skill_rosters:
@@ -35,33 +35,26 @@ class BktServiceServicer(bkt_service_pb2_grpc.BktServiceServicer):
         return roster
 
     def UpdateRoster(self, request, context):
-        # ---------- 1. Десериализация ----------
         roster = self._deserialize_roster(request.roster, context)
 
         try:
-            # ---------- 2. Обновление ----------
             skills_list = request.skills
             for skill in skills_list:
                 roster = self._ensure_skill_and_student(roster, skill, request.student)
-                # апдейт состояния
                 roster.update_state(skill, request.student, int(request.correct == True))
         except Exception as e:
             context.abort(StatusCode.INTERNAL, f"Python error: {e}")
 
-        # ---------- 3. Сериализация результата ----------
         return bkt_service_pb2.UpdateRosterResponse(roster = self._serialize_roster(roster))
 
     def GetSkillStates(self, request, context):
-        # ---------- 1. Десериализация ----------
         roster = self._deserialize_roster(request.roster, context)
         skill_states = []
 
         try:
-            # ---------- 2. Получаем состояния ----------
             skills_list = request.skills
             for skill in skills_list:
                 roster = self._ensure_skill_and_student(roster, skill, request.student)
-                # получение состояния
                 state = roster.get_state(skill, request.student)
                 skill_states.append(bkt_service_pb2.SkillState(
                     skill = skill,
@@ -72,17 +65,14 @@ class BktServiceServicer(bkt_service_pb2_grpc.BktServiceServicer):
         except Exception as e:
             context.abort(StatusCode.INTERNAL, f"Python error: {e}")
 
-        # ---------- 3. Сериализация результата ----------
         return bkt_service_pb2.GetSkillStatesResponse(skillStates = skill_states)
 
     def ChooseBestQuestion(self, request, context):
         src = request.WhichOneof("questionsSource")
 
-        # ---------- 1. Десериализация ----------
         roster = self._deserialize_roster(request.roster, context)
 
         try:
-            # ---------- 2. Выбираем лучший вопрос ----------
             skills_list = request.allSkills
             for skill in skills_list:
                 roster = self._ensure_skill_and_student(roster, skill, request.student)
@@ -109,7 +99,6 @@ class BktServiceServicer(bkt_service_pb2_grpc.BktServiceServicer):
         except Exception as e:
             context.abort(StatusCode.INTERNAL, f"Python error: {e}")
 
-        # ---------- 3. Сериализация результата ----------
         return bkt_service_pb2.ChooseBestQuestionResponse(bestTargetSkills = best_question)
 
 def build_server(port: int = 50051) -> grpc.Server:
