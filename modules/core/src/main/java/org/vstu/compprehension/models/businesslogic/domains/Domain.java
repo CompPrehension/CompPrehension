@@ -202,13 +202,13 @@ public interface Domain {
     Map<Skill, List<Skill>> getSkillSimplifiedHierarchy(int bitflags);
 
     /**
-     * Вычисляет навыки, которые считаются задействованными (примененными/нарушенными)
-     * студентом при выборе ответа.
-     * Некоторые навыки считаются примененными/нарушенными,
-     * даже если в узел дерева с этим навыком интерпретатор не заходил
-     * @param observedSkills Список наблюдаемых, в ответе студента, навыков (например, из трассы интерпретатора)
-     * @param isCorrect Корректен ли ответ студента
-     * @return Список задействованных навыков
+     * Calculates the skills that are considered to be used (applied/violated)
+     * by the student when choosing an answer.
+     * Some skills are considered to be applied/violated
+     * even if the interpreter did not enter the tree node with this skill.
+     * @param observedSkills List of skills observed in the student's response (e.g., from the interpreter's trace)
+     * @param isCorrect Is the student's answer correct
+     * @return List of engaged skills
      */
     List<Skill> calculateEngagedSkills(List<String> observedSkills, boolean isCorrect);
 

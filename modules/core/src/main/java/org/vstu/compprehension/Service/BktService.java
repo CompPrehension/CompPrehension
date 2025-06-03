@@ -21,7 +21,7 @@ import java.util.Collections;
 import java.util.List;
 
 /**
- * Единая точка доступа к python-модели BKT.
+ * Единая точка доступа к python-модели BKT
  */
 @Service
 @RequiredArgsConstructor
@@ -91,7 +91,7 @@ public class BktService {
                 .setRoster(roster)
                 .setStudent(userId.toString())
                 .addAllAllSkills(skills)
-                .setMaxQuestionSkillsCount(3) // TODO вынести в настройки exercise мб
+                .setMaxQuestionSkillsCount(3) // Увеличение приводит к экспоненциальному росту времени вычисления
                 .build();
 
         try {

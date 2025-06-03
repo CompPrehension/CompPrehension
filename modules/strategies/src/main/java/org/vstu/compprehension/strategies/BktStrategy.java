@@ -90,12 +90,17 @@ public class BktStrategy implements AbstractStrategy {
         val exercise = attempt.getExercise();
         val domain = domainFactory.getDomain(exercise.getDomain().getName());
 
-        val exerciseTargetSkills = getTargetSkills(attempt);
+        val stageTargetSkills = getStageForNextQuestion(attempt).getSkills()
+                .stream()
+                .filter(skill -> skill.getKind().equals(RoleInExercise.TARGETED))
+                .map(ExerciseSkillDto::getName)
+                .distinct()
+                .toList();
 
         val userId = attempt.getUser().getId();
 
         val questionTargetSkillsNames =
-                bktService.chooseBestQuestion(domain.getDomainId(), userId, exerciseTargetSkills);
+                bktService.chooseBestQuestion(domain.getDomainId(), userId, stageTargetSkills);
         val questionTargetSkills = questionTargetSkillsNames.stream()
                 .map(domain::getSkill)
                 .toList();
@@ -110,23 +115,12 @@ public class BktStrategy implements AbstractStrategy {
 
         if (!questionTargetSkills.isEmpty()) {
 
-            // 1. Заменяем Target-skills на список от BKT
+            // Заменяем Target-skills на список от BKT
             qr.setTargetSkills(new ArrayList<>(questionTargetSkills));
-
-            // 2. Denied-skills не трогаем
             val denied = new HashSet<>(qr.getDeniedSkills());
-
-            // 3. Все остальные skills считаем Allowed,
-            //    даже если раньше они были Target в initQuestionRequest.
             Set<Skill> allowed = new HashSet<>();
-
-            // 3.1) добавим то, что уже лежало в Allowed
             allowed.addAll(qr.getAllowedSkills());
-
-            // 3.2) добавим старые Target (initQuestionRequest), чтобы «перекрасить» их в Allowed
             allowed.addAll(getExerciseStageSkillsWithImplied(exerciseStage.getSkills(), domain, RoleInExercise.TARGETED));
-
-            // 3.3) удаляем из Allowed всё, что теперь Target или Denied
             questionTargetSkills.forEach(allowed::remove);
             denied.forEach(allowed::remove);
 
@@ -145,7 +139,7 @@ public class BktStrategy implements AbstractStrategy {
 
         val userId = attempt.getUser().getId();
 
-        // 1. Сколько вопросов планировалось в упражнении
+        // Сколько вопросов планировалось в упражнении
         val nQuestionsExpected = attempt.getExercise()
                 .getStages()
                 .stream()
@@ -153,36 +147,34 @@ public class BktStrategy implements AbstractStrategy {
                 .reduce(Integer::sum)
                 .orElse(1);
 
-        // 2. Собираем все навыки, встречавшиеся в уже отвеченных вопросах
+        // Собираем все навыки, встречавшиеся в уже отвеченных вопросах
         val targetSkillsInAnswers = attempt.getQuestions().stream()
                 .flatMap(q -> {
                     if (q.getMetadata() == null) return Stream.empty();
                     return domain.skillsFromBitmask(q.getMetadata().getSkillBits()).stream()
-                            .flatMap(s -> s.getClosestVisibleParents(new HashSet<>()).stream()); // BKT учитывает только главные навыки
+                            .flatMap(s -> s.getClosestVisibleParents().stream()); // BKT учитывает только главные навыки
                 })
                 .map(Skill::getName)
                 .filter(targetSkills::contains)
                 .collect(Collectors.toSet());
 
-        // 3. Получаем состояние всех навыков в рамках attempt
+        // Получаем состояние всех навыков в рамках attempt
         val skillStates = bktService.getSkillStates(domain.getDomainId(), userId, new ArrayList<>(targetSkillsInAnswers));
-
-        // 3a. Преобразуем в Map<skillId, pCorrect>
         val pCorr = skillStates.stream()
                 .collect(Collectors.toMap(SkillState::getSkill, SkillState::getCorrectPrediction));
 
         float cumulative = 0f;
 
-        // 4. Подсчитываем оценку за уже выполненные вопросы
+        // Подсчитываем оценку за уже выполненные вопросы
         for (QuestionEntity q : attempt.getQuestions()) {
 
-            // 4.1 Ожидаемая корректность по target-навыкам вопроса
+            // Ожидаемая корректность по target-навыкам вопроса
             List<String> qTargets;
             if (q.getMetadata() == null) {
                 qTargets = Collections.emptyList();
             } else {
                 qTargets = domain.skillsFromBitmask(q.getMetadata().getSkillBits()).stream()
-                        .flatMap(s -> s.getClosestVisibleParents(new HashSet<>()).stream()) // BKT учитывает только главные навыки
+                        .flatMap(s -> s.getClosestVisibleParents().stream()) // BKT учитывает только главные навыки
                         .map(Skill::getName)
                         .filter(targetSkills::contains)
                         .distinct()
@@ -192,9 +184,10 @@ public class BktStrategy implements AbstractStrategy {
                     ? 1.0 // вопрос без target-умений
                     : qTargets.stream()
                     .mapToDouble(skill -> pCorr.getOrDefault(skill, 0.0))
-                    .reduce(1, (f, s) -> f * s);
+                    .min()
+                    .orElse(1.0);
 
-            // 4.2 Доля корректных действий (сглаженная)
+            // Доля корректных действий
             val interactions = q.getInteractions();
             val totalInteractions = interactions.size();
             val correctInteractions = interactions.stream()
@@ -203,9 +196,9 @@ public class BktStrategy implements AbstractStrategy {
                     .count();
             val accuracy = totalInteractions == 0
                     ? 0f
-                    : (float) correctInteractions / Math.max(4, totalInteractions);
+                    : (float) correctInteractions / Math.max(4, totalInteractions); // Math.max оставил как в static стратегии
 
-            // 4.3 Оценка за вопрос
+            // Оценка за вопрос
             val questionScore = (accuracy == 1f)
                     ? 1.0
                     : expected * accuracy;
@@ -213,13 +206,13 @@ public class BktStrategy implements AbstractStrategy {
             cumulative += (float) questionScore;
         }
 
-        // 5. Если стратегия уже решила «FINISH», назначаем полный балл за оставшиеся вопросы
+        // Если стратегия уже решила FINISH, назначаем полный балл за оставшиеся вопросы
         if (decide(attempt) == Decision.FINISH) {
             val remaining = nQuestionsExpected - attempt.getQuestions().size();
             cumulative += remaining; // Считаем, что все не выданные вопросы решены верно
         }
 
-        // 6. Итоговая относительная оценка (0..1)
+        // Итоговая относительная оценка (0..1)
         return cumulative / nQuestionsExpected;
     }
 
@@ -238,13 +231,13 @@ public class BktStrategy implements AbstractStrategy {
 
         List<QuestionEntity> questions = exerciseAttempt.getQuestions();
 
-        // 1. Ограничение: последний вопрос должен быть завершён
+        // Последний вопрос должен быть завершен
         QuestionEntity lastQuestion = questions.getLast();
         if (!isQuestionCompleted(lastQuestion)) {
             return Decision.CONTINUE;
         }
 
-        // 2. Быстрый выход: все целевые навыки уже освоены
+        // Быстрый выход: все целевые навыки уже освоены
         if (skillStates != null && !skillStates.isEmpty()) {
             boolean allMastered = skillStates
                     .stream()
@@ -256,7 +249,7 @@ public class BktStrategy implements AbstractStrategy {
             }
         }
 
-        // 3. Проверка на минимальное число завершённых вопросов (как в static strategy)
+        // Проверка на минимальное число завершённых вопросов (как в static strategy)
         int minimumQuestionsToAsk = getNumberOfQuestionsToAsk(exerciseAttempt.getExercise());
 
         long completedQuestions = questions.stream()
@@ -282,11 +275,9 @@ public class BktStrategy implements AbstractStrategy {
                 .toList();
     }
 
-    /**
-     * Вопрос считается завершённым, когда в последнем взаимодействии
-     * feedback.interactionsLeft == 0.
-     */
     private boolean isQuestionCompleted(QuestionEntity q) {
+        // Вопрос считается завершенным, когда в последнем взаимодействии
+        // feedback.interactionsLeft == 0.
         if (q.getInteractions().isEmpty()) {
             return false;
         }

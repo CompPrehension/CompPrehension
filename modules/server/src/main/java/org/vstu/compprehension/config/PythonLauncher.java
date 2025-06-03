@@ -22,7 +22,7 @@ public class PythonLauncher implements DisposableBean {
             pb.redirectErrorStream(true);
             this.process = pb.start();
 
-            // читаем stdout и логируем:
+            // читаем stdout и логируем
             new Thread(() -> {
                 try (var reader = new BufferedReader(
                         new InputStreamReader(process.getInputStream()))) {

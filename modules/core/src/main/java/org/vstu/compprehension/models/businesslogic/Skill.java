@@ -127,29 +127,20 @@ public class Skill implements TreeNodeWithBitmask {
     }
 
     /**
-     * Рекурсивно ищет ближайших предков с флагом {@code FLAG_VISIBLE_TO_TEACHER}.
-     * @param visited  набор уже посещённых узлов, чтобы избежать циклов
-     * @return множество ближайших видимых предков (может быть пустым)
+     * Recursively searches for the closest ancestors with the {@code FLAG_VISIBLE_TO_TEACHER} flag.
+     * @return A set of the closest visible ancestors (maybe empty)
      */
-    public Set<Skill> getClosestVisibleParents(Set<Skill> visited) {
-        // защита от возможных циклических зависимостей
-        if (!visited.add(this)) {
-            return Set.of();
-        }
-
-        // сам навык помечен – это ближайший видимый
+    public Set<Skill> getClosestVisibleParents() {
         if (this.hasFlag(Skill.FLAG_VISIBLE_TO_TEACHER)) {
             return Set.of(this);
         }
 
-        // если базовых навыков нет – видимых предков тоже нет
         if (this.baseSkills == null || this.baseSkills.isEmpty()) {
             return Set.of();
         }
 
-        // рекурсивно спускаемся к базовым навыкам
         return this.baseSkills.stream()
-                .flatMap(bs -> bs.getClosestVisibleParents(visited).stream())
+                .flatMap(bs -> bs.getClosestVisibleParents().stream())
                 .collect(Collectors.toSet());
     }
 }
