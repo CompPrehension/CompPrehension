@@ -792,10 +792,10 @@ public class ProgrammingLanguageExpressionDTDomain extends DecisionTreeReasoning
         // Проверить в ризонере все возможные варианты интеракций и понять, какая из них правильная и выдать подсказку
         Optional<Pair<ObjectDef, ProgrammingLanguageExpressionsSolver.SolveResult>> found = domain.getObjects().stream()
                 .filter(domainObj ->
-                    domainObj.getClazz().isSubclassOf("operator") && domainObj.getRelationshipLinks().stream().filter(rel ->rel.getRelationshipName().equals("has")).allMatch(
-                            rel -> rel.getObjects().stream().noneMatch(obj ->
-                                    responseTokenIndexes.contains((Integer) obj.getMetadata().get("index")))
-                    )
+                        domainObj.getClazz().isSubclassOf("operator") && domainObj.getRelationshipLinks().stream().filter(rel ->rel.getRelationshipName().equals("has")).allMatch(
+                                rel -> rel.getObjects().stream().noneMatch(obj ->
+                                        responseTokenIndexes.contains((Integer) obj.getMetadata().get("index")))
+                        )
                 ).map(
                         domainObj -> Pair.of(domainObj, solver.solveForX(domainObj, domain, dt))
                 ).filter(
@@ -816,7 +816,7 @@ public class ProgrammingLanguageExpressionDTDomain extends DecisionTreeReasoning
                     );
                     if (explanation.isEmpty()) {
                         explanation.getChildren().add(new Explanation(Explanation.Type.HINT, new HyperText(
-                                        getMessage("explanations.missing_correct_answer_explanation", lang))));
+                                getMessage("explanations.missing_correct_answer_explanation", lang))));
                     }
 
                     CorrectAnswer correctAnswer = new CorrectAnswer();
@@ -835,12 +835,9 @@ public class ProgrammingLanguageExpressionDTDomain extends DecisionTreeReasoning
         correctAnswer.question = q.getQuestionData();
         correctAnswer.lawName = null;
         correctAnswer.skillName = List.of();
-        correctAnswer.explanation = Explanation.aggregate(Explanation.Type.HINT,
-                List.of(
-                        new Explanation(Explanation.Type.HINT, new HyperText(
-                                getMessage("explanations.already_solved", lang)
-                        ))
-                ));
+        correctAnswer.explanation = DecisionTreeReasonerBackend.collectExplanationsFromTrace(Explanation.Type.HINT,
+                solver.solveNoVars(domain, domainSolvingModel.decisionTree("earlyfinish")).trace(), domain, lang
+        );
         return correctAnswer;
     }
 

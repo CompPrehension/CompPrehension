@@ -72,8 +72,6 @@ public class MeaningTreeOrderQuestionBuilder {
     protected List<SerializableQuestion.AnswerObject> answerObjects;
     protected SerializableQuestionTemplate.QuestionMetadata metadata;
     protected SerializableQuestion.QuestionData qdata;
-    protected Set<String> concepts;
-    protected Set<String> possibleViolations;
 
     // Version of MT format
     protected static final int MIN_VERSION = 12;
@@ -82,6 +80,7 @@ public class MeaningTreeOrderQuestionBuilder {
     private boolean allChecksArePassed = true; // expression generator has failed some stages (questions won't be generated if false)
     private boolean skipRuntimeValuesGeneration = false;
     private boolean skipMutations = false;
+    private boolean saveQuestionOnlyForSourceLanguage = false;
 
     @Getter
     protected @NotNull Set<SupportedLanguage> targetLanguages = SupportedLanguage.getMap().keySet();
@@ -155,6 +154,16 @@ public class MeaningTreeOrderQuestionBuilder {
      */
     public MeaningTreeOrderQuestionBuilder setTargetLanguages(@Nullable Set<SupportedLanguage> langs) {
         targetLanguages = Objects.requireNonNullElseGet(langs, () -> SupportedLanguage.getMap().keySet());
+        return this;
+    }
+
+    /**
+     * Deny generate questions for all possible languages
+     * Generate will create question only in source language
+     * @param state
+     */
+    public MeaningTreeOrderQuestionBuilder saveQuestionOnlyForSourceLanguage(boolean state) {
+        saveQuestionOnlyForSourceLanguage = state;
         return this;
     }
 
@@ -336,7 +345,12 @@ public class MeaningTreeOrderQuestionBuilder {
     public List<Pair<SerializableQuestion, SerializableQuestionTemplate.QuestionMetadata>> build(SupportedLanguage language) {
         answerObjects = new ArrayList<>();
         processTemplateStatementFacts();
-        return generateManyQuestions(language);
+        boolean bufAllChecksArePassed = allChecksArePassed;
+        var result = generateManyQuestions(language);
+        if (allChecksArePassed != bufAllChecksArePassed) {
+            allChecksArePassed = bufAllChecksArePassed;
+        }
+        return result;
     }
 
     /**
@@ -347,7 +361,13 @@ public class MeaningTreeOrderQuestionBuilder {
         List<SerializableQuestionTemplate> resultList = new ArrayList<>();
 
         List<Pair<SerializableQuestion, SerializableQuestionTemplate.QuestionMetadata>> metadata = new ArrayList<>();
+
         for (SupportedLanguage language : targetLanguages) {
+            Label origin = sourceExpressionTree.getLabel(Label.ORIGIN);
+            if (origin != null && saveQuestionOnlyForSourceLanguage &&
+                    !language.equals(SupportedLanguage.from((short) origin.getAttribute()))) {
+                continue;
+            }
             metadata.addAll(build(language));
         }
 
@@ -582,41 +602,41 @@ public class MeaningTreeOrderQuestionBuilder {
             throw new MeaningTreeException("Question origin didn't specified");
         }
 
-        int omitted = findOmitted(input.mt);
+        int omitted = findOmitted(input.mt, language);
         int solutionLength = answerObjects.size() - omitted;
         if (solutionLength <= 0) {
             solutionLength = 1;
         }
 
+        var allConcepts = findAllConcepts(sourceExpressionTree.getRootNode(), language);
+        var concepts = new HashSet<>(allConcepts);
+        if (concepts.isEmpty() || solutionLength == 1) {
+            allChecksArePassed = false;
+        }
         var violations = findAllPossibleViolations(input.tokens);
         var skills = findAllSkills(input.tokens, language);
+        var possibleViolations = new HashSet<>(violations);
+
+        Set<String> possibleSkills = new HashSet<>(skills);
 
         // Filter question with repeated skills and violations
-        final int maxSolutionLength = 16;
+        final int stepsCheckThreshold = 12;
         final int maxSkillRepeatCount = 8;
-        final int maxErrorRepeatCount = 5;
-        if (solutionLength <= maxSolutionLength) {
+        if (solutionLength > stepsCheckThreshold) {
             var counter = Utils.countElements(skills);
             for (var entry : counter.entrySet()) {
                 if (entry.getValue() > maxSkillRepeatCount) {
                     allChecksArePassed = false;
                 }
             }
-            counter = Utils.countElements(violations);
-            for (var entry : counter.entrySet()) {
-                if (entry.getValue() > maxErrorRepeatCount) {
-                    allChecksArePassed = false;
+            if (allChecksArePassed) {
+                var conceptCounter = Utils.countElements(allConcepts);
+                for (var entry : conceptCounter.entrySet()) {
+                    if ((entry.getValue() / allConcepts.size()) > 0.9) {
+                        allChecksArePassed = false;
+                    }
                 }
             }
-        } else {
-            allChecksArePassed = false;
-        }
-
-        possibleViolations = new HashSet<>(violations);
-        Set<String> possibleSkills = new HashSet<>(skills);
-        concepts = findConcepts(sourceExpressionTree, language);
-        if (concepts.isEmpty() || solutionLength == 1) {
-            allChecksArePassed = false;
         }
         double complexity = 0.18549906 * solutionLength - 0.01883239 * possibleViolations.size();
         complexity = MathHelper.sigmoid(complexity * 4 - 2);
@@ -658,18 +678,31 @@ public class MeaningTreeOrderQuestionBuilder {
      * @param tree meaning tree
      * @return omitted operands integer count
      */
-    static int findOmitted(MeaningTree tree) {
+    static int findOmitted(MeaningTree tree, SupportedLanguage lang) {
         int count = 0;
+        HashSet<Node> visited = new HashSet<>();
         for (Node.Info info : tree) {
+            if (visited.contains(info)) {
+                continue;
+            }
             if (info.node() instanceof ShortCircuitAndOp op
                     && op.getLeft().getAssignedValueTag() instanceof Boolean bool && !bool) {
-                count++;
+                count += countInternalOperators(op.getLeft(), lang);
+                visited.add(op.getLeft());
             } else if (info.node() instanceof ShortCircuitOrOp op
                     && op.getLeft().getAssignedValueTag() instanceof Boolean bool && bool) {
-                count++;
-            } else if (info.node() instanceof TernaryOperator) {
-                count++;
+                count += countInternalOperators(op.getLeft(), lang);
+                visited.add(op.getLeft());
+            } else if (info.node() instanceof TernaryOperator op) {
+                if (op.getCondition().getAssignedValueTag() instanceof Boolean bool && !bool) {
+                    count += countInternalOperators(op.getThenExpr(), lang);
+                    visited.add(op.getThenExpr());
+                } else {
+                    count += countInternalOperators(op.getElseExpr(), lang);
+                    visited.add(op.getElseExpr());
+                }
             }
+            visited.add(info.node());
         }
         return count;
     }
@@ -683,17 +716,30 @@ public class MeaningTreeOrderQuestionBuilder {
         this.stmtFacts = MeaningTreeRDFHelper.backendFactsToSerialized(MeaningTreeRDFHelper.factsFromModel(m));
     }
 
-
     /**
      * Find concept names in Meaning Tree
      * @param mt meaning tree
      * @param toLanguage target language
      * @return set of unique concept names of given expression
      */
-     static Set<String> findConcepts(MeaningTree mt, SupportedLanguage toLanguage) {
-        HashSet<String> result = new HashSet<>();
-        for (Node.Info nodeInfo: mt) {
-            Node node = nodeInfo.node();
+    static Set<String> findConcepts(MeaningTree mt, SupportedLanguage toLanguage) {
+        return new HashSet<>(findAllConcepts(mt.getRootNode(), toLanguage));
+    }
+
+    static int countInternalOperators(Node root, SupportedLanguage toLanguage) {
+        var list = findAllConcepts(root, toLanguage);
+        list.remove("operator_(");
+        list.remove("operator_call");
+        if (!list.isEmpty()) {
+            return list.size() - 1;
+        }
+        return list.size();
+    }
+
+    static List<String> findAllConcepts(Node root, SupportedLanguage toLanguage) {
+        ArrayList<String> result = new ArrayList<>();
+        root.iterateChildren().forEachRemaining(child -> {
+            Node node = child.node();
             if (node instanceof AddOp) result.add("operator_binary_+");
             else if (node instanceof MulOp) result.add("operator_binary_*");
             else if (node instanceof DivOp) result.add("operator_/");
@@ -804,7 +850,7 @@ public class MeaningTreeOrderQuestionBuilder {
                     }
                 }
             }
-        }
+        });
         return result;
     }
 

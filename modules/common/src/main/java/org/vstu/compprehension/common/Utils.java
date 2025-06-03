@@ -3,7 +3,7 @@ package org.vstu.compprehension.common;
 import org.jetbrains.annotations.NotNull;
 import org.jetbrains.annotations.Nullable;
 
-import java.util.List;
+import java.util.Collection;
 import java.util.Map;
 import java.util.Optional;
 import java.util.stream.Collectors;
@@ -17,7 +17,7 @@ public class Utils {
         return Optional.empty();
     }
 
-    public static <T> Map<T, Integer> countElements(List<T> items) {
+    public static <T> Map<T, Integer> countElements(Collection<T> items) {
         return items.stream()
                 .collect(Collectors.toMap(
                         item -> item,
