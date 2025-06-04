@@ -787,9 +787,9 @@ public class MeaningTreeOrderQuestionBuilder {
             else if (node instanceof PrintCommand || node instanceof InputCommand) result.add("stream_io");
             else if (node instanceof RightShiftOp) result.add("operator_>>");
             else if (node instanceof IndexExpression) result.add("operator_subscript");
-            else if (node instanceof PointerPackOp) result.add("operator_unary_&");
-            else if (node instanceof PointerUnpackOp) result.add("operator_unary_*");
-            else if (node instanceof PointerMemberAccess) result.add("operator_->");
+            else if (node instanceof PointerPackOp && toLanguage == SupportedLanguage.CPP) result.add("operator_unary_&");
+            else if (node instanceof PointerUnpackOp && toLanguage == SupportedLanguage.CPP) result.add("operator_unary_*");
+            else if (node instanceof PointerMemberAccess && toLanguage == SupportedLanguage.CPP) result.add("operator_->");
             else if (node instanceof PrefixIncrementOp) result.add("operator_prefix_++");
             else if (node instanceof PrefixDecrementOp) result.add("operator_prefix_--");
             else if (node instanceof PostfixIncrementOp) result.add("operator_postfix_++");
