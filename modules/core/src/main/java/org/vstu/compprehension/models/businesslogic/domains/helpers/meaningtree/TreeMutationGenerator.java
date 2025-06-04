@@ -1,7 +1,9 @@
 package org.vstu.compprehension.models.businesslogic.domains.helpers.meaningtree;
 
 import org.vstu.meaningtree.MeaningTree;
+import org.vstu.meaningtree.iterators.DFSNodeIterator;
 import org.vstu.meaningtree.iterators.utils.NodeInfo;
+import org.vstu.meaningtree.nodes.expressions.comparison.CompoundComparison;
 
 import java.util.ArrayList;
 import java.util.HashMap;
@@ -25,7 +27,9 @@ class TreeMutationGenerator {
 
     private void analyze() {
         mutationNodes = new HashMap<>();
-        for (NodeInfo node : mt) {
+        DFSNodeIterator dfs = new DFSNodeIterator(mt.getRootNode(), true);
+        dfs.addEnterCondition((node) -> !(node instanceof CompoundComparison));
+        for (NodeInfo node : dfs) {
             if (node == null) continue;
             List<Mutation> mutList = requiredMutations.stream().filter(mut -> mut.isEligible(node)).toList();
             if (!mutList.isEmpty()) mutationNodes.put(node, mutList);
