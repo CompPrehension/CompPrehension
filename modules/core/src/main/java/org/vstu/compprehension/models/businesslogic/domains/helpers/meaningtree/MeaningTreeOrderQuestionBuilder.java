@@ -1191,7 +1191,9 @@ public class MeaningTreeOrderQuestionBuilder {
                         var nearRightOperands = tokens.findOperands(j);
                         if (op.precedence == nearOp.precedence &&
                                 (!nearRightOperands.containsKey(OperandPosition.LEFT) ||
-                                !nearRightOperands.containsKey(OperandPosition.RIGHT))
+                                !nearRightOperands.containsKey(OperandPosition.RIGHT)) &&
+                                (!operands.containsKey(OperandPosition.LEFT) ||
+                                        !operands.containsKey(OperandPosition.RIGHT))
                         ) {
                             set.add("associativity_without_opposing_operand");
                             break;
@@ -1242,7 +1244,11 @@ public class MeaningTreeOrderQuestionBuilder {
                         var nearLeftOperands = tokens.findOperands(j);
                         if (op.precedence == nearOp.precedence &&
                                 (!nearLeftOperands.containsKey(OperandPosition.LEFT) ||
-                                !nearLeftOperands.containsKey(OperandPosition.RIGHT))) {
+                                !nearLeftOperands.containsKey(OperandPosition.RIGHT)) &&
+                                (!operands.containsKey(OperandPosition.LEFT) ||
+                                        !operands.containsKey(OperandPosition.RIGHT))
+                        )
+                        {
                             set.add("associativity_without_opposing_operand");
                             break;
                         }
