@@ -1138,7 +1138,12 @@ public class MeaningTreeOrderQuestionBuilder {
                     set.add("current_operator_enclosed");
                 }
 
-                var operands = tokens.findOperands(i);
+                Map<OperandPosition, TokenGroup> operands;
+                if (op instanceof ComplexOperatorToken cmplex && cmplex.positionOfToken == 1) {
+                    operands = tokens.findOperands(tokens.findOpeningComplex(i));
+                } else {
+                    operands = tokens.findOperands(i);
+                }
 
                 // оператор имеет любой центральный операнд
                 if (operands.containsKey(OperandPosition.CENTER)) {
@@ -1188,26 +1193,41 @@ public class MeaningTreeOrderQuestionBuilder {
                             // Это не останавливает поиск, так как еще может быть оператор с различной ассоциативностью
                         }
 
-                        var nearRightOperands = tokens.findOperands(j);
+                        Map<OperandPosition, TokenGroup> nearRightOperands;
+                        if (nearOp instanceof ComplexOperatorToken cmplex && cmplex.positionOfToken == 1) {
+                            nearRightOperands = tokens.findOperands(tokens.findOpeningComplex(j));
+                        } else {
+                            nearRightOperands = tokens.findOperands(j);
+                        }
                         if (op.precedence == nearOp.precedence &&
                                 (!nearRightOperands.containsKey(OperandPosition.LEFT) ||
                                 !nearRightOperands.containsKey(OperandPosition.RIGHT)) &&
                                 (!operands.containsKey(OperandPosition.LEFT) ||
-                                        !operands.containsKey(OperandPosition.RIGHT))
+                                        !operands.containsKey(OperandPosition.RIGHT)) &&
+                                !(op instanceof ComplexOperatorToken complex && nearOp instanceof ComplexOperatorToken complex2
+                                        && (complex.positionOfToken != 1 || complex2.positionOfToken != 0 || tokens.findClosingComplex(j) == i))
                         ) {
                             set.add("associativity_without_opposing_operand");
                             break;
                         }
                         if (op.precedence == nearOp.precedence &&
                                 op.assoc == nearOp.assoc &&
-                                op.assoc == OperatorAssociativity.RIGHT) {
+                                op.arity == OperatorArity.BINARY &&
+                                op.assoc == OperatorAssociativity.RIGHT &&
+                                !(op instanceof ComplexOperatorToken complex && nearOp instanceof ComplexOperatorToken complex2
+                                    && (complex.positionOfToken != 1 || complex2.positionOfToken != 0 || tokens.findClosingComplex(j) == i))
+                        ) {
                             set.add("order_determined_by_associativity");
                             set.add("left_competing_to_right_associativity");
                             break;
                         }
                         if (op.precedence == nearOp.precedence &&
                                 op.assoc == nearOp.assoc &&
-                                op.assoc == OperatorAssociativity.LEFT) {
+                                op.arity == OperatorArity.BINARY &&
+                                op.assoc == OperatorAssociativity.LEFT &&
+                                !(op instanceof ComplexOperatorToken complex && nearOp instanceof ComplexOperatorToken complex2
+                                    && (complex.positionOfToken != 1 || complex2.positionOfToken != 0 || tokens.findClosingComplex(j) == i))
+                        ) {
                             set.add("order_determined_by_associativity");
                             set.add("right_competing_to_left_associativity");
                             break;
@@ -1241,12 +1261,19 @@ public class MeaningTreeOrderQuestionBuilder {
                             // Это не останавливает поиск, так как еще может быть оператор с различной ассоциативностью
                         }
 
-                        var nearLeftOperands = tokens.findOperands(j);
+                        Map<OperandPosition, TokenGroup> nearLeftOperands;
+                        if (nearOp instanceof ComplexOperatorToken cmplex && cmplex.positionOfToken == 1) {
+                            nearLeftOperands = tokens.findOperands(tokens.findOpeningComplex(j));
+                        } else {
+                            nearLeftOperands = tokens.findOperands(j);
+                        }
                         if (op.precedence == nearOp.precedence &&
                                 (!nearLeftOperands.containsKey(OperandPosition.LEFT) ||
                                 !nearLeftOperands.containsKey(OperandPosition.RIGHT)) &&
                                 (!operands.containsKey(OperandPosition.LEFT) ||
-                                        !operands.containsKey(OperandPosition.RIGHT))
+                                        !operands.containsKey(OperandPosition.RIGHT)) &&
+                                !(op instanceof ComplexOperatorToken complex && nearOp instanceof ComplexOperatorToken complex2
+                                        && (complex.positionOfToken != 0 || complex2.positionOfToken != 0))
                         )
                         {
                             set.add("associativity_without_opposing_operand");
@@ -1254,14 +1281,20 @@ public class MeaningTreeOrderQuestionBuilder {
                         }
                         if (op.precedence == nearOp.precedence &&
                                 op.assoc == nearOp.assoc &&
-                                op.assoc == OperatorAssociativity.RIGHT) {
+                                op.arity == OperatorArity.BINARY &&
+                                op.assoc == OperatorAssociativity.RIGHT &&
+                                !(op instanceof ComplexOperatorToken complex && nearOp instanceof ComplexOperatorToken complex2
+                                        && (complex.positionOfToken != 0 || complex2.positionOfToken != 0))) {
                             set.add("order_determined_by_associativity");
                             set.add("left_competing_to_right_associativity");
                             break;
                         }
                         if (op.precedence == nearOp.precedence &&
                                 op.assoc == nearOp.assoc &&
-                                op.assoc == OperatorAssociativity.LEFT) {
+                                op.arity == OperatorArity.BINARY &&
+                                op.assoc == OperatorAssociativity.LEFT &&
+                                !(op instanceof ComplexOperatorToken complex && nearOp instanceof ComplexOperatorToken complex2
+                                        && (complex.positionOfToken != 0 || complex2.positionOfToken != 0))) {
                             set.add("order_determined_by_associativity");
                             set.add("right_competing_to_left_associativity");
                             break;
