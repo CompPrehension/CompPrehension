@@ -2082,24 +2082,106 @@
                                                     <DecisionTreeVar name="X1"/>
                                                 </CheckRelationship>
                                                 <LogicalNot>
-                                                    <ExistenceQuantifier type="token" varName="sep">
-                                                        <CheckClass>
-                                                            <GetByRelationship relationshipName="belongsTo">
+                                                    <LogicalOr>
+                                                        <ExistenceQuantifier type="token" varName="sep">
+                                                            <CheckClass>
+                                                                <GetByRelationship relationshipName="belongsTo">
+                                                                    <Variable name="sep"/>
+                                                                </GetByRelationship>
+                                                                <Class name="separator"/>
+                                                            </CheckClass>
+                                                            <CheckRelationship relationshipName="isBetween">
                                                                 <Variable name="sep"/>
-                                                            </GetByRelationship>
-                                                            <Class name="separator"/>
-                                                        </CheckClass>
-                                                        <CheckRelationship relationshipName="isBetween">
-                                                            <Variable name="sep"/>
-                                                            <GetByCondition type="token" varName="t">
-                                                                <CheckRelationship relationshipName="has">
-                                                                    <Variable name="w"/>
-                                                                    <Variable name="t"/>
+                                                                <GetByCondition type="token" varName="t">
+                                                                    <CheckRelationship relationshipName="has">
+                                                                        <Variable name="w"/>
+                                                                        <Variable name="t"/>
+                                                                    </CheckRelationship>
+                                                                </GetByCondition>
+                                                                <DecisionTreeVar name="X"/>
+                                                            </CheckRelationship>
+                                                        </ExistenceQuantifier>
+                                                        <ExistenceQuantifier type="token" varName="call">
+                                                            <LogicalAnd>
+                                                                <CheckClass>
+                                                                    <GetByRelationship relationshipName="belongsTo">
+                                                                        <Variable name="call"/>
+                                                                    </GetByRelationship>
+                                                                    <Class name="operator" />
+                                                                </CheckClass>
+                                                                <GetPropertyValue propertyName="canHaveManyCentralOperands">
+                                                                    <Cast>
+                                                                        <GetByRelationship relationshipName="belongsTo">
+                                                                            <Variable name="call"/>
+                                                                        </GetByRelationship>
+                                                                        <Class name="operator" />
+                                                                    </Cast>
+                                                                </GetPropertyValue>
+                                                            </LogicalAnd>
+                                                            <LogicalAnd>
+                                                                <CheckRelationship relationshipName="isBetween">
+                                                                    <Variable name="call"/>
+                                                                    <GetByCondition type="token" varName="V1">
+                                                                        <LogicalAnd>
+                                                                            <CheckRelationship relationshipName="belongsTo">
+                                                                                <Variable name="V1"/>
+                                                                                <DecisionTreeVar name="V"/>
+                                                                            </CheckRelationship>
+                                                                            <CheckRelationship relationshipName="rightOf">
+                                                                                <DecisionTreeVar name="X1"/>
+                                                                                <Variable name="V1"/>
+                                                                            </CheckRelationship>
+                                                                        </LogicalAnd>
+                                                                    </GetByCondition>
+                                                                    <GetByCondition type="token" varName="t">
+                                                                        <CheckRelationship relationshipName="has">
+                                                                            <Variable name="w"/>
+                                                                            <Variable name="t"/>
+                                                                        </CheckRelationship>
+                                                                    </GetByCondition>
                                                                 </CheckRelationship>
-                                                            </GetByCondition>
-                                                            <DecisionTreeVar name="X"/>
-                                                        </CheckRelationship>
-                                                    </ExistenceQuantifier>
+                                                                <ExistenceQuantifier type="token" varName="call2">
+                                                                    <LogicalAnd>
+                                                                        <Compare operator="EQ">
+                                                                            <GetByRelationship relationshipName="belongsTo">
+                                                                                <Variable name="call"/>
+                                                                            </GetByRelationship>
+                                                                            <GetByRelationship relationshipName="belongsTo">
+                                                                                <Variable name="call2"/>
+                                                                            </GetByRelationship>
+                                                                        </Compare>
+                                                                        <Compare operator="NEQ">
+                                                                            <Variable name="call"/>
+                                                                            <Variable name="call2"/>
+                                                                        </Compare>
+                                                                    </LogicalAnd>
+                                                                    <LogicalNot>
+                                                                        <CheckRelationship relationshipName="isBetween">
+                                                                            <Variable name="call2"/>
+                                                                            <GetByCondition type="token" varName="V1">
+                                                                                <LogicalAnd>
+                                                                                    <CheckRelationship relationshipName="belongsTo">
+                                                                                        <Variable name="V1"/>
+                                                                                        <DecisionTreeVar name="V"/>
+                                                                                    </CheckRelationship>
+                                                                                    <CheckRelationship relationshipName="rightOf">
+                                                                                        <DecisionTreeVar name="X1"/>
+                                                                                        <Variable name="V1"/>
+                                                                                    </CheckRelationship>
+                                                                                </LogicalAnd>
+                                                                            </GetByCondition>
+                                                                            <GetByCondition type="token" varName="t">
+                                                                                <CheckRelationship relationshipName="has">
+                                                                                    <Variable name="w"/>
+                                                                                    <Variable name="t"/>
+                                                                                </CheckRelationship>
+                                                                            </GetByCondition>
+                                                                        </CheckRelationship>
+                                                                    </LogicalNot>
+                                                                </ExistenceQuantifier>
+                                                            </LogicalAnd>
+                                                        </ExistenceQuantifier>
+                                                    </LogicalOr>
                                                 </LogicalNot>
                                             </LogicalAnd>
                                         </GetByCondition>
