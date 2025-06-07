@@ -41,6 +41,16 @@ public interface AbstractStrategy {
 
     Decision decide(ExerciseAttemptEntity exerciseAttempt);
 
+    /**
+     * Updates the user knowledge model (student model)
+     * @param exerciseAttempt Attempt to solve the exercise
+     * @param judgeResult Result of judging the student's answer
+     */
+    default void updateUserKnowledgeModel(
+            ExerciseAttemptEntity exerciseAttempt,
+            Domain.InterpretSentenceResult judgeResult
+    ) {}
+
     @NotNull
     default List<Concept> filterExerciseStageConcepts(
             @NotNull List<ExerciseConceptDto> stageConcepts,

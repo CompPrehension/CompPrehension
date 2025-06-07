@@ -1,0 +1,47 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<databaseChangeLog
+        xmlns="http://www.liquibase.org/xml/ns/dbchangelog"
+        xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance"
+        xsi:schemaLocation="http://www.liquibase.org/xml/ns/dbchangelog
+                      http://www.liquibase.org/xml/ns/dbchangelog/dbchangelog-4.24.xsd">
+
+    <changeSet id="20250414-01-add-empty-roster-to-domain" author="Andrey Krygin">
+        <addColumn tableName="domain">
+            <column name="empty_roster" type="TEXT" />
+        </addColumn>
+    </changeSet>
+
+    <changeSet id="20250414-01-create-bkt-data-table" author="Andrey Krygin">
+        <createTable tableName="bkt_data">
+            <column name="user_id" type="BIGINT" />
+            <column name="domain_name" type="VARCHAR(255)" />
+            <column name="version" type="BIGINT" />
+            <column name="roster" type="TEXT" />
+        </createTable>
+        <addPrimaryKey
+                tableName="bkt_data"
+                columnNames="user_id,domain_name"
+                constraintName="pk_bkt_data"/>
+        <addForeignKeyConstraint
+                baseTableName="bkt_data"
+                baseColumnNames="user_id"
+                constraintName="fk_bkt_data_user"
+                referencedTableName="user"
+                referencedColumnNames="id"/>
+        <addForeignKeyConstraint
+                baseTableName="bkt_data"
+                baseColumnNames="domain_name"
+                constraintName="fk_bkt_data_domain"
+                referencedTableName="domain"
+                referencedColumnNames="name"/>
+        <addNotNullConstraint
+                tableName="bkt_data"
+                columnName="version"
+                columnDataType="BIGINT" />
+        <addNotNullConstraint
+                tableName="bkt_data"
+                columnName="roster"
+                columnDataType="TEXT" />
+    </changeSet>
+
+</databaseChangeLog>

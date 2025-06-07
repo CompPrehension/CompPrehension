@@ -1,5 +1,6 @@
 package org.vstu.compprehension.models.businesslogic.domains;
 
+import its.reasoner.nodes.DecisionTreeTrace;
 import lombok.AllArgsConstructor;
 import lombok.Data;
 import org.jetbrains.annotations.NotNull;
@@ -287,5 +288,11 @@ public interface Domain {
          * Supplementary can generate new violations even on correct variant.
          */
         public boolean isAnswerCorrect;
+
+        /**
+         * The trace of reasoning along the decision tree
+         */
+        @Nullable
+        public DecisionTreeTrace decisionTreeTrace = null;
     }
 }

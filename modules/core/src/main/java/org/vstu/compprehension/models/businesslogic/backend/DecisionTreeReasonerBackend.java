@@ -279,6 +279,7 @@ public class DecisionTreeReasonerBackend
             List<DecisionTreeTraceElement<?, ?>> traceElements = nestedTraceElements(backendOutput.results);
 
             InterpretSentenceResult result = new InterpretSentenceResult();
+            result.decisionTreeTrace = backendOutput.results;
             for (DecisionTreeTraceElement<?,?> res : traceElements) {
                 String[] resSkill = res.getNode().getMetadata().containsAny("skill") && res.getNode().getMetadata().get("skill") != null ?
                         res.getNode().getMetadata().get("skill").toString().split(";") : new String[0];
