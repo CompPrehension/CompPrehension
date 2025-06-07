@@ -9,7 +9,6 @@ import org.apache.commons.lang3.tuple.Pair;
 import org.jetbrains.annotations.NotNull;
 import org.jetbrains.annotations.Nullable;
 import org.springframework.stereotype.Service;
-import org.springframework.transaction.annotation.Isolation;
 import org.springframework.transaction.annotation.Propagation;
 import org.springframework.transaction.annotation.Transactional;
 import org.vstu.compprehension.common.Utils;
@@ -18,7 +17,6 @@ import org.vstu.compprehension.dto.feedback.FeedbackDto;
 import org.vstu.compprehension.dto.feedback.FeedbackViolationLawDto;
 import org.vstu.compprehension.dto.question.QuestionDto;
 import org.vstu.compprehension.models.businesslogic.Explanation;
-import org.vstu.compprehension.models.businesslogic.Skill;
 import org.vstu.compprehension.models.businesslogic.domains.DomainFactory;
 import org.vstu.compprehension.models.businesslogic.strategies.AbstractStrategyFactory;
 import org.vstu.compprehension.models.entities.*;
@@ -53,10 +51,9 @@ public class FrontendService {
     private final DomainFactory domainFactory;
     private final EntityManager entityManager;
     private final UserRepository userRepository;
-    private final BktService bktService;
 
 
-    public FrontendService(ExerciseAttemptRepository exerciseAttemptRepository, QuestionRepository questionRepository, ExerciseAttemptService exerciseAttemptService, ExerciseService exerciseService, EntityManager entityManager, QuestionService questionService, LocalizationService localizationService, AbstractStrategyFactory strategyFactory, DomainFactory domainFactory, UserRepository userRepository, FeedbackRepository feedbackRepository, InteractionRepository interactionRepository, BktService bktService) {
+    public FrontendService(ExerciseAttemptRepository exerciseAttemptRepository, QuestionRepository questionRepository, ExerciseAttemptService exerciseAttemptService, ExerciseService exerciseService, EntityManager entityManager, QuestionService questionService, LocalizationService localizationService, AbstractStrategyFactory strategyFactory, DomainFactory domainFactory, UserRepository userRepository, FeedbackRepository feedbackRepository, InteractionRepository interactionRepository) {
         this.exerciseAttemptRepository = exerciseAttemptRepository;
         this.questionRepository = questionRepository;
         this.exerciseAttemptService = exerciseAttemptService;
@@ -69,7 +66,6 @@ public class FrontendService {
         this.userRepository = userRepository;
         this.feedbackRepository = feedbackRepository;
         this.interactionRepository = interactionRepository;
-        this.bktService = bktService;
     }
 
     @Transactional(propagation = Propagation.REQUIRED)
@@ -86,7 +82,7 @@ public class FrontendService {
         return questionService.judgeSupplementaryQuestion(question, responses);
     }
 
-    @Transactional(propagation = Propagation.REQUIRED, isolation = Isolation.READ_COMMITTED)
+    @Transactional(propagation = Propagation.REQUIRED)
     public @NotNull FeedbackDto addQuestionAnswer(@NotNull InteractionDto interaction) throws Exception {
         Checkpointer ch = new Checkpointer(log);
 
@@ -120,25 +116,9 @@ public class FrontendService {
         var grade = 1f;
         var strategyAttemptDecision = Decision.CONTINUE;
         if (attempt != null) {
-            List<String> leafEngagedSkills;
-            if (judgeResult.isAnswerCorrect) {
-                leafEngagedSkills = judgeResult.correctlyAppliedSkills;
-            } else {
-                leafEngagedSkills = judgeResult.violatedSkills;
-            }
-            val engagedSkills = domain.calculateEngagedSkills(leafEngagedSkills, judgeResult.isAnswerCorrect)
-                    .stream()
-                    .map(Skill::getName)
-                    .toList();
-            bktService.updateBktRoster(
-                    domain.getDomainId(),
-                    attempt.getUser().getId(),
-                    judgeResult.isAnswerCorrect,
-                    engagedSkills
-            );
-            ch.hit("updateBktRoster done");
-
             var strategy = strategyFactory.getStrategy(attempt.getExercise().getStrategyId());
+            strategy.updateUserKnowledgeModel(attempt, judgeResult);
+            ch.hit("updateUserKnowledgeModel done");
             grade = strategy.grade(attempt);
             ch.hit("graded with strategy ("+grade+")");
 

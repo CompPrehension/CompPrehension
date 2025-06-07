@@ -1,5 +1,6 @@
 package org.vstu.compprehension.models.businesslogic.domains;
 
+import its.reasoner.nodes.DecisionTreeTrace;
 import lombok.AllArgsConstructor;
 import lombok.Data;
 import org.jetbrains.annotations.NotNull;
@@ -201,17 +202,6 @@ public interface Domain {
      */
     Map<Skill, List<Skill>> getSkillSimplifiedHierarchy(int bitflags);
 
-    /**
-     * Calculates the skills that are considered to be used (applied/violated)
-     * by the student when choosing an answer.
-     * Some skills are considered to be applied/violated
-     * even if the interpreter did not enter the tree node with this skill.
-     * @param observedSkills List of skills observed in the student's response (e.g., from the interpreter's trace)
-     * @param isCorrect Is the student's answer correct
-     * @return List of engaged skills
-     */
-    List<Skill> calculateEngagedSkills(List<String> observedSkills, boolean isCorrect);
-
     Question solveQuestion(Question question, List<Tag> tags);
 
     /**
@@ -285,19 +275,6 @@ public interface Domain {
 
         public List<String> domainSkills = new ArrayList<>();
 
-        /**
-         * Correctly applied skills in answering.
-         * All visited green nodes that resulted in a correct answer are counted
-         */
-        public List<String> correctlyAppliedSkills = new ArrayList<>();
-
-        /**
-         * Violated skills when answering.
-         * All visited red nodes that led to an incorrect answer are counted
-         * (e.g. red nodes inside OR are not counted if at least one green result are present)
-         */
-        public List<String> violatedSkills = new ArrayList<>();
-
         public List<String> domainNegativeLaws = new ArrayList<>();
 
         public Explanation explanation;
@@ -311,5 +288,11 @@ public interface Domain {
          * Supplementary can generate new violations even on correct variant.
          */
         public boolean isAnswerCorrect;
+
+        /**
+         * The trace of reasoning along the decision tree
+         */
+        @Nullable
+        public DecisionTreeTrace decisionTreeTrace = null;
     }
 }

@@ -4,7 +4,7 @@ from grpc import StatusCode
 from concurrent import futures
 from pyBKT.models import Roster
 from pyBKT.models.Roster import SkillRoster
-from proto import bkt_service_pb2, bkt_service_pb2_grpc
+import bkt_service_pb2, bkt_service_pb2_grpc
 
 class BktServiceServicer(bkt_service_pb2_grpc.BktServiceServicer):
 

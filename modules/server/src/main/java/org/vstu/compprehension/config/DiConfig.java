@@ -10,7 +10,7 @@ import org.springframework.context.annotation.Lazy;
 import org.springframework.context.annotation.Primary;
 import org.springframework.web.context.annotation.RequestScope;
 import org.springframework.web.context.annotation.SessionScope;
-import org.vstu.compprehension.Service.BktService;
+import org.vstu.compprehension.service.BktService;
 import org.vstu.compprehension.Service.UserService;
 import org.vstu.compprehension.adapters.*;
 import org.vstu.compprehension.models.businesslogic.backend.Backend;

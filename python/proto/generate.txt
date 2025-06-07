@@ -1,5 +1,0 @@
-python3 -m grpc_tools.protoc \
-  -I modules/proto/src/main/proto \
-  --python_out=python/proto \
-  --grpc_python_out=python/proto \
-  modules/proto/src/main/proto/bkt-service.proto

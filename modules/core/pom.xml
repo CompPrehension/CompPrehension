@@ -78,11 +78,6 @@
             <scope>compile</scope>
         </dependency>
         <dependency>
-            <groupId>org.springframework.retry</groupId>
-            <artifactId>spring-retry</artifactId>
-            <version>${springretry.version}</version>
-        </dependency>
-        <dependency>
             <groupId>org.hibernate.orm</groupId>
             <artifactId>hibernate-core</artifactId>
             <version>6.3.1.Final</version>
@@ -183,25 +178,6 @@
         <dependency>
             <groupId>org.vstu.compprehension</groupId>
             <artifactId>common</artifactId>
-            <version>1.0-SNAPSHOT</version>
-        </dependency>
-
-        <!-- gRPC runtime -->
-        <dependency>
-            <groupId>io.grpc</groupId>
-            <artifactId>grpc-netty-shaded</artifactId>
-            <version>${grpc.version}</version>
-        </dependency>
-        <dependency>
-            <groupId>io.grpc</groupId>
-            <artifactId>grpc-stub</artifactId>
-            <version>${grpc.version}</version>
-        </dependency>
-
-        <!-- Сгенерированные классы -->
-        <dependency>
-            <groupId>org.vstu.compprehension</groupId>
-            <artifactId>proto</artifactId>
             <version>1.0-SNAPSHOT</version>
         </dependency>
     </dependencies>

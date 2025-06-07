@@ -10,15 +10,15 @@ import java.io.Serializable;
 @Getter @Setter
 @NoArgsConstructor
 @AllArgsConstructor
-@IdClass(BktDataEntity.BktDataId.class)
-@Table(name = "bkt_data", uniqueConstraints = @UniqueConstraint(columnNames = {"user_id", "domain_name"}))
-public class BktDataEntity {
+@IdClass(BktUserDataEntity.BktUserDataId.class)
+@Table(name = "bkt_user_data", uniqueConstraints = @UniqueConstraint(columnNames = {"user_id", "domain_name"}))
+public class BktUserDataEntity {
 
     @Getter @Setter
     @EqualsAndHashCode
     @AllArgsConstructor
     @NoArgsConstructor
-    public static class BktDataId implements Serializable {
+    public static class BktUserDataId implements Serializable {
         private Long userId;
         private String domainName;
     }

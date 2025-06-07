@@ -1,7 +1,9 @@
-package org.vstu.compprehension.Service;
+package org.vstu.compprehension.service;
 
 import io.grpc.StatusRuntimeException;
 import its.model.definition.ThisShouldNotHappen;
+import jakarta.persistence.EntityManager;
+import jakarta.persistence.PersistenceContext;
 import org.jetbrains.annotations.Nullable;
 import org.springframework.dao.DataIntegrityViolationException;
 import org.springframework.orm.ObjectOptimisticLockingFailureException;
@@ -13,9 +15,9 @@ import lombok.RequiredArgsConstructor;
 import lombok.val;
 import org.springframework.stereotype.Service;
 import org.vstu.compprehension.bkt.grpc.*;
-import org.vstu.compprehension.models.entities.BktDataEntity;
-import org.vstu.compprehension.models.repository.BktDataRepository;
-import org.vstu.compprehension.models.repository.DomainRepository;
+import org.vstu.compprehension.models.entities.BktUserDataEntity;
+import org.vstu.compprehension.models.repository.BktDomainDataRepository;
+import org.vstu.compprehension.models.repository.BktUserDataRepository;
 
 import java.util.Collections;
 import java.util.List;
@@ -28,15 +30,18 @@ import java.util.List;
 public class BktService {
 
     private final BktServiceGrpc.BktServiceBlockingStub stub;
-    private final BktDataRepository repository;
-    private final DomainRepository domainRepository;
+    private final BktDomainDataRepository bktDomainDataRepository;
+    private final BktUserDataRepository bktUserDataRepository;
+
+    @PersistenceContext
+    private EntityManager entityManager;
 
     @Retryable(
             retryFor = { ObjectOptimisticLockingFailureException.class },
             maxAttempts = 10,
             backoff = @Backoff(delay = 100)
     )
-    @Transactional(propagation = Propagation.REQUIRES_NEW)
+    @Transactional(propagation = Propagation.MANDATORY)
     public void updateBktRoster(String domainId, Long userId, boolean correct, List<String> skills) {
         val data = getBktData(domainId, userId);
         if (data == null) return;
@@ -55,11 +60,13 @@ public class BktService {
 
             val updatedRoster = response.getRoster();
             data.setRoster(updatedRoster);
+            entityManager.flush();
         } catch (StatusRuntimeException ignored) {
             throw new ThisShouldNotHappen();
         }
     }
 
+    @Transactional(propagation = Propagation.MANDATORY, readOnly = true)
     public List<SkillState> getSkillStates(String domainId, Long userId, List<String> skills) {
         val data = getBktData(domainId, userId);
         if (data == null) return Collections.emptyList();
@@ -81,6 +88,7 @@ public class BktService {
         }
     }
 
+    @Transactional(propagation = Propagation.MANDATORY, readOnly = true)
     public List<String> chooseBestQuestion(String domainId, Long userId, List<String> skills) {
         val data = getBktData(domainId, userId);
         if (data == null) return Collections.emptyList();
@@ -104,24 +112,25 @@ public class BktService {
     }
 
     @Transactional(propagation = Propagation.MANDATORY)
-    private @Nullable BktDataEntity getBktData(String domainId, Long userId) {
-        val domain = domainRepository.findById(domainId).orElseThrow();
+    private @Nullable BktUserDataEntity getBktData(String domainId, Long userId) {
+        val bktDomainData = bktDomainDataRepository.findById(domainId).orElse(null);
+        if (bktDomainData == null) return null;
         // Проверяем наличие roster у домена. Он обязателен для использования bkt
-        val emptyRoster = domain.getEmptyRoster();
-        if (emptyRoster == null || emptyRoster.isBlank()) return null;
+        val emptyRoster = bktDomainData.getEmptyRoster();
+        if (emptyRoster.isBlank()) return null;
 
         // Достаем roster пользователя, либо создаем новый пустой
-        val dataId = new BktDataEntity.BktDataId(userId, domainId);
-        return repository.findById(dataId).orElseGet(() -> {
+        val dataId = new BktUserDataEntity.BktUserDataId(userId, domainId);
+        return bktUserDataRepository.findById(dataId).orElseGet(() -> {
             // Создаем новую запись
-            val newData = new BktDataEntity();
+            val newData = new BktUserDataEntity();
             newData.setUserId(userId);       // ключ‑часть #1
             newData.setDomainName(domainId); // ключ‑часть #2
             newData.setRoster(emptyRoster);  // дефолт‑roster (пустой, заполнится позже)
             try {
-                return repository.save(newData);
+                return bktUserDataRepository.save(newData);
             } catch (DataIntegrityViolationException ignored) {
-                return repository.findById(dataId).orElseThrow();
+                return bktUserDataRepository.findById(dataId).orElseThrow();
             }
         });
     }

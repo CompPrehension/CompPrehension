@@ -18,7 +18,6 @@ import org.springframework.web.context.annotation.RequestScope;
 import org.vstu.compprehension.models.businesslogic.DomainToBackendAdapter;
 import org.vstu.compprehension.models.businesslogic.Explanation;
 import org.vstu.compprehension.models.businesslogic.Question;
-import org.vstu.compprehension.models.businesslogic.backend.util.LeafEngagedSkillsExtractor;
 import org.vstu.compprehension.models.entities.EnumData.Language;
 import org.vstu.compprehension.models.entities.ViolationEntity;
 import org.vstu.compprehension.utils.HyperText;
@@ -280,6 +279,7 @@ public class DecisionTreeReasonerBackend
             List<DecisionTreeTraceElement<?, ?>> traceElements = nestedTraceElements(backendOutput.results);
 
             InterpretSentenceResult result = new InterpretSentenceResult();
+            result.decisionTreeTrace = backendOutput.results;
             for (DecisionTreeTraceElement<?,?> res : traceElements) {
                 String[] resSkill = res.getNode().getMetadata().containsAny("skill") && res.getNode().getMetadata().get("skill") != null ?
                         res.getNode().getMetadata().get("skill").toString().split(";") : new String[0];
@@ -288,11 +288,6 @@ public class DecisionTreeReasonerBackend
                 Collections.addAll(result.domainSkills, resSkill);
                 Collections.addAll(result.domainNegativeLaws, resLaw);
             }
-
-            LeafEngagedSkillsExtractor.LeafEngagedSkills engagedSkills =
-                    LeafEngagedSkillsExtractor.extract(backendOutput.results);
-            result.correctlyAppliedSkills.addAll(engagedSkills.getCorrectlyApplied());
-            result.violatedSkills.addAll(engagedSkills.getViolated());
 
             updateJudgeInterpretationResult(result, backendOutput);
 
