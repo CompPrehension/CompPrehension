@@ -4,6 +4,7 @@ import com.google.common.cache.Cache;
 import com.google.common.cache.CacheBuilder;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.beans.factory.annotation.Qualifier;
+import org.springframework.boot.autoconfigure.condition.ConditionalOnProperty;
 import org.springframework.context.annotation.Bean;
 import org.springframework.context.annotation.Configuration;
 import org.springframework.context.annotation.Lazy;
@@ -52,6 +53,7 @@ public class DiConfig {
 
     @Bean
     @Singleton
+    @ConditionalOnProperty(prefix = "bkt", name = "enabled", havingValue = "true")
     BktStrategy getBktStrategy(@Autowired BktService bktService, @Autowired DomainFactory domainFactory) {
         return new BktStrategy(bktService, domainFactory);
     }

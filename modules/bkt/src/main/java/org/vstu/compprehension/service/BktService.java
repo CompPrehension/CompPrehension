@@ -5,6 +5,7 @@ import its.model.definition.ThisShouldNotHappen;
 import jakarta.persistence.EntityManager;
 import jakarta.persistence.PersistenceContext;
 import org.jetbrains.annotations.Nullable;
+import org.springframework.boot.autoconfigure.condition.ConditionalOnBean;
 import org.springframework.dao.DataIntegrityViolationException;
 import org.springframework.orm.ObjectOptimisticLockingFailureException;
 import org.springframework.retry.annotation.Backoff;
@@ -27,6 +28,7 @@ import java.util.List;
  */
 @Service
 @RequiredArgsConstructor
+@ConditionalOnBean(BktServiceGrpc.BktServiceBlockingStub.class)
 public class BktService {
 
     private final BktServiceGrpc.BktServiceBlockingStub stub;
