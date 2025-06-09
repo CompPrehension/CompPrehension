@@ -133,7 +133,9 @@ public class BktStrategy implements AbstractStrategy {
     }
 
     @Override
-    public float grade(ExerciseAttemptEntity attempt) {
+    public float grade(ExerciseAttemptEntity attempt, Domain.InterpretSentenceResult judgeResult) {
+        updateUserKnowledgeModel(attempt, judgeResult);
+
         val exercise = attempt.getExercise();
         val domain = (DomainBase) domainFactory.getDomain(exercise.getDomain().getName());
 
@@ -265,8 +267,7 @@ public class BktStrategy implements AbstractStrategy {
         return Decision.FINISH;
     }
 
-    @Override
-    public void updateUserKnowledgeModel(ExerciseAttemptEntity exerciseAttempt, Domain.InterpretSentenceResult judgeResult) {
+    private void updateUserKnowledgeModel(ExerciseAttemptEntity exerciseAttempt, Domain.InterpretSentenceResult judgeResult) {
         if (judgeResult.decisionTreeTrace == null) return;
 
         val domain = domainFactory.getDomain(exerciseAttempt.getExercise().getDomain().getName());

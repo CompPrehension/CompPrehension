@@ -117,9 +117,7 @@ public class FrontendService {
         var strategyAttemptDecision = Decision.CONTINUE;
         if (attempt != null) {
             var strategy = strategyFactory.getStrategy(attempt.getExercise().getStrategyId());
-            strategy.updateUserKnowledgeModel(attempt, judgeResult);
-            ch.hit("updateUserKnowledgeModel done");
-            grade = strategy.grade(attempt);
+            grade = strategy.grade(attempt, judgeResult);
             ch.hit("graded with strategy ("+grade+")");
 
             strategyAttemptDecision = strategy.decide(attempt);
@@ -273,7 +271,7 @@ public class FrontendService {
         var strategyAttemptDecision = Decision.CONTINUE;
         if (attempt != null) {
             var strategy = strategyFactory.getStrategy(attempt.getExercise().getStrategyId());
-            grade = strategy.grade(attempt);
+            grade = strategy.grade(attempt, judgeResult);
 
             strategyAttemptDecision = strategy.decide(attempt);
             exerciseAttemptService.ensureAttemptStatus(attempt, strategyAttemptDecision);

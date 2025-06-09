@@ -35,21 +35,12 @@ public interface AbstractStrategy {
 
     /**
      * @param exerciseAttempt attempt to grade
+     * @param judgeResult result of judging the student's answer
      * @return grade in range [0..1]
      */
-    float grade(ExerciseAttemptEntity exerciseAttempt);
+    float grade(ExerciseAttemptEntity exerciseAttempt, Domain.InterpretSentenceResult judgeResult);
 
     Decision decide(ExerciseAttemptEntity exerciseAttempt);
-
-    /**
-     * Updates the user knowledge model (student model)
-     * @param exerciseAttempt Attempt to solve the exercise
-     * @param judgeResult Result of judging the student's answer
-     */
-    default void updateUserKnowledgeModel(
-            ExerciseAttemptEntity exerciseAttempt,
-            Domain.InterpretSentenceResult judgeResult
-    ) {}
 
     @NotNull
     default List<Concept> filterExerciseStageConcepts(
