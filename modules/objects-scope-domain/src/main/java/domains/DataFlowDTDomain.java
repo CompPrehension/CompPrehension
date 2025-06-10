@@ -13,8 +13,6 @@ import its.reasoner.nodes.DecisionTreeTrace;
 import lombok.extern.log4j.Log4j2;
 import lombok.val;
 import org.apache.commons.lang3.NotImplementedException;
-import org.apache.jena.rdf.model.Model;
-import org.apache.jena.rdf.model.ModelFactory;
 import org.jetbrains.annotations.NotNull;
 import org.jetbrains.annotations.Nullable;
 import org.vstu.compprehension.Service.LocalizationService;
@@ -25,7 +23,6 @@ import org.vstu.compprehension.models.businesslogic.backend.facts.Fact;
 import org.vstu.compprehension.models.businesslogic.backend.facts.JenaFactList;
 import org.vstu.compprehension.models.businesslogic.domains.DecisionTreeReasoningDomain;
 import org.vstu.compprehension.models.businesslogic.storage.QuestionBank;
-import org.vstu.compprehension.models.businesslogic.storage.SerializableQuestion;
 import org.vstu.compprehension.models.entities.*;
 import org.vstu.compprehension.models.entities.EnumData.FeedbackType;
 import org.vstu.compprehension.models.entities.EnumData.Language;
@@ -36,7 +33,6 @@ import org.vstu.compprehension.models.entities.QuestionOptions.QuestionOptionsEn
 import org.vstu.compprehension.utils.HyperText;
 import org.vstu.compprehension.utils.RandomProvider;
 
-import java.io.InputStream;
 import java.util.*;
 import java.util.stream.Collectors;
 
@@ -53,22 +49,15 @@ public class DataFlowDTDomain extends DecisionTreeReasoningDomain {
 
     public static final String MESSAGES_CONFIG_PATH = "classpath:/" + RESOURCES_LOCATION + "data-flow";
 
-    public static final String VOCAB_SCHEMA_PATH = RESOURCES_LOCATION + "data-flow-domain-schema.rdf";
-
     protected final LocalizationService localizationService;
 
     protected final QuestionBank qMetaStorage;
-
-    private Model schemaModel = null;
 
     static final String MESSAGE_PREFIX = "dataflow_";
 
     private static final HashMap<String, Tag> tags = new HashMap<>() {{
         put("C++", new Tag("C++", 2L));  	// (2 ^ 1)
     }};
-
-    public static final String QUESTIONS_CONFIG_PATH = RESOURCES_LOCATION + "data-flow-domain-questions.json";
-    static List<Question> QUESTIONS;
 
     private static final String DOMAIN_MODEL_LOCATION = RESOURCES_LOCATION + "data-flow-domain-model/";
 
@@ -87,17 +76,12 @@ public class DataFlowDTDomain extends DecisionTreeReasoningDomain {
 
         this.localizationService = localizationService;
         this.qMetaStorage = qMetaStorage;
+        positiveLaws = new HashMap<>();
+        negativeLaws = new HashMap<>();
         this.setBackendInterface(new DecisionTreeInterface());
 
         fillConcepts();
         fillSkills();
-
-        readLaws();
-    }
-
-    private void readLaws() {
-        positiveLaws = new HashMap<>();
-        negativeLaws = new HashMap<>();
     }
 
     private void fillConcepts() {
@@ -207,18 +191,7 @@ public class DataFlowDTDomain extends DecisionTreeReasoningDomain {
 
     @Override
     public Collection<Fact> getQuestionStatementFactsWithSchema(Question q) {
-        JenaFactList fl = JenaFactList.fromBackendFacts(q.getQuestionData().getStatementFacts());
-        fl.addFromModel(getSchemaForSolving());
-        return fl;
-    }
-
-    public Model getSchemaForSolving() {
-        if (schemaModel == null) {
-            // Read & cache the model.
-            schemaModel = ModelFactory.createDefaultModel();
-            schemaModel.read(VOCAB_SCHEMA_PATH);
-        }
-        return schemaModel;
+        throw new NotImplementedException();
     }
 
     @NotNull
@@ -487,21 +460,9 @@ public class DataFlowDTDomain extends DecisionTreeReasoningDomain {
         return localizationService.getMessage(MESSAGE_PREFIX + messageKey, Language.getLocale(preferredLanguage));
     }
 
-    public List<Question> readQuestions(InputStream inputStream) {
-        List<Question> res = new ArrayList<>();
-        Question[] questions = Arrays.stream(SerializableQuestion.deserializeMany(inputStream))
-                .map(q -> q.toQuestion(this))
-                .toArray(Question[]::new);
-        Collections.addAll(res, questions);
-        return res;
-    }
-
     @Override
     protected List<Question> getQuestionTemplates() {
-        if (QUESTIONS == null) {
-            QUESTIONS = readQuestions(this.getClass().getClassLoader().getResourceAsStream(QUESTIONS_CONFIG_PATH));
-        }
-        return QUESTIONS;
+        throw new NotImplementedException();
     }
 
 
@@ -509,12 +470,12 @@ public class DataFlowDTDomain extends DecisionTreeReasoningDomain {
 
     @Override
     public Set<String> getViolationVerbs(String questionDomainType, List<BackendFactEntity> statementFacts) {
-        return new HashSet<>(); //Не нужно для DT
+        throw new NotImplementedException();
     }
 
     @Override
     public Set<String> getSolutionVerbs(String questionDomainType, List<BackendFactEntity> statementFacts) {
-        return new HashSet<>(); //Не нужно для DT
+        throw new NotImplementedException();
     }
 
     @Override
@@ -524,27 +485,19 @@ public class DataFlowDTDomain extends DecisionTreeReasoningDomain {
 
     @Override
     public Collection<PositiveLaw> getQuestionPositiveLaws(String questionDomainType, List<Tag> tags) {
-        return new ArrayList<>(); //Не нужно для DT ?
+        throw new NotImplementedException();
     }
 
 
     //-----------Объяснения---------------
     @Override
     public InterpretSentenceResult interpretSentence(Collection<Fact> violations) {
-        return null;
+        throw new NotImplementedException();
     }
 
     @Override
     public Explanation makeExplanation(List<ViolationEntity> mistakes, FeedbackType feedbackType, Language lang) {
-        ArrayList<Explanation> result = new ArrayList<>();
-        for (ViolationEntity mistake : mistakes) {
-            result.add(new Explanation(Explanation.Type.ERROR, makeSingleExplanation(mistake, feedbackType, lang)));
-        }
-        return Explanation.aggregate(Explanation.Type.ERROR, result);
-    }
-
-    private HyperText makeSingleExplanation(ViolationEntity mistake, FeedbackType feedbackType, Language lang) {
-        return new HyperText("WRONG");
+        throw new NotImplementedException();
     }
 
 
