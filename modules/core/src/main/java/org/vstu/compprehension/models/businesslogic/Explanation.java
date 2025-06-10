@@ -149,4 +149,33 @@ public class Explanation {
         details.append("</details>");
         return new HyperText(details);
     }
+
+    public HyperText toHyperTextWithoutCommonPrefix(Language lang) {
+        return toHyperTextWithoutCommonPrefix(lang, false);
+    }
+
+    public HyperText toHyperTextWithoutCommonPrefix(Language lang, boolean collapse) {
+        if (children.isEmpty()) {
+            return new HyperText(rawMessage.getText());
+        } else if (children.size() == 1 && rawMessage.getText().isEmpty()) {
+            return children.getFirst().toHyperTextWithoutCommonPrefix(lang, collapse);
+        } else {
+            return recursiveBuildHyperTextWithoutCommonPrefix(lang, collapse, this);
+        }
+    }
+
+    private HyperText recursiveBuildHyperTextWithoutCommonPrefix(Language lang, boolean collapse, Explanation parent) {
+        StringBuilder details = new StringBuilder(String.format("<details class=\"rounded\" %s>", collapse ? "" : "open"));
+        details.append("<summary>")
+                .append(parent.getRawMessage())
+                .append("</summary>");
+        details.append("<ul>");
+        for (Explanation child : children) {
+            HyperText ht = child.toHyperTextWithoutCommonPrefix(lang, collapse);
+            details.append("<li class=\"p-1\">").append(ht.getText()).append("</li>");
+        }
+        details.append("</ul>");
+        details.append("</details>");
+        return new HyperText(details);
+    }
 }
