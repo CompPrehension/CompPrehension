@@ -2,11 +2,12 @@ package org.vstu.compprehension.models.businesslogic.domains;
 
 import its.model.DomainSolvingModel;
 import its.model.definition.DomainModel;
+import its.model.nodes.BranchResult;
 import its.questions.gen.QuestioningSituation;
-import its.questions.gen.formulations.Localization;
 import its.questions.gen.states.*;
 import its.questions.gen.strategies.FullBranchStrategy;
 import its.questions.gen.strategies.QuestionAutomata;
+import kotlin.Pair;
 import lombok.val;
 import org.jetbrains.annotations.Nullable;
 import org.vstu.compprehension.dto.SupplementaryFeedbackDto;
@@ -19,39 +20,39 @@ import org.vstu.compprehension.models.entities.*;
 import org.vstu.compprehension.models.entities.EnumData.Language;
 import org.vstu.compprehension.models.entities.EnumData.QuestionType;
 import org.vstu.compprehension.models.entities.QuestionOptions.MatchingQuestionOptionsEntity;
+import org.vstu.compprehension.models.entities.QuestionOptions.MultiChoiceOptionsEntity;
 import org.vstu.compprehension.models.entities.QuestionOptions.SingleChoiceOptionsEntity;
 
 import java.net.URL;
 import java.util.ArrayList;
 import java.util.Collections;
 import java.util.List;
-import java.util.Map;
 import java.util.function.Function;
 import java.util.stream.Collectors;
 
 public class DecisionTreeSupQuestionHelper {
     public DecisionTreeSupQuestionHelper(
-        Domain domain,
-        DomainSolvingModel domainSolvingModel,
-        Function<InteractionEntity, DomainModel> mainQuestionToModelTransformer
+            Domain domain,
+            DomainSolvingModel domainSolvingModel,
+            Function<InteractionEntity, DomainModel> mainQuestionToModelTransformer
     ) {
         this.domain = domain;
         this.domainModel = domainSolvingModel;
         this.supplementaryAutomata = FullBranchStrategy.INSTANCE.buildAndFinalize(
-            domainModel.getDecisionTree().getMainBranch(), new EndQuestionState()
+                domainModel.getDecisionTree().getMainBranch(), new EndQuestionState()
         );
         this.mainQuestionToModelTransformer = mainQuestionToModelTransformer;
     }
 
     public DecisionTreeSupQuestionHelper(
-        Domain domain,
-        URL domainModelDirectoryURL,
-        Function<InteractionEntity, DomainModel> mainQuestionToModelTransformer
+            Domain domain,
+            URL domainModelDirectoryURL,
+            Function<InteractionEntity, DomainModel> mainQuestionToModelTransformer
     ) {
         this(
-            domain,
-            new DomainSolvingModel(domainModelDirectoryURL, DomainSolvingModel.BuildMethod.LOQI),
-            mainQuestionToModelTransformer
+                domain,
+                new DomainSolvingModel(domainModelDirectoryURL, DomainSolvingModel.BuildMethod.LOQI),
+                mainQuestionToModelTransformer
         );
     }
 
@@ -61,7 +62,7 @@ public class DecisionTreeSupQuestionHelper {
     private final Function<InteractionEntity, DomainModel> mainQuestionToModelTransformer;
 
     //DT = Decision Tree
-    protected SupplementaryResponseGenerationResult makeSupplementaryQuestion(QuestionEntity mainQuestion, Language userLang) {
+    public SupplementaryResponseGenerationResult makeSupplementaryQuestion(QuestionEntity mainQuestion, Language userLang) {
         //Получить ошибочную интеракцию с основным вопросом
         List<InteractionEntity> interactions = mainQuestion.getInteractions();
         if (interactions == null || interactions.isEmpty()) {
@@ -84,6 +85,7 @@ public class DecisionTreeSupQuestionHelper {
         }
         else {
             situation = new QuestioningSituation(situationModel, localizationCode);
+            situation.addAssumedResult(domainModel.getDecisionTree().getMainBranch(), BranchResult.CORRECT);
         }
 
         //получить состояние автомата вопросов, к которому перешли на последнем шаге
@@ -112,21 +114,9 @@ public class DecisionTreeSupQuestionHelper {
         return new SupplementaryResponseGenerationResult(response, supplementaryChain);
     }
 
-    protected SupplementaryFeedbackGenerationResult judgeSupplementaryQuestion(SupplementaryStepEntity supplementaryInfo, List<ResponseEntity> responses){
+    public SupplementaryFeedbackGenerationResult judgeSupplementaryQuestion(SupplementaryStepEntity supplementaryInfo, List<ResponseEntity> responses){
         //получить состояние автомата вопросов, соответствующее данному вопросу
         QuestionState state = supplementaryAutomata.get(supplementaryInfo.getNextStateId());
-        //преобразовать ответы
-        List<Integer> answers = null;
-        if(state instanceof AggregationQuestionState || state instanceof RedirectQuestionState && ((RedirectQuestionState) state).redirectsTo() instanceof AggregationQuestionState){
-            answers = new ArrayList<>(Collections.nCopies(aggregationPadding, 0));
-            for(ResponseEntity r : responses){
-                answers.set(r.getLeftAnswerObject().getAnswerId()-aggregationShift, r.getRightAnswerObject().getAnswerId());
-            }
-        }
-        else {
-            assert responses.size() == 1;
-            answers = List.of(responses.get(0).getLeftAnswerObject().getAnswerId());
-        }
 
         //Создать соответствующую ситуации рдф-модель
         InteractionEntity mainQuestionInteraction = supplementaryInfo.getMainQuestionInteraction();
@@ -134,6 +124,32 @@ public class DecisionTreeSupQuestionHelper {
 
         //создать ситуацию, описывающую контекст задания вспомогательных вопросов
         QuestioningSituation situation = supplementaryInfo.getSituationInfo().toQuestioningSituation(situationModel);
+
+        //преобразовать ответы
+        List<Integer> answers = null;
+        if (state.getQuestion(situation) instanceof Question question) {
+            switch (question.getType()) {
+                case single -> {
+                    assert responses.size() == 1;
+                    answers = List.of(responses.get(0).getLeftAnswerObject().getAnswerId());
+                }
+                case multiple -> {
+                    answers = responses.stream()
+                            .map(ResponseEntity::getLeftAnswerObject)
+                            .map(AnswerObjectEntity::getAnswerId)
+                            .collect(Collectors.toList());
+                }
+                case matching -> {
+                    answers = new ArrayList<>(Collections.nCopies(question.getOptions().size(), 0));
+                    for (ResponseEntity r : responses) {
+                        answers.set(
+                                r.getLeftAnswerObject().getAnswerId(),
+                                r.getRightAnswerObject().getAnswerId() - question.getOptions().size()
+                        );
+                    }
+                }
+            }
+        }
 
         //получить фидбек ответа и изменение состояния
         QuestionStateChange change = state.proceedWithAnswer(situation, answers);
@@ -144,50 +160,57 @@ public class DecisionTreeSupQuestionHelper {
         return new SupplementaryFeedbackGenerationResult(stateChangeAsSupplementaryFeedbackDto(change), newSupplementaryChain);
     }
 
-    private static final int aggregationPadding = 5; //FIXME используется потому, что из вопросов-сопоставлений можно отправить неполный ответ
-    private static final int aggregationShift = 2;
     private org.vstu.compprehension.models.businesslogic.Question transformQuestionFormats(Question q, @Nullable ExerciseAttemptEntity exerciseAttempt, Language language){
         QuestionEntity generated = new QuestionEntity();
         generated.setQuestionText(q.getText());
         //generated.setQuestionName(String.valueOf(creatorStateId));    //FIXME?
         generated.setQuestionDomainType(domain.getDefaultQuestionType(true));
         generated.setExerciseAttempt(exerciseAttempt);
-        generated.setAnswerObjects(q.getOptions().stream().map((opt) -> {
-            AnswerObjectEntity ans = new AnswerObjectEntity();
-            ans.setAnswerId(opt.getSecond());
-            ans.setHyperText(opt.getFirst());
-            return ans;
-        }).collect(Collectors.toList()));
-        if(q.isAggregation() ){
-            generated.setQuestionType(QuestionType.MATCHING);
-            List<AnswerObjectEntity> answers = generated.getAnswerObjects();
-            for(AnswerObjectEntity a : answers){
-                a.setAnswerId(a.getAnswerId() + aggregationShift); //чтобы избежать пересечения с answerId ответов в aggregationMathching
+        generated.setAnswerObjects(
+                q.getOptions().stream()
+                        .map(opt -> {
+                            AnswerObjectEntity ans = new AnswerObjectEntity();
+                            ans.setAnswerId(opt.getSecond());
+                            ans.setHyperText(opt.getFirst());
+                            return ans;
+                        })
+                        .collect(Collectors.toList())
+        );
+        switch (q.getType()) {
+            case matching -> {
+                List<AnswerObjectEntity> answers = generated.getAnswerObjects();
+                int matchOptionsShift = answers.size(); //чтобы избежать пересечения с answerId ответов
+                for (Pair<String, Integer> m : q.getMatchingOptions()) {
+                    AnswerObjectEntity ans = new AnswerObjectEntity();
+                    ans.setAnswerId(m.getSecond() + matchOptionsShift);
+                    ans.setHyperText(m.getFirst());
+                    ans.setRightCol(true);
+                    answers.add(ans);
+                }
+                generated.setAnswerObjects(answers);
+
+                generated.setQuestionType(QuestionType.MATCHING);
+                val opt = new MatchingQuestionOptionsEntity();
+                opt.setDisplayMode(MatchingQuestionOptionsEntity.DisplayMode.COMBOBOX);
+                generated.setOptions(opt);
             }
-            val aggregationMatching = AggregationQuestionState.aggregationMatching(Localization.getLocalizations().get(language.toLocaleString()));
-            for(Map.Entry<String, Integer> m : aggregationMatching.entrySet()){
-                AnswerObjectEntity ans = new AnswerObjectEntity();
-                ans.setAnswerId(m.getValue());
-                ans.setHyperText(m.getKey());
-                ans.setRightCol(true);
-                answers.add(ans);
+            case single -> {
+                generated.setQuestionType(QuestionType.SINGLE_CHOICE);
+                val opt = new SingleChoiceOptionsEntity();
+                opt.setDisplayMode(SingleChoiceOptionsEntity.DisplayMode.RADIO);
+                generated.setOptions(opt);
             }
-            generated.setAnswerObjects(answers);
-            val opt = new MatchingQuestionOptionsEntity();
-            opt.setShowSupplementaryQuestions(true);
-            opt.setDisplayMode(MatchingQuestionOptionsEntity.DisplayMode.COMBOBOX);
-            generated.setOptions(opt);
-            return new org.vstu.compprehension.models.businesslogic.Question(generated, domain);
+            case multiple -> {
+                generated.setQuestionType(QuestionType.MULTI_CHOICE);
+                val opt = new MultiChoiceOptionsEntity();
+                opt.setDisplayMode(MultiChoiceOptionsEntity.DisplayMode.SWITCH);
+                generated.setOptions(opt);
+            }
         }
-        else {
-            generated.setQuestionType(QuestionType.SINGLE_CHOICE);
-            val opt = new SingleChoiceOptionsEntity();
-            opt.setShowSupplementaryQuestions(true);
-            opt.setDisplayMode(SingleChoiceOptionsEntity.DisplayMode.RADIO);
-            generated.setOptions(opt);
-            return new org.vstu.compprehension.models.businesslogic.Question(generated, domain);
-        }
+        generated.getOptions().setShowSupplementaryQuestions(true);
+        return new org.vstu.compprehension.models.businesslogic.Question(generated, domain);
     }
+
     private static SupplementaryFeedbackDto stateChangeAsSupplementaryFeedbackDto(QuestionStateChange change){
         Explanation expl = change.getExplanation();
         return new SupplementaryFeedbackDto(
