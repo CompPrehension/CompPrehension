@@ -326,8 +326,9 @@ public class DataFlowDTDomain extends DecisionTreeReasoningDomain {
 
     public String QuestionTextToHtml(String text, Language language) {
         StringBuilder sb = new StringBuilder();
-        sb.append("<div class='comp-ph-question'>").append(text).append("</div>");
+        sb.append("<div class='comp-ph-question'>").append(text);
         replaceTemplates(sb, language);
+        sb.append("</div>");
         return sb.toString();
     }
 
