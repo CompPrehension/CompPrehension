@@ -325,16 +325,29 @@ public class DataFlowDTDomain extends DecisionTreeReasoningDomain {
     }
 
     public String QuestionTextToHtml(String text, Language language) {
-        StringBuilder sb = new StringBuilder(text
-                .replaceAll("\\*", "&#8727")
-                .replaceAll("\\n", "<br>")
-                .replaceAll("\\t", "&nbsp;&nbsp;&nbsp;&nbsp;")
-                .replaceAll("text.input", getMessage("text.input", language))
-                .replaceAll("text.output", getMessage("text.output", language))
-                .replaceAll("text.mutable", getMessage("text.mutable", language))
-        );
-        sb.insert(0, "<div class='comp-ph-question'>"); sb.append("</div>");
+        StringBuilder sb = new StringBuilder();
+        sb.append("<div class='comp-ph-question'>").append(text).append("</div>");
+        replaceTemplates(sb, language);
         return sb.toString();
+    }
+
+    private void replaceTemplates(StringBuilder sb, Language language) {
+        String[][] replacements = {
+                {"\\*", "&#8727"},
+                {"\\n", "<br>"},
+                {"\\t", "&nbsp;&nbsp;&nbsp;&nbsp;"},
+                {"text.input", getMessage("text.input", language)},
+                {"text.output", getMessage("text.output", language)},
+                {"text.mutable", getMessage("text.mutable", language)},
+        };
+        int index;
+        for (String[] pair : replacements) {
+            String key = pair[0];
+            String value = pair[1];
+            while ((index = sb.indexOf(key)) != -1) {
+                sb.replace(index, index + key.length(), value);
+            }
+        }
     }
 
     @Override

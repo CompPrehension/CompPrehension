@@ -435,28 +435,42 @@ public class ObjectsScopeDTDomain extends DecisionTreeReasoningDomain {
     }
 
     private String QuestionTextToHtml(String text, Language language) {
-        StringBuilder sb = new StringBuilder(text
-                .replaceAll("\\*", "&#8727")
-                .replaceAll("\\n", "<br>")
-                .replaceAll("\\t", "&nbsp;&nbsp;&nbsp;&nbsp;")
-                .replaceAll("text.question_program", getMessage("text.question_program", language))
-                .replaceAll("text.question_start", getMessage("text.question_start", language))
-                .replaceAll("text.question_end_body", getMessage("text.question_end_body", language))
-                .replaceAll("text.question_end", getMessage("text.question_end", language))
-                .replaceAll("text.question_function", getMessage("text.question_function", language))
-                .replaceAll("text.question_condition", getMessage("text.question_condition", language))
-                .replaceAll("text.question_evaluation", getMessage("text.question_evaluation", language))
-                .replaceAll("text.question_time", getMessage("text.question_time", language))
-                .replaceAll("text.question_performed", getMessage("text.question_performed", language))
-                .replaceAll("text.question_iteration", getMessage("text.question_iteration", language))
-                .replaceAll("text.question_cycle", getMessage("text.question_cycle", language))
-                .replaceAll("text.question_body", getMessage("text.question_body", language))
-                .replaceAll("text.question_declaration", getMessage("text.question_declaration", language))
-                .replaceAll("text.question_class", getMessage("text.question_class", language))
-                .replaceAll("text.question_method", getMessage("text.question_method", language))
-        );
-        sb.insert(0, "<div class='comp-ph-question'>"); sb.append("</div>");
+        StringBuilder sb = new StringBuilder();
+        sb.append("<div class='comp-ph-question'>").append(text);
+        replaceTemplates(sb, language);
+        sb.append("</div>");
         return sb.toString();
+    }
+
+    private void replaceTemplates(StringBuilder sb, Language language) {
+        String[][] replacements = {
+                {"\\n", "<br>"},
+                {"\\*", "&#8727"},
+                {"\\t", "&nbsp;&nbsp;&nbsp;&nbsp;"},
+                {"text.question_program", getMessage("text.question_program", language)},
+                {"text.question_start", getMessage("text.question_start", language)},
+                {"text.question_end_body", getMessage("text.question_end_body", language)},
+                {"text.question_end", getMessage("text.question_end", language)},
+                {"text.question_function", getMessage("text.question_function", language)},
+                {"text.question_condition", getMessage("text.question_condition", language)},
+                {"text.question_evaluation", getMessage("text.question_evaluation", language)},
+                {"text.question_time", getMessage("text.question_time", language)},
+                {"text.question_performed", getMessage("text.question_performed", language)},
+                {"text.question_iteration", getMessage("text.question_iteration", language)},
+                {"text.question_cycle", getMessage("text.question_cycle", language)},
+                {"text.question_body", getMessage("text.question_body", language)},
+                {"text.question_declaration", getMessage("text.question_declaration", language)},
+                {"text.question_class", getMessage("text.question_class", language)},
+                {"text.question_method", getMessage("text.question_method", language)},
+        };
+        int index;
+        for (String[] pair : replacements) {
+            String key = pair[0];
+            String value = pair[1];
+            while ((index = sb.indexOf(key)) != -1) {
+                sb.replace(index, index + key.length(), value);
+            }
+        }
     }
 
     @Override
