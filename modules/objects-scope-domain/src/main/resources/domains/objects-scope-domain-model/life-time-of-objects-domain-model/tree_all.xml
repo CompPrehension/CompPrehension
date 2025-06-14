@@ -1,0 +1,151 @@
+<?xml version="1.0"?>
+<StartNode>
+    <InputVariables>
+        <DecisionTreeVarDecl name="stepVar" type="Step"/>
+        <DecisionTreeVarDecl name="var" type="Variable"/>
+    </InputVariables>
+    <ThoughtBranch _alias="startThought" type="bool"
+                   _RU_description="${`var`.typeName} ${$branchResult==BranchResult:CORRECT ? &amp;#039;не&amp;#039; : &amp;#039;&amp;#039;} существует в остальных строках трассы">
+        <CycleAggregationNode _id="0" _alias="∀ Step которые имеют isEvaluated равным false&#10;AND&#10;step"
+                              operator="AND" _RU_question="вопрос про данный цикл"
+                              _RU_asNextStep="цикл как следующий шаг" _RU_endingCause="конечность цикла">
+            <SelectorExpression>
+                <Compare operator="EQUAL">
+                    <GetPropertyValue>
+                        <Variable name="step"/>
+                        <Property name="isEvaluated"/>
+                    </GetPropertyValue>
+                    <Boolean value="FALSE"/>
+                </Compare>
+            </SelectorExpression>
+            <DecisionTreeVarDecl name="step" type="Step"/>
+            <ThoughtBranch _alias="Тело" type="bool" paramName="step" _RU_description="ветка цикла"
+                           _RU_nextStepQuestion="вопрос ветки цикла" _RU_nextStepExplanation="объяснения ветки цикла">
+                <BranchAggregationNode _id="1" _alias="AND" operator="and" _RU_description="описание and"
+                                       _RU_asNextStep="шаблон and" _RU_endingCause="конечность and">
+                    <ThoughtBranch _alias="Ветка1" type="bool"
+                                   _RU_description="переменная ${$branchResult==BranchResult:NULL ? &amp;#039;не&amp;#039; : &amp;#039;&amp;#039;} является глобальной">
+                        <QuestionNode _id="2" _skill="static skill" _alias="var является глобальной переменной?"
+                                      type="bool" isSwitch="false">
+                            <Expression>
+                                <GetPropertyValue>
+                                    <DecisionTreeVar name="var"/>
+                                    <Property name="isGlobal"/>
+                                </GetPropertyValue>
+                            </Expression>
+                            <Outcome value="True">
+                                <BranchResultNode _id="3"
+                                                  _alias="В {step.number} строке трассы {var.typeName} &quot;{var.text}&quot; существует, так как является глобальной и существует в течение всего времени выполнения программы."
+                                                  _RU_explanation="В {step.number} строке трассы {var.typeName} &quot;{var.text}&quot; существует, так как является глобальной и существует в течение всего времени выполнения программы."
+                                                  _EN_explanation="In step {step.number} of the trace, the {var.typeNameEn} &quot;{var.text}&quot; exists because it is global and exists during the entire execution time of the program."
+                                                  value="error"/>
+                            </Outcome>
+                            <Outcome value="False">
+                                <BranchResultNode _id="4" value="null"/>
+                            </Outcome>
+                        </QuestionNode>
+                    </ThoughtBranch>
+                    <ThoughtBranch _alias="Ветка2" type="bool"
+                                   _RU_description="переменная ${$branchResult==BranchResult:NULL ? &amp;#039;не&amp;#039; : &amp;#039;&amp;#039;} находится в глобальной области">
+                        <QuestionNode _id="5" _skill="static skill" _alias="var является статиком?" type="bool"
+                                      isSwitch="false">
+                            <Expression>
+                                <GetPropertyValue>
+                                    <DecisionTreeVar name="var"/>
+                                    <Property name="isStatic"/>
+                                </GetPropertyValue>
+                            </Expression>
+                            <Outcome value="True">
+                                <BranchResultNode _id="6"
+                                                  _alias="В {step.number} строке трассы {var.typeName} &quot;{var.text}&quot; существует, так как является статической и существует в течение всего времени выполнения программы."
+                                                  _RU_explanation="В {step.number} строке трассы {var.typeName} &quot;{var.text}&quot; существует, так как является статической и существует в течение всего времени выполнения программы."
+                                                  _EN_explanation="In step {step.number} of the trace, the {var.typeNameEn} &quot;{var.text}&quot; exists because it is static and exists during the entire execution time of the program."
+                                                  value="error"/>
+                            </Outcome>
+                            <Outcome value="False">
+                                <BranchResultNode _id="7" value="null"/>
+                            </Outcome>
+                        </QuestionNode>
+                    </ThoughtBranch>
+                    <Outcome value="Null" _RU_text="шаблон null" _RU_explanation="объяснения null"
+                             _RU_nextStepBranchResult="формулировки про null" _RU_nextStepQuestion="вопрос про null"
+                             _RU_nextStepExplanation="объяснение формулировок про null">
+                        <BranchAggregationNode _id="8" _alias="OR" operator="or" _RU_description="описание or"
+                                               _RU_asNextStep="формулировка or" _RU_endingCause="конченость or">
+                            <ThoughtBranch _alias="Ветка 1" type="bool"
+                                           _RU_description="строка трассы ${$branchResult==BranchResult:CORRECT ? &amp;#039;&amp;#039; : &amp;#039;не&amp;#039;} находится до создания ${`var`.typeNameR}">
+                                <QuestionNode _id="9" _skill="context skill" _alias="step находится после stepVar?"
+                                              type="bool" isSwitch="false">
+                                    <Expression>
+                                        <LogicalOr>
+                                            <CheckRelationship>
+                                                <Relationship name="next"/>
+                                                <DecisionTreeVar name="stepVar"/>
+                                                <DecisionTreeVar name="step"/>
+                                            </CheckRelationship>
+                                            <Compare operator="EQUAL">
+                                                <DecisionTreeVar name="stepVar"/>
+                                                <DecisionTreeVar name="step"/>
+                                            </Compare>
+                                        </LogicalOr>
+                                    </Expression>
+                                    <Outcome value="False">
+                                        <BranchResultNode _id="10"
+                                                          _alias="{step.number} строка трассы находится до создания {var.typeNameR} &quot;{var.text}&quot;, поэтому в этой строке {var.typeName} еще не существует."
+                                                          _RU_explanation="{step.number} строка трассы находится до создания {var.typeNameR} &quot;{var.text}&quot;, поэтому в этой строке {var.typeName} еще не существует."
+                                                          _EN_explanation="The selected trace step is before the {var.typeNameEn} &quot;{var.text}&quot; is created, so the {var.typeNameEn} does not yet exist in this step."
+                                                          value="correct"/>
+                                    </Outcome>
+                                    <Outcome value="True">
+                                        <BranchResultNode _id="11" value="error"/>
+                                    </Outcome>
+                                </QuestionNode>
+                            </ThoughtBranch>
+                            <Outcome value="Error">
+                                <BranchResultNode _id="12"
+                                                  _alias="В {step.number} строке трассы {var.typeName} &quot;{var.text}&quot; существует, так как находится внутри {stepVar-&gt;belongsTo-&gt;endsIn-&gt;belongsTo.text}, что и строка создания переменной."
+                                                  _RU_explanation="В {step.number} строке трассы {var.typeName} &quot;{var.text}&quot; существует, так как находится внутри {stepVar-&gt;belongsTo-&gt;endsIn-&gt;belongsTo.text}, что и строка создания переменной."
+                                                  _EN_explanation="In step {step.number} of the trace, the {var.typeNameEn} &quot;{var.text}&quot; exists because it is inside the execution of the {stepVar->belongsTo->endsIn-&gt;belongsTo.textEn}, which contains the variable creation step."
+                                                  value="error"/>
+                            </Outcome>
+                            <ThoughtBranch _alias="Ветка 2" type="bool"
+                                           _RU_description="строка трассы ${$branchResult==BranchResult:CORRECT ? &amp;#039;&amp;#039; : &amp;#039;не&amp;#039;} находится за пределом существования ${`var`.typeNameR}">
+                                <QuestionNode _id="13" _skill="context skill" _alias="endStep находится после step?"
+                                              type="bool" isSwitch="false">
+                                    <Expression>
+                                        <CheckRelationship>
+                                            <Relationship name="next"/>
+                                            <DecisionTreeVar name="step"/>
+                                            <GetByRelationship varName="">
+                                                <GetByRelationship varName="">
+                                                    <DecisionTreeVar name="stepVar"/>
+                                                    <Relationship name="belongsTo"/>
+                                                </GetByRelationship>
+                                                <Relationship name="endsIn"/>
+                                            </GetByRelationship>
+                                        </CheckRelationship>
+                                    </Expression>
+                                    <Outcome value="False">
+                                        <BranchResultNode _id="14"
+                                                          _alias="В {step.number} строке трассы переменная &quot;{var.text}&quot; не существует, так как строка находится за пределом выполнения {stepVar-&gt;belongsTo-&gt;endsIn-&gt;belongsTo.text}, в которой создается переменная."
+                                                          _RU_explanation="В {step.number} строке трассы переменная &quot;{var.text}&quot; не существует, так как строка находится за пределом выполнения {stepVar-&gt;belongsTo-&gt;endsIn-&gt;belongsTo.text}, в которой создается переменная."
+                                                          _EN_explanation="In step {step.number} of the trace, the {var.typeNameEn} &quot;{var.text}&quot; does not exist because the step is outside the execution limit of the {stepVar-&gt;belongsTo-&gt;endsIn-&gt;belongsTo.textEn} in which the {var.typeNameEn} is created."
+                                                          value="correct"/>
+                                    </Outcome>
+                                    <Outcome value="True">
+                                        <BranchResultNode _id="15" value="error"/>
+                                    </Outcome>
+                                </QuestionNode>
+                            </ThoughtBranch>
+                        </BranchAggregationNode>
+                    </Outcome>
+                </BranchAggregationNode>
+            </ThoughtBranch>
+            <Outcome value="Null">
+                <BranchResultNode _id="16" _alias="Все строки трассы выбраны."
+                                  _RU_explanation="Все строки трассы выбраны."
+                                  _EN_explanation="All trace steps are selected." value="correct"/>
+            </Outcome>
+        </CycleAggregationNode>
+    </ThoughtBranch>
+</StartNode>

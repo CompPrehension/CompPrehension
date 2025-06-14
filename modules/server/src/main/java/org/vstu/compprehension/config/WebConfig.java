@@ -1,5 +1,7 @@
 package org.vstu.compprehension.config;
 
+import domains.DataFlowDTDomain;
+import domains.ObjectsScopeDTDomain;
 import lombok.val;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.boot.autoconfigure.web.servlet.DispatcherServletAutoConfiguration;
@@ -53,6 +55,8 @@ public class WebConfig implements WebMvcConfigurer {
         messageSource.addBasenames(ProgrammingLanguageExpressionDomain.MESSAGES_CONFIG_PATH);
         messageSource.addBasenames(ProgrammingLanguageExpressionDTDomain.MESSAGES_CONFIG_PATH);
         messageSource.addBasenames(ControlFlowStatementsDTDomain.MESSAGES_CONFIG_PATH);
+        messageSource.addBasenames(ObjectsScopeDTDomain.MESSAGES_CONFIG_PATH);
+        messageSource.addBasenames(DataFlowDTDomain.MESSAGES_CONFIG_PATH);
         messageSource.setDefaultEncoding("UTF-8");
         return messageSource;
     }
