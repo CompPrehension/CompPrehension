@@ -98,7 +98,7 @@ public class StaticStrategy implements AbstractStrategy {
     }
 
     @Override
-    public float grade(ExerciseAttemptEntity exerciseAttempt) {
+    public float grade(ExerciseAttemptEntity exerciseAttempt, Domain.InterpretSentenceResult judgeResult) {
         // all questions defined by exercise
         int nQuestionsExpected = exerciseAttempt.getExercise().getStages().stream().mapToInt(ExerciseStageEntity::getNumberOfQuestions).reduce(Integer::sum).orElse(1);
         // current progress over all questions
