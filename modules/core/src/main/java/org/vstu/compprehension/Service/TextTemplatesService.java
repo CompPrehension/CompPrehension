@@ -37,7 +37,7 @@ public class TextTemplatesService {
                     .map(domainFactory::getDomain)
                     .filter(domain -> domain instanceof DecisionTreeReasoningDomain)
                     .map(domain -> (DecisionTreeReasoningDomain) domain)
-                    .filter(domain -> domain.getDomainSolvingModel() != null)
+                    .filter(domain -> domain.getDomainSolvingModels() != null && !domain.getDomainSolvingModels().isEmpty())
                     .forEach(this::init);
         } catch (RuntimeException e) {
             log.warn("TextTemplatesService failed to initialize");
@@ -194,34 +194,36 @@ public class TextTemplatesService {
 
 
     public List<TextTemplateDto> search(String searchString, String domainId) {
-        DecisionTreeReasoningDomain domain = (DecisionTreeReasoningDomain) domainFactory.getDomain(domainId);
-        DomainSolvingModel domainSolvingModel = domain.getDomainSolvingModel();
+        DecisionTreeReasoningDomain domain = (DecisionTreeReasoningDomain) domainFactory.getDomain(domainId);        
         String searchStringLowerCase = searchString.toLowerCase();
-        Map<MetaOwnerKey, MetaOwner> metaOwnerMap = createMetaOwnerMap(domainSolvingModel);
-
         List<TextTemplateDto> results = new ArrayList<>();
-        metaOwnerMap.forEach((key, metaOwner) -> {
-            metaOwner.getMetadata().getEntries().forEach(metadataPropertyValue -> {
-                if (!(metadataPropertyValue.getValue() instanceof String)) {
-                    return;
-                }
-                if (ID_METADATA_PROPERTY.equals(metadataPropertyValue.getPropertyName())) {
-                    return;
-                }
-                String valueString = metadataPropertyValue.getValue().toString();
-                if (valueString.toLowerCase().contains(searchStringLowerCase)) {
-                    results.add(new TextTemplateDto(
-                        key.location,
-                        key.subLocationName,
-                        key.id,
-                        metaOwner.toString(),
-                        metadataPropertyValue.getLocCode(),
-                        metadataPropertyValue.getPropertyName(),
-                        valueString
-                    ));
-                }
+
+        for(var domainSolvingModel : domain.getDomainSolvingModels()) {
+            Map<MetaOwnerKey, MetaOwner> metaOwnerMap = createMetaOwnerMap(domainSolvingModel);            
+            metaOwnerMap.forEach((key, metaOwner) -> {
+                metaOwner.getMetadata().getEntries().forEach(metadataPropertyValue -> {
+                    if (!(metadataPropertyValue.getValue() instanceof String)) {
+                        return;
+                    }
+                    if (ID_METADATA_PROPERTY.equals(metadataPropertyValue.getPropertyName())) {
+                        return;
+                    }
+                    String valueString = metadataPropertyValue.getValue().toString();
+                    if (valueString.toLowerCase().contains(searchStringLowerCase)) {
+                        results.add(new TextTemplateDto(
+                                key.location,
+                                key.subLocationName,
+                                key.id,
+                                metaOwner.toString(),
+                                metadataPropertyValue.getLocCode(),
+                                metadataPropertyValue.getPropertyName(),
+                                valueString
+                        ));
+                    }
+                });
             });
-        });
+        }
+
         return results;
     }
 
@@ -251,25 +253,26 @@ public class TextTemplatesService {
         List<TextTemplateDto> updatedTemplates,
         DecisionTreeReasoningDomain domain
     ) {
-        DomainSolvingModel domainSolvingModel = domain.getDomainSolvingModel();
-        Map<MetaOwnerKey, MetaOwner> metaOwnerMap = createMetaOwnerMap(domainSolvingModel);
-
         List<TextTemplateDto> updated = new ArrayList<>();
-        for (TextTemplateDto textTemplateDto : updatedTemplates) {
-            MetaOwner metaOwner = metaOwnerMap.get(new MetaOwnerKey(
-                textTemplateDto.templateLocation(),
-                textTemplateDto.subLocationName(),
-                textTemplateDto.id()
-            ));
-            String locCode = textTemplateDto.locCode();
-            String property = textTemplateDto.propertyName();
-            String value = textTemplateDto.value();
+        for (var domainSolvingModel : domain.getDomainSolvingModels() ) {
+            Map<MetaOwnerKey, MetaOwner> metaOwnerMap = createMetaOwnerMap(domainSolvingModel);            
+            for (TextTemplateDto textTemplateDto : updatedTemplates) {
+                MetaOwner metaOwner = metaOwnerMap.get(new MetaOwnerKey(
+                        textTemplateDto.templateLocation(),
+                        textTemplateDto.subLocationName(),
+                        textTemplateDto.id()
+                ));
+                String locCode = textTemplateDto.locCode();
+                String property = textTemplateDto.propertyName();
+                String value = textTemplateDto.value();
 
-            if (!Objects.equals(metaOwner.getMetadata().get(locCode, property), value)) {
-                metaOwner.getMetadata().add(locCode, property, value);
-                updated.add(textTemplateDto);
+                if (!Objects.equals(metaOwner.getMetadata().get(locCode, property), value)) {
+                    metaOwner.getMetadata().add(locCode, property, value);
+                    updated.add(textTemplateDto);
+                }
             }
         }
+
         return updated;
     }
 

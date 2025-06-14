@@ -569,6 +569,10 @@ public class DataFlowDTDomain extends DecisionTreeReasoningDomain {
         return false;
     }
 
+    @Override
+    public List<DomainSolvingModel> getDomainSolvingModels() {
+        return List.of(domainSolvingModel);
+    }
 
     private class DecisionTreeInterface extends DecisionTreeReasonerBackend.Interface {
         @Override

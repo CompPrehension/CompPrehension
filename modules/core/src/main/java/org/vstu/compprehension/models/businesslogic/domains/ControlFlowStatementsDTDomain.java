@@ -81,13 +81,8 @@ public class ControlFlowStatementsDTDomain extends DecisionTreeReasoningDomain {
     }
 
     @Override
-    protected String getDomainSolvingModelResourceLocation() {
-        return DOMAIN_MODEL_LOCATION;
-    }
-
-    @Override
-    public DomainSolvingModel getDomainSolvingModel() {
-        return domainSolvingModel;
+    public List<DomainSolvingModel> getDomainSolvingModels() {
+        return List.of(domainSolvingModel);
     }
 
     @Override
