@@ -1,10 +1,9 @@
 package org.vstu.compprehension.models.businesslogic;
 
 import lombok.AllArgsConstructor;
-import lombok.Builder;
 import lombok.Getter;
 import lombok.Setter;
-import org.apache.commons.lang3.builder.ToStringExclude;
+import lombok.ToString;
 import org.jetbrains.annotations.Nullable;
 
 import java.util.Collection;
@@ -31,10 +30,10 @@ public abstract class Law implements TreeNodeWithBitmask {
     @Getter @Setter
     long bitmask = 0;
     @Getter
-    @ToStringExclude
+    @ToString.Exclude
     List<LawFormulation> formulations;
     @Getter
-    @ToStringExclude
+    @ToString.Exclude
     List<Concept> concepts;
     @Getter
     List<Tag> tags;
@@ -50,11 +49,11 @@ public abstract class Law implements TreeNodeWithBitmask {
 
     /** Cached references to "base" Law instances — semantically the same as `impliesLaws` */
     @Getter @Setter
-    @ToStringExclude
+    @ToString.Exclude
     Collection<Law> lawsImplied;
 
     /** Cached references to Law instances */
-    @ToStringExclude
+    @ToString.Exclude
     @Getter
     @Setter
     Collection<Law> childLaws = null;

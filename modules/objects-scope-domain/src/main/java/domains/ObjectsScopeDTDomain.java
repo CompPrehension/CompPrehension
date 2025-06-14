@@ -766,6 +766,11 @@ public class ObjectsScopeDTDomain extends DecisionTreeReasoningDomain {
         return violation.getLawName().equals("incorrectStep");
     }
 
+    @Override
+    public List<DomainSolvingModel> getDomainSolvingModels() {
+        return List.of(domainLifeTimeSolvingModel, domainObjectVisibilitySolvingModel, domainObjectsVisibilityInLineSolvingModel);
+    }
+
     private class DecisionTreeInterface extends DecisionTreeReasonerBackend.Interface {
         @Override
         public DecisionTreeReasonerBackend.Input prepareBackendInfoForJudge(

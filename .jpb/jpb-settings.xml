@@ -15,6 +15,12 @@
           <package value="org.vstu.compprehension" />
         </packages>
       </persistence-unit>
+        <persistence-unit name="test"
+                          defaultIncludeChangeLogFile="modules/server/src/main/resources/db/changelog/db.changelog-master.xml">
+            <packages>
+                <package value="org.vstu.compprehension.models.entities"/>
+            </packages>
+        </persistence-unit>
     </persistence-units>
   </component>
 </project>

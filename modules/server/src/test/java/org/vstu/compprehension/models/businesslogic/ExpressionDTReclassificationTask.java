@@ -74,7 +74,13 @@ public class ExpressionDTReclassificationTask {
             }
 
             System.err.printf("Processing metadata id=%d%n", meta.getId());
-            QuestionMetadataEntity obj = MeaningTreeOrderQuestionBuilder.metadataRecalculate(domain, meta);
+            QuestionMetadataEntity obj;
+            try {
+                obj = MeaningTreeOrderQuestionBuilder.metadataRecalculate(domain, meta);
+            } catch (Exception e) {
+                e.printStackTrace();
+                obj = null;
+            }
 
             if (obj == null) {
                 toDelete.add(meta.getId());

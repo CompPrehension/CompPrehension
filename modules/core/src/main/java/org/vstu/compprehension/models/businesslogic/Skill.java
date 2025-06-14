@@ -1,14 +1,14 @@
 package org.vstu.compprehension.models.businesslogic;
 
+import lombok.Data;
 import lombok.EqualsAndHashCode;
-import lombok.Getter;
 import lombok.Setter;
-import org.apache.commons.lang3.builder.ToStringExclude;
+import lombok.ToString;
 
 import java.util.*;
 import java.util.stream.Collectors;
 
-@Getter
+@Data
 @EqualsAndHashCode(onlyExplicitlyIncluded = true)
 public class Skill implements TreeNodeWithBitmask {
     /** When present, this flag enables a concept to be shown to teacher at exercise configuration page. */
@@ -31,11 +31,11 @@ public class Skill implements TreeNodeWithBitmask {
     @Setter
     int sortOrder = 999;
 
-    @ToStringExclude
+    @ToString.Exclude
     List<Skill> baseSkills;
 
     /** Cached references to Skill instances */
-    @ToStringExclude
+    @ToString.Exclude
     @Setter
     Collection<Skill> childSkills = null;
 

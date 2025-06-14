@@ -8,8 +8,8 @@ import i18next from "i18next";
 import {initReactI18next} from "react-i18next";
 import {SurveyController} from "./controllers/exercise/survey-controller";
 import {ExerciseSettingsController} from "./controllers/exercise/exercise-settings";
-import { QuestionController } from "./controllers/exercise/question-controller";
-import { UserController } from "./controllers/exercise/user-controller";
+import {QuestionController} from "./controllers/exercise/question-controller";
+import {UserController} from "./controllers/exercise/user-controller";
 
 // init DI container
 const isSandbox = () => (new URLSearchParams(window.location.search).get('sandbox') ?? null) !== null;
@@ -50,7 +50,7 @@ const resources = {
             correctsteps_feeback: "Correct steps",
             stepswitherrors_feeback: "Steps with errors",
             stepsleft_feeback: "Steps left",
-            issolved_feeback: "Solved",
+            issolved_feeback: "Everything operator is already evaluated. Task is solved",
             foundExisitingAttempt_title: "Found existing attempt",
             foundExisitingAttempt_descr: "Would you like to continue the existing attempt or start a new one",
             foundExisitingAttempt_continueattempt: "Continue",
@@ -117,7 +117,7 @@ const resources = {
             correctsteps_feeback: "Правильных шагов",
             stepswitherrors_feeback: "Шагов с ошибками",
             stepsleft_feeback: "Шагов осталось",
-            issolved_feeback: "Задача решена",
+            issolved_feeback: "Все операторы уже вычислены. Задача решена",
             foundExisitingAttempt_title: "Найдена неоконченная попытка",            
             foundExisitingAttempt_descr: "Вы хотите продолжить существующую попытку или начать новую",
             foundExisitingAttempt_continueattempt: "Продолжить",

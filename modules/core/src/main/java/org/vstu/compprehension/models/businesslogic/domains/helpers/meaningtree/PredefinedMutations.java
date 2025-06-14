@@ -1,8 +1,8 @@
 package org.vstu.compprehension.models.businesslogic.domains.helpers.meaningtree;
 
 import org.vstu.meaningtree.MeaningTree;
+import org.vstu.meaningtree.iterators.utils.NodeInfo;
 import org.vstu.meaningtree.nodes.Expression;
-import org.vstu.meaningtree.nodes.Node;
 import org.vstu.meaningtree.nodes.expressions.ParenthesizedExpression;
 import org.vstu.meaningtree.nodes.expressions.UnaryExpression;
 import org.vstu.meaningtree.nodes.expressions.bitwise.InversionOp;
@@ -24,25 +24,25 @@ class PredefinedMutations {
 
     static final Mutation parenRemove = new Mutation() {
         @Override
-        public boolean isEligible(Node.Info child) {
+        public boolean isEligible(NodeInfo child) {
             return child.node() instanceof ParenthesizedExpression;
         }
 
         @Override
-        protected void perform(MeaningTree origin, Node.Info info) {
+        protected void perform(MeaningTree origin, NodeInfo info) {
             origin.substitute(info.id(), ((ParenthesizedExpression)info.node()).getExpression());
         }
     };
 
     static final Mutation ternaryComplexify = new Mutation() {
         @Override
-        public boolean isEligible(Node.Info child) {
+        public boolean isEligible(NodeInfo child) {
             return child.node() instanceof TernaryOperator t &&
                     !(t.getThenExpr() instanceof TernaryOperator) && !(t.getElseExpr() instanceof TernaryOperator);
         }
 
         @Override
-        protected void perform(MeaningTree origin, Node.Info info) {
+        protected void perform(MeaningTree origin, NodeInfo info) {
             TernaryOperator op = (TernaryOperator) info.node();
             Expression cond = op.getCondition().tryInvert();
             SimpleIdentifier id = new SimpleIdentifier("m" + (char) ('a' + random.nextInt(26)) + random.nextInt(10));
@@ -52,13 +52,13 @@ class PredefinedMutations {
 
     private static final Mutation addPostfixToPointerMutation = new Mutation() {
         @Override
-        public boolean isEligible(Node.Info child) {
+        public boolean isEligible(NodeInfo child) {
             return child.parent() instanceof PointerUnpackOp &&
                     !(child.node() instanceof PostfixDecrementOp || child.node() instanceof PostfixIncrementOp);
         }
 
         @Override
-        protected void perform(MeaningTree origin, Node.Info info) {
+        protected void perform(MeaningTree origin, NodeInfo info) {
             boolean isSub = random.nextBoolean();
             origin.substitute(info.id(), isSub ? new PostfixDecrementOp((Expression) info.node()) :
                     new PostfixIncrementOp((Expression) info.node()));
@@ -67,13 +67,13 @@ class PredefinedMutations {
 
     private static final Mutation addPointerToPostfixMutation = new Mutation() {
         @Override
-        public boolean isEligible(Node.Info child) {
+        public boolean isEligible(NodeInfo child) {
             return (child.node() instanceof PostfixDecrementOp || child.node() instanceof PostfixIncrementOp)
                     && !(child.parent() instanceof PointerUnpackOp) && !(child.parent() instanceof PointerPackOp);
         }
 
         @Override
-        protected void perform(MeaningTree origin, Node.Info info) {
+        protected void perform(MeaningTree origin, NodeInfo info) {
             UnaryExpression unaryExpr = (UnaryExpression) info.node();
             origin.substitute(info.id(), new PointerUnpackOp(unaryExpr));
         }
@@ -81,11 +81,11 @@ class PredefinedMutations {
 
     private static final Mutation unaryAppend = new Mutation() {
         @Override
-        public boolean isEligible(Node.Info child) {
+        public boolean isEligible(NodeInfo child) {
             for (Class<? extends Expression> clazz : List.of(MemberAccess.class, IndexExpression.class)) {
                 if (clazz.isInstance(child.node()) &&
                         !(child.parent() instanceof AssignmentExpression &&
-                                child.readableFieldName().equals("left"))) {
+                                child.field().getName().equals("left"))) {
                     return true;
                 }
             }
@@ -93,7 +93,7 @@ class PredefinedMutations {
         }
 
         @Override
-        protected void perform(MeaningTree origin, Node.Info info) {
+        protected void perform(MeaningTree origin, NodeInfo info) {
             Expression expr = (Expression) info.node();
             Expression changed;
             if (info.node() instanceof IndexExpression) {

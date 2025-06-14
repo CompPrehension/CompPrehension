@@ -2,7 +2,7 @@ package org.vstu.compprehension.models.businesslogic.domains.helpers.meaningtree
 
 import lombok.Setter;
 import org.vstu.meaningtree.MeaningTree;
-import org.vstu.meaningtree.nodes.Node;
+import org.vstu.meaningtree.iterators.utils.NodeInfo;
 import org.vstu.meaningtree.utils.Label;
 
 import java.util.Random;
@@ -22,10 +22,10 @@ public abstract class Mutation {
         this.makeClone = makeClone;
     }
 
-    public abstract boolean isEligible(Node.Info child);
-    protected abstract void perform(MeaningTree origin, Node.Info info);
+    public abstract boolean isEligible(NodeInfo child);
+    protected abstract void perform(MeaningTree origin, NodeInfo info);
 
-    public MeaningTree apply(MeaningTree origin, Node.Info info) {
+    public MeaningTree apply(MeaningTree origin, NodeInfo info) {
         MeaningTree target;
         if (makeClone) {
             target = origin.clone();
@@ -45,12 +45,12 @@ public abstract class Mutation {
         final Mutation source = this;
         return new Mutation(source.makeClone || other.makeClone) {
             @Override
-            public boolean isEligible(Node.Info child) {
+            public boolean isEligible(NodeInfo child) {
                 return other.isEligible(child) || source.isEligible(child);
             }
 
             @Override
-            protected void perform(MeaningTree origin, Node.Info info) {
+            protected void perform(MeaningTree origin, NodeInfo info) {
                 source.random = this.random;
                 other.random = this.random;
                 if (source.isEligible(info)) source.perform(origin, info);
@@ -63,12 +63,12 @@ public abstract class Mutation {
         final Mutation source = this;
         return new Mutation(source.makeClone || other.makeClone) {
             @Override
-            public boolean isEligible(Node.Info child) {
+            public boolean isEligible(NodeInfo child) {
                 return other.isEligible(child) || source.isEligible(child);
             }
 
             @Override
-            protected void perform(MeaningTree origin, Node.Info info) {
+            protected void perform(MeaningTree origin, NodeInfo info) {
                 source.random = this.random;
                 other.random = this.random;
                 Mutation selected = selector.apply(source, other);
