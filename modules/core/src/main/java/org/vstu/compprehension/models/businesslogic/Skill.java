@@ -6,6 +6,7 @@ import lombok.Setter;
 import lombok.ToString;
 
 import java.util.*;
+import java.util.stream.Collectors;
 
 @Data
 @EqualsAndHashCode(onlyExplicitlyIncluded = true)
@@ -123,5 +124,23 @@ public class Skill implements TreeNodeWithBitmask {
             set.addAll(childSkill.getDescendants());
         }
         return set;
+    }
+
+    /**
+     * Recursively searches for the closest ancestors with the {@code FLAG_VISIBLE_TO_TEACHER} flag.
+     * @return A set of the closest visible ancestors (maybe empty)
+     */
+    public Set<Skill> getClosestVisibleParents() {
+        if (this.hasFlag(Skill.FLAG_VISIBLE_TO_TEACHER)) {
+            return Set.of(this);
+        }
+
+        if (this.baseSkills == null || this.baseSkills.isEmpty()) {
+            return Set.of();
+        }
+
+        return this.baseSkills.stream()
+                .flatMap(bs -> bs.getClosestVisibleParents().stream())
+                .collect(Collectors.toSet());
     }
 }

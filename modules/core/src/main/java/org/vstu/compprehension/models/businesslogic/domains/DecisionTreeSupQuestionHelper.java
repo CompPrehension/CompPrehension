@@ -2,6 +2,7 @@ package org.vstu.compprehension.models.businesslogic.domains;
 
 import its.model.DomainSolvingModel;
 import its.model.definition.DomainModel;
+import its.model.nodes.BranchResult;
 import its.questions.gen.QuestioningSituation;
 import its.questions.gen.states.*;
 import its.questions.gen.strategies.FullBranchStrategy;
@@ -31,27 +32,27 @@ import java.util.stream.Collectors;
 
 public class DecisionTreeSupQuestionHelper {
     public DecisionTreeSupQuestionHelper(
-        Domain domain,
-        DomainSolvingModel domainSolvingModel,
-        Function<InteractionEntity, DomainModel> mainQuestionToModelTransformer
+            Domain domain,
+            DomainSolvingModel domainSolvingModel,
+            Function<InteractionEntity, DomainModel> mainQuestionToModelTransformer
     ) {
         this.domain = domain;
         this.domainModel = domainSolvingModel;
         this.supplementaryAutomata = FullBranchStrategy.INSTANCE.buildAndFinalize(
-            domainModel.getDecisionTree().getMainBranch(), new EndQuestionState()
+                domainModel.getDecisionTree().getMainBranch(), new EndQuestionState()
         );
         this.mainQuestionToModelTransformer = mainQuestionToModelTransformer;
     }
 
     public DecisionTreeSupQuestionHelper(
-        Domain domain,
-        URL domainModelDirectoryURL,
-        Function<InteractionEntity, DomainModel> mainQuestionToModelTransformer
+            Domain domain,
+            URL domainModelDirectoryURL,
+            Function<InteractionEntity, DomainModel> mainQuestionToModelTransformer
     ) {
         this(
-            domain,
-            new DomainSolvingModel(domainModelDirectoryURL, DomainSolvingModel.BuildMethod.LOQI),
-            mainQuestionToModelTransformer
+                domain,
+                new DomainSolvingModel(domainModelDirectoryURL, DomainSolvingModel.BuildMethod.LOQI),
+                mainQuestionToModelTransformer
         );
     }
 
@@ -61,7 +62,7 @@ public class DecisionTreeSupQuestionHelper {
     private final Function<InteractionEntity, DomainModel> mainQuestionToModelTransformer;
 
     //DT = Decision Tree
-    protected SupplementaryResponseGenerationResult makeSupplementaryQuestion(QuestionEntity mainQuestion, Language userLang) {
+    public SupplementaryResponseGenerationResult makeSupplementaryQuestion(QuestionEntity mainQuestion, Language userLang) {
         //Получить ошибочную интеракцию с основным вопросом
         List<InteractionEntity> interactions = mainQuestion.getInteractions();
         if (interactions == null || interactions.isEmpty()) {
@@ -84,6 +85,7 @@ public class DecisionTreeSupQuestionHelper {
         }
         else {
             situation = new QuestioningSituation(situationModel, localizationCode);
+            situation.addAssumedResult(domainModel.getDecisionTree().getMainBranch(), BranchResult.CORRECT);
         }
 
         //получить состояние автомата вопросов, к которому перешли на последнем шаге
@@ -112,7 +114,7 @@ public class DecisionTreeSupQuestionHelper {
         return new SupplementaryResponseGenerationResult(response, supplementaryChain);
     }
 
-    protected SupplementaryFeedbackGenerationResult judgeSupplementaryQuestion(SupplementaryStepEntity supplementaryInfo, List<ResponseEntity> responses){
+    public SupplementaryFeedbackGenerationResult judgeSupplementaryQuestion(SupplementaryStepEntity supplementaryInfo, List<ResponseEntity> responses){
         //получить состояние автомата вопросов, соответствующее данному вопросу
         QuestionState state = supplementaryAutomata.get(supplementaryInfo.getNextStateId());
 

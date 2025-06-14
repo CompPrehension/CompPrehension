@@ -73,4 +73,14 @@ public class StringHelper {
         if (input == null) return null;
         return input.length() > maxLength ? input.substring(0, maxLength) : input;
     }
+    
+    public static StringBuilder replaceAll(@NotNull StringBuilder builder, @NotNull String from, @NotNull String to) {
+        int index = builder.indexOf(from);
+        while (index != -1) {
+            builder.replace(index, index + from.length(), to);
+            index += to.length(); // Move to the end of the replacement
+            index = builder.indexOf(from, index);
+        }
+        return builder;
+    }
 }
