@@ -303,3 +303,40 @@ table.comp-ph-trace tr td {
 table.comp-ph-trace tr:first-child td {
   border-top: none;
 }
+
+/* Trace syntax */
+.trace .program {
+	color: #f70;
+	font-weight: bold;
+}
+
+.trace .keyword {
+	color: #00a;
+	font-weight: bold;
+}
+
+.trace .action {
+	color: #077;
+	font-weight: bold;
+}
+
+.trace .variable {
+	color: #700;
+	font-weight: bold;
+}
+
+.trace .number {
+	color: #FF5252;
+	font-weight: bold;
+}
+
+.trace .struct {
+	color: #07c;
+	font-weight: bold;
+}
+
+.trace .atom {
+	color: #f08;
+	font-style: italic;
+	font-weight: bold;
+}

@@ -1,0 +1,9 @@
+canBeVisible||ContextType;VisibilityModifierType;ContextRelationType|||
+canBeLive||ContextType;ContextRelationType;LifecycleType|||
+previous||Token;Token|||
+end||Prefix;Token|||
+contextType||Context;ContextType|||
+parent||Context;Context|partial|child;ancestor;descendant;between;closer;far|
+visiblyModifier||Context;VisibilityModifierType|||
+lifecycle||Context;LifecycleType|||
+contextRelation||Context;ContextRelationType;Context|||

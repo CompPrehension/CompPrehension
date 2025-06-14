@@ -1,0 +1,506 @@
+@prefix : <poas:poas/> .
+@prefix owl: <http://www.w3.org/2002/07/owl#> .
+@prefix xsd: <http://www.w3.org/2001/XMLSchema#> .
+@prefix rdf: <http://www.w3.org/1999/02/22-rdf-syntax-ns#> .
+@prefix rdfs: <http://www.w3.org/2000/01/rdf-schema#> .
+
+# Classes
+
+:Type rdf:type owl:Class ;
+         rdfs:label "Type" .
+
+:Position rdf:type owl:Class ;
+         rdfs:label "Position" .
+
+:OperatorType rdf:type owl:Class ;
+             rdfs:label "Operator" .
+
+###  poas:poas/Expression
+:Expression rdf:type owl:Class ;
+         rdfs:label "Expression" .
+
+###  poas:poas/Variable
+:Variable rdf:type owl:Class ;
+             rdfs:subClassOf :Expression ;
+             rdfs:label "Variable" .
+
+###  poas:poas/Operator
+:Operator rdf:type owl:Class ;
+             rdfs:subClassOf :Expression ;
+             rdfs:label "Operator" .
+
+###  poas:poas/FunctionCall
+:FunctionCall rdf:type owl:Class ;
+             rdfs:subClassOf :Expression ;
+             rdfs:label "FunctionCall" .
+
+###  poas:poas/Sequence
+:Sequence rdf:type owl:Class ;
+               rdfs:label "Sequence" .
+
+###  poas:poas/FunctionDef
+:FunctionDef rdf:type owl:Class ;
+               rdfs:label "FunctionDef" .
+
+###  poas:poas/Param
+:Param rdf:type owl:Class ;
+               rdfs:label "Param" .
+
+###  poas:poas/SequenceParams
+:SequenceParams rdf:type owl:Class ;
+               rdfs:label "SequenceParams" .
+
+# Objects
+
+# Type
+:inputType
+    a :Type ;
+    :type :input .
+
+:outputType
+    a :Type ;
+    :type :output .
+
+:mutableType
+    a :Type ;
+    :type :mutable .
+
+
+# Position
+:leftPosition
+    a :Position ;
+    :position :left .
+
+:rightPosition
+    a :Position ;
+    :position :right .
+
+:centerPosition
+    a :Position ;
+    :position :center .
+
+
+# OperatorType
+
+# + (унарный) — унарное сложение (операнд: изменяемый)
+:unaryplus
+    a :OperatorType ;
+    :text "+"^^xsd:string ;
+    :has :rightInput .
+
+# + (бинарный)
+:plus
+    a :OperatorType ;
+    :text "+"^^xsd:string ;
+    :has :leftInput ;
+    :has :rightInput .
+
+# - (унарный) — унарное вычитание (операнд: изменяемый)
+:unaryMinus
+    a :OperatorType ;
+    :text "-"^^xsd:string ;
+    :has :rightInput .
+
+# - (бинарный) — бинарное вычитание (левый и правый операнды: входные)
+:minus
+    a :OperatorType ;
+    :text "-"^^xsd:string ;
+    :has :leftInput ;
+    :has :rightInput .
+
+# * — умножение (левый и правый операнды: входные)
+:mul
+    a :OperatorType ;
+    :text "*"^^xsd:string ;
+    :has :leftInput ;
+    :has :rightInput .
+
+# / — деление (левый и правый операнды: входные)
+:div
+    a :OperatorType ;
+    :text "/"^^xsd:string ;
+    :has :leftInput ;
+    :has :rightInput .
+
+# % — остаток от деления (левый и правый операнды: входные)
+:mod
+    a :OperatorType ;
+    :text "%"^^xsd:string ;
+    :has :leftInput ;
+    :has :rightInput .
+
+# ++ (префиксный) — префиксный инкремент (операнд: изменяемый и выходной)
+:prefixIncrement
+    a :OperatorType ;
+    :text "++"^^xsd:string ;
+    :has :rightMutable .
+
+# ++ (постфиксный) — постфиксный инкремент (операнд: изменяемый и выходной)
+:postfixIncrement
+    a :OperatorType ;
+    :text "++"^^xsd:string ;
+    :has :leftMutable .
+
+# -- (префиксный) — префиксный декремент (операнд: изменяемый и выходной)
+:prefixDecrement
+    a :OperatorType ;
+    :text "--"^^xsd:string ;
+    :has :rightMutable .
+
+# -- (постфиксный) — постфиксный декремент (операнд: изменяемый и выходной)
+:postfixDecrement
+    a :OperatorType ;
+    :text "--"^^xsd:string ;
+    :has :leftMutable .
+
+
+# Операторы присваивания
+
+# = — присваивание (левый операнд: изменяемый, правый операнд: входной)
+:assign
+    a :OperatorType ;
+    :text "="^^xsd:string ;
+    :has :leftOutput ;
+    :has :rightInput .
+
+# += — присваивание с добавлением (левый операнд: изменяемый, правый операнд: входной)
+:plusAssign
+    a :OperatorType ;
+    :text "+="^^xsd:string ;
+    :has :leftMutable ;
+    :has :rightInput .
+
+# -= — присваивание с вычитанием (левый операнд: изменяемый, правый операнд: входной)
+:minusAssign
+    a :OperatorType ;
+    :text "-="^^xsd:string ;
+    :has :leftMutable ;
+    :has :rightInput .
+
+# *= — присваивание с умножением (левый операнд: изменяемый, правый операнд: входной)
+:mulAssign
+    a :OperatorType ;
+    :text "*="^^xsd:string ;
+    :has :leftMutable ;
+    :has :rightInput .
+
+# /= — присваивание с делением (левый операнд: изменяемый, правый операнд: входной)
+:divAssign
+    a :OperatorType ;
+    :text "/="^^xsd:string ;
+    :has :leftMutable ;
+    :has :rightInput .
+
+# %= — присваивание с остатком от деления (левый операнд: изменяемый, правый операнд: входной)
+:modAssign
+    a :OperatorType ;
+    :text "%="^^xsd:string ;
+    :has :leftMutable ;
+    :has :rightInput .
+
+# <<= — присваивание с битовым сдвигом влево (левый операнд: изменяемый, правый операнд: входной)
+:bitLeftAssign
+    a :OperatorType ;
+    :text "<<="^^xsd:string ;
+    :has :leftMutable ;
+    :has :rightInput .
+
+# >>= — присваивание с битовым сдвигом вправо (левый операнд: изменяемый, правый операнд: входной)
+:bitRightAssign
+    a :OperatorType ;
+    :text ">>="^^xsd:string ;
+    :has :leftMutable ;
+    :has :rightInput .
+
+# &= — присваивание с побитовым И (левый операнд: изменяемый, правый операнд: входной)
+:bitAndAssign
+    a :OperatorType ;
+    :text "&="^^xsd:string ;
+    :has :leftMutable ;
+    :has :rightInput .
+
+# |= — присваивание с побитовым ИЛИ (левый операнд: изменяемый, правый операнд: входной)
+:bitOrAssign
+    a :OperatorType ;
+    :text "|="^^xsd:string ;
+    :has :leftMutable ;
+    :has :rightInput .
+
+# ^= — присваивание с побитовым исключающим ИЛИ (левый операнд: изменяемый, правый операнд: входной)
+:bitXORAssign
+    a :OperatorType ;
+    :text "^="^^xsd:string ;
+    :has :leftMutable ;
+    :has :rightInput .
+
+
+# Операторы сравнения
+
+# == — равно (левый и правый операнды: входные)
+:equal
+    a :OperatorType ;
+    :text "=="^^xsd:string ;
+    :has :leftInput ;
+    :has :rightInput .
+
+# != — не равно (левый и правый операнды: входные)
+:notEqual
+    a :OperatorType ;
+    :text "!="^^xsd:string ;
+    :has :leftInput ;
+    :has :rightInput .
+
+# < — меньше (левый и правый операнды: входные)
+:less
+    a :OperatorType ;
+    :text "<"^^xsd:string ;
+    :has :leftInput ;
+    :has :rightInput .
+
+# > — больше (левый и правый операнды: входные)
+:greater
+    a :OperatorType ;
+    :text ">"^^xsd:string ;
+    :has :leftInput ;
+    :has :rightInput .
+
+# <= — меньше или равно (левый и правый операнды: входные)
+:lessEqual
+    a :OperatorType ;
+    :text "<="^^xsd:string ;
+    :has :leftInput ;
+    :has :rightInput .
+
+# >= — больше или равно (левый и правый операнды: входные)
+:greaterEqual
+    a :OperatorType ;
+    :text ">="^^xsd:string ;
+    :has :leftInput ;
+    :has :rightInput .
+
+
+# Логические операторы
+
+# && — логическое И (левый и правый операнды: входные)
+:and
+    a :OperatorType ;
+    :text "&&"^^xsd:string ;
+    :has :leftInput ;
+    :has :rightInput .
+
+# || — логическое ИЛИ (левый и правый операнды: входные)
+:or
+    a :OperatorType ;
+    :text "||"^^xsd:string ;
+    :has :leftInput ;
+    :has :rightInput .
+
+# ! — логическое НЕ (операнд: входной)
+:not
+    a :OperatorType ;
+    :text "!"^^xsd:string ;
+    :has :rightInput .
+
+
+# Побитовые операторы
+
+# & — побитовое И (левый и правый операнды: входные)
+:bitAnd
+    a :OperatorType ;
+    :text "&"^^xsd:string ;
+    :has :leftInput ;
+    :has :rightInput .
+
+# | — побитовое ИЛИ (левый и правый операнды: входные)
+:bitOr
+    a :OperatorType ;
+    :text "|"^^xsd:string ;
+    :has :leftInput ;
+    :has :rightInput .
+
+# ^ — побитовое исключающее ИЛИ (левый и правый операнды: входные)
+:bitXor
+    a :OperatorType ;
+    :text "^"^^xsd:string ;
+    :has :leftInput ;
+    :has :rightInput .
+
+# ~ — побитовое НЕ (операнд: входной)
+:bitNot
+    a :OperatorType ;
+    :text "~"^^xsd:string ;
+    :has :rightInput .
+
+# << — побитовый сдвиг влево (левый и правый операнды: входные)
+:bitLeft
+    a :OperatorType ;
+    :text "<<"^^xsd:string ;
+    :has :leftInput ;
+    :has :rightInput .
+
+# >> — побитовый сдвиг вправо (левый и правый операнды: входные)
+:bitRight
+    a :OperatorType ;
+    :text ">>"^^xsd:string ;
+    :has :leftInput ;
+    :has :rightInput .
+
+
+# Операторы указателей и ссылок
+
+# * — разыменование указателя (операнд: входной, результат: изменяемый)
+:pointer
+    a :OperatorType ;
+    :text "*"^^xsd:string ;
+    :has :rightInput .
+
+# & — адрес (операнд: входной)
+:reference
+    a :OperatorType ;
+    :text "&"^^xsd:string ;
+    :has :rightInput .
+
+# -> — доступ к члену класса через указатель (левый операнд: входной)
+:pointerAccess
+    a :OperatorType ;
+    :text "->"^^xsd:string ;
+    :has :leftInput ;
+    :has :rightInput .
+
+
+# Прочие операторы
+
+# ? : — тернарный оператор (условие: входной, true-выражение и false-выражение: входные)
+:ternaryOperator
+    a :OperatorType ;
+    :text "? :"^^xsd:string ;
+    :has :leftInput ;
+    :has :centerInput ;
+    :has :rightInput .
+
+# , — оператор запятая (левый и правый операнды: входные, результат: правый операнд)
+:comma
+    a :OperatorType ;
+    :text ","^^xsd:string ;
+    :has :leftInput ;
+    :has :rightInput .
+
+# :: — оператор области видимости (левый операнд: область, правый операнд: член)
+:doubleСolon
+    a :OperatorType ;
+    :text "::"^^xsd:string ;
+    :has :leftInput ;
+    :has :rightInput .
+
+# . — доступ к члену класса (левый операнд: объект, правый операнд: член)
+:dotAccess
+    a :OperatorType ;
+    :text "."^^xsd:string ;
+    :has :leftInput ;
+    :has :rightInput .
+
+# .* — указатель на член класса (левый операнд: объект, правый операнд: указатель на член)
+:dotAccessPointer
+    a :OperatorType ;
+    :text ".*"^^xsd:string ;
+    :has :leftInput ;
+    :has :rightInput .
+
+# ->* — указатель на член класса через указатель (левый операнд: указатель на объект, правый операнд: указатель на член)
+:pointerAccessPointer
+    a :OperatorType ;
+    :text "->*"^^xsd:string ;
+    :has :leftInput ;
+    :has :rightInput .
+
+# [] — оператор индексации (левый операнд: массив, правый операнд: индекс)
+:indexOperator
+    a :OperatorType ;
+    :text "[]"^^xsd:string ;
+    :has :leftInput ;
+    :has :rightInput .
+
+
+
+
+# sizeof — определение размера объекта (операнд: тип или объект, результат: входной)
+# Пример: sizeof(int) или sizeof(a)
+# typeid — получение информации о типе во время выполнения (операнд: тип или объект, результат: входной)
+# Пример: typeid(a)
+
+# static_cast — явное преобразование типов (операнд: входной, результат: входной)
+# Пример: static_cast<int>(a)
+# dynamic_cast — безопасное приведение типов в иерархии наследования (операнд: входной, результат: входной)
+# Пример: dynamic_cast<Derived*>(base_ptr)
+# const_cast — приведение типа для добавления или удаления const (операнд: входной, результат: входной)
+# Пример: const_cast<char*>(str)
+# reinterpret_cast — небезопасное преобразование типов (операнд: входной, результат: входной)
+# Пример: reinterpret_cast<int*>(ptr)
+# Операторы обработки исключений
+# try — блок попытки выполнения кода с перехватом исключений
+# catch — блок перехвата исключений (операнд: тип исключения)
+# throw — оператор выброса исключения (операнд: исключение)
+
+
+# Операторы работы с памятью
+
+# new — выделение памяти (операнд: тип объекта, результат: изменяемый)
+# Пример: new int
+
+# new[] — выделение массива (операнд: тип объекта, результат: изменяемый)
+# Пример: new int[10]
+
+# delete — освобождение памяти (операнд: указатель)
+# Пример: delete ptr
+
+# delete[] — освобождение массива (операнд: указатель)
+# Пример: delete[] ptr
+
+
+# Connections
+
+:leftInput
+    :has :leftPosition ;
+    :has :inputType .
+
+:rightInput
+    :has :rightPosition ;
+    :has :inputType .
+
+:centerInput
+    :has :centerPosition ;
+    :has :inputType .
+
+
+:leftOutput
+    :has :leftPosition ;
+    :has :outputType .
+
+:rightOutput
+    :has :rightPosition ;
+    :has :outputType .
+
+:centerOutput
+    :has :centerPosition ;
+    :has :outputType .
+
+
+:leftMutable
+    :has :leftPosition ;
+    :has :mutableType .
+
+:rightMutable
+    :has :rightPosition ;
+    :has :mutableType .
+
+:centerMutable
+    :has :centerPosition ;
+    :has :mutableType .
+
+
+
+# ------------------------------------ Объект который используется как переменная в дереве --------------------------------
+
+:currentTypeVar
+    a :Type ;
+    :type :none .
