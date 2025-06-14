@@ -1,6 +1,8 @@
 package org.vstu.compprehension.adapters;
 
 import com.google.common.collect.Lists;
+import domains.DataFlowDTDomain;
+import domains.ObjectsScopeDTDomain;
 import org.jetbrains.annotations.NotNull;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Component;
@@ -76,6 +78,32 @@ public class DomainFactoryImpl implements DomainFactory {
                     controlFlowDomain);
             domainIdToClassMap.put(dtDomain.getDomainId(), dtDomain);
             domainShortNameToClassMap.put(dtDomainEntity.getShortName(), dtDomain);
+        }
+        {
+            var objectsScopeDomainEntity = domains
+                    .stream().filter(x -> x.getShortName().equals("obj_scope"))
+                    .findFirst()
+                    .orElseThrow();
+            var objectsScopeDomain = new ObjectsScopeDTDomain(
+                    objectsScopeDomainEntity,
+                    localizationService,
+                    randomProvider,
+                    questionStorage);
+            domainIdToClassMap.put(objectsScopeDomain.getDomainId(), objectsScopeDomain);
+            domainShortNameToClassMap.put(objectsScopeDomainEntity.getShortName(), objectsScopeDomain);
+        }
+        {
+            var dataFlowDomainEntity = domains
+                    .stream().filter(x -> x.getShortName().equals("data_flow"))
+                    .findFirst()
+                    .orElseThrow();
+            var dataFlowDomain = new DataFlowDTDomain(
+                    dataFlowDomainEntity,
+                    localizationService,
+                    randomProvider,
+                    questionStorage);
+            domainIdToClassMap.put(dataFlowDomain.getDomainId(), dataFlowDomain);
+            domainShortNameToClassMap.put(dataFlowDomainEntity.getShortName(), dataFlowDomain);
         }
 
     }

@@ -1,0 +1,11 @@
+position||Variable;Position|||manytoone
+next||Expression;Expression|linear|test1;test2;test3;test4;test5;test6|onetoone
+has||OperatorType;Position;Type|||
+parent||Expression;Expression|partial|child;ancestor;descendant;between;closer;far|
+hasArg||Sequence;Expression|||onetomany
+param||SequenceParams;Param|||onetomany
+paramType||Param;Type|||manytoone
+definition||FunctionCall;FunctionDef|||manytoone
+params||FunctionDef;SequenceParams|||onetoone
+args||FunctionCall;Sequence|||onetoone
+operatorType||Operator;OperatorType|||manytoone

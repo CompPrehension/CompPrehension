@@ -1,0 +1,12 @@
+canBeVisible||ContextType;VisibilityModifierType;ContextRelationType|||
+canBeLive||ContextType;LifecycleType;ContextRelationType|||
+contextType||Context;ContextType|||manytoone
+parent||Context;Context|partial|child;ancestor;descendant;between;closer;far|
+belongsTo||Line;Context|||manytoone
+directlyNextLine||Line;Line|linear|directlyPreviousLine;nextLine;previousLine;betweenLine;closerLine;farLine|onetoone
+visiblyModifier||Context;VisibilityModifierType|||manytoone
+lifecycle||Context;LifecycleType|||manytoone
+contextRelation||Context;ContextRelationType;Context|||
+previousToken||Token;Token|||manytoone
+end||Prefix;Token|||manytoone
+has||Context;Line|||onetoone
