@@ -14,6 +14,7 @@ import org.apache.commons.lang3.NotImplementedException;
 import org.jetbrains.annotations.NotNull;
 import org.jetbrains.annotations.Nullable;
 import org.vstu.compprehension.Service.LocalizationService;
+import org.vstu.compprehension.common.StringHelper;
 import org.vstu.compprehension.models.businesslogic.*;
 import org.vstu.compprehension.models.businesslogic.backend.DecisionTreeReasonerBackend;
 import org.vstu.compprehension.models.businesslogic.backend.JenaBackend;
@@ -437,40 +438,26 @@ public class ObjectsScopeDTDomain extends DecisionTreeReasoningDomain {
     private String QuestionTextToHtml(String text, Language language) {
         StringBuilder sb = new StringBuilder();
         sb.append("<div class='comp-ph-question'>").append(text);
-        replaceTemplates(sb, language);
+        StringHelper.replaceAll(sb, "\\n", "<br>");
+        StringHelper.replaceAll(sb, "\\*", "&#8727");
+        StringHelper.replaceAll(sb, "\\t", "&nbsp;&nbsp;&nbsp;&nbsp;");
+        StringHelper.replaceAll(sb, "text.question_program", getMessage("text.question_program", language));
+        StringHelper.replaceAll(sb, "text.question_start", getMessage("text.question_start", language));
+        StringHelper.replaceAll(sb, "text.question_end_body", getMessage("text.question_end_body", language));
+        StringHelper.replaceAll(sb, "text.question_end", getMessage("text.question_end", language));
+        StringHelper.replaceAll(sb, "text.question_function", getMessage("text.question_function", language));
+        StringHelper.replaceAll(sb, "text.question_condition", getMessage("text.question_condition", language));
+        StringHelper.replaceAll(sb, "text.question_evaluation", getMessage("text.question_evaluation", language));
+        StringHelper.replaceAll(sb, "text.question_time", getMessage("text.question_time", language));
+        StringHelper.replaceAll(sb, "text.question_performed", getMessage("text.question_performed", language));
+        StringHelper.replaceAll(sb, "text.question_iteration", getMessage("text.question_iteration", language));
+        StringHelper.replaceAll(sb, "text.question_cycle", getMessage("text.question_cycle", language));
+        StringHelper.replaceAll(sb, "text.question_body", getMessage("text.question_body", language));
+        StringHelper.replaceAll(sb, "text.question_declaration", getMessage("text.question_declaration", language));
+        StringHelper.replaceAll(sb, "text.question_class", getMessage("text.question_class", language));
+        StringHelper.replaceAll(sb, "text.question_method", getMessage("text.question_method", language));
         sb.append("</div>");
         return sb.toString();
-    }
-
-    private void replaceTemplates(StringBuilder sb, Language language) {
-        String[][] replacements = {
-                {"\\n", "<br>"},
-                {"\\*", "&#8727"},
-                {"\\t", "&nbsp;&nbsp;&nbsp;&nbsp;"},
-                {"text.question_program", getMessage("text.question_program", language)},
-                {"text.question_start", getMessage("text.question_start", language)},
-                {"text.question_end_body", getMessage("text.question_end_body", language)},
-                {"text.question_end", getMessage("text.question_end", language)},
-                {"text.question_function", getMessage("text.question_function", language)},
-                {"text.question_condition", getMessage("text.question_condition", language)},
-                {"text.question_evaluation", getMessage("text.question_evaluation", language)},
-                {"text.question_time", getMessage("text.question_time", language)},
-                {"text.question_performed", getMessage("text.question_performed", language)},
-                {"text.question_iteration", getMessage("text.question_iteration", language)},
-                {"text.question_cycle", getMessage("text.question_cycle", language)},
-                {"text.question_body", getMessage("text.question_body", language)},
-                {"text.question_declaration", getMessage("text.question_declaration", language)},
-                {"text.question_class", getMessage("text.question_class", language)},
-                {"text.question_method", getMessage("text.question_method", language)},
-        };
-        int index;
-        for (String[] pair : replacements) {
-            String key = pair[0];
-            String value = pair[1];
-            while ((index = sb.indexOf(key)) != -1) {
-                sb.replace(index, index + key.length(), value);
-            }
-        }
     }
 
     @Override

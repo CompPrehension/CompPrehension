@@ -16,6 +16,7 @@ import org.apache.commons.lang3.NotImplementedException;
 import org.jetbrains.annotations.NotNull;
 import org.jetbrains.annotations.Nullable;
 import org.vstu.compprehension.Service.LocalizationService;
+import org.vstu.compprehension.common.StringHelper;
 import org.vstu.compprehension.models.businesslogic.*;
 import org.vstu.compprehension.models.businesslogic.backend.DecisionTreeReasonerBackend;
 import org.vstu.compprehension.models.businesslogic.backend.JenaBackend;
@@ -327,28 +328,14 @@ public class DataFlowDTDomain extends DecisionTreeReasoningDomain {
     public String QuestionTextToHtml(String text, Language language) {
         StringBuilder sb = new StringBuilder();
         sb.append("<div class='comp-ph-question'>").append(text);
-        replaceTemplates(sb, language);
+        StringHelper.replaceAll(sb, "\\*", "&#8727");
+        StringHelper.replaceAll(sb, "\\n", "<br>");
+        StringHelper.replaceAll(sb, "\\t", "&nbsp;&nbsp;&nbsp;&nbsp;");
+        StringHelper.replaceAll(sb, "text.input", getMessage("text.input", language));
+        StringHelper.replaceAll(sb, "text.output", getMessage("text.output", language));
+        StringHelper.replaceAll(sb, "text.mutable", getMessage("text.mutable", language));
         sb.append("</div>");
         return sb.toString();
-    }
-
-    private void replaceTemplates(StringBuilder sb, Language language) {
-        String[][] replacements = {
-                {"\\*", "&#8727"},
-                {"\\n", "<br>"},
-                {"\\t", "&nbsp;&nbsp;&nbsp;&nbsp;"},
-                {"text.input", getMessage("text.input", language)},
-                {"text.output", getMessage("text.output", language)},
-                {"text.mutable", getMessage("text.mutable", language)},
-        };
-        int index;
-        for (String[] pair : replacements) {
-            String key = pair[0];
-            String value = pair[1];
-            while ((index = sb.indexOf(key)) != -1) {
-                sb.replace(index, index + key.length(), value);
-            }
-        }
     }
 
     @Override
