@@ -19,13 +19,6 @@
             <column name="options_json" value="{}" />
         </insert>
 
-        <insert tableName="questions_data">
-            <column name="data" value="ObjectsScopeDTDomain" />
-            <column name="short_name" value="obj_scope" />
-            <column name="version" value="1" />
-            <column name="options_json" value="{}" />
-        </insert>
-
     </changeSet>
 
     <changeSet id="2025052902-3" author="Nikita Moskalenko">
