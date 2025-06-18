@@ -422,11 +422,16 @@ public class ProgrammingLanguageExpressionDomain extends JenaReasoningDomain {
         return fl;
     }
 
-
     @Override
     public @NotNull Question makeQuestion(@NotNull QuestionRequest questionRequest,
                                           @NotNull ExerciseAttemptEntity exerciseAttempt,
                                           @NotNull Language userLanguage) {
+        return makeQuestion(questionRequest, exerciseAttempt, userLanguage, this);
+    }
+
+    public @NotNull Question makeQuestion(@NotNull QuestionRequest questionRequest,
+                                          @NotNull ExerciseAttemptEntity exerciseAttempt,
+                                          @NotNull Language userLanguage, @NotNull Domain domain) {
         HashSet<String> conceptNames = new HashSet<>();
         for (Concept concept : questionRequest.getTargetConcepts()) {
             conceptNames.add(concept.getName());
@@ -457,7 +462,7 @@ public class ProgrammingLanguageExpressionDomain extends JenaReasoningDomain {
 
         var res = foundQuestions.getFirst();
         log.info("Expression domain has prepared the question: {}", res.getName());
-        return makeQuestion(res, exerciseAttempt, questionRequest.getTargetTags(), userLanguage);
+        return makeQuestion(res, exerciseAttempt, questionRequest.getTargetTags(), userLanguage, domain);
     }
 
     @Override
@@ -465,11 +470,19 @@ public class ProgrammingLanguageExpressionDomain extends JenaReasoningDomain {
                                           @Nullable ExerciseAttemptEntity exerciseAttemptEntity,
                                           @NotNull List<Tag> tags,
                                           @NotNull Language userLang) {
-        var questionData = metadata.getQuestionData();
-        return makeQuestion(questionData.getData().toQuestion(this, metadata), exerciseAttemptEntity, tags, userLang);
+        return makeQuestion(metadata, exerciseAttemptEntity, tags, userLang, this);
     }
 
-    private Question makeQuestion(Question q, ExerciseAttemptEntity exerciseAttemptEntity, List<Tag> tags, Language userLang) {
+    public @NotNull Question makeQuestion(@NotNull QuestionMetadataEntity metadata,
+                                          @Nullable ExerciseAttemptEntity exerciseAttemptEntity,
+                                          @NotNull List<Tag> tags,
+                                          @NotNull Language userLang,
+                                          @NotNull Domain domain) {
+        var questionData = metadata.getQuestionData();
+        return makeQuestion(domain, questionData.getData().toQuestion(domain, metadata), exerciseAttemptEntity, tags, userLang);
+    }
+
+    private Question makeQuestion(Domain domain, Question q, ExerciseAttemptEntity exerciseAttemptEntity, List<Tag> tags, Language userLang) {
         QuestionOptionsEntity orderQuestionOptions = OrderQuestionOptionsEntity.builder()
                 .requireContext(true)
                 .showTrace(true)
@@ -558,7 +571,7 @@ public class ProgrammingLanguageExpressionDomain extends JenaReasoningDomain {
                             .replace("student_end_evaluation", getMessage("STUDENT_END_EVALUATION", userLang)));
                 }
                 entity.setOptions(orderQuestionOptions);
-                Question question = new Question(entity, this);
+                Question question = new Question(entity, domain);
                 // patch the newly created question with the concepts from the "template"
                 question.getConcepts().addAll(q.getConcepts());
                 // ^ shouldn't this be done in a more straightforward way..?
@@ -566,15 +579,15 @@ public class ProgrammingLanguageExpressionDomain extends JenaReasoningDomain {
             case MATCHING:
                 entity.setQuestionText(QuestionTextToHtml(text));
                 entity.setOptions(matchingQuestionOptions);
-                return new Question(entity, this);
+                return new Question(entity, domain);
             case MULTI_CHOICE:
                 entity.setQuestionText(QuestionTextToHtml(text));
                 entity.setOptions(multiChoiceQuestionOptions);
-                return new Question(entity, this);
+                return new Question(entity, domain);
             case SINGLE_CHOICE:
                 entity.setQuestionText(QuestionTextToHtml(text));
                 entity.setOptions(singleChoiceQuestionOptions);
-                return new Question(entity, this);
+                return new Question(entity, domain);
             default:
                 throw new UnsupportedOperationException("Unknown type in ProgrammingLanguageExpressionDomain::makeQuestion: " + q.getQuestionType());
         }
@@ -1566,7 +1579,7 @@ public class ProgrammingLanguageExpressionDomain extends JenaReasoningDomain {
 
         Question res = findQuestion(new ArrayList<>(), targetConcepts, new HashSet<>(), new HashSet<>(), new HashSet<>(), new HashSet<>());
         if (res != null) {
-            Question copy = makeQuestion(res, exerciseAttemptEntity, List.of(), userLang);
+            Question copy = makeQuestion(this, res, exerciseAttemptEntity, List.of(), userLang);
             return fillSupplementaryAnswerObjects(question, failedLaw, copy, userLang);
         }
 

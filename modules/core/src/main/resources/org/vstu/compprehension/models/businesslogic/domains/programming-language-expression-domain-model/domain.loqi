@@ -1,112 +1,171 @@
-//-------------------СТАТИЧЕСКАЯ СЕКЦИЯ-------------------
-//-------------------------ЕНАМЫ-------------------------
+//-------------------STATIC (CLASS) SECTION-------------------
+//------------------------------------------------------------
+
+enum ExpectedValue {
+	`true` [
+		RU.localizedName = "true" ;
+		EN.localizedName = "true" ;
+		TEMPLATING_ID = 20 ;
+	],
+	`false` [
+		RU.localizedName = "false" ;
+		EN.localizedName = "false" ;
+		TEMPLATING_ID = 21 ;
+	],
+	any [
+		RU.localizedName = "любое" ;
+		EN.localizedName = "any value" ;
+		TEMPLATING_ID = 22 ;
+	],
+} [
+	RU.localizedName = "значение" ;
+	EN.localizedName = "value" ;
+	TEMPLATING_ID = 19 ;
+]
+
+enum OperandPlacement {
+	left [
+		RU.localizedName = "левый" ;
+		EN.localizedName = "left" ;
+		TEMPLATING_ID = 24 ;
+	],
+	right [
+		RU.localizedName = "правый" ;
+		EN.localizedName = "right" ;
+		TEMPLATING_ID = 25 ;
+	],
+	center [
+		RU.localizedName = "центральный" ;
+		EN.localizedName = "center" ;
+		TEMPLATING_ID = 26 ;
+	],
+} [
+	RU.localizedName = "положение операнда" ;
+	EN.localizedName = "operand position" ;
+	TEMPLATING_ID = 23 ;
+]
 
 enum arity {
 	unary [
 		RU.localizedName = "унарный" ;
 		EN.localizedName = "unary" ;
+		TEMPLATING_ID = 2 ;
 	],
 	binary [
 		RU.localizedName = "бинарный" ;
 		EN.localizedName = "binary" ;
+		TEMPLATING_ID = 3 ;
 	],
 	ternary [
 		RU.localizedName = "тернарный" ;
 		EN.localizedName = "ternary" ;
+		TEMPLATING_ID = 4 ;
 	],
 } [
 	RU.localizedName = "арность" ;
 	EN.localizedName = "arity" ;
+	TEMPLATING_ID = 1 ;
 ]
 
 enum associativity {
 	left [
 		RU.localizedName = "левая" ;
 		EN.localizedName = "left" ;
+		TEMPLATING_ID = 6 ;
 	],
 	right [
 		RU.localizedName = "правая" ;
 		EN.localizedName = "right" ;
+		TEMPLATING_ID = 7 ;
 	],
 	`non-assoc` [
 		RU.localizedName = "без ассоциативности" ;
 		EN.localizedName = "non associative" ;
+		TEMPLATING_ID = 8 ;
 	],
 } [
 	RU.localizedName = "ассоциативность" ;
 	EN.localizedName = "associativity" ;
+	TEMPLATING_ID = 5 ;
 ]
 
 enum place {
 	prefix [
 		RU.localizedName = "до операнда" ;
 		EN.localizedName = "prefix" ;
+		TEMPLATING_ID = 10 ;
 	],
 	postfix [
 		RU.localizedName = "после операнда" ;
 		EN.localizedName = "postfix" ;
+		TEMPLATING_ID = 11 ;
 	],
 	infix [
 		RU.localizedName = "между операндами" ;
 		EN.localizedName = "infix" ;
+		TEMPLATING_ID = 12 ;
 	],
 	around [
 		RU.localizedName = "вокруг операндов" ;
 		EN.localizedName = "around" ;
+		TEMPLATING_ID = 13 ;
 	],
 } [
 	RU.localizedName = "положение" ;
 	EN.localizedName = "place" ;
+	TEMPLATING_ID = 9 ;
 ]
 
 enum state {
 	unevaluated [
 		RU.localizedName = "невычислен" ;
 		EN.localizedName = "unevaluated" ;
+		TEMPLATING_ID = 15 ;
 	],
 	evaluated [
 		RU.localizedName = "вычислен" ;
 		EN.localizedName = "evaluated" ;
+		TEMPLATING_ID = 16 ;
 	],
 	used [
 		RU.localizedName = "использован" ;
 		EN.localizedName = "used" ;
+		TEMPLATING_ID = 17 ;
 	],
-	omitted [ 	//b4, потому что состояние omitted не должно влиять на 
+	omitted [
 		RU.localizedName = "опущен" ;
 		EN.localizedName = "omitted" ;
+		TEMPLATING_ID = 18 ;
 	],
 } [
 	RU.localizedName = "состояние" ;
 	EN.localizedName = "state" ;
-]
-
-//-------------------------КЛАССЫ-------------------------
-
-class language {
-    obj prop isStrictOrderCentralOperands: bool ;
-} [
-    RU.localizedName = "язык программирования" ;
-    EN.localizedName = "programming Language" ;
+	TEMPLATING_ID = 14 ;
 ]
 
 class element {
 	class prop countOfTokens: int[1,2] ;
-
-	rel has(token) : {1 -> *} ;
 	obj prop state: state ;
 
-	// rel isInside(element) ;
-	// rel surrounds(element) ;
+	rel has(token) : {1 -> *} ;
 } [
 	RU.localizedName = "элемент" ;
 	EN.localizedName = "element" ;
+	TEMPLATING_ID = 28 ;
+]
+
+class language {
+	obj prop isStrictOrderCentralOperands: bool ;
+
+} [
+	RU.localizedName = "язык программирования" ;
+	EN.localizedName = "programming Language" ;
+	TEMPLATING_ID = 27 ;
 ]
 
 class token {
 
 	rel belongsTo(element) : opposite to element->has ;
-	
 	rel directlyLeftOf(token) : linear ;
 	rel directlyRightOf(token) : opposite to directlyLeftOf ;
 	rel leftOf(token) : transitive to directlyLeftOf ;
@@ -117,31 +176,31 @@ class token {
 } [
 	RU.localizedName = "токен" ;
 	EN.localizedName = "token" ;
+	TEMPLATING_ID = 29 ;
 ]
 
 class operand : element {
-	
-	obj prop evaluatesTo : bool; //!b4 нужно только для логическх операций
+	obj prop evaluatesTo: bool ;
 
-	//b4
-	rel isOperandOf<placement : OperandPlacement>(operand) : partial ; 
+	rel isOperandOf<placement : OperandPlacement>(operand) : partial ;
 	rel hasOperand(operand) : opposite to isOperandOf ;
-	rel isInOperandOf(operand) : transitive to isOperandOf;
-
+	rel isInOperandOf(operand) : transitive to isOperandOf ;
 	countOfTokens = 1 ;
 } [
 	RU.localizedName = "операнд" ;
 	EN.localizedName = "operand" ;
+	TEMPLATING_ID = 30 ;
 ]
 
 class parenthesis : element {
 
 	countOfTokens = 2 ;
 } [
-	text = "(";
-	token2text = ")";
+	text = "(" ;
+	token2text = ")" ;
 	RU.localizedName = "скобки" ;
 	EN.localizedName = "parenthesis" ;
+	TEMPLATING_ID = 31 ;
 ]
 
 class separator : element {
@@ -150,77 +209,36 @@ class separator : element {
 } [
 	RU.localizedName = "разделитель" ;
 	EN.localizedName = "separator" ;
+	TEMPLATING_ID = 32 ;
 ]
 
 class operator : operand {
-	class prop `arity`: arity ;
-	class prop place: place ; //Вообще не очень нужная характеристика, можно выкинуть
+	class prop arity: arity ;
+	class prop place: place ;
 	class prop precedence: int ;
 	class prop associativity: associativity ;
 	class prop needsOperand<placement : OperandPlacement>: bool ;
-	class prop hasStrictOperandOrder: bool = false; //можно убрать т.к. есть StrictOrderOperator
+	class prop hasStrictOperandOrder: bool = false ;
+	class prop isNot: bool = false ;
+	class prop isAnd: bool = false ;
+	class prop isOr: bool = false ;
+	class prop isComma: bool = false ;
+	class prop isTConditional: bool = false ;
+	class prop canHaveManyCentralOperands: bool = false ;
 
-	class prop isNot: bool = false;
-	class prop isAnd: bool = false;
-	class prop isOr: bool = false;
-	class prop isComma: bool = false;
-	class prop isTConditional: bool = false;
-	class prop canHaveManyCentralOperands: bool = false;
 } [
 	RU.localizedName = "оператор" ;
 	EN.localizedName = "operator" ;
+	TEMPLATING_ID = 33 ;
 ]
 
-
-
-enum ExpectedValue { //b4
-	`true` [
-		RU.localizedName = "true" ;
-		EN.localizedName = "true" ;
-	],
-	`false` [
-		RU.localizedName = "false" ;
-		EN.localizedName = "false" ;
-	],
-	any [
-		RU.localizedName = "любое" ;
-		EN.localizedName = "any value" ;
-	],
-} [
-	RU.localizedName = "значение" ;
-	EN.localizedName = "value" ;
-]
-
-enum OperandPlacement {
-	left[
-		RU.localizedName = "левый" ;
-		EN.localizedName = "left" ;
-	],
-	right [
-		RU.localizedName = "правый" ;
-		EN.localizedName = "right" ;
-	],
-	center[
-		RU.localizedName = "центральный" ;
-		EN.localizedName = "center" ;
-	],
-}[
-	RU.localizedName = "положение операнда" ;
-	EN.localizedName = "operand position" ;
-]
-
-
-class StrictOrderOperator : operator { //b4
-	class prop firstOperandPlacement : OperandPlacement;
-	class prop requiredFirstOperandValueToEvaluate<placement : OperandPlacement> : ExpectedValue;
+class StrictOrderOperator : operator {
+	class prop firstOperandPlacement: OperandPlacement ;
+	class prop requiredFirstOperandValueToEvaluate<placement : OperandPlacement>: ExpectedValue ;
 
 	requiredFirstOperandValueToEvaluate<OperandPlacement:left> = ExpectedValue:any ;
 	requiredFirstOperandValueToEvaluate<OperandPlacement:right> = ExpectedValue:any ;
 	requiredFirstOperandValueToEvaluate<OperandPlacement:center> = ExpectedValue:any ;
-	
-	hasStrictOperandOrder = true;
+	hasStrictOperandOrder = true ;
 }
-
-
-
 

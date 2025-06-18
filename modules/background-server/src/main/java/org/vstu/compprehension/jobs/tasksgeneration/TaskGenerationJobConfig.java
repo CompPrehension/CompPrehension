@@ -34,6 +34,7 @@ public class TaskGenerationJobConfig {
         @Getter @Setter @NoArgsConstructor
         public static class ReposSearcherConfig {
             private boolean enabled = true;
+            private String query = null;
             private String githubOAuthToken;
             private String outputFolderPath;
             private boolean skipDownloadedRepositories = true;

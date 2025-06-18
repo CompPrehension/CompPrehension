@@ -1,17 +1,17 @@
-import { createRoot } from 'react-dom/client';
+import {createRoot} from 'react-dom/client';
 import React from 'react';
 import "./bootstrapper";
 import "./styles/index.css";
 import 'bootstrap/dist/css/bootstrap.min.css';
-import { Navigate, Route, BrowserRouter as Router, Routes, redirect } from 'react-router-dom';
-import { Exercise } from './pages/exercise';
-import { Statistics } from './pages/statistics';
-import { ExercisesList } from './pages/exercises-list';
-import { SurveyPage } from './pages/survey';
-import { ExerciseSettings } from './pages/exercise-settings';
-import { StrategySettings } from './pages/strategy-settings';
-import { QuestionPage } from './pages/question';
-import { SessionProvider } from './hooks/session-context';
+import {BrowserRouter as Router, Navigate, Route, Routes} from 'react-router-dom';
+import {Exercise} from './pages/exercise';
+import {Statistics} from './pages/statistics';
+import {ExercisesList} from './pages/exercises-list';
+import {SurveyPage} from './pages/survey';
+import {ExerciseSettings} from './pages/exercise-settings';
+import {StrategySettings} from './pages/strategy-settings';
+import {QuestionPage} from './pages/question';
+import {SessionProvider} from './hooks/session-context';
 
 const Home = () => (
     <SessionProvider>

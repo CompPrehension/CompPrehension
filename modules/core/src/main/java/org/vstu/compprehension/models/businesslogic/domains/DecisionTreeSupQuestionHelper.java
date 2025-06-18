@@ -135,16 +135,16 @@ public class DecisionTreeSupQuestionHelper {
                 }
                 case multiple -> {
                     answers = responses.stream()
-                            .map(ResponseEntity::getLeftAnswerObject)
-                            .map(AnswerObjectEntity::getAnswerId)
-                            .collect(Collectors.toList());
+                        .map(ResponseEntity::getLeftAnswerObject)
+                        .map(AnswerObjectEntity::getAnswerId)
+                        .collect(Collectors.toList());
                 }
                 case matching -> {
                     answers = new ArrayList<>(Collections.nCopies(question.getOptions().size(), 0));
                     for (ResponseEntity r : responses) {
                         answers.set(
-                                r.getLeftAnswerObject().getAnswerId(),
-                                r.getRightAnswerObject().getAnswerId() - question.getOptions().size()
+                            r.getLeftAnswerObject().getAnswerId(),
+                            r.getRightAnswerObject().getAnswerId() - question.getOptions().size()
                         );
                     }
                 }
@@ -167,14 +167,14 @@ public class DecisionTreeSupQuestionHelper {
         generated.setQuestionDomainType(domain.getDefaultQuestionType(true));
         generated.setExerciseAttempt(exerciseAttempt);
         generated.setAnswerObjects(
-                q.getOptions().stream()
-                        .map(opt -> {
-                            AnswerObjectEntity ans = new AnswerObjectEntity();
-                            ans.setAnswerId(opt.getSecond());
-                            ans.setHyperText(opt.getFirst());
-                            return ans;
-                        })
-                        .collect(Collectors.toList())
+            q.getOptions().stream()
+                .map(opt -> {
+                    AnswerObjectEntity ans = new AnswerObjectEntity();
+                    ans.setAnswerId(opt.getSecond());
+                    ans.setHyperText(opt.getFirst());
+                    return ans;
+                })
+                .collect(Collectors.toList())
         );
         switch (q.getType()) {
             case matching -> {

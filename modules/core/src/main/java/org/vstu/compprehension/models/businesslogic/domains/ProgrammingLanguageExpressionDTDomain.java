@@ -28,6 +28,7 @@ import org.vstu.compprehension.models.businesslogic.storage.QuestionBank;
 import org.vstu.compprehension.models.businesslogic.storage.SerializableQuestionTemplate;
 import org.vstu.compprehension.models.entities.*;
 import org.vstu.compprehension.models.entities.EnumData.FeedbackType;
+import org.vstu.compprehension.models.entities.EnumData.InteractionType;
 import org.vstu.compprehension.models.entities.EnumData.Language;
 import org.vstu.compprehension.utils.HyperText;
 import org.vstu.meaningtree.MeaningTree;
@@ -192,7 +193,7 @@ public class ProgrammingLanguageExpressionDTDomain extends DecisionTreeReasoning
                                           @NotNull Language userLanguage) {
         SupportedLanguage lang = MeaningTreeUtils.detectLanguageFromTags(questionRequest.getTargetTags().stream().map(Tag::getName).toList());
 
-        return QuestionDynamicDataAppender.appendQuestionData(baseDomain.makeQuestion(questionRequest, exerciseAttempt, userLanguage), exerciseAttempt, qMetaStorage, lang, this, userLanguage);
+        return QuestionDynamicDataAppender.appendQuestionData(baseDomain.makeQuestion(questionRequest, exerciseAttempt, userLanguage, this), exerciseAttempt, qMetaStorage, lang, this, userLanguage);
     }
 
     @Override
@@ -202,14 +203,19 @@ public class ProgrammingLanguageExpressionDTDomain extends DecisionTreeReasoning
                                           @NotNull Language userLang) {
         SupportedLanguage lang = MeaningTreeUtils.detectLanguageFromTags(tags.stream().map(Tag::getName).toList());
 
-        return QuestionDynamicDataAppender.appendQuestionData(baseDomain.makeQuestion(metadata, exerciseAttemptEntity, tags, userLang), exerciseAttemptEntity, qMetaStorage, lang, this, userLang);
+        return QuestionDynamicDataAppender.appendQuestionData(baseDomain.makeQuestion(metadata, exerciseAttemptEntity, tags, userLang, this), exerciseAttemptEntity, qMetaStorage, lang, this, userLang);
     }
 
     public static final String DOMAIN_MODEL_LOCATION = ProgrammingLanguageExpressionDomain.RESOURCES_LOCATION + "programming-language-expression-domain-model/";
+
     private final DomainSolvingModel domainSolvingModel = new DomainSolvingModel(
-            this.getClass().getClassLoader().getResource(DOMAIN_MODEL_LOCATION), //FIXME
-            DomainSolvingModel.BuildMethod.LOQI
-    ).validate();
+            Objects.requireNonNull(this.getClass().getClassLoader().getResource(DOMAIN_MODEL_LOCATION)),
+            DomainSolvingModel.BuildMethod.LOQI).validate();
+
+    @Override
+    public List<DomainSolvingModel> getDomainSolvingModels() {
+        return List.of(domainSolvingModel);
+    }
 
     @NotNull
     @Override
@@ -462,7 +468,7 @@ public class ProgrammingLanguageExpressionDTDomain extends DecisionTreeReasoning
         int qCount = 0;
         int savedCount = 0;
         // TODO: please set value of this var to null in production code. Temporary changes
-        Set<SupportedLanguage> targetLanguages = Set.of(SupportedLanguage.CPP);
+        Set<SupportedLanguage> targetLanguages = null;
 
         Gson gson = new GsonBuilder()
                 .setDateFormat("yyyy-MM-dd'T'HH:mm:ss'Z'")
@@ -684,6 +690,62 @@ public class ProgrammingLanguageExpressionDTDomain extends DecisionTreeReasoning
         return baseDomain.getQuestionStatementFactsWithSchema(q);
     }
 
+    public enum SolutionTraceElementType {
+        CALCULATED_OPERATOR,
+        VALUE_HINT
+    }
+
+    public HyperText getSolutionTraceElement(SolutionTraceElementType type,
+                                             int tokenIndex, boolean showValue, String value,
+                                             String highlightColor, TokenList tokens, Language lang
+    ) {
+        StringJoiner builder = new StringJoiner(" ");
+        Token mainToken = tokens.get(tokenIndex);
+        int tokenPositionInUI = tokenIndex + 1;
+        Token pairedToken = null;
+        if (mainToken instanceof ComplexOperatorToken) {
+            int closingTokenIndex = tokens.findClosingComplex(tokenIndex);
+            pairedToken = closingTokenIndex > 0 && closingTokenIndex < tokens.size() ?
+                    tokens.get(closingTokenIndex) : null;
+        }
+        String tokenType = switch (mainToken.type) {
+            case CALL_OPENING_BRACE -> getMessage("FUNC_CALL", lang);
+            case INITIALIZER_LIST_OPENING_BRACE ->  getMessage("LITERAL", lang);
+            default -> {
+                if (mainToken instanceof OperatorToken) {
+                    yield getMessage("OPERATOR", lang);
+                } else {
+                    yield getMessage("OPERAND", lang);
+                }
+            }
+        };
+        String tokensRepr = mainToken.value + (pairedToken != null ? " ".concat(pairedToken.value) : "");
+        builder.add("<span>" + tokenType + "</span>");
+        builder.add("<span style='color: #700;'>" +
+                tokensRepr +
+                "</span>");
+        builder.add("<span>" + getMessage("AT_POS", lang) + "</span>");
+        builder.add("<span style='color: #f00;font-weight: bold;'>" +
+                tokenPositionInUI +
+                "</span>");
+        if (type == SolutionTraceElementType.CALCULATED_OPERATOR) {
+            builder.add("<span>" + getMessage("CALCULATED", lang) + "</span>");
+        } else if (type == SolutionTraceElementType.VALUE_HINT) {
+            builder.add("<span>" + getMessage("HAS_VALUE", lang) + "</span>");
+        }
+
+        if (showValue && value != null && !value.isEmpty()) {
+            builder.add("<span>" + getMessage("WITH_VALUE", lang) + "</span>");
+            builder.add("<span style='color: #f08;font-style: italic;font-weight: bold;'>" +
+                    value + "</span>");
+        }
+
+        var finalHtml = highlightColor != null && !highlightColor.isEmpty()
+                ? "<span style='background-color: %s;'>".formatted(highlightColor) + builder + "</span>"
+                : builder.toString();
+        return new HyperText(finalHtml);
+    }
+
     @Override
     public List<HyperText> getFullSolutionTrace(Question question) {
         Language lang = Optional.ofNullable(question.getQuestionData().getExerciseAttempt())
@@ -697,6 +759,37 @@ public class ProgrammingLanguageExpressionDTDomain extends DecisionTreeReasoning
         if (qType.equals(ProgrammingLanguageExpressionDomain.EVALUATION_ORDER_QUESTION_TYPE)) {
             TokenList tokens = MeaningTreeRDFHelper.backendFactsToTokens(question.getStatementFacts(), plang);
 
+            // find operands that value can't be obvious
+            for (int i = 0; i < tokens.size(); i++) {
+                if (tokens.get(i) instanceof ComplexOperatorToken op
+                        && op.positionOfToken == 0
+                        && op.arity == OperatorArity.TERNARY) {
+                    var operands = tokens.findOperands(i);
+                    OperandPosition condPos = plang.name().equals("python") ?
+                            OperandPosition.CENTER : OperandPosition.LEFT;
+
+                    Optional<Token> cond = operands.get(condPos).asSublist()
+                            .stream().filter(t -> t.getAssignedValue() != null
+                                    && t.type != TokenType.OPENING_BRACE
+                                    && t.type != TokenType.CLOSING_BRACE
+                                    && t.type != TokenType.SEPARATOR
+                            ).findFirst();
+                    boolean hasOperators = operands.get(condPos).asSublist()
+                            .stream().anyMatch(t -> t instanceof OperatorToken);
+
+                    if (!hasOperators && cond.isPresent()) {
+                        result.add(getSolutionTraceElement(
+                                SolutionTraceElementType.VALUE_HINT,
+                                tokens.indexOf(cond.get()), true,
+                                Boolean.toString(cond.get().getAssignedValue() != null ?
+                                    (boolean) cond.get().getAssignedValue() : false),
+                                "#fceed2",
+                                tokens, lang
+                                ));
+                    }
+                }
+            }
+
             for (ResponseEntity response : baseDomain.responsesForTrace(question.getQuestionData(), true)) {
                 // format a trace line ...
                 AnswerObjectEntity answerObj = response.getLeftAnswerObject();
@@ -704,56 +797,26 @@ public class ProgrammingLanguageExpressionDTDomain extends DecisionTreeReasoning
                 if (domainInfo.equals("end_token")) {
                     continue;
                 }
-                StringJoiner builder = new StringJoiner(" ");
                 String[] domainInfoComponents = domainInfo.split("_");
                 int tokenIndex = Integer.parseInt(domainInfoComponents[domainInfoComponents.length - 1]);
-                int tokenPositionInUI = tokenIndex + 1;
-                Token mainToken = tokens.get(tokenIndex);
-                Token pairedToken = null;
-                if (mainToken instanceof ComplexOperatorToken) {
-                    int closingTokenIndex = tokens.findClosingComplex(tokenIndex);
-                    pairedToken = closingTokenIndex > 0 && closingTokenIndex < tokens.size() ?
-                            tokens.get(closingTokenIndex) : null;
-                }
-                String tokenType = switch (mainToken.type) {
-                    case CALL_OPENING_BRACE -> getMessage("FUNC_CALL", lang);
-                    case INITIALIZER_LIST_OPENING_BRACE ->  getMessage("LITERAL", lang);
-                    default -> getMessage("OPERATOR", lang);
-                };
-                String tokensRepr = mainToken.value + (pairedToken != null ? " ".concat(pairedToken.value) : "");
-                builder.add("<span>" + tokenType + "</span>");
-                builder.add("<span style='color: #700;'>" +
-                        tokensRepr +
-                        "</span>");
-                builder.add("<span>" + getMessage("AT_POS", lang) + "</span>");
-                builder.add("<span style='color: #f00;font-weight: bold;'>" +
-                        tokenPositionInUI +
-                        "</span>");
-                builder.add("<span>" + getMessage("CALCULATED", lang) + "</span>");
+                boolean responseIsCorrect = response.getInteraction().getViolations().isEmpty();
 
-                boolean responseIsWrong = !response.getInteraction().getViolations().isEmpty();
-
-                if (!responseIsWrong) {
-                    // Show the value only if this is a correct choice.
-                    Token t = tokens.get(tokenIndex);
-                    Object value = t.getAssignedValue();
-                    if (value == null && t instanceof OperatorToken op
-                            && (op.additionalOpType == OperatorType.OR ||
-                                op.additionalOpType == OperatorType.AND)) {
-                        value = false;
-                    }
-                    if (value != null) {
-                        builder.add("<span>" + getMessage("WITH_VALUE", lang) + "</span>");
-                        builder.add("<span style='color: #f08;font-style: italic;font-weight: bold;'>" +
-                                value +
-                                "</span>");
-                    }
+                // Show the value only if this is a correct choice.
+                Token t = tokens.get(tokenIndex);
+                Object value = t.getAssignedValue();
+                if (value == null && t instanceof OperatorToken op
+                        && (op.additionalOpType == OperatorType.OR ||
+                        op.additionalOpType == OperatorType.AND)) {
+                    value = false;
                 }
 
-                var finalHtml = responseIsWrong
-                        ? "<span style='background-color: #ff9;'>" + builder + "</span>"
-                        : builder.toString();
-                result.add(new HyperText(finalHtml));
+                result.add(getSolutionTraceElement(
+                        SolutionTraceElementType.CALCULATED_OPERATOR,
+                        tokenIndex, responseIsCorrect,
+                        value == null ? "" : Boolean.toString((boolean) value),
+                        !responseIsCorrect ? "#ff9" : "",
+                        tokens, lang
+                ));
             }
         } else {
             ///
@@ -791,10 +854,10 @@ public class ProgrammingLanguageExpressionDTDomain extends DecisionTreeReasoning
         // Проверить в ризонере все возможные варианты интеракций и понять, какая из них правильная и выдать подсказку
         Optional<Pair<ObjectDef, ProgrammingLanguageExpressionsSolver.SolveResult>> found = domain.getObjects().stream()
                 .filter(domainObj ->
-                        domainObj.getClazz().isSubclassOf("operator") && domainObj.getRelationshipLinks().stream().filter(rel ->rel.getRelationshipName().equals("has")).allMatch(
-                                rel -> rel.getObjects().stream().noneMatch(obj ->
-                                        responseTokenIndexes.contains((Integer) obj.getMetadata().get("index")))
-                        )
+                    domainObj.getClazz().isSubclassOf("operator") && domainObj.getRelationshipLinks().stream().filter(rel ->rel.getRelationshipName().equals("has")).allMatch(
+                            rel -> rel.getObjects().stream().noneMatch(obj ->
+                                    responseTokenIndexes.contains((Integer) obj.getMetadata().get("index")))
+                    )
                 ).map(
                         domainObj -> Pair.of(domainObj, solver.solveForX(domainObj, domain, dt))
                 ).filter(
@@ -815,7 +878,7 @@ public class ProgrammingLanguageExpressionDTDomain extends DecisionTreeReasoning
                     );
                     if (explanation.isEmpty()) {
                         explanation.getChildren().add(new Explanation(Explanation.Type.HINT, new HyperText(
-                                getMessage("explanations.missing_correct_answer_explanation", lang))));
+                                        getMessage("explanations.missing_correct_answer_explanation", lang))));
                     }
 
                     CorrectAnswer correctAnswer = new CorrectAnswer();
@@ -852,8 +915,8 @@ public class ProgrammingLanguageExpressionDTDomain extends DecisionTreeReasoning
 
     @Override
     public boolean needSupplementaryQuestion(ViolationEntity violation) {
-        // TODO: temporary changes due to broken question generator library
-        return false;
+        Skill skill = getSkill(violation.getLawName());
+        return skill != null && violation.getInteraction().getInteractionType() != InteractionType.REQUEST_CORRECT_ANSWER;
     }
 
     private DomainModel mainQuestionToModel(InteractionEntity lastMainQuestionInteraction) {

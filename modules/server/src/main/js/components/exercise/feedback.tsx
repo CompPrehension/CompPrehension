@@ -1,13 +1,13 @@
-import {observer} from "mobx-react";
 import React from "react";
+import {QuestionStore} from "../../stores/question-store";
+import {Loader} from "../common/loader";
+import {FeedbackMessage, FeedbackSuccessMessage} from "../../types/feedback";
+import {SupplementaryQuestionStore} from "../../stores/sup-question-store";
+import {GenerateSupQuestion} from "./generate-sup-question";
+import {observer} from "mobx-react";
 import {Alert, Badge} from "react-bootstrap";
 import {useTranslation} from "react-i18next";
-import {QuestionStore} from "../../stores/question-store";
-import {SupplementaryQuestionStore} from "../../stores/sup-question-store";
-import {FeedbackMessage, FeedbackSuccessMessage} from "../../types/feedback";
 import {isNullOrUndefined} from "../../utils/helpers";
-import {Loader} from "../common/loader";
-import {GenerateSupQuestion} from "./generate-sup-question";
 
 type FeedbackProps = { 
     store: QuestionStore,

@@ -275,7 +275,8 @@ public class TaskGenerationJob {
     @SneakyThrows
     private List<Path> downloadRepositories(TaskGenerationJobConfig.TaskConfig config) {
         if (repositories == null) {
-            repositories = new RepositoriesCrawler(config.getSearcher().getGithubOAuthToken(), 10_000);
+            repositories = new RepositoriesCrawler(config.getSearcher().getGithubOAuthToken(), 10_000,
+                    config.getSearcher().getQuery());
         }
 
         var downloaderConfig = config.getSearcher();
@@ -368,7 +369,7 @@ public class TaskGenerationJob {
                 });
 
                 try {
-                    future.get(30, TimeUnit.SECONDS);  // Timeout after 30 seconds
+                    future.get(45, TimeUnit.SECONDS);  // Timeout after 45 seconds
                 } catch (TimeoutException e) {
                     log.warn("Timeout while downloading repo [{}] from GitHub", repo.getFullName());
                     future.cancel(true);  // Cancel the task if it times out
@@ -568,6 +569,9 @@ public class TaskGenerationJob {
             AtomicInteger processed = new AtomicInteger(0);
             AtomicInteger savedQuestions = new AtomicInteger();
             AtomicInteger skippedQuestions = new AtomicInteger(); // loaded but not kept since not required by any QR
+            AtomicInteger existingQuestions = new AtomicInteger();
+
+            AtomicInteger matchesRequest = new AtomicInteger();
 
             var allJsonBatches = BatchingIterator.batchedStreamOf(
                     allJsonFiles.stream()
@@ -612,6 +616,7 @@ public class TaskGenerationJob {
                     metadataToRemove.forEach(metaList::remove);
                     if (metaList.isEmpty()) {
                         log.debug("All metadata already exists for question [{}]. Skipping...", q.getCommonQuestion().getQuestionData().getQuestionName());
+                        existingQuestions.addAndGet(1);
                         skippedQuestions.addAndGet(1);
                         continue;
                     }
@@ -640,6 +645,7 @@ public class TaskGenerationJob {
                                 if (!storage.isMatch(meta, searchRequest)) {
                                     log.debug("Question [{}] does not match generation requests group {}", q.getCommonQuestion().getQuestionData().getQuestionName(), gr.getKey().getGenerationRequestIds());
                                 } else {
+                                    matchesRequest.addAndGet(1);
                                     log.debug("Question [{}] matches generation requests group {}", q.getCommonQuestion().getQuestionData().getQuestionName(), gr.getKey().getGenerationRequestIds());
                                     matchedMetadata.put(meta, genRequest.id());
                                     var qGenerated = questionsGenerated.compute(genRequest, (k, v) -> v == null ? 1 : v + 1);
@@ -678,7 +684,7 @@ public class TaskGenerationJob {
                         log.debug("Question [{}] saved with data in database. Metadata id: {}", q.getCommonQuestion().getQuestionData().getQuestionName(),
                                 metaList.stream()
                                         .map(QuestionMetadataEntity::getId)
-                                        .map((Integer i) -> Integer.toString(i))
+                                        .map((Integer i) -> i == null ? "ERROR" : Integer.toString(i))
                                         .collect(Collectors.joining(", ")));
                         savedQuestions.addAndGet(1);
                         */
@@ -692,7 +698,12 @@ public class TaskGenerationJob {
                     savedQuestions.addAndGet(metadataToSave.size());
                 }
 
-                log.info("Processed {}/{} questions ({} skipped, {} saved).", processed.addAndGet(batch.size()), allJsonFiles.size(), skippedQuestions, savedQuestions);
+                if (matchesRequest.get() == 0 && !incompletedRequests.isEmpty()) {
+                    log.info("None of the questions matched to any of incompleted generation requests. Skipping...");
+                }
+                log.info("Processed {}/{} questions ({} skipped (as existing {}), {} saved).",
+                        processed.addAndGet(batch.size()), allJsonFiles.size(),
+                        skippedQuestions, existingQuestions, savedQuestions);
             });
         }
 
@@ -717,13 +728,15 @@ public class TaskGenerationJob {
         private final LinkedHashSet<GHRepository> repositories = new LinkedHashSet<>();
         private final String githubOAuthToken;
         private final int maxRepositories;
+        private final String defaultQuery;
         private final Object lock = new Object();
         private volatile boolean loadingFinished = false;
         private final ScheduledExecutorService scheduledExecutor = Executors.newSingleThreadScheduledExecutor();
 
-        public RepositoriesCrawler(String githubOAuthToken, int maxRepositories) {
+        public RepositoriesCrawler(String githubOAuthToken, int maxRepositories, String defaultQuery) {
             this.githubOAuthToken = githubOAuthToken;
             this.maxRepositories = maxRepositories;
+            this.defaultQuery = defaultQuery;
 
             // Start background loading
             startBackgroundLoading();
@@ -774,16 +787,18 @@ public class TaskGenerationJob {
                             .withRateLimitChecker(new RateLimitChecker.LiteralValue(20), RateLimitTarget.SEARCH)
                             .build();
 
+                    String query = defaultQuery != null ? defaultQuery :
+                            "language:C language:C++ language:Python language:Java";
                     List<PagedSearchIterable<GHRepository>> repoSearchQueries = new ArrayList<>();
                     repoSearchQueries.add(github.searchRepositories()
-                            .language("c")
+                            .q(query)
                             .size("50..100000")
                             .fork(GHFork.PARENT_ONLY)
                             .sort(GHRepositorySearchBuilder.Sort.STARS)
                             .order(GHDirection.DESC)
                             .list());
                     repoSearchQueries.add(github.searchRepositories()
-                            .language("c")
+                            .language(query)
                             .size("50..100000")
                             .fork(GHFork.PARENT_ONLY)
                             .sort(GHRepositorySearchBuilder.Sort.UPDATED)
@@ -791,7 +806,7 @@ public class TaskGenerationJob {
                             .list()
                             .withPageSize(100));
                     repoSearchQueries.add(github.searchRepositories()
-                            .language("c")
+                            .language(query)
                             .size("50..100000")
                             .fork(GHFork.PARENT_ONLY)
                             .sort(GHRepositorySearchBuilder.Sort.FORKS)

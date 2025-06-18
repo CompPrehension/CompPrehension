@@ -22,6 +22,7 @@ import org.vstu.compprehension.models.entities.QuestionOptions.QuestionOptionsEn
 import org.vstu.meaningtree.MeaningTree;
 import org.vstu.meaningtree.SupportedLanguage;
 import org.vstu.meaningtree.exceptions.MeaningTreeException;
+import org.vstu.meaningtree.iterators.utils.NodeInfo;
 import org.vstu.meaningtree.languages.CppTranslator;
 import org.vstu.meaningtree.languages.LanguageTranslator;
 import org.vstu.meaningtree.nodes.Node;
@@ -319,8 +320,12 @@ public class MeaningTreeOrderQuestionBuilder {
      * @return сгенерированный вопрос
      */
     public static Question fastBuildFromExisting(Question data, SupportedLanguage lang, ProgrammingLanguageExpressionDTDomain domain) {
-        return MeaningTreeOrderQuestionBuilder.newQuestion(domain).existingQuestion(data)
-                .buildQuestions(lang).getFirst();
+        var result = MeaningTreeOrderQuestionBuilder.newQuestion(domain).existingQuestion(data)
+                .buildQuestions(lang);
+        if (result.isEmpty()) {
+            return null;
+        }
+        return result.getFirst();
     }
 
     /**
@@ -447,6 +452,10 @@ public class MeaningTreeOrderQuestionBuilder {
      */
     protected Pair<SerializableQuestion, SerializableQuestionTemplate.QuestionMetadata> generateFromTemplate(SupportedLanguage lang) {
         var data = generateExpressionData(sourceExpressionTree, lang);
+        allChecksArePassed &= data.allCorrect;
+        if (!allChecksArePassed) {
+            return null;
+        }
         return generateFromTemplate(lang, new Input(
                 sourceExpressionTree, sourceExpressionTree.hashCode(),
                 data.tokens(), data.code()
@@ -468,7 +477,11 @@ public class MeaningTreeOrderQuestionBuilder {
 
         if (initialData.tokens().stream().anyMatch((Token t) -> t.getAssignedValue() != null) || skipRuntimeValuesGeneration) {
             log.debug("Given data already contains values paired with tokens");
-            return !allChecksArePassed ? List.of() : List.of(generateFromTemplate(language));
+            if (!allChecksArePassed) {
+                return List.of();
+            }
+            var res = generateFromTemplate(language);
+            return res == null ? List.of() : List.of(res);
         }
         List<Pair<SerializableQuestion, SerializableQuestionTemplate.QuestionMetadata>> generated = new ArrayList<>();
 
@@ -482,15 +495,19 @@ public class MeaningTreeOrderQuestionBuilder {
 
         for (MeaningTree mt : mutations) {
             var data = generateExpressionData(mt, language);
+            if (!data.allCorrect) {
+                continue;
+            }
             OperandRuntimeValueGenerator map = new OperandRuntimeValueGenerator(this, mt, language);
             List<Pair<MeaningTree, Integer>> generatedValues = map.generate();
             for (Pair<MeaningTree, Integer> pair : generatedValues) {
                 generated.add(generateFromTemplate(language, new Input(pair.getKey(), pair.getValue(),
                         data.tokens(), data.code())));
             }
-            if (generatedValues.isEmpty()) {
-                return !allChecksArePassed || !data.allCorrect ? List.of() : List.of(generateFromTemplate(language));
-            }
+        }
+        if (generated.isEmpty()) {
+            var defaultGen = generateFromTemplate(language);
+            if (defaultGen != null) generated.add(defaultGen);
         }
         return !allChecksArePassed ? List.of() : generated;
     }
@@ -681,7 +698,7 @@ public class MeaningTreeOrderQuestionBuilder {
     static int findOmitted(MeaningTree tree, SupportedLanguage lang) {
         int count = 0;
         HashSet<Node> visited = new HashSet<>();
-        for (Node.Info info : tree) {
+        for (NodeInfo info : tree) {
             if (visited.contains(info)) {
                 continue;
             }
@@ -738,7 +755,7 @@ public class MeaningTreeOrderQuestionBuilder {
 
     static List<String> findAllConcepts(Node root, SupportedLanguage toLanguage) {
         ArrayList<String> result = new ArrayList<>();
-        root.iterateChildren().forEachRemaining(child -> {
+        for (NodeInfo child : root) {
             Node node = child.node();
             if (node instanceof AddOp) result.add("operator_binary_+");
             else if (node instanceof MulOp) result.add("operator_binary_*");
@@ -770,9 +787,9 @@ public class MeaningTreeOrderQuestionBuilder {
             else if (node instanceof PrintCommand || node instanceof InputCommand) result.add("stream_io");
             else if (node instanceof RightShiftOp) result.add("operator_>>");
             else if (node instanceof IndexExpression) result.add("operator_subscript");
-            else if (node instanceof PointerPackOp) result.add("operator_unary_&");
-            else if (node instanceof PointerUnpackOp) result.add("operator_unary_*");
-            else if (node instanceof PointerMemberAccess) result.add("operator_->");
+            else if (node instanceof PointerPackOp && toLanguage == SupportedLanguage.CPP) result.add("operator_unary_&");
+            else if (node instanceof PointerUnpackOp && toLanguage == SupportedLanguage.CPP) result.add("operator_unary_*");
+            else if (node instanceof PointerMemberAccess && toLanguage == SupportedLanguage.CPP) result.add("operator_->");
             else if (node instanceof PrefixIncrementOp) result.add("operator_prefix_++");
             else if (node instanceof PrefixDecrementOp) result.add("operator_prefix_--");
             else if (node instanceof PostfixIncrementOp) result.add("operator_postfix_++");
@@ -850,7 +867,7 @@ public class MeaningTreeOrderQuestionBuilder {
                     }
                 }
             }
-        });
+        }
         return result;
     }
 
@@ -1121,7 +1138,12 @@ public class MeaningTreeOrderQuestionBuilder {
                     set.add("current_operator_enclosed");
                 }
 
-                var operands = tokens.findOperands(i);
+                Map<OperandPosition, TokenGroup> operands;
+                if (op instanceof ComplexOperatorToken cmplex && cmplex.positionOfToken == 1) {
+                    operands = tokens.findOperands(tokens.findOpeningComplex(i));
+                } else {
+                    operands = tokens.findOperands(i);
+                }
 
                 // оператор имеет любой центральный операнд
                 if (operands.containsKey(OperandPosition.CENTER)) {
@@ -1171,24 +1193,41 @@ public class MeaningTreeOrderQuestionBuilder {
                             // Это не останавливает поиск, так как еще может быть оператор с различной ассоциативностью
                         }
 
-                        var nearRightOperands = tokens.findOperands(j);
+                        Map<OperandPosition, TokenGroup> nearRightOperands;
+                        if (nearOp instanceof ComplexOperatorToken cmplex && cmplex.positionOfToken == 1) {
+                            nearRightOperands = tokens.findOperands(tokens.findOpeningComplex(j));
+                        } else {
+                            nearRightOperands = tokens.findOperands(j);
+                        }
                         if (op.precedence == nearOp.precedence &&
                                 (!nearRightOperands.containsKey(OperandPosition.LEFT) ||
-                                !nearRightOperands.containsKey(OperandPosition.RIGHT))
+                                !nearRightOperands.containsKey(OperandPosition.RIGHT)) &&
+                                (!operands.containsKey(OperandPosition.LEFT) ||
+                                        !operands.containsKey(OperandPosition.RIGHT)) &&
+                                !(op instanceof ComplexOperatorToken complex && nearOp instanceof ComplexOperatorToken complex2
+                                        && (complex.positionOfToken != 1 || complex2.positionOfToken != 0 || tokens.findClosingComplex(j) == i))
                         ) {
                             set.add("associativity_without_opposing_operand");
                             break;
                         }
                         if (op.precedence == nearOp.precedence &&
                                 op.assoc == nearOp.assoc &&
-                                op.assoc == OperatorAssociativity.RIGHT) {
+                                op.arity == OperatorArity.BINARY &&
+                                op.assoc == OperatorAssociativity.RIGHT &&
+                                !(op instanceof ComplexOperatorToken complex && nearOp instanceof ComplexOperatorToken complex2
+                                    && (complex.positionOfToken != 1 || complex2.positionOfToken != 0 || tokens.findClosingComplex(j) == i))
+                        ) {
                             set.add("order_determined_by_associativity");
                             set.add("left_competing_to_right_associativity");
                             break;
                         }
                         if (op.precedence == nearOp.precedence &&
                                 op.assoc == nearOp.assoc &&
-                                op.assoc == OperatorAssociativity.LEFT) {
+                                op.arity == OperatorArity.BINARY &&
+                                op.assoc == OperatorAssociativity.LEFT &&
+                                !(op instanceof ComplexOperatorToken complex && nearOp instanceof ComplexOperatorToken complex2
+                                    && (complex.positionOfToken != 1 || complex2.positionOfToken != 0 || tokens.findClosingComplex(j) == i))
+                        ) {
                             set.add("order_determined_by_associativity");
                             set.add("right_competing_to_left_associativity");
                             break;
@@ -1222,23 +1261,40 @@ public class MeaningTreeOrderQuestionBuilder {
                             // Это не останавливает поиск, так как еще может быть оператор с различной ассоциативностью
                         }
 
-                        var nearLeftOperands = tokens.findOperands(j);
+                        Map<OperandPosition, TokenGroup> nearLeftOperands;
+                        if (nearOp instanceof ComplexOperatorToken cmplex && cmplex.positionOfToken == 1) {
+                            nearLeftOperands = tokens.findOperands(tokens.findOpeningComplex(j));
+                        } else {
+                            nearLeftOperands = tokens.findOperands(j);
+                        }
                         if (op.precedence == nearOp.precedence &&
                                 (!nearLeftOperands.containsKey(OperandPosition.LEFT) ||
-                                !nearLeftOperands.containsKey(OperandPosition.RIGHT))) {
+                                !nearLeftOperands.containsKey(OperandPosition.RIGHT)) &&
+                                (!operands.containsKey(OperandPosition.LEFT) ||
+                                        !operands.containsKey(OperandPosition.RIGHT)) &&
+                                !(op instanceof ComplexOperatorToken complex && nearOp instanceof ComplexOperatorToken complex2
+                                        && (complex.positionOfToken != 0 || complex2.positionOfToken != 0))
+                        )
+                        {
                             set.add("associativity_without_opposing_operand");
                             break;
                         }
                         if (op.precedence == nearOp.precedence &&
                                 op.assoc == nearOp.assoc &&
-                                op.assoc == OperatorAssociativity.RIGHT) {
+                                op.arity == OperatorArity.BINARY &&
+                                op.assoc == OperatorAssociativity.RIGHT &&
+                                !(op instanceof ComplexOperatorToken complex && nearOp instanceof ComplexOperatorToken complex2
+                                        && (complex.positionOfToken != 0 || complex2.positionOfToken != 0))) {
                             set.add("order_determined_by_associativity");
                             set.add("left_competing_to_right_associativity");
                             break;
                         }
                         if (op.precedence == nearOp.precedence &&
                                 op.assoc == nearOp.assoc &&
-                                op.assoc == OperatorAssociativity.LEFT) {
+                                op.arity == OperatorArity.BINARY &&
+                                op.assoc == OperatorAssociativity.LEFT &&
+                                !(op instanceof ComplexOperatorToken complex && nearOp instanceof ComplexOperatorToken complex2
+                                        && (complex.positionOfToken != 0 || complex2.positionOfToken != 0))) {
                             set.add("order_determined_by_associativity");
                             set.add("right_competing_to_left_associativity");
                             break;
