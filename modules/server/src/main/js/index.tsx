@@ -12,7 +12,6 @@ import {ExerciseSettings} from './pages/exercise-settings';
 import {StrategySettings} from './pages/strategy-settings';
 import {QuestionPage} from './pages/question';
 import {SessionProvider} from './hooks/session-context';
-import {TextTemplateEditTable} from './pages/text-template-edit'
 
 const Home = () => (
     <SessionProvider>
@@ -26,7 +25,6 @@ const Home = () => (
                     <Route path="/pages/survey" element={<SurveyPage />} />
                     <Route path="/pages/question" element={<QuestionPage />} />
                     <Route path="/pages/exercises-list" element={<ExercisesList />} />
-                    <Route path="/pages/templates" element={<TextTemplateEditTable/>}/>
                     <Route path="/" element={<Navigate to="/pages/exercise-settings" replace />} />
                 </Routes>
             </Router>
