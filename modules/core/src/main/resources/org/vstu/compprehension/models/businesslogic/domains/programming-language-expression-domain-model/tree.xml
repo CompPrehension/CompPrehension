@@ -341,210 +341,200 @@
                                 _RU_endingCause="Потому что слева от ${X} находятся только вычисленные операторы"
                                 _RU_question="Какой оператор может помешать выполнению ${X}[case='р'] слева?"
                                 _TEMPLATING_ID="24" _alias="left.findY">
-                            <DecisionTreeVarDecl name="Y1" type="token"/>
+                            <DecisionTreeVarDecl name="Y" type="operator"/>
                             <Expression>
-                                <GetExtreme extremeVarName="y1_ex" type="token" varName="y1">
-                                    <LogicalAnd>
-                                        <LogicalAnd>
-                                            <LogicalAnd>
-                                                <CheckClass>
-                                                    <Variable name="y1"/>
-                                                    <Class name="token"/>
-                                                </CheckClass>
-                                                <CheckRelationship relationshipName="leftOf">
-                                                    <Variable name="y1"/>
-                                                    <DecisionTreeVar name="X"/>
-                                                </CheckRelationship>
-                                            </LogicalAnd>
-                                            <LogicalAnd>
-                                                <CheckClass>
-                                                    <GetByRelationship relationshipName="belongsTo">
-                                                        <Variable name="y1"/>
-                                                    </GetByRelationship>
-                                                    <Class name="operator"/>
-                                                </CheckClass>
-                                                <Compare operator="Equal">
-                                                    <GetPropertyValue propertyName="state">
-                                                        <GetByRelationship relationshipName="belongsTo">
+                                <!--<![CDATA[
+                                    find operator Y {
+                                        forAny token y_fin [
+                                            $y_fin == findExtreme y1_ex [$y1_ex=>isBetween($y1, X)] among token y1 {
+                                                $y1=>leftOf(X)
+                                                 and ($y1->belongsTo is class:operator and $y1->belongsTo.state == state:unevaluated) and not (
+                                                    forAny separator commaSep [$commaSep=>isBetween($y1, X)] {
+                                                        not (
+                                                            forAny token f1 [$f1->belongsTo is class:operator] {
+                                                                forAny token f2 [$f2->belongsTo == $f1->belongsTo] {
+                                                                    $commaSep=>isBetween($f1, $f2) and $f1=>isBetween($y1, X) and $f2=>isBetween($y1, X)
+                                                                }
+                                                            }
+                                                        )
+                                                    }
+                                                )
+                                            }
+                                        ] {
+                                            $Y=>has($y_fin)
+                                        }
+                                    }
+                                ]]>-->
+                                <GetByCondition type="operator" varName="Y">
+                                    <ExistenceQuantifier type="token" varName="y_fin">
+                                        <Compare operator="Equal">
+                                            <Variable name="y_fin"/>
+                                            <GetExtreme extremeVarName="y1_ex" type="token" varName="y1">
+                                                <LogicalAnd>
+                                                    <LogicalAnd>
+                                                        <CheckRelationship relationshipName="leftOf">
                                                             <Variable name="y1"/>
-                                                        </GetByRelationship>
-                                                    </GetPropertyValue>
-                                                    <Enum owner="state" value="unevaluated"/>
-                                                </Compare>
-                                            </LogicalAnd>
-                                        </LogicalAnd>
-                                        <LogicalNot>
-                                            <ExistenceQuantifier type="separator" varName="commaSep">
+                                                            <DecisionTreeVar name="X"/>
+                                                        </CheckRelationship>
+                                                        <LogicalAnd>
+                                                            <CheckClass>
+                                                                <GetByRelationship relationshipName="belongsTo">
+                                                                    <Variable name="y1"/>
+                                                                </GetByRelationship>
+                                                                <Class name="operator"/>
+                                                            </CheckClass>
+                                                            <Compare operator="Equal">
+                                                                <GetPropertyValue propertyName="state">
+                                                                    <GetByRelationship relationshipName="belongsTo">
+                                                                        <Variable name="y1"/>
+                                                                    </GetByRelationship>
+                                                                </GetPropertyValue>
+                                                                <Enum owner="state" value="unevaluated"/>
+                                                            </Compare>
+                                                        </LogicalAnd>
+                                                    </LogicalAnd>
+                                                    <LogicalNot>
+                                                        <ExistenceQuantifier type="separator" varName="commaSep">
+                                                            <CheckRelationship relationshipName="isBetween">
+                                                                <Variable name="commaSep"/>
+                                                                <Variable name="y1"/>
+                                                                <DecisionTreeVar name="X"/>
+                                                            </CheckRelationship>
+                                                            <LogicalNot>
+                                                                <ExistenceQuantifier type="token" varName="f1">
+                                                                    <CheckClass>
+                                                                        <GetByRelationship relationshipName="belongsTo">
+                                                                            <Variable name="f1"/>
+                                                                        </GetByRelationship>
+                                                                        <Class name="operator"/>
+                                                                    </CheckClass>
+                                                                    <ExistenceQuantifier type="token" varName="f2">
+                                                                        <Compare operator="Equal">
+                                                                            <GetByRelationship
+                                                                                    relationshipName="belongsTo">
+                                                                                <Variable name="f2"/>
+                                                                            </GetByRelationship>
+                                                                            <GetByRelationship
+                                                                                    relationshipName="belongsTo">
+                                                                                <Variable name="f1"/>
+                                                                            </GetByRelationship>
+                                                                        </Compare>
+                                                                        <LogicalAnd>
+                                                                            <LogicalAnd>
+                                                                                <CheckRelationship
+                                                                                        relationshipName="isBetween">
+                                                                                    <Variable name="commaSep"/>
+                                                                                    <Variable name="f1"/>
+                                                                                    <Variable name="f2"/>
+                                                                                </CheckRelationship>
+                                                                                <CheckRelationship
+                                                                                        relationshipName="isBetween">
+                                                                                    <Variable name="f1"/>
+                                                                                    <Variable name="y1"/>
+                                                                                    <DecisionTreeVar name="X"/>
+                                                                                </CheckRelationship>
+                                                                            </LogicalAnd>
+                                                                            <CheckRelationship
+                                                                                    relationshipName="isBetween">
+                                                                                <Variable name="f2"/>
+                                                                                <Variable name="y1"/>
+                                                                                <DecisionTreeVar name="X"/>
+                                                                            </CheckRelationship>
+                                                                        </LogicalAnd>
+                                                                    </ExistenceQuantifier>
+                                                                </ExistenceQuantifier>
+                                                            </LogicalNot>
+                                                        </ExistenceQuantifier>
+                                                    </LogicalNot>
+                                                </LogicalAnd>
                                                 <CheckRelationship relationshipName="isBetween">
-                                                    <Variable name="commaSep"/>
+                                                    <Variable name="y1_ex"/>
                                                     <Variable name="y1"/>
                                                     <DecisionTreeVar name="X"/>
                                                 </CheckRelationship>
-                                                <LogicalNot>
-                                                    <ExistenceQuantifier type="token" varName="f1">
-                                                        <CheckClass>
-                                                            <GetByRelationship relationshipName="belongsTo">
-                                                                <Variable name="f1"/>
-                                                            </GetByRelationship>
-                                                            <Class name="operator"/>
-                                                        </CheckClass>
-                                                        <ExistenceQuantifier type="token" varName="f2">
-                                                            <Compare operator="Equal">
-                                                                <GetByRelationship relationshipName="belongsTo">
-                                                                    <Variable name="f2"/>
-                                                                </GetByRelationship>
-                                                                <GetByRelationship relationshipName="belongsTo">
-                                                                    <Variable name="f1"/>
-                                                                </GetByRelationship>
-                                                            </Compare>
-                                                            <LogicalAnd>
-                                                                <LogicalAnd>
-                                                                    <CheckRelationship relationshipName="isBetween">
-                                                                        <Variable name="commaSep"/>
-                                                                        <Variable name="f1"/>
-                                                                        <Variable name="f2"/>
-                                                                    </CheckRelationship>
-                                                                    <CheckRelationship relationshipName="isBetween">
-                                                                        <Variable name="f1"/>
-                                                                        <Variable name="y1"/>
-                                                                        <DecisionTreeVar name="X"/>
-                                                                    </CheckRelationship>
-                                                                </LogicalAnd>
-                                                                <CheckRelationship relationshipName="isBetween">
-                                                                    <Variable name="f2"/>
-                                                                    <Variable name="y1"/>
-                                                                    <DecisionTreeVar name="X"/>
-                                                                </CheckRelationship>
-                                                            </LogicalAnd>
-                                                        </ExistenceQuantifier>
-                                                    </ExistenceQuantifier>
-                                                </LogicalNot>
-                                            </ExistenceQuantifier>
-                                        </LogicalNot>
-                                    </LogicalAnd>
-                                    <CheckRelationship relationshipName="isBetween">
-                                        <Variable name="y1_ex"/>
-                                        <Variable name="y1"/>
+                                            </GetExtreme>
+                                        </Compare>
+                                        <CheckRelationship relationshipName="has">
+                                            <Variable name="Y"/>
+                                            <Variable name="y_fin"/>
+                                        </CheckRelationship>
+                                    </ExistenceQuantifier>
+                                </GetByCondition>
+                            </Expression>
+                            <FindError priority="1" _alias="Y_wrongSide"
+                                       _TEMPLATING_ID="25"
+                                       _RU_explanation="Это неверно, поскольку ${$checked}[case='и'] находится справа от ${X}[case='р']."
+                                       _EN_explanation="That's incorrect, because ${$checked} is to the right of ${X}."
+                            >
+                                <Expression>
+                                    <CheckRelationship relationshipName="rightOf">
+                                        <Variable name="checked"/>
                                         <DecisionTreeVar name="X"/>
                                     </CheckRelationship>
-                                </GetExtreme>
-                            </Expression>
-                            <FindError _EN_explanation="That's incorrect, because ${$checked} is to the right of ${X}."
-                                       _RU_explanation="Это неверно, поскольку ${$checked}[case='и'] находится справа от ${X}[case='р']."
-                                       _TEMPLATING_ID="25" _alias="Y1_wrongSide" priority="1">
-                                <Expression>
-                                    <LogicalAnd>
-                                        <LogicalAnd>
-                                            <CheckClass>
-                                                <Variable name="checked"/>
-                                                <Class name="token"/>
-                                            </CheckClass>
-                                            <CheckClass>
-                                                <GetByRelationship relationshipName="belongsTo">
-                                                    <Variable name="checked"/>
-                                                </GetByRelationship>
-                                                <Class name="operator"/>
-                                            </CheckClass>
-                                        </LogicalAnd>
-                                        <CheckRelationship relationshipName="rightOf">
-                                            <Variable name="checked"/>
-                                            <DecisionTreeVar name="X"/>
-                                        </CheckRelationship>
-                                    </LogicalAnd>
                                 </Expression>
                             </FindError>
-                            <FindError
-                                    _EN_explanation="That's incorrect, as ${$checked} is omitted by an operator with a strict operand order (can you tell which one?), and therefore cannot prevent the evaluation of ${X}."
-                                    _RU_explanation="Это неверно, поскольку ${$checked}[case='и'] опускается оператором со строгим порядком операндов (можете сказать, каким?), а значит не может помешать вычислению ${X}[case='р']."
-                                    _TEMPLATING_ID="26" _alias="Y1_omitted" priority="2">
+                            <FindError priority="2" _alias="Y_omitted"
+                                       _TEMPLATING_ID="26"
+                                       _RU_explanation="Это неверно, поскольку ${$checked}[case='и'] опускается оператором со строгим порядком операндов (можете сказать, каким?), а значит не может помешать вычислению ${X}[case='р']."
+                                       _EN_explanation="That's incorrect, as ${$checked} is omitted by an operator with a strict operand order (can you tell which one?), and therefore cannot prevent the evaluation of ${X}."
+                            >
                                 <Expression>
-                                    <LogicalAnd>
-                                        <CheckClass>
+                                    <Compare operator="EQUAL">
+                                        <GetPropertyValue>
                                             <Variable name="checked"/>
-                                            <Class name="token"/>
-                                        </CheckClass>
-                                        <LogicalAnd>
-                                            <CheckClass>
-                                                <GetByRelationship relationshipName="belongsTo">
-                                                    <Variable name="checked"/>
-                                                </GetByRelationship>
-                                                <Class name="operator"/>
-                                            </CheckClass>
-                                            <Compare operator="Equal">
-                                                <GetPropertyValue propertyName="state">
-                                                    <GetByRelationship relationshipName="belongsTo">
-                                                        <Variable name="checked"/>
-                                                    </GetByRelationship>
-                                                </GetPropertyValue>
-                                                <Enum owner="state" value="omitted"/>
-                                            </Compare>
-                                        </LogicalAnd>
-                                    </LogicalAnd>
+                                            <Property name="state"/>
+                                        </GetPropertyValue>
+                                        <Enum owner="state" value="omitted"/>
+                                    </Compare>
                                 </Expression>
                             </FindError>
-                            <FindError
-                                    _EN_explanation="That's incorrect - ${$checked} is already evaluated and now serves as just an operand, and therefore cannot prevent the evaluation of ${X}."
-                                    _RU_explanation="Это неверно - ${$checked}[case='и'] уже вычислен и по сути является операндом, а значит не может помешать вычислению ${X}[case='р']."
-                                    _TEMPLATING_ID="27" _alias="Y1_evaluated" priority="3">
+                            <FindError priority="3" _alias="Y_evaluated"
+                                       _TEMPLATING_ID="27"
+                                       _RU_explanation="Это неверно - ${$checked}[case='и'] уже вычислен и по сути является операндом, а значит не может помешать вычислению ${X}[case='р']."
+                                       _EN_explanation="That's incorrect - ${$checked} is already evaluated and now serves as just an operand, and therefore cannot prevent the evaluation of ${X}."
+                            >
                                 <Expression>
-                                    <LogicalAnd>
-                                        <CheckClass>
+                                    <Compare operator="NOT_EQUAL">
+                                        <GetPropertyValue>
                                             <Variable name="checked"/>
-                                            <Class name="token"/>
-                                        </CheckClass>
-                                        <LogicalAnd>
-                                            <CheckClass>
-                                                <GetByRelationship relationshipName="belongsTo">
-                                                    <Variable name="checked"/>
-                                                </GetByRelationship>
-                                                <Class name="operator"/>
-                                            </CheckClass>
-                                            <Compare operator="NotEqual">
-                                                <GetPropertyValue propertyName="state">
-                                                    <GetByRelationship relationshipName="belongsTo">
-                                                        <Variable name="checked"/>
-                                                    </GetByRelationship>
-                                                </GetPropertyValue>
-                                                <Enum owner="state" value="unevaluated"/>
-                                            </Compare>
-                                        </LogicalAnd>
-                                    </LogicalAnd>
+                                            <Property name="state"/>
+                                        </GetPropertyValue>
+                                        <Enum owner="state" value="unevaluated"/>
+                                    </Compare>
                                 </Expression>
                             </FindError>
-                            <FindError
-                                    _EN_explanation="That might be true, but there is a fitting operator closer to the ${X} than ${$checked} and it should be considered first."
-                                    _RU_explanation="Это неверно, ${$checked}[case='и'] слишком далеко от ${X}[case='р'] чтобы помешать ему."
-                                    _TEMPLATING_ID="28" _alias="Y1_tooFar" priority="4">
+                            <FindError priority="4" _alias="Y_tooFar"
+                                       _TEMPLATING_ID="28"
+                                       _RU_explanation="Это неверно, ${$checked}[case='и'] слишком далеко от ${X}[case='р'] чтобы помешать ему."
+                                       _EN_explanation="That might be true, but there is a fitting operator closer to the ${X} than ${$checked} and it should be considered first."
+                            >
                                 <Expression>
-                                    <LogicalAnd>
+                                    <CheckRelationship relationshipName="isBetween">
+                                        <DecisionTreeVar name="Y1"/>
+                                        <DecisionTreeVar name="X"/>
+                                        <Variable name="checked"/>
+                                    </CheckRelationship>
+                                </Expression>
+                            </FindError>
+                            <AdditionalVarDecl name="Y1" type="token">
+                                <Expression>
+                                    <GetExtreme type="token" extremeVarName="y1_ex" varName="y1">
                                         <LogicalAnd>
-                                            <CheckClass>
-                                                <Variable name="checked"/>
-                                                <Class name="token"/>
-                                            </CheckClass>
-                                            <CheckClass>
-                                                <GetByRelationship relationshipName="belongsTo">
-                                                    <Variable name="checked"/>
-                                                </GetByRelationship>
-                                                <Class name="operator"/>
-                                            </CheckClass>
+                                            <CheckRelationship relationshipName="belongsTo">
+                                                <Variable name="y1"/>
+                                                <DecisionTreeVar name="Y"/>
+                                            </CheckRelationship>
+                                            <CheckRelationship relationshipName="leftOf">
+                                                <Variable name="y1"/>
+                                                <DecisionTreeVar name="X"/>
+                                            </CheckRelationship>
                                         </LogicalAnd>
                                         <CheckRelationship relationshipName="isBetween">
-                                            <DecisionTreeVar name="Y1"/>
+                                            <Variable name="y1_ex"/>
+                                            <Variable name="y1"/>
                                             <DecisionTreeVar name="X"/>
-                                            <Variable name="checked"/>
                                         </CheckRelationship>
-                                    </LogicalAnd>
-                                </Expression>
-                            </FindError>
-                            <AdditionalVarDecl name="Y" type="operator">
-                                <Expression>
-                                    <Cast>
-                                        <GetByRelationship relationshipName="belongsTo">
-                                            <DecisionTreeVar name="Y1"/>
-                                        </GetByRelationship>
-                                        <Class name="operator"/>
-                                    </Cast>
+                                    </GetExtreme>
                                 </Expression>
                             </AdditionalVarDecl>
                             <Outcome _EN_explanation="there are no unevaluated operators to the left of ${X}"
@@ -995,210 +985,200 @@
                                 _RU_endingCause="Потому что справа от ${X} находятся только вычисленные операторы"
                                 _RU_question="Какой оператор может помешать выполнению ${X}[case='р'] справа?"
                                 _TEMPLATING_ID="64" _alias="right.findZ">
-                            <DecisionTreeVarDecl name="Z1" type="token"/>
+                            <DecisionTreeVarDecl name="Z" type="operator"/>
                             <Expression>
-                                <GetExtreme extremeVarName="z1_ex" type="token" varName="z1">
-                                    <LogicalAnd>
-                                        <LogicalAnd>
-                                            <LogicalAnd>
-                                                <CheckClass>
-                                                    <Variable name="z1"/>
-                                                    <Class name="token"/>
-                                                </CheckClass>
-                                                <CheckRelationship relationshipName="rightOf">
-                                                    <Variable name="z1"/>
-                                                    <DecisionTreeVar name="X"/>
-                                                </CheckRelationship>
-                                            </LogicalAnd>
-                                            <LogicalAnd>
-                                                <CheckClass>
-                                                    <GetByRelationship relationshipName="belongsTo">
-                                                        <Variable name="z1"/>
-                                                    </GetByRelationship>
-                                                    <Class name="operator"/>
-                                                </CheckClass>
-                                                <Compare operator="Equal">
-                                                    <GetPropertyValue propertyName="state">
-                                                        <GetByRelationship relationshipName="belongsTo">
+                                <!--<![CDATA[
+                                    find operator Z {
+                                        forAny token z_fin [
+                                            $z_fin == findExtreme z1_ex [$z1_ex=>isBetween($z1, X)] among token z1 {
+                                                $z1=>rightOf(X)
+                                                 and ($z1->belongsTo is class:operator and $z1->belongsTo.state == state:unevaluated) and not (
+                                                    forAny separator commaSep [$commaSep=>isBetween($z1, X)] {
+                                                        not (
+                                                            forAny token f1 [$f1->belongsTo is class:operator] {
+                                                                forAny token f2 [$f2->belongsTo == $f1->belongsTo] {
+                                                                    $commaSep=>isBetween($f1, $f2) and $f1=>isBetween($z1, X) and $f2=>isBetween($z1, X)
+                                                                }
+                                                            }
+                                                        )
+                                                    }
+                                                )
+                                            }
+                                        ] {
+                                            $Z=>has($z_fin)
+                                        }
+                                    }
+                                ]]>-->
+                                <GetByCondition type="operator" varName="Z">
+                                    <ExistenceQuantifier type="token" varName="z_fin">
+                                        <Compare operator="Equal">
+                                            <Variable name="z_fin"/>
+                                            <GetExtreme extremeVarName="z1_ex" type="token" varName="z1">
+                                                <LogicalAnd>
+                                                    <LogicalAnd>
+                                                        <CheckRelationship relationshipName="rightOf">
                                                             <Variable name="z1"/>
-                                                        </GetByRelationship>
-                                                    </GetPropertyValue>
-                                                    <Enum owner="state" value="unevaluated"/>
-                                                </Compare>
-                                            </LogicalAnd>
-                                        </LogicalAnd>
-                                        <LogicalNot>
-                                            <ExistenceQuantifier type="separator" varName="commaSep">
+                                                            <DecisionTreeVar name="X"/>
+                                                        </CheckRelationship>
+                                                        <LogicalAnd>
+                                                            <CheckClass>
+                                                                <GetByRelationship relationshipName="belongsTo">
+                                                                    <Variable name="z1"/>
+                                                                </GetByRelationship>
+                                                                <Class name="operator"/>
+                                                            </CheckClass>
+                                                            <Compare operator="Equal">
+                                                                <GetPropertyValue propertyName="state">
+                                                                    <GetByRelationship relationshipName="belongsTo">
+                                                                        <Variable name="z1"/>
+                                                                    </GetByRelationship>
+                                                                </GetPropertyValue>
+                                                                <Enum owner="state" value="unevaluated"/>
+                                                            </Compare>
+                                                        </LogicalAnd>
+                                                    </LogicalAnd>
+                                                    <LogicalNot>
+                                                        <ExistenceQuantifier type="separator" varName="commaSep">
+                                                            <CheckRelationship relationshipName="isBetween">
+                                                                <Variable name="commaSep"/>
+                                                                <Variable name="z1"/>
+                                                                <DecisionTreeVar name="X"/>
+                                                            </CheckRelationship>
+                                                            <LogicalNot>
+                                                                <ExistenceQuantifier type="token" varName="f1">
+                                                                    <CheckClass>
+                                                                        <GetByRelationship relationshipName="belongsTo">
+                                                                            <Variable name="f1"/>
+                                                                        </GetByRelationship>
+                                                                        <Class name="operator"/>
+                                                                    </CheckClass>
+                                                                    <ExistenceQuantifier type="token" varName="f2">
+                                                                        <Compare operator="Equal">
+                                                                            <GetByRelationship
+                                                                                    relationshipName="belongsTo">
+                                                                                <Variable name="f2"/>
+                                                                            </GetByRelationship>
+                                                                            <GetByRelationship
+                                                                                    relationshipName="belongsTo">
+                                                                                <Variable name="f1"/>
+                                                                            </GetByRelationship>
+                                                                        </Compare>
+                                                                        <LogicalAnd>
+                                                                            <LogicalAnd>
+                                                                                <CheckRelationship
+                                                                                        relationshipName="isBetween">
+                                                                                    <Variable name="commaSep"/>
+                                                                                    <Variable name="f1"/>
+                                                                                    <Variable name="f2"/>
+                                                                                </CheckRelationship>
+                                                                                <CheckRelationship
+                                                                                        relationshipName="isBetween">
+                                                                                    <Variable name="f1"/>
+                                                                                    <Variable name="z1"/>
+                                                                                    <DecisionTreeVar name="X"/>
+                                                                                </CheckRelationship>
+                                                                            </LogicalAnd>
+                                                                            <CheckRelationship
+                                                                                    relationshipName="isBetween">
+                                                                                <Variable name="f2"/>
+                                                                                <Variable name="z1"/>
+                                                                                <DecisionTreeVar name="X"/>
+                                                                            </CheckRelationship>
+                                                                        </LogicalAnd>
+                                                                    </ExistenceQuantifier>
+                                                                </ExistenceQuantifier>
+                                                            </LogicalNot>
+                                                        </ExistenceQuantifier>
+                                                    </LogicalNot>
+                                                </LogicalAnd>
                                                 <CheckRelationship relationshipName="isBetween">
-                                                    <Variable name="commaSep"/>
+                                                    <Variable name="z1_ex"/>
                                                     <Variable name="z1"/>
                                                     <DecisionTreeVar name="X"/>
                                                 </CheckRelationship>
-                                                <LogicalNot>
-                                                    <ExistenceQuantifier type="token" varName="f1">
-                                                        <CheckClass>
-                                                            <GetByRelationship relationshipName="belongsTo">
-                                                                <Variable name="f1"/>
-                                                            </GetByRelationship>
-                                                            <Class name="operator"/>
-                                                        </CheckClass>
-                                                        <ExistenceQuantifier type="token" varName="f2">
-                                                            <Compare operator="Equal">
-                                                                <GetByRelationship relationshipName="belongsTo">
-                                                                    <Variable name="f2"/>
-                                                                </GetByRelationship>
-                                                                <GetByRelationship relationshipName="belongsTo">
-                                                                    <Variable name="f1"/>
-                                                                </GetByRelationship>
-                                                            </Compare>
-                                                            <LogicalAnd>
-                                                                <LogicalAnd>
-                                                                    <CheckRelationship relationshipName="isBetween">
-                                                                        <Variable name="commaSep"/>
-                                                                        <Variable name="f1"/>
-                                                                        <Variable name="f2"/>
-                                                                    </CheckRelationship>
-                                                                    <CheckRelationship relationshipName="isBetween">
-                                                                        <Variable name="f1"/>
-                                                                        <Variable name="z1"/>
-                                                                        <DecisionTreeVar name="X"/>
-                                                                    </CheckRelationship>
-                                                                </LogicalAnd>
-                                                                <CheckRelationship relationshipName="isBetween">
-                                                                    <Variable name="f2"/>
-                                                                    <Variable name="z1"/>
-                                                                    <DecisionTreeVar name="X"/>
-                                                                </CheckRelationship>
-                                                            </LogicalAnd>
-                                                        </ExistenceQuantifier>
-                                                    </ExistenceQuantifier>
-                                                </LogicalNot>
-                                            </ExistenceQuantifier>
-                                        </LogicalNot>
-                                    </LogicalAnd>
-                                    <CheckRelationship relationshipName="isBetween">
-                                        <Variable name="z1_ex"/>
-                                        <Variable name="z1"/>
+                                            </GetExtreme>
+                                        </Compare>
+                                        <CheckRelationship relationshipName="has">
+                                            <Variable name="Z"/>
+                                            <Variable name="z_fin"/>
+                                        </CheckRelationship>
+                                    </ExistenceQuantifier>
+                                </GetByCondition>
+                            </Expression>
+                            <FindError priority="1" _alias="Z_wrongSide"
+                                       _TEMPLATING_ID="65"
+                                       _RU_explanation="Это неверно, поскольку ${$checked}[case='и'] находится слева от ${X}[case='р']."
+                                       _EN_explanation="That's incorrect, because ${$checked} is to the left of ${X}."
+                            >
+                                <Expression>
+                                    <CheckRelationship relationshipName="leftOf">
+                                        <Variable name="checked"/>
                                         <DecisionTreeVar name="X"/>
                                     </CheckRelationship>
-                                </GetExtreme>
-                            </Expression>
-                            <FindError _EN_explanation="That's incorrect, because ${$checked} is to the left of ${X}."
-                                       _RU_explanation="Это неверно, поскольку ${$checked}[case='и'] находится слева от ${X}[case='р']."
-                                       _TEMPLATING_ID="65" _alias="Z1_wrongSide" priority="1">
-                                <Expression>
-                                    <LogicalAnd>
-                                        <LogicalAnd>
-                                            <CheckClass>
-                                                <Variable name="checked"/>
-                                                <Class name="token"/>
-                                            </CheckClass>
-                                            <CheckClass>
-                                                <GetByRelationship relationshipName="belongsTo">
-                                                    <Variable name="checked"/>
-                                                </GetByRelationship>
-                                                <Class name="operator"/>
-                                            </CheckClass>
-                                        </LogicalAnd>
-                                        <CheckRelationship relationshipName="leftOf">
-                                            <Variable name="checked"/>
-                                            <DecisionTreeVar name="X"/>
-                                        </CheckRelationship>
-                                    </LogicalAnd>
                                 </Expression>
                             </FindError>
-                            <FindError
-                                    _EN_explanation="That's incorrect, as ${$checked} is omitted by an operator with a strict operand order (can you tell which one?), and therefore cannot prevent the evaluation of ${X}."
-                                    _RU_explanation="Это неверно, поскольку ${$checked}[case='и'] опускается оператором со строгим порядком операндов (можете сказать, каким?), а значит не может помешать вычислению ${X}[case='р']."
-                                    _TEMPLATING_ID="66" _alias="Z1_omitted" priority="2">
+                            <FindError priority="2" _alias="Z_omitted"
+                                       _TEMPLATING_ID="66"
+                                       _RU_explanation="Это неверно, поскольку ${$checked}[case='и'] опускается оператором со строгим порядком операндов (можете сказать, каким?), а значит не может помешать вычислению ${X}[case='р']."
+                                       _EN_explanation="That's incorrect, as ${$checked} is omitted by an operator with a strict operand order (can you tell which one?), and therefore cannot prevent the evaluation of ${X}."
+                            >
                                 <Expression>
-                                    <LogicalAnd>
-                                        <CheckClass>
+                                    <Compare operator="EQUAL">
+                                        <GetPropertyValue>
                                             <Variable name="checked"/>
-                                            <Class name="token"/>
-                                        </CheckClass>
-                                        <LogicalAnd>
-                                            <CheckClass>
-                                                <GetByRelationship relationshipName="belongsTo">
-                                                    <Variable name="checked"/>
-                                                </GetByRelationship>
-                                                <Class name="operator"/>
-                                            </CheckClass>
-                                            <Compare operator="Equal">
-                                                <GetPropertyValue propertyName="state">
-                                                    <GetByRelationship relationshipName="belongsTo">
-                                                        <Variable name="checked"/>
-                                                    </GetByRelationship>
-                                                </GetPropertyValue>
-                                                <Enum owner="state" value="omitted"/>
-                                            </Compare>
-                                        </LogicalAnd>
-                                    </LogicalAnd>
+                                            <Property name="state"/>
+                                        </GetPropertyValue>
+                                        <Enum owner="state" value="omitted"/>
+                                    </Compare>
                                 </Expression>
                             </FindError>
-                            <FindError
-                                    _EN_explanation="That's incorrect - ${$checked} is already evaluated and now serves as just an operand, and therefore cannot prevent the evaluation of ${X}."
-                                    _RU_explanation="Это неверно - ${$checked}[case='и'] уже вычислен и по сути является операндом, а значит не может помешать вычислению ${X}[case='р']."
-                                    _TEMPLATING_ID="67" _alias="Z1_evaluated" priority="3">
+                            <FindError priority="3" _alias="Z_evaluated"
+                                       _TEMPLATING_ID="67"
+                                       _RU_explanation="Это неверно - ${$checked}[case='и'] уже вычислен и по сути является операндом, а значит не может помешать вычислению ${X}[case='р']."
+                                       _EN_explanation="That's incorrect - ${$checked} is already evaluated and now serves as just an operand, and therefore cannot prevent the evaluation of ${X}."
+                            >
                                 <Expression>
-                                    <LogicalAnd>
-                                        <CheckClass>
+                                    <Compare operator="NOT_EQUAL">
+                                        <GetPropertyValue>
                                             <Variable name="checked"/>
-                                            <Class name="token"/>
-                                        </CheckClass>
-                                        <LogicalAnd>
-                                            <CheckClass>
-                                                <GetByRelationship relationshipName="belongsTo">
-                                                    <Variable name="checked"/>
-                                                </GetByRelationship>
-                                                <Class name="operator"/>
-                                            </CheckClass>
-                                            <Compare operator="NotEqual">
-                                                <GetPropertyValue propertyName="state">
-                                                    <GetByRelationship relationshipName="belongsTo">
-                                                        <Variable name="checked"/>
-                                                    </GetByRelationship>
-                                                </GetPropertyValue>
-                                                <Enum owner="state" value="unevaluated"/>
-                                            </Compare>
-                                        </LogicalAnd>
-                                    </LogicalAnd>
+                                            <Property name="state"/>
+                                        </GetPropertyValue>
+                                        <Enum owner="state" value="unevaluated"/>
+                                    </Compare>
                                 </Expression>
                             </FindError>
-                            <FindError
-                                    _EN_explanation="That might be true, but there is a fitting operator closer to the ${X} than ${$checked} and it should be considered first."
-                                    _RU_explanation="Это неверно, ${$checked}[case='и'] слишком далеко от ${X}[case='р'] чтобы помешать ему."
-                                    _TEMPLATING_ID="68" _alias="Z1_tooFar" priority="4">
+                            <FindError priority="4" _alias="Z1_tooFar"
+                                       _TEMPLATING_ID="68"
+                                       _RU_explanation="Это неверно, ${$checked}[case='и'] слишком далеко от ${X}[case='р'] чтобы помешать ему."
+                                       _EN_explanation="That might be true, but there is a fitting operator closer to the ${X} than ${$checked} and it should be considered first."
+                            >
                                 <Expression>
-                                    <LogicalAnd>
+                                    <CheckRelationship relationshipName="isBetween">
+                                        <DecisionTreeVar name="Z1"/>
+                                        <DecisionTreeVar name="X"/>
+                                        <Variable name="checked"/>
+                                    </CheckRelationship>
+                                </Expression>
+                            </FindError>
+                            <AdditionalVarDecl name="Z1" type="token">
+                                <Expression>
+                                    <GetExtreme type="token" extremeVarName="z1_ex" varName="z1">
                                         <LogicalAnd>
-                                            <CheckClass>
-                                                <Variable name="checked"/>
-                                                <Class name="token"/>
-                                            </CheckClass>
-                                            <CheckClass>
-                                                <GetByRelationship relationshipName="belongsTo">
-                                                    <Variable name="checked"/>
-                                                </GetByRelationship>
-                                                <Class name="operator"/>
-                                            </CheckClass>
+                                            <CheckRelationship relationshipName="belongsTo">
+                                                <Variable name="z1"/>
+                                                <DecisionTreeVar name="Z"/>
+                                            </CheckRelationship>
+                                            <CheckRelationship relationshipName="rightOf">
+                                                <Variable name="z1"/>
+                                                <DecisionTreeVar name="X"/>
+                                            </CheckRelationship>
                                         </LogicalAnd>
                                         <CheckRelationship relationshipName="isBetween">
-                                            <DecisionTreeVar name="Z1"/>
+                                            <Variable name="z1_ex"/>
+                                            <Variable name="z1"/>
                                             <DecisionTreeVar name="X"/>
-                                            <Variable name="checked"/>
                                         </CheckRelationship>
-                                    </LogicalAnd>
-                                </Expression>
-                            </FindError>
-                            <AdditionalVarDecl name="Z" type="operator">
-                                <Expression>
-                                    <Cast>
-                                        <GetByRelationship relationshipName="belongsTo">
-                                            <DecisionTreeVar name="Z1"/>
-                                        </GetByRelationship>
-                                        <Class name="operator"/>
-                                    </Cast>
+                                    </GetExtreme>
                                 </Expression>
                             </AdditionalVarDecl>
                             <Outcome _EN_explanation="there are no unevaluated operators to the right of ${X}"
