@@ -44,4 +44,57 @@ public class TagTolerantStringTokenizer {
 
         return tokens.toArray(String[]::new);
     }
+
+    public static int[] findWordPosition(String text, int wordIndex) {
+        if (text == null || wordIndex < 0) {
+            return null;
+        }
+
+        int currentWordIndex = 0;
+        int i = 0;
+        int textLength = text.length();
+
+        while (i < textLength) {
+            // Пропускаем теги
+            if (text.charAt(i) == '<') {
+                while (i < textLength && text.charAt(i) != '>') {
+                    i++;
+                }
+                if (i < textLength) {
+                    i++; // пропускаем '>'
+                }
+                continue;
+            }
+
+            // Пропускаем пробелы
+            if (Character.isWhitespace(text.charAt(i))) {
+                i++;
+                continue;
+            }
+
+            // Нашли начало слова
+            int wordStart = i;
+
+            // Найдем конец слова
+            while (i < textLength && !Character.isWhitespace(text.charAt(i)) && text.charAt(i) != '<') {
+                i++;
+            }
+
+            int wordEnd = i;
+
+            // Если это нужное нам слово
+            if (currentWordIndex == wordIndex) {
+                return new int[]{wordStart, wordEnd};
+            }
+
+            currentWordIndex++;
+        }
+
+        if (wordIndex >= currentWordIndex) {
+            return new int[] {text.length(), text.length()};
+        }
+
+        // Слово не найдено
+        return new int[]{-1, -1};
+    }
 }

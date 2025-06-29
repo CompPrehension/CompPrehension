@@ -13,8 +13,8 @@ import java.util.ArrayList;
 import java.util.Arrays;
 import java.util.List;
 
-import static org.vstu.compprehension.common.StringHelper.findWordPosition;
 import static org.vstu.compprehension.common.StringHelper.stripTags;
+import static org.vstu.compprehension.models.businesslogic.domains.terms.utils.TagTolerantStringTokenizer.findWordPosition;
 
 public class GrammaticalCaseTermDetectionMethod implements DomainTermDetectionMethod {
 
@@ -40,7 +40,7 @@ public class GrammaticalCaseTermDetectionMethod implements DomainTermDetectionMe
                 int endOffset = findWordPosition(text, n - 1)[0] + ngram[n - 1].length();
                 int length = endOffset - startOffset - 1;
 
-                matches.add(new MatchResult(String.join(" ", ngram), startOffset, length));
+                if (startOffset != -1 && length > 0) matches.add(new MatchResult(String.join(" ", ngram), startOffset, length));
             }
         }
         return matches;

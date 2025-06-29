@@ -13,8 +13,8 @@ import java.util.ArrayList;
 import java.util.Comparator;
 import java.util.List;
 
-import static org.vstu.compprehension.common.StringHelper.findWordPosition;
 import static org.vstu.compprehension.common.StringHelper.stripTags;
+import static org.vstu.compprehension.models.businesslogic.domains.terms.utils.TagTolerantStringTokenizer.findWordPosition;
 
 public class FuzzyTermDetectionMethod implements DomainTermDetectionMethod {
 
@@ -40,8 +40,10 @@ public class FuzzyTermDetectionMethod implements DomainTermDetectionMethod {
             if (score >= baseMaxScore) {
                 int offset = findWordPosition(text, posKey.getKey())[0];
                 int length = findWordPosition(text, posKey.getValue())[0] - offset - 1;
-                matches.add(new MatchResult(ngram, score,
-                        offset, length));
+                if (offset != -1) {
+                    matches.add(new MatchResult(ngram, score,
+                            offset, length));
+                }
             }
         }
         return matches;

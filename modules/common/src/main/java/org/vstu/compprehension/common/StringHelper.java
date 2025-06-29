@@ -120,7 +120,7 @@ public class StringHelper {
             return new int[] { start, text.length() };
         }
 
-        return null; // индекс выходит за границы
+        return new int[] {-1, -1};
     }
 
     public static String stripTags(String input) {

@@ -51,8 +51,8 @@ terms:
       EN: "A ternary operator works with three operands, such as the conditional `a ? b : c`."
 
   - pattern:
-      RU: "приоритет оператора"
-      EN: "operator precedence"
+      RU: "приоритет"
+      EN: "precedence"
     explanations:
       RU: "Приоритет оператора определяет, какие операции выполняются раньше в выражении без скобок."
       EN: "Operator precedence determines which operations are evaluated first in an expression without parentheses."

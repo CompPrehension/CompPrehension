@@ -48,8 +48,8 @@ public class DomainTermAnnotationProcessor {
             for (DomainTermAnnotation annotation : result) {
                 boolean allow = true;
                 for (DomainTermAnnotation added : annotations) {
-                    if (!(annotation.pos() >= added.pos() && annotation.pos() < added.pos() + added.length())
-                            && !(annotation.pos() + annotation.length() >= added.pos() &&
+                    if ((annotation.pos() >= added.pos() && annotation.pos() < added.pos() + added.length())
+                            || (annotation.pos() + annotation.length() >= added.pos() &&
                                 annotation.pos() + annotation.length() < added.pos() + added.length())
                     ) {
                         allow = false;
