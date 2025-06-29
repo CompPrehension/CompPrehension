@@ -9,7 +9,6 @@ import its.reasoner.nodes.DecisionTreeReasoner;
 import its.reasoner.nodes.DecisionTreeTrace;
 import its.reasoner.nodes.DecisionTreeTraceElement;
 import lombok.extern.log4j.Log4j2;
-import org.apache.commons.lang3.StringUtils;
 import org.apache.commons.lang3.tuple.Pair;
 import org.jetbrains.annotations.NotNull;
 import org.springframework.context.annotation.Primary;
@@ -18,6 +17,9 @@ import org.springframework.web.context.annotation.RequestScope;
 import org.vstu.compprehension.models.businesslogic.DomainToBackendAdapter;
 import org.vstu.compprehension.models.businesslogic.Explanation;
 import org.vstu.compprehension.models.businesslogic.Question;
+import org.vstu.compprehension.models.businesslogic.domains.Domain;
+import org.vstu.compprehension.models.businesslogic.domains.terms.DomainTermAnnotationProcessor;
+import org.vstu.compprehension.models.businesslogic.domains.terms.DomainTermTooltipVisualizer;
 import org.vstu.compprehension.models.entities.EnumData.Language;
 import org.vstu.compprehension.models.entities.ViolationEntity;
 import org.vstu.compprehension.utils.HyperText;
@@ -115,17 +117,23 @@ public class DecisionTreeReasonerBackend
      * Собрать все объяснения с учетом агрегаций в древовидную структуру
      * @param type тип объяснения, например объяснение ошибки
      * @param trace трасса путей интерпретатора по Decision Tree
-     * @param domain домен Decision Tree
+     * @param domainModel домен Decision Tree
+     * @param appDomain домен - компонент CompPrehension
      * @param lang язык пользователя
      * @return объект объяснения в виде агрегированных в него других объяснений
      */
     public static Explanation collectExplanationsFromTrace(Explanation.Type type,
                                                             DecisionTreeTrace trace,
-                                                            DomainModel domain,
-                                                            Language lang) {
+                                                            DomainModel domainModel,
+                                                            Language lang, Domain appDomain
+    ) {
+        DomainTermAnnotationProcessor annotationProcessor = null;
+        if (appDomain.getTermDictionary().isPresent()) {
+            annotationProcessor = new DomainTermAnnotationProcessor(appDomain.getTermDictionary().get(), lang);
+        }
         Explanation result = Explanation.aggregate(type, _collectExplanations(type, trace, null,
                 AggregationPolicy.Default,
-                domain, lang));
+                domainModel, lang, annotationProcessor));
         String prefix = Explanation.getCommonPrefix(result.getChildren(), "");
         if (result.getChildren().size() > 1 && !prefix.isEmpty()) {
             result.setRawMessage(new HyperText(prefix.trim().concat(":")));
@@ -144,7 +152,7 @@ public class DecisionTreeReasonerBackend
                                      Explanation parent,
                                      AggregationPolicy policy,
                                      DomainModel domain,
-                                     Language lang
+                                     Language lang, DomainTermAnnotationProcessor annotationProcessor
     ) {
         List<Explanation> traceExplanations = new ArrayList<>(); // временный буфер
         for (DecisionTreeTraceElement<?, ?> element : trace) {
@@ -154,8 +162,11 @@ public class DecisionTreeReasonerBackend
                     && (type == Explanation.Type.ERROR) != element.getNodeResult().equals(BranchResult.CORRECT)
                     && element.getNode().getMetadata().containsAny("explanation")) {
                 // одиночное объяснение по заданному типу объяснения
-                traceExplanations.add(Interface.extractExplanation(res,
-                        lang.toLocaleString(), learningSituation));
+                var explanation = Interface.extractExplanation(res,
+                        lang.toLocaleString(), learningSituation);
+                var annotatedMessage = annotationProcessor.apply(explanation.getRawMessage().toString(), new DomainTermTooltipVisualizer());
+                explanation.setRawMessage(new HyperText(annotatedMessage));
+                traceExplanations.add(explanation);
             } else {
                 // Элемент трассы может включать другие трассы
                 Explanation newParent = parent;
@@ -178,7 +189,7 @@ public class DecisionTreeReasonerBackend
                 }
                 // Собрать с дочерних трасс элементы
                 for (DecisionTreeTrace subTrace : Objects.requireNonNullElse(element.nestedTraces(), new ArrayList<DecisionTreeTrace>())) {
-                    traceExplanations.addAll(_collectExplanations(type, subTrace, newParent, newPolicy, domain, lang));
+                    traceExplanations.addAll(_collectExplanations(type, subTrace, newParent, newPolicy, domain, lang, annotationProcessor));
                 }
                 // Если в агрегированной ветви один элемент - хранить в буфере только его, а если вообще нет элементов - удалить ветвь
                 if (newParent != null && (newParent.getChildren().isEmpty() || newParent.getChildren().size() == 1)) {
@@ -294,7 +305,7 @@ public class DecisionTreeReasonerBackend
             Language lang = getUserLanguageByQuestion(judgedQuestion);
             result.explanation = collectExplanationsFromTrace(Explanation.Type.ERROR, backendOutput.results,
                     backendOutput.situation.getDomainModel(),
-                    lang
+                    lang, judgedQuestion.getDomain()
             );
             List<ViolationEntity> mistakes = result.explanation.getDomainLawNames()
                     .stream().map(errorName -> {

@@ -6,6 +6,7 @@ import org.jetbrains.annotations.NotNull;
 import org.jetbrains.annotations.Nullable;
 import org.springframework.web.context.annotation.RequestScope;
 import org.vstu.compprehension.models.businesslogic.*;
+import org.vstu.compprehension.models.businesslogic.domains.terms.DomainTermDictionary;
 import org.vstu.compprehension.models.entities.DomainEntity;
 import org.vstu.compprehension.models.entities.DomainOptionsEntity;
 import org.vstu.compprehension.models.entities.EnumData.Language;
@@ -188,6 +189,11 @@ public abstract class DomainBase implements Domain {
     @NotNull
     public List<Tag> getAllTags() {
         return new ArrayList<>(getTags().values());
+    }
+
+    @Override
+    public Optional<DomainTermDictionary> getTermDictionary() {
+        return Optional.empty();
     }
 
     private static List<Long> splitIntoBits(long value) {

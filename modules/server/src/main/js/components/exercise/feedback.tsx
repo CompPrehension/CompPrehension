@@ -8,6 +8,8 @@ import {observer} from "mobx-react";
 import {Alert, Badge} from "react-bootstrap";
 import {useTranslation} from "react-i18next";
 import {isNullOrUndefined} from "../../utils/helpers";
+import {ParsedMessage} from "./domain-terms";
+
 
 type FeedbackProps = { 
     store: QuestionStore,
@@ -40,8 +42,9 @@ export const Feedback = observer(({ store, showExtendedFeedback }: FeedbackProps
             {isFeedbackVisible && 
                 <>
                     <div className="mb-3">
-                        {feedbackMessages?.map((m) => 
-                            <FeedbackAlert                            
+                        {feedbackMessages?.map((m, i) => 
+                            <FeedbackAlert
+                                key={i}                            
                                 message={m}
                                 supQuestionStore={store.supplementaryQuestion}
                                 showGenerateSupQuestion={showExtendedFeedback && question.options.showSupplementaryQuestions && 
@@ -72,17 +75,23 @@ export const FeedbackAlert = observer((props: FeedbackAlertProps) => {
     showGenerateSupQuestion = showGenerateSupQuestion && supQuestionStore != undefined;
 
     const variant = message.type === 'SUCCESS' ? 'success' : 'danger';
-    return(
-        <Alert variant={variant}>
-            <div data-domain-laws={message.violationLaws?.map(v => v.name).join(";")}
-                dangerouslySetInnerHTML={{ __html: message.message }} 
-                />
-            {showGenerateSupQuestion && message.type === 'ERROR' && message.violationLaws &&
-                <GenerateSupQuestion 
-                    store={supQuestionStore!}
-                    violationLaw={message.violationLaws}/> || null
-            }
-        </Alert>
-    )
+    return (
+      <Alert variant={variant}>
+        <div
+          data-domain-laws={message.violationLaws?.map((v) => v.name).join(';')}
+        >
+          <ParsedMessage html={message.message} />
+        </div>
+        {(showGenerateSupQuestion &&
+          message.type === 'ERROR' &&
+          message.violationLaws && (
+            <GenerateSupQuestion
+              store={supQuestionStore!}
+              violationLaw={message.violationLaws}
+            />
+          )) ||
+          null}
+      </Alert>
+    );
 })
 

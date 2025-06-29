@@ -340,3 +340,9 @@ table.comp-ph-trace tr:first-child td {
 	font-style: italic;
 	font-weight: bold;
 }
+
+.compph-domain-term {
+  border-bottom: 1px dashed red;
+  cursor: pointer;
+  position: relative;
+}

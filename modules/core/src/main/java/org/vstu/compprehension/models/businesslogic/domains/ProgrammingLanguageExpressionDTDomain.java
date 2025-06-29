@@ -24,6 +24,7 @@ import org.vstu.compprehension.models.businesslogic.backend.DecisionTreeReasoner
 import org.vstu.compprehension.models.businesslogic.backend.facts.Fact;
 import org.vstu.compprehension.models.businesslogic.domains.helpers.ProgrammingLanguageExpressionsSolver;
 import org.vstu.compprehension.models.businesslogic.domains.helpers.meaningtree.*;
+import org.vstu.compprehension.models.businesslogic.domains.terms.DomainTermDictionary;
 import org.vstu.compprehension.models.businesslogic.storage.QuestionBank;
 import org.vstu.compprehension.models.businesslogic.storage.SerializableQuestionTemplate;
 import org.vstu.compprehension.models.entities.*;
@@ -212,6 +213,15 @@ public class ProgrammingLanguageExpressionDTDomain extends DecisionTreeReasoning
             Objects.requireNonNull(this.getClass().getClassLoader().getResource(DOMAIN_MODEL_LOCATION)),
             DomainSolvingModel.BuildMethod.LOQI).validate();
 
+    private final DomainTermDictionary domainTerms = DomainTermDictionary.fromURL(
+            Objects.requireNonNull(this.getClass().getClassLoader().getResource(DOMAIN_MODEL_LOCATION + "terms.yml")));
+
+
+    @Override
+    public Optional<DomainTermDictionary> getTermDictionary() {
+        return Optional.ofNullable(domainTerms);
+    }
+
     @Override
     public List<DomainSolvingModel> getDomainSolvingModels() {
         return List.of(domainSolvingModel);
@@ -343,7 +353,8 @@ public class ProgrammingLanguageExpressionDTDomain extends DecisionTreeReasoning
 
             result.explanation = DecisionTreeReasonerBackend.collectExplanationsFromTrace(
                     Explanation.Type.ERROR, solveResult.trace(),
-                    preparedSituation.getDomainModel(), getUserLanguageByQuestion(judgedQuestion));
+                    preparedSituation.getDomainModel(), getUserLanguageByQuestion(judgedQuestion),
+                    ProgrammingLanguageExpressionDTDomain.this);
             result.violations.addAll(result.explanation.getDomainLawNames().stream().map(skill -> {
                 ViolationEntity v = new ViolationEntity();
                 v.setLawName(skill);
@@ -874,7 +885,7 @@ public class ProgrammingLanguageExpressionDTDomain extends DecisionTreeReasoning
                     Explanation explanation = DecisionTreeReasonerBackend.collectExplanationsFromTrace(
                             Explanation.Type.HINT,
                             solveRes.trace(), domain,
-                            lang
+                            lang, this
                     );
                     if (explanation.isEmpty()) {
                         explanation.getChildren().add(new Explanation(Explanation.Type.HINT, new HyperText(
@@ -898,7 +909,8 @@ public class ProgrammingLanguageExpressionDTDomain extends DecisionTreeReasoning
         correctAnswer.lawName = null;
         correctAnswer.skillName = List.of();
         correctAnswer.explanation = DecisionTreeReasonerBackend.collectExplanationsFromTrace(Explanation.Type.HINT,
-                solver.solveNoVars(domain, domainSolvingModel.decisionTree("earlyfinish")).trace(), domain, lang
+                solver.solveNoVars(domain, domainSolvingModel.decisionTree("earlyfinish")).trace(),
+                domain, lang, this
         );
         return correctAnswer;
     }

@@ -1,0 +1,72 @@
+detection_method: "fuzzy"
+threshold: 0.85
+terms:
+  - pattern:
+      RU: "ассоциативность"
+      EN: "associativity"
+    explanations:
+      RU: "Ассоциативность определяет, в каком порядке выполняются операции одинакового приоритета: слева направо (левая), справа налево (правая), либо не допускается их объединение (без ассоциативности)."
+      EN: "Associativity determines the order in which operations of the same precedence are evaluated: left-to-right (left), right-to-left (right), or not allowed to be chained (non-associative)."
+
+  - pattern:
+      RU: "левая ассоциативность"
+      EN: "left associativity"
+    explanations:
+      RU: "Левая ассоциативность означает, что операции одинакового приоритета выполняются слева направо."
+      EN: "Left associativity means that operations with equal precedence are evaluated from left to right."
+
+  - pattern:
+      RU: "правая ассоциативность"
+      EN: "right associativity"
+    explanations:
+      RU: "Правая ассоциативность означает, что операции одинакового приоритета выполняются справа налево."
+      EN: "Right associativity means that operations with equal precedence are evaluated from right to left."
+
+  - pattern:
+      RU: "арность"
+      EN: "arity"
+    explanations:
+      RU: "Арность — это количество операндов, которые принимает оператор: один (унарный), два (бинарный), три (тернарный)."
+      EN: "Arity is the number of operands an operator takes: one (unary), two (binary), or three (ternary)."
+
+  - pattern:
+      RU: "унарный оператор"
+      EN: "unary operator"
+    explanations:
+      RU: "Унарный оператор принимает один операнд, например, `-x`."
+      EN: "A unary operator takes a single operand, such as `-x`."
+
+  - pattern:
+      RU: "бинарный оператор"
+      EN: "binary operator"
+    explanations:
+      RU: "Бинарный оператор работает с двумя операндами, например, `a + b`."
+      EN: "A binary operator works with two operands, such as `a + b`."
+
+  - pattern:
+      RU: "тернарный оператор"
+      EN: "ternary operator"
+    explanations:
+      RU: "Тернарный оператор работает с тремя операндами, например, условный оператор `a ? b : c`."
+      EN: "A ternary operator works with three operands, such as the conditional `a ? b : c`."
+
+  - pattern:
+      RU: "приоритет оператора"
+      EN: "operator precedence"
+    explanations:
+      RU: "Приоритет оператора определяет, какие операции выполняются раньше в выражении без скобок."
+      EN: "Operator precedence determines which operations are evaluated first in an expression without parentheses."
+
+  - pattern:
+      RU: "операнд"
+      EN: "operand"
+    explanations:
+      RU: "Операнд — это объект, над которым производится операция, например, числа в выражении `2 + 3`."
+      EN: "An operand is an object on which an operation is performed, such as the numbers in `2 + 3`."
+
+  - pattern:
+      RU: "оператор"
+      EN: "operator"
+    explanations:
+      RU: "Оператор — это символ или ключевое слово, указывающее на выполнение определённой операции над операндами."
+      EN: "An operator is a symbol or keyword that specifies an operation to be performed on operands."
