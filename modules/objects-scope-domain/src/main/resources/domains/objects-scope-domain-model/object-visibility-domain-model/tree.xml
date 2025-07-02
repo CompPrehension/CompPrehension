@@ -7,7 +7,59 @@ _EN_explanation="{var-&gt;belongsTo.typeNameEn} named &quot;{var-&gt;belongsTo.n
 _EN_explanation="The {X-&gt;contextType.nameEn} named '{X.name}' in line {X-&gt;has.number} has an access modifier that is not visible in line {usageLine.number}." value="correct"><Expression><AssignToProperty><DecisionTreeVar name="usageLine"/><Property name="isEvaluated"/><Boolean value="TRUE"/></AssignToProperty></Expression></BranchResultNode></Outcome><Outcome value="True"><BranchResultNode _id="20" _alias="Выбранный ответ не верен, так как в строке {X-&gt;has.number}&amp;nbsp;{X-&gt;contextType.nameLI} с именем '{X.name}' перекрывает его." _RU_explanation="Выбранный ответ не верен, так как в строке {X-&gt;has.number} {X-&gt;contextType.nameLI} с именем '{X.name}' перекрывает его."
 _EN_explanation="The selected answer is not correct, because in line {X-&gt;has.number} the {X-&gt;contextType.nameEn} named '{X.name}' overlaps it." value="error"/></Outcome></QuestionNode></Outcome><Outcome value="True"><BranchResultNode _id="21" _alias="{X-&gt;contextType.nameLI} с именем '{X.name}' в строке {X-&gt;has.number} находится после строки {usageLine.number}, поэтому не {X.visibleText} в ней." _RU_explanation="{X-&gt;contextType.nameLI} с именем '{X.name}' в строке {X-&gt;has.number} находится после строки {usageLine.number}, поэтому не {X.visibleText} в ней."
 _EN_explanation="The {X-&gt;contextType.nameEn} named '{X.name}' in line {X-&gt;has.number} is after line {usageLine.number}, so it is not {X.visibleTextEn} in it." value="correct"><Expression><AssignToProperty><DecisionTreeVar name="usageLine"/><Property name="isEvaluated"/><Boolean value="TRUE"/></AssignToProperty></Expression></BranchResultNode></Outcome></QuestionNode></Outcome><Outcome value="True"><BranchResultNode _id="22" _alias="{X-&gt;contextType.nameLI} с именем '{X.name}' в строке {X-&gt;has.number} по префиксу {prefix.name} не {X.visibleText} в строке {usageLine.number}." _RU_explanation="{X-&gt;contextType.nameLI} с именем '{X.name}' в строке {X-&gt;has.number} {prefix.name} не {X.visibleText} в строке {usageLine.number}."
-_EN_explanation="The {X-&gt;contextType.nameEn} named '{X.name}' in line {X-&gt;has.number} {prefix.nameEn} is not {X.visibleTextEn} in line {usageLine.number}." value="correct"><Expression><AssignToProperty><DecisionTreeVar name="usageLine"/><Property name="isEvaluated"/><Boolean value="TRUE"/></AssignToProperty></Expression></BranchResultNode></Outcome></QuestionNode></ThoughtBranch></CycleAggregationNode></Outcome><Outcome value="True"><FindActionNode _id="23" _alias="Получить родителя varDecl&#10;parentCt"><Expression><GetByRelationship varName=""><DecisionTreeVar name="varDecl"/><Relationship name="parent"/></GetByRelationship></Expression><DecisionTreeVarDecl name="parentCt" type="Context"/><Outcome value="Found"><QuestionNode _id="24" _skill="переменная является глобальной" _alias="Является ли тип контекста parentCt глобальным?" type="bool" isSwitch="false"><Expression><Compare operator="EQUAL"><GetByRelationship varName=""><DecisionTreeVar name="parentCt"/><Relationship name="contextType"/></GetByRelationship><Object name="global"/></Compare></Expression><Outcome value="False"><QuestionNode _id="25" _skill="переменная является глобальной" _alias="Является ли contextType parentCt прозрачным и тип контекста родителя parentCt является глобальным?" type="bool" isSwitch="false"><Expression><GetPropertyValue><GetByRelationship varName=""><DecisionTreeVar name="parentCt"/><Relationship name="contextType"/></GetByRelationship><Property name="transparent"/></GetPropertyValue></Expression><Outcome value="False"><BranchResultNode _id="26" _alias="{currentCt-&gt;contextType-&gt;nameI} с именем '{currentCt-&gt;name}' на строке {currentCt-&gt;numOfStrInCode} не видна из глобальной области видимости. Путь начинающийся с '::' означает, что начальный элемент пути должен быть виден из гобальной области видимости." _RU_explanation="{varDecl-&gt;contextType-&gt;nameI} с именем '{varDecl-&gt;name}' на строке {varDecl->has.number} не видна из глобальной области видимости. Путь начинающийся с '::' означает, что начальный элемент пути должен быть виден из гобальной области видимости."
+                                                                                                                                                                                                                                                                                                                                                                                                                                         _EN_explanation="The {X-&gt;contextType.nameEn} named '{X.name}' in line {X-&gt;has.number} {prefix.nameEn} is not {X.visibleTextEn} in line {usageLine.number}."
+                                                                                                                                                                                                                                                                                                                                                                                                                                         value="correct">
+    <Expression>
+        <AssignToProperty>
+            <DecisionTreeVar name="usageLine"/>
+            <Property name="isEvaluated"/>
+            <Boolean value="TRUE"/>
+        </AssignToProperty>
+    </Expression>
+</BranchResultNode>
+</Outcome>
+</QuestionNode>
+</ThoughtBranch>
+</CycleAggregationNode>
+</Outcome>
+    <Outcome value="True">
+        <FindActionNode _id="23" _alias="Получить родителя varDecl&#10;parentCt">
+            <Expression>
+                <GetByRelationship varName="">
+                    <DecisionTreeVar name="varDecl"/>
+                    <Relationship name="parent"/>
+                </GetByRelationship>
+            </Expression>
+            <DecisionTreeVarDecl name="parentCtn" type="Context"/>
+            <Outcome value="Found">
+                <QuestionNode _id="24" _skill="переменная является глобальной"
+                              _alias="Является ли тип контекста parentCt глобальным?" type="bool" isSwitch="false">
+                    <Expression>
+                        <Compare operator="EQUAL">
+                            <GetByRelationship varName="">
+                                <DecisionTreeVar name="parentCtn"/>
+                                <Relationship name="contextType"/>
+                            </GetByRelationship>
+                            <Object name="global"/>
+                        </Compare>
+                    </Expression>
+                    <Outcome value="False">
+                        <QuestionNode _id="25" _skill="переменная является глобальной"
+                                      _alias="Является ли contextType parentCt прозрачным и тип контекста родителя parentCt является глобальным?"
+                                      type="bool" isSwitch="false">
+                            <Expression>
+                                <GetPropertyValue>
+                                    <GetByRelationship varName="">
+                                        <DecisionTreeVar name="parentCtn"/>
+                                        <Relationship name="contextType"/>
+                                    </GetByRelationship>
+                                    <Property name="transparent"/>
+                                </GetPropertyValue>
+                            </Expression>
+                            <Outcome value="False">
+                                <BranchResultNode _id="26"
+                                                  _alias="{currentCt-&gt;contextType-&gt;nameI} с именем '{currentCt-&gt;name}' на строке {currentCt-&gt;numOfStrInCode} не видна из глобальной области видимости. Путь начинающийся с '::' означает, что начальный элемент пути должен быть виден из гобальной области видимости."
+                                                  _RU_explanation="{varDecl-&gt;contextType-&gt;nameI} с именем '{varDecl-&gt;name}' на строке {varDecl->has.number} не видна из глобальной области видимости. Путь начинающийся с '::' означает, что начальный элемент пути должен быть виден из гобальной области видимости."
 _EN_explanation="The {varDecl-&gt;contextType-&gt;nameEn} named '{varDecl-&gt;name}' on line {varDecl->has.number} is not visible from the global scope. A path starting with '::' means that the initial element of the path must be visible from the global scope." value="error"/></Outcome><Outcome value="True"><BranchResultNode _id="27" _alias="Элемент перечисления с именем &quot;{var-&gt;belongsTo.name}&quot; виден в строке {usageLine.number}, так как перечисление находится в глобальной области и с помощью глобального префикса можно увидеть только элемент перечисления находящийся в глобальной области." _RU_explanation="Элемент перечисления с именем &quot;{var-&gt;belongsTo.name}&quot; виден в строке {usageLine.number}, так как перечисление находится в глобальной области и с помощью глобального префикса можно увидеть только элемент перечисления находящийся в глобальной области."
 _EN_explanation="The enumeration element named &quot;{var-&gt;belongsTo.name}&quot; is visible in line {usageLine.number} because the enumeration is in the global area and only the enumeration element in the global area can be visible using the global prefix." value="correct"><Expression><AssignToProperty><DecisionTreeVar name="usageLine"/><Property name="isEvaluated"/><Boolean value="TRUE"/></AssignToProperty></Expression></BranchResultNode></Outcome></QuestionNode></Outcome><Outcome value="True"><BranchResultNode _id="28" _alias="Переменная с именем &quot;{var-&gt;belongsTo.name}&quot; видна в строке {usageLine.number}, так как находится в глобальной области и с помощью глобального префикса можно увидеть только объект находящийся в глобальной области." _RU_explanation="Переменная с именем &quot;{var-&gt;belongsTo.name}&quot; видна в строке {usageLine.number}, так как находится в глобальной области и с помощью глобального префикса можно увидеть только объект находящийся в глобальной области."
 _EN_explanation="The variable named &quot;{var-&gt;belongsTo.name}&quot; is visible in line {usageLine.number} because it is in the global area and only the object in the global area can be visible using the global prefix." value="correct"><Expression><AssignToProperty><DecisionTreeVar name="usageLine"/><Property name="isEvaluated"/><Boolean value="TRUE"/></AssignToProperty></Expression></BranchResultNode></Outcome></QuestionNode></Outcome></FindActionNode></Outcome></QuestionNode></Outcome></QuestionNode></Outcome><Outcome value="True"><BranchResultNode _id="29" _alias="Нельзя видеть внутри статической области видимости в строке {usageLine.number} не статический {varDecl-&gt;contextType.nameLI} с именем '{varDecl.name}', располагающиеся вне ее границ." _RU_explanation="Нельзя видеть внутри статической области видимости в строке {usageLine.number} не статический {varDecl-&gt;contextType.nameLI} с именем '{varDecl.name}', располагающиеся вне ее границ."
@@ -20,7 +72,59 @@ _EN_explanation="{var-&gt;belongsTo.typeNameEn} named &quot;{var-&gt;belongsTo.n
 _EN_explanation="The {X-&gt;contextType.nameEn} named '{X.name}' in line {X-&gt;has.number} has an access modifier that is not visible in line {usageLine.number}." value="correct"><Expression><AssignToProperty><DecisionTreeVar name="usageLine"/><Property name="isEvaluated"/><Boolean value="TRUE"/></AssignToProperty></Expression></BranchResultNode></Outcome><Outcome value="True"><BranchResultNode _id="49" _alias="Выбранный ответ не верен, так как в строке {X-&gt;has.number}&amp;nbsp;{X-&gt;contextType.nameLI} с именем '{X.name}' перекрывает его." _RU_explanation="Выбранный ответ не верен, так как в строке {X-&gt;has.number} {X-&gt;contextType.nameLI} с именем '{X.name}' перекрывает его."
 _EN_explanation="The selected answer is not correct, because in line {X-&gt;has.number} the {X-&gt;contextType.nameEn} named '{X.name}' overlaps it." value="error"/></Outcome></QuestionNode></Outcome><Outcome value="True"><BranchResultNode _id="50" _alias="{X-&gt;contextType.nameLI} с именем '{X.name}' в строке {X-&gt;has.number} находится после строки {usageLine.number}, поэтому не {X.visibleText} в ней." _RU_explanation="{X-&gt;contextType.nameLI} с именем '{X.name}' в строке {X-&gt;has.number} находится после строки {usageLine.number}, поэтому не {X.visibleText} в ней."
 _EN_explanation="The {X-&gt;contextType.nameEn} named '{X.name}' in line {X-&gt;has.number} is after line {usageLine.number}, so it is not {X.visibleTextEn} in it." value="correct"><Expression><AssignToProperty><DecisionTreeVar name="usageLine"/><Property name="isEvaluated"/><Boolean value="TRUE"/></AssignToProperty></Expression></BranchResultNode></Outcome></QuestionNode></Outcome><Outcome value="True"><BranchResultNode _id="51" _alias="{X-&gt;contextType.nameLI} с именем '{X.name}' в строке {X-&gt;has.number} по префиксу {prefix.name} не {X.visibleText} в строке {usageLine.number}." _RU_explanation="{X-&gt;contextType.nameLI} с именем '{X.name}' в строке {X-&gt;has.number} {prefix.name} не {X.visibleText} в строке {usageLine.number}."
-_EN_explanation="The {X-&gt;contextType.nameEn} named '{X.name}' in line {X-&gt;has.number} {prefix.nameEn} is not {X.visibleTextEn} in line {usageLine.number}." value="correct"><Expression><AssignToProperty><DecisionTreeVar name="usageLine"/><Property name="isEvaluated"/><Boolean value="TRUE"/></AssignToProperty></Expression></BranchResultNode></Outcome></QuestionNode></ThoughtBranch></CycleAggregationNode></Outcome><Outcome value="True"><FindActionNode _id="52" _alias="Получить родителя varDecl&#10;parentCt"><Expression><GetByRelationship varName=""><DecisionTreeVar name="varDecl"/><Relationship name="parent"/></GetByRelationship></Expression><DecisionTreeVarDecl name="parentCt" type="Context"/><Outcome value="Found"><QuestionNode _id="53" _skill="переменная является глобальной" _alias="Является ли тип контекста parentCt глобальным?" type="bool" isSwitch="false"><Expression><Compare operator="EQUAL"><GetByRelationship varName=""><DecisionTreeVar name="parentCt"/><Relationship name="contextType"/></GetByRelationship><Object name="global"/></Compare></Expression><Outcome value="False"><QuestionNode _id="54" _skill="переменная является глобальной" _alias="Является ли contextType parentCt прозрачным и тип контекста родителя parentCt является глобальным?" type="bool" isSwitch="false"><Expression><GetPropertyValue><GetByRelationship varName=""><DecisionTreeVar name="parentCt"/><Relationship name="contextType"/></GetByRelationship><Property name="transparent"/></GetPropertyValue></Expression><Outcome value="False"><BranchResultNode _id="55" _alias="{currentCt-&gt;contextType-&gt;nameI} с именем '{currentCt-&gt;name}' на строке {currentCt-&gt;numOfStrInCode} не видна из глобальной области видимости. Путь начинающийся с '::' означает, что начальный элемент пути должен быть виден из гобальной области видимости." _RU_explanation="{varDecl-&gt;contextType-&gt;nameI} с именем '{varDecl-&gt;name}' на строке {varDecl->has.number} не видна из глобальной области видимости. Путь начинающийся с '::' означает, что начальный элемент пути должен быть виден из гобальной области видимости."
+                                                                                                                                                                                                                                                                                                                                                                                                                                         _EN_explanation="The {X-&gt;contextType.nameEn} named '{X.name}' in line {X-&gt;has.number} {prefix.nameEn} is not {X.visibleTextEn} in line {usageLine.number}."
+                                                                                                                                                                                                                                                                                                                                                                                                                                         value="correct">
+    <Expression>
+        <AssignToProperty>
+            <DecisionTreeVar name="usageLine"/>
+            <Property name="isEvaluated"/>
+            <Boolean value="TRUE"/>
+        </AssignToProperty>
+    </Expression>
+</BranchResultNode>
+</Outcome>
+</QuestionNode>
+</ThoughtBranch>
+</CycleAggregationNode>
+</Outcome>
+    <Outcome value="True">
+        <FindActionNode _id="52" _alias="Получить родителя varDecl&#10;parentCt">
+            <Expression>
+                <GetByRelationship varName="">
+                    <DecisionTreeVar name="varDecl"/>
+                    <Relationship name="parent"/>
+                </GetByRelationship>
+            </Expression>
+            <DecisionTreeVarDecl name="parentCtn" type="Context"/>
+            <Outcome value="Found">
+                <QuestionNode _id="53" _skill="переменная является глобальной"
+                              _alias="Является ли тип контекста parentCt глобальным?" type="bool" isSwitch="false">
+                    <Expression>
+                        <Compare operator="EQUAL">
+                            <GetByRelationship varName="">
+                                <DecisionTreeVar name="parentCtn"/>
+                                <Relationship name="contextType"/>
+                            </GetByRelationship>
+                            <Object name="global"/>
+                        </Compare>
+                    </Expression>
+                    <Outcome value="False">
+                        <QuestionNode _id="54" _skill="переменная является глобальной"
+                                      _alias="Является ли contextType parentCt прозрачным и тип контекста родителя parentCt является глобальным?"
+                                      type="bool" isSwitch="false">
+                            <Expression>
+                                <GetPropertyValue>
+                                    <GetByRelationship varName="">
+                                        <DecisionTreeVar name="parentCtn"/>
+                                        <Relationship name="contextType"/>
+                                    </GetByRelationship>
+                                    <Property name="transparent"/>
+                                </GetPropertyValue>
+                            </Expression>
+                            <Outcome value="False">
+                                <BranchResultNode _id="55"
+                                                  _alias="{currentCt-&gt;contextType-&gt;nameI} с именем '{currentCt-&gt;name}' на строке {currentCt-&gt;numOfStrInCode} не видна из глобальной области видимости. Путь начинающийся с '::' означает, что начальный элемент пути должен быть виден из гобальной области видимости."
+                                                  _RU_explanation="{varDecl-&gt;contextType-&gt;nameI} с именем '{varDecl-&gt;name}' на строке {varDecl->has.number} не видна из глобальной области видимости. Путь начинающийся с '::' означает, что начальный элемент пути должен быть виден из гобальной области видимости."
 _EN_explanation="The {varDecl-&gt;contextType-&gt;nameEn} named '{varDecl-&gt;name}' on line {varDecl->has.number} is not visible from the global scope. A path starting with '::' means that the initial element of the path must be visible from the global scope." value="error"/></Outcome><Outcome value="True"><BranchResultNode _id="56" _alias="Элемент перечисления с именем &quot;{var-&gt;belongsTo.name}&quot; виден в строке {usageLine.number}, так как перечисление находится в глобальной области и с помощью глобального префикса можно увидеть только элемент перечисления находящийся в глобальной области." _RU_explanation="Элемент перечисления с именем &quot;{var-&gt;belongsTo.name}&quot; виден в строке {usageLine.number}, так как перечисление находится в глобальной области и с помощью глобального префикса можно увидеть только элемент перечисления находящийся в глобальной области."
 _EN_explanation="The enumeration element named &quot;{var-&gt;belongsTo.name}&quot; is visible in line {usageLine.number} because the enumeration is in the global area and only the enumeration element in the global area can be visible using the global prefix." value="correct"><Expression><AssignToProperty><DecisionTreeVar name="usageLine"/><Property name="isEvaluated"/><Boolean value="TRUE"/></AssignToProperty></Expression></BranchResultNode></Outcome></QuestionNode></Outcome><Outcome value="True"><BranchResultNode _id="57" _alias="Переменная с именем &quot;{var-&gt;belongsTo.name}&quot; видна в строке {usageLine.number}, так как находится в глобальной области и с помощью глобального префикса можно увидеть только объект находящийся в глобальной области." _RU_explanation="Переменная с именем &quot;{var-&gt;belongsTo.name}&quot; видна в строке {usageLine.number}, так как находится в глобальной области и с помощью глобального префикса можно увидеть только объект находящийся в глобальной области."
 _EN_explanation="The variable named &quot;{var-&gt;belongsTo.name}&quot; is visible in line {usageLine.number} because it is in the global area and only the object in the global area can be visible using the global prefix." value="correct"><Expression><AssignToProperty><DecisionTreeVar name="usageLine"/><Property name="isEvaluated"/><Boolean value="TRUE"/></AssignToProperty></Expression></BranchResultNode></Outcome></QuestionNode></Outcome></FindActionNode></Outcome></QuestionNode></Outcome></QuestionNode></Outcome><Outcome value="True"><BranchResultNode _id="58" _alias="Нельзя видеть внутри статической области видимости в строке {usageLine.number} не статический {varDecl-&gt;contextType.nameLI} с именем '{varDecl.name}', располагающиеся вне ее границ." _RU_explanation="Нельзя видеть внутри статической области видимости в строке {usageLine.number} не статический {varDecl-&gt;contextType.nameLI} с именем '{varDecl.name}', располагающиеся вне ее границ."
@@ -35,7 +139,59 @@ _EN_explanation="{var-&gt;belongsTo.typeNameEn} named &quot;{var-&gt;belongsTo.n
 _EN_explanation="The {X-&gt;contextType.nameEn} named '{X.name}' in line {X-&gt;has.number} has an access modifier that is not visible in line {usageLine.number}." value="correct"><Expression><AssignToProperty><DecisionTreeVar name="usageLine"/><Property name="isEvaluated"/><Boolean value="TRUE"/></AssignToProperty></Expression></BranchResultNode></Outcome><Outcome value="True"><BranchResultNode _id="77" _alias="Выбранный ответ не верен, так как в строке {X-&gt;has.number}&amp;nbsp;{X-&gt;contextType.nameLI} с именем '{X.name}' перекрывает его." _RU_explanation="Выбранный ответ не верен, так как в строке {X-&gt;has.number} {X-&gt;contextType.nameLI} с именем '{X.name}' перекрывает его."
 _EN_explanation="The selected answer is not correct, because in line {X-&gt;has.number} the {X-&gt;contextType.nameEn} named '{X.name}' overlaps it." value="error"/></Outcome></QuestionNode></Outcome><Outcome value="True"><BranchResultNode _id="78" _alias="{X-&gt;contextType.nameLI} с именем '{X.name}' в строке {X-&gt;has.number} находится после строки {usageLine.number}, поэтому не {X.visibleText} в ней." _RU_explanation="{X-&gt;contextType.nameLI} с именем '{X.name}' в строке {X-&gt;has.number} находится после строки {usageLine.number}, поэтому не {X.visibleText} в ней."
 _EN_explanation="The {X-&gt;contextType.nameEn} named '{X.name}' in line {X-&gt;has.number} is after line {usageLine.number}, so it is not {X.visibleTextEn} in it." value="correct"><Expression><AssignToProperty><DecisionTreeVar name="usageLine"/><Property name="isEvaluated"/><Boolean value="TRUE"/></AssignToProperty></Expression></BranchResultNode></Outcome></QuestionNode></Outcome><Outcome value="True"><BranchResultNode _id="79" _alias="{X-&gt;contextType.nameLI} с именем '{X.name}' в строке {X-&gt;has.number} по префиксу {prefix.name} не {X.visibleText} в строке {usageLine.number}." _RU_explanation="{X-&gt;contextType.nameLI} с именем '{X.name}' в строке {X-&gt;has.number} {prefix.name} не {X.visibleText} в строке {usageLine.number}."
-_EN_explanation="The {X-&gt;contextType.nameEn} named '{X.name}' in line {X-&gt;has.number} {prefix.nameEn} is not {X.visibleTextEn} in line {usageLine.number}." value="correct"><Expression><AssignToProperty><DecisionTreeVar name="usageLine"/><Property name="isEvaluated"/><Boolean value="TRUE"/></AssignToProperty></Expression></BranchResultNode></Outcome></QuestionNode></ThoughtBranch></CycleAggregationNode></Outcome><Outcome value="True"><FindActionNode _id="80" _alias="Получить родителя varDecl&#10;parentCt"><Expression><GetByRelationship varName=""><DecisionTreeVar name="varDecl"/><Relationship name="parent"/></GetByRelationship></Expression><DecisionTreeVarDecl name="parentCt" type="Context"/><Outcome value="Found"><QuestionNode _id="81" _skill="переменная является глобальной" _alias="Является ли тип контекста parentCt глобальным?" type="bool" isSwitch="false"><Expression><Compare operator="EQUAL"><GetByRelationship varName=""><DecisionTreeVar name="parentCt"/><Relationship name="contextType"/></GetByRelationship><Object name="global"/></Compare></Expression><Outcome value="False"><QuestionNode _id="82" _skill="переменная является глобальной" _alias="Является ли contextType parentCt прозрачным и тип контекста родителя parentCt является глобальным?" type="bool" isSwitch="false"><Expression><GetPropertyValue><GetByRelationship varName=""><DecisionTreeVar name="parentCt"/><Relationship name="contextType"/></GetByRelationship><Property name="transparent"/></GetPropertyValue></Expression><Outcome value="False"><BranchResultNode _id="83" _alias="{currentCt-&gt;contextType-&gt;nameI} с именем '{currentCt-&gt;name}' на строке {currentCt-&gt;numOfStrInCode} не видна из глобальной области видимости. Путь начинающийся с '::' означает, что начальный элемент пути должен быть виден из гобальной области видимости." _RU_explanation="{varDecl-&gt;contextType-&gt;nameI} с именем '{varDecl-&gt;name}' на строке {varDecl->has.number} не видна из глобальной области видимости. Путь начинающийся с '::' означает, что начальный элемент пути должен быть виден из гобальной области видимости."
+                                                                                                                                                                                                                                                                                                                                                                                                                                         _EN_explanation="The {X-&gt;contextType.nameEn} named '{X.name}' in line {X-&gt;has.number} {prefix.nameEn} is not {X.visibleTextEn} in line {usageLine.number}."
+                                                                                                                                                                                                                                                                                                                                                                                                                                         value="correct">
+    <Expression>
+        <AssignToProperty>
+            <DecisionTreeVar name="usageLine"/>
+            <Property name="isEvaluated"/>
+            <Boolean value="TRUE"/>
+        </AssignToProperty>
+    </Expression>
+</BranchResultNode>
+</Outcome>
+</QuestionNode>
+</ThoughtBranch>
+</CycleAggregationNode>
+</Outcome>
+    <Outcome value="True">
+        <FindActionNode _id="80" _alias="Получить родителя varDecl&#10;parentCt">
+            <Expression>
+                <GetByRelationship varName="">
+                    <DecisionTreeVar name="varDecl"/>
+                    <Relationship name="parent"/>
+                </GetByRelationship>
+            </Expression>
+            <DecisionTreeVarDecl name="parentCtn" type="Context"/>
+            <Outcome value="Found">
+                <QuestionNode _id="81" _skill="переменная является глобальной"
+                              _alias="Является ли тип контекста parentCt глобальным?" type="bool" isSwitch="false">
+                    <Expression>
+                        <Compare operator="EQUAL">
+                            <GetByRelationship varName="">
+                                <DecisionTreeVar name="parentCtn"/>
+                                <Relationship name="contextType"/>
+                            </GetByRelationship>
+                            <Object name="global"/>
+                        </Compare>
+                    </Expression>
+                    <Outcome value="False">
+                        <QuestionNode _id="82" _skill="переменная является глобальной"
+                                      _alias="Является ли contextType parentCt прозрачным и тип контекста родителя parentCt является глобальным?"
+                                      type="bool" isSwitch="false">
+                            <Expression>
+                                <GetPropertyValue>
+                                    <GetByRelationship varName="">
+                                        <DecisionTreeVar name="parentCtn"/>
+                                        <Relationship name="contextType"/>
+                                    </GetByRelationship>
+                                    <Property name="transparent"/>
+                                </GetPropertyValue>
+                            </Expression>
+                            <Outcome value="False">
+                                <BranchResultNode _id="83"
+                                                  _alias="{currentCt-&gt;contextType-&gt;nameI} с именем '{currentCt-&gt;name}' на строке {currentCt-&gt;numOfStrInCode} не видна из глобальной области видимости. Путь начинающийся с '::' означает, что начальный элемент пути должен быть виден из гобальной области видимости."
+                                                  _RU_explanation="{varDecl-&gt;contextType-&gt;nameI} с именем '{varDecl-&gt;name}' на строке {varDecl->has.number} не видна из глобальной области видимости. Путь начинающийся с '::' означает, что начальный элемент пути должен быть виден из гобальной области видимости."
 _EN_explanation="The {varDecl-&gt;contextType-&gt;nameEn} named '{varDecl-&gt;name}' on line {varDecl->has.number} is not visible from the global scope. A path starting with '::' means that the initial element of the path must be visible from the global scope." value="error"/></Outcome><Outcome value="True"><BranchResultNode _id="84" _alias="Элемент перечисления с именем &quot;{var-&gt;belongsTo.name}&quot; виден в строке {usageLine.number}, так как перечисление находится в глобальной области и с помощью глобального префикса можно увидеть только элемент перечисления находящийся в глобальной области." _RU_explanation="Элемент перечисления с именем &quot;{var-&gt;belongsTo.name}&quot; виден в строке {usageLine.number}, так как перечисление находится в глобальной области и с помощью глобального префикса можно увидеть только элемент перечисления находящийся в глобальной области."
 _EN_explanation="The enumeration element named &quot;{var-&gt;belongsTo.name}&quot; is visible in line {usageLine.number} because the enumeration is in the global area and only the enumeration element in the global area can be visible using the global prefix." value="correct"><Expression><AssignToProperty><DecisionTreeVar name="usageLine"/><Property name="isEvaluated"/><Boolean value="TRUE"/></AssignToProperty></Expression></BranchResultNode></Outcome></QuestionNode></Outcome><Outcome value="True"><BranchResultNode _id="85" _alias="Переменная с именем &quot;{var-&gt;belongsTo.name}&quot; видна в строке {usageLine.number}, так как находится в глобальной области и с помощью глобального префикса можно увидеть только объект находящийся в глобальной области." _RU_explanation="Переменная с именем &quot;{var-&gt;belongsTo.name}&quot; видна в строке {usageLine.number}, так как находится в глобальной области и с помощью глобального префикса можно увидеть только объект находящийся в глобальной области."
 _EN_explanation="The variable named &quot;{var-&gt;belongsTo.name}&quot; is visible in line {usageLine.number} because it is in the global area and only the object in the global area can be visible using the global prefix." value="correct"><Expression><AssignToProperty><DecisionTreeVar name="usageLine"/><Property name="isEvaluated"/><Boolean value="TRUE"/></AssignToProperty></Expression></BranchResultNode></Outcome></QuestionNode></Outcome></FindActionNode></Outcome></QuestionNode></Outcome></QuestionNode></Outcome><Outcome value="True"><BranchResultNode _id="86" _alias="Нельзя видеть внутри статической области видимости в строке {usageLine.number} не статический {varDecl-&gt;contextType.nameLI} с именем '{varDecl.name}', располагающиеся вне ее границ." _RU_explanation="Нельзя видеть внутри статической области видимости в строке {usageLine.number} не статический {varDecl-&gt;contextType.nameLI} с именем '{varDecl.name}', располагающиеся вне ее границ."
@@ -53,7 +209,59 @@ _EN_explanation="{var-&gt;belongsTo.typeNameEn} named &quot;{var-&gt;belongsTo.n
 _EN_explanation="The {X-&gt;contextType.nameEn} named '{X.name}' in line {X-&gt;has.number} has an access modifier that is not visible in line {usageLine.number}." value="correct"><Expression><AssignToProperty><DecisionTreeVar name="usageLine"/><Property name="isEvaluated"/><Boolean value="TRUE"/></AssignToProperty></Expression></BranchResultNode></Outcome><Outcome value="True"><BranchResultNode _id="120" _alias="Выбранный ответ не верен, так как в строке {X-&gt;has.number}&amp;nbsp;{X-&gt;contextType.nameLI} с именем '{X.name}' перекрывает его." _RU_explanation="Выбранный ответ не верен, так как в строке {X-&gt;has.number} {X-&gt;contextType.nameLI} с именем '{X.name}' перекрывает его."
 _EN_explanation="The selected answer is not correct, because in line {X-&gt;has.number} the {X-&gt;contextType.nameEn} named '{X.name}' overlaps it." value="error"/></Outcome></QuestionNode></Outcome><Outcome value="True"><BranchResultNode _id="121" _alias="{X-&gt;contextType.nameLI} с именем '{X.name}' в строке {X-&gt;has.number} находится после строки {usageLine.number}, поэтому не {X.visibleText} в ней." _RU_explanation="{X-&gt;contextType.nameLI} с именем '{X.name}' в строке {X-&gt;has.number} находится после строки {usageLine.number}, поэтому не {X.visibleText} в ней."
 _EN_explanation="The {X-&gt;contextType.nameEn} named '{X.name}' in line {X-&gt;has.number} is after line {usageLine.number}, so it is not {X.visibleTextEn} in it." value="correct"><Expression><AssignToProperty><DecisionTreeVar name="usageLine"/><Property name="isEvaluated"/><Boolean value="TRUE"/></AssignToProperty></Expression></BranchResultNode></Outcome></QuestionNode></Outcome><Outcome value="True"><BranchResultNode _id="122" _alias="{X-&gt;contextType.nameLI} с именем '{X.name}' в строке {X-&gt;has.number} по префиксу {prefix.name} не {X.visibleText} в строке {usageLine.number}." _RU_explanation="{X-&gt;contextType.nameLI} с именем '{X.name}' в строке {X-&gt;has.number} {prefix.name} не {X.visibleText} в строке {usageLine.number}."
-_EN_explanation="The {X-&gt;contextType.nameEn} named '{X.name}' in line {X-&gt;has.number} {prefix.nameEn} is not {X.visibleTextEn} in line {usageLine.number}." value="correct"><Expression><AssignToProperty><DecisionTreeVar name="usageLine"/><Property name="isEvaluated"/><Boolean value="TRUE"/></AssignToProperty></Expression></BranchResultNode></Outcome></QuestionNode></ThoughtBranch></CycleAggregationNode></Outcome><Outcome value="True"><FindActionNode _id="123" _alias="Получить родителя varDecl&#10;parentCt"><Expression><GetByRelationship varName=""><DecisionTreeVar name="varDecl"/><Relationship name="parent"/></GetByRelationship></Expression><DecisionTreeVarDecl name="parentCt" type="Context"/><Outcome value="Found"><QuestionNode _id="124" _skill="переменная является глобальной" _alias="Является ли тип контекста parentCt глобальным?" type="bool" isSwitch="false"><Expression><Compare operator="EQUAL"><GetByRelationship varName=""><DecisionTreeVar name="parentCt"/><Relationship name="contextType"/></GetByRelationship><Object name="global"/></Compare></Expression><Outcome value="False"><QuestionNode _id="125" _skill="переменная является глобальной" _alias="Является ли contextType parentCt прозрачным и тип контекста родителя parentCt является глобальным?" type="bool" isSwitch="false"><Expression><GetPropertyValue><GetByRelationship varName=""><DecisionTreeVar name="parentCt"/><Relationship name="contextType"/></GetByRelationship><Property name="transparent"/></GetPropertyValue></Expression><Outcome value="False"><BranchResultNode _id="126" _alias="{currentCt-&gt;contextType-&gt;nameI} с именем '{currentCt-&gt;name}' на строке {currentCt-&gt;numOfStrInCode} не видна из глобальной области видимости. Путь начинающийся с '::' означает, что начальный элемент пути должен быть виден из гобальной области видимости." _RU_explanation="{varDecl-&gt;contextType-&gt;nameI} с именем '{varDecl-&gt;name}' на строке {varDecl->has.number} не видна из глобальной области видимости. Путь начинающийся с '::' означает, что начальный элемент пути должен быть виден из гобальной области видимости."
+                                                                                                                                                                                                                                                                                                                                                                                                                                         _EN_explanation="The {X-&gt;contextType.nameEn} named '{X.name}' in line {X-&gt;has.number} {prefix.nameEn} is not {X.visibleTextEn} in line {usageLine.number}."
+                                                                                                                                                                                                                                                                                                                                                                                                                                         value="correct">
+    <Expression>
+        <AssignToProperty>
+            <DecisionTreeVar name="usageLine"/>
+            <Property name="isEvaluated"/>
+            <Boolean value="TRUE"/>
+        </AssignToProperty>
+    </Expression>
+</BranchResultNode>
+</Outcome>
+</QuestionNode>
+</ThoughtBranch>
+</CycleAggregationNode>
+</Outcome>
+    <Outcome value="True">
+        <FindActionNode _id="123" _alias="Получить родителя varDecl&#10;parentCt">
+            <Expression>
+                <GetByRelationship varName="">
+                    <DecisionTreeVar name="varDecl"/>
+                    <Relationship name="parent"/>
+                </GetByRelationship>
+            </Expression>
+            <DecisionTreeVarDecl name="parentCtn" type="Context"/>
+            <Outcome value="Found">
+                <QuestionNode _id="124" _skill="переменная является глобальной"
+                              _alias="Является ли тип контекста parentCt глобальным?" type="bool" isSwitch="false">
+                    <Expression>
+                        <Compare operator="EQUAL">
+                            <GetByRelationship varName="">
+                                <DecisionTreeVar name="parentCtn"/>
+                                <Relationship name="contextType"/>
+                            </GetByRelationship>
+                            <Object name="global"/>
+                        </Compare>
+                    </Expression>
+                    <Outcome value="False">
+                        <QuestionNode _id="125" _skill="переменная является глобальной"
+                                      _alias="Является ли contextType parentCt прозрачным и тип контекста родителя parentCt является глобальным?"
+                                      type="bool" isSwitch="false">
+                            <Expression>
+                                <GetPropertyValue>
+                                    <GetByRelationship varName="">
+                                        <DecisionTreeVar name="parentCtn"/>
+                                        <Relationship name="contextType"/>
+                                    </GetByRelationship>
+                                    <Property name="transparent"/>
+                                </GetPropertyValue>
+                            </Expression>
+                            <Outcome value="False">
+                                <BranchResultNode _id="126"
+                                                  _alias="{currentCt-&gt;contextType-&gt;nameI} с именем '{currentCt-&gt;name}' на строке {currentCt-&gt;numOfStrInCode} не видна из глобальной области видимости. Путь начинающийся с '::' означает, что начальный элемент пути должен быть виден из гобальной области видимости."
+                                                  _RU_explanation="{varDecl-&gt;contextType-&gt;nameI} с именем '{varDecl-&gt;name}' на строке {varDecl->has.number} не видна из глобальной области видимости. Путь начинающийся с '::' означает, что начальный элемент пути должен быть виден из гобальной области видимости."
 _EN_explanation="The {varDecl-&gt;contextType-&gt;nameEn} named '{varDecl-&gt;name}' on line {varDecl->has.number} is not visible from the global scope. A path starting with '::' means that the initial element of the path must be visible from the global scope." value="error"/></Outcome><Outcome value="True"><BranchResultNode _id="127" _alias="Элемент перечисления с именем &quot;{var-&gt;belongsTo.name}&quot; виден в строке {usageLine.number}, так как перечисление находится в глобальной области и с помощью глобального префикса можно увидеть только элемент перечисления находящийся в глобальной области." _RU_explanation="Элемент перечисления с именем &quot;{var-&gt;belongsTo.name}&quot; виден в строке {usageLine.number}, так как перечисление находится в глобальной области и с помощью глобального префикса можно увидеть только элемент перечисления находящийся в глобальной области."
 _EN_explanation="The enumeration element named &quot;{var-&gt;belongsTo.name}&quot; is visible in line {usageLine.number} because the enumeration is in the global area and only the enumeration element in the global area can be visible using the global prefix." value="correct"><Expression><AssignToProperty><DecisionTreeVar name="usageLine"/><Property name="isEvaluated"/><Boolean value="TRUE"/></AssignToProperty></Expression></BranchResultNode></Outcome></QuestionNode></Outcome><Outcome value="True"><BranchResultNode _id="128" _alias="Переменная с именем &quot;{var-&gt;belongsTo.name}&quot; видна в строке {usageLine.number}, так как находится в глобальной области и с помощью глобального префикса можно увидеть только объект находящийся в глобальной области." _RU_explanation="Переменная с именем &quot;{var-&gt;belongsTo.name}&quot; видна в строке {usageLine.number}, так как находится в глобальной области и с помощью глобального префикса можно увидеть только объект находящийся в глобальной области."
 _EN_explanation="The variable named &quot;{var-&gt;belongsTo.name}&quot; is visible in line {usageLine.number} because it is in the global area and only the object in the global area can be visible using the global prefix." value="correct"><Expression><AssignToProperty><DecisionTreeVar name="usageLine"/><Property name="isEvaluated"/><Boolean value="TRUE"/></AssignToProperty></Expression></BranchResultNode></Outcome></QuestionNode></Outcome></FindActionNode></Outcome></QuestionNode></Outcome></QuestionNode></Outcome><Outcome value="True"><BranchResultNode _id="129" _alias="Нельзя видеть внутри статической области видимости в строке {usageLine.number} не статический {varDecl-&gt;contextType.nameLI} с именем '{varDecl.name}', располагающиеся вне ее границ." _RU_explanation="Нельзя видеть внутри статической области видимости в строке {usageLine.number} не статический {varDecl-&gt;contextType.nameLI} с именем '{varDecl.name}', располагающиеся вне ее границ."
@@ -66,7 +274,59 @@ _EN_explanation="{var-&gt;belongsTo.typeNameEn} named &quot;{var-&gt;belongsTo.n
 _EN_explanation="The {X-&gt;contextType.nameEn} named '{X.name}' in line {X-&gt;has.number} has an access modifier that is not visible in line {usageLine.number}." value="correct"><Expression><AssignToProperty><DecisionTreeVar name="usageLine"/><Property name="isEvaluated"/><Boolean value="TRUE"/></AssignToProperty></Expression></BranchResultNode></Outcome><Outcome value="True"><BranchResultNode _id="149" _alias="Выбранный ответ не верен, так как в строке {X-&gt;has.number}&amp;nbsp;{X-&gt;contextType.nameLI} с именем '{X.name}' перекрывает его." _RU_explanation="Выбранный ответ не верен, так как в строке {X-&gt;has.number} {X-&gt;contextType.nameLI} с именем '{X.name}' перекрывает его."
 _EN_explanation="The selected answer is not correct, because in line {X-&gt;has.number} the {X-&gt;contextType.nameEn} named '{X.name}' overlaps it." value="error"/></Outcome></QuestionNode></Outcome><Outcome value="True"><BranchResultNode _id="150" _alias="{X-&gt;contextType.nameLI} с именем '{X.name}' в строке {X-&gt;has.number} находится после строки {usageLine.number}, поэтому не {X.visibleText} в ней." _RU_explanation="{X-&gt;contextType.nameLI} с именем '{X.name}' в строке {X-&gt;has.number} находится после строки {usageLine.number}, поэтому не {X.visibleText} в ней."
 _EN_explanation="The {X-&gt;contextType.nameEn} named '{X.name}' in line {X-&gt;has.number} is after line {usageLine.number}, so it is not {X.visibleTextEn} in it." value="correct"><Expression><AssignToProperty><DecisionTreeVar name="usageLine"/><Property name="isEvaluated"/><Boolean value="TRUE"/></AssignToProperty></Expression></BranchResultNode></Outcome></QuestionNode></Outcome><Outcome value="True"><BranchResultNode _id="151" _alias="{X-&gt;contextType.nameLI} с именем '{X.name}' в строке {X-&gt;has.number} по префиксу {prefix.name} не {X.visibleText} в строке {usageLine.number}." _RU_explanation="{X-&gt;contextType.nameLI} с именем '{X.name}' в строке {X-&gt;has.number} {prefix.name} не {X.visibleText} в строке {usageLine.number}."
-_EN_explanation="The {X-&gt;contextType.nameEn} named '{X.name}' in line {X-&gt;has.number} {prefix.nameEn} is not {X.visibleTextEn} in line {usageLine.number}." value="correct"><Expression><AssignToProperty><DecisionTreeVar name="usageLine"/><Property name="isEvaluated"/><Boolean value="TRUE"/></AssignToProperty></Expression></BranchResultNode></Outcome></QuestionNode></ThoughtBranch></CycleAggregationNode></Outcome><Outcome value="True"><FindActionNode _id="152" _alias="Получить родителя varDecl&#10;parentCt"><Expression><GetByRelationship varName=""><DecisionTreeVar name="varDecl"/><Relationship name="parent"/></GetByRelationship></Expression><DecisionTreeVarDecl name="parentCt" type="Context"/><Outcome value="Found"><QuestionNode _id="153" _skill="переменная является глобальной" _alias="Является ли тип контекста parentCt глобальным?" type="bool" isSwitch="false"><Expression><Compare operator="EQUAL"><GetByRelationship varName=""><DecisionTreeVar name="parentCt"/><Relationship name="contextType"/></GetByRelationship><Object name="global"/></Compare></Expression><Outcome value="False"><QuestionNode _id="154" _skill="переменная является глобальной" _alias="Является ли contextType parentCt прозрачным и тип контекста родителя parentCt является глобальным?" type="bool" isSwitch="false"><Expression><GetPropertyValue><GetByRelationship varName=""><DecisionTreeVar name="parentCt"/><Relationship name="contextType"/></GetByRelationship><Property name="transparent"/></GetPropertyValue></Expression><Outcome value="False"><BranchResultNode _id="155" _alias="{currentCt-&gt;contextType-&gt;nameI} с именем '{currentCt-&gt;name}' на строке {currentCt-&gt;numOfStrInCode} не видна из глобальной области видимости. Путь начинающийся с '::' означает, что начальный элемент пути должен быть виден из гобальной области видимости." _RU_explanation="{varDecl-&gt;contextType-&gt;nameI} с именем '{varDecl-&gt;name}' на строке {varDecl->has.number} не видна из глобальной области видимости. Путь начинающийся с '::' означает, что начальный элемент пути должен быть виден из гобальной области видимости."
+                                                                                                                                                                                                                                                                                                                                                                                                                                         _EN_explanation="The {X-&gt;contextType.nameEn} named '{X.name}' in line {X-&gt;has.number} {prefix.nameEn} is not {X.visibleTextEn} in line {usageLine.number}."
+                                                                                                                                                                                                                                                                                                                                                                                                                                         value="correct">
+    <Expression>
+        <AssignToProperty>
+            <DecisionTreeVar name="usageLine"/>
+            <Property name="isEvaluated"/>
+            <Boolean value="TRUE"/>
+        </AssignToProperty>
+    </Expression>
+</BranchResultNode>
+</Outcome>
+</QuestionNode>
+</ThoughtBranch>
+</CycleAggregationNode>
+</Outcome>
+    <Outcome value="True">
+        <FindActionNode _id="152" _alias="Получить родителя varDecl&#10;parentCt">
+            <Expression>
+                <GetByRelationship varName="">
+                    <DecisionTreeVar name="varDecl"/>
+                    <Relationship name="parent"/>
+                </GetByRelationship>
+            </Expression>
+            <DecisionTreeVarDecl name="parentCtn" type="Context"/>
+            <Outcome value="Found">
+                <QuestionNode _id="153" _skill="переменная является глобальной"
+                              _alias="Является ли тип контекста parentCt глобальным?" type="bool" isSwitch="false">
+                    <Expression>
+                        <Compare operator="EQUAL">
+                            <GetByRelationship varName="">
+                                <DecisionTreeVar name="parentCtn"/>
+                                <Relationship name="contextType"/>
+                            </GetByRelationship>
+                            <Object name="global"/>
+                        </Compare>
+                    </Expression>
+                    <Outcome value="False">
+                        <QuestionNode _id="154" _skill="переменная является глобальной"
+                                      _alias="Является ли contextType parentCt прозрачным и тип контекста родителя parentCt является глобальным?"
+                                      type="bool" isSwitch="false">
+                            <Expression>
+                                <GetPropertyValue>
+                                    <GetByRelationship varName="">
+                                        <DecisionTreeVar name="parentCtn"/>
+                                        <Relationship name="contextType"/>
+                                    </GetByRelationship>
+                                    <Property name="transparent"/>
+                                </GetPropertyValue>
+                            </Expression>
+                            <Outcome value="False">
+                                <BranchResultNode _id="155"
+                                                  _alias="{currentCt-&gt;contextType-&gt;nameI} с именем '{currentCt-&gt;name}' на строке {currentCt-&gt;numOfStrInCode} не видна из глобальной области видимости. Путь начинающийся с '::' означает, что начальный элемент пути должен быть виден из гобальной области видимости."
+                                                  _RU_explanation="{varDecl-&gt;contextType-&gt;nameI} с именем '{varDecl-&gt;name}' на строке {varDecl->has.number} не видна из глобальной области видимости. Путь начинающийся с '::' означает, что начальный элемент пути должен быть виден из гобальной области видимости."
 _EN_explanation="The {varDecl-&gt;contextType-&gt;nameEn} named '{varDecl-&gt;name}' on line {varDecl->has.number} is not visible from the global scope. A path starting with '::' means that the initial element of the path must be visible from the global scope." value="error"/></Outcome><Outcome value="True"><BranchResultNode _id="156" _alias="Элемент перечисления с именем &quot;{var-&gt;belongsTo.name}&quot; виден в строке {usageLine.number}, так как перечисление находится в глобальной области и с помощью глобального префикса можно увидеть только элемент перечисления находящийся в глобальной области." _RU_explanation="Элемент перечисления с именем &quot;{var-&gt;belongsTo.name}&quot; виден в строке {usageLine.number}, так как перечисление находится в глобальной области и с помощью глобального префикса можно увидеть только элемент перечисления находящийся в глобальной области."
 _EN_explanation="The enumeration element named &quot;{var-&gt;belongsTo.name}&quot; is visible in line {usageLine.number} because the enumeration is in the global area and only the enumeration element in the global area can be visible using the global prefix." value="correct"><Expression><AssignToProperty><DecisionTreeVar name="usageLine"/><Property name="isEvaluated"/><Boolean value="TRUE"/></AssignToProperty></Expression></BranchResultNode></Outcome></QuestionNode></Outcome><Outcome value="True"><BranchResultNode _id="157" _alias="Переменная с именем &quot;{var-&gt;belongsTo.name}&quot; видна в строке {usageLine.number}, так как находится в глобальной области и с помощью глобального префикса можно увидеть только объект находящийся в глобальной области." _RU_explanation="Переменная с именем &quot;{var-&gt;belongsTo.name}&quot; видна в строке {usageLine.number}, так как находится в глобальной области и с помощью глобального префикса можно увидеть только объект находящийся в глобальной области."
 _EN_explanation="The variable named &quot;{var-&gt;belongsTo.name}&quot; is visible in line {usageLine.number} because it is in the global area and only the object in the global area can be visible using the global prefix." value="correct"><Expression><AssignToProperty><DecisionTreeVar name="usageLine"/><Property name="isEvaluated"/><Boolean value="TRUE"/></AssignToProperty></Expression></BranchResultNode></Outcome></QuestionNode></Outcome></FindActionNode></Outcome></QuestionNode></Outcome></QuestionNode></Outcome><Outcome value="True"><BranchResultNode _id="158" _alias="Нельзя видеть внутри статической области видимости в строке {usageLine.number} не статический {varDecl-&gt;contextType.nameLI} с именем '{varDecl.name}', располагающиеся вне ее границ." _RU_explanation="Нельзя видеть внутри статической области видимости в строке {usageLine.number} не статический {varDecl-&gt;contextType.nameLI} с именем '{varDecl.name}', располагающиеся вне ее границ."
@@ -81,7 +341,59 @@ _EN_explanation="{var-&gt;belongsTo.typeNameEn} named &quot;{var-&gt;belongsTo.n
 _EN_explanation="The {X-&gt;contextType.nameEn} named '{X.name}' in line {X-&gt;has.number} has an access modifier that is not visible in line {usageLine.number}." value="correct"><Expression><AssignToProperty><DecisionTreeVar name="usageLine"/><Property name="isEvaluated"/><Boolean value="TRUE"/></AssignToProperty></Expression></BranchResultNode></Outcome><Outcome value="True"><BranchResultNode _id="177" _alias="Выбранный ответ не верен, так как в строке {X-&gt;has.number}&amp;nbsp;{X-&gt;contextType.nameLI} с именем '{X.name}' перекрывает его." _RU_explanation="Выбранный ответ не верен, так как в строке {X-&gt;has.number} {X-&gt;contextType.nameLI} с именем '{X.name}' перекрывает его."
 _EN_explanation="The selected answer is not correct, because in line {X-&gt;has.number} the {X-&gt;contextType.nameEn} named '{X.name}' overlaps it." value="error"/></Outcome></QuestionNode></Outcome><Outcome value="True"><BranchResultNode _id="178" _alias="{X-&gt;contextType.nameLI} с именем '{X.name}' в строке {X-&gt;has.number} находится после строки {usageLine.number}, поэтому не {X.visibleText} в ней." _RU_explanation="{X-&gt;contextType.nameLI} с именем '{X.name}' в строке {X-&gt;has.number} находится после строки {usageLine.number}, поэтому не {X.visibleText} в ней."
 _EN_explanation="The {X-&gt;contextType.nameEn} named '{X.name}' in line {X-&gt;has.number} is after line {usageLine.number}, so it is not {X.visibleTextEn} in it." value="correct"><Expression><AssignToProperty><DecisionTreeVar name="usageLine"/><Property name="isEvaluated"/><Boolean value="TRUE"/></AssignToProperty></Expression></BranchResultNode></Outcome></QuestionNode></Outcome><Outcome value="True"><BranchResultNode _id="179" _alias="{X-&gt;contextType.nameLI} с именем '{X.name}' в строке {X-&gt;has.number} по префиксу {prefix.name} не {X.visibleText} в строке {usageLine.number}." _RU_explanation="{X-&gt;contextType.nameLI} с именем '{X.name}' в строке {X-&gt;has.number} {prefix.name} не {X.visibleText} в строке {usageLine.number}."
-_EN_explanation="The {X-&gt;contextType.nameEn} named '{X.name}' in line {X-&gt;has.number} {prefix.nameEn} is not {X.visibleTextEn} in line {usageLine.number}." value="correct"><Expression><AssignToProperty><DecisionTreeVar name="usageLine"/><Property name="isEvaluated"/><Boolean value="TRUE"/></AssignToProperty></Expression></BranchResultNode></Outcome></QuestionNode></ThoughtBranch></CycleAggregationNode></Outcome><Outcome value="True"><FindActionNode _id="180" _alias="Получить родителя varDecl&#10;parentCt"><Expression><GetByRelationship varName=""><DecisionTreeVar name="varDecl"/><Relationship name="parent"/></GetByRelationship></Expression><DecisionTreeVarDecl name="parentCt" type="Context"/><Outcome value="Found"><QuestionNode _id="181" _skill="переменная является глобальной" _alias="Является ли тип контекста parentCt глобальным?" type="bool" isSwitch="false"><Expression><Compare operator="EQUAL"><GetByRelationship varName=""><DecisionTreeVar name="parentCt"/><Relationship name="contextType"/></GetByRelationship><Object name="global"/></Compare></Expression><Outcome value="False"><QuestionNode _id="182" _skill="переменная является глобальной" _alias="Является ли contextType parentCt прозрачным и тип контекста родителя parentCt является глобальным?" type="bool" isSwitch="false"><Expression><GetPropertyValue><GetByRelationship varName=""><DecisionTreeVar name="parentCt"/><Relationship name="contextType"/></GetByRelationship><Property name="transparent"/></GetPropertyValue></Expression><Outcome value="False"><BranchResultNode _id="183" _alias="{currentCt-&gt;contextType-&gt;nameI} с именем '{currentCt-&gt;name}' на строке {currentCt-&gt;numOfStrInCode} не видна из глобальной области видимости. Путь начинающийся с '::' означает, что начальный элемент пути должен быть виден из гобальной области видимости." _RU_explanation="{varDecl-&gt;contextType-&gt;nameI} с именем '{varDecl-&gt;name}' на строке {varDecl->has.number} не видна из глобальной области видимости. Путь начинающийся с '::' означает, что начальный элемент пути должен быть виден из гобальной области видимости."
+                                                                                                                                                                                                                                                                                                                                                                                                                                         _EN_explanation="The {X-&gt;contextType.nameEn} named '{X.name}' in line {X-&gt;has.number} {prefix.nameEn} is not {X.visibleTextEn} in line {usageLine.number}."
+                                                                                                                                                                                                                                                                                                                                                                                                                                         value="correct">
+    <Expression>
+        <AssignToProperty>
+            <DecisionTreeVar name="usageLine"/>
+            <Property name="isEvaluated"/>
+            <Boolean value="TRUE"/>
+        </AssignToProperty>
+    </Expression>
+</BranchResultNode>
+</Outcome>
+</QuestionNode>
+</ThoughtBranch>
+</CycleAggregationNode>
+</Outcome>
+    <Outcome value="True">
+        <FindActionNode _id="180" _alias="Получить родителя varDecl&#10;parentCt">
+            <Expression>
+                <GetByRelationship varName="">
+                    <DecisionTreeVar name="varDecl"/>
+                    <Relationship name="parent"/>
+                </GetByRelationship>
+            </Expression>
+            <DecisionTreeVarDecl name="parentCtn" type="Context"/>
+            <Outcome value="Found">
+                <QuestionNode _id="181" _skill="переменная является глобальной"
+                              _alias="Является ли тип контекста parentCt глобальным?" type="bool" isSwitch="false">
+                    <Expression>
+                        <Compare operator="EQUAL">
+                            <GetByRelationship varName="">
+                                <DecisionTreeVar name="parentCtn"/>
+                                <Relationship name="contextType"/>
+                            </GetByRelationship>
+                            <Object name="global"/>
+                        </Compare>
+                    </Expression>
+                    <Outcome value="False">
+                        <QuestionNode _id="182" _skill="переменная является глобальной"
+                                      _alias="Является ли contextType parentCt прозрачным и тип контекста родителя parentCt является глобальным?"
+                                      type="bool" isSwitch="false">
+                            <Expression>
+                                <GetPropertyValue>
+                                    <GetByRelationship varName="">
+                                        <DecisionTreeVar name="parentCtn"/>
+                                        <Relationship name="contextType"/>
+                                    </GetByRelationship>
+                                    <Property name="transparent"/>
+                                </GetPropertyValue>
+                            </Expression>
+                            <Outcome value="False">
+                                <BranchResultNode _id="183"
+                                                  _alias="{currentCt-&gt;contextType-&gt;nameI} с именем '{currentCt-&gt;name}' на строке {currentCt-&gt;numOfStrInCode} не видна из глобальной области видимости. Путь начинающийся с '::' означает, что начальный элемент пути должен быть виден из гобальной области видимости."
+                                                  _RU_explanation="{varDecl-&gt;contextType-&gt;nameI} с именем '{varDecl-&gt;name}' на строке {varDecl->has.number} не видна из глобальной области видимости. Путь начинающийся с '::' означает, что начальный элемент пути должен быть виден из гобальной области видимости."
 _EN_explanation="The {varDecl-&gt;contextType-&gt;nameEn} named '{varDecl-&gt;name}' on line {varDecl->has.number} is not visible from the global scope. A path starting with '::' means that the initial element of the path must be visible from the global scope." value="error"/></Outcome><Outcome value="True"><BranchResultNode _id="184" _alias="Элемент перечисления с именем &quot;{var-&gt;belongsTo.name}&quot; виден в строке {usageLine.number}, так как перечисление находится в глобальной области и с помощью глобального префикса можно увидеть только элемент перечисления находящийся в глобальной области." _RU_explanation="Элемент перечисления с именем &quot;{var-&gt;belongsTo.name}&quot; виден в строке {usageLine.number}, так как перечисление находится в глобальной области и с помощью глобального префикса можно увидеть только элемент перечисления находящийся в глобальной области."
 _EN_explanation="The enumeration element named &quot;{var-&gt;belongsTo.name}&quot; is visible in line {usageLine.number} because the enumeration is in the global area and only the enumeration element in the global area can be visible using the global prefix." value="correct"><Expression><AssignToProperty><DecisionTreeVar name="usageLine"/><Property name="isEvaluated"/><Boolean value="TRUE"/></AssignToProperty></Expression></BranchResultNode></Outcome></QuestionNode></Outcome><Outcome value="True"><BranchResultNode _id="185" _alias="Переменная с именем &quot;{var-&gt;belongsTo.name}&quot; видна в строке {usageLine.number}, так как находится в глобальной области и с помощью глобального префикса можно увидеть только объект находящийся в глобальной области." _RU_explanation="Переменная с именем &quot;{var-&gt;belongsTo.name}&quot; видна в строке {usageLine.number}, так как находится в глобальной области и с помощью глобального префикса можно увидеть только объект находящийся в глобальной области."
 _EN_explanation="The variable named &quot;{var-&gt;belongsTo.name}&quot; is visible in line {usageLine.number} because it is in the global area and only the object in the global area can be visible using the global prefix." value="correct"><Expression><AssignToProperty><DecisionTreeVar name="usageLine"/><Property name="isEvaluated"/><Boolean value="TRUE"/></AssignToProperty></Expression></BranchResultNode></Outcome></QuestionNode></Outcome></FindActionNode></Outcome></QuestionNode></Outcome></QuestionNode></Outcome><Outcome value="True"><BranchResultNode _id="186" _alias="Нельзя видеть внутри статической области видимости в строке {usageLine.number} не статический {varDecl-&gt;contextType.nameLI} с именем '{varDecl.name}', располагающиеся вне ее границ." _RU_explanation="Нельзя видеть внутри статической области видимости в строке {usageLine.number} не статический {varDecl-&gt;contextType.nameLI} с именем '{varDecl.name}', располагающиеся вне ее границ."
