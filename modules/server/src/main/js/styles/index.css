@@ -342,7 +342,7 @@ table.comp-ph-trace tr:first-child td {
 }
 
 .compph-domain-term {
-  border-bottom: 1px dashed red;
+  border-bottom: 1px dashed;
   cursor: pointer;
   position: relative;
 }

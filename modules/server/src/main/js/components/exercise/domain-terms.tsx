@@ -41,7 +41,7 @@ export function DomainTerm({
     <Popover open={open} onOpenChange={setOpen}>
       <PopoverTrigger asChild>
         <span
-          className='compph-domain-term text-decoration-underline text-danger'
+          className='compph-domain-term text-decoration-underline'
           style={{ cursor: 'pointer' }}
         >
           {term}
