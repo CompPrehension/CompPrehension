@@ -76,7 +76,7 @@ public class DomainTermAnnotationProcessor {
             int end = start + annotation.length();
 
             String original = s.substring(start, end);
-            String replacement = visualizer.apply(original, annotation);
+            String replacement = visualizer.apply(original, annotation, language);
 
             result.replace(start, end, replacement);
         }

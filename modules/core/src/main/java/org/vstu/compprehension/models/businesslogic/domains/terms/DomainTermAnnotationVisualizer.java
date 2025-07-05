@@ -1,8 +1,7 @@
 package org.vstu.compprehension.models.businesslogic.domains.terms;
 
-import java.util.function.BiFunction;
+import org.vstu.compprehension.models.entities.EnumData.Language;
 
-public interface DomainTermAnnotationVisualizer extends BiFunction<String,
-        DomainTermAnnotation, String> {
-
+public interface DomainTermAnnotationVisualizer {
+    String apply(String original, DomainTermAnnotation anno, Language lang);
 }

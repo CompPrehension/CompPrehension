@@ -25,7 +25,7 @@ public class GrammaticalCaseTermDetectionMethod implements DomainTermDetectionMe
 
     public static List<MatchResult> caseAwareNgramSearch(String text, String pattern) {
         String[] words = TagTolerantStringTokenizer.tokenize(text);
-        String[] patternWords = pattern.split("\\s+");
+        String[] patternWords = TagTolerantStringTokenizer.tokenize(pattern);
         int n = patternWords.length;
 
         List<MatchResult> matches = new ArrayList<>();
@@ -36,8 +36,8 @@ public class GrammaticalCaseTermDetectionMethod implements DomainTermDetectionMe
 
             // Проверяем все варианты падежей для слов шаблона
             if (matchesInAnyCase(ngram, patternWords)) {
-                int startOffset = findWordPosition(text, 0)[0];
-                int endOffset = findWordPosition(text, n - 1)[0] + ngram[n - 1].length();
+                int startOffset = findWordPosition(text, i)[0];
+                int endOffset = findWordPosition(text, i + n)[0];
                 int length = endOffset - startOffset - 1;
 
                 if (startOffset != -1 && length > 0) matches.add(new MatchResult(String.join(" ", ngram), startOffset, length));
@@ -53,7 +53,7 @@ public class GrammaticalCaseTermDetectionMethod implements DomainTermDetectionMe
 
             for (int j = 0; j < patternWords.length; j++) {
                 String patternWord = patternWords[j];
-                String ngramWord = stripTags(ngram[j]);
+                String ngramWord = stripTags(ngram[j]).replaceAll("[^\\p{L}\\p{N} ]+", "");;
 
                 // Получение всех возможных форм слова шаблона
                 String patternForm = TemplatingUtils.toCase(patternWord, grammaticalCase);

@@ -22,7 +22,7 @@ public class FuzzyTermDetectionMethod implements DomainTermDetectionMethod {
 
     public static List<MatchResult> fuzzyNgramSearch(String text, String pattern, int baseMaxScore) {
         String[] words = TagTolerantStringTokenizer.tokenize(text);
-        int n = pattern.split("\\s+").length;
+        int n = TagTolerantStringTokenizer.tokenize(pattern).length;
 
         List<MatchResult> matches = new ArrayList<>();
 

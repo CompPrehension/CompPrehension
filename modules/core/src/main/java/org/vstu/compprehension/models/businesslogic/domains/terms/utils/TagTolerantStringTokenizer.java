@@ -2,99 +2,97 @@ package org.vstu.compprehension.models.businesslogic.domains.terms.utils;
 
 import java.util.ArrayList;
 import java.util.List;
+import java.util.regex.Matcher;
+import java.util.regex.Pattern;
 
 public class TagTolerantStringTokenizer {
+    // Регулярное выражение для тега вида <...>
+    private static final Pattern TAG_PATTERN = Pattern.compile("<[^<>]*>");
+
     public static String[] tokenize(String input) {
         List<String> tokens = new ArrayList<>();
-        StringBuilder token = new StringBuilder();
-        StringBuilder tagBuffer = new StringBuilder();
-        boolean insideTag = false;
-        String pendingTag = null;
-
-        for (int i = 0; i < input.length(); i++) {
+        StringBuilder current = new StringBuilder();
+        int i = 0;
+        while (i < input.length()) {
             char c = input.charAt(i);
-
             if (c == '<') {
-                insideTag = true;
-                tagBuffer.setLength(0);
-                tagBuffer.append(c);
-            } else if (c == '>' && insideTag) {
-                insideTag = false;
-                tagBuffer.append(c);
-                pendingTag = tagBuffer.toString(); // запомнили <...>
-            } else if (insideTag) {
-                tagBuffer.append(c);
-            } else if (Character.isWhitespace(c)) {
-                if (token.length() > 0) {
-                    // если есть слово — добавляем и прицепляем тег, если был
-                    tokens.add(token + (pendingTag != null ? pendingTag : ""));
-                    pendingTag = null;
-                    token.setLength(0);
+                Matcher tagMatcher = TAG_PATTERN.matcher(input);
+                tagMatcher.region(i, input.length());
+                if (tagMatcher.lookingAt()) {
+                    String tag = tagMatcher.group();
+                    current.append(tag);
+                    i += tag.length();
+                } else {
+                    // Просто символ '<'
+                    if (Character.isWhitespace(c)) {
+                        if (current.length() > 0) {
+                            tokens.add(current.toString());
+                            current.setLength(0);
+                        }
+                    } else {
+                        current.append(c);
+                    }
+                    i++;
                 }
-                // иначе просто игнорируем пробел
+            } else if (Character.isWhitespace(c)) {
+                if (current.length() > 0) {
+                    tokens.add(current.toString());
+                    current.setLength(0);
+                }
+                i++;
             } else {
-                token.append(c);
+                current.append(c);
+                i++;
             }
         }
-
-        // последний токен
-        if (token.length() > 0) {
-            tokens.add(token + (pendingTag != null ? pendingTag : ""));
+        if (current.length() > 0) {
+            tokens.add(current.toString());
         }
-
-        return tokens.toArray(String[]::new);
+        return tokens.toArray(new String[0]);
     }
 
     public static int[] findWordPosition(String text, int wordIndex) {
-        if (text == null || wordIndex < 0) {
+        if (wordIndex < 0 || text == null) {
             return null;
         }
-
-        int currentWordIndex = 0;
-        int i = 0;
-        int textLength = text.length();
-
-        while (i < textLength) {
-            // Пропускаем теги
-            if (text.charAt(i) == '<') {
-                while (i < textLength && text.charAt(i) != '>') {
-                    i++;
+        int pos = 0;
+        int currentToken = 0;
+        while (currentToken <= wordIndex && pos < text.length()) {
+            int start = pos;
+            StringBuilder tokenBuilder = new StringBuilder();
+            while (pos < text.length()) {
+                if (text.charAt(pos) == '<') {
+                    Matcher tagMatcher = TAG_PATTERN.matcher(text);
+                    tagMatcher.region(pos, text.length());
+                    if (tagMatcher.lookingAt()) {
+                        String tag = tagMatcher.group();
+                        tokenBuilder.append(tag);
+                        pos += tag.length();
+                        continue;
+                    }
                 }
-                if (i < textLength) {
-                    i++; // пропускаем '>'
+                if (Character.isWhitespace(text.charAt(pos))) {
+                    if (tokenBuilder.length() > 0) {
+                        break;
+                    }
+                    start++;
+                    pos++;
+                } else {
+                    tokenBuilder.append(text.charAt(pos));
+                    pos++;
                 }
-                continue;
             }
 
-            // Пропускаем пробелы
-            if (Character.isWhitespace(text.charAt(i))) {
-                i++;
-                continue;
+            if (currentToken == wordIndex) {
+                return new int[]{start, pos};
             }
-
-            // Нашли начало слова
-            int wordStart = i;
-
-            // Найдем конец слова
-            while (i < textLength && !Character.isWhitespace(text.charAt(i)) && text.charAt(i) != '<') {
-                i++;
-            }
-
-            int wordEnd = i;
-
-            // Если это нужное нам слово
-            if (currentWordIndex == wordIndex) {
-                return new int[]{wordStart, wordEnd};
-            }
-
-            currentWordIndex++;
+            currentToken++;
         }
 
-        if (wordIndex >= currentWordIndex) {
-            return new int[] {text.length(), text.length()};
+        if (wordIndex >= currentToken) {
+            return new int[] {text.length() + 1, text.length() + 1};
         }
 
-        // Слово не найдено
         return new int[]{-1, -1};
     }
 }
