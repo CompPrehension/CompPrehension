@@ -1532,8 +1532,7 @@
                                                                         _EN_endingCause="Because of the associativity of ${X.class()} and ${Z.class()}"
                                                                         _EN_question="What's the associativity of ${X.class()} and ${Z.class()}?"
                                                                         _RU_asNextStep="Необходимо проверить, какова ассоциативность ${X.class()}[case='р'] и ${Z.class()}[case='р']"
-                                                                        _RU_endingCause="Из-за ассоциативности ${X.class()}[case='р'] и ${Z.class()}[case='р']
-"
+                                                                        _RU_endingCause="Из-за ассоциативности ${X.class()}[case='р'] и ${Z.class()}[case='р']"
                                                                         _RU_question="Какова ассоциативность ${X.class()}[case='р'] и ${Z.class()}[case='р']?"
                                                                         _TEMPLATING_ID="94"
                                                                         _alias="right.associativity">
