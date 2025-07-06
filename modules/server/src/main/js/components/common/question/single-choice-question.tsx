@@ -34,26 +34,36 @@ const RadioSingleChoiceQuestionComponent = observer((props: SingleChoiceQuestion
     }
 
     return (
-        <div>
-            <div className="mb-3">
-                <div className="comp-ph-question-text" dangerouslySetInnerHTML={{ __html: question.text }} />
-            </div>
-            <div className="d-flex flex-column">                
-                {question.answers.map((a, idx) => 
-                    <label htmlFor={`question_${question.questionId}_answer_${a.id}`} 
-                           className={`comp-ph-singlechoice-label d-flex flex-row ${idx !== question.answers.length - 1 && 'mb-3' || ''}`}>
-                        <div className="mr-2 mt-1">
-                            <input id={`question_${question.questionId}_answer_${a.id}`} 
-                                   name={`switch_${question.questionId}`} 
-                                   type="radio" 
-                                   checked={getAnswers().some(h => h.answer[0] === a.id)}
-                                   onChange={(e) => selfOnChange(a.id, e.target.checked)} 
-                                   readOnly={true} />
-                        </div>
-                        <div>{a.text}</div>                        
-                    </label>)}
-            </div>
+      <div>
+        <div className='mb-3'>
+          <div
+            className='comp-ph-question-text'
+            dangerouslySetInnerHTML={{ __html: question.text }}
+          />
         </div>
+        <div className='d-flex flex-column'>
+          {question.answers.map((a, idx) => (
+            <label
+              htmlFor={`question_${question.questionId}_answer_${a.id}`}
+              className={`comp-ph-singlechoice-label d-flex flex-row ${
+                (idx !== question.answers.length - 1 && 'mb-3') || ''
+              }`}
+            >
+              <div className='mr-2 mt-1'>
+                <input
+                  id={`question_${question.questionId}_answer_${a.id}`}
+                  name={`switch_${question.questionId}`}
+                  type='radio'
+                  checked={getAnswers().some((h) => h.answer[0] === a.id)}
+                  onChange={(e) => selfOnChange(a.id, e.target.checked)}
+                  readOnly={true}
+                />
+              </div>
+              <div dangerouslySetInnerHTML={{ __html: a.text }} />
+            </label>
+          ))}
+        </div>
+      </div>
     );
 })
 
