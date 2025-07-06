@@ -19,6 +19,7 @@ import org.apache.jena.riot.RDFDataMgr;
 import org.jetbrains.annotations.NotNull;
 import org.jetbrains.annotations.Nullable;
 import org.vstu.compprehension.Service.LocalizationService;
+import org.vstu.compprehension.dto.ExerciseSkillDto;
 import org.vstu.compprehension.models.businesslogic.*;
 import org.vstu.compprehension.models.businesslogic.backend.DecisionTreeReasonerBackend;
 import org.vstu.compprehension.models.businesslogic.backend.facts.Fact;
@@ -344,6 +345,12 @@ public class ProgrammingLanguageExpressionDTDomain extends DecisionTreeReasoning
             ProgrammingLanguageExpressionsSolver.SolveResult solveResult = solver.solveNoVars(preparedSituation.getDomainModel(),
                     domainSolvingModel.decisionTree("earlyfinish")
             );
+            var exerciseStage = judgedQuestion.getQuestionData().getExerciseStage();
+            List<String> deniedSkills = List.of();
+            if (exerciseStage.isPresent()) {
+                deniedSkills = exerciseStage.get().getSkills()
+                        .stream().map(ExerciseSkillDto::getName).toList();
+            }
 
             ViolationEntity violation = new ViolationEntity();
             violation.setLawName(STILL_UNEVALUATED_LEFT_VIOLATION_NAME);
@@ -353,8 +360,10 @@ public class ProgrammingLanguageExpressionDTDomain extends DecisionTreeReasoning
 
             result.explanation = DecisionTreeReasonerBackend.collectExplanationsFromTrace(
                     Explanation.Type.ERROR, solveResult.trace(),
-                    preparedSituation.getDomainModel(), getUserLanguageByQuestion(judgedQuestion),
-                    ProgrammingLanguageExpressionDTDomain.this);
+                    preparedSituation.getDomainModel(),
+                    ProgrammingLanguageExpressionDTDomain.this,
+                    deniedSkills,
+                    getUserLanguageByQuestion(judgedQuestion));
             result.violations.addAll(result.explanation.getDomainLawNames().stream().map(skill -> {
                 ViolationEntity v = new ViolationEntity();
                 v.setLawName(skill);
@@ -845,6 +854,12 @@ public class ProgrammingLanguageExpressionDTDomain extends DecisionTreeReasoning
         Language lang = Optional.ofNullable(q.getQuestionData().getExerciseAttempt())
                 .map(a -> a.getUser().getPreferred_language())
                 .orElse(Language.RUSSIAN/*ENGLISH*/);
+        var exerciseStage = q.getQuestionData().getExerciseStage();
+        List<String> deniedSkills = List.of();
+        if (exerciseStage.isPresent()) {
+            deniedSkills = exerciseStage.get().getSkills()
+                    .stream().map(ExerciseSkillDto::getName).toList();
+        }
 
         Optional<InteractionEntity> lastCorrectInteraction = Optional.ofNullable(q.getQuestionData().getInteractions()).stream()
                 .flatMap(Collection::stream)
@@ -885,7 +900,7 @@ public class ProgrammingLanguageExpressionDTDomain extends DecisionTreeReasoning
                     Explanation explanation = DecisionTreeReasonerBackend.collectExplanationsFromTrace(
                             Explanation.Type.HINT,
                             solveRes.trace(), domain,
-                            lang, this
+                            this, deniedSkills, lang
                     );
                     if (explanation.isEmpty()) {
                         explanation.getChildren().add(new Explanation(Explanation.Type.HINT, new HyperText(
@@ -910,8 +925,8 @@ public class ProgrammingLanguageExpressionDTDomain extends DecisionTreeReasoning
         correctAnswer.skillName = List.of();
         correctAnswer.explanation = DecisionTreeReasonerBackend.collectExplanationsFromTrace(Explanation.Type.HINT,
                 solver.solveNoVars(domain, domainSolvingModel.decisionTree("earlyfinish")).trace(),
-                domain, lang, this
-        );
+                domain, this, deniedSkills, lang
+                );
         return correctAnswer;
     }
 

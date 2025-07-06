@@ -15,10 +15,12 @@ import org.jetbrains.annotations.Nullable;
 import org.vstu.compprehension.models.entities.EnumData.QuestionStatus;
 import org.vstu.compprehension.models.entities.EnumData.QuestionType;
 import org.vstu.compprehension.models.entities.QuestionOptions.QuestionOptionsEntity;
+import org.vstu.compprehension.models.entities.exercise.ExerciseStageEntity;
 
 import java.util.ArrayList;
 import java.util.Date;
 import java.util.List;
+import java.util.Optional;
 
 @Entity @Getter @Setter
 @NoArgsConstructor
@@ -100,4 +102,18 @@ public class QuestionEntity {
     @Column(name = "solution_facts", nullable = false)
     @Basic(fetch = FetchType.LAZY)
     private List<BackendFactEntity> solutionFacts = new ArrayList<>();
+
+
+    public Optional<ExerciseStageEntity> getExerciseStage() {
+        if (exerciseAttempt == null) return Optional.empty();
+        int qNum = exerciseAttempt.getQuestions().indexOf(this) + 1;
+        var stages = exerciseAttempt.getExercise().getStages();
+        int qPassed = 0;
+        ExerciseStageEntity stage = stages.getFirst();
+        for (int i = 0; i < stages.size() && qPassed < qNum; i++) {
+            stage = stages.get(i);
+            qPassed += stage.getNumberOfQuestions();
+        }
+        return Optional.ofNullable(stage);
+    }
 }

@@ -24,13 +24,12 @@ public class Explanation {
 
 
     private final Type type;
+    @Setter private boolean muted;
     private SequencedSet<Explanation> children = new LinkedHashSet<>();
 
-    @Setter
-    private @NotNull HyperText rawMessage;
+    @Setter private @NotNull HyperText rawMessage;
 
-    @Setter
-    private String currentDomainLawName;
+    @Setter private String currentDomainLawName;
 
     public Explanation(Type t, @NotNull String message) {
         this(t, new HyperText(message));
@@ -141,6 +140,9 @@ public class Explanation {
 
         details.append("<ul>");
         for (Explanation child : children) {
+            if (child.isMuted()) {
+                continue;
+            }
             HyperText ht = child.toHyperText(lang, collapse);
             details.append("<li class=\"p-1\">").append(ht.getText().replace(commonChildrenPrefix, "")).append("</li>");
         }
@@ -177,5 +179,12 @@ public class Explanation {
         details.append("</ul>");
         details.append("</details>");
         return new HyperText(details);
+    }
+
+    public void removeAllMute() {
+        setMuted(false);
+        for (Explanation child : children) {
+            child.removeAllMute();
+        }
     }
 }

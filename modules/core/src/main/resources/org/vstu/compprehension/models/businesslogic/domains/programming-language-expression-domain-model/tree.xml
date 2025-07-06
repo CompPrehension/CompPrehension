@@ -1950,7 +1950,7 @@
                         <BranchResultNode
                                 _EN_explanation="the expression does not contain unevaluated operators with strict order of operand evaluation."
                                 _RU_explanation="в выражении нет невычисленных операторов со строгим порядком вычисления операндов."
-                                _TEMPLATING_ID="125" _skill="expression_strict_order_operators_present"
+                                _TEMPLATING_ID="125" _skill="expression_strict_order_operators_present" _muted="true"
                                 value="CORRECT"/>
                     </Outcome>
                     <Outcome value="CORRECT">
@@ -1992,7 +1992,7 @@
                         <BranchResultNode
                                 _EN_explanation="${obj:currentLanguage} allows evaluating of function arguments in any order."
                                 _RU_explanation="${obj:currentLanguage} разрешает вычисление аргументов функции в любом порядке."
-                                _TEMPLATING_ID="129" _skill="are_central_operands_strict_order" value="CORRECT"/>
+                                _TEMPLATING_ID="129" _skill="are_central_operands_strict_order" value="CORRECT" _muted="true"/>
                     </Outcome>
                     <Outcome
                             _EN_explanation="${obj:currentLanguage} supports strict function call argument ordering by specification"

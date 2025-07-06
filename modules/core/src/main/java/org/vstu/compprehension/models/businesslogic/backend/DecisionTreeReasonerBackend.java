@@ -14,6 +14,8 @@ import org.jetbrains.annotations.NotNull;
 import org.springframework.context.annotation.Primary;
 import org.springframework.stereotype.Component;
 import org.springframework.web.context.annotation.RequestScope;
+import org.vstu.compprehension.common.Utils;
+import org.vstu.compprehension.dto.ExerciseSkillDto;
 import org.vstu.compprehension.models.businesslogic.DomainToBackendAdapter;
 import org.vstu.compprehension.models.businesslogic.Explanation;
 import org.vstu.compprehension.models.businesslogic.Question;
@@ -125,15 +127,16 @@ public class DecisionTreeReasonerBackend
     public static Explanation collectExplanationsFromTrace(Explanation.Type type,
                                                             DecisionTreeTrace trace,
                                                             DomainModel domainModel,
-                                                            Language lang, Domain appDomain
-    ) {
+                                                            Domain appDomain,
+                                                            List<String> deniedSkills,
+                                                            Language lang) {
         DomainTermAnnotationProcessor annotationProcessor = null;
         if (appDomain.getTermDictionary().isPresent()) {
             annotationProcessor = new DomainTermAnnotationProcessor(appDomain.getTermDictionary().get(), lang);
         }
         Explanation result = Explanation.aggregate(type, _collectExplanations(type, trace, null,
                 AggregationPolicy.Default,
-                domainModel, lang, annotationProcessor));
+                domainModel, annotationProcessor, deniedSkills, lang));
         String prefix = Explanation.getCommonPrefix(result.getChildren(), "");
         if (result.getChildren().size() > 1 && !prefix.isEmpty()) {
             result.setRawMessage(new HyperText(prefix.trim().concat(":")));
@@ -143,6 +146,9 @@ public class DecisionTreeReasonerBackend
             result.setCurrentDomainLawName(result.getChildren().getFirst().getCurrentDomainLawName());
         }
         reduceSimilarExplanations(result.getChildren(), type, lang);
+        if (Utils.intersectSets(result.getDomainLawNames(), deniedSkills).size() == result.getDomainLawNames().size()) {
+            result.removeAllMute();
+        }
         return result;
     }
 
@@ -152,8 +158,8 @@ public class DecisionTreeReasonerBackend
                                      Explanation parent,
                                      AggregationPolicy policy,
                                      DomainModel domain,
-                                     Language lang, DomainTermAnnotationProcessor annotationProcessor
-    ) {
+                                     DomainTermAnnotationProcessor annotationProcessor,
+                                     List<String> deniedSkills, Language lang) {
         List<Explanation> traceExplanations = new ArrayList<>(); // временный буфер
         for (DecisionTreeTraceElement<?, ?> element : trace) {
             LearningSituation learningSituation = new LearningSituation(domain, element.getVariablesSnapshot());
@@ -166,6 +172,9 @@ public class DecisionTreeReasonerBackend
                         lang.toLocaleString(), learningSituation);
                 var annotatedMessage = annotationProcessor.apply(explanation.getRawMessage().toString(), new DomainTermTooltipVisualizer());
                 explanation.setRawMessage(new HyperText(annotatedMessage));
+                if (Utils.intersectSets(explanation.getDomainLawNames(), deniedSkills).size() > 0) {
+                    explanation.setMuted(true);
+                }
                 traceExplanations.add(explanation);
             } else {
                 // Элемент трассы может включать другие трассы
@@ -189,7 +198,8 @@ public class DecisionTreeReasonerBackend
                 }
                 // Собрать с дочерних трасс элементы
                 for (DecisionTreeTrace subTrace : Objects.requireNonNullElse(element.nestedTraces(), new ArrayList<DecisionTreeTrace>())) {
-                    traceExplanations.addAll(_collectExplanations(type, subTrace, newParent, newPolicy, domain, lang, annotationProcessor));
+                    traceExplanations.addAll(_collectExplanations(type, subTrace, newParent, newPolicy, domain,
+                            annotationProcessor, deniedSkills, lang));
                 }
                 // Если в агрегированной ветви один элемент - хранить в буфере только его, а если вообще нет элементов - удалить ветвь
                 if (newParent != null && (newParent.getChildren().isEmpty() || newParent.getChildren().size() == 1)) {
@@ -303,9 +313,15 @@ public class DecisionTreeReasonerBackend
             updateJudgeInterpretationResult(result, backendOutput);
 
             Language lang = getUserLanguageByQuestion(judgedQuestion);
+            var exerciseStage = judgedQuestion.getQuestionData().getExerciseStage();
+            List<String> deniedSkills = List.of();
+            if (exerciseStage.isPresent()) {
+                deniedSkills = exerciseStage.get().getSkills()
+                        .stream().map(ExerciseSkillDto::getName).toList();
+            }
             result.explanation = collectExplanationsFromTrace(Explanation.Type.ERROR, backendOutput.results,
                     backendOutput.situation.getDomainModel(),
-                    lang, judgedQuestion.getDomain()
+                    judgedQuestion.getDomain(), deniedSkills, lang
             );
             List<ViolationEntity> mistakes = result.explanation.getDomainLawNames()
                     .stream().map(errorName -> {
@@ -399,6 +415,10 @@ public class DecisionTreeReasonerBackend
             if (resultNode.getMetadata().containsAny("skill")) {
                 String skillName = resultNode.getMetadata().getString("skill");
                 expl.setCurrentDomainLawName(skillName);
+            }
+            if (resultNode.getMetadata().containsAny("muted")
+                    && resultNode.getMetadata().get("muted").toString().toLowerCase().trim().equals("true")) {
+                expl.setMuted(true);
             }
             return expl;
         }
