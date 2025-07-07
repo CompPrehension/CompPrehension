@@ -109,6 +109,22 @@ export const TourProvider = ({ steps, children }: TourProviderProps) => {
           if (typeof selector === 'string') {
             const element = document.querySelector(selector);
             if (element) {
+              let completedSteps = new Set(
+                JSON.parse(localStorage.getItem('tour_completed_steps') ?? '[]')
+              );
+              if (
+                localStorage.getItem('tour_completed') !== 'never' &&
+                !step.id?.endsWith('-always')
+              ) {
+                if (completedSteps.has(step.id)) {
+                  continue;
+                }
+                completedSteps.add(step.id);
+                localStorage.setItem(
+                  'tour_completed_steps',
+                  JSON.stringify(Array.from(completedSteps))
+                );
+              }
               tour.addStep(step);
               tour.show(step.id);
 

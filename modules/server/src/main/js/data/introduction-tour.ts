@@ -7,7 +7,7 @@ const getSteps = (t: (key: string) => string) => [
           text:  t("tour_exprs_intro"),
           attachTo: {
             element: '.comp-ph-exercise-body',
-            on: 'bottom' as PopperPlacement,
+            on: 'auto' as PopperPlacement,
           },
           buttons: [{ text: 'next' }, {text: 'skip'}],
         },
@@ -17,6 +17,16 @@ const getSteps = (t: (key: string) => string) => [
           text:  t("tour_exprs_expr"),
           attachTo: {
             element: '.comp-ph-expr',
+            on: 'bottom' as PopperPlacement,
+          },
+          buttons: [{ text: 'next' }],
+        },
+        {
+          id: 'tour-exprs-operator',
+          title: t("tour_exprs_operator_title"),
+          text:  t("tour_exprs_operator"),
+          attachTo: {
+            element: '.comp-ph-expr-op-btn',
             on: 'bottom' as PopperPlacement,
           },
           buttons: [{ text: 'next' }],
@@ -110,7 +120,7 @@ const getSteps = (t: (key: string) => string) => [
             element: '.comp-ph-trace-value',
             on: 'right' as PopperPlacement,
           },
-          buttons: [{ text: 'complete' }],
+          buttons: [{ text: 'next' }],
         },
 ];
 

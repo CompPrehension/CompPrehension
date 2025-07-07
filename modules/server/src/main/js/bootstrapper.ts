@@ -110,6 +110,9 @@ const resources = {
             
             tour_exprs_expr: "In this task, you need to select the operators in the expression in the order in which they will be evaluated during program execution.",
             tour_exprs_expr_title: "This is your task",
+
+            tour_exprs_operator: "All the operators that can be selected in this exercise for successful task solution look like this",
+            tour_exprs_operator_title: "Operators",
           
             tour_exprs_hint: "If you're unsure about the next correct step, click this button to request a hint. The correct step will be selected automatically.",
             tour_exprs_hint_title: "Request a hint",
@@ -212,6 +215,8 @@ const resources = {
             tour_exprs_intro_title: "Первое знакомство с тренажёром",
             tour_exprs_expr: "В данном задании вы должны выбрать операторы в выражении в том порядке, в каком они вычислятся при выполнении кода программы",
             tour_exprs_expr_title: "Это ваше задание",
+            tour_exprs_operator: "Все операторы, которые могут быть выбраны в процессе решения задачи в данном упражнении выглядят так",
+            tour_exprs_operator_title: "Операторы",
             tour_exprs_hint: "Если вы затрудняетесь в выборе следующего правильного шага, нажмите на эту кнопку для запроса подсказки. Корректный шаг будет выбран автоматически",
             tour_exprs_hint_title: "Запрос подсказки",
             tour_exprs_error_hint: "В данном блоке вам будет отображена информация о допушенной ошибке при решении задаче и дана краткая подсказка для ее решения",
