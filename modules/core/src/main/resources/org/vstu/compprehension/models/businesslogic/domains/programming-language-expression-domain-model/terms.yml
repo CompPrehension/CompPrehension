@@ -65,6 +65,13 @@ terms:
       EN: "An operand is an object on which an operation is performed, such as the numbers in `2 + 3`."
 
   - pattern:
+      RU: "строгий порядок"
+      EN: "strict order"
+    explanations:
+      RU: "Строгий порядок — это точная последовательность вычисления частей выражения, при которой операции выполняются одна за другой в определённом порядке без параллелизма или пропуска. В языке C примерами операторов со строгим порядком вычисления являются логические операторы `И` и `ИЛИ`, а также оператор запятая `,` в Си. При их вычислении каждая часть выражения вычисляется последовательно слева направо, и следующая часть начинается только после завершения предыдущей."
+      EN: "Strict order is an exact sequence of evaluating parts of an expression, where operations are performed one after another in a defined order without parallelism or skipping. In the C language, examples of operators with strict evaluation order are the logical operators `И` and `OR`, as well as the comma operator `,` in C language. When evaluating these, each part of the expression is computed sequentially from left to right, and the next part starts only after the previous one finishes."
+
+  - pattern:
       RU: "оператор"
       EN: "operator"
     explanations:
