@@ -1,15 +1,15 @@
-import "reflect-metadata"
-import {container} from "tsyringe";
-import {ExerciseController} from "./controllers/exercise/exercise-controller";
-import {TestExerciseController} from "./controllers/exercise/test-exercise-controller";
-import {ExerciseStore} from "./stores/exercise-store";
-import {QuestionStore} from "./stores/question-store";
 import i18next from "i18next";
-import {initReactI18next} from "react-i18next";
-import {SurveyController} from "./controllers/exercise/survey-controller";
-import {ExerciseSettingsController} from "./controllers/exercise/exercise-settings";
-import {QuestionController} from "./controllers/exercise/question-controller";
-import {UserController} from "./controllers/exercise/user-controller";
+import { initReactI18next } from "react-i18next";
+import "reflect-metadata";
+import { container } from "tsyringe";
+import { ExerciseController } from "./controllers/exercise/exercise-controller";
+import { ExerciseSettingsController } from "./controllers/exercise/exercise-settings";
+import { QuestionController } from "./controllers/exercise/question-controller";
+import { SurveyController } from "./controllers/exercise/survey-controller";
+import { TestExerciseController } from "./controllers/exercise/test-exercise-controller";
+import { UserController } from "./controllers/exercise/user-controller";
+import { ExerciseStore } from "./stores/exercise-store";
+import { QuestionStore } from "./stores/question-store";
 
 // init DI container
 const isSandbox = () => (new URLSearchParams(window.location.search).get('sandbox') ?? null) !== null;
@@ -100,6 +100,43 @@ const resources = {
             exercisesettings_noQuestionsFound: 'No suitable questions found',
 
             survey_sendresults: "Send survey results",
+            
+            tour_skip: "Skip introduction",
+            tour_complete: "Complete",
+            tour_next: "Next",
+
+            tour_exprs_intro: "Welcome to the CompPrehension exercise. Since this is your first time, we recommend taking the tutorial.",
+            tour_exprs_intro_title: "First introduction to the trainer",
+            
+            tour_exprs_expr: "In this task, you need to select the operators in the expression in the order in which they will be evaluated during program execution.",
+            tour_exprs_expr_title: "This is your task",
+          
+            tour_exprs_hint: "If you're unsure about the next correct step, click this button to request a hint. The correct step will be selected automatically.",
+            tour_exprs_hint_title: "Request a hint",
+          
+            tour_exprs_error_hint: "This section shows information about an error you made while solving the task, along with a short hint for resolving it.",
+            tour_exprs_error_hint_title: "Hint about the mistake",
+          
+            tour_exprs_feedback_grade: "This section shows your score for solving the task, in the range from 0 to 1.",
+            tour_exprs_feedback_grade_title: "Score",
+          
+            tour_exprs_feedback_steps: "This section shows the steps remaining until the task is completed.",
+            tour_exprs_feedback_steps_title: "Remaining steps",
+          
+            tour_exprs_feedback_errors: "This section shows how many mistakes you made while solving this task.",
+            tour_exprs_feedback_errors_title: "Mistakes in solution",
+          
+            tour_exprs_earlyfinish: "If you think there's nothing more to evaluate in the expression, click this button.",
+            tour_exprs_earlyfinish_title: "Everything is evaluated",
+          
+            tour_exprs_tracevalue: "This hint helps you understand the value an operand had at the moment of evaluation.",
+            tour_exprs_tracevalue_title: "Operand value at evaluation",
+          
+            tour_exprs_selectedop: "Selected and evaluated operators will be displayed in this style. The number below indicates the evaluation order.",
+            tour_exprs_selectedop_title: "Evaluated operators",
+          
+            tour_exprs_pages: "You can switch between questions in the exercise using these buttons. You can also use the 'Next question' button to go to the next one.",
+            tour_exprs_pages_title: "Switching between questions"
         },
     },
     RU: {
@@ -167,6 +204,32 @@ const resources = {
             exercisesettings_noQuestionsFound: 'Подходящих вопросов не найдено',
 
             survey_sendresults: "Отправить результаты опроса",
+            tour_skip: "Пропустить обучение",
+            tour_complete: "Завершить",
+            tour_next: "Продолжить",
+
+            tour_exprs_intro: "Добро пожаловать в упражнение CompPrehension. Так как вы проходите упражнение впервые, мы рекомендуем вам пройти обучение",
+            tour_exprs_intro_title: "Первое знакомство с тренажёром",
+            tour_exprs_expr: "В данном задании вы должны выбрать операторы в выражении в том порядке, в каком они вычислятся при выполнении кода программы",
+            tour_exprs_expr_title: "Это ваше задание",
+            tour_exprs_hint: "Если вы затрудняетесь в выборе следующего правильного шага, нажмите на эту кнопку для запроса подсказки. Корректный шаг будет выбран автоматически",
+            tour_exprs_hint_title: "Запрос подсказки",
+            tour_exprs_error_hint: "В данном блоке вам будет отображена информация о допушенной ошибке при решении задаче и дана краткая подсказка для ее решения",
+            tour_exprs_error_hint_title: "Подсказка о допущенной ошибке",
+            tour_exprs_feedback_grade: "Данный блок вашу оценку за решение задания в диапазоне от 0 до 1",
+            tour_exprs_feedback_grade_title: "Оценка",
+            tour_exprs_feedback_steps: "Данный блок показывает шаги, оставшиеся до завершения задачи",
+            tour_exprs_feedback_steps_title: "Оставшиеся шаги",
+            tour_exprs_feedback_errors: "Данный блок показывает сколько раз вы допустили ошибки в решении этой задачи",
+            tour_exprs_feedback_errors_title: "Ошибки в решении",
+            tour_exprs_earlyfinish: "Если вы считаете, что в выражении больше ничего не нужно вычислять, нажмите на эту кнопку",
+            tour_exprs_earlyfinish_title: "Больше ничего не вычислится",
+            tour_exprs_tracevalue: "Данная подсказка поможет вам понять, какое значение имел операнд в момент вычисления",
+            tour_exprs_tracevalue_title: "Значение операнда в момент вычисления",
+            tour_exprs_selectedop: "Выбранные и вычисленные операторы будут отображаться в таком стиле. Снизу будет указан номер, соответствующий порядку вычисления",
+            tour_exprs_selectedop_title: "Вычисленные операторы",
+            tour_exprs_pages: "Между вопросами в упражнении можно переключаться с помощью данных кнопок. Также вы можете использовать кнопку 'Следующий вопрос' для перехода к следующему вопросу",
+            tour_exprs_pages_title: "Переключение между вопросами"
         },
     },
     PL: {

@@ -38,30 +38,71 @@ export const Feedback = observer(({ store, showExtendedFeedback }: FeedbackProps
     }
 
     return (
-        <div className="comp-ph-feedback-wrapper mt-2">
-            {isFeedbackVisible && 
-                <>
-                    <div className="mb-3">
-                        {feedbackMessages?.map((m, i) => 
-                            <FeedbackAlert
-                                key={i}                            
-                                message={m}
-                                supQuestionStore={store.supplementaryQuestion}
-                                showGenerateSupQuestion={showExtendedFeedback && question.options.showSupplementaryQuestions && 
-                                    m.type === 'ERROR' && m.violationLaws?.every(e => e.canCreateSupplementaryQuestion)} 
-                            />)}                
-                    </div>
-                    {showExtendedFeedback && 
-                        <div>
-                            {feedback.grade !== null && <><Badge variant="primary">{t('grade_feeback')}: {feedback.grade}</Badge>{' '}</>}
-                            {feedback.correctSteps !== null && <><Badge variant="success">{t('correctsteps_feeback')}: {feedback.correctSteps}</Badge>{' '}</>}
-                            {!isNullOrUndefined(feedback.stepsWithErrors) && feedback.stepsWithErrors > 0 && <><Badge variant="danger">{t('stepswitherrors_feeback')}: {feedback.stepsWithErrors}</Badge>{' '}</>}
-                            {!isNullOrUndefined(feedback.stepsLeft) && feedback.stepsLeft > 0 && <><Badge variant="info">{t('stepsleft_feeback')}: {feedback.stepsLeft}</Badge>{' '}</>}
-                        </div>
-                    }
-                </>
-            }          
-        </div>
+      <div className='comp-ph-feedback-wrapper mt-2'>
+        {isFeedbackVisible && (
+          <>
+            <div className='mb-3'>
+              {feedbackMessages?.map((m, i) => (
+                <FeedbackAlert
+                  key={i}
+                  message={m}
+                  supQuestionStore={store.supplementaryQuestion}
+                  showGenerateSupQuestion={
+                    showExtendedFeedback &&
+                    question.options.showSupplementaryQuestions &&
+                    m.type === 'ERROR' &&
+                    m.violationLaws?.every(
+                      (e) => e.canCreateSupplementaryQuestion
+                    )
+                  }
+                />
+              ))}
+            </div>
+            {showExtendedFeedback && (
+              <div>
+                {feedback.grade !== null && (
+                  <>
+                    <Badge
+                      className='comp-ph-feedback-grade'
+                      variant='primary'
+                    >
+                      {t('grade_feeback')}: {feedback.grade}
+                    </Badge>{' '}
+                  </>
+                )}
+                {feedback.correctSteps !== null && (
+                  <>
+                    <Badge variant='success'>
+                      {t('correctsteps_feeback')}: {feedback.correctSteps}
+                    </Badge>{' '}
+                  </>
+                )}
+                {!isNullOrUndefined(feedback.stepsWithErrors) &&
+                  feedback.stepsWithErrors > 0 && (
+                    <>
+                      <Badge
+                        className='comp-ph-feedback-error-steps'
+                        variant='danger'
+                      >
+                        {t('stepswitherrors_feeback')}:{' '}
+                        {feedback.stepsWithErrors}
+                      </Badge>{' '}
+                    </>
+                  )}
+                {!isNullOrUndefined(feedback.stepsLeft) &&
+                  feedback.stepsLeft > 0 && (
+                    <>
+                      <Badge className='comp-ph-feedback-remaining-steps'
+                      variant='info'>
+                        {t('stepsleft_feeback')}: {feedback.stepsLeft}
+                      </Badge>{' '}
+                    </>
+                  )}
+              </div>
+            )}
+          </>
+        )}
+      </div>
     );
 });
 
@@ -76,7 +117,7 @@ export const FeedbackAlert = observer((props: FeedbackAlertProps) => {
 
     const variant = message.type === 'SUCCESS' ? 'success' : 'danger';
     return (
-      <Alert variant={variant}>
+      <Alert variant={variant} className={variant === 'danger' ? 'comp-ph-feedback-error' : 'comp-ph-feedback-success'}>
         <div
           data-domain-laws={message.violationLaws?.map((v) => v.name).join(';')}
         >

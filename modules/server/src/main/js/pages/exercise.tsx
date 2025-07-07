@@ -14,6 +14,9 @@ import { ExerciseHeader } from "../components/exercise/header";
 import { SurveyComponent } from "../components/exercise/survey";
 import { ExerciseStore } from "../stores/exercise-store";
 import { Survey } from "../types/survey";
+import { TourProvider } from "../utils/TourProvider";
+import { TourLauncher } from "../utils/TourLauncher";
+import tourSteps from "../data/introduction-tour";
 
 export const Exercise = observer(() => {
     const [exerciseStore] = useState(() => container.resolve(ExerciseStore));
@@ -97,12 +100,13 @@ export const Exercise = observer(() => {
     }, [exerciseStore]);
 
     return (
-        <>
+        <TourProvider steps={tourSteps(t)}>
+            <TourLauncher/>
             <div className={`compph-exercise ${exerciseStore.isDebug && 'compph-exercise--debug'}` || ''}>
                 <LoadingWrapper isLoading={exerciseStore.isExerciseLoading === true || exerciseState === 'INITIAL'}>
                     <Optional isVisible={exerciseState === 'EXERCISE' || exerciseState === 'COMPLETED'}>
                         <ExerciseHeader />
-                        <div className="mt-5 position-relative">
+                        <div className="mt-5 position-relative comp-ph-exercise-body">
                             <CurrentQuestion />
                             {survey != null 
                                 && (exerciseStore.currentQuestion.questionState === 'COMPLETED' || exerciseState === 'COMPLETED') 
@@ -169,8 +173,7 @@ export const Exercise = observer(() => {
                         .map((x, idx, arr) => x.tag === 'ERROR' && <div className="mt-2"><Alert variant='danger'>{x.error.message}</Alert></div>)
                 }
 
-            </div>
-            
-        </>
+            </div>   
+        </TourProvider>
     );
 })

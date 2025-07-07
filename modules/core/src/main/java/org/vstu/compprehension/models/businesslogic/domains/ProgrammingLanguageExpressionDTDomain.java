@@ -756,7 +756,7 @@ public class ProgrammingLanguageExpressionDTDomain extends DecisionTreeReasoning
 
         if (showValue && value != null && !value.isEmpty()) {
             builder.add("<span>" + getMessage("WITH_VALUE", lang) + "</span>");
-            builder.add("<span style='color: #f08;font-style: italic;font-weight: bold;'>" +
+            builder.add("<span class='comp-ph-trace-value' style='color: #f08;font-style: italic;font-weight: bold;'>" +
                     value + "</span>");
         }
 
