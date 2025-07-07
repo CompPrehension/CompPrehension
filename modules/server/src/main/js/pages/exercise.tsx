@@ -12,11 +12,11 @@ import { GenerateNextAnswerBtn } from "../components/exercise/generate-next-answ
 import { GenerateNextQuestionBtn } from "../components/exercise/generate-next-question-btn";
 import { ExerciseHeader } from "../components/exercise/header";
 import { SurveyComponent } from "../components/exercise/survey";
+import tourSteps from "../data/introduction-tour";
 import { ExerciseStore } from "../stores/exercise-store";
 import { Survey } from "../types/survey";
-import { TourProvider } from "../utils/TourProvider";
 import { TourLauncher } from "../utils/TourLauncher";
-import tourSteps from "../data/introduction-tour";
+import { TourProvider } from "../utils/TourProvider";
 
 export const Exercise = observer(() => {
     const [exerciseStore] = useState(() => container.resolve(ExerciseStore));
@@ -100,80 +100,146 @@ export const Exercise = observer(() => {
     }, [exerciseStore]);
 
     return (
-        <TourProvider steps={tourSteps(t)}>
-            <TourLauncher/>
-            <div className={`compph-exercise ${exerciseStore.isDebug && 'compph-exercise--debug'}` || ''}>
-                <LoadingWrapper isLoading={exerciseStore.isExerciseLoading === true || exerciseState === 'INITIAL'}>
-                    <Optional isVisible={exerciseState === 'EXERCISE' || exerciseState === 'COMPLETED'}>
-                        <ExerciseHeader />
-                        <div className="mt-5 position-relative comp-ph-exercise-body">
-                            <CurrentQuestion />
-                            {survey != null 
-                                && (exerciseStore.currentQuestion.questionState === 'COMPLETED' || exerciseState === 'COMPLETED') 
-                                &&  <div className="mt-2">
-                                        <SurveyComponent questionId={exerciseStore.currentQuestion.question?.questionId ?? -1} 
-                                                        survey={survey!.survey}
-                                                        enabledSurveyQuestions={exerciseStore.ensureQuestionSurveyExists(currentQuestion.question?.questionId ?? -1)}
-                                                        value={survey!.questions[exerciseStore.currentQuestion.question?.questionId ?? -1]?.results}
-                                                        onAnswersSended={onSurveyAnswered}
-                                                        isCompleted={survey.questions[exerciseStore.currentQuestion.question?.questionId ?? -1]?.status === 'COMPLETED'}/>                                                     
-                                    </div>}
-                            <Optional isVisible={exerciseState === 'EXERCISE'}>
-                                <Optional isVisible={exerciseStore.currentQuestion.questionState === 'LOADED'}>
-                                    <div className="mt-3">
-                                        {exerciseStore.exercise?.options.correctAnswerGenerationEnabled && <GenerateNextAnswerBtn store={exerciseStore.currentQuestion}/>}
-                                    </div>
-                                </Optional>
-                                <Optional isVisible={
-                                    (survey == null && (exerciseStore.exercise?.options.newQuestionGenerationEnabled || exerciseStore.currentQuestion.questionState === 'COMPLETED'))
-                                    || 
-                                    ((survey != null && survey.questions[exerciseStore.currentQuestion.question?.questionId ?? -1]?.status === 'COMPLETED'))}>
-                                    <div className="mt-2">
-                                        <GenerateNextQuestionBtn />
-                                    </div>
-                                </Optional>
-                            </Optional>
-                            <Optional isVisible={exerciseState === 'COMPLETED'}>
-                                <div className="mt-3">
-                                    <Alert variant={'success'}>
-                                        {t('exercise_completed')!}
-                                    </Alert>
-                                </div>
-                            </Optional>
-                            <Optional isVisible={
-                                (exerciseStore.exercise?.options.debugButtonEnabled ?? false)
-                                && currentQuestion.question !== undefined}>
-                                <DebugButton 
-                                    metadataId={currentQuestion.question?.questionMetadataId ?? -1} 
-                                    attemptId={exerciseStore.currentAttempt?.attemptId}
-                                /> 
-                            </Optional>
-                        </div>                
-                    </Optional>
-                    <Optional isVisible={exerciseState === 'MODAL'}>
-                        <Modal  type={'DIALOG'}
-                                title={t('foundExisitingAttempt_title')}
-                                primaryBtnTitle={t('foundExisitingAttempt_continueattempt')}
-                                handlePrimaryBtnClicked={() => {
-                                    setExerciseState('EXERCISE');
-                                    loadQuestion();
-                                }}
-                                secondaryBtnTitle={t('foundExisitingAttempt_newattempt')}
-                                handleSecondaryBtnClicked={() => {
-                                    setExerciseState('EXERCISE');
-                                    createAttemptAndLoadQuestion();
-                                }}>
-                            <p>{t('foundExisitingAttempt_descr')}?</p>
-                        </Modal>
-                    </Optional>
-                </LoadingWrapper>
-                {
-                    [excerciseStoreState, currentQuestionStoreState]
-                        .filter(x => x.tag === 'ERROR')
-                        .map((x, idx, arr) => x.tag === 'ERROR' && <div className="mt-2"><Alert variant='danger'>{x.error.message}</Alert></div>)
-                }
-
-            </div>   
-        </TourProvider>
+      <TourProvider steps={tourSteps}>
+        <TourLauncher />
+        <div
+          className={
+            `compph-exercise ${
+              exerciseStore.isDebug && 'compph-exercise--debug'
+            }` || ''
+          }
+        >
+          <LoadingWrapper
+            isLoading={
+              exerciseStore.isExerciseLoading === true ||
+              exerciseState === 'INITIAL'
+            }
+          >
+            <Optional
+              isVisible={
+                exerciseState === 'EXERCISE' || exerciseState === 'COMPLETED'
+              }
+            >
+              <ExerciseHeader />
+              <div className='mt-5 position-relative comp-ph-exercise-body'>
+                <CurrentQuestion />
+                {survey != null &&
+                  (exerciseStore.currentQuestion.questionState ===
+                    'COMPLETED' ||
+                    exerciseState === 'COMPLETED') && (
+                    <div className='mt-2'>
+                      <SurveyComponent
+                        questionId={
+                          exerciseStore.currentQuestion.question?.questionId ??
+                          -1
+                        }
+                        survey={survey!.survey}
+                        enabledSurveyQuestions={exerciseStore.ensureQuestionSurveyExists(
+                          currentQuestion.question?.questionId ?? -1
+                        )}
+                        value={
+                          survey!.questions[
+                            exerciseStore.currentQuestion.question
+                              ?.questionId ?? -1
+                          ]?.results
+                        }
+                        onAnswersSended={onSurveyAnswered}
+                        isCompleted={
+                          survey.questions[
+                            exerciseStore.currentQuestion.question
+                              ?.questionId ?? -1
+                          ]?.status === 'COMPLETED'
+                        }
+                      />
+                    </div>
+                  )}
+                <Optional isVisible={exerciseState === 'EXERCISE'}>
+                  <Optional
+                    isVisible={
+                      exerciseStore.currentQuestion.questionState === 'LOADED'
+                    }
+                  >
+                    <div className='mt-3'>
+                      {exerciseStore.exercise?.options
+                        .correctAnswerGenerationEnabled && (
+                        <GenerateNextAnswerBtn
+                          store={exerciseStore.currentQuestion}
+                        />
+                      )}
+                    </div>
+                  </Optional>
+                  <Optional
+                    isVisible={
+                      (survey == null &&
+                        (exerciseStore.exercise?.options
+                          .newQuestionGenerationEnabled ||
+                          exerciseStore.currentQuestion.questionState ===
+                            'COMPLETED')) ||
+                      (survey != null &&
+                        survey.questions[
+                          exerciseStore.currentQuestion.question?.questionId ??
+                            -1
+                        ]?.status === 'COMPLETED')
+                    }
+                  >
+                    <div className='mt-2'>
+                      <GenerateNextQuestionBtn />
+                    </div>
+                  </Optional>
+                </Optional>
+                <Optional isVisible={exerciseState === 'COMPLETED'}>
+                  <div className='mt-3'>
+                    <Alert variant={'success'}>
+                      {t('exercise_completed')!}
+                    </Alert>
+                  </div>
+                </Optional>
+                <Optional
+                  isVisible={
+                    (exerciseStore.exercise?.options.debugButtonEnabled ??
+                      false) &&
+                    currentQuestion.question !== undefined
+                  }
+                >
+                  <DebugButton
+                    metadataId={
+                      currentQuestion.question?.questionMetadataId ?? -1
+                    }
+                    attemptId={exerciseStore.currentAttempt?.attemptId}
+                  />
+                </Optional>
+              </div>
+            </Optional>
+            <Optional isVisible={exerciseState === 'MODAL'}>
+              <Modal
+                type={'DIALOG'}
+                title={t('foundExisitingAttempt_title')}
+                primaryBtnTitle={t('foundExisitingAttempt_continueattempt')}
+                handlePrimaryBtnClicked={() => {
+                  setExerciseState('EXERCISE');
+                  loadQuestion();
+                }}
+                secondaryBtnTitle={t('foundExisitingAttempt_newattempt')}
+                handleSecondaryBtnClicked={() => {
+                  setExerciseState('EXERCISE');
+                  createAttemptAndLoadQuestion();
+                }}
+              >
+                <p>{t('foundExisitingAttempt_descr')}?</p>
+              </Modal>
+            </Optional>
+          </LoadingWrapper>
+          {[excerciseStoreState, currentQuestionStoreState]
+            .filter((x) => x.tag === 'ERROR')
+            .map(
+              (x, idx, arr) =>
+                x.tag === 'ERROR' && (
+                  <div className='mt-2'>
+                    <Alert variant='danger'>{x.error.message}</Alert>
+                  </div>
+                )
+            )}
+        </div>
+      </TourProvider>
     );
 })

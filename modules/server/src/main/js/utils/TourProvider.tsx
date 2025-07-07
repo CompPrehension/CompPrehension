@@ -7,6 +7,7 @@ import React, {
   useRef,
   useState,
 } from 'react';
+import { useTranslation } from 'react-i18next';
 import Shepherd, { StepOptions } from 'shepherd.js';
 import 'shepherd.js/dist/css/shepherd.css';
 
@@ -28,6 +29,7 @@ export const TourProvider = ({ steps, children }: TourProviderProps) => {
   const tourRef = useRef<InstanceType<typeof Shepherd.Tour>>();
   const [isReady, setIsReady] = useState(false);
   const isTourCompletedRef = useRef(false);
+  const { t } = useTranslation();
 
   const bindActions = (
     tour: InstanceType<typeof Shepherd.Tour>,
@@ -49,25 +51,25 @@ export const TourProvider = ({ steps, children }: TourProviderProps) => {
         if (text === 'next') {
           return {
             ...button,
-            text: t('tour_next'),
+            text: 'tour_next',
             action: () => tour.next(),
-            classes: 'shepherd-button-secondary',
+            classes: 'shepherd-button-primary',
           };
         }
         if (text === 'skip') {
           return {
             ...button,
-            text: t('tour_skip'),
+            text: 'tour_skip',
             action: () => completeTour(),
-            classes: 'shepherd-button-primary',
+            classes: 'shepherd-button-secondary',
           };
         }
         if (text === 'complete') {
           return {
             ...button,
-            text: t('tour_complete'),
+            text: 'tour_complete',
             action: () => completeTour(),
-            classes: 'shepherd-button-primary',
+            classes: 'shepherd-button-success',
           };
         }
         return button;
@@ -102,7 +104,14 @@ export const TourProvider = ({ steps, children }: TourProviderProps) => {
         if (pendingSteps.length === 0) return;
 
         for (let i = 0; i < pendingSteps.length; i++) {
-          const step = pendingSteps[i];
+          const step = Object.assign({}, pendingSteps[i]);
+          step.title = t(step.title as string);
+          step.text = t(step.text as string);
+          step.buttons = step.buttons?.map((button) => ({
+            ...button,
+            text: t(button.text as string),
+          }));
+          
           const selector =
             typeof step.attachTo === 'object' ? step.attachTo?.element : null;
 
