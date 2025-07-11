@@ -46,13 +46,15 @@ public class DomainTermAnnotationProcessor {
             DomainTermDetectionMethod detection = dictionary.getDetectionMethod(term);
             var result = detection.findTerms(s, dictionary, term, language);
             for (DomainTermAnnotation annotation : result) {
+                // Проверим отсутствие пересечений с ранее добавленными аннотациями
                 boolean allow = true;
                 for (DomainTermAnnotation added : annotations) {
                     if ((annotation.pos() >= added.pos() && annotation.pos() < added.pos() + added.length())
                             || (annotation.pos() + annotation.length() >= added.pos() &&
-                                annotation.pos() + annotation.length() < added.pos() + added.length())
+                            annotation.pos() + annotation.length() < added.pos() + added.length())
                     ) {
                         allow = false;
+                        break;
                     }
                 }
                 if (allow) {
