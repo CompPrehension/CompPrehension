@@ -42,7 +42,6 @@ public class FuzzyTermDetectionMethod implements DomainTermDetectionMethod {
             int score = (int)(WeightedSimilarity.computeWRatio(stripTags(ngram), pattern) * 100);
 
             if (score >= baseMaxScore) {
-                // TODO: вместо разбора текста заново взять слова из words ?
                 int offset = findWordPosition(text, posKey.getKey())[0];
                 int length = findWordPosition(text, posKey.getValue())[0] - offset - 1;
                 if (offset != -1) {
@@ -73,12 +72,10 @@ public class FuzzyTermDetectionMethod implements DomainTermDetectionMethod {
                 char last_char = source.charAt(last_pos);
                 var c_type = Character.getType(last_char);
                 if (c_type == Character.END_PUNCTUATION || c_type == Character.DASH_PUNCTUATION || c_type == Character.OTHER_PUNCTUATION) {
-                    if (last_char != pattern_last_char) {
-                        // Вырезать 1 символ в конце, т.к. он является неожиданной пунктуацией
+                    if (pattern.indexOf(last_char) == -1) {
+                        // Символ не содержится в паттерне.
+                        // Вырезать 1 символ в конце, т.к. он является неожиданной пунктуацией:
                         match.length -= 1;
-                        ///
-                        System.out.println("\nВырезать 1 символ в конце: " +source.substring(match.pos, last_pos + 1)+ '\n');
-                        ///
                         continue;
                     }
                 }
