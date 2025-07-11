@@ -18,7 +18,7 @@ import static org.vstu.compprehension.common.StringHelper.stripTags;
 import static org.vstu.compprehension.models.businesslogic.domains.terms.utils.TagTolerantStringTokenizer.findWordPosition;
 
 public class FuzzyTermDetectionMethod implements DomainTermDetectionMethod {
-    
+
     @AllArgsConstructor
     public static class MatchResult {
         String text; int score; int pos; int length;
@@ -60,33 +60,34 @@ public class FuzzyTermDetectionMethod implements DomainTermDetectionMethod {
         if (threshold < 1) {
             threshold *= 100;
         }
-        List<MatchResult> matches_found = fuzzyNgramSearch(source, element.getPattern(language),
-                (int) threshold
-        );
 
-        // Убрать излишнюю, т.е. не присутствующую в паттерне, пунктуацию (1+ символов с конца)
-        String pattern = element.getPattern(language);
-        for (var match : matches_found) {
-            char pattern_last_char = pattern.charAt(pattern.length() - 1);
-            for (int last_pos = match.pos + match.length - 1; last_pos >= 0; --last_pos) {
-                char last_char = source.charAt(last_pos);
-                var c_type = Character.getType(last_char);
-                if (c_type == Character.END_PUNCTUATION || c_type == Character.DASH_PUNCTUATION || c_type == Character.OTHER_PUNCTUATION) {
-                    if (pattern.indexOf(last_char) == -1) {
-                        // Символ не содержится в паттерне.
-                        // Вырезать 1 символ в конце, т.к. он является неожиданной пунктуацией:
-                        match.length -= 1;
-                        continue;
+        List<DomainTermAnnotation> annotations = new ArrayList<>();
+        for (String pattern : element.getPossiblePatterns(language)) {
+            List<MatchResult> matches_found = fuzzyNgramSearch(source, pattern, (int) threshold);
+
+            // Убрать излишнюю, т.е. не присутствующую в паттерне, пунктуацию (1+ символов с конца)
+            for (var match : matches_found) {
+                for (int last_pos = match.pos + match.length - 1; last_pos >= 0; --last_pos) {
+                    char last_char = source.charAt(last_pos);
+                    var c_type = Character.getType(last_char);
+                    if (c_type == Character.END_PUNCTUATION || c_type == Character.DASH_PUNCTUATION || c_type == Character.OTHER_PUNCTUATION) {
+                        if (pattern.indexOf(last_char) == -1) {
+                            // Символ не содержится в паттерне.
+                            // Вырезать 1 символ в конце, т.к. он является неожиданной пунктуацией:
+                            match.length -= 1;
+                            continue;
+                        }
                     }
+                    break;  // No changes, stop iteration.
                 }
-                break;  // No changes, stop iteration.
             }
-        }
 
-        return matches_found.stream().sorted(Comparator.comparingInt(o -> -o.score))
-                .map(match -> new DomainTermAnnotation(
-                        element, language,
-                        match.pos, match.length
-                )).toArray(DomainTermAnnotation[]::new);
+            annotations.addAll(matches_found.stream().sorted(Comparator.comparingInt(o -> -o.score))
+                    .map(match -> new DomainTermAnnotation(
+                            element, language,
+                            match.pos, match.length, pattern
+                    )).toList());
+        }
+        return annotations.toArray(DomainTermAnnotation[]::new);
     }
 }

@@ -34,13 +34,16 @@ public class RegexTermDetectionMethod implements DomainTermDetectionMethod {
     @Override
     public DomainTermAnnotation[] findTerms(String source, DomainTermDictionary dictionary,
                                             DomainTermElement element, Language language) {
-        return regexSearch(source, element.getPattern(language))
-                .stream()
-                .map(match -> new DomainTermAnnotation(
-                        element, language,
-                        match.pos,
-                        match.length
-                ))
-                .toArray(DomainTermAnnotation[]::new);
+        List<DomainTermAnnotation> annotations = new ArrayList<>();
+        for (String pattern : element.getPossiblePatterns(language)) {
+            annotations.addAll(regexSearch(source, pattern)
+                    .stream()
+                    .map(match -> new DomainTermAnnotation(
+                            element, language,
+                            match.pos,
+                            match.length, pattern
+                    )).toList());
+        }
+        return annotations.toArray(DomainTermAnnotation[]::new);
     }
 }

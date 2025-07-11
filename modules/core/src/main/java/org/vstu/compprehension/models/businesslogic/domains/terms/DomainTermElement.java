@@ -4,16 +4,18 @@ import com.fasterxml.jackson.annotation.JsonProperty;
 import com.fasterxml.jackson.databind.annotation.JsonDeserialize;
 import lombok.Getter;
 import org.vstu.compprehension.models.businesslogic.domains.terms.utils.DetectionMethodDeserializer;
-import org.vstu.compprehension.models.businesslogic.domains.terms.utils.LocalizedObjectDeserializer;
+import org.vstu.compprehension.models.businesslogic.domains.terms.utils.ManyLocalizedObjectDeserializer;
+import org.vstu.compprehension.models.businesslogic.domains.terms.utils.SingleLocalizedObjectDeserializer;
 import org.vstu.compprehension.models.entities.EnumData.Language;
 
 import java.util.HashMap;
+import java.util.List;
 import java.util.Map;
 
 @Getter
 public class DomainTermElement {
-    @JsonDeserialize(using = LocalizedObjectDeserializer.class)
-    private Map<String, String> pattern = new HashMap<>();
+    @JsonDeserialize(using = ManyLocalizedObjectDeserializer.class)
+    private Map<String, List<String>> pattern = new HashMap<>();
 
     @JsonProperty("detection_method")
     @JsonDeserialize(using = DetectionMethodDeserializer.class)
@@ -22,10 +24,10 @@ public class DomainTermElement {
     @JsonProperty("threshold")
     private float detectionThreshold = DomainTermDictionary.DEFAULT_THRESHOLD;
 
-    @JsonDeserialize(using = LocalizedObjectDeserializer.class)
+    @JsonDeserialize(using = SingleLocalizedObjectDeserializer.class)
     private Map<String, String> explanations = new HashMap<>();
 
-    public String getPattern(Language lang) {
+    public List<String> getPossiblePatterns(Language lang) {
         if (pattern.size() == 1) {
             return pattern.values().iterator().next();
         }

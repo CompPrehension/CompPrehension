@@ -11,7 +11,7 @@ import java.util.HashMap;
 import java.util.Iterator;
 import java.util.Map;
 
-public class LocalizedObjectDeserializer extends JsonDeserializer<Map<String, String>> {
+public class SingleLocalizedObjectDeserializer extends JsonDeserializer<Map<String, String>> {
     @Override
     public Map<String, String> deserialize(JsonParser p, DeserializationContext ctxt) throws IOException {
         JsonNode node = p.getCodec().readTree(p);

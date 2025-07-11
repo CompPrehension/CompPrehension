@@ -18,10 +18,10 @@ public class DomainTermAnnotationProcessor {
         for (DomainTermElement term : dictionary) {
             if (term.isMalformed()) {
                 log.warn("Term `%s` in loaded dictionary is malformed and won't be used in detection",
-                        term.getPattern(language));
+                        term.getPossiblePatterns(language));
             } else if (term.isMalformed(language)) {
                 log.warn("Term `%s` in loaded dictionary doesn't have support of %s language",
-                        term.getPattern(language), language.toLocaleString());
+                        term.getPossiblePatterns(language), language.toLocaleString());
             }
         }
         this.language = language;
@@ -35,7 +35,9 @@ public class DomainTermAnnotationProcessor {
                         // 1. RegexTermDetectionMethod выше остальных
                         .comparing((DomainTermElement e) -> !(dictionary.getDetectionMethod(e) instanceof RegexTermDetectionMethod))
                         // 2. По убыванию длины паттерна
-                        .thenComparing(e -> -e.getPattern(language).length())
+                        .thenComparing(e -> -e.getPossiblePatterns(language).stream()
+                                .max(Comparator.comparingInt(String::length))
+                                .orElse("").length())
                         // 3. По изначальному порядку (индекс в оригинальном списке)
                         .thenComparing(originalTerms::indexOf)
                 )

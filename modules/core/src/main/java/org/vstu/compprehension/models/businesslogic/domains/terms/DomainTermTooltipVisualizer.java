@@ -6,6 +6,6 @@ public class DomainTermTooltipVisualizer implements DomainTermAnnotationVisualiz
     @Override
     public String apply(String s, DomainTermAnnotation domainTermAnnotation, Language lang) {
         return "<span data-explanation=\'%s\' data-term=\'%s\', class=\'domain-term\'>%s</span>"
-                .formatted(domainTermAnnotation.explanation(), domainTermAnnotation.term().getPattern(lang), s);
+                .formatted(domainTermAnnotation.explanation(), domainTermAnnotation.pattern(), s);
     }
 }
