@@ -12,11 +12,11 @@ public class TagTolerantStringTokenizer {
     public static String[] tokenize(String input) {
         List<String> tokens = new ArrayList<>();
         StringBuilder current = new StringBuilder();
+        Matcher tagMatcher = TAG_PATTERN.matcher(input);
         int i = 0;
         while (i < input.length()) {
             char c = input.charAt(i);
             if (c == '<') {
-                Matcher tagMatcher = TAG_PATTERN.matcher(input);
                 tagMatcher.region(i, input.length());
                 if (tagMatcher.lookingAt()) {
                     String tag = tagMatcher.group();
@@ -53,16 +53,16 @@ public class TagTolerantStringTokenizer {
 
     public static int[] findWordPosition(String text, int wordIndex) {
         if (wordIndex < 0 || text == null) {
-            return null;
+            return new int[]{-1, -1};
         }
         int pos = 0;
         int currentToken = 0;
+        Matcher tagMatcher = TAG_PATTERN.matcher(text);
         while (currentToken <= wordIndex && pos < text.length()) {
             int start = pos;
             StringBuilder tokenBuilder = new StringBuilder();
             while (pos < text.length()) {
                 if (text.charAt(pos) == '<') {
-                    Matcher tagMatcher = TAG_PATTERN.matcher(text);
                     tagMatcher.region(pos, text.length());
                     if (tagMatcher.lookingAt()) {
                         String tag = tagMatcher.group();
