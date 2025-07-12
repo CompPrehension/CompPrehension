@@ -9,19 +9,23 @@ terms:
       EN: "Associativity determines the order in which operations of the same precedence are evaluated: left-to-right (left), right-to-left (right), or not allowed to be chained (non-associative)."
 
   - pattern:
-      RU: "левая ассоциативность|лев.. ассоциативност.\\w?|левоассоциатив.?н\\w*"
+      RU:
+        - "левая ассоциативность|лев.. ассоциативност.\\w?"
+        - "левоассоциативны|левоассоциатив.?н\\w*"
       EN: "left associativity|left associative"
     detection_method: "regex"
     explanations:
-      RU: "Если операторы одинакового приоритета обладают левой ассоциативностью, то в выражении они выполняются слева направо."
+      RU: "Если операторы одинакового приоритета обладают левой ассоциативностью, то в выражении они вычисляются слева направо."
       EN: "Left associativity means that operators having equal precedence are evaluated from left to right."
 
   - pattern:
-      RU: "правая ассоциативность|прав.. ассоциативност.\\w?|правоассоциатив.?н\\w*"
+      RU:
+        - "правая ассоциативность|прав.. ассоциативност.\\w?"
+        - "правоассоциативны|правоассоциатив.?н\\w*"
       EN: "right associativity|right associative"
     detection_method: "regex"
     explanations:
-      RU: "Если операторы одинакового приоритета обладают правой ассоциативностью, то в выражении они выполняются справа налево."
+      RU: "Если операторы одинакового приоритета обладают правой ассоциативностью, то в выражении они вычисляются справа налево."
       EN: "Right associativity means that operators having equal precedence are evaluated from right to left."
 
   - pattern:
