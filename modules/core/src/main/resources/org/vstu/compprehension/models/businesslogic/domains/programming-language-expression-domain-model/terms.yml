@@ -78,6 +78,14 @@ terms:
       EN: "Strict order is an exact sequence of evaluating parts of an expression, where operations are performed one after another in a defined order without parallelism or skipping. In the C language, examples of operators with strict evaluation order are the logical operators `И` and `OR`, as well as the comma operator `,` in C language. When evaluating these, each part of the expression is computed sequentially from left to right, and the next part starts only after the previous one finishes."
 
   - pattern:
+      RU: "оператор ?:"
+      EN: "operator ?:"
+    detection_method: "case"
+    explanations:
+      RU: "Тернарный оператор (cnd ? a1 : a2) имеет три операнда — условие и две альтернативы, одна из которых станет значением оператора, а другая вычисляться не будет."
+      EN: "The ternary operator(cnd ? a1 : a2) has three operands — a condition and two alternatives, one of which becomes the value of the operator, and the other is not evaluated."
+
+  - pattern:
       RU: "оператор"
       EN: "operator"
     explanations:
