@@ -80,7 +80,6 @@ terms:
   - pattern:
       RU: "оператор ?:"
       EN: "operator ?:"
-    detection_method: "case"
     explanations:
       RU: "Тернарный оператор (cnd ? a1 : a2) имеет три операнда — условие и две альтернативы, одна из которых станет значением оператора, а другая вычисляться не будет."
       EN: "The ternary operator(cnd ? a1 : a2) has three operands — a condition and two alternatives, one of which becomes the value of the operator, and the other is not evaluated."
