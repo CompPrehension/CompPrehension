@@ -7,7 +7,6 @@ import org.jetbrains.annotations.NotNull;
 import org.jetbrains.annotations.Nullable;
 import org.vstu.compprehension.models.businesslogic.*;
 import org.vstu.compprehension.models.businesslogic.backend.facts.Fact;
-import org.vstu.compprehension.models.businesslogic.domains.terms.DomainTermDictionary;
 import org.vstu.compprehension.models.entities.*;
 import org.vstu.compprehension.models.entities.EnumData.FeedbackType;
 import org.vstu.compprehension.models.entities.EnumData.Language;
@@ -212,8 +211,6 @@ public interface Domain {
      * @return interpretation of backend's judgement
      */
     InterpretSentenceResult judgeQuestion(Question question, List<ResponseEntity> responses, List<Tag> tags);
-
-    Optional<DomainTermDictionary> getTermDictionary();
 
     /**
      * Any available correct answer at current iteration

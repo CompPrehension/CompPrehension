@@ -84,45 +84,6 @@ public class StringHelper {
         return builder;
     }
 
-    public static int[] findWordPosition(String text, int wordIndex) {
-        int index = 0;           // позиция в строке
-        int currentWord = 0;     // счётчик слов
-
-        boolean inWord = false;
-        int start = -1;
-
-        while (index < text.length()) {
-            char c = text.charAt(index);
-
-            if (!Character.isWhitespace(c)) {
-                if (!inWord) {
-                    // начало нового слова
-                    if (currentWord == wordIndex) {
-                        start = index;
-                    }
-                    inWord = true;
-                }
-            } else {
-                if (inWord) {
-                    // конец слова
-                    if (currentWord == wordIndex) {
-                        return new int[] { start, index }; // не включая index
-                    }
-                    currentWord++;
-                    inWord = false;
-                }
-            }
-            index++;
-        }
-
-        // если последнее слово — без пробела на конце
-        if (inWord && currentWord == wordIndex) {
-            return new int[] { start, text.length() };
-        }
-
-        return new int[] {-1, -1};
-    }
-
     public static String stripTags(String input) {
         return input.replaceAll("<[^>]+>", "");
     }

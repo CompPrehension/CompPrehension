@@ -1,5 +1,6 @@
 package org.vstu.compprehension.models.businesslogic.backend;
 
+import io.brookite.termannotations.DomainTermAnnotationProcessor;
 import its.model.TypedVariable;
 import its.model.definition.DomainModel;
 import its.model.nodes.*;
@@ -20,8 +21,8 @@ import org.vstu.compprehension.models.businesslogic.DomainToBackendAdapter;
 import org.vstu.compprehension.models.businesslogic.Explanation;
 import org.vstu.compprehension.models.businesslogic.Question;
 import org.vstu.compprehension.models.businesslogic.domains.Domain;
-import org.vstu.compprehension.models.businesslogic.domains.terms.DomainTermAnnotationProcessor;
-import org.vstu.compprehension.models.businesslogic.domains.terms.DomainTermTooltipVisualizer;
+import org.vstu.compprehension.models.businesslogic.domains.DomainBase;
+import org.vstu.compprehension.models.businesslogic.domains.helpers.DomainTermTooltipVisualizer;
 import org.vstu.compprehension.models.entities.EnumData.Language;
 import org.vstu.compprehension.models.entities.ViolationEntity;
 import org.vstu.compprehension.utils.HyperText;
@@ -131,8 +132,8 @@ public class DecisionTreeReasonerBackend
                                                             List<String> deniedSkills,
                                                             Language lang) {
         DomainTermAnnotationProcessor annotationProcessor = null;
-        if (appDomain.getTermDictionary().isPresent()) {
-            annotationProcessor = new DomainTermAnnotationProcessor(appDomain.getTermDictionary().get(), lang);
+        if (appDomain instanceof DomainBase domainBase && domainBase.getTermDictionary().isPresent()) {
+            annotationProcessor = new DomainTermAnnotationProcessor(domainBase.getTermDictionary().get(), lang.toLocale());
         }
         Explanation result = Explanation.aggregate(type, _collectExplanations(type, trace, null,
                 AggregationPolicy.Default,
@@ -170,8 +171,10 @@ public class DecisionTreeReasonerBackend
                 // одиночное объяснение по заданному типу объяснения
                 var explanation = Interface.extractExplanation(res,
                         lang.toLocaleString(), learningSituation);
-                var annotatedMessage = annotationProcessor.apply(explanation.getRawMessage().toString(), new DomainTermTooltipVisualizer());
-                explanation.setRawMessage(new HyperText(annotatedMessage));
+                if (annotationProcessor != null) {
+                    var annotatedMessage = annotationProcessor.apply(explanation.getRawMessage().toString(), new DomainTermTooltipVisualizer());
+                    explanation.setRawMessage(new HyperText(annotatedMessage));
+                }
                 if (Utils.intersectSets(explanation.getDomainLawNames(), deniedSkills).size() > 0) {
                     explanation.setMuted(true);
                 }

@@ -3,6 +3,7 @@ package org.vstu.compprehension.models.businesslogic.domains;
 import com.google.gson.Gson;
 import com.google.gson.GsonBuilder;
 import com.google.gson.JsonSyntaxException;
+import io.brookite.termannotations.DomainTermDictionary;
 import its.model.DomainSolvingModel;
 import its.model.definition.DomainModel;
 import its.model.definition.EnumValueRef;
@@ -25,7 +26,6 @@ import org.vstu.compprehension.models.businesslogic.backend.DecisionTreeReasoner
 import org.vstu.compprehension.models.businesslogic.backend.facts.Fact;
 import org.vstu.compprehension.models.businesslogic.domains.helpers.ProgrammingLanguageExpressionsSolver;
 import org.vstu.compprehension.models.businesslogic.domains.helpers.meaningtree.*;
-import org.vstu.compprehension.models.businesslogic.domains.terms.DomainTermDictionary;
 import org.vstu.compprehension.models.businesslogic.storage.QuestionBank;
 import org.vstu.compprehension.models.businesslogic.storage.SerializableQuestionTemplate;
 import org.vstu.compprehension.models.entities.*;
@@ -218,7 +218,6 @@ public class ProgrammingLanguageExpressionDTDomain extends DecisionTreeReasoning
             Objects.requireNonNull(this.getClass().getClassLoader().getResource(DOMAIN_MODEL_LOCATION + "terms.yml")));
 
 
-    @Override
     public Optional<DomainTermDictionary> getTermDictionary() {
         return Optional.ofNullable(domainTerms);
     }

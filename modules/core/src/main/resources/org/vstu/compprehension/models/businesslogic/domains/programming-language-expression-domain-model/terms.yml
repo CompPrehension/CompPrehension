@@ -1,5 +1,4 @@
 detection_method: "fuzzy"
-threshold: 0.85
 terms:
   - pattern:
       RU: "ассоциативность"

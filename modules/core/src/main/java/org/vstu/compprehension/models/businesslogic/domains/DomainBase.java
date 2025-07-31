@@ -1,12 +1,12 @@
 package org.vstu.compprehension.models.businesslogic.domains;
 
+import io.brookite.termannotations.DomainTermDictionary;
 import lombok.Getter;
 import lombok.extern.log4j.Log4j2;
 import org.jetbrains.annotations.NotNull;
 import org.jetbrains.annotations.Nullable;
 import org.springframework.web.context.annotation.RequestScope;
 import org.vstu.compprehension.models.businesslogic.*;
-import org.vstu.compprehension.models.businesslogic.domains.terms.DomainTermDictionary;
 import org.vstu.compprehension.models.entities.DomainEntity;
 import org.vstu.compprehension.models.entities.DomainOptionsEntity;
 import org.vstu.compprehension.models.entities.EnumData.Language;
@@ -191,7 +191,7 @@ public abstract class DomainBase implements Domain {
         return new ArrayList<>(getTags().values());
     }
 
-    @Override
+
     public Optional<DomainTermDictionary> getTermDictionary() {
         return Optional.empty();
     }
