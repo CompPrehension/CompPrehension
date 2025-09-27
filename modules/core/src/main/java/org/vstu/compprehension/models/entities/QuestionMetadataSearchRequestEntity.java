@@ -64,7 +64,7 @@ public class QuestionMetadataSearchRequestEntity {
 
     public QuestionMetadataSearchRequestEntity(@NotNull QuestionBankSearchRequest searchRequest, @NotNull List<Iteration> iterations, @Nullable UUID questionRequestId) {
         if (iterations.isEmpty()){
-            throw new RuntimeException("No iterations found");
+            throw new IllegalArgumentException("The iterations list must not be empty: at least one iteration is required to initialize QuestionMetadataSearchRequestEntity.");
         }
         this.searchRequest = searchRequest;
         this.iterations = iterations;
