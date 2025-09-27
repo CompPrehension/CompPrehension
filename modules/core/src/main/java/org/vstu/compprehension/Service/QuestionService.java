@@ -60,7 +60,7 @@ public class QuestionService {
         qr = domain.ensureQuestionRequestValid(qr);
 
         Question question = domain.makeQuestion(qr, exerciseAttempt, exerciseAttempt.getUser().getPreferred_language());
-        question.setQuestionRequest(createQuestionRequestLog(qr));
+        question.setQuestionRequest(qr.getLogEntity());
 
         saveQuestion(question);
         return question;
@@ -78,11 +78,6 @@ public class QuestionService {
         var question = domain.makeQuestion(rawQuestion, null, tags, lang);
         saveQuestion(question);
         return question;
-    }
-
-    private QuestionRequestLogEntity createQuestionRequestLog(QuestionRequest qr) {
-        int questionsFound = questionStorage.countQuestions(qr);
-        return qr.getLogEntity(questionsFound);
     }
 
     public @NotNull SupplementaryQuestionDto generateSupplementaryQuestion(@NotNull QuestionEntity sourceQuestion, @NotNull ViolationEntity violation, Language lang) {
@@ -164,6 +159,10 @@ public class QuestionService {
     public void saveQuestion(Question question) {
         var questionData = question.getQuestionData();
 
+        if (question.getQuestionRequest() != null) {
+            questionRequestLogRepository.save(question.getQuestionRequest());
+        }
+
         if (questionData.getAnswerObjects() != null) {
             for (AnswerObjectEntity answerObject : question.getAnswerObjects()) {
                 if (answerObject.getId() == null) {
@@ -171,10 +170,6 @@ public class QuestionService {
                 }
             }
             answerObjectRepository.saveAll(questionData.getAnswerObjects().stream().filter(a -> a.getId() == null)::iterator);
-        }
-
-        if (question.getQuestionRequest() != null) {
-            questionRequestLogRepository.save(question.getQuestionRequest());
         }
 
         for (val interactionEntity : questionData.getInteractions()) {
@@ -230,4 +225,3 @@ public class QuestionService {
         return response;
     }
 }
-

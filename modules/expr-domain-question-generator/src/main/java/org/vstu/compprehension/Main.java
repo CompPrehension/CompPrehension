@@ -60,6 +60,7 @@ public class Main {
                         new QuestionBank(
                                 new FakeQuestionMetadataRepository(),
                                 new FakeQuestionDataRepository(),
+                                null,
                                 null
                         )
                 )

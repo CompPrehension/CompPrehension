@@ -130,12 +130,12 @@ public class FakeQuestionMetadataRepository implements QuestionMetadataRepositor
     }
 
     @Override
-    public int countQuestions(QuestionBankSearchRequest qr, float complexityWindow) {
+    public int countQuestions(QuestionBankSearchRequest qrw) {
         return 0;
     }
 
     @Override
-    public int countTopRatedQuestions(QuestionBankSearchRequest qr, float complexityWindow) {
+    public int countTopRatedQuestions(QuestionBankSearchRequest qr) {
         return 0;
     }
 
@@ -145,22 +145,22 @@ public class FakeQuestionMetadataRepository implements QuestionMetadataRepositor
     }
 
     @Override
-    public List<QuestionMetadataEntity> findTopRatedUnusedMetadata(QuestionBankSearchRequest qr, float complexityWindow, int limitNumber) {
+    public List<QuestionMetadataEntity> findTopRatedUnusedMetadata(QuestionBankSearchRequest qr, int limitNumber) {
         return List.of();
     }
 
     @Override
-    public List<QuestionMetadataEntity> findTopRatedMetadata(QuestionBankSearchRequest qr, float complexityWindow, int limitNumber) {
+    public List<QuestionMetadataEntity> findTopRatedMetadata(QuestionBankSearchRequest qr, int limitNumber) {
         return List.of();
     }
 
     @Override
-    public List<QuestionMetadataEntity> findMetadata(QuestionBankSearchRequest qr, float complexityWindow, int limitNumber) {
+    public List<QuestionMetadataEntity> findMetadata(QuestionBankSearchRequest qr, int limitNumber) {
         return List.of();
     }
 
     @Override
-    public List<QuestionMetadataEntity> findMetadataRelaxed(QuestionBankSearchRequest qr, float complexityWindow, int limitNumber) {
+    public List<QuestionMetadataEntity> findMetadataRelaxed(QuestionBankSearchRequest qr, int limitNumber) {
         return List.of();
     }
 

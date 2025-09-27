@@ -33,6 +33,8 @@ public class QuestionBankSearchRequest {
      * Сложность задания [0..1]
      */
     private float complexity;
+    @Builder.Default
+    private float complexityWindow = 0.1f;
 
     /** минимум шагов в решении */
     private int stepsMin;
