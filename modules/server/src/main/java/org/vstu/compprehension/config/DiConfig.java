@@ -91,9 +91,10 @@ public class DiConfig {
             @Autowired DomainRepository domainRepository,
             @Autowired QuestionMetadataRepository metadataRepository,
             @Autowired QuestionDataRepository questionDataRepository,
-            @Autowired QuestionGenerationRequestRepository generationRequestRepository) throws Exception {
+            @Autowired QuestionGenerationRequestRepository generationRequestRepository,
+            @Autowired QuestionMetadataSearchRequestRepository questionSearchRequestLogRepository) throws Exception {
         //var allDomains = domainRepository.findAll();
-        return new QuestionBank(metadataRepository, questionDataRepository, generationRequestRepository);
+        return new QuestionBank(metadataRepository, questionDataRepository, generationRequestRepository, questionSearchRequestLogRepository);
     }
 
     @Bean

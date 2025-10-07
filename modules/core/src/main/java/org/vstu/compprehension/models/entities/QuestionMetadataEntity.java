@@ -127,10 +127,6 @@ public class QuestionMetadataEntity {
     @Builder.Default
     private Long skillBitsInPlan = 0L; // planned by exercise
 
-    @Transient
-    @Builder.Default
-    private Long skillBitsInRequest = 0L; // actually requested
-
 
     public double complexityAbsDiff(double complexity) {
         return Math.abs(getIntegralComplexity() - complexity);
@@ -158,39 +154,13 @@ public class QuestionMetadataEntity {
         return ~violationBits & violationBitsInPlan;
     }
 
-    /** Common bits of skills in plan and violations in question */
-    public Long skillsSatisfiedFromPlan() {
-        return skillBits & skillBitsInPlan;
-    }
-    /** Skills from plan absent in question's violations */
-    public Long skillsUnsatisfiedFromPlan() {
-        return ~skillBits & skillBitsInPlan;
-    }
-
     /** Common bits of concepts in request and concepts (or trace concepts) in question */
     public Long traceConceptsSatisfiedFromRequest() {
         return (traceConceptBits != 0 ? traceConceptBits : conceptBits) & conceptBitsInRequest;  // traceConceptBits are not applicable to all domains...
-    }
-    /** Concepts from request absent in question's concepts (or trace concepts) */
-    public Long traceConceptsUnsatisfiedFromRequest() {
-        return ~(traceConceptBits != 0 ? traceConceptBits : conceptBits) & conceptBitsInRequest;
     }
 
     /** Common bits of violations in request and violations in question */
     public Long violationsSatisfiedFromRequest() {
         return violationBits & violationBitsInRequest;
-    }
-    /** Violations from request absent in question's violations */
-    public Long violationsUnsatisfiedFromRequest() {
-        return ~violationBits & violationBitsInRequest;
-    }
-
-    /** Common bits of skills in request and violations in question */
-    public Long skillsSatisfiedFromRequest() {
-        return skillBits & skillBitsInRequest;
-    }
-    /** Skills from request absent in question's violations */
-    public Long skillsUnsatisfiedFromRequest() {
-        return ~skillBits & skillBitsInRequest;
     }
 }

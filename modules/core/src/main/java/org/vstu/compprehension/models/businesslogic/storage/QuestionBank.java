@@ -5,16 +5,14 @@ import lombok.extern.log4j.Log4j2;
 import lombok.val;
 import org.jetbrains.annotations.NotNull;
 import org.jetbrains.annotations.Nullable;
-import org.vstu.compprehension.dto.QuestionBankSearchResultDto;
+import org.vstu.compprehension.dto.QuestionBankSearchStatsDto;
 import org.vstu.compprehension.models.businesslogic.QuestionBankSearchRequest;
 import org.vstu.compprehension.models.businesslogic.QuestionRequest;
-import org.vstu.compprehension.models.entities.QuestionDataEntity;
-import org.vstu.compprehension.models.entities.QuestionGenerationRequestEntity;
-import org.vstu.compprehension.models.entities.QuestionMetadataEntity;
-import org.vstu.compprehension.models.entities.QuestionRequestLogEntity;
+import org.vstu.compprehension.models.entities.*;
 import org.vstu.compprehension.models.repository.QuestionDataRepository;
 import org.vstu.compprehension.models.repository.QuestionGenerationRequestRepository;
 import org.vstu.compprehension.models.repository.QuestionMetadataRepository;
+import org.vstu.compprehension.models.repository.QuestionMetadataSearchRequestRepository;
 
 import java.util.ArrayList;
 import java.util.List;
@@ -26,16 +24,18 @@ public class QuestionBank {
     private final QuestionDataRepository questionDataRepository;
     private final QuestionMetadataManager questionMetadataManager;
     private final QuestionGenerationRequestRepository generationRequestRepository;
-    private static final float COMPLEXITY_WINDOW = 0.1f;
+    private final QuestionMetadataSearchRequestRepository questionSearchRequestLogRepository;
 
     public QuestionBank(
             QuestionMetadataRepository questionMetadataRepository,
             QuestionDataRepository questionDataRepository,
-            QuestionGenerationRequestRepository generationRequestRepository) {
+            QuestionGenerationRequestRepository generationRequestRepository,
+            QuestionMetadataSearchRequestRepository questionSearchRequestLogRepository) {
         this.questionMetadataRepository = questionMetadataRepository;
         this.questionDataRepository = questionDataRepository;
         this.questionMetadataManager = new QuestionMetadataManager(questionMetadataRepository);
         this.generationRequestRepository = generationRequestRepository;
+        this.questionSearchRequestLogRepository = questionSearchRequestLogRepository;
     }
 
     private QuestionBankSearchRequest createBankSearchRequest(QuestionRequest qr) {
@@ -84,7 +84,7 @@ public class QuestionBank {
         }
 
         // сложность должна быть в пределах COMPLEXITY_WINDOW от запрашиваемой
-        if (qr.getComplexity() != 0 && Math.abs(qr.getComplexity() - meta.getIntegralComplexity()) > COMPLEXITY_WINDOW) {
+        if (qr.getComplexity() != 0 && Math.abs(qr.getComplexity() - meta.getIntegralComplexity()) > qr.getComplexityWindow()) {
             return false;
         }
 
@@ -115,21 +115,21 @@ public class QuestionBank {
 
     public int countQuestions(QuestionRequest qr) {
         var bankSearchRequest = createBankSearchRequest(qr);
-        return questionMetadataRepository.countQuestions(bankSearchRequest, COMPLEXITY_WINDOW);
+        return questionMetadataRepository.countQuestions(bankSearchRequest);
     }
 
-    public QuestionBankSearchResultDto getStatsByQuestionRequest(QuestionRequest qr, int limit) {
+    public QuestionBankSearchStatsDto getStatsByQuestionRequest(QuestionRequest qr, int limit) {
         var bankSearchRequest = createBankSearchRequest(qr);
-        var ordinaryCount = questionMetadataRepository.countQuestions(bankSearchRequest, COMPLEXITY_WINDOW);
-        var topRatedCount = questionMetadataRepository.countTopRatedQuestions(bankSearchRequest, COMPLEXITY_WINDOW);
-        var metadata = questionMetadataRepository.findMetadata(bankSearchRequest, COMPLEXITY_WINDOW, limit)
+        var ordinaryCount = questionMetadataRepository.countQuestions(bankSearchRequest);
+        var topRatedCount = questionMetadataRepository.countTopRatedQuestions(bankSearchRequest);
+        var metadata = questionMetadataRepository.findMetadata(bankSearchRequest, limit)
             .stream()
-            .map(m -> new QuestionBankSearchResultDto.QuestionMetadataDto(m.getId(), m.getName()))
+            .map(m -> new QuestionBankSearchStatsDto.QuestionMetadataDto(m.getId(), m.getName()))
             .toList();
-        return new QuestionBankSearchResultDto(ordinaryCount, topRatedCount, metadata);
+        return new QuestionBankSearchStatsDto(ordinaryCount, topRatedCount, metadata);
     }
 
-    public List<QuestionMetadataEntity> searchQuestions(@NotNull QuestionRequest qr, int limit, int generatorThreshold) {
+    public QuestionBankSearchResult searchQuestions(@NotNull QuestionRequest qr, int limit, int generatorThreshold) {
 
         var bankSearchRequest = createBankSearchRequest(qr);
         
@@ -187,11 +187,18 @@ public class QuestionBank {
         } else if (generatorThreshold < 7) {
             generatorThreshold = 7;
         }
-        int topRatedLimit = generatorThreshold + 3;
+        log.info("search query prepared: {}, generatorThreshold: {}", new Gson().toJson(preparedQuery), generatorThreshold);
+        
+        var searchSteps = new ArrayList<QuestionMetadataSearchRequestEntity.Iteration>(3);
+        List<QuestionMetadataEntity> foundQuestionMetas;
 
-        log.info("search query prepared: {}, generatorThreshold: {}, limit: {}", new Gson().toJson(preparedQuery), generatorThreshold, topRatedLimit);
-        List<QuestionMetadataEntity> foundQuestionMetas = questionMetadataRepository.findTopRatedUnusedMetadata(preparedQuery, COMPLEXITY_WINDOW, topRatedLimit);
-        log.info("search query executed with {} top rated candidates", foundQuestionMetas.size());
+        {
+            int topRatedLimit = generatorThreshold + 3;
+            log.info("trying to do {} search with {} limit", QuestionMetadataSearchRequestEntity.Quality.BestUnused, topRatedLimit);
+            foundQuestionMetas = questionMetadataRepository.findTopRatedUnusedMetadata(preparedQuery, topRatedLimit);
+            log.info("{} search executed with {} candidates", QuestionMetadataSearchRequestEntity.Quality.BestUnused, foundQuestionMetas.size());
+            searchSteps.add(new QuestionMetadataSearchRequestEntity.Iteration(QuestionMetadataSearchRequestEntity.Quality.BestUnused, topRatedLimit, foundQuestionMetas.size()));
+        }
 
         // runtime assert to find possible desync between findTopRatedMetadata and isMatch methods
         {
@@ -222,15 +229,19 @@ public class QuestionBank {
         }
         
         if (foundQuestionMetas.isEmpty()) {
-            log.info("zero candidates found, trying to do relaxed search");
-            foundQuestionMetas = questionMetadataRepository.findMetadata(preparedQuery, COMPLEXITY_WINDOW, 10);
-            log.info("relaxed search query executed with {} candidates", foundQuestionMetas.size());
+            int normalLimit = 100;
+            log.info("trying to do {} search with {} limit", QuestionMetadataSearchRequestEntity.Quality.Normal, normalLimit);
+            foundQuestionMetas = questionMetadataRepository.findMetadata(preparedQuery, normalLimit);
+            log.info("{} search executed with {} candidates", QuestionMetadataSearchRequestEntity.Quality.Normal, foundQuestionMetas.size());
+            searchSteps.add(new QuestionMetadataSearchRequestEntity.Iteration(QuestionMetadataSearchRequestEntity.Quality.Normal, normalLimit, foundQuestionMetas.size()));
         }
         
         if (foundQuestionMetas.isEmpty()) {
-            log.warn("no candidates found, trying to do max relaxed search");
-            foundQuestionMetas = questionMetadataRepository.findMetadataRelaxed(preparedQuery, COMPLEXITY_WINDOW, 10);
-            log.info("max relaxed search query executed with {} candidates", foundQuestionMetas.size());
+            int relaxedLimit = 100;
+            log.info("trying to do {} search with {} limit", QuestionMetadataSearchRequestEntity.Quality.Relaxed, relaxedLimit);
+            foundQuestionMetas = questionMetadataRepository.findMetadataRelaxed(preparedQuery, relaxedLimit);
+            log.info("{} search executed with {} candidates", QuestionMetadataSearchRequestEntity.Quality.Relaxed, foundQuestionMetas.size());
+            searchSteps.add(new QuestionMetadataSearchRequestEntity.Iteration(QuestionMetadataSearchRequestEntity.Quality.Relaxed, relaxedLimit, foundQuestionMetas.size()));
         }
 
         foundQuestionMetas = foundQuestionMetas.subList(0, Math.min(limit, foundQuestionMetas.size()));
@@ -243,7 +254,6 @@ public class QuestionBank {
             // Save actual requested bits as well
             m.setConceptBitsInRequest(targetConceptsBitmask);
             m.setViolationBitsInRequest(targetLawsBitmask);
-            m.setSkillBitsInRequest(targetSkillsBitmask);
 
             /// debug check law bits
             if (targetLawsBitmask != 0 && (targetLawsBitmask & m.getViolationBits()) == 0) {
@@ -251,7 +261,11 @@ public class QuestionBank {
             }
         }
 
-        return foundQuestionMetas;
+        // save search request to db
+        var logEntity = new QuestionMetadataSearchRequestEntity(preparedQuery, searchSteps, qr.getId());
+        logEntity = questionSearchRequestLogRepository.save(logEntity);
+
+        return new QuestionBankSearchResult(logEntity.getQuality(), foundQuestionMetas);
     }
 
     public @Nullable QuestionMetadataEntity loadQuestion(int questionMetadataId) {

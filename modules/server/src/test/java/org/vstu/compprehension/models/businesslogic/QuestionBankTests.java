@@ -9,9 +9,7 @@ import org.springframework.test.context.ActiveProfiles;
 import org.springframework.transaction.annotation.Transactional;
 import org.vstu.compprehension.models.businesslogic.storage.QuestionBank;
 import org.vstu.compprehension.models.entities.QuestionMetadataEntity;
-import org.vstu.compprehension.models.repository.QuestionDataRepository;
-import org.vstu.compprehension.models.repository.QuestionGenerationRequestRepository;
-import org.vstu.compprehension.models.repository.QuestionMetadataRepository;
+import org.vstu.compprehension.models.repository.*;
 
 import java.util.stream.Collectors;
 
@@ -25,13 +23,16 @@ public class QuestionBankTests {
     private QuestionDataRepository questionDataRepository;
     @Autowired
     private QuestionGenerationRequestRepository questionGenerationRequestRepository;
+    @Autowired
+    private QuestionMetadataSearchRequestRepository questionSearchRequestLogRepository;
 
     @Test
     public void isMatchAndFindTopRatedMetadataEqualityTest() {
         var questionBank = new QuestionBank(
                 questionMetadataRepository,
                 questionDataRepository,
-                questionGenerationRequestRepository
+                questionGenerationRequestRepository,
+                questionSearchRequestLogRepository
         );
 
         var generationRequests = IteratorUtils.toList(questionGenerationRequestRepository.findAll().iterator())
@@ -41,7 +42,7 @@ public class QuestionBankTests {
         for (var genReq : generationRequests) {
             var questionSearchRequest = genReq.getQuestionRequest();
 
-            var matched = questionMetadataRepository.findTopRatedMetadata(questionSearchRequest, .1f, 1_000_000);
+            var matched = questionMetadataRepository.findTopRatedMetadata(questionSearchRequest, 1_000_000);
             var matchedIds = matched.stream().map(QuestionMetadataEntity::getId).collect(Collectors.toSet());
             for (var m : matched) {
                 Assertions.assertTrue(questionBank.isMatch(m, questionSearchRequest), "Matched metadata should match the search request for metadata " + m.getId());
