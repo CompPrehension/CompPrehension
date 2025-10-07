@@ -1,0 +1,102 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<databaseChangeLog
+        xmlns="http://www.liquibase.org/xml/ns/dbchangelog"
+        xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance"
+        xsi:schemaLocation="http://www.liquibase.org/xml/ns/dbchangelog
+                      http://www.liquibase.org/xml/ns/dbchangelog/dbchangelog-4.24.xsd"
+        objectQuotingStrategy="QUOTE_ONLY_RESERVED_WORDS">
+    <changeSet id="1758987923825-1" author="Artem Prokudin">
+        <sql>
+            -- удаляем связь таблиц question и question_request_log
+            alter table question
+            drop constraint FK_QUESTION_ON_QUESTION_REQUEST;
+
+            drop index FK_QUESTION_ON_QUESTION_REQUEST on question;
+
+            -- добавляем uuid колонку в question
+            alter table question
+            add column question_request_id_uuid BINARY(16) null after question_request_id;
+
+            -- добавляем uuid колонку в question_request_log
+            alter table question_request_log
+            ADD COLUMN uuid BINARY(16) NULL AFTER id;
+
+            -- заполняем uuid колонки
+            update question_request_log
+            set uuid = UUID_TO_BIN(UUID(), 1)
+            WHERE uuid IS NULL;
+
+            update question q
+            join question_request_log qr ON q.question_request_id  = qr.id
+            set q.question_request_id_uuid = qr.uuid
+            where q.question_request_id_uuid is null;
+
+            -- делаем uuid колонку новым primary key в question_request_log
+            ALTER TABLE question_request_log
+            MODIFY uuid BINARY(16) NOT NULL,
+            ADD UNIQUE KEY ux_question_request_log_uuid (uuid);
+
+            ALTER TABLE question_request_log
+            CHANGE COLUMN id id_old BIGINT NOT NULL;
+
+            ALTER TABLE question_request_log
+            DROP PRIMARY KEY;
+
+            ALTER TABLE question_request_log
+            CHANGE COLUMN uuid id BINARY(16) NOT NULL,
+            ADD PRIMARY KEY (id);
+
+            ALTER TABLE question_request_log DROP COLUMN id_old;
+
+            -- делаем fk для question на новый uuid колонки question_request_log
+            ALTER TABLE question
+            CHANGE COLUMN question_request_id question_request_id_old BIGINT NULL;
+
+            ALTER TABLE question
+            CHANGE COLUMN question_request_id_uuid question_request_id BINARY(16) NULL;
+
+            ALTER TABLE question
+            ADD KEY FK_QUESTION_ON_QUESTION_REQUEST (question_request_id);
+
+            ALTER TABLE question
+            ADD CONSTRAINT FK_QUESTION_ON_QUESTION_REQUEST
+            FOREIGN KEY (question_request_id)
+            REFERENCES question_request_log(id)
+            ON DELETE SET NULL;
+
+            ALTER TABLE question DROP COLUMN question_request_id_old;
+
+            -- немного сахара для отображения в ide
+            ALTER TABLE question
+            ADD COLUMN question_request_id_text VARCHAR(36)
+            GENERATED ALWAYS AS (BIN_TO_UUID(question_request_id, 1))
+            VIRTUAL AFTER question_request_id;
+
+            ALTER TABLE question_request_log
+            ADD COLUMN id_text VARCHAR(36)
+            GENERATED ALWAYS AS (BIN_TO_UUID(id, 1))
+            VIRTUAL AFTER id;
+        </sql>
+        
+        <sql>
+            CREATE TABLE questions_meta_search_requests (
+                id BIGINT AUTO_INCREMENT PRIMARY KEY,
+                question_request_id BINARY(16) NULL,
+                question_request_id_text VARCHAR(36) GENERATED ALWAYS AS (BIN_TO_UUID(question_request_id, 1)) VIRTUAL,
+                created_at DATETIME NOT NULL,
+                quality TINYINT NOT NULL,
+                qlimit INT NOT NULL,
+                found INT NOT NULL,
+                search_request JSON NOT NULL,
+                search_iterations JSON NOT NULL,
+
+                INDEX idx_qmsr_created_at (created_at),
+                INDEX idx_qmsr_question_request_id (question_request_id),
+                INDEX idx_qmsr_quality (quality)
+            );
+
+            alter table question_request_log
+            drop column found_count;
+        </sql>
+    </changeSet>
+</databaseChangeLog>

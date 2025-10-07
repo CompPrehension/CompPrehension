@@ -25,7 +25,7 @@ public class QuestionMetadataComplexQueriesRepositoryImpl implements QuestionMet
     }
 
     @Override
-    public int countQuestions(QuestionBankSearchRequest qr, float complexityWindow) {
+    public int countQuestions(QuestionBankSearchRequest qr) {
         ensureRequestValid(qr);
         
         var domainShortname = qr.getDomainShortname();
@@ -48,6 +48,7 @@ public class QuestionMetadataComplexQueriesRepositoryImpl implements QuestionMet
         var targetTagsBitmask = qr.getTargetTagsBitmask();
         var targetSkillsBitmask = qr.getTargetSkillsBitmask();
         var complexity = qr.getComplexity();
+        var complexityWindow = qr.getComplexityWindow();
         var minComplexity = complexity - complexityWindow;
         var maxComplexity = complexity + complexityWindow;
 
@@ -86,7 +87,7 @@ public class QuestionMetadataComplexQueriesRepositoryImpl implements QuestionMet
     }
 
     @Override
-    public int countTopRatedQuestions(QuestionBankSearchRequest qr, float complexityWindow) {
+    public int countTopRatedQuestions(QuestionBankSearchRequest qr) {
         ensureRequestValid(qr);
 
         var domainShortname = qr.getDomainShortname();
@@ -109,6 +110,7 @@ public class QuestionMetadataComplexQueriesRepositoryImpl implements QuestionMet
         var targetTagsBitmask = qr.getTargetTagsBitmask();
         var targetSkillsBitmask = qr.getTargetSkillsBitmask();
         var complexity = qr.getComplexity();
+        var complexityWindow = qr.getComplexityWindow();
         var minComplexity = complexity - complexityWindow;
         var maxComplexity = complexity + complexityWindow;
 
@@ -173,15 +175,15 @@ public class QuestionMetadataComplexQueriesRepositoryImpl implements QuestionMet
         return (List<Integer>)query.getResultList();        
     }
 
-    public List<QuestionMetadataEntity> findTopRatedUnusedMetadata(QuestionBankSearchRequest qr, float complexityWindow, int limitNumber) {
-        return findTopRatedMetadata(qr, complexityWindow, limitNumber, false);
+    public List<QuestionMetadataEntity> findTopRatedUnusedMetadata(QuestionBankSearchRequest qr, int limitNumber) {
+        return findTopRatedMetadata(qr, limitNumber, false);
     }
 
-    public List<QuestionMetadataEntity> findTopRatedMetadata(QuestionBankSearchRequest qr, float complexityWindow, int limitNumber) {
-        return findTopRatedMetadata(qr, complexityWindow, limitNumber, true);
+    public List<QuestionMetadataEntity> findTopRatedMetadata(QuestionBankSearchRequest qr, int limitNumber) {
+        return findTopRatedMetadata(qr, limitNumber, true);
     }
 
-    private List<QuestionMetadataEntity> findTopRatedMetadata(QuestionBankSearchRequest qr, float complexityWindow, int limitNumber, boolean ignoreUsage) {
+    private List<QuestionMetadataEntity> findTopRatedMetadata(QuestionBankSearchRequest qr, int limitNumber, boolean ignoreUsage) {
         ensureRequestValid(qr);
 
         var domainShortname = qr.getDomainShortname();
@@ -204,6 +206,7 @@ public class QuestionMetadataComplexQueriesRepositoryImpl implements QuestionMet
         var targetTagsBitmask = qr.getTargetTagsBitmask();
         var targetSkillsBitmask = qr.getTargetSkillsBitmask();
         var complexity = qr.getComplexity();
+        var complexityWindow = qr.getComplexityWindow();
         var minComplexity = complexity - complexityWindow;
         var maxComplexity = complexity + complexityWindow;
 
@@ -273,7 +276,7 @@ public class QuestionMetadataComplexQueriesRepositoryImpl implements QuestionMet
         return (List<QuestionMetadataEntity>)result;
     }
 
-    public List<QuestionMetadataEntity> findMetadata(QuestionBankSearchRequest qr, float complexityWindow, int limitNumber) {
+    public List<QuestionMetadataEntity> findMetadata(QuestionBankSearchRequest qr, int limitNumber) {
         ensureRequestValid(qr);
 
         var domainShortname = qr.getDomainShortname();
@@ -296,6 +299,7 @@ public class QuestionMetadataComplexQueriesRepositoryImpl implements QuestionMet
         var targetTagsBitmask = qr.getTargetTagsBitmask();
         var targetSkillsBitmask = qr.getTargetSkillsBitmask();
         var complexity = qr.getComplexity();
+        var complexityWindow = qr.getComplexityWindow();
         var unwantedConceptsBitmask = qr.getUnwantedConceptsBitmask();
         var unwantedLawsBitmask = qr.getUnwantedLawsBitmask();
         var unwantedViolationsBitmask = qr.getUnwantedViolationsBitmask();
@@ -358,7 +362,7 @@ public class QuestionMetadataComplexQueriesRepositoryImpl implements QuestionMet
     }
 
     @Override
-    public List<QuestionMetadataEntity> findMetadataRelaxed(QuestionBankSearchRequest qr, float complexityWindow, int limitNumber) {
+    public List<QuestionMetadataEntity> findMetadataRelaxed(QuestionBankSearchRequest qr, int limitNumber) {
         ensureRequestValid(qr);
 
         var domainShortname = qr.getDomainShortname();
@@ -381,6 +385,7 @@ public class QuestionMetadataComplexQueriesRepositoryImpl implements QuestionMet
         var targetTagsBitmask = qr.getTargetTagsBitmask();
         var targetSkillsBitmask = qr.getTargetSkillsBitmask();
         var complexity = qr.getComplexity();
+        var complexityWindow = qr.getComplexityWindow();
         var unwantedConceptsBitmask = qr.getUnwantedConceptsBitmask();
         var unwantedLawsBitmask = qr.getUnwantedLawsBitmask();
         var unwantedViolationsBitmask = qr.getUnwantedViolationsBitmask();

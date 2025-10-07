@@ -11,7 +11,7 @@ import org.springframework.web.bind.annotation.RequestMethod;
 import org.springframework.web.bind.annotation.ResponseBody;
 import org.vstu.compprehension.Service.UserService;
 import org.vstu.compprehension.dto.QuestionBankSearchRequestDto;
-import org.vstu.compprehension.dto.QuestionBankSearchResultDto;
+import org.vstu.compprehension.dto.QuestionBankSearchStatsDto;
 import org.vstu.compprehension.models.businesslogic.QuestionRequest;
 import org.vstu.compprehension.models.businesslogic.domains.DomainFactory;
 import org.vstu.compprehension.models.businesslogic.storage.QuestionBank;
@@ -37,7 +37,7 @@ public class QuestionBankController {
 
     @RequestMapping(value = {"search"}, method = { RequestMethod.POST }, produces = "application/json", consumes = "application/json")
     @ResponseBody
-    public QuestionBankSearchResultDto search(@RequestBody QuestionBankSearchRequestDto searchRequest, HttpServletRequest request) throws Exception {
+    public QuestionBankSearchStatsDto search(@RequestBody QuestionBankSearchRequestDto searchRequest, HttpServletRequest request) throws Exception {
         var currentUser = userService.getCurrentUser();
         if (!currentUser.getRoles().contains(Role.TEACHER)) {
             throw new AuthorizationServiceException("Unathorized");

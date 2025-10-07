@@ -1,4 +1,4 @@
-package org.vstu.compprehension.models.businesslogic.storage.stats;
+package org.vstu.compprehension.models.businesslogic.storage;
 
 import lombok.AllArgsConstructor;
 import lombok.Value;
