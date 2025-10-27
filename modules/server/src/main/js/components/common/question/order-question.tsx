@@ -1,11 +1,10 @@
-import { observer } from "mobx-react";
-import React, { useMemo, useState } from "react";
-import { useEffect } from "react";
-import { Answer } from "../../../types/answer";
-import { OrderQuestionFeedback } from "../../../types/feedback";
-import { OrderQuestion } from "../../../types/question";
-import { isNullOrUndefined } from "../../../utils/helpers";
-import { Optional } from "../optional";
+import {observer} from "mobx-react";
+import React, {useEffect, useMemo} from "react";
+import {Answer} from "../../../types/answer";
+import {OrderQuestionFeedback} from "../../../types/feedback";
+import {OrderQuestion} from "../../../types/question";
+import {isNullOrUndefined} from "../../../utils/helpers";
+import {Optional} from "../optional";
 
 type OrderQuestionComponentProps = {
     question: OrderQuestion,
@@ -113,13 +112,13 @@ export const OrderQuestionComponent = observer((props: OrderQuestionComponentPro
         <div id={`question_${question.questionId}`}>
             <div className="comp-ph-question-text" dangerouslySetInnerHTML={{ __html: question.text }} />
             <Optional isVisible={isTraceVisible}>
-                <p>
+                <div>
                     <table className="comp-ph-trace">
                         <tbody>                            
                             {trace?.map((t, idx) => <tr key={idx}><td dangerouslySetInnerHTML={{ __html: t }}></td></tr>)}                            
                         </tbody>
                     </table>
-                </p>
+                </div>
             </Optional>
         </div>
     );

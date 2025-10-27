@@ -49,8 +49,6 @@ export const QuestionComponent = observer((props: QuestionComponentProps) => {
     ].join(' ');
 
     return (
-        <div className={wrapperClassName}>
-            {questonComponent}
-        </div>
+        <div className={wrapperClassName}>{questonComponent}</div>
     );
 })

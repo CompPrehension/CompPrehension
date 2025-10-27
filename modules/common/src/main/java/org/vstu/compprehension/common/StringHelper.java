@@ -83,4 +83,8 @@ public class StringHelper {
         }
         return builder;
     }
+
+    public static String stripTags(String input) {
+        return input.replaceAll("<[^>]+>", "");
+    }
 }

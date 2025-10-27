@@ -874,7 +874,7 @@
                                                                         _EN_endingCause="Because of the associativity of ${X.class()} and ${Y.class()}"
                                                                         _EN_question="What's the associativity of ${X.class()} and ${Y.class()}?"
                                                                         _RU_asNextStep="Необходимо проверить, какова ассоциативность ${X.class()}[case='р'] и ${Y.class()}[case='р']"
-                                                                        _RU_endingCause="Из-за ассоциативности ${X.class()} и ${Y.class()}"
+                                                                        _RU_endingCause="Из-за ассоциативности ${X.class()}[case='р'] и ${Y.class()}[case='р']"
                                                                         _RU_question="Какова ассоциативность ${X.class()}[case='р'] и ${Y.class()}[case='р']?"
                                                                         _TEMPLATING_ID="54" _alias="left.associativity">
                                                                     <Expression>
@@ -1512,7 +1512,7 @@
                                                                         _EN_endingCause="Because of the associativity of ${X.class()} and ${Z.class()}"
                                                                         _EN_question="What's the associativity of ${X.class()} and ${Z.class()}?"
                                                                         _RU_asNextStep="Необходимо проверить, какова ассоциативность ${X.class()}[case='р'] и ${Z.class()}[case='р']"
-                                                                        _RU_endingCause="Из-за ассоциативности ${X.class()} и ${Z.class()}"
+                                                                        _RU_endingCause="Из-за ассоциативности ${X.class()}[case='р'] и ${Z.class()}[case='р']"
                                                                         _RU_question="Какова ассоциативность ${X.class()}[case='р'] и ${Z.class()}[case='р']?"
                                                                         _TEMPLATING_ID="94"
                                                                         _alias="right.associativity">
@@ -1930,7 +1930,7 @@
                         <BranchResultNode
                                 _EN_explanation="the expression does not contain unevaluated operators with strict order of operand evaluation."
                                 _RU_explanation="в выражении нет невычисленных операторов со строгим порядком вычисления операндов."
-                                _TEMPLATING_ID="125" _skill="expression_strict_order_operators_present"
+                                _TEMPLATING_ID="125" _skill="expression_strict_order_operators_present" _muted="true"
                                 value="CORRECT"/>
                     </Outcome>
                     <Outcome value="CORRECT">
@@ -1972,7 +1972,7 @@
                         <BranchResultNode
                                 _EN_explanation="${obj:currentLanguage} allows evaluating of function arguments in any order."
                                 _RU_explanation="${obj:currentLanguage} разрешает вычисление аргументов функции в любом порядке."
-                                _TEMPLATING_ID="129" _skill="are_central_operands_strict_order" value="CORRECT"/>
+                                _TEMPLATING_ID="129" _skill="are_central_operands_strict_order" value="CORRECT" _muted="true"/>
                     </Outcome>
                     <Outcome
                             _EN_explanation="${obj:currentLanguage} supports strict function call argument ordering by specification"

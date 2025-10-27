@@ -3,9 +3,7 @@ package org.vstu.compprehension.common;
 import org.jetbrains.annotations.NotNull;
 import org.jetbrains.annotations.Nullable;
 
-import java.util.Collection;
-import java.util.Map;
-import java.util.Optional;
+import java.util.*;
 import java.util.stream.Collectors;
 
 public class Utils {
@@ -24,5 +22,17 @@ public class Utils {
                         item -> 1,
                         Integer::sum
                 ));
+    }
+
+    public static <T> Set<T> intersectSets(Collection<T> main, Collection<T> other) {
+        Set<T> mainSet = new HashSet<T>(main);
+        mainSet.retainAll(other);
+        return mainSet;
+    }
+
+    public static <T> Set<T> unionSets(Collection<T> main, Collection<T> other) {
+        Set<T> mainSet = new HashSet<T>(main);
+        mainSet.addAll(other);
+        return mainSet;
     }
 }

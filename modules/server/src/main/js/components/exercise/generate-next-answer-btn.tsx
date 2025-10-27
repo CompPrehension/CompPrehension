@@ -24,6 +24,8 @@ export const GenerateNextAnswerBtn = observer(({ store }: GenerateNextAnswerBtnP
     };
 
     return (        
-        <Button onClick={onClicked} variant="primary">{t('nextCorrectAnswerBtn')}</Button>
+        <Button onClick={onClicked} className='comp-ph-hint-btn' variant="primary">
+            {t('nextCorrectAnswerBtn')}
+        </Button>
     )
 })

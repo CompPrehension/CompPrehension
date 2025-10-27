@@ -1,0 +1,91 @@
+detection_method: "fuzzy"
+terms:
+  - pattern:
+      RU: "ассоциативность"
+      EN: "associativity"
+    explanations:
+      RU: "Ассоциативность определяет, в каком порядке выполняются операции одинакового приоритета: слева направо (левая), справа налево (правая), либо не допускается их объединение (без ассоциативности)."
+      EN: "Associativity determines the order in which operations of the same precedence are evaluated: left-to-right (left), right-to-left (right), or not allowed to be chained (non-associative)."
+
+  - pattern:
+      RU:
+        - "левая ассоциативность|лев.. ассоциативност.\\w?"
+        - "левоассоциативны|левоассоциатив.?н\\w*"
+      EN: "left associativity|left associative"
+    detection_method: "regex"
+    explanations:
+      RU: "Если операторы одинакового приоритета обладают левой ассоциативностью, то в выражении они вычисляются слева направо."
+      EN: "Left associativity means that operators having equal precedence are evaluated from left to right."
+
+  - pattern:
+      RU:
+        - "правая ассоциативность|прав.. ассоциативност.\\w?"
+        - "правоассоциативны|правоассоциатив.?н\\w*"
+      EN: "right associativity|right associative"
+    detection_method: "regex"
+    explanations:
+      RU: "Если операторы одинакового приоритета обладают правой ассоциативностью, то в выражении они вычисляются справа налево."
+      EN: "Right associativity means that operators having equal precedence are evaluated from right to left."
+
+  - pattern:
+      RU: "арность"
+      EN: "arity"
+    explanations:
+      RU: "Арность — это количество операндов, которые принимает оператор: один (унарный), два (бинарный), три (тернарный)."
+      EN: "Arity is the number of operands an operator takes: one (unary), two (binary), or three (ternary)."
+
+  - pattern:
+      RU: "унарный оператор"
+      EN: "unary operator"
+    explanations:
+      RU: "Унарный оператор принимает один операнд, например, `-x`."
+      EN: "A unary operator takes a single operand, such as `-x`."
+
+  - pattern:
+      RU: "бинарный оператор"
+      EN: "binary operator"
+    explanations:
+      RU: "Бинарный оператор работает с двумя операндами, например, `a + b`."
+      EN: "A binary operator works with two operands, such as `a + b`."
+
+  - pattern:
+      RU: "тернарный оператор"
+      EN: "ternary operator"
+    explanations:
+      RU: "Тернарный оператор работает с тремя операндами, например, условный оператор «a ? b : c»."
+      EN: "A ternary operator works with three operands, such as the conditional «a ? b : c»."
+
+  - pattern:
+      RU: "приоритет"
+      EN: "precedence"
+    explanations:
+      RU: "Приоритет оператора определяет, какие операции выполняются раньше в выражении без скобок."
+      EN: "Operator precedence determines which operations are evaluated first in an expression without parentheses."
+
+  - pattern:
+      RU: "операнд"
+      EN: "operand"
+    explanations:
+      RU: "Операнд — это объект, над которым производится операция, например, числа в выражении «2 + 3»."
+      EN: "An operand is an object on which an operation is performed, such as the numbers in «2 + 3»."
+
+  - pattern:
+      RU: "строгий порядок"
+      EN: "strict order"
+    explanations:
+      RU: "Строгий порядок — это точная последовательность вычисления частей выражения, при которой операции выполняются одна за другой в определённом порядке без параллелизма или пропуска. В языке C примерами операторов со строгим порядком вычисления являются логические операторы `И` и `ИЛИ`, а также оператор запятая `,` в Си. При их вычислении каждая часть выражения вычисляется последовательно слева направо, и следующая часть начинается только после завершения предыдущей."
+      EN: "Strict order is an exact sequence of evaluating parts of an expression, where operations are performed one after another in a defined order without parallelism or skipping. In the C language, examples of operators with strict evaluation order are the logical operators `И` and `OR`, as well as the comma operator `,` in C language. When evaluating these, each part of the expression is computed sequentially from left to right, and the next part starts only after the previous one finishes."
+
+  - pattern:
+      RU: "оператор ?:"
+      EN: "operator ?:"
+    explanations:
+      RU: "Тернарный оператор (cnd ? a1 : a2) имеет три операнда — условие и две альтернативы, одна из которых станет значением оператора, а другая вычисляться не будет."
+      EN: "The ternary operator(cnd ? a1 : a2) has three operands — a condition and two alternatives, one of which becomes the value of the operator, and the other is not evaluated."
+
+  - pattern:
+      RU: "оператор"
+      EN: "operator"
+    explanations:
+      RU: "Оператор — это символ или ключевое слово, указывающее на выполнение определённой операции над операндами."
+      EN: "An operator is a symbol or keyword that specifies an operation to be performed on operands."

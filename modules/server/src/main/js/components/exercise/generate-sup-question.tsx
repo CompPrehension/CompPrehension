@@ -1,17 +1,16 @@
 import { observer } from 'mobx-react';
 import * as React from 'react';
-import {  useState } from 'react';
+import { useState } from 'react';
 import { Alert, Button } from 'react-bootstrap';
+import { useTranslation } from "react-i18next";
+import { SupplementaryQuestionStore } from '../../stores/sup-question-store';
+import { Answer } from '../../types/answer';
+import { FeedbackMessage, FeedbackViolationLaw } from '../../types/feedback';
 import { delayPromise } from '../../utils/helpers';
+import { Loader } from '../common/loader';
 import { Modal } from '../common/modal';
 import { Optional } from '../common/optional';
-import { useTranslation } from "react-i18next";
-import { FeedbackMessage, FeedbackViolationLaw } from '../../types/feedback';
-import { SupplementaryQuestionStore } from '../../stores/sup-question-store';
-import { Loader } from '../common/loader';
-import { Answer } from '../../types/answer';
 import { QuestionComponent } from '../common/question/question';
-import { toJS } from 'mobx';
 
 type GenerateSupQuestionProps = {
     store: SupplementaryQuestionStore,
@@ -162,7 +161,7 @@ export const ShortFeedbackAlert = observer((props: ShortFeedbackAlertProps) => {
     const variant = message.type === 'SUCCESS' ? 'success' : 'danger';
     return(
         <Alert variant={variant}>
-            {message.message}
+            <span dangerouslySetInnerHTML={{ __html: message.message }} />
         </Alert>
     )
 })

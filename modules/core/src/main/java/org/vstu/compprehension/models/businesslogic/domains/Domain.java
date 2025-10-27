@@ -212,7 +212,6 @@ public interface Domain {
      */
     InterpretSentenceResult judgeQuestion(Question question, List<ResponseEntity> responses, List<Tag> tags);
 
-
     /**
      * Any available correct answer at current iteration
      */
