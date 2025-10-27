@@ -135,7 +135,7 @@ public class DecisionTreeReasonerBackend
         if (appDomain instanceof DomainBase domainBase && domainBase.getTermDictionary().isPresent()) {
             annotationProcessor = new DomainTermAnnotationProcessor(domainBase.getTermDictionary().get(), lang.toLocale());
         }
-        Explanation result = Explanation.aggregate(type, _collectExplanations(type, trace, null,
+        Explanation result = Explanation.aggregate(type, collectExplanations(type, trace, null,
                 AggregationPolicy.Default,
                 domainModel, annotationProcessor, deniedSkills, lang));
         String prefix = Explanation.getCommonPrefix(result.getChildren(), "");
@@ -154,13 +154,13 @@ public class DecisionTreeReasonerBackend
     }
 
     // Рекурсивный сбор объяснений для очередной трассы дерева
-    private static List<Explanation> _collectExplanations(Explanation.Type type,
-                                     DecisionTreeTrace trace,
-                                     Explanation parent,
-                                     AggregationPolicy policy,
-                                     DomainModel domain,
-                                     DomainTermAnnotationProcessor annotationProcessor,
-                                     List<String> deniedSkills, Language lang) {
+    private static List<Explanation> collectExplanations(Explanation.Type type,
+                                                         DecisionTreeTrace trace,
+                                                         Explanation parent,
+                                                         AggregationPolicy policy,
+                                                         DomainModel domain,
+                                                         DomainTermAnnotationProcessor annotationProcessor,
+                                                         List<String> deniedSkills, Language lang) {
         List<Explanation> traceExplanations = new ArrayList<>(); // временный буфер
         for (DecisionTreeTraceElement<?, ?> element : trace) {
             LearningSituation learningSituation = new LearningSituation(domain, element.getVariablesSnapshot());
@@ -201,7 +201,7 @@ public class DecisionTreeReasonerBackend
                 }
                 // Собрать с дочерних трасс элементы
                 for (DecisionTreeTrace subTrace : Objects.requireNonNullElse(element.nestedTraces(), new ArrayList<DecisionTreeTrace>())) {
-                    traceExplanations.addAll(_collectExplanations(type, subTrace, newParent, newPolicy, domain,
+                    traceExplanations.addAll(collectExplanations(type, subTrace, newParent, newPolicy, domain,
                             annotationProcessor, deniedSkills, lang));
                 }
                 // Если в агрегированной ветви один элемент - хранить в буфере только его, а если вообще нет элементов - удалить ветвь
