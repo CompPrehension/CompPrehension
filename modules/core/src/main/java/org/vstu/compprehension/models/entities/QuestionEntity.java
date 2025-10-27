@@ -102,18 +102,4 @@ public class QuestionEntity {
     @Column(name = "solution_facts", nullable = false)
     @Basic(fetch = FetchType.LAZY)
     private List<BackendFactEntity> solutionFacts = new ArrayList<>();
-
-
-    public Optional<ExerciseStageEntity> getExerciseStage() {
-        if (exerciseAttempt == null) return Optional.empty();
-        int qNum = exerciseAttempt.getQuestions().indexOf(this) + 1;
-        var stages = exerciseAttempt.getExercise().getStages();
-        int qPassed = 0;
-        ExerciseStageEntity stage = stages.getFirst();
-        for (int i = 0; i < stages.size() && qPassed < qNum; i++) {
-            stage = stages.get(i);
-            qPassed += stage.getNumberOfQuestions();
-        }
-        return Optional.ofNullable(stage);
-    }
 }

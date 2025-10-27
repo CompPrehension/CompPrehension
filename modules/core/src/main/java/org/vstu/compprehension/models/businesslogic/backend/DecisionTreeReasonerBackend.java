@@ -316,7 +316,7 @@ public class DecisionTreeReasonerBackend
             updateJudgeInterpretationResult(result, backendOutput);
 
             Language lang = getUserLanguageByQuestion(judgedQuestion);
-            var exerciseStage = judgedQuestion.getQuestionData().getExerciseStage();
+            var exerciseStage = judgedQuestion.getExerciseStage();
             List<String> deniedSkills = List.of();
             if (exerciseStage.isPresent()) {
                 deniedSkills = exerciseStage.get().getSkills()

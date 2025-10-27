@@ -344,7 +344,7 @@ public class ProgrammingLanguageExpressionDTDomain extends DecisionTreeReasoning
             ProgrammingLanguageExpressionsSolver.SolveResult solveResult = solver.solveNoVars(preparedSituation.getDomainModel(),
                     domainSolvingModel.decisionTree("earlyfinish")
             );
-            var exerciseStage = judgedQuestion.getQuestionData().getExerciseStage();
+            var exerciseStage = judgedQuestion.getExerciseStage();
             List<String> deniedSkills = List.of();
             if (exerciseStage.isPresent()) {
                 deniedSkills = exerciseStage.get().getSkills()
@@ -853,7 +853,7 @@ public class ProgrammingLanguageExpressionDTDomain extends DecisionTreeReasoning
         Language lang = Optional.ofNullable(q.getQuestionData().getExerciseAttempt())
                 .map(a -> a.getUser().getPreferred_language())
                 .orElse(Language.RUSSIAN/*ENGLISH*/);
-        var exerciseStage = q.getQuestionData().getExerciseStage();
+        var exerciseStage = q.getExerciseStage();
         List<String> deniedSkills = List.of();
         if (exerciseStage.isPresent()) {
             deniedSkills = exerciseStage.get().getSkills()

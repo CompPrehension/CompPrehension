@@ -8,6 +8,7 @@ import org.vstu.compprehension.models.businesslogic.backend.facts.Fact;
 import org.vstu.compprehension.models.businesslogic.domains.Domain;
 import org.vstu.compprehension.models.entities.*;
 import org.vstu.compprehension.models.entities.EnumData.QuestionType;
+import org.vstu.compprehension.models.entities.exercise.ExerciseStageEntity;
 import org.vstu.compprehension.utils.HyperText;
 
 import java.util.*;
@@ -149,5 +150,21 @@ public class Question {
 
     public boolean isSupplementary() {
         return this.questionData.getQuestionDomainType().contains("Supplementary");
+    }
+
+    public Optional<ExerciseStageEntity> getExerciseStage() {
+        var exerciseAttempt = questionData.getExerciseAttempt();
+        if (exerciseAttempt == null)
+            return Optional.empty();
+
+        int qNum = exerciseAttempt.getQuestions().indexOf(questionData) + 1;
+        var stages = exerciseAttempt.getExercise().getStages();
+        int qPassed = 0;
+        ExerciseStageEntity stage = stages.getFirst();
+        for (int i = 0; i < stages.size() && qPassed < qNum; i++) {
+            stage = stages.get(i);
+            qPassed += stage.getNumberOfQuestions();
+        }
+        return Optional.ofNullable(stage);
     }
 }
