@@ -1,6 +1,5 @@
 package org.vstu.compprehension.common;
 
-import lombok.val;
 import org.jetbrains.annotations.Contract;
 import org.jetbrains.annotations.NotNull;
 import org.jetbrains.annotations.Nullable;
@@ -13,8 +12,8 @@ public class StringHelper {
     }
 
     public static String joinWithDelimiter(@NotNull String delim, Object... parts) {
-        val joiner = new StringJoiner(delim);
-        for (val part : parts) {
+        var joiner = new StringJoiner(delim);
+        for (var part : parts) {
             joiner.add(part == null ? null : part.toString());
         }
         return joiner.toString();
