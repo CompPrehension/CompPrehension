@@ -4,7 +4,6 @@ package org.vstu.compprehension.config.logs;
 import jakarta.servlet.http.HttpServletRequest;
 import jakarta.servlet.http.HttpServletResponse;
 import lombok.extern.log4j.Log4j2;
-import lombok.val;
 import org.apache.logging.log4j.ThreadContext;
 import org.springframework.web.servlet.DispatcherServlet;
 import org.springframework.web.servlet.HandlerExecutionChain;
@@ -42,8 +41,8 @@ public class LoggableDispatcherServlet extends DispatcherServlet {
         HandlerExecutionChain handler = getHandler(request);
 
         // bypass files
-        val uri = request.getRequestURI();
-        val isLogNeeded = !uri.endsWith(".html") && !uri.endsWith(".js") && !uri.endsWith(".css");
+        var uri = request.getRequestURI();
+        var isLogNeeded = !uri.endsWith(".html") && !uri.endsWith(".js") && !uri.endsWith(".css");
 
         try {
             if (isLogNeeded)
@@ -67,7 +66,7 @@ public class LoggableDispatcherServlet extends DispatcherServlet {
         ThreadContext.put("userId", userService.tryGetCurrentUser()
                 .map(u -> u.getId().toString()).orElse(null));
 
-        val parameters = Collections.list(requestToCache.getParameterNames())
+        var parameters = Collections.list(requestToCache.getParameterNames())
                 .stream()
                 .collect(Collectors.toMap(parameterName -> parameterName, requestToCache::getParameterValues));
 

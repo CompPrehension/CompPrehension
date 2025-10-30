@@ -2,7 +2,6 @@ package org.vstu.compprehension.controllers;
 
 import jakarta.servlet.http.HttpServletRequest;
 import lombok.extern.log4j.Log4j2;
-import lombok.val;
 import org.springframework.context.i18n.LocaleContextHolder;
 import org.springframework.security.access.AuthorizationServiceException;
 import org.springframework.stereotype.Controller;
@@ -67,7 +66,7 @@ public class QuestionController {
     @RequestMapping(value = {"generate"}, method = { RequestMethod.GET })
     @ResponseBody
     public QuestionDto generateQuestion(Long attemptId, HttpServletRequest request) throws Exception {
-        val locale = LocaleContextHolder.getLocale();
+        var locale = LocaleContextHolder.getLocale();
         return frontendService.generateQuestion(attemptId);
     }
 
@@ -99,7 +98,7 @@ public class QuestionController {
     @RequestMapping(value = {"generateSupplementaryQuestion"}, method = { RequestMethod.POST })
     @ResponseBody
     public SupplementaryQuestionDto generateSupplementaryQuestion(@RequestBody SupplementaryQuestionRequestDto questionRequest, HttpServletRequest request) throws Exception {
-        val locale = LocaleContextHolder.getLocale();
+        var locale = LocaleContextHolder.getLocale();
         return frontendService.generateSupplementaryQuestion(questionRequest.getQuestionId(), questionRequest.getViolationLaws());
     }
 
@@ -126,7 +125,7 @@ public class QuestionController {
     @RequestMapping(value = {"generateNextCorrectAnswer"}, method = { RequestMethod.GET })
     @ResponseBody
     public FeedbackDto generateNextCorrectAnswer(@RequestParam Long questionId, HttpServletRequest request) throws Exception {
-        val locale = LocaleContextHolder.getLocale();
+        var locale = LocaleContextHolder.getLocale();
         return frontendService.generateNextCorrectAnswer(questionId);
     }
 }
