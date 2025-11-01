@@ -30,11 +30,18 @@
             <artifactId>jcommander</artifactId>
             <version>1.82</version>
         </dependency>
+        <!--
        <dependency>
            <groupId>com.github.bardoor</groupId>
            <artifactId>meaning_tree</artifactId>
            <version>${meaningtree.version}</version>
        </dependency>
+       -->
+        <dependency>
+            <groupId>org.vstu.meaningtree</groupId>
+            <artifactId>application</artifactId>
+            <version>1.0-SNAPSHOT</version>
+        </dependency>
     </dependencies>
 
 
@@ -43,7 +50,7 @@
             <plugin>
                 <groupId>org.apache.maven.plugins</groupId>
                 <artifactId>maven-shade-plugin</artifactId>
-                <version>3.4.1</version>
+                <version>3.6.1</version>
 
                 <executions>
                     <execution>
