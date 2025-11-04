@@ -8,6 +8,7 @@ import its.model.definition.rdf.DomainRDFFiller;
 import its.reasoner.LearningSituation;
 import its.reasoner.nodes.DecisionTreeReasoner;
 import its.reasoner.nodes.DecisionTreeTrace;
+import lombok.Getter;
 import lombok.extern.log4j.Log4j2;
 import lombok.val;
 import org.apache.commons.lang3.NotImplementedException;
@@ -87,19 +88,21 @@ public class ObjectsScopeDTDomain extends DecisionTreeReasoningDomain {
             DomainSolvingModel.BuildMethod.DICT_RDF
     ).validate();
 
+    @Getter
+    private final DecisionTreeInterface backendInterface = new DecisionTreeInterface();
+
     public ObjectsScopeDTDomain(
             DomainEntity domainEntity,
             LocalizationService localizationService,
             RandomProvider randomProvider,
             QuestionBank qMetaStorage
     ) {
-        super(domainEntity, randomProvider, null);
+        super(domainEntity, randomProvider);
 
         this.localizationService = localizationService;
         this.qMetaStorage = qMetaStorage;
         positiveLaws = new HashMap<>();
         negativeLaws = new HashMap<>();
-        this.setBackendInterface(new DecisionTreeInterface());
 
         fillConcepts();
         fillSkills();
@@ -474,7 +477,7 @@ public class ObjectsScopeDTDomain extends DecisionTreeReasoningDomain {
         lastCorrectInteraction.ifPresent(interactionEntity -> responses.addAll(interactionEntity.getResponses()));
 
         if(q.getQuestionDomainType().equals(LIFE_TIME)) {
-            DomainModel situationModel = factsToDomainModel(q.getQuestionData().getStatementFacts(), domainLifeTimeSolvingModel);
+            DomainModel situationModel = factsToDomainModel(domainLifeTimeSolvingModel, q.getQuestionData().getStatementFacts());
             for (ResponseEntity response : responses) {
                 if(!response.getLeftAnswerObject().getDomainInfo().equals(END_ANSWER)) {
                     val step = situationModel.getDomainModel().getObjects().get(response.getLeftAnswerObject().getDomainInfo());
@@ -516,7 +519,7 @@ public class ObjectsScopeDTDomain extends DecisionTreeReasoningDomain {
                 situationModel.getVariables().remove("step");
             }
         } else if (q.getQuestionDomainType().equals(OBJECT_VISIBILITY)) {
-            DomainModel situationModel = factsToDomainModel(q.getQuestionData().getStatementFacts(), domainObjectVisibilitySolvingModel);
+            DomainModel situationModel = factsToDomainModel(domainObjectVisibilitySolvingModel, q.getQuestionData().getStatementFacts());
             for (ResponseEntity response : responses) {
                 if(!response.getLeftAnswerObject().getDomainInfo().equals(END_ANSWER)) {
                     val line = situationModel.getDomainModel().getObjects().get(response.getLeftAnswerObject().getDomainInfo());
@@ -557,7 +560,7 @@ public class ObjectsScopeDTDomain extends DecisionTreeReasoningDomain {
                 situationModel.getVariables().remove("usageLine");
             }
         } else if(q.getQuestionDomainType().equals(OBJECTS_VISIBILITY)) {
-            DomainModel situationModel = factsToDomainModel(q.getQuestionData().getStatementFacts(), domainObjectsVisibilityInLineSolvingModel);
+            DomainModel situationModel = factsToDomainModel(domainObjectsVisibilityInLineSolvingModel, q.getQuestionData().getStatementFacts());
             for (ResponseEntity response : responses) {
                 val context = situationModel.getDomainModel().getObjects().get(response.getLeftAnswerObject().getDomainInfo());
                 setBoolProperty(context, "isEvaluated", true);
@@ -714,7 +717,7 @@ public class ObjectsScopeDTDomain extends DecisionTreeReasoningDomain {
     private DomainModel mainQuestionToModel(InteractionEntity lastMainQuestionInteraction) {
         Question question = new Question(lastMainQuestionInteraction.getQuestion(), this);
 
-        DomainModel situationModel = factsToDomainModel(question.getQuestionData().getStatementFacts(), domainLifeTimeSolvingModel);
+        DomainModel situationModel = factsToDomainModel(domainLifeTimeSolvingModel, question.getQuestionData().getStatementFacts());
         ResponseEntity lastResponse = lastMainQuestionInteraction.getResponses().getLast();
         for (ResponseEntity response : lastMainQuestionInteraction.getResponses()) {
             if(response != lastResponse && !response.getLeftAnswerObject().getDomainInfo().equals(END_ANSWER)) {
@@ -728,7 +731,7 @@ public class ObjectsScopeDTDomain extends DecisionTreeReasoningDomain {
         return situationModel;
     }
 
-    private DomainModel factsToDomainModel(Collection<BackendFactEntity> factEntities, DomainSolvingModel domainSolvingModel) {
+    private static DomainModel factsToDomainModel(DomainSolvingModel domainSolvingModel, Collection<BackendFactEntity> factEntities) {
         JenaBackend jenaBackend = new JenaBackend();
         JenaFactList jenaFactList = jenaBackend.convertFactEntities(factEntities);
         DomainModel situationModel = domainSolvingModel.getDomainModel().copy();
@@ -771,15 +774,21 @@ public class ObjectsScopeDTDomain extends DecisionTreeReasoningDomain {
         return List.of(domainLifeTimeSolvingModel, domainObjectVisibilitySolvingModel, domainObjectsVisibilityInLineSolvingModel);
     }
 
-    private class DecisionTreeInterface extends DecisionTreeReasonerBackend.Interface {
+    private static class DecisionTreeInterface extends DecisionTreeReasonerBackend.Interface {
         @Override
         public DecisionTreeReasonerBackend.Input prepareBackendInfoForJudge(
                 Question question,
                 List<ResponseEntity> responses,
                 List<Tag> tags
         ) {
+            var domain = question.getDomain();
+            if (!(domain instanceof ObjectsScopeDTDomain realDomain)) {
+                throw new IllegalArgumentException("Domain is not a ObjectsScopeDTDomain");
+            }
+
             if(question.getQuestionDomainType().equals(LIFE_TIME)) {
-                DomainModel situationModel = factsToDomainModel(question.getQuestionData().getStatementFacts(), domainLifeTimeSolvingModel);
+                var domainSolvingModel = realDomain.domainLifeTimeSolvingModel;
+                DomainModel situationModel = factsToDomainModel(domainSolvingModel, question.getQuestionData().getStatementFacts());
                 ResponseEntity lastResponse = responses.getLast();
                 for (ResponseEntity response : responses) {
                     if(response != lastResponse && !response.getLeftAnswerObject().getDomainInfo().equals(END_ANSWER)) {
@@ -793,10 +802,11 @@ public class ObjectsScopeDTDomain extends DecisionTreeReasoningDomain {
 
                 return new DecisionTreeReasonerBackend.Input(
                         situationModel,
-                        domainLifeTimeSolvingModel.getDecisionTree()
+                        domainSolvingModel.getDecisionTree()
                 );
             } else if (question.getQuestionDomainType().equals(OBJECT_VISIBILITY)) {
-                DomainModel situationModel = factsToDomainModel(question.getQuestionData().getStatementFacts(), domainObjectVisibilitySolvingModel);
+                var domainSolvingModel = realDomain.domainObjectVisibilitySolvingModel;
+                DomainModel situationModel = factsToDomainModel(domainSolvingModel, question.getQuestionData().getStatementFacts());
                 ResponseEntity lastResponse = responses.getLast();
                 for (ResponseEntity response : responses) {
                     if(response != lastResponse && !response.getLeftAnswerObject().getDomainInfo().equals(END_ANSWER)) {
@@ -810,10 +820,11 @@ public class ObjectsScopeDTDomain extends DecisionTreeReasoningDomain {
 
                 return new DecisionTreeReasonerBackend.Input(
                         situationModel,
-                        domainObjectVisibilitySolvingModel.getDecisionTree()
+                        domainSolvingModel.getDecisionTree()
                 );
             } else if(question.getQuestionDomainType().equals(OBJECTS_VISIBILITY)) {
-                DomainModel situationModel = factsToDomainModel(question.getQuestionData().getStatementFacts(), domainObjectsVisibilityInLineSolvingModel);
+                var domainSolvingModel = realDomain.domainObjectsVisibilityInLineSolvingModel;
+                DomainModel situationModel = factsToDomainModel(domainSolvingModel, question.getQuestionData().getStatementFacts());
                 ResponseEntity lastResponse = responses.getLast();
                 for (ResponseEntity response : responses) {
                     if(response != lastResponse) {
@@ -825,7 +836,7 @@ public class ObjectsScopeDTDomain extends DecisionTreeReasoningDomain {
 
                 return new DecisionTreeReasonerBackend.Input(
                         situationModel,
-                        domainObjectsVisibilityInLineSolvingModel.getDecisionTree()
+                        domainSolvingModel.getDecisionTree()
                 );
             }
             return null;
@@ -882,9 +893,14 @@ public class ObjectsScopeDTDomain extends DecisionTreeReasoningDomain {
                 Question judgedQuestion,
                 LearningSituation preparedSituation
         ) {
+            var domain = judgedQuestion.getDomain();
+            if (!(domain instanceof ObjectsScopeDTDomain realDomain)) {
+                throw new IllegalArgumentException("Domain is not a ObjectsScopeDTDomain");
+            }
+            
             if(judgedQuestion.getQuestionDomainType().equals(LIFE_TIME)) {
                 DecisionTreeTrace decisionTreeTrace = DecisionTreeReasoner.solve(
-                        domainLifeTimeSolvingModel.decisionTree("all"),
+                        realDomain.domainLifeTimeSolvingModel.decisionTree("all"),
                         preparedSituation
                 );
 
@@ -907,7 +923,7 @@ public class ObjectsScopeDTDomain extends DecisionTreeReasoningDomain {
                 return result;
             } else if (judgedQuestion.getQuestionDomainType().equals(OBJECT_VISIBILITY)) {
                 DecisionTreeTrace decisionTreeTrace = DecisionTreeReasoner.solve(
-                        domainObjectVisibilitySolvingModel.decisionTree("all"),
+                        realDomain.domainObjectVisibilitySolvingModel.decisionTree("all"),
                         preparedSituation
                 );
 
@@ -1025,11 +1041,6 @@ public class ObjectsScopeDTDomain extends DecisionTreeReasoningDomain {
         @Override
         public DecisionTreeReasonerBackend.Input prepareBackendInfoForSolve(Question question, List<Tag> tags) {
             return null; //Solve not used in DecisionTreeReasonerBackend
-        }
-
-        @Override
-        public String getBackendId() {
-            return DecisionTreeReasonerBackend.BACKEND_ID;
         }
     }
 }

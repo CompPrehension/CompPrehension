@@ -283,14 +283,8 @@ public class DecisionTreeReasonerBackend
         return null;
     }
 
-    public static abstract class Interface
-        extends DomainToBackendAdapter<Input, Output, DecisionTreeReasonerBackend> {
+    public static abstract class Interface implements DomainToBackendAdapter<Input, Output, DecisionTreeReasonerBackend> {
 
-        public Interface() {
-            super(DecisionTreeReasonerBackend.class);
-        }
-
-        private final static String ERROR_NODE_ATTR = "error";
         @Override
         public InterpretSentenceResult interpretJudgeOutput(
             Question judgedQuestion,

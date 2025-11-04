@@ -10,6 +10,7 @@ import its.model.definition.EnumValueRef;
 import its.model.definition.ObjectDef;
 import its.model.nodes.DecisionTree;
 import its.reasoner.LearningSituation;
+import lombok.Getter;
 import lombok.SneakyThrows;
 import lombok.extern.log4j.Log4j2;
 import lombok.val;
@@ -52,14 +53,16 @@ public class ProgrammingLanguageExpressionDTDomain extends DecisionTreeReasoning
     private final LocalizationService localizationService;
     private final QuestionBank qMetaStorage;
 
+    @Getter
+    private final DecisionTreeInterface backendInterface = new DecisionTreeInterface();
+
     @SneakyThrows
     public ProgrammingLanguageExpressionDTDomain(DomainEntity domainEntity, ProgrammingLanguageExpressionDomain baseDomain) {
-        super(domainEntity, baseDomain.randomProvider, null /* will be set after superclass call */);
+        super(domainEntity, baseDomain.randomProvider);
 
         this.baseDomain = baseDomain;
         this.localizationService = baseDomain.localizationService;
         this.qMetaStorage = baseDomain.qMetaStorage;
-        this.setBackendInterface(new DecisionTreeInterface()); // TODO у dt циклическая зависимость с доменом, нужно это пересмотреть
 
         this.concepts = baseDomain.concepts;
         this.positiveLaws = baseDomain.positiveLaws;
@@ -320,13 +323,19 @@ public class ProgrammingLanguageExpressionDTDomain extends DecisionTreeReasoning
 
     private static final String STILL_UNEVALUATED_LEFT_VIOLATION_NAME = "stillUnevaluatedLeft";
 
-    private class DecisionTreeInterface extends DecisionTreeReasonerBackend.Interface {
+    private static class DecisionTreeInterface extends DecisionTreeReasonerBackend.Interface {
         @Override
         public DecisionTreeReasonerBackend.Input prepareBackendInfoForJudge(
                 Question question,
                 List<ResponseEntity> responses,
                 List<Tag> tags
         ) {
+            var domain = question.getDomain();
+            if (!(domain instanceof ProgrammingLanguageExpressionDTDomain realDomain)) {
+                throw new IllegalArgumentException("Domain is not a ProgrammingLanguageExpressionDTDomain");
+            }
+            
+            var domainSolvingModel = realDomain.getDomainSolvingModels().getFirst();
             return new DecisionTreeReasonerBackend.Input(
                     MeaningTreeRDFTransformer.questionToDomainModel(
                             domainSolvingModel, question.getStatementFacts(), responses, tags
@@ -340,6 +349,12 @@ public class ProgrammingLanguageExpressionDTDomain extends DecisionTreeReasoning
                 Question judgedQuestion,
                 LearningSituation preparedSituation
         ) {
+            var domain = judgedQuestion.getDomain();
+            if (!(domain instanceof ProgrammingLanguageExpressionDTDomain realDomain)) {
+                throw new IllegalArgumentException("Domain is not a ProgrammingLanguageExpressionDTDomain");
+            }
+
+            var domainSolvingModel = realDomain.getDomainSolvingModels().getFirst();
             ProgrammingLanguageExpressionsSolver solver = new ProgrammingLanguageExpressionsSolver();
             ProgrammingLanguageExpressionsSolver.SolveResult solveResult = solver.solveNoVars(preparedSituation.getDomainModel(),
                     domainSolvingModel.decisionTree("earlyfinish")
@@ -360,7 +375,7 @@ public class ProgrammingLanguageExpressionDTDomain extends DecisionTreeReasoning
             result.explanation = DecisionTreeReasonerBackend.collectExplanationsFromTrace(
                     Explanation.Type.ERROR, solveResult.trace(),
                     preparedSituation.getDomainModel(),
-                    ProgrammingLanguageExpressionDTDomain.this,
+                    domain,
                     deniedSkills,
                     getUserLanguageByQuestion(judgedQuestion));
             result.violations.addAll(result.explanation.getDomainLawNames().stream().map(skill -> {
@@ -444,11 +459,6 @@ public class ProgrammingLanguageExpressionDTDomain extends DecisionTreeReasoning
         @Override
         public DecisionTreeReasonerBackend.Input prepareBackendInfoForSolve(Question question, List<Tag> tags) {
             return null; //Solve not used in DecisionTreeReasonerBackend
-        }
-
-        @Override
-        public String getBackendId() {
-            return DecisionTreeReasonerBackend.BACKEND_ID;
         }
     }
 

@@ -14,25 +14,11 @@ import java.util.List;
  * <br>
  * The meaning of type parameters are identical to that of the {@link Backend}
  */
-public abstract class DomainToBackendAdapter<BackendInput, BackendOutput, Back extends Backend<BackendInput, BackendOutput>> {
-
-    /**
-     * The class of the backend this interface is defined for
-     */
-    protected final Class<Back> backendClass;
-
-    public DomainToBackendAdapter(Class<Back> backendClass) {
-        this.backendClass = backendClass;
-    }
-
-    public Class<Back> getBackendClass() {
-        return backendClass;
-    }
-
+public interface DomainToBackendAdapter<BackendInput, BackendOutput, Back extends Backend<BackendInput, BackendOutput>> {
     /**
      * Prepare data needed for the {@link Backend#judge} method using the necessary format
      */
-    public abstract BackendInput prepareBackendInfoForJudge(
+    BackendInput prepareBackendInfoForJudge(
         Question question,
         List<ResponseEntity> responses,
         List<Tag> tags
@@ -42,7 +28,7 @@ public abstract class DomainToBackendAdapter<BackendInput, BackendOutput, Back e
      * Interpret the results of the {@link Backend#judge} method
      * to provide user with the information on their responses
      */
-    public abstract Domain.InterpretSentenceResult interpretJudgeOutput(
+    Domain.InterpretSentenceResult interpretJudgeOutput(
         Question judgedQuestion,
         BackendOutput backendOutput
     );
@@ -51,7 +37,7 @@ public abstract class DomainToBackendAdapter<BackendInput, BackendOutput, Back e
     /**
      * Prepare data needed for the {@link Backend#solve} method using the necessary format
      */
-    public abstract BackendInput prepareBackendInfoForSolve(
+    BackendInput prepareBackendInfoForSolve(
         Question question,
         List<Tag> tags
     );
@@ -59,10 +45,8 @@ public abstract class DomainToBackendAdapter<BackendInput, BackendOutput, Back e
     /**
      * Insert the results of the {@link Backend#solve} method into the solved question
      */
-    public abstract void updateQuestionAfterSolve(
+    void updateQuestionAfterSolve(
         Question question,
         BackendOutput backendOutput
     );
-
-    public abstract String getBackendId();
 }

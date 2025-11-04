@@ -12,32 +12,22 @@ import org.vstu.compprehension.utils.RandomProvider;
 import java.util.List;
 
 public abstract class DecisionTreeReasoningDomain extends DomainBase {
-    private DecisionTreeReasonerBackend.Interface backendInterface;
-
-    protected DecisionTreeReasoningDomain(DomainEntity domainEntity, RandomProvider randomProvider, DecisionTreeReasonerBackend.Interface backendInterface) {
+    protected DecisionTreeReasoningDomain(DomainEntity domainEntity, RandomProvider randomProvider) {
         super(domainEntity, randomProvider);
-
-        this.backendInterface = backendInterface;
     }
 
     public abstract List<DomainSolvingModel> getDomainSolvingModels();
+    
+    public abstract DecisionTreeReasonerBackend.Interface getBackendInterface();
 
     @NotNull
-    public String getSolvingBackendId() {
+    public String getBackendId() {
         return DecisionTreeReasonerBackend.BACKEND_ID;
-    }
-
-    @NotNull
-    public String getJudgingBackendId() {
-        return DecisionTreeReasonerBackend.BACKEND_ID;
-    }
-
-    protected void setBackendInterface(DecisionTreeReasonerBackend.Interface backendInterface) {
-        this.backendInterface = backendInterface;
     }
 
     public Question solveQuestion(Question question, List<Tag> tags) {
         var backend = new DecisionTreeReasonerBackend();
+        var backendInterface = getBackendInterface();
         backendInterface.updateQuestionAfterSolve(
             question,
             backend.solve(backendInterface.prepareBackendInfoForSolve(question, tags))
@@ -47,6 +37,7 @@ public abstract class DecisionTreeReasoningDomain extends DomainBase {
 
     public InterpretSentenceResult judgeQuestion(Question question, List<ResponseEntity> responses, List<Tag> tags) {
         var backend = new DecisionTreeReasonerBackend();
+        var backendInterface = getBackendInterface();
         var output = backend.judge(backendInterface.prepareBackendInfoForJudge(question, responses, tags));
         return backendInterface.interpretJudgeOutput(question, output);
     }

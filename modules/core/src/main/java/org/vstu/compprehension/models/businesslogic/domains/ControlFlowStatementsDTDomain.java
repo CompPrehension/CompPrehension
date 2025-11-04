@@ -16,6 +16,7 @@ import org.jetbrains.annotations.NotNull;
 import org.jetbrains.annotations.Nullable;
 import org.vstu.compprehension.Service.LocalizationService;
 import org.vstu.compprehension.models.businesslogic.*;
+import org.vstu.compprehension.models.businesslogic.backend.DecisionTreeReasonerBackend;
 import org.vstu.compprehension.models.businesslogic.backend.JenaBackend;
 import org.vstu.compprehension.models.businesslogic.backend.facts.Fact;
 import org.vstu.compprehension.models.businesslogic.backend.facts.JenaFactList;
@@ -104,7 +105,7 @@ public class ControlFlowStatementsDTDomain extends DecisionTreeReasoningDomain {
             DomainEntity domainEntity,
             ControlFlowStatementsDomain baseDomain
     ) {
-        super(domainEntity, baseDomain.randomProvider, null /* TODO fix that */);
+        super(domainEntity, baseDomain.randomProvider);
 
         this.baseDomain = baseDomain;
         this.localizationService = baseDomain.localizationService;
@@ -114,6 +115,11 @@ public class ControlFlowStatementsDTDomain extends DecisionTreeReasoningDomain {
         this.positiveLaws = baseDomain.positiveLaws;
         this.negativeLaws = baseDomain.negativeLaws;
         loadDTModel();
+    }
+
+    @Override
+    public DecisionTreeReasonerBackend.Interface getBackendInterface() {
+        return null; /* TODO fix that */
     }
 
     @NotNull
@@ -133,7 +139,7 @@ public class ControlFlowStatementsDTDomain extends DecisionTreeReasoningDomain {
      **/
     @NotNull
     @Override
-    public String getSolvingBackendId() {
+    public String getBackendId() {
         return JenaBackend.BackendId;
     }
 

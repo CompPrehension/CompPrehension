@@ -10,6 +10,7 @@ import its.model.nodes.BranchResult;
 import its.reasoner.LearningSituation;
 import its.reasoner.nodes.DecisionTreeReasoner;
 import its.reasoner.nodes.DecisionTreeTrace;
+import lombok.Getter;
 import lombok.extern.log4j.Log4j2;
 import lombok.val;
 import org.apache.commons.lang3.NotImplementedException;
@@ -67,19 +68,21 @@ public class DataFlowDTDomain extends DecisionTreeReasoningDomain {
             DomainSolvingModel.BuildMethod.DICT_RDF
     ).validate();
 
+    @Getter
+    private final DecisionTreeInterface backendInterface = new DecisionTreeInterface();
+
     public DataFlowDTDomain(
             DomainEntity domainEntity,
             LocalizationService localizationService,
             RandomProvider randomProvider,
             QuestionBank qMetaStorage
     ) {
-        super(domainEntity, randomProvider, null);
+        super(domainEntity, randomProvider);
 
         this.localizationService = localizationService;
         this.qMetaStorage = qMetaStorage;
         positiveLaws = new HashMap<>();
         negativeLaws = new HashMap<>();
-        this.setBackendInterface(new DecisionTreeInterface());
 
         fillConcepts();
         fillSkills();
@@ -351,7 +354,8 @@ public class DataFlowDTDomain extends DecisionTreeReasoningDomain {
         List<ResponseEntity> responses = new ArrayList<>();
         lastCorrectInteraction.ifPresent(interactionEntity -> responses.addAll(interactionEntity.getResponses()));
 
-        DomainModel situationModel = factsToDomainModel(q.getQuestionData().getStatementFacts());
+        var solvingModel = getDomainSolvingModels().getFirst();
+        DomainModel situationModel = factsToDomainModel(solvingModel, q.getQuestionData().getStatementFacts());
         for (ResponseEntity response : responses) {
             String[] objects = response.getLeftAnswerObject().getDomainInfo().split(":");
             LearningSituation learningSituation = new LearningSituation(
@@ -541,7 +545,7 @@ public class DataFlowDTDomain extends DecisionTreeReasoningDomain {
                 .build();
     }
 
-    private DomainModel factsToDomainModel(Collection<BackendFactEntity> factEntities) {
+    private static DomainModel factsToDomainModel(DomainSolvingModel domainSolvingModel, Collection<BackendFactEntity> factEntities) {
         JenaBackend jenaBackend = new JenaBackend();
         JenaFactList jenaFactList = jenaBackend.convertFactEntities(factEntities);
         DomainModel situationModel = domainSolvingModel.getDomainModel().copy();
@@ -574,14 +578,20 @@ public class DataFlowDTDomain extends DecisionTreeReasoningDomain {
         return List.of(domainSolvingModel);
     }
 
-    private class DecisionTreeInterface extends DecisionTreeReasonerBackend.Interface {
+    private static class DecisionTreeInterface extends DecisionTreeReasonerBackend.Interface {
         @Override
         public DecisionTreeReasonerBackend.Input prepareBackendInfoForJudge(
                 Question question,
                 List<ResponseEntity> responses,
                 List<Tag> tags
         ) {
-            DomainModel situationModel = factsToDomainModel(question.getQuestionData().getStatementFacts());
+            var domain = question.getDomain();
+            if (!(domain instanceof DataFlowDTDomain realDomain)) {
+                throw new IllegalArgumentException("Domain is not a DataFlowDTDomain");
+            }
+            
+            var domainSolvingModel = realDomain.getDomainSolvingModels().getFirst();
+            DomainModel situationModel = factsToDomainModel(domainSolvingModel, question.getQuestionData().getStatementFacts());
             ResponseEntity lastResponse = responses.getLast();
             for (ResponseEntity response : responses) {
                 if(response != lastResponse) {
@@ -615,6 +625,11 @@ public class DataFlowDTDomain extends DecisionTreeReasoningDomain {
 
         @Override
         public InterpretSentenceResult interpretJudgeOutput(Question judgedQuestion, DecisionTreeReasonerBackend.Output backendOutput) {
+            var domain = judgedQuestion.getDomain();
+            if (!(domain instanceof DataFlowDTDomain realDomain)) {
+                throw new IllegalArgumentException("Domain is not a DataFlowDTDomain");
+            }
+
             if(!backendOutput.isReasoningDone()){
                 return interpretJudgeNotPerformed(judgedQuestion, backendOutput.situation());
             }
@@ -627,7 +642,7 @@ public class DataFlowDTDomain extends DecisionTreeReasoningDomain {
                     backendOutput.situation().getDomainModel(),
                     lang
             );
-            result.explanation = replaceEnumInExplanation(result.explanation, lang);
+            result.explanation = realDomain.replaceEnumInExplanation(result.explanation, lang);
             result.explanation.setCurrentDomainLawName("incorrectAnswer");
 
             result.violations = new ArrayList<>();
@@ -699,11 +714,6 @@ public class DataFlowDTDomain extends DecisionTreeReasoningDomain {
         @Override
         public DecisionTreeReasonerBackend.Input prepareBackendInfoForSolve(Question question, List<Tag> tags) {
             return null; //Solve not used in DecisionTreeReasonerBackend
-        }
-
-        @Override
-        public String getBackendId() {
-            return DecisionTreeReasonerBackend.BACKEND_ID;
         }
     }
 }
