@@ -283,10 +283,10 @@ public class DecisionTreeReasonerBackend
         return null;
     }
 
-    public static abstract class Interface implements DomainToBackendAdapter<Input, Output, DecisionTreeReasonerBackend> {
+    public interface Interface extends DomainToBackendAdapter<Input, Output, DecisionTreeReasonerBackend> {
 
         @Override
-        public InterpretSentenceResult interpretJudgeOutput(
+        default InterpretSentenceResult interpretJudgeOutput(
             Question judgedQuestion,
             Output backendOutput
         ) {
@@ -337,7 +337,7 @@ public class DecisionTreeReasonerBackend
         /**
          * Get current user's language from a question
          */
-        protected Language getUserLanguageByQuestion(Question question){
+        default Language getUserLanguageByQuestion(Question question){
             try {
                 return question.getQuestionData()
                     .getExerciseAttempt()
@@ -354,7 +354,7 @@ public class DecisionTreeReasonerBackend
          * @param judgedQuestion a question which prompted the unfinished judge
          * @param preparedSituation a learning situation that was prepared for this question by {@link #prepareBackendInfoForJudge} 
          */
-        protected abstract InterpretSentenceResult interpretJudgeNotPerformed(
+        InterpretSentenceResult interpretJudgeNotPerformed(
             Question judgedQuestion,
             LearningSituation preparedSituation
         );
@@ -365,12 +365,12 @@ public class DecisionTreeReasonerBackend
          * @param interpretationResult the updated result
          * @param backendOutput the output from the backend's {@link #judge} method
          */
-        protected abstract void updateJudgeInterpretationResult(
+        void updateJudgeInterpretationResult(
             InterpretSentenceResult interpretationResult,
             Output backendOutput
         );
 
-        public static String getCommonExplanationPrefix(LearningSituation situation,
+        static String getCommonExplanationPrefix(LearningSituation situation,
                                                         DecisionTree dt,
                                                         Explanation.Type type, String localizationCode) {
             Object meta = dt.getMainBranch().getMetadata().get(localizationCode,
@@ -390,8 +390,9 @@ public class DecisionTreeReasonerBackend
             return expanded;
         }
 
-        public static Explanation extractExplanation(BranchResultNode resultNode, String localizationCode,
-                                                     LearningSituation learningSituation){
+        static Explanation extractExplanation(BranchResultNode resultNode,
+                                              String localizationCode,
+                                              LearningSituation learningSituation){
             Explanation.Type type = resultNode.getValue() == BranchResult.CORRECT ?
                     Explanation.Type.HINT : Explanation.Type.ERROR;
             Object explanation = resultNode.getMetadata().get(localizationCode, "explanation");
@@ -421,9 +422,10 @@ public class DecisionTreeReasonerBackend
         }
 
         @Override
-        public void updateQuestionAfterSolve(
+        default void updateQuestionAfterSolve(
             Question question,
             Output backendOutput
-        ) {}
+        ) {
+        }
     }
 }

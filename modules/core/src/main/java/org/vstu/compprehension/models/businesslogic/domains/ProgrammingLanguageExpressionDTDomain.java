@@ -323,7 +323,7 @@ public class ProgrammingLanguageExpressionDTDomain extends DecisionTreeReasoning
 
     private static final String STILL_UNEVALUATED_LEFT_VIOLATION_NAME = "stillUnevaluatedLeft";
 
-    private static class DecisionTreeInterface extends DecisionTreeReasonerBackend.Interface {
+    private static class DecisionTreeInterface implements DecisionTreeReasonerBackend.Interface {
         @Override
         public DecisionTreeReasonerBackend.Input prepareBackendInfoForJudge(
                 Question question,
@@ -345,7 +345,7 @@ public class ProgrammingLanguageExpressionDTDomain extends DecisionTreeReasoning
         }
 
         @Override
-        protected InterpretSentenceResult interpretJudgeNotPerformed(
+        public InterpretSentenceResult interpretJudgeNotPerformed(
                 Question judgedQuestion,
                 LearningSituation preparedSituation
         ) {
@@ -389,7 +389,7 @@ public class ProgrammingLanguageExpressionDTDomain extends DecisionTreeReasoning
         }
 
         @Override
-        protected void updateJudgeInterpretationResult(
+        public void updateJudgeInterpretationResult(
                 InterpretSentenceResult interpretationResult,
                 DecisionTreeReasonerBackend.Output backendOutput
         ) {

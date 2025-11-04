@@ -774,7 +774,7 @@ public class ObjectsScopeDTDomain extends DecisionTreeReasoningDomain {
         return List.of(domainLifeTimeSolvingModel, domainObjectVisibilitySolvingModel, domainObjectsVisibilityInLineSolvingModel);
     }
 
-    private static class DecisionTreeInterface extends DecisionTreeReasonerBackend.Interface {
+    private static class DecisionTreeInterface implements DecisionTreeReasonerBackend.Interface {
         @Override
         public DecisionTreeReasonerBackend.Input prepareBackendInfoForJudge(
                 Question question,
@@ -889,7 +889,7 @@ public class ObjectsScopeDTDomain extends DecisionTreeReasoningDomain {
         }
 
         @Override
-        protected InterpretSentenceResult interpretJudgeNotPerformed(
+        public InterpretSentenceResult interpretJudgeNotPerformed(
                 Question judgedQuestion,
                 LearningSituation preparedSituation
         ) {
@@ -951,7 +951,7 @@ public class ObjectsScopeDTDomain extends DecisionTreeReasoningDomain {
         }
 
         @Override
-        protected void updateJudgeInterpretationResult(
+        public void updateJudgeInterpretationResult(
                 InterpretSentenceResult interpretationResult,
                 DecisionTreeReasonerBackend.Output backendOutput
         ) {}
