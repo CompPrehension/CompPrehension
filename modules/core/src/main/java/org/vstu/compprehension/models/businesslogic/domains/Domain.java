@@ -22,14 +22,9 @@ public interface Domain {
     @Nullable String getDescription(Language language);
 
     /**
-     * Get domain-defined backend id, which determines the backend used to SOLVE this domain's questions
+     * Get domain-defined backend id, which determines the backend used to SOLVE/JUDGE this domain's questions
      */
-    @NotNull String getSolvingBackendId();
-
-    /**
-     * Get domain-defined backend id, which determines the backend used to JUDGE this domain's questions. By default, the same as solving domain.
-     */
-    @NotNull String getJudgingBackendId();
+    @NotNull String getBackendId();
 
     @NotNull DomainEntity getDomainEntity();
 

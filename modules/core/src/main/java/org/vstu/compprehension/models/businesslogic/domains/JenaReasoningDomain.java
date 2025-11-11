@@ -17,19 +17,11 @@ public abstract class JenaReasoningDomain extends DomainBase {
     protected JenaReasoningDomain(DomainEntity domainEntity, RandomProvider randomProvider) {
         super(domainEntity, randomProvider);
 
-        this.backendInterface = new FactBackend.Interface<>(JenaBackend.class, this, JenaBackend.BackendId);
+        this.backendInterface = new FactBackend.Interface<>(this);
     }
 
     @NotNull
-    public String getSolvingBackendId() {
-        return JenaBackend.BackendId;
-    }
-
-    /**
-     * Get domain-defined backend id, which determines the backend used to JUDGE this domain's questions. By default, the same as solving domain.
-     */
-    @NotNull
-    public String getJudgingBackendId() {
+    public String getBackendId() {
         return JenaBackend.BackendId;
     }
 

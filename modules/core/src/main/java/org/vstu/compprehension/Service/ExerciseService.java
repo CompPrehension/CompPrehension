@@ -45,7 +45,7 @@ public class ExerciseService {
         var domainEntity = domainRepository.findById(domainId)
                 .orElseThrow();
         var domain = domainFactory.getDomain(domainEntity.getName());
-        var backendId = domain.getSolvingBackendId();
+        var backendId = domain.getBackendId();
 
         var exercise = new ExerciseEntity();
         exercise.setName(name);
@@ -72,7 +72,7 @@ public class ExerciseService {
         var domainEntity = domainRepository.findById(card.getDomainId())
                 .orElseThrow();
         var domain = domainFactory.getDomain(domainEntity.getName());
-        var backendId = domain.getSolvingBackendId();
+        var backendId = domain.getBackendId();
 
         exercise.setName(card.getName());
         exercise.setDomain(domainEntity);
