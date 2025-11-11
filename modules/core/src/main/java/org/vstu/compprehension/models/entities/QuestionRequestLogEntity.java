@@ -21,7 +21,6 @@ import java.util.UUID;
 public class QuestionRequestLogEntity {
     
     @Id
-    @GeneratedValue(strategy = GenerationType.UUID)
     private UUID id;
 
     private Long exerciseAttemptId;
