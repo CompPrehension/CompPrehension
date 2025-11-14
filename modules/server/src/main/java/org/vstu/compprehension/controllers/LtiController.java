@@ -1,5 +1,6 @@
 package org.vstu.compprehension.controllers;
 
+import com.nimbusds.jose.shaded.json.JSONArray;
 import com.nimbusds.jwt.JWTParser;
 import jakarta.servlet.http.HttpServletRequest;
 import jakarta.servlet.http.HttpServletResponse;
@@ -11,7 +12,6 @@ import org.springframework.security.core.authority.SimpleGrantedAuthority;
 import org.springframework.security.core.context.SecurityContext;
 import org.springframework.security.core.context.SecurityContextHolderStrategy;
 import org.springframework.security.oauth2.client.authentication.OAuth2AuthenticationToken;
-import org.springframework.security.oauth2.core.OAuth2AuthenticationException;
 import org.springframework.security.oauth2.core.oidc.OidcIdToken;
 import org.springframework.security.oauth2.core.oidc.user.DefaultOidcUser;
 import org.springframework.security.oauth2.core.user.OAuth2User;
@@ -29,7 +29,6 @@ import java.net.URLEncoder;
 import java.nio.charset.StandardCharsets;
 import java.text.ParseException;
 import java.util.Arrays;
-import java.util.List;
 import java.util.Map;
 import java.util.UUID;
 import java.util.stream.Collectors;
@@ -123,16 +122,9 @@ public class LtiController {
                 idToken.getJWTClaimsSet().getIssueTime().toInstant(),
                 idToken.getJWTClaimsSet().getExpirationTime().toInstant(),
                 idToken.getJWTClaimsSet().getClaims());
-        var rolesObj = claims.get("https://purl.imsglobal.org/spec/lti/claim/roles");
-        if (rolesObj == null) {
-            throw new OAuth2AuthenticationException("Claim 'roles' is required");
-        }
-
-        @SuppressWarnings("unchecked")
-        List<String> groups = (List<String>) rolesObj;
-
+        var groups = (JSONArray) claims.get("https://purl.imsglobal.org/spec/lti/claim/roles");
         var mappedAuthorities = groups.stream()
-                .map(role -> new SimpleGrantedAuthority(Arrays.stream(role.split("#"))
+                .map(role -> new SimpleGrantedAuthority(Arrays.stream(role.toString().split("#"))
                         .reduce((first, second) -> second)
                         .map(r -> "ROLE_" + r)
                         .orElseThrow()))

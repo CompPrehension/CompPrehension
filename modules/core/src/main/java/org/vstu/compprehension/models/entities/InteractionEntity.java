@@ -22,6 +22,7 @@ public class InteractionEntity {
     private Long id;
 
     @Column(name = "orderNumber")
+    @GeneratedValue(strategy = GenerationType.AUTO)
     private int orderNumber;
 
     @Column(name = "lastSupplementaryQuestion")
