@@ -1,5 +1,6 @@
 package org.vstu.compprehension.config;
 
+import com.nimbusds.jose.shaded.json.JSONArray;
 import org.springframework.context.annotation.Bean;
 import org.springframework.context.annotation.Configuration;
 import org.springframework.http.HttpStatus;
@@ -26,7 +27,9 @@ import org.springframework.web.cors.CorsConfiguration;
 import org.springframework.web.cors.CorsConfigurationSource;
 import org.springframework.web.cors.UrlBasedCorsConfigurationSource;
 
-import java.util.*;
+import java.util.List;
+import java.util.Map;
+import java.util.Set;
 import java.util.stream.Collectors;
 
 import static java.util.Collections.singletonList;
@@ -105,18 +108,10 @@ public class WebSecurityConfig {
             OidcUser oidcUser = delegate.loadUser(userRequest);
 
             final Map<String, Object> claims = oidcUser.getClaims();
-            final Object groupsObj = claims.get("groups");
-            if (groupsObj == null)
+            final JSONArray groups = (JSONArray)claims.get("groups");
+            if (groups == null)
                 throw new OAuth2AuthenticationException("Claim 'groups' is required for access_token");
 
-            List<String> groups;
-            if (groupsObj instanceof List) {
-                groups = (List<String>) groupsObj;
-            } else if (groupsObj instanceof Collection) {
-                groups = new ArrayList<>((Collection<String>) groupsObj);
-            } else {
-                throw new OAuth2AuthenticationException("Claim 'groups' has invalid format");
-            }
             final Set<GrantedAuthority> mappedAuthorities = groups.stream()
                     .map(role -> new SimpleGrantedAuthority(("ROLE_" + role)))
                     .collect(Collectors.toSet());
