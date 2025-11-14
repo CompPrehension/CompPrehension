@@ -1,0 +1,408 @@
+//-------------------STATIC (CLASS) SECTION-------------------
+//------------------------------------------------------------
+
+
+
+////// Общие перечисления //////
+
+enum OptionalBoolValue {
+	`true` [
+		RU.localizedName = "true" ;
+		EN.localizedName = "true" ;
+	],
+	`false` [
+		RU.localizedName = "false" ;
+		EN.localizedName = "false" ;
+	],
+	any [
+		RU.localizedName = "любое" ;
+		EN.localizedName = "any value" ;
+	],
+	none [
+		RU.localizedName = "нет значения" ;
+		EN.localizedName = "no value" ;
+	],
+} [
+	RU.localizedName = "значение условия" ;
+	EN.localizedName = "condition value" ;
+]
+
+
+enum InterruptionType {
+	break [
+		RU.localizedName = "прерывание цикла" ;
+		EN.localizedName = "break" ;
+	
+	],
+	continue [
+		RU.localizedName = "продолжение цикла" ;
+		EN.localizedName = "continue" ;
+	
+	],
+	return [
+		RU.localizedName = "возврат" ;
+		EN.localizedName = "return" ;
+	
+	],
+	exception [
+		RU.localizedName = "исключение" ;
+		EN.localizedName = "exception" ;
+	
+	],
+	any [
+		RU.localizedName = "любое" ;
+		EN.localizedName = "any" ;
+
+	],
+	none [
+		RU.localizedName = "нет прерывания" ;
+		EN.localizedName = "none" ;
+
+	],
+} [
+	RU.localizedName = "тип прерывания" ;
+	EN.localizedName = "interruption type" ;
+
+]
+
+enum AppearanceType {
+	mandatory [
+		RU.localizedName = "обязательный" ;
+		EN.localizedName = "mandatory" ;
+	
+	],
+	none [
+		RU.localizedName = "не показывать" ;
+		EN.localizedName = "none" ;
+	
+	],
+} [
+	RU.localizedName = "тип отображения" ;
+	EN.localizedName = "appearance type" ;
+
+]
+
+enum ActionKind {
+	compound [
+		RU.localizedName = "составное действие" ;
+		EN.localizedName = "compound" ;
+	
+	],
+	inline [
+		RU.localizedName = "внутристрочное действие" ;
+		EN.localizedName = "inline" ;
+	
+	],
+	any [
+		RU.localizedName = "любое" ;
+		EN.localizedName = "any" ;
+	
+	],
+	condition [
+		RU.localizedName = "условие" ;
+		EN.localizedName = "condition" ;
+	
+	],
+	block [
+		RU.localizedName = "блок кода" ;
+		EN.localizedName = "block" ;
+	
+	],
+	sequence [
+		RU.localizedName = "последовательность" ;
+		EN.localizedName = "sequence" ;
+	
+	],
+	alternative [
+		RU.localizedName = "развилка" ;
+		EN.localizedName = "alternative" ;
+	
+	],
+	loop [
+		RU.localizedName = "цикл" ;
+		EN.localizedName = "loop" ;
+	
+	],
+	noop [
+		RU.localizedName = "пустая операция" ;
+		EN.localizedName = "noop" ;
+	
+	],
+	call [
+		RU.localizedName = "вызов функции" ;
+		EN.localizedName = "call" ;
+	
+	],
+	try [
+		RU.localizedName = "обработка исключений" ;
+		EN.localizedName = "try" ;
+	
+	],
+} [
+	RU.localizedName = "тип действия" ;
+	EN.localizedName = "action kind" ;
+
+]
+
+enum NodeKind {
+	BEGIN [
+		RU.localizedName = "начало" ;
+		EN.localizedName = "begin" ;
+	],
+	END [
+		RU.localizedName = "конец" ;
+		EN.localizedName = "end" ;
+	],
+	atom [
+		RU.localizedName = "атомарная инструкция" ;
+		EN.localizedName = "atom statement" ;
+	],
+	any [
+		RU.localizedName = "любое" ;
+		EN.localizedName = "any" ;
+	],
+} [
+	RU.localizedName = "тип узла CFG" ;
+	EN.localizedName = "node kind" ;
+]
+
+enum CallStackAction {
+	add_frame [
+		RU.localizedName = "добавление фрейма функции" ;
+		EN.localizedName = "add frame" ;
+	
+	],
+	drop_frame [
+		RU.localizedName = "удаление фрейма функции" ;
+		EN.localizedName = "drop frame" ;
+	
+	],
+} [
+	RU.localizedName = "действие стека вызовов" ;
+	EN.localizedName = "call stack action" ;
+
+]
+
+
+
+
+////// Уровень абстракций управляющих конструкций //////
+
+
+class Effect {
+	obj prop interruption_stop: InterruptionType ;
+	obj prop interruption_start: InterruptionType ;
+	obj prop call_stack: CallStackAction ;
+} [
+	RU.localizedName = "эффект" ;
+	EN.localizedName = "effect" ;
+
+]
+
+
+class Behaviour {
+	obj prop assumed_value: bool ;
+} [
+	RU.localizedName = "поведение" ;
+	EN.localizedName = "behaviour" ;
+
+]
+
+class Constraint {
+	obj prop condition_value: bool ;
+	obj prop interruption_mode: InterruptionType ;
+} [
+	RU.localizedName = "ограничение" ;
+	EN.localizedName = "constraint" ;
+
+]
+
+class ActionSpec {
+	obj prop role: string ;
+	obj prop generalization: string ;
+	obj prop kind: string ;
+	obj prop appearanceType: AppearanceType ;
+
+	rel hasConstruct(ConstructSpec) ;
+	rel hasEffects(Effect) ;
+	rel hasBehaviour(Behaviour) : {* -> 1} ;
+} [
+	RU.localizedName = "спецификация действия" ;
+	EN.localizedName = "action specification" ;
+
+]
+
+class TransitionSpec {
+	rel from_(ActionSpec): {* -> 1};
+	rel to_(ActionSpec): {* -> 1};
+	rel to_when_absent(ActionSpec): {* -> 2};
+
+	rel hasConstruct(ConstructSpec) ;
+	rel hasConstraints(Constraint) ;
+	rel hasEffects(Effect) ;
+} [
+	RU.localizedName = "спецификация перехода" ;
+	EN.localizedName = "transition specification" ;
+
+]
+
+class ConstructSpec {
+	obj prop name: string ;
+	obj prop kind: string ;
+
+	rel hasActions(ActionSpec) ;
+	rel hasTransitions(TransitionSpec) ;
+	rel belongsToASTNode(ASTNodeWrapper) : {* -> 1} ;
+	rel hasEffects(Effect) ;
+} [
+	RU.localizedName = "спецификация конструкции" ;
+	EN.localizedName = "construct specification" ;
+
+]
+
+
+
+////// Уровень CFG - Control Flow Graph //////
+
+
+class Metadata {
+	obj prop primary: bool ;
+	obj prop is_after_last: bool ;
+	obj prop call_count: int[0, 65536] ;
+
+	rel hasAbstractAction(ActionSpec) : {* -> 1} ;
+	rel belongsToASTNode(ASTNodeWrapper) : {* -> 1} ;
+	rel hasAbstractTransition(TransitionSpec) : {* -> 1} ;
+	rel hasCorrespondingEnd(Node) : {* -> 1} ;
+} [
+	RU.localizedName = "метаданные" ;
+	EN.localizedName = "metadata" ;
+
+]
+
+class Node {
+	obj prop id: string ;
+	obj prop role: string ;
+	obj prop kind: NodeKind ;
+
+	rel belongsTo(CFG) : opposite to CFG->hasNodes ;
+	rel hasEffects(Effect) ;
+	rel hasMetadata(Metadata) : {* -> 1};
+
+	rel hasEdges(Edge) : opposite to Edge->hasSource ;
+	rel startsPath(PathInfo) : opposite to PathInfo->from_;
+	rel endsPath(PathInfo) : opposite to PathInfo->to_;
+} [
+	RU.localizedName = "узел" ;
+	EN.localizedName = "node" ;
+]
+
+
+class Edge {
+	obj prop id: string ;
+
+	rel belongsTo(CFG) : opposite to CFG->hasEdges ;
+	rel hasSource(Node) : {* -> 1} ;
+	rel hasDestination(Node) : {* -> 1} ;
+	rel hasMetadata(Metadata) : {* -> 1};
+	rel hasEffects(Effect) ;
+	rel hasConstraints(Constraint) ;
+} [
+	RU.localizedName = "ребро" ;
+	EN.localizedName = "edge" ;
+]
+
+class CFG {
+	obj prop id: string ;
+	obj prop name: string ;
+
+	rel hasNodes(Node) : {1 -> *} ;
+	rel hasEdges(Edge) : {1 -> *} ;
+	rel hasBegin(Node) : {1 -> 1} ;
+	rel hasEnd(Node) : {1 -> 1} ;
+} [
+	RU.localizedName = "граф потока управления" ;
+	EN.localizedName = "control flow graph" ;
+]
+
+
+class PathInfo {
+	obj prop id: string ;
+	obj prop is_direct: bool ;
+	// obj prop ways_count: int[0, 65536] ;
+	// obj prop cfg_steps: int[0, 65536] ;
+	obj prop ast_actions: int[0, 65536] ;
+	obj prop transparent_actions: int[0, 65536] ;
+	obj prop opaque_actions: int[0, 65536] ;
+	obj prop conditions: int[0, 65536] ;  // Непрозрачные (TODO)
+	obj prop frame_changes: int[0, 65536] ;
+	obj prop frames_added: int[0, 65536] ;
+	obj prop frames_dropped: int[0, 65536] ;
+
+	rel from_(Node) : {* -> 1} ;  // opposite to Node->startsPath
+	rel to_(Node) : {* -> 1} ;  // opposite to Node->endsPath
+	// rel viaNodes(Node) : {* -> *} ;
+	// rel viaEdges(Edge) : {* -> *} ;
+	rel firstMiddleAction(Node) : {* -> 1} ;
+	rel firstMiddleCondition(Node) : {* -> 1} ;
+	rel firstMiddleFrameChange(Node) : {* -> 1} ;
+} [
+	RU.localizedName = "Путь по графу CFG и информация о достижимости" ;
+	EN.localizedName = "Path within a CFG & reachability info" ;
+
+]
+
+
+////// Уровень условия задачи -- конкретного AST //////
+
+class ASTNodeWrapper {
+	obj prop ast_id: int ;
+	obj prop ast_node: string ;
+	obj prop current_condition_value: bool ;
+
+	rel hasParent(ASTNodeWrapper) : {* -> 1} ;
+	rel hasChildren(ASTNodeWrapper) ;
+	rel hasMetadata(Metadata) : {* -> 1};
+} [
+	RU.localizedName = "обёртка узла AST" ;
+	EN.localizedName = "AST node wrapper" ;
+
+]
+
+// ... Что-то про цепочки значения условий ???
+
+
+
+////// Уровень выполнения задачи -- трассы //////
+
+class State {
+	obj prop interruption_state: InterruptionType ;
+
+	rel hasLastConditionAction(ActionSpec);
+	// + значение этого условия (T/F) ???
+}
+
+
+class TraceAct {
+	obj prop is_known_correct: bool ;
+	obj prop condition_value: bool ; // используем
+	obj prop active : bool;
+
+	rel hasCFGNode(Node) : {* -> 1};
+	rel hasActionSpec(ActionSpec) : {* -> 1};
+	rel hasASTNode(ASTNodeWrapper) : {* -> 1} ;
+	rel hasActAsCorrespondingEnd(TraceAct) : {1 -> *} ;
+	
+
+	rel directlyBeforeOf(TraceAct) : linear ;
+	rel directlyAfterOf(TraceAct) : opposite to directlyBeforeOf ;
+	rel beforeOf(TraceAct) : transitive to directlyBeforeOf ;
+	rel afterOf(TraceAct) : transitive to directlyAfterOf ;
+	rel isBetween(TraceAct, TraceAct) : between to beforeOf ;
+	rel isCloserToThan(TraceAct, TraceAct) : closer to beforeOf ;
+	rel isFurtherFromThan(TraceAct, TraceAct) : further to beforeOf ;
+	rel hasNextTraceAct(TraceAct) : {1 -> 1} ;   // Линейное отношение "непосредственно следующий" в цепочке актов трассы
+}
+
+
+

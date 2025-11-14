@@ -1,0 +1,17 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<databaseChangeLog
+        xmlns="http://www.liquibase.org/xml/ns/dbchangelog"
+        xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance"
+        xsi:schemaLocation="http://www.liquibase.org/xml/ns/dbchangelog
+                      http://www.liquibase.org/xml/ns/dbchangelog/dbchangelog-4.24.xsd">
+
+    <changeSet id="20251109-insert-new" author="Dmitry Shashkov">
+        <insert tableName="domain">
+            <column name="name" value="ControlFlowDTDomain"/>
+            <column name="short_name" value="ctrl_flow_dt25"/>
+            <column name="version" value="2"/>
+            <column name="options_json" value="{}"/>
+        </insert>
+    </changeSet>
+
+</databaseChangeLog>

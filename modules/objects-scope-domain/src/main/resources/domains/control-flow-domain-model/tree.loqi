@@ -1,0 +1,123 @@
+tree CtrlFlow(L0: TraceAct, A: TraceAct, STATE: State) {
+    // Теперь можно выбросить этот редактор...
+    ask (STATE.interruption_state != InterruptionType:none) {
+        false -> out;
+        true -> {
+            ask (A->hasCFGNode.kind == "END") out true else {
+                conclude : error [
+                    skill = "1";
+                ];
+            };
+            ask (forAny TraceAct begin [ true ] { (A->hasCFGNode == $begin->hasCFGNode->hasMetadata->hasCorrespondingEnd and $begin.active) }) out true else {
+                conclude : error [
+                    skill = "2";
+                ];
+            };
+
+            var P_l0_a : PathInfo = find PathInfo p { $p->from_ == L0->hasCFGNode and $p->to_ == A->hasCFGNode };
+
+            cycle and (
+                forAll Node n [P_l0_a=>viaNodes($n)] {
+                    $n.kind == "END" // ищем концы начавшихся действий на пути
+                        and 
+                    forAny TraceAct begin [ true ] { $n == $begin->hasCFGNode->hasMetadata->hasCorrespondingEnd and $begin.active } // существует начало для этого конца
+                        and
+                    $n->hasMetadata->hasAbstractAction.appearanceType == AppearanceType:mandatory
+                }
+            ) with TraceAct M {
+                conclude : error;
+            } out correct;
+
+            conclude : correct;
+        };
+    };
+
+    var P : PathInfo = (find PathInfo p { $p->from_ == L0->hasCFGNode and $p->to_ == A->hasCFGNode and $p.opaque_actions == 0 }) out true else {
+
+        var P2 : PathInfo = (find PathInfo p { $p->from_ == L0->hasCFGNode and $p->to_ == A->hasCFGNode}) out true else {
+            conclude: error;
+        };
+
+        ask (P2.conditions > 0) out false else {
+            cycle and (forAll Node m [P2=>viaNodes($m)] {$m->hasMetadata->hasAbstractAction.kind == "condition"}) with Node M {
+                body -> { conclude : error; }
+            };
+        };
+
+        cycle and (forAll Node m [P2=>viaNodes($m)] {$m->hasMetadata->hasAbstractAction.appearanceType == AppearanceType:mandatory}) with Node M {
+            body -> { conclude : error; }
+        };
+    };
+
+    cycle and (forAll Edge CT [true] {P=>viaEdges($CT)}) with Edge ct {
+        body -> {
+            agg mutex {
+                interruptionCatch -> {
+                    ask (ct->hasConstraints.interruption_mode != InterruptionType:any) out true else {
+                        conclude : null;
+                    };
+                    ask (STATE.interruption_state == ct->hasConstraints.interruption_mode) out false else {
+                        conclude: null;
+                    };
+                    // TODO: может поменять на or??
+                    cycle and (forAll Edge ET [ct->hasSource=>hasEdges($ET)] {$ET->hasConstraints.interruption_mode == InterruptionType:any or $ET->hasConstraints.interruption_mode == STATE.interruption_state}) with Edge et {
+                        null -> {conclude : error;}
+                        false -> {conclude : error;}
+                        body -> {conclude : error;}
+                    };
+                };
+                
+                correctExit -> {
+                    ask (ct->hasMetadata.is_after_last == false and
+                         forAny ActionSpec t {ct->hasMetadata->hasAbstractTransition=>to_when_absent($t)} and
+                         forAny Edge e [P=>viaEdges($e)] {ct->hasMetadata->hasAbstractTransition == ct->hasMetadata->hasAbstractTransition and $e->hasMetadata.is_after_last == true}
+                         ) out true else {
+                        conclude : null;
+                    };
+
+                    // (Найти) / Присутствует ли в алгоритме "основное" действие перехода CT ?
+                    ask (forAny Node actual_target {ct->hasMetadata->hasAbstractTransition->to_ == $actual_target->hasMetadata->hasAbstractAction}) out true else {
+                        conclude : null;
+                    };
+
+                    var MT : ActionSpec = ct->hasMetadata->hasAbstractTransition->from_;
+
+                    conclude: error;
+                };
+
+                conditionCheck -> {
+                    ask (forAny Constraint c {ct=>hasConstraints($c)} and ct->hasConstraints.condition_value != OptionalBoolValue:none) out true else {
+                        conclude : null;
+                    };
+                    ask (ct->hasSource->hasMetadata->belongsToASTNode.current_condition_value == ct->hasConstraints.condition_value) 
+                    out false else {
+                        conclude : null;
+                    };
+                    var ET : Edge = find Edge e {$e->hasSource == ct->hasSource 
+                        and $e != ct 
+                        and ct->hasConstraints.condition_value == $e->hasMetadata->belongsToASTNode.current_condition_value} out true else {
+                        conclude : null;
+                    };
+                    conclude : error;
+                };
+                functionReturn -> {
+                    ask (A->hasASTNode.ast_node == "function_call" and A->hasCFGNode.kind == "END") out true else {
+                        conclude : null;
+                    };
+                    var closerCall : TraceAct = findExtreme func [$func=>isCloserToThan($act, L0) and $func->hasASTNode== A->hasASTNode and $func.active
+                       ] among TraceAct act {$act->hasASTNode.ast_node == "function_call" and
+                            $act->hasCFGNode.kind == "BEGIN"
+                            and
+                            not (forAny TraceAct _e {$act=>hasActAsCorrespondingEnd($_e)})}
+                    out false else {
+                        conclude : null;
+                    };
+                    conclude : error;
+                };
+            };
+        };
+        null -> out;
+    };
+
+    conclude : correct;
+}

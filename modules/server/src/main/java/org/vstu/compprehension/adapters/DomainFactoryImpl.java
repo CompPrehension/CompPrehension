@@ -1,6 +1,7 @@
 package org.vstu.compprehension.adapters;
 
 import com.google.common.collect.Lists;
+import domains.ControlFlowDTDomain;
 import domains.DataFlowDTDomain;
 import domains.ObjectsScopeDTDomain;
 import org.jetbrains.annotations.NotNull;
@@ -68,16 +69,17 @@ public class DomainFactoryImpl implements DomainFactory {
             domainShortNameToClassMap.put(dtDomainEntity.getShortName(), dtDomain);
         }
         {
-            var controlFlowDomain = (ControlFlowStatementsDomain)domainShortNameToClassMap.get("ctrl_flow");
-            var dtDomainEntity = domains
-                    .stream().filter(x -> x.getName/*!*/().equals("ControlFlowStatementsDTDomain"))
+            var domainEntity = domains
+                    .stream().filter(x -> x.getShortName().equals("ctrl_flow_dt25"))
                     .findFirst()
                     .orElseThrow();
-            var dtDomain = new ControlFlowStatementsDTDomain(
-                    dtDomainEntity,
-                    controlFlowDomain);
-            domainIdToClassMap.put(dtDomain.getDomainId(), dtDomain);
-            domainShortNameToClassMap.put(dtDomainEntity.getShortName(), dtDomain);
+            var ctrlFlowDomain = new ControlFlowDTDomain(
+                    domainEntity,
+                    randomProvider,
+                    localizationService,
+                    questionStorage);
+            domainIdToClassMap.put(ctrlFlowDomain.getDomainId(), ctrlFlowDomain);
+            domainShortNameToClassMap.put(domainEntity.getShortName(), ctrlFlowDomain);
         }
         {
             var objectsScopeDomainEntity = domains
