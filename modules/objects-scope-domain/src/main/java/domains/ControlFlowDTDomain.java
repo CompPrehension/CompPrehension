@@ -1,7 +1,7 @@
 package domains;
 
 import its.model.DomainSolvingModel;
-import its.model.definition.DomainModel;
+import its.model.definition.*;
 import its.model.definition.loqi.DomainLoqiBuilder;
 import its.reasoner.LearningSituation;
 import lombok.Getter;
@@ -90,13 +90,75 @@ public class ControlFlowDTDomain extends DecisionTreeReasoningDomain {
             }
             var domain = (ControlFlowDTDomain) question.getDomain();
             var model = domain.getDomainSolvingModels().getFirst();
-            return new DecisionTreeReasonerBackend.Input(domain.prepareQuestionModel(question, model), model.getDecisionTree());
+
+            DomainModel questionModel = domain.prepareQuestionModel(question, model);
+
+            List<ObjectDef> traceActs = responses
+                    .stream()
+                    .map(resp -> resp.getLeftAnswerObject().getDomainInfo())
+                    .map(resp -> questionModel.getObjects().get(resp))
+                    .toList();
+            // Выстраиваем трассу действий
+            for (int i = 0; i < traceActs.size() - 2; i++) {
+                traceActs.get(i).getRelationshipLinks().add(new RelationshipLinkStatement(traceActs.get(i), "directlyBeforeOf",
+                        List.of(traceActs.get(i + 1).getName()), ParamsValues.getEMPTY()));
+                traceActs.get(i).getDefinedPropertyValues().addOrReplace(new PropertyValueStatement<>(traceActs.get(i),
+                        "active", ParamsValues.getEMPTY(), Boolean.TRUE)
+                );
+            }
+            if (!traceActs.isEmpty()) traceActs.getLast().getDefinedPropertyValues().addOrReplace(new PropertyValueStatement<>(traceActs.getLast(),
+                    "active", ParamsValues.getEMPTY(), Boolean.TRUE)
+            );
+
+            ObjectDef A = traceActs.getLast();
+            ObjectDef L0 = traceActs.get(traceActs.size() - 1);
+            ObjectDef STATE = questionModel.getVariables().get("STATE").getValueObject();
+
+            ObjectDef pathL0A = domain.findPathInfo(questionModel, L0, A);
+
+            // Обновляем состояние прерывания, исходя из маршрута от L0 до A
+            /*
+            STATE.getDefinedPropertyValues().addOrReplace(
+                    new PropertyValueStatement<>(A, "interruption_state", ParamsValues.getEMPTY(),
+                            pathL0A.getRelationshipLink("hasEffects").getObjects().getFirst().getPropertyValue("")
+                    )
+            );
+             */
+
+            questionModel.getVariables().add(new VariableDef("A", A.getName()));
+            questionModel.getVariables().add(new VariableDef("L0", L0.getName()));
+
+            return new DecisionTreeReasonerBackend.Input(questionModel, model.getDecisionTree());
         }
 
         @Override
         public DecisionTreeReasonerBackend.Input prepareBackendInfoForSolve(Question question, List<Tag> tags) {
             return null;
         }
+    }
+
+    @Nullable
+    public ObjectDef findPathInfo(DomainModel questionModel, ObjectDef from, ObjectDef to) {
+        var pathIterator = questionModel.getObjects().stream().filter(
+                obj -> obj.getClassName().equals("PathInfo")
+        ).iterator();
+        while (pathIterator.hasNext()) {
+            var pathInfo = pathIterator.next();
+            boolean matched_from = false;
+            boolean matched_to = false;
+            var relationships = pathInfo.getRelationshipLinks();
+            for (RelationshipLinkStatement relationship : relationships) {
+                if (relationship.getRelationshipName().equals("from_") && relationship.getObjects().contains(from)) {
+                    matched_from = true;
+                } else if (relationship.getRelationshipName().equals("to_") && relationship.getObjects().contains(to)) {
+                    matched_to = true;
+                }
+            }
+            if (matched_from && matched_to) {
+                return pathInfo;
+            }
+        }
+        return null;
     }
 
     public ControlFlowDTDomain(DomainEntity domainEntity,

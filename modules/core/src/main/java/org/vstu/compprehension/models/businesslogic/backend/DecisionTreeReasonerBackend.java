@@ -330,7 +330,7 @@ public class DecisionTreeReasonerBackend
                     .collect(Collectors.toList());
             result.violations = mistakes;
             result.correctlyAppliedLaws = new ArrayList<>();
-            result.isAnswerCorrect = mistakes.isEmpty();
+            result.isAnswerCorrect = mistakes.isEmpty() && isCorrectAnswer(result.decisionTreeTrace);
             return result;
         }
 
@@ -388,6 +388,13 @@ public class DecisionTreeReasonerBackend
                 }
             }
             return expanded;
+        }
+
+        static boolean isCorrectAnswer(@NotNull DecisionTreeTrace trace) {
+            if (List.of(Boolean.TRUE, true, BranchResult.CORRECT).contains(trace.getLast().getNodeResult())) {
+                return true;
+            }
+            return false;
         }
 
         static Explanation extractExplanation(BranchResultNode resultNode,
