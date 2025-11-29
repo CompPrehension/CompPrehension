@@ -17,7 +17,6 @@ import java.util.regex.Pattern;
 @ConfigurationProperties(prefix = "task-generation")
 @Getter @Setter @NoArgsConstructor
 public class TaskGenerationJobConfig {
-    private boolean runOnce;
     private String cronSchedule;
     private List<TaskConfig> tasks;
 

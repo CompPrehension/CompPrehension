@@ -10,20 +10,18 @@ spring:
 
 
 hibernate:
-  show_sql: true
+  show_sql: false
   #hibernate.hbm2ddl.auto: update
-  generate_statistics: true
+  generate_statistics: false
 
 task-generation:
-  # run-once: false (the default) or true
-  run-once: false
-  # cron-schedule: use "never" to disable it.
-  cron-schedule: "*/30 * * * * *"
+  # use cron string (like "*/30 * * * * *"), "never" or "once"
+  cron-schedule: "never"
 
   tasks:
     # section 1 — first domain:
     -
-      domain_short_name: expression
+      domain_short_name: expression_dt
 
       enabled :  true  # `false` disables generation for this domain completely.
       
@@ -64,9 +62,15 @@ task-generation:
         output_folder_path: 'C:/data/compp-gen/control_flow/generated_questions/'
 
 metadata-health:
-  run-once: false
-  cron-schedule: 30 * * * *
+  # use cron string (like "*/30 * * * * *"), "never" or "once"
+  cron-schedule: "never"
   mode: SKIP_INVALID
+  
+bank-load-testing:
+  # use cron string (like "*/30 * * * * *"), "never" or "once"
+  cron-schedule: "never"
+  exercise-id: 2
+  users-count: 15
 
 # db logging config
 config:

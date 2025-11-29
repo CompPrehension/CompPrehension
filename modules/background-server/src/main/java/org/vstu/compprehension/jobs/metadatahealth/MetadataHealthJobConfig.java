@@ -11,7 +11,6 @@ import org.springframework.context.annotation.Configuration;
 @Getter @Setter
 @NoArgsConstructor
 public class MetadataHealthJobConfig {
-    private boolean runOnce;
     private String cronSchedule;
     private Mode mode = Mode.SKIP_INVALID;
     
