@@ -187,14 +187,14 @@ public class QuestionBank {
         } else if (generatorThreshold < 7) {
             generatorThreshold = 7;
         }
-        log.info("search query prepared: {}, generatorThreshold: {}", new Gson().toJson(preparedQuery), generatorThreshold);
+        log.debug("search query prepared: {}, generatorThreshold: {}", new Gson().toJson(preparedQuery), generatorThreshold);
         
         var searchSteps = new ArrayList<QuestionMetadataSearchRequestEntity.Iteration>(3);
         List<QuestionMetadataEntity> foundQuestionMetas;
 
         {
             int topRatedLimit = generatorThreshold + 3;
-            log.info("trying to do {} search with {} limit", QuestionMetadataSearchRequestEntity.Quality.BestUnused, topRatedLimit);
+            log.debug("trying to do {} search with {} limit", QuestionMetadataSearchRequestEntity.Quality.BestUnused, topRatedLimit);
             foundQuestionMetas = questionMetadataRepository.findTopRatedUnusedMetadata(preparedQuery, topRatedLimit);
             log.info("{} search executed with {} candidates", QuestionMetadataSearchRequestEntity.Quality.BestUnused, foundQuestionMetas.size());
             searchSteps.add(new QuestionMetadataSearchRequestEntity.Iteration(QuestionMetadataSearchRequestEntity.Quality.BestUnused, topRatedLimit, foundQuestionMetas.size()));
@@ -216,7 +216,7 @@ public class QuestionBank {
         }
         
         if (generatorThreshold > 0 && foundQuestionMetas.size() <= generatorThreshold) {
-            log.info("no enough candidates found (found {}/{}), need additional generation", foundQuestionMetas.size(), generatorThreshold);
+            log.info("no enough top rated questions found (found {}/{}), need additional generation", foundQuestionMetas.size(), generatorThreshold);
 
             // calculate how many questions to generate based on the number of found questions and existing generation requests
             var rawQuestionsToGenerate = generatorThreshold + 3 - foundQuestionMetas.size(); // +3 additional questions to be sure that we have enough (10 in total)
@@ -230,7 +230,7 @@ public class QuestionBank {
         
         if (foundQuestionMetas.isEmpty()) {
             int normalLimit = 100;
-            log.info("trying to do {} search with {} limit", QuestionMetadataSearchRequestEntity.Quality.Normal, normalLimit);
+            log.debug("trying to do {} search with {} limit", QuestionMetadataSearchRequestEntity.Quality.Normal, normalLimit);
             foundQuestionMetas = questionMetadataRepository.findMetadata(preparedQuery, normalLimit);
             log.info("{} search executed with {} candidates", QuestionMetadataSearchRequestEntity.Quality.Normal, foundQuestionMetas.size());
             searchSteps.add(new QuestionMetadataSearchRequestEntity.Iteration(QuestionMetadataSearchRequestEntity.Quality.Normal, normalLimit, foundQuestionMetas.size()));
@@ -238,7 +238,7 @@ public class QuestionBank {
         
         if (foundQuestionMetas.isEmpty()) {
             int relaxedLimit = 100;
-            log.info("trying to do {} search with {} limit", QuestionMetadataSearchRequestEntity.Quality.Relaxed, relaxedLimit);
+            log.debug("trying to do {} search with {} limit", QuestionMetadataSearchRequestEntity.Quality.Relaxed, relaxedLimit);
             foundQuestionMetas = questionMetadataRepository.findMetadataRelaxed(preparedQuery, relaxedLimit);
             log.info("{} search executed with {} candidates", QuestionMetadataSearchRequestEntity.Quality.Relaxed, foundQuestionMetas.size());
             searchSteps.add(new QuestionMetadataSearchRequestEntity.Iteration(QuestionMetadataSearchRequestEntity.Quality.Relaxed, relaxedLimit, foundQuestionMetas.size()));

@@ -3,15 +3,24 @@ package org.vstu.compprehension.jobs.bankloadtesting;
 import lombok.SneakyThrows;
 import lombok.extern.log4j.Log4j2;
 import org.apache.commons.collections4.IteratorUtils;
+import org.hibernate.exception.LockAcquisitionException;
+import org.hibernate.exception.LockTimeoutException;
 import org.jobrunr.jobs.annotations.Job;
 import org.springframework.beans.factory.annotation.Autowired;
+import org.springframework.dao.PessimisticLockingFailureException;
 import org.springframework.stereotype.Service;
+import org.springframework.transaction.PlatformTransactionManager;
+import org.springframework.transaction.TransactionDefinition;
+import org.springframework.transaction.support.TransactionCallback;
+import org.springframework.transaction.support.TransactionTemplate;
 import org.vstu.compprehension.Service.FrontendService;
+import org.vstu.compprehension.dto.ExerciseAttemptDto;
 import org.vstu.compprehension.models.entities.EnumData.Decision;
 import org.vstu.compprehension.models.entities.UserEntity;
 import org.vstu.compprehension.models.repository.UserRepository;
 
 import java.util.Random;
+import java.util.concurrent.Callable;
 import java.util.concurrent.ExecutorService;
 import java.util.concurrent.Executors;
 import java.util.concurrent.TimeUnit;
@@ -23,12 +32,15 @@ public class BankLoadTestingJob {
     private final UserRepository userRepository;
     private final BankLoadTestingJobConfig config;
     private final Random random = new Random();
+    private final TransactionTemplate transactionTemplate;
 
     @Autowired
-    public BankLoadTestingJob(FrontendService frontendService, UserRepository userRepository, BankLoadTestingJobConfig config) {
+    public BankLoadTestingJob(FrontendService frontendService, UserRepository userRepository, BankLoadTestingJobConfig config, PlatformTransactionManager txManager) {
         this.frontendService = frontendService;
         this.userRepository = userRepository;
         this.config = config;
+        this.transactionTemplate = new TransactionTemplate(txManager);
+        this.transactionTemplate.setPropagationBehavior(TransactionDefinition.PROPAGATION_REQUIRED);
     }
 
     @Job(name = "question-bank-load-testing-job", retries = 0)
@@ -36,7 +48,7 @@ public class BankLoadTestingJob {
         try {
             runImpl(config);
         } catch (Exception e) {
-            log.error("Bank loadint test exception - {}", e.getMessage(), e);
+            log.error("Bank loading test exception - {}", e.getMessage(), e);
             throw e;
         }
     }
@@ -77,22 +89,46 @@ public class BankLoadTestingJob {
         }
         log.info("All {} user exercise attempts completed.", userIds.size());
     }
-    
+
     private void runUserExerciseAttempt(BankLoadTestingJobConfig config, long userId) throws Exception {
         var exerciseId = config.exerciseId;
-        var attempt = frontendService.createExerciseAttempt(exerciseId, userId);
-        if (attempt == null) {
-            throw new Exception("Could not create exercise attempt for exercise " + exerciseId);
-        }
-        
+        Long attemptId = executeWithRetry(() -> {
+            var attempt = frontendService.createExerciseAttempt(exerciseId, userId);
+            return attempt.getAttemptId();
+        }, "createAttempt");
+
         Thread.sleep(1000L * random.nextInt(config.exerciseStartDelayMin, config.exerciseStartDelayMax));
         log.info("User {} starts his attempt", userId);
-        
+
         var decision = Decision.CONTINUE;
         while (!decision.equals(Decision.FINISH)) {
+            var question = executeWithRetry(() -> {
+                try {
+                    return frontendService.generateQuestion(attemptId);
+                } catch (NullPointerException ignored) {
+                    return null;
+                }
+            }, "generateQuestion");
+            if (question == null) {
+                continue;
+            }
             
-            var question = frontendService.generateQuestion(attempt.getAttemptId());
-            decision = question.getFeedback().getStrategyDecision();
+            log.info("User {} started question {}. Stage: {}", userId, question.getQuestionId(), question.getQuestionId());
+
+            var feedback = executeWithRetry(() -> frontendService.generateNextCorrectAnswer(question.getQuestionId()), "firstAnswer");
+
+            if (feedback == null) {
+                break;
+            }
+            while (feedback != null && feedback.getStepsLeft() > 0) {
+                feedback = executeWithRetry(() -> frontendService.generateNextCorrectAnswer(question.getQuestionId()), "nextAnswers");
+            }
+            if (feedback == null) {
+                break;
+            }
+            decision = feedback.getStrategyDecision();
+
+            log.info("User {} completed question {}", userId, question.getQuestionId());
 
             Thread.sleep(1000L * random.nextInt(config.questionDurationMin, config.questionDurationMax));
             Thread.sleep(1000L * random.nextInt(config.postQuestionDelayMin, config.postQuestionDelayMax));
@@ -100,4 +136,34 @@ public class BankLoadTestingJob {
 
         log.info("User {} finished his attempt", userId);
     }
+
+    private <T> T executeWithRetry(Callable<T> callback, String operation) throws InterruptedException {
+        int maxRetries = 25;
+        long baseDelay = 50;
+        long maxDelay = 5000L;
+        for (int attempt = 0; attempt <= maxRetries; attempt++) {
+            try {
+                return callback.call();
+            } catch (Exception e) {
+                if (isDeadlockException(e) && attempt < maxRetries) {
+                    long delay = Math.min(baseDelay * (1L << attempt), maxDelay); // Exponential backoff capped at 5s
+                    // log.warn("Deadlock in {} for user {}, retry {}/{} after {}ms", operation, Thread.currentThread().getName(), attempt + 1, maxRetries, delay);
+                    Thread.sleep(delay);
+                    continue;
+                }
+                throw e instanceof RuntimeException ? (RuntimeException) e : new RuntimeException(e);
+            }
+        }
+        throw new RuntimeException("Max retries exceeded for " + operation);
+    }
+
+    private boolean isDeadlockException(Exception e) {
+        return e.getCause() instanceof org.hibernate.exception.LockAcquisitionException ||
+                "Deadlock found when trying to get lock".equals(e.getMessage()) ||
+                e instanceof LockTimeoutException ||
+                e instanceof PessimisticLockingFailureException ||
+                e instanceof org.springframework.dao.CannotAcquireLockException ||
+                e instanceof org.springframework.transaction.UnexpectedRollbackException;
+    }
+
 }

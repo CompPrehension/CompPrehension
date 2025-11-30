@@ -438,25 +438,23 @@ public class ProgrammingLanguageExpressionDomain extends JenaReasoningDomain {
         }
 
         List<QuestionMetadataEntity> foundQuestions = null;
-        if (!conceptNames.contains("SystemIntegrationTest")) {
-            try {
-                int generatorThreshold = (int)(exerciseAttempt.getExercise().getOptions().getMaxExpectedConcurrentStudents() * 1.5);
-                foundQuestions = qMetaStorage.searchQuestions(questionRequest, 1, generatorThreshold).getQuestions();
+        try {
+            int generatorThreshold = (int)(exerciseAttempt.getExercise().getOptions().getMaxExpectedConcurrentStudents() * 1.5);
+            foundQuestions = qMetaStorage.searchQuestions(questionRequest, 1, generatorThreshold).getQuestions();
 
-                // search again if nothing found with "TO_COMPLEX"
-                SearchDirections lawsSearchDir = questionRequest.getLawsSearchDirection();
-                if (foundQuestions.isEmpty() && lawsSearchDir == SearchDirections.TO_COMPLEX) {
-                    questionRequest.setLawsSearchDirection(SearchDirections.TO_SIMPLE);
-                    foundQuestions = qMetaStorage.searchQuestions(questionRequest, 1, generatorThreshold).getQuestions();
-                }
-            } catch (Exception e) {
-                // file storage was not configured properly...
-                log.error("Error searching questions - {}", e.getMessage(), e);
-                foundQuestions = new ArrayList<>();
+            // search again if nothing found with "TO_COMPLEX"
+            SearchDirections lawsSearchDir = questionRequest.getLawsSearchDirection();
+            if (foundQuestions.isEmpty() && lawsSearchDir == SearchDirections.TO_COMPLEX) {
+                questionRequest.setLawsSearchDirection(SearchDirections.TO_SIMPLE);
+                foundQuestions = qMetaStorage.searchQuestions(questionRequest, 1, generatorThreshold).getQuestions();
             }
+        } catch (Exception e) {
+            // file storage was not configured properly...
+            log.error("Error searching questions - {}", e.getMessage(), e);
+            throw e;
         }
 
-        if (foundQuestions == null || foundQuestions.isEmpty()) {
+        if (foundQuestions.isEmpty()) {
             throw new IllegalStateException("No valid questions found");
         }
 

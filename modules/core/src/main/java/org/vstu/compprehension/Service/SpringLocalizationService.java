@@ -24,7 +24,7 @@ public class SpringLocalizationService implements LocalizationService {
         try {
             return messageSource.getMessage(messageId, null, locale);
         } catch (Exception e) {
-            log.warn("Couldn't resolve message '{}' for language '{}'. {}", messageId, locale.getLanguage(), e);
+            log.debug("Couldn't resolve message '{}' for language '{}'. {}", messageId, locale.getLanguage(), e);
             return messageId;
         }
     }
