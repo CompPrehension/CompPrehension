@@ -9,7 +9,6 @@ import org.springframework.context.annotation.Bean;
 import org.springframework.context.annotation.Configuration;
 import org.springframework.context.annotation.Lazy;
 import org.springframework.context.annotation.Primary;
-import org.springframework.transaction.PlatformTransactionManager;
 import org.springframework.web.context.annotation.RequestScope;
 import org.springframework.web.context.annotation.SessionScope;
 import org.vstu.compprehension.service.BktService;
@@ -25,7 +24,7 @@ import org.vstu.compprehension.models.businesslogic.storage.QuestionBank;
 import org.vstu.compprehension.models.repository.*;
 import org.vstu.compprehension.strategies.*;
 import org.vstu.compprehension.utils.RandomProvider;
-import org.vstu.compprehension.utils.TransactionScopeFactory;
+import org.vstu.compprehension.utils.transactions.TransactionScopeFactory;
 
 import javax.inject.Singleton;
 import java.util.List;

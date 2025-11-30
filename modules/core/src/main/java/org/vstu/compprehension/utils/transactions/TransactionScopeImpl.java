@@ -1,4 +1,4 @@
-package org.vstu.compprehension.utils;
+package org.vstu.compprehension.utils.transactions;
 
 import org.springframework.transaction.PlatformTransactionManager;
 import org.springframework.transaction.TransactionDefinition;

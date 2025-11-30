@@ -1,4 +1,4 @@
-package org.vstu.compprehension.utils;
+package org.vstu.compprehension.utils.transactions;
 
 import java.util.concurrent.Callable;
 

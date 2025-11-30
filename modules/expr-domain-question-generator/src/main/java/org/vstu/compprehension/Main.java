@@ -8,6 +8,7 @@ import org.vstu.compprehension.adapters.*;
 import org.vstu.compprehension.models.businesslogic.domains.ProgrammingLanguageExpressionDTDomain;
 import org.vstu.compprehension.models.businesslogic.domains.ProgrammingLanguageExpressionDomain;
 import org.vstu.compprehension.models.businesslogic.storage.QuestionBank;
+import org.vstu.compprehension.utils.transactions.TransactionScopeFactoryStub;
 
 import java.io.IOException;
 import java.nio.file.Files;
@@ -61,7 +62,8 @@ public class Main {
                                 new FakeQuestionMetadataRepository(),
                                 new FakeQuestionDataRepository(),
                                 null,
-                                null
+                                null,
+                                new TransactionScopeFactoryStub()
                         )
                 )
         );
