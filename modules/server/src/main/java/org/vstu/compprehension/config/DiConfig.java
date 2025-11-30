@@ -9,6 +9,7 @@ import org.springframework.context.annotation.Bean;
 import org.springframework.context.annotation.Configuration;
 import org.springframework.context.annotation.Lazy;
 import org.springframework.context.annotation.Primary;
+import org.springframework.transaction.PlatformTransactionManager;
 import org.springframework.web.context.annotation.RequestScope;
 import org.springframework.web.context.annotation.SessionScope;
 import org.vstu.compprehension.service.BktService;
@@ -24,6 +25,7 @@ import org.vstu.compprehension.models.businesslogic.storage.QuestionBank;
 import org.vstu.compprehension.models.repository.*;
 import org.vstu.compprehension.strategies.*;
 import org.vstu.compprehension.utils.RandomProvider;
+import org.vstu.compprehension.utils.TransactionScopeFactory;
 
 import javax.inject.Singleton;
 import java.util.List;
@@ -92,9 +94,10 @@ public class DiConfig {
             @Autowired QuestionMetadataRepository metadataRepository,
             @Autowired QuestionDataRepository questionDataRepository,
             @Autowired QuestionGenerationRequestRepository generationRequestRepository,
-            @Autowired QuestionMetadataSearchRequestRepository questionSearchRequestLogRepository) throws Exception {
+            @Autowired QuestionMetadataSearchRequestRepository questionSearchRequestLogRepository,
+            @Autowired TransactionScopeFactory transactionScopeFactory) throws Exception {
         //var allDomains = domainRepository.findAll();
-        return new QuestionBank(metadataRepository, questionDataRepository, generationRequestRepository, questionSearchRequestLogRepository);
+        return new QuestionBank(metadataRepository, questionDataRepository, generationRequestRepository, questionSearchRequestLogRepository, transactionScopeFactory);
     }
 
     @Bean

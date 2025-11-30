@@ -5,6 +5,7 @@ import lombok.extern.log4j.Log4j2;
 import org.apache.commons.collections4.IteratorUtils;
 import org.hibernate.exception.LockAcquisitionException;
 import org.hibernate.exception.LockTimeoutException;
+import org.jetbrains.annotations.Nullable;
 import org.jobrunr.jobs.annotations.Job;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.dao.PessimisticLockingFailureException;
@@ -15,6 +16,7 @@ import org.springframework.transaction.support.TransactionCallback;
 import org.springframework.transaction.support.TransactionTemplate;
 import org.vstu.compprehension.Service.FrontendService;
 import org.vstu.compprehension.dto.ExerciseAttemptDto;
+import org.vstu.compprehension.dto.question.QuestionDto;
 import org.vstu.compprehension.models.entities.EnumData.Decision;
 import org.vstu.compprehension.models.entities.UserEntity;
 import org.vstu.compprehension.models.repository.UserRepository;
@@ -40,7 +42,7 @@ public class BankLoadTestingJob {
         this.userRepository = userRepository;
         this.config = config;
         this.transactionTemplate = new TransactionTemplate(txManager);
-        this.transactionTemplate.setPropagationBehavior(TransactionDefinition.PROPAGATION_REQUIRED);
+        this.transactionTemplate.setPropagationBehavior(TransactionDefinition.PROPAGATION_REQUIRES_NEW);
     }
 
     @Job(name = "question-bank-load-testing-job", retries = 0)
@@ -92,23 +94,14 @@ public class BankLoadTestingJob {
 
     private void runUserExerciseAttempt(BankLoadTestingJobConfig config, long userId) throws Exception {
         var exerciseId = config.exerciseId;
-        Long attemptId = executeWithRetry(() -> {
-            var attempt = frontendService.createExerciseAttempt(exerciseId, userId);
-            return attempt.getAttemptId();
-        }, "createAttempt");
+        Long attemptId = createExerciseAttempt(exerciseId, userId).getAttemptId();
 
         Thread.sleep(1000L * random.nextInt(config.exerciseStartDelayMin, config.exerciseStartDelayMax));
         log.info("User {} starts his attempt", userId);
 
         var decision = Decision.CONTINUE;
         while (!decision.equals(Decision.FINISH)) {
-            var question = executeWithRetry(() -> {
-                try {
-                    return frontendService.generateQuestion(attemptId);
-                } catch (NullPointerException ignored) {
-                    return null;
-                }
-            }, "generateQuestion");
+            var question = generateQuestion(attemptId);            
             if (question == null) {
                 continue;
             }
@@ -135,6 +128,32 @@ public class BankLoadTestingJob {
         }
 
         log.info("User {} finished his attempt", userId);
+    }
+
+    private @Nullable QuestionDto generateQuestion(Long exAttemptId) {
+        /*
+            return executeWithRetry(() -> {
+                try {
+                    return frontendService.generateQuestion(attemptId);
+                } catch (NullPointerException ignored) {
+                    return null;
+                }
+            }, "generateQuestion");
+        */
+        
+        try {
+            return frontendService.generateQuestion(exAttemptId);
+        } catch (NullPointerException ignored) {
+            log.debug("Problem question found for attempt {}", exAttemptId);
+            return null;
+        }
+    }
+    
+    @SneakyThrows
+    private ExerciseAttemptDto createExerciseAttempt(Long exerciseId, Long userId) {
+        return executeWithRetry(() -> {
+            return frontendService.createExerciseAttempt(exerciseId, userId);
+        }, "createExerciseAttempt");
     }
 
     private <T> T executeWithRetry(Callable<T> callback, String operation) throws InterruptedException {

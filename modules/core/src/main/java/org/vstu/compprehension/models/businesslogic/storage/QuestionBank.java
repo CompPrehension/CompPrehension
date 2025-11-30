@@ -5,6 +5,11 @@ import lombok.extern.log4j.Log4j2;
 import lombok.val;
 import org.jetbrains.annotations.NotNull;
 import org.jetbrains.annotations.Nullable;
+import org.springframework.transaction.PlatformTransactionManager;
+import org.springframework.transaction.TransactionDefinition;
+import org.springframework.transaction.annotation.Propagation;
+import org.springframework.transaction.annotation.Transactional;
+import org.springframework.transaction.support.TransactionTemplate;
 import org.vstu.compprehension.dto.QuestionBankSearchStatsDto;
 import org.vstu.compprehension.models.businesslogic.QuestionBankSearchRequest;
 import org.vstu.compprehension.models.businesslogic.QuestionRequest;
@@ -13,6 +18,8 @@ import org.vstu.compprehension.models.repository.QuestionDataRepository;
 import org.vstu.compprehension.models.repository.QuestionGenerationRequestRepository;
 import org.vstu.compprehension.models.repository.QuestionMetadataRepository;
 import org.vstu.compprehension.models.repository.QuestionMetadataSearchRequestRepository;
+import org.vstu.compprehension.utils.TransactionScope;
+import org.vstu.compprehension.utils.TransactionScopeFactory;
 
 import java.util.ArrayList;
 import java.util.List;
@@ -25,17 +32,22 @@ public class QuestionBank {
     private final QuestionMetadataManager questionMetadataManager;
     private final QuestionGenerationRequestRepository generationRequestRepository;
     private final QuestionMetadataSearchRequestRepository questionSearchRequestLogRepository;
+    private final TransactionScope logSavingTransactionScope;
 
     public QuestionBank(
             QuestionMetadataRepository questionMetadataRepository,
             QuestionDataRepository questionDataRepository,
             QuestionGenerationRequestRepository generationRequestRepository,
-            QuestionMetadataSearchRequestRepository questionSearchRequestLogRepository) {
+            QuestionMetadataSearchRequestRepository questionSearchRequestLogRepository,
+            TransactionScopeFactory transactionScopeFactory) {
         this.questionMetadataRepository = questionMetadataRepository;
         this.questionDataRepository = questionDataRepository;
         this.questionMetadataManager = new QuestionMetadataManager(questionMetadataRepository);
         this.generationRequestRepository = generationRequestRepository;
         this.questionSearchRequestLogRepository = questionSearchRequestLogRepository;
+        
+        // for actions that must be executed in new transaction (like save logs)
+        this.logSavingTransactionScope = transactionScopeFactory.create(TransactionScope.PropagationBehavior.REQUIRES_NEW);
     }
 
     private QuestionBankSearchRequest createBankSearchRequest(QuestionRequest qr) {
@@ -222,9 +234,10 @@ public class QuestionBank {
             var rawQuestionsToGenerate = generatorThreshold + 3 - foundQuestionMetas.size(); // +3 additional questions to be sure that we have enough (10 in total)
             var currentlyGeneratingQuestions = generationRequestRepository.findNumberOfCurrentlyGeneratingQuestions(qr.getDomainShortname(), preparedQuery);
             var questionsToGenerate = Math.max(1, rawQuestionsToGenerate - currentlyGeneratingQuestions);
-
-            var generationRequest = new QuestionGenerationRequestEntity(preparedQuery, questionsToGenerate, qr.getExerciseAttemptId());
-            var genRequest = generationRequestRepository.save(generationRequest);
+            var genRequest = logSavingTransactionScope.execute(() -> {
+                var generationRequest = new QuestionGenerationRequestEntity(preparedQuery, questionsToGenerate, qr.getExerciseAttemptId());
+                return generationRequestRepository.save(generationRequest);
+            });
             log.info("created generation request with id {} with {} questions to generate", genRequest.getId(), genRequest.getQuestionsToGenerate());
         }
         
@@ -262,8 +275,10 @@ public class QuestionBank {
         }
 
         // save search request to db
-        var logEntity = new QuestionMetadataSearchRequestEntity(preparedQuery, searchSteps, qr.getId());
-        logEntity = questionSearchRequestLogRepository.save(logEntity);
+        var logEntity = logSavingTransactionScope.execute(() -> {
+            var entity = new QuestionMetadataSearchRequestEntity(preparedQuery, searchSteps, qr.getId());
+            return questionSearchRequestLogRepository.save(entity);
+        });
 
         return new QuestionBankSearchResult(logEntity.getQuality(), foundQuestionMetas);
     }
