@@ -3,6 +3,7 @@ package org.vstu.compprehension.jobs.bankloadtesting;
 import lombok.SneakyThrows;
 import lombok.extern.log4j.Log4j2;
 import org.apache.commons.collections4.IteratorUtils;
+import org.apache.logging.log4j.ThreadContext;
 import org.hibernate.exception.LockTimeoutException;
 import org.jetbrains.annotations.Nullable;
 import org.jobrunr.jobs.annotations.Job;
@@ -26,6 +27,7 @@ import java.util.concurrent.ExecutorService;
 import java.util.concurrent.Executors;
 import java.util.concurrent.TimeUnit;
 
+@Log4j2
 @Service
 public class BankLoadTestingJob {
     private final FrontendService frontendService;
@@ -34,17 +36,15 @@ public class BankLoadTestingJob {
     private final BankLoadTestingJobConfig config;
     private final TransactionScope transactionScope;
     private final RandomProvider randomProvider;
-    private final BankLoadTestingLogger log;
 
     @Autowired
-    public BankLoadTestingJob(FrontendService frontendService, ExerciseRepository exerciseRepository, UserRepository userRepository, BankLoadTestingJobConfig config, TransactionScopeFactory transactionScopeFactory, RandomProvider randomProvider, BankLoadTestingLogger log) {
+    public BankLoadTestingJob(FrontendService frontendService, ExerciseRepository exerciseRepository, UserRepository userRepository, BankLoadTestingJobConfig config, TransactionScopeFactory transactionScopeFactory, RandomProvider randomProvider) {
         this.frontendService = frontendService;
         this.exerciseRepository = exerciseRepository;
         this.userRepository = userRepository;
         this.config = config;
         this.transactionScope = transactionScopeFactory.create(TransactionScope.PropagationBehavior.REQUIRES_NEW);
         this.randomProvider = randomProvider;
-        this.log = log;
     }
 
     @Job(name = "question-bank-load-testing-job", retries = 0)
@@ -88,9 +88,12 @@ public class BankLoadTestingJob {
         for (long userId : userIds) {
             executor.submit(() -> {
                 try {
+                    ThreadContext.put("userId", String.valueOf(userId));
                     runUserExerciseAttempt(config, userId);
                 } catch (Exception e) {
                     log.error("Error in user {} exercise attempt thread: {}", userId, e.getMessage(), e);
+                } finally {
+                    ThreadContext.remove("userId");
                 }
             });
         }
@@ -110,8 +113,6 @@ public class BankLoadTestingJob {
     }
 
     private void runUserExerciseAttempt(BankLoadTestingJobConfig config, long userId) throws Exception {
-        log.setContextVariable("userId", String.valueOf(userId));
-        
         var exerciseId = config.exerciseId;
         Long attemptId = createExerciseAttempt(exerciseId, userId).getAttemptId();
         

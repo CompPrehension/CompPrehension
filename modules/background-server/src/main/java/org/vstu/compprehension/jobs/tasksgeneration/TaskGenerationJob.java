@@ -63,14 +63,14 @@ public class TaskGenerationJob {
 
     @Job(name = "task-generation-job", retries = 0)
     public void run() {
-        log.info("Run generating questions for expression domain ...");
+        log.debug("Run generating problems for expression domain ...");
 
         for (val config : tasks.getTasks())
         {
             if (!config.isEnabled())
                 continue;
 
-            log.info("Run generating questions for {} domain ...", config.getDomainShortName());
+            log.debug("Run generating problems for {} domain ...", config.getDomainShortName());
 
             try {
                 runWithMode(config);
@@ -98,10 +98,10 @@ public class TaskGenerationJob {
         while (true) {
             var bankQuestionCount = metadataRep.countByDomainShortname(config.getDomainShortName());
             if (bankQuestionCount >= mode.enoughQuestions()) {
-                log.info("Reached the limit of questions in the bank, finished job.");
+                log.info("Reached the limit of problems in the bank, finished job.");
                 break;
             } else {
-                log.info("More questions are needed in the bank (currently {}/{}, {} needed), continue job.", bankQuestionCount, mode.enoughQuestions(), mode.enoughQuestions() - bankQuestionCount);
+                log.info("More problems are needed in the bank (currently {}/{}, {} needed), continue job.", bankQuestionCount, mode.enoughQuestions(), mode.enoughQuestions() - bankQuestionCount);
             }
 
             // folders cleanup
@@ -140,7 +140,7 @@ public class TaskGenerationJob {
             var generationRequestIds = generationRequests.stream()
                     .map(GenerationRequestGroup::getGenerationRequestIds)
                     .collect(Collectors.toList());
-            log.debug("Generation requests ids: {}", generationRequestIds);
+            log.info("Loaded generation requests with ids: {}", generationRequestIds);
 
             // folders cleanup
             ensureFoldersCleaned(config);
@@ -160,6 +160,7 @@ public class TaskGenerationJob {
                 log.info("Re-fetching generation requests");
 
                 generationRequests = getGenerationRequests(config.getDomainShortName());
+                log.info("Loaded generation requests with ids: {}", generationRequestIds);
                 if (generationRequests.isEmpty()) {
                     log.info("No generation requests found. Finish job");
                     break;
@@ -174,7 +175,7 @@ public class TaskGenerationJob {
         var requests = generatorRequestsQueue.findAllActual(domainShortName, LocalDateTime.now().minusMonths(3));
 
         if (!requests.isEmpty()) {
-            log.info("Found {} generation requests", requests.size());
+            log.info("Found {} generation request groups", requests.size());
 
             if (requests.size() > 5_000) {
                 requests = requests.subList(0, 5_000);
@@ -255,13 +256,13 @@ public class TaskGenerationJob {
                     val parsedPath = Path.of(config.getParser().getOutputFolderPath());
                     if (Files.exists(parsedPath))
                         FileHelper.deleteFolderContent(parsedPath.toFile());
-                    log.info("successfully cleanup parsed questions folder");
+                    log.info("successfully cleanup parsed problems folder");
                 }
                 case TaskGenerationJobConfig.CleanupMode.CleanupGenerated() -> {
                     val generatedPath = Path.of(config.getGenerator().getOutputFolderPath());
                     if (Files.exists(generatedPath))
                         FileHelper.deleteFolderContent(generatedPath.toFile());
-                    log.info("successfully cleanup generated questions folder");
+                    log.info("successfully cleanup generated problems folder");
                 }
                 case null, default -> {
                     log.info("Unknown cleanup mode: {}", mode);
@@ -313,7 +314,7 @@ public class TaskGenerationJob {
                 var repoId = repo.getFullName().replaceAll("/", "_");
                 if (seenReposNames.contains(repoId)) {
                     skipped++;
-                    log.printf(Level.INFO, "Skip processed GitHub repo [%3d]: %s", skipped, repo.getFullName());
+                    log.printf(Level.DEBUG, "Skip processed GitHub repo [%3d]: %s", skipped, repo.getFullName());
                     continue;
                 }
 
@@ -371,14 +372,14 @@ public class TaskGenerationJob {
                 try {
                     future.get(45, TimeUnit.SECONDS);  // Timeout after 45 seconds
                 } catch (TimeoutException e) {
-                    log.warn("Timeout while downloading repo [{}] from GitHub", repo.getFullName());
+                    log.debug("Timeout while downloading repo [{}] from GitHub", repo.getFullName());
                     future.cancel(true);  // Cancel the task if it times out
                 } catch (Exception e) {
-                    log.error("Error while downloading repo [{}] from GitHub. {}", repo.getFullName(), e.getMessage(), e);
+                    log.debug("Error while downloading repo [{}] from GitHub. {}", repo.getFullName(), e.getMessage(), e);
                 }
 
                 if (downloadedRepos.size() >= downloaderConfig.getRepositoriesToDownload()) {
-                    log.info("Downloaded enough repositories. {}/{} repositories downloaded so far.", downloadedRepos.size(), downloaderConfig.getRepositoriesToDownload());
+                    log.debug("Downloaded enough repositories. {}/{} repositories downloaded so far.", downloadedRepos.size(), downloaderConfig.getRepositoriesToDownload());
                     break;
                 }
 
@@ -404,7 +405,7 @@ public class TaskGenerationJob {
         var parserConfig = config.getParser();
         var outputFolderPath = Path.of(parserConfig.getOutputFolderPath()).toAbsolutePath();
         if (!parserConfig.isEnabled()) {
-            log.info("parser is disabled by config");
+            log.debug("parser is disabled by config");
             try (var list = Files.list(outputFolderPath)) {
                 return list.filter(Files::isDirectory).collect(Collectors.toList());
             }
@@ -430,7 +431,7 @@ public class TaskGenerationJob {
             }
             var files = FileUtility.findFiles(repo, supportedFilenames);
             files = files.subList(0, Math.min(50, files.size()));
-            log.info("Found {} source code files", files.size());
+            log.debug("Found {} source code files", files.size());
 
             // TODO: make parser cmd customizable?
 
@@ -488,12 +489,12 @@ public class TaskGenerationJob {
         }
 
         // find all sub-folders in root directory of parser output directory
-        log.info("Start question generation from {} repository(-ies) ...", parsedRepos.size());
+        log.info("Start problem generation from {} repository(-ies) ...", parsedRepos.size());
 
         var result = new ArrayList<Path>(parsedRepos.size());
         for (var repoDir : parsedRepos) {
             var allFiles = FileUtility.findFiles(repoDir, new String[]{".ttl", ".json"});
-            log.info("Found {} question files in: {}", allFiles.size(), repoDir);
+            log.debug("Found {} files with problems in: {}", allFiles.size(), repoDir);
 
             String leafFolder = repoDir.getFileName().toString();
             Path destination = Path.of(generatorConfig.getOutputFolderPath(), leafFolder);
@@ -529,9 +530,9 @@ public class TaskGenerationJob {
                 }
                 parserProcess.waitFor(10, TimeUnit.MINUTES);
             } catch (InterruptedException e) {
-                log.warn("Question generation timeout exception", e);
+                log.warn("Problem generation timeout exception", e);
             } catch (Exception e) {
-                log.warn("Question generation exception", e);
+                log.warn("Problem generation exception", e);
             }
         }
 
@@ -551,7 +552,7 @@ public class TaskGenerationJob {
             return;
         }
 
-        log.info("Start saving questions generated from {} repositories ...", generatedRepos.size());
+        log.info("Start saving problems generated from {} repositories ...", generatedRepos.size());
 
         var questionsGenerated = new HashMap<GenerationRequest, Integer>();
         var incompletedRequests = new HashMap<GenerationRequestGroup, HashSet<GenerationRequest>>();
@@ -561,10 +562,10 @@ public class TaskGenerationJob {
 
         for (var repoDir : generatedRepos) {
             String repoName = repoDir.getFileName().toString();
-            log.info("Start processing repo [{}]", repoName);
+            log.debug("Start processing repo [{}]", repoName);
 
             var allJsonFiles = FileUtility.findFiles(repoDir, new String[]{".json"});
-            log.info("Found {} json files in: {}", allJsonFiles.size(), repoDir);
+            log.debug("Found {} json files in: {}", allJsonFiles.size(), repoDir);
 
             AtomicInteger processed = new AtomicInteger(0);
             AtomicInteger savedQuestions = new AtomicInteger();
@@ -602,20 +603,20 @@ public class TaskGenerationJob {
                     if (metaList.isEmpty()) {
                         skippedQuestions.addAndGet(1);
                         // в вопросе нет метаданных, невозможно проверить
-                        log.warn("[info] cannot save question which does not contain metadata. Question name: {}", q.getCommonQuestion().getQuestionData().getQuestionName());
+                        log.warn("[info] cannot save problem which does not contain metadata. Question name: {}", q.getCommonQuestion().getQuestionData().getQuestionName());
                         continue;
                     }
 
                     var metadataToRemove = new ArrayList<QuestionMetadataEntity>();
                     for (QuestionMetadataEntity meta : metaList) {
                         if (existingQuestionNames.contains(meta.getName()) || existingTemplateIds.contains(meta.getTemplateId())) {                            
-                            log.debug("Template [{}] or question [{}] already exists. Skipping...", meta.getTemplateId(), meta.getName());
+                            log.debug("Template [{}] or problem [{}] already exists. Skipping...", meta.getTemplateId(), meta.getName());
                             metadataToRemove.add(meta);
                         }
                     }
                     metadataToRemove.forEach(metaList::remove);
                     if (metaList.isEmpty()) {
-                        log.debug("All metadata already exists for question [{}]. Skipping...", q.getCommonQuestion().getQuestionData().getQuestionName());
+                        log.debug("All metadata already exists for problem [{}]. Skipping...", q.getCommonQuestion().getQuestionData().getQuestionName());
                         existingQuestions.addAndGet(1);
                         skippedQuestions.addAndGet(1);
                         continue;
@@ -643,10 +644,10 @@ public class TaskGenerationJob {
                                 var searchRequest = gr.getKey().getQuestionRequest();
                                 var genRequest = gr.getValue().stream().findFirst().orElse(null);
                                 if (!storage.isMatch(meta, searchRequest)) {
-                                    log.debug("Question [{}] does not match generation requests group {}", q.getCommonQuestion().getQuestionData().getQuestionName(), gr.getKey().getGenerationRequestIds());
+                                    log.debug("Problem [{}] does not match generation requests group {}", q.getCommonQuestion().getQuestionData().getQuestionName(), gr.getKey().getGenerationRequestIds());
                                 } else {
                                     matchesRequest.addAndGet(1);
-                                    log.debug("Question [{}] matches generation requests group {}", q.getCommonQuestion().getQuestionData().getQuestionName(), gr.getKey().getGenerationRequestIds());
+                                    log.debug("Problem [{}] matches generation requests group {}", q.getCommonQuestion().getQuestionData().getQuestionName(), gr.getKey().getGenerationRequestIds());
                                     matchedMetadata.put(meta, genRequest.id());
                                     var qGenerated = questionsGenerated.compute(genRequest, (k, v) -> v == null ? 1 : v + 1);
 
@@ -660,7 +661,7 @@ public class TaskGenerationJob {
 
                     if (matchedMetadata.isEmpty()) {
                         skippedQuestions.addAndGet(1);
-                        log.debug("Question [{}] skipped because zero qr matches: ", q.getCommonQuestion().getQuestionData().getQuestionName());
+                        log.debug("Problem [{}] skipped because zero qr matches: ", q.getCommonQuestion().getQuestionData().getQuestionName());
                         continue;
                     }
 
@@ -681,7 +682,7 @@ public class TaskGenerationJob {
 
                         /*
                         log.debug("* * *");
-                        log.debug("Question [{}] saved with data in database. Metadata id: {}", q.getCommonQuestion().getQuestionData().getQuestionName(),
+                        log.debug("Problem [{}] saved with data in database. Metadata id: {}", q.getCommonQuestion().getQuestionData().getQuestionName(),
                                 metaList.stream()
                                         .map(QuestionMetadataEntity::getId)
                                         .map((Integer i) -> i == null ? "ERROR" : Integer.toString(i))
@@ -699,11 +700,11 @@ public class TaskGenerationJob {
                 }
 
                 if (matchesRequest.get() == 0 && !incompletedRequests.isEmpty()) {
-                    log.info("None of the questions matched to any of incompleted generation requests. Skipping...");
+                    log.info("None of the problems matched to any of incompleted generation requests. Skipping...");
                 }
-                log.info("Processed {}/{} questions ({} skipped (as existing {}), {} saved).",
+                log.info("Processed {}/{} problems from repo [{}] ({} skipped (as existing {}), {} saved).",
                         processed.addAndGet(batch.size()), allJsonFiles.size(),
-                        skippedQuestions, existingQuestions, savedQuestions);
+                        repoName, skippedQuestions, existingQuestions, savedQuestions);
             });
         }
 
@@ -744,13 +745,13 @@ public class TaskGenerationJob {
             // Schedule invalidation every 3 hours
             scheduledExecutor.scheduleAtFixedRate(() -> {
                 if (!loadingFinished) {
-                    log.info("Repositories are still being loaded, skipping invalidation.");
+                    log.debug("Repositories are still being loaded, skipping invalidation.");
                     return;
                 }
 
                 synchronized (lock) {
                     if (!loadingFinished) {
-                        log.info("Repositories are still being loaded, skipping invalidation.");
+                        log.debug("Repositories are still being loaded, skipping invalidation.");
                         return;
                     }
 
@@ -758,7 +759,7 @@ public class TaskGenerationJob {
                     loadingFinished = false;
                 }
 
-                log.info("Invalidating cache and starting background loading again...");
+                log.debug("Invalidating cache and starting background loading again...");
                 startBackgroundLoading();
             }, 3, 3, TimeUnit.HOURS);
         }
@@ -818,7 +819,7 @@ public class TaskGenerationJob {
                         for (GHRepository repo : repoSearchQuery) {
                             synchronized (lock) {
                                 if (repositories.size() >= maxRepositories) {
-                                    log.info("Reached the limit of repositories in the buffer, stopping loading.");
+                                    log.debug("Reached the limit of repositories in the buffer, stopping loading.");
                                     loadingFinished = true;
                                     return;
                                 }
@@ -830,7 +831,7 @@ public class TaskGenerationJob {
                         log.debug("Slept {}ms to avoid GitHub API abuse", 2000);
                     }
                 } catch (Exception e) {
-                    log.error("Error loading repositories: {}", e.getMessage(), e);
+                    log.debug("Error loading repositories: {}", e.getMessage(), e);
                     Thread.sleep(5000L);
                 }
                 Thread.sleep(1000L);

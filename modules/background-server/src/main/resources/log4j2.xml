@@ -5,7 +5,7 @@
             <PatternLayout pattern="%d %-5level - %msg%n"/>
         </Console>
         <File name="BankLoadTestingFile"
-              fileName="${env:BANK_LOG_PATH:-logs/generator_${date:yyyy-MM-dd}.log}"
+              fileName="${env:BANK_LOG_PATH:-logs/log_${date:yyyy-MM-dd}.log}"
               immediateFlush="true"
               bufferedIO="false"
               locking="true">
@@ -28,11 +28,18 @@
                                  onMismatch="DENY"/>
             </AppenderRef>
         </Logger>
-
         <Logger name="org.vstu.compprehension.models.businesslogic.storage"
                 additivity="true">
             <AppenderRef ref="BankLoadTestingFile">
                 <ThresholdFilter level="${env:BANK_FILE_LOG_LEVEL:-OFF}"
+                                 onMatch="ACCEPT"
+                                 onMismatch="DENY"/>
+            </AppenderRef>
+        </Logger>
+        <Logger name="org.vstu.compprehension.jobs.tasksgeneration"
+                additivity="true">
+            <AppenderRef ref="BankLoadTestingFile">
+                <ThresholdFilter level="${env:BANK_FILE_LOG_LEVEL:-INFO}"
                                  onMatch="ACCEPT"
                                  onMismatch="DENY"/>
             </AppenderRef>
