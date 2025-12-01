@@ -439,7 +439,10 @@ public class ProgrammingLanguageExpressionDomain extends JenaReasoningDomain {
 
         List<QuestionMetadataEntity> foundQuestions = null;
         try {
-            int generatorThreshold = (int)(exerciseAttempt.getExercise().getOptions().getMaxExpectedConcurrentStudents() * 1.5);
+            var exerciseOptions = exerciseAttempt.getExercise().getOptions();
+            int generatorThreshold = exerciseOptions.getGeneratorThreshold() != null 
+                    ? exerciseOptions.getGeneratorThreshold() 
+                    : (int)(exerciseOptions.getMaxExpectedConcurrentStudents() * 1.5);
             foundQuestions = qMetaStorage.searchQuestions(questionRequest, 1, generatorThreshold).getQuestions();
 
             // search again if nothing found with "TO_COMPLEX"

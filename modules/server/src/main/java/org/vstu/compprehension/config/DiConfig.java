@@ -98,6 +98,12 @@ public class DiConfig {
         //var allDomains = domainRepository.findAll();
         return new QuestionBank(metadataRepository, questionDataRepository, generationRequestRepository, questionSearchRequestLogRepository, transactionScopeFactory);
     }
+    
+    @Bean
+    @SessionScope
+    RandomProvider getRandomProvider() {
+        return new RandomProvider();
+    }
 
     @Bean
     @Singleton

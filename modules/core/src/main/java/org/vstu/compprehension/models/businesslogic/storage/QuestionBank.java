@@ -194,7 +194,7 @@ public class QuestionBank {
         } else if (generatorThreshold < 7) {
             generatorThreshold = 7;
         }
-        log.debug("search query prepared: {}, generatorThreshold: {}", new Gson().toJson(preparedQuery), generatorThreshold);
+        log.debug("problem search query prepared: {}, generatorThreshold: {}", new Gson().toJson(preparedQuery), generatorThreshold);
         
         var searchSteps = new ArrayList<QuestionMetadataSearchRequestEntity.Iteration>(3);
         List<QuestionMetadataEntity> foundQuestionMetas;
@@ -203,7 +203,7 @@ public class QuestionBank {
             int topRatedLimit = generatorThreshold + 3;
             log.debug("trying to do {} search with {} limit", QuestionMetadataSearchRequestEntity.Quality.BestUnused, topRatedLimit);
             foundQuestionMetas = questionMetadataRepository.findTopRatedUnusedMetadata(preparedQuery, topRatedLimit);
-            log.info("{} search executed with {} candidates", QuestionMetadataSearchRequestEntity.Quality.BestUnused, foundQuestionMetas.size());
+            log.info("search executed with {} strategy and returns {} problems found ({} requested, {} generatorThreshold)", QuestionMetadataSearchRequestEntity.Quality.BestUnused, foundQuestionMetas.size(), topRatedLimit, generatorThreshold);
             searchSteps.add(new QuestionMetadataSearchRequestEntity.Iteration(QuestionMetadataSearchRequestEntity.Quality.BestUnused, topRatedLimit, foundQuestionMetas.size()));
         }
 
@@ -223,7 +223,7 @@ public class QuestionBank {
         }
         
         if (generatorThreshold > 0 && foundQuestionMetas.size() <= generatorThreshold) {
-            log.info("no enough top rated questions found (found {}/{}), need additional generation", foundQuestionMetas.size(), generatorThreshold);
+            log.info("too few top rated problems found ({}/{}), need additional generation", foundQuestionMetas.size(), generatorThreshold);
 
             // calculate how many questions to generate based on the number of found questions and existing generation requests
             var rawQuestionsToGenerate = generatorThreshold + 3 - foundQuestionMetas.size(); // +3 additional questions to be sure that we have enough (10 in total)
@@ -233,14 +233,14 @@ public class QuestionBank {
                 var generationRequest = new QuestionGenerationRequestEntity(preparedQuery, questionsToGenerate, qr.getExerciseAttemptId());
                 return generationRequestRepository.save(generationRequest);
             });
-            log.info("created generation request with id {} with {} questions to generate", genRequest.getId(), genRequest.getQuestionsToGenerate());
+            log.info("created generation request with id {} with {} problems to generate", genRequest.getId(), genRequest.getQuestionsToGenerate());
         }
         
         if (foundQuestionMetas.isEmpty()) {
             int normalLimit = 100;
             log.debug("trying to do {} search with {} limit", QuestionMetadataSearchRequestEntity.Quality.Normal, normalLimit);
             foundQuestionMetas = questionMetadataRepository.findMetadata(preparedQuery, normalLimit);
-            log.info("{} search executed with {} candidates", QuestionMetadataSearchRequestEntity.Quality.Normal, foundQuestionMetas.size());
+            log.info("search executed with {} strategy and returns {} problems ({} requested)", QuestionMetadataSearchRequestEntity.Quality.Normal, foundQuestionMetas.size(), normalLimit);
             searchSteps.add(new QuestionMetadataSearchRequestEntity.Iteration(QuestionMetadataSearchRequestEntity.Quality.Normal, normalLimit, foundQuestionMetas.size()));
         }
         
@@ -248,7 +248,7 @@ public class QuestionBank {
             int relaxedLimit = 100;
             log.debug("trying to do {} search with {} limit", QuestionMetadataSearchRequestEntity.Quality.Relaxed, relaxedLimit);
             foundQuestionMetas = questionMetadataRepository.findMetadataRelaxed(preparedQuery, relaxedLimit);
-            log.info("{} search executed with {} candidates", QuestionMetadataSearchRequestEntity.Quality.Relaxed, foundQuestionMetas.size());
+            log.info("search executed with {} strategy and returns {} problems", QuestionMetadataSearchRequestEntity.Quality.Relaxed, foundQuestionMetas.size());
             searchSteps.add(new QuestionMetadataSearchRequestEntity.Iteration(QuestionMetadataSearchRequestEntity.Quality.Relaxed, relaxedLimit, foundQuestionMetas.size()));
         }
 

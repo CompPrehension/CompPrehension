@@ -3,46 +3,48 @@ package org.vstu.compprehension.jobs.bankloadtesting;
 import lombok.SneakyThrows;
 import lombok.extern.log4j.Log4j2;
 import org.apache.commons.collections4.IteratorUtils;
-import org.hibernate.exception.LockAcquisitionException;
 import org.hibernate.exception.LockTimeoutException;
 import org.jetbrains.annotations.Nullable;
 import org.jobrunr.jobs.annotations.Job;
 import org.springframework.beans.factory.annotation.Autowired;
+import org.springframework.context.annotation.Scope;
 import org.springframework.dao.PessimisticLockingFailureException;
 import org.springframework.stereotype.Service;
-import org.springframework.transaction.PlatformTransactionManager;
-import org.springframework.transaction.TransactionDefinition;
-import org.springframework.transaction.support.TransactionCallback;
-import org.springframework.transaction.support.TransactionTemplate;
 import org.vstu.compprehension.Service.FrontendService;
 import org.vstu.compprehension.dto.ExerciseAttemptDto;
 import org.vstu.compprehension.dto.question.QuestionDto;
 import org.vstu.compprehension.models.entities.EnumData.Decision;
 import org.vstu.compprehension.models.entities.UserEntity;
+import org.vstu.compprehension.models.repository.ExerciseRepository;
 import org.vstu.compprehension.models.repository.UserRepository;
+import org.vstu.compprehension.utils.RandomProvider;
+import org.vstu.compprehension.utils.transactions.TransactionScope;
+import org.vstu.compprehension.utils.transactions.TransactionScopeFactory;
 
-import java.util.Random;
 import java.util.concurrent.Callable;
 import java.util.concurrent.ExecutorService;
 import java.util.concurrent.Executors;
 import java.util.concurrent.TimeUnit;
 
-@Log4j2
 @Service
 public class BankLoadTestingJob {
     private final FrontendService frontendService;
+    private final ExerciseRepository exerciseRepository;
     private final UserRepository userRepository;
     private final BankLoadTestingJobConfig config;
-    private final Random random = new Random();
-    private final TransactionTemplate transactionTemplate;
+    private final TransactionScope transactionScope;
+    private final RandomProvider randomProvider;
+    private final BankLoadTestingLogger log;
 
     @Autowired
-    public BankLoadTestingJob(FrontendService frontendService, UserRepository userRepository, BankLoadTestingJobConfig config, PlatformTransactionManager txManager) {
+    public BankLoadTestingJob(FrontendService frontendService, ExerciseRepository exerciseRepository, UserRepository userRepository, BankLoadTestingJobConfig config, TransactionScopeFactory transactionScopeFactory, RandomProvider randomProvider, BankLoadTestingLogger log) {
         this.frontendService = frontendService;
+        this.exerciseRepository = exerciseRepository;
         this.userRepository = userRepository;
         this.config = config;
-        this.transactionTemplate = new TransactionTemplate(txManager);
-        this.transactionTemplate.setPropagationBehavior(TransactionDefinition.PROPAGATION_REQUIRES_NEW);
+        this.transactionScope = transactionScopeFactory.create(TransactionScope.PropagationBehavior.REQUIRES_NEW);
+        this.randomProvider = randomProvider;
+        this.log = log;
     }
 
     @Job(name = "question-bank-load-testing-job", retries = 0)
@@ -57,10 +59,25 @@ public class BankLoadTestingJob {
 
     @SneakyThrows
     private synchronized void runImpl(BankLoadTestingJobConfig config) {
+        if (config.randomSeed != null) {
+            randomProvider.reset(config.randomSeed);
+        }
+        var random = randomProvider.getRandom();
+        
+        // set external generatorThresold
+        if (config.generatorThreshold != null) {
+            transactionScope.executeNoResult(() -> {
+                var exercise = exerciseRepository.findById(config.exerciseId)
+                        .orElseThrow();
+                exercise.getOptions().setGeneratorThreshold(config.generatorThreshold);
+                exerciseRepository.save(exercise);
+            });
+        }
+
         var users = IteratorUtils.toList(userRepository.findAll().iterator());
         var userIds = users.stream()
                 .map(UserEntity::getId)
-                .sorted((l, r) -> random.nextInt())
+                // .sorted((l, r) -> random.nextInt())
                 .limit(config.usersCount)
                 .toList();
         if (userIds.isEmpty()) {
@@ -93,11 +110,15 @@ public class BankLoadTestingJob {
     }
 
     private void runUserExerciseAttempt(BankLoadTestingJobConfig config, long userId) throws Exception {
+        log.setContextVariable("userId", String.valueOf(userId));
+        
         var exerciseId = config.exerciseId;
         Long attemptId = createExerciseAttempt(exerciseId, userId).getAttemptId();
-
+        
+        var random = randomProvider.getRandom();
         Thread.sleep(1000L * random.nextInt(config.exerciseStartDelayMin, config.exerciseStartDelayMax));
-        log.info("User {} starts his attempt", userId);
+
+        log.info("User {} starts exercise attempt", userId);
 
         var decision = Decision.CONTINUE;
         while (!decision.equals(Decision.FINISH)) {
@@ -106,7 +127,7 @@ public class BankLoadTestingJob {
                 continue;
             }
             
-            log.info("User {} started question {}. Stage: {}", userId, question.getQuestionId(), question.getQuestionId());
+            log.debug("User {} started question {}. Stage: {}", userId, question.getQuestionId(), question.getQuestionId());
 
             var feedback = executeWithRetry(() -> frontendService.generateNextCorrectAnswer(question.getQuestionId()), "firstAnswer");
 
@@ -121,13 +142,13 @@ public class BankLoadTestingJob {
             }
             decision = feedback.getStrategyDecision();
 
-            log.info("User {} completed question {}", userId, question.getQuestionId());
+            log.debug("User {} completed question {}", userId, question.getQuestionId());
 
             Thread.sleep(1000L * random.nextInt(config.questionDurationMin, config.questionDurationMax));
             Thread.sleep(1000L * random.nextInt(config.postQuestionDelayMin, config.postQuestionDelayMax));
         }
 
-        log.info("User {} finished his attempt", userId);
+        log.info("User {} finished exercise attempt", userId);
     }
 
     private @Nullable QuestionDto generateQuestion(Long exAttemptId) {
@@ -144,7 +165,7 @@ public class BankLoadTestingJob {
         try {
             return frontendService.generateQuestion(exAttemptId);
         } catch (NullPointerException ignored) {
-            log.debug("Problem question found for attempt {}", exAttemptId);
+            // log.debug("Problem question found for attempt {}", exAttemptId);
             return null;
         }
     }
