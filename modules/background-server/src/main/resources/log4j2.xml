@@ -39,7 +39,7 @@
         <Logger name="org.vstu.compprehension.jobs.tasksgeneration"
                 additivity="true">
             <AppenderRef ref="BankLoadTestingFile">
-                <ThresholdFilter level="${env:BANK_FILE_LOG_LEVEL:-INFO}"
+                <ThresholdFilter level="${env:BANK_FILE_LOG_LEVEL:-OFF}"
                                  onMatch="ACCEPT"
                                  onMismatch="DENY"/>
             </AppenderRef>
