@@ -69,7 +69,7 @@ public class LoqiBuilder {
         exercise.setTags("");
         exercise.setOptions(new ExerciseOptionsEntity(null, true,
                 true, true, true, true,
-                true, 7));
+                true, 7, null));
         exercise.setName("test");
         exercise.setStages(Collections.singletonList(new ExerciseStageEntity()));
         exercise.setStrategyId("StaticStrategy");
