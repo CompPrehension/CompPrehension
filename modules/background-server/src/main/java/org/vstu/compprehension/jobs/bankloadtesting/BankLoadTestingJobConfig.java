@@ -16,6 +16,7 @@ public class BankLoadTestingJobConfig {
     
     Integer randomSeed;
     Integer generatorThreshold;
+    Integer generatorAdditionalQuestionsToGenerate;
 
     int exerciseStartDelayMin = 0;
     int exerciseStartDelayMax = 30;

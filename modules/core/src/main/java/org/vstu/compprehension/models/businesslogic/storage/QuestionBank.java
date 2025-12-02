@@ -136,7 +136,7 @@ public class QuestionBank {
         return new QuestionBankSearchStatsDto(ordinaryCount, topRatedCount, metadata);
     }
 
-    public QuestionBankSearchResult searchQuestions(@NotNull QuestionRequest qr, int limit, int generatorThreshold) {
+    public QuestionBankSearchResult searchQuestions(@NotNull QuestionRequest qr, int limit, int generatorThreshold, int generatorAdditionalQuestionsToGenerate) {
 
         var bankSearchRequest = createBankSearchRequest(qr);
         
@@ -194,7 +194,10 @@ public class QuestionBank {
         } else if (generatorThreshold < 7) {
             generatorThreshold = 7;
         }
-        log.debug("problem search query prepared: {}, generatorThreshold: {}", new Gson().toJson(preparedQuery), generatorThreshold);
+        if (generatorAdditionalQuestionsToGenerate < 0) {
+            generatorAdditionalQuestionsToGenerate = 0;
+        }
+        log.debug("problem search query prepared: {}, generatorThreshold: {}, generatorAdditionalQuestionsToGenerate: {}", new Gson().toJson(preparedQuery), generatorThreshold, generatorAdditionalQuestionsToGenerate);
         
         var searchSteps = new ArrayList<QuestionMetadataSearchRequestEntity.Iteration>(3);
         List<QuestionMetadataEntity> foundQuestionMetas;
@@ -226,7 +229,7 @@ public class QuestionBank {
             log.info("too few top rated problems found ({}/{}), need additional generation", foundQuestionMetas.size(), generatorThreshold);
 
             // calculate how many questions to generate based on the number of found questions and existing generation requests
-            var rawQuestionsToGenerate = generatorThreshold + 3 - foundQuestionMetas.size(); // +3 additional questions to be sure that we have enough (10 in total)
+            var rawQuestionsToGenerate = generatorThreshold + generatorAdditionalQuestionsToGenerate - foundQuestionMetas.size(); // +generatorAdditionalQuestionsToGenerate additional questions to be sure that we will have enough
             var currentlyGeneratingQuestions = generationRequestRepository.findNumberOfCurrentlyGeneratingQuestions(qr.getDomainShortname(), preparedQuery);
             var questionsToGenerate = Math.max(1, rawQuestionsToGenerate - currentlyGeneratingQuestions);
             var genRequest = logSavingTransactionScope.execute(() -> {

@@ -64,12 +64,13 @@ public class BankLoadTestingJob {
         }
         var random = randomProvider.getRandom();
         
-        // set external generatorThresold
+        // set overridable settings
         if (config.generatorThreshold != null) {
             transactionScope.executeNoResult(() -> {
                 var exercise = exerciseRepository.findById(config.exerciseId)
                         .orElseThrow();
                 exercise.getOptions().setGeneratorThreshold(config.generatorThreshold);
+                exercise.getOptions().setGeneratorAdditionalQuestionsToGenerate(config.generatorAdditionalQuestionsToGenerate);
                 exerciseRepository.save(exercise);
             });
         }

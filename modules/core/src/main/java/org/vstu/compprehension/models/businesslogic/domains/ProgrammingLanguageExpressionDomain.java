@@ -443,13 +443,16 @@ public class ProgrammingLanguageExpressionDomain extends JenaReasoningDomain {
             int generatorThreshold = exerciseOptions.getGeneratorThreshold() != null 
                     ? exerciseOptions.getGeneratorThreshold() 
                     : (int)(exerciseOptions.getMaxExpectedConcurrentStudents() * 1.5);
-            foundQuestions = qMetaStorage.searchQuestions(questionRequest, 1, generatorThreshold).getQuestions();
+            int generatorAdditionalQuestionsToGenerate = exerciseOptions.getGeneratorAdditionalQuestionsToGenerate() != null
+                    ? exerciseOptions.getGeneratorAdditionalQuestionsToGenerate()
+                    : 3;
+            foundQuestions = qMetaStorage.searchQuestions(questionRequest, 1, generatorThreshold, generatorAdditionalQuestionsToGenerate).getQuestions();
 
             // search again if nothing found with "TO_COMPLEX"
             SearchDirections lawsSearchDir = questionRequest.getLawsSearchDirection();
             if (foundQuestions.isEmpty() && lawsSearchDir == SearchDirections.TO_COMPLEX) {
                 questionRequest.setLawsSearchDirection(SearchDirections.TO_SIMPLE);
-                foundQuestions = qMetaStorage.searchQuestions(questionRequest, 1, generatorThreshold).getQuestions();
+                foundQuestions = qMetaStorage.searchQuestions(questionRequest, 1, generatorThreshold, generatorAdditionalQuestionsToGenerate).getQuestions();
             }
         } catch (Exception e) {
             // file storage was not configured properly...

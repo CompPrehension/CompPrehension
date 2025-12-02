@@ -25,6 +25,7 @@ public class ExerciseOptionsEntity {
     @Builder.Default
     private int maxExpectedConcurrentStudents = 10;
     private Integer generatorThreshold;
+    private Integer generatorAdditionalQuestionsToGenerate;
 
     @Data
     @AllArgsConstructor @NoArgsConstructor
