@@ -465,7 +465,6 @@ public class ProgrammingLanguageExpressionDomain extends JenaReasoningDomain {
         }
 
         var res = foundQuestions.getFirst();
-        log.info("Expression domain has prepared the question: {}", res.getName());
         return makeQuestion(res, exerciseAttempt, questionRequest.getTargetTags(), userLanguage, domain);
     }
 

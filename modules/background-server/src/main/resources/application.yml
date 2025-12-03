@@ -69,8 +69,19 @@ metadata-health:
 bank-load-testing:
   # use cron string (like "*/30 * * * * *"), "never" or "once"
   cron-schedule: "never"
-  exercise-id: 2
-  users-count: 15
+  exercise-id: 29
+
+bank-load-testing-batch:
+  # use cron string (like "*/30 * * * * *"), "never" or "once"
+  cron-schedule: "once"
+  exercise-id: 29
+
+# logging config
+logging:
+  config: classpath:log4j2.xml
+  log4j2:
+    config:
+      override: # use env variable to override log4j2 config
 
 # db logging config
 config:

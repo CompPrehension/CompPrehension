@@ -8,20 +8,23 @@ import org.hibernate.exception.LockTimeoutException;
 import org.jetbrains.annotations.Nullable;
 import org.jobrunr.jobs.annotations.Job;
 import org.springframework.beans.factory.annotation.Autowired;
-import org.springframework.context.annotation.Scope;
 import org.springframework.dao.PessimisticLockingFailureException;
 import org.springframework.stereotype.Service;
 import org.vstu.compprehension.Service.FrontendService;
 import org.vstu.compprehension.dto.ExerciseAttemptDto;
 import org.vstu.compprehension.dto.question.QuestionDto;
-import org.vstu.compprehension.models.entities.EnumData.Decision;
+import org.vstu.compprehension.models.entities.EnumData.AttemptStatus;
 import org.vstu.compprehension.models.entities.UserEntity;
+import org.vstu.compprehension.models.entities.exercise.ExerciseStageEntity;
 import org.vstu.compprehension.models.repository.ExerciseRepository;
+import org.vstu.compprehension.models.repository.QuestionGenerationRequestRepository;
+import org.vstu.compprehension.models.repository.QuestionMetadataRepository;
 import org.vstu.compprehension.models.repository.UserRepository;
 import org.vstu.compprehension.utils.RandomProvider;
 import org.vstu.compprehension.utils.transactions.TransactionScope;
 import org.vstu.compprehension.utils.transactions.TransactionScopeFactory;
 
+import java.time.LocalDate;
 import java.util.concurrent.Callable;
 import java.util.concurrent.ExecutorService;
 import java.util.concurrent.Executors;
@@ -34,17 +37,23 @@ public class BankLoadTestingJob {
     private final ExerciseRepository exerciseRepository;
     private final UserRepository userRepository;
     private final BankLoadTestingJobConfig config;
+    private final BankLoadTestingJobBatchConfig batchConfig;
     private final TransactionScope transactionScope;
     private final RandomProvider randomProvider;
+    private final QuestionMetadataRepository questionMetadataRepository;
+    private final QuestionGenerationRequestRepository questionGenerationRequestRepository;
 
     @Autowired
-    public BankLoadTestingJob(FrontendService frontendService, ExerciseRepository exerciseRepository, UserRepository userRepository, BankLoadTestingJobConfig config, TransactionScopeFactory transactionScopeFactory, RandomProvider randomProvider) {
+    public BankLoadTestingJob(FrontendService frontendService, ExerciseRepository exerciseRepository, UserRepository userRepository, BankLoadTestingJobConfig config, BankLoadTestingJobBatchConfig batchConfig, TransactionScopeFactory transactionScopeFactory, RandomProvider randomProvider, QuestionMetadataRepository questionMetadataRepository, QuestionGenerationRequestRepository questionGenerationRequestRepository) {
         this.frontendService = frontendService;
         this.exerciseRepository = exerciseRepository;
         this.userRepository = userRepository;
         this.config = config;
+        this.batchConfig = batchConfig;
         this.transactionScope = transactionScopeFactory.create(TransactionScope.PropagationBehavior.REQUIRES_NEW);
         this.randomProvider = randomProvider;
+        this.questionMetadataRepository = questionMetadataRepository;
+        this.questionGenerationRequestRepository = questionGenerationRequestRepository;
     }
 
     @Job(name = "question-bank-load-testing-job", retries = 0)
@@ -57,8 +66,68 @@ public class BankLoadTestingJob {
         }
     }
 
+    @Job(name = "question-bank-load-testing-batch-job", retries = 0)
+    public void runBatch() {
+        try {
+            runBatchImpl(batchConfig);
+        } catch (Exception e) {
+            log.error("Bank loading test exception - {}", e.getMessage(), e);
+            throw e;
+        }
+    }
+
     @SneakyThrows
-    private synchronized void runImpl(BankLoadTestingJobConfig config) {
+    synchronized void runBatchImpl(BankLoadTestingJobBatchConfig batchConfig) {        
+        for(int genThreshold = batchConfig.generatorThresholdFrom; genThreshold <= batchConfig.generatorThresholdTo; genThreshold += batchConfig.generatorThresholdStep) {
+            for (int safeMargin = batchConfig.generatorAdditionalQuestionsToGenerateFrom; safeMargin <= batchConfig.generatorAdditionalQuestionsToGenerateTo; safeMargin += batchConfig.generatorAdditionalQuestionsToGenerateStep) {
+                log.info("Start cleaning bank from previous attempts");
+                var deletedMetadatas = transactionScope.execute(() -> questionMetadataRepository.deleteMetadataFromDate(LocalDate.now().plusDays(-2)));
+                log.info("Finish cleaning bank from previous attempts with {} deleted metadatas", deletedMetadatas);
+                
+                log.info("Generating experiment starts with generatorThreshold: {} and additionalQuestionsToGenerate: {}", genThreshold, safeMargin);
+                var config = new BankLoadTestingJobConfig();
+                config.randomSeed = 1111;
+                config.generatorThreshold = genThreshold;
+                config.generatorAdditionalQuestionsToGenerate = safeMargin;
+                config.exerciseId = batchConfig.exerciseId;
+                config.usersCount = batchConfig.usersCount;
+                config.exerciseStartDelayMin = batchConfig.exerciseStartDelayMin;
+                config.exerciseStartDelayMax = batchConfig.exerciseStartDelayMax;
+                config.postQuestionDelayMin = batchConfig.postQuestionDelayMin;
+                config.postQuestionDelayMax = batchConfig.postQuestionDelayMax;
+
+                var retryNumber = 0;
+                Exception lastException = null;
+                while (++retryNumber <= 3) {
+                    lastException  = null;
+                    
+                    try {
+                        runImpl(config);
+                        break;
+                    } catch (Exception e) {
+                        log.error("Generating experiment exception - {}", e.getMessage(), e);
+                        lastException = e;
+                    }
+                }
+                
+                if (lastException == null) {
+                    log.info("Generating experiment finished successfully with generatorThreshold: {} and additionalQuestionsToGenerate: {}", genThreshold, safeMargin);
+                } else {
+                    log.error("Generating experiment finished with errors with generatorThreshold: {} and additionalQuestionsToGenerate: {}", genThreshold, safeMargin);
+                }
+                
+                // завершаем все открытые запросы на генерацию
+                // дожидаемся, пока закончит работу генератор
+                var cancelledCount = transactionScope.execute(questionGenerationRequestRepository::cancelAllActiveRequests);
+                if (cancelledCount != null && cancelledCount > 0) {
+                    Thread.sleep(1000 * 30);
+                }
+            }
+        }
+    }
+
+    @SneakyThrows
+    synchronized void runImpl(BankLoadTestingJobConfig config) {
         if (config.randomSeed != null) {
             randomProvider.reset(config.randomSeed);
         }
@@ -75,22 +144,30 @@ public class BankLoadTestingJob {
             });
         }
 
+        var questionsNumber = transactionScope.execute(() ->exerciseRepository.findById(config.exerciseId).orElseThrow()
+                .getStages().stream()
+                .map(ExerciseStageEntity::getNumberOfQuestions)
+                .mapToInt(Integer::intValue)
+                .sum());
+
         var users = IteratorUtils.toList(userRepository.findAll().iterator());
         var userIds = users.stream()
                 .map(UserEntity::getId)
+                .sorted()
                 // .sorted((l, r) -> random.nextInt())
                 .limit(config.usersCount)
                 .toList();
         if (userIds.isEmpty()) {
             throw new IllegalArgumentException("Users count is 0");
         }
+        log.info("User ids to be used for experiment: {}", userIds);
 
         ExecutorService executor = Executors.newFixedThreadPool(config.usersCount);
         for (long userId : userIds) {
             executor.submit(() -> {
                 try {
                     ThreadContext.put("userId", String.valueOf(userId));
-                    runUserExerciseAttempt(config, userId);
+                    runUserExerciseAttempt(config, userId, questionsNumber);
                 } catch (Exception e) {
                     log.error("Error in user {} exercise attempt thread: {}", userId, e.getMessage(), e);
                 } finally {
@@ -113,41 +190,36 @@ public class BankLoadTestingJob {
         log.info("All {} user exercise attempts completed.", userIds.size());
     }
 
-    private void runUserExerciseAttempt(BankLoadTestingJobConfig config, long userId) throws Exception {
+    private void runUserExerciseAttempt(BankLoadTestingJobConfig config, long userId, int maxAttemptQuestions) throws Exception {
         var exerciseId = config.exerciseId;
         Long attemptId = createExerciseAttempt(exerciseId, userId).getAttemptId();
         
         var random = randomProvider.getRandom();
         Thread.sleep(1000L * random.nextInt(config.exerciseStartDelayMin, config.exerciseStartDelayMax));
 
-        log.info("User {} starts exercise attempt", userId);
+        log.info("User {} started exercise attempt", userId);
 
-        var decision = Decision.CONTINUE;
-        while (!decision.equals(Decision.FINISH)) {
-            var question = generateQuestion(attemptId);            
-            if (question == null) {
-                continue;
+        Long latsGenerationRequestId = null;
+        for(int i = 0; i < maxAttemptQuestions; i++) {
+            generateQuestion(attemptId);
+
+            var questionSolveDuration = getQuestionDelaySeconds(random.nextDouble())
+                    + random.nextInt(config.postQuestionDelayMin, config.postQuestionDelayMax);
+
+            // skip delay if generation request was not creates
+            if (latsGenerationRequestId == null) {
+                latsGenerationRequestId = questionGenerationRequestRepository.getLastRequestByExerciseAttemptId(attemptId).orElse(null);
+                if (latsGenerationRequestId == null) {
+                    log.debug("User {} skipped question solve delay because no generation requests have been found", userId);
+                    questionSolveDuration = 0;
+                }
             }
-            
-            log.debug("User {} started question {}. Stage: {}", userId, question.getQuestionId(), question.getQuestionId());
 
-            var feedback = executeWithRetry(() -> frontendService.generateNextCorrectAnswer(question.getQuestionId()), "firstAnswer");
-
-            if (feedback == null) {
-                break;
+            if (questionSolveDuration > 0) {
+                Thread.sleep((long)(1000 * questionSolveDuration));
             }
-            while (feedback != null && feedback.getStepsLeft() > 0) {
-                feedback = executeWithRetry(() -> frontendService.generateNextCorrectAnswer(question.getQuestionId()), "nextAnswers");
-            }
-            if (feedback == null) {
-                break;
-            }
-            decision = feedback.getStrategyDecision();
 
-            log.debug("User {} completed question {}", userId, question.getQuestionId());
-
-            Thread.sleep(1000L * random.nextInt(config.questionDurationMin, config.questionDurationMax));
-            Thread.sleep(1000L * random.nextInt(config.postQuestionDelayMin, config.postQuestionDelayMax));
+            log.info("User {} completed #{} question", userId, i+1);
         }
 
         log.info("User {} finished exercise attempt", userId);
@@ -177,6 +249,25 @@ public class BankLoadTestingJob {
         return executeWithRetry(() -> {
             return frontendService.createExerciseAttempt(exerciseId, userId);
         }, "createExerciseAttempt");
+    }
+
+    private static double getQuestionDelaySeconds(double u) {
+        var raw = 20124.57534014809 * Math.pow(u, 6)
+                        + -54371.642536328945 * Math.pow(u, 5)
+                        + 55482.38583228885 * Math.pow(u, 4)
+                        + -26371.472191593017 * Math.pow(u, 3)
+                        + 5807.635692396597 * Math.pow(u, 2)
+                        + -465.5577244968546 * u
+                        + 13.698911565177422;
+        
+        if (raw <= 0) {
+            return 0;
+        }
+        if (raw >= 200) {
+            return 200;
+        }
+        
+        return raw;
     }
 
     private <T> T executeWithRetry(Callable<T> callback, String operation) throws InterruptedException {

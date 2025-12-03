@@ -7,6 +7,7 @@ import org.vstu.compprehension.models.businesslogic.QuestionBankSearchRequest;
 import org.vstu.compprehension.models.entities.QuestionMetadataEntity;
 import org.vstu.compprehension.models.repository.QuestionMetadataRepository;
 
+import java.time.LocalDate;
 import java.time.LocalDateTime;
 import java.util.Collection;
 import java.util.HashSet;
@@ -162,6 +163,11 @@ public class FakeQuestionMetadataRepository implements QuestionMetadataRepositor
     @Override
     public List<QuestionMetadataEntity> findMetadataRelaxed(QuestionBankSearchRequest qr, int limitNumber) {
         return List.of();
+    }
+
+    @Override
+    public int deleteMetadataFromDate(LocalDate date) {
+        return 0;
     }
 
     @NotNull

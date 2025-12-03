@@ -236,7 +236,6 @@ public class DataFlowDTDomain extends DecisionTreeReasoningDomain {
         }
 
         var res = foundQuestions.getFirst();
-        log.info("Expression domain has prepared the question: {}", res.getName());
         return makeQuestion(res, exerciseAttempt, questionRequest.getTargetTags(), userLanguage);
     }
 

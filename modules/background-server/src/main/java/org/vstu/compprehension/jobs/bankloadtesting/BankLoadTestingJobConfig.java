@@ -9,10 +9,10 @@ import org.springframework.context.annotation.Configuration;
 @Getter @Setter
 @NoArgsConstructor
 public class BankLoadTestingJobConfig {
-    private String cronSchedule;
+    private String cronSchedule = "never";
 
     long exerciseId;
-    int usersCount = 15;
+    int usersCount = 7;
     
     Integer randomSeed;
     Integer generatorThreshold;
@@ -20,9 +20,6 @@ public class BankLoadTestingJobConfig {
 
     int exerciseStartDelayMin = 0;
     int exerciseStartDelayMax = 30;
-
-    int questionDurationMin = 20;
-    int questionDurationMax = 60;
 
     int postQuestionDelayMin = 3;
     int postQuestionDelayMax = 10;
