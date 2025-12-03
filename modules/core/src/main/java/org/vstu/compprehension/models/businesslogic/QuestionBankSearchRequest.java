@@ -51,6 +51,9 @@ public class QuestionBankSearchRequest {
     /** нерелевантные скиллы */
     private long unwantedSkillsBitmask;
 
+    private int generatorThreshold;
+    private int generatorAdditionalQuestionsToGenerate; 
+
     public static QuestionBankSearchRequest fromQuestionRequest(QuestionRequest qr, double bankMinComplexity, double bankMaxComplexity) {
         var normalizedComplexity = MathHelper.linearInterpolateToNewRange(
                 qr.getComplexity(),

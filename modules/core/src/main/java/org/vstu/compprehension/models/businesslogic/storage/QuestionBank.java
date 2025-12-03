@@ -178,6 +178,17 @@ public class QuestionBank {
         // guard: don't allow overlapping of target & denied
         targetSkillsBitmask &= ~deniedSkillsBitmask;
 
+        // ensure generatorThreshold & generatorAdditionalQuestionsToGenerate is valid
+        if (generatorThreshold < 0) {
+            generatorThreshold = 0;
+        }
+        if (generatorAdditionalQuestionsToGenerate < 0) {
+            generatorAdditionalQuestionsToGenerate = 0;
+        }
+
+        var searchSteps = new ArrayList<QuestionMetadataSearchRequestEntity.Iteration>(3);
+        List<QuestionMetadataEntity> foundQuestionMetas;
+
         var preparedQuery = bankSearchRequest.toBuilder()
                 .targetConceptsBitmask(targetConceptsBitmask)
                 .targetLawsBitmask(targetLawsBitmask)
@@ -186,21 +197,10 @@ public class QuestionBank {
                 .unwantedLawsBitmask(unwantedLawsBitmask)
                 .unwantedSkillsBitmask(unwantedSkillsBitmask)
                 .unwantedViolationsBitmask(unwantedViolationsBitmask)
+                .generatorThreshold(generatorThreshold)
+                .generatorAdditionalQuestionsToGenerate(generatorAdditionalQuestionsToGenerate)
                 .build();
-
-        // ensure generatorThreshold is valid
-        if (generatorThreshold < 0) {
-            generatorThreshold = 0;
-        } else if (generatorThreshold < 7) {
-            generatorThreshold = 7;
-        }
-        if (generatorAdditionalQuestionsToGenerate < 0) {
-            generatorAdditionalQuestionsToGenerate = 0;
-        }
-        log.debug("problem search query prepared: {}, generatorThreshold: {}, generatorAdditionalQuestionsToGenerate: {}", new Gson().toJson(preparedQuery), generatorThreshold, generatorAdditionalQuestionsToGenerate);
-        
-        var searchSteps = new ArrayList<QuestionMetadataSearchRequestEntity.Iteration>(3);
-        List<QuestionMetadataEntity> foundQuestionMetas;
+        log.debug("problem search query prepared: {}", new Gson().toJson(preparedQuery));
 
         {
             int topRatedLimit = generatorThreshold + 3;
@@ -224,8 +224,8 @@ public class QuestionBank {
                 log.error("isMatch desync detected. Metadata with ids={} does not match bank search query {}", notMatchedMetadata, new Gson().toJson(preparedQuery));
             }
         }
-        
-        if (generatorThreshold > 0 && foundQuestionMetas.size() <= generatorThreshold) {
+
+        if (foundQuestionMetas.size() <= generatorThreshold) {
             log.info("too few top rated problems found ({}/{}), need additional generation", foundQuestionMetas.size(), generatorThreshold);
 
             // calculate how many questions to generate based on the number of found questions and existing generation requests
