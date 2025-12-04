@@ -69,12 +69,10 @@ metadata-health:
 bank-load-testing:
   # use cron string (like "*/30 * * * * *"), "never" or "once"
   cron-schedule: "never"
-  exercise-id: 29
 
 bank-load-testing-batch:
   # use cron string (like "*/30 * * * * *"), "never" or "once"
-  cron-schedule: "once"
-  exercise-id: 29
+  cron-schedule: "never"
 
 # logging config
 logging:

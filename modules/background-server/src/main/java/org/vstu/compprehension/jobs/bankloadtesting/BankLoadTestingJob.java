@@ -202,7 +202,7 @@ public class BankLoadTestingJob {
         Long attemptId = createExerciseAttempt(exerciseId, userId).getAttemptId();
         
         var random = randomProvider.getRandom();
-        Thread.sleep(1000L * random.nextInt(config.exerciseStartDelayMin, config.exerciseStartDelayMax));
+        Thread.sleep(1000L * random.nextInt(config.exerciseStartDelayMin, config.exerciseStartDelayMax + 1));
 
         log.info("User {} started exercise attempt", userId);
 
@@ -211,7 +211,7 @@ public class BankLoadTestingJob {
             generateQuestion(attemptId);
 
             var questionSolveDuration = getQuestionDelaySeconds(random.nextDouble())
-                    + random.nextInt(config.postQuestionDelayMin, config.postQuestionDelayMax);
+                    + random.nextInt(config.postQuestionDelayMin, config.postQuestionDelayMax + 1);
 
             // skip delay if generation request was not creates
             if (latsGenerationRequestId == null) {
