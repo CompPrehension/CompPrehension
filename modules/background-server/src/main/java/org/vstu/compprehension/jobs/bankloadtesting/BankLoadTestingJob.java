@@ -227,7 +227,7 @@ public class BankLoadTestingJob {
                 Thread.sleep((long)(1000 * questionSolveDuration));
             }
 
-            log.info("User {} completed #{} question", userId, i+1);
+            log.info("User {} completed #{} problem", userId, i+1);
         }
 
         log.info("User {} finished exercise attempt", userId);
