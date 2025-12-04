@@ -14,7 +14,6 @@ import org.springframework.context.annotation.Configuration;
 public class BankLoadTestingJobBatchConfig {
     private String cronSchedule = "never";
 
-    // Integer retryAttempts = 1;
     Integer initialDelay;
     
     Integer generatorThresholdFrom = 0;
@@ -25,10 +24,12 @@ public class BankLoadTestingJobBatchConfig {
     Integer generatorAdditionalQuestionsToGenerateTo = 9;
     Integer generatorAdditionalQuestionsToGenerateStep = 3;
 
-    long exerciseId = 29;
-    int usersCount = 7;
+    boolean skipDelayForQuestionsWithoutGeneration = false;
 
-    Integer randomSeed = 111111;
+    long exerciseId;
+    int usersCount;
+
+    Integer randomSeed;
 
     int exerciseStartDelayMin = 0;
     int exerciseStartDelayMax = 30;

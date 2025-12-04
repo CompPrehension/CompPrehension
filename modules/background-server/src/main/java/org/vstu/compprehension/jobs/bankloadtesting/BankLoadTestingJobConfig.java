@@ -12,11 +12,13 @@ public class BankLoadTestingJobConfig {
     private String cronSchedule = "never";
 
     long exerciseId;
-    int usersCount = 7;
+    int usersCount;
     
     Integer randomSeed;
     Integer generatorThreshold;
     Integer generatorAdditionalQuestionsToGenerate;
+
+    boolean skipDelayForQuestionsWithoutGeneration = false;
 
     int exerciseStartDelayMin = 0;
     int exerciseStartDelayMax = 30;

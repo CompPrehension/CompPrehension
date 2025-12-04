@@ -102,6 +102,7 @@ public class BankLoadTestingJob {
                 config.exerciseStartDelayMax = batchConfig.exerciseStartDelayMax;
                 config.postQuestionDelayMin = batchConfig.postQuestionDelayMin;
                 config.postQuestionDelayMax = batchConfig.postQuestionDelayMax;
+                config.skipDelayForQuestionsWithoutGeneration = batchConfig.skipDelayForQuestionsWithoutGeneration;
 
                 var retryNumber = 0;
                 Exception lastException = null;
@@ -216,7 +217,7 @@ public class BankLoadTestingJob {
             // skip delay if generation request was not creates
             if (latsGenerationRequestId == null) {
                 latsGenerationRequestId = questionGenerationRequestRepository.getLastRequestByExerciseAttemptId(attemptId).orElse(null);
-                if (latsGenerationRequestId == null) {
+                if (latsGenerationRequestId == null && config.skipDelayForQuestionsWithoutGeneration) {
                     log.debug("User {} skipped question solve delay because no generation requests have been found", userId);
                     questionSolveDuration = 0;
                 }
