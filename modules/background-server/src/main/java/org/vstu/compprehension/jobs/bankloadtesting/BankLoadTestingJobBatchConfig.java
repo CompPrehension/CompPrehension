@@ -15,15 +15,15 @@ public class BankLoadTestingJobBatchConfig {
     private String cronSchedule = "never";
 
     // Integer retryAttempts = 1;
-    Integer initialDelay = 0;
+    Integer initialDelay;
     
     Integer generatorThresholdFrom = 0;
     Integer generatorThresholdTo = 50;
-    Integer generatorThresholdStep = 1;
+    Integer generatorThresholdStep = 5;
     
     Integer generatorAdditionalQuestionsToGenerateFrom = 0;
     Integer generatorAdditionalQuestionsToGenerateTo = 9;
-    Integer generatorAdditionalQuestionsToGenerateStep = 9;
+    Integer generatorAdditionalQuestionsToGenerateStep = 3;
 
     long exerciseId = 29;
     int usersCount = 7;

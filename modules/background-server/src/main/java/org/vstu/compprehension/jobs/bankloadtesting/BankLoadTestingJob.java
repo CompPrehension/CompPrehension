@@ -77,9 +77,16 @@ public class BankLoadTestingJob {
     }
 
     @SneakyThrows
-    synchronized void runBatchImpl(BankLoadTestingJobBatchConfig batchConfig) {        
+    synchronized void runBatchImpl(BankLoadTestingJobBatchConfig batchConfig) {
+        if (batchConfig.initialDelay != null &&  batchConfig.initialDelay > 0) {
+            Thread.sleep(1000L * batchConfig.initialDelay);
+        }
+        
         for(int genThreshold = batchConfig.generatorThresholdFrom; genThreshold <= batchConfig.generatorThresholdTo; genThreshold += batchConfig.generatorThresholdStep) {
             for (int safeMargin = batchConfig.generatorAdditionalQuestionsToGenerateFrom; safeMargin <= batchConfig.generatorAdditionalQuestionsToGenerateTo; safeMargin += batchConfig.generatorAdditionalQuestionsToGenerateStep) {
+                // ensure all gen requests cancelled
+                transactionScope.execute(questionGenerationRequestRepository::cancelAllActiveRequests);
+                
                 log.info("Start cleaning bank from previous attempts");
                 var deletedMetadatas = transactionScope.execute(() -> questionMetadataRepository.deleteMetadataFromDate(LocalDate.now().plusDays(-2)));
                 log.info("Finish cleaning bank from previous attempts with {} deleted metadatas", deletedMetadatas);

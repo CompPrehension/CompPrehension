@@ -9,12 +9,15 @@ import org.vstu.compprehension.common.MathHelper;
 import org.vstu.compprehension.models.entities.QuestionRequestLogEntity;
 
 import java.util.List;
+import java.util.UUID;
 
 @Builder(toBuilder = true)
 @Getter
 @NoArgsConstructor
 @AllArgsConstructor
 public class QuestionBankSearchRequest {
+    @Nullable
+    private UUID questionRequestId;
     private long deniedConceptsBitmask;
     private long targetConceptsBitmask;
     private long targetLawsBitmask;
@@ -63,6 +66,7 @@ public class QuestionBankSearchRequest {
                 (float)bankMaxComplexity);
 
         return QuestionBankSearchRequest.builder()
+                .questionRequestId(qr.getId())
                 .deniedConceptsBitmask(Concept.combineToBitmask(qr.getDeniedConcepts()))
                 .targetConceptsBitmask(Concept.combineToBitmask(qr.getTargetConcepts()))
                 .targetLawsBitmask(Law.combineToBitmask(qr.getTargetLaws()))
@@ -89,6 +93,7 @@ public class QuestionBankSearchRequest {
                 (float)bankMaxComplexity);
 
         return QuestionBankSearchRequest.builder()
+                .questionRequestId(qr.getId())
                 .deniedConceptsBitmask(qr.getConceptsDeniedBitmask())
                 .targetConceptsBitmask(qr.getConceptsTargetedBitmask())
                 .targetLawsBitmask(qr.getLawsTargetedBitmask())
