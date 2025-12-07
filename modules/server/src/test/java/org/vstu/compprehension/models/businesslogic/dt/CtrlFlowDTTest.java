@@ -1,0 +1,153 @@
+package org.vstu.compprehension.models.businesslogic.dt;
+
+import domains.ControlFlowDTDomain;
+import its.reasoner.nodes.*;
+import jakarta.transaction.Transactional;
+import org.junit.jupiter.api.Assertions;
+import org.junit.jupiter.api.BeforeAll;
+import org.junit.jupiter.api.Test;
+import org.junit.jupiter.api.TestInstance;
+import org.springframework.beans.factory.annotation.Autowired;
+import org.springframework.boot.test.context.SpringBootTest;
+import org.springframework.test.context.ActiveProfiles;
+import org.vstu.compprehension.Service.QuestionService;
+import org.vstu.compprehension.models.businesslogic.Question;
+import org.vstu.compprehension.models.businesslogic.domains.Domain;
+import org.vstu.compprehension.models.businesslogic.domains.DomainFactory;
+import org.vstu.compprehension.models.entities.AnswerObjectEntity;
+import org.vstu.compprehension.models.entities.EnumData.Language;
+import org.vstu.compprehension.models.entities.ExerciseAttemptEntity;
+import org.vstu.compprehension.models.entities.ResponseEntity;
+import org.vstu.compprehension.models.entities.exercise.ExerciseEntity;
+import org.vstu.compprehension.models.repository.ExerciseAttemptRepository;
+import org.vstu.compprehension.models.repository.ExerciseRepository;
+import org.vstu.compprehension.models.repository.QuestionMetadataRepository;
+import org.vstu.compprehension.models.repository.UserRepository;
+
+import java.util.ArrayList;
+import java.util.List;
+import java.util.Map;
+import java.util.stream.Collectors;
+import java.util.stream.StreamSupport;
+
+@SpringBootTest
+@TestInstance(TestInstance.Lifecycle.PER_CLASS)
+@ActiveProfiles("test")
+@Transactional
+public class CtrlFlowDTTest {
+    @Autowired
+    DomainFactory domainFactory;
+    @Autowired
+    private ExerciseAttemptRepository exerciseAttemptRepository;
+    @Autowired
+    private ExerciseRepository exerciseRepository;
+    @Autowired
+    private QuestionMetadataRepository qMetaRepo;
+    @Autowired
+    private UserRepository userRepository;
+    @Autowired
+    private QuestionService questionService;
+
+
+    private ControlFlowDTDomain domain;
+    private ExerciseEntity exercise;
+    private ExerciseAttemptEntity attempt;
+
+    @BeforeAll
+    public void tearUp() {
+        domain = (ControlFlowDTDomain) domainFactory.getDomain("ControlFlowDTDomain");
+        exercise = StreamSupport.stream(exerciseRepository.findAll().spliterator(), false)
+                .filter(e -> e.getName().equals("CtrlFlow25-Test")).findFirst().orElseThrow();
+        attempt = new ExerciseAttemptEntity();
+        attempt.setQuestions(List.of());
+        attempt.setExercise(exercise);
+        attempt.setUser(userRepository.findAll().iterator().next());
+        exerciseAttemptRepository.save(attempt);
+    }
+
+    public Question loadQuestion(String questionName) {
+        var metas = qMetaRepo.findByName(questionName);
+        return domain.makeQuestion(metas.getFirst(), attempt, List.of(domain.getTag("Python")), Language.ENGLISH);
+    }
+
+    private String walkDecisionTreeTrace(DecisionTreeTrace trace) {
+        if (trace == null || trace.isEmpty()) {
+            return "none";
+        }
+        return trace.stream().map(this::walkDecisionTreeTraceElement).collect(Collectors.joining(" -> "));
+    }
+
+    private String walkDecisionTreeTraceElement(DecisionTreeTraceElement element) {
+        return switch (element) {
+            case BranchResultDecisionTreeTraceElement e -> "<%s [%s]>".formatted(e.getNode().getValue(), e.getNode().getMetadata().get("skill"));
+            case AggregationDecisionTreeTraceElement e -> "%s => {\n\t%s\n}".formatted(
+                        e.getNode().getClass().getSimpleName(),
+                        e.nestedTraces().stream().map(n -> walkDecisionTreeTrace((DecisionTreeTrace) n)).collect(Collectors.joining(" ; "))
+            );
+            case WhileCycleDecisionTreeTraceElement e -> "%s => {\n\t%s\n}".formatted(
+                    e.getNode().getClass().getSimpleName(),
+                    e.nestedTraces().stream().map(n -> walkDecisionTreeTrace(n)).collect(Collectors.joining(" ;\n\t"))
+            );
+            default -> element.getNode().getClass().getSimpleName();
+        };
+    }
+
+    public void judge(Question q, Map<Integer, String> answerObjectIds, boolean consideredAsCorrect) {
+        List<ResponseEntity> responses = new ArrayList<>();
+        for (var entry : answerObjectIds.entrySet()) {
+            AnswerObjectEntity answerObject = AnswerObjectEntity
+                    .builder().answerId(entry.getKey())
+                    .domainInfo(entry.getValue()).build();
+            responses.add(ResponseEntity.builder().leftAnswerObject(answerObject).rightAnswerObject(answerObject).build());
+            var result = judgeAtOnce(q, responses, consideredAsCorrect);
+            if (result.IterationsLeft == 0) {
+                break;
+            }
+        }
+    }
+
+    public Domain.InterpretSentenceResult judgeAtOnce(Question q, Map<Integer, String> answerObjectIds, boolean consideredAsCorrect) {
+        List<ResponseEntity> responses = answerObjectIds.entrySet().stream()
+                .map((entry) -> AnswerObjectEntity.builder().answerId(entry.getKey())
+                        .domainInfo(entry.getValue()).build())
+                .map((answerObject) -> ResponseEntity.builder().leftAnswerObject(answerObject).rightAnswerObject(answerObject).build())
+                .toList();
+        return judgeAtOnce(q, responses, consideredAsCorrect);
+    }
+
+    public Domain.InterpretSentenceResult judgeAtOnce(Question q, List<ResponseEntity> responses, boolean consideredAsCorrect) {
+        var result = questionService.judgeQuestion(q, responses, List.of(domain.getTag("Python")));
+        if (
+                (!result.isAnswerCorrect && consideredAsCorrect) ||
+                        (result.isAnswerCorrect && !consideredAsCorrect)
+        ) {
+            StringBuilder builder = new StringBuilder();
+            builder.append("=====  Invalid solution ==== \n");
+            builder.append("Answer ID trace: %s\n".formatted(responses.stream().map(r ->
+                    r.getLeftAnswerObject().getAnswerId().toString()
+            ).collect(Collectors.joining("\n"))));
+            builder.append("CFG Trace: %s\n".formatted(responses.stream().map(r ->
+                    r.getLeftAnswerObject().getDomainInfo()
+            ).collect(Collectors.joining(" -> "))));
+            builder.append("Judge result: %s\n".formatted(result.isAnswerCorrect));
+            builder.append("Interpretation trace: %s\n".formatted(walkDecisionTreeTrace(result.decisionTreeTrace)));
+            builder.append("===== / ===== \n");
+            Assertions.fail(builder.toString());
+        };
+        return result;
+    }
+
+    @Test
+    public void variableSequence() {
+        var question = loadQuestion("debug_6_simple_variables.py");
+        var answers = Map.of(
+                0, "atom_104",
+                1, "atom_107",
+                2, "atom_111",
+                3, "atom_115",
+                4, "atom_119"
+        );
+        judge(question, answers, true);
+    }
+
+}

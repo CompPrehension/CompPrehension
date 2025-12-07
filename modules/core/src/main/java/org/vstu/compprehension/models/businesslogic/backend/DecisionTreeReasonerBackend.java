@@ -391,7 +391,7 @@ public class DecisionTreeReasonerBackend
         }
 
         static boolean isCorrectAnswer(@NotNull DecisionTreeTrace trace) {
-            if (List.of(Boolean.TRUE, true, BranchResult.CORRECT).contains(trace.getLast().getNodeResult())) {
+            if (List.of(Boolean.TRUE, true, BranchResult.CORRECT).contains(trace.getBranchResult())) {
                 return true;
             }
             return false;

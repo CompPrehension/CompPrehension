@@ -2,6 +2,7 @@ package org.vstu.compprehension.models.businesslogic;
 
 import domains.ControlFlowDTDomain;
 import jakarta.transaction.Transactional;
+import org.junit.jupiter.api.Assertions;
 import org.junit.jupiter.api.BeforeAll;
 import org.junit.jupiter.api.Test;
 import org.junit.jupiter.api.TestInstance;
@@ -81,8 +82,8 @@ public class CtrlFlowLoadQuestionsTest {
     @Test
     @Commit
     public void fillQuestions() {
-        String dir = "D:\\MEGA\\IT\\Projects\\Git\\Indev\\render-meaning-tree\\test\\output\\questions";
-        //String dir = "/home/brookit/MEGA/IT/Projects/Git/Indev/render-meaning-tree/test/output/questions";
+        String dir = System.getProperty("test.questionDir");
+        Assertions.assertNotNull(dir, "Specify -Dtest.questionDir=/your-questions-path");
         List<String> fileList;
         try {
             fileList = findFiles(Path.of(dir), new String[] {".json"});

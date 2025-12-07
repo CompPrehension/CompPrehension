@@ -2,13 +2,20 @@ package domains;
 
 import its.model.DomainSolvingModel;
 import its.model.definition.*;
+import its.model.definition.build.DomainBuilderUtils;
 import its.model.definition.loqi.DomainLoqiBuilder;
+import its.model.nodes.BranchResult;
+import its.model.nodes.DecisionTree;
 import its.reasoner.LearningSituation;
+import its.reasoner.nodes.DecisionTreeReasoner;
+import its.reasoner.nodes.DecisionTreeTrace;
+import its.reasoner.nodes.DecisionTreeTraceElement;
 import lombok.Getter;
 import lombok.extern.log4j.Log4j2;
 import org.jetbrains.annotations.NotNull;
 import org.jetbrains.annotations.Nullable;
 import org.vstu.compprehension.Service.LocalizationService;
+import org.vstu.compprehension.dto.ExerciseSkillDto;
 import org.vstu.compprehension.models.businesslogic.*;
 import org.vstu.compprehension.models.businesslogic.backend.DecisionTreeReasonerBackend;
 import org.vstu.compprehension.models.businesslogic.backend.facts.Fact;
@@ -42,8 +49,6 @@ public class ControlFlowDTDomain extends DecisionTreeReasoningDomain {
             Objects.requireNonNull(this.getClass().getClassLoader().getResource(DOMAIN_MODEL_LOCATION)),
             DomainSolvingModel.BuildMethod.LOQI).validate();
 
-    Map<String, Skill> skills;
-
     private static final HashMap<String, Tag> tags = new HashMap<>() {{
         put("C++", new Tag("C++", 2L));  	// (2 ^ 1)
         put("Java", new Tag("Java", 4L));  	// (2 ^ 2)
@@ -62,6 +67,48 @@ public class ControlFlowDTDomain extends DecisionTreeReasoningDomain {
         return resultModel;
     }
 
+    private void fillSkills() {
+        skills = new HashMap<>();
+
+        addSkill("compound_constructs_present", Skill.FLAG_VISIBLE_TO_TEACHER);
+        addSkill("is_in_compound_construct_ending", Skill.FLAG_VISIBLE_TO_TEACHER);
+        addSkill("is_in_nested_construct", Skill.FLAG_VISIBLE_TO_TEACHER);
+        addSkill("selected_transition_without_any_constraint", Skill.FLAG_VISIBLE_TO_TEACHER);
+        addSkill("interruption_state_matches_constraint", Skill.FLAG_VISIBLE_TO_TEACHER);
+        addSkill("condition_value_allows_transition", Skill.FLAG_VISIBLE_TO_TEACHER);
+        addSkill("is_function_call_jumping_correct", Skill.FLAG_VISIBLE_TO_TEACHER);
+        addSkill("two_execution_points_has_path", Skill.FLAG_VISIBLE_TO_TEACHER);
+        addSkill("are_condition_evaluation_required_in_path", Skill.FLAG_VISIBLE_TO_TEACHER);
+        addSkill("many_actions_in_require_selection", Skill.FLAG_VISIBLE_TO_TEACHER);
+
+        fillSkillTree();
+
+        // assign mask bits to Skills
+        var name2bit = _getSkillsName2bit();
+        for (Skill t : skills.values()) {
+            var name = t.getName();
+            if (name2bit.containsKey(name)) {
+                t.setBitmask(name2bit.get(name));
+            } else {
+                throw new RuntimeException("Invalid bitmask for skill " + name);
+            }
+        }
+    }
+
+    /** Set direct children to skills. This is needed since parents (bases) of skills are stored only */
+    protected void fillSkillTree() {
+        for (Skill skill : skills.values()) {
+            if (skill.getBaseSkills() == null)
+                continue;
+            for (Skill base : skill.getBaseSkills()) {
+                if (base.getChildSkills() == null) {
+                    base.setChildSkills(new HashSet<>());
+                }
+                base.getChildSkills().add(skill);
+            }
+        }
+    }
+
     private static class DecisionTreeInterface implements DecisionTreeReasonerBackend.Interface {
 
         @Override
@@ -69,10 +116,30 @@ public class ControlFlowDTDomain extends DecisionTreeReasoningDomain {
             return null;
         }
 
+        ObjectDef findEndOfProgram(DomainModel model) {
+            return model.getObjects().stream()
+                    .filter(e -> e.getClassName().equals("Node"))
+                    .filter(e -> ((EnumValueRef) e.getPropertyValue("kind", Map.of())).getValueName().equals("END")
+                            && e.getRelationshipLink("hasMetadata")
+                            .getObjects().getFirst()
+                            .getRelationshipLink("belongsToASTNode")
+                            .getObjects().getFirst().getPropertyValue("ast_node", Map.of()).equals("program_entry_point")
+                    ).findFirst().get();
+        }
+
         @Override
         public void updateJudgeInterpretationResult(InterpretSentenceResult interpretationResult, DecisionTreeReasonerBackend.Output backendOutput) {
+            ObjectDef A_node = backendOutput.situation().getDecisionTreeVariables().get("A")
+                    .findIn(backendOutput.situation().getDomainModel())
+                    .getRelationshipLink("hasCFGNode").getObjects().getFirst();
+            ObjectDef endOfProgram = findEndOfProgram(backendOutput.situation().getDomainModel());
+
             interpretationResult.CountCorrectOptions = 1;
-            interpretationResult.IterationsLeft = 10;
+            interpretationResult.IterationsLeft = (Integer) backendOutput.situation().getDomainModel()
+                    .getObjects().stream().filter(obj -> obj.getClassName().equals("PathInfo")).filter(
+                            path -> path.getRelationshipLink("from_").getObjects().getFirst().equals(A_node) &&
+                                    path.getRelationshipLink("to_").getObjects().getFirst().equals(endOfProgram)
+                    ).findFirst().orElseThrow().getPropertyValue("opaque_actions", Map.of());
 
             if (interpretationResult.IterationsLeft == 0) {
                 // Достигли полного завершения задачи.
@@ -93,42 +160,103 @@ public class ControlFlowDTDomain extends DecisionTreeReasoningDomain {
 
             DomainModel questionModel = domain.prepareQuestionModel(question, model);
 
-            List<ObjectDef> traceActs = responses
-                    .stream()
-                    .map(resp -> resp.getLeftAnswerObject().getDomainInfo())
-                    .map(resp -> questionModel.getObjects().get(resp))
-                    .toList();
-            // Выстраиваем трассу действий
-            for (int i = 0; i < traceActs.size() - 2; i++) {
-                traceActs.get(i).getRelationshipLinks().add(new RelationshipLinkStatement(traceActs.get(i), "directlyBeforeOf",
-                        List.of(traceActs.get(i + 1).getName()), ParamsValues.getEMPTY()));
-                traceActs.get(i).getDefinedPropertyValues().addOrReplace(new PropertyValueStatement<>(traceActs.get(i),
-                        "active", ParamsValues.getEMPTY(), Boolean.TRUE)
-                );
-            }
-            if (!traceActs.isEmpty()) traceActs.getLast().getDefinedPropertyValues().addOrReplace(new PropertyValueStatement<>(traceActs.getLast(),
-                    "active", ParamsValues.getEMPTY(), Boolean.TRUE)
-            );
+            // Строим трассу, попутно проверяя ее с теневой эталонной трассой
+            ObjectDef currentTraceAct = makeTrace(questionModel, responses, false);
 
-            ObjectDef A = traceActs.getLast();
-            ObjectDef L0 = traceActs.get(traceActs.size() - 1);
-            ObjectDef STATE = questionModel.getVariables().get("STATE").getValueObject();
+            ObjectDef A = makeA(questionModel, responses.getLast().getLeftAnswerObject().getDomainInfo());
+            ObjectDef L0 = currentTraceAct;
 
-            ObjectDef pathL0A = domain.findPathInfo(questionModel, L0, A);
-
-            // Обновляем состояние прерывания, исходя из маршрута от L0 до A
-            /*
-            STATE.getDefinedPropertyValues().addOrReplace(
-                    new PropertyValueStatement<>(A, "interruption_state", ParamsValues.getEMPTY(),
-                            pathL0A.getRelationshipLink("hasEffects").getObjects().getFirst().getPropertyValue("")
-                    )
-            );
-             */
-
-            questionModel.getVariables().add(new VariableDef("A", A.getName()));
-            questionModel.getVariables().add(new VariableDef("L0", L0.getName()));
+            updateModelState(domain, questionModel, L0, A);
 
             return new DecisionTreeReasonerBackend.Input(questionModel, model.getDecisionTree());
+        }
+
+        void updateModelState(ControlFlowDTDomain domain, DomainModel questionModel, ObjectDef L0, ObjectDef A) {
+            ObjectDef STATE = questionModel.getVariables().get("STATE").getValueObject();
+
+
+            ObjectDef pathL0A = domain.findPathInfo(questionModel,
+                    L0.getRelationshipLink("hasCFGNode").getObjects().getFirst(),
+                    A.getRelationshipLink("hasCFGNode").getObjects().getFirst()
+            ).orElseThrow();
+
+            // Обновляем состояние прерывания, исходя из маршрута от L0 до A
+            var intrptStart = pathL0A.getRelationshipLink("hasEffects")
+                    .getObjects().getFirst()
+                    .getPropertyValue("interruption_start", Map.of());
+            var interptStop = pathL0A.getRelationshipLink("hasEffects")
+                    .getObjects().getFirst()
+                    .getPropertyValue("interruption_stop", Map.of());
+            var oldInterpt = STATE.getDefinedPropertyValues().get("interruption_state", Map.of());
+            var noInterrupt = questionModel.getEnums().get("InterruptionType").getValues().get("no_intteruption").getReference();
+
+            if (interptStop.equals(oldInterpt)) {
+                STATE.getDefinedPropertyValues().addOrReplace(
+                        new PropertyValueStatement<>(A, "interruption_state", ParamsValues.getEMPTY(), noInterrupt)
+                );
+            }
+            if (!intrptStart.equals(oldInterpt)) {
+                STATE.getDefinedPropertyValues().addOrReplace(
+                        new PropertyValueStatement<>(A, "interruption_state", ParamsValues.getEMPTY(), intrptStart)
+                );
+            }
+
+            // Выставляем итоговые переменные
+            questionModel.getVariables().add(new VariableDef("A", A.getName()));
+            questionModel.getVariables().add(new VariableDef("L0", L0.getName()));
+        }
+
+        ObjectDef makeTrace(DomainModel questionModel, List<ResponseEntity> responses, boolean includeLast) {
+            ObjectDef firstTraceAct = questionModel.getObjects()
+                    .stream()
+                    .filter(obj -> obj.getClassName().equals("TraceAct"))
+                    .filter(obj -> (Boolean) obj.getPropertyValue("is_known_correct", Map.of()))
+                    .findFirst().orElseThrow();
+
+            ObjectDef currentTraceAct = firstTraceAct.getRelationshipLink("directlyBeforeOf").getObjects().getFirst();
+            int end = includeLast ? responses.size() : responses.size() - 1;
+            for (int i = 0; i < end; i++) {
+                ResponseEntity response = responses.get(i);
+                String domainInfo = response.getLeftAnswerObject().getDomainInfo();
+                ObjectDef cfgNode = questionModel.getObjects().stream()
+                        .filter(obj -> obj.getClassName().equals("Node"))
+                        .filter(obj -> obj.getPropertyValue("id", Map.of()).equals(domainInfo))
+                        .findFirst().orElseThrow();
+                if (currentTraceAct.getRelationshipLink("hasCFGNode")
+                        .getObjects().getFirst().equals(cfgNode)) {
+                    currentTraceAct.getDefinedPropertyValues().add(new PropertyValueStatement<>(
+                            currentTraceAct,
+                            "is_known_correct",
+                            ParamsValues.getEMPTY(), true));
+                } else {
+                    throw new DomainUseException("Invalid trace act in already checked acts");
+                }
+                if ((i + 1) != end) {
+                    currentTraceAct = currentTraceAct.getRelationshipLink("directlyBeforeOf").getObjects().getFirst();
+                }
+            }
+            return currentTraceAct;
+        }
+
+        ObjectDef makeA(DomainModel questionModel, String cfgNodeId) {
+            ObjectDef result = DomainBuilderUtils.newObject(questionModel, "trace_act_A", "TraceAct");
+            ObjectDef cfgNode = questionModel.getObjects().stream()
+                    .filter(obj -> obj.getClassName().equals("Node"))
+                    .filter(obj -> obj.getPropertyValue("id", Map.of()).equals(cfgNodeId))
+                    .findFirst().orElseThrow();
+            ObjectDef metadata = cfgNode.getRelationshipLink("hasMetadata").getObjects().getFirst();
+            EnumValueRef noValue = questionModel.getEnums().get("OptionalBoolValue").getValues().get("no_value").getReference();
+            result.getDefinedPropertyValues().addOrReplace(new PropertyValueStatement<>(result, "is_known_correct", ParamsValues.getEMPTY(), false));
+            result.getDefinedPropertyValues().addOrReplace(new PropertyValueStatement<>(result, "condition_value", ParamsValues.getEMPTY(), noValue));
+
+            result.getRelationshipLinks().add(new RelationshipLinkStatement(result, "hasCFGNode", List.of(cfgNode.getName()), ParamsValues.getEMPTY()));
+            result.getRelationshipLinks().add(new RelationshipLinkStatement(result, "hasActionSpec",
+                    List.of(metadata.getRelationshipLink("hasAbstractAction").getObjects().getFirst().getName()),
+                    ParamsValues.getEMPTY()));
+            result.getRelationshipLinks().add(new RelationshipLinkStatement(result, "hasASTNode",
+                    List.of(metadata.getRelationshipLink("belongsToASTNode").getObjects().getFirst().getName()),
+                    ParamsValues.getEMPTY()));
+            return result;
         }
 
         @Override
@@ -138,27 +266,12 @@ public class ControlFlowDTDomain extends DecisionTreeReasoningDomain {
     }
 
     @Nullable
-    public ObjectDef findPathInfo(DomainModel questionModel, ObjectDef from, ObjectDef to) {
-        var pathIterator = questionModel.getObjects().stream().filter(
-                obj -> obj.getClassName().equals("PathInfo")
-        ).iterator();
-        while (pathIterator.hasNext()) {
-            var pathInfo = pathIterator.next();
-            boolean matched_from = false;
-            boolean matched_to = false;
-            var relationships = pathInfo.getRelationshipLinks();
-            for (RelationshipLinkStatement relationship : relationships) {
-                if (relationship.getRelationshipName().equals("from_") && relationship.getObjects().contains(from)) {
-                    matched_from = true;
-                } else if (relationship.getRelationshipName().equals("to_") && relationship.getObjects().contains(to)) {
-                    matched_to = true;
-                }
-            }
-            if (matched_from && matched_to) {
-                return pathInfo;
-            }
-        }
-        return null;
+    public Optional<ObjectDef> findPathInfo(DomainModel questionModel, ObjectDef from, ObjectDef to) {
+        return questionModel.getObjects().stream()
+                .filter(obj -> obj.getClassName().equals("PathInfo"))
+                .filter(pathInfo ->
+                        pathInfo.getRelationshipLink("from_").getObjects().getFirst().equals(from)
+                                && pathInfo.getRelationshipLink("to_").getObjects().getFirst().equals(to)).findFirst();
     }
 
     public ControlFlowDTDomain(DomainEntity domainEntity,
@@ -176,10 +289,6 @@ public class ControlFlowDTDomain extends DecisionTreeReasoningDomain {
     @Override
     public List<DomainSolvingModel> getDomainSolvingModels() {
         return List.of(domainSolvingModel);
-    }
-
-    public void fillSkills() {
-        skills = new HashMap<>();
     }
 
     @Override
@@ -272,6 +381,7 @@ public class ControlFlowDTDomain extends DecisionTreeReasoningDomain {
         return new HyperText("WRONG");
     }
 
+
     @NotNull
     @Override
     public Question makeQuestion(@NotNull QuestionRequest questionRequest,
@@ -345,9 +455,79 @@ public class ControlFlowDTDomain extends DecisionTreeReasoningDomain {
         return false;
     }
 
+    private static class Solver {
+        record SolveResult(boolean solved,
+                                  List<String> laws,
+                                  List<String> skills,
+                                  DecisionTreeTrace trace, LearningSituation situation) {}
+
+        private static void collectMeta(DecisionTreeTrace trace, List<String> skills, List<String> laws) {
+            for (DecisionTreeTraceElement<?, ?> res : trace) {
+                String[] resSkill = res.getNode().getMetadata().containsAny("skill") && res.getNode().getMetadata().get("skill") != null ?
+                        res.getNode().getMetadata().get("skill").toString().split(";") : new String[0];
+                String[] resLaw = res.getNode().getMetadata().containsAny("law") && res.getNode().getMetadata().get("law") != null ?
+                        res.getNode().getMetadata().get("law").toString().split(";") : new String[0];
+                Collections.addAll(skills, resSkill);
+                Collections.addAll(laws, resLaw);
+                for (var childTrace : Objects.requireNonNullElse(res.nestedTraces(), new ArrayList<DecisionTreeTrace>())) {
+                    collectMeta(childTrace, skills, laws);
+                }
+            }
+        }
+
+        static SolveResult solve(DecisionTree tree, DomainModel model) {
+            LearningSituation situation = new LearningSituation(model, new HashMap<>());
+            DecisionTreeTrace trace = DecisionTreeReasoner.solve(tree, situation);
+            List<String> skills = new ArrayList<>();
+            List<String> laws = new ArrayList<>();
+            boolean solved = trace.getBranchResult().equals(BranchResult.CORRECT);
+            collectMeta(trace, skills, laws);
+            return new SolveResult(solved, laws, skills, trace, situation);
+        }
+    }
+
     @Override
     public CorrectAnswer getAnyNextCorrectAnswer(Question q) {
-        return null;
+        Language lang = Optional.ofNullable(q.getQuestionData().getExerciseAttempt())
+                .map(a -> a.getUser().getPreferred_language())
+                .orElse(Language.RUSSIAN/*ENGLISH*/);
+        List<String> deniedSkills = List.of();
+        var exerciseStage = q.getExerciseStage();
+        if (exerciseStage.isPresent()) {
+            deniedSkills = exerciseStage.get().getSkills()
+                    .stream().map(ExerciseSkillDto::getName).toList();
+        }
+        Optional<InteractionEntity> lastCorrectInteraction = Optional.ofNullable(q.getQuestionData().getInteractions()).stream()
+                .flatMap(Collection::stream)
+                .filter(i -> i.getFeedback().getInteractionsLeft() >= 0 && i.getViolations().isEmpty())
+                .reduce((first, second) -> second);
+        List<ResponseEntity> responses = new ArrayList<>();
+        lastCorrectInteraction.ifPresent(interactionEntity -> responses.addAll(interactionEntity.getResponses()));
+        var model = getDomainSolvingModels().getFirst();
+        ControlFlowDTDomain.DecisionTreeInterface treeInterface = (ControlFlowDTDomain.DecisionTreeInterface) getBackendInterface();
+        DomainModel questionModel = prepareQuestionModel(q, model);
+        ObjectDef L0 = treeInterface.makeTrace(questionModel, responses, true);
+
+        ObjectDef nextAnswer = L0.getRelationshipLink("directlyBeforeOf").getObjects().getFirst();
+        ObjectDef endOfProgram = treeInterface.findEndOfProgram(questionModel);
+        CorrectAnswer correctAnswer = new CorrectAnswer();
+        String cfgId = (String) nextAnswer.getRelationshipLink("hasCFGNode")
+                .getObjects().getFirst().getPropertyValue("id", Map.of());
+        ObjectDef A = treeInterface.makeA(questionModel, cfgId);
+        treeInterface.updateModelState(this, questionModel, L0, A);
+        var solveRes = Solver.solve(ControlFlowDTDomain.this.getDomainSolvingModels().getFirst().getDecisionTree(), questionModel);
+        Explanation explanation = DecisionTreeReasonerBackend.collectExplanationsFromTrace(
+                Explanation.Type.HINT,
+                solveRes.trace(), questionModel,
+                this, deniedSkills, lang
+        );
+        AnswerObjectEntity answer = q.getAnswerObjects().stream().filter(ans -> ans.getDomainInfo().equals(cfgId)).findFirst().get();
+        correctAnswer.answers = List.of(new CorrectAnswer.Response(answer, answer));
+        correctAnswer.question = q.getQuestionData();
+        correctAnswer.lawName = null;
+        correctAnswer.skillName = solveRes.skills();
+        correctAnswer.explanation = explanation;
+        return correctAnswer;
     }
 
     @Override
@@ -370,6 +550,21 @@ public class ControlFlowDTDomain extends DecisionTreeReasoningDomain {
             }
         }
         return trace;
+    }
+
+    private HashMap<String, Long> _getSkillsName2bit() {
+        HashMap<String, Long> name2bit = new HashMap<>(16);
+        name2bit.put("compound_constructs_present", 0x1L);   // (1)
+        name2bit.put("is_in_compound_construct_ending", 0x2L);     // (2)
+        name2bit.put("is_in_nested_construct", 0x4L);   // (4)
+        name2bit.put("selected_transition_without_any_constraint", 0x8L);      // (8)
+        name2bit.put("interruption_state_matches_constraint", 0x10L);    // (16)
+        name2bit.put("condition_value_allows_transition", 0x20L);      // (32)
+        name2bit.put("is_function_call_jumping_correct", 0x40L);     // (64)
+        name2bit.put("two_execution_points_has_path", 0x80L);    // (128)
+        name2bit.put("are_condition_evaluation_required_in_path", 0x100L);      // (256)
+        name2bit.put("many_actions_in_require_selection", 0x200L);     // (512)
+        return name2bit;
     }
 
     @Override

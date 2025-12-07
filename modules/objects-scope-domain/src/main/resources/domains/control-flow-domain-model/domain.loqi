@@ -18,7 +18,7 @@ enum OptionalBoolValue {
 		RU.localizedName = "любое" ;
 		EN.localizedName = "any value" ;
 	],
-	none [
+	no_value [
 		RU.localizedName = "нет значения" ;
 		EN.localizedName = "no value" ;
 	],
@@ -54,9 +54,14 @@ enum InterruptionType {
 		EN.localizedName = "any" ;
 
 	],
-	none [
+	no_interruption [
 		RU.localizedName = "нет прерывания" ;
 		EN.localizedName = "none" ;
+
+	],
+	generic_interruption [
+		RU.localizedName = "прерывание любого вида" ;
+		EN.localizedName = "generic interruption" ;
 
 	],
 } [
@@ -201,7 +206,7 @@ class Effect {
 
 
 class Behaviour {
-	obj prop assumed_value: bool ;
+	obj prop assumed_value: OptionalBoolValue ;  // Когда соответствующее действие отсутствует в AST (опущено)
 } [
 	RU.localizedName = "поведение" ;
 	EN.localizedName = "behaviour" ;
@@ -209,12 +214,11 @@ class Behaviour {
 ]
 
 class Constraint {
-	obj prop condition_value: bool ;
+	obj prop condition_value: OptionalBoolValue ;
 	obj prop interruption_mode: InterruptionType ;
 } [
 	RU.localizedName = "ограничение" ;
 	EN.localizedName = "constraint" ;
-
 ]
 
 class ActionSpec {
@@ -282,7 +286,6 @@ class Metadata {
 
 class Node {
 	obj prop id: string ;
-	obj prop role: string ;
 	obj prop kind: NodeKind ;
 
 	rel belongsTo(CFG) : opposite to CFG->hasNodes ;
@@ -341,6 +344,9 @@ class PathInfo {
 
 	rel from_(Node) : {* -> 1} ;  // opposite to Node->startsPath
 	rel to_(Node) : {* -> 1} ;  // opposite to Node->endsPath
+	rel hasEffects(Effect) : {* -> *} ;
+	rel hasConstraints(Constraint) : {* -> 1} ;
+
 	// rel viaNodes(Node) : {* -> *} ;
 	// rel viaEdges(Edge) : {* -> *} ;
 	rel firstMiddleAction(Node) : {* -> 1} ;
@@ -358,7 +364,6 @@ class PathInfo {
 class ASTNodeWrapper {
 	obj prop ast_id: int ;
 	obj prop ast_node: string ;
-	obj prop current_condition_value: bool ;
 
 	rel hasParent(ASTNodeWrapper) : {* -> 1} ;
 	rel hasChildren(ASTNodeWrapper) ;
@@ -385,15 +390,13 @@ class State {
 
 class TraceAct {
 	obj prop is_known_correct: bool ;
-	obj prop condition_value: bool ; // используем
-	obj prop active : bool;
+	obj prop condition_value: OptionalBoolValue ; // используем
 
 	rel hasCFGNode(Node) : {* -> 1};
 	rel hasActionSpec(ActionSpec) : {* -> 1};
 	rel hasASTNode(ASTNodeWrapper) : {* -> 1} ;
 	rel hasActAsCorrespondingEnd(TraceAct) : {1 -> *} ;
 	
-
 	rel directlyBeforeOf(TraceAct) : linear ;
 	rel directlyAfterOf(TraceAct) : opposite to directlyBeforeOf ;
 	rel beforeOf(TraceAct) : transitive to directlyBeforeOf ;
