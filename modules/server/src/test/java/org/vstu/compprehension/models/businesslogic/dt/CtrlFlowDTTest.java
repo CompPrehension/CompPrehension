@@ -3,6 +3,7 @@ package org.vstu.compprehension.models.businesslogic.dt;
 import domains.ControlFlowDTDomain;
 import its.reasoner.nodes.*;
 import jakarta.transaction.Transactional;
+import org.apache.commons.lang3.tuple.Pair;
 import org.junit.jupiter.api.Assertions;
 import org.junit.jupiter.api.BeforeAll;
 import org.junit.jupiter.api.Test;
@@ -92,17 +93,26 @@ public class CtrlFlowDTTest {
         };
     }
 
-    public void judge(Question q, Map<Integer, String> answerObjectIds, boolean consideredAsCorrect) {
+    public void judge(Question q,
+                      List<Pair<Integer, String>> answerObjectIds,
+                      boolean consideredAsCorrect,
+                      boolean detectUnfinished
+    ) {
         List<ResponseEntity> responses = new ArrayList<>();
-        for (var entry : answerObjectIds.entrySet()) {
+        Domain.InterpretSentenceResult result = null;
+        for (var entry : answerObjectIds) {
             AnswerObjectEntity answerObject = AnswerObjectEntity
                     .builder().answerId(entry.getKey())
                     .domainInfo(entry.getValue()).build();
             responses.add(ResponseEntity.builder().leftAnswerObject(answerObject).rightAnswerObject(answerObject).build());
-            var result = judgeAtOnce(q, responses, consideredAsCorrect);
+            result = judgeAtOnce(q, responses, consideredAsCorrect);
             if (result.IterationsLeft == 0) {
+                System.err.println("#### WARNING ####: Unexpected end of program. Last response: id=%s, cfg_node_id=%s".formatted(entry.getKey(), entry.getValue()));
                 break;
             }
+        }
+        if (result != null && result.IterationsLeft > 0 && detectUnfinished) {
+            Assertions.fail("Answer processing was finished, but program requires also %d interactions".formatted(result.IterationsLeft));
         }
     }
 
@@ -130,6 +140,11 @@ public class CtrlFlowDTTest {
                     r.getLeftAnswerObject().getDomainInfo()
             ).collect(Collectors.joining(" -> "))));
             builder.append("Judge result: %s\n".formatted(result.isAnswerCorrect));
+            builder.append("Variable dump: %s\n".formatted(
+                    result.decisionTreeTrace.getFinalVariableSnapshot().entrySet().stream()
+                            .map(varObj -> "%s = %s".formatted(varObj.getKey(), varObj.getValue()))
+                            .collect(Collectors.joining("; "))
+            ));
             builder.append("Interpretation trace: %s\n".formatted(walkDecisionTreeTrace(result.decisionTreeTrace)));
             builder.append("===== / ===== \n");
             Assertions.fail(builder.toString());
@@ -140,14 +155,14 @@ public class CtrlFlowDTTest {
     @Test
     public void variableSequence() {
         var question = loadQuestion("debug_6_simple_variables.py");
-        var answers = Map.of(
-                0, "atom_104",
-                1, "atom_107",
-                2, "atom_111",
-                3, "atom_115",
-                4, "atom_119"
+        var answers = List.of(
+                Pair.of(0, "atom_104"),
+                Pair.of(1, "atom_107"),
+                Pair.of(2, "atom_111"),
+                Pair.of(3, "atom_115"),
+                Pair.of(4, "atom_119")
         );
-        judge(question, answers, true);
+        judge(question, answers, true, true);
     }
 
 }

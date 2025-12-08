@@ -189,9 +189,7 @@ enum CallStackAction {
 ]
 
 
-
-
-////// Уровень абстракций управляющих конструкций //////
+// Уровень абстракций управляющих конструкций //
 
 
 class Effect {
@@ -266,7 +264,7 @@ class ConstructSpec {
 
 
 
-////// Уровень CFG - Control Flow Graph //////
+// Уровень CFG - Control Flow Graph //
 
 
 class Metadata {
@@ -332,8 +330,6 @@ class CFG {
 class PathInfo {
 	obj prop id: string ;
 	obj prop is_direct: bool ;
-	// obj prop ways_count: int[0, 65536] ;
-	// obj prop cfg_steps: int[0, 65536] ;
 	obj prop ast_actions: int[0, 65536] ;
 	obj prop transparent_actions: int[0, 65536] ;
 	obj prop opaque_actions: int[0, 65536] ;
@@ -347,11 +343,9 @@ class PathInfo {
 	rel hasEffects(Effect) : {* -> *} ;
 	rel hasConstraints(Constraint) : {* -> 1} ;
 
-	// rel viaNodes(Node) : {* -> *} ;
-	// rel viaEdges(Edge) : {* -> *} ;
-	rel firstMiddleAction(Node) : {* -> 1} ;
-	rel firstMiddleCondition(Node) : {* -> 1} ;
-	rel firstMiddleFrameChange(Node) : {* -> 1} ;
+	rel hasFirstMiddleAction(Node) : {* -> 1} ;
+	rel hasFirstMiddleCondition(Node) : {* -> 1} ;
+	rel hasFirstMiddleFrameChange(Node) : {* -> 1} ;
 } [
 	RU.localizedName = "Путь по графу CFG и информация о достижимости" ;
 	EN.localizedName = "Path within a CFG & reachability info" ;
@@ -359,7 +353,7 @@ class PathInfo {
 ]
 
 
-////// Уровень условия задачи -- конкретного AST //////
+// Уровень условия задачи -- конкретного AST //
 
 class ASTNodeWrapper {
 	obj prop ast_id: int ;
@@ -378,7 +372,7 @@ class ASTNodeWrapper {
 
 
 
-////// Уровень выполнения задачи -- трассы //////
+// Уровень выполнения задачи -- трассы //
 
 class State {
 	obj prop interruption_state: InterruptionType ;

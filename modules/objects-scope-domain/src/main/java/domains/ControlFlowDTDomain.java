@@ -174,31 +174,31 @@ public class ControlFlowDTDomain extends DecisionTreeReasoningDomain {
         void updateModelState(ControlFlowDTDomain domain, DomainModel questionModel, ObjectDef L0, ObjectDef A) {
             ObjectDef STATE = questionModel.getVariables().get("STATE").getValueObject();
 
-
             ObjectDef pathL0A = domain.findPathInfo(questionModel,
                     L0.getRelationshipLink("hasCFGNode").getObjects().getFirst(),
                     A.getRelationshipLink("hasCFGNode").getObjects().getFirst()
             ).orElseThrow();
 
             // Обновляем состояние прерывания, исходя из маршрута от L0 до A
-            var intrptStart = pathL0A.getRelationshipLink("hasEffects")
-                    .getObjects().getFirst()
-                    .getPropertyValue("interruption_start", Map.of());
-            var interptStop = pathL0A.getRelationshipLink("hasEffects")
-                    .getObjects().getFirst()
-                    .getPropertyValue("interruption_stop", Map.of());
-            var oldInterpt = STATE.getDefinedPropertyValues().get("interruption_state", Map.of());
-            var noInterrupt = questionModel.getEnums().get("InterruptionType").getValues().get("no_intteruption").getReference();
-
-            if (interptStop.equals(oldInterpt)) {
-                STATE.getDefinedPropertyValues().addOrReplace(
-                        new PropertyValueStatement<>(A, "interruption_state", ParamsValues.getEMPTY(), noInterrupt)
-                );
-            }
-            if (!intrptStart.equals(oldInterpt)) {
-                STATE.getDefinedPropertyValues().addOrReplace(
-                        new PropertyValueStatement<>(A, "interruption_state", ParamsValues.getEMPTY(), intrptStart)
-                );
+            if (pathL0A.getRelationshipLinks().stream().anyMatch(rel -> rel.getRelationshipName().equals("hasEffects"))) {
+                var intrptStart = pathL0A.getRelationshipLink("hasEffects")
+                        .getObjects().getFirst()
+                        .getPropertyValue("interruption_start", Map.of());
+                var interptStop = pathL0A.getRelationshipLink("hasEffects")
+                        .getObjects().getFirst()
+                        .getPropertyValue("interruption_stop", Map.of());
+                var oldInterpt = STATE.getDefinedPropertyValues().get("interruption_state", Map.of());
+                var noInterrupt = questionModel.getEnums().get("InterruptionType").getValues().get("no_intteruption").getReference();
+                if (interptStop.equals(oldInterpt)) {
+                    STATE.getDefinedPropertyValues().addOrReplace(
+                            new PropertyValueStatement<>(A, "interruption_state", ParamsValues.getEMPTY(), noInterrupt)
+                    );
+                }
+                if (!intrptStart.equals(oldInterpt)) {
+                    STATE.getDefinedPropertyValues().addOrReplace(
+                            new PropertyValueStatement<>(A, "interruption_state", ParamsValues.getEMPTY(), intrptStart)
+                    );
+                }
             }
 
             // Выставляем итоговые переменные
@@ -215,6 +215,7 @@ public class ControlFlowDTDomain extends DecisionTreeReasoningDomain {
 
             ObjectDef currentTraceAct = firstTraceAct.getRelationshipLink("directlyBeforeOf").getObjects().getFirst();
             int end = includeLast ? responses.size() : responses.size() - 1;
+            if (end == 0) currentTraceAct = firstTraceAct;
             for (int i = 0; i < end; i++) {
                 ResponseEntity response = responses.get(i);
                 String domainInfo = response.getLeftAnswerObject().getDomainInfo();
@@ -224,7 +225,7 @@ public class ControlFlowDTDomain extends DecisionTreeReasoningDomain {
                         .findFirst().orElseThrow();
                 if (currentTraceAct.getRelationshipLink("hasCFGNode")
                         .getObjects().getFirst().equals(cfgNode)) {
-                    currentTraceAct.getDefinedPropertyValues().add(new PropertyValueStatement<>(
+                    currentTraceAct.getDefinedPropertyValues().addOrReplace(new PropertyValueStatement<>(
                             currentTraceAct,
                             "is_known_correct",
                             ParamsValues.getEMPTY(), true));
