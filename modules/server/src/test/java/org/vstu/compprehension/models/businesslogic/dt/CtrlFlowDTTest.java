@@ -131,7 +131,7 @@ public class CtrlFlowDTTest {
         if (invalid) {
             builder.append("=====  !!! Invalid solution !!! ==== \n");
         } else {
-            builder.append("=====  Solution ==== \n");
+            builder.append("===== Solution ==== \n");
         }
         builder.append("Answer ID trace: %s\n".formatted(responses.stream().map(r ->
                 r.getLeftAnswerObject().getAnswerId().toString()
@@ -162,7 +162,6 @@ public class CtrlFlowDTTest {
                 (!result.isAnswerCorrect && consideredAsCorrect) ||
                         (result.isAnswerCorrect && !consideredAsCorrect)
         ) {
-
             Assertions.fail(makeJudgeTrace(result, responses, true));
         } else if (DETAILED_TRACE) {
             System.out.println(makeJudgeTrace(result, responses, false));
