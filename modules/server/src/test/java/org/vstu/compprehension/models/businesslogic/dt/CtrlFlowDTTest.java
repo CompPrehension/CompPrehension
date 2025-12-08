@@ -27,7 +27,6 @@ import org.vstu.compprehension.models.repository.UserRepository;
 
 import java.util.ArrayList;
 import java.util.List;
-import java.util.Map;
 import java.util.stream.Collectors;
 import java.util.stream.StreamSupport;
 
@@ -117,8 +116,8 @@ public class CtrlFlowDTTest {
         }
     }
 
-    public Domain.InterpretSentenceResult judgeAtOnce(Question q, Map<Integer, String> answerObjectIds, boolean consideredAsCorrect) {
-        List<ResponseEntity> responses = answerObjectIds.entrySet().stream()
+    public Domain.InterpretSentenceResult judgeAtOnceByAnswerObjects(Question q, List<Pair<Integer, String>> answerObjectIds, boolean consideredAsCorrect) {
+        List<ResponseEntity> responses = answerObjectIds.stream()
                 .map((entry) -> AnswerObjectEntity.builder().answerId(entry.getKey())
                         .domainInfo(entry.getValue()).build())
                 .map((answerObject) -> ResponseEntity.builder().leftAnswerObject(answerObject).rightAnswerObject(answerObject).build())
@@ -135,7 +134,7 @@ public class CtrlFlowDTTest {
         }
         builder.append("Answer ID trace: %s\n".formatted(responses.stream().map(r ->
                 r.getLeftAnswerObject().getAnswerId().toString()
-        ).collect(Collectors.joining("\n"))));
+        ).collect(Collectors.joining(" -> "))));
         builder.append("CFG Trace: %s\n".formatted(responses.stream().map(r ->
                 r.getLeftAnswerObject().getDomainInfo()
         ).collect(Collectors.joining(" -> "))));
