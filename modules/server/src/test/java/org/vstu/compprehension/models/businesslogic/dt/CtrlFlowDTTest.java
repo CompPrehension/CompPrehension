@@ -49,6 +49,7 @@ public class CtrlFlowDTTest {
     @Autowired
     private QuestionService questionService;
 
+    private static final boolean DETAILED_TRACE = true;
 
     private ControlFlowDTDomain domain;
     private ExerciseEntity exercise;
@@ -125,30 +126,47 @@ public class CtrlFlowDTTest {
         return judgeAtOnce(q, responses, consideredAsCorrect);
     }
 
+    public String makeJudgeTrace(Domain.InterpretSentenceResult result, List<ResponseEntity> responses, boolean invalid) {
+        StringBuilder builder = new StringBuilder();
+        if (invalid) {
+            builder.append("=====  !!! Invalid solution !!! ==== \n");
+        } else {
+            builder.append("=====  Solution ==== \n");
+        }
+        builder.append("Answer ID trace: %s\n".formatted(responses.stream().map(r ->
+                r.getLeftAnswerObject().getAnswerId().toString()
+        ).collect(Collectors.joining("\n"))));
+        builder.append("CFG Trace: %s\n".formatted(responses.stream().map(r ->
+                r.getLeftAnswerObject().getDomainInfo()
+        ).collect(Collectors.joining(" -> "))));
+        builder.append("Judge result: %s\n".formatted(result.isAnswerCorrect));
+        builder.append("Variable dump: %s\n".formatted(
+                result.decisionTreeTrace.getFinalVariableSnapshot().entrySet().stream()
+                        .map(varObj -> "%s = %s".formatted(varObj.getKey(), varObj.getValue()))
+                        .collect(Collectors.joining("; "))
+        ));
+        builder.append("Interpretation trace: %s\n".formatted(walkDecisionTreeTrace(result.decisionTreeTrace)));
+        builder.append("===== / ===== \n");
+        return builder.toString();
+    }
+
     public Domain.InterpretSentenceResult judgeAtOnce(Question q, List<ResponseEntity> responses, boolean consideredAsCorrect) {
+        if (DETAILED_TRACE) {
+            System.out.println("Prepared question answers (CFG ids): %s\n".formatted(responses.stream().map(r ->
+                    r.getLeftAnswerObject().getDomainInfo()
+            ).collect(Collectors.joining("\n"))));
+        }
         var result = questionService.judgeQuestion(q, responses, List.of(domain.getTag("Python")));
+
         if (
                 (!result.isAnswerCorrect && consideredAsCorrect) ||
                         (result.isAnswerCorrect && !consideredAsCorrect)
         ) {
-            StringBuilder builder = new StringBuilder();
-            builder.append("=====  Invalid solution ==== \n");
-            builder.append("Answer ID trace: %s\n".formatted(responses.stream().map(r ->
-                    r.getLeftAnswerObject().getAnswerId().toString()
-            ).collect(Collectors.joining("\n"))));
-            builder.append("CFG Trace: %s\n".formatted(responses.stream().map(r ->
-                    r.getLeftAnswerObject().getDomainInfo()
-            ).collect(Collectors.joining(" -> "))));
-            builder.append("Judge result: %s\n".formatted(result.isAnswerCorrect));
-            builder.append("Variable dump: %s\n".formatted(
-                    result.decisionTreeTrace.getFinalVariableSnapshot().entrySet().stream()
-                            .map(varObj -> "%s = %s".formatted(varObj.getKey(), varObj.getValue()))
-                            .collect(Collectors.joining("; "))
-            ));
-            builder.append("Interpretation trace: %s\n".formatted(walkDecisionTreeTrace(result.decisionTreeTrace)));
-            builder.append("===== / ===== \n");
-            Assertions.fail(builder.toString());
-        };
+
+            Assertions.fail(makeJudgeTrace(result, responses, true));
+        } else if (DETAILED_TRACE) {
+            System.out.println(makeJudgeTrace(result, responses, false));
+        }
         return result;
     }
 
