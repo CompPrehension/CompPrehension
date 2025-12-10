@@ -25,4 +25,6 @@ public class BankLoadTestingJobConfig {
 
     int postQuestionDelayMin = 3;
     int postQuestionDelayMax = 10;
+
+    Double[] questionDelayRandomFactorization;
 }

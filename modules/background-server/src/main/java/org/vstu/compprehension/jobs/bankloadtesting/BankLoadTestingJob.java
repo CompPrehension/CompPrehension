@@ -103,6 +103,7 @@ public class BankLoadTestingJob {
                 config.postQuestionDelayMin = batchConfig.postQuestionDelayMin;
                 config.postQuestionDelayMax = batchConfig.postQuestionDelayMax;
                 config.skipDelayForQuestionsWithoutGeneration = batchConfig.skipDelayForQuestionsWithoutGeneration;
+                config.questionDelayRandomFactorization = batchConfig.questionDelayRandomFactorization;
 
                 var retryNumber = 0;
                 Exception lastException = null;
@@ -211,7 +212,7 @@ public class BankLoadTestingJob {
         for(int i = 0; i < maxAttemptQuestions; i++) {
             generateQuestion(attemptId);
 
-            var questionSolveDuration = getQuestionDelaySeconds(random.nextDouble())
+            var questionSolveDuration = getQuestionDelaySeconds(random.nextDouble(), config.questionDelayRandomFactorization)
                     + random.nextInt(config.postQuestionDelayMin, config.postQuestionDelayMax + 1);
 
             // skip delay if generation request was not creates
@@ -259,22 +260,25 @@ public class BankLoadTestingJob {
         }, "createExerciseAttempt");
     }
 
-    private static double getQuestionDelaySeconds(double u) {
-        var raw = 20124.57534014809 * Math.pow(u, 6)
-                        + -54371.642536328945 * Math.pow(u, 5)
-                        + 55482.38583228885 * Math.pow(u, 4)
-                        + -26371.472191593017 * Math.pow(u, 3)
-                        + 5807.635692396597 * Math.pow(u, 2)
-                        + -465.5577244968546 * u
-                        + 13.698911565177422;
-        
+    private static final Double[] defaultFactorization = new Double[]{ 13.698911565177422, -465.5577244968546, 5807.635692396597, -26371.472191593017, 55482.38583228885, -54371.642536328945, 20124.57534014809 };
+
+    private static double getQuestionDelaySeconds(double u, Double[] factorization) {
+        if (factorization == null) {
+            factorization = defaultFactorization;
+        }
+
+        double raw = 0;
+        for (int i = 0; i < factorization.length; i++) {
+            raw += factorization[i] * Math.pow(u, i);
+        }
+
         if (raw <= 0) {
             return 0;
         }
         if (raw >= 200) {
             return 200;
         }
-        
+
         return raw;
     }
 
