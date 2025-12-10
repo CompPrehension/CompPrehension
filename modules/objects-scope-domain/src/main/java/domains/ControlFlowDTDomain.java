@@ -135,11 +135,12 @@ public class ControlFlowDTDomain extends DecisionTreeReasoningDomain {
             ObjectDef endOfProgram = findEndOfProgram(backendOutput.situation().getDomainModel());
 
             interpretationResult.CountCorrectOptions = 1;
+            int finishButtonEnabled = 1; // Note: set 0 if using explicit "Nothing more can run" / "Finish the problem" button.
             interpretationResult.IterationsLeft = (Integer) backendOutput.situation().getDomainModel()
                     .getObjects().stream().filter(obj -> obj.getClassName().equals("PathInfo")).filter(
                             path -> path.getRelationshipLink("from_").getObjects().getFirst().equals(A_node) &&
                                     path.getRelationshipLink("to_").getObjects().getFirst().equals(endOfProgram)
-                    ).findFirst().orElseThrow().getPropertyValue("opaque_actions", Map.of());
+                    ).findFirst().orElseThrow().getPropertyValue("opaque_actions", Map.of()) - finishButtonEnabled;
 
             if (interpretationResult.IterationsLeft == 0) {
                 // Достигли полного завершения задачи.
