@@ -172,10 +172,15 @@ enum NodeKind {
 ]
 
 enum CallStackAction {
+	none [
+		RU.localizedName = "без изменений фрейма вызовов" ;
+		EN.localizedName = "no frame change" ;
+	
+	],
 	add_frame [
 		RU.localizedName = "добавление фрейма функции" ;
 		EN.localizedName = "add frame" ;
-	
+
 	],
 	drop_frame [
 		RU.localizedName = "удаление фрейма функции" ;
