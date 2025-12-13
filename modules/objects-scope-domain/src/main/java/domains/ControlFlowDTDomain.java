@@ -189,7 +189,7 @@ public class ControlFlowDTDomain extends DecisionTreeReasoningDomain {
                         .getObjects().getFirst()
                         .getPropertyValue("interruption_stop", Map.of());
                 var oldInterpt = STATE.getDefinedPropertyValues().get("interruption_state", Map.of());
-                var noInterrupt = questionModel.getEnums().get("InterruptionType").getValues().get("no_intteruption").getReference();
+                var noInterrupt = questionModel.getEnums().get("InterruptionType").getValues().get("no_interruption").getReference();
                 if (interptStop.equals(oldInterpt)) {
                     STATE.getDefinedPropertyValues().addOrReplace(
                             new PropertyValueStatement<>(A, "interruption_state", ParamsValues.getEMPTY(), noInterrupt)
