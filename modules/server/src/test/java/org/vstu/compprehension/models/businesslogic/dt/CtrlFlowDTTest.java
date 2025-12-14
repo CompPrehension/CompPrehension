@@ -164,9 +164,9 @@ public class CtrlFlowDTTest {
 
     public Domain.InterpretSentenceResult judgeAtOnce(Question q, List<ResponseEntity> responses, boolean consideredAsCorrect) {
         if (DETAILED_TRACE) {
-            System.out.println("Prepared question answers (CFG ids): %s\n".formatted(responses.stream().map(r ->
+            System.out.println("Prepared question answers (CFG ids): \n- %s\n".formatted(responses.stream().map(r ->
                     r.getLeftAnswerObject().getDomainInfo()
-            ).collect(Collectors.joining("\n"))));
+            ).collect(Collectors.joining("\n- "))));
         }
         var result = questionService.judgeQuestion(q, responses, List.of(domain.getTag("Python")));
 
