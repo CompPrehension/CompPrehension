@@ -96,7 +96,7 @@ public class CtrlFlowDTTest {
 
     public void judge(Question q,
                       List<Pair<Integer, String>> answerObjectIds,
-                      boolean consideredAsCorrect,
+                      boolean everySubTrace, boolean consideredAsCorrect,
                       boolean detectUnfinished
     ) {
         List<ResponseEntity> responses = new ArrayList<>();
@@ -106,11 +106,17 @@ public class CtrlFlowDTTest {
                     .builder().answerId(entry.getKey())
                     .domainInfo(entry.getValue()).build();
             responses.add(ResponseEntity.builder().leftAnswerObject(answerObject).rightAnswerObject(answerObject).build());
+            boolean is_last = Objects.equals(answerObjectIds.getLast().getKey(), entry.getKey());
+
+            if (!everySubTrace && !is_last) {
+                continue;
+            }
+
             result = judgeAtOnce(q, responses, consideredAsCorrect);
-            if (result.IterationsLeft == 0 && !Objects.equals(answerObjectIds.getLast().getKey(), entry.getKey())) {
+            if (result.IterationsLeft == 0 && !is_last) {
                 // The end of the program but not the end of the trace.
                 System.err.println("#### WARNING ####: Unexpected end of program. Last response: id=%s, cfg_node_id=%s".formatted(entry.getKey(), entry.getValue()));
-                break;
+                // break;  // No need to stop now.
             }
         }
         if (result != null && result.IterationsLeft > 0 && detectUnfinished) {
@@ -134,6 +140,8 @@ public class CtrlFlowDTTest {
         } else {
             builder.append("===== Valid solution ==== \n");
         }
+        builder.append("STEPS LEFT: %d\n".formatted(result.IterationsLeft));
+
         builder.append("Answer ID trace: %s\n".formatted(responses.stream().map(r ->
                 r.getLeftAnswerObject().getAnswerId().toString()
         ).collect(Collectors.joining(" -> "))));
@@ -180,7 +188,54 @@ public class CtrlFlowDTTest {
                 Pair.of(3, "atom_115"),
                 Pair.of(4, "atom_119")
         );
-        judge(question, answers, true, true);
+        judge(question, answers, true, true, true);
+    }
+
+
+    @Test
+    public void simpleCall() {
+        var question = loadQuestion("debug_5_simple_function.py");
+        var answers = List.of(
+            Pair.of(1, "BEGIN_114"),
+            Pair.of(2, "BEGIN_117"),
+            Pair.of(0, "atom_104"),
+            Pair.of(3, "END_118")
+        );
+        judge(question, answers, true, true, true);
+    }
+
+    @Test
+    public void ex_5_inf_recursion_t1() {
+        var question = loadQuestion("debug_5_inf_recursion.py");
+        var answers = List.of(
+            Pair.of(5, "atom_145"),
+            Pair.of(6, "BEGIN_149"),
+            Pair.of(7, "BEGIN_152"),
+            Pair.of(0, "atom_104"),
+            Pair.of(1, "atom_110"),  // true
+            Pair.of(2, "BEGIN_119"),
+            Pair.of(0, "atom_104"),
+            Pair.of(1, "atom_110"),  // false
+            Pair.of(4, "atom_134"),
+            Pair.of(3, "END_120"),
+            Pair.of(4, "atom_134"),
+            Pair.of(8, "END_153")
+        );
+        judge(question, answers, true, true, true);
+    }
+    @Test
+    public void ex_5_inf_recursion_t2() {
+        var question = loadQuestion("debug_5_inf_recursion.py");
+        var answers = List.of(
+            Pair.of(5, "atom_145"),
+            Pair.of(6, "BEGIN_149"),
+            Pair.of(7, "BEGIN_152"),
+            Pair.of(0, "atom_104"),
+            Pair.of(1, "atom_110"),  // не false !!!
+            Pair.of(4, "atom_134")  // неправильно!
+//            Pair.of(8, "END_153")
+        );
+        judge(question, answers, false, false, false);
     }
 
 }
