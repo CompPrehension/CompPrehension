@@ -37,7 +37,9 @@ tree CtrlFlow(L0: TraceAct, A: TraceAct, STATE: State) {
 
 
     // Есть ли прямой путь без непрозрачных действий ?
-    var P : PathInfo = (find PathInfo p { $p->from_ == L0->hasCFGNode and $p->to_ == A->hasCFGNode and $p.opaque_actions == 0 }) out true else {
+    // `opaque_actions == 1` : путь оканчивается на непрозрачное действие, в середине таких нет.
+    // (Можно ещё проверить is_direct == true.)
+    var P : PathInfo = (find PathInfo p { $p->from_ == L0->hasCFGNode and $p->to_ == A->hasCFGNode and $p.opaque_actions == 1 }) out true else {
 
     	// Существует ли какой угодно путь от L0 до A ?
         var P2 : PathInfo = (find PathInfo p { $p->from_ == L0->hasCFGNode and $p->to_ == A->hasCFGNode}) out true else {
