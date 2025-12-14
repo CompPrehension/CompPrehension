@@ -241,4 +241,142 @@ public class CtrlFlowDTTest {
         judge(question, answers, false, false, false);
     }
 
+    @Test
+    public void ex_1_onefunc_while_11_t1() {
+        var question = loadQuestion("debug_1_onefunc_while.py_1+1");
+        var answers = List.of(
+            Pair.of(3, "atom_135"),
+            Pair.of(4, "atom_139"),
+            Pair.of(5, "atom_146"),  // false
+            Pair.of(7, "atom_164"),
+            Pair.of(8, "BEGIN_168"),
+            Pair.of(9, "BEGIN_171"), // (call)
+            Pair.of(0, "atom_107"),  // false
+            Pair.of(2, "atom_124"),
+            Pair.of(10, "END_172")
+        );
+        judge(question, answers, true, true, true);
+    }
+
+    @Test
+    public void ex_1_onefunc_while_11_t2() {
+        var question = loadQuestion("debug_1_onefunc_while.py_1+1");
+        var answers = List.of(
+            Pair.of(3, "atom_135"),
+            Pair.of(4, "atom_139"),
+            Pair.of(5, "atom_146"),  // false
+            Pair.of(7, "atom_164"),
+            Pair.of(8, "BEGIN_168"),
+            //
+            // Pair.of(9, "BEGIN_171"), // (call)
+            // Pair.of(0, "atom_107"),  // false
+            // Pair.of(2, "atom_124"),
+             Pair.of(10, "END_172")
+        );
+        judge(question, answers, false, false, true);
+    }
+
+    @Test
+    public void ex_1_onefunc_while_11_t3() {
+        var question = loadQuestion("debug_1_onefunc_while.py_1+1");
+        var answers = List.of(
+            Pair.of(3, "atom_135"),
+            Pair.of(4, "atom_139"),
+            Pair.of(5, "atom_146"),  // false
+            Pair.of(6, "atom_152")  // ложный заход в цикл!
+            // Pair.of(7, "atom_164"),
+            // Pair.of(8, "BEGIN_168"),
+            // Pair.of(9, "BEGIN_171"), // (call)
+            // Pair.of(0, "atom_107"),  // false
+            // Pair.of(2, "atom_124"),
+            // Pair.of(10, "END_172")
+        );
+        judge(question, answers, false, false, false);
+    }
+
+    @Test
+    public void ex_1_onefunc_while_22_t1() {
+        var question = loadQuestion("debug_1_onefunc_while.py_2+2");
+        var answers = List.of(
+            Pair.of(3, "atom_135"),
+            Pair.of(4, "atom_139"),
+            Pair.of(5, "atom_146"),  // true
+            Pair.of(6, "atom_152"),
+            Pair.of(5, "atom_146"),  // false
+            Pair.of(7, "atom_164"),
+            Pair.of(8, "BEGIN_168"),
+            Pair.of(9, "BEGIN_171"), // (call)
+            Pair.of(0, "atom_107"),  // true
+            Pair.of(1, "atom_113"),
+            Pair.of(0, "atom_107"),  // false
+            Pair.of(2, "atom_124"),
+            Pair.of(10, "END_172")
+        );
+        judge(question, answers, true, true, true);
+    }
+
+    @Test
+    public void ex_1_onefunc_while_22_t2() {
+        var question = loadQuestion("debug_1_onefunc_while.py_2+2");
+        var answers = List.of(
+            Pair.of(3, "atom_135"),
+            Pair.of(4, "atom_139"),
+            Pair.of(5, "atom_146"),  // true
+            Pair.of(6, "atom_152"),
+            // Pair.of(5, "atom_146"),  // false  --- no last cond chacked
+            Pair.of(7, "atom_164")
+//            Pair.of(8, "BEGIN_168"),
+//            Pair.of(9, "BEGIN_171"), // (call)
+//            Pair.of(0, "atom_107"),  // true
+//            Pair.of(1, "atom_113"),
+//            Pair.of(0, "atom_107"),  // false
+//            Pair.of(2, "atom_124"),
+//            Pair.of(10, "END_172")
+        );
+        judge(question, answers, false, false, false);
+    }
+
+    @Test
+    public void ex_1_onefunc_while_22_t3() {
+        var question = loadQuestion("debug_1_onefunc_while.py_2+2");
+        var answers = List.of(
+            Pair.of(3, "atom_135"),
+            Pair.of(4, "atom_139"),
+            Pair.of(5, "atom_146"),  // true
+            Pair.of(6, "atom_152"),
+            Pair.of(5, "atom_146"),  // false
+            Pair.of(7, "atom_164"),
+            Pair.of(8, "BEGIN_168"),
+            Pair.of(9, "BEGIN_171"), // (call)
+            Pair.of(0, "atom_107"),  // true
+            Pair.of(1, "atom_113"),
+            Pair.of(0, "atom_107"),  // false
+            // Pair.of(2, "atom_124"), // no return
+            Pair.of(10, "END_172") // (end of call)
+        );
+        judge(question, answers, false, false, false);
+    }
+
+    @Test
+    public void ex_1_onefunc_while_22_t4() {
+        var question = loadQuestion("debug_1_onefunc_while.py_2+2");
+        var answers = List.of(
+          /* 1*/  Pair.of(3, "atom_135"),
+          /* 2*/  Pair.of(4, "atom_139"),
+          /* 3*/  Pair.of(5, "atom_146"),  // true
+          /* 4*/  Pair.of(6, "atom_152"),
+          /* 5*/  Pair.of(5, "atom_146"),  // false
+          /* 6*/  Pair.of(7, "atom_164"),
+          /* 7*/  Pair.of(8, "BEGIN_168"),
+          /* 8*/  Pair.of(9, "BEGIN_171"), // (call)
+          /* 9*/  Pair.of(0, "atom_107"),  // true
+          /*10*/  Pair.of(1, "atom_113"),
+          /*11*/  Pair.of(0, "atom_107"),  // false
+          /*12*/  Pair.of(1, "atom_113")  // body again!
+          /*13*/  // Pair.of(2, "atom_124") // (return)
+          /*14*/  // Pair.of(10, "END_172") // (end of call)
+        );
+        judge(question, answers, false, false, false);
+    }
+
 }
