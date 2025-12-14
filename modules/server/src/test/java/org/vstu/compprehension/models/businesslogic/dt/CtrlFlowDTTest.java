@@ -101,12 +101,15 @@ public class CtrlFlowDTTest {
     ) {
         List<ResponseEntity> responses = new ArrayList<>();
         Domain.InterpretSentenceResult result = null;
+        int i = 0;
+        int last_i = answerObjectIds.size();
         for (var entry : answerObjectIds) {
             AnswerObjectEntity answerObject = AnswerObjectEntity
                     .builder().answerId(entry.getKey())
                     .domainInfo(entry.getValue()).build();
             responses.add(ResponseEntity.builder().leftAnswerObject(answerObject).rightAnswerObject(answerObject).build());
-            boolean is_last = Objects.equals(answerObjectIds.getLast().getKey(), entry.getKey());
+            i++;
+            boolean is_last = i == last_i;
 
             if (!everySubTrace && !is_last) {
                 continue;
