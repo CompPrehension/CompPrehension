@@ -2,6 +2,7 @@ package org.vstu.compprehension.models.businesslogic;
 
 import domains.ControlFlowDTDomain;
 import jakarta.transaction.Transactional;
+import lombok.extern.slf4j.Slf4j;
 import org.junit.jupiter.api.Assertions;
 import org.junit.jupiter.api.BeforeAll;
 import org.junit.jupiter.api.Test;
@@ -26,9 +27,10 @@ import java.util.Objects;
 import java.util.stream.Collectors;
 import java.util.stream.Stream;
 
+@Slf4j
 @SpringBootTest
 @TestInstance(TestInstance.Lifecycle.PER_CLASS)
-@ActiveProfiles("test")
+@ActiveProfiles("dev")
 @Transactional
 public class CtrlFlowLoadQuestionsTest {
     @Autowired
@@ -95,6 +97,8 @@ public class CtrlFlowLoadQuestionsTest {
                 .map(SerializableQuestionTemplate::deserialize)
                 .filter(Objects::nonNull).toList();
         for (var q : questions) {
+            log.info("Sending question: {}", q.getCommonQuestion().getQuestionData().getQuestionName());
+
             QuestionDataEntity questionData = new QuestionDataEntity();
             var metaFound = qMetaRepo.findByName(q.getMetadataList().getFirst().getName());
             if (!metaFound.isEmpty()) {
@@ -112,5 +116,6 @@ public class CtrlFlowLoadQuestionsTest {
             }
         }
         storage.saveMetadataWithDataEntities(metaList);
+        log.info("Saved all questions to DB.");
     }
 }
