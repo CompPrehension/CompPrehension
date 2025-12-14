@@ -27,6 +27,7 @@ import org.vstu.compprehension.models.repository.UserRepository;
 
 import java.util.ArrayList;
 import java.util.List;
+import java.util.Objects;
 import java.util.stream.Collectors;
 import java.util.stream.StreamSupport;
 
@@ -106,7 +107,8 @@ public class CtrlFlowDTTest {
                     .domainInfo(entry.getValue()).build();
             responses.add(ResponseEntity.builder().leftAnswerObject(answerObject).rightAnswerObject(answerObject).build());
             result = judgeAtOnce(q, responses, consideredAsCorrect);
-            if (result.IterationsLeft == 0) {
+            if (result.IterationsLeft == 0 && !Objects.equals(answerObjectIds.getLast().getKey(), entry.getKey())) {
+                // The end of the program but not the end of the trace.
                 System.err.println("#### WARNING ####: Unexpected end of program. Last response: id=%s, cfg_node_id=%s".formatted(entry.getKey(), entry.getValue()));
                 break;
             }
@@ -130,7 +132,7 @@ public class CtrlFlowDTTest {
         if (invalid) {
             builder.append("=====  !!! Invalid solution !!! ==== \n");
         } else {
-            builder.append("===== Solution ==== \n");
+            builder.append("===== Valid solution ==== \n");
         }
         builder.append("Answer ID trace: %s\n".formatted(responses.stream().map(r ->
                 r.getLeftAnswerObject().getAnswerId().toString()
@@ -145,7 +147,7 @@ public class CtrlFlowDTTest {
                         .collect(Collectors.joining("; "))
         ));
         builder.append("Interpretation trace: %s\n".formatted(walkDecisionTreeTrace(result.decisionTreeTrace)));
-        builder.append("===== / ===== \n");
+        builder.append("\n===== / ===== \n");
         return builder.toString();
     }
 
