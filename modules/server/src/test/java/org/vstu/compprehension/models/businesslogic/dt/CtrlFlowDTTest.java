@@ -167,13 +167,13 @@ public class CtrlFlowDTTest {
         }
         var result = questionService.judgeQuestion(q, responses, List.of(domain.getTag("Python")));
 
-        if (
-                (!result.isAnswerCorrect && consideredAsCorrect) ||
-                        (result.isAnswerCorrect && !consideredAsCorrect)
-        ) {
-            Assertions.fail(makeJudgeTrace(result, responses, true));
+        System.out.printf("Expected %s solution...%n", consideredAsCorrect? "valid" : "invalid");
+
+        if (result.isAnswerCorrect != consideredAsCorrect) {
+            // Корректность не совпадает с ожидаемой.
+            Assertions.fail(makeJudgeTrace(result, responses, !result.isAnswerCorrect));
         } else if (DETAILED_TRACE) {
-            System.out.println(makeJudgeTrace(result, responses, false));
+            System.out.println(makeJudgeTrace(result, responses, !result.isAnswerCorrect));
         }
         return result;
     }
