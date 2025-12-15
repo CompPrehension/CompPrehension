@@ -12,6 +12,7 @@ import its.reasoner.nodes.DecisionTreeTrace;
 import its.reasoner.nodes.DecisionTreeTraceElement;
 import lombok.Getter;
 import lombok.extern.log4j.Log4j2;
+import org.apache.commons.text.StringSubstitutor;
 import org.jetbrains.annotations.NotNull;
 import org.jetbrains.annotations.Nullable;
 import org.vstu.compprehension.Service.LocalizationService;
@@ -31,6 +32,7 @@ import org.vstu.compprehension.utils.RandomProvider;
 
 import java.io.StringReader;
 import java.util.*;
+import java.util.stream.Collectors;
 
 @Log4j2
 public class ControlFlowDTDomain extends DecisionTreeReasoningDomain {
@@ -178,13 +180,13 @@ public class ControlFlowDTDomain extends DecisionTreeReasoningDomain {
         void updateModelState(ControlFlowDTDomain domain, DomainModel questionModel, ObjectDef L0, ObjectDef A) {
             ObjectDef STATE = questionModel.getVariables().get("STATE").getValueObject();
 
-            ObjectDef pathL0A = domain.findPathInfo(questionModel,
+            @Nullable ObjectDef pathL0A = domain.findPathInfo(questionModel,
                     L0.getRelationshipLink("hasCFGNode").getObjects().getFirst(),
                     A.getRelationshipLink("hasCFGNode").getObjects().getFirst()
-            ).orElseThrow();
+            ).orElse(null);
 
             // Обновляем состояние прерывания, исходя из маршрута от L0 до A
-            if (pathL0A.getRelationshipLinks().stream().anyMatch(rel -> rel.getRelationshipName().equals("hasEffects"))) {
+            if (pathL0A != null && pathL0A.getRelationshipLinks().stream().anyMatch(rel -> rel.getRelationshipName().equals("hasEffects"))) {
                 var intrptStart = pathL0A.getRelationshipLink("hasEffects")
                         .getObjects().getFirst()
                         .getPropertyValue("interruption_start", Map.of());
@@ -219,7 +221,7 @@ public class ControlFlowDTDomain extends DecisionTreeReasoningDomain {
 
             ObjectDef currentTraceAct;
             int end = includeLast ? responses.size() : responses.size() - 1;
-            if (end == 0) {
+            if (end <= 0) {
                 currentTraceAct = firstTraceAct;
             } else {
                 currentTraceAct = firstTraceAct.getRelationshipLink("directlyBeforeOf").getObjects().getFirst();
@@ -539,23 +541,62 @@ public class ControlFlowDTDomain extends DecisionTreeReasoningDomain {
         return correctAnswer;
     }
 
+    private static String replaceInString(String s, Map<String, String> placeholders) {
+        // Build StringSubstitutor
+        StringSubstitutor stringSubstitutor = new StringSubstitutor(placeholders);
+        stringSubstitutor.setEnableUndefinedVariableException(true);
+
+        // Replace in message
+        try {
+            return stringSubstitutor.replace(s);
+        }
+        catch (IllegalArgumentException exception) {
+            return exception.getMessage() + " — template: " + s + " — placeholders: " + (placeholders.entrySet().stream()).map(e -> e.getKey() + ": " + e.getValue()).collect(Collectors.joining(", "));
+        }
+    }
+
     @Override
     public List<HyperText> getFullSolutionTrace(Question question) {
+        Language lang = Optional.ofNullable(question.getQuestionData().getExerciseAttempt())
+                .map(a -> a.getUser().getPreferred_language())
+                .orElse(Language.RUSSIAN/*ENGLISH*/);
         List<HyperText> trace = new ArrayList<>();
         var questionModel = prepareQuestionModel(question, this.domainSolvingModel);
-        for (var object : questionModel.getObjects()
+        var traceObjects = questionModel.getObjects()
                 .stream()
-                .filter(obj -> obj.getClassName().equals("TraceAct")).toList()) {
-            if ((Boolean) object.getPropertyValue("active", Map.of())) {
-                var node = object.getRelationshipLinks().stream().filter(x ->
-                        x.getRelationship().getName().equals("hasCFGNode")).findFirst().orElseThrow().getObjects().getFirst();
-                var astNode = object.getRelationshipLinks().stream().filter(x ->
-                        x.getRelationship().getName().equals("hasASTNode")).findFirst().orElseThrow().getObjects().getFirst();
+                .filter(obj -> obj.getClassName().equals("TraceAct")).toList();
+        for (var object : traceObjects) {
+            if ((Boolean) object.getPropertyValue("is_known_correct", Map.of())) {
                 var action = object.getRelationshipLinks().stream().filter(x ->
                         x.getRelationship().getName().equals("hasActionSpec")).findFirst().orElseThrow().getObjects().getFirst();
-                var nodeKind = node.getPropertyValue("kind", Map.of());
-                var actionKind = action.getPropertyValue("kind", Map.of());
-                trace.add(new HyperText("{} {}".formatted(nodeKind, actionKind)));
+                var construct = action.getRelationshipLinks().stream().filter(x ->
+                        x.getRelationship().getName().equals("hasConstruct")).findFirst().orElseThrow().getObjects().getFirst();
+                var constructKind = Arrays.stream(
+                        ((String) construct.getPropertyValue("kind", Map.of())).split("\\.")
+                ).filter(x -> List.of("condition", "loop",
+                        "block", "sequence", "call",
+                        "try", "inline", "alternative", "sequence", "any").contains(x)).toList();
+                var mainString = getMessage("trace.template", lang);
+                String actionState;
+                if (constructKind.contains("condition")) {
+                    actionState = getMessage("trace.evaluated", lang);
+                } else if (constructKind.contains("inline")) {
+                    actionState = getMessage("trace.executed", lang);
+                } else {
+                    boolean isEnd = action.getPropertyValue("role", Map.of()).equals("END");
+                    if (isEnd) {
+                        actionState = getMessage("trace.ended", lang);
+                    } else {
+                        actionState = getMessage("trace.began", lang);
+                    }
+                }
+                String mainConstructKind = constructKind.stream().filter(x -> !x.equals("inline")).findFirst().orElseThrow();
+                var substitutions = Map.of(
+                        "structure", getMessage("trace.structure.kind.%s".formatted(mainConstructKind), lang),
+                        "action_state", actionState,
+                        "nth_time", "1"
+                );
+                trace.add(new HyperText(replaceInString(mainString, substitutions)));
             }
         }
         return trace;
