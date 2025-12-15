@@ -151,10 +151,10 @@ public class CtrlFlowDTTest {
         return result;
     }
 
-    public void judge(Question q,
-                      List<Pair<Integer, String>> answerObjectIds,
-                      boolean everySubTrace, boolean consideredAsCorrect,
-                      boolean detectUnfinished
+    public void judgeAndCheck(Question q,
+                              List<Pair<Integer, String>> answerObjectIds,
+                              boolean everySubTrace, boolean consideredAsCorrect,
+                              boolean detectUnfinished
     ) {
         judgeCore(q, answerObjectIds, everySubTrace, consideredAsCorrect, detectUnfinished);
     }
@@ -163,11 +163,11 @@ public class CtrlFlowDTTest {
      * Расширенный вариант judge, который кроме стандартной проверки корректности
      * дополнительно проверяет, что среди листовых результатов трассы есть заданные значения.
      */
-    public void judge(Question q,
-                      List<Pair<Integer, String>> answerObjectIds,
-                      boolean everySubTrace, boolean consideredAsCorrect,
-                      boolean detectUnfinished,
-                      List<String> expectedLeafResults
+    public void judgeAndCheck(Question q,
+                              List<Pair<Integer, String>> answerObjectIds,
+                              boolean everySubTrace, boolean consideredAsCorrect,
+                              boolean detectUnfinished,
+                              List<String> expectedLeafResults
     ) {
         Domain.InterpretSentenceResult result =
                 judgeCore(q, answerObjectIds, everySubTrace, consideredAsCorrect, detectUnfinished);
@@ -252,7 +252,7 @@ public class CtrlFlowDTTest {
                 Pair.of(3, "atom_115"),
                 Pair.of(4, "atom_119")
         );
-        judge(question, answers, true, true, true);
+        judgeAndCheck(question, answers, true, true, true);
     }
 
 
@@ -265,7 +265,7 @@ public class CtrlFlowDTTest {
             Pair.of(0, "atom_104"),
             Pair.of(3, "END_118")
         );
-        judge(question, answers, true, true, true);
+        judgeAndCheck(question, answers, true, true, true);
     }
 
     @Test
@@ -285,7 +285,7 @@ public class CtrlFlowDTTest {
             Pair.of(4, "atom_134"),
             Pair.of(8, "END_153")
         );
-        judge(question, answers, true, true, true);
+        judgeAndCheck(question, answers, true, true, true);
     }
     @Test
     public void ex_5_inf_recursion_t2() {
@@ -299,7 +299,7 @@ public class CtrlFlowDTTest {
             Pair.of(4, "atom_134")  // неправильно!
 //            Pair.of(8, "END_153")
         );
-        judge(question, answers, false, false, false);
+        judgeAndCheck(question, answers, false, false, false);
     }
 
     @Test
@@ -316,7 +316,7 @@ public class CtrlFlowDTTest {
             Pair.of(2, "atom_124"),
             Pair.of(10, "END_172")
         );
-        judge(question, answers, true, true, true);
+        judgeAndCheck(question, answers, true, true, true);
     }
 
     @Test
@@ -334,7 +334,7 @@ public class CtrlFlowDTTest {
             // Pair.of(2, "atom_124"),
              Pair.of(10, "END_172")
         );
-        judge(question, answers, false, false, true);
+        judgeAndCheck(question, answers, false, false, true);
     }
 
     @Test
@@ -352,7 +352,7 @@ public class CtrlFlowDTTest {
             // Pair.of(2, "atom_124"),
             // Pair.of(10, "END_172")
         );
-        judge(question, answers, false, false, false);
+        judgeAndCheck(question, answers, false, false, false);
     }
 
     @Test
@@ -373,7 +373,7 @@ public class CtrlFlowDTTest {
             Pair.of(2, "atom_124"),
             Pair.of(10, "END_172")
         );
-        judge(question, answers, true, true, true);
+        judgeAndCheck(question, answers, true, true, true);
     }
 
     @Test
@@ -394,7 +394,7 @@ public class CtrlFlowDTTest {
 //            Pair.of(2, "atom_124"),
 //            Pair.of(10, "END_172")
         );
-        judge(question, answers, false, false, false);
+        judgeAndCheck(question, answers, false, false, false);
     }
 
     @Test
@@ -415,7 +415,7 @@ public class CtrlFlowDTTest {
             // Pair.of(2, "atom_124"), // no return
             Pair.of(10, "END_172") // (end of call)
         );
-        judge(question, answers, false, false, false);
+        judgeAndCheck(question, answers, false, false, false);
     }
 
     @Test
@@ -437,7 +437,7 @@ public class CtrlFlowDTTest {
           /*13*/  // Pair.of(2, "atom_124") // (return)
           /*14*/  // Pair.of(10, "END_172") // (end of call)
         );
-        judge(
+        judgeAndCheck(
                 question,
                 answers,
                 false,
