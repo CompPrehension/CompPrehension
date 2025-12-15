@@ -422,20 +422,20 @@ public class CtrlFlowDTTest {
     public void ex_1_onefunc_while_22_t4() {
         var question = loadQuestion("debug_1_onefunc_while.py_2+2");
         var answers = List.of(
-          /* 1*/  Pair.of(3, "atom_135"),
-          /* 2*/  Pair.of(4, "atom_139"),
-          /* 3*/  Pair.of(5, "atom_146"),  // true
-          /* 4*/  Pair.of(6, "atom_152"),
-          /* 5*/  Pair.of(5, "atom_146"),  // false
-          /* 6*/  Pair.of(7, "atom_164"),
-          /* 7*/  Pair.of(8, "BEGIN_168"),
-          /* 8*/  Pair.of(9, "BEGIN_171"), // (call)
-          /* 9*/  Pair.of(0, "atom_107"),  // true
-          /*10*/  Pair.of(1, "atom_113"),
-          /*11*/  Pair.of(0, "atom_107"),  // false
-          /*12*/  Pair.of(1, "atom_113")  // body again!
-          /*13*/  // Pair.of(2, "atom_124") // (return)
-          /*14*/  // Pair.of(10, "END_172") // (end of call)
+                /* 1*/  Pair.of(3, "atom_135"),
+                /* 2*/  Pair.of(4, "atom_139"),
+                /* 3*/  Pair.of(5, "atom_146"),  // true
+                /* 4*/  Pair.of(6, "atom_152"),
+                /* 5*/  Pair.of(5, "atom_146"),  // false
+                /* 6*/  Pair.of(7, "atom_164"),
+                /* 7*/  Pair.of(8, "BEGIN_168"),
+                /* 8*/  Pair.of(9, "BEGIN_171"), // (call)
+                /* 9*/  Pair.of(0, "atom_107"),  // true
+                /*10*/  Pair.of(1, "atom_113"),
+                /*11*/  Pair.of(0, "atom_107"),  // false
+                /*12*/  Pair.of(1, "atom_113")  // body again!
+                /*13*/  // Pair.of(2, "atom_124") // (return)
+                /*14*/  // Pair.of(10, "END_172") // (end of call)
         );
         judgeAndCheck(
                 question,
@@ -444,6 +444,34 @@ public class CtrlFlowDTTest {
                 false,
                 false,
                 List.of("<ERROR [condition_value_allows_transition]>")
+        );
+    }
+
+    @Test
+    public void ex_1_onefunc_while_22_t5() {
+        var question = loadQuestion("debug_1_onefunc_while.py_2+2");
+        var answers = List.of(
+          /* 1*/  Pair.of(3, "atom_135"),
+          /* 2*/  Pair.of(4, "atom_139"),
+          /* 3*/  Pair.of(5, "atom_146"),  // true
+          /* 4*/  Pair.of(6, "atom_152"),
+          /* 5*/  Pair.of(5, "atom_146"),  // false
+          /* 6*/  Pair.of(7, "atom_164"),
+          /* 7*/  // Pair.of(8, "BEGIN_168"), // (stmt with calls)
+          /* 8*/  Pair.of(9, "BEGIN_171") // (call)
+          /* 9*/  // Pair.of(0, "atom_107"),  // true
+          /*10*/  // Pair.of(1, "atom_113"),
+          /*11*/  // Pair.of(0, "atom_107"),  // false
+          /*13*/  // Pair.of(2, "atom_124") // (return)
+          /*14*/  // Pair.of(10, "END_172") // (end of call)
+        );
+        judgeAndCheck(
+                question,
+                answers,
+                false,
+                false,
+                false
+                // , List.of("<ERROR [many_actions_in_require_selection]>")
         );
     }
 
