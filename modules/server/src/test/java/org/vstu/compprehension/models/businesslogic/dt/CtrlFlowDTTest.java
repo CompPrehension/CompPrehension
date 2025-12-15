@@ -113,10 +113,14 @@ public class CtrlFlowDTTest {
         };
     }
 
-    public void judge(Question q,
-                      List<Pair<Integer, String>> answerObjectIds,
-                      boolean everySubTrace, boolean consideredAsCorrect,
-                      boolean detectUnfinished
+    /**
+     * Базовая реализация проверки ответа по шагам.
+     * Возвращает итоговый результат интерпретации, чтобы можно было дополнительно его проанализировать.
+     */
+    private Domain.InterpretSentenceResult judgeCore(Question q,
+                                                     List<Pair<Integer, String>> answerObjectIds,
+                                                     boolean everySubTrace, boolean consideredAsCorrect,
+                                                     boolean detectUnfinished
     ) {
         List<ResponseEntity> responses = new ArrayList<>();
         Domain.InterpretSentenceResult result = null;
@@ -143,6 +147,40 @@ public class CtrlFlowDTTest {
         }
         if (result != null && result.IterationsLeft > 0 && detectUnfinished) {
             Assertions.fail("Answer processing was finished, but program requires also %d interactions".formatted(result.IterationsLeft));
+        }
+        return result;
+    }
+
+    public void judge(Question q,
+                      List<Pair<Integer, String>> answerObjectIds,
+                      boolean everySubTrace, boolean consideredAsCorrect,
+                      boolean detectUnfinished
+    ) {
+        judgeCore(q, answerObjectIds, everySubTrace, consideredAsCorrect, detectUnfinished);
+    }
+
+    /**
+     * Расширенный вариант judge, который кроме стандартной проверки корректности
+     * дополнительно проверяет, что среди листовых результатов трассы есть заданные значения.
+     */
+    public void judge(Question q,
+                      List<Pair<Integer, String>> answerObjectIds,
+                      boolean everySubTrace, boolean consideredAsCorrect,
+                      boolean detectUnfinished,
+                      List<String> expectedLeafResults
+    ) {
+        Domain.InterpretSentenceResult result =
+                judgeCore(q, answerObjectIds, everySubTrace, consideredAsCorrect, detectUnfinished);
+
+        if (expectedLeafResults != null && !expectedLeafResults.isEmpty()) {
+            List<String> leafResults = collectLeafBranchResults(result.decisionTreeTrace);
+            for (String expected : expectedLeafResults) {
+                Assertions.assertTrue(
+                        leafResults.contains(expected),
+                        "Expected outcome not found: %s; actual outcomes: %s"
+                                .formatted(expected, String.join(", ", leafResults))
+                );
+            }
         }
     }
 
@@ -399,7 +437,14 @@ public class CtrlFlowDTTest {
           /*13*/  // Pair.of(2, "atom_124") // (return)
           /*14*/  // Pair.of(10, "END_172") // (end of call)
         );
-        judge(question, answers, false, false, false);
+        judge(
+                question,
+                answers,
+                false,
+                false,
+                false,
+                List.of("<ERROR [condition_value_allows_transition]>")
+        );
     }
 
 }
