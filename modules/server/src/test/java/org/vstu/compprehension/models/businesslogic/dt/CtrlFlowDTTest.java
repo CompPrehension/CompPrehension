@@ -91,8 +91,8 @@ public class CtrlFlowDTTest {
                 // Листовые элементы: у них нет вложенных трасс
                 .filter(e -> Objects.requireNonNullElse(e.nestedTraces(), List.<DecisionTreeTrace>of()).isEmpty())
                 // Нас интересуют только результаты ветвей
-                .filter(e -> e instanceof BranchResultDecisionTreeTraceElement<?>)
-                .map(e -> (BranchResultDecisionTreeTraceElement<?>) e)
+                .filter(e -> e instanceof BranchResultDecisionTreeTraceElement)
+                .map(e -> (BranchResultDecisionTreeTraceElement) e)
                 // Форматируем так же, как в walkDecisionTreeTraceElement
                 .map(e -> "<%s [%s]>".formatted(e.getNode().getValue(), e.getNode().getMetadata().get("skill")))
                 .toList();
