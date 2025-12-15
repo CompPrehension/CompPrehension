@@ -24,6 +24,7 @@ import org.vstu.compprehension.models.repository.ExerciseAttemptRepository;
 import org.vstu.compprehension.models.repository.ExerciseRepository;
 import org.vstu.compprehension.models.repository.QuestionMetadataRepository;
 import org.vstu.compprehension.models.repository.UserRepository;
+import org.vstu.compprehension.models.businesslogic.backend.DecisionTreeReasonerBackend;
 
 import java.util.ArrayList;
 import java.util.List;
@@ -77,6 +78,24 @@ public class CtrlFlowDTTest {
             return "none";
         }
         return trace.stream().map(this::walkDecisionTreeTraceElement).collect(Collectors.joining(" -> "));
+    }
+
+    /**
+     * Собрать результаты всех листовых узлов-результатов ветвей (BranchResult) по всей трассе,
+     * включая все уровни вложенности (агрегации, циклы и т.п.).
+     * Формат элементов списка совпадает с BranchResult‑веткой в walkDecisionTreeTraceElement:
+     * "<RESULT [skill]>".
+     */
+    private List<String> collectLeafBranchResults(DecisionTreeTrace trace) {
+        return DecisionTreeReasonerBackend.nestedTraceElements(trace).stream()
+                // Листовые элементы: у них нет вложенных трасс
+                .filter(e -> Objects.requireNonNullElse(e.nestedTraces(), List.<DecisionTreeTrace>of()).isEmpty())
+                // Нас интересуют только результаты ветвей
+                .filter(e -> e instanceof BranchResultDecisionTreeTraceElement<?>)
+                .map(e -> (BranchResultDecisionTreeTraceElement<?>) e)
+                // Форматируем так же, как в walkDecisionTreeTraceElement
+                .map(e -> "<%s [%s]>".formatted(e.getNode().getValue(), e.getNode().getMetadata().get("skill")))
+                .toList();
     }
 
     private String walkDecisionTreeTraceElement(DecisionTreeTraceElement element) {
@@ -177,6 +196,10 @@ public class CtrlFlowDTTest {
             Assertions.fail(makeJudgeTrace(result, responses, !result.isAnswerCorrect));
         } else if (DETAILED_TRACE) {
             System.out.println(makeJudgeTrace(result, responses, !result.isAnswerCorrect));
+
+            // Для отладки: показываем также все листовые результаты ветвей
+            List<String> leafResults = collectLeafBranchResults(result.decisionTreeTrace);
+            System.out.println("Leaf branch results: " + String.join(", ", leafResults));
         }
         return result;
     }
