@@ -31,7 +31,7 @@ public class BackgroundServerMain {
 
     @Bean
     public StorageProvider storageProvider(JobMapper jobMapper, DataSource dataSource) {
-        return new InMemoryStorageProvider();        
+        return new InMemoryStorageProvider();
         // TODO return db provider
         /*
         var storageProvider = SqlStorageProviderFactory.using(dataSource, "jobs_");
