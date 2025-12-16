@@ -62,6 +62,13 @@ tree CtrlFlow(L0: TraceAct, A: TraceAct, STATE: State) {
 
         // Нет непрозрачных УСЛОВИЙ, ищем непрозрачные действия
         var M : Node = find Node m { P2=>hasFirstMiddleAction($m) };
+        // May be useful ??
+        // out true else {
+        //     conclude : correct [
+        //         skill="many_actions_in_require_selection";
+        //         RU_explanation="Нет мешающих действий на пути от ${L0} к ${A}";
+        //     ];
+        // };
     	// сначала должно быть произойти <M>
     	conclude : error [
             skill="many_actions_in_require_selection";
@@ -149,7 +156,8 @@ tree CtrlFlow(L0: TraceAct, A: TraceAct, STATE: State) {
             //         $act->hasCFGNode.kind == NodeKind:BEGIN
             //         and
             //         not (forAny TraceAct _e {$act=>hasActAsCorrespondingEnd($_e)})}
-            // ожидаемый узел из  трассы.
+
+            // Тупо берём ожидаемый узел из трассы.
             var ExpectedCallAct : TraceAct = (L0->directlyBeforeOf);
             ask (ExpectedCallAct->hasASTNode.ast_node == "function_call" and ExpectedCallAct->hasCFGNode.kind == NodeKind:END) out true else {
             	conclude : error [
