@@ -31,8 +31,9 @@ public class BackgroundServerMain {
 
     @Bean
     public StorageProvider storageProvider(JobMapper jobMapper, DataSource dataSource) {
+        // In-memory provider allows concurrent instances of jobs application.
+        // db provider cause race conditions for this use-case on job registration
         return new InMemoryStorageProvider();
-        // TODO return db provider
         /*
         var storageProvider = SqlStorageProviderFactory.using(dataSource, "jobs_");
         storageProvider.setJobMapper(jobMapper);

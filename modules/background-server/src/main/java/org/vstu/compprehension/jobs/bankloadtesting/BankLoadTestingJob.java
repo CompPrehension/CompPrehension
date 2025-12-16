@@ -78,32 +78,32 @@ public class BankLoadTestingJob {
 
     @SneakyThrows
     synchronized void runBatchImpl(BankLoadTestingJobBatchConfig batchConfig) {
-        if (batchConfig.initialDelay != null &&  batchConfig.initialDelay > 0) {
-            Thread.sleep(1000L * batchConfig.initialDelay);
+        if (batchConfig.getInitialDelay() != null &&  batchConfig.getInitialDelay() > 0) {
+            Thread.sleep(1000L * batchConfig.getInitialDelay());
         }
         
-        for(int genThreshold = batchConfig.generatorThresholdFrom; genThreshold <= batchConfig.generatorThresholdTo; genThreshold += batchConfig.generatorThresholdStep) {
-            for (int safeMargin = batchConfig.generatorAdditionalQuestionsToGenerateFrom; safeMargin <= batchConfig.generatorAdditionalQuestionsToGenerateTo; safeMargin += batchConfig.generatorAdditionalQuestionsToGenerateStep) {
+        for(int genThreshold = batchConfig.getGeneratorThresholdFrom(); genThreshold <= batchConfig.getGeneratorThresholdTo(); genThreshold += batchConfig.getGeneratorThresholdStep()) {
+            for (int safeMargin = batchConfig.getGeneratorAdditionalQuestionsToGenerateFrom(); safeMargin <= batchConfig.getGeneratorAdditionalQuestionsToGenerateTo(); safeMargin += batchConfig.getGeneratorAdditionalQuestionsToGenerateStep()) {
                 // ensure all gen requests cancelled
                 transactionScope.execute(questionGenerationRequestRepository::cancelAllActiveRequests);
                 
                 log.info("Start cleaning bank from previous attempts");
-                var deletedMetadatas = transactionScope.execute(() -> questionMetadataRepository.deleteMetadataFromDate(LocalDate.now().plusDays(-2)));
+                var deletedMetadatas = transactionScope.execute(() -> questionMetadataRepository.deleteMetadataFromDate(LocalDate.now().minusDays(2)));
                 log.info("Finish cleaning bank from previous attempts with {} deleted metadatas", deletedMetadatas);
                 
                 log.info("Generating experiment starts with generatorThreshold: {} and additionalQuestionsToGenerate: {}", genThreshold, safeMargin);
                 var config = new BankLoadTestingJobConfig();
-                config.randomSeed = 1111;
-                config.generatorThreshold = genThreshold;
-                config.generatorAdditionalQuestionsToGenerate = safeMargin;
-                config.exerciseId = batchConfig.exerciseId;
-                config.usersCount = batchConfig.usersCount;
-                config.exerciseStartDelayMin = batchConfig.exerciseStartDelayMin;
-                config.exerciseStartDelayMax = batchConfig.exerciseStartDelayMax;
-                config.postQuestionDelayMin = batchConfig.postQuestionDelayMin;
-                config.postQuestionDelayMax = batchConfig.postQuestionDelayMax;
-                config.skipDelayForQuestionsWithoutGeneration = batchConfig.skipDelayForQuestionsWithoutGeneration;
-                config.questionDelayRandomFactorization = batchConfig.questionDelayRandomFactorization;
+                config.setRandomSeed(1111);
+                config.setGeneratorThreshold(genThreshold);
+                config.setGeneratorAdditionalQuestionsToGenerate(safeMargin);
+                config.setExerciseId(batchConfig.getExerciseId());
+                config.setUsersCount(batchConfig.getUsersCount());
+                config.setExerciseStartDelayMin(batchConfig.getExerciseStartDelayMin());
+                config.setExerciseStartDelayMax(batchConfig.getExerciseStartDelayMax());
+                config.setPostQuestionDelayMin(batchConfig.getPostQuestionDelayMin());
+                config.setPostQuestionDelayMax(batchConfig.getPostQuestionDelayMax());
+                config.setSkipDelayForQuestionsWithoutGeneration(batchConfig.isSkipDelayForQuestionsWithoutGeneration());
+                config.setQuestionDelayRandomFactorization(batchConfig.getQuestionDelayRandomFactorization());
 
                 var retryNumber = 0;
                 Exception lastException = null;
@@ -137,23 +137,23 @@ public class BankLoadTestingJob {
 
     @SneakyThrows
     synchronized void runImpl(BankLoadTestingJobConfig config) {
-        if (config.randomSeed != null) {
-            randomProvider.reset(config.randomSeed);
+        if (config.getRandomSeed() != null) {
+            randomProvider.reset(config.getRandomSeed());
         }
         var random = randomProvider.getRandom();
         
         // set overridable settings
-        if (config.generatorThreshold != null) {
+        if (config.getGeneratorThreshold() != null) {
             transactionScope.executeNoResult(() -> {
-                var exercise = exerciseRepository.findById(config.exerciseId)
+                var exercise = exerciseRepository.findById(config.getExerciseId())
                         .orElseThrow();
-                exercise.getOptions().setGeneratorThreshold(config.generatorThreshold);
-                exercise.getOptions().setGeneratorAdditionalQuestionsToGenerate(config.generatorAdditionalQuestionsToGenerate);
+                exercise.getOptions().setGeneratorThreshold(config.getGeneratorThreshold());
+                exercise.getOptions().setGeneratorAdditionalQuestionsToGenerate(config.getGeneratorAdditionalQuestionsToGenerate());
                 exerciseRepository.save(exercise);
             });
         }
 
-        var questionsNumber = transactionScope.execute(() ->exerciseRepository.findById(config.exerciseId).orElseThrow()
+        var questionsNumber = transactionScope.execute(() ->exerciseRepository.findById(config.getExerciseId()).orElseThrow()
                 .getStages().stream()
                 .map(ExerciseStageEntity::getNumberOfQuestions)
                 .mapToInt(Integer::intValue)
@@ -163,15 +163,14 @@ public class BankLoadTestingJob {
         var userIds = users.stream()
                 .map(UserEntity::getId)
                 .sorted()
-                // .sorted((l, r) -> random.nextInt())
-                .limit(config.usersCount)
+                .limit(config.getUsersCount())
                 .toList();
         if (userIds.isEmpty()) {
             throw new IllegalArgumentException("Users count is 0");
         }
         log.info("User ids to be used for experiment: {}", userIds);
 
-        ExecutorService executor = Executors.newFixedThreadPool(config.usersCount);
+        ExecutorService executor = Executors.newFixedThreadPool(config.getUsersCount());
         for (long userId : userIds) {
             executor.submit(() -> {
                 try {
@@ -200,25 +199,25 @@ public class BankLoadTestingJob {
     }
 
     private void runUserExerciseAttempt(BankLoadTestingJobConfig config, long userId, int maxAttemptQuestions) throws Exception {
-        var exerciseId = config.exerciseId;
+        var exerciseId = config.getExerciseId();
         Long attemptId = createExerciseAttempt(exerciseId, userId).getAttemptId();
         
         var random = randomProvider.getRandom();
-        Thread.sleep(1000L * random.nextInt(config.exerciseStartDelayMin, config.exerciseStartDelayMax + 1));
+        Thread.sleep(1000L * random.nextInt(config.getExerciseStartDelayMin(), config.getExerciseStartDelayMax() + 1));
 
         log.info("User {} started exercise attempt", userId);
 
-        Long latsGenerationRequestId = null;
+        Long lastGenerationRequestId = null;
         for(int i = 0; i < maxAttemptQuestions; i++) {
             generateQuestion(attemptId);
 
-            var questionSolveDuration = getQuestionDelaySeconds(random.nextDouble(), config.questionDelayRandomFactorization)
-                    + random.nextInt(config.postQuestionDelayMin, config.postQuestionDelayMax + 1);
+            var questionSolveDuration = getQuestionDelaySeconds(random.nextDouble(), config.getQuestionDelayRandomFactorization())
+                    + random.nextInt(config.getPostQuestionDelayMin(), config.getPostQuestionDelayMax() + 1);
 
-            // skip delay if generation request was not creates
-            if (latsGenerationRequestId == null) {
-                latsGenerationRequestId = questionGenerationRequestRepository.getLastRequestByExerciseAttemptId(attemptId).orElse(null);
-                if (latsGenerationRequestId == null && config.skipDelayForQuestionsWithoutGeneration) {
+            // skip delay if generation request was not created
+            if (lastGenerationRequestId == null) {
+                lastGenerationRequestId = questionGenerationRequestRepository.getLastRequestByExerciseAttemptId(attemptId).orElse(null);
+                if (lastGenerationRequestId == null && config.isSkipDelayForQuestionsWithoutGeneration()) {
                     log.debug("User {} skipped question solve delay because no generation requests have been found", userId);
                     questionSolveDuration = 0;
                 }
@@ -234,23 +233,14 @@ public class BankLoadTestingJob {
         log.info("User {} finished exercise attempt", userId);
     }
 
-    private @Nullable QuestionDto generateQuestion(Long exAttemptId) {
-        /*
-            return executeWithRetry(() -> {
-                try {
-                    return frontendService.generateQuestion(attemptId);
-                } catch (NullPointerException ignored) {
-                    return null;
-                }
-            }, "generateQuestion");
-        */
-        
-        try {
-            return frontendService.generateQuestion(exAttemptId);
-        } catch (NullPointerException ignored) {
-            // log.debug("Problem question found for attempt {}", exAttemptId);
-            return null;
-        }
+    private @Nullable QuestionDto generateQuestion(Long attemptId) {
+        return executeWithRetry(() -> {
+            try {
+                return frontendService.generateQuestion(attemptId);
+            } catch (NullPointerException ignored) {
+                return null;
+            }
+        }, "generateQuestion");
     }
     
     @SneakyThrows
@@ -282,7 +272,8 @@ public class BankLoadTestingJob {
         return raw;
     }
 
-    private <T> T executeWithRetry(Callable<T> callback, String operation) throws InterruptedException {
+    @SneakyThrows
+    private <T> T executeWithRetry(Callable<T> callback, String operation) {
         int maxRetries = 25;
         long baseDelay = 50;
         long maxDelay = 5000L;

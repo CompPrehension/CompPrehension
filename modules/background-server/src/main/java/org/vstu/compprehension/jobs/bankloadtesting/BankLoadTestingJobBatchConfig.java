@@ -14,28 +14,28 @@ import org.springframework.context.annotation.Configuration;
 public class BankLoadTestingJobBatchConfig {
     private String cronSchedule = "never";
 
-    Integer initialDelay;
-    
-    Integer generatorThresholdFrom = 0;
-    Integer generatorThresholdTo = 50;
-    Integer generatorThresholdStep = 5;
-    
-    Integer generatorAdditionalQuestionsToGenerateFrom = 0;
-    Integer generatorAdditionalQuestionsToGenerateTo = 9;
-    Integer generatorAdditionalQuestionsToGenerateStep = 3;
+    private Integer initialDelay;
 
-    boolean skipDelayForQuestionsWithoutGeneration = false;
+    private Integer generatorThresholdFrom = 0;
+    private Integer generatorThresholdTo = 50;
+    private Integer generatorThresholdStep = 5;
 
-    long exerciseId;
-    int usersCount;
+    private Integer generatorAdditionalQuestionsToGenerateFrom = 0;
+    private Integer generatorAdditionalQuestionsToGenerateTo = 9;
+    private Integer generatorAdditionalQuestionsToGenerateStep = 3;
 
-    Integer randomSeed;
+    private boolean skipDelayForQuestionsWithoutGeneration = false;
 
-    int exerciseStartDelayMin = 0;
-    int exerciseStartDelayMax = 30;
+    private long exerciseId;
+    private int usersCount;
 
-    int postQuestionDelayMin = 3;
-    int postQuestionDelayMax = 10;
+    private Integer randomSeed;
 
-    Double[] questionDelayRandomFactorization;
+    private int exerciseStartDelayMin = 0;
+    private int exerciseStartDelayMax = 30;
+
+    private int postQuestionDelayMin = 3;
+    private int postQuestionDelayMax = 10;
+
+    private Double[] questionDelayRandomFactorization;
 }

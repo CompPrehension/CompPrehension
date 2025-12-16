@@ -450,7 +450,7 @@ public class QuestionMetadataComplexQueriesRepositoryImpl implements QuestionMet
 
     @Override
     public int deleteMetadataFromDate(LocalDate date) {
-        var updateQuestionResult = entityManager.createNativeQuery(
+        entityManager.createNativeQuery(
                 "update question " +
                    "set metadata_id = NULL " +
                    "where metadata_id IN (select id from questions_meta where created_at > :fromDate) or created_at > :fromDate")
@@ -462,7 +462,7 @@ public class QuestionMetadataComplexQueriesRepositoryImpl implements QuestionMet
                 .setParameter("fromDate", date)
                 .executeUpdate();
 
-        var deleteMissingDataResult = entityManager.createNativeQuery(
+        entityManager.createNativeQuery(
                         "delete from questions_data where id not IN (select question_data_id from questions_meta)")
                 .executeUpdate();
         
