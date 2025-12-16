@@ -180,7 +180,7 @@ enum CallStackAction {
 	add_frame [
 		RU.localizedName = "добавление фрейма функции" ;
 		EN.localizedName = "add frame" ;
-
+	
 	],
 	drop_frame [
 		RU.localizedName = "удаление фрейма функции" ;
@@ -229,6 +229,8 @@ class ActionSpec {
 	obj prop generalization: string ;
 	obj prop kind: string ;
 	obj prop appearanceType: AppearanceType ;
+	obj prop _locale_trace_name: string ;
+	obj prop _locale_pronoun: string ;  // he she it
 
 	rel hasConstruct(ConstructSpec) ;
 	rel hasEffects(Effect) ;
@@ -236,7 +238,6 @@ class ActionSpec {
 } [
 	RU.localizedName = "спецификация действия" ;
 	EN.localizedName = "action specification" ;
-
 ]
 
 class TransitionSpec {
@@ -256,6 +257,8 @@ class TransitionSpec {
 class ConstructSpec {
 	obj prop name: string ;
 	obj prop kind: string ;
+	obj prop _locale_trace_name: string ;
+	obj prop _locale_pronoun: string ;  // he she it
 
 	rel hasActions(ActionSpec) ;
 	rel hasTransitions(TransitionSpec) ;
@@ -264,7 +267,6 @@ class ConstructSpec {
 } [
 	RU.localizedName = "спецификация конструкции" ;
 	EN.localizedName = "construct specification" ;
-
 ]
 
 
@@ -354,7 +356,6 @@ class PathInfo {
 } [
 	RU.localizedName = "Путь по графу CFG и информация о достижимости" ;
 	EN.localizedName = "Path within a CFG & reachability info" ;
-
 ]
 
 
@@ -363,6 +364,7 @@ class PathInfo {
 class ASTNodeWrapper {
 	obj prop ast_id: int ;
 	obj prop ast_node: string ;
+	obj prop _code_piece: string ;  // имя действия для трассы
 
 	rel hasParent(ASTNodeWrapper) : {* -> 1} ;
 	rel hasChildren(ASTNodeWrapper) ;
@@ -370,7 +372,6 @@ class ASTNodeWrapper {
 } [
 	RU.localizedName = "обёртка узла AST" ;
 	EN.localizedName = "AST node wrapper" ;
-
 ]
 
 // ... Что-то про цепочки значения условий ???
@@ -404,7 +405,10 @@ class TraceAct {
 	rel isCloserToThan(TraceAct, TraceAct) : closer to beforeOf ;
 	rel isFurtherFromThan(TraceAct, TraceAct) : further to beforeOf ;
 	rel hasNextTraceAct(TraceAct) : {1 -> 1} ;   // Линейное отношение "непосредственно следующий" в цепочке актов трассы
-}
+} [
+	RU.localizedName = "действие в трассе" ;
+	EN.localizedName = "trace act" ;
+]
 
 
 

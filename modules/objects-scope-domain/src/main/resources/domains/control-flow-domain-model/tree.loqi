@@ -89,10 +89,22 @@ tree CtrlFlow(L0: TraceAct, A: TraceAct, STATE: State) {
                     skill="interruption_state_matches_constraint";
                     RU.explanation="При текущем режиме прерывания не может выполниться действие ${A}.";
                 ];}
-                body -> {conclude : error [
+                body -> {
+
+                	// Найти альтернативный переход ET (Expected Transition), выходящий из L0, и требующий текущее значение условия в L0
+                	var ET : Edge = find Edge e {$e->hasSource == P->from_
+                	    and $e != P
+                	    and forAny Constraint c {$e=>hasConstraints($c)}  // (у перехода есть ограничения)
+                	    and L0.condition_value == $e->hasConstraints.condition_value} out true else {
+                		// (Не найден такой переход!!! Скорее всего, проблема в CFG.)
+                	    conclude : null;
+                	};
+
+                	conclude : error [
                     skill="interruption_state_matches_constraint";
-                    RU.explanation="При текущем режиме прерывания должно выполниться действие ${$ET->hasDestination}, но не ${A}";
-                ];}
+                    RU.explanation="При текущем режиме прерывания должно выполниться действие ${ET->hasDestination}, но не ${A}";
+	                ];
+	            }
             };
         };
         conditionCheck -> {
@@ -119,7 +131,7 @@ tree CtrlFlow(L0: TraceAct, A: TraceAct, STATE: State) {
             };
             conclude : error [
                 skill="condition_value_allows_transition";
-                RU.explanation="При текущем значении условия должно выполниться действие ${$ET->hasDestination}, но не ${A}.";
+                RU.explanation="При текущем значении условия должно выполниться действие ${ET->hasDestination}, но не ${A}.";
             ];
         };
         // В правильный ли вызов функции вернулись? (CFG не даёт нам информации об этом, так как считает, что возврат из функции в любой из её вызовов допустИм.)
