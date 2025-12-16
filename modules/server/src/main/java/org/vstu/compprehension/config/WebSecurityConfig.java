@@ -1,14 +1,12 @@
 package org.vstu.compprehension.config;
 
 import com.nimbusds.jose.shaded.json.JSONArray;
-import org.springframework.boot.autoconfigure.condition.ConditionalOnBean;
 import org.springframework.context.annotation.Bean;
 import org.springframework.context.annotation.Configuration;
 import org.springframework.http.HttpStatus;
 import org.springframework.security.config.annotation.web.builders.HttpSecurity;
 import org.springframework.security.config.annotation.web.configuration.EnableWebSecurity;
 import org.springframework.security.config.annotation.web.configurers.AbstractHttpConfigurer;
-import org.springframework.security.oauth2.client.registration.ClientRegistrationRepository;
 import org.springframework.security.core.GrantedAuthority;
 import org.springframework.security.core.authority.SimpleGrantedAuthority;
 import org.springframework.security.core.context.SecurityContextHolder;
@@ -31,7 +29,6 @@ import org.springframework.web.cors.UrlBasedCorsConfigurationSource;
 
 import java.util.List;
 import java.util.Map;
-import java.util.Optional;
 import java.util.Set;
 import java.util.stream.Collectors;
 
@@ -40,50 +37,29 @@ import static java.util.Collections.singletonList;
 @Configuration
 @EnableWebSecurity
 public class WebSecurityConfig {
-    private final Optional<KeycloakLogoutHandler> keycloakLogoutHandler;
-    private final Optional<ClientRegistrationRepository> clientRegistrationRepository;
-    private final Optional<OAuth2UserService<OidcUserRequest, OidcUser>> oidcUserService;
+    private final KeycloakLogoutHandler keycloakLogoutHandler;
 
-    public WebSecurityConfig(Optional<KeycloakLogoutHandler> keycloakLogoutHandler,
-                            Optional<ClientRegistrationRepository> clientRegistrationRepository,
-                            Optional<OAuth2UserService<OidcUserRequest, OidcUser>> oidcUserService) {
+    public WebSecurityConfig(KeycloakLogoutHandler keycloakLogoutHandler) {
         this.keycloakLogoutHandler = keycloakLogoutHandler;
-        this.clientRegistrationRepository = clientRegistrationRepository;
-        this.oidcUserService = oidcUserService;
     }
 
     @Bean
     protected SecurityFilterChain configure(HttpSecurity http) throws Exception {
         http.cors(c -> c.configurationSource(corsConfigurationSource()));
-        http.csrf(AbstractHttpConfigurer::disable);
-        
-        // Настройка авторизации: если OAuth2 отключен, разрешаем все запросы
-        if (clientRegistrationRepository.isPresent() && oidcUserService.isPresent()) {
-            http.authorizeHttpRequests(authorizeRequests -> authorizeRequests
-                    .requestMatchers(new AntPathRequestMatcher("/lti/**")).permitAll()
-                    .anyRequest().authenticated())
+        http.csrf(AbstractHttpConfigurer::disable)
+                .authorizeHttpRequests(authorizeRequests -> authorizeRequests
+                        .requestMatchers(new AntPathRequestMatcher("/lti/**")).permitAll()
+                        .anyRequest().authenticated())
                 .oauth2Login(oauth2Login ->
                     oauth2Login.userInfoEndpoint(userInfoEndpoint -> userInfoEndpoint
-                                .oidcUserService(oidcUserService.get())
+                                .oidcUserService(this.oidcUserService())
                         )
                 )
-                .logout((logout) -> {
-                    logout.logoutSuccessUrl("/pages/exercise-settings")
-                          .invalidateHttpSession(true)
-                          .clearAuthentication(true)
-                          .deleteCookies("JSESSIONID");
-                    keycloakLogoutHandler.ifPresent(logout::addLogoutHandler);
-                });
-        } else {
-            // Когда OAuth2 отключен, разрешаем все запросы
-            http.authorizeHttpRequests(authorizeRequests -> authorizeRequests
-                    .anyRequest().permitAll())
-                .logout((logout) -> logout.logoutSuccessUrl("/pages/exercise-settings")
+                .logout((logout) -> logout.addLogoutHandler(keycloakLogoutHandler)
+                          .logoutSuccessUrl("/pages/exercise-settings")
                           .invalidateHttpSession(true)
                           .clearAuthentication(true)
                           .deleteCookies("JSESSIONID"));
-        }
-        
         http.exceptionHandling(c ->
                 c.defaultAuthenticationEntryPointFor(getRestAuthenticationEntryPoint(), new AntPathRequestMatcher("/api/**")));
         return http.build();
@@ -125,7 +101,6 @@ public class WebSecurityConfig {
     */
 
     @Bean
-    @ConditionalOnBean(ClientRegistrationRepository.class)
     public OAuth2UserService<OidcUserRequest, OidcUser> oidcUserService() {
         final OidcUserService delegate = new OidcUserService();
 

@@ -34,7 +34,7 @@ import java.util.stream.StreamSupport;
 
 @SpringBootTest
 @TestInstance(TestInstance.Lifecycle.PER_CLASS)
-@ActiveProfiles("dev")
+@ActiveProfiles("test")
 @Transactional
 public class CtrlFlowDTTest {
     @Autowired
