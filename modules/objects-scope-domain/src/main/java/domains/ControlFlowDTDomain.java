@@ -132,7 +132,8 @@ public class ControlFlowDTDomain extends DecisionTreeReasoningDomain {
 
         @Override
         public void updateJudgeInterpretationResult(InterpretSentenceResult interpretationResult, DecisionTreeReasonerBackend.Output backendOutput) {
-            ObjectDef A_node = backendOutput.situation().getDecisionTreeVariables().get("A")
+            var varName = interpretationResult.isAnswerCorrect ? "A" : "L0";
+            ObjectDef last_correct_node = backendOutput.situation().getDecisionTreeVariables().get(varName)
                     .findIn(backendOutput.situation().getDomainModel())
                     .getRelationshipLink("hasCFGNode").getObjects().getFirst();
             ObjectDef endOfProgram = findEndOfProgram(backendOutput.situation().getDomainModel());
@@ -142,7 +143,7 @@ public class ControlFlowDTDomain extends DecisionTreeReasoningDomain {
             // Находим самый длинный путь
             interpretationResult.IterationsLeft = (Integer) backendOutput.situation().getDomainModel()
                     .getObjects().stream().filter(obj -> obj.getClassName().equals("PathInfo")).filter(
-                            path -> path.getRelationshipLink("from_").getObjects().getFirst().equals(A_node) &&
+                            path -> path.getRelationshipLink("from_").getObjects().getFirst().equals(last_correct_node) &&
                                     path.getRelationshipLink("to_").getObjects().getFirst().equals(endOfProgram)
                     // Находим самый длинный путь
                     ).max(Comparator.comparingInt((pi) -> (Integer) pi.getPropertyValue("opaque_actions", Map.of()))
