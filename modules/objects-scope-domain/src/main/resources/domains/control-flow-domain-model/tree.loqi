@@ -139,22 +139,35 @@ tree CtrlFlow(L0: TraceAct, A: TraceAct, STATE: State) {
         	// Является ли А завершением вызова некоторой функции?
             ask (A->hasASTNode.ast_node == "function_call" and A->hasCFGNode.kind == NodeKind:END) out true else {
             	// НЕТ: Дальше не проверяем.
-                conclude : null;
+                conclude : null [
+                	skill = "DEBUG: not-a-call.";
+                ];
             };
             // Является ли А завершением именно самого близкого по трассе к L0 вызова этой же функции ( который при этом не имел на завершения?)
-            var closerCall : TraceAct = findExtreme func [$func=>isCloserToThan($act, L0) and $func->hasASTNode== A->hasASTNode and $func.is_known_correct
-                ] among TraceAct act {$act->hasASTNode.ast_node == "function_call" and
-                    $act->hasCFGNode.kind == "BEGIN"
-                    and
-                    not (forAny TraceAct _e {$act=>hasActAsCorrespondingEnd($_e)})}
+            // var closerCall : TraceAct = findExtreme func [$func=>isCloserToThan($act, L0) and $func->hasASTNode== A->hasASTNode and $func.is_known_correct
+            //     ] among TraceAct act {$act->hasASTNode.ast_node == "function_call" and
+            //         $act->hasCFGNode.kind == NodeKind:BEGIN
+            //         and
+            //         not (forAny TraceAct _e {$act=>hasActAsCorrespondingEnd($_e)})}
+            // ожидаемый узел из  трассы.
+            var ExpectedCallAct : TraceAct = (L0->directlyBeforeOf);
+            ask (ExpectedCallAct->hasASTNode.ast_node == "function_call" and ExpectedCallAct->hasCFGNode.kind == NodeKind:END) out true else {
+            	conclude : error [
+            	    skill="is_function_call_ended_at_time";
+            	    RU.explanation="Функция не может завершиться сейчас; Вместо ${A}, нужно сначала завершить ${ExpectedCallAct->hasCFGNode}.";
+            	];
+            };
+            ask (A->hasASTNode == ExpectedCallAct->hasASTNode)
             out false else {
             	// ДА: Вернулись в нужный вызов.
             	// TODO: Добавить скилл is_function_call_jumping_correct как корректно применённый.
-                conclude : null;
+                conclude : null [
+                	skill = "DEBUG: RETURN OK";
+                ];
             };
             conclude : error [
                 skill="is_function_call_jumping_correct";
-                RU.explanation="При завершении вызовов сначала завершаются внутренние вызовы согласно стеку вызовов (в обратном порядке); Вместо ${A}, нужно сначала завершить ${closerCall}.";
+                RU.explanation="При завершении вызовов сначала завершаются внутренние вызовы согласно стеку вызовов (в обратном порядке); Вместо ${A}, нужно сначала завершить ${ExpectedCallAct}.";
             ];
         };
     };
