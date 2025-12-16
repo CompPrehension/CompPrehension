@@ -4,7 +4,7 @@ tree CtrlFlow(L0: TraceAct, A: TraceAct, STATE: State) {
     ask (STATE.interruption_state != InterruptionType:no_interruption) {
         false -> out;
         true -> {
-            ask (A->hasCFGNode.kind == "END") out true else {
+            ask (A->hasCFGNode.kind == NodeKind:END) out true else {
                 conclude : error [
                     skill = "compound_constructs_present";
                     RU.explanation="Во время прерывания происходит только завершение составных действий; ${A} не может начать выполняться.";
@@ -137,7 +137,7 @@ tree CtrlFlow(L0: TraceAct, A: TraceAct, STATE: State) {
         // В правильный ли вызов функции вернулись? (CFG не даёт нам информации об этом, так как считает, что возврат из функции в любой из её вызовов допустИм.)
         functionReturn -> {
         	// Является ли А завершением вызова некоторой функции?
-            ask (A->hasASTNode.ast_node == "function_call" and A->hasCFGNode.kind == "END") out true else {
+            ask (A->hasASTNode.ast_node == "function_call" and A->hasCFGNode.kind == NodeKind:END) out true else {
             	// НЕТ: Дальше не проверяем.
                 conclude : null;
             };
