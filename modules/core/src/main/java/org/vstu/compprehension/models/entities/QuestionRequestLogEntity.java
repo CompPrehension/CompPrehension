@@ -19,9 +19,7 @@ import java.util.UUID;
 @AllArgsConstructor
 @Table(name = "QuestionRequestLog")
 public class QuestionRequestLogEntity {
-    
     @Id
-    @GeneratedValue(strategy = GenerationType.UUID)
     private UUID id;
 
     private Long exerciseAttemptId;

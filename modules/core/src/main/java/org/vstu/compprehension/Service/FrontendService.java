@@ -1,6 +1,7 @@
 package org.vstu.compprehension.Service;
 
 import jakarta.persistence.EntityManager;
+import lombok.SneakyThrows;
 import lombok.extern.log4j.Log4j2;
 import lombok.val;
 import org.apache.commons.collections4.ListUtils;
@@ -186,8 +187,9 @@ public class FrontendService {
                 strategyAttemptDecision);
     }
 
+    @SneakyThrows
     @Transactional(propagation = Propagation.REQUIRED)
-    public @NotNull QuestionDto generateQuestion(@NotNull Long exAttemptId) throws Exception {
+    public @NotNull QuestionDto generateQuestion(@NotNull Long exAttemptId) {
         val attempt = exerciseAttemptRepository.findById(exAttemptId)
                 .orElseThrow(() -> new Exception("Can't find attempt with id " + exAttemptId));
         val question = questionService.generateQuestion(attempt);
@@ -232,7 +234,7 @@ public class FrontendService {
     }
 
     @Transactional(propagation = Propagation.REQUIRED)
-    public @NotNull FeedbackDto generateNextCorrectAnswer(@NotNull Long questionId) throws Exception {
+    public @NotNull FeedbackDto generateNextCorrectAnswer(@NotNull Long questionId) {
         // get next correct answer
         val question = questionService.getSolvedQuestion(questionId);
         val correctAnswer = questionService.getNextCorrectAnswer(question);
@@ -355,7 +357,7 @@ public class FrontendService {
     }
 
     @Transactional(propagation = Propagation.REQUIRED)
-    public @NotNull ExerciseAttemptDto createExerciseAttempt(@NotNull Long exerciseId, @NotNull Long userId) throws Exception {
+    public @NotNull ExerciseAttemptDto createExerciseAttempt(@NotNull Long exerciseId, @NotNull Long userId) {
         var ea = createNewAttempt(exerciseId, userId);
         return Mapper.toDto(ea);
     }
@@ -400,16 +402,9 @@ public class FrontendService {
         return Mapper.toDto(ea);
     }
 
-    @Transactional(propagation = Propagation.REQUIRES_NEW)
+    @Transactional(propagation = Propagation.REQUIRED)
     public ExerciseAttemptEntity createNewAttempt(@NotNull Long exerciseId, @NotNull Long userId) {
-        // complete all incompleted attempts
-        val incompletedAttempts = exerciseAttemptRepository.getAllByStatus(exerciseId, userId, AttemptStatus.INCOMPLETE);
-        log.info("Found {} existing attempt to complete", incompletedAttempts.size());
-        for(val att : incompletedAttempts) {
-            att.setAttemptStatus(AttemptStatus.COMPLETED_BY_SYSTEM);
-            log.info("Attempt {} completed successfully", att.getId());
-        }
-        exerciseAttemptRepository.saveAll(incompletedAttempts);
+        exerciseAttemptRepository.changeExistingAttemptsStatus(exerciseId, userId, AttemptStatus.INCOMPLETE, AttemptStatus.COMPLETED_BY_SYSTEM);
 
         var exercise = exerciseService.getExercise(exerciseId);
         var user = userRepository.findById(userId).orElseThrow();
@@ -418,7 +413,7 @@ public class FrontendService {
         ea.setExercise(exercise);
         ea.setUser(user);
         ea.setAttemptStatus(AttemptStatus.INCOMPLETE);
-        ea.setQuestions(new ArrayList<>(0));
+        ea.setQuestions(new ArrayList<>());
         exerciseAttemptRepository.save(ea);
 
         return ea;

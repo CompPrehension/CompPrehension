@@ -1,9 +1,12 @@
 package org.vstu.compprehension.models.repository;
 
 import org.jetbrains.annotations.Nullable;
+import org.springframework.data.jpa.repository.Modifying;
 import org.vstu.compprehension.models.businesslogic.QuestionBankSearchRequest;
 import org.vstu.compprehension.models.entities.QuestionMetadataEntity;
 
+import java.time.LocalDate;
+import java.util.Date;
 import java.util.List;
 
 public interface QuestionMetadataComplexQueriesRepository {
@@ -48,4 +51,7 @@ public interface QuestionMetadataComplexQueriesRepository {
      * @return подходящие вопросы
      */
     List<QuestionMetadataEntity> findMetadataRelaxed(QuestionBankSearchRequest qr, int limitNumber);
+    
+    @Modifying
+    int deleteMetadataFromDate(LocalDate date);
 }

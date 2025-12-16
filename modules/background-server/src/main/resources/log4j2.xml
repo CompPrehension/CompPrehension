@@ -4,6 +4,14 @@
         <Console name="Console" target="SYSTEM_OUT">
             <PatternLayout pattern="%d %-5level - %msg%n"/>
         </Console>
+        <File name="BankLoadTestingFile"
+              fileName="${env:BANK_LOG_PATH:-logs/log_${date:yyyy-MM-dd}.log}"
+              immediateFlush="true"
+              bufferedIO="false"
+              locking="true">
+            <PatternLayout
+                    pattern="[%d] [${env:SPRING_APPLICATION_NAME:-compph-bg}] [%-5level] [user %-3X{userId}] - %msg%n"/>
+        </File>
     </Appenders>
     <Loggers>
         <Root level="INFO">
@@ -12,5 +20,29 @@
         <AsyncLogger name="org.vstu.compprehension" level="DEBUG">
             <AppenderRef ref="Console" level="INFO"/>
         </AsyncLogger>
+        <Logger name="org.vstu.compprehension.jobs.bankloadtesting"
+                additivity="true">
+            <AppenderRef ref="BankLoadTestingFile">
+                <ThresholdFilter level="${env:BANK_FILE_LOG_LEVEL:-OFF}"
+                                 onMatch="ACCEPT"
+                                 onMismatch="DENY"/>
+            </AppenderRef>
+        </Logger>
+        <Logger name="org.vstu.compprehension.models.businesslogic.storage"
+                additivity="true">
+            <AppenderRef ref="BankLoadTestingFile">
+                <ThresholdFilter level="${env:BANK_FILE_LOG_LEVEL:-OFF}"
+                                 onMatch="ACCEPT"
+                                 onMismatch="DENY"/>
+            </AppenderRef>
+        </Logger>
+        <Logger name="org.vstu.compprehension.jobs.tasksgeneration"
+                additivity="true">
+            <AppenderRef ref="BankLoadTestingFile">
+                <ThresholdFilter level="${env:BANK_FILE_LOG_LEVEL:-OFF}"
+                                 onMatch="ACCEPT"
+                                 onMismatch="DENY"/>
+            </AppenderRef>
+        </Logger>
     </Loggers>
 </Configuration>

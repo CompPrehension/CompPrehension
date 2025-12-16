@@ -1,22 +1,44 @@
 package org.vstu.compprehension.adapter;
 
 import org.jetbrains.annotations.NotNull;
+import org.springframework.beans.factory.NoSuchBeanDefinitionException;
+import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Component;
 import org.vstu.compprehension.models.businesslogic.strategies.AbstractStrategy;
 import org.vstu.compprehension.models.businesslogic.strategies.AbstractStrategyFactory;
+import org.vstu.compprehension.utils.ApplicationContextProvider;
 
+import java.util.HashMap;
+import java.util.List;
 import java.util.Set;
 
 @Component
 public class StrategyFactoryImpl implements AbstractStrategyFactory {
-    @Override
-    public Set<String> getStrategyIds() {
-        return Set.of();
+    private @NotNull HashMap<String, Class<? extends AbstractStrategy>> strategyToClassMap = new HashMap<>();
+
+    @Autowired
+    public StrategyFactoryImpl(@NotNull List<AbstractStrategy> strategies) {
+        for (var s : strategies) {
+            strategyToClassMap.put(s.getStrategyId(), s.getClass());
+        }
     }
 
-    @NotNull
     @Override
-    public AbstractStrategy getStrategy(@NotNull String strategyId) {
-        throw new RuntimeException("No strategies supported");
+    public Set<String> getStrategyIds() {
+        return strategyToClassMap.keySet();
+    }
+
+    @Override
+    public @NotNull AbstractStrategy getStrategy(@NotNull String strategyId) {
+        if (!strategyToClassMap.containsKey(strategyId)) {
+            throw new NoSuchBeanDefinitionException(String.format("Couldn't resolve strategy with id %s", strategyId));
+        }
+
+        try {
+            var clazz = strategyToClassMap.get(strategyId);
+            return ApplicationContextProvider.getApplicationContext().getBean(clazz);
+        } catch (Exception e) {
+            throw new NoSuchBeanDefinitionException(String.format("Couldn't resolve strategy with id %s", strategyId));
+        }
     }
 }

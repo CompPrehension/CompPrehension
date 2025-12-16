@@ -24,6 +24,7 @@ import org.vstu.compprehension.models.businesslogic.storage.QuestionBank;
 import org.vstu.compprehension.models.repository.*;
 import org.vstu.compprehension.strategies.*;
 import org.vstu.compprehension.utils.RandomProvider;
+import org.vstu.compprehension.utils.transactions.TransactionScopeFactory;
 
 import javax.inject.Singleton;
 import java.util.List;
@@ -92,9 +93,16 @@ public class DiConfig {
             @Autowired QuestionMetadataRepository metadataRepository,
             @Autowired QuestionDataRepository questionDataRepository,
             @Autowired QuestionGenerationRequestRepository generationRequestRepository,
-            @Autowired QuestionMetadataSearchRequestRepository questionSearchRequestLogRepository) throws Exception {
+            @Autowired QuestionMetadataSearchRequestRepository questionSearchRequestLogRepository,
+            @Autowired TransactionScopeFactory transactionScopeFactory) throws Exception {
         //var allDomains = domainRepository.findAll();
-        return new QuestionBank(metadataRepository, questionDataRepository, generationRequestRepository, questionSearchRequestLogRepository);
+        return new QuestionBank(metadataRepository, questionDataRepository, generationRequestRepository, questionSearchRequestLogRepository, transactionScopeFactory);
+    }
+    
+    @Bean
+    @SessionScope
+    RandomProvider getRandomProvider() {
+        return new RandomProvider();
     }
 
     @Bean

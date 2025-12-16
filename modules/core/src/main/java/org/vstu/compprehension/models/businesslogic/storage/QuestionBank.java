@@ -13,6 +13,8 @@ import org.vstu.compprehension.models.repository.QuestionDataRepository;
 import org.vstu.compprehension.models.repository.QuestionGenerationRequestRepository;
 import org.vstu.compprehension.models.repository.QuestionMetadataRepository;
 import org.vstu.compprehension.models.repository.QuestionMetadataSearchRequestRepository;
+import org.vstu.compprehension.utils.transactions.TransactionScope;
+import org.vstu.compprehension.utils.transactions.TransactionScopeFactory;
 
 import java.util.ArrayList;
 import java.util.List;
@@ -25,17 +27,22 @@ public class QuestionBank {
     private final QuestionMetadataManager questionMetadataManager;
     private final QuestionGenerationRequestRepository generationRequestRepository;
     private final QuestionMetadataSearchRequestRepository questionSearchRequestLogRepository;
+    private final TransactionScope logSavingTransactionScope;
 
     public QuestionBank(
             QuestionMetadataRepository questionMetadataRepository,
             QuestionDataRepository questionDataRepository,
             QuestionGenerationRequestRepository generationRequestRepository,
-            QuestionMetadataSearchRequestRepository questionSearchRequestLogRepository) {
+            QuestionMetadataSearchRequestRepository questionSearchRequestLogRepository,
+            TransactionScopeFactory transactionScopeFactory) {
         this.questionMetadataRepository = questionMetadataRepository;
         this.questionDataRepository = questionDataRepository;
         this.questionMetadataManager = new QuestionMetadataManager(questionMetadataRepository);
         this.generationRequestRepository = generationRequestRepository;
         this.questionSearchRequestLogRepository = questionSearchRequestLogRepository;
+        
+        // for actions that must be executed in new transaction (like save logs)
+        this.logSavingTransactionScope = transactionScopeFactory.create(TransactionScope.PropagationBehavior.REQUIRES_NEW);
     }
 
     private QuestionBankSearchRequest createBankSearchRequest(QuestionRequest qr) {
@@ -129,7 +136,7 @@ public class QuestionBank {
         return new QuestionBankSearchStatsDto(ordinaryCount, topRatedCount, metadata);
     }
 
-    public QuestionBankSearchResult searchQuestions(@NotNull QuestionRequest qr, int limit, int generatorThreshold) {
+    public QuestionBankSearchResult searchQuestions(@NotNull QuestionRequest qr, int limit, int generatorThreshold, int generatorAdditionalQuestionsToGenerate) {
 
         var bankSearchRequest = createBankSearchRequest(qr);
         
@@ -171,6 +178,17 @@ public class QuestionBank {
         // guard: don't allow overlapping of target & denied
         targetSkillsBitmask &= ~deniedSkillsBitmask;
 
+        // ensure generatorThreshold & generatorAdditionalQuestionsToGenerate is valid
+        if (generatorThreshold < 0) {
+            generatorThreshold = 0;
+        }
+        if (generatorAdditionalQuestionsToGenerate < 0) {
+            generatorAdditionalQuestionsToGenerate = 0;
+        }
+
+        var searchSteps = new ArrayList<QuestionMetadataSearchRequestEntity.Iteration>(3);
+        List<QuestionMetadataEntity> foundQuestionMetas;
+
         var preparedQuery = bankSearchRequest.toBuilder()
                 .targetConceptsBitmask(targetConceptsBitmask)
                 .targetLawsBitmask(targetLawsBitmask)
@@ -179,24 +197,16 @@ public class QuestionBank {
                 .unwantedLawsBitmask(unwantedLawsBitmask)
                 .unwantedSkillsBitmask(unwantedSkillsBitmask)
                 .unwantedViolationsBitmask(unwantedViolationsBitmask)
+                .generatorThreshold(generatorThreshold)
+                .generatorAdditionalQuestionsToGenerate(generatorAdditionalQuestionsToGenerate)
                 .build();
-
-        // ensure generatorThreshold is valid
-        if (generatorThreshold < 0) {
-            generatorThreshold = 0;
-        } else if (generatorThreshold < 7) {
-            generatorThreshold = 7;
-        }
-        log.info("search query prepared: {}, generatorThreshold: {}", new Gson().toJson(preparedQuery), generatorThreshold);
-        
-        var searchSteps = new ArrayList<QuestionMetadataSearchRequestEntity.Iteration>(3);
-        List<QuestionMetadataEntity> foundQuestionMetas;
+        log.debug("problem search query prepared: {}", new Gson().toJson(preparedQuery));
 
         {
             int topRatedLimit = generatorThreshold + 3;
-            log.info("trying to do {} search with {} limit", QuestionMetadataSearchRequestEntity.Quality.BestUnused, topRatedLimit);
+            log.debug("trying to do {} search with {} limit", QuestionMetadataSearchRequestEntity.Quality.BestUnused, topRatedLimit);
             foundQuestionMetas = questionMetadataRepository.findTopRatedUnusedMetadata(preparedQuery, topRatedLimit);
-            log.info("{} search executed with {} candidates", QuestionMetadataSearchRequestEntity.Quality.BestUnused, foundQuestionMetas.size());
+            log.info("search executed with {} strategy and returns {} problems found ({} requested, {} generatorThreshold)", QuestionMetadataSearchRequestEntity.Quality.BestUnused, foundQuestionMetas.size(), topRatedLimit, generatorThreshold);
             searchSteps.add(new QuestionMetadataSearchRequestEntity.Iteration(QuestionMetadataSearchRequestEntity.Quality.BestUnused, topRatedLimit, foundQuestionMetas.size()));
         }
 
@@ -214,33 +224,34 @@ public class QuestionBank {
                 log.error("isMatch desync detected. Metadata with ids={} does not match bank search query {}", notMatchedMetadata, new Gson().toJson(preparedQuery));
             }
         }
-        
-        if (generatorThreshold > 0 && foundQuestionMetas.size() <= generatorThreshold) {
-            log.info("no enough candidates found (found {}/{}), need additional generation", foundQuestionMetas.size(), generatorThreshold);
+
+        if (foundQuestionMetas.size() <= generatorThreshold) {
+            log.info("too few top rated problems found ({}/{}), need additional generation", foundQuestionMetas.size(), generatorThreshold);
 
             // calculate how many questions to generate based on the number of found questions and existing generation requests
-            var rawQuestionsToGenerate = generatorThreshold + 3 - foundQuestionMetas.size(); // +3 additional questions to be sure that we have enough (10 in total)
+            var rawQuestionsToGenerate = generatorThreshold + generatorAdditionalQuestionsToGenerate - foundQuestionMetas.size(); // +generatorAdditionalQuestionsToGenerate additional questions to be sure that we will have enough
             var currentlyGeneratingQuestions = generationRequestRepository.findNumberOfCurrentlyGeneratingQuestions(qr.getDomainShortname(), preparedQuery);
             var questionsToGenerate = Math.max(1, rawQuestionsToGenerate - currentlyGeneratingQuestions);
-
-            var generationRequest = new QuestionGenerationRequestEntity(preparedQuery, questionsToGenerate, qr.getExerciseAttemptId());
-            var genRequest = generationRequestRepository.save(generationRequest);
-            log.info("created generation request with id {} with {} questions to generate", genRequest.getId(), genRequest.getQuestionsToGenerate());
+            var genRequest = logSavingTransactionScope.execute(() -> {
+                var generationRequest = new QuestionGenerationRequestEntity(preparedQuery, questionsToGenerate, qr.getExerciseAttemptId());
+                return generationRequestRepository.save(generationRequest);
+            });
+            log.info("created generation request with id {} with {} problems to generate", genRequest.getId(), genRequest.getQuestionsToGenerate());
         }
         
         if (foundQuestionMetas.isEmpty()) {
             int normalLimit = 100;
-            log.info("trying to do {} search with {} limit", QuestionMetadataSearchRequestEntity.Quality.Normal, normalLimit);
+            log.debug("trying to do {} search with {} limit", QuestionMetadataSearchRequestEntity.Quality.Normal, normalLimit);
             foundQuestionMetas = questionMetadataRepository.findMetadata(preparedQuery, normalLimit);
-            log.info("{} search executed with {} candidates", QuestionMetadataSearchRequestEntity.Quality.Normal, foundQuestionMetas.size());
+            log.info("search executed with {} strategy and returns {} problems ({} requested)", QuestionMetadataSearchRequestEntity.Quality.Normal, foundQuestionMetas.size(), normalLimit);
             searchSteps.add(new QuestionMetadataSearchRequestEntity.Iteration(QuestionMetadataSearchRequestEntity.Quality.Normal, normalLimit, foundQuestionMetas.size()));
         }
         
         if (foundQuestionMetas.isEmpty()) {
             int relaxedLimit = 100;
-            log.info("trying to do {} search with {} limit", QuestionMetadataSearchRequestEntity.Quality.Relaxed, relaxedLimit);
+            log.debug("trying to do {} search with {} limit", QuestionMetadataSearchRequestEntity.Quality.Relaxed, relaxedLimit);
             foundQuestionMetas = questionMetadataRepository.findMetadataRelaxed(preparedQuery, relaxedLimit);
-            log.info("{} search executed with {} candidates", QuestionMetadataSearchRequestEntity.Quality.Relaxed, foundQuestionMetas.size());
+            log.info("search executed with {} strategy and returns {} problems", QuestionMetadataSearchRequestEntity.Quality.Relaxed, foundQuestionMetas.size());
             searchSteps.add(new QuestionMetadataSearchRequestEntity.Iteration(QuestionMetadataSearchRequestEntity.Quality.Relaxed, relaxedLimit, foundQuestionMetas.size()));
         }
 
@@ -262,8 +273,10 @@ public class QuestionBank {
         }
 
         // save search request to db
-        var logEntity = new QuestionMetadataSearchRequestEntity(preparedQuery, searchSteps, qr.getId());
-        logEntity = questionSearchRequestLogRepository.save(logEntity);
+        var logEntity = logSavingTransactionScope.execute(() -> {
+            var entity = new QuestionMetadataSearchRequestEntity(preparedQuery, searchSteps, qr.getId());
+            return questionSearchRequestLogRepository.save(entity);
+        });
 
         return new QuestionBankSearchResult(logEntity.getQuality(), foundQuestionMetas);
     }
