@@ -30,7 +30,7 @@ import java.util.stream.Stream;
 @Slf4j
 @SpringBootTest
 @TestInstance(TestInstance.Lifecycle.PER_CLASS)
-@ActiveProfiles("dev")
+@ActiveProfiles("test")
 @Transactional
 public class CtrlFlowLoadQuestionsTest {
     @Autowired
