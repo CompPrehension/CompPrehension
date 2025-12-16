@@ -233,14 +233,15 @@ public class ControlFlowDTDomain extends DecisionTreeReasoningDomain {
                         .filter(obj -> obj.getClassName().equals("Node"))
                         .filter(obj -> obj.getPropertyValue("id", Map.of()).equals(domainInfo))
                         .findFirst().orElseThrow();
-                if (currentTraceAct.getRelationshipLink("hasCFGNode")
-                        .getObjects().getFirst().equals(cfgNode)) {
+                ObjectDef currentTraceActCFGNode = currentTraceAct.getRelationshipLink("hasCFGNode")
+                        .getObjects().getFirst();
+                if (currentTraceActCFGNode.equals(cfgNode)) {
                     currentTraceAct.getDefinedPropertyValues().addOrReplace(new PropertyValueStatement<>(
                             currentTraceAct,
                             "is_known_correct",
                             ParamsValues.getEMPTY(), true));
                 } else {
-                    throw new DomainUseException("Invalid trace act in already checked acts: currentTraceAct = %s, expected that hasCFGNode.id = %s".formatted(currentTraceAct.getName(), domainInfo));
+                    throw new DomainUseException("Invalid correct-trace: act is in already checked/used acts: currentTraceAct = %s with hasCFGNode.id = %s, expected that hasCFGNode.id = %s".formatted(currentTraceAct.getName(), currentTraceActCFGNode.getName(), domainInfo));
                 }
                 if ((i + 1) != end) {
                     currentTraceAct = currentTraceAct.getRelationshipLink("directlyBeforeOf").getObjects().getFirst();
