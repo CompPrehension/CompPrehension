@@ -141,13 +141,18 @@ public class ControlFlowDTDomain extends DecisionTreeReasoningDomain {
             interpretationResult.CountCorrectOptions = 1;
             int finishButtonEnabled = 1; // Note: set 0 if using explicit "Nothing more can run" / "Finish the problem" button.
             // Находим самый длинный путь
-            interpretationResult.IterationsLeft = (Integer) backendOutput.situation().getDomainModel()
+            var fromCorrect_toEnd = backendOutput.situation().getDomainModel()
                     .getObjects().stream().filter(obj -> obj.getClassName().equals("PathInfo")).filter(
                             path -> path.getRelationshipLink("from_").getObjects().getFirst().equals(last_correct_node) &&
                                     path.getRelationshipLink("to_").getObjects().getFirst().equals(endOfProgram)
-                    // Находим самый длинный путь
-                    ).max(Comparator.comparingInt((pi) -> (Integer) pi.getPropertyValue("opaque_actions", Map.of()))
-                    ).orElseThrow().getPropertyValue("opaque_actions", Map.of()) - finishButtonEnabled;
+                            // Находим самый длинный путь
+                    ).max(Comparator.comparingInt((pi) -> (Integer) pi.getPropertyValue("opaque_actions", Map.of())));
+            if (fromCorrect_toEnd.isPresent()) {
+                interpretationResult.IterationsLeft = (Integer) fromCorrect_toEnd.orElseThrow()
+                        .getPropertyValue("opaque_actions", Map.of()) - finishButtonEnabled;
+            } else {
+                interpretationResult.IterationsLeft = 5; //TODO: это очень плохо
+            }
 
             if (interpretationResult.IterationsLeft == 0) {
                 // Достигли полного завершения задачи.
@@ -622,6 +627,15 @@ public class ControlFlowDTDomain extends DecisionTreeReasoningDomain {
         return responses;
     }
 
+    public String getMessageWithSuffix(String rawName, String suffix, Language lang) {
+        var rawNameFilled = rawName.concat(suffix);
+        var message = getMessage(rawNameFilled, lang);
+        if (message == null || message.isEmpty() || message.equals(rawNameFilled)) {
+            message = getMessage(rawName, lang);
+        }
+        return message;
+    }
+
     @Override
     public List<HyperText> getFullSolutionTrace(Question question) {
         Language lang = Optional.ofNullable(question.getQuestionData().getExerciseAttempt())
@@ -663,24 +677,36 @@ public class ControlFlowDTDomain extends DecisionTreeReasoningDomain {
                 if (localeTraceName.isEmpty()) {
                     localeTraceName = (String) construct.getPropertyValue("_locale_trace_name", Map.of());
                 }
+                var localePronoun = (String) action.getPropertyValue("_locale_pronoun", Map.of());
+                if (localePronoun.isEmpty()) {
+                    localePronoun = (String) construct.getPropertyValue("_locale_pronoun", Map.of());
+                }
 
                 String actionState;
                 String condition = "";
                 String nodeKind = ((EnumValueRef) cfgNode.getPropertyValue("kind", Map.of())).getValueName();
-                if (constructKind.contains("condition")) {
+                String rawNameSuffix = "";
+                if (localeTraceName.equals("program")) {
+                    rawNameSuffix = "_program";
+                } else if (localePronoun.equals("he")) {
+                    rawNameSuffix = ".he";
+                } else if (localePronoun.equals("she")) {
+                    rawNameSuffix = ".she";
+                }
+                if (localeTraceName.equals("condition")) {
                     String conditionEnumValue = ((EnumValueRef) object.getPropertyValue("condition_value", Map.of())).getValueName();
-                    if (conditionEnumValue.equals("true") ||  conditionEnumValue.equals("false")) {
+                    if (conditionEnumValue.equals("true") || conditionEnumValue.equals("false")) {
                         condition = " - ".concat(htmlStyleFormat(getMessage("trace.condition.%s".formatted(conditionEnumValue), lang), "atom"));
                     }
-                    actionState = getMessage("trace.evaluated", lang);
+                    actionState = getMessageWithSuffix("trace.evaluated", rawNameSuffix, lang);
                 } else if (nodeKind.equals("atom")) {
-                    actionState = getMessage("trace.executed", lang);
+                    actionState = getMessageWithSuffix("trace.executed", rawNameSuffix, lang);
                 } else {
                     boolean isEnd = nodeKind.equals("END");
                     if (isEnd) {
-                        actionState = getMessage("trace.ended".concat(localeTraceName.equals("program") ? "_program" : ""), lang);
+                        actionState = getMessageWithSuffix("trace.ended", rawNameSuffix, lang);
                     } else {
-                        actionState = getMessage("trace.began".concat(localeTraceName.equals("program") ? "_program" : ""), lang);
+                        actionState = getMessageWithSuffix("trace.began", rawNameSuffix, lang);
                     }
                 }
 
