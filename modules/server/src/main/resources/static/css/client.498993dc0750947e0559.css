@@ -304,40 +304,44 @@ table.comp-ph-trace tr:first-child td {
 }
 
 /* Trace syntax */
-.trace .program {
+.comp-ph-trace .program {
 	color: #f70;
 	font-weight: bold;
 }
 
-.trace .keyword {
+.comp-ph-trace .keyword {
 	color: #00a;
 	font-weight: bold;
 }
 
-.trace .action {
+.comp-ph-trace .action {
 	color: #077;
 	font-weight: bold;
 }
 
-.trace .variable {
+.comp-ph-trace .variable {
 	color: #700;
 	font-weight: bold;
 }
 
-.trace .number {
+.comp-ph-trace .number {
 	color: #FF5252;
 	font-weight: bold;
 }
 
-.trace .struct {
+.comp-ph-trace .struct {
 	color: #07c;
 	font-weight: bold;
 }
 
-.trace .atom {
+.comp-ph-trace .atom {
 	color: #f08;
 	font-style: italic;
 	font-weight: bold;
+}
+
+.comp-ph-trace .warning {
+    background-color: #ff9;
 }
 
 .compph-domain-term {

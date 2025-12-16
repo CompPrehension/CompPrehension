@@ -12,6 +12,7 @@ import its.reasoner.nodes.DecisionTreeTrace;
 import its.reasoner.nodes.DecisionTreeTraceElement;
 import lombok.Getter;
 import lombok.extern.log4j.Log4j2;
+import lombok.val;
 import org.apache.commons.text.StringSubstitutor;
 import org.jetbrains.annotations.NotNull;
 import org.jetbrains.annotations.Nullable;
@@ -240,7 +241,7 @@ public class ControlFlowDTDomain extends DecisionTreeReasoningDomain {
                             currentTraceAct,
                             "is_known_correct",
                             ParamsValues.getEMPTY(), true));
-                } else {
+                } else if (includeLast && (i + 1) != end) { // подавляем эту проверку, если мы намеренно встраиваем последний акт в трассу
                     throw new DomainUseException("Invalid correct-trace: act is in already checked/used acts: currentTraceAct = %s with hasCFGNode.id = %s, expected that hasCFGNode.id = %s".formatted(currentTraceAct.getName(), currentTraceActCFGNode.getName(), domainInfo));
                 }
                 if ((i + 1) != end) {
@@ -268,6 +269,7 @@ public class ControlFlowDTDomain extends DecisionTreeReasoningDomain {
             result.getRelationshipLinks().add(new RelationshipLinkStatement(result, "hasASTNode",
                     List.of(metadata.getRelationshipLink("belongsToASTNode").getObjects().getFirst().getName()),
                     ParamsValues.getEMPTY()));
+            result.getMetadata().addAll(cfgNode.getMetadata());
             return result;
         }
 
@@ -488,7 +490,12 @@ public class ControlFlowDTDomain extends DecisionTreeReasoningDomain {
         }
 
         static SolveResult solve(DecisionTree tree, DomainModel model) {
-            LearningSituation situation = new LearningSituation(model, new HashMap<>());
+            LearningSituation situation = new LearningSituation(model, model.getVariables()
+                    .stream().collect(Collectors.toMap(
+                            x -> x.getName(),
+                            x -> x.getValueObject().getReference()
+                    ))
+            );
             DecisionTreeTrace trace = DecisionTreeReasoner.solve(tree, situation);
             List<String> skills = new ArrayList<>();
             List<String> laws = new ArrayList<>();
@@ -556,6 +563,64 @@ public class ControlFlowDTDomain extends DecisionTreeReasoningDomain {
         }
     }
 
+    private static String formatNthTime(int n, Language lang) {
+        if (lang.equals(Language.ENGLISH)) {
+            if (n % 100 >= 11 && n % 100 <= 13) {
+                return n + "th";
+            }
+            return switch (n % 10) {
+                case 1 -> n + "st";
+                case 2 -> n + "nd";
+                case 3 -> n + "rd";
+                default -> n + "th";
+            };
+        } else if (lang.equals(Language.RUSSIAN)) {
+            return String.format("%d-й", n);
+        } else {
+            return Integer.toString(n);
+        }
+    }
+
+    private static String htmlStyleFormat(String text, String style) {
+        return "<span class=\"%s\">%s</span>".formatted(style, text);
+    }
+
+    protected List<ResponseEntity> responsesForTrace(QuestionEntity q, boolean allowLastIncorrect) {
+
+        List<ResponseEntity> responses = new ArrayList<>();
+        List<InteractionEntity> interactions = q.getInteractions();
+
+        if (interactions == null || interactions.isEmpty()) {
+            return responses; // empty so far
+            // early exit: no further checks for emptiness
+        }
+
+        responses = Optional.of(interactions).stream()
+                .flatMap(Collection::stream)
+                .filter(i -> i.getFeedback().getInteractionsLeft() >= 0 && i.getViolations().size() == 0) // select only interactions without mistakes
+                .reduce((first, second) -> second)
+                .map(InteractionEntity::getResponses)
+                .map(ArrayList::new)  // make a shallow copy so that it can be safely modified
+                .orElseGet(ArrayList::new);
+
+        if (allowLastIncorrect) {
+            val latestStudentResponse = Optional.of(interactions).stream()
+                    .flatMap(Collection::stream)
+                    .reduce((first, second) -> second).orElse(null);
+            if (latestStudentResponse != null && !latestStudentResponse.getViolations().isEmpty()) {
+                // lastInteraction is wrong
+                val responseNew = Optional.ofNullable(latestStudentResponse.getResponses())//.stream()
+                        .filter(resp -> resp.size() > 0)
+                        .map(resp -> resp.get(resp.size() - 1))
+                        .orElse(null);
+                if (responseNew != null) {
+                    responses.add(responseNew);
+                }
+            }
+        }
+        return responses;
+    }
+
     @Override
     public List<HyperText> getFullSolutionTrace(Question question) {
         Language lang = Optional.ofNullable(question.getQuestionData().getExerciseAttempt())
@@ -563,41 +628,76 @@ public class ControlFlowDTDomain extends DecisionTreeReasoningDomain {
                 .orElse(Language.RUSSIAN/*ENGLISH*/);
         List<HyperText> trace = new ArrayList<>();
         var questionModel = prepareQuestionModel(question, this.domainSolvingModel);
-        var traceObjects = questionModel.getObjects()
+        var treeInterface = (DecisionTreeInterface) getBackendInterface();
+        var responses = responsesForTrace(question.getQuestionData(), true);
+        var lastTraceObj = treeInterface.makeTrace(questionModel, responses, false);
+        ObjectDef A = responses.isEmpty() ? null : treeInterface.makeA(questionModel, responses.getLast().getLeftAnswerObject().getDomainInfo());
+        List<ObjectDef> traceObjects = new ArrayList<>(questionModel.getObjects()
                 .stream()
-                .filter(obj -> obj.getClassName().equals("TraceAct")).toList();
+                .filter(obj -> obj.getClassName().equals("TraceAct")).toList());
+        // WARNING! TODO: сейчас полагаемся на порядок сортировки в loqi файле. Это потенциально плохо! Исправить в будущем
+        if (A != null) {
+            questionModel.getVariables().add(new VariableDef("A", A.getName()));
+        }
+        var counters = new HashMap<String, Integer>();
         for (var object : traceObjects) {
-            if ((Boolean) object.getPropertyValue("is_known_correct", Map.of())) {
+            if ((Boolean) object.getPropertyValue("is_known_correct", Map.of()) ||
+                    (questionModel.getVariables().get("A") != null && questionModel.getVariables().get("A").getValueObject().getName().equals(object.getName()))
+            ) {
                 var action = object.getRelationshipLinks().stream().filter(x ->
                         x.getRelationship().getName().equals("hasActionSpec")).findFirst().orElseThrow().getObjects().getFirst();
                 var construct = action.getRelationshipLinks().stream().filter(x ->
                         x.getRelationship().getName().equals("hasConstruct")).findFirst().orElseThrow().getObjects().getFirst();
+                var cfgNode = object.getRelationshipLinks().stream().filter(x ->
+                        x.getRelationship().getName().equals("hasCFGNode")).findFirst().orElseThrow().getObjects().getFirst();
+                var cfgId = (String) cfgNode.getPropertyValue("id", Map.of());
+                int n = counters.merge(cfgId, 1, Integer::sum);
                 var constructKind = Arrays.stream(
                         ((String) construct.getPropertyValue("kind", Map.of())).split("\\.")
-                ).filter(x -> List.of("condition", "loop",
-                        "block", "sequence", "call",
-                        "try", "inline", "alternative", "sequence", "any").contains(x)).toList();
+                ).toList();
+
                 var mainString = getMessage("trace.template", lang);
+
+                var localeTraceName = (String) action.getPropertyValue("_locale_trace_name", Map.of());
+                if (localeTraceName.isEmpty()) {
+                    localeTraceName = (String) construct.getPropertyValue("_locale_trace_name", Map.of());
+                }
+
                 String actionState;
+                String condition = "";
+                String nodeKind = ((EnumValueRef) cfgNode.getPropertyValue("kind", Map.of())).getValueName();
                 if (constructKind.contains("condition")) {
+                    String conditionEnumValue = ((EnumValueRef) object.getPropertyValue("condition_value", Map.of())).getValueName();
+                    if (conditionEnumValue.equals("true") ||  conditionEnumValue.equals("false")) {
+                        condition = " - ".concat(htmlStyleFormat(getMessage("trace.condition.%s".formatted(conditionEnumValue), lang), "atom"));
+                    }
                     actionState = getMessage("trace.evaluated", lang);
-                } else if (constructKind.contains("inline")) {
+                } else if (nodeKind.equals("atom")) {
                     actionState = getMessage("trace.executed", lang);
                 } else {
-                    boolean isEnd = action.getPropertyValue("role", Map.of()).equals("END");
+                    boolean isEnd = nodeKind.equals("END");
                     if (isEnd) {
-                        actionState = getMessage("trace.ended", lang);
+                        actionState = getMessage("trace.ended".concat(localeTraceName.equals("program") ? "_program" : ""), lang);
                     } else {
-                        actionState = getMessage("trace.began", lang);
+                        actionState = getMessage("trace.began".concat(localeTraceName.equals("program") ? "_program" : ""), lang);
                     }
                 }
-                String mainConstructKind = constructKind.stream().filter(x -> !x.equals("inline")).findFirst().orElseThrow();
+
+                String nthTime = htmlStyleFormat(formatNthTime(n, lang), "number") + " " + getMessage("trace.template.time_text", lang);
+                String definition = (String) object.getMetadata().get(lang.toLocaleString().toUpperCase(), "localizedName");
                 var substitutions = Map.of(
-                        "structure", getMessage("trace.structure.kind.%s".formatted(mainConstructKind), lang),
-                        "action_state", actionState,
-                        "nth_time", "1"
+                        "structure", htmlStyleFormat(definition, "action"),
+                        "action_state", htmlStyleFormat(actionState, "keyword"),
+                        "nth_time", nthTime,
+                        "condition", condition
                 );
-                trace.add(new HyperText(replaceInString(mainString, substitutions)));
+                var traceElementText = replaceInString(mainString, substitutions);
+                if (!(Boolean) object.getPropertyValue("is_known_correct", Map.of())
+                        && !responses.getLast().getInteraction().getViolations().isEmpty()
+                ) {
+                    traceElementText = htmlStyleFormat(traceElementText, "warning");
+                }
+                trace.add(new HyperText(traceElementText));
             }
         }
         return trace;
