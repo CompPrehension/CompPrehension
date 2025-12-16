@@ -532,7 +532,38 @@ public class CtrlFlowDTTest {
                 false,
                 false,
                 false
-                 , List.of("<CORRECT [is_function_call_jumping_correct]>")
+                 , List.of("<ERROR [is_function_call_jumping_correct]>")
+        );
+    }
+
+    @Test
+    public void ex_5_inf_recursion2_t3() {
+        var question = loadQuestion("debug_5_inf_recursion2.py");
+        var answers = List.of(
+                Pair.of(8, "atom_172"),
+                Pair.of(9, "BEGIN_176"),
+                Pair.of(10, "BEGIN_179"),
+                Pair.of(0, "atom_104"),
+                Pair.of(1, "atom_110"),
+                Pair.of(2, "BEGIN_119"),
+                Pair.of(0, "atom_104"),
+                Pair.of(1, "atom_110"),
+                Pair.of(4, "atom_137"),
+                Pair.of(7, "atom_161"),
+                Pair.of(3, "END_120"),
+                Pair.of(4, "atom_137"),
+                Pair.of(7, "atom_161"),
+                // Pair.of(11, "END_180"),
+                Pair.of(6, "END_147")  // wrong: (earlier call ended)
+                // Pair.of(12, "atom_186")
+        );
+        judgeAndCheck(
+                question,
+                answers,
+                false,
+                false,
+                false
+                 , List.of("<ERROR [is_function_call_jumping_correct]>")
         );
     }
 
