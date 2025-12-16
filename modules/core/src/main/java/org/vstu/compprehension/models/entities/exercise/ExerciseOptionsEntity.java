@@ -24,6 +24,8 @@ public class ExerciseOptionsEntity {
     private boolean preferDecisionTreeBasedSupplementaryEnabled;
     @Builder.Default
     private int maxExpectedConcurrentStudents = 10;
+    private Integer generatorThreshold;
+    private Integer generatorAdditionalQuestionsToGenerate;
 
     @Data
     @AllArgsConstructor @NoArgsConstructor
