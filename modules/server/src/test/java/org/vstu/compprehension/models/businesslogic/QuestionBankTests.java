@@ -10,6 +10,7 @@ import org.springframework.transaction.annotation.Transactional;
 import org.vstu.compprehension.models.businesslogic.storage.QuestionBank;
 import org.vstu.compprehension.models.entities.QuestionMetadataEntity;
 import org.vstu.compprehension.models.repository.*;
+import org.vstu.compprehension.utils.transactions.TransactionScopeFactory;
 
 import java.util.stream.Collectors;
 
@@ -25,6 +26,8 @@ public class QuestionBankTests {
     private QuestionGenerationRequestRepository questionGenerationRequestRepository;
     @Autowired
     private QuestionMetadataSearchRequestRepository questionSearchRequestLogRepository;
+    @Autowired
+    private TransactionScopeFactory transactionScopeFactory;
 
     @Test
     public void isMatchAndFindTopRatedMetadataEqualityTest() {
@@ -32,7 +35,8 @@ public class QuestionBankTests {
                 questionMetadataRepository,
                 questionDataRepository,
                 questionGenerationRequestRepository,
-                questionSearchRequestLogRepository
+                questionSearchRequestLogRepository,
+                transactionScopeFactory
         );
 
         var generationRequests = IteratorUtils.toList(questionGenerationRequestRepository.findAll().iterator())

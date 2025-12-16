@@ -210,14 +210,20 @@ public class DataFlowDTDomain extends DecisionTreeReasoningDomain {
 
         List<QuestionMetadataEntity> foundQuestions = null;
         try {
-            int generatorThreshold = (int)(exerciseAttempt.getExercise().getOptions().getMaxExpectedConcurrentStudents() * 1.5);
-            foundQuestions = qMetaStorage.searchQuestions(questionRequest, 1, generatorThreshold).getQuestions();
+            var exerciseOptions = exerciseAttempt.getExercise().getOptions();
+            int generatorThreshold = exerciseOptions.getGeneratorThreshold() != null
+                    ? exerciseOptions.getGeneratorThreshold()
+                    : (int)(exerciseOptions.getMaxExpectedConcurrentStudents() * 1.5);
+            int generatorAdditionalQuestionsToGenerate = exerciseOptions.getGeneratorAdditionalQuestionsToGenerate() != null
+                    ? exerciseOptions.getGeneratorAdditionalQuestionsToGenerate()
+                    : 3;
+            foundQuestions = qMetaStorage.searchQuestions(questionRequest, 1, generatorThreshold, generatorAdditionalQuestionsToGenerate).getQuestions();
 
             // search again if nothing found with "TO_COMPLEX"
             SearchDirections lawsSearchDir = questionRequest.getLawsSearchDirection();
             if (foundQuestions.isEmpty() && lawsSearchDir == SearchDirections.TO_COMPLEX) {
                 questionRequest.setLawsSearchDirection(SearchDirections.TO_SIMPLE);
-                foundQuestions = qMetaStorage.searchQuestions(questionRequest, 1, generatorThreshold).getQuestions();
+                foundQuestions = qMetaStorage.searchQuestions(questionRequest, 1, generatorThreshold, generatorAdditionalQuestionsToGenerate).getQuestions();
             }
         } catch (Exception e) {
             // file storage was not configured properly...
@@ -230,7 +236,6 @@ public class DataFlowDTDomain extends DecisionTreeReasoningDomain {
         }
 
         var res = foundQuestions.getFirst();
-        log.info("Expression domain has prepared the question: {}", res.getName());
         return makeQuestion(res, exerciseAttempt, questionRequest.getTargetTags(), userLanguage);
     }
 

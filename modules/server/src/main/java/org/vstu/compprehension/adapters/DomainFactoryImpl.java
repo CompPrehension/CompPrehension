@@ -108,11 +108,13 @@ public class DomainFactoryImpl implements DomainFactory {
 
     }
 
+    @Override
     @NotNull
     public Set<String> getDomainIds() {
         return domainIdToClassMap.keySet();
     }
 
+    @Override
     public @NotNull Domain getDomain(@NotNull String domainId) {
         if (!domainIdToClassMap.containsKey(domainId) && !domainShortNameToClassMap.containsKey(domainId)) {
             throw new RuntimeException(String.format("Couldn't resolve domain with id %s", domainId));

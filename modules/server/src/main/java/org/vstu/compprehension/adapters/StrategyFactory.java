@@ -24,10 +24,12 @@ public class StrategyFactory implements AbstractStrategyFactory {
         }
     }
 
+    @Override
     public Set<String> getStrategyIds() {
         return strategyToClassMap.keySet();
     }
 
+    @Override
     public @NotNull AbstractStrategy getStrategy(@NotNull String strategyId) {
         if (!strategyToClassMap.containsKey(strategyId)) {
             throw new NoSuchBeanDefinitionException(String.format("Couldn't resolve strategy with id %s", strategyId));

@@ -1,10 +1,13 @@
 package org.vstu.compprehension.models.repository;
 
 import jakarta.persistence.EntityManager;
+import jakarta.persistence.TemporalType;
 import org.jetbrains.annotations.Nullable;
 import org.vstu.compprehension.models.businesslogic.QuestionBankSearchRequest;
 import org.vstu.compprehension.models.entities.QuestionMetadataEntity;
 
+import java.time.LocalDate;
+import java.util.Date;
 import java.util.List;
 
 public class QuestionMetadataComplexQueriesRepositoryImpl implements QuestionMetadataComplexQueriesRepository {
@@ -443,5 +446,26 @@ public class QuestionMetadataComplexQueriesRepositoryImpl implements QuestionMet
                 .getResultList();
         //noinspection unchecked
         return (List<QuestionMetadataEntity>)result;
+    }
+
+    @Override
+    public int deleteMetadataFromDate(LocalDate date) {
+        entityManager.createNativeQuery(
+                "update question " +
+                   "set metadata_id = NULL " +
+                   "where metadata_id IN (select id from questions_meta where created_at > :fromDate) or created_at > :fromDate")
+                .setParameter("fromDate", date)
+                .executeUpdate();
+
+        var deleteMetasResult = entityManager.createNativeQuery(
+                        "delete from questions_meta where created_at > :fromDate")
+                .setParameter("fromDate", date)
+                .executeUpdate();
+
+        entityManager.createNativeQuery(
+                        "delete from questions_data where id not IN (select question_data_id from questions_meta)")
+                .executeUpdate();
+        
+        return deleteMetasResult;
     }
 }
