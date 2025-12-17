@@ -304,15 +304,19 @@ public class CtrlFlowDTTest {
     public void ex_1_onefunc_while_11_t1() {
         var question = loadQuestion("debug_1_onefunc_while.py_1+1");
         var answers = List.of(
-            Pair.of(3, "atom_135"),
-            Pair.of(4, "atom_139"),
-            Pair.of(5, "atom_146"),  // false
-            Pair.of(7, "atom_164"),
-            Pair.of(8, "BEGIN_168"),
-            Pair.of(9, "BEGIN_171"), // (call)
+            Pair.of(3, "atom_136"),
+            Pair.of(4, "atom_140"),
+            Pair.of(5, "atom_147"),  // false
+            Pair.of(6, "atom_153"),
+            Pair.of(5, "atom_147"),
+            Pair.of(7, "atom_165"),
+            Pair.of(8, "BEGIN_169"),
+            Pair.of(9, "BEGIN_172"), // (call)
             Pair.of(0, "atom_107"),  // false
+            Pair.of(1, "atom_113"),
+            Pair.of(0, "atom_107"),
             Pair.of(2, "atom_124"),
-            Pair.of(10, "END_172")
+            Pair.of(10, "END_173")
         );
         judgeAndCheck(question, answers, true, true, true);
     }
@@ -321,7 +325,7 @@ public class CtrlFlowDTTest {
     public void ex_1_onefunc_while_11_t2() {
         var question = loadQuestion("debug_1_onefunc_while.py_1+1");
         var answers = List.of(
-            Pair.of(3, "atom_135"),
+            Pair.of(3, "atom_136"),
             Pair.of(4, "atom_139"),
             Pair.of(5, "atom_146"),  // false
             Pair.of(7, "atom_164"),
@@ -339,7 +343,7 @@ public class CtrlFlowDTTest {
     public void ex_1_onefunc_while_11_t3() {
         var question = loadQuestion("debug_1_onefunc_while.py_1+1");
         var answers = List.of(
-            Pair.of(3, "atom_135"),
+            Pair.of(3, "atom_136"),
             Pair.of(4, "atom_139"),
             Pair.of(5, "atom_146"),  // false
             Pair.of(6, "atom_152")  // ложный заход в цикл!
@@ -357,19 +361,19 @@ public class CtrlFlowDTTest {
     public void ex_1_onefunc_while_22_t1() {
         var question = loadQuestion("debug_1_onefunc_while.py_2+2");
         var answers = List.of(
-            Pair.of(3, "atom_135"),
-            Pair.of(4, "atom_139"),
-            Pair.of(5, "atom_146"),  // true
-            Pair.of(6, "atom_152"),
-            Pair.of(5, "atom_146"),  // false
-            Pair.of(7, "atom_164"),
-            Pair.of(8, "BEGIN_168"),
-            Pair.of(9, "BEGIN_171"), // (call)
+            Pair.of(3, "atom_136"),
+            Pair.of(4, "atom_140"),
+            Pair.of(5, "atom_147"),  // true
+            Pair.of(6, "atom_153"),
+            Pair.of(5, "atom_147"),  // false
+            Pair.of(7, "atom_165"),
+            Pair.of(8, "BEGIN_169"),
+            Pair.of(9, "BEGIN_172"), // (call)
             Pair.of(0, "atom_107"),  // true
             Pair.of(1, "atom_113"),
             Pair.of(0, "atom_107"),  // false
             Pair.of(2, "atom_124"),
-            Pair.of(10, "END_172")
+            Pair.of(10, "END_173")
         );
         judgeAndCheck(question, answers, true, true, true);
     }
@@ -378,7 +382,7 @@ public class CtrlFlowDTTest {
     public void ex_1_onefunc_while_22_t2() {
         var question = loadQuestion("debug_1_onefunc_while.py_2+2");
         var answers = List.of(
-            Pair.of(3, "atom_135"),
+            Pair.of(3, "atom_136"),
             Pair.of(4, "atom_139"),
             Pair.of(5, "atom_146"),  // true
             Pair.of(6, "atom_152"),
@@ -399,7 +403,7 @@ public class CtrlFlowDTTest {
     public void ex_1_onefunc_while_22_t3() {
         var question = loadQuestion("debug_1_onefunc_while.py_2+2");
         var answers = List.of(
-            Pair.of(3, "atom_135"),
+            Pair.of(3, "atom_136"),
             Pair.of(4, "atom_139"),
             Pair.of(5, "atom_146"),  // true
             Pair.of(6, "atom_152"),
@@ -420,7 +424,7 @@ public class CtrlFlowDTTest {
     public void ex_1_onefunc_while_22_t4() {
         var question = loadQuestion("debug_1_onefunc_while.py_2+2");
         var answers = List.of(
-                /* 1*/  Pair.of(3, "atom_135"),
+                /* 1*/  Pair.of(3, "atom_136"),
                 /* 2*/  Pair.of(4, "atom_139"),
                 /* 3*/  Pair.of(5, "atom_146"),  // true
                 /* 4*/  Pair.of(6, "atom_152"),
@@ -449,7 +453,7 @@ public class CtrlFlowDTTest {
     public void ex_1_onefunc_while_22_t5() {
         var question = loadQuestion("debug_1_onefunc_while.py_2+2");
         var answers = List.of(
-          /* 1*/  Pair.of(3, "atom_135"),
+          /* 1*/  Pair.of(3, "atom_136"),
           /* 2*/  Pair.of(4, "atom_139"),
           /* 3*/  Pair.of(5, "atom_146"),  // true
           /* 4*/  Pair.of(6, "atom_152"),
@@ -567,7 +571,7 @@ public class CtrlFlowDTTest {
 
     @Test
     public void ex_3_recursion_short_t1() {
-        var question = loadQuestion("debug_3_recursion_short.py");
+        var question = loadQuestion("debug_3_recursion.py_short");
         var answers = List.of(
             Pair.of(9, "atom_174"),
             Pair.of(10, "BEGIN_178"),
