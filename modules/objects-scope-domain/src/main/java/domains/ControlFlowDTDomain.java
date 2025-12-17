@@ -130,6 +130,14 @@ public class ControlFlowDTDomain extends DecisionTreeReasoningDomain {
                     ).findFirst().get();
         }
 
+        ObjectDef findStartOfProgram(DomainModel model) {
+            return model.getObjects()
+                    .stream()
+                    .filter(obj -> obj.getClassName().equals("TraceAct"))
+                    .filter(obj -> (Boolean) obj.getPropertyValue("is_known_correct", Map.of()))
+                    .findFirst().orElseThrow();
+        }
+
         @Override
         public void updateJudgeInterpretationResult(InterpretSentenceResult interpretationResult, DecisionTreeReasonerBackend.Output backendOutput) {
             var varName = interpretationResult.isAnswerCorrect ? "A" : "L0";
@@ -187,18 +195,24 @@ public class ControlFlowDTDomain extends DecisionTreeReasoningDomain {
 
         void updateModelState(ControlFlowDTDomain domain, DomainModel questionModel, ObjectDef L0, ObjectDef A) {
             ObjectDef STATE = questionModel.getVariables().get("STATE").getValueObject();
-
-            @Nullable ObjectDef pathL0A = domain.findPathInfo(questionModel,
-                    L0.getRelationshipLink("hasCFGNode").getObjects().getFirst(),
-                    A.getRelationshipLink("hasCFGNode").getObjects().getFirst()
-            ).orElse(null);
-
-            // Обновляем состояние прерывания, исходя из маршрута от L0 до A
-            if (pathL0A != null && pathL0A.getRelationshipLinks().stream().anyMatch(rel -> rel.getRelationshipName().equals("hasEffects"))) {
-                var intrptStart = pathL0A.getRelationshipLink("hasEffects")
+            ObjectDef traceActPtr = findStartOfProgram(questionModel);
+            ObjectDef prev;
+            while (true) {
+                if (traceActPtr.getName().equals(L0.getName())) {
+                    break;
+                }
+                prev = traceActPtr;
+                traceActPtr = traceActPtr.getRelationshipLink("directlyBeforeOf")
+                        .getObjects().getFirst();
+                @Nullable ObjectDef path = domain.findPathInfo(questionModel,
+                        prev.getRelationshipLink("hasCFGNode").getObjects().getFirst(),
+                        traceActPtr.getRelationshipLink("hasCFGNode").getObjects().getFirst()
+                ).orElse(null);
+                if (path == null || path.getRelationshipLinks().stream().noneMatch(r -> r.getRelationshipName().equals("hasEffects"))) continue;
+                var intrptStart = path.getRelationshipLink("hasEffects")
                         .getObjects().getFirst()
                         .getPropertyValue("interruption_start", Map.of());
-                var interptStop = pathL0A.getRelationshipLink("hasEffects")
+                var interptStop = path.getRelationshipLink("hasEffects")
                         .getObjects().getFirst()
                         .getPropertyValue("interruption_stop", Map.of());
                 var oldInterpt = STATE.getDefinedPropertyValues().get("interruption_state", Map.of());
@@ -214,18 +228,13 @@ public class ControlFlowDTDomain extends DecisionTreeReasoningDomain {
                     );
                 }
             }
-
             // Выставляем итоговые переменные
             questionModel.getVariables().add(new VariableDef("A", A.getName()));
             questionModel.getVariables().add(new VariableDef("L0", L0.getName()));
         }
 
         ObjectDef makeTrace(DomainModel questionModel, List<ResponseEntity> responses, boolean includeLast) {
-            ObjectDef firstTraceAct = questionModel.getObjects()
-                    .stream()
-                    .filter(obj -> obj.getClassName().equals("TraceAct"))
-                    .filter(obj -> (Boolean) obj.getPropertyValue("is_known_correct", Map.of()))
-                    .findFirst().orElseThrow();
+            ObjectDef firstTraceAct = findStartOfProgram(questionModel);
 
             ObjectDef currentTraceAct;
             int end = includeLast ? responses.size() : responses.size() - 1;
