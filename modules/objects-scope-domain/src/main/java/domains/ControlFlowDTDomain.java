@@ -175,8 +175,9 @@ public class ControlFlowDTDomain extends DecisionTreeReasoningDomain {
 
             // Строим трассу, попутно проверяя ее с теневой эталонной трассой
             ObjectDef currentTraceAct = makeTrace(questionModel, responses, false);
+            ObjectDef referenceA = currentTraceAct.getRelationshipLink("directlyBeforeOf").getObjects().getFirst();
 
-            ObjectDef A = makeA(questionModel, responses.getLast().getLeftAnswerObject().getDomainInfo());
+            ObjectDef A = makeA(questionModel, responses.getLast().getLeftAnswerObject().getDomainInfo(), referenceA);
             ObjectDef L0 = currentTraceAct;
 
             updateModelState(domain, questionModel, L0, A);
@@ -257,7 +258,7 @@ public class ControlFlowDTDomain extends DecisionTreeReasoningDomain {
             return currentTraceAct;
         }
 
-        ObjectDef makeA(DomainModel questionModel, String cfgNodeId) {
+        ObjectDef makeA(DomainModel questionModel, String cfgNodeId, @Nullable ObjectDef referenceTraceAct) {
             ObjectDef result = DomainBuilderUtils.newObject(questionModel, "trace_act_A", "TraceAct");
             ObjectDef cfgNode = questionModel.getObjects().stream()
                     .filter(obj -> obj.getClassName().equals("Node"))
@@ -266,8 +267,13 @@ public class ControlFlowDTDomain extends DecisionTreeReasoningDomain {
             ObjectDef metadata = cfgNode.getRelationshipLink("hasMetadata").getObjects().getFirst();
             EnumValueRef noValue = questionModel.getEnums().get("OptionalBoolValue").getValues().get("no_value").getReference();
             result.getDefinedPropertyValues().addOrReplace(new PropertyValueStatement<>(result, "is_known_correct", ParamsValues.getEMPTY(), false));
-            result.getDefinedPropertyValues().addOrReplace(new PropertyValueStatement<>(result, "condition_value", ParamsValues.getEMPTY(), noValue));
-
+            if (referenceTraceAct != null) {
+                result.getDefinedPropertyValues().addOrReplace(new PropertyValueStatement<>(result, "condition_value",
+                        ParamsValues.getEMPTY(), referenceTraceAct.getPropertyValue("condition_value", Map.of())
+                ));
+            } else {
+                result.getDefinedPropertyValues().addOrReplace(new PropertyValueStatement<>(result, "condition_value", ParamsValues.getEMPTY(), noValue));
+            }
             result.getRelationshipLinks().add(new RelationshipLinkStatement(result, "hasCFGNode", List.of(cfgNode.getName()), ParamsValues.getEMPTY()));
             result.getRelationshipLinks().add(new RelationshipLinkStatement(result, "hasActionSpec",
                     List.of(metadata.getRelationshipLink("hasAbstractAction").getObjects().getFirst().getName()),
@@ -544,7 +550,7 @@ public class ControlFlowDTDomain extends DecisionTreeReasoningDomain {
         CorrectAnswer correctAnswer = new CorrectAnswer();
         String cfgId = (String) nextAnswer.getRelationshipLink("hasCFGNode")
                 .getObjects().getFirst().getPropertyValue("id", Map.of());
-        ObjectDef A = treeInterface.makeA(questionModel, cfgId);
+        ObjectDef A = treeInterface.makeA(questionModel, cfgId, nextAnswer);
         treeInterface.updateModelState(this, questionModel, L0, A);
         var solveRes = Solver.solve(ControlFlowDTDomain.this.getDomainSolvingModels().getFirst().getDecisionTree(), questionModel);
         Explanation explanation = DecisionTreeReasonerBackend.collectExplanationsFromTrace(
@@ -652,7 +658,8 @@ public class ControlFlowDTDomain extends DecisionTreeReasoningDomain {
         var treeInterface = (DecisionTreeInterface) getBackendInterface();
         var responses = responsesForTrace(question.getQuestionData(), true);
         var lastTraceObj = treeInterface.makeTrace(questionModel, responses, false);
-        ObjectDef A = responses.isEmpty() ? null : treeInterface.makeA(questionModel, responses.getLast().getLeftAnswerObject().getDomainInfo());
+        var referenceA = lastTraceObj.getRelationshipLink("directlyBeforeOf").getObjects().getFirst();
+        ObjectDef A = responses.isEmpty() ? null : treeInterface.makeA(questionModel, responses.getLast().getLeftAnswerObject().getDomainInfo(), referenceA);
         List<ObjectDef> traceObjects = new ArrayList<>(questionModel.getObjects()
                 .stream()
                 .filter(obj -> obj.getClassName().equals("TraceAct")).toList());
