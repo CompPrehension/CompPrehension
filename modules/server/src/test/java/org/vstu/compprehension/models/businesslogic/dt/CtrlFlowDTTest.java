@@ -127,9 +127,7 @@ public class CtrlFlowDTTest {
         int i = 0;
         int last_i = answerObjectIds.size();
         for (var entry : answerObjectIds) {
-            AnswerObjectEntity answerObject = AnswerObjectEntity
-                    .builder().answerId(entry.getKey())
-                    .domainInfo(entry.getValue()).build();
+            AnswerObjectEntity answerObject = q.getAnswerObject(entry.getKey());  // Allow invalid node IDs in tests (these may change after rebuild);
             responses.add(ResponseEntity.builder().leftAnswerObject(answerObject).rightAnswerObject(answerObject).build());
             i++;
             boolean is_last = i == last_i;
@@ -564,6 +562,27 @@ public class CtrlFlowDTTest {
                 false,
                 false
                  , List.of("<ERROR [is_function_call_jumping_correct]>")
+        );
+    }
+
+    @Test
+    public void ex_3_recursion_short_t1() {
+        var question = loadQuestion("debug_3_recursion_short.py");
+        var answers = List.of(
+            Pair.of(9, "atom_174"),
+            Pair.of(10, "BEGIN_178"),
+            Pair.of(11, "BEGIN_181"),
+            Pair.of(0, "atom_107"),
+            Pair.of(1, "atom_113"),
+            Pair.of(12, "END_182")
+        );
+        judgeAndCheck(
+                question,
+                answers,
+                true,
+                true,
+                true
+                , List.of("<CORRECT [selected_transition_without_any_constraint]>")
         );
     }
 
