@@ -7,13 +7,13 @@ tree CtrlFlow(L0: TraceAct, A: TraceAct, STATE: State) {
             ask (A->hasCFGNode.kind == NodeKind:END) out true else {
                 conclude : error [
                     skill = "compound_constructs_present";
-                    RU.explanation="Во время прерывания происходит только завершение составных действий; ${A} не может начать выполняться.";
+                    RU.explanation="Когда происходит ${STATE.interruption_state},  происходит только завершение составных действий; ${A} не может начать выполняться.";
                 ];
             };
             ask (forAny TraceAct begin [ true ] { (A->hasCFGNode == $begin->hasCFGNode->hasMetadata->hasCorrespondingEnd and $begin.is_known_correct) }) out true else {
                 conclude : error [
                     skill = "is_in_compound_construct_ending";
-                    RU.explanation="Во время прерывания происходит досрочное завершение уже начавшихся действий; ${A} сейчас не выполняется.";
+                    RU.explanation="Когда происходит ${STATE.interruption_state}, досрочно завершаются уже начавшиеся действия; ${A} сейчас не выполняется.";
                 ];
             };
 

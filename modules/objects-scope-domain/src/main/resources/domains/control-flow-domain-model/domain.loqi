@@ -35,12 +35,12 @@ enum InterruptionType {
 	
 	],
 	continue [
-		RU.localizedName = "продолжение цикла" ;
+		RU.localizedName = "прерывание итерации" ;
 		EN.localizedName = "continue" ;
 	
 	],
 	return [
-		RU.localizedName = "возврат" ;
+		RU.localizedName = "возврат из функции" ;
 		EN.localizedName = "return" ;
 	
 	],
@@ -55,8 +55,8 @@ enum InterruptionType {
 
 	],
 	no_interruption [
-		RU.localizedName = "нет прерывания" ;
-		EN.localizedName = "none" ;
+		RU.localizedName = "обычное выполнение" ;
+		EN.localizedName = "usual flow" ;
 
 	],
 	generic_interruption [
