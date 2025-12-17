@@ -573,12 +573,12 @@ public class CtrlFlowDTTest {
     public void ex_3_recursion_short_t1() {
         var question = loadQuestion("debug_3_recursion.py_short");
         var answers = List.of(
-            Pair.of(9, "atom_174"),
-            Pair.of(10, "BEGIN_178"),
-            Pair.of(11, "BEGIN_181"),
+            Pair.of(9, "atom_199"),
+            Pair.of(10, "BEGIN_203"),
+            Pair.of(11, "BEGIN_206"),
             Pair.of(0, "atom_107"),
             Pair.of(1, "atom_113"),
-            Pair.of(12, "END_182")
+            Pair.of(12, "END_207")
         );
         judgeAndCheck(
                 question,
