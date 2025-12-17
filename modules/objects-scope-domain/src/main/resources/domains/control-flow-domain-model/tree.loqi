@@ -13,7 +13,7 @@ tree CtrlFlow(L0: TraceAct, A: TraceAct, STATE: State) {
             ask (forAny TraceAct begin [ true ] { (A->hasCFGNode == $begin->hasCFGNode->hasMetadata->hasCorrespondingEnd and $begin.is_known_correct) }) out true else {
                 conclude : error [
                     skill = "is_in_compound_construct_ending";
-                    RU.explanation="Когда происходит ${STATE.interruption_state}, досрочно завершаются уже начавшиеся действия; ${A} сейчас не выполняется.";
+                    RU.explanation="Когда происходит ${STATE.interruption_state}, досрочно завершается то, что уже началось. ${A} сейчас не выполняется.";
                 ];
             };
 
@@ -28,7 +28,7 @@ tree CtrlFlow(L0: TraceAct, A: TraceAct, STATE: State) {
             	// Найдено непрозрачное действие.
                 conclude : error [
                     skill="is_in_nested_construct";
-                    RU.explanation="Во время прерывания происходит завершение начавшихся действий; прежде чем завершать ${A}, нужно сначала завершить ${Missing}.";
+                    RU.explanation="Когда происходит ${STATE.interruption_state}, досрочно завершается то, что уже началось. Прежде чем завершать ${A}, нужно сначала завершить ${Missing}.";
                 ];
             };
 
@@ -67,10 +67,18 @@ tree CtrlFlow(L0: TraceAct, A: TraceAct, STATE: State) {
 	        	];
 	        };
 
+        	ask (L0->hasCFGNode == A->hasCFGNode) out false else {
+	        	// Действие выполнено два раза подряд.
+        		conclude: error [
+        		    skill="repeat_twice";
+        		    RU.explanation="${A}: уже выполнилось и не должно выполняться два раза подряд.";
+        		];
+	        };
+
         	// Действие А нельзя выполнять сейчас, так как находятся в иной области кода, чем L0
             conclude: error [
                 skill="two_execution_points_has_path";
-                RU.explanation="Действие ${A} нельзя выполнять сейчас, т.к. находится слишком далеко от текущей позиции --- ${L0}.";
+                RU.explanation="${A} не может выполняться сейчас, т.к. по логике выполнения программы находится слишком далеко от текущей позиции ${L0}.";
             ];
         };
 
@@ -81,7 +89,7 @@ tree CtrlFlow(L0: TraceAct, A: TraceAct, STATE: State) {
         		// условие E не найдено.
         		conclude : error [
         	        skill="DEBUG: no_condition_evaluation_found_in_path";
-        	        RU.explanation="Прежде чем ${A} сможет выполниться, как минимум, должно было начаться предшествующее условие.";
+        	        RU.explanation="Прежде чем ${A} сможет выполниться, должны выполниться предшествующие действия.";
         	    ];
 
             };
@@ -104,7 +112,7 @@ tree CtrlFlow(L0: TraceAct, A: TraceAct, STATE: State) {
     	// сначала должно быть произойти <M>
     	conclude : error [
             skill="many_actions_in_require_selection";
-            RU.explanation="Действия выполняются последовательно; прежде чем выполнять ${A}, сначала должно произойти ${M.kind} ${M}.";
+            RU.explanation="Действия выполняются последовательно; прежде чем ${A} сможет выполниться, должно произойти: ${M.kind} ${M}.";
         ];
     };
 
@@ -122,11 +130,11 @@ tree CtrlFlow(L0: TraceAct, A: TraceAct, STATE: State) {
             cycle and (forAll Edge ET [P->from_=>hasEdges($ET)] {$ET->hasConstraints.interruption_mode == InterruptionType:any or $ET->hasConstraints.interruption_mode == STATE.interruption_state}) with Edge et {
                 null -> {conclude : error [
                     skill="interruption_state_matches_constraint";
-                    RU.explanation="При текущем режиме прерывания не может выполниться действие ${A}.";
+                    RU.explanation="Когда происходит ${STATE.interruption_state}, ${A} не может выполняться.";
                 ];}
                 false -> {conclude : error [
                     skill="interruption_state_matches_constraint";
-                    RU.explanation="При текущем режиме прерывания не может выполниться действие ${A}.";
+                    RU.explanation="Когда происходит ${STATE.interruption_state}, ${A} не может выполняться.";
                 ];}
                 body -> {
 
@@ -141,7 +149,7 @@ tree CtrlFlow(L0: TraceAct, A: TraceAct, STATE: State) {
 
                 	conclude : error [
                     skill="interruption_state_matches_constraint";
-                    RU.explanation="При текущем режиме прерывания должно выполниться действие ${ET->hasDestination}, но не ${A}";
+                    RU.explanation="Когда происходит ${STATE.interruption_state}, должно выполниться действие ${ET->hasDestination}, но не ${A}";
 	                ];
 	            }
             };
@@ -170,7 +178,7 @@ tree CtrlFlow(L0: TraceAct, A: TraceAct, STATE: State) {
             };
             conclude : error [
                 skill="condition_value_allows_transition";
-                RU.explanation="При текущем значении условия должно выполниться действие ${ET->hasDestination}, но не ${A}.";
+                RU.explanation="Когда условие ${L0} равно ${L0.condition_value}, должно выполняться действие ${ET->hasDestination}, но не ${A}.";
             ];
         };
         // В правильный ли вызов функции вернулись? (CFG не даёт нам информации об этом, так как считает, что возврат из функции в любой из её вызовов допустИм.)
@@ -194,7 +202,7 @@ tree CtrlFlow(L0: TraceAct, A: TraceAct, STATE: State) {
             ask (ExpectedCallAct->hasASTNode.ast_node == "function_call" and ExpectedCallAct->hasCFGNode.kind == NodeKind:END) out true else {
             	conclude : error [
             	    skill="is_function_call_ended_at_time";
-            	    RU.explanation="Функция не может завершиться сейчас; Вместо ${A}, нужно сначала завершить ${ExpectedCallAct->hasCFGNode}.";
+            	    RU.explanation="Функция не может завершиться сейчас. Вместо ${A} нужно завершить ${ExpectedCallAct->hasCFGNode}.";
             	];
             };
             ask (A->hasASTNode == ExpectedCallAct->hasASTNode)
@@ -207,7 +215,7 @@ tree CtrlFlow(L0: TraceAct, A: TraceAct, STATE: State) {
             };
             conclude : error [
                 skill="is_function_call_jumping_correct";
-                RU.explanation="При завершении вызовов сначала завершаются внутренние вызовы согласно стеку вызовов (в обратном порядке); Вместо ${A}, нужно сначала завершить ${ExpectedCallAct}.";
+                RU.explanation="При завершении вызовов сначала завершаются внутренние вызовы согласно стеку вызовов (в обратном порядке). Вместо ${A} нужно завершить ${ExpectedCallAct}.";
             ];
         };
     };

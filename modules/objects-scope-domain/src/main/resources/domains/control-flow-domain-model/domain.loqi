@@ -7,11 +7,11 @@
 
 enum OptionalBoolValue {
 	`true` [
-		RU.localizedName = "true" ;
+		RU.localizedName = "истина" ;
 		EN.localizedName = "true" ;
 	],
 	`false` [
-		RU.localizedName = "false" ;
+		RU.localizedName = "ложь" ;
 		EN.localizedName = "false" ;
 	],
 	any [
@@ -35,7 +35,7 @@ enum InterruptionType {
 	
 	],
 	continue [
-		RU.localizedName = "прерывание итерации" ;
+		RU.localizedName = "прерывание итерации цикла" ;
 		EN.localizedName = "continue" ;
 	
 	],
@@ -159,8 +159,8 @@ enum NodeKind {
 		EN.localizedName = "end" ;
 	],
 	atom [
-		RU.localizedName = "атомарная инструкция" ;
-		EN.localizedName = "atom statement" ;
+		RU.localizedName = "" ;
+		EN.localizedName = "atom" ;
 	],
 	any [
 		RU.localizedName = "любое" ;
