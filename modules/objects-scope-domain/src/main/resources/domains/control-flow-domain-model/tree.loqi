@@ -43,10 +43,30 @@ tree CtrlFlow(L0: TraceAct, A: TraceAct, STATE: State) {
 
     	// Существует ли какой угодно путь от L0 до A ?
         var P2 : PathInfo = (find PathInfo p { $p->from_ == L0->hasCFGNode and $p->to_ == A->hasCFGNode}) out true else {
+        	// Поищем обратный путь (когда А в недалёком прошлом).
+        	// Существует ли какой угодно путь от A до L0 ?
+	        var P4 : PathInfo = (find PathInfo p { $p->to_ == L0->hasCFGNode and $p->from_ == A->hasCFGNode}) out false else {
+
+	        	ask (forAny TraceAct prev [$prev.is_known_correct == true] {$prev->hasCFGNode == A->hasCFGNode}) out false else {
+		        	// Действие выполнено в трассе, т.е. имеет акт.
+	        		conclude: error [
+	        		    skill="refer_execution_history";
+	        		    RU.explanation="Действие ${A} уже выполнилось и не должно выполняться повторно.";
+	        		];
+		        };
+
+	        	// Действие не было выполнено в трассе, т.е. не имеет акта.
+	        	conclude: error [
+	        	    skill="refer_not_executed";
+	        	    RU.explanation="В программе всё выполняется одно за другим. После ${L0} действие ${A} уже не может выполниться.";
+	        	    // В программе всё выполняется в поступательном порядке.
+	        	];
+	        };
+
         	// Действие А нельзя выполнять сейчас, так как находятся в иной области кода, чем L0
             conclude: error [
                 skill="two_execution_points_has_path";
-                RU.explanation="Действие ${A} нельзя выполнять сейчас, т.к. находится в иной области кода, чем ${L0}.";
+                RU.explanation="Действие ${A} нельзя выполнять сейчас, т.к. находится слишком далеко от текущей позиции --- ${L0}.";
             ];
         };
 
