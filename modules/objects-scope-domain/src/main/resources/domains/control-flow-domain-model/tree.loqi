@@ -17,7 +17,11 @@ tree CtrlFlow(L0: TraceAct, A: TraceAct, STATE: State) {
                 ];
             };
 
-            var P_l0_a : PathInfo = find PathInfo p { $p->from_ == L0->hasCFGNode and $p->to_ == A->hasCFGNode };
+            var P_l0_a : PathInfo = find PathInfo p { $p->from_ == L0->hasCFGNode and $p->to_ == A->hasCFGNode } out true else {
+            	conclude : error [
+                    skill = "DEBUG: too far within interruption.";
+                ];
+            };
 
             // Найти непрозрачное действие на пути
             var Missing : Node = find Node m { P_l0_a=>hasFirstMiddleAction($m) } out false else {
@@ -72,7 +76,16 @@ tree CtrlFlow(L0: TraceAct, A: TraceAct, STATE: State) {
 
         // Ищем непрозрачные УСЛОВИЯ
         ask (P2.conditions > 0) out false else {
-            var E : Node = find Node m { P2=>hasFirstMiddleCondition($m) and $m.kind != NodeKind:BEGIN };  // <- Поддержка составных и атомарных условий.
+            var E : Node = find Node m { P2=>hasFirstMiddleCondition($m) and $m.kind != NodeKind:BEGIN }  // <- Поддержка составных и атомарных условий.
+            out true else {
+        		// условие E не найдено.
+        		conclude : error [
+        	        skill="DEBUG: no_condition_evaluation_found_in_path";
+        	        RU.explanation="Прежде чем ${A} сможет выполниться, как минимум, должно было начаться предшествующее условие.";
+        	    ];
+
+            };
+
         	// Должно быть вычислено условие E
         	conclude : error [
                 skill="are_condition_evaluation_required_in_path";
@@ -81,14 +94,13 @@ tree CtrlFlow(L0: TraceAct, A: TraceAct, STATE: State) {
         };
 
         // Нет непрозрачных УСЛОВИЙ, ищем непрозрачные действия
-        var M : Node = find Node m { P2=>hasFirstMiddleAction($m) };
-        // May be useful ??
-        // out true else {
-        //     conclude : correct [
-        //         skill="many_actions_in_require_selection";
-        //         RU_explanation="Нет мешающих действий на пути от ${L0} к ${A}";
-        //     ];
-        // };
+        var M : Node = find Node m { P2=>hasFirstMiddleAction($m) } out true else {
+       	    // May be useful ??
+            conclude : correct [
+                skill="DEBUG: many_actions_in_require_selection";
+                RU_explanation="Нет мешающих действий на пути от ${L0} к ${A}";
+            ];
+        };
     	// сначала должно быть произойти <M>
     	conclude : error [
             skill="many_actions_in_require_selection";
