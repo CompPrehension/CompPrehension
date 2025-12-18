@@ -388,6 +388,17 @@ class State {
 }
 
 
+class RuntimeInfo {
+	obj prop function_name: string ;
+	obj prop function_args: string ;    // JSON-строка с аргументами функции
+	obj prop return_value: string ;     // Строковое представление возвращаемого значения
+	obj prop print_outputs: string ;    // JSON-строка со списком выводов print
+} [
+	RU.localizedName = "информация о выполнении" ;
+	EN.localizedName = "runtime info" ;
+]
+
+
 class TraceAct {
 	obj prop is_known_correct: bool ;
 	obj prop condition_value: OptionalBoolValue ; // используем
@@ -396,6 +407,7 @@ class TraceAct {
 	rel hasActionSpec(ActionSpec) : {* -> 1};
 	rel hasASTNode(ASTNodeWrapper) : {* -> 1} ;
 	rel hasActAsCorrespondingEnd(TraceAct) : {1 -> *} ;
+	rel hasRuntimeInfo(RuntimeInfo) : {* -> 1} ;  // Информация о runtime значениях (аргументы, возврат, print)
 	
 	rel directlyBeforeOf(TraceAct) : linear ;
 	rel directlyAfterOf(TraceAct) : opposite to directlyBeforeOf ;

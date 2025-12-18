@@ -31,6 +31,9 @@ import org.vstu.compprehension.models.entities.EnumData.SearchDirections;
 import org.vstu.compprehension.utils.HyperText;
 import org.vstu.compprehension.utils.RandomProvider;
 
+import com.fasterxml.jackson.databind.JsonNode;
+import com.fasterxml.jackson.databind.ObjectMapper;
+
 import java.io.StringReader;
 import java.util.*;
 import java.util.stream.Collectors;
@@ -642,6 +645,65 @@ public class ControlFlowDTDomain extends DecisionTreeReasoningDomain {
         return "<span class=\"%s\">%s</span>".formatted(style, text);
     }
 
+    private static final ObjectMapper jsonMapper = new ObjectMapper();
+
+    /**
+     * Форматирует информацию RuntimeInfo для отображения в трассе.
+     * @param runtimeInfo объект RuntimeInfo из модели
+     * @return отформатированная строка или пустая строка, если нет данных
+     */
+    private String formatRuntimeInfo(ObjectDef runtimeInfo) {
+        if (runtimeInfo == null) return "";
+
+        StringBuilder sb = new StringBuilder();
+        String funcName = (String) runtimeInfo.getPropertyValue("function_name", Map.of());
+        String funcArgs = (String) runtimeInfo.getPropertyValue("function_args", Map.of());
+        String returnValue = (String) runtimeInfo.getPropertyValue("return_value", Map.of());
+        String printOutputs = (String) runtimeInfo.getPropertyValue("print_outputs", Map.of());
+
+        // Формат вызова: fact(5)
+        if (funcName != null && !funcName.isEmpty() && funcArgs != null && !funcArgs.isEmpty()) {
+            sb.append(funcName).append("(");
+            // Парсим JSON {"n": 5} -> выводим значения: 5
+            try {
+                JsonNode json = jsonMapper.readTree(funcArgs);
+                List<String> values = new ArrayList<>();
+                json.fields().forEachRemaining(entry -> {
+                    JsonNode val = entry.getValue();
+                    values.add(val.isTextual() ? val.asText() : val.toString());
+                });
+                sb.append(String.join(", ", values));
+            } catch (Exception e) {
+                sb.append(funcArgs);
+            }
+            sb.append(")");
+        }
+
+        // Формат возврата: -> 120
+        if (returnValue != null && !returnValue.isEmpty()) {
+            if (sb.length() > 0) sb.append(" ");
+            sb.append("-> ").append(returnValue);
+        }
+
+        // Формат print: ["fact(5) = 120"] -> print: fact(5) = 120
+        if (printOutputs != null && !printOutputs.isEmpty()) {
+            try {
+                JsonNode arr = jsonMapper.readTree(printOutputs);
+                if (arr.isArray()) {
+                    for (JsonNode el : arr) {
+                        if (sb.length() > 0) sb.append("; ");
+                        sb.append("print: ").append(el.asText());
+                    }
+                }
+            } catch (Exception e) {
+                if (sb.length() > 0) sb.append("; ");
+                sb.append(printOutputs);
+            }
+        }
+
+        return sb.toString();
+    }
+
     protected List<ResponseEntity> responsesForTrace(QuestionEntity q, boolean allowLastIncorrect) {
 
         List<ResponseEntity> responses = new ArrayList<>();
@@ -762,6 +824,19 @@ public class ControlFlowDTDomain extends DecisionTreeReasoningDomain {
                     }
                 }
 
+                // Извлечение RuntimeInfo
+                String runtimeInfoStr = "";
+                var runtimeInfoLinks = object.getRelationshipLinks().stream()
+                        .filter(x -> x.getRelationship().getName().equals("hasRuntimeInfo"))
+                        .findFirst();
+                if (runtimeInfoLinks.isPresent() && !runtimeInfoLinks.get().getObjects().isEmpty()) {
+                    ObjectDef runtimeInfo = runtimeInfoLinks.get().getObjects().getFirst();
+                    runtimeInfoStr = formatRuntimeInfo(runtimeInfo);
+                    if (!runtimeInfoStr.isEmpty()) {
+                        runtimeInfoStr = " -- " + htmlStyleFormat(runtimeInfoStr, "runtime-info");
+                    }
+                }
+
                 String nthTime = htmlStyleFormat(formatNthTime(n, lang), "number") + " " + getMessage("trace.template.time_text", lang);
                 String definition = (String) object.getMetadata().get(lang.toLocaleString().toUpperCase(), "localizedName");
                 var substitutions = Map.of(
@@ -770,7 +845,7 @@ public class ControlFlowDTDomain extends DecisionTreeReasoningDomain {
                         "nth_time", nthTime,
                         "condition", condition
                 );
-                var traceElementText = replaceInString(mainString, substitutions);
+                var traceElementText = replaceInString(mainString, substitutions) + runtimeInfoStr;
                 if (!(Boolean) object.getPropertyValue("is_known_correct", Map.of())
                         && !responses.getLast().getInteraction().getViolations().isEmpty()
                 ) {
