@@ -590,4 +590,25 @@ public class CtrlFlowDTTest {
         );
     }
 
+    @Test
+    public void ex_9_expr_class_t1() {
+        var question = loadQuestion("debug_9_expr_class.py");
+        var answers = List.of(
+            Pair.of(15, "atom_211"),
+            Pair.of(16, "BEGIN_215"),
+            Pair.of(17, "BEGIN_218"),
+            Pair.of(0, "atom_107"),
+            Pair.of(1, "atom_113"),
+            Pair.of(18, "END_219")
+        );
+        judgeAndCheck(
+                question,
+                answers,
+                true,
+                true,
+                true
+//                , List.of("<CORRECT [selected_transition_without_any_constraint]>")
+        );
+    }
+
 }

@@ -596,7 +596,7 @@ public class ControlFlowDTDomain extends DecisionTreeReasoningDomain {
                 solveRes.trace(), questionModel,
                 this, deniedSkills, lang
         );
-        AnswerObjectEntity answer = q.getAnswerObjects().stream().filter(ans -> ans.getDomainInfo().equals(cfgId)).findFirst().get();
+        AnswerObjectEntity answer = q.getAnswerObjects().stream().filter(ans -> ans.getDomainInfo().equals(cfgId)).findFirst().orElse(null);
         correctAnswer.answers = List.of(new CorrectAnswer.Response(answer, answer));
         correctAnswer.question = q.getQuestionData();
         correctAnswer.lawName = null;

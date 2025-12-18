@@ -27,8 +27,8 @@ tree CtrlFlow(L0: TraceAct, A: TraceAct, STATE: State) {
             // };
             // TODO: может поменять на or??
             cycle or (forAll PathInfo p [$p->hasConstraints.interruption_mode != InterruptionType:no_interruption] { $p->from_ == L0->hasCFGNode and $p->to_ == A->hasCFGNode  }) with PathInfo P_l0_a {
-                null -> {conclude : null [
-                    // skill="interruption_state_matches_constraint";
+                null -> {conclude : correct [
+                    skill="interruption_state_matches_constraint";  // Any false negatives?..
                     // RU.explanation="Когда происходит ${STATE.interruption_state}, ${A} не может выполняться.";
                 ];}
                 false -> {conclude : error [
@@ -58,13 +58,19 @@ tree CtrlFlow(L0: TraceAct, A: TraceAct, STATE: State) {
     // Есть ли прямой путь без непрозрачных действий ?
     // `opaque_actions == 1` : путь оканчивается на непрозрачное действие, в середине таких нет.
     // (Можно ещё проверить is_direct == true.)
-    var P : PathInfo = (find PathInfo p { $p->from_ == L0->hasCFGNode and $p->to_ == A->hasCFGNode and $p.opaque_actions == 1 }) out true else {
+    var P : PathInfo = (find PathInfo p {
+    	$p->from_ == L0->hasCFGNode
+    	and $p->to_ == A->hasCFGNode
+    	and $p.opaque_actions == 1
+    	// Both: no_interruption or P: any
+    	and (($p->hasConstraints.interruption_mode == InterruptionType:any) or ($p->hasConstraints.interruption_mode != InterruptionType:no_interruption) == (STATE.interruption_state != InterruptionType:no_interruption))
+	}) out true else {
 
     	// Существует ли какой угодно путь от L0 до A ?
-        var P2 : PathInfo = (find PathInfo p { $p->from_ == L0->hasCFGNode and $p->to_ == A->hasCFGNode}) out true else {
+        var P2 : PathInfo = (find PathInfo p2 { $p2->from_ == L0->hasCFGNode and $p2->to_ == A->hasCFGNode}) out true else {
         	// Поищем обратный путь (когда А в недалёком прошлом).
         	// Существует ли какой угодно путь от A до L0 ?
-	        var P4 : PathInfo = (find PathInfo p { $p->to_ == L0->hasCFGNode and $p->from_ == A->hasCFGNode}) out false else {
+	        var P4 : PathInfo = (find PathInfo p4 { $p4->to_ == L0->hasCFGNode and $p4->from_ == A->hasCFGNode}) out false else {
 
 	        	ask (forAny TraceAct prev [$prev.is_known_correct == true] {$prev->hasCFGNode == A->hasCFGNode}) out false else {
 		        	// Действие выполнено в трассе, т.е. имеет акт.
