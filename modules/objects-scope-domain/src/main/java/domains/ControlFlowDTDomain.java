@@ -176,16 +176,20 @@ public class ControlFlowDTDomain extends DecisionTreeReasoningDomain {
 
         @Override
         public void updateJudgeInterpretationResult(InterpretSentenceResult interpretationResult, DecisionTreeReasonerBackend.Output backendOutput) {
-            var varName = interpretationResult.isAnswerCorrect ? "A" : "L0";
-            ObjectDef lastCorrectTraceAct = backendOutput.situation().getDecisionTreeVariables().get(varName)
+            ObjectDef L0TraceAct = backendOutput.situation().getDecisionTreeVariables().get("L0")
                     .findIn(backendOutput.situation().getDomainModel());
+
+            // Если ответ правильный, берём следующий за L0 элемент трассы (идентичен A по позиции, но имеет связи трассы)
+            ObjectDef traceActForCount = interpretationResult.isAnswerCorrect
+                    ? L0TraceAct.getRelationshipLink("directlyBeforeOf").getObjects().getFirst()
+                    : L0TraceAct;
 
             interpretationResult.CountCorrectOptions = 1;
             int finishButtonEnabled = 1; // Note: set 0 if using explicit "Finish the problem" button.
 
             interpretationResult.IterationsLeft = calculateInteractionsLeft(
                     backendOutput.situation().getDomainModel(),
-                    lastCorrectTraceAct) - finishButtonEnabled;
+                    traceActForCount) - finishButtonEnabled;
 
             if (interpretationResult.IterationsLeft == 0) {
                 // Достигли полного завершения задачи.
