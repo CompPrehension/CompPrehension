@@ -138,29 +138,54 @@ public class ControlFlowDTDomain extends DecisionTreeReasoningDomain {
                     .findFirst().orElseThrow();
         }
 
+        int calculateInteractionsLeftByTrace(ObjectDef currentTraceAct) {
+            int count = 0;
+            ObjectDef act = currentTraceAct;
+            while (act.getRelationshipLinks().stream()
+                    .anyMatch(rel -> rel.getRelationshipName().equals("directlyBeforeOf"))) {
+                act = act.getRelationshipLink("directlyBeforeOf").getObjects().getFirst();
+                count++;
+            }
+            return count;
+        }
+
+        int calculateInteractionsLeftByPath(DomainModel model, ObjectDef lastCorrectTraceAct) {
+            ObjectDef lastCorrectNode = lastCorrectTraceAct.getRelationshipLink("hasCFGNode").getObjects().getFirst();
+            ObjectDef endOfProgram = findEndOfProgram(model);
+
+            var fromCorrect_toEnd = model.getObjects().stream()
+                    .filter(obj -> obj.getClassName().equals("PathInfo"))
+                    .filter(path ->
+                            path.getRelationshipLink("from_").getObjects().getFirst().equals(lastCorrectNode) &&
+                                    path.getRelationshipLink("to_").getObjects().getFirst().equals(endOfProgram))
+                    .max(Comparator.comparingInt(pi -> (Integer) pi.getPropertyValue("opaque_actions", Map.of())));
+
+            if (fromCorrect_toEnd.isPresent()) {
+                return (Integer) fromCorrect_toEnd.get().getPropertyValue("opaque_actions", Map.of());
+            }
+            return 5; // fallback
+        }
+
+        int calculateInteractionsLeft(DomainModel model, ObjectDef lastCorrectTraceAct) {
+            // По умолчанию: простой подсчёт по цепочке directlyBeforeOf
+            return calculateInteractionsLeftByTrace(lastCorrectTraceAct);
+
+            // Альтернатива (закомментировать):
+            // return calculateInteractionsLeftByPath(model, lastCorrectTraceAct);
+        }
+
         @Override
         public void updateJudgeInterpretationResult(InterpretSentenceResult interpretationResult, DecisionTreeReasonerBackend.Output backendOutput) {
             var varName = interpretationResult.isAnswerCorrect ? "A" : "L0";
-            ObjectDef last_correct_node = backendOutput.situation().getDecisionTreeVariables().get(varName)
-                    .findIn(backendOutput.situation().getDomainModel())
-                    .getRelationshipLink("hasCFGNode").getObjects().getFirst();
-            ObjectDef endOfProgram = findEndOfProgram(backendOutput.situation().getDomainModel());
+            ObjectDef lastCorrectTraceAct = backendOutput.situation().getDecisionTreeVariables().get(varName)
+                    .findIn(backendOutput.situation().getDomainModel());
 
             interpretationResult.CountCorrectOptions = 1;
-            int finishButtonEnabled = 1; // Note: set 0 if using explicit "Nothing more can run" / "Finish the problem" button.
-            // Находим самый длинный путь
-            var fromCorrect_toEnd = backendOutput.situation().getDomainModel()
-                    .getObjects().stream().filter(obj -> obj.getClassName().equals("PathInfo")).filter(
-                            path -> path.getRelationshipLink("from_").getObjects().getFirst().equals(last_correct_node) &&
-                                    path.getRelationshipLink("to_").getObjects().getFirst().equals(endOfProgram)
-                            // Находим самый длинный путь
-                    ).max(Comparator.comparingInt((pi) -> (Integer) pi.getPropertyValue("opaque_actions", Map.of())));
-            if (fromCorrect_toEnd.isPresent()) {
-                interpretationResult.IterationsLeft = (Integer) fromCorrect_toEnd.orElseThrow()
-                        .getPropertyValue("opaque_actions", Map.of()) - finishButtonEnabled;
-            } else {
-                interpretationResult.IterationsLeft = 5; //TODO: это очень плохо
-            }
+            int finishButtonEnabled = 1; // Note: set 0 if using explicit "Finish the problem" button.
+
+            interpretationResult.IterationsLeft = calculateInteractionsLeft(
+                    backendOutput.situation().getDomainModel(),
+                    lastCorrectTraceAct) - finishButtonEnabled;
 
             if (interpretationResult.IterationsLeft == 0) {
                 // Достигли полного завершения задачи.
