@@ -499,6 +499,7 @@ public class ControlFlowDTDomain extends DecisionTreeReasoningDomain {
         var result = metadata.getQuestionData().getData().toQuestion(this, metadata);
         result.getQuestionData().setQuestionText(getMessage("question_prompt", userLang)
                 .concat(result.getQuestionData().getQuestionText()));
+        result.getQuestionData().setExerciseAttempt(exerciseAttemptEntity);
         return result;
     }
 
