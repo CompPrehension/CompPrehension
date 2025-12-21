@@ -160,6 +160,7 @@ ask (STATE.interruption_state != InterruptionType:no_interruption) {
         ask (forAny TraceAct pa {
                 L0->hasCFGNode == $pa->hasCFGNode and
                 $pa.is_known_correct == false and
+                (forAny TraceAct cb [ true ] {$pa=>hasActAsCorrespondingEnd($cb)}) and  // relation exists
                 $pa->hasActAsCorrespondingEnd.is_known_correct == true
             }) out true else {
             conclude : error [
