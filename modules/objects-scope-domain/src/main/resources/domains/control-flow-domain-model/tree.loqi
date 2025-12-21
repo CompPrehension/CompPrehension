@@ -1,56 +1,53 @@
 tree CtrlFlow(L0: TraceAct, A: TraceAct, STATE: State) {
 
     // Проверка прерывания.
+    // Есть ли сейчас незавершённое прерывание ?
     ask (STATE.interruption_state != InterruptionType:no_interruption) {
-        false -> out;
+        false -> out;  // (нет прерывания)
         true -> {
+		    // Есть незавершённое прерывание.
+
             ask (A->hasCFGNode.kind == NodeKind:END) out true else {
                 conclude : error [
                     skill = "compound_constructs_present";
                     RU.explanation="Когда происходит ${STATE.interruption_state},  происходит только завершение составных действий; ${A} не может начать выполняться.";
                 ];
             };
-
-            // Note: hasCorrespondingEnd опционален! (отсутствует у атомов).
-            ask (forAny TraceAct begin [ true ] { ($begin->hasCFGNode->hasMetadata=>hasCorrespondingEnd(A->hasCFGNode) and $begin.is_known_correct) }) out true else {
+            ask (forAny TraceAct begin [ true ] { (A->hasCFGNode == $begin->hasCFGNode->hasMetadata->hasCorrespondingEnd and $begin.is_known_correct) }) out true else {
                 conclude : error [
                     skill = "is_in_compound_construct_ending";
                     RU.explanation="Когда происходит ${STATE.interruption_state}, досрочно завершается то, что уже началось. ${A} сейчас не выполняется.";
                 ];
             };
 
-            // Найти все пути между парой узлов, по любому прерыванию.
-            // var P_l0_a : PathInfo = find PathInfo p { $p->from_ == L0->hasCFGNode and $p->to_ == A->hasCFGNode and $p->hasConstraints.interruption_mode != InterruptionType:no_interruption } out true else {
-            // 	conclude : error [
-            //         skill = "DEBUG: too far within interruption.";
-            //     ];
-            // };
-            // TODO: может поменять на or??
-            cycle or (forAll PathInfo p [$p->hasConstraints.interruption_mode != InterruptionType:no_interruption] { $p->from_ == L0->hasCFGNode and $p->to_ == A->hasCFGNode  }) with PathInfo P_l0_a {
-                null -> {conclude : correct [
-                    skill="interruption_state_matches_constraint";  // Any false negatives?..
-                    // RU.explanation="Когда происходит ${STATE.interruption_state}, ${A} не может выполняться.";
-                ];}
-                false -> {conclude : error [
-                    skill = "DEBUG: too far within interruption.";
-                ];}
+            cycle and (forAll PathInfo p [L0->hasCFGNode->startsPath($p)] {$p->to_ == A->hasCFGNode}) with PathInfo P_l0_a {
+		        true -> out;
+		        false -> {
+                    conclude : error [
+                        skill = "DEBUG: missing found.";
+                    ];
+                };
+                null -> {
+                    conclude : error [
+                        skill = "DEBUG: too far within interruption.";
+                    ];
+                };
                 body -> {
+                    // Найти непрозрачное действие на пути
+                    var Missing : Node = find Node m { P_l0_a=>hasFirstMiddleAction($m) } out false else {
+                        // Найдено непрозрачное действие.
+                        conclude : error [
+                            skill="is_in_nested_construct";
+                            RU.explanation="Когда происходит ${STATE.interruption_state}, досрочно завершается то, что уже началось. Прежде чем завершать ${A}, нужно сначала завершить ${Missing}.";
+                        ];
+                    };
+                };
+            };
 
-		            // Найти непрозрачное действие на пути
-		            var Missing : Node = find Node m { P_l0_a=>hasFirstMiddleAction($m) } out false else {
-		            	// Найдено непрозрачное действие.
-		                conclude : error [
-		                    skill="is_in_nested_construct";
-		                    RU.explanation="Когда происходит ${STATE.interruption_state}, досрочно завершается то, что уже началось. Прежде чем завершать ${A}, нужно сначала завершить ${Missing}.";
-		                ];
-		            };
-
-		            conclude : correct [
-		                skill="is_in_nested_construct";
-		                RU.explanation="Выход из структуры действия ${L0} применён верно";
-		            ];
-		        };
-	        };
+            conclude : correct [
+                skill="is_in_nested_construct";
+                RU.explanation="Выход из структуры действия ${L0} применён верно";
+            ];
         };
     };
 
@@ -58,186 +55,190 @@ tree CtrlFlow(L0: TraceAct, A: TraceAct, STATE: State) {
     // Есть ли прямой путь без непрозрачных действий ?
     // `opaque_actions == 1` : путь оканчивается на непрозрачное действие, в середине таких нет.
     // (Можно ещё проверить is_direct == true.)
-    var P : PathInfo = (find PathInfo p {
-    	$p->from_ == L0->hasCFGNode
-    	and $p->to_ == A->hasCFGNode
-    	and $p.opaque_actions == 1
-    	// Both: no_interruption or P: any
-    	and (($p->hasConstraints.interruption_mode == InterruptionType:any) or ($p->hasConstraints.interruption_mode != InterruptionType:no_interruption) == (STATE.interruption_state != InterruptionType:no_interruption))
-	}) out true else {
+    cycle and (forAll PathInfo p [L0->hasCFGNode->startsPath($p)] {$p->to_ == A->hasCFGNode and $p.opaque_actions == 1}) with PathInfo P {
+        null -> {
+            // Существует ли какой угодно путь от L0 до A ?
+            cycle and (forAll PathInfo p2 [L0->hasCFGNode->startsPath($p2)] {$p2->to_ == A->hasCFGNode}) with PathInfo P2 {
+                null -> {
+                    // Поищем обратный путь (когда А в недалёком прошлом).
+                    // Существует ли какой угодно путь от A до L0 ?
+                    cycle and (forAll PathInfo p4 [A->hasCFGNode->startsPath($p4)] {$p4->to_ == L0->hasCFGNode}) with PathInfo P4 {
+                        null -> {
+                            // Путь P4 не найден - выполнить логику из блока else
+                            ask (forAny TraceAct prev [$prev.is_known_correct == true] {$prev->hasCFGNode == A->hasCFGNode}) out false else {
+                                // Действие выполнено в трассе, т.е. имеет акт.
+                                conclude: error [
+                                    skill="refer_execution_history";
+                                    RU.explanation="Действие ${A} уже выполнилось и не должно выполняться повторно.";
+                                ];
+                            };
 
-    	// Существует ли какой угодно путь от L0 до A ?
-        var P2 : PathInfo = (find PathInfo p2 { $p2->from_ == L0->hasCFGNode and $p2->to_ == A->hasCFGNode}) out true else {
-        	// Поищем обратный путь (когда А в недалёком прошлом).
-        	// Существует ли какой угодно путь от A до L0 ?
-	        var P4 : PathInfo = (find PathInfo p4 { $p4->to_ == L0->hasCFGNode and $p4->from_ == A->hasCFGNode}) out false else {
+                            // Действие не было выполнено в трассе, т.е. не имеет акта.
+                            conclude: error [
+                                skill="refer_not_executed";
+                                RU.explanation="В программе всё выполняется одно за другим. После ${L0} действие ${A} уже не может выполниться.";
+                                // В программе всё выполняется в поступательном порядке.
+                            ];
+                        };
+                        body -> {
+                            // Путь P4 найден - это обратный путь от A до L0, продолжаем выполнение
+                        };
+                    };
 
-	        	ask (forAny TraceAct prev [$prev.is_known_correct == true] {$prev->hasCFGNode == A->hasCFGNode}) out false else {
-		        	// Действие выполнено в трассе, т.е. имеет акт.
-	        		conclude: error [
-	        		    skill="refer_execution_history";
-	        		    RU.explanation="Действие ${A} уже выполнилось и не должно выполняться повторно.";
-	        		];
-		        };
+                    ask (L0->hasCFGNode == A->hasCFGNode) out false else {
+                        // Действие выполнено два раза подряд.
+                        conclude: error [
+                            skill="repeat_twice";
+                            RU.explanation="${A}: уже выполнилось и не должно выполняться два раза подряд.";
+                        ];
+                    };
 
-	        	// Действие не было выполнено в трассе, т.е. не имеет акта.
-	        	conclude: error [
-	        	    skill="refer_not_executed";
-	        	    RU.explanation="В программе всё выполняется одно за другим. После ${L0} действие ${A} уже не может выполниться.";
-	        	    // В программе всё выполняется в поступательном порядке.
-	        	];
-	        };
-
-        	ask (L0->hasCFGNode == A->hasCFGNode) out false else {
-	        	// Действие выполнено два раза подряд.
-        		conclude: error [
-        		    skill="repeat_twice";
-        		    RU.explanation="${A}: уже выполнилось и не должно выполняться два раза подряд.";
-        		];
-	        };
-
-        	// Действие А нельзя выполнять сейчас, так как находятся в иной области кода, чем L0
-            conclude: error [
-                skill="two_execution_points_has_path";
-                RU.explanation="${A} не может выполняться сейчас, т.к. по логике выполнения программы находится слишком далеко от текущей позиции ${L0}.";
-            ];
-        };
-
-        // Ищем непрозрачные УСЛОВИЯ
-        ask (P2.conditions > 0) out false else {
-            var E : Node = find Node m { P2=>hasFirstMiddleCondition($m) and $m.kind != NodeKind:BEGIN }  // <- Поддержка составных и атомарных условий.
-            out true else {
-        		// условие E не найдено.
-        		conclude : error [
-        	        skill="DEBUG: no_condition_evaluation_found_in_path";
-        	        RU.explanation="Прежде чем ${A} сможет выполниться, должны выполниться предшествующие действия.";
-        	    ];
-
-            };
-
-        	// Должно быть вычислено условие E
-        	conclude : error [
-                skill="are_condition_evaluation_required_in_path";
-                RU.explanation="Прежде чем ${A} сможет выполниться, как минимум, должно быть вычислено условие ${E}.";
-            ];
-        };
-
-        // Нет непрозрачных УСЛОВИЙ, ищем непрозрачные действия
-        var M : Node = find Node m { P2=>hasFirstMiddleAction($m) } out true else {
-       	    // May be useful ??
-            conclude : correct [
-                skill="DEBUG: many_actions_in_require_selection";
-                RU_explanation="Нет мешающих действий на пути от ${L0} к ${A}";
-            ];
-        };
-    	// сначала должно быть произойти <M>
-    	conclude : error [
-            skill="many_actions_in_require_selection";
-            RU.explanation="Действия выполняются последовательно; прежде чем ${A} сможет выполниться, должно произойти: ${M.kind} ${M}.";
-        ];
-    };
-
-    // (В старом варианте:) Проверка ограничений (условий и др.) для каждого звена на пути...
-    // (В новом варианте:) Проверка ограничений для маршрута P, который символизирует скачок по алгоритму, выбранный студентом...
-	agg mutex { // << TODO: заменить mutex на AND (раньше мы проверяли отдельные переходы -- для них mutex был ОК, а теперь все ограничения агрегированы в один маршрут и проверяются параллельно, не взаимоисключающе)
-        interruptionCatch -> {
-            ask (P->hasConstraints.interruption_mode != InterruptionType:any) out true else {
-                conclude : null;
-            };
-            ask (STATE.interruption_state == P->hasConstraints.interruption_mode) out false else {
-                conclude: null;
-            };
-            // TODO: может поменять на or??
-            cycle and (forAll Edge ET [P->from_=>hasEdges($ET)] {$ET->hasConstraints.interruption_mode == InterruptionType:any or $ET->hasConstraints.interruption_mode == STATE.interruption_state}) with Edge et {
-                null -> {conclude : error [
-                    skill="interruption_state_matches_constraint";
-                    RU.explanation="Когда происходит ${STATE.interruption_state}, ${A} не может выполняться.";
-                ];}
-                false -> {conclude : error [
-                    skill="interruption_state_matches_constraint";
-                    RU.explanation="Когда происходит ${STATE.interruption_state}, ${A} не может выполняться.";
-                ];}
+                    // Действие А нельзя выполнять сейчас, так как находятся в иной области кода, чем L0
+                    conclude: error [
+                        skill="two_execution_points_has_path";
+                        RU.explanation="${A} не может выполняться сейчас, т.к. по логике выполнения программы находится слишком далеко от текущей позиции ${L0}.";
+                    ];
+                };
                 body -> {
+                    // Ищем непрозрачные УСЛОВИЯ
+                    ask (P2.conditions > 0) out false else {
+                        var E : Node = find Node m { P2=>hasFirstMiddleCondition($m) and $m.kind != NodeKind:BEGIN }  // <- Поддержка составных и атомарных условий.
+                        out true else {
+                            // условие E не найдено.
+                            conclude : error [
+                                skill="DEBUG: no_condition_evaluation_found_in_path";
+                                RU.explanation="Прежде чем ${A} сможет выполниться, должны выполниться предшествующие действия.";
+                            ];
 
-                	// Найти альтернативный переход ET (Expected Transition), выходящий из L0, и требующий текущее значение условия в L0
-                	var ET : Edge = find Edge e {$e->hasSource == P->from_
-                	    and $e != P
-                	    and forAny Constraint c {$e=>hasConstraints($c)}  // (у перехода есть ограничения)
-                	    and L0.condition_value == $e->hasConstraints.condition_value} out true else {
-                		// (Не найден такой переход!!! Скорее всего, проблема в CFG.)
-                	    conclude : null;
-                	};
+                        };
 
-                	conclude : error [
-                    skill="interruption_state_matches_constraint";
-                    RU.explanation="Когда происходит ${STATE.interruption_state}, должно выполниться действие ${ET->hasDestination}, но не ${A}";
-	                ];
-	            }
+                        // Должно быть вычислено условие E
+                        conclude : error [
+                            skill="are_condition_evaluation_required_in_path";
+                            RU.explanation="Прежде чем ${A} сможет выполниться, как минимум, должно быть вычислено условие ${E}.";
+                        ];
+                    };
+
+                    // Нет непрозрачных УСЛОВИЙ, ищем непрозрачные действия
+                    var M : Node = find Node m { P2=>hasFirstMiddleAction($m) } out true else {
+                        // May be useful ??
+                        conclude : correct [
+                            skill="DEBUG: many_actions_in_require_selection";
+                            RU_explanation="Нет мешающих действий на пути от ${L0} к ${A}";
+                        ];
+                    };
+                    // сначала должно быть произойти <M>
+                    conclude : error [
+                        skill="many_actions_in_require_selection";
+                        RU.explanation="Действия выполняются последовательно; прежде чем ${A} сможет выполниться, должно произойти: ${M.kind} ${M}.";
+                    ];
+                };
             };
         };
-        conditionCheck -> {
-        	// Не препятствует ли условие тому, чтобы пройти по маршруту P ?..
-        	// Наложены ли на маршрут ограничения на значение условия?
-            ask (forAny Constraint c {P=>hasConstraints($c)} and P->hasConstraints.condition_value != OptionalBoolValue:no_value) out true else {
-            	// НЕТ: дальше проверять нет смысла.
-                conclude : null;
-            };
-			// Совпадает ли значение текущего условия с ожидаемым условием для маршрута P ?
-            ask (L0.condition_value == P->hasConstraints.condition_value)
-            out false else {
-            	// ДА: ошибки нет.
-            	// TODO: Добавить скилл condition_value_allows_transition (здесь он применён правильно)
-                conclude : null;
-            };
-            // Найти альтернативный переход ET (Expected Transition), выходящий из L0, и требующий текущее значение условия в L0
-            var ET : Edge = find Edge e {$e->hasSource == P->from_ 
-                and $e != P 
-                and forAny Constraint c {$e=>hasConstraints($c)}  // (у перехода есть ограничения)
-                and L0.condition_value == $e->hasConstraints.condition_value} out true else {
-            	// (Не найден такой переход!!! Скорее всего, проблема в CFG.)
-                conclude : null;
-            };
-            conclude : error [
-                skill="condition_value_allows_transition";
-                RU.explanation="Когда условие ${L0} равно ${L0.condition_value}, должно выполняться действие ${ET->hasDestination}, но не ${A}.";
-            ];
-        };
-        // В правильный ли вызов функции вернулись? (CFG не даёт нам информации об этом, так как считает, что возврат из функции в любой из её вызовов допустИм.)
-        functionReturn -> {
-        	// Является ли А завершением вызова некоторой функции?
-            ask (A->hasASTNode.ast_node == "function_call" and A->hasCFGNode.kind == NodeKind:END) out true else {
-            	// НЕТ: Дальше не проверяем.
-                conclude : null [
-                	skill = "DEBUG: not-a-call.";
-                ];
-            };
-            // Является ли А завершением именно самого близкого по трассе к L0 вызова этой же функции ( который при этом не имел на завершения?)
-            // var closerCall : TraceAct = findExtreme func [$func=>isCloserToThan($act, L0) and $func->hasASTNode== A->hasASTNode and $func.is_known_correct
-            //     ] among TraceAct act {$act->hasASTNode.ast_node == "function_call" and
-            //         $act->hasCFGNode.kind == NodeKind:BEGIN
-            //         and
-            //         not (forAny TraceAct _e {$act=>hasActAsCorrespondingEnd($_e)})}
+        body -> {
+            // (В старом варианте:) Проверка ограничений (условий и др.) для каждого звена на пути...
+            // (В новом варианте:) Проверка ограничений для маршрута P, который символизирует скачок по алгоритму, выбранный студентом...
+            agg mutex { // << TODO: заменить mutex на AND (раньше мы проверяли отдельные переходы -- для них mutex был ОК, а теперь все ограничения агрегированы в один маршрут и проверяются параллельно, не взаимоисключающе)
+                interruptionCatch -> {
+                    ask (P->hasConstraints.interruption_mode != InterruptionType:any) out true else {
+                        conclude : null;
+                    };
+                    ask (STATE.interruption_state == P->hasConstraints.interruption_mode) out false else {
+                        conclude: null;
+                    };
+                    // TODO: может поменять на or??
+                    cycle and (forAll Edge ET [P->from_=>hasEdges($ET)] {$ET->hasConstraints.interruption_mode == InterruptionType:any or $ET->hasConstraints.interruption_mode == STATE.interruption_state}) with Edge et {
+                        null -> {conclude : error [
+                            skill="interruption_state_matches_constraint";
+                            RU.explanation="Когда происходит ${STATE.interruption_state}, ${A} не может выполняться.";
+                        ];}
+                        false -> {conclude : error [
+                            skill="interruption_state_matches_constraint";
+                            RU.explanation="Когда происходит ${STATE.interruption_state}, ${A} не может выполняться.";
+                        ];}
+                        body -> {
 
-            // Тупо берём ожидаемый узел из трассы.
-            var ExpectedCallAct : TraceAct = (L0->directlyBeforeOf);
-            ask (ExpectedCallAct->hasASTNode.ast_node == "function_call" and ExpectedCallAct->hasCFGNode.kind == NodeKind:END) out true else {
-            	conclude : error [
-            	    skill="is_function_call_ended_at_time";
-            	    RU.explanation="Функция не может завершиться сейчас. Вместо ${A} нужно завершить ${ExpectedCallAct->hasCFGNode}.";
-            	];
+                            // Найти альтернативный переход ET (Expected Transition), выходящий из L0, и требующий текущее значение условия в L0
+                            var ET : Edge = find Edge e {$e->hasSource == P->from_
+                                and $e != P
+                                and forAny Constraint c {$e=>hasConstraints($c)}  // (у перехода есть ограничения)
+                                and L0.condition_value == $e->hasConstraints.condition_value} out true else {
+                                // (Не найден такой переход!!! Скорее всего, проблема в CFG.)
+                                conclude : null;
+                            };
+
+                            conclude : error [
+                                skill="interruption_state_matches_constraint";
+                                RU.explanation="Когда происходит ${STATE.interruption_state}, должно выполниться действие ${ET->hasDestination}, но не ${A}";
+                            ];
+                        }
+                    };
+                };
+                conditionCheck -> {
+                    // Не препятствует ли условие тому, чтобы пройти по маршруту P ?..
+                    // Наложены ли на маршрут ограничения на значение условия?
+                    ask (forAny Constraint c {P=>hasConstraints($c)} and P->hasConstraints.condition_value != OptionalBoolValue:no_value) out true else {
+                        // НЕТ: дальше проверять нет смысла.
+                        conclude : null;
+                    };
+                    // Совпадает ли значение текущего условия с ожидаемым условием для маршрута P ?
+                    ask (L0.condition_value == P->hasConstraints.condition_value)
+                    out false else {
+                        // ДА: ошибки нет.
+                        // TODO: Добавить скилл condition_value_allows_transition (здесь он применён правильно)
+                        conclude : null;
+                    };
+                    // Найти альтернативный переход ET (Expected Transition), выходящий из L0, и требующий текущее значение условия в L0
+                    var ET : Edge = find Edge e {$e->hasSource == P->from_
+                        and $e != P
+                        and forAny Constraint c {$e=>hasConstraints($c)}  // (у перехода есть ограничения)
+                        and L0.condition_value == $e->hasConstraints.condition_value} out true else {
+                        // (Не найден такой переход!!! Скорее всего, проблема в CFG.)
+                        conclude : null;
+                    };
+                    conclude : error [
+                        skill="condition_value_allows_transition";
+                        RU.explanation="Когда условие ${L0} равно ${L0.condition_value}, должно выполняться действие ${ET->hasDestination}, но не ${A}.";
+                    ];
+                };
+                // В правильный ли вызов функции вернулись? (CFG не даёт нам информации об этом, так как считает, что возврат из функции в любой из её вызовов допустИм.)
+                functionReturn -> {
+                    // Является ли А завершением вызова некоторой функции?
+                    ask (A->hasASTNode.ast_node == "function_call" and A->hasCFGNode.kind == NodeKind:END) out true else {
+                        // НЕТ: Дальше не проверяем.
+                        conclude : null [
+                            skill = "DEBUG: not-a-call.";
+                        ];
+                    };
+                    // Является ли А завершением именно самого близкого по трассе к L0 вызова этой же функции ( который при этом не имел на завершения?)
+                    // var closerCall : TraceAct = findExtreme func [$func=>isCloserToThan($act, L0) and $func->hasASTNode== A->hasASTNode and $func.is_known_correct
+                    //     ] among TraceAct act {$act->hasASTNode.ast_node == "function_call" and
+                    //         $act->hasCFGNode.kind == NodeKind:BEGIN
+                    //         and
+                    //         not (forAny TraceAct _e {$act=>hasActAsCorrespondingEnd($_e)})}
+
+                    // Тупо берём ожидаемый узел из трассы.
+                    var ExpectedCallAct : TraceAct = (L0->directlyBeforeOf);
+                    ask (ExpectedCallAct->hasASTNode.ast_node == "function_call" and ExpectedCallAct->hasCFGNode.kind == NodeKind:END) out true else {
+                        conclude : error [
+                            skill="is_function_call_ended_at_time";
+                            RU.explanation="Функция не может завершиться сейчас. Вместо ${A} нужно завершить ${ExpectedCallAct->hasCFGNode}.";
+                        ];
+                    };
+                    ask (A->hasASTNode == ExpectedCallAct->hasASTNode)
+                    out false else {
+                        // ДА: Вернулись в нужный вызов.
+                        // TODO: Добавить скилл is_function_call_jumping_correct как корректно применённый.
+                        conclude : null [
+                            skill = "DEBUG: RETURN OK";
+                        ];
+                    };
+                    conclude : error [
+                        skill="is_function_call_jumping_correct";
+                        RU.explanation="При завершении вызовов сначала завершаются внутренние вызовы согласно стеку вызовов (в обратном порядке). Вместо ${A} нужно завершить ${ExpectedCallAct}.";
+                    ];
+                };
             };
-            ask (A->hasASTNode == ExpectedCallAct->hasASTNode)
-            out false else {
-            	// ДА: Вернулись в нужный вызов.
-            	// TODO: Добавить скилл is_function_call_jumping_correct как корректно применённый.
-                conclude : null [
-                	skill = "DEBUG: RETURN OK";
-                ];
-            };
-            conclude : error [
-                skill="is_function_call_jumping_correct";
-                RU.explanation="При завершении вызовов сначала завершаются внутренние вызовы согласно стеку вызовов (в обратном порядке). Вместо ${A} нужно завершить ${ExpectedCallAct}.";
-            ];
         };
     };
 
