@@ -570,8 +570,8 @@ public class CtrlFlowDTTest {
     }
 
     @Test
-    public void ex_3_recursion_short_t1() {
-        var question = loadQuestion("debug_3_recursion.py_short");
+    public void ex_3_recursion_t1() {
+        var question = loadQuestion("debug_3_recursion.py");
         var answers = List.of(
             Pair.of(9, "atom_199"),
             Pair.of(10, "BEGIN_203"),
