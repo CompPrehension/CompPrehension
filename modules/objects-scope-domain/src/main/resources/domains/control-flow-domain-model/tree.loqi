@@ -258,15 +258,18 @@ agg and {
         // Найти (другой) прямой путь из L0, который применим при отсутствии прерывания
         // → EP (Expected Path)
 
-        cycle and (forAll PathInfo ep [$ep=>from_(P_l0_a->from_)] {$ep.is_direct and $ep->hasConstraints.interruption_mode == InterruptionType:any or $ep->hasConstraints.interruption_mode == STATE.interruption_state}) with PathInfo EP {
+        cycle and (forAll PathInfo ep [$ep=>from_(P_l0_a->from_)] {$ep.is_direct and ($ep->hasConstraints.interruption_mode == InterruptionType:any or $ep->hasConstraints.interruption_mode == STATE.interruption_state)}) with PathInfo EP {
 
-            // Прервать цикл, если не соответствует условию цикла (workaround).
-            ask (EP=>from_(P_l0_a->from_) and EP.is_direct and EP->hasConstraints.interruption_mode == InterruptionType:any or EP->hasConstraints.interruption_mode == STATE.interruption_state) out true else {
+            // // Прервать цикл, если не соответствует условию цикла (workaround).
+            // ask (EP=>from_(P_l0_a->from_) and EP.is_direct and
+            //     (EP->hasConstraints.interruption_mode == InterruptionType:any or
+            //         EP->hasConstraints.interruption_mode == STATE.interruption_state)
+            //     ) out true else {
 
-                conclude : null [
-                    skill="DEBUG (EP): CONTINUE";
-                ];
-            };
+            //     conclude : null [
+            //         skill="DEBUG (EP): CONTINUE";
+            //     ];
+            // };
 
 
             null -> {conclude : error [
