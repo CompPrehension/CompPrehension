@@ -666,7 +666,7 @@ public class ControlFlowDTDomain extends DecisionTreeReasoningDomain {
     private String formatRuntimeInfo(ObjectDef runtimeInfo, Language lang) {
         if (runtimeInfo == null) return "";
         final int MAX_OUTPUT_LENGTH = 12;
-        final boolean DISABLE_PRINT = false;
+        final boolean DISABLE_PRINT = true;
 
         StringBuilder sb = new StringBuilder();
         String funcName = (String) runtimeInfo.getPropertyValue("function_name", Map.of());
