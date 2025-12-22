@@ -7,6 +7,7 @@ tree CtrlFlow(L0: TraceAct, A: TraceAct, STATE: State) {
     // (ищем допустимый вариант применения пути, -- достаточно одного правильно применённого пути: OR)
 
     cycle or (forAll PathInfo p [$p=>from_(L0->hasCFGNode) and $p=>to_(A->hasCFGNode)] {$p=>from_(L0->hasCFGNode) and $p=>to_(A->hasCFGNode)}) with PathInfo P_l0_a {
+    // cycle or (forAll PathInfo p {$p=>from_(L0->hasCFGNode) and $p=>to_(A->hasCFGNode)}) with PathInfo P_l0_a {
 
         true -> out;
 
@@ -108,7 +109,7 @@ ask (STATE.interruption_state != InterruptionType:no_interruption) {
 
             ask (forAny Effect ef {P_l0_a=>hasEffects($ef) and $ef.interruption_stop != InterruptionType:no_interruption}) out true else {
                 conclude : error [
-                    skill="DEBUG: interruption_continues";
+                    skill="DEBUG: interruption_continues (1)";
                     RU.explanation="Когда происходит ${STATE.interruption_state}, могут только завершаться составные действия; ${A} не может начать выполняться.";
                 ];
             };
@@ -136,7 +137,7 @@ ask (STATE.interruption_state != InterruptionType:no_interruption) {
                 body -> {
 
                     conclude : error [
-                        skill="DEBUG: interruption_continues";
+                        skill="DEBUG: interruption_continues in  body";
                         RU.explanation="${STATE.interruption_state} не может окончиться здесь, чтобы перейти к ${A}. Сейчас происходит не ${ThisPathEffect.interruption_stop}.";
                     ];
                 };
@@ -158,20 +159,20 @@ ask (STATE.interruption_state != InterruptionType:no_interruption) {
         // (и т. обр. являющегося родительским для L0)?
         /// (pa = previous act)
         ask (forAny TraceAct pa {
-                L0->hasCFGNode == $pa->hasCFGNode and
+                A->hasCFGNode == $pa->hasCFGNode and
                 $pa.is_known_correct == false and
-                (forAny TraceAct cb [ true ] {$pa=>hasActAsCorrespondingEnd($cb)}) and  // relation exists
-                $pa->hasActAsCorrespondingEnd.is_known_correct == true
+                (forAny TraceAct cb {$pa=>hasActAsCorrespondingEnd($cb) and  // relation exists
+                $cb.is_known_correct == true})
             }) out true else {
             conclude : error [
-                skill="DEBUG: interruption_continues";
+                skill="DEBUG: interruption_continues, not run.";
                 RU.explanation="Когда происходит ${STATE.interruption_state}, могут завершаться только уже начавшиеся действия; $A сейчас не выполняется.";
             ];
         };
 
         // Является ли путь P прямым (нет промежуточных обязательных действий) ?
 
-        ask (P_l0_a.is_direct) out true else {
+        ask (P_l0_a.is_direct) out false else {
             conclude : correct [
                 skill="DEBUG_interruption_correct";
                 RU.explanation="${STATE.interruption_state} после действия ${L0} применен(о) верно.";
@@ -257,7 +258,16 @@ agg and {
         // Найти (другой) прямой путь из L0, который применим при отсутствии прерывания
         // → EP (Expected Path)
 
-        cycle and (forAll PathInfo ep [$ep=>from_(P_l0_a->from_)] {$ep->hasConstraints.interruption_mode == InterruptionType:any or $ep->hasConstraints.interruption_mode == STATE.interruption_state}) with PathInfo EP {
+        cycle and (forAll PathInfo ep [$ep=>from_(P_l0_a->from_)] {$ep.is_direct and $ep->hasConstraints.interruption_mode == InterruptionType:any or $ep->hasConstraints.interruption_mode == STATE.interruption_state}) with PathInfo EP {
+
+            // Прервать цикл, если не соответствует условию цикла (workaround).
+            ask (EP=>from_(P_l0_a->from_) and EP.is_direct and EP->hasConstraints.interruption_mode == InterruptionType:any or EP->hasConstraints.interruption_mode == STATE.interruption_state) out true else {
+
+                conclude : null [
+                    skill="DEBUG (EP): CONTINUE";
+                ];
+            };
+
 
             null -> {conclude : error [
                 skill="interruption_state_matches_constraint";
