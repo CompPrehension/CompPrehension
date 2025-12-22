@@ -260,18 +260,6 @@ agg and {
 
         cycle and (forAll PathInfo ep [$ep=>from_(P_l0_a->from_)] {$ep.is_direct and ($ep->hasConstraints.interruption_mode == InterruptionType:any or $ep->hasConstraints.interruption_mode == STATE.interruption_state)}) with PathInfo EP {
 
-            // // Прервать цикл, если не соответствует условию цикла (workaround).
-            // ask (EP=>from_(P_l0_a->from_) and EP.is_direct and
-            //     (EP->hasConstraints.interruption_mode == InterruptionType:any or
-            //         EP->hasConstraints.interruption_mode == STATE.interruption_state)
-            //     ) out true else {
-
-            //     conclude : null [
-            //         skill="DEBUG (EP): CONTINUE";
-            //     ];
-            // };
-
-
             null -> {conclude : error [
                 skill="interruption_state_matches_constraint";
                 RU.explanation="Когда происходит ${STATE.interruption_state}, ${A} не может выполняться, т.к. для этого требуется ${P_l0_a->hasConstraints.interruption_mode}.";
@@ -281,6 +269,18 @@ agg and {
                 RU.explanation="Когда происходит ${STATE.interruption_state}, ${A} не может выполняться, т.к. для этого требуется ${P_l0_a->hasConstraints.interruption_mode}.";
             ];}
             body -> {
+
+                // Прервать цикл, если не соответствует условию цикла (workaround).
+                ask (EP=>from_(P_l0_a->from_) and EP.is_direct and
+                    (EP->hasConstraints.interruption_mode == InterruptionType:any or
+                        EP->hasConstraints.interruption_mode == STATE.interruption_state)
+                    ) out true else {
+
+                    conclude : null [
+                        skill="DEBUG (EP): CONTINUE";
+                    ];
+                };
+
 
                 conclude : error [
                     skill="interruption_state_matches_constraint";
