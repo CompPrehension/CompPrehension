@@ -344,6 +344,17 @@ table.comp-ph-trace tr:first-child td {
     background-color: #ff9;
 }
 
+.comp-ph-trace .runtime-info {
+    color: gray;
+    font-style: italic;
+}
+
+.comp-ph-trace .runtime-info-comment {
+    margin: 1.7%;
+    font-style: italic;
+    color: gray;
+}
+
 .compph-domain-term {
   border-bottom: 1px dashed;
   cursor: pointer;

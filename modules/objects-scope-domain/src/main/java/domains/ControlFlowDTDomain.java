@@ -1,5 +1,7 @@
 package domains;
 
+import com.fasterxml.jackson.databind.JsonNode;
+import com.fasterxml.jackson.databind.ObjectMapper;
 import its.model.DomainSolvingModel;
 import its.model.definition.*;
 import its.model.definition.build.DomainBuilderUtils;
@@ -31,11 +33,9 @@ import org.vstu.compprehension.models.entities.EnumData.SearchDirections;
 import org.vstu.compprehension.utils.HyperText;
 import org.vstu.compprehension.utils.RandomProvider;
 
-import com.fasterxml.jackson.databind.JsonNode;
-import com.fasterxml.jackson.databind.ObjectMapper;
-
 import java.io.StringReader;
 import java.util.*;
+import java.util.function.Predicate;
 import java.util.stream.Collectors;
 
 @Log4j2
@@ -308,12 +308,23 @@ public class ControlFlowDTDomain extends DecisionTreeReasoningDomain {
             ObjectDef metadata = cfgNode.getRelationshipLink("hasMetadata").getObjects().getFirst();
             EnumValueRef noValue = questionModel.getEnums().get("OptionalBoolValue").getValues().get("no_value").getReference();
             result.getDefinedPropertyValues().addOrReplace(new PropertyValueStatement<>(result, "is_known_correct", ParamsValues.getEMPTY(), false));
+            result.getDefinedPropertyValues().addOrReplace(new PropertyValueStatement<>(result, "condition_value", ParamsValues.getEMPTY(), noValue));
             if (referenceTraceAct != null) {
-                result.getDefinedPropertyValues().addOrReplace(new PropertyValueStatement<>(result, "condition_value",
-                        ParamsValues.getEMPTY(), referenceTraceAct.getPropertyValue("condition_value", Map.of())
-                ));
-            } else {
-                result.getDefinedPropertyValues().addOrReplace(new PropertyValueStatement<>(result, "condition_value", ParamsValues.getEMPTY(), noValue));
+                String refCfgNodeId = (String) referenceTraceAct.getRelationshipLink("hasCFGNode")
+                        .getObjects()
+                        .getFirst()
+                        .getPropertyValue("id", Map.of());
+                if (refCfgNodeId.equals(cfgNodeId)) { // корректное действие выбрано как A
+                    result.getDefinedPropertyValues().addOrReplace(new PropertyValueStatement<>(result, "condition_value",
+                            ParamsValues.getEMPTY(), referenceTraceAct.getPropertyValue("condition_value", Map.of())
+                    ));
+                    if (referenceTraceAct.getRelationshipLinks().stream().anyMatch(r -> r.getRelationshipName().equals("hasRuntimeInfo"))
+                        && !referenceTraceAct.getRelationshipLink("hasRuntimeInfo").getObjects().isEmpty()) {
+                        result.getRelationshipLinks().add(new RelationshipLinkStatement(result, "hasRuntimeInfo",
+                                List.of(referenceTraceAct.getRelationshipLink("hasRuntimeInfo").getObjects().getFirst().getName()),
+                                ParamsValues.getEMPTY()));
+                    }
+                }
             }
             result.getRelationshipLinks().add(new RelationshipLinkStatement(result, "hasCFGNode", List.of(cfgNode.getName()), ParamsValues.getEMPTY()));
             result.getRelationshipLinks().add(new RelationshipLinkStatement(result, "hasActionSpec",
@@ -652,8 +663,10 @@ public class ControlFlowDTDomain extends DecisionTreeReasoningDomain {
      * @param runtimeInfo объект RuntimeInfo из модели
      * @return отформатированная строка или пустая строка, если нет данных
      */
-    private String formatRuntimeInfo(ObjectDef runtimeInfo) {
+    private String formatRuntimeInfo(ObjectDef runtimeInfo, Language lang) {
         if (runtimeInfo == null) return "";
+        final int MAX_OUTPUT_LENGTH = 12;
+        final boolean DISABLE_PRINT = false;
 
         StringBuilder sb = new StringBuilder();
         String funcName = (String) runtimeInfo.getPropertyValue("function_name", Map.of());
@@ -661,8 +674,20 @@ public class ControlFlowDTDomain extends DecisionTreeReasoningDomain {
         String returnValue = (String) runtimeInfo.getPropertyValue("return_value", Map.of());
         String printOutputs = (String) runtimeInfo.getPropertyValue("print_outputs", Map.of());
 
+        boolean hasFunc = funcName != null && !funcName.isEmpty() && funcArgs != null && !funcArgs.isEmpty();
+        boolean hasReturn = returnValue != null && !returnValue.isEmpty();
+        boolean hasPrint = printOutputs != null && !printOutputs.isEmpty();
+
+        Predicate<StringBuilder> isEmptySb = (StringBuilder s) -> s.toString().endsWith(" — ") || s.toString().endsWith("# ");
+
+        if (hasPrint || hasReturn) {
+            sb.append("# ");
+        } else {
+            sb.append(" — ");
+        }
+
         // Формат вызова: fact(5)
-        if (funcName != null && !funcName.isEmpty() && funcArgs != null && !funcArgs.isEmpty()) {
+        if (hasFunc) {
             sb.append(funcName).append("(");
             // Парсим JSON {"n": 5} -> выводим значения: 5
             try {
@@ -670,7 +695,12 @@ public class ControlFlowDTDomain extends DecisionTreeReasoningDomain {
                 List<String> values = new ArrayList<>();
                 json.fields().forEachRemaining(entry -> {
                     JsonNode val = entry.getValue();
-                    values.add(val.isTextual() ? val.asText() : val.toString());
+                    String text = val.isTextual() ? val.asText() : val.toString();
+                    if (text.length() > MAX_OUTPUT_LENGTH) {
+                        values.add("...");
+                    } else {
+                        values.add(text);
+                    }
                 });
                 sb.append(String.join(", ", values));
             } catch (Exception e) {
@@ -680,23 +710,26 @@ public class ControlFlowDTDomain extends DecisionTreeReasoningDomain {
         }
 
         // Формат возврата: -> 120
-        if (returnValue != null && !returnValue.isEmpty()) {
-            if (sb.length() > 0) sb.append(" ");
-            sb.append("-> ").append(returnValue);
+        if (hasReturn) {
+            if (!isEmptySb.test(sb)) sb.append(", ");
+            sb.append(getMessage("trace.template.return_value", lang)).append(": ").append(returnValue);
         }
 
         // Формат print: ["fact(5) = 120"] -> print: fact(5) = 120
-        if (printOutputs != null && !printOutputs.isEmpty()) {
+        if (hasPrint && !DISABLE_PRINT) {
+            if (!isEmptySb.test(sb)) sb.append(", ");
+            sb.append(getMessage("trace.template.print_value", lang)).append(": ");
             try {
                 JsonNode arr = jsonMapper.readTree(printOutputs);
-                if (arr.isArray()) {
+                if (arr.isArray() && arr.valueStream()
+                        .map(JsonNode::asText)
+                        .collect(Collectors.summingInt(String::length)) <= 2 * MAX_OUTPUT_LENGTH
+                ) {
                     for (JsonNode el : arr) {
-                        if (sb.length() > 0) sb.append("; ");
-                        sb.append("print: ").append(el.asText());
+                        sb.append(el.asText());
                     }
                 }
             } catch (Exception e) {
-                if (sb.length() > 0) sb.append("; ");
                 sb.append(printOutputs);
             }
         }
@@ -831,9 +864,10 @@ public class ControlFlowDTDomain extends DecisionTreeReasoningDomain {
                         .findFirst();
                 if (runtimeInfoLinks.isPresent() && !runtimeInfoLinks.get().getObjects().isEmpty()) {
                     ObjectDef runtimeInfo = runtimeInfoLinks.get().getObjects().getFirst();
-                    runtimeInfoStr = formatRuntimeInfo(runtimeInfo);
+                    runtimeInfoStr = formatRuntimeInfo(runtimeInfo, lang);
                     if (!runtimeInfoStr.isEmpty()) {
-                        runtimeInfoStr = " -- " + htmlStyleFormat(runtimeInfoStr, "runtime-info");
+                        runtimeInfoStr = htmlStyleFormat(runtimeInfoStr,
+                                runtimeInfoStr.startsWith("#") ? "runtime-info-comment" : "runtime-info");
                     }
                 }
 
@@ -843,9 +877,10 @@ public class ControlFlowDTDomain extends DecisionTreeReasoningDomain {
                         "structure", htmlStyleFormat(definition, "action"),
                         "action_state", htmlStyleFormat(actionState, "keyword"),
                         "nth_time", nthTime,
+                        "runtime_extra", runtimeInfoStr,
                         "condition", condition
                 );
-                var traceElementText = replaceInString(mainString, substitutions) + runtimeInfoStr;
+                var traceElementText = replaceInString(mainString, substitutions);
                 if (!(Boolean) object.getPropertyValue("is_known_correct", Map.of())
                         && !responses.getLast().getInteraction().getViolations().isEmpty()
                 ) {
