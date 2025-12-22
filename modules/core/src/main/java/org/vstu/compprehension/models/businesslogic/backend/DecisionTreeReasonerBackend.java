@@ -331,7 +331,6 @@ public class DecisionTreeReasonerBackend
                     .collect(Collectors.toList());
             result.violations = mistakes;
             result.correctlyAppliedLaws = new ArrayList<>();
-            result.isAnswerCorrect = mistakes.isEmpty() && isCorrectAnswer(result.decisionTreeTrace);
             return result;
         }
 
