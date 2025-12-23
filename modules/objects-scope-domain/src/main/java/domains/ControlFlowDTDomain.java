@@ -247,16 +247,39 @@ public class ControlFlowDTDomain extends DecisionTreeReasoningDomain {
                 var interptStop = path.getRelationshipLink("hasEffects")
                         .getObjects().getFirst()
                         .getPropertyValue("interruption_stop", Map.of());
-                var oldInterpt = STATE.getDefinedPropertyValues().get("interruption_state", Map.of());
-                var noInterrupt = questionModel.getEnums().get("InterruptionType").getValues().get("no_interruption").getReference();
-                if (interptStop.equals(oldInterpt)) {
-                    STATE.getDefinedPropertyValues().addOrReplace(
-                            new PropertyValueStatement<>(A, "interruption_state", ParamsValues.getEMPTY(), noInterrupt)
-                    );
+
+                EnumValueRef noInterrupt = questionModel.getEnums().get("InterruptionType").getValues().get("no_interruption").getReference();
+                // Эффекты из узлов CFG.
+                // (Пока только для конечного узла.!)
+                if (interptStop.equals(noInterrupt)) {
+                    try {
+                    // Нет остановки прерывания на пути.
+                    // Попытаемся получить эффекты из узла.
+                    var targetNode = traceActPtr.getRelationshipLink("hasCFGNode").getObjects().getFirst();
+                    if (targetNode.getRelationshipLinks().stream().anyMatch(r -> r.getRelationshipName().equals("hasEffects"))) {
+
+                        var targetNodeEffects_L = targetNode.getRelationshipLink("hasEffects").getObjects();
+                        if (!targetNodeEffects_L.isEmpty()) {
+                            var targetNodeEffects = targetNodeEffects_L.getFirst();
+                            interptStop = targetNodeEffects.getPropertyValue("interruption_stop", Map.of());
+                        }
+                    }
+                    } catch (its.model.definition.DomainNonConformityException ignored) {}
                 }
-                if (!intrptStart.equals(oldInterpt)) {
+
+                PropertyValueStatement<ObjectDef> oldInterpt = STATE.getDefinedPropertyValues().get("interruption_state", Map.of());
+                Object oldInterpt_2 = null; // = oldInterpt.getValue();
+
+                if (!intrptStart.equals(oldInterpt.getValue())) {
                     STATE.getDefinedPropertyValues().addOrReplace(
-                            new PropertyValueStatement<>(A, "interruption_state", ParamsValues.getEMPTY(), intrptStart)
+                            new PropertyValueStatement<>(STATE, "interruption_state", ParamsValues.getEMPTY(), intrptStart)
+                    );
+                    // Запомним изменившееся состояние.
+                    oldInterpt_2 = intrptStart;
+                }
+                if (!interptStop.equals(noInterrupt) && (interptStop.equals(oldInterpt.getValue()) || interptStop.equals(oldInterpt_2))) {
+                    STATE.getDefinedPropertyValues().addOrReplace(
+                            new PropertyValueStatement<>(STATE, "interruption_state", ParamsValues.getEMPTY(), noInterrupt)
                     );
                 }
             }

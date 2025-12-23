@@ -96,6 +96,36 @@ ask (STATE.interruption_state != InterruptionType:no_interruption) {
 
         // Имеет ли путь P входное ограничение на режим прерывания ?
         ask (forAny Constraint c {P_l0_a=>hasConstraints($c) and P_l0_a->hasConstraints.interruption_mode != InterruptionType:no_interruption}) out true else {
+
+            // > Заплатка. !!!!!!!!!
+            // Если нет другого прямого пути, то примем хотя бы этот.
+            ask (forAny PathInfo other_p {true and $other_p=>from_(P_l0_a->from_) and ($other_p != P_l0_a) and ($other_p.id != P_l0_a.id) and $other_p.is_direct}) out true else {
+                conclude : true [
+                    skill="Patch stop as true";
+                ];
+            };
+
+            // Если путь завершает текущее прерывание, то не запрещаем выполнять простые действия.
+            ask (forAny Effect peff {P_l0_a=>hasEffects($peff) and ($peff.interruption_stop == STATE.interruption_state)}) out false else {
+                conclude : true [
+                    skill="DEBUG: auto-exit interruption";
+                ];
+            };
+
+            // Если путь завершает текущее прерывание, то не запрещаем выполнять простые действия.
+            ask (P_l0_a->hasEffects.interruption_stop == STATE.interruption_state) out false else {
+                conclude : true [
+                    skill="DEBUG: auto-exit interruption-2";
+                ];
+            };
+            // Если узел завершает текущее прерывание, то не запрещаем выполнять простые действия.
+            ask (P_l0_a->to_->hasEffects.interruption_stop == STATE.interruption_state) out false else {
+                conclude : true [
+                    skill="DEBUG: auto-exit interruption-3";
+                ];
+            };
+            // ^ Заплатка. !!!!!!!!!
+
             conclude : error [
                 skill="interruption_state_matches_constraint";
                 RU.explanation="Сейчас ${A} не может начать выполняться, т.к. может бы выполняться только при обычном потоке выполнения, когда отсутствует ${STATE.interruption_state}.";
