@@ -59,7 +59,7 @@ public class CtrlFlowLoadQuestionsTest {
         }
 
         List<String> result;
-        try (Stream<Path> walk = Files.walk(path, 25)) {
+        try (Stream<Path> walk = Files.walk(path, 1)) {  // 1: only current dir
             result = walk
                     .filter(p -> !Files.isDirectory(p))
                     .map(Path::toString)

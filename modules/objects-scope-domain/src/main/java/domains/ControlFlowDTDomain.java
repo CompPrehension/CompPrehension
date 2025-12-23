@@ -283,6 +283,10 @@ public class ControlFlowDTDomain extends DecisionTreeReasoningDomain {
                     );
                 }
             }
+            ///
+            // System.out.println(STATE.getDefinedPropertyValues().stream().map(Statement::toString).collect(Collectors.joining()));
+            ///
+
             // Выставляем итоговые переменные
             questionModel.getVariables().add(new VariableDef("A", A.getName()));
             questionModel.getVariables().add(new VariableDef("L0", L0.getName()));
