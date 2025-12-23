@@ -87,6 +87,32 @@ public class ControlFlowDTDomain extends DecisionTreeReasoningDomain {
         addSkill("are_condition_evaluation_required_in_path", Skill.FLAG_VISIBLE_TO_TEACHER);
         addSkill("many_actions_in_require_selection", Skill.FLAG_VISIBLE_TO_TEACHER);
 
+        // Skills from decision tree leaves
+        addSkill("path_nowhere_for_A", Skill.FLAG_VISIBLE_TO_TEACHER);
+        addSkill("refer_execution_history", Skill.FLAG_VISIBLE_TO_TEACHER);
+        addSkill("repeat_twice", Skill.FLAG_VISIBLE_TO_TEACHER);
+        addSkill("continue_candidate_path", Skill.FLAG_VISIBLE_TO_TEACHER);
+        addSkill("patch_stop_as_true", Skill.FLAG_VISIBLE_TO_TEACHER);
+        addSkill("auto_exit_interruption", Skill.FLAG_VISIBLE_TO_TEACHER);
+        addSkill("auto_exit_interruption_2", Skill.FLAG_VISIBLE_TO_TEACHER);
+        addSkill("auto_exit_interruption_3", Skill.FLAG_VISIBLE_TO_TEACHER);
+        addSkill("interruption_state_matches_constraint_100", Skill.FLAG_VISIBLE_TO_TEACHER);
+        addSkill("interruption_continues_mode_1", Skill.FLAG_VISIBLE_TO_TEACHER);
+        addSkill("interruption_continues_in_body", Skill.FLAG_VISIBLE_TO_TEACHER);
+        addSkill("interruption_continues_not_run", Skill.FLAG_VISIBLE_TO_TEACHER);
+        addSkill("interruption_correct", Skill.FLAG_VISIBLE_TO_TEACHER);
+        addSkill("interruption_early_end", Skill.FLAG_VISIBLE_TO_TEACHER);
+        addSkill("too_early_skipped_condition", Skill.FLAG_VISIBLE_TO_TEACHER);
+        addSkill("too_early_skipped_action", Skill.FLAG_VISIBLE_TO_TEACHER);
+        addSkill("interruption_state_matches_constraint_true", Skill.FLAG_VISIBLE_TO_TEACHER);
+        addSkill("interruption_state_matches_constraint_false", Skill.FLAG_VISIBLE_TO_TEACHER);
+        addSkill("ep_cycle_continue", Skill.FLAG_VISIBLE_TO_TEACHER);
+        addSkill("interruption_state_matches_constraint_body", Skill.FLAG_VISIBLE_TO_TEACHER);
+        addSkill("condition_value_allows_transition_null", Skill.FLAG_VISIBLE_TO_TEACHER);
+        addSkill("condition_value_allows_transition_false", Skill.FLAG_VISIBLE_TO_TEACHER);
+        addSkill("condition_value_allows_transition_body", Skill.FLAG_VISIBLE_TO_TEACHER);
+        addSkill("is_function_call_ended_at_time", Skill.FLAG_VISIBLE_TO_TEACHER);
+
         fillSkillTree();
 
         // assign mask bits to Skills
@@ -931,6 +957,30 @@ public class ControlFlowDTDomain extends DecisionTreeReasoningDomain {
         name2bit.put("two_execution_points_has_path", 0x80L);    // (128)
         name2bit.put("are_condition_evaluation_required_in_path", 0x100L);      // (256)
         name2bit.put("many_actions_in_require_selection", 0x200L);     // (512)
+        name2bit.put("path_nowhere_for_A", 0x400L);     // (1024)
+        name2bit.put("refer_execution_history", 0x800L);     // (2048)
+        name2bit.put("repeat_twice", 0x1000L);     // (4096)
+        name2bit.put("continue_candidate_path", 0x2000L);     // (8192)
+        name2bit.put("patch_stop_as_true", 0x4000L);     // (16384)
+        name2bit.put("auto_exit_interruption", 0x8000L);     // (32768)
+        name2bit.put("auto_exit_interruption_2", 0x10000L);     // (65536)
+        name2bit.put("auto_exit_interruption_3", 0x20000L);     // (131072)
+        name2bit.put("interruption_state_matches_constraint_100", 0x40000L);     // (262144)
+        name2bit.put("interruption_continues_mode_1", 0x80000L);     // (524288)
+        name2bit.put("interruption_continues_in_body", 0x100000L);     // (1048576)
+        name2bit.put("interruption_continues_not_run", 0x200000L);     // (2097152)
+        name2bit.put("interruption_correct", 0x400000L);     // (4194304)
+        name2bit.put("interruption_early_end", 0x800000L);     // (8388608)
+        name2bit.put("too_early_skipped_condition", 0x1000000L);     // (16777216)
+        name2bit.put("too_early_skipped_action", 0x2000000L);     // (33554432)
+        name2bit.put("interruption_state_matches_constraint_true", 0x4000000L);     // (67108864)
+        name2bit.put("interruption_state_matches_constraint_false", 0x8000000L);     // (134217728)
+        name2bit.put("ep_cycle_continue", 0x10000000L);     // (268435456)
+        name2bit.put("interruption_state_matches_constraint_body", 0x20000000L);     // (536870912)
+        name2bit.put("condition_value_allows_transition_null", 0x40000000L);     // (1073741824)
+        name2bit.put("condition_value_allows_transition_false", 0x80000000L);     // (2147483648)
+        name2bit.put("condition_value_allows_transition_body", 0x100000000L);     // (4294967296)
+        name2bit.put("is_function_call_ended_at_time", 0x200000000L);     // (8589934592)
         return name2bit;
     }
 
