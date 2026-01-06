@@ -12,6 +12,14 @@ tree CtrlFlow(L0: TraceAct, A: TraceAct, STATE: State) {
         true -> out;
 
         false -> {
+            // Проверить, - может быть, в действительности ответ был правильным, сравнением на равенство с корректным.
+            ask (A->hasCFGNode == ExpectedCallAct->hasCFGNode) out false else {
+                conclude: correct [
+                    skill="unknown_correct";
+                    RU.explanation="Безошибочно.";
+                ];
+            };
+
             conclude : error [
                 skill = "DEBUG: final error.";
             ];
@@ -421,6 +429,14 @@ agg and {
     };
 
 
+
+    // Проверить, - может быть, в действительности ответ был неправильным, сравнением на равенство с корректным.
+    ask (A->hasCFGNode == ExpectedCallAct->hasCFGNode) out true else {
+        conclude: error [
+            skill="unknown_incorrect";
+            RU.explanation="Вид ошибки не удалось определить.";
+        ];
+    };
 
     conclude : correct [
         skill="selected_transition_without_any_constraint";
