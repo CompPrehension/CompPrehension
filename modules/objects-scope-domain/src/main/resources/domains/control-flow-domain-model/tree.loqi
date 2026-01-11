@@ -396,7 +396,7 @@ agg and {
         out false else {
             // ДА: Вернулись в нужный вызов.
             // TODO: Добавить скилл is_function_call_jumping_correct как корректно применённый.
-            conclude : null;
+            conclude : true;
         };
         conclude : error [
             skill="is_function_call_jumping_correct";
