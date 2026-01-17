@@ -6,8 +6,10 @@ tree CtrlFlow(L0: TraceAct, A: TraceAct, STATE: State) {
     //  Для каждого пути от L0 до A
     // (ищем допустимый вариант применения пути, -- достаточно одного правильно применённого пути: OR)
 
-    cycle or (forAll PathInfo p [$p=>from_(L0->hasCFGNode) and $p=>to_(A->hasCFGNode)] {$p=>from_(L0->hasCFGNode) and $p=>to_(A->hasCFGNode)}) with PathInfo P_l0_a {
-    // cycle or (forAll PathInfo p {$p=>from_(L0->hasCFGNode) and $p=>to_(A->hasCFGNode)}) with PathInfo P_l0_a {
+    cycle or ($P_l0_a=>from_(L0->hasCFGNode) and $P_l0_a=>to_(A->hasCFGNode)) with PathInfo P_l0_a
+    // cycle or (forAll PathInfo p [$p=>from_(L0->hasCFGNode) and $p=>to_(A->hasCFGNode)] {$p=>from_(L0->hasCFGNode) and $p=>to_(A->hasCFGNode)}) with PathInfo P_l0_a
+    // cycle or (forAll PathInfo p {$p=>from_(L0->hasCFGNode) and $p=>to_(A->hasCFGNode)}) with PathInfo P_l0_a
+    {
 
         true -> out;
 
@@ -155,11 +157,14 @@ ask (STATE.interruption_state != InterruptionType:no_interruption) {
             // Может ли эффект остановки прерывания пути P остановить текущее прерывание ?
             // покрывает: или == STATE, или generic_interruption, или any
 
-            cycle and (forAll Effect ef [P_l0_a=>hasEffects($ef)] {(
-                    $ef.interruption_stop == STATE.interruption_state or
-                    $ef.interruption_stop == InterruptionType:generic_interruption or
-                    $ef.interruption_stop == InterruptionType:any
-                )}) with Effect ThisPathEffect {
+            cycle and (P_l0_a=>hasEffects($ThisPathEffect)
+                and (
+                    $ThisPathEffect.interruption_stop == STATE.interruption_state
+                      or
+                    $ThisPathEffect.interruption_stop == InterruptionType:generic_interruption
+                      or
+                    $ThisPathEffect.interruption_stop == InterruptionType:any
+                )) with Effect ThisPathEffect {
 
                 true -> {
                     conclude : error [
@@ -176,7 +181,7 @@ ask (STATE.interruption_state != InterruptionType:no_interruption) {
 
                     conclude : error [
                         skill="interruption_continues_in_body";
-                        RU.explanation="${STATE.interruption_state} не может окончиться здесь, чтобы перейти к ${A}. Сейчас происходит не ${ThisPathEffect.interruption_stop}.";
+                        RU.explanation="${STATE.interruption_state} не может окончиться здесь, чтобы перейти к ${A}. Сейчас происходит ${ThisPathEffect.interruption_stop}.";
                     ];
                 };
             };
@@ -296,7 +301,10 @@ agg and {
         // Найти (другой) прямой путь из L0, который применим при отсутствии прерывания
         // → EP (Expected Path)
 
-        cycle and (forAll PathInfo ep [$ep=>from_(P_l0_a->from_)] {$ep.is_direct and ($ep->hasConstraints.interruption_mode == InterruptionType:any or $ep->hasConstraints.interruption_mode == STATE.interruption_state)}) with PathInfo EP {
+        cycle and ($EP=>from_(P_l0_a->from_) and $EP.is_direct
+            and ($EP->hasConstraints.interruption_mode == InterruptionType:any
+              or
+            $EP->hasConstraints.interruption_mode == STATE.interruption_state)) with PathInfo EP {
 
             null -> {conclude : false [  // try avoid error here -- когда цикл ни разу не сработал, и просто дублируем сообщение из false-выхода.
                 skill="interruption_state_matches_constraint_true";
@@ -350,7 +358,7 @@ agg and {
 
         // Найти (другой) путь из L0, который проходит по ограничению условия в текущей ситуации
         // → EP (Expected Path)
-        cycle and (forAll PathInfo ep2 [$ep2=>from_(P_l0_a->from_)] {L0.condition_value == $ep2->hasConstraints.condition_value}) with PathInfo EP2 {
+        cycle and ($EP2=>from_(P_l0_a->from_) and L0.condition_value == $EP2->hasConstraints.condition_value) with PathInfo EP2 {
 
             null -> {conclude : false [  // try avoid error here -- когда цикл ни разу не сработал, и просто дублируем сообщение из false-выхода.
                 skill="condition_value_allows_transition_null";
