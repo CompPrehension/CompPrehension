@@ -73,24 +73,6 @@ tree CtrlFlow(L0: TraceAct, A: TraceAct, STATE: State) {
 // ============ BEGIN of main path P processing ============
 
 
-///
-ask ((P_l0_a->from_ == L0->hasCFGNode) and (P_l0_a->to_ == A->hasCFGNode)) out true else {
-
-    conclude : null [
-        skill="continue_candidate_path";
-    ];
-};
-
-
-// ///
-// ask (true) out false else {
-
-//     conclude : correct [
-//         skill="DEBUGGUNG";
-//     ];
-// };
-// ///
-
 
 // Проверка прерывания.
 // --------------------
@@ -199,7 +181,7 @@ ask (STATE.interruption_state != InterruptionType:no_interruption) {
 
         // Является ли A завершением некоторого действия, вызванного ранее и ещё не завершившегося
         // (и т. обр. являющегося родительским для L0)?
-        /// (pa = previous act)
+        // (pa = previous act)
             ask (forAny TraceAct pa {
                 A->hasCFGNode == $pa->hasCFGNode and
                 $pa.is_known_correct == false and
@@ -323,19 +305,6 @@ agg and {
                 RU.explanation="Когда происходит ${STATE.interruption_state}, ${A} не может выполняться, т.к. для этого требуется ${P_l0_a->hasConstraints.interruption_mode}.";
             ];}
             body -> {
-
-                ///
-                // Прервать цикл, если не соответствует условию цикла (workaround).
-                    ask (EP=>from_(P_l0_a->from_) and EP.is_direct and
-                    (EP->hasConstraints.interruption_mode == InterruptionType:any or
-                        EP->hasConstraints.interruption_mode == STATE.interruption_state)
-                    ) out true else {
-
-                    conclude : null [
-                        skill="ep_cycle_continue";
-                    ];
-                };
-
 
                 conclude : error [
                     skill="interruption_state_matches_constraint_body";
