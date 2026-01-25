@@ -297,7 +297,6 @@ public class DecisionTreeReasonerBackend
             List<DecisionTreeTraceElement<?, ?>> traceElements = nestedTraceElements(backendOutput.results);
 
             InterpretSentenceResult result = new InterpretSentenceResult();
-            result.isAnswerCorrect = isCorrectAnswer(backendOutput.results);
             result.decisionTreeTrace = backendOutput.results;
             for (DecisionTreeTraceElement<?,?> res : traceElements) {
                 String[] resSkill = res.getNode().getMetadata().containsAny("skill") && res.getNode().getMetadata().get("skill") != null ?
@@ -331,6 +330,7 @@ public class DecisionTreeReasonerBackend
                     .collect(Collectors.toList());
             result.violations = mistakes;
             result.correctlyAppliedLaws = new ArrayList<>();
+            result.isAnswerCorrect = isCorrectAnswer(backendOutput.results) && mistakes.isEmpty();
             return result;
         }
 
