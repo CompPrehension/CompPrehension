@@ -893,7 +893,7 @@ public class ControlFlowDTDomain extends DecisionTreeReasoningDomain {
                 } else if (localePronoun.equals("she")) {
                     rawNameSuffix = ".she";
                 }
-                if (localeTraceName.equals("condition")) {
+                if (localeTraceName.startsWith("condition")) {
                     String conditionEnumValue = ((EnumValueRef) object.getPropertyValue("condition_value", Map.of())).getValueName();
                     if (conditionEnumValue.equals("true") || conditionEnumValue.equals("false")) {
                         condition = " - ".concat(htmlStyleFormat(getMessage("trace.condition.%s".formatted(conditionEnumValue), lang), "atom"));
