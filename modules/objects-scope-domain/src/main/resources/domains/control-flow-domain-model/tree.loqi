@@ -335,7 +335,7 @@ agg and {
 
         // Найти (другой) путь из L0, который проходит по ограничению условия в текущей ситуации
         // → EP (Expected Path)
-        cycle and ($EP2=>from_(P_l0_a->from_) and L0.condition_value == $EP2->hasConstraints.condition_value) with PathInfo EP2 {
+        cycle and ($EP2=>from_(P_l0_a->from_) and $EP2.is_direct == true and L0.condition_value == $EP2->hasConstraints.condition_value) with PathInfo EP2 {
 
             null -> {conclude : false [  // try avoid error here -- когда цикл ни разу не сработал, и просто дублируем сообщение из false-выхода.
                 skill="condition_value_allows_transition_null";
