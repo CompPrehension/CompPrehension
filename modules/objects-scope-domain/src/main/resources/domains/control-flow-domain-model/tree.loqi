@@ -33,7 +33,7 @@ tree CtrlFlow(L0: TraceAct, A: TraceAct, STATE: State) {
             // Действие A выполнено два раза подряд (A == L0) ?
             ask (L0->hasCFGNode == A->hasCFGNode) out false else {
                 conclude: error [
-                    skill="repeat_twice";
+                    skill="current_execution_point_understood";
                     RU.explanation="${A}: уже выполнилось и не должно выполняться два раза подряд.";
                 ];
             };
@@ -43,7 +43,7 @@ tree CtrlFlow(L0: TraceAct, A: TraceAct, STATE: State) {
             ask (forAny PathInfo p4 {A->hasCFGNode=>startsPath($p4) and $p4->to_ == L0->hasCFGNode}) out true else {
                 // НЕТ: дальше проверять нет смысла.
                 conclude: error [
-                    skill="path_nowhere_for_A";
+                    skill="current_code_block_identified";
                     RU.explanation="${A} не может выполняться сейчас, т.к. по логике выполнения программы находится слишком далеко от текущей позиции ${L0}.";
                 ];
             };
@@ -53,14 +53,14 @@ tree CtrlFlow(L0: TraceAct, A: TraceAct, STATE: State) {
                 // Действие не было выполнено в трассе, т.е. не имеет акта.
                 // Не было и не будет в ближайшей перспективе.
                 conclude: error [
-                    skill="refer_execution_history";
+                    skill="unevaluated_conditions_between_points_present";
                     RU.explanation="В программе всё выполняется одно за другим. После ${L0} действие ${A} уже не может выполниться.";
                 ];
             };
 
             // Действие А выполнялось в недалёком прошлом.
             conclude: error [
-                skill="two_execution_points_has_path";
+                skill="unevaluated_conditions_between_points_present";
                 RU.explanation="Действие ${A} уже выполнилось и не должно выполняться повторно.";
                 ];
 
@@ -99,26 +99,26 @@ ask (STATE.interruption_state != InterruptionType:no_interruption) {
             // Если путь завершает текущее прерывание, то не запрещаем выполнять простые действия.
             ask (forAny Effect peff {P_l0_a=>hasEffects($peff) and ($peff.interruption_stop == STATE.interruption_state)}) out false else {
                 conclude : true [
-                    skill="auto_exit_interruption";
+                    skill="patch_auto_exit_interruption";
                 ];
             };
 
             // Если путь завершает текущее прерывание, то не запрещаем выполнять простые действия.
             ask (P_l0_a->hasEffects.interruption_stop == STATE.interruption_state) out false else {
                 conclude : true [
-                    skill="auto_exit_interruption_2";
+                    skill="patch_auto_exit_interruption_2";
                 ];
             };
             // Если узел завершает текущее прерывание, то не запрещаем выполнять простые действия.
             ask (P_l0_a->to_->hasEffects.interruption_stop == STATE.interruption_state) out false else {
                 conclude : true [
-                    skill="auto_exit_interruption_3";
+                    skill="path_auto_exit_interruption_3";
                 ];
             };
             // ^ Заплатка. !!!!!!!!!
 
             conclude : error [
-                skill="interruption_state_matches_constraint_100";
+                skill="transition_matches_interruption_mode";
                 RU.explanation="Сейчас ${A} не может начать выполняться, т.к. могло бы выполняться только при обычном потоке выполнения, когда отсутствует ${STATE.interruption_state}.";
             ];
         };
@@ -130,7 +130,7 @@ ask (STATE.interruption_state != InterruptionType:no_interruption) {
 
             ask (forAny Effect ef {P_l0_a=>hasEffects($ef) and $ef.interruption_stop != InterruptionType:no_interruption}) out true else {
                 conclude : error [
-                    skill="interruption_continues_mode_1";
+                    skill="interruption_termination_recognized";
                     RU.explanation="Когда происходит ${STATE.interruption_state}, могут только завершаться составные действия; ${A} не может начать выполняться.";
                 ];
             };
@@ -189,7 +189,7 @@ ask (STATE.interruption_state != InterruptionType:no_interruption) {
                 $cb.is_known_correct == true})
             }) out true else {
             conclude : error [
-                skill="interruption_continues_not_run";
+                skill="early_exit_from_compound_detected";
                 RU.explanation="Когда происходит ${STATE.interruption_state}, могут завершаться только уже начавшиеся действия; ${A} сейчас не выполняется.";
             ];
         };
@@ -201,13 +201,13 @@ ask (STATE.interruption_state != InterruptionType:no_interruption) {
             // Проверить, - ожидался ли именно этот выход?
             ask (A->hasCFGNode == ExpectedCallAct->hasCFGNode) out true else {
                 conclude: error [
-                    skill="interruption_incorrect";
+                    skill="applicable_compound_exit_determined";
                     RU.explanation="${STATE.interruption_state} в этот раз не может привести в ${A}";
                 ];
             };
 
             conclude : correct [
-                skill="interruption_correct";
+                skill="applicable_compound_exit_determined";
                 RU.explanation="${STATE.interruption_state} после действия ${L0} применен(о) верно.";
             ];
         };
@@ -215,7 +215,7 @@ ask (STATE.interruption_state != InterruptionType:no_interruption) {
         // (Найти первое из пропущенных действий на пути P -- это hasFirstMiddleAction)
 
         conclude : error [
-            skill="interruption_early_end";
+            skill="multiple_compound_exit_order_understood";
             RU.explanation="Когда происходит ${STATE.interruption_state}, ожидается завершение начавшихся действий; прежде чем завершать ${A}, нужно сначала завершить ${P_l0_a->hasFirstMiddleAction}.";
         ];
     };
@@ -247,7 +247,7 @@ ask (P_l0_a.is_direct) out true else {
         // Найти первое непрозрачное УСЛОВИЕ на пути P...
 
         conclude : error [
-            skill="too_early_skipped_condition";
+            skill="unevaluated_conditions_between_points_present";
             RU.explanation="Прежде чем ${A} сможет выполниться, как минимум, должно быть вычислено условие ${P_l0_a->hasFirstMiddleCondition}.";
         ];
     };
@@ -255,7 +255,7 @@ ask (P_l0_a.is_direct) out true else {
     // Найти первое непрозрачное Действие на пути P...
 
     conclude : error [
-        skill="too_early_skipped_action";
+        skill="unevaluated_conditions_between_points_present";
         RU.explanation="Действия выполняются последовательно; прежде чем выполнять ${A}, сначала должно произойти ${P_l0_a->hasFirstMiddleAction}.";
     ];
 };
@@ -278,14 +278,18 @@ agg and {
         // Входное ограничение на режим прерывания пути P равно ANY (применимо в любом случае) ?
 
         ask (P_l0_a->hasConstraints.interruption_mode == InterruptionType:any) out false else {
-            conclude : true;
+            conclude : true [
+                skill = "transition_applicable_regardless_interruption";
+            ];
         };
 
         // Входное ограничение на режим прерывания пути P равно текущему или совместимо с ним ?
         ask (STATE.interruption_state == P_l0_a->hasConstraints.interruption_mode or
             P_l0_a->hasConstraints.interruption_mode == InterruptionType:generic_interruption
             ) out false else {
-            conclude: true;
+            conclude: true [
+                skill = "interruption_type_matched";
+            ];
         };
 
         // Найти (другой) прямой путь из L0, который применим при отсутствии прерывания
@@ -297,17 +301,15 @@ agg and {
             $EP->hasConstraints.interruption_mode == STATE.interruption_state)) with PathInfo EP {
 
             null -> {conclude : false [  // try avoid error here -- когда цикл ни разу не сработал, и просто дублируем сообщение из false-выхода.
-                skill="interruption_state_matches_constraint_true";
+                skill="applicable_transition_with_interruption_found";
                 RU.explanation="Когда происходит ${STATE.interruption_state}, ${A} не может выполняться, т.к. для этого требуется ${P_l0_a->hasConstraints.interruption_mode}.";
             ];}
             false -> {conclude : error [
-                skill="interruption_state_matches_constraint_false";
+                skill="applicable_transition_with_interruption_found";
                 RU.explanation="Когда происходит ${STATE.interruption_state}, ${A} не может выполняться, т.к. для этого требуется ${P_l0_a->hasConstraints.interruption_mode}.";
             ];}
             body -> {
-
                 conclude : error [
-                    skill="interruption_state_matches_constraint_body";
                     RU.explanation="Когда происходит ${STATE.interruption_state}, должно выполниться действие ${EP->to_}, но не ${A}";
                 ];
             }
@@ -323,14 +325,18 @@ agg and {
         // Наложены ли на маршрут ограничения на значение условия?
         ask (forAny Constraint c {P_l0_a=>hasConstraints($c)} and P_l0_a->hasConstraints.condition_value != OptionalBoolValue:no_value) out true else {
             // НЕТ: дальше проверять нет смысла.
-            conclude : true;
+            conclude : true [
+                skill = "action_is_condition_recognized";
+            ];
         };
         // Совпадает ли значение текущего условия с ожидаемым условием для маршрута P ?
         ask (L0.condition_value == P_l0_a->hasConstraints.condition_value)
         out false else {
             // ДА: ошибки нет.
             // TODO: Добавить скилл condition_value_allows_transition (здесь он применён правильно)
-            conclude : true;
+            conclude : true [
+                skill = "required_condition_value_determined";
+            ];
         };
 
         // Найти (другой) путь из L0, который проходит по ограничению условия в текущей ситуации
@@ -338,16 +344,15 @@ agg and {
         cycle and ($EP2=>from_(P_l0_a->from_) and $EP2.is_direct == true and L0.condition_value == $EP2->hasConstraints.condition_value) with PathInfo EP2 {
 
             null -> {conclude : false [  // try avoid error here -- когда цикл ни разу не сработал, и просто дублируем сообщение из false-выхода.
-                skill="condition_value_allows_transition_null";
+                skill="applicable_transition_with_condition_found";
                 RU.explanation="Когда условие ${L0} равно ${L0.condition_value} ${A} не может выполняться, т.к. для этого требуется ${P_l0_a->hasConstraints.condition_value} в условии.";
             ];}
             false -> {conclude : error [
-                skill="condition_value_allows_transition_false";
+                skill="applicable_transition_with_condition_found";
                 RU.explanation="Когда ${L0} равно ${L0.condition_value}, ${A} не может выполняться, т.к. для этого требуется ${P_l0_a->hasConstraints.condition_value} в условии.";
             ];}
             body -> {
                 conclude : error [
-                    skill="condition_value_allows_transition_body";
                     RU.explanation="Когда ${L0} равно ${L0.condition_value}, может выполняться ${EP2->to_}, но не ${A}.";
                 ];
             }
@@ -362,7 +367,9 @@ agg and {
         // Является ли А завершением вызова некоторой функции?
         ask (A->hasASTNode.ast_node == "function_call" and A->hasCFGNode.kind == NodeKind:END) out true else {
             // НЕТ: Дальше не проверяем.
-            conclude : true;
+            conclude : true [
+                skill = "action_is_function_call_recognized";
+            ];
         };
         // Является ли А завершением именно самого близкого по трассе к L0 вызова этой же функции ( который при этом не имел на завершения?)
         // var closerCall : TraceAct = findExtreme func [$func=>isCloserToThan($act, L0) and $func->hasASTNode== A->hasASTNode and $func.is_known_correct
@@ -374,7 +381,7 @@ agg and {
         // Сейчас ожидалось завершение вызова функции? (Тупо используем ожидаемый узел из трассы).
         ask (ExpectedCallAct->hasASTNode.ast_node == "function_call" and ExpectedCallAct->hasCFGNode.kind == NodeKind:END) out true else {
             conclude : error [
-                skill="is_function_call_ended_at_time";
+                skill="function_body_completion_determined";
                 RU.explanation="Функция не может завершиться сейчас. Вместо ${A} нужно завершить ${ExpectedCallAct->hasCFGNode}.";
             ];
         };
@@ -382,10 +389,12 @@ agg and {
         ask (A->hasASTNode == ExpectedCallAct->hasASTNode) out false else {
             // ДА: Вернулись в нужный вызов.
             // TODO: Добавить скилл is_function_call_jumping_correct как корректно применённый.
-            conclude : true;
+            conclude : true [
+                skill = "nearest_function_call_in_trace_found";
+            ];
         };
         conclude : error [
-            skill="is_function_call_jumping_correct";
+            skill="nearest_function_call_in_trace_found";
             RU.explanation="При завершении вызовов сначала завершаются внутренние вызовы согласно стеку вызовов (в обратном порядке). Вместо ${A} нужно завершить ${ExpectedCallAct}.";
         ];
     };  // end of agg branch.
