@@ -147,22 +147,21 @@ ask (STATE.interruption_state != InterruptionType:no_interruption) {
                     $ThisPathEffect.interruption_stop == InterruptionType:any
                 )) with Effect ThisPathEffect {
 
-                true -> {
-                    conclude : error [
-                        skill = "DEBUG: never happens: true outcome while the loop contains error only.";
-                    ];
-                };
                 false -> {
                     conclude : error [
-                        skill = "DEBUG: interruption_continues out.";
+                        // skill = "DEBUG: never happens: true outcome while the loop contains error only.";
                     ];
                 };
-                null -> out;
-                body -> {
-
+                null -> {
                     conclude : error [
-                        skill="interruption_continues_in_body";
-                        RU.explanation="${STATE.interruption_state} не может окончиться здесь, чтобы перейти к: ${A}. Сейчас происходит ${ThisPathEffect.interruption_stop}.";
+                        skill="interruption_termination_recognized";
+                        RU.explanation="Когда происходит ${STATE.interruption_state}, могут только завершаться составные действия; ${A} не может начать выполняться.";
+                    ];
+                };
+                true -> out;
+                body -> {
+                    conclude : correct [
+                        // skill="interruption_continues_in_body";
                     ];
                 };
             };
@@ -172,7 +171,8 @@ ask (STATE.interruption_state != InterruptionType:no_interruption) {
 
             conclude : correct [
                 // Прерывание пройдено верно.
-                skill = "interruption_state_matches_constraint";
+                skill = "interruption_can_be_terminated_determined"; // skill#20
+                RU.explanation="${STATE.interruption_state} корректно завершен(о).";
             ];
         };
 
