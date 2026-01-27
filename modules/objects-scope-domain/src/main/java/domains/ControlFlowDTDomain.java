@@ -119,6 +119,88 @@ public class ControlFlowDTDomain extends DecisionTreeReasoningDomain {
         }
     }
 
+    private Concept addConcept(String name, List<Concept> baseConcepts, String displayName, int flags) {
+        Concept concept = new Concept(name, /*displayName,*/ baseConcepts, flags);
+        return addConcept(concept);
+    }
+
+    private Concept addConcept(String name, List<Concept> baseConcepts) {
+        Concept concept = new Concept(name, baseConcepts);
+        return addConcept(concept);
+    }
+
+    private Concept addConcept(String name) {
+        Concept concept = new Concept(name);
+        return addConcept(concept);
+    }
+
+    private void fillConcepts() {
+        concepts = new HashMap<>();
+
+        int flags = Concept.FLAG_VISIBLE_TO_TEACHER | Concept.FLAG_TARGET_ENABLED;
+        int invisible = Concept.FLAG_TARGET_ENABLED;
+        int noFlags = Concept.DEFAULT_FLAGS;
+
+        Concept exprs = addConcept("expressions");
+        Concept pointers = addConcept("pointers", List.of(exprs), flags);
+        Concept bitwise = addConcept("bitwise", List.of(exprs), flags);
+        Concept memberAccess = addConcept("member_access", List.of(exprs), flags);
+        Concept arrays = addConcept("arrays", List.of(exprs), flags);
+        Concept cast = addConcept("type_casts", List.of(exprs), flags);
+        Concept io = addConcept("io", List.of(exprs), flags);
+        Concept logical = addConcept("logical", List.of(exprs), flags);
+        Concept arithmetic = addConcept("arithmetic", List.of(exprs), flags);
+        Concept ternary = addConcept("ternary_conditions", List.of(exprs), flags);
+        Concept functionCall = addConcept("function_call", List.of(exprs));
+        Concept libFunctionCall = addConcept("lib_function_call", List.of(functionCall), flags);     // функции в задаче нет
+        Concept programFunctionCall = addConcept("program_function_call", List.of(functionCall), flags); // функция определена в задаче
+
+        Concept plain = addConcept("plain_statements");
+        Concept var_decl = addConcept("var_declaration", List.of(plain), flags);
+        Concept assignment = addConcept("assignment", List.of(plain), flags);
+        Concept breakStmt = addConcept("break", List.of(plain), flags);
+        Concept continueStmt = addConcept("continue", List.of(plain), flags);
+        Concept retStmt = addConcept("return", List.of(plain), flags);
+        Concept delStmt = addConcept("delete", List.of(plain), flags);
+
+        Concept structures = addConcept("structures");
+        Concept function = addConcept("function", List.of(structures), flags);
+        Concept struct = addConcept("structure", List.of(structures), flags);
+        Concept oop = addConcept("objects", List.of(structures), flags);
+        Concept cls = addConcept("class", List.of(oop), invisible);
+        Concept field = addConcept("field", List.of(oop), invisible);
+        Concept method = addConcept("method", List.of(oop), invisible);
+
+        Concept loops = addConcept("loops");
+        Concept forLoop = addConcept("for_loop", List.of(loops));
+        Concept forGeneralLoop = addConcept("general_for_loop", List.of(forLoop), flags);
+        Concept forRangeLoop = addConcept("range_for_loop", List.of(forGeneralLoop), flags);
+        Concept forEachLoop = addConcept("for_each_loop", List.of(forLoop), flags);
+        Concept whileLoop = addConcept("while_loop", List.of(loops), flags);
+        Concept doWhileLoop = addConcept("do_while_loop", List.of(loops), flags);
+        Concept infiniteLoop = addConcept("infinite_loop", List.of(loops), flags);
+
+
+        Concept branches = addConcept("branches");
+        Concept ifStmt = addConcept("if", List.of(branches), flags);
+        Concept elseStmt = addConcept("else", List.of(branches), flags);
+        Concept elseIfStmt = addConcept("elseif", List.of(branches), flags);
+        Concept switches = addConcept("switch", List.of(branches), flags);
+        Concept fallthrough = addConcept("fallthrough_case", List.of(switches), flags);
+        Concept defaultCaseBlock = addConcept("default_case", List.of(switches), flags);
+
+        fillConceptTree();
+
+        // assign mask bits to Concepts
+        val name2bit = _getConceptsName2bit();
+        for (Concept t : concepts.values()) {
+            val name = t.getName();
+            if (name2bit.containsKey(name)) {
+                t.setBitmask(name2bit.get(name));
+            }
+        }
+    }
+
     /** Set direct children to skills. This is needed since parents (bases) of skills are stored only */
     protected void fillSkillTree() {
         for (Skill skill : skills.values()) {
@@ -407,6 +489,7 @@ public class ControlFlowDTDomain extends DecisionTreeReasoningDomain {
         this.positiveLaws = Map.of();
         this.negativeLaws = Map.of();
         fillSkills();
+        fillConcepts();
     }
 
     @Override
@@ -985,5 +1068,55 @@ public class ControlFlowDTDomain extends DecisionTreeReasoningDomain {
     @Override
     protected List<Question> getQuestionTemplates() {
         return List.of();
+    }
+
+    private HashMap<String, Long> _getConceptsName2bit() {
+        HashMap<String, Long> name2bit = new HashMap<>(30);
+
+        // Expressions with flags
+        name2bit.put("pointers", 0x1L);                    // 1
+        name2bit.put("bitwise", 0x2L);                     // 2
+        name2bit.put("member_access", 0x4L);               // 4
+        name2bit.put("arrays", 0x8L);                      // 8
+        name2bit.put("type_casts", 0x10L);                 // 16
+        name2bit.put("io", 0x20L);                         // 32
+        name2bit.put("logical", 0x40L);                    // 64
+        name2bit.put("arithmetic", 0x80L);                 // 128
+        name2bit.put("ternary_conditions", 0x100L);        // 256
+        name2bit.put("lib_function_call", 0x200L);         // 512
+        name2bit.put("program_function_call", 0x400L);     // 1024
+
+        // Plain statements with flags
+        name2bit.put("var_declaration", 0x800L);           // 2048
+        name2bit.put("assignment", 0x1000L);               // 4096
+        name2bit.put("break", 0x2000L);                    // 8192
+        name2bit.put("continue", 0x4000L);                 // 16384
+        name2bit.put("return", 0x8000L);                   // 32768
+        name2bit.put("delete", 0x10000L);                  // 65536
+
+        // Structures with flags and invisible
+        name2bit.put("function", 0x20000L);                // 131072
+        name2bit.put("structure", 0x40000L);               // 262144
+        name2bit.put("class", 0x80000L);                   // 524288 (invisible)
+        name2bit.put("field", 0x100000L);                  // 1048576 (invisible)
+        name2bit.put("method", 0x200000L);                 // 2097152 (invisible)
+
+        // Loops with flags
+        name2bit.put("general_for_loop", 0x400000L);       // 4194304
+        name2bit.put("range_for_loop", 0x800000L);         // 8388608
+        name2bit.put("for_each_loop", 0x1000000L);         // 16777216
+        name2bit.put("while_loop", 0x2000000L);            // 33554432
+        name2bit.put("do_while_loop", 0x4000000L);         // 67108864
+        name2bit.put("infinite_loop", 0x8000000L);         // 134217728
+
+        // Branches with flags
+        name2bit.put("if", 0x10000000L);                   // 268435456
+        name2bit.put("else", 0x20000000L);                 // 536870912
+        name2bit.put("elseif", 0x40000000L);               // 1073741824
+        name2bit.put("switch", 0x80000000L);               // 2147483648
+        name2bit.put("fallthrough_case", 0x100000000L);    // 4294967296
+        name2bit.put("default_case", 0x200000000L);        // 8589934592
+
+        return name2bit;
     }
 }
