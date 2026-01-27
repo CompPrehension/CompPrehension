@@ -20,9 +20,7 @@ tree CtrlFlow(L0: TraceAct, A: TraceAct, STATE: State) {
                 ];
             };
 
-            conclude : error [
-                // skill = "DEBUG: final error.";
-            ];
+            conclude : error; //final error
         };
 
         null -> {
@@ -142,9 +140,7 @@ ask (STATE.interruption_state != InterruptionType:no_interruption) {
                 )) with Effect ThisPathEffect {
 
                 false -> {
-                    conclude : error [
-                        // skill = "DEBUG: never happens: true outcome while the loop contains error only.";
-                    ];
+                    conclude : error; // never happens: true outcome while the loop contains error only
                 };
                 null -> {
                     conclude : error [
@@ -154,9 +150,7 @@ ask (STATE.interruption_state != InterruptionType:no_interruption) {
                 };
                 true -> out;
                 body -> {
-                    conclude : correct [
-                        // skill="interruption_continues_in_body";
-                    ];
+                    conclude : correct; // skill="interruption_continues_in_body";
                 };
             };
 
@@ -165,7 +159,7 @@ ask (STATE.interruption_state != InterruptionType:no_interruption) {
 
             conclude : correct [
                 // Прерывание пройдено верно.
-                skill = "interruption_can_be_terminated_determined"; // skill#20
+                skill = "interruption_can_be_terminated_determined";
                 RU.explanation="${STATE.interruption_state} корректно завершен(о).";
             ];
         };

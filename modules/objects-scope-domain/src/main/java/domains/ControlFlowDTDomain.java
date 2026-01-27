@@ -76,42 +76,34 @@ public class ControlFlowDTDomain extends DecisionTreeReasoningDomain {
     private void fillSkills() {
         skills = new HashMap<>();
 
-        addSkill("compound_constructs_present", Skill.FLAG_VISIBLE_TO_TEACHER);
-        addSkill("is_in_compound_construct_ending", Skill.FLAG_VISIBLE_TO_TEACHER);
-        addSkill("is_in_nested_construct", Skill.FLAG_VISIBLE_TO_TEACHER);
-        addSkill("selected_transition_without_any_constraint", Skill.FLAG_VISIBLE_TO_TEACHER);
-        addSkill("interruption_state_matches_constraint", Skill.FLAG_VISIBLE_TO_TEACHER);
-        addSkill("condition_value_allows_transition", Skill.FLAG_VISIBLE_TO_TEACHER);
-        addSkill("is_function_call_jumping_correct", Skill.FLAG_VISIBLE_TO_TEACHER);
-        addSkill("two_execution_points_has_path", Skill.FLAG_VISIBLE_TO_TEACHER);
-        addSkill("are_condition_evaluation_required_in_path", Skill.FLAG_VISIBLE_TO_TEACHER);
-        addSkill("many_actions_in_require_selection", Skill.FLAG_VISIBLE_TO_TEACHER);
+        addSkill("current_execution_point_understood", Skill.FLAG_VISIBLE_TO_TEACHER);
+        addSkill("current_code_block_identified", Skill.FLAG_VISIBLE_TO_TEACHER);
+        addSkill("action_execution_determined", Skill.FLAG_VISIBLE_TO_TEACHER);
+        addSkill("unevaluated_conditions_between_points_found", Skill.FLAG_VISIBLE_TO_TEACHER);
+        addSkill("transition_applicable_regardless_interruption", Skill.FLAG_VISIBLE_TO_TEACHER);
+        addSkill("interruption_type_matched", Skill.FLAG_VISIBLE_TO_TEACHER);
+        addSkill("applicable_transition_with_interruption_found", Skill.FLAG_VISIBLE_TO_TEACHER);
+        addSkill("action_is_condition_recognized", Skill.FLAG_VISIBLE_TO_TEACHER);
+        addSkill("required_condition_value_determined", Skill.FLAG_VISIBLE_TO_TEACHER);
+        addSkill("applicable_transition_with_condition_found", Skill.FLAG_VISIBLE_TO_TEACHER);
+        addSkill("action_is_function_call_recognized", Skill.FLAG_VISIBLE_TO_TEACHER);
+        addSkill("function_body_completion_determined", Skill.FLAG_VISIBLE_TO_TEACHER);
+        addSkill("nearest_function_call_in_trace_found", Skill.FLAG_VISIBLE_TO_TEACHER);
+        addSkill("transition_matches_interruption_mode", Skill.FLAG_VISIBLE_TO_TEACHER);
+        addSkill("compound_structure_boundaries_identified", Skill.FLAG_VISIBLE_TO_TEACHER);
+        addSkill("early_exit_from_compound_detected", Skill.FLAG_VISIBLE_TO_TEACHER);
+        addSkill("multiple_compound_exit_order_understood", Skill.FLAG_VISIBLE_TO_TEACHER);
+        addSkill("applicable_compound_exit_determined", Skill.FLAG_VISIBLE_TO_TEACHER);
+        addSkill("interruption_termination_recognized", Skill.FLAG_VISIBLE_TO_TEACHER);
+        addSkill("interruption_can_be_terminated_determined", Skill.FLAG_VISIBLE_TO_TEACHER);
 
-        // Skills from decision tree leaves
-        addSkill("path_nowhere_for_A", Skill.FLAG_VISIBLE_TO_TEACHER);
-        addSkill("refer_execution_history", Skill.FLAG_VISIBLE_TO_TEACHER);
-        addSkill("repeat_twice", Skill.FLAG_VISIBLE_TO_TEACHER);
-        addSkill("continue_candidate_path", Skill.FLAG_VISIBLE_TO_TEACHER);
-        addSkill("patch_stop_as_true", Skill.FLAG_VISIBLE_TO_TEACHER);
-        addSkill("auto_exit_interruption", Skill.FLAG_VISIBLE_TO_TEACHER);
-        addSkill("auto_exit_interruption_2", Skill.FLAG_VISIBLE_TO_TEACHER);
-        addSkill("auto_exit_interruption_3", Skill.FLAG_VISIBLE_TO_TEACHER);
-        addSkill("interruption_state_matches_constraint_100", Skill.FLAG_VISIBLE_TO_TEACHER);
-        addSkill("interruption_continues_mode_1", Skill.FLAG_VISIBLE_TO_TEACHER);
-        addSkill("interruption_continues_in_body", Skill.FLAG_VISIBLE_TO_TEACHER);
-        addSkill("interruption_continues_not_run", Skill.FLAG_VISIBLE_TO_TEACHER);
-        addSkill("interruption_correct", Skill.FLAG_VISIBLE_TO_TEACHER);
-        addSkill("interruption_early_end", Skill.FLAG_VISIBLE_TO_TEACHER);
-        addSkill("too_early_skipped_condition", Skill.FLAG_VISIBLE_TO_TEACHER);
-        addSkill("too_early_skipped_action", Skill.FLAG_VISIBLE_TO_TEACHER);
-        addSkill("interruption_state_matches_constraint_true", Skill.FLAG_VISIBLE_TO_TEACHER);
-        addSkill("interruption_state_matches_constraint_false", Skill.FLAG_VISIBLE_TO_TEACHER);
-        addSkill("ep_cycle_continue", Skill.FLAG_VISIBLE_TO_TEACHER);
-        addSkill("interruption_state_matches_constraint_body", Skill.FLAG_VISIBLE_TO_TEACHER);
-        addSkill("condition_value_allows_transition_null", Skill.FLAG_VISIBLE_TO_TEACHER);
-        addSkill("condition_value_allows_transition_false", Skill.FLAG_VISIBLE_TO_TEACHER);
-        addSkill("condition_value_allows_transition_body", Skill.FLAG_VISIBLE_TO_TEACHER);
-        addSkill("is_function_call_ended_at_time", Skill.FLAG_VISIBLE_TO_TEACHER);
+        // для целей отладки, еще не удалены из дерева
+        addSkill("unknown_incorrect");  // неизвестная ошибка
+        addSkill("unknown_correct");   // не знает почему правильно
+        addSkill("patch_stop_as_true");
+        addSkill("patch_auto_exit_interruption");
+        addSkill("patch_auto_exit_interruption_2");
+        addSkill("patch_auto_exit_interruption_3");
 
         fillSkillTree();
 
@@ -946,41 +938,35 @@ public class ControlFlowDTDomain extends DecisionTreeReasoningDomain {
     }
 
     private HashMap<String, Long> _getSkillsName2bit() {
-        HashMap<String, Long> name2bit = new HashMap<>(16);
-        name2bit.put("compound_constructs_present", 0x1L);   // (1)
-        name2bit.put("is_in_compound_construct_ending", 0x2L);     // (2)
-        name2bit.put("is_in_nested_construct", 0x4L);   // (4)
-        name2bit.put("selected_transition_without_any_constraint", 0x8L);      // (8)
-        name2bit.put("interruption_state_matches_constraint", 0x10L);    // (16)
-        name2bit.put("condition_value_allows_transition", 0x20L);      // (32)
-        name2bit.put("is_function_call_jumping_correct", 0x40L);     // (64)
-        name2bit.put("two_execution_points_has_path", 0x80L);    // (128)
-        name2bit.put("are_condition_evaluation_required_in_path", 0x100L);      // (256)
-        name2bit.put("many_actions_in_require_selection", 0x200L);     // (512)
-        name2bit.put("path_nowhere_for_A", 0x400L);     // (1024)
-        name2bit.put("refer_execution_history", 0x800L);     // (2048)
-        name2bit.put("repeat_twice", 0x1000L);     // (4096)
-        name2bit.put("continue_candidate_path", 0x2000L);     // (8192)
-        name2bit.put("patch_stop_as_true", 0x4000L);     // (16384)
-        name2bit.put("auto_exit_interruption", 0x8000L);     // (32768)
-        name2bit.put("auto_exit_interruption_2", 0x10000L);     // (65536)
-        name2bit.put("auto_exit_interruption_3", 0x20000L);     // (131072)
-        name2bit.put("interruption_state_matches_constraint_100", 0x40000L);     // (262144)
-        name2bit.put("interruption_continues_mode_1", 0x80000L);     // (524288)
-        name2bit.put("interruption_continues_in_body", 0x100000L);     // (1048576)
-        name2bit.put("interruption_continues_not_run", 0x200000L);     // (2097152)
-        name2bit.put("interruption_correct", 0x400000L);     // (4194304)
-        name2bit.put("interruption_early_end", 0x800000L);     // (8388608)
-        name2bit.put("too_early_skipped_condition", 0x1000000L);     // (16777216)
-        name2bit.put("too_early_skipped_action", 0x2000000L);     // (33554432)
-        name2bit.put("interruption_state_matches_constraint_true", 0x4000000L);     // (67108864)
-        name2bit.put("interruption_state_matches_constraint_false", 0x8000000L);     // (134217728)
-        name2bit.put("ep_cycle_continue", 0x10000000L);     // (268435456)
-        name2bit.put("interruption_state_matches_constraint_body", 0x20000000L);     // (536870912)
-        name2bit.put("condition_value_allows_transition_null", 0x40000000L);     // (1073741824)
-        name2bit.put("condition_value_allows_transition_false", 0x80000000L);     // (2147483648)
-        name2bit.put("condition_value_allows_transition_body", 0x100000000L);     // (4294967296)
-        name2bit.put("is_function_call_ended_at_time", 0x200000000L);     // (8589934592)
+        HashMap<String, Long> name2bit = new HashMap<>(20);
+        name2bit.put("current_execution_point_understood", 0x1L);                      // 1
+        name2bit.put("current_code_block_identified", 0x2L);                           // 2
+        name2bit.put("action_execution_determined", 0x4L);                             // 4
+        name2bit.put("unevaluated_conditions_between_points_found", 0x8L);            // 8
+        name2bit.put("transition_applicable_regardless_interruption", 0x10L);          // 16
+        name2bit.put("interruption_type_matched", 0x20L);                              // 32
+        name2bit.put("applicable_transition_with_interruption_found", 0x40L);          // 64
+        name2bit.put("action_is_condition_recognized", 0x80L);                         // 128
+        name2bit.put("required_condition_value_determined", 0x100L);                   // 256
+        name2bit.put("applicable_transition_with_condition_found", 0x200L);            // 512
+        name2bit.put("action_is_function_call_recognized", 0x400L);                    // 1024
+        name2bit.put("function_body_completion_determined", 0x800L);                   // 2048
+        name2bit.put("nearest_function_call_in_trace_found", 0x1000L);                // 4096
+        name2bit.put("transition_matches_interruption_mode", 0x2000L);                 // 8192
+        name2bit.put("compound_structure_boundaries_identified", 0x4000L);             // 16384
+        name2bit.put("early_exit_from_compound_detected", 0x8000L);                    // 32768
+        name2bit.put("multiple_compound_exit_order_understood", 0x10000L);             // 65536
+        name2bit.put("applicable_compound_exit_determined", 0x20000L);                 // 131072
+        name2bit.put("interruption_termination_recognized", 0x40000L);                 // 262144
+        name2bit.put("interruption_can_be_terminated_determined", 0x80000L);           // 524288
+
+        name2bit.put("unknown_incorrect", 0x100000L);
+        name2bit.put("unknown_correct", 0x200000L);
+        name2bit.put("patch_stop_as_true", 0x400000L);
+        name2bit.put("patch_auto_exit_interruption", 0x800000L);
+        name2bit.put("patch_auto_exit_interruption_2", 0x1000000L);
+        name2bit.put("patch_auto_exit_interruption_3", 0x2000000L);
+
         return name2bit;
     }
 
