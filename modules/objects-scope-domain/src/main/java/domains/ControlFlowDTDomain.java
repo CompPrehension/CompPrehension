@@ -79,7 +79,7 @@ public class ControlFlowDTDomain extends DecisionTreeReasoningDomain {
         addSkill("current_execution_point_understood", Skill.FLAG_VISIBLE_TO_TEACHER);
         addSkill("current_code_block_identified", Skill.FLAG_VISIBLE_TO_TEACHER);
         addSkill("action_execution_determined", Skill.FLAG_VISIBLE_TO_TEACHER);
-        addSkill("unevaluated_conditions_between_points_found", Skill.FLAG_VISIBLE_TO_TEACHER);
+        addSkill("unevaluated_conditions_between_points_present", Skill.FLAG_VISIBLE_TO_TEACHER);
         addSkill("transition_applicable_regardless_interruption", Skill.FLAG_VISIBLE_TO_TEACHER);
         addSkill("interruption_type_matched", Skill.FLAG_VISIBLE_TO_TEACHER);
         addSkill("applicable_transition_with_interruption_found", Skill.FLAG_VISIBLE_TO_TEACHER);
@@ -150,6 +150,9 @@ public class ControlFlowDTDomain extends DecisionTreeReasoningDomain {
         Concept io = addConcept("io", List.of(exprs), flags);
         Concept logical = addConcept("logical", List.of(exprs), flags);
         Concept arithmetic = addConcept("arithmetic", List.of(exprs), flags);
+        Concept objectNew = addConcept("object_new", List.of(exprs), flags);
+        Concept strings = addConcept("strings", List.of(exprs), flags);
+        Concept maps = addConcept("map_collections", List.of(exprs), flags);
         Concept ternary = addConcept("ternary_conditions", List.of(exprs), flags);
         Concept functionCall = addConcept("function_call", List.of(exprs));
         Concept libFunctionCall = addConcept("lib_function_call", List.of(functionCall), flags);     // функции в задаче нет
@@ -1025,7 +1028,7 @@ public class ControlFlowDTDomain extends DecisionTreeReasoningDomain {
         name2bit.put("current_execution_point_understood", 0x1L);                      // 1
         name2bit.put("current_code_block_identified", 0x2L);                           // 2
         name2bit.put("action_execution_determined", 0x4L);                             // 4
-        name2bit.put("unevaluated_conditions_between_points_found", 0x8L);            // 8
+        name2bit.put("unevaluated_conditions_between_points_present", 0x8L);            // 8
         name2bit.put("transition_applicable_regardless_interruption", 0x10L);          // 16
         name2bit.put("interruption_type_matched", 0x20L);                              // 32
         name2bit.put("applicable_transition_with_interruption_found", 0x40L);          // 64
@@ -1085,6 +1088,9 @@ public class ControlFlowDTDomain extends DecisionTreeReasoningDomain {
         name2bit.put("ternary_conditions", 0x100L);        // 256
         name2bit.put("lib_function_call", 0x200L);         // 512
         name2bit.put("program_function_call", 0x400L);     // 1024
+        name2bit.put("object_new", 0x400000000L);
+        name2bit.put("strings", 0x800000000L);
+        name2bit.put("map_collections", 0x1000000000L);
 
         // Plain statements with flags
         name2bit.put("var_declaration", 0x800L);           // 2048
