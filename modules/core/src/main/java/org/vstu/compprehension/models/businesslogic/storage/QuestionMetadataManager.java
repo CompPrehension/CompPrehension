@@ -2,9 +2,11 @@ package org.vstu.compprehension.models.businesslogic.storage;
 
 import lombok.extern.log4j.Log4j2;
 import org.jetbrains.annotations.NotNull;
+import org.vstu.compprehension.models.businesslogic.date.DateTimeProvider;
 import org.vstu.compprehension.models.repository.QuestionMetadataRepository;
 
 import java.time.LocalDateTime;
+import java.time.ZoneId;
 import java.util.Optional;
 import java.util.concurrent.ConcurrentHashMap;
 
@@ -12,11 +14,13 @@ import java.util.concurrent.ConcurrentHashMap;
 public class QuestionMetadataManager {
     private final QuestionMetadataRepository questionRepository;
     private final ConcurrentHashMap<String, ComplexityStats> complexityStats;
+    private final DateTimeProvider dateTimeProvider;
 
     private record ComplexityStats(LocalDateTime createDate, NumericStat stats) {}
 
-    public QuestionMetadataManager(QuestionMetadataRepository questionMetadataRepository) {
+    public QuestionMetadataManager(QuestionMetadataRepository questionMetadataRepository, DateTimeProvider dateTimeProvider) {
         this.questionRepository = questionMetadataRepository;
+        this.dateTimeProvider = dateTimeProvider;
         this.complexityStats    = new ConcurrentHashMap<>();
     }
 
@@ -25,7 +29,8 @@ public class QuestionMetadataManager {
     }
 
     private @NotNull ComplexityStats ensureBankStatLoaded(String domainShortname) {
-        var nowShifted   = LocalDateTime.now().plusMinutes(-15);
+        var now = LocalDateTime.ofInstant(dateTimeProvider.now(), ZoneId.systemDefault());
+        var nowShifted   = now.plusMinutes(-15);
         var currentStats = complexityStats.get(domainShortname);
         if (currentStats != null && currentStats.createDate().isAfter(nowShifted)) {
             return currentStats;
@@ -38,7 +43,7 @@ public class QuestionMetadataManager {
                 Optional.ofNullable(stats.getMean()).orElse(0.5),
                 Optional.ofNullable(stats.getMax()).orElse(1.0)
         );
-        var newStats = new ComplexityStats(LocalDateTime.now(), complexityStats);
+        var newStats = new ComplexityStats(now, complexityStats);
         this.complexityStats.put(domainShortname, newStats);
         return newStats;
     }

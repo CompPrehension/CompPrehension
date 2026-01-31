@@ -5,6 +5,7 @@ import com.beust.jcommander.Parameter;
 import com.beust.jcommander.ParameterException;
 import lombok.extern.log4j.Log4j2;
 import org.vstu.compprehension.adapters.*;
+import org.vstu.compprehension.models.businesslogic.date.CurrentDateTimeProvider;
 import org.vstu.compprehension.models.businesslogic.domains.ProgrammingLanguageExpressionDTDomain;
 import org.vstu.compprehension.models.businesslogic.domains.ProgrammingLanguageExpressionDomain;
 import org.vstu.compprehension.models.businesslogic.storage.QuestionBank;
@@ -63,7 +64,8 @@ public class Main {
                                 new FakeQuestionDataRepository(),
                                 null,
                                 null,
-                                new TransactionScopeFactoryStub()
+                                new TransactionScopeFactoryStub(),
+                                new CurrentDateTimeProvider()
                         )
                 )
         );

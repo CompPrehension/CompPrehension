@@ -3,18 +3,18 @@ package org.vstu.compprehension.models.repository;
 import jakarta.persistence.QueryHint;
 import org.jetbrains.annotations.NotNull;
 import org.springframework.context.annotation.Primary;
+import org.springframework.data.jpa.repository.Modifying;
 import org.springframework.data.jpa.repository.Query;
 import org.springframework.data.jpa.repository.QueryHints;
 import org.springframework.data.repository.CrudRepository;
 import org.springframework.data.repository.query.Param;
 import org.springframework.stereotype.Repository;
+import org.springframework.transaction.annotation.Transactional;
 import org.vstu.compprehension.dto.ComplexityStats;
 import org.vstu.compprehension.models.entities.QuestionMetadataEntity;
 
 import java.time.LocalDateTime;
-import java.util.Collection;
-import java.util.HashSet;
-import java.util.List;
+import java.util.*;
 
 // Основной интерфейс для поиска вопросов по их метаданным
 @Primary
@@ -106,4 +106,12 @@ public interface QuestionMetadataRepository extends CrudRepository<QuestionMetad
     @NotNull
     @Query("select distinct(m.templateId) from QuestionMetadataEntity m where m.domainShortname = :domainShortname and m.templateId is not null")
     HashSet<String> findAllTemplates(@Param("domainShortname") String domainShortname);
+
+    @Query(value = """
+           select qm.id
+           from questions_meta qm
+           join question q on qm.id = q.metadata_id
+           where q.question_request_id = :questionRequestId
+           """, nativeQuery = true)
+    Optional<Integer> findByQuestionSearchRequestId(@Param("questionRequestId") UUID questionRequestId);
 }

@@ -9,10 +9,7 @@ import org.vstu.compprehension.models.repository.QuestionMetadataRepository;
 
 import java.time.LocalDate;
 import java.time.LocalDateTime;
-import java.util.Collection;
-import java.util.HashSet;
-import java.util.List;
-import java.util.Optional;
+import java.util.*;
 
 public class FakeQuestionMetadataRepository implements QuestionMetadataRepository {
     @Override
@@ -197,5 +194,15 @@ public class FakeQuestionMetadataRepository implements QuestionMetadataRepositor
     @Override
     public HashSet<String> findAllTemplates(String domainShortname) {
         return new HashSet<>();
+    }
+
+    @Override
+    public Optional<Integer> findByQuestionSearchRequestId(UUID questionRequestId) {
+        return Optional.empty();
+    }
+
+    @Override
+    public Integer clone(Integer sourceId, String newName, String newTemplateId, Date created, Integer generationRequestId) {
+        return 0;
     }
 }

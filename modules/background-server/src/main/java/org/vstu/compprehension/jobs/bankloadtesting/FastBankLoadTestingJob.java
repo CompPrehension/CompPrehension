@@ -9,8 +9,10 @@ import org.jobrunr.jobs.annotations.Job;
 import org.springframework.stereotype.Service;
 import org.vstu.compprehension.Service.FrontendService;
 import org.vstu.compprehension.dto.ExerciseAttemptDto;
+import org.vstu.compprehension.dto.GenerationRequestGroup;
 import org.vstu.compprehension.dto.question.QuestionDto;
 import org.vstu.compprehension.models.businesslogic.date.DateTimeProvider;
+import org.vstu.compprehension.models.entities.QuestionGenerationRequestEntity;
 import org.vstu.compprehension.models.entities.UserEntity;
 import org.vstu.compprehension.models.entities.exercise.ExerciseStageEntity;
 import org.vstu.compprehension.models.repository.ExerciseRepository;
@@ -21,8 +23,14 @@ import org.vstu.compprehension.utils.RandomProvider;
 import org.vstu.compprehension.utils.transactions.TransactionScope;
 import org.vstu.compprehension.utils.transactions.TransactionScopeFactory;
 
-import java.time.Instant;
+import javax.sql.rowset.CachedRowSet;
+import java.sql.Date;
+import java.time.*;
+import java.time.temporal.TemporalUnit;
+import java.util.HashSet;
+import java.util.List;
 import java.util.PriorityQueue;
+import java.util.Set;
 import java.util.concurrent.Callable;
 
 @Log4j2
@@ -34,6 +42,7 @@ public class FastBankLoadTestingJob {
     private final TransactionScope transactionScope;
     private final RandomProvider randomProvider;
     private final QuestionGenerationRequestRepository questionGenerationRequestRepository;
+    private final QuestionMetadataRepository questionMetadataRepository;
     private final DateTimeProvider dateTimeProvider;
     private final BankLoadTestingJobConfig config;
     private final BankLoadTestingJobBatchConfig batchConfig;
@@ -45,6 +54,7 @@ public class FastBankLoadTestingJob {
         this.transactionScope = transactionScopeFactory.create(TransactionScope.PropagationBehavior.REQUIRES_NEW);
         this.randomProvider = randomProvider;
         this.questionGenerationRequestRepository = questionGenerationRequestRepository;
+        this.questionMetadataRepository = questionMetadataRepository;
         this.dateTimeProvider = dateTimeProvider;
         this.config = config;
         this.batchConfig = batchConfig;
@@ -59,20 +69,17 @@ public class FastBankLoadTestingJob {
             throw e;
         }
     }
-    
-    /**
-     * Запуск быстрой дискретно-событийной симуляции
-     */
+
     public void runSimulation(BankLoadTestingJobConfig config) {
-        // Очередь событий, отсортированная по времени исполнения
         PriorityQueue<SimulationEvent> queue = new PriorityQueue<>();
 
-        // Сбрасываем (или устанавливаем) начальное время симуляции
-        dateTimeProvider.setTime(Instant.now());
+        Instant realStart = Instant.now();
+        Instant virtualStart = LocalDateTime.of(2029, 1, 1, 1, 1).toInstant(ZoneOffset.UTC);
+        dateTimeProvider.setTime(virtualStart);
 
         var random = randomProvider.getRandom();
 
-        // 1. Подготовка данных (синхронно, мгновенно)
+        // 1. Подготовка данных
         var questionsNumber = transactionScope.execute(() -> exerciseRepository.findById(config.getExerciseId()).orElseThrow()
                 .getStages().stream()
                 .map(ExerciseStageEntity::getNumberOfQuestions)
@@ -91,19 +98,24 @@ public class FastBankLoadTestingJob {
         log.info("Starting simulation for {} users. Total questions per user: {}", userIds.size(), questionsNumber);
 
         // 2. Планирование первых событий (Start Attempt) для каждого студента
+        Set<Long> runningAttempts = new HashSet<>(); // Множество активных попыток
         for (Long userId : userIds) {
-            // Вычисляем случайную задержку перед стартом
             long startDelaySeconds = random.nextInt(config.getExerciseStartDelayMin(), config.getExerciseStartDelayMax() + 1);
             Instant startTime = dateTimeProvider.now().plusSeconds(startDelaySeconds);
-
-            // Добавляем событие в очередь
             queue.add(new SimulationEvent(
                     startTime,
-                    () -> handleStartAttempt(queue, config, userId, questionsNumber)
+                    () -> handleStartAttempt(queue, config, userId, questionsNumber, runningAttempts)
             ));
         }
 
-        // 3. Главный цикл обработки событий (Event Loop)
+        // Запускаем Генератор       
+        Set<Integer> processingRequests = new HashSet<>();  // Множество для отслеживания запросов, которые генератор уже "взял в работу"
+        queue.add(new SimulationEvent(
+                dateTimeProvider.now(),
+                () -> handleGeneratorHeartbeat(queue, processingRequests, runningAttempts)
+        ));
+
+        // Event Loop
         long eventsProcessed = 0;
         while (!queue.isEmpty()) {
             SimulationEvent event = queue.poll();
@@ -115,46 +127,44 @@ public class FastBankLoadTestingJob {
             event.task.run();
 
             eventsProcessed++;
-            if (eventsProcessed % 100 == 0) {
-                log.debug("Processed {} events. Current Virtual Time: {}", eventsProcessed, dateTimeProvider.now());
+            if (eventsProcessed % 500 == 0) {
+                log.debug("Events: {}, VirtualTime: {}", eventsProcessed, dateTimeProvider.now());
             }
         }
 
-        log.info("Simulation finished. Processed {} events. Final Virtual Time: {}", eventsProcessed, dateTimeProvider.now());
+        Instant virtualEnd = dateTimeProvider.now();
+        Duration virtualDuration = Duration.between(virtualStart, virtualEnd);
+        Duration realDuration = Duration.between(realStart, Instant.now());
+
+        log.info("=== SIMULATION FINISHED ===");
+        log.info("Processed Events: {}", eventsProcessed);
+        log.info("Simulation covered: {} virtual days ({} hours)", virtualDuration.toDays(), virtualDuration.toHours());
+        log.info("Real Execution Time: {} ms", realDuration.toMillis());
+        log.info("Ratio (Speedup): x{}", virtualDuration.toMillis() / Math.max(1, realDuration.toMillis()));
     }
 
-    // --- ЛОГИКА СОБЫТИЙ (STEP HANDLERS) ---
 
-    /**
-     * Шаг 1: Создание попытки и планирование первого вопроса
-     */
     @SneakyThrows
-    private void handleStartAttempt(PriorityQueue<SimulationEvent> queue, BankLoadTestingJobConfig config, long userId, int maxAttemptQuestions) {
+    private void handleStartAttempt(PriorityQueue<SimulationEvent> queue, BankLoadTestingJobConfig config, long userId, int maxAttemptQuestions, Set<Long> runningAttempts) {
         log.info("User {} started exercise attempt at {}", userId, dateTimeProvider.now());
 
         // Реальный запрос в БД (займет миллисекунды реального времени, но в базе будет время из simulationClock)
         Long attemptId = createExerciseAttempt(config.getExerciseId(), userId).getAttemptId();
+        runningAttempts.add(attemptId);
 
         // Планируем решение первого вопроса (сразу же или с минимальной задержкой)
-        scheduleQuestionStart(queue, config, userId, attemptId, 0, maxAttemptQuestions);
+        scheduleQuestionStart(queue, config, userId, attemptId, 0, maxAttemptQuestions, runningAttempts);
     }
 
-    /**
-     * Вспомогательный метод: Планирование начала решения вопроса
-     */
-    private void scheduleQuestionStart(PriorityQueue<SimulationEvent> queue, BankLoadTestingJobConfig config, long userId, Long attemptId, int questionIndex, int maxQuestions) {
-        // Мы планируем событие на "сейчас" (текущее виртуальное время), так как паузы уже отработаны
+    private void scheduleQuestionStart(PriorityQueue<SimulationEvent> queue, BankLoadTestingJobConfig config, long userId, Long attemptId, int questionIndex, int maxQuestions, Set<Long> runningAttempts) {
         queue.add(new SimulationEvent(
                 dateTimeProvider.now().plusMillis(2),
-                () -> handleQuestionStart(queue, config, userId, attemptId, questionIndex, maxQuestions)
+                () -> handleQuestionStart(queue, config, userId, attemptId, questionIndex, maxQuestions, runningAttempts)
         ));
     }
 
-    /**
-     * Шаг 2: Генерация вопроса и "думание"
-     */
     @SneakyThrows
-    private void handleQuestionStart(PriorityQueue<SimulationEvent> queue, BankLoadTestingJobConfig config, long userId, Long attemptId, int questionIndex, int maxQuestions) {
+    private void handleQuestionStart(PriorityQueue<SimulationEvent> queue, BankLoadTestingJobConfig config, long userId, Long attemptId, int questionIndex, int maxQuestions, Set<Long> runningAttempts) {
         var random = randomProvider.getRandom();
 
         // 1. Генерируем вопрос (взаимодействие с БД)
@@ -169,21 +179,21 @@ public class FastBankLoadTestingJob {
 
         queue.add(new SimulationEvent(
                 finishTime,
-                () -> handleQuestionFinish(queue, config, userId, attemptId, questionIndex, maxQuestions)
+                () -> handleQuestionFinish(queue, config, userId, attemptId, questionIndex, maxQuestions, runningAttempts)
         ));
     }
 
-    /**
-     * Шаг 3: Завершение вопроса и пауза перед следующим
-     */
-    private void handleQuestionFinish(PriorityQueue<SimulationEvent> queue, BankLoadTestingJobConfig config, long userId, Long attemptId, int questionIndex, int maxQuestions) {
+    private void handleQuestionFinish(PriorityQueue<SimulationEvent> queue, BankLoadTestingJobConfig config, long userId, Long attemptId, int questionIndex, int maxQuestions, Set<Long> runningAttempts) {
         log.info("User {} completed #{} problem at {}", userId, questionIndex + 1, dateTimeProvider.now());
 
         int nextIndex = questionIndex + 1;
 
         // Если вопросы кончились - выходим
         if (nextIndex >= maxQuestions) {
-            log.info("User {} finished exercise attempt", userId);
+            queue.add(new SimulationEvent(
+                    dateTimeProvider.now().plusMillis(2),
+                    () -> handleAttemptFinish(queue, userId, attemptId, runningAttempts)
+            ));
             return;
         }
 
@@ -196,11 +206,112 @@ public class FastBankLoadTestingJob {
 
         queue.add(new SimulationEvent(
                 nextQuestionStartTime,
-                () -> handleQuestionStart(queue, config, userId, attemptId, nextIndex, maxQuestions)
+                () -> handleQuestionStart(queue, config, userId, attemptId, nextIndex, maxQuestions, runningAttempts)
         ));
     }
 
-    // --- ВСПОМОГАТЕЛЬНЫЕ МЕТОДЫ ---
+    private void handleAttemptFinish(PriorityQueue<SimulationEvent> queue, Long userId, Long attemptId, Set<Long> runningAttempts) {
+        log.info("User {} finished exercise attempt", userId);
+        runningAttempts.remove(attemptId);
+    }
+
+    /**
+     * Шаг 1 Генератора: Анализ очереди и планирование работы
+     */
+    private void handleGeneratorHeartbeat(PriorityQueue<SimulationEvent> queue, Set<Integer> processingRequests, Set<Long> runningAttempts) {        
+        // 1. Ищем запросы, которые ожидают генерации (PENDING/IN_PROGRESS)
+        var pendingRequests = transactionScope.execute(() ->
+            questionGenerationRequestRepository.findAllActual("expression_dt", LocalDateTime.ofInstant(dateTimeProvider.now(), ZoneId.systemDefault()).minusMonths(3)) // Или ваш метод поиска активных
+        );
+
+        if (pendingRequests != null) {
+            for (var req : pendingRequests) {
+                for (var subreq : req.getGenerationRequests()) {
+                    if (processingRequests.contains(subreq.id())) {
+                        continue; // Уже варится
+                    }
+
+                    // Берем в работу
+                    processingRequests.add(subreq.id());
+
+                    // для каждого вопроса планируем время на его генерацию
+                    double maxQuestionGenerationTimeSeconds = 0;
+                    for(int i = 0; i < subreq.questionsToGenerate(); i++) {
+                        double genDurationSeconds = getGeneratorProcessingTime();
+                        Instant finishTime = dateTimeProvider.now().plusMillis((long)(genDurationSeconds * 1000));
+                        maxQuestionGenerationTimeSeconds = Math.max(maxQuestionGenerationTimeSeconds, genDurationSeconds);
+
+                        queue.add(new SimulationEvent(
+                                finishTime,
+                                () -> handleQuestionGenerationStep(queue, subreq.id(), subreq.questionsToGenerate(), processingRequests)
+                        ));
+
+                        log.debug("Generator picked up request {} at {}. Will finish at {}", subreq.id(), dateTimeProvider.now(), finishTime);
+                    }
+                    
+                    // по завершении планируем задачу по завершению запроса на генерацию
+                    queue.add(new SimulationEvent(
+                            dateTimeProvider.now().plusMillis((long)(maxQuestionGenerationTimeSeconds * 1000)),
+                            () -> handleGenerationStepFinish(queue, subreq.id(), processingRequests)
+                    ));
+                }
+            }
+        }
+
+        if (runningAttempts.isEmpty()) {
+            return;
+        }
+
+        // 4. Планируем следующий тик проверки (например, каждые 1-5 секунд виртуального времени)
+        // Это обеспечивает "постоянную проверку между шагами"
+        queue.add(new SimulationEvent(
+                dateTimeProvider.now().plusSeconds(5), // Проверяем очередь каждые 5 сек
+                () -> handleGeneratorHeartbeat(queue, processingRequests, runningAttempts)
+        ));
+    }
+
+    private void handleQuestionGenerationStep(PriorityQueue<SimulationEvent> queue, int requestId, int questionsToGenerate, Set<Integer> processingRequests) {
+        // 1. Выполняем реальную логику генерации (сохранение в БД)
+        executeSimpleRetry(() -> {
+            var questionRequestForGenRequestId = questionGenerationRequestRepository.getQuestionRequestId(requestId);
+            if (questionRequestForGenRequestId.isEmpty()) {
+                return null;
+            }
+            
+            var metadataForRequestId = questionMetadataRepository.findByQuestionSearchRequestId(questionRequestForGenRequestId.get());
+            if (metadataForRequestId.isEmpty()) {
+                return null;
+            }
+
+            for (int i = 0; i < questionsToGenerate; ++i) {
+                var newQuestionName = "new_question_" + requestId + "_" + i;
+                var clonedMetadata = questionMetadataRepository.clone(metadataForRequestId.get(), newQuestionName, newQuestionName, Date.from(dateTimeProvider.now()), requestId);
+
+                // Предположим, нужно просто пометить запрос выполненным и создать вопрос:
+                log.debug("generated question for request {} with metadata {}", requestId, clonedMetadata);
+            }
+
+            log.info("generated {} questions for request {}", questionsToGenerate, requestId);
+
+            return null;
+        });
+    }
+
+    private void handleGenerationStepFinish(PriorityQueue<SimulationEvent> queue, int requestId, Set<Integer> processingRequests) {
+        executeSimpleRetry(() -> {
+            questionGenerationRequestRepository.updateGenerationRequests(new Integer[] { requestId });
+            return null;
+        });
+
+        processingRequests.remove(requestId);
+    }
+
+    private double getGeneratorProcessingTime() {
+        var random = randomProvider.getRandom();
+        // Пример: Нормальное распределение (среднее 30с, отклонение 10с), минимум 5с
+        double val = (random.nextGaussian() * 10) + 30;
+        return Math.max(5.0, val);
+    }
 
     private @Nullable QuestionDto generateQuestion(Long attemptId) {
         return executeSimpleRetry(() -> {
@@ -217,11 +328,6 @@ public class FastBankLoadTestingJob {
         return executeSimpleRetry(() -> frontendService.createExerciseAttempt(exerciseId, userId));
     }
 
-    /**
-     * Упрощенный Retry без Thread.sleep, так как мы в Single Threaded Simulation.
-     * Если база залочена, лучше сразу упасть или повторить сразу же, 
-     * так как sleep остановит всю вселенную.
-     */
     @SneakyThrows
     private <T> T executeSimpleRetry(Callable<T> callback) {
         int maxRetries = 3;

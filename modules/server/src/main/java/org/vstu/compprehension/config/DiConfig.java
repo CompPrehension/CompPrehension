@@ -11,6 +11,7 @@ import org.springframework.context.annotation.Lazy;
 import org.springframework.context.annotation.Primary;
 import org.springframework.web.context.annotation.RequestScope;
 import org.springframework.web.context.annotation.SessionScope;
+import org.vstu.compprehension.models.businesslogic.date.DateTimeProvider;
 import org.vstu.compprehension.service.BktService;
 import org.vstu.compprehension.Service.UserService;
 import org.vstu.compprehension.adapters.*;
@@ -94,9 +95,10 @@ public class DiConfig {
             @Autowired QuestionDataRepository questionDataRepository,
             @Autowired QuestionGenerationRequestRepository generationRequestRepository,
             @Autowired QuestionMetadataSearchRequestRepository questionSearchRequestLogRepository,
-            @Autowired TransactionScopeFactory transactionScopeFactory) throws Exception {
+            @Autowired TransactionScopeFactory transactionScopeFactory,
+            @Autowired DateTimeProvider dateTimeProvider) throws Exception {
         //var allDomains = domainRepository.findAll();
-        return new QuestionBank(metadataRepository, questionDataRepository, generationRequestRepository, questionSearchRequestLogRepository, transactionScopeFactory);
+        return new QuestionBank(metadataRepository, questionDataRepository, generationRequestRepository, questionSearchRequestLogRepository, transactionScopeFactory, dateTimeProvider);
     }
     
     @Bean

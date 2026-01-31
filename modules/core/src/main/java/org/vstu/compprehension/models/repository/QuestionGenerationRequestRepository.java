@@ -9,8 +9,10 @@ import org.springframework.data.repository.query.Param;
 import org.springframework.stereotype.Repository;
 import org.vstu.compprehension.models.entities.QuestionGenerationRequestEntity;
 
+import java.time.Instant;
 import java.util.List;
 import java.util.Optional;
+import java.util.UUID;
 
 @Repository
 public interface QuestionGenerationRequestRepository extends CrudRepository<QuestionGenerationRequestEntity, Integer>, QuestionGenerationRequestComplexQueriesRepository {
@@ -50,4 +52,7 @@ public interface QuestionGenerationRequestRepository extends CrudRepository<Ques
     
     @Query("select id from QuestionGenerationRequestEntity where exerciseAttempt.id = :exerciseAttemptId order by createdAt desc")
     Optional<Long> getLastRequestByExerciseAttemptId(@Param("exerciseAttemptId") Long exerciseAttemptId);
+    
+    @Query(value = "select question_request->>'$.questionRequestId' from question_generation_requests where id = :generationRequestId and question_request->>'$.questionRequestId' is not null", nativeQuery = true)
+    Optional<UUID> getQuestionRequestId(@Param("generationRequestId") Integer generationRequestId);
 }

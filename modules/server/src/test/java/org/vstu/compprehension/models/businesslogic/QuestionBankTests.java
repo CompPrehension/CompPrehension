@@ -7,6 +7,7 @@ import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.boot.test.context.SpringBootTest;
 import org.springframework.test.context.ActiveProfiles;
 import org.springframework.transaction.annotation.Transactional;
+import org.vstu.compprehension.models.businesslogic.date.CurrentDateTimeProvider;
 import org.vstu.compprehension.models.businesslogic.storage.QuestionBank;
 import org.vstu.compprehension.models.entities.QuestionMetadataEntity;
 import org.vstu.compprehension.models.repository.*;
@@ -36,7 +37,8 @@ public class QuestionBankTests {
                 questionDataRepository,
                 questionGenerationRequestRepository,
                 questionSearchRequestLogRepository,
-                transactionScopeFactory
+                transactionScopeFactory,
+                new CurrentDateTimeProvider()
         );
 
         var generationRequests = IteratorUtils.toList(questionGenerationRequestRepository.findAll().iterator())

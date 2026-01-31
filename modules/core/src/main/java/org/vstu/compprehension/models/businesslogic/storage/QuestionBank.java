@@ -8,6 +8,7 @@ import org.jetbrains.annotations.Nullable;
 import org.vstu.compprehension.dto.QuestionBankSearchStatsDto;
 import org.vstu.compprehension.models.businesslogic.QuestionBankSearchRequest;
 import org.vstu.compprehension.models.businesslogic.QuestionRequest;
+import org.vstu.compprehension.models.businesslogic.date.DateTimeProvider;
 import org.vstu.compprehension.models.entities.*;
 import org.vstu.compprehension.models.repository.QuestionDataRepository;
 import org.vstu.compprehension.models.repository.QuestionGenerationRequestRepository;
@@ -28,18 +29,20 @@ public class QuestionBank {
     private final QuestionGenerationRequestRepository generationRequestRepository;
     private final QuestionMetadataSearchRequestRepository questionSearchRequestLogRepository;
     private final TransactionScope logSavingTransactionScope;
+    private final DateTimeProvider dateTimeProvider;
 
     public QuestionBank(
             QuestionMetadataRepository questionMetadataRepository,
             QuestionDataRepository questionDataRepository,
             QuestionGenerationRequestRepository generationRequestRepository,
             QuestionMetadataSearchRequestRepository questionSearchRequestLogRepository,
-            TransactionScopeFactory transactionScopeFactory) {
+            TransactionScopeFactory transactionScopeFactory, DateTimeProvider dateTimeProvider) {
         this.questionMetadataRepository = questionMetadataRepository;
         this.questionDataRepository = questionDataRepository;
-        this.questionMetadataManager = new QuestionMetadataManager(questionMetadataRepository);
+        this.questionMetadataManager = new QuestionMetadataManager(questionMetadataRepository, dateTimeProvider);
         this.generationRequestRepository = generationRequestRepository;
         this.questionSearchRequestLogRepository = questionSearchRequestLogRepository;
+        this.dateTimeProvider = dateTimeProvider;
         
         // for actions that must be executed in new transaction (like save logs)
         this.logSavingTransactionScope = transactionScopeFactory.create(TransactionScope.PropagationBehavior.REQUIRES_NEW);

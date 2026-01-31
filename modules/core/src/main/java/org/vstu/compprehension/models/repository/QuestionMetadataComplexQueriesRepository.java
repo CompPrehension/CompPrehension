@@ -2,6 +2,7 @@ package org.vstu.compprehension.models.repository;
 
 import org.jetbrains.annotations.Nullable;
 import org.springframework.data.jpa.repository.Modifying;
+import org.springframework.data.repository.query.Param;
 import org.vstu.compprehension.models.businesslogic.QuestionBankSearchRequest;
 import org.vstu.compprehension.models.entities.QuestionMetadataEntity;
 
@@ -54,4 +55,12 @@ public interface QuestionMetadataComplexQueriesRepository {
     
     @Modifying
     int deleteMetadataFromDate(LocalDate date);
+
+    Integer clone(
+            Integer sourceId,
+            String newName,
+            String newTemplateId,
+            Date created,
+            Integer generationRequestId
+    );
 }

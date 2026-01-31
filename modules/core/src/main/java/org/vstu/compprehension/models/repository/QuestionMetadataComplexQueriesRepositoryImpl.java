@@ -3,6 +3,12 @@ package org.vstu.compprehension.models.repository;
 import jakarta.persistence.EntityManager;
 import jakarta.persistence.TemporalType;
 import org.jetbrains.annotations.Nullable;
+import org.springframework.data.jpa.repository.Modifying;
+import org.springframework.jdbc.core.namedparam.MapSqlParameterSource;
+import org.springframework.jdbc.core.namedparam.NamedParameterJdbcTemplate;
+import org.springframework.jdbc.support.GeneratedKeyHolder;
+import org.springframework.jdbc.support.KeyHolder;
+import org.springframework.transaction.annotation.Transactional;
 import org.vstu.compprehension.models.businesslogic.QuestionBankSearchRequest;
 import org.vstu.compprehension.models.entities.QuestionMetadataEntity;
 
@@ -12,9 +18,11 @@ import java.util.List;
 
 public class QuestionMetadataComplexQueriesRepositoryImpl implements QuestionMetadataComplexQueriesRepository {
     private final EntityManager entityManager;
+    private final NamedParameterJdbcTemplate jdbcTemplate;
 
-    public QuestionMetadataComplexQueriesRepositoryImpl(EntityManager entityManager) {
+    public QuestionMetadataComplexQueriesRepositoryImpl(EntityManager entityManager, NamedParameterJdbcTemplate jdbcTemplate) {
         this.entityManager = entityManager;
+        this.jdbcTemplate = jdbcTemplate;
     }
 
     private void ensureRequestValid(QuestionBankSearchRequest qr) {
@@ -467,5 +475,43 @@ public class QuestionMetadataComplexQueriesRepositoryImpl implements QuestionMet
                 .executeUpdate();
         
         return deleteMetasResult;
+    }
+
+    @Transactional
+    @Modifying
+    @Override
+    public Integer clone(Integer sourceId, String newName, String newTemplateId, Date created, Integer generationRequestId) {
+        String sql = """
+            INSERT INTO questions_meta (
+                name, domain_shortname, q_data_graph, tag_bits, concept_bits, law_bits,
+                skill_bits, violation_bits, trace_concept_bits, solution_structural_complexity,
+                integral_complexity, solution_steps, distinct_errors_count, _version, origin,
+                origin_license, structure_hash, template_id, created_at, question_data_id,
+                generation_request_id
+            )
+            SELECT
+                :newName, domain_shortname, q_data_graph, tag_bits, concept_bits, law_bits,
+                skill_bits, violation_bits, trace_concept_bits, solution_structural_complexity,
+                integral_complexity, solution_steps, distinct_errors_count, _version, origin,
+                origin_license, structure_hash, :newTemplateId, :created, question_data_id,
+                :generationRequestId
+            FROM questions_meta
+            WHERE id = :sourceId
+        """;
+
+        MapSqlParameterSource parameters = new MapSqlParameterSource()
+                .addValue("newName", newName)
+                .addValue("newTemplateId", newTemplateId)
+                .addValue("created", created)
+                .addValue("generationRequestId", generationRequestId)
+                .addValue("sourceId", sourceId);
+
+        KeyHolder keyHolder = new GeneratedKeyHolder();
+
+        // update с KeyHolder автоматически извлекает сгенерированный ID
+        jdbcTemplate.update(sql, parameters, keyHolder, new String[]{"id"});
+
+        Number key = keyHolder.getKey();
+        return key != null ? key.intValue() : null;
     }
 }
