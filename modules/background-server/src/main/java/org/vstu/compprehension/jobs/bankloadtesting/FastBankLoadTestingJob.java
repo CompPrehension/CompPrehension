@@ -63,18 +63,82 @@ public class FastBankLoadTestingJob {
     @Job(name = "question-bank-load-testing-job", retries = 0)
     public void run() {
         try {
-            runSimulation(config);
+            runImpl(config);
         } catch (Exception e) {
             log.error("Bank loading test exception - {}", e.getMessage(), e);
             throw e;
         }
     }
 
-    public void runSimulation(BankLoadTestingJobConfig config) {
+    @Job(name = "question-bank-load-testing-batch-job", retries = 0)
+    public void runBatch() {
+        try {
+            runBatchImpl(batchConfig);
+        } catch (Exception e) {
+            log.error("Bank loading test exception - {}", e.getMessage(), e);
+            throw e;
+        }
+    }
+
+    @SneakyThrows
+    synchronized void runBatchImpl(BankLoadTestingJobBatchConfig batchConfig) {
+
+        for(int genThreshold = batchConfig.getGeneratorThresholdFrom(); genThreshold <= batchConfig.getGeneratorThresholdTo(); genThreshold += batchConfig.getGeneratorThresholdStep()) {
+            for (int safeMargin = batchConfig.getGeneratorAdditionalQuestionsToGenerateFrom(); safeMargin <= batchConfig.getGeneratorAdditionalQuestionsToGenerateTo(); safeMargin += batchConfig.getGeneratorAdditionalQuestionsToGenerateStep()) {
+                
+                log.info("Generating experiment starts with generatorThreshold: {} and additionalQuestionsToGenerate: {}", genThreshold, safeMargin);
+                var config = new BankLoadTestingJobConfig();
+                config.setRandomSeed(1111);
+                config.setGeneratorThreshold(genThreshold);
+                config.setGeneratorAdditionalQuestionsToGenerate(safeMargin);
+                config.setExerciseId(batchConfig.getExerciseId());
+                config.setUsersCount(batchConfig.getUsersCount());
+                config.setExerciseStartDelayMin(batchConfig.getExerciseStartDelayMin());
+                config.setExerciseStartDelayMax(batchConfig.getExerciseStartDelayMax());
+                config.setPostQuestionDelayMin(batchConfig.getPostQuestionDelayMin());
+                config.setPostQuestionDelayMax(batchConfig.getPostQuestionDelayMax());
+                config.setSkipDelayForQuestionsWithoutGeneration(batchConfig.isSkipDelayForQuestionsWithoutGeneration());
+                config.setQuestionDelayRandomFactorization(batchConfig.getQuestionDelayRandomFactorization());
+
+                var retryNumber = 0;
+                Exception lastException = null;
+                while (++retryNumber <= 3) {
+                    lastException  = null;
+
+                    try {
+                        runImpl(config);
+                        break;
+                    } catch (Exception e) {
+                        log.error("Generating experiment exception - {}", e.getMessage(), e);
+                        lastException = e;
+                    }
+                }
+
+                if (lastException == null) {
+                    log.info("Generating experiment finished successfully with generatorThreshold: {} and additionalQuestionsToGenerate: {}", genThreshold, safeMargin);
+                } else {
+                    log.error("Generating experiment finished with errors with generatorThreshold: {} and additionalQuestionsToGenerate: {}", genThreshold, safeMargin);
+                }
+
+                // завершаем все открытые запросы на генерацию
+                var cancelledCount = transactionScope.execute(questionGenerationRequestRepository::cancelAllActiveRequests);
+            }
+        }
+    }
+
+    public void runImpl(BankLoadTestingJobConfig config) {
+        // ensure all gen requests cancelled
+        transactionScope.execute(questionGenerationRequestRepository::cancelAllActiveRequests);
+
+        log.info("Start cleaning bank from previous attempts");
+        var deletedMetadatas = transactionScope.execute(() -> questionMetadataRepository.deleteMetadataFromDate(LocalDate.now().minusDays(2)));
+        log.info("Finish cleaning bank from previous attempts with {} deleted metadatas", deletedMetadatas);
+
+
         PriorityQueue<SimulationEvent> queue = new PriorityQueue<>();
 
         Instant realStart = Instant.now();
-        Instant virtualStart = LocalDateTime.of(2029, 1, 1, 1, 1).toInstant(ZoneOffset.UTC);
+        Instant virtualStart = realStart;
         dateTimeProvider.setTime(virtualStart);
 
         var random = randomProvider.getRandom();

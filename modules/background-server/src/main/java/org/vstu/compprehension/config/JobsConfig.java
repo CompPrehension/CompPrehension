@@ -57,7 +57,7 @@ public class JobsConfig {
         {
             var jobId = "BankLoadTestingBatchJob";
             var schedule = bankLoadTestingJobBatchConfig.getCronSchedule();
-            scheduleJob(jobId, schedule, BankLoadTestingJob::runBatch);
+            scheduleJob(jobId, schedule, FastBankLoadTestingJob::runBatch);
         }
     }
     
