@@ -7,12 +7,13 @@ import lombok.NoArgsConstructor;
 
 import jakarta.persistence.*;
 import lombok.*;
+import org.vstu.compprehension.models.entities.shared.BaseEntity;
 
 @Entity
 @Data
 @NoArgsConstructor @AllArgsConstructor @Builder
 @Table(name = "Feedback")
-public class FeedbackEntity {
+public class FeedbackEntity extends BaseEntity {
     @Id
     @GeneratedValue(strategy = GenerationType.IDENTITY)
     private Long id;

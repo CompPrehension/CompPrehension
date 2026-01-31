@@ -12,10 +12,15 @@ import org.hibernate.annotations.OnDeleteAction;
 import org.hibernate.annotations.Type;
 import org.jetbrains.annotations.NotNull;
 import org.jetbrains.annotations.Nullable;
+import org.springframework.data.annotation.CreatedDate;
+import org.springframework.data.jpa.domain.support.AuditingEntityListener;
 import org.vstu.compprehension.models.entities.EnumData.QuestionStatus;
 import org.vstu.compprehension.models.entities.EnumData.QuestionType;
 import org.vstu.compprehension.models.entities.QuestionOptions.QuestionOptionsEntity;
 import org.vstu.compprehension.models.entities.exercise.ExerciseStageEntity;
+import org.vstu.compprehension.models.entities.shared.BaseEntity;
+import org.vstu.compprehension.models.entities.shared.CreateTrackedEntity;
+import org.vstu.compprehension.models.entities.shared.TimeTrackingListener;
 
 import java.util.ArrayList;
 import java.util.Date;
@@ -25,7 +30,8 @@ import java.util.Optional;
 @Entity @Getter @Setter
 @NoArgsConstructor
 @Table(name = "Question")
-public class QuestionEntity {
+@EntityListeners(TimeTrackingListener.class)
+public class QuestionEntity extends BaseEntity implements CreateTrackedEntity {
     @Id
     @GeneratedValue(strategy = GenerationType.IDENTITY)
     private Long id;
@@ -42,7 +48,6 @@ public class QuestionEntity {
     @Column(name = "question_name", length = 255)
     private String questionName;
 
-    @CreationTimestamp
     @Column(name = "created_at", nullable = false, updatable = false)
     private Date createdAt;
 

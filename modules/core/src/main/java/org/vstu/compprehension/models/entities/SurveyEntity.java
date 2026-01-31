@@ -7,13 +7,14 @@ import lombok.Setter;
 import lombok.ToString;
 import org.hibernate.annotations.Type;
 import org.jetbrains.annotations.NotNull;
+import org.vstu.compprehension.models.entities.shared.BaseEntity;
 
 import java.util.List;
 
 @Entity
 @Getter @Setter
 @Table(name = "surveys")
-public class SurveyEntity {
+public class SurveyEntity extends BaseEntity {
     @Id
     @Column(name = "id", nullable = false, length = 255)
     private @NotNull String surveyId;

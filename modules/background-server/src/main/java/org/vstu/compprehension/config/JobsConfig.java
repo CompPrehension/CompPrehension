@@ -7,6 +7,7 @@ import org.springframework.context.annotation.Configuration;
 import org.vstu.compprehension.jobs.bankloadtesting.BankLoadTestingJob;
 import org.vstu.compprehension.jobs.bankloadtesting.BankLoadTestingJobBatchConfig;
 import org.vstu.compprehension.jobs.bankloadtesting.BankLoadTestingJobConfig;
+import org.vstu.compprehension.jobs.bankloadtesting.FastBankLoadTestingJob;
 import org.vstu.compprehension.jobs.metadatahealth.MetadataHealthJob;
 import org.vstu.compprehension.jobs.metadatahealth.MetadataHealthJobConfig;
 import org.vstu.compprehension.jobs.tasksgeneration.TaskGenerationJob;
@@ -49,7 +50,7 @@ public class JobsConfig {
         {
             var jobId = "BankLoadTestingJob";
             var schedule = bankLoadTestingJobConfig.getCronSchedule();
-            scheduleJob(jobId, schedule, BankLoadTestingJob::run);
+            scheduleJob(jobId, schedule, FastBankLoadTestingJob::run);
         }
 
         // BankLoadTestingBatchJob

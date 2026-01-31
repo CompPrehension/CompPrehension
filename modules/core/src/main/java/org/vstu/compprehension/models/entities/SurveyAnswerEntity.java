@@ -4,6 +4,7 @@ import jakarta.persistence.*;
 import lombok.*;
 import org.jetbrains.annotations.NotNull;
 import org.jetbrains.annotations.Nullable;
+import org.vstu.compprehension.models.entities.shared.BaseEntity;
 
 import java.io.Serializable;
 
@@ -11,7 +12,7 @@ import java.io.Serializable;
 @Getter @Setter
 @IdClass(SurveyAnswerEntity.SurveyResultId.class)
 @Table(name = "survey_answers")
-public class SurveyAnswerEntity {
+public class SurveyAnswerEntity extends BaseEntity {
     @Getter @Setter
     @EqualsAndHashCode
     @AllArgsConstructor @NoArgsConstructor

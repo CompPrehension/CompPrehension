@@ -6,12 +6,13 @@ import lombok.ToString;
 
 import jakarta.persistence.*;
 import lombok.*;
+import org.vstu.compprehension.models.entities.shared.BaseEntity;
 
 @Entity
 @Data
 @NoArgsConstructor
 @Table(name = "ExplanationTemplateInfo")
-public class ExplanationTemplateInfoEntity {
+public class ExplanationTemplateInfoEntity extends BaseEntity {
     @Id
     @GeneratedValue(strategy = GenerationType.IDENTITY)
     private Long id;

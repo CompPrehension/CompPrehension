@@ -5,13 +5,14 @@ import org.vstu.compprehension.models.entities.EnumData.SpecValue;
 
 import jakarta.persistence.*;
 import lombok.*;
+import org.vstu.compprehension.models.entities.shared.BaseEntity;
 
 @Entity
 @Data
 @NoArgsConstructor @AllArgsConstructor
 @Builder
 @Table(name = "Response")
-public class ResponseEntity {
+public class ResponseEntity extends BaseEntity {
     @Id
     @GeneratedValue(strategy = GenerationType.IDENTITY)
     private Long id;

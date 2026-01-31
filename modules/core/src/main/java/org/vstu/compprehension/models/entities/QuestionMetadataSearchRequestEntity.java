@@ -9,7 +9,12 @@ import org.hibernate.annotations.CreationTimestamp;
 import org.hibernate.annotations.Type;
 import org.jetbrains.annotations.NotNull;
 import org.jetbrains.annotations.Nullable;
+import org.springframework.data.annotation.CreatedDate;
+import org.springframework.data.jpa.domain.support.AuditingEntityListener;
 import org.vstu.compprehension.models.businesslogic.QuestionBankSearchRequest;
+import org.vstu.compprehension.models.entities.shared.BaseEntity;
+import org.vstu.compprehension.models.entities.shared.CreateTrackedEntity;
+import org.vstu.compprehension.models.entities.shared.TimeTrackingListener;
 
 import java.util.Date;
 import java.util.List;
@@ -24,7 +29,8 @@ import java.util.UUID;
     @Index(name = "idx_qmsr_question_request_id", columnList = "question_request_id"),
     @Index(name = "idx_qmsr_quality", columnList = "quality"),
 })
-public class QuestionMetadataSearchRequestEntity {
+@EntityListeners(TimeTrackingListener.class)
+public class QuestionMetadataSearchRequestEntity extends BaseEntity implements CreateTrackedEntity {
     public enum Quality {
         BestUnused,
         BestUsed,
@@ -40,7 +46,6 @@ public class QuestionMetadataSearchRequestEntity {
     @Column(name = "question_request_id", nullable = true)
     private UUID questionRequestId;
 
-    @CreationTimestamp
     @Column(name = "created_at", nullable = false, updatable = false)
     private Date createdAt;
 

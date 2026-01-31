@@ -10,7 +10,12 @@ import lombok.Setter;
 import org.hibernate.annotations.*;
 import org.jetbrains.annotations.NotNull;
 import org.jetbrains.annotations.Nullable;
+import org.springframework.data.annotation.CreatedDate;
+import org.springframework.data.jpa.domain.support.AuditingEntityListener;
 import org.vstu.compprehension.models.businesslogic.QuestionBankSearchRequest;
+import org.vstu.compprehension.models.entities.shared.BaseEntity;
+import org.vstu.compprehension.models.entities.shared.CreateTrackedEntity;
+import org.vstu.compprehension.models.entities.shared.TimeTrackingListener;
 
 import java.util.Date;
 
@@ -20,7 +25,8 @@ import java.util.Date;
 @Table(name = "question_generation_requests", indexes = {
     @Index(name = "question_generation_requests_search_idx", columnList = "status,domain_shortname,created_at,questions_to_generate")
 })
-public class QuestionGenerationRequestEntity {
+@EntityListeners(TimeTrackingListener.class)
+public class QuestionGenerationRequestEntity extends BaseEntity implements CreateTrackedEntity {
     public QuestionGenerationRequestEntity(@NotNull QuestionBankSearchRequest questionRequest, int questionsToGenerate, @Nullable Long exerciseAttemptId) {
         this.questionRequest = questionRequest;
         this.questionsToGenerate = questionsToGenerate;
@@ -32,7 +38,6 @@ public class QuestionGenerationRequestEntity {
     @Column(name = "id", nullable = false)
     private Integer id;
 
-    @CreationTimestamp
     @Column(name = "created_at", nullable = false, updatable = false)
     private Date createdAt;
 

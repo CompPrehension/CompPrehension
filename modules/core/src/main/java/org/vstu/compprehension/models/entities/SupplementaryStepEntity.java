@@ -12,6 +12,7 @@ import lombok.NoArgsConstructor;
 import lombok.Setter;
 import lombok.ToString;
 import org.hibernate.annotations.Type;
+import org.vstu.compprehension.models.entities.shared.BaseEntity;
 
 import java.util.Map;
 import java.util.stream.Collectors;
@@ -19,7 +20,7 @@ import java.util.stream.Collectors;
 @Entity @Getter @Setter
 @NoArgsConstructor
 @Table(name = "SupplementaryStep")
-public class SupplementaryStepEntity {
+public class SupplementaryStepEntity extends BaseEntity {
     
     public SupplementaryStepEntity(InteractionEntity mainQuestionInteraction, QuestioningSituation situation, QuestionEntity supplementaryQuestion, Integer nextStateId){
         this.mainQuestionInteraction = mainQuestionInteraction;

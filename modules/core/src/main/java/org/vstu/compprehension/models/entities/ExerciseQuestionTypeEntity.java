@@ -8,12 +8,13 @@ import org.vstu.compprehension.models.entities.exercise.ExerciseEntity;
 
 import jakarta.persistence.*;
 import lombok.*;
+import org.vstu.compprehension.models.entities.shared.BaseEntity;
 
 @Entity
 @Data
 @NoArgsConstructor
 @Table(name = "ExerciseQuestionType")
-public class ExerciseQuestionTypeEntity {
+public class ExerciseQuestionTypeEntity extends BaseEntity {
     @Id
     @GeneratedValue(strategy = GenerationType.IDENTITY)
     private Long id;

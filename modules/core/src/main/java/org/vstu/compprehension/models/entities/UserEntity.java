@@ -7,6 +7,7 @@ import lombok.ToString;
 import org.vstu.compprehension.models.entities.EnumData.Language;
 import org.vstu.compprehension.models.entities.EnumData.Role;
 import org.vstu.compprehension.models.entities.exercise.ExerciseEntity;
+import org.vstu.compprehension.models.entities.shared.BaseEntity;
 
 import java.util.Date;
 import java.util.List;
@@ -18,7 +19,7 @@ import java.util.Set;
 @Table(name = "User", indexes = {
     @Index(columnList = "external_id", name = "external_id_hidx"),
 })
-public class UserEntity {
+public class UserEntity extends BaseEntity {
     @Id
     @GeneratedValue(strategy = GenerationType.IDENTITY)
     private Long id;

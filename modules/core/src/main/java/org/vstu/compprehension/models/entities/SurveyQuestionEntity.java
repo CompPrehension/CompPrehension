@@ -6,11 +6,12 @@ import lombok.Getter;
 import lombok.Setter;
 import lombok.ToString;
 import org.hibernate.annotations.Type;
+import org.vstu.compprehension.models.entities.shared.BaseEntity;
 
 @Entity
 @Getter @Setter
 @Table(name = "survey_questions")
-public class SurveyQuestionEntity {
+public class SurveyQuestionEntity extends BaseEntity {
     @Id
     @Column(name = "id")
     @GeneratedValue(strategy = GenerationType.IDENTITY)

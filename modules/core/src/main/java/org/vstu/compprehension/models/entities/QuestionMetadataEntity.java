@@ -5,6 +5,11 @@ import lombok.*;
 import org.hibernate.annotations.CreationTimestamp;
 import org.hibernate.annotations.OnDelete;
 import org.hibernate.annotations.OnDeleteAction;
+import org.springframework.data.annotation.CreatedDate;
+import org.springframework.data.jpa.domain.support.AuditingEntityListener;
+import org.vstu.compprehension.models.entities.shared.BaseEntity;
+import org.vstu.compprehension.models.entities.shared.CreateTrackedEntity;
+import org.vstu.compprehension.models.entities.shared.TimeTrackingListener;
 
 import java.util.Date;
 
@@ -18,7 +23,8 @@ import java.util.Date;
     @Index(name = "idx_questions_meta_domainshortname_name", columnList = "domain_shortname, name"),
     @Index(name = "idx_questions_meta_domainshortname_templateid", columnList = "domain_shortname, template_id"),
 })
-public class QuestionMetadataEntity {
+@EntityListeners(TimeTrackingListener.class)
+public class QuestionMetadataEntity extends BaseEntity implements CreateTrackedEntity {
     @Id
     @GeneratedValue(strategy = GenerationType.IDENTITY)
     @Column(name = "id", nullable = false)
@@ -90,7 +96,6 @@ public class QuestionMetadataEntity {
     @Column(name = "origin_license")
     private String originLicense = null;
 
-    @CreationTimestamp
     @Column(name = "created_at", nullable = false, updatable = false)
     private Date createdAt;
     

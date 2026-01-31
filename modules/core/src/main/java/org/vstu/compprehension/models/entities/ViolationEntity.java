@@ -9,6 +9,7 @@ import lombok.ToString;
 import org.hibernate.annotations.Fetch;
 import org.hibernate.annotations.FetchMode;
 import org.hibernate.annotations.Type;
+import org.vstu.compprehension.models.entities.shared.BaseEntity;
 
 import java.util.List;
 
@@ -16,7 +17,7 @@ import java.util.List;
 @Getter @Setter
 @NoArgsConstructor
 @Table(name = "Violation")
-public class ViolationEntity {
+public class ViolationEntity extends BaseEntity {
     @Id
     @GeneratedValue(strategy = GenerationType.IDENTITY)
     private Long id;

@@ -7,6 +7,7 @@ import lombok.NoArgsConstructor;
 import lombok.Setter;
 import org.hibernate.annotations.Type;
 import org.vstu.compprehension.models.businesslogic.storage.SerializableQuestion;
+import org.vstu.compprehension.models.entities.shared.BaseEntity;
 import org.vstu.compprehension.utils.SerializableQuestionType;
 
 @Getter
@@ -15,7 +16,7 @@ import org.vstu.compprehension.utils.SerializableQuestionType;
 @Table(name = "questions_data")
 @NoArgsConstructor
 @AllArgsConstructor
-public class QuestionDataEntity {
+public class QuestionDataEntity extends BaseEntity {
     @Id
     @GeneratedValue(strategy = GenerationType.IDENTITY)
     @Column(name = "id", nullable = false)

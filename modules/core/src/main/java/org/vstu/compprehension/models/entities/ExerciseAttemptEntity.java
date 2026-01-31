@@ -1,13 +1,16 @@
 package org.vstu.compprehension.models.entities;
 
 import jakarta.persistence.*;
-import lombok.Data;
-import lombok.NoArgsConstructor;
-import lombok.ToString;
+import lombok.*;
 import org.hibernate.annotations.CreationTimestamp;
 import org.hibernate.annotations.UpdateTimestamp;
+import org.springframework.data.annotation.CreatedDate;
+import org.springframework.data.jpa.domain.support.AuditingEntityListener;
 import org.vstu.compprehension.models.entities.EnumData.AttemptStatus;
 import org.vstu.compprehension.models.entities.exercise.ExerciseEntity;
+import org.vstu.compprehension.models.entities.shared.BaseEntity;
+import org.vstu.compprehension.models.entities.shared.CreateTrackedEntity;
+import org.vstu.compprehension.models.entities.shared.TimeTrackingListener;
 
 import java.util.Date;
 import java.util.List;
@@ -16,7 +19,8 @@ import java.util.List;
 @Data
 @NoArgsConstructor
 @Table(name = "exercise_attempt")
-public class ExerciseAttemptEntity {
+@EntityListeners(TimeTrackingListener.class)
+public class ExerciseAttemptEntity extends BaseEntity implements CreateTrackedEntity {
     //TODO: Нужен ли здесь язык студента
     @Id
     @GeneratedValue(strategy = GenerationType.IDENTITY)
@@ -25,7 +29,6 @@ public class ExerciseAttemptEntity {
     @Enumerated(EnumType.ORDINAL)
     private AttemptStatus attemptStatus;
 
-    @CreationTimestamp
     @Column(name = "created_at", nullable = false, updatable = false)
     private Date createdAt;
 

@@ -7,6 +7,7 @@ import lombok.NoArgsConstructor;
 import lombok.experimental.SuperBuilder;
 import lombok.extern.jackson.Jacksonized;
 import org.jetbrains.annotations.NotNull;
+import org.vstu.compprehension.models.entities.shared.BaseEntity;
 
 @Data
 @AllArgsConstructor

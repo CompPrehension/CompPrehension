@@ -2,6 +2,7 @@ package org.vstu.compprehension.models.entities;
 
 import jakarta.persistence.*;
 import lombok.*;
+import org.vstu.compprehension.models.entities.shared.BaseEntity;
 
 import java.util.List;
 
@@ -19,7 +20,7 @@ import java.util.List;
     }
 )
 @AllArgsConstructor
-public class AnswerObjectEntity {
+public class AnswerObjectEntity extends BaseEntity {
     @Id
     @GeneratedValue(strategy = GenerationType.IDENTITY)
     private Long id;

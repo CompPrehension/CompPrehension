@@ -2,12 +2,13 @@ package org.vstu.compprehension.models.entities;
 
 import jakarta.persistence.*;
 import lombok.*;
+import org.vstu.compprehension.models.entities.shared.BaseEntity;
 
 @Getter @Setter
 @EqualsAndHashCode
 @NoArgsConstructor
 @Table(name = "BackendFacts")
-public class BackendFactEntity {
+public class BackendFactEntity extends BaseEntity {
     private String object;
     private String objectType;
     private String subject;

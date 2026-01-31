@@ -4,7 +4,6 @@ import com.vladmihalcea.hibernate.type.json.JsonType;
 import jakarta.persistence.*;
 import lombok.Data;
 import lombok.NoArgsConstructor;
-import org.hibernate.annotations.CreationTimestamp;
 import org.hibernate.annotations.Type;
 import org.hibernate.annotations.UpdateTimestamp;
 import org.jetbrains.annotations.NotNull;
@@ -15,6 +14,9 @@ import org.vstu.compprehension.models.entities.EnumData.Language;
 import org.vstu.compprehension.models.entities.ExerciseAttemptEntity;
 import org.vstu.compprehension.models.entities.ExerciseQuestionTypeEntity;
 import org.vstu.compprehension.models.entities.UserEntity;
+import org.vstu.compprehension.models.entities.shared.BaseEntity;
+import org.vstu.compprehension.models.entities.shared.CreateTrackedEntity;
+import org.vstu.compprehension.models.entities.shared.TimeTrackingListener;
 
 import java.util.Arrays;
 import java.util.Date;
@@ -25,7 +27,8 @@ import java.util.stream.Collectors;
 @Data
 @NoArgsConstructor
 @Table(name = "Exercise")
-public class ExerciseEntity {
+@EntityListeners(TimeTrackingListener.class)
+public class ExerciseEntity extends BaseEntity implements CreateTrackedEntity {
     @Id
     @GeneratedValue(strategy = GenerationType.IDENTITY)
     private Long id;
@@ -40,7 +43,6 @@ public class ExerciseEntity {
     @Column(name = "useGuidingQuestions")
     private Boolean useGuidingQuestions;
 
-    @CreationTimestamp
     @Column(name = "created_at", nullable = false, updatable = false)
     private Date createdAt;
 

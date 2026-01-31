@@ -5,12 +5,13 @@ import jakarta.persistence.*;
 import lombok.Data;
 import lombok.NoArgsConstructor;
 import org.hibernate.annotations.Type;
+import org.vstu.compprehension.models.entities.shared.BaseEntity;
 
 @Entity
 @Data
 @NoArgsConstructor
 @Table(name = "Domain", uniqueConstraints = @UniqueConstraint(columnNames = {"name", "version"}))
-public class DomainEntity {
+public class DomainEntity extends BaseEntity {
     @Id
     @Column(name = "name")
     private String name;

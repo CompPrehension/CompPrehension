@@ -5,7 +5,12 @@ import lombok.*;
 import org.hibernate.annotations.CreationTimestamp;
 import org.hibernate.annotations.NotFound;
 import org.hibernate.annotations.NotFoundAction;
+import org.springframework.data.annotation.CreatedDate;
+import org.springframework.data.jpa.domain.support.AuditingEntityListener;
 import org.vstu.compprehension.models.entities.EnumData.InteractionType;
+import org.vstu.compprehension.models.entities.shared.BaseEntity;
+import org.vstu.compprehension.models.entities.shared.CreateTrackedEntity;
+import org.vstu.compprehension.models.entities.shared.TimeTrackingListener;
 
 import java.util.ArrayList;
 import java.util.Date;
@@ -16,7 +21,8 @@ import java.util.stream.Collectors;
 @Getter @Setter
 @NoArgsConstructor
 @Table(name = "Interaction")
-public class InteractionEntity {
+@EntityListeners(TimeTrackingListener.class)
+public class InteractionEntity extends BaseEntity implements CreateTrackedEntity {
     @Id
     @GeneratedValue(strategy = GenerationType.IDENTITY)
     private Long id;
@@ -32,7 +38,6 @@ public class InteractionEntity {
     @Enumerated(EnumType.STRING)
     private InteractionType interactionType;
 
-    @CreationTimestamp
     @Column(name = "created_at", nullable = false, updatable = false)
     private Date createdAt;
 
