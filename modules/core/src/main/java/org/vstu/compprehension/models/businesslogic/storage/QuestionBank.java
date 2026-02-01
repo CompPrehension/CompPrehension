@@ -48,7 +48,7 @@ public class QuestionBank {
         this.logSavingTransactionScope = transactionScopeFactory.create(TransactionScope.PropagationBehavior.REQUIRES_NEW);
     }
 
-    private QuestionBankSearchRequest createBankSearchRequest(QuestionRequest qr) {
+    public QuestionBankSearchRequest createBankSearchRequest(QuestionRequest qr) {
         var minComplexity = questionMetadataManager.getComplexityStats(qr.getDomainShortname()).getMin();
         var maxComplexity = questionMetadataManager.getComplexityStats(qr.getDomainShortname()).getMax();
 

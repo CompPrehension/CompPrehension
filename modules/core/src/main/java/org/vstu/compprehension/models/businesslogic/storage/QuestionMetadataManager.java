@@ -15,6 +15,7 @@ public class QuestionMetadataManager {
     private final QuestionMetadataRepository questionRepository;
     private final ConcurrentHashMap<String, ComplexityStats> complexityStats;
     private final DateTimeProvider dateTimeProvider;
+    private final int cacheIntervalMinutes = 1;
 
     private record ComplexityStats(LocalDateTime createDate, NumericStat stats) {}
 
@@ -30,7 +31,7 @@ public class QuestionMetadataManager {
 
     private @NotNull ComplexityStats ensureBankStatLoaded(String domainShortname) {
         var now = LocalDateTime.ofInstant(dateTimeProvider.now(), ZoneId.systemDefault());
-        var nowShifted   = now.plusMinutes(-15);
+        var nowShifted   = now.minusMinutes(cacheIntervalMinutes);
         var currentStats = complexityStats.get(domainShortname);
         if (currentStats != null && currentStats.createDate().isAfter(nowShifted)) {
             return currentStats;

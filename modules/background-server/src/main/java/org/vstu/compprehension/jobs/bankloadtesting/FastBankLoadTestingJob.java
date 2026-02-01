@@ -9,29 +9,25 @@ import org.jobrunr.jobs.annotations.Job;
 import org.springframework.stereotype.Service;
 import org.vstu.compprehension.Service.FrontendService;
 import org.vstu.compprehension.dto.ExerciseAttemptDto;
-import org.vstu.compprehension.dto.GenerationRequestGroup;
 import org.vstu.compprehension.dto.question.QuestionDto;
+import org.vstu.compprehension.models.businesslogic.QuestionRequest;
 import org.vstu.compprehension.models.businesslogic.date.DateTimeProvider;
-import org.vstu.compprehension.models.entities.QuestionGenerationRequestEntity;
+import org.vstu.compprehension.models.businesslogic.domains.DomainFactory;
+import org.vstu.compprehension.models.businesslogic.storage.QuestionBank;
+import org.vstu.compprehension.models.entities.EnumData.RoleInExercise;
 import org.vstu.compprehension.models.entities.UserEntity;
 import org.vstu.compprehension.models.entities.exercise.ExerciseStageEntity;
-import org.vstu.compprehension.models.repository.ExerciseRepository;
-import org.vstu.compprehension.models.repository.QuestionGenerationRequestRepository;
-import org.vstu.compprehension.models.repository.QuestionMetadataRepository;
-import org.vstu.compprehension.models.repository.UserRepository;
+import org.vstu.compprehension.models.repository.*;
 import org.vstu.compprehension.utils.RandomProvider;
 import org.vstu.compprehension.utils.transactions.TransactionScope;
 import org.vstu.compprehension.utils.transactions.TransactionScopeFactory;
 
-import javax.sql.rowset.CachedRowSet;
 import java.sql.Date;
 import java.time.*;
-import java.time.temporal.TemporalUnit;
-import java.util.HashSet;
-import java.util.List;
-import java.util.PriorityQueue;
-import java.util.Set;
+import java.util.*;
 import java.util.concurrent.Callable;
+
+import static org.vstu.compprehension.models.entities.EnumData.InteractionType.SEND_RESPONSE;
 
 @Log4j2
 @Service
@@ -46,8 +42,11 @@ public class FastBankLoadTestingJob {
     private final DateTimeProvider dateTimeProvider;
     private final BankLoadTestingJobConfig config;
     private final BankLoadTestingJobBatchConfig batchConfig;
+    private final DomainFactory domainFactory;
+    private final QuestionBank questionBank;
+    private final InteractionRepository interactionRepository;
 
-    public FastBankLoadTestingJob(FrontendService frontendService, ExerciseRepository exerciseRepository, UserRepository userRepository, TransactionScopeFactory transactionScopeFactory, RandomProvider randomProvider, QuestionMetadataRepository questionMetadataRepository, QuestionGenerationRequestRepository questionGenerationRequestRepository, DateTimeProvider dateTimeProvider, BankLoadTestingJobConfig config, BankLoadTestingJobBatchConfig batchConfig) {
+    public FastBankLoadTestingJob(FrontendService frontendService, ExerciseRepository exerciseRepository, UserRepository userRepository, TransactionScopeFactory transactionScopeFactory, RandomProvider randomProvider, QuestionMetadataRepository questionMetadataRepository, QuestionGenerationRequestRepository questionGenerationRequestRepository, DateTimeProvider dateTimeProvider, BankLoadTestingJobConfig config, BankLoadTestingJobBatchConfig batchConfig, DomainFactory domainFactory, QuestionBank questionBank, InteractionRepository interactionRepository) {
         this.frontendService = frontendService;
         this.exerciseRepository = exerciseRepository;
         this.userRepository = userRepository;
@@ -58,6 +57,9 @@ public class FastBankLoadTestingJob {
         this.dateTimeProvider = dateTimeProvider;
         this.config = config;
         this.batchConfig = batchConfig;
+        this.domainFactory = domainFactory;
+        this.questionBank = questionBank;
+        this.interactionRepository = interactionRepository;
     }
 
     @Job(name = "question-bank-load-testing-job", retries = 0)
@@ -207,6 +209,82 @@ public class FastBankLoadTestingJob {
         log.info("Ratio (Speedup): x{}", virtualDuration.toMillis() / Math.max(1, realDuration.toMillis()));
     }
 
+    private void wtf(long exerciseId) {
+        var exerciseSettings = exerciseRepository.findById(exerciseId)
+                .orElseThrow(() -> new IllegalArgumentException("Exercise not found with id: " + exerciseId));
+        var stages = exerciseSettings.getStages();
+        var domain = domainFactory.getDomain("expresssion_dt");
+        
+        // для каждой стадии находим qr ей соответвующий
+        var questionRequests = new ArrayList<QuestionRequest>(stages.size());
+        for (var stage : stages) {
+            var targetConcepts = stage.getConcepts().stream()
+                    .filter(c -> c.getKind().equals(RoleInExercise.TARGETED))
+                    .flatMap(c -> domain.getConceptWithChildren(c.getName()).stream())
+                    .filter(Objects::nonNull)
+                    .distinct()
+                    .toList();
+            var deniedConcepts = stage.getConcepts().stream()
+                    .filter(c -> c.getKind().equals(RoleInExercise.FORBIDDEN))
+                    .flatMap(c -> domain.getConceptWithChildren(c.getName()).stream())
+                    .filter(Objects::nonNull)
+                    .distinct()
+                    .toList();
+            var targetLaws = stage.getLaws().stream()
+                    .filter(c -> c.getKind().equals(RoleInExercise.TARGETED))
+                    .map(c -> domain.getLaw(c.getName()))
+                    .filter(Objects::nonNull)
+                    .distinct()
+                    .toList();
+            var deniedLaws = stage.getLaws().stream()
+                    .filter(c -> c.getKind().equals(RoleInExercise.FORBIDDEN))
+                    .map(c -> domain.getLaw(c.getName()))
+                    .filter(Objects::nonNull)
+                    .distinct()
+                    .toList();
+            var targetTags = exerciseSettings.getTags().stream()
+                    .map(domain::getTag)
+                    .filter(Objects::nonNull)
+                    .distinct()
+                    .toList();
+            var targetSkills = stage.getSkills().stream()
+                    .filter(c -> c.getKind().equals(RoleInExercise.TARGETED))
+                    .map(c -> domain.getSkill(c.getName()))
+                    .filter(Objects::nonNull)
+                    .distinct()
+                    .toList();
+            var deniedSkills = stage.getSkills().stream()
+                    .filter(c -> c.getKind().equals(RoleInExercise.FORBIDDEN))
+                    .map(c -> domain.getSkill(c.getName()))
+                    .filter(Objects::nonNull)
+                    .distinct()
+                    .toList();
+
+            var qr = QuestionRequest.builder()
+                    .targetConcepts(targetConcepts)
+                    .deniedConcepts(deniedConcepts)
+                    .targetLaws(targetLaws)
+                    .deniedLaws(deniedLaws)
+                    .targetSkills(targetSkills)
+                    .deniedSkills(deniedSkills)
+                    .complexity(stage.getComplexity())
+                    .targetTags(targetTags)
+                    .domainShortname(domain.getShortnameForQuestionSearch())
+                    .build();
+            qr = domain.ensureQuestionRequestValid(qr);
+            
+            questionRequests.add(qr);
+        }
+        
+        // запускаеми StagesCount потоков с целью мониторить состояние и в случае чего создавать
+        // запрос на генерацию
+        var qr = questionRequests.get(0);
+        var searchRequest = questionBank.createBankSearchRequest(qr);
+        // вызываю как-то метод в репозитории, вытягиваю все данные по вопросу
+        
+        // посылаю запрос в питон        
+        questionBank.countQuestions(qr);
+    }
 
     @SneakyThrows
     private void handleStartAttempt(PriorityQueue<SimulationEvent> queue, BankLoadTestingJobConfig config, long userId, int maxAttemptQuestions, Set<Long> runningAttempts) {
@@ -231,27 +309,30 @@ public class FastBankLoadTestingJob {
     private void handleQuestionStart(PriorityQueue<SimulationEvent> queue, BankLoadTestingJobConfig config, long userId, Long attemptId, int questionIndex, int maxQuestions, Set<Long> runningAttempts) {
         var random = randomProvider.getRandom();
 
-        // 1. Генерируем вопрос (взаимодействие с БД)
-        generateQuestion(attemptId);
+        // Генерируем вопрос (взаимодействие с БД)
+        var questionId = Objects.requireNonNull(generateQuestion(attemptId)).getQuestionId();        
 
-        // 2. Рассчитываем, сколько студент будет "думать" (Virtual Time Calculation)
+        // Рассчитываем, сколько студент будет "думать" (Virtual Time Calculation)
         double duration = getQuestionDelaySeconds(random.nextDouble(), config.getQuestionDelayRandomFactorization());
 
-        // 3. Планируем момент ЗАВЕРШЕНИЯ вопроса
+        // Планируем момент ЗАВЕРШЕНИЯ вопроса
         long thinkTimeMillis = (long) (duration * 1000);
         Instant finishTime = dateTimeProvider.now().plusMillis(thinkTimeMillis);
 
         queue.add(new SimulationEvent(
                 finishTime,
-                () -> handleQuestionFinish(queue, config, userId, attemptId, questionIndex, maxQuestions, runningAttempts)
+                () -> handleQuestionFinish(queue, config, userId, attemptId, questionId, questionIndex, maxQuestions, runningAttempts)
         ));
     }
 
-    private void handleQuestionFinish(PriorityQueue<SimulationEvent> queue, BankLoadTestingJobConfig config, long userId, Long attemptId, int questionIndex, int maxQuestions, Set<Long> runningAttempts) {
+    private void handleQuestionFinish(PriorityQueue<SimulationEvent> queue, BankLoadTestingJobConfig config, long userId, Long attemptId, long questionId, int questionIndex, int maxQuestions, Set<Long> runningAttempts) {
         log.info("User {} completed #{} problem at {}", userId, questionIndex + 1, dateTimeProvider.now());
 
+        // Добавляем один ответ, триггерящий интерацию после delay'a
+        // такая интерация нужна, чтобы в бд зафиксировать окончание вопроса
+        interactionRepository.createFakeInteraction(SEND_RESPONSE.toString(), questionId, dateTimeProvider.now());
+        
         int nextIndex = questionIndex + 1;
-
         // Если вопросы кончились - выходим
         if (nextIndex >= maxQuestions) {
             queue.add(new SimulationEvent(
@@ -288,6 +369,7 @@ public class FastBankLoadTestingJob {
             questionGenerationRequestRepository.findAllActual("expression_dt", LocalDateTime.ofInstant(dateTimeProvider.now(), ZoneId.systemDefault()).minusMonths(3)) // Или ваш метод поиска активных
         );
 
+        var random = randomProvider.getRandom();
         if (pendingRequests != null) {
             for (var req : pendingRequests) {
                 for (var subreq : req.getGenerationRequests()) {
@@ -301,7 +383,7 @@ public class FastBankLoadTestingJob {
                     // для каждого вопроса планируем время на его генерацию
                     double maxQuestionGenerationTimeSeconds = 0;
                     for(int i = 0; i < subreq.questionsToGenerate(); i++) {
-                        double genDurationSeconds = getGeneratorProcessingTime();
+                        double genDurationSeconds = getGeneratorProcessingTime(random.nextDouble());
                         Instant finishTime = dateTimeProvider.now().plusMillis((long)(genDurationSeconds * 1000));
                         maxQuestionGenerationTimeSeconds = Math.max(maxQuestionGenerationTimeSeconds, genDurationSeconds);
 
@@ -370,13 +452,6 @@ public class FastBankLoadTestingJob {
         processingRequests.remove(requestId);
     }
 
-    private double getGeneratorProcessingTime() {
-        var random = randomProvider.getRandom();
-        // Пример: Нормальное распределение (среднее 30с, отклонение 10с), минимум 5с
-        double val = (random.nextGaussian() * 10) + 30;
-        return Math.max(5.0, val);
-    }
-
     private @Nullable QuestionDto generateQuestion(Long attemptId) {
         return executeSimpleRetry(() -> {
             try {
@@ -408,16 +483,29 @@ public class FastBankLoadTestingJob {
         return null; // Should not execute
     }
 
-    private static final Double[] defaultFactorization = new Double[]{ 13.698911565177422, -465.5577244968546, 5807.635692396597, -26371.472191593017, 55482.38583228885, -54371.642536328945, 20124.57534014809 };
+    private static final Double[] defaultQuestionSolveFactorization = new Double[]{ 13.698911565177422, -465.5577244968546, 5807.635692396597, -26371.472191593017, 55482.38583228885, -54371.642536328945, 20124.57534014809 };
 
     private static double getQuestionDelaySeconds(double u, Double[] factorization) {
-        if (factorization == null) factorization = defaultFactorization;
+        if (factorization == null) factorization = defaultQuestionSolveFactorization;
         double raw = 0;
         for (int i = 0; i < factorization.length; i++) {
             raw += factorization[i] * Math.pow(u, i);
         }
         if (raw <= 0) return 0;
         if (raw >= 200) return 200;
+        return raw;
+    }
+
+    private static final Double[] defaultQuestionGenerationFactorization = new Double[]{ -10.564476, 1815.617740, -62755.468392, 1034010.074099, -9314469.105164, 50671099.251030, -176462616.225144, 406388639.475639, -625836438.027879, 637425652.546357, -411975523.119385, 152970035.001251, -24838886.394478 };
+
+    private static double getGeneratorProcessingTime(double u) {
+        var factorization = defaultQuestionGenerationFactorization;
+        double raw = 0;
+        for (int i = 0; i < factorization.length; i++) {
+            raw += factorization[i] * Math.pow(u, i);
+        }
+        if (raw <= 0) return 0;
+        if (raw >= 600) return 600;
         return raw;
     }
 
