@@ -168,6 +168,7 @@ public class ControlFlowDTDomain extends DecisionTreeReasoningDomain {
 
         Concept structures = addConcept("structures");
         Concept function = addConcept("function", List.of(structures), flags);
+        Concept recursion = addConcept("recursion", List.of(function), flags);
         Concept struct = addConcept("structure", List.of(structures), flags);
         Concept oop = addConcept("objects", List.of(structures), flags);
         Concept cls = addConcept("class", List.of(oop), invisible);
@@ -175,6 +176,7 @@ public class ControlFlowDTDomain extends DecisionTreeReasoningDomain {
         Concept method = addConcept("method", List.of(oop), invisible);
 
         Concept loops = addConcept("loops");
+        Concept loopIteration = addConcept("loop_iteration", List.of(loops), flags);
         Concept forLoop = addConcept("for_loop", List.of(loops));
         Concept forGeneralLoop = addConcept("general_for_loop", List.of(forLoop), flags);
         Concept forRangeLoop = addConcept("range_for_loop", List.of(forGeneralLoop), flags);
@@ -1088,9 +1090,6 @@ public class ControlFlowDTDomain extends DecisionTreeReasoningDomain {
         name2bit.put("ternary_conditions", 0x100L);        // 256
         name2bit.put("lib_function_call", 0x200L);         // 512
         name2bit.put("program_function_call", 0x400L);     // 1024
-        name2bit.put("object_new", 0x400000000L);
-        name2bit.put("strings", 0x800000000L);
-        name2bit.put("map_collections", 0x1000000000L);
 
         // Plain statements with flags
         name2bit.put("var_declaration", 0x800L);           // 2048
@@ -1122,6 +1121,11 @@ public class ControlFlowDTDomain extends DecisionTreeReasoningDomain {
         name2bit.put("switch", 0x80000000L);               // 2147483648
         name2bit.put("fallthrough_case", 0x100000000L);    // 4294967296
         name2bit.put("default_case", 0x200000000L);        // 8589934592
+        name2bit.put("object_new", 0x400000000L);
+        name2bit.put("strings", 0x800000000L);
+        name2bit.put("map_collections", 0x1000000000L);
+        name2bit.put("recursion", 0x2000000000L);
+        name2bit.put("loop_iteration", 0x4000000000L);
 
         return name2bit;
     }
