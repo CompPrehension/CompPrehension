@@ -8,9 +8,12 @@ import org.springframework.jdbc.core.namedparam.MapSqlParameterSource;
 import org.springframework.jdbc.core.namedparam.NamedParameterJdbcTemplate;
 import org.springframework.jdbc.support.GeneratedKeyHolder;
 import org.springframework.jdbc.support.KeyHolder;
+import org.springframework.transaction.annotation.Propagation;
 import org.springframework.transaction.annotation.Transactional;
 import org.vstu.compprehension.models.businesslogic.QuestionBankSearchRequest;
 import org.vstu.compprehension.models.entities.QuestionMetadataEntity;
+import org.vstu.compprehension.utils.transactions.TransactionScope;
+import org.vstu.compprehension.utils.transactions.TransactionScopeFactory;
 
 import java.time.LocalDate;
 import java.util.Date;
@@ -19,10 +22,12 @@ import java.util.List;
 public class QuestionMetadataComplexQueriesRepositoryImpl implements QuestionMetadataComplexQueriesRepository {
     private final EntityManager entityManager;
     private final NamedParameterJdbcTemplate jdbcTemplate;
+    private final TransactionScope transactionScope;
 
-    public QuestionMetadataComplexQueriesRepositoryImpl(EntityManager entityManager, NamedParameterJdbcTemplate jdbcTemplate) {
+    public QuestionMetadataComplexQueriesRepositoryImpl(EntityManager entityManager, NamedParameterJdbcTemplate jdbcTemplate, TransactionScopeFactory transactionScopeFactory) {
         this.entityManager = entityManager;
         this.jdbcTemplate = jdbcTemplate;
+        this.transactionScope = transactionScopeFactory.create(TransactionScope.PropagationBehavior.REQUIRES_NEW);
     }
 
     private void ensureRequestValid(QuestionBankSearchRequest qr) {
@@ -456,62 +461,68 @@ public class QuestionMetadataComplexQueriesRepositoryImpl implements QuestionMet
         return (List<QuestionMetadataEntity>)result;
     }
 
+    @Transactional(propagation = Propagation.REQUIRES_NEW)
+    @Modifying
     @Override
     public int deleteMetadataFromDate(LocalDate date) {
-        entityManager.createNativeQuery(
-                "update question " +
-                   "set metadata_id = NULL " +
-                   "where metadata_id IN (select id from questions_meta where created_at > :fromDate) or created_at > :fromDate")
-                .setParameter("fromDate", date)
-                .executeUpdate();
+        return transactionScope.execute(() -> {
+            var updateQuestionsResult = entityManager.createNativeQuery(
+                            "update question " +
+                                    "set metadata_id = NULL " +
+                                    "where metadata_id IN (select id from questions_meta where created_at > :fromDate) or created_at > :fromDate")
+                    .setParameter("fromDate", date)
+                    .executeUpdate();
 
-        var deleteMetasResult = entityManager.createNativeQuery(
-                        "delete from questions_meta where created_at > :fromDate")
-                .setParameter("fromDate", date)
-                .executeUpdate();
+            var deleteMetasResult = entityManager.createNativeQuery(
+                            "delete from questions_meta where created_at > :fromDate")
+                    .setParameter("fromDate", date)
+                    .executeUpdate();
 
-        entityManager.createNativeQuery(
-                        "delete from questions_data where id not IN (select question_data_id from questions_meta)")
-                .executeUpdate();
-        
-        return deleteMetasResult;
+            entityManager.createNativeQuery(
+                            "delete from questions_data where id not IN (select question_data_id from questions_meta)")
+                    .executeUpdate();
+
+            return deleteMetasResult;
+        });
     }
 
     @Transactional
     @Modifying
     @Override
     public Integer clone(Integer sourceId, String newName, String newTemplateId, Date created, Integer generationRequestId) {
-        String sql = """
-            INSERT INTO questions_meta (
-                name, domain_shortname, q_data_graph, tag_bits, concept_bits, law_bits,
-                skill_bits, violation_bits, trace_concept_bits, solution_structural_complexity,
-                integral_complexity, solution_steps, distinct_errors_count, _version, origin,
-                origin_license, structure_hash, template_id, created_at, question_data_id,
-                generation_request_id
-            )
-            SELECT
-                :newName, domain_shortname, q_data_graph, tag_bits, concept_bits, law_bits,
-                skill_bits, violation_bits, trace_concept_bits, solution_structural_complexity,
-                integral_complexity, solution_steps, distinct_errors_count, _version, origin,
-                origin_license, structure_hash, :newTemplateId, :created, question_data_id,
-                :generationRequestId
-            FROM questions_meta
-            WHERE id = :sourceId
-        """;
+        return transactionScope.execute(() -> {
+            String sql = """
+                INSERT INTO questions_meta (
+                    name, domain_shortname, q_data_graph, tag_bits, concept_bits, law_bits,
+                    skill_bits, violation_bits, trace_concept_bits, solution_structural_complexity,
+                    integral_complexity, solution_steps, distinct_errors_count, _version, origin,
+                    origin_license, structure_hash, template_id, created_at, question_data_id,
+                    generation_request_id
+                )
+                SELECT
+                    :newName, domain_shortname, q_data_graph, tag_bits, concept_bits, law_bits,
+                    skill_bits, violation_bits, trace_concept_bits, solution_structural_complexity,
+                    integral_complexity, solution_steps, distinct_errors_count, _version, origin,
+                    origin_license, structure_hash, :newTemplateId, :created, question_data_id,
+                    :generationRequestId
+                FROM questions_meta
+                WHERE id = :sourceId
+            """;
 
-        MapSqlParameterSource parameters = new MapSqlParameterSource()
-                .addValue("newName", newName)
-                .addValue("newTemplateId", newTemplateId)
-                .addValue("created", created)
-                .addValue("generationRequestId", generationRequestId)
-                .addValue("sourceId", sourceId);
+            MapSqlParameterSource parameters = new MapSqlParameterSource()
+                    .addValue("newName", newName)
+                    .addValue("newTemplateId", newTemplateId)
+                    .addValue("created", created)
+                    .addValue("generationRequestId", generationRequestId)
+                    .addValue("sourceId", sourceId);
 
-        KeyHolder keyHolder = new GeneratedKeyHolder();
+            KeyHolder keyHolder = new GeneratedKeyHolder();
 
-        // update с KeyHolder автоматически извлекает сгенерированный ID
-        jdbcTemplate.update(sql, parameters, keyHolder, new String[]{"id"});
+            // update с KeyHolder автоматически извлекает сгенерированный ID
+            jdbcTemplate.update(sql, parameters, keyHolder, new String[]{"id"});
 
-        Number key = keyHolder.getKey();
-        return key != null ? key.intValue() : null;
+            Number key = keyHolder.getKey();
+            return key != null ? key.intValue() : null;
+        });
     }
 }

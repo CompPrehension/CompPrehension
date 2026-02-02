@@ -13,6 +13,8 @@ public class BankLoadTestingJobConfig {
 
     private long exerciseId;
     private int usersCount;
+    
+    private boolean demandPredictorEnabled = false;
 
     private Integer randomSeed;
     private Integer generatorThreshold;

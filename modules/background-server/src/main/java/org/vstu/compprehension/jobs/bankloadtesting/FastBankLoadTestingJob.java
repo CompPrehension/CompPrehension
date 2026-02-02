@@ -1,5 +1,9 @@
 package org.vstu.compprehension.jobs.bankloadtesting;
 
+import com.fasterxml.jackson.annotation.JsonIgnoreProperties;
+import com.fasterxml.jackson.annotation.JsonProperty;
+import com.fasterxml.jackson.databind.JsonNode;
+import com.fasterxml.jackson.databind.ObjectMapper;
 import lombok.AllArgsConstructor;
 import lombok.SneakyThrows;
 import lombok.extern.log4j.Log4j2;
@@ -15,6 +19,7 @@ import org.vstu.compprehension.models.businesslogic.date.DateTimeProvider;
 import org.vstu.compprehension.models.businesslogic.domains.DomainFactory;
 import org.vstu.compprehension.models.businesslogic.storage.QuestionBank;
 import org.vstu.compprehension.models.entities.EnumData.RoleInExercise;
+import org.vstu.compprehension.models.entities.QuestionGenerationRequestEntity;
 import org.vstu.compprehension.models.entities.UserEntity;
 import org.vstu.compprehension.models.entities.exercise.ExerciseStageEntity;
 import org.vstu.compprehension.models.repository.*;
@@ -22,6 +27,11 @@ import org.vstu.compprehension.utils.RandomProvider;
 import org.vstu.compprehension.utils.transactions.TransactionScope;
 import org.vstu.compprehension.utils.transactions.TransactionScopeFactory;
 
+import java.lang.reflect.Method;
+import java.net.URI;
+import java.net.http.HttpClient;
+import java.net.http.HttpRequest;
+import java.net.http.HttpResponse;
 import java.sql.Date;
 import java.time.*;
 import java.util.*;
@@ -35,7 +45,6 @@ public class FastBankLoadTestingJob {
     private final FrontendService frontendService;
     private final ExerciseRepository exerciseRepository;
     private final UserRepository userRepository;
-    private final TransactionScope transactionScope;
     private final RandomProvider randomProvider;
     private final QuestionGenerationRequestRepository questionGenerationRequestRepository;
     private final QuestionMetadataRepository questionMetadataRepository;
@@ -45,12 +54,12 @@ public class FastBankLoadTestingJob {
     private final DomainFactory domainFactory;
     private final QuestionBank questionBank;
     private final InteractionRepository interactionRepository;
+    private final QuestionMetadataSearchRequestRepository questionMetadataSearchRequestRepository;
 
-    public FastBankLoadTestingJob(FrontendService frontendService, ExerciseRepository exerciseRepository, UserRepository userRepository, TransactionScopeFactory transactionScopeFactory, RandomProvider randomProvider, QuestionMetadataRepository questionMetadataRepository, QuestionGenerationRequestRepository questionGenerationRequestRepository, DateTimeProvider dateTimeProvider, BankLoadTestingJobConfig config, BankLoadTestingJobBatchConfig batchConfig, DomainFactory domainFactory, QuestionBank questionBank, InteractionRepository interactionRepository) {
+    public FastBankLoadTestingJob(FrontendService frontendService, ExerciseRepository exerciseRepository, UserRepository userRepository, RandomProvider randomProvider, QuestionMetadataRepository questionMetadataRepository, QuestionGenerationRequestRepository questionGenerationRequestRepository, DateTimeProvider dateTimeProvider, BankLoadTestingJobConfig config, BankLoadTestingJobBatchConfig batchConfig, DomainFactory domainFactory, QuestionBank questionBank, InteractionRepository interactionRepository, QuestionMetadataSearchRequestRepository questionMetadataSearchRequestRepository) {
         this.frontendService = frontendService;
         this.exerciseRepository = exerciseRepository;
         this.userRepository = userRepository;
-        this.transactionScope = transactionScopeFactory.create(TransactionScope.PropagationBehavior.REQUIRES_NEW);
         this.randomProvider = randomProvider;
         this.questionGenerationRequestRepository = questionGenerationRequestRepository;
         this.questionMetadataRepository = questionMetadataRepository;
@@ -60,9 +69,9 @@ public class FastBankLoadTestingJob {
         this.domainFactory = domainFactory;
         this.questionBank = questionBank;
         this.interactionRepository = interactionRepository;
+        this.questionMetadataSearchRequestRepository = questionMetadataSearchRequestRepository;
     }
 
-    @Job(name = "question-bank-load-testing-job", retries = 0)
     public void run() {
         try {
             runImpl(config);
@@ -72,7 +81,6 @@ public class FastBankLoadTestingJob {
         }
     }
 
-    @Job(name = "question-bank-load-testing-batch-job", retries = 0)
     public void runBatch() {
         try {
             runBatchImpl(batchConfig);
@@ -123,19 +131,13 @@ public class FastBankLoadTestingJob {
                 }
 
                 // завершаем все открытые запросы на генерацию
-                var cancelledCount = transactionScope.execute(questionGenerationRequestRepository::cancelAllActiveRequests);
+                var cancelledCount = questionGenerationRequestRepository.cancelAllActiveRequests();
             }
         }
     }
 
     public void runImpl(BankLoadTestingJobConfig config) {
-        // ensure all gen requests cancelled
-        transactionScope.execute(questionGenerationRequestRepository::cancelAllActiveRequests);
-
-        log.info("Start cleaning bank from previous attempts");
-        var deletedMetadatas = transactionScope.execute(() -> questionMetadataRepository.deleteMetadataFromDate(LocalDate.now().minusDays(2)));
-        log.info("Finish cleaning bank from previous attempts with {} deleted metadatas", deletedMetadatas);
-
+        dbCleanup();
 
         PriorityQueue<SimulationEvent> queue = new PriorityQueue<>();
 
@@ -146,11 +148,11 @@ public class FastBankLoadTestingJob {
         var random = randomProvider.getRandom();
 
         // 1. Подготовка данных
-        var questionsNumber = transactionScope.execute(() -> exerciseRepository.findById(config.getExerciseId()).orElseThrow()
+        var questionsNumber = exerciseRepository.findById(config.getExerciseId()).orElseThrow()
                 .getStages().stream()
                 .map(ExerciseStageEntity::getNumberOfQuestions)
                 .mapToInt(Integer::intValue)
-                .sum());
+                .sum();
 
         var users = IteratorUtils.toList(userRepository.findAll().iterator());
         var userIds = users.stream()
@@ -181,6 +183,15 @@ public class FastBankLoadTestingJob {
                 () -> handleGeneratorHeartbeat(queue, processingRequests, runningAttempts)
         ));
 
+        // Запускаем цикл прогнозирования спроса (каждые 30 секунд)
+        if (config.isDemandPredictorEnabled()) {
+            var questionRequests = getAllStagesQuestionRequests(config.getExerciseId());
+            queue.add(new SimulationEvent(
+                    dateTimeProvider.now(),
+                    () -> handleDemandPrediction(queue, questionRequests, processingRequests, runningAttempts)
+            ));
+        }
+
         // Event Loop
         long eventsProcessed = 0;
         while (!queue.isEmpty()) {
@@ -193,8 +204,8 @@ public class FastBankLoadTestingJob {
             event.task.run();
 
             eventsProcessed++;
-            if (eventsProcessed % 500 == 0) {
-                log.debug("Events: {}, VirtualTime: {}", eventsProcessed, dateTimeProvider.now());
+            if (eventsProcessed % 100 == 0) {
+                log.info("Events: {}, VirtualTime: {}", eventsProcessed, dateTimeProvider.now());
             }
         }
 
@@ -207,6 +218,132 @@ public class FastBankLoadTestingJob {
         log.info("Simulation covered: {} virtual days ({} hours)", virtualDuration.toDays(), virtualDuration.toHours());
         log.info("Real Execution Time: {} ms", realDuration.toMillis());
         log.info("Ratio (Speedup): x{}", virtualDuration.toMillis() / Math.max(1, realDuration.toMillis()));
+        dbCleanup();
+    }
+    
+    private void dbCleanup() {
+        questionMetadataSearchRequestRepository.deleteAll();
+        questionGenerationRequestRepository.cancelAllActiveRequests();
+        log.info("Start cleaning bank from previous attempts");
+        var deletedMetadatas = questionMetadataRepository.deleteMetadataFromDate(LocalDate.now().minusDays(2));
+        log.info("Finish cleaning bank from previous attempts with {} deleted metadatas", deletedMetadatas);
+    }
+    
+    private ArrayList<QuestionRequest> getAllStagesQuestionRequests(long exerciseId) {
+        var exerciseSettings = exerciseRepository.findById(exerciseId)
+                .orElseThrow(() -> new IllegalArgumentException("Exercise not found with id: " + exerciseId));
+        var stages = exerciseSettings.getStages();
+
+        var domain = domainFactory.getDomain("expression_dt");
+        
+        var questionRequests = new ArrayList<QuestionRequest>(stages.size());
+        for (var stage : stages) {
+            var targetConcepts = stage.getConcepts().stream()
+                    .filter(c -> c.getKind().equals(RoleInExercise.TARGETED))
+                    .flatMap(c -> domain.getConceptWithChildren(c.getName()).stream())
+                    .filter(Objects::nonNull)
+                    .distinct()
+                    .toList();
+            var deniedConcepts = stage.getConcepts().stream()
+                    .filter(c -> c.getKind().equals(RoleInExercise.FORBIDDEN))
+                    .flatMap(c -> domain.getConceptWithChildren(c.getName()).stream())
+                    .filter(Objects::nonNull)
+                    .distinct()
+                    .toList();
+            var targetLaws = stage.getLaws().stream()
+                    .filter(c -> c.getKind().equals(RoleInExercise.TARGETED))
+                    .map(c -> domain.getLaw(c.getName()))
+                    .filter(Objects::nonNull)
+                    .distinct()
+                    .toList();
+            var deniedLaws = stage.getLaws().stream()
+                    .filter(c -> c.getKind().equals(RoleInExercise.FORBIDDEN))
+                    .map(c -> domain.getLaw(c.getName()))
+                    .filter(Objects::nonNull)
+                    .distinct()
+                    .toList();
+            var targetTags = exerciseSettings.getTags().stream()
+                    .map(domain::getTag)
+                    .filter(Objects::nonNull)
+                    .distinct()
+                    .toList();
+            var targetSkills = stage.getSkills().stream()
+                    .filter(c -> c.getKind().equals(RoleInExercise.TARGETED))
+                    .map(c -> domain.getSkill(c.getName()))
+                    .filter(Objects::nonNull)
+                    .distinct()
+                    .toList();
+            var deniedSkills = stage.getSkills().stream()
+                    .filter(c -> c.getKind().equals(RoleInExercise.FORBIDDEN))
+                    .map(c -> domain.getSkill(c.getName()))
+                    .filter(Objects::nonNull)
+                    .distinct()
+                    .toList();
+
+            var qr = QuestionRequest.builder()
+                    .targetConcepts(targetConcepts)
+                    .deniedConcepts(deniedConcepts)
+                    .targetLaws(targetLaws)
+                    .deniedLaws(deniedLaws)
+                    .targetSkills(targetSkills)
+                    .deniedSkills(deniedSkills)
+                    .complexity(stage.getComplexity())
+                    .targetTags(targetTags)
+                    .domainShortname(domain.getShortnameForQuestionSearch())
+                    .build();
+            qr = domain.ensureQuestionRequestValid(qr);
+
+            questionRequests.add(qr);
+        }
+        
+        return questionRequests;
+    }
+
+    private void handleDemandPrediction(PriorityQueue<SimulationEvent> queue, List<QuestionRequest> questionRequests, Set<Integer> processingRequests, Set<Long> runningAttempts) {
+        try {
+            if (processingRequests.isEmpty() || runningAttempts.isEmpty()) {
+                return;
+            }
+            
+            log.debug("Starting demand prediction cycle at {}", dateTimeProvider.now());
+
+            for (QuestionRequest qr : questionRequests) {
+                var searchRequest = questionBank.createBankSearchRequest(qr);
+
+                // 2. Готовим данные для ML
+                // TODO: Здесь стоит брать реальные метрики из симуляции, пока стоят заглушки (0)
+                List<FeatureItem> features = new ArrayList<>(6);
+                features.add(new FeatureItem("feature_students_currently_solving", 0));
+                features.add(new FeatureItem("feature_active_students_global", 0));
+                features.add(new FeatureItem("feature_avg_completion_sec", 0));
+                features.add(new FeatureItem("feature_demand_rolling_5min", 0));
+                features.add(new FeatureItem("delta_rolling_demand", 0));
+                features.add(new FeatureItem("delta_active_solving", 0));
+
+                // 3. Прогноз
+                var predictedDemand = predict(features);
+                var predictedDemandRounded = Math.round(predictedDemand);
+
+                // 4. Генерация при необходимости
+                if (predictedDemandRounded > 0) {
+                    var currentlyGeneratingQuestions = questionGenerationRequestRepository.findNumberOfCurrentlyGeneratingQuestions(qr.getDomainShortname(), searchRequest);
+                    var toGenerate = (int) (predictedDemandRounded - currentlyGeneratingQuestions);
+                    if (toGenerate > 0) {
+                        log.info("Prediction triggered generation of {} questions", toGenerate);
+                        var generationRequest = new QuestionGenerationRequestEntity(searchRequest, toGenerate, qr.getExerciseAttemptId());
+                        questionGenerationRequestRepository.save(generationRequest);
+                    }
+                }
+            }
+        } catch (Exception e) {
+            log.error("Error in demand prediction cycle: {}", e.getMessage());
+        }
+
+        // Планируем следующий запуск через 30 секунд виртуального времени
+        queue.add(new SimulationEvent(
+                dateTimeProvider.now().plusSeconds(30),
+                () -> handleDemandPrediction(queue, questionRequests, processingRequests, runningAttempts)
+        ));
     }
 
     private void wtf(long exerciseId) {
@@ -276,14 +413,47 @@ public class FastBankLoadTestingJob {
             questionRequests.add(qr);
         }
         
-        // запускаеми StagesCount потоков с целью мониторить состояние и в случае чего создавать
         // запрос на генерацию
         var qr = questionRequests.get(0);
         var searchRequest = questionBank.createBankSearchRequest(qr);
-        // вызываю как-то метод в репозитории, вытягиваю все данные по вопросу
         
-        // посылаю запрос в питон        
-        questionBank.countQuestions(qr);
+        // вызов рассчета фич
+        
+
+       // Готовим данные (строго соблюдая порядок, как при обучении!)
+        List<FeatureItem> features = new ArrayList<>(6);
+        features.add(new FeatureItem("feature_students_currently_solving", 0));
+        features.add(new FeatureItem("feature_active_students_global", 0));
+        features.add(new FeatureItem("feature_avg_completion_sec", 0));
+        features.add(new FeatureItem("feature_demand_rolling_5min", 0));
+        features.add(new FeatureItem("delta_rolling_demand", 0));
+        features.add(new FeatureItem("delta_active_solving", 0));
+        var predictedDemand = predict(features);
+        var predictedDemandRounded = Math.round(predictedDemand);
+        
+        if (predictedDemandRounded > 0) {
+            var currentlyGeneratingQuestions = questionGenerationRequestRepository.findNumberOfCurrentlyGeneratingQuestions(qr.getDomainShortname(), searchRequest);
+            var toGenerate = (int)(predictedDemandRounded - currentlyGeneratingQuestions);
+            if  (toGenerate > 0) {
+                var generationRequest = new QuestionGenerationRequestEntity(searchRequest, toGenerate, qr.getExerciseAttemptId());
+                questionGenerationRequestRepository.save(generationRequest);
+            }
+        }
+        
+    }
+    
+    private MLModelClient mlModelClient = new MLModelClient("http://localhost:8000");    
+    private Double predict(List<FeatureItem> features) {
+        try {
+            // Вызываем
+            Double result = mlModelClient.predict("lr_2", features);
+            log.info("Результат прогноза: " + result);
+        } catch (Exception e) {
+            // Ловим ошибки (например, FEATURE_MISMATCH или MODEL_NOT_FOUND)
+            log.error("Не удалось получить прогноз: " + e.getMessage());
+        }
+        
+        return 0.0;
     }
 
     @SneakyThrows
@@ -313,7 +483,7 @@ public class FastBankLoadTestingJob {
         var questionId = Objects.requireNonNull(generateQuestion(attemptId)).getQuestionId();        
 
         // Рассчитываем, сколько студент будет "думать" (Virtual Time Calculation)
-        double duration = getQuestionDelaySeconds(random.nextDouble(), config.getQuestionDelayRandomFactorization());
+        double duration = getQuestionDelaySeconds(random.nextDouble(), null);
 
         // Планируем момент ЗАВЕРШЕНИЯ вопроса
         long thinkTimeMillis = (long) (duration * 1000);
@@ -365,9 +535,7 @@ public class FastBankLoadTestingJob {
      */
     private void handleGeneratorHeartbeat(PriorityQueue<SimulationEvent> queue, Set<Integer> processingRequests, Set<Long> runningAttempts) {        
         // 1. Ищем запросы, которые ожидают генерации (PENDING/IN_PROGRESS)
-        var pendingRequests = transactionScope.execute(() ->
-            questionGenerationRequestRepository.findAllActual("expression_dt", LocalDateTime.ofInstant(dateTimeProvider.now(), ZoneId.systemDefault()).minusMonths(3)) // Или ваш метод поиска активных
-        );
+        var pendingRequests = questionGenerationRequestRepository.findAllActual("expression_dt", LocalDateTime.ofInstant(dateTimeProvider.now(), ZoneId.systemDefault()).minusMonths(3));
 
         var random = randomProvider.getRandom();
         if (pendingRequests != null) {
@@ -423,15 +591,16 @@ public class FastBankLoadTestingJob {
             if (questionRequestForGenRequestId.isEmpty()) {
                 return null;
             }
-            
-            var metadataForRequestId = questionMetadataRepository.findByQuestionSearchRequestId(questionRequestForGenRequestId.get());
+
+            var bankSearchRequest = questionMetadataSearchRequestRepository.findSearchRequestByQuestionRequestId(questionRequestForGenRequestId.get());            
+            var metadataForRequestId = questionMetadataRepository.findTopRatedMetadata(bankSearchRequest, 1);
             if (metadataForRequestId.isEmpty()) {
                 return null;
             }
 
             for (int i = 0; i < questionsToGenerate; ++i) {
                 var newQuestionName = "new_question_" + requestId + "_" + i;
-                var clonedMetadata = questionMetadataRepository.clone(metadataForRequestId.get(), newQuestionName, newQuestionName, Date.from(dateTimeProvider.now()), requestId);
+                var clonedMetadata = questionMetadataRepository.clone(metadataForRequestId.get(0).getId(), newQuestionName, newQuestionName, Date.from(dateTimeProvider.now()), requestId);
 
                 // Предположим, нужно просто пометить запрос выполненным и создать вопрос:
                 log.debug("generated question for request {} with metadata {}", requestId, clonedMetadata);
@@ -517,6 +686,142 @@ public class FastBankLoadTestingJob {
         @Override
         public int compareTo(SimulationEvent other) {
             return this.executionTime.compareTo(other.executionTime);
+        }
+    }
+
+    // 1. Единичный признак (Feature)
+    class FeatureItem {
+        private String key;
+        private Object value; // Object, чтобы принимать и int, и double, и string
+
+        public FeatureItem(String key, Object value) {
+            this.key = key;
+            this.value = value;
+        }
+        // Getters
+        public String getKey() { return key; }
+        public Object getValue() { return value; }
+    }
+
+    // 2. Тело запроса
+    class PredictionRequest {
+        private String model;
+        private List<FeatureItem> features;
+
+        public PredictionRequest(String model, List<FeatureItem> features) {
+            this.model = model;
+            this.features = features;
+        }
+        // Getters for Jackson
+        public String getModel() { return model; }
+        public List<FeatureItem> getFeatures() { return features; }
+    }
+
+    // 3. Успешный ответ
+    @JsonIgnoreProperties(ignoreUnknown = true)
+    class PredictionResponse {
+        private String model;
+        private Double prediction;
+
+        // Пустой конструктор нужен Jackson'у
+        public PredictionResponse() {}
+
+        public Double getPrediction() { return prediction; }
+        public String getModel() { return model; }
+    }
+
+    // 4. Ответ с ошибкой (от нашего Python сервера)    
+    @JsonIgnoreProperties(ignoreUnknown = true)
+    class ErrorResponse {        
+        @JsonProperty("error_code")
+        private String errorCode;
+
+        @JsonProperty("message")
+        private String message;
+
+        // Пустой конструктор
+        public ErrorResponse() {}
+
+        public String getErrorCode() { return errorCode; }
+        public String getMessage() { return message; }
+    }
+
+    public class MLModelClient {
+        private final HttpClient httpClient;
+        private final ObjectMapper objectMapper;
+        private final String serverUrl;
+
+        public MLModelClient(String serverUrl) {
+            this.serverUrl = serverUrl;
+            this.httpClient = HttpClient.newBuilder()
+                    .connectTimeout(Duration.ofSeconds(5))
+                    .build();
+            this.objectMapper = new ObjectMapper();
+        }
+
+        public Double predict(String modelName, List<FeatureItem> features) throws Exception {
+            // 1. Собираем объект запроса
+            PredictionRequest requestPayload = new PredictionRequest(modelName, features);
+
+            // 2. Превращаем объект в JSON строку
+            String jsonBody = objectMapper.writeValueAsString(requestPayload);
+
+            // 3. Формируем HTTP запрос
+            HttpRequest request = HttpRequest.newBuilder()
+                    .uri(URI.create(serverUrl + "/predict"))
+                    .header("Content-Type", "application/json")
+                    .POST(HttpRequest.BodyPublishers.ofString(jsonBody))
+                    .timeout(Duration.ofSeconds(10)) // Таймаут на ожидание ответа
+                    .build();
+
+            // 4. Отправляем
+            HttpResponse<String> response = httpClient.send(request, HttpResponse.BodyHandlers.ofString());
+
+            // 5. Обработка успешного ответа (Код 200)
+            if (response.statusCode() == 200) {
+                PredictionResponse success = objectMapper.readValue(response.body(), PredictionResponse.class);
+                return success.getPrediction();
+            }
+
+            // 6. Обработка ошибок (400, 404, 500)
+            else {
+                handleError(response);
+                return null; // Java требует return, но handleError всегда кидает exception
+            }
+        }
+
+        private void handleError(HttpResponse<String> response) throws Exception {
+            String body = response.body();
+            String errorCode = "UNKNOWN_ERROR";
+            String message = "Unknown error occurred";
+
+            try {
+                // Пытаемся распарсить JSON ошибки от нашего сервера
+                // Сначала смотрим, не лежит ли ошибка внутри стандартного поля 'detail' (FastAPI style)
+                JsonNode root = objectMapper.readTree(body);
+
+                if (root.has("detail")) {
+                    JsonNode detail = root.get("detail");
+                    // Если detail это объект с нашими полями (как мы сделали в Python)
+                    if (detail.has("error_code")) {
+                        errorCode = detail.get("error_code").asText();
+                        message = detail.get("message").asText();
+                    } else {
+                        // Если это стандартная ошибка валидации FastAPI (обычно массив или строка)
+                        message = detail.toString();
+                        errorCode = "VALIDATION_ERROR";
+                    }
+                } else if (root.has("error_code")) {
+                    // Если мы вернули ошибку напрямую (в global handler)
+                    errorCode = root.get("error_code").asText();
+                    message = root.get("message").asText();
+                }
+            } catch (Exception e) {
+                // Если вернулся не JSON, а html или просто текст (например 502 Bad Gateway от Nginx)
+                message = "Raw server response: " + body;
+            }
+
+            throw new RuntimeException("ML Server Error [" + response.statusCode() + "]: (" + errorCode + ") " + message);
         }
     }
 }

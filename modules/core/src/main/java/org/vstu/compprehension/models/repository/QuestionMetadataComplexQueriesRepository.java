@@ -3,6 +3,7 @@ package org.vstu.compprehension.models.repository;
 import org.jetbrains.annotations.Nullable;
 import org.springframework.data.jpa.repository.Modifying;
 import org.springframework.data.repository.query.Param;
+import org.springframework.transaction.annotation.Transactional;
 import org.vstu.compprehension.models.businesslogic.QuestionBankSearchRequest;
 import org.vstu.compprehension.models.entities.QuestionMetadataEntity;
 
@@ -53,7 +54,6 @@ public interface QuestionMetadataComplexQueriesRepository {
      */
     List<QuestionMetadataEntity> findMetadataRelaxed(QuestionBankSearchRequest qr, int limitNumber);
     
-    @Modifying
     int deleteMetadataFromDate(LocalDate date);
 
     Integer clone(
