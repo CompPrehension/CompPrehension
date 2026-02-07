@@ -510,7 +510,7 @@ public class ControlFlowDTDomain extends DecisionTreeReasoningDomain {
     @NotNull
     @Override
     public String getDisplayName(Language language) {
-        return getMessage("ctrlflow_text.display_name", language);
+        return getMessage("ctrlflow_text.display_name_dt", language);
     }
 
     @Nullable
