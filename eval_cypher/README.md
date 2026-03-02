@@ -23,8 +23,34 @@
   - `ns0__outcome` — `'correct'`, `'error'` или `'unknown'` (массив строк для согласованности с импортированными свойствами).
 
 - Связи:
-  - `(inf:ns0__Inference)-[:ns0__hasRun]->(run:ns0__Run)` — принадлежность факта конкретному прогону;
-  - `(inf:ns0__Inference)-[:ns0__aboutTraceAct]->(ta:ns0__TraceAct)` — связь факта с доменным узлом трассы (по мере необходимости могут добавляться другие типы связей, например к `PathInfo`).
+  - `(fact:ns0__Inference)-[:ns0__hasRun]->(run:ns0__Run)` — принадлежность факта конкретному прогону;
+  - `(fact:ns0__Inference)-[:ns0__aboutTraceAct]->(ta:ns0__TraceAct)` — связь факта с доменным узлом трассы (по мере необходимости могут добавляться другие типы связей, например к `PathInfo`).
+
+### Служебная схема для цикла CtrlFlow
+
+- `(:Resource:ns0__CycleFrame { ns0__cycleId, ns0__runUri, ns0__status })`
+  - кадр цикла (например, `ns0__cycleId = ['CtrlFlow_P_l0_a']` для цикла по `PathInfo P_l0_a`);
+  - `ns0__status` — состояние цикла (`'active'` / `'done'`);
+  - связи:
+    - `(frame)-[:ns0__hasRun]->(run)` — к своему прогону;
+    - `(frame)-[:ns0__hasItem]->(item:ns0__CycleItem)` — ко всем элементам цикла;
+    - `(frame)-[:ns0__currentItem]->(item)` — к текущей итерации.
+
+- `(:Resource:ns0__CycleItem { ns0__cycleId, ns0__runUri, ns0__pathId, ns0__status, ns0__outcome })`
+  - один элемент цикла (одна «итерация» с конкретным значением переменной цикла);
+  - `ns0__status` — `'pending'`, `'in_progress'` или `'done'`;
+  - `ns0__outcome` — техническое значение результата итерации (`'true'`, `'false'`, `'null'` и т.п.);
+  - связи:
+    - `(frame)-[:ns0__hasItem]->(item)` — принадлежность кадру цикла;
+    - `(item)-[:ns0__forPath]->(p:ns0__PathInfo)` — значение переменной цикла `P_l0_a` в этой итерации;
+    - факты, относящиеся к итерации, могут дополнительно связываться с `item` (например, `(:ns0__Inference)-[:ns0__forCycleItem]->(item)`).
+
+- **Переменные дерева** (`L0`, `A`, `STATE` и обычные `var`‑переменные)
+  - параметры дерева `CtrlFlow` выбираются по служебному свойству ``ns0__var...`` и закрепляются за `Run`:
+    - `(run)-[:ns0__hasL0]->(l0:ns0__TraceAct)`,
+    - `(run)-[:ns0__hasA]->(a:ns0__TraceAct)`,
+    - `(run)-[:ns0__hasState]->(state:ns0__State)`.
+  - дополнительные переменные при необходимости моделируются узлами `:ns0__Variable`, связанными с `Run` (и, при желании, с текущим `CycleFrame`), но в базовой версии переменная цикла `P_l0_a` представляется только через пару `(frame, item)` и связь `:ns0__forPath`.
 
 ### Очистка результатов по Run
 

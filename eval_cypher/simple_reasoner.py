@@ -78,15 +78,15 @@ class SimpleReasoner:
         // For now we materialize only definite outcomes
         WHERE outcome <> 'unknown'
         // Create or reuse inference node for this (run, target, rule, outcome)
-        MERGE (inf:Resource:ns0__Inference {
+        MERGE (factToy:Resource:ns0__Inference {
           ns0__ruleId: ['simple_conclude_from_is_known_correct'],
           ns0__targetElement: elementId(ta),
           ns0__runUri: run.uri,
           ns0__outcome: [outcome]
         })
-        MERGE (inf)-[:ns0__hasRun]->(run)
-        MERGE (inf)-[:ns0__aboutTraceAct]->(ta)
-        RETURN count(inf) AS created_or_matched
+        MERGE (factToy)-[:ns0__hasRun]->(run)
+        MERGE (factToy)-[:ns0__aboutTraceAct]->(ta)
+        RETURN count(factToy) AS created_or_matched
         """
 
     @staticmethod
@@ -110,15 +110,15 @@ class SimpleReasoner:
         MATCH (state:Resource:ns0__State)-[:ns0__interruption_state]->(mode:Resource)
         WHERE mode.uri ENDS WITH '#no_interruption'
         // Create or reuse inference node for this (run, target, rule)
-        MERGE (inf:Resource:ns0__Inference {
+        MERGE (factState:Resource:ns0__Inference {
           ns0__ruleId: ['debug_state_interruption_no_interruption'],
           ns0__targetElement: elementId(state),
           ns0__runUri: run.uri,
           ns0__outcome: ['state_no_interruption']
         })
-        MERGE (inf)-[:ns0__hasRun]->(run)
-        MERGE (inf)-[:ns0__aboutState]->(state)
-        RETURN count(inf) AS created_or_matched
+        MERGE (factState)-[:ns0__hasRun]->(run)
+        MERGE (factState)-[:ns0__aboutState]->(state)
+        RETURN count(factState) AS created_or_matched
         """
 
     @staticmethod
@@ -136,23 +136,23 @@ class SimpleReasoner:
         MATCH (run:Resource:ns0__Run {uri: runUri})
         // State that already has a 'state_no_interruption' inference in this run
         MATCH (state:Resource:ns0__State)
-        MATCH (inf1:Resource:ns0__Inference {
+        MATCH (factBase:Resource:ns0__Inference {
           ns0__ruleId: ['debug_state_interruption_no_interruption'],
           ns0__runUri: runUri,
           ns0__outcome: ['state_no_interruption']
         })
-        WHERE inf1.ns0__targetElement = elementId(state)
+        WHERE factBase.ns0__targetElement = elementId(state)
         // Create or reuse a follow-up inference that depends on inf1
-        MERGE (inf2:Resource:ns0__Inference {
+        MERGE (factFollow:Resource:ns0__Inference {
           ns0__ruleId: ['debug_state_followup_after_no_interruption'],
           ns0__targetElement: elementId(state),
           ns0__runUri: run.uri,
           ns0__outcome: ['state_no_interruption_followup']
         })
-        MERGE (inf2)-[:ns0__hasRun]->(run)
-        MERGE (inf2)-[:ns0__aboutState]->(state)
-        MERGE (inf2)-[:ns0__dependsOn]->(inf1)
-        RETURN count(inf2) AS created_or_matched
+        MERGE (factFollow)-[:ns0__hasRun]->(run)
+        MERGE (factFollow)-[:ns0__aboutState]->(state)
+        MERGE (factFollow)-[:ns0__dependsOn]->(factBase)
+        RETURN count(factFollow) AS created_or_matched
         """
 
     # ------------------------------------------------------------------
@@ -195,17 +195,17 @@ class SimpleReasoner:
         MERGE (run)-[:ns0__hasL0]->(l0)
         MERGE (run)-[:ns0__hasA]->(a)
         // Create or reuse inference describing that context is bound
-        MERGE (inf:Resource:ns0__Inference {
+        MERGE (factCtx:Resource:ns0__Inference {
           ns0__ruleId: ['ctrlflow_bind_context'],
           ns0__targetElement: run.uri,
           ns0__runUri: run.uri,
           ns0__outcome: ['context_bound']
         })
-        MERGE (inf)-[:ns0__hasRun]->(run)
-        MERGE (inf)-[:ns0__aboutState]->(state)
-        MERGE (inf)-[:ns0__aboutTraceActL0]->(l0)
-        MERGE (inf)-[:ns0__aboutTraceActA]->(a)
-        RETURN count(inf) AS created_or_matched
+        MERGE (factCtx)-[:ns0__hasRun]->(run)
+        MERGE (factCtx)-[:ns0__aboutState]->(state)
+        MERGE (factCtx)-[:ns0__aboutTraceActL0]->(l0)
+        MERGE (factCtx)-[:ns0__aboutTraceActA]->(a)
+        RETURN count(factCtx) AS created_or_matched
         """
 
     @staticmethod
@@ -229,20 +229,168 @@ class SimpleReasoner:
         MATCH (l0)-[:ns0__hasCFGNode]->(l0Node:Resource)
         MATCH (a)-[:ns0__hasCFGNode]->(aNode:Resource)
         // All PathInfo from L0 CFG node to A CFG node
-        MATCH (p:Resource:ns0__PathInfo)-[:ns0__from_]->(l0Node)
-        MATCH (p)-[:ns0__to_]->(aNode)
+        MATCH (path:Resource:ns0__PathInfo)-[:ns0__from_]->(l0Node)
+        MATCH (path)-[:ns0__to_]->(aNode)
         // Create or reuse inference per candidate PathInfo
-        MERGE (inf:Resource:ns0__Inference {
+        MERGE (factPath:Resource:ns0__Inference {
           ns0__ruleId: ['ctrlflow_path_l0_a_exists'],
-          ns0__targetElement: elementId(p),
+          ns0__targetElement: elementId(path),
           ns0__runUri: run.uri,
           ns0__outcome: ['path_l0_a_candidate']
         })
-        MERGE (inf)-[:ns0__hasRun]->(run)
-        MERGE (inf)-[:ns0__aboutPath]->(p)
-        MERGE (inf)-[:ns0__aboutTraceActL0]->(l0)
-        MERGE (inf)-[:ns0__aboutTraceActA]->(a)
-        RETURN count(inf) AS created_or_matched
+        MERGE (factPath)-[:ns0__hasRun]->(run)
+        MERGE (factPath)-[:ns0__aboutPath]->(path)
+        MERGE (factPath)-[:ns0__aboutTraceActL0]->(l0)
+        MERGE (factPath)-[:ns0__aboutTraceActA]->(a)
+        RETURN count(factPath) AS created_or_matched
+        """
+
+    @staticmethod
+    def _rule_ctrlflow_cycle_init() -> str:
+        """
+        Initialize CtrlFlow cycle over PathInfo P_l0_a:
+        create CycleFrame and CycleItem nodes for all candidate paths from
+        L0.hasCFGNode to A.hasCFGNode.
+        """
+        return """
+        WITH $runUri AS runUri
+        MATCH (run:Resource:ns0__Run {uri: runUri})
+        MATCH (run)-[:ns0__hasL0]->(l0:Resource:ns0__TraceAct)
+        MATCH (run)-[:ns0__hasA]->(a:Resource:ns0__TraceAct)
+        MATCH (l0)-[:ns0__hasCFGNode]->(l0Node:Resource)
+        MATCH (a)-[:ns0__hasCFGNode]->(aNode:Resource)
+        MATCH (path:Resource:ns0__PathInfo)-[:ns0__from_]->(l0Node)
+        MATCH (path)-[:ns0__to_]->(aNode)
+        // Frame for this cycle within the run
+        MERGE (frame:Resource:ns0__CycleFrame {
+          ns0__cycleId: ['CtrlFlow_P_l0_a'],
+          ns0__runUri: [runUri]
+        })
+        ON CREATE SET frame.ns0__status = ['active']
+        WITH run, frame, path, path.ns0__id AS pathIds
+        WHERE pathIds IS NOT NULL AND size(pathIds) > 0
+        WITH run, frame, path, pathIds[0] AS pathId
+        // Ensure CycleItem per PathInfo
+        MERGE (item:Resource:ns0__CycleItem {
+          ns0__cycleId: ['CtrlFlow_P_l0_a'],
+          ns0__runUri: [runUri],
+          ns0__pathId: pathId
+        })
+        ON CREATE SET item.ns0__status = ['pending']
+        MERGE (frame)-[:ns0__hasItem]->(item)
+        MERGE (item)-[:ns0__forPath]->(path)
+        RETURN count(item) AS created_or_matched
+        """
+
+    @staticmethod
+    def _rule_ctrlflow_cycle_pick_next() -> str:
+        """
+        Pick next pending CycleItem for CtrlFlow cycle and mark it as current/in_progress.
+        """
+        return """
+        WITH $runUri AS runUri
+        MATCH (frame:Resource:ns0__CycleFrame {
+          ns0__cycleId: ['CtrlFlow_P_l0_a'],
+          ns0__runUri: [runUri]
+        })
+        WHERE frame.ns0__status IS NULL OR 'active' IN frame.ns0__status
+        // Do not pick new item if there is an in_progress one
+        OPTIONAL MATCH (frame)-[:ns0__currentItem]->(current:Resource:ns0__CycleItem)
+        WITH frame, current
+        WHERE current IS NULL OR NOT 'in_progress' IN coalesce(current.ns0__status, [])
+        MATCH (frame)-[:ns0__hasItem]->(item:Resource:ns0__CycleItem)
+        WHERE 'pending' IN coalesce(item.ns0__status, [])
+        WITH frame, item
+        ORDER BY item.ns0__pathId
+        LIMIT 1
+        // Clear previous currentItem, if any
+        OPTIONAL MATCH (frame)-[oldRel:ns0__currentItem]->(:Resource:ns0__CycleItem)
+        DELETE oldRel
+        WITH frame, item
+        SET item.ns0__status = ['in_progress']
+        MERGE (frame)-[:ns0__currentItem]->(item)
+        RETURN count(item) AS created_or_matched
+        """
+
+    @staticmethod
+    def _rule_ctrlflow_cycle_eval_direct() -> str:
+        """
+        Simple evaluation of current CtrlFlow cycle item:
+        mark outcome based on PathInfo.is_direct (placeholder for body subtree).
+        """
+        return """
+        WITH $runUri AS runUri
+        MATCH (frame:Resource:ns0__CycleFrame {
+          ns0__cycleId: ['CtrlFlow_P_l0_a'],
+          ns0__runUri: [runUri]
+        })-[:ns0__currentItem]->(item:Resource:ns0__CycleItem)
+        WHERE 'in_progress' IN coalesce(item.ns0__status, [])
+        MATCH (item)-[:ns0__forPath]->(path:Resource:ns0__PathInfo)
+        WITH frame, item, path,
+             coalesce(path.ns0__is_direct, [false]) AS isDirectList
+        WITH frame, item,
+             CASE
+               WHEN size(isDirectList) > 0 AND isDirectList[0] = true
+                 THEN 'true'
+               ELSE 'false'
+             END AS outcomeStr
+        SET item.ns0__outcome = [outcomeStr],
+            item.ns0__status  = ['done']
+        // Remove currentItem pointer
+        WITH frame, item, outcomeStr
+        OPTIONAL MATCH (frame)-[curRel:ns0__currentItem]->(item)
+        DELETE curRel
+        // Create a debug inference for this evaluation
+        WITH frame, item, outcomeStr
+        MATCH (run:Resource:ns0__Run)
+        WHERE [runUri] = coalesce(frame.ns0__runUri, [])
+        OPTIONAL MATCH (item)-[:ns0__forPath]->(path:Resource:ns0__PathInfo)
+        MERGE (factEval:Resource:ns0__Inference {
+          ns0__ruleId: ['ctrlflow_cycle_eval_direct'],
+          ns0__targetElement: elementId(item),
+          ns0__runUri: runUri,
+          ns0__outcome: [outcomeStr]
+        })
+        MERGE (factEval)-[:ns0__hasRun]->(run)
+        MERGE (factEval)-[:ns0__aboutPath]->(path)
+        RETURN count(item) AS created_or_matched
+        """
+
+    @staticmethod
+    def _rule_ctrlflow_cycle_aggregate_or() -> str:
+        """
+        Aggregate outcomes of all CycleItems for CtrlFlow cycle (OR semantics).
+        """
+        return """
+        WITH $runUri AS runUri
+        MATCH (frame:Resource:ns0__CycleFrame {
+          ns0__cycleId: ['CtrlFlow_P_l0_a'],
+          ns0__runUri: [runUri]
+        })
+        WHERE frame.ns0__status IS NULL OR 'active' IN frame.ns0__status
+        MATCH (frame)-[:ns0__hasItem]->(item:Resource:ns0__CycleItem)
+        WITH frame,
+             collect(item) AS items,
+             collect(coalesce(item.ns0__status, [])) AS statuses
+        // Aggregate only when there are no pending or in_progress items
+        WITH frame, items,
+             any(s IN statuses WHERE 'pending' IN s OR 'in_progress' IN s) AS hasOpen
+        WHERE hasOpen = false
+        UNWIND items AS it
+        UNWIND coalesce(it.ns0__outcome, []) AS out
+        WITH frame, collect(DISTINCT out) AS outs
+        WITH frame,
+             any(o IN outs WHERE o = 'true')  AS anyTrue,
+             any(o IN outs WHERE o = 'false') AS anyFalse
+        WITH frame,
+             CASE
+               WHEN anyTrue  THEN 'true'
+               WHEN anyFalse THEN 'false'
+               ELSE 'null'
+             END AS finalOutcome
+        SET frame.ns0__finalOutcome = [finalOutcome],
+            frame.ns0__status       = ['done']
+        RETURN count(frame) AS created_or_matched
         """
 
     # ------------------------------------------------------------------
@@ -264,8 +412,14 @@ class SimpleReasoner:
         aggregated over all rule invocations.
         """
         rules: List[str] = [
-            # CtrlFlow context and first tree fragment
+            # CtrlFlow context and cycle over PathInfo P_l0_a
             self._rule_ctrlflow_bind_context(),
+            self._rule_ctrlflow_cycle_init(),
+            self._rule_ctrlflow_cycle_pick_next(),
+            self._rule_ctrlflow_cycle_eval_direct(),
+            self._rule_ctrlflow_cycle_aggregate_or(),
+
+            # Optional debug rule over PathInfo existence
             self._rule_ctrlflow_path_l0_a_exists(),
 
             # Debug rules for State.interruption_state
