@@ -156,6 +156,96 @@ class SimpleReasoner:
         """
 
     # ------------------------------------------------------------------
+    # Rules derived from CtrlFlow tree.loqi
+    # ------------------------------------------------------------------
+
+    @staticmethod
+    def _rule_ctrlflow_bind_context() -> str:
+        """
+        Bind CtrlFlow context (L0, A, STATE) for the current run.
+
+        Loqi:
+            tree CtrlFlow(L0: TraceAct, A: TraceAct, STATE: State) { ... }
+
+        In RDF export, these parameters are materialized as:
+            - main_state_17360 : State      with property `ns0__var...` = ["STATE"]
+            - trace_act_5_atom : TraceAct   with `ns0__var...` = ["L0"]
+            - trace_act_A      : TraceAct   with `ns0__var...` = ["A"]
+
+        We:
+        - locate these nodes by `ns0__var...`;
+        - link them to the Run node;
+        - create a debugging inference 'ctrlflow_bind_context'.
+        """
+        return """
+        WITH $runUri AS runUri
+        // Ensure Run node exists
+        MERGE (run:Resource:ns0__Run {uri: runUri})
+          ON CREATE SET run.ns0__id = [runUri]
+        WITH run
+        // Locate CtrlFlow arguments by var-name annotation
+        MATCH (state:Resource:ns0__State)
+        WHERE 'STATE' IN coalesce(state.`ns0__var...`, [])
+        MATCH (l0:Resource:ns0__TraceAct)
+        WHERE 'L0' IN coalesce(l0.`ns0__var...`, [])
+        MATCH (a:Resource:ns0__TraceAct)
+        WHERE 'A' IN coalesce(a.`ns0__var...`, [])
+        // Link context to run
+        MERGE (run)-[:ns0__hasState]->(state)
+        MERGE (run)-[:ns0__hasL0]->(l0)
+        MERGE (run)-[:ns0__hasA]->(a)
+        // Create or reuse inference describing that context is bound
+        MERGE (inf:Resource:ns0__Inference {
+          ns0__ruleId: ['ctrlflow_bind_context'],
+          ns0__targetElement: run.uri,
+          ns0__runUri: run.uri,
+          ns0__outcome: ['context_bound']
+        })
+        MERGE (inf)-[:ns0__hasRun]->(run)
+        MERGE (inf)-[:ns0__aboutState]->(state)
+        MERGE (inf)-[:ns0__aboutTraceActL0]->(l0)
+        MERGE (inf)-[:ns0__aboutTraceActA]->(a)
+        RETURN count(inf) AS created_or_matched
+        """
+
+    @staticmethod
+    def _rule_ctrlflow_path_l0_a_exists() -> str:
+        """
+        CtrlFlow: existence of at least one PathInfo P_l0_a
+        from L0.hasCFGNode to A.hasCFGNode.
+
+        Loqi fragment:
+            cycle or ($P_l0_a=>from_(L0->hasCFGNode)
+                      and $P_l0_a=>to_(A->hasCFGNode)) with PathInfo P_l0_a { ... }
+
+        Here we only materialize the existence of such paths as debug facts.
+        """
+        return """
+        WITH $runUri AS runUri
+        MATCH (run:Resource:ns0__Run {uri: runUri})
+        // Use bound CtrlFlow context
+        MATCH (run)-[:ns0__hasL0]->(l0:Resource:ns0__TraceAct)
+        MATCH (run)-[:ns0__hasA]->(a:Resource:ns0__TraceAct)
+        MATCH (l0)-[:ns0__hasCFGNode]->(l0Node:Resource)
+        MATCH (a)-[:ns0__hasCFGNode]->(aNode:Resource)
+        // All PathInfo from L0 CFG node to A CFG node
+        MATCH (p:Resource:ns0__PathInfo)-[:ns0__from_]->(l0Node)
+        MATCH (p)-[:ns0__to_]->(aNode)
+        // Create or reuse inference per candidate PathInfo
+        MERGE (inf:Resource:ns0__Inference {
+          ns0__ruleId: ['ctrlflow_path_l0_a_exists'],
+          ns0__targetElement: elementId(p),
+          ns0__runUri: run.uri,
+          ns0__outcome: ['path_l0_a_candidate']
+        })
+        MERGE (inf)-[:ns0__hasRun]->(run)
+        MERGE (inf)-[:ns0__aboutPath]->(p)
+        MERGE (inf)-[:ns0__aboutTraceActL0]->(l0)
+        MERGE (inf)-[:ns0__aboutTraceActA]->(a)
+        RETURN count(inf) AS created_or_matched
+        """
+
+    # ------------------------------------------------------------------
     # Public API
     # ------------------------------------------------------------------
 
@@ -174,6 +264,11 @@ class SimpleReasoner:
         aggregated over all rule invocations.
         """
         rules: List[str] = [
+            # CtrlFlow context and first tree fragment
+            self._rule_ctrlflow_bind_context(),
+            self._rule_ctrlflow_path_l0_a_exists(),
+
+            # Debug rules for State.interruption_state
             self._rule_debug_state_no_interruption(),
             self._rule_debug_state_followup(),
         ]
