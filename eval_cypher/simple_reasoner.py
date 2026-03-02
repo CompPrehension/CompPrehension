@@ -18,11 +18,14 @@ from typing import Iterable, List, Tuple
 from neo4j import GraphDatabase, Session
 
 
+DATABASE = "loqi"
+
 @dataclass
 class Neo4jConfig:
     uri: str = "bolt://localhost:7687"
     user: str = "neo4j"
     password: str = "password"
+    # database: str = "loqi"
 
 
 class SimpleReasoner:
@@ -134,7 +137,7 @@ class SimpleReasoner:
         """
         run_uri = self.create_run_uri(run_id)
 
-        with self._driver.session() as session:
+        with self._driver.session(database=DATABASE) as session:  # type: ignore[attr-defined]
             for _ in range(max_iterations):
                 nodes_created, rels_created = self.apply_rules_once(session, run_uri)
                 yield nodes_created, rels_created
