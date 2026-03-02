@@ -394,6 +394,162 @@ class SimpleReasoner:
         """
 
     # ------------------------------------------------------------------
+    # Conclude-like rules from CtrlFlow tree (Variant A)
+    # ------------------------------------------------------------------
+
+    @staticmethod
+    def _rule_ctrlflow_conclude_interruption_type_matched() -> str:
+        """
+        Approximate conclude: CORRECT [interruption_type_matched].
+
+        Loqi смысл: входное ограничение на режим прерывания для пути P совместимо
+        с текущим STATE.interruption_state (или равно ANY / generic_interruption).
+        Здесь мы фиксируем только факт, что хотя бы один такой путь существует
+        для текущего прогона CtrlFlow.
+        """
+        return """
+        WITH $runUri AS runUri
+        MATCH (run:Resource:ns0__Run {uri: runUri})
+        MATCH (run)-[:ns0__hasState]->(state:Resource:ns0__State)
+        MATCH (state)-[:ns0__interruption_state]->(stateMode:Resource)
+        MATCH (run)-[:ns0__hasL0]->(l0:Resource:ns0__TraceAct)
+        MATCH (run)-[:ns0__hasA]->(a:Resource:ns0__TraceAct)
+        MATCH (l0)-[:ns0__hasCFGNode]->(l0Node:Resource)
+        MATCH (a)-[:ns0__hasCFGNode]->(aNode:Resource)
+        MATCH (path:Resource:ns0__PathInfo)-[:ns0__from_]->(l0Node)
+        MATCH (path)-[:ns0__to_]->(aNode)
+        // Constraint on interruption_mode for this path
+        OPTIONAL MATCH (path)-[:ns0__hasConstraints]->(c:Resource)
+        OPTIONAL MATCH (c)-[:ns0__interruption_mode]->(modeConstr:Resource)
+        WITH run, state, stateMode, path, modeConstr
+        WHERE modeConstr IS NOT NULL
+          AND (
+            modeConstr.uri ENDS WITH '#any'
+            OR modeConstr.uri ENDS WITH '#generic_interruption'
+            OR modeConstr.uri = stateMode.uri
+          )
+        WITH DISTINCT run, state, path
+        // One fact per (run, state), targetElement = state
+        MERGE (fact:Resource:ns0__Inference {
+          ns0__ruleId: ['ctrlflow_conclude_interruption_type_matched'],
+          ns0__targetElement: elementId(state),
+          ns0__runUri: run.uri,
+          ns0__outcome: ['interruption_type_matched']
+        })
+        MERGE (fact)-[:ns0__hasRun]->(run)
+        MERGE (fact)-[:ns0__aboutState]->(state)
+        RETURN count(fact) AS created_or_matched
+        """
+
+    @staticmethod
+    def _rule_ctrlflow_conclude_applicable_transition_with_condition_found() -> str:
+        """
+        Approximate conclude: ERROR [applicable_transition_with_condition_found].
+
+        Смысл: выбранный путь P_l0_a не удовлетворяет условию (condition_value),
+        но существует другой прямой путь EP из L0 с нужным значением condition_value.
+        Здесь мы фиксируем только факт существования такой ситуации.
+        """
+        return """
+        WITH $runUri AS runUri
+        MATCH (run:Resource:ns0__Run {uri: runUri})
+        MATCH (run)-[:ns0__hasL0]->(l0:Resource:ns0__TraceAct)
+        MATCH (l0)-[:ns0__condition_value]->(l0CondVal:Resource)
+        MATCH (l0)-[:ns0__hasCFGNode]->(l0Node:Resource)
+        MATCH (run)-[:ns0__hasA]->(a:Resource:ns0__TraceAct)
+        MATCH (a)-[:ns0__hasCFGNode]->(aNode:Resource)
+        // Candidate path P_l0_a that mismatches current condition
+        MATCH (pathBad:Resource:ns0__PathInfo)-[:ns0__from_]->(l0Node)
+        MATCH (pathBad)-[:ns0__to_]->(aNode)
+        MATCH (pathBad)-[:ns0__hasConstraints]->(cBad:Resource)
+        MATCH (cBad)-[:ns0__condition_value]->(condBad:Resource)
+        WHERE condBad.uri <> l0CondVal.uri
+          AND NOT condBad.uri ENDS WITH '#no_value'
+        // Exists another direct path with matching condition
+        MATCH (pathGood:Resource:ns0__PathInfo)-[:ns0__from_]->(l0Node)
+        MATCH (pathGood)-[:ns0__hasConstraints]->(cGood:Resource)
+        MATCH (cGood)-[:ns0__condition_value]->(condGood:Resource)
+        WHERE pathGood <> pathBad
+          AND condGood.uri = l0CondVal.uri
+          AND coalesce(pathGood.ns0__is_direct, [false])[0] = true
+        WITH DISTINCT run, l0
+        MERGE (fact:Resource:ns0__Inference {
+          ns0__ruleId: ['ctrlflow_conclude_applicable_transition_with_condition_found'],
+          ns0__targetElement: elementId(l0),
+          ns0__runUri: run.uri,
+          ns0__outcome: ['applicable_transition_with_condition_found']
+        })
+        MERGE (fact)-[:ns0__hasRun]->(run)
+        MERGE (fact)-[:ns0__aboutTraceAct]->(l0)
+        RETURN count(fact) AS created_or_matched
+        """
+
+    @staticmethod
+    def _rule_ctrlflow_conclude_action_is_function_call_recognized() -> str:
+        """
+        Conclude: CORRECT [action_is_function_call_recognized].
+
+        В дереве это срабатывает, когда A НЕ является завершением вызова функции
+        (или же в нашем тестовом сценарии всегда так). Здесь мы просто фиксируем,
+        что A не имеет ast_node='function_call' и kind=END.
+        """
+        return """
+        WITH $runUri AS runUri
+        MATCH (run:Resource:ns0__Run {uri: runUri})
+        MATCH (run)-[:ns0__hasA]->(a:Resource:ns0__TraceAct)
+        MATCH (a)-[:ns0__hasASTNode]->(astA:Resource)
+        MATCH (a)-[:ns0__hasCFGNode]->(cfgA:Resource)
+        WHERE NOT (astA.ns0__ast_node CONTAINS 'function_call'
+                   AND cfgA.ns0__kind CONTAINS 'END')
+        WITH DISTINCT run, a
+        MERGE (fact:Resource:ns0__Inference {
+          ns0__ruleId: ['ctrlflow_conclude_action_is_function_call_recognized'],
+          ns0__targetElement: elementId(a),
+          ns0__runUri: run.uri,
+          ns0__outcome: ['action_is_function_call_recognized']
+        })
+        MERGE (fact)-[:ns0__hasRun]->(run)
+        MERGE (fact)-[:ns0__aboutTraceAct]->(a)
+        RETURN count(fact) AS created_or_matched
+        """
+
+    @staticmethod
+    def _rule_ctrlflow_conclude_unknown_incorrect() -> str:
+        """
+        Fallback conclude: ERROR [unknown_incorrect].
+
+        Для варианта A реализуем грубо: если цикл по P_l0_a завершён, но при этом
+        не было зафиксировано ни одного \"позитивного\" conclude для CtrlFlow,
+        создаём один факт unknown_incorrect на уровне Run.
+        """
+        return """
+        WITH $runUri AS runUri
+        MATCH (run:Resource:ns0__Run {uri: runUri})
+        // Есть завершённый кадр цикла CtrlFlow_P_l0_a
+        MATCH (frame:Resource:ns0__CycleFrame {
+          ns0__cycleId: ['CtrlFlow_P_l0_a'],
+          ns0__runUri: [runUri]
+        })
+        WHERE 'done' IN coalesce(frame.ns0__status, [])
+        // Нет уже созданных специфических conclude-фактов CtrlFlow
+        OPTIONAL MATCH (run)<-[:ns0__hasRun]-(fPos:Resource:ns0__Inference)
+        WHERE any(r IN coalesce(fPos.ns0__ruleId, [])
+                  WHERE r STARTS WITH 'ctrlflow_conclude_'
+                    AND r <> 'ctrlflow_conclude_unknown_incorrect')
+        WITH run, frame, collect(fPos) AS posFacts
+        WHERE size(posFacts) = 0
+        MERGE (fact:Resource:ns0__Inference {
+          ns0__ruleId: ['ctrlflow_conclude_unknown_incorrect'],
+          ns0__targetElement: elementId(frame),
+          ns0__runUri: run.uri,
+          ns0__outcome: ['unknown_incorrect']
+        })
+        MERGE (fact)-[:ns0__hasRun]->(run)
+        MERGE (fact)-[:ns0__aboutCycleFrame]->(frame)
+        RETURN count(fact) AS created_or_matched
+        """
+
+    # ------------------------------------------------------------------
     # Public API
     # ------------------------------------------------------------------
 
@@ -421,6 +577,12 @@ class SimpleReasoner:
 
             # Optional debug rule over PathInfo existence
             self._rule_ctrlflow_path_l0_a_exists(),
+
+            # Conclude-like rules from CtrlFlow tree (variant A)
+            self._rule_ctrlflow_conclude_interruption_type_matched(),
+            self._rule_ctrlflow_conclude_applicable_transition_with_condition_found(),
+            self._rule_ctrlflow_conclude_action_is_function_call_recognized(),
+            self._rule_ctrlflow_conclude_unknown_incorrect(),
 
             # Debug rules for State.interruption_state
             self._rule_debug_state_no_interruption(),
