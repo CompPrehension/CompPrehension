@@ -14,6 +14,7 @@ from __future__ import annotations
 
 from dataclasses import dataclass
 from typing import Iterable, List, Tuple
+import sys
 
 from neo4j import GraphDatabase, Session
 
@@ -144,6 +145,48 @@ class SimpleReasoner:
                 if nodes_created == 0 and rels_created == 0:
                     break
 
+    # ------------------------------------------------------------------
+    # Connection / data smoke test
+    # ------------------------------------------------------------------
+
+    def test_connection(self) -> None:
+        """
+        Run a few simple queries to verify that:
+        - we can connect to Neo4j;
+        - the expected database ('loqi') is selected;
+        - key domain nodes (CFG, atom_122) are visible.
+        """
+        with self._driver.session(database=DATABASE) as session:  # type: ignore[attr-defined]
+            # 1) Total node count
+            result = session.run("MATCH (n) RETURN count(n) AS totalNodes")
+            record = result.single()
+            total_nodes = record["totalNodes"] if record is not None else 0
+            print(f"[test] totalNodes={total_nodes}")
+
+            # 2) Sample CFG nodes
+            cfg_query = """
+            MATCH (cfg:Resource:ns0__CFG)
+            RETURN cfg.uri AS uri, cfg.ns0__id AS ids
+            LIMIT 3
+            """
+            print("[test] Sample CFG nodes (up to 3):")
+            for rec in session.run(cfg_query):
+                print(f"  uri={rec['uri']!r}, ids={rec.get('ids')!r}")
+
+            # 3) atom_122 (условие a > b) if present
+            atom_query = """
+            MATCH (n:Resource)
+            WHERE n.uri CONTAINS '#atom_122'
+            RETURN n.uri AS uri, n.ns0__id AS ids, n.ns0__RU_localizedName AS ruName
+            LIMIT 3
+            """
+            print("[test] atom_122 nodes (up to 3):")
+            for rec in session.run(atom_query):
+                print(
+                    f"  uri={rec['uri']!r}, ids={rec.get('ids')!r}, "
+                    f"ruName={rec.get('ruName')!r}"
+                )
+
 
 def main() -> None:
     """
@@ -157,12 +200,23 @@ def main() -> None:
     reasoner = SimpleReasoner(config)
 
     try:
-        run_id = "test_simple_conclude"
-        for iteration, (nodes, rels) in enumerate(reasoner.run_until_fixpoint(run_id), start=1):
-            print(f"Iteration {iteration}: nodes_created={nodes}, relationships_created={rels}")
-            if nodes == 0 and rels == 0:
-                print("Fixpoint reached.")
-                break
+        # Separate execution branches:
+        # - python simple_reasoner.py --test-connection
+        # - python simple_reasoner.py  (default reasoning run)
+        if False or len(sys.argv) > 1 and sys.argv[1] == "--test-connection":
+            reasoner.test_connection()
+        else:
+            run_id = "test_simple_conclude"
+            for iteration, (nodes, rels) in enumerate(
+                reasoner.run_until_fixpoint(run_id), start=1
+            ):
+                print(
+                    f"Iteration {iteration}: "
+                    f"nodes_created={nodes}, relationships_created={rels}"
+                )
+                if nodes == 0 and rels == 0:
+                    print("Fixpoint reached.")
+                    break
     finally:
         reasoner.close()
 
