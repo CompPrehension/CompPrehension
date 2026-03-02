@@ -15,6 +15,7 @@ from __future__ import annotations
 from dataclasses import dataclass
 from typing import Iterable, List, Tuple
 import sys
+import time
 
 from neo4j import GraphDatabase, Session
 
@@ -624,19 +625,22 @@ class SimpleReasoner:
         self,
         run_id: str,
         max_iterations: int = 100,
-    ) -> Iterable[Tuple[int, int]]:
+    ) -> Iterable[Tuple[int, int, float]]:
         """
         Run all rules in a loop until no new nodes/relationships are created
         or until max_iterations is reached.
 
-        Yields (nodes_created, relationships_created) for each iteration.
+        Yields (nodes_created, relationships_created, iteration_ms) for each iteration.
         """
         run_uri = self.create_run_uri(run_id)
 
         with self._driver.session(database=DATABASE) as session:  # type: ignore[attr-defined]
             for _ in range(max_iterations):
+                t0 = time.monotonic_ns()
                 nodes_created, rels_created = self.apply_rules_once(session, run_uri)
-                yield nodes_created, rels_created
+                t1 = time.monotonic_ns()
+                iter_ms = (t1 - t0) / 1_000_000.0
+                yield nodes_created, rels_created, iter_ms
                 if nodes_created == 0 and rels_created == 0:
                     break
 
@@ -701,21 +705,29 @@ def main() -> None:
         if len(sys.argv) > 1 and sys.argv[1] == "--test-connection":
             reasoner.test_connection()
         else:
+            # Start gross timing (end-to-end for reasoning run)
+            gross_t0 = time.monotonic_ns()
+
             # Start every script execution from a clean reasoning state:
             # remove all :ns0__Run nodes and everything attached to them via :ns0__hasRun.
             reasoner.cleanup_all_runs()
 
             run_id = "test_simple_conclude"
-            for iteration, (nodes, rels) in enumerate(
+            for iteration, (nodes, rels, iter_ms) in enumerate(
                 reasoner.run_until_fixpoint(run_id), start=1
             ):
                 print(
                     f"Iteration {iteration}: "
-                    f"nodes_created={nodes}, relationships_created={rels}"
+                    f"nodes_created={nodes}, relationships_created={rels}, "
+                    f"iteration_ms={iter_ms:.3f}"
                 )
                 if nodes == 0 and rels == 0:
                     print("Fixpoint reached.")
                     break
+
+            gross_t1 = time.monotonic_ns()
+            gross_ms = (gross_t1 - gross_t0) / 1_000_000.0
+            print(f"Total reasoning time (gross_ms) = {gross_ms:.3f}")
     finally:
         reasoner.close()
 
