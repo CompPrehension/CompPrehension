@@ -83,6 +83,22 @@ FOREACH (n IN results | DETACH DELETE n)
 DETACH DELETE run;
 ```
 
+
+
+
+!! УДАЛИТЬ ВСЁ ВЫВЕДЕННОЕ!!
+
+```
+MATCH (run:Resource:ns0__Run)
+OPTIONAL MATCH (run)<-[:ns0__hasRun]-(res:Resource)
+WITH run, collect(DISTINCT res) AS results
+FOREACH (n IN results | DETACH DELETE n)
+DETACH DELETE run;
+```
+
+
+
+
 Обе команды предполагают, что:
 
 - все новые факты (и другие технические узлы reasoning-а) всегда имеют связь `:ns0__hasRun` на свой `Run`;

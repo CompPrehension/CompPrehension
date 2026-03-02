@@ -553,6 +553,23 @@ class SimpleReasoner:
     # Public API
     # ------------------------------------------------------------------
 
+    def cleanup_all_runs(self) -> None:
+        """
+        Remove all reasoning runs and all nodes attached to them via :ns0__hasRun.
+
+        This is useful for experiments, to start each script execution from a
+        clean slate without touching immutable domain data.
+        """
+        query = """
+        MATCH (run:Resource:ns0__Run)
+        OPTIONAL MATCH (run)<-[:ns0__hasRun]-(res:Resource)
+        WITH run, collect(DISTINCT res) AS results
+        FOREACH (n IN results | DETACH DELETE n)
+        DETACH DELETE run
+        """
+        with self._driver.session(database=DATABASE) as session:  # type: ignore[attr-defined]
+            session.run(query)
+
     def create_run_uri(self, run_id: str) -> str:
         """
         Construct a stable URI for a reasoning run.
@@ -681,9 +698,13 @@ def main() -> None:
         # Separate execution branches:
         # - python simple_reasoner.py --test-connection
         # - python simple_reasoner.py  (default reasoning run)
-        if False or len(sys.argv) > 1 and sys.argv[1] == "--test-connection":
+        if len(sys.argv) > 1 and sys.argv[1] == "--test-connection":
             reasoner.test_connection()
         else:
+            # Start every script execution from a clean reasoning state:
+            # remove all :ns0__Run nodes and everything attached to them via :ns0__hasRun.
+            reasoner.cleanup_all_runs()
+
             run_id = "test_simple_conclude"
             for iteration, (nodes, rels) in enumerate(
                 reasoner.run_until_fixpoint(run_id), start=1
