@@ -602,9 +602,9 @@ class SimpleReasoner:
             self._rule_ctrlflow_conclude_action_is_function_call_recognized(),
             self._rule_ctrlflow_conclude_unknown_incorrect(),
 
-            # Debug rules for State.interruption_state
-            self._rule_debug_state_no_interruption(),
-            self._rule_debug_state_followup(),
+            # # Debug rules for State.interruption_state
+            # self._rule_debug_state_no_interruption(),
+            # self._rule_debug_state_followup(),
         ]
 
         total_nodes_created = 0
