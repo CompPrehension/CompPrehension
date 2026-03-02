@@ -52,14 +52,14 @@ class SimpleReasoner:
     @staticmethod
     def _rule_conclude_from_is_known_correct() -> str:
         """
-        Create :ns0__Inference facts for TraceAct based on ns0__is_known_correct.
+        [DISABLED] Initial toy rule: create :ns0__Inference facts for TraceAct
+        based on ns0__is_known_correct.
 
-        Assumptions:
-        - TraceAct nodes are imported as (:Resource:ns0__TraceAct { ns0__is_known_correct: <bool> }).
-        - We do NOT modify these nodes; we only create inference nodes.
-        - All new inference nodes are linked to a single :ns0__Run node by :ns0__hasRun.
+        This rule is kept here for reference but is not used in the current
+        experiment, because TraceAct.is_known_correct is not a direct analogue
+        of tree-level `conclude` in Loqi.
 
-        This rule is idempotent due to MERGE on (ruleId, targetElement, runUri, outcome).
+        Left here commented-out for possible later reuse/adaptation.
         """
         return """
         WITH $runUri AS runUri
@@ -89,6 +89,38 @@ class SimpleReasoner:
         RETURN count(inf) AS created_or_matched
         """
 
+    @staticmethod
+    def _rule_debug_state_no_interruption() -> str:
+        """
+        Debug rule: detect State objects with interruption_state = no_interruption
+        and create simple inference facts for them.
+
+        Assumptions (RDF -> LPG via n10s):
+        - State instances are imported as (:Resource:ns0__State { uri: ... });
+        - interruption_state is an object property imported as relationship
+          :ns0__interruption_state to an enum node :Resource {uri: ...#no_interruption}.
+        """
+        return """
+        WITH $runUri AS runUri
+        // Ensure the Run node exists
+        MERGE (run:Resource:ns0__Run {uri: runUri})
+          ON CREATE SET run.ns0__id = [runUri]
+        WITH run
+        // Domain data: State with interruption_state = no_interruption
+        MATCH (state:Resource:ns0__State)-[:ns0__interruption_state]->(mode:Resource)
+        WHERE mode.uri ENDS WITH '#no_interruption'
+        // Create or reuse inference node for this (run, target, rule)
+        MERGE (inf:Resource:ns0__Inference {
+          ns0__ruleId: ['debug_state_interruption_no_interruption'],
+          ns0__targetElement: elementId(state),
+          ns0__runUri: run.uri,
+          ns0__outcome: ['state_no_interruption']
+        })
+        MERGE (inf)-[:ns0__hasRun]->(run)
+        MERGE (inf)-[:ns0__aboutState]->(state)
+        RETURN count(inf) AS created_or_matched
+        """
+
     # ------------------------------------------------------------------
     # Public API
     # ------------------------------------------------------------------
@@ -108,7 +140,8 @@ class SimpleReasoner:
         aggregated over all rule invocations.
         """
         rules: List[str] = [
-            self._rule_conclude_from_is_known_correct(),
+            # self._rule_conclude_from_is_known_correct(),  # disabled for now
+            self._rule_debug_state_no_interruption(),
         ]
 
         total_nodes_created = 0
