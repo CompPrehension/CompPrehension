@@ -20,7 +20,7 @@ from neo4j import GraphDatabase, Session
 
 @dataclass
 class Neo4jConfig:
-    uri: str = "neo4j://localhost:7687"
+    uri: str = "bolt://localhost:7687"
     user: str = "neo4j"
     password: str = "password"
 
@@ -80,8 +80,8 @@ class SimpleReasoner:
           ns0__runUri: run.uri,
           ns0__outcome: [outcome]
         })
-        MERGE (inf)-[:ns0__hasRun]->run
-        MERGE (inf)-[:ns0__aboutTraceAct]->ta
+        MERGE (inf)-[:ns0__hasRun]->(run)
+        MERGE (inf)-[:ns0__aboutTraceAct]->(ta)
         RETURN count(inf) AS created_or_matched
         """
 
