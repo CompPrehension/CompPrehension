@@ -121,6 +121,40 @@ class SimpleReasoner:
         RETURN count(inf) AS created_or_matched
         """
 
+    @staticmethod
+    def _rule_debug_state_followup() -> str:
+        """
+        Second debug rule: fire only when the first rule has created a
+        'state_no_interruption' inference for a given State in this run.
+
+        This simulates a dependency between rules:
+        - rule #1 marks states with no_interruption;
+        - rule #2 adds an extra fact that explicitly depends on rule #1.
+        """
+        return """
+        WITH $runUri AS runUri
+        MATCH (run:Resource:ns0__Run {uri: runUri})
+        // State that already has a 'state_no_interruption' inference in this run
+        MATCH (state:Resource:ns0__State)
+        MATCH (inf1:Resource:ns0__Inference {
+          ns0__ruleId: ['debug_state_interruption_no_interruption'],
+          ns0__runUri: runUri,
+          ns0__outcome: ['state_no_interruption']
+        })
+        WHERE inf1.ns0__targetElement = elementId(state)
+        // Create or reuse a follow-up inference that depends on inf1
+        MERGE (inf2:Resource:ns0__Inference {
+          ns0__ruleId: ['debug_state_followup_after_no_interruption'],
+          ns0__targetElement: elementId(state),
+          ns0__runUri: run.uri,
+          ns0__outcome: ['state_no_interruption_followup']
+        })
+        MERGE (inf2)-[:ns0__hasRun]->(run)
+        MERGE (inf2)-[:ns0__aboutState]->(state)
+        MERGE (inf2)-[:ns0__dependsOn]->(inf1)
+        RETURN count(inf2) AS created_or_matched
+        """
+
     # ------------------------------------------------------------------
     # Public API
     # ------------------------------------------------------------------
@@ -140,8 +174,8 @@ class SimpleReasoner:
         aggregated over all rule invocations.
         """
         rules: List[str] = [
-            # self._rule_conclude_from_is_known_correct(),  # disabled for now
             self._rule_debug_state_no_interruption(),
+            self._rule_debug_state_followup(),
         ]
 
         total_nodes_created = 0
