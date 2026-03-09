@@ -2,8 +2,12 @@ package org.vstu.compprehension.config;
 
 import domains.DataFlowDTDomain;
 import domains.ObjectsScopeDTDomain;
+import org.apache.catalina.connector.Connector;
 import org.springframework.beans.factory.annotation.Autowired;
+import org.springframework.beans.factory.annotation.Value;
 import org.springframework.boot.autoconfigure.web.servlet.DispatcherServletAutoConfiguration;
+import org.springframework.boot.web.embedded.tomcat.TomcatServletWebServerFactory;
+import org.springframework.boot.web.server.WebServerFactoryCustomizer;
 import org.springframework.boot.web.servlet.ServletRegistrationBean;
 import org.springframework.context.MessageSource;
 import org.springframework.context.annotation.Bean;
@@ -28,6 +32,28 @@ import java.util.Locale;
 
 @Configuration @EnableAsync
 public class WebConfig implements WebMvcConfigurer {
+
+    /**
+     * Optional plain HTTP connector for server-to-server endpoints (e.g. JWKS fetch by Moodle in dev).
+     * Set server.http.port in application.properties to enable (e.g. 8090).
+     * Leave unset or -1 in production — use only HTTPS there.
+     */
+    @Value("${server.http.port:-1}")
+    private int httpPort;
+
+    @Bean
+    public WebServerFactoryCustomizer<TomcatServletWebServerFactory> httpConnectorCustomizer() {
+        return factory -> {
+            if (httpPort > 0) {
+                var connector = new Connector("org.apache.coyote.http11.Http11NioProtocol");
+                connector.setPort(httpPort);
+                connector.setScheme("http");
+                connector.setSecure(false);
+                factory.addAdditionalTomcatConnectors(connector);
+            }
+        };
+    }
+
     @Bean
     public ServletRegistrationBean dispatcherRegistration(@Autowired UserService userService) {
         return new ServletRegistrationBean(dispatcherServlet(userService));

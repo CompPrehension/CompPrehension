@@ -32,12 +32,17 @@ public class UserServiceImpl implements UserService {
         var fullName = parsedIdToken.getFullName();
         var email = parsedIdToken.getEmail();
 
-        var entity = userRepository.findByExternalId(externalId).orElseGet(UserEntity::new);
-
-        // use different role mappings for LTI & keycloak
-        HashSet<Role> roles;
+        // Use different lookup + role mappings for LTI & Keycloak
+        UserEntity entity;
+        Set<Role> roles;
         Language language = null;
         if ("1.3.0".equals(parsedIdToken.getClaimAsString("https://purl.imsglobal.org/spec/lti/claim/version"))) {
+            // Email-based linking: if a Keycloak account exists with the same email, reuse it
+            // rather than creating a separate LTI account for the same person.
+            entity = email != null
+                    ? userRepository.findUserByEmail(email)
+                            .orElseGet(() -> userRepository.findByExternalId(externalId).orElseGet(UserEntity::new))
+                    : userRepository.findByExternalId(externalId).orElseGet(UserEntity::new);
             roles = fromLtiRoles(authentication.getAuthorities().stream()
                     .map(GrantedAuthority::getAuthority)
                     .collect(Collectors.toSet()));
@@ -46,9 +51,10 @@ public class UserServiceImpl implements UserService {
                     .map(l -> Language.fromString(l.toString()))
                     .orElse(null);
         } else {
+            entity = userRepository.findByExternalId(externalId).orElseGet(UserEntity::new);
             var preparedRoles = authentication.getAuthorities().stream()
                     .map(GrantedAuthority::getAuthority)
-                    .filter(r -> r.length() > 0)
+                    .filter(r -> !r.isEmpty())
                     .collect(Collectors.toSet());
             roles = fromKeycloakRoles(preparedRoles);
             language = entity.getPreferred_language();
@@ -110,14 +116,14 @@ public class UserServiceImpl implements UserService {
         return new HashSet<>(List.of(Role.STUDENT));
     }
 
-    private HashSet<Role> fromKeycloakRoles(Collection<String> roles) {
+    private Set<Role> fromKeycloakRoles(Collection<String> roles) {
         if (roles.contains("ROLE_Administrator")) {
-            return new HashSet<>(Arrays.asList(Role.values().clone()));
+            return Arrays.stream(Role.values()).collect(Collectors.toSet());
         }
         if (roles.contains("ROLE_Teacher")) {
-            return new HashSet<>(Arrays.asList(Role.TEACHER, Role.STUDENT));
+            return Set.of(Role.TEACHER, Role.STUDENT);
         }
-        return new HashSet<>(List.of(Role.STUDENT));
+        return Set.of(Role.STUDENT);
     }
 
 

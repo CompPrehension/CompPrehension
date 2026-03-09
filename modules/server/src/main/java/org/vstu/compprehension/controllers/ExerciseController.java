@@ -9,6 +9,7 @@ import org.springframework.stereotype.Controller;
 import org.springframework.web.bind.annotation.RequestMapping;
 import org.springframework.web.bind.annotation.RequestMethod;
 import org.springframework.web.bind.annotation.ResponseBody;
+import org.vstu.compprehension.Service.ExerciseAttemptService;
 import org.vstu.compprehension.Service.FrontendService;
 import org.vstu.compprehension.Service.UserService;
 import org.vstu.compprehension.dto.ExerciseAttemptDto;
@@ -26,12 +27,15 @@ public class ExerciseController {
     private final FrontendService frontendService;
     private final UserService userService;
     private final ExerciseRepository exerciseRepository;
+    private final ExerciseAttemptService exerciseAttemptService;
 
     @Autowired
-    public ExerciseController(FrontendService frontendService, UserService userService, ExerciseRepository exerciseRepository) {
+    public ExerciseController(FrontendService frontendService, UserService userService,
+                              ExerciseRepository exerciseRepository, ExerciseAttemptService exerciseAttemptService) {
         this.frontendService = frontendService;
         this.userService = userService;
         this.exerciseRepository = exerciseRepository;
+        this.exerciseAttemptService = exerciseAttemptService;
     }
 
     /**
@@ -108,7 +112,16 @@ public class ExerciseController {
     @ResponseBody
     public ExerciseAttemptDto createExerciseAttempt(Long exerciseId, HttpServletRequest request) throws Exception {
         var userId = userService.getCurrentUser().getId();
-        return frontendService.createExerciseAttempt(exerciseId, userId);
+        var attempt = frontendService.createExerciseAttempt(exerciseId, userId);
+
+        // If launched via LTI, attach the AGS context for grade passback
+        var lineitemUrl = (String) request.getSession().getAttribute("ltiLineitemUrl");
+        if (lineitemUrl != null) {
+            var contextId = (String) request.getSession().getAttribute("ltiContextId");
+            var ltiUserId = (String) request.getSession().getAttribute("ltiUserId");
+            exerciseAttemptService.setLtiContext(attempt.getAttemptId(), lineitemUrl, contextId, ltiUserId);
+        }
+        return attempt;
     }
 
     @RequestMapping(value = {"createDebugExerciseAttempt"}, method = { RequestMethod.GET })

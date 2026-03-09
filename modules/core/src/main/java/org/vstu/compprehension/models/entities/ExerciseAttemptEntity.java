@@ -46,4 +46,16 @@ public class ExerciseAttemptEntity {
     @ToString.Exclude
     @OneToMany(mappedBy = "exerciseAttempt", fetch = FetchType.LAZY)
     private List<QuestionEntity> questions;
+
+    /** LTI AGS lineitem URL — set when attempt is created from an LTI launch. Null for direct access. */
+    @Column(name = "lti_lineitem_url")
+    private String ltiLineitemUrl;
+
+    /** Moodle course context ID from LTI JWT. */
+    @Column(name = "lti_context_id")
+    private String ltiContextId;
+
+    /** Moodle internal user ID (JWT sub) — required for grade passback, independent of externalId. */
+    @Column(name = "lti_user_id")
+    private String ltiUserId;
 }
