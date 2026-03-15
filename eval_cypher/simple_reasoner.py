@@ -12,15 +12,18 @@ be removed without touching domain objects.
 
 from __future__ import annotations
 
-from dataclasses import dataclass
-from typing import Iterable, List, Tuple
 import sys
 import time
+from collections.abc import Iterable
+from dataclasses import dataclass
 
 from neo4j import GraphDatabase, Session
 
-
 DATABASE = "loqi"
+
+# Number of repeated "cleanup + reasoning run" cycles for timing statistics.
+DEFAULT_REPEAT_RUNS = 5
+
 
 @dataclass
 class Neo4jConfig:
@@ -580,12 +583,12 @@ class SimpleReasoner:
         """
         return f"http://www.vstu.ru/poas/code#run_{run_id}"
 
-    def apply_rules_once(self, session: Session, run_uri: str) -> Tuple[int, int]:
+    def apply_rules_once(self, session: Session, run_uri: str) -> tuple[int, int]:
         """
         Apply all simple rules once and return (nodes_created, relationships_created)
         aggregated over all rule invocations.
         """
-        rules: List[str] = [
+        rules: list[str] = [
             # CtrlFlow context and cycle over PathInfo P_l0_a
             self._rule_ctrlflow_bind_context(),
             self._rule_ctrlflow_cycle_init(),
@@ -607,6 +610,9 @@ class SimpleReasoner:
             # self._rule_debug_state_followup(),
         ]
 
+        # flip!
+        rules = list (reversed(rules))
+
         total_nodes_created = 0
         total_rels_created = 0
 
@@ -625,7 +631,7 @@ class SimpleReasoner:
         self,
         run_id: str,
         max_iterations: int = 100,
-    ) -> Iterable[Tuple[int, int, float]]:
+    ) -> Iterable[tuple[int, int, float]]:
         """
         Run all rules in a loop until no new nodes/relationships are created
         or until max_iterations is reached.
@@ -687,47 +693,76 @@ class SimpleReasoner:
                 )
 
 
+def _parse_repeat_runs() -> int:
+    """Parse --repeat N or -r N from argv; return DEFAULT_REPEAT_RUNS if absent."""
+    argv = sys.argv
+    for i, arg in enumerate(argv):
+        if arg in ("--repeat", "-r") and i + 1 < len(argv):
+            try:
+                return max(1, int(argv[i + 1]))
+            except ValueError:
+                pass
+    return DEFAULT_REPEAT_RUNS
+
+
 def main() -> None:
     """
     Simple CLI entry point for manual experiments.
 
     Usage (after installing neo4j Python driver):
-      - Adjust Neo4jConfig below or pass via environment variables if preferred.
-      - Run this module as a script and inspect printed statistics.
+      - python simple_reasoner.py --test-connection   # smoke test DB
+      - python simple_reasoner.py                    # DEFAULT_REPEAT_RUNS times "cleanup + run"
+      - python simple_reasoner.py --repeat N         # N times "cleanup + run" for timing stats
+      - python simple_reasoner.py -r N               # same as --repeat N
     """
     config = Neo4jConfig()
     reasoner = SimpleReasoner(config)
 
     try:
-        # Separate execution branches:
-        # - python simple_reasoner.py --test-connection
-        # - python simple_reasoner.py  (default reasoning run)
         if len(sys.argv) > 1 and sys.argv[1] == "--test-connection":
             reasoner.test_connection()
-        else:
-            # Start gross timing (end-to-end for reasoning run)
-            gross_t0 = time.monotonic_ns()
+            return
 
-            # Start every script execution from a clean reasoning state:
-            # remove all :ns0__Run nodes and everything attached to them via :ns0__hasRun.
+        repeat_runs = _parse_repeat_runs()
+        run_id = "test_simple_conclude"
+        gross_ms_list: list[float] = []
+
+        for run_idx in range(repeat_runs):
+            # Clean state before each measured run
             reasoner.cleanup_all_runs()
 
-            run_id = "test_simple_conclude"
+            gross_t0 = time.monotonic_ns()
             for iteration, (nodes, rels, iter_ms) in enumerate(
                 reasoner.run_until_fixpoint(run_id), start=1
             ):
-                print(
-                    f"Iteration {iteration}: "
-                    f"nodes_created={nodes}, relationships_created={rels}, "
-                    f"iteration_ms={iter_ms:.3f}"
-                )
+                if repeat_runs == 1:
+                    print(
+                        f"  Iteration {iteration}: "
+                        f"nodes_created={nodes}, relationships_created={rels}, "
+                        f"iteration_ms={iter_ms:.3f}"
+                    )
                 if nodes == 0 and rels == 0:
-                    print("Fixpoint reached.")
+                    if repeat_runs == 1:
+                        print("  Fixpoint reached.")
                     break
-
             gross_t1 = time.monotonic_ns()
             gross_ms = (gross_t1 - gross_t0) / 1_000_000.0
-            print(f"Total reasoning time (gross_ms) = {gross_ms:.3f}")
+            gross_ms_list.append(gross_ms)
+            if repeat_runs > 1:
+                print(f"  Run {run_idx + 1}/{repeat_runs}: gross_ms={gross_ms:.3f}")
+
+        if repeat_runs == 1:
+            print(f"Total reasoning time (gross_ms) = {gross_ms_list[0]:.3f}")
+        else:
+            n = len(gross_ms_list)
+            mean_ms = sum(gross_ms_list) / n
+            variance = sum((x - mean_ms) ** 2 for x in gross_ms_list) / n
+            std_ms = variance ** 0.5
+            print(
+                f"Repeat runs = {repeat_runs}, "
+                f"gross_ms: mean={mean_ms:.3f}, std={std_ms:.3f}, "
+                f"min={min(gross_ms_list):.3f}, max={max(gross_ms_list):.3f}"
+            )
     finally:
         reasoner.close()
 
