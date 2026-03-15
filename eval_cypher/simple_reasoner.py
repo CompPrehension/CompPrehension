@@ -139,7 +139,7 @@ class SimpleReasoner:
         MATCH (state:Resource:ns0__State)
         MATCH (factBase:Resource:ns0__Inference {
           ns0__ruleId: ['debug_state_interruption_no_interruption'],
-          ns0__runUri: runUri,
+          ns0__runUri: $runUri,
           ns0__outcome: ['state_no_interruption']
         })
         WHERE factBase.ns0__targetElement = elementId(state)
@@ -265,7 +265,7 @@ class SimpleReasoner:
         // Frame for this cycle within the run
         MERGE (frame:Resource:ns0__CycleFrame {
           ns0__cycleId: ['CtrlFlow_P_l0_a'],
-          ns0__runUri: [runUri]
+          ns0__runUri: [$runUri]
         })
         ON CREATE SET frame.ns0__status = ['active']
         WITH run, frame, path, path.ns0__id AS pathIds
@@ -274,7 +274,7 @@ class SimpleReasoner:
         // Ensure CycleItem per PathInfo
         MERGE (item:Resource:ns0__CycleItem {
           ns0__cycleId: ['CtrlFlow_P_l0_a'],
-          ns0__runUri: [runUri],
+          ns0__runUri: [$runUri],
           ns0__pathId: pathId
         })
         ON CREATE SET item.ns0__status = ['pending']
@@ -292,7 +292,7 @@ class SimpleReasoner:
         WITH $runUri AS runUri
         MATCH (frame:Resource:ns0__CycleFrame {
           ns0__cycleId: ['CtrlFlow_P_l0_a'],
-          ns0__runUri: [runUri]
+          ns0__runUri: [$runUri]
         })
         WHERE frame.ns0__status IS NULL OR 'active' IN frame.ns0__status
         // Do not pick new item if there is an in_progress one
@@ -323,7 +323,7 @@ class SimpleReasoner:
         WITH $runUri AS runUri
         MATCH (frame:Resource:ns0__CycleFrame {
           ns0__cycleId: ['CtrlFlow_P_l0_a'],
-          ns0__runUri: [runUri]
+          ns0__runUri: [$runUri]
         })-[:ns0__currentItem]->(item:Resource:ns0__CycleItem)
         WHERE 'in_progress' IN coalesce(item.ns0__status, [])
         MATCH (item)-[:ns0__forPath]->(path:Resource:ns0__PathInfo)
@@ -344,12 +344,12 @@ class SimpleReasoner:
         // Create a debug inference for this evaluation
         WITH frame, item, outcomeStr
         MATCH (run:Resource:ns0__Run)
-        WHERE [runUri] = coalesce(frame.ns0__runUri, [])
+        WHERE [$runUri] = coalesce(frame.ns0__runUri, [])
         OPTIONAL MATCH (item)-[:ns0__forPath]->(path:Resource:ns0__PathInfo)
         MERGE (factEval:Resource:ns0__Inference {
           ns0__ruleId: ['ctrlflow_cycle_eval_direct'],
           ns0__targetElement: elementId(item),
-          ns0__runUri: runUri,
+          ns0__runUri: $runUri,
           ns0__outcome: [outcomeStr]
         })
         MERGE (factEval)-[:ns0__hasRun]->(run)
@@ -366,7 +366,7 @@ class SimpleReasoner:
         WITH $runUri AS runUri
         MATCH (frame:Resource:ns0__CycleFrame {
           ns0__cycleId: ['CtrlFlow_P_l0_a'],
-          ns0__runUri: [runUri]
+          ns0__runUri: [$runUri]
         })
         WHERE frame.ns0__status IS NULL OR 'active' IN frame.ns0__status
         MATCH (frame)-[:ns0__hasItem]->(item:Resource:ns0__CycleItem)
@@ -529,7 +529,7 @@ class SimpleReasoner:
         // Есть завершённый кадр цикла CtrlFlow_P_l0_a
         MATCH (frame:Resource:ns0__CycleFrame {
           ns0__cycleId: ['CtrlFlow_P_l0_a'],
-          ns0__runUri: [runUri]
+          ns0__runUri: [$runUri]
         })
         WHERE 'done' IN coalesce(frame.ns0__status, [])
         // Нет уже созданных специфических conclude-фактов CtrlFlow
