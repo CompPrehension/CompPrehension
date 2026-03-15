@@ -1,5 +1,6 @@
 package org.vstu.compprehension.service;
 
+import com.fasterxml.jackson.databind.ObjectMapper;
 import com.nimbusds.jose.JWSAlgorithm;
 import com.nimbusds.jose.JWSHeader;
 import com.nimbusds.jose.crypto.RSASSASigner;
@@ -10,7 +11,6 @@ import org.springframework.beans.factory.annotation.Value;
 import org.springframework.http.HttpEntity;
 import org.springframework.http.HttpHeaders;
 import org.springframework.http.MediaType;
-import org.springframework.http.ResponseEntity;
 import org.springframework.scheduling.annotation.Async;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Propagation;
@@ -21,6 +21,7 @@ import org.springframework.util.LinkedMultiValueMap;
 import org.springframework.web.client.RestTemplate;
 import org.vstu.compprehension.Service.ExerciseAttemptService;
 import org.vstu.compprehension.controllers.LtiController;
+import org.vstu.compprehension.models.entities.ExerciseAttemptEntity;
 import org.vstu.compprehension.models.events.AttemptCompletedEvent;
 import org.vstu.compprehension.models.repository.ExerciseAttemptRepository;
 
@@ -29,15 +30,13 @@ import java.security.KeyFactory;
 import java.security.interfaces.RSAPrivateKey;
 import java.security.spec.PKCS8EncodedKeySpec;
 import java.time.Instant;
-import java.time.ZoneOffset;
-import java.time.format.DateTimeFormatter;
 import java.util.Base64;
 import java.util.Date;
 import java.util.Map;
 import java.util.UUID;
 
 /**
- * Sends LTI AGS (Assignment and Grade Services) grade passback to Moodle.
+* Sends LTI AGS (Assignment and Grade Services) grade passback to Moodle.
  *
  * <p>Flow:
  * <ol>
@@ -66,7 +65,9 @@ import java.util.UUID;
 public class LtiAgsService {
     private final ExerciseAttemptRepository exerciseAttemptRepository;
     private final ExerciseAttemptService exerciseAttemptService;
+    private final MoodleDiscoveryGradeService moodleDiscoveryGradeService;
     private final RestTemplate restTemplate = new RestTemplate();
+    private final ObjectMapper objectMapper = new ObjectMapper();
 
     @Value("${lti.client-id:}")
     private String ltiClientId;
@@ -75,26 +76,45 @@ public class LtiAgsService {
     private String privateKeyBase64;
 
     public LtiAgsService(ExerciseAttemptRepository exerciseAttemptRepository,
-                         ExerciseAttemptService exerciseAttemptService) {
+                         ExerciseAttemptService exerciseAttemptService,
+                         MoodleDiscoveryGradeService moodleDiscoveryGradeService) {
         this.exerciseAttemptRepository = exerciseAttemptRepository;
         this.exerciseAttemptService = exerciseAttemptService;
+        this.moodleDiscoveryGradeService = moodleDiscoveryGradeService;
     }
 
     /**
      * Handles attempt-completed events after the originating transaction commits.
      * Runs asynchronously so it does not block the user-facing request.
+     *
+     * <p>Two grade passback paths:
+     * <ul>
+     *   <li>LTI launch: {@code attempt.ltiLineitemUrl != null} → LTI AGS (existing flow)</li>
+     *   <li>Keycloak login: {@code attempt.ltiLineitemUrl == null} → Moodle Web Services API
+     *       via auto-discovery ({@link MoodleDiscoveryGradeService})</li>
+     * </ul>
      */
     @Async
     @TransactionalEventListener(phase = TransactionPhase.AFTER_COMMIT)
     @Transactional(propagation = Propagation.REQUIRES_NEW)
     public void onAttemptCompleted(AttemptCompletedEvent event) {
         var attempt = exerciseAttemptRepository.findById(event.getAttemptId()).orElse(null);
-        if (attempt == null || attempt.getLtiLineitemUrl() == null) {
+        if (attempt == null) {
             return;
         }
+
+        if (attempt.getLtiLineitemUrl() != null) {
+            postViaLtiAgs(attempt);
+        } else {
+            moodleDiscoveryGradeService.postGradeIfEnrolled(attempt);
+        }
+    }
+
+    /** Отправляет оценку через LTI AGS (стандартный путь для LTI-запусков). */
+    private void postViaLtiAgs(ExerciseAttemptEntity attempt) {
         if (ltiClientId.isBlank() || privateKeyBase64.isBlank()) {
             log.warn("LTI AGS grade passback skipped for attempt {}: " +
-                    "lti.client-id or lti.private-key-pkcs8-base64 not configured", event.getAttemptId());
+                    "lti.client-id or lti.private-key-pkcs8-base64 not configured", attempt.getId());
             return;
         }
 
@@ -138,15 +158,15 @@ public class LtiAgsService {
                 rawResponse.getBody());
 
         var body = rawResponse.getBody();
-        if (body == null || !body.contains("access_token")) {
-            throw new RuntimeException("No access_token in Moodle AGS token response from " + tokenEndpoint + ": " + body);
+        if (body == null) {
+            throw new RuntimeException("Empty response from token endpoint: " + tokenEndpoint);
         }
 
-        // Parse access_token from JSON string
-        var tokenStart = body.indexOf("\"access_token\"");
-        var valueStart = body.indexOf("\"", tokenStart + 14) + 1;
-        var valueEnd = body.indexOf("\"", valueStart);
-        return body.substring(valueStart, valueEnd);
+        var accessToken = objectMapper.readTree(body).path("access_token").asText(null);
+        if (accessToken == null) {
+            throw new RuntimeException("No access_token in Moodle AGS token response from " + tokenEndpoint + ": " + body);
+        }
+        return accessToken;
     }
 
     private String buildClientAssertionJwt(String tokenEndpoint) throws Exception {

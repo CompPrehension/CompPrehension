@@ -10,6 +10,8 @@ import org.vstu.compprehension.models.entities.ExerciseAttemptEntity;
 import org.vstu.compprehension.models.events.AttemptCompletedEvent;
 import org.vstu.compprehension.models.repository.ExerciseAttemptRepository;
 
+import java.util.Random;
+
 @Service
 public class ExerciseAttemptService {
     private final ExerciseAttemptRepository exerciseAttemptRepository;
@@ -49,6 +51,6 @@ public class ExerciseAttemptService {
      * Returns 1.0 for completed attempts, 0.0 otherwise.
      */
     public double calculateFinalGrade(ExerciseAttemptEntity attempt) {
-        return attempt.getAttemptStatus() == AttemptStatus.COMPLETED_BY_USER ? 1.0 : 0.0;
+        return attempt.getAttemptStatus() == AttemptStatus.COMPLETED_BY_USER ? new Random().nextDouble() : 0.0; // todo нормальное вычисление оценки
     }
 }

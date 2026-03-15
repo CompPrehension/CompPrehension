@@ -195,7 +195,7 @@ public class LtiController {
         securityContextHolderStrategy.setContext(context);
         securityContextRepository.saveContext(context, request, response);
 
-        // Save LTI AGS context to session — used when creating an exercise attempt
+        // Save LTI AGS context to session - used when creating an exercise attempt
         var agsEndpoint = (Map<?, ?>) claims.get(LTI_CLAIM_AGS);
         if (agsEndpoint != null && agsEndpoint.get("lineitem") != null) {
             var lineitemUrl = String.valueOf(agsEndpoint.get("lineitem"));
@@ -206,7 +206,7 @@ public class LtiController {
         if (ltiContext != null) {
             request.getSession().setAttribute("ltiContextId", String.valueOf(ltiContext.get("id")));
         }
-        // Moodle internal user ID (JWT sub) — needed for grade passback, independent of account merging
+        // Moodle internal user ID (JWT sub) - needed for grade passback, independent of account merging
         request.getSession().setAttribute("ltiUserId", idToken.getJWTClaimsSet().getSubject());
 
         // Extract exerciseId from LTI custom parameters (key: exercise_id).
