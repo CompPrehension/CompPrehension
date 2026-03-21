@@ -5,6 +5,7 @@ import com.nimbusds.jose.jwk.JWKSet;
 import com.nimbusds.jose.jwk.KeyUse;
 import com.nimbusds.jose.jwk.RSAKey;
 import com.nimbusds.jose.shaded.json.JSONArray;
+import com.nimbusds.jwt.JWT;
 import com.nimbusds.jwt.JWTParser;
 import jakarta.servlet.http.HttpServletRequest;
 import jakarta.servlet.http.HttpServletResponse;
@@ -30,6 +31,7 @@ import org.springframework.web.bind.annotation.RequestMethod;
 import org.springframework.web.bind.annotation.RequestParam;
 import org.springframework.web.bind.annotation.ResponseBody;
 import org.vstu.compprehension.common.StringHelper;
+import org.vstu.compprehension.service.LtiConstants;
 import org.vstu.compprehension.utils.HttpRequestHelper;
 import org.vstu.compprehension.utils.SessionHelper;
 
@@ -44,6 +46,7 @@ import java.text.ParseException;
 import java.util.Arrays;
 import java.util.Base64;
 import java.util.Map;
+import java.util.Set;
 import java.util.UUID;
 import java.util.stream.Collectors;
 
@@ -51,9 +54,6 @@ import java.util.stream.Collectors;
 @RequestMapping("lti")
 @Log4j2
 public class LtiController {
-    /** Key ID used in JWKS and JWT assertions — must match between both. */
-    public static final String KID = "compph-lti-1";
-
     private final SecurityContextRepository securityContextRepository;
     private final SecurityContextHolderStrategy securityContextHolderStrategy;
 
@@ -74,17 +74,17 @@ public class LtiController {
     @GetMapping(value = "1_3/jwks", produces = "application/json")
     @ResponseBody
     public String jwks() {
-        var keyBytes = Base64.getDecoder().decode(privateKeyBase64);
-        var privateKey = (RSAPrivateCrtKey) KeyFactory.getInstance("RSA")
+        byte[] keyBytes = Base64.getDecoder().decode(privateKeyBase64);
+        RSAPrivateCrtKey privateKey = (RSAPrivateCrtKey) KeyFactory.getInstance("RSA")
                 .generatePrivate(new PKCS8EncodedKeySpec(keyBytes));
-        var publicKeySpec = new RSAPublicKeySpec(
+        RSAPublicKeySpec publicKeySpec = new RSAPublicKeySpec(
                 privateKey.getModulus(), privateKey.getPublicExponent());
-        var publicKey = (RSAPublicKey) KeyFactory.getInstance("RSA").generatePublic(publicKeySpec);
+        RSAPublicKey publicKey = (RSAPublicKey) KeyFactory.getInstance("RSA").generatePublic(publicKeySpec);
 
-        var rsaKey = new RSAKey.Builder(publicKey)
+        RSAKey rsaKey = new RSAKey.Builder(publicKey)
                 .keyUse(KeyUse.SIGNATURE)
                 .algorithm(JWSAlgorithm.RS256)
-                .keyID(KID)
+                .keyID(LtiConstants.KID)
                 .build();
         return new JWKSet(rsaKey).toString();
     }
@@ -110,8 +110,8 @@ public class LtiController {
     public void login1_3(HttpServletRequest request, HttpServletResponse response) {
         SessionHelper.ensureNewSession(request);
 
-        var formDataParams = HttpRequestHelper.getAllRequestParams(request);
-        var params = LtiOidcLoginRequest.builder()
+        Map<String, String> formDataParams = HttpRequestHelper.getAllRequestParams(request);
+        LtiOidcLoginRequest params = LtiOidcLoginRequest.builder()
                 .ltiDeploymentId(formDataParams.get("lti_deployment_id"))
                 .clientId(formDataParams.get("client_id"))
                 .issuer(formDataParams.get("iss"))
@@ -121,7 +121,7 @@ public class LtiController {
                 .build();
         // TODO validate params
 
-        var redirectUrl = String.format(
+        String redirectUrl = String.format(
                 "%s/mod/lti/auth.php?client_id=%s&response_type=%s&scope=%s&redirect_uri=%s&login_hint=%s&nonce=%s&state=%s&lti_message_hint=%s&response_mode=%s",
                 params.issuer,
                 URLEncoder.encode(params.clientId, StandardCharsets.UTF_8),
@@ -149,7 +149,7 @@ public class LtiController {
         if (exerciseId == null) exerciseId = id;
         if (exerciseId == null) throw new IllegalArgumentException("exerciseId is not provided: set custom parameter 'exercise_id' in Moodle activity or use ?id= query param");
 
-        var redirectUrl = String.format("/pages/exercise?exerciseId=%d", exerciseId);
+        String redirectUrl = String.format("/pages/exercise?exerciseId=%d", exerciseId);
         log.info("Redirect to exercise, url:{}", redirectUrl);
         response.sendRedirect(redirectUrl);
     }
@@ -159,36 +159,35 @@ public class LtiController {
     public void exerciseSettings(HttpServletRequest request, HttpServletResponse response) {
         authenticateFromLti13ResourceLinkRequest(request, response);
 
-        var redirectUrl = "/pages/exercise-settings";
+        String redirectUrl = "/pages/exercise-settings";
         log.info("Redirect to exercise-settings, url:{}", redirectUrl);
         response.sendRedirect(redirectUrl);
     }
 
     private void authenticateFromLti13ResourceLinkRequest(HttpServletRequest request, HttpServletResponse response) throws AuthenticationException, ParseException {
-        var formDataParams = HttpRequestHelper.getAllRequestParams(request);
-        var rawIdToken = formDataParams.get("id_token");
+        Map<String, String> formDataParams = HttpRequestHelper.getAllRequestParams(request);
+        String rawIdToken = formDataParams.get("id_token");
         if (StringHelper.isNullOrWhitespace(rawIdToken)) {
             throw new AuthenticationServiceException("No 'id_token' inside request params");
         }
 
         // TECH DEBT: JWT signature is NOT validated (no JWKS fetch from Moodle).
-        // This is sufficient for diploma/demo purposes but must be fixed before production use.
         // Full validation requires fetching Moodle's JWKS via issuer's .well-known/openid-configuration.
-        var idToken = JWTParser.parse(rawIdToken);
+        JWT idToken = JWTParser.parse(rawIdToken);
         final Map<String, Object> claims = idToken.getJWTClaimsSet().getClaims();
-        var oidcToken = new OidcIdToken(rawIdToken,
+        OidcIdToken oidcToken = new OidcIdToken(rawIdToken,
                 idToken.getJWTClaimsSet().getIssueTime().toInstant(),
                 idToken.getJWTClaimsSet().getExpirationTime().toInstant(),
                 idToken.getJWTClaimsSet().getClaims());
-        var groups = (JSONArray) claims.get(LTI_CLAIM_ROLES);
-        var mappedAuthorities = groups.stream()
+        JSONArray groups = (JSONArray) claims.get(LTI_CLAIM_ROLES);
+        Set<SimpleGrantedAuthority> mappedAuthorities = groups.stream()
                 .map(role -> new SimpleGrantedAuthority(Arrays.stream(role.toString().split("#"))
                         .reduce((first, second) -> second)
                         .map(r -> "ROLE_" + r)
                         .orElseThrow()))
                 .collect(Collectors.toSet());
         OAuth2User user = new DefaultOidcUser(mappedAuthorities, oidcToken);
-        var authentication = new OAuth2AuthenticationToken(user, mappedAuthorities, "mdl");
+        OAuth2AuthenticationToken authentication = new OAuth2AuthenticationToken(user, mappedAuthorities, "mdl");
 
         SecurityContext context = securityContextHolderStrategy.createEmptyContext();
         context.setAuthentication(authentication);
@@ -196,13 +195,13 @@ public class LtiController {
         securityContextRepository.saveContext(context, request, response);
 
         // Save LTI AGS context to session - used when creating an exercise attempt
-        var agsEndpoint = (Map<?, ?>) claims.get(LTI_CLAIM_AGS);
+        Map<?, ?> agsEndpoint = (Map<?, ?>) claims.get(LTI_CLAIM_AGS);
         if (agsEndpoint != null && agsEndpoint.get("lineitem") != null) {
-            var lineitemUrl = String.valueOf(agsEndpoint.get("lineitem"));
+            String lineitemUrl = String.valueOf(agsEndpoint.get("lineitem"));
             request.getSession().setAttribute("ltiLineitemUrl", lineitemUrl);
             log.info("LTI lineitem URL saved to session: {}", lineitemUrl);
         }
-        var ltiContext = (Map<?, ?>) claims.get(LTI_CLAIM_CONTEXT);
+        Map<?, ?> ltiContext = (Map<?, ?>) claims.get(LTI_CLAIM_CONTEXT);
         if (ltiContext != null) {
             request.getSession().setAttribute("ltiContextId", String.valueOf(ltiContext.get("id")));
         }
@@ -211,9 +210,9 @@ public class LtiController {
 
         // Extract exerciseId from LTI custom parameters (key: exercise_id).
         // Moodle activity sets this via the "Custom parameters" field: exercise_id=<id>
-        var customClaims = (Map<?, ?>) claims.get(LTI_CLAIM_CUSTOM);
+        Map<?, ?> customClaims = (Map<?, ?>) claims.get(LTI_CLAIM_CUSTOM);
         if (customClaims != null) {
-            var exerciseIdStr = (String) customClaims.get("exercise_id");
+            String exerciseIdStr = (String) customClaims.get("exercise_id");
             if (exerciseIdStr != null) {
                 request.getSession().setAttribute("ltiExerciseId", Long.parseLong(exerciseIdStr));
                 log.info("LTI custom exercise_id={} saved to session", exerciseIdStr);

@@ -16,6 +16,7 @@ import org.vstu.compprehension.dto.ExerciseAttemptDto;
 import org.vstu.compprehension.dto.ExerciseDto;
 import org.vstu.compprehension.dto.ExerciseInfoDto;
 import org.vstu.compprehension.dto.ExerciseStatisticsItemDto;
+import org.vstu.compprehension.models.entities.exercise.ExerciseEntity;
 import org.vstu.compprehension.models.repository.ExerciseRepository;
 
 import java.util.List;
@@ -57,7 +58,7 @@ public class ExerciseController {
     @RequestMapping(value = {"shortInfo"}, method = { RequestMethod.GET })
     @ResponseBody
     public ExerciseInfoDto getExerciseShortInfo(long id, HttpServletRequest request) throws Exception {
-        var exercise = exerciseRepository.findById(id).orElseThrow();
+        ExerciseEntity exercise = exerciseRepository.findById(id).orElseThrow();
         return new ExerciseInfoDto(id, exercise.getOptions());
     }
 
@@ -76,8 +77,8 @@ public class ExerciseController {
     @RequestMapping(value = {"getExerciseAttempt"}, method = { RequestMethod.GET })
     @ResponseBody
     public @NotNull ExerciseAttemptDto getExerciseAttempt(Long attemptId, HttpServletRequest request) throws Exception {
-        var userId = userService.getCurrentUser().getId();
-        var result = frontendService.getExerciseAttempt(attemptId);
+        Long userId = userService.getCurrentUser().getId();
+        ExerciseAttemptDto result = frontendService.getExerciseAttempt(attemptId);
         if (result == null) {
             throw new Exception("No such attempt");
         }
@@ -97,7 +98,7 @@ public class ExerciseController {
     @RequestMapping(value = {"getExistingExerciseAttempt"}, method = { RequestMethod.GET })
     @ResponseBody
     public ExerciseAttemptDto getExistingExerciseAttempt(Long exerciseId, HttpServletRequest request) throws Exception {
-        var userId = userService.getCurrentUser().getId();
+        Long userId = userService.getCurrentUser().getId();
         return frontendService.getExistingExerciseAttempt(exerciseId, userId);
     }
 
@@ -111,14 +112,14 @@ public class ExerciseController {
     @RequestMapping(value = {"createExerciseAttempt"}, method = { RequestMethod.GET })
     @ResponseBody
     public ExerciseAttemptDto createExerciseAttempt(Long exerciseId, HttpServletRequest request) throws Exception {
-        var userId = userService.getCurrentUser().getId();
-        var attempt = frontendService.createExerciseAttempt(exerciseId, userId);
+        Long userId = userService.getCurrentUser().getId();
+        ExerciseAttemptDto attempt = frontendService.createExerciseAttempt(exerciseId, userId);
 
         // If launched via LTI, attach the AGS context for grade passback
-        var lineitemUrl = (String) request.getSession().getAttribute("ltiLineitemUrl");
+        String lineitemUrl = (String) request.getSession().getAttribute("ltiLineitemUrl");
         if (lineitemUrl != null) {
-            var contextId = (String) request.getSession().getAttribute("ltiContextId");
-            var ltiUserId = (String) request.getSession().getAttribute("ltiUserId");
+            String contextId = (String) request.getSession().getAttribute("ltiContextId");
+            String ltiUserId = (String) request.getSession().getAttribute("ltiUserId");
             exerciseAttemptService.setLtiContext(attempt.getAttemptId(), lineitemUrl, contextId, ltiUserId);
         }
         return attempt;
@@ -127,7 +128,7 @@ public class ExerciseController {
     @RequestMapping(value = {"createDebugExerciseAttempt"}, method = { RequestMethod.GET })
     @ResponseBody
     public ExerciseAttemptDto createDebugExerciseAttempt(Long exerciseId, HttpServletRequest request) throws Exception {
-        var userId = userService.getCurrentUser().getId();
+        Long userId = userService.getCurrentUser().getId();
         return frontendService.createSolvedExerciseAttempt(exerciseId, userId);
     }
 }

@@ -39,7 +39,7 @@ public class ExerciseAttemptService {
      */
     @Transactional
     public void setLtiContext(Long attemptId, String lineitemUrl, String contextId, String ltiUserId) {
-        var attempt = exerciseAttemptRepository.findById(attemptId).orElseThrow();
+        ExerciseAttemptEntity attempt = exerciseAttemptRepository.findById(attemptId).orElseThrow();
         attempt.setLtiLineitemUrl(lineitemUrl);
         attempt.setLtiContextId(contextId);
         attempt.setLtiUserId(ltiUserId);
