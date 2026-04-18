@@ -9,7 +9,6 @@ import org.springframework.stereotype.Controller;
 import org.springframework.web.bind.annotation.RequestMapping;
 import org.springframework.web.bind.annotation.RequestMethod;
 import org.springframework.web.bind.annotation.ResponseBody;
-import org.vstu.compprehension.Service.ExerciseAttemptService;
 import org.vstu.compprehension.Service.FrontendService;
 import org.vstu.compprehension.Service.UserService;
 import org.vstu.compprehension.dto.ExerciseAttemptDto;
@@ -28,15 +27,13 @@ public class ExerciseController {
     private final FrontendService frontendService;
     private final UserService userService;
     private final ExerciseRepository exerciseRepository;
-    private final ExerciseAttemptService exerciseAttemptService;
 
     @Autowired
     public ExerciseController(FrontendService frontendService, UserService userService,
-                              ExerciseRepository exerciseRepository, ExerciseAttemptService exerciseAttemptService) {
+                              ExerciseRepository exerciseRepository) {
         this.frontendService = frontendService;
         this.userService = userService;
         this.exerciseRepository = exerciseRepository;
-        this.exerciseAttemptService = exerciseAttemptService;
     }
 
     /**
@@ -103,26 +100,15 @@ public class ExerciseController {
     }
 
     /**
-     * Create exercise attempt for current user
-     * @param exerciseId Exercise id
-     * @param request Current request
-     * @return Created attempt
-     * @throws Exception Something got wrong
+     * Create exercise attempt for current user.
+     * LTI-контекст (lineitemUrl/contextId) подхватывается из текущей сессии
+     * внутри FrontendService через {@link org.vstu.compprehension.Service.LtiContextProvider}.
      */
     @RequestMapping(value = {"createExerciseAttempt"}, method = { RequestMethod.GET })
     @ResponseBody
     public ExerciseAttemptDto createExerciseAttempt(Long exerciseId, HttpServletRequest request) throws Exception {
         Long userId = userService.getCurrentUser().getId();
-        ExerciseAttemptDto attempt = frontendService.createExerciseAttempt(exerciseId, userId);
-
-        // If launched via LTI, attach the AGS context for grade passback
-        String lineitemUrl = (String) request.getSession().getAttribute("ltiLineitemUrl");
-        if (lineitemUrl != null) {
-            String contextId = (String) request.getSession().getAttribute("ltiContextId");
-            String ltiUserId = (String) request.getSession().getAttribute("ltiUserId");
-            exerciseAttemptService.setLtiContext(attempt.getAttemptId(), lineitemUrl, contextId, ltiUserId);
-        }
-        return attempt;
+        return frontendService.createExerciseAttempt(exerciseId, userId);
     }
 
     @RequestMapping(value = {"createDebugExerciseAttempt"}, method = { RequestMethod.GET })
