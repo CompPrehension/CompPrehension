@@ -3,7 +3,7 @@ package org.vstu.compprehension.service.moodle;
 import com.fasterxml.jackson.core.type.TypeReference;
 import com.fasterxml.jackson.databind.ObjectMapper;
 import lombok.extern.log4j.Log4j2;
-import org.springframework.beans.factory.annotation.Value;
+import org.springframework.boot.autoconfigure.condition.ConditionalOnProperty;
 import org.springframework.http.HttpEntity;
 import org.springframework.http.HttpHeaders;
 import org.springframework.http.MediaType;
@@ -11,6 +11,7 @@ import org.springframework.stereotype.Service;
 import org.springframework.util.LinkedMultiValueMap;
 import org.springframework.util.MultiValueMap;
 import org.springframework.web.client.RestTemplate;
+import org.vstu.compprehension.config.MoodleWsRegistrationsProperties.Registration;
 import org.vstu.compprehension.service.moodle.request.GetLtiActivitiesRequest;
 import org.vstu.compprehension.service.moodle.request.MoodleRequest;
 import org.vstu.compprehension.service.moodle.request.UpdateGradeRequest;
@@ -27,155 +28,120 @@ import java.util.Optional;
 import static org.vstu.compprehension.service.moodle.MoodleWebServiceFunction.*;
 
 /**
- * HTTP-клиент для Moodle Web Services REST API.
+ * HTTP-клиент для Moodle Web Services REST API. Stateless: каждый метод принимает
+ * {@link Registration} (base URL + admin token); одна инсталляция MoodleService работает
+ * с произвольным числом Moodle-инстансов через {@code MoodleWsRegistrationsProperties}.
  *
- * <p>Используется для grade passback пользователей, аутентифицированных через Keycloak (не LTI).
+ * <p>Бин создаётся только при {@code compprehension.grade-passback.moodle-ws.enabled=true}.
  *
- * <p>Настройка в application.properties:
- * <pre>
- *   moodle.base-url=http://localhost:8081
- *   moodle.webservice-token=&lt;admin web service token&gt;
- * </pre>
- *
- * <p>Токен создаётся в Moodle: Admin → Server → Web services → Manage tokens → Create token.
- * Сервис-аккаунт должен иметь права на функции:
- * core_user_get_users_by_field, core_enrol_get_users_courses,
+ * <p>TECH DEBT: wstoken - долгоживущий admin-токен. В продакшне заменить на сервис-аккаунт
+ * с capabilities: core_user_get_users_by_field, core_enrol_get_users_courses,
  * mod_lti_get_ltis_by_courses, core_grades_update_grades.
- *
- * <p>// TECH DEBT: wstoken — долгоживущий admin-токен в конфиге.
- * В продакшне заменить на сервис-аккаунт с минимальными capabilities.
  */
 @Service
+@ConditionalOnProperty(
+        prefix = "compprehension.grade-passback.moodle-ws",
+        name = "enabled",
+        havingValue = "true",
+        matchIfMissing = false
+)
 @Log4j2
 public class MoodleService {
-
-    @Value("${moodle.base-url:}")
-    private String moodleBaseUrl;
-
-    @Value("${moodle.webservice-token:}")
-    private String wsToken;
 
     private final RestTemplate restTemplate;
     private final ObjectMapper objectMapper;
 
-    public MoodleService(
-            RestTemplate restTemplate,
-            ObjectMapper objectMapper
-    ) {
+    public MoodleService(RestTemplate restTemplate, ObjectMapper objectMapper) {
         this.restTemplate = restTemplate;
         this.objectMapper = objectMapper;
     }
 
     /**
-     * Возвращает true если интеграция с Moodle Web Services настроена.
+     * Ищет пользователя Moodle по email (core_user_get_users_by_field).
      */
-    public boolean isConfigured() {
-        // временно, заменить на ConditionOnProperty
-        return !moodleBaseUrl.isBlank() && !wsToken.isBlank();
-    }
-
-    /**
-     * Ищет пользователя Moodle по email.
-     * Вызывает core_user_get_users_by_field.
-     */
-    public Optional<MoodleUserResponse> findUserByEmail(String email) {
+    public Optional<MoodleUserResponse> findUserByEmail(Registration reg, String email) {
         var params = new LinkedMultiValueMap<String, String>();
         params.add("field", "email");
         params.add("values[0]", email);
-        return executeRequest(GET_USERS_BY_FIELD, params, MoodleUserResponse[].class)
+        return executeRequest(reg, GET_USERS_BY_FIELD, params, MoodleUserResponse[].class)
                 .filter(arr -> arr.length > 0)
                 .map(arr -> arr[0]);
     }
 
     /**
-     * Возвращает список курсов, в которых зачислен пользователь.
-     * Вызывает core_enrol_get_users_courses.
+     * Возвращает курсы, в которых зачислен пользователь (core_enrol_get_users_courses).
      */
-    public List<MoodleCourseResponse> getEnrolledCourses(long moodleUserId) {
+    public List<MoodleCourseResponse> getEnrolledCourses(Registration reg, long moodleUserId) {
         var params = new LinkedMultiValueMap<String, String>();
         params.add("userid", String.valueOf(moodleUserId));
-        return executeRequest(GET_USERS_COURSES, params, MoodleCourseResponse[].class)
+        return executeRequest(reg, GET_USERS_COURSES, params, MoodleCourseResponse[].class)
                 .map(Arrays::asList)
                 .orElse(List.of());
     }
 
     /**
-     * Возвращает LTI-активности для указанных курсов.
-     * Вызывает mod_lti_get_ltis_by_courses.
+     * Возвращает LTI-активности указанных курсов (mod_lti_get_ltis_by_courses).
      */
-    public List<MoodleLtiActivityResponse> getLtiActivities(List<Long> courseIds) {
+    public List<MoodleLtiActivityResponse> getLtiActivities(Registration reg, List<Long> courseIds) {
         if (courseIds.isEmpty()) return List.of();
         var request = GetLtiActivitiesRequest.builder().courseIds(courseIds).build();
-        return executeRequest(GET_LTIS_BY_COURSES, request, MoodleLtiListResponse.class)
+        return executeRequest(reg, GET_LTIS_BY_COURSES, request, MoodleLtiListResponse.class)
                 .map(r -> r.getLtis() != null ? r.getLtis() : List.<MoodleLtiActivityResponse>of())
                 .orElse(List.of());
     }
 
     /**
      * Выставляет оценку через core_grades_update_grades.
-     *
-     * @param request объект с courseId, courseModuleId и списком grades
      */
-    public void updateGrade(UpdateGradeRequest request) {
+    public void updateGrade(Registration reg, UpdateGradeRequest request) {
         MultiValueMap<String, String> params = toFormBody(request);
-        // source - метка в истории оценок (mdl_grade_grades_history.source),
-        //          показывает, что оценка выставлена CompPrehension, а не вручную.
+        // source — метка в mdl_grade_grades_history.source: оценка выставлена CompPrehension.
         params.add("source", "compph");
-        // component - тип активности-владельца grade item; для LTI-активности это mod_lti.
+        // component — тип активности-владельца grade item; для LTI-активности это mod_lti.
         params.add("component", "mod_lti");
-        // itemnumber - порядковый номер grade item внутри компонента (нумерация с 0).
-        //              У LTI-активности всегда один grade item, поэтому 0.
+        // itemnumber — порядковый номер grade item внутри компонента (у LTI один item → 0).
         params.add("itemnumber", "0");
-        executeRequest(UPDATE_GRADES, params, Integer.class);
+        executeRequest(reg, UPDATE_GRADES, params, Integer.class);
         log.debug("core_grades_update_grades: courseId={}, courseModuleId={}",
                 request.getCourseId(), request.getCourseModuleId());
     }
 
-    // ---- private: executeRequest overloads ----
-
-    /** Для MoodleRequest-объектов — params строятся через toFormBody. */
-    private <T> Optional<T> executeRequest(MoodleWebServiceFunction fn,
-                                            MoodleRequest request,
-                                            Class<T> responseType) {
-        MultiValueMap<String, String> body = buildBaseBody(fn);
+    private <T> Optional<T> executeRequest(Registration reg, MoodleWebServiceFunction fn,
+                                           MoodleRequest request, Class<T> responseType) {
+        MultiValueMap<String, String> body = buildBaseBody(reg, fn);
         body.addAll(toFormBody(request));
-        return executePostRequest(body, fn, responseType);
+        return executePostRequest(reg, body, fn, responseType);
     }
 
-    /** Для inline-параметров (findUserByEmail, getEnrolledCourses, updateGrade с константами). */
-    private <T> Optional<T> executeRequest(MoodleWebServiceFunction fn,
-                                            MultiValueMap<String, String> params,
-                                            Class<T> responseType) {
-        MultiValueMap<String, String> body = buildBaseBody(fn);
+    private <T> Optional<T> executeRequest(Registration reg, MoodleWebServiceFunction fn,
+                                           MultiValueMap<String, String> params, Class<T> responseType) {
+        MultiValueMap<String, String> body = buildBaseBody(reg, fn);
         body.addAll(params);
-        return executePostRequest(body, fn, responseType);
+        return executePostRequest(reg, body, fn, responseType);
     }
 
-    private MultiValueMap<String, String> buildBaseBody(MoodleWebServiceFunction fn) {
+    private MultiValueMap<String, String> buildBaseBody(Registration reg, MoodleWebServiceFunction fn) {
         var body = new LinkedMultiValueMap<String, String>();
-        body.add("wstoken", wsToken);
+        body.add("wstoken", reg.getWebserviceToken());
         body.add("wsfunction", fn.getWsFunctionName());
         body.add("moodlewsrestformat", "json");
         return body;
     }
 
-    private <T> Optional<T> executePostRequest(MultiValueMap<String, String> body,
-                                               MoodleWebServiceFunction fn,
-                                               Class<T> responseType) {
+    private <T> Optional<T> executePostRequest(Registration reg, MultiValueMap<String, String> body,
+                                               MoodleWebServiceFunction fn, Class<T> responseType) {
         try {
             HttpHeaders headers = new HttpHeaders();
             headers.setContentType(MediaType.APPLICATION_FORM_URLENCODED);
             var entity = new HttpEntity<>(body, headers);
             return Optional.ofNullable(
-                    restTemplate.postForObject(moodleBaseUrl + "/webservice/rest/server.php",
+                    restTemplate.postForObject(reg.getBaseUrl() + "/webservice/rest/server.php",
                             entity, responseType));
         } catch (Exception e) {
-            log.error("Moodle API call failed [{}]: {}", fn, e.getMessage());
+            log.error("Moodle API call failed [{} @ {}]: {}", fn, reg.getBaseUrl(), e.getMessage());
             return Optional.empty();
         }
     }
-
-    // ---- private: form encoding ----
 
     /**
      * Конвертирует MoodleRequest в MultiValueMap для form-encoded тела.
@@ -183,7 +149,8 @@ public class MoodleService {
      * Вложенные объекты раскрываются как key[i][subkey]=subval.
      */
     private MultiValueMap<String, String> toFormBody(MoodleRequest request) {
-        Map<String, Object> map = objectMapper.convertValue(request, new TypeReference<Map<String, Object>>() {});
+        Map<String, Object> map = objectMapper.convertValue(request, new TypeReference<Map<String, Object>>() {
+        });
         MultiValueMap<String, String> result = new LinkedMultiValueMap<>();
         map.forEach((k, v) -> flattenInto(result, k, v));
         return result;
@@ -191,15 +158,17 @@ public class MoodleService {
 
     @SuppressWarnings("unchecked")
     private void flattenInto(MultiValueMap<String, String> result, String prefix, Object value) {
-        if (value == null) return;
-        if (value instanceof List<?> list) {
-            for (int i = 0; i < list.size(); i++) {
-                flattenInto(result, prefix + "[" + i + "]", list.get(i));
+        switch (value) {
+            case null -> {
             }
-        } else if (value instanceof Map<?, ?> map) {
-            ((Map<String, Object>) map).forEach((k, v) -> flattenInto(result, prefix + "[" + k + "]", v));
-        } else {
-            result.add(prefix, String.valueOf(value));
+            case List<?> list -> {
+                for (int i = 0; i < list.size(); i++) {
+                    flattenInto(result, prefix + "[" + i + "]", list.get(i));
+                }
+            }
+            case Map<?, ?> map ->
+                    ((Map<String, Object>) map).forEach((k, v) -> flattenInto(result, prefix + "[" + k + "]", v));
+            default -> result.add(prefix, String.valueOf(value));
         }
     }
 }

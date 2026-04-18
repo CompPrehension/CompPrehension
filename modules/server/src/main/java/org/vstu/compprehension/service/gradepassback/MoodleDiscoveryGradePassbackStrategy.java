@@ -2,12 +2,18 @@ package org.vstu.compprehension.service.gradepassback;
 
 import lombok.RequiredArgsConstructor;
 import lombok.extern.log4j.Log4j2;
+import org.springframework.boot.autoconfigure.condition.ConditionalOnProperty;
 import org.springframework.core.annotation.Order;
 import org.springframework.stereotype.Service;
 import org.springframework.util.MultiValueMap;
 import org.springframework.web.util.UriComponentsBuilder;
-import org.vstu.compprehension.Service.ExerciseAttemptService;
+import org.vstu.compprehension.config.MoodleWsRegistrationsProperties;
+import org.vstu.compprehension.config.MoodleWsRegistrationsProperties.Registration;
 import org.vstu.compprehension.models.entities.ExerciseAttemptEntity;
+import org.vstu.compprehension.models.entities.UserEntity;
+import org.vstu.compprehension.models.entities.educationresource.EducationResourceType;
+import org.vstu.compprehension.models.entities.externalaccount.MoodleAccountEntity;
+import org.vstu.compprehension.models.repository.MoodleAccountRepository;
 import org.vstu.compprehension.service.moodle.MoodleService;
 import org.vstu.compprehension.service.moodle.request.GradeItem;
 import org.vstu.compprehension.service.moodle.request.UpdateGradeRequest;
@@ -18,100 +24,84 @@ import java.util.List;
 import java.util.Map;
 
 /**
- * Стратегия grade passback через Moodle Web Services REST API.
- *
- * <p><b>Когда применяется.</b> Только для пользователей, аутентифицированных через Keycloak
- * (прямой доступ к тренажёру, без LTI-запуска из Moodle). Признак — отсутствие
- * {@code ltiLineitemUrl} у попытки. Работает через токен администратора Moodle,
- * а не через сессию студента, поэтому студент может никогда не заходить в Moodle —
- * достаточно, чтобы его учётная запись там существовала.
- *
- * <p><b>Почему ищется именно LTI-активность.</b> CompPrehension встроен в Moodle исключительно
- * через элемент курса "External Tool" ({@code mod_lti}). Преподаватель добавляет его
- * в курс и указывает Tool URL с {@code ?id=N}, где N — идентификатор упражнения.
- * Других способов связать упражнение с курсом в текущей архитектуре нет.
- *
- * <p><b>Алгоритм:</b>
- * <ol>
- *   <li>Ищет пользователя в Moodle по email ({@code core_user_get_users_by_field}).
- *       Если не найден — passback пропускается (warn в лог).</li>
- *   <li>Получает список курсов, на которые записан пользователь
- *       ({@code core_enrol_get_users_courses}).
- *       Если курсов нет — пропускается (debug в лог).</li>
- *   <li>Получает все LTI-активности из этих курсов ({@code mod_lti_get_ltis_by_courses})
- *       и фильтрует те, чей {@code exercise_id} совпадает с упражнением попытки
- *       (ищется в query-параметре Tool URL или в custom params активности).
- *       Если подходящих нет — пропускается (debug в лог).</li>
- *   <li>Выставляет оценку в первую найденную активность ({@code core_grades_update_grades}).
- *       <!-- TODO: если студент записан на несколько курсов с одним упражнением,
- *            оценка идёт только в первый. Для точного выбора курса нужен контекст
- *            со стороны фронта (например, courseId, переданный при старте попытки). --></li>
- * </ol>
- *
- * <p><b>Условия успешной отправки:</b>
- * <ul>
- *   <li>Email в Keycloak совпадает с email в Moodle.</li>
- *   <li>Студент записан хотя бы на один курс в Moodle.</li>
- *   <li>В курсе существует LTI-активность, ссылающаяся на нужное упражнение.</li>
- * </ul>
- */
+ * Grade passback через Moodle Web Services для пользователей без LTI-контекста
+ * (прямой доступ через Keycloak). Отключено по умолчанию через
+ * {@code compprehension.grade-passback.moodle-ws.enabled}:
+ * */
 @Service
-@Order(2)
+@ConditionalOnProperty(
+        prefix = "compprehension.grade-passback.moodle-ws",
+        name = "enabled",
+        havingValue = "true",
+        matchIfMissing = false
+)
 @RequiredArgsConstructor
 @Log4j2
 public class MoodleDiscoveryGradePassbackStrategy implements GradePassbackStrategy {
 
     private final MoodleService moodleService;
-    private final ExerciseAttemptService exerciseAttemptService;
+    private final MoodleWsRegistrationsProperties moodleWsRegistrations;
+    private final MoodleAccountRepository moodleAccountRepository;
 
     @Override
     public boolean supports(ExerciseAttemptEntity attempt) {
-        return attempt.getLtiLineitemUrl() == null && moodleService.isConfigured();
+        return attempt.getLtiContext() == null;
     }
 
     @Override
     public void passGrade(ExerciseAttemptEntity attempt) {
-        String email = attempt.getUser().getEmail();
+        UserEntity user = attempt.getUser();
+        Long userId = user.getId();
         Long exerciseId = attempt.getExercise().getId();
 
-        var userOpt = moodleService.findUserByEmail(email);
-        if (userOpt.isEmpty()) {
-            log.warn("Grade passback skipped for attempt {}: user '{}' not found in Moodle by email",
-                    attempt.getId(), email);
+        var accounts = user.getAccountsByType(EducationResourceType.MOODLE)
+                .map(a -> (MoodleAccountEntity) a)
+                .toList();
+        if (accounts.isEmpty()) {
+            log.debug("Grade passback skipped for attempt {}: user {} has no linked MoodleAccount",
+                    attempt.getId(), userId);
             return;
         }
-        long moodleUserId = userOpt.get().getId();
 
-        List<Long> courseIds = moodleService.getEnrolledCourses(moodleUserId)
+        for (MoodleAccountEntity account : accounts) {
+            String baseUrl = account.getEducationResource().getUrl();
+            var regOpt = moodleWsRegistrations.findByBaseUrl(baseUrl);
+            if (regOpt.isEmpty()) {
+                log.debug("Grade passback attempt {}: no WS registration for {}, skipping tenant",
+                        attempt.getId(), baseUrl);
+                continue;
+            }
+            if (tryPassGrade(attempt, regOpt.get(), account.getMoodleUserId(), exerciseId)) {
+                return;
+            }
+        }
+        log.warn("Grade passback skipped for attempt {}: no Moodle with matching activity for exercise_id={} " +
+                        "across {} linked account(s) of user {}",
+                attempt.getId(), exerciseId, accounts.size(), userId);
+    }
+
+    /**
+     * Пытается отправить оценку через указанный Moodle. Возвращает true, если удалось.
+     */
+    private boolean tryPassGrade(ExerciseAttemptEntity attempt, Registration reg, Long moodleUserId, Long exerciseId) {
+        List<Long> courseIds = moodleService.getEnrolledCourses(reg, moodleUserId)
                 .stream().map(MoodleCourseResponse::getId).toList();
-        if (courseIds.isEmpty()) {
-            log.debug("Grade passback skipped for attempt {}: user '{}' has no enrolled courses in Moodle",
-                    attempt.getId(), email);
-            return;
-        }
+        if (courseIds.isEmpty()) return false;
 
-        List<MoodleLtiActivityResponse> allActivities = moodleService.getLtiActivities(courseIds);
-        List<MoodleLtiActivityResponse> matchingActivities = allActivities.stream()
+        List<MoodleLtiActivityResponse> matching = moodleService.getLtiActivities(reg, courseIds).stream()
                 .filter(a -> exerciseId.equals(extractExerciseId(a.getToolUrl(), a.getCustomParams())))
                 .toList();
+        if (matching.isEmpty()) return false;
 
-        if (matchingActivities.isEmpty()) {
-            log.debug("Grade passback skipped for attempt {}: no Moodle LTI activity found " +
-                            "for exercise_id={} in {} enrolled course(s)",
-                    attempt.getId(), exerciseId, courseIds.size());
-            return;
+        if (matching.size() > 1) {
+            log.debug("Attempt {}: {} LTI activities for exercise_id={} in Moodle '{}', posting to first",
+                    attempt.getId(), matching.size(), exerciseId, reg.getBaseUrl());
         }
-
-        if (matchingActivities.size() > 1) {
-            log.debug("Attempt {}: {} LTI activities found for exercise_id={}, posting to first",
-                    attempt.getId(), matchingActivities.size(), exerciseId);
-        }
-
-        MoodleLtiActivityResponse activity = matchingActivities.get(0);
-        double grade = exerciseAttemptService.calculateFinalGrade(attempt);
+        MoodleLtiActivityResponse activity = matching.get(0);
+        double grade = calculateFinalGrade(attempt);
 
         try {
-            moodleService.updateGrade(UpdateGradeRequest.builder()
+            moodleService.updateGrade(reg, UpdateGradeRequest.builder()
                     .courseId(activity.getCourseId())
                     .courseModuleId(activity.getCmid())
                     .grades(List.of(GradeItem.builder()
@@ -119,22 +109,18 @@ public class MoodleDiscoveryGradePassbackStrategy implements GradePassbackStrate
                             .rawGrade(grade * 100)
                             .build()))
                     .build());
-            log.info("Moodle grade posted for attempt {}: courseId={}, cmid={}, userId={}, grade={}",
-                    attempt.getId(), activity.getCourseId(), activity.getCmid(), moodleUserId, grade);
+            log.info("Moodle grade posted for attempt {}: moodle='{}', courseId={}, cmid={}, userId={}, grade={}",
+                    attempt.getId(), reg.getBaseUrl(), activity.getCourseId(), activity.getCmid(), moodleUserId, grade);
+            return true;
         } catch (Exception e) {
-            log.error("Moodle grade passback failed for attempt {}, course {}: {}",
-                    attempt.getId(), activity.getCourseId(), e.getMessage(), e);
+            log.error("Moodle grade passback failed for attempt {}, moodle '{}', course {}: {}",
+                    attempt.getId(), reg.getBaseUrl(), activity.getCourseId(), e.getMessage(), e);
+            return false;
         }
     }
 
     /**
-     * Извлекает exercise_id из custom params или URL External Tool LTI-активности.
-     *
-     * <p>Проверяет два источника:
-     * <ul>
-     *   <li>customParams: ключи {@code exercise_id} или {@code custom_exercise_id}</li>
-     *   <li>toolUrl: query-параметр {@code exercise_id} или {@code id}</li>
-     * </ul>
+     * Извлекает exercise_id из customParams ({@code exercise_id}/{@code custom_exercise_id}) или из query-параметра toolUrl ({@code exercise_id}/{@code id}).
      */
     private Long extractExerciseId(String toolUrl, Map<String, String> customParams) {
         String raw = customParams.getOrDefault("exercise_id", customParams.get("custom_exercise_id"));

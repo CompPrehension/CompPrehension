@@ -7,7 +7,6 @@ import com.nimbusds.jose.crypto.RSASSASigner;
 import com.nimbusds.jwt.JWTClaimsSet;
 import com.nimbusds.jwt.SignedJWT;
 import lombok.extern.log4j.Log4j2;
-import org.springframework.beans.factory.annotation.Value;
 import org.springframework.core.annotation.Order;
 import org.springframework.http.HttpEntity;
 import org.springframework.http.HttpHeaders;
@@ -16,9 +15,12 @@ import org.springframework.http.ResponseEntity;
 import org.springframework.stereotype.Service;
 import org.springframework.util.LinkedMultiValueMap;
 import org.springframework.web.client.RestTemplate;
-import org.vstu.compprehension.Service.ExerciseAttemptService;
+import org.vstu.compprehension.config.LtiRegistrationsProperties;
+import org.vstu.compprehension.config.LtiRegistrationsProperties.Registration;
 import org.vstu.compprehension.models.entities.ExerciseAttemptEntity;
-import org.vstu.compprehension.service.LtiConstants;
+import org.vstu.compprehension.models.entities.externalaccount.MoodleAccountEntity;
+import org.vstu.compprehension.models.repository.MoodleAccountRepository;
+import org.vstu.compprehension.models.repository.MoodleEducationResourceRepository;
 
 import java.net.URI;
 import java.security.KeyFactory;
@@ -32,58 +34,60 @@ import java.util.Map;
 import java.util.UUID;
 
 /**
- * Стратегия grade passback через LTI AGS (Assignment and Grade Services).
- *
- * <p>Применяется когда attempt создан через LTI-запуск (ltiLineitemUrl != null).
- *
- * <p>Требуемые настройки в application.properties:
- * <pre>
- *   lti.client-id=&lt;client-id registered in Moodle External Tools&gt;
- *   lti.private-key-pkcs8-base64=&lt;base64-encoded PKCS8 RSA private key&gt;
- * </pre>
+ * Grade passback через LTI AGS. Применяется, когда attempt создан через LTI-запуска
  */
 @Service
 @Order(1)
 @Log4j2
 public class LtiAgsGradePassbackStrategy implements GradePassbackStrategy {
 
-    private final ExerciseAttemptService exerciseAttemptService;
     private final RestTemplate restTemplate = new RestTemplate();
     private final ObjectMapper objectMapper = new ObjectMapper();
+    private final MoodleEducationResourceRepository moodleEducationResourceRepository;
+    private final MoodleAccountRepository moodleAccountRepository;
+    private final LtiRegistrationsProperties ltiRegistrations;
 
-    @Value("${lti.client-id:}")
-    private String ltiClientId;
-
-    @Value("${lti.private-key-pkcs8-base64:}")
-    private String privateKeyBase64;
-
-    public LtiAgsGradePassbackStrategy(ExerciseAttemptService exerciseAttemptService) {
-        this.exerciseAttemptService = exerciseAttemptService;
+    public LtiAgsGradePassbackStrategy(MoodleEducationResourceRepository moodleEducationResourceRepository,
+                                       MoodleAccountRepository moodleAccountRepository,
+                                       LtiRegistrationsProperties ltiRegistrations) {
+        this.moodleEducationResourceRepository = moodleEducationResourceRepository;
+        this.moodleAccountRepository = moodleAccountRepository;
+        this.ltiRegistrations = ltiRegistrations;
     }
 
     @Override
     public boolean supports(ExerciseAttemptEntity attempt) {
-        return attempt.getLtiLineitemUrl() != null;
+        return attempt.getLtiContext() != null;
     }
 
     @Override
     public void passGrade(ExerciseAttemptEntity attempt) {
-        if (ltiClientId.isBlank() || privateKeyBase64.isBlank()) {
-            log.warn("LTI AGS grade passback skipped for attempt {}: " +
-                    "lti.client-id or lti.private-key-pkcs8-base64 not configured", attempt.getId());
-            return;
-        }
-
+        String lineitemUrl = attempt.getLtiContext().getLineitemUrl();
         try {
-            String moodleBaseUrl = extractMoodleBaseUrl(attempt.getLtiLineitemUrl());
+            String moodleBaseUrl = extractMoodleBaseUrl(lineitemUrl);
+
+            var regWithName = ltiRegistrations.findByIssuerUrl(moodleBaseUrl)
+                    .orElseThrow(() -> new IllegalStateException(
+                            "LTI registration not configured for issuer " + moodleBaseUrl
+                                    + " — добавьте compprehension.lti.registrations.<name>.* в env"));
+            String kid = regWithName.name();
+            Registration reg = regWithName.registration();
+
+            var resource = moodleEducationResourceRepository.findByUrl(moodleBaseUrl)
+                    .orElseThrow(() -> new IllegalStateException(
+                            "No MoodleEducationResource for url " + moodleBaseUrl
+                                    + " — пользователь должен сначала войти через LTI из этого Moodle"));
+            Long moodleUserId = moodleAccountRepository
+                    .findByUserIdAndEducationResourceId(attempt.getUser().getId(), resource.getId())
+                    .map(MoodleAccountEntity::getMoodleUserId)
+                    .orElseThrow(() -> new IllegalStateException(
+                            "No MoodleAccount for user " + attempt.getUser().getId()
+                                    + " and resource " + resource.getId()));
+
             String tokenEndpoint = moodleBaseUrl + "/mod/lti/token.php";
-            String accessToken = obtainAccessToken(tokenEndpoint);
-            double grade = exerciseAttemptService.calculateFinalGrade(attempt);
-            // Use ltiUserId stored at attempt creation (independent of account merging)
-            String moodleUserId = attempt.getLtiUserId() != null
-                    ? attempt.getLtiUserId()
-                    : extractMoodleUserId(attempt.getUser().getExternalId());
-            postScore(attempt.getLtiLineitemUrl(), moodleUserId, grade, accessToken);
+            String accessToken = obtainAccessToken(tokenEndpoint, reg, kid);
+            double grade = calculateFinalGrade(attempt);
+            postScore(lineitemUrl, String.valueOf(moodleUserId), grade, accessToken);
             log.info("LTI AGS grade passback sent for attempt {}: userId={}, grade={}",
                     attempt.getId(), moodleUserId, grade);
         } catch (Exception e) {
@@ -91,10 +95,8 @@ public class LtiAgsGradePassbackStrategy implements GradePassbackStrategy {
         }
     }
 
-    // ---- private helpers ----
-
-    private String obtainAccessToken(String tokenEndpoint) throws Exception {
-        String jwtAssertion = buildClientAssertionJwt(tokenEndpoint);
+    private String obtainAccessToken(String tokenEndpoint, Registration reg, String kid) throws Exception {
+        String jwtAssertion = buildClientAssertionJwt(tokenEndpoint, reg, kid);
 
         LinkedMultiValueMap<String, String> form = new LinkedMultiValueMap<>();
         form.add("grant_type", "client_credentials");
@@ -126,22 +128,22 @@ public class LtiAgsGradePassbackStrategy implements GradePassbackStrategy {
         return accessToken;
     }
 
-    private String buildClientAssertionJwt(String tokenEndpoint) throws Exception {
-        byte[] keyBytes = Base64.getDecoder().decode(privateKeyBase64);
+    private String buildClientAssertionJwt(String tokenEndpoint, Registration reg, String kid) throws Exception {
+        byte[] keyBytes = Base64.getDecoder().decode(reg.getPrivateKeyPkcs8Base64());
         RSAPrivateKey privateKey = (RSAPrivateKey) KeyFactory.getInstance("RSA")
                 .generatePrivate(new PKCS8EncodedKeySpec(keyBytes));
 
         Date now = new Date();
         JWTClaimsSet claims = new JWTClaimsSet.Builder()
-                .issuer(ltiClientId)
-                .subject(ltiClientId)
+                .issuer(reg.getClientId())
+                .subject(reg.getClientId())
                 .audience(tokenEndpoint)
                 .issueTime(now)
                 .expirationTime(new Date(now.getTime() + 60_000))
                 .jwtID(UUID.randomUUID().toString())
                 .build();
 
-        SignedJWT jwt = new SignedJWT(new JWSHeader.Builder(JWSAlgorithm.RS256).keyID(LtiConstants.KID).build(), claims);
+        SignedJWT jwt = new SignedJWT(new JWSHeader.Builder(JWSAlgorithm.RS256).keyID(kid).build(), claims);
         jwt.sign(new RSASSASigner(privateKey));
         return jwt.serialize();
     }
@@ -173,10 +175,7 @@ public class LtiAgsGradePassbackStrategy implements GradePassbackStrategy {
         log.info("AGS score response: status={}, body={}", scoreResponse.getStatusCode(), scoreResponse.getBody());
     }
 
-    /**
-     * Extracts the Moodle base URL from a lineitem URL.
-     * Example: {@code http://moodle/mod/lti/services.php/2/lineitems/3/lineitem} → {@code http://moodle}
-     */
+    /** {@code http://moodle/mod/lti/services.php/2/lineitems/3/lineitem} -> {@code http://moodle}. */
     private String extractMoodleBaseUrl(String lineitemUrl) {
         URI uri = URI.create(lineitemUrl);
         String path = uri.getPath();
@@ -187,15 +186,5 @@ public class LtiAgsGradePassbackStrategy implements GradePassbackStrategy {
         int port = uri.getPort();
         String portStr = port > 0 ? ":" + port : "";
         return uri.getScheme() + "://" + uri.getHost() + portStr + path;
-    }
-
-    /**
-     * Extracts the Moodle user ID from the externalId stored on the UserEntity.
-     * externalId format: {@code {moodle_issuer_url}_{moodle_user_id}}
-     */
-    private String extractMoodleUserId(String externalId) {
-        int lastUnderscore = externalId.lastIndexOf('_');
-        if (lastUnderscore < 0) return externalId;
-        return externalId.substring(lastUnderscore + 1);
     }
 }

@@ -2,15 +2,25 @@ package org.vstu.compprehension.service.gradepassback;
 
 import org.vstu.compprehension.models.entities.ExerciseAttemptEntity;
 
-/**
- * Внутренняя стратегия отправки оценки.
- * Каждая реализация отвечает за один механизм (LTI AGS, Moodle WS и т.д.).
- */
+/** Реализация отвечает за один механизм отправки оценки (LTI AGS, Moodle WS и т.п.). */
 public interface GradePassbackStrategy {
-    /** Возвращает true если данная стратегия применима для указанного attempt. */
-    // todo определять тип попытки и проставлять enum, затем брать по объекту enum'а
     boolean supports(ExerciseAttemptEntity attempt);
-
-    /** Отправляет оценку. Вызывается только если {@link #supports} вернул true. */
     void passGrade(ExerciseAttemptEntity attempt);
+
+    /**
+     * Нормализованная [0.0, 1.0] оценка за попытку
+     */
+    default double calculateFinalGrade(ExerciseAttemptEntity attempt) {
+        var questions = attempt.getQuestions();
+        if (questions == null || questions.isEmpty()) return 0.0;
+
+        var lastQuestion = questions.getLast();
+        var interactions = lastQuestion.getInteractions();
+        if (interactions.isEmpty()) return 0.0;
+
+        var feedback = interactions.getLast().getFeedback();
+        if (feedback == null) return 0.0;
+
+        return Math.max(0.0, Math.min(1.0, feedback.getGrade()));
+    }
 }
