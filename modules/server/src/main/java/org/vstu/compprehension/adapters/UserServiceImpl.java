@@ -94,7 +94,7 @@ public class UserServiceImpl implements UserService {
 
         Long moodleUserId;
         try {
-            // LTI sub для Moodle — числовой внутренний user_id
+            // LTI sub для Moodle - числовой внутренний user_id
             moodleUserId = Long.parseLong(token.getSubject());
         } catch (NumberFormatException e) {
             log.warn("LTI sub '{}' не числовой — MoodleAccount не создаётся (возможно, не Moodle LMS)",
@@ -102,8 +102,6 @@ public class UserServiceImpl implements UserService {
             return;
         }
 
-        // UNIQUE(user_id, education_resource_id): если запись уже есть — ничего не делаем.
-        // moodle_user_id стабильный для пары (user, Moodle-инсталляция) и меняться не должен.
         if (moodleAccountRepository.findByUserIdAndEducationResourceId(user.getId(), resource.getId()).isEmpty()) {
             var acc = new MoodleAccountEntity();
             acc.setUser(user);
@@ -116,14 +114,11 @@ public class UserServiceImpl implements UserService {
     /**
      * TECH DEBT: автоматическое создание {@link MoodleEducationResourceEntity} — временное решение.
      * В дальнейшем записи {@code education_resource} будет заполнять администратор,
-     * а при LTI launch с неизвестного ресурса будет бросаться исключение «обращение с невалидного
-     * ресурса» вместо создания записи на лету.
+     * а при LTI launch с неизвестного ресурса будет бросаться исключение "обращение с невалидного
+     * ресурса" вместо создания записи на лету.
      *
      * <p>try/catch вокруг save защищает от race condition: при одновременном LTI login'е
-     * нескольких пользователей с одной и той же неизвестной ещё Moodle-инсталляции оба потока
-     * выполнят findByUrl → empty и попытаются вставить. Один из них получит
-     * {@link DataIntegrityViolationException} из-за UNIQUE(url, type) — в этом случае
-     * перечитываем запись, созданную конкурирующим потоком.
+     * нескольких пользователей с одной и той же неизвестной ещё Moodle-инсталляции
      */
     private MoodleEducationResourceEntity getOrCreateMoodleResource(String url) {
         return moodleEducationResourceRepository.findByUrl(url)
