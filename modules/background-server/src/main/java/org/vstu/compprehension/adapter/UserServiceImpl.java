@@ -7,7 +7,7 @@ import org.vstu.compprehension.models.entities.UserEntity;
 
 @Component
 public class UserServiceImpl implements UserService {
-
+    // TaskDecorator + DelegatingSecurityContextAsyncTaskExecutor ?
     @Override
     public UserEntity getCurrentUser() throws Exception {
         throw new Exception("No user");
