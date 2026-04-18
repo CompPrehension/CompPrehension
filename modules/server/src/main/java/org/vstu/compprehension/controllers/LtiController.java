@@ -1,6 +1,7 @@
 package org.vstu.compprehension.controllers;
 
 import com.nimbusds.jose.JWSAlgorithm;
+import com.nimbusds.jose.jwk.JWK;
 import com.nimbusds.jose.jwk.JWKSet;
 import com.nimbusds.jose.jwk.KeyUse;
 import com.nimbusds.jose.jwk.RSAKey;
@@ -13,7 +14,6 @@ import lombok.Builder;
 import lombok.Data;
 import lombok.SneakyThrows;
 import lombok.extern.log4j.Log4j2;
-import org.springframework.beans.factory.annotation.Value;
 import org.springframework.security.authentication.AuthenticationServiceException;
 import org.springframework.security.core.AuthenticationException;
 import org.springframework.security.core.authority.SimpleGrantedAuthority;
@@ -31,7 +31,7 @@ import org.springframework.web.bind.annotation.RequestMethod;
 import org.springframework.web.bind.annotation.RequestParam;
 import org.springframework.web.bind.annotation.ResponseBody;
 import org.vstu.compprehension.common.StringHelper;
-import org.vstu.compprehension.service.LtiConstants;
+import org.vstu.compprehension.config.LtiRegistrationsProperties;
 import org.vstu.compprehension.utils.HttpRequestHelper;
 import org.vstu.compprehension.utils.SessionHelper;
 
@@ -56,37 +56,38 @@ import java.util.stream.Collectors;
 public class LtiController {
     private final SecurityContextRepository securityContextRepository;
     private final SecurityContextHolderStrategy securityContextHolderStrategy;
+    private final LtiRegistrationsProperties ltiRegistrations;
 
-    @Value("${lti.private-key-pkcs8-base64:}")
-    private String privateKeyBase64;
-
-    public LtiController(SecurityContextRepository securityContextRepository, SecurityContextHolderStrategy securityContextHolderStrategy) {
+    public LtiController(SecurityContextRepository securityContextRepository,
+                         SecurityContextHolderStrategy securityContextHolderStrategy,
+                         LtiRegistrationsProperties ltiRegistrations) {
         this.securityContextRepository     = securityContextRepository;
         this.securityContextHolderStrategy = securityContextHolderStrategy;
+        this.ltiRegistrations              = ltiRegistrations;
     }
 
-    /**
-     * Returns the tool's RSA public key as a JWK Set.
-     * Configure Moodle LTI tool with "Public key type: JWK keyset URL" pointing here.
-     * The public key is derived on-the-fly from the configured private key.
-     */
     @SneakyThrows
     @GetMapping(value = "1_3/jwks", produces = "application/json")
     @ResponseBody
     public String jwks() {
-        byte[] keyBytes = Base64.getDecoder().decode(privateKeyBase64);
-        RSAPrivateCrtKey privateKey = (RSAPrivateCrtKey) KeyFactory.getInstance("RSA")
-                .generatePrivate(new PKCS8EncodedKeySpec(keyBytes));
-        RSAPublicKeySpec publicKeySpec = new RSAPublicKeySpec(
-                privateKey.getModulus(), privateKey.getPublicExponent());
-        RSAPublicKey publicKey = (RSAPublicKey) KeyFactory.getInstance("RSA").generatePublic(publicKeySpec);
+        KeyFactory rsa = KeyFactory.getInstance("RSA");
+        var jwks = ltiRegistrations.getRegistrations().entrySet().stream()
+                .map(e -> buildJwk(e.getKey(), e.getValue().getPrivateKeyPkcs8Base64(), rsa))
+                .toList();
+        return new JWKSet(jwks).toString();
+    }
 
-        RSAKey rsaKey = new RSAKey.Builder(publicKey)
+    @SneakyThrows
+    private JWK buildJwk(String kid, String privateKeyBase64, KeyFactory rsa) {
+        byte[] keyBytes = Base64.getDecoder().decode(privateKeyBase64);
+        RSAPrivateCrtKey privateKey = (RSAPrivateCrtKey) rsa.generatePrivate(new PKCS8EncodedKeySpec(keyBytes));
+        RSAPublicKeySpec publicKeySpec = new RSAPublicKeySpec(privateKey.getModulus(), privateKey.getPublicExponent());
+        RSAPublicKey publicKey = (RSAPublicKey) rsa.generatePublic(publicKeySpec);
+        return new RSAKey.Builder(publicKey)
                 .keyUse(KeyUse.SIGNATURE)
                 .algorithm(JWSAlgorithm.RS256)
-                .keyID(LtiConstants.KID)
+                .keyID(kid)
                 .build();
-        return new JWKSet(rsaKey).toString();
     }
 
     // LTI 1.3 standard claim URLs
@@ -175,6 +176,7 @@ public class LtiController {
         // Full validation requires fetching Moodle's JWKS via issuer's .well-known/openid-configuration.
         JWT idToken = JWTParser.parse(rawIdToken);
         final Map<String, Object> claims = idToken.getJWTClaimsSet().getClaims();
+
         OidcIdToken oidcToken = new OidcIdToken(rawIdToken,
                 idToken.getJWTClaimsSet().getIssueTime().toInstant(),
                 idToken.getJWTClaimsSet().getExpirationTime().toInstant(),
@@ -194,7 +196,7 @@ public class LtiController {
         securityContextHolderStrategy.setContext(context);
         securityContextRepository.saveContext(context, request, response);
 
-        // Save LTI AGS context to session - used when creating an exercise attempt
+        // LTI AGS контекст в сессию - читается LtiContextProvider при создании попытки
         Map<?, ?> agsEndpoint = (Map<?, ?>) claims.get(LTI_CLAIM_AGS);
         if (agsEndpoint != null && agsEndpoint.get("lineitem") != null) {
             String lineitemUrl = String.valueOf(agsEndpoint.get("lineitem"));
@@ -205,8 +207,6 @@ public class LtiController {
         if (ltiContext != null) {
             request.getSession().setAttribute("ltiContextId", String.valueOf(ltiContext.get("id")));
         }
-        // Moodle internal user ID (JWT sub) - needed for grade passback, independent of account merging
-        request.getSession().setAttribute("ltiUserId", idToken.getJWTClaimsSet().getSubject());
 
         // Extract exerciseId from LTI custom parameters (key: exercise_id).
         // Moodle activity sets this via the "Custom parameters" field: exercise_id=<id>
