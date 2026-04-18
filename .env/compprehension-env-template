@@ -1,0 +1,45 @@
+# CompPrehension environment template.
+# Скопировать как `.env/compprehension-env.env` и заполнить значения.
+# Файл `compprehension-env.env` в git не коммитится (см. .gitignore).
+
+# ---- Database ----
+MYSQL_HOST=localhost
+MYSQL_ROOT_PASSWORD=
+
+# ---- SSL keystore ----
+SERVER_SSL_KEY_STORE_PASSWORD=
+SERVER_SSL_KEY_PASSWORD=
+
+# ---- LTI 1.3 registrations ----
+# Формат: COMPPREHENSION_LTI_REGISTRATIONS_<NAME>_<KEY>, где <NAME> - логическое имя
+# регистрации (используется как `kid` в JWKS), <KEY> = ISSUER_URL | CLIENT_ID | PRIVATE_KEY_PKCS8_BASE64.
+# Для добавления нового LMS — добавить тройку переменных с новым <NAME>.
+# COMPPREHENSION_LTI_REGISTRATIONS_LOCAL_ISSUER_URL=http://localhost:8081
+# COMPPREHENSION_LTI_REGISTRATIONS_LOCAL_CLIENT_ID=
+# COMPPREHENSION_LTI_REGISTRATIONS_LOCAL_PRIVATE_KEY_PKCS8_BASE64=
+
+# ---- Moodle Web Services registrations ----
+# Формат: COMPPREHENSION_MOODLE_WS_REGISTRATIONS_<NAME>_<KEY>, <KEY> = BASE_URL | WEBSERVICE_TOKEN.
+# Используется только если COMPPREHENSION_GRADE_PASSBACK_MOODLE_WS_ENABLED=true.
+# COMPPREHENSION_GRADE_PASSBACK_MOODLE_WS_ENABLED=false
+# COMPPREHENSION_MOODLE_WS_REGISTRATIONS_LOCAL_BASE_URL=http://localhost:8081
+# COMPPREHENSION_MOODLE_WS_REGISTRATIONS_LOCAL_WEBSERVICE_TOKEN=
+
+# ---- Keycloak OIDC ----
+KEYCLOAK_CLIENT_ID=
+KEYCLOAK_CLIENT_SECRET=
+KEYCLOAK_ISSUER_URI=
+
+# ---- LTI 1.3 AGS grade passback ----
+# Client ID зарегистрирован в Moodle: Admin -> LTI -> External Tools.
+LTI_CLIENT_ID=
+# RSA private key в PKCS8 DER, base64. Генерация:
+#   openssl genrsa -out lti_private.pem 2048
+#   openssl pkcs8 -topk8 -nocrypt -in lti_private.pem -outform DER | base64 -w0 > lti_private_pkcs8.b64
+LTI_PRIVATE_KEY_PKCS8_BASE64=
+
+# ---- Moodle Web Services (optional, disabled by default) ----
+# Включать осознанно: при прямом доступе через Keycloak контекст курса неизвестен.
+COMPPREHENSION_GRADE_PASSBACK_MOODLE_WS_ENABLED=false
+MOODLE_BASE_URL=
+MOODLE_WEBSERVICE_TOKEN=
