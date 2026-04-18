@@ -27,6 +27,7 @@ import org.vstu.compprehension.models.entities.EnumData.Language;
 import org.vstu.compprehension.models.entities.EnumData.QuestionType;
 import org.vstu.compprehension.models.entities.QuestionOptions.OrderQuestionOptionsEntity;
 import org.vstu.compprehension.models.entities.exercise.ExerciseStageEntity;
+import org.vstu.compprehension.models.entities.lti.AttemptLtiContextEntity;
 import org.vstu.compprehension.models.repository.*;
 import org.vstu.compprehension.utils.Checkpointer;
 import org.vstu.compprehension.utils.Mapper;
@@ -42,7 +43,6 @@ import static org.vstu.compprehension.models.entities.EnumData.InteractionType.S
 public class FrontendService {
     private final QuestionRepository questionRepository;
     private final ExerciseAttemptRepository exerciseAttemptRepository;
-    private final ExerciseAttemptService exerciseAttemptService;
     private final ExerciseService exerciseService;
     private final QuestionService questionService;
     private final AbstractStrategyFactory strategyFactory;
@@ -52,12 +52,13 @@ public class FrontendService {
     private final DomainFactory domainFactory;
     private final EntityManager entityManager;
     private final UserRepository userRepository;
+    private final LtiContextProvider ltiContextProvider;
+    private final GradePassbackService gradePassbackService;
 
 
-    public FrontendService(ExerciseAttemptRepository exerciseAttemptRepository, QuestionRepository questionRepository, ExerciseAttemptService exerciseAttemptService, ExerciseService exerciseService, EntityManager entityManager, QuestionService questionService, LocalizationService localizationService, AbstractStrategyFactory strategyFactory, DomainFactory domainFactory, UserRepository userRepository, FeedbackRepository feedbackRepository, InteractionRepository interactionRepository) {
+    public FrontendService(ExerciseAttemptRepository exerciseAttemptRepository, QuestionRepository questionRepository, ExerciseService exerciseService, EntityManager entityManager, QuestionService questionService, LocalizationService localizationService, AbstractStrategyFactory strategyFactory, DomainFactory domainFactory, UserRepository userRepository, FeedbackRepository feedbackRepository, InteractionRepository interactionRepository, LtiContextProvider ltiContextProvider, GradePassbackService gradePassbackService) {
         this.exerciseAttemptRepository = exerciseAttemptRepository;
         this.questionRepository = questionRepository;
-        this.exerciseAttemptService = exerciseAttemptService;
         this.exerciseService = exerciseService;
         this.entityManager = entityManager;
         this.questionService = questionService;
@@ -67,6 +68,18 @@ public class FrontendService {
         this.userRepository = userRepository;
         this.feedbackRepository = feedbackRepository;
         this.interactionRepository = interactionRepository;
+        this.ltiContextProvider = ltiContextProvider;
+        this.gradePassbackService = gradePassbackService;
+    }
+
+    private void ensureAttemptStatus(ExerciseAttemptEntity attempt, Decision decision) {
+        if (decision == Decision.FINISH && attempt.getAttemptStatus() == AttemptStatus.INCOMPLETE) {
+            attempt.setAttemptStatus(AttemptStatus.COMPLETED_BY_USER);
+            exerciseAttemptRepository.save(attempt);
+            gradePassbackService.passGrade(attempt);
+        } else {
+            exerciseAttemptRepository.save(attempt);
+        }
     }
 
     @Transactional(propagation = Propagation.REQUIRED)
@@ -122,7 +135,7 @@ public class FrontendService {
             ch.hit("graded with strategy ("+grade+")");
 
             strategyAttemptDecision = strategy.decide(attempt);
-            exerciseAttemptService.ensureAttemptStatus(attempt, strategyAttemptDecision);
+            ensureAttemptStatus(attempt, strategyAttemptDecision);
             ch.hit("decide next exercise state ("+strategyAttemptDecision.name()+")");
         }
         feedback.setGrade(grade);
@@ -276,7 +289,7 @@ public class FrontendService {
             grade = strategy.grade(attempt, judgeResult);
 
             strategyAttemptDecision = strategy.decide(attempt);
-            exerciseAttemptService.ensureAttemptStatus(attempt, strategyAttemptDecision);
+            ensureAttemptStatus(attempt, strategyAttemptDecision);
         }
         feedback.setGrade(grade);
         feedbackRepository.save(feedback);
@@ -414,6 +427,15 @@ public class FrontendService {
         ea.setUser(user);
         ea.setAttemptStatus(AttemptStatus.INCOMPLETE);
         ea.setQuestions(new ArrayList<>());
+
+        ltiContextProvider.getCurrentLtiContext().ifPresent(ctx -> {
+            var ltiCtx = new AttemptLtiContextEntity();
+            ltiCtx.setAttempt(ea);
+            ltiCtx.setLineitemUrl(ctx.lineitemUrl());
+            ltiCtx.setContextId(ctx.contextId());
+            ea.setLtiContext(ltiCtx);
+        });
+
         exerciseAttemptRepository.save(ea);
 
         return ea;
