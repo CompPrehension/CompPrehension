@@ -6,11 +6,14 @@ import lombok.NoArgsConstructor;
 import lombok.ToString;
 import org.vstu.compprehension.models.entities.EnumData.Language;
 import org.vstu.compprehension.models.entities.EnumData.Role;
+import org.vstu.compprehension.models.entities.educationresource.EducationResourceType;
 import org.vstu.compprehension.models.entities.exercise.ExerciseEntity;
+import org.vstu.compprehension.models.entities.externalaccount.ExternalAccountEntity;
 
 import java.util.Date;
 import java.util.List;
 import java.util.Set;
+import java.util.stream.Stream;
 
 @Entity
 @Data
@@ -65,4 +68,14 @@ public class UserEntity {
             inverseJoinColumns = @JoinColumn(name = "exercise_id"))
     private List<ExerciseEntity> exercises;
 
+    @ToString.Exclude
+    @OneToMany(mappedBy = "user", fetch = FetchType.EAGER)
+    private List<ExternalAccountEntity> externalAccounts;
+
+    /** Внешние аккаунты пользователя, привязанные к ресурсам указанного типа (например, {@link EducationResourceType#MOODLE}). */
+    public Stream<ExternalAccountEntity> getAccountsByType(EducationResourceType type) {
+        if (externalAccounts == null) return Stream.empty();
+        return externalAccounts.stream()
+                .filter(a -> a.getEducationResource().getType() == type);
+    }
 }
