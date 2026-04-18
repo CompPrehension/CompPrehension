@@ -1,7 +1,9 @@
 package org.vstu.compprehension.adapters;
 
+import lombok.extern.log4j.Log4j2;
 import org.apache.commons.collections4.CollectionUtils;
 import org.jetbrains.annotations.NotNull;
+import org.springframework.dao.DataIntegrityViolationException;
 import org.springframework.security.authentication.AnonymousAuthenticationToken;
 import org.springframework.security.core.Authentication;
 import org.springframework.security.core.GrantedAuthority;
@@ -12,16 +14,31 @@ import org.vstu.compprehension.Service.UserService;
 import org.vstu.compprehension.models.entities.EnumData.Language;
 import org.vstu.compprehension.models.entities.EnumData.Role;
 import org.vstu.compprehension.models.entities.UserEntity;
+import org.vstu.compprehension.models.entities.educationresource.MoodleEducationResourceEntity;
+import org.vstu.compprehension.models.entities.externalaccount.MoodleAccountEntity;
+import org.vstu.compprehension.models.repository.MoodleAccountRepository;
+import org.vstu.compprehension.models.repository.MoodleEducationResourceRepository;
 import org.vstu.compprehension.models.repository.UserRepository;
 
 import java.util.*;
 import java.util.stream.Collectors;
 
+@Log4j2
 public class UserServiceImpl implements UserService {
-    private final UserRepository userRepository;
+    private static final String LTI_VERSION_CLAIM = "https://purl.imsglobal.org/spec/lti/claim/version";
+    private static final String LTI_LAUNCH_PRESENTATION_CLAIM = "https://purl.imsglobal.org/spec/lti/claim/launch_presentation";
+    private static final String LTI_VERSION_1_3 = "1.3.0";
 
-    public UserServiceImpl(UserRepository userRepository) {
+    private final UserRepository userRepository;
+    private final MoodleEducationResourceRepository moodleEducationResourceRepository;
+    private final MoodleAccountRepository moodleAccountRepository;
+
+    public UserServiceImpl(UserRepository userRepository,
+                           MoodleEducationResourceRepository moodleEducationResourceRepository,
+                           MoodleAccountRepository moodleAccountRepository) {
         this.userRepository = userRepository;
+        this.moodleEducationResourceRepository = moodleEducationResourceRepository;
+        this.moodleAccountRepository = moodleAccountRepository;
     }
 
     public UserEntity getCurrentUser() throws Exception {
@@ -31,32 +48,29 @@ public class UserServiceImpl implements UserService {
 
         var fullName = parsedIdToken.getFullName();
         var email = parsedIdToken.getEmail();
+        if (email == null || email.isBlank()) {
+            throw new Exception("id_token must contain non-empty email claim");
+        }
 
-        // Use different lookup + role mappings for LTI & Keycloak
-        UserEntity entity;
+        boolean isLti = LTI_VERSION_1_3.equals(parsedIdToken.getClaimAsString(LTI_VERSION_CLAIM));
+
+        UserEntity entity = userRepository.findFirstByEmailOrderByIdAsc(email).orElseGet(UserEntity::new);
+
         Set<Role> roles;
-        Language language = null;
-        if ("1.3.0".equals(parsedIdToken.getClaimAsString("https://purl.imsglobal.org/spec/lti/claim/version"))) {
-            // Email-based linking: if a Keycloak account exists with the same email, reuse it
-            // rather than creating a separate LTI account for the same person.
-            entity = email != null
-                    ? userRepository.findUserByEmail(email)
-                            .orElseGet(() -> userRepository.findByExternalId(externalId).orElseGet(UserEntity::new))
-                    : userRepository.findByExternalId(externalId).orElseGet(UserEntity::new);
+        Language language;
+        if (isLti) {
             roles = fromLtiRoles(authentication.getAuthorities().stream()
                     .map(GrantedAuthority::getAuthority)
                     .collect(Collectors.toSet()));
-            language = Optional.ofNullable(parsedIdToken.getClaimAsMap("https://purl.imsglobal.org/spec/lti/claim/launch_presentation"))
+            language = Optional.ofNullable(parsedIdToken.getClaimAsMap(LTI_LAUNCH_PRESENTATION_CLAIM))
                     .flatMap(x -> Optional.ofNullable(x.get("locale")))
                     .map(l -> Language.fromString(l.toString()))
                     .orElse(null);
         } else {
-            entity = userRepository.findByExternalId(externalId).orElseGet(UserEntity::new);
-            var preparedRoles = authentication.getAuthorities().stream()
+            roles = fromKeycloakRoles(authentication.getAuthorities().stream()
                     .map(GrantedAuthority::getAuthority)
                     .filter(r -> !r.isEmpty())
-                    .collect(Collectors.toSet());
-            roles = fromKeycloakRoles(preparedRoles);
+                    .collect(Collectors.toSet()));
             language = entity.getPreferred_language();
         }
 
@@ -67,16 +81,75 @@ public class UserServiceImpl implements UserService {
         entity.setPreferred_language(Optional.ofNullable(language).orElse(Language.ENGLISH));
         entity.setRoles(roles);
         entity.setExternalId(externalId);
-        return userRepository.save(entity);
+        entity = userRepository.save(entity);
+
+        if (isLti) {
+            ensureMoodleAccount(entity, parsedIdToken);
+        }
+        return entity;
+    }
+
+    private void ensureMoodleAccount(UserEntity user, OidcIdToken token) {
+        var resource = getOrCreateMoodleResource(token.getIssuer().toString());
+
+        Long moodleUserId;
+        try {
+            // LTI sub для Moodle — числовой внутренний user_id
+            moodleUserId = Long.parseLong(token.getSubject());
+        } catch (NumberFormatException e) {
+            log.warn("LTI sub '{}' не числовой — MoodleAccount не создаётся (возможно, не Moodle LMS)",
+                    token.getSubject());
+            return;
+        }
+
+        // UNIQUE(user_id, education_resource_id): если запись уже есть — ничего не делаем.
+        // moodle_user_id стабильный для пары (user, Moodle-инсталляция) и меняться не должен.
+        if (moodleAccountRepository.findByUserIdAndEducationResourceId(user.getId(), resource.getId()).isEmpty()) {
+            var acc = new MoodleAccountEntity();
+            acc.setUser(user);
+            acc.setEducationResource(resource);
+            acc.setMoodleUserId(moodleUserId);
+            moodleAccountRepository.save(acc);
+        }
+    }
+
+    /**
+     * TECH DEBT: автоматическое создание {@link MoodleEducationResourceEntity} — временное решение.
+     * В дальнейшем записи {@code education_resource} будет заполнять администратор,
+     * а при LTI launch с неизвестного ресурса будет бросаться исключение «обращение с невалидного
+     * ресурса» вместо создания записи на лету.
+     *
+     * <p>try/catch вокруг save защищает от race condition: при одновременном LTI login'е
+     * нескольких пользователей с одной и той же неизвестной ещё Moodle-инсталляции оба потока
+     * выполнят findByUrl → empty и попытаются вставить. Один из них получит
+     * {@link DataIntegrityViolationException} из-за UNIQUE(url, type) — в этом случае
+     * перечитываем запись, созданную конкурирующим потоком.
+     */
+    private MoodleEducationResourceEntity getOrCreateMoodleResource(String url) {
+        return moodleEducationResourceRepository.findByUrl(url)
+                .orElseGet(() -> {
+                    var r = new MoodleEducationResourceEntity();
+                    r.setUrl(url);
+                    try {
+                        return moodleEducationResourceRepository.saveAndFlush(r);
+                    } catch (DataIntegrityViolationException e) {
+                        return moodleEducationResourceRepository.findByUrl(url)
+                                .orElseThrow(() -> new IllegalStateException(
+                                        "MoodleEducationResource '" + url + "' must exist after UNIQUE violation", e));
+                    }
+                });
     }
 
     @Override
     public void setLanguage(Language language) throws Exception {
         Authentication authentication = SecurityContextHolder.getContext().getAuthentication();
         var parsedIdToken = getToken(authentication);
-        var externalId = getExternalId(authentication, parsedIdToken);
+        var email = parsedIdToken.getEmail();
+        if (email == null || email.isBlank()) {
+            throw new Exception("id_token must contain non-empty email claim");
+        }
 
-        var entity = userRepository.findByExternalId(externalId).orElseThrow(() -> new Exception("User not found"));
+        var entity = userRepository.findFirstByEmailOrderByIdAsc(email).orElseThrow(() -> new Exception("User not found"));
         entity.setPreferred_language(language);
         userRepository.save(entity);
     }
@@ -125,7 +198,6 @@ public class UserServiceImpl implements UserService {
         }
         return Set.of(Role.STUDENT);
     }
-
 
 
 
