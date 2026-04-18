@@ -1,6 +1,5 @@
 # CompPrehension environment template.
 # Скопировать как `.env/compprehension-env.env` и заполнить значения.
-# Файл `compprehension-env.env` в git не коммитится (см. .gitignore).
 
 # ---- Database ----
 MYSQL_HOST=localhost
