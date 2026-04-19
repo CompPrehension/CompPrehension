@@ -120,12 +120,15 @@ public class FrontendService {
             ch.hit("graded with strategy ("+grade+")");
 
             strategyAttemptDecision = strategy.decide(attempt);
-            exerciseAttemptService.ensureAttemptStatus(attempt, strategyAttemptDecision);
-            ch.hit("decide next exercise state ("+strategyAttemptDecision.name()+")");
         }
         feedback.setGrade(grade);
         feedbackRepository.save(feedback);
         ch.hit("add feedback ("+judgeResult.IterationsLeft+" interactions left)");
+
+        if (attempt != null) {
+            exerciseAttemptService.ensureAttemptStatus(attempt, strategyAttemptDecision);
+            ch.hit("decide next exercise state ("+strategyAttemptDecision.name()+")");
+        }
 
         val locale = getQuestionLanguage(attempt);
         // calculate error message
@@ -274,10 +277,13 @@ public class FrontendService {
             grade = strategy.grade(attempt, judgeResult);
 
             strategyAttemptDecision = strategy.decide(attempt);
-            exerciseAttemptService.ensureAttemptStatus(attempt, strategyAttemptDecision);
         }
         feedback.setGrade(grade);
         feedbackRepository.save(feedback);
+
+        if (attempt != null) {
+            exerciseAttemptService.ensureAttemptStatus(attempt, strategyAttemptDecision);
+        }
 
         // build feedback message
         val messages = correctAnswer.explanation.getChildren().stream()
