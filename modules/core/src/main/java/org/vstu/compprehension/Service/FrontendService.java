@@ -27,7 +27,6 @@ import org.vstu.compprehension.models.entities.EnumData.Language;
 import org.vstu.compprehension.models.entities.EnumData.QuestionType;
 import org.vstu.compprehension.models.entities.QuestionOptions.OrderQuestionOptionsEntity;
 import org.vstu.compprehension.models.entities.exercise.ExerciseStageEntity;
-import org.vstu.compprehension.models.entities.lti.AttemptLtiContextEntity;
 import org.vstu.compprehension.models.repository.*;
 import org.vstu.compprehension.utils.Checkpointer;
 import org.vstu.compprehension.utils.Mapper;
@@ -429,11 +428,8 @@ public class FrontendService {
         ea.setQuestions(new ArrayList<>());
 
         ltiContextProvider.getCurrentLtiContext().ifPresent(ctx -> {
-            var ltiCtx = new AttemptLtiContextEntity();
-            ltiCtx.setAttempt(ea);
-            ltiCtx.setLineitemUrl(ctx.lineitemUrl());
-            ltiCtx.setContextId(ctx.contextId());
-            ea.setLtiContext(ltiCtx);
+            ea.setLtiLineitemUrl(ctx.lineitemUrl());
+            ea.setLtiContextId(ctx.contextId());
         });
 
         exerciseAttemptRepository.save(ea);

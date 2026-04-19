@@ -57,12 +57,12 @@ public class LtiAgsGradePassbackStrategy implements GradePassbackStrategy {
 
     @Override
     public boolean supports(ExerciseAttemptEntity attempt) {
-        return attempt.getLtiContext() != null;
+        return attempt.getLtiLineitemUrl() != null;
     }
 
     @Override
     public void passGrade(ExerciseAttemptEntity attempt) {
-        String lineitemUrl = attempt.getLtiContext().getLineitemUrl();
+        String lineitemUrl = attempt.getLtiLineitemUrl();
         try {
             String moodleBaseUrl = extractMoodleBaseUrl(lineitemUrl);
 

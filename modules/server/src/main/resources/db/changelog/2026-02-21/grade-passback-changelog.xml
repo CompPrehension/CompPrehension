@@ -1,0 +1,119 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<databaseChangeLog
+        xmlns="http://www.liquibase.org/xml/ns/dbchangelog"
+        xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance"
+        xsi:schemaLocation="http://www.liquibase.org/xml/ns/dbchangelog
+                      http://www.liquibase.org/xml/ns/dbchangelog/dbchangelog-4.24.xsd">
+
+    <changeSet id="2026-02-21-01-add-lti-columns-to-exercise-attempt" author="Dmitry Smirnov">
+        <addColumn tableName="exercise_attempt">
+            <column name="lti_lineitem_url" type="varchar(512)"/>
+            <column name="lti_context_id" type="varchar(255)"/>
+        </addColumn>
+        <rollback>
+            <dropColumn tableName="exercise_attempt" columnName="lti_context_id"/>
+            <dropColumn tableName="exercise_attempt" columnName="lti_lineitem_url"/>
+        </rollback>
+    </changeSet>
+
+    <changeSet id="2026-02-21-02-create-education-resource" author="Dmitry Smirnov">
+        <createTable tableName="education_resource">
+            <column name="id" type="bigint" autoIncrement="true">
+                <constraints primaryKey="true" nullable="false"/>
+            </column>
+            <column name="url" type="varchar(512)">
+                <constraints nullable="false"/>
+            </column>
+            <column name="type" type="varchar(64)">
+                <constraints nullable="false"/>
+            </column>
+            <column name="created_at" type="datetime" defaultValueComputed="current_timestamp">
+                <constraints nullable="false"/>
+            </column>
+            <column name="updated_at" type="datetime" defaultValueComputed="current_timestamp">
+                <constraints nullable="false"/>
+            </column>
+        </createTable>
+        <addUniqueConstraint tableName="education_resource"
+                             columnNames="url, type"
+                             constraintName="uq_education_resource_url_type"/>
+        <sql>
+            alter table education_resource
+                modify column updated_at datetime not null
+                    default current_timestamp on update current_timestamp;
+        </sql>
+    </changeSet>
+
+    <changeSet id="2026-02-21-03-create-moodle-education-resource" author="Dmitry Smirnov">
+        <createTable tableName="moodle_education_resource">
+            <column name="id" type="bigint">
+                <constraints primaryKey="true" nullable="false"/>
+            </column>
+        </createTable>
+        <addForeignKeyConstraint baseTableName="moodle_education_resource"
+                                 baseColumnNames="id"
+                                 constraintName="fk_moodle_education_resource_parent"
+                                 referencedTableName="education_resource"
+                                 referencedColumnNames="id"
+                                 onDelete="CASCADE"/>
+    </changeSet>
+
+    <changeSet id="2026-02-21-04-create-external-account" author="Dmitry Smirnov">
+        <createTable tableName="external_account">
+            <column name="id" type="bigint" autoIncrement="true">
+                <constraints primaryKey="true" nullable="false"/>
+            </column>
+            <column name="user_id" type="bigint">
+                <constraints nullable="false"/>
+            </column>
+            <column name="education_resource_id" type="bigint">
+                <constraints nullable="false"/>
+            </column>
+            <column name="type" type="varchar(32)">
+                <constraints nullable="false"/>
+            </column>
+            <column name="created_at" type="datetime" defaultValueComputed="current_timestamp">
+                <constraints nullable="false"/>
+            </column>
+            <column name="updated_at" type="datetime" defaultValueComputed="current_timestamp">
+                <constraints nullable="false"/>
+            </column>
+        </createTable>
+        <addForeignKeyConstraint baseTableName="external_account"
+                                 baseColumnNames="user_id"
+                                 constraintName="fk_external_account_user"
+                                 referencedTableName="user"
+                                 referencedColumnNames="id"/>
+        <addForeignKeyConstraint baseTableName="external_account"
+                                 baseColumnNames="education_resource_id"
+                                 constraintName="fk_external_account_education_resource"
+                                 referencedTableName="education_resource"
+                                 referencedColumnNames="id"/>
+        <addUniqueConstraint tableName="external_account"
+                             columnNames="user_id, education_resource_id"
+                             constraintName="uq_external_account_user_resource"/>
+        <sql>
+            alter table external_account
+                modify column updated_at datetime not null
+                    default current_timestamp on update current_timestamp;
+        </sql>
+    </changeSet>
+
+    <changeSet id="2026-02-21-05-create-moodle-account" author="Dmitry Smirnov">
+        <createTable tableName="moodle_account">
+            <column name="id" type="bigint">
+                <constraints primaryKey="true" nullable="false"/>
+            </column>
+            <column name="moodle_user_id" type="bigint">
+                <constraints nullable="false"/>
+            </column>
+        </createTable>
+        <addForeignKeyConstraint baseTableName="moodle_account"
+                                 baseColumnNames="id"
+                                 constraintName="fk_moodle_account_parent"
+                                 referencedTableName="external_account"
+                                 referencedColumnNames="id"
+                                 onDelete="CASCADE"/>
+    </changeSet>
+
+</databaseChangeLog>

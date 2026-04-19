@@ -45,7 +45,7 @@ public class MoodleDiscoveryGradePassbackStrategy implements GradePassbackStrate
 
     @Override
     public boolean supports(ExerciseAttemptEntity attempt) {
-        return attempt.getLtiContext() == null;
+        return attempt.getLtiLineitemUrl() == null;
     }
 
     @Override

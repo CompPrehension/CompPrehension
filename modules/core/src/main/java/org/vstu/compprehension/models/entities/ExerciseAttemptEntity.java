@@ -8,7 +8,6 @@ import org.hibernate.annotations.CreationTimestamp;
 import org.hibernate.annotations.UpdateTimestamp;
 import org.vstu.compprehension.models.entities.EnumData.AttemptStatus;
 import org.vstu.compprehension.models.entities.exercise.ExerciseEntity;
-import org.vstu.compprehension.models.entities.lti.AttemptLtiContextEntity;
 
 import java.util.Date;
 import java.util.List;
@@ -48,8 +47,11 @@ public class ExerciseAttemptEntity {
     @OneToMany(mappedBy = "exerciseAttempt", fetch = FetchType.LAZY)
     private List<QuestionEntity> questions;
 
-    /** LTI-контекст попытки (lineitem_url/context_id). {@code null} при прямом доступе через Keycloak. */
-    @ToString.Exclude
-    @OneToOne(mappedBy = "attempt", cascade = CascadeType.ALL, orphanRemoval = true)
-    private AttemptLtiContextEntity ltiContext;
+    /** LTI AGS lineitem URL для отправки оценки. {@code null} при прямом доступе через Keycloak. */
+    @Column(name = "lti_lineitem_url", length = 512)
+    private String ltiLineitemUrl;
+
+    /** LTI {@code context.id} - идентификатор курса в LMS. {@code null} при прямом доступе через Keycloak. */
+    @Column(name = "lti_context_id", length = 255)
+    private String ltiContextId;
 }
