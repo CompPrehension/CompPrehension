@@ -82,10 +82,8 @@ public class DiConfig {
 
     @Bean
     @SessionScope
-    UserService getUserService(@Autowired UserRepository userRepository,
-                               @Autowired MoodleEducationResourceRepository moodleEducationResourceRepository,
-                               @Autowired MoodleAccountRepository moodleAccountRepository) {
-        return new CachedUserService(new UserServiceImpl(userRepository, moodleEducationResourceRepository, moodleAccountRepository));
+    UserService getUserService(@Autowired UserRepository userRepository) {
+        return new CachedUserService(new UserServiceImpl(userRepository));
     }
 
     @Bean

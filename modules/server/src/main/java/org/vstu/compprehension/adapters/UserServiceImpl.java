@@ -3,7 +3,6 @@ package org.vstu.compprehension.adapters;
 import lombok.extern.log4j.Log4j2;
 import org.apache.commons.collections4.CollectionUtils;
 import org.jetbrains.annotations.NotNull;
-import org.springframework.dao.DataIntegrityViolationException;
 import org.springframework.security.authentication.AnonymousAuthenticationToken;
 import org.springframework.security.core.Authentication;
 import org.springframework.security.core.GrantedAuthority;
@@ -14,10 +13,6 @@ import org.vstu.compprehension.Service.UserService;
 import org.vstu.compprehension.models.entities.EnumData.Language;
 import org.vstu.compprehension.models.entities.EnumData.Role;
 import org.vstu.compprehension.models.entities.UserEntity;
-import org.vstu.compprehension.models.entities.educationresource.MoodleEducationResourceEntity;
-import org.vstu.compprehension.models.entities.externalaccount.MoodleAccountEntity;
-import org.vstu.compprehension.models.repository.MoodleAccountRepository;
-import org.vstu.compprehension.models.repository.MoodleEducationResourceRepository;
 import org.vstu.compprehension.models.repository.UserRepository;
 
 import java.util.*;
@@ -30,15 +25,9 @@ public class UserServiceImpl implements UserService {
     private static final String LTI_VERSION_1_3 = "1.3.0";
 
     private final UserRepository userRepository;
-    private final MoodleEducationResourceRepository moodleEducationResourceRepository;
-    private final MoodleAccountRepository moodleAccountRepository;
 
-    public UserServiceImpl(UserRepository userRepository,
-                           MoodleEducationResourceRepository moodleEducationResourceRepository,
-                           MoodleAccountRepository moodleAccountRepository) {
+    public UserServiceImpl(UserRepository userRepository) {
         this.userRepository = userRepository;
-        this.moodleEducationResourceRepository = moodleEducationResourceRepository;
-        this.moodleAccountRepository = moodleAccountRepository;
     }
 
     public UserEntity getCurrentUser() throws Exception {
@@ -81,58 +70,13 @@ public class UserServiceImpl implements UserService {
         entity.setPreferred_language(Optional.ofNullable(language).orElse(Language.ENGLISH));
         entity.setRoles(roles);
         entity.setExternalId(externalId);
-        entity = userRepository.save(entity);
 
         if (isLti) {
-            ensureMoodleAccount(entity, parsedIdToken);
+            // LTI sub - идентификатор пользователя во внешней LMS; перетирается при каждом launch'е.
+            entity.setExternalUserId(parsedIdToken.getSubject());
         }
+        entity = userRepository.save(entity);
         return entity;
-    }
-
-    private void ensureMoodleAccount(UserEntity user, OidcIdToken token) {
-        var resource = getOrCreateMoodleResource(token.getIssuer().toString());
-
-        Long moodleUserId;
-        try {
-            // LTI sub для Moodle - числовой внутренний user_id
-            moodleUserId = Long.parseLong(token.getSubject());
-        } catch (NumberFormatException e) {
-            log.warn("LTI sub '{}' не числовой — MoodleAccount не создаётся (возможно, не Moodle LMS)",
-                    token.getSubject());
-            return;
-        }
-
-        if (moodleAccountRepository.findByUserIdAndEducationResourceId(user.getId(), resource.getId()).isEmpty()) {
-            var acc = new MoodleAccountEntity();
-            acc.setUser(user);
-            acc.setEducationResource(resource);
-            acc.setMoodleUserId(moodleUserId);
-            moodleAccountRepository.save(acc);
-        }
-    }
-
-    /**
-     * TECH DEBT: автоматическое создание {@link MoodleEducationResourceEntity} — временное решение.
-     * В дальнейшем записи {@code education_resource} будет заполнять администратор,
-     * а при LTI launch с неизвестного ресурса будет бросаться исключение "обращение с невалидного
-     * ресурса" вместо создания записи на лету.
-     *
-     * <p>try/catch вокруг save защищает от race condition: при одновременном LTI login'е
-     * нескольких пользователей с одной и той же неизвестной ещё Moodle-инсталляции
-     */
-    private MoodleEducationResourceEntity getOrCreateMoodleResource(String url) {
-        return moodleEducationResourceRepository.findByUrl(url)
-                .orElseGet(() -> {
-                    var r = new MoodleEducationResourceEntity();
-                    r.setUrl(url);
-                    try {
-                        return moodleEducationResourceRepository.saveAndFlush(r);
-                    } catch (DataIntegrityViolationException e) {
-                        return moodleEducationResourceRepository.findByUrl(url)
-                                .orElseThrow(() -> new IllegalStateException(
-                                        "MoodleEducationResource '" + url + "' must exist after UNIQUE violation", e));
-                    }
-                });
     }
 
     @Override

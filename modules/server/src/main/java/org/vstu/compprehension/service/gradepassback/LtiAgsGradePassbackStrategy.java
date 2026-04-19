@@ -18,9 +18,6 @@ import org.springframework.web.client.RestTemplate;
 import org.vstu.compprehension.config.LtiRegistrationsProperties;
 import org.vstu.compprehension.config.LtiRegistrationsProperties.Registration;
 import org.vstu.compprehension.models.entities.ExerciseAttemptEntity;
-import org.vstu.compprehension.models.entities.externalaccount.MoodleAccountEntity;
-import org.vstu.compprehension.models.repository.MoodleAccountRepository;
-import org.vstu.compprehension.models.repository.MoodleEducationResourceRepository;
 
 import java.net.URI;
 import java.security.KeyFactory;
@@ -43,15 +40,9 @@ public class LtiAgsGradePassbackStrategy implements GradePassbackStrategy {
 
     private final RestTemplate restTemplate = new RestTemplate();
     private final ObjectMapper objectMapper = new ObjectMapper();
-    private final MoodleEducationResourceRepository moodleEducationResourceRepository;
-    private final MoodleAccountRepository moodleAccountRepository;
     private final LtiRegistrationsProperties ltiRegistrations;
 
-    public LtiAgsGradePassbackStrategy(MoodleEducationResourceRepository moodleEducationResourceRepository,
-                                       MoodleAccountRepository moodleAccountRepository,
-                                       LtiRegistrationsProperties ltiRegistrations) {
-        this.moodleEducationResourceRepository = moodleEducationResourceRepository;
-        this.moodleAccountRepository = moodleAccountRepository;
+    public LtiAgsGradePassbackStrategy(LtiRegistrationsProperties ltiRegistrations) {
         this.ltiRegistrations = ltiRegistrations;
     }
 
@@ -73,23 +64,19 @@ public class LtiAgsGradePassbackStrategy implements GradePassbackStrategy {
             String kid = regWithName.name();
             Registration reg = regWithName.registration();
 
-            var resource = moodleEducationResourceRepository.findByUrl(moodleBaseUrl)
-                    .orElseThrow(() -> new IllegalStateException(
-                            "No MoodleEducationResource for url " + moodleBaseUrl
-                                    + " — пользователь должен сначала войти через LTI из этого Moodle"));
-            Long moodleUserId = moodleAccountRepository
-                    .findByUserIdAndEducationResourceId(attempt.getUser().getId(), resource.getId())
-                    .map(MoodleAccountEntity::getMoodleUserId)
-                    .orElseThrow(() -> new IllegalStateException(
-                            "No MoodleAccount for user " + attempt.getUser().getId()
-                                    + " and resource " + resource.getId()));
+            String externalUserId = attempt.getUser().getExternalUserId();
+            if (externalUserId == null || externalUserId.isBlank()) {
+                throw new IllegalStateException(
+                        "No externalUserId for user " + attempt.getUser().getId()
+                                + " — пользователь должен войти через LTI до отправки оценки");
+            }
 
             String tokenEndpoint = moodleBaseUrl + "/mod/lti/token.php";
             String accessToken = obtainAccessToken(tokenEndpoint, reg, kid);
             double grade = calculateFinalGrade(attempt);
-            postScore(lineitemUrl, String.valueOf(moodleUserId), grade, accessToken);
+            postScore(lineitemUrl, externalUserId, grade, accessToken);
             log.info("LTI AGS grade passback sent for attempt {}: userId={}, grade={}",
-                    attempt.getId(), moodleUserId, grade);
+                    attempt.getId(), externalUserId, grade);
         } catch (Exception e) {
             log.error("LTI AGS grade passback failed for attempt {}: {}", attempt.getId(), e.getMessage(), e);
         }
