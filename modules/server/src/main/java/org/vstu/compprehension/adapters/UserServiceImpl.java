@@ -72,7 +72,6 @@ public class UserServiceImpl implements UserService {
         entity.setExternalId(externalId);
 
         if (isLti) {
-            // LTI sub - идентификатор пользователя во внешней LMS; перетирается при каждом launch'е.
             entity.setExternalUserId(parsedIdToken.getSubject());
         }
         entity = userRepository.save(entity);
