@@ -7,5 +7,5 @@ import org.vstu.compprehension.models.entities.ExerciseAttemptEntity;
  * Реализация выбирает конкретный механизм (LTI AGS, Moodle WS и т.д.) на основе данных attempt'а.
  */
 public interface GradePassbackService {
-    void passGrade(ExerciseAttemptEntity attempt);
+    void passGrade(ExerciseAttemptEntity attempt, double grade);
 }

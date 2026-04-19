@@ -27,7 +27,7 @@ public class GradePassbackServiceImpl implements GradePassbackService {
     @Async
     @Transactional(propagation = Propagation.REQUIRES_NEW)
     @Override
-    public void passGrade(ExerciseAttemptEntity attempt) {
+    public void passGrade(ExerciseAttemptEntity attempt, double grade) {
         ExerciseAttemptEntity fresh = exerciseAttemptRepository
                 .findById(attempt.getId()).orElse(null);
         if (fresh == null) {
@@ -37,6 +37,6 @@ public class GradePassbackServiceImpl implements GradePassbackService {
         strategies.stream()
                 .filter(s -> s.supports(fresh))
                 .findFirst()
-                .ifPresent(s -> s.passGrade(fresh));
+                .ifPresent(s -> s.passGrade(fresh, grade));
     }
 }

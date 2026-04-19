@@ -52,7 +52,7 @@ public class LtiAgsGradePassbackStrategy implements GradePassbackStrategy {
     }
 
     @Override
-    public void passGrade(ExerciseAttemptEntity attempt) {
+    public void passGrade(ExerciseAttemptEntity attempt, double grade) {
         String lineitemUrl = attempt.getLtiLineitemUrl();
         try {
             String moodleBaseUrl = extractMoodleBaseUrl(lineitemUrl);
@@ -73,7 +73,6 @@ public class LtiAgsGradePassbackStrategy implements GradePassbackStrategy {
 
             String tokenEndpoint = moodleBaseUrl + "/mod/lti/token.php";
             String accessToken = obtainAccessToken(tokenEndpoint, reg, kid);
-            double grade = calculateFinalGrade(attempt);
             postScore(lineitemUrl, externalUserId, grade, accessToken);
             log.info("LTI AGS grade passback sent for attempt {}: userId={}, grade={}",
                     attempt.getId(), externalUserId, grade);
