@@ -28,4 +28,18 @@ public interface ExerciseAttemptRepository extends CrudRepository<ExerciseAttemp
     @Modifying
     @Query(value = "UPDATE ExerciseAttemptEntity SET attemptStatus = :newStatus WHERE exercise.id = :exerciseId AND user.id = :userId AND attemptStatus = :oldStatus")
     int changeExistingAttemptsStatus(@Param("exerciseId") Long exerciseId, @Param("userId") Long userId, @Param("oldStatus") AttemptStatus oldStatus, @Param("newStatus") AttemptStatus newStatus);
+
+    @Query("""
+        select cast(f.grade as double)
+        from InteractionEntity i
+        left join i.feedback f
+        where i.id = (
+            select max(i2.id) from InteractionEntity i2
+            where i2.question.id = (
+                select max(q.id) from QuestionEntity q
+                where q.exerciseAttempt.id = :attemptId
+            )
+        )
+        """)
+    Optional<Double> calculateFinalGrade(@Param("attemptId") Long attemptId);
 }

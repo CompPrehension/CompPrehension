@@ -58,25 +58,11 @@ public class ExerciseAttemptService {
         if (decision == Decision.FINISH && attempt.getAttemptStatus() == AttemptStatus.INCOMPLETE) {
             attempt.setAttemptStatus(AttemptStatus.COMPLETED_BY_USER);
             exerciseAttemptRepository.save(attempt);
-            double grade = calculateFinalGrade(attempt);
+            double grade = exerciseAttemptRepository.calculateFinalGrade(attempt.getId())
+                    .orElse(0.0);
             gradePassbackService.passGrade(attempt, grade);
         } else {
             exerciseAttemptRepository.save(attempt);
         }
-    }
-
-    /** Нормализованная [0.0, 1.0] оценка за попытку. */
-    private double calculateFinalGrade(ExerciseAttemptEntity attempt) {
-        var questions = attempt.getQuestions();
-        if (questions == null || questions.isEmpty()) return 0.0;
-
-        var lastQuestion = questions.getLast();
-        var interactions = lastQuestion.getInteractions();
-        if (interactions.isEmpty()) return 0.0;
-
-        var feedback = interactions.getLast().getFeedback();
-        if (feedback == null) return 0.0;
-
-        return Math.max(0.0, Math.min(1.0, feedback.getGrade()));
     }
 }
