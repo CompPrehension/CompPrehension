@@ -44,6 +44,13 @@ public class UserEntity {
     @Column(name = "external_id")
     private String externalId;
 
+    /**
+     * Идентификатор пользователя во внешней LMS (например Moodle {@code sub} из LTI JWT).
+     * Используется для grade passback как получатель оценки.
+     */
+    @Column(name = "external_user_id")
+    private String externalUserId;
+
     @Column(name = "preferred_language")
     @Enumerated(EnumType.ORDINAL)
     private Language preferred_language;
@@ -64,5 +71,4 @@ public class UserEntity {
             joinColumns = @JoinColumn(name = "user_id"),
             inverseJoinColumns = @JoinColumn(name = "exercise_id"))
     private List<ExerciseEntity> exercises;
-
 }

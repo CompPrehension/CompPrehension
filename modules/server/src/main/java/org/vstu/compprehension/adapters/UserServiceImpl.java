@@ -1,5 +1,6 @@
 package org.vstu.compprehension.adapters;
 
+import lombok.extern.log4j.Log4j2;
 import org.apache.commons.collections4.CollectionUtils;
 import org.jetbrains.annotations.NotNull;
 import org.springframework.security.authentication.AnonymousAuthenticationToken;
@@ -17,7 +18,12 @@ import org.vstu.compprehension.models.repository.UserRepository;
 import java.util.*;
 import java.util.stream.Collectors;
 
+@Log4j2
 public class UserServiceImpl implements UserService {
+    private static final String LTI_VERSION_CLAIM = "https://purl.imsglobal.org/spec/lti/claim/version";
+    private static final String LTI_LAUNCH_PRESENTATION_CLAIM = "https://purl.imsglobal.org/spec/lti/claim/launch_presentation";
+    private static final String LTI_VERSION_1_3 = "1.3.0";
+
     private final UserRepository userRepository;
 
     public UserServiceImpl(UserRepository userRepository) {
@@ -31,26 +37,29 @@ public class UserServiceImpl implements UserService {
 
         var fullName = parsedIdToken.getFullName();
         var email = parsedIdToken.getEmail();
+        if (email == null || email.isBlank()) {
+            throw new Exception("id_token must contain non-empty email claim");
+        }
 
-        var entity = userRepository.findByExternalId(externalId).orElseGet(UserEntity::new);
+        boolean isLti = LTI_VERSION_1_3.equals(parsedIdToken.getClaimAsString(LTI_VERSION_CLAIM));
 
-        // use different role mappings for LTI & keycloak
-        HashSet<Role> roles;
-        Language language = null;
-        if ("1.3.0".equals(parsedIdToken.getClaimAsString("https://purl.imsglobal.org/spec/lti/claim/version"))) {
+        UserEntity entity = userRepository.findFirstByEmailOrderByIdAsc(email).orElseGet(UserEntity::new);
+
+        Set<Role> roles;
+        Language language;
+        if (isLti) {
             roles = fromLtiRoles(authentication.getAuthorities().stream()
                     .map(GrantedAuthority::getAuthority)
                     .collect(Collectors.toSet()));
-            language = Optional.ofNullable(parsedIdToken.getClaimAsMap("https://purl.imsglobal.org/spec/lti/claim/launch_presentation"))
+            language = Optional.ofNullable(parsedIdToken.getClaimAsMap(LTI_LAUNCH_PRESENTATION_CLAIM))
                     .flatMap(x -> Optional.ofNullable(x.get("locale")))
                     .map(l -> Language.fromString(l.toString()))
                     .orElse(null);
         } else {
-            var preparedRoles = authentication.getAuthorities().stream()
+            roles = fromKeycloakRoles(authentication.getAuthorities().stream()
                     .map(GrantedAuthority::getAuthority)
-                    .filter(r -> r.length() > 0)
-                    .collect(Collectors.toSet());
-            roles = fromKeycloakRoles(preparedRoles);
+                    .filter(r -> !r.isEmpty())
+                    .collect(Collectors.toSet()));
             language = entity.getPreferred_language();
         }
 
@@ -61,16 +70,24 @@ public class UserServiceImpl implements UserService {
         entity.setPreferred_language(Optional.ofNullable(language).orElse(Language.ENGLISH));
         entity.setRoles(roles);
         entity.setExternalId(externalId);
-        return userRepository.save(entity);
+
+        if (isLti) {
+            entity.setExternalUserId(parsedIdToken.getSubject());
+        }
+        entity = userRepository.save(entity);
+        return entity;
     }
 
     @Override
     public void setLanguage(Language language) throws Exception {
         Authentication authentication = SecurityContextHolder.getContext().getAuthentication();
         var parsedIdToken = getToken(authentication);
-        var externalId = getExternalId(authentication, parsedIdToken);
+        var email = parsedIdToken.getEmail();
+        if (email == null || email.isBlank()) {
+            throw new Exception("id_token must contain non-empty email claim");
+        }
 
-        var entity = userRepository.findByExternalId(externalId).orElseThrow(() -> new Exception("User not found"));
+        var entity = userRepository.findFirstByEmailOrderByIdAsc(email).orElseThrow(() -> new Exception("User not found"));
         entity.setPreferred_language(language);
         userRepository.save(entity);
     }
@@ -110,16 +127,15 @@ public class UserServiceImpl implements UserService {
         return new HashSet<>(List.of(Role.STUDENT));
     }
 
-    private HashSet<Role> fromKeycloakRoles(Collection<String> roles) {
+    private Set<Role> fromKeycloakRoles(Collection<String> roles) {
         if (roles.contains("ROLE_Administrator")) {
-            return new HashSet<>(Arrays.asList(Role.values().clone()));
+            return Arrays.stream(Role.values()).collect(Collectors.toSet());
         }
         if (roles.contains("ROLE_Teacher")) {
-            return new HashSet<>(Arrays.asList(Role.TEACHER, Role.STUDENT));
+            return Set.of(Role.TEACHER, Role.STUDENT);
         }
-        return new HashSet<>(List.of(Role.STUDENT));
+        return Set.of(Role.STUDENT);
     }
-
 
 
 

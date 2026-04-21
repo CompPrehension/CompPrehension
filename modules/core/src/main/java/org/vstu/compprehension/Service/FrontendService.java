@@ -51,20 +51,18 @@ public class FrontendService {
     private final LocalizationService localizationService;
     private final DomainFactory domainFactory;
     private final EntityManager entityManager;
-    private final UserRepository userRepository;
 
 
-    public FrontendService(ExerciseAttemptRepository exerciseAttemptRepository, QuestionRepository questionRepository, ExerciseAttemptService exerciseAttemptService, ExerciseService exerciseService, EntityManager entityManager, QuestionService questionService, LocalizationService localizationService, AbstractStrategyFactory strategyFactory, DomainFactory domainFactory, UserRepository userRepository, FeedbackRepository feedbackRepository, InteractionRepository interactionRepository) {
+    public FrontendService(ExerciseAttemptRepository exerciseAttemptRepository, ExerciseAttemptService exerciseAttemptService, QuestionRepository questionRepository, ExerciseService exerciseService, EntityManager entityManager, QuestionService questionService, LocalizationService localizationService, AbstractStrategyFactory strategyFactory, DomainFactory domainFactory, FeedbackRepository feedbackRepository, InteractionRepository interactionRepository) {
         this.exerciseAttemptRepository = exerciseAttemptRepository;
-        this.questionRepository = questionRepository;
         this.exerciseAttemptService = exerciseAttemptService;
+        this.questionRepository = questionRepository;
         this.exerciseService = exerciseService;
         this.entityManager = entityManager;
         this.questionService = questionService;
         this.localizationService = localizationService;
         this.strategyFactory = strategyFactory;
         this.domainFactory = domainFactory;
-        this.userRepository = userRepository;
         this.feedbackRepository = feedbackRepository;
         this.interactionRepository = interactionRepository;
     }
@@ -122,12 +120,15 @@ public class FrontendService {
             ch.hit("graded with strategy ("+grade+")");
 
             strategyAttemptDecision = strategy.decide(attempt);
-            exerciseAttemptService.ensureAttemptStatus(attempt, strategyAttemptDecision);
-            ch.hit("decide next exercise state ("+strategyAttemptDecision.name()+")");
         }
         feedback.setGrade(grade);
         feedbackRepository.save(feedback);
         ch.hit("add feedback ("+judgeResult.IterationsLeft+" interactions left)");
+
+        if (attempt != null) {
+            exerciseAttemptService.ensureAttemptStatus(attempt, strategyAttemptDecision);
+            ch.hit("decide next exercise state ("+strategyAttemptDecision.name()+")");
+        }
 
         val locale = getQuestionLanguage(attempt);
         // calculate error message
@@ -276,10 +277,13 @@ public class FrontendService {
             grade = strategy.grade(attempt, judgeResult);
 
             strategyAttemptDecision = strategy.decide(attempt);
-            exerciseAttemptService.ensureAttemptStatus(attempt, strategyAttemptDecision);
         }
         feedback.setGrade(grade);
         feedbackRepository.save(feedback);
+
+        if (attempt != null) {
+            exerciseAttemptService.ensureAttemptStatus(attempt, strategyAttemptDecision);
+        }
 
         // build feedback message
         val messages = correctAnswer.explanation.getChildren().stream()
@@ -358,13 +362,13 @@ public class FrontendService {
 
     @Transactional(propagation = Propagation.REQUIRED)
     public @NotNull ExerciseAttemptDto createExerciseAttempt(@NotNull Long exerciseId, @NotNull Long userId) {
-        var ea = createNewAttempt(exerciseId, userId);
+        var ea = exerciseAttemptService.createNewAttempt(exerciseId, userId);
         return Mapper.toDto(ea);
     }
 
     @Transactional(propagation = Propagation.REQUIRED)
     public @NotNull ExerciseAttemptDto createSolvedExerciseAttempt(@NotNull Long exerciseId, @NotNull Long userId) throws Exception {
-        var ea = createNewAttempt(exerciseId, userId);
+        var ea = exerciseAttemptService.createNewAttempt(exerciseId, userId);
         var strategy = strategyFactory.getStrategy(ea.getExercise().getStrategyId());
         var targetQuestionCount = strategy.getOptions().isMultiStagesEnabled()
                 ? ea.getExercise().getStages().stream()
@@ -400,22 +404,5 @@ public class FrontendService {
         }
 
         return Mapper.toDto(ea);
-    }
-
-    @Transactional(propagation = Propagation.REQUIRED)
-    public ExerciseAttemptEntity createNewAttempt(@NotNull Long exerciseId, @NotNull Long userId) {
-        exerciseAttemptRepository.changeExistingAttemptsStatus(exerciseId, userId, AttemptStatus.INCOMPLETE, AttemptStatus.COMPLETED_BY_SYSTEM);
-
-        var exercise = exerciseService.getExercise(exerciseId);
-        var user = userRepository.findById(userId).orElseThrow();
-
-        var ea = new ExerciseAttemptEntity();
-        ea.setExercise(exercise);
-        ea.setUser(user);
-        ea.setAttemptStatus(AttemptStatus.INCOMPLETE);
-        ea.setQuestions(new ArrayList<>());
-        exerciseAttemptRepository.save(ea);
-
-        return ea;
     }
 }

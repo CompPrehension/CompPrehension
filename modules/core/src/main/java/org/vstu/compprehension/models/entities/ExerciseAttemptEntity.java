@@ -46,4 +46,12 @@ public class ExerciseAttemptEntity {
     @ToString.Exclude
     @OneToMany(mappedBy = "exerciseAttempt", fetch = FetchType.LAZY)
     private List<QuestionEntity> questions;
+
+    /** LTI AGS lineitem URL для отправки оценки. {@code null} при прямом доступе через Keycloak. */
+    @Column(name = "lti_lineitem_url", length = 512)
+    private String ltiLineitemUrl;
+
+    /** LTI {@code context.id} - идентификатор курса в LMS. {@code null} при прямом доступе через Keycloak. */
+    @Column(name = "lti_context_id", length = 255)
+    private String ltiContextId;
 }

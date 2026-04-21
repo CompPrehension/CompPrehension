@@ -28,7 +28,8 @@ public class ExerciseController {
     private final ExerciseRepository exerciseRepository;
 
     @Autowired
-    public ExerciseController(FrontendService frontendService, UserService userService, ExerciseRepository exerciseRepository) {
+    public ExerciseController(FrontendService frontendService, UserService userService,
+                              ExerciseRepository exerciseRepository) {
         this.frontendService = frontendService;
         this.userService = userService;
         this.exerciseRepository = exerciseRepository;
@@ -98,11 +99,9 @@ public class ExerciseController {
     }
 
     /**
-     * Create exercise attempt for current user
-     * @param exerciseId Exercise id
-     * @param request Current request
-     * @return Created attempt
-     * @throws Exception Something got wrong
+     * Create exercise attempt for current user.
+     * LTI-контекст (lineitemUrl/contextId) подхватывается из текущей сессии
+     * внутри FrontendService через {@link org.vstu.compprehension.Service.LtiContextProvider}.
      */
     @RequestMapping(value = {"createExerciseAttempt"}, method = { RequestMethod.GET })
     @ResponseBody
