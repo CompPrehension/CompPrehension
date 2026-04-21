@@ -106,9 +106,14 @@ public class LtiAgsGradePassbackStrategy implements GradePassbackStrategy {
             throw new RuntimeException("Empty response from token endpoint: " + tokenEndpoint);
         }
 
-        String accessToken = objectMapper.readTree(body).path("access_token").asText(null);
+        var tokenResponse = objectMapper.readTree(body);
+        String accessToken = tokenResponse.path("access_token").asText(null);
         if (accessToken == null) {
-            throw new RuntimeException("No access_token in Moodle AGS token response from " + tokenEndpoint);
+            String error = tokenResponse.path("error").asText(null);
+            String errorDescription = tokenResponse.path("error_description").asText(null);
+            throw new RuntimeException(
+                    "No access_token in Moodle AGS token response from " + tokenEndpoint
+                            + ", error=" + error + ", error_description=" + errorDescription);
         }
         return accessToken;
     }
