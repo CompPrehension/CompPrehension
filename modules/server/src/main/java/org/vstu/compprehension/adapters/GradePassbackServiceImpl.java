@@ -34,21 +34,26 @@ public class GradePassbackServiceImpl implements GradePassbackService {
             log.warn("Attempt {} not found for grade passback", attempt.getId());
             return;
         }
-        strategies.stream()
-                .filter(s -> s.supports(fresh))
-                .findFirst()
-                .ifPresentOrElse(
-                        s -> {
-                            String strategyName = s.getClass().getSimpleName();
-                            log.info("Grade passback for attempt {} via {}", fresh.getId(), strategyName);
-                            boolean sent = s.passGrade(fresh, grade);
-                            if (sent) {
-                                log.info("Grade passback success for attempt {} via {}", fresh.getId(), strategyName);
-                            } else {
-                                log.warn("Grade passback via {} failed for attempt {}", strategyName, fresh.getId());
-                            }
-                        },
-                        () -> log.warn("No GradePassbackStrategy supports attempt {} — grade not sent", fresh.getId())
-                );
+        GradePassbackStrategy selected = null;
+        for (GradePassbackStrategy s : strategies) {
+            if (s.supports(fresh)) {
+                selected = s;
+                break;
+            }
+        }
+
+        if (selected == null) {
+            log.warn("No GradePassbackStrategy supports attempt {} — grade not sent", fresh.getId());
+            return;
+        }
+
+        String strategyName = selected.getClass().getSimpleName();
+        log.info("Grade passback for attempt {} via {}", fresh.getId(), strategyName);
+        boolean sent = selected.passGrade(fresh, grade);
+        if (sent) {
+            log.info("Grade passback success for attempt {} via {}", fresh.getId(), strategyName);
+        } else {
+            log.warn("Grade passback via {} failed for attempt {}", strategyName, fresh.getId());
+        }
     }
 }
