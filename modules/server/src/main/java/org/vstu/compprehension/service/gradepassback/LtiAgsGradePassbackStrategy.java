@@ -97,10 +97,9 @@ public class LtiAgsGradePassbackStrategy implements GradePassbackStrategy {
         ResponseEntity<String> rawResponse = restTemplate.postForEntity(
                 tokenEndpoint, new HttpEntity<>(form, headers), String.class);
 
-        log.info("Token endpoint response: status={}, contentType={}, body={}",
+        log.info("Token endpoint response: status={}, contentType={}",
                 rawResponse.getStatusCode(),
-                rawResponse.getHeaders().getContentType(),
-                rawResponse.getBody());
+                rawResponse.getHeaders().getContentType());
 
         String body = rawResponse.getBody();
         if (body == null) {
@@ -109,7 +108,7 @@ public class LtiAgsGradePassbackStrategy implements GradePassbackStrategy {
 
         String accessToken = objectMapper.readTree(body).path("access_token").asText(null);
         if (accessToken == null) {
-            throw new RuntimeException("No access_token in Moodle AGS token response from " + tokenEndpoint + ": " + body);
+            throw new RuntimeException("No access_token in Moodle AGS token response from " + tokenEndpoint);
         }
         return accessToken;
     }
