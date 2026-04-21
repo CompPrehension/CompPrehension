@@ -5,5 +5,7 @@ import org.vstu.compprehension.models.entities.ExerciseAttemptEntity;
 /** Реализация отвечает за один механизм отправки оценки (LTI AGS, Moodle WS и т.п.). */
 public interface GradePassbackStrategy {
     boolean supports(ExerciseAttemptEntity attempt);
-    void passGrade(ExerciseAttemptEntity attempt, double grade);
+
+    /** @return true, если оценка успешно отправлена; false — при ошибке внутри стратегии. */
+    boolean passGrade(ExerciseAttemptEntity attempt, double grade);
 }

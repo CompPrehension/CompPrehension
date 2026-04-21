@@ -52,7 +52,7 @@ public class LtiAgsGradePassbackStrategy implements GradePassbackStrategy {
     }
 
     @Override
-    public void passGrade(ExerciseAttemptEntity attempt, double grade) {
+    public boolean passGrade(ExerciseAttemptEntity attempt, double grade) {
         String lineitemUrl = attempt.getLtiLineitemUrl();
         try {
             String moodleBaseUrl = extractMoodleBaseUrl(lineitemUrl);
@@ -73,11 +73,10 @@ public class LtiAgsGradePassbackStrategy implements GradePassbackStrategy {
 
             String tokenEndpoint = moodleBaseUrl + "/mod/lti/token.php";
             String accessToken = obtainAccessToken(tokenEndpoint, reg, kid);
-            postScore(lineitemUrl, externalUserId, grade, accessToken);
-            log.info("LTI AGS grade passback sent for attempt {}: userId={}, grade={}",
-                    attempt.getId(), externalUserId, grade);
+            return postScore(lineitemUrl, externalUserId, grade, accessToken);
         } catch (Exception e) {
             log.error("LTI AGS grade passback failed for attempt {}: {}", attempt.getId(), e.getMessage(), e);
+            return false;
         }
     }
 
@@ -141,7 +140,7 @@ public class LtiAgsGradePassbackStrategy implements GradePassbackStrategy {
         return jwt.serialize();
     }
 
-    private void postScore(String lineitemUrl, String moodleUserId, double grade, String accessToken) {
+    private boolean postScore(String lineitemUrl, String moodleUserId, double grade, String accessToken) {
         // Insert /scores into the PATH before any query string (e.g. ?type_id=1)
         URI uri = URI.create(lineitemUrl);
         String path = uri.getPath().replaceAll("/+$", "") + "/scores";
@@ -162,10 +161,11 @@ public class LtiAgsGradePassbackStrategy implements GradePassbackStrategy {
         headers.setContentType(MediaType.parseMediaType("application/vnd.ims.lis.v1.score+json"));
         headers.setBearerAuth(accessToken);
 
-        log.info("Posting score to {}: userId={}, scoreGiven={}", scoresUrl, moodleUserId, grade);
+        log.debug("Posting score to {}: userId={}, scoreGiven={}", scoresUrl, moodleUserId, grade);
         ResponseEntity<String> scoreResponse = restTemplate.postForEntity(
                 scoresUrl, new HttpEntity<>(scorePayload, headers), String.class);
-        log.info("AGS score response: status={}, body={}", scoreResponse.getStatusCode(), scoreResponse.getBody());
+        log.debug("AGS score response: status={}, body={}", scoreResponse.getStatusCode(), scoreResponse.getBody());
+        return scoreResponse.getStatusCode().is2xxSuccessful();
     }
 
     /** {@code http://moodle/mod/lti/services.php/2/lineitems/3/lineitem} -> {@code http://moodle}. */
