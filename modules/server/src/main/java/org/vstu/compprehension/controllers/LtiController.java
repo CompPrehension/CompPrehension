@@ -30,8 +30,17 @@ import org.springframework.web.bind.annotation.RequestMapping;
 import org.springframework.web.bind.annotation.RequestMethod;
 import org.springframework.web.bind.annotation.RequestParam;
 import org.springframework.web.bind.annotation.ResponseBody;
+import org.apache.commons.lang3.tuple.Pair;
+import org.vstu.compprehension.Service.CourseService;
+import org.vstu.compprehension.Service.EducationResourceService;
+import org.vstu.compprehension.Service.LtiContextInitializer;
+import org.vstu.compprehension.Service.LtiContextProvider;
 import org.vstu.compprehension.common.StringHelper;
 import org.vstu.compprehension.config.LtiRegistrationsProperties;
+import org.vstu.compprehension.models.businesslogic.lti.LtiContext;
+import org.vstu.compprehension.models.businesslogic.lti.LtiCourseContext;
+import org.vstu.compprehension.models.entities.course.CourseEntity;
+import org.vstu.compprehension.models.entities.course.EducationResourceEntity;
 import org.vstu.compprehension.utils.HttpRequestHelper;
 import org.vstu.compprehension.utils.SessionHelper;
 
@@ -57,13 +66,25 @@ public class LtiController {
     private final SecurityContextRepository securityContextRepository;
     private final SecurityContextHolderStrategy securityContextHolderStrategy;
     private final LtiRegistrationsProperties ltiRegistrations;
+    private final CourseService courseService;
+    private final EducationResourceService educationResourceService;
+    private final LtiContextInitializer ltiContextInitializer;
+    private final LtiContextProvider ltiContextProvider;
 
     public LtiController(SecurityContextRepository securityContextRepository,
                          SecurityContextHolderStrategy securityContextHolderStrategy,
-                         LtiRegistrationsProperties ltiRegistrations) {
-        this.securityContextRepository     = securityContextRepository;
+                         LtiRegistrationsProperties ltiRegistrations,
+                         CourseService courseService,
+                         EducationResourceService educationResourceService,
+                         LtiContextInitializer ltiContextInitializer,
+                         LtiContextProvider ltiContextProvider) {
+        this.securityContextRepository = securityContextRepository;
         this.securityContextHolderStrategy = securityContextHolderStrategy;
-        this.ltiRegistrations              = ltiRegistrations;
+        this.ltiRegistrations = ltiRegistrations;
+        this.courseService = courseService;
+        this.educationResourceService = educationResourceService;
+        this.ltiContextInitializer = ltiContextInitializer;
+        this.ltiContextProvider = ltiContextProvider;
     }
 
     @SneakyThrows
@@ -91,12 +112,10 @@ public class LtiController {
     }
 
     // LTI 1.3 standard claim URLs
-    private static final String LTI_CLAIM_ROLES   = "https://purl.imsglobal.org/spec/lti/claim/roles";
-    private static final String LTI_CLAIM_CONTEXT = "https://purl.imsglobal.org/spec/lti/claim/context";
-    private static final String LTI_CLAIM_AGS     = "https://purl.imsglobal.org/spec/lti-ags/claim/endpoint";
-    private static final String LTI_CLAIM_CUSTOM  = "https://purl.imsglobal.org/spec/lti/claim/custom";
+    private static final String LTI_CLAIM_ROLES = "https://purl.imsglobal.org/spec/lti/claim/roles";
 
-    @Data @Builder
+    @Data
+    @Builder
     public static class LtiOidcLoginRequest {
         private String ltiDeploymentId;
         private String clientId;
@@ -107,7 +126,7 @@ public class LtiController {
     }
 
     @SneakyThrows
-    @RequestMapping(method = RequestMethod.POST, path = {"1_3/login"} )
+    @RequestMapping(method = RequestMethod.POST, path = {"1_3/login"})
     public void login1_3(HttpServletRequest request, HttpServletResponse response) {
         SessionHelper.ensureNewSession(request);
 
@@ -140,23 +159,53 @@ public class LtiController {
     }
 
     @SneakyThrows
-    @RequestMapping(method = {RequestMethod.POST, RequestMethod.GET}, path = {"1_3/exercise"} )
+    @RequestMapping(method = {RequestMethod.POST, RequestMethod.GET}, path = {"1_3/exercise"})
     public void exercise(@RequestParam(required = false) Long id, HttpServletRequest request, HttpServletResponse response) {
         authenticateFromLti13ResourceLinkRequest(request, response);
 
-        // Prefer exercise_id from LTI custom parameters (set per-activity in Moodle).
-        // Fall back to query param ?id= for backward compatibility.
-        Long exerciseId = (Long) request.getSession().getAttribute("ltiExerciseId");
-        if (exerciseId == null) exerciseId = id;
-        if (exerciseId == null) throw new IllegalArgumentException("exerciseId is not provided: set custom parameter 'exercise_id' in Moodle activity or use ?id= query param");
+        LtiContext ctx = ltiContextProvider.getCurrentLtiContext()
+                .orElseThrow(() -> new IllegalArgumentException("LTI context absent"));
 
-        String redirectUrl = String.format("/pages/exercise?exerciseId=%d", exerciseId);
+        Pair<Long, Long> exerciseAndCourse = resolveExerciseAndCourse(ctx, id);
+
+        Long exId = exerciseAndCourse.getLeft();
+        Long courseId = exerciseAndCourse.getRight();
+
+        String redirectUrl = String.format(
+                "/pages/exercise?exerciseId=%d&courseId=%d",
+                exId, courseId
+        );
         log.info("Redirect to exercise, url:{}", redirectUrl);
         response.sendRedirect(redirectUrl);
     }
 
+    /** @return (exerciseId, courseId) */
+    private Pair<Long, Long> resolveExerciseAndCourse(LtiContext ctx, Long fallbackExerciseId) {
+        Long exerciseId = ctx.exerciseId() != null ? ctx.exerciseId() : fallbackExerciseId;
+        if (exerciseId == null)
+            throw new IllegalArgumentException("exerciseId is not provided: set custom parameter 'exercise_id' in Moodle activity or use ?id= query param");
+
+        LtiCourseContext ltiCourse = ctx.course();
+        if (ltiCourse == null || ltiCourse.courseId() == null)
+            throw new IllegalArgumentException("Absent information on the contextId");
+
+        EducationResourceEntity eduResource = educationResourceService.findByUrlAndType(ctx.lmsUrl(), ctx.lmsType())
+                .orElseGet(() -> educationResourceService.saveOrGetExisting(
+                        new EducationResourceEntity(ctx.lmsUrl(), ctx.lmsType())));
+
+        String externalCourseId = ltiCourse.courseId();
+        String courseName = ltiCourse.courseName() != null ? ltiCourse.courseName() : "id_" + externalCourseId;
+        CourseEntity course = courseService.findByExternalIdAndResourceId(externalCourseId, eduResource.getId())
+                .orElseGet(() -> courseService.saveOrGetExisting(
+                        new CourseEntity(externalCourseId, courseName, eduResource)
+                ));
+
+        courseService.linkExerciseWithCourseIfMissing(exerciseId, course.getId());
+        return Pair.of(exerciseId, course.getId());
+    }
+
     @SneakyThrows
-    @RequestMapping(method = {RequestMethod.POST, RequestMethod.GET}, path = {"1_3/exercise-settings"} )
+    @RequestMapping(method = {RequestMethod.POST, RequestMethod.GET}, path = {"1_3/exercise-settings"})
     public void exerciseSettings(HttpServletRequest request, HttpServletResponse response) {
         authenticateFromLti13ResourceLinkRequest(request, response);
 
@@ -196,28 +245,7 @@ public class LtiController {
         securityContextHolderStrategy.setContext(context);
         securityContextRepository.saveContext(context, request, response);
 
-        // LTI AGS контекст в сессию - читается LtiContextProvider при создании попытки
-        Map<?, ?> agsEndpoint = (Map<?, ?>) claims.get(LTI_CLAIM_AGS);
-        if (agsEndpoint != null && agsEndpoint.get("lineitem") != null) {
-            String lineitemUrl = String.valueOf(agsEndpoint.get("lineitem"));
-            request.getSession().setAttribute("ltiLineitemUrl", lineitemUrl);
-            log.info("LTI lineitem URL saved to session: {}", lineitemUrl);
-        }
-        Map<?, ?> ltiContext = (Map<?, ?>) claims.get(LTI_CLAIM_CONTEXT);
-        if (ltiContext != null) {
-            request.getSession().setAttribute("ltiContextId", String.valueOf(ltiContext.get("id")));
-        }
-
-        // Extract exerciseId from LTI custom parameters (key: exercise_id).
-        // Moodle activity sets this via the "Custom parameters" field: exercise_id=<id>
-        Map<?, ?> customClaims = (Map<?, ?>) claims.get(LTI_CLAIM_CUSTOM);
-        if (customClaims != null) {
-            String exerciseIdStr = (String) customClaims.get("exercise_id");
-            if (exerciseIdStr != null) {
-                request.getSession().setAttribute("ltiExerciseId", Long.parseLong(exerciseIdStr));
-                log.info("LTI custom exercise_id={} saved to session", exerciseIdStr);
-            }
-        }
+        ltiContextInitializer.init(claims);
 
         log.info("user '{}:{}' is successfully authenticated from LTI with authorities {}", oidcToken.getFullName(), user.getName(), mappedAuthorities);
     }
