@@ -1,0 +1,58 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<databaseChangeLog xmlns="http://www.liquibase.org/xml/ns/dbchangelog"
+                   xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance"
+                   xsi:schemaLocation="http://www.liquibase.org/xml/ns/dbchangelog
+                       http://www.liquibase.org/xml/ns/dbchangelog/dbchangelog-4.5.xsd">
+
+    <changeSet id="2026-04-22-01-create-course-tables" author="dmitry-smirnov">
+        <sql endDelimiter=";">
+            CREATE TABLE education_resource (
+                id   BIGINT AUTO_INCREMENT PRIMARY KEY,
+                url  VARCHAR(512) NOT NULL,
+                type VARCHAR(64)  NOT NULL,
+                CONSTRAINT ux_education_resource_url_type UNIQUE (url, type)
+            );
+
+            CREATE TABLE course (
+                id                    BIGINT AUTO_INCREMENT PRIMARY KEY,
+                name                  VARCHAR(512) NOT NULL,
+                external_course_id    VARCHAR(255) NULL,
+                education_resource_id BIGINT       NOT NULL,
+                CONSTRAINT fk_course_education_resource
+                    FOREIGN KEY (education_resource_id) REFERENCES education_resource(id),
+                CONSTRAINT ux_course_edu_resource_external_course
+                    UNIQUE (education_resource_id, external_course_id)
+            );
+
+            CREATE TABLE external_account (
+                user_id               BIGINT       NOT NULL,
+                education_resource_id BIGINT       NOT NULL,
+                external_id           VARCHAR(255) NOT NULL,
+                CONSTRAINT pk_external_account PRIMARY KEY (user_id, education_resource_id),
+                CONSTRAINT fk_external_account_user
+                    FOREIGN KEY (user_id) REFERENCES `User`(id),
+                CONSTRAINT fk_external_account_education_resource
+                    FOREIGN KEY (education_resource_id) REFERENCES education_resource(id)
+            );
+
+            CREATE TABLE exercise_course (
+                id          BIGINT AUTO_INCREMENT PRIMARY KEY,
+                exercise_id BIGINT NOT NULL,
+                course_id   BIGINT NOT NULL,
+                CONSTRAINT fk_exercise_course_exercise
+                    FOREIGN KEY (exercise_id) REFERENCES Exercise(id),
+                CONSTRAINT fk_exercise_course_course
+                    FOREIGN KEY (course_id) REFERENCES course(id),
+                CONSTRAINT ux_exercise_course_pair UNIQUE (exercise_id, course_id)
+            );
+
+            ALTER TABLE exercise_attempt ADD COLUMN course_id BIGINT;
+
+            CREATE INDEX idx_exercise_attempt_course ON exercise_attempt (course_id);
+
+            ALTER TABLE exercise_attempt
+                ADD CONSTRAINT fk_exercise_attempt_course
+                    FOREIGN KEY (course_id) REFERENCES course(id);
+        </sql>
+    </changeSet>
+</databaseChangeLog>
