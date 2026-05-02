@@ -30,7 +30,7 @@
                 external_id           VARCHAR(255) NOT NULL,
                 CONSTRAINT pk_external_account PRIMARY KEY (user_id, education_resource_id),
                 CONSTRAINT fk_external_account_user
-                    FOREIGN KEY (user_id) REFERENCES `User`(id),
+                    FOREIGN KEY (user_id) REFERENCES `user`(id),
                 CONSTRAINT fk_external_account_education_resource
                     FOREIGN KEY (education_resource_id) REFERENCES education_resource(id)
             );
@@ -40,7 +40,7 @@
                 exercise_id BIGINT NOT NULL,
                 course_id   BIGINT NOT NULL,
                 CONSTRAINT fk_exercise_course_exercise
-                    FOREIGN KEY (exercise_id) REFERENCES Exercise(id),
+                    FOREIGN KEY (exercise_id) REFERENCES exercise(id),
                 CONSTRAINT fk_exercise_course_course
                     FOREIGN KEY (course_id) REFERENCES course(id),
                 CONSTRAINT ux_exercise_course_pair UNIQUE (exercise_id, course_id)
