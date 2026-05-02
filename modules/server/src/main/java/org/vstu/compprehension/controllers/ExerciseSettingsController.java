@@ -6,6 +6,7 @@ import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.security.access.AuthorizationServiceException;
 import org.springframework.stereotype.Controller;
 import org.springframework.web.bind.annotation.*;
+import org.vstu.compprehension.Service.CourseService;
 import org.vstu.compprehension.Service.ExerciseService;
 import org.vstu.compprehension.Service.UserService;
 import org.vstu.compprehension.dto.ExerciseCardDto;
@@ -15,21 +16,26 @@ import org.vstu.compprehension.models.entities.EnumData.Role;
 @RequestMapping("api")
 public class ExerciseSettingsController {
     private final ExerciseService exerciseService;
+    private final CourseService courseService;
     private final UserService userService;
 
     @Autowired
-    public ExerciseSettingsController(ExerciseService exerciseService, UserService userService) {
+    public ExerciseSettingsController(ExerciseService exerciseService, CourseService courseService, UserService userService) {
         this.exerciseService = exerciseService;
+        this.courseService = courseService;
         this.userService = userService;
     }
 
     @SneakyThrows
     @RequestMapping(value = { "exercise" }, method = { RequestMethod.GET })
     @ResponseBody
-    public ExerciseCardDto get(@RequestParam("id") long id) {
+    public ExerciseCardDto get(@RequestParam("id") long id, @RequestParam(value = "courseId", required = false) Long courseId) {
         var currentUser = userService.getCurrentUser();
         if (!currentUser.getRoles().contains(Role.TEACHER)) {
             throw new AuthorizationServiceException("Unathorized");
+        }
+        if (courseId != null) {
+            courseService.ensureExerciseBelongsToCourse(id, courseId);
         }
         return exerciseService.getExerciseCard(id);
     }
@@ -37,10 +43,13 @@ public class ExerciseSettingsController {
     @SneakyThrows
     @RequestMapping(value = { "exercise"}, method = { RequestMethod.POST })
     @ResponseBody
-    public void update(@RequestBody ExerciseCardDto card) {
+    public void update(@RequestBody ExerciseCardDto card, @RequestParam(value = "courseId", required = false) Long courseId) {
         var currentUser = userService.getCurrentUser();
         if (!currentUser.getRoles().contains(Role.TEACHER)) {
             throw new AuthorizationServiceException("Unathorized");
+        }
+        if (courseId != null) {
+            courseService.ensureExerciseBelongsToCourse(card.getId(), courseId);
         }
 
         exerciseService.saveExerciseCard(card);

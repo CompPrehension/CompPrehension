@@ -8,7 +8,9 @@ import org.springframework.security.access.AuthorizationServiceException;
 import org.springframework.stereotype.Controller;
 import org.springframework.web.bind.annotation.RequestMapping;
 import org.springframework.web.bind.annotation.RequestMethod;
+import org.springframework.web.bind.annotation.RequestParam;
 import org.springframework.web.bind.annotation.ResponseBody;
+import org.vstu.compprehension.Service.CourseService;
 import org.vstu.compprehension.Service.FrontendService;
 import org.vstu.compprehension.Service.UserService;
 import org.vstu.compprehension.dto.ExerciseAttemptDto;
@@ -24,13 +26,15 @@ import java.util.List;
 @Log4j2
 public class ExerciseController {
     private final FrontendService frontendService;
+    private final CourseService courseService;
     private final UserService userService;
     private final ExerciseRepository exerciseRepository;
 
     @Autowired
-    public ExerciseController(FrontendService frontendService, UserService userService,
+    public ExerciseController(FrontendService frontendService, CourseService courseService, UserService userService,
                               ExerciseRepository exerciseRepository) {
         this.frontendService = frontendService;
+        this.courseService = courseService;
         this.userService = userService;
         this.exerciseRepository = exerciseRepository;
     }
@@ -53,7 +57,12 @@ public class ExerciseController {
      */
     @RequestMapping(value = {"shortInfo"}, method = { RequestMethod.GET })
     @ResponseBody
-    public ExerciseInfoDto getExerciseShortInfo(long id, HttpServletRequest request) throws Exception {
+    public ExerciseInfoDto getExerciseShortInfo(@RequestParam long id,
+                                                @RequestParam(value = "courseId", required = false) Long courseId,
+                                                HttpServletRequest request) throws Exception {
+        if (courseId != null) {
+            courseService.ensureExerciseBelongsToCourse(id, courseId);
+        }
         var exercise = exerciseRepository.findById(id).orElseThrow();
         return new ExerciseInfoDto(id, exercise.getOptions());
     }
@@ -66,13 +75,14 @@ public class ExerciseController {
      */
     @RequestMapping(value = {"getExerciseStatistics"}, method = { RequestMethod.GET })
     @ResponseBody
-    public ExerciseStatisticsItemDto[] getExerciseStatistics(Long exerciseId) {
-        return frontendService.getExerciseStatistics(exerciseId);
+    public ExerciseStatisticsItemDto[] getExerciseStatistics(@RequestParam Long exerciseId,
+                                                             @RequestParam(value = "courseId", required = false) Long courseId) {
+        return frontendService.getExerciseStatistics(exerciseId, courseId);
     }
 
     @RequestMapping(value = {"getExerciseAttempt"}, method = { RequestMethod.GET })
     @ResponseBody
-    public @NotNull ExerciseAttemptDto getExerciseAttempt(Long attemptId, HttpServletRequest request) throws Exception {
+    public @NotNull ExerciseAttemptDto getExerciseAttempt(@RequestParam Long attemptId, HttpServletRequest request) throws Exception {
         var userId = userService.getCurrentUser().getId();
         var result = frontendService.getExerciseAttempt(attemptId);
         if (result == null) {
@@ -93,27 +103,28 @@ public class ExerciseController {
      */
     @RequestMapping(value = {"getExistingExerciseAttempt"}, method = { RequestMethod.GET })
     @ResponseBody
-    public ExerciseAttemptDto getExistingExerciseAttempt(Long exerciseId, HttpServletRequest request) throws Exception {
+    public ExerciseAttemptDto getExistingExerciseAttempt(@RequestParam Long exerciseId,
+                                                         @RequestParam(value = "courseId", required = false) Long courseId,
+                                                         HttpServletRequest request) throws Exception {
         var userId = userService.getCurrentUser().getId();
-        return frontendService.getExistingExerciseAttempt(exerciseId, userId);
+        return frontendService.getExistingExerciseAttempt(exerciseId, userId, courseId);
     }
 
-    /**
-     * Create exercise attempt for current user.
-     * LTI-контекст (lineitemUrl/contextId) подхватывается из текущей сессии
-     * внутри FrontendService через {@link org.vstu.compprehension.Service.LtiContextProvider}.
-     */
     @RequestMapping(value = {"createExerciseAttempt"}, method = { RequestMethod.GET })
     @ResponseBody
-    public ExerciseAttemptDto createExerciseAttempt(Long exerciseId, HttpServletRequest request) throws Exception {
+    public ExerciseAttemptDto createExerciseAttempt(@RequestParam Long exerciseId,
+                                                    @RequestParam(value = "courseId", required = false) Long courseId,
+                                                    HttpServletRequest request) throws Exception {
         var userId = userService.getCurrentUser().getId();
-        return frontendService.createExerciseAttempt(exerciseId, userId);
+        return frontendService.createExerciseAttempt(exerciseId, userId, courseId);
     }
 
     @RequestMapping(value = {"createDebugExerciseAttempt"}, method = { RequestMethod.GET })
     @ResponseBody
-    public ExerciseAttemptDto createDebugExerciseAttempt(Long exerciseId, HttpServletRequest request) throws Exception {
+    public ExerciseAttemptDto createDebugExerciseAttempt(@RequestParam Long exerciseId,
+                                                         @RequestParam(value = "courseId", required = false) Long courseId,
+                                                         HttpServletRequest request) throws Exception {
         var userId = userService.getCurrentUser().getId();
-        return frontendService.createSolvedExerciseAttempt(exerciseId, userId);
+        return frontendService.createSolvedExerciseAttempt(exerciseId, userId, courseId);
     }
 }

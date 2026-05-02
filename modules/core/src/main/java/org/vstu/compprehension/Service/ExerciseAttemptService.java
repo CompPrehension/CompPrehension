@@ -7,6 +7,8 @@ import org.springframework.transaction.annotation.Transactional;
 import org.vstu.compprehension.models.entities.EnumData.AttemptStatus;
 import org.vstu.compprehension.models.entities.EnumData.Decision;
 import org.vstu.compprehension.models.entities.ExerciseAttemptEntity;
+import org.vstu.compprehension.models.entities.course.CourseEntity;
+import org.vstu.compprehension.models.entities.course.ExerciseCourseEntity;
 import org.vstu.compprehension.models.repository.ExerciseAttemptRepository;
 import org.vstu.compprehension.models.repository.UserRepository;
 
@@ -19,35 +21,52 @@ public class ExerciseAttemptService {
     private final UserRepository userRepository;
     private final LtiContextProvider ltiContextProvider;
     private final GradePassbackService gradePassbackService;
+    private final CourseService courseService;
 
     public ExerciseAttemptService(ExerciseAttemptRepository exerciseAttemptRepository,
                                   ExerciseService exerciseService,
                                   UserRepository userRepository,
                                   LtiContextProvider ltiContextProvider,
-                                  GradePassbackService gradePassbackService) {
+                                  GradePassbackService gradePassbackService,
+                                  CourseService courseService) {
         this.exerciseAttemptRepository = exerciseAttemptRepository;
         this.exerciseService = exerciseService;
         this.userRepository = userRepository;
         this.ltiContextProvider = ltiContextProvider;
         this.gradePassbackService = gradePassbackService;
+        this.courseService = courseService;
     }
 
     @Transactional(propagation = Propagation.REQUIRED)
-    public ExerciseAttemptEntity createNewAttempt(@NotNull Long exerciseId, @NotNull Long userId) {
-        exerciseAttemptRepository.changeExistingAttemptsStatus(exerciseId, userId, AttemptStatus.INCOMPLETE, AttemptStatus.COMPLETED_BY_SYSTEM);
+    public ExerciseAttemptEntity createNewAttempt(@NotNull Long exerciseId, @NotNull Long userId, Long courseId) {
+        CourseEntity course = null;
+        if (courseId != null) {
+            ExerciseCourseEntity exerciseCourse = courseService.findExerciseCourseRelation(exerciseId, courseId)
+                    .orElseThrow(() -> new IllegalArgumentException(
+                            "Exercise " + exerciseId + " is not linked with course " + courseId));
+            course = exerciseCourse.getCourse();
+            exerciseAttemptRepository.changeExistingAttemptsStatusByCourse(
+                    exerciseId, courseId, userId, AttemptStatus.INCOMPLETE, AttemptStatus.COMPLETED_BY_SYSTEM);
+        } else {
+            exerciseAttemptRepository.changeExistingAttemptsStatus(
+                    exerciseId, userId, AttemptStatus.INCOMPLETE, AttemptStatus.COMPLETED_BY_SYSTEM);
+        }
 
         var exercise = exerciseService.getExercise(exerciseId);
         var user = userRepository.findById(userId).orElseThrow();
 
         var ea = new ExerciseAttemptEntity();
         ea.setExercise(exercise);
+        ea.setCourse(course);
         ea.setUser(user);
         ea.setAttemptStatus(AttemptStatus.INCOMPLETE);
         ea.setQuestions(new ArrayList<>());
 
         ltiContextProvider.getCurrentLtiContext().ifPresent(ctx -> {
             ea.setLtiLineitemUrl(ctx.lineitemUrl());
-            ea.setLtiContextId(ctx.contextId());
+            if (ctx.course() != null) {
+                ea.setLtiContextId(ctx.course().courseId());
+            }
         });
 
         exerciseAttemptRepository.save(ea);
