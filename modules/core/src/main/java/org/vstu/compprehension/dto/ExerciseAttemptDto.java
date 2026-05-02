@@ -10,6 +10,7 @@ public class ExerciseAttemptDto {
     private Long userId;
     private Long attemptId;
     private Long exerciseId;
+    private Long courseId;
     private AttemptStatus status;
     private Long[] questionIds;
 }

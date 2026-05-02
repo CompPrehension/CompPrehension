@@ -7,6 +7,7 @@ import lombok.ToString;
 import org.hibernate.annotations.CreationTimestamp;
 import org.hibernate.annotations.UpdateTimestamp;
 import org.vstu.compprehension.models.entities.EnumData.AttemptStatus;
+import org.vstu.compprehension.models.entities.course.CourseEntity;
 import org.vstu.compprehension.models.entities.exercise.ExerciseEntity;
 
 import java.util.Date;
@@ -37,6 +38,11 @@ public class ExerciseAttemptEntity {
     @ManyToOne
     @JoinColumn(name = "exercise_id", nullable = false)
     private ExerciseEntity exercise;
+
+    @ToString.Exclude
+    @ManyToOne
+    @JoinColumn(name = "course_id", foreignKey = @ForeignKey(name = "fk_exercise_attempt_course"))
+    private CourseEntity course;
 
     @ToString.Exclude
     @ManyToOne
