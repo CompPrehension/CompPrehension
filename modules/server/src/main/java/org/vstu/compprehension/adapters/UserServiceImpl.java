@@ -9,10 +9,15 @@ import org.springframework.security.core.GrantedAuthority;
 import org.springframework.security.core.context.SecurityContextHolder;
 import org.springframework.security.oauth2.core.oidc.OidcIdToken;
 import org.springframework.security.oauth2.core.oidc.user.OidcUser;
+import org.vstu.compprehension.Service.EducationResourceService;
+import org.vstu.compprehension.Service.ExternalAccountService;
+import org.vstu.compprehension.Service.LtiContextProvider;
 import org.vstu.compprehension.Service.UserService;
 import org.vstu.compprehension.models.entities.EnumData.Language;
 import org.vstu.compprehension.models.entities.EnumData.Role;
 import org.vstu.compprehension.models.entities.UserEntity;
+import org.vstu.compprehension.models.entities.course.EducationResourceEntity;
+import org.vstu.compprehension.models.entities.course.ExternalAccountEntity;
 import org.vstu.compprehension.models.repository.UserRepository;
 
 import java.util.*;
@@ -25,9 +30,18 @@ public class UserServiceImpl implements UserService {
     private static final String LTI_VERSION_1_3 = "1.3.0";
 
     private final UserRepository userRepository;
+    private final EducationResourceService educationResourceService;
+    private final ExternalAccountService externalAccountService;
+    private final LtiContextProvider ltiContextProvider;
 
-    public UserServiceImpl(UserRepository userRepository) {
+    public UserServiceImpl(UserRepository userRepository,
+                           EducationResourceService educationResourceService,
+                           ExternalAccountService externalAccountService,
+                           LtiContextProvider ltiContextProvider) {
         this.userRepository = userRepository;
+        this.educationResourceService = educationResourceService;
+        this.externalAccountService = externalAccountService;
+        this.ltiContextProvider = ltiContextProvider;
     }
 
     public UserEntity getCurrentUser() throws Exception {
@@ -75,6 +89,19 @@ public class UserServiceImpl implements UserService {
             entity.setExternalUserId(parsedIdToken.getSubject());
         }
         entity = userRepository.save(entity);
+
+        if (isLti) {
+            UserEntity savedUser = entity;
+            ltiContextProvider.getCurrentLtiContext().ifPresent(ctx -> {
+                EducationResourceEntity eduRes = educationResourceService.findByUrlAndType(ctx.lmsUrl(), ctx.lmsType())
+                        .orElseGet(() -> educationResourceService.saveOrGetExisting(
+                                new EducationResourceEntity(ctx.lmsUrl(), ctx.lmsType())));
+                externalAccountService.findByUserAndEducationResource(savedUser.getId(), eduRes.getId())
+                        .orElseGet(() -> externalAccountService.saveOrGetExisting(
+                                new ExternalAccountEntity(savedUser, eduRes, parsedIdToken.getSubject())));
+            });
+        }
+
         return entity;
     }
 
@@ -102,7 +129,7 @@ public class UserServiceImpl implements UserService {
         if (!(principal instanceof OidcUser)) {
             throw new Exception("Unexpected authorized user format");
         }
-        var parsedIdToken = ((OidcUser)principal).getIdToken();
+        var parsedIdToken = ((OidcUser) principal).getIdToken();
         if (parsedIdToken == null) {
             throw new Exception("No id_token found");
         }
@@ -136,8 +163,6 @@ public class UserServiceImpl implements UserService {
         }
         return Set.of(Role.STUDENT);
     }
-
-
 
 
     /**
