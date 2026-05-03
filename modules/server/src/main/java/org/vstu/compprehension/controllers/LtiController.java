@@ -33,7 +33,7 @@ import org.springframework.web.bind.annotation.ResponseBody;
 import org.apache.commons.lang3.tuple.Pair;
 import org.vstu.compprehension.Service.CourseService;
 import org.vstu.compprehension.Service.EducationResourceService;
-import org.vstu.compprehension.Service.LtiContextInitializer;
+import org.vstu.compprehension.service.lti.LtiContextInitializer;
 import org.vstu.compprehension.Service.LtiContextProvider;
 import org.vstu.compprehension.common.StringHelper;
 import org.vstu.compprehension.config.LtiRegistrationsProperties;

@@ -1,4 +1,4 @@
-package org.vstu.compprehension.Service;
+package org.vstu.compprehension.service.lti;
 
 import java.util.Map;
 
