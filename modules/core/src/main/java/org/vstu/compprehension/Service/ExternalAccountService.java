@@ -18,7 +18,7 @@ public class ExternalAccountService {
 
     @Transactional(readOnly = true)
     public Optional<ExternalAccountEntity> findByUserAndEducationResource(Long userId, Long educationResourceId) {
-        return repository.findByUser_IdAndEducationResource_Id(userId, educationResourceId);
+        return repository.findByUserIdAndEducationResourceId(userId, educationResourceId);
     }
 
     @Transactional(propagation = Propagation.REQUIRES_NEW)
@@ -26,7 +26,7 @@ public class ExternalAccountService {
         try {
             return repository.saveAndFlush(entity);
         } catch (DataIntegrityViolationException e) {
-            return repository.findByUser_IdAndEducationResource_Id(
+            return repository.findByUserIdAndEducationResourceId(
                             entity.getUser().getId(), entity.getEducationResource().getId())
                     .orElseThrow(() -> new IllegalStateException(
                             "Failed to saveOrGetExisting ExternalAccount and could not find existing one", e));

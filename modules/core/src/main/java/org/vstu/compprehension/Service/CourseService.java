@@ -27,7 +27,7 @@ public class CourseService {
 
     @Transactional(readOnly = true)
     public Optional<CourseEntity> findByExternalIdAndResourceId(String externalCourseId, Long educationResourceId) {
-        return courseRepository.findByExternalCourseIdAndEducationResource_Id(externalCourseId, educationResourceId);
+        return courseRepository.findByExternalCourseIdAndEducationResourceId(externalCourseId, educationResourceId);
     }
 
     @Transactional(propagation = Propagation.REQUIRES_NEW)
@@ -35,7 +35,7 @@ public class CourseService {
         try {
             return courseRepository.saveAndFlush(course);
         } catch (DataIntegrityViolationException e) {
-            return courseRepository.findByExternalCourseIdAndEducationResource_Id(
+            return courseRepository.findByExternalCourseIdAndEducationResourceId(
                             course.getExternalCourseId(), course.getEducationResource().getId()
                     )
                     .orElseThrow(() -> new IllegalStateException(

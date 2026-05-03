@@ -9,5 +9,5 @@ import java.util.Optional;
 
 @Repository
 public interface ExternalAccountRepository extends JpaRepository<ExternalAccountEntity, ExternalAccountId> {
-    Optional<ExternalAccountEntity> findByUser_IdAndEducationResource_Id(Long userId, Long educationResourceId);
+    Optional<ExternalAccountEntity> findByUserIdAndEducationResourceId(Long userId, Long educationResourceId);
 }
