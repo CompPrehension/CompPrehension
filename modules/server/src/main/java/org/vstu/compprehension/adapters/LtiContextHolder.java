@@ -2,7 +2,7 @@ package org.vstu.compprehension.adapters;
 
 import org.springframework.stereotype.Component;
 import org.springframework.web.context.annotation.SessionScope;
-import org.vstu.compprehension.Service.LtiContextInitializer;
+import org.vstu.compprehension.service.lti.LtiContextInitializer;
 import org.vstu.compprehension.Service.LtiContextProvider;
 import org.vstu.compprehension.models.businesslogic.lti.LtiContext;
 import org.vstu.compprehension.models.businesslogic.lti.LtiCourseContext;
