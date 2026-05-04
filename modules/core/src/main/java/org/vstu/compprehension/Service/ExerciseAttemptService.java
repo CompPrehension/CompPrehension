@@ -8,7 +8,7 @@ import org.vstu.compprehension.models.entities.EnumData.AttemptStatus;
 import org.vstu.compprehension.models.entities.EnumData.Decision;
 import org.vstu.compprehension.models.entities.ExerciseAttemptEntity;
 import org.vstu.compprehension.models.entities.course.CourseEntity;
-import org.vstu.compprehension.models.entities.course.ExerciseCourseEntity;
+import org.vstu.compprehension.models.entities.course.ExerciseCourseLinkEntity;
 import org.vstu.compprehension.models.repository.ExerciseAttemptRepository;
 import org.vstu.compprehension.models.repository.UserRepository;
 
@@ -41,7 +41,7 @@ public class ExerciseAttemptService {
     public ExerciseAttemptEntity createNewAttempt(@NotNull Long exerciseId, @NotNull Long userId, Long courseId) {
         CourseEntity course = null;
         if (courseId != null) {
-            ExerciseCourseEntity exerciseCourse = courseService.findExerciseCourseRelation(exerciseId, courseId)
+            ExerciseCourseLinkEntity exerciseCourse = courseService.findExerciseCourseLink(exerciseId, courseId)
                     .orElseThrow(() -> new IllegalArgumentException(
                             "Exercise " + exerciseId + " is not linked with course " + courseId));
             course = exerciseCourse.getCourse();

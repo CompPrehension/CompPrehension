@@ -2,16 +2,16 @@ package org.vstu.compprehension.Service;
 
 import lombok.RequiredArgsConstructor;
 import lombok.extern.log4j.Log4j2;
-import org.apache.commons.lang3.tuple.Pair;
 import org.springframework.dao.DataIntegrityViolationException;
 import org.springframework.orm.jpa.JpaObjectRetrievalFailureException;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Propagation;
 import org.springframework.transaction.annotation.Transactional;
 import org.vstu.compprehension.models.entities.course.CourseEntity;
-import org.vstu.compprehension.models.entities.course.ExerciseCourseEntity;
+import org.vstu.compprehension.models.entities.course.ExerciseCourseLinkEntity;
+import org.vstu.compprehension.models.entities.course.ExerciseCourseLinkId;
 import org.vstu.compprehension.models.repository.CourseRepository;
-import org.vstu.compprehension.models.repository.ExerciseCourseRepository;
+import org.vstu.compprehension.models.repository.ExerciseCourseLinkRepository;
 import org.vstu.compprehension.models.repository.ExerciseRepository;
 
 import java.util.Optional;
@@ -23,7 +23,7 @@ public class CourseService {
 
     private final CourseRepository courseRepository;
     private final ExerciseRepository exerciseRepository;
-    private final ExerciseCourseRepository exerciseCourseRepository;
+    private final ExerciseCourseLinkRepository exerciseCourseLinkRepository;
 
     @Transactional(readOnly = true)
     public Optional<CourseEntity> findByExternalIdAndResourceId(String externalCourseId, Long educationResourceId) {
@@ -66,16 +66,13 @@ public class CourseService {
     }
 
     @Transactional(readOnly = true)
-    public Optional<ExerciseCourseEntity> findExerciseCourseRelation(Long exerciseId, Long courseId) {
-        if (exerciseId == null || courseId == null) {
-            return Optional.empty();
-        }
-        return exerciseCourseRepository.findByExercise_IdAndCourse_Id(exerciseId, courseId);
+    public Optional<ExerciseCourseLinkEntity> findExerciseCourseLink(long exerciseId, long courseId) {
+        return exerciseCourseLinkRepository.findById(new ExerciseCourseLinkId(exerciseId, courseId));
     }
 
     @Transactional(readOnly = true)
-    public void ensureExerciseBelongsToCourse(Long exerciseId, Long courseId) {
-        findExerciseCourseRelation(exerciseId, courseId).orElseThrow(() -> new IllegalStateException(String.format(
+    public void ensureExerciseBelongsToCourse(long exerciseId, long courseId) {
+        findExerciseCourseLink(exerciseId, courseId).orElseThrow(() -> new IllegalStateException(String.format(
                 "There is no relation between the course (id=%s) and the exercise (id=%s)", courseId, exerciseId
         )));
     }
