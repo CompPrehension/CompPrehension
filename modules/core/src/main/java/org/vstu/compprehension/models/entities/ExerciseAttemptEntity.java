@@ -41,7 +41,7 @@ public class ExerciseAttemptEntity {
 
     @ToString.Exclude
     @ManyToOne
-    @JoinColumn(name = "course_id", foreignKey = @ForeignKey(name = "fk_exercise_attempt_course"))
+    @JoinColumn(name = "course_id", nullable = true)
     private CourseEntity course;
 
     @ToString.Exclude
