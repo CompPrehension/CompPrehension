@@ -190,13 +190,13 @@ public class LtiController {
             throw new IllegalArgumentException("Absent information on the contextId");
 
         EducationResourceEntity eduResource = educationResourceService.findByUrlAndType(ctx.lmsUrl(), ctx.lmsType())
-                .orElseGet(() -> educationResourceService.saveOrGetExisting(
+                .orElseGet(() -> educationResourceService.createOrGetExisting(
                         new EducationResourceEntity(ctx.lmsUrl(), ctx.lmsType())));
 
         String externalCourseId = ltiCourse.courseId();
         String courseName = ltiCourse.courseName() != null ? ltiCourse.courseName() : "id_" + externalCourseId;
         CourseEntity course = courseService.findByExternalIdAndResourceId(externalCourseId, eduResource.getId())
-                .orElseGet(() -> courseService.saveOrGetExisting(
+                .orElseGet(() -> courseService.createOrGetExisting(
                         new CourseEntity(externalCourseId, courseName, eduResource)
                 ));
 

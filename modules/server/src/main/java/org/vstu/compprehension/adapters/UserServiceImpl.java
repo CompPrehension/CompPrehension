@@ -94,10 +94,10 @@ public class UserServiceImpl implements UserService {
             UserEntity savedUser = entity;
             ltiContextProvider.getCurrentLtiContext().ifPresent(ctx -> {
                 EducationResourceEntity eduRes = educationResourceService.findByUrlAndType(ctx.lmsUrl(), ctx.lmsType())
-                        .orElseGet(() -> educationResourceService.saveOrGetExisting(
+                        .orElseGet(() -> educationResourceService.createOrGetExisting(
                                 new EducationResourceEntity(ctx.lmsUrl(), ctx.lmsType())));
                 externalAccountService.findByUserAndEducationResource(savedUser.getId(), eduRes.getId())
-                        .orElseGet(() -> externalAccountService.saveOrGetExisting(
+                        .orElseGet(() -> externalAccountService.createOrGetExisting(
                                 new ExternalAccountEntity(savedUser, eduRes, parsedIdToken.getSubject())));
             });
         }
