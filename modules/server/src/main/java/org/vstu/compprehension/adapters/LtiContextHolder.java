@@ -32,10 +32,6 @@ public class LtiContextHolder implements LtiContextProvider, LtiContextInitializ
     @Override
     public void init(Map<String, Object> claims) {
 
-        if (null != context) {
-            throw new IllegalStateException("LtiContextHolder has already been initialized");
-        }
-
         String issuer = (String) claims.get("iss");
         String lmsUrl = issuer != null ? URI.create(issuer).getAuthority() : null;
 
