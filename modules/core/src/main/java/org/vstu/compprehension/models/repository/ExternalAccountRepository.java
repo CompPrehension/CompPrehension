@@ -5,9 +5,6 @@ import org.springframework.stereotype.Repository;
 import org.vstu.compprehension.models.entities.course.ExternalAccountEntity;
 import org.vstu.compprehension.models.entities.course.ExternalAccountId;
 
-import java.util.Optional;
-
 @Repository
 public interface ExternalAccountRepository extends JpaRepository<ExternalAccountEntity, ExternalAccountId> {
-    Optional<ExternalAccountEntity> findByUserIdAndEducationResourceId(Long userId, Long educationResourceId);
 }
