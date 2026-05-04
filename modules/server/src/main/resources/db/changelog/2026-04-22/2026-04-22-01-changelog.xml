@@ -35,15 +35,14 @@
                     FOREIGN KEY (education_resource_id) REFERENCES education_resource(id)
             );
 
-            CREATE TABLE exercise_course (
-                id          BIGINT AUTO_INCREMENT PRIMARY KEY,
+            CREATE TABLE exercise_course_link (
                 exercise_id BIGINT NOT NULL,
                 course_id   BIGINT NOT NULL,
-                CONSTRAINT fk_exercise_course_exercise
+                CONSTRAINT pk_exercise_course_link PRIMARY KEY (exercise_id, course_id),
+                CONSTRAINT fk_exercise_course_link_exercise
                     FOREIGN KEY (exercise_id) REFERENCES exercise(id),
-                CONSTRAINT fk_exercise_course_course
-                    FOREIGN KEY (course_id) REFERENCES course(id),
-                CONSTRAINT ux_exercise_course_pair UNIQUE (exercise_id, course_id)
+                CONSTRAINT fk_exercise_course_link_course
+                    FOREIGN KEY (course_id) REFERENCES course(id)
             );
 
             ALTER TABLE exercise_attempt ADD COLUMN course_id BIGINT;
