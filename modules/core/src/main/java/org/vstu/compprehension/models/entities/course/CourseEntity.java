@@ -28,11 +28,7 @@ public class CourseEntity {
     private String externalCourseId;
 
     @ManyToOne(optional = false)
-    @JoinColumn(
-        name = "education_resource_id",
-        nullable = false,
-        foreignKey = @ForeignKey(name = "fk_course_education_resource")
-    )
+    @JoinColumn(name = "education_resource_id", nullable = false)
     private EducationResourceEntity educationResource;
 
     public CourseEntity(String externalCourseId, String name, EducationResourceEntity educationResource) {
