@@ -43,40 +43,21 @@ public class CourseService {
         }
     }
 
-    /**
-     * @return пара (связь exercise-course, true если связь была создана / false если уже существовала)
-     */
     @Transactional(propagation = Propagation.REQUIRES_NEW)
-    public Pair<ExerciseCourseEntity, Boolean> linkExerciseWithCourseIfMissing(Long exerciseId, Long courseId) {
-        if (exerciseId == null || courseId == null) {
-            throw new IllegalArgumentException("exerciseId and courseId must be non-null");
-        }
-        var existing = findExerciseCourseRelation(exerciseId, courseId);
-        if (existing.isPresent()) {
-            return Pair.of(existing.get(), false);
-        }
+    public void linkExerciseWithCourseIfMissing(long exerciseId, long courseId) {
         try {
-            ExerciseCourseEntity saved = exerciseCourseRepository.saveAndFlush(new ExerciseCourseEntity(
+            exerciseCourseLinkRepository.saveAndFlush(new ExerciseCourseLinkEntity(
                     courseRepository.getReferenceById(courseId),
                     exerciseRepository.getReferenceById(exerciseId)
             ));
             log.info("Linked exercise {} to course {}", exerciseId, courseId);
-            return Pair.of(saved, true);
         } catch (JpaObjectRetrievalFailureException e) {
-            // getReferenceById вернул прокси на несуществующую сущность;
-            // сообщение cause содержит имя класса и id (Hibernate: "Unable to find XxxEntity with id N")
             throw new IllegalArgumentException(String.format(
                     "Cannot link exercise %d with course %d: entity not found - %s",
                     exerciseId, courseId, e.getCause() != null ? e.getCause().getMessage() : e.getMessage()
             ), e);
         } catch (DataIntegrityViolationException e) {
-            return Pair.of(
-                    findExerciseCourseRelation(exerciseId, courseId)
-                            .orElseThrow(() -> new IllegalStateException(String.format(
-                                    "Failed to link exercise %d with course %d", exerciseId, courseId), e)
-                            ),
-                    false
-            );
+            log.debug("Exercise {} already linked to course {}, skipping", exerciseId, courseId);
         }
     }
 
