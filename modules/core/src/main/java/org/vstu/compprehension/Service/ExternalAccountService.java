@@ -1,4 +1,4 @@
-﻿package org.vstu.compprehension.Service;
+package org.vstu.compprehension.Service;
 
 import lombok.RequiredArgsConstructor;
 import org.springframework.stereotype.Service;

@@ -1,4 +1,4 @@
-﻿package org.vstu.compprehension.models.repository;
+package org.vstu.compprehension.models.repository;
 
 import org.springframework.data.jpa.repository.JpaRepository;
 import org.springframework.data.jpa.repository.Modifying;
