@@ -13,7 +13,7 @@ import org.vstu.compprehension.models.entities.UserEntity;
 @Table(name = "external_account")
 public class ExternalAccountEntity {
     @EmbeddedId
-    private ExternalAccountId id = new ExternalAccountId();
+    private ExternalAccountId id;
 
     @MapsId("userId")
     @ManyToOne(fetch = FetchType.LAZY, optional = false)
