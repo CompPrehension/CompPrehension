@@ -17,6 +17,7 @@ import org.vstu.compprehension.dto.ExerciseAttemptDto;
 import org.vstu.compprehension.dto.ExerciseDto;
 import org.vstu.compprehension.dto.ExerciseInfoDto;
 import org.vstu.compprehension.dto.ExerciseStatisticsItemDto;
+import org.vstu.compprehension.models.entities.exercise.ExerciseEntity;
 import org.vstu.compprehension.models.repository.ExerciseRepository;
 
 import java.util.List;
@@ -60,10 +61,12 @@ public class ExerciseController {
     public ExerciseInfoDto getExerciseShortInfo(@RequestParam long id,
                                                 @RequestParam(value = "courseId", required = false) Long courseId,
                                                 HttpServletRequest request) throws Exception {
+        ExerciseEntity exercise;
         if (courseId != null) {
-            courseService.findExerciseCourseLinkOrThrow(id, courseId);
+            exercise = courseService.findExerciseCourseLinkOrThrow(id, courseId).getExercise();
+        } else {
+            exercise = exerciseRepository.findById(id).orElseThrow();
         }
-        var exercise = exerciseRepository.findById(id).orElseThrow();
         return new ExerciseInfoDto(id, exercise.getOptions());
     }
 
