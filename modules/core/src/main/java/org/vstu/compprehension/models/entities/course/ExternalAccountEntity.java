@@ -17,18 +17,12 @@ public class ExternalAccountEntity {
 
     @MapsId("userId")
     @ManyToOne(fetch = FetchType.LAZY, optional = false)
-    @JoinColumn(
-        name = "user_id",
-        foreignKey = @ForeignKey(name = "fk_external_account_user")
-    )
+    @JoinColumn(name = "user_id")
     private UserEntity user;
 
     @MapsId("educationResourceId")
     @ManyToOne(fetch = FetchType.LAZY, optional = false)
-    @JoinColumn(
-        name = "education_resource_id",
-        foreignKey = @ForeignKey(name = "fk_external_account_education_resource")
-    )
+    @JoinColumn(name = "education_resource_id")
     private EducationResourceEntity educationResource;
 
     @Column(name = "external_id", nullable = false, length = 255)
