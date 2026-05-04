@@ -23,13 +23,18 @@ public class EducationResourceService {
     }
 
     @Transactional(propagation = Propagation.REQUIRES_NEW)
-    public EducationResourceEntity saveOrGetExisting(EducationResourceEntity entity) {
+    public EducationResourceEntity createOrGetExisting(EducationResourceEntity entity) {
+        if (entity.getId() != null) {
+            throw new IllegalArgumentException("Use save() to update existing EducationResourceEntity");
+        }
+        String url = entity.getUrl();
+        EducationResourceType type = entity.getType();
         try {
             return repository.saveAndFlush(entity);
         } catch (DataIntegrityViolationException e) {
-            return repository.findByUrlAndType(entity.getUrl(), entity.getType())
+            return repository.findByUrlAndType(url, type)
                     .orElseThrow(() -> new IllegalStateException(
-                            "Failed to saveOrGetExisting EducationResource and could not find existing one", e));
+                            "Failed to createOrGetExisting EducationResource and could not find existing one", e));
         }
     }
 }

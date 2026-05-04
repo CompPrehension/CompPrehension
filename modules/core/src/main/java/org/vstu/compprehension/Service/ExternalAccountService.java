@@ -22,14 +22,19 @@ public class ExternalAccountService {
     }
 
     @Transactional(propagation = Propagation.REQUIRES_NEW)
-    public ExternalAccountEntity saveOrGetExisting(ExternalAccountEntity entity) {
+    public ExternalAccountEntity createOrGetExisting(ExternalAccountEntity account) {
+        if (account.getId() != null) {
+            throw new IllegalArgumentException("Use save() to update existing ExternalAccountEntity");
+        }
+        Long userId = account.getUser().getId();
+        Long resourceId = account.getEducationResource().getId();
         try {
-            return repository.saveAndFlush(entity);
+            return repository.saveAndFlush(account);
         } catch (DataIntegrityViolationException e) {
-            return repository.findByUserIdAndEducationResourceId(
-                            entity.getUser().getId(), entity.getEducationResource().getId())
+            return findByUserAndEducationResource(userId, resourceId)
                     .orElseThrow(() -> new IllegalStateException(
-                            "Failed to saveOrGetExisting ExternalAccount and could not find existing one", e));
+                            "Failed to createOrGetExisting ExternalAccount and could not find existing one", e
+                    ));
         }
     }
 }

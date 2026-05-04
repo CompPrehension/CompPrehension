@@ -31,15 +31,19 @@ public class CourseService {
     }
 
     @Transactional(propagation = Propagation.REQUIRES_NEW)
-    public CourseEntity saveOrGetExisting(CourseEntity course) {
+    public CourseEntity createOrGetExisting(CourseEntity course) {
+        if (course.getId() != null) {
+            throw new IllegalArgumentException("Use save() to update existing CourseEntity");
+        }
+        String externalCourseId = course.getExternalCourseId();
+        Long educationResourceId = course.getEducationResource().getId();
         try {
             return courseRepository.saveAndFlush(course);
         } catch (DataIntegrityViolationException e) {
-            return courseRepository.findByExternalCourseIdAndEducationResourceId(
-                            course.getExternalCourseId(), course.getEducationResource().getId()
-                    )
+            return findByExternalIdAndResourceId(externalCourseId, educationResourceId)
                     .orElseThrow(() -> new IllegalStateException(
-                            "Failed to saveOrGetExisting Course and could not find existing one", e));
+                            "Failed to createOrGetExisting Course and could not find existing one", e
+                    ));
         }
     }
 
