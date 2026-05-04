@@ -28,20 +28,4 @@ public interface CourseRepository extends JpaRepository<CourseEntity, Long> {
             @Param("name") String name,
             @Param("educationResourceId") Long educationResourceId
     );
-
-    /**
-     * Inserts the entity only if it does not already exist.
-     *
-     * @return {@code true} if a new row was created, {@code false} if a row already existed
-     */
-    default boolean createIfAbsent(CourseEntity course) {
-        if (course.getId() != null) {
-            throw new IllegalArgumentException("Use save() to update existing CourseEntity");
-        }
-        return createIfAbsent(
-                course.getExternalCourseId(),
-                course.getName(),
-                course.getEducationResource().getId()
-        ) > 0;
-    }
 }

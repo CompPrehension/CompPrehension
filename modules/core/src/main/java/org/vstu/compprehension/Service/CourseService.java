@@ -26,10 +26,13 @@ public class CourseService {
     }
 
     @Transactional
-    public CourseEntity createOrGetExisting(CourseEntity course) {
-        courseRepository.createIfAbsent(course);
-        return courseRepository.findByExternalCourseIdAndEducationResourceId(
-                        course.getExternalCourseId(), course.getEducationResource().getId())
+    public CourseEntity createOrGetExisting(
+            String externalCourseId,
+            String name,
+            Long educationResourceId
+    ) {
+        courseRepository.createIfAbsent(externalCourseId, name, educationResourceId);
+        return courseRepository.findByExternalCourseIdAndEducationResourceId(externalCourseId, educationResourceId)
                 .orElseThrow(() -> new IllegalStateException("createIfAbsent: course not found after insert"));
     }
 

@@ -21,9 +21,9 @@ public class EducationResourceService {
     }
 
     @Transactional
-    public EducationResourceEntity createOrGetExisting(EducationResourceEntity entity) {
-        repository.createIfAbsent(entity);
-        return repository.findByUrlAndType(entity.getUrl(), entity.getType())
+    public EducationResourceEntity createOrGetExisting(String url, EducationResourceType type) {
+        repository.createIfAbsent(url, type.name());
+        return repository.findByUrlAndType(url, type)
                 .orElseThrow(() -> new IllegalStateException("createIfAbsent: entity not found after insert"));
     }
 }

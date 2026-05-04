@@ -179,7 +179,9 @@ public class LtiController {
         response.sendRedirect(redirectUrl);
     }
 
-    /** @return (exerciseId, courseId) */
+    /**
+     * @return (exerciseId, courseId)
+     */
     private Pair<Long, Long> resolveExerciseAndCourse(LtiContext ctx, Long fallbackExerciseId) {
         Long exerciseId = ctx.exerciseId() != null ? ctx.exerciseId() : fallbackExerciseId;
         if (exerciseId == null)
@@ -191,13 +193,14 @@ public class LtiController {
 
         EducationResourceEntity eduResource = educationResourceService.findByUrlAndType(ctx.lmsUrl(), ctx.lmsType())
                 .orElseGet(() -> educationResourceService.createOrGetExisting(
-                        new EducationResourceEntity(ctx.lmsUrl(), ctx.lmsType())));
+                        ctx.lmsUrl(), ctx.lmsType()
+                ));
 
         String externalCourseId = ltiCourse.courseId();
         String courseName = ltiCourse.courseName() != null ? ltiCourse.courseName() : "id_" + externalCourseId;
         CourseEntity course = courseService.findByExternalIdAndResourceId(externalCourseId, eduResource.getId())
                 .orElseGet(() -> courseService.createOrGetExisting(
-                        new CourseEntity(externalCourseId, courseName, eduResource)
+                        externalCourseId, courseName, eduResource.getId()
                 ));
 
         courseService.linkExerciseWithCourseIfMissing(exerciseId, course.getId());

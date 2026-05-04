@@ -25,16 +25,4 @@ public interface EducationResourceRepository extends JpaRepository<EducationReso
             VALUES (:url, :type)
             """, nativeQuery = true)
     int createIfAbsent(@Param("url") String url, @Param("type") String type);
-
-    /**
-     * Inserts the entity only if it does not already exist.
-     *
-     * @return {@code true} if a new row was created, {@code false} if a row already existed
-     */
-    default boolean createIfAbsent(EducationResourceEntity entity) {
-        if (entity.getId() != null) {
-            throw new IllegalArgumentException("Use save() to update existing EducationResourceEntity");
-        }
-        return createIfAbsent(entity.getUrl(), entity.getType().name()) > 0;
-    }
 }

@@ -21,11 +21,13 @@ public class ExternalAccountService {
     }
 
     @Transactional
-    public ExternalAccountEntity createOrGetExisting(ExternalAccountEntity account) {
-        repository.createIfAbsent(account);
-        Long userId = account.getUser().getId();
-        Long resourceId = account.getEducationResource().getId();
-        return repository.findById(new ExternalAccountId(userId, resourceId))
+    public ExternalAccountEntity createOrGetExisting(
+            Long userId,
+            Long educationResourceId,
+            String externalId
+    ) {
+        repository.createIfAbsent(userId, educationResourceId, externalId);
+        return repository.findById(new ExternalAccountId(userId, educationResourceId))
                 .orElseThrow(() -> new IllegalStateException("createIfAbsent: entity not found after insert"));
     }
 }

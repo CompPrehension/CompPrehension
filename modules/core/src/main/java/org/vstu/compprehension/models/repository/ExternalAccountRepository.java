@@ -26,20 +26,4 @@ public interface ExternalAccountRepository extends JpaRepository<ExternalAccount
             @Param("educationResourceId") Long educationResourceId,
             @Param("externalId") String externalId
     );
-
-    /**
-     * Inserts the entity only if it does not already exist.
-     *
-     * @return {@code true} if a new row was created, {@code false} if a row already existed
-     */
-    default boolean createIfAbsent(ExternalAccountEntity account) {
-        if (account.getId() != null) {
-            throw new IllegalArgumentException("Use save() to update existing ExternalAccountEntity");
-        }
-        return createIfAbsent(
-                account.getUser().getId(),
-                account.getEducationResource().getId(),
-                account.getExternalId()
-        ) > 0;
-    }
 }

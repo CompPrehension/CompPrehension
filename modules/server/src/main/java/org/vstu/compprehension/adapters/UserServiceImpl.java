@@ -96,13 +96,15 @@ public class UserServiceImpl implements UserService {
                 var eduRes = educationResourceService.findByUrlAndType(ctx.lmsUrl(), ctx.lmsType()).orElse(null);
                 if (eduRes == null) {
                     eduRes = educationResourceService.createOrGetExisting(
-                            new EducationResourceEntity(ctx.lmsUrl(), ctx.lmsType()));
+                            ctx.lmsUrl(), ctx.lmsType());
                 }
-                boolean externalAccountNonExists = externalAccountService
-                        .findByUserAndEducationResource(entity.getId(), eduRes.getId()).isEmpty();
+                boolean externalAccountNonExists = externalAccountService.findByUserAndEducationResource(
+                        entity.getId(), eduRes.getId()
+                ).isEmpty();
                 if (externalAccountNonExists) {
                     externalAccountService.createOrGetExisting(
-                            new ExternalAccountEntity(entity, eduRes, parsedIdToken.getSubject()));
+                            entity.getId(), eduRes.getId(), parsedIdToken.getSubject()
+                    );
                 }
             }
         }
