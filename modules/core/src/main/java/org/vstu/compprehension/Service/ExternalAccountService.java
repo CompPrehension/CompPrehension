@@ -6,6 +6,7 @@ import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Propagation;
 import org.springframework.transaction.annotation.Transactional;
 import org.vstu.compprehension.models.entities.course.ExternalAccountEntity;
+import org.vstu.compprehension.models.entities.course.ExternalAccountId;
 import org.vstu.compprehension.models.repository.ExternalAccountRepository;
 
 import java.util.Optional;
@@ -18,7 +19,7 @@ public class ExternalAccountService {
 
     @Transactional(readOnly = true)
     public Optional<ExternalAccountEntity> findByUserAndEducationResource(Long userId, Long educationResourceId) {
-        return repository.findByUserIdAndEducationResourceId(userId, educationResourceId);
+        return repository.findById(new ExternalAccountId(userId, educationResourceId));
     }
 
     @Transactional(propagation = Propagation.REQUIRES_NEW)
