@@ -1,9 +1,7 @@
-package org.vstu.compprehension.Service;
+﻿package org.vstu.compprehension.Service;
 
 import lombok.RequiredArgsConstructor;
-import org.springframework.dao.DataIntegrityViolationException;
 import org.springframework.stereotype.Service;
-import org.springframework.transaction.annotation.Propagation;
 import org.springframework.transaction.annotation.Transactional;
 import org.vstu.compprehension.models.entities.course.ExternalAccountEntity;
 import org.vstu.compprehension.models.entities.course.ExternalAccountId;
@@ -22,20 +20,13 @@ public class ExternalAccountService {
         return repository.findById(new ExternalAccountId(userId, educationResourceId));
     }
 
-    @Transactional(propagation = Propagation.REQUIRES_NEW)
+    @Transactional
     public ExternalAccountEntity createOrGetExisting(ExternalAccountEntity account) {
-        if (account.getId() != null) {
-            throw new IllegalArgumentException("Use save() to update existing ExternalAccountEntity");
-        }
+        repository.createIfAbsent(account);
         Long userId = account.getUser().getId();
         Long resourceId = account.getEducationResource().getId();
-        try {
-            return repository.saveAndFlush(account);
-        } catch (DataIntegrityViolationException e) {
-            return findByUserAndEducationResource(userId, resourceId)
-                    .orElseThrow(() -> new IllegalStateException(
-                            "Failed to createOrGetExisting ExternalAccount and could not find existing one", e
-                    ));
-        }
+        return repository.findById(new ExternalAccountId(userId, resourceId))
+                .orElseThrow(() -> new IllegalStateException("createIfAbsent: entity not found after insert"));
     }
 }
+

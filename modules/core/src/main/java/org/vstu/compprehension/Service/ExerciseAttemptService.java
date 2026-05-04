@@ -41,9 +41,7 @@ public class ExerciseAttemptService {
     public ExerciseAttemptEntity createNewAttempt(@NotNull Long exerciseId, @NotNull Long userId, Long courseId) {
         CourseEntity course = null;
         if (courseId != null) {
-            ExerciseCourseLinkEntity exerciseCourse = courseService.findExerciseCourseLink(exerciseId, courseId)
-                    .orElseThrow(() -> new IllegalArgumentException(
-                            "Exercise " + exerciseId + " is not linked with course " + courseId));
+            ExerciseCourseLinkEntity exerciseCourse = courseService.findExerciseCourseLinkOrThrow(exerciseId, courseId);
             course = exerciseCourse.getCourse();
             exerciseAttemptRepository.changeExistingAttemptsStatusByCourse(
                     exerciseId, courseId, userId, AttemptStatus.INCOMPLETE, AttemptStatus.COMPLETED_BY_SYSTEM);

@@ -1,9 +1,7 @@
-package org.vstu.compprehension.Service;
+﻿package org.vstu.compprehension.Service;
 
 import lombok.RequiredArgsConstructor;
-import org.springframework.dao.DataIntegrityViolationException;
 import org.springframework.stereotype.Service;
-import org.springframework.transaction.annotation.Propagation;
 import org.springframework.transaction.annotation.Transactional;
 import org.vstu.compprehension.models.entities.EnumData.EducationResourceType;
 import org.vstu.compprehension.models.entities.course.EducationResourceEntity;
@@ -22,19 +20,11 @@ public class EducationResourceService {
         return repository.findByUrlAndType(url, type);
     }
 
-    @Transactional(propagation = Propagation.REQUIRES_NEW)
+    @Transactional
     public EducationResourceEntity createOrGetExisting(EducationResourceEntity entity) {
-        if (entity.getId() != null) {
-            throw new IllegalArgumentException("Use save() to update existing EducationResourceEntity");
-        }
-        String url = entity.getUrl();
-        EducationResourceType type = entity.getType();
-        try {
-            return repository.saveAndFlush(entity);
-        } catch (DataIntegrityViolationException e) {
-            return repository.findByUrlAndType(url, type)
-                    .orElseThrow(() -> new IllegalStateException(
-                            "Failed to createOrGetExisting EducationResource and could not find existing one", e));
-        }
+        repository.createIfAbsent(entity);
+        return repository.findByUrlAndType(entity.getUrl(), entity.getType())
+                .orElseThrow(() -> new IllegalStateException("createIfAbsent: entity not found after insert"));
     }
 }
+

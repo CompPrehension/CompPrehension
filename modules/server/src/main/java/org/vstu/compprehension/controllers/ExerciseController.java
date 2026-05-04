@@ -61,7 +61,7 @@ public class ExerciseController {
                                                 @RequestParam(value = "courseId", required = false) Long courseId,
                                                 HttpServletRequest request) throws Exception {
         if (courseId != null) {
-            courseService.ensureExerciseBelongsToCourse(id, courseId);
+            courseService.findExerciseCourseLinkOrThrow(id, courseId);
         }
         var exercise = exerciseRepository.findById(id).orElseThrow();
         return new ExerciseInfoDto(id, exercise.getOptions());

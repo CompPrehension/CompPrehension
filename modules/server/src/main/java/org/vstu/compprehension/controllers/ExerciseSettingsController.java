@@ -35,7 +35,7 @@ public class ExerciseSettingsController {
             throw new AuthorizationServiceException("Unathorized");
         }
         if (courseId != null) {
-            courseService.ensureExerciseBelongsToCourse(id, courseId);
+            courseService.findExerciseCourseLinkOrThrow(id, courseId);
         }
         return exerciseService.getExerciseCard(id);
     }
@@ -49,7 +49,7 @@ public class ExerciseSettingsController {
             throw new AuthorizationServiceException("Unathorized");
         }
         if (courseId != null) {
-            courseService.ensureExerciseBelongsToCourse(card.getId(), courseId);
+            courseService.findExerciseCourseLinkOrThrow(card.getId(), courseId);
         }
 
         exerciseService.saveExerciseCard(card);

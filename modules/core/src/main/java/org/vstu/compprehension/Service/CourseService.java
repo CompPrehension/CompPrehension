@@ -1,18 +1,14 @@
-package org.vstu.compprehension.Service;
+﻿package org.vstu.compprehension.Service;
 
 import lombok.RequiredArgsConstructor;
 import lombok.extern.log4j.Log4j2;
-import org.springframework.dao.DataIntegrityViolationException;
-import org.springframework.orm.jpa.JpaObjectRetrievalFailureException;
 import org.springframework.stereotype.Service;
-import org.springframework.transaction.annotation.Propagation;
 import org.springframework.transaction.annotation.Transactional;
 import org.vstu.compprehension.models.entities.course.CourseEntity;
 import org.vstu.compprehension.models.entities.course.ExerciseCourseLinkEntity;
 import org.vstu.compprehension.models.entities.course.ExerciseCourseLinkId;
 import org.vstu.compprehension.models.repository.CourseRepository;
 import org.vstu.compprehension.models.repository.ExerciseCourseLinkRepository;
-import org.vstu.compprehension.models.repository.ExerciseRepository;
 
 import java.util.Optional;
 
@@ -22,7 +18,6 @@ import java.util.Optional;
 public class CourseService {
 
     private final CourseRepository courseRepository;
-    private final ExerciseRepository exerciseRepository;
     private final ExerciseCourseLinkRepository exerciseCourseLinkRepository;
 
     @Transactional(readOnly = true)
@@ -30,37 +25,20 @@ public class CourseService {
         return courseRepository.findByExternalCourseIdAndEducationResourceId(externalCourseId, educationResourceId);
     }
 
-    @Transactional(propagation = Propagation.REQUIRES_NEW)
+    @Transactional
     public CourseEntity createOrGetExisting(CourseEntity course) {
-        if (course.getId() != null) {
-            throw new IllegalArgumentException("Use save() to update existing CourseEntity");
-        }
-        String externalCourseId = course.getExternalCourseId();
-        Long educationResourceId = course.getEducationResource().getId();
-        try {
-            return courseRepository.saveAndFlush(course);
-        } catch (DataIntegrityViolationException e) {
-            return findByExternalIdAndResourceId(externalCourseId, educationResourceId)
-                    .orElseThrow(() -> new IllegalStateException(
-                            "Failed to createOrGetExisting Course and could not find existing one", e
-                    ));
-        }
+        courseRepository.createIfAbsent(course);
+        return courseRepository.findByExternalCourseIdAndEducationResourceId(
+                        course.getExternalCourseId(), course.getEducationResource().getId())
+                .orElseThrow(() -> new IllegalStateException("createIfAbsent: course not found after insert"));
     }
 
-    @Transactional(propagation = Propagation.REQUIRES_NEW)
+    @Transactional
     public void linkExerciseWithCourseIfMissing(long exerciseId, long courseId) {
-        try {
-            exerciseCourseLinkRepository.saveAndFlush(new ExerciseCourseLinkEntity(
-                    courseRepository.getReferenceById(courseId),
-                    exerciseRepository.getReferenceById(exerciseId)
-            ));
+        int affectedRows = exerciseCourseLinkRepository.createIfAbsent(exerciseId, courseId);
+        if (affectedRows > 0) {
             log.info("Linked exercise {} to course {}", exerciseId, courseId);
-        } catch (JpaObjectRetrievalFailureException e) {
-            throw new IllegalArgumentException(String.format(
-                    "Cannot link exercise %d with course %d: entity not found - %s",
-                    exerciseId, courseId, e.getCause() != null ? e.getCause().getMessage() : e.getMessage()
-            ), e);
-        } catch (DataIntegrityViolationException e) {
+        } else {
             log.debug("Exercise {} already linked to course {}, skipping", exerciseId, courseId);
         }
     }
@@ -71,9 +49,10 @@ public class CourseService {
     }
 
     @Transactional(readOnly = true)
-    public void ensureExerciseBelongsToCourse(long exerciseId, long courseId) {
-        findExerciseCourseLink(exerciseId, courseId).orElseThrow(() -> new IllegalStateException(String.format(
+    public ExerciseCourseLinkEntity findExerciseCourseLinkOrThrow(long exerciseId, long courseId) {
+        return findExerciseCourseLink(exerciseId, courseId).orElseThrow(() -> new IllegalStateException(String.format(
                 "There is no relation between the course (id=%s) and the exercise (id=%s)", courseId, exerciseId
         )));
     }
 }
+
