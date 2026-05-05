@@ -178,6 +178,7 @@ public class Mapper {
         return ExerciseAttemptDto.builder()
                 .userId(attempt.getUser().getId())
                 .exerciseId(attempt.getExercise().getId())
+                .courseId(attempt.getCourse() != null ? attempt.getCourse().getId() : null)
                 .attemptId(attempt.getId())
                 .questionIds(questionIds)
                 .status(attempt.getAttemptStatus())
