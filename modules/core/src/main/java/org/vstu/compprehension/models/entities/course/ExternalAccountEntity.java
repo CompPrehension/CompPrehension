@@ -29,6 +29,7 @@ public class ExternalAccountEntity {
     private String externalId;
 
     public ExternalAccountEntity(UserEntity user, EducationResourceEntity educationResource, String externalId) {
+        this.id = new ExternalAccountId();
         this.user = user;
         this.educationResource = educationResource;
         this.externalId = externalId;
