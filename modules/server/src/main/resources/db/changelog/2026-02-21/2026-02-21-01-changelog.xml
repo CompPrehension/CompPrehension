@@ -1,0 +1,28 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<databaseChangeLog
+        xmlns="http://www.liquibase.org/xml/ns/dbchangelog"
+        xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance"
+        xsi:schemaLocation="http://www.liquibase.org/xml/ns/dbchangelog
+                      http://www.liquibase.org/xml/ns/dbchangelog/dbchangelog-4.24.xsd">
+
+    <changeSet id="2026-02-21-01-add-lti-columns-to-exercise-attempt" author="Dmitry Smirnov">
+        <addColumn tableName="exercise_attempt">
+            <column name="lti_lineitem_url" type="varchar(512)"/>
+            <column name="lti_context_id" type="varchar(255)"/>
+        </addColumn>
+        <rollback>
+            <dropColumn tableName="exercise_attempt" columnName="lti_context_id"/>
+            <dropColumn tableName="exercise_attempt" columnName="lti_lineitem_url"/>
+        </rollback>
+    </changeSet>
+
+    <changeSet id="2026-02-21-02-add-external-user-id-to-user" author="Dmitry Smirnov">
+        <addColumn tableName="user">
+            <column name="external_user_id" type="varchar(255)"/>
+        </addColumn>
+        <rollback>
+            <dropColumn tableName="user" columnName="external_user_id"/>
+        </rollback>
+    </changeSet>
+
+</databaseChangeLog>

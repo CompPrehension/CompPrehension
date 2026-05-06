@@ -7,6 +7,7 @@ import lombok.ToString;
 import org.hibernate.annotations.CreationTimestamp;
 import org.hibernate.annotations.UpdateTimestamp;
 import org.vstu.compprehension.models.entities.EnumData.AttemptStatus;
+import org.vstu.compprehension.models.entities.course.CourseEntity;
 import org.vstu.compprehension.models.entities.exercise.ExerciseEntity;
 
 import java.util.Date;
@@ -40,10 +41,23 @@ public class ExerciseAttemptEntity {
 
     @ToString.Exclude
     @ManyToOne
+    @JoinColumn(name = "course_id", nullable = true)
+    private CourseEntity course;
+
+    @ToString.Exclude
+    @ManyToOne
     @JoinColumn(name = "user_id", nullable = false)
     private UserEntity user;
 
     @ToString.Exclude
     @OneToMany(mappedBy = "exerciseAttempt", fetch = FetchType.LAZY)
     private List<QuestionEntity> questions;
+
+    /** LTI AGS lineitem URL для отправки оценки. {@code null} при прямом доступе через Keycloak. */
+    @Column(name = "lti_lineitem_url", length = 512)
+    private String ltiLineitemUrl;
+
+    /** LTI {@code context.id} - идентификатор курса в LMS. {@code null} при прямом доступе через Keycloak. */
+    @Column(name = "lti_context_id", length = 255)
+    private String ltiContextId;
 }

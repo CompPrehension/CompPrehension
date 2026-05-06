@@ -246,7 +246,7 @@ public class BankLoadTestingJob {
     @SneakyThrows
     private ExerciseAttemptDto createExerciseAttempt(Long exerciseId, Long userId) {
         return executeWithRetry(() -> {
-            return frontendService.createExerciseAttempt(exerciseId, userId);
+            return frontendService.createExerciseAttempt(exerciseId, userId, null);
         }, "createExerciseAttempt");
     }
 
