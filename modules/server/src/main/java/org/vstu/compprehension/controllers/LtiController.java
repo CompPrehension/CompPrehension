@@ -187,24 +187,12 @@ public class LtiController {
         if (exerciseId == null)
             throw new IllegalArgumentException("exerciseId is not provided: set custom parameter 'exercise_id' in Moodle activity or use ?id= query param");
 
-        LtiCourseContext ltiCourse = ctx.course();
-        if (ltiCourse == null || ltiCourse.courseId() == null)
+        Long courseId = resolveCourseFromContext(ctx);
+        if (courseId == null)
             throw new IllegalArgumentException("Absent information on the contextId");
 
-        EducationResourceEntity eduResource = educationResourceService.findByUrlAndType(ctx.lmsUrl(), ctx.lmsType())
-                .orElseGet(() -> educationResourceService.createOrGetExisting(
-                        ctx.lmsUrl(), ctx.lmsType()
-                ));
-
-        String externalCourseId = ltiCourse.courseId();
-        String courseName = ltiCourse.courseName() != null ? ltiCourse.courseName() : "id_" + externalCourseId;
-        CourseEntity course = courseService.findByExternalIdAndResourceId(externalCourseId, eduResource.getId())
-                .orElseGet(() -> courseService.createOrGetExisting(
-                        externalCourseId, courseName, eduResource.getId()
-                ));
-
-        courseService.linkExerciseWithCourseIfMissing(exerciseId, course.getId());
-        return Pair.of(exerciseId, course.getId());
+        courseService.linkExerciseWithCourseIfMissing(exerciseId, courseId);
+        return Pair.of(exerciseId, courseId);
     }
 
     @SneakyThrows
@@ -212,9 +200,28 @@ public class LtiController {
     public void exerciseSettings(HttpServletRequest request, HttpServletResponse response) {
         authenticateFromLti13ResourceLinkRequest(request, response);
 
-        String redirectUrl = "/pages/exercise-settings";
+        Long courseId = ltiContextProvider.getCurrentLtiContext()
+                .map(this::resolveCourseFromContext)
+                .orElse(null);
+
+        String redirectUrl = String.format("/pages/exercise-settings?courseId=%s", courseId);
         log.info("Redirect to exercise-settings, url:{}", redirectUrl);
         response.sendRedirect(redirectUrl);
+    }
+
+    private Long resolveCourseFromContext(LtiContext ctx) {
+        LtiCourseContext ltiCourse = ctx.course();
+        if (ltiCourse == null || ltiCourse.courseId() == null) return null;
+
+        EducationResourceEntity eduResource = educationResourceService.findByUrlAndType(ctx.lmsUrl(), ctx.lmsType())
+                .orElseGet(() -> educationResourceService.createOrGetExisting(ctx.lmsUrl(), ctx.lmsType()));
+
+        String externalCourseId = ltiCourse.courseId();
+        String courseName = ltiCourse.courseName() != null ? ltiCourse.courseName() : "id_" + externalCourseId;
+        CourseEntity course = courseService.findByExternalIdAndResourceId(externalCourseId, eduResource.getId())
+                .orElseGet(() -> courseService.createOrGetExisting(externalCourseId, courseName, eduResource.getId()));
+
+        return course.getId();
     }
 
     private void authenticateFromLti13ResourceLinkRequest(HttpServletRequest request, HttpServletResponse response) throws AuthenticationException, ParseException {
