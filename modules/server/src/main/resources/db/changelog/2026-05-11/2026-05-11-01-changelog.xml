@@ -1,0 +1,85 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<databaseChangeLog
+        xmlns="http://www.liquibase.org/xml/ns/dbchangelog"
+        xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance"
+        xsi:schemaLocation="http://www.liquibase.org/xml/ns/dbchangelog
+                      http://www.liquibase.org/xml/ns/dbchangelog/dbchangelog-4.5.xsd">
+
+    <changeSet id="2026-05-11-01" author="dmitry-smirnov">
+        <!-- Пересоздаём FK-ограничения с ON DELETE CASCADE, чтобы удаление упражнения
+             автоматически каскадировалось через всю цепочку зависимостей на уровне БД. -->
+
+        <dropForeignKeyConstraint baseTableName="exercise_attempt"
+                                  constraintName="FK_EXERCISEATTEMPT_ON_EXERCISE"/>
+        <addForeignKeyConstraint baseTableName="exercise_attempt"
+                                 baseColumnNames="exercise_id"
+                                 constraintName="FK_EXERCISEATTEMPT_ON_EXERCISE"
+                                 referencedTableName="exercise"
+                                 referencedColumnNames="id"
+                                 onDelete="CASCADE"/>
+
+        <dropForeignKeyConstraint baseTableName="question"
+                                  constraintName="FK_QUESTION_ON_EXERCISEATTEMPT"/>
+        <addForeignKeyConstraint baseTableName="question"
+                                 baseColumnNames="exercise_attempt_id"
+                                 constraintName="FK_QUESTION_ON_EXERCISEATTEMPT"
+                                 referencedTableName="exercise_attempt"
+                                 referencedColumnNames="id"
+                                 onDelete="CASCADE"/>
+
+        <dropForeignKeyConstraint baseTableName="interaction"
+                                  constraintName="FK_INTERACTION_ON_QUESTION"/>
+        <addForeignKeyConstraint baseTableName="interaction"
+                                 baseColumnNames="question_id"
+                                 constraintName="FK_INTERACTION_ON_QUESTION"
+                                 referencedTableName="question"
+                                 referencedColumnNames="id"
+                                 onDelete="CASCADE"/>
+
+        <dropForeignKeyConstraint baseTableName="answer_object"
+                                  constraintName="FK_ANSWEROBJECT_ON_QUESTION"/>
+        <addForeignKeyConstraint baseTableName="answer_object"
+                                 baseColumnNames="question_id"
+                                 constraintName="FK_ANSWEROBJECT_ON_QUESTION"
+                                 referencedTableName="question"
+                                 referencedColumnNames="id"
+                                 onDelete="CASCADE"/>
+
+        <dropForeignKeyConstraint baseTableName="violation"
+                                  constraintName="FK_VIOLATION_ON_INTERACTION"/>
+        <addForeignKeyConstraint baseTableName="violation"
+                                 baseColumnNames="interaction_id"
+                                 constraintName="FK_VIOLATION_ON_INTERACTION"
+                                 referencedTableName="interaction"
+                                 referencedColumnNames="id"
+                                 onDelete="CASCADE"/>
+
+        <dropForeignKeyConstraint baseTableName="exercise_question_type"
+                                  constraintName="FK_EXERCISEQUESTIONTYPE_ON_EXERCISE"/>
+        <addForeignKeyConstraint baseTableName="exercise_question_type"
+                                 baseColumnNames="exercise_id"
+                                 constraintName="FK_EXERCISEQUESTIONTYPE_ON_EXERCISE"
+                                 referencedTableName="exercise"
+                                 referencedColumnNames="id"
+                                 onDelete="CASCADE"/>
+
+        <dropForeignKeyConstraint baseTableName="exercise_course_link"
+                                  constraintName="fk_exercise_course_link_exercise"/>
+        <addForeignKeyConstraint baseTableName="exercise_course_link"
+                                 baseColumnNames="exercise_id"
+                                 constraintName="fk_exercise_course_link_exercise"
+                                 referencedTableName="exercise"
+                                 referencedColumnNames="id"
+                                 onDelete="CASCADE"/>
+
+        <dropForeignKeyConstraint baseTableName="user_exercise"
+                                  constraintName="fk_useexe_on_exercise_entity"/>
+        <addForeignKeyConstraint baseTableName="user_exercise"
+                                 baseColumnNames="exercise_id"
+                                 constraintName="fk_useexe_on_exercise_entity"
+                                 referencedTableName="exercise"
+                                 referencedColumnNames="id"
+                                 onDelete="CASCADE"/>
+    </changeSet>
+
+</databaseChangeLog>
