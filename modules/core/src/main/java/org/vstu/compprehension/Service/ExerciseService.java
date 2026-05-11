@@ -1,36 +1,63 @@
 package org.vstu.compprehension.Service;
 
 
+import lombok.extern.log4j.Log4j2;
 import org.jetbrains.annotations.NotNull;
+import org.jetbrains.annotations.Nullable;
+import org.springframework.http.HttpStatus;
 import org.springframework.stereotype.Service;
+import org.springframework.transaction.annotation.Transactional;
+import org.springframework.web.server.ResponseStatusException;
 import org.vstu.compprehension.dto.ExerciseCardDto;
+import org.vstu.compprehension.dto.ExerciseDto;
 import org.vstu.compprehension.dto.ExerciseStageDto;
 import org.vstu.compprehension.models.businesslogic.domains.DomainFactory;
 import org.vstu.compprehension.models.entities.exercise.ExerciseEntity;
 import org.vstu.compprehension.models.entities.exercise.ExerciseOptionsEntity;
 import org.vstu.compprehension.models.entities.exercise.ExerciseStageEntity;
 import org.vstu.compprehension.models.repository.DomainRepository;
+import org.vstu.compprehension.models.repository.ExerciseAttemptRepository;
+import org.vstu.compprehension.models.repository.ExerciseCourseLinkRepository;
 import org.vstu.compprehension.models.repository.ExerciseRepository;
 
 import java.util.ArrayList;
+import java.util.HashMap;
 import java.util.List;
+import java.util.Map;
 import java.util.NoSuchElementException;
+import java.util.UUID;
 import java.util.stream.Collectors;
 
 @Service
+@Log4j2
 public class ExerciseService {
     private final DomainRepository domainRepository;
     private final ExerciseRepository exerciseRepository;
+    private final ExerciseCourseLinkRepository exerciseCourseLinkRepository;
+    private final ExerciseAttemptRepository exerciseAttemptRepository;
     private final DomainFactory domainFactory;
+    private final CourseService courseService;
+    private final ExerciseCourseLinkReassignExecutor linkReassignExecutor;
+    private final ExerciseAttemptReassignExecutor attemptReassignExecutor;
 
     public ExerciseService(
             DomainRepository domainRepository,
             ExerciseRepository exerciseRepository,
-            DomainFactory domainFactory
+            ExerciseCourseLinkRepository exerciseCourseLinkRepository,
+            ExerciseAttemptRepository exerciseAttemptRepository,
+            DomainFactory domainFactory,
+            CourseService courseService,
+            ExerciseCourseLinkReassignExecutor linkReassignExecutor,
+            ExerciseAttemptReassignExecutor attemptReassignExecutor
     ) {
         this.domainRepository = domainRepository;
         this.exerciseRepository = exerciseRepository;
+        this.exerciseCourseLinkRepository = exerciseCourseLinkRepository;
+        this.exerciseAttemptRepository = exerciseAttemptRepository;
         this.domainFactory = domainFactory;
+        this.courseService = courseService;
+        this.linkReassignExecutor = linkReassignExecutor;
+        this.attemptReassignExecutor = attemptReassignExecutor;
     }
 
     public ExerciseEntity getExercise(long exerciseId) {
@@ -38,9 +65,11 @@ public class ExerciseService {
                 new NoSuchElementException("Exercise with id: " + exerciseId + " not Found"));
     }
 
+    @Transactional
     public ExerciseEntity createExercise(@NotNull String name,
                                          @NotNull String domainId,
-                                         @NotNull String strategyId
+                                         @NotNull String strategyId,
+                                         @Nullable Long courseId
     ) {
         var domainEntity = domainRepository.findById(domainId)
                 .orElseThrow();
@@ -62,8 +91,83 @@ public class ExerciseService {
                 .build());
         exercise.setStages(new ArrayList<>(List.of(new ExerciseStageEntity(5, 0.5f, new ArrayList<>(), new ArrayList<>(), new ArrayList<>()))));
         exercise.setTags("");
+        exercise.setPublic(courseId == null);
+        exercise.setModelId(UUID.randomUUID());
         exerciseRepository.save(exercise);
+
+        if (courseId != null) {
+            courseService.linkExerciseWithCourseIfMissing(exercise.getId(), courseId);
+        }
         return exercise;
+    }
+
+    @Transactional
+    public ExerciseEntity cloneExercise(long sourceExerciseId, @Nullable Long targetCourseId) {
+        var source = exerciseRepository.findById(sourceExerciseId)
+                .orElseThrow(() -> new ResponseStatusException(HttpStatus.NOT_FOUND, "exercise not found"));
+
+        if (!source.isPublic() && targetCourseId != null) {
+            var sourceLinks = exerciseCourseLinkRepository.findAllByExerciseId(sourceExerciseId);
+            Long sourceCourseId = sourceLinks.size() == 1 ? sourceLinks.get(0).getCourse().getId() : null;
+            if (targetCourseId.equals(sourceCourseId)) {
+                throw new ResponseStatusException(HttpStatus.CONFLICT, "duplicating_in_same_course");
+            }
+            throw new ResponseStatusException(HttpStatus.CONFLICT,
+                    "course_to_course_forbidden: copy to pool first, then link");
+        }
+
+        var clone = source.clone();
+        clone.setPublic(targetCourseId == null);
+        exerciseRepository.save(clone);
+
+        if (targetCourseId != null) {
+            courseService.linkExerciseWithCourseIfMissing(clone.getId(), targetCourseId);
+        }
+        return clone;
+    }
+
+    @Transactional
+    public void deleteExercise(long exerciseId) {
+        var exercise = exerciseRepository.findById(exerciseId)
+                .orElseThrow(() -> new ResponseStatusException(HttpStatus.NOT_FOUND, "exercise not found"));
+
+        if (!exercise.isPublic()) {
+            exerciseRepository.delete(exercise);
+            return;
+        }
+
+        // is_public = TRUE → CONVERT_TO_CLONES.
+        var links = exerciseCourseLinkRepository.findAllByExerciseId(exerciseId);
+        if (links.isEmpty()) {
+            exerciseRepository.delete(exercise);
+            return;
+        }
+
+        var clones = new ArrayList<ExerciseEntity>(links.size());
+        for (var ignored : links) {
+            clones.add(exercise.clone());
+        }
+        exerciseRepository.saveAll(clones);
+        exerciseRepository.flush();
+
+        var courseToCloneId = new HashMap<Long, Long>();
+        for (int i = 0; i < links.size(); i++) {
+            courseToCloneId.put(links.get(i).getCourse().getId(), clones.get(i).getId());
+        }
+
+        linkReassignExecutor.reassign(exerciseId, courseToCloneId);
+        attemptReassignExecutor.reassign(exerciseId, courseToCloneId);
+        exerciseRepository.delete(exercise);
+    }
+
+    @Transactional(readOnly = true)
+    public List<ExerciseDto> listExercises(@Nullable Long courseId) {
+        var entities = (courseId == null)
+                ? exerciseRepository.findAllByIsPublicTrue()
+                : exerciseRepository.findAllByCourseId(courseId);
+        return entities.stream()
+                .map(e -> new ExerciseDto(e.getId(), e.getName(), e.isPublic(), e.getModelId()))
+                .collect(Collectors.toList());
     }
 
     public void saveExerciseCard(ExerciseCardDto card) {
@@ -103,6 +207,8 @@ public class ExerciseService {
                         .collect(Collectors.toList()))
                 .options(exercise.getOptions())
                 .tags(exercise.getTags())
+                .isPublic(exercise.isPublic())
+                .modelId(exercise.getModelId())
                 .build();
     }
 }
