@@ -2,21 +2,31 @@ package org.vstu.compprehension.models.repository;
 
 import org.springframework.data.jpa.repository.JpaRepository;
 import org.springframework.data.jpa.repository.Query;
+import org.springframework.data.repository.query.Param;
 import org.vstu.compprehension.dto.ExerciseDto;
 import org.vstu.compprehension.models.entities.exercise.ExerciseEntity;
-import org.springframework.data.repository.CrudRepository;
 import org.springframework.stereotype.Repository;
 
 import java.util.List;
+import java.util.UUID;
 
 @Repository
 public interface ExerciseRepository extends JpaRepository<ExerciseEntity, Long> {
     @Query("select e.id from ExerciseEntity e")
     List<Long> findAllIds();
 
-    @Query("select new org.vstu.compprehension.dto.ExerciseDto(e.id, e.name) from ExerciseEntity e")
+    @Query("select new org.vstu.compprehension.dto.ExerciseDto(e.id, e.name, e.isPublic, e.modelId) from ExerciseEntity e")
     List<ExerciseDto> getAllExerciseItems();
 
-    //@Query("select new org.vstu.compprehension.dto.ExerciseCardDto(e.id, e.name, e.domain.name, e.strategyId, e.backendId) from ExerciseEntity e where e.id = ?1")
-    //Optional<ExerciseCardDto> getExerciseCard(long id);
+    List<ExerciseEntity> findAllByIsPublicTrue();
+
+    @Query("""
+            select e from ExerciseEntity e
+            join ExerciseCourseLinkEntity l on l.exercise.id = e.id
+            where l.course.id = :courseId
+            order by l.linkedAt desc
+            """)
+    List<ExerciseEntity> findAllByCourseId(@Param("courseId") long courseId);
+
+    List<ExerciseEntity> findAllByModelId(UUID modelId);
 }
