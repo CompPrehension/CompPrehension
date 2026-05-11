@@ -136,7 +136,6 @@ public class ExerciseService {
             return;
         }
 
-        // is_public = TRUE → CONVERT_TO_CLONES.
         var links = exerciseCourseLinkRepository.findAllByExerciseId(exerciseId);
         if (links.isEmpty()) {
             exerciseRepository.delete(exercise);
