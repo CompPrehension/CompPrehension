@@ -8,6 +8,8 @@ import org.vstu.compprehension.models.entities.exercise.ExerciseEntity;
 
 import jakarta.persistence.*;
 import lombok.*;
+import org.hibernate.annotations.OnDelete;
+import org.hibernate.annotations.OnDeleteAction;
 
 @Entity
 @Data
@@ -19,6 +21,7 @@ public class ExerciseQuestionTypeEntity {
     private Long id;
 
     @ManyToOne
+    @OnDelete(action = OnDeleteAction.CASCADE)
     @JoinColumn(name = "exercise_id", nullable = false)
     private ExerciseEntity exercise;
 
@@ -26,4 +29,8 @@ public class ExerciseQuestionTypeEntity {
     @Enumerated(EnumType.ORDINAL)
     private QuestionType questionType;
 
+    public ExerciseQuestionTypeEntity(ExerciseEntity exercise, QuestionType questionType) {
+        this.exercise = exercise;
+        this.questionType = questionType;
+    }
 }

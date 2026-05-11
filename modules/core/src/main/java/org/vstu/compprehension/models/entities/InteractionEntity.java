@@ -5,6 +5,8 @@ import lombok.*;
 import org.hibernate.annotations.CreationTimestamp;
 import org.hibernate.annotations.NotFound;
 import org.hibernate.annotations.NotFoundAction;
+import org.hibernate.annotations.OnDelete;
+import org.hibernate.annotations.OnDeleteAction;
 import org.vstu.compprehension.models.entities.EnumData.InteractionType;
 
 import java.util.ArrayList;
@@ -63,6 +65,7 @@ public class InteractionEntity {
 
     @ToString.Exclude
     @ManyToOne
+    @OnDelete(action = OnDeleteAction.CASCADE)
     @JoinColumn(name = "question_id", nullable = false)
     private QuestionEntity question;
 

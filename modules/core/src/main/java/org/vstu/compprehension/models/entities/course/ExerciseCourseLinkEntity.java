@@ -3,7 +3,12 @@ package org.vstu.compprehension.models.entities.course;
 import jakarta.persistence.*;
 import lombok.Getter;
 import lombok.NoArgsConstructor;
+import org.hibernate.annotations.CreationTimestamp;
+import org.hibernate.annotations.OnDelete;
+import org.hibernate.annotations.OnDeleteAction;
 import org.vstu.compprehension.models.entities.exercise.ExerciseEntity;
+
+import java.time.LocalDateTime;
 
 @Entity
 @Getter
@@ -14,6 +19,7 @@ public class ExerciseCourseLinkEntity {
 
     @Id
     @ManyToOne(optional = false)
+    @OnDelete(action = OnDeleteAction.CASCADE)
     @JoinColumn(name = "exercise_id", nullable = false)
     private ExerciseEntity exercise;
 
@@ -21,6 +27,10 @@ public class ExerciseCourseLinkEntity {
     @ManyToOne(optional = false)
     @JoinColumn(name = "course_id", nullable = false)
     private CourseEntity course;
+
+    @CreationTimestamp
+    @Column(name = "linked_at", nullable = false, updatable = false)
+    private LocalDateTime linkedAt;
 
     public ExerciseCourseLinkEntity(CourseEntity course, ExerciseEntity exercise) {
         this.exercise = exercise;

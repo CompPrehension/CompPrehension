@@ -16,16 +16,18 @@ import org.vstu.compprehension.models.entities.ExerciseAttemptEntity;
 import org.vstu.compprehension.models.entities.ExerciseQuestionTypeEntity;
 import org.vstu.compprehension.models.entities.UserEntity;
 
+import java.util.ArrayList;
 import java.util.Arrays;
 import java.util.Date;
 import java.util.List;
+import java.util.UUID;
 import java.util.stream.Collectors;
 
 @Entity
 @Data
 @NoArgsConstructor
 @Table(name = "Exercise")
-public class ExerciseEntity {
+public class ExerciseEntity implements Cloneable {
     @Id
     @GeneratedValue(strategy = GenerationType.IDENTITY)
     private Long id;
@@ -68,6 +70,12 @@ public class ExerciseEntity {
     @Column(name = "strategy_id", nullable = false, length = 100)
     private @NotNull String strategyId;
 
+    @Column(name = "is_public", nullable = false)
+    private boolean isPublic;
+
+    @Column(name = "model_id", nullable = false, columnDefinition = "BINARY(16)")
+    private UUID modelId;
+
     public List<String> getTags() {
         return Arrays.stream(tags.split("\\s*,\\s*"))
                 .filter(t -> !StringHelper.isNullOrWhitespace(t))
@@ -95,4 +103,35 @@ public class ExerciseEntity {
 
     @ManyToMany(mappedBy = "exercises", fetch = FetchType.LAZY)
     private List<UserEntity> users;
+
+    @Override
+    public ExerciseEntity clone() {
+        try {
+            ExerciseEntity copy = (ExerciseEntity) super.clone();
+            copy.setName(this.name);
+            copy.setDomain(this.domain);
+            copy.setBackendId(this.backendId);
+            copy.setStrategyId(this.strategyId);
+            copy.setLanguage(this.language);
+            copy.setMaxRetries(this.maxRetries);
+            copy.setUseGuidingQuestions(this.useGuidingQuestions);
+            copy.setHidden(this.hidden);
+            copy.setTags(this.tags);
+            copy.setExerciseType(this.exerciseType);
+            copy.setModelId(this.modelId);
+            // isPublic defaults to false; caller sets it explicitly if the clone should be public
+            copy.setOptions(this.options);
+            copy.setStages(this.stages == null ? new ArrayList<>() : new ArrayList<>(this.stages));
+            if (this.exerciseQuestionTypes != null) {
+                copy.setExerciseQuestionTypes(
+                        this.exerciseQuestionTypes.stream()
+                                .map(t -> new ExerciseQuestionTypeEntity(copy, t.getQuestionType()))
+                                .collect(Collectors.toCollection(ArrayList::new))
+                );
+            }
+            return copy;
+        } catch (CloneNotSupportedException e) {
+            throw new RuntimeException(e);
+        }
+    }
 }
