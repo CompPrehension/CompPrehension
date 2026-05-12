@@ -8,6 +8,7 @@ import { QuestionController } from "./controllers/exercise/question-controller";
 import { SurveyController } from "./controllers/exercise/survey-controller";
 import { TestExerciseController } from "./controllers/exercise/test-exercise-controller";
 import { UserController } from "./controllers/exercise/user-controller";
+import { CourseController } from "./controllers/course/course-controller";
 import { ExerciseStore } from "./stores/exercise-store";
 import { QuestionStore } from "./stores/question-store";
 
@@ -32,6 +33,7 @@ container.register(QuestionStore, QuestionStore);
 container.registerSingleton(ExerciseStore);
 container.registerSingleton(SurveyController);
 container.registerSingleton(ExerciseSettingsController);
+container.registerSingleton(CourseController);
 
 // init localisation
 const resources = {
