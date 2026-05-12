@@ -5,7 +5,9 @@
   "scripts": {
     "watch": "webpack --watch --config webpack.dev.js",
     "serve": "webpack serve --config webpack.dev.js",
-    "build": "webpack --config webpack.prod.js"
+    "build": "webpack --config webpack.prod.js",
+    "sync-static": "node -e \"const fs=require('fs'),p=require('path'),t='target/classes/static';fs.rmSync(p.join(t,'js'),{recursive:true,force:true});fs.rmSync(p.join(t,'css'),{recursive:true,force:true});fs.mkdirSync(t,{recursive:true});fs.cpSync('src/main/resources/static',t,{recursive:true,force:true});console.log('Bundle synced -> '+t);\"",
+    "build:dev": "npm run build && npm run sync-static"
   },
   "author": "",
   "license": "ISC",
