@@ -21,22 +21,26 @@ import {useTranslation} from "react-i18next";
 import {Header} from "../components/common/header";
 import { API_URL } from "../appconfig";
 import { useCurrentUser, useSession } from "../hooks/session-context";
+import { useCourseId } from "../hooks/use-course-id";
+import { ExerciseRowBadge } from "../components/exercise/exercise-row-badge";
+import { DeleteGlobalExerciseModal } from "../components/exercise/delete-global-exercise-modal";
 
 export const ExerciseSettings = observer(() => {
     const [exerciseStore] = useState(() => container.resolve(ExerciseSettingsStore));
     const { t } = useTranslation();
     const user = useCurrentUser();
     const session = useSession();
+    const courseId = useCourseId();
     useEffect(() => {
         (async () => {
-            await exerciseStore.loadExercises();
+            await exerciseStore.loadExercises(courseId);
 
             const currentExercise = new URL(window.location.href).searchParams.get("exerciseId");
             if (currentExercise) {
                 await exerciseStore.loadExercise(Number.parseInt(currentExercise));
             }
         })()
-    }, []);
+    }, [courseId]);
 
     const onNewExerciseClicked = useCallback(() => {
         (async () => {
@@ -75,7 +79,7 @@ export const ExerciseSettings = observer(() => {
                         {exerciseStore.exercises?.map(e =>
                             <Link key={e.id}
                                 className={`list-group-item ${e.id === exerciseStore.currentCard?.id && "active" || ""}`}
-                                to={`?exerciseId=${e.id}`}
+                                to={`?exerciseId=${e.id}${courseId != null ? `&courseId=${courseId}` : ''}`}
                                 onClick={() => exerciseStore.loadExercise(e.id)}
                                 title={e.name} >
                                 {e.name.length > 22 ? `${e.name.substring(0, 22)}...` : e.name}
@@ -134,9 +138,13 @@ const ExerciseCardElement = observer((props: ExerciseCardElementProps) => {
         .filter(c => (c.bitflags & DomainConceptFlag.TargetEnabled) === 0);
     const sharedDomainSkills : DomainSkill[] = []; // TODO: temporarily disabled due to missing flags in domain skills
     const currentStrategy = strategies.find(s => s.id === card.strategyId);
+    const linkType = store.cardLinkType;
+    const isInherited = linkType === 'inherited';
 
     return (
         <div>
+            <ExerciseModeBar store={store} linkType={linkType} courseId={store.courseId} />
+            <fieldset disabled={isInherited} style={isInherited ? { pointerEvents: 'none', opacity: 0.65 } : undefined}>
             <form className="exercise-settings-form">
                 <div className="form-group">
                     <label className="font-weight-bold" htmlFor="exampleInputEmail1">{t('exercisesettings_name')}</label>
@@ -334,13 +342,14 @@ const ExerciseCardElement = observer((props: ExerciseCardElementProps) => {
                     : null
                 }
             </form >
+            </fieldset>
             {user?.roles.includes('ADMIN') && // TODO временный фикс, убрать в будущем
                 <div className="mt-5">
-                    <button type="button" className="btn btn-primary" onClick={() => store.saveCard()}>{t('exercisesettings_save')}</button>
-                    <button type="button" className="btn btn-primary ml-2" onClick={() => store.saveCard().then(() => window.open(`${window.location.origin}/pages/exercise?exerciseId=${card.id}`, '_blank')?.focus()) }>{t('exercisesettings_saveNopen')}</button>
-                    <button type="button" className="btn btn-primary ml-2" onClick={() => window.open(`${window.location.origin}/pages/exercise?exerciseId=${card.id}`, '_blank')?.focus()}>{t('exercisesettings_open')}</button>
-                    {currentStrategy?.options.multiStagesEnabled &&
-                        <button type="button" className="btn btn-primary ml-2" onClick={() => window.open(`${window.location.origin}/pages/exercise?exerciseId=${card.id}&debug`, '_blank')?.focus()}>{t('exercisesettings_genDebugAtt')}</button>
+                    {!isInherited && <button type="button" className="btn btn-primary mr-2" onClick={() => store.saveCard()}>{t('exercisesettings_save')}</button>}
+                    {!isInherited && <button type="button" className="btn btn-primary mr-2" onClick={() => store.saveCard().then(() => window.open(`${window.location.origin}/pages/exercise?exerciseId=${card.id}${store.courseId != null ? `&courseId=${store.courseId}` : ''}`, '_blank')?.focus()) }>{t('exercisesettings_saveNopen')}</button>}
+                    <button type="button" className="btn btn-primary mr-2" onClick={() => window.open(`${window.location.origin}/pages/exercise?exerciseId=${card.id}${store.courseId != null ? `&courseId=${store.courseId}` : ''}`, '_blank')?.focus()}>{t('exercisesettings_open')}</button>
+                    {!isInherited && currentStrategy?.options.multiStagesEnabled &&
+                        <button type="button" className="btn btn-primary mr-2" onClick={() => window.open(`${window.location.origin}/pages/exercise?exerciseId=${card.id}${store.courseId != null ? `&courseId=${store.courseId}` : ''}&debug`, '_blank')?.focus()}>{t('exercisesettings_genDebugAtt')}</button>
                     }
                 </div>
                 || null}
@@ -349,6 +358,95 @@ const ExerciseCardElement = observer((props: ExerciseCardElementProps) => {
 
     );
 })
+
+type ExerciseModeBarProps = {
+    store: ExerciseSettingsStore,
+    linkType: 'global' | 'original' | 'inherited' | 'cloned',
+    courseId: number | null,
+};
+
+const ExerciseModeBar = observer(({ store, linkType, courseId }: ExerciseModeBarProps) => {
+    const [showDeleteModal, setShowDeleteModal] = useState(false);
+    const [busy, setBusy] = useState(false);
+    const card = store.currentCard;
+    if (!card) return null;
+
+    const onConvertToClone = async () => {
+        if (courseId == null) return;
+        setBusy(true);
+        await store.cloneCurrentToCourse(courseId);
+        setBusy(false);
+    };
+
+    const onUnlink = async () => {
+        if (courseId == null) return;
+        setBusy(true);
+        await store.unlinkFromCourse(courseId);
+        setBusy(false);
+    };
+
+    const onCopyToPool = async () => {
+        setBusy(true);
+        const newId = await store.copyCurrentToPool();
+        setBusy(false);
+        if (newId != null) {
+            window.location.href = `/pages/exercise-settings?exerciseId=${newId}`;
+        }
+    };
+
+    const onDeleteClick = () => {
+        if (card.isPublic) {
+            setShowDeleteModal(true);
+        } else if (window.confirm('Удалить упражнение? История попыток будет удалена.')) {
+            store.deleteCurrentExercise();
+        }
+    };
+
+    const onConfirmGlobalDelete = async () => {
+        setShowDeleteModal(false);
+        setBusy(true);
+        await store.deleteCurrentExercise();
+        setBusy(false);
+    };
+
+    return (
+        <div className="mb-3">
+            <div className="mb-2">
+                <ExerciseRowBadge linkType={linkType} />
+            </div>
+            <div className="btn-toolbar" role="toolbar">
+                <div className="btn-group btn-group-sm flex-wrap" role="group" style={{ gap: '0.25rem' }}>
+                    {linkType === 'inherited' && (
+                        <>
+                            <button type="button" className="btn btn-warning" disabled={busy} onClick={onConvertToClone}>
+                                Convert to clone
+                            </button>
+                            <button type="button" className="btn btn-outline-danger" disabled={busy} onClick={onUnlink}>
+                                Удалить из курса
+                            </button>
+                        </>
+                    )}
+                    {linkType === 'original' && (
+                        <button type="button" className="btn btn-info" disabled={busy} onClick={onCopyToPool}>
+                            Скопировать в глобальный пул
+                        </button>
+                    )}
+                    {linkType !== 'inherited' && (
+                        <button type="button" className="btn btn-outline-danger" disabled={busy} onClick={onDeleteClick}>
+                            Удалить упражнение
+                        </button>
+                    )}
+                </div>
+            </div>
+            {showDeleteModal && (
+                <DeleteGlobalExerciseModal
+                    exerciseId={card.id}
+                    onConfirm={onConfirmGlobalDelete}
+                    onCancel={() => setShowDeleteModal(false)} />
+            )}
+        </div>
+    );
+});
 
 
 type ExerciseStageProps = {
