@@ -16,6 +16,11 @@ export class ExerciseSettingsController {
         return ajaxGet(`${API_URL}/api/exercise/all`, io.array(TExerciseListItem));
     }
 
+    listExercises(courseId: number | null): PromiseEither<RequestError, ExerciseListItem[]> {
+        const q = courseId == null ? '' : `?courseId=${courseId}`;
+        return ajaxGet(`${API_URL}/api/exercise/list${q}`, io.array(TExerciseListItem));
+    }
+
     getExercise(id: number): PromiseEither<RequestError, ExerciseCard> {
         return ajaxGet(`${API_URL}/api/exercise?id=${encodeURIComponent(id)}`, TExerciseCard);
     }
@@ -24,8 +29,14 @@ export class ExerciseSettingsController {
         return ajaxPost(`${API_URL}/api/exercise`, toJS(card));
     }
 
-    createExercise(name: string, domainId: string, strategyId: string): PromiseEither<RequestError, number> {
-        return ajaxPut(`${API_URL}/api/exercise`, { name, domainId, strategyId }, io.number);
+    createExercise(name: string, domainId: string, strategyId: string, courseId: number | null = null): PromiseEither<RequestError, number> {
+        const q = courseId == null ? '' : `?courseId=${courseId}`;
+        return ajaxPut(`${API_URL}/api/exercise${q}`, { name, domainId, strategyId }, io.number);
+    }
+
+    cloneExercise(id: number, courseId: number | null): PromiseEither<RequestError, number> {
+        const q = courseId == null ? '' : `?courseId=${courseId}`;
+        return ajaxPost(`${API_URL}/api/exercise/${id}/clone${q}`, {}, io.number);
     }
 
     deleteExercise(id: number): PromiseEither<RequestError, void> {
