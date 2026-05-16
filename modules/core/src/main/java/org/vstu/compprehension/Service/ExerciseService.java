@@ -169,6 +169,20 @@ public class ExerciseService {
                 .collect(Collectors.toList());
     }
 
+    @Transactional(readOnly = true)
+    public List<ExerciseDto> listPublicExercises() {
+        return exerciseRepository.findAllByIsPublicTrue().stream()
+                .map(e -> new ExerciseDto(e.getId(), e.getName(), e.isPublic(), e.getModelId()))
+                .collect(Collectors.toList());
+    }
+
+    @Transactional(readOnly = true)
+    public List<ExerciseDto> listCourseExercises(long courseId) {
+        return exerciseRepository.findAllByCourseId(courseId).stream()
+                .map(e -> new ExerciseDto(e.getId(), e.getName(), e.isPublic(), e.getModelId()))
+                .collect(Collectors.toList());
+    }
+
     public void saveExerciseCard(ExerciseCardDto card) {
         var exercise = exerciseRepository.findById(card.getId()).orElseThrow(() ->
                 new NoSuchElementException("Exercise with id: " + card.getId() + " not found"));
