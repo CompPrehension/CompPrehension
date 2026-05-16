@@ -21,7 +21,7 @@ export class GlobalPoolStore {
 
     async loadGlobalPool() {
         runInAction(() => { this.loadStatus = 'LOADING'; });
-        const r = await this.settingsController.listExercises(null);
+        const r = await this.courseController.getGlobalPool();
         if (E.isRight(r)) {
             runInAction(() => { this.exercises = r.right; });
         }

@@ -1,7 +1,7 @@
 import { makeAutoObservable, runInAction } from 'mobx';
 import { inject, injectable } from 'tsyringe';
 import * as E from 'fp-ts/lib/Either';
-import { ExerciseSettingsController } from '../controllers/exercise/exercise-settings';
+import { CourseController } from '../controllers/course/course-controller';
 import { ExerciseListItem } from '../types/exercise-settings';
 
 @injectable()
@@ -11,7 +11,7 @@ export class CourseStore {
     loadStatus: 'NONE' | 'LOADING' | 'LOADED' = 'NONE';
 
     constructor(
-        @inject(ExerciseSettingsController) private readonly settingsController: ExerciseSettingsController,
+        @inject(CourseController) private readonly courseController: CourseController,
     ) {
         makeAutoObservable(this);
     }
@@ -21,7 +21,7 @@ export class CourseStore {
             this.loadStatus = 'LOADING';
             this.courseId = courseId;
         });
-        const r = await this.settingsController.listExercises(courseId);
+        const r = await this.courseController.getCourseExercises(courseId);
         if (E.isRight(r)) {
             runInAction(() => { this.exercises = r.right; });
         }
