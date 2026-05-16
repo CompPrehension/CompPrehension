@@ -7,6 +7,8 @@ import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
 import org.springframework.web.server.ResponseStatusException;
 import org.vstu.compprehension.dto.course.CourseDto;
+import org.vstu.compprehension.models.entities.EnumData.Role;
+import org.vstu.compprehension.models.entities.UserEntity;
 import org.vstu.compprehension.models.entities.course.CourseEntity;
 import org.vstu.compprehension.models.entities.course.ExerciseCourseLinkEntity;
 import org.vstu.compprehension.models.entities.course.ExerciseCourseLinkId;
@@ -62,6 +64,18 @@ public class CourseService {
         return findExerciseCourseLink(exerciseId, courseId).orElseThrow(() -> new IllegalStateException(String.format(
                 "There is no relation between the course (id=%s) and the exercise (id=%s)", courseId, exerciseId
         )));
+    }
+
+    @Transactional(readOnly = true)
+    public List<CourseDto> getUserCourses(UserEntity user) {
+        List<CourseEntity> courses = user.getRoles().contains(Role.ADMIN)
+                ? courseRepository.findAll()
+                : courseRepository.findCoursesByUserExternalAccounts(user.getId());
+        return courses.stream()
+                .map(c -> new CourseDto(c.getId(), c.getName(),
+                                        c.getEducationResource().getId(),
+                                        c.getEducationResource().getUrl()))
+                .toList();
     }
 
     @Transactional(readOnly = true)

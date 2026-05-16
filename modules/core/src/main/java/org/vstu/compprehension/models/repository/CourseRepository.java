@@ -7,11 +7,21 @@ import org.springframework.data.repository.query.Param;
 import org.springframework.stereotype.Repository;
 import org.vstu.compprehension.models.entities.course.CourseEntity;
 
+import java.util.List;
 import java.util.Optional;
 
 @Repository
 public interface CourseRepository extends JpaRepository<CourseEntity, Long> {
     Optional<CourseEntity> findByExternalCourseIdAndEducationResourceId(String externalCourseId, Long educationResourceId);
+
+    @Query("""
+            select c from CourseEntity c
+            where c.educationResource.id in (
+                select ea.educationResource.id from ExternalAccountEntity ea
+                where ea.user.id = :userId
+            )
+            """)
+    List<CourseEntity> findCoursesByUserExternalAccounts(@Param("userId") Long userId);
 
     /**
      * Inserts a row only if no row with the same ({@link CourseEntity#educationResource}, {@link CourseEntity#externalCourseId}) exists.
