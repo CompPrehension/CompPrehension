@@ -33,7 +33,8 @@ export const GlobalPool = observer(() => {
                         onLanguageClicked={onLangClicked}
                         userHint={t('signedin_as_header')}
                         user={user.displayName}
-                        userHref={null} />
+                        userHref={null}
+                        logoutLabel={t('logout_header')} />
             </div>
             <div className="mb-3">
                 <button type="button"

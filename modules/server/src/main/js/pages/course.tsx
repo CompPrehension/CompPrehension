@@ -32,6 +32,7 @@ export const CoursePage = observer(() => {
     if (courseId == null) return <div>courseId is required</div>;
     if (store.loadStatus === 'LOADING') return <Loader />;
 
+    const isPriv = user.roles.includes('TEACHER') || user.roles.includes('ADMIN');
     const reload = () => store.loadCourse(courseId);
 
     return (
@@ -43,20 +44,23 @@ export const CoursePage = observer(() => {
                         onLanguageClicked={onLangClicked}
                         userHint={t('signedin_as_header')}
                         user={user.displayName}
-                        userHref={null} />
+                        userHref={null}
+                        logoutLabel={t('logout_header')} />
             </div>
-            <div className="mb-3 d-flex" style={{ gap: '0.5rem' }}>
-                <button type="button"
-                        className="btn btn-primary"
-                        onClick={() => navigate(`/pages/exercise-settings?courseId=${courseId}`)}>
-                    Создать новое упражнение в курсе
-                </button>
-                <button type="button"
-                        className="btn btn-secondary"
-                        onClick={() => setShowImportModal(true)}>
-                    Импортировать из глобального пула
-                </button>
-            </div>
+            {isPriv && (
+                <div className="mb-3 d-flex" style={{ gap: '0.5rem' }}>
+                    <button type="button"
+                            className="btn btn-primary"
+                            onClick={() => navigate(`/pages/exercise-settings?courseId=${courseId}`)}>
+                        Создать новое упражнение в курсе
+                    </button>
+                    <button type="button"
+                            className="btn btn-secondary"
+                            onClick={() => setShowImportModal(true)}>
+                        Импортировать из глобального пула
+                    </button>
+                </div>
+            )}
             <ul className="list-group">
                 {store.exercises.map(e =>
                     <li key={e.id} className="list-group-item">
@@ -67,7 +71,7 @@ export const CoursePage = observer(() => {
                     <li className="list-group-item text-muted">В этом курсе пока нет упражнений</li>
                 )}
             </ul>
-            {showImportModal && (
+            {isPriv && showImportModal && (
                 <ImportFromGlobalModal
                     courseId={courseId}
                     onClose={() => setShowImportModal(false)}

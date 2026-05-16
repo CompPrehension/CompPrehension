@@ -69,8 +69,9 @@ export const ExerciseSettings = observer(() => {
                         language={user?.language ?? "EN"}
                         onLanguageClicked={onLangClicked}
                         userHint={t('signedin_as_header')}
-                        user={user.displayName} 
-                        userHref={/*`${window.location.origin}/logout`*/null} />
+                        user={user.displayName}
+                        userHref={null}
+                        logoutLabel={t('logout_header')} />
             </div>
             <div className="flex-xl-nowrap row">
                 <div className="col-xl-3 col-md-3 col-12 d-flex flex-column">
