@@ -3,10 +3,23 @@ import * as io from 'io-ts';
 import { ajaxDelete, ajaxGet, ajaxPost, PromiseEither } from '../../utils/ajax';
 import { API_URL } from '../../appconfig';
 import { CourseDto, TCourseDto } from '../../types/course';
+import { ExerciseListItem, TExerciseListItem } from '../../types/exercise-settings';
 import { RequestError } from '../../types/request-error';
 
 @injectable()
 export class CourseController {
+    getMyCourses(): PromiseEither<RequestError, CourseDto[]> {
+        return ajaxGet(`${API_URL}/api/course/my`, io.array(TCourseDto));
+    }
+
+    getGlobalPool(): PromiseEither<RequestError, ExerciseListItem[]> {
+        return ajaxGet(`${API_URL}/api/course/global-pool`, io.array(TExerciseListItem));
+    }
+
+    getCourseExercises(courseId: number): PromiseEither<RequestError, ExerciseListItem[]> {
+        return ajaxGet(`${API_URL}/api/course/exercises?courseId=${courseId}`, io.array(TExerciseListItem));
+    }
+
     getExerciseMemberships(exerciseId: number): PromiseEither<RequestError, CourseDto[]> {
         return ajaxGet(`${API_URL}/api/course/memberships?exerciseId=${exerciseId}`, io.array(TCourseDto));
     }
