@@ -13,6 +13,7 @@ import {StrategySettings} from './pages/strategy-settings';
 import {QuestionPage} from './pages/question';
 import {GlobalPool} from './pages/global-pool';
 import {CoursePage} from './pages/course';
+import {CoursesPage} from './pages/courses';
 import {SessionProvider} from './hooks/session-context';
 
 const Home = () => (
@@ -29,7 +30,8 @@ const Home = () => (
                     <Route path="/pages/exercises-list" element={<ExercisesList />} />
                     <Route path="/pages/global-pool" element={<GlobalPool />} />
                     <Route path="/pages/course" element={<CoursePage />} />
-                    <Route path="/" element={<Navigate to="/pages/exercise-settings" replace />} />
+                    <Route path="/pages/courses" element={<CoursesPage />} />
+                    <Route path="/" element={<Navigate to="/pages/courses" replace />} />
                 </Routes>
             </Router>
         </div>
