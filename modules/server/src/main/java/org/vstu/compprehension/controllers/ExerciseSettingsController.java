@@ -55,6 +55,14 @@ public class ExerciseSettingsController {
     }
 
     @SneakyThrows
+    @RequestMapping(value = { "exercise/global-pool" }, method = { RequestMethod.GET })
+    @ResponseBody
+    public List<ExerciseDto> getGlobalPool() {
+        userService.getCurrentUser();
+        return exerciseService.listPublicExercises();
+    }
+
+    @SneakyThrows
     @RequestMapping(value = { "exercise"}, method = { RequestMethod.POST })
     @ResponseBody
     public void update(@RequestBody ExerciseCardDto card, @RequestParam(value = "courseId", required = false) Long courseId) {

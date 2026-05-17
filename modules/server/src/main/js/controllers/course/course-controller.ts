@@ -13,11 +13,11 @@ export class CourseController {
     }
 
     getGlobalPool(): PromiseEither<RequestError, ExerciseListItem[]> {
-        return ajaxGet(`${API_URL}/api/course/global-pool`, io.array(TExerciseListItem));
+        return ajaxGet(`${API_URL}/api/exercise/global-pool`, io.array(TExerciseListItem));
     }
 
     getCourseExercises(courseId: number): PromiseEither<RequestError, ExerciseListItem[]> {
-        return ajaxGet(`${API_URL}/api/course/exercises?courseId=${courseId}`, io.array(TExerciseListItem));
+        return ajaxGet(`${API_URL}/api/exercise/list?courseId=${courseId}`, io.array(TExerciseListItem));
     }
 
     getExerciseMemberships(exerciseId: number): PromiseEither<RequestError, CourseDto[]> {
