@@ -81,8 +81,7 @@ public class ExerciseSettingsController {
     @SneakyThrows
     @RequestMapping(value = { "exercise"}, method = { RequestMethod.PUT })
     @ResponseBody
-    public long create(@RequestBody ObjectNode json,
-                       @RequestParam(value = "courseId", required = false) Long courseId) {
+    public long create(@RequestBody ObjectNode json) {
         var currentUser = userService.getCurrentUser();
         if (!currentUser.getRoles().contains(Role.TEACHER)) {
             throw new AuthorizationServiceException("Unathorized");
@@ -91,6 +90,9 @@ public class ExerciseSettingsController {
         var name = json.get("name").asText();
         var domainId = json.get("domainId").asText();
         var strategyId = json.get("strategyId").asText();
+        var courseId = json.has("courseId") && !json.get("courseId").isNull()
+            ? json.get("courseId").asLong()
+            : null;
         return exerciseService.createExercise(name, domainId, strategyId, courseId).getId();
     }
 

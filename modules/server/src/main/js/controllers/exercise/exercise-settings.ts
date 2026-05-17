@@ -30,8 +30,7 @@ export class ExerciseSettingsController {
     }
 
     createExercise(name: string, domainId: string, strategyId: string, courseId: number | null = null): PromiseEither<RequestError, number> {
-        const q = courseId == null ? '' : `?courseId=${courseId}`;
-        return ajaxPut(`${API_URL}/api/exercise${q}`, { name, domainId, strategyId }, io.number);
+        return ajaxPut(`${API_URL}/api/exercise`, { name, domainId, strategyId, courseId }, io.number);
     }
 
     cloneExercise(id: number, courseId: number | null): PromiseEither<RequestError, number> {
