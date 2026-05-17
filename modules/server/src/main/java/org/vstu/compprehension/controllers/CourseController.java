@@ -43,6 +43,7 @@ public class CourseController {
     }
 
     @SneakyThrows
+    @ResponseBody
     @RequestMapping(value = {"exercise/add"}, method = {RequestMethod.POST})
     public void add(@RequestParam("exerciseId") long exerciseId,
                     @RequestParam("courseId") long courseId) {
@@ -54,6 +55,7 @@ public class CourseController {
     }
 
     @SneakyThrows
+    @ResponseBody
     @RequestMapping(value = {"exercise/remove"}, method = {RequestMethod.DELETE})
     public void remove(@RequestParam("exerciseId") long exerciseId,
                        @RequestParam("courseId") long courseId) {
