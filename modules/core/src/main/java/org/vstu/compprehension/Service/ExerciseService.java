@@ -129,6 +129,7 @@ public class ExerciseService {
                 .orElseThrow(() -> new NoSuchElementException("exercise not found"));
 
         if (!exercise.isPublic()) {
+            exerciseCourseLinkRepository.deleteByExerciseId(exerciseId);
             exerciseRepository.delete(exercise);
             return;
         }

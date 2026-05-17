@@ -41,5 +41,8 @@ public interface ExerciseCourseLinkRepository extends JpaRepository<ExerciseCour
 
     @Modifying(clearAutomatically = true)
     void deleteByExerciseIdAndCourseId(long exerciseId, long courseId);
+
+    @Modifying(clearAutomatically = true)
+    void deleteByExerciseId(long exerciseId);
 }
 
