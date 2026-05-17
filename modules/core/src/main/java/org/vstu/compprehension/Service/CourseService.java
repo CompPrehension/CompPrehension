@@ -2,10 +2,8 @@ package org.vstu.compprehension.Service;
 
 import lombok.RequiredArgsConstructor;
 import lombok.extern.log4j.Log4j2;
-import org.springframework.http.HttpStatus;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
-import org.springframework.web.server.ResponseStatusException;
 import org.vstu.compprehension.dto.course.CourseDto;
 import org.vstu.compprehension.models.entities.EnumData.Role;
 import org.vstu.compprehension.models.entities.UserEntity;
@@ -17,6 +15,7 @@ import org.vstu.compprehension.models.repository.ExerciseCourseLinkRepository;
 import org.vstu.compprehension.models.repository.ExerciseRepository;
 
 import java.util.List;
+import java.util.NoSuchElementException;
 import java.util.Optional;
 
 @Service
@@ -68,33 +67,23 @@ public class CourseService {
 
     @Transactional(readOnly = true)
     public List<CourseDto> getUserCourses(UserEntity user) {
-        List<CourseEntity> courses = user.getRoles().contains(Role.ADMIN)
-                ? courseRepository.findAll()
-                : courseRepository.findCoursesByUserExternalAccounts(user.getId());
-        return courses.stream()
-                .map(c -> new CourseDto(c.getId(), c.getName(),
-                                        c.getEducationResource().getId(),
-                                        c.getEducationResource().getUrl()))
-                .toList();
+        if (user.getRoles().contains(Role.ADMIN)) {
+            return courseRepository.findAllCourseDtos();
+        }
+        return courseRepository.findCourseDtosByUserId(user.getId());
     }
 
     @Transactional(readOnly = true)
     public List<CourseDto> getExerciseMemberships(long exerciseId) {
-        return exerciseCourseLinkRepository.findAllByExerciseId(exerciseId).stream()
-                .map(link -> {
-                    var course = link.getCourse();
-                    var er = course.getEducationResource();
-                    return new CourseDto(course.getId(), course.getName(), er.getId(), er.getUrl());
-                })
-                .toList();
+        return exerciseCourseLinkRepository.findCourseDtosByExerciseId(exerciseId);
     }
 
     @Transactional
     public void addExerciseToCourse(long exerciseId, long courseId) {
         var exercise = exerciseRepository.findById(exerciseId)
-                .orElseThrow(() -> new ResponseStatusException(HttpStatus.NOT_FOUND, "exercise not found"));
+                .orElseThrow(() -> new NoSuchElementException("exercise not found"));
         if (!exercise.isPublic()) {
-            throw new ResponseStatusException(HttpStatus.CONFLICT, "source_not_in_global_pool");
+            throw new IllegalStateException("source_not_in_global_pool");
         }
         linkExerciseWithCourseIfMissing(exerciseId, courseId);
     }
