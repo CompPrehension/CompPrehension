@@ -51,7 +51,9 @@ public class ExerciseSettingsController {
         if (!currentUser.getRoles().contains(Role.TEACHER)) {
             throw new AuthorizationServiceException("Unathorized");
         }
-        return exerciseService.listExercises(courseId);
+        return courseId == null
+            ? exerciseService.getPublicExercises()
+            : exerciseService.getCourseExercises(courseId);
     }
 
     @SneakyThrows
@@ -59,7 +61,7 @@ public class ExerciseSettingsController {
     @ResponseBody
     public List<ExerciseDto> getGlobalPool() {
         userService.getCurrentUser();
-        return exerciseService.listPublicExercises();
+        return exerciseService.getPublicExercises();
     }
 
     @SneakyThrows

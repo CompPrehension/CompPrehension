@@ -157,17 +157,14 @@ public class ExerciseService {
     }
 
     @Transactional(readOnly = true)
-    public List<ExerciseDto> listExercises(@Nullable Long courseId) {
-        var entities = (courseId == null)
-                ? exerciseRepository.findAllByIsPublicTrue()
-                : exerciseRepository.findAllByCourseId(courseId);
-        return entities.stream()
+    public List<ExerciseDto> getCourseExercises(long courseId) {
+        return exerciseRepository.findAllByCourseId(courseId).stream()
                 .map(e -> new ExerciseDto(e.getId(), e.getName(), e.isPublic(), e.getGuid()))
                 .collect(Collectors.toList());
     }
 
     @Transactional(readOnly = true)
-    public List<ExerciseDto> listPublicExercises() {
+    public List<ExerciseDto> getPublicExercises() {
         return exerciseRepository.findAllByIsPublicTrue().stream()
                 .map(e -> new ExerciseDto(e.getId(), e.getName(), e.isPublic(), e.getGuid()))
                 .collect(Collectors.toList());
