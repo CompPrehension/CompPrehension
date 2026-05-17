@@ -151,7 +151,15 @@ const resources = {
             importModal_loading: "Loading…",
             importModal_importing: "Importing…",
             importModal_import: "Import",
-            importModal_cancel: "Cancel"
+            importModal_cancel: "Cancel",
+
+            deleteModal_title: "Remove exercise from global pool",
+            deleteModal_loading: "Loading…",
+            deleteModal_noUsages: "This exercise is not used by anyone. It will be removed from the pool.",
+            deleteModal_warning: "Warning:",
+            deleteModal_warningBody: "independent copies of this exercise will be created in all courses listed below. The link to the original will be broken, and the original will be removed from the pool.",
+            deleteModal_cancel: "Cancel",
+            deleteModal_confirm: "Delete"
         },
     },
     RU: {
@@ -269,7 +277,15 @@ const resources = {
             importModal_loading: "Загрузка…",
             importModal_importing: "Импорт…",
             importModal_import: "Импортировать",
-            importModal_cancel: "Отмена"
+            importModal_cancel: "Отмена",
+
+            deleteModal_title: "Удалить упражнение из глобального пула",
+            deleteModal_loading: "Загрузка…",
+            deleteModal_noUsages: "Это упражнение никем не используется. Будет удалено из пула.",
+            deleteModal_warning: "Внимание:",
+            deleteModal_warningBody: "во всех курсах ниже будут созданы независимые копии этого упражнения. Связь с оригиналом разорвётся, оригинал будет удалён из пула.",
+            deleteModal_cancel: "Отмена",
+            deleteModal_confirm: "Удалить"
         },
     },
     PL: {
@@ -336,14 +352,22 @@ const resources = {
 
             survey_sendresults: "Send survey results",
 
-            importModal_title: "Import from global pool",
-            importModal_modeLabel: "Mode:",
-            importModal_inherit_body: "the course will use the shared pool entry. Any change the author makes in the pool will be immediately reflected here and may break ongoing student attempts if the content changes. Convenient for synchronization, but risky during active use. If unsure — choose Clone.",
-            importModal_clone_body: "an independent copy is created. The course then works with its own version; the author's changes in the pool do not affect this copy.",
-            importModal_loading: "Loading…",
-            importModal_importing: "Importing…",
-            importModal_import: "Import",
-            importModal_cancel: "Cancel"
+            importModal_title: "Importuj z globalnej puli",
+            importModal_modeLabel: "Tryb:",
+            importModal_inherit_body: "kurs będzie korzystał ze wspólnego wpisu z puli. Każda zmiana autora w puli natychmiast się tutaj pojawi i może zepsuć trwające próby studentów, jeśli autor zmieni zawartość. Wygodne do synchronizacji, ale ryzykowne przy aktywnym użytkowaniu. Jeśli nie jesteś pewien — wybierz Clone.",
+            importModal_clone_body: "tworzona jest niezależna kopia. Kurs następnie pracuje z własną wersją; zmiany autora w puli nie mają wpływu na tę kopię.",
+            importModal_loading: "Ładowanie…",
+            importModal_importing: "Importowanie…",
+            importModal_import: "Importuj",
+            importModal_cancel: "Anuluj",
+
+            deleteModal_title: "Usuń ćwiczenie z globalnej puli",
+            deleteModal_loading: "Ładowanie…",
+            deleteModal_noUsages: "To ćwiczenie nie jest używane przez nikogo. Zostanie usunięte z puli.",
+            deleteModal_warning: "Uwaga:",
+            deleteModal_warningBody: "we wszystkich poniższych kursach zostaną utworzone niezależne kopie tego ćwiczenia. Połączenie z oryginałem zostanie zerwane, a oryginał zostanie usunięty z puli.",
+            deleteModal_cancel: "Anuluj",
+            deleteModal_confirm: "Usuń"
         },
     },
 };

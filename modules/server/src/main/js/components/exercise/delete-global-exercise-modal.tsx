@@ -1,8 +1,10 @@
 import React, { useEffect, useState } from 'react';
+import { useTranslation } from 'react-i18next';
 import { container } from 'tsyringe';
 import * as E from 'fp-ts/lib/Either';
 import { CourseController } from '../../controllers/course/course-controller';
 import { CourseDto } from '../../types/course';
+import { Modal } from '../common/modal';
 
 type Props = {
     exerciseId: number;
@@ -11,6 +13,7 @@ type Props = {
 };
 
 export const DeleteGlobalExerciseModal: React.FC<Props> = ({ exerciseId, onConfirm, onCancel }) => {
+    const { t } = useTranslation();
     const [memberships, setMemberships] = useState<CourseDto[] | null>(null);
     const [courseController] = useState(() => container.resolve(CourseController));
 
@@ -28,40 +31,36 @@ export const DeleteGlobalExerciseModal: React.FC<Props> = ({ exerciseId, onConfi
     }, {});
 
     return (
-        <div className="modal d-block" tabIndex={-1} role="dialog" style={{ background: 'rgba(0,0,0,0.5)' }}>
-            <div className="modal-dialog" role="document">
-                <div className="modal-content">
-                    <div className="modal-header">
-                        <h5 className="modal-title">Удалить упражнение из глобального пула</h5>
-                        <button type="button" className="close" onClick={onCancel}>&times;</button>
-                    </div>
-                    <div className="modal-body">
-                        {memberships === null
-                            ? <div>Загрузка…</div>
-                            : memberships.length === 0
-                                ? <div>Это упражнение никем не используется. Будет удалено из пула.</div>
-                                : (
-                                    <>
-                                        <p className="text-warning">
-                                            <strong>Внимание:</strong> во всех курсах ниже будут созданы независимые копии этого упражнения. Связь с оригиналом разорвётся, оригинал будет удалён из пула.
-                                        </p>
-                                        {Object.entries(byLms).map(([lms, courses]) => (
-                                            <div key={lms} className="mb-2">
-                                                <div className="font-weight-bold">{lms}</div>
-                                                <ul>
-                                                    {courses.map(c => <li key={c.id}>{c.name}</li>)}
-                                                </ul>
-                                            </div>
-                                        ))}
-                                    </>
-                                )}
-                    </div>
-                    <div className="modal-footer">
-                        <button type="button" className="btn btn-secondary" onClick={onCancel}>Отмена</button>
-                        <button type="button" className="btn btn-danger" onClick={onConfirm}>Удалить</button>
-                    </div>
-                </div>
-            </div>
-        </div>
+        <Modal
+            show={true}
+            title={t('deleteModal_title')}
+            handleClose={onCancel}
+            closeButton={true}
+            primaryBtnTitle={t('deleteModal_confirm')}
+            primaryBtnVariant="danger"
+            handlePrimaryBtnClicked={onConfirm}
+            secondaryBtnTitle={t('deleteModal_cancel')}
+            handleSecondaryBtnClicked={onCancel}
+        >
+            {memberships === null
+                ? <div>{t('deleteModal_loading')}</div>
+                : memberships.length === 0
+                    ? <div>{t('deleteModal_noUsages')}</div>
+                    : (
+                        <>
+                            <p className="text-warning">
+                                <strong>{t('deleteModal_warning')}</strong> {t('deleteModal_warningBody')}
+                            </p>
+                            {Object.entries(byLms).map(([lms, courses]) => (
+                                <div key={lms} className="mb-2">
+                                    <div className="font-weight-bold">{lms}</div>
+                                    <ul>
+                                        {courses.map(c => <li key={c.id}>{c.name}</li>)}
+                                    </ul>
+                                </div>
+                            ))}
+                        </>
+                    )}
+        </Modal>
     );
 };
