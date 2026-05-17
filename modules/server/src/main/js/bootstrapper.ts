@@ -142,7 +142,16 @@ const resources = {
             tour_exprs_selectedop_title: "Evaluated operators",
           
             tour_exprs_pages: "You can switch between questions in the exercise using these buttons. You can also use the 'Next question' button to go to the next one.",
-            tour_exprs_pages_title: "Switching between questions"
+            tour_exprs_pages_title: "Switching between questions",
+
+            importModal_title: "Import from global pool",
+            importModal_modeLabel: "Mode:",
+            importModal_inherit_body: "the course will use the shared pool entry. Any change the author makes in the pool will be immediately reflected here and may break ongoing student attempts if the content changes. Convenient for synchronization, but risky during active use. If unsure — choose Clone.",
+            importModal_clone_body: "an independent copy is created. The course then works with its own version; the author's changes in the pool do not affect this copy.",
+            importModal_loading: "Loading…",
+            importModal_importing: "Importing…",
+            importModal_import: "Import",
+            importModal_cancel: "Cancel"
         },
     },
     RU: {
@@ -251,7 +260,16 @@ const resources = {
             tour_exprs_selectedop_title: "Вычисленные операторы",
 
             tour_exprs_pages: "С помощью этих кнопок можно вернуться к любому вопросу в упражнении. Для перехода вперёд используйте кнопку «Следующий вопрос» внизу.",
-            tour_exprs_pages_title: "Переключение между вопросами"
+            tour_exprs_pages_title: "Переключение между вопросами",
+
+            importModal_title: "Импорт из глобального пула",
+            importModal_modeLabel: "Режим:",
+            importModal_inherit_body: "курс будет использовать общую запись из пула. Любое изменение автора в пуле сразу отразится здесь и поломает уже идущие attempt'ы студентов, если автор поменяет наполнение. Это удобно для синхронизации, но опасно при активном использовании. Если не уверен — выбери Clone.",
+            importModal_clone_body: "создаётся независимая копия. Дальше курс работает со своей версией; изменения автора в пуле никак не влияют на эту копию.",
+            importModal_loading: "Загрузка…",
+            importModal_importing: "Импорт…",
+            importModal_import: "Импортировать",
+            importModal_cancel: "Отмена"
         },
     },
     PL: {
@@ -317,6 +335,15 @@ const resources = {
             exercisesettings_noQuestionsFound: 'No suitable questions found',
 
             survey_sendresults: "Send survey results",
+
+            importModal_title: "Import from global pool",
+            importModal_modeLabel: "Mode:",
+            importModal_inherit_body: "the course will use the shared pool entry. Any change the author makes in the pool will be immediately reflected here and may break ongoing student attempts if the content changes. Convenient for synchronization, but risky during active use. If unsure — choose Clone.",
+            importModal_clone_body: "an independent copy is created. The course then works with its own version; the author's changes in the pool do not affect this copy.",
+            importModal_loading: "Loading…",
+            importModal_importing: "Importing…",
+            importModal_import: "Import",
+            importModal_cancel: "Cancel"
         },
     },
 };

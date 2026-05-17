@@ -1,6 +1,7 @@
 import React, { useEffect, useState } from 'react';
 import { observer } from 'mobx-react';
 import { container } from 'tsyringe';
+import { useTranslation } from 'react-i18next';
 import { GlobalPoolStore, ImportMode } from '../../stores/global-pool-store';
 
 type Props = {
@@ -10,6 +11,7 @@ type Props = {
 };
 
 export const ImportFromGlobalModal = observer(({ courseId, onClose, onImported }: Props) => {
+    const { t } = useTranslation();
     const [store] = useState(() => container.resolve(GlobalPoolStore));
     const [mode, setMode] = useState<ImportMode>('INHERIT');
     const [busyId, setBusyId] = useState<number | null>(null);
@@ -28,16 +30,12 @@ export const ImportFromGlobalModal = observer(({ courseId, onClose, onImported }
 
     const inheritWarning = (
         <div className="alert alert-warning py-1 px-2 mb-0 mt-2 small">
-            <strong>⚠ Inherit:</strong> курс будет использовать <em>общую</em> запись из пула.
-            Любое изменение автора в пуле сразу отразится здесь и поломает уже идущие attempt'ы студентов,
-            если автор поменяет наполнение. Это удобно для синхронизации, но опасно при активном использовании.
-            Если не уверен — выбери <strong>Clone</strong>.
+            <strong>⚠ Inherit:</strong> {t('importModal_inherit_body')}
         </div>
     );
     const cloneHint = (
         <div className="alert alert-info py-1 px-2 mb-0 mt-2 small">
-            <strong>Clone:</strong> создаётся независимая копия. Дальше курс работает со своей версией;
-            изменения автора в пуле никак не влияют на эту копию.
+            <strong>Clone:</strong> {t('importModal_clone_body')}
         </div>
     );
 
@@ -48,12 +46,12 @@ export const ImportFromGlobalModal = observer(({ courseId, onClose, onImported }
                  style={{ maxHeight: 'calc(100vh - 2rem)', display: 'flex', flexDirection: 'column' }}>
                 <div className="modal-content" style={{ maxHeight: '100%', overflow: 'hidden' }}>
                     <div className="modal-header">
-                        <h5 className="modal-title">Импорт из глобального пула</h5>
+                        <h5 className="modal-title">{t('importModal_title')}</h5>
                         <button type="button" className="close" onClick={onClose}>&times;</button>
                     </div>
                     <div className="modal-body" style={{ overflowY: 'auto' }}>
                         <div className="mb-3">
-                            <label className="font-weight-bold mr-2">Режим:</label>
+                            <label className="font-weight-bold mr-2">{t('importModal_modeLabel')}</label>
                             <div className="btn-group" role="group">
                                 <button type="button"
                                         className={`btn btn-sm ${mode === 'INHERIT' ? 'btn-warning' : 'btn-outline-warning'}`}
@@ -68,7 +66,7 @@ export const ImportFromGlobalModal = observer(({ courseId, onClose, onImported }
                             </div>
                             {mode === 'INHERIT' ? inheritWarning : cloneHint}
                         </div>
-                        {store.loadStatus === 'LOADING' && <div>Загрузка…</div>}
+                        {store.loadStatus === 'LOADING' && <div>{t('importModal_loading')}</div>}
                         <ul className="list-group">
                             {store.exercises.map(e =>
                                 <li key={e.id} className="list-group-item d-flex justify-content-between align-items-center">
@@ -77,14 +75,14 @@ export const ImportFromGlobalModal = observer(({ courseId, onClose, onImported }
                                             className="btn btn-sm btn-success"
                                             disabled={busyId !== null}
                                             onClick={() => onImportClick(e.id)}>
-                                        {busyId === e.id ? 'Импорт…' : 'Импортировать'}
+                                        {busyId === e.id ? t('importModal_importing') : t('importModal_import')}
                                     </button>
                                 </li>
                             )}
                         </ul>
                     </div>
                     <div className="modal-footer">
-                        <button type="button" className="btn btn-secondary" onClick={onClose}>Отмена</button>
+                        <button type="button" className="btn btn-secondary" onClick={onClose}>{t('importModal_cancel')}</button>
                     </div>
                 </div>
             </div>
