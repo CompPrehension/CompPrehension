@@ -6,62 +6,69 @@
                       http://www.liquibase.org/xml/ns/dbchangelog/dbchangelog-4.5.xsd">
 
     <changeSet id="2026-05-11-01" author="dmitry-smirnov">
-        <!-- Пересоздаём FK-ограничения с ON DELETE CASCADE, чтобы удаление упражнения
-             автоматически каскадировалось через всю цепочку зависимостей на уровне БД. -->
+        <!-- Пересоздаём FK-ограничения: CASCADE → SET NULL для большинства таблиц,
+             RESTRICT для join-таблиц с составным PK. Удаление упражнения требует явного управления
+             в сервисе; БД не позволяет каскадное удаление для незамещаемых значений. -->
 
         <dropForeignKeyConstraint baseTableName="exercise_attempt"
                                   constraintName="FK_EXERCISEATTEMPT_ON_EXERCISE"/>
+        <sql>ALTER TABLE exercise_attempt MODIFY COLUMN exercise_id BIGINT NULL;</sql>
         <addForeignKeyConstraint baseTableName="exercise_attempt"
                                  baseColumnNames="exercise_id"
                                  constraintName="FK_EXERCISEATTEMPT_ON_EXERCISE"
                                  referencedTableName="exercise"
                                  referencedColumnNames="id"
-                                 onDelete="CASCADE"/>
+                                 onDelete="SET NULL"/>
 
         <dropForeignKeyConstraint baseTableName="question"
                                   constraintName="FK_QUESTION_ON_EXERCISEATTEMPT"/>
+        <sql>ALTER TABLE question MODIFY COLUMN exercise_attempt_id BIGINT NULL;</sql>
         <addForeignKeyConstraint baseTableName="question"
                                  baseColumnNames="exercise_attempt_id"
                                  constraintName="FK_QUESTION_ON_EXERCISEATTEMPT"
                                  referencedTableName="exercise_attempt"
                                  referencedColumnNames="id"
-                                 onDelete="CASCADE"/>
+                                 onDelete="SET NULL"/>
 
         <dropForeignKeyConstraint baseTableName="interaction"
                                   constraintName="FK_INTERACTION_ON_QUESTION"/>
+        <sql>ALTER TABLE interaction MODIFY COLUMN question_id BIGINT NULL;</sql>
         <addForeignKeyConstraint baseTableName="interaction"
                                  baseColumnNames="question_id"
                                  constraintName="FK_INTERACTION_ON_QUESTION"
                                  referencedTableName="question"
                                  referencedColumnNames="id"
-                                 onDelete="CASCADE"/>
+                                 onDelete="SET NULL"/>
 
         <dropForeignKeyConstraint baseTableName="answer_object"
                                   constraintName="FK_ANSWEROBJECT_ON_QUESTION"/>
+        <sql>ALTER TABLE answer_object MODIFY COLUMN question_id BIGINT NULL;</sql>
         <addForeignKeyConstraint baseTableName="answer_object"
                                  baseColumnNames="question_id"
                                  constraintName="FK_ANSWEROBJECT_ON_QUESTION"
                                  referencedTableName="question"
                                  referencedColumnNames="id"
-                                 onDelete="CASCADE"/>
+                                 onDelete="SET NULL"/>
 
         <dropForeignKeyConstraint baseTableName="violation"
                                   constraintName="FK_VIOLATION_ON_INTERACTION"/>
+        <sql>ALTER TABLE violation MODIFY COLUMN interaction_id BIGINT NULL;</sql>
         <addForeignKeyConstraint baseTableName="violation"
                                  baseColumnNames="interaction_id"
                                  constraintName="FK_VIOLATION_ON_INTERACTION"
                                  referencedTableName="interaction"
                                  referencedColumnNames="id"
-                                 onDelete="CASCADE"/>
+                                 onDelete="SET NULL"/>
 
         <dropForeignKeyConstraint baseTableName="exercise_question_type"
                                   constraintName="FK_EXERCISEQUESTIONTYPE_ON_EXERCISE"/>
+        <sql>ALTER TABLE exercise_question_type MODIFY COLUMN exercise_id BIGINT NULL;</sql>
         <addForeignKeyConstraint baseTableName="exercise_question_type"
                                  baseColumnNames="exercise_id"
                                  constraintName="FK_EXERCISEQUESTIONTYPE_ON_EXERCISE"
                                  referencedTableName="exercise"
                                  referencedColumnNames="id"
-                                 onDelete="CASCADE"/>
+                                 onDelete="SET NULL"/>
 
         <dropForeignKeyConstraint baseTableName="exercise_course_link"
                                   constraintName="fk_exercise_course_link_exercise"/>
@@ -70,7 +77,7 @@
                                  constraintName="fk_exercise_course_link_exercise"
                                  referencedTableName="exercise"
                                  referencedColumnNames="id"
-                                 onDelete="CASCADE"/>
+                                 onDelete="RESTRICT"/>
 
         <dropForeignKeyConstraint baseTableName="user_exercise"
                                   constraintName="fk_useexe_on_exercise_entity"/>
@@ -79,7 +86,7 @@
                                  constraintName="fk_useexe_on_exercise_entity"
                                  referencedTableName="exercise"
                                  referencedColumnNames="id"
-                                 onDelete="CASCADE"/>
+                                 onDelete="RESTRICT"/>
     </changeSet>
 
 </databaseChangeLog>

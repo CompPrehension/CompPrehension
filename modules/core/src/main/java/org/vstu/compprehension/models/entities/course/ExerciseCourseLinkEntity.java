@@ -19,7 +19,6 @@ public class ExerciseCourseLinkEntity {
 
     @Id
     @ManyToOne(optional = false)
-    @OnDelete(action = OnDeleteAction.CASCADE)
     @JoinColumn(name = "exercise_id", nullable = false)
     private ExerciseEntity exercise;
 

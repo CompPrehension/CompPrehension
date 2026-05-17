@@ -21,8 +21,8 @@ public class ExerciseQuestionTypeEntity {
     private Long id;
 
     @ManyToOne
-    @OnDelete(action = OnDeleteAction.CASCADE)
-    @JoinColumn(name = "exercise_id", nullable = false)
+    @OnDelete(action = OnDeleteAction.SET_NULL)
+    @JoinColumn(name = "exercise_id", nullable = true)
     private ExerciseEntity exercise;
 
     @Column(name = "questionType")

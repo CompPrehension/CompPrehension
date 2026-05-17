@@ -49,9 +49,9 @@ public class AnswerObjectEntity {
     @OneToMany(mappedBy = "rightAnswerObject", fetch = FetchType.LAZY)
     private List<ResponseEntity> responsesRight;
 
-    @ManyToOne(cascade = CascadeType.ALL)
-    @OnDelete(action = OnDeleteAction.CASCADE)
-    @JoinColumn(name = "question_id")
+    @ManyToOne
+    @OnDelete(action = OnDeleteAction.SET_NULL)
+    @JoinColumn(name = "question_id", nullable = true)
     private QuestionEntity question; 
     
 }

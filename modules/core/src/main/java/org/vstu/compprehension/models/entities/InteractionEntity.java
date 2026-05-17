@@ -65,8 +65,8 @@ public class InteractionEntity {
 
     @ToString.Exclude
     @ManyToOne
-    @OnDelete(action = OnDeleteAction.CASCADE)
-    @JoinColumn(name = "question_id", nullable = false)
+    @OnDelete(action = OnDeleteAction.SET_NULL)
+    @JoinColumn(name = "question_id", nullable = true)
     private QuestionEntity question;
 
     public InteractionEntity(

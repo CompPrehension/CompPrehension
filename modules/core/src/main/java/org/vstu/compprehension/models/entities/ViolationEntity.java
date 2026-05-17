@@ -24,9 +24,9 @@ public class ViolationEntity {
     private Long id;
 
     @ManyToOne
-    @OnDelete(action = OnDeleteAction.CASCADE)
+    @OnDelete(action = OnDeleteAction.SET_NULL)
     @ToString.Exclude
-    @JoinColumn(name = "interaction_id", referencedColumnName = "id", nullable = false)
+    @JoinColumn(name = "interaction_id", referencedColumnName = "id", nullable = true)
     private InteractionEntity interaction;
 
     @OneToMany(mappedBy = "violation", fetch = FetchType.EAGER)
