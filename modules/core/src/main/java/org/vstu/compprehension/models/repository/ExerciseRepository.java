@@ -15,7 +15,7 @@ public interface ExerciseRepository extends JpaRepository<ExerciseEntity, Long> 
     @Query("select e.id from ExerciseEntity e")
     List<Long> findAllIds();
 
-    @Query("select new org.vstu.compprehension.dto.ExerciseDto(e.id, e.name, e.isPublic, e.modelId) from ExerciseEntity e")
+    @Query("select new org.vstu.compprehension.dto.ExerciseDto(e.id, e.name, e.isPublic, e.guid) from ExerciseEntity e")
     List<ExerciseDto> getAllExerciseItems();
 
     List<ExerciseEntity> findAllByIsPublicTrue();
@@ -28,5 +28,5 @@ public interface ExerciseRepository extends JpaRepository<ExerciseEntity, Long> 
             """)
     List<ExerciseEntity> findAllByCourseId(@Param("courseId") long courseId);
 
-    List<ExerciseEntity> findAllByModelId(UUID modelId);
+    List<ExerciseEntity> findAllByGuid(UUID guid);
 }

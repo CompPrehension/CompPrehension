@@ -4,10 +4,8 @@ package org.vstu.compprehension.Service;
 import lombok.extern.log4j.Log4j2;
 import org.jetbrains.annotations.NotNull;
 import org.jetbrains.annotations.Nullable;
-import org.springframework.http.HttpStatus;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
-import org.springframework.web.server.ResponseStatusException;
 import org.vstu.compprehension.dto.ExerciseCardDto;
 import org.vstu.compprehension.dto.ExerciseDto;
 import org.vstu.compprehension.dto.ExerciseStageDto;
@@ -92,7 +90,7 @@ public class ExerciseService {
         exercise.setStages(new ArrayList<>(List.of(new ExerciseStageEntity(5, 0.5f, new ArrayList<>(), new ArrayList<>(), new ArrayList<>()))));
         exercise.setTags("");
         exercise.setPublic(courseId == null);
-        exercise.setModelId(UUID.randomUUID());
+        exercise.setGuid(UUID.randomUUID());
         exerciseRepository.save(exercise);
 
         if (courseId != null) {
@@ -104,16 +102,15 @@ public class ExerciseService {
     @Transactional
     public ExerciseEntity cloneExercise(long sourceExerciseId, @Nullable Long targetCourseId) {
         var source = exerciseRepository.findById(sourceExerciseId)
-                .orElseThrow(() -> new ResponseStatusException(HttpStatus.NOT_FOUND, "exercise not found"));
+                .orElseThrow(() -> new NoSuchElementException("exercise not found"));
 
         if (!source.isPublic() && targetCourseId != null) {
             var sourceLinks = exerciseCourseLinkRepository.findAllByExerciseId(sourceExerciseId);
             Long sourceCourseId = sourceLinks.size() == 1 ? sourceLinks.get(0).getCourse().getId() : null;
             if (targetCourseId.equals(sourceCourseId)) {
-                throw new ResponseStatusException(HttpStatus.CONFLICT, "duplicating_in_same_course");
+                throw new IllegalStateException("duplicating_in_same_course");
             }
-            throw new ResponseStatusException(HttpStatus.CONFLICT,
-                    "course_to_course_forbidden: copy to pool first, then link");
+            throw new IllegalStateException("course_to_course_forbidden: copy to pool first, then link");
         }
 
         var clone = source.clone();
@@ -129,7 +126,7 @@ public class ExerciseService {
     @Transactional
     public void deleteExercise(long exerciseId) {
         var exercise = exerciseRepository.findById(exerciseId)
-                .orElseThrow(() -> new ResponseStatusException(HttpStatus.NOT_FOUND, "exercise not found"));
+                .orElseThrow(() -> new NoSuchElementException("exercise not found"));
 
         if (!exercise.isPublic()) {
             exerciseRepository.delete(exercise);
@@ -165,14 +162,14 @@ public class ExerciseService {
                 ? exerciseRepository.findAllByIsPublicTrue()
                 : exerciseRepository.findAllByCourseId(courseId);
         return entities.stream()
-                .map(e -> new ExerciseDto(e.getId(), e.getName(), e.isPublic(), e.getModelId()))
+                .map(e -> new ExerciseDto(e.getId(), e.getName(), e.isPublic(), e.getGuid()))
                 .collect(Collectors.toList());
     }
 
     @Transactional(readOnly = true)
     public List<ExerciseDto> listPublicExercises() {
         return exerciseRepository.findAllByIsPublicTrue().stream()
-                .map(e -> new ExerciseDto(e.getId(), e.getName(), e.isPublic(), e.getModelId()))
+                .map(e -> new ExerciseDto(e.getId(), e.getName(), e.isPublic(), e.getGuid()))
                 .collect(Collectors.toList());
     }
 
@@ -221,7 +218,7 @@ public class ExerciseService {
                 .options(exercise.getOptions())
                 .tags(exercise.getTags())
                 .isPublic(exercise.isPublic())
-                .modelId(exercise.getModelId())
+                .modelId(exercise.getGuid())
                 .build();
     }
 }

@@ -16,16 +16,16 @@
     <changeSet id="2026-05-08-01-exercise-add-model-id" author="dmitry-smirnov">
         <sql endDelimiter=";">
             ALTER TABLE exercise
-                ADD COLUMN model_id BINARY(16) NULL;
+                ADD COLUMN guid BINARY(16) NULL;
 
             UPDATE exercise
-                SET model_id = UNHEX(MD5(CONCAT('exercise-model-', id)))
-                WHERE model_id IS NULL;
+                SET guid = UNHEX(MD5(CONCAT('exercise-model-', id)))
+                WHERE guid IS NULL;
 
             ALTER TABLE exercise
-                MODIFY COLUMN model_id BINARY(16) NOT NULL;
+                MODIFY COLUMN guid BINARY(16) NOT NULL;
 
-            CREATE INDEX idx_exercise_model_id ON exercise (model_id);
+            CREATE UNIQUE INDEX unq_exercise_guid ON exercise (guid);
         </sql>
     </changeSet>
 

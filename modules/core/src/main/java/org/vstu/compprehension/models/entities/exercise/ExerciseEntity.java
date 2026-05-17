@@ -73,8 +73,8 @@ public class ExerciseEntity implements Cloneable {
     @Column(name = "is_public", nullable = false)
     private boolean isPublic;
 
-    @Column(name = "model_id", nullable = false, columnDefinition = "BINARY(16)")
-    private UUID modelId;
+    @Column(name = "guid", nullable = false, columnDefinition = "BINARY(16)")
+    private UUID guid;
 
     public List<String> getTags() {
         return Arrays.stream(tags.split("\\s*,\\s*"))
@@ -118,7 +118,7 @@ public class ExerciseEntity implements Cloneable {
             copy.setHidden(this.hidden);
             copy.setTags(this.tags);
             copy.setExerciseType(this.exerciseType);
-            copy.setModelId(this.modelId);
+            copy.setGuid(this.guid);
             // isPublic defaults to false; caller sets it explicitly if the clone should be public
             copy.setOptions(this.options);
             copy.setStages(this.stages == null ? new ArrayList<>() : new ArrayList<>(this.stages));
