@@ -108,6 +108,10 @@ public class ExerciseEntity implements Cloneable {
     public ExerciseEntity clone() {
         try {
             ExerciseEntity copy = (ExerciseEntity) super.clone();
+            copy.setId(null);
+            copy.setCreatedAt(null);
+            copy.setUpdatedAt(null);
+            copy.setPublic(false);
             copy.setName(this.name);
             copy.setDomain(this.domain);
             copy.setBackendId(this.backendId);
@@ -119,7 +123,6 @@ public class ExerciseEntity implements Cloneable {
             copy.setTags(this.tags);
             copy.setExerciseType(this.exerciseType);
             copy.setGuid(this.guid);
-            // isPublic defaults to false; caller sets it explicitly if the clone should be public
             copy.setOptions(this.options);
             copy.setStages(this.stages == null ? new ArrayList<>() : new ArrayList<>(this.stages));
             if (this.exerciseQuestionTypes != null) {
@@ -129,6 +132,8 @@ public class ExerciseEntity implements Cloneable {
                                 .collect(Collectors.toCollection(ArrayList::new))
                 );
             }
+            copy.setExerciseAttempts(null);
+            copy.setUsers(null);
             return copy;
         } catch (CloneNotSupportedException e) {
             throw new RuntimeException(e);
