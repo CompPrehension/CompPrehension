@@ -2,8 +2,6 @@ package org.vstu.compprehension.models.entities;
 
 import jakarta.persistence.*;
 import lombok.*;
-import org.hibernate.annotations.OnDelete;
-import org.hibernate.annotations.OnDeleteAction;
 
 import java.util.List;
 
@@ -49,9 +47,8 @@ public class AnswerObjectEntity {
     @OneToMany(mappedBy = "rightAnswerObject", fetch = FetchType.LAZY)
     private List<ResponseEntity> responsesRight;
 
-    @ManyToOne
-    @OnDelete(action = OnDeleteAction.SET_NULL)
-    @JoinColumn(name = "question_id", nullable = true)
-    private QuestionEntity question; 
+    @ManyToOne(cascade = CascadeType.ALL)
+    @JoinColumn(name = "question_id")
+    private QuestionEntity question;
     
 }

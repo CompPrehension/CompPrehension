@@ -2,8 +2,6 @@ package org.vstu.compprehension.models.entities;
 
 import com.vladmihalcea.hibernate.type.json.JsonType;
 import jakarta.persistence.*;
-import org.hibernate.annotations.OnDelete;
-import org.hibernate.annotations.OnDeleteAction;
 import lombok.Getter;
 import lombok.NoArgsConstructor;
 import lombok.Setter;
@@ -24,9 +22,8 @@ public class ViolationEntity {
     private Long id;
 
     @ManyToOne
-    @OnDelete(action = OnDeleteAction.SET_NULL)
     @ToString.Exclude
-    @JoinColumn(name = "interaction_id", referencedColumnName = "id", nullable = true)
+    @JoinColumn(name = "interaction_id", referencedColumnName = "id", nullable = false)
     private InteractionEntity interaction;
 
     @OneToMany(mappedBy = "violation", fetch = FetchType.EAGER)
