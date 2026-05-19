@@ -130,31 +130,32 @@ public class ExerciseService {
 
         if (!exercise.isPublic()) {
             exerciseCourseLinkRepository.deleteByExerciseId(exerciseId);
-            exerciseRepository.delete(exercise);
+            exerciseAttemptRepository.deleteByExerciseId(exerciseId);
+            exerciseRepository.deleteById(exerciseId);
             return;
         }
 
         var links = exerciseCourseLinkRepository.findAllByExerciseId(exerciseId);
-        if (links.isEmpty()) {
-            exerciseRepository.delete(exercise);
-            return;
+        if (!links.isEmpty()) {
+            var clones = new ArrayList<ExerciseEntity>(links.size());
+            for (var ignored : links) {
+                clones.add(exercise.clone());
+            }
+            exerciseRepository.saveAll(clones);
+            exerciseRepository.flush();
+
+            var courseToCloneId = new HashMap<Long, Long>();
+            for (int i = 0; i < links.size(); i++) {
+                courseToCloneId.put(links.get(i).getCourse().getId(), clones.get(i).getId());
+            }
+
+            linkReassignExecutor.reassign(exerciseId, courseToCloneId);
+            attemptReassignExecutor.reassign(exerciseId, courseToCloneId);
         }
 
-        var clones = new ArrayList<ExerciseEntity>(links.size());
-        for (var ignored : links) {
-            clones.add(exercise.clone());
-        }
-        exerciseRepository.saveAll(clones);
-        exerciseRepository.flush();
-
-        var courseToCloneId = new HashMap<Long, Long>();
-        for (int i = 0; i < links.size(); i++) {
-            courseToCloneId.put(links.get(i).getCourse().getId(), clones.get(i).getId());
-        }
-
-        linkReassignExecutor.reassign(exerciseId, courseToCloneId);
-        attemptReassignExecutor.reassign(exerciseId, courseToCloneId);
-        exerciseRepository.delete(exercise);
+        exerciseCourseLinkRepository.deleteByExerciseId(exerciseId);
+        exerciseAttemptRepository.deleteByExerciseId(exerciseId);
+        exerciseRepository.deleteById(exerciseId);
     }
 
     @Transactional(readOnly = true)
