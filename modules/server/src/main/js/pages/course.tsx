@@ -29,7 +29,7 @@ export const CoursePage = observer(() => {
     };
 
     if (!user) return <Loader />;
-    if (courseId == null) return <div>courseId is required</div>;
+    if (courseId == null) return <div>{t('course_page_courseIdRequired')}</div>;
     if (store.loadStatus === 'LOADING') return <Loader />;
 
     const isPriv = user.roles.includes('TEACHER') || user.roles.includes('ADMIN');
@@ -38,7 +38,7 @@ export const CoursePage = observer(() => {
     return (
         <div className="container-fluid">
             <div className="pt-1 pb-3">
-                <Header text={`Course #${courseId}`}
+                <Header text={t('course_page_title', { id: courseId })}
                         languageHint={t('language_header')}
                         language={user?.language ?? "EN"}
                         onLanguageClicked={onLangClicked}
@@ -52,12 +52,12 @@ export const CoursePage = observer(() => {
                     <button type="button"
                             className="btn btn-primary"
                             onClick={() => navigate(`/pages/exercise-settings?courseId=${courseId}`)}>
-                        Создать новое упражнение в курсе
+                        {t('course_page_createExerciseBtn')}
                     </button>
                     <button type="button"
                             className="btn btn-secondary"
                             onClick={() => setShowImportModal(true)}>
-                        Импортировать из глобального пула
+                        {t('course_page_importBtn')}
                     </button>
                 </div>
             )}
@@ -68,7 +68,7 @@ export const CoursePage = observer(() => {
                     </li>
                 )}
                 {store.exercises.length === 0 && store.loadStatus === 'LOADED' && (
-                    <li className="list-group-item text-muted">В этом курсе пока нет упражнений</li>
+                    <li className="list-group-item text-muted">{t('course_page_empty')}</li>
                 )}
             </ul>
             {isPriv && showImportModal && (

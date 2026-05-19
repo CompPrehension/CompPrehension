@@ -1,13 +1,7 @@
 import React from 'react';
+import { useTranslation } from 'react-i18next';
 
 export type ExerciseLinkType = 'global' | 'original' | 'inherited' | 'cloned';
-
-const labels: Record<ExerciseLinkType, string> = {
-    global: 'Global',
-    original: 'Course-private',
-    inherited: 'Inherited from global',
-    cloned: 'Cloned from global',
-};
 
 const variants: Record<ExerciseLinkType, string> = {
     global: 'badge-warning',
@@ -16,6 +10,7 @@ const variants: Record<ExerciseLinkType, string> = {
     cloned: 'badge-secondary',
 };
 
-export const ExerciseRowBadge: React.FC<{ linkType: ExerciseLinkType }> = ({ linkType }) => (
-    <span className={`badge ${variants[linkType]}`}>{labels[linkType]}</span>
-);
+export const ExerciseRowBadge: React.FC<{ linkType: ExerciseLinkType }> = ({ linkType }) => {
+    const { t } = useTranslation();
+    return <span className={`badge ${variants[linkType]}`}>{t(`exerciseBadge_${linkType}`)}</span>;
+};

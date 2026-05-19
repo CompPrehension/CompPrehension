@@ -367,6 +367,7 @@ type ExerciseModeBarProps = {
 };
 
 const ExerciseModeBar = observer(({ store, linkType, courseId }: ExerciseModeBarProps) => {
+    const { t } = useTranslation();
     const [showDeleteModal, setShowDeleteModal] = useState(false);
     const [busy, setBusy] = useState(false);
     const card = store.currentCard;
@@ -398,7 +399,7 @@ const ExerciseModeBar = observer(({ store, linkType, courseId }: ExerciseModeBar
     const onDeleteClick = () => {
         if (card.isPublic) {
             setShowDeleteModal(true);
-        } else if (window.confirm('Удалить упражнение? История попыток будет удалена.')) {
+        } else if (window.confirm(t('exerciseModeBar_confirmDelete'))) {
             store.deleteCurrentExercise();
         }
     };
@@ -420,21 +421,21 @@ const ExerciseModeBar = observer(({ store, linkType, courseId }: ExerciseModeBar
                     {linkType === 'inherited' && (
                         <>
                             <button type="button" className="btn btn-warning" disabled={busy} onClick={onConvertToClone}>
-                                Convert to clone
+                                {t('exerciseModeBar_convertToClone')}
                             </button>
                             <button type="button" className="btn btn-outline-danger" disabled={busy} onClick={onUnlink}>
-                                Удалить из курса
+                                {t('exerciseModeBar_unlinkFromCourse')}
                             </button>
                         </>
                     )}
                     {linkType === 'original' && (
                         <button type="button" className="btn btn-info" disabled={busy} onClick={onCopyToPool}>
-                            Скопировать в глобальный пул
+                            {t('exerciseModeBar_copyToPool')}
                         </button>
                     )}
                     {linkType !== 'inherited' && (
                         <button type="button" className="btn btn-outline-danger" disabled={busy} onClick={onDeleteClick}>
-                            Удалить упражнение
+                            {t('exerciseModeBar_deleteExercise')}
                         </button>
                     )}
                 </div>

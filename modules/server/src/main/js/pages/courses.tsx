@@ -27,7 +27,7 @@ export const CoursesPage = observer(() => {
     return (
         <div className="container-fluid">
             <div className="pt-1 pb-3">
-                <Header text="Курсы"
+                <Header text={t('courses_page_title')}
                         languageHint={t('language_header')}
                         language={user.language ?? 'EN'}
                         onLanguageClicked={onLangClicked}
@@ -40,11 +40,11 @@ export const CoursesPage = observer(() => {
                 <button type="button"
                         className="btn btn-outline-primary"
                         onClick={() => navigate('/pages/global-pool')}>
-                    Глобальный пул упражнений
+                    {t('courses_page_globalPoolBtn')}
                 </button>
             </div>
             {store.courses.length === 0 ? (
-                <div className="alert alert-info">Нет доступных курсов</div>
+                <div className="alert alert-info">{t('courses_page_empty')}</div>
             ) : (
                 <div className="row row-cols-1 row-cols-md-2 row-cols-lg-3 g-3">
                     {store.courses.map(c => (

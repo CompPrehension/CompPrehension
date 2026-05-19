@@ -159,7 +159,37 @@ const resources = {
             deleteModal_warning: "Warning:",
             deleteModal_warningBody: "independent copies of this exercise will be created in all courses listed below. The link to the original will be broken, and the original will be removed from the pool.",
             deleteModal_cancel: "Cancel",
-            deleteModal_confirm: "Delete"
+            deleteModal_confirm: "Delete",
+
+            courses_page_title: "Courses",
+            courses_page_globalPoolBtn: "Global exercise pool",
+            courses_page_empty: "No courses available",
+
+            course_page_title: "Course #{{id}}",
+            course_page_courseIdRequired: "courseId is required",
+            course_page_createExerciseBtn: "Create new exercise in course",
+            course_page_importBtn: "Import from global pool",
+            course_page_empty: "This course has no exercises yet",
+
+            globalPool_page_title: "Global exercise pool",
+            globalPool_page_createBtn: "Create new exercise in pool",
+            globalPool_page_empty: "Pool is empty",
+
+            importModal_inherit_label: "⚠ Inherit:",
+            importModal_clone_label: "Clone:",
+            importModal_inherit_btn: "⚠ Inherit",
+            importModal_clone_btn: "Clone",
+
+            exerciseBadge_global: "Global",
+            exerciseBadge_original: "Course-private",
+            exerciseBadge_inherited: "Inherited from global",
+            exerciseBadge_cloned: "Cloned from global",
+
+            exerciseModeBar_convertToClone: "Convert to clone",
+            exerciseModeBar_unlinkFromCourse: "Remove from course",
+            exerciseModeBar_copyToPool: "Copy to global pool",
+            exerciseModeBar_deleteExercise: "Delete exercise",
+            exerciseModeBar_confirmDelete: "Delete exercise? Attempt history will be deleted."
         },
     },
     RU: {
@@ -285,7 +315,37 @@ const resources = {
             deleteModal_warning: "Внимание:",
             deleteModal_warningBody: "во всех курсах ниже будут созданы независимые копии этого упражнения. Связь с оригиналом разорвётся, оригинал будет удалён из пула.",
             deleteModal_cancel: "Отмена",
-            deleteModal_confirm: "Удалить"
+            deleteModal_confirm: "Удалить",
+
+            courses_page_title: "Курсы",
+            courses_page_globalPoolBtn: "Глобальный пул упражнений",
+            courses_page_empty: "Нет доступных курсов",
+
+            course_page_title: "Курс #{{id}}",
+            course_page_courseIdRequired: "Требуется courseId",
+            course_page_createExerciseBtn: "Создать новое упражнение в курсе",
+            course_page_importBtn: "Импортировать из глобального пула",
+            course_page_empty: "В этом курсе пока нет упражнений",
+
+            globalPool_page_title: "Глобальный пул упражнений",
+            globalPool_page_createBtn: "Создать новое упражнение в пуле",
+            globalPool_page_empty: "Пул пуст",
+
+            importModal_inherit_label: "⚠ Inherit:",
+            importModal_clone_label: "Clone:",
+            importModal_inherit_btn: "⚠ Inherit",
+            importModal_clone_btn: "Clone",
+
+            exerciseBadge_global: "Глобальное",
+            exerciseBadge_original: "Только в курсе",
+            exerciseBadge_inherited: "Унаследовано из пула",
+            exerciseBadge_cloned: "Клонировано из пула",
+
+            exerciseModeBar_convertToClone: "Преобразовать в клон",
+            exerciseModeBar_unlinkFromCourse: "Удалить из курса",
+            exerciseModeBar_copyToPool: "Скопировать в глобальный пул",
+            exerciseModeBar_deleteExercise: "Удалить упражнение",
+            exerciseModeBar_confirmDelete: "Удалить упражнение? История попыток будет удалена."
         },
     },
     PL: {
@@ -367,7 +427,37 @@ const resources = {
             deleteModal_warning: "Uwaga:",
             deleteModal_warningBody: "we wszystkich poniższych kursach zostaną utworzone niezależne kopie tego ćwiczenia. Połączenie z oryginałem zostanie zerwane, a oryginał zostanie usunięty z puli.",
             deleteModal_cancel: "Anuluj",
-            deleteModal_confirm: "Usuń"
+            deleteModal_confirm: "Usuń",
+
+            courses_page_title: "Kursy",
+            courses_page_globalPoolBtn: "Globalna pula ćwiczeń",
+            courses_page_empty: "Brak dostępnych kursów",
+
+            course_page_title: "Kurs #{{id}}",
+            course_page_courseIdRequired: "Wymagany jest courseId",
+            course_page_createExerciseBtn: "Utwórz nowe ćwiczenie w kursie",
+            course_page_importBtn: "Importuj z globalnej puli",
+            course_page_empty: "Ten kurs nie ma jeszcze ćwiczeń",
+
+            globalPool_page_title: "Globalna pula ćwiczeń",
+            globalPool_page_createBtn: "Utwórz nowe ćwiczenie w puli",
+            globalPool_page_empty: "Pula jest pusta",
+
+            importModal_inherit_label: "⚠ Inherit:",
+            importModal_clone_label: "Clone:",
+            importModal_inherit_btn: "⚠ Inherit",
+            importModal_clone_btn: "Clone",
+
+            exerciseBadge_global: "Globalne",
+            exerciseBadge_original: "Tylko w kursie",
+            exerciseBadge_inherited: "Odziedziczone z puli",
+            exerciseBadge_cloned: "Sklonowane z puli",
+
+            exerciseModeBar_convertToClone: "Konwertuj na klon",
+            exerciseModeBar_unlinkFromCourse: "Usuń z kursu",
+            exerciseModeBar_copyToPool: "Skopiuj do globalnej puli",
+            exerciseModeBar_deleteExercise: "Usuń ćwiczenie",
+            exerciseModeBar_confirmDelete: "Usunąć ćwiczenie? Historia prób zostanie usunięta."
         },
     },
 };

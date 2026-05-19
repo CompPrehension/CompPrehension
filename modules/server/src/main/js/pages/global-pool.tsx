@@ -27,7 +27,7 @@ export const GlobalPool = observer(() => {
     return (
         <div className="container-fluid">
             <div className="pt-1 pb-3">
-                <Header text="Global Exercise Pool"
+                <Header text={t('globalPool_page_title')}
                         languageHint={t('language_header')}
                         language={user?.language ?? "EN"}
                         onLanguageClicked={onLangClicked}
@@ -40,7 +40,7 @@ export const GlobalPool = observer(() => {
                 <button type="button"
                         className="btn btn-primary"
                         onClick={() => navigate('/pages/exercise-settings')}>
-                    Создать новое упражнение в пуле
+                    {t('globalPool_page_createBtn')}
                 </button>
             </div>
             <ul className="list-group">
@@ -50,7 +50,7 @@ export const GlobalPool = observer(() => {
                     </li>
                 )}
                 {store.exercises.length === 0 && store.loadStatus === 'LOADED' && (
-                    <li className="list-group-item text-muted">Пул пуст</li>
+                    <li className="list-group-item text-muted">{t('globalPool_page_empty')}</li>
                 )}
             </ul>
         </div>
