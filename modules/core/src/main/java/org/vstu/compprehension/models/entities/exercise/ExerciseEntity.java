@@ -26,7 +26,9 @@ import java.util.stream.Collectors;
 @Entity
 @Data
 @NoArgsConstructor
-@Table(name = "Exercise")
+@Table(name = "Exercise", indexes = {
+    @Index(name = "idx_exercise_guid", columnList = "guid")
+})
 public class ExerciseEntity implements Cloneable {
     @Id
     @GeneratedValue(strategy = GenerationType.IDENTITY)

@@ -8,8 +8,6 @@
         <sql endDelimiter=";">
             ALTER TABLE exercise
                 ADD COLUMN is_public BOOLEAN NOT NULL DEFAULT FALSE;
-
-            CREATE INDEX idx_exercise_is_public ON exercise (is_public);
         </sql>
     </changeSet>
 
@@ -25,7 +23,7 @@
             ALTER TABLE exercise
                 MODIFY COLUMN guid BINARY(16) NOT NULL;
 
-            CREATE UNIQUE INDEX unq_exercise_guid ON exercise (guid);
+            CREATE INDEX idx_exercise_guid ON exercise (guid);
         </sql>
     </changeSet>
 
@@ -37,13 +35,6 @@
     </changeSet>
 
     <changeSet id="2026-05-08-01-exercise-publish-pre-existing" author="dmitry-smirnov">
-        <validCheckSum>ANY</validCheckSum>
-        <sql endDelimiter=";">
-            UPDATE exercise SET is_public = TRUE WHERE is_public = FALSE;
-        </sql>
-    </changeSet>
-
-    <changeSet id="2026-05-08-02-exercise-publish-all-existing" author="dmitry-smirnov">
         <sql endDelimiter=";">
             UPDATE exercise SET is_public = TRUE WHERE is_public = FALSE;
         </sql>
