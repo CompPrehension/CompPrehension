@@ -13,7 +13,6 @@ import org.vstu.compprehension.models.entities.DomainEntity;
 import org.vstu.compprehension.models.entities.EnumData.ExerciseType;
 import org.vstu.compprehension.models.entities.EnumData.Language;
 import org.vstu.compprehension.models.entities.ExerciseAttemptEntity;
-import org.vstu.compprehension.models.entities.ExerciseQuestionTypeEntity;
 import org.vstu.compprehension.models.entities.UserEntity;
 
 import java.util.ArrayList;
@@ -98,9 +97,6 @@ public class ExerciseEntity implements Cloneable {
     private DomainEntity domain;
 
     @OneToMany(mappedBy = "exercise", fetch = FetchType.LAZY)
-    private List<ExerciseQuestionTypeEntity> exerciseQuestionTypes;
-
-    @OneToMany(mappedBy = "exercise", fetch = FetchType.LAZY)
     private List<ExerciseAttemptEntity> exerciseAttempts;
 
     @ManyToMany(mappedBy = "exercises", fetch = FetchType.LAZY)
@@ -127,13 +123,6 @@ public class ExerciseEntity implements Cloneable {
             copy.setGuid(this.guid);
             copy.setOptions(this.options);
             copy.setStages(this.stages == null ? new ArrayList<>() : new ArrayList<>(this.stages));
-            if (this.exerciseQuestionTypes != null) {
-                copy.setExerciseQuestionTypes(
-                        this.exerciseQuestionTypes.stream()
-                                .map(t -> new ExerciseQuestionTypeEntity(copy, t.getQuestionType()))
-                                .collect(Collectors.toCollection(ArrayList::new))
-                );
-            }
             copy.setExerciseAttempts(null);
             copy.setUsers(null);
             return copy;
