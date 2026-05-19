@@ -209,7 +209,7 @@ public class ExerciseService {
                 .options(exercise.getOptions())
                 .tags(exercise.getTags())
                 .isPublic(exercise.isPublic())
-                .modelId(exercise.getGuid())
+                .guid(exercise.getGuid())
                 .build();
     }
 }

@@ -11,5 +11,5 @@ public class ExerciseDto {
     @NotNull Long id;
     @NotNull String name;
     @JsonProperty("isPublic") boolean isPublic;
-    UUID modelId;
+    UUID guid;
 }

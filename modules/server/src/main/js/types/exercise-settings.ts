@@ -7,13 +7,13 @@ export type ExerciseListItem = {
     id: number,
     name: string,
     isPublic: boolean,
-    modelId: string,
+    guid: string,
 };
 export const TExerciseListItem: io.Type<ExerciseListItem> = io.type({
     id: io.number,
     name: io.string,
     isPublic: io.boolean,
-    modelId: io.string,
+    guid: io.string,
 })
 
 export type ExerciseCardConceptKind = 'FORBIDDEN' | 'PERMITTED' | 'TARGETED'
@@ -84,7 +84,7 @@ export type ExerciseCard = {
     tags: string[],
     options: ExerciseOptions,
     isPublic: boolean,
-    modelId: string,
+    guid: string,
 }
 
 export const TExerciseCard: io.Type<ExerciseCard> = io.type({
@@ -97,7 +97,7 @@ export const TExerciseCard: io.Type<ExerciseCard> = io.type({
     tags: io.array(io.string),
     options: TExerciseOptions,
     isPublic: io.boolean,
-    modelId: io.string,
+    guid: io.string,
 })
 
 export type DomainSkill = {

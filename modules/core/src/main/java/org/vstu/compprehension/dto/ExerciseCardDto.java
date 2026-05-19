@@ -22,7 +22,7 @@ public class ExerciseCardDto {
     private @NotNull List<ExerciseStageDto> stages;
     private @NotNull ExerciseOptionsEntity options;
     @JsonProperty("isPublic") private boolean isPublic;
-    private UUID modelId;
+    private UUID guid;
 
     //@NotNull List<String> tags;
     /*
