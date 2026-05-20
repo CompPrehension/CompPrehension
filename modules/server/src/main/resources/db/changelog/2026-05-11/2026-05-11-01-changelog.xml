@@ -16,24 +16,6 @@
                                  referencedTableName="exercise_attempt"
                                  referencedColumnNames="id"
                                  onDelete="SET NULL"/>
-
-        <dropForeignKeyConstraint baseTableName="exercise_course_link"
-                                  constraintName="fk_exercise_course_link_exercise"/>
-        <addForeignKeyConstraint baseTableName="exercise_course_link"
-                                 baseColumnNames="exercise_id"
-                                 constraintName="fk_exercise_course_link_exercise"
-                                 referencedTableName="exercise"
-                                 referencedColumnNames="id"
-                                 onDelete="RESTRICT"/>
-
-        <dropForeignKeyConstraint baseTableName="user_exercise"
-                                  constraintName="fk_useexe_on_exercise_entity"/>
-        <addForeignKeyConstraint baseTableName="user_exercise"
-                                 baseColumnNames="exercise_id"
-                                 constraintName="fk_useexe_on_exercise_entity"
-                                 referencedTableName="exercise"
-                                 referencedColumnNames="id"
-                                 onDelete="RESTRICT"/>
     </changeSet>
 
 </databaseChangeLog>
