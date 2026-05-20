@@ -11,22 +11,6 @@
         </sql>
     </changeSet>
 
-    <changeSet id="2026-05-08-01-exercise-add-model-id" author="dmitry-smirnov">
-        <sql endDelimiter=";">
-            ALTER TABLE exercise
-                ADD COLUMN guid BINARY(16) NULL;
-
-            UPDATE exercise
-                SET guid = UNHEX(MD5(CONCAT('exercise-model-', id)))
-                WHERE guid IS NULL;
-
-            ALTER TABLE exercise
-                MODIFY COLUMN guid BINARY(16) NOT NULL;
-
-            CREATE INDEX idx_exercise_guid ON exercise (guid);
-        </sql>
-    </changeSet>
-
     <changeSet id="2026-05-08-01-exercise-course-link-add-linked-at" author="dmitry-smirnov">
         <sql endDelimiter=";">
             ALTER TABLE exercise_course_link

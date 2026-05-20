@@ -6,7 +6,6 @@ import org.jetbrains.annotations.NotNull;
 import org.vstu.compprehension.models.entities.exercise.ExerciseOptionsEntity;
 
 import java.util.List;
-import java.util.UUID;
 
 @Getter
 @Builder
@@ -22,7 +21,6 @@ public class ExerciseCardDto {
     private @NotNull List<ExerciseStageDto> stages;
     private @NotNull ExerciseOptionsEntity options;
     @JsonProperty("isPublic") private boolean isPublic;
-    private UUID guid;
 
     //@NotNull List<String> tags;
     /*

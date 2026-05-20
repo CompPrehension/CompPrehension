@@ -19,15 +19,12 @@ import java.util.ArrayList;
 import java.util.Arrays;
 import java.util.Date;
 import java.util.List;
-import java.util.UUID;
 import java.util.stream.Collectors;
 
 @Entity
 @Data
 @NoArgsConstructor
-@Table(name = "Exercise", indexes = {
-    @Index(name = "idx_exercise_guid", columnList = "guid")
-})
+@Table(name = "Exercise")
 public class ExerciseEntity implements Cloneable {
     @Id
     @GeneratedValue(strategy = GenerationType.IDENTITY)
@@ -74,9 +71,6 @@ public class ExerciseEntity implements Cloneable {
     @Column(name = "is_public", nullable = false)
     private boolean isPublic;
 
-    @Column(name = "guid", nullable = false, columnDefinition = "BINARY(16)")
-    private UUID guid;
-
     public List<String> getTags() {
         return Arrays.stream(tags.split("\\s*,\\s*"))
                 .filter(t -> !StringHelper.isNullOrWhitespace(t))
@@ -120,7 +114,6 @@ public class ExerciseEntity implements Cloneable {
             copy.setHidden(this.hidden);
             copy.setTags(this.tags);
             copy.setExerciseType(this.exerciseType);
-            copy.setGuid(this.guid);
             copy.setOptions(this.options);
             copy.setStages(this.stages == null ? new ArrayList<>() : new ArrayList<>(this.stages));
             copy.setExerciseAttempts(null);

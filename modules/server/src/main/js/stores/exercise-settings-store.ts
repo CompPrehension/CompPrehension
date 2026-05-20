@@ -26,7 +26,6 @@ export type ExerciseCardViewModel = {
     stages: NEA.NonEmptyArray<ExerciseStageStore>,
     options: ExerciseOptions,
     isPublic: boolean,
-    guid: string,
 }
 
 export type ExerciseLinkType = 'global' | 'original' | 'inherited' | 'cloned';
@@ -122,12 +121,6 @@ export class ExerciseSettingsStore {
         makeAutoObservable(this);
     }
 
-    /**
-     * Determines the type of currently-loaded card relative to the active courseId.
-     * Distinguishing 'cloned' from 'original' would require knowing whether a public
-     * sibling with the same guid exists — that info isn't in the course exercise list.
-     * For now, treat every course-private exercise as 'original'.
-     */
     get cardLinkType(): ExerciseLinkType {
         const card = this.currentCard;
         if (!card) return 'global';

@@ -23,7 +23,6 @@ import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
 import java.util.NoSuchElementException;
-import java.util.UUID;
 import java.util.stream.Collectors;
 
 @Service
@@ -90,7 +89,6 @@ public class ExerciseService {
         exercise.setStages(new ArrayList<>(List.of(new ExerciseStageEntity(5, 0.5f, new ArrayList<>(), new ArrayList<>(), new ArrayList<>()))));
         exercise.setTags("");
         exercise.setPublic(courseId == null);
-        exercise.setGuid(UUID.randomUUID());
         exerciseRepository.save(exercise);
 
         if (courseId != null) {
@@ -161,14 +159,14 @@ public class ExerciseService {
     @Transactional(readOnly = true)
     public List<ExerciseDto> getCourseExercises(long courseId) {
         return exerciseRepository.findAllByCourseId(courseId).stream()
-                .map(e -> new ExerciseDto(e.getId(), e.getName(), e.isPublic(), e.getGuid()))
+                .map(e -> new ExerciseDto(e.getId(), e.getName(), e.isPublic()))
                 .collect(Collectors.toList());
     }
 
     @Transactional(readOnly = true)
     public List<ExerciseDto> getPublicExercises() {
         return exerciseRepository.findAllByIsPublicTrue().stream()
-                .map(e -> new ExerciseDto(e.getId(), e.getName(), e.isPublic(), e.getGuid()))
+                .map(e -> new ExerciseDto(e.getId(), e.getName(), e.isPublic()))
                 .collect(Collectors.toList());
     }
 
@@ -210,7 +208,6 @@ public class ExerciseService {
                 .options(exercise.getOptions())
                 .tags(exercise.getTags())
                 .isPublic(exercise.isPublic())
-                .guid(exercise.getGuid())
                 .build();
     }
 }
