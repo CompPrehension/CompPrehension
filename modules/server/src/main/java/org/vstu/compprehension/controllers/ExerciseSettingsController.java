@@ -60,6 +60,10 @@ public class ExerciseSettingsController {
     @RequestMapping(value = { "exercise/global-pool" }, method = { RequestMethod.GET })
     @ResponseBody
     public List<ExerciseDto> getGlobalPool() {
+        var currentUser = userService.getCurrentUser();
+        if (!currentUser.getRoles().contains(Role.TEACHER)) {
+            throw new AuthorizationServiceException("Unathorized");
+        }
         return exerciseService.getPublicExercises();
     }
 
