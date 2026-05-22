@@ -49,7 +49,7 @@ public class ExerciseSettingsController {
     public List<ExerciseDto> list(@RequestParam(value = "courseId", required = false) Long courseId) {
         var currentUser = userService.getCurrentUser();
         if (!currentUser.getRoles().contains(Role.TEACHER)) {
-            throw new AuthorizationServiceException("Unathorized");
+            throw new AuthorizationServiceException("Unauthorized");
         }
         return courseId == null
             ? exerciseService.getPublicExercises()
