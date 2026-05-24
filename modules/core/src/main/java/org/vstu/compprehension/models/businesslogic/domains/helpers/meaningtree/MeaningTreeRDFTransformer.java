@@ -410,6 +410,26 @@ public class MeaningTreeRDFTransformer {
         }
     }
 
+    private static Model toRdfModel(DomainModel model) {
+        return DomainRDFWriter.saveDomain(model, BASE_TTL_PREF, Set.of());
+    }
+
+    private static void dumpModelRdf(DomainModel model, File file, String lang) {
+        try (FileOutputStream out = new FileOutputStream(file)) {
+            toRdfModel(model).write(out, lang);
+        } catch (IOException e) {
+            throw new RuntimeException(e);
+        }
+    }
+
+    public static void dumpModelTtl(DomainModel model, File file) {
+        dumpModelRdf(model, file, "TURTLE");
+    }
+
+    public static void dumpModelJsonLd(DomainModel model, File file) {
+        dumpModelRdf(model, file, "JSON-LD");
+    }
+
     public static void debugDumpTtl(DomainModel model, String filename/*, DomainModel toExclude*/) {
         if(!ENABLE_DEBUG_SAVE) return;
         /*if (toExclude != null) {
