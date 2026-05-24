@@ -4,6 +4,7 @@ package org.vstu.compprehension.models.businesslogic.domains.helpers.meaningtree
 import its.model.DomainSolvingModel;
 import its.model.definition.*;
 import its.model.definition.loqi.DomainLoqiWriter;
+import its.model.definition.rdf.DomainRDFWriter;
 import its.model.nodes.DecisionTree;
 import org.apache.commons.lang3.tuple.Pair;
 import org.apache.jena.rdf.model.Model;
@@ -18,9 +19,7 @@ import org.vstu.meaningtree.exceptions.MeaningTreeException;
 import org.vstu.meaningtree.serializers.rdf.RDFDeserializer;
 import org.vstu.meaningtree.utils.tokens.*;
 
-import java.io.File;
-import java.io.FileWriter;
-import java.io.IOException;
+import java.io.*;
 import java.lang.reflect.InvocationTargetException;
 import java.util.*;
 
@@ -34,7 +33,7 @@ public class MeaningTreeRDFTransformer {
         }
     }
 
-    private static final String DEBUG_DIR = "./modules/core/src/main/resources/" + ProgrammingLanguageExpressionDTDomain.DOMAIN_MODEL_LOCATION;
+    private static final String DEBUG_DIR = "./";
     private static final String BASE_TTL_PREF = "http://vstu.ru/poas/code#";
 
     public record ParsedDomain(DomainModel domainModel, List<Integer> errorPos) {
@@ -387,7 +386,7 @@ public class MeaningTreeRDFTransformer {
         }
     }
 
-    private static void debugDumpLoqi(DomainModel model, String filename, DomainModel toExclude) {
+    public static void debugDumpLoqi(DomainModel model, String filename, DomainModel toExclude) {
         if(!ENABLE_DEBUG_SAVE) return;
         if (toExclude != null) {
             model = model.copy();
@@ -399,11 +398,34 @@ public class MeaningTreeRDFTransformer {
 
     public static void dumpModelLoqi(DomainModel model, File filePath) {
         try {
+            var fileStream = new FileWriter(filePath);
             DomainLoqiWriter.saveDomain(
                     model,
-                    new FileWriter(filePath),
+                    fileStream,
                     new HashSet<>()
             );
+            fileStream.close();
+        } catch (IOException e) {
+            throw new RuntimeException(e);
+        }
+    }
+
+    public static void debugDumpTtl(DomainModel model, String filename/*, DomainModel toExclude*/) {
+        if(!ENABLE_DEBUG_SAVE) return;
+        /*if (toExclude != null) {
+            model = model.copy();
+            model.subtract(toExclude);
+        }*/
+        String filePath = new File(DEBUG_DIR).exists() ? DEBUG_DIR : "./";
+
+        var rdfModel = DomainRDFWriter.saveDomain(model, BASE_TTL_PREF, Set.of());
+        FileOutputStream out;
+        try {
+            out = new FileOutputStream(new File(filePath, filename));
+            rdfModel.write(out, "TURTLE");
+            out.close();
+        } catch (FileNotFoundException e) {
+            throw new RuntimeException(e);
         } catch (IOException e) {
             throw new RuntimeException(e);
         }
