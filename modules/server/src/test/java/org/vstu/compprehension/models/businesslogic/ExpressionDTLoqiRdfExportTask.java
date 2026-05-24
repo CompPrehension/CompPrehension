@@ -3,12 +3,14 @@ package org.vstu.compprehension.models.businesslogic;
 import its.model.definition.DomainModel;
 import org.junit.jupiter.api.AfterAll;
 import org.junit.jupiter.api.BeforeAll;
-import org.junit.jupiter.api.Disabled;
 import org.junit.jupiter.api.Test;
 import org.junit.jupiter.api.TestInstance;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.boot.test.context.SpringBootTest;
+import org.springframework.boot.test.mock.mockito.MockBean;
+import org.springframework.security.oauth2.client.registration.ClientRegistrationRepository;
 import org.springframework.test.context.ActiveProfiles;
+import org.springframework.test.context.TestPropertySource;
 import org.vstu.compprehension.models.businesslogic.domains.DomainFactory;
 import org.vstu.compprehension.models.businesslogic.domains.ProgrammingLanguageExpressionDTDomain;
 import org.vstu.compprehension.models.businesslogic.domains.helpers.meaningtree.MeaningTreeRDFTransformer;
@@ -40,8 +42,17 @@ import java.util.stream.Collectors;
 @SpringBootTest
 @TestInstance(TestInstance.Lifecycle.PER_CLASS)
 @ActiveProfiles("dev")
-@Disabled("manual export task — remove @Disabled to run")
+@TestPropertySource(properties = {
+        "spring.security.enabled=false",
+        "spring.autoconfigure.exclude=org.springframework.boot.autoconfigure.security.oauth2.client.servlet.OAuth2ClientAutoConfiguration"
+})
+/**
+ * Manual export task — excluded from default {@code mvn test}; run this class explicitly.
+ * <p>VM options (optional): {@code -Dexport.dir=export/expression_dt -Dexport.limit=3}
+ */
 public class ExpressionDTLoqiRdfExportTask {
+    @MockBean
+    ClientRegistrationRepository clientRegistrationRepository;
     private static final String DOMAIN_SHORTNAME = "expression_dt";
     private static final int BATCH_SIZE = 8192;
 

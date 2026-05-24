@@ -137,6 +137,13 @@
             <version>${jena.version}</version>
             <scope>compile</scope>
         </dependency>
+        <!-- JSON-LD 1.1 writer in Jena requires a Jakarta JSON provider -->
+        <dependency>
+            <groupId>org.eclipse.parsson</groupId>
+            <artifactId>parsson</artifactId>
+            <version>1.1.6</version>
+            <scope>compile</scope>
+        </dependency>
         <dependency>
             <groupId>org.apache.jena</groupId>
             <artifactId>jena-rdfconnection</artifactId>
