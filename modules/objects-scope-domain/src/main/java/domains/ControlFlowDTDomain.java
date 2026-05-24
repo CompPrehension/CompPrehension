@@ -1,11 +1,14 @@
 package domains;
 
+import java.io.FileNotFoundException;
+import java.io.FileOutputStream;
 import com.fasterxml.jackson.databind.JsonNode;
 import com.fasterxml.jackson.databind.ObjectMapper;
 import its.model.DomainSolvingModel;
 import its.model.definition.*;
 import its.model.definition.build.DomainBuilderUtils;
 import its.model.definition.loqi.DomainLoqiBuilder;
+import its.model.definition.rdf.DomainRDFWriter;
 import its.model.nodes.BranchResult;
 import its.model.nodes.DecisionTree;
 import its.reasoner.LearningSituation;
@@ -25,6 +28,7 @@ import org.vstu.compprehension.models.businesslogic.backend.DecisionTreeReasoner
 import org.vstu.compprehension.models.businesslogic.backend.facts.Fact;
 import org.vstu.compprehension.models.businesslogic.backend.facts.JenaFactList;
 import org.vstu.compprehension.models.businesslogic.domains.DecisionTreeReasoningDomain;
+import org.vstu.compprehension.models.businesslogic.domains.helpers.meaningtree.MeaningTreeRDFTransformer;
 import org.vstu.compprehension.models.businesslogic.storage.QuestionBank;
 import org.vstu.compprehension.models.entities.*;
 import org.vstu.compprehension.models.entities.EnumData.FeedbackType;
@@ -325,7 +329,29 @@ public class ControlFlowDTDomain extends DecisionTreeReasoningDomain {
             ObjectDef A = makeA(questionModel, responses.getLast().getLeftAnswerObject().getDomainInfo(), referenceA);
             ObjectDef L0 = currentTraceAct;
 
+            ///
+            // System.out.println(" ==> A = " + responses.getLast().getLeftAnswerObject().getDomainInfo());
+            ///
+
             updateModelState(domain, questionModel, L0, A);
+
+            /// Debug: dump LOQI or TTL
+            if (false) {
+                MeaningTreeRDFTransformer.debugDumpLoqi(questionModel, "_dumped.loqi", model.getDomainModel());
+                MeaningTreeRDFTransformer.debugDumpTtl(questionModel, "_dumped.ttl"/*, model.getDomainModel()*/);
+
+                /* // questionModel.addMerge(model.domainModel);
+                String basePrefix = "http://www.vstu.ru/poas/code#";
+                val rdfModel = DomainRDFWriter.saveDomain(questionModel, basePrefix, Set.of());
+                FileOutputStream out;
+                try {
+                    out = new FileOutputStream("_dumped.ttl");
+                    rdfModel.write(out, "TURTLE");
+                } catch (FileNotFoundException e) {
+                    throw new RuntimeException(e);
+                } */
+            }
+            ///
 
             return new DecisionTreeReasonerBackend.Input(questionModel, model.getDecisionTree());
         }

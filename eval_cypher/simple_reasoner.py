@@ -19,7 +19,8 @@ from dataclasses import dataclass
 
 from neo4j import GraphDatabase, Session
 
-DATABASE = "loqi"
+# DATABASE = "loqi"
+DATABASE = "loqi8"
 
 # Number of repeated "cleanup + reasoning run" cycles for timing statistics.
 DEFAULT_REPEAT_RUNS = 5
