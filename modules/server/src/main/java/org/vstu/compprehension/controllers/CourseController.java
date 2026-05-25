@@ -2,16 +2,16 @@ package org.vstu.compprehension.controllers;
 
 import lombok.RequiredArgsConstructor;
 import lombok.SneakyThrows;
-import org.springframework.security.access.AuthorizationServiceException;
 import org.springframework.stereotype.Controller;
 import org.springframework.web.bind.annotation.RequestMapping;
 import org.springframework.web.bind.annotation.RequestMethod;
 import org.springframework.web.bind.annotation.RequestParam;
 import org.springframework.web.bind.annotation.ResponseBody;
+import org.vstu.compprehension.Service.AuthService;
 import org.vstu.compprehension.Service.CourseService;
 import org.vstu.compprehension.Service.UserService;
 import org.vstu.compprehension.dto.course.CourseDto;
-import org.vstu.compprehension.models.entities.EnumData.Role;
+import org.vstu.compprehension.models.entities.EnumData.Permission;
 
 import java.util.List;
 
@@ -21,24 +21,22 @@ import java.util.List;
 public class CourseController {
     private final CourseService courseService;
     private final UserService userService;
+    private final AuthService authService;
 
     @SneakyThrows
     @RequestMapping(value = {"my"}, method = {RequestMethod.GET})
     @ResponseBody
     public List<CourseDto> getMyCourses() {
         var currentUser = userService.getCurrentUser();
-        List<CourseDto> courses = courseService.getUserCourses(currentUser);
-        return courses;
+        return courseService.getUserCourses(currentUser);
     }
 
     @SneakyThrows
     @RequestMapping(value = {"memberships"}, method = {RequestMethod.GET})
     @ResponseBody
     public List<CourseDto> getExerciseMemberships(@RequestParam("exerciseId") long exerciseId) {
-        var currentUser = userService.getCurrentUser();
-        if (!currentUser.getRoles().contains(Role.TEACHER)) {
-            throw new AuthorizationServiceException("Unauthorized");
-        }
+        var userId = userService.getCurrentUser().getId();
+        authService.ensureAuthorizedGlobal(userId, Permission.VIEW_EXERCISE);
         return courseService.getExerciseMemberships(exerciseId);
     }
 
@@ -47,10 +45,8 @@ public class CourseController {
     @RequestMapping(value = {"exercise/add"}, method = {RequestMethod.POST})
     public void add(@RequestParam("exerciseId") long exerciseId,
                     @RequestParam("courseId") long courseId) {
-        var currentUser = userService.getCurrentUser();
-        if (!currentUser.getRoles().contains(Role.TEACHER)) {
-            throw new AuthorizationServiceException("Unauthorized");
-        }
+        var userId = userService.getCurrentUser().getId();
+        authService.ensureAuthorizedInCourse(userId, Permission.EDIT_COURSE, courseId);
         courseService.addExerciseToCourse(exerciseId, courseId);
     }
 
@@ -59,10 +55,8 @@ public class CourseController {
     @RequestMapping(value = {"exercise/remove"}, method = {RequestMethod.DELETE})
     public void remove(@RequestParam("exerciseId") long exerciseId,
                        @RequestParam("courseId") long courseId) {
-        var currentUser = userService.getCurrentUser();
-        if (!currentUser.getRoles().contains(Role.TEACHER)) {
-            throw new AuthorizationServiceException("Unauthorized");
-        }
+        var userId = userService.getCurrentUser().getId();
+        authService.ensureAuthorizedInCourse(userId, Permission.EDIT_COURSE, courseId);
         courseService.removeExerciseFromCourse(exerciseId, courseId);
     }
 }

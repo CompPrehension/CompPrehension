@@ -15,5 +15,6 @@ public class UserInfoDto {
     private String displayName;
     private String email;
     private String language;
+    /** Role names the user holds in the requested context (course scope if courseId given, else global). */
     private List<String> roles;
 }

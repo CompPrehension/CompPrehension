@@ -5,7 +5,6 @@ import lombok.extern.log4j.Log4j2;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
 import org.vstu.compprehension.dto.course.CourseDto;
-import org.vstu.compprehension.models.entities.EnumData.Role;
 import org.vstu.compprehension.models.entities.UserEntity;
 import org.vstu.compprehension.models.entities.course.CourseEntity;
 import org.vstu.compprehension.models.entities.course.ExerciseCourseLinkEntity;
@@ -26,6 +25,7 @@ public class CourseService {
     private final CourseRepository courseRepository;
     private final ExerciseCourseLinkRepository exerciseCourseLinkRepository;
     private final ExerciseRepository exerciseRepository;
+    private final AuthService authService;
 
     @Transactional(readOnly = true)
     public Optional<CourseEntity> findByExternalIdAndResourceId(String externalCourseId, Long educationResourceId) {
@@ -67,7 +67,7 @@ public class CourseService {
 
     @Transactional(readOnly = true)
     public List<CourseDto> getUserCourses(UserEntity user) {
-        if (user.getRoles().contains(Role.ADMIN)) {
+        if (authService.isGlobalAdmin(user.getId())) {
             return courseRepository.findAllCourseDtos();
         }
         return courseRepository.findCourseDtosByUserId(user.getId());

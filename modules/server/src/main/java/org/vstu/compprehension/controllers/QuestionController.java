@@ -3,9 +3,9 @@ package org.vstu.compprehension.controllers;
 import jakarta.servlet.http.HttpServletRequest;
 import lombok.extern.log4j.Log4j2;
 import org.springframework.context.i18n.LocaleContextHolder;
-import org.springframework.security.access.AuthorizationServiceException;
 import org.springframework.stereotype.Controller;
 import org.springframework.web.bind.annotation.*;
+import org.vstu.compprehension.Service.AuthService;
 import org.vstu.compprehension.Service.FrontendService;
 import org.vstu.compprehension.Service.UserService;
 import org.vstu.compprehension.dto.InteractionDto;
@@ -14,7 +14,7 @@ import org.vstu.compprehension.dto.SupplementaryQuestionDto;
 import org.vstu.compprehension.dto.SupplementaryQuestionRequestDto;
 import org.vstu.compprehension.dto.feedback.FeedbackDto;
 import org.vstu.compprehension.dto.question.QuestionDto;
-import org.vstu.compprehension.models.entities.EnumData.Role;
+import org.vstu.compprehension.models.entities.EnumData.Permission;
 
 @Controller
 @RequestMapping("api/question")
@@ -22,10 +22,12 @@ import org.vstu.compprehension.models.entities.EnumData.Role;
 public class QuestionController {
     private final FrontendService frontendService;
     private final UserService userService;
+    private final AuthService authService;
 
-    public QuestionController(FrontendService frontendService, UserService userService) {
+    public QuestionController(FrontendService frontendService, UserService userService, AuthService authService) {
         this.frontendService = frontendService;
         this.userService = userService;
+        this.authService = authService;
     }
 
     /**
@@ -81,9 +83,7 @@ public class QuestionController {
     @ResponseBody
     public QuestionDto generateQuestionByMetadata(Integer metadataId, HttpServletRequest request) throws Exception {
         var currentUser = userService.getCurrentUser();
-        if (!currentUser.getRoles().contains(Role.TEACHER)) {
-            throw new AuthorizationServiceException("Unathorized");
-        }
+        authService.ensureAuthorizedGlobal(currentUser.getId(), Permission.EDIT_EXERCISE);
 
         return frontendService.generateQuestionByMetadata(metadataId, currentUser.getPreferred_language());
     }

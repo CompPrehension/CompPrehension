@@ -15,6 +15,8 @@ import java.util.Optional;
 public interface CourseRepository extends JpaRepository<CourseEntity, Long> {
     Optional<CourseEntity> findByExternalCourseIdAndEducationResourceId(String externalCourseId, Long educationResourceId);
 
+    List<CourseEntity> findByEducationResourceIdAndExternalCourseIdIsNotNull(Long educationResourceId);
+
     @Query("""
             select c from CourseEntity c
             where c.educationResource.id in (
@@ -25,14 +27,14 @@ public interface CourseRepository extends JpaRepository<CourseEntity, Long> {
     List<CourseEntity> findCoursesByUserId(@Param("userId") Long userId);
 
     @Query("""
-            select new org.vstu.compprehension.dto.course.CourseDto(
+            select distinct new org.vstu.compprehension.dto.course.CourseDto(
                 c.id, c.name, c.educationResource.id, c.educationResource.url
             )
-            from CourseEntity c
-            where c.educationResource.id in (
-                select ea.educationResource.id from ExternalAccountEntity ea
-                where ea.user.id = :userId
-            )
+            from RoleUserAssignmentEntity rua
+            join rua.permissionScope ps
+            join ps.course c
+            where rua.user.id = :userId
+              and ps.kind = org.vstu.compprehension.models.entities.EnumData.PermissionScopeKind.COURSE
             """)
     List<CourseDto> findCourseDtosByUserId(@Param("userId") Long userId);
 

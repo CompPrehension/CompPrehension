@@ -1,7 +1,6 @@
 package org.vstu.compprehension.adapters;
 
 import lombok.extern.log4j.Log4j2;
-import org.apache.commons.collections4.CollectionUtils;
 import org.jetbrains.annotations.NotNull;
 import org.springframework.security.authentication.AnonymousAuthenticationToken;
 import org.springframework.security.core.Authentication;
@@ -9,18 +8,24 @@ import org.springframework.security.core.GrantedAuthority;
 import org.springframework.security.core.context.SecurityContextHolder;
 import org.springframework.security.oauth2.core.oidc.OidcIdToken;
 import org.springframework.security.oauth2.core.oidc.user.OidcUser;
+import org.vstu.compprehension.Service.AuthService;
+import org.vstu.compprehension.Service.CourseService;
 import org.vstu.compprehension.Service.EducationResourceService;
 import org.vstu.compprehension.Service.ExternalAccountService;
 import org.vstu.compprehension.Service.LtiContextProvider;
 import org.vstu.compprehension.Service.UserService;
+import org.vstu.compprehension.models.businesslogic.lti.LtiContext;
+import org.vstu.compprehension.models.businesslogic.lti.LtiCourseContext;
+import org.vstu.compprehension.models.entities.EnumData.EducationResourceTrustStatus;
 import org.vstu.compprehension.models.entities.EnumData.Language;
 import org.vstu.compprehension.models.entities.EnumData.Role;
 import org.vstu.compprehension.models.entities.UserEntity;
 import org.vstu.compprehension.models.entities.course.EducationResourceEntity;
-import org.vstu.compprehension.models.entities.course.ExternalAccountEntity;
 import org.vstu.compprehension.models.repository.UserRepository;
 
-import java.util.*;
+import java.util.Collection;
+import java.util.Optional;
+import java.util.Set;
 import java.util.stream.Collectors;
 
 @Log4j2
@@ -33,15 +38,21 @@ public class UserServiceImpl implements UserService {
     private final EducationResourceService educationResourceService;
     private final ExternalAccountService externalAccountService;
     private final LtiContextProvider ltiContextProvider;
+    private final CourseService courseService;
+    private final AuthService authService;
 
     public UserServiceImpl(UserRepository userRepository,
                            EducationResourceService educationResourceService,
                            ExternalAccountService externalAccountService,
-                           LtiContextProvider ltiContextProvider) {
+                           LtiContextProvider ltiContextProvider,
+                           CourseService courseService,
+                           AuthService authService) {
         this.userRepository = userRepository;
         this.educationResourceService = educationResourceService;
         this.externalAccountService = externalAccountService;
         this.ltiContextProvider = ltiContextProvider;
+        this.courseService = courseService;
+        this.authService = authService;
     }
 
     public UserEntity getCurrentUser() throws Exception {
@@ -59,21 +70,13 @@ public class UserServiceImpl implements UserService {
 
         UserEntity entity = userRepository.findFirstByEmailOrderByIdAsc(email).orElseGet(UserEntity::new);
 
-        Set<Role> roles;
         Language language;
         if (isLti) {
-            roles = fromLtiRoles(authentication.getAuthorities().stream()
-                    .map(GrantedAuthority::getAuthority)
-                    .collect(Collectors.toSet()));
             language = Optional.ofNullable(parsedIdToken.getClaimAsMap(LTI_LAUNCH_PRESENTATION_CLAIM))
                     .flatMap(x -> Optional.ofNullable(x.get("locale")))
                     .map(l -> Language.fromString(l.toString()))
                     .orElse(null);
         } else {
-            roles = fromKeycloakRoles(authentication.getAuthorities().stream()
-                    .map(GrantedAuthority::getAuthority)
-                    .filter(r -> !r.isEmpty())
-                    .collect(Collectors.toSet()));
             language = entity.getPreferred_language();
         }
 
@@ -82,7 +85,6 @@ public class UserServiceImpl implements UserService {
         entity.setPassword(null);
         entity.setEmail(email);
         entity.setPreferred_language(Optional.ofNullable(language).orElse(Language.ENGLISH));
-        entity.setRoles(roles);
         entity.setExternalId(externalId);
 
         if (isLti) {
@@ -90,26 +92,82 @@ public class UserServiceImpl implements UserService {
         }
         entity = userRepository.save(entity);
 
+        Set<String> authorities = authentication.getAuthorities().stream()
+                .map(GrantedAuthority::getAuthority)
+                .filter(r -> !r.isEmpty())
+                .collect(Collectors.toSet());
+
         if (isLti) {
-            var ctx = ltiContextProvider.getCurrentLtiContext().orElse(null);
-            if (ctx != null) {
-                var eduRes = educationResourceService.findByUrlAndType(ctx.lmsUrl(), ctx.lmsType()).orElse(null);
-                if (eduRes == null) {
-                    eduRes = educationResourceService.createOrGetExisting(
-                            ctx.lmsUrl(), ctx.lmsType());
-                }
-                boolean externalAccountNonExists = externalAccountService.findByUserAndEducationResource(
-                        entity.getId(), eduRes.getId()
-                ).isEmpty();
-                if (externalAccountNonExists) {
-                    externalAccountService.createOrGetExisting(
-                            entity.getId(), eduRes.getId(), parsedIdToken.getSubject()
-                    );
-                }
-            }
+            applyLtiRoles(entity, parsedIdToken, authorities);
+        } else {
+            applyKeycloakRoles(entity, authorities);
         }
 
         return entity;
+    }
+
+    private void applyLtiRoles(UserEntity user, OidcIdToken parsedIdToken, Set<String> ltiRoles) {
+        LtiContext ctx = ltiContextProvider.getCurrentLtiContext().orElse(null);
+        if (ctx == null) return;
+
+        EducationResourceEntity eduRes = educationResourceService.findByUrlAndType(ctx.lmsUrl(), ctx.lmsType())
+                .orElseGet(() -> educationResourceService.createOrGetExisting(ctx.lmsUrl(), ctx.lmsType()));
+
+        if (eduRes.getTrustStatus() != EducationResourceTrustStatus.TRUSTED) {
+            throw new SecurityException("EducationResource " + eduRes.getUrl() + " is not trusted");
+        }
+
+        boolean externalAccountNonExists = externalAccountService.findByUserAndEducationResource(
+                user.getId(), eduRes.getId()
+        ).isEmpty();
+        if (externalAccountNonExists) {
+            externalAccountService.createOrGetExisting(user.getId(), eduRes.getId(), parsedIdToken.getSubject());
+        }
+
+        if (ltiRoles.contains("ROLE_Administrator")) {
+            authService.assignRoleInEducationResource(user.getId(), Role.EDUCATION_RESOURCE_ADMIN, eduRes.getId());
+        }
+
+        Long courseId = resolveCourseId(ctx, eduRes.getId());
+        if (courseId != null) {
+            Role courseRole = mapLtiCourseRole(ltiRoles);
+            if (courseRole != null) {
+                authService.assignRoleInCourse(user.getId(), courseRole, courseId);
+            }
+        }
+    }
+
+    private void applyKeycloakRoles(UserEntity user, Set<String> keycloakRoles) {
+        Role globalRole = mapKeycloakGlobalRole(keycloakRoles);
+        authService.assignGlobalRole(user.getId(), globalRole);
+    }
+
+    private Role mapKeycloakGlobalRole(Collection<String> keycloakRoles) {
+        if (keycloakRoles.contains("ROLE_Administrator")) return Role.GLOBAL_ADMIN;
+        if (keycloakRoles.contains("ROLE_Teacher")) return Role.TEACHER;
+        return Role.STUDENT;
+    }
+
+    private Long resolveCourseId(LtiContext ctx, Long educationResourceId) {
+        LtiCourseContext ltiCourse = ctx.course();
+        if (ltiCourse == null || ltiCourse.courseId() == null) return null;
+        String externalCourseId = ltiCourse.courseId();
+        String courseName = ltiCourse.courseName() != null ? ltiCourse.courseName() : "id_" + externalCourseId;
+        return courseService.findByExternalIdAndResourceId(externalCourseId, educationResourceId)
+                .orElseGet(() -> courseService.createOrGetExisting(externalCourseId, courseName, educationResourceId))
+                .getId();
+    }
+
+    private Role mapLtiCourseRole(Collection<String> ltiRoles) {
+        if (ltiRoles.contains("ROLE_Instructor")
+            || ltiRoles.contains("ROLE_ContentDeveloper")
+            || ltiRoles.contains("ROLE_Mentor")) {
+            return Role.TEACHER;
+        }
+        if (ltiRoles.contains("ROLE_TeachingAssistant")) {
+            return Role.ASSISTANT;
+        }
+        return Role.STUDENT;
     }
 
     @Override
@@ -147,61 +205,4 @@ public class UserServiceImpl implements UserService {
         var principalName = authentication.getName();
         return token.getIssuer() + "_" + principalName;
     }
-
-    private HashSet<Role> fromLtiRoles(Collection<String> roles) {
-        if (roles.contains("ROLE_Administrator")) {
-            return new HashSet<>(Arrays.asList(Role.values().clone()));
-        }
-
-        var teacherRoles = Arrays.asList("ROLE_Instructor", "ROLE_TeachingAssistant", "ROLE_ContentDeveloper", "ROLE_Mentor");
-        if (CollectionUtils.containsAny(roles, teacherRoles)) {
-            return new HashSet<>(List.of(Role.TEACHER, Role.STUDENT));
-        }
-
-        return new HashSet<>(List.of(Role.STUDENT));
-    }
-
-    private Set<Role> fromKeycloakRoles(Collection<String> roles) {
-        if (roles.contains("ROLE_Administrator")) {
-            return Arrays.stream(Role.values()).collect(Collectors.toSet());
-        }
-        if (roles.contains("ROLE_Teacher")) {
-            return Set.of(Role.TEACHER, Role.STUDENT);
-        }
-        return Set.of(Role.STUDENT);
-    }
-
-
-    /**
-     * Creates or updates user entity from LTI launch params
-     * @param params LTI launch params
-     * @return user
-     */
-    /*
-    public UserEntity createOrUpdateFromLti(Map<String, String> params) {
-        val externalId = params.get("tool_consumer_instance_guid") + "_" + params.get("user_id");
-        val email = params.get("lis_person_contact_email_primary");
-        val firstName = params.get("lis_person_name_given");
-        val lastName = params.get("lis_person_name_family");
-        val roles = Stream.of(params.get("roles").split(","))
-                .map(String::trim)
-                .filter(s -> s.length() > 0 && s.matches("^\\w+$"))
-                //.map(s -> s.substring(s.lastIndexOf('/') + 1))
-                .distinct()
-                .collect(Collectors.toList());
-        val locale = params.get("launch_presentation_locale").split("-")[0].toUpperCase();
-
-        val entity = userRepository.findByExternalId(externalId).orElseGet(UserEntity::new);
-        entity.setFirstName(firstName);
-        entity.setLastName(lastName);
-        entity.setEmail(email);
-        entity.setLogin(email);
-        entity.setPassword("undefined");
-        entity.setPreferred_language(Language.fromString(locale));
-        entity.setRoles(fromLtiRoles(roles));
-        entity.setExternalId(externalId);
-
-        return userRepository.save(entity);
-    }
-    */
 }
