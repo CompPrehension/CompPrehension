@@ -9,12 +9,17 @@ import { Language } from "../types/language";
 export class SessionStore {
     @observable user?: UserInfo = undefined;
     @observable languages: string[] = [];
-    @computed selectedLanguage?: string = this.user?.language ?? undefined;
-    @computed isSessionLoaded: boolean = this.user !== undefined;
     @observable isSessionLoading: boolean = false;
     private usersApi = new UserController()
 
-    public SessionStore() {
+    @computed get selectedLanguage(): string | undefined {
+        return this.user?.language;
+    }
+    @computed get isSessionLoaded(): boolean {
+        return this.user !== undefined;
+    }
+
+    constructor() {
         makeObservable(this);
     }
 

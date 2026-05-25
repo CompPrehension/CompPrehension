@@ -14,9 +14,10 @@ export type HeaderProps = {
     user: string,
     userHref?: string | null,
     onUserClicked?: (() => void) | null,
+    logoutLabel?: string | null,
 }
 export const Header = observer((props: HeaderProps) => {
-    const { text, pagination, languageHint, language, onLanguageClicked, userHint, user, onUserClicked, userHref } = props;
+    const { text, pagination, languageHint, language, onLanguageClicked, userHint, user, onUserClicked, userHref, logoutLabel } = props;
 
     return (
         <Navbar className="px-0">
@@ -28,10 +29,15 @@ export const Header = observer((props: HeaderProps) => {
                 <Navbar.Text className="px-2">
                     {languageHint}: <a href="#" onClick={onLanguageClicked ?? undefined}>{language}</a>
                 </Navbar.Text>
-                <Navbar.Toggle />        
+                <Navbar.Toggle />
                 <Navbar.Text className="px-2">
                     {userHint}: <a href={userHref ?? "#"} onClick={onUserClicked ?? undefined}>{user}</a>
                 </Navbar.Text>
+                {logoutLabel && (
+                    <Navbar.Text className="px-2">
+                        <a href="/logout">{logoutLabel}</a>
+                    </Navbar.Text>
+                )}
             </Navbar.Collapse>
         </Navbar>
     );

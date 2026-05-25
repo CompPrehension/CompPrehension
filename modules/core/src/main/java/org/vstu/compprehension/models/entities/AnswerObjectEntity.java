@@ -49,6 +49,6 @@ public class AnswerObjectEntity {
 
     @ManyToOne(cascade = CascadeType.ALL)
     @JoinColumn(name = "question_id")
-    private QuestionEntity question; 
+    private QuestionEntity question;
     
 }

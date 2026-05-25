@@ -6,18 +6,12 @@ import { nonEmptyArray } from './utils';
 export type ExerciseListItem = {
     id: number,
     name: string,
-    /*
-    domainId: string,
-    strategyId: string,
-    backendId: string,*/
+    isPublic: boolean,
 };
 export const TExerciseListItem: io.Type<ExerciseListItem> = io.type({
     id: io.number,
     name: io.string,
-    /*
-    domainId: io.string,
-    strategyId: io.string,
-    backendId: io.string,*/
+    isPublic: io.boolean,
 })
 
 export type ExerciseCardConceptKind = 'FORBIDDEN' | 'PERMITTED' | 'TARGETED'
@@ -87,6 +81,7 @@ export type ExerciseCard = {
     stages: NonEmptyArray<ExerciseStage>,
     tags: string[],
     options: ExerciseOptions,
+    isPublic: boolean,
 }
 
 export const TExerciseCard: io.Type<ExerciseCard> = io.type({
@@ -95,9 +90,10 @@ export const TExerciseCard: io.Type<ExerciseCard> = io.type({
     domainId: io.string,
     strategyId: io.string,
     backendId: io.string,
-    stages: nonEmptyArray(TExerciseStage),    
+    stages: nonEmptyArray(TExerciseStage),
     tags: io.array(io.string),
     options: TExerciseOptions,
+    isPublic: io.boolean,
 })
 
 export type DomainSkill = {
