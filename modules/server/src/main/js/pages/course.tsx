@@ -9,6 +9,9 @@ import { useCurrentUser, useSession } from '../hooks/session-context';
 import { useCourseId } from '../hooks/use-course-id';
 import { ImportFromGlobalModal } from '../components/exercise/import-from-global-modal';
 import { useTranslation } from 'react-i18next';
+import { UserController } from '../controllers/exercise/user-controller';
+import * as E from 'fp-ts/lib/Either';
+import { canEditExercises } from '../utils/roles';
 
 export const CoursePage = observer(() => {
     const [store] = useState(() => container.resolve(CourseStore));
@@ -17,10 +20,21 @@ export const CoursePage = observer(() => {
     const session = useSession();
     const courseId = useCourseId();
     const [showImportModal, setShowImportModal] = useState(false);
+    const [contextRoles, setContextRoles] = useState<string[]>([]);
     const { t } = useTranslation();
 
     useEffect(() => {
         if (courseId != null) store.loadCourse(courseId);
+    }, [courseId]);
+
+    useEffect(() => {
+        if (courseId == null) return;
+        (async () => {
+            const res = await container.resolve(UserController).getCurrentUser(courseId);
+            if (E.isRight(res)) {
+                setContextRoles(res.right.roles);
+            }
+        })();
     }, [courseId]);
 
     const onLangClicked = () => {
@@ -32,7 +46,7 @@ export const CoursePage = observer(() => {
     if (courseId == null) return <div>{t('course_page_courseIdRequired')}</div>;
     if (store.loadStatus === 'LOADING') return <Loader />;
 
-    const isPriv = user.roles.includes('TEACHER') || user.roles.includes('ADMIN');
+    const isPriv = canEditExercises(contextRoles);
     const reload = () => store.loadCourse(courseId);
 
     return (

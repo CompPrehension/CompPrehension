@@ -7,6 +7,7 @@ import { Header } from '../components/common/header';
 import { Loader } from '../components/common/loader';
 import { useCurrentUser, useSession } from '../hooks/session-context';
 import { useTranslation } from 'react-i18next';
+import { canEditExercises } from '../utils/roles';
 
 export const GlobalPool = observer(() => {
     const [store] = useState(() => container.resolve(GlobalPoolStore));
@@ -36,13 +37,14 @@ export const GlobalPool = observer(() => {
                         userHref={null}
                         logoutLabel={t('logout_header')} />
             </div>
-            <div className="mb-3">
-                <button type="button"
-                        className="btn btn-primary"
-                        onClick={() => navigate('/pages/exercise-settings')}>
-                    {t('globalPool_page_createBtn')}
-                </button>
-            </div>
+            {canEditExercises(user.roles) &&
+                <div className="mb-3">
+                    <button type="button"
+                            className="btn btn-primary"
+                            onClick={() => navigate('/pages/exercise-settings')}>
+                        {t('globalPool_page_createBtn')}
+                    </button>
+                </div>}
             <ul className="list-group">
                 {store.exercises.map(e =>
                     <li key={e.id} className="list-group-item">

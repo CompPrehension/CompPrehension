@@ -24,6 +24,9 @@ import { useCurrentUser, useSession } from "../hooks/session-context";
 import { useCourseId } from "../hooks/use-course-id";
 import { ExerciseRowBadge } from "../components/exercise/exercise-row-badge";
 import { DeleteGlobalExerciseModal } from "../components/exercise/delete-global-exercise-modal";
+import { UserController } from "../controllers/exercise/user-controller";
+import * as E from "fp-ts/lib/Either";
+import { canEditExercises } from "../utils/roles";
 
 export const ExerciseSettings = observer(() => {
     const [exerciseStore] = useState(() => container.resolve(ExerciseSettingsStore));
@@ -31,6 +34,8 @@ export const ExerciseSettings = observer(() => {
     const user = useCurrentUser();
     const session = useSession();
     const courseId = useCourseId();
+    const [contextRoles, setContextRoles] = useState<string[]>([]);
+    const canEdit = canEditExercises(contextRoles);
     useEffect(() => {
         (async () => {
             await exerciseStore.loadExercises(courseId);
@@ -38,6 +43,14 @@ export const ExerciseSettings = observer(() => {
             const currentExercise = new URL(window.location.href).searchParams.get("exerciseId");
             if (currentExercise) {
                 await exerciseStore.loadExercise(Number.parseInt(currentExercise));
+            }
+        })()
+    }, [courseId]);
+    useEffect(() => {
+        (async () => {
+            const res = await container.resolve(UserController).getCurrentUser(courseId);
+            if (E.isRight(res)) {
+                setContextRoles(res.right.roles);
             }
         })()
     }, [courseId]);
@@ -75,7 +88,7 @@ export const ExerciseSettings = observer(() => {
             </div>
             <div className="flex-xl-nowrap row">
                 <div className="col-xl-3 col-md-3 col-12 d-flex flex-column">
-                    <button type="button" className="btn btn-primary mb-3" onClick={onNewExerciseClicked}>Create new</button>
+                    {canEdit && <button type="button" className="btn btn-primary mb-3" onClick={onNewExerciseClicked}>Create new</button>}
                     <ul className="list-group">
                         {exerciseStore.exercises?.map(e =>
                             <Link key={e.id}
@@ -95,6 +108,7 @@ export const ExerciseSettings = observer(() => {
                         domains={exerciseStore.domains ?? []}
                         backends={exerciseStore.backends ?? []}
                         strategies={exerciseStore.strategies ?? []}
+                        canEdit={canEdit}
                     />
                 </div>
             </div>
@@ -109,10 +123,11 @@ type ExerciseCardElementProps = {
     domains: Domain[],
     backends: string[],
     strategies: Strategy[],
+    canEdit: boolean,
 }
 
 const ExerciseCardElement = observer((props: ExerciseCardElementProps) => {
-    const { card, domains, backends, strategies, store } = props;
+    const { card, domains, backends, strategies, store, canEdit } = props;
     const { t } = useTranslation();
     const user = useCurrentUser();
     const conceptFlagNames = useMemo(() => {
@@ -144,8 +159,8 @@ const ExerciseCardElement = observer((props: ExerciseCardElementProps) => {
 
     return (
         <div>
-            <ExerciseModeBar store={store} linkType={linkType} courseId={store.courseId} />
-            <fieldset disabled={isInherited} style={isInherited ? { pointerEvents: 'none', opacity: 0.65 } : undefined}>
+            <ExerciseModeBar store={store} linkType={linkType} courseId={store.courseId} canEdit={canEdit} />
+            <fieldset disabled={isInherited || !canEdit} style={(isInherited || !canEdit) ? { pointerEvents: 'none', opacity: 0.65 } : undefined}>
             <form className="exercise-settings-form">
                 <div className="form-group">
                     <label className="font-weight-bold" htmlFor="exampleInputEmail1">{t('exercisesettings_name')}</label>
@@ -344,16 +359,14 @@ const ExerciseCardElement = observer((props: ExerciseCardElementProps) => {
                 }
             </form >
             </fieldset>
-            {user?.roles.includes('ADMIN') && // TODO временный фикс, убрать в будущем
-                <div className="mt-5">
-                    {!isInherited && <button type="button" className="btn btn-primary mr-2" onClick={() => store.saveCard()}>{t('exercisesettings_save')}</button>}
-                    {!isInherited && <button type="button" className="btn btn-primary mr-2" onClick={() => store.saveCard().then(() => window.open(`${window.location.origin}/pages/exercise?exerciseId=${card.id}${store.courseId != null ? `&courseId=${store.courseId}` : ''}`, '_blank')?.focus()) }>{t('exercisesettings_saveNopen')}</button>}
-                    <button type="button" className="btn btn-primary mr-2" onClick={() => window.open(`${window.location.origin}/pages/exercise?exerciseId=${card.id}${store.courseId != null ? `&courseId=${store.courseId}` : ''}`, '_blank')?.focus()}>{t('exercisesettings_open')}</button>
-                    {!isInherited && currentStrategy?.options.multiStagesEnabled &&
-                        <button type="button" className="btn btn-primary mr-2" onClick={() => window.open(`${window.location.origin}/pages/exercise?exerciseId=${card.id}${store.courseId != null ? `&courseId=${store.courseId}` : ''}&debug`, '_blank')?.focus()}>{t('exercisesettings_genDebugAtt')}</button>
-                    }
-                </div>
-                || null}
+            <div className="mt-5">
+                {canEdit && !isInherited && <button type="button" className="btn btn-primary mr-2" onClick={() => store.saveCard()}>{t('exercisesettings_save')}</button>}
+                {canEdit && !isInherited && <button type="button" className="btn btn-primary mr-2" onClick={() => store.saveCard().then(() => window.open(`${window.location.origin}/pages/exercise?exerciseId=${card.id}${store.courseId != null ? `&courseId=${store.courseId}` : ''}`, '_blank')?.focus()) }>{t('exercisesettings_saveNopen')}</button>}
+                <button type="button" className="btn btn-primary mr-2" onClick={() => window.open(`${window.location.origin}/pages/exercise?exerciseId=${card.id}${store.courseId != null ? `&courseId=${store.courseId}` : ''}`, '_blank')?.focus()}>{t('exercisesettings_open')}</button>
+                {canEdit && !isInherited && currentStrategy?.options.multiStagesEnabled &&
+                    <button type="button" className="btn btn-primary mr-2" onClick={() => window.open(`${window.location.origin}/pages/exercise?exerciseId=${card.id}${store.courseId != null ? `&courseId=${store.courseId}` : ''}&debug`, '_blank')?.focus()}>{t('exercisesettings_genDebugAtt')}</button>
+                }
+            </div>
             </div >
 
 
@@ -364,14 +377,16 @@ type ExerciseModeBarProps = {
     store: ExerciseSettingsStore,
     linkType: 'global' | 'original' | 'inherited' | 'cloned',
     courseId: number | null,
+    canEdit: boolean,
 };
 
-const ExerciseModeBar = observer(({ store, linkType, courseId }: ExerciseModeBarProps) => {
+const ExerciseModeBar = observer(({ store, linkType, courseId, canEdit }: ExerciseModeBarProps) => {
     const { t } = useTranslation();
     const [showDeleteModal, setShowDeleteModal] = useState(false);
     const [busy, setBusy] = useState(false);
     const card = store.currentCard;
     if (!card) return null;
+    if (!canEdit) return <div className="mb-3"><ExerciseRowBadge linkType={linkType} /></div>;
 
     const onConvertToClone = async () => {
         if (courseId == null) return;
