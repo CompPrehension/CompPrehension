@@ -216,6 +216,10 @@ public class LtiController {
         EducationResourceEntity eduResource = educationResourceService.findByUrlAndType(ctx.lmsUrl(), ctx.lmsType())
                 .orElseGet(() -> educationResourceService.createOrGetExisting(ctx.lmsUrl(), ctx.lmsType()));
 
+        if (eduResource.getTrustStatus() != org.vstu.compprehension.models.entities.EnumData.EducationResourceTrustStatus.TRUSTED) {
+            throw new SecurityException("EducationResource " + eduResource.getUrl() + " is not trusted");
+        }
+
         String externalCourseId = ltiCourse.courseId();
         String courseName = ltiCourse.courseName() != null ? ltiCourse.courseName() : "id_" + externalCourseId;
         CourseEntity course = courseService.findByExternalIdAndResourceId(externalCourseId, eduResource.getId())

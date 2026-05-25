@@ -10,6 +10,7 @@ import org.vstu.compprehension.models.entities.EnumData.EducationResourceType;
 
 import java.io.Serializable;
 import java.net.URI;
+import java.util.Locale;
 import java.util.Map;
 import java.util.Optional;
 
@@ -33,7 +34,7 @@ public class LtiContextHolder implements LtiContextProvider, LtiContextInitializ
     public void init(Map<String, Object> claims) {
 
         String issuer = (String) claims.get("iss");
-        String lmsUrl = issuer != null ? URI.create(issuer).getAuthority() : null;
+        String lmsUrl = canonicalLmsUrl(issuer);
 
         String lmsName = null;
         EducationResourceType lmsType = EducationResourceType.UNKNOWN;
@@ -71,5 +72,28 @@ public class LtiContextHolder implements LtiContextProvider, LtiContextInitializ
         }
 
         this.context = new LtiContext(lineitemUrl, course, lmsUrl, lmsName, lmsType, exerciseId);
+    }
+
+    /**
+     * Канонический URL LMS для записи в {@code EducationResourceEntity.url}:
+     * {@code scheme://authority} из LTI issuer claim (например {@code http://localhost:8081}),
+     * в нижнем регистре, без path/query/fragment и trailing slash. Этот же формат ожидают
+     * {@code WsFuncMoodleConfig.base-url} и {@code LtiRegistrationsProperties.issuer-url}.
+     */
+    private static String canonicalLmsUrl(String issuer) {
+        if (issuer == null || issuer.isBlank()) {
+            return null;
+        }
+        try {
+            URI uri = URI.create(issuer.trim());
+            String scheme = uri.getScheme();
+            String authority = uri.getAuthority();
+            if (scheme == null || authority == null) {
+                return null;
+            }
+            return (scheme + "://" + authority).toLowerCase(Locale.ROOT);
+        } catch (IllegalArgumentException ex) {
+            return null;
+        }
     }
 }
