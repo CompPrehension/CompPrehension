@@ -74,6 +74,23 @@ bank-load-testing-batch:
   # use cron string (like "*/30 * * * * *"), "never" or "once"
   cron-schedule: "never"
 
+moodle-role-sync:
+  # use cron string (like "0 0 * * * *"), "never" or "once"
+  cron-schedule: "*/30 * * * * *"
+  courses-per-batch: 20
+  abort-on-empty-response: true
+
+# Per-Moodle WS-токены (для sync). Lookup по base-url (значение из EducationResourceEntity.url).
+compprehension:
+  moodle:
+    ws:
+      registrations: { }
+      # example:
+      # registrations:
+      #   moodle45:
+      #     base-url: http://localhost:8081
+      #     webservice-token: ${MOODLE_WS_TOKEN}
+
 # logging config
 logging:
   config: classpath:log4j2.xml

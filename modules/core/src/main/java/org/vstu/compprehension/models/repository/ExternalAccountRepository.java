@@ -8,6 +8,8 @@ import org.springframework.stereotype.Repository;
 import org.vstu.compprehension.models.entities.course.ExternalAccountEntity;
 import org.vstu.compprehension.models.entities.course.ExternalAccountId;
 
+import java.util.List;
+
 @Repository
 public interface ExternalAccountRepository extends JpaRepository<ExternalAccountEntity, ExternalAccountId> {
 
@@ -26,4 +28,10 @@ public interface ExternalAccountRepository extends JpaRepository<ExternalAccount
             @Param("educationResourceId") Long educationResourceId,
             @Param("externalId") String externalId
     );
+
+    @Query("""
+            select ea from ExternalAccountEntity ea
+            where ea.educationResource.id = :educationResourceId
+            """)
+    List<ExternalAccountEntity> findByEducationResourceId(@Param("educationResourceId") Long educationResourceId);
 }
