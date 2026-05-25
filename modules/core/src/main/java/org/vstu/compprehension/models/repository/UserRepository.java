@@ -1,5 +1,6 @@
 package org.vstu.compprehension.models.repository;
 
+import org.springframework.data.jpa.repository.JpaRepository;
 import org.vstu.compprehension.models.entities.UserEntity;
 import org.springframework.data.repository.CrudRepository;
 import org.springframework.stereotype.Repository;
@@ -7,7 +8,7 @@ import org.springframework.stereotype.Repository;
 import java.util.Optional;
 
 @Repository
-public interface UserRepository extends CrudRepository<UserEntity, Long> {
+public interface UserRepository extends JpaRepository<UserEntity, Long> {
     Optional<UserEntity> findFirstByEmailOrderByIdAsc(String email);
     Optional<UserEntity> findUserByEmail(String email);
     Optional<UserEntity> findUserByLogin(String login);

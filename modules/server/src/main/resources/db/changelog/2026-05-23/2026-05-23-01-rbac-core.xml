@@ -1,0 +1,108 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<databaseChangeLog xmlns="http://www.liquibase.org/xml/ns/dbchangelog"
+                   xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance"
+                   xsi:schemaLocation="http://www.liquibase.org/xml/ns/dbchangelog
+                       http://www.liquibase.org/xml/ns/dbchangelog/dbchangelog-4.5.xsd">
+
+    <changeSet id="2026-05-23-01-rbac-core" author="dmitry-smirnov">
+        <sql>
+            create table permission (
+                id   bigint auto_increment primary key,
+                name varchar(64) not null unique
+            );
+
+            create table role (
+                id   bigint auto_increment primary key,
+                name varchar(64) not null unique
+            );
+
+            create table role_permission (
+                role_id       bigint not null,
+                permission_id bigint not null,
+                primary key (role_id, permission_id),
+                constraint fk_role_permission_role       foreign key (role_id)       references role(id),
+                constraint fk_role_permission_permission foreign key (permission_id) references permission(id)
+            );
+
+            create table permission_scope (
+                id                    bigint      auto_increment primary key,
+                kind                  varchar(32) not null,
+                course_id             bigint      null,
+                education_resource_id bigint      null,
+                constraint ux_permission_scope_kind_course_edures unique (kind, course_id, education_resource_id),
+                constraint fk_permission_scope_course             foreign key (course_id)             references course(id)             on delete cascade,
+                constraint fk_permission_scope_education_resource foreign key (education_resource_id) references education_resource(id) on delete cascade,
+                constraint chk_permission_scope check (
+                       (kind = 'GLOBAL'             and course_id is null     and education_resource_id is null)
+                    or (kind = 'COURSE'             and course_id is not null and education_resource_id is null)
+                    or (kind = 'EDUCATION_RESOURCE' and course_id is null     and education_resource_id is not null)
+                )
+            );
+
+            create table role_user_assignment (
+                id                  bigint auto_increment primary key,
+                user_id             bigint not null,
+                role_id             bigint not null,
+                permission_scope_id bigint not null,
+                constraint fk_rua_user  foreign key (user_id)             references user(id),
+                constraint fk_rua_role  foreign key (role_id)             references role(id),
+                constraint fk_rua_scope foreign key (permission_scope_id) references permission_scope(id)
+            );
+
+            insert into permission (name) values
+                ('VIEW_COURSE'),
+                ('CREATE_COURSE'),
+                ('EDIT_COURSE'),
+                ('DELETE_COURSE'),
+                ('VIEW_EXERCISE'),
+                ('CREATE_EXERCISE'),
+                ('EDIT_EXERCISE'),
+                ('DELETE_EXERCISE'),
+                ('SOLVE_EXERCISE');
+
+            insert into role (name) values
+                ('GLOBAL_ADMIN'),
+                ('EDUCATION_RESOURCE_ADMIN'),
+                ('TEACHER'),
+                ('ASSISTANT'),
+                ('STUDENT');
+
+            insert into role_permission (role_id, permission_id)
+            select r.id, p.id from role r, permission p
+            where r.name = 'GLOBAL_ADMIN';
+
+            insert into role_permission (role_id, permission_id)
+            select r.id, p.id from role r, permission p
+            where r.name = 'EDUCATION_RESOURCE_ADMIN'
+              and p.name in (
+                  'VIEW_COURSE','CREATE_COURSE','EDIT_COURSE','DELETE_COURSE',
+                  'VIEW_EXERCISE','CREATE_EXERCISE','EDIT_EXERCISE','DELETE_EXERCISE',
+                  'SOLVE_EXERCISE');
+
+            insert into role_permission (role_id, permission_id)
+            select r.id, p.id from role r, permission p
+            where r.name = 'TEACHER'
+              and p.name in (
+                  'VIEW_COURSE','CREATE_COURSE','EDIT_COURSE','DELETE_COURSE',
+                  'VIEW_EXERCISE','CREATE_EXERCISE','EDIT_EXERCISE','DELETE_EXERCISE',
+                  'SOLVE_EXERCISE');
+
+            insert into role_permission (role_id, permission_id)
+            select r.id, p.id from role r, permission p
+            where r.name = 'ASSISTANT'
+              and p.name in (
+                  'VIEW_COURSE',
+                  'VIEW_EXERCISE','CREATE_EXERCISE','EDIT_EXERCISE','DELETE_EXERCISE',
+                  'SOLVE_EXERCISE');
+
+            insert into role_permission (role_id, permission_id)
+            select r.id, p.id from role r, permission p
+            where r.name = 'STUDENT'
+              and p.name in ('VIEW_COURSE','VIEW_EXERCISE','SOLVE_EXERCISE');
+
+            insert into permission_scope (kind, course_id, education_resource_id)
+            values ('GLOBAL', null, null);
+        </sql>
+    </changeSet>
+
+</databaseChangeLog>

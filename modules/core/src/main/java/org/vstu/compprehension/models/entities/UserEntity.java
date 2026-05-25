@@ -55,9 +55,16 @@ public class UserEntity {
     @Enumerated(EnumType.ORDINAL)
     private Language preferred_language;
 
-    @ElementCollection(targetClass = Role.class, fetch = FetchType.EAGER)
-    @CollectionTable(name = "UserRole", joinColumns = @JoinColumn(name = "user_id"))
+    /**
+     * @deprecated Legacy storage from before RBAC; superseded by {@code role_user_assignment}
+     * (see {@code RoleUserAssignmentEntity}). Kept read-only for backward compatibility
+     * with consumers that still reference the {@code user_role} table.
+     */
+    @Deprecated
+    @ElementCollection(targetClass = Role.class, fetch = FetchType.LAZY)
+    @CollectionTable(name = "user_role", joinColumns = @JoinColumn(name = "user_id"))
     @Enumerated(EnumType.STRING)
+    @Column(name = "roles")
     private Set<Role> roles;
 
     @ToString.Exclude
