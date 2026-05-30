@@ -50,4 +50,8 @@ public interface ExerciseAttemptRepository extends CrudRepository<ExerciseAttemp
         )
         """)
     Optional<Double> calculateFinalGrade(@Param("attemptId") Long attemptId);
+
+    @Modifying(clearAutomatically = true, flushAutomatically = true)
+    @Query("delete from ExerciseAttemptEntity a where a.exercise.id = :exerciseId")
+    void deleteByExerciseId(@Param("exerciseId") long exerciseId);
 }

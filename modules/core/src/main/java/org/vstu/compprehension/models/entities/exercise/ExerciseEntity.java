@@ -13,9 +13,9 @@ import org.vstu.compprehension.models.entities.DomainEntity;
 import org.vstu.compprehension.models.entities.EnumData.ExerciseType;
 import org.vstu.compprehension.models.entities.EnumData.Language;
 import org.vstu.compprehension.models.entities.ExerciseAttemptEntity;
-import org.vstu.compprehension.models.entities.ExerciseQuestionTypeEntity;
 import org.vstu.compprehension.models.entities.UserEntity;
 
+import java.util.ArrayList;
 import java.util.Arrays;
 import java.util.Date;
 import java.util.List;
@@ -25,7 +25,7 @@ import java.util.stream.Collectors;
 @Data
 @NoArgsConstructor
 @Table(name = "Exercise")
-public class ExerciseEntity {
+public class ExerciseEntity implements Cloneable {
     @Id
     @GeneratedValue(strategy = GenerationType.IDENTITY)
     private Long id;
@@ -68,6 +68,9 @@ public class ExerciseEntity {
     @Column(name = "strategy_id", nullable = false, length = 100)
     private @NotNull String strategyId;
 
+    @Column(name = "is_public", nullable = false)
+    private boolean isPublic;
+
     public List<String> getTags() {
         return Arrays.stream(tags.split("\\s*,\\s*"))
                 .filter(t -> !StringHelper.isNullOrWhitespace(t))
@@ -88,11 +91,36 @@ public class ExerciseEntity {
     private DomainEntity domain;
 
     @OneToMany(mappedBy = "exercise", fetch = FetchType.LAZY)
-    private List<ExerciseQuestionTypeEntity> exerciseQuestionTypes;
-
-    @OneToMany(mappedBy = "exercise", fetch = FetchType.LAZY)
     private List<ExerciseAttemptEntity> exerciseAttempts;
 
     @ManyToMany(mappedBy = "exercises", fetch = FetchType.LAZY)
     private List<UserEntity> users;
+
+    @Override
+    public ExerciseEntity clone() {
+        try {
+            ExerciseEntity copy = (ExerciseEntity) super.clone();
+            copy.setId(null);
+            copy.setCreatedAt(null);
+            copy.setUpdatedAt(null);
+            copy.setPublic(false);
+            copy.setName(this.name);
+            copy.setDomain(this.domain);
+            copy.setBackendId(this.backendId);
+            copy.setStrategyId(this.strategyId);
+            copy.setLanguage(this.language);
+            copy.setMaxRetries(this.maxRetries);
+            copy.setUseGuidingQuestions(this.useGuidingQuestions);
+            copy.setHidden(this.hidden);
+            copy.setTags(this.tags);
+            copy.setExerciseType(this.exerciseType);
+            copy.setOptions(this.options);
+            copy.setStages(this.stages == null ? new ArrayList<>() : new ArrayList<>(this.stages));
+            copy.setExerciseAttempts(null);
+            copy.setUsers(null);
+            return copy;
+        } catch (CloneNotSupportedException e) {
+            throw new RuntimeException(e);
+        }
+    }
 }

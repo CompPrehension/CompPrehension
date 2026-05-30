@@ -1,6 +1,7 @@
 import { IReactionDisposer, action, autorun, comparer, flow, makeAutoObservable, makeObservable, observable, reaction, runInAction, toJS, when } from "mobx";
-import { inject, injectable } from "tsyringe";
+import { container, inject, injectable } from "tsyringe";
 import { ExerciseSettingsController } from "../controllers/exercise/exercise-settings";
+import { CourseController } from "../controllers/course/course-controller";
 import { Domain, DomainConceptFlag, ExerciseCard, ExerciseCardConcept, ExerciseCardConceptKind, ExerciseCardLaw, ExerciseCardSkill, ExerciseListItem, ExerciseStage, QuestionBankSearchResult, Strategy } from "../types/exercise-settings";
 import * as E from "fp-ts/lib/Either";
 import { ExerciseOptions } from "../types/exercise-options";
@@ -24,7 +25,10 @@ export type ExerciseCardViewModel = {
     tags: string[],
     stages: NEA.NonEmptyArray<ExerciseStageStore>,
     options: ExerciseOptions,
+    isPublic: boolean,
 }
+
+export type ExerciseLinkType = 'global' | 'original' | 'inherited' | 'cloned';
 
 export class ExerciseStageStore implements Disposable {
     card: ExerciseCardViewModel
@@ -106,13 +110,22 @@ export class ExerciseSettingsStore {
     backends: string[] | null = null;
     strategies: Strategy[] | null = null;
     currentCard: ExerciseCardViewModel | null = null;
+    courseId: number | null = null;
 
     constructor(
         @inject(ExerciseSettingsController) private readonly exerciseSettingsController: ExerciseSettingsController,
         @inject(UserController) private readonly userController: IUserController,
-        @inject(ExerciseController) private readonly exerciseController: IExerciseController) {
-        
+        @inject(ExerciseController) private readonly exerciseController: IExerciseController,
+        @inject(CourseController) private readonly courseController: CourseController) {
+
         makeAutoObservable(this);
+    }
+
+    get cardLinkType(): ExerciseLinkType {
+        const card = this.currentCard;
+        if (!card) return 'global';
+        if (this.courseId == null) return card.isPublic ? 'global' : 'original';
+        return card.isPublic ? 'inherited' : 'original';
     }
 
     private toCardViewModel(card: ExerciseCard): ExerciseCardViewModel {
@@ -144,13 +157,16 @@ export class ExerciseSettingsStore {
     }
 
 
-    async loadExercises() {
+    async loadExercises(courseId: number | null = null) {
         if (this.exercisesLoadStatus === 'LOADED' || this.exercisesLoadStatus === 'LOADING')
             return;
 
-        runInAction(() => this.exercisesLoadStatus = 'LOADING');
+        runInAction(() => {
+            this.exercisesLoadStatus = 'LOADING';
+            this.courseId = courseId;
+        });
         const [rawExercises, domains, backends, strategies] = await Promise.all([
-            this.exerciseSettingsController.getAllExercises(),
+            this.exerciseSettingsController.listExercises(courseId),
             this.exerciseSettingsController.getDomains(),
             this.exerciseSettingsController.getBackends(),
             this.exerciseSettingsController.getStrategies()
@@ -185,14 +201,15 @@ export class ExerciseSettingsStore {
         if (this.exercisesLoadStatus !== 'LOADED')
             throw new Error("Exercises must be loaded first");
 
-        const newExerciseId = await this.exerciseSettingsController.createExercise("(empty)", this.domains![0].id, this.strategies![0]!.id);
+        const newExerciseId = await this.exerciseSettingsController.createExercise(
+            "(empty)", this.domains![0].id, this.strategies![0]!.id, this.courseId);
         if (!E.isRight(newExerciseId))
             return;
 
         runInAction(() => this.exercisesLoadStatus = 'EXERCISELOADING');
         const [rawExercise, newExercisesList] = await Promise.all([
             this.exerciseSettingsController.getExercise(newExerciseId.right),
-            this.exerciseSettingsController.getAllExercises(),
+            this.exerciseSettingsController.listExercises(this.courseId),
         ]);
         if (E.isRight(rawExercise) && E.isRight(newExercisesList)) {
             runInAction(() => {
@@ -201,6 +218,56 @@ export class ExerciseSettingsStore {
             });
         }
         runInAction(() => this.exercisesLoadStatus = 'LOADED');
+    }
+
+    async cloneCurrentToCourse(targetCourseId: number) {
+        if (!this.currentCard) return;
+        const result = await this.exerciseSettingsController.cloneExercise(this.currentCard.id, targetCourseId);
+        if (!E.isRight(result)) return;
+        const newId = result.right;
+        // Reload list and load the new clone
+        const [rawExercise, newExercisesList] = await Promise.all([
+            this.exerciseSettingsController.getExercise(newId),
+            this.exerciseSettingsController.listExercises(this.courseId),
+        ]);
+        if (E.isRight(rawExercise) && E.isRight(newExercisesList)) {
+            runInAction(() => {
+                this.currentCard = this.toCardViewModel(rawExercise.right);
+                this.exercises = newExercisesList.right;
+            });
+        }
+    }
+
+    async copyCurrentToPool(): Promise<number | null> {
+        if (!this.currentCard) return null;
+        const result = await this.exerciseSettingsController.cloneExercise(this.currentCard.id, null);
+        return E.isRight(result) ? result.right : null;
+    }
+
+    async unlinkFromCourse(courseId: number) {
+        if (!this.currentCard) return;
+        await this.courseController.removeExerciseFromCourse(this.currentCard.id, courseId);
+        // After unlink the exercise no longer belongs to this course; reload list and clear card.
+        const refreshed = await this.exerciseSettingsController.listExercises(this.courseId);
+        if (E.isRight(refreshed)) {
+            runInAction(() => {
+                this.exercises = refreshed.right;
+                this.currentCard = null;
+            });
+        }
+    }
+
+    async deleteCurrentExercise() {
+        if (!this.currentCard) return;
+        const id = this.currentCard.id;
+        await this.exerciseSettingsController.deleteExercise(id);
+        const refreshed = await this.exerciseSettingsController.listExercises(this.courseId);
+        if (E.isRight(refreshed)) {
+            runInAction(() => {
+                this.exercises = refreshed.right;
+                this.currentCard = null;
+            });
+        }
     }
 
 

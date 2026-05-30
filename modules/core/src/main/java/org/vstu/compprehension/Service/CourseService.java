@@ -4,12 +4,18 @@ import lombok.RequiredArgsConstructor;
 import lombok.extern.log4j.Log4j2;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
+import org.vstu.compprehension.dto.course.CourseDto;
+import org.vstu.compprehension.models.entities.EnumData.Role;
+import org.vstu.compprehension.models.entities.UserEntity;
 import org.vstu.compprehension.models.entities.course.CourseEntity;
 import org.vstu.compprehension.models.entities.course.ExerciseCourseLinkEntity;
 import org.vstu.compprehension.models.entities.course.ExerciseCourseLinkId;
 import org.vstu.compprehension.models.repository.CourseRepository;
 import org.vstu.compprehension.models.repository.ExerciseCourseLinkRepository;
+import org.vstu.compprehension.models.repository.ExerciseRepository;
 
+import java.util.List;
+import java.util.NoSuchElementException;
 import java.util.Optional;
 
 @Service
@@ -19,6 +25,7 @@ public class CourseService {
 
     private final CourseRepository courseRepository;
     private final ExerciseCourseLinkRepository exerciseCourseLinkRepository;
+    private final ExerciseRepository exerciseRepository;
 
     @Transactional(readOnly = true)
     public Optional<CourseEntity> findByExternalIdAndResourceId(String externalCourseId, Long educationResourceId) {
@@ -56,6 +63,34 @@ public class CourseService {
         return findExerciseCourseLink(exerciseId, courseId).orElseThrow(() -> new IllegalStateException(String.format(
                 "There is no relation between the course (id=%s) and the exercise (id=%s)", courseId, exerciseId
         )));
+    }
+
+    @Transactional(readOnly = true)
+    public List<CourseDto> getUserCourses(UserEntity user) {
+        if (user.getRoles().contains(Role.ADMIN)) {
+            return courseRepository.findAllCourseDtos();
+        }
+        return courseRepository.findCourseDtosByUserId(user.getId());
+    }
+
+    @Transactional(readOnly = true)
+    public List<CourseDto> getExerciseMemberships(long exerciseId) {
+        return exerciseCourseLinkRepository.findCourseDtosByExerciseId(exerciseId);
+    }
+
+    @Transactional
+    public void addExerciseToCourse(long exerciseId, long courseId) {
+        var exercise = exerciseRepository.findById(exerciseId)
+                .orElseThrow(() -> new NoSuchElementException("exercise not found"));
+        if (!exercise.isPublic()) {
+            throw new IllegalStateException("source_not_in_global_pool");
+        }
+        linkExerciseWithCourseIfMissing(exerciseId, courseId);
+    }
+
+    @Transactional
+    public void removeExerciseFromCourse(long exerciseId, long courseId) {
+        exerciseCourseLinkRepository.deleteByExerciseIdAndCourseId(exerciseId, courseId);
     }
 }
 

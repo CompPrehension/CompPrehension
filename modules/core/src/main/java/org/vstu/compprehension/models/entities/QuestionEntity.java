@@ -84,6 +84,7 @@ public class QuestionEntity {
 
     @ToString.Exclude
     @ManyToOne
+    @OnDelete(action = OnDeleteAction.SET_NULL)
     @JoinColumn(name = "exercise_attempt_id", nullable = true)
     @Nullable
     private ExerciseAttemptEntity exerciseAttempt;

@@ -57,7 +57,7 @@ public class WebSecurityConfig {
                         )
                 )
                 .logout((logout) -> logout.addLogoutHandler(keycloakLogoutHandler)
-                          .logoutSuccessUrl("/pages/exercise-settings")
+                          .logoutSuccessUrl("/pages/courses")
                           .invalidateHttpSession(true)
                           .clearAuthentication(true)
                           .deleteCookies("JSESSIONID"));
