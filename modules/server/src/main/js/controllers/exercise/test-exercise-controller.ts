@@ -44,12 +44,12 @@ export class TestExerciseController implements IExerciseController, IQuestionCon
             },
         })
     }
-    async getExistingExerciseAttempt(exerciseId: number): PromiseEither<RequestError, "" | ExerciseAttempt | null | undefined> {
-        console.log(`getExistingExerciseAttempt?exerciseId=${exerciseId}`);
+    async getExistingExerciseAttempt(exerciseId: number, courseId?: number): PromiseEither<RequestError, "" | ExerciseAttempt | null | undefined> {
+        console.log(`getExistingExerciseAttempt?exerciseId=${exerciseId}&courseId=${courseId}`);
         return E.right("");
     }
-    async createExerciseAttempt(exerciseId: number): PromiseEither<RequestError, ExerciseAttempt> {
-        console.log(`createExerciseAttempt?exerciseId=${exerciseId}`);
+    async createExerciseAttempt(exerciseId: number, courseId?: number): PromiseEither<RequestError, ExerciseAttempt> {
+        console.log(`createExerciseAttempt?exerciseId=${exerciseId}&courseId=${courseId}`);
         await delayPromise(3000);
         return E.right({
             attemptId: -1,
@@ -57,8 +57,8 @@ export class TestExerciseController implements IExerciseController, IQuestionCon
             questionIds: [1, 2, 3, 4, 5, 6, 7],
         });
     }
-    async createDebugExerciseAttempt(exerciseId: number): PromiseEither<RequestError, ExerciseAttempt> {
-        console.log(`createDebugExerciseAttempt?exerciseId=${exerciseId}`);
+    async createDebugExerciseAttempt(exerciseId: number, courseId?: number): PromiseEither<RequestError, ExerciseAttempt> {
+        console.log(`createDebugExerciseAttempt?exerciseId=${exerciseId}&courseId=${courseId}`);
         await delayPromise(3000);
         return E.right({
             attemptId: -1,

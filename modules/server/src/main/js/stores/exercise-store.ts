@@ -15,6 +15,7 @@ import { QuestionStore } from "./question-store";
 export class ExerciseStore {
     @observable isExerciseLoading: boolean = false;
     @observable exerciseId: number;
+    @observable courseId?: number = undefined;
     @observable exercise?: Exercise = undefined;
     @observable currentAttemptId?: number = undefined;
     @observable currentAttempt?: ExerciseAttempt = undefined;
@@ -38,6 +39,11 @@ export class ExerciseStore {
             this.storeState = { tag: 'ERROR', error: { message: "Invalid exercise id" } };
         }
         this.exerciseId = rawExerciseId !== null ? +rawExerciseId : -1;
+
+        const rawCourseId = getUrlParameterByName('courseId');
+        if (rawCourseId !== null) {
+            this.courseId = +rawCourseId;
+        }
 
         const rawAttemptId = getUrlParameterByName('attemptId');
         if (rawAttemptId !== null) {
@@ -142,7 +148,7 @@ export class ExerciseStore {
 
         this.forceSetValidState();
         const exerciseId = exercise.id;
-        const resultEither: E.Either<RequestError, ExerciseAttempt | null> = yield this.exerciseController.getExistingExerciseAttempt(exerciseId);
+        const resultEither: E.Either<RequestError, ExerciseAttempt | null> = yield this.exerciseController.getExistingExerciseAttempt(exerciseId, this.courseId);
         if (E.isLeft(resultEither)) {
             this.storeState = { tag: 'ERROR', error: resultEither.left };
             return;
@@ -171,7 +177,7 @@ export class ExerciseStore {
 
         this.forceSetValidState();
         const exerciseId = exercise.id;
-        const resultEither: E.Either<RequestError, ExerciseAttempt> = yield this.exerciseController.createExerciseAttempt(+exerciseId);
+        const resultEither: E.Either<RequestError, ExerciseAttempt> = yield this.exerciseController.createExerciseAttempt(+exerciseId, this.courseId);
         if (E.isLeft(resultEither)) {
             this.storeState = { tag: 'ERROR', error: resultEither.left };
             return;
@@ -189,7 +195,7 @@ export class ExerciseStore {
 
         this.forceSetValidState();
         const exerciseId = exercise.id;
-        const resultEither: E.Either<RequestError, ExerciseAttempt> = yield this.exerciseController.createDebugExerciseAttempt(+exerciseId);
+        const resultEither: E.Either<RequestError, ExerciseAttempt> = yield this.exerciseController.createDebugExerciseAttempt(+exerciseId, this.courseId);
         if (E.isLeft(resultEither)) {
             this.storeState = { tag: 'ERROR', error: resultEither.left };
             return;
