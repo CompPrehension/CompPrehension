@@ -120,9 +120,14 @@ public class ExerciseSettingsController {
     @SneakyThrows
     @ResponseBody
     @RequestMapping(value = { "exercise"}, method = { RequestMethod.DELETE })
-    public void delete(@RequestParam("id") long id) {
+    public void delete(@RequestParam("id") long id, @RequestParam(value = "courseId", required = false) Long courseId) {
         var userId = userService.getCurrentUser().getId();
-        authService.ensureAuthorizedGlobal(userId, Permission.DELETE_EXERCISE);
+        if (courseId != null) {
+            authService.ensureAuthorizedInCourse(userId, Permission.DELETE_EXERCISE, courseId);
+            courseService.findExerciseCourseLinkOrThrow(id, courseId);
+        } else {
+            authService.ensureAuthorizedGlobal(userId, Permission.DELETE_EXERCISE);
+        }
         exerciseService.deleteExercise(id);
     }
 }

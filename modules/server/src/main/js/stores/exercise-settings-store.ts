@@ -188,7 +188,7 @@ export class ExerciseSettingsStore {
             throw new Error("Exercises must be loaded first");
 
         runInAction(() => this.exercisesLoadStatus = 'EXERCISELOADING');
-        const rawExercise = await this.exerciseSettingsController.getExercise(exerciseId);
+        const rawExercise = await this.exerciseSettingsController.getExercise(exerciseId, this.courseId);
         if (E.isRight(rawExercise)) {
             runInAction(() => {
                 this.currentCard = this.toCardViewModel(rawExercise.right);
@@ -208,7 +208,7 @@ export class ExerciseSettingsStore {
 
         runInAction(() => this.exercisesLoadStatus = 'EXERCISELOADING');
         const [rawExercise, newExercisesList] = await Promise.all([
-            this.exerciseSettingsController.getExercise(newExerciseId.right),
+            this.exerciseSettingsController.getExercise(newExerciseId.right, this.courseId),
             this.exerciseSettingsController.listExercises(this.courseId),
         ]);
         if (E.isRight(rawExercise) && E.isRight(newExercisesList)) {
@@ -227,7 +227,7 @@ export class ExerciseSettingsStore {
         const newId = result.right;
         // Reload list and load the new clone
         const [rawExercise, newExercisesList] = await Promise.all([
-            this.exerciseSettingsController.getExercise(newId),
+            this.exerciseSettingsController.getExercise(newId, this.courseId),
             this.exerciseSettingsController.listExercises(this.courseId),
         ]);
         if (E.isRight(rawExercise) && E.isRight(newExercisesList)) {
@@ -260,7 +260,7 @@ export class ExerciseSettingsStore {
     async deleteCurrentExercise() {
         if (!this.currentCard) return;
         const id = this.currentCard.id;
-        await this.exerciseSettingsController.deleteExercise(id);
+        await this.exerciseSettingsController.deleteExercise(id, this.courseId);
         const refreshed = await this.exerciseSettingsController.listExercises(this.courseId);
         if (E.isRight(refreshed)) {
             runInAction(() => {
@@ -276,8 +276,8 @@ export class ExerciseSettingsStore {
             return;
 
         runInAction(() => this.exercisesLoadStatus = 'EXERCISELOADING');
-        await this.exerciseSettingsController.saveExercise(this.fromCardViewModel(this.currentCard));
-        const newExercisesList = await this.exerciseSettingsController.getAllExercises();
+        await this.exerciseSettingsController.saveExercise(this.fromCardViewModel(this.currentCard), this.courseId);
+        const newExercisesList = await this.exerciseSettingsController.listExercises(this.courseId);
         if (E.isRight(newExercisesList)) {
             runInAction(() => {
                 this.exercises = newExercisesList.right;
