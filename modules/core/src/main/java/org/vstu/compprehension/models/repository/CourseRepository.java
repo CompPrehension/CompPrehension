@@ -6,6 +6,7 @@ import org.springframework.data.jpa.repository.Query;
 import org.springframework.data.repository.query.Param;
 import org.springframework.stereotype.Repository;
 import org.vstu.compprehension.dto.course.CourseDto;
+import org.vstu.compprehension.models.entities.EnumData.EducationResourceType;
 import org.vstu.compprehension.models.entities.course.CourseEntity;
 
 import java.util.List;
@@ -14,6 +15,22 @@ import java.util.Optional;
 @Repository
 public interface CourseRepository extends JpaRepository<CourseEntity, Long> {
     Optional<CourseEntity> findByExternalCourseIdAndEducationResourceId(String externalCourseId, Long educationResourceId);
+
+    /**
+     * Resolves a course id from its Moodle-side external id and the education resource it
+     * belongs to (identified by url + type) in a single query — used to recover the trainer
+     * course from the current LTI context.
+     */
+    @Query("""
+            select c.id from CourseEntity c
+            where c.externalCourseId = :externalCourseId
+              and c.educationResource.url = :url
+              and c.educationResource.type = :type
+            """)
+    Optional<Long> findIdByExternalCourseIdAndResourceUrlAndType(
+            @Param("externalCourseId") String externalCourseId,
+            @Param("url") String url,
+            @Param("type") EducationResourceType type);
 
     List<CourseEntity> findByEducationResourceIdAndExternalCourseIdIsNotNull(Long educationResourceId);
 

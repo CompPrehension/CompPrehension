@@ -39,12 +39,20 @@ public class ExerciseAttemptService {
 
     @Transactional(propagation = Propagation.REQUIRED)
     public ExerciseAttemptEntity createNewAttempt(@NotNull Long exerciseId, @NotNull Long userId, Long courseId) {
+        // Fallback: if the client did not pass courseId, recover it from the current LTI context
+        // so the attempt is course-scoped and grade passback (which requires a course) still works.
+        Long resolvedCourseId = courseId != null
+                ? courseId
+                : ltiContextProvider.getCurrentLtiContext()
+                    .flatMap(courseService::resolveCourseIdFromLtiContext)
+                    .orElse(null);
+
         CourseEntity course = null;
-        if (courseId != null) {
-            ExerciseCourseLinkEntity exerciseCourse = courseService.findExerciseCourseLinkOrThrow(exerciseId, courseId);
+        if (resolvedCourseId != null) {
+            ExerciseCourseLinkEntity exerciseCourse = courseService.findExerciseCourseLinkOrThrow(exerciseId, resolvedCourseId);
             course = exerciseCourse.getCourse();
             exerciseAttemptRepository.changeExistingAttemptsStatusByCourse(
-                    exerciseId, courseId, userId, AttemptStatus.INCOMPLETE, AttemptStatus.COMPLETED_BY_SYSTEM);
+                    exerciseId, resolvedCourseId, userId, AttemptStatus.INCOMPLETE, AttemptStatus.COMPLETED_BY_SYSTEM);
         } else {
             exerciseAttemptRepository.changeExistingAttemptsStatus(
                     exerciseId, userId, AttemptStatus.INCOMPLETE, AttemptStatus.COMPLETED_BY_SYSTEM);

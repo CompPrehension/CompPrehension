@@ -5,6 +5,8 @@ import lombok.extern.log4j.Log4j2;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
 import org.vstu.compprehension.dto.course.CourseDto;
+import org.vstu.compprehension.models.businesslogic.lti.LtiContext;
+import org.vstu.compprehension.models.businesslogic.lti.LtiCourseContext;
 import org.vstu.compprehension.models.entities.UserEntity;
 import org.vstu.compprehension.models.entities.course.CourseEntity;
 import org.vstu.compprehension.models.entities.course.ExerciseCourseLinkEntity;
@@ -30,6 +32,21 @@ public class CourseService {
     @Transactional(readOnly = true)
     public Optional<CourseEntity> findByExternalIdAndResourceId(String externalCourseId, Long educationResourceId) {
         return courseRepository.findByExternalCourseIdAndEducationResourceId(externalCourseId, educationResourceId);
+    }
+
+    /**
+     * Recovers the trainer course id from the current LTI context. Lookup-only: the course and
+     * its education resource are already created during the LTI launch, so the attempt path must
+     * not have side effects. Returns empty when the context carries no course or none is found.
+     */
+    @Transactional(readOnly = true)
+    public Optional<Long> resolveCourseIdFromLtiContext(LtiContext ctx) {
+        LtiCourseContext ltiCourse = ctx.course();
+        if (ltiCourse == null || ltiCourse.courseId() == null) {
+            return Optional.empty();
+        }
+        return courseRepository.findIdByExternalCourseIdAndResourceUrlAndType(
+                ltiCourse.courseId(), ctx.lmsUrl(), ctx.lmsType());
     }
 
     @Transactional
