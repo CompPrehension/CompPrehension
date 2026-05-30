@@ -13,6 +13,8 @@ import org.springframework.web.context.annotation.SessionScope;
 import org.vstu.compprehension.Service.GradePassbackService;
 import org.vstu.compprehension.Service.LtiContextProvider;
 import org.vstu.compprehension.Service.UserService;
+import org.vstu.compprehension.models.businesslogic.lti.LtiContext;
+import org.vstu.compprehension.models.businesslogic.lti.LtiDeepLinkingContext;
 import org.vstu.compprehension.adapter.UserServiceImpl;
 import org.vstu.compprehension.models.businesslogic.backend.facts.JenaFactList;
 import org.vstu.compprehension.models.businesslogic.domains.DomainFactory;
@@ -67,7 +69,23 @@ public class CoreConfg {
     @Bean
     @Singleton
     LtiContextProvider getLtiContextProvider() {
-        return Optional::empty;
+        // Background jobs have no LTI request context.
+        return new LtiContextProvider() {
+            @Override
+            public Optional<LtiContext> getCurrentLtiContext() {
+                return Optional.empty();
+            }
+
+            @Override
+            public Optional<LtiDeepLinkingContext> getCurrentDeepLinkingContext() {
+                return Optional.empty();
+            }
+
+            @Override
+            public boolean consumeDeepLinkingOnce() {
+                return false;
+            }
+        };
     }
 
     @Bean

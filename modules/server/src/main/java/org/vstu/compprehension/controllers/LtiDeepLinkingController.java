@@ -1,0 +1,125 @@
+package org.vstu.compprehension.controllers;
+
+import lombok.RequiredArgsConstructor;
+import lombok.SneakyThrows;
+import org.springframework.http.HttpStatus;
+import org.springframework.stereotype.Controller;
+import org.springframework.web.bind.annotation.GetMapping;
+import org.springframework.web.bind.annotation.PostMapping;
+import org.springframework.web.bind.annotation.RequestBody;
+import org.springframework.web.bind.annotation.RequestMapping;
+import org.springframework.web.bind.annotation.ResponseBody;
+import org.springframework.web.server.ResponseStatusException;
+import org.vstu.compprehension.Service.AuthService;
+import org.vstu.compprehension.Service.CourseService;
+import org.vstu.compprehension.Service.EducationResourceService;
+import org.vstu.compprehension.Service.LtiContextProvider;
+import org.vstu.compprehension.Service.UserService;
+import org.vstu.compprehension.models.businesslogic.lti.LtiContext;
+import org.vstu.compprehension.models.businesslogic.lti.LtiCourseContext;
+import org.vstu.compprehension.models.businesslogic.lti.LtiDeepLinkingContext;
+import org.vstu.compprehension.models.entities.EnumData.Permission;
+import org.vstu.compprehension.models.entities.course.CourseEntity;
+import org.vstu.compprehension.models.entities.course.EducationResourceEntity;
+import org.vstu.compprehension.models.entities.exercise.ExerciseEntity;
+import org.vstu.compprehension.service.lti.DeepLinkingResponseService;
+
+import java.util.ArrayList;
+import java.util.List;
+
+/**
+ * SPA-facing endpoints для LTI Deep Linking. Лежат под {@code /api} (за Spring Security),
+ * чтобы SecurityContext восстанавливался из сессии запуска и работал {@code getCurrentUser()}.
+ * Курс определяется по серверному LTI-контексту (клиентский id не доверяется).
+ */
+@Controller
+@RequestMapping("api/lti/deep-link")
+@RequiredArgsConstructor
+public class LtiDeepLinkingController {
+
+    private final LtiContextProvider ltiContextProvider;
+    private final UserService userService;
+    private final AuthService authService;
+    private final CourseService courseService;
+    private final EducationResourceService educationResourceService;
+    private final DeepLinkingResponseService deepLinkingResponseService;
+
+    public record DeepLinkBuildRequest(List<Long> exerciseIds) {
+    }
+
+    public record DeepLinkBuildResponse(String jwt, String returnUrl) {
+    }
+
+    public record DeepLinkExistingResponse(List<Long> exerciseIds) {
+    }
+
+    /**
+     * Собирает подписанный {@code LtiDeepLinkingResponse} для выбранных упражнений курса.
+     * Фронт авто-сабмитит {@code jwt} формой на {@code returnUrl} (Moodle создаёт активности).
+     */
+    @SneakyThrows
+    @PostMapping("build")
+    @ResponseBody
+    public DeepLinkBuildResponse build(@RequestBody DeepLinkBuildRequest body) {
+        LtiDeepLinkingContext dl = requireDeepLinking();
+        long courseId = requireAuthorizedCourse();
+
+        if (body == null || body.exerciseIds() == null || body.exerciseIds().isEmpty()) {
+            throw new ResponseStatusException(HttpStatus.BAD_REQUEST, "exerciseIds must not be empty");
+        }
+
+        List<DeepLinkingResponseService.DeepLinkItem> items = new ArrayList<>();
+        for (Long exerciseId : body.exerciseIds()) {
+            ExerciseEntity exercise = courseService.findExerciseCourseLink(exerciseId, courseId)
+                    .orElseThrow(() -> new ResponseStatusException(HttpStatus.BAD_REQUEST,
+                            "Exercise " + exerciseId + " is not in course " + courseId))
+                    .getExercise();
+            items.add(new DeepLinkingResponseService.DeepLinkItem(exerciseId, exercise.getName()));
+        }
+
+        // One-shot: повторная отправка (двойной клик) не должна плодить дубли активностей.
+        if (!ltiContextProvider.consumeDeepLinkingOnce()) {
+            throw new ResponseStatusException(HttpStatus.CONFLICT,
+                    "Deep-linking response already submitted; re-launch to add more");
+        }
+
+        String jwt = deepLinkingResponseService.buildSignedResponse(dl, items);
+        return new DeepLinkBuildResponse(jwt, dl.deepLinkReturnUrl());
+    }
+
+    /**
+     * exercise_id уже добавленных в курс активностей (через AGS line items) — чтобы фронт
+     * пометил их как добавленные. Fail-soft: при недоступности AGS вернёт пустой список.
+     */
+    @GetMapping("existing")
+    @ResponseBody
+    public DeepLinkExistingResponse existing() {
+        LtiDeepLinkingContext dl = requireDeepLinking();
+        requireAuthorizedCourse();
+        return new DeepLinkExistingResponse(
+                new ArrayList<>(deepLinkingResponseService.fetchExistingExerciseIds(dl)));
+    }
+
+    private LtiDeepLinkingContext requireDeepLinking() {
+        return ltiContextProvider.getCurrentDeepLinkingContext()
+                .orElseThrow(() -> new ResponseStatusException(HttpStatus.BAD_REQUEST, "No active deep-linking session"));
+    }
+
+    @SneakyThrows
+    private long requireAuthorizedCourse() {
+        LtiContext ctx = ltiContextProvider.getCurrentLtiContext()
+                .orElseThrow(() -> new ResponseStatusException(HttpStatus.BAD_REQUEST, "LTI context absent"));
+        LtiCourseContext course = ctx.course();
+        if (course == null || course.courseId() == null) {
+            throw new ResponseStatusException(HttpStatus.BAD_REQUEST, "No course in LTI context");
+        }
+        EducationResourceEntity eduRes = educationResourceService.findByUrlAndType(ctx.lmsUrl(), ctx.lmsType())
+                .orElseThrow(() -> new ResponseStatusException(HttpStatus.BAD_REQUEST, "Unknown education resource"));
+        CourseEntity courseEntity = courseService.findByExternalIdAndResourceId(course.courseId(), eduRes.getId())
+                .orElseThrow(() -> new ResponseStatusException(HttpStatus.BAD_REQUEST, "Course not found for LTI context"));
+
+        long userId = userService.getCurrentUser().getId();
+        authService.ensureAuthorizedInCourse(userId, Permission.EDIT_COURSE, courseEntity.getId());
+        return courseEntity.getId();
+    }
+}

@@ -31,10 +31,13 @@ import org.springframework.web.bind.annotation.RequestMethod;
 import org.springframework.web.bind.annotation.RequestParam;
 import org.springframework.web.bind.annotation.ResponseBody;
 import org.apache.commons.lang3.tuple.Pair;
+import org.vstu.compprehension.Service.AuthService;
 import org.vstu.compprehension.Service.CourseService;
 import org.vstu.compprehension.Service.EducationResourceService;
+import org.vstu.compprehension.Service.UserService;
 import org.vstu.compprehension.service.lti.LtiContextInitializer;
 import org.vstu.compprehension.Service.LtiContextProvider;
+import org.vstu.compprehension.models.entities.EnumData.Permission;
 import org.vstu.compprehension.common.StringHelper;
 import org.vstu.compprehension.config.LtiRegistrationsProperties;
 import org.vstu.compprehension.models.businesslogic.lti.LtiContext;
@@ -70,6 +73,8 @@ public class LtiController {
     private final EducationResourceService educationResourceService;
     private final LtiContextInitializer ltiContextInitializer;
     private final LtiContextProvider ltiContextProvider;
+    private final UserService userService;
+    private final AuthService authService;
 
     public LtiController(SecurityContextRepository securityContextRepository,
                          SecurityContextHolderStrategy securityContextHolderStrategy,
@@ -77,7 +82,9 @@ public class LtiController {
                          CourseService courseService,
                          EducationResourceService educationResourceService,
                          LtiContextInitializer ltiContextInitializer,
-                         LtiContextProvider ltiContextProvider) {
+                         LtiContextProvider ltiContextProvider,
+                         UserService userService,
+                         AuthService authService) {
         this.securityContextRepository = securityContextRepository;
         this.securityContextHolderStrategy = securityContextHolderStrategy;
         this.ltiRegistrations = ltiRegistrations;
@@ -85,6 +92,8 @@ public class LtiController {
         this.educationResourceService = educationResourceService;
         this.ltiContextInitializer = ltiContextInitializer;
         this.ltiContextProvider = ltiContextProvider;
+        this.userService = userService;
+        this.authService = authService;
     }
 
     @SneakyThrows
@@ -206,6 +215,33 @@ public class LtiController {
 
         String redirectUrl = String.format("/pages/exercise-settings?courseId=%s", courseId);
         log.info("Redirect to exercise-settings, url:{}", redirectUrl);
+        response.sendRedirect(redirectUrl);
+    }
+
+    /**
+     * Deep-linking посадочный endpoint: запуск из блока «Настроить курс» и из штатного
+     * Moodle «Выбрать содержимое» приходят сюда одинаковым {@code LtiDeepLinkingRequest}.
+     * Авторизует преподавателя, создаёт/находит курс и редиректит на страницу курса в
+     * тренажёре (там фронт по контексту iframe/окно решает, показывать ли отправку в Moodle).
+     */
+    @SneakyThrows
+    @RequestMapping(method = {RequestMethod.POST, RequestMethod.GET}, path = {"1_3/configure-course"})
+    public void configureCourse(HttpServletRequest request, HttpServletResponse response) {
+        authenticateFromLti13ResourceLinkRequest(request, response);
+
+        // Триггерит upsert пользователя + назначение RBAC-роли (LTI Instructor -> Teacher в scope курса).
+        long userId = userService.getCurrentUser().getId();
+
+        LtiContext ctx = ltiContextProvider.getCurrentLtiContext()
+                .orElseThrow(() -> new IllegalArgumentException("LTI context absent"));
+        Long courseId = resolveCourseFromContext(ctx);
+        if (courseId == null) {
+            throw new IllegalArgumentException("Absent information on the contextId");
+        }
+        authService.ensureAuthorizedInCourse(userId, Permission.EDIT_COURSE, courseId);
+
+        String redirectUrl = String.format("/pages/course?courseId=%d&lti=deeplink", courseId);
+        log.info("Redirect to configure-course, url:{}", redirectUrl);
         response.sendRedirect(redirectUrl);
     }
 
