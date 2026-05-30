@@ -19,6 +19,7 @@ import org.vstu.compprehension.models.repository.UserRepository;
 import java.util.ArrayList;
 import java.util.Collection;
 import java.util.HashMap;
+import java.util.HashSet;
 import java.util.List;
 import java.util.Map;
 import java.util.Optional;
@@ -180,15 +181,22 @@ public class AuthService {
      * the capability system entirely), so admin assignments are managed via LTI launch
      * or direct SQL — sync must not delete them.
      *
+     * <p>Снятие роли (sweep существующих назначений, отсутствующих в desired) выполняется
+     * ТОЛЬКО для курсов из {@code managedCourseIds} — курсов, реально синхронизированных в
+     * этом прогоне. Назначения по курсам вне этого набора (например, отвязанным от Moodle
+     * после удаления курса) не трогаются — sync перестаёт ими управлять, роли сохраняются.
+     *
      * @param environmentId          target EducationResource id
      * @param userIds                users in scope of this sync (typically: all with ExternalAccount for this env)
      * @param desiredCourseRoles     desired COURSE-scope role per (user, course); value {@code null} means "no role"
+     * @param managedCourseIds       course ids синхронизированные в этом прогоне; только для них допускается снятие роли
      */
     @Transactional
     public void applyEnvironmentAssignmentsDiff(
             Long environmentId,
             Collection<Long> userIds,
-            Map<UserCourseKey, Role> desiredCourseRoles
+            Map<UserCourseKey, Role> desiredCourseRoles,
+            Collection<Long> managedCourseIds
     ) {
         if (userIds.isEmpty()) {
             return;
@@ -231,8 +239,9 @@ public class AuthService {
                 courseInserts.add(new CourseAssignmentDraft(userId, courseId, desired));
             }
         }
+        Set<Long> managed = new HashSet<>(managedCourseIds);
         for (Map.Entry<UserCourseKey, RoleUserAssignmentEntity> e : existingCourse.entrySet()) {
-            if (!desiredCourseRoles.containsKey(e.getKey())) {
+            if (managed.contains(e.getKey().courseId()) && !desiredCourseRoles.containsKey(e.getKey())) {
                 toDelete.add(e.getValue().getId());
             }
         }

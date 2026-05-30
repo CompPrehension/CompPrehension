@@ -19,6 +19,7 @@ import org.vstu.compprehension.integration.moodle.CourseCapabilityRequest;
 import org.vstu.compprehension.integration.moodle.MoodleCapabilityResult;
 import org.vstu.compprehension.integration.moodle.MoodleService;
 import org.vstu.compprehension.integration.moodle.MoodleUserRef;
+import org.vstu.compprehension.integration.moodle.MoodleWsException;
 
 import java.util.ArrayList;
 import java.util.HashMap;
@@ -104,6 +105,12 @@ public class MoodleRoleSyncService {
             return;
         }
 
+        courses = detachDeletedCourses(env, wsToken, courses);
+        if (courses.isEmpty()) {
+            log.info("Moodle role sync: no live Moodle courses for {} after existence check, skipping", env.getUrl());
+            return;
+        }
+
         Map<Long, Long> userIdByMoodleId = buildUserIdByMoodleIdMap(accounts);
         Map<String, CourseEntity> courseByExtId = courses.stream()
                 .collect(Collectors.toMap(
@@ -158,11 +165,60 @@ public class MoodleRoleSyncService {
             desiredCourseRoles.put(entry.getKey(), CapabilityMapper.deriveCourseRole(entry.getValue()));
         }
 
+        Set<Long> managedCourseIds = courses.stream()
+                .map(CourseEntity::getId)
+                .collect(Collectors.toSet());
+
         authService.applyEnvironmentAssignmentsDiff(
                 env.getId(),
                 userIdByMoodleId.values(),
-                desiredCourseRoles
+                desiredCourseRoles,
+                managedCourseIds
         );
+    }
+
+    /**
+     * Проверяет, какие из {@code courses} ещё существуют в Moodle, и отвязывает удалённые:
+     * у такого курса {@code externalCourseId} обнуляется (курс становится локальным, связь с
+     * Moodle теряется) — следующий sync его уже не запросит. Возвращает только живые курсы.
+     *
+     * <p>Без этого шага один удалённый курс ронял весь bulk-вызов
+     * {@code core_enrol_get_enrolled_users_with_capability} (он бросает
+     * {@code dml_missing_record_exception} на первом отсутствующем id), и синхронизация
+     * среды прерывалась целиком.
+     *
+     * <p>Если вызов проверки не удался ({@link MoodleWsException}) — возвращаем пустой список,
+     * чтобы прервать среду и НЕ принять временный сбой WS за «все курсы удалены».
+     */
+    private List<CourseEntity> detachDeletedCourses(
+            EducationResourceEntity env, String wsToken, List<CourseEntity> courses) {
+        Set<String> requestedExtIds = courses.stream()
+                .map(CourseEntity::getExternalCourseId)
+                .collect(Collectors.toSet());
+
+        Set<String> existingExtIds;
+        try {
+            existingExtIds = moodleService.findExistingCourseIds(env.getUrl(), wsToken, requestedExtIds);
+        } catch (MoodleWsException ex) {
+            log.warn("Moodle role sync: course existence check failed for {} - aborting environment: {}",
+                    env.getUrl(), ex.getMessage());
+            return List.of();
+        }
+
+        Map<Boolean, List<CourseEntity>> partition = courses.stream()
+                .collect(Collectors.partitioningBy(c -> existingExtIds.contains(c.getExternalCourseId())));
+        List<CourseEntity> liveCourses = partition.get(true);
+        List<CourseEntity> deletedCourses = partition.get(false);
+
+        if (!deletedCourses.isEmpty()) {
+            for (CourseEntity course : deletedCourses) {
+                log.info("Moodle role sync: course '{}' (extId={}) no longer exists in {} - detaching",
+                        course.getName(), course.getExternalCourseId(), env.getUrl());
+                course.setExternalCourseId(null);
+            }
+            courseRepo.saveAll(deletedCourses);
+        }
+        return liveCourses;
     }
 
     private Map<Long, Long> buildUserIdByMoodleIdMap(List<ExternalAccountEntity> accounts) {
