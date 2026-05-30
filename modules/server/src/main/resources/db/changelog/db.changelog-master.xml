@@ -105,4 +105,5 @@
     <include file="db/changelog/2026-05-20/2026-05-20-01-changelog.xml"/>
     <include file="db/changelog/2026-05-23/2026-05-23-01-rbac-core.xml"/>
     <include file="db/changelog/2026-05-23/2026-05-23-02-education-resource-trust-status.xml"/>
+    <include file="db/changelog/2026-05-28/2026-05-28-01-rbac-trim-assistant-teacher.xml"/>
 </databaseChangeLog>
