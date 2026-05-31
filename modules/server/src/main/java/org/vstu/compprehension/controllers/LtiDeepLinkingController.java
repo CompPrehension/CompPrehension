@@ -20,7 +20,7 @@ import org.vstu.compprehension.models.businesslogic.lti.LtiCourseContext;
 import org.vstu.compprehension.models.businesslogic.lti.LtiDeepLinkingContext;
 import org.vstu.compprehension.models.entities.EnumData.Permission;
 import org.vstu.compprehension.models.entities.course.CourseEntity;
-import org.vstu.compprehension.models.entities.course.EducationResourceEntity;
+import org.vstu.compprehension.models.entities.external_system.EducationResourceEntity;
 import org.vstu.compprehension.models.entities.exercise.ExerciseEntity;
 import org.vstu.compprehension.service.lti.DeepLinkingResponseService;
 

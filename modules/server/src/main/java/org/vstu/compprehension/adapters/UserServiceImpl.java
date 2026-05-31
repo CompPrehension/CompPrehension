@@ -20,7 +20,7 @@ import org.vstu.compprehension.models.entities.EnumData.EducationResourceTrustSt
 import org.vstu.compprehension.models.entities.EnumData.Language;
 import org.vstu.compprehension.models.entities.EnumData.Role;
 import org.vstu.compprehension.models.entities.UserEntity;
-import org.vstu.compprehension.models.entities.course.EducationResourceEntity;
+import org.vstu.compprehension.models.entities.external_system.EducationResourceEntity;
 import org.vstu.compprehension.models.repository.UserRepository;
 
 import java.util.Collection;

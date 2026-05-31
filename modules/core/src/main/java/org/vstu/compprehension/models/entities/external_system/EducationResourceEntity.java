@@ -1,4 +1,4 @@
-package org.vstu.compprehension.models.entities.course;
+package org.vstu.compprehension.models.entities.external_system;
 
 import jakarta.persistence.*;
 import lombok.Getter;

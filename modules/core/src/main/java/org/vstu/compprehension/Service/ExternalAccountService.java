@@ -3,8 +3,8 @@ package org.vstu.compprehension.Service;
 import lombok.RequiredArgsConstructor;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
-import org.vstu.compprehension.models.entities.course.ExternalAccountEntity;
-import org.vstu.compprehension.models.entities.course.ExternalAccountId;
+import org.vstu.compprehension.models.entities.external_system.ExternalAccountEntity;
+import org.vstu.compprehension.models.entities.external_system.ExternalAccountId;
 import org.vstu.compprehension.models.repository.ExternalAccountRepository;
 
 import java.util.Optional;
