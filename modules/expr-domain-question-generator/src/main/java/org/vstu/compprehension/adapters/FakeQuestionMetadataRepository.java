@@ -49,6 +49,12 @@ public class FakeQuestionMetadataRepository implements QuestionMetadataRepositor
 
     @NotNull
     @Override
+    public List<QuestionMetadataEntity> loadPageWithData(int lastLoadedId, String domainShortName, int limit) {
+        return List.of();
+    }
+
+    @NotNull
+    @Override
     public List<QuestionMetadataEntity> loadPage(int lastLoadedId, String domainShortName, int limit) {
         return List.of();
     }

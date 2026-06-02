@@ -1,7 +1,6 @@
 package org.vstu.compprehension.models.businesslogic;
 
 import its.model.definition.DomainModel;
-import org.junit.jupiter.api.AfterAll;
 import org.junit.jupiter.api.BeforeAll;
 import org.junit.jupiter.api.Test;
 import org.junit.jupiter.api.TestInstance;
@@ -13,27 +12,18 @@ import org.springframework.test.context.ActiveProfiles;
 import org.springframework.test.context.TestPropertySource;
 import org.vstu.compprehension.models.businesslogic.domains.DomainFactory;
 import org.vstu.compprehension.models.businesslogic.domains.ProgrammingLanguageExpressionDTDomain;
+import org.vstu.compprehension.models.businesslogic.domains.helpers.meaningtree.MeaningTreeOrderQuestionBuilder;
+import org.vstu.compprehension.models.businesslogic.domains.helpers.meaningtree.MeaningTreeRDFHelper;
 import org.vstu.compprehension.models.businesslogic.domains.helpers.meaningtree.MeaningTreeRDFTransformer;
 import org.vstu.compprehension.models.businesslogic.domains.helpers.meaningtree.MeaningTreeUtils;
-import org.vstu.compprehension.models.businesslogic.domains.helpers.meaningtree.QuestionDynamicDataAppender;
-import org.vstu.compprehension.models.businesslogic.storage.QuestionBank;
-import org.vstu.compprehension.models.entities.EnumData.Language;
-import org.vstu.compprehension.models.entities.ExerciseAttemptEntity;
 import org.vstu.compprehension.models.entities.QuestionMetadataEntity;
-import org.vstu.compprehension.models.entities.exercise.ExerciseEntity;
-import org.vstu.compprehension.models.entities.exercise.ExerciseOptionsEntity;
-import org.vstu.compprehension.models.entities.exercise.ExerciseStageEntity;
-import org.vstu.compprehension.models.repository.ExerciseAttemptRepository;
-import org.vstu.compprehension.models.repository.ExerciseRepository;
 import org.vstu.compprehension.models.repository.QuestionMetadataRepository;
-import org.vstu.compprehension.models.repository.UserRepository;
 import org.vstu.meaningtree.SupportedLanguage;
 
 import java.io.IOException;
 import java.nio.file.Files;
 import java.nio.file.Path;
 import java.util.Arrays;
-import java.util.Collections;
 import java.util.HashSet;
 import java.util.List;
 import java.util.Set;
@@ -59,46 +49,16 @@ public class ExpressionDTLoqiRdfExportTask {
     @Autowired
     DomainFactory domainFactory;
     @Autowired
-    private ExerciseAttemptRepository exerciseAttemptRepository;
-    @Autowired
-    private ExerciseRepository exerciseRepository;
-    @Autowired
-    private UserRepository userRepository;
-    @Autowired
     private QuestionMetadataRepository qMetaRepo;
-    @Autowired
-    private QuestionBank qBank;
 
-    private ExerciseAttemptEntity attempt;
-    private ExerciseEntity exercise;
     private ProgrammingLanguageExpressionDTDomain domain;
 
     @BeforeAll
     public void setUp() {
+        System.err.println("ExpressionDT export: setUp started");
         domain = (ProgrammingLanguageExpressionDTDomain) domainFactory.getDomain(
                 "ProgrammingLanguageExpressionDTDomain");
-        exercise = new ExerciseEntity();
-        exercise.setDomain(domain.getDomainEntity());
-        exercise.setBackendId("DTReasoner");
-        exercise.setTags("");
-        exercise.setOptions(new ExerciseOptionsEntity(null, true,
-                true, true, true,
-                true, true, 7, null, null));
-        exercise.setName("expression-dt-export");
-        exercise.setStages(Collections.singletonList(new ExerciseStageEntity()));
-        exercise.setStrategyId("StaticStrategy");
-        exerciseRepository.save(exercise);
-        attempt = new ExerciseAttemptEntity();
-        attempt.setQuestions(List.of());
-        attempt.setExercise(exercise);
-        attempt.setUser(userRepository.findAll().iterator().next());
-        exerciseAttemptRepository.save(attempt);
-    }
-
-    @AfterAll
-    public void tearDown() {
-        exerciseAttemptRepository.delete(attempt);
-        exerciseRepository.delete(exercise);
+        System.err.println("ExpressionDT export: setUp finished");
     }
 
     @Test
@@ -106,32 +66,43 @@ public class ExpressionDTLoqiRdfExportTask {
         Path outDir = Path.of(System.getProperty("export.dir", "export/expression_dt"));
         Files.createDirectories(outDir);
 
-        int fromId = Integer.getInteger("export.fromId", 0);
-        int limit = Integer.getInteger("export.limit", Integer.MAX_VALUE);
+        int fromId = readIntProperty("export.fromId", 0);
+        int limit = readIntProperty("export.limit", Integer.MAX_VALUE);
         Set<String> nameFilter = parseNameFilter(System.getProperty("export.names"));
+
+        System.err.printf(
+                "ExpressionDT export: dir=%s fromId=%d limit=%d names=%s%n",
+                outDir.toAbsolutePath(), fromId, limit, nameFilter.isEmpty() ? "*" : nameFilter
+        );
 
         int lastId = fromId;
         int exported = 0;
+        int batchNo = 0;
 
         outer:
-        while (true) {
-            List<QuestionMetadataEntity> batch = qMetaRepo.loadPageWithData(lastId, BATCH_SIZE);
+        while (exported < limit) {
+            int batchLimit = Math.min(BATCH_SIZE, limit - exported);
+            System.err.printf("ExpressionDT export: loading batch #%d after id=%d (limit %d)...%n",
+                    ++batchNo, lastId, batchLimit);
+            long t0 = System.currentTimeMillis();
+            List<QuestionMetadataEntity> batch = qMetaRepo.loadPageWithData(
+                    lastId, DOMAIN_SHORTNAME, batchLimit);
+            System.err.printf("ExpressionDT export: batch #%d loaded %d row(s) in %d ms%n",
+                    batchNo, batch.size(), System.currentTimeMillis() - t0);
             if (batch.isEmpty()) {
                 break;
             }
 
             for (QuestionMetadataEntity meta : batch) {
                 lastId = meta.getId();
-                if (!DOMAIN_SHORTNAME.equals(meta.getDomainShortname())) {
-                    continue;
-                }
                 if (!nameFilter.isEmpty() && !nameFilter.contains(meta.getName())) {
                     continue;
                 }
                 try {
-                    exportOne(meta, outDir);
+                    exportOne(meta, outDir, exported + 1, limit);
                     exported++;
-                    System.err.printf("OK id=%d name=%s%n", meta.getId(), meta.getName());
+                    System.err.printf("OK id=%d name=%s (%d/%d)%n",
+                            meta.getId(), meta.getName(), exported, limit);
                 } catch (Exception e) {
                     System.err.printf("FAILED id=%d name=%s: %s%n", meta.getId(), meta.getName(), e.getMessage());
                     e.printStackTrace();
@@ -145,11 +116,26 @@ public class ExpressionDTLoqiRdfExportTask {
         System.err.printf("Exported %d question(s) to %s%n", exported, outDir.toAbsolutePath());
     }
 
-    private void exportOne(QuestionMetadataEntity meta, Path outDir) {
-        Question q = prepareQuestion(meta);
+    private static int readIntProperty(String name, int defaultValue) {
+        String raw = System.getProperty(name);
+        if (raw == null || raw.isBlank()) {
+            return defaultValue;
+        }
+        return Integer.parseInt(raw.trim());
+    }
+
+    private void exportOne(QuestionMetadataEntity meta, Path outDir, int index, int limit) {
+        boolean skipJsonLd = Boolean.parseBoolean(System.getProperty("export.skipJsonLd", "false"));
+        long t0 = System.currentTimeMillis();
+        logStep(meta.getId(), index, limit, "start");
+
+        Question q = prepareQuestionForExport(meta);
+        logStep(meta.getId(), index, limit, "prepared in " + (System.currentTimeMillis() - t0) + " ms");
+
         SupportedLanguage lang = MeaningTreeUtils.detectLanguageFromTags(meta.getTagBits(), domain);
         String langTag = lang.toString().substring(0, 1).toUpperCase() + lang.toString().substring(1).toLowerCase();
 
+        long t1 = System.currentTimeMillis();
         DomainModel model = MeaningTreeRDFTransformer.questionToDomainModel(
                 domain.getDomainSolvingModels().getFirst(),
                 q.getStatementFacts(),
@@ -157,17 +143,43 @@ public class ExpressionDTLoqiRdfExportTask {
                 List.of(domain.getTag(langTag)),
                 false
         );
+        logStep(meta.getId(), index, limit, "domain model in " + (System.currentTimeMillis() - t1) + " ms");
 
         String baseName = meta.getId() + "_" + sanitizeFileName(meta.getName());
+        long t2 = System.currentTimeMillis();
         MeaningTreeRDFTransformer.dumpModelLoqi(model, outDir.resolve(baseName + ".loqi").toFile());
+        logStep(meta.getId(), index, limit, "loqi in " + (System.currentTimeMillis() - t2) + " ms");
+
+        long t3 = System.currentTimeMillis();
         MeaningTreeRDFTransformer.dumpModelTtl(model, outDir.resolve(baseName + ".ttl").toFile());
-        MeaningTreeRDFTransformer.dumpModelJsonLd(model, outDir.resolve(baseName + ".jsonld").toFile());
+        logStep(meta.getId(), index, limit, "ttl in " + (System.currentTimeMillis() - t3) + " ms");
+
+        if (!skipJsonLd) {
+            long t4 = System.currentTimeMillis();
+            MeaningTreeRDFTransformer.dumpModelJsonLd(model, outDir.resolve(baseName + ".jsonld").toFile());
+            logStep(meta.getId(), index, limit, "jsonld in " + (System.currentTimeMillis() - t4) + " ms");
+        }
     }
 
-    private Question prepareQuestion(QuestionMetadataEntity meta) {
+    /**
+     * Read-only preparation: no {@link org.vstu.compprehension.models.businesslogic.storage.QuestionBank} writes.
+     */
+    private Question prepareQuestionForExport(QuestionMetadataEntity meta) {
         SupportedLanguage lang = MeaningTreeUtils.detectLanguageFromTags(meta.getTagBits(), domain);
         Question q = meta.getQuestionData().getData().toQuestion(domain, meta);
-        return QuestionDynamicDataAppender.appendQuestionData(q, attempt, qBank, lang, domain, Language.ENGLISH);
+        if (meta.getVersion() < 12) {
+            Question rebuilt = MeaningTreeOrderQuestionBuilder.fastBuildFromExisting(q, lang, domain);
+            if (rebuilt != null) {
+                q = rebuilt;
+            }
+        }
+        q.getQuestionData().setStatementFacts(
+                MeaningTreeRDFHelper.applyRuntimeFixes(q.getStatementFacts()));
+        return q;
+    }
+
+    private static void logStep(int id, int index, int limit, String step) {
+        System.err.printf("  [%d/%d] id=%d %s%n", index, limit, id, step);
     }
 
     private static Set<String> parseNameFilter(String raw) {
