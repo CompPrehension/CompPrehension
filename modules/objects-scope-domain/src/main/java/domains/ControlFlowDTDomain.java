@@ -57,7 +57,8 @@ public class ControlFlowDTDomain extends DecisionTreeReasoningDomain {
 
     private final DomainSolvingModel domainSolvingModel = new DomainSolvingModel(
             Objects.requireNonNull(this.getClass().getClassLoader().getResource(DOMAIN_MODEL_LOCATION)),
-            DomainSolvingModel.BuildMethod.LOQI).validate();
+            DomainSolvingModel.BuildMethod.LOQI,
+            false).validate();
 
     private static final HashMap<String, Tag> tags = new HashMap<>() {{
         put("C++", new Tag("C++", 2L));  	// (2 ^ 1)
@@ -353,7 +354,7 @@ public class ControlFlowDTDomain extends DecisionTreeReasoningDomain {
             }
             ///
 
-            return new DecisionTreeReasonerBackend.Input(questionModel, model.getDecisionTree());
+            return new DecisionTreeReasonerBackend.Input(questionModel, model.getDecisionTree(), model);
         }
 
         void updateModelState(ControlFlowDTDomain domain, DomainModel questionModel, ObjectDef L0, ObjectDef A) {
@@ -719,12 +720,13 @@ public class ControlFlowDTDomain extends DecisionTreeReasoningDomain {
             }
         }
 
-        static SolveResult solve(DecisionTree tree, DomainModel model) {
+        static SolveResult solve(DecisionTree tree, DomainModel model, DomainSolvingModel solvingContext) {
             LearningSituation situation = new LearningSituation(model, model.getVariables()
                     .stream().collect(Collectors.toMap(
                             x -> x.getName(),
                             x -> x.getValueObject().getReference()
-                    ))
+                    )),
+                    solvingContext
             );
             DecisionTreeTrace trace = DecisionTreeReasoner.solve(tree, situation);
             List<String> skills = new ArrayList<>();
@@ -764,7 +766,11 @@ public class ControlFlowDTDomain extends DecisionTreeReasoningDomain {
                 .getObjects().getFirst().getPropertyValue("id", Map.of());
         ObjectDef A = treeInterface.makeA(questionModel, cfgId, nextAnswer);
         treeInterface.updateModelState(this, questionModel, L0, A);
-        var solveRes = Solver.solve(ControlFlowDTDomain.this.getDomainSolvingModels().getFirst().getDecisionTree(), questionModel);
+        var solveRes = Solver.solve(
+                ControlFlowDTDomain.this.getDomainSolvingModels().getFirst().getDecisionTree(),
+                questionModel,
+                ControlFlowDTDomain.this.getDomainSolvingModels().getFirst()
+        );
         Explanation explanation = DecisionTreeReasonerBackend.collectExplanationsFromTrace(
                 Explanation.Type.HINT,
                 solveRes.trace(), questionModel,

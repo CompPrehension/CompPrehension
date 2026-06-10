@@ -75,17 +75,20 @@ public class ObjectsScopeDTDomain extends DecisionTreeReasoningDomain {
 
     private final DomainSolvingModel domainLifeTimeSolvingModel = new DomainSolvingModel(
             this.getClass().getClassLoader().getResource(OBJECT_LIFE_TIME_DOMAIN_MODEL_LOCATION),
-            DomainSolvingModel.BuildMethod.DICT_RDF
+            DomainSolvingModel.BuildMethod.DICT_RDF,
+            false
     ).validate();
 
     private final DomainSolvingModel domainObjectVisibilitySolvingModel = new DomainSolvingModel(
             this.getClass().getClassLoader().getResource(OBJECT_VISIBILITY_DOMAIN_MODEL_LOCATION),
-            DomainSolvingModel.BuildMethod.DICT_RDF
+            DomainSolvingModel.BuildMethod.DICT_RDF,
+            false
     ).validate();
 
     private final DomainSolvingModel domainObjectsVisibilityInLineSolvingModel = new DomainSolvingModel(
             this.getClass().getClassLoader().getResource(OBJECTS_VISIBILITY_DOMAIN_MODEL_LOCATION),
-            DomainSolvingModel.BuildMethod.DICT_RDF
+            DomainSolvingModel.BuildMethod.DICT_RDF,
+            false
     ).validate();
 
     @Getter
@@ -498,7 +501,8 @@ public class ObjectsScopeDTDomain extends DecisionTreeReasoningDomain {
                 newVariable(situationModel, "step", object.getName());
                 LearningSituation learningSituation = new LearningSituation(
                         situationModel,
-                        LearningSituation.collectDecisionTreeVariables(situationModel)
+                        LearningSituation.collectDecisionTreeVariables(situationModel),
+                        domainLifeTimeSolvingModel
                 );
 
                 DecisionTreeTrace decisionTreeTrace = DecisionTreeReasoner.solve(
@@ -540,7 +544,8 @@ public class ObjectsScopeDTDomain extends DecisionTreeReasoningDomain {
                 newVariable(situationModel, "usageLine", object.getName());
                 LearningSituation learningSituation = new LearningSituation(
                         situationModel,
-                        LearningSituation.collectDecisionTreeVariables(situationModel)
+                        LearningSituation.collectDecisionTreeVariables(situationModel),
+                        domainObjectVisibilitySolvingModel
                 );
 
                 DecisionTreeTrace decisionTreeTrace = DecisionTreeReasoner.solve(
@@ -579,7 +584,8 @@ public class ObjectsScopeDTDomain extends DecisionTreeReasoningDomain {
                 newVariable(situationModel, "currentCt", object.getName());
                 LearningSituation learningSituation = new LearningSituation(
                         situationModel,
-                        LearningSituation.collectDecisionTreeVariables(situationModel)
+                        LearningSituation.collectDecisionTreeVariables(situationModel),
+                        domainObjectsVisibilityInLineSolvingModel
                 );
 
                 DecisionTreeTrace decisionTreeTrace = DecisionTreeReasoner.solve(
@@ -807,7 +813,8 @@ public class ObjectsScopeDTDomain extends DecisionTreeReasoningDomain {
 
                 return new DecisionTreeReasonerBackend.Input(
                         situationModel,
-                        domainSolvingModel.getDecisionTree()
+                        domainSolvingModel.getDecisionTree(),
+                        domainSolvingModel
                 );
             } else if (question.getQuestionDomainType().equals(OBJECT_VISIBILITY)) {
                 var domainSolvingModel = realDomain.domainObjectVisibilitySolvingModel;
@@ -825,7 +832,8 @@ public class ObjectsScopeDTDomain extends DecisionTreeReasoningDomain {
 
                 return new DecisionTreeReasonerBackend.Input(
                         situationModel,
-                        domainSolvingModel.getDecisionTree()
+                        domainSolvingModel.getDecisionTree(),
+                        domainSolvingModel
                 );
             } else if(question.getQuestionDomainType().equals(OBJECTS_VISIBILITY)) {
                 var domainSolvingModel = realDomain.domainObjectsVisibilityInLineSolvingModel;
@@ -841,7 +849,8 @@ public class ObjectsScopeDTDomain extends DecisionTreeReasoningDomain {
 
                 return new DecisionTreeReasonerBackend.Input(
                         situationModel,
-                        domainSolvingModel.getDecisionTree()
+                        domainSolvingModel.getDecisionTree(),
+                        domainSolvingModel
                 );
             }
             return null;

@@ -1,5 +1,6 @@
 package org.vstu.compprehension.models.businesslogic.domains.helpers;
 
+import its.model.DomainSolvingModel;
 import its.model.definition.DomainModel;
 import its.model.definition.EnumValueRef;
 import its.model.definition.ObjectDef;
@@ -34,10 +35,12 @@ public class ProgrammingLanguageExpressionsSolver {
             .toList();
     }
 
-    public SolveResult solveForX(ObjectDef xObject, DomainModel domain, DecisionTree decisionTree) {
+    public SolveResult solveForX(ObjectDef xObject, DomainModel domain, DecisionTree decisionTree,
+                                 DomainSolvingModel solvingContext) {
         LearningSituation situation = new LearningSituation(
             domain,
-            new HashMap<>(Collections.singletonMap("X", xObject.getReference()))
+            new HashMap<>(Collections.singletonMap("X", xObject.getReference())),
+            solvingContext
         );
         DecisionTreeTrace trace = DecisionTreeReasoner.solve(decisionTree, situation);
         List<String> skills = new ArrayList<>();
@@ -63,13 +66,14 @@ public class ProgrammingLanguageExpressionsSolver {
     }
 
 
-    private void solve(DomainModel domain, DecisionTree decisionTree, BiConsumer<ObjectDef, ObjectDef> retain) {
+    private void solve(DomainModel domain, DecisionTree decisionTree, BiConsumer<ObjectDef, ObjectDef> retain,
+                       DomainSolvingModel solvingContext) {
         DomainModel situationDomain = domain.copy();
 
         List<ObjectDef> unevaluated = getUnevaluated(situationDomain);
         while (!unevaluated.isEmpty()){
             for(ObjectDef obj : unevaluated){
-                solveForX(obj, situationDomain, decisionTree);
+                solveForX(obj, situationDomain, decisionTree, solvingContext);
             }
             var newUnevaluated = getUnevaluated(situationDomain);
             if (newUnevaluated.size() == unevaluated.size()) {
@@ -84,7 +88,8 @@ public class ProgrammingLanguageExpressionsSolver {
         ));
     }
 
-    public void solveTree(DomainModel domain, Map<String, DecisionTree> decisionTreeMap) {
+    public void solveTree(DomainModel domain, Map<String, DecisionTree> decisionTreeMap,
+                          DomainSolvingModel solvingContext) {
         solve(domain, decisionTreeMap.get("no_strict"), (domainObj, solvedObj) -> {
             domainObj.getRelationshipLinks().addAll(
                 solvedObj.getRelationshipLinks().stream()
@@ -93,10 +98,11 @@ public class ProgrammingLanguageExpressionsSolver {
             );
             Optional.ofNullable(solvedObj.getDefinedPropertyValues().get("evaluatesTo", Map.of()))
                 .ifPresent(propertyValue -> domainObj.getDefinedPropertyValues().addOrReplace(propertyValue));
-        });
+        }, solvingContext);
     }
 
-    public void solveStrict(DomainModel domain, Map<String, DecisionTree> decisionTreeMap) {
+    public void solveStrict(DomainModel domain, Map<String, DecisionTree> decisionTreeMap,
+                            DomainSolvingModel solvingContext) {
         solve(domain, decisionTreeMap.get(""), (domainObj, solvedObj) -> {
             Optional.ofNullable(solvedObj.getDefinedPropertyValues().get("state", Map.of()))
                 .filter(property ->
@@ -104,11 +110,12 @@ public class ProgrammingLanguageExpressionsSolver {
                         && "omitted".equals(enumValueRef.getValueName())
                 )
                 .ifPresent(propertyValue -> domainObj.getDefinedPropertyValues().addOrReplace(propertyValue));
-        });
+        }, solvingContext);
     }
 
-    public SolveResult solveNoVars(DomainModel domain, DecisionTree decisionTree) {
-        LearningSituation situation = new LearningSituation(domain, new HashMap<>());
+    public SolveResult solveNoVars(DomainModel domain, DecisionTree decisionTree,
+                                   DomainSolvingModel solvingContext) {
+        LearningSituation situation = new LearningSituation(domain, new HashMap<>(), solvingContext);
         DecisionTreeTrace trace = DecisionTreeReasoner.solve(decisionTree, situation);
         List<String> skills = new ArrayList<>();
         List<String> laws = new ArrayList<>();

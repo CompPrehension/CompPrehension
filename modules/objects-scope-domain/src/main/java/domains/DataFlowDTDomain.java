@@ -65,7 +65,8 @@ public class DataFlowDTDomain extends DecisionTreeReasoningDomain {
 
     private final DomainSolvingModel domainSolvingModel = new DomainSolvingModel(
             this.getClass().getClassLoader().getResource(DOMAIN_MODEL_LOCATION),
-            DomainSolvingModel.BuildMethod.DICT_RDF
+            DomainSolvingModel.BuildMethod.DICT_RDF,
+            false
     ).validate();
 
     @Getter
@@ -368,7 +369,8 @@ public class DataFlowDTDomain extends DecisionTreeReasoningDomain {
                     new HashMap<>(Map.of(
                             "answer", new ObjectRef(objects[1]),
                             "var", new ObjectRef(objects[0])
-                    ))
+                    )),
+                    domainSolvingModel
             );
             DecisionTreeTrace decisionTreeTrace = DecisionTreeReasoner.solve(
                     domainSolvingModel.getDecisionTree(),
@@ -392,7 +394,8 @@ public class DataFlowDTDomain extends DecisionTreeReasoningDomain {
 
                 LearningSituation learningSituation = new LearningSituation(
                         situationModel,
-                        LearningSituation.collectDecisionTreeVariables(situationModel)
+                        LearningSituation.collectDecisionTreeVariables(situationModel),
+                        domainSolvingModel
                 );
 
                 DecisionTreeTrace result = DecisionTreeReasoner.solve(
@@ -606,7 +609,8 @@ public class DataFlowDTDomain extends DecisionTreeReasoningDomain {
                             new HashMap<>(Map.of(
                                     "answer", new ObjectRef(objects[1]),
                                     "var", new ObjectRef(objects[0])
-                            ))
+                            )),
+                            domainSolvingModel
                     );
                     DecisionTreeTrace decisionTreeTrace = DecisionTreeReasoner.solve(
                             domainSolvingModel.getDecisionTree(),
@@ -624,7 +628,8 @@ public class DataFlowDTDomain extends DecisionTreeReasoningDomain {
 
             return new DecisionTreeReasonerBackend.Input(
                     situationModel,
-                    domainSolvingModel.getDecisionTree()
+                    domainSolvingModel.getDecisionTree(),
+                    domainSolvingModel
             );
         }
 

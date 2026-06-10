@@ -51,7 +51,7 @@ public class DecisionTreeSupQuestionHelper {
     ) {
         this(
                 domain,
-                new DomainSolvingModel(domainModelDirectoryURL, DomainSolvingModel.BuildMethod.LOQI),
+                new DomainSolvingModel(domainModelDirectoryURL, DomainSolvingModel.BuildMethod.LOQI, false),
                 mainQuestionToModelTransformer
         );
     }

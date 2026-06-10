@@ -122,6 +122,7 @@ public class MeaningTreeRDFTransformer {
         solveSituation(
                 situationDomain,
                 decisionTreeMap,
+                model,
                 tokens,
                 selected,
                 setX,
@@ -314,6 +315,7 @@ public class MeaningTreeRDFTransformer {
     private static void solveSituation(
             DomainModel situationDomain,
             Map<String, DecisionTree> decisionTreeMap,
+            DomainSolvingModel solvingContext,
             TokenList allTokens,
             TokenList selected,
             boolean isLastSelectionVariable,
@@ -322,7 +324,7 @@ public class MeaningTreeRDFTransformer {
     ) {
         ProgrammingLanguageExpressionsSolver solver = new ProgrammingLanguageExpressionsSolver();
         appendTreeInfo(allTokens, baseTokensToElements, situationDomain);
-        solver.solveStrict(situationDomain, decisionTreeMap);
+        solver.solveStrict(situationDomain, decisionTreeMap, solvingContext);
 
 
         for (Token baseToken : selected) {

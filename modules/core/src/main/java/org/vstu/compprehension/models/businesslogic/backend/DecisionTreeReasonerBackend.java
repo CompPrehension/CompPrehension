@@ -1,6 +1,7 @@
 package org.vstu.compprehension.models.businesslogic.backend;
 
 import io.brookite.termannotations.DomainTermAnnotationProcessor;
+import its.model.DomainSolvingModel;
 import its.model.TypedVariable;
 import its.model.definition.DomainModel;
 import its.model.nodes.*;
@@ -76,8 +77,13 @@ public class DecisionTreeReasonerBackend
      */
     public record Input(
         DomainModel situationDomainModel,
-        DecisionTree decisionTree
-    ){}
+        DecisionTree decisionTree,
+        DomainSolvingModel solvingContext
+    ) {
+        public Input(DomainModel situationDomainModel, DecisionTree decisionTree) {
+            this(situationDomainModel, decisionTree, null);
+        }
+    }
 
     /**
      * Aggregation policy for creating explanation messages
@@ -163,7 +169,7 @@ public class DecisionTreeReasonerBackend
                                                          List<String> deniedSkills, Language lang) {
         List<Explanation> traceExplanations = new ArrayList<>(); // временный буфер
         for (DecisionTreeTraceElement<?, ?> element : trace) {
-            LearningSituation learningSituation = new LearningSituation(domain, element.getVariablesSnapshot());
+            LearningSituation learningSituation = new LearningSituation(domain, element.getVariablesSnapshot(), null);
             if (Objects.requireNonNullElse(element.nestedTraces(), new ArrayList<DecisionTreeTrace>()).isEmpty()
                     && element.getNode() instanceof BranchResultNode res
                     && (type == Explanation.Type.ERROR) != element.getNodeResult().equals(BranchResult.CORRECT)
@@ -258,7 +264,8 @@ public class DecisionTreeReasonerBackend
 
         LearningSituation situation = new LearningSituation(
             situationModel,
-            LearningSituation.collectDecisionTreeVariables(situationModel)
+            LearningSituation.collectDecisionTreeVariables(situationModel),
+            questionData.solvingContext()
         );
 
         if(situation.getDecisionTreeVariables().keySet().containsAll(

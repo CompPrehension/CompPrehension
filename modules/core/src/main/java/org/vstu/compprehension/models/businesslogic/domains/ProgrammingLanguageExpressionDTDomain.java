@@ -215,7 +215,8 @@ public class ProgrammingLanguageExpressionDTDomain extends DecisionTreeReasoning
 
     private final DomainSolvingModel domainSolvingModel = new DomainSolvingModel(
             Objects.requireNonNull(this.getClass().getClassLoader().getResource(DOMAIN_MODEL_LOCATION)),
-            DomainSolvingModel.BuildMethod.LOQI).validate();
+            DomainSolvingModel.BuildMethod.LOQI,
+            false).validate();
 
     private final DomainTermDictionary domainTerms = DomainTermDictionary.fromURL(
             Objects.requireNonNull(this.getClass().getClassLoader().getResource(DOMAIN_MODEL_LOCATION + "terms.yml")));
@@ -340,7 +341,8 @@ public class ProgrammingLanguageExpressionDTDomain extends DecisionTreeReasoning
                     MeaningTreeRDFTransformer.questionToDomainModel(
                             domainSolvingModel, question.getStatementFacts(), responses, tags
                     ),
-                    domainSolvingModel.getDecisionTree()
+                    domainSolvingModel.getDecisionTree(),
+                    domainSolvingModel
             );
         }
 
@@ -357,7 +359,8 @@ public class ProgrammingLanguageExpressionDTDomain extends DecisionTreeReasoning
             var domainSolvingModel = realDomain.getDomainSolvingModels().getFirst();
             ProgrammingLanguageExpressionsSolver solver = new ProgrammingLanguageExpressionsSolver();
             ProgrammingLanguageExpressionsSolver.SolveResult solveResult = solver.solveNoVars(preparedSituation.getDomainModel(),
-                    domainSolvingModel.decisionTree("earlyfinish")
+                    domainSolvingModel.decisionTree("earlyfinish"),
+                    domainSolvingModel
             );
             var exerciseStage = judgedQuestion.getExerciseStage();
             List<String> deniedSkills = List.of();
@@ -894,7 +897,7 @@ public class ProgrammingLanguageExpressionDTDomain extends DecisionTreeReasoning
                                     responseTokenIndexes.contains((Integer) obj.getMetadata().get("index")))
                     )
                 ).map(
-                        domainObj -> Pair.of(domainObj, solver.solveForX(domainObj, domain, dt))
+                        domainObj -> Pair.of(domainObj, solver.solveForX(domainObj, domain, dt, domainSolvingModel))
                 ).filter(
                         pair -> pair.getRight().solved()
                 )
@@ -933,7 +936,7 @@ public class ProgrammingLanguageExpressionDTDomain extends DecisionTreeReasoning
         correctAnswer.lawName = null;
         correctAnswer.skillName = List.of();
         correctAnswer.explanation = DecisionTreeReasonerBackend.collectExplanationsFromTrace(Explanation.Type.HINT,
-                solver.solveNoVars(domain, domainSolvingModel.decisionTree("earlyfinish")).trace(),
+                solver.solveNoVars(domain, domainSolvingModel.decisionTree("earlyfinish"), domainSolvingModel).trace(),
                 domain, this, deniedSkills, lang
                 );
         return correctAnswer;

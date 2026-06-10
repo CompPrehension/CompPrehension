@@ -57,7 +57,8 @@ public class LoqiBuilder {
     private static final String DOMAIN_MODEL_LOCATION = RESOURCES_LOCATION + "programming-language-expression-domain-model/";
     private final DomainSolvingModel domainSolvingModel = new DomainSolvingModel(
             this.getClass().getClassLoader().getResource(DOMAIN_MODEL_LOCATION),
-            DomainSolvingModel.BuildMethod.LOQI
+            DomainSolvingModel.BuildMethod.LOQI,
+            false
     );
 
     @BeforeAll
