@@ -170,12 +170,12 @@
         <dependency>
             <groupId>com.github.CompPrehension</groupId>
             <artifactId>its_DomainModel</artifactId>
-            <version>3.0.0-alpha.5</version>
+            <version>3.0.0-alpha.7</version>
         </dependency>
         <dependency>
             <groupId>com.github.CompPrehension</groupId>
             <artifactId>its_Reasoner</artifactId>
-            <version>3.0.0-alpha.2</version>
+            <version>3.0.0-alpha.3</version>
         </dependency>
         <dependency>
             <groupId>com.github.CompPrehension</groupId>
