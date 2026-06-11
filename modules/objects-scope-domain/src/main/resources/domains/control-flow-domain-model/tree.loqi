@@ -1,4 +1,4 @@
-tree CtrlFlow(L0: TraceAct, A: TraceAct, STATE: State) {
+tpg CtrlFlow(L0: TraceAct, A: TraceAct, STATE: State) {
 
     // Заранее берём ожидаемый узел из заранее известной трассы.
     var ExpectedCallAct : TraceAct = (L0->directlyBeforeOf);

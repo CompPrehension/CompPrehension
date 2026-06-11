@@ -3,6 +3,7 @@ package org.vstu.compprehension.models.businesslogic.domains;
 import com.google.gson.Gson;
 import com.google.gson.GsonBuilder;
 import com.google.gson.typeadapters.RuntimeTypeAdapterFactory;
+import its.model.DomainSolvingModel;
 import its.model.definition.DomainModel;
 import lombok.SneakyThrows;
 import lombok.extern.log4j.Log4j2;
@@ -1519,9 +1520,15 @@ public class ProgrammingLanguageExpressionDomain extends JenaReasoningDomain {
         );
     }
 
+    private final DomainSolvingModel domainSolvingModel = new DomainSolvingModel(
+            Objects.requireNonNull(this.getClass().getClassLoader().getResource(DOMAIN_MODEL_DIRECTORY)),
+            DomainSolvingModel.BuildMethod.LOQI,
+            false
+    ).validate();
+
     private final DecisionTreeSupQuestionHelper dtSupplementaryQuestionHelper = new DecisionTreeSupQuestionHelper(
             this,
-            this.getClass().getClassLoader().getResource(DOMAIN_MODEL_DIRECTORY),
+            domainSolvingModel,
             this::mainQuestionToModel
     );
 
