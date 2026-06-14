@@ -117,6 +117,10 @@ public class UserServiceImpl implements UserService {
             throw new SecurityException("EducationResource " + eduRes.getUrl() + " is not trusted");
         }
 
+        // Базовый глобальный доступ на чтение общего пула упражнений. STUDENT на GLOBAL scope
+        // даёт только глобальный VIEW_EXERCISE (просмотр/импорт пула); edit/create/delete пула — нет.
+        authService.assignGlobalRole(user.getId(), Role.STUDENT);
+
         boolean externalAccountNonExists = externalAccountService.findByUserAndEducationResource(
                 user.getId(), eduRes.getId()
         ).isEmpty();
