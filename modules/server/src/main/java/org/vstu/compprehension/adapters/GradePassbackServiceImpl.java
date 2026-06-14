@@ -38,8 +38,6 @@ public class GradePassbackServiceImpl implements GradePassbackService {
             return;
         }
 
-        // Grade is pushed back only for students: a teacher/assistant solving an exercise
-        // (e.g. while authoring or previewing) must not overwrite gradebook columns.
         Long userId = fresh.getUser().getId();
         Long courseId = fresh.getCourse() != null ? fresh.getCourse().getId() : null;
         boolean isStudent = courseId != null
