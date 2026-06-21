@@ -41,7 +41,7 @@ public class GradePassbackServiceImpl implements GradePassbackService {
         Long userId = fresh.getUser().getId();
         Long courseId = fresh.getCourse() != null ? fresh.getCourse().getId() : null;
         boolean isStudent = courseId != null
-                && authService.getRolesInScope(userId, courseId).contains(Role.STUDENT);
+                && authService.findRolesInCourse(userId, courseId).contains(Role.STUDENT);
         if (!isStudent) {
             log.info("Skipping grade passback for attempt {}: user {} is not a STUDENT in course {}",
                     fresh.getId(), userId, courseId);

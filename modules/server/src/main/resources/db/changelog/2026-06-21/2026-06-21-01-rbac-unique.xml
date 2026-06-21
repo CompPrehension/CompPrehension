@@ -1,0 +1,53 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<databaseChangeLog xmlns="http://www.liquibase.org/xml/ns/dbchangelog"
+                   xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance"
+                   xsi:schemaLocation="http://www.liquibase.org/xml/ns/dbchangelog
+                       http://www.liquibase.org/xml/ns/dbchangelog/dbchangelog-4.5.xsd">
+
+    <changeSet id="2026-06-21-01-rbac-unique" author="dmitry-smirnov">
+        <sql><![CDATA[
+            -- 1. переназначить assignments с дублей scope на канонический (min id по логическому ключу)
+            update role_user_assignment rua
+            join permission_scope dup on dup.id = rua.permission_scope_id
+            join (
+                select kind, course_id, education_resource_id, min(id) as keep_id
+                from permission_scope
+                group by kind, course_id, education_resource_id
+            ) keep
+              on keep.kind = dup.kind
+             and coalesce(keep.course_id, 0) = coalesce(dup.course_id, 0)
+             and coalesce(keep.education_resource_id, 0) = coalesce(dup.education_resource_id, 0)
+            set rua.permission_scope_id = keep.keep_id
+            where rua.permission_scope_id <> keep.keep_id;
+
+            -- 2. дедубликация assignments (оставить min id) перед добавлением индекса
+            delete rua from role_user_assignment rua
+            join role_user_assignment keep
+              on keep.user_id = rua.user_id and keep.role_id = rua.role_id
+             and keep.permission_scope_id = rua.permission_scope_id and keep.id < rua.id;
+
+            -- 3. UNIQUE на тройку FK
+            alter table role_user_assignment
+                add constraint ux_rua_user_role_scope unique (user_id, role_id, permission_scope_id);
+
+            -- 4. удалить осиротевшие дубль-scope (keep min id по логическому ключу)
+            delete dup from permission_scope dup
+            join (
+                select kind, course_id, education_resource_id, min(id) as keep_id
+                from permission_scope
+                group by kind, course_id, education_resource_id
+            ) keep
+              on keep.kind = dup.kind
+             and coalesce(keep.course_id, 0) = coalesce(dup.course_id, 0)
+             and coalesce(keep.education_resource_id, 0) = coalesce(dup.education_resource_id, 0)
+            where dup.id <> keep.keep_id;
+
+            create unique index ux_permission_scope_kind_keys
+                on permission_scope (kind, (coalesce(course_id, 0)), (coalesce(education_resource_id, 0)));
+        ]]></sql>
+        <rollback><![CDATA[
+            drop index ux_permission_scope_kind_keys on permission_scope;
+            alter table role_user_assignment drop index ux_rua_user_role_scope;
+        ]]></rollback>
+    </changeSet>
+</databaseChangeLog>

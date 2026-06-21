@@ -35,7 +35,7 @@ public class UsersController {
     @ResponseBody
     public UserInfoDto getAll(@RequestParam(value = "courseId", required = false) Long courseId) throws Exception {
         UserEntity user = userService.getCurrentUser();
-        List<String> roles = authService.getRolesInScope(user.getId(), courseId).stream().map(Role::name).toList();
+        List<String> roles = authService.findRolesInCourse(user.getId(), courseId).stream().map(Role::name).toList();
         return Mapper.toDto(user, roles);
     }
 

@@ -41,12 +41,14 @@ public class UserServiceImpl implements UserService {
     private final CourseService courseService;
     private final AuthService authService;
 
-    public UserServiceImpl(UserRepository userRepository,
-                           EducationResourceService educationResourceService,
-                           ExternalAccountService externalAccountService,
-                           LtiContextProvider ltiContextProvider,
-                           CourseService courseService,
-                           AuthService authService) {
+    public UserServiceImpl(
+            UserRepository userRepository,
+            EducationResourceService educationResourceService,
+            ExternalAccountService externalAccountService,
+            LtiContextProvider ltiContextProvider,
+            CourseService courseService,
+            AuthService authService
+    ) {
         this.userRepository = userRepository;
         this.educationResourceService = educationResourceService;
         this.externalAccountService = externalAccountService;

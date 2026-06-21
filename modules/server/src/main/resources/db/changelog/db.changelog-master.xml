@@ -106,4 +106,5 @@
     <include file="db/changelog/2026-05-23/2026-05-23-01-rbac-core.xml"/>
     <include file="db/changelog/2026-05-23/2026-05-23-02-education-resource-trust-status.xml"/>
     <include file="db/changelog/2026-05-28/2026-05-28-01-rbac-trim-assistant-teacher.xml"/>
+    <include file="db/changelog/2026-06-21/2026-06-21-01-rbac-unique.xml"/>
 </databaseChangeLog>

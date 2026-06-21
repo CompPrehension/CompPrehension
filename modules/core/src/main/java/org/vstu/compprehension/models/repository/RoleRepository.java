@@ -5,9 +5,10 @@ import org.springframework.stereotype.Repository;
 import org.vstu.compprehension.models.entities.EnumData.Role;
 import org.vstu.compprehension.models.entities.role.RoleEntity;
 
-import java.util.Optional;
+import java.util.Collection;
+import java.util.List;
 
 @Repository
 public interface RoleRepository extends JpaRepository<RoleEntity, Long> {
-    Optional<RoleEntity> findByName(Role name);
+    List<RoleEntity> findByNameIn(Collection<Role> names);
 }

@@ -10,7 +10,6 @@ import org.vstu.compprehension.models.entities.role.PermissionScopeEntity;
 import org.vstu.compprehension.models.entities.role.RoleEntity;
 import org.vstu.compprehension.models.entities.role.RoleUserAssignmentEntity;
 import org.vstu.compprehension.models.repository.CourseRepository;
-import org.vstu.compprehension.models.repository.EducationResourceRepository;
 import org.vstu.compprehension.models.repository.PermissionScopeRepository;
 import org.vstu.compprehension.models.repository.RoleRepository;
 import org.vstu.compprehension.models.repository.RoleUserAssignmentRepository;
@@ -22,7 +21,6 @@ import java.util.HashMap;
 import java.util.HashSet;
 import java.util.List;
 import java.util.Map;
-import java.util.Optional;
 import java.util.Set;
 import java.util.function.Function;
 import java.util.stream.Collectors;
@@ -38,7 +36,6 @@ public class AuthService {
     private final PermissionScopeRepository scopeRepository;
     private final UserRepository userRepository;
     private final CourseRepository courseRepository;
-    private final EducationResourceRepository educationResourceRepository;
 
     public boolean isAuthorizedGlobal(long userId, Permission permission) {
         return ruaRepository.isUserAuthorized(userId, permission, null, null);
@@ -70,104 +67,59 @@ public class AuthService {
 
     public void ensureAuthorizedGlobal(long userId, Permission permission) {
         if (!isAuthorizedGlobal(userId, permission)) {
-            throw new SecurityException("User " + userId + " has no " + permission + " permission (global)");
+            throw new SecurityException(String.format("User %s has no %s permission (global)", userId, permission));
         }
     }
 
     public void ensureAuthorizedInCourse(long userId, Permission permission, Long courseId) {
         if (!isAuthorizedInCourse(userId, permission, courseId)) {
-            throw new SecurityException("User " + userId + " has no " + permission + " permission in course " + courseId);
+            throw new SecurityException(String.format("User %s has no %s permission in course %s", userId, permission, courseId));
         }
     }
 
     public void ensureAuthorizedInEducationResource(long userId, Permission permission, Long educationResourceId) {
         if (!isAuthorizedInEducationResource(userId, permission, educationResourceId)) {
-            throw new SecurityException("User " + userId + " has no " + permission + " permission in educationResource " + educationResourceId);
+            throw new SecurityException(String.format("User %s has no %s permission in educationResource %s", userId, permission, educationResourceId));
         }
     }
 
     @Transactional
     public void assignGlobalRole(long userId, Role role) {
-        var scope = getOrCreateGlobalScope();
-        assignRoleInternal(userId, role, scope);
+        assignRoleInternal(userId, role, PermissionScopeKind.GLOBAL, null, null);
     }
 
     @Transactional
     public void assignRoleInCourse(long userId, Role role, Long courseId) {
-        var scope = scopeRepository.findByKindAndCourse_Id(PermissionScopeKind.COURSE, courseId)
-            .orElseGet(() -> scopeRepository.save(
-                PermissionScopeEntity.ofCourseScope(courseRepository.getReferenceById(courseId))
-            ));
-        assignRoleInternal(userId, role, scope);
+        assignRoleInternal(userId, role, PermissionScopeKind.COURSE, courseId, null);
     }
 
     @Transactional
     public void assignRoleInEducationResource(long userId, Role role, Long educationResourceId) {
-        PermissionScopeEntity scope = scopeRepository.findByKindAndEducationResource_Id(PermissionScopeKind.EDUCATION_RESOURCE, educationResourceId)
-            .orElseGet(() -> scopeRepository.save(
-                PermissionScopeEntity.ofEducationResourceScope(educationResourceRepository.getReferenceById(educationResourceId))
-            ));
-        assignRoleInternal(userId, role, scope);
+        assignRoleInternal(userId, role, PermissionScopeKind.EDUCATION_RESOURCE, null, educationResourceId);
     }
 
     @Transactional
     public void revokeGlobalRole(long userId, Role role) {
-        scopeRepository.findByKindAndCourseIsNullAndEducationResourceIsNull(PermissionScopeKind.GLOBAL)
-            .ifPresent(s -> revokeRoleInternal(userId, role, s));
+        ruaRepository.deleteGlobalRole(userId, role);
     }
 
     @Transactional
     public void revokeRoleInCourse(long userId, Role role, Long courseId) {
-        scopeRepository.findByKindAndCourse_Id(PermissionScopeKind.COURSE, courseId)
-            .ifPresent(s -> revokeRoleInternal(userId, role, s));
+        ruaRepository.deleteCourseRole(userId, role, courseId);
     }
 
     @Transactional
     public void revokeRoleInEducationResource(long userId, Role role, Long educationResourceId) {
-        scopeRepository.findByKindAndEducationResource_Id(PermissionScopeKind.EDUCATION_RESOURCE, educationResourceId)
-            .ifPresent(s -> revokeRoleInternal(userId, role, s));
+        ruaRepository.deleteEducationResourceRole(userId, role, educationResourceId);
     }
 
-    /**
-     * Role names the user effectively holds in the given context: course scope when {@code courseId}
-     * is provided, otherwise global scope. Drives context-aware UI; the server still enforces per action.
-     */
-    public List<Role> getRolesInScope(long userId, Long courseId) {
+    public List<Role> findRolesInCourse(long userId, Long courseId) {
         return ruaRepository.findRolesInScope(userId, courseId);
     }
 
-    public Optional<Role> getUserRoleInCourse(long userId, Long courseId) {
-        return ruaRepository.findByUser_Id(userId).stream()
-            .filter(rua -> rua.getPermissionScope().getCourse() != null
-                && rua.getPermissionScope().getCourse().getId().equals(courseId))
-            .findFirst()
-            .map(rua -> rua.getRole().getName());
-    }
-
-    public List<RoleUserAssignmentEntity> getUserAssignments(long userId) {
-        return ruaRepository.findByUser_Id(userId);
-    }
-
-    private void assignRoleInternal(long userId, Role role, PermissionScopeEntity scope) {
-        var roleEntity = roleRepository.findByName(role)
-            .orElseThrow(() -> new IllegalArgumentException("Role not found: " + role));
-        if (!ruaRepository.existsByUser_IdAndRoleAndPermissionScope(userId, roleEntity, scope)) {
-            var user = userRepository.findById(userId)
-                .orElseThrow(() -> new IllegalArgumentException("User not found: " + userId));
-            ruaRepository.save(new RoleUserAssignmentEntity(user, roleEntity, scope));
-        }
-    }
-
-    private void revokeRoleInternal(long userId, Role role, PermissionScopeEntity scope) {
-        var roleEntity = roleRepository.findByName(role).orElse(null);
-        if (roleEntity == null) return;
-        ruaRepository.findByUser_IdAndRoleAndPermissionScope(userId, roleEntity, scope)
-            .ifPresent(ruaRepository::delete);
-    }
-
-    private PermissionScopeEntity getOrCreateGlobalScope() {
-        return scopeRepository.findByKindAndCourseIsNullAndEducationResourceIsNull(PermissionScopeKind.GLOBAL)
-            .orElseGet(() -> scopeRepository.save(PermissionScopeEntity.ofGlobalScope()));
+    private void assignRoleInternal(long userId, Role role, PermissionScopeKind kind, Long courseId, Long educationResourceId) {
+        scopeRepository.createIfAbsent(kind.name(), courseId, educationResourceId);
+        ruaRepository.createIfAbsent(userId, role.name(), kind.name(), courseId, educationResourceId);
     }
 
     /**
@@ -203,7 +155,7 @@ public class AuthService {
         }
 
         List<RoleUserAssignmentEntity> existing =
-                ruaRepository.findAssignmentsInEnvironment(environmentId, userIds);
+                ruaRepository.findAssignmentsInEducationResource(environmentId, userIds);
 
         Map<UserCourseKey, RoleUserAssignmentEntity> existingCourse = new HashMap<>();
         for (RoleUserAssignmentEntity rua : existing) {
@@ -250,10 +202,16 @@ public class AuthService {
             return;
         }
 
-        Map<Role, RoleEntity> roleByEnum = courseInserts.isEmpty()
-                ? Map.of()
-                : roleRepository.findAll().stream()
-                        .collect(Collectors.toMap(RoleEntity::getName, Function.identity()));
+        Map<Role, RoleEntity> roleByEnum;
+        if (courseInserts.isEmpty()) {
+            roleByEnum = Map.of();
+        } else {
+            Set<Role> neededRoles = courseInserts.stream()
+                    .map(CourseAssignmentDraft::role)
+                    .collect(Collectors.toSet());
+            roleByEnum = roleRepository.findByNameIn(neededRoles).stream()
+                    .collect(Collectors.toMap(RoleEntity::getName, Function.identity()));
+        }
 
         Map<Long, PermissionScopeEntity> courseScopeByCourseId = resolveCourseScopes(courseInserts);
 
@@ -299,7 +257,7 @@ public class AuthService {
     private static RoleEntity requireRole(Map<Role, RoleEntity> map, Role role) {
         var entity = map.get(role);
         if (entity == null) {
-            throw new IllegalStateException("Role missing in DB: " + role);
+            throw new IllegalStateException(String.format("Role missing in DB: %s", role));
         }
         return entity;
     }
@@ -307,7 +265,7 @@ public class AuthService {
     private static PermissionScopeEntity requireCourseScope(Map<Long, PermissionScopeEntity> map, Long courseId) {
         var scope = map.get(courseId);
         if (scope == null) {
-            throw new IllegalStateException("Course scope missing for courseId=" + courseId);
+            throw new IllegalStateException(String.format("Course scope missing for courseId=%s", courseId));
         }
         return scope;
     }
