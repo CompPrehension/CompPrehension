@@ -1,4 +1,4 @@
-package org.vstu.compprehension.integration.moodle;
+package org.vstu.compprehension.moodle.response;
 
 import com.fasterxml.jackson.annotation.JsonIgnoreProperties;
 import com.fasterxml.jackson.annotation.JsonProperty;

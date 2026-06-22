@@ -1,4 +1,4 @@
-package org.vstu.compprehension.integration.moodle;
+package org.vstu.compprehension.moodle.request;
 
 /**
  * Оценка студента: нормализованное значение {@code grade} ∈ [0..1] и максимум шкалы

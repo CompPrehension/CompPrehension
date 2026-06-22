@@ -1,4 +1,4 @@
-package org.vstu.compprehension.moodle;
+package org.vstu.compprehension.moodle.config;
 
 import jakarta.annotation.PostConstruct;
 import lombok.Getter;

@@ -1,4 +1,4 @@
-package org.vstu.compprehension.integration.moodle;
+package org.vstu.compprehension.moodle.request;
 
 import java.util.Set;
 
