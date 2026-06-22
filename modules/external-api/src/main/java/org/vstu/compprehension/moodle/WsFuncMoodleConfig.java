@@ -1,24 +1,17 @@
-package org.vstu.compprehension.config;
+package org.vstu.compprehension.moodle;
 
 import jakarta.annotation.PostConstruct;
 import lombok.Getter;
 import lombok.Setter;
-import lombok.extern.log4j.Log4j2;
 import org.springframework.boot.context.properties.ConfigurationProperties;
 import org.springframework.stereotype.Component;
 
-import java.net.URI;
 import java.util.HashMap;
-import java.util.Locale;
 import java.util.Map;
 import java.util.Optional;
 
 /**
  * Per-Moodle конфигурация для WS-функций (`webservice-token`, `base-url`).
- * Доступен и в `server`, и в `background-server`. По образцу
- * {@code LtiRegistrationsProperties}, но отдельный класс — LTI и WS-токены
- * это разные секреты, см. memory `feedback-no-duplicate-moodle-registry`.
- *
  * <p>Env-формат: {@code COMPPREHENSION_MOODLE_WS_REGISTRATIONS_<NAME>_<KEY>}.
  */
 @Component
