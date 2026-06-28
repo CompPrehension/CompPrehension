@@ -41,7 +41,6 @@ import org.vstu.compprehension.models.entities.EnumData.Permission;
 import org.vstu.compprehension.common.StringHelper;
 import org.vstu.compprehension.config.LtiRegistrationsProperties;
 import org.vstu.compprehension.models.businesslogic.lti.LtiContext;
-import org.vstu.compprehension.models.businesslogic.lti.LtiCourseContext;
 import org.vstu.compprehension.models.entities.course.CourseEntity;
 import org.vstu.compprehension.models.entities.external_system.EducationResourceEntity;
 import org.vstu.compprehension.utils.HttpRequestHelper;
@@ -246,22 +245,11 @@ public class LtiController {
     }
 
     private Long resolveCourseFromContext(LtiContext ctx) {
-        LtiCourseContext ltiCourse = ctx.course();
-        if (ltiCourse == null || ltiCourse.courseId() == null) return null;
+        if (ctx.course() == null || ctx.course().courseId() == null) return null;
 
-        EducationResourceEntity eduResource = educationResourceService.findByUrlAndType(ctx.lmsUrl(), ctx.lmsType())
-                .orElseGet(() -> educationResourceService.createOrGetExisting(ctx.lmsUrl(), ctx.lmsType()));
-
-        if (eduResource.getTrustStatus() != org.vstu.compprehension.models.entities.EnumData.EducationResourceTrustStatus.TRUSTED) {
-            throw new SecurityException("EducationResource " + eduResource.getUrl() + " is not trusted");
-        }
-
-        String externalCourseId = ltiCourse.courseId();
-        String courseName = ltiCourse.courseName() != null ? ltiCourse.courseName() : "id_" + externalCourseId;
-        CourseEntity course = courseService.findByExternalIdAndResourceId(externalCourseId, eduResource.getId())
-                .orElseGet(() -> courseService.createOrGetExisting(externalCourseId, courseName, eduResource.getId()));
-
-        return course.getId();
+        EducationResourceEntity eduResource = educationResourceService.getOrCreateTrusted(ctx.lmsUrl(), ctx.lmsType());
+        CourseEntity course = courseService.resolveOrCreateFromLtiContext(ctx, eduResource.getId());
+        return course == null ? null : course.getId();
     }
 
     private void authenticateFromLti13ResourceLinkRequest(HttpServletRequest request, HttpServletResponse response) throws AuthenticationException, ParseException {

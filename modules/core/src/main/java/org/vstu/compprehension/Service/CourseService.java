@@ -34,21 +34,6 @@ public class CourseService {
         return courseRepository.findByExternalCourseIdAndEducationResourceId(externalCourseId, educationResourceId);
     }
 
-    /**
-     * Recovers the trainer course id from the current LTI context. Lookup-only: the course and
-     * its education resource are already created during the LTI launch, so the attempt path must
-     * not have side effects. Returns empty when the context carries no course or none is found.
-     */
-    @Transactional(readOnly = true)
-    public Optional<Long> resolveCourseIdFromLtiContext(LtiContext ctx) {
-        LtiCourseContext ltiCourse = ctx.course();
-        if (ltiCourse == null || ltiCourse.courseId() == null) {
-            return Optional.empty();
-        }
-        return courseRepository.findIdByExternalCourseIdAndResourceUrlAndType(
-                ltiCourse.courseId(), ctx.lmsUrl(), ctx.lmsType());
-    }
-
     @Transactional
     public CourseEntity createOrGetExisting(
             String externalCourseId,
@@ -58,6 +43,25 @@ public class CourseService {
         courseRepository.createIfAbsent(externalCourseId, name, educationResourceId);
         return courseRepository.findByExternalCourseIdAndEducationResourceId(externalCourseId, educationResourceId)
                 .orElseThrow(() -> new IllegalStateException("createIfAbsent: course not found after insert"));
+    }
+
+    /**
+     * Курс из LTI-контекста в рамках уже разрешённого education resource: ищет по
+     * {@code (externalContextId, educationResourceId)}, создаёт при отсутствии (имя — из контекста,
+     * fallback {@code "id_<externalId>"}). Возвращает {@code null}, когда в контексте нет курса.
+     */
+    @Transactional
+    public CourseEntity resolveOrCreateFromLtiContext(LtiContext ctx, Long educationResourceId) {
+        LtiCourseContext ltiCourse = ctx.course();
+        if (ltiCourse == null || ltiCourse.courseId() == null) {
+            return null;
+        }
+        String externalCourseId = ltiCourse.courseId();
+        String courseName = ltiCourse.courseName() != null
+            ? ltiCourse.courseName()
+                : String.format("id_%s", externalCourseId);
+        return findByExternalIdAndResourceId(externalCourseId, educationResourceId)
+                .orElseGet(() -> createOrGetExisting(externalCourseId, courseName, educationResourceId));
     }
 
     @Transactional

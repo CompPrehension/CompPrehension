@@ -4,6 +4,8 @@ import org.jetbrains.annotations.NotNull;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Propagation;
 import org.springframework.transaction.annotation.Transactional;
+import org.vstu.compprehension.models.businesslogic.lti.LtiContext;
+import org.vstu.compprehension.models.businesslogic.lti.LtiCourseContext;
 import org.vstu.compprehension.models.entities.EnumData.AttemptStatus;
 import org.vstu.compprehension.models.entities.EnumData.Decision;
 import org.vstu.compprehension.models.entities.ExerciseAttemptEntity;
@@ -13,6 +15,7 @@ import org.vstu.compprehension.models.repository.ExerciseAttemptRepository;
 import org.vstu.compprehension.models.repository.UserRepository;
 
 import java.util.ArrayList;
+import java.util.Optional;
 
 @Service
 public class ExerciseAttemptService {
@@ -22,19 +25,27 @@ public class ExerciseAttemptService {
     private final LtiContextProvider ltiContextProvider;
     private final GradePassbackService gradePassbackService;
     private final CourseService courseService;
+    private final EducationResourceService educationResourceService;
 
     public ExerciseAttemptService(ExerciseAttemptRepository exerciseAttemptRepository,
                                   ExerciseService exerciseService,
                                   UserRepository userRepository,
                                   LtiContextProvider ltiContextProvider,
                                   GradePassbackService gradePassbackService,
-                                  CourseService courseService) {
+                                  CourseService courseService,
+                                  EducationResourceService educationResourceService) {
         this.exerciseAttemptRepository = exerciseAttemptRepository;
         this.exerciseService = exerciseService;
         this.userRepository = userRepository;
         this.ltiContextProvider = ltiContextProvider;
         this.gradePassbackService = gradePassbackService;
         this.courseService = courseService;
+        this.educationResourceService = educationResourceService;
+    }
+
+    @Transactional(readOnly = true)
+    public Optional<ExerciseAttemptEntity> findById(Long attemptId) {
+        return exerciseAttemptRepository.findById(attemptId);
     }
 
     @Transactional(propagation = Propagation.REQUIRED)
@@ -44,7 +55,7 @@ public class ExerciseAttemptService {
         Long resolvedCourseId = courseId != null
                 ? courseId
                 : ltiContextProvider.getCurrentLtiContext()
-                    .flatMap(courseService::resolveCourseIdFromLtiContext)
+                    .flatMap(this::resolveCourseIdFromContext)
                     .orElse(null);
 
         CourseEntity course = null;
@@ -77,6 +88,21 @@ public class ExerciseAttemptService {
 
         exerciseAttemptRepository.save(ea);
         return ea;
+    }
+
+    /**
+     * Восстанавливает trainer-courseId из LTI-контекста (когда клиент не передал courseId): резолвит
+     * education resource по (url, type) и курс по (externalCourseId, eduResId). Read-only, без создания —
+     * курс уже создан при LTI-запуске. Пусто, если в контексте нет курса или он не найден.
+     */
+    private Optional<Long> resolveCourseIdFromContext(LtiContext ctx) {
+        LtiCourseContext course = ctx.course();
+        if (course == null || course.courseId() == null) {
+            return Optional.empty();
+        }
+        return educationResourceService.findByUrlAndType(ctx.lmsUrl(), ctx.lmsType())
+                .flatMap(eduRes -> courseService.findByExternalIdAndResourceId(course.courseId(), eduRes.getId()))
+                .map(CourseEntity::getId);
     }
 
     public void ensureAttemptStatus(ExerciseAttemptEntity attempt, Decision decision) {
