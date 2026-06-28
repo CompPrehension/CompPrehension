@@ -1,4 +1,4 @@
-package org.vstu.compprehension.Service;
+package org.vstu.compprehension.models.repository;
 
 import lombok.RequiredArgsConstructor;
 import org.springframework.jdbc.core.JdbcTemplate;
