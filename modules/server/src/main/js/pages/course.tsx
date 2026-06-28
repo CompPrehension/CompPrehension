@@ -1,6 +1,7 @@
 import React, { useEffect, useRef, useState } from 'react';
 import { observer } from 'mobx-react';
 import { container } from 'tsyringe';
+import { Button, Form } from 'react-bootstrap';
 import { Link, useNavigate, useSearchParams } from 'react-router-dom';
 import { CourseStore } from '../stores/course-store';
 import { Header } from '../components/common/header';
@@ -88,8 +89,8 @@ const DeepLinkSelection: React.FC<{ exercises: { id: number; name: string }[] }>
                     const already = existing.has(e.id);
                     return (
                         <li key={e.id} className="list-group-item d-flex align-items-center" style={{ gap: '0.5rem' }}>
-                            <input type="checkbox"
-                                   className="form-check-input mt-0"
+                            <Form.Check.Input type="checkbox"
+                                   className="mt-0"
                                    checked={selected.has(e.id)}
                                    disabled={already || submitting}
                                    onChange={() => toggle(e.id)} />
@@ -100,12 +101,11 @@ const DeepLinkSelection: React.FC<{ exercises: { id: number; name: string }[] }>
                 })}
             </ul>
             {error && <div className="alert alert-danger">{error}</div>}
-            <button type="button"
-                    className="btn btn-primary"
+            <Button variant="primary"
                     disabled={submitting || selected.size === 0}
                     onClick={submit}>
                 {submitting ? t('deeplink_submitting') : t('deeplink_addBtn')}
-            </button>
+            </Button>
         </div>
     );
 };
@@ -173,16 +173,14 @@ export const CoursePage = observer(() => {
             )}
             {isPriv && (
                 <div className="mb-3 d-flex" style={{ gap: '0.5rem' }}>
-                    <button type="button"
-                            className="btn btn-primary"
+                    <Button variant="primary"
                             onClick={() => navigate(`/pages/exercise-settings?courseId=${courseId}`)}>
                         {t('course_page_createExerciseBtn')}
-                    </button>
-                    <button type="button"
-                            className="btn btn-secondary"
+                    </Button>
+                    <Button variant="secondary"
                             onClick={() => setShowImportModal(true)}>
                         {t('course_page_importBtn')}
-                    </button>
+                    </Button>
                 </div>
             )}
             <ul className="list-group">

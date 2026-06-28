@@ -1,6 +1,7 @@
 import React, { useEffect, useState } from 'react';
 import { observer } from 'mobx-react';
 import { container } from 'tsyringe';
+import { Button } from 'react-bootstrap';
 import { useNavigate } from 'react-router-dom';
 import { CoursesStore } from '../stores/courses-store';
 import { Header } from '../components/common/header';
@@ -37,18 +38,17 @@ export const CoursesPage = observer(() => {
                         logoutLabel={t('logout_header')} />
             </div>
             <div className="mb-3">
-                <button type="button"
-                        className="btn btn-outline-primary"
+                <Button variant="outline-primary"
                         onClick={() => navigate('/pages/global-pool')}>
                     {t('courses_page_globalPoolBtn')}
-                </button>
+                </Button>
             </div>
             {store.courses.length === 0 ? (
                 <div className="alert alert-info">{t('courses_page_empty')}</div>
             ) : (
-                <div className="row row-cols-1 row-cols-md-2 row-cols-lg-3 g-3">
+                <div className="row row-cols-1 row-cols-md-2 row-cols-lg-3">
                     {store.courses.map(c => (
-                        <div key={c.id} className="col">
+                        <div key={c.id} className="col mb-4">
                             <div className="card h-100"
                                  role="button"
                                  onClick={() => navigate(`/pages/course?courseId=${c.id}`)}>

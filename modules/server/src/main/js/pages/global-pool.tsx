@@ -1,6 +1,7 @@
 import React, { useEffect, useState } from 'react';
 import { observer } from 'mobx-react';
 import { container } from 'tsyringe';
+import { Button } from 'react-bootstrap';
 import { Link, useNavigate } from 'react-router-dom';
 import { GlobalPoolStore } from '../stores/global-pool-store';
 import { Header } from '../components/common/header';
@@ -39,11 +40,10 @@ export const GlobalPool = observer(() => {
             </div>
             {canEditExercises(user.roles) &&
                 <div className="mb-3">
-                    <button type="button"
-                            className="btn btn-primary"
+                    <Button variant="primary"
                             onClick={() => navigate('/pages/exercise-settings')}>
                         {t('globalPool_page_createBtn')}
-                    </button>
+                    </Button>
                 </div>}
             <ul className="list-group">
                 {store.exercises.map(e =>
