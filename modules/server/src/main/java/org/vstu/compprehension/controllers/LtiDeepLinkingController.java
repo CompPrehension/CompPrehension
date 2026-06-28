@@ -2,14 +2,12 @@ package org.vstu.compprehension.controllers;
 
 import lombok.RequiredArgsConstructor;
 import lombok.SneakyThrows;
-import org.springframework.http.HttpStatus;
 import org.springframework.stereotype.Controller;
 import org.springframework.web.bind.annotation.GetMapping;
 import org.springframework.web.bind.annotation.PostMapping;
 import org.springframework.web.bind.annotation.RequestBody;
 import org.springframework.web.bind.annotation.RequestMapping;
 import org.springframework.web.bind.annotation.ResponseBody;
-import org.springframework.web.server.ResponseStatusException;
 import org.vstu.compprehension.Service.AuthService;
 import org.vstu.compprehension.Service.CourseService;
 import org.vstu.compprehension.Service.EducationResourceService;
@@ -65,22 +63,21 @@ public class LtiDeepLinkingController {
         long courseId = requireAuthorizedCourse();
 
         if (body == null || body.exerciseIds() == null || body.exerciseIds().isEmpty()) {
-            throw new ResponseStatusException(HttpStatus.BAD_REQUEST, "exerciseIds must not be empty");
+            throw new IllegalArgumentException("exerciseIds must not be empty");
         }
 
         List<DeepLinkingResponseService.DeepLinkItem> items = new ArrayList<>();
         for (Long exerciseId : body.exerciseIds()) {
             ExerciseEntity exercise = courseService.findExerciseCourseLink(exerciseId, courseId)
-                    .orElseThrow(() -> new ResponseStatusException(HttpStatus.BAD_REQUEST,
-                            "Exercise " + exerciseId + " is not in course " + courseId))
+                    .orElseThrow(() -> new IllegalArgumentException(
+                            String.format("Exercise %s is not in course %s", exerciseId, courseId)))
                     .getExercise();
             items.add(new DeepLinkingResponseService.DeepLinkItem(exerciseId, exercise.getName()));
         }
 
         // One-shot: повторная отправка (двойной клик) не должна плодить дубли активностей.
         if (!ltiContextProvider.consumeDeepLinkingOnce()) {
-            throw new ResponseStatusException(HttpStatus.CONFLICT,
-                    "Deep-linking response already submitted; re-launch to add more");
+            throw new IllegalStateException("Deep-linking response already submitted; re-launch to add more");
         }
 
         String jwt = deepLinkingResponseService.buildSignedResponse(dl, items);
@@ -102,21 +99,23 @@ public class LtiDeepLinkingController {
 
     private LtiDeepLinkingContext requireDeepLinking() {
         return ltiContextProvider.getCurrentDeepLinkingContext()
-                .orElseThrow(() -> new ResponseStatusException(HttpStatus.BAD_REQUEST, "No active deep-linking session"));
+                .orElseThrow(() -> new IllegalArgumentException("No active deep-linking session"));
     }
 
     @SneakyThrows
     private long requireAuthorizedCourse() {
         LtiContext ctx = ltiContextProvider.getCurrentLtiContext()
-                .orElseThrow(() -> new ResponseStatusException(HttpStatus.BAD_REQUEST, "LTI context absent"));
+                .orElseThrow(() -> new IllegalArgumentException("LTI context absent"));
+        // Read-only: education resource и курс уже созданы (и проверены на trusted) при LTI-запуске,
+        // на котором основана эта deep-linking-сессия, поэтому здесь только lookup без side effects.
         LtiCourseContext course = ctx.course();
         if (course == null || course.courseId() == null) {
-            throw new ResponseStatusException(HttpStatus.BAD_REQUEST, "No course in LTI context");
+            throw new IllegalArgumentException("No course in LTI context");
         }
         EducationResourceEntity eduRes = educationResourceService.findByUrlAndType(ctx.lmsUrl(), ctx.lmsType())
-                .orElseThrow(() -> new ResponseStatusException(HttpStatus.BAD_REQUEST, "Unknown education resource"));
+                .orElseThrow(() -> new IllegalArgumentException("Unknown education resource"));
         CourseEntity courseEntity = courseService.findByExternalIdAndResourceId(course.courseId(), eduRes.getId())
-                .orElseThrow(() -> new ResponseStatusException(HttpStatus.BAD_REQUEST, "Course not found for LTI context"));
+                .orElseThrow(() -> new IllegalArgumentException("Course not found for LTI context"));
 
         long userId = userService.getCurrentUser().getId();
         authService.ensureAuthorizedInCourse(userId, Permission.EDIT_COURSE, courseEntity.getId());

@@ -15,19 +15,13 @@ import org.springframework.http.HttpMethod;
 import org.springframework.http.MediaType;
 import org.springframework.http.ResponseEntity;
 import org.springframework.stereotype.Service;
-import org.springframework.util.LinkedMultiValueMap;
 import org.springframework.web.client.RestTemplate;
-import org.vstu.compprehension.config.LtiRegistrationsProperties;
 import org.vstu.compprehension.config.LtiRegistrationsProperties.Registration;
 import org.vstu.compprehension.config.LtiRegistrationsProperties.RegistrationWithName;
 import org.vstu.compprehension.models.businesslogic.lti.LtiDeepLinkingContext;
 
 import java.net.URI;
-import java.security.KeyFactory;
-import java.security.interfaces.RSAPrivateKey;
-import java.security.spec.PKCS8EncodedKeySpec;
 import java.util.ArrayList;
-import java.util.Base64;
 import java.util.Date;
 import java.util.HashSet;
 import java.util.LinkedHashMap;
@@ -57,10 +51,10 @@ public class DeepLinkingResponseService {
 
     private final RestTemplate restTemplate = new RestTemplate();
     private final ObjectMapper objectMapper = new ObjectMapper();
-    private final LtiRegistrationsProperties ltiRegistrations;
+    private final LtiTokenService tokenService;
 
-    public DeepLinkingResponseService(LtiRegistrationsProperties ltiRegistrations) {
-        this.ltiRegistrations = ltiRegistrations;
+    public DeepLinkingResponseService(LtiTokenService tokenService) {
+        this.tokenService = tokenService;
     }
 
     /** Одно упражнение тренажёра, отдаваемое в Moodle как content item. */
@@ -73,7 +67,7 @@ public class DeepLinkingResponseService {
      * а {@code /lti/1_3/exercise} приоритетно читает custom-claim {@code exercise_id}.
      */
     public String buildSignedResponse(LtiDeepLinkingContext dl, List<DeepLinkItem> items) throws Exception {
-        RegistrationWithName regWithName = requireRegistration(dl.platformIssuer());
+        RegistrationWithName regWithName = tokenService.requireRegistration(dl.platformIssuer());
         Registration reg = regWithName.registration();
         String kid = regWithName.name();
 
@@ -112,7 +106,7 @@ public class DeepLinkingResponseService {
         SignedJWT jwt = new SignedJWT(
                 new JWSHeader.Builder(JWSAlgorithm.RS256).keyID(kid).type(JOSEObjectType.JWT).build(),
                 claims.build());
-        jwt.sign(new RSASSASigner(loadPrivateKey(reg)));
+        jwt.sign(new RSASSASigner(tokenService.loadPrivateKey(reg)));
         return jwt.serialize();
     }
 
@@ -126,10 +120,7 @@ public class DeepLinkingResponseService {
             return Set.of();
         }
         try {
-            RegistrationWithName regWithName = requireRegistration(dl.platformIssuer());
-            String tokenEndpoint = dl.platformIssuer() + "/mod/lti/token.php";
-            String accessToken = obtainAccessToken(tokenEndpoint, regWithName.registration(),
-                    regWithName.name(), LINEITEM_READONLY_SCOPE);
+            String accessToken = tokenService.obtainAccessToken(dl.platformIssuer(), LINEITEM_READONLY_SCOPE);
 
             HttpHeaders headers = new HttpHeaders();
             headers.setBearerAuth(accessToken);
@@ -159,51 +150,4 @@ public class DeepLinkingResponseService {
         }
     }
 
-    private RegistrationWithName requireRegistration(String issuerUrl) {
-        return ltiRegistrations.findByIssuerUrl(issuerUrl)
-                .orElseThrow(() -> new IllegalStateException(
-                        "LTI registration not configured for issuer " + issuerUrl
-                                + " — добавьте compprehension.lti.registrations.<name>.* в env"));
-    }
-
-    private RSAPrivateKey loadPrivateKey(Registration reg) throws Exception {
-        byte[] keyBytes = Base64.getDecoder().decode(reg.getPrivateKeyPkcs8Base64());
-        return (RSAPrivateKey) KeyFactory.getInstance("RSA")
-                .generatePrivate(new PKCS8EncodedKeySpec(keyBytes));
-    }
-
-    private String obtainAccessToken(String tokenEndpoint, Registration reg, String kid, String scope) throws Exception {
-        Date now = new Date();
-        JWTClaimsSet assertionClaims = new JWTClaimsSet.Builder()
-                .issuer(reg.getClientId())
-                .subject(reg.getClientId())
-                .audience(tokenEndpoint)
-                .issueTime(now)
-                .expirationTime(new Date(now.getTime() + 60_000))
-                .jwtID(UUID.randomUUID().toString())
-                .build();
-        SignedJWT assertion = new SignedJWT(
-                new JWSHeader.Builder(JWSAlgorithm.RS256).keyID(kid).build(), assertionClaims);
-        assertion.sign(new RSASSASigner(loadPrivateKey(reg)));
-
-        LinkedMultiValueMap<String, String> form = new LinkedMultiValueMap<>();
-        form.add("grant_type", "client_credentials");
-        form.add("client_assertion_type", "urn:ietf:params:oauth:client-assertion-type:jwt-bearer");
-        form.add("client_assertion", assertion.serialize());
-        form.add("scope", scope);
-
-        HttpHeaders headers = new HttpHeaders();
-        headers.setContentType(MediaType.APPLICATION_FORM_URLENCODED);
-        headers.set("Accept", "application/json");
-
-        ResponseEntity<String> resp = restTemplate.postForEntity(
-                tokenEndpoint, new HttpEntity<>(form, headers), String.class);
-        JsonNode token = objectMapper.readTree(resp.getBody());
-        String accessToken = token.path("access_token").asText(null);
-        if (accessToken == null) {
-            throw new IllegalStateException("No access_token from " + tokenEndpoint
-                    + " (error=" + token.path("error").asText("") + ")");
-        }
-        return accessToken;
-    }
 }

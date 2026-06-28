@@ -7,13 +7,13 @@ import java.util.List;
  * {@code LtiDeepLinkingResponse} и для дедупа уже добавленных активностей через AGS.
  *
  * <p>Присутствует только если запуск пришёл как {@code LtiDeepLinkingRequest}
- * (из блока или из штатного «Select content»); иначе {@code null}.
+ * (из блока или из штатного "Select content"); иначе {@code null}.
  *
  * @param platformIssuer   канонический issuer платформы (Moodle wwwroot) — идёт в {@code aud}
  *                         ответа и используется для поиска LTI-регистрации/ключа подписи
- * @param deploymentId     deployment_id из запроса (эхо в ответ)
+ * @param deploymentId     deployment_id из запроса
  * @param deepLinkReturnUrl URL, куда POST-ится подписанный ответ (contentitem_return.php)
- * @param data             непрозрачное значение из {@code deep_linking_settings.data}; обязано
+ * @param data             значение из {@code deep_linking_settings.data}; обязано
  *                         вернуться без изменений (может быть {@code null})
  * @param lineitemsUrl     AGS-контейнер line items курса (для дедупа); может быть {@code null}
  * @param agsScopes        выданные AGS-скоупы (может быть {@code null})
