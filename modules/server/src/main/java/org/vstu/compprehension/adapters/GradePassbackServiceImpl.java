@@ -1,16 +1,16 @@
 package org.vstu.compprehension.adapters;
 
-import lombok.RequiredArgsConstructor;
 import lombok.extern.log4j.Log4j2;
+import org.springframework.context.annotation.Lazy;
 import org.springframework.scheduling.annotation.Async;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Propagation;
 import org.springframework.transaction.annotation.Transactional;
 import org.vstu.compprehension.Service.AuthService;
+import org.vstu.compprehension.Service.ExerciseAttemptService;
 import org.vstu.compprehension.Service.GradePassbackService;
 import org.vstu.compprehension.models.entities.EnumData.Role;
 import org.vstu.compprehension.models.entities.ExerciseAttemptEntity;
-import org.vstu.compprehension.models.repository.ExerciseAttemptRepository;
 import org.vstu.compprehension.service.gradepassback.GradePassbackStrategy;
 
 import java.util.List;
@@ -19,19 +19,28 @@ import java.util.List;
  * Реализует out-port {@link GradePassbackService}, делегируя первой подходящей стратегии.
  */
 @Service
-@RequiredArgsConstructor
 @Log4j2
 public class GradePassbackServiceImpl implements GradePassbackService {
 
     private final List<GradePassbackStrategy> strategies;
-    private final ExerciseAttemptRepository exerciseAttemptRepository;
+    private final ExerciseAttemptService exerciseAttemptService;
     private final AuthService authService;
+
+    public GradePassbackServiceImpl(
+            List<GradePassbackStrategy> strategies,
+            @Lazy ExerciseAttemptService exerciseAttemptService,
+            AuthService authService
+    ) {
+        this.strategies = strategies;
+        this.exerciseAttemptService = exerciseAttemptService;
+        this.authService = authService;
+    }
 
     @Async
     @Transactional(propagation = Propagation.REQUIRES_NEW)
     @Override
     public void passGrade(ExerciseAttemptEntity attempt, double grade) {
-        ExerciseAttemptEntity fresh = exerciseAttemptRepository
+        ExerciseAttemptEntity fresh = exerciseAttemptService
                 .findById(attempt.getId()).orElse(null);
         if (fresh == null) {
             log.warn("Attempt {} not found for grade passback", attempt.getId());
@@ -40,8 +49,7 @@ public class GradePassbackServiceImpl implements GradePassbackService {
 
         Long userId = fresh.getUser().getId();
         Long courseId = fresh.getCourse() != null ? fresh.getCourse().getId() : null;
-        boolean isStudent = courseId != null
-                && authService.findRolesInCourse(userId, courseId).contains(Role.STUDENT);
+        boolean isStudent = authService.hasRoleInCourse(userId, courseId, Role.STUDENT);
         if (!isStudent) {
             log.info("Skipping grade passback for attempt {}: user {} is not a STUDENT in course {}",
                     fresh.getId(), userId, courseId);

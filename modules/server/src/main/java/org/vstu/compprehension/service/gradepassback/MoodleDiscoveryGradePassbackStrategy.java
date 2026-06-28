@@ -7,16 +7,18 @@ import org.springframework.stereotype.Service;
 import org.springframework.util.MultiValueMap;
 import org.springframework.web.util.UriComponents;
 import org.vstu.compprehension.Service.ExternalAccountService;
-import org.vstu.compprehension.config.WsFuncMoodleConfig;
-import org.vstu.compprehension.integration.moodle.MoodleGrade;
-import org.vstu.compprehension.integration.moodle.MoodleLtiActivity;
-import org.vstu.compprehension.integration.moodle.MoodleService;
+import org.vstu.compprehension.moodle.request.MoodleGrade;
+import org.vstu.compprehension.moodle.response.MoodleLtiActivity;
+import org.vstu.compprehension.moodle.MoodleService;
+import org.vstu.compprehension.moodle.MoodleWsResult;
+import org.vstu.compprehension.moodle.config.WsFuncMoodleConfig;
 import org.vstu.compprehension.models.entities.EnumData.EducationResourceType;
 import org.vstu.compprehension.models.entities.ExerciseAttemptEntity;
 import org.vstu.compprehension.models.entities.course.CourseEntity;
 import org.vstu.compprehension.models.entities.external_system.EducationResourceEntity;
 import org.vstu.compprehension.models.entities.external_system.ExternalAccountEntity;
 
+import java.util.List;
 import java.util.Optional;
 
 /**
@@ -85,7 +87,18 @@ public class MoodleDiscoveryGradePassbackStrategy implements GradePassbackStrate
         String moodleUserId = account.get().getExternalId();
 
         long exerciseId = attempt.getExercise().getId();
-        Optional<MoodleLtiActivity> activity = moodleService.getLtiActivitiesInCourse(baseUrl, wsToken, externalCourseId).stream()
+        MoodleWsResult<List<MoodleLtiActivity>> ltiActivitiesResult =
+                moodleService.getLtiActivitiesInCourse(baseUrl, wsToken, externalCourseId);
+        List<MoodleLtiActivity> activities;
+        switch (ltiActivitiesResult) {
+            case MoodleWsResult.Success<List<MoodleLtiActivity>> s -> activities = s.value();
+            case MoodleWsResult.Failure<List<MoodleLtiActivity>> f -> {
+                log.warn("Failed to fetch mod_lti activities for course {} ({}) [{}]: {} — cannot pass grade for attempt {}",
+                        externalCourseId, baseUrl, f.errorcode(), f.message(), attempt.getId());
+                return false;
+            }
+        }
+        Optional<MoodleLtiActivity> activity = activities.stream()
                 .filter(a -> matchesExercise(a, exerciseId))
                 .findFirst();
         if (activity.isEmpty()) {
@@ -102,7 +115,22 @@ public class MoodleDiscoveryGradePassbackStrategy implements GradePassbackStrate
 
         double gradeMax = lti.getGradeMax() != null && lti.getGradeMax() > 0 ? lti.getGradeMax() : DEFAULT_GRADE_MAX;
         MoodleGrade moodleGrade = new MoodleGrade(grade, gradeMax);
-        return moodleService.updateGradeInCourse(baseUrl, wsToken, externalCourseId, lti.getCourseModuleId(), moodleUserId, moodleGrade);
+        MoodleWsResult<Boolean> gradeResult = moodleService.updateGradeInCourse(
+                baseUrl, wsToken, externalCourseId, lti.getCourseModuleId(), moodleUserId, moodleGrade);
+        return switch (gradeResult) {
+            case MoodleWsResult.Success<Boolean> s -> {
+                if (!s.value()) {
+                    log.warn("Moodle returned non-OK code updating grade for attempt {} (course {}, {})",
+                            attempt.getId(), externalCourseId, baseUrl);
+                }
+                yield s.value();
+            }
+            case MoodleWsResult.Failure<Boolean> f -> {
+                log.warn("Failed to update grade for attempt {} (course {}, {}) [{}]: {}",
+                        attempt.getId(), externalCourseId, baseUrl, f.errorcode(), f.message());
+                yield false;
+            }
+        };
     }
 
     /**
