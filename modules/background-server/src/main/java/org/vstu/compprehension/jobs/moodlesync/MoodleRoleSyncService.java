@@ -3,23 +3,23 @@ package org.vstu.compprehension.jobs.moodlesync;
 import lombok.extern.log4j.Log4j2;
 import org.springframework.stereotype.Service;
 import org.vstu.compprehension.Service.AuthService;
-import org.vstu.compprehension.Service.AuthService.UserCourseKey;
+import org.vstu.compprehension.Service.AuthService.CourseRoleAssignment;
 import org.vstu.compprehension.common.BatchingIterator;
-import org.vstu.compprehension.config.WsFuncMoodleConfig;
 import org.vstu.compprehension.models.entities.EnumData.EducationResourceType;
 import org.vstu.compprehension.models.entities.EnumData.EducationResourceTrustStatus;
-import org.vstu.compprehension.models.entities.EnumData.Role;
 import org.vstu.compprehension.models.entities.course.CourseEntity;
 import org.vstu.compprehension.models.entities.external_system.EducationResourceEntity;
 import org.vstu.compprehension.models.entities.external_system.ExternalAccountEntity;
 import org.vstu.compprehension.models.repository.CourseRepository;
 import org.vstu.compprehension.models.repository.EducationResourceRepository;
 import org.vstu.compprehension.models.repository.ExternalAccountRepository;
-import org.vstu.compprehension.integration.moodle.CourseCapabilityRequest;
-import org.vstu.compprehension.integration.moodle.MoodleCapabilityResult;
-import org.vstu.compprehension.integration.moodle.MoodleService;
-import org.vstu.compprehension.integration.moodle.MoodleUserRef;
-import org.vstu.compprehension.integration.moodle.MoodleWsException;
+import org.vstu.compprehension.moodle.request.CourseCapabilityRequest;
+import org.vstu.compprehension.moodle.response.MoodleCapabilityResult;
+import org.vstu.compprehension.moodle.MoodleService;
+import org.vstu.compprehension.moodle.response.MoodleUserRef;
+import org.vstu.compprehension.moodle.MoodleWsException;
+import org.vstu.compprehension.moodle.MoodleWsResult;
+import org.vstu.compprehension.moodle.config.WsFuncMoodleConfig;
 
 import java.util.ArrayList;
 import java.util.HashMap;
@@ -29,6 +29,7 @@ import java.util.Map;
 import java.util.Set;
 import java.util.concurrent.CompletableFuture;
 import java.util.concurrent.Executors;
+import java.util.concurrent.ThreadFactory;
 import java.util.function.Function;
 import java.util.stream.Collectors;
 
@@ -65,11 +66,13 @@ public class MoodleRoleSyncService {
         List<EducationResourceEntity> trustedMoodles =
                 eduResourceRepo.findByTypeAndTrustStatus(EducationResourceType.MOODLE, EducationResourceTrustStatus.TRUSTED);
         if (trustedMoodles.isEmpty()) {
-            log.info("No trusted Moodle environments — skipping role sync");
+            log.info("No trusted Moodle environments - skipping role sync");
             return;
         }
 
-        try (var vte = Executors.newVirtualThreadPerTaskExecutor()) {
+        ThreadFactory factory = Thread.ofVirtual().name("sync-job-", 0).factory();
+
+        try (var vte = Executors.newThreadPerTaskExecutor(factory)) {
             var futures = trustedMoodles.stream()
                     .map(env -> CompletableFuture
                             .runAsync(() -> syncRolesInEnvironment(env), vte)
@@ -120,7 +123,7 @@ public class MoodleRoleSyncService {
                 );
 
         Set<String> courseCaps = CapabilityMapper.allRelevantCourseCapabilities();
-        Map<UserCourseKey, Set<String>> userCourseCaps = new HashMap<>();
+        Map<Long, Map<Long, Set<String>>> userCourseCaps = new HashMap<>();
 
         int totalProcessed = 0;
         BatchingIterator<CourseEntity> batches = new BatchingIterator<>(courses.iterator(), syncConfig.getCoursesPerBatch());
@@ -132,7 +135,17 @@ public class MoodleRoleSyncService {
                 req.add(new CourseCapabilityRequest(course.getExternalCourseId(), courseCaps));
             }
 
-            List<MoodleCapabilityResult> resp = moodleService.getUsersWithCapabilityBulk(env.getUrl(), wsToken, req);
+            MoodleWsResult<List<MoodleCapabilityResult>> capabilityResult =
+                    moodleService.getUsersWithCapabilityBulk(env.getUrl(), wsToken, req);
+            List<MoodleCapabilityResult> resp;
+            switch (capabilityResult) {
+                case MoodleWsResult.Success<List<MoodleCapabilityResult>> s -> resp = s.value();
+                case MoodleWsResult.Failure<List<MoodleCapabilityResult>> f -> {
+                    log.warn("Moodle role sync: WS call failed for {} [{}]: {} (batch #{}, size={}) - aborting environment",
+                            env.getUrl(), f.errorcode(), f.message(), batchIdx, batch.size());
+                    return;
+                }
+            }
             if (resp.isEmpty() && syncConfig.isAbortOnEmptyResponse()) {
                 log.warn("Moodle role sync: empty WS response for {} (batch #{}, size={}) - aborting environment",
                         env.getUrl(), batchIdx, batch.size());
@@ -148,31 +161,38 @@ public class MoodleRoleSyncService {
                 for (MoodleUserRef moodleUserRef : capability.courseMembers()) {
                     Long userId = userIdByMoodleId.get(moodleUserRef.id());
                     if (userId == null) continue;
-                    userCourseCaps.computeIfAbsent(
-                                    new UserCourseKey(userId, course.getId()),
-                                    nothing -> new HashSet<>()
-                            )
+                    userCourseCaps
+                            .computeIfAbsent(userId, nothing -> new HashMap<>())
+                            .computeIfAbsent(course.getId(), nothing -> new HashSet<>())
                             .add(capability.capabilityName());
                 }
             }
         }
 
-        log.info("Moodle role sync: {} — {} WS-records processed, {} user-course combos",
-                env.getUrl(), totalProcessed, userCourseCaps.size());
+        int userCourseCombos = userCourseCaps.values().stream().mapToInt(Map::size).sum();
+        log.info("Moodle role sync: {} - {} WS-records processed, {} user-course combos",
+                env.getUrl(), totalProcessed, userCourseCombos);
 
-        Map<UserCourseKey, Role> desiredCourseRoles = new HashMap<>();
-        for (Map.Entry<UserCourseKey, Set<String>> entry : userCourseCaps.entrySet()) {
-            desiredCourseRoles.put(entry.getKey(), CapabilityMapper.deriveCourseRole(entry.getValue()));
+        List<CourseRoleAssignment> desiredAssignments = new ArrayList<>();
+        for (Map.Entry<Long, Map<Long, Set<String>>> userEntry : userCourseCaps.entrySet()) {
+            Long userId = userEntry.getKey();
+            for (Map.Entry<Long, Set<String>> courseEntry : userEntry.getValue().entrySet()) {
+                desiredAssignments.add(new CourseRoleAssignment(
+                        userId,
+                        courseEntry.getKey(),
+                        CapabilityMapper.deriveCourseRole(courseEntry.getValue())
+                ));
+            }
         }
 
         Set<Long> managedCourseIds = courses.stream()
                 .map(CourseEntity::getId)
                 .collect(Collectors.toSet());
 
-        authService.applyEnvironmentAssignmentsDiff(
+        authService.reconcileCourseRoleAssignments(
                 env.getId(),
                 userIdByMoodleId.values(),
-                desiredCourseRoles,
+                desiredAssignments,
                 managedCourseIds
         );
     }
@@ -180,14 +200,14 @@ public class MoodleRoleSyncService {
     /**
      * Проверяет, какие из {@code courses} ещё существуют в Moodle, и отвязывает удалённые:
      * у такого курса {@code externalCourseId} обнуляется (курс становится локальным, связь с
-     * Moodle теряется) — следующий sync его уже не запросит. Возвращает только живые курсы.
+     * Moodle теряется) - следующий sync его уже не запросит. Возвращает только живые курсы.
      *
      * <p>Без этого шага один удалённый курс ронял весь bulk-вызов
      * {@code core_enrol_get_enrolled_users_with_capability} (он бросает
      * {@code dml_missing_record_exception} на первом отсутствующем id), и синхронизация
      * среды прерывалась целиком.
      *
-     * <p>Если вызов проверки не удался ({@link MoodleWsException}) — возвращаем пустой список,
+     * <p>Если вызов проверки не удался ({@link MoodleWsException}) - возвращаем пустой список,
      * чтобы прервать среду и НЕ принять временный сбой WS за «все курсы удалены».
      */
     private List<CourseEntity> detachDeletedCourses(
@@ -198,7 +218,7 @@ public class MoodleRoleSyncService {
 
         Set<String> existingExtIds;
         try {
-            existingExtIds = moodleService.findExistingCourseIds(env.getUrl(), wsToken, requestedExtIds);
+            existingExtIds = moodleService.findExistingCourseIds(env.getUrl(), wsToken, requestedExtIds).orElseThrow();
         } catch (MoodleWsException ex) {
             log.warn("Moodle role sync: course existence check failed for {} - aborting environment: {}",
                     env.getUrl(), ex.getMessage());
@@ -228,7 +248,7 @@ public class MoodleRoleSyncService {
             try {
                 moodleId = Long.parseLong(ea.getExternalId());
             } catch (NumberFormatException ignore) {
-                log.warn("ExternalAccount externalId is not numeric: {} — skip", ea.getExternalId());
+                log.warn("ExternalAccount externalId is not numeric: {} - skip", ea.getExternalId());
                 continue;
             }
             result.put(moodleId, ea.getUser().getId());

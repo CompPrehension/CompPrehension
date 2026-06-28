@@ -15,15 +15,15 @@ import org.vstu.compprehension.Service.ExternalAccountService;
 import org.vstu.compprehension.Service.LtiContextProvider;
 import org.vstu.compprehension.Service.UserService;
 import org.vstu.compprehension.models.businesslogic.lti.LtiContext;
-import org.vstu.compprehension.models.businesslogic.lti.LtiCourseContext;
-import org.vstu.compprehension.models.entities.EnumData.EducationResourceTrustStatus;
 import org.vstu.compprehension.models.entities.EnumData.Language;
 import org.vstu.compprehension.models.entities.EnumData.Role;
 import org.vstu.compprehension.models.entities.UserEntity;
+import org.vstu.compprehension.models.entities.course.CourseEntity;
 import org.vstu.compprehension.models.entities.external_system.EducationResourceEntity;
 import org.vstu.compprehension.models.repository.UserRepository;
 
 import java.util.Collection;
+import java.util.List;
 import java.util.Optional;
 import java.util.Set;
 import java.util.stream.Collectors;
@@ -112,12 +112,7 @@ public class UserServiceImpl implements UserService {
         LtiContext ctx = ltiContextProvider.getCurrentLtiContext().orElse(null);
         if (ctx == null) return;
 
-        EducationResourceEntity eduRes = educationResourceService.findByUrlAndType(ctx.lmsUrl(), ctx.lmsType())
-                .orElseGet(() -> educationResourceService.createOrGetExisting(ctx.lmsUrl(), ctx.lmsType()));
-
-        if (eduRes.getTrustStatus() != EducationResourceTrustStatus.TRUSTED) {
-            throw new SecurityException("EducationResource " + eduRes.getUrl() + " is not trusted");
-        }
+        EducationResourceEntity eduRes = educationResourceService.getOrCreateTrusted(ctx.lmsUrl(), ctx.lmsType());
 
         // Базовый глобальный доступ на чтение общего пула упражнений. STUDENT на GLOBAL scope
         // даёт только глобальный VIEW_EXERCISE (просмотр/импорт пула); edit/create/delete пула — нет.
@@ -130,38 +125,38 @@ public class UserServiceImpl implements UserService {
             externalAccountService.createOrGetExisting(user.getId(), eduRes.getId(), parsedIdToken.getSubject());
         }
 
-        if (ltiRoles.contains("ROLE_Administrator")) {
-            authService.assignRoleInEducationResource(user.getId(), Role.EDUCATION_RESOURCE_ADMIN, eduRes.getId());
-        }
+        // Роль уровня education-resource переназначается целиком: Administrator → EDU_ADMIN,
+        // иначе роль снимается (если была) — потеря админства в Moodle отражается при входе.
+        Role eduResRole = ltiRoles.contains("ROLE_Administrator") ? Role.EDUCATION_RESOURCE_ADMIN : null;
+        authService.reconcileRoleInEducationResource(user.getId(), eduRes.getId(), eduResRole);
 
-        Long courseId = resolveCourseId(ctx, eduRes.getId());
-        if (courseId != null) {
+        CourseEntity course = courseService.resolveOrCreateFromLtiContext(ctx, eduRes.getId());
+        if (course != null) {
             Role courseRole = mapLtiCourseRole(ltiRoles);
             if (courseRole != null) {
-                authService.assignRoleInCourse(user.getId(), courseRole, courseId);
+                // Тот же diff-движок, что и фоновая синхронизация ролей, но на одном
+                // (user, course): заменяет изменившуюся роль и не плодит дубли. coursesToSweep
+                // ограничен текущим курсом — роли пользователя в других курсах не трогаются.
+                authService.reconcileCourseRoleAssignments(
+                        eduRes.getId(),
+                        List.of(user.getId()),
+                        List.of(new AuthService.CourseRoleAssignment(user.getId(), course.getId(), courseRole)),
+                        List.of(course.getId()));
             }
         }
     }
 
     private void applyKeycloakRoles(UserEntity user, Set<String> keycloakRoles) {
         Role globalRole = mapKeycloakGlobalRole(keycloakRoles);
-        authService.assignGlobalRole(user.getId(), globalRole);
+        // Keycloak — источник истины для GLOBAL-роли: при понижении (admin→teacher→student)
+        // прежняя роль снимается, остаётся ровно актуальная.
+        authService.reconcileGlobalRole(user.getId(), globalRole);
     }
 
     private Role mapKeycloakGlobalRole(Collection<String> keycloakRoles) {
         if (keycloakRoles.contains("ROLE_Administrator")) return Role.GLOBAL_ADMIN;
         if (keycloakRoles.contains("ROLE_Teacher")) return Role.TEACHER;
         return Role.STUDENT;
-    }
-
-    private Long resolveCourseId(LtiContext ctx, Long educationResourceId) {
-        LtiCourseContext ltiCourse = ctx.course();
-        if (ltiCourse == null || ltiCourse.courseId() == null) return null;
-        String externalCourseId = ltiCourse.courseId();
-        String courseName = ltiCourse.courseName() != null ? ltiCourse.courseName() : "id_" + externalCourseId;
-        return courseService.findByExternalIdAndResourceId(externalCourseId, educationResourceId)
-                .orElseGet(() -> courseService.createOrGetExisting(externalCourseId, courseName, educationResourceId))
-                .getId();
     }
 
     private Role mapLtiCourseRole(Collection<String> ltiRoles) {

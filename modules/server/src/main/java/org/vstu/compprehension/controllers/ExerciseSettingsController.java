@@ -41,11 +41,9 @@ public class ExerciseSettingsController {
         var userId = userService.getCurrentUser().getId();
         // Reading a card is a view operation: gate on VIEW_EXERCISE so students can open
         // (but not edit) exercises. Mutations below stay on EDIT/CREATE/DELETE.
+        authService.ensureAuthorized(userId, Permission.VIEW_EXERCISE, courseId);
         if (courseId != null) {
-            authService.ensureAuthorizedInCourse(userId, Permission.VIEW_EXERCISE, courseId);
             courseService.findExerciseCourseLinkOrThrow(id, courseId);
-        } else {
-            authService.ensureAuthorizedGlobal(userId, Permission.VIEW_EXERCISE);
         }
         return exerciseService.getExerciseCard(id);
     }
@@ -55,12 +53,10 @@ public class ExerciseSettingsController {
     @ResponseBody
     public List<ExerciseDto> list(@RequestParam(value = "courseId", required = false) Long courseId) {
         var userId = userService.getCurrentUser().getId();
-        if (courseId != null) {
-            authService.ensureAuthorizedInCourse(userId, Permission.VIEW_EXERCISE, courseId);
-            return exerciseService.getCourseExercises(courseId);
-        }
-        authService.ensureAuthorizedGlobal(userId, Permission.VIEW_EXERCISE);
-        return exerciseService.getPublicExercises();
+        authService.ensureAuthorized(userId, Permission.VIEW_EXERCISE, courseId);
+        return courseId != null
+                ? exerciseService.getCourseExercises(courseId)
+                : exerciseService.getPublicExercises();
     }
 
     @SneakyThrows
@@ -75,11 +71,9 @@ public class ExerciseSettingsController {
     @ResponseBody
     public void update(@RequestBody ExerciseCardDto card, @RequestParam(value = "courseId", required = false) Long courseId) {
         var userId = userService.getCurrentUser().getId();
+        authService.ensureAuthorized(userId, Permission.EDIT_EXERCISE, courseId);
         if (courseId != null) {
-            authService.ensureAuthorizedInCourse(userId, Permission.EDIT_EXERCISE, courseId);
             courseService.findExerciseCourseLinkOrThrow(card.getId(), courseId);
-        } else {
-            authService.ensureAuthorizedGlobal(userId, Permission.EDIT_EXERCISE);
         }
         exerciseService.saveExerciseCard(card);
     }
@@ -95,11 +89,7 @@ public class ExerciseSettingsController {
         var courseId = json.has("courseId") && !json.get("courseId").isNull()
             ? json.get("courseId").asLong()
             : null;
-        if (courseId != null) {
-            authService.ensureAuthorizedInCourse(userId, Permission.CREATE_EXERCISE, courseId);
-        } else {
-            authService.ensureAuthorizedGlobal(userId, Permission.CREATE_EXERCISE);
-        }
+        authService.ensureAuthorized(userId, Permission.CREATE_EXERCISE, courseId);
         return exerciseService.createExercise(name, domainId, strategyId, courseId).getId();
     }
 
@@ -109,11 +99,7 @@ public class ExerciseSettingsController {
     public long clone(@PathVariable("id") long id,
                       @RequestParam(value = "courseId", required = false) Long courseId) {
         var userId = userService.getCurrentUser().getId();
-        if (courseId != null) {
-            authService.ensureAuthorizedInCourse(userId, Permission.CREATE_EXERCISE, courseId);
-        } else {
-            authService.ensureAuthorizedGlobal(userId, Permission.CREATE_EXERCISE);
-        }
+        authService.ensureAuthorized(userId, Permission.CREATE_EXERCISE, courseId);
         return exerciseService.cloneExercise(id, courseId).getId();
     }
 
@@ -122,11 +108,9 @@ public class ExerciseSettingsController {
     @RequestMapping(value = { "exercise"}, method = { RequestMethod.DELETE })
     public void delete(@RequestParam("id") long id, @RequestParam(value = "courseId", required = false) Long courseId) {
         var userId = userService.getCurrentUser().getId();
+        authService.ensureAuthorized(userId, Permission.DELETE_EXERCISE, courseId);
         if (courseId != null) {
-            authService.ensureAuthorizedInCourse(userId, Permission.DELETE_EXERCISE, courseId);
             courseService.findExerciseCourseLinkOrThrow(id, courseId);
-        } else {
-            authService.ensureAuthorizedGlobal(userId, Permission.DELETE_EXERCISE);
         }
         exerciseService.deleteExercise(id);
     }

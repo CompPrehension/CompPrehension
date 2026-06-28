@@ -80,6 +80,32 @@ public interface RoleUserAssignmentRepository extends JpaRepository<RoleUserAssi
             """)
     List<Role> findRolesInScope(@Param("userId") long userId, @Param("courseId") Long courseId);
 
+    @Query("""
+            select case when count(rua) > 0 then true else false end
+            from RoleUserAssignmentEntity rua
+            join rua.role r
+            join rua.permissionScope ps
+            where rua.user.id = :userId
+              and r.name = :role
+              and (
+                  (ps.kind = org.vstu.compprehension.models.entities.EnumData.PermissionScopeKind.GLOBAL
+                      and r.name = org.vstu.compprehension.models.entities.EnumData.Role.GLOBAL_ADMIN)
+
+                  or (:courseId is null
+                      and ps.kind = org.vstu.compprehension.models.entities.EnumData.PermissionScopeKind.GLOBAL)
+
+                  or (:courseId is not null
+                      and ps.kind = org.vstu.compprehension.models.entities.EnumData.PermissionScopeKind.COURSE
+                      and ps.course.id = :courseId)
+
+                  or (:courseId is not null
+                      and ps.kind = org.vstu.compprehension.models.entities.EnumData.PermissionScopeKind.EDUCATION_RESOURCE
+                      and ps.educationResource.id =
+                          (select c.educationResource.id from CourseEntity c where c.id = :courseId))
+              )
+            """)
+    boolean existsRoleInScope(@Param("userId") long userId, @Param("courseId") Long courseId, @Param("role") Role role);
+
     @Modifying
     @Query(value = """
             insert ignore into role_user_assignment (user_id, role_id, permission_scope_id)
@@ -134,23 +160,42 @@ public interface RoleUserAssignmentRepository extends JpaRepository<RoleUserAssi
             """)
     int deleteEducationResourceRole(@Param("userId") long userId, @Param("role") Role role, @Param("eduResId") Long eduResId);
 
+    @Modifying
+    @Query("""
+            delete from RoleUserAssignmentEntity rua
+            where rua.user.id = :userId
+              and rua.role.id not in (select r.id from RoleEntity r where r.name = :keepRole)
+              and rua.permissionScope.id in (
+                  select ps.id from PermissionScopeEntity ps
+                  where ps.kind = org.vstu.compprehension.models.entities.EnumData.PermissionScopeKind.GLOBAL
+                    and ps.course is null and ps.educationResource is null)
+            """)
+    int deleteGlobalRolesExcept(@Param("userId") long userId, @Param("keepRole") Role keepRole);
+
+    @Modifying
+    @Query("""
+            delete from RoleUserAssignmentEntity rua
+            where rua.user.id = :userId
+              and rua.role.id not in (select r.id from RoleEntity r where r.name = :keepRole)
+              and rua.permissionScope.id in (
+                  select ps.id from PermissionScopeEntity ps
+                  where ps.kind = org.vstu.compprehension.models.entities.EnumData.PermissionScopeKind.EDUCATION_RESOURCE
+                    and ps.educationResource.id = :eduResId)
+            """)
+    int deleteEducationResourceRolesExcept(@Param("userId") long userId, @Param("eduResId") Long eduResId, @Param("keepRole") Role keepRole);
+
 
     @Query("""
             select rua from RoleUserAssignmentEntity rua
             join fetch rua.user u
             join fetch rua.role r
             join fetch rua.permissionScope ps
-            left join fetch ps.course c
+            join fetch ps.course c
             where u.id in :userIds
-              and (
-                  (ps.kind = org.vstu.compprehension.models.entities.EnumData.PermissionScopeKind.COURSE
-                      and c.educationResource.id = :eduResId)
-                  or
-                  (ps.kind = org.vstu.compprehension.models.entities.EnumData.PermissionScopeKind.EDUCATION_RESOURCE
-                      and ps.educationResource.id = :eduResId)
-              )
+              and ps.kind = org.vstu.compprehension.models.entities.EnumData.PermissionScopeKind.COURSE
+              and c.educationResource.id = :eduResId
             """)
-    List<RoleUserAssignmentEntity> findAssignmentsInEducationResource(
+    List<RoleUserAssignmentEntity> findCourseAssignmentsInEducationResource(
             @Param("eduResId") Long eduResId,
             @Param("userIds") Collection<Long> userIds
     );
