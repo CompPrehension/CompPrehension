@@ -103,8 +103,8 @@
     <include file="db/changelog/2026-05-08/2026-05-08-01-changelog.xml"/>
     <include file="db/changelog/2026-05-11/2026-05-11-01-changelog.xml"/>
     <include file="db/changelog/2026-05-20/2026-05-20-01-changelog.xml"/>
-    <include file="db/changelog/2026-05-23/2026-05-23-01-rbac-core.xml"/>
-    <include file="db/changelog/2026-05-23/2026-05-23-02-education-resource-trust-status.xml"/>
-    <include file="db/changelog/2026-05-28/2026-05-28-01-rbac-trim-assistant-teacher.xml"/>
-    <include file="db/changelog/2026-06-21/2026-06-21-01-rbac-unique.xml"/>
+    <include file="db/changelog/2026-05-23/2026-05-23-01-changelog.xml"/>
+    <include file="db/changelog/2026-05-23/2026-05-23-02-changelog.xml"/>
+    <include file="db/changelog/2026-05-28/2026-05-28-01-changelog.xml"/>
+    <include file="db/changelog/2026-06-21/2026-06-21-01-changelog.xml"/>
 </databaseChangeLog>
