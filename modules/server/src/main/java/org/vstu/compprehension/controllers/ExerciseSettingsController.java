@@ -39,8 +39,6 @@ public class ExerciseSettingsController {
     @ResponseBody
     public ExerciseCardDto get(@RequestParam("id") long id, @RequestParam(value = "courseId", required = false) Long courseId) {
         var userId = userService.getCurrentUser().getId();
-        // Reading a card is a view operation: gate on VIEW_EXERCISE so students can open
-        // (but not edit) exercises. Mutations below stay on EDIT/CREATE/DELETE.
         authService.ensureAuthorized(userId, Permission.VIEW_EXERCISE, courseId);
         if (courseId != null) {
             courseService.findExerciseCourseLinkOrThrow(id, courseId);

@@ -56,9 +56,10 @@ public class UserEntity {
     private Language preferred_language;
 
     /**
-     * @deprecated Legacy storage from before RBAC; superseded by {@code role_user_assignment}
-     * (see {@code RoleUserAssignmentEntity}). Kept read-only for backward compatibility
-     * with consumers that still reference the {@code user_role} table.
+     * @deprecated Устаревшее хранилище ролей, появившееся до внедрения RBAC; заменено
+     * таблицей {@code role_user_assignment} (см. {@code RoleUserAssignmentEntity}).
+     * Оставлено только для чтения ради обратной совместимости с кодом, который всё ещё
+     * обращается к таблице {@code user_role}.
      */
     @Deprecated
     @ElementCollection(targetClass = Role.class, fetch = FetchType.LAZY)

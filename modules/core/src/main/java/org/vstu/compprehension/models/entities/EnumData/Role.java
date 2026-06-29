@@ -25,8 +25,8 @@ public enum Role {
         SOLVE_EXERCISE
     )),
 
-    // Mirrors Moodle "Non-editing teacher": view + solve only. Kept distinct from STUDENT
-    // so grade passback can be suppressed for non-students.
+    // Повторяет роль Moodle "Non-editing teacher": только просмотр и решение. Намеренно
+    // отделена от STUDENT, чтобы для не-студентов можно было подавлять отправку оценок (grade passback).
     ASSISTANT(EnumSet.of(
         VIEW_COURSE, VIEW_EXERCISE, SOLVE_EXERCISE
     )),

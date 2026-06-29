@@ -120,7 +120,7 @@ public class AuthService {
      * Есть ли у пользователя указанная роль в рамках курса.
      *
      * @param userId   пользователь
-     * @param courseId курс; {@code null} трактуется как «нет курса» и даёт {@code false}
+     * @param courseId курс; {@code null} трактуется как "нет курса" и даёт {@code false}
      * @param role     искомая роль
      * @return {@code true}, если роль назначена пользователю в этом курсе
      */
