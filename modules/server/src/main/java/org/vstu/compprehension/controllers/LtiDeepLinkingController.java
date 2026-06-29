@@ -70,11 +70,6 @@ public class LtiDeepLinkingController {
             items.add(new DeepLinkingResponseService.DeepLinkItem(exerciseId, exercise.getName()));
         }
 
-        // One-shot: повторная отправка (двойной клик) не должна плодить дубли активностей.
-        if (!ltiContextProvider.consumeDeepLinkingOnce()) {
-            throw new IllegalStateException("Deep-linking response already submitted; re-launch to add more");
-        }
-
         String jwt = deepLinkingResponseService.buildSignedResponse(dl, items);
         return new DeepLinkBuildResponse(jwt, dl.deepLinkReturnUrl());
     }

@@ -29,7 +29,6 @@ public class LtiContextHolder implements LtiContextProvider, LtiContextInitializ
 
     private LtiContext context;
     private LtiDeepLinkingContext deepLinkingContext;
-    private boolean deepLinkingConsumed;
 
     @Override
     public Optional<LtiContext> getCurrentLtiContext() {
@@ -39,15 +38,6 @@ public class LtiContextHolder implements LtiContextProvider, LtiContextInitializ
     @Override
     public Optional<LtiDeepLinkingContext> getCurrentDeepLinkingContext() {
         return Optional.ofNullable(deepLinkingContext);
-    }
-
-    @Override
-    public synchronized boolean consumeDeepLinkingOnce() {
-        if (deepLinkingContext == null || deepLinkingConsumed) {
-            return false;
-        }
-        deepLinkingConsumed = true;
-        return true;
     }
 
     @Override
@@ -94,7 +84,6 @@ public class LtiContextHolder implements LtiContextProvider, LtiContextInitializ
         this.context = new LtiContext(lineitemUrl, course, lmsUrl, lmsName, lmsType, exerciseId);
 
         this.deepLinkingContext = parseDeepLinkingContext(claims, lmsUrl, agsEndpoint);
-        this.deepLinkingConsumed = false;
     }
 
     private static LtiDeepLinkingContext parseDeepLinkingContext(Map<String, Object> claims, String lmsUrl, Map<?, ?> agsEndpoint) {

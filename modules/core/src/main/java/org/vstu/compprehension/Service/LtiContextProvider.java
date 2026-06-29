@@ -15,10 +15,4 @@ public interface LtiContextProvider {
      * Deep Linking контекст текущей сессии (если запуск был {@code LtiDeepLinkingRequest}).
      */
     Optional<LtiDeepLinkingContext> getCurrentDeepLinkingContext();
-
-    /**
-     * One-shot для отправки Deep Linking ответа: {@code true} только при первом вызове
-     * после очередного запуска. Защищает от повторной отправки (дублей активностей).
-     */
-    boolean consumeDeepLinkingOnce();
 }

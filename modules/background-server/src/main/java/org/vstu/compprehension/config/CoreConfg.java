@@ -80,11 +80,6 @@ public class CoreConfg {
             public Optional<LtiDeepLinkingContext> getCurrentDeepLinkingContext() {
                 return Optional.empty();
             }
-
-            @Override
-            public boolean consumeDeepLinkingOnce() {
-                return false;
-            }
         };
     }
 
