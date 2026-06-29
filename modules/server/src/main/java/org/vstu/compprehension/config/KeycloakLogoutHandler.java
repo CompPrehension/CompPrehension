@@ -15,8 +15,8 @@ public class KeycloakLogoutHandler implements LogoutHandler {
 
     private final RestTemplate restTemplate;
 
-    public KeycloakLogoutHandler() {
-        this.restTemplate = new RestTemplate();
+    public KeycloakLogoutHandler(RestTemplate restTemplate) {
+        this.restTemplate = restTemplate;
     }
 
     @Override

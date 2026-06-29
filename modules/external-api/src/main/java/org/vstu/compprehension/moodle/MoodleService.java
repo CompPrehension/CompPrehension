@@ -28,8 +28,12 @@ import java.util.function.Function;
  */
 @Service
 public class MoodleService {
-    private final RestTemplate restTemplate = new RestTemplate();
+    private final RestTemplate restTemplate;
     private final ObjectMapper objectMapper = new ObjectMapper();
+
+    public MoodleService(RestTemplate restTemplate) {
+        this.restTemplate = restTemplate;
+    }
 
     /**
      * Bulk-запрос: для каждого {@link CourseCapabilityRequest#externalCourseId} проверяет

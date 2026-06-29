@@ -49,11 +49,12 @@ public class DeepLinkingResponseService {
     private static final String LINEITEM_READONLY_SCOPE = "https://purl.imsglobal.org/spec/lti-ags/scope/lineitem.readonly";
     private static final String TAG_PREFIX = "compph_exercise_";
 
-    private final RestTemplate restTemplate = new RestTemplate();
+    private final RestTemplate restTemplate;
     private final ObjectMapper objectMapper = new ObjectMapper();
     private final LtiTokenService tokenService;
 
-    public DeepLinkingResponseService(LtiTokenService tokenService) {
+    public DeepLinkingResponseService(RestTemplate restTemplate, LtiTokenService tokenService) {
+        this.restTemplate = restTemplate;
         this.tokenService = tokenService;
     }
 

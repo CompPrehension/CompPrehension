@@ -26,10 +26,11 @@ public class LtiAgsGradePassbackStrategy implements GradePassbackStrategy {
 
     private static final String SCORE_SCOPE = "https://purl.imsglobal.org/spec/lti-ags/scope/score";
 
-    private final RestTemplate restTemplate = new RestTemplate();
+    private final RestTemplate restTemplate;
     private final LtiTokenService tokenService;
 
-    public LtiAgsGradePassbackStrategy(LtiTokenService tokenService) {
+    public LtiAgsGradePassbackStrategy(RestTemplate restTemplate, LtiTokenService tokenService) {
+        this.restTemplate = restTemplate;
         this.tokenService = tokenService;
     }
 
@@ -82,7 +83,7 @@ public class LtiAgsGradePassbackStrategy implements GradePassbackStrategy {
 
         log.debug("Posting score to {}: userId={}, scoreGiven={}", scoresUrl, moodleUserId, grade);
         ResponseEntity<String> scoreResponse = restTemplate.postForEntity(
-                scoresUrl, new HttpEntity<>(scorePayload, headers), String.class);
+                URI.create(scoresUrl), new HttpEntity<>(scorePayload, headers), String.class);
         log.debug("AGS score response: status={}, body={}", scoreResponse.getStatusCode(), scoreResponse.getBody());
         return scoreResponse.getStatusCode().is2xxSuccessful();
     }

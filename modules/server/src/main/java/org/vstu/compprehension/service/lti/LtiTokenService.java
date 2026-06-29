@@ -38,11 +38,12 @@ public class LtiTokenService {
 
     private static final long ASSERTION_TTL_MS = 60_000;
 
-    private final RestTemplate restTemplate = new RestTemplate();
+    private final RestTemplate restTemplate;
     private final ObjectMapper objectMapper = new ObjectMapper();
     private final LtiRegistrationsProperties ltiRegistrations;
 
-    public LtiTokenService(LtiRegistrationsProperties ltiRegistrations) {
+    public LtiTokenService(RestTemplate restTemplate, LtiRegistrationsProperties ltiRegistrations) {
+        this.restTemplate = restTemplate;
         this.ltiRegistrations = ltiRegistrations;
     }
 
