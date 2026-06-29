@@ -39,7 +39,6 @@ public sealed interface MoodleWsResult<T> permits MoodleWsResult.Success, Moodle
 
     /**
      * Значение при {@link Success}; при {@link Failure} — бросает {@link MoodleWsException}
-     * (для caller'ов, которым сбой = исключительная ситуация, а не пустой результат).
      */
     default T orElseThrow() {
         return switch (this) {

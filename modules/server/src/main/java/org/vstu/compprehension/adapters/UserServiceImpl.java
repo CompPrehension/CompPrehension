@@ -114,8 +114,6 @@ public class UserServiceImpl implements UserService {
 
         EducationResourceEntity eduRes = educationResourceService.getOrCreateTrusted(ctx.lmsUrl(), ctx.lmsType());
 
-        // Базовый глобальный доступ на чтение общего пула упражнений. STUDENT на GLOBAL scope
-        // даёт только глобальный VIEW_EXERCISE (просмотр/импорт пула); edit/create/delete пула — нет.
         authService.assignGlobalRole(user.getId(), Role.STUDENT);
 
         boolean externalAccountNonExists = externalAccountService.findByUserAndEducationResource(
@@ -125,8 +123,6 @@ public class UserServiceImpl implements UserService {
             externalAccountService.createOrGetExisting(user.getId(), eduRes.getId(), parsedIdToken.getSubject());
         }
 
-        // Роль уровня education-resource переназначается целиком: Administrator → EDU_ADMIN,
-        // иначе роль снимается (если была) — потеря админства в Moodle отражается при входе.
         Role eduResRole = ltiRoles.contains("ROLE_Administrator") ? Role.EDUCATION_RESOURCE_ADMIN : null;
         authService.reconcileRoleInEducationResource(user.getId(), eduRes.getId(), eduResRole);
 
@@ -134,9 +130,6 @@ public class UserServiceImpl implements UserService {
         if (course != null) {
             Role courseRole = mapLtiCourseRole(ltiRoles);
             if (courseRole != null) {
-                // Тот же diff-движок, что и фоновая синхронизация ролей, но на одном
-                // (user, course): заменяет изменившуюся роль и не плодит дубли. coursesToSweep
-                // ограничен текущим курсом — роли пользователя в других курсах не трогаются.
                 authService.reconcileCourseRoleAssignments(
                         eduRes.getId(),
                         List.of(user.getId()),
@@ -148,8 +141,6 @@ public class UserServiceImpl implements UserService {
 
     private void applyKeycloakRoles(UserEntity user, Set<String> keycloakRoles) {
         Role globalRole = mapKeycloakGlobalRole(keycloakRoles);
-        // Keycloak — источник истины для GLOBAL-роли: при понижении (admin→teacher→student)
-        // прежняя роль снимается, остаётся ровно актуальная.
         authService.reconcileGlobalRole(user.getId(), globalRole);
     }
 

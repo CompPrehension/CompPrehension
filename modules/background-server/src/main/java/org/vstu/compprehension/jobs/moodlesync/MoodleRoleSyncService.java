@@ -205,10 +205,7 @@ public class MoodleRoleSyncService {
      * <p>Без этого шага один удалённый курс ронял весь bulk-вызов
      * {@code core_enrol_get_enrolled_users_with_capability} (он бросает
      * {@code dml_missing_record_exception} на первом отсутствующем id), и синхронизация
-     * среды прерывалась целиком.
      *
-     * <p>Если вызов проверки не удался ({@link MoodleWsException}) - возвращаем пустой список,
-     * чтобы прервать среду и НЕ принять временный сбой WS за «все курсы удалены».
      */
     private List<CourseEntity> detachDeletedCourses(
             EducationResourceEntity env, String wsToken, List<CourseEntity> courses) {

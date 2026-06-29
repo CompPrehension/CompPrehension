@@ -50,8 +50,6 @@ public class ExerciseAttemptService {
 
     @Transactional(propagation = Propagation.REQUIRED)
     public ExerciseAttemptEntity createNewAttempt(@NotNull Long exerciseId, @NotNull Long userId, Long courseId) {
-        // Fallback: if the client did not pass courseId, recover it from the current LTI context
-        // so the attempt is course-scoped and grade passback (which requires a course) still works.
         Long resolvedCourseId = courseId != null
                 ? courseId
                 : ltiContextProvider.getCurrentLtiContext()
@@ -90,11 +88,6 @@ public class ExerciseAttemptService {
         return ea;
     }
 
-    /**
-     * Восстанавливает trainer-courseId из LTI-контекста (когда клиент не передал courseId): резолвит
-     * education resource по (url, type) и курс по (externalCourseId, eduResId). Read-only, без создания —
-     * курс уже создан при LTI-запуске. Пусто, если в контексте нет курса или он не найден.
-     */
     private Optional<Long> resolveCourseIdFromContext(LtiContext ctx) {
         LtiCourseContext course = ctx.course();
         if (course == null || course.courseId() == null) {

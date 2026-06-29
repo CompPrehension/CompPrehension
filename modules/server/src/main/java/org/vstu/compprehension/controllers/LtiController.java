@@ -217,12 +217,6 @@ public class LtiController {
         response.sendRedirect(redirectUrl);
     }
 
-    /**
-     * Deep-linking посадочный endpoint: запуск из блока «Настроить курс» и из штатного
-     * Moodle «Выбрать содержимое» приходят сюда одинаковым {@code LtiDeepLinkingRequest}.
-     * Авторизует преподавателя, создаёт/находит курс и редиректит на страницу курса в
-     * тренажёре (там фронт по контексту iframe/окно решает, показывать ли отправку в Moodle).
-     */
     @SneakyThrows
     @RequestMapping(method = {RequestMethod.POST, RequestMethod.GET}, path = {"1_3/configure-course"})
     public void configureCourse(HttpServletRequest request, HttpServletResponse response) {

@@ -25,11 +25,6 @@ import org.vstu.compprehension.service.lti.DeepLinkingResponseService;
 import java.util.ArrayList;
 import java.util.List;
 
-/**
- * SPA-facing endpoints для LTI Deep Linking. Лежат под {@code /api} (за Spring Security),
- * чтобы SecurityContext восстанавливался из сессии запуска и работал {@code getCurrentUser()}.
- * Курс определяется по серверному LTI-контексту (клиентский id не доверяется).
- */
 @Controller
 @RequestMapping("api/lti/deep-link")
 @RequiredArgsConstructor
