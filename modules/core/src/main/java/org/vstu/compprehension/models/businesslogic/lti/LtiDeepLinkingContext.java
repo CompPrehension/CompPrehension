@@ -4,7 +4,7 @@ import java.util.List;
 
 /**
  * Данные LTI 1.3 Deep Linking запроса текущей сессии, нужные для сборки ответного
- * {@code LtiDeepLinkingResponse} и для дедупа уже добавленных активностей через AGS.
+ * {@code LtiDeepLinkingResponse} и для дедубликации уже добавленных активностей через AGS.
  *
  * <p>Присутствует только если запуск пришёл как {@code LtiDeepLinkingRequest}
  * (из блока или из штатного "Select content"); иначе {@code null}.
@@ -15,7 +15,7 @@ import java.util.List;
  * @param deepLinkReturnUrl URL, куда POST-ится подписанный ответ (contentitem_return.php)
  * @param data             значение из {@code deep_linking_settings.data}; обязано
  *                         вернуться без изменений (может быть {@code null})
- * @param lineitemsUrl     AGS-контейнер line items курса (для дедупа); может быть {@code null}
+ * @param lineitemsUrl     AGS-контейнер line items курса (для дедубликации); может быть {@code null}
  * @param agsScopes        выданные AGS-скоупы (может быть {@code null})
  */
 public record LtiDeepLinkingContext(

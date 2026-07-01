@@ -32,7 +32,7 @@ import java.util.UUID;
 
 /**
  * Сборка и подпись ответа LTI 1.3 Deep Linking ({@code LtiDeepLinkingResponse}) и
- * чтение уже добавленных в курс активностей через AGS line items (для дедупа).
+ * чтение уже добавленных в курс активностей через AGS line items (для дедубликаци).
  *
  * <p>Подпись и client_credentials-токен делаются тем же ключом регистрации, что и в
  * {@link org.vstu.compprehension.service.gradepassback.LtiAgsGradePassbackStrategy}.
