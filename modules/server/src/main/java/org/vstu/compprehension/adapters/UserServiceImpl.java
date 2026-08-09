@@ -102,7 +102,7 @@ public class UserServiceImpl implements UserService {
         if (isLti) {
             applyLtiRoles(entity, parsedIdToken, authorities);
         } else {
-            applyKeycloakRoles(entity, authorities);
+            applyKeycloakRoles(entity);
         }
 
         return entity;
@@ -139,15 +139,8 @@ public class UserServiceImpl implements UserService {
         }
     }
 
-    private void applyKeycloakRoles(UserEntity user, Set<String> keycloakRoles) {
-        Role globalRole = mapKeycloakGlobalRole(keycloakRoles);
-        authService.reconcileGlobalRole(user.getId(), globalRole);
-    }
-
-    private Role mapKeycloakGlobalRole(Collection<String> keycloakRoles) {
-        if (keycloakRoles.contains("ROLE_Administrator")) return Role.GLOBAL_ADMIN;
-        if (keycloakRoles.contains("ROLE_Teacher")) return Role.TEACHER;
-        return Role.STUDENT;
+    private void applyKeycloakRoles(UserEntity user) {
+        authService.assignGlobalRole(user.getId(), Role.STUDENT);
     }
 
     private Role mapLtiCourseRole(Collection<String> ltiRoles) {
