@@ -37,19 +37,12 @@ public class AuthService {
     private final CourseRepository courseRepository;
     private final RbacBulkInsertExecutor rbacBulkInsertExecutor;
 
-    public boolean isAuthorized(long userId, String permission, PermissionScope scope) {
-        return ruaRepository.isUserAuthorized(userId, permission, scope.kind().name(), scope.itemId()) != 0L;
-    }
-
     public boolean isAuthorized(long userId, Permission permission, PermissionScope scope) {
         if (!permission.isAllowedIn(scope.kind())) {
             return false;
         }
-        return isAuthorized(userId, permission.name(), scope);
-    }
-
-    public boolean isAuthorizedGlobal(long userId, String permission) {
-        return isAuthorized(userId, permission, PermissionScope.global());
+        return ruaRepository.isUserAuthorized(
+                userId, permission.name(), scope.kind().name(), scope.itemId()) != 0L;
     }
 
     public boolean isAuthorizedGlobal(long userId, Permission permission) {
