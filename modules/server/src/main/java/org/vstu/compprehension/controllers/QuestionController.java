@@ -6,6 +6,7 @@ import org.springframework.context.i18n.LocaleContextHolder;
 import org.springframework.stereotype.Controller;
 import org.springframework.web.bind.annotation.*;
 import org.vstu.compprehension.Service.AuthService;
+import org.vstu.compprehension.Service.ExerciseAttemptService;
 import org.vstu.compprehension.Service.FrontendService;
 import org.vstu.compprehension.Service.UserService;
 import org.vstu.compprehension.dto.InteractionDto;
@@ -23,11 +24,14 @@ public class QuestionController {
     private final FrontendService frontendService;
     private final UserService userService;
     private final AuthService authService;
+    private final ExerciseAttemptService exerciseAttemptService;
 
-    public QuestionController(FrontendService frontendService, UserService userService, AuthService authService) {
+    public QuestionController(FrontendService frontendService, UserService userService, AuthService authService,
+                              ExerciseAttemptService exerciseAttemptService) {
         this.frontendService = frontendService;
         this.userService = userService;
         this.authService = authService;
+        this.exerciseAttemptService = exerciseAttemptService;
     }
 
     /**
@@ -41,6 +45,8 @@ public class QuestionController {
             consumes = "application/json")
     @ResponseBody
     public FeedbackDto addQuestionAnswer(@RequestBody InteractionDto interaction, HttpServletRequest request) throws Exception {
+        var userId = userService.getCurrentUser().getId();
+        exerciseAttemptService.ensureCanAccessQuestion(userId, interaction.getQuestionId());
         return frontendService.addQuestionAnswer(interaction);
     }
 
@@ -55,6 +61,8 @@ public class QuestionController {
             consumes = "application/json")
     @ResponseBody
     public SupplementaryFeedbackDto addSupplementaryQuestionAnswer(@RequestBody InteractionDto interaction, HttpServletRequest request) throws Exception {
+        var userId = userService.getCurrentUser().getId();
+        exerciseAttemptService.ensureCanAccessQuestion(userId, interaction.getQuestionId());
         return frontendService.addSupplementaryQuestionAnswer(interaction);
     }
 
@@ -68,6 +76,8 @@ public class QuestionController {
     @RequestMapping(value = {"generate"}, method = { RequestMethod.GET })
     @ResponseBody
     public QuestionDto generateQuestion(Long attemptId, HttpServletRequest request) throws Exception {
+        var userId = userService.getCurrentUser().getId();
+        exerciseAttemptService.ensureCanAccessAttempt(userId, attemptId);
         var locale = LocaleContextHolder.getLocale();
         return frontendService.generateQuestion(attemptId);
     }
@@ -98,6 +108,8 @@ public class QuestionController {
     @RequestMapping(value = {"generateSupplementaryQuestion"}, method = { RequestMethod.POST })
     @ResponseBody
     public SupplementaryQuestionDto generateSupplementaryQuestion(@RequestBody SupplementaryQuestionRequestDto questionRequest, HttpServletRequest request) throws Exception {
+        var userId = userService.getCurrentUser().getId();
+        exerciseAttemptService.ensureCanAccessQuestion(userId, questionRequest.getQuestionId());
         var locale = LocaleContextHolder.getLocale();
         return frontendService.generateSupplementaryQuestion(questionRequest.getQuestionId(), questionRequest.getViolationLaws());
     }
@@ -112,6 +124,8 @@ public class QuestionController {
     @RequestMapping(method = { RequestMethod.GET })
     @ResponseBody
     public QuestionDto getQuestion(Long questionId, HttpServletRequest request) throws Exception {
+        var userId = userService.getCurrentUser().getId();
+        exerciseAttemptService.ensureCanAccessQuestion(userId, questionId);
         return frontendService.getQuestion(questionId);
     }
 
@@ -125,6 +139,8 @@ public class QuestionController {
     @RequestMapping(value = {"generateNextCorrectAnswer"}, method = { RequestMethod.GET })
     @ResponseBody
     public FeedbackDto generateNextCorrectAnswer(@RequestParam Long questionId, HttpServletRequest request) throws Exception {
+        var userId = userService.getCurrentUser().getId();
+        exerciseAttemptService.ensureCanAccessQuestion(userId, questionId);
         var locale = LocaleContextHolder.getLocale();
         return frontendService.generateNextCorrectAnswer(questionId);
     }

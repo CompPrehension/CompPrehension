@@ -4,6 +4,7 @@ import org.jetbrains.annotations.NotNull;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Propagation;
 import org.springframework.transaction.annotation.Transactional;
+import org.vstu.compprehension.models.businesslogic.auth.AuthObjects.Permission;
 import org.vstu.compprehension.models.businesslogic.lti.LtiContext;
 import org.vstu.compprehension.models.businesslogic.lti.LtiCourseContext;
 import org.vstu.compprehension.models.entities.EnumData.AttemptStatus;
@@ -12,6 +13,7 @@ import org.vstu.compprehension.models.entities.ExerciseAttemptEntity;
 import org.vstu.compprehension.models.entities.course.CourseEntity;
 import org.vstu.compprehension.models.entities.course.ExerciseCourseLinkEntity;
 import org.vstu.compprehension.models.repository.ExerciseAttemptRepository;
+import org.vstu.compprehension.models.repository.ExerciseAttemptRepository.AttemptOwner;
 import org.vstu.compprehension.models.repository.UserRepository;
 
 import java.util.ArrayList;
@@ -26,6 +28,7 @@ public class ExerciseAttemptService {
     private final GradePassbackService gradePassbackService;
     private final CourseService courseService;
     private final EducationResourceService educationResourceService;
+    private final AuthService authService;
 
     public ExerciseAttemptService(ExerciseAttemptRepository exerciseAttemptRepository,
                                   ExerciseService exerciseService,
@@ -33,7 +36,8 @@ public class ExerciseAttemptService {
                                   LtiContextProvider ltiContextProvider,
                                   GradePassbackService gradePassbackService,
                                   CourseService courseService,
-                                  EducationResourceService educationResourceService) {
+                                  EducationResourceService educationResourceService,
+                                  AuthService authService) {
         this.exerciseAttemptRepository = exerciseAttemptRepository;
         this.exerciseService = exerciseService;
         this.userRepository = userRepository;
@@ -41,11 +45,38 @@ public class ExerciseAttemptService {
         this.gradePassbackService = gradePassbackService;
         this.courseService = courseService;
         this.educationResourceService = educationResourceService;
+        this.authService = authService;
     }
 
     @Transactional(readOnly = true)
     public Optional<ExerciseAttemptEntity> findById(Long attemptId) {
         return exerciseAttemptRepository.findById(attemptId);
+    }
+
+    @Transactional(readOnly = true)
+    public void ensureCanAccessAttempt(long userId, long attemptId) {
+        AttemptOwner owner = exerciseAttemptRepository.findOwnerByAttemptId(attemptId)
+                .orElseThrow(() -> new IllegalArgumentException("No attempt with id " + attemptId));
+        ensureOwnerOrPrivileged(userId, owner, attemptId);
+    }
+
+    @Transactional(readOnly = true)
+    public void ensureCanAccessQuestion(long userId, long questionId) {
+        AttemptOwner owner = exerciseAttemptRepository.findOwnerByQuestionId(questionId)
+                .orElseThrow(() -> new IllegalArgumentException("No attempt for question " + questionId));
+        ensureOwnerOrPrivileged(userId, owner, questionId);
+    }
+
+    private void ensureOwnerOrPrivileged(long userId, AttemptOwner owner, long targetId) {
+        if (owner.userId() != null && owner.userId() == userId) {
+            authService.ensureAuthorized(userId, Permission.SOLVE_EXERCISE, owner.courseId());
+            return;
+        }
+        if (authService.isAuthorized(userId, Permission.EDIT_EXERCISE, owner.courseId())) {
+            return;
+        }
+        throw new SecurityException(String.format(
+                "User %s is not allowed to access attempt data %s", userId, targetId));
     }
 
     @Transactional(propagation = Propagation.REQUIRED)

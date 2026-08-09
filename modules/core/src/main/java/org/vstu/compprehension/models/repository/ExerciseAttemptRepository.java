@@ -13,6 +13,10 @@ import java.util.Optional;
 
 @Repository
 public interface ExerciseAttemptRepository extends CrudRepository<ExerciseAttemptEntity, Long> {
+
+    record AttemptOwner(Long userId, Long courseId) {
+    }
+
     @Query("select a from ExerciseAttemptEntity a " +
             "inner join fetch a.exercise " +
             "left join fetch a.questions q " +
@@ -21,6 +25,22 @@ public interface ExerciseAttemptRepository extends CrudRepository<ExerciseAttemp
     Optional<ExerciseAttemptEntity> findByQuestionId(long questionId);
     @Query("select distinct a from ExerciseAttemptEntity a inner join fetch a.exercise left join fetch a.questions left join fetch a.user left join fetch a.course where a.id = ?1")
     Optional<ExerciseAttemptEntity> getById(Long attemptId);
+
+    @Query("""
+            select new org.vstu.compprehension.models.repository.ExerciseAttemptRepository$AttemptOwner(a.user.id, a.course.id)
+            from ExerciseAttemptEntity a
+            where a.id = :attemptId
+            """)
+    Optional<AttemptOwner> findOwnerByAttemptId(@Param("attemptId") long attemptId);
+
+    @Query("""
+            select new org.vstu.compprehension.models.repository.ExerciseAttemptRepository$AttemptOwner(a.user.id, a.course.id)
+            from ExerciseAttemptEntity a
+            where a.id in (
+                select q.exerciseAttempt.id from QuestionEntity q
+                where q.id = :questionId and q.exerciseAttempt is not null)
+            """)
+    Optional<AttemptOwner> findOwnerByQuestionId(@Param("questionId") long questionId);
     @Query("select distinct a from ExerciseAttemptEntity a inner join fetch a.exercise left join fetch a.questions left join fetch a.user where a.exercise.id = ?1 and a.user.id = ?2 and a.attemptStatus = ?3")
     Optional<ExerciseAttemptEntity> getLastWithStatus(Long exerciseId, Long userId, AttemptStatus status);
     @Query("select distinct a from ExerciseAttemptEntity a inner join fetch a.exercise left join fetch a.questions left join fetch a.user left join fetch a.course where a.exercise.id = ?1 and a.course.id = ?2 and a.user.id = ?3 and a.attemptStatus = ?4")

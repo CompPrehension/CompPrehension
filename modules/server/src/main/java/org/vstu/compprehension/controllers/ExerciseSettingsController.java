@@ -69,6 +69,8 @@ public class ExerciseSettingsController {
     @RequestMapping(value = {"exercise/global-pool"}, method = {RequestMethod.GET})
     @ResponseBody
     public List<ExerciseDto> getGlobalPool() {
+        var userId = userService.getCurrentUser().getId();
+        authService.ensureAuthorizedGlobal(userId, Permission.VIEW_EXERCISE);
         return exerciseService.getPublicExercises();
     }
 

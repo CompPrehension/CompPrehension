@@ -80,11 +80,16 @@ public class AuthService {
         }
     }
 
+    public boolean isAuthorized(long userId, Permission permission, Long courseId) {
+        return courseId != null
+                ? isAuthorizedInCourse(userId, permission, courseId)
+                : isAuthorizedGlobal(userId, permission);
+    }
+
     public void ensureAuthorized(long userId, Permission permission, Long courseId) {
-        if (courseId != null) {
-            ensureAuthorizedInCourse(userId, permission, courseId);
-        } else {
-            ensureAuthorizedGlobal(userId, permission);
+        if (!isAuthorized(userId, permission, courseId)) {
+            throw new SecurityException(String.format(
+                    "User %s has no %s permission in course %s", userId, permission, courseId));
         }
     }
 
