@@ -2,7 +2,7 @@ package org.vstu.compprehension.models.entities.converters;
 
 import jakarta.persistence.AttributeConverter;
 import jakarta.persistence.Converter;
-import org.vstu.compprehension.models.entities.EnumData.Permission;
+import org.vstu.compprehension.models.businesslogic.auth.AuthObjects.Permission;
 
 @Converter(autoApply = true)
 public class PermissionConverter implements AttributeConverter<Permission, String> {

@@ -37,7 +37,7 @@ import org.vstu.compprehension.Service.EducationResourceService;
 import org.vstu.compprehension.Service.UserService;
 import org.vstu.compprehension.service.lti.LtiContextInitializer;
 import org.vstu.compprehension.Service.LtiContextProvider;
-import org.vstu.compprehension.models.entities.EnumData.Permission;
+import org.vstu.compprehension.models.businesslogic.auth.AuthObjects.Permission;
 import org.vstu.compprehension.common.StringHelper;
 import org.vstu.compprehension.config.LtiRegistrationsProperties;
 import org.vstu.compprehension.models.businesslogic.lti.LtiContext;

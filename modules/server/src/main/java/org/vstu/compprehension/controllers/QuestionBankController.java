@@ -15,7 +15,7 @@ import org.vstu.compprehension.dto.QuestionBankSearchStatsDto;
 import org.vstu.compprehension.models.businesslogic.QuestionRequest;
 import org.vstu.compprehension.models.businesslogic.domains.DomainFactory;
 import org.vstu.compprehension.models.businesslogic.storage.QuestionBank;
-import org.vstu.compprehension.models.entities.EnumData.Permission;
+import org.vstu.compprehension.models.businesslogic.auth.AuthObjects.Permission;
 import org.vstu.compprehension.models.entities.EnumData.RoleInExercise;
 
 import java.util.Objects;

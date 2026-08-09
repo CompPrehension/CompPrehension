@@ -12,7 +12,7 @@ import org.vstu.compprehension.Service.AuthService;
 import org.vstu.compprehension.Service.UserService;
 import org.vstu.compprehension.dto.UserInfoDto;
 import org.vstu.compprehension.models.entities.EnumData.Language;
-import org.vstu.compprehension.models.entities.EnumData.Role;
+import org.vstu.compprehension.models.businesslogic.auth.AuthObjects.Role;
 import org.vstu.compprehension.models.entities.UserEntity;
 import org.vstu.compprehension.utils.Mapper;
 

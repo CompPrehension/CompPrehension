@@ -9,7 +9,7 @@ import org.springframework.transaction.annotation.Transactional;
 import org.vstu.compprehension.Service.AuthService;
 import org.vstu.compprehension.Service.ExerciseAttemptService;
 import org.vstu.compprehension.Service.GradePassbackService;
-import org.vstu.compprehension.models.entities.EnumData.Role;
+import org.vstu.compprehension.models.businesslogic.auth.AuthObjects.Role;
 import org.vstu.compprehension.models.entities.ExerciseAttemptEntity;
 import org.vstu.compprehension.service.gradepassback.GradePassbackStrategy;
 

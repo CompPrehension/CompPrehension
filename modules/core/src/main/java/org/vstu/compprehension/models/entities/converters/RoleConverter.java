@@ -2,7 +2,7 @@ package org.vstu.compprehension.models.entities.converters;
 
 import jakarta.persistence.AttributeConverter;
 import jakarta.persistence.Converter;
-import org.vstu.compprehension.models.entities.EnumData.Role;
+import org.vstu.compprehension.models.businesslogic.auth.AuthObjects.Role;
 
 @Converter(autoApply = true)
 public class RoleConverter implements AttributeConverter<Role, String> {

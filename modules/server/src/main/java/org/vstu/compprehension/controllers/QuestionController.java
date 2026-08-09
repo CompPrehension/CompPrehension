@@ -14,7 +14,7 @@ import org.vstu.compprehension.dto.SupplementaryQuestionDto;
 import org.vstu.compprehension.dto.SupplementaryQuestionRequestDto;
 import org.vstu.compprehension.dto.feedback.FeedbackDto;
 import org.vstu.compprehension.dto.question.QuestionDto;
-import org.vstu.compprehension.models.entities.EnumData.Permission;
+import org.vstu.compprehension.models.businesslogic.auth.AuthObjects.Permission;
 
 @Controller
 @RequestMapping("api/question")

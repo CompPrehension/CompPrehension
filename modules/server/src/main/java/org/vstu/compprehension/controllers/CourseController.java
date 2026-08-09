@@ -11,7 +11,7 @@ import org.vstu.compprehension.Service.AuthService;
 import org.vstu.compprehension.Service.CourseService;
 import org.vstu.compprehension.Service.UserService;
 import org.vstu.compprehension.dto.course.CourseDto;
-import org.vstu.compprehension.models.entities.EnumData.Permission;
+import org.vstu.compprehension.models.businesslogic.auth.AuthObjects.Permission;
 
 import java.util.List;
 

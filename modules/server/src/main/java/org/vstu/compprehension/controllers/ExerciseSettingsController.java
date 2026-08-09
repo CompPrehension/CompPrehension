@@ -11,7 +11,7 @@ import org.vstu.compprehension.Service.ExerciseService;
 import org.vstu.compprehension.Service.UserService;
 import org.vstu.compprehension.dto.ExerciseCardDto;
 import org.vstu.compprehension.dto.ExerciseDto;
-import org.vstu.compprehension.models.entities.EnumData.Permission;
+import org.vstu.compprehension.models.businesslogic.auth.AuthObjects.Permission;
 
 import java.util.List;
 
