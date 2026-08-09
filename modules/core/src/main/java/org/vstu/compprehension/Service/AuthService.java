@@ -6,6 +6,7 @@ import org.springframework.transaction.annotation.Transactional;
 import org.vstu.compprehension.models.businesslogic.auth.AuthObjects.Permission;
 import org.vstu.compprehension.models.entities.EnumData.PermissionScopeKind;
 import org.vstu.compprehension.models.businesslogic.auth.AuthObjects.Role;
+import org.vstu.compprehension.models.entities.EnumData.PermissionScope;
 import org.vstu.compprehension.models.entities.role.PermissionScopeEntity;
 import org.vstu.compprehension.models.entities.role.RoleEntity;
 import org.vstu.compprehension.models.entities.role.RoleUserAssignmentEntity;
@@ -13,8 +14,10 @@ import org.vstu.compprehension.models.repository.*;
 
 import java.util.ArrayList;
 import java.util.Collection;
+import java.util.EnumSet;
 import java.util.HashMap;
 import java.util.HashSet;
+import java.util.LinkedHashSet;
 import java.util.List;
 import java.util.Map;
 import java.util.Set;
@@ -31,46 +34,57 @@ public class AuthService {
     private final RoleUserAssignmentRepository ruaRepository;
     private final RoleRepository roleRepository;
     private final PermissionScopeRepository scopeRepository;
+    private final CourseRepository courseRepository;
     private final RbacBulkInsertExecutor rbacBulkInsertExecutor;
 
-    public boolean isAuthorizedGlobal(long userId, Permission permission) {
-        return ruaRepository.isUserAuthorized(userId, permission, null, null);
+    public boolean isAuthorized(long userId, String permission, PermissionScope scope) {
+        return ruaRepository.isUserAuthorized(userId, permission, scope.kind().name(), scope.itemId()) != 0L;
     }
 
-    public boolean isGlobalAdmin(long userId) {
-        return ruaRepository.existsByUser_IdAndRole_NameAndPermissionScope_Kind(
-                userId, Role.GLOBAL_ADMIN, PermissionScopeKind.GLOBAL);
+    public boolean isAuthorized(long userId, Permission permission, PermissionScope scope) {
+        if (!permission.isAllowedIn(scope.kind())) {
+            return false;
+        }
+        return isAuthorized(userId, permission.name(), scope);
+    }
+
+    public boolean isAuthorizedGlobal(long userId, String permission) {
+        return isAuthorized(userId, permission, PermissionScope.global());
+    }
+
+    public boolean isAuthorizedGlobal(long userId, Permission permission) {
+        return isAuthorized(userId, permission, PermissionScope.global());
     }
 
     public boolean isAuthorizedInCourse(long userId, Permission permission, Long courseId) {
         if (courseId == null) {
             return false;
         }
-        return ruaRepository.isUserAuthorized(userId, permission, courseId, null);
+        if (isAuthorized(userId, permission, PermissionScope.course(courseId))) {
+            return true;
+        }
+        Long eduResId = courseRepository.findEducationResourceIdByCourseId(courseId).orElse(null);
+        return eduResId != null && isAuthorized(userId, permission, PermissionScope.educationResource(eduResId));
     }
 
-    public boolean isAuthorizedInEducationResource(long userId, Permission permission, Long educationResourceId) {
-        if (educationResourceId == null) {
-            return false;
+    public boolean isGlobalAdmin(long userId) {
+        return ruaRepository.existsGlobalRole(userId, Role.GLOBAL_ADMIN);
+    }
+
+    public void ensureAuthorized(long userId, Permission permission, PermissionScope scope) {
+        if (!isAuthorized(userId, permission, scope)) {
+            throw new SecurityException(String.format(
+                    "User %s has no %s permission in scope %s#%s", userId, permission, scope.kind(), scope.itemId()));
         }
-        return ruaRepository.isUserAuthorized(userId, permission, null, educationResourceId);
     }
 
     public void ensureAuthorizedGlobal(long userId, Permission permission) {
-        if (!isAuthorizedGlobal(userId, permission)) {
-            throw new SecurityException(String.format("User %s has no %s permission (global)", userId, permission));
-        }
+        ensureAuthorized(userId, permission, PermissionScope.global());
     }
 
     public void ensureAuthorizedInCourse(long userId, Permission permission, Long courseId) {
         if (!isAuthorizedInCourse(userId, permission, courseId)) {
             throw new SecurityException(String.format("User %s has no %s permission in course %s", userId, permission, courseId));
-        }
-    }
-
-    public void ensureAuthorizedInEducationResource(long userId, Permission permission, Long educationResourceId) {
-        if (!isAuthorizedInEducationResource(userId, permission, educationResourceId)) {
-            throw new SecurityException(String.format("User %s has no %s permission in educationResource %s", userId, permission, educationResourceId));
         }
     }
 
@@ -84,105 +98,62 @@ public class AuthService {
 
     @Transactional
     public void assignGlobalRole(long userId, Role role) {
-        assignRoleInternal(userId, role, PermissionScopeKind.GLOBAL, null, null);
+        assignRoleInternal(userId, role, PermissionScopeKind.GLOBAL, null);
     }
 
     @Transactional
-    public void assignRoleInCourse(long userId, Role role, Long courseId) {
-        assignRoleInternal(userId, role, PermissionScopeKind.COURSE, courseId, null);
+    public void assignRole(long userId, Role role, PermissionScopeKind kind, Long scopeItemId) {
+        assignRoleInternal(userId, role, kind, scopeItemId);
     }
 
     @Transactional
-    public void assignRoleInEducationResource(long userId, Role role, Long educationResourceId) {
-        assignRoleInternal(userId, role, PermissionScopeKind.EDUCATION_RESOURCE, null, educationResourceId);
-    }
-
-    @Transactional
-    public void revokeGlobalRole(long userId, Role role) {
-        ruaRepository.deleteGlobalRole(userId, role);
-    }
-
-    @Transactional
-    public void revokeRoleInCourse(long userId, Role role, Long courseId) {
-        ruaRepository.deleteCourseRole(userId, role, courseId);
-    }
-
-    @Transactional
-    public void revokeRoleInEducationResource(long userId, Role role, Long educationResourceId) {
-        ruaRepository.deleteEducationResourceRole(userId, role, educationResourceId);
+    public void revokeRole(long userId, Role role, PermissionScopeKind kind, Long scopeItemId) {
+        ruaRepository.deleteRoleInScope(userId, role, kind, scopeItemId);
     }
 
     public List<Role> findRolesInCourse(long userId, Long courseId) {
-        return ruaRepository.findRolesInScope(userId, courseId);
+        if (courseId == null) {
+            return ruaRepository.findRolesInScope(userId, PermissionScopeKind.GLOBAL, null);
+        }
+        Set<Role> roles = new LinkedHashSet<>(
+                ruaRepository.findRolesInScope(userId, PermissionScopeKind.COURSE, courseId));
+        courseRepository.findEducationResourceIdByCourseId(courseId).ifPresent(eduResId ->
+                roles.addAll(ruaRepository.findRolesInScope(userId, PermissionScopeKind.EDUCATION_RESOURCE, eduResId)));
+        if (isGlobalAdmin(userId)) {
+            roles.add(Role.GLOBAL_ADMIN);
+        }
+        return List.copyOf(roles);
     }
 
-    /**
-     * Есть ли у пользователя указанная роль в рамках курса.
-     *
-     * @param userId   пользователь
-     * @param courseId курс; {@code null} трактуется как "нет курса" и даёт {@code false}
-     * @param role     искомая роль
-     * @return {@code true}, если роль назначена пользователю в этом курсе
-     */
+    public List<Long> findCourseIdsWithAnyRole(long userId) {
+        return ruaRepository.findCourseIdsWithAnyRole(userId);
+    }
+
     public boolean hasRoleInCourse(long userId, Long courseId, Role role) {
-        return courseId != null && ruaRepository.existsRoleInScope(userId, courseId, role);
+        return courseId != null && ruaRepository.existsRoleInScope(userId, role, PermissionScopeKind.COURSE, courseId);
     }
 
-    private void assignRoleInternal(long userId, Role role, PermissionScopeKind kind, Long courseId, Long educationResourceId) {
-        scopeRepository.createIfAbsent(kind.name(), courseId, educationResourceId);
-        ruaRepository.createIfAbsent(userId, role.name(), kind.name(), courseId, educationResourceId);
+    private void assignRoleInternal(long userId, Role role, PermissionScopeKind kind, Long scopeItemId) {
+        scopeRepository.createIfAbsent(kind.name(), scopeItemId);
+        ruaRepository.createIfAbsent(userId, role.name(), kind.name(), scopeItemId);
     }
 
-    /**
-     * Делает указанную роль единственной GLOBAL-ролью пользователя: прочие GLOBAL-роли снимаются,
-     * заданная назначается (если её ещё нет). {@code desiredRole == null} -> снять все GLOBAL-роли.
-     *
-     * @param userId      пользователь
-     * @param desiredRole единственная роль, которая должна остаться на GLOBAL scope; {@code null} — ни одной
-     */
     @Transactional
     public void reconcileGlobalRole(long userId, Role desiredRole) {
-        ruaRepository.deleteGlobalRolesExcept(userId, desiredRole);
+        ruaRepository.deleteRolesInScopeExcept(userId, desiredRole, PermissionScopeKind.GLOBAL, null);
         if (desiredRole != null) {
-            assignRoleInternal(userId, desiredRole, PermissionScopeKind.GLOBAL, null, null);
+            assignRoleInternal(userId, desiredRole, PermissionScopeKind.GLOBAL, null);
         }
     }
 
-    /**
-     * Делает указанную роль единственной ролью пользователя в данном education-resource: прочие
-     * роли на этом scope снимаются, заданная назначается (если её ещё нет).
-     * {@code desiredRole == null} -> снять все роли пользователя в этом education-resource.
-     *
-     * @param userId              пользователь
-     * @param educationResourceId education-resource, в котором сверяется роль
-     * @param desiredRole         единственная роль, которая должна остаться; {@code null} — ни одной
-     */
     @Transactional
     public void reconcileRoleInEducationResource(long userId, Long educationResourceId, Role desiredRole) {
-        ruaRepository.deleteEducationResourceRolesExcept(userId, educationResourceId, desiredRole);
+        ruaRepository.deleteRolesInScopeExcept(userId, desiredRole, PermissionScopeKind.EDUCATION_RESOURCE, educationResourceId);
         if (desiredRole != null) {
-            assignRoleInternal(userId, desiredRole, PermissionScopeKind.EDUCATION_RESOURCE, null, educationResourceId);
+            assignRoleInternal(userId, desiredRole, PermissionScopeKind.EDUCATION_RESOURCE, educationResourceId);
         }
     }
 
-    /**
-     * Приводит COURSE-роли указанных пользователей в соответствие с {@code desiredAssignments}.
-     * Для каждой пары (пользователь, курс) из этого набора метод гарантирует, что после вызова
-     * у пользователя в данном курсе будет именно заданная роль: если роли не было — она
-     * назначается; если была другая — заменяется; если роль задана пустой ({@code role == null}) —
-     * текущая снимается. Можно передать как одну пару, так и сразу несколько.
-     *
-     * <p>Роли уровня EDUCATION_RESOURCE_ADMIN метод не трогает и никогда не снимает.
-     *
-     * <p>Лишние роли (которых нет в {@code desiredAssignments}) снимаются ТОЛЬКО в курсах из
-     * {@code coursesToSweep}; роли в остальных курсах сохраняются. Так вызывающий ограничивает
-     * зону снятия, например LTI-вход передаёт сюда только текущий курс.
-     *
-     * @param educationResourceId education-resource, в рамках которого сверяются роли
-     * @param userIdsToReconcile  пользователи, у которых проверяются и при необходимости снимаются COURSE-роли
-     * @param desiredAssignments  желаемые роли по парам (user, course); {@code role == null} - роли быть не должно
-     * @param coursesToSweep      курсы, в которых разрешено снимать роли, отсутствующие в {@code desiredAssignments}
-     */
     @Transactional
     public void reconcileCourseRoleAssignments(
             Long educationResourceId,
@@ -197,17 +168,15 @@ public class AuthService {
         List<RoleUserAssignmentEntity> existing =
                 ruaRepository.findCourseAssignmentsInEducationResource(educationResourceId, userIdsToReconcile);
 
-        // userId -> (courseId -> текущее COURSE-назначение)
         Map<Long, Map<Long, RoleUserAssignmentEntity>> currentByUserAndCourse = new HashMap<>();
         for (RoleUserAssignmentEntity rua : existing) {
             currentByUserAndCourse
                     .computeIfAbsent(rua.getUser().getId(), nothing -> new HashMap<>())
-                    .put(rua.getPermissionScope().getCourse().getId(), rua);
+                    .put(rua.getPermissionScope().getScopeItemId(), rua);
         }
 
         List<CourseRoleAssignment> courseInserts = new ArrayList<>();
         List<Long> toDelete = new ArrayList<>();
-        // userId -> (courseId -> желаемая роль): нужно, чтобы при sweep отличить "нет в desired"
         Map<Long, Map<Long, Role>> desiredByUserAndCourse = new HashMap<>();
 
         for (CourseRoleAssignment desired : desiredAssignments) {
@@ -283,8 +252,8 @@ public class AuthService {
                 .map(CourseRoleAssignment::courseId)
                 .collect(Collectors.toSet());
         Map<Long, PermissionScopeEntity> courseIdToScope = new HashMap<>();
-        scopeRepository.findByKindAndCourseIdIn(PermissionScopeKind.COURSE, courseIds)
-                .forEach(ps -> courseIdToScope.put(ps.getCourse().getId(), ps));
+        scopeRepository.findByKindAndScopeItemIdIn(PermissionScopeKind.COURSE, courseIds)
+                .forEach(ps -> courseIdToScope.put(ps.getScopeItemId(), ps));
 
         List<Long> coursesWithoutScope = courseIds.stream()
                 .filter(cid -> !courseIdToScope.containsKey(cid))
@@ -293,11 +262,11 @@ public class AuthService {
             rbacBulkInsertExecutor.insertPermissionScopesIgnoringDuplicates(
                     coursesWithoutScope.stream()
                             .map(cid -> new RbacBulkInsertExecutor.PermissionScopeRow(
-                                    PermissionScopeKind.COURSE.name(), cid, null))
+                                    PermissionScopeKind.COURSE.name(), cid))
                             .toList());
 
-            scopeRepository.findByKindAndCourseIdIn(PermissionScopeKind.COURSE, coursesWithoutScope)
-                    .forEach(ps -> courseIdToScope.put(ps.getCourse().getId(), ps));
+            scopeRepository.findByKindAndScopeItemIdIn(PermissionScopeKind.COURSE, coursesWithoutScope)
+                    .forEach(ps -> courseIdToScope.put(ps.getScopeItemId(), ps));
         }
         return courseIdToScope;
     }

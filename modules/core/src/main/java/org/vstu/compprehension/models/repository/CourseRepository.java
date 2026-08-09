@@ -8,6 +8,7 @@ import org.springframework.stereotype.Repository;
 import org.vstu.compprehension.dto.course.CourseDto;
 import org.vstu.compprehension.models.entities.course.CourseEntity;
 
+import java.util.Collection;
 import java.util.List;
 import java.util.Optional;
 
@@ -18,25 +19,13 @@ public interface CourseRepository extends JpaRepository<CourseEntity, Long> {
     List<CourseEntity> findByEducationResourceIdAndExternalCourseIdIsNotNull(Long educationResourceId);
 
     @Query("""
-            select c from CourseEntity c
-            where c.educationResource.id in (
-                select ea.educationResource.id from ExternalAccountEntity ea
-                where ea.user.id = :userId
-            )
-            """)
-    List<CourseEntity> findCoursesByUserId(@Param("userId") Long userId);
-
-    @Query("""
-            select distinct new org.vstu.compprehension.dto.course.CourseDto(
+            select new org.vstu.compprehension.dto.course.CourseDto(
                 c.id, c.name, c.educationResource.id, c.educationResource.url
             )
-            from RoleUserAssignmentEntity rua
-            join rua.permissionScope ps
-            join ps.course c
-            where rua.user.id = :userId
-              and ps.kind = org.vstu.compprehension.models.entities.EnumData.PermissionScopeKind.COURSE
+            from CourseEntity c
+            where c.id in :courseIds
             """)
-    List<CourseDto> findCourseDtosByUserId(@Param("userId") Long userId);
+    List<CourseDto> findCourseDtosByIdIn(@Param("courseIds") Collection<Long> courseIds);
 
     @Query("""
             select new org.vstu.compprehension.dto.course.CourseDto(
@@ -45,6 +34,9 @@ public interface CourseRepository extends JpaRepository<CourseEntity, Long> {
             from CourseEntity c
             """)
     List<CourseDto> findAllCourseDtos();
+
+    @Query("select c.educationResource.id from CourseEntity c where c.id = :courseId")
+    Optional<Long> findEducationResourceIdByCourseId(@Param("courseId") Long courseId);
 
     /**
      * Inserts a row only if no row with the same ({@link CourseEntity#educationResource}, {@link CourseEntity#externalCourseId}) exists.

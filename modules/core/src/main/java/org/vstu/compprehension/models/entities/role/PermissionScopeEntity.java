@@ -5,20 +5,12 @@ import lombok.Getter;
 import lombok.NoArgsConstructor;
 import lombok.Setter;
 import org.vstu.compprehension.models.entities.EnumData.PermissionScopeKind;
-import org.vstu.compprehension.models.entities.course.CourseEntity;
-import org.vstu.compprehension.models.entities.external_system.EducationResourceEntity;
 
 @Entity
 @Getter
 @Setter
 @NoArgsConstructor
-@Table(
-    name = "permission_scope",
-    uniqueConstraints = @UniqueConstraint(
-        name = "ux_permission_scope_kind_course_eduRes",
-        columnNames = {"kind", "course_id", "education_resource_id"}
-    )
-)
+@Table(name = "permission_scope")
 public class PermissionScopeEntity {
     @Id
     @GeneratedValue(strategy = GenerationType.IDENTITY)
@@ -28,13 +20,8 @@ public class PermissionScopeEntity {
     @Column(name = "kind", nullable = false, length = 32)
     private PermissionScopeKind kind;
 
-    @ManyToOne(fetch = FetchType.EAGER)
-    @JoinColumn(name = "course_id")
-    private CourseEntity course;
-
-    @ManyToOne(fetch = FetchType.EAGER)
-    @JoinColumn(name = "education_resource_id")
-    private EducationResourceEntity educationResource;
+    @Column(name = "scope_item_id")
+    private Long scopeItemId;
 
     public static PermissionScopeEntity ofGlobalScope() {
         var scope = new PermissionScopeEntity();
@@ -42,17 +29,17 @@ public class PermissionScopeEntity {
         return scope;
     }
 
-    public static PermissionScopeEntity ofCourseScope(CourseEntity course) {
+    public static PermissionScopeEntity ofCourseScope(Long courseId) {
         var scope = new PermissionScopeEntity();
         scope.kind = PermissionScopeKind.COURSE;
-        scope.course = course;
+        scope.scopeItemId = courseId;
         return scope;
     }
 
-    public static PermissionScopeEntity ofEducationResourceScope(EducationResourceEntity educationResource) {
+    public static PermissionScopeEntity ofEducationResourceScope(Long educationResourceId) {
         var scope = new PermissionScopeEntity();
         scope.kind = PermissionScopeKind.EDUCATION_RESOURCE;
-        scope.educationResource = educationResource;
+        scope.scopeItemId = educationResourceId;
         return scope;
     }
 }

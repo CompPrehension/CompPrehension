@@ -91,7 +91,11 @@ public class CourseService {
         if (authService.isGlobalAdmin(user.getId())) {
             return courseRepository.findAllCourseDtos();
         }
-        return courseRepository.findCourseDtosByUserId(user.getId());
+        List<Long> courseIds = authService.findCourseIdsWithAnyRole(user.getId());
+        if (courseIds.isEmpty()) {
+            return List.of();
+        }
+        return courseRepository.findCourseDtosByIdIn(courseIds);
     }
 
     @Transactional(readOnly = true)

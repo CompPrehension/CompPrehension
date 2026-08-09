@@ -16,17 +16,17 @@ public interface PermissionScopeRepository extends JpaRepository<PermissionScope
 
     @Query("""
         select ps from PermissionScopeEntity ps
-        where ps.kind = :kind and ps.course.id in :courseIds
+        where ps.kind = :kind and ps.scopeItemId in :scopeItemIds
         """)
-    List<PermissionScopeEntity> findByKindAndCourseIdIn(
+    List<PermissionScopeEntity> findByKindAndScopeItemIdIn(
             @Param("kind") PermissionScopeKind kind,
-            @Param("courseIds") Collection<Long> courseIds
+            @Param("scopeItemIds") Collection<Long> scopeItemIds
     );
 
     @Modifying
     @Query(value = """
-        insert ignore into permission_scope (kind, course_id, education_resource_id)
-        values (:kind, :courseId, :eduResId)
+        insert ignore into permission_scope (kind, scope_item_id)
+        values (:kind, :scopeItemId)
         """, nativeQuery = true)
-    int createIfAbsent(@Param("kind") String kind, @Param("courseId") Long courseId, @Param("eduResId") Long eduResId);
+    int createIfAbsent(@Param("kind") String kind, @Param("scopeItemId") Long scopeItemId);
 }
