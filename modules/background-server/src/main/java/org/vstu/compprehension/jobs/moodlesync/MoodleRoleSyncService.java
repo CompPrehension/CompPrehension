@@ -27,11 +27,15 @@ import java.util.HashSet;
 import java.util.List;
 import java.util.Map;
 import java.util.Set;
+import org.vstu.compprehension.utils.transactions.TransactionScope;
+import org.vstu.compprehension.utils.transactions.TransactionScopeFactory;
+
 import java.util.concurrent.CompletableFuture;
 import java.util.concurrent.Executors;
 import java.util.concurrent.ThreadFactory;
 import java.util.function.Function;
 import java.util.stream.Collectors;
+import java.util.stream.Stream;
 
 @Log4j2
 @Service
@@ -43,6 +47,7 @@ public class MoodleRoleSyncService {
     private final MoodleService moodleService;
     private final WsFuncMoodleConfig wsFuncMoodleConfig;
     private final MoodleSyncConfig syncConfig;
+    private final TransactionScope transactionScope;
 
     public MoodleRoleSyncService(
             EducationResourceRepository eduResourceRepo,
@@ -51,7 +56,8 @@ public class MoodleRoleSyncService {
             AuthService authService,
             MoodleService moodleService,
             WsFuncMoodleConfig wsFuncMoodleConfig,
-            MoodleSyncConfig syncConfig
+            MoodleSyncConfig syncConfig,
+            TransactionScopeFactory transactionScopeFactory
     ) {
         this.eduResourceRepo = eduResourceRepo;
         this.externalAccountRepo = externalAccountRepo;
@@ -60,18 +66,18 @@ public class MoodleRoleSyncService {
         this.moodleService = moodleService;
         this.wsFuncMoodleConfig = wsFuncMoodleConfig;
         this.syncConfig = syncConfig;
+        this.transactionScope = transactionScopeFactory.create(TransactionScope.PropagationBehavior.REQUIRES_NEW);
     }
 
     public void syncAll() {
-        List<EducationResourceEntity> trustedMoodles =
-                eduResourceRepo.findByTypeAndTrustStatus(EducationResourceType.MOODLE, EducationResourceTrustStatus.TRUSTED);
+        List<EducationResourceEntity> trustedMoodles = transactionScope.execute(() ->
+                eduResourceRepo.findByTypeAndTrustStatus(EducationResourceType.MOODLE, EducationResourceTrustStatus.TRUSTED));
         if (trustedMoodles.isEmpty()) {
             log.info("No trusted Moodle environments - skipping role sync");
             return;
         }
 
         ThreadFactory factory = Thread.ofVirtual().name("sync-job-", 0).factory();
-
         try (var vte = Executors.newThreadPerTaskExecutor(factory)) {
             var futures = trustedMoodles.stream()
                     .map(env -> CompletableFuture
@@ -88,14 +94,16 @@ public class MoodleRoleSyncService {
     void syncRolesInEnvironment(EducationResourceEntity env) {
         log.info("Moodle role sync: starting for {}", env.getUrl());
 
-        List<ExternalAccountEntity> accounts = externalAccountRepo.findByEducationResourceId(env.getId());
+        List<ExternalAccountEntity> accounts = transactionScope.execute(() ->
+                externalAccountRepo.findByEducationResourceId(env.getId()));
         if (accounts.isEmpty()) {
             log.info("Moodle role sync: no external accounts for {}, skipping", env.getUrl());
             return;
         }
 
-        List<CourseEntity> courses = courseRepo.findByEducationResourceIdAndExternalCourseIdIsNotNull(env.getId());
-        if (courses.isEmpty()) {
+        List<CourseEntity> knownCourses = transactionScope.execute(() ->
+                courseRepo.findByEducationResourceIdAndExternalCourseIdIsNotNull(env.getId()));
+        if (knownCourses.isEmpty()) {
             log.info("Moodle role sync: no courses with externalCourseId for {}, skipping", env.getUrl());
             return;
         }
@@ -108,7 +116,8 @@ public class MoodleRoleSyncService {
             return;
         }
 
-        courses = detachDeletedCourses(env, wsToken, courses);
+        CoursePartition partition = detachDeletedCourses(env, wsToken, knownCourses);
+        List<CourseEntity> courses = partition.live();
         if (courses.isEmpty()) {
             log.info("Moodle role sync: no live Moodle courses for {} after existence check, skipping", env.getUrl());
             return;
@@ -185,16 +194,21 @@ public class MoodleRoleSyncService {
             }
         }
 
-        Set<Long> managedCourseIds = courses.stream()
+        Set<Long> managedCourseIds = Stream.concat(courses.stream(), partition.detached().stream())
                 .map(CourseEntity::getId)
                 .collect(Collectors.toSet());
 
-        authService.reconcileCourseRoleAssignments(
-                env.getId(),
-                userIdByMoodleId.values(),
-                desiredAssignments,
-                managedCourseIds
-        );
+        transactionScope.executeNoResult(() -> {
+            if (!partition.detached().isEmpty()) {
+                courseRepo.saveAll(partition.detached());
+            }
+            authService.reconcileCourseRoleAssignments(
+                    env.getId(),
+                    userIdByMoodleId.values(),
+                    desiredAssignments,
+                    managedCourseIds
+            );
+        });
     }
 
     /**
@@ -207,7 +221,7 @@ public class MoodleRoleSyncService {
      * {@code dml_missing_record_exception} на первом отсутствующем id), и синхронизация
      *
      */
-    private List<CourseEntity> detachDeletedCourses(
+    private CoursePartition detachDeletedCourses(
             EducationResourceEntity env, String wsToken, List<CourseEntity> courses) {
         Set<String> requestedExtIds = courses.stream()
                 .map(CourseEntity::getExternalCourseId)
@@ -219,7 +233,7 @@ public class MoodleRoleSyncService {
         } catch (MoodleWsException ex) {
             log.warn("Moodle role sync: course existence check failed for {} - aborting environment: {}",
                     env.getUrl(), ex.getMessage());
-            return List.of();
+            return new CoursePartition(List.of(), List.of());
         }
 
         Map<Boolean, List<CourseEntity>> partition = courses.stream()
@@ -227,15 +241,15 @@ public class MoodleRoleSyncService {
         List<CourseEntity> liveCourses = partition.get(true);
         List<CourseEntity> deletedCourses = partition.get(false);
 
-        if (!deletedCourses.isEmpty()) {
-            for (CourseEntity course : deletedCourses) {
-                log.info("Moodle role sync: course '{}' (extId={}) no longer exists in {} - detaching",
-                        course.getName(), course.getExternalCourseId(), env.getUrl());
-                course.setExternalCourseId(null);
-            }
-            courseRepo.saveAll(deletedCourses);
+        for (CourseEntity course : deletedCourses) {
+            log.info("Moodle role sync: course '{}' (extId={}) no longer exists in {} - detaching",
+                    course.getName(), course.getExternalCourseId(), env.getUrl());
+            course.setExternalCourseId(null);
         }
-        return liveCourses;
+        return new CoursePartition(liveCourses, deletedCourses);
+    }
+
+    private record CoursePartition(List<CourseEntity> live, List<CourseEntity> detached) {
     }
 
     private Map<Long, Long> buildUserIdByMoodleIdMap(List<ExternalAccountEntity> accounts) {
@@ -248,7 +262,7 @@ public class MoodleRoleSyncService {
                 log.warn("ExternalAccount externalId is not numeric: {} - skip", ea.getExternalId());
                 continue;
             }
-            result.put(moodleId, ea.getUser().getId());
+            result.put(moodleId, ea.getId().getUserId());
         }
         return result;
     }
