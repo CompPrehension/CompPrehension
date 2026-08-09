@@ -26,7 +26,7 @@ export class TestExerciseController implements IExerciseController, IQuestionCon
             id: 999999,
             displayName: 'front user',
             email: 'test@mail.ru',
-            roles: ['ADMIN'],
+            permissions: ['VIEW_COURSE', 'VIEW_EXERCISE', 'CREATE_EXERCISE', 'EDIT_EXERCISE', 'DELETE_EXERCISE', 'SOLVE_EXERCISE'],
             language: "EN",
         })
     }

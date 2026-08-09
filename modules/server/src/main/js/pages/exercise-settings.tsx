@@ -25,8 +25,6 @@ import { useCurrentUser, useSession } from "../hooks/session-context";
 import { useCourseId } from "../hooks/use-course-id";
 import { ExerciseRowBadge } from "../components/exercise/exercise-row-badge";
 import { DeleteGlobalExerciseModal } from "../components/exercise/delete-global-exercise-modal";
-import { UserController } from "../controllers/exercise/user-controller";
-import * as E from "fp-ts/lib/Either";
 import { canEditExercises } from "../utils/roles";
 
 export const ExerciseSettings = observer(() => {
@@ -35,8 +33,7 @@ export const ExerciseSettings = observer(() => {
     const user = useCurrentUser();
     const session = useSession();
     const courseId = useCourseId();
-    const [contextRoles, setContextRoles] = useState<string[]>([]);
-    const canEdit = canEditExercises(contextRoles);
+    const canEdit = canEditExercises(exerciseStore.permissions);
     useEffect(() => {
         (async () => {
             await exerciseStore.loadExercises(courseId);
@@ -44,14 +41,6 @@ export const ExerciseSettings = observer(() => {
             const currentExercise = new URL(window.location.href).searchParams.get("exerciseId");
             if (currentExercise) {
                 await exerciseStore.loadExercise(Number.parseInt(currentExercise));
-            }
-        })()
-    }, [courseId]);
-    useEffect(() => {
-        (async () => {
-            const res = await container.resolve(UserController).getCurrentUser(courseId);
-            if (E.isRight(res)) {
-                setContextRoles(res.right.roles);
             }
         })()
     }, [courseId]);

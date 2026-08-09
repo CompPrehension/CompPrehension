@@ -8,6 +8,7 @@ import { ExerciseListItem } from '../types/exercise-settings';
 export class CourseStore {
     courseId: number | null = null;
     exercises: ExerciseListItem[] = [];
+    permissions: string[] = [];
     loadStatus: 'NONE' | 'LOADING' | 'LOADED' = 'NONE';
 
     constructor(
@@ -23,7 +24,10 @@ export class CourseStore {
         });
         const r = await this.courseController.getCourseExercises(courseId);
         if (E.isRight(r)) {
-            runInAction(() => { this.exercises = r.right; });
+            runInAction(() => {
+                this.exercises = r.right.exercises;
+                this.permissions = r.right.permissions;
+            });
         }
         runInAction(() => { this.loadStatus = 'LOADED'; });
     }

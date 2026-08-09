@@ -1,5 +1,5 @@
 import { injectable } from "tsyringe";
-import { Domain, ExerciseCard, ExerciseCardConcept, ExerciseCardLaw, ExerciseCardSkill, ExerciseListItem, QuestionBankSearchResult, Strategy, TDomain, TExerciseCard, TExerciseListItem, TQuestionBankSearchResult, TStrategy } from "../../types/exercise-settings";
+import { Domain, ExerciseCard, ExerciseCardConcept, ExerciseCardLaw, ExerciseCardSkill, ExerciseList, ExerciseListItem, QuestionBankSearchResult, Strategy, TDomain, TExerciseCard, TExerciseList, TExerciseListItem, TQuestionBankSearchResult, TStrategy } from "../../types/exercise-settings";
 import { ajaxDelete, ajaxGet, ajaxPost, ajaxPut, PromiseEither } from "../../utils/ajax";
 import * as io from 'io-ts';
 import { RequestError } from "../../types/request-error";
@@ -16,9 +16,9 @@ export class ExerciseSettingsController {
         return ajaxGet(`${API_URL}/api/exercise/all`, io.array(TExerciseListItem));
     }
 
-    listExercises(courseId: number | null): PromiseEither<RequestError, ExerciseListItem[]> {
+    listExercises(courseId: number | null): PromiseEither<RequestError, ExerciseList> {
         const q = courseId == null ? '' : `?courseId=${courseId}`;
-        return ajaxGet(`${API_URL}/api/exercise/list${q}`, io.array(TExerciseListItem));
+        return ajaxGet(`${API_URL}/api/exercise/list${q}`, TExerciseList);
     }
 
     getExercise(id: number, courseId: number | null = null): PromiseEither<RequestError, ExerciseCard> {

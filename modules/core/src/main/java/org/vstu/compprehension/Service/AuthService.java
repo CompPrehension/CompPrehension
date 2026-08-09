@@ -17,7 +17,6 @@ import java.util.Collection;
 import java.util.EnumSet;
 import java.util.HashMap;
 import java.util.HashSet;
-import java.util.LinkedHashSet;
 import java.util.List;
 import java.util.Map;
 import java.util.Set;
@@ -104,26 +103,53 @@ public class AuthService {
         ruaRepository.deleteRoleInScope(userId, role, kind, scopeItemId);
     }
 
-    public List<Role> findRolesInCourse(long userId, Long courseId) {
-        if (courseId == null) {
-            return ruaRepository.findRolesInScope(userId, PermissionScopeKind.GLOBAL, null);
-        }
-        Set<Role> roles = new LinkedHashSet<>(
-                ruaRepository.findRolesInScope(userId, PermissionScopeKind.COURSE, courseId));
-        courseRepository.findEducationResourceIdByCourseId(courseId).ifPresent(eduResId ->
-                roles.addAll(ruaRepository.findRolesInScope(userId, PermissionScopeKind.EDUCATION_RESOURCE, eduResId)));
-        if (isGlobalAdmin(userId)) {
-            roles.add(Role.GLOBAL_ADMIN);
-        }
-        return List.copyOf(roles);
-    }
-
     public List<Long> findCourseIdsWithAnyRole(long userId) {
         return ruaRepository.findCourseIdsWithAnyRole(userId);
     }
 
     public boolean hasRoleInCourse(long userId, Long courseId, Role role) {
         return courseId != null && ruaRepository.existsRoleInScope(userId, role, PermissionScopeKind.COURSE, courseId);
+    }
+
+    private static final Set<Permission> ALL_PERMISSIONS =
+            Set.copyOf(EnumSet.complementOf(EnumSet.of(Permission.UNKNOWN)));
+
+    public Set<Permission> getGlobalPermissions(long userId) {
+        if (isGlobalAdmin(userId)) {
+            return ALL_PERMISSIONS;
+        }
+        return permissionsOf(ruaRepository.findRolesInScope(userId, PermissionScopeKind.GLOBAL, null));
+    }
+
+    public Set<Permission> getCoursePermissions(long userId, Long courseId) {
+        if (courseId == null) {
+            return Set.of();
+        }
+        if (isGlobalAdmin(userId)) {
+            return ALL_PERMISSIONS;
+        }
+        EnumSet<Permission> permissions = EnumSet.noneOf(Permission.class);
+        permissions.addAll(permissionsOf(ruaRepository.findRolesInScope(userId, PermissionScopeKind.COURSE, courseId)));
+        courseRepository.findEducationResourceIdByCourseId(courseId)
+                .ifPresent(eduResId ->
+                        permissions.addAll(permissionsOf(
+                                        ruaRepository.findRolesInScope(
+                                                userId,
+                                                PermissionScopeKind.EDUCATION_RESOURCE,
+                                                eduResId
+                                        )
+                                )
+                        )
+                );
+        return permissions;
+    }
+
+    private static Set<Permission> permissionsOf(Collection<Role> roles) {
+        EnumSet<Permission> permissions = EnumSet.noneOf(Permission.class);
+        for (Role role : roles) {
+            permissions.addAll(role.getPermissions());
+        }
+        return permissions;
     }
 
     private void assignRoleInternal(long userId, Role role, PermissionScopeKind kind, Long scopeItemId) {

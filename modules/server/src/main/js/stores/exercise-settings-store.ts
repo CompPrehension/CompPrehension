@@ -2,7 +2,7 @@ import { IReactionDisposer, action, autorun, comparer, flow, makeAutoObservable,
 import { container, inject, injectable } from "tsyringe";
 import { ExerciseSettingsController } from "../controllers/exercise/exercise-settings";
 import { CourseController } from "../controllers/course/course-controller";
-import { Domain, DomainConceptFlag, ExerciseCard, ExerciseCardConcept, ExerciseCardConceptKind, ExerciseCardLaw, ExerciseCardSkill, ExerciseListItem, ExerciseStage, QuestionBankSearchResult, Strategy } from "../types/exercise-settings";
+import { Domain, DomainConceptFlag, ExerciseCard, ExerciseCardConcept, ExerciseCardConceptKind, ExerciseCardLaw, ExerciseCardSkill, ExerciseList, ExerciseListItem, ExerciseStage, QuestionBankSearchResult, Strategy } from "../types/exercise-settings";
 import * as E from "fp-ts/lib/Either";
 import { ExerciseOptions } from "../types/exercise-options";
 import { KeysWithValsOfType } from "../types/utils";
@@ -106,6 +106,7 @@ export class ExerciseStageStore implements Disposable {
 export class ExerciseSettingsStore {
     exercisesLoadStatus: 'NONE' | 'LOADING' | 'LOADED' | 'EXERCISELOADING' = 'NONE';
     exercises: ExerciseListItem[] | null = null;
+    permissions: string[] = [];
     domains: Domain[] | null = null;
     backends: string[] | null = null;
     strategies: Strategy[] | null = null;
@@ -119,6 +120,11 @@ export class ExerciseSettingsStore {
         @inject(CourseController) private readonly courseController: CourseController) {
 
         makeAutoObservable(this);
+    }
+
+    private applyExerciseList(list: ExerciseList) {
+        this.exercises = list.exercises;
+        this.permissions = list.permissions;
     }
 
     get cardLinkType(): ExerciseLinkType {
@@ -174,7 +180,7 @@ export class ExerciseSettingsStore {
         if (E.isRight(rawExercises) && E.isRight(domains) &&
             E.isRight(backends) && E.isRight(strategies)) {
             runInAction(() => {
-                this.exercises = rawExercises.right;
+                this.applyExerciseList(rawExercises.right);
                 this.domains = domains.right;
                 this.backends = backends.right;
                 this.strategies = strategies.right;
@@ -214,7 +220,7 @@ export class ExerciseSettingsStore {
         if (E.isRight(rawExercise) && E.isRight(newExercisesList)) {
             runInAction(() => {
                 this.currentCard = this.toCardViewModel(rawExercise.right);
-                this.exercises = newExercisesList.right;
+                this.applyExerciseList(newExercisesList.right);
             });
         }
         runInAction(() => this.exercisesLoadStatus = 'LOADED');
@@ -233,7 +239,7 @@ export class ExerciseSettingsStore {
         if (E.isRight(rawExercise) && E.isRight(newExercisesList)) {
             runInAction(() => {
                 this.currentCard = this.toCardViewModel(rawExercise.right);
-                this.exercises = newExercisesList.right;
+                this.applyExerciseList(newExercisesList.right);
             });
         }
     }
@@ -251,7 +257,7 @@ export class ExerciseSettingsStore {
         const refreshed = await this.exerciseSettingsController.listExercises(this.courseId);
         if (E.isRight(refreshed)) {
             runInAction(() => {
-                this.exercises = refreshed.right;
+                this.applyExerciseList(refreshed.right);
                 this.currentCard = null;
             });
         }
@@ -264,7 +270,7 @@ export class ExerciseSettingsStore {
         const refreshed = await this.exerciseSettingsController.listExercises(this.courseId);
         if (E.isRight(refreshed)) {
             runInAction(() => {
-                this.exercises = refreshed.right;
+                this.applyExerciseList(refreshed.right);
                 this.currentCard = null;
             });
         }
@@ -280,7 +286,7 @@ export class ExerciseSettingsStore {
         const newExercisesList = await this.exerciseSettingsController.listExercises(this.courseId);
         if (E.isRight(newExercisesList)) {
             runInAction(() => {
-                this.exercises = newExercisesList.right;
+                this.applyExerciseList(newExercisesList.right);
             })
         }
         runInAction(() => this.exercisesLoadStatus = 'LOADED');

@@ -11,6 +11,7 @@ import org.vstu.compprehension.Service.ExerciseService;
 import org.vstu.compprehension.Service.UserService;
 import org.vstu.compprehension.dto.ExerciseCardDto;
 import org.vstu.compprehension.dto.ExerciseDto;
+import org.vstu.compprehension.dto.ExerciseListDto;
 import org.vstu.compprehension.models.businesslogic.auth.AuthObjects.Permission;
 
 import java.util.List;
@@ -35,7 +36,7 @@ public class ExerciseSettingsController {
     }
 
     @SneakyThrows
-    @RequestMapping(value = { "exercise" }, method = { RequestMethod.GET })
+    @RequestMapping(value = {"exercise"}, method = {RequestMethod.GET})
     @ResponseBody
     public ExerciseCardDto get(@RequestParam("id") long id, @RequestParam(value = "courseId", required = false) Long courseId) {
         var userId = userService.getCurrentUser().getId();
@@ -47,25 +48,32 @@ public class ExerciseSettingsController {
     }
 
     @SneakyThrows
-    @RequestMapping(value = { "exercise/list" }, method = { RequestMethod.GET })
+    @RequestMapping(value = {"exercise/list"}, method = {RequestMethod.GET})
     @ResponseBody
-    public List<ExerciseDto> list(@RequestParam(value = "courseId", required = false) Long courseId) {
+    public ExerciseListDto list(@RequestParam(value = "courseId", required = false) Long courseId) {
         var userId = userService.getCurrentUser().getId();
         authService.ensureAuthorized(userId, Permission.VIEW_EXERCISE, courseId);
-        return courseId != null
+        List<ExerciseDto> exercises = courseId != null
                 ? exerciseService.getCourseExercises(courseId)
                 : exerciseService.getPublicExercises();
+        var permissions = (courseId != null
+                ? authService.getCoursePermissions(userId, courseId)
+                : authService.getGlobalPermissions(userId)
+        ).stream()
+                .map(Permission::name)
+                .toList();
+        return new ExerciseListDto(exercises, permissions);
     }
 
     @SneakyThrows
-    @RequestMapping(value = { "exercise/global-pool" }, method = { RequestMethod.GET })
+    @RequestMapping(value = {"exercise/global-pool"}, method = {RequestMethod.GET})
     @ResponseBody
     public List<ExerciseDto> getGlobalPool() {
         return exerciseService.getPublicExercises();
     }
 
     @SneakyThrows
-    @RequestMapping(value = { "exercise"}, method = { RequestMethod.POST })
+    @RequestMapping(value = {"exercise"}, method = {RequestMethod.POST})
     @ResponseBody
     public void update(@RequestBody ExerciseCardDto card, @RequestParam(value = "courseId", required = false) Long courseId) {
         var userId = userService.getCurrentUser().getId();
@@ -77,7 +85,7 @@ public class ExerciseSettingsController {
     }
 
     @SneakyThrows
-    @RequestMapping(value = { "exercise"}, method = { RequestMethod.PUT })
+    @RequestMapping(value = {"exercise"}, method = {RequestMethod.PUT})
     @ResponseBody
     public long create(@RequestBody ObjectNode json) {
         var userId = userService.getCurrentUser().getId();
@@ -85,14 +93,14 @@ public class ExerciseSettingsController {
         var domainId = json.get("domainId").asText();
         var strategyId = json.get("strategyId").asText();
         var courseId = json.has("courseId") && !json.get("courseId").isNull()
-            ? json.get("courseId").asLong()
-            : null;
+                ? json.get("courseId").asLong()
+                : null;
         authService.ensureAuthorized(userId, Permission.CREATE_EXERCISE, courseId);
         return exerciseService.createExercise(name, domainId, strategyId, courseId).getId();
     }
 
     @SneakyThrows
-    @RequestMapping(value = { "exercise/{id}/clone"}, method = { RequestMethod.POST })
+    @RequestMapping(value = {"exercise/{id}/clone"}, method = {RequestMethod.POST})
     @ResponseBody
     public long clone(@PathVariable("id") long id,
                       @RequestParam(value = "courseId", required = false) Long courseId) {
@@ -103,7 +111,7 @@ public class ExerciseSettingsController {
 
     @SneakyThrows
     @ResponseBody
-    @RequestMapping(value = { "exercise"}, method = { RequestMethod.DELETE })
+    @RequestMapping(value = {"exercise"}, method = {RequestMethod.DELETE})
     public void delete(@RequestParam("id") long id, @RequestParam(value = "courseId", required = false) Long courseId) {
         var userId = userService.getCurrentUser().getId();
         authService.ensureAuthorized(userId, Permission.DELETE_EXERCISE, courseId);

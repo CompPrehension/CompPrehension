@@ -47,7 +47,7 @@ public class Mapper {
     }
 
 
-    public static @NotNull UserInfoDto toDto(@NotNull UserEntity user, @NotNull List<String> roles) {
+    public static @NotNull UserInfoDto toDto(@NotNull UserEntity user, @NotNull List<String> permissions) {
         val displayName = Stream.of(user.getFirstName(), user.getLastName())
                 .filter(s -> s != null && !s.isEmpty())
                 .collect(Collectors.joining(" "));
@@ -56,7 +56,7 @@ public class Mapper {
                 .displayName(displayName)
                 .email(user.getEmail())
                 .language(user.getPreferred_language().toLocaleString())
-                .roles(roles)
+                .permissions(permissions)
                 .build();
     }
 

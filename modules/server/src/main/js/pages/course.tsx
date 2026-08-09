@@ -10,7 +10,6 @@ import { useCurrentUser, useSession } from '../hooks/session-context';
 import { useCourseId } from '../hooks/use-course-id';
 import { ImportFromGlobalModal } from '../components/exercise/import-from-global-modal';
 import { useTranslation } from 'react-i18next';
-import { UserController } from '../controllers/exercise/user-controller';
 import { DeepLinkingController } from '../controllers/lti/deep-linking-controller';
 import * as E from 'fp-ts/lib/Either';
 import { canEditExercises } from '../utils/roles';
@@ -118,7 +117,6 @@ export const CoursePage = observer(() => {
     const courseId = useCourseId();
     const [searchParams] = useSearchParams();
     const [showImportModal, setShowImportModal] = useState(false);
-    const [contextRoles, setContextRoles] = useState<string[]>([]);
     const { t } = useTranslation();
 
     const isDeepLink = searchParams.get('lti') === 'deeplink';
@@ -126,16 +124,6 @@ export const CoursePage = observer(() => {
 
     useEffect(() => {
         if (courseId != null) store.loadCourse(courseId);
-    }, [courseId]);
-
-    useEffect(() => {
-        if (courseId == null) return;
-        (async () => {
-            const res = await container.resolve(UserController).getCurrentUser(courseId);
-            if (E.isRight(res)) {
-                setContextRoles(res.right.roles);
-            }
-        })();
     }, [courseId]);
 
     const onLangClicked = () => {
@@ -153,7 +141,7 @@ export const CoursePage = observer(() => {
         return <DeepLinkSelection exercises={store.exercises} />;
     }
 
-    const isPriv = canEditExercises(contextRoles);
+    const isPriv = canEditExercises(store.permissions);
     const reload = () => store.loadCourse(courseId);
 
     return (

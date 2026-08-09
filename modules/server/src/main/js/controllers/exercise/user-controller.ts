@@ -7,14 +7,13 @@ import * as E from "fp-ts/lib/Either";
 import { Language, TLanguage } from "../../types/language";
 
 export interface IUserController {
-    getCurrentUser(courseId?: number | null): PromiseEither<RequestError, UserInfo>;
+    getCurrentUser(): PromiseEither<RequestError, UserInfo>;
 }
 
 @injectable()
 export class UserController implements IUserController {
-    getCurrentUser(courseId?: number | null): PromiseEither<RequestError, UserInfo> {
-        const q = courseId == null ? '' : `?courseId=${courseId}`;
-        return ajaxGet(`${API_URL}/api/users/whoami${q}`, TUserInfo);
+    getCurrentUser(): PromiseEither<RequestError, UserInfo> {
+        return ajaxGet(`${API_URL}/api/users/whoami`, TUserInfo);
     }
 
     async getLanguages(): PromiseEither<RequestError, string[]> {

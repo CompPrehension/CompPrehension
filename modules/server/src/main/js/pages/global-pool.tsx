@@ -38,7 +38,7 @@ export const GlobalPool = observer(() => {
                         userHref={null}
                         logoutLabel={t('logout_header')} />
             </div>
-            {canEditExercises(user.roles) &&
+            {canEditExercises(user.permissions) &&
                 <div className="mb-3">
                     <Button variant="primary"
                             onClick={() => navigate('/pages/exercise-settings')}>

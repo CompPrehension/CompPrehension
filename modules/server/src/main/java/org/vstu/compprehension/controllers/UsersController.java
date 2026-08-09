@@ -12,7 +12,7 @@ import org.vstu.compprehension.Service.AuthService;
 import org.vstu.compprehension.Service.UserService;
 import org.vstu.compprehension.dto.UserInfoDto;
 import org.vstu.compprehension.models.entities.EnumData.Language;
-import org.vstu.compprehension.models.businesslogic.auth.AuthObjects.Role;
+import org.vstu.compprehension.models.businesslogic.auth.AuthObjects.Permission;
 import org.vstu.compprehension.models.entities.UserEntity;
 import org.vstu.compprehension.utils.Mapper;
 
@@ -33,10 +33,11 @@ public class UsersController {
 
     @RequestMapping(value = { "whoami"}, method = { RequestMethod.GET })
     @ResponseBody
-    public UserInfoDto getAll(@RequestParam(value = "courseId", required = false) Long courseId) throws Exception {
+    public UserInfoDto getAll() throws Exception {
         UserEntity user = userService.getCurrentUser();
-        List<String> roles = authService.findRolesInCourse(user.getId(), courseId).stream().map(Role::name).toList();
-        return Mapper.toDto(user, roles);
+        List<String> permissions = authService.getGlobalPermissions(user.getId()).stream()
+                .map(Permission::name).toList();
+        return Mapper.toDto(user, permissions);
     }
 
     private record SetLanguageRequest(String language) {}

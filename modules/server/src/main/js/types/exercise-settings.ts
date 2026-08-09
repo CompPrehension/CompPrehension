@@ -14,6 +14,16 @@ export const TExerciseListItem: io.Type<ExerciseListItem> = io.type({
     isPublic: io.boolean,
 })
 
+
+export type ExerciseList = {
+    exercises: ExerciseListItem[],
+    permissions: string[],
+};
+export const TExerciseList: io.Type<ExerciseList> = io.type({
+    exercises: io.array(TExerciseListItem),
+    permissions: io.array(io.string),
+}, 'ExerciseList')
+
 export type ExerciseCardConceptKind = 'FORBIDDEN' | 'PERMITTED' | 'TARGETED'
 export type ExerciseCardConcept = {
     name: string,
