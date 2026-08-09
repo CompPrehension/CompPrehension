@@ -70,8 +70,8 @@ public class MoodleRoleSyncService {
     }
 
     public void syncAll() {
-        List<EducationResourceEntity> trustedMoodles = transactionScope.execute(() ->
-                eduResourceRepo.findByTypeAndTrustStatus(EducationResourceType.MOODLE, EducationResourceTrustStatus.TRUSTED));
+        List<EducationResourceEntity> trustedMoodles =
+                eduResourceRepo.findByTypeAndTrustStatus(EducationResourceType.MOODLE, EducationResourceTrustStatus.TRUSTED);
         if (trustedMoodles.isEmpty()) {
             log.info("No trusted Moodle environments - skipping role sync");
             return;
@@ -94,15 +94,13 @@ public class MoodleRoleSyncService {
     void syncRolesInEnvironment(EducationResourceEntity env) {
         log.info("Moodle role sync: starting for {}", env.getUrl());
 
-        List<ExternalAccountEntity> accounts = transactionScope.execute(() ->
-                externalAccountRepo.findByEducationResourceId(env.getId()));
+        List<ExternalAccountEntity> accounts = externalAccountRepo.findByEducationResourceId(env.getId());
         if (accounts.isEmpty()) {
             log.info("Moodle role sync: no external accounts for {}, skipping", env.getUrl());
             return;
         }
 
-        List<CourseEntity> knownCourses = transactionScope.execute(() ->
-                courseRepo.findByEducationResourceIdAndExternalCourseIdIsNotNull(env.getId()));
+        List<CourseEntity> knownCourses = courseRepo.findByEducationResourceIdAndExternalCourseIdIsNotNull(env.getId());
         if (knownCourses.isEmpty()) {
             log.info("Moodle role sync: no courses with externalCourseId for {}, skipping", env.getUrl());
             return;
