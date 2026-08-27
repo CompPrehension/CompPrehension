@@ -47,13 +47,15 @@ public interface RoleUserAssignmentRepository extends JpaRepository<RoleUserAssi
     );
 
     @Query("""
-            select case when count(rua) > 0 then true else false end
-            from RoleUserAssignmentEntity rua
-            join rua.role r
-            join rua.permissionScope ps
-            where rua.user.id = :userId
-              and r.name = :role
-              and ps.kind = org.vstu.compprehension.models.entities.EnumData.PermissionScopeKind.GLOBAL
+            select exists (
+                select 1
+                from RoleUserAssignmentEntity rua
+                join rua.role r
+                join rua.permissionScope ps
+                where rua.user.id = :userId
+                  and r.name = :role
+                  and ps.kind = org.vstu.compprehension.models.entities.EnumData.PermissionScopeKind.GLOBAL
+            )
             """)
     boolean existsGlobalRole(@Param("userId") long userId, @Param("role") Role role);
 
@@ -73,14 +75,16 @@ public interface RoleUserAssignmentRepository extends JpaRepository<RoleUserAssi
     );
 
     @Query("""
-            select case when count(rua) > 0 then true else false end
-            from RoleUserAssignmentEntity rua
-            join rua.role r
-            join rua.permissionScope ps
-            where rua.user.id = :userId
-              and r.name = :role
-              and ps.kind = :kind
-              and coalesce(ps.scopeItemId, 0) = coalesce(:scopeItemId, 0)
+            select exists (
+                select 1
+                from RoleUserAssignmentEntity rua
+                join rua.role r
+                join rua.permissionScope ps
+                where rua.user.id = :userId
+                  and r.name = :role
+                  and ps.kind = :kind
+                  and coalesce(ps.scopeItemId, 0) = coalesce(:scopeItemId, 0)
+            )
             """)
     boolean existsRoleInScope(
             @Param("userId") long userId,
