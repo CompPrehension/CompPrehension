@@ -8,15 +8,19 @@ import { Modal } from '../common/modal';
 
 type Props = {
     courseId: number;
+    /** Each mode hits a different endpoint; the backend says which ones are open. */
+    canInherit: boolean;
+    canClone: boolean;
     onClose: () => void;
     onImported?: () => void;
 };
 
-export const ImportFromGlobalModal = observer(({ courseId, onClose, onImported }: Props) => {
+export const ImportFromGlobalModal = observer(({ courseId, canInherit, canClone, onClose, onImported }: Props) => {
     const { t } = useTranslation();
     const [store] = useState(() => container.resolve(GlobalPoolStore));
-    const [mode, setMode] = useState<ImportMode>('INHERIT');
+    const [mode, setMode] = useState<ImportMode>(canInherit ? 'INHERIT' : 'CLONE');
     const [busyId, setBusyId] = useState<number | null>(null);
+    const modeAllowed = mode === 'INHERIT' ? canInherit : canClone;
 
     useEffect(() => { store.loadGlobalPool(); }, []);
 
@@ -54,11 +58,13 @@ export const ImportFromGlobalModal = observer(({ courseId, onClose, onImported }
                 <div className="btn-group" role="group">
                     <Button variant={mode === 'INHERIT' ? 'warning' : 'outline-warning'}
                             size="sm"
+                            disabled={!canInherit}
                             onClick={() => setMode('INHERIT')}>
                         {t('importModal_inherit_btn')}
                     </Button>
                     <Button variant={mode === 'CLONE' ? 'success' : 'outline-success'}
                             size="sm"
+                            disabled={!canClone}
                             onClick={() => setMode('CLONE')}>
                         {t('importModal_clone_btn')}
                     </Button>
@@ -72,7 +78,7 @@ export const ImportFromGlobalModal = observer(({ courseId, onClose, onImported }
                         <span>{e.name}</span>
                         <Button variant="success"
                                 size="sm"
-                                disabled={busyId !== null}
+                                disabled={busyId !== null || !modeAllowed}
                                 onClick={() => onImportClick(e.id)}>
                             {busyId === e.id ? t('importModal_importing') : t('importModal_import')}
                         </Button>

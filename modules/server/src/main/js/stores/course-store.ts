@@ -2,13 +2,13 @@ import { makeAutoObservable, runInAction } from 'mobx';
 import { inject, injectable } from 'tsyringe';
 import * as E from 'fp-ts/lib/Either';
 import { CourseController } from '../controllers/course/course-controller';
-import { ExerciseListItem } from '../types/exercise-settings';
+import { ExerciseListItem, ExerciseListPermissions, noExerciseListPermissions } from '../types/exercise-settings';
 
 @injectable()
 export class CourseStore {
     courseId: number | null = null;
     exercises: ExerciseListItem[] = [];
-    permissions: string[] = [];
+    permissions: ExerciseListPermissions = noExerciseListPermissions;
     loadStatus: 'NONE' | 'LOADING' | 'LOADED' = 'NONE';
 
     constructor(

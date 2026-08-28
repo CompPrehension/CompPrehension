@@ -47,7 +47,7 @@ public class Mapper {
     }
 
 
-    public static @NotNull UserInfoDto toDto(@NotNull UserEntity user, @NotNull List<String> permissions) {
+    public static @NotNull UserInfoDto toDto(@NotNull UserEntity user, @NotNull UserPermissionsDto permissions) {
         val displayName = Stream.of(user.getFirstName(), user.getLastName())
                 .filter(s -> s != null && !s.isEmpty())
                 .collect(Collectors.joining(" "));

@@ -7,6 +7,7 @@ import org.jetbrains.annotations.Nullable;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
 import org.vstu.compprehension.dto.ExerciseCardDto;
+import org.vstu.compprehension.dto.ExerciseCardPermissionsDto;
 import org.vstu.compprehension.dto.ExerciseDto;
 import org.vstu.compprehension.dto.ExerciseStageDto;
 import org.vstu.compprehension.models.businesslogic.domains.DomainFactory;
@@ -56,6 +57,14 @@ public class ExerciseService {
     public ExerciseEntity getExercise(long exerciseId) {
         return exerciseRepository.findById(exerciseId).orElseThrow(()->
                 new NoSuchElementException("Exercise with id: " + exerciseId + " not Found"));
+    }
+
+    /**
+     * Упражнение показано в курсе, но принадлежит глобальному пулу. Из курса оно доступно
+     * только на чтение: правка или удаление затронули бы все курсы, которые его наследуют.
+     */
+    public static boolean isInheritedInCourse(@NotNull ExerciseEntity exercise, @Nullable Long courseId) {
+        return courseId != null && exercise.isPublic();
     }
 
     @Transactional
@@ -187,10 +196,7 @@ public class ExerciseService {
         exerciseRepository.save(exercise);
     }
 
-    public ExerciseCardDto getExerciseCard(long exerciseId) {
-        var exercise = exerciseRepository.findById(exerciseId).orElseThrow(() ->
-                new NoSuchElementException("Exercise with id: " + exerciseId + " not found"));
-
+    public ExerciseCardDto getExerciseCard(ExerciseEntity exercise, ExerciseCardPermissionsDto permissions) {
         return ExerciseCardDto.builder()
                 .id(exercise.getId())
                 .name(exercise.getName())
@@ -204,6 +210,7 @@ public class ExerciseService {
                 .options(exercise.getOptions())
                 .tags(exercise.getTags())
                 .isPublic(exercise.isPublic())
+                .permissions(permissions)
                 .build();
     }
 }

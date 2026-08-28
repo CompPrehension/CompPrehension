@@ -25,7 +25,6 @@ import { useCurrentUser, useSession } from "../hooks/session-context";
 import { useCourseId } from "../hooks/use-course-id";
 import { ExerciseRowBadge } from "../components/exercise/exercise-row-badge";
 import { DeleteGlobalExerciseModal } from "../components/exercise/delete-global-exercise-modal";
-import { canEditExercises } from "../utils/roles";
 
 export const ExerciseSettings = observer(() => {
     const [exerciseStore] = useState(() => container.resolve(ExerciseSettingsStore));
@@ -33,7 +32,7 @@ export const ExerciseSettings = observer(() => {
     const user = useCurrentUser();
     const session = useSession();
     const courseId = useCourseId();
-    const canEdit = canEditExercises(exerciseStore.permissions);
+    const canCreate = exerciseStore.permissions.canCreateExercise;
     useEffect(() => {
         (async () => {
             await exerciseStore.loadExercises(courseId);
@@ -78,7 +77,7 @@ export const ExerciseSettings = observer(() => {
             </div>
             <div className="flex-xl-nowrap row">
                 <div className="col-xl-3 col-md-3 col-12 d-flex flex-column">
-                    {canEdit && <Button variant="primary" className="mb-3" onClick={onNewExerciseClicked}>Create new</Button>}
+                    {canCreate && <Button variant="primary" className="mb-3" onClick={onNewExerciseClicked}>Create new</Button>}
                     <ul className="list-group">
                         {exerciseStore.exercises?.map(e =>
                             <Link key={e.id}
@@ -98,7 +97,6 @@ export const ExerciseSettings = observer(() => {
                         domains={exerciseStore.domains ?? []}
                         backends={exerciseStore.backends ?? []}
                         strategies={exerciseStore.strategies ?? []}
-                        canEdit={canEdit}
                     />
                 </div>
             </div>
@@ -113,11 +111,10 @@ type ExerciseCardElementProps = {
     domains: Domain[],
     backends: string[],
     strategies: Strategy[],
-    canEdit: boolean,
 }
 
 const ExerciseCardElement = observer((props: ExerciseCardElementProps) => {
-    const { card, domains, backends, strategies, store, canEdit } = props;
+    const { card, domains, backends, strategies, store } = props;
     const { t } = useTranslation();
     const user = useCurrentUser();
     const conceptFlagNames = useMemo(() => {
@@ -145,12 +142,12 @@ const ExerciseCardElement = observer((props: ExerciseCardElementProps) => {
     const sharedDomainSkills : DomainSkill[] = []; // TODO: temporarily disabled due to missing flags in domain skills
     const currentStrategy = strategies.find(s => s.id === card.strategyId);
     const linkType = store.cardLinkType;
-    const isInherited = linkType === 'inherited';
+    const canEdit = card.permissions.canEdit;
 
     return (
         <div>
-            <ExerciseModeBar store={store} linkType={linkType} courseId={store.courseId} canEdit={canEdit} />
-            <fieldset disabled={isInherited || !canEdit} style={(isInherited || !canEdit) ? { pointerEvents: 'none', opacity: 0.65 } : undefined}>
+            <ExerciseModeBar store={store} linkType={linkType} courseId={store.courseId} />
+            <fieldset disabled={!canEdit} style={!canEdit ? { pointerEvents: 'none', opacity: 0.65 } : undefined}>
             <form className="exercise-settings-form">
                 <div className="form-group">
                     <label className="font-weight-bold" htmlFor="exampleInputEmail1">{t('exercisesettings_name')}</label>
@@ -339,10 +336,10 @@ const ExerciseCardElement = observer((props: ExerciseCardElementProps) => {
             </form >
             </fieldset>
             <div className="mt-5">
-                {canEdit && !isInherited && <Button variant="primary" className="mr-2" onClick={() => store.saveCard()}>{t('exercisesettings_save')}</Button>}
-                {canEdit && !isInherited && <Button variant="primary" className="mr-2" onClick={() => store.saveCard().then(() => window.open(`${window.location.origin}/pages/exercise?exerciseId=${card.id}${store.courseId != null ? `&courseId=${store.courseId}` : ''}`, '_blank')?.focus()) }>{t('exercisesettings_saveNopen')}</Button>}
+                {canEdit && <Button variant="primary" className="mr-2" onClick={() => store.saveCard()}>{t('exercisesettings_save')}</Button>}
+                {canEdit && <Button variant="primary" className="mr-2" onClick={() => store.saveCard().then(() => window.open(`${window.location.origin}/pages/exercise?exerciseId=${card.id}${store.courseId != null ? `&courseId=${store.courseId}` : ''}`, '_blank')?.focus()) }>{t('exercisesettings_saveNopen')}</Button>}
                 <Button variant="primary" className="mr-2" onClick={() => window.open(`${window.location.origin}/pages/exercise?exerciseId=${card.id}${store.courseId != null ? `&courseId=${store.courseId}` : ''}`, '_blank')?.focus()}>{t('exercisesettings_open')}</Button>
-                {canEdit && !isInherited && currentStrategy?.options.multiStagesEnabled &&
+                {canEdit && currentStrategy?.options.multiStagesEnabled &&
                     <Button variant="primary" className="mr-2" onClick={() => window.open(`${window.location.origin}/pages/exercise?exerciseId=${card.id}${store.courseId != null ? `&courseId=${store.courseId}` : ''}&debug`, '_blank')?.focus()}>{t('exercisesettings_genDebugAtt')}</Button>
                 }
             </div>
@@ -356,16 +353,17 @@ type ExerciseModeBarProps = {
     store: ExerciseSettingsStore,
     linkType: 'global' | 'original' | 'inherited' | 'cloned',
     courseId: number | null,
-    canEdit: boolean,
 };
 
-const ExerciseModeBar = observer(({ store, linkType, courseId, canEdit }: ExerciseModeBarProps) => {
+const ExerciseModeBar = observer(({ store, linkType, courseId }: ExerciseModeBarProps) => {
     const { t } = useTranslation();
     const [showDeleteModal, setShowDeleteModal] = useState(false);
     const [busy, setBusy] = useState(false);
     const card = store.currentCard;
     if (!card) return null;
-    if (!canEdit) return <div className="mb-3"><ExerciseRowBadge linkType={linkType} /></div>;
+
+    const { canCloneToCourse, canUnlinkFromCourse, canCopyToGlobalPool, canDelete } = card.permissions;
+    const showToolbar = canCloneToCourse || canUnlinkFromCourse || canCopyToGlobalPool || canDelete;
 
     const onConvertToClone = async () => {
         if (courseId == null) return;
@@ -410,30 +408,32 @@ const ExerciseModeBar = observer(({ store, linkType, courseId, canEdit }: Exerci
             <div className="mb-2">
                 <ExerciseRowBadge linkType={linkType} />
             </div>
-            <div className="btn-toolbar" role="toolbar">
-                <div className="btn-group btn-group-sm flex-wrap" role="group" style={{ gap: '0.25rem' }}>
-                    {linkType === 'inherited' && (
-                        <>
+            {showToolbar && (
+                <div className="btn-toolbar" role="toolbar">
+                    <div className="btn-group btn-group-sm flex-wrap" role="group" style={{ gap: '0.25rem' }}>
+                        {canCloneToCourse && (
                             <Button variant="warning" disabled={busy} onClick={onConvertToClone}>
                                 {t('exerciseModeBar_convertToClone')}
                             </Button>
+                        )}
+                        {canUnlinkFromCourse && (
                             <Button variant="outline-danger" disabled={busy} onClick={onUnlink}>
                                 {t('exerciseModeBar_unlinkFromCourse')}
                             </Button>
-                        </>
-                    )}
-                    {linkType === 'original' && (
-                        <Button variant="info" disabled={busy} onClick={onCopyToPool}>
-                            {t('exerciseModeBar_copyToPool')}
-                        </Button>
-                    )}
-                    {linkType !== 'inherited' && (
-                        <Button variant="danger" disabled={busy} onClick={onDeleteClick}>
-                            {t('exerciseModeBar_deleteExercise')}
-                        </Button>
-                    )}
+                        )}
+                        {canCopyToGlobalPool && (
+                            <Button variant="info" disabled={busy} onClick={onCopyToPool}>
+                                {t('exerciseModeBar_copyToPool')}
+                            </Button>
+                        )}
+                        {canDelete && (
+                            <Button variant="danger" disabled={busy} onClick={onDeleteClick}>
+                                {t('exerciseModeBar_deleteExercise')}
+                            </Button>
+                        )}
+                    </div>
                 </div>
-            </div>
+            )}
             {showDeleteModal && (
                 <DeleteGlobalExerciseModal
                     exerciseId={card.id}

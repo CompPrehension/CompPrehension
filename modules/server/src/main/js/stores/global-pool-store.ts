@@ -3,13 +3,14 @@ import { inject, injectable } from 'tsyringe';
 import * as E from 'fp-ts/lib/Either';
 import { ExerciseSettingsController } from '../controllers/exercise/exercise-settings';
 import { CourseController } from '../controllers/course/course-controller';
-import { ExerciseListItem } from '../types/exercise-settings';
+import { ExerciseListItem, ExerciseListPermissions, noExerciseListPermissions } from '../types/exercise-settings';
 
 export type ImportMode = 'INHERIT' | 'CLONE';
 
 @injectable()
 export class GlobalPoolStore {
     exercises: ExerciseListItem[] = [];
+    permissions: ExerciseListPermissions = noExerciseListPermissions;
     loadStatus: 'NONE' | 'LOADING' | 'LOADED' = 'NONE';
 
     constructor(
@@ -21,9 +22,12 @@ export class GlobalPoolStore {
 
     async loadGlobalPool() {
         runInAction(() => { this.loadStatus = 'LOADING'; });
-        const r = await this.courseController.getGlobalPool();
+        const r = await this.settingsController.listExercises(null);
         if (E.isRight(r)) {
-            runInAction(() => { this.exercises = r.right; });
+            runInAction(() => {
+                this.exercises = r.right.exercises;
+                this.permissions = r.right.permissions;
+            });
         }
         runInAction(() => { this.loadStatus = 'LOADED'; });
     }

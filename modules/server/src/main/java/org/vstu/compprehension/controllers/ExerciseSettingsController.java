@@ -7,6 +7,7 @@ import org.springframework.stereotype.Controller;
 import org.springframework.web.bind.annotation.*;
 import org.vstu.compprehension.Service.AuthService;
 import org.vstu.compprehension.Service.CourseService;
+import org.vstu.compprehension.Service.ExercisePermissionService;
 import org.vstu.compprehension.Service.ExerciseService;
 import org.vstu.compprehension.Service.UserService;
 import org.vstu.compprehension.dto.ExerciseCardDto;
@@ -23,16 +24,19 @@ public class ExerciseSettingsController {
     private final CourseService courseService;
     private final UserService userService;
     private final AuthService authService;
+    private final ExercisePermissionService exercisePermissionService;
 
     @Autowired
     public ExerciseSettingsController(ExerciseService exerciseService,
                                       CourseService courseService,
                                       UserService userService,
-                                      AuthService authService) {
+                                      AuthService authService,
+                                      ExercisePermissionService exercisePermissionService) {
         this.exerciseService = exerciseService;
         this.courseService = courseService;
         this.userService = userService;
         this.authService = authService;
+        this.exercisePermissionService = exercisePermissionService;
     }
 
     @SneakyThrows
@@ -44,7 +48,9 @@ public class ExerciseSettingsController {
         if (courseId != null) {
             courseService.findExerciseCourseLinkOrThrow(id, courseId);
         }
-        return exerciseService.getExerciseCard(id);
+        var exercise = exerciseService.getExercise(id);
+        return exerciseService.getExerciseCard(
+                exercise, exercisePermissionService.ofExercise(userId, exercise, courseId));
     }
 
     @SneakyThrows
@@ -56,22 +62,7 @@ public class ExerciseSettingsController {
         List<ExerciseDto> exercises = courseId != null
                 ? exerciseService.getCourseExercises(courseId)
                 : exerciseService.getPublicExercises();
-        var permissions = (courseId != null
-                ? authService.getCoursePermissions(userId, courseId)
-                : authService.getGlobalPermissions(userId)
-        ).stream()
-                .map(Permission::name)
-                .toList();
-        return new ExerciseListDto(exercises, permissions);
-    }
-
-    @SneakyThrows
-    @RequestMapping(value = {"exercise/global-pool"}, method = {RequestMethod.GET})
-    @ResponseBody
-    public List<ExerciseDto> getGlobalPool() {
-        var userId = userService.getCurrentUser().getId();
-        authService.ensureAuthorizedGlobal(userId, Permission.VIEW_EXERCISE);
-        return exerciseService.getPublicExercises();
+        return new ExerciseListDto(exercises, exercisePermissionService.ofExerciseList(userId, courseId));
     }
 
     @SneakyThrows
@@ -82,6 +73,7 @@ public class ExerciseSettingsController {
         authService.ensureAuthorized(userId, Permission.EDIT_EXERCISE, courseId);
         if (courseId != null) {
             courseService.findExerciseCourseLinkOrThrow(card.getId(), courseId);
+            ensureNotInherited(card.getId(), courseId);
         }
         exerciseService.saveExerciseCard(card);
     }
@@ -119,7 +111,19 @@ public class ExerciseSettingsController {
         authService.ensureAuthorized(userId, Permission.DELETE_EXERCISE, courseId);
         if (courseId != null) {
             courseService.findExerciseCourseLinkOrThrow(id, courseId);
+            ensureNotInherited(id, courseId);
         }
         exerciseService.deleteExercise(id);
+    }
+
+    /**
+     * Предусловие состояния, а не прав: наследованное из глобального пула упражнение из курса
+     * только читается. Тот же признак гасит кнопки в карточке — см.
+     * {@link org.vstu.compprehension.Service.ExercisePermissionService#ofExercise}.
+     */
+    private void ensureNotInherited(long exerciseId, long courseId) {
+        if (ExerciseService.isInheritedInCourse(exerciseService.getExercise(exerciseId), courseId)) {
+            throw new IllegalStateException("inherited_exercise_is_read_only");
+        }
     }
 }

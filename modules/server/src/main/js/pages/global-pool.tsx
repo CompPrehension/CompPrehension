@@ -8,7 +8,6 @@ import { Header } from '../components/common/header';
 import { Loader } from '../components/common/loader';
 import { useCurrentUser, useSession } from '../hooks/session-context';
 import { useTranslation } from 'react-i18next';
-import { canEditExercises } from '../utils/roles';
 
 export const GlobalPool = observer(() => {
     const [store] = useState(() => container.resolve(GlobalPoolStore));
@@ -38,7 +37,7 @@ export const GlobalPool = observer(() => {
                         userHref={null}
                         logoutLabel={t('logout_header')} />
             </div>
-            {canEditExercises(user.permissions) &&
+            {store.permissions.canCreateExercise &&
                 <div className="mb-3">
                     <Button variant="primary"
                             onClick={() => navigate('/pages/exercise-settings')}>

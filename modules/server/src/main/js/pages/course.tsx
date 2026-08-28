@@ -12,7 +12,6 @@ import { ImportFromGlobalModal } from '../components/exercise/import-from-global
 import { useTranslation } from 'react-i18next';
 import { DeepLinkingController } from '../controllers/lti/deep-linking-controller';
 import * as E from 'fp-ts/lib/Either';
-import { canEditExercises } from '../utils/roles';
 
 /** Hidden form that auto-POSTs the signed deep-linking response back to Moodle. */
 const DeepLinkReturnForm: React.FC<{ jwt: string; returnUrl: string }> = ({ jwt, returnUrl }) => {
@@ -141,7 +140,8 @@ export const CoursePage = observer(() => {
         return <DeepLinkSelection exercises={store.exercises} />;
     }
 
-    const isPriv = canEditExercises(store.permissions);
+    const { canCreateExercise, canImportInherit, canImportClone } = store.permissions;
+    const canImport = canImportInherit || canImportClone;
     const reload = () => store.loadCourse(courseId);
 
     return (
@@ -159,16 +159,20 @@ export const CoursePage = observer(() => {
             {isDeepLink && !inIframe && (
                 <div className="alert alert-info">{t('deeplink_blockHint')}</div>
             )}
-            {isPriv && (
+            {(canCreateExercise || canImport) && (
                 <div className="mb-3 d-flex" style={{ gap: '0.5rem' }}>
-                    <Button variant="primary"
-                            onClick={() => navigate(`/pages/exercise-settings?courseId=${courseId}`)}>
-                        {t('course_page_createExerciseBtn')}
-                    </Button>
-                    <Button variant="secondary"
-                            onClick={() => setShowImportModal(true)}>
-                        {t('course_page_importBtn')}
-                    </Button>
+                    {canCreateExercise && (
+                        <Button variant="primary"
+                                onClick={() => navigate(`/pages/exercise-settings?courseId=${courseId}`)}>
+                            {t('course_page_createExerciseBtn')}
+                        </Button>
+                    )}
+                    {canImport && (
+                        <Button variant="secondary"
+                                onClick={() => setShowImportModal(true)}>
+                            {t('course_page_importBtn')}
+                        </Button>
+                    )}
                 </div>
             )}
             <ul className="list-group">
@@ -181,9 +185,11 @@ export const CoursePage = observer(() => {
                     <li className="list-group-item text-muted">{t('course_page_empty')}</li>
                 )}
             </ul>
-            {isPriv && showImportModal && (
+            {canImport && showImportModal && (
                 <ImportFromGlobalModal
                     courseId={courseId}
+                    canInherit={canImportInherit}
+                    canClone={canImportClone}
                     onClose={() => setShowImportModal(false)}
                     onImported={reload} />
             )}

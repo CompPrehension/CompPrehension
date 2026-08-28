@@ -8,36 +8,31 @@ import org.springframework.web.bind.annotation.RequestMapping;
 import org.springframework.web.bind.annotation.RequestMethod;
 import org.springframework.web.bind.annotation.RequestParam;
 import org.springframework.web.bind.annotation.ResponseBody;
-import org.vstu.compprehension.Service.AuthService;
+import org.vstu.compprehension.Service.ExercisePermissionService;
 import org.vstu.compprehension.Service.UserService;
 import org.vstu.compprehension.dto.UserInfoDto;
 import org.vstu.compprehension.models.entities.EnumData.Language;
-import org.vstu.compprehension.models.businesslogic.auth.AuthObjects.Permission;
 import org.vstu.compprehension.models.entities.UserEntity;
 import org.vstu.compprehension.utils.Mapper;
-
-import java.util.List;
 
 @Controller
 @RequestMapping("api/users")
 @Log4j2
 public class UsersController {
     private final UserService userService;
-    private final AuthService authService;
+    private final ExercisePermissionService exercisePermissionService;
 
     @Autowired
-    public UsersController(UserService userService, AuthService authService) {
+    public UsersController(UserService userService, ExercisePermissionService exercisePermissionService) {
         this.userService = userService;
-        this.authService = authService;
+        this.exercisePermissionService = exercisePermissionService;
     }
 
     @RequestMapping(value = { "whoami"}, method = { RequestMethod.GET })
     @ResponseBody
     public UserInfoDto getAll() throws Exception {
         UserEntity user = userService.getCurrentUser();
-        List<String> permissions = authService.getGlobalPermissions(user.getId()).stream()
-                .map(Permission::name).toList();
-        return Mapper.toDto(user, permissions);
+        return Mapper.toDto(user, exercisePermissionService.ofUser(user.getId()));
     }
 
     private record SetLanguageRequest(String language) {}

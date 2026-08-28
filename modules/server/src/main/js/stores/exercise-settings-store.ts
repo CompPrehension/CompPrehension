@@ -2,18 +2,13 @@ import { IReactionDisposer, action, autorun, comparer, flow, makeAutoObservable,
 import { container, inject, injectable } from "tsyringe";
 import { ExerciseSettingsController } from "../controllers/exercise/exercise-settings";
 import { CourseController } from "../controllers/course/course-controller";
-import { Domain, DomainConceptFlag, ExerciseCard, ExerciseCardConcept, ExerciseCardConceptKind, ExerciseCardLaw, ExerciseCardSkill, ExerciseList, ExerciseListItem, ExerciseStage, QuestionBankSearchResult, Strategy } from "../types/exercise-settings";
+import { Domain, ExerciseCard, ExerciseCardConcept, ExerciseCardConceptKind, ExerciseCardLaw, ExerciseCardPermissions, ExerciseCardSkill, ExerciseList, ExerciseListItem, ExerciseListPermissions, ExerciseStage, QuestionBankSearchResult, Strategy, noExerciseListPermissions } from "../types/exercise-settings";
 import * as E from "fp-ts/lib/Either";
 import { ExerciseOptions } from "../types/exercise-options";
-import { KeysWithValsOfType } from "../types/utils";
 import { ExerciseController, IExerciseController } from "../controllers/exercise/exercise-controller";
-import { UserInfo } from "../types/user-info";
-import { Language } from "../types/language";
-import i18next from "i18next";
 import * as NEA from "fp-ts/lib/NonEmptyArray";
 import { pipe } from "fp-ts/lib/function";
 import { RequestError } from "../types/request-error";
-import { useCallback } from "react";
 import { IUserController, UserController } from "../controllers/exercise/user-controller";
 
 export type ExerciseCardViewModel = {
@@ -26,6 +21,7 @@ export type ExerciseCardViewModel = {
     stages: NEA.NonEmptyArray<ExerciseStageStore>,
     options: ExerciseOptions,
     isPublic: boolean,
+    permissions: ExerciseCardPermissions,
 }
 
 export type ExerciseLinkType = 'global' | 'original' | 'inherited' | 'cloned';
@@ -106,7 +102,7 @@ export class ExerciseStageStore implements Disposable {
 export class ExerciseSettingsStore {
     exercisesLoadStatus: 'NONE' | 'LOADING' | 'LOADED' | 'EXERCISELOADING' = 'NONE';
     exercises: ExerciseListItem[] | null = null;
-    permissions: string[] = [];
+    permissions: ExerciseListPermissions = noExerciseListPermissions;
     domains: Domain[] | null = null;
     backends: string[] | null = null;
     strategies: Strategy[] | null = null;

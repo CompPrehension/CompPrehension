@@ -37,12 +37,14 @@ export const CoursesPage = observer(() => {
                         userHref={null}
                         logoutLabel={t('logout_header')} />
             </div>
-            <div className="mb-3">
-                <Button variant="outline-primary"
-                        onClick={() => navigate('/pages/global-pool')}>
-                    {t('courses_page_globalPoolBtn')}
-                </Button>
-            </div>
+            {user.permissions.canViewGlobalPool && (
+                <div className="mb-3">
+                    <Button variant="outline-primary"
+                            onClick={() => navigate('/pages/global-pool')}>
+                        {t('courses_page_globalPoolBtn')}
+                    </Button>
+                </div>
+            )}
             {store.courses.length === 0 ? (
                 <div className="alert alert-info">{t('courses_page_empty')}</div>
             ) : (
