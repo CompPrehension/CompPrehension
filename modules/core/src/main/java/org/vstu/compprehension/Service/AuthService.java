@@ -158,8 +158,16 @@ public class AuthService {
     }
 
     private void assignRoleInternal(long userId, Role role, PermissionScopeKind kind, Long scopeItemId) {
+        ensureRoleAllowedIn(role, kind);
         scopeRepository.createIfAbsent(kind.name(), scopeItemId);
         ruaRepository.createIfAbsent(userId, role.name(), kind.name(), scopeItemId);
+    }
+
+    private static void ensureRoleAllowedIn(Role role, PermissionScopeKind kind) {
+        if (!role.isAllowedIn(kind)) {
+            throw new IllegalArgumentException(String.format(
+                    "Role %s cannot be assigned in scope %s", role, kind));
+        }
     }
 
     @Transactional
@@ -204,6 +212,10 @@ public class AuthService {
         Map<Long, Map<Long, Role>> desiredByUserAndCourse = new HashMap<>();
 
         for (CourseRoleAssignment desired : desiredAssignments) {
+            if (desired.role() != null) {
+                // Пакетная вставка минует assignRoleInternal, поэтому область проверяем здесь.
+                ensureRoleAllowedIn(desired.role(), PermissionScopeKind.COURSE);
+            }
             desiredByUserAndCourse
                     .computeIfAbsent(desired.userId(), nothing -> new HashMap<>())
                     .put(desired.courseId(), desired.role());

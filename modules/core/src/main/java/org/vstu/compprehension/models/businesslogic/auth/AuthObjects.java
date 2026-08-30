@@ -43,9 +43,18 @@ public final class AuthObjects {
 
     @Getter
     public enum Role {
-        UNKNOWN(Set.of()),
+        UNKNOWN(Set.of(), EnumSet.noneOf(PermissionScopeKind.class)),
 
-        GLOBAL_ADMIN(EnumSet.complementOf(EnumSet.of(Permission.UNKNOWN))),
+        GLOBAL_ADMIN(
+                EnumSet.complementOf(EnumSet.of(Permission.UNKNOWN)),
+                EnumSet.of(PermissionScopeKind.GLOBAL)),
+
+        GLOBAL_EXERCISE_AUTHOR(EnumSet.of(
+                Permission.VIEW_EXERCISE,
+                Permission.CREATE_EXERCISE,
+                Permission.EDIT_EXERCISE,
+                Permission.SOLVE_EXERCISE
+        ), EnumSet.of(PermissionScopeKind.GLOBAL)),
 
         EDUCATION_RESOURCE_ADMIN(EnumSet.of(
                 Permission.VIEW_COURSE,
@@ -57,7 +66,7 @@ public final class AuthObjects {
                 Permission.EDIT_EXERCISE,
                 Permission.DELETE_EXERCISE,
                 Permission.SOLVE_EXERCISE
-        )),
+        ), EnumSet.of(PermissionScopeKind.EDUCATION_RESOURCE)),
 
         TEACHER(EnumSet.of(
                 Permission.VIEW_COURSE,
@@ -67,20 +76,26 @@ public final class AuthObjects {
                 Permission.EDIT_EXERCISE,
                 Permission.DELETE_EXERCISE,
                 Permission.SOLVE_EXERCISE
-        )),
+        ), EnumSet.of(PermissionScopeKind.COURSE)),
 
         ASSISTANT(EnumSet.of(
                 Permission.VIEW_COURSE, Permission.VIEW_EXERCISE, Permission.SOLVE_EXERCISE
-        )),
+        ), EnumSet.of(PermissionScopeKind.COURSE)),
 
-        STUDENT(EnumSet.of(
-                Permission.VIEW_COURSE, Permission.VIEW_EXERCISE, Permission.SOLVE_EXERCISE
-        ));
+        STUDENT(
+                EnumSet.of(Permission.SOLVE_EXERCISE),
+                EnumSet.of(PermissionScopeKind.GLOBAL, PermissionScopeKind.COURSE));
 
         private final Set<Permission> permissions;
+        private final Set<PermissionScopeKind> allowedScopes;
 
-        Role(Set<Permission> permissions) {
+        Role(Set<Permission> permissions, Set<PermissionScopeKind> allowedScopes) {
             this.permissions = Set.copyOf(permissions);
+            this.allowedScopes = Set.copyOf(allowedScopes);
+        }
+
+        public boolean isAllowedIn(PermissionScopeKind scope) {
+            return allowedScopes.contains(scope);
         }
     }
 }

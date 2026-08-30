@@ -80,6 +80,13 @@ public class CourseService {
     }
 
     @Transactional(readOnly = true)
+    public List<Long> findCourseIdsByExerciseId(long exerciseId) {
+        return exerciseCourseLinkRepository.findAllByExerciseId(exerciseId).stream()
+                .map(link -> link.getCourse().getId())
+                .toList();
+    }
+
+    @Transactional(readOnly = true)
     public ExerciseCourseLinkEntity findExerciseCourseLinkOrThrow(long exerciseId, long courseId) {
         return findExerciseCourseLink(exerciseId, courseId).orElseThrow(() -> new IllegalStateException(String.format(
                 "There is no relation between the course (id=%s) and the exercise (id=%s)", courseId, exerciseId
@@ -118,4 +125,3 @@ public class CourseService {
         exerciseCourseLinkRepository.deleteByExerciseIdAndCourseId(exerciseId, courseId);
     }
 }
-

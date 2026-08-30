@@ -67,6 +67,19 @@ public class ExerciseService {
         return courseId != null && exercise.isPublic();
     }
 
+    @Transactional(readOnly = true)
+    public ExerciseEntity getExerciseInContext(long exerciseId, @Nullable Long courseId) {
+        var exercise = getExercise(exerciseId);
+        if (courseId == null) {
+            if (!exercise.isPublic()) {
+                throw new IllegalStateException("exercise_not_in_global_pool");
+            }
+        } else {
+            courseService.findExerciseCourseLinkOrThrow(exerciseId, courseId);
+        }
+        return exercise;
+    }
+
     @Transactional
     public ExerciseEntity createExercise(@NotNull String name,
                                          @NotNull String domainId,

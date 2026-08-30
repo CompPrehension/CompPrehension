@@ -55,17 +55,4 @@
         ]]></rollback>
     </changeSet>
 
-    <changeSet id="2026-07-02-02-drop-legacy-user-role" author="dmitry-smirnov">
-        <sql>
-            drop table if exists user_role;
-        </sql>
-        <rollback>
-            create table user_role (
-                user_id bigint not null,
-                roles   varchar(255) null,
-                constraint fk_user_role_user foreign key (user_id) references user(id)
-            );
-        </rollback>
-    </changeSet>
-
 </databaseChangeLog>

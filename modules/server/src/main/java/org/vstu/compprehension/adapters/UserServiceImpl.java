@@ -71,6 +71,7 @@ public class UserServiceImpl implements UserService {
         boolean isLti = LTI_VERSION_1_3.equals(parsedIdToken.getClaimAsString(LTI_VERSION_CLAIM));
 
         UserEntity entity = userRepository.findFirstByEmailOrderByIdAsc(email).orElseGet(UserEntity::new);
+        boolean isNewUser = entity.getId() == null;
 
         Language language;
         if (isLti) {
@@ -101,8 +102,8 @@ public class UserServiceImpl implements UserService {
 
         if (isLti) {
             applyLtiRoles(entity, parsedIdToken, authorities);
-        } else {
-            applyKeycloakRoles(entity);
+        } else if (isNewUser) {
+            applyKeycloakRoles(entity, authorities);
         }
 
         return entity;
@@ -114,7 +115,7 @@ public class UserServiceImpl implements UserService {
 
         EducationResourceEntity eduRes = educationResourceService.getOrCreateTrusted(ctx.lmsUrl(), ctx.lmsType());
 
-        authService.assignGlobalRole(user.getId(), Role.STUDENT);
+        // authService.assignGlobalRole(user.getId(), Role.STUDENT);
 
         boolean externalAccountNonExists = externalAccountService.findByUserAndEducationResource(
                 user.getId(), eduRes.getId()
@@ -139,8 +140,22 @@ public class UserServiceImpl implements UserService {
         }
     }
 
-    private void applyKeycloakRoles(UserEntity user) {
+    private void applyKeycloakRoles(UserEntity user, Set<String> keycloakRoles) {
         authService.assignGlobalRole(user.getId(), Role.STUDENT);
+        Role privilegedRole = mapKeycloakGlobalRole(keycloakRoles);
+        if (privilegedRole != null) {
+            authService.assignGlobalRole(user.getId(), privilegedRole);
+        }
+    }
+
+    private Role mapKeycloakGlobalRole(Collection<String> keycloakRoles) {
+        if (keycloakRoles.contains("ROLE_Administrator")) {
+            return Role.GLOBAL_ADMIN;
+        }
+        if (keycloakRoles.contains("ROLE_Teacher")) {
+            return Role.GLOBAL_EXERCISE_AUTHOR;
+        }
+        return null;
     }
 
     private Role mapLtiCourseRole(Collection<String> ltiRoles) {

@@ -12,10 +12,6 @@ import * as E from "fp-ts/lib/Either";
 @injectable()
 export class ExerciseSettingsController {
 
-    getAllExercises(): PromiseEither<RequestError, ExerciseListItem[]> {
-        return ajaxGet(`${API_URL}/api/exercise/all`, io.array(TExerciseListItem));
-    }
-
     listExercises(courseId: number | null): PromiseEither<RequestError, ExerciseList> {
         const q = courseId == null ? '' : `?courseId=${courseId}`;
         return ajaxGet(`${API_URL}/api/exercise/list${q}`, TExerciseList);

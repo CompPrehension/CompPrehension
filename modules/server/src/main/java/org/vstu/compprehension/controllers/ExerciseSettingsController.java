@@ -14,6 +14,7 @@ import org.vstu.compprehension.dto.ExerciseCardDto;
 import org.vstu.compprehension.dto.ExerciseDto;
 import org.vstu.compprehension.dto.ExerciseListDto;
 import org.vstu.compprehension.models.businesslogic.auth.AuthObjects.Permission;
+import org.vstu.compprehension.models.entities.exercise.ExerciseEntity;
 
 import java.util.List;
 
@@ -45,10 +46,7 @@ public class ExerciseSettingsController {
     public ExerciseCardDto get(@RequestParam("id") long id, @RequestParam(value = "courseId", required = false) Long courseId) {
         var userId = userService.getCurrentUser().getId();
         authService.ensureAuthorized(userId, Permission.VIEW_EXERCISE, courseId);
-        if (courseId != null) {
-            courseService.findExerciseCourseLinkOrThrow(id, courseId);
-        }
-        var exercise = exerciseService.getExercise(id);
+        var exercise = exerciseService.getExerciseInContext(id, courseId);
         return exerciseService.getExerciseCard(
                 exercise, exercisePermissionService.ofExercise(userId, exercise, courseId));
     }
@@ -71,10 +69,7 @@ public class ExerciseSettingsController {
     public void update(@RequestBody ExerciseCardDto card, @RequestParam(value = "courseId", required = false) Long courseId) {
         var userId = userService.getCurrentUser().getId();
         authService.ensureAuthorized(userId, Permission.EDIT_EXERCISE, courseId);
-        if (courseId != null) {
-            courseService.findExerciseCourseLinkOrThrow(card.getId(), courseId);
-            ensureNotInherited(card.getId(), courseId);
-        }
+        ensureNotInherited(exerciseService.getExerciseInContext(card.getId(), courseId), courseId);
         exerciseService.saveExerciseCard(card);
     }
 
@@ -99,7 +94,10 @@ public class ExerciseSettingsController {
     public long clone(@PathVariable("id") long id,
                       @RequestParam(value = "courseId", required = false) Long courseId) {
         var userId = userService.getCurrentUser().getId();
+        // courseId здесь — куда клонируем, поэтому доступ к источнику проверяется отдельно,
+        // в его собственном контексте.
         authService.ensureAuthorized(userId, Permission.CREATE_EXERCISE, courseId);
+        ensureCanViewSource(userId, exerciseService.getExercise(id));
         return exerciseService.cloneExercise(id, courseId).getId();
     }
 
@@ -109,10 +107,7 @@ public class ExerciseSettingsController {
     public void delete(@RequestParam("id") long id, @RequestParam(value = "courseId", required = false) Long courseId) {
         var userId = userService.getCurrentUser().getId();
         authService.ensureAuthorized(userId, Permission.DELETE_EXERCISE, courseId);
-        if (courseId != null) {
-            courseService.findExerciseCourseLinkOrThrow(id, courseId);
-            ensureNotInherited(id, courseId);
-        }
+        ensureNotInherited(exerciseService.getExerciseInContext(id, courseId), courseId);
         exerciseService.deleteExercise(id);
     }
 
@@ -121,8 +116,25 @@ public class ExerciseSettingsController {
      * только читается. Тот же признак гасит кнопки в карточке — см.
      * {@link org.vstu.compprehension.Service.ExercisePermissionService#ofExercise}.
      */
-    private void ensureNotInherited(long exerciseId, long courseId) {
-        if (ExerciseService.isInheritedInCourse(exerciseService.getExercise(exerciseId), courseId)) {
+    /**
+     * Может ли пользователь читать упражнение в его собственном контексте: публичное — по правам
+     * в GLOBAL-области, приватное — по правам хотя бы в одном из курсов, к которым оно привязано.
+     */
+    private void ensureCanViewSource(long userId, ExerciseEntity exercise) {
+        if (exercise.isPublic()) {
+            authService.ensureAuthorizedGlobal(userId, Permission.VIEW_EXERCISE);
+            return;
+        }
+        boolean visible = courseService.findCourseIdsByExerciseId(exercise.getId()).stream()
+                .anyMatch(cid -> authService.isAuthorized(userId, Permission.VIEW_EXERCISE, cid));
+        if (!visible) {
+            throw new SecurityException(String.format(
+                    "User %s is not allowed to read exercise %s", userId, exercise.getId()));
+        }
+    }
+
+    private static void ensureNotInherited(ExerciseEntity exercise, Long courseId) {
+        if (ExerciseService.isInheritedInCourse(exercise, courseId)) {
             throw new IllegalStateException("inherited_exercise_is_read_only");
         }
     }

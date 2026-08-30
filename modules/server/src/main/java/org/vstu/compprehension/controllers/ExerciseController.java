@@ -48,18 +48,6 @@ public class ExerciseController {
     }
 
     /**
-     * Returns all exercises
-     * @return List of exercises
-     */
-    @RequestMapping(value = { "all"}, method = { RequestMethod.GET })
-    @ResponseBody
-    public List<ExerciseDto> getAll() throws Exception {
-        var userId = userService.getCurrentUser().getId();
-        authService.ensureAuthorizedGlobal(userId, Permission.EDIT_EXERCISE);
-        return exerciseRepository.getAllExerciseItems();
-    }
-
-    /**
      * Returns exercise by id
      * @param id Exercise id
      * @return Exercise
@@ -71,7 +59,7 @@ public class ExerciseController {
                                                 @RequestParam(value = "courseId", required = false) Long courseId,
                                                 HttpServletRequest request) throws Exception {
         var userId = userService.getCurrentUser().getId();
-        authService.ensureAuthorized(userId, Permission.VIEW_EXERCISE, courseId);
+        authService.ensureAuthorized(userId, Permission.SOLVE_EXERCISE, courseId);
         ExerciseEntity exercise;
         if (courseId != null) {
             exercise = courseService.findExerciseCourseLinkOrThrow(id, courseId).getExercise();
@@ -79,21 +67,6 @@ public class ExerciseController {
             exercise = exerciseRepository.findById(id).orElseThrow();
         }
         return new ExerciseInfoDto(id, exercise.getOptions());
-    }
-
-    /**
-     * Returns statistics for all user's exercise attempt
-     * @param exerciseId Exercise id
-     * @return Statistics
-     * @throws Exception Something got wrong
-     */
-    @RequestMapping(value = {"getExerciseStatistics"}, method = { RequestMethod.GET })
-    @ResponseBody
-    public ExerciseStatisticsItemDto[] getExerciseStatistics(@RequestParam Long exerciseId,
-                                                             @RequestParam(value = "courseId", required = false) Long courseId) throws Exception {
-        var userId = userService.getCurrentUser().getId();
-        authService.ensureAuthorized(userId, Permission.VIEW_EXERCISE, courseId);
-        return frontendService.getExerciseStatistics(exerciseId, courseId);
     }
 
     @RequestMapping(value = {"getExerciseAttempt"}, method = { RequestMethod.GET })
