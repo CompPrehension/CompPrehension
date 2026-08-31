@@ -108,7 +108,7 @@ public class LtiDeepLinkingController {
                 .orElseThrow(() -> new IllegalArgumentException("Course not found for LTI context"));
 
         long userId = userService.getCurrentUser().getId();
-        authService.ensureAuthorizedInCourse(userId, Permission.EDIT_COURSE, courseEntity.getId());
+        authService.ensureAuthorizedInCourse(userId, Permission.MANAGE_COURSE_CONTENT, courseEntity.getId());
         return courseEntity.getId();
     }
 }

@@ -70,15 +70,9 @@ class CourseControllerAuthorizationTest extends AbstractAuthorizationTest {
                 .andExpect(jsonPath("$", hasSize(0)));
     }
 
-    /**
-     * TODO: поправить поведение.
-     * <p>
-     * По задуманной модели студент курсов не листает — у роли STUDENT нет VIEW_COURSE. Но
-     * {@code api/course/my} прав не проверяет, а фильтрует по наличию любой роли в курсе,
-     * поэтому свой курс студент всё же видит. Здесь должен остаться пустой ответ либо отказ.
-     */
+    /** Студент курсов не листает: у роли нет VIEW_COURSE, а список управляется именно им. */
     @Test
-    void myCoursesAreListedForCourseStudent() throws Exception {
+    void myCoursesIsEmptyForCourseStudent() throws Exception {
         // Arrange.
         actingAs(TestData.MAIN_COURSE_STUDENT_ID);
 
@@ -87,7 +81,39 @@ class CourseControllerAuthorizationTest extends AbstractAuthorizationTest {
 
         // Assert.
         result.andExpect(status().isOk())
-                .andExpect(jsonPath("$", hasSize(1)));
+                .andExpect(jsonPath("$", hasSize(0)));
+    }
+
+    /** Ассистенту курс виден: VIEW_COURSE у роли есть, хотя менять он ничего не может. */
+    @Test
+    void myCoursesReturnsOwnCourseForCourseAssistant() throws Exception {
+        // Arrange.
+        actingAs(TestData.MAIN_COURSE_ASSISTANT_ID);
+
+        // Act.
+        var result = mockMvc.perform(get("/api/course/my"));
+
+        // Assert.
+        result.andExpect(status().isOk())
+                .andExpect(jsonPath("$", hasSize(1)))
+                .andExpect(jsonPath("$[0].id").value(TestData.MAIN_COURSE_ID));
+    }
+
+    /**
+     * Роль в образовательном ресурсе действует во всех его курсах сразу: администратор LMS
+     * видит оба курса, не имея роли ни в одном из них.
+     */
+    @Test
+    void myCoursesReturnsAllLmsCoursesForEducationResourceAdmin() throws Exception {
+        // Arrange.
+        actingAs(TestData.EDUCATION_RESOURCE_ADMIN_ID);
+
+        // Act.
+        var result = mockMvc.perform(get("/api/course/my"));
+
+        // Assert.
+        result.andExpect(status().isOk())
+                .andExpect(jsonPath("$", hasSize(2)));
     }
 
     /** Список курсов, куда включено упражнение, — инструмент ведущего пул. */
@@ -134,7 +160,7 @@ class CourseControllerAuthorizationTest extends AbstractAuthorizationTest {
         result.andExpect(status().isForbidden());
     }
 
-    /** Импорт упражнения из пула наследованием меняет состав курса, поэтому требует EDIT_COURSE. */
+    /** Импорт упражнения из пула наследованием меняет состав курса, поэтому требует MANAGE_COURSE_CONTENT. */
     @Test
     void addExerciseToCourseAllowedForCourseTeacher() throws Exception {
         // Arrange.
@@ -149,7 +175,7 @@ class CourseControllerAuthorizationTest extends AbstractAuthorizationTest {
         result.andExpect(status().isOk());
     }
 
-    /** У ассистента EDIT_COURSE нет, состав курса он не меняет. */
+    /** У ассистента MANAGE_COURSE_CONTENT нет, состав курса он не меняет. */
     @Test
     void addExerciseToCourseForbiddenForCourseAssistant() throws Exception {
         // Arrange.
@@ -164,7 +190,7 @@ class CourseControllerAuthorizationTest extends AbstractAuthorizationTest {
         result.andExpect(status().isForbidden());
     }
 
-    /** EDIT_COURSE действует только в своём курсе. */
+    /** MANAGE_COURSE_CONTENT действует только в своём курсе. */
     @Test
     void addExerciseToCourseForbiddenForTeacherOfAnotherCourse() throws Exception {
         // Arrange.

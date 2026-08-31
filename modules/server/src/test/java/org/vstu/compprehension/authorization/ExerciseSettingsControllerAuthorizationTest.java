@@ -17,6 +17,7 @@ import static org.springframework.test.web.servlet.request.MockMvcRequestBuilder
 import static org.springframework.test.web.servlet.request.MockMvcRequestBuilders.get;
 import static org.springframework.test.web.servlet.request.MockMvcRequestBuilders.post;
 import static org.springframework.test.web.servlet.request.MockMvcRequestBuilders.put;
+import static org.springframework.test.web.servlet.result.MockMvcResultMatchers.jsonPath;
 import static org.springframework.test.web.servlet.result.MockMvcResultMatchers.status;
 
 class ExerciseSettingsControllerAuthorizationTest extends AbstractAuthorizationTest {
@@ -416,6 +417,124 @@ class ExerciseSettingsControllerAuthorizationTest extends AbstractAuthorizationT
 
         // Assert.
         result.andExpect(status().isForbidden());
+    }
+
+    /**
+     * Флаги списка для преподавателя курса: он и создаёт упражнения, и импортирует из пула
+     * обоими способами. canImportInherit держится на MANAGE_COURSE_CONTENT.
+     */
+    @Test
+    void listPermissionsForCourseTeacher() throws Exception {
+        // Arrange.
+        actingAs(TestData.MAIN_COURSE_TEACHER_ID);
+
+        // Act.
+        var result = mockMvc.perform(get("/api/exercise/list")
+                .param("courseId", String.valueOf(TestData.MAIN_COURSE_ID)));
+
+        // Assert.
+        result.andExpect(status().isOk())
+                .andExpect(jsonPath("$.permissions.canCreateExercise").value(true))
+                .andExpect(jsonPath("$.permissions.canImportInherit").value(true))
+                .andExpect(jsonPath("$.permissions.canImportClone").value(true));
+    }
+
+    /** Ассистент видит список, но ни одной кнопки изменения состава курса не получает. */
+    @Test
+    void listPermissionsForCourseAssistant() throws Exception {
+        // Arrange.
+        actingAs(TestData.MAIN_COURSE_ASSISTANT_ID);
+
+        // Act.
+        var result = mockMvc.perform(get("/api/exercise/list")
+                .param("courseId", String.valueOf(TestData.MAIN_COURSE_ID)));
+
+        // Assert.
+        result.andExpect(status().isOk())
+                .andExpect(jsonPath("$.permissions.canCreateExercise").value(false))
+                .andExpect(jsonPath("$.permissions.canImportInherit").value(false))
+                .andExpect(jsonPath("$.permissions.canImportClone").value(false));
+    }
+
+    /** Вне курса импортировать некуда, поэтому оба флага импорта ложны даже у автора пула. */
+    @Test
+    void listPermissionsForGlobalExerciseAuthorOutsideCourse() throws Exception {
+        // Arrange.
+        actingAs(TestData.GLOBAL_EXERCISE_AUTHOR_ID);
+
+        // Act.
+        var result = mockMvc.perform(get("/api/exercise/list"));
+
+        // Assert.
+        result.andExpect(status().isOk())
+                .andExpect(jsonPath("$.permissions.canCreateExercise").value(true))
+                .andExpect(jsonPath("$.permissions.canImportInherit").value(false))
+                .andExpect(jsonPath("$.permissions.canImportClone").value(false));
+    }
+
+    /**
+     * Наследованное упражнение в курсе: править и удалять нельзя, зато можно оборвать
+     * наследование или отвязать. canUnlinkFromCourse держится на MANAGE_COURSE_CONTENT.
+     */
+    @Test
+    void cardPermissionsForInheritedExercise() throws Exception {
+        // Arrange.
+        actingAs(TestData.MAIN_COURSE_TEACHER_ID);
+
+        // Act.
+        var result = mockMvc.perform(get("/api/exercise")
+                .param("id", String.valueOf(TestData.INHERITED_EXERCISE_ID))
+                .param("courseId", String.valueOf(TestData.MAIN_COURSE_ID)));
+
+        // Assert.
+        result.andExpect(status().isOk())
+                .andExpect(jsonPath("$.permissions.canEdit").value(false))
+                .andExpect(jsonPath("$.permissions.canDelete").value(false))
+                .andExpect(jsonPath("$.permissions.canCloneToCourse").value(true))
+                .andExpect(jsonPath("$.permissions.canUnlinkFromCourse").value(true))
+                .andExpect(jsonPath("$.permissions.canCopyToGlobalPool").value(false));
+    }
+
+    /**
+     * Собственное упражнение курса: правится и удаляется, но отвязывать и обрывать
+     * наследование нечего. В пул не копируется — глобальных прав у преподавателя нет.
+     */
+    @Test
+    void cardPermissionsForOwnCourseExercise() throws Exception {
+        // Arrange.
+        actingAs(TestData.MAIN_COURSE_TEACHER_ID);
+
+        // Act.
+        var result = mockMvc.perform(get("/api/exercise")
+                .param("id", String.valueOf(TestData.MAIN_COURSE_EXERCISE_ID))
+                .param("courseId", String.valueOf(TestData.MAIN_COURSE_ID)));
+
+        // Assert.
+        result.andExpect(status().isOk())
+                .andExpect(jsonPath("$.permissions.canEdit").value(true))
+                .andExpect(jsonPath("$.permissions.canDelete").value(true))
+                .andExpect(jsonPath("$.permissions.canCloneToCourse").value(false))
+                .andExpect(jsonPath("$.permissions.canUnlinkFromCourse").value(false))
+                .andExpect(jsonPath("$.permissions.canCopyToGlobalPool").value(false));
+    }
+
+    /** Автор пула правит упражнение пула, но удалять его не может — DELETE_EXERCISE у роли нет. */
+    @Test
+    void cardPermissionsForGlobalPoolExercise() throws Exception {
+        // Arrange.
+        actingAs(TestData.GLOBAL_EXERCISE_AUTHOR_ID);
+
+        // Act.
+        var result = mockMvc.perform(get("/api/exercise")
+                .param("id", String.valueOf(TestData.GLOBAL_POOL_EXERCISE_ID)));
+
+        // Assert.
+        result.andExpect(status().isOk())
+                .andExpect(jsonPath("$.permissions.canEdit").value(true))
+                .andExpect(jsonPath("$.permissions.canDelete").value(false))
+                .andExpect(jsonPath("$.permissions.canCloneToCourse").value(false))
+                .andExpect(jsonPath("$.permissions.canUnlinkFromCourse").value(false))
+                .andExpect(jsonPath("$.permissions.canCopyToGlobalPool").value(false));
     }
 
     private ExerciseCardDto cardOf(long exerciseId) {

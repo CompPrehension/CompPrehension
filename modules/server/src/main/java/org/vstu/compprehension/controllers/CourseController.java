@@ -46,7 +46,7 @@ public class CourseController {
     public void add(@RequestParam("exerciseId") long exerciseId,
                     @RequestParam("courseId") long courseId) {
         var userId = userService.getCurrentUser().getId();
-        authService.ensureAuthorizedInCourse(userId, Permission.EDIT_COURSE, courseId);
+        authService.ensureAuthorizedInCourse(userId, Permission.MANAGE_COURSE_CONTENT, courseId);
         courseService.addExerciseToCourse(exerciseId, courseId);
     }
 
@@ -56,7 +56,7 @@ public class CourseController {
     public void remove(@RequestParam("exerciseId") long exerciseId,
                        @RequestParam("courseId") long courseId) {
         var userId = userService.getCurrentUser().getId();
-        authService.ensureAuthorizedInCourse(userId, Permission.EDIT_COURSE, courseId);
+        authService.ensureAuthorizedInCourse(userId, Permission.MANAGE_COURSE_CONTENT, courseId);
         courseService.removeExerciseFromCourse(exerciseId, courseId);
     }
 }

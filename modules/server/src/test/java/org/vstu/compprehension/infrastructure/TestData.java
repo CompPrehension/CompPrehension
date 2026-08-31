@@ -25,6 +25,7 @@ public final class TestData {
     public static final long MAIN_COURSE_STUDENT_ID = -6L;
     public static final long OTHER_COURSE_TEACHER_ID = -7L;
     public static final long USER_WITHOUT_ROLES_ID = -8L;
+    public static final long EDUCATION_RESOURCE_ADMIN_ID = -9L;
 
     public static final String DOMAIN_ID = "ProgrammingLanguageExpressionDTDomain";
     public static final String STRATEGY_ID = "StaticStrategy";

@@ -6,6 +6,7 @@ import org.springframework.data.jpa.repository.Query;
 import org.springframework.data.repository.query.Param;
 import org.springframework.stereotype.Repository;
 import org.vstu.compprehension.models.entities.EnumData.PermissionScopeKind;
+import org.vstu.compprehension.models.businesslogic.auth.AuthObjects.Permission;
 import org.vstu.compprehension.models.businesslogic.auth.AuthObjects.Role;
 import org.vstu.compprehension.models.entities.role.RoleUserAssignmentEntity;
 
@@ -161,9 +162,16 @@ public interface RoleUserAssignmentRepository extends JpaRepository<RoleUserAssi
     @Query("""
             select distinct ps.scopeItemId
             from RoleUserAssignmentEntity rua
+            join rua.role r
+            join r.permissions p
             join rua.permissionScope ps
             where rua.user.id = :userId
-              and ps.kind = org.vstu.compprehension.models.entities.EnumData.PermissionScopeKind.COURSE
+              and ps.kind = :kind
+              and p.name = :permission
             """)
-    List<Long> findCourseIdsWithAnyRole(@Param("userId") long userId);
+    List<Long> findScopeItemIdsWithPermission(
+            @Param("userId") long userId,
+            @Param("permission") Permission permission,
+            @Param("kind") PermissionScopeKind kind
+    );
 }

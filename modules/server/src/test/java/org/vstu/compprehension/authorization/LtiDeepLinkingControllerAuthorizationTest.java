@@ -19,7 +19,7 @@ class LtiDeepLinkingControllerAuthorizationTest extends AbstractAuthorizationTes
         TestLtiContextProvider.reset();
     }
 
-    /** Сборка активностей меняет состав курса в LMS, поэтому требует EDIT_COURSE. */
+    /** Сборка активностей меняет состав курса в LMS, поэтому требует MANAGE_COURSE_CONTENT. */
     @Test
     void buildForbiddenForCourseStudent() throws Exception {
         // Arrange.

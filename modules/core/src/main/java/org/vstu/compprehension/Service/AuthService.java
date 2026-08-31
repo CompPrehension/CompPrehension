@@ -108,8 +108,8 @@ public class AuthService {
         ruaRepository.deleteRoleInScope(userId, role, kind, scopeItemId);
     }
 
-    public List<Long> findCourseIdsWithAnyRole(long userId) {
-        return ruaRepository.findCourseIdsWithAnyRole(userId);
+    public List<Long> findScopeItemIdsWithPermission(long userId, Permission permission, PermissionScopeKind kind) {
+        return ruaRepository.findScopeItemIdsWithPermission(userId, permission, kind);
     }
 
     public boolean hasRoleInCourse(long userId, Long courseId, Role role) {

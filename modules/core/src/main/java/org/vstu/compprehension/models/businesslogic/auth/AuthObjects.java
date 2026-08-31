@@ -16,9 +16,7 @@ public final class AuthObjects {
         UNKNOWN(EnumSet.noneOf(PermissionScopeKind.class)),
 
         VIEW_COURSE(allScopes()),
-        CREATE_COURSE(EnumSet.of(PermissionScopeKind.GLOBAL, PermissionScopeKind.EDUCATION_RESOURCE)),
-        EDIT_COURSE(allScopes()),
-        DELETE_COURSE(allScopes()),
+        MANAGE_COURSE_CONTENT(EnumSet.of(PermissionScopeKind.COURSE, PermissionScopeKind.EDUCATION_RESOURCE)),
 
         VIEW_EXERCISE(allScopes()),
         CREATE_EXERCISE(allScopes()),
@@ -58,9 +56,7 @@ public final class AuthObjects {
 
         EDUCATION_RESOURCE_ADMIN(EnumSet.of(
                 Permission.VIEW_COURSE,
-                Permission.CREATE_COURSE,
-                Permission.EDIT_COURSE,
-                Permission.DELETE_COURSE,
+                Permission.MANAGE_COURSE_CONTENT,
                 Permission.VIEW_EXERCISE,
                 Permission.CREATE_EXERCISE,
                 Permission.EDIT_EXERCISE,
@@ -70,7 +66,7 @@ public final class AuthObjects {
 
         TEACHER(EnumSet.of(
                 Permission.VIEW_COURSE,
-                Permission.EDIT_COURSE,
+                Permission.MANAGE_COURSE_CONTENT,
                 Permission.VIEW_EXERCISE,
                 Permission.CREATE_EXERCISE,
                 Permission.EDIT_EXERCISE,

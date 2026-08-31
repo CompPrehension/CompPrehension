@@ -27,7 +27,7 @@ public class ExercisePermissionService {
                 !inherited && scoped.contains(Permission.DELETE_EXERCISE),
                 inherited && scoped.contains(Permission.CREATE_EXERCISE),
                 !exercise.isPublic() && global.contains(Permission.CREATE_EXERCISE),
-                inherited && scoped.contains(Permission.EDIT_COURSE)
+                inherited && scoped.contains(Permission.MANAGE_COURSE_CONTENT)
         );
     }
 
@@ -36,7 +36,7 @@ public class ExercisePermissionService {
         boolean inCourse = courseId != null;
         return new ExerciseListPermissionsDto(
                 scoped.contains(Permission.CREATE_EXERCISE),
-                inCourse && scoped.contains(Permission.EDIT_COURSE),
+                inCourse && scoped.contains(Permission.MANAGE_COURSE_CONTENT),
                 inCourse && scoped.contains(Permission.CREATE_EXERCISE)
         );
     }

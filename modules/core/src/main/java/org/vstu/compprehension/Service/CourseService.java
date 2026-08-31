@@ -7,6 +7,8 @@ import org.springframework.transaction.annotation.Transactional;
 import org.vstu.compprehension.dto.course.CourseDto;
 import org.vstu.compprehension.models.businesslogic.lti.LtiContext;
 import org.vstu.compprehension.models.businesslogic.lti.LtiCourseContext;
+import org.vstu.compprehension.models.businesslogic.auth.AuthObjects.Permission;
+import org.vstu.compprehension.models.entities.EnumData.PermissionScopeKind;
 import org.vstu.compprehension.models.entities.UserEntity;
 import org.vstu.compprehension.models.entities.course.CourseEntity;
 import org.vstu.compprehension.models.entities.course.ExerciseCourseLinkEntity;
@@ -15,6 +17,7 @@ import org.vstu.compprehension.models.repository.CourseRepository;
 import org.vstu.compprehension.models.repository.ExerciseCourseLinkRepository;
 import org.vstu.compprehension.models.repository.ExerciseRepository;
 
+import java.util.HashSet;
 import java.util.List;
 import java.util.NoSuchElementException;
 import java.util.Optional;
@@ -95,14 +98,22 @@ public class CourseService {
 
     @Transactional(readOnly = true)
     public List<CourseDto> getUserCourses(UserEntity user) {
-        if (authService.isGlobalAdmin(user.getId())) {
+        long userId = user.getId();
+        if (authService.isAuthorizedGlobal(userId, Permission.VIEW_COURSE)) {
             return courseRepository.findAllCourseDtos();
         }
-        List<Long> courseIds = authService.findCourseIdsWithAnyRole(user.getId());
-        if (courseIds.isEmpty()) {
-            return List.of();
+
+        var courseIds = new HashSet<>(
+                authService.findScopeItemIdsWithPermission(userId, Permission.VIEW_COURSE, PermissionScopeKind.COURSE));
+
+        // Право в образовательном ресурсе действует во всех его курсах сразу.
+        var educationResourceIds =
+                authService.findScopeItemIdsWithPermission(userId, Permission.VIEW_COURSE, PermissionScopeKind.EDUCATION_RESOURCE);
+        if (!educationResourceIds.isEmpty()) {
+            courseIds.addAll(courseRepository.findCourseIdsByEducationResourceIdIn(educationResourceIds));
         }
-        return courseRepository.findCourseDtosByIdIn(courseIds);
+
+        return courseIds.isEmpty() ? List.of() : courseRepository.findCourseDtosByIdIn(courseIds);
     }
 
     @Transactional(readOnly = true)

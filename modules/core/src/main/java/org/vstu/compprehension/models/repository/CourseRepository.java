@@ -35,14 +35,12 @@ public interface CourseRepository extends JpaRepository<CourseEntity, Long> {
             """)
     List<CourseDto> findAllCourseDtos();
 
+    @Query("select c.id from CourseEntity c where c.educationResource.id in :educationResourceIds")
+    List<Long> findCourseIdsByEducationResourceIdIn(@Param("educationResourceIds") Collection<Long> educationResourceIds);
+
     @Query("select c.educationResource.id from CourseEntity c where c.id = :courseId")
     Optional<Long> findEducationResourceIdByCourseId(@Param("courseId") Long courseId);
 
-    /**
-     * Inserts a row only if no row with the same ({@link CourseEntity#educationResource}, {@link CourseEntity#externalCourseId}) exists.
-     *
-     * @return number of affected rows
-     */
     @Modifying(clearAutomatically = true)
     @Query(value = """
             insert ignore into course (external_course_id, name, education_resource_id)

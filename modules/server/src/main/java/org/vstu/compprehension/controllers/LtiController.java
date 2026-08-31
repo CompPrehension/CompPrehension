@@ -231,7 +231,7 @@ public class LtiController {
         if (courseId == null) {
             throw new IllegalArgumentException("Absent information on the contextId");
         }
-        authService.ensureAuthorizedInCourse(userId, Permission.EDIT_COURSE, courseId);
+        authService.ensureAuthorizedInCourse(userId, Permission.MANAGE_COURSE_CONTENT, courseId);
 
         String redirectUrl = String.format("/pages/course?courseId=%d&lti=deeplink", courseId);
         log.info("Redirect to configure-course, url:{}", redirectUrl);

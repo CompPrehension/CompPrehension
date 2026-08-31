@@ -61,11 +61,13 @@ insert ignore into user (id, email, login, preferred_language) values
     (-5, 'main-course-assistant@test.local',  'main-course-assistant',  0),
     (-6, 'main-course-student@test.local',    'main-course-student',    0),
     (-7, 'other-course-teacher@test.local',   'other-course-teacher',   0),
-    (-8, 'no-roles@test.local',               'no-roles',               0);
+    (-8, 'no-roles@test.local',               'no-roles',               0),
+    (-9, 'edu-res-admin@test.local',          'edu-res-admin',          0);
 
 insert ignore into permission_scope (id, kind, scope_item_id) values
     (-1, 'COURSE', -1),
-    (-2, 'COURSE', -2);
+    (-2, 'COURSE', -2),
+    (-3, 'EDUCATION_RESOURCE', -1);
 
 insert ignore into role_user_assignment (user_id, role_id, permission_scope_id)
 select u.id, r.id, ps.id
@@ -76,7 +78,8 @@ from (
     select -4, 'TEACHER',                'COURSE', -1   union all
     select -5, 'ASSISTANT',              'COURSE', -1   union all
     select -6, 'STUDENT',                'COURSE', -1   union all
-    select -7, 'TEACHER',                'COURSE', -2
+    select -7, 'TEACHER',                'COURSE', -2   union all
+    select -9, 'EDUCATION_RESOURCE_ADMIN', 'EDUCATION_RESOURCE', -1
 ) wanted
 join user u              on u.id = wanted.user_id
 join role r              on r.name = wanted.role_name
