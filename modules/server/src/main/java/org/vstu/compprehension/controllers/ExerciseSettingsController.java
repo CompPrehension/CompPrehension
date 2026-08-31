@@ -121,13 +121,12 @@ public class ExerciseSettingsController {
      * в GLOBAL-области, приватное — по правам хотя бы в одном из курсов, к которым оно привязано.
      */
     private void ensureCanViewSource(long userId, ExerciseEntity exercise) {
-        if (exercise.isPublic()) {
-            authService.ensureAuthorizedGlobal(userId, Permission.VIEW_EXERCISE);
+        if (exercise.isPublic() && authService.isAuthorizedGlobal(userId, Permission.VIEW_EXERCISE)) {
             return;
         }
-        boolean visible = courseService.findCourseIdsByExerciseId(exercise.getId()).stream()
+        boolean visibleInCourse = courseService.findCourseIdsByExerciseId(exercise.getId()).stream()
                 .anyMatch(cid -> authService.isAuthorized(userId, Permission.VIEW_EXERCISE, cid));
-        if (!visible) {
+        if (!visibleInCourse) {
             throw new SecurityException(String.format(
                     "User %s is not allowed to read exercise %s", userId, exercise.getId()));
         }

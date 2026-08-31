@@ -1,4 +1,6 @@
-package org.vstu.compprehension;
+package org.vstu.compprehension.domain;
+
+import org.vstu.compprehension.*;
 
 import org.apache.jena.vocabulary.OWL;
 import org.apache.jena.vocabulary.RDF;

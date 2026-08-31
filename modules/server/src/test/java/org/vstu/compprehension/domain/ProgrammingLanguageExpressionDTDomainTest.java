@@ -1,11 +1,14 @@
-package org.vstu.compprehension.models.businesslogic;
+package org.vstu.compprehension.domain;
+
+import org.vstu.compprehension.models.businesslogic.*;
+import org.vstu.compprehension.models.businesslogic.Tag;
+
+import org.vstu.compprehension.infrastructure.AbstractIntegrationTest;
 
 import jakarta.transaction.Transactional;
 import org.apache.jena.rdf.model.Model;
 import org.junit.jupiter.api.*;
 import org.springframework.beans.factory.annotation.Autowired;
-import org.springframework.boot.test.context.SpringBootTest;
-import org.springframework.test.context.ActiveProfiles;
 import org.springframework.util.Assert;
 import org.vstu.compprehension.Service.QuestionService;
 import org.vstu.compprehension.models.businesslogic.domains.DomainFactory;
@@ -36,11 +39,9 @@ import java.util.List;
 import java.util.stream.Collectors;
 import java.util.stream.Stream;
 
-@SpringBootTest
 @TestInstance(TestInstance.Lifecycle.PER_CLASS)
-@ActiveProfiles("test")
 @Transactional
-public class ProgrammingLanguageExpressionDTDomainTest {
+public class ProgrammingLanguageExpressionDTDomainTest extends AbstractIntegrationTest {
     @Autowired
     DomainFactory domainFactory;
     @Autowired

@@ -1,10 +1,12 @@
-package org.vstu.compprehension.models.businesslogic;
+package org.vstu.compprehension.domain;
+
+import org.vstu.compprehension.models.businesslogic.*;
+
+import org.vstu.compprehension.infrastructure.AbstractIntegrationTest;
 
 import jakarta.transaction.Transactional;
 import org.junit.jupiter.api.*;
 import org.springframework.beans.factory.annotation.Autowired;
-import org.springframework.boot.test.context.SpringBootTest;
-import org.springframework.test.context.ActiveProfiles;
 import org.springframework.util.Assert;
 import org.vstu.compprehension.Service.QuestionService;
 import org.vstu.compprehension.models.businesslogic.domains.Domain;
@@ -34,11 +36,9 @@ import java.util.Collections;
 import java.util.HashSet;
 import java.util.List;
 
-@SpringBootTest
 @TestInstance(TestInstance.Lifecycle.PER_CLASS)
-@ActiveProfiles("test")
 @Transactional
-public class ExpressionDTDomainMetadataValidationTest {
+public class ExpressionDTDomainMetadataValidationTest extends AbstractIntegrationTest {
     @Autowired
     DomainFactory domainFactory;
     @Autowired
@@ -115,9 +115,9 @@ public class ExpressionDTDomainMetadataValidationTest {
 
                 HashSet<Skill> questionSkills = new HashSet<>(domain.skillsFromBitmask(q.getMetadata().getSkillBits()));
                 for (Skill skill : new HashSet<>(questionSkills)) {
-                    if (!skill.baseSkills.isEmpty()) {
+                    if (!skill.getBaseSkills().isEmpty()) {
                         questionSkills.remove(skill);
-                        questionSkills.addAll(skill.baseSkills);
+                        questionSkills.addAll(skill.getBaseSkills());
                     }
                 }
                 HashSet<NegativeLaw> questionLaws = new HashSet<>(domain.negativeLawFromBitmask(q.getMetadata().getSkillBits()).stream().filter(
@@ -136,10 +136,10 @@ public class ExpressionDTDomainMetadataValidationTest {
                             qOk = false;
                             continue;
                         }
-                        if (skill.baseSkills.isEmpty()) {
+                        if (skill.getBaseSkills().isEmpty()) {
                             allSkills.add(skill);
                         } else {
-                            allSkills.addAll(skill.baseSkills);
+                            allSkills.addAll(skill.getBaseSkills());
                         }
                     }
                     for (String rawLaw : result.domainNegativeLaws) {

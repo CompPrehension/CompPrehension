@@ -1,4 +1,8 @@
-package org.vstu.compprehension.models.businesslogic;
+package org.vstu.compprehension.tools;
+
+import org.vstu.compprehension.models.businesslogic.*;
+
+import org.vstu.compprehension.infrastructure.AbstractIntegrationTest;
 
 import jakarta.transaction.Transactional;
 import org.hibernate.SessionFactory;
@@ -6,9 +10,7 @@ import org.junit.jupiter.api.BeforeAll;
 import org.junit.jupiter.api.Test;
 import org.junit.jupiter.api.TestInstance;
 import org.springframework.beans.factory.annotation.Autowired;
-import org.springframework.boot.test.context.SpringBootTest;
 import org.springframework.test.annotation.Rollback;
-import org.springframework.test.context.ActiveProfiles;
 import org.vstu.compprehension.models.businesslogic.domains.DomainFactory;
 import org.vstu.compprehension.models.businesslogic.domains.ProgrammingLanguageExpressionDTDomain;
 import org.vstu.compprehension.models.businesslogic.domains.helpers.meaningtree.MeaningTreeOrderQuestionBuilder;
@@ -18,11 +20,8 @@ import org.vstu.compprehension.models.repository.QuestionMetadataRepository;
 import java.util.ArrayList;
 import java.util.List;
 
-
-@SpringBootTest
 @TestInstance(TestInstance.Lifecycle.PER_CLASS)
-@ActiveProfiles("test")
-public class ExpressionDTReclassificationTask {
+public class ExpressionDTReclassificationTask extends AbstractIntegrationTest {
     @Autowired
     DomainFactory domainFactory;
     @Autowired

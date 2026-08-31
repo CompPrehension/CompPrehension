@@ -28,3 +28,57 @@ INSERT IGNORE INTO questions_meta (id, name, domain_shortname, q_data_graph, tag
 INSERT IGNORE INTO questions_meta (id, name, domain_shortname, q_data_graph, tag_bits, concept_bits, law_bits, violation_bits, trace_concept_bits, solution_structural_complexity, integral_complexity, solution_steps, distinct_errors_count, _version, origin, structure_hash, template_id, question_data_id, created_at, generation_request_id) VALUES (-1003, 'format_grid_line_3371122_v0', 'ctrl_flow', 'q_data/f/8/format_grid_line_3371122_v0.json', 6, 31472, 169, 625, 18944, 2, 0.2801, 11, 5, 6, null, null, 'format_grid_line_3371122', -1003, '2020-01-01 00:00:00', null);
 INSERT IGNORE INTO questions_meta (id, name, domain_shortname, q_data_graph, tag_bits, concept_bits, law_bits, violation_bits, trace_concept_bits, solution_structural_complexity, integral_complexity, solution_steps, distinct_errors_count, _version, origin, structure_hash, template_id, question_data_id, created_at, generation_request_id) VALUES (-1004, 'format_is_type_1743065_v11', 'ctrl_flow', 'q_data/f/b/format_is_type_1743065_v11.json', 6, 31488, 63, 125, 23040, 2, 0.4398, 17, 6, 6, null, null, 'format_is_type_1743065', -1004, '2020-01-01 00:00:00', null);
 INSERT IGNORE INTO questions_meta (id, name, domain_shortname, q_data_graph, tag_bits, concept_bits, law_bits, violation_bits, trace_concept_bits, solution_structural_complexity, integral_complexity, solution_steps, distinct_errors_count, _version, origin, structure_hash, template_id, question_data_id, created_at, generation_request_id) VALUES (-1005, 'format_is_type_1743065_v10', 'ctrl_flow', 'q_data/a/1/format_is_type_1743065_v10.json', 6, 31488, 171, 633, 23040, 2, 0.3891, 14, 6, 6, null, null, 'format_is_type_1743065', -1005, '2020-01-01 00:00:00', null);
+
+insert ignore into education_resource (id, url, type, trust_status)
+values (-1, 'https://lms.test.local', 'MOODLE', 'TRUSTED');
+
+insert ignore into course (id, name, external_course_id, education_resource_id) values
+    (-1, 'Main test course',  'ext-course-1', -1),
+    (-2, 'Other test course', 'ext-course-2', -1);
+
+insert ignore into exercise (id, name, tags, options_json, stages_json, domain_id, backend_id, strategy_id,
+                      created_at, updated_at, is_public)
+values
+    (-1, 'Global pool exercise', '', '{}', '[]', 'ProgrammingLanguageExpressionDTDomain',
+     'ProductionBackend', 'StaticStrategy', now(), now(), 1),
+    (-2, 'Main course exercise', '', '{}', '[]', 'ProgrammingLanguageExpressionDTDomain',
+     'ProductionBackend', 'StaticStrategy', now(), now(), 0),
+    (-3, 'Inherited exercise', '', '{}', '[]', 'ProgrammingLanguageExpressionDTDomain',
+     'ProductionBackend', 'StaticStrategy', now(), now(), 1),
+    (-4, 'Other course exercise', '', '{}', '[]', 'ProgrammingLanguageExpressionDTDomain',
+     'ProductionBackend', 'StaticStrategy', now(), now(), 0);
+
+insert ignore into exercise_course_link (exercise_id, course_id) values
+    (-2, -1),
+    (-3, -1),
+    (-4, -2);
+
+insert ignore into user (id, email, login, preferred_language) values
+    (-1, 'global-admin@test.local',           'global-admin',           0),
+    (-2, 'global-exercise-author@test.local', 'global-exercise-author', 0),
+    (-3, 'global-student@test.local',         'global-student',         0),
+    (-4, 'main-course-teacher@test.local',    'main-course-teacher',    0),
+    (-5, 'main-course-assistant@test.local',  'main-course-assistant',  0),
+    (-6, 'main-course-student@test.local',    'main-course-student',    0),
+    (-7, 'other-course-teacher@test.local',   'other-course-teacher',   0),
+    (-8, 'no-roles@test.local',               'no-roles',               0);
+
+insert ignore into permission_scope (id, kind, scope_item_id) values
+    (-1, 'COURSE', -1),
+    (-2, 'COURSE', -2);
+
+insert ignore into role_user_assignment (user_id, role_id, permission_scope_id)
+select u.id, r.id, ps.id
+from (
+    select -1 as user_id, 'GLOBAL_ADMIN'           as role_name, 'GLOBAL' as scope_kind, null as scope_item union all
+    select -2, 'GLOBAL_EXERCISE_AUTHOR', 'GLOBAL', null union all
+    select -3, 'STUDENT',                'GLOBAL', null union all
+    select -4, 'TEACHER',                'COURSE', -1   union all
+    select -5, 'ASSISTANT',              'COURSE', -1   union all
+    select -6, 'STUDENT',                'COURSE', -1   union all
+    select -7, 'TEACHER',                'COURSE', -2
+) wanted
+join user u              on u.id = wanted.user_id
+join role r              on r.name = wanted.role_name
+join permission_scope ps on ps.kind = wanted.scope_kind
+                        and coalesce(ps.scope_item_id, 0) = coalesce(wanted.scope_item, 0);

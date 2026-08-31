@@ -1,11 +1,13 @@
-package org.vstu.compprehension.models.businesslogic;
+package org.vstu.compprehension.questionbank;
+
+import org.vstu.compprehension.models.businesslogic.*;
+
+import org.vstu.compprehension.infrastructure.AbstractIntegrationTest;
 
 import org.apache.commons.collections4.IteratorUtils;
 import org.junit.jupiter.api.Assertions;
 import org.junit.jupiter.api.Test;
 import org.springframework.beans.factory.annotation.Autowired;
-import org.springframework.boot.test.context.SpringBootTest;
-import org.springframework.test.context.ActiveProfiles;
 import org.springframework.transaction.annotation.Transactional;
 import org.vstu.compprehension.models.businesslogic.storage.QuestionBank;
 import org.vstu.compprehension.models.entities.QuestionMetadataEntity;
@@ -14,10 +16,8 @@ import org.vstu.compprehension.utils.transactions.TransactionScopeFactory;
 
 import java.util.stream.Collectors;
 
-@SpringBootTest
-@ActiveProfiles("test")
 @Transactional
-public class QuestionBankTests {
+public class QuestionBankTests extends AbstractIntegrationTest {
     @Autowired
     private QuestionMetadataRepository questionMetadataRepository;
     @Autowired

@@ -1,4 +1,8 @@
-package org.vstu.compprehension.models.businesslogic;
+package org.vstu.compprehension.tools;
+
+import org.vstu.compprehension.models.businesslogic.*;
+
+import org.vstu.compprehension.infrastructure.AbstractIntegrationTest;
 
 import its.model.DomainSolvingModel;
 import its.model.definition.DomainModel;
@@ -8,8 +12,6 @@ import org.junit.jupiter.api.BeforeAll;
 import org.junit.jupiter.api.Test;
 import org.junit.jupiter.api.TestInstance;
 import org.springframework.beans.factory.annotation.Autowired;
-import org.springframework.boot.test.context.SpringBootTest;
-import org.springframework.test.context.ActiveProfiles;
 import org.vstu.compprehension.Service.QuestionService;
 import org.vstu.compprehension.models.businesslogic.domains.DomainFactory;
 import org.vstu.compprehension.models.businesslogic.domains.ProgrammingLanguageExpressionDTDomain;
@@ -31,11 +33,9 @@ import java.util.ArrayList;
 import java.util.Collections;
 import java.util.List;
 
-@SpringBootTest
 @TestInstance(TestInstance.Lifecycle.PER_CLASS)
-@ActiveProfiles("test")
 @Transactional
-public class LoqiBuilder {
+public class LoqiBuilder extends AbstractIntegrationTest {
     @Autowired
     DomainFactory domainFactory;
     @Autowired

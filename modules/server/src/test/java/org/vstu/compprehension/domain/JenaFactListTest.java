@@ -1,4 +1,6 @@
-package org.vstu.compprehension;
+package org.vstu.compprehension.domain;
+
+import org.vstu.compprehension.*;
 
 import org.apache.jena.rdf.model.Model;
 import org.junit.jupiter.api.BeforeAll;
