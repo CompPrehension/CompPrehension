@@ -39,9 +39,10 @@ public class QuestionBankController {
 
     @RequestMapping(value = {"search"}, method = { RequestMethod.POST }, produces = "application/json", consumes = "application/json")
     @ResponseBody
-    public QuestionBankSearchStatsDto search(@RequestBody QuestionBankSearchRequestDto searchRequest, HttpServletRequest request) throws Exception {
+    public QuestionBankSearchStatsDto search(@RequestBody QuestionBankSearchRequestDto searchRequest,
+                                             HttpServletRequest request) throws Exception {
         var userId = userService.getCurrentUser().getId();
-        authService.ensureAuthorizedGlobal(userId, Permission.VIEW_EXERCISE);
+        authService.ensureAuthorized(userId, Permission.VIEW_EXERCISE, searchRequest.getCourseId());
 
 
         var domain = domainFactory.getDomain(searchRequest.getDomainId());

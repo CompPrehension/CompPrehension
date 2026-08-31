@@ -10,17 +10,21 @@ import static org.springframework.test.web.servlet.result.MockMvcResultMatchers.
 
 class QuestionBankControllerAuthorizationTest extends AbstractAuthorizationTest {
 
-    private static final String SEARCH_REQUEST = """
-            {
-              "domainId": "%s",
-              "complexity": 0.5,
-              "tags": [],
-              "laws": [],
-              "concepts": [],
-              "skills": [],
-              "limit": 5
-            }
-            """.formatted(TestData.DOMAIN_ID);
+    private static String searchRequest(Long courseId) {
+        return """
+                {
+                  "domainId": "%s",
+                  "complexity": 0.5,
+                  "tags": [],
+                  "laws": [],
+                  "concepts": [],
+                  "skills": [],
+                  "limit": 5,
+                  "courseId": %s
+                }
+                """.formatted(TestData.DOMAIN_ID, courseId == null ? "null" : courseId.toString());
+    }
+
 
     /** Поиск по общему банку вопросов спрашивает VIEW_EXERCISE в GLOBAL-области: студенту закрыт. */
     @Test
@@ -31,13 +35,13 @@ class QuestionBankControllerAuthorizationTest extends AbstractAuthorizationTest 
         // Act.
         var result = mockMvc.perform(post("/api/question-bank/search")
                 .contentType(MediaType.APPLICATION_JSON)
-                .content(SEARCH_REQUEST));
+                .content(searchRequest(null)));
 
         // Assert.
         result.andExpect(status().isForbidden());
     }
 
-    /** Банк вопросов общий, поэтому прав преподавателя в отдельном курсе для поиска недостаточно. */
+    /** Без контекста курса поиск проверяется глобально, а глобальных прав у преподавателя нет. */
     @Test
     void searchForbiddenForCourseTeacher() throws Exception {
         // Arrange.
@@ -46,7 +50,7 @@ class QuestionBankControllerAuthorizationTest extends AbstractAuthorizationTest 
         // Act.
         var result = mockMvc.perform(post("/api/question-bank/search")
                 .contentType(MediaType.APPLICATION_JSON)
-                .content(SEARCH_REQUEST));
+                .content(searchRequest(null)));
 
         // Assert.
         result.andExpect(status().isForbidden());
@@ -61,7 +65,54 @@ class QuestionBankControllerAuthorizationTest extends AbstractAuthorizationTest 
         // Act.
         var result = mockMvc.perform(post("/api/question-bank/search")
                 .contentType(MediaType.APPLICATION_JSON)
-                .content(SEARCH_REQUEST));
+                .content(searchRequest(null)));
+
+        // Assert.
+        result.andExpect(status().isForbidden());
+    }
+
+    /**
+     * Поиск в контексте своего курса доступен преподавателю
+     */
+    @Test
+    void searchAllowedForCourseTeacherInOwnCourse() throws Exception {
+        // Arrange.
+        actingAs(TestData.MAIN_COURSE_TEACHER_ID);
+
+        // Act.
+        var result = mockMvc.perform(post("/api/question-bank/search")
+                .contentType(MediaType.APPLICATION_JSON)
+                .content(searchRequest(TestData.MAIN_COURSE_ID)));
+
+        // Assert.
+        result.andExpect(status().isOk());
+    }
+
+    /** Контекст чужого курса прав не даёт. */
+    @Test
+    void searchForbiddenForTeacherOfAnotherCourse() throws Exception {
+        // Arrange.
+        actingAs(TestData.OTHER_COURSE_TEACHER_ID);
+
+        // Act.
+        var result = mockMvc.perform(post("/api/question-bank/search")
+                .contentType(MediaType.APPLICATION_JSON)
+                .content(searchRequest(TestData.MAIN_COURSE_ID)));
+
+        // Assert.
+        result.andExpect(status().isForbidden());
+    }
+
+    /** Студенту банк закрыт и в контексте своего курса: VIEW_EXERCISE у роли нет. */
+    @Test
+    void searchForbiddenForCourseStudentInOwnCourse() throws Exception {
+        // Arrange.
+        actingAs(TestData.MAIN_COURSE_STUDENT_ID);
+
+        // Act.
+        var result = mockMvc.perform(post("/api/question-bank/search")
+                .contentType(MediaType.APPLICATION_JSON)
+                .content(searchRequest(TestData.MAIN_COURSE_ID)));
 
         // Assert.
         result.andExpect(status().isForbidden());

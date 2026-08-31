@@ -61,7 +61,7 @@ export class ExerciseSettingsController {
         return ajaxGet(`${API_URL}/api/refTables/domainConcepts?domaindId=${encodeURIComponent(domainsId)}`, io.array(io.string));
     }
 
-    search(domainId: string, concepts: ExerciseCardConcept[], laws: ExerciseCardLaw[], skills: ExerciseCardSkill[], tags: string[], complexity: number, limit: number, signal?: AbortSignal): PromiseEither<RequestError, QuestionBankSearchResult> {
+    search(domainId: string, concepts: ExerciseCardConcept[], laws: ExerciseCardLaw[], skills: ExerciseCardSkill[], tags: string[], complexity: number, limit: number, courseId: number | null, signal?: AbortSignal): PromiseEither<RequestError, QuestionBankSearchResult> {
         const body = {
             domainId,
             tags,
@@ -70,6 +70,7 @@ export class ExerciseSettingsController {
             skills,
             complexity,
             limit,
+            courseId,
         }
         return ajaxPost(`${API_URL}/api/question-bank/search`, body, TQuestionBankSearchResult, signal);
     }

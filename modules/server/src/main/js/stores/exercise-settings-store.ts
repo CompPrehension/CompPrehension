@@ -38,7 +38,9 @@ export class ExerciseStageStore implements Disposable {
     autorunner?: IReactionDisposer
     private abortController: AbortController | null = null
 
-    constructor(private readonly exerciseSettingsController: ExerciseSettingsController, card: ExerciseCardViewModel, stage: ExerciseStage) {
+    constructor(private readonly exerciseSettingsController: ExerciseSettingsController,
+                private readonly courseId: number | null,
+                card: ExerciseCardViewModel, stage: ExerciseStage) {
         this.concepts = stage.concepts;
         this.laws     = stage.laws;
         this.skills     = stage.skills;
@@ -71,7 +73,7 @@ export class ExerciseStageStore implements Disposable {
         this.abortController = currentAbortController;
         runInAction(() => this.bankLoadingState = 'IN_PROGRESS');
 
-        const newData: E.Either<RequestError, QuestionBankSearchResult> = yield this.exerciseSettingsController.search(card.domainId, concepts, laws, skills, tags, complexity, 5, currentAbortController.signal);
+        const newData: E.Either<RequestError, QuestionBankSearchResult> = yield this.exerciseSettingsController.search(card.domainId, concepts, laws, skills, tags, complexity, 5, this.courseId, currentAbortController.signal);
         if (E.isRight(newData)) {
             runInAction(() => {
                 this.bankSearchResult = newData.right;
@@ -142,7 +144,7 @@ export class ExerciseSettingsStore {
         });
         result.stages = pipe(
             card.stages,
-            NEA.map(stage => new ExerciseStageStore(this.exerciseSettingsController, result, stage))
+            NEA.map(stage => new ExerciseStageStore(this.exerciseSettingsController, this.courseId, result, stage))
         );
 
         return result;
@@ -555,6 +557,7 @@ export class ExerciseSettingsStore {
 
         const newStage = new ExerciseStageStore(
             this.exerciseSettingsController,
+            this.courseId,
             card,
             {
                 numberOfQuestions: 10,

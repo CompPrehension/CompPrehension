@@ -98,16 +98,6 @@ public class AuthService {
         assignRoleInternal(userId, role, PermissionScopeKind.GLOBAL, null);
     }
 
-    @Transactional
-    public void assignRole(long userId, Role role, PermissionScopeKind kind, Long scopeItemId) {
-        assignRoleInternal(userId, role, kind, scopeItemId);
-    }
-
-    @Transactional
-    public void revokeRole(long userId, Role role, PermissionScopeKind kind, Long scopeItemId) {
-        ruaRepository.deleteRoleInScope(userId, role, kind, scopeItemId);
-    }
-
     public List<Long> findScopeItemIdsWithPermission(long userId, Permission permission, PermissionScopeKind kind) {
         return ruaRepository.findScopeItemIdsWithPermission(userId, permission, kind);
     }
@@ -167,14 +157,6 @@ public class AuthService {
         if (!role.isAllowedIn(kind)) {
             throw new IllegalArgumentException(String.format(
                     "Role %s cannot be assigned in scope %s", role, kind));
-        }
-    }
-
-    @Transactional
-    public void reconcileGlobalRole(long userId, Role desiredRole) {
-        ruaRepository.deleteRolesInScopeExcept(userId, desiredRole, PermissionScopeKind.GLOBAL, null);
-        if (desiredRole != null) {
-            assignRoleInternal(userId, desiredRole, PermissionScopeKind.GLOBAL, null);
         }
     }
 
