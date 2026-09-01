@@ -31,7 +31,7 @@ public class CourseEducationResourceCache {
 
     public List<Long> educationResourceIdsOf(Collection<Long> courseIds) {
         long now = System.nanoTime();
-        var resolved = new ArrayList<Long>();
+        var resolved = new LinkedHashSet<Long>();
         var missing = new ArrayList<Long>();
 
         for (Long courseId : courseIds) {
@@ -54,6 +54,6 @@ public class CourseEducationResourceCache {
             }
         }
 
-        return resolved;
+        return List.copyOf(resolved);
     }
 }

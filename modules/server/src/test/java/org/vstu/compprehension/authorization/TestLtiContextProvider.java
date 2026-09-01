@@ -22,7 +22,7 @@ public class TestLtiContextProvider implements LtiContextProvider {
     private static final ThreadLocal<LtiContext> CONTEXT = new ThreadLocal<>();
     private static final ThreadLocal<LtiDeepLinkingContext> DEEP_LINKING = new ThreadLocal<>();
 
-    /** Запуск из курса образовательного ресурса, заданного в data.sql. */
+    /** Запуск из курса, заданного в data.sql. */
     public static void launchedFromCourse(String externalCourseId) {
         CONTEXT.set(new LtiContext(
                 null,
@@ -33,7 +33,7 @@ public class TestLtiContextProvider implements LtiContextProvider {
                 null));
     }
 
-    /** Запуск, пришедший как deep-linking: без него эндпоинты сборки активностей недоступны. */
+    /** Запуск в режиме deep-linking. */
     public static void withDeepLinkingSession() {
         DEEP_LINKING.set(new LtiDeepLinkingContext(
                 TestData.EDUCATION_RESOURCE_URL,

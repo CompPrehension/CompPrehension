@@ -26,7 +26,7 @@ class QuestionBankControllerAuthorizationTest extends AbstractAuthorizationTest 
     }
 
 
-    /** Поиск по общему банку вопросов спрашивает VIEW_EXERCISE в GLOBAL-области: студенту закрыт. */
+    /** Поиск по банку требует VIEW_EXERCISE в GLOBAL-области. */
     @Test
     void searchForbiddenForGlobalStudent() throws Exception {
         // Arrange.
@@ -41,7 +41,7 @@ class QuestionBankControllerAuthorizationTest extends AbstractAuthorizationTest 
         result.andExpect(status().isForbidden());
     }
 
-    /** Без контекста курса поиск проверяется глобально, а глобальных прав у преподавателя нет. */
+    /** Без courseId проверка идёт в GLOBAL, где прав у преподавателя нет. */
     @Test
     void searchForbiddenForCourseTeacher() throws Exception {
         // Arrange.
@@ -56,7 +56,7 @@ class QuestionBankControllerAuthorizationTest extends AbstractAuthorizationTest 
         result.andExpect(status().isForbidden());
     }
 
-    /** Без ролей поиск по банку закрыт. */
+    /** Без ролей поиск закрыт. */
     @Test
     void searchForbiddenForUserWithoutRoles() throws Exception {
         // Arrange.
@@ -71,9 +71,7 @@ class QuestionBankControllerAuthorizationTest extends AbstractAuthorizationTest 
         result.andExpect(status().isForbidden());
     }
 
-    /**
-     * Поиск в контексте своего курса доступен преподавателю
-     */
+    /** В контексте своего курса поиск преподавателю доступен. */
     @Test
     void searchAllowedForCourseTeacherInOwnCourse() throws Exception {
         // Arrange.
@@ -103,7 +101,7 @@ class QuestionBankControllerAuthorizationTest extends AbstractAuthorizationTest 
         result.andExpect(status().isForbidden());
     }
 
-    /** Студенту банк закрыт и в контексте своего курса: VIEW_EXERCISE у роли нет. */
+    /** У студента VIEW_EXERCISE нет и в своём курсе. */
     @Test
     void searchForbiddenForCourseStudentInOwnCourse() throws Exception {
         // Arrange.

@@ -9,7 +9,7 @@ import static org.springframework.test.web.servlet.result.MockMvcResultMatchers.
 
 class ExerciseControllerAuthorizationTest extends AbstractAuthorizationTest {
 
-    /** Параметры упражнения нужны для его решения, поэтому студенту курса они доступны. */
+    /** Параметры упражнения нужны для решения, студенту курса доступны. */
     @Test
     void shortInfoAllowedForCourseStudent() throws Exception {
         // Arrange.
@@ -24,7 +24,7 @@ class ExerciseControllerAuthorizationTest extends AbstractAuthorizationTest {
         result.andExpect(status().isOk());
     }
 
-    /** Права преподавателя в своём курсе не дают доступа к упражнениям чужого курса. */
+    /** Права преподавателя не переносятся в соседний курс. */
     @Test
     void shortInfoForbiddenForTeacherOfAnotherCourse() throws Exception {
         // Arrange.
@@ -39,7 +39,7 @@ class ExerciseControllerAuthorizationTest extends AbstractAuthorizationTest {
         result.andExpect(status().isForbidden());
     }
 
-    /** Аутентификация без единой роли не даёт доступа никуда. */
+    /** Без ролей доступа нет. */
     @Test
     void shortInfoForbiddenForUserWithoutRoles() throws Exception {
         // Arrange.
@@ -55,15 +55,9 @@ class ExerciseControllerAuthorizationTest extends AbstractAuthorizationTest {
     }
 
     /**
-     * TODO: поправить.
-     * <p>
-     * Без {@code courseId} контроллер достаёт упражнение не проверяя
-     * принадлежность заявленному контексту. Поэтому параметры приватного упражнения чужого курса
-     * получает любой, у кого есть SOLVE_EXERCISE в GLOBAL-области, — а он есть у всех.
-     * <p>
-     * Пока такое поведение было оставлено, чтобы не
-     * сломать прямые ссылки на упражнение без курса. Когда решим, как ссылка передаёт курс,
-     * здесь должен появиться отказ.
+     * TODO: без courseId контроллер не проверяет принадлежность упражнения курсу, поэтому
+     * параметры приватного упражнения чужого курса получает любой. Оставлено, чтобы не сломать
+     * прямые ссылки на упражнение вне курса.
      */
     @Test
     void shortInfoOfCourseExerciseIsReachableWithoutCourseContext() throws Exception {
@@ -78,12 +72,7 @@ class ExerciseControllerAuthorizationTest extends AbstractAuthorizationTest {
         result.andExpect(status().isOk());
     }
 
-    /**
-     * TODO: поправить.
-     * <p>
-     * Посторонний не просто читает упражнение чужого курса, а заводит по нему
-     * попытку решения.
-     */
+    /** TODO: та же дыра, но здесь по чужому упражнению ещё и заводится попытка. */
     @Test
     void attemptOnCourseExerciseCanBeCreatedWithoutCourseContext() throws Exception {
         // Arrange.
@@ -97,7 +86,7 @@ class ExerciseControllerAuthorizationTest extends AbstractAuthorizationTest {
         result.andExpect(status().isOk());
     }
 
-    /** Поиск незавершённой попытки — часть цикла решения, студенту курса разрешён. */
+    /** Поиск своей незавершённой попытки студенту курса разрешён. */
     @Test
     void getExistingAttemptAllowedForCourseStudent() throws Exception {
         // Arrange.
@@ -127,7 +116,7 @@ class ExerciseControllerAuthorizationTest extends AbstractAuthorizationTest {
         result.andExpect(status().isForbidden());
     }
 
-    /** Основной сценарий студента: начать решать упражнение своего курса. */
+    /** Студент начинает решать упражнение своего курса. */
     @Test
     void createAttemptAllowedForCourseStudent() throws Exception {
         // Arrange.
@@ -142,7 +131,7 @@ class ExerciseControllerAuthorizationTest extends AbstractAuthorizationTest {
         result.andExpect(status().isOk());
     }
 
-    /** Без ролей нельзя даже начать решать. */
+    /** Без ролей нельзя начать решать. */
     @Test
     void createAttemptForbiddenForUserWithoutRoles() throws Exception {
         // Arrange.
@@ -157,10 +146,7 @@ class ExerciseControllerAuthorizationTest extends AbstractAuthorizationTest {
         result.andExpect(status().isForbidden());
     }
 
-    /**
-     * Прав в своём курсе недостаточно, чтобы решать упражнение чужого: подстановка чужого
-     * exerciseId к своему courseId отсекается проверкой связи упражнения с курсом.
-     */
+    /** Чужой exerciseId со своим courseId отсекается проверкой связи упражнения с курсом. */
     @Test
     void createAttemptRejectedForExerciseOfAnotherCourse() throws Exception {
         // Arrange.
@@ -175,7 +161,7 @@ class ExerciseControllerAuthorizationTest extends AbstractAuthorizationTest {
         result.andExpect(status().isConflict());
     }
 
-    /** Отладочная попытка — инструмент автора упражнения, а не решающего: студенту закрыта. */
+    /** Отладочная попытка требует EDIT_EXERCISE. */
     @Test
     void createDebugAttemptForbiddenForCourseStudent() throws Exception {
         // Arrange.
@@ -190,7 +176,7 @@ class ExerciseControllerAuthorizationTest extends AbstractAuthorizationTest {
         result.andExpect(status().isForbidden());
     }
 
-    /** Ассистент видит курс, но не правит упражнения, поэтому отладочная попытка ему закрыта. */
+    /** У ассистента EDIT_EXERCISE нет. */
     @Test
     void createDebugAttemptForbiddenForCourseAssistant() throws Exception {
         // Arrange.
@@ -205,7 +191,7 @@ class ExerciseControllerAuthorizationTest extends AbstractAuthorizationTest {
         result.andExpect(status().isForbidden());
     }
 
-    /** Своя попытка доступна владельцу — первая ветка ensureOwnerOrPrivileged. */
+    /** Владелец читает свою попытку. */
     @Test
     void getAttemptAllowedForItsOwner() throws Exception {
         // Arrange.
@@ -220,10 +206,7 @@ class ExerciseControllerAuthorizationTest extends AbstractAuthorizationTest {
         result.andExpect(status().isOk());
     }
 
-    /**
-     * Преподаватель курса видит чужие попытки в своём курсе — вторая ветка
-     * ensureOwnerOrPrivileged, привилегия выводится из EDIT_EXERCISE.
-     */
+    /** Преподаватель читает чужие попытки своего курса по EDIT_EXERCISE. */
     @Test
     void getAttemptAllowedForCourseTeacher() throws Exception {
         // Arrange.
@@ -238,10 +221,7 @@ class ExerciseControllerAuthorizationTest extends AbstractAuthorizationTest {
         result.andExpect(status().isOk());
     }
 
-    /**
-     * Ассистенту чужие попытки закрыты: роль в курсе есть, но привилегия завязана именно
-     * на EDIT_EXERCISE, которого у него нет.
-     */
+    /** У ассистента EDIT_EXERCISE нет, чужие попытки закрыты. */
     @Test
     void getAttemptForbiddenForCourseAssistant() throws Exception {
         // Arrange.
@@ -271,7 +251,7 @@ class ExerciseControllerAuthorizationTest extends AbstractAuthorizationTest {
         result.andExpect(status().isForbidden());
     }
 
-    /** Попытка вне курса проверяется в GLOBAL-области: владелец получает свою. */
+    /** Попытка вне курса проверяется в GLOBAL-области. */
     @Test
     void getGlobalPoolAttemptAllowedForItsOwner() throws Exception {
         // Arrange.

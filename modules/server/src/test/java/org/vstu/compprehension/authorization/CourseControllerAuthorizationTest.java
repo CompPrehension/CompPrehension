@@ -13,7 +13,7 @@ import static org.springframework.test.web.servlet.result.MockMvcResultMatchers.
 
 class CourseControllerAuthorizationTest extends AbstractAuthorizationTest {
 
-    /** Глобальный администратор видит все курсы системы, а не только те, где у него роль. */
+    /** Администратор видит все курсы системы. */
     @Test
     void myCoursesReturnsAllCoursesForGlobalAdmin() throws Exception {
         // Arrange.
@@ -27,7 +27,7 @@ class CourseControllerAuthorizationTest extends AbstractAuthorizationTest {
                 .andExpect(jsonPath("$", hasSize(2)));
     }
 
-    /** Здесь авторизация выражена фильтрацией: преподаватель получает только свой курс. */
+    /** Преподаватель видит только свой курс. */
     @Test
     void myCoursesReturnsOnlyOwnCourseForCourseTeacher() throws Exception {
         // Arrange.
@@ -42,7 +42,7 @@ class CourseControllerAuthorizationTest extends AbstractAuthorizationTest {
                 .andExpect(jsonPath("$[0].id").value(TestData.MAIN_COURSE_ID));
     }
 
-    /** Глобальная роль не даёт членства ни в одном курсе: список пуст. */
+    /** Глобальная роль членства в курсе не даёт. */
     @Test
     void myCoursesIsEmptyForGlobalExerciseAuthor() throws Exception {
         // Arrange.
@@ -70,7 +70,7 @@ class CourseControllerAuthorizationTest extends AbstractAuthorizationTest {
                 .andExpect(jsonPath("$", hasSize(0)));
     }
 
-    /** Студент курсов не листает: у роли нет VIEW_COURSE, а список управляется именно им. */
+    /** У студента нет VIEW_COURSE. */
     @Test
     void myCoursesIsEmptyForCourseStudent() throws Exception {
         // Arrange.
@@ -84,7 +84,7 @@ class CourseControllerAuthorizationTest extends AbstractAuthorizationTest {
                 .andExpect(jsonPath("$", hasSize(0)));
     }
 
-    /** Ассистенту курс виден: VIEW_COURSE у роли есть, хотя менять он ничего не может. */
+    /** У ассистента VIEW_COURSE есть. */
     @Test
     void myCoursesReturnsOwnCourseForCourseAssistant() throws Exception {
         // Arrange.
@@ -99,10 +99,7 @@ class CourseControllerAuthorizationTest extends AbstractAuthorizationTest {
                 .andExpect(jsonPath("$[0].id").value(TestData.MAIN_COURSE_ID));
     }
 
-    /**
-     * Роль в образовательном ресурсе действует во всех его курсах сразу: администратор LMS
-     * видит оба курса, не имея роли ни в одном из них.
-     */
+    /** Роль в образовательном ресурсе действует во всех его курсах. */
     @Test
     void myCoursesReturnsAllLmsCoursesForEducationResourceAdmin() throws Exception {
         // Arrange.
@@ -116,7 +113,7 @@ class CourseControllerAuthorizationTest extends AbstractAuthorizationTest {
                 .andExpect(jsonPath("$", hasSize(2)));
     }
 
-    /** Список курсов, куда включено упражнение, — инструмент ведущего пул. */
+    /** Список курсов упражнения требует VIEW_EXERCISE в GLOBAL-области. */
     @Test
     void membershipsAllowedForGlobalExerciseAuthor() throws Exception {
         // Arrange.
@@ -130,9 +127,7 @@ class CourseControllerAuthorizationTest extends AbstractAuthorizationTest {
         result.andExpect(status().isOk());
     }
 
-    /**
-     * Эндпоинт спрашивает VIEW_EXERCISE в GLOBAL-области, поэтому прав преподавателя в курсе для него недостаточно.
-     */
+    /** Прав преподавателя в курсе для глобальной проверки не хватает. */
     @Test
     void membershipsForbiddenForCourseTeacher() throws Exception {
         // Arrange.
@@ -160,7 +155,7 @@ class CourseControllerAuthorizationTest extends AbstractAuthorizationTest {
         result.andExpect(status().isForbidden());
     }
 
-    /** Импорт упражнения из пула наследованием меняет состав курса, поэтому требует MANAGE_COURSE_CONTENT. */
+    /** Наследование упражнения из пула требует MANAGE_COURSE_CONTENT. */
     @Test
     void addExerciseToCourseAllowedForCourseTeacher() throws Exception {
         // Arrange.
@@ -175,7 +170,7 @@ class CourseControllerAuthorizationTest extends AbstractAuthorizationTest {
         result.andExpect(status().isOk());
     }
 
-    /** У ассистента MANAGE_COURSE_CONTENT нет, состав курса он не меняет. */
+    /** У ассистента MANAGE_COURSE_CONTENT нет. */
     @Test
     void addExerciseToCourseForbiddenForCourseAssistant() throws Exception {
         // Arrange.
@@ -205,9 +200,7 @@ class CourseControllerAuthorizationTest extends AbstractAuthorizationTest {
         result.andExpect(status().isForbidden());
     }
 
-    /**
-     * Наследовать можно только упражнение из общего пула. Права есть, отказ даёт состояние.
-     */
+    /** Наследовать можно только упражнение из пула: отказ по состоянию, не по правам. */
     @Test
     void addExerciseToCourseRejectedForPrivateExerciseOfAnotherCourse() throws Exception {
         // Arrange.
@@ -222,7 +215,7 @@ class CourseControllerAuthorizationTest extends AbstractAuthorizationTest {
         result.andExpect(status().isConflict());
     }
 
-    /** Отвязка наследованного упражнения тоже меняет состав курса. */
+    /** Отвязка упражнения тоже требует MANAGE_COURSE_CONTENT. */
     @Test
     void removeExerciseFromCourseAllowedForCourseTeacher() throws Exception {
         // Arrange.
@@ -237,7 +230,7 @@ class CourseControllerAuthorizationTest extends AbstractAuthorizationTest {
         result.andExpect(status().isOk());
     }
 
-    /** Ассистент не отвязывает упражнения от курса. */
+    /** Ассистент упражнения от курса не отвязывает. */
     @Test
     void removeExerciseFromCourseForbiddenForCourseAssistant() throws Exception {
         // Arrange.
@@ -252,7 +245,7 @@ class CourseControllerAuthorizationTest extends AbstractAuthorizationTest {
         result.andExpect(status().isForbidden());
     }
 
-    /** Преподаватель чужого курса не может вычистить состав соседнего. */
+    /** Отвязка не проходит через границу курса. */
     @Test
     void removeExerciseFromCourseForbiddenForTeacherOfAnotherCourse() throws Exception {
         // Arrange.

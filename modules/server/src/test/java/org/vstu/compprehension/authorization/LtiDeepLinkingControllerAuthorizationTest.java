@@ -19,7 +19,7 @@ class LtiDeepLinkingControllerAuthorizationTest extends AbstractAuthorizationTes
         TestLtiContextProvider.reset();
     }
 
-    /** Сборка активностей меняет состав курса в LMS, поэтому требует MANAGE_COURSE_CONTENT. */
+    /** Сборка активностей требует MANAGE_COURSE_CONTENT. */
     @Test
     void buildForbiddenForCourseStudent() throws Exception {
         // Arrange.
@@ -36,7 +36,7 @@ class LtiDeepLinkingControllerAuthorizationTest extends AbstractAuthorizationTes
         result.andExpect(status().isForbidden());
     }
 
-    /** Ассистент видит курс, но не меняет его состав. */
+    /** У ассистента MANAGE_COURSE_CONTENT нет. */
     @Test
     void buildForbiddenForCourseAssistant() throws Exception {
         // Arrange.
@@ -53,10 +53,7 @@ class LtiDeepLinkingControllerAuthorizationTest extends AbstractAuthorizationTes
         result.andExpect(status().isForbidden());
     }
 
-    /**
-     * Права проверяются в том курсе, из которого пришёл запуск, а не в том, где они у
-     * пользователя есть: преподаватель соседнего курса ничего не соберёт.
-     */
+    /** Права проверяются в курсе запуска, а не там, где они у пользователя есть. */
     @Test
     void buildForbiddenForTeacherOfAnotherCourse() throws Exception {
         // Arrange.
@@ -73,7 +70,7 @@ class LtiDeepLinkingControllerAuthorizationTest extends AbstractAuthorizationTes
         result.andExpect(status().isForbidden());
     }
 
-    /** Глобальные права не подменяют членство в курсе: администратор LMS здесь ни при чём. */
+    /** Глобальные права членство в курсе не подменяют. */
     @Test
     void buildForbiddenForGlobalExerciseAuthor() throws Exception {
         // Arrange.
@@ -90,7 +87,7 @@ class LtiDeepLinkingControllerAuthorizationTest extends AbstractAuthorizationTes
         result.andExpect(status().isForbidden());
     }
 
-    /** Список уже добавленных активностей закрыт тем же правом, что и сборка. */
+    /** Список активностей закрыт тем же правом, что и сборка. */
     @Test
     void existingForbiddenForCourseStudent() throws Exception {
         // Arrange.
@@ -105,10 +102,7 @@ class LtiDeepLinkingControllerAuthorizationTest extends AbstractAuthorizationTes
         result.andExpect(status().isForbidden());
     }
 
-    /**
-     * Без deep-linking-сессии до проверки прав дело не доходит вовсе: эндпоинт отвечает
-     * отказом по некорректному запросу, а не по правам. Фиксирует порядок проверок.
-     */
+    /** Без deep-linking-сессии отказ идёт раньше проверки прав. */
     @Test
     void buildRejectedWithoutDeepLinkingSession() throws Exception {
         // Arrange.
@@ -124,7 +118,7 @@ class LtiDeepLinkingControllerAuthorizationTest extends AbstractAuthorizationTes
         result.andExpect(status().isBadRequest());
     }
 
-    /** Без LTI-контекста курс определить не из чего, поэтому запрос некорректен. */
+    /** Без LTI-контекста курс определить не из чего. */
     @Test
     void buildRejectedWithoutLtiContext() throws Exception {
         // Arrange.

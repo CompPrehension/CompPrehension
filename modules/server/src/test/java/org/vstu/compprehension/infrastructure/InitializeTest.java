@@ -38,7 +38,7 @@ public class InitializeTest extends AbstractIntegrationTest {
                 .collect(Collectors.toSet());
     }
 
-    /** Домены заводятся миграциями, поэтому в базе есть заранее известный набор. */
+    /** Домены заводятся миграциями. */
     @Test
     public void migrationsCreateKnownDomains() {
         var domainNames = domainNames();
@@ -57,7 +57,7 @@ public class InitializeTest extends AbstractIntegrationTest {
         assertTrue(domainNames().contains(FAKE_DOMAIN));
     }
 
-    /** И не видно соседнему: транзакция теста откатывается, база остаётся чистой для остальных. */
+    /** Соседнему тесту не видно: транзакция откатывается. */
     @Test
     public void noFakeDomain() {
         assertFalse(domainNames().contains(FAKE_DOMAIN));

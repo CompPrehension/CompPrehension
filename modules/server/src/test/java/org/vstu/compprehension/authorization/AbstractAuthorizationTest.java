@@ -73,12 +73,12 @@ public abstract class AbstractAuthorizationTest extends AbstractIntegrationTest 
         return attempt;
     }
 
-    /** Незавершённая попытка студента главного курса по упражнению этого курса. */
+    /** Незавершённая попытка студента в главном курсе. */
     protected ExerciseAttemptEntity createMainCourseAttempt() {
         return createAttempt(TestData.MAIN_COURSE_STUDENT_ID, TestData.MAIN_COURSE_EXERCISE_ID, TestData.MAIN_COURSE_ID);
     }
 
-    /** Попытка вне курса: права по ней проверяются в GLOBAL-области. */
+    /** Попытка вне курса. */
     protected ExerciseAttemptEntity createGlobalPoolAttempt() {
         return createAttempt(TestData.GLOBAL_STUDENT_ID, TestData.GLOBAL_POOL_EXERCISE_ID, null);
     }

@@ -9,6 +9,8 @@ public final class TestData {
     public static final String MAIN_COURSE_EXTERNAL_ID = "ext-course-1";
     public static final String OTHER_COURSE_EXTERNAL_ID = "ext-course-2";
 
+    public static final long EDUCATION_RESOURCE_ID = -1L;
+
     public static final long MAIN_COURSE_ID = -1L;
     public static final long OTHER_COURSE_ID = -2L;
 

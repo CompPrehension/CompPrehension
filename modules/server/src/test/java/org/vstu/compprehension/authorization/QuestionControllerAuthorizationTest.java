@@ -11,7 +11,7 @@ import static org.springframework.test.web.servlet.result.MockMvcResultMatchers.
 
 class QuestionControllerAuthorizationTest extends AbstractAuthorizationTest {
 
-    /** Вопрос принадлежит попытке, а попытка — студенту: посторонний его не читает. */
+    /** Вопрос принадлежит чужой попытке. */
     @Test
     void getQuestionForbiddenForAnotherStudent() throws Exception {
         // Arrange.
@@ -26,7 +26,7 @@ class QuestionControllerAuthorizationTest extends AbstractAuthorizationTest {
         result.andExpect(status().isForbidden());
     }
 
-    /** Ассистенту чужие вопросы закрыты: привилегия выводится из EDIT_EXERCISE, которого у него нет. */
+    /** Привилегия на чужие вопросы держится на EDIT_EXERCISE. */
     @Test
     void getQuestionForbiddenForCourseAssistant() throws Exception {
         // Arrange.
@@ -41,7 +41,7 @@ class QuestionControllerAuthorizationTest extends AbstractAuthorizationTest {
         result.andExpect(status().isForbidden());
     }
 
-    /** Отправка ответа на чужой вопрос — попытка вмешаться в чужое решение. */
+    /** Ответ в чужое решение не отправить. */
     @Test
     void addQuestionAnswerForbiddenForAnotherStudent() throws Exception {
         // Arrange.
@@ -58,7 +58,7 @@ class QuestionControllerAuthorizationTest extends AbstractAuthorizationTest {
         result.andExpect(status().isForbidden());
     }
 
-    /** Дополнительные вопросы принадлежат тому же решению и защищены так же. */
+    /** Дополнительные вопросы защищены так же. */
     @Test
     void addSupplementaryQuestionAnswerForbiddenForAnotherStudent() throws Exception {
         // Arrange.
@@ -75,7 +75,7 @@ class QuestionControllerAuthorizationTest extends AbstractAuthorizationTest {
         result.andExpect(status().isForbidden());
     }
 
-    /** Запрос дополнительного вопроса по чужому вопросу закрыт. */
+    /** Запрос дополнительного вопроса по чужому закрыт. */
     @Test
     void generateSupplementaryQuestionForbiddenForAnotherStudent() throws Exception {
         // Arrange.
@@ -94,7 +94,7 @@ class QuestionControllerAuthorizationTest extends AbstractAuthorizationTest {
         result.andExpect(status().isForbidden());
     }
 
-    /** Подсказка с правильным ответом на чужой вопрос — тем более не для посторонних. */
+    /** Подсказка с ответом по чужому вопросу закрыта. */
     @Test
     void generateNextCorrectAnswerForbiddenForAnotherStudent() throws Exception {
         // Arrange.
@@ -109,7 +109,7 @@ class QuestionControllerAuthorizationTest extends AbstractAuthorizationTest {
         result.andExpect(status().isForbidden());
     }
 
-    /** Генерация очередного вопроса идёт в чужую попытку, поэтому закрыта. */
+    /** Генерация идёт в чужую попытку. */
     @Test
     void generateQuestionForbiddenForAnotherStudent() throws Exception {
         // Arrange.
@@ -124,7 +124,7 @@ class QuestionControllerAuthorizationTest extends AbstractAuthorizationTest {
         result.andExpect(status().isForbidden());
     }
 
-    /** Ассистент не может продолжать чужую попытку. */
+    /** Ассистент чужую попытку не продолжает. */
     @Test
     void generateQuestionForbiddenForCourseAssistant() throws Exception {
         // Arrange.
@@ -139,10 +139,7 @@ class QuestionControllerAuthorizationTest extends AbstractAuthorizationTest {
         result.andExpect(status().isForbidden());
     }
 
-    /**
-     * Генерация вопроса по метаданным — инструмент ведения общего банка, поэтому спрашивает
-     * EDIT_EXERCISE именно в GLOBAL-области. Прав преподавателя в своём курсе не хватает.
-     */
+    /** Генерация по метаданным требует EDIT_EXERCISE в GLOBAL-области. */
     @Test
     void generateByMetadataForbiddenForCourseTeacher() throws Exception {
         // Arrange.

@@ -25,7 +25,7 @@ class ExerciseSettingsControllerAuthorizationTest extends AbstractAuthorizationT
     @Autowired private ObjectMapper objectMapper;
     @Autowired private ExerciseRepository exerciseRepository;
 
-    /** Автор пула ведёт общий список упражнений, значит видит его. */
+    /** Автор пула видит общий список упражнений. */
     @Test
     void listGlobalExercisesAllowedForGlobalExerciseAuthor() throws Exception {
         // Arrange.
@@ -38,7 +38,7 @@ class ExerciseSettingsControllerAuthorizationTest extends AbstractAuthorizationT
         result.andExpect(status().isOk());
     }
 
-    /** Студент не листает глобальный пул: у него остался только SOLVE_EXERCISE. */
+    /** У студента остался только SOLVE_EXERCISE. */
     @Test
     void listGlobalExercisesForbiddenForGlobalStudent() throws Exception {
         // Arrange.
@@ -65,7 +65,7 @@ class ExerciseSettingsControllerAuthorizationTest extends AbstractAuthorizationT
         result.andExpect(status().isOk());
     }
 
-    /** Студент не видит списка упражнений даже в своём курсе — приходит по прямой ссылке. */
+    /** Студент списка упражнений курса не видит. */
     @Test
     void listCourseExercisesForbiddenForCourseStudent() throws Exception {
         // Arrange.
@@ -79,7 +79,7 @@ class ExerciseSettingsControllerAuthorizationTest extends AbstractAuthorizationT
         result.andExpect(status().isForbidden());
     }
 
-    /** Роль преподавателя действует только в своём курсе и не переносится на соседний. */
+    /** Роль преподавателя не переносится в соседний курс. */
     @Test
     void listCourseExercisesForbiddenForTeacherOfAnotherCourse() throws Exception {
         // Arrange.
@@ -93,7 +93,7 @@ class ExerciseSettingsControllerAuthorizationTest extends AbstractAuthorizationT
         result.andExpect(status().isForbidden());
     }
 
-    /** Карточка упражнения пула доступна тому, кто пул ведёт. */
+    /** Карточка упражнения пула доступна автору пула. */
     @Test
     void getExerciseCardAllowedForGlobalExerciseAuthor() throws Exception {
         // Arrange.
@@ -107,7 +107,7 @@ class ExerciseSettingsControllerAuthorizationTest extends AbstractAuthorizationT
         result.andExpect(status().isOk());
     }
 
-    /** Карточка с настройками — не для решающего. */
+    /** Карточка с настройками решающему закрыта. */
     @Test
     void getExerciseCardForbiddenForGlobalStudent() throws Exception {
         // Arrange.
@@ -121,7 +121,7 @@ class ExerciseSettingsControllerAuthorizationTest extends AbstractAuthorizationT
         result.andExpect(status().isForbidden());
     }
 
-    /** Карточка курсового упражнения доступна преподавателю этого курса. */
+    /** Карточка курсового упражнения доступна преподавателю курса. */
     @Test
     void getCourseExerciseCardAllowedForCourseTeacher() throws Exception {
         // Arrange.
@@ -136,7 +136,7 @@ class ExerciseSettingsControllerAuthorizationTest extends AbstractAuthorizationT
         result.andExpect(status().isOk());
     }
 
-    /** Ради этого роль и вводилась: автор создаёт упражнение в общем пуле. */
+    /** Автор пула создаёт упражнение в пуле. */
     @Test
     void createGlobalExerciseAllowedForGlobalExerciseAuthor() throws Exception {
         // Arrange.
@@ -153,7 +153,7 @@ class ExerciseSettingsControllerAuthorizationTest extends AbstractAuthorizationT
         result.andExpect(status().isOk());
     }
 
-    /** Создание в пуле закрыто для тех, у кого нет CREATE_EXERCISE. */
+    /** Без CREATE_EXERCISE создать нельзя. */
     @Test
     void createGlobalExerciseForbiddenForGlobalStudent() throws Exception {
         // Arrange.
@@ -170,7 +170,7 @@ class ExerciseSettingsControllerAuthorizationTest extends AbstractAuthorizationT
         result.andExpect(status().isForbidden());
     }
 
-    /** Ассистент видит курс, но не создаёт в нём упражнения. */
+    /** Ассистент упражнений в курсе не создаёт. */
     @Test
     void createCourseExerciseForbiddenForCourseAssistant() throws Exception {
         // Arrange.
@@ -203,7 +203,7 @@ class ExerciseSettingsControllerAuthorizationTest extends AbstractAuthorizationT
         result.andExpect(status().isOk());
     }
 
-    /** Правка упражнения пула закрыта для студента. */
+    /** Студенту правка закрыта. */
     @Test
     void updateGlobalExerciseForbiddenForGlobalStudent() throws Exception {
         // Arrange.
@@ -219,7 +219,7 @@ class ExerciseSettingsControllerAuthorizationTest extends AbstractAuthorizationT
         result.andExpect(status().isForbidden());
     }
 
-    /** Преподаватель правит собственное упражнение курса. */
+    /** Преподаватель правит своё упражнение курса. */
     @Test
     void updateCourseExerciseAllowedForCourseTeacher() throws Exception {
         // Arrange.
@@ -236,7 +236,7 @@ class ExerciseSettingsControllerAuthorizationTest extends AbstractAuthorizationT
         result.andExpect(status().isOk());
     }
 
-    /** Ассистент не правит упражнения курса: EDIT_EXERCISE у роли нет. */
+    /** У ассистента EDIT_EXERCISE нет. */
     @Test
     void updateCourseExerciseForbiddenForCourseAssistant() throws Exception {
         // Arrange.
@@ -253,9 +253,10 @@ class ExerciseSettingsControllerAuthorizationTest extends AbstractAuthorizationT
         result.andExpect(status().isForbidden());
     }
 
-    /** Ключевой тест изоляции: глобальные права не дотягиваются до приватного упражнения курса.
-     * Не передав courseId, автор пула проходит проверку прав в GLOBAL-области, и остановить его
-     * может только проверка принадлежности упражнения заявленному контексту. */
+    /**
+     * Изоляция областей: без courseId проверка идёт в GLOBAL, а упражнение курса отсекается
+     * проверкой принадлежности заявленному контексту.
+     */
     @Test
     void updateCourseExerciseRejectedForGlobalExerciseAuthorActingOutsideCourse() throws Exception {
         // Arrange.
@@ -271,8 +272,7 @@ class ExerciseSettingsControllerAuthorizationTest extends AbstractAuthorizationT
         result.andExpect(status().isConflict());
     }
 
-    /** Наследованное из пула упражнение из курса только читается: правка задела бы все курсы,
-     * которые его наследуют. Права у преподавателя есть, отказ даёт состояние упражнения. */
+    /** Наследованное упражнение только читается: отказ по состоянию, не по правам. */
     @Test
     void updateInheritedExerciseRejectedForCourseTeacher() throws Exception {
         // Arrange.
@@ -289,7 +289,7 @@ class ExerciseSettingsControllerAuthorizationTest extends AbstractAuthorizationT
         result.andExpect(status().isConflict());
     }
 
-    /** Удаление из пула оставлено за глобальным администратором. */
+    /** Удаление из пула оставлено за администратором. */
     @Test
     void deleteGlobalExerciseAllowedForGlobalAdmin() throws Exception {
         // Arrange.
@@ -303,8 +303,7 @@ class ExerciseSettingsControllerAuthorizationTest extends AbstractAuthorizationT
         result.andExpect(status().isOk());
     }
 
-    /** Фиксирует намеренное отсутствие DELETE_EXERCISE у автора пула: удаление каскадом задевает
-     * наследующие курсы и необратимо, а владельца у упражнения пока нет. */
+    /** У автора пула DELETE_EXERCISE намеренно нет. */
     @Test
     void deleteGlobalExerciseForbiddenForGlobalExerciseAuthor() throws Exception {
         // Arrange.
@@ -363,8 +362,7 @@ class ExerciseSettingsControllerAuthorizationTest extends AbstractAuthorizationT
         result.andExpect(status().isForbidden());
     }
 
-    /** Обрыв наследования: преподаватель делает из наследованного упражнения свою копию.
-     * Глобальных прав для этого не требуется — источник он видит через свой курс. */
+    /** Обрыв наследования: преподаватель делает свою копию, глобальных прав не нужно. */
     @Test
     void cloneInheritedExerciseAllowedForCourseTeacher() throws Exception {
         // Arrange.
@@ -392,8 +390,7 @@ class ExerciseSettingsControllerAuthorizationTest extends AbstractAuthorizationT
         result.andExpect(status().isForbidden());
     }
 
-    /** Копирование в пул не должно становиться способом прочитать чужое курсовое упражнение:
-     * доступ к источнику проверяется отдельно, в его собственном контексте. */
+    /** Доступ к источнику копирования проверяется в его собственном контексте. */
     @Test
     void cloneCourseExerciseToGlobalPoolForbiddenWhenSourceIsNotVisible() throws Exception {
         // Arrange.
@@ -406,7 +403,7 @@ class ExerciseSettingsControllerAuthorizationTest extends AbstractAuthorizationT
         result.andExpect(status().isForbidden());
     }
 
-    /** Аутентифицированный пользователь без единой роли не получает ничего. */
+    /** Без ролей не доступно ничего. */
     @Test
     void anyEndpointForbiddenForUserWithoutRoles() throws Exception {
         // Arrange.
@@ -419,10 +416,7 @@ class ExerciseSettingsControllerAuthorizationTest extends AbstractAuthorizationT
         result.andExpect(status().isForbidden());
     }
 
-    /**
-     * Флаги списка для преподавателя курса: он и создаёт упражнения, и импортирует из пула
-     * обоими способами. canImportInherit держится на MANAGE_COURSE_CONTENT.
-     */
+    /** Флаги списка у преподавателя курса. */
     @Test
     void listPermissionsForCourseTeacher() throws Exception {
         // Arrange.
@@ -439,7 +433,7 @@ class ExerciseSettingsControllerAuthorizationTest extends AbstractAuthorizationT
                 .andExpect(jsonPath("$.permissions.canImportClone").value(true));
     }
 
-    /** Ассистент видит список, но ни одной кнопки изменения состава курса не получает. */
+    /** У ассистента флагов изменения состава курса нет. */
     @Test
     void listPermissionsForCourseAssistant() throws Exception {
         // Arrange.
@@ -456,7 +450,7 @@ class ExerciseSettingsControllerAuthorizationTest extends AbstractAuthorizationT
                 .andExpect(jsonPath("$.permissions.canImportClone").value(false));
     }
 
-    /** Вне курса импортировать некуда, поэтому оба флага импорта ложны даже у автора пула. */
+    /** Вне курса импортировать некуда: оба флага импорта ложны. */
     @Test
     void listPermissionsForGlobalExerciseAuthorOutsideCourse() throws Exception {
         // Arrange.
@@ -472,10 +466,7 @@ class ExerciseSettingsControllerAuthorizationTest extends AbstractAuthorizationT
                 .andExpect(jsonPath("$.permissions.canImportClone").value(false));
     }
 
-    /**
-     * Наследованное упражнение в курсе: править и удалять нельзя, зато можно оборвать
-     * наследование или отвязать. canUnlinkFromCourse держится на MANAGE_COURSE_CONTENT.
-     */
+    /** Флаги карточки наследованного упражнения. */
     @Test
     void cardPermissionsForInheritedExercise() throws Exception {
         // Arrange.
@@ -495,10 +486,7 @@ class ExerciseSettingsControllerAuthorizationTest extends AbstractAuthorizationT
                 .andExpect(jsonPath("$.permissions.canCopyToGlobalPool").value(false));
     }
 
-    /**
-     * Собственное упражнение курса: правится и удаляется, но отвязывать и обрывать
-     * наследование нечего. В пул не копируется — глобальных прав у преподавателя нет.
-     */
+    /** Флаги карточки собственного упражнения курса. */
     @Test
     void cardPermissionsForOwnCourseExercise() throws Exception {
         // Arrange.
@@ -518,7 +506,7 @@ class ExerciseSettingsControllerAuthorizationTest extends AbstractAuthorizationT
                 .andExpect(jsonPath("$.permissions.canCopyToGlobalPool").value(false));
     }
 
-    /** Автор пула правит упражнение пула, но удалять его не может — DELETE_EXERCISE у роли нет. */
+    /** Флаги карточки упражнения пула у автора пула. */
     @Test
     void cardPermissionsForGlobalPoolExercise() throws Exception {
         // Arrange.

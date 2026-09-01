@@ -10,7 +10,7 @@ import static org.springframework.test.web.servlet.result.MockMvcResultMatchers.
 
 class UsersControllerAuthorizationTest extends AbstractAuthorizationTest {
 
-    /** Глобальный пул виден тому, у кого есть VIEW_EXERCISE в GLOBAL-области. */
+    /** Флаг пула держится на VIEW_EXERCISE в GLOBAL-области. */
     @Test
     void whoamiAllowsGlobalPoolForGlobalExerciseAuthor() throws Exception {
         // Arrange.
@@ -24,7 +24,7 @@ class UsersControllerAuthorizationTest extends AbstractAuthorizationTest {
                 .andExpect(jsonPath("$.permissions.canViewGlobalPool").value(true));
     }
 
-    /** Администратору доступно всё, включая пул. */
+    /** Администратору доступен и пул. */
     @Test
     void whoamiAllowsGlobalPoolForGlobalAdmin() throws Exception {
         // Arrange.
@@ -38,7 +38,7 @@ class UsersControllerAuthorizationTest extends AbstractAuthorizationTest {
                 .andExpect(jsonPath("$.permissions.canViewGlobalPool").value(true));
     }
 
-    /** Студент пула не видит: у роли остался только SOLVE_EXERCISE. */
+    /** У студента VIEW_EXERCISE нет. */
     @Test
     void whoamiDeniesGlobalPoolForGlobalStudent() throws Exception {
         // Arrange.
@@ -52,7 +52,7 @@ class UsersControllerAuthorizationTest extends AbstractAuthorizationTest {
                 .andExpect(jsonPath("$.permissions.canViewGlobalPool").value(false));
     }
 
-    /** Права в курсе не открывают глобальный пул: области не сообщаются. */
+    /** Права в курсе глобальный пул не открывают. */
     @Test
     void whoamiDeniesGlobalPoolForCourseTeacher() throws Exception {
         // Arrange.
@@ -66,7 +66,7 @@ class UsersControllerAuthorizationTest extends AbstractAuthorizationTest {
                 .andExpect(jsonPath("$.permissions.canViewGlobalPool").value(false));
     }
 
-    /** Без ролей флаги пусты, но сам вызов доступен — иначе интерфейс не отрисуется. */
+    /** Без ролей вызов доступен, но флаги пусты. */
     @Test
     void whoamiIsAvailableForUserWithoutRoles() throws Exception {
         // Arrange.
@@ -80,7 +80,7 @@ class UsersControllerAuthorizationTest extends AbstractAuthorizationTest {
                 .andExpect(jsonPath("$.permissions.canViewGlobalPool").value(false));
     }
 
-    /** Ответ описывает того, кто пришёл, а не кого-то другого. */
+    /** Ответ описывает пришедшего пользователя. */
     @Test
     void whoamiDescribesCurrentUser() throws Exception {
         // Arrange.
