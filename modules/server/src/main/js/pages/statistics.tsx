@@ -4,6 +4,7 @@ import { ExerciseController, IExerciseController } from "../controllers/exercise
 import * as E from "fp-ts/lib/Either";
 import { ExerciseStatisticsItem } from "../types/exercise-statistics";
 import { LoadingWrapper } from "../components/common/loader";
+import { Table } from "react-bootstrap";
 import { container } from "tsyringe";
 
 export const Statistics = () => {
@@ -31,7 +32,7 @@ export const Statistics = () => {
 
     return (
         <div>
-            <table className="table">
+            <Table>
                 <thead>
                     <tr>
                         <th scope="col">AttemptId</th>
@@ -54,7 +55,7 @@ export const Statistics = () => {
                         ))}
                     </LoadingWrapper>
                 </tbody>
-            </table>
+            </Table>
         </div>
     );
 };

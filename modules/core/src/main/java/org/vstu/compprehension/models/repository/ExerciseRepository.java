@@ -14,9 +14,6 @@ public interface ExerciseRepository extends JpaRepository<ExerciseEntity, Long> 
     @Query("select e.id from ExerciseEntity e")
     List<Long> findAllIds();
 
-    @Query("select new org.vstu.compprehension.dto.ExerciseDto(e.id, e.name, e.isPublic) from ExerciseEntity e")
-    List<ExerciseDto> getAllExerciseItems();
-
     List<ExerciseEntity> findAllByIsPublicTrue();
 
     @Query("""

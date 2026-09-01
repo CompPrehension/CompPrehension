@@ -5,6 +5,7 @@ import lombok.Builder;
 import lombok.Getter;
 import lombok.NoArgsConstructor;
 import org.jetbrains.annotations.NotNull;
+import org.jetbrains.annotations.Nullable;
 
 import java.util.List;
 
@@ -19,6 +20,7 @@ public class QuestionBankSearchRequestDto {
     private @NotNull List<ExerciseLawDto> laws;
     private @NotNull List<ExerciseConceptDto> concepts;
     private @NotNull List<ExerciseSkillDto> skills;
+    private @Nullable Long courseId;
     @Builder.Default
     private int limit = 5;
 }

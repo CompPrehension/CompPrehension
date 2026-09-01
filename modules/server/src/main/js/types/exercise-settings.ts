@@ -14,6 +14,32 @@ export const TExerciseListItem: io.Type<ExerciseListItem> = io.type({
     isPublic: io.boolean,
 })
 
+export type ExerciseListPermissions = {
+    canCreateExercise: boolean,
+    canImportInherit: boolean,
+    canImportClone: boolean,
+};
+export const TExerciseListPermissions: io.Type<ExerciseListPermissions> = io.type({
+    canCreateExercise: io.boolean,
+    canImportInherit: io.boolean,
+    canImportClone: io.boolean,
+}, 'ExerciseListPermissions')
+
+export const noExerciseListPermissions: ExerciseListPermissions = {
+    canCreateExercise: false,
+    canImportInherit: false,
+    canImportClone: false,
+};
+
+export type ExerciseList = {
+    exercises: ExerciseListItem[],
+    permissions: ExerciseListPermissions,
+};
+export const TExerciseList: io.Type<ExerciseList> = io.type({
+    exercises: io.array(TExerciseListItem),
+    permissions: TExerciseListPermissions,
+}, 'ExerciseList')
+
 export type ExerciseCardConceptKind = 'FORBIDDEN' | 'PERMITTED' | 'TARGETED'
 export type ExerciseCardConcept = {
     name: string,
@@ -72,6 +98,21 @@ export const TExerciseStage : io.Type<ExerciseStage> = io.type({
 })
 
 
+export type ExerciseCardPermissions = {
+    canEdit: boolean,
+    canDelete: boolean,
+    canCloneToCourse: boolean,
+    canCopyToGlobalPool: boolean,
+    canUnlinkFromCourse: boolean,
+}
+export const TExerciseCardPermissions: io.Type<ExerciseCardPermissions> = io.type({
+    canEdit: io.boolean,
+    canDelete: io.boolean,
+    canCloneToCourse: io.boolean,
+    canCopyToGlobalPool: io.boolean,
+    canUnlinkFromCourse: io.boolean,
+}, 'ExerciseCardPermissions')
+
 export type ExerciseCard = {
     id: number,
     name: string,
@@ -82,6 +123,7 @@ export type ExerciseCard = {
     tags: string[],
     options: ExerciseOptions,
     isPublic: boolean,
+    permissions: ExerciseCardPermissions,
 }
 
 export const TExerciseCard: io.Type<ExerciseCard> = io.type({
@@ -94,6 +136,7 @@ export const TExerciseCard: io.Type<ExerciseCard> = io.type({
     tags: io.array(io.string),
     options: TExerciseOptions,
     isPublic: io.boolean,
+    permissions: TExerciseCardPermissions,
 })
 
 export type DomainSkill = {

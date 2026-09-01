@@ -1,0 +1,25 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<databaseChangeLog xmlns="http://www.liquibase.org/xml/ns/dbchangelog"
+                   xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance"
+                   xsi:schemaLocation="http://www.liquibase.org/xml/ns/dbchangelog
+                       http://www.liquibase.org/xml/ns/dbchangelog/dbchangelog-4.5.xsd">
+
+    <changeSet id="2026-08-31-02-drop-unused-course-permissions" author="Artem Prokudin">
+        <sql><![CDATA[
+            delete rp from role_permission rp
+            join permission p on p.id = rp.permission_id
+            where p.name in ('CREATE_COURSE', 'DELETE_COURSE');
+
+            delete from permission where name in ('CREATE_COURSE', 'DELETE_COURSE');
+        ]]></sql>
+        <rollback><![CDATA[
+            insert into permission (name) values ('CREATE_COURSE'), ('DELETE_COURSE');
+
+            insert into role_permission (role_id, permission_id)
+            select r.id, p.id from role r, permission p
+            where r.name in ('GLOBAL_ADMIN', 'EDUCATION_RESOURCE_ADMIN')
+              and p.name in ('CREATE_COURSE', 'DELETE_COURSE');
+        ]]></rollback>
+    </changeSet>
+
+</databaseChangeLog>

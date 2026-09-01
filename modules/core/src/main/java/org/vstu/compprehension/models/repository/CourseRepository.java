@@ -6,8 +6,10 @@ import org.springframework.data.jpa.repository.Query;
 import org.springframework.data.repository.query.Param;
 import org.springframework.stereotype.Repository;
 import org.vstu.compprehension.dto.course.CourseDto;
+import org.vstu.compprehension.dto.course.CourseEducationResourceDto;
 import org.vstu.compprehension.models.entities.course.CourseEntity;
 
+import java.util.Collection;
 import java.util.List;
 import java.util.Optional;
 
@@ -15,26 +17,16 @@ import java.util.Optional;
 public interface CourseRepository extends JpaRepository<CourseEntity, Long> {
     Optional<CourseEntity> findByExternalCourseIdAndEducationResourceId(String externalCourseId, Long educationResourceId);
 
-    @Query("""
-            select c from CourseEntity c
-            where c.educationResource.id in (
-                select ea.educationResource.id from ExternalAccountEntity ea
-                where ea.user.id = :userId
-            )
-            """)
-    List<CourseEntity> findCoursesByUserId(@Param("userId") Long userId);
+    List<CourseEntity> findByEducationResourceIdAndExternalCourseIdIsNotNull(Long educationResourceId);
 
     @Query("""
             select new org.vstu.compprehension.dto.course.CourseDto(
                 c.id, c.name, c.educationResource.id, c.educationResource.url
             )
             from CourseEntity c
-            where c.educationResource.id in (
-                select ea.educationResource.id from ExternalAccountEntity ea
-                where ea.user.id = :userId
-            )
+            where c.id in :courseIds
             """)
-    List<CourseDto> findCourseDtosByUserId(@Param("userId") Long userId);
+    List<CourseDto> findCourseDtosByIdIn(@Param("courseIds") Collection<Long> courseIds);
 
     @Query("""
             select new org.vstu.compprehension.dto.course.CourseDto(
@@ -44,15 +36,25 @@ public interface CourseRepository extends JpaRepository<CourseEntity, Long> {
             """)
     List<CourseDto> findAllCourseDtos();
 
-    /**
-     * Inserts a row only if no row with the same ({@link CourseEntity#educationResource}, {@link CourseEntity#externalCourseId}) exists.
-     *
-     * @return number of affected rows
-     */
+    @Query("select c.id from CourseEntity c where c.educationResource.id in :educationResourceIds")
+    List<Long> findCourseIdsByEducationResourceIdIn(@Param("educationResourceIds") Collection<Long> educationResourceIds);
+
+    @Query("select c.educationResource.id from CourseEntity c where c.id = :courseId")
+    Optional<Long> findEducationResourceIdByCourseId(@Param("courseId") Long courseId);
+
+    @Query("""
+            select new org.vstu.compprehension.dto.course.CourseEducationResourceDto(
+                c.id, c.educationResource.id
+            )
+            from CourseEntity c
+            where c.id in :courseIds
+            """)
+    List<CourseEducationResourceDto> findEducationResourceRefsByCourseIdIn(@Param("courseIds") Collection<Long> courseIds);
+
     @Modifying(clearAutomatically = true)
     @Query(value = """
-            INSERT IGNORE INTO course (external_course_id, name, education_resource_id)
-            VALUES (:externalCourseId, :name, :educationResourceId)
+            insert ignore into course (external_course_id, name, education_resource_id)
+            value(:externalCourseId, :name, :educationResourceId)
             """, nativeQuery = true)
     int createIfAbsent(
             @Param("externalCourseId") String externalCourseId,

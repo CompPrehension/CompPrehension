@@ -10,7 +10,11 @@ import org.springframework.context.annotation.Configuration;
 import org.springframework.context.annotation.Primary;
 import org.springframework.data.jpa.repository.config.EnableJpaRepositories;
 import org.springframework.web.context.annotation.SessionScope;
+import org.vstu.compprehension.Service.GradePassbackService;
+import org.vstu.compprehension.Service.LtiContextProvider;
 import org.vstu.compprehension.Service.UserService;
+import org.vstu.compprehension.models.businesslogic.lti.LtiContext;
+import org.vstu.compprehension.models.businesslogic.lti.LtiDeepLinkingContext;
 import org.vstu.compprehension.adapter.UserServiceImpl;
 import org.vstu.compprehension.models.businesslogic.backend.facts.JenaFactList;
 import org.vstu.compprehension.models.businesslogic.domains.DomainFactory;
@@ -22,6 +26,7 @@ import org.vstu.compprehension.utils.RandomProvider;
 import org.vstu.compprehension.utils.transactions.TransactionScopeFactory;
 
 import javax.inject.Singleton;
+import java.util.Optional;
 
 @Configuration
 @EnableJpaRepositories(basePackages="org.vstu.compprehension")
@@ -59,6 +64,29 @@ public class CoreConfg {
     @SessionScope
     UserService getUserService(@Autowired UserRepository userRepository) {
         return new UserServiceImpl();
+    }
+
+    @Bean
+    @Singleton
+    LtiContextProvider getLtiContextProvider() {
+        // Background jobs have no LTI request context.
+        return new LtiContextProvider() {
+            @Override
+            public Optional<LtiContext> getCurrentLtiContext() {
+                return Optional.empty();
+            }
+
+            @Override
+            public Optional<LtiDeepLinkingContext> getCurrentDeepLinkingContext() {
+                return Optional.empty();
+            }
+        };
+    }
+
+    @Bean
+    @Singleton
+    GradePassbackService getGradePassbackService() {
+        return (attempt, grade) -> { };
     }
 
     @Bean

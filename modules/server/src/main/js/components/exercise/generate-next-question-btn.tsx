@@ -20,18 +20,6 @@ export const GenerateNextQuestionBtn = observer(() => {
     if (!question || !exercise || !currentAttempt || isQuestionLoading || isFeedbackLoading) {
         return null;
     }
-    
-    /*
-    const { user } = sessionInfo;
-    const { questionIds } = currentAttempt;
-
-    
-    // show btn if user is admin or if he is on the last question and has finished it
-    if (!user.roles.includes('ADMIN') && !user.roles.includes('TEACHER') &&
-        (questionIds[questionIds.length - 1] !== question.questionId || exerciseStore.currentQuestion.feedback?.stepsLeft !== 0)) {
-        return null;
-    }
-    */
 
     const onModalClosed = () => {
         setIsModalVisible(false);

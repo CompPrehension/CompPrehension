@@ -1,0 +1,16 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<databaseChangeLog xmlns="http://www.liquibase.org/xml/ns/dbchangelog"
+                   xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance"
+                   xsi:schemaLocation="http://www.liquibase.org/xml/ns/dbchangelog
+                       http://www.liquibase.org/xml/ns/dbchangelog/dbchangelog-4.5.xsd">
+
+    <changeSet id="2026-05-23-02-education-resource-trust-status" author="dmitry-smirnov">
+        <sql>
+            alter table education_resource
+                add column trust_status varchar(32) not null default 'UNTRUSTED';
+
+            update education_resource set trust_status = 'TRUSTED';
+        </sql>
+    </changeSet>
+
+</databaseChangeLog>

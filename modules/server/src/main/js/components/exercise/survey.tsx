@@ -95,18 +95,19 @@ const SurveyYesNoQuestion = (props: SurveyYesNoQuestionProps) => {
                 {question.text}
             </div>
             <div className="d-flex flex-row mt-2">
-                <button type="button"
-                    className={`btn btn-secondary mr-2 ${question.options.yesValue === value ? "active" : ""}`}
+                <Button variant="secondary"
+                    className="mr-2"
+                    active={question.options.yesValue === value}
                     onClick={() => onAnswered(question.id, question.options.yesValue)}
                     disabled={value !== undefined}>
                     {question.options.yesText}
-                </button>
-                <button type="button"
-                    className={`btn btn-secondary ${question.options.noValue === value ? "active" : ""}`}
+                </Button>
+                <Button variant="secondary"
+                    active={question.options.noValue === value}
                     onClick={() => onAnswered(question.id, question.options.noValue)}
                     disabled={value !== undefined}>
                     {question.options.noText}
-                </button>
+                </Button>
             </div>
         </div>
     )
