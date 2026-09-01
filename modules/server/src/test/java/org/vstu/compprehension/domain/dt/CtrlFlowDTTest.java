@@ -1,4 +1,4 @@
-package org.vstu.compprehension.models.businesslogic.dt;
+package org.vstu.compprehension.domain.dt;
 
 import domains.ControlFlowDTDomain;
 import its.reasoner.nodes.*;
@@ -6,6 +6,7 @@ import jakarta.transaction.Transactional;
 import org.apache.commons.lang3.tuple.Pair;
 import org.junit.jupiter.api.Assertions;
 import org.junit.jupiter.api.BeforeAll;
+import org.junit.jupiter.api.Disabled;
 import org.junit.jupiter.api.Test;
 import org.junit.jupiter.api.TestInstance;
 import org.springframework.beans.factory.annotation.Autowired;
@@ -32,6 +33,7 @@ import java.util.Objects;
 import java.util.stream.Collectors;
 import java.util.stream.StreamSupport;
 
+@Disabled("Не работает в test-containers.")
 @SpringBootTest
 @TestInstance(TestInstance.Lifecycle.PER_CLASS)
 @ActiveProfiles("test")
