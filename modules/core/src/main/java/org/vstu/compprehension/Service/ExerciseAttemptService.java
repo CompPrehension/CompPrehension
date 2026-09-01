@@ -4,7 +4,7 @@ import org.jetbrains.annotations.NotNull;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Propagation;
 import org.springframework.transaction.annotation.Transactional;
-import org.vstu.compprehension.models.businesslogic.auth.AuthObjects.Permission;
+import org.vstu.compprehension.models.businesslogic.auth.AuthObjects.SystemPermission;
 import org.vstu.compprehension.models.businesslogic.lti.LtiContext;
 import org.vstu.compprehension.models.businesslogic.lti.LtiCourseContext;
 import org.vstu.compprehension.models.entities.EnumData.AttemptStatus;
@@ -29,6 +29,7 @@ public class ExerciseAttemptService {
     private final CourseService courseService;
     private final EducationResourceService educationResourceService;
     private final AuthService authService;
+    private final AuthScopeFactory authScopes;
 
     public ExerciseAttemptService(ExerciseAttemptRepository exerciseAttemptRepository,
                                   ExerciseService exerciseService,
@@ -37,7 +38,8 @@ public class ExerciseAttemptService {
                                   GradePassbackService gradePassbackService,
                                   CourseService courseService,
                                   EducationResourceService educationResourceService,
-                                  AuthService authService) {
+                                  AuthService authService,
+                                  AuthScopeFactory authScopes) {
         this.exerciseAttemptRepository = exerciseAttemptRepository;
         this.exerciseService = exerciseService;
         this.userRepository = userRepository;
@@ -46,6 +48,7 @@ public class ExerciseAttemptService {
         this.courseService = courseService;
         this.educationResourceService = educationResourceService;
         this.authService = authService;
+        this.authScopes = authScopes;
     }
 
     @Transactional(readOnly = true)
@@ -69,10 +72,10 @@ public class ExerciseAttemptService {
 
     private void ensureOwnerOrPrivileged(long userId, AttemptOwner owner, long targetId) {
         if (owner.userId() != null && owner.userId() == userId) {
-            authService.ensureAuthorized(userId, Permission.SOLVE_EXERCISE, owner.courseId());
+            authService.ensureAuthorized(userId, SystemPermission.SOLVE_EXERCISE, authScopes.courseOrGlobal(owner.courseId()));
             return;
         }
-        if (authService.isAuthorized(userId, Permission.EDIT_EXERCISE, owner.courseId())) {
+        if (authService.isAuthorized(userId, SystemPermission.EDIT_EXERCISE, authScopes.courseOrGlobal(owner.courseId()))) {
             return;
         }
         throw new SecurityException(String.format(

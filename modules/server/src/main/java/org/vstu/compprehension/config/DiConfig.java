@@ -12,7 +12,7 @@ import org.springframework.context.annotation.Primary;
 import org.springframework.web.context.annotation.RequestScope;
 import org.springframework.web.context.annotation.SessionScope;
 import org.vstu.compprehension.service.BktService;
-import org.vstu.compprehension.Service.AuthService;
+import org.vstu.compprehension.Service.RoleAssignmentService;
 import org.vstu.compprehension.Service.CourseService;
 import org.vstu.compprehension.Service.EducationResourceService;
 import org.vstu.compprehension.Service.ExternalAccountService;
@@ -92,8 +92,8 @@ public class DiConfig {
                                @Autowired ExternalAccountService externalAccountService,
                                @Autowired LtiContextProvider ltiContextProvider,
                                @Autowired CourseService courseService,
-                               @Autowired AuthService authService) {
-        return new CachedUserService(new UserServiceImpl(userRepository, educationResourceService, externalAccountService, ltiContextProvider, courseService, authService));
+                               @Autowired RoleAssignmentService roleAssignmentService) {
+        return new CachedUserService(new UserServiceImpl(userRepository, educationResourceService, externalAccountService, ltiContextProvider, courseService, roleAssignmentService));
     }
 
     @Bean

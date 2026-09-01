@@ -1,6 +1,7 @@
 package org.vstu.compprehension.jobs.moodlesync;
 
-import org.vstu.compprehension.models.businesslogic.auth.AuthObjects.Role;
+import org.vstu.compprehension.models.businesslogic.auth.AuthObjects.SystemRole;
+import org.vstu.compprehension.models.businesslogic.auth.Role;
 
 import java.util.LinkedHashSet;
 import java.util.Set;
@@ -23,9 +24,9 @@ public final class CapabilityMapper {
     }
 
     public static Role deriveCourseRole(Set<String> caps) {
-        if (caps.contains(CAP_COURSE_UPDATE)) return Role.TEACHER;
-        if (caps.contains(CAP_GRADE_VIEWALL)) return Role.ASSISTANT;
-        if (caps.contains(CAP_LTI_VIEW)) return Role.STUDENT;
+        if (caps.contains(CAP_COURSE_UPDATE)) return SystemRole.TEACHER;
+        if (caps.contains(CAP_GRADE_VIEWALL)) return SystemRole.ASSISTANT;
+        if (caps.contains(CAP_LTI_VIEW)) return SystemRole.STUDENT;
         return null;
     }
 }

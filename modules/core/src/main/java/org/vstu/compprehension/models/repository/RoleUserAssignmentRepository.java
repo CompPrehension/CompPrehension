@@ -6,8 +6,8 @@ import org.springframework.data.jpa.repository.Query;
 import org.springframework.data.repository.query.Param;
 import org.springframework.stereotype.Repository;
 import org.vstu.compprehension.models.entities.EnumData.PermissionScopeKind;
-import org.vstu.compprehension.models.businesslogic.auth.AuthObjects.Permission;
-import org.vstu.compprehension.models.businesslogic.auth.AuthObjects.Role;
+import org.vstu.compprehension.models.businesslogic.auth.Permission;
+import org.vstu.compprehension.models.businesslogic.auth.Role;
 import org.vstu.compprehension.models.entities.role.RoleUserAssignmentEntity;
 
 import java.util.Collection;
@@ -36,43 +36,42 @@ public interface RoleUserAssignmentRepository extends JpaRepository<RoleUserAssi
                 join permission_scope ps on ps.id = rua.permission_scope_id
                 where rua.user_id = :userId
                   and p.name = :permissionName
-                  and ps.kind = :kind
-                  and coalesce(ps.scope_item_id, 0) = coalesce(:scopeItemId, 0)
+                  and concat(ps.kind, ':', coalesce(ps.scope_item_id, 0)) in (:scopeKeys)
             )
             """, nativeQuery = true)
-    long isUserAuthorized(
+    long isAuthorizedInAnyScope(
             @Param("userId") long userId,
             @Param("permissionName") String permissionName,
-            @Param("kind") String kind,
-            @Param("scopeItemId") Long scopeItemId
+            @Param("scopeKeys") Collection<String> scopeKeys
     );
 
-    @Query("""
-            select exists (
-                select 1
-                from RoleUserAssignmentEntity rua
-                join rua.role r
-                join rua.permissionScope ps
-                where rua.user.id = :userId
-                  and r.name = :role
-                  and ps.kind = org.vstu.compprehension.models.entities.EnumData.PermissionScopeKind.GLOBAL
-            )
-            """)
-    boolean existsGlobalRole(@Param("userId") long userId, @Param("role") Role role);
+    @Query(value = """
+            select distinct p.name
+            from role_user_assignment rua
+            join role r              on r.id = rua.role_id
+            join role_permission rp  on rp.role_id = r.id
+            join permission p        on p.id = rp.permission_id
+            join permission_scope ps on ps.id = rua.permission_scope_id
+            where rua.user_id = :userId
+              and concat(ps.kind, ':', coalesce(ps.scope_item_id, 0)) in (:scopeKeys)
 
-    @Query("""
-            select distinct r.name
-            from RoleUserAssignmentEntity rua
-            join rua.role r
-            join rua.permissionScope ps
-            where rua.user.id = :userId
-              and ps.kind = :kind
-              and coalesce(ps.scopeItemId, 0) = coalesce(:scopeItemId, 0)
-            """)
-    List<Role> findRolesInScope(
+            union
+
+            select p.name
+            from permission p
+            where exists (
+                select 1
+                from role_user_assignment rua
+                join role r              on r.id = rua.role_id
+                join permission_scope ps on ps.id = rua.permission_scope_id
+                where rua.user_id = :userId
+                  and ps.kind = 'GLOBAL'
+                  and r.name = 'GLOBAL_ADMIN'
+            )
+            """, nativeQuery = true)
+    List<String> findPermissionIdsInAnyScope(
             @Param("userId") long userId,
-            @Param("kind") PermissionScopeKind kind,
-            @Param("scopeItemId") Long scopeItemId
+            @Param("scopeKeys") Collection<String> scopeKeys
     );
 
     @Query("""

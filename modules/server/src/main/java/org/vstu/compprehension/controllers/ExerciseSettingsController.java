@@ -6,6 +6,7 @@ import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Controller;
 import org.springframework.web.bind.annotation.*;
 import org.vstu.compprehension.Service.AuthService;
+import org.vstu.compprehension.Service.AuthScopeFactory;
 import org.vstu.compprehension.Service.CourseService;
 import org.vstu.compprehension.Service.ExercisePermissionService;
 import org.vstu.compprehension.Service.ExerciseService;
@@ -13,7 +14,7 @@ import org.vstu.compprehension.Service.UserService;
 import org.vstu.compprehension.dto.ExerciseCardDto;
 import org.vstu.compprehension.dto.ExerciseDto;
 import org.vstu.compprehension.dto.ExerciseListDto;
-import org.vstu.compprehension.models.businesslogic.auth.AuthObjects.Permission;
+import org.vstu.compprehension.models.businesslogic.auth.AuthObjects.SystemPermission;
 import org.vstu.compprehension.models.entities.exercise.ExerciseEntity;
 
 import java.util.List;
@@ -25,6 +26,7 @@ public class ExerciseSettingsController {
     private final CourseService courseService;
     private final UserService userService;
     private final AuthService authService;
+    private final AuthScopeFactory authScopes;
     private final ExercisePermissionService exercisePermissionService;
 
     @Autowired
@@ -32,11 +34,13 @@ public class ExerciseSettingsController {
                                       CourseService courseService,
                                       UserService userService,
                                       AuthService authService,
+                                      AuthScopeFactory authScopes,
                                       ExercisePermissionService exercisePermissionService) {
         this.exerciseService = exerciseService;
         this.courseService = courseService;
         this.userService = userService;
         this.authService = authService;
+        this.authScopes = authScopes;
         this.exercisePermissionService = exercisePermissionService;
     }
 
@@ -45,7 +49,7 @@ public class ExerciseSettingsController {
     @ResponseBody
     public ExerciseCardDto get(@RequestParam("id") long id, @RequestParam(value = "courseId", required = false) Long courseId) {
         var userId = userService.getCurrentUser().getId();
-        authService.ensureAuthorized(userId, Permission.VIEW_EXERCISE, courseId);
+        authService.ensureAuthorized(userId, SystemPermission.VIEW_EXERCISE, authScopes.courseOrGlobal(courseId));
         var exercise = exerciseService.getExerciseInContext(id, courseId);
         return exerciseService.getExerciseCard(
                 exercise, exercisePermissionService.ofExercise(userId, exercise, courseId));
@@ -56,7 +60,7 @@ public class ExerciseSettingsController {
     @ResponseBody
     public ExerciseListDto list(@RequestParam(value = "courseId", required = false) Long courseId) {
         var userId = userService.getCurrentUser().getId();
-        authService.ensureAuthorized(userId, Permission.VIEW_EXERCISE, courseId);
+        authService.ensureAuthorized(userId, SystemPermission.VIEW_EXERCISE, authScopes.courseOrGlobal(courseId));
         List<ExerciseDto> exercises = courseId != null
                 ? exerciseService.getCourseExercises(courseId)
                 : exerciseService.getPublicExercises();
@@ -68,7 +72,7 @@ public class ExerciseSettingsController {
     @ResponseBody
     public void update(@RequestBody ExerciseCardDto card, @RequestParam(value = "courseId", required = false) Long courseId) {
         var userId = userService.getCurrentUser().getId();
-        authService.ensureAuthorized(userId, Permission.EDIT_EXERCISE, courseId);
+        authService.ensureAuthorized(userId, SystemPermission.EDIT_EXERCISE, authScopes.courseOrGlobal(courseId));
         ensureNotInherited(exerciseService.getExerciseInContext(card.getId(), courseId), courseId);
         exerciseService.saveExerciseCard(card);
     }
@@ -84,7 +88,7 @@ public class ExerciseSettingsController {
         var courseId = json.has("courseId") && !json.get("courseId").isNull()
                 ? json.get("courseId").asLong()
                 : null;
-        authService.ensureAuthorized(userId, Permission.CREATE_EXERCISE, courseId);
+        authService.ensureAuthorized(userId, SystemPermission.CREATE_EXERCISE, authScopes.courseOrGlobal(courseId));
         return exerciseService.createExercise(name, domainId, strategyId, courseId).getId();
     }
 
@@ -96,7 +100,7 @@ public class ExerciseSettingsController {
         var userId = userService.getCurrentUser().getId();
         // courseId здесь — куда клонируем, поэтому доступ к источнику проверяется отдельно,
         // в его собственном контексте.
-        authService.ensureAuthorized(userId, Permission.CREATE_EXERCISE, courseId);
+        authService.ensureAuthorized(userId, SystemPermission.CREATE_EXERCISE, authScopes.courseOrGlobal(courseId));
         ensureCanViewSource(userId, exerciseService.getExercise(id));
         return exerciseService.cloneExercise(id, courseId).getId();
     }
@@ -106,27 +110,21 @@ public class ExerciseSettingsController {
     @RequestMapping(value = {"exercise"}, method = {RequestMethod.DELETE})
     public void delete(@RequestParam("id") long id, @RequestParam(value = "courseId", required = false) Long courseId) {
         var userId = userService.getCurrentUser().getId();
-        authService.ensureAuthorized(userId, Permission.DELETE_EXERCISE, courseId);
+        authService.ensureAuthorized(userId, SystemPermission.DELETE_EXERCISE, authScopes.courseOrGlobal(courseId));
         ensureNotInherited(exerciseService.getExerciseInContext(id, courseId), courseId);
         exerciseService.deleteExercise(id);
     }
 
     /**
-     * Предусловие состояния, а не прав: наследованное из глобального пула упражнение из курса
-     * только читается. Тот же признак гасит кнопки в карточке — см.
-     * {@link org.vstu.compprehension.Service.ExercisePermissionService#ofExercise}.
-     */
-    /**
      * Может ли пользователь читать упражнение в его собственном контексте: публичное — по правам
      * в GLOBAL-области, приватное — по правам хотя бы в одном из курсов, к которым оно привязано.
      */
     private void ensureCanViewSource(long userId, ExerciseEntity exercise) {
-        if (exercise.isPublic() && authService.isAuthorizedGlobal(userId, Permission.VIEW_EXERCISE)) {
+        if (exercise.isPublic() && authService.isAuthorized(userId, SystemPermission.VIEW_EXERCISE, authScopes.global())) {
             return;
         }
-        boolean visibleInCourse = courseService.findCourseIdsByExerciseId(exercise.getId()).stream()
-                .anyMatch(cid -> authService.isAuthorized(userId, Permission.VIEW_EXERCISE, cid));
-        if (!visibleInCourse) {
+        var courseIds = courseService.findCourseIdsByExerciseId(exercise.getId());
+        if (!authService.isAuthorized(userId, SystemPermission.VIEW_EXERCISE, authScopes.anyOfCourses(courseIds))) {
             throw new SecurityException(String.format(
                     "User %s is not allowed to read exercise %s", userId, exercise.getId()));
         }

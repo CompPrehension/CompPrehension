@@ -8,7 +8,7 @@ import org.springframework.security.core.GrantedAuthority;
 import org.springframework.security.core.context.SecurityContextHolder;
 import org.springframework.security.oauth2.core.oidc.OidcIdToken;
 import org.springframework.security.oauth2.core.oidc.user.OidcUser;
-import org.vstu.compprehension.Service.AuthService;
+import org.vstu.compprehension.Service.RoleAssignmentService;
 import org.vstu.compprehension.Service.CourseService;
 import org.vstu.compprehension.Service.EducationResourceService;
 import org.vstu.compprehension.Service.ExternalAccountService;
@@ -16,7 +16,8 @@ import org.vstu.compprehension.Service.LtiContextProvider;
 import org.vstu.compprehension.Service.UserService;
 import org.vstu.compprehension.models.businesslogic.lti.LtiContext;
 import org.vstu.compprehension.models.entities.EnumData.Language;
-import org.vstu.compprehension.models.businesslogic.auth.AuthObjects.Role;
+import org.vstu.compprehension.models.businesslogic.auth.AuthObjects.SystemRole;
+import org.vstu.compprehension.models.businesslogic.auth.Role;
 import org.vstu.compprehension.models.entities.UserEntity;
 import org.vstu.compprehension.models.entities.course.CourseEntity;
 import org.vstu.compprehension.models.entities.external_system.EducationResourceEntity;
@@ -39,7 +40,7 @@ public class UserServiceImpl implements UserService {
     private final ExternalAccountService externalAccountService;
     private final LtiContextProvider ltiContextProvider;
     private final CourseService courseService;
-    private final AuthService authService;
+    private final RoleAssignmentService roleAssignmentService;
 
     public UserServiceImpl(
             UserRepository userRepository,
@@ -47,14 +48,14 @@ public class UserServiceImpl implements UserService {
             ExternalAccountService externalAccountService,
             LtiContextProvider ltiContextProvider,
             CourseService courseService,
-            AuthService authService
+            RoleAssignmentService roleAssignmentService
     ) {
         this.userRepository = userRepository;
         this.educationResourceService = educationResourceService;
         this.externalAccountService = externalAccountService;
         this.ltiContextProvider = ltiContextProvider;
         this.courseService = courseService;
-        this.authService = authService;
+        this.roleAssignmentService = roleAssignmentService;
     }
 
     public UserEntity getCurrentUser() throws Exception {
@@ -115,7 +116,7 @@ public class UserServiceImpl implements UserService {
 
         EducationResourceEntity eduRes = educationResourceService.getOrCreateTrusted(ctx.lmsUrl(), ctx.lmsType());
 
-        // authService.assignGlobalRole(user.getId(), Role.STUDENT);
+        // roleAssignmentService.assignGlobalRole(user.getId(), SystemRole.STUDENT);
 
         boolean externalAccountNonExists = externalAccountService.findByUserAndEducationResource(
                 user.getId(), eduRes.getId()
@@ -124,36 +125,36 @@ public class UserServiceImpl implements UserService {
             externalAccountService.createOrGetExisting(user.getId(), eduRes.getId(), parsedIdToken.getSubject());
         }
 
-        Role eduResRole = ltiRoles.contains("ROLE_Administrator") ? Role.EDUCATION_RESOURCE_ADMIN : null;
-        authService.reconcileRoleInEducationResource(user.getId(), eduRes.getId(), eduResRole);
+        Role eduResRole = ltiRoles.contains("ROLE_Administrator") ? SystemRole.EDUCATION_RESOURCE_ADMIN : null;
+        roleAssignmentService.reconcileRoleInEducationResource(user.getId(), eduRes.getId(), eduResRole);
 
         CourseEntity course = courseService.resolveOrCreateFromLtiContext(ctx, eduRes.getId());
         if (course != null) {
             Role courseRole = mapLtiCourseRole(ltiRoles);
             if (courseRole != null) {
-                authService.reconcileCourseRoleAssignments(
+                roleAssignmentService.reconcileCourseRoleAssignments(
                         eduRes.getId(),
                         List.of(user.getId()),
-                        List.of(new AuthService.CourseRoleAssignment(user.getId(), course.getId(), courseRole)),
+                        List.of(new RoleAssignmentService.CourseRoleAssignment(user.getId(), course.getId(), courseRole)),
                         List.of(course.getId()));
             }
         }
     }
 
     private void applyKeycloakRoles(UserEntity user, Set<String> keycloakRoles) {
-        authService.assignGlobalRole(user.getId(), Role.STUDENT);
+        roleAssignmentService.assignGlobalRole(user.getId(), SystemRole.STUDENT);
         Role privilegedRole = mapKeycloakGlobalRole(keycloakRoles);
         if (privilegedRole != null) {
-            authService.assignGlobalRole(user.getId(), privilegedRole);
+            roleAssignmentService.assignGlobalRole(user.getId(), privilegedRole);
         }
     }
 
     private Role mapKeycloakGlobalRole(Collection<String> keycloakRoles) {
         if (keycloakRoles.contains("ROLE_Administrator")) {
-            return Role.GLOBAL_ADMIN;
+            return SystemRole.GLOBAL_ADMIN;
         }
         if (keycloakRoles.contains("ROLE_Teacher")) {
-            return Role.GLOBAL_EXERCISE_AUTHOR;
+            return SystemRole.GLOBAL_EXERCISE_AUTHOR;
         }
         return null;
     }
@@ -162,12 +163,12 @@ public class UserServiceImpl implements UserService {
         if (ltiRoles.contains("ROLE_Instructor")
             || ltiRoles.contains("ROLE_ContentDeveloper")
             || ltiRoles.contains("ROLE_Mentor")) {
-            return Role.TEACHER;
+            return SystemRole.TEACHER;
         }
         if (ltiRoles.contains("ROLE_TeachingAssistant")) {
-            return Role.ASSISTANT;
+            return SystemRole.ASSISTANT;
         }
-        return Role.STUDENT;
+        return SystemRole.STUDENT;
     }
 
     @Override

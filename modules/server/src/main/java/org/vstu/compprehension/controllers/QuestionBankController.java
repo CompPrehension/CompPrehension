@@ -8,6 +8,7 @@ import org.springframework.web.bind.annotation.RequestBody;
 import org.springframework.web.bind.annotation.RequestMapping;
 import org.springframework.web.bind.annotation.RequestMethod;
 import org.springframework.web.bind.annotation.ResponseBody;
+import org.vstu.compprehension.Service.AuthScopeFactory;
 import org.vstu.compprehension.Service.AuthService;
 import org.vstu.compprehension.Service.UserService;
 import org.vstu.compprehension.dto.QuestionBankSearchRequestDto;
@@ -15,7 +16,7 @@ import org.vstu.compprehension.dto.QuestionBankSearchStatsDto;
 import org.vstu.compprehension.models.businesslogic.QuestionRequest;
 import org.vstu.compprehension.models.businesslogic.domains.DomainFactory;
 import org.vstu.compprehension.models.businesslogic.storage.QuestionBank;
-import org.vstu.compprehension.models.businesslogic.auth.AuthObjects.Permission;
+import org.vstu.compprehension.models.businesslogic.auth.AuthObjects.SystemPermission;
 import org.vstu.compprehension.models.entities.EnumData.RoleInExercise;
 
 import java.util.Objects;
@@ -28,13 +29,15 @@ public class QuestionBankController {
     private final QuestionBank questionStorage;
     private final UserService userService;
     private final AuthService authService;
+    private final AuthScopeFactory authScopes;
 
     @Autowired
-    public QuestionBankController(DomainFactory domainFactory, QuestionBank questionStorage, UserService userService, AuthService authService) {
+    public QuestionBankController(DomainFactory domainFactory, QuestionBank questionStorage, UserService userService, AuthService authService, AuthScopeFactory authScopes) {
         this.domainFactory   = domainFactory;
         this.questionStorage = questionStorage;
         this.userService     = userService;
         this.authService     = authService;
+        this.authScopes      = authScopes;
     }
 
     @RequestMapping(value = {"search"}, method = { RequestMethod.POST }, produces = "application/json", consumes = "application/json")
@@ -42,7 +45,7 @@ public class QuestionBankController {
     public QuestionBankSearchStatsDto search(@RequestBody QuestionBankSearchRequestDto searchRequest,
                                              HttpServletRequest request) throws Exception {
         var userId = userService.getCurrentUser().getId();
-        authService.ensureAuthorized(userId, Permission.VIEW_EXERCISE, searchRequest.getCourseId());
+        authService.ensureAuthorized(userId, SystemPermission.VIEW_EXERCISE, authScopes.courseOrGlobal(searchRequest.getCourseId()));
 
 
         var domain = domainFactory.getDomain(searchRequest.getDomainId());

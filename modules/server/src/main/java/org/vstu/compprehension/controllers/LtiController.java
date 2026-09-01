@@ -31,13 +31,14 @@ import org.springframework.web.bind.annotation.RequestMethod;
 import org.springframework.web.bind.annotation.RequestParam;
 import org.springframework.web.bind.annotation.ResponseBody;
 import org.apache.commons.lang3.tuple.Pair;
+import org.vstu.compprehension.Service.AuthScopeFactory;
 import org.vstu.compprehension.Service.AuthService;
 import org.vstu.compprehension.Service.CourseService;
 import org.vstu.compprehension.Service.EducationResourceService;
 import org.vstu.compprehension.Service.UserService;
 import org.vstu.compprehension.service.lti.LtiContextInitializer;
 import org.vstu.compprehension.Service.LtiContextProvider;
-import org.vstu.compprehension.models.businesslogic.auth.AuthObjects.Permission;
+import org.vstu.compprehension.models.businesslogic.auth.AuthObjects.SystemPermission;
 import org.vstu.compprehension.common.StringHelper;
 import org.vstu.compprehension.config.LtiRegistrationsProperties;
 import org.vstu.compprehension.models.businesslogic.lti.LtiContext;
@@ -74,6 +75,7 @@ public class LtiController {
     private final LtiContextProvider ltiContextProvider;
     private final UserService userService;
     private final AuthService authService;
+    private final AuthScopeFactory authScopes;
 
     public LtiController(SecurityContextRepository securityContextRepository,
                          SecurityContextHolderStrategy securityContextHolderStrategy,
@@ -83,7 +85,8 @@ public class LtiController {
                          LtiContextInitializer ltiContextInitializer,
                          LtiContextProvider ltiContextProvider,
                          UserService userService,
-                         AuthService authService) {
+                         AuthService authService,
+                         AuthScopeFactory authScopes) {
         this.securityContextRepository = securityContextRepository;
         this.securityContextHolderStrategy = securityContextHolderStrategy;
         this.ltiRegistrations = ltiRegistrations;
@@ -93,6 +96,7 @@ public class LtiController {
         this.ltiContextProvider = ltiContextProvider;
         this.userService = userService;
         this.authService = authService;
+        this.authScopes = authScopes;
     }
 
     @SneakyThrows
@@ -231,7 +235,7 @@ public class LtiController {
         if (courseId == null) {
             throw new IllegalArgumentException("Absent information on the contextId");
         }
-        authService.ensureAuthorizedInCourse(userId, Permission.MANAGE_COURSE_CONTENT, courseId);
+        authService.ensureAuthorized(userId, SystemPermission.MANAGE_COURSE_CONTENT, authScopes.course(courseId));
 
         String redirectUrl = String.format("/pages/course?courseId=%d&lti=deeplink", courseId);
         log.info("Redirect to configure-course, url:{}", redirectUrl);

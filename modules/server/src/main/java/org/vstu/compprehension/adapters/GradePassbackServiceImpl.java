@@ -9,7 +9,8 @@ import org.springframework.transaction.annotation.Transactional;
 import org.vstu.compprehension.Service.AuthService;
 import org.vstu.compprehension.Service.ExerciseAttemptService;
 import org.vstu.compprehension.Service.GradePassbackService;
-import org.vstu.compprehension.models.businesslogic.auth.AuthObjects.Role;
+import org.vstu.compprehension.models.businesslogic.auth.AuthObjects.SystemRole;
+import org.vstu.compprehension.models.entities.EnumData.PermissionScope;
 import org.vstu.compprehension.models.entities.ExerciseAttemptEntity;
 import org.vstu.compprehension.service.gradepassback.GradePassbackStrategy;
 
@@ -49,7 +50,8 @@ public class GradePassbackServiceImpl implements GradePassbackService {
 
         Long userId = fresh.getUser().getId();
         Long courseId = fresh.getCourse() != null ? fresh.getCourse().getId() : null;
-        boolean isStudent = authService.hasRoleInCourse(userId, courseId, Role.STUDENT);
+        boolean isStudent = courseId != null
+                && authService.hasRole(userId, SystemRole.STUDENT, PermissionScope.course(courseId));
         if (!isStudent) {
             log.info("Skipping grade passback for attempt {}: user {} is not a STUDENT in course {}",
                     fresh.getId(), userId, courseId);

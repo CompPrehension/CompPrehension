@@ -8,6 +8,7 @@ import org.springframework.web.bind.annotation.PostMapping;
 import org.springframework.web.bind.annotation.RequestBody;
 import org.springframework.web.bind.annotation.RequestMapping;
 import org.springframework.web.bind.annotation.ResponseBody;
+import org.vstu.compprehension.Service.AuthScopeFactory;
 import org.vstu.compprehension.Service.AuthService;
 import org.vstu.compprehension.Service.CourseService;
 import org.vstu.compprehension.Service.EducationResourceService;
@@ -16,7 +17,7 @@ import org.vstu.compprehension.Service.UserService;
 import org.vstu.compprehension.models.businesslogic.lti.LtiContext;
 import org.vstu.compprehension.models.businesslogic.lti.LtiCourseContext;
 import org.vstu.compprehension.models.businesslogic.lti.LtiDeepLinkingContext;
-import org.vstu.compprehension.models.businesslogic.auth.AuthObjects.Permission;
+import org.vstu.compprehension.models.businesslogic.auth.AuthObjects.SystemPermission;
 import org.vstu.compprehension.models.entities.course.CourseEntity;
 import org.vstu.compprehension.models.entities.external_system.EducationResourceEntity;
 import org.vstu.compprehension.models.entities.exercise.ExerciseEntity;
@@ -33,6 +34,7 @@ public class LtiDeepLinkingController {
     private final LtiContextProvider ltiContextProvider;
     private final UserService userService;
     private final AuthService authService;
+    private final AuthScopeFactory authScopes;
     private final CourseService courseService;
     private final EducationResourceService educationResourceService;
     private final DeepLinkingResponseService deepLinkingResponseService;
@@ -108,7 +110,7 @@ public class LtiDeepLinkingController {
                 .orElseThrow(() -> new IllegalArgumentException("Course not found for LTI context"));
 
         long userId = userService.getCurrentUser().getId();
-        authService.ensureAuthorizedInCourse(userId, Permission.MANAGE_COURSE_CONTENT, courseEntity.getId());
+        authService.ensureAuthorized(userId, SystemPermission.MANAGE_COURSE_CONTENT, authScopes.course(courseEntity.getId()));
         return courseEntity.getId();
     }
 }

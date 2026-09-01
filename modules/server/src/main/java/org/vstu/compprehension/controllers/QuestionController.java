@@ -5,6 +5,7 @@ import lombok.extern.log4j.Log4j2;
 import org.springframework.context.i18n.LocaleContextHolder;
 import org.springframework.stereotype.Controller;
 import org.springframework.web.bind.annotation.*;
+import org.vstu.compprehension.Service.AuthScopeFactory;
 import org.vstu.compprehension.Service.AuthService;
 import org.vstu.compprehension.Service.ExerciseAttemptService;
 import org.vstu.compprehension.Service.FrontendService;
@@ -15,7 +16,7 @@ import org.vstu.compprehension.dto.SupplementaryQuestionDto;
 import org.vstu.compprehension.dto.SupplementaryQuestionRequestDto;
 import org.vstu.compprehension.dto.feedback.FeedbackDto;
 import org.vstu.compprehension.dto.question.QuestionDto;
-import org.vstu.compprehension.models.businesslogic.auth.AuthObjects.Permission;
+import org.vstu.compprehension.models.businesslogic.auth.AuthObjects.SystemPermission;
 
 @Controller
 @RequestMapping("api/question")
@@ -24,13 +25,15 @@ public class QuestionController {
     private final FrontendService frontendService;
     private final UserService userService;
     private final AuthService authService;
+    private final AuthScopeFactory authScopes;
     private final ExerciseAttemptService exerciseAttemptService;
 
-    public QuestionController(FrontendService frontendService, UserService userService, AuthService authService,
+    public QuestionController(FrontendService frontendService, UserService userService, AuthService authService, AuthScopeFactory authScopes,
                               ExerciseAttemptService exerciseAttemptService) {
         this.frontendService = frontendService;
         this.userService = userService;
         this.authService = authService;
+        this.authScopes = authScopes;
         this.exerciseAttemptService = exerciseAttemptService;
     }
 
@@ -93,7 +96,7 @@ public class QuestionController {
     @ResponseBody
     public QuestionDto generateQuestionByMetadata(Integer metadataId, HttpServletRequest request) throws Exception {
         var currentUser = userService.getCurrentUser();
-        authService.ensureAuthorizedGlobal(currentUser.getId(), Permission.EDIT_EXERCISE);
+        authService.ensureAuthorized(currentUser.getId(), SystemPermission.EDIT_EXERCISE, authScopes.global());
 
         return frontendService.generateQuestionByMetadata(metadataId, currentUser.getPreferred_language());
     }

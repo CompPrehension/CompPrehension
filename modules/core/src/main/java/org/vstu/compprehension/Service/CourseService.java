@@ -7,7 +7,7 @@ import org.springframework.transaction.annotation.Transactional;
 import org.vstu.compprehension.dto.course.CourseDto;
 import org.vstu.compprehension.models.businesslogic.lti.LtiContext;
 import org.vstu.compprehension.models.businesslogic.lti.LtiCourseContext;
-import org.vstu.compprehension.models.businesslogic.auth.AuthObjects.Permission;
+import org.vstu.compprehension.models.businesslogic.auth.AuthObjects.SystemPermission;
 import org.vstu.compprehension.models.entities.EnumData.PermissionScopeKind;
 import org.vstu.compprehension.models.entities.UserEntity;
 import org.vstu.compprehension.models.entities.course.CourseEntity;
@@ -31,6 +31,7 @@ public class CourseService {
     private final ExerciseCourseLinkRepository exerciseCourseLinkRepository;
     private final ExerciseRepository exerciseRepository;
     private final AuthService authService;
+    private final AuthScopeFactory authScopes;
 
     @Transactional(readOnly = true)
     public Optional<CourseEntity> findByExternalIdAndResourceId(String externalCourseId, Long educationResourceId) {
@@ -99,16 +100,16 @@ public class CourseService {
     @Transactional(readOnly = true)
     public List<CourseDto> getUserCourses(UserEntity user) {
         long userId = user.getId();
-        if (authService.isAuthorizedGlobal(userId, Permission.VIEW_COURSE)) {
+        if (authService.isAuthorized(userId, SystemPermission.VIEW_COURSE, authScopes.global())) {
             return courseRepository.findAllCourseDtos();
         }
 
         var courseIds = new HashSet<>(
-                authService.findScopeItemIdsWithPermission(userId, Permission.VIEW_COURSE, PermissionScopeKind.COURSE));
+                authService.findScopeItemIdsWithPermission(userId, SystemPermission.VIEW_COURSE, PermissionScopeKind.COURSE));
 
         // Право в образовательном ресурсе действует во всех его курсах сразу.
         var educationResourceIds =
-                authService.findScopeItemIdsWithPermission(userId, Permission.VIEW_COURSE, PermissionScopeKind.EDUCATION_RESOURCE);
+                authService.findScopeItemIdsWithPermission(userId, SystemPermission.VIEW_COURSE, PermissionScopeKind.EDUCATION_RESOURCE);
         if (!educationResourceIds.isEmpty()) {
             courseIds.addAll(courseRepository.findCourseIdsByEducationResourceIdIn(educationResourceIds));
         }

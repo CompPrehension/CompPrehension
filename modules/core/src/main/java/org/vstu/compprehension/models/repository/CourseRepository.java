@@ -41,6 +41,9 @@ public interface CourseRepository extends JpaRepository<CourseEntity, Long> {
     @Query("select c.educationResource.id from CourseEntity c where c.id = :courseId")
     Optional<Long> findEducationResourceIdByCourseId(@Param("courseId") Long courseId);
 
+    @Query("select distinct c.educationResource.id from CourseEntity c where c.id in :courseIds")
+    List<Long> findEducationResourceIdsByCourseIdIn(@Param("courseIds") Collection<Long> courseIds);
+
     @Modifying(clearAutomatically = true)
     @Query(value = """
             insert ignore into course (external_course_id, name, education_resource_id)

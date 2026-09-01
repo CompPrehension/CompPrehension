@@ -3,7 +3,7 @@ package org.vstu.compprehension.models.entities.role;
 import jakarta.persistence.*;
 import lombok.Getter;
 import lombok.NoArgsConstructor;
-import org.vstu.compprehension.models.businesslogic.auth.AuthObjects.Permission;
+import org.vstu.compprehension.models.businesslogic.auth.Permission;
 import org.vstu.compprehension.models.entities.converters.PermissionConverter;
 
 @Entity

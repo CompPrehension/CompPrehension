@@ -15,6 +15,10 @@ public record PermissionScope(PermissionScopeKind kind, Long itemId) {
         }
     }
 
+    public String queryKey() {
+        return kind.name() + ":" + (itemId == null ? 0 : itemId);
+    }
+
     public static PermissionScope global() {
         return new PermissionScope(PermissionScopeKind.GLOBAL, null);
     }

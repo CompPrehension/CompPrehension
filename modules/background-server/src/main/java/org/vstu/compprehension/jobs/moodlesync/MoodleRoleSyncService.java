@@ -2,8 +2,8 @@ package org.vstu.compprehension.jobs.moodlesync;
 
 import lombok.extern.log4j.Log4j2;
 import org.springframework.stereotype.Service;
-import org.vstu.compprehension.Service.AuthService;
-import org.vstu.compprehension.Service.AuthService.CourseRoleAssignment;
+import org.vstu.compprehension.Service.RoleAssignmentService;
+import org.vstu.compprehension.Service.RoleAssignmentService.CourseRoleAssignment;
 import org.vstu.compprehension.common.BatchingIterator;
 import org.vstu.compprehension.models.entities.EnumData.EducationResourceType;
 import org.vstu.compprehension.models.entities.EnumData.EducationResourceTrustStatus;
@@ -43,7 +43,7 @@ public class MoodleRoleSyncService {
     private final EducationResourceRepository eduResourceRepo;
     private final ExternalAccountRepository externalAccountRepo;
     private final CourseRepository courseRepo;
-    private final AuthService authService;
+    private final RoleAssignmentService roleAssignmentService;
     private final MoodleService moodleService;
     private final WsFuncMoodleConfig wsFuncMoodleConfig;
     private final MoodleSyncConfig syncConfig;
@@ -53,7 +53,7 @@ public class MoodleRoleSyncService {
             EducationResourceRepository eduResourceRepo,
             ExternalAccountRepository externalAccountRepo,
             CourseRepository courseRepo,
-            AuthService authService,
+            RoleAssignmentService roleAssignmentService,
             MoodleService moodleService,
             WsFuncMoodleConfig wsFuncMoodleConfig,
             MoodleSyncConfig syncConfig,
@@ -62,7 +62,7 @@ public class MoodleRoleSyncService {
         this.eduResourceRepo = eduResourceRepo;
         this.externalAccountRepo = externalAccountRepo;
         this.courseRepo = courseRepo;
-        this.authService = authService;
+        this.roleAssignmentService = roleAssignmentService;
         this.moodleService = moodleService;
         this.wsFuncMoodleConfig = wsFuncMoodleConfig;
         this.syncConfig = syncConfig;
@@ -200,7 +200,7 @@ public class MoodleRoleSyncService {
             if (!partition.detached().isEmpty()) {
                 courseRepo.saveAll(partition.detached());
             }
-            authService.reconcileCourseRoleAssignments(
+            roleAssignmentService.reconcileCourseRoleAssignments(
                     env.getId(),
                     userIdByMoodleId.values(),
                     desiredAssignments,
