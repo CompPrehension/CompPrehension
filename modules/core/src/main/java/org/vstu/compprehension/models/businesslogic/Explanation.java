@@ -107,19 +107,32 @@ public class Explanation {
     public static String getCommonPrefix(Collection<Explanation> explanations, String defaultVal) {
         String commonChildrenPrefix = StringUtils.getCommonPrefix(explanations.stream().
                 map(Explanation::getRawMessage).map(HyperText::getText)
-                .filter(x -> !x.startsWith("<i>"))
+                .filter(x -> !x.startsWith("<i>"))  // отфильтровать агрегационные "влияет ..." (выделены курсивом)
                 .toList().toArray(new String[0]));
         if (commonChildrenPrefix.isEmpty()) {
-            commonChildrenPrefix = defaultVal;
+            return defaultVal;
         }
 
-        String[] stopWords = {"because", "что"};
+        // Сделать позицию обрезки более адекватной для человека...
+        // Остановиться после слова-маркера начала под-фразы или после знака препинания.
+        String[] stopWords = {"because", "что", ",", ";", };
         for (String stopWord : stopWords) {
             if (commonChildrenPrefix.lastIndexOf(stopWord) != -1) {
-                commonChildrenPrefix = commonChildrenPrefix.substring(0,
-                        commonChildrenPrefix.lastIndexOf(stopWord) + stopWord.length()) + " ";
+                int cutPos = commonChildrenPrefix.lastIndexOf(stopWord) + stopWord.length();
+                commonChildrenPrefix = commonChildrenPrefix.substring(0, cutPos) + " ";
+                break;
             }
         }
+
+        // Проверить, что точка обрезки не лежит внутри фрагмента кода <code>...</code>.
+        int lastCodeOpen = commonChildrenPrefix.lastIndexOf("<code>");
+        int lastCodeClose = commonChildrenPrefix.lastIndexOf("</code>");
+        if (lastCodeOpen != -1 && (lastCodeClose == -1 || lastCodeClose < lastCodeOpen)) {
+            // Закрытие фрагмента кода обрезано, выйдем за его пределы.
+            int cutPos = lastCodeOpen - 1;  // Минус один пробел слева от кода.
+            commonChildrenPrefix = commonChildrenPrefix.substring(0, cutPos) + " ";
+        }
+
         return commonChildrenPrefix;
     }
 

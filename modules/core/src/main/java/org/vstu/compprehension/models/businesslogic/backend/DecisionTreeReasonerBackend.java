@@ -297,6 +297,7 @@ public class DecisionTreeReasonerBackend
             List<DecisionTreeTraceElement<?, ?>> traceElements = nestedTraceElements(backendOutput.results);
 
             InterpretSentenceResult result = new InterpretSentenceResult();
+            result.isAnswerCorrect = isCorrectAnswer(backendOutput.results);
             result.decisionTreeTrace = backendOutput.results;
             for (DecisionTreeTraceElement<?,?> res : traceElements) {
                 String[] resSkill = res.getNode().getMetadata().containsAny("skill") && res.getNode().getMetadata().get("skill") != null ?
@@ -320,17 +321,20 @@ public class DecisionTreeReasonerBackend
                     backendOutput.situation.getDomainModel(),
                     judgedQuestion.getDomain(), deniedSkills, lang
             );
-            List<ViolationEntity> mistakes = result.explanation.getDomainLawNames()
-                    .stream().map(errorName -> {
-                        ViolationEntity violation = new ViolationEntity();
-                        violation.setLawName(errorName);
-                        violation.setViolationFacts(new ArrayList<>());
-                        return violation;
-                    })
-                    .collect(Collectors.toList());
-            result.violations = mistakes;
+            if (!result.isAnswerCorrect) {
+                List<ViolationEntity> mistakes = result.explanation.getDomainLawNames()
+                        .stream().map(errorName -> {
+                            ViolationEntity violation = new ViolationEntity();
+                            violation.setLawName(errorName);
+                            violation.setViolationFacts(new ArrayList<>());
+                            return violation;
+                        })
+                        .collect(Collectors.toList());
+                result.violations = mistakes;
+            } else {
+                result.violations = List.of();
+            }
             result.correctlyAppliedLaws = new ArrayList<>();
-            result.isAnswerCorrect = mistakes.isEmpty();
             return result;
         }
 
@@ -388,6 +392,13 @@ public class DecisionTreeReasonerBackend
                 }
             }
             return expanded;
+        }
+
+        static boolean isCorrectAnswer(@NotNull DecisionTreeTrace trace) {
+            if (List.of(Boolean.TRUE, true, BranchResult.CORRECT).contains(trace.getBranchResult())) {
+                return true;
+            }
+            return false;
         }
 
         static Explanation extractExplanation(BranchResultNode resultNode,

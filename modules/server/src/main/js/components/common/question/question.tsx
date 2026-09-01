@@ -1,13 +1,14 @@
-import { absurd } from "fp-ts/lib/function";
-import { observer } from "mobx-react";
+import {absurd} from "fp-ts/lib/function";
+import {observer} from "mobx-react";
 import React from "react";
-import { Answer } from "../../../types/answer";
-import { Feedback } from "../../../types/feedback";
-import { Question } from "../../../types/question"
-import { MatchingQuestionComponent } from "./matching-question";
-import { MultiChoiceQuestionComponent } from "./multi-choice-question";
-import { OrderQuestionComponent } from "./order-question";
-import { SingleChoiceQuestionComponent } from "./single-choice-question";
+import {Answer} from "../../../types/answer";
+import {Feedback} from "../../../types/feedback";
+import {Question} from "../../../types/question"
+import {MatchingQuestionComponent} from "./matching-question";
+import {MultiChoiceQuestionComponent} from "./multi-choice-question";
+import {OrderQuestionComponent} from "./order-question";
+import {SingleChoiceQuestionComponent} from "./single-choice-question";
+import "remixicon/fonts/remixicon.css";
 
 type QuestionComponentProps = {
     question: Question,

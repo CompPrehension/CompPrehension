@@ -304,44 +304,251 @@ table.comp-ph-trace tr:first-child td {
 }
 
 /* Trace syntax */
-.trace .program {
+.comp-ph-trace .program {
 	color: #f70;
 	font-weight: bold;
 }
 
-.trace .keyword {
+.comp-ph-trace .keyword {
 	color: #00a;
 	font-weight: bold;
 }
 
-.trace .action {
+.comp-ph-trace .action {
 	color: #077;
 	font-weight: bold;
 }
 
-.trace .variable {
+.comp-ph-trace .variable {
 	color: #700;
 	font-weight: bold;
 }
 
-.trace .number {
+.comp-ph-trace .number {
 	color: #FF5252;
 	font-weight: bold;
 }
 
-.trace .struct {
+.comp-ph-trace .struct {
 	color: #07c;
 	font-weight: bold;
 }
 
-.trace .atom {
+.comp-ph-trace .atom {
 	color: #f08;
 	font-style: italic;
 	font-weight: bold;
+}
+
+.comp-ph-trace .warning {
+    background-color: #ff9;
+}
+
+.comp-ph-trace .runtime-info {
+    color: gray;
+    font-style: italic;
+}
+
+.comp-ph-trace .runtime-info-comment {
+    margin: 1.7%;
+    font-style: italic;
+    color: gray;
 }
 
 .compph-domain-term {
   border-bottom: 1px dashed;
   cursor: pointer;
   position: relative;
+}
+
+/* Section: Ctrl Flow 2025 DT domain*/
+
+.ctrl-flow-domain-code-block {
+    font-family: var(--font-family-monospace);
+    background: white;
+    border: 1px solid #e0e0e0;
+    border-radius: 6px;
+    overflow: hidden;
+    box-shadow: 0 1px 3px rgba(0, 0, 0, 0.05);
+}
+
+.ctrl-flow-domain-code-block .code-container {
+    display: flex;
+    --ctrlflow-codeblock-font-size: 15px;
+    font-size: var(--ctrlflow-codeblock-font-size);
+    line-height: 1.6;
+}
+
+.ctrl-flow-domain-code-block .line-numbers {
+    background: #fafafa;
+    color: #999;
+    padding: 16px 12px;
+    text-align: right;
+    user-select: none;
+    border-right: 1px solid #e0e0e0;
+    min-width: 50px;
+}
+
+.ctrl-flow-domain-code-block .line-number {
+    display: block;
+    height: 1.6em;
+}
+
+.ctrl-flow-domain-code-block .code-content {
+    flex: 1;
+    padding: 16px;
+    overflow-x: auto;
+}
+
+.ctrl-flow-domain-code-block .code-line {
+    display: flex;
+    align-items: center;
+    min-height: 1.6em;
+    position: relative;
+}
+
+.ctrl-flow-domain-code-block .line-buttons {
+    display: flex;
+    gap: 4px;
+    margin-right: 8px;
+    flex-shrink: 0;
+}
+
+.ctrl-flow-domain-code-block .action-button {
+    background: transparent;
+    border: none;
+    width: 18px;
+    height: 18px;
+    border-radius: 4px;
+    cursor: pointer;
+    display: inline-flex;
+    align-items: center;
+    justify-content: center;
+    transition: all 0.2s;
+    padding: 0;
+    font-size: 0;
+}
+
+.ctrl-flow-domain-code-block .action-button > :not(i) {
+    display: none;
+}
+
+.ctrl-flow-domain-code-block .action-button i {
+    font-size: var(--ctrlflow-codeblock-font-size);
+}
+
+.ctrl-flow-domain-code-block .action-button svg {
+    width: 14px;
+    height: 14px;
+    stroke-width: 2;
+}
+
+.ctrl-flow-domain-code-block .action-button:hover {
+    background: rgba(0, 0, 0, 0.05);
+}
+
+.ctrl-flow-domain-code-block .action-button:active {
+    transform: scale(0.95);
+}
+
+.ctrl-flow-domain-code-block .action-button.filled.play svg,
+.ctrl-flow-domain-code-block .action-button.filled.stop svg,
+.ctrl-flow-domain-code-block .action-button.filled.step-into svg,
+.ctrl-flow-domain-code-block .action-button.filled.step-out svg {
+    /* Цвет будет задан inline через style */
+}
+
+.ctrl-flow-domain-code-block .action-button.outlined.play svg,
+.ctrl-flow-domain-code-block .action-button.outlined.stop svg,
+.ctrl-flow-domain-code-block .action-button.outlined.step-into svg,
+.ctrl-flow-domain-code-block .action-button.outlined.step-out svg {
+    fill: none;
+    /* Цвет будет задан inline через style */
+}
+
+.ctrl-flow-domain-code-block .line-content {
+    flex: 1;
+    white-space: pre;
+}
+
+/* Стили для токенов */
+.ctrl-flow-domain-code-block .token-keyword {
+    color: #0033B3;
+    font-weight: 600;
+}
+
+.ctrl-flow-domain-code-block .token-operator {
+    color: #000000;
+}
+
+.ctrl-flow-domain-code-block .token-const {
+    color: #067D17;
+}
+
+.ctrl-flow-domain-code-block .token-string {
+    color: #067D17;
+}
+
+.ctrl-flow-domain-code-block .token-number {
+    color: #1750EB;
+}
+
+.ctrl-flow-domain-code-block .token-callable {
+    color: #00627A;
+    font-weight: 500;
+}
+
+.ctrl-flow-domain-code-block .token-identifier {
+    color: #000000;
+}
+
+.ctrl-flow-domain-code-block .token-cast {
+    color: #0033B3;
+}
+
+.ctrl-flow-domain-code-block .token-brace {
+    color: #000000;
+    font-weight: 600;
+}
+
+.ctrl-flow-domain-code-block .token-statement {
+    color: #9876AA;
+}
+
+.ctrl-flow-domain-code-block .token-separator {
+    color: #000000;
+}
+
+.ctrl-flow-domain-code-block .token-comma {
+    color: #000000;
+}
+
+.ctrl-flow-domain-code-block .token-comment {
+    color: #8C8C8C;
+    font-style: italic;
+}
+
+.ctrl-flow-domain-code-block .token-unknown {
+    color: #000000;
+}
+
+/* требует поддержки :has (современные браузеры) */
+.ctrl-flow-domain-code-block .line-content:has(> .token-whitespace:first-child) {
+    position: relative;
+    padding-left: 8px; /* отступ, чтобы не налезало содержимое */
+}
+
+.ctrl-flow-domain-code-block .line-content:has(> .token-whitespace:first-child)::before {
+    content: "";
+    position: absolute;
+    left: 0;
+    top: 0;
+    bottom: 0;
+    width: 1px;
+    background: #c7c7c7;
+}
+
+.ctrl-flow-domain-code-block .token {
+    cursor: default;
+    position: relative;
 }

@@ -42,7 +42,7 @@ public class ProgrammingLanguageExpressionsSolver {
         DecisionTreeTrace trace = DecisionTreeReasoner.solve(decisionTree, situation);
         List<String> skills = new ArrayList<>();
         List<String> laws = new ArrayList<>();
-        boolean solved = trace.getLast().getNodeResult().equals(BranchResult.CORRECT);
+        boolean solved = trace.getBranchResult().equals(BranchResult.CORRECT);
         collectMeta(trace, skills, laws);
         return new SolveResult(solved, laws, skills, trace, situation);
     }
@@ -112,7 +112,7 @@ public class ProgrammingLanguageExpressionsSolver {
         DecisionTreeTrace trace = DecisionTreeReasoner.solve(decisionTree, situation);
         List<String> skills = new ArrayList<>();
         List<String> laws = new ArrayList<>();
-        boolean solved = trace.getLast().getNodeResult().equals(BranchResult.CORRECT);
+        boolean solved = trace.getBranchResult().equals(BranchResult.CORRECT);
         collectMeta(trace, skills, laws);
         return new SolveResult(solved, laws, skills, trace, situation);
     }

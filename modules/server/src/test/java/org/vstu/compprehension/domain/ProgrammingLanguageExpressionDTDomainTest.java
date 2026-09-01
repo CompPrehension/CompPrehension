@@ -39,6 +39,7 @@ import java.util.List;
 import java.util.stream.Collectors;
 import java.util.stream.Stream;
 
+@Disabled("Не работает в test-containers.")
 @TestInstance(TestInstance.Lifecycle.PER_CLASS)
 @Transactional
 public class ProgrammingLanguageExpressionDTDomainTest extends AbstractIntegrationTest {

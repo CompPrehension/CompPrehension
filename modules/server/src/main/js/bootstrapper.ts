@@ -220,7 +220,7 @@ const resources = {
             correctsteps_feeback: "Правильных шагов",
             stepswitherrors_feeback: "Шагов с ошибками",
             stepsleft_feeback: "Шагов осталось",
-            issolved_feeback: "Все операторы уже вычислены. Задача решена",
+            issolved_feeback: "Все действия программы выполнены. Задача решена",
             foundExisitingAttempt_title: "Найдена неоконченная попытка",            
             foundExisitingAttempt_descr: "Вы хотите продолжить существующую попытку или начать новую",
             foundExisitingAttempt_continueattempt: "Продолжить",

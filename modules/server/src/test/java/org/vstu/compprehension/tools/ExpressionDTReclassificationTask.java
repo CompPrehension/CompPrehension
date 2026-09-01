@@ -1,5 +1,6 @@
 package org.vstu.compprehension.tools;
 
+import org.junit.jupiter.api.Disabled;
 import org.vstu.compprehension.models.businesslogic.*;
 
 import org.vstu.compprehension.infrastructure.AbstractIntegrationTest;
@@ -20,6 +21,7 @@ import org.vstu.compprehension.models.repository.QuestionMetadataRepository;
 import java.util.ArrayList;
 import java.util.List;
 
+@Disabled("Не работает в test-containers.")
 @TestInstance(TestInstance.Lifecycle.PER_CLASS)
 public class ExpressionDTReclassificationTask extends AbstractIntegrationTest {
     @Autowired

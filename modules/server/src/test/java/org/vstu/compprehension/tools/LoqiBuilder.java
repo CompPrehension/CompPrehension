@@ -1,5 +1,8 @@
 package org.vstu.compprehension.tools;
 
+import lombok.SneakyThrows;
+import lombok.extern.log4j.Log4j2;
+import org.testcontainers.shaded.org.bouncycastle.oer.its.etsi102941.CaCertificateRekeyingMessage;
 import org.vstu.compprehension.models.businesslogic.*;
 
 import org.vstu.compprehension.infrastructure.AbstractIntegrationTest;
@@ -29,12 +32,14 @@ import org.vstu.compprehension.models.repository.UserRepository;
 import org.vstu.meaningtree.SupportedLanguage;
 
 import java.io.File;
+import java.nio.file.Files;
 import java.util.ArrayList;
 import java.util.Collections;
 import java.util.List;
 
 @TestInstance(TestInstance.Lifecycle.PER_CLASS)
 @Transactional
+@Log4j2
 public class LoqiBuilder extends AbstractIntegrationTest {
     @Autowired
     DomainFactory domainFactory;
@@ -89,6 +94,7 @@ public class LoqiBuilder extends AbstractIntegrationTest {
         exerciseRepository.delete(exercise);
     }
 
+    @SneakyThrows
     public boolean generate(String expression, SupportedLanguage inLang, SupportedLanguage outLang, List<Integer> sequence) {
         List<Question> questions = MeaningTreeOrderQuestionBuilder
                 .newQuestion(domain)
@@ -110,8 +116,10 @@ public class LoqiBuilder extends AbstractIntegrationTest {
             DomainModel model = MeaningTreeRDFTransformer.questionToDomainModel(
                     domainSolvingModel, q.getStatementFacts(), responses, List.of(domain.getTag(outLangStr))
             );
-            MeaningTreeRDFTransformer.dumpModelLoqi(model,
-                    new File("D:/", q.getQuestionName() + ".loqi"));
+            var tempDir = Files.createTempDirectory("loqi").toFile();
+            var filename = new File(tempDir, q.getQuestionName() + ".loqi");
+            MeaningTreeRDFTransformer.dumpModelLoqi(model, filename);
+            log.info("Saved to {}", filename.getAbsolutePath());
         }
         return allPassed;
     }
