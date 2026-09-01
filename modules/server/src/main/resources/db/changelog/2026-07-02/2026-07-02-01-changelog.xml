@@ -1,0 +1,58 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<databaseChangeLog xmlns="http://www.liquibase.org/xml/ns/dbchangelog"
+                   xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance"
+                   xsi:schemaLocation="http://www.liquibase.org/xml/ns/dbchangelog
+                       http://www.liquibase.org/xml/ns/dbchangelog/dbchangelog-4.5.xsd">
+
+    <changeSet id="2026-07-02-01-permission-scope-collapse-scope-item-id" author="dmitry-smirnov">
+        <sql><![CDATA[
+            alter table permission_scope
+                add column scope_item_id bigint null;
+
+            update permission_scope
+                set scope_item_id = coalesce(course_id, education_resource_id);
+
+            alter table permission_scope drop foreign key fk_permission_scope_course;
+            alter table permission_scope drop foreign key fk_permission_scope_education_resource;
+
+            alter table permission_scope drop check chk_permission_scope;
+
+            alter table permission_scope drop index ux_permission_scope_kind_course_edures;
+            drop index ux_permission_scope_kind_keys on permission_scope;
+
+            alter table permission_scope drop column course_id;
+            alter table permission_scope drop column education_resource_id;
+
+            create unique index ux_permission_scope_kind_item
+                on permission_scope (kind, (coalesce(scope_item_id, 0)));
+        ]]></sql>
+        <rollback><![CDATA[
+            drop index ux_permission_scope_kind_item on permission_scope;
+
+            alter table permission_scope
+                add column course_id             bigint null,
+                add column education_resource_id bigint null;
+
+            update permission_scope set course_id = scope_item_id
+                where kind = 'COURSE';
+            update permission_scope set education_resource_id = scope_item_id
+                where kind = 'EDUCATION_RESOURCE';
+
+            alter table permission_scope drop column scope_item_id;
+
+            alter table permission_scope
+                add constraint ux_permission_scope_kind_course_edures unique (kind, course_id, education_resource_id),
+                add constraint fk_permission_scope_course             foreign key (course_id)             references course(id)             on delete cascade,
+                add constraint fk_permission_scope_education_resource foreign key (education_resource_id) references education_resource(id) on delete cascade,
+                add constraint chk_permission_scope check (
+                       (kind = 'GLOBAL'             and course_id is null     and education_resource_id is null)
+                    or (kind = 'COURSE'             and course_id is not null and education_resource_id is null)
+                    or (kind = 'EDUCATION_RESOURCE' and course_id is null     and education_resource_id is not null)
+                );
+
+            create unique index ux_permission_scope_kind_keys
+                on permission_scope (kind, (coalesce(course_id, 0)), (coalesce(education_resource_id, 0)));
+        ]]></rollback>
+    </changeSet>
+
+</databaseChangeLog>

@@ -1,0 +1,68 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<databaseChangeLog xmlns="http://www.liquibase.org/xml/ns/dbchangelog"
+                   xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance"
+                   xsi:schemaLocation="http://www.liquibase.org/xml/ns/dbchangelog
+                       http://www.liquibase.org/xml/ns/dbchangelog/dbchangelog-4.5.xsd">
+
+    <changeSet id="2026-08-29-01-global-exercise-author" author="Artem Prokudin">
+        <sql><![CDATA[
+            insert into role (name) values ('GLOBAL_EXERCISE_AUTHOR');
+
+            insert into role_permission (role_id, permission_id)
+            select r.id, p.id from role r, permission p
+            where r.name = 'GLOBAL_EXERCISE_AUTHOR'
+              and p.name in ('VIEW_EXERCISE','CREATE_EXERCISE','EDIT_EXERCISE','SOLVE_EXERCISE');
+        ]]></sql>
+        <rollback><![CDATA[
+            delete rp from role_permission rp join role r on r.id = rp.role_id
+            where r.name = 'GLOBAL_EXERCISE_AUTHOR';
+            delete from role where name = 'GLOBAL_EXERCISE_AUTHOR';
+        ]]></rollback>
+    </changeSet>
+
+    <changeSet id="2026-08-29-02-student-solve-only" author="Artem Prokudin">
+        <sql><![CDATA[
+            delete rp from role_permission rp
+            join role r       on r.id = rp.role_id
+            join permission p on p.id = rp.permission_id
+            where r.name = 'STUDENT'
+              and p.name in ('VIEW_COURSE','VIEW_EXERCISE');
+        ]]></sql>
+        <rollback><![CDATA[
+            insert into role_permission (role_id, permission_id)
+            select r.id, p.id from role r, permission p
+            where r.name = 'STUDENT' and p.name in ('VIEW_COURSE','VIEW_EXERCISE');
+        ]]></rollback>
+    </changeSet>
+
+    <changeSet id="2026-08-29-03-migrate-legacy-user-role" author="artem-prokudin">
+        <preConditions onFail="MARK_RAN">
+            <tableExists tableName="user_role"/>
+        </preConditions>
+        <sql><![CDATA[
+            insert ignore into role_user_assignment (user_id, role_id, permission_scope_id)
+            select distinct ur.user_id, r.id, ps.id
+            from user_role ur
+            join role r              on r.name = 'GLOBAL_ADMIN'
+            join permission_scope ps on ps.kind = 'GLOBAL'
+            where ur.roles = 'ADMIN';
+
+            insert ignore into role_user_assignment (user_id, role_id, permission_scope_id)
+            select distinct ur.user_id, r.id, ps.id
+            from user_role ur
+            join role r              on r.name = 'GLOBAL_EXERCISE_AUTHOR'
+            join permission_scope ps on ps.kind = 'GLOBAL'
+            where ur.roles = 'TEACHER';
+
+            drop table user_role;
+        ]]></sql>
+        <rollback><![CDATA[
+            create table user_role (
+                user_id bigint not null,
+                roles   varchar(255) null,
+                constraint fk_user_role_user foreign key (user_id) references user(id)
+            );
+        ]]></rollback>
+    </changeSet>
+
+</databaseChangeLog>

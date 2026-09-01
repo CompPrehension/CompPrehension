@@ -4,6 +4,7 @@ import jakarta.persistence.*;
 import lombok.Getter;
 import lombok.NoArgsConstructor;
 import lombok.Setter;
+import org.vstu.compprehension.models.entities.external_system.EducationResourceEntity;
 
 @Entity
 @Getter

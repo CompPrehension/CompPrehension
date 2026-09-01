@@ -6,10 +6,13 @@ import org.springframework.stereotype.Controller;
 import org.springframework.web.bind.annotation.RequestBody;
 import org.springframework.web.bind.annotation.RequestMapping;
 import org.springframework.web.bind.annotation.RequestMethod;
+import org.springframework.web.bind.annotation.RequestParam;
 import org.springframework.web.bind.annotation.ResponseBody;
+import org.vstu.compprehension.Service.ExercisePermissionService;
 import org.vstu.compprehension.Service.UserService;
 import org.vstu.compprehension.dto.UserInfoDto;
 import org.vstu.compprehension.models.entities.EnumData.Language;
+import org.vstu.compprehension.models.entities.UserEntity;
 import org.vstu.compprehension.utils.Mapper;
 
 @Controller
@@ -17,16 +20,19 @@ import org.vstu.compprehension.utils.Mapper;
 @Log4j2
 public class UsersController {
     private final UserService userService;
+    private final ExercisePermissionService exercisePermissionService;
 
     @Autowired
-    public UsersController(UserService userService) {
+    public UsersController(UserService userService, ExercisePermissionService exercisePermissionService) {
         this.userService = userService;
+        this.exercisePermissionService = exercisePermissionService;
     }
 
     @RequestMapping(value = { "whoami"}, method = { RequestMethod.GET })
     @ResponseBody
     public UserInfoDto getAll() throws Exception {
-        return Mapper.toDto(userService.getCurrentUser());
+        UserEntity user = userService.getCurrentUser();
+        return Mapper.toDto(user, exercisePermissionService.ofUser(user.getId()));
     }
 
     private record SetLanguageRequest(String language) {}

@@ -1,5 +1,5 @@
 import { injectable } from "tsyringe";
-import { Domain, ExerciseCard, ExerciseCardConcept, ExerciseCardLaw, ExerciseCardSkill, ExerciseListItem, QuestionBankSearchResult, Strategy, TDomain, TExerciseCard, TExerciseListItem, TQuestionBankSearchResult, TStrategy } from "../../types/exercise-settings";
+import { Domain, ExerciseCard, ExerciseCardConcept, ExerciseCardLaw, ExerciseCardSkill, ExerciseList, ExerciseListItem, QuestionBankSearchResult, Strategy, TDomain, TExerciseCard, TExerciseList, TExerciseListItem, TQuestionBankSearchResult, TStrategy } from "../../types/exercise-settings";
 import { ajaxDelete, ajaxGet, ajaxPost, ajaxPut, PromiseEither } from "../../utils/ajax";
 import * as io from 'io-ts';
 import { RequestError } from "../../types/request-error";
@@ -12,21 +12,19 @@ import * as E from "fp-ts/lib/Either";
 @injectable()
 export class ExerciseSettingsController {
 
-    getAllExercises(): PromiseEither<RequestError, ExerciseListItem[]> {
-        return ajaxGet(`${API_URL}/api/exercise/all`, io.array(TExerciseListItem));
-    }
-
-    listExercises(courseId: number | null): PromiseEither<RequestError, ExerciseListItem[]> {
+    listExercises(courseId: number | null): PromiseEither<RequestError, ExerciseList> {
         const q = courseId == null ? '' : `?courseId=${courseId}`;
-        return ajaxGet(`${API_URL}/api/exercise/list${q}`, io.array(TExerciseListItem));
+        return ajaxGet(`${API_URL}/api/exercise/list${q}`, TExerciseList);
     }
 
-    getExercise(id: number): PromiseEither<RequestError, ExerciseCard> {
-        return ajaxGet(`${API_URL}/api/exercise?id=${encodeURIComponent(id)}`, TExerciseCard);
+    getExercise(id: number, courseId: number | null = null): PromiseEither<RequestError, ExerciseCard> {
+        const courseQ = courseId == null ? '' : `&courseId=${courseId}`;
+        return ajaxGet(`${API_URL}/api/exercise?id=${encodeURIComponent(id)}${courseQ}`, TExerciseCard);
     }
 
-    saveExercise(card: ExerciseCard): PromiseEither<RequestError, void> {
-        return ajaxPost(`${API_URL}/api/exercise`, toJS(card));
+    saveExercise(card: ExerciseCard, courseId: number | null = null): PromiseEither<RequestError, void> {
+        const q = courseId == null ? '' : `?courseId=${courseId}`;
+        return ajaxPost(`${API_URL}/api/exercise${q}`, toJS(card));
     }
 
     createExercise(name: string, domainId: string, strategyId: string, courseId: number | null = null): PromiseEither<RequestError, number> {
@@ -38,8 +36,9 @@ export class ExerciseSettingsController {
         return ajaxPost(`${API_URL}/api/exercise/${id}/clone${q}`, {}, io.number);
     }
 
-    deleteExercise(id: number): PromiseEither<RequestError, void> {
-        return ajaxDelete(`${API_URL}/api/exercise?id=${encodeURIComponent(id)}`);
+    deleteExercise(id: number, courseId: number | null = null): PromiseEither<RequestError, void> {
+        const courseQ = courseId == null ? '' : `&courseId=${courseId}`;
+        return ajaxDelete(`${API_URL}/api/exercise?id=${encodeURIComponent(id)}${courseQ}`);
     }
 
     getStrategies() : PromiseEither<RequestError, Strategy[]> {
@@ -62,7 +61,7 @@ export class ExerciseSettingsController {
         return ajaxGet(`${API_URL}/api/refTables/domainConcepts?domaindId=${encodeURIComponent(domainsId)}`, io.array(io.string));
     }
 
-    search(domainId: string, concepts: ExerciseCardConcept[], laws: ExerciseCardLaw[], skills: ExerciseCardSkill[], tags: string[], complexity: number, limit: number, signal?: AbortSignal): PromiseEither<RequestError, QuestionBankSearchResult> {
+    search(domainId: string, concepts: ExerciseCardConcept[], laws: ExerciseCardLaw[], skills: ExerciseCardSkill[], tags: string[], complexity: number, limit: number, courseId: number | null, signal?: AbortSignal): PromiseEither<RequestError, QuestionBankSearchResult> {
         const body = {
             domainId,
             tags,
@@ -71,6 +70,7 @@ export class ExerciseSettingsController {
             skills,
             complexity,
             limit,
+            courseId,
         }
         return ajaxPost(`${API_URL}/api/question-bank/search`, body, TQuestionBankSearchResult, signal);
     }

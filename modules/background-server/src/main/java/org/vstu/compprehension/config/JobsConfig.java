@@ -9,6 +9,8 @@ import org.vstu.compprehension.jobs.bankloadtesting.BankLoadTestingJobBatchConfi
 import org.vstu.compprehension.jobs.bankloadtesting.BankLoadTestingJobConfig;
 import org.vstu.compprehension.jobs.metadatahealth.MetadataHealthJob;
 import org.vstu.compprehension.jobs.metadatahealth.MetadataHealthJobConfig;
+import org.vstu.compprehension.jobs.moodlesync.MoodleRoleSyncJob;
+import org.vstu.compprehension.jobs.moodlesync.MoodleSyncConfig;
 import org.vstu.compprehension.jobs.tasksgeneration.TaskGenerationJob;
 import org.vstu.compprehension.jobs.tasksgeneration.TaskGenerationJobConfig;
 
@@ -20,13 +22,15 @@ public class JobsConfig {
     private final MetadataHealthJobConfig metadataHealthJobConfig;
     private final BankLoadTestingJobConfig bankLoadTestingJobConfig;
     private final BankLoadTestingJobBatchConfig bankLoadTestingJobBatchConfig;
+    private final MoodleSyncConfig moodleSyncConfig;
 
-    public JobsConfig(JobScheduler jobScheduler, TaskGenerationJobConfig taskGenerationJobConfig, MetadataHealthJobConfig metadataHealthJobConfig, BankLoadTestingJobConfig bankLoadTestingJobConfig, BankLoadTestingJobBatchConfig bankLoadTestingJobBatchConfig) {
+    public JobsConfig(JobScheduler jobScheduler, TaskGenerationJobConfig taskGenerationJobConfig, MetadataHealthJobConfig metadataHealthJobConfig, BankLoadTestingJobConfig bankLoadTestingJobConfig, BankLoadTestingJobBatchConfig bankLoadTestingJobBatchConfig, MoodleSyncConfig moodleSyncConfig) {
         this.jobScheduler            = jobScheduler;
         this.taskGenerationJobConfig = taskGenerationJobConfig;
         this.metadataHealthJobConfig = metadataHealthJobConfig;
         this.bankLoadTestingJobConfig = bankLoadTestingJobConfig;
         this.bankLoadTestingJobBatchConfig = bankLoadTestingJobBatchConfig;
+        this.moodleSyncConfig        = moodleSyncConfig;
     }
 
     @PostConstruct
@@ -57,6 +61,13 @@ public class JobsConfig {
             var jobId = "BankLoadTestingBatchJob";
             var schedule = bankLoadTestingJobBatchConfig.getCronSchedule();
             scheduleJob(jobId, schedule, BankLoadTestingJob::runBatch);
+        }
+
+        // MoodleRoleSyncJob
+        {
+            var jobId = "MoodleRoleSyncJob";
+            var schedule = moodleSyncConfig.getCronSchedule();
+            scheduleJob(jobId, schedule, MoodleRoleSyncJob::run);
         }
     }
     

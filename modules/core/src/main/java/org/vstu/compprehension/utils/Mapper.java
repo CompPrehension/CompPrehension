@@ -20,6 +20,7 @@ import org.vstu.compprehension.models.entities.EnumData.QuestionType;
 
 import java.util.ArrayList;
 import java.util.Collection;
+import java.util.List;
 import java.util.Optional;
 import java.util.stream.Collectors;
 import java.util.stream.IntStream;
@@ -46,7 +47,7 @@ public class Mapper {
     }
 
 
-    public static @NotNull UserInfoDto toDto(@NotNull UserEntity user) {
+    public static @NotNull UserInfoDto toDto(@NotNull UserEntity user, @NotNull UserPermissionsDto permissions) {
         val displayName = Stream.of(user.getFirstName(), user.getLastName())
                 .filter(s -> s != null && !s.isEmpty())
                 .collect(Collectors.joining(" "));
@@ -55,7 +56,7 @@ public class Mapper {
                 .displayName(displayName)
                 .email(user.getEmail())
                 .language(user.getPreferred_language().toLocaleString())
-                .roles(user.getRoles().stream().map(Enum::name).collect(Collectors.toList()))
+                .permissions(permissions)
                 .build();
     }
 

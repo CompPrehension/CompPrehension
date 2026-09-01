@@ -307,12 +307,6 @@ public class FrontendService {
                 strategyAttemptDecision);
     }
 
-    public @NotNull ExerciseStatisticsItemDto[] getExerciseStatistics(@NotNull Long exerciseId, @Nullable Long courseId) {
-        return exerciseAttemptRepository.getAllByExerciseAndCourse(exerciseId, courseId).stream()
-                .map(this::toStatisticsItemDto)
-                .toArray(ExerciseStatisticsItemDto[]::new);
-    }
-
     private ExerciseStatisticsItemDto toStatisticsItemDto(ExerciseAttemptEntity att) {
         val questionsCount = att.getQuestions().size();
         val totalInteractionsCount = att.getQuestions().stream()

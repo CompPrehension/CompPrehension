@@ -9,6 +9,7 @@ import { SurveyController } from "./controllers/exercise/survey-controller";
 import { TestExerciseController } from "./controllers/exercise/test-exercise-controller";
 import { UserController } from "./controllers/exercise/user-controller";
 import { CourseController } from "./controllers/course/course-controller";
+import { DeepLinkingController } from "./controllers/lti/deep-linking-controller";
 import { ExerciseStore } from "./stores/exercise-store";
 import { QuestionStore } from "./stores/question-store";
 
@@ -34,6 +35,7 @@ container.registerSingleton(ExerciseStore);
 container.registerSingleton(SurveyController);
 container.registerSingleton(ExerciseSettingsController);
 container.registerSingleton(CourseController);
+container.registerSingleton(DeepLinkingController);
 
 // init localisation
 const resources = {
@@ -170,6 +172,16 @@ const resources = {
             course_page_createExerciseBtn: "Create new exercise in course",
             course_page_importBtn: "Import from global pool",
             course_page_empty: "This course has no exercises yet",
+
+            deeplink_title: "Add exercises to the Moodle course",
+            deeplink_hint: "Select exercises — Moodle will create an External Tool activity for each.",
+            deeplink_blockHint: "Fill the course with exercises, then in Moodle: “Add an activity or resource” → “CompPrehension” → “Select content” — Moodle will create the activities automatically.",
+            deeplink_addBtn: "Add selected to Moodle",
+            deeplink_added: "added",
+            deeplink_submitting: "Sending…",
+            deeplink_error: "Failed to prepare the Moodle response",
+            deeplink_selectAtLeastOne: "Select at least one exercise",
+            deeplink_empty: "This course has no exercises yet — add some first.",
 
             globalPool_page_title: "Global exercise pool",
             globalPool_page_createBtn: "Create new exercise in pool",
@@ -327,6 +339,16 @@ const resources = {
             course_page_importBtn: "Импортировать из глобального пула",
             course_page_empty: "В этом курсе пока нет упражнений",
 
+            deeplink_title: "Добавить упражнения в курс Moodle",
+            deeplink_hint: "Выберите упражнения — Moodle создаст по активности «Внешний инструмент» на каждое.",
+            deeplink_blockHint: "Наполните курс упражнениями, затем в Moodle: «Добавить элемент курса» → «CompPrehension» → «Выбрать содержимое» — Moodle создаст активности автоматически.",
+            deeplink_addBtn: "Добавить выбранные в Moodle",
+            deeplink_added: "добавлено",
+            deeplink_submitting: "Отправка…",
+            deeplink_error: "Не удалось подготовить ответ для Moodle",
+            deeplink_selectAtLeastOne: "Выберите хотя бы одно упражнение",
+            deeplink_empty: "В курсе пока нет упражнений — сначала добавьте их.",
+
             globalPool_page_title: "Глобальный пул упражнений",
             globalPool_page_createBtn: "Создать новое упражнение в пуле",
             globalPool_page_empty: "Пул пуст",
@@ -438,6 +460,16 @@ const resources = {
             course_page_createExerciseBtn: "Utwórz nowe ćwiczenie w kursie",
             course_page_importBtn: "Importuj z globalnej puli",
             course_page_empty: "Ten kurs nie ma jeszcze ćwiczeń",
+
+            deeplink_title: "Dodaj ćwiczenia do kursu Moodle",
+            deeplink_hint: "Wybierz ćwiczenia — Moodle utworzy dla każdego aktywność „Narzędzie zewnętrzne”.",
+            deeplink_blockHint: "Wypełnij kurs ćwiczeniami, a następnie w Moodle: „Dodaj aktywność lub zasób” → „CompPrehension” → „Wybierz zawartość” — Moodle utworzy aktywności automatycznie.",
+            deeplink_addBtn: "Dodaj wybrane do Moodle",
+            deeplink_added: "dodano",
+            deeplink_submitting: "Wysyłanie…",
+            deeplink_error: "Nie udało się przygotować odpowiedzi dla Moodle",
+            deeplink_selectAtLeastOne: "Wybierz co najmniej jedno ćwiczenie",
+            deeplink_empty: "Ten kurs nie ma jeszcze ćwiczeń — najpierw je dodaj.",
 
             globalPool_page_title: "Globalna pula ćwiczeń",
             globalPool_page_createBtn: "Utwórz nowe ćwiczenie w puli",

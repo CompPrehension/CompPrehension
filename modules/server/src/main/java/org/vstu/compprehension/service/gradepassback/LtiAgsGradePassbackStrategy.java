@@ -1,11 +1,5 @@
 package org.vstu.compprehension.service.gradepassback;
 
-import com.fasterxml.jackson.databind.ObjectMapper;
-import com.nimbusds.jose.JWSAlgorithm;
-import com.nimbusds.jose.JWSHeader;
-import com.nimbusds.jose.crypto.RSASSASigner;
-import com.nimbusds.jwt.JWTClaimsSet;
-import com.nimbusds.jwt.SignedJWT;
 import lombok.extern.log4j.Log4j2;
 import org.springframework.core.annotation.Order;
 import org.springframework.http.HttpEntity;
@@ -13,22 +7,14 @@ import org.springframework.http.HttpHeaders;
 import org.springframework.http.MediaType;
 import org.springframework.http.ResponseEntity;
 import org.springframework.stereotype.Service;
-import org.springframework.util.LinkedMultiValueMap;
 import org.springframework.web.client.RestTemplate;
-import org.vstu.compprehension.config.LtiRegistrationsProperties;
-import org.vstu.compprehension.config.LtiRegistrationsProperties.Registration;
 import org.vstu.compprehension.models.entities.ExerciseAttemptEntity;
+import org.vstu.compprehension.service.lti.LtiTokenService;
 
 import java.net.URI;
-import java.security.KeyFactory;
-import java.security.interfaces.RSAPrivateKey;
-import java.security.spec.PKCS8EncodedKeySpec;
 import java.time.Instant;
 import java.time.temporal.ChronoUnit;
-import java.util.Base64;
-import java.util.Date;
 import java.util.Map;
-import java.util.UUID;
 
 /**
  * Grade passback через LTI AGS. Применяется, когда attempt создан через LTI-запуска
@@ -38,12 +24,14 @@ import java.util.UUID;
 @Log4j2
 public class LtiAgsGradePassbackStrategy implements GradePassbackStrategy {
 
-    private final RestTemplate restTemplate = new RestTemplate();
-    private final ObjectMapper objectMapper = new ObjectMapper();
-    private final LtiRegistrationsProperties ltiRegistrations;
+    private static final String SCORE_SCOPE = "https://purl.imsglobal.org/spec/lti-ags/scope/score";
 
-    public LtiAgsGradePassbackStrategy(LtiRegistrationsProperties ltiRegistrations) {
-        this.ltiRegistrations = ltiRegistrations;
+    private final RestTemplate restTemplate;
+    private final LtiTokenService tokenService;
+
+    public LtiAgsGradePassbackStrategy(RestTemplate restTemplate, LtiTokenService tokenService) {
+        this.restTemplate = restTemplate;
+        this.tokenService = tokenService;
     }
 
     @Override
@@ -57,13 +45,6 @@ public class LtiAgsGradePassbackStrategy implements GradePassbackStrategy {
         try {
             String moodleBaseUrl = extractMoodleBaseUrl(lineitemUrl);
 
-            var regWithName = ltiRegistrations.findByIssuerUrl(moodleBaseUrl)
-                    .orElseThrow(() -> new IllegalStateException(
-                            "LTI registration not configured for issuer " + moodleBaseUrl
-                                    + " — добавьте compprehension.lti.registrations.<name>.* в env"));
-            String kid = regWithName.name();
-            Registration reg = regWithName.registration();
-
             String externalUserId = attempt.getUser().getExternalUserId();
             if (externalUserId == null || externalUserId.isBlank()) {
                 throw new IllegalStateException(
@@ -71,73 +52,12 @@ public class LtiAgsGradePassbackStrategy implements GradePassbackStrategy {
                                 + " — пользователь должен войти через LTI до отправки оценки");
             }
 
-            String tokenEndpoint = moodleBaseUrl + "/mod/lti/token.php";
-            String accessToken = obtainAccessToken(tokenEndpoint, reg, kid);
+            String accessToken = tokenService.obtainAccessToken(moodleBaseUrl, SCORE_SCOPE);
             return postScore(lineitemUrl, externalUserId, grade, accessToken);
         } catch (Exception e) {
             log.error("LTI AGS grade passback failed for attempt {}: {}", attempt.getId(), e.getMessage(), e);
             return false;
         }
-    }
-
-    private String obtainAccessToken(String tokenEndpoint, Registration reg, String kid) throws Exception {
-        String jwtAssertion = buildClientAssertionJwt(tokenEndpoint, reg, kid);
-
-        LinkedMultiValueMap<String, String> form = new LinkedMultiValueMap<>();
-        form.add("grant_type", "client_credentials");
-        form.add("client_assertion_type", "urn:ietf:params:oauth:client-assertion-type:jwt-bearer");
-        form.add("client_assertion", jwtAssertion);
-        form.add("scope", "https://purl.imsglobal.org/spec/lti-ags/scope/score");
-
-        HttpHeaders headers = new HttpHeaders();
-        headers.setContentType(MediaType.APPLICATION_FORM_URLENCODED);
-        headers.set("Accept", "application/json");
-
-        ResponseEntity<String> rawResponse = restTemplate.postForEntity(
-                tokenEndpoint, new HttpEntity<>(form, headers), String.class);
-
-        log.debug("Token endpoint response: status={}, contentType={}",
-                rawResponse.getStatusCode(),
-                rawResponse.getHeaders().getContentType());
-
-        String body = rawResponse.getBody();
-        if (body == null) {
-            throw new RuntimeException("Empty response from token endpoint: " + tokenEndpoint);
-        }
-
-        var tokenResponse = objectMapper.readTree(body);
-        String accessToken = tokenResponse.path("access_token").asText(null);
-        if (accessToken == null) {
-            String error = tokenResponse.path("error").asText(null);
-            String errorDescription = tokenResponse.path("error_description").asText(null);
-            if (error == null && errorDescription == null) {
-                throw new RuntimeException("No access_token in malformed Moodle AGS token response from " + tokenEndpoint);
-            }
-            throw new RuntimeException(
-                    "No access_token in Moodle AGS token response from " + tokenEndpoint
-                            + ", error=" + error + ", error_description=" + errorDescription);
-        }
-        return accessToken;
-    }
-
-    private String buildClientAssertionJwt(String tokenEndpoint, Registration reg, String kid) throws Exception {
-        byte[] keyBytes = Base64.getDecoder().decode(reg.getPrivateKeyPkcs8Base64());
-        RSAPrivateKey privateKey = (RSAPrivateKey) KeyFactory.getInstance("RSA")
-                .generatePrivate(new PKCS8EncodedKeySpec(keyBytes));
-
-        Date now = new Date();
-        JWTClaimsSet claims = new JWTClaimsSet.Builder()
-                .issuer(reg.getClientId())
-                .subject(reg.getClientId())
-                .audience(tokenEndpoint)
-                .issueTime(now)
-                .expirationTime(new Date(now.getTime() + 60_000))
-                .jwtID(UUID.randomUUID().toString())
-                .build();
-
-        SignedJWT jwt = new SignedJWT(new JWSHeader.Builder(JWSAlgorithm.RS256).keyID(kid).build(), claims);
-        jwt.sign(new RSASSASigner(privateKey));
-        return jwt.serialize();
     }
 
     private boolean postScore(String lineitemUrl, String moodleUserId, double grade, String accessToken) {
@@ -163,7 +83,7 @@ public class LtiAgsGradePassbackStrategy implements GradePassbackStrategy {
 
         log.debug("Posting score to {}: userId={}, scoreGiven={}", scoresUrl, moodleUserId, grade);
         ResponseEntity<String> scoreResponse = restTemplate.postForEntity(
-                scoresUrl, new HttpEntity<>(scorePayload, headers), String.class);
+                URI.create(scoresUrl), new HttpEntity<>(scorePayload, headers), String.class);
         log.debug("AGS score response: status={}, body={}", scoreResponse.getStatusCode(), scoreResponse.getBody());
         return scoreResponse.getStatusCode().is2xxSuccessful();
     }

@@ -1,0 +1,27 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<databaseChangeLog xmlns="http://www.liquibase.org/xml/ns/dbchangelog"
+                   xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance"
+                   xsi:schemaLocation="http://www.liquibase.org/xml/ns/dbchangelog
+                       http://www.liquibase.org/xml/ns/dbchangelog/dbchangelog-4.5.xsd">
+
+    <!--
+        Trims role permissions to match Moodle semantics:
+          - ASSISTANT (Non-editing teacher): drop CREATE/EDIT/DELETE_EXERCISE -> view + solve only.
+          - TEACHER: drop CREATE_COURSE / DELETE_COURSE (courses come from Moodle/LTI).
+        Forward-only over the 2026-05-23-01 seed; keep the Role enum in sync.
+    -->
+    <changeSet id="2026-05-28-01-rbac-trim-assistant-teacher" author="dmitry-smirnov">
+        <sql>
+            delete from role_permission
+            where role_id = (select id from role where name = 'ASSISTANT')
+              and permission_id in (select id from permission
+                                    where name in ('CREATE_EXERCISE','EDIT_EXERCISE','DELETE_EXERCISE'));
+
+            delete from role_permission
+            where role_id = (select id from role where name = 'TEACHER')
+              and permission_id in (select id from permission
+                                    where name in ('CREATE_COURSE','DELETE_COURSE'));
+        </sql>
+    </changeSet>
+
+</databaseChangeLog>

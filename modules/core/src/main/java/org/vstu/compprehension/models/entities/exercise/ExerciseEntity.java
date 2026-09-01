@@ -13,7 +13,6 @@ import org.vstu.compprehension.models.entities.DomainEntity;
 import org.vstu.compprehension.models.entities.EnumData.ExerciseType;
 import org.vstu.compprehension.models.entities.EnumData.Language;
 import org.vstu.compprehension.models.entities.ExerciseAttemptEntity;
-import org.vstu.compprehension.models.entities.UserEntity;
 
 import java.util.ArrayList;
 import java.util.Arrays;
@@ -93,9 +92,6 @@ public class ExerciseEntity implements Cloneable {
     @OneToMany(mappedBy = "exercise", fetch = FetchType.LAZY)
     private List<ExerciseAttemptEntity> exerciseAttempts;
 
-    @ManyToMany(mappedBy = "exercises", fetch = FetchType.LAZY)
-    private List<UserEntity> users;
-
     @Override
     public ExerciseEntity clone() {
         try {
@@ -117,7 +113,6 @@ public class ExerciseEntity implements Cloneable {
             copy.setOptions(this.options);
             copy.setStages(this.stages == null ? new ArrayList<>() : new ArrayList<>(this.stages));
             copy.setExerciseAttempts(null);
-            copy.setUsers(null);
             return copy;
         } catch (CloneNotSupportedException e) {
             throw new RuntimeException(e);

@@ -5,14 +5,18 @@ import org.springframework.data.jpa.repository.Modifying;
 import org.springframework.data.jpa.repository.Query;
 import org.springframework.data.repository.query.Param;
 import org.springframework.stereotype.Repository;
+import org.vstu.compprehension.models.entities.EnumData.EducationResourceTrustStatus;
 import org.vstu.compprehension.models.entities.EnumData.EducationResourceType;
-import org.vstu.compprehension.models.entities.course.EducationResourceEntity;
+import org.vstu.compprehension.models.entities.external_system.EducationResourceEntity;
 
+import java.util.List;
 import java.util.Optional;
 
 @Repository
 public interface EducationResourceRepository extends JpaRepository<EducationResourceEntity, Long> {
     Optional<EducationResourceEntity> findByUrlAndType(String url, EducationResourceType type);
+
+    List<EducationResourceEntity> findByTypeAndTrustStatus(EducationResourceType type, EducationResourceTrustStatus trustStatus);
 
     /**
      * Inserts a row only if no row with the same ({@link EducationResourceEntity#url}, {@link EducationResourceEntity#type}) exists.

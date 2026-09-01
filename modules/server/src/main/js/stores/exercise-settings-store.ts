@@ -2,18 +2,13 @@ import { IReactionDisposer, action, autorun, comparer, flow, makeAutoObservable,
 import { container, inject, injectable } from "tsyringe";
 import { ExerciseSettingsController } from "../controllers/exercise/exercise-settings";
 import { CourseController } from "../controllers/course/course-controller";
-import { Domain, DomainConceptFlag, ExerciseCard, ExerciseCardConcept, ExerciseCardConceptKind, ExerciseCardLaw, ExerciseCardSkill, ExerciseListItem, ExerciseStage, QuestionBankSearchResult, Strategy } from "../types/exercise-settings";
+import { Domain, ExerciseCard, ExerciseCardConcept, ExerciseCardConceptKind, ExerciseCardLaw, ExerciseCardPermissions, ExerciseCardSkill, ExerciseList, ExerciseListItem, ExerciseListPermissions, ExerciseStage, QuestionBankSearchResult, Strategy, noExerciseListPermissions } from "../types/exercise-settings";
 import * as E from "fp-ts/lib/Either";
 import { ExerciseOptions } from "../types/exercise-options";
-import { KeysWithValsOfType } from "../types/utils";
 import { ExerciseController, IExerciseController } from "../controllers/exercise/exercise-controller";
-import { UserInfo } from "../types/user-info";
-import { Language } from "../types/language";
-import i18next from "i18next";
 import * as NEA from "fp-ts/lib/NonEmptyArray";
 import { pipe } from "fp-ts/lib/function";
 import { RequestError } from "../types/request-error";
-import { useCallback } from "react";
 import { IUserController, UserController } from "../controllers/exercise/user-controller";
 
 export type ExerciseCardViewModel = {
@@ -26,6 +21,7 @@ export type ExerciseCardViewModel = {
     stages: NEA.NonEmptyArray<ExerciseStageStore>,
     options: ExerciseOptions,
     isPublic: boolean,
+    permissions: ExerciseCardPermissions,
 }
 
 export type ExerciseLinkType = 'global' | 'original' | 'inherited' | 'cloned';
@@ -42,7 +38,9 @@ export class ExerciseStageStore implements Disposable {
     autorunner?: IReactionDisposer
     private abortController: AbortController | null = null
 
-    constructor(private readonly exerciseSettingsController: ExerciseSettingsController, card: ExerciseCardViewModel, stage: ExerciseStage) {
+    constructor(private readonly exerciseSettingsController: ExerciseSettingsController,
+                private readonly courseId: number | null,
+                card: ExerciseCardViewModel, stage: ExerciseStage) {
         this.concepts = stage.concepts;
         this.laws     = stage.laws;
         this.skills     = stage.skills;
@@ -75,7 +73,7 @@ export class ExerciseStageStore implements Disposable {
         this.abortController = currentAbortController;
         runInAction(() => this.bankLoadingState = 'IN_PROGRESS');
 
-        const newData: E.Either<RequestError, QuestionBankSearchResult> = yield this.exerciseSettingsController.search(card.domainId, concepts, laws, skills, tags, complexity, 5, currentAbortController.signal);
+        const newData: E.Either<RequestError, QuestionBankSearchResult> = yield this.exerciseSettingsController.search(card.domainId, concepts, laws, skills, tags, complexity, 5, this.courseId, currentAbortController.signal);
         if (E.isRight(newData)) {
             runInAction(() => {
                 this.bankSearchResult = newData.right;
@@ -106,6 +104,7 @@ export class ExerciseStageStore implements Disposable {
 export class ExerciseSettingsStore {
     exercisesLoadStatus: 'NONE' | 'LOADING' | 'LOADED' | 'EXERCISELOADING' = 'NONE';
     exercises: ExerciseListItem[] | null = null;
+    permissions: ExerciseListPermissions = noExerciseListPermissions;
     domains: Domain[] | null = null;
     backends: string[] | null = null;
     strategies: Strategy[] | null = null;
@@ -119,6 +118,11 @@ export class ExerciseSettingsStore {
         @inject(CourseController) private readonly courseController: CourseController) {
 
         makeAutoObservable(this);
+    }
+
+    private applyExerciseList(list: ExerciseList) {
+        this.exercises = list.exercises;
+        this.permissions = list.permissions;
     }
 
     get cardLinkType(): ExerciseLinkType {
@@ -140,7 +144,7 @@ export class ExerciseSettingsStore {
         });
         result.stages = pipe(
             card.stages,
-            NEA.map(stage => new ExerciseStageStore(this.exerciseSettingsController, result, stage))
+            NEA.map(stage => new ExerciseStageStore(this.exerciseSettingsController, this.courseId, result, stage))
         );
 
         return result;
@@ -174,7 +178,7 @@ export class ExerciseSettingsStore {
         if (E.isRight(rawExercises) && E.isRight(domains) &&
             E.isRight(backends) && E.isRight(strategies)) {
             runInAction(() => {
-                this.exercises = rawExercises.right;
+                this.applyExerciseList(rawExercises.right);
                 this.domains = domains.right;
                 this.backends = backends.right;
                 this.strategies = strategies.right;
@@ -188,7 +192,7 @@ export class ExerciseSettingsStore {
             throw new Error("Exercises must be loaded first");
 
         runInAction(() => this.exercisesLoadStatus = 'EXERCISELOADING');
-        const rawExercise = await this.exerciseSettingsController.getExercise(exerciseId);
+        const rawExercise = await this.exerciseSettingsController.getExercise(exerciseId, this.courseId);
         if (E.isRight(rawExercise)) {
             runInAction(() => {
                 this.currentCard = this.toCardViewModel(rawExercise.right);
@@ -208,13 +212,13 @@ export class ExerciseSettingsStore {
 
         runInAction(() => this.exercisesLoadStatus = 'EXERCISELOADING');
         const [rawExercise, newExercisesList] = await Promise.all([
-            this.exerciseSettingsController.getExercise(newExerciseId.right),
+            this.exerciseSettingsController.getExercise(newExerciseId.right, this.courseId),
             this.exerciseSettingsController.listExercises(this.courseId),
         ]);
         if (E.isRight(rawExercise) && E.isRight(newExercisesList)) {
             runInAction(() => {
                 this.currentCard = this.toCardViewModel(rawExercise.right);
-                this.exercises = newExercisesList.right;
+                this.applyExerciseList(newExercisesList.right);
             });
         }
         runInAction(() => this.exercisesLoadStatus = 'LOADED');
@@ -227,13 +231,13 @@ export class ExerciseSettingsStore {
         const newId = result.right;
         // Reload list and load the new clone
         const [rawExercise, newExercisesList] = await Promise.all([
-            this.exerciseSettingsController.getExercise(newId),
+            this.exerciseSettingsController.getExercise(newId, this.courseId),
             this.exerciseSettingsController.listExercises(this.courseId),
         ]);
         if (E.isRight(rawExercise) && E.isRight(newExercisesList)) {
             runInAction(() => {
                 this.currentCard = this.toCardViewModel(rawExercise.right);
-                this.exercises = newExercisesList.right;
+                this.applyExerciseList(newExercisesList.right);
             });
         }
     }
@@ -251,7 +255,7 @@ export class ExerciseSettingsStore {
         const refreshed = await this.exerciseSettingsController.listExercises(this.courseId);
         if (E.isRight(refreshed)) {
             runInAction(() => {
-                this.exercises = refreshed.right;
+                this.applyExerciseList(refreshed.right);
                 this.currentCard = null;
             });
         }
@@ -260,11 +264,11 @@ export class ExerciseSettingsStore {
     async deleteCurrentExercise() {
         if (!this.currentCard) return;
         const id = this.currentCard.id;
-        await this.exerciseSettingsController.deleteExercise(id);
+        await this.exerciseSettingsController.deleteExercise(id, this.courseId);
         const refreshed = await this.exerciseSettingsController.listExercises(this.courseId);
         if (E.isRight(refreshed)) {
             runInAction(() => {
-                this.exercises = refreshed.right;
+                this.applyExerciseList(refreshed.right);
                 this.currentCard = null;
             });
         }
@@ -276,11 +280,11 @@ export class ExerciseSettingsStore {
             return;
 
         runInAction(() => this.exercisesLoadStatus = 'EXERCISELOADING');
-        await this.exerciseSettingsController.saveExercise(this.fromCardViewModel(this.currentCard));
-        const newExercisesList = await this.exerciseSettingsController.getAllExercises();
+        await this.exerciseSettingsController.saveExercise(this.fromCardViewModel(this.currentCard), this.courseId);
+        const newExercisesList = await this.exerciseSettingsController.listExercises(this.courseId);
         if (E.isRight(newExercisesList)) {
             runInAction(() => {
-                this.exercises = newExercisesList.right;
+                this.applyExerciseList(newExercisesList.right);
             })
         }
         runInAction(() => this.exercisesLoadStatus = 'LOADED');
@@ -553,6 +557,7 @@ export class ExerciseSettingsStore {
 
         const newStage = new ExerciseStageStore(
             this.exerciseSettingsController,
+            this.courseId,
             card,
             {
                 numberOfQuestions: 10,
