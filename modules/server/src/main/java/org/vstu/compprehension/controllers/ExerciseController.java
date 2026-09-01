@@ -13,6 +13,7 @@ import org.vstu.compprehension.Service.AuthScopeFactory;
 import org.vstu.compprehension.Service.AuthService;
 import org.vstu.compprehension.Service.CourseService;
 import org.vstu.compprehension.Service.ExerciseAttemptService;
+import org.vstu.compprehension.Service.ExerciseService;
 import org.vstu.compprehension.Service.FrontendService;
 import org.vstu.compprehension.Service.UserService;
 import org.vstu.compprehension.dto.ExerciseAttemptDto;
@@ -20,8 +21,6 @@ import org.vstu.compprehension.dto.ExerciseDto;
 import org.vstu.compprehension.dto.ExerciseInfoDto;
 import org.vstu.compprehension.dto.ExerciseStatisticsItemDto;
 import org.vstu.compprehension.models.businesslogic.auth.AuthObjects.SystemPermission;
-import org.vstu.compprehension.models.entities.exercise.ExerciseEntity;
-import org.vstu.compprehension.models.repository.ExerciseRepository;
 
 import java.util.List;
 
@@ -32,19 +31,19 @@ public class ExerciseController {
     private final FrontendService frontendService;
     private final CourseService courseService;
     private final UserService userService;
-    private final ExerciseRepository exerciseRepository;
+    private final ExerciseService exerciseService;
     private final AuthService authService;
     private final AuthScopeFactory authScopes;
     private final ExerciseAttemptService exerciseAttemptService;
 
     @Autowired
     public ExerciseController(FrontendService frontendService, CourseService courseService, UserService userService,
-                              ExerciseRepository exerciseRepository, AuthService authService, AuthScopeFactory authScopes,
+                              ExerciseService exerciseService, AuthService authService, AuthScopeFactory authScopes,
                               ExerciseAttemptService exerciseAttemptService) {
         this.frontendService = frontendService;
         this.courseService = courseService;
         this.userService = userService;
-        this.exerciseRepository = exerciseRepository;
+        this.exerciseService = exerciseService;
         this.authService = authService;
         this.authScopes = authScopes;
         this.exerciseAttemptService = exerciseAttemptService;
@@ -63,12 +62,7 @@ public class ExerciseController {
                                                 HttpServletRequest request) throws Exception {
         var userId = userService.getCurrentUser().getId();
         authService.ensureAuthorized(userId, SystemPermission.SOLVE_EXERCISE, authScopes.courseOrGlobal(courseId));
-        ExerciseEntity exercise;
-        if (courseId != null) {
-            exercise = courseService.findExerciseCourseLinkOrThrow(id, courseId).getExercise();
-        } else {
-            exercise = exerciseRepository.findById(id).orElseThrow();
-        }
+        var exercise = exerciseService.getExerciseInContext(id, courseId);
         return new ExerciseInfoDto(id, exercise.getOptions());
     }
 
@@ -118,16 +112,12 @@ public class ExerciseController {
                                                          HttpServletRequest request) throws Exception {
         var userId = userService.getCurrentUser().getId();
         authService.ensureAuthorized(userId, SystemPermission.EDIT_EXERCISE, authScopes.courseOrGlobal(courseId));
-        if (courseId != null) {
-            courseService.findExerciseCourseLinkOrThrow(exerciseId, courseId);
-        }
+        exerciseService.getExerciseInContext(exerciseId, courseId);
         return frontendService.createSolvedExerciseAttempt(exerciseId, userId, courseId);
     }
 
     private void ensureCanSolve(long userId, Long exerciseId, Long courseId) {
         authService.ensureAuthorized(userId, SystemPermission.SOLVE_EXERCISE, authScopes.courseOrGlobal(courseId));
-        if (courseId != null) {
-            courseService.findExerciseCourseLinkOrThrow(exerciseId, courseId);
-        }
+        exerciseService.getExerciseInContext(exerciseId, courseId);
     }
 }

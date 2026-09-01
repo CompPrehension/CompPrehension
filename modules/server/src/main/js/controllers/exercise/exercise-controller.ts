@@ -9,7 +9,7 @@ import { Exercise, TExercise } from "../../types/exercise";
 
 
 export interface IExerciseController {
-    getExerciseShortInfo(id: number): PromiseEither<RequestError, Exercise>;
+    getExerciseShortInfo(id: number, courseId?: number): PromiseEither<RequestError, Exercise>;
     getExistingExerciseAttempt(exerciseId: number, courseId?: number): PromiseEither<RequestError, ExerciseAttempt | null | undefined | ''>;
     getExerciseAttempt(attemptId: number): PromiseEither<RequestError, ExerciseAttempt>;
     createDebugExerciseAttempt(exerciseId: number, courseId?: number): PromiseEither<RequestError, ExerciseAttempt>;
@@ -21,8 +21,9 @@ export interface IExerciseController {
 @injectable()
 export class ExerciseController implements IExerciseController {
 
-    getExerciseShortInfo(id: number): PromiseEither<RequestError, Exercise> {
-        return ajaxGet(`${API_URL}/api/exercise/shortInfo?id=${id}`, TExercise);
+    getExerciseShortInfo(id: number, courseId?: number): PromiseEither<RequestError, Exercise> {
+        const courseParam = courseId != null ? `&courseId=${courseId}` : '';
+        return ajaxGet(`${API_URL}/api/exercise/shortInfo?id=${id}${courseParam}`, TExercise);
     }
 
     getExerciseAttempt(attemptId: number): PromiseEither<RequestError, ExerciseAttempt> {

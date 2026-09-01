@@ -54,13 +54,9 @@ class ExerciseControllerAuthorizationTest extends AbstractAuthorizationTest {
         result.andExpect(status().isForbidden());
     }
 
-    /**
-     * TODO: без courseId контроллер не проверяет принадлежность упражнения курсу, поэтому
-     * параметры приватного упражнения чужого курса получает любой. Оставлено, чтобы не сломать
-     * прямые ссылки на упражнение вне курса.
-     */
+    /** Приватное упражнение курса вне контекста курса недоступно. */
     @Test
-    void shortInfoOfCourseExerciseIsReachableWithoutCourseContext() throws Exception {
+    void shortInfoOfCourseExerciseRejectedWithoutCourseContext() throws Exception {
         // Arrange.
         actingAs(TestData.GLOBAL_STUDENT_ID);
 
@@ -69,12 +65,12 @@ class ExerciseControllerAuthorizationTest extends AbstractAuthorizationTest {
                 .param("id", String.valueOf(TestData.MAIN_COURSE_EXERCISE_ID)));
 
         // Assert.
-        result.andExpect(status().isOk());
+        result.andExpect(status().isConflict());
     }
 
-    /** TODO: та же дыра, но здесь по чужому упражнению ещё и заводится попытка. */
+    /** По приватному упражнению курса нельзя завести попытку вне контекста курса. */
     @Test
-    void attemptOnCourseExerciseCanBeCreatedWithoutCourseContext() throws Exception {
+    void attemptOnCourseExerciseRejectedWithoutCourseContext() throws Exception {
         // Arrange.
         actingAs(TestData.GLOBAL_STUDENT_ID);
 
@@ -83,7 +79,7 @@ class ExerciseControllerAuthorizationTest extends AbstractAuthorizationTest {
                 .param("exerciseId", String.valueOf(TestData.MAIN_COURSE_EXERCISE_ID)));
 
         // Assert.
-        result.andExpect(status().isOk());
+        result.andExpect(status().isConflict());
     }
 
     /** Поиск своей незавершённой попытки студенту курса разрешён. */

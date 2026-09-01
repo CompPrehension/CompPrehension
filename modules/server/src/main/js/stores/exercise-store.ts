@@ -100,7 +100,7 @@ export class ExerciseStore {
             this.isExerciseLoading = true;
         })
 
-        const exercise = await this.exerciseController.getExerciseShortInfo(this.exerciseId);
+        const exercise = await this.exerciseController.getExerciseShortInfo(this.exerciseId, this.courseId);
         
         if (E.isRight(exercise)) {
             runInAction(() => {

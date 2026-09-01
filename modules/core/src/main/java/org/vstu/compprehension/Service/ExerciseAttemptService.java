@@ -5,8 +5,6 @@ import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Propagation;
 import org.springframework.transaction.annotation.Transactional;
 import org.vstu.compprehension.models.businesslogic.auth.AuthObjects.SystemPermission;
-import org.vstu.compprehension.models.businesslogic.lti.LtiContext;
-import org.vstu.compprehension.models.businesslogic.lti.LtiCourseContext;
 import org.vstu.compprehension.models.entities.EnumData.AttemptStatus;
 import org.vstu.compprehension.models.entities.EnumData.Decision;
 import org.vstu.compprehension.models.entities.ExerciseAttemptEntity;
@@ -27,7 +25,6 @@ public class ExerciseAttemptService {
     private final LtiContextProvider ltiContextProvider;
     private final GradePassbackService gradePassbackService;
     private final CourseService courseService;
-    private final EducationResourceService educationResourceService;
     private final AuthService authService;
     private final AuthScopeFactory authScopes;
 
@@ -37,7 +34,6 @@ public class ExerciseAttemptService {
                                   LtiContextProvider ltiContextProvider,
                                   GradePassbackService gradePassbackService,
                                   CourseService courseService,
-                                  EducationResourceService educationResourceService,
                                   AuthService authService,
                                   AuthScopeFactory authScopes) {
         this.exerciseAttemptRepository = exerciseAttemptRepository;
@@ -46,7 +42,6 @@ public class ExerciseAttemptService {
         this.ltiContextProvider = ltiContextProvider;
         this.gradePassbackService = gradePassbackService;
         this.courseService = courseService;
-        this.educationResourceService = educationResourceService;
         this.authService = authService;
         this.authScopes = authScopes;
     }
@@ -84,18 +79,12 @@ public class ExerciseAttemptService {
 
     @Transactional(propagation = Propagation.REQUIRED)
     public ExerciseAttemptEntity createNewAttempt(@NotNull Long exerciseId, @NotNull Long userId, Long courseId) {
-        Long resolvedCourseId = courseId != null
-                ? courseId
-                : ltiContextProvider.getCurrentLtiContext()
-                    .flatMap(this::resolveCourseIdFromContext)
-                    .orElse(null);
-
         CourseEntity course = null;
-        if (resolvedCourseId != null) {
-            ExerciseCourseLinkEntity exerciseCourse = courseService.findExerciseCourseLinkOrThrow(exerciseId, resolvedCourseId);
+        if (courseId != null) {
+            ExerciseCourseLinkEntity exerciseCourse = courseService.findExerciseCourseLinkOrThrow(exerciseId, courseId);
             course = exerciseCourse.getCourse();
             exerciseAttemptRepository.changeExistingAttemptsStatusByCourse(
-                    exerciseId, resolvedCourseId, userId, AttemptStatus.INCOMPLETE, AttemptStatus.COMPLETED_BY_SYSTEM);
+                    exerciseId, courseId, userId, AttemptStatus.INCOMPLETE, AttemptStatus.COMPLETED_BY_SYSTEM);
         } else {
             exerciseAttemptRepository.changeExistingAttemptsStatus(
                     exerciseId, userId, AttemptStatus.INCOMPLETE, AttemptStatus.COMPLETED_BY_SYSTEM);
@@ -120,16 +109,6 @@ public class ExerciseAttemptService {
 
         exerciseAttemptRepository.save(ea);
         return ea;
-    }
-
-    private Optional<Long> resolveCourseIdFromContext(LtiContext ctx) {
-        LtiCourseContext course = ctx.course();
-        if (course == null || course.courseId() == null) {
-            return Optional.empty();
-        }
-        return educationResourceService.findByUrlAndType(ctx.lmsUrl(), ctx.lmsType())
-                .flatMap(eduRes -> courseService.findByExternalIdAndResourceId(course.courseId(), eduRes.getId()))
-                .map(CourseEntity::getId);
     }
 
     public void ensureAttemptStatus(ExerciseAttemptEntity attempt, Decision decision) {
