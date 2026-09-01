@@ -5,7 +5,6 @@ import org.jetbrains.annotations.Nullable;
 import org.springframework.stereotype.Service;
 import org.vstu.compprehension.models.businesslogic.auth.AuthScope;
 import org.vstu.compprehension.models.entities.EnumData.PermissionScope;
-import org.vstu.compprehension.models.repository.CourseRepository;
 
 import java.util.ArrayList;
 import java.util.Collection;
@@ -19,7 +18,7 @@ import java.util.List;
 @RequiredArgsConstructor
 public class AuthScopeFactory {
 
-    private final CourseRepository courseRepository;
+    private final CourseEducationResourceCache educationResources;
 
     public AuthScope global() {
         return AuthScope.of(PermissionScope.global());
@@ -46,7 +45,7 @@ public class AuthScopeFactory {
         }
         var scopes = new ArrayList<PermissionScope>();
         distinctCourseIds.forEach(courseId -> scopes.add(PermissionScope.course(courseId)));
-        courseRepository.findEducationResourceIdsByCourseIdIn(distinctCourseIds)
+        educationResources.educationResourceIdsOf(distinctCourseIds)
                 .forEach(eduResId -> scopes.add(PermissionScope.educationResource(eduResId)));
         return new AuthScope(scopes);
     }

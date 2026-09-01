@@ -6,6 +6,7 @@ import org.springframework.data.jpa.repository.Query;
 import org.springframework.data.repository.query.Param;
 import org.springframework.stereotype.Repository;
 import org.vstu.compprehension.dto.course.CourseDto;
+import org.vstu.compprehension.dto.course.CourseEducationResourceDto;
 import org.vstu.compprehension.models.entities.course.CourseEntity;
 
 import java.util.Collection;
@@ -41,8 +42,14 @@ public interface CourseRepository extends JpaRepository<CourseEntity, Long> {
     @Query("select c.educationResource.id from CourseEntity c where c.id = :courseId")
     Optional<Long> findEducationResourceIdByCourseId(@Param("courseId") Long courseId);
 
-    @Query("select distinct c.educationResource.id from CourseEntity c where c.id in :courseIds")
-    List<Long> findEducationResourceIdsByCourseIdIn(@Param("courseIds") Collection<Long> courseIds);
+    @Query("""
+            select new org.vstu.compprehension.dto.course.CourseEducationResourceDto(
+                c.id, c.educationResource.id
+            )
+            from CourseEntity c
+            where c.id in :courseIds
+            """)
+    List<CourseEducationResourceDto> findEducationResourceRefsByCourseIdIn(@Param("courseIds") Collection<Long> courseIds);
 
     @Modifying(clearAutomatically = true)
     @Query(value = """
