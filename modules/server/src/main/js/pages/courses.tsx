@@ -1,6 +1,5 @@
 import React, { useEffect, useState } from 'react';
 import { observer } from 'mobx-react';
-import { container } from 'tsyringe';
 import { Button } from 'react-bootstrap';
 import { useNavigate } from 'react-router-dom';
 import { CoursesStore } from '../stores/courses-store';
@@ -11,7 +10,7 @@ import { useCurrentUser, useSession } from '../hooks/session-context';
 import { useTranslation } from 'react-i18next';
 
 export const CoursesPage = observer(() => {
-    const [store] = useState(() => container.resolve(CoursesStore));
+    const [store] = useState(() => new CoursesStore());
     const navigate = useNavigate();
     const user = useCurrentUser();
     const session = useSession();

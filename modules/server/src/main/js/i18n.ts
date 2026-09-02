@@ -1,41 +1,5 @@
 import i18next from "i18next";
 import { initReactI18next } from "react-i18next";
-import "reflect-metadata";
-import { container } from "tsyringe";
-import { ExerciseController } from "./controllers/exercise/exercise-controller";
-import { ExerciseSettingsController } from "./controllers/exercise/exercise-settings";
-import { QuestionController } from "./controllers/exercise/question-controller";
-import { SurveyController } from "./controllers/exercise/survey-controller";
-import { TestExerciseController } from "./controllers/exercise/test-exercise-controller";
-import { UserController } from "./controllers/exercise/user-controller";
-import { CourseController } from "./controllers/course/course-controller";
-import { DeepLinkingController } from "./controllers/lti/deep-linking-controller";
-import { ExerciseStore } from "./stores/exercise-store";
-import { QuestionStore } from "./stores/question-store";
-
-// init DI container
-const isSandbox = () => (new URLSearchParams(window.location.search).get('sandbox') ?? null) !== null;
-container.register(ExerciseController, { 
-    useFactory: () => isSandbox()
-        ? new TestExerciseController() 
-        : new ExerciseController()
-});
-container.register(QuestionController, { 
-    useFactory: () => isSandbox()
-        ? new TestExerciseController() 
-        : new QuestionController()
-});
-container.register(UserController, { 
-    useFactory: () => isSandbox()
-        ? new TestExerciseController() 
-        : new UserController()
-});
-container.register(QuestionStore, QuestionStore);
-container.registerSingleton(ExerciseStore);
-container.registerSingleton(SurveyController);
-container.registerSingleton(ExerciseSettingsController);
-container.registerSingleton(CourseController);
-container.registerSingleton(DeepLinkingController);
 
 // init localisation
 const resources = {

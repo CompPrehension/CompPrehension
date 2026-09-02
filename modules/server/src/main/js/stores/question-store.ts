@@ -1,5 +1,4 @@
 import { action, flow, makeObservable, observable, toJS } from "mobx";
-import { inject, injectable } from "tsyringe";
 import { Feedback } from "../types/feedback";
 import { Question } from "../types/question";
 import * as E from "fp-ts/lib/Either";
@@ -8,12 +7,11 @@ import { Answer } from "../types/answer";
 import { RequestError } from "../types/request-error";
 import { isNullOrUndefined } from "../utils/helpers";
 import { SupplementaryQuestionStore } from "./sup-question-store";
-import { IQuestionController, QuestionController } from "../controllers/exercise/question-controller";
+import { questionController } from "../controllers";
 
 /**
  * Store question data
  */
-@injectable()
 export class QuestionStore {
     //@observable isQuestionLoading?: boolean = false;    
     //@observable isFeedbackLoading: boolean = false;
@@ -27,7 +25,7 @@ export class QuestionStore {
     @observable questionState: 'INITIAL' | 'LOADING' | 'LOADED' | 'ANSWER_EVALUATING' | 'COMPLETED' = 'INITIAL';
     @observable storeState: { tag: 'VALID' } | { tag: 'ERROR', error: RequestError, } = { tag: 'VALID' };
 
-    constructor(@inject(QuestionController) private questionController: IQuestionController) {
+    constructor() {
         makeObservable(this);
     }
 
@@ -45,7 +43,7 @@ export class QuestionStore {
         }
         
         this.question = question;
-        this.supplementaryQuestion = new SupplementaryQuestionStore(this.questionController, question.questionId);
+        this.supplementaryQuestion = new SupplementaryQuestionStore(question.questionId);
         this.feedback = question.feedback ?? undefined;
         this.isFeedbackVisible = true;
         this.answersHistory = [];
@@ -89,7 +87,7 @@ export class QuestionStore {
         this.setValidStoreState();
 
         this.setQuestionState('LOADING');
-        const dataEither: E.Either<RequestError, Question> = yield this.questionController.getQuestion(questionId);
+        const dataEither: E.Either<RequestError, Question> = yield questionController.getQuestion(questionId);
         this.setQuestionState('LOADED');
 
         if (E.isLeft(dataEither)) {
@@ -104,7 +102,7 @@ export class QuestionStore {
         this.setValidStoreState();
         
         this.setQuestionState('LOADING');
-        const dataEither: E.Either<RequestError, Question> = yield this.questionController.generateQuestionByAttempt(attemptId);
+        const dataEither: E.Either<RequestError, Question> = yield questionController.generateQuestionByAttempt(attemptId);
         this.setQuestionState('LOADED');
 
         if (E.isLeft(dataEither)) {
@@ -119,7 +117,7 @@ export class QuestionStore {
         this.setValidStoreState();
         
         this.setQuestionState('LOADING');
-        const dataEither: E.Either<RequestError, Question> = yield this.questionController.generateQuestionByMetadata(metadataId);
+        const dataEither: E.Either<RequestError, Question> = yield questionController.generateQuestionByMetadata(metadataId);
         this.setQuestionState('LOADED');
 
         if (E.isLeft(dataEither)) {
@@ -139,7 +137,7 @@ export class QuestionStore {
         this.setValidStoreState();
         
         this.setQuestionState('ANSWER_EVALUATING');
-        const feedbackEither: E.Either<RequestError, Feedback> = yield this.questionController.generateNextCorrectAnswer(question.questionId);
+        const feedbackEither: E.Either<RequestError, Feedback> = yield questionController.generateNextCorrectAnswer(question.questionId);
         this.setQuestionState('LOADED');
         
         if (E.isLeft(feedbackEither)) {
@@ -159,7 +157,7 @@ export class QuestionStore {
         this.setValidStoreState();
 
         this.setQuestionState('ANSWER_EVALUATING');
-        const feedbackEither: E.Either<RequestError, Feedback> = yield this.questionController.addQuestionAnswer(body);
+        const feedbackEither: E.Either<RequestError, Feedback> = yield questionController.addQuestionAnswer(body);
         this.setQuestionState('LOADED');
        
         if (E.isLeft(feedbackEither)) {

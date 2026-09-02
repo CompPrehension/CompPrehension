@@ -1,6 +1,5 @@
 import React, { useEffect, useState } from 'react';
 import { observer } from 'mobx-react';
-import { container } from 'tsyringe';
 import { Button } from 'react-bootstrap';
 import { Link, useNavigate } from 'react-router-dom';
 import { GlobalPoolStore } from '../stores/global-pool-store';
@@ -11,7 +10,7 @@ import { useCurrentUser, useSession } from '../hooks/session-context';
 import { useTranslation } from 'react-i18next';
 
 export const GlobalPool = observer(() => {
-    const [store] = useState(() => container.resolve(GlobalPoolStore));
+    const [store] = useState(() => new GlobalPoolStore());
     const navigate = useNavigate();
     const user = useCurrentUser();
     const session = useSession();

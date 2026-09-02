@@ -27,5 +27,6 @@ The React frontend lives in `modules/server` and is built with Vite:
     npm install
     npm run build     # production bundle
     npm run dev       # dev server with HMR on https://localhost:4200
+    npm run dev:mock  # dev server with mocked backend
 
 ![Java CI with Maven](https://github.com/procudin/OntoQuiz/workflows/Java%20CI%20with%20Maven/badge.svg)

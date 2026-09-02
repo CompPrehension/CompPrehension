@@ -1,5 +1,4 @@
 import React, {useCallback, useEffect, useMemo, useState} from "react";
-import {container} from "tsyringe";
 import {
     Domain,
     DomainConcept,
@@ -27,7 +26,7 @@ import { ExerciseRowBadge } from "../components/exercise/exercise-row-badge";
 import { DeleteGlobalExerciseModal } from "../components/exercise/delete-global-exercise-modal";
 
 export const ExerciseSettings = observer(() => {
-    const [exerciseStore] = useState(() => container.resolve(ExerciseSettingsStore));
+    const [exerciseStore] = useState(() => new ExerciseSettingsStore());
     const { t } = useTranslation();
     const user = useCurrentUser();
     const session = useSession();

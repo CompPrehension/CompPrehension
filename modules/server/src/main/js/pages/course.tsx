@@ -1,6 +1,5 @@
 import React, { useEffect, useRef, useState } from 'react';
 import { observer } from 'mobx-react';
-import { container } from 'tsyringe';
 import { Button, Form } from 'react-bootstrap';
 import { Link, useNavigate, useSearchParams } from 'react-router-dom';
 import { CourseStore } from '../stores/course-store';
@@ -11,7 +10,7 @@ import { useCurrentUser, useSession } from '../hooks/session-context';
 import { useCourseId } from '../hooks/use-course-id';
 import { ImportFromGlobalModal } from '../components/exercise/import-from-global-modal';
 import { useTranslation } from 'react-i18next';
-import { DeepLinkingController } from '../controllers/lti/deep-linking-controller';
+import { deepLinkingController } from '../controllers';
 import * as E from 'fp-ts/lib/Either';
 
 /** Hidden form that auto-POSTs the signed deep-linking response back to Moodle. */
@@ -41,7 +40,7 @@ const DeepLinkSelection: React.FC<{ exercises: { id: number; name: string }[] }>
 
     useEffect(() => {
         (async () => {
-            const res = await container.resolve(DeepLinkingController).existing();
+            const res = await deepLinkingController.existing();
             if (E.isRight(res)) setExisting(new Set(res.right.exerciseIds));
         })();
     }, []);
@@ -65,7 +64,7 @@ const DeepLinkSelection: React.FC<{ exercises: { id: number; name: string }[] }>
         }
         setSubmitting(true);
         setError(null);
-        const res = await container.resolve(DeepLinkingController).build(Array.from(selected));
+        const res = await deepLinkingController.build(Array.from(selected));
         if (E.isRight(res)) {
             setPayload(res.right); // mounts DeepLinkReturnForm -> navigates the iframe to Moodle
         } else {
@@ -110,7 +109,7 @@ const DeepLinkSelection: React.FC<{ exercises: { id: number; name: string }[] }>
 };
 
 export const CoursePage = observer(() => {
-    const [store] = useState(() => container.resolve(CourseStore));
+    const [store] = useState(() => new CourseStore());
     const navigate = useNavigate();
     const user = useCurrentUser();
     const session = useSession();

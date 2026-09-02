@@ -17,7 +17,6 @@ function _mergeNamespaces(n, m) {
   }
   return Object.freeze(Object.defineProperty(n, Symbol.toStringTag, { value: "Module" }));
 }
-var commonjsGlobal = typeof globalThis !== "undefined" ? globalThis : typeof window !== "undefined" ? window : typeof global !== "undefined" ? global : typeof self !== "undefined" ? self : {};
 function getDefaultExportFromCjs(x) {
   return x && x.__esModule && Object.prototype.hasOwnProperty.call(x, "default") ? x["default"] : x;
 }
@@ -9348,22 +9347,22 @@ class I18n extends EventEmitter {
     };
   }
 }
-const instance$a = I18n.createInstance();
-instance$a.createInstance = I18n.createInstance;
-instance$a.createInstance;
-instance$a.dir;
-instance$a.init;
-instance$a.loadResources;
-instance$a.reloadResources;
-instance$a.use;
-instance$a.changeLanguage;
-instance$a.getFixedT;
-instance$a.t;
-instance$a.exists;
-instance$a.setDefaultNamespace;
-instance$a.hasLoadedNamespace;
-instance$a.loadNamespaces;
-instance$a.loadLanguages;
+const instance$9 = I18n.createInstance();
+instance$9.createInstance = I18n.createInstance;
+instance$9.createInstance;
+instance$9.dir;
+instance$9.init;
+instance$9.loadResources;
+instance$9.reloadResources;
+instance$9.use;
+instance$9.changeLanguage;
+instance$9.getFixedT;
+instance$9.t;
+instance$9.exists;
+instance$9.setDefaultNamespace;
+instance$9.hasLoadedNamespace;
+instance$9.loadNamespaces;
+instance$9.loadLanguages;
 var reactExports = requireReact();
 const React = /* @__PURE__ */ getDefaultExportFromCjs(reactExports);
 const React$1 = /* @__PURE__ */ _mergeNamespaces({
@@ -9626,4673 +9625,1389 @@ function useTranslation(ns) {
     }
   });
 }
-var _Reflect = {};
-var hasRequired_Reflect;
-function require_Reflect() {
-  if (hasRequired_Reflect) return _Reflect;
-  hasRequired_Reflect = 1;
-  var Reflect2;
-  (function(Reflect3) {
-    (function(factory) {
-      var root = typeof globalThis === "object" ? globalThis : typeof commonjsGlobal === "object" ? commonjsGlobal : typeof self === "object" ? self : typeof this === "object" ? this : sloppyModeThis();
-      var exporter = makeExporter(Reflect3);
-      if (typeof root.Reflect !== "undefined") {
-        exporter = makeExporter(root.Reflect, exporter);
-      }
-      factory(exporter, root);
-      if (typeof root.Reflect === "undefined") {
-        root.Reflect = Reflect3;
-      }
-      function makeExporter(target, previous) {
-        return function(key, value) {
-          Object.defineProperty(target, key, { configurable: true, writable: true, value });
-          if (previous)
-            previous(key, value);
-        };
-      }
-      function functionThis() {
-        try {
-          return Function("return this;")();
-        } catch (_) {
+var reactDomExports = requireReactDom();
+const ReactDOM = /* @__PURE__ */ getDefaultExportFromCjs(reactDomExports);
+function _extends$5() {
+  _extends$5 = Object.assign ? Object.assign.bind() : function(target) {
+    for (var i2 = 1; i2 < arguments.length; i2++) {
+      var source = arguments[i2];
+      for (var key in source) {
+        if (Object.prototype.hasOwnProperty.call(source, key)) {
+          target[key] = source[key];
         }
       }
-      function indirectEvalThis() {
-        try {
-          return (void 0, eval)("(function() { return this; })()");
-        } catch (_) {
-        }
-      }
-      function sloppyModeThis() {
-        return functionThis() || indirectEvalThis();
-      }
-    })(function(exporter, root) {
-      var hasOwn = Object.prototype.hasOwnProperty;
-      var supportsSymbol = typeof Symbol === "function";
-      var toPrimitiveSymbol = supportsSymbol && typeof Symbol.toPrimitive !== "undefined" ? Symbol.toPrimitive : "@@toPrimitive";
-      var iteratorSymbol = supportsSymbol && typeof Symbol.iterator !== "undefined" ? Symbol.iterator : "@@iterator";
-      var supportsCreate = typeof Object.create === "function";
-      var supportsProto = { __proto__: [] } instanceof Array;
-      var downLevel = !supportsCreate && !supportsProto;
-      var HashMap = {
-        // create an object in dictionary mode (a.k.a. "slow" mode in v8)
-        create: supportsCreate ? function() {
-          return MakeDictionary(/* @__PURE__ */ Object.create(null));
-        } : supportsProto ? function() {
-          return MakeDictionary({ __proto__: null });
-        } : function() {
-          return MakeDictionary({});
-        },
-        has: downLevel ? function(map2, key) {
-          return hasOwn.call(map2, key);
-        } : function(map2, key) {
-          return key in map2;
-        },
-        get: downLevel ? function(map2, key) {
-          return hasOwn.call(map2, key) ? map2[key] : void 0;
-        } : function(map2, key) {
-          return map2[key];
-        }
-      };
-      var functionPrototype = Object.getPrototypeOf(Function);
-      var _Map = typeof Map === "function" && typeof Map.prototype.entries === "function" ? Map : CreateMapPolyfill();
-      var _Set = typeof Set === "function" && typeof Set.prototype.entries === "function" ? Set : CreateSetPolyfill();
-      var _WeakMap = typeof WeakMap === "function" ? WeakMap : CreateWeakMapPolyfill();
-      var registrySymbol = supportsSymbol ? /* @__PURE__ */ Symbol.for("@reflect-metadata:registry") : void 0;
-      var metadataRegistry = GetOrCreateMetadataRegistry();
-      var metadataProvider = CreateMetadataProvider(metadataRegistry);
-      function decorate(decorators, target, propertyKey, attributes) {
-        if (!IsUndefined(propertyKey)) {
-          if (!IsArray(decorators))
-            throw new TypeError();
-          if (!IsObject(target))
-            throw new TypeError();
-          if (!IsObject(attributes) && !IsUndefined(attributes) && !IsNull(attributes))
-            throw new TypeError();
-          if (IsNull(attributes))
-            attributes = void 0;
-          propertyKey = ToPropertyKey(propertyKey);
-          return DecorateProperty(decorators, target, propertyKey, attributes);
-        } else {
-          if (!IsArray(decorators))
-            throw new TypeError();
-          if (!IsConstructor(target))
-            throw new TypeError();
-          return DecorateConstructor(decorators, target);
-        }
-      }
-      exporter("decorate", decorate);
-      function metadata(metadataKey, metadataValue) {
-        function decorator(target, propertyKey) {
-          if (!IsObject(target))
-            throw new TypeError();
-          if (!IsUndefined(propertyKey) && !IsPropertyKey(propertyKey))
-            throw new TypeError();
-          OrdinaryDefineOwnMetadata(metadataKey, metadataValue, target, propertyKey);
-        }
-        return decorator;
-      }
-      exporter("metadata", metadata);
-      function defineMetadata2(metadataKey, metadataValue, target, propertyKey) {
-        if (!IsObject(target))
-          throw new TypeError();
-        if (!IsUndefined(propertyKey))
-          propertyKey = ToPropertyKey(propertyKey);
-        return OrdinaryDefineOwnMetadata(metadataKey, metadataValue, target, propertyKey);
-      }
-      exporter("defineMetadata", defineMetadata2);
-      function hasMetadata(metadataKey, target, propertyKey) {
-        if (!IsObject(target))
-          throw new TypeError();
-        if (!IsUndefined(propertyKey))
-          propertyKey = ToPropertyKey(propertyKey);
-        return OrdinaryHasMetadata(metadataKey, target, propertyKey);
-      }
-      exporter("hasMetadata", hasMetadata);
-      function hasOwnMetadata(metadataKey, target, propertyKey) {
-        if (!IsObject(target))
-          throw new TypeError();
-        if (!IsUndefined(propertyKey))
-          propertyKey = ToPropertyKey(propertyKey);
-        return OrdinaryHasOwnMetadata(metadataKey, target, propertyKey);
-      }
-      exporter("hasOwnMetadata", hasOwnMetadata);
-      function getMetadata(metadataKey, target, propertyKey) {
-        if (!IsObject(target))
-          throw new TypeError();
-        if (!IsUndefined(propertyKey))
-          propertyKey = ToPropertyKey(propertyKey);
-        return OrdinaryGetMetadata(metadataKey, target, propertyKey);
-      }
-      exporter("getMetadata", getMetadata);
-      function getOwnMetadata(metadataKey, target, propertyKey) {
-        if (!IsObject(target))
-          throw new TypeError();
-        if (!IsUndefined(propertyKey))
-          propertyKey = ToPropertyKey(propertyKey);
-        return OrdinaryGetOwnMetadata(metadataKey, target, propertyKey);
-      }
-      exporter("getOwnMetadata", getOwnMetadata);
-      function getMetadataKeys(target, propertyKey) {
-        if (!IsObject(target))
-          throw new TypeError();
-        if (!IsUndefined(propertyKey))
-          propertyKey = ToPropertyKey(propertyKey);
-        return OrdinaryMetadataKeys(target, propertyKey);
-      }
-      exporter("getMetadataKeys", getMetadataKeys);
-      function getOwnMetadataKeys(target, propertyKey) {
-        if (!IsObject(target))
-          throw new TypeError();
-        if (!IsUndefined(propertyKey))
-          propertyKey = ToPropertyKey(propertyKey);
-        return OrdinaryOwnMetadataKeys(target, propertyKey);
-      }
-      exporter("getOwnMetadataKeys", getOwnMetadataKeys);
-      function deleteMetadata(metadataKey, target, propertyKey) {
-        if (!IsObject(target))
-          throw new TypeError();
-        if (!IsUndefined(propertyKey))
-          propertyKey = ToPropertyKey(propertyKey);
-        if (!IsObject(target))
-          throw new TypeError();
-        if (!IsUndefined(propertyKey))
-          propertyKey = ToPropertyKey(propertyKey);
-        var provider = GetMetadataProvider(
-          target,
-          propertyKey,
-          /*Create*/
-          false
-        );
-        if (IsUndefined(provider))
-          return false;
-        return provider.OrdinaryDeleteMetadata(metadataKey, target, propertyKey);
-      }
-      exporter("deleteMetadata", deleteMetadata);
-      function DecorateConstructor(decorators, target) {
-        for (var i2 = decorators.length - 1; i2 >= 0; --i2) {
-          var decorator = decorators[i2];
-          var decorated = decorator(target);
-          if (!IsUndefined(decorated) && !IsNull(decorated)) {
-            if (!IsConstructor(decorated))
-              throw new TypeError();
-            target = decorated;
-          }
-        }
-        return target;
-      }
-      function DecorateProperty(decorators, target, propertyKey, descriptor) {
-        for (var i2 = decorators.length - 1; i2 >= 0; --i2) {
-          var decorator = decorators[i2];
-          var decorated = decorator(target, propertyKey, descriptor);
-          if (!IsUndefined(decorated) && !IsNull(decorated)) {
-            if (!IsObject(decorated))
-              throw new TypeError();
-            descriptor = decorated;
-          }
-        }
-        return descriptor;
-      }
-      function OrdinaryHasMetadata(MetadataKey, O, P) {
-        var hasOwn2 = OrdinaryHasOwnMetadata(MetadataKey, O, P);
-        if (hasOwn2)
-          return true;
-        var parent = OrdinaryGetPrototypeOf(O);
-        if (!IsNull(parent))
-          return OrdinaryHasMetadata(MetadataKey, parent, P);
-        return false;
-      }
-      function OrdinaryHasOwnMetadata(MetadataKey, O, P) {
-        var provider = GetMetadataProvider(
-          O,
-          P,
-          /*Create*/
-          false
-        );
-        if (IsUndefined(provider))
-          return false;
-        return ToBoolean(provider.OrdinaryHasOwnMetadata(MetadataKey, O, P));
-      }
-      function OrdinaryGetMetadata(MetadataKey, O, P) {
-        var hasOwn2 = OrdinaryHasOwnMetadata(MetadataKey, O, P);
-        if (hasOwn2)
-          return OrdinaryGetOwnMetadata(MetadataKey, O, P);
-        var parent = OrdinaryGetPrototypeOf(O);
-        if (!IsNull(parent))
-          return OrdinaryGetMetadata(MetadataKey, parent, P);
-        return void 0;
-      }
-      function OrdinaryGetOwnMetadata(MetadataKey, O, P) {
-        var provider = GetMetadataProvider(
-          O,
-          P,
-          /*Create*/
-          false
-        );
-        if (IsUndefined(provider))
-          return;
-        return provider.OrdinaryGetOwnMetadata(MetadataKey, O, P);
-      }
-      function OrdinaryDefineOwnMetadata(MetadataKey, MetadataValue, O, P) {
-        var provider = GetMetadataProvider(
-          O,
-          P,
-          /*Create*/
-          true
-        );
-        provider.OrdinaryDefineOwnMetadata(MetadataKey, MetadataValue, O, P);
-      }
-      function OrdinaryMetadataKeys(O, P) {
-        var ownKeys3 = OrdinaryOwnMetadataKeys(O, P);
-        var parent = OrdinaryGetPrototypeOf(O);
-        if (parent === null)
-          return ownKeys3;
-        var parentKeys = OrdinaryMetadataKeys(parent, P);
-        if (parentKeys.length <= 0)
-          return ownKeys3;
-        if (ownKeys3.length <= 0)
-          return parentKeys;
-        var set2 = new _Set();
-        var keys = [];
-        for (var _i = 0, ownKeys_1 = ownKeys3; _i < ownKeys_1.length; _i++) {
-          var key = ownKeys_1[_i];
-          var hasKey = set2.has(key);
-          if (!hasKey) {
-            set2.add(key);
-            keys.push(key);
-          }
-        }
-        for (var _a2 = 0, parentKeys_1 = parentKeys; _a2 < parentKeys_1.length; _a2++) {
-          var key = parentKeys_1[_a2];
-          var hasKey = set2.has(key);
-          if (!hasKey) {
-            set2.add(key);
-            keys.push(key);
-          }
-        }
-        return keys;
-      }
-      function OrdinaryOwnMetadataKeys(O, P) {
-        var provider = GetMetadataProvider(
-          O,
-          P,
-          /*create*/
-          false
-        );
-        if (!provider) {
-          return [];
-        }
-        return provider.OrdinaryOwnMetadataKeys(O, P);
-      }
-      function Type2(x) {
-        if (x === null)
-          return 1;
-        switch (typeof x) {
-          case "undefined":
-            return 0;
-          case "boolean":
-            return 2;
-          case "string":
-            return 3;
-          case "symbol":
-            return 4;
-          case "number":
-            return 5;
-          case "object":
-            return x === null ? 1 : 6;
-          default:
-            return 6;
-        }
-      }
-      function IsUndefined(x) {
-        return x === void 0;
-      }
-      function IsNull(x) {
-        return x === null;
-      }
-      function IsSymbol(x) {
-        return typeof x === "symbol";
-      }
-      function IsObject(x) {
-        return typeof x === "object" ? x !== null : typeof x === "function";
-      }
-      function ToPrimitive(input, PreferredType) {
-        switch (Type2(input)) {
-          case 0:
-            return input;
-          case 1:
-            return input;
-          case 2:
-            return input;
-          case 3:
-            return input;
-          case 4:
-            return input;
-          case 5:
-            return input;
-        }
-        var hint = "string";
-        var exoticToPrim = GetMethod(input, toPrimitiveSymbol);
-        if (exoticToPrim !== void 0) {
-          var result = exoticToPrim.call(input, hint);
-          if (IsObject(result))
-            throw new TypeError();
-          return result;
-        }
-        return OrdinaryToPrimitive(input);
-      }
-      function OrdinaryToPrimitive(O, hint) {
-        var valueOf, result;
-        {
-          var toString_1 = O.toString;
-          if (IsCallable(toString_1)) {
-            var result = toString_1.call(O);
-            if (!IsObject(result))
-              return result;
-          }
-          var valueOf = O.valueOf;
-          if (IsCallable(valueOf)) {
-            var result = valueOf.call(O);
-            if (!IsObject(result))
-              return result;
-          }
-        }
-        throw new TypeError();
-      }
-      function ToBoolean(argument) {
-        return !!argument;
-      }
-      function ToString(argument) {
-        return "" + argument;
-      }
-      function ToPropertyKey(argument) {
-        var key = ToPrimitive(argument);
-        if (IsSymbol(key))
-          return key;
-        return ToString(key);
-      }
-      function IsArray(argument) {
-        return Array.isArray ? Array.isArray(argument) : argument instanceof Object ? argument instanceof Array : Object.prototype.toString.call(argument) === "[object Array]";
-      }
-      function IsCallable(argument) {
-        return typeof argument === "function";
-      }
-      function IsConstructor(argument) {
-        return typeof argument === "function";
-      }
-      function IsPropertyKey(argument) {
-        switch (Type2(argument)) {
-          case 3:
-            return true;
-          case 4:
-            return true;
-          default:
-            return false;
-        }
-      }
-      function SameValueZero(x, y) {
-        return x === y || x !== x && y !== y;
-      }
-      function GetMethod(V, P) {
-        var func = V[P];
-        if (func === void 0 || func === null)
-          return void 0;
-        if (!IsCallable(func))
-          throw new TypeError();
-        return func;
-      }
-      function GetIterator(obj) {
-        var method = GetMethod(obj, iteratorSymbol);
-        if (!IsCallable(method))
-          throw new TypeError();
-        var iterator = method.call(obj);
-        if (!IsObject(iterator))
-          throw new TypeError();
-        return iterator;
-      }
-      function IteratorValue(iterResult) {
-        return iterResult.value;
-      }
-      function IteratorStep(iterator) {
-        var result = iterator.next();
-        return result.done ? false : result;
-      }
-      function IteratorClose(iterator) {
-        var f = iterator["return"];
-        if (f)
-          f.call(iterator);
-      }
-      function OrdinaryGetPrototypeOf(O) {
-        var proto = Object.getPrototypeOf(O);
-        if (typeof O !== "function" || O === functionPrototype)
-          return proto;
-        if (proto !== functionPrototype)
-          return proto;
-        var prototype = O.prototype;
-        var prototypeProto = prototype && Object.getPrototypeOf(prototype);
-        if (prototypeProto == null || prototypeProto === Object.prototype)
-          return proto;
-        var constructor = prototypeProto.constructor;
-        if (typeof constructor !== "function")
-          return proto;
-        if (constructor === O)
-          return proto;
-        return constructor;
-      }
-      function CreateMetadataRegistry() {
-        var fallback;
-        if (!IsUndefined(registrySymbol) && typeof root.Reflect !== "undefined" && !(registrySymbol in root.Reflect) && typeof root.Reflect.defineMetadata === "function") {
-          fallback = CreateFallbackProvider(root.Reflect);
-        }
-        var first;
-        var second;
-        var rest;
-        var targetProviderMap = new _WeakMap();
-        var registry = {
-          registerProvider,
-          getProvider,
-          setProvider
-        };
-        return registry;
-        function registerProvider(provider) {
-          if (!Object.isExtensible(registry)) {
-            throw new Error("Cannot add provider to a frozen registry.");
-          }
-          switch (true) {
-            case fallback === provider:
-              break;
-            case IsUndefined(first):
-              first = provider;
-              break;
-            case first === provider:
-              break;
-            case IsUndefined(second):
-              second = provider;
-              break;
-            case second === provider:
-              break;
-            default:
-              if (rest === void 0)
-                rest = new _Set();
-              rest.add(provider);
-              break;
-          }
-        }
-        function getProviderNoCache(O, P) {
-          if (!IsUndefined(first)) {
-            if (first.isProviderFor(O, P))
-              return first;
-            if (!IsUndefined(second)) {
-              if (second.isProviderFor(O, P))
-                return first;
-              if (!IsUndefined(rest)) {
-                var iterator = GetIterator(rest);
-                while (true) {
-                  var next2 = IteratorStep(iterator);
-                  if (!next2) {
-                    return void 0;
-                  }
-                  var provider = IteratorValue(next2);
-                  if (provider.isProviderFor(O, P)) {
-                    IteratorClose(iterator);
-                    return provider;
-                  }
-                }
-              }
-            }
-          }
-          if (!IsUndefined(fallback) && fallback.isProviderFor(O, P)) {
-            return fallback;
-          }
-          return void 0;
-        }
-        function getProvider(O, P) {
-          var providerMap = targetProviderMap.get(O);
-          var provider;
-          if (!IsUndefined(providerMap)) {
-            provider = providerMap.get(P);
-          }
-          if (!IsUndefined(provider)) {
-            return provider;
-          }
-          provider = getProviderNoCache(O, P);
-          if (!IsUndefined(provider)) {
-            if (IsUndefined(providerMap)) {
-              providerMap = new _Map();
-              targetProviderMap.set(O, providerMap);
-            }
-            providerMap.set(P, provider);
-          }
-          return provider;
-        }
-        function hasProvider(provider) {
-          if (IsUndefined(provider))
-            throw new TypeError();
-          return first === provider || second === provider || !IsUndefined(rest) && rest.has(provider);
-        }
-        function setProvider(O, P, provider) {
-          if (!hasProvider(provider)) {
-            throw new Error("Metadata provider not registered.");
-          }
-          var existingProvider = getProvider(O, P);
-          if (existingProvider !== provider) {
-            if (!IsUndefined(existingProvider)) {
-              return false;
-            }
-            var providerMap = targetProviderMap.get(O);
-            if (IsUndefined(providerMap)) {
-              providerMap = new _Map();
-              targetProviderMap.set(O, providerMap);
-            }
-            providerMap.set(P, provider);
-          }
-          return true;
-        }
-      }
-      function GetOrCreateMetadataRegistry() {
-        var metadataRegistry2;
-        if (!IsUndefined(registrySymbol) && IsObject(root.Reflect) && Object.isExtensible(root.Reflect)) {
-          metadataRegistry2 = root.Reflect[registrySymbol];
-        }
-        if (IsUndefined(metadataRegistry2)) {
-          metadataRegistry2 = CreateMetadataRegistry();
-        }
-        if (!IsUndefined(registrySymbol) && IsObject(root.Reflect) && Object.isExtensible(root.Reflect)) {
-          Object.defineProperty(root.Reflect, registrySymbol, {
-            enumerable: false,
-            configurable: false,
-            writable: false,
-            value: metadataRegistry2
-          });
-        }
-        return metadataRegistry2;
-      }
-      function CreateMetadataProvider(registry) {
-        var metadata2 = new _WeakMap();
-        var provider = {
-          isProviderFor: function(O, P) {
-            var targetMetadata = metadata2.get(O);
-            if (IsUndefined(targetMetadata))
-              return false;
-            return targetMetadata.has(P);
-          },
-          OrdinaryDefineOwnMetadata: OrdinaryDefineOwnMetadata2,
-          OrdinaryHasOwnMetadata: OrdinaryHasOwnMetadata2,
-          OrdinaryGetOwnMetadata: OrdinaryGetOwnMetadata2,
-          OrdinaryOwnMetadataKeys: OrdinaryOwnMetadataKeys2,
-          OrdinaryDeleteMetadata
-        };
-        metadataRegistry.registerProvider(provider);
-        return provider;
-        function GetOrCreateMetadataMap(O, P, Create) {
-          var targetMetadata = metadata2.get(O);
-          var createdTargetMetadata = false;
-          if (IsUndefined(targetMetadata)) {
-            if (!Create)
-              return void 0;
-            targetMetadata = new _Map();
-            metadata2.set(O, targetMetadata);
-            createdTargetMetadata = true;
-          }
-          var metadataMap = targetMetadata.get(P);
-          if (IsUndefined(metadataMap)) {
-            if (!Create)
-              return void 0;
-            metadataMap = new _Map();
-            targetMetadata.set(P, metadataMap);
-            if (!registry.setProvider(O, P, provider)) {
-              targetMetadata.delete(P);
-              if (createdTargetMetadata) {
-                metadata2.delete(O);
-              }
-              throw new Error("Wrong provider for target.");
-            }
-          }
-          return metadataMap;
-        }
-        function OrdinaryHasOwnMetadata2(MetadataKey, O, P) {
-          var metadataMap = GetOrCreateMetadataMap(
-            O,
-            P,
-            /*Create*/
-            false
-          );
-          if (IsUndefined(metadataMap))
-            return false;
-          return ToBoolean(metadataMap.has(MetadataKey));
-        }
-        function OrdinaryGetOwnMetadata2(MetadataKey, O, P) {
-          var metadataMap = GetOrCreateMetadataMap(
-            O,
-            P,
-            /*Create*/
-            false
-          );
-          if (IsUndefined(metadataMap))
-            return void 0;
-          return metadataMap.get(MetadataKey);
-        }
-        function OrdinaryDefineOwnMetadata2(MetadataKey, MetadataValue, O, P) {
-          var metadataMap = GetOrCreateMetadataMap(
-            O,
-            P,
-            /*Create*/
-            true
-          );
-          metadataMap.set(MetadataKey, MetadataValue);
-        }
-        function OrdinaryOwnMetadataKeys2(O, P) {
-          var keys = [];
-          var metadataMap = GetOrCreateMetadataMap(
-            O,
-            P,
-            /*Create*/
-            false
-          );
-          if (IsUndefined(metadataMap))
-            return keys;
-          var keysObj = metadataMap.keys();
-          var iterator = GetIterator(keysObj);
-          var k = 0;
-          while (true) {
-            var next2 = IteratorStep(iterator);
-            if (!next2) {
-              keys.length = k;
-              return keys;
-            }
-            var nextValue = IteratorValue(next2);
-            try {
-              keys[k] = nextValue;
-            } catch (e) {
-              try {
-                IteratorClose(iterator);
-              } finally {
-                throw e;
-              }
-            }
-            k++;
-          }
-        }
-        function OrdinaryDeleteMetadata(MetadataKey, O, P) {
-          var metadataMap = GetOrCreateMetadataMap(
-            O,
-            P,
-            /*Create*/
-            false
-          );
-          if (IsUndefined(metadataMap))
-            return false;
-          if (!metadataMap.delete(MetadataKey))
-            return false;
-          if (metadataMap.size === 0) {
-            var targetMetadata = metadata2.get(O);
-            if (!IsUndefined(targetMetadata)) {
-              targetMetadata.delete(P);
-              if (targetMetadata.size === 0) {
-                metadata2.delete(targetMetadata);
-              }
-            }
-          }
-          return true;
-        }
-      }
-      function CreateFallbackProvider(reflect) {
-        var defineMetadata3 = reflect.defineMetadata, hasOwnMetadata2 = reflect.hasOwnMetadata, getOwnMetadata2 = reflect.getOwnMetadata, getOwnMetadataKeys2 = reflect.getOwnMetadataKeys, deleteMetadata2 = reflect.deleteMetadata;
-        var metadataOwner = new _WeakMap();
-        var provider = {
-          isProviderFor: function(O, P) {
-            var metadataPropertySet = metadataOwner.get(O);
-            if (!IsUndefined(metadataPropertySet)) {
-              return metadataPropertySet.has(P);
-            }
-            if (getOwnMetadataKeys2(O, P).length) {
-              if (IsUndefined(metadataPropertySet)) {
-                metadataPropertySet = new _Set();
-                metadataOwner.set(O, metadataPropertySet);
-              }
-              metadataPropertySet.add(P);
-              return true;
-            }
-            return false;
-          },
-          OrdinaryDefineOwnMetadata: defineMetadata3,
-          OrdinaryHasOwnMetadata: hasOwnMetadata2,
-          OrdinaryGetOwnMetadata: getOwnMetadata2,
-          OrdinaryOwnMetadataKeys: getOwnMetadataKeys2,
-          OrdinaryDeleteMetadata: deleteMetadata2
-        };
-        return provider;
-      }
-      function GetMetadataProvider(O, P, Create) {
-        var registeredProvider = metadataRegistry.getProvider(O, P);
-        if (!IsUndefined(registeredProvider)) {
-          return registeredProvider;
-        }
-        if (Create) {
-          if (metadataRegistry.setProvider(O, P, metadataProvider)) {
-            return metadataProvider;
-          }
-          throw new Error("Illegal state.");
-        }
-        return void 0;
-      }
-      function CreateMapPolyfill() {
-        var cacheSentinel = {};
-        var arraySentinel = [];
-        var MapIterator = (
-          /** @class */
-          (function() {
-            function MapIterator2(keys, values, selector) {
-              this._index = 0;
-              this._keys = keys;
-              this._values = values;
-              this._selector = selector;
-            }
-            MapIterator2.prototype["@@iterator"] = function() {
-              return this;
-            };
-            MapIterator2.prototype[iteratorSymbol] = function() {
-              return this;
-            };
-            MapIterator2.prototype.next = function() {
-              var index2 = this._index;
-              if (index2 >= 0 && index2 < this._keys.length) {
-                var result = this._selector(this._keys[index2], this._values[index2]);
-                if (index2 + 1 >= this._keys.length) {
-                  this._index = -1;
-                  this._keys = arraySentinel;
-                  this._values = arraySentinel;
-                } else {
-                  this._index++;
-                }
-                return { value: result, done: false };
-              }
-              return { value: void 0, done: true };
-            };
-            MapIterator2.prototype.throw = function(error) {
-              if (this._index >= 0) {
-                this._index = -1;
-                this._keys = arraySentinel;
-                this._values = arraySentinel;
-              }
-              throw error;
-            };
-            MapIterator2.prototype.return = function(value) {
-              if (this._index >= 0) {
-                this._index = -1;
-                this._keys = arraySentinel;
-                this._values = arraySentinel;
-              }
-              return { value, done: true };
-            };
-            return MapIterator2;
-          })()
-        );
-        var Map2 = (
-          /** @class */
-          (function() {
-            function Map3() {
-              this._keys = [];
-              this._values = [];
-              this._cacheKey = cacheSentinel;
-              this._cacheIndex = -2;
-            }
-            Object.defineProperty(Map3.prototype, "size", {
-              get: function() {
-                return this._keys.length;
-              },
-              enumerable: true,
-              configurable: true
-            });
-            Map3.prototype.has = function(key) {
-              return this._find(
-                key,
-                /*insert*/
-                false
-              ) >= 0;
-            };
-            Map3.prototype.get = function(key) {
-              var index2 = this._find(
-                key,
-                /*insert*/
-                false
-              );
-              return index2 >= 0 ? this._values[index2] : void 0;
-            };
-            Map3.prototype.set = function(key, value) {
-              var index2 = this._find(
-                key,
-                /*insert*/
-                true
-              );
-              this._values[index2] = value;
-              return this;
-            };
-            Map3.prototype.delete = function(key) {
-              var index2 = this._find(
-                key,
-                /*insert*/
-                false
-              );
-              if (index2 >= 0) {
-                var size2 = this._keys.length;
-                for (var i2 = index2 + 1; i2 < size2; i2++) {
-                  this._keys[i2 - 1] = this._keys[i2];
-                  this._values[i2 - 1] = this._values[i2];
-                }
-                this._keys.length--;
-                this._values.length--;
-                if (SameValueZero(key, this._cacheKey)) {
-                  this._cacheKey = cacheSentinel;
-                  this._cacheIndex = -2;
-                }
-                return true;
-              }
-              return false;
-            };
-            Map3.prototype.clear = function() {
-              this._keys.length = 0;
-              this._values.length = 0;
-              this._cacheKey = cacheSentinel;
-              this._cacheIndex = -2;
-            };
-            Map3.prototype.keys = function() {
-              return new MapIterator(this._keys, this._values, getKey);
-            };
-            Map3.prototype.values = function() {
-              return new MapIterator(this._keys, this._values, getValue);
-            };
-            Map3.prototype.entries = function() {
-              return new MapIterator(this._keys, this._values, getEntry);
-            };
-            Map3.prototype["@@iterator"] = function() {
-              return this.entries();
-            };
-            Map3.prototype[iteratorSymbol] = function() {
-              return this.entries();
-            };
-            Map3.prototype._find = function(key, insert2) {
-              if (!SameValueZero(this._cacheKey, key)) {
-                this._cacheIndex = -1;
-                for (var i2 = 0; i2 < this._keys.length; i2++) {
-                  if (SameValueZero(this._keys[i2], key)) {
-                    this._cacheIndex = i2;
-                    break;
-                  }
-                }
-              }
-              if (this._cacheIndex < 0 && insert2) {
-                this._cacheIndex = this._keys.length;
-                this._keys.push(key);
-                this._values.push(void 0);
-              }
-              return this._cacheIndex;
-            };
-            return Map3;
-          })()
-        );
-        return Map2;
-        function getKey(key, _) {
-          return key;
-        }
-        function getValue(_, value) {
-          return value;
-        }
-        function getEntry(key, value) {
-          return [key, value];
-        }
-      }
-      function CreateSetPolyfill() {
-        var Set2 = (
-          /** @class */
-          (function() {
-            function Set3() {
-              this._map = new _Map();
-            }
-            Object.defineProperty(Set3.prototype, "size", {
-              get: function() {
-                return this._map.size;
-              },
-              enumerable: true,
-              configurable: true
-            });
-            Set3.prototype.has = function(value) {
-              return this._map.has(value);
-            };
-            Set3.prototype.add = function(value) {
-              return this._map.set(value, value), this;
-            };
-            Set3.prototype.delete = function(value) {
-              return this._map.delete(value);
-            };
-            Set3.prototype.clear = function() {
-              this._map.clear();
-            };
-            Set3.prototype.keys = function() {
-              return this._map.keys();
-            };
-            Set3.prototype.values = function() {
-              return this._map.keys();
-            };
-            Set3.prototype.entries = function() {
-              return this._map.entries();
-            };
-            Set3.prototype["@@iterator"] = function() {
-              return this.keys();
-            };
-            Set3.prototype[iteratorSymbol] = function() {
-              return this.keys();
-            };
-            return Set3;
-          })()
-        );
-        return Set2;
-      }
-      function CreateWeakMapPolyfill() {
-        var UUID_SIZE = 16;
-        var keys = HashMap.create();
-        var rootKey = CreateUniqueKey();
-        return (
-          /** @class */
-          (function() {
-            function WeakMap2() {
-              this._key = CreateUniqueKey();
-            }
-            WeakMap2.prototype.has = function(target) {
-              var table = GetOrCreateWeakMapTable(
-                target,
-                /*create*/
-                false
-              );
-              return table !== void 0 ? HashMap.has(table, this._key) : false;
-            };
-            WeakMap2.prototype.get = function(target) {
-              var table = GetOrCreateWeakMapTable(
-                target,
-                /*create*/
-                false
-              );
-              return table !== void 0 ? HashMap.get(table, this._key) : void 0;
-            };
-            WeakMap2.prototype.set = function(target, value) {
-              var table = GetOrCreateWeakMapTable(
-                target,
-                /*create*/
-                true
-              );
-              table[this._key] = value;
-              return this;
-            };
-            WeakMap2.prototype.delete = function(target) {
-              var table = GetOrCreateWeakMapTable(
-                target,
-                /*create*/
-                false
-              );
-              return table !== void 0 ? delete table[this._key] : false;
-            };
-            WeakMap2.prototype.clear = function() {
-              this._key = CreateUniqueKey();
-            };
-            return WeakMap2;
-          })()
-        );
-        function CreateUniqueKey() {
-          var key;
-          do
-            key = "@@WeakMap@@" + CreateUUID();
-          while (HashMap.has(keys, key));
-          keys[key] = true;
-          return key;
-        }
-        function GetOrCreateWeakMapTable(target, create) {
-          if (!hasOwn.call(target, rootKey)) {
-            if (!create)
-              return void 0;
-            Object.defineProperty(target, rootKey, { value: HashMap.create() });
-          }
-          return target[rootKey];
-        }
-        function FillRandomBytes(buffer, size2) {
-          for (var i2 = 0; i2 < size2; ++i2)
-            buffer[i2] = Math.random() * 255 | 0;
-          return buffer;
-        }
-        function GenRandomBytes(size2) {
-          if (typeof Uint8Array === "function") {
-            if (typeof crypto !== "undefined")
-              return crypto.getRandomValues(new Uint8Array(size2));
-            if (typeof msCrypto !== "undefined")
-              return msCrypto.getRandomValues(new Uint8Array(size2));
-            return FillRandomBytes(new Uint8Array(size2), size2);
-          }
-          return FillRandomBytes(new Array(size2), size2);
-        }
-        function CreateUUID() {
-          var data = GenRandomBytes(UUID_SIZE);
-          data[6] = data[6] & 79 | 64;
-          data[8] = data[8] & 191 | 128;
-          var result = "";
-          for (var offset2 = 0; offset2 < UUID_SIZE; ++offset2) {
-            var byte = data[offset2];
-            if (offset2 === 4 || offset2 === 6 || offset2 === 8)
-              result += "-";
-            if (byte < 16)
-              result += "0";
-            result += byte.toString(16).toLowerCase();
-          }
-          return result;
-        }
-      }
-      function MakeDictionary(obj) {
-        obj.__ = void 0;
-        delete obj.__;
-        return obj;
-      }
-    });
-  })(Reflect2 || (Reflect2 = {}));
-  return _Reflect;
-}
-require_Reflect();
-var Lifecycle;
-(function(Lifecycle2) {
-  Lifecycle2[Lifecycle2["Transient"] = 0] = "Transient";
-  Lifecycle2[Lifecycle2["Singleton"] = 1] = "Singleton";
-  Lifecycle2[Lifecycle2["ResolutionScoped"] = 2] = "ResolutionScoped";
-  Lifecycle2[Lifecycle2["ContainerScoped"] = 3] = "ContainerScoped";
-})(Lifecycle || (Lifecycle = {}));
-const Lifecycle$1 = Lifecycle;
-var extendStatics = function(d, b) {
-  extendStatics = Object.setPrototypeOf || { __proto__: [] } instanceof Array && function(d2, b2) {
-    d2.__proto__ = b2;
-  } || function(d2, b2) {
-    for (var p in b2) if (b2.hasOwnProperty(p)) d2[p] = b2[p];
+    }
+    return target;
   };
-  return extendStatics(d, b);
-};
-function __extends$1(d, b) {
-  extendStatics(d, b);
-  function __() {
-    this.constructor = d;
-  }
-  d.prototype = b === null ? Object.create(b) : (__.prototype = b.prototype, new __());
+  return _extends$5.apply(this, arguments);
 }
-function __awaiter(thisArg, _arguments, P, generator) {
-  function adopt(value) {
-    return value instanceof P ? value : new P(function(resolve) {
-      resolve(value);
-    });
+var Action;
+(function(Action2) {
+  Action2["Pop"] = "POP";
+  Action2["Push"] = "PUSH";
+  Action2["Replace"] = "REPLACE";
+})(Action || (Action = {}));
+const PopStateEventType = "popstate";
+function createBrowserHistory(options2) {
+  if (options2 === void 0) {
+    options2 = {};
   }
-  return new (P || (P = Promise))(function(resolve, reject) {
-    function fulfilled(value) {
-      try {
-        step(generator.next(value));
-      } catch (e) {
-        reject(e);
-      }
-    }
-    function rejected(value) {
-      try {
-        step(generator["throw"](value));
-      } catch (e) {
-        reject(e);
-      }
-    }
-    function step(result) {
-      result.done ? resolve(result.value) : adopt(result.value).then(fulfilled, rejected);
-    }
-    step((generator = generator.apply(thisArg, [])).next());
-  });
+  function createBrowserLocation(window2, globalHistory) {
+    let {
+      pathname,
+      search,
+      hash: hash2
+    } = window2.location;
+    return createLocation(
+      "",
+      {
+        pathname,
+        search,
+        hash: hash2
+      },
+      // state defaults to `null` because `window.history.state` does
+      globalHistory.state && globalHistory.state.usr || null,
+      globalHistory.state && globalHistory.state.key || "default"
+    );
+  }
+  function createBrowserHref(window2, to) {
+    return typeof to === "string" ? to : createPath(to);
+  }
+  return getUrlBasedHistory(createBrowserLocation, createBrowserHref, null, options2);
 }
-function __generator(thisArg, body) {
-  var _ = { label: 0, sent: function() {
-    if (t[0] & 1) throw t[1];
-    return t[1];
-  }, trys: [], ops: [] }, f, y, t, g;
-  return g = { next: verb(0), "throw": verb(1), "return": verb(2) }, typeof Symbol === "function" && (g[Symbol.iterator] = function() {
-    return this;
-  }), g;
-  function verb(n) {
-    return function(v) {
-      return step([n, v]);
-    };
+function invariant(value, message) {
+  if (value === false || value === null || typeof value === "undefined") {
+    throw new Error(message);
   }
-  function step(op) {
-    if (f) throw new TypeError("Generator is already executing.");
-    while (_) try {
-      if (f = 1, y && (t = op[0] & 2 ? y["return"] : op[0] ? y["throw"] || ((t = y["return"]) && t.call(y), 0) : y.next) && !(t = t.call(y, op[1])).done) return t;
-      if (y = 0, t) op = [op[0] & 2, t.value];
-      switch (op[0]) {
-        case 0:
-        case 1:
-          t = op;
-          break;
-        case 4:
-          _.label++;
-          return { value: op[1], done: false };
-        case 5:
-          _.label++;
-          y = op[1];
-          op = [0];
-          continue;
-        case 7:
-          op = _.ops.pop();
-          _.trys.pop();
-          continue;
-        default:
-          if (!(t = _.trys, t = t.length > 0 && t[t.length - 1]) && (op[0] === 6 || op[0] === 2)) {
-            _ = 0;
-            continue;
-          }
-          if (op[0] === 3 && (!t || op[1] > t[0] && op[1] < t[3])) {
-            _.label = op[1];
-            break;
-          }
-          if (op[0] === 6 && _.label < t[1]) {
-            _.label = t[1];
-            t = op;
-            break;
-          }
-          if (t && _.label < t[2]) {
-            _.label = t[2];
-            _.ops.push(op);
-            break;
-          }
-          if (t[2]) _.ops.pop();
-          _.trys.pop();
-          continue;
-      }
-      op = body.call(thisArg, _);
+}
+function warning(cond, message) {
+  if (!cond) {
+    if (typeof console !== "undefined") console.warn(message);
+    try {
+      throw new Error(message);
     } catch (e) {
-      op = [6, e];
-      y = 0;
-    } finally {
-      f = t = 0;
     }
-    if (op[0] & 5) throw op[1];
-    return { value: op[0] ? op[1] : void 0, done: true };
   }
 }
-function __values(o) {
-  var s = typeof Symbol === "function" && Symbol.iterator, m = s && o[s], i2 = 0;
-  if (m) return m.call(o);
-  if (o && typeof o.length === "number") return {
-    next: function() {
-      if (o && i2 >= o.length) o = void 0;
-      return { value: o && o[i2++], done: !o };
-    }
+function createKey() {
+  return Math.random().toString(36).substr(2, 8);
+}
+function getHistoryState(location, index2) {
+  return {
+    usr: location.state,
+    key: location.key,
+    idx: index2
   };
-  throw new TypeError(s ? "Object is not iterable." : "Symbol.iterator is not defined.");
 }
-function __read(o, n) {
-  var m = typeof Symbol === "function" && o[Symbol.iterator];
-  if (!m) return o;
-  var i2 = m.call(o), r, ar = [], e;
-  try {
-    while ((n === void 0 || n-- > 0) && !(r = i2.next()).done) ar.push(r.value);
-  } catch (error) {
-    e = { error };
-  } finally {
-    try {
-      if (r && !r.done && (m = i2["return"])) m.call(i2);
-    } finally {
-      if (e) throw e.error;
-    }
+function createLocation(current, to, state, key) {
+  if (state === void 0) {
+    state = null;
   }
-  return ar;
-}
-function __spread() {
-  for (var ar = [], i2 = 0; i2 < arguments.length; i2++)
-    ar = ar.concat(__read(arguments[i2]));
-  return ar;
-}
-var INJECTION_TOKEN_METADATA_KEY = "injectionTokens";
-function getParamInfo(target) {
-  var params = Reflect.getMetadata("design:paramtypes", target) || [];
-  var injectionTokens = Reflect.getOwnMetadata(INJECTION_TOKEN_METADATA_KEY, target) || {};
-  Object.keys(injectionTokens).forEach(function(key) {
-    params[+key] = injectionTokens[key];
+  let location = _extends$5({
+    pathname: typeof current === "string" ? current : current.pathname,
+    search: "",
+    hash: ""
+  }, typeof to === "string" ? parsePath(to) : to, {
+    state,
+    // TODO: This could be cleaned up.  push/replace should probably just take
+    // full Locations now and avoid the need to run through this flow at all
+    // But that's a pretty big refactor to the current test suite so going to
+    // keep as is for the time being and just let any incoming keys take precedence
+    key: to && to.key || key || createKey()
   });
-  return params;
+  return location;
 }
-function defineInjectionTokenMetadata(data, transform) {
-  return function(target, _propertyKey, parameterIndex) {
-    var descriptors = Reflect.getOwnMetadata(INJECTION_TOKEN_METADATA_KEY, target) || {};
-    descriptors[parameterIndex] = data;
-    Reflect.defineMetadata(INJECTION_TOKEN_METADATA_KEY, descriptors, target);
-  };
+function createPath(_ref3) {
+  let {
+    pathname = "/",
+    search = "",
+    hash: hash2 = ""
+  } = _ref3;
+  if (search && search !== "?") pathname += search.charAt(0) === "?" ? search : "?" + search;
+  if (hash2 && hash2 !== "#") pathname += hash2.charAt(0) === "#" ? hash2 : "#" + hash2;
+  return pathname;
 }
-function isClassProvider(provider) {
-  return !!provider.useClass;
-}
-function isFactoryProvider(provider) {
-  return !!provider.useFactory;
-}
-var DelayedConstructor = (function() {
-  function DelayedConstructor2(wrap) {
-    this.wrap = wrap;
-    this.reflectMethods = [
-      "get",
-      "getPrototypeOf",
-      "setPrototypeOf",
-      "getOwnPropertyDescriptor",
-      "defineProperty",
-      "has",
-      "set",
-      "deleteProperty",
-      "apply",
-      "construct",
-      "ownKeys"
-    ];
+function parsePath(path) {
+  let parsedPath = {};
+  if (path) {
+    let hashIndex = path.indexOf("#");
+    if (hashIndex >= 0) {
+      parsedPath.hash = path.substr(hashIndex);
+      path = path.substr(0, hashIndex);
+    }
+    let searchIndex = path.indexOf("?");
+    if (searchIndex >= 0) {
+      parsedPath.search = path.substr(searchIndex);
+      path = path.substr(0, searchIndex);
+    }
+    if (path) {
+      parsedPath.pathname = path;
+    }
   }
-  DelayedConstructor2.prototype.createProxy = function(createObject) {
-    var _this = this;
-    var target = {};
-    var init2 = false;
-    var value;
-    var delayedObject = function() {
-      if (!init2) {
-        value = createObject(_this.wrap());
-        init2 = true;
-      }
-      return value;
+  return parsedPath;
+}
+function getUrlBasedHistory(getLocation, createHref, validateLocation, options2) {
+  if (options2 === void 0) {
+    options2 = {};
+  }
+  let {
+    window: window2 = document.defaultView,
+    v5Compat = false
+  } = options2;
+  let globalHistory = window2.history;
+  let action2 = Action.Pop;
+  let listener = null;
+  let index2 = getIndex2();
+  if (index2 == null) {
+    index2 = 0;
+    globalHistory.replaceState(_extends$5({}, globalHistory.state, {
+      idx: index2
+    }), "");
+  }
+  function getIndex2() {
+    let state = globalHistory.state || {
+      idx: null
     };
-    return new Proxy(target, this.createHandler(delayedObject));
-  };
-  DelayedConstructor2.prototype.createHandler = function(delayedObject) {
-    var handler = {};
-    var install = function(name) {
-      handler[name] = function() {
-        var args = [];
-        for (var _i = 0; _i < arguments.length; _i++) {
-          args[_i] = arguments[_i];
-        }
-        args[0] = delayedObject();
-        var method = Reflect[name];
-        return method.apply(void 0, __spread(args));
-      };
-    };
-    this.reflectMethods.forEach(install);
-    return handler;
-  };
-  return DelayedConstructor2;
-})();
-function isNormalToken(token2) {
-  return typeof token2 === "string" || typeof token2 === "symbol";
-}
-function isTokenDescriptor(descriptor) {
-  return typeof descriptor === "object" && "token" in descriptor && "multiple" in descriptor;
-}
-function isTransformDescriptor(descriptor) {
-  return typeof descriptor === "object" && "token" in descriptor && "transform" in descriptor;
-}
-function isConstructorToken(token2) {
-  return typeof token2 === "function" || token2 instanceof DelayedConstructor;
-}
-function isTokenProvider(provider) {
-  return !!provider.useToken;
-}
-function isValueProvider(provider) {
-  return provider.useValue != void 0;
-}
-function isProvider(provider) {
-  return isClassProvider(provider) || isValueProvider(provider) || isTokenProvider(provider) || isFactoryProvider(provider);
-}
-var RegistryBase = (function() {
-  function RegistryBase2() {
-    this._registryMap = /* @__PURE__ */ new Map();
+    return state.idx;
   }
-  RegistryBase2.prototype.entries = function() {
-    return this._registryMap.entries();
-  };
-  RegistryBase2.prototype.getAll = function(key) {
-    this.ensure(key);
-    return this._registryMap.get(key);
-  };
-  RegistryBase2.prototype.get = function(key) {
-    this.ensure(key);
-    var value = this._registryMap.get(key);
-    return value[value.length - 1] || null;
-  };
-  RegistryBase2.prototype.set = function(key, value) {
-    this.ensure(key);
-    this._registryMap.get(key).push(value);
-  };
-  RegistryBase2.prototype.setAll = function(key, value) {
-    this._registryMap.set(key, value);
-  };
-  RegistryBase2.prototype.has = function(key) {
-    this.ensure(key);
-    return this._registryMap.get(key).length > 0;
-  };
-  RegistryBase2.prototype.clear = function() {
-    this._registryMap.clear();
-  };
-  RegistryBase2.prototype.ensure = function(key) {
-    if (!this._registryMap.has(key)) {
-      this._registryMap.set(key, []);
-    }
-  };
-  return RegistryBase2;
-})();
-var Registry = (function(_super) {
-  __extends$1(Registry2, _super);
-  function Registry2() {
-    return _super !== null && _super.apply(this, arguments) || this;
-  }
-  return Registry2;
-})(RegistryBase);
-var ResolutionContext = /* @__PURE__ */ (function() {
-  function ResolutionContext2() {
-    this.scopedResolutions = /* @__PURE__ */ new Map();
-  }
-  return ResolutionContext2;
-})();
-function formatDependency(params, idx) {
-  if (params === null) {
-    return "at position #" + idx;
-  }
-  var argName = params.split(",")[idx].trim();
-  return '"' + argName + '" at position #' + idx;
-}
-function composeErrorMessage(msg, e, indent) {
-  if (indent === void 0) {
-    indent = "    ";
-  }
-  return __spread([msg], e.message.split("\n").map(function(l) {
-    return indent + l;
-  })).join("\n");
-}
-function formatErrorCtor(ctor, paramIdx, error) {
-  var _a2 = __read(ctor.toString().match(/constructor\(([\w, ]+)\)/) || [], 2), _b = _a2[1], params = _b === void 0 ? null : _b;
-  var dep = formatDependency(params, paramIdx);
-  return composeErrorMessage("Cannot inject the dependency " + dep + ' of "' + ctor.name + '" constructor. Reason:', error);
-}
-function isDisposable(value) {
-  if (typeof value.dispose !== "function")
-    return false;
-  var disposeFun = value.dispose;
-  if (disposeFun.length > 0) {
-    return false;
-  }
-  return true;
-}
-var PreResolutionInterceptors = (function(_super) {
-  __extends$1(PreResolutionInterceptors2, _super);
-  function PreResolutionInterceptors2() {
-    return _super !== null && _super.apply(this, arguments) || this;
-  }
-  return PreResolutionInterceptors2;
-})(RegistryBase);
-var PostResolutionInterceptors = (function(_super) {
-  __extends$1(PostResolutionInterceptors2, _super);
-  function PostResolutionInterceptors2() {
-    return _super !== null && _super.apply(this, arguments) || this;
-  }
-  return PostResolutionInterceptors2;
-})(RegistryBase);
-var Interceptors = /* @__PURE__ */ (function() {
-  function Interceptors2() {
-    this.preResolution = new PreResolutionInterceptors();
-    this.postResolution = new PostResolutionInterceptors();
-  }
-  return Interceptors2;
-})();
-var typeInfo = /* @__PURE__ */ new Map();
-var InternalDependencyContainer = (function() {
-  function InternalDependencyContainer2(parent) {
-    this.parent = parent;
-    this._registry = new Registry();
-    this.interceptors = new Interceptors();
-    this.disposed = false;
-    this.disposables = /* @__PURE__ */ new Set();
-  }
-  InternalDependencyContainer2.prototype.register = function(token2, providerOrConstructor, options2) {
-    if (options2 === void 0) {
-      options2 = { lifecycle: Lifecycle$1.Transient };
-    }
-    this.ensureNotDisposed();
-    var provider;
-    if (!isProvider(providerOrConstructor)) {
-      provider = { useClass: providerOrConstructor };
-    } else {
-      provider = providerOrConstructor;
-    }
-    if (isTokenProvider(provider)) {
-      var path = [token2];
-      var tokenProvider = provider;
-      while (tokenProvider != null) {
-        var currentToken = tokenProvider.useToken;
-        if (path.includes(currentToken)) {
-          throw new Error("Token registration cycle detected! " + __spread(path, [currentToken]).join(" -> "));
-        }
-        path.push(currentToken);
-        var registration = this._registry.get(currentToken);
-        if (registration && isTokenProvider(registration.provider)) {
-          tokenProvider = registration.provider;
-        } else {
-          tokenProvider = null;
-        }
-      }
-    }
-    if (options2.lifecycle === Lifecycle$1.Singleton || options2.lifecycle == Lifecycle$1.ContainerScoped || options2.lifecycle == Lifecycle$1.ResolutionScoped) {
-      if (isValueProvider(provider) || isFactoryProvider(provider)) {
-        throw new Error('Cannot use lifecycle "' + Lifecycle$1[options2.lifecycle] + '" with ValueProviders or FactoryProviders');
-      }
-    }
-    this._registry.set(token2, { provider, options: options2 });
-    return this;
-  };
-  InternalDependencyContainer2.prototype.registerType = function(from2, to) {
-    this.ensureNotDisposed();
-    if (isNormalToken(to)) {
-      return this.register(from2, {
-        useToken: to
+  function handlePop() {
+    action2 = Action.Pop;
+    let nextIndex = getIndex2();
+    let delta = nextIndex == null ? null : nextIndex - index2;
+    index2 = nextIndex;
+    if (listener) {
+      listener({
+        action: action2,
+        location: history.location,
+        delta
       });
     }
-    return this.register(from2, {
-      useClass: to
-    });
-  };
-  InternalDependencyContainer2.prototype.registerInstance = function(token2, instance2) {
-    this.ensureNotDisposed();
-    return this.register(token2, {
-      useValue: instance2
-    });
-  };
-  InternalDependencyContainer2.prototype.registerSingleton = function(from2, to) {
-    this.ensureNotDisposed();
-    if (isNormalToken(from2)) {
-      if (isNormalToken(to)) {
-        return this.register(from2, {
-          useToken: to
-        }, { lifecycle: Lifecycle$1.Singleton });
-      } else if (to) {
-        return this.register(from2, {
-          useClass: to
-        }, { lifecycle: Lifecycle$1.Singleton });
-      }
-      throw new Error('Cannot register a type name as a singleton without a "to" token');
-    }
-    var useClass = from2;
-    if (to && !isNormalToken(to)) {
-      useClass = to;
-    }
-    return this.register(from2, {
-      useClass
-    }, { lifecycle: Lifecycle$1.Singleton });
-  };
-  InternalDependencyContainer2.prototype.resolve = function(token2, context2) {
-    if (context2 === void 0) {
-      context2 = new ResolutionContext();
-    }
-    this.ensureNotDisposed();
-    var registration = this.getRegistration(token2);
-    if (!registration && isNormalToken(token2)) {
-      throw new Error('Attempted to resolve unregistered dependency token: "' + token2.toString() + '"');
-    }
-    this.executePreResolutionInterceptor(token2, "Single");
-    if (registration) {
-      var result = this.resolveRegistration(registration, context2);
-      this.executePostResolutionInterceptor(token2, result, "Single");
-      return result;
-    }
-    if (isConstructorToken(token2)) {
-      var result = this.construct(token2, context2);
-      this.executePostResolutionInterceptor(token2, result, "Single");
-      return result;
-    }
-    throw new Error("Attempted to construct an undefined constructor. Could mean a circular dependency problem. Try using `delay` function.");
-  };
-  InternalDependencyContainer2.prototype.executePreResolutionInterceptor = function(token2, resolutionType) {
-    var e_1, _a2;
-    if (this.interceptors.preResolution.has(token2)) {
-      var remainingInterceptors = [];
-      try {
-        for (var _b = __values(this.interceptors.preResolution.getAll(token2)), _c = _b.next(); !_c.done; _c = _b.next()) {
-          var interceptor = _c.value;
-          if (interceptor.options.frequency != "Once") {
-            remainingInterceptors.push(interceptor);
-          }
-          interceptor.callback(token2, resolutionType);
-        }
-      } catch (e_1_1) {
-        e_1 = { error: e_1_1 };
-      } finally {
-        try {
-          if (_c && !_c.done && (_a2 = _b.return)) _a2.call(_b);
-        } finally {
-          if (e_1) throw e_1.error;
-        }
-      }
-      this.interceptors.preResolution.setAll(token2, remainingInterceptors);
-    }
-  };
-  InternalDependencyContainer2.prototype.executePostResolutionInterceptor = function(token2, result, resolutionType) {
-    var e_2, _a2;
-    if (this.interceptors.postResolution.has(token2)) {
-      var remainingInterceptors = [];
-      try {
-        for (var _b = __values(this.interceptors.postResolution.getAll(token2)), _c = _b.next(); !_c.done; _c = _b.next()) {
-          var interceptor = _c.value;
-          if (interceptor.options.frequency != "Once") {
-            remainingInterceptors.push(interceptor);
-          }
-          interceptor.callback(token2, result, resolutionType);
-        }
-      } catch (e_2_1) {
-        e_2 = { error: e_2_1 };
-      } finally {
-        try {
-          if (_c && !_c.done && (_a2 = _b.return)) _a2.call(_b);
-        } finally {
-          if (e_2) throw e_2.error;
-        }
-      }
-      this.interceptors.postResolution.setAll(token2, remainingInterceptors);
-    }
-  };
-  InternalDependencyContainer2.prototype.resolveRegistration = function(registration, context2) {
-    this.ensureNotDisposed();
-    if (registration.options.lifecycle === Lifecycle$1.ResolutionScoped && context2.scopedResolutions.has(registration)) {
-      return context2.scopedResolutions.get(registration);
-    }
-    var isSingleton = registration.options.lifecycle === Lifecycle$1.Singleton;
-    var isContainerScoped = registration.options.lifecycle === Lifecycle$1.ContainerScoped;
-    var returnInstance = isSingleton || isContainerScoped;
-    var resolved;
-    if (isValueProvider(registration.provider)) {
-      resolved = registration.provider.useValue;
-    } else if (isTokenProvider(registration.provider)) {
-      resolved = returnInstance ? registration.instance || (registration.instance = this.resolve(registration.provider.useToken, context2)) : this.resolve(registration.provider.useToken, context2);
-    } else if (isClassProvider(registration.provider)) {
-      resolved = returnInstance ? registration.instance || (registration.instance = this.construct(registration.provider.useClass, context2)) : this.construct(registration.provider.useClass, context2);
-    } else if (isFactoryProvider(registration.provider)) {
-      resolved = registration.provider.useFactory(this);
-    } else {
-      resolved = this.construct(registration.provider, context2);
-    }
-    if (registration.options.lifecycle === Lifecycle$1.ResolutionScoped) {
-      context2.scopedResolutions.set(registration, resolved);
-    }
-    return resolved;
-  };
-  InternalDependencyContainer2.prototype.resolveAll = function(token2, context2) {
-    var _this = this;
-    if (context2 === void 0) {
-      context2 = new ResolutionContext();
-    }
-    this.ensureNotDisposed();
-    var registrations = this.getAllRegistrations(token2);
-    if (!registrations && isNormalToken(token2)) {
-      throw new Error('Attempted to resolve unregistered dependency token: "' + token2.toString() + '"');
-    }
-    this.executePreResolutionInterceptor(token2, "All");
-    if (registrations) {
-      var result_1 = registrations.map(function(item) {
-        return _this.resolveRegistration(item, context2);
-      });
-      this.executePostResolutionInterceptor(token2, result_1, "All");
-      return result_1;
-    }
-    var result = [this.construct(token2, context2)];
-    this.executePostResolutionInterceptor(token2, result, "All");
-    return result;
-  };
-  InternalDependencyContainer2.prototype.isRegistered = function(token2, recursive) {
-    if (recursive === void 0) {
-      recursive = false;
-    }
-    this.ensureNotDisposed();
-    return this._registry.has(token2) || recursive && (this.parent || false) && this.parent.isRegistered(token2, true);
-  };
-  InternalDependencyContainer2.prototype.reset = function() {
-    this.ensureNotDisposed();
-    this._registry.clear();
-    this.interceptors.preResolution.clear();
-    this.interceptors.postResolution.clear();
-  };
-  InternalDependencyContainer2.prototype.clearInstances = function() {
-    var e_3, _a2;
-    this.ensureNotDisposed();
+  }
+  function push2(to, state) {
+    action2 = Action.Push;
+    let location = createLocation(history.location, to, state);
+    index2 = getIndex2() + 1;
+    let historyState = getHistoryState(location, index2);
+    let url = history.createHref(location);
     try {
-      for (var _b = __values(this._registry.entries()), _c = _b.next(); !_c.done; _c = _b.next()) {
-        var _d = __read(_c.value, 2), token2 = _d[0], registrations = _d[1];
-        this._registry.setAll(token2, registrations.filter(function(registration) {
-          return !isValueProvider(registration.provider);
-        }).map(function(registration) {
-          registration.instance = void 0;
-          return registration;
-        }));
+      globalHistory.pushState(historyState, "", url);
+    } catch (error) {
+      if (error instanceof DOMException && error.name === "DataCloneError") {
+        throw error;
       }
-    } catch (e_3_1) {
-      e_3 = { error: e_3_1 };
-    } finally {
-      try {
-        if (_c && !_c.done && (_a2 = _b.return)) _a2.call(_b);
-      } finally {
-        if (e_3) throw e_3.error;
-      }
+      window2.location.assign(url);
     }
-  };
-  InternalDependencyContainer2.prototype.createChildContainer = function() {
-    var e_4, _a2;
-    this.ensureNotDisposed();
-    var childContainer = new InternalDependencyContainer2(this);
-    try {
-      for (var _b = __values(this._registry.entries()), _c = _b.next(); !_c.done; _c = _b.next()) {
-        var _d = __read(_c.value, 2), token2 = _d[0], registrations = _d[1];
-        if (registrations.some(function(_a3) {
-          var options2 = _a3.options;
-          return options2.lifecycle === Lifecycle$1.ContainerScoped;
-        })) {
-          childContainer._registry.setAll(token2, registrations.map(function(registration) {
-            if (registration.options.lifecycle === Lifecycle$1.ContainerScoped) {
-              return {
-                provider: registration.provider,
-                options: registration.options
-              };
-            }
-            return registration;
-          }));
-        }
-      }
-    } catch (e_4_1) {
-      e_4 = { error: e_4_1 };
-    } finally {
-      try {
-        if (_c && !_c.done && (_a2 = _b.return)) _a2.call(_b);
-      } finally {
-        if (e_4) throw e_4.error;
-      }
-    }
-    return childContainer;
-  };
-  InternalDependencyContainer2.prototype.beforeResolution = function(token2, callback, options2) {
-    if (options2 === void 0) {
-      options2 = { frequency: "Always" };
-    }
-    this.interceptors.preResolution.set(token2, {
-      callback,
-      options: options2
-    });
-  };
-  InternalDependencyContainer2.prototype.afterResolution = function(token2, callback, options2) {
-    if (options2 === void 0) {
-      options2 = { frequency: "Always" };
-    }
-    this.interceptors.postResolution.set(token2, {
-      callback,
-      options: options2
-    });
-  };
-  InternalDependencyContainer2.prototype.dispose = function() {
-    return __awaiter(this, void 0, void 0, function() {
-      var promises;
-      return __generator(this, function(_a2) {
-        switch (_a2.label) {
-          case 0:
-            this.disposed = true;
-            promises = [];
-            this.disposables.forEach(function(disposable) {
-              var maybePromise = disposable.dispose();
-              if (maybePromise) {
-                promises.push(maybePromise);
-              }
-            });
-            return [4, Promise.all(promises)];
-          case 1:
-            _a2.sent();
-            return [2];
-        }
-      });
-    });
-  };
-  InternalDependencyContainer2.prototype.getRegistration = function(token2) {
-    if (this.isRegistered(token2)) {
-      return this._registry.get(token2);
-    }
-    if (this.parent) {
-      return this.parent.getRegistration(token2);
-    }
-    return null;
-  };
-  InternalDependencyContainer2.prototype.getAllRegistrations = function(token2) {
-    if (this.isRegistered(token2)) {
-      return this._registry.getAll(token2);
-    }
-    if (this.parent) {
-      return this.parent.getAllRegistrations(token2);
-    }
-    return null;
-  };
-  InternalDependencyContainer2.prototype.construct = function(ctor, context2) {
-    var _this = this;
-    if (ctor instanceof DelayedConstructor) {
-      return ctor.createProxy(function(target) {
-        return _this.resolve(target, context2);
+    if (v5Compat && listener) {
+      listener({
+        action: action2,
+        location: history.location,
+        delta: 1
       });
     }
-    var instance2 = (function() {
-      var paramInfo = typeInfo.get(ctor);
-      if (!paramInfo || paramInfo.length === 0) {
-        if (ctor.length === 0) {
-          return new ctor();
-        } else {
-          throw new Error('TypeInfo not known for "' + ctor.name + '"');
-        }
-      }
-      var params = paramInfo.map(_this.resolveParams(context2, ctor));
-      return new (ctor.bind.apply(ctor, __spread([void 0], params)))();
-    })();
-    if (isDisposable(instance2)) {
-      this.disposables.add(instance2);
-    }
-    return instance2;
-  };
-  InternalDependencyContainer2.prototype.resolveParams = function(context2, ctor) {
-    var _this = this;
-    return function(param, idx) {
-      var _a2, _b, _c;
-      try {
-        if (isTokenDescriptor(param)) {
-          if (isTransformDescriptor(param)) {
-            return param.multiple ? (_a2 = _this.resolve(param.transform)).transform.apply(_a2, __spread([_this.resolveAll(param.token)], param.transformArgs)) : (_b = _this.resolve(param.transform)).transform.apply(_b, __spread([_this.resolve(param.token, context2)], param.transformArgs));
-          } else {
-            return param.multiple ? _this.resolveAll(param.token) : _this.resolve(param.token, context2);
-          }
-        } else if (isTransformDescriptor(param)) {
-          return (_c = _this.resolve(param.transform, context2)).transform.apply(_c, __spread([_this.resolve(param.token, context2)], param.transformArgs));
-        }
-        return _this.resolve(param, context2);
-      } catch (e) {
-        throw new Error(formatErrorCtor(ctor, idx, e));
-      }
-    };
-  };
-  InternalDependencyContainer2.prototype.ensureNotDisposed = function() {
-    if (this.disposed) {
-      throw new Error("This container has been disposed, you cannot interact with a disposed container");
-    }
-  };
-  return InternalDependencyContainer2;
-})();
-var instance$9 = new InternalDependencyContainer();
-function inject(token2) {
-  return defineInjectionTokenMetadata(token2);
-}
-function injectable() {
-  return function(target) {
-    typeInfo.set(target, getParamInfo(target));
-  };
-}
-if (typeof Reflect === "undefined" || !Reflect.getMetadata) {
-  throw new Error(`tsyringe requires a reflect polyfill. Please add 'import "reflect-metadata"' to the top of your entry point.`);
-}
-(function(to, from2, pack) {
-  if (pack || arguments.length === 2) for (var i2 = 0, l = from2.length, ar; i2 < l; i2++) {
-    if (ar || !(i2 in from2)) {
-      if (!ar) ar = Array.prototype.slice.call(from2, 0, i2);
-      ar[i2] = from2[i2];
-    }
   }
-  return to.concat(ar || Array.prototype.slice.call(from2));
-});
-(function(to, from2, pack) {
-  if (pack || arguments.length === 2) for (var i2 = 0, l = from2.length, ar; i2 < l; i2++) {
-    if (ar || !(i2 in from2)) {
-      if (!ar) ar = Array.prototype.slice.call(from2, 0, i2);
-      ar[i2] = from2[i2];
-    }
-  }
-  return to.concat(ar || Array.prototype.slice.call(from2));
-});
-var isLeft$1 = function(ma) {
-  return ma._tag === "Left";
-};
-var isRight$1 = function(ma) {
-  return ma._tag === "Right";
-};
-var left$1 = function(e) {
-  return { _tag: "Left", left: e };
-};
-var right$1 = function(a) {
-  return { _tag: "Right", right: a };
-};
-var left = left$1;
-var right = right$1;
-var isLeft = isLeft$1;
-var isRight = isRight$1;
-var __extends = /* @__PURE__ */ (function() {
-  var extendStatics2 = function(d, b) {
-    extendStatics2 = Object.setPrototypeOf || { __proto__: [] } instanceof Array && function(d2, b2) {
-      d2.__proto__ = b2;
-    } || function(d2, b2) {
-      for (var p in b2) if (Object.prototype.hasOwnProperty.call(b2, p)) d2[p] = b2[p];
-    };
-    return extendStatics2(d, b);
-  };
-  return function(d, b) {
-    if (typeof b !== "function" && b !== null)
-      throw new TypeError("Class extends value " + String(b) + " is not a constructor or null");
-    extendStatics2(d, b);
-    function __() {
-      this.constructor = d;
-    }
-    d.prototype = b === null ? Object.create(b) : (__.prototype = b.prototype, new __());
-  };
-})();
-var __assign$2 = function() {
-  __assign$2 = Object.assign || function(t) {
-    for (var s, i2 = 1, n = arguments.length; i2 < n; i2++) {
-      s = arguments[i2];
-      for (var p in s) if (Object.prototype.hasOwnProperty.call(s, p))
-        t[p] = s[p];
-    }
-    return t;
-  };
-  return __assign$2.apply(this, arguments);
-};
-(function(to, from2, pack) {
-  if (pack || arguments.length === 2) for (var i2 = 0, l = from2.length, ar; i2 < l; i2++) {
-    if (ar || !(i2 in from2)) {
-      if (!ar) ar = Array.prototype.slice.call(from2, 0, i2);
-      ar[i2] = from2[i2];
-    }
-  }
-  return to.concat(ar || Array.prototype.slice.call(from2));
-});
-var failures = left;
-var failure = function(value, context2, message) {
-  return failures([{ value, context: context2, message }]);
-};
-var success = right;
-var Type = (
-  /** @class */
-  (function() {
-    function Type2(name, is2, validate, encode) {
-      this.name = name;
-      this.is = is2;
-      this.validate = validate;
-      this.encode = encode;
-      this.decode = this.decode.bind(this);
-    }
-    Type2.prototype.pipe = function(ab, name) {
-      var _this = this;
-      if (name === void 0) {
-        name = "pipe(".concat(this.name, ", ").concat(ab.name, ")");
-      }
-      return new Type2(name, ab.is, function(i2, c) {
-        var e = _this.validate(i2, c);
-        if (isLeft(e)) {
-          return e;
-        }
-        return ab.validate(e.right, c);
-      }, this.encode === identity && ab.encode === identity ? identity : function(b) {
-        return _this.encode(ab.encode(b));
+  function replace3(to, state) {
+    action2 = Action.Replace;
+    let location = createLocation(history.location, to, state);
+    index2 = getIndex2();
+    let historyState = getHistoryState(location, index2);
+    let url = history.createHref(location);
+    globalHistory.replaceState(historyState, "", url);
+    if (v5Compat && listener) {
+      listener({
+        action: action2,
+        location: history.location,
+        delta: 0
       });
-    };
-    Type2.prototype.asDecoder = function() {
-      return this;
-    };
-    Type2.prototype.asEncoder = function() {
-      return this;
-    };
-    Type2.prototype.decode = function(i2) {
-      return this.validate(i2, [{ key: "", type: this, actual: i2 }]);
-    };
-    return Type2;
-  })()
-);
-var identity = function(a) {
-  return a;
-};
-function getFunctionName(f) {
-  return f.displayName || f.name || "<function".concat(f.length, ">");
-}
-function appendContext(c, key, decoder, actual) {
-  var len = c.length;
-  var r = Array(len + 1);
-  for (var i2 = 0; i2 < len; i2++) {
-    r[i2] = c[i2];
-  }
-  r[len] = { key, type: decoder, actual };
-  return r;
-}
-function pushAll(xs, ys) {
-  var l = ys.length;
-  for (var i2 = 0; i2 < l; i2++) {
-    xs.push(ys[i2]);
-  }
-}
-var hasOwnProperty$1 = Object.prototype.hasOwnProperty;
-function getNameFromProps(props) {
-  return Object.keys(props).map(function(k) {
-    return "".concat(k, ": ").concat(props[k].name);
-  }).join(", ");
-}
-function useIdentity(codecs) {
-  for (var i2 = 0; i2 < codecs.length; i2++) {
-    if (codecs[i2].encode !== identity) {
-      return false;
     }
   }
-  return true;
-}
-function getInterfaceTypeName(props) {
-  return "{ ".concat(getNameFromProps(props), " }");
-}
-function getPartialTypeName(inner) {
-  return "Partial<".concat(inner, ">");
-}
-function getUnionName(codecs) {
-  return "(" + codecs.map(function(type2) {
-    return type2.name;
-  }).join(" | ") + ")";
-}
-function mergeAll(base, us) {
-  var equal = true;
-  var primitive = true;
-  var baseIsNotADictionary = !UnknownRecord.is(base);
-  for (var _i = 0, us_1 = us; _i < us_1.length; _i++) {
-    var u = us_1[_i];
-    if (u !== base) {
-      equal = false;
-    }
-    if (UnknownRecord.is(u)) {
-      primitive = false;
-    }
+  function createURL(to) {
+    let base = window2.location.origin !== "null" ? window2.location.origin : window2.location.href;
+    let href = typeof to === "string" ? to : createPath(to);
+    href = href.replace(/ $/, "%20");
+    invariant(base, "No window.location.(origin|href) available to create URL for href: " + href);
+    return new URL(href, base);
   }
-  if (equal) {
-    return base;
-  } else if (primitive) {
-    return us[us.length - 1];
-  }
-  var r = {};
-  for (var _a2 = 0, us_2 = us; _a2 < us_2.length; _a2++) {
-    var u = us_2[_a2];
-    for (var k in u) {
-      if (!hasOwnProperty$1.call(r, k) || baseIsNotADictionary || u[k] !== base[k]) {
-        r[k] = u[k];
+  let history = {
+    get action() {
+      return action2;
+    },
+    get location() {
+      return getLocation(window2, globalHistory);
+    },
+    listen(fn) {
+      if (listener) {
+        throw new Error("A history only accepts one active listener");
       }
-    }
-  }
-  return r;
-}
-function isNonEmpty(as) {
-  return as.length > 0;
-}
-var emptyTags = {};
-function intersect(a, b) {
-  var r = [];
-  for (var _i = 0, a_1 = a; _i < a_1.length; _i++) {
-    var v = a_1[_i];
-    if (b.indexOf(v) !== -1) {
-      r.push(v);
-    }
-  }
-  return r;
-}
-function mergeTags(a, b) {
-  if (a === emptyTags) {
-    return b;
-  }
-  if (b === emptyTags) {
-    return a;
-  }
-  var r = Object.assign({}, a);
-  for (var k in b) {
-    if (hasOwnProperty$1.call(a, k)) {
-      var intersection_1 = intersect(a[k], b[k]);
-      if (isNonEmpty(intersection_1)) {
-        r[k] = intersection_1;
-      } else {
-        r = emptyTags;
-        break;
-      }
-    } else {
-      r[k] = b[k];
-    }
-  }
-  return r;
-}
-function intersectTags(a, b) {
-  if (a === emptyTags || b === emptyTags) {
-    return emptyTags;
-  }
-  var r = emptyTags;
-  for (var k in a) {
-    if (hasOwnProperty$1.call(b, k)) {
-      var intersection_2 = intersect(a[k], b[k]);
-      if (intersection_2.length === 0) {
-        if (r === emptyTags) {
-          r = {};
-        }
-        r[k] = a[k].concat(b[k]);
-      }
-    }
-  }
-  return r;
-}
-function isLiteralC(codec) {
-  return codec._tag === "LiteralType";
-}
-function isTypeC(codec) {
-  return codec._tag === "InterfaceType";
-}
-function isStrictC(codec) {
-  return codec._tag === "StrictType";
-}
-function isExactC(codec) {
-  return codec._tag === "ExactType";
-}
-function isRefinementC(codec) {
-  return codec._tag === "RefinementType";
-}
-function isIntersectionC(codec) {
-  return codec._tag === "IntersectionType";
-}
-function isUnionC(codec) {
-  return codec._tag === "UnionType";
-}
-function isRecursiveC(codec) {
-  return codec._tag === "RecursiveType";
-}
-var lazyCodecs = [];
-function getTags(codec) {
-  if (lazyCodecs.indexOf(codec) !== -1) {
-    return emptyTags;
-  }
-  if (isTypeC(codec) || isStrictC(codec)) {
-    var index2 = emptyTags;
-    for (var k in codec.props) {
-      var prop = codec.props[k];
-      if (isLiteralC(prop)) {
-        if (index2 === emptyTags) {
-          index2 = {};
-        }
-        index2[k] = [prop.value];
-      }
-    }
-    return index2;
-  } else if (isExactC(codec) || isRefinementC(codec)) {
-    return getTags(codec.type);
-  } else if (isIntersectionC(codec)) {
-    return codec.types.reduce(function(tags2, codec2) {
-      return mergeTags(tags2, getTags(codec2));
-    }, emptyTags);
-  } else if (isUnionC(codec)) {
-    return codec.types.slice(1).reduce(function(tags2, codec2) {
-      return intersectTags(tags2, getTags(codec2));
-    }, getTags(codec.types[0]));
-  } else if (isRecursiveC(codec)) {
-    lazyCodecs.push(codec);
-    var tags = getTags(codec.type);
-    lazyCodecs.pop();
-    return tags;
-  }
-  return emptyTags;
-}
-function getIndex(codecs) {
-  var tags = getTags(codecs[0]);
-  var keys = Object.keys(tags);
-  var len = codecs.length;
-  var _loop_1 = function(k2) {
-    var all2 = tags[k2].slice();
-    var index2 = [tags[k2]];
-    for (var i2 = 1; i2 < len; i2++) {
-      var codec = codecs[i2];
-      var ctags = getTags(codec);
-      var values = ctags[k2];
-      if (values === void 0) {
-        return "continue-keys";
-      } else {
-        if (values.some(function(v) {
-          return all2.indexOf(v) !== -1;
-        })) {
-          return "continue-keys";
-        } else {
-          all2.push.apply(all2, values);
-          index2.push(values);
-        }
-      }
-    }
-    return { value: [k2, index2] };
-  };
-  keys: for (var _i = 0, keys_1 = keys; _i < keys_1.length; _i++) {
-    var k = keys_1[_i];
-    var state_1 = _loop_1(k);
-    if (typeof state_1 === "object")
-      return state_1.value;
-    switch (state_1) {
-      case "continue-keys":
-        continue keys;
-    }
-  }
-  return void 0;
-}
-var NullType = (
-  /** @class */
-  (function(_super) {
-    __extends(NullType2, _super);
-    function NullType2() {
-      var _this = _super.call(this, "null", function(u) {
-        return u === null;
-      }, function(u, c) {
-        return _this.is(u) ? success(u) : failure(u, c);
-      }, identity) || this;
-      _this._tag = "NullType";
-      return _this;
-    }
-    return NullType2;
-  })(Type)
-);
-var nullType = new NullType();
-var UndefinedType = (
-  /** @class */
-  (function(_super) {
-    __extends(UndefinedType2, _super);
-    function UndefinedType2() {
-      var _this = _super.call(this, "undefined", function(u) {
-        return u === void 0;
-      }, function(u, c) {
-        return _this.is(u) ? success(u) : failure(u, c);
-      }, identity) || this;
-      _this._tag = "UndefinedType";
-      return _this;
-    }
-    return UndefinedType2;
-  })(Type)
-);
-var undefinedType = new UndefinedType();
-var VoidType = (
-  /** @class */
-  (function(_super) {
-    __extends(VoidType2, _super);
-    function VoidType2() {
-      var _this = _super.call(this, "void", undefinedType.is, undefinedType.validate, identity) || this;
-      _this._tag = "VoidType";
-      return _this;
-    }
-    return VoidType2;
-  })(Type)
-);
-new VoidType();
-var UnknownType = (
-  /** @class */
-  (function(_super) {
-    __extends(UnknownType2, _super);
-    function UnknownType2() {
-      var _this = _super.call(this, "unknown", function(_) {
-        return true;
-      }, success, identity) || this;
-      _this._tag = "UnknownType";
-      return _this;
-    }
-    return UnknownType2;
-  })(Type)
-);
-new UnknownType();
-var StringType = (
-  /** @class */
-  (function(_super) {
-    __extends(StringType2, _super);
-    function StringType2() {
-      var _this = _super.call(this, "string", function(u) {
-        return typeof u === "string";
-      }, function(u, c) {
-        return _this.is(u) ? success(u) : failure(u, c);
-      }, identity) || this;
-      _this._tag = "StringType";
-      return _this;
-    }
-    return StringType2;
-  })(Type)
-);
-var string = new StringType();
-var NumberType = (
-  /** @class */
-  (function(_super) {
-    __extends(NumberType2, _super);
-    function NumberType2() {
-      var _this = _super.call(this, "number", function(u) {
-        return typeof u === "number";
-      }, function(u, c) {
-        return _this.is(u) ? success(u) : failure(u, c);
-      }, identity) || this;
-      _this._tag = "NumberType";
-      return _this;
-    }
-    return NumberType2;
-  })(Type)
-);
-var number$1 = new NumberType();
-var BigIntType = (
-  /** @class */
-  (function(_super) {
-    __extends(BigIntType2, _super);
-    function BigIntType2() {
-      var _this = _super.call(
-        this,
-        "bigint",
-        // tslint:disable-next-line: valid-typeof
-        function(u) {
-          return typeof u === "bigint";
-        },
-        function(u, c) {
-          return _this.is(u) ? success(u) : failure(u, c);
-        },
-        identity
-      ) || this;
-      _this._tag = "BigIntType";
-      return _this;
-    }
-    return BigIntType2;
-  })(Type)
-);
-new BigIntType();
-var BooleanType = (
-  /** @class */
-  (function(_super) {
-    __extends(BooleanType2, _super);
-    function BooleanType2() {
-      var _this = _super.call(this, "boolean", function(u) {
-        return typeof u === "boolean";
-      }, function(u, c) {
-        return _this.is(u) ? success(u) : failure(u, c);
-      }, identity) || this;
-      _this._tag = "BooleanType";
-      return _this;
-    }
-    return BooleanType2;
-  })(Type)
-);
-var boolean = new BooleanType();
-var AnyArrayType = (
-  /** @class */
-  (function(_super) {
-    __extends(AnyArrayType2, _super);
-    function AnyArrayType2() {
-      var _this = _super.call(this, "UnknownArray", Array.isArray, function(u, c) {
-        return _this.is(u) ? success(u) : failure(u, c);
-      }, identity) || this;
-      _this._tag = "AnyArrayType";
-      return _this;
-    }
-    return AnyArrayType2;
-  })(Type)
-);
-var UnknownArray = new AnyArrayType();
-var AnyDictionaryType = (
-  /** @class */
-  (function(_super) {
-    __extends(AnyDictionaryType2, _super);
-    function AnyDictionaryType2() {
-      var _this = _super.call(this, "UnknownRecord", function(u) {
-        return u !== null && typeof u === "object" && !Array.isArray(u);
-      }, function(u, c) {
-        return _this.is(u) ? success(u) : failure(u, c);
-      }, identity) || this;
-      _this._tag = "AnyDictionaryType";
-      return _this;
-    }
-    return AnyDictionaryType2;
-  })(Type)
-);
-var UnknownRecord = new AnyDictionaryType();
-var LiteralType = (
-  /** @class */
-  (function(_super) {
-    __extends(LiteralType2, _super);
-    function LiteralType2(name, is2, validate, encode, value) {
-      var _this = _super.call(this, name, is2, validate, encode) || this;
-      _this.value = value;
-      _this._tag = "LiteralType";
-      return _this;
-    }
-    return LiteralType2;
-  })(Type)
-);
-function literal(value, name) {
-  if (name === void 0) {
-    name = JSON.stringify(value);
-  }
-  var is2 = function(u) {
-    return u === value;
-  };
-  return new LiteralType(name, is2, function(u, c) {
-    return is2(u) ? success(value) : failure(u, c);
-  }, identity, value);
-}
-var KeyofType = (
-  /** @class */
-  (function(_super) {
-    __extends(KeyofType2, _super);
-    function KeyofType2(name, is2, validate, encode, keys) {
-      var _this = _super.call(this, name, is2, validate, encode) || this;
-      _this.keys = keys;
-      _this._tag = "KeyofType";
-      return _this;
-    }
-    return KeyofType2;
-  })(Type)
-);
-function keyof(keys, name) {
-  if (name === void 0) {
-    name = Object.keys(keys).map(function(k) {
-      return JSON.stringify(k);
-    }).join(" | ");
-  }
-  var is2 = function(u) {
-    return string.is(u) && hasOwnProperty$1.call(keys, u);
-  };
-  return new KeyofType(name, is2, function(u, c) {
-    return is2(u) ? success(u) : failure(u, c);
-  }, identity, keys);
-}
-var RefinementType = (
-  /** @class */
-  (function(_super) {
-    __extends(RefinementType2, _super);
-    function RefinementType2(name, is2, validate, encode, type2, predicate) {
-      var _this = _super.call(this, name, is2, validate, encode) || this;
-      _this.type = type2;
-      _this.predicate = predicate;
-      _this._tag = "RefinementType";
-      return _this;
-    }
-    return RefinementType2;
-  })(Type)
-);
-function brand(codec, predicate, name) {
-  return refinement(codec, predicate, name);
-}
-brand(number$1, function(n) {
-  return Number.isInteger(n);
-}, "Int");
-var RecursiveType = (
-  /** @class */
-  (function(_super) {
-    __extends(RecursiveType2, _super);
-    function RecursiveType2(name, is2, validate, encode, runDefinition) {
-      var _this = _super.call(this, name, is2, validate, encode) || this;
-      _this.runDefinition = runDefinition;
-      _this._tag = "RecursiveType";
-      return _this;
-    }
-    return RecursiveType2;
-  })(Type)
-);
-Object.defineProperty(RecursiveType.prototype, "type", {
-  get: function() {
-    return this.runDefinition();
-  },
-  enumerable: true,
-  configurable: true
-});
-function recursion(name, definition) {
-  var cache2;
-  var runDefinition = function() {
-    if (!cache2) {
-      cache2 = definition(Self);
-      cache2.name = name;
-    }
-    return cache2;
-  };
-  var Self = new RecursiveType(name, function(u) {
-    return runDefinition().is(u);
-  }, function(u, c) {
-    return runDefinition().validate(u, c);
-  }, function(a) {
-    return runDefinition().encode(a);
-  }, runDefinition);
-  return Self;
-}
-var ArrayType = (
-  /** @class */
-  (function(_super) {
-    __extends(ArrayType2, _super);
-    function ArrayType2(name, is2, validate, encode, type2) {
-      var _this = _super.call(this, name, is2, validate, encode) || this;
-      _this.type = type2;
-      _this._tag = "ArrayType";
-      return _this;
-    }
-    return ArrayType2;
-  })(Type)
-);
-function array(item, name) {
-  if (name === void 0) {
-    name = "Array<".concat(item.name, ">");
-  }
-  return new ArrayType(name, function(u) {
-    return UnknownArray.is(u) && u.every(item.is);
-  }, function(u, c) {
-    var e = UnknownArray.validate(u, c);
-    if (isLeft(e)) {
-      return e;
-    }
-    var us = e.right;
-    var len = us.length;
-    var as = us;
-    var errors = [];
-    for (var i2 = 0; i2 < len; i2++) {
-      var ui = us[i2];
-      var result = item.validate(ui, appendContext(c, String(i2), item, ui));
-      if (isLeft(result)) {
-        pushAll(errors, result.left);
-      } else {
-        var ai = result.right;
-        if (ai !== ui) {
-          if (as === us) {
-            as = us.slice();
-          }
-          as[i2] = ai;
-        }
-      }
-    }
-    return errors.length > 0 ? failures(errors) : success(as);
-  }, item.encode === identity ? identity : function(a) {
-    return a.map(item.encode);
-  }, item);
-}
-var InterfaceType = (
-  /** @class */
-  (function(_super) {
-    __extends(InterfaceType2, _super);
-    function InterfaceType2(name, is2, validate, encode, props) {
-      var _this = _super.call(this, name, is2, validate, encode) || this;
-      _this.props = props;
-      _this._tag = "InterfaceType";
-      return _this;
-    }
-    return InterfaceType2;
-  })(Type)
-);
-function type(props, name) {
-  if (name === void 0) {
-    name = getInterfaceTypeName(props);
-  }
-  var keys = Object.keys(props);
-  var types = keys.map(function(key) {
-    return props[key];
-  });
-  var len = keys.length;
-  return new InterfaceType(name, function(u) {
-    if (UnknownRecord.is(u)) {
-      for (var i2 = 0; i2 < len; i2++) {
-        var k = keys[i2];
-        var uk = u[k];
-        if (uk === void 0 && !hasOwnProperty$1.call(u, k) || !types[i2].is(uk)) {
-          return false;
-        }
-      }
-      return true;
-    }
-    return false;
-  }, function(u, c) {
-    var e = UnknownRecord.validate(u, c);
-    if (isLeft(e)) {
-      return e;
-    }
-    var o = e.right;
-    var a = o;
-    var errors = [];
-    for (var i2 = 0; i2 < len; i2++) {
-      var k = keys[i2];
-      var ak = a[k];
-      var type_1 = types[i2];
-      var result = type_1.validate(ak, appendContext(c, k, type_1, ak));
-      if (isLeft(result)) {
-        pushAll(errors, result.left);
-      } else {
-        var vak = result.right;
-        if (vak !== ak || vak === void 0 && !hasOwnProperty$1.call(a, k)) {
-          if (a === o) {
-            a = __assign$2({}, o);
-          }
-          a[k] = vak;
-        }
-      }
-    }
-    return errors.length > 0 ? failures(errors) : success(a);
-  }, useIdentity(types) ? identity : function(a) {
-    var s = __assign$2({}, a);
-    for (var i2 = 0; i2 < len; i2++) {
-      var k = keys[i2];
-      var encode = types[i2].encode;
-      if (encode !== identity) {
-        s[k] = encode(a[k]);
-      }
-    }
-    return s;
-  }, props);
-}
-var PartialType = (
-  /** @class */
-  (function(_super) {
-    __extends(PartialType2, _super);
-    function PartialType2(name, is2, validate, encode, props) {
-      var _this = _super.call(this, name, is2, validate, encode) || this;
-      _this.props = props;
-      _this._tag = "PartialType";
-      return _this;
-    }
-    return PartialType2;
-  })(Type)
-);
-function partial(props, name) {
-  if (name === void 0) {
-    name = getPartialTypeName(getInterfaceTypeName(props));
-  }
-  var keys = Object.keys(props);
-  var types = keys.map(function(key) {
-    return props[key];
-  });
-  var len = keys.length;
-  return new PartialType(name, function(u) {
-    if (UnknownRecord.is(u)) {
-      for (var i2 = 0; i2 < len; i2++) {
-        var k = keys[i2];
-        var uk = u[k];
-        if (uk !== void 0 && !props[k].is(uk)) {
-          return false;
-        }
-      }
-      return true;
-    }
-    return false;
-  }, function(u, c) {
-    var e = UnknownRecord.validate(u, c);
-    if (isLeft(e)) {
-      return e;
-    }
-    var o = e.right;
-    var a = o;
-    var errors = [];
-    for (var i2 = 0; i2 < len; i2++) {
-      var k = keys[i2];
-      var ak = a[k];
-      var type_2 = props[k];
-      var result = type_2.validate(ak, appendContext(c, k, type_2, ak));
-      if (isLeft(result)) {
-        if (ak !== void 0) {
-          pushAll(errors, result.left);
-        }
-      } else {
-        var vak = result.right;
-        if (vak !== ak) {
-          if (a === o) {
-            a = __assign$2({}, o);
-          }
-          a[k] = vak;
-        }
-      }
-    }
-    return errors.length > 0 ? failures(errors) : success(a);
-  }, useIdentity(types) ? identity : function(a) {
-    var s = __assign$2({}, a);
-    for (var i2 = 0; i2 < len; i2++) {
-      var k = keys[i2];
-      var ak = a[k];
-      if (ak !== void 0) {
-        s[k] = types[i2].encode(ak);
-      }
-    }
-    return s;
-  }, props);
-}
-(function(_super) {
-  __extends(DictionaryType, _super);
-  function DictionaryType(name, is2, validate, encode, domain, codomain) {
-    var _this = _super.call(this, name, is2, validate, encode) || this;
-    _this.domain = domain;
-    _this.codomain = codomain;
-    _this._tag = "DictionaryType";
-    return _this;
-  }
-  return DictionaryType;
-})(Type);
-var UnionType = (
-  /** @class */
-  (function(_super) {
-    __extends(UnionType2, _super);
-    function UnionType2(name, is2, validate, encode, types) {
-      var _this = _super.call(this, name, is2, validate, encode) || this;
-      _this.types = types;
-      _this._tag = "UnionType";
-      return _this;
-    }
-    return UnionType2;
-  })(Type)
-);
-function union(codecs, name) {
-  if (name === void 0) {
-    name = getUnionName(codecs);
-  }
-  var index2 = getIndex(codecs);
-  if (index2 !== void 0 && codecs.length > 0) {
-    var tag_1 = index2[0], groups_1 = index2[1];
-    var len_1 = groups_1.length;
-    var find_1 = function(value) {
-      for (var i2 = 0; i2 < len_1; i2++) {
-        if (groups_1[i2].indexOf(value) !== -1) {
-          return i2;
-        }
-      }
-      return void 0;
-    };
-    return new TaggedUnionType(name, function(u) {
-      if (UnknownRecord.is(u)) {
-        var i2 = find_1(u[tag_1]);
-        return i2 !== void 0 ? codecs[i2].is(u) : false;
-      }
-      return false;
-    }, function(u, c) {
-      var e = UnknownRecord.validate(u, c);
-      if (isLeft(e)) {
-        return e;
-      }
-      var r = e.right;
-      var i2 = find_1(r[tag_1]);
-      if (i2 === void 0) {
-        return failure(u, c);
-      }
-      var codec = codecs[i2];
-      return codec.validate(r, appendContext(c, String(i2), codec, r));
-    }, useIdentity(codecs) ? identity : function(a) {
-      var i2 = find_1(a[tag_1]);
-      if (i2 === void 0) {
-        throw new Error("no codec found to encode value in union codec ".concat(name));
-      } else {
-        return codecs[i2].encode(a);
-      }
-    }, codecs, tag_1);
-  } else {
-    return new UnionType(name, function(u) {
-      return codecs.some(function(type2) {
-        return type2.is(u);
-      });
-    }, function(u, c) {
-      var errors = [];
-      for (var i2 = 0; i2 < codecs.length; i2++) {
-        var codec = codecs[i2];
-        var result = codec.validate(u, appendContext(c, String(i2), codec, u));
-        if (isLeft(result)) {
-          pushAll(errors, result.left);
-        } else {
-          return success(result.right);
-        }
-      }
-      return failures(errors);
-    }, useIdentity(codecs) ? identity : function(a) {
-      for (var _i = 0, codecs_1 = codecs; _i < codecs_1.length; _i++) {
-        var codec = codecs_1[_i];
-        if (codec.is(a)) {
-          return codec.encode(a);
-        }
-      }
-      throw new Error("no codec found to encode value in union type ".concat(name));
-    }, codecs);
-  }
-}
-var IntersectionType = (
-  /** @class */
-  (function(_super) {
-    __extends(IntersectionType2, _super);
-    function IntersectionType2(name, is2, validate, encode, types) {
-      var _this = _super.call(this, name, is2, validate, encode) || this;
-      _this.types = types;
-      _this._tag = "IntersectionType";
-      return _this;
-    }
-    return IntersectionType2;
-  })(Type)
-);
-function intersection(codecs, name) {
-  if (name === void 0) {
-    name = "(".concat(codecs.map(function(type2) {
-      return type2.name;
-    }).join(" & "), ")");
-  }
-  var len = codecs.length;
-  return new IntersectionType(name, function(u) {
-    return codecs.every(function(type2) {
-      return type2.is(u);
-    });
-  }, codecs.length === 0 ? success : function(u, c) {
-    var us = [];
-    var errors = [];
-    for (var i2 = 0; i2 < len; i2++) {
-      var codec = codecs[i2];
-      var result = codec.validate(u, appendContext(c, String(i2), codec, u));
-      if (isLeft(result)) {
-        pushAll(errors, result.left);
-      } else {
-        us.push(result.right);
-      }
-    }
-    return errors.length > 0 ? failures(errors) : success(mergeAll(u, us));
-  }, codecs.length === 0 ? identity : function(a) {
-    return mergeAll(a, codecs.map(function(codec) {
-      return codec.encode(a);
-    }));
-  }, codecs);
-}
-var TupleType = (
-  /** @class */
-  (function(_super) {
-    __extends(TupleType2, _super);
-    function TupleType2(name, is2, validate, encode, types) {
-      var _this = _super.call(this, name, is2, validate, encode) || this;
-      _this.types = types;
-      _this._tag = "TupleType";
-      return _this;
-    }
-    return TupleType2;
-  })(Type)
-);
-function tuple(codecs, name) {
-  if (name === void 0) {
-    name = "[".concat(codecs.map(function(type2) {
-      return type2.name;
-    }).join(", "), "]");
-  }
-  var len = codecs.length;
-  return new TupleType(name, function(u) {
-    return UnknownArray.is(u) && u.length === len && codecs.every(function(type2, i2) {
-      return type2.is(u[i2]);
-    });
-  }, function(u, c) {
-    var e = UnknownArray.validate(u, c);
-    if (isLeft(e)) {
-      return e;
-    }
-    var us = e.right;
-    var as = us.length > len ? us.slice(0, len) : us;
-    var errors = [];
-    for (var i2 = 0; i2 < len; i2++) {
-      var a = us[i2];
-      var type_3 = codecs[i2];
-      var result = type_3.validate(a, appendContext(c, String(i2), type_3, a));
-      if (isLeft(result)) {
-        pushAll(errors, result.left);
-      } else {
-        var va = result.right;
-        if (va !== a) {
-          if (as === us) {
-            as = us.slice();
-          }
-          as[i2] = va;
-        }
-      }
-    }
-    return errors.length > 0 ? failures(errors) : success(as);
-  }, useIdentity(codecs) ? identity : function(a) {
-    return codecs.map(function(type2, i2) {
-      return type2.encode(a[i2]);
-    });
-  }, codecs);
-}
-(function(_super) {
-  __extends(ReadonlyType, _super);
-  function ReadonlyType(name, is2, validate, encode, type2) {
-    var _this = _super.call(this, name, is2, validate, encode) || this;
-    _this.type = type2;
-    _this._tag = "ReadonlyType";
-    return _this;
-  }
-  return ReadonlyType;
-})(Type);
-(function(_super) {
-  __extends(ReadonlyArrayType, _super);
-  function ReadonlyArrayType(name, is2, validate, encode, type2) {
-    var _this = _super.call(this, name, is2, validate, encode) || this;
-    _this.type = type2;
-    _this._tag = "ReadonlyArrayType";
-    return _this;
-  }
-  return ReadonlyArrayType;
-})(Type);
-(function(_super) {
-  __extends(ExactType, _super);
-  function ExactType(name, is2, validate, encode, type2) {
-    var _this = _super.call(this, name, is2, validate, encode) || this;
-    _this.type = type2;
-    _this._tag = "ExactType";
-    return _this;
-  }
-  return ExactType;
-})(Type);
-var FunctionType = (
-  /** @class */
-  (function(_super) {
-    __extends(FunctionType2, _super);
-    function FunctionType2() {
-      var _this = _super.call(
-        this,
-        "Function",
-        // tslint:disable-next-line:strict-type-predicates
-        function(u) {
-          return typeof u === "function";
-        },
-        function(u, c) {
-          return _this.is(u) ? success(u) : failure(u, c);
-        },
-        identity
-      ) || this;
-      _this._tag = "FunctionType";
-      return _this;
-    }
-    return FunctionType2;
-  })(Type)
-);
-new FunctionType();
-var NeverType = (
-  /** @class */
-  (function(_super) {
-    __extends(NeverType2, _super);
-    function NeverType2() {
-      var _this = _super.call(
-        this,
-        "never",
-        function(_) {
-          return false;
-        },
-        function(u, c) {
-          return failure(u, c);
-        },
-        /* istanbul ignore next */
-        function() {
-          throw new Error("cannot encode never");
-        }
-      ) || this;
-      _this._tag = "NeverType";
-      return _this;
-    }
-    return NeverType2;
-  })(Type)
-);
-new NeverType();
-var AnyType = (
-  /** @class */
-  (function(_super) {
-    __extends(AnyType2, _super);
-    function AnyType2() {
-      var _this = _super.call(this, "any", function(_) {
-        return true;
-      }, success, identity) || this;
-      _this._tag = "AnyType";
-      return _this;
-    }
-    return AnyType2;
-  })(Type)
-);
-new AnyType();
-function refinement(codec, predicate, name) {
-  if (name === void 0) {
-    name = "(".concat(codec.name, " | ").concat(getFunctionName(predicate), ")");
-  }
-  return new RefinementType(name, function(u) {
-    return codec.is(u) && predicate(u);
-  }, function(i2, c) {
-    var e = codec.validate(i2, c);
-    if (isLeft(e)) {
-      return e;
-    }
-    var a = e.right;
-    return predicate(a) ? success(a) : failure(a, c);
-  }, codec.encode, codec, predicate);
-}
-refinement(number$1, Number.isInteger, "Integer");
-var TaggedUnionType = (
-  /** @class */
-  (function(_super) {
-    __extends(TaggedUnionType2, _super);
-    function TaggedUnionType2(name, is2, validate, encode, codecs, tag) {
-      var _this = _super.call(this, name, is2, validate, encode, codecs) || this;
-      _this.tag = tag;
-      return _this;
-    }
-    return TaggedUnionType2;
-  })(UnionType)
-);
-var ObjectType$1 = (
-  /** @class */
-  (function(_super) {
-    __extends(ObjectType2, _super);
-    function ObjectType2() {
-      var _this = _super.call(this, "object", function(u) {
-        return u !== null && typeof u === "object";
-      }, function(u, c) {
-        return _this.is(u) ? success(u) : failure(u, c);
-      }, identity) || this;
-      _this._tag = "ObjectType";
-      return _this;
-    }
-    return ObjectType2;
-  })(Type)
-);
-new ObjectType$1();
-(function(_super) {
-  __extends(StrictType, _super);
-  function StrictType(name, is2, validate, encode, props) {
-    var _this = _super.call(this, name, is2, validate, encode) || this;
-    _this.props = props;
-    _this._tag = "StrictType";
-    return _this;
-  }
-  return StrictType;
-})(Type);
-var Either = {};
-var Applicative = {};
-var Apply = {};
-var _function = {};
-var hasRequired_function;
-function require_function() {
-  if (hasRequired_function) return _function;
-  hasRequired_function = 1;
-  (function(exports) {
-    var __spreadArray2 = _function && _function.__spreadArray || function(to, from2, pack) {
-      if (pack || arguments.length === 2) for (var i2 = 0, l = from2.length, ar; i2 < l; i2++) {
-        if (ar || !(i2 in from2)) {
-          if (!ar) ar = Array.prototype.slice.call(from2, 0, i2);
-          ar[i2] = from2[i2];
-        }
-      }
-      return to.concat(ar || Array.prototype.slice.call(from2));
-    };
-    Object.defineProperty(exports, "__esModule", { value: true });
-    exports.dual = exports.getEndomorphismMonoid = exports.not = exports.SK = exports.hole = exports.pipe = exports.untupled = exports.tupled = exports.absurd = exports.decrement = exports.increment = exports.tuple = exports.flow = exports.flip = exports.constVoid = exports.constUndefined = exports.constNull = exports.constFalse = exports.constTrue = exports.constant = exports.unsafeCoerce = exports.identity = exports.apply = exports.getRing = exports.getSemiring = exports.getMonoid = exports.getSemigroup = exports.getBooleanAlgebra = void 0;
-    var getBooleanAlgebra = function(B) {
-      return function() {
-        return {
-          meet: function(x, y) {
-            return function(a) {
-              return B.meet(x(a), y(a));
-            };
-          },
-          join: function(x, y) {
-            return function(a) {
-              return B.join(x(a), y(a));
-            };
-          },
-          zero: function() {
-            return B.zero;
-          },
-          one: function() {
-            return B.one;
-          },
-          implies: function(x, y) {
-            return function(a) {
-              return B.implies(x(a), y(a));
-            };
-          },
-          not: function(x) {
-            return function(a) {
-              return B.not(x(a));
-            };
-          }
-        };
+      window2.addEventListener(PopStateEventType, handlePop);
+      listener = fn;
+      return () => {
+        window2.removeEventListener(PopStateEventType, handlePop);
+        listener = null;
       };
-    };
-    exports.getBooleanAlgebra = getBooleanAlgebra;
-    var getSemigroup = function(S) {
-      return function() {
-        return {
-          concat: function(f, g) {
-            return function(a) {
-              return S.concat(f(a), g(a));
-            };
-          }
-        };
-      };
-    };
-    exports.getSemigroup = getSemigroup;
-    var getMonoid = function(M) {
-      var getSemigroupM = (0, exports.getSemigroup)(M);
-      return function() {
-        return {
-          concat: getSemigroupM().concat,
-          empty: function() {
-            return M.empty;
-          }
-        };
-      };
-    };
-    exports.getMonoid = getMonoid;
-    var getSemiring = function(S) {
+    },
+    createHref(to) {
+      return createHref(window2, to);
+    },
+    createURL,
+    encodeLocation(to) {
+      let url = createURL(to);
       return {
-        add: function(f, g) {
-          return function(x) {
-            return S.add(f(x), g(x));
-          };
-        },
-        zero: function() {
-          return S.zero;
-        },
-        mul: function(f, g) {
-          return function(x) {
-            return S.mul(f(x), g(x));
-          };
-        },
-        one: function() {
-          return S.one;
-        }
+        pathname: url.pathname,
+        search: url.search,
+        hash: url.hash
       };
-    };
-    exports.getSemiring = getSemiring;
-    var getRing = function(R) {
-      var S = (0, exports.getSemiring)(R);
-      return {
-        add: S.add,
-        mul: S.mul,
-        one: S.one,
-        zero: S.zero,
-        sub: function(f, g) {
-          return function(x) {
-            return R.sub(f(x), g(x));
-          };
-        }
-      };
-    };
-    exports.getRing = getRing;
-    var apply = function(a) {
-      return function(f) {
-        return f(a);
-      };
-    };
-    exports.apply = apply;
-    function identity2(a) {
-      return a;
+    },
+    push: push2,
+    replace: replace3,
+    go(n) {
+      return globalHistory.go(n);
     }
-    exports.identity = identity2;
-    exports.unsafeCoerce = identity2;
-    function constant(a) {
-      return function() {
-        return a;
-      };
+  };
+  return history;
+}
+var ResultType;
+(function(ResultType2) {
+  ResultType2["data"] = "data";
+  ResultType2["deferred"] = "deferred";
+  ResultType2["redirect"] = "redirect";
+  ResultType2["error"] = "error";
+})(ResultType || (ResultType = {}));
+function matchRoutes(routes, locationArg, basename) {
+  if (basename === void 0) {
+    basename = "/";
+  }
+  let location = typeof locationArg === "string" ? parsePath(locationArg) : locationArg;
+  let pathname = stripBasename(location.pathname || "/", basename);
+  if (pathname == null) {
+    return null;
+  }
+  let branches = flattenRoutes(routes);
+  rankRouteBranches(branches);
+  let matches = null;
+  for (let i2 = 0; matches == null && i2 < branches.length; ++i2) {
+    let decoded = decodePath(pathname);
+    matches = matchRouteBranch(branches[i2], decoded);
+  }
+  return matches;
+}
+function flattenRoutes(routes, branches, parentsMeta, parentPath) {
+  if (branches === void 0) {
+    branches = [];
+  }
+  if (parentsMeta === void 0) {
+    parentsMeta = [];
+  }
+  if (parentPath === void 0) {
+    parentPath = "";
+  }
+  let flattenRoute = (route, index2, relativePath) => {
+    let meta = {
+      relativePath: relativePath === void 0 ? route.path || "" : relativePath,
+      caseSensitive: route.caseSensitive === true,
+      childrenIndex: index2,
+      route
+    };
+    if (meta.relativePath.startsWith("/")) {
+      invariant(meta.relativePath.startsWith(parentPath), 'Absolute route path "' + meta.relativePath + '" nested under path ' + ('"' + parentPath + '" is not valid. An absolute child route path ') + "must start with the combined path of all its parent routes.");
+      meta.relativePath = meta.relativePath.slice(parentPath.length);
     }
-    exports.constant = constant;
-    exports.constTrue = constant(true);
-    exports.constFalse = constant(false);
-    exports.constNull = constant(null);
-    exports.constUndefined = constant(void 0);
-    exports.constVoid = exports.constUndefined;
-    function flip3(f) {
-      return function() {
-        var args = [];
-        for (var _i = 0; _i < arguments.length; _i++) {
-          args[_i] = arguments[_i];
-        }
-        if (args.length > 1) {
-          return f(args[1], args[0]);
-        }
-        return function(a) {
-          return f(a)(args[0]);
-        };
-      };
+    let path = joinPaths([parentPath, meta.relativePath]);
+    let routesMeta = parentsMeta.concat(meta);
+    if (route.children && route.children.length > 0) {
+      invariant(
+        // Our types know better, but runtime JS may not!
+        // @ts-expect-error
+        route.index !== true,
+        "Index routes must not have child routes. Please remove " + ('all child routes from route path "' + path + '".')
+      );
+      flattenRoutes(route.children, branches, routesMeta, path);
     }
-    exports.flip = flip3;
-    function flow3(ab, bc, cd, de, ef, fg, gh, hi, ij) {
-      switch (arguments.length) {
-        case 1:
-          return ab;
-        case 2:
-          return function() {
-            return bc(ab.apply(this, arguments));
-          };
-        case 3:
-          return function() {
-            return cd(bc(ab.apply(this, arguments)));
-          };
-        case 4:
-          return function() {
-            return de(cd(bc(ab.apply(this, arguments))));
-          };
-        case 5:
-          return function() {
-            return ef(de(cd(bc(ab.apply(this, arguments)))));
-          };
-        case 6:
-          return function() {
-            return fg(ef(de(cd(bc(ab.apply(this, arguments))))));
-          };
-        case 7:
-          return function() {
-            return gh(fg(ef(de(cd(bc(ab.apply(this, arguments)))))));
-          };
-        case 8:
-          return function() {
-            return hi(gh(fg(ef(de(cd(bc(ab.apply(this, arguments))))))));
-          };
-        case 9:
-          return function() {
-            return ij(hi(gh(fg(ef(de(cd(bc(ab.apply(this, arguments)))))))));
-          };
-      }
+    if (route.path == null && !route.index) {
       return;
     }
-    exports.flow = flow3;
-    function tuple2() {
-      var t = [];
-      for (var _i = 0; _i < arguments.length; _i++) {
-        t[_i] = arguments[_i];
-      }
-      return t;
-    }
-    exports.tuple = tuple2;
-    function increment(n) {
-      return n + 1;
-    }
-    exports.increment = increment;
-    function decrement(n) {
-      return n - 1;
-    }
-    exports.decrement = decrement;
-    function absurd(_) {
-      throw new Error("Called `absurd` function which should be uncallable");
-    }
-    exports.absurd = absurd;
-    function tupled(f) {
-      return function(a) {
-        return f.apply(void 0, a);
-      };
-    }
-    exports.tupled = tupled;
-    function untupled(f) {
-      return function() {
-        var a = [];
-        for (var _i = 0; _i < arguments.length; _i++) {
-          a[_i] = arguments[_i];
-        }
-        return f(a);
-      };
-    }
-    exports.untupled = untupled;
-    function pipe(a, ab, bc, cd, de, ef, fg, gh, hi) {
-      switch (arguments.length) {
-        case 1:
-          return a;
-        case 2:
-          return ab(a);
-        case 3:
-          return bc(ab(a));
-        case 4:
-          return cd(bc(ab(a)));
-        case 5:
-          return de(cd(bc(ab(a))));
-        case 6:
-          return ef(de(cd(bc(ab(a)))));
-        case 7:
-          return fg(ef(de(cd(bc(ab(a))))));
-        case 8:
-          return gh(fg(ef(de(cd(bc(ab(a)))))));
-        case 9:
-          return hi(gh(fg(ef(de(cd(bc(ab(a))))))));
-        default: {
-          var ret = arguments[0];
-          for (var i2 = 1; i2 < arguments.length; i2++) {
-            ret = arguments[i2](ret);
-          }
-          return ret;
-        }
+    branches.push({
+      path,
+      score: computeScore(path, route.index),
+      routesMeta
+    });
+  };
+  routes.forEach((route, index2) => {
+    var _route$path;
+    if (route.path === "" || !((_route$path = route.path) != null && _route$path.includes("?"))) {
+      flattenRoute(route, index2);
+    } else {
+      for (let exploded of explodeOptionalSegments(route.path)) {
+        flattenRoute(route, index2, exploded);
       }
     }
-    exports.pipe = pipe;
-    exports.hole = absurd;
-    var SK = function(_, b) {
-      return b;
-    };
-    exports.SK = SK;
-    function not(predicate) {
-      return function(a) {
-        return !predicate(a);
-      };
-    }
-    exports.not = not;
-    var getEndomorphismMonoid = function() {
-      return {
-        concat: function(first, second) {
-          return flow3(first, second);
-        },
-        empty: identity2
-      };
-    };
-    exports.getEndomorphismMonoid = getEndomorphismMonoid;
-    var dual = function(arity, body) {
-      var isDataFirst = typeof arity === "number" ? function(args) {
-        return args.length >= arity;
-      } : arity;
-      return function() {
-        var args = Array.from(arguments);
-        if (isDataFirst(arguments)) {
-          return body.apply(this, args);
-        }
-        return function(self2) {
-          return body.apply(void 0, __spreadArray2([self2], args, false));
-        };
-      };
-    };
-    exports.dual = dual;
-  })(_function);
-  return _function;
-}
-var internal = {};
-var hasRequiredInternal;
-function requireInternal() {
-  if (hasRequiredInternal) return internal;
-  hasRequiredInternal = 1;
-  (function(exports) {
-    var __spreadArray2 = internal && internal.__spreadArray || function(to, from2, pack) {
-      if (pack || arguments.length === 2) for (var i2 = 0, l = from2.length, ar; i2 < l; i2++) {
-        if (ar || !(i2 in from2)) {
-          if (!ar) ar = Array.prototype.slice.call(from2, 0, i2);
-          ar[i2] = from2[i2];
-        }
-      }
-      return to.concat(ar || Array.prototype.slice.call(from2));
-    };
-    Object.defineProperty(exports, "__esModule", { value: true });
-    exports.flatMapReader = exports.flatMapTask = exports.flatMapIO = exports.flatMapEither = exports.flatMapOption = exports.flatMapNullable = exports.liftOption = exports.liftNullable = exports.fromReadonlyNonEmptyArray = exports.has = exports.emptyRecord = exports.emptyReadonlyArray = exports.tail = exports.head = exports.isNonEmpty = exports.singleton = exports.right = exports.left = exports.isRight = exports.isLeft = exports.some = exports.none = exports.isSome = exports.isNone = void 0;
-    var function_1 = /* @__PURE__ */ require_function();
-    var isNone = function(fa) {
-      return fa._tag === "None";
-    };
-    exports.isNone = isNone;
-    var isSome = function(fa) {
-      return fa._tag === "Some";
-    };
-    exports.isSome = isSome;
-    exports.none = { _tag: "None" };
-    var some = function(a) {
-      return { _tag: "Some", value: a };
-    };
-    exports.some = some;
-    var isLeft2 = function(ma) {
-      return ma._tag === "Left";
-    };
-    exports.isLeft = isLeft2;
-    var isRight2 = function(ma) {
-      return ma._tag === "Right";
-    };
-    exports.isRight = isRight2;
-    var left2 = function(e) {
-      return { _tag: "Left", left: e };
-    };
-    exports.left = left2;
-    var right2 = function(a) {
-      return { _tag: "Right", right: a };
-    };
-    exports.right = right2;
-    var singleton = function(a) {
-      return [a];
-    };
-    exports.singleton = singleton;
-    var isNonEmpty2 = function(as) {
-      return as.length > 0;
-    };
-    exports.isNonEmpty = isNonEmpty2;
-    var head = function(as) {
-      return as[0];
-    };
-    exports.head = head;
-    var tail = function(as) {
-      return as.slice(1);
-    };
-    exports.tail = tail;
-    exports.emptyReadonlyArray = [];
-    exports.emptyRecord = {};
-    exports.has = Object.prototype.hasOwnProperty;
-    var fromReadonlyNonEmptyArray = function(as) {
-      return __spreadArray2([as[0]], as.slice(1), true);
-    };
-    exports.fromReadonlyNonEmptyArray = fromReadonlyNonEmptyArray;
-    var liftNullable = function(F) {
-      return function(f, onNullable) {
-        return function() {
-          var a = [];
-          for (var _i = 0; _i < arguments.length; _i++) {
-            a[_i] = arguments[_i];
-          }
-          var o = f.apply(void 0, a);
-          return F.fromEither(o == null ? (0, exports.left)(onNullable.apply(void 0, a)) : (0, exports.right)(o));
-        };
-      };
-    };
-    exports.liftNullable = liftNullable;
-    var liftOption = function(F) {
-      return function(f, onNone) {
-        return function() {
-          var a = [];
-          for (var _i = 0; _i < arguments.length; _i++) {
-            a[_i] = arguments[_i];
-          }
-          var o = f.apply(void 0, a);
-          return F.fromEither((0, exports.isNone)(o) ? (0, exports.left)(onNone.apply(void 0, a)) : (0, exports.right)(o.value));
-        };
-      };
-    };
-    exports.liftOption = liftOption;
-    var flatMapNullable = function(F, M) {
-      return /* @__PURE__ */ (0, function_1.dual)(3, function(self2, f, onNullable) {
-        return M.flatMap(self2, (0, exports.liftNullable)(F)(f, onNullable));
-      });
-    };
-    exports.flatMapNullable = flatMapNullable;
-    var flatMapOption = function(F, M) {
-      return /* @__PURE__ */ (0, function_1.dual)(3, function(self2, f, onNone) {
-        return M.flatMap(self2, (0, exports.liftOption)(F)(f, onNone));
-      });
-    };
-    exports.flatMapOption = flatMapOption;
-    var flatMapEither = function(F, M) {
-      return /* @__PURE__ */ (0, function_1.dual)(2, function(self2, f) {
-        return M.flatMap(self2, function(a) {
-          return F.fromEither(f(a));
-        });
-      });
-    };
-    exports.flatMapEither = flatMapEither;
-    var flatMapIO = function(F, M) {
-      return /* @__PURE__ */ (0, function_1.dual)(2, function(self2, f) {
-        return M.flatMap(self2, function(a) {
-          return F.fromIO(f(a));
-        });
-      });
-    };
-    exports.flatMapIO = flatMapIO;
-    var flatMapTask = function(F, M) {
-      return /* @__PURE__ */ (0, function_1.dual)(2, function(self2, f) {
-        return M.flatMap(self2, function(a) {
-          return F.fromTask(f(a));
-        });
-      });
-    };
-    exports.flatMapTask = flatMapTask;
-    var flatMapReader = function(F, M) {
-      return /* @__PURE__ */ (0, function_1.dual)(2, function(self2, f) {
-        return M.flatMap(self2, function(a) {
-          return F.fromReader(f(a));
-        });
-      });
-    };
-    exports.flatMapReader = flatMapReader;
-  })(internal);
-  return internal;
-}
-var hasRequiredApply;
-function requireApply() {
-  if (hasRequiredApply) return Apply;
-  hasRequiredApply = 1;
-  var __createBinding = Apply && Apply.__createBinding || (Object.create ? (function(o, m, k, k2) {
-    if (k2 === void 0) k2 = k;
-    var desc = Object.getOwnPropertyDescriptor(m, k);
-    if (!desc || ("get" in desc ? !m.__esModule : desc.writable || desc.configurable)) {
-      desc = { enumerable: true, get: function() {
-        return m[k];
-      } };
-    }
-    Object.defineProperty(o, k2, desc);
-  }) : (function(o, m, k, k2) {
-    if (k2 === void 0) k2 = k;
-    o[k2] = m[k];
-  }));
-  var __setModuleDefault = Apply && Apply.__setModuleDefault || (Object.create ? (function(o, v) {
-    Object.defineProperty(o, "default", { enumerable: true, value: v });
-  }) : function(o, v) {
-    o["default"] = v;
   });
-  var __importStar = Apply && Apply.__importStar || function(mod) {
-    if (mod && mod.__esModule) return mod;
-    var result = {};
-    if (mod != null) {
-      for (var k in mod) if (k !== "default" && Object.prototype.hasOwnProperty.call(mod, k)) __createBinding(result, mod, k);
-    }
-    __setModuleDefault(result, mod);
-    return result;
-  };
-  Object.defineProperty(Apply, "__esModule", { value: true });
-  Apply.sequenceS = Apply.sequenceT = Apply.getApplySemigroup = Apply.apS = Apply.apSecond = Apply.apFirst = Apply.ap = void 0;
-  var function_1 = /* @__PURE__ */ require_function();
-  var _ = __importStar(/* @__PURE__ */ requireInternal());
-  function ap(F, G) {
-    return function(fa) {
-      return function(fab) {
-        return F.ap(F.map(fab, function(gab) {
-          return function(ga) {
-            return G.ap(gab, ga);
-          };
-        }), fa);
-      };
-    };
-  }
-  Apply.ap = ap;
-  function apFirst(A) {
-    return function(second) {
-      return function(first) {
-        return A.ap(A.map(first, function(a) {
-          return function() {
-            return a;
-          };
-        }), second);
-      };
-    };
-  }
-  Apply.apFirst = apFirst;
-  function apSecond(A) {
-    return function(second) {
-      return function(first) {
-        return A.ap(A.map(first, function() {
-          return function(b) {
-            return b;
-          };
-        }), second);
-      };
-    };
-  }
-  Apply.apSecond = apSecond;
-  function apS(F) {
-    return function(name, fb) {
-      return function(fa) {
-        return F.ap(F.map(fa, function(a) {
-          return function(b) {
-            var _a2;
-            return Object.assign({}, a, (_a2 = {}, _a2[name] = b, _a2));
-          };
-        }), fb);
-      };
-    };
-  }
-  Apply.apS = apS;
-  function getApplySemigroup(F) {
-    return function(S) {
-      return {
-        concat: function(first, second) {
-          return F.ap(F.map(first, function(x) {
-            return function(y) {
-              return S.concat(x, y);
-            };
-          }), second);
-        }
-      };
-    };
-  }
-  Apply.getApplySemigroup = getApplySemigroup;
-  function curried(f, n, acc) {
-    return function(x) {
-      var combined = Array(acc.length + 1);
-      for (var i2 = 0; i2 < acc.length; i2++) {
-        combined[i2] = acc[i2];
-      }
-      combined[acc.length] = x;
-      return n === 0 ? f.apply(null, combined) : curried(f, n - 1, combined);
-    };
-  }
-  var tupleConstructors = {
-    1: function(a) {
-      return [a];
-    },
-    2: function(a) {
-      return function(b) {
-        return [a, b];
-      };
-    },
-    3: function(a) {
-      return function(b) {
-        return function(c) {
-          return [a, b, c];
-        };
-      };
-    },
-    4: function(a) {
-      return function(b) {
-        return function(c) {
-          return function(d) {
-            return [a, b, c, d];
-          };
-        };
-      };
-    },
-    5: function(a) {
-      return function(b) {
-        return function(c) {
-          return function(d) {
-            return function(e) {
-              return [a, b, c, d, e];
-            };
-          };
-        };
-      };
-    }
-  };
-  function getTupleConstructor(len) {
-    if (!_.has.call(tupleConstructors, len)) {
-      tupleConstructors[len] = curried(function_1.tuple, len - 1, []);
-    }
-    return tupleConstructors[len];
-  }
-  function sequenceT(F) {
-    return function() {
-      var args = [];
-      for (var _i = 0; _i < arguments.length; _i++) {
-        args[_i] = arguments[_i];
-      }
-      var len = args.length;
-      var f = getTupleConstructor(len);
-      var fas = F.map(args[0], f);
-      for (var i2 = 1; i2 < len; i2++) {
-        fas = F.ap(fas, args[i2]);
-      }
-      return fas;
-    };
-  }
-  Apply.sequenceT = sequenceT;
-  function getRecordConstructor(keys) {
-    var len = keys.length;
-    switch (len) {
-      case 1:
-        return function(a) {
-          var _a2;
-          return _a2 = {}, _a2[keys[0]] = a, _a2;
-        };
-      case 2:
-        return function(a) {
-          return function(b) {
-            var _a2;
-            return _a2 = {}, _a2[keys[0]] = a, _a2[keys[1]] = b, _a2;
-          };
-        };
-      case 3:
-        return function(a) {
-          return function(b) {
-            return function(c) {
-              var _a2;
-              return _a2 = {}, _a2[keys[0]] = a, _a2[keys[1]] = b, _a2[keys[2]] = c, _a2;
-            };
-          };
-        };
-      case 4:
-        return function(a) {
-          return function(b) {
-            return function(c) {
-              return function(d) {
-                var _a2;
-                return _a2 = {}, _a2[keys[0]] = a, _a2[keys[1]] = b, _a2[keys[2]] = c, _a2[keys[3]] = d, _a2;
-              };
-            };
-          };
-        };
-      case 5:
-        return function(a) {
-          return function(b) {
-            return function(c) {
-              return function(d) {
-                return function(e) {
-                  var _a2;
-                  return _a2 = {}, _a2[keys[0]] = a, _a2[keys[1]] = b, _a2[keys[2]] = c, _a2[keys[3]] = d, _a2[keys[4]] = e, _a2;
-                };
-              };
-            };
-          };
-        };
-      default:
-        return curried(function() {
-          var args = [];
-          for (var _i = 0; _i < arguments.length; _i++) {
-            args[_i] = arguments[_i];
-          }
-          var r = {};
-          for (var i2 = 0; i2 < len; i2++) {
-            r[keys[i2]] = args[i2];
-          }
-          return r;
-        }, len - 1, []);
-    }
-  }
-  function sequenceS(F) {
-    return function(r) {
-      var keys = Object.keys(r);
-      var len = keys.length;
-      var f = getRecordConstructor(keys);
-      var fr = F.map(r[keys[0]], f);
-      for (var i2 = 1; i2 < len; i2++) {
-        fr = F.ap(fr, r[keys[i2]]);
-      }
-      return fr;
-    };
-  }
-  Apply.sequenceS = sequenceS;
-  return Apply;
+  return branches;
 }
-var Functor = {};
-var hasRequiredFunctor;
-function requireFunctor() {
-  if (hasRequiredFunctor) return Functor;
-  hasRequiredFunctor = 1;
-  Object.defineProperty(Functor, "__esModule", { value: true });
-  Functor.asUnit = Functor.as = Functor.getFunctorComposition = Functor.let = Functor.bindTo = Functor.flap = Functor.map = void 0;
-  var function_1 = /* @__PURE__ */ require_function();
-  function map2(F, G) {
-    return function(f) {
-      return function(fa) {
-        return F.map(fa, function(ga) {
-          return G.map(ga, f);
-        });
-      };
+function explodeOptionalSegments(path) {
+  let segments = path.split("/");
+  if (segments.length === 0) return [];
+  let [first, ...rest] = segments;
+  let isOptional = first.endsWith("?");
+  let required = first.replace(/\?$/, "");
+  if (rest.length === 0) {
+    return isOptional ? [required, ""] : [required];
+  }
+  let restExploded = explodeOptionalSegments(rest.join("/"));
+  let result = [];
+  result.push(...restExploded.map((subpath) => subpath === "" ? required : [required, subpath].join("/")));
+  if (isOptional) {
+    result.push(...restExploded);
+  }
+  return result.map((exploded) => path.startsWith("/") && exploded === "" ? "/" : exploded);
+}
+function rankRouteBranches(branches) {
+  branches.sort((a, b) => a.score !== b.score ? b.score - a.score : compareIndexes(a.routesMeta.map((meta) => meta.childrenIndex), b.routesMeta.map((meta) => meta.childrenIndex)));
+}
+const paramRe = /^:[\w-]+$/;
+const dynamicSegmentValue = 3;
+const indexRouteValue = 2;
+const emptySegmentValue = 1;
+const staticSegmentValue = 10;
+const splatPenalty = -2;
+const isSplat = (s) => s === "*";
+function computeScore(path, index2) {
+  let segments = path.split("/");
+  let initialScore = segments.length;
+  if (segments.some(isSplat)) {
+    initialScore += splatPenalty;
+  }
+  if (index2) {
+    initialScore += indexRouteValue;
+  }
+  return segments.filter((s) => !isSplat(s)).reduce((score, segment) => score + (paramRe.test(segment) ? dynamicSegmentValue : segment === "" ? emptySegmentValue : staticSegmentValue), initialScore);
+}
+function compareIndexes(a, b) {
+  let siblings3 = a.length === b.length && a.slice(0, -1).every((n, i2) => n === b[i2]);
+  return siblings3 ? (
+    // If two routes are siblings, we should try to match the earlier sibling
+    // first. This allows people to have fine-grained control over the matching
+    // behavior by simply putting routes with identical paths in the order they
+    // want them tried.
+    a[a.length - 1] - b[b.length - 1]
+  ) : (
+    // Otherwise, it doesn't really make sense to rank non-siblings by index,
+    // so they sort equally.
+    0
+  );
+}
+function matchRouteBranch(branch, pathname) {
+  let {
+    routesMeta
+  } = branch;
+  let matchedParams = {};
+  let matchedPathname = "/";
+  let matches = [];
+  for (let i2 = 0; i2 < routesMeta.length; ++i2) {
+    let meta = routesMeta[i2];
+    let end = i2 === routesMeta.length - 1;
+    let remainingPathname = matchedPathname === "/" ? pathname : pathname.slice(matchedPathname.length) || "/";
+    let match2 = matchPath({
+      path: meta.relativePath,
+      caseSensitive: meta.caseSensitive,
+      end
+    }, remainingPathname);
+    if (!match2) return null;
+    Object.assign(matchedParams, match2.params);
+    let route = meta.route;
+    matches.push({
+      // TODO: Can this as be avoided?
+      params: matchedParams,
+      pathname: joinPaths([matchedPathname, match2.pathname]),
+      pathnameBase: normalizePathname(joinPaths([matchedPathname, match2.pathnameBase])),
+      route
+    });
+    if (match2.pathnameBase !== "/") {
+      matchedPathname = joinPaths([matchedPathname, match2.pathnameBase]);
+    }
+  }
+  return matches;
+}
+function matchPath(pattern, pathname) {
+  if (typeof pattern === "string") {
+    pattern = {
+      path: pattern,
+      caseSensitive: false,
+      end: true
     };
   }
-  Functor.map = map2;
-  function flap(F) {
-    return function(a) {
-      return function(fab) {
-        return F.map(fab, function(f) {
-          return f(a);
-        });
-      };
-    };
+  let [matcher, compiledParams] = compilePath(pattern.path, pattern.caseSensitive, pattern.end);
+  let match2 = pathname.match(matcher);
+  if (!match2) return null;
+  let matchedPathname = match2[0];
+  let pathnameBase = matchedPathname.replace(/(.)\/+$/, "$1");
+  let captureGroups = match2.slice(1);
+  let params = compiledParams.reduce((memo, _ref3, index2) => {
+    let {
+      paramName,
+      isOptional
+    } = _ref3;
+    if (paramName === "*") {
+      let splatValue = captureGroups[index2] || "";
+      pathnameBase = matchedPathname.slice(0, matchedPathname.length - splatValue.length).replace(/(.)\/+$/, "$1");
+    }
+    const value = captureGroups[index2];
+    if (isOptional && !value) {
+      memo[paramName] = void 0;
+    } else {
+      memo[paramName] = (value || "").replace(/%2F/g, "/");
+    }
+    return memo;
+  }, {});
+  return {
+    params,
+    pathname: matchedPathname,
+    pathnameBase,
+    pattern
+  };
+}
+function compilePath(path, caseSensitive, end) {
+  if (caseSensitive === void 0) {
+    caseSensitive = false;
   }
-  Functor.flap = flap;
-  function bindTo(F) {
-    return function(name) {
-      return function(fa) {
-        return F.map(fa, function(a) {
-          var _a2;
-          return _a2 = {}, _a2[name] = a, _a2;
-        });
-      };
-    };
+  if (end === void 0) {
+    end = true;
   }
-  Functor.bindTo = bindTo;
-  function let_(F) {
-    return function(name, f) {
-      return function(fa) {
-        return F.map(fa, function(a) {
-          var _a2;
-          return Object.assign({}, a, (_a2 = {}, _a2[name] = f(a), _a2));
-        });
-      };
-    };
+  warning(path === "*" || !path.endsWith("*") || path.endsWith("/*"), 'Route path "' + path + '" will be treated as if it were ' + ('"' + path.replace(/\*$/, "/*") + '" because the `*` character must ') + "always follow a `/` in the pattern. To get rid of this warning, " + ('please change the route path to "' + path.replace(/\*$/, "/*") + '".'));
+  let params = [];
+  let regexpSource = "^" + path.replace(/\/*\*?$/, "").replace(/^\/*/, "/").replace(/[\\.*+^${}|()[\]]/g, "\\$&").replace(/\/:([\w-]+)(\?)?/g, (_, paramName, isOptional) => {
+    params.push({
+      paramName,
+      isOptional: isOptional != null
+    });
+    return isOptional ? "/?([^\\/]+)?" : "/([^\\/]+)";
+  });
+  if (path.endsWith("*")) {
+    params.push({
+      paramName: "*"
+    });
+    regexpSource += path === "*" || path === "/*" ? "(.*)$" : "(?:\\/(.+)|\\/*)$";
+  } else if (end) {
+    regexpSource += "\\/*$";
+  } else if (path !== "" && path !== "/") {
+    regexpSource += "(?:(?=\\/|$))";
+  } else ;
+  let matcher = new RegExp(regexpSource, caseSensitive ? void 0 : "i");
+  return [matcher, params];
+}
+function decodePath(value) {
+  try {
+    return value.split("/").map((v) => decodeURIComponent(v).replace(/\//g, "%2F")).join("/");
+  } catch (error) {
+    warning(false, 'The URL path "' + value + '" could not be decoded because it is is a malformed URL segment. This is probably due to a bad percent ' + ("encoding (" + error + ")."));
+    return value;
   }
-  Functor.let = let_;
-  function getFunctorComposition(F, G) {
-    var _map = map2(F, G);
-    return {
-      map: function(fga, f) {
-        return (0, function_1.pipe)(fga, _map(f));
+}
+function stripBasename(pathname, basename) {
+  if (basename === "/") return pathname;
+  if (!pathname.toLowerCase().startsWith(basename.toLowerCase())) {
+    return null;
+  }
+  let startIndex = basename.endsWith("/") ? basename.length - 1 : basename.length;
+  let nextChar = pathname.charAt(startIndex);
+  if (nextChar && nextChar !== "/") {
+    return null;
+  }
+  return pathname.slice(startIndex) || "/";
+}
+function resolvePath(to, fromPathname) {
+  if (fromPathname === void 0) {
+    fromPathname = "/";
+  }
+  let {
+    pathname: toPathname,
+    search = "",
+    hash: hash2 = ""
+  } = typeof to === "string" ? parsePath(to) : to;
+  let pathname = toPathname ? toPathname.startsWith("/") ? toPathname : resolvePathname(toPathname, fromPathname) : fromPathname;
+  return {
+    pathname,
+    search: normalizeSearch(search),
+    hash: normalizeHash(hash2)
+  };
+}
+function resolvePathname(relativePath, fromPathname) {
+  let segments = fromPathname.replace(/\/+$/, "").split("/");
+  let relativeSegments = relativePath.split("/");
+  relativeSegments.forEach((segment) => {
+    if (segment === "..") {
+      if (segments.length > 1) segments.pop();
+    } else if (segment !== ".") {
+      segments.push(segment);
+    }
+  });
+  return segments.length > 1 ? segments.join("/") : "/";
+}
+function getInvalidPathError(char2, field, dest, path) {
+  return "Cannot include a '" + char2 + "' character in a manually specified " + ("`to." + field + "` field [" + JSON.stringify(path) + "].  Please separate it out to the ") + ("`to." + dest + "` field. Alternatively you may provide the full path as ") + 'a string in <Link to="..."> and the router will parse it for you.';
+}
+function getPathContributingMatches(matches) {
+  return matches.filter((match2, index2) => index2 === 0 || match2.route.path && match2.route.path.length > 0);
+}
+function getResolveToMatches(matches, v7_relativeSplatPath) {
+  let pathMatches = getPathContributingMatches(matches);
+  if (v7_relativeSplatPath) {
+    return pathMatches.map((match2, idx) => idx === matches.length - 1 ? match2.pathname : match2.pathnameBase);
+  }
+  return pathMatches.map((match2) => match2.pathnameBase);
+}
+function resolveTo(toArg, routePathnames, locationPathname, isPathRelative) {
+  if (isPathRelative === void 0) {
+    isPathRelative = false;
+  }
+  let to;
+  if (typeof toArg === "string") {
+    to = parsePath(toArg);
+  } else {
+    to = _extends$5({}, toArg);
+    invariant(!to.pathname || !to.pathname.includes("?"), getInvalidPathError("?", "pathname", "search", to));
+    invariant(!to.pathname || !to.pathname.includes("#"), getInvalidPathError("#", "pathname", "hash", to));
+    invariant(!to.search || !to.search.includes("#"), getInvalidPathError("#", "search", "hash", to));
+  }
+  let isEmptyPath = toArg === "" || to.pathname === "";
+  let toPathname = isEmptyPath ? "/" : to.pathname;
+  let from2;
+  if (toPathname == null) {
+    from2 = locationPathname;
+  } else {
+    let routePathnameIndex = routePathnames.length - 1;
+    if (!isPathRelative && toPathname.startsWith("..")) {
+      let toSegments = toPathname.split("/");
+      while (toSegments[0] === "..") {
+        toSegments.shift();
+        routePathnameIndex -= 1;
       }
+      to.pathname = toSegments.join("/");
+    }
+    from2 = routePathnameIndex >= 0 ? routePathnames[routePathnameIndex] : "/";
+  }
+  let path = resolvePath(to, from2);
+  let hasExplicitTrailingSlash = toPathname && toPathname !== "/" && toPathname.endsWith("/");
+  let hasCurrentTrailingSlash = (isEmptyPath || toPathname === ".") && locationPathname.endsWith("/");
+  if (!path.pathname.endsWith("/") && (hasExplicitTrailingSlash || hasCurrentTrailingSlash)) {
+    path.pathname += "/";
+  }
+  return path;
+}
+const joinPaths = (paths) => paths.join("/").replace(/\/\/+/g, "/");
+const normalizePathname = (pathname) => pathname.replace(/\/+$/, "").replace(/^\/*/, "/");
+const normalizeSearch = (search) => !search || search === "?" ? "" : search.startsWith("?") ? search : "?" + search;
+const normalizeHash = (hash2) => !hash2 || hash2 === "#" ? "" : hash2.startsWith("#") ? hash2 : "#" + hash2;
+function isRouteErrorResponse(error) {
+  return error != null && typeof error.status === "number" && typeof error.statusText === "string" && typeof error.internal === "boolean" && "data" in error;
+}
+const validMutationMethodsArr = ["post", "put", "patch", "delete"];
+new Set(validMutationMethodsArr);
+const validRequestMethodsArr = ["get", ...validMutationMethodsArr];
+new Set(validRequestMethodsArr);
+function _extends$4() {
+  _extends$4 = Object.assign ? Object.assign.bind() : function(target) {
+    for (var i2 = 1; i2 < arguments.length; i2++) {
+      var source = arguments[i2];
+      for (var key in source) {
+        if (Object.prototype.hasOwnProperty.call(source, key)) {
+          target[key] = source[key];
+        }
+      }
+    }
+    return target;
+  };
+  return _extends$4.apply(this, arguments);
+}
+const DataRouterContext = /* @__PURE__ */ reactExports.createContext(null);
+const DataRouterStateContext = /* @__PURE__ */ reactExports.createContext(null);
+const NavigationContext = /* @__PURE__ */ reactExports.createContext(null);
+const LocationContext = /* @__PURE__ */ reactExports.createContext(null);
+const RouteContext = /* @__PURE__ */ reactExports.createContext({
+  outlet: null,
+  matches: [],
+  isDataRoute: false
+});
+const RouteErrorContext = /* @__PURE__ */ reactExports.createContext(null);
+function useHref(to, _temp) {
+  let {
+    relative
+  } = _temp === void 0 ? {} : _temp;
+  !useInRouterContext() ? invariant(false) : void 0;
+  let {
+    basename,
+    navigator: navigator2
+  } = reactExports.useContext(NavigationContext);
+  let {
+    hash: hash2,
+    pathname,
+    search
+  } = useResolvedPath(to, {
+    relative
+  });
+  let joinedPathname = pathname;
+  if (basename !== "/") {
+    joinedPathname = pathname === "/" ? basename : joinPaths([basename, pathname]);
+  }
+  return navigator2.createHref({
+    pathname: joinedPathname,
+    search,
+    hash: hash2
+  });
+}
+function useInRouterContext() {
+  return reactExports.useContext(LocationContext) != null;
+}
+function useLocation() {
+  !useInRouterContext() ? invariant(false) : void 0;
+  return reactExports.useContext(LocationContext).location;
+}
+function useIsomorphicLayoutEffect$1(cb) {
+  let isStatic = reactExports.useContext(NavigationContext).static;
+  if (!isStatic) {
+    reactExports.useLayoutEffect(cb);
+  }
+}
+function useNavigate() {
+  let {
+    isDataRoute
+  } = reactExports.useContext(RouteContext);
+  return isDataRoute ? useNavigateStable() : useNavigateUnstable();
+}
+function useNavigateUnstable() {
+  !useInRouterContext() ? invariant(false) : void 0;
+  let dataRouterContext = reactExports.useContext(DataRouterContext);
+  let {
+    basename,
+    future,
+    navigator: navigator2
+  } = reactExports.useContext(NavigationContext);
+  let {
+    matches
+  } = reactExports.useContext(RouteContext);
+  let {
+    pathname: locationPathname
+  } = useLocation();
+  let routePathnamesJson = JSON.stringify(getResolveToMatches(matches, future.v7_relativeSplatPath));
+  let activeRef = reactExports.useRef(false);
+  useIsomorphicLayoutEffect$1(() => {
+    activeRef.current = true;
+  });
+  let navigate = reactExports.useCallback(function(to, options2) {
+    if (options2 === void 0) {
+      options2 = {};
+    }
+    if (!activeRef.current) return;
+    if (typeof to === "number") {
+      navigator2.go(to);
+      return;
+    }
+    let path = resolveTo(to, JSON.parse(routePathnamesJson), locationPathname, options2.relative === "path");
+    if (dataRouterContext == null && basename !== "/") {
+      path.pathname = path.pathname === "/" ? basename : joinPaths([basename, path.pathname]);
+    }
+    (!!options2.replace ? navigator2.replace : navigator2.push)(path, options2.state, options2);
+  }, [basename, navigator2, routePathnamesJson, locationPathname, dataRouterContext]);
+  return navigate;
+}
+function useResolvedPath(to, _temp2) {
+  let {
+    relative
+  } = _temp2 === void 0 ? {} : _temp2;
+  let {
+    future
+  } = reactExports.useContext(NavigationContext);
+  let {
+    matches
+  } = reactExports.useContext(RouteContext);
+  let {
+    pathname: locationPathname
+  } = useLocation();
+  let routePathnamesJson = JSON.stringify(getResolveToMatches(matches, future.v7_relativeSplatPath));
+  return reactExports.useMemo(() => resolveTo(to, JSON.parse(routePathnamesJson), locationPathname, relative === "path"), [to, routePathnamesJson, locationPathname, relative]);
+}
+function useRoutes(routes, locationArg) {
+  return useRoutesImpl(routes, locationArg);
+}
+function useRoutesImpl(routes, locationArg, dataRouterState, future) {
+  !useInRouterContext() ? invariant(false) : void 0;
+  let {
+    navigator: navigator2
+  } = reactExports.useContext(NavigationContext);
+  let {
+    matches: parentMatches
+  } = reactExports.useContext(RouteContext);
+  let routeMatch = parentMatches[parentMatches.length - 1];
+  let parentParams = routeMatch ? routeMatch.params : {};
+  routeMatch ? routeMatch.pathname : "/";
+  let parentPathnameBase = routeMatch ? routeMatch.pathnameBase : "/";
+  routeMatch && routeMatch.route;
+  let locationFromContext = useLocation();
+  let location;
+  if (locationArg) {
+    var _parsedLocationArg$pa;
+    let parsedLocationArg = typeof locationArg === "string" ? parsePath(locationArg) : locationArg;
+    !(parentPathnameBase === "/" || ((_parsedLocationArg$pa = parsedLocationArg.pathname) == null ? void 0 : _parsedLocationArg$pa.startsWith(parentPathnameBase))) ? invariant(false) : void 0;
+    location = parsedLocationArg;
+  } else {
+    location = locationFromContext;
+  }
+  let pathname = location.pathname || "/";
+  let remainingPathname = pathname;
+  if (parentPathnameBase !== "/") {
+    let parentSegments = parentPathnameBase.replace(/^\//, "").split("/");
+    let segments = pathname.replace(/^\//, "").split("/");
+    remainingPathname = "/" + segments.slice(parentSegments.length).join("/");
+  }
+  let matches = matchRoutes(routes, {
+    pathname: remainingPathname
+  });
+  let renderedMatches = _renderMatches(matches && matches.map((match2) => Object.assign({}, match2, {
+    params: Object.assign({}, parentParams, match2.params),
+    pathname: joinPaths([
+      parentPathnameBase,
+      // Re-encode pathnames that were decoded inside matchRoutes
+      navigator2.encodeLocation ? navigator2.encodeLocation(match2.pathname).pathname : match2.pathname
+    ]),
+    pathnameBase: match2.pathnameBase === "/" ? parentPathnameBase : joinPaths([
+      parentPathnameBase,
+      // Re-encode pathnames that were decoded inside matchRoutes
+      navigator2.encodeLocation ? navigator2.encodeLocation(match2.pathnameBase).pathname : match2.pathnameBase
+    ])
+  })), parentMatches, dataRouterState, future);
+  if (locationArg && renderedMatches) {
+    return /* @__PURE__ */ reactExports.createElement(LocationContext.Provider, {
+      value: {
+        location: _extends$4({
+          pathname: "/",
+          search: "",
+          hash: "",
+          state: null,
+          key: "default"
+        }, location),
+        navigationType: Action.Pop
+      }
+    }, renderedMatches);
+  }
+  return renderedMatches;
+}
+function DefaultErrorComponent() {
+  let error = useRouteError();
+  let message = isRouteErrorResponse(error) ? error.status + " " + error.statusText : error instanceof Error ? error.message : JSON.stringify(error);
+  let stack = error instanceof Error ? error.stack : null;
+  let lightgrey = "rgba(200,200,200, 0.5)";
+  let preStyles = {
+    padding: "0.5rem",
+    backgroundColor: lightgrey
+  };
+  let devInfo = null;
+  return /* @__PURE__ */ reactExports.createElement(reactExports.Fragment, null, /* @__PURE__ */ reactExports.createElement("h2", null, "Unexpected Application Error!"), /* @__PURE__ */ reactExports.createElement("h3", {
+    style: {
+      fontStyle: "italic"
+    }
+  }, message), stack ? /* @__PURE__ */ reactExports.createElement("pre", {
+    style: preStyles
+  }, stack) : null, devInfo);
+}
+const defaultErrorElement = /* @__PURE__ */ reactExports.createElement(DefaultErrorComponent, null);
+class RenderErrorBoundary extends reactExports.Component {
+  constructor(props) {
+    super(props);
+    this.state = {
+      location: props.location,
+      revalidation: props.revalidation,
+      error: props.error
     };
   }
-  Functor.getFunctorComposition = getFunctorComposition;
-  function as(F) {
-    return function(self2, b) {
-      return F.map(self2, function() {
-        return b;
+  static getDerivedStateFromError(error) {
+    return {
+      error
+    };
+  }
+  static getDerivedStateFromProps(props, state) {
+    if (state.location !== props.location || state.revalidation !== "idle" && props.revalidation === "idle") {
+      return {
+        error: props.error,
+        location: props.location,
+        revalidation: props.revalidation
+      };
+    }
+    return {
+      error: props.error !== void 0 ? props.error : state.error,
+      location: state.location,
+      revalidation: props.revalidation || state.revalidation
+    };
+  }
+  componentDidCatch(error, errorInfo) {
+    console.error("React Router caught the following error during render", error, errorInfo);
+  }
+  render() {
+    return this.state.error !== void 0 ? /* @__PURE__ */ reactExports.createElement(RouteContext.Provider, {
+      value: this.props.routeContext
+    }, /* @__PURE__ */ reactExports.createElement(RouteErrorContext.Provider, {
+      value: this.state.error,
+      children: this.props.component
+    })) : this.props.children;
+  }
+}
+function RenderedRoute(_ref3) {
+  let {
+    routeContext,
+    match: match2,
+    children: children2
+  } = _ref3;
+  let dataRouterContext = reactExports.useContext(DataRouterContext);
+  if (dataRouterContext && dataRouterContext.static && dataRouterContext.staticContext && (match2.route.errorElement || match2.route.ErrorBoundary)) {
+    dataRouterContext.staticContext._deepestRenderedBoundaryId = match2.route.id;
+  }
+  return /* @__PURE__ */ reactExports.createElement(RouteContext.Provider, {
+    value: routeContext
+  }, children2);
+}
+function _renderMatches(matches, parentMatches, dataRouterState, future) {
+  var _dataRouterState2;
+  if (parentMatches === void 0) {
+    parentMatches = [];
+  }
+  if (dataRouterState === void 0) {
+    dataRouterState = null;
+  }
+  if (future === void 0) {
+    future = null;
+  }
+  if (matches == null) {
+    var _dataRouterState;
+    if ((_dataRouterState = dataRouterState) != null && _dataRouterState.errors) {
+      matches = dataRouterState.matches;
+    } else {
+      return null;
+    }
+  }
+  let renderedMatches = matches;
+  let errors = (_dataRouterState2 = dataRouterState) == null ? void 0 : _dataRouterState2.errors;
+  if (errors != null) {
+    let errorIndex = renderedMatches.findIndex((m) => m.route.id && (errors == null ? void 0 : errors[m.route.id]));
+    !(errorIndex >= 0) ? invariant(false) : void 0;
+    renderedMatches = renderedMatches.slice(0, Math.min(renderedMatches.length, errorIndex + 1));
+  }
+  let renderFallback = false;
+  let fallbackIndex = -1;
+  if (dataRouterState && future && future.v7_partialHydration) {
+    for (let i2 = 0; i2 < renderedMatches.length; i2++) {
+      let match2 = renderedMatches[i2];
+      if (match2.route.HydrateFallback || match2.route.hydrateFallbackElement) {
+        fallbackIndex = i2;
+      }
+      if (match2.route.id) {
+        let {
+          loaderData,
+          errors: errors2
+        } = dataRouterState;
+        let needsToRunLoader = match2.route.loader && loaderData[match2.route.id] === void 0 && (!errors2 || errors2[match2.route.id] === void 0);
+        if (match2.route.lazy || needsToRunLoader) {
+          renderFallback = true;
+          if (fallbackIndex >= 0) {
+            renderedMatches = renderedMatches.slice(0, fallbackIndex + 1);
+          } else {
+            renderedMatches = [renderedMatches[0]];
+          }
+          break;
+        }
+      }
+    }
+  }
+  return renderedMatches.reduceRight((outlet, match2, index2) => {
+    let error;
+    let shouldRenderHydrateFallback = false;
+    let errorElement = null;
+    let hydrateFallbackElement = null;
+    if (dataRouterState) {
+      error = errors && match2.route.id ? errors[match2.route.id] : void 0;
+      errorElement = match2.route.errorElement || defaultErrorElement;
+      if (renderFallback) {
+        if (fallbackIndex < 0 && index2 === 0) {
+          warningOnce("route-fallback");
+          shouldRenderHydrateFallback = true;
+          hydrateFallbackElement = null;
+        } else if (fallbackIndex === index2) {
+          shouldRenderHydrateFallback = true;
+          hydrateFallbackElement = match2.route.hydrateFallbackElement || null;
+        }
+      }
+    }
+    let matches2 = parentMatches.concat(renderedMatches.slice(0, index2 + 1));
+    let getChildren = () => {
+      let children2;
+      if (error) {
+        children2 = errorElement;
+      } else if (shouldRenderHydrateFallback) {
+        children2 = hydrateFallbackElement;
+      } else if (match2.route.Component) {
+        children2 = /* @__PURE__ */ reactExports.createElement(match2.route.Component, null);
+      } else if (match2.route.element) {
+        children2 = match2.route.element;
+      } else {
+        children2 = outlet;
+      }
+      return /* @__PURE__ */ reactExports.createElement(RenderedRoute, {
+        match: match2,
+        routeContext: {
+          outlet,
+          matches: matches2,
+          isDataRoute: dataRouterState != null
+        },
+        children: children2
       });
     };
-  }
-  Functor.as = as;
-  function asUnit(F) {
-    var asM = as(F);
-    return function(self2) {
-      return asM(self2, void 0);
-    };
-  }
-  Functor.asUnit = asUnit;
-  return Functor;
+    return dataRouterState && (match2.route.ErrorBoundary || match2.route.errorElement || index2 === 0) ? /* @__PURE__ */ reactExports.createElement(RenderErrorBoundary, {
+      location: dataRouterState.location,
+      revalidation: dataRouterState.revalidation,
+      component: errorElement,
+      error,
+      children: getChildren(),
+      routeContext: {
+        outlet: null,
+        matches: matches2,
+        isDataRoute: true
+      }
+    }) : getChildren();
+  }, null);
 }
-var hasRequiredApplicative;
-function requireApplicative() {
-  if (hasRequiredApplicative) return Applicative;
-  hasRequiredApplicative = 1;
-  Object.defineProperty(Applicative, "__esModule", { value: true });
-  Applicative.getApplicativeComposition = Applicative.getApplicativeMonoid = void 0;
-  var Apply_1 = /* @__PURE__ */ requireApply();
-  var function_1 = /* @__PURE__ */ require_function();
-  var Functor_1 = /* @__PURE__ */ requireFunctor();
-  function getApplicativeMonoid(F) {
-    var f = (0, Apply_1.getApplySemigroup)(F);
-    return function(M) {
-      return {
-        concat: f(M).concat,
-        empty: F.of(M.empty)
-      };
-    };
+var DataRouterHook$1 = /* @__PURE__ */ (function(DataRouterHook2) {
+  DataRouterHook2["UseBlocker"] = "useBlocker";
+  DataRouterHook2["UseRevalidator"] = "useRevalidator";
+  DataRouterHook2["UseNavigateStable"] = "useNavigate";
+  return DataRouterHook2;
+})(DataRouterHook$1 || {});
+var DataRouterStateHook$1 = /* @__PURE__ */ (function(DataRouterStateHook2) {
+  DataRouterStateHook2["UseBlocker"] = "useBlocker";
+  DataRouterStateHook2["UseLoaderData"] = "useLoaderData";
+  DataRouterStateHook2["UseActionData"] = "useActionData";
+  DataRouterStateHook2["UseRouteError"] = "useRouteError";
+  DataRouterStateHook2["UseNavigation"] = "useNavigation";
+  DataRouterStateHook2["UseRouteLoaderData"] = "useRouteLoaderData";
+  DataRouterStateHook2["UseMatches"] = "useMatches";
+  DataRouterStateHook2["UseRevalidator"] = "useRevalidator";
+  DataRouterStateHook2["UseNavigateStable"] = "useNavigate";
+  DataRouterStateHook2["UseRouteId"] = "useRouteId";
+  return DataRouterStateHook2;
+})(DataRouterStateHook$1 || {});
+function useDataRouterContext(hookName) {
+  let ctx = reactExports.useContext(DataRouterContext);
+  !ctx ? invariant(false) : void 0;
+  return ctx;
+}
+function useDataRouterState(hookName) {
+  let state = reactExports.useContext(DataRouterStateContext);
+  !state ? invariant(false) : void 0;
+  return state;
+}
+function useRouteContext(hookName) {
+  let route = reactExports.useContext(RouteContext);
+  !route ? invariant(false) : void 0;
+  return route;
+}
+function useCurrentRouteId(hookName) {
+  let route = useRouteContext();
+  let thisRoute = route.matches[route.matches.length - 1];
+  !thisRoute.route.id ? invariant(false) : void 0;
+  return thisRoute.route.id;
+}
+function useRouteError() {
+  var _state$errors;
+  let error = reactExports.useContext(RouteErrorContext);
+  let state = useDataRouterState();
+  let routeId = useCurrentRouteId();
+  if (error !== void 0) {
+    return error;
   }
-  Applicative.getApplicativeMonoid = getApplicativeMonoid;
-  function getApplicativeComposition(F, G) {
-    var map2 = (0, Functor_1.getFunctorComposition)(F, G).map;
-    var _ap = (0, Apply_1.ap)(F, G);
+  return (_state$errors = state.errors) == null ? void 0 : _state$errors[routeId];
+}
+function useNavigateStable() {
+  let {
+    router
+  } = useDataRouterContext(DataRouterHook$1.UseNavigateStable);
+  let id = useCurrentRouteId(DataRouterStateHook$1.UseNavigateStable);
+  let activeRef = reactExports.useRef(false);
+  useIsomorphicLayoutEffect$1(() => {
+    activeRef.current = true;
+  });
+  let navigate = reactExports.useCallback(function(to, options2) {
+    if (options2 === void 0) {
+      options2 = {};
+    }
+    if (!activeRef.current) return;
+    if (typeof to === "number") {
+      router.navigate(to);
+    } else {
+      router.navigate(to, _extends$4({
+        fromRouteId: id
+      }, options2));
+    }
+  }, [router, id]);
+  return navigate;
+}
+const alreadyWarned = {};
+function warningOnce(key, cond, message) {
+  if (!alreadyWarned[key]) {
+    alreadyWarned[key] = true;
+  }
+}
+function Navigate(_ref4) {
+  let {
+    to,
+    replace: replace3,
+    state,
+    relative
+  } = _ref4;
+  !useInRouterContext() ? invariant(false) : void 0;
+  let {
+    future,
+    static: isStatic
+  } = reactExports.useContext(NavigationContext);
+  let {
+    matches
+  } = reactExports.useContext(RouteContext);
+  let {
+    pathname: locationPathname
+  } = useLocation();
+  let navigate = useNavigate();
+  let path = resolveTo(to, getResolveToMatches(matches, future.v7_relativeSplatPath), locationPathname, relative === "path");
+  let jsonPath = JSON.stringify(path);
+  reactExports.useEffect(() => navigate(JSON.parse(jsonPath), {
+    replace: replace3,
+    state,
+    relative
+  }), [navigate, jsonPath, relative, replace3, state]);
+  return null;
+}
+function Route(_props) {
+  invariant(false);
+}
+function Router(_ref5) {
+  let {
+    basename: basenameProp = "/",
+    children: children2 = null,
+    location: locationProp,
+    navigationType = Action.Pop,
+    navigator: navigator2,
+    static: staticProp = false,
+    future
+  } = _ref5;
+  !!useInRouterContext() ? invariant(false) : void 0;
+  let basename = basenameProp.replace(/^\/*/, "/");
+  let navigationContext = reactExports.useMemo(() => ({
+    basename,
+    navigator: navigator2,
+    static: staticProp,
+    future: _extends$4({
+      v7_relativeSplatPath: false
+    }, future)
+  }), [basename, future, navigator2, staticProp]);
+  if (typeof locationProp === "string") {
+    locationProp = parsePath(locationProp);
+  }
+  let {
+    pathname = "/",
+    search = "",
+    hash: hash2 = "",
+    state = null,
+    key = "default"
+  } = locationProp;
+  let locationContext = reactExports.useMemo(() => {
+    let trailingPathname = stripBasename(pathname, basename);
+    if (trailingPathname == null) {
+      return null;
+    }
     return {
-      map: map2,
-      of: function(a) {
-        return F.of(G.of(a));
+      location: {
+        pathname: trailingPathname,
+        search,
+        hash: hash2,
+        state,
+        key
       },
-      ap: function(fgab, fga) {
-        return (0, function_1.pipe)(fgab, _ap(fga));
-      }
+      navigationType
     };
+  }, [basename, pathname, search, hash2, state, key, navigationType]);
+  if (locationContext == null) {
+    return null;
   }
-  Applicative.getApplicativeComposition = getApplicativeComposition;
-  return Applicative;
-}
-var Chain = {};
-var hasRequiredChain;
-function requireChain() {
-  if (hasRequiredChain) return Chain;
-  hasRequiredChain = 1;
-  Object.defineProperty(Chain, "__esModule", { value: true });
-  Chain.bind = Chain.tap = Chain.chainFirst = void 0;
-  function chainFirst(M) {
-    var tapM = tap(M);
-    return function(f) {
-      return function(first) {
-        return tapM(first, f);
-      };
-    };
-  }
-  Chain.chainFirst = chainFirst;
-  function tap(M) {
-    return function(first, f) {
-      return M.chain(first, function(a) {
-        return M.map(f(a), function() {
-          return a;
-        });
-      });
-    };
-  }
-  Chain.tap = tap;
-  function bind(M) {
-    return function(name, f) {
-      return function(ma) {
-        return M.chain(ma, function(a) {
-          return M.map(f(a), function(b) {
-            var _a2;
-            return Object.assign({}, a, (_a2 = {}, _a2[name] = b, _a2));
-          });
-        });
-      };
-    };
-  }
-  Chain.bind = bind;
-  return Chain;
-}
-var ChainRec = {};
-var hasRequiredChainRec;
-function requireChainRec() {
-  if (hasRequiredChainRec) return ChainRec;
-  hasRequiredChainRec = 1;
-  Object.defineProperty(ChainRec, "__esModule", { value: true });
-  ChainRec.tailRec = void 0;
-  var tailRec = function(startWith, f) {
-    var ab = f(startWith);
-    while (ab._tag === "Left") {
-      ab = f(ab.left);
-    }
-    return ab.right;
-  };
-  ChainRec.tailRec = tailRec;
-  return ChainRec;
-}
-var FromEither = {};
-var hasRequiredFromEither;
-function requireFromEither() {
-  if (hasRequiredFromEither) return FromEither;
-  hasRequiredFromEither = 1;
-  var __createBinding = FromEither && FromEither.__createBinding || (Object.create ? (function(o, m, k, k2) {
-    if (k2 === void 0) k2 = k;
-    var desc = Object.getOwnPropertyDescriptor(m, k);
-    if (!desc || ("get" in desc ? !m.__esModule : desc.writable || desc.configurable)) {
-      desc = { enumerable: true, get: function() {
-        return m[k];
-      } };
-    }
-    Object.defineProperty(o, k2, desc);
-  }) : (function(o, m, k, k2) {
-    if (k2 === void 0) k2 = k;
-    o[k2] = m[k];
+  return /* @__PURE__ */ reactExports.createElement(NavigationContext.Provider, {
+    value: navigationContext
+  }, /* @__PURE__ */ reactExports.createElement(LocationContext.Provider, {
+    children: children2,
+    value: locationContext
   }));
-  var __setModuleDefault = FromEither && FromEither.__setModuleDefault || (Object.create ? (function(o, v) {
-    Object.defineProperty(o, "default", { enumerable: true, value: v });
-  }) : function(o, v) {
-    o["default"] = v;
-  });
-  var __importStar = FromEither && FromEither.__importStar || function(mod) {
-    if (mod && mod.__esModule) return mod;
-    var result = {};
-    if (mod != null) {
-      for (var k in mod) if (k !== "default" && Object.prototype.hasOwnProperty.call(mod, k)) __createBinding(result, mod, k);
+}
+function Routes(_ref6) {
+  let {
+    children: children2,
+    location
+  } = _ref6;
+  return useRoutes(createRoutesFromChildren(children2), location);
+}
+new Promise(() => {
+});
+function createRoutesFromChildren(children2, parentPath) {
+  if (parentPath === void 0) {
+    parentPath = [];
+  }
+  let routes = [];
+  reactExports.Children.forEach(children2, (element2, index2) => {
+    if (!/* @__PURE__ */ reactExports.isValidElement(element2)) {
+      return;
     }
-    __setModuleDefault(result, mod);
-    return result;
+    let treePath = [...parentPath, index2];
+    if (element2.type === reactExports.Fragment) {
+      routes.push.apply(routes, createRoutesFromChildren(element2.props.children, treePath));
+      return;
+    }
+    !(element2.type === Route) ? invariant(false) : void 0;
+    !(!element2.props.index || !element2.props.children) ? invariant(false) : void 0;
+    let route = {
+      id: element2.props.id || treePath.join("-"),
+      caseSensitive: element2.props.caseSensitive,
+      element: element2.props.element,
+      Component: element2.props.Component,
+      index: element2.props.index,
+      path: element2.props.path,
+      loader: element2.props.loader,
+      action: element2.props.action,
+      errorElement: element2.props.errorElement,
+      ErrorBoundary: element2.props.ErrorBoundary,
+      hasErrorBoundary: element2.props.ErrorBoundary != null || element2.props.errorElement != null,
+      shouldRevalidate: element2.props.shouldRevalidate,
+      handle: element2.props.handle,
+      lazy: element2.props.lazy
+    };
+    if (element2.props.children) {
+      route.children = createRoutesFromChildren(element2.props.children, treePath);
+    }
+    routes.push(route);
+  });
+  return routes;
+}
+function _extends$3() {
+  _extends$3 = Object.assign ? Object.assign.bind() : function(target) {
+    for (var i2 = 1; i2 < arguments.length; i2++) {
+      var source = arguments[i2];
+      for (var key in source) {
+        if (Object.prototype.hasOwnProperty.call(source, key)) {
+          target[key] = source[key];
+        }
+      }
+    }
+    return target;
   };
-  Object.defineProperty(FromEither, "__esModule", { value: true });
-  FromEither.tapEither = FromEither.filterOrElse = FromEither.chainFirstEitherK = FromEither.chainEitherK = FromEither.fromEitherK = FromEither.chainOptionK = FromEither.fromOptionK = FromEither.fromPredicate = FromEither.fromOption = void 0;
-  var Chain_1 = /* @__PURE__ */ requireChain();
-  var function_1 = /* @__PURE__ */ require_function();
-  var _ = __importStar(/* @__PURE__ */ requireInternal());
-  function fromOption(F) {
-    return function(onNone) {
-      return function(ma) {
-        return F.fromEither(_.isNone(ma) ? _.left(onNone()) : _.right(ma.value));
-      };
-    };
+  return _extends$3.apply(this, arguments);
+}
+function _objectWithoutPropertiesLoose$2(source, excluded) {
+  if (source == null) return {};
+  var target = {};
+  var sourceKeys = Object.keys(source);
+  var key, i2;
+  for (i2 = 0; i2 < sourceKeys.length; i2++) {
+    key = sourceKeys[i2];
+    if (excluded.indexOf(key) >= 0) continue;
+    target[key] = source[key];
   }
-  FromEither.fromOption = fromOption;
-  function fromPredicate(F) {
-    return function(predicate, onFalse) {
-      return function(a) {
-        return F.fromEither(predicate(a) ? _.right(a) : _.left(onFalse(a)));
-      };
-    };
+  return target;
+}
+function isModifiedEvent(event) {
+  return !!(event.metaKey || event.altKey || event.ctrlKey || event.shiftKey);
+}
+function shouldProcessLinkClick(event, target) {
+  return event.button === 0 && // Ignore everything but left clicks
+  (!target || target === "_self") && // Let browser handle "target=_blank" etc.
+  !isModifiedEvent(event);
+}
+function createSearchParams(init2) {
+  if (init2 === void 0) {
+    init2 = "";
   }
-  FromEither.fromPredicate = fromPredicate;
-  function fromOptionK(F) {
-    var fromOptionF = fromOption(F);
-    return function(onNone) {
-      var from2 = fromOptionF(onNone);
-      return function(f) {
-        return (0, function_1.flow)(f, from2);
-      };
-    };
-  }
-  FromEither.fromOptionK = fromOptionK;
-  function chainOptionK(F, M) {
-    var fromOptionKF = fromOptionK(F);
-    return function(onNone) {
-      var from2 = fromOptionKF(onNone);
-      return function(f) {
-        return function(ma) {
-          return M.chain(ma, from2(f));
-        };
-      };
-    };
-  }
-  FromEither.chainOptionK = chainOptionK;
-  function fromEitherK(F) {
-    return function(f) {
-      return (0, function_1.flow)(f, F.fromEither);
-    };
-  }
-  FromEither.fromEitherK = fromEitherK;
-  function chainEitherK(F, M) {
-    var fromEitherKF = fromEitherK(F);
-    return function(f) {
-      return function(ma) {
-        return M.chain(ma, fromEitherKF(f));
-      };
-    };
-  }
-  FromEither.chainEitherK = chainEitherK;
-  function chainFirstEitherK(F, M) {
-    var tapEitherM = tapEither(F, M);
-    return function(f) {
-      return function(ma) {
-        return tapEitherM(ma, f);
-      };
-    };
-  }
-  FromEither.chainFirstEitherK = chainFirstEitherK;
-  function filterOrElse(F, M) {
-    return function(predicate, onFalse) {
-      return function(ma) {
-        return M.chain(ma, function(a) {
-          return F.fromEither(predicate(a) ? _.right(a) : _.left(onFalse(a)));
+  return new URLSearchParams(typeof init2 === "string" || Array.isArray(init2) || init2 instanceof URLSearchParams ? init2 : Object.keys(init2).reduce((memo, key) => {
+    let value = init2[key];
+    return memo.concat(Array.isArray(value) ? value.map((v) => [key, v]) : [[key, value]]);
+  }, []));
+}
+function getSearchParamsForLocation(locationSearch, defaultSearchParams) {
+  let searchParams = createSearchParams(locationSearch);
+  if (defaultSearchParams) {
+    defaultSearchParams.forEach((_, key) => {
+      if (!searchParams.has(key)) {
+        defaultSearchParams.getAll(key).forEach((value) => {
+          searchParams.append(key, value);
         });
-      };
-    };
+      }
+    });
   }
-  FromEither.filterOrElse = filterOrElse;
-  function tapEither(F, M) {
-    var fromEither = fromEitherK(F);
-    var tapM = (0, Chain_1.tap)(M);
-    return function(self2, f) {
-      return tapM(self2, fromEither(f));
-    };
+  return searchParams;
+}
+const _excluded$7 = ["onClick", "relative", "reloadDocument", "replace", "state", "target", "to", "preventScrollReset", "unstable_viewTransition"];
+const REACT_ROUTER_VERSION = "6";
+try {
+  window.__reactRouterVersion = REACT_ROUTER_VERSION;
+} catch (e) {
+}
+const START_TRANSITION = "startTransition";
+const startTransitionImpl = React$1[START_TRANSITION];
+function BrowserRouter(_ref4) {
+  let {
+    basename,
+    children: children2,
+    future,
+    window: window2
+  } = _ref4;
+  let historyRef = reactExports.useRef();
+  if (historyRef.current == null) {
+    historyRef.current = createBrowserHistory({
+      window: window2,
+      v5Compat: true
+    });
   }
-  FromEither.tapEither = tapEither;
-  return FromEither;
-}
-var Separated = {};
-var hasRequiredSeparated;
-function requireSeparated() {
-  if (hasRequiredSeparated) return Separated;
-  hasRequiredSeparated = 1;
-  (function(exports) {
-    Object.defineProperty(exports, "__esModule", { value: true });
-    exports.right = exports.left = exports.flap = exports.Functor = exports.Bifunctor = exports.URI = exports.bimap = exports.mapLeft = exports.map = exports.separated = void 0;
-    var function_1 = /* @__PURE__ */ require_function();
-    var Functor_1 = /* @__PURE__ */ requireFunctor();
-    var separated = function(left3, right3) {
-      return { left: left3, right: right3 };
-    };
-    exports.separated = separated;
-    var _map = function(fa, f) {
-      return (0, function_1.pipe)(fa, (0, exports.map)(f));
-    };
-    var _mapLeft = function(fa, f) {
-      return (0, function_1.pipe)(fa, (0, exports.mapLeft)(f));
-    };
-    var _bimap = function(fa, g, f) {
-      return (0, function_1.pipe)(fa, (0, exports.bimap)(g, f));
-    };
-    var map2 = function(f) {
-      return function(fa) {
-        return (0, exports.separated)((0, exports.left)(fa), f((0, exports.right)(fa)));
-      };
-    };
-    exports.map = map2;
-    var mapLeft = function(f) {
-      return function(fa) {
-        return (0, exports.separated)(f((0, exports.left)(fa)), (0, exports.right)(fa));
-      };
-    };
-    exports.mapLeft = mapLeft;
-    var bimap = function(f, g) {
-      return function(fa) {
-        return (0, exports.separated)(f((0, exports.left)(fa)), g((0, exports.right)(fa)));
-      };
-    };
-    exports.bimap = bimap;
-    exports.URI = "Separated";
-    exports.Bifunctor = {
-      URI: exports.URI,
-      mapLeft: _mapLeft,
-      bimap: _bimap
-    };
-    exports.Functor = {
-      URI: exports.URI,
-      map: _map
-    };
-    exports.flap = (0, Functor_1.flap)(exports.Functor);
-    var left2 = function(s) {
-      return s.left;
-    };
-    exports.left = left2;
-    var right2 = function(s) {
-      return s.right;
-    };
-    exports.right = right2;
-  })(Separated);
-  return Separated;
-}
-var Witherable = {};
-var hasRequiredWitherable;
-function requireWitherable() {
-  if (hasRequiredWitherable) return Witherable;
-  hasRequiredWitherable = 1;
-  var __createBinding = Witherable && Witherable.__createBinding || (Object.create ? (function(o, m, k, k2) {
-    if (k2 === void 0) k2 = k;
-    var desc = Object.getOwnPropertyDescriptor(m, k);
-    if (!desc || ("get" in desc ? !m.__esModule : desc.writable || desc.configurable)) {
-      desc = { enumerable: true, get: function() {
-        return m[k];
-      } };
-    }
-    Object.defineProperty(o, k2, desc);
-  }) : (function(o, m, k, k2) {
-    if (k2 === void 0) k2 = k;
-    o[k2] = m[k];
-  }));
-  var __setModuleDefault = Witherable && Witherable.__setModuleDefault || (Object.create ? (function(o, v) {
-    Object.defineProperty(o, "default", { enumerable: true, value: v });
-  }) : function(o, v) {
-    o["default"] = v;
+  let history = historyRef.current;
+  let [state, setStateImpl] = reactExports.useState({
+    action: history.action,
+    location: history.location
   });
-  var __importStar = Witherable && Witherable.__importStar || function(mod) {
-    if (mod && mod.__esModule) return mod;
-    var result = {};
-    if (mod != null) {
-      for (var k in mod) if (k !== "default" && Object.prototype.hasOwnProperty.call(mod, k)) __createBinding(result, mod, k);
-    }
-    __setModuleDefault(result, mod);
-    return result;
-  };
-  Object.defineProperty(Witherable, "__esModule", { value: true });
-  Witherable.filterE = Witherable.witherDefault = Witherable.wiltDefault = void 0;
-  var _ = __importStar(/* @__PURE__ */ requireInternal());
-  function wiltDefault(T, C) {
-    return function(F) {
-      var traverseF = T.traverse(F);
-      return function(wa, f) {
-        return F.map(traverseF(wa, f), C.separate);
-      };
-    };
-  }
-  Witherable.wiltDefault = wiltDefault;
-  function witherDefault(T, C) {
-    return function(F) {
-      var traverseF = T.traverse(F);
-      return function(wa, f) {
-        return F.map(traverseF(wa, f), C.compact);
-      };
-    };
-  }
-  Witherable.witherDefault = witherDefault;
-  function filterE(W) {
-    return function(F) {
-      var witherF = W.wither(F);
-      return function(predicate) {
-        return function(ga) {
-          return witherF(ga, function(a) {
-            return F.map(predicate(a), function(b) {
-              return b ? _.some(a) : _.none;
-            });
-          });
-        };
-      };
-    };
-  }
-  Witherable.filterE = filterE;
-  return Witherable;
+  let {
+    v7_startTransition
+  } = future || {};
+  let setState = reactExports.useCallback((newState) => {
+    v7_startTransition && startTransitionImpl ? startTransitionImpl(() => setStateImpl(newState)) : setStateImpl(newState);
+  }, [setStateImpl, v7_startTransition]);
+  reactExports.useLayoutEffect(() => history.listen(setState), [history, setState]);
+  return /* @__PURE__ */ reactExports.createElement(Router, {
+    basename,
+    children: children2,
+    location: state.location,
+    navigationType: state.action,
+    navigator: history,
+    future
+  });
 }
-var hasRequiredEither;
-function requireEither() {
-  if (hasRequiredEither) return Either;
-  hasRequiredEither = 1;
-  (function(exports) {
-    var __createBinding = Either && Either.__createBinding || (Object.create ? (function(o, m, k, k2) {
-      if (k2 === void 0) k2 = k;
-      var desc = Object.getOwnPropertyDescriptor(m, k);
-      if (!desc || ("get" in desc ? !m.__esModule : desc.writable || desc.configurable)) {
-        desc = { enumerable: true, get: function() {
-          return m[k];
-        } };
-      }
-      Object.defineProperty(o, k2, desc);
-    }) : (function(o, m, k, k2) {
-      if (k2 === void 0) k2 = k;
-      o[k2] = m[k];
-    }));
-    var __setModuleDefault = Either && Either.__setModuleDefault || (Object.create ? (function(o, v) {
-      Object.defineProperty(o, "default", { enumerable: true, value: v });
-    }) : function(o, v) {
-      o["default"] = v;
-    });
-    var __importStar = Either && Either.__importStar || function(mod) {
-      if (mod && mod.__esModule) return mod;
-      var result = {};
-      if (mod != null) {
-        for (var k in mod) if (k !== "default" && Object.prototype.hasOwnProperty.call(mod, k)) __createBinding(result, mod, k);
-      }
-      __setModuleDefault(result, mod);
-      return result;
-    };
-    Object.defineProperty(exports, "__esModule", { value: true });
-    exports.match = exports.foldW = exports.matchW = exports.isRight = exports.isLeft = exports.fromOption = exports.fromPredicate = exports.FromEither = exports.MonadThrow = exports.throwError = exports.ChainRec = exports.Extend = exports.extend = exports.Alt = exports.alt = exports.altW = exports.Bifunctor = exports.mapLeft = exports.bimap = exports.Traversable = exports.sequence = exports.traverse = exports.Foldable = exports.reduceRight = exports.foldMap = exports.reduce = exports.Monad = exports.Chain = exports.Applicative = exports.Apply = exports.ap = exports.apW = exports.Pointed = exports.of = exports.asUnit = exports.as = exports.Functor = exports.map = exports.getAltValidation = exports.getApplicativeValidation = exports.getWitherable = exports.getFilterable = exports.getCompactable = exports.getSemigroup = exports.getEq = exports.getShow = exports.URI = exports.flatMap = exports.right = exports.left = void 0;
-    exports.chainFirstW = exports.chainFirst = exports.chain = exports.chainW = exports.sequenceArray = exports.traverseArray = exports.traverseArrayWithIndex = exports.traverseReadonlyArrayWithIndex = exports.traverseReadonlyNonEmptyArrayWithIndex = exports.ApT = exports.apSW = exports.apS = exports.bindW = exports.bind = exports.let = exports.bindTo = exports.Do = exports.exists = exports.elem = exports.toError = exports.toUnion = exports.chainNullableK = exports.fromNullableK = exports.tryCatchK = exports.tryCatch = exports.fromNullable = exports.orElse = exports.orElseW = exports.swap = exports.filterOrElseW = exports.filterOrElse = exports.flatMapOption = exports.flatMapNullable = exports.liftOption = exports.liftNullable = exports.chainOptionKW = exports.chainOptionK = exports.fromOptionK = exports.duplicate = exports.flatten = exports.flattenW = exports.tap = exports.apSecondW = exports.apSecond = exports.apFirstW = exports.apFirst = exports.flap = exports.getOrElse = exports.getOrElseW = exports.fold = void 0;
-    exports.getValidation = exports.getValidationMonoid = exports.getValidationSemigroup = exports.getApplyMonoid = exports.getApplySemigroup = exports.either = exports.stringifyJSON = exports.parseJSON = void 0;
-    var Applicative_1 = /* @__PURE__ */ requireApplicative();
-    var Apply_1 = /* @__PURE__ */ requireApply();
-    var chainable = __importStar(/* @__PURE__ */ requireChain());
-    var ChainRec_1 = /* @__PURE__ */ requireChainRec();
-    var FromEither_1 = /* @__PURE__ */ requireFromEither();
-    var function_1 = /* @__PURE__ */ require_function();
-    var Functor_1 = /* @__PURE__ */ requireFunctor();
-    var _ = __importStar(/* @__PURE__ */ requireInternal());
-    var Separated_1 = /* @__PURE__ */ requireSeparated();
-    var Witherable_1 = /* @__PURE__ */ requireWitherable();
-    exports.left = _.left;
-    exports.right = _.right;
-    exports.flatMap = (0, function_1.dual)(2, function(ma, f) {
-      return (0, exports.isLeft)(ma) ? ma : f(ma.right);
-    });
-    var _map = function(fa, f) {
-      return (0, function_1.pipe)(fa, (0, exports.map)(f));
-    };
-    var _ap = function(fab, fa) {
-      return (0, function_1.pipe)(fab, (0, exports.ap)(fa));
-    };
-    var _reduce = function(fa, b, f) {
-      return (0, function_1.pipe)(fa, (0, exports.reduce)(b, f));
-    };
-    var _foldMap = function(M) {
-      return function(fa, f) {
-        var foldMapM = (0, exports.foldMap)(M);
-        return (0, function_1.pipe)(fa, foldMapM(f));
-      };
-    };
-    var _reduceRight = function(fa, b, f) {
-      return (0, function_1.pipe)(fa, (0, exports.reduceRight)(b, f));
-    };
-    var _traverse = function(F) {
-      var traverseF = (0, exports.traverse)(F);
-      return function(ta, f) {
-        return (0, function_1.pipe)(ta, traverseF(f));
-      };
-    };
-    var _bimap = function(fa, f, g) {
-      return (0, function_1.pipe)(fa, (0, exports.bimap)(f, g));
-    };
-    var _mapLeft = function(fa, f) {
-      return (0, function_1.pipe)(fa, (0, exports.mapLeft)(f));
-    };
-    var _alt = function(fa, that) {
-      return (0, function_1.pipe)(fa, (0, exports.alt)(that));
-    };
-    var _extend = function(wa, f) {
-      return (0, function_1.pipe)(wa, (0, exports.extend)(f));
-    };
-    var _chainRec = function(a, f) {
-      return (0, ChainRec_1.tailRec)(f(a), function(e) {
-        return (0, exports.isLeft)(e) ? (0, exports.right)((0, exports.left)(e.left)) : (0, exports.isLeft)(e.right) ? (0, exports.left)(f(e.right.left)) : (0, exports.right)((0, exports.right)(e.right.right));
-      });
-    };
-    exports.URI = "Either";
-    var getShow = function(SE, SA) {
-      return {
-        show: function(ma) {
-          return (0, exports.isLeft)(ma) ? "left(".concat(SE.show(ma.left), ")") : "right(".concat(SA.show(ma.right), ")");
-        }
-      };
-    };
-    exports.getShow = getShow;
-    var getEq = function(EL, EA) {
-      return {
-        equals: function(x, y) {
-          return x === y || ((0, exports.isLeft)(x) ? (0, exports.isLeft)(y) && EL.equals(x.left, y.left) : (0, exports.isRight)(y) && EA.equals(x.right, y.right));
-        }
-      };
-    };
-    exports.getEq = getEq;
-    var getSemigroup = function(S) {
-      return {
-        concat: function(x, y) {
-          return (0, exports.isLeft)(y) ? x : (0, exports.isLeft)(x) ? y : (0, exports.right)(S.concat(x.right, y.right));
-        }
-      };
-    };
-    exports.getSemigroup = getSemigroup;
-    var getCompactable = function(M) {
-      var empty2 = (0, exports.left)(M.empty);
-      return {
-        URI: exports.URI,
-        _E: void 0,
-        compact: function(ma) {
-          return (0, exports.isLeft)(ma) ? ma : ma.right._tag === "None" ? empty2 : (0, exports.right)(ma.right.value);
-        },
-        separate: function(ma) {
-          return (0, exports.isLeft)(ma) ? (0, Separated_1.separated)(ma, ma) : (0, exports.isLeft)(ma.right) ? (0, Separated_1.separated)((0, exports.right)(ma.right.left), empty2) : (0, Separated_1.separated)(empty2, (0, exports.right)(ma.right.right));
-        }
-      };
-    };
-    exports.getCompactable = getCompactable;
-    var getFilterable = function(M) {
-      var empty2 = (0, exports.left)(M.empty);
-      var _a2 = (0, exports.getCompactable)(M), compact = _a2.compact, separate = _a2.separate;
-      var filter = function(ma, predicate) {
-        return (0, exports.isLeft)(ma) ? ma : predicate(ma.right) ? ma : empty2;
-      };
-      var partition = function(ma, p) {
-        return (0, exports.isLeft)(ma) ? (0, Separated_1.separated)(ma, ma) : p(ma.right) ? (0, Separated_1.separated)(empty2, (0, exports.right)(ma.right)) : (0, Separated_1.separated)((0, exports.right)(ma.right), empty2);
-      };
-      return {
-        URI: exports.URI,
-        _E: void 0,
-        map: _map,
-        compact,
-        separate,
-        filter,
-        filterMap: function(ma, f) {
-          if ((0, exports.isLeft)(ma)) {
-            return ma;
-          }
-          var ob = f(ma.right);
-          return ob._tag === "None" ? empty2 : (0, exports.right)(ob.value);
-        },
-        partition,
-        partitionMap: function(ma, f) {
-          if ((0, exports.isLeft)(ma)) {
-            return (0, Separated_1.separated)(ma, ma);
-          }
-          var e = f(ma.right);
-          return (0, exports.isLeft)(e) ? (0, Separated_1.separated)((0, exports.right)(e.left), empty2) : (0, Separated_1.separated)(empty2, (0, exports.right)(e.right));
-        }
-      };
-    };
-    exports.getFilterable = getFilterable;
-    var getWitherable = function(M) {
-      var F_ = (0, exports.getFilterable)(M);
-      var C = (0, exports.getCompactable)(M);
-      return {
-        URI: exports.URI,
-        _E: void 0,
-        map: _map,
-        compact: F_.compact,
-        separate: F_.separate,
-        filter: F_.filter,
-        filterMap: F_.filterMap,
-        partition: F_.partition,
-        partitionMap: F_.partitionMap,
-        traverse: _traverse,
-        sequence: exports.sequence,
-        reduce: _reduce,
-        foldMap: _foldMap,
-        reduceRight: _reduceRight,
-        wither: (0, Witherable_1.witherDefault)(exports.Traversable, C),
-        wilt: (0, Witherable_1.wiltDefault)(exports.Traversable, C)
-      };
-    };
-    exports.getWitherable = getWitherable;
-    var getApplicativeValidation = function(SE) {
-      return {
-        URI: exports.URI,
-        _E: void 0,
-        map: _map,
-        ap: function(fab, fa) {
-          return (0, exports.isLeft)(fab) ? (0, exports.isLeft)(fa) ? (0, exports.left)(SE.concat(fab.left, fa.left)) : fab : (0, exports.isLeft)(fa) ? fa : (0, exports.right)(fab.right(fa.right));
-        },
-        of: exports.of
-      };
-    };
-    exports.getApplicativeValidation = getApplicativeValidation;
-    var getAltValidation = function(SE) {
-      return {
-        URI: exports.URI,
-        _E: void 0,
-        map: _map,
-        alt: function(me, that) {
-          if ((0, exports.isRight)(me)) {
-            return me;
-          }
-          var ea = that();
-          return (0, exports.isLeft)(ea) ? (0, exports.left)(SE.concat(me.left, ea.left)) : ea;
-        }
-      };
-    };
-    exports.getAltValidation = getAltValidation;
-    var map2 = function(f) {
-      return function(fa) {
-        return (0, exports.isLeft)(fa) ? fa : (0, exports.right)(f(fa.right));
-      };
-    };
-    exports.map = map2;
-    exports.Functor = {
-      URI: exports.URI,
-      map: _map
-    };
-    exports.as = (0, function_1.dual)(2, (0, Functor_1.as)(exports.Functor));
-    exports.asUnit = (0, Functor_1.asUnit)(exports.Functor);
-    exports.of = exports.right;
-    exports.Pointed = {
-      URI: exports.URI,
-      of: exports.of
-    };
-    var apW = function(fa) {
-      return function(fab) {
-        return (0, exports.isLeft)(fab) ? fab : (0, exports.isLeft)(fa) ? fa : (0, exports.right)(fab.right(fa.right));
-      };
-    };
-    exports.apW = apW;
-    exports.ap = exports.apW;
-    exports.Apply = {
-      URI: exports.URI,
-      map: _map,
-      ap: _ap
-    };
-    exports.Applicative = {
-      URI: exports.URI,
-      map: _map,
-      ap: _ap,
-      of: exports.of
-    };
-    exports.Chain = {
-      URI: exports.URI,
-      map: _map,
-      ap: _ap,
-      chain: exports.flatMap
-    };
-    exports.Monad = {
-      URI: exports.URI,
-      map: _map,
-      ap: _ap,
-      of: exports.of,
-      chain: exports.flatMap
-    };
-    var reduce = function(b, f) {
-      return function(fa) {
-        return (0, exports.isLeft)(fa) ? b : f(b, fa.right);
-      };
-    };
-    exports.reduce = reduce;
-    var foldMap = function(M) {
-      return function(f) {
-        return function(fa) {
-          return (0, exports.isLeft)(fa) ? M.empty : f(fa.right);
-        };
-      };
-    };
-    exports.foldMap = foldMap;
-    var reduceRight = function(b, f) {
-      return function(fa) {
-        return (0, exports.isLeft)(fa) ? b : f(fa.right, b);
-      };
-    };
-    exports.reduceRight = reduceRight;
-    exports.Foldable = {
-      URI: exports.URI,
-      reduce: _reduce,
-      foldMap: _foldMap,
-      reduceRight: _reduceRight
-    };
-    var traverse = function(F) {
-      return function(f) {
-        return function(ta) {
-          return (0, exports.isLeft)(ta) ? F.of((0, exports.left)(ta.left)) : F.map(f(ta.right), exports.right);
-        };
-      };
-    };
-    exports.traverse = traverse;
-    var sequence = function(F) {
-      return function(ma) {
-        return (0, exports.isLeft)(ma) ? F.of((0, exports.left)(ma.left)) : F.map(ma.right, exports.right);
-      };
-    };
-    exports.sequence = sequence;
-    exports.Traversable = {
-      URI: exports.URI,
-      map: _map,
-      reduce: _reduce,
-      foldMap: _foldMap,
-      reduceRight: _reduceRight,
-      traverse: _traverse,
-      sequence: exports.sequence
-    };
-    var bimap = function(f, g) {
-      return function(fa) {
-        return (0, exports.isLeft)(fa) ? (0, exports.left)(f(fa.left)) : (0, exports.right)(g(fa.right));
-      };
-    };
-    exports.bimap = bimap;
-    var mapLeft = function(f) {
-      return function(fa) {
-        return (0, exports.isLeft)(fa) ? (0, exports.left)(f(fa.left)) : fa;
-      };
-    };
-    exports.mapLeft = mapLeft;
-    exports.Bifunctor = {
-      URI: exports.URI,
-      bimap: _bimap,
-      mapLeft: _mapLeft
-    };
-    var altW = function(that) {
-      return function(fa) {
-        return (0, exports.isLeft)(fa) ? that() : fa;
-      };
-    };
-    exports.altW = altW;
-    exports.alt = exports.altW;
-    exports.Alt = {
-      URI: exports.URI,
-      map: _map,
-      alt: _alt
-    };
-    var extend = function(f) {
-      return function(wa) {
-        return (0, exports.isLeft)(wa) ? wa : (0, exports.right)(f(wa));
-      };
-    };
-    exports.extend = extend;
-    exports.Extend = {
-      URI: exports.URI,
-      map: _map,
-      extend: _extend
-    };
-    exports.ChainRec = {
-      URI: exports.URI,
-      map: _map,
-      ap: _ap,
-      chain: exports.flatMap,
-      chainRec: _chainRec
-    };
-    exports.throwError = exports.left;
-    exports.MonadThrow = {
-      URI: exports.URI,
-      map: _map,
-      ap: _ap,
-      of: exports.of,
-      chain: exports.flatMap,
-      throwError: exports.throwError
-    };
-    exports.FromEither = {
-      URI: exports.URI,
-      fromEither: function_1.identity
-    };
-    exports.fromPredicate = (0, FromEither_1.fromPredicate)(exports.FromEither);
-    exports.fromOption = /* @__PURE__ */ (0, FromEither_1.fromOption)(exports.FromEither);
-    exports.isLeft = _.isLeft;
-    exports.isRight = _.isRight;
-    var matchW = function(onLeft, onRight) {
-      return function(ma) {
-        return (0, exports.isLeft)(ma) ? onLeft(ma.left) : onRight(ma.right);
-      };
-    };
-    exports.matchW = matchW;
-    exports.foldW = exports.matchW;
-    exports.match = exports.matchW;
-    exports.fold = exports.match;
-    var getOrElseW = function(onLeft) {
-      return function(ma) {
-        return (0, exports.isLeft)(ma) ? onLeft(ma.left) : ma.right;
-      };
-    };
-    exports.getOrElseW = getOrElseW;
-    exports.getOrElse = exports.getOrElseW;
-    exports.flap = (0, Functor_1.flap)(exports.Functor);
-    exports.apFirst = (0, Apply_1.apFirst)(exports.Apply);
-    exports.apFirstW = exports.apFirst;
-    exports.apSecond = (0, Apply_1.apSecond)(exports.Apply);
-    exports.apSecondW = exports.apSecond;
-    exports.tap = (0, function_1.dual)(2, chainable.tap(exports.Chain));
-    exports.flattenW = /* @__PURE__ */ (0, exports.flatMap)(function_1.identity);
-    exports.flatten = exports.flattenW;
-    exports.duplicate = (0, exports.extend)(function_1.identity);
-    exports.fromOptionK = /* @__PURE__ */ (0, FromEither_1.fromOptionK)(exports.FromEither);
-    exports.chainOptionK = (0, FromEither_1.chainOptionK)(exports.FromEither, exports.Chain);
-    exports.chainOptionKW = exports.chainOptionK;
-    var _FromEither = {
-      fromEither: exports.FromEither.fromEither
-    };
-    exports.liftNullable = _.liftNullable(_FromEither);
-    exports.liftOption = _.liftOption(_FromEither);
-    var _FlatMap = {
-      flatMap: exports.flatMap
-    };
-    exports.flatMapNullable = _.flatMapNullable(_FromEither, _FlatMap);
-    exports.flatMapOption = _.flatMapOption(_FromEither, _FlatMap);
-    exports.filterOrElse = (0, FromEither_1.filterOrElse)(exports.FromEither, exports.Chain);
-    exports.filterOrElseW = exports.filterOrElse;
-    var swap = function(ma) {
-      return (0, exports.isLeft)(ma) ? (0, exports.right)(ma.left) : (0, exports.left)(ma.right);
-    };
-    exports.swap = swap;
-    var orElseW = function(onLeft) {
-      return function(ma) {
-        return (0, exports.isLeft)(ma) ? onLeft(ma.left) : ma;
-      };
-    };
-    exports.orElseW = orElseW;
-    exports.orElse = exports.orElseW;
-    var fromNullable = function(e) {
-      return function(a) {
-        return a == null ? (0, exports.left)(e) : (0, exports.right)(a);
-      };
-    };
-    exports.fromNullable = fromNullable;
-    var tryCatch = function(f, onThrow) {
+const isBrowser$1 = typeof window !== "undefined" && typeof window.document !== "undefined" && typeof window.document.createElement !== "undefined";
+const ABSOLUTE_URL_REGEX = /^(?:[a-z][a-z0-9+.-]*:|\/\/)/i;
+const Link = /* @__PURE__ */ reactExports.forwardRef(function LinkWithRef(_ref7, ref) {
+  let {
+    onClick,
+    relative,
+    reloadDocument,
+    replace: replace3,
+    state,
+    target,
+    to,
+    preventScrollReset,
+    unstable_viewTransition
+  } = _ref7, rest = _objectWithoutPropertiesLoose$2(_ref7, _excluded$7);
+  let {
+    basename
+  } = reactExports.useContext(NavigationContext);
+  let absoluteHref;
+  let isExternal = false;
+  if (typeof to === "string" && ABSOLUTE_URL_REGEX.test(to)) {
+    absoluteHref = to;
+    if (isBrowser$1) {
       try {
-        return (0, exports.right)(f());
+        let currentUrl = new URL(window.location.href);
+        let targetUrl = to.startsWith("//") ? new URL(currentUrl.protocol + to) : new URL(to);
+        let path = stripBasename(targetUrl.pathname, basename);
+        if (targetUrl.origin === currentUrl.origin && path != null) {
+          to = path + targetUrl.search + targetUrl.hash;
+        } else {
+          isExternal = true;
+        }
       } catch (e) {
-        return (0, exports.left)(onThrow(e));
       }
-    };
-    exports.tryCatch = tryCatch;
-    var tryCatchK = function(f, onThrow) {
-      return function() {
-        var a = [];
-        for (var _i = 0; _i < arguments.length; _i++) {
-          a[_i] = arguments[_i];
-        }
-        return (0, exports.tryCatch)(function() {
-          return f.apply(void 0, a);
-        }, onThrow);
-      };
-    };
-    exports.tryCatchK = tryCatchK;
-    var fromNullableK = function(e) {
-      var from2 = (0, exports.fromNullable)(e);
-      return function(f) {
-        return (0, function_1.flow)(f, from2);
-      };
-    };
-    exports.fromNullableK = fromNullableK;
-    var chainNullableK = function(e) {
-      var from2 = (0, exports.fromNullableK)(e);
-      return function(f) {
-        return (0, exports.flatMap)(from2(f));
-      };
-    };
-    exports.chainNullableK = chainNullableK;
-    exports.toUnion = (0, exports.foldW)(function_1.identity, function_1.identity);
-    function toError(e) {
-      return e instanceof Error ? e : new Error(String(e));
     }
-    exports.toError = toError;
-    function elem(E) {
-      return function(a, ma) {
-        if (ma === void 0) {
-          var elemE_1 = elem(E);
-          return function(ma2) {
-            return elemE_1(a, ma2);
-          };
-        }
-        return (0, exports.isLeft)(ma) ? false : E.equals(a, ma.right);
-      };
+  }
+  let href = useHref(to, {
+    relative
+  });
+  let internalOnClick = useLinkClickHandler(to, {
+    replace: replace3,
+    state,
+    target,
+    preventScrollReset,
+    relative,
+    unstable_viewTransition
+  });
+  function handleClick(event) {
+    if (onClick) onClick(event);
+    if (!event.defaultPrevented) {
+      internalOnClick(event);
     }
-    exports.elem = elem;
-    var exists = function(predicate) {
-      return function(ma) {
-        return (0, exports.isLeft)(ma) ? false : predicate(ma.right);
-      };
-    };
-    exports.exists = exists;
-    exports.Do = (0, exports.of)(_.emptyRecord);
-    exports.bindTo = (0, Functor_1.bindTo)(exports.Functor);
-    var let_ = /* @__PURE__ */ (0, Functor_1.let)(exports.Functor);
-    exports.let = let_;
-    exports.bind = chainable.bind(exports.Chain);
-    exports.bindW = exports.bind;
-    exports.apS = (0, Apply_1.apS)(exports.Apply);
-    exports.apSW = exports.apS;
-    exports.ApT = (0, exports.of)(_.emptyReadonlyArray);
-    var traverseReadonlyNonEmptyArrayWithIndex = function(f) {
-      return function(as) {
-        var e = f(0, _.head(as));
-        if ((0, exports.isLeft)(e)) {
-          return e;
-        }
-        var out = [e.right];
-        for (var i2 = 1; i2 < as.length; i2++) {
-          var e_1 = f(i2, as[i2]);
-          if ((0, exports.isLeft)(e_1)) {
-            return e_1;
-          }
-          out.push(e_1.right);
-        }
-        return (0, exports.right)(out);
-      };
-    };
-    exports.traverseReadonlyNonEmptyArrayWithIndex = traverseReadonlyNonEmptyArrayWithIndex;
-    var traverseReadonlyArrayWithIndex = function(f) {
-      var g = (0, exports.traverseReadonlyNonEmptyArrayWithIndex)(f);
-      return function(as) {
-        return _.isNonEmpty(as) ? g(as) : exports.ApT;
-      };
-    };
-    exports.traverseReadonlyArrayWithIndex = traverseReadonlyArrayWithIndex;
-    exports.traverseArrayWithIndex = exports.traverseReadonlyArrayWithIndex;
-    var traverseArray = function(f) {
-      return (0, exports.traverseReadonlyArrayWithIndex)(function(_2, a) {
-        return f(a);
+  }
+  return (
+    // eslint-disable-next-line jsx-a11y/anchor-has-content
+    /* @__PURE__ */ reactExports.createElement("a", _extends$3({}, rest, {
+      href: absoluteHref || href,
+      onClick: isExternal || reloadDocument ? onClick : handleClick,
+      ref,
+      target
+    }))
+  );
+});
+var DataRouterHook;
+(function(DataRouterHook2) {
+  DataRouterHook2["UseScrollRestoration"] = "useScrollRestoration";
+  DataRouterHook2["UseSubmit"] = "useSubmit";
+  DataRouterHook2["UseSubmitFetcher"] = "useSubmitFetcher";
+  DataRouterHook2["UseFetcher"] = "useFetcher";
+  DataRouterHook2["useViewTransitionState"] = "useViewTransitionState";
+})(DataRouterHook || (DataRouterHook = {}));
+var DataRouterStateHook;
+(function(DataRouterStateHook2) {
+  DataRouterStateHook2["UseFetcher"] = "useFetcher";
+  DataRouterStateHook2["UseFetchers"] = "useFetchers";
+  DataRouterStateHook2["UseScrollRestoration"] = "useScrollRestoration";
+})(DataRouterStateHook || (DataRouterStateHook = {}));
+function useLinkClickHandler(to, _temp) {
+  let {
+    target,
+    replace: replaceProp,
+    state,
+    preventScrollReset,
+    relative,
+    unstable_viewTransition
+  } = _temp === void 0 ? {} : _temp;
+  let navigate = useNavigate();
+  let location = useLocation();
+  let path = useResolvedPath(to, {
+    relative
+  });
+  return reactExports.useCallback((event) => {
+    if (shouldProcessLinkClick(event, target)) {
+      event.preventDefault();
+      let replace3 = replaceProp !== void 0 ? replaceProp : createPath(location) === createPath(path);
+      navigate(to, {
+        replace: replace3,
+        state,
+        preventScrollReset,
+        relative,
+        unstable_viewTransition
       });
-    };
-    exports.traverseArray = traverseArray;
-    exports.sequenceArray = /* @__PURE__ */ (0, exports.traverseArray)(function_1.identity);
-    exports.chainW = exports.flatMap;
-    exports.chain = exports.flatMap;
-    exports.chainFirst = exports.tap;
-    exports.chainFirstW = exports.tap;
-    function parseJSON(s, onError) {
-      return (0, exports.tryCatch)(function() {
-        return JSON.parse(s);
-      }, onError);
     }
-    exports.parseJSON = parseJSON;
-    var stringifyJSON = function(u, onError) {
-      return (0, exports.tryCatch)(function() {
-        var s = JSON.stringify(u);
-        if (typeof s !== "string") {
-          throw new Error("Converting unsupported structure to JSON");
-        }
-        return s;
-      }, onError);
-    };
-    exports.stringifyJSON = stringifyJSON;
-    exports.either = {
-      URI: exports.URI,
-      map: _map,
-      of: exports.of,
-      ap: _ap,
-      chain: exports.flatMap,
-      reduce: _reduce,
-      foldMap: _foldMap,
-      reduceRight: _reduceRight,
-      traverse: _traverse,
-      sequence: exports.sequence,
-      bimap: _bimap,
-      mapLeft: _mapLeft,
-      alt: _alt,
-      extend: _extend,
-      chainRec: _chainRec,
-      throwError: exports.throwError
-    };
-    exports.getApplySemigroup = /* @__PURE__ */ (0, Apply_1.getApplySemigroup)(exports.Apply);
-    exports.getApplyMonoid = /* @__PURE__ */ (0, Applicative_1.getApplicativeMonoid)(exports.Applicative);
-    var getValidationSemigroup = function(SE, SA) {
-      return (0, Apply_1.getApplySemigroup)((0, exports.getApplicativeValidation)(SE))(SA);
-    };
-    exports.getValidationSemigroup = getValidationSemigroup;
-    var getValidationMonoid = function(SE, MA) {
-      return (0, Applicative_1.getApplicativeMonoid)((0, exports.getApplicativeValidation)(SE))(MA);
-    };
-    exports.getValidationMonoid = getValidationMonoid;
-    function getValidation(SE) {
-      var ap = (0, exports.getApplicativeValidation)(SE).ap;
-      var alt = (0, exports.getAltValidation)(SE).alt;
-      return {
-        URI: exports.URI,
-        _E: void 0,
-        map: _map,
-        of: exports.of,
-        chain: exports.flatMap,
-        bimap: _bimap,
-        mapLeft: _mapLeft,
-        reduce: _reduce,
-        foldMap: _foldMap,
-        reduceRight: _reduceRight,
-        extend: _extend,
-        traverse: _traverse,
-        sequence: exports.sequence,
-        chainRec: _chainRec,
-        throwError: exports.throwError,
-        ap,
-        alt
-      };
-    }
-    exports.getValidation = getValidation;
-  })(Either);
-  return Either;
+  }, [location, navigate, path, replaceProp, state, target, to, preventScrollReset, relative, unstable_viewTransition]);
 }
-var EitherExports = /* @__PURE__ */ requireEither();
+function useSearchParams(defaultInit) {
+  let defaultSearchParamsRef = reactExports.useRef(createSearchParams(defaultInit));
+  let hasSetSearchParamsRef = reactExports.useRef(false);
+  let location = useLocation();
+  let searchParams = reactExports.useMemo(() => (
+    // Only merge in the defaults if we haven't yet called setSearchParams.
+    // Once we call that we want those to take precedence, otherwise you can't
+    // remove a param with setSearchParams({}) if it has an initial value
+    getSearchParamsForLocation(location.search, hasSetSearchParamsRef.current ? null : defaultSearchParamsRef.current)
+  ), [location.search]);
+  let navigate = useNavigate();
+  let setSearchParams = reactExports.useCallback((nextInit, navigateOptions) => {
+    const newSearchParams = createSearchParams(typeof nextInit === "function" ? nextInit(searchParams) : nextInit);
+    hasSetSearchParamsRef.current = true;
+    navigate("?" + newSearchParams, navigateOptions);
+  }, [navigate, searchParams]);
+  return [searchParams, setSearchParams];
+}
 function die(error) {
   for (var _len = arguments.length, args = new Array(_len > 1 ? _len - 1 : 0), _key = 1; _key < _len; _key++) {
     args[_key - 1] = arguments[_key];
@@ -14457,8 +11172,8 @@ function _createClass$1(Constructor, protoProps, staticProps) {
   });
   return Constructor;
 }
-function _extends$5() {
-  _extends$5 = Object.assign ? Object.assign.bind() : function(target) {
+function _extends$2() {
+  _extends$2 = Object.assign ? Object.assign.bind() : function(target) {
     for (var i2 = 1; i2 < arguments.length; i2++) {
       var source = arguments[i2];
       for (var key in source) {
@@ -14469,7 +11184,7 @@ function _extends$5() {
     }
     return target;
   };
-  return _extends$5.apply(this, arguments);
+  return _extends$2.apply(this, arguments);
 }
 function _inheritsLoose$1(subClass, superClass) {
   subClass.prototype = Object.create(superClass.prototype);
@@ -14547,7 +11262,7 @@ function createDecoratorAnnotation(annotation) {
 }
 function storeAnnotation(prototype, key, annotation) {
   if (!hasProp(prototype, storedAnnotationsSymbol)) {
-    addHiddenProp(prototype, storedAnnotationsSymbol, _extends$5({}, prototype[storedAnnotationsSymbol]));
+    addHiddenProp(prototype, storedAnnotationsSymbol, _extends$2({}, prototype[storedAnnotationsSymbol]));
   }
   if (!isOverride(annotation)) {
     prototype[storedAnnotationsSymbol][key] = annotation;
@@ -14555,7 +11270,7 @@ function storeAnnotation(prototype, key, annotation) {
 }
 function collectStoredAnnotations(target) {
   if (!hasProp(target, storedAnnotationsSymbol)) {
-    addHiddenProp(target, storedAnnotationsSymbol, _extends$5({}, target[storedAnnotationsSymbol]));
+    addHiddenProp(target, storedAnnotationsSymbol, _extends$2({}, target[storedAnnotationsSymbol]));
   }
   return target[storedAnnotationsSymbol];
 }
@@ -14897,7 +11612,7 @@ function make_$3(adm, key, descriptor) {
 }
 function extend_$3(adm, key, descriptor, proxyTrap) {
   assertComputedDescriptor(adm, this, key, descriptor);
-  return adm.defineComputedProperty_(key, _extends$5({}, this.options_, {
+  return adm.defineComputedProperty_(key, _extends$2({}, this.options_, {
     get: descriptor.get,
     set: descriptor.set
   }), proxyTrap);
@@ -14907,7 +11622,7 @@ function decorate_20223_$3(get4, context2) {
   var key = context2.name, addInitializer = context2.addInitializer;
   addInitializer(function() {
     var adm = asObservableObject(this)[$mobx];
-    var options2 = _extends$5({}, ann.options_, {
+    var options2 = _extends$2({}, ann.options_, {
       get: get4,
       context: this
     });
@@ -15115,7 +11830,7 @@ var observableFactories = {
     var o = asCreateObservableOptions(options2);
     return new ObservableValue(value, getEnhancerFromOptions(o), o.name, true, o.equals);
   },
-  array: function array2(initialValues, options2) {
+  array: function array(initialValues, options2) {
     var o = asCreateObservableOptions(options2);
     return (globalState.useProxies === false || o.proxy === false ? createLegacyArray : createObservableArray)(initialValues, getEnhancerFromOptions(o), o.name);
   },
@@ -17723,7 +14438,7 @@ var ObservableObjectAdministration = /* @__PURE__ */ (function() {
         }
         var newValue = change.newValue;
         if (descriptor.value !== newValue) {
-          descriptor = _extends$5({}, descriptor, {
+          descriptor = _extends$2({}, descriptor, {
             value: newValue
           });
         }
@@ -18309,6 +15024,6155 @@ if (typeof __MOBX_DEVTOOLS_GLOBAL_HOOK__ === "object") {
     $mobx
   });
 }
+if (!reactExports.useState) {
+  throw new Error("mobx-react-lite requires React with Hooks support");
+}
+if (!makeObservable) {
+  throw new Error("mobx-react-lite@3 requires mobx at least version 6 to be available");
+}
+function defaultNoopBatch(callback) {
+  callback();
+}
+function observerBatching(reactionScheduler3) {
+  if (!reactionScheduler3) {
+    reactionScheduler3 = defaultNoopBatch;
+  }
+  configure({ reactionScheduler: reactionScheduler3 });
+}
+function printDebugValue(v) {
+  return getDependencyTree(v);
+}
+var REGISTRY_FINALIZE_AFTER = 1e4;
+var REGISTRY_SWEEP_INTERVAL = 1e4;
+var TimerBasedFinalizationRegistry = (
+  /** @class */
+  (function() {
+    function TimerBasedFinalizationRegistry2(finalize) {
+      var _this = this;
+      Object.defineProperty(this, "finalize", {
+        enumerable: true,
+        configurable: true,
+        writable: true,
+        value: finalize
+      });
+      Object.defineProperty(this, "registrations", {
+        enumerable: true,
+        configurable: true,
+        writable: true,
+        value: /* @__PURE__ */ new Map()
+      });
+      Object.defineProperty(this, "sweepTimeout", {
+        enumerable: true,
+        configurable: true,
+        writable: true,
+        value: void 0
+      });
+      Object.defineProperty(this, "sweep", {
+        enumerable: true,
+        configurable: true,
+        writable: true,
+        value: function(maxAge) {
+          if (maxAge === void 0) {
+            maxAge = REGISTRY_FINALIZE_AFTER;
+          }
+          clearTimeout(_this.sweepTimeout);
+          _this.sweepTimeout = void 0;
+          var now = Date.now();
+          _this.registrations.forEach(function(registration, token2) {
+            if (now - registration.registeredAt >= maxAge) {
+              _this.finalize(registration.value);
+              _this.registrations.delete(token2);
+            }
+          });
+          if (_this.registrations.size > 0) {
+            _this.scheduleSweep();
+          }
+        }
+      });
+      Object.defineProperty(this, "finalizeAllImmediately", {
+        enumerable: true,
+        configurable: true,
+        writable: true,
+        value: function() {
+          _this.sweep(0);
+        }
+      });
+    }
+    Object.defineProperty(TimerBasedFinalizationRegistry2.prototype, "register", {
+      enumerable: false,
+      configurable: true,
+      writable: true,
+      value: function(target, value, token2) {
+        this.registrations.set(token2, {
+          value,
+          registeredAt: Date.now()
+        });
+        this.scheduleSweep();
+      }
+    });
+    Object.defineProperty(TimerBasedFinalizationRegistry2.prototype, "unregister", {
+      enumerable: false,
+      configurable: true,
+      writable: true,
+      value: function(token2) {
+        this.registrations.delete(token2);
+      }
+    });
+    Object.defineProperty(TimerBasedFinalizationRegistry2.prototype, "scheduleSweep", {
+      enumerable: false,
+      configurable: true,
+      writable: true,
+      value: function() {
+        if (this.sweepTimeout === void 0) {
+          this.sweepTimeout = setTimeout(this.sweep, REGISTRY_SWEEP_INTERVAL);
+        }
+      }
+    });
+    return TimerBasedFinalizationRegistry2;
+  })()
+);
+var UniversalFinalizationRegistry = typeof FinalizationRegistry !== "undefined" ? FinalizationRegistry : TimerBasedFinalizationRegistry;
+var observerFinalizationRegistry = new UniversalFinalizationRegistry(function(adm) {
+  var _a2;
+  (_a2 = adm.reaction) === null || _a2 === void 0 ? void 0 : _a2.dispose();
+  adm.reaction = null;
+});
+var shim = { exports: {} };
+var useSyncExternalStoreShim_production_min = {};
+var hasRequiredUseSyncExternalStoreShim_production_min;
+function requireUseSyncExternalStoreShim_production_min() {
+  if (hasRequiredUseSyncExternalStoreShim_production_min) return useSyncExternalStoreShim_production_min;
+  hasRequiredUseSyncExternalStoreShim_production_min = 1;
+  var e = requireReact();
+  function h(a, b) {
+    return a === b && (0 !== a || 1 / a === 1 / b) || a !== a && b !== b;
+  }
+  var k = "function" === typeof Object.is ? Object.is : h, l = e.useState, m = e.useEffect, n = e.useLayoutEffect, p = e.useDebugValue;
+  function q(a, b) {
+    var d = b(), f = l({ inst: { value: d, getSnapshot: b } }), c = f[0].inst, g = f[1];
+    n(function() {
+      c.value = d;
+      c.getSnapshot = b;
+      r(c) && g({ inst: c });
+    }, [a, d, b]);
+    m(function() {
+      r(c) && g({ inst: c });
+      return a(function() {
+        r(c) && g({ inst: c });
+      });
+    }, [a]);
+    p(d);
+    return d;
+  }
+  function r(a) {
+    var b = a.getSnapshot;
+    a = a.value;
+    try {
+      var d = b();
+      return !k(a, d);
+    } catch (f) {
+      return true;
+    }
+  }
+  function t(a, b) {
+    return b();
+  }
+  var u = "undefined" === typeof window || "undefined" === typeof window.document || "undefined" === typeof window.document.createElement ? t : q;
+  useSyncExternalStoreShim_production_min.useSyncExternalStore = void 0 !== e.useSyncExternalStore ? e.useSyncExternalStore : u;
+  return useSyncExternalStoreShim_production_min;
+}
+var hasRequiredShim;
+function requireShim() {
+  if (hasRequiredShim) return shim.exports;
+  hasRequiredShim = 1;
+  {
+    shim.exports = requireUseSyncExternalStoreShim_production_min();
+  }
+  return shim.exports;
+}
+var shimExports = requireShim();
+var getServerSnapshot = function() {
+};
+function createReaction$1(adm) {
+  adm.reaction = new Reaction("observer".concat(adm.name), function() {
+    var _a2;
+    adm.stateVersion = /* @__PURE__ */ Symbol();
+    (_a2 = adm.onStoreChange) === null || _a2 === void 0 ? void 0 : _a2.call(adm);
+  });
+}
+function useObserver(render, baseComponentName) {
+  if (baseComponentName === void 0) {
+    baseComponentName = "observed";
+  }
+  var admRef = React.useRef(null);
+  if (!admRef.current) {
+    var adm_1 = {
+      reaction: null,
+      onStoreChange: null,
+      stateVersion: /* @__PURE__ */ Symbol(),
+      name: baseComponentName,
+      subscribe: function(onStoreChange) {
+        observerFinalizationRegistry.unregister(adm_1);
+        adm_1.onStoreChange = onStoreChange;
+        if (!adm_1.reaction) {
+          createReaction$1(adm_1);
+          adm_1.stateVersion = /* @__PURE__ */ Symbol();
+        }
+        return function() {
+          var _a2;
+          adm_1.onStoreChange = null;
+          (_a2 = adm_1.reaction) === null || _a2 === void 0 ? void 0 : _a2.dispose();
+          adm_1.reaction = null;
+        };
+      },
+      getSnapshot: function() {
+        return adm_1.stateVersion;
+      }
+    };
+    admRef.current = adm_1;
+  }
+  var adm = admRef.current;
+  if (!adm.reaction) {
+    createReaction$1(adm);
+    observerFinalizationRegistry.register(admRef, adm, adm);
+  }
+  React.useDebugValue(adm.reaction, printDebugValue);
+  shimExports.useSyncExternalStore(
+    // Both of these must be stable, otherwise it would keep resubscribing every render.
+    adm.subscribe,
+    adm.getSnapshot,
+    getServerSnapshot
+  );
+  var renderResult;
+  var exception;
+  adm.reaction.track(function() {
+    try {
+      renderResult = render();
+    } catch (e) {
+      exception = e;
+    }
+  });
+  if (exception) {
+    throw exception;
+  }
+  return renderResult;
+}
+var hasSymbol = typeof Symbol === "function" && Symbol.for;
+var ReactForwardRefSymbol = hasSymbol ? /* @__PURE__ */ Symbol.for("react.forward_ref") : typeof reactExports.forwardRef === "function" && reactExports.forwardRef(function(props) {
+  return null;
+})["$$typeof"];
+var ReactMemoSymbol = hasSymbol ? /* @__PURE__ */ Symbol.for("react.memo") : typeof reactExports.memo === "function" && reactExports.memo(function(props) {
+  return null;
+})["$$typeof"];
+function observer$1(baseComponent, options2) {
+  var _a2;
+  if (ReactMemoSymbol && baseComponent["$$typeof"] === ReactMemoSymbol) {
+    throw new Error("[mobx-react-lite] You are trying to use `observer` on a function component wrapped in either another `observer` or `React.memo`. The observer already applies 'React.memo' for you.");
+  }
+  var useForwardRef = (_a2 = void 0) !== null && _a2 !== void 0 ? _a2 : false;
+  var render = baseComponent;
+  var baseComponentName = baseComponent.displayName || baseComponent.name;
+  if (ReactForwardRefSymbol && baseComponent["$$typeof"] === ReactForwardRefSymbol) {
+    useForwardRef = true;
+    render = baseComponent["render"];
+    if (typeof render !== "function") {
+      throw new Error("[mobx-react-lite] `render` property of ForwardRef was not a function");
+    }
+  }
+  var observerComponent = function(props, ref) {
+    return useObserver(function() {
+      return render(props, ref);
+    }, baseComponentName);
+  };
+  observerComponent.displayName = baseComponent.displayName;
+  Object.defineProperty(observerComponent, "name", {
+    value: baseComponent.name,
+    writable: true,
+    configurable: true
+  });
+  if (baseComponent.contextTypes) {
+    observerComponent.contextTypes = baseComponent.contextTypes;
+  }
+  if (useForwardRef) {
+    observerComponent = reactExports.forwardRef(observerComponent);
+  }
+  observerComponent = reactExports.memo(observerComponent);
+  copyStaticProperties(baseComponent, observerComponent);
+  return observerComponent;
+}
+var hoistBlackList = {
+  $$typeof: true,
+  render: true,
+  compare: true,
+  type: true,
+  // Don't redefine `displayName`,
+  // it's defined as getter-setter pair on `memo` (see #3192).
+  displayName: true
+};
+function copyStaticProperties(base, target) {
+  Object.keys(base).forEach(function(key) {
+    if (!hoistBlackList[key]) {
+      Object.defineProperty(target, key, Object.getOwnPropertyDescriptor(base, key));
+    }
+  });
+}
+var _a;
+observerBatching(reactDomExports.unstable_batchedUpdates);
+(_a = observerFinalizationRegistry["finalizeAllImmediately"]) !== null && _a !== void 0 ? _a : (function() {
+});
+function shallowEqual(objA, objB) {
+  if (is(objA, objB)) {
+    return true;
+  }
+  if (typeof objA !== "object" || objA === null || typeof objB !== "object" || objB === null) {
+    return false;
+  }
+  var keysA = Object.keys(objA);
+  var keysB = Object.keys(objB);
+  if (keysA.length !== keysB.length) {
+    return false;
+  }
+  for (var i2 = 0; i2 < keysA.length; i2++) {
+    if (!Object.hasOwnProperty.call(objB, keysA[i2]) || !is(objA[keysA[i2]], objB[keysA[i2]])) {
+      return false;
+    }
+  }
+  return true;
+}
+function is(x, y) {
+  if (x === y) {
+    return x !== 0 || 1 / x === 1 / y;
+  } else {
+    return x !== x && y !== y;
+  }
+}
+var mobxMixins = /* @__PURE__ */ Symbol("patchMixins");
+var mobxPatchedDefinition = /* @__PURE__ */ Symbol("patchedDefinition");
+function getMixins(target, methodName) {
+  var mixins = target[mobxMixins] = target[mobxMixins] || {};
+  var methodMixins = mixins[methodName] = mixins[methodName] || {};
+  methodMixins.locks = methodMixins.locks || 0;
+  methodMixins.methods = methodMixins.methods || [];
+  return methodMixins;
+}
+function wrapper(realMethod, mixins) {
+  var _this = this;
+  for (var _len = arguments.length, args = new Array(_len > 2 ? _len - 2 : 0), _key = 2; _key < _len; _key++) {
+    args[_key - 2] = arguments[_key];
+  }
+  mixins.locks++;
+  try {
+    var retVal;
+    if (realMethod !== void 0 && realMethod !== null) {
+      retVal = realMethod.apply(this, args);
+    }
+    return retVal;
+  } finally {
+    mixins.locks--;
+    if (mixins.locks === 0) {
+      mixins.methods.forEach(function(mx) {
+        mx.apply(_this, args);
+      });
+    }
+  }
+}
+function wrapFunction(realMethod, mixins) {
+  var fn = function fn2() {
+    for (var _len2 = arguments.length, args = new Array(_len2), _key2 = 0; _key2 < _len2; _key2++) {
+      args[_key2] = arguments[_key2];
+    }
+    wrapper.call.apply(wrapper, [this, realMethod, mixins].concat(args));
+  };
+  return fn;
+}
+function patch(target, methodName, mixinMethod) {
+  var mixins = getMixins(target, methodName);
+  if (mixins.methods.indexOf(mixinMethod) < 0) {
+    mixins.methods.push(mixinMethod);
+  }
+  var oldDefinition = Object.getOwnPropertyDescriptor(target, methodName);
+  if (oldDefinition && oldDefinition[mobxPatchedDefinition]) {
+    return;
+  }
+  var originalMethod = target[methodName];
+  var newDefinition = createDefinition(target, methodName, oldDefinition ? oldDefinition.enumerable : void 0, mixins, originalMethod);
+  Object.defineProperty(target, methodName, newDefinition);
+}
+function createDefinition(target, methodName, enumerable, mixins, originalMethod) {
+  var _ref3;
+  var wrappedFunc = wrapFunction(originalMethod, mixins);
+  return _ref3 = {}, _ref3[mobxPatchedDefinition] = true, _ref3.get = function get4() {
+    return wrappedFunc;
+  }, _ref3.set = function set2(value) {
+    if (this === target) {
+      wrappedFunc = wrapFunction(value, mixins);
+    } else {
+      var newDefinition = createDefinition(this, methodName, enumerable, mixins, value);
+      Object.defineProperty(this, methodName, newDefinition);
+    }
+  }, _ref3.configurable = true, _ref3.enumerable = enumerable, _ref3;
+}
+var administrationSymbol = /* @__PURE__ */ Symbol("ObserverAdministration");
+var isMobXReactObserverSymbol = /* @__PURE__ */ Symbol("isMobXReactObserver");
+function getAdministration(component) {
+  var _component$administra;
+  return (_component$administra = component[administrationSymbol]) != null ? _component$administra : component[administrationSymbol] = {
+    reaction: null,
+    mounted: false,
+    reactionInvalidatedBeforeMount: false,
+    forceUpdate: null,
+    name: getDisplayName(component.constructor),
+    state: void 0,
+    props: void 0,
+    context: void 0
+  };
+}
+function makeClassComponentObserver(componentClass) {
+  var prototype = componentClass.prototype;
+  if (componentClass[isMobXReactObserverSymbol]) {
+    var displayName = getDisplayName(componentClass);
+    throw new Error("The provided component class (" + displayName + ") has already been declared as an observer component.");
+  } else {
+    componentClass[isMobXReactObserverSymbol] = true;
+  }
+  if (prototype.componentWillReact) {
+    throw new Error("The componentWillReact life-cycle event is no longer supported");
+  }
+  if (componentClass["__proto__"] !== reactExports.PureComponent) {
+    if (!prototype.shouldComponentUpdate) {
+      prototype.shouldComponentUpdate = observerSCU;
+    } else if (prototype.shouldComponentUpdate !== observerSCU) {
+      throw new Error("It is not allowed to use shouldComponentUpdate in observer based components.");
+    }
+  }
+  var originalRender = prototype.render;
+  if (typeof originalRender !== "function") {
+    var _displayName = getDisplayName(componentClass);
+    throw new Error("[mobx-react] class component (" + _displayName + ") is missing `render` method.\n`observer` requires `render` being a function defined on prototype.\n`render = () => {}` or `render = function() {}` is not supported.");
+  }
+  prototype.render = function() {
+    Object.defineProperty(this, "render", {
+      // There is no safe way to replace render, therefore it's forbidden.
+      configurable: false,
+      writable: false,
+      value: createReactiveRender.call(this, originalRender)
+    });
+    return this.render();
+  };
+  var originalComponentDidMount = prototype.componentDidMount;
+  prototype.componentDidMount = function() {
+    var _this = this;
+    var admin = getAdministration(this);
+    admin.mounted = true;
+    observerFinalizationRegistry.unregister(this);
+    admin.forceUpdate = function() {
+      return _this.forceUpdate();
+    };
+    if (!admin.reaction || admin.reactionInvalidatedBeforeMount) {
+      admin.forceUpdate();
+    }
+    return originalComponentDidMount == null ? void 0 : originalComponentDidMount.apply(this, arguments);
+  };
+  patch(prototype, "componentWillUnmount", function() {
+    var _admin$reaction;
+    var admin = getAdministration(this);
+    (_admin$reaction = admin.reaction) == null ? void 0 : _admin$reaction.dispose();
+    admin.reaction = null;
+    admin.forceUpdate = null;
+    admin.mounted = false;
+    admin.reactionInvalidatedBeforeMount = false;
+  });
+  return componentClass;
+}
+function getDisplayName(componentClass) {
+  return componentClass.displayName || componentClass.name || "<component>";
+}
+function createReactiveRender(originalRender) {
+  var boundOriginalRender = originalRender.bind(this);
+  var admin = getAdministration(this);
+  function reactiveRender() {
+    if (!admin.reaction) {
+      admin.reaction = createReaction(admin);
+      if (!admin.mounted) {
+        observerFinalizationRegistry.register(this, admin, this);
+      }
+    }
+    var error = void 0;
+    var renderResult = void 0;
+    admin.reaction.track(function() {
+      try {
+        renderResult = allowStateChanges(false, boundOriginalRender);
+      } catch (e) {
+        error = e;
+      }
+    });
+    if (error) {
+      throw error;
+    }
+    return renderResult;
+  }
+  return reactiveRender;
+}
+function createReaction(admin) {
+  return new Reaction(admin.name + ".render()", function() {
+    if (!admin.mounted) {
+      admin.reactionInvalidatedBeforeMount = true;
+      return;
+    }
+    try {
+      admin.forceUpdate == null ? void 0 : admin.forceUpdate();
+    } catch (error) {
+      var _admin$reaction2;
+      (_admin$reaction2 = admin.reaction) == null ? void 0 : _admin$reaction2.dispose();
+      admin.reaction = null;
+    }
+  });
+}
+function observerSCU(nextProps, nextState) {
+  if (this.state !== nextState) {
+    return true;
+  }
+  return !shallowEqual(this.props, nextProps);
+}
+function observer(component, context2) {
+  if (component["isMobxInjector"] === true) {
+    console.warn("Mobx observer: You are trying to use `observer` on a component that already has `inject`. Please apply `observer` before applying `inject`");
+  }
+  if (Object.prototype.isPrototypeOf.call(reactExports.Component, component) || Object.prototype.isPrototypeOf.call(reactExports.PureComponent, component)) {
+    return makeClassComponentObserver(component);
+  } else {
+    return observer$1(component);
+  }
+}
+/* @__PURE__ */ Number.parseInt(React.version.split(".")[0]);
+if (!reactExports.Component) {
+  throw new Error("mobx-react requires React to be available");
+}
+if (!observable) {
+  throw new Error("mobx-react requires mobx to be available");
+}
+function _extends$1() {
+  _extends$1 = Object.assign ? Object.assign.bind() : function(target) {
+    for (var i2 = 1; i2 < arguments.length; i2++) {
+      var source = arguments[i2];
+      for (var key in source) {
+        if (Object.prototype.hasOwnProperty.call(source, key)) {
+          target[key] = source[key];
+        }
+      }
+    }
+    return target;
+  };
+  return _extends$1.apply(this, arguments);
+}
+function _objectWithoutPropertiesLoose$1(source, excluded) {
+  if (source == null) return {};
+  var target = {};
+  var sourceKeys = Object.keys(source);
+  var key, i2;
+  for (i2 = 0; i2 < sourceKeys.length; i2++) {
+    key = sourceKeys[i2];
+    if (excluded.indexOf(key) >= 0) continue;
+    target[key] = source[key];
+  }
+  return target;
+}
+var classnames = { exports: {} };
+var hasRequiredClassnames;
+function requireClassnames() {
+  if (hasRequiredClassnames) return classnames.exports;
+  hasRequiredClassnames = 1;
+  (function(module) {
+    (function() {
+      var hasOwn = {}.hasOwnProperty;
+      function classNames2() {
+        var classes = [];
+        for (var i2 = 0; i2 < arguments.length; i2++) {
+          var arg = arguments[i2];
+          if (!arg) continue;
+          var argType = typeof arg;
+          if (argType === "string" || argType === "number") {
+            classes.push(arg);
+          } else if (Array.isArray(arg)) {
+            if (arg.length) {
+              var inner = classNames2.apply(null, arg);
+              if (inner) {
+                classes.push(inner);
+              }
+            }
+          } else if (argType === "object") {
+            if (arg.toString === Object.prototype.toString) {
+              for (var key in arg) {
+                if (hasOwn.call(arg, key) && arg[key]) {
+                  classes.push(key);
+                }
+              }
+            } else {
+              classes.push(arg.toString());
+            }
+          }
+        }
+        return classes.join(" ");
+      }
+      if (module.exports) {
+        classNames2.default = classNames2;
+        module.exports = classNames2;
+      } else {
+        window.classNames = classNames2;
+      }
+    })();
+  })(classnames);
+  return classnames.exports;
+}
+var classnamesExports = requireClassnames();
+const classNames$1 = /* @__PURE__ */ getDefaultExportFromCjs(classnamesExports);
+function defaultKey(key) {
+  return "default" + key.charAt(0).toUpperCase() + key.substr(1);
+}
+function _toPropertyKey(arg) {
+  var key = _toPrimitive(arg, "string");
+  return typeof key === "symbol" ? key : String(key);
+}
+function _toPrimitive(input, hint) {
+  if (typeof input !== "object" || input === null) return input;
+  var prim = input[Symbol.toPrimitive];
+  if (prim !== void 0) {
+    var res = prim.call(input, hint);
+    if (typeof res !== "object") return res;
+    throw new TypeError("@@toPrimitive must return a primitive value.");
+  }
+  return String(input);
+}
+function useUncontrolledProp(propValue, defaultValue, handler) {
+  var wasPropRef = reactExports.useRef(propValue !== void 0);
+  var _useState = reactExports.useState(defaultValue), stateValue = _useState[0], setState = _useState[1];
+  var isProp = propValue !== void 0;
+  var wasProp = wasPropRef.current;
+  wasPropRef.current = isProp;
+  if (!isProp && wasProp && stateValue !== defaultValue) {
+    setState(defaultValue);
+  }
+  return [isProp ? propValue : stateValue, reactExports.useCallback(function(value) {
+    for (var _len = arguments.length, args = new Array(_len > 1 ? _len - 1 : 0), _key = 1; _key < _len; _key++) {
+      args[_key - 1] = arguments[_key];
+    }
+    if (handler) handler.apply(void 0, [value].concat(args));
+    setState(value);
+  }, [handler])];
+}
+function useUncontrolled(props, config2) {
+  return Object.keys(config2).reduce(function(result, fieldName) {
+    var _extends2;
+    var _ref3 = result, defaultValue = _ref3[defaultKey(fieldName)], propsValue = _ref3[fieldName], rest = _objectWithoutPropertiesLoose$1(_ref3, [defaultKey(fieldName), fieldName].map(_toPropertyKey));
+    var handlerName = config2[fieldName];
+    var _useUncontrolledProp = useUncontrolledProp(propsValue, defaultValue, props[handlerName]), value = _useUncontrolledProp[0], handler = _useUncontrolledProp[1];
+    return _extends$1({}, rest, (_extends2 = {}, _extends2[fieldName] = value, _extends2[handlerName] = handler, _extends2));
+  }, props);
+}
+function _setPrototypeOf(o, p) {
+  _setPrototypeOf = Object.setPrototypeOf ? Object.setPrototypeOf.bind() : function _setPrototypeOf2(o2, p2) {
+    o2.__proto__ = p2;
+    return o2;
+  };
+  return _setPrototypeOf(o, p);
+}
+function _inheritsLoose(subClass, superClass) {
+  subClass.prototype = Object.create(superClass.prototype);
+  subClass.prototype.constructor = subClass;
+  _setPrototypeOf(subClass, superClass);
+}
+var ThemeContext$1 = /* @__PURE__ */ React.createContext({});
+ThemeContext$1.Consumer;
+ThemeContext$1.Provider;
+function useBootstrapPrefix(prefix2, defaultPrefix) {
+  var prefixes = reactExports.useContext(ThemeContext$1);
+  return prefix2 || prefixes[defaultPrefix] || defaultPrefix;
+}
+var SelectableContext = /* @__PURE__ */ React.createContext(null);
+var makeEventKey = function makeEventKey2(eventKey, href) {
+  if (href === void 0) {
+    href = null;
+  }
+  if (eventKey != null) return String(eventKey);
+  return href || null;
+};
+function ownerDocument(node2) {
+  return node2 && node2.ownerDocument || document;
+}
+function ownerWindow(node2) {
+  var doc = ownerDocument(node2);
+  return doc && doc.defaultView || window;
+}
+function getComputedStyle$3(node2, psuedoElement) {
+  return ownerWindow(node2).getComputedStyle(node2, psuedoElement);
+}
+var rUpper = /([A-Z])/g;
+function hyphenate(string2) {
+  return string2.replace(rUpper, "-$1").toLowerCase();
+}
+var msPattern = /^ms-/;
+function hyphenateStyleName(string2) {
+  return hyphenate(string2).replace(msPattern, "-ms-");
+}
+var supportedTransforms = /^((translate|rotate|scale)(X|Y|Z|3d)?|matrix(3d)?|perspective|skew(X|Y)?)$/i;
+function isTransform(value) {
+  return !!(value && supportedTransforms.test(value));
+}
+function style(node2, property) {
+  var css4 = "";
+  var transforms = "";
+  if (typeof property === "string") {
+    return node2.style.getPropertyValue(hyphenateStyleName(property)) || getComputedStyle$3(node2).getPropertyValue(hyphenateStyleName(property));
+  }
+  Object.keys(property).forEach(function(key) {
+    var value = property[key];
+    if (!value && value !== 0) {
+      node2.style.removeProperty(hyphenateStyleName(key));
+    } else if (isTransform(key)) {
+      transforms += key + "(" + value + ") ";
+    } else {
+      css4 += hyphenateStyleName(key) + ": " + value + ";";
+    }
+  });
+  if (transforms) {
+    css4 += "transform: " + transforms + ";";
+  }
+  node2.style.cssText += ";" + css4;
+}
+var propTypes$3 = { exports: {} };
+var ReactPropTypesSecret_1;
+var hasRequiredReactPropTypesSecret;
+function requireReactPropTypesSecret() {
+  if (hasRequiredReactPropTypesSecret) return ReactPropTypesSecret_1;
+  hasRequiredReactPropTypesSecret = 1;
+  var ReactPropTypesSecret = "SECRET_DO_NOT_PASS_THIS_OR_YOU_WILL_BE_FIRED";
+  ReactPropTypesSecret_1 = ReactPropTypesSecret;
+  return ReactPropTypesSecret_1;
+}
+var factoryWithThrowingShims;
+var hasRequiredFactoryWithThrowingShims;
+function requireFactoryWithThrowingShims() {
+  if (hasRequiredFactoryWithThrowingShims) return factoryWithThrowingShims;
+  hasRequiredFactoryWithThrowingShims = 1;
+  var ReactPropTypesSecret = requireReactPropTypesSecret();
+  function emptyFunction() {
+  }
+  function emptyFunctionWithReset() {
+  }
+  emptyFunctionWithReset.resetWarningCache = emptyFunction;
+  factoryWithThrowingShims = function() {
+    function shim2(props, propName, componentName, location, propFullName, secret) {
+      if (secret === ReactPropTypesSecret) {
+        return;
+      }
+      var err = new Error(
+        "Calling PropTypes validators directly is not supported by the `prop-types` package. Use PropTypes.checkPropTypes() to call them. Read more at http://fb.me/use-check-prop-types"
+      );
+      err.name = "Invariant Violation";
+      throw err;
+    }
+    shim2.isRequired = shim2;
+    function getShim() {
+      return shim2;
+    }
+    var ReactPropTypes = {
+      array: shim2,
+      bool: shim2,
+      func: shim2,
+      number: shim2,
+      object: shim2,
+      string: shim2,
+      symbol: shim2,
+      any: shim2,
+      arrayOf: getShim,
+      element: shim2,
+      elementType: shim2,
+      instanceOf: getShim,
+      node: shim2,
+      objectOf: getShim,
+      oneOf: getShim,
+      oneOfType: getShim,
+      shape: getShim,
+      exact: getShim,
+      checkPropTypes: emptyFunctionWithReset,
+      resetWarningCache: emptyFunction
+    };
+    ReactPropTypes.PropTypes = ReactPropTypes;
+    return ReactPropTypes;
+  };
+  return factoryWithThrowingShims;
+}
+var hasRequiredPropTypes;
+function requirePropTypes() {
+  if (hasRequiredPropTypes) return propTypes$3.exports;
+  hasRequiredPropTypes = 1;
+  {
+    propTypes$3.exports = requireFactoryWithThrowingShims()();
+  }
+  return propTypes$3.exports;
+}
+var propTypesExports = requirePropTypes();
+const PropTypes = /* @__PURE__ */ getDefaultExportFromCjs(propTypesExports);
+const config = {
+  disabled: false
+};
+const TransitionGroupContext = React.createContext(null);
+var forceReflow = function forceReflow2(node2) {
+  return node2.scrollTop;
+};
+var UNMOUNTED = "unmounted";
+var EXITED = "exited";
+var ENTERING = "entering";
+var ENTERED = "entered";
+var EXITING = "exiting";
+var Transition = /* @__PURE__ */ (function(_React$Component) {
+  _inheritsLoose(Transition2, _React$Component);
+  function Transition2(props, context2) {
+    var _this;
+    _this = _React$Component.call(this, props, context2) || this;
+    var parentGroup = context2;
+    var appear = parentGroup && !parentGroup.isMounting ? props.enter : props.appear;
+    var initialStatus;
+    _this.appearStatus = null;
+    if (props.in) {
+      if (appear) {
+        initialStatus = EXITED;
+        _this.appearStatus = ENTERING;
+      } else {
+        initialStatus = ENTERED;
+      }
+    } else {
+      if (props.unmountOnExit || props.mountOnEnter) {
+        initialStatus = UNMOUNTED;
+      } else {
+        initialStatus = EXITED;
+      }
+    }
+    _this.state = {
+      status: initialStatus
+    };
+    _this.nextCallback = null;
+    return _this;
+  }
+  Transition2.getDerivedStateFromProps = function getDerivedStateFromProps(_ref3, prevState) {
+    var nextIn = _ref3.in;
+    if (nextIn && prevState.status === UNMOUNTED) {
+      return {
+        status: EXITED
+      };
+    }
+    return null;
+  };
+  var _proto = Transition2.prototype;
+  _proto.componentDidMount = function componentDidMount() {
+    this.updateStatus(true, this.appearStatus);
+  };
+  _proto.componentDidUpdate = function componentDidUpdate(prevProps) {
+    var nextStatus = null;
+    if (prevProps !== this.props) {
+      var status = this.state.status;
+      if (this.props.in) {
+        if (status !== ENTERING && status !== ENTERED) {
+          nextStatus = ENTERING;
+        }
+      } else {
+        if (status === ENTERING || status === ENTERED) {
+          nextStatus = EXITING;
+        }
+      }
+    }
+    this.updateStatus(false, nextStatus);
+  };
+  _proto.componentWillUnmount = function componentWillUnmount() {
+    this.cancelNextCallback();
+  };
+  _proto.getTimeouts = function getTimeouts() {
+    var timeout2 = this.props.timeout;
+    var exit, enter, appear;
+    exit = enter = appear = timeout2;
+    if (timeout2 != null && typeof timeout2 !== "number") {
+      exit = timeout2.exit;
+      enter = timeout2.enter;
+      appear = timeout2.appear !== void 0 ? timeout2.appear : enter;
+    }
+    return {
+      exit,
+      enter,
+      appear
+    };
+  };
+  _proto.updateStatus = function updateStatus(mounting, nextStatus) {
+    if (mounting === void 0) {
+      mounting = false;
+    }
+    if (nextStatus !== null) {
+      this.cancelNextCallback();
+      if (nextStatus === ENTERING) {
+        if (this.props.unmountOnExit || this.props.mountOnEnter) {
+          var node2 = this.props.nodeRef ? this.props.nodeRef.current : ReactDOM.findDOMNode(this);
+          if (node2) forceReflow(node2);
+        }
+        this.performEnter(mounting);
+      } else {
+        this.performExit();
+      }
+    } else if (this.props.unmountOnExit && this.state.status === EXITED) {
+      this.setState({
+        status: UNMOUNTED
+      });
+    }
+  };
+  _proto.performEnter = function performEnter(mounting) {
+    var _this2 = this;
+    var enter = this.props.enter;
+    var appearing = this.context ? this.context.isMounting : mounting;
+    var _ref22 = this.props.nodeRef ? [appearing] : [ReactDOM.findDOMNode(this), appearing], maybeNode = _ref22[0], maybeAppearing = _ref22[1];
+    var timeouts = this.getTimeouts();
+    var enterTimeout = appearing ? timeouts.appear : timeouts.enter;
+    if (!mounting && !enter || config.disabled) {
+      this.safeSetState({
+        status: ENTERED
+      }, function() {
+        _this2.props.onEntered(maybeNode);
+      });
+      return;
+    }
+    this.props.onEnter(maybeNode, maybeAppearing);
+    this.safeSetState({
+      status: ENTERING
+    }, function() {
+      _this2.props.onEntering(maybeNode, maybeAppearing);
+      _this2.onTransitionEnd(enterTimeout, function() {
+        _this2.safeSetState({
+          status: ENTERED
+        }, function() {
+          _this2.props.onEntered(maybeNode, maybeAppearing);
+        });
+      });
+    });
+  };
+  _proto.performExit = function performExit() {
+    var _this3 = this;
+    var exit = this.props.exit;
+    var timeouts = this.getTimeouts();
+    var maybeNode = this.props.nodeRef ? void 0 : ReactDOM.findDOMNode(this);
+    if (!exit || config.disabled) {
+      this.safeSetState({
+        status: EXITED
+      }, function() {
+        _this3.props.onExited(maybeNode);
+      });
+      return;
+    }
+    this.props.onExit(maybeNode);
+    this.safeSetState({
+      status: EXITING
+    }, function() {
+      _this3.props.onExiting(maybeNode);
+      _this3.onTransitionEnd(timeouts.exit, function() {
+        _this3.safeSetState({
+          status: EXITED
+        }, function() {
+          _this3.props.onExited(maybeNode);
+        });
+      });
+    });
+  };
+  _proto.cancelNextCallback = function cancelNextCallback() {
+    if (this.nextCallback !== null) {
+      this.nextCallback.cancel();
+      this.nextCallback = null;
+    }
+  };
+  _proto.safeSetState = function safeSetState(nextState, callback) {
+    callback = this.setNextCallback(callback);
+    this.setState(nextState, callback);
+  };
+  _proto.setNextCallback = function setNextCallback(callback) {
+    var _this4 = this;
+    var active = true;
+    this.nextCallback = function(event) {
+      if (active) {
+        active = false;
+        _this4.nextCallback = null;
+        callback(event);
+      }
+    };
+    this.nextCallback.cancel = function() {
+      active = false;
+    };
+    return this.nextCallback;
+  };
+  _proto.onTransitionEnd = function onTransitionEnd(timeout2, handler) {
+    this.setNextCallback(handler);
+    var node2 = this.props.nodeRef ? this.props.nodeRef.current : ReactDOM.findDOMNode(this);
+    var doesNotHaveTimeoutOrListener = timeout2 == null && !this.props.addEndListener;
+    if (!node2 || doesNotHaveTimeoutOrListener) {
+      setTimeout(this.nextCallback, 0);
+      return;
+    }
+    if (this.props.addEndListener) {
+      var _ref3 = this.props.nodeRef ? [this.nextCallback] : [node2, this.nextCallback], maybeNode = _ref3[0], maybeNextCallback = _ref3[1];
+      this.props.addEndListener(maybeNode, maybeNextCallback);
+    }
+    if (timeout2 != null) {
+      setTimeout(this.nextCallback, timeout2);
+    }
+  };
+  _proto.render = function render() {
+    var status = this.state.status;
+    if (status === UNMOUNTED) {
+      return null;
+    }
+    var _this$props = this.props, children2 = _this$props.children;
+    _this$props.in;
+    _this$props.mountOnEnter;
+    _this$props.unmountOnExit;
+    _this$props.appear;
+    _this$props.enter;
+    _this$props.exit;
+    _this$props.timeout;
+    _this$props.addEndListener;
+    _this$props.onEnter;
+    _this$props.onEntering;
+    _this$props.onEntered;
+    _this$props.onExit;
+    _this$props.onExiting;
+    _this$props.onExited;
+    _this$props.nodeRef;
+    var childProps = _objectWithoutPropertiesLoose$1(_this$props, ["children", "in", "mountOnEnter", "unmountOnExit", "appear", "enter", "exit", "timeout", "addEndListener", "onEnter", "onEntering", "onEntered", "onExit", "onExiting", "onExited", "nodeRef"]);
+    return (
+      // allows for nested Transitions
+      /* @__PURE__ */ React.createElement(TransitionGroupContext.Provider, {
+        value: null
+      }, typeof children2 === "function" ? children2(status, childProps) : React.cloneElement(React.Children.only(children2), childProps))
+    );
+  };
+  return Transition2;
+})(React.Component);
+Transition.contextType = TransitionGroupContext;
+Transition.propTypes = {};
+function noop$4() {
+}
+Transition.defaultProps = {
+  in: false,
+  mountOnEnter: false,
+  unmountOnExit: false,
+  appear: false,
+  enter: true,
+  exit: true,
+  onEnter: noop$4,
+  onEntering: noop$4,
+  onEntered: noop$4,
+  onExit: noop$4,
+  onExiting: noop$4,
+  onExited: noop$4
+};
+Transition.UNMOUNTED = UNMOUNTED;
+Transition.EXITED = EXITED;
+Transition.ENTERING = ENTERING;
+Transition.ENTERED = ENTERED;
+Transition.EXITING = EXITING;
+const canUseDOM$1 = !!(typeof window !== "undefined" && window.document && window.document.createElement);
+var optionsSupported = false;
+var onceSupported = false;
+try {
+  var options$2 = {
+    get passive() {
+      return optionsSupported = true;
+    },
+    get once() {
+      return onceSupported = optionsSupported = true;
+    }
+  };
+  if (canUseDOM$1) {
+    window.addEventListener("test", options$2, options$2);
+    window.removeEventListener("test", options$2, true);
+  }
+} catch (e) {
+}
+function addEventListener(node2, eventName, handler, options2) {
+  if (options2 && typeof options2 !== "boolean" && !onceSupported) {
+    var once2 = options2.once, capture = options2.capture;
+    var wrappedHandler = handler;
+    if (!onceSupported && once2) {
+      wrappedHandler = handler.__once || function onceHandler(event) {
+        this.removeEventListener(eventName, onceHandler, capture);
+        handler.call(this, event);
+      };
+      handler.__once = wrappedHandler;
+    }
+    node2.addEventListener(eventName, wrappedHandler, optionsSupported ? options2 : capture);
+  }
+  node2.addEventListener(eventName, handler, options2);
+}
+function removeEventListener(node2, eventName, handler, options2) {
+  var capture = options2 && typeof options2 !== "boolean" ? options2.capture : options2;
+  node2.removeEventListener(eventName, handler, capture);
+  if (handler.__once) {
+    node2.removeEventListener(eventName, handler.__once, capture);
+  }
+}
+function listen$1(node2, eventName, handler, options2) {
+  addEventListener(node2, eventName, handler, options2);
+  return function() {
+    removeEventListener(node2, eventName, handler, options2);
+  };
+}
+function triggerEvent(node2, eventName, bubbles, cancelable) {
+  if (cancelable === void 0) {
+    cancelable = true;
+  }
+  if (node2) {
+    var event = document.createEvent("HTMLEvents");
+    event.initEvent(eventName, bubbles, cancelable);
+    node2.dispatchEvent(event);
+  }
+}
+function parseDuration$1(node2) {
+  var str = style(node2, "transitionDuration") || "";
+  var mult = str.indexOf("ms") === -1 ? 1e3 : 1;
+  return parseFloat(str) * mult;
+}
+function emulateTransitionEnd(element2, duration, padding) {
+  if (padding === void 0) {
+    padding = 5;
+  }
+  var called = false;
+  var handle = setTimeout(function() {
+    if (!called) triggerEvent(element2, "transitionend", true);
+  }, duration + padding);
+  var remove = listen$1(element2, "transitionend", function() {
+    called = true;
+  }, {
+    once: true
+  });
+  return function() {
+    clearTimeout(handle);
+    remove();
+  };
+}
+function transitionEnd(element2, handler, duration, padding) {
+  if (duration == null) duration = parseDuration$1(element2) || 0;
+  var removeEmulate = emulateTransitionEnd(element2, duration, padding);
+  var remove = listen$1(element2, "transitionend", handler);
+  return function() {
+    removeEmulate();
+    remove();
+  };
+}
+function parseDuration(node2, property) {
+  var str = style(node2, property) || "";
+  var mult = str.indexOf("ms") === -1 ? 1e3 : 1;
+  return parseFloat(str) * mult;
+}
+function transitionEndListener(element2, handler) {
+  var duration = parseDuration(element2, "transitionDuration");
+  var delay = parseDuration(element2, "transitionDelay");
+  var remove = transitionEnd(element2, function(e) {
+    if (e.target === element2) {
+      remove();
+      handler(e);
+    }
+  }, duration + delay);
+}
+function createChainedFunction() {
+  for (var _len = arguments.length, funcs = new Array(_len), _key = 0; _key < _len; _key++) {
+    funcs[_key] = arguments[_key];
+  }
+  return funcs.filter(function(f) {
+    return f != null;
+  }).reduce(function(acc, f) {
+    if (typeof f !== "function") {
+      throw new Error("Invalid Argument Type, must only provide functions, undefined, or null.");
+    }
+    if (acc === null) return f;
+    return function chainedFunction() {
+      for (var _len2 = arguments.length, args = new Array(_len2), _key2 = 0; _key2 < _len2; _key2++) {
+        args[_key2] = arguments[_key2];
+      }
+      acc.apply(this, args);
+      f.apply(this, args);
+    };
+  }, null);
+}
+function triggerBrowserReflow(node2) {
+  node2.offsetHeight;
+}
+var _collapseStyles;
+var MARGINS = {
+  height: ["marginTop", "marginBottom"],
+  width: ["marginLeft", "marginRight"]
+};
+function getDefaultDimensionValue(dimension, elem) {
+  var offset2 = "offset" + dimension[0].toUpperCase() + dimension.slice(1);
+  var value = elem[offset2];
+  var margins = MARGINS[dimension];
+  return value + // @ts-ignore
+  parseInt(style(elem, margins[0]), 10) + // @ts-ignore
+  parseInt(style(elem, margins[1]), 10);
+}
+var collapseStyles = (_collapseStyles = {}, _collapseStyles[EXITED] = "collapse", _collapseStyles[EXITING] = "collapsing", _collapseStyles[ENTERING] = "collapsing", _collapseStyles[ENTERED] = "collapse show", _collapseStyles);
+var defaultProps$g = {
+  in: false,
+  timeout: 300,
+  mountOnEnter: false,
+  unmountOnExit: false,
+  appear: false,
+  getDimensionValue: getDefaultDimensionValue
+};
+var Collapse = /* @__PURE__ */ React.forwardRef(function(_ref3, ref) {
+  var onEnter = _ref3.onEnter, onEntering = _ref3.onEntering, onEntered = _ref3.onEntered, onExit = _ref3.onExit, onExiting = _ref3.onExiting, className = _ref3.className, children2 = _ref3.children, _ref$dimension = _ref3.dimension, dimension = _ref$dimension === void 0 ? "height" : _ref$dimension, _ref$getDimensionValu = _ref3.getDimensionValue, getDimensionValue = _ref$getDimensionValu === void 0 ? getDefaultDimensionValue : _ref$getDimensionValu, props = _objectWithoutPropertiesLoose$1(_ref3, ["onEnter", "onEntering", "onEntered", "onExit", "onExiting", "className", "children", "dimension", "getDimensionValue"]);
+  var computedDimension = typeof dimension === "function" ? dimension() : dimension;
+  var handleEnter = reactExports.useMemo(function() {
+    return createChainedFunction(function(elem) {
+      elem.style[computedDimension] = "0";
+    }, onEnter);
+  }, [computedDimension, onEnter]);
+  var handleEntering = reactExports.useMemo(function() {
+    return createChainedFunction(function(elem) {
+      var scroll2 = "scroll" + computedDimension[0].toUpperCase() + computedDimension.slice(1);
+      elem.style[computedDimension] = elem[scroll2] + "px";
+    }, onEntering);
+  }, [computedDimension, onEntering]);
+  var handleEntered = reactExports.useMemo(function() {
+    return createChainedFunction(function(elem) {
+      elem.style[computedDimension] = null;
+    }, onEntered);
+  }, [computedDimension, onEntered]);
+  var handleExit = reactExports.useMemo(function() {
+    return createChainedFunction(function(elem) {
+      elem.style[computedDimension] = getDimensionValue(computedDimension, elem) + "px";
+      triggerBrowserReflow(elem);
+    }, onExit);
+  }, [onExit, getDimensionValue, computedDimension]);
+  var handleExiting = reactExports.useMemo(function() {
+    return createChainedFunction(function(elem) {
+      elem.style[computedDimension] = null;
+    }, onExiting);
+  }, [computedDimension, onExiting]);
+  return /* @__PURE__ */ React.createElement(
+    Transition,
+    _extends$1({
+      ref,
+      addEndListener: transitionEndListener
+    }, props, {
+      "aria-expanded": props.role ? props.in : null,
+      onEnter: handleEnter,
+      onEntering: handleEntering,
+      onEntered: handleEntered,
+      onExit: handleExit,
+      onExiting: handleExiting
+    }),
+    function(state, innerProps) {
+      return /* @__PURE__ */ React.cloneElement(children2, _extends$1({}, innerProps, {
+        className: classNames$1(className, children2.props.className, collapseStyles[state], computedDimension === "width" && "width")
+      }));
+    }
+  );
+});
+Collapse.defaultProps = defaultProps$g;
+function useCommittedRef$1(value) {
+  var ref = reactExports.useRef(value);
+  reactExports.useEffect(function() {
+    ref.current = value;
+  }, [value]);
+  return ref;
+}
+function useEventCallback$1(fn) {
+  var ref = useCommittedRef$1(fn);
+  return reactExports.useCallback(function() {
+    return ref.current && ref.current.apply(ref, arguments);
+  }, [ref]);
+}
+var _fadeStyles;
+var defaultProps$f = {
+  in: false,
+  timeout: 300,
+  mountOnEnter: false,
+  unmountOnExit: false,
+  appear: false
+};
+var fadeStyles = (_fadeStyles = {}, _fadeStyles[ENTERING] = "show", _fadeStyles[ENTERED] = "show", _fadeStyles);
+var Fade = /* @__PURE__ */ React.forwardRef(function(_ref3, ref) {
+  var className = _ref3.className, children2 = _ref3.children, props = _objectWithoutPropertiesLoose$1(_ref3, ["className", "children"]);
+  var handleEnter = reactExports.useCallback(function(node2) {
+    triggerBrowserReflow(node2);
+    if (props.onEnter) props.onEnter(node2);
+  }, [props]);
+  return /* @__PURE__ */ React.createElement(Transition, _extends$1({
+    ref,
+    addEndListener: transitionEndListener
+  }, props, {
+    onEnter: handleEnter
+  }), function(status, innerProps) {
+    return /* @__PURE__ */ React.cloneElement(children2, _extends$1({}, innerProps, {
+      className: classNames$1("fade", className, children2.props.className, fadeStyles[status])
+    }));
+  });
+});
+Fade.defaultProps = defaultProps$f;
+Fade.displayName = "Fade";
+var propTypes$2 = {
+  label: PropTypes.string.isRequired,
+  onClick: PropTypes.func
+};
+var defaultProps$e = {
+  label: "Close"
+};
+var CloseButton = /* @__PURE__ */ React.forwardRef(function(_ref3, ref) {
+  var label = _ref3.label, onClick = _ref3.onClick, className = _ref3.className, props = _objectWithoutPropertiesLoose$1(_ref3, ["label", "onClick", "className"]);
+  return /* @__PURE__ */ React.createElement("button", _extends$1({
+    ref,
+    type: "button",
+    className: classNames$1("close", className),
+    onClick
+  }, props), /* @__PURE__ */ React.createElement("span", {
+    "aria-hidden": "true"
+  }, "×"), /* @__PURE__ */ React.createElement("span", {
+    className: "sr-only"
+  }, label));
+});
+CloseButton.displayName = "CloseButton";
+CloseButton.propTypes = propTypes$2;
+CloseButton.defaultProps = defaultProps$e;
+const divWithClassName = (function(className) {
+  return /* @__PURE__ */ React.forwardRef(function(p, ref) {
+    return /* @__PURE__ */ React.createElement("div", _extends$1({}, p, {
+      ref,
+      className: classNames$1(p.className, className)
+    }));
+  });
+});
+var rHyphen = /-(.)/g;
+function camelize(string2) {
+  return string2.replace(rHyphen, function(_, chr) {
+    return chr.toUpperCase();
+  });
+}
+var pascalCase = function pascalCase2(str) {
+  return str[0].toUpperCase() + camelize(str).slice(1);
+};
+function createWithBsPrefix(prefix2, _temp) {
+  var _ref3 = _temp === void 0 ? {} : _temp, _ref$displayName = _ref3.displayName, displayName = _ref$displayName === void 0 ? pascalCase(prefix2) : _ref$displayName, Component = _ref3.Component, defaultProps2 = _ref3.defaultProps;
+  var BsComponent = /* @__PURE__ */ React.forwardRef(function(_ref22, ref) {
+    var className = _ref22.className, bsPrefix = _ref22.bsPrefix, _ref2$as = _ref22.as, Tag = _ref2$as === void 0 ? Component || "div" : _ref2$as, props = _objectWithoutPropertiesLoose$1(_ref22, ["className", "bsPrefix", "as"]);
+    var resolvedPrefix = useBootstrapPrefix(bsPrefix, prefix2);
+    return /* @__PURE__ */ React.createElement(Tag, _extends$1({
+      ref,
+      className: classNames$1(className, resolvedPrefix)
+    }, props));
+  });
+  BsComponent.defaultProps = defaultProps2;
+  BsComponent.displayName = displayName;
+  return BsComponent;
+}
+function isTrivialHref(href) {
+  return !href || href.trim() === "#";
+}
+var SafeAnchor = /* @__PURE__ */ React.forwardRef(function(_ref3, ref) {
+  var _ref$as = _ref3.as, Component = _ref$as === void 0 ? "a" : _ref$as, disabled = _ref3.disabled, onKeyDown = _ref3.onKeyDown, props = _objectWithoutPropertiesLoose$1(_ref3, ["as", "disabled", "onKeyDown"]);
+  var handleClick = function handleClick2(event) {
+    var href = props.href, onClick = props.onClick;
+    if (disabled || isTrivialHref(href)) {
+      event.preventDefault();
+    }
+    if (disabled) {
+      event.stopPropagation();
+      return;
+    }
+    if (onClick) {
+      onClick(event);
+    }
+  };
+  var handleKeyDown = function handleKeyDown2(event) {
+    if (event.key === " ") {
+      event.preventDefault();
+      handleClick(event);
+    }
+  };
+  if (isTrivialHref(props.href)) {
+    props.role = props.role || "button";
+    props.href = props.href || "#";
+  }
+  if (disabled) {
+    props.tabIndex = -1;
+    props["aria-disabled"] = true;
+  }
+  return /* @__PURE__ */ React.createElement(Component, _extends$1({
+    ref
+  }, props, {
+    onClick: handleClick,
+    onKeyDown: createChainedFunction(handleKeyDown, onKeyDown)
+  }));
+});
+SafeAnchor.displayName = "SafeAnchor";
+var DivStyledAsH4$1 = divWithClassName("h4");
+DivStyledAsH4$1.displayName = "DivStyledAsH4";
+var AlertHeading = createWithBsPrefix("alert-heading", {
+  Component: DivStyledAsH4$1
+});
+var AlertLink = createWithBsPrefix("alert-link", {
+  Component: SafeAnchor
+});
+var defaultProps$d = {
+  show: true,
+  transition: Fade,
+  closeLabel: "Close alert"
+};
+var Alert = /* @__PURE__ */ React.forwardRef(function(uncontrolledProps, ref) {
+  var _useUncontrolled = useUncontrolled(uncontrolledProps, {
+    show: "onClose"
+  }), bsPrefix = _useUncontrolled.bsPrefix, show = _useUncontrolled.show, closeLabel = _useUncontrolled.closeLabel, className = _useUncontrolled.className, children2 = _useUncontrolled.children, variant = _useUncontrolled.variant, onClose = _useUncontrolled.onClose, dismissible = _useUncontrolled.dismissible, transition = _useUncontrolled.transition, props = _objectWithoutPropertiesLoose$1(_useUncontrolled, ["bsPrefix", "show", "closeLabel", "className", "children", "variant", "onClose", "dismissible", "transition"]);
+  var prefix2 = useBootstrapPrefix(bsPrefix, "alert");
+  var handleClose = useEventCallback$1(function(e) {
+    if (onClose) {
+      onClose(false, e);
+    }
+  });
+  var Transition2 = transition === true ? Fade : transition;
+  var alert = /* @__PURE__ */ React.createElement("div", _extends$1({
+    role: "alert"
+  }, !Transition2 ? props : void 0, {
+    ref,
+    className: classNames$1(className, prefix2, variant && prefix2 + "-" + variant, dismissible && prefix2 + "-dismissible")
+  }), dismissible && /* @__PURE__ */ React.createElement(CloseButton, {
+    onClick: handleClose,
+    label: closeLabel
+  }), children2);
+  if (!Transition2) return show ? alert : null;
+  return /* @__PURE__ */ React.createElement(Transition2, _extends$1({
+    unmountOnExit: true
+  }, props, {
+    ref: void 0,
+    in: show
+  }), alert);
+});
+Alert.displayName = "Alert";
+Alert.defaultProps = defaultProps$d;
+Alert.Link = AlertLink;
+Alert.Heading = AlertHeading;
+var defaultProps$c = {
+  pill: false
+};
+var Badge = /* @__PURE__ */ React.forwardRef(function(_ref3, ref) {
+  var bsPrefix = _ref3.bsPrefix, variant = _ref3.variant, pill = _ref3.pill, className = _ref3.className, _ref$as = _ref3.as, Component = _ref$as === void 0 ? "span" : _ref$as, props = _objectWithoutPropertiesLoose$1(_ref3, ["bsPrefix", "variant", "pill", "className", "as"]);
+  var prefix2 = useBootstrapPrefix(bsPrefix, "badge");
+  return /* @__PURE__ */ React.createElement(Component, _extends$1({
+    ref
+  }, props, {
+    className: classNames$1(className, prefix2, pill && prefix2 + "-pill", variant && prefix2 + "-" + variant)
+  }));
+});
+Badge.displayName = "Badge";
+Badge.defaultProps = defaultProps$c;
+var defaultProps$b = {
+  variant: "primary",
+  active: false,
+  disabled: false
+};
+var Button = /* @__PURE__ */ React.forwardRef(function(_ref3, ref) {
+  var bsPrefix = _ref3.bsPrefix, variant = _ref3.variant, size2 = _ref3.size, active = _ref3.active, className = _ref3.className, block = _ref3.block, type2 = _ref3.type, as = _ref3.as, props = _objectWithoutPropertiesLoose$1(_ref3, ["bsPrefix", "variant", "size", "active", "className", "block", "type", "as"]);
+  var prefix2 = useBootstrapPrefix(bsPrefix, "btn");
+  var classes = classNames$1(className, prefix2, active && "active", variant && prefix2 + "-" + variant, block && prefix2 + "-block", size2 && prefix2 + "-" + size2);
+  if (props.href) {
+    return /* @__PURE__ */ React.createElement(SafeAnchor, _extends$1({}, props, {
+      as,
+      ref,
+      className: classNames$1(classes, props.disabled && "disabled")
+    }));
+  }
+  if (ref) {
+    props.ref = ref;
+  }
+  if (type2) {
+    props.type = type2;
+  } else if (!as) {
+    props.type = "button";
+  }
+  var Component = as || "button";
+  return /* @__PURE__ */ React.createElement(Component, _extends$1({}, props, {
+    className: classes
+  }));
+});
+Button.displayName = "Button";
+Button.defaultProps = defaultProps$b;
+function useUpdatedRef$1(value) {
+  var valueRef = reactExports.useRef(value);
+  valueRef.current = value;
+  return valueRef;
+}
+function useWillUnmount$1(fn) {
+  var onUnmount = useUpdatedRef$1(fn);
+  reactExports.useEffect(function() {
+    return function() {
+      return onUnmount.current();
+    };
+  }, []);
+}
+var DEVICE_SIZES = ["xl", "lg", "md", "sm", "xs"];
+var Col = /* @__PURE__ */ React.forwardRef(
+  // Need to define the default "as" during prop destructuring to be compatible with styled-components github.com/react-bootstrap/react-bootstrap/issues/3595
+  function(_ref3, ref) {
+    var bsPrefix = _ref3.bsPrefix, className = _ref3.className, _ref$as = _ref3.as, Component = _ref$as === void 0 ? "div" : _ref$as, props = _objectWithoutPropertiesLoose$1(_ref3, ["bsPrefix", "className", "as"]);
+    var prefix2 = useBootstrapPrefix(bsPrefix, "col");
+    var spans = [];
+    var classes = [];
+    DEVICE_SIZES.forEach(function(brkPoint) {
+      var propValue = props[brkPoint];
+      delete props[brkPoint];
+      var span;
+      var offset2;
+      var order;
+      if (typeof propValue === "object" && propValue != null) {
+        var _propValue$span = propValue.span;
+        span = _propValue$span === void 0 ? true : _propValue$span;
+        offset2 = propValue.offset;
+        order = propValue.order;
+      } else {
+        span = propValue;
+      }
+      var infix = brkPoint !== "xs" ? "-" + brkPoint : "";
+      if (span) spans.push(span === true ? "" + prefix2 + infix : "" + prefix2 + infix + "-" + span);
+      if (order != null) classes.push("order" + infix + "-" + order);
+      if (offset2 != null) classes.push("offset" + infix + "-" + offset2);
+    });
+    if (!spans.length) {
+      spans.push(prefix2);
+    }
+    return /* @__PURE__ */ React.createElement(Component, _extends$1({}, props, {
+      ref,
+      className: classNames$1.apply(void 0, [className].concat(spans, classes))
+    }));
+  }
+);
+Col.displayName = "Col";
+var toArray = Function.prototype.bind.call(Function.prototype.call, [].slice);
+function qsa(element2, selector) {
+  return toArray(element2.querySelectorAll(selector));
+}
+function usePrevious(value) {
+  var ref = reactExports.useRef(null);
+  reactExports.useEffect(function() {
+    ref.current = value;
+  });
+  return ref.current;
+}
+function useCommittedRef(value) {
+  var ref = reactExports.useRef(value);
+  reactExports.useEffect(function() {
+    ref.current = value;
+  }, [value]);
+  return ref;
+}
+function useEventCallback(fn) {
+  var ref = useCommittedRef(fn);
+  return reactExports.useCallback(function() {
+    return ref.current && ref.current.apply(ref, arguments);
+  }, [ref]);
+}
+function useMounted() {
+  var mounted = reactExports.useRef(true);
+  var isMounted = reactExports.useRef(function() {
+    return mounted.current;
+  });
+  reactExports.useEffect(function() {
+    mounted.current = true;
+    return function() {
+      mounted.current = false;
+    };
+  }, []);
+  return isMounted.current;
+}
+function contains(context2, node2) {
+  if (context2.contains) return context2.contains(node2);
+  if (context2.compareDocumentPosition) return context2 === node2 || !!(context2.compareDocumentPosition(node2) & 16);
+}
+var NavContext = /* @__PURE__ */ React.createContext(null);
+NavContext.displayName = "NavContext";
+var toFnRef = function toFnRef2(ref) {
+  return !ref || typeof ref === "function" ? ref : function(value) {
+    ref.current = value;
+  };
+};
+function mergeRefs(refA, refB) {
+  var a = toFnRef(refA);
+  var b = toFnRef(refB);
+  return function(value) {
+    if (a) a(value);
+    if (b) b(value);
+  };
+}
+function useMergedRefs(refA, refB) {
+  return reactExports.useMemo(function() {
+    return mergeRefs(refA, refB);
+  }, [refA, refB]);
+}
+var context = /* @__PURE__ */ React.createContext(null);
+context.displayName = "NavbarContext";
+function hasClass(element2, className) {
+  if (element2.classList) return !!className && element2.classList.contains(className);
+  return (" " + (element2.className.baseVal || element2.className) + " ").indexOf(" " + className + " ") !== -1;
+}
+var all = { exports: {} };
+var createChainableTypeChecker = { exports: {} };
+var hasRequiredCreateChainableTypeChecker;
+function requireCreateChainableTypeChecker() {
+  if (hasRequiredCreateChainableTypeChecker) return createChainableTypeChecker.exports;
+  hasRequiredCreateChainableTypeChecker = 1;
+  (function(module, exports) {
+    Object.defineProperty(exports, "__esModule", {
+      value: true
+    });
+    exports.default = createChainableTypeChecker2;
+    function createChainableTypeChecker2(validate) {
+      function checkType(isRequired, props, propName, componentName, location, propFullName) {
+        var componentNameSafe = componentName || "<<anonymous>>";
+        var propFullNameSafe = propFullName || propName;
+        if (props[propName] == null) {
+          if (isRequired) {
+            return new Error("Required " + location + " `" + propFullNameSafe + "` was not specified " + ("in `" + componentNameSafe + "`."));
+          }
+          return null;
+        }
+        for (var _len = arguments.length, args = Array(_len > 6 ? _len - 6 : 0), _key = 6; _key < _len; _key++) {
+          args[_key - 6] = arguments[_key];
+        }
+        return validate.apply(void 0, [props, propName, componentNameSafe, location, propFullNameSafe].concat(args));
+      }
+      var chainedCheckType = checkType.bind(null, false);
+      chainedCheckType.isRequired = checkType.bind(null, true);
+      return chainedCheckType;
+    }
+    module.exports = exports["default"];
+  })(createChainableTypeChecker, createChainableTypeChecker.exports);
+  return createChainableTypeChecker.exports;
+}
+var hasRequiredAll;
+function requireAll() {
+  if (hasRequiredAll) return all.exports;
+  hasRequiredAll = 1;
+  (function(module, exports) {
+    Object.defineProperty(exports, "__esModule", {
+      value: true
+    });
+    exports.default = all2;
+    var _createChainableTypeChecker = requireCreateChainableTypeChecker();
+    var _createChainableTypeChecker2 = _interopRequireDefault(_createChainableTypeChecker);
+    function _interopRequireDefault(obj) {
+      return obj && obj.__esModule ? obj : { default: obj };
+    }
+    function all2() {
+      for (var _len = arguments.length, validators = Array(_len), _key = 0; _key < _len; _key++) {
+        validators[_key] = arguments[_key];
+      }
+      function allPropTypes() {
+        for (var _len2 = arguments.length, args = Array(_len2), _key2 = 0; _key2 < _len2; _key2++) {
+          args[_key2] = arguments[_key2];
+        }
+        var error = null;
+        validators.forEach(function(validator) {
+          if (error != null) {
+            return;
+          }
+          var result = validator.apply(void 0, args);
+          if (result != null) {
+            error = result;
+          }
+        });
+        return error;
+      }
+      return (0, _createChainableTypeChecker2.default)(allPropTypes);
+    }
+    module.exports = exports["default"];
+  })(all, all.exports);
+  return all.exports;
+}
+requireAll();
+var propTypes$1 = {
+  /**
+   * Specify whether the feedback is for valid or invalid fields
+   *
+   * @type {('valid'|'invalid')}
+   */
+  type: PropTypes.string,
+  /** Display feedback as a tooltip. */
+  tooltip: PropTypes.bool,
+  as: PropTypes.elementType
+};
+var Feedback = /* @__PURE__ */ React.forwardRef(
+  // Need to define the default "as" during prop destructuring to be compatible with styled-components github.com/react-bootstrap/react-bootstrap/issues/3595
+  function(_ref3, ref) {
+    var _ref$as = _ref3.as, Component = _ref$as === void 0 ? "div" : _ref$as, className = _ref3.className, _ref$type = _ref3.type, type2 = _ref$type === void 0 ? "valid" : _ref$type, _ref$tooltip = _ref3.tooltip, tooltip = _ref$tooltip === void 0 ? false : _ref$tooltip, props = _objectWithoutPropertiesLoose$1(_ref3, ["as", "className", "type", "tooltip"]);
+    return /* @__PURE__ */ React.createElement(Component, _extends$1({}, props, {
+      ref,
+      className: classNames$1(className, type2 + "-" + (tooltip ? "tooltip" : "feedback"))
+    }));
+  }
+);
+Feedback.displayName = "Feedback";
+Feedback.propTypes = propTypes$1;
+var FormContext = /* @__PURE__ */ React.createContext({
+  controlId: void 0
+});
+var FormCheckInput = /* @__PURE__ */ React.forwardRef(function(_ref3, ref) {
+  var id = _ref3.id, bsPrefix = _ref3.bsPrefix, bsCustomPrefix = _ref3.bsCustomPrefix, className = _ref3.className, _ref$type = _ref3.type, type2 = _ref$type === void 0 ? "checkbox" : _ref$type, _ref$isValid = _ref3.isValid, isValid = _ref$isValid === void 0 ? false : _ref$isValid, _ref$isInvalid = _ref3.isInvalid, isInvalid = _ref$isInvalid === void 0 ? false : _ref$isInvalid, isStatic = _ref3.isStatic, _ref$as = _ref3.as, Component = _ref$as === void 0 ? "input" : _ref$as, props = _objectWithoutPropertiesLoose$1(_ref3, ["id", "bsPrefix", "bsCustomPrefix", "className", "type", "isValid", "isInvalid", "isStatic", "as"]);
+  var _useContext = reactExports.useContext(FormContext), controlId = _useContext.controlId, custom = _useContext.custom;
+  var _ref22 = custom ? [bsCustomPrefix, "custom-control-input"] : [bsPrefix, "form-check-input"], prefix2 = _ref22[0], defaultPrefix = _ref22[1];
+  bsPrefix = useBootstrapPrefix(prefix2, defaultPrefix);
+  return /* @__PURE__ */ React.createElement(Component, _extends$1({}, props, {
+    ref,
+    type: type2,
+    id: id || controlId,
+    className: classNames$1(className, bsPrefix, isValid && "is-valid", isInvalid && "is-invalid", isStatic && "position-static")
+  }));
+});
+FormCheckInput.displayName = "FormCheckInput";
+var FormCheckLabel = /* @__PURE__ */ React.forwardRef(function(_ref3, ref) {
+  var bsPrefix = _ref3.bsPrefix, bsCustomPrefix = _ref3.bsCustomPrefix, className = _ref3.className, htmlFor = _ref3.htmlFor, props = _objectWithoutPropertiesLoose$1(_ref3, ["bsPrefix", "bsCustomPrefix", "className", "htmlFor"]);
+  var _useContext = reactExports.useContext(FormContext), controlId = _useContext.controlId, custom = _useContext.custom;
+  var _ref22 = custom ? [bsCustomPrefix, "custom-control-label"] : [bsPrefix, "form-check-label"], prefix2 = _ref22[0], defaultPrefix = _ref22[1];
+  bsPrefix = useBootstrapPrefix(prefix2, defaultPrefix);
+  return /* @__PURE__ */ React.createElement("label", _extends$1({}, props, {
+    ref,
+    htmlFor: htmlFor || controlId,
+    className: classNames$1(className, bsPrefix)
+  }));
+});
+FormCheckLabel.displayName = "FormCheckLabel";
+var FormCheck = /* @__PURE__ */ React.forwardRef(function(_ref3, ref) {
+  var id = _ref3.id, bsPrefix = _ref3.bsPrefix, bsCustomPrefix = _ref3.bsCustomPrefix, _ref$inline = _ref3.inline, inline = _ref$inline === void 0 ? false : _ref$inline, _ref$disabled = _ref3.disabled, disabled = _ref$disabled === void 0 ? false : _ref$disabled, _ref$isValid = _ref3.isValid, isValid = _ref$isValid === void 0 ? false : _ref$isValid, _ref$isInvalid = _ref3.isInvalid, isInvalid = _ref$isInvalid === void 0 ? false : _ref$isInvalid, _ref$feedbackTooltip = _ref3.feedbackTooltip, feedbackTooltip = _ref$feedbackTooltip === void 0 ? false : _ref$feedbackTooltip, feedback = _ref3.feedback, className = _ref3.className, style2 = _ref3.style, _ref$title = _ref3.title, title = _ref$title === void 0 ? "" : _ref$title, _ref$type = _ref3.type, type2 = _ref$type === void 0 ? "checkbox" : _ref$type, label = _ref3.label, children2 = _ref3.children, propCustom = _ref3.custom, _ref$as = _ref3.as, as = _ref$as === void 0 ? "input" : _ref$as, props = _objectWithoutPropertiesLoose$1(_ref3, ["id", "bsPrefix", "bsCustomPrefix", "inline", "disabled", "isValid", "isInvalid", "feedbackTooltip", "feedback", "className", "style", "title", "type", "label", "children", "custom", "as"]);
+  var custom = type2 === "switch" ? true : propCustom;
+  var _ref22 = custom ? [bsCustomPrefix, "custom-control"] : [bsPrefix, "form-check"], prefix2 = _ref22[0], defaultPrefix = _ref22[1];
+  bsPrefix = useBootstrapPrefix(prefix2, defaultPrefix);
+  var _useContext = reactExports.useContext(FormContext), controlId = _useContext.controlId;
+  var innerFormContext = reactExports.useMemo(function() {
+    return {
+      controlId: id || controlId,
+      custom
+    };
+  }, [controlId, custom, id]);
+  var hasLabel = custom || label != null && label !== false && !children2;
+  var input = /* @__PURE__ */ React.createElement(FormCheckInput, _extends$1({}, props, {
+    type: type2 === "switch" ? "checkbox" : type2,
+    ref,
+    isValid,
+    isInvalid,
+    isStatic: !hasLabel,
+    disabled,
+    as
+  }));
+  return /* @__PURE__ */ React.createElement(FormContext.Provider, {
+    value: innerFormContext
+  }, /* @__PURE__ */ React.createElement("div", {
+    style: style2,
+    className: classNames$1(className, bsPrefix, custom && "custom-" + type2, inline && bsPrefix + "-inline")
+  }, children2 || /* @__PURE__ */ React.createElement(React.Fragment, null, input, hasLabel && /* @__PURE__ */ React.createElement(FormCheckLabel, {
+    title
+  }, label), (isValid || isInvalid) && /* @__PURE__ */ React.createElement(Feedback, {
+    type: isValid ? "valid" : "invalid",
+    tooltip: feedbackTooltip
+  }, feedback))));
+});
+FormCheck.displayName = "FormCheck";
+FormCheck.Input = FormCheckInput;
+FormCheck.Label = FormCheckLabel;
+var FormFileInput = /* @__PURE__ */ React.forwardRef(function(_ref3, ref) {
+  var id = _ref3.id, bsPrefix = _ref3.bsPrefix, bsCustomPrefix = _ref3.bsCustomPrefix, className = _ref3.className, isValid = _ref3.isValid, isInvalid = _ref3.isInvalid, lang = _ref3.lang, _ref$as = _ref3.as, Component = _ref$as === void 0 ? "input" : _ref$as, props = _objectWithoutPropertiesLoose$1(_ref3, ["id", "bsPrefix", "bsCustomPrefix", "className", "isValid", "isInvalid", "lang", "as"]);
+  var _useContext = reactExports.useContext(FormContext), controlId = _useContext.controlId, custom = _useContext.custom;
+  var type2 = "file";
+  var _ref22 = custom ? [bsCustomPrefix, "custom-file-input"] : [bsPrefix, "form-control-file"], prefix2 = _ref22[0], defaultPrefix = _ref22[1];
+  bsPrefix = useBootstrapPrefix(prefix2, defaultPrefix);
+  return /* @__PURE__ */ React.createElement(Component, _extends$1({}, props, {
+    ref,
+    id: id || controlId,
+    type: type2,
+    lang,
+    className: classNames$1(className, bsPrefix, isValid && "is-valid", isInvalid && "is-invalid")
+  }));
+});
+FormFileInput.displayName = "FormFileInput";
+var FormFileLabel = /* @__PURE__ */ React.forwardRef(function(_ref3, ref) {
+  var bsPrefix = _ref3.bsPrefix, bsCustomPrefix = _ref3.bsCustomPrefix, className = _ref3.className, htmlFor = _ref3.htmlFor, props = _objectWithoutPropertiesLoose$1(_ref3, ["bsPrefix", "bsCustomPrefix", "className", "htmlFor"]);
+  var _useContext = reactExports.useContext(FormContext), controlId = _useContext.controlId, custom = _useContext.custom;
+  var _ref22 = custom ? [bsCustomPrefix, "custom-file-label"] : [bsPrefix, "form-file-label"], prefix2 = _ref22[0], defaultPrefix = _ref22[1];
+  bsPrefix = useBootstrapPrefix(prefix2, defaultPrefix);
+  return /* @__PURE__ */ React.createElement("label", _extends$1({}, props, {
+    ref,
+    htmlFor: htmlFor || controlId,
+    className: classNames$1(className, bsPrefix),
+    "data-browse": props["data-browse"]
+  }));
+});
+FormFileLabel.displayName = "FormFileLabel";
+var FormFile = /* @__PURE__ */ React.forwardRef(function(_ref3, ref) {
+  var id = _ref3.id, bsPrefix = _ref3.bsPrefix, bsCustomPrefix = _ref3.bsCustomPrefix, _ref$disabled = _ref3.disabled, disabled = _ref$disabled === void 0 ? false : _ref$disabled, _ref$isValid = _ref3.isValid, isValid = _ref$isValid === void 0 ? false : _ref$isValid, _ref$isInvalid = _ref3.isInvalid, isInvalid = _ref$isInvalid === void 0 ? false : _ref$isInvalid, _ref$feedbackTooltip = _ref3.feedbackTooltip, feedbackTooltip = _ref$feedbackTooltip === void 0 ? false : _ref$feedbackTooltip, feedback = _ref3.feedback, className = _ref3.className, style2 = _ref3.style, label = _ref3.label, children2 = _ref3.children, custom = _ref3.custom, lang = _ref3.lang, dataBrowse = _ref3["data-browse"], _ref$as = _ref3.as, Component = _ref$as === void 0 ? "div" : _ref$as, _ref$inputAs = _ref3.inputAs, inputAs = _ref$inputAs === void 0 ? "input" : _ref$inputAs, props = _objectWithoutPropertiesLoose$1(_ref3, ["id", "bsPrefix", "bsCustomPrefix", "disabled", "isValid", "isInvalid", "feedbackTooltip", "feedback", "className", "style", "label", "children", "custom", "lang", "data-browse", "as", "inputAs"]);
+  var _ref22 = custom ? [bsCustomPrefix, "custom"] : [bsPrefix, "form-file"], prefix2 = _ref22[0], defaultPrefix = _ref22[1];
+  bsPrefix = useBootstrapPrefix(prefix2, defaultPrefix);
+  var type2 = "file";
+  var _useContext = reactExports.useContext(FormContext), controlId = _useContext.controlId;
+  var innerFormContext = reactExports.useMemo(function() {
+    return {
+      controlId: id || controlId,
+      custom
+    };
+  }, [controlId, custom, id]);
+  var hasLabel = label != null && label !== false && !children2;
+  var input = /* @__PURE__ */ React.createElement(FormFileInput, _extends$1({}, props, {
+    ref,
+    isValid,
+    isInvalid,
+    disabled,
+    as: inputAs,
+    lang
+  }));
+  return /* @__PURE__ */ React.createElement(FormContext.Provider, {
+    value: innerFormContext
+  }, /* @__PURE__ */ React.createElement(Component, {
+    style: style2,
+    className: classNames$1(className, bsPrefix, custom && "custom-" + type2)
+  }, children2 || /* @__PURE__ */ React.createElement(React.Fragment, null, custom ? /* @__PURE__ */ React.createElement(React.Fragment, null, input, hasLabel && /* @__PURE__ */ React.createElement(FormFileLabel, {
+    "data-browse": dataBrowse
+  }, label)) : /* @__PURE__ */ React.createElement(React.Fragment, null, hasLabel && /* @__PURE__ */ React.createElement(FormFileLabel, null, label), input), (isValid || isInvalid) && /* @__PURE__ */ React.createElement(Feedback, {
+    type: isValid ? "valid" : "invalid",
+    tooltip: feedbackTooltip
+  }, feedback))));
+});
+FormFile.displayName = "FormFile";
+FormFile.Input = FormFileInput;
+FormFile.Label = FormFileLabel;
+var FormControl = /* @__PURE__ */ React.forwardRef(function(_ref3, ref) {
+  var bsPrefix = _ref3.bsPrefix, bsCustomPrefix = _ref3.bsCustomPrefix, type2 = _ref3.type, size2 = _ref3.size, htmlSize = _ref3.htmlSize, id = _ref3.id, className = _ref3.className, _ref$isValid = _ref3.isValid, isValid = _ref$isValid === void 0 ? false : _ref$isValid, _ref$isInvalid = _ref3.isInvalid, isInvalid = _ref$isInvalid === void 0 ? false : _ref$isInvalid, plaintext = _ref3.plaintext, readOnly = _ref3.readOnly, custom = _ref3.custom, _ref$as = _ref3.as, Component = _ref$as === void 0 ? "input" : _ref$as, props = _objectWithoutPropertiesLoose$1(_ref3, ["bsPrefix", "bsCustomPrefix", "type", "size", "htmlSize", "id", "className", "isValid", "isInvalid", "plaintext", "readOnly", "custom", "as"]);
+  var _useContext = reactExports.useContext(FormContext), controlId = _useContext.controlId;
+  var _ref22 = custom ? [bsCustomPrefix, "custom"] : [bsPrefix, "form-control"], prefix2 = _ref22[0], defaultPrefix = _ref22[1];
+  bsPrefix = useBootstrapPrefix(prefix2, defaultPrefix);
+  var classes;
+  if (plaintext) {
+    var _classes;
+    classes = (_classes = {}, _classes[bsPrefix + "-plaintext"] = true, _classes);
+  } else if (type2 === "file") {
+    var _classes2;
+    classes = (_classes2 = {}, _classes2[bsPrefix + "-file"] = true, _classes2);
+  } else if (type2 === "range") {
+    var _classes3;
+    classes = (_classes3 = {}, _classes3[bsPrefix + "-range"] = true, _classes3);
+  } else if (Component === "select" && custom) {
+    var _classes4;
+    classes = (_classes4 = {}, _classes4[bsPrefix + "-select"] = true, _classes4[bsPrefix + "-select-" + size2] = size2, _classes4);
+  } else {
+    var _classes5;
+    classes = (_classes5 = {}, _classes5[bsPrefix] = true, _classes5[bsPrefix + "-" + size2] = size2, _classes5);
+  }
+  return /* @__PURE__ */ React.createElement(Component, _extends$1({}, props, {
+    type: type2,
+    size: htmlSize,
+    ref,
+    readOnly,
+    id: id || controlId,
+    className: classNames$1(className, classes, isValid && "is-valid", isInvalid && "is-invalid")
+  }));
+});
+FormControl.displayName = "FormControl";
+const FormControl$1 = Object.assign(FormControl, {
+  Feedback
+});
+var FormGroup = /* @__PURE__ */ React.forwardRef(function(_ref3, ref) {
+  var bsPrefix = _ref3.bsPrefix, className = _ref3.className, children2 = _ref3.children, controlId = _ref3.controlId, _ref$as = _ref3.as, Component = _ref$as === void 0 ? "div" : _ref$as, props = _objectWithoutPropertiesLoose$1(_ref3, ["bsPrefix", "className", "children", "controlId", "as"]);
+  bsPrefix = useBootstrapPrefix(bsPrefix, "form-group");
+  var context2 = reactExports.useMemo(function() {
+    return {
+      controlId
+    };
+  }, [controlId]);
+  return /* @__PURE__ */ React.createElement(FormContext.Provider, {
+    value: context2
+  }, /* @__PURE__ */ React.createElement(Component, _extends$1({}, props, {
+    ref,
+    className: classNames$1(className, bsPrefix)
+  }), children2));
+});
+FormGroup.displayName = "FormGroup";
+var defaultProps$a = {
+  column: false,
+  srOnly: false
+};
+var FormLabel = /* @__PURE__ */ React.forwardRef(function(_ref3, ref) {
+  var _ref$as = _ref3.as, Component = _ref$as === void 0 ? "label" : _ref$as, bsPrefix = _ref3.bsPrefix, column2 = _ref3.column, srOnly = _ref3.srOnly, className = _ref3.className, htmlFor = _ref3.htmlFor, props = _objectWithoutPropertiesLoose$1(_ref3, ["as", "bsPrefix", "column", "srOnly", "className", "htmlFor"]);
+  var _useContext = reactExports.useContext(FormContext), controlId = _useContext.controlId;
+  bsPrefix = useBootstrapPrefix(bsPrefix, "form-label");
+  var columnClass = "col-form-label";
+  if (typeof column2 === "string") columnClass = columnClass + " " + columnClass + "-" + column2;
+  var classes = classNames$1(className, bsPrefix, srOnly && "sr-only", column2 && columnClass);
+  htmlFor = htmlFor || controlId;
+  if (column2) return /* @__PURE__ */ React.createElement(Col, _extends$1({
+    as: "label",
+    className: classes,
+    htmlFor
+  }, props));
+  return (
+    // eslint-disable-next-line jsx-a11y/label-has-for, jsx-a11y/label-has-associated-control
+    /* @__PURE__ */ React.createElement(Component, _extends$1({
+      ref,
+      className: classes,
+      htmlFor
+    }, props))
+  );
+});
+FormLabel.displayName = "FormLabel";
+FormLabel.defaultProps = defaultProps$a;
+var FormText = /* @__PURE__ */ React.forwardRef(
+  // Need to define the default "as" during prop destructuring to be compatible with styled-components github.com/react-bootstrap/react-bootstrap/issues/3595
+  function(_ref3, ref) {
+    var bsPrefix = _ref3.bsPrefix, className = _ref3.className, _ref$as = _ref3.as, Component = _ref$as === void 0 ? "small" : _ref$as, muted = _ref3.muted, props = _objectWithoutPropertiesLoose$1(_ref3, ["bsPrefix", "className", "as", "muted"]);
+    bsPrefix = useBootstrapPrefix(bsPrefix, "form-text");
+    return /* @__PURE__ */ React.createElement(Component, _extends$1({}, props, {
+      ref,
+      className: classNames$1(className, bsPrefix, muted && "text-muted")
+    }));
+  }
+);
+FormText.displayName = "FormText";
+var Switch = /* @__PURE__ */ React.forwardRef(function(props, ref) {
+  return /* @__PURE__ */ React.createElement(FormCheck, _extends$1({}, props, {
+    ref,
+    type: "switch"
+  }));
+});
+Switch.displayName = "Switch";
+Switch.Input = FormCheck.Input;
+Switch.Label = FormCheck.Label;
+var FormRow = createWithBsPrefix("form-row");
+var defaultProps$9 = {
+  inline: false
+};
+var FormImpl = /* @__PURE__ */ React.forwardRef(function(_ref3, ref) {
+  var bsPrefix = _ref3.bsPrefix, inline = _ref3.inline, className = _ref3.className, validated = _ref3.validated, _ref$as = _ref3.as, Component = _ref$as === void 0 ? "form" : _ref$as, props = _objectWithoutPropertiesLoose$1(_ref3, ["bsPrefix", "inline", "className", "validated", "as"]);
+  bsPrefix = useBootstrapPrefix(bsPrefix, "form");
+  return /* @__PURE__ */ React.createElement(Component, _extends$1({}, props, {
+    ref,
+    className: classNames$1(className, validated && "was-validated", inline && bsPrefix + "-inline")
+  }));
+});
+FormImpl.displayName = "Form";
+FormImpl.defaultProps = defaultProps$9;
+FormImpl.Row = FormRow;
+FormImpl.Group = FormGroup;
+FormImpl.Control = FormControl$1;
+FormImpl.Check = FormCheck;
+FormImpl.File = FormFile;
+FormImpl.Switch = Switch;
+FormImpl.Label = FormLabel;
+FormImpl.Text = FormText;
+function useForceUpdate() {
+  var _useReducer = reactExports.useReducer(function(state) {
+    return !state;
+  }, false), dispatch = _useReducer[1];
+  return dispatch;
+}
+var TabContext = /* @__PURE__ */ React.createContext(null);
+var noop$3 = function noop() {
+};
+var AbstractNav = /* @__PURE__ */ React.forwardRef(function(_ref3, ref) {
+  var _ref$as = _ref3.as, Component = _ref$as === void 0 ? "ul" : _ref$as, onSelect = _ref3.onSelect, activeKey = _ref3.activeKey, role = _ref3.role, onKeyDown = _ref3.onKeyDown, props = _objectWithoutPropertiesLoose$1(_ref3, ["as", "onSelect", "activeKey", "role", "onKeyDown"]);
+  var forceUpdate = useForceUpdate();
+  var needsRefocusRef = reactExports.useRef(false);
+  var parentOnSelect = reactExports.useContext(SelectableContext);
+  var tabContext = reactExports.useContext(TabContext);
+  var getControlledId, getControllerId;
+  if (tabContext) {
+    role = role || "tablist";
+    activeKey = tabContext.activeKey;
+    getControlledId = tabContext.getControlledId;
+    getControllerId = tabContext.getControllerId;
+  }
+  var listNode = reactExports.useRef(null);
+  var getNextActiveChild = function getNextActiveChild2(offset2) {
+    var currentListNode = listNode.current;
+    if (!currentListNode) return null;
+    var items = qsa(currentListNode, "[data-rb-event-key]:not(.disabled)");
+    var activeChild = currentListNode.querySelector(".active");
+    if (!activeChild) return null;
+    var index2 = items.indexOf(activeChild);
+    if (index2 === -1) return null;
+    var nextIndex = index2 + offset2;
+    if (nextIndex >= items.length) nextIndex = 0;
+    if (nextIndex < 0) nextIndex = items.length - 1;
+    return items[nextIndex];
+  };
+  var handleSelect = function handleSelect2(key, event) {
+    if (key == null) return;
+    if (onSelect) onSelect(key, event);
+    if (parentOnSelect) parentOnSelect(key, event);
+  };
+  var handleKeyDown = function handleKeyDown2(event) {
+    if (onKeyDown) onKeyDown(event);
+    var nextActiveChild;
+    switch (event.key) {
+      case "ArrowLeft":
+      case "ArrowUp":
+        nextActiveChild = getNextActiveChild(-1);
+        break;
+      case "ArrowRight":
+      case "ArrowDown":
+        nextActiveChild = getNextActiveChild(1);
+        break;
+      default:
+        return;
+    }
+    if (!nextActiveChild) return;
+    event.preventDefault();
+    handleSelect(nextActiveChild.dataset.rbEventKey, event);
+    needsRefocusRef.current = true;
+    forceUpdate();
+  };
+  reactExports.useEffect(function() {
+    if (listNode.current && needsRefocusRef.current) {
+      var activeChild = listNode.current.querySelector("[data-rb-event-key].active");
+      if (activeChild) activeChild.focus();
+    }
+    needsRefocusRef.current = false;
+  });
+  var mergedRef = useMergedRefs(ref, listNode);
+  return /* @__PURE__ */ React.createElement(SelectableContext.Provider, {
+    value: handleSelect
+  }, /* @__PURE__ */ React.createElement(NavContext.Provider, {
+    value: {
+      role,
+      // used by NavLink to determine it's role
+      activeKey: makeEventKey(activeKey),
+      getControlledId: getControlledId || noop$3,
+      getControllerId: getControllerId || noop$3
+    }
+  }, /* @__PURE__ */ React.createElement(Component, _extends$1({}, props, {
+    onKeyDown: handleKeyDown,
+    ref: mergedRef,
+    role
+  }))));
+});
+var defaultProps$8 = {
+  disabled: false
+};
+var AbstractNavItem = /* @__PURE__ */ React.forwardRef(function(_ref3, ref) {
+  var active = _ref3.active, className = _ref3.className, eventKey = _ref3.eventKey, onSelect = _ref3.onSelect, onClick = _ref3.onClick, Component = _ref3.as, props = _objectWithoutPropertiesLoose$1(_ref3, ["active", "className", "eventKey", "onSelect", "onClick", "as"]);
+  var navKey = makeEventKey(eventKey, props.href);
+  var parentOnSelect = reactExports.useContext(SelectableContext);
+  var navContext = reactExports.useContext(NavContext);
+  var isActive = active;
+  if (navContext) {
+    if (!props.role && navContext.role === "tablist") props.role = "tab";
+    var contextControllerId = navContext.getControllerId(navKey);
+    var contextControlledId = navContext.getControlledId(navKey);
+    props["data-rb-event-key"] = navKey;
+    props.id = contextControllerId || props.id;
+    props["aria-controls"] = contextControlledId || props["aria-controls"];
+    isActive = active == null && navKey != null ? navContext.activeKey === navKey : active;
+  }
+  if (props.role === "tab") {
+    if (props.disabled) {
+      props.tabIndex = -1;
+      props["aria-disabled"] = true;
+    }
+    props["aria-selected"] = isActive;
+  }
+  var handleOnclick = useEventCallback$1(function(e) {
+    if (onClick) onClick(e);
+    if (navKey == null) return;
+    if (onSelect) onSelect(navKey, e);
+    if (parentOnSelect) parentOnSelect(navKey, e);
+  });
+  return /* @__PURE__ */ React.createElement(Component, _extends$1({}, props, {
+    ref,
+    onClick: handleOnclick,
+    className: classNames$1(className, isActive && "active")
+  }));
+});
+AbstractNavItem.defaultProps = defaultProps$8;
+var defaultProps$7 = {
+  variant: void 0,
+  active: false,
+  disabled: false
+};
+var ListGroupItem = /* @__PURE__ */ React.forwardRef(function(_ref3, ref) {
+  var bsPrefix = _ref3.bsPrefix, active = _ref3.active, disabled = _ref3.disabled, className = _ref3.className, variant = _ref3.variant, action2 = _ref3.action, as = _ref3.as, onClick = _ref3.onClick, props = _objectWithoutPropertiesLoose$1(_ref3, ["bsPrefix", "active", "disabled", "className", "variant", "action", "as", "onClick"]);
+  bsPrefix = useBootstrapPrefix(bsPrefix, "list-group-item");
+  var handleClick = reactExports.useCallback(function(event) {
+    if (disabled) {
+      event.preventDefault();
+      event.stopPropagation();
+      return;
+    }
+    if (onClick) onClick(event);
+  }, [disabled, onClick]);
+  if (disabled && props.tabIndex === void 0) {
+    props.tabIndex = -1;
+    props["aria-disabled"] = true;
+  }
+  return /* @__PURE__ */ React.createElement(AbstractNavItem, _extends$1({
+    ref
+  }, props, {
+    // eslint-disable-next-line no-nested-ternary
+    as: as || (action2 ? props.href ? "a" : "button" : "div"),
+    onClick: handleClick,
+    className: classNames$1(className, bsPrefix, active && "active", disabled && "disabled", variant && bsPrefix + "-" + variant, action2 && bsPrefix + "-action")
+  }));
+});
+ListGroupItem.defaultProps = defaultProps$7;
+ListGroupItem.displayName = "ListGroupItem";
+var defaultProps$6 = {
+  variant: void 0,
+  horizontal: void 0
+};
+var ListGroup = /* @__PURE__ */ React.forwardRef(function(props, ref) {
+  var _useUncontrolled = useUncontrolled(props, {
+    activeKey: "onSelect"
+  }), className = _useUncontrolled.className, initialBsPrefix = _useUncontrolled.bsPrefix, variant = _useUncontrolled.variant, horizontal = _useUncontrolled.horizontal, _useUncontrolled$as = _useUncontrolled.as, as = _useUncontrolled$as === void 0 ? "div" : _useUncontrolled$as, controlledProps = _objectWithoutPropertiesLoose$1(_useUncontrolled, ["className", "bsPrefix", "variant", "horizontal", "as"]);
+  var bsPrefix = useBootstrapPrefix(initialBsPrefix, "list-group");
+  var horizontalVariant;
+  if (horizontal) {
+    horizontalVariant = horizontal === true ? "horizontal" : "horizontal-" + horizontal;
+  } else {
+    horizontalVariant = null;
+  }
+  return /* @__PURE__ */ React.createElement(AbstractNav, _extends$1({
+    ref
+  }, controlledProps, {
+    as,
+    className: classNames$1(className, bsPrefix, variant && bsPrefix + "-" + variant, horizontalVariant && bsPrefix + "-" + horizontalVariant)
+  }));
+});
+ListGroup.defaultProps = defaultProps$6;
+ListGroup.displayName = "ListGroup";
+ListGroup.Item = ListGroupItem;
+var size$3;
+function scrollbarSize(recalc) {
+  if (!size$3 && size$3 !== 0 || recalc) {
+    if (canUseDOM$1) {
+      var scrollDiv = document.createElement("div");
+      scrollDiv.style.position = "absolute";
+      scrollDiv.style.top = "-9999px";
+      scrollDiv.style.width = "50px";
+      scrollDiv.style.height = "50px";
+      scrollDiv.style.overflow = "scroll";
+      document.body.appendChild(scrollDiv);
+      size$3 = scrollDiv.offsetWidth - scrollDiv.clientWidth;
+      document.body.removeChild(scrollDiv);
+    }
+  }
+  return size$3;
+}
+function useCallbackRef$2() {
+  return reactExports.useState(null);
+}
+function activeElement(doc) {
+  if (doc === void 0) {
+    doc = ownerDocument();
+  }
+  try {
+    var active = doc.activeElement;
+    if (!active || !active.nodeName) return null;
+    return active;
+  } catch (e) {
+    return doc.body;
+  }
+}
+function useUpdatedRef(value) {
+  var valueRef = reactExports.useRef(value);
+  valueRef.current = value;
+  return valueRef;
+}
+function useWillUnmount(fn) {
+  var onUnmount = useUpdatedRef(fn);
+  reactExports.useEffect(function() {
+    return function() {
+      return onUnmount.current();
+    };
+  }, []);
+}
+function addClass(element2, className) {
+  if (element2.classList) element2.classList.add(className);
+  else if (!hasClass(element2, className)) if (typeof element2.className === "string") element2.className = element2.className + " " + className;
+  else element2.setAttribute("class", (element2.className && element2.className.baseVal || "") + " " + className);
+}
+function replaceClassName(origClass, classToRemove) {
+  return origClass.replace(new RegExp("(^|\\s)" + classToRemove + "(?:\\s|$)", "g"), "$1").replace(/\s+/g, " ").replace(/^\s*|\s*$/g, "");
+}
+function removeClass(element2, className) {
+  if (element2.classList) {
+    element2.classList.remove(className);
+  } else if (typeof element2.className === "string") {
+    element2.className = replaceClassName(element2.className, className);
+  } else {
+    element2.setAttribute("class", replaceClassName(element2.className && element2.className.baseVal || "", className));
+  }
+}
+function isDocument(element2) {
+  return "nodeType" in element2 && element2.nodeType === document.DOCUMENT_NODE;
+}
+function isWindow(node2) {
+  if ("window" in node2 && node2.window === node2) return node2;
+  if (isDocument(node2)) return node2.defaultView || false;
+  return false;
+}
+function isBody(node2) {
+  return node2 && node2.tagName.toLowerCase() === "body";
+}
+function bodyIsOverflowing(node2) {
+  var doc = isWindow(node2) ? ownerDocument() : ownerDocument(node2);
+  var win = isWindow(node2) || doc.defaultView;
+  return doc.body.clientWidth < win.innerWidth;
+}
+function isOverflowing(container) {
+  var win = isWindow(container);
+  return win || isBody(container) ? bodyIsOverflowing(container) : container.scrollHeight > container.clientHeight;
+}
+var BLACKLIST = ["template", "script", "style"];
+var isHidable = function isHidable2(_ref3) {
+  var nodeType = _ref3.nodeType, tagName = _ref3.tagName;
+  return nodeType === 1 && BLACKLIST.indexOf(tagName.toLowerCase()) === -1;
+};
+var siblings = function siblings2(container, exclude, cb) {
+  [].forEach.call(container.children, function(node2) {
+    if (exclude.indexOf(node2) === -1 && isHidable(node2)) {
+      cb(node2);
+    }
+  });
+};
+function ariaHidden(hide2, node2) {
+  if (!node2) return;
+  if (hide2) {
+    node2.setAttribute("aria-hidden", "true");
+  } else {
+    node2.removeAttribute("aria-hidden");
+  }
+}
+function hideSiblings(container, _ref22) {
+  var dialog = _ref22.dialog, backdrop = _ref22.backdrop;
+  siblings(container, [dialog, backdrop], function(node2) {
+    return ariaHidden(true, node2);
+  });
+}
+function showSiblings(container, _ref3) {
+  var dialog = _ref3.dialog, backdrop = _ref3.backdrop;
+  siblings(container, [dialog, backdrop], function(node2) {
+    return ariaHidden(false, node2);
+  });
+}
+function findIndexOf(arr, cb) {
+  var idx = -1;
+  arr.some(function(d, i2) {
+    if (cb(d, i2)) {
+      idx = i2;
+      return true;
+    }
+    return false;
+  });
+  return idx;
+}
+var ModalManager = /* @__PURE__ */ (function() {
+  function ModalManager2(_temp) {
+    var _ref3 = _temp === void 0 ? {} : _temp, _ref$hideSiblingNodes = _ref3.hideSiblingNodes, hideSiblingNodes = _ref$hideSiblingNodes === void 0 ? true : _ref$hideSiblingNodes, _ref$handleContainerO = _ref3.handleContainerOverflow, handleContainerOverflow = _ref$handleContainerO === void 0 ? true : _ref$handleContainerO;
+    this.hideSiblingNodes = void 0;
+    this.handleContainerOverflow = void 0;
+    this.modals = void 0;
+    this.containers = void 0;
+    this.data = void 0;
+    this.scrollbarSize = void 0;
+    this.hideSiblingNodes = hideSiblingNodes;
+    this.handleContainerOverflow = handleContainerOverflow;
+    this.modals = [];
+    this.containers = [];
+    this.data = [];
+    this.scrollbarSize = scrollbarSize();
+  }
+  var _proto = ModalManager2.prototype;
+  _proto.isContainerOverflowing = function isContainerOverflowing(modal) {
+    var data = this.data[this.containerIndexFromModal(modal)];
+    return data && data.overflowing;
+  };
+  _proto.containerIndexFromModal = function containerIndexFromModal(modal) {
+    return findIndexOf(this.data, function(d) {
+      return d.modals.indexOf(modal) !== -1;
+    });
+  };
+  _proto.setContainerStyle = function setContainerStyle(containerState, container) {
+    var style$1 = {
+      overflow: "hidden"
+    };
+    containerState.style = {
+      overflow: container.style.overflow,
+      paddingRight: container.style.paddingRight
+    };
+    if (containerState.overflowing) {
+      style$1.paddingRight = parseInt(style(container, "paddingRight") || "0", 10) + this.scrollbarSize + "px";
+    }
+    style(container, style$1);
+  };
+  _proto.removeContainerStyle = function removeContainerStyle(containerState, container) {
+    Object.assign(container.style, containerState.style);
+  };
+  _proto.add = function add(modal, container, className) {
+    var modalIdx = this.modals.indexOf(modal);
+    var containerIdx = this.containers.indexOf(container);
+    if (modalIdx !== -1) {
+      return modalIdx;
+    }
+    modalIdx = this.modals.length;
+    this.modals.push(modal);
+    if (this.hideSiblingNodes) {
+      hideSiblings(container, modal);
+    }
+    if (containerIdx !== -1) {
+      this.data[containerIdx].modals.push(modal);
+      return modalIdx;
+    }
+    var data = {
+      modals: [modal],
+      // right now only the first modal of a container will have its classes applied
+      classes: className ? className.split(/\s+/) : [],
+      overflowing: isOverflowing(container)
+    };
+    if (this.handleContainerOverflow) {
+      this.setContainerStyle(data, container);
+    }
+    data.classes.forEach(addClass.bind(null, container));
+    this.containers.push(container);
+    this.data.push(data);
+    return modalIdx;
+  };
+  _proto.remove = function remove(modal) {
+    var modalIdx = this.modals.indexOf(modal);
+    if (modalIdx === -1) {
+      return;
+    }
+    var containerIdx = this.containerIndexFromModal(modal);
+    var data = this.data[containerIdx];
+    var container = this.containers[containerIdx];
+    data.modals.splice(data.modals.indexOf(modal), 1);
+    this.modals.splice(modalIdx, 1);
+    if (data.modals.length === 0) {
+      data.classes.forEach(removeClass.bind(null, container));
+      if (this.handleContainerOverflow) {
+        this.removeContainerStyle(data, container);
+      }
+      if (this.hideSiblingNodes) {
+        showSiblings(container, modal);
+      }
+      this.containers.splice(containerIdx, 1);
+      this.data.splice(containerIdx, 1);
+    } else if (this.hideSiblingNodes) {
+      var _data$modals = data.modals[data.modals.length - 1], backdrop = _data$modals.backdrop, dialog = _data$modals.dialog;
+      ariaHidden(false, dialog);
+      ariaHidden(false, backdrop);
+    }
+  };
+  _proto.isTopModal = function isTopModal(modal) {
+    return !!this.modals.length && this.modals[this.modals.length - 1] === modal;
+  };
+  return ModalManager2;
+})();
+var resolveContainerRef = function resolveContainerRef2(ref) {
+  var _ref3;
+  if (typeof document === "undefined") return null;
+  if (ref == null) return ownerDocument().body;
+  if (typeof ref === "function") ref = ref();
+  if (ref && "current" in ref) ref = ref.current;
+  if ((_ref3 = ref) != null && _ref3.nodeType) return ref || null;
+  return null;
+};
+function useWaitForDOMRef(ref, onResolved) {
+  var _useState = reactExports.useState(function() {
+    return resolveContainerRef(ref);
+  }), resolvedRef = _useState[0], setRef2 = _useState[1];
+  if (!resolvedRef) {
+    var earlyRef = resolveContainerRef(ref);
+    if (earlyRef) setRef2(earlyRef);
+  }
+  reactExports.useEffect(function() {
+  }, [onResolved, resolvedRef]);
+  reactExports.useEffect(function() {
+    var nextRef = resolveContainerRef(ref);
+    if (nextRef !== resolvedRef) {
+      setRef2(nextRef);
+    }
+  }, [ref, resolvedRef]);
+  return resolvedRef;
+}
+var manager$1;
+function getManager() {
+  if (!manager$1) manager$1 = new ModalManager();
+  return manager$1;
+}
+function useModalManager(provided) {
+  var modalManager = provided || getManager();
+  var modal = reactExports.useRef({
+    dialog: null,
+    backdrop: null
+  });
+  return Object.assign(modal.current, {
+    add: function add(container, className) {
+      return modalManager.add(modal.current, container, className);
+    },
+    remove: function remove() {
+      return modalManager.remove(modal.current);
+    },
+    isTopModal: function isTopModal() {
+      return modalManager.isTopModal(modal.current);
+    },
+    setDialogRef: reactExports.useCallback(function(ref) {
+      modal.current.dialog = ref;
+    }, []),
+    setBackdropRef: reactExports.useCallback(function(ref) {
+      modal.current.backdrop = ref;
+    }, [])
+  });
+}
+var Modal$1 = /* @__PURE__ */ reactExports.forwardRef(function(_ref3, ref) {
+  var _ref$show = _ref3.show, show = _ref$show === void 0 ? false : _ref$show, _ref$role = _ref3.role, role = _ref$role === void 0 ? "dialog" : _ref$role, className = _ref3.className, style2 = _ref3.style, children2 = _ref3.children, _ref$backdrop = _ref3.backdrop, backdrop = _ref$backdrop === void 0 ? true : _ref$backdrop, _ref$keyboard = _ref3.keyboard, keyboard = _ref$keyboard === void 0 ? true : _ref$keyboard, onBackdropClick = _ref3.onBackdropClick, onEscapeKeyDown = _ref3.onEscapeKeyDown, transition = _ref3.transition, backdropTransition = _ref3.backdropTransition, _ref$autoFocus = _ref3.autoFocus, autoFocus = _ref$autoFocus === void 0 ? true : _ref$autoFocus, _ref$enforceFocus = _ref3.enforceFocus, enforceFocus = _ref$enforceFocus === void 0 ? true : _ref$enforceFocus, _ref$restoreFocus = _ref3.restoreFocus, restoreFocus = _ref$restoreFocus === void 0 ? true : _ref$restoreFocus, restoreFocusOptions = _ref3.restoreFocusOptions, renderDialog = _ref3.renderDialog, _ref$renderBackdrop = _ref3.renderBackdrop, renderBackdrop = _ref$renderBackdrop === void 0 ? function(props) {
+    return /* @__PURE__ */ React.createElement("div", props);
+  } : _ref$renderBackdrop, providedManager = _ref3.manager, containerRef = _ref3.container, containerClassName = _ref3.containerClassName, onShow = _ref3.onShow, _ref$onHide = _ref3.onHide, onHide2 = _ref$onHide === void 0 ? function() {
+  } : _ref$onHide, onExit = _ref3.onExit, onExited = _ref3.onExited, onExiting = _ref3.onExiting, onEnter = _ref3.onEnter, onEntering = _ref3.onEntering, onEntered = _ref3.onEntered, rest = _objectWithoutPropertiesLoose$1(_ref3, ["show", "role", "className", "style", "children", "backdrop", "keyboard", "onBackdropClick", "onEscapeKeyDown", "transition", "backdropTransition", "autoFocus", "enforceFocus", "restoreFocus", "restoreFocusOptions", "renderDialog", "renderBackdrop", "manager", "container", "containerClassName", "onShow", "onHide", "onExit", "onExited", "onExiting", "onEnter", "onEntering", "onEntered"]);
+  var container = useWaitForDOMRef(containerRef);
+  var modal = useModalManager(providedManager);
+  var isMounted = useMounted();
+  var prevShow = usePrevious(show);
+  var _useState = reactExports.useState(!show), exited = _useState[0], setExited = _useState[1];
+  var lastFocusRef = reactExports.useRef(null);
+  reactExports.useImperativeHandle(ref, function() {
+    return modal;
+  }, [modal]);
+  if (canUseDOM$1 && !prevShow && show) {
+    lastFocusRef.current = activeElement();
+  }
+  if (!transition && !show && !exited) {
+    setExited(true);
+  } else if (show && exited) {
+    setExited(false);
+  }
+  var handleShow = useEventCallback(function() {
+    modal.add(container, containerClassName);
+    removeKeydownListenerRef.current = listen$1(document, "keydown", handleDocumentKeyDown);
+    removeFocusListenerRef.current = listen$1(
+      document,
+      "focus",
+      // the timeout is necessary b/c this will run before the new modal is mounted
+      // and so steals focus from it
+      function() {
+        return setTimeout(handleEnforceFocus);
+      },
+      true
+    );
+    if (onShow) {
+      onShow();
+    }
+    if (autoFocus) {
+      var currentActiveElement = activeElement(document);
+      if (modal.dialog && currentActiveElement && !contains(modal.dialog, currentActiveElement)) {
+        lastFocusRef.current = currentActiveElement;
+        modal.dialog.focus();
+      }
+    }
+  });
+  var handleHide = useEventCallback(function() {
+    modal.remove();
+    removeKeydownListenerRef.current == null ? void 0 : removeKeydownListenerRef.current();
+    removeFocusListenerRef.current == null ? void 0 : removeFocusListenerRef.current();
+    if (restoreFocus) {
+      var _lastFocusRef$current;
+      (_lastFocusRef$current = lastFocusRef.current) == null ? void 0 : _lastFocusRef$current.focus == null ? void 0 : _lastFocusRef$current.focus(restoreFocusOptions);
+      lastFocusRef.current = null;
+    }
+  });
+  reactExports.useEffect(function() {
+    if (!show || !container) return;
+    handleShow();
+  }, [
+    show,
+    container,
+    /* should never change: */
+    handleShow
+  ]);
+  reactExports.useEffect(function() {
+    if (!exited) return;
+    handleHide();
+  }, [exited, handleHide]);
+  useWillUnmount(function() {
+    handleHide();
+  });
+  var handleEnforceFocus = useEventCallback(function() {
+    if (!enforceFocus || !isMounted() || !modal.isTopModal()) {
+      return;
+    }
+    var currentActiveElement = activeElement();
+    if (modal.dialog && currentActiveElement && !contains(modal.dialog, currentActiveElement)) {
+      modal.dialog.focus();
+    }
+  });
+  var handleBackdropClick = useEventCallback(function(e) {
+    if (e.target !== e.currentTarget) {
+      return;
+    }
+    onBackdropClick == null ? void 0 : onBackdropClick(e);
+    if (backdrop === true) {
+      onHide2();
+    }
+  });
+  var handleDocumentKeyDown = useEventCallback(function(e) {
+    if (keyboard && e.keyCode === 27 && modal.isTopModal()) {
+      onEscapeKeyDown == null ? void 0 : onEscapeKeyDown(e);
+      if (!e.defaultPrevented) {
+        onHide2();
+      }
+    }
+  });
+  var removeFocusListenerRef = reactExports.useRef();
+  var removeKeydownListenerRef = reactExports.useRef();
+  var handleHidden = function handleHidden2() {
+    setExited(true);
+    for (var _len = arguments.length, args = new Array(_len), _key = 0; _key < _len; _key++) {
+      args[_key] = arguments[_key];
+    }
+    onExited == null ? void 0 : onExited.apply(void 0, args);
+  };
+  var Transition2 = transition;
+  if (!container || !(show || Transition2 && !exited)) {
+    return null;
+  }
+  var dialogProps = _extends$1({
+    role,
+    ref: modal.setDialogRef,
+    // apparently only works on the dialog role element
+    "aria-modal": role === "dialog" ? true : void 0
+  }, rest, {
+    style: style2,
+    className,
+    tabIndex: -1
+  });
+  var dialog = renderDialog ? renderDialog(dialogProps) : /* @__PURE__ */ React.createElement("div", dialogProps, /* @__PURE__ */ React.cloneElement(children2, {
+    role: "document"
+  }));
+  if (Transition2) {
+    dialog = /* @__PURE__ */ React.createElement(Transition2, {
+      appear: true,
+      unmountOnExit: true,
+      "in": !!show,
+      onExit,
+      onExiting,
+      onExited: handleHidden,
+      onEnter,
+      onEntering,
+      onEntered
+    }, dialog);
+  }
+  var backdropElement = null;
+  if (backdrop) {
+    var BackdropTransition2 = backdropTransition;
+    backdropElement = renderBackdrop({
+      ref: modal.setBackdropRef,
+      onClick: handleBackdropClick
+    });
+    if (BackdropTransition2) {
+      backdropElement = /* @__PURE__ */ React.createElement(BackdropTransition2, {
+        appear: true,
+        "in": !!show
+      }, backdropElement);
+    }
+  }
+  return /* @__PURE__ */ React.createElement(React.Fragment, null, /* @__PURE__ */ ReactDOM.createPortal(/* @__PURE__ */ React.createElement(React.Fragment, null, backdropElement, dialog), container));
+});
+var propTypes = {
+  /**
+   * Set the visibility of the Modal
+   */
+  show: PropTypes.bool,
+  /**
+   * A DOM element, a `ref` to an element, or function that returns either. The Modal is appended to it's `container` element.
+   *
+   * For the sake of assistive technologies, the container should usually be the document body, so that the rest of the
+   * page content can be placed behind a virtual backdrop as well as a visual one.
+   */
+  container: PropTypes.any,
+  /**
+   * A callback fired when the Modal is opening.
+   */
+  onShow: PropTypes.func,
+  /**
+   * A callback fired when either the backdrop is clicked, or the escape key is pressed.
+   *
+   * The `onHide` callback only signals intent from the Modal,
+   * you must actually set the `show` prop to `false` for the Modal to close.
+   */
+  onHide: PropTypes.func,
+  /**
+   * Include a backdrop component.
+   */
+  backdrop: PropTypes.oneOfType([PropTypes.bool, PropTypes.oneOf(["static"])]),
+  /**
+   * A function that returns the dialog component. Useful for custom
+   * rendering. **Note:** the component should make sure to apply the provided ref.
+   *
+   * ```js static
+   * renderDialog={props => <MyDialog {...props} />}
+   * ```
+   */
+  renderDialog: PropTypes.func,
+  /**
+   * A function that returns a backdrop component. Useful for custom
+   * backdrop rendering.
+   *
+   * ```js
+   *  renderBackdrop={props => <MyBackdrop {...props} />}
+   * ```
+   */
+  renderBackdrop: PropTypes.func,
+  /**
+   * A callback fired when the escape key, if specified in `keyboard`, is pressed.
+   *
+   * If preventDefault() is called on the keyboard event, closing the modal will be cancelled.
+   */
+  onEscapeKeyDown: PropTypes.func,
+  /**
+   * A callback fired when the backdrop, if specified, is clicked.
+   */
+  onBackdropClick: PropTypes.func,
+  /**
+   * A css class or set of classes applied to the modal container when the modal is open,
+   * and removed when it is closed.
+   */
+  containerClassName: PropTypes.string,
+  /**
+   * Close the modal when escape key is pressed
+   */
+  keyboard: PropTypes.bool,
+  /**
+   * A `react-transition-group@2.0.0` `<Transition/>` component used
+   * to control animations for the dialog component.
+   */
+  transition: PropTypes.elementType,
+  /**
+   * A `react-transition-group@2.0.0` `<Transition/>` component used
+   * to control animations for the backdrop components.
+   */
+  backdropTransition: PropTypes.elementType,
+  /**
+   * When `true` The modal will automatically shift focus to itself when it opens, and
+   * replace it to the last focused element when it closes. This also
+   * works correctly with any Modal children that have the `autoFocus` prop.
+   *
+   * Generally this should never be set to `false` as it makes the Modal less
+   * accessible to assistive technologies, like screen readers.
+   */
+  autoFocus: PropTypes.bool,
+  /**
+   * When `true` The modal will prevent focus from leaving the Modal while open.
+   *
+   * Generally this should never be set to `false` as it makes the Modal less
+   * accessible to assistive technologies, like screen readers.
+   */
+  enforceFocus: PropTypes.bool,
+  /**
+   * When `true` The modal will restore focus to previously focused element once
+   * modal is hidden
+   */
+  restoreFocus: PropTypes.bool,
+  /**
+   * Options passed to focus function when `restoreFocus` is set to `true`
+   *
+   * @link  https://developer.mozilla.org/en-US/docs/Web/API/HTMLElement/focus#Parameters
+   */
+  restoreFocusOptions: PropTypes.shape({
+    preventScroll: PropTypes.bool
+  }),
+  /**
+   * Callback fired before the Modal transitions in
+   */
+  onEnter: PropTypes.func,
+  /**
+   * Callback fired as the Modal begins to transition in
+   */
+  onEntering: PropTypes.func,
+  /**
+   * Callback fired after the Modal finishes transitioning in
+   */
+  onEntered: PropTypes.func,
+  /**
+   * Callback fired right before the Modal transitions out
+   */
+  onExit: PropTypes.func,
+  /**
+   * Callback fired as the Modal begins to transition out
+   */
+  onExiting: PropTypes.func,
+  /**
+   * Callback fired after the Modal finishes transitioning out
+   */
+  onExited: PropTypes.func,
+  /**
+   * A ModalManager instance used to track and manage the state of open
+   * Modals. Useful when customizing how modals interact within a container
+   */
+  manager: PropTypes.instanceOf(ModalManager)
+};
+Modal$1.displayName = "Modal";
+Modal$1.propTypes = propTypes;
+const BaseModal = Object.assign(Modal$1, {
+  Manager: ModalManager
+});
+var Selector = {
+  FIXED_CONTENT: ".fixed-top, .fixed-bottom, .is-fixed, .sticky-top",
+  STICKY_CONTENT: ".sticky-top",
+  NAVBAR_TOGGLER: ".navbar-toggler"
+};
+var BootstrapModalManager = /* @__PURE__ */ (function(_ModalManager) {
+  _inheritsLoose(BootstrapModalManager2, _ModalManager);
+  function BootstrapModalManager2() {
+    return _ModalManager.apply(this, arguments) || this;
+  }
+  var _proto = BootstrapModalManager2.prototype;
+  _proto.adjustAndStore = function adjustAndStore(prop, element2, adjust) {
+    var _css;
+    var actual = element2.style[prop];
+    element2.dataset[prop] = actual;
+    style(element2, (_css = {}, _css[prop] = parseFloat(style(element2, prop)) + adjust + "px", _css));
+  };
+  _proto.restore = function restore(prop, element2) {
+    var value = element2.dataset[prop];
+    if (value !== void 0) {
+      var _css2;
+      delete element2.dataset[prop];
+      style(element2, (_css2 = {}, _css2[prop] = value, _css2));
+    }
+  };
+  _proto.setContainerStyle = function setContainerStyle(containerState, container) {
+    var _this = this;
+    _ModalManager.prototype.setContainerStyle.call(this, containerState, container);
+    if (!containerState.overflowing) return;
+    var size2 = scrollbarSize();
+    qsa(container, Selector.FIXED_CONTENT).forEach(function(el) {
+      return _this.adjustAndStore("paddingRight", el, size2);
+    });
+    qsa(container, Selector.STICKY_CONTENT).forEach(function(el) {
+      return _this.adjustAndStore("marginRight", el, -size2);
+    });
+    qsa(container, Selector.NAVBAR_TOGGLER).forEach(function(el) {
+      return _this.adjustAndStore("marginRight", el, size2);
+    });
+  };
+  _proto.removeContainerStyle = function removeContainerStyle(containerState, container) {
+    var _this2 = this;
+    _ModalManager.prototype.removeContainerStyle.call(this, containerState, container);
+    qsa(container, Selector.FIXED_CONTENT).forEach(function(el) {
+      return _this2.restore("paddingRight", el);
+    });
+    qsa(container, Selector.STICKY_CONTENT).forEach(function(el) {
+      return _this2.restore("marginRight", el);
+    });
+    qsa(container, Selector.NAVBAR_TOGGLER).forEach(function(el) {
+      return _this2.restore("marginRight", el);
+    });
+  };
+  return BootstrapModalManager2;
+})(ModalManager);
+const ModalBody = createWithBsPrefix("modal-body");
+var ModalContext = /* @__PURE__ */ React.createContext({
+  // eslint-disable-next-line @typescript-eslint/no-empty-function
+  onHide: function onHide() {
+  }
+});
+var ModalDialog = /* @__PURE__ */ React.forwardRef(function(_ref3, ref) {
+  var bsPrefix = _ref3.bsPrefix, className = _ref3.className, contentClassName = _ref3.contentClassName, centered = _ref3.centered, size2 = _ref3.size, children2 = _ref3.children, scrollable = _ref3.scrollable, props = _objectWithoutPropertiesLoose$1(_ref3, ["bsPrefix", "className", "contentClassName", "centered", "size", "children", "scrollable"]);
+  bsPrefix = useBootstrapPrefix(bsPrefix, "modal");
+  var dialogClass = bsPrefix + "-dialog";
+  return /* @__PURE__ */ React.createElement("div", _extends$1({}, props, {
+    ref,
+    className: classNames$1(dialogClass, className, size2 && bsPrefix + "-" + size2, centered && dialogClass + "-centered", scrollable && dialogClass + "-scrollable")
+  }), /* @__PURE__ */ React.createElement("div", {
+    className: classNames$1(bsPrefix + "-content", contentClassName)
+  }, children2));
+});
+ModalDialog.displayName = "ModalDialog";
+const ModalFooter = createWithBsPrefix("modal-footer");
+var defaultProps$5 = {
+  closeLabel: "Close",
+  closeButton: false
+};
+var ModalHeader = /* @__PURE__ */ React.forwardRef(function(_ref3, ref) {
+  var bsPrefix = _ref3.bsPrefix, closeLabel = _ref3.closeLabel, closeButton = _ref3.closeButton, onHide2 = _ref3.onHide, className = _ref3.className, children2 = _ref3.children, props = _objectWithoutPropertiesLoose$1(_ref3, ["bsPrefix", "closeLabel", "closeButton", "onHide", "className", "children"]);
+  bsPrefix = useBootstrapPrefix(bsPrefix, "modal-header");
+  var context2 = reactExports.useContext(ModalContext);
+  var handleClick = useEventCallback$1(function() {
+    if (context2) context2.onHide();
+    if (onHide2) onHide2();
+  });
+  return /* @__PURE__ */ React.createElement("div", _extends$1({
+    ref
+  }, props, {
+    className: classNames$1(className, bsPrefix)
+  }), children2, closeButton && /* @__PURE__ */ React.createElement(CloseButton, {
+    label: closeLabel,
+    onClick: handleClick
+  }));
+});
+ModalHeader.displayName = "ModalHeader";
+ModalHeader.defaultProps = defaultProps$5;
+var DivStyledAsH4 = divWithClassName("h4");
+const ModalTitle = createWithBsPrefix("modal-title", {
+  Component: DivStyledAsH4
+});
+var manager;
+var defaultProps$4 = {
+  show: false,
+  backdrop: true,
+  keyboard: true,
+  autoFocus: true,
+  enforceFocus: true,
+  restoreFocus: true,
+  animation: true,
+  dialogAs: ModalDialog
+};
+function DialogTransition(props) {
+  return /* @__PURE__ */ React.createElement(Fade, props);
+}
+function BackdropTransition(props) {
+  return /* @__PURE__ */ React.createElement(Fade, props);
+}
+var Modal = /* @__PURE__ */ React.forwardRef(function(_ref3, ref) {
+  var bsPrefix = _ref3.bsPrefix, className = _ref3.className, style2 = _ref3.style, dialogClassName = _ref3.dialogClassName, contentClassName = _ref3.contentClassName, children2 = _ref3.children, Dialog = _ref3.dialogAs, ariaLabelledby = _ref3["aria-labelledby"], show = _ref3.show, animation = _ref3.animation, backdrop = _ref3.backdrop, keyboard = _ref3.keyboard, onEscapeKeyDown = _ref3.onEscapeKeyDown, onShow = _ref3.onShow, onHide2 = _ref3.onHide, container = _ref3.container, autoFocus = _ref3.autoFocus, enforceFocus = _ref3.enforceFocus, restoreFocus = _ref3.restoreFocus, restoreFocusOptions = _ref3.restoreFocusOptions, onEntered = _ref3.onEntered, onExit = _ref3.onExit, onExiting = _ref3.onExiting, onEnter = _ref3.onEnter, onEntering = _ref3.onEntering, onExited = _ref3.onExited, backdropClassName = _ref3.backdropClassName, propsManager = _ref3.manager, props = _objectWithoutPropertiesLoose$1(_ref3, ["bsPrefix", "className", "style", "dialogClassName", "contentClassName", "children", "dialogAs", "aria-labelledby", "show", "animation", "backdrop", "keyboard", "onEscapeKeyDown", "onShow", "onHide", "container", "autoFocus", "enforceFocus", "restoreFocus", "restoreFocusOptions", "onEntered", "onExit", "onExiting", "onEnter", "onEntering", "onExited", "backdropClassName", "manager"]);
+  var _useState = reactExports.useState({}), modalStyle = _useState[0], setStyle = _useState[1];
+  var _useState2 = reactExports.useState(false), animateStaticModal = _useState2[0], setAnimateStaticModal = _useState2[1];
+  var waitingForMouseUpRef = reactExports.useRef(false);
+  var ignoreBackdropClickRef = reactExports.useRef(false);
+  var removeStaticModalAnimationRef = reactExports.useRef(null);
+  var _useCallbackRef = useCallbackRef$2(), modal = _useCallbackRef[0], setModalRef = _useCallbackRef[1];
+  var handleHide = useEventCallback$1(onHide2);
+  bsPrefix = useBootstrapPrefix(bsPrefix, "modal");
+  reactExports.useImperativeHandle(ref, function() {
+    return {
+      get _modal() {
+        return modal;
+      }
+    };
+  }, [modal]);
+  var modalContext = reactExports.useMemo(function() {
+    return {
+      onHide: handleHide
+    };
+  }, [handleHide]);
+  function getModalManager() {
+    if (propsManager) return propsManager;
+    if (!manager) manager = new BootstrapModalManager();
+    return manager;
+  }
+  function updateDialogStyle(node2) {
+    if (!canUseDOM$1) return;
+    var containerIsOverflowing = getModalManager().isContainerOverflowing(modal);
+    var modalIsOverflowing = node2.scrollHeight > ownerDocument(node2).documentElement.clientHeight;
+    setStyle({
+      paddingRight: containerIsOverflowing && !modalIsOverflowing ? scrollbarSize() : void 0,
+      paddingLeft: !containerIsOverflowing && modalIsOverflowing ? scrollbarSize() : void 0
+    });
+  }
+  var handleWindowResize = useEventCallback$1(function() {
+    if (modal) {
+      updateDialogStyle(modal.dialog);
+    }
+  });
+  useWillUnmount$1(function() {
+    removeEventListener(window, "resize", handleWindowResize);
+    if (removeStaticModalAnimationRef.current) {
+      removeStaticModalAnimationRef.current();
+    }
+  });
+  var handleDialogMouseDown = function handleDialogMouseDown2() {
+    waitingForMouseUpRef.current = true;
+  };
+  var handleMouseUp = function handleMouseUp2(e) {
+    if (waitingForMouseUpRef.current && modal && e.target === modal.dialog) {
+      ignoreBackdropClickRef.current = true;
+    }
+    waitingForMouseUpRef.current = false;
+  };
+  var handleStaticModalAnimation = function handleStaticModalAnimation2() {
+    setAnimateStaticModal(true);
+    removeStaticModalAnimationRef.current = transitionEnd(modal.dialog, function() {
+      setAnimateStaticModal(false);
+    });
+  };
+  var handleStaticBackdropClick = function handleStaticBackdropClick2(e) {
+    if (e.target !== e.currentTarget) {
+      return;
+    }
+    handleStaticModalAnimation();
+  };
+  var handleClick = function handleClick2(e) {
+    if (backdrop === "static") {
+      handleStaticBackdropClick(e);
+      return;
+    }
+    if (ignoreBackdropClickRef.current || e.target !== e.currentTarget) {
+      ignoreBackdropClickRef.current = false;
+      return;
+    }
+    onHide2();
+  };
+  var handleEscapeKeyDown = function handleEscapeKeyDown2(e) {
+    if (!keyboard && backdrop === "static") {
+      e.preventDefault();
+      handleStaticModalAnimation();
+    } else if (keyboard && onEscapeKeyDown) {
+      onEscapeKeyDown(e);
+    }
+  };
+  var handleEnter = function handleEnter2(node2) {
+    if (node2) {
+      node2.style.display = "block";
+      updateDialogStyle(node2);
+    }
+    for (var _len = arguments.length, args = new Array(_len > 1 ? _len - 1 : 0), _key = 1; _key < _len; _key++) {
+      args[_key - 1] = arguments[_key];
+    }
+    if (onEnter) onEnter.apply(void 0, [node2].concat(args));
+  };
+  var handleExit = function handleExit2(node2) {
+    if (removeStaticModalAnimationRef.current) {
+      removeStaticModalAnimationRef.current();
+    }
+    for (var _len2 = arguments.length, args = new Array(_len2 > 1 ? _len2 - 1 : 0), _key2 = 1; _key2 < _len2; _key2++) {
+      args[_key2 - 1] = arguments[_key2];
+    }
+    if (onExit) onExit.apply(void 0, [node2].concat(args));
+  };
+  var handleEntering = function handleEntering2(node2) {
+    for (var _len3 = arguments.length, args = new Array(_len3 > 1 ? _len3 - 1 : 0), _key3 = 1; _key3 < _len3; _key3++) {
+      args[_key3 - 1] = arguments[_key3];
+    }
+    if (onEntering) onEntering.apply(void 0, [node2].concat(args));
+    addEventListener(window, "resize", handleWindowResize);
+  };
+  var handleExited = function handleExited2(node2) {
+    if (node2) node2.style.display = "";
+    for (var _len4 = arguments.length, args = new Array(_len4 > 1 ? _len4 - 1 : 0), _key4 = 1; _key4 < _len4; _key4++) {
+      args[_key4 - 1] = arguments[_key4];
+    }
+    if (onExited) onExited.apply(void 0, args);
+    removeEventListener(window, "resize", handleWindowResize);
+  };
+  var renderBackdrop = reactExports.useCallback(function(backdropProps) {
+    return /* @__PURE__ */ React.createElement("div", _extends$1({}, backdropProps, {
+      className: classNames$1(bsPrefix + "-backdrop", backdropClassName, !animation && "show")
+    }));
+  }, [animation, backdropClassName, bsPrefix]);
+  var baseModalStyle = _extends$1({}, style2, modalStyle);
+  if (!animation) {
+    baseModalStyle.display = "block";
+  }
+  var renderDialog = function renderDialog2(dialogProps) {
+    return /* @__PURE__ */ React.createElement("div", _extends$1({
+      role: "dialog"
+    }, dialogProps, {
+      style: baseModalStyle,
+      className: classNames$1(className, bsPrefix, animateStaticModal && bsPrefix + "-static"),
+      onClick: backdrop ? handleClick : void 0,
+      onMouseUp: handleMouseUp,
+      "aria-labelledby": ariaLabelledby
+    }), /* @__PURE__ */ React.createElement(Dialog, _extends$1({}, props, {
+      onMouseDown: handleDialogMouseDown,
+      className: dialogClassName,
+      contentClassName
+    }), children2));
+  };
+  return /* @__PURE__ */ React.createElement(ModalContext.Provider, {
+    value: modalContext
+  }, /* @__PURE__ */ React.createElement(BaseModal, {
+    show,
+    ref: setModalRef,
+    backdrop,
+    container,
+    keyboard: true,
+    autoFocus,
+    enforceFocus,
+    restoreFocus,
+    restoreFocusOptions,
+    onEscapeKeyDown: handleEscapeKeyDown,
+    onShow,
+    onHide: onHide2,
+    onEnter: handleEnter,
+    onEntering: handleEntering,
+    onEntered,
+    onExit: handleExit,
+    onExiting,
+    onExited: handleExited,
+    manager: getModalManager(),
+    containerClassName: bsPrefix + "-open",
+    transition: animation ? DialogTransition : void 0,
+    backdropTransition: animation ? BackdropTransition : void 0,
+    renderBackdrop,
+    renderDialog
+  }));
+});
+Modal.displayName = "Modal";
+Modal.defaultProps = defaultProps$4;
+Modal.Body = ModalBody;
+Modal.Header = ModalHeader;
+Modal.Title = ModalTitle;
+Modal.Footer = ModalFooter;
+Modal.Dialog = ModalDialog;
+Modal.TRANSITION_DURATION = 300;
+Modal.BACKDROP_TRANSITION_DURATION = 150;
+var NavbarBrand = /* @__PURE__ */ React.forwardRef(function(_ref3, ref) {
+  var bsPrefix = _ref3.bsPrefix, className = _ref3.className, as = _ref3.as, props = _objectWithoutPropertiesLoose$1(_ref3, ["bsPrefix", "className", "as"]);
+  bsPrefix = useBootstrapPrefix(bsPrefix, "navbar-brand");
+  var Component = as || (props.href ? "a" : "span");
+  return /* @__PURE__ */ React.createElement(Component, _extends$1({}, props, {
+    ref,
+    className: classNames$1(className, bsPrefix)
+  }));
+});
+NavbarBrand.displayName = "NavbarBrand";
+var NavbarCollapse = /* @__PURE__ */ React.forwardRef(function(_ref3, ref) {
+  var children2 = _ref3.children, bsPrefix = _ref3.bsPrefix, props = _objectWithoutPropertiesLoose$1(_ref3, ["children", "bsPrefix"]);
+  bsPrefix = useBootstrapPrefix(bsPrefix, "navbar-collapse");
+  return /* @__PURE__ */ React.createElement(context.Consumer, null, function(context2) {
+    return /* @__PURE__ */ React.createElement(Collapse, _extends$1({
+      in: !!(context2 && context2.expanded)
+    }, props), /* @__PURE__ */ React.createElement("div", {
+      ref,
+      className: bsPrefix
+    }, children2));
+  });
+});
+NavbarCollapse.displayName = "NavbarCollapse";
+var defaultProps$3 = {
+  label: "Toggle navigation"
+};
+var NavbarToggle = /* @__PURE__ */ React.forwardRef(function(_ref3, ref) {
+  var bsPrefix = _ref3.bsPrefix, className = _ref3.className, children2 = _ref3.children, label = _ref3.label, _ref$as = _ref3.as, Component = _ref$as === void 0 ? "button" : _ref$as, onClick = _ref3.onClick, props = _objectWithoutPropertiesLoose$1(_ref3, ["bsPrefix", "className", "children", "label", "as", "onClick"]);
+  bsPrefix = useBootstrapPrefix(bsPrefix, "navbar-toggler");
+  var _ref22 = reactExports.useContext(context) || {}, onToggle = _ref22.onToggle, expanded = _ref22.expanded;
+  var handleClick = useEventCallback$1(function(e) {
+    if (onClick) onClick(e);
+    if (onToggle) onToggle();
+  });
+  if (Component === "button") {
+    props.type = "button";
+  }
+  return /* @__PURE__ */ React.createElement(Component, _extends$1({}, props, {
+    ref,
+    onClick: handleClick,
+    "aria-label": label,
+    className: classNames$1(className, bsPrefix, !expanded && "collapsed")
+  }), children2 || /* @__PURE__ */ React.createElement("span", {
+    className: bsPrefix + "-icon"
+  }));
+});
+NavbarToggle.displayName = "NavbarToggle";
+NavbarToggle.defaultProps = defaultProps$3;
+var NavbarText = createWithBsPrefix("navbar-text", {
+  Component: "span"
+});
+var defaultProps$2 = {
+  expand: true,
+  variant: "light",
+  collapseOnSelect: false
+};
+var Navbar = /* @__PURE__ */ React.forwardRef(function(props, ref) {
+  var _useUncontrolled = useUncontrolled(props, {
+    expanded: "onToggle"
+  }), initialBsPrefix = _useUncontrolled.bsPrefix, expand = _useUncontrolled.expand, variant = _useUncontrolled.variant, bg = _useUncontrolled.bg, fixed = _useUncontrolled.fixed, sticky = _useUncontrolled.sticky, className = _useUncontrolled.className, children2 = _useUncontrolled.children, _useUncontrolled$as = _useUncontrolled.as, Component = _useUncontrolled$as === void 0 ? "nav" : _useUncontrolled$as, expanded = _useUncontrolled.expanded, _onToggle = _useUncontrolled.onToggle, onSelect = _useUncontrolled.onSelect, collapseOnSelect = _useUncontrolled.collapseOnSelect, controlledProps = _objectWithoutPropertiesLoose$1(_useUncontrolled, ["bsPrefix", "expand", "variant", "bg", "fixed", "sticky", "className", "children", "as", "expanded", "onToggle", "onSelect", "collapseOnSelect"]);
+  var bsPrefix = useBootstrapPrefix(initialBsPrefix, "navbar");
+  var handleCollapse = reactExports.useCallback(function() {
+    if (onSelect) onSelect.apply(void 0, arguments);
+    if (collapseOnSelect && expanded) {
+      if (_onToggle) {
+        _onToggle(false);
+      }
+    }
+  }, [onSelect, collapseOnSelect, expanded, _onToggle]);
+  if (controlledProps.role === void 0 && Component !== "nav") {
+    controlledProps.role = "navigation";
+  }
+  var expandClass = bsPrefix + "-expand";
+  if (typeof expand === "string") expandClass = expandClass + "-" + expand;
+  var navbarContext = reactExports.useMemo(function() {
+    return {
+      onToggle: function onToggle() {
+        return _onToggle && _onToggle(!expanded);
+      },
+      bsPrefix,
+      expanded: !!expanded
+    };
+  }, [bsPrefix, expanded, _onToggle]);
+  return /* @__PURE__ */ React.createElement(context.Provider, {
+    value: navbarContext
+  }, /* @__PURE__ */ React.createElement(SelectableContext.Provider, {
+    value: handleCollapse
+  }, /* @__PURE__ */ React.createElement(Component, _extends$1({
+    ref
+  }, controlledProps, {
+    className: classNames$1(className, bsPrefix, expand && expandClass, variant && bsPrefix + "-" + variant, bg && "bg-" + bg, sticky && "sticky-" + sticky, fixed && "fixed-" + fixed)
+  }), children2)));
+});
+Navbar.defaultProps = defaultProps$2;
+Navbar.displayName = "Navbar";
+Navbar.Brand = NavbarBrand;
+Navbar.Toggle = NavbarToggle;
+Navbar.Collapse = NavbarCollapse;
+Navbar.Text = NavbarText;
+var defaultProps$1 = {
+  active: false,
+  disabled: false,
+  activeLabel: "(current)"
+};
+var PageItem = /* @__PURE__ */ React.forwardRef(function(_ref3, ref) {
+  var active = _ref3.active, disabled = _ref3.disabled, className = _ref3.className, style2 = _ref3.style, activeLabel = _ref3.activeLabel, children2 = _ref3.children, props = _objectWithoutPropertiesLoose$1(_ref3, ["active", "disabled", "className", "style", "activeLabel", "children"]);
+  var Component = active || disabled ? "span" : SafeAnchor;
+  return /* @__PURE__ */ React.createElement("li", {
+    ref,
+    style: style2,
+    className: classNames$1(className, "page-item", {
+      active,
+      disabled
+    })
+  }, /* @__PURE__ */ React.createElement(Component, _extends$1({
+    className: "page-link",
+    disabled
+  }, props), children2, active && activeLabel && /* @__PURE__ */ React.createElement("span", {
+    className: "sr-only"
+  }, activeLabel)));
+});
+PageItem.defaultProps = defaultProps$1;
+PageItem.displayName = "PageItem";
+function createButton(name, defaultValue, label) {
+  if (label === void 0) {
+    label = name;
+  }
+  function Button2(_ref22) {
+    var children2 = _ref22.children, props = _objectWithoutPropertiesLoose$1(_ref22, ["children"]);
+    return /* @__PURE__ */ React.createElement(PageItem, props, /* @__PURE__ */ React.createElement("span", {
+      "aria-hidden": "true"
+    }, children2 || defaultValue), /* @__PURE__ */ React.createElement("span", {
+      className: "sr-only"
+    }, label));
+  }
+  Button2.displayName = name;
+  return Button2;
+}
+var First = createButton("First", "«");
+var Prev = createButton("Prev", "‹", "Previous");
+var Ellipsis = createButton("Ellipsis", "…", "More");
+var Next = createButton("Next", "›");
+var Last = createButton("Last", "»");
+var Pagination = /* @__PURE__ */ React.forwardRef(function(_ref3, ref) {
+  var bsPrefix = _ref3.bsPrefix, className = _ref3.className, children2 = _ref3.children, size2 = _ref3.size, props = _objectWithoutPropertiesLoose$1(_ref3, ["bsPrefix", "className", "children", "size"]);
+  var decoratedBsPrefix = useBootstrapPrefix(bsPrefix, "pagination");
+  return /* @__PURE__ */ React.createElement("ul", _extends$1({
+    ref
+  }, props, {
+    className: classNames$1(className, decoratedBsPrefix, size2 && decoratedBsPrefix + "-" + size2)
+  }), children2);
+});
+Pagination.First = First;
+Pagination.Prev = Prev;
+Pagination.Ellipsis = Ellipsis;
+Pagination.Item = PageItem;
+Pagination.Next = Next;
+Pagination.Last = Last;
+var Spinner = /* @__PURE__ */ React.forwardRef(function(_ref3, ref) {
+  var bsPrefix = _ref3.bsPrefix, variant = _ref3.variant, animation = _ref3.animation, size2 = _ref3.size, children2 = _ref3.children, _ref$as = _ref3.as, Component = _ref$as === void 0 ? "div" : _ref$as, className = _ref3.className, props = _objectWithoutPropertiesLoose$1(_ref3, ["bsPrefix", "variant", "animation", "size", "children", "as", "className"]);
+  bsPrefix = useBootstrapPrefix(bsPrefix, "spinner");
+  var bsSpinnerPrefix = bsPrefix + "-" + animation;
+  return /* @__PURE__ */ React.createElement(Component, _extends$1({
+    ref
+  }, props, {
+    className: classNames$1(className, bsSpinnerPrefix, size2 && bsSpinnerPrefix + "-" + size2, variant && "text-" + variant)
+  }), children2);
+});
+Spinner.displayName = "Spinner";
+var Table = /* @__PURE__ */ React.forwardRef(function(_ref3, ref) {
+  var bsPrefix = _ref3.bsPrefix, className = _ref3.className, striped = _ref3.striped, bordered = _ref3.bordered, borderless = _ref3.borderless, hover = _ref3.hover, size2 = _ref3.size, variant = _ref3.variant, responsive = _ref3.responsive, props = _objectWithoutPropertiesLoose$1(_ref3, ["bsPrefix", "className", "striped", "bordered", "borderless", "hover", "size", "variant", "responsive"]);
+  var decoratedBsPrefix = useBootstrapPrefix(bsPrefix, "table");
+  var classes = classNames$1(className, decoratedBsPrefix, variant && decoratedBsPrefix + "-" + variant, size2 && decoratedBsPrefix + "-" + size2, striped && decoratedBsPrefix + "-striped", bordered && decoratedBsPrefix + "-bordered", borderless && decoratedBsPrefix + "-borderless", hover && decoratedBsPrefix + "-hover");
+  var table = /* @__PURE__ */ React.createElement("table", _extends$1({}, props, {
+    className: classes,
+    ref
+  }));
+  if (responsive) {
+    var responsiveClass = decoratedBsPrefix + "-responsive";
+    if (typeof responsive === "string") {
+      responsiveClass = responsiveClass + "-" + responsive;
+    }
+    return /* @__PURE__ */ React.createElement("div", {
+      className: responsiveClass
+    }, table);
+  }
+  return table;
+});
+const toKebabCase = (string2) => string2.replace(/([a-z0-9])([A-Z])/g, "$1-$2").toLowerCase();
+const toCamelCase = (string2) => string2.replace(
+  /^([A-Z])|[\s-_]+(\w)/g,
+  (match2, p1, p2) => p2 ? p2.toUpperCase() : p1.toLowerCase()
+);
+const toPascalCase = (string2) => {
+  const camelCase = toCamelCase(string2);
+  return camelCase.charAt(0).toUpperCase() + camelCase.slice(1);
+};
+const mergeClasses = (...classes) => classes.filter((className, index2, array3) => {
+  return Boolean(className) && className.trim() !== "" && array3.indexOf(className) === index2;
+}).join(" ").trim();
+const hasA11yProp = (props) => {
+  for (const prop in props) {
+    if (prop.startsWith("aria-") || prop === "role" || prop === "title") {
+      return true;
+    }
+  }
+};
+var defaultAttributes = {
+  xmlns: "http://www.w3.org/2000/svg",
+  width: 24,
+  height: 24,
+  viewBox: "0 0 24 24",
+  fill: "none",
+  stroke: "currentColor",
+  strokeWidth: 2,
+  strokeLinecap: "round",
+  strokeLinejoin: "round"
+};
+const Icon = reactExports.forwardRef(
+  ({
+    color = "currentColor",
+    size: size2 = 24,
+    strokeWidth = 2,
+    absoluteStrokeWidth,
+    className = "",
+    children: children2,
+    iconNode,
+    ...rest
+  }, ref) => {
+    return reactExports.createElement(
+      "svg",
+      {
+        ref,
+        ...defaultAttributes,
+        width: size2,
+        height: size2,
+        stroke: color,
+        strokeWidth: absoluteStrokeWidth ? Number(strokeWidth) * 24 / Number(size2) : strokeWidth,
+        className: mergeClasses("lucide", className),
+        ...!children2 && !hasA11yProp(rest) && { "aria-hidden": "true" },
+        ...rest
+      },
+      [
+        ...iconNode.map(([tag, attrs]) => reactExports.createElement(tag, attrs)),
+        ...Array.isArray(children2) ? children2 : [children2]
+      ]
+    );
+  }
+);
+const createLucideIcon = (iconName, iconNode) => {
+  const Component = reactExports.forwardRef(
+    ({ className, ...props }, ref) => reactExports.createElement(Icon, {
+      ref,
+      iconNode,
+      className: mergeClasses(
+        `lucide-${toKebabCase(toPascalCase(iconName))}`,
+        `lucide-${iconName}`,
+        className
+      ),
+      ...props
+    })
+  );
+  Component.displayName = toPascalCase(iconName);
+  return Component;
+};
+const __iconNode$1 = [
+  ["path", { d: "m8 2 1.88 1.88", key: "fmnt4t" }],
+  ["path", { d: "M14.12 3.88 16 2", key: "qol33r" }],
+  ["path", { d: "M9 7.13v-1a3.003 3.003 0 1 1 6 0v1", key: "d7y7pr" }],
+  [
+    "path",
+    {
+      d: "M12 20c-3.3 0-6-2.7-6-6v-3a4 4 0 0 1 4-4h4a4 4 0 0 1 4 4v3c0 3.3-2.7 6-6 6",
+      key: "xs1cw7"
+    }
+  ],
+  ["path", { d: "M12 20v-9", key: "1qisl0" }],
+  ["path", { d: "M6.53 9C4.6 8.8 3 7.1 3 5", key: "32zzws" }],
+  ["path", { d: "M6 13H2", key: "82j7cp" }],
+  ["path", { d: "M3 21c0-2.1 1.7-3.9 3.8-4", key: "4p0ekp" }],
+  ["path", { d: "M20.97 5c0 2.1-1.6 3.8-3.5 4", key: "18gb23" }],
+  ["path", { d: "M22 13h-4", key: "1jl80f" }],
+  ["path", { d: "M17.2 17c2.1.1 3.8 1.9 3.8 4", key: "k3fwyw" }]
+];
+const Bug = createLucideIcon("bug", __iconNode$1);
+const __iconNode = [
+  ["path", { d: "M18 6 6 18", key: "1bl5f8" }],
+  ["path", { d: "m6 6 12 12", key: "d8bk6v" }]
+];
+const X = createLucideIcon("x", __iconNode);
+(function(to, from2, pack) {
+  if (pack || arguments.length === 2) for (var i2 = 0, l = from2.length, ar; i2 < l; i2++) {
+    if (ar || !(i2 in from2)) {
+      if (!ar) ar = Array.prototype.slice.call(from2, 0, i2);
+      ar[i2] = from2[i2];
+    }
+  }
+  return to.concat(ar || Array.prototype.slice.call(from2));
+});
+(function(to, from2, pack) {
+  if (pack || arguments.length === 2) for (var i2 = 0, l = from2.length, ar; i2 < l; i2++) {
+    if (ar || !(i2 in from2)) {
+      if (!ar) ar = Array.prototype.slice.call(from2, 0, i2);
+      ar[i2] = from2[i2];
+    }
+  }
+  return to.concat(ar || Array.prototype.slice.call(from2));
+});
+var isLeft$1 = function(ma) {
+  return ma._tag === "Left";
+};
+var isRight$1 = function(ma) {
+  return ma._tag === "Right";
+};
+var left$1 = function(e) {
+  return { _tag: "Left", left: e };
+};
+var right$1 = function(a) {
+  return { _tag: "Right", right: a };
+};
+var left = left$1;
+var right = right$1;
+var isLeft = isLeft$1;
+var isRight = isRight$1;
+var __extends = /* @__PURE__ */ (function() {
+  var extendStatics = function(d, b) {
+    extendStatics = Object.setPrototypeOf || { __proto__: [] } instanceof Array && function(d2, b2) {
+      d2.__proto__ = b2;
+    } || function(d2, b2) {
+      for (var p in b2) if (Object.prototype.hasOwnProperty.call(b2, p)) d2[p] = b2[p];
+    };
+    return extendStatics(d, b);
+  };
+  return function(d, b) {
+    if (typeof b !== "function" && b !== null)
+      throw new TypeError("Class extends value " + String(b) + " is not a constructor or null");
+    extendStatics(d, b);
+    function __() {
+      this.constructor = d;
+    }
+    d.prototype = b === null ? Object.create(b) : (__.prototype = b.prototype, new __());
+  };
+})();
+var __assign$2 = function() {
+  __assign$2 = Object.assign || function(t) {
+    for (var s, i2 = 1, n = arguments.length; i2 < n; i2++) {
+      s = arguments[i2];
+      for (var p in s) if (Object.prototype.hasOwnProperty.call(s, p))
+        t[p] = s[p];
+    }
+    return t;
+  };
+  return __assign$2.apply(this, arguments);
+};
+(function(to, from2, pack) {
+  if (pack || arguments.length === 2) for (var i2 = 0, l = from2.length, ar; i2 < l; i2++) {
+    if (ar || !(i2 in from2)) {
+      if (!ar) ar = Array.prototype.slice.call(from2, 0, i2);
+      ar[i2] = from2[i2];
+    }
+  }
+  return to.concat(ar || Array.prototype.slice.call(from2));
+});
+var failures = left;
+var failure = function(value, context2, message) {
+  return failures([{ value, context: context2, message }]);
+};
+var success = right;
+var Type = (
+  /** @class */
+  (function() {
+    function Type2(name, is2, validate, encode) {
+      this.name = name;
+      this.is = is2;
+      this.validate = validate;
+      this.encode = encode;
+      this.decode = this.decode.bind(this);
+    }
+    Type2.prototype.pipe = function(ab, name) {
+      var _this = this;
+      if (name === void 0) {
+        name = "pipe(".concat(this.name, ", ").concat(ab.name, ")");
+      }
+      return new Type2(name, ab.is, function(i2, c) {
+        var e = _this.validate(i2, c);
+        if (isLeft(e)) {
+          return e;
+        }
+        return ab.validate(e.right, c);
+      }, this.encode === identity && ab.encode === identity ? identity : function(b) {
+        return _this.encode(ab.encode(b));
+      });
+    };
+    Type2.prototype.asDecoder = function() {
+      return this;
+    };
+    Type2.prototype.asEncoder = function() {
+      return this;
+    };
+    Type2.prototype.decode = function(i2) {
+      return this.validate(i2, [{ key: "", type: this, actual: i2 }]);
+    };
+    return Type2;
+  })()
+);
+var identity = function(a) {
+  return a;
+};
+function getFunctionName(f) {
+  return f.displayName || f.name || "<function".concat(f.length, ">");
+}
+function appendContext(c, key, decoder, actual) {
+  var len = c.length;
+  var r = Array(len + 1);
+  for (var i2 = 0; i2 < len; i2++) {
+    r[i2] = c[i2];
+  }
+  r[len] = { key, type: decoder, actual };
+  return r;
+}
+function pushAll(xs, ys) {
+  var l = ys.length;
+  for (var i2 = 0; i2 < l; i2++) {
+    xs.push(ys[i2]);
+  }
+}
+var hasOwnProperty$1 = Object.prototype.hasOwnProperty;
+function getNameFromProps(props) {
+  return Object.keys(props).map(function(k) {
+    return "".concat(k, ": ").concat(props[k].name);
+  }).join(", ");
+}
+function useIdentity(codecs) {
+  for (var i2 = 0; i2 < codecs.length; i2++) {
+    if (codecs[i2].encode !== identity) {
+      return false;
+    }
+  }
+  return true;
+}
+function getInterfaceTypeName(props) {
+  return "{ ".concat(getNameFromProps(props), " }");
+}
+function getPartialTypeName(inner) {
+  return "Partial<".concat(inner, ">");
+}
+function getUnionName(codecs) {
+  return "(" + codecs.map(function(type2) {
+    return type2.name;
+  }).join(" | ") + ")";
+}
+function mergeAll(base, us) {
+  var equal = true;
+  var primitive = true;
+  var baseIsNotADictionary = !UnknownRecord.is(base);
+  for (var _i = 0, us_1 = us; _i < us_1.length; _i++) {
+    var u = us_1[_i];
+    if (u !== base) {
+      equal = false;
+    }
+    if (UnknownRecord.is(u)) {
+      primitive = false;
+    }
+  }
+  if (equal) {
+    return base;
+  } else if (primitive) {
+    return us[us.length - 1];
+  }
+  var r = {};
+  for (var _a2 = 0, us_2 = us; _a2 < us_2.length; _a2++) {
+    var u = us_2[_a2];
+    for (var k in u) {
+      if (!hasOwnProperty$1.call(r, k) || baseIsNotADictionary || u[k] !== base[k]) {
+        r[k] = u[k];
+      }
+    }
+  }
+  return r;
+}
+function isNonEmpty(as) {
+  return as.length > 0;
+}
+var emptyTags = {};
+function intersect(a, b) {
+  var r = [];
+  for (var _i = 0, a_1 = a; _i < a_1.length; _i++) {
+    var v = a_1[_i];
+    if (b.indexOf(v) !== -1) {
+      r.push(v);
+    }
+  }
+  return r;
+}
+function mergeTags(a, b) {
+  if (a === emptyTags) {
+    return b;
+  }
+  if (b === emptyTags) {
+    return a;
+  }
+  var r = Object.assign({}, a);
+  for (var k in b) {
+    if (hasOwnProperty$1.call(a, k)) {
+      var intersection_1 = intersect(a[k], b[k]);
+      if (isNonEmpty(intersection_1)) {
+        r[k] = intersection_1;
+      } else {
+        r = emptyTags;
+        break;
+      }
+    } else {
+      r[k] = b[k];
+    }
+  }
+  return r;
+}
+function intersectTags(a, b) {
+  if (a === emptyTags || b === emptyTags) {
+    return emptyTags;
+  }
+  var r = emptyTags;
+  for (var k in a) {
+    if (hasOwnProperty$1.call(b, k)) {
+      var intersection_2 = intersect(a[k], b[k]);
+      if (intersection_2.length === 0) {
+        if (r === emptyTags) {
+          r = {};
+        }
+        r[k] = a[k].concat(b[k]);
+      }
+    }
+  }
+  return r;
+}
+function isLiteralC(codec) {
+  return codec._tag === "LiteralType";
+}
+function isTypeC(codec) {
+  return codec._tag === "InterfaceType";
+}
+function isStrictC(codec) {
+  return codec._tag === "StrictType";
+}
+function isExactC(codec) {
+  return codec._tag === "ExactType";
+}
+function isRefinementC(codec) {
+  return codec._tag === "RefinementType";
+}
+function isIntersectionC(codec) {
+  return codec._tag === "IntersectionType";
+}
+function isUnionC(codec) {
+  return codec._tag === "UnionType";
+}
+function isRecursiveC(codec) {
+  return codec._tag === "RecursiveType";
+}
+var lazyCodecs = [];
+function getTags(codec) {
+  if (lazyCodecs.indexOf(codec) !== -1) {
+    return emptyTags;
+  }
+  if (isTypeC(codec) || isStrictC(codec)) {
+    var index2 = emptyTags;
+    for (var k in codec.props) {
+      var prop = codec.props[k];
+      if (isLiteralC(prop)) {
+        if (index2 === emptyTags) {
+          index2 = {};
+        }
+        index2[k] = [prop.value];
+      }
+    }
+    return index2;
+  } else if (isExactC(codec) || isRefinementC(codec)) {
+    return getTags(codec.type);
+  } else if (isIntersectionC(codec)) {
+    return codec.types.reduce(function(tags2, codec2) {
+      return mergeTags(tags2, getTags(codec2));
+    }, emptyTags);
+  } else if (isUnionC(codec)) {
+    return codec.types.slice(1).reduce(function(tags2, codec2) {
+      return intersectTags(tags2, getTags(codec2));
+    }, getTags(codec.types[0]));
+  } else if (isRecursiveC(codec)) {
+    lazyCodecs.push(codec);
+    var tags = getTags(codec.type);
+    lazyCodecs.pop();
+    return tags;
+  }
+  return emptyTags;
+}
+function getIndex(codecs) {
+  var tags = getTags(codecs[0]);
+  var keys = Object.keys(tags);
+  var len = codecs.length;
+  var _loop_1 = function(k2) {
+    var all2 = tags[k2].slice();
+    var index2 = [tags[k2]];
+    for (var i2 = 1; i2 < len; i2++) {
+      var codec = codecs[i2];
+      var ctags = getTags(codec);
+      var values = ctags[k2];
+      if (values === void 0) {
+        return "continue-keys";
+      } else {
+        if (values.some(function(v) {
+          return all2.indexOf(v) !== -1;
+        })) {
+          return "continue-keys";
+        } else {
+          all2.push.apply(all2, values);
+          index2.push(values);
+        }
+      }
+    }
+    return { value: [k2, index2] };
+  };
+  keys: for (var _i = 0, keys_1 = keys; _i < keys_1.length; _i++) {
+    var k = keys_1[_i];
+    var state_1 = _loop_1(k);
+    if (typeof state_1 === "object")
+      return state_1.value;
+    switch (state_1) {
+      case "continue-keys":
+        continue keys;
+    }
+  }
+  return void 0;
+}
+var NullType = (
+  /** @class */
+  (function(_super) {
+    __extends(NullType2, _super);
+    function NullType2() {
+      var _this = _super.call(this, "null", function(u) {
+        return u === null;
+      }, function(u, c) {
+        return _this.is(u) ? success(u) : failure(u, c);
+      }, identity) || this;
+      _this._tag = "NullType";
+      return _this;
+    }
+    return NullType2;
+  })(Type)
+);
+var nullType = new NullType();
+var UndefinedType = (
+  /** @class */
+  (function(_super) {
+    __extends(UndefinedType2, _super);
+    function UndefinedType2() {
+      var _this = _super.call(this, "undefined", function(u) {
+        return u === void 0;
+      }, function(u, c) {
+        return _this.is(u) ? success(u) : failure(u, c);
+      }, identity) || this;
+      _this._tag = "UndefinedType";
+      return _this;
+    }
+    return UndefinedType2;
+  })(Type)
+);
+var undefinedType = new UndefinedType();
+var VoidType = (
+  /** @class */
+  (function(_super) {
+    __extends(VoidType2, _super);
+    function VoidType2() {
+      var _this = _super.call(this, "void", undefinedType.is, undefinedType.validate, identity) || this;
+      _this._tag = "VoidType";
+      return _this;
+    }
+    return VoidType2;
+  })(Type)
+);
+new VoidType();
+var UnknownType = (
+  /** @class */
+  (function(_super) {
+    __extends(UnknownType2, _super);
+    function UnknownType2() {
+      var _this = _super.call(this, "unknown", function(_) {
+        return true;
+      }, success, identity) || this;
+      _this._tag = "UnknownType";
+      return _this;
+    }
+    return UnknownType2;
+  })(Type)
+);
+new UnknownType();
+var StringType = (
+  /** @class */
+  (function(_super) {
+    __extends(StringType2, _super);
+    function StringType2() {
+      var _this = _super.call(this, "string", function(u) {
+        return typeof u === "string";
+      }, function(u, c) {
+        return _this.is(u) ? success(u) : failure(u, c);
+      }, identity) || this;
+      _this._tag = "StringType";
+      return _this;
+    }
+    return StringType2;
+  })(Type)
+);
+var string = new StringType();
+var NumberType = (
+  /** @class */
+  (function(_super) {
+    __extends(NumberType2, _super);
+    function NumberType2() {
+      var _this = _super.call(this, "number", function(u) {
+        return typeof u === "number";
+      }, function(u, c) {
+        return _this.is(u) ? success(u) : failure(u, c);
+      }, identity) || this;
+      _this._tag = "NumberType";
+      return _this;
+    }
+    return NumberType2;
+  })(Type)
+);
+var number$1 = new NumberType();
+var BigIntType = (
+  /** @class */
+  (function(_super) {
+    __extends(BigIntType2, _super);
+    function BigIntType2() {
+      var _this = _super.call(
+        this,
+        "bigint",
+        // tslint:disable-next-line: valid-typeof
+        function(u) {
+          return typeof u === "bigint";
+        },
+        function(u, c) {
+          return _this.is(u) ? success(u) : failure(u, c);
+        },
+        identity
+      ) || this;
+      _this._tag = "BigIntType";
+      return _this;
+    }
+    return BigIntType2;
+  })(Type)
+);
+new BigIntType();
+var BooleanType = (
+  /** @class */
+  (function(_super) {
+    __extends(BooleanType2, _super);
+    function BooleanType2() {
+      var _this = _super.call(this, "boolean", function(u) {
+        return typeof u === "boolean";
+      }, function(u, c) {
+        return _this.is(u) ? success(u) : failure(u, c);
+      }, identity) || this;
+      _this._tag = "BooleanType";
+      return _this;
+    }
+    return BooleanType2;
+  })(Type)
+);
+var boolean = new BooleanType();
+var AnyArrayType = (
+  /** @class */
+  (function(_super) {
+    __extends(AnyArrayType2, _super);
+    function AnyArrayType2() {
+      var _this = _super.call(this, "UnknownArray", Array.isArray, function(u, c) {
+        return _this.is(u) ? success(u) : failure(u, c);
+      }, identity) || this;
+      _this._tag = "AnyArrayType";
+      return _this;
+    }
+    return AnyArrayType2;
+  })(Type)
+);
+var UnknownArray = new AnyArrayType();
+var AnyDictionaryType = (
+  /** @class */
+  (function(_super) {
+    __extends(AnyDictionaryType2, _super);
+    function AnyDictionaryType2() {
+      var _this = _super.call(this, "UnknownRecord", function(u) {
+        return u !== null && typeof u === "object" && !Array.isArray(u);
+      }, function(u, c) {
+        return _this.is(u) ? success(u) : failure(u, c);
+      }, identity) || this;
+      _this._tag = "AnyDictionaryType";
+      return _this;
+    }
+    return AnyDictionaryType2;
+  })(Type)
+);
+var UnknownRecord = new AnyDictionaryType();
+var LiteralType = (
+  /** @class */
+  (function(_super) {
+    __extends(LiteralType2, _super);
+    function LiteralType2(name, is2, validate, encode, value) {
+      var _this = _super.call(this, name, is2, validate, encode) || this;
+      _this.value = value;
+      _this._tag = "LiteralType";
+      return _this;
+    }
+    return LiteralType2;
+  })(Type)
+);
+function literal(value, name) {
+  if (name === void 0) {
+    name = JSON.stringify(value);
+  }
+  var is2 = function(u) {
+    return u === value;
+  };
+  return new LiteralType(name, is2, function(u, c) {
+    return is2(u) ? success(value) : failure(u, c);
+  }, identity, value);
+}
+var KeyofType = (
+  /** @class */
+  (function(_super) {
+    __extends(KeyofType2, _super);
+    function KeyofType2(name, is2, validate, encode, keys) {
+      var _this = _super.call(this, name, is2, validate, encode) || this;
+      _this.keys = keys;
+      _this._tag = "KeyofType";
+      return _this;
+    }
+    return KeyofType2;
+  })(Type)
+);
+function keyof(keys, name) {
+  if (name === void 0) {
+    name = Object.keys(keys).map(function(k) {
+      return JSON.stringify(k);
+    }).join(" | ");
+  }
+  var is2 = function(u) {
+    return string.is(u) && hasOwnProperty$1.call(keys, u);
+  };
+  return new KeyofType(name, is2, function(u, c) {
+    return is2(u) ? success(u) : failure(u, c);
+  }, identity, keys);
+}
+var RefinementType = (
+  /** @class */
+  (function(_super) {
+    __extends(RefinementType2, _super);
+    function RefinementType2(name, is2, validate, encode, type2, predicate) {
+      var _this = _super.call(this, name, is2, validate, encode) || this;
+      _this.type = type2;
+      _this.predicate = predicate;
+      _this._tag = "RefinementType";
+      return _this;
+    }
+    return RefinementType2;
+  })(Type)
+);
+function brand(codec, predicate, name) {
+  return refinement(codec, predicate, name);
+}
+brand(number$1, function(n) {
+  return Number.isInteger(n);
+}, "Int");
+var RecursiveType = (
+  /** @class */
+  (function(_super) {
+    __extends(RecursiveType2, _super);
+    function RecursiveType2(name, is2, validate, encode, runDefinition) {
+      var _this = _super.call(this, name, is2, validate, encode) || this;
+      _this.runDefinition = runDefinition;
+      _this._tag = "RecursiveType";
+      return _this;
+    }
+    return RecursiveType2;
+  })(Type)
+);
+Object.defineProperty(RecursiveType.prototype, "type", {
+  get: function() {
+    return this.runDefinition();
+  },
+  enumerable: true,
+  configurable: true
+});
+function recursion(name, definition) {
+  var cache2;
+  var runDefinition = function() {
+    if (!cache2) {
+      cache2 = definition(Self);
+      cache2.name = name;
+    }
+    return cache2;
+  };
+  var Self = new RecursiveType(name, function(u) {
+    return runDefinition().is(u);
+  }, function(u, c) {
+    return runDefinition().validate(u, c);
+  }, function(a) {
+    return runDefinition().encode(a);
+  }, runDefinition);
+  return Self;
+}
+var ArrayType = (
+  /** @class */
+  (function(_super) {
+    __extends(ArrayType2, _super);
+    function ArrayType2(name, is2, validate, encode, type2) {
+      var _this = _super.call(this, name, is2, validate, encode) || this;
+      _this.type = type2;
+      _this._tag = "ArrayType";
+      return _this;
+    }
+    return ArrayType2;
+  })(Type)
+);
+function array2(item, name) {
+  if (name === void 0) {
+    name = "Array<".concat(item.name, ">");
+  }
+  return new ArrayType(name, function(u) {
+    return UnknownArray.is(u) && u.every(item.is);
+  }, function(u, c) {
+    var e = UnknownArray.validate(u, c);
+    if (isLeft(e)) {
+      return e;
+    }
+    var us = e.right;
+    var len = us.length;
+    var as = us;
+    var errors = [];
+    for (var i2 = 0; i2 < len; i2++) {
+      var ui = us[i2];
+      var result = item.validate(ui, appendContext(c, String(i2), item, ui));
+      if (isLeft(result)) {
+        pushAll(errors, result.left);
+      } else {
+        var ai = result.right;
+        if (ai !== ui) {
+          if (as === us) {
+            as = us.slice();
+          }
+          as[i2] = ai;
+        }
+      }
+    }
+    return errors.length > 0 ? failures(errors) : success(as);
+  }, item.encode === identity ? identity : function(a) {
+    return a.map(item.encode);
+  }, item);
+}
+var InterfaceType = (
+  /** @class */
+  (function(_super) {
+    __extends(InterfaceType2, _super);
+    function InterfaceType2(name, is2, validate, encode, props) {
+      var _this = _super.call(this, name, is2, validate, encode) || this;
+      _this.props = props;
+      _this._tag = "InterfaceType";
+      return _this;
+    }
+    return InterfaceType2;
+  })(Type)
+);
+function type(props, name) {
+  if (name === void 0) {
+    name = getInterfaceTypeName(props);
+  }
+  var keys = Object.keys(props);
+  var types = keys.map(function(key) {
+    return props[key];
+  });
+  var len = keys.length;
+  return new InterfaceType(name, function(u) {
+    if (UnknownRecord.is(u)) {
+      for (var i2 = 0; i2 < len; i2++) {
+        var k = keys[i2];
+        var uk = u[k];
+        if (uk === void 0 && !hasOwnProperty$1.call(u, k) || !types[i2].is(uk)) {
+          return false;
+        }
+      }
+      return true;
+    }
+    return false;
+  }, function(u, c) {
+    var e = UnknownRecord.validate(u, c);
+    if (isLeft(e)) {
+      return e;
+    }
+    var o = e.right;
+    var a = o;
+    var errors = [];
+    for (var i2 = 0; i2 < len; i2++) {
+      var k = keys[i2];
+      var ak = a[k];
+      var type_1 = types[i2];
+      var result = type_1.validate(ak, appendContext(c, k, type_1, ak));
+      if (isLeft(result)) {
+        pushAll(errors, result.left);
+      } else {
+        var vak = result.right;
+        if (vak !== ak || vak === void 0 && !hasOwnProperty$1.call(a, k)) {
+          if (a === o) {
+            a = __assign$2({}, o);
+          }
+          a[k] = vak;
+        }
+      }
+    }
+    return errors.length > 0 ? failures(errors) : success(a);
+  }, useIdentity(types) ? identity : function(a) {
+    var s = __assign$2({}, a);
+    for (var i2 = 0; i2 < len; i2++) {
+      var k = keys[i2];
+      var encode = types[i2].encode;
+      if (encode !== identity) {
+        s[k] = encode(a[k]);
+      }
+    }
+    return s;
+  }, props);
+}
+var PartialType = (
+  /** @class */
+  (function(_super) {
+    __extends(PartialType2, _super);
+    function PartialType2(name, is2, validate, encode, props) {
+      var _this = _super.call(this, name, is2, validate, encode) || this;
+      _this.props = props;
+      _this._tag = "PartialType";
+      return _this;
+    }
+    return PartialType2;
+  })(Type)
+);
+function partial(props, name) {
+  if (name === void 0) {
+    name = getPartialTypeName(getInterfaceTypeName(props));
+  }
+  var keys = Object.keys(props);
+  var types = keys.map(function(key) {
+    return props[key];
+  });
+  var len = keys.length;
+  return new PartialType(name, function(u) {
+    if (UnknownRecord.is(u)) {
+      for (var i2 = 0; i2 < len; i2++) {
+        var k = keys[i2];
+        var uk = u[k];
+        if (uk !== void 0 && !props[k].is(uk)) {
+          return false;
+        }
+      }
+      return true;
+    }
+    return false;
+  }, function(u, c) {
+    var e = UnknownRecord.validate(u, c);
+    if (isLeft(e)) {
+      return e;
+    }
+    var o = e.right;
+    var a = o;
+    var errors = [];
+    for (var i2 = 0; i2 < len; i2++) {
+      var k = keys[i2];
+      var ak = a[k];
+      var type_2 = props[k];
+      var result = type_2.validate(ak, appendContext(c, k, type_2, ak));
+      if (isLeft(result)) {
+        if (ak !== void 0) {
+          pushAll(errors, result.left);
+        }
+      } else {
+        var vak = result.right;
+        if (vak !== ak) {
+          if (a === o) {
+            a = __assign$2({}, o);
+          }
+          a[k] = vak;
+        }
+      }
+    }
+    return errors.length > 0 ? failures(errors) : success(a);
+  }, useIdentity(types) ? identity : function(a) {
+    var s = __assign$2({}, a);
+    for (var i2 = 0; i2 < len; i2++) {
+      var k = keys[i2];
+      var ak = a[k];
+      if (ak !== void 0) {
+        s[k] = types[i2].encode(ak);
+      }
+    }
+    return s;
+  }, props);
+}
+(function(_super) {
+  __extends(DictionaryType, _super);
+  function DictionaryType(name, is2, validate, encode, domain, codomain) {
+    var _this = _super.call(this, name, is2, validate, encode) || this;
+    _this.domain = domain;
+    _this.codomain = codomain;
+    _this._tag = "DictionaryType";
+    return _this;
+  }
+  return DictionaryType;
+})(Type);
+var UnionType = (
+  /** @class */
+  (function(_super) {
+    __extends(UnionType2, _super);
+    function UnionType2(name, is2, validate, encode, types) {
+      var _this = _super.call(this, name, is2, validate, encode) || this;
+      _this.types = types;
+      _this._tag = "UnionType";
+      return _this;
+    }
+    return UnionType2;
+  })(Type)
+);
+function union(codecs, name) {
+  if (name === void 0) {
+    name = getUnionName(codecs);
+  }
+  var index2 = getIndex(codecs);
+  if (index2 !== void 0 && codecs.length > 0) {
+    var tag_1 = index2[0], groups_1 = index2[1];
+    var len_1 = groups_1.length;
+    var find_1 = function(value) {
+      for (var i2 = 0; i2 < len_1; i2++) {
+        if (groups_1[i2].indexOf(value) !== -1) {
+          return i2;
+        }
+      }
+      return void 0;
+    };
+    return new TaggedUnionType(name, function(u) {
+      if (UnknownRecord.is(u)) {
+        var i2 = find_1(u[tag_1]);
+        return i2 !== void 0 ? codecs[i2].is(u) : false;
+      }
+      return false;
+    }, function(u, c) {
+      var e = UnknownRecord.validate(u, c);
+      if (isLeft(e)) {
+        return e;
+      }
+      var r = e.right;
+      var i2 = find_1(r[tag_1]);
+      if (i2 === void 0) {
+        return failure(u, c);
+      }
+      var codec = codecs[i2];
+      return codec.validate(r, appendContext(c, String(i2), codec, r));
+    }, useIdentity(codecs) ? identity : function(a) {
+      var i2 = find_1(a[tag_1]);
+      if (i2 === void 0) {
+        throw new Error("no codec found to encode value in union codec ".concat(name));
+      } else {
+        return codecs[i2].encode(a);
+      }
+    }, codecs, tag_1);
+  } else {
+    return new UnionType(name, function(u) {
+      return codecs.some(function(type2) {
+        return type2.is(u);
+      });
+    }, function(u, c) {
+      var errors = [];
+      for (var i2 = 0; i2 < codecs.length; i2++) {
+        var codec = codecs[i2];
+        var result = codec.validate(u, appendContext(c, String(i2), codec, u));
+        if (isLeft(result)) {
+          pushAll(errors, result.left);
+        } else {
+          return success(result.right);
+        }
+      }
+      return failures(errors);
+    }, useIdentity(codecs) ? identity : function(a) {
+      for (var _i = 0, codecs_1 = codecs; _i < codecs_1.length; _i++) {
+        var codec = codecs_1[_i];
+        if (codec.is(a)) {
+          return codec.encode(a);
+        }
+      }
+      throw new Error("no codec found to encode value in union type ".concat(name));
+    }, codecs);
+  }
+}
+var IntersectionType = (
+  /** @class */
+  (function(_super) {
+    __extends(IntersectionType2, _super);
+    function IntersectionType2(name, is2, validate, encode, types) {
+      var _this = _super.call(this, name, is2, validate, encode) || this;
+      _this.types = types;
+      _this._tag = "IntersectionType";
+      return _this;
+    }
+    return IntersectionType2;
+  })(Type)
+);
+function intersection(codecs, name) {
+  if (name === void 0) {
+    name = "(".concat(codecs.map(function(type2) {
+      return type2.name;
+    }).join(" & "), ")");
+  }
+  var len = codecs.length;
+  return new IntersectionType(name, function(u) {
+    return codecs.every(function(type2) {
+      return type2.is(u);
+    });
+  }, codecs.length === 0 ? success : function(u, c) {
+    var us = [];
+    var errors = [];
+    for (var i2 = 0; i2 < len; i2++) {
+      var codec = codecs[i2];
+      var result = codec.validate(u, appendContext(c, String(i2), codec, u));
+      if (isLeft(result)) {
+        pushAll(errors, result.left);
+      } else {
+        us.push(result.right);
+      }
+    }
+    return errors.length > 0 ? failures(errors) : success(mergeAll(u, us));
+  }, codecs.length === 0 ? identity : function(a) {
+    return mergeAll(a, codecs.map(function(codec) {
+      return codec.encode(a);
+    }));
+  }, codecs);
+}
+var TupleType = (
+  /** @class */
+  (function(_super) {
+    __extends(TupleType2, _super);
+    function TupleType2(name, is2, validate, encode, types) {
+      var _this = _super.call(this, name, is2, validate, encode) || this;
+      _this.types = types;
+      _this._tag = "TupleType";
+      return _this;
+    }
+    return TupleType2;
+  })(Type)
+);
+function tuple(codecs, name) {
+  if (name === void 0) {
+    name = "[".concat(codecs.map(function(type2) {
+      return type2.name;
+    }).join(", "), "]");
+  }
+  var len = codecs.length;
+  return new TupleType(name, function(u) {
+    return UnknownArray.is(u) && u.length === len && codecs.every(function(type2, i2) {
+      return type2.is(u[i2]);
+    });
+  }, function(u, c) {
+    var e = UnknownArray.validate(u, c);
+    if (isLeft(e)) {
+      return e;
+    }
+    var us = e.right;
+    var as = us.length > len ? us.slice(0, len) : us;
+    var errors = [];
+    for (var i2 = 0; i2 < len; i2++) {
+      var a = us[i2];
+      var type_3 = codecs[i2];
+      var result = type_3.validate(a, appendContext(c, String(i2), type_3, a));
+      if (isLeft(result)) {
+        pushAll(errors, result.left);
+      } else {
+        var va = result.right;
+        if (va !== a) {
+          if (as === us) {
+            as = us.slice();
+          }
+          as[i2] = va;
+        }
+      }
+    }
+    return errors.length > 0 ? failures(errors) : success(as);
+  }, useIdentity(codecs) ? identity : function(a) {
+    return codecs.map(function(type2, i2) {
+      return type2.encode(a[i2]);
+    });
+  }, codecs);
+}
+(function(_super) {
+  __extends(ReadonlyType, _super);
+  function ReadonlyType(name, is2, validate, encode, type2) {
+    var _this = _super.call(this, name, is2, validate, encode) || this;
+    _this.type = type2;
+    _this._tag = "ReadonlyType";
+    return _this;
+  }
+  return ReadonlyType;
+})(Type);
+(function(_super) {
+  __extends(ReadonlyArrayType, _super);
+  function ReadonlyArrayType(name, is2, validate, encode, type2) {
+    var _this = _super.call(this, name, is2, validate, encode) || this;
+    _this.type = type2;
+    _this._tag = "ReadonlyArrayType";
+    return _this;
+  }
+  return ReadonlyArrayType;
+})(Type);
+(function(_super) {
+  __extends(ExactType, _super);
+  function ExactType(name, is2, validate, encode, type2) {
+    var _this = _super.call(this, name, is2, validate, encode) || this;
+    _this.type = type2;
+    _this._tag = "ExactType";
+    return _this;
+  }
+  return ExactType;
+})(Type);
+var FunctionType = (
+  /** @class */
+  (function(_super) {
+    __extends(FunctionType2, _super);
+    function FunctionType2() {
+      var _this = _super.call(
+        this,
+        "Function",
+        // tslint:disable-next-line:strict-type-predicates
+        function(u) {
+          return typeof u === "function";
+        },
+        function(u, c) {
+          return _this.is(u) ? success(u) : failure(u, c);
+        },
+        identity
+      ) || this;
+      _this._tag = "FunctionType";
+      return _this;
+    }
+    return FunctionType2;
+  })(Type)
+);
+new FunctionType();
+var NeverType = (
+  /** @class */
+  (function(_super) {
+    __extends(NeverType2, _super);
+    function NeverType2() {
+      var _this = _super.call(
+        this,
+        "never",
+        function(_) {
+          return false;
+        },
+        function(u, c) {
+          return failure(u, c);
+        },
+        /* istanbul ignore next */
+        function() {
+          throw new Error("cannot encode never");
+        }
+      ) || this;
+      _this._tag = "NeverType";
+      return _this;
+    }
+    return NeverType2;
+  })(Type)
+);
+new NeverType();
+var AnyType = (
+  /** @class */
+  (function(_super) {
+    __extends(AnyType2, _super);
+    function AnyType2() {
+      var _this = _super.call(this, "any", function(_) {
+        return true;
+      }, success, identity) || this;
+      _this._tag = "AnyType";
+      return _this;
+    }
+    return AnyType2;
+  })(Type)
+);
+new AnyType();
+function refinement(codec, predicate, name) {
+  if (name === void 0) {
+    name = "(".concat(codec.name, " | ").concat(getFunctionName(predicate), ")");
+  }
+  return new RefinementType(name, function(u) {
+    return codec.is(u) && predicate(u);
+  }, function(i2, c) {
+    var e = codec.validate(i2, c);
+    if (isLeft(e)) {
+      return e;
+    }
+    var a = e.right;
+    return predicate(a) ? success(a) : failure(a, c);
+  }, codec.encode, codec, predicate);
+}
+refinement(number$1, Number.isInteger, "Integer");
+var TaggedUnionType = (
+  /** @class */
+  (function(_super) {
+    __extends(TaggedUnionType2, _super);
+    function TaggedUnionType2(name, is2, validate, encode, codecs, tag) {
+      var _this = _super.call(this, name, is2, validate, encode, codecs) || this;
+      _this.tag = tag;
+      return _this;
+    }
+    return TaggedUnionType2;
+  })(UnionType)
+);
+var ObjectType$1 = (
+  /** @class */
+  (function(_super) {
+    __extends(ObjectType2, _super);
+    function ObjectType2() {
+      var _this = _super.call(this, "object", function(u) {
+        return u !== null && typeof u === "object";
+      }, function(u, c) {
+        return _this.is(u) ? success(u) : failure(u, c);
+      }, identity) || this;
+      _this._tag = "ObjectType";
+      return _this;
+    }
+    return ObjectType2;
+  })(Type)
+);
+new ObjectType$1();
+(function(_super) {
+  __extends(StrictType, _super);
+  function StrictType(name, is2, validate, encode, props) {
+    var _this = _super.call(this, name, is2, validate, encode) || this;
+    _this.props = props;
+    _this._tag = "StrictType";
+    return _this;
+  }
+  return StrictType;
+})(Type);
+var Either = {};
+var Applicative = {};
+var Apply = {};
+var _function = {};
+var hasRequired_function;
+function require_function() {
+  if (hasRequired_function) return _function;
+  hasRequired_function = 1;
+  (function(exports) {
+    var __spreadArray2 = _function && _function.__spreadArray || function(to, from2, pack) {
+      if (pack || arguments.length === 2) for (var i2 = 0, l = from2.length, ar; i2 < l; i2++) {
+        if (ar || !(i2 in from2)) {
+          if (!ar) ar = Array.prototype.slice.call(from2, 0, i2);
+          ar[i2] = from2[i2];
+        }
+      }
+      return to.concat(ar || Array.prototype.slice.call(from2));
+    };
+    Object.defineProperty(exports, "__esModule", { value: true });
+    exports.dual = exports.getEndomorphismMonoid = exports.not = exports.SK = exports.hole = exports.pipe = exports.untupled = exports.tupled = exports.absurd = exports.decrement = exports.increment = exports.tuple = exports.flow = exports.flip = exports.constVoid = exports.constUndefined = exports.constNull = exports.constFalse = exports.constTrue = exports.constant = exports.unsafeCoerce = exports.identity = exports.apply = exports.getRing = exports.getSemiring = exports.getMonoid = exports.getSemigroup = exports.getBooleanAlgebra = void 0;
+    var getBooleanAlgebra = function(B) {
+      return function() {
+        return {
+          meet: function(x, y) {
+            return function(a) {
+              return B.meet(x(a), y(a));
+            };
+          },
+          join: function(x, y) {
+            return function(a) {
+              return B.join(x(a), y(a));
+            };
+          },
+          zero: function() {
+            return B.zero;
+          },
+          one: function() {
+            return B.one;
+          },
+          implies: function(x, y) {
+            return function(a) {
+              return B.implies(x(a), y(a));
+            };
+          },
+          not: function(x) {
+            return function(a) {
+              return B.not(x(a));
+            };
+          }
+        };
+      };
+    };
+    exports.getBooleanAlgebra = getBooleanAlgebra;
+    var getSemigroup = function(S) {
+      return function() {
+        return {
+          concat: function(f, g) {
+            return function(a) {
+              return S.concat(f(a), g(a));
+            };
+          }
+        };
+      };
+    };
+    exports.getSemigroup = getSemigroup;
+    var getMonoid = function(M) {
+      var getSemigroupM = (0, exports.getSemigroup)(M);
+      return function() {
+        return {
+          concat: getSemigroupM().concat,
+          empty: function() {
+            return M.empty;
+          }
+        };
+      };
+    };
+    exports.getMonoid = getMonoid;
+    var getSemiring = function(S) {
+      return {
+        add: function(f, g) {
+          return function(x) {
+            return S.add(f(x), g(x));
+          };
+        },
+        zero: function() {
+          return S.zero;
+        },
+        mul: function(f, g) {
+          return function(x) {
+            return S.mul(f(x), g(x));
+          };
+        },
+        one: function() {
+          return S.one;
+        }
+      };
+    };
+    exports.getSemiring = getSemiring;
+    var getRing = function(R) {
+      var S = (0, exports.getSemiring)(R);
+      return {
+        add: S.add,
+        mul: S.mul,
+        one: S.one,
+        zero: S.zero,
+        sub: function(f, g) {
+          return function(x) {
+            return R.sub(f(x), g(x));
+          };
+        }
+      };
+    };
+    exports.getRing = getRing;
+    var apply = function(a) {
+      return function(f) {
+        return f(a);
+      };
+    };
+    exports.apply = apply;
+    function identity2(a) {
+      return a;
+    }
+    exports.identity = identity2;
+    exports.unsafeCoerce = identity2;
+    function constant(a) {
+      return function() {
+        return a;
+      };
+    }
+    exports.constant = constant;
+    exports.constTrue = constant(true);
+    exports.constFalse = constant(false);
+    exports.constNull = constant(null);
+    exports.constUndefined = constant(void 0);
+    exports.constVoid = exports.constUndefined;
+    function flip3(f) {
+      return function() {
+        var args = [];
+        for (var _i = 0; _i < arguments.length; _i++) {
+          args[_i] = arguments[_i];
+        }
+        if (args.length > 1) {
+          return f(args[1], args[0]);
+        }
+        return function(a) {
+          return f(a)(args[0]);
+        };
+      };
+    }
+    exports.flip = flip3;
+    function flow3(ab, bc, cd, de, ef, fg, gh, hi, ij) {
+      switch (arguments.length) {
+        case 1:
+          return ab;
+        case 2:
+          return function() {
+            return bc(ab.apply(this, arguments));
+          };
+        case 3:
+          return function() {
+            return cd(bc(ab.apply(this, arguments)));
+          };
+        case 4:
+          return function() {
+            return de(cd(bc(ab.apply(this, arguments))));
+          };
+        case 5:
+          return function() {
+            return ef(de(cd(bc(ab.apply(this, arguments)))));
+          };
+        case 6:
+          return function() {
+            return fg(ef(de(cd(bc(ab.apply(this, arguments))))));
+          };
+        case 7:
+          return function() {
+            return gh(fg(ef(de(cd(bc(ab.apply(this, arguments)))))));
+          };
+        case 8:
+          return function() {
+            return hi(gh(fg(ef(de(cd(bc(ab.apply(this, arguments))))))));
+          };
+        case 9:
+          return function() {
+            return ij(hi(gh(fg(ef(de(cd(bc(ab.apply(this, arguments)))))))));
+          };
+      }
+      return;
+    }
+    exports.flow = flow3;
+    function tuple2() {
+      var t = [];
+      for (var _i = 0; _i < arguments.length; _i++) {
+        t[_i] = arguments[_i];
+      }
+      return t;
+    }
+    exports.tuple = tuple2;
+    function increment(n) {
+      return n + 1;
+    }
+    exports.increment = increment;
+    function decrement(n) {
+      return n - 1;
+    }
+    exports.decrement = decrement;
+    function absurd(_) {
+      throw new Error("Called `absurd` function which should be uncallable");
+    }
+    exports.absurd = absurd;
+    function tupled(f) {
+      return function(a) {
+        return f.apply(void 0, a);
+      };
+    }
+    exports.tupled = tupled;
+    function untupled(f) {
+      return function() {
+        var a = [];
+        for (var _i = 0; _i < arguments.length; _i++) {
+          a[_i] = arguments[_i];
+        }
+        return f(a);
+      };
+    }
+    exports.untupled = untupled;
+    function pipe(a, ab, bc, cd, de, ef, fg, gh, hi) {
+      switch (arguments.length) {
+        case 1:
+          return a;
+        case 2:
+          return ab(a);
+        case 3:
+          return bc(ab(a));
+        case 4:
+          return cd(bc(ab(a)));
+        case 5:
+          return de(cd(bc(ab(a))));
+        case 6:
+          return ef(de(cd(bc(ab(a)))));
+        case 7:
+          return fg(ef(de(cd(bc(ab(a))))));
+        case 8:
+          return gh(fg(ef(de(cd(bc(ab(a)))))));
+        case 9:
+          return hi(gh(fg(ef(de(cd(bc(ab(a))))))));
+        default: {
+          var ret = arguments[0];
+          for (var i2 = 1; i2 < arguments.length; i2++) {
+            ret = arguments[i2](ret);
+          }
+          return ret;
+        }
+      }
+    }
+    exports.pipe = pipe;
+    exports.hole = absurd;
+    var SK = function(_, b) {
+      return b;
+    };
+    exports.SK = SK;
+    function not(predicate) {
+      return function(a) {
+        return !predicate(a);
+      };
+    }
+    exports.not = not;
+    var getEndomorphismMonoid = function() {
+      return {
+        concat: function(first, second) {
+          return flow3(first, second);
+        },
+        empty: identity2
+      };
+    };
+    exports.getEndomorphismMonoid = getEndomorphismMonoid;
+    var dual = function(arity, body) {
+      var isDataFirst = typeof arity === "number" ? function(args) {
+        return args.length >= arity;
+      } : arity;
+      return function() {
+        var args = Array.from(arguments);
+        if (isDataFirst(arguments)) {
+          return body.apply(this, args);
+        }
+        return function(self2) {
+          return body.apply(void 0, __spreadArray2([self2], args, false));
+        };
+      };
+    };
+    exports.dual = dual;
+  })(_function);
+  return _function;
+}
+var internal = {};
+var hasRequiredInternal;
+function requireInternal() {
+  if (hasRequiredInternal) return internal;
+  hasRequiredInternal = 1;
+  (function(exports) {
+    var __spreadArray2 = internal && internal.__spreadArray || function(to, from2, pack) {
+      if (pack || arguments.length === 2) for (var i2 = 0, l = from2.length, ar; i2 < l; i2++) {
+        if (ar || !(i2 in from2)) {
+          if (!ar) ar = Array.prototype.slice.call(from2, 0, i2);
+          ar[i2] = from2[i2];
+        }
+      }
+      return to.concat(ar || Array.prototype.slice.call(from2));
+    };
+    Object.defineProperty(exports, "__esModule", { value: true });
+    exports.flatMapReader = exports.flatMapTask = exports.flatMapIO = exports.flatMapEither = exports.flatMapOption = exports.flatMapNullable = exports.liftOption = exports.liftNullable = exports.fromReadonlyNonEmptyArray = exports.has = exports.emptyRecord = exports.emptyReadonlyArray = exports.tail = exports.head = exports.isNonEmpty = exports.singleton = exports.right = exports.left = exports.isRight = exports.isLeft = exports.some = exports.none = exports.isSome = exports.isNone = void 0;
+    var function_1 = /* @__PURE__ */ require_function();
+    var isNone = function(fa) {
+      return fa._tag === "None";
+    };
+    exports.isNone = isNone;
+    var isSome = function(fa) {
+      return fa._tag === "Some";
+    };
+    exports.isSome = isSome;
+    exports.none = { _tag: "None" };
+    var some = function(a) {
+      return { _tag: "Some", value: a };
+    };
+    exports.some = some;
+    var isLeft2 = function(ma) {
+      return ma._tag === "Left";
+    };
+    exports.isLeft = isLeft2;
+    var isRight2 = function(ma) {
+      return ma._tag === "Right";
+    };
+    exports.isRight = isRight2;
+    var left2 = function(e) {
+      return { _tag: "Left", left: e };
+    };
+    exports.left = left2;
+    var right2 = function(a) {
+      return { _tag: "Right", right: a };
+    };
+    exports.right = right2;
+    var singleton = function(a) {
+      return [a];
+    };
+    exports.singleton = singleton;
+    var isNonEmpty2 = function(as) {
+      return as.length > 0;
+    };
+    exports.isNonEmpty = isNonEmpty2;
+    var head = function(as) {
+      return as[0];
+    };
+    exports.head = head;
+    var tail = function(as) {
+      return as.slice(1);
+    };
+    exports.tail = tail;
+    exports.emptyReadonlyArray = [];
+    exports.emptyRecord = {};
+    exports.has = Object.prototype.hasOwnProperty;
+    var fromReadonlyNonEmptyArray = function(as) {
+      return __spreadArray2([as[0]], as.slice(1), true);
+    };
+    exports.fromReadonlyNonEmptyArray = fromReadonlyNonEmptyArray;
+    var liftNullable = function(F) {
+      return function(f, onNullable) {
+        return function() {
+          var a = [];
+          for (var _i = 0; _i < arguments.length; _i++) {
+            a[_i] = arguments[_i];
+          }
+          var o = f.apply(void 0, a);
+          return F.fromEither(o == null ? (0, exports.left)(onNullable.apply(void 0, a)) : (0, exports.right)(o));
+        };
+      };
+    };
+    exports.liftNullable = liftNullable;
+    var liftOption = function(F) {
+      return function(f, onNone) {
+        return function() {
+          var a = [];
+          for (var _i = 0; _i < arguments.length; _i++) {
+            a[_i] = arguments[_i];
+          }
+          var o = f.apply(void 0, a);
+          return F.fromEither((0, exports.isNone)(o) ? (0, exports.left)(onNone.apply(void 0, a)) : (0, exports.right)(o.value));
+        };
+      };
+    };
+    exports.liftOption = liftOption;
+    var flatMapNullable = function(F, M) {
+      return /* @__PURE__ */ (0, function_1.dual)(3, function(self2, f, onNullable) {
+        return M.flatMap(self2, (0, exports.liftNullable)(F)(f, onNullable));
+      });
+    };
+    exports.flatMapNullable = flatMapNullable;
+    var flatMapOption = function(F, M) {
+      return /* @__PURE__ */ (0, function_1.dual)(3, function(self2, f, onNone) {
+        return M.flatMap(self2, (0, exports.liftOption)(F)(f, onNone));
+      });
+    };
+    exports.flatMapOption = flatMapOption;
+    var flatMapEither = function(F, M) {
+      return /* @__PURE__ */ (0, function_1.dual)(2, function(self2, f) {
+        return M.flatMap(self2, function(a) {
+          return F.fromEither(f(a));
+        });
+      });
+    };
+    exports.flatMapEither = flatMapEither;
+    var flatMapIO = function(F, M) {
+      return /* @__PURE__ */ (0, function_1.dual)(2, function(self2, f) {
+        return M.flatMap(self2, function(a) {
+          return F.fromIO(f(a));
+        });
+      });
+    };
+    exports.flatMapIO = flatMapIO;
+    var flatMapTask = function(F, M) {
+      return /* @__PURE__ */ (0, function_1.dual)(2, function(self2, f) {
+        return M.flatMap(self2, function(a) {
+          return F.fromTask(f(a));
+        });
+      });
+    };
+    exports.flatMapTask = flatMapTask;
+    var flatMapReader = function(F, M) {
+      return /* @__PURE__ */ (0, function_1.dual)(2, function(self2, f) {
+        return M.flatMap(self2, function(a) {
+          return F.fromReader(f(a));
+        });
+      });
+    };
+    exports.flatMapReader = flatMapReader;
+  })(internal);
+  return internal;
+}
+var hasRequiredApply;
+function requireApply() {
+  if (hasRequiredApply) return Apply;
+  hasRequiredApply = 1;
+  var __createBinding = Apply && Apply.__createBinding || (Object.create ? (function(o, m, k, k2) {
+    if (k2 === void 0) k2 = k;
+    var desc = Object.getOwnPropertyDescriptor(m, k);
+    if (!desc || ("get" in desc ? !m.__esModule : desc.writable || desc.configurable)) {
+      desc = { enumerable: true, get: function() {
+        return m[k];
+      } };
+    }
+    Object.defineProperty(o, k2, desc);
+  }) : (function(o, m, k, k2) {
+    if (k2 === void 0) k2 = k;
+    o[k2] = m[k];
+  }));
+  var __setModuleDefault = Apply && Apply.__setModuleDefault || (Object.create ? (function(o, v) {
+    Object.defineProperty(o, "default", { enumerable: true, value: v });
+  }) : function(o, v) {
+    o["default"] = v;
+  });
+  var __importStar = Apply && Apply.__importStar || function(mod) {
+    if (mod && mod.__esModule) return mod;
+    var result = {};
+    if (mod != null) {
+      for (var k in mod) if (k !== "default" && Object.prototype.hasOwnProperty.call(mod, k)) __createBinding(result, mod, k);
+    }
+    __setModuleDefault(result, mod);
+    return result;
+  };
+  Object.defineProperty(Apply, "__esModule", { value: true });
+  Apply.sequenceS = Apply.sequenceT = Apply.getApplySemigroup = Apply.apS = Apply.apSecond = Apply.apFirst = Apply.ap = void 0;
+  var function_1 = /* @__PURE__ */ require_function();
+  var _ = __importStar(/* @__PURE__ */ requireInternal());
+  function ap(F, G) {
+    return function(fa) {
+      return function(fab) {
+        return F.ap(F.map(fab, function(gab) {
+          return function(ga) {
+            return G.ap(gab, ga);
+          };
+        }), fa);
+      };
+    };
+  }
+  Apply.ap = ap;
+  function apFirst(A) {
+    return function(second) {
+      return function(first) {
+        return A.ap(A.map(first, function(a) {
+          return function() {
+            return a;
+          };
+        }), second);
+      };
+    };
+  }
+  Apply.apFirst = apFirst;
+  function apSecond(A) {
+    return function(second) {
+      return function(first) {
+        return A.ap(A.map(first, function() {
+          return function(b) {
+            return b;
+          };
+        }), second);
+      };
+    };
+  }
+  Apply.apSecond = apSecond;
+  function apS(F) {
+    return function(name, fb) {
+      return function(fa) {
+        return F.ap(F.map(fa, function(a) {
+          return function(b) {
+            var _a2;
+            return Object.assign({}, a, (_a2 = {}, _a2[name] = b, _a2));
+          };
+        }), fb);
+      };
+    };
+  }
+  Apply.apS = apS;
+  function getApplySemigroup(F) {
+    return function(S) {
+      return {
+        concat: function(first, second) {
+          return F.ap(F.map(first, function(x) {
+            return function(y) {
+              return S.concat(x, y);
+            };
+          }), second);
+        }
+      };
+    };
+  }
+  Apply.getApplySemigroup = getApplySemigroup;
+  function curried(f, n, acc) {
+    return function(x) {
+      var combined = Array(acc.length + 1);
+      for (var i2 = 0; i2 < acc.length; i2++) {
+        combined[i2] = acc[i2];
+      }
+      combined[acc.length] = x;
+      return n === 0 ? f.apply(null, combined) : curried(f, n - 1, combined);
+    };
+  }
+  var tupleConstructors = {
+    1: function(a) {
+      return [a];
+    },
+    2: function(a) {
+      return function(b) {
+        return [a, b];
+      };
+    },
+    3: function(a) {
+      return function(b) {
+        return function(c) {
+          return [a, b, c];
+        };
+      };
+    },
+    4: function(a) {
+      return function(b) {
+        return function(c) {
+          return function(d) {
+            return [a, b, c, d];
+          };
+        };
+      };
+    },
+    5: function(a) {
+      return function(b) {
+        return function(c) {
+          return function(d) {
+            return function(e) {
+              return [a, b, c, d, e];
+            };
+          };
+        };
+      };
+    }
+  };
+  function getTupleConstructor(len) {
+    if (!_.has.call(tupleConstructors, len)) {
+      tupleConstructors[len] = curried(function_1.tuple, len - 1, []);
+    }
+    return tupleConstructors[len];
+  }
+  function sequenceT(F) {
+    return function() {
+      var args = [];
+      for (var _i = 0; _i < arguments.length; _i++) {
+        args[_i] = arguments[_i];
+      }
+      var len = args.length;
+      var f = getTupleConstructor(len);
+      var fas = F.map(args[0], f);
+      for (var i2 = 1; i2 < len; i2++) {
+        fas = F.ap(fas, args[i2]);
+      }
+      return fas;
+    };
+  }
+  Apply.sequenceT = sequenceT;
+  function getRecordConstructor(keys) {
+    var len = keys.length;
+    switch (len) {
+      case 1:
+        return function(a) {
+          var _a2;
+          return _a2 = {}, _a2[keys[0]] = a, _a2;
+        };
+      case 2:
+        return function(a) {
+          return function(b) {
+            var _a2;
+            return _a2 = {}, _a2[keys[0]] = a, _a2[keys[1]] = b, _a2;
+          };
+        };
+      case 3:
+        return function(a) {
+          return function(b) {
+            return function(c) {
+              var _a2;
+              return _a2 = {}, _a2[keys[0]] = a, _a2[keys[1]] = b, _a2[keys[2]] = c, _a2;
+            };
+          };
+        };
+      case 4:
+        return function(a) {
+          return function(b) {
+            return function(c) {
+              return function(d) {
+                var _a2;
+                return _a2 = {}, _a2[keys[0]] = a, _a2[keys[1]] = b, _a2[keys[2]] = c, _a2[keys[3]] = d, _a2;
+              };
+            };
+          };
+        };
+      case 5:
+        return function(a) {
+          return function(b) {
+            return function(c) {
+              return function(d) {
+                return function(e) {
+                  var _a2;
+                  return _a2 = {}, _a2[keys[0]] = a, _a2[keys[1]] = b, _a2[keys[2]] = c, _a2[keys[3]] = d, _a2[keys[4]] = e, _a2;
+                };
+              };
+            };
+          };
+        };
+      default:
+        return curried(function() {
+          var args = [];
+          for (var _i = 0; _i < arguments.length; _i++) {
+            args[_i] = arguments[_i];
+          }
+          var r = {};
+          for (var i2 = 0; i2 < len; i2++) {
+            r[keys[i2]] = args[i2];
+          }
+          return r;
+        }, len - 1, []);
+    }
+  }
+  function sequenceS(F) {
+    return function(r) {
+      var keys = Object.keys(r);
+      var len = keys.length;
+      var f = getRecordConstructor(keys);
+      var fr = F.map(r[keys[0]], f);
+      for (var i2 = 1; i2 < len; i2++) {
+        fr = F.ap(fr, r[keys[i2]]);
+      }
+      return fr;
+    };
+  }
+  Apply.sequenceS = sequenceS;
+  return Apply;
+}
+var Functor = {};
+var hasRequiredFunctor;
+function requireFunctor() {
+  if (hasRequiredFunctor) return Functor;
+  hasRequiredFunctor = 1;
+  Object.defineProperty(Functor, "__esModule", { value: true });
+  Functor.asUnit = Functor.as = Functor.getFunctorComposition = Functor.let = Functor.bindTo = Functor.flap = Functor.map = void 0;
+  var function_1 = /* @__PURE__ */ require_function();
+  function map2(F, G) {
+    return function(f) {
+      return function(fa) {
+        return F.map(fa, function(ga) {
+          return G.map(ga, f);
+        });
+      };
+    };
+  }
+  Functor.map = map2;
+  function flap(F) {
+    return function(a) {
+      return function(fab) {
+        return F.map(fab, function(f) {
+          return f(a);
+        });
+      };
+    };
+  }
+  Functor.flap = flap;
+  function bindTo(F) {
+    return function(name) {
+      return function(fa) {
+        return F.map(fa, function(a) {
+          var _a2;
+          return _a2 = {}, _a2[name] = a, _a2;
+        });
+      };
+    };
+  }
+  Functor.bindTo = bindTo;
+  function let_(F) {
+    return function(name, f) {
+      return function(fa) {
+        return F.map(fa, function(a) {
+          var _a2;
+          return Object.assign({}, a, (_a2 = {}, _a2[name] = f(a), _a2));
+        });
+      };
+    };
+  }
+  Functor.let = let_;
+  function getFunctorComposition(F, G) {
+    var _map = map2(F, G);
+    return {
+      map: function(fga, f) {
+        return (0, function_1.pipe)(fga, _map(f));
+      }
+    };
+  }
+  Functor.getFunctorComposition = getFunctorComposition;
+  function as(F) {
+    return function(self2, b) {
+      return F.map(self2, function() {
+        return b;
+      });
+    };
+  }
+  Functor.as = as;
+  function asUnit(F) {
+    var asM = as(F);
+    return function(self2) {
+      return asM(self2, void 0);
+    };
+  }
+  Functor.asUnit = asUnit;
+  return Functor;
+}
+var hasRequiredApplicative;
+function requireApplicative() {
+  if (hasRequiredApplicative) return Applicative;
+  hasRequiredApplicative = 1;
+  Object.defineProperty(Applicative, "__esModule", { value: true });
+  Applicative.getApplicativeComposition = Applicative.getApplicativeMonoid = void 0;
+  var Apply_1 = /* @__PURE__ */ requireApply();
+  var function_1 = /* @__PURE__ */ require_function();
+  var Functor_1 = /* @__PURE__ */ requireFunctor();
+  function getApplicativeMonoid(F) {
+    var f = (0, Apply_1.getApplySemigroup)(F);
+    return function(M) {
+      return {
+        concat: f(M).concat,
+        empty: F.of(M.empty)
+      };
+    };
+  }
+  Applicative.getApplicativeMonoid = getApplicativeMonoid;
+  function getApplicativeComposition(F, G) {
+    var map2 = (0, Functor_1.getFunctorComposition)(F, G).map;
+    var _ap = (0, Apply_1.ap)(F, G);
+    return {
+      map: map2,
+      of: function(a) {
+        return F.of(G.of(a));
+      },
+      ap: function(fgab, fga) {
+        return (0, function_1.pipe)(fgab, _ap(fga));
+      }
+    };
+  }
+  Applicative.getApplicativeComposition = getApplicativeComposition;
+  return Applicative;
+}
+var Chain = {};
+var hasRequiredChain;
+function requireChain() {
+  if (hasRequiredChain) return Chain;
+  hasRequiredChain = 1;
+  Object.defineProperty(Chain, "__esModule", { value: true });
+  Chain.bind = Chain.tap = Chain.chainFirst = void 0;
+  function chainFirst(M) {
+    var tapM = tap(M);
+    return function(f) {
+      return function(first) {
+        return tapM(first, f);
+      };
+    };
+  }
+  Chain.chainFirst = chainFirst;
+  function tap(M) {
+    return function(first, f) {
+      return M.chain(first, function(a) {
+        return M.map(f(a), function() {
+          return a;
+        });
+      });
+    };
+  }
+  Chain.tap = tap;
+  function bind(M) {
+    return function(name, f) {
+      return function(ma) {
+        return M.chain(ma, function(a) {
+          return M.map(f(a), function(b) {
+            var _a2;
+            return Object.assign({}, a, (_a2 = {}, _a2[name] = b, _a2));
+          });
+        });
+      };
+    };
+  }
+  Chain.bind = bind;
+  return Chain;
+}
+var ChainRec = {};
+var hasRequiredChainRec;
+function requireChainRec() {
+  if (hasRequiredChainRec) return ChainRec;
+  hasRequiredChainRec = 1;
+  Object.defineProperty(ChainRec, "__esModule", { value: true });
+  ChainRec.tailRec = void 0;
+  var tailRec = function(startWith, f) {
+    var ab = f(startWith);
+    while (ab._tag === "Left") {
+      ab = f(ab.left);
+    }
+    return ab.right;
+  };
+  ChainRec.tailRec = tailRec;
+  return ChainRec;
+}
+var FromEither = {};
+var hasRequiredFromEither;
+function requireFromEither() {
+  if (hasRequiredFromEither) return FromEither;
+  hasRequiredFromEither = 1;
+  var __createBinding = FromEither && FromEither.__createBinding || (Object.create ? (function(o, m, k, k2) {
+    if (k2 === void 0) k2 = k;
+    var desc = Object.getOwnPropertyDescriptor(m, k);
+    if (!desc || ("get" in desc ? !m.__esModule : desc.writable || desc.configurable)) {
+      desc = { enumerable: true, get: function() {
+        return m[k];
+      } };
+    }
+    Object.defineProperty(o, k2, desc);
+  }) : (function(o, m, k, k2) {
+    if (k2 === void 0) k2 = k;
+    o[k2] = m[k];
+  }));
+  var __setModuleDefault = FromEither && FromEither.__setModuleDefault || (Object.create ? (function(o, v) {
+    Object.defineProperty(o, "default", { enumerable: true, value: v });
+  }) : function(o, v) {
+    o["default"] = v;
+  });
+  var __importStar = FromEither && FromEither.__importStar || function(mod) {
+    if (mod && mod.__esModule) return mod;
+    var result = {};
+    if (mod != null) {
+      for (var k in mod) if (k !== "default" && Object.prototype.hasOwnProperty.call(mod, k)) __createBinding(result, mod, k);
+    }
+    __setModuleDefault(result, mod);
+    return result;
+  };
+  Object.defineProperty(FromEither, "__esModule", { value: true });
+  FromEither.tapEither = FromEither.filterOrElse = FromEither.chainFirstEitherK = FromEither.chainEitherK = FromEither.fromEitherK = FromEither.chainOptionK = FromEither.fromOptionK = FromEither.fromPredicate = FromEither.fromOption = void 0;
+  var Chain_1 = /* @__PURE__ */ requireChain();
+  var function_1 = /* @__PURE__ */ require_function();
+  var _ = __importStar(/* @__PURE__ */ requireInternal());
+  function fromOption(F) {
+    return function(onNone) {
+      return function(ma) {
+        return F.fromEither(_.isNone(ma) ? _.left(onNone()) : _.right(ma.value));
+      };
+    };
+  }
+  FromEither.fromOption = fromOption;
+  function fromPredicate(F) {
+    return function(predicate, onFalse) {
+      return function(a) {
+        return F.fromEither(predicate(a) ? _.right(a) : _.left(onFalse(a)));
+      };
+    };
+  }
+  FromEither.fromPredicate = fromPredicate;
+  function fromOptionK(F) {
+    var fromOptionF = fromOption(F);
+    return function(onNone) {
+      var from2 = fromOptionF(onNone);
+      return function(f) {
+        return (0, function_1.flow)(f, from2);
+      };
+    };
+  }
+  FromEither.fromOptionK = fromOptionK;
+  function chainOptionK(F, M) {
+    var fromOptionKF = fromOptionK(F);
+    return function(onNone) {
+      var from2 = fromOptionKF(onNone);
+      return function(f) {
+        return function(ma) {
+          return M.chain(ma, from2(f));
+        };
+      };
+    };
+  }
+  FromEither.chainOptionK = chainOptionK;
+  function fromEitherK(F) {
+    return function(f) {
+      return (0, function_1.flow)(f, F.fromEither);
+    };
+  }
+  FromEither.fromEitherK = fromEitherK;
+  function chainEitherK(F, M) {
+    var fromEitherKF = fromEitherK(F);
+    return function(f) {
+      return function(ma) {
+        return M.chain(ma, fromEitherKF(f));
+      };
+    };
+  }
+  FromEither.chainEitherK = chainEitherK;
+  function chainFirstEitherK(F, M) {
+    var tapEitherM = tapEither(F, M);
+    return function(f) {
+      return function(ma) {
+        return tapEitherM(ma, f);
+      };
+    };
+  }
+  FromEither.chainFirstEitherK = chainFirstEitherK;
+  function filterOrElse(F, M) {
+    return function(predicate, onFalse) {
+      return function(ma) {
+        return M.chain(ma, function(a) {
+          return F.fromEither(predicate(a) ? _.right(a) : _.left(onFalse(a)));
+        });
+      };
+    };
+  }
+  FromEither.filterOrElse = filterOrElse;
+  function tapEither(F, M) {
+    var fromEither = fromEitherK(F);
+    var tapM = (0, Chain_1.tap)(M);
+    return function(self2, f) {
+      return tapM(self2, fromEither(f));
+    };
+  }
+  FromEither.tapEither = tapEither;
+  return FromEither;
+}
+var Separated = {};
+var hasRequiredSeparated;
+function requireSeparated() {
+  if (hasRequiredSeparated) return Separated;
+  hasRequiredSeparated = 1;
+  (function(exports) {
+    Object.defineProperty(exports, "__esModule", { value: true });
+    exports.right = exports.left = exports.flap = exports.Functor = exports.Bifunctor = exports.URI = exports.bimap = exports.mapLeft = exports.map = exports.separated = void 0;
+    var function_1 = /* @__PURE__ */ require_function();
+    var Functor_1 = /* @__PURE__ */ requireFunctor();
+    var separated = function(left3, right3) {
+      return { left: left3, right: right3 };
+    };
+    exports.separated = separated;
+    var _map = function(fa, f) {
+      return (0, function_1.pipe)(fa, (0, exports.map)(f));
+    };
+    var _mapLeft = function(fa, f) {
+      return (0, function_1.pipe)(fa, (0, exports.mapLeft)(f));
+    };
+    var _bimap = function(fa, g, f) {
+      return (0, function_1.pipe)(fa, (0, exports.bimap)(g, f));
+    };
+    var map2 = function(f) {
+      return function(fa) {
+        return (0, exports.separated)((0, exports.left)(fa), f((0, exports.right)(fa)));
+      };
+    };
+    exports.map = map2;
+    var mapLeft = function(f) {
+      return function(fa) {
+        return (0, exports.separated)(f((0, exports.left)(fa)), (0, exports.right)(fa));
+      };
+    };
+    exports.mapLeft = mapLeft;
+    var bimap = function(f, g) {
+      return function(fa) {
+        return (0, exports.separated)(f((0, exports.left)(fa)), g((0, exports.right)(fa)));
+      };
+    };
+    exports.bimap = bimap;
+    exports.URI = "Separated";
+    exports.Bifunctor = {
+      URI: exports.URI,
+      mapLeft: _mapLeft,
+      bimap: _bimap
+    };
+    exports.Functor = {
+      URI: exports.URI,
+      map: _map
+    };
+    exports.flap = (0, Functor_1.flap)(exports.Functor);
+    var left2 = function(s) {
+      return s.left;
+    };
+    exports.left = left2;
+    var right2 = function(s) {
+      return s.right;
+    };
+    exports.right = right2;
+  })(Separated);
+  return Separated;
+}
+var Witherable = {};
+var hasRequiredWitherable;
+function requireWitherable() {
+  if (hasRequiredWitherable) return Witherable;
+  hasRequiredWitherable = 1;
+  var __createBinding = Witherable && Witherable.__createBinding || (Object.create ? (function(o, m, k, k2) {
+    if (k2 === void 0) k2 = k;
+    var desc = Object.getOwnPropertyDescriptor(m, k);
+    if (!desc || ("get" in desc ? !m.__esModule : desc.writable || desc.configurable)) {
+      desc = { enumerable: true, get: function() {
+        return m[k];
+      } };
+    }
+    Object.defineProperty(o, k2, desc);
+  }) : (function(o, m, k, k2) {
+    if (k2 === void 0) k2 = k;
+    o[k2] = m[k];
+  }));
+  var __setModuleDefault = Witherable && Witherable.__setModuleDefault || (Object.create ? (function(o, v) {
+    Object.defineProperty(o, "default", { enumerable: true, value: v });
+  }) : function(o, v) {
+    o["default"] = v;
+  });
+  var __importStar = Witherable && Witherable.__importStar || function(mod) {
+    if (mod && mod.__esModule) return mod;
+    var result = {};
+    if (mod != null) {
+      for (var k in mod) if (k !== "default" && Object.prototype.hasOwnProperty.call(mod, k)) __createBinding(result, mod, k);
+    }
+    __setModuleDefault(result, mod);
+    return result;
+  };
+  Object.defineProperty(Witherable, "__esModule", { value: true });
+  Witherable.filterE = Witherable.witherDefault = Witherable.wiltDefault = void 0;
+  var _ = __importStar(/* @__PURE__ */ requireInternal());
+  function wiltDefault(T, C) {
+    return function(F) {
+      var traverseF = T.traverse(F);
+      return function(wa, f) {
+        return F.map(traverseF(wa, f), C.separate);
+      };
+    };
+  }
+  Witherable.wiltDefault = wiltDefault;
+  function witherDefault(T, C) {
+    return function(F) {
+      var traverseF = T.traverse(F);
+      return function(wa, f) {
+        return F.map(traverseF(wa, f), C.compact);
+      };
+    };
+  }
+  Witherable.witherDefault = witherDefault;
+  function filterE(W) {
+    return function(F) {
+      var witherF = W.wither(F);
+      return function(predicate) {
+        return function(ga) {
+          return witherF(ga, function(a) {
+            return F.map(predicate(a), function(b) {
+              return b ? _.some(a) : _.none;
+            });
+          });
+        };
+      };
+    };
+  }
+  Witherable.filterE = filterE;
+  return Witherable;
+}
+var hasRequiredEither;
+function requireEither() {
+  if (hasRequiredEither) return Either;
+  hasRequiredEither = 1;
+  (function(exports) {
+    var __createBinding = Either && Either.__createBinding || (Object.create ? (function(o, m, k, k2) {
+      if (k2 === void 0) k2 = k;
+      var desc = Object.getOwnPropertyDescriptor(m, k);
+      if (!desc || ("get" in desc ? !m.__esModule : desc.writable || desc.configurable)) {
+        desc = { enumerable: true, get: function() {
+          return m[k];
+        } };
+      }
+      Object.defineProperty(o, k2, desc);
+    }) : (function(o, m, k, k2) {
+      if (k2 === void 0) k2 = k;
+      o[k2] = m[k];
+    }));
+    var __setModuleDefault = Either && Either.__setModuleDefault || (Object.create ? (function(o, v) {
+      Object.defineProperty(o, "default", { enumerable: true, value: v });
+    }) : function(o, v) {
+      o["default"] = v;
+    });
+    var __importStar = Either && Either.__importStar || function(mod) {
+      if (mod && mod.__esModule) return mod;
+      var result = {};
+      if (mod != null) {
+        for (var k in mod) if (k !== "default" && Object.prototype.hasOwnProperty.call(mod, k)) __createBinding(result, mod, k);
+      }
+      __setModuleDefault(result, mod);
+      return result;
+    };
+    Object.defineProperty(exports, "__esModule", { value: true });
+    exports.match = exports.foldW = exports.matchW = exports.isRight = exports.isLeft = exports.fromOption = exports.fromPredicate = exports.FromEither = exports.MonadThrow = exports.throwError = exports.ChainRec = exports.Extend = exports.extend = exports.Alt = exports.alt = exports.altW = exports.Bifunctor = exports.mapLeft = exports.bimap = exports.Traversable = exports.sequence = exports.traverse = exports.Foldable = exports.reduceRight = exports.foldMap = exports.reduce = exports.Monad = exports.Chain = exports.Applicative = exports.Apply = exports.ap = exports.apW = exports.Pointed = exports.of = exports.asUnit = exports.as = exports.Functor = exports.map = exports.getAltValidation = exports.getApplicativeValidation = exports.getWitherable = exports.getFilterable = exports.getCompactable = exports.getSemigroup = exports.getEq = exports.getShow = exports.URI = exports.flatMap = exports.right = exports.left = void 0;
+    exports.chainFirstW = exports.chainFirst = exports.chain = exports.chainW = exports.sequenceArray = exports.traverseArray = exports.traverseArrayWithIndex = exports.traverseReadonlyArrayWithIndex = exports.traverseReadonlyNonEmptyArrayWithIndex = exports.ApT = exports.apSW = exports.apS = exports.bindW = exports.bind = exports.let = exports.bindTo = exports.Do = exports.exists = exports.elem = exports.toError = exports.toUnion = exports.chainNullableK = exports.fromNullableK = exports.tryCatchK = exports.tryCatch = exports.fromNullable = exports.orElse = exports.orElseW = exports.swap = exports.filterOrElseW = exports.filterOrElse = exports.flatMapOption = exports.flatMapNullable = exports.liftOption = exports.liftNullable = exports.chainOptionKW = exports.chainOptionK = exports.fromOptionK = exports.duplicate = exports.flatten = exports.flattenW = exports.tap = exports.apSecondW = exports.apSecond = exports.apFirstW = exports.apFirst = exports.flap = exports.getOrElse = exports.getOrElseW = exports.fold = void 0;
+    exports.getValidation = exports.getValidationMonoid = exports.getValidationSemigroup = exports.getApplyMonoid = exports.getApplySemigroup = exports.either = exports.stringifyJSON = exports.parseJSON = void 0;
+    var Applicative_1 = /* @__PURE__ */ requireApplicative();
+    var Apply_1 = /* @__PURE__ */ requireApply();
+    var chainable = __importStar(/* @__PURE__ */ requireChain());
+    var ChainRec_1 = /* @__PURE__ */ requireChainRec();
+    var FromEither_1 = /* @__PURE__ */ requireFromEither();
+    var function_1 = /* @__PURE__ */ require_function();
+    var Functor_1 = /* @__PURE__ */ requireFunctor();
+    var _ = __importStar(/* @__PURE__ */ requireInternal());
+    var Separated_1 = /* @__PURE__ */ requireSeparated();
+    var Witherable_1 = /* @__PURE__ */ requireWitherable();
+    exports.left = _.left;
+    exports.right = _.right;
+    exports.flatMap = (0, function_1.dual)(2, function(ma, f) {
+      return (0, exports.isLeft)(ma) ? ma : f(ma.right);
+    });
+    var _map = function(fa, f) {
+      return (0, function_1.pipe)(fa, (0, exports.map)(f));
+    };
+    var _ap = function(fab, fa) {
+      return (0, function_1.pipe)(fab, (0, exports.ap)(fa));
+    };
+    var _reduce = function(fa, b, f) {
+      return (0, function_1.pipe)(fa, (0, exports.reduce)(b, f));
+    };
+    var _foldMap = function(M) {
+      return function(fa, f) {
+        var foldMapM = (0, exports.foldMap)(M);
+        return (0, function_1.pipe)(fa, foldMapM(f));
+      };
+    };
+    var _reduceRight = function(fa, b, f) {
+      return (0, function_1.pipe)(fa, (0, exports.reduceRight)(b, f));
+    };
+    var _traverse = function(F) {
+      var traverseF = (0, exports.traverse)(F);
+      return function(ta, f) {
+        return (0, function_1.pipe)(ta, traverseF(f));
+      };
+    };
+    var _bimap = function(fa, f, g) {
+      return (0, function_1.pipe)(fa, (0, exports.bimap)(f, g));
+    };
+    var _mapLeft = function(fa, f) {
+      return (0, function_1.pipe)(fa, (0, exports.mapLeft)(f));
+    };
+    var _alt = function(fa, that) {
+      return (0, function_1.pipe)(fa, (0, exports.alt)(that));
+    };
+    var _extend = function(wa, f) {
+      return (0, function_1.pipe)(wa, (0, exports.extend)(f));
+    };
+    var _chainRec = function(a, f) {
+      return (0, ChainRec_1.tailRec)(f(a), function(e) {
+        return (0, exports.isLeft)(e) ? (0, exports.right)((0, exports.left)(e.left)) : (0, exports.isLeft)(e.right) ? (0, exports.left)(f(e.right.left)) : (0, exports.right)((0, exports.right)(e.right.right));
+      });
+    };
+    exports.URI = "Either";
+    var getShow = function(SE, SA) {
+      return {
+        show: function(ma) {
+          return (0, exports.isLeft)(ma) ? "left(".concat(SE.show(ma.left), ")") : "right(".concat(SA.show(ma.right), ")");
+        }
+      };
+    };
+    exports.getShow = getShow;
+    var getEq = function(EL, EA) {
+      return {
+        equals: function(x, y) {
+          return x === y || ((0, exports.isLeft)(x) ? (0, exports.isLeft)(y) && EL.equals(x.left, y.left) : (0, exports.isRight)(y) && EA.equals(x.right, y.right));
+        }
+      };
+    };
+    exports.getEq = getEq;
+    var getSemigroup = function(S) {
+      return {
+        concat: function(x, y) {
+          return (0, exports.isLeft)(y) ? x : (0, exports.isLeft)(x) ? y : (0, exports.right)(S.concat(x.right, y.right));
+        }
+      };
+    };
+    exports.getSemigroup = getSemigroup;
+    var getCompactable = function(M) {
+      var empty2 = (0, exports.left)(M.empty);
+      return {
+        URI: exports.URI,
+        _E: void 0,
+        compact: function(ma) {
+          return (0, exports.isLeft)(ma) ? ma : ma.right._tag === "None" ? empty2 : (0, exports.right)(ma.right.value);
+        },
+        separate: function(ma) {
+          return (0, exports.isLeft)(ma) ? (0, Separated_1.separated)(ma, ma) : (0, exports.isLeft)(ma.right) ? (0, Separated_1.separated)((0, exports.right)(ma.right.left), empty2) : (0, Separated_1.separated)(empty2, (0, exports.right)(ma.right.right));
+        }
+      };
+    };
+    exports.getCompactable = getCompactable;
+    var getFilterable = function(M) {
+      var empty2 = (0, exports.left)(M.empty);
+      var _a2 = (0, exports.getCompactable)(M), compact = _a2.compact, separate = _a2.separate;
+      var filter = function(ma, predicate) {
+        return (0, exports.isLeft)(ma) ? ma : predicate(ma.right) ? ma : empty2;
+      };
+      var partition = function(ma, p) {
+        return (0, exports.isLeft)(ma) ? (0, Separated_1.separated)(ma, ma) : p(ma.right) ? (0, Separated_1.separated)(empty2, (0, exports.right)(ma.right)) : (0, Separated_1.separated)((0, exports.right)(ma.right), empty2);
+      };
+      return {
+        URI: exports.URI,
+        _E: void 0,
+        map: _map,
+        compact,
+        separate,
+        filter,
+        filterMap: function(ma, f) {
+          if ((0, exports.isLeft)(ma)) {
+            return ma;
+          }
+          var ob = f(ma.right);
+          return ob._tag === "None" ? empty2 : (0, exports.right)(ob.value);
+        },
+        partition,
+        partitionMap: function(ma, f) {
+          if ((0, exports.isLeft)(ma)) {
+            return (0, Separated_1.separated)(ma, ma);
+          }
+          var e = f(ma.right);
+          return (0, exports.isLeft)(e) ? (0, Separated_1.separated)((0, exports.right)(e.left), empty2) : (0, Separated_1.separated)(empty2, (0, exports.right)(e.right));
+        }
+      };
+    };
+    exports.getFilterable = getFilterable;
+    var getWitherable = function(M) {
+      var F_ = (0, exports.getFilterable)(M);
+      var C = (0, exports.getCompactable)(M);
+      return {
+        URI: exports.URI,
+        _E: void 0,
+        map: _map,
+        compact: F_.compact,
+        separate: F_.separate,
+        filter: F_.filter,
+        filterMap: F_.filterMap,
+        partition: F_.partition,
+        partitionMap: F_.partitionMap,
+        traverse: _traverse,
+        sequence: exports.sequence,
+        reduce: _reduce,
+        foldMap: _foldMap,
+        reduceRight: _reduceRight,
+        wither: (0, Witherable_1.witherDefault)(exports.Traversable, C),
+        wilt: (0, Witherable_1.wiltDefault)(exports.Traversable, C)
+      };
+    };
+    exports.getWitherable = getWitherable;
+    var getApplicativeValidation = function(SE) {
+      return {
+        URI: exports.URI,
+        _E: void 0,
+        map: _map,
+        ap: function(fab, fa) {
+          return (0, exports.isLeft)(fab) ? (0, exports.isLeft)(fa) ? (0, exports.left)(SE.concat(fab.left, fa.left)) : fab : (0, exports.isLeft)(fa) ? fa : (0, exports.right)(fab.right(fa.right));
+        },
+        of: exports.of
+      };
+    };
+    exports.getApplicativeValidation = getApplicativeValidation;
+    var getAltValidation = function(SE) {
+      return {
+        URI: exports.URI,
+        _E: void 0,
+        map: _map,
+        alt: function(me, that) {
+          if ((0, exports.isRight)(me)) {
+            return me;
+          }
+          var ea = that();
+          return (0, exports.isLeft)(ea) ? (0, exports.left)(SE.concat(me.left, ea.left)) : ea;
+        }
+      };
+    };
+    exports.getAltValidation = getAltValidation;
+    var map2 = function(f) {
+      return function(fa) {
+        return (0, exports.isLeft)(fa) ? fa : (0, exports.right)(f(fa.right));
+      };
+    };
+    exports.map = map2;
+    exports.Functor = {
+      URI: exports.URI,
+      map: _map
+    };
+    exports.as = (0, function_1.dual)(2, (0, Functor_1.as)(exports.Functor));
+    exports.asUnit = (0, Functor_1.asUnit)(exports.Functor);
+    exports.of = exports.right;
+    exports.Pointed = {
+      URI: exports.URI,
+      of: exports.of
+    };
+    var apW = function(fa) {
+      return function(fab) {
+        return (0, exports.isLeft)(fab) ? fab : (0, exports.isLeft)(fa) ? fa : (0, exports.right)(fab.right(fa.right));
+      };
+    };
+    exports.apW = apW;
+    exports.ap = exports.apW;
+    exports.Apply = {
+      URI: exports.URI,
+      map: _map,
+      ap: _ap
+    };
+    exports.Applicative = {
+      URI: exports.URI,
+      map: _map,
+      ap: _ap,
+      of: exports.of
+    };
+    exports.Chain = {
+      URI: exports.URI,
+      map: _map,
+      ap: _ap,
+      chain: exports.flatMap
+    };
+    exports.Monad = {
+      URI: exports.URI,
+      map: _map,
+      ap: _ap,
+      of: exports.of,
+      chain: exports.flatMap
+    };
+    var reduce = function(b, f) {
+      return function(fa) {
+        return (0, exports.isLeft)(fa) ? b : f(b, fa.right);
+      };
+    };
+    exports.reduce = reduce;
+    var foldMap = function(M) {
+      return function(f) {
+        return function(fa) {
+          return (0, exports.isLeft)(fa) ? M.empty : f(fa.right);
+        };
+      };
+    };
+    exports.foldMap = foldMap;
+    var reduceRight = function(b, f) {
+      return function(fa) {
+        return (0, exports.isLeft)(fa) ? b : f(fa.right, b);
+      };
+    };
+    exports.reduceRight = reduceRight;
+    exports.Foldable = {
+      URI: exports.URI,
+      reduce: _reduce,
+      foldMap: _foldMap,
+      reduceRight: _reduceRight
+    };
+    var traverse = function(F) {
+      return function(f) {
+        return function(ta) {
+          return (0, exports.isLeft)(ta) ? F.of((0, exports.left)(ta.left)) : F.map(f(ta.right), exports.right);
+        };
+      };
+    };
+    exports.traverse = traverse;
+    var sequence = function(F) {
+      return function(ma) {
+        return (0, exports.isLeft)(ma) ? F.of((0, exports.left)(ma.left)) : F.map(ma.right, exports.right);
+      };
+    };
+    exports.sequence = sequence;
+    exports.Traversable = {
+      URI: exports.URI,
+      map: _map,
+      reduce: _reduce,
+      foldMap: _foldMap,
+      reduceRight: _reduceRight,
+      traverse: _traverse,
+      sequence: exports.sequence
+    };
+    var bimap = function(f, g) {
+      return function(fa) {
+        return (0, exports.isLeft)(fa) ? (0, exports.left)(f(fa.left)) : (0, exports.right)(g(fa.right));
+      };
+    };
+    exports.bimap = bimap;
+    var mapLeft = function(f) {
+      return function(fa) {
+        return (0, exports.isLeft)(fa) ? (0, exports.left)(f(fa.left)) : fa;
+      };
+    };
+    exports.mapLeft = mapLeft;
+    exports.Bifunctor = {
+      URI: exports.URI,
+      bimap: _bimap,
+      mapLeft: _mapLeft
+    };
+    var altW = function(that) {
+      return function(fa) {
+        return (0, exports.isLeft)(fa) ? that() : fa;
+      };
+    };
+    exports.altW = altW;
+    exports.alt = exports.altW;
+    exports.Alt = {
+      URI: exports.URI,
+      map: _map,
+      alt: _alt
+    };
+    var extend = function(f) {
+      return function(wa) {
+        return (0, exports.isLeft)(wa) ? wa : (0, exports.right)(f(wa));
+      };
+    };
+    exports.extend = extend;
+    exports.Extend = {
+      URI: exports.URI,
+      map: _map,
+      extend: _extend
+    };
+    exports.ChainRec = {
+      URI: exports.URI,
+      map: _map,
+      ap: _ap,
+      chain: exports.flatMap,
+      chainRec: _chainRec
+    };
+    exports.throwError = exports.left;
+    exports.MonadThrow = {
+      URI: exports.URI,
+      map: _map,
+      ap: _ap,
+      of: exports.of,
+      chain: exports.flatMap,
+      throwError: exports.throwError
+    };
+    exports.FromEither = {
+      URI: exports.URI,
+      fromEither: function_1.identity
+    };
+    exports.fromPredicate = (0, FromEither_1.fromPredicate)(exports.FromEither);
+    exports.fromOption = /* @__PURE__ */ (0, FromEither_1.fromOption)(exports.FromEither);
+    exports.isLeft = _.isLeft;
+    exports.isRight = _.isRight;
+    var matchW = function(onLeft, onRight) {
+      return function(ma) {
+        return (0, exports.isLeft)(ma) ? onLeft(ma.left) : onRight(ma.right);
+      };
+    };
+    exports.matchW = matchW;
+    exports.foldW = exports.matchW;
+    exports.match = exports.matchW;
+    exports.fold = exports.match;
+    var getOrElseW = function(onLeft) {
+      return function(ma) {
+        return (0, exports.isLeft)(ma) ? onLeft(ma.left) : ma.right;
+      };
+    };
+    exports.getOrElseW = getOrElseW;
+    exports.getOrElse = exports.getOrElseW;
+    exports.flap = (0, Functor_1.flap)(exports.Functor);
+    exports.apFirst = (0, Apply_1.apFirst)(exports.Apply);
+    exports.apFirstW = exports.apFirst;
+    exports.apSecond = (0, Apply_1.apSecond)(exports.Apply);
+    exports.apSecondW = exports.apSecond;
+    exports.tap = (0, function_1.dual)(2, chainable.tap(exports.Chain));
+    exports.flattenW = /* @__PURE__ */ (0, exports.flatMap)(function_1.identity);
+    exports.flatten = exports.flattenW;
+    exports.duplicate = (0, exports.extend)(function_1.identity);
+    exports.fromOptionK = /* @__PURE__ */ (0, FromEither_1.fromOptionK)(exports.FromEither);
+    exports.chainOptionK = (0, FromEither_1.chainOptionK)(exports.FromEither, exports.Chain);
+    exports.chainOptionKW = exports.chainOptionK;
+    var _FromEither = {
+      fromEither: exports.FromEither.fromEither
+    };
+    exports.liftNullable = _.liftNullable(_FromEither);
+    exports.liftOption = _.liftOption(_FromEither);
+    var _FlatMap = {
+      flatMap: exports.flatMap
+    };
+    exports.flatMapNullable = _.flatMapNullable(_FromEither, _FlatMap);
+    exports.flatMapOption = _.flatMapOption(_FromEither, _FlatMap);
+    exports.filterOrElse = (0, FromEither_1.filterOrElse)(exports.FromEither, exports.Chain);
+    exports.filterOrElseW = exports.filterOrElse;
+    var swap = function(ma) {
+      return (0, exports.isLeft)(ma) ? (0, exports.right)(ma.left) : (0, exports.left)(ma.right);
+    };
+    exports.swap = swap;
+    var orElseW = function(onLeft) {
+      return function(ma) {
+        return (0, exports.isLeft)(ma) ? onLeft(ma.left) : ma;
+      };
+    };
+    exports.orElseW = orElseW;
+    exports.orElse = exports.orElseW;
+    var fromNullable = function(e) {
+      return function(a) {
+        return a == null ? (0, exports.left)(e) : (0, exports.right)(a);
+      };
+    };
+    exports.fromNullable = fromNullable;
+    var tryCatch = function(f, onThrow) {
+      try {
+        return (0, exports.right)(f());
+      } catch (e) {
+        return (0, exports.left)(onThrow(e));
+      }
+    };
+    exports.tryCatch = tryCatch;
+    var tryCatchK = function(f, onThrow) {
+      return function() {
+        var a = [];
+        for (var _i = 0; _i < arguments.length; _i++) {
+          a[_i] = arguments[_i];
+        }
+        return (0, exports.tryCatch)(function() {
+          return f.apply(void 0, a);
+        }, onThrow);
+      };
+    };
+    exports.tryCatchK = tryCatchK;
+    var fromNullableK = function(e) {
+      var from2 = (0, exports.fromNullable)(e);
+      return function(f) {
+        return (0, function_1.flow)(f, from2);
+      };
+    };
+    exports.fromNullableK = fromNullableK;
+    var chainNullableK = function(e) {
+      var from2 = (0, exports.fromNullableK)(e);
+      return function(f) {
+        return (0, exports.flatMap)(from2(f));
+      };
+    };
+    exports.chainNullableK = chainNullableK;
+    exports.toUnion = (0, exports.foldW)(function_1.identity, function_1.identity);
+    function toError(e) {
+      return e instanceof Error ? e : new Error(String(e));
+    }
+    exports.toError = toError;
+    function elem(E) {
+      return function(a, ma) {
+        if (ma === void 0) {
+          var elemE_1 = elem(E);
+          return function(ma2) {
+            return elemE_1(a, ma2);
+          };
+        }
+        return (0, exports.isLeft)(ma) ? false : E.equals(a, ma.right);
+      };
+    }
+    exports.elem = elem;
+    var exists = function(predicate) {
+      return function(ma) {
+        return (0, exports.isLeft)(ma) ? false : predicate(ma.right);
+      };
+    };
+    exports.exists = exists;
+    exports.Do = (0, exports.of)(_.emptyRecord);
+    exports.bindTo = (0, Functor_1.bindTo)(exports.Functor);
+    var let_ = /* @__PURE__ */ (0, Functor_1.let)(exports.Functor);
+    exports.let = let_;
+    exports.bind = chainable.bind(exports.Chain);
+    exports.bindW = exports.bind;
+    exports.apS = (0, Apply_1.apS)(exports.Apply);
+    exports.apSW = exports.apS;
+    exports.ApT = (0, exports.of)(_.emptyReadonlyArray);
+    var traverseReadonlyNonEmptyArrayWithIndex = function(f) {
+      return function(as) {
+        var e = f(0, _.head(as));
+        if ((0, exports.isLeft)(e)) {
+          return e;
+        }
+        var out = [e.right];
+        for (var i2 = 1; i2 < as.length; i2++) {
+          var e_1 = f(i2, as[i2]);
+          if ((0, exports.isLeft)(e_1)) {
+            return e_1;
+          }
+          out.push(e_1.right);
+        }
+        return (0, exports.right)(out);
+      };
+    };
+    exports.traverseReadonlyNonEmptyArrayWithIndex = traverseReadonlyNonEmptyArrayWithIndex;
+    var traverseReadonlyArrayWithIndex = function(f) {
+      var g = (0, exports.traverseReadonlyNonEmptyArrayWithIndex)(f);
+      return function(as) {
+        return _.isNonEmpty(as) ? g(as) : exports.ApT;
+      };
+    };
+    exports.traverseReadonlyArrayWithIndex = traverseReadonlyArrayWithIndex;
+    exports.traverseArrayWithIndex = exports.traverseReadonlyArrayWithIndex;
+    var traverseArray = function(f) {
+      return (0, exports.traverseReadonlyArrayWithIndex)(function(_2, a) {
+        return f(a);
+      });
+    };
+    exports.traverseArray = traverseArray;
+    exports.sequenceArray = /* @__PURE__ */ (0, exports.traverseArray)(function_1.identity);
+    exports.chainW = exports.flatMap;
+    exports.chain = exports.flatMap;
+    exports.chainFirst = exports.tap;
+    exports.chainFirstW = exports.tap;
+    function parseJSON(s, onError) {
+      return (0, exports.tryCatch)(function() {
+        return JSON.parse(s);
+      }, onError);
+    }
+    exports.parseJSON = parseJSON;
+    var stringifyJSON = function(u, onError) {
+      return (0, exports.tryCatch)(function() {
+        var s = JSON.stringify(u);
+        if (typeof s !== "string") {
+          throw new Error("Converting unsupported structure to JSON");
+        }
+        return s;
+      }, onError);
+    };
+    exports.stringifyJSON = stringifyJSON;
+    exports.either = {
+      URI: exports.URI,
+      map: _map,
+      of: exports.of,
+      ap: _ap,
+      chain: exports.flatMap,
+      reduce: _reduce,
+      foldMap: _foldMap,
+      reduceRight: _reduceRight,
+      traverse: _traverse,
+      sequence: exports.sequence,
+      bimap: _bimap,
+      mapLeft: _mapLeft,
+      alt: _alt,
+      extend: _extend,
+      chainRec: _chainRec,
+      throwError: exports.throwError
+    };
+    exports.getApplySemigroup = /* @__PURE__ */ (0, Apply_1.getApplySemigroup)(exports.Apply);
+    exports.getApplyMonoid = /* @__PURE__ */ (0, Applicative_1.getApplicativeMonoid)(exports.Applicative);
+    var getValidationSemigroup = function(SE, SA) {
+      return (0, Apply_1.getApplySemigroup)((0, exports.getApplicativeValidation)(SE))(SA);
+    };
+    exports.getValidationSemigroup = getValidationSemigroup;
+    var getValidationMonoid = function(SE, MA) {
+      return (0, Applicative_1.getApplicativeMonoid)((0, exports.getApplicativeValidation)(SE))(MA);
+    };
+    exports.getValidationMonoid = getValidationMonoid;
+    function getValidation(SE) {
+      var ap = (0, exports.getApplicativeValidation)(SE).ap;
+      var alt = (0, exports.getAltValidation)(SE).alt;
+      return {
+        URI: exports.URI,
+        _E: void 0,
+        map: _map,
+        of: exports.of,
+        chain: exports.flatMap,
+        bimap: _bimap,
+        mapLeft: _mapLeft,
+        reduce: _reduce,
+        foldMap: _foldMap,
+        reduceRight: _reduceRight,
+        extend: _extend,
+        traverse: _traverse,
+        sequence: exports.sequence,
+        chainRec: _chainRec,
+        throwError: exports.throwError,
+        ap,
+        alt
+      };
+    }
+    exports.getValidation = getValidation;
+  })(Either);
+  return Either;
+}
+var EitherExports = /* @__PURE__ */ requireEither();
 var NonEmptyArray = {};
 var Ord = {};
 var Eq = {};
@@ -23329,4673 +26193,6 @@ function requireOption() {
   return Option$2;
 }
 var OptionExports = /* @__PURE__ */ requireOption();
-var reactDomExports = requireReactDom();
-const ReactDOM = /* @__PURE__ */ getDefaultExportFromCjs(reactDomExports);
-function _extends$4() {
-  _extends$4 = Object.assign ? Object.assign.bind() : function(target) {
-    for (var i2 = 1; i2 < arguments.length; i2++) {
-      var source = arguments[i2];
-      for (var key in source) {
-        if (Object.prototype.hasOwnProperty.call(source, key)) {
-          target[key] = source[key];
-        }
-      }
-    }
-    return target;
-  };
-  return _extends$4.apply(this, arguments);
-}
-var Action;
-(function(Action2) {
-  Action2["Pop"] = "POP";
-  Action2["Push"] = "PUSH";
-  Action2["Replace"] = "REPLACE";
-})(Action || (Action = {}));
-const PopStateEventType = "popstate";
-function createBrowserHistory(options2) {
-  if (options2 === void 0) {
-    options2 = {};
-  }
-  function createBrowserLocation(window2, globalHistory) {
-    let {
-      pathname,
-      search,
-      hash: hash2
-    } = window2.location;
-    return createLocation(
-      "",
-      {
-        pathname,
-        search,
-        hash: hash2
-      },
-      // state defaults to `null` because `window.history.state` does
-      globalHistory.state && globalHistory.state.usr || null,
-      globalHistory.state && globalHistory.state.key || "default"
-    );
-  }
-  function createBrowserHref(window2, to) {
-    return typeof to === "string" ? to : createPath(to);
-  }
-  return getUrlBasedHistory(createBrowserLocation, createBrowserHref, null, options2);
-}
-function invariant(value, message) {
-  if (value === false || value === null || typeof value === "undefined") {
-    throw new Error(message);
-  }
-}
-function warning(cond, message) {
-  if (!cond) {
-    if (typeof console !== "undefined") console.warn(message);
-    try {
-      throw new Error(message);
-    } catch (e) {
-    }
-  }
-}
-function createKey() {
-  return Math.random().toString(36).substr(2, 8);
-}
-function getHistoryState(location, index2) {
-  return {
-    usr: location.state,
-    key: location.key,
-    idx: index2
-  };
-}
-function createLocation(current, to, state, key) {
-  if (state === void 0) {
-    state = null;
-  }
-  let location = _extends$4({
-    pathname: typeof current === "string" ? current : current.pathname,
-    search: "",
-    hash: ""
-  }, typeof to === "string" ? parsePath(to) : to, {
-    state,
-    // TODO: This could be cleaned up.  push/replace should probably just take
-    // full Locations now and avoid the need to run through this flow at all
-    // But that's a pretty big refactor to the current test suite so going to
-    // keep as is for the time being and just let any incoming keys take precedence
-    key: to && to.key || key || createKey()
-  });
-  return location;
-}
-function createPath(_ref3) {
-  let {
-    pathname = "/",
-    search = "",
-    hash: hash2 = ""
-  } = _ref3;
-  if (search && search !== "?") pathname += search.charAt(0) === "?" ? search : "?" + search;
-  if (hash2 && hash2 !== "#") pathname += hash2.charAt(0) === "#" ? hash2 : "#" + hash2;
-  return pathname;
-}
-function parsePath(path) {
-  let parsedPath = {};
-  if (path) {
-    let hashIndex = path.indexOf("#");
-    if (hashIndex >= 0) {
-      parsedPath.hash = path.substr(hashIndex);
-      path = path.substr(0, hashIndex);
-    }
-    let searchIndex = path.indexOf("?");
-    if (searchIndex >= 0) {
-      parsedPath.search = path.substr(searchIndex);
-      path = path.substr(0, searchIndex);
-    }
-    if (path) {
-      parsedPath.pathname = path;
-    }
-  }
-  return parsedPath;
-}
-function getUrlBasedHistory(getLocation, createHref, validateLocation, options2) {
-  if (options2 === void 0) {
-    options2 = {};
-  }
-  let {
-    window: window2 = document.defaultView,
-    v5Compat = false
-  } = options2;
-  let globalHistory = window2.history;
-  let action2 = Action.Pop;
-  let listener = null;
-  let index2 = getIndex2();
-  if (index2 == null) {
-    index2 = 0;
-    globalHistory.replaceState(_extends$4({}, globalHistory.state, {
-      idx: index2
-    }), "");
-  }
-  function getIndex2() {
-    let state = globalHistory.state || {
-      idx: null
-    };
-    return state.idx;
-  }
-  function handlePop() {
-    action2 = Action.Pop;
-    let nextIndex = getIndex2();
-    let delta = nextIndex == null ? null : nextIndex - index2;
-    index2 = nextIndex;
-    if (listener) {
-      listener({
-        action: action2,
-        location: history.location,
-        delta
-      });
-    }
-  }
-  function push2(to, state) {
-    action2 = Action.Push;
-    let location = createLocation(history.location, to, state);
-    index2 = getIndex2() + 1;
-    let historyState = getHistoryState(location, index2);
-    let url = history.createHref(location);
-    try {
-      globalHistory.pushState(historyState, "", url);
-    } catch (error) {
-      if (error instanceof DOMException && error.name === "DataCloneError") {
-        throw error;
-      }
-      window2.location.assign(url);
-    }
-    if (v5Compat && listener) {
-      listener({
-        action: action2,
-        location: history.location,
-        delta: 1
-      });
-    }
-  }
-  function replace3(to, state) {
-    action2 = Action.Replace;
-    let location = createLocation(history.location, to, state);
-    index2 = getIndex2();
-    let historyState = getHistoryState(location, index2);
-    let url = history.createHref(location);
-    globalHistory.replaceState(historyState, "", url);
-    if (v5Compat && listener) {
-      listener({
-        action: action2,
-        location: history.location,
-        delta: 0
-      });
-    }
-  }
-  function createURL(to) {
-    let base = window2.location.origin !== "null" ? window2.location.origin : window2.location.href;
-    let href = typeof to === "string" ? to : createPath(to);
-    href = href.replace(/ $/, "%20");
-    invariant(base, "No window.location.(origin|href) available to create URL for href: " + href);
-    return new URL(href, base);
-  }
-  let history = {
-    get action() {
-      return action2;
-    },
-    get location() {
-      return getLocation(window2, globalHistory);
-    },
-    listen(fn) {
-      if (listener) {
-        throw new Error("A history only accepts one active listener");
-      }
-      window2.addEventListener(PopStateEventType, handlePop);
-      listener = fn;
-      return () => {
-        window2.removeEventListener(PopStateEventType, handlePop);
-        listener = null;
-      };
-    },
-    createHref(to) {
-      return createHref(window2, to);
-    },
-    createURL,
-    encodeLocation(to) {
-      let url = createURL(to);
-      return {
-        pathname: url.pathname,
-        search: url.search,
-        hash: url.hash
-      };
-    },
-    push: push2,
-    replace: replace3,
-    go(n) {
-      return globalHistory.go(n);
-    }
-  };
-  return history;
-}
-var ResultType;
-(function(ResultType2) {
-  ResultType2["data"] = "data";
-  ResultType2["deferred"] = "deferred";
-  ResultType2["redirect"] = "redirect";
-  ResultType2["error"] = "error";
-})(ResultType || (ResultType = {}));
-function matchRoutes(routes, locationArg, basename) {
-  if (basename === void 0) {
-    basename = "/";
-  }
-  let location = typeof locationArg === "string" ? parsePath(locationArg) : locationArg;
-  let pathname = stripBasename(location.pathname || "/", basename);
-  if (pathname == null) {
-    return null;
-  }
-  let branches = flattenRoutes(routes);
-  rankRouteBranches(branches);
-  let matches = null;
-  for (let i2 = 0; matches == null && i2 < branches.length; ++i2) {
-    let decoded = decodePath(pathname);
-    matches = matchRouteBranch(branches[i2], decoded);
-  }
-  return matches;
-}
-function flattenRoutes(routes, branches, parentsMeta, parentPath) {
-  if (branches === void 0) {
-    branches = [];
-  }
-  if (parentsMeta === void 0) {
-    parentsMeta = [];
-  }
-  if (parentPath === void 0) {
-    parentPath = "";
-  }
-  let flattenRoute = (route, index2, relativePath) => {
-    let meta = {
-      relativePath: relativePath === void 0 ? route.path || "" : relativePath,
-      caseSensitive: route.caseSensitive === true,
-      childrenIndex: index2,
-      route
-    };
-    if (meta.relativePath.startsWith("/")) {
-      invariant(meta.relativePath.startsWith(parentPath), 'Absolute route path "' + meta.relativePath + '" nested under path ' + ('"' + parentPath + '" is not valid. An absolute child route path ') + "must start with the combined path of all its parent routes.");
-      meta.relativePath = meta.relativePath.slice(parentPath.length);
-    }
-    let path = joinPaths([parentPath, meta.relativePath]);
-    let routesMeta = parentsMeta.concat(meta);
-    if (route.children && route.children.length > 0) {
-      invariant(
-        // Our types know better, but runtime JS may not!
-        // @ts-expect-error
-        route.index !== true,
-        "Index routes must not have child routes. Please remove " + ('all child routes from route path "' + path + '".')
-      );
-      flattenRoutes(route.children, branches, routesMeta, path);
-    }
-    if (route.path == null && !route.index) {
-      return;
-    }
-    branches.push({
-      path,
-      score: computeScore(path, route.index),
-      routesMeta
-    });
-  };
-  routes.forEach((route, index2) => {
-    var _route$path;
-    if (route.path === "" || !((_route$path = route.path) != null && _route$path.includes("?"))) {
-      flattenRoute(route, index2);
-    } else {
-      for (let exploded of explodeOptionalSegments(route.path)) {
-        flattenRoute(route, index2, exploded);
-      }
-    }
-  });
-  return branches;
-}
-function explodeOptionalSegments(path) {
-  let segments = path.split("/");
-  if (segments.length === 0) return [];
-  let [first, ...rest] = segments;
-  let isOptional = first.endsWith("?");
-  let required = first.replace(/\?$/, "");
-  if (rest.length === 0) {
-    return isOptional ? [required, ""] : [required];
-  }
-  let restExploded = explodeOptionalSegments(rest.join("/"));
-  let result = [];
-  result.push(...restExploded.map((subpath) => subpath === "" ? required : [required, subpath].join("/")));
-  if (isOptional) {
-    result.push(...restExploded);
-  }
-  return result.map((exploded) => path.startsWith("/") && exploded === "" ? "/" : exploded);
-}
-function rankRouteBranches(branches) {
-  branches.sort((a, b) => a.score !== b.score ? b.score - a.score : compareIndexes(a.routesMeta.map((meta) => meta.childrenIndex), b.routesMeta.map((meta) => meta.childrenIndex)));
-}
-const paramRe = /^:[\w-]+$/;
-const dynamicSegmentValue = 3;
-const indexRouteValue = 2;
-const emptySegmentValue = 1;
-const staticSegmentValue = 10;
-const splatPenalty = -2;
-const isSplat = (s) => s === "*";
-function computeScore(path, index2) {
-  let segments = path.split("/");
-  let initialScore = segments.length;
-  if (segments.some(isSplat)) {
-    initialScore += splatPenalty;
-  }
-  if (index2) {
-    initialScore += indexRouteValue;
-  }
-  return segments.filter((s) => !isSplat(s)).reduce((score, segment) => score + (paramRe.test(segment) ? dynamicSegmentValue : segment === "" ? emptySegmentValue : staticSegmentValue), initialScore);
-}
-function compareIndexes(a, b) {
-  let siblings3 = a.length === b.length && a.slice(0, -1).every((n, i2) => n === b[i2]);
-  return siblings3 ? (
-    // If two routes are siblings, we should try to match the earlier sibling
-    // first. This allows people to have fine-grained control over the matching
-    // behavior by simply putting routes with identical paths in the order they
-    // want them tried.
-    a[a.length - 1] - b[b.length - 1]
-  ) : (
-    // Otherwise, it doesn't really make sense to rank non-siblings by index,
-    // so they sort equally.
-    0
-  );
-}
-function matchRouteBranch(branch, pathname) {
-  let {
-    routesMeta
-  } = branch;
-  let matchedParams = {};
-  let matchedPathname = "/";
-  let matches = [];
-  for (let i2 = 0; i2 < routesMeta.length; ++i2) {
-    let meta = routesMeta[i2];
-    let end = i2 === routesMeta.length - 1;
-    let remainingPathname = matchedPathname === "/" ? pathname : pathname.slice(matchedPathname.length) || "/";
-    let match2 = matchPath({
-      path: meta.relativePath,
-      caseSensitive: meta.caseSensitive,
-      end
-    }, remainingPathname);
-    if (!match2) return null;
-    Object.assign(matchedParams, match2.params);
-    let route = meta.route;
-    matches.push({
-      // TODO: Can this as be avoided?
-      params: matchedParams,
-      pathname: joinPaths([matchedPathname, match2.pathname]),
-      pathnameBase: normalizePathname(joinPaths([matchedPathname, match2.pathnameBase])),
-      route
-    });
-    if (match2.pathnameBase !== "/") {
-      matchedPathname = joinPaths([matchedPathname, match2.pathnameBase]);
-    }
-  }
-  return matches;
-}
-function matchPath(pattern, pathname) {
-  if (typeof pattern === "string") {
-    pattern = {
-      path: pattern,
-      caseSensitive: false,
-      end: true
-    };
-  }
-  let [matcher, compiledParams] = compilePath(pattern.path, pattern.caseSensitive, pattern.end);
-  let match2 = pathname.match(matcher);
-  if (!match2) return null;
-  let matchedPathname = match2[0];
-  let pathnameBase = matchedPathname.replace(/(.)\/+$/, "$1");
-  let captureGroups = match2.slice(1);
-  let params = compiledParams.reduce((memo, _ref3, index2) => {
-    let {
-      paramName,
-      isOptional
-    } = _ref3;
-    if (paramName === "*") {
-      let splatValue = captureGroups[index2] || "";
-      pathnameBase = matchedPathname.slice(0, matchedPathname.length - splatValue.length).replace(/(.)\/+$/, "$1");
-    }
-    const value = captureGroups[index2];
-    if (isOptional && !value) {
-      memo[paramName] = void 0;
-    } else {
-      memo[paramName] = (value || "").replace(/%2F/g, "/");
-    }
-    return memo;
-  }, {});
-  return {
-    params,
-    pathname: matchedPathname,
-    pathnameBase,
-    pattern
-  };
-}
-function compilePath(path, caseSensitive, end) {
-  if (caseSensitive === void 0) {
-    caseSensitive = false;
-  }
-  if (end === void 0) {
-    end = true;
-  }
-  warning(path === "*" || !path.endsWith("*") || path.endsWith("/*"), 'Route path "' + path + '" will be treated as if it were ' + ('"' + path.replace(/\*$/, "/*") + '" because the `*` character must ') + "always follow a `/` in the pattern. To get rid of this warning, " + ('please change the route path to "' + path.replace(/\*$/, "/*") + '".'));
-  let params = [];
-  let regexpSource = "^" + path.replace(/\/*\*?$/, "").replace(/^\/*/, "/").replace(/[\\.*+^${}|()[\]]/g, "\\$&").replace(/\/:([\w-]+)(\?)?/g, (_, paramName, isOptional) => {
-    params.push({
-      paramName,
-      isOptional: isOptional != null
-    });
-    return isOptional ? "/?([^\\/]+)?" : "/([^\\/]+)";
-  });
-  if (path.endsWith("*")) {
-    params.push({
-      paramName: "*"
-    });
-    regexpSource += path === "*" || path === "/*" ? "(.*)$" : "(?:\\/(.+)|\\/*)$";
-  } else if (end) {
-    regexpSource += "\\/*$";
-  } else if (path !== "" && path !== "/") {
-    regexpSource += "(?:(?=\\/|$))";
-  } else ;
-  let matcher = new RegExp(regexpSource, caseSensitive ? void 0 : "i");
-  return [matcher, params];
-}
-function decodePath(value) {
-  try {
-    return value.split("/").map((v) => decodeURIComponent(v).replace(/\//g, "%2F")).join("/");
-  } catch (error) {
-    warning(false, 'The URL path "' + value + '" could not be decoded because it is is a malformed URL segment. This is probably due to a bad percent ' + ("encoding (" + error + ")."));
-    return value;
-  }
-}
-function stripBasename(pathname, basename) {
-  if (basename === "/") return pathname;
-  if (!pathname.toLowerCase().startsWith(basename.toLowerCase())) {
-    return null;
-  }
-  let startIndex = basename.endsWith("/") ? basename.length - 1 : basename.length;
-  let nextChar = pathname.charAt(startIndex);
-  if (nextChar && nextChar !== "/") {
-    return null;
-  }
-  return pathname.slice(startIndex) || "/";
-}
-function resolvePath(to, fromPathname) {
-  if (fromPathname === void 0) {
-    fromPathname = "/";
-  }
-  let {
-    pathname: toPathname,
-    search = "",
-    hash: hash2 = ""
-  } = typeof to === "string" ? parsePath(to) : to;
-  let pathname = toPathname ? toPathname.startsWith("/") ? toPathname : resolvePathname(toPathname, fromPathname) : fromPathname;
-  return {
-    pathname,
-    search: normalizeSearch(search),
-    hash: normalizeHash(hash2)
-  };
-}
-function resolvePathname(relativePath, fromPathname) {
-  let segments = fromPathname.replace(/\/+$/, "").split("/");
-  let relativeSegments = relativePath.split("/");
-  relativeSegments.forEach((segment) => {
-    if (segment === "..") {
-      if (segments.length > 1) segments.pop();
-    } else if (segment !== ".") {
-      segments.push(segment);
-    }
-  });
-  return segments.length > 1 ? segments.join("/") : "/";
-}
-function getInvalidPathError(char2, field, dest, path) {
-  return "Cannot include a '" + char2 + "' character in a manually specified " + ("`to." + field + "` field [" + JSON.stringify(path) + "].  Please separate it out to the ") + ("`to." + dest + "` field. Alternatively you may provide the full path as ") + 'a string in <Link to="..."> and the router will parse it for you.';
-}
-function getPathContributingMatches(matches) {
-  return matches.filter((match2, index2) => index2 === 0 || match2.route.path && match2.route.path.length > 0);
-}
-function getResolveToMatches(matches, v7_relativeSplatPath) {
-  let pathMatches = getPathContributingMatches(matches);
-  if (v7_relativeSplatPath) {
-    return pathMatches.map((match2, idx) => idx === matches.length - 1 ? match2.pathname : match2.pathnameBase);
-  }
-  return pathMatches.map((match2) => match2.pathnameBase);
-}
-function resolveTo(toArg, routePathnames, locationPathname, isPathRelative) {
-  if (isPathRelative === void 0) {
-    isPathRelative = false;
-  }
-  let to;
-  if (typeof toArg === "string") {
-    to = parsePath(toArg);
-  } else {
-    to = _extends$4({}, toArg);
-    invariant(!to.pathname || !to.pathname.includes("?"), getInvalidPathError("?", "pathname", "search", to));
-    invariant(!to.pathname || !to.pathname.includes("#"), getInvalidPathError("#", "pathname", "hash", to));
-    invariant(!to.search || !to.search.includes("#"), getInvalidPathError("#", "search", "hash", to));
-  }
-  let isEmptyPath = toArg === "" || to.pathname === "";
-  let toPathname = isEmptyPath ? "/" : to.pathname;
-  let from2;
-  if (toPathname == null) {
-    from2 = locationPathname;
-  } else {
-    let routePathnameIndex = routePathnames.length - 1;
-    if (!isPathRelative && toPathname.startsWith("..")) {
-      let toSegments = toPathname.split("/");
-      while (toSegments[0] === "..") {
-        toSegments.shift();
-        routePathnameIndex -= 1;
-      }
-      to.pathname = toSegments.join("/");
-    }
-    from2 = routePathnameIndex >= 0 ? routePathnames[routePathnameIndex] : "/";
-  }
-  let path = resolvePath(to, from2);
-  let hasExplicitTrailingSlash = toPathname && toPathname !== "/" && toPathname.endsWith("/");
-  let hasCurrentTrailingSlash = (isEmptyPath || toPathname === ".") && locationPathname.endsWith("/");
-  if (!path.pathname.endsWith("/") && (hasExplicitTrailingSlash || hasCurrentTrailingSlash)) {
-    path.pathname += "/";
-  }
-  return path;
-}
-const joinPaths = (paths) => paths.join("/").replace(/\/\/+/g, "/");
-const normalizePathname = (pathname) => pathname.replace(/\/+$/, "").replace(/^\/*/, "/");
-const normalizeSearch = (search) => !search || search === "?" ? "" : search.startsWith("?") ? search : "?" + search;
-const normalizeHash = (hash2) => !hash2 || hash2 === "#" ? "" : hash2.startsWith("#") ? hash2 : "#" + hash2;
-function isRouteErrorResponse(error) {
-  return error != null && typeof error.status === "number" && typeof error.statusText === "string" && typeof error.internal === "boolean" && "data" in error;
-}
-const validMutationMethodsArr = ["post", "put", "patch", "delete"];
-new Set(validMutationMethodsArr);
-const validRequestMethodsArr = ["get", ...validMutationMethodsArr];
-new Set(validRequestMethodsArr);
-function _extends$3() {
-  _extends$3 = Object.assign ? Object.assign.bind() : function(target) {
-    for (var i2 = 1; i2 < arguments.length; i2++) {
-      var source = arguments[i2];
-      for (var key in source) {
-        if (Object.prototype.hasOwnProperty.call(source, key)) {
-          target[key] = source[key];
-        }
-      }
-    }
-    return target;
-  };
-  return _extends$3.apply(this, arguments);
-}
-const DataRouterContext = /* @__PURE__ */ reactExports.createContext(null);
-const DataRouterStateContext = /* @__PURE__ */ reactExports.createContext(null);
-const NavigationContext = /* @__PURE__ */ reactExports.createContext(null);
-const LocationContext = /* @__PURE__ */ reactExports.createContext(null);
-const RouteContext = /* @__PURE__ */ reactExports.createContext({
-  outlet: null,
-  matches: [],
-  isDataRoute: false
-});
-const RouteErrorContext = /* @__PURE__ */ reactExports.createContext(null);
-function useHref(to, _temp) {
-  let {
-    relative
-  } = _temp === void 0 ? {} : _temp;
-  !useInRouterContext() ? invariant(false) : void 0;
-  let {
-    basename,
-    navigator: navigator2
-  } = reactExports.useContext(NavigationContext);
-  let {
-    hash: hash2,
-    pathname,
-    search
-  } = useResolvedPath(to, {
-    relative
-  });
-  let joinedPathname = pathname;
-  if (basename !== "/") {
-    joinedPathname = pathname === "/" ? basename : joinPaths([basename, pathname]);
-  }
-  return navigator2.createHref({
-    pathname: joinedPathname,
-    search,
-    hash: hash2
-  });
-}
-function useInRouterContext() {
-  return reactExports.useContext(LocationContext) != null;
-}
-function useLocation() {
-  !useInRouterContext() ? invariant(false) : void 0;
-  return reactExports.useContext(LocationContext).location;
-}
-function useIsomorphicLayoutEffect$1(cb) {
-  let isStatic = reactExports.useContext(NavigationContext).static;
-  if (!isStatic) {
-    reactExports.useLayoutEffect(cb);
-  }
-}
-function useNavigate() {
-  let {
-    isDataRoute
-  } = reactExports.useContext(RouteContext);
-  return isDataRoute ? useNavigateStable() : useNavigateUnstable();
-}
-function useNavigateUnstable() {
-  !useInRouterContext() ? invariant(false) : void 0;
-  let dataRouterContext = reactExports.useContext(DataRouterContext);
-  let {
-    basename,
-    future,
-    navigator: navigator2
-  } = reactExports.useContext(NavigationContext);
-  let {
-    matches
-  } = reactExports.useContext(RouteContext);
-  let {
-    pathname: locationPathname
-  } = useLocation();
-  let routePathnamesJson = JSON.stringify(getResolveToMatches(matches, future.v7_relativeSplatPath));
-  let activeRef = reactExports.useRef(false);
-  useIsomorphicLayoutEffect$1(() => {
-    activeRef.current = true;
-  });
-  let navigate = reactExports.useCallback(function(to, options2) {
-    if (options2 === void 0) {
-      options2 = {};
-    }
-    if (!activeRef.current) return;
-    if (typeof to === "number") {
-      navigator2.go(to);
-      return;
-    }
-    let path = resolveTo(to, JSON.parse(routePathnamesJson), locationPathname, options2.relative === "path");
-    if (dataRouterContext == null && basename !== "/") {
-      path.pathname = path.pathname === "/" ? basename : joinPaths([basename, path.pathname]);
-    }
-    (!!options2.replace ? navigator2.replace : navigator2.push)(path, options2.state, options2);
-  }, [basename, navigator2, routePathnamesJson, locationPathname, dataRouterContext]);
-  return navigate;
-}
-function useResolvedPath(to, _temp2) {
-  let {
-    relative
-  } = _temp2 === void 0 ? {} : _temp2;
-  let {
-    future
-  } = reactExports.useContext(NavigationContext);
-  let {
-    matches
-  } = reactExports.useContext(RouteContext);
-  let {
-    pathname: locationPathname
-  } = useLocation();
-  let routePathnamesJson = JSON.stringify(getResolveToMatches(matches, future.v7_relativeSplatPath));
-  return reactExports.useMemo(() => resolveTo(to, JSON.parse(routePathnamesJson), locationPathname, relative === "path"), [to, routePathnamesJson, locationPathname, relative]);
-}
-function useRoutes(routes, locationArg) {
-  return useRoutesImpl(routes, locationArg);
-}
-function useRoutesImpl(routes, locationArg, dataRouterState, future) {
-  !useInRouterContext() ? invariant(false) : void 0;
-  let {
-    navigator: navigator2
-  } = reactExports.useContext(NavigationContext);
-  let {
-    matches: parentMatches
-  } = reactExports.useContext(RouteContext);
-  let routeMatch = parentMatches[parentMatches.length - 1];
-  let parentParams = routeMatch ? routeMatch.params : {};
-  routeMatch ? routeMatch.pathname : "/";
-  let parentPathnameBase = routeMatch ? routeMatch.pathnameBase : "/";
-  routeMatch && routeMatch.route;
-  let locationFromContext = useLocation();
-  let location;
-  if (locationArg) {
-    var _parsedLocationArg$pa;
-    let parsedLocationArg = typeof locationArg === "string" ? parsePath(locationArg) : locationArg;
-    !(parentPathnameBase === "/" || ((_parsedLocationArg$pa = parsedLocationArg.pathname) == null ? void 0 : _parsedLocationArg$pa.startsWith(parentPathnameBase))) ? invariant(false) : void 0;
-    location = parsedLocationArg;
-  } else {
-    location = locationFromContext;
-  }
-  let pathname = location.pathname || "/";
-  let remainingPathname = pathname;
-  if (parentPathnameBase !== "/") {
-    let parentSegments = parentPathnameBase.replace(/^\//, "").split("/");
-    let segments = pathname.replace(/^\//, "").split("/");
-    remainingPathname = "/" + segments.slice(parentSegments.length).join("/");
-  }
-  let matches = matchRoutes(routes, {
-    pathname: remainingPathname
-  });
-  let renderedMatches = _renderMatches(matches && matches.map((match2) => Object.assign({}, match2, {
-    params: Object.assign({}, parentParams, match2.params),
-    pathname: joinPaths([
-      parentPathnameBase,
-      // Re-encode pathnames that were decoded inside matchRoutes
-      navigator2.encodeLocation ? navigator2.encodeLocation(match2.pathname).pathname : match2.pathname
-    ]),
-    pathnameBase: match2.pathnameBase === "/" ? parentPathnameBase : joinPaths([
-      parentPathnameBase,
-      // Re-encode pathnames that were decoded inside matchRoutes
-      navigator2.encodeLocation ? navigator2.encodeLocation(match2.pathnameBase).pathname : match2.pathnameBase
-    ])
-  })), parentMatches, dataRouterState, future);
-  if (locationArg && renderedMatches) {
-    return /* @__PURE__ */ reactExports.createElement(LocationContext.Provider, {
-      value: {
-        location: _extends$3({
-          pathname: "/",
-          search: "",
-          hash: "",
-          state: null,
-          key: "default"
-        }, location),
-        navigationType: Action.Pop
-      }
-    }, renderedMatches);
-  }
-  return renderedMatches;
-}
-function DefaultErrorComponent() {
-  let error = useRouteError();
-  let message = isRouteErrorResponse(error) ? error.status + " " + error.statusText : error instanceof Error ? error.message : JSON.stringify(error);
-  let stack = error instanceof Error ? error.stack : null;
-  let lightgrey = "rgba(200,200,200, 0.5)";
-  let preStyles = {
-    padding: "0.5rem",
-    backgroundColor: lightgrey
-  };
-  let devInfo = null;
-  return /* @__PURE__ */ reactExports.createElement(reactExports.Fragment, null, /* @__PURE__ */ reactExports.createElement("h2", null, "Unexpected Application Error!"), /* @__PURE__ */ reactExports.createElement("h3", {
-    style: {
-      fontStyle: "italic"
-    }
-  }, message), stack ? /* @__PURE__ */ reactExports.createElement("pre", {
-    style: preStyles
-  }, stack) : null, devInfo);
-}
-const defaultErrorElement = /* @__PURE__ */ reactExports.createElement(DefaultErrorComponent, null);
-class RenderErrorBoundary extends reactExports.Component {
-  constructor(props) {
-    super(props);
-    this.state = {
-      location: props.location,
-      revalidation: props.revalidation,
-      error: props.error
-    };
-  }
-  static getDerivedStateFromError(error) {
-    return {
-      error
-    };
-  }
-  static getDerivedStateFromProps(props, state) {
-    if (state.location !== props.location || state.revalidation !== "idle" && props.revalidation === "idle") {
-      return {
-        error: props.error,
-        location: props.location,
-        revalidation: props.revalidation
-      };
-    }
-    return {
-      error: props.error !== void 0 ? props.error : state.error,
-      location: state.location,
-      revalidation: props.revalidation || state.revalidation
-    };
-  }
-  componentDidCatch(error, errorInfo) {
-    console.error("React Router caught the following error during render", error, errorInfo);
-  }
-  render() {
-    return this.state.error !== void 0 ? /* @__PURE__ */ reactExports.createElement(RouteContext.Provider, {
-      value: this.props.routeContext
-    }, /* @__PURE__ */ reactExports.createElement(RouteErrorContext.Provider, {
-      value: this.state.error,
-      children: this.props.component
-    })) : this.props.children;
-  }
-}
-function RenderedRoute(_ref3) {
-  let {
-    routeContext,
-    match: match2,
-    children: children2
-  } = _ref3;
-  let dataRouterContext = reactExports.useContext(DataRouterContext);
-  if (dataRouterContext && dataRouterContext.static && dataRouterContext.staticContext && (match2.route.errorElement || match2.route.ErrorBoundary)) {
-    dataRouterContext.staticContext._deepestRenderedBoundaryId = match2.route.id;
-  }
-  return /* @__PURE__ */ reactExports.createElement(RouteContext.Provider, {
-    value: routeContext
-  }, children2);
-}
-function _renderMatches(matches, parentMatches, dataRouterState, future) {
-  var _dataRouterState2;
-  if (parentMatches === void 0) {
-    parentMatches = [];
-  }
-  if (dataRouterState === void 0) {
-    dataRouterState = null;
-  }
-  if (future === void 0) {
-    future = null;
-  }
-  if (matches == null) {
-    var _dataRouterState;
-    if ((_dataRouterState = dataRouterState) != null && _dataRouterState.errors) {
-      matches = dataRouterState.matches;
-    } else {
-      return null;
-    }
-  }
-  let renderedMatches = matches;
-  let errors = (_dataRouterState2 = dataRouterState) == null ? void 0 : _dataRouterState2.errors;
-  if (errors != null) {
-    let errorIndex = renderedMatches.findIndex((m) => m.route.id && (errors == null ? void 0 : errors[m.route.id]));
-    !(errorIndex >= 0) ? invariant(false) : void 0;
-    renderedMatches = renderedMatches.slice(0, Math.min(renderedMatches.length, errorIndex + 1));
-  }
-  let renderFallback = false;
-  let fallbackIndex = -1;
-  if (dataRouterState && future && future.v7_partialHydration) {
-    for (let i2 = 0; i2 < renderedMatches.length; i2++) {
-      let match2 = renderedMatches[i2];
-      if (match2.route.HydrateFallback || match2.route.hydrateFallbackElement) {
-        fallbackIndex = i2;
-      }
-      if (match2.route.id) {
-        let {
-          loaderData,
-          errors: errors2
-        } = dataRouterState;
-        let needsToRunLoader = match2.route.loader && loaderData[match2.route.id] === void 0 && (!errors2 || errors2[match2.route.id] === void 0);
-        if (match2.route.lazy || needsToRunLoader) {
-          renderFallback = true;
-          if (fallbackIndex >= 0) {
-            renderedMatches = renderedMatches.slice(0, fallbackIndex + 1);
-          } else {
-            renderedMatches = [renderedMatches[0]];
-          }
-          break;
-        }
-      }
-    }
-  }
-  return renderedMatches.reduceRight((outlet, match2, index2) => {
-    let error;
-    let shouldRenderHydrateFallback = false;
-    let errorElement = null;
-    let hydrateFallbackElement = null;
-    if (dataRouterState) {
-      error = errors && match2.route.id ? errors[match2.route.id] : void 0;
-      errorElement = match2.route.errorElement || defaultErrorElement;
-      if (renderFallback) {
-        if (fallbackIndex < 0 && index2 === 0) {
-          warningOnce("route-fallback");
-          shouldRenderHydrateFallback = true;
-          hydrateFallbackElement = null;
-        } else if (fallbackIndex === index2) {
-          shouldRenderHydrateFallback = true;
-          hydrateFallbackElement = match2.route.hydrateFallbackElement || null;
-        }
-      }
-    }
-    let matches2 = parentMatches.concat(renderedMatches.slice(0, index2 + 1));
-    let getChildren = () => {
-      let children2;
-      if (error) {
-        children2 = errorElement;
-      } else if (shouldRenderHydrateFallback) {
-        children2 = hydrateFallbackElement;
-      } else if (match2.route.Component) {
-        children2 = /* @__PURE__ */ reactExports.createElement(match2.route.Component, null);
-      } else if (match2.route.element) {
-        children2 = match2.route.element;
-      } else {
-        children2 = outlet;
-      }
-      return /* @__PURE__ */ reactExports.createElement(RenderedRoute, {
-        match: match2,
-        routeContext: {
-          outlet,
-          matches: matches2,
-          isDataRoute: dataRouterState != null
-        },
-        children: children2
-      });
-    };
-    return dataRouterState && (match2.route.ErrorBoundary || match2.route.errorElement || index2 === 0) ? /* @__PURE__ */ reactExports.createElement(RenderErrorBoundary, {
-      location: dataRouterState.location,
-      revalidation: dataRouterState.revalidation,
-      component: errorElement,
-      error,
-      children: getChildren(),
-      routeContext: {
-        outlet: null,
-        matches: matches2,
-        isDataRoute: true
-      }
-    }) : getChildren();
-  }, null);
-}
-var DataRouterHook$1 = /* @__PURE__ */ (function(DataRouterHook2) {
-  DataRouterHook2["UseBlocker"] = "useBlocker";
-  DataRouterHook2["UseRevalidator"] = "useRevalidator";
-  DataRouterHook2["UseNavigateStable"] = "useNavigate";
-  return DataRouterHook2;
-})(DataRouterHook$1 || {});
-var DataRouterStateHook$1 = /* @__PURE__ */ (function(DataRouterStateHook2) {
-  DataRouterStateHook2["UseBlocker"] = "useBlocker";
-  DataRouterStateHook2["UseLoaderData"] = "useLoaderData";
-  DataRouterStateHook2["UseActionData"] = "useActionData";
-  DataRouterStateHook2["UseRouteError"] = "useRouteError";
-  DataRouterStateHook2["UseNavigation"] = "useNavigation";
-  DataRouterStateHook2["UseRouteLoaderData"] = "useRouteLoaderData";
-  DataRouterStateHook2["UseMatches"] = "useMatches";
-  DataRouterStateHook2["UseRevalidator"] = "useRevalidator";
-  DataRouterStateHook2["UseNavigateStable"] = "useNavigate";
-  DataRouterStateHook2["UseRouteId"] = "useRouteId";
-  return DataRouterStateHook2;
-})(DataRouterStateHook$1 || {});
-function useDataRouterContext(hookName) {
-  let ctx = reactExports.useContext(DataRouterContext);
-  !ctx ? invariant(false) : void 0;
-  return ctx;
-}
-function useDataRouterState(hookName) {
-  let state = reactExports.useContext(DataRouterStateContext);
-  !state ? invariant(false) : void 0;
-  return state;
-}
-function useRouteContext(hookName) {
-  let route = reactExports.useContext(RouteContext);
-  !route ? invariant(false) : void 0;
-  return route;
-}
-function useCurrentRouteId(hookName) {
-  let route = useRouteContext();
-  let thisRoute = route.matches[route.matches.length - 1];
-  !thisRoute.route.id ? invariant(false) : void 0;
-  return thisRoute.route.id;
-}
-function useRouteError() {
-  var _state$errors;
-  let error = reactExports.useContext(RouteErrorContext);
-  let state = useDataRouterState();
-  let routeId = useCurrentRouteId();
-  if (error !== void 0) {
-    return error;
-  }
-  return (_state$errors = state.errors) == null ? void 0 : _state$errors[routeId];
-}
-function useNavigateStable() {
-  let {
-    router
-  } = useDataRouterContext(DataRouterHook$1.UseNavigateStable);
-  let id = useCurrentRouteId(DataRouterStateHook$1.UseNavigateStable);
-  let activeRef = reactExports.useRef(false);
-  useIsomorphicLayoutEffect$1(() => {
-    activeRef.current = true;
-  });
-  let navigate = reactExports.useCallback(function(to, options2) {
-    if (options2 === void 0) {
-      options2 = {};
-    }
-    if (!activeRef.current) return;
-    if (typeof to === "number") {
-      router.navigate(to);
-    } else {
-      router.navigate(to, _extends$3({
-        fromRouteId: id
-      }, options2));
-    }
-  }, [router, id]);
-  return navigate;
-}
-const alreadyWarned = {};
-function warningOnce(key, cond, message) {
-  if (!alreadyWarned[key]) {
-    alreadyWarned[key] = true;
-  }
-}
-function Navigate(_ref4) {
-  let {
-    to,
-    replace: replace3,
-    state,
-    relative
-  } = _ref4;
-  !useInRouterContext() ? invariant(false) : void 0;
-  let {
-    future,
-    static: isStatic
-  } = reactExports.useContext(NavigationContext);
-  let {
-    matches
-  } = reactExports.useContext(RouteContext);
-  let {
-    pathname: locationPathname
-  } = useLocation();
-  let navigate = useNavigate();
-  let path = resolveTo(to, getResolveToMatches(matches, future.v7_relativeSplatPath), locationPathname, relative === "path");
-  let jsonPath = JSON.stringify(path);
-  reactExports.useEffect(() => navigate(JSON.parse(jsonPath), {
-    replace: replace3,
-    state,
-    relative
-  }), [navigate, jsonPath, relative, replace3, state]);
-  return null;
-}
-function Route(_props) {
-  invariant(false);
-}
-function Router(_ref5) {
-  let {
-    basename: basenameProp = "/",
-    children: children2 = null,
-    location: locationProp,
-    navigationType = Action.Pop,
-    navigator: navigator2,
-    static: staticProp = false,
-    future
-  } = _ref5;
-  !!useInRouterContext() ? invariant(false) : void 0;
-  let basename = basenameProp.replace(/^\/*/, "/");
-  let navigationContext = reactExports.useMemo(() => ({
-    basename,
-    navigator: navigator2,
-    static: staticProp,
-    future: _extends$3({
-      v7_relativeSplatPath: false
-    }, future)
-  }), [basename, future, navigator2, staticProp]);
-  if (typeof locationProp === "string") {
-    locationProp = parsePath(locationProp);
-  }
-  let {
-    pathname = "/",
-    search = "",
-    hash: hash2 = "",
-    state = null,
-    key = "default"
-  } = locationProp;
-  let locationContext = reactExports.useMemo(() => {
-    let trailingPathname = stripBasename(pathname, basename);
-    if (trailingPathname == null) {
-      return null;
-    }
-    return {
-      location: {
-        pathname: trailingPathname,
-        search,
-        hash: hash2,
-        state,
-        key
-      },
-      navigationType
-    };
-  }, [basename, pathname, search, hash2, state, key, navigationType]);
-  if (locationContext == null) {
-    return null;
-  }
-  return /* @__PURE__ */ reactExports.createElement(NavigationContext.Provider, {
-    value: navigationContext
-  }, /* @__PURE__ */ reactExports.createElement(LocationContext.Provider, {
-    children: children2,
-    value: locationContext
-  }));
-}
-function Routes(_ref6) {
-  let {
-    children: children2,
-    location
-  } = _ref6;
-  return useRoutes(createRoutesFromChildren(children2), location);
-}
-new Promise(() => {
-});
-function createRoutesFromChildren(children2, parentPath) {
-  if (parentPath === void 0) {
-    parentPath = [];
-  }
-  let routes = [];
-  reactExports.Children.forEach(children2, (element2, index2) => {
-    if (!/* @__PURE__ */ reactExports.isValidElement(element2)) {
-      return;
-    }
-    let treePath = [...parentPath, index2];
-    if (element2.type === reactExports.Fragment) {
-      routes.push.apply(routes, createRoutesFromChildren(element2.props.children, treePath));
-      return;
-    }
-    !(element2.type === Route) ? invariant(false) : void 0;
-    !(!element2.props.index || !element2.props.children) ? invariant(false) : void 0;
-    let route = {
-      id: element2.props.id || treePath.join("-"),
-      caseSensitive: element2.props.caseSensitive,
-      element: element2.props.element,
-      Component: element2.props.Component,
-      index: element2.props.index,
-      path: element2.props.path,
-      loader: element2.props.loader,
-      action: element2.props.action,
-      errorElement: element2.props.errorElement,
-      ErrorBoundary: element2.props.ErrorBoundary,
-      hasErrorBoundary: element2.props.ErrorBoundary != null || element2.props.errorElement != null,
-      shouldRevalidate: element2.props.shouldRevalidate,
-      handle: element2.props.handle,
-      lazy: element2.props.lazy
-    };
-    if (element2.props.children) {
-      route.children = createRoutesFromChildren(element2.props.children, treePath);
-    }
-    routes.push(route);
-  });
-  return routes;
-}
-function _extends$2() {
-  _extends$2 = Object.assign ? Object.assign.bind() : function(target) {
-    for (var i2 = 1; i2 < arguments.length; i2++) {
-      var source = arguments[i2];
-      for (var key in source) {
-        if (Object.prototype.hasOwnProperty.call(source, key)) {
-          target[key] = source[key];
-        }
-      }
-    }
-    return target;
-  };
-  return _extends$2.apply(this, arguments);
-}
-function _objectWithoutPropertiesLoose$2(source, excluded) {
-  if (source == null) return {};
-  var target = {};
-  var sourceKeys = Object.keys(source);
-  var key, i2;
-  for (i2 = 0; i2 < sourceKeys.length; i2++) {
-    key = sourceKeys[i2];
-    if (excluded.indexOf(key) >= 0) continue;
-    target[key] = source[key];
-  }
-  return target;
-}
-function isModifiedEvent(event) {
-  return !!(event.metaKey || event.altKey || event.ctrlKey || event.shiftKey);
-}
-function shouldProcessLinkClick(event, target) {
-  return event.button === 0 && // Ignore everything but left clicks
-  (!target || target === "_self") && // Let browser handle "target=_blank" etc.
-  !isModifiedEvent(event);
-}
-function createSearchParams(init2) {
-  if (init2 === void 0) {
-    init2 = "";
-  }
-  return new URLSearchParams(typeof init2 === "string" || Array.isArray(init2) || init2 instanceof URLSearchParams ? init2 : Object.keys(init2).reduce((memo, key) => {
-    let value = init2[key];
-    return memo.concat(Array.isArray(value) ? value.map((v) => [key, v]) : [[key, value]]);
-  }, []));
-}
-function getSearchParamsForLocation(locationSearch, defaultSearchParams) {
-  let searchParams = createSearchParams(locationSearch);
-  if (defaultSearchParams) {
-    defaultSearchParams.forEach((_, key) => {
-      if (!searchParams.has(key)) {
-        defaultSearchParams.getAll(key).forEach((value) => {
-          searchParams.append(key, value);
-        });
-      }
-    });
-  }
-  return searchParams;
-}
-const _excluded$7 = ["onClick", "relative", "reloadDocument", "replace", "state", "target", "to", "preventScrollReset", "unstable_viewTransition"];
-const REACT_ROUTER_VERSION = "6";
-try {
-  window.__reactRouterVersion = REACT_ROUTER_VERSION;
-} catch (e) {
-}
-const START_TRANSITION = "startTransition";
-const startTransitionImpl = React$1[START_TRANSITION];
-function BrowserRouter(_ref4) {
-  let {
-    basename,
-    children: children2,
-    future,
-    window: window2
-  } = _ref4;
-  let historyRef = reactExports.useRef();
-  if (historyRef.current == null) {
-    historyRef.current = createBrowserHistory({
-      window: window2,
-      v5Compat: true
-    });
-  }
-  let history = historyRef.current;
-  let [state, setStateImpl] = reactExports.useState({
-    action: history.action,
-    location: history.location
-  });
-  let {
-    v7_startTransition
-  } = future || {};
-  let setState = reactExports.useCallback((newState) => {
-    v7_startTransition && startTransitionImpl ? startTransitionImpl(() => setStateImpl(newState)) : setStateImpl(newState);
-  }, [setStateImpl, v7_startTransition]);
-  reactExports.useLayoutEffect(() => history.listen(setState), [history, setState]);
-  return /* @__PURE__ */ reactExports.createElement(Router, {
-    basename,
-    children: children2,
-    location: state.location,
-    navigationType: state.action,
-    navigator: history,
-    future
-  });
-}
-const isBrowser$1 = typeof window !== "undefined" && typeof window.document !== "undefined" && typeof window.document.createElement !== "undefined";
-const ABSOLUTE_URL_REGEX = /^(?:[a-z][a-z0-9+.-]*:|\/\/)/i;
-const Link = /* @__PURE__ */ reactExports.forwardRef(function LinkWithRef(_ref7, ref) {
-  let {
-    onClick,
-    relative,
-    reloadDocument,
-    replace: replace3,
-    state,
-    target,
-    to,
-    preventScrollReset,
-    unstable_viewTransition
-  } = _ref7, rest = _objectWithoutPropertiesLoose$2(_ref7, _excluded$7);
-  let {
-    basename
-  } = reactExports.useContext(NavigationContext);
-  let absoluteHref;
-  let isExternal = false;
-  if (typeof to === "string" && ABSOLUTE_URL_REGEX.test(to)) {
-    absoluteHref = to;
-    if (isBrowser$1) {
-      try {
-        let currentUrl = new URL(window.location.href);
-        let targetUrl = to.startsWith("//") ? new URL(currentUrl.protocol + to) : new URL(to);
-        let path = stripBasename(targetUrl.pathname, basename);
-        if (targetUrl.origin === currentUrl.origin && path != null) {
-          to = path + targetUrl.search + targetUrl.hash;
-        } else {
-          isExternal = true;
-        }
-      } catch (e) {
-      }
-    }
-  }
-  let href = useHref(to, {
-    relative
-  });
-  let internalOnClick = useLinkClickHandler(to, {
-    replace: replace3,
-    state,
-    target,
-    preventScrollReset,
-    relative,
-    unstable_viewTransition
-  });
-  function handleClick(event) {
-    if (onClick) onClick(event);
-    if (!event.defaultPrevented) {
-      internalOnClick(event);
-    }
-  }
-  return (
-    // eslint-disable-next-line jsx-a11y/anchor-has-content
-    /* @__PURE__ */ reactExports.createElement("a", _extends$2({}, rest, {
-      href: absoluteHref || href,
-      onClick: isExternal || reloadDocument ? onClick : handleClick,
-      ref,
-      target
-    }))
-  );
-});
-var DataRouterHook;
-(function(DataRouterHook2) {
-  DataRouterHook2["UseScrollRestoration"] = "useScrollRestoration";
-  DataRouterHook2["UseSubmit"] = "useSubmit";
-  DataRouterHook2["UseSubmitFetcher"] = "useSubmitFetcher";
-  DataRouterHook2["UseFetcher"] = "useFetcher";
-  DataRouterHook2["useViewTransitionState"] = "useViewTransitionState";
-})(DataRouterHook || (DataRouterHook = {}));
-var DataRouterStateHook;
-(function(DataRouterStateHook2) {
-  DataRouterStateHook2["UseFetcher"] = "useFetcher";
-  DataRouterStateHook2["UseFetchers"] = "useFetchers";
-  DataRouterStateHook2["UseScrollRestoration"] = "useScrollRestoration";
-})(DataRouterStateHook || (DataRouterStateHook = {}));
-function useLinkClickHandler(to, _temp) {
-  let {
-    target,
-    replace: replaceProp,
-    state,
-    preventScrollReset,
-    relative,
-    unstable_viewTransition
-  } = _temp === void 0 ? {} : _temp;
-  let navigate = useNavigate();
-  let location = useLocation();
-  let path = useResolvedPath(to, {
-    relative
-  });
-  return reactExports.useCallback((event) => {
-    if (shouldProcessLinkClick(event, target)) {
-      event.preventDefault();
-      let replace3 = replaceProp !== void 0 ? replaceProp : createPath(location) === createPath(path);
-      navigate(to, {
-        replace: replace3,
-        state,
-        preventScrollReset,
-        relative,
-        unstable_viewTransition
-      });
-    }
-  }, [location, navigate, path, replaceProp, state, target, to, preventScrollReset, relative, unstable_viewTransition]);
-}
-function useSearchParams(defaultInit) {
-  let defaultSearchParamsRef = reactExports.useRef(createSearchParams(defaultInit));
-  let hasSetSearchParamsRef = reactExports.useRef(false);
-  let location = useLocation();
-  let searchParams = reactExports.useMemo(() => (
-    // Only merge in the defaults if we haven't yet called setSearchParams.
-    // Once we call that we want those to take precedence, otherwise you can't
-    // remove a param with setSearchParams({}) if it has an initial value
-    getSearchParamsForLocation(location.search, hasSetSearchParamsRef.current ? null : defaultSearchParamsRef.current)
-  ), [location.search]);
-  let navigate = useNavigate();
-  let setSearchParams = reactExports.useCallback((nextInit, navigateOptions) => {
-    const newSearchParams = createSearchParams(typeof nextInit === "function" ? nextInit(searchParams) : nextInit);
-    hasSetSearchParamsRef.current = true;
-    navigate("?" + newSearchParams, navigateOptions);
-  }, [navigate, searchParams]);
-  return [searchParams, setSearchParams];
-}
-if (!reactExports.useState) {
-  throw new Error("mobx-react-lite requires React with Hooks support");
-}
-if (!makeObservable) {
-  throw new Error("mobx-react-lite@3 requires mobx at least version 6 to be available");
-}
-function defaultNoopBatch(callback) {
-  callback();
-}
-function observerBatching(reactionScheduler3) {
-  if (!reactionScheduler3) {
-    reactionScheduler3 = defaultNoopBatch;
-  }
-  configure({ reactionScheduler: reactionScheduler3 });
-}
-function printDebugValue(v) {
-  return getDependencyTree(v);
-}
-var REGISTRY_FINALIZE_AFTER = 1e4;
-var REGISTRY_SWEEP_INTERVAL = 1e4;
-var TimerBasedFinalizationRegistry = (
-  /** @class */
-  (function() {
-    function TimerBasedFinalizationRegistry2(finalize) {
-      var _this = this;
-      Object.defineProperty(this, "finalize", {
-        enumerable: true,
-        configurable: true,
-        writable: true,
-        value: finalize
-      });
-      Object.defineProperty(this, "registrations", {
-        enumerable: true,
-        configurable: true,
-        writable: true,
-        value: /* @__PURE__ */ new Map()
-      });
-      Object.defineProperty(this, "sweepTimeout", {
-        enumerable: true,
-        configurable: true,
-        writable: true,
-        value: void 0
-      });
-      Object.defineProperty(this, "sweep", {
-        enumerable: true,
-        configurable: true,
-        writable: true,
-        value: function(maxAge) {
-          if (maxAge === void 0) {
-            maxAge = REGISTRY_FINALIZE_AFTER;
-          }
-          clearTimeout(_this.sweepTimeout);
-          _this.sweepTimeout = void 0;
-          var now = Date.now();
-          _this.registrations.forEach(function(registration, token2) {
-            if (now - registration.registeredAt >= maxAge) {
-              _this.finalize(registration.value);
-              _this.registrations.delete(token2);
-            }
-          });
-          if (_this.registrations.size > 0) {
-            _this.scheduleSweep();
-          }
-        }
-      });
-      Object.defineProperty(this, "finalizeAllImmediately", {
-        enumerable: true,
-        configurable: true,
-        writable: true,
-        value: function() {
-          _this.sweep(0);
-        }
-      });
-    }
-    Object.defineProperty(TimerBasedFinalizationRegistry2.prototype, "register", {
-      enumerable: false,
-      configurable: true,
-      writable: true,
-      value: function(target, value, token2) {
-        this.registrations.set(token2, {
-          value,
-          registeredAt: Date.now()
-        });
-        this.scheduleSweep();
-      }
-    });
-    Object.defineProperty(TimerBasedFinalizationRegistry2.prototype, "unregister", {
-      enumerable: false,
-      configurable: true,
-      writable: true,
-      value: function(token2) {
-        this.registrations.delete(token2);
-      }
-    });
-    Object.defineProperty(TimerBasedFinalizationRegistry2.prototype, "scheduleSweep", {
-      enumerable: false,
-      configurable: true,
-      writable: true,
-      value: function() {
-        if (this.sweepTimeout === void 0) {
-          this.sweepTimeout = setTimeout(this.sweep, REGISTRY_SWEEP_INTERVAL);
-        }
-      }
-    });
-    return TimerBasedFinalizationRegistry2;
-  })()
-);
-var UniversalFinalizationRegistry = typeof FinalizationRegistry !== "undefined" ? FinalizationRegistry : TimerBasedFinalizationRegistry;
-var observerFinalizationRegistry = new UniversalFinalizationRegistry(function(adm) {
-  var _a2;
-  (_a2 = adm.reaction) === null || _a2 === void 0 ? void 0 : _a2.dispose();
-  adm.reaction = null;
-});
-var shim = { exports: {} };
-var useSyncExternalStoreShim_production_min = {};
-var hasRequiredUseSyncExternalStoreShim_production_min;
-function requireUseSyncExternalStoreShim_production_min() {
-  if (hasRequiredUseSyncExternalStoreShim_production_min) return useSyncExternalStoreShim_production_min;
-  hasRequiredUseSyncExternalStoreShim_production_min = 1;
-  var e = requireReact();
-  function h(a, b) {
-    return a === b && (0 !== a || 1 / a === 1 / b) || a !== a && b !== b;
-  }
-  var k = "function" === typeof Object.is ? Object.is : h, l = e.useState, m = e.useEffect, n = e.useLayoutEffect, p = e.useDebugValue;
-  function q(a, b) {
-    var d = b(), f = l({ inst: { value: d, getSnapshot: b } }), c = f[0].inst, g = f[1];
-    n(function() {
-      c.value = d;
-      c.getSnapshot = b;
-      r(c) && g({ inst: c });
-    }, [a, d, b]);
-    m(function() {
-      r(c) && g({ inst: c });
-      return a(function() {
-        r(c) && g({ inst: c });
-      });
-    }, [a]);
-    p(d);
-    return d;
-  }
-  function r(a) {
-    var b = a.getSnapshot;
-    a = a.value;
-    try {
-      var d = b();
-      return !k(a, d);
-    } catch (f) {
-      return true;
-    }
-  }
-  function t(a, b) {
-    return b();
-  }
-  var u = "undefined" === typeof window || "undefined" === typeof window.document || "undefined" === typeof window.document.createElement ? t : q;
-  useSyncExternalStoreShim_production_min.useSyncExternalStore = void 0 !== e.useSyncExternalStore ? e.useSyncExternalStore : u;
-  return useSyncExternalStoreShim_production_min;
-}
-var hasRequiredShim;
-function requireShim() {
-  if (hasRequiredShim) return shim.exports;
-  hasRequiredShim = 1;
-  {
-    shim.exports = requireUseSyncExternalStoreShim_production_min();
-  }
-  return shim.exports;
-}
-var shimExports = requireShim();
-var getServerSnapshot = function() {
-};
-function createReaction$1(adm) {
-  adm.reaction = new Reaction("observer".concat(adm.name), function() {
-    var _a2;
-    adm.stateVersion = /* @__PURE__ */ Symbol();
-    (_a2 = adm.onStoreChange) === null || _a2 === void 0 ? void 0 : _a2.call(adm);
-  });
-}
-function useObserver(render, baseComponentName) {
-  if (baseComponentName === void 0) {
-    baseComponentName = "observed";
-  }
-  var admRef = React.useRef(null);
-  if (!admRef.current) {
-    var adm_1 = {
-      reaction: null,
-      onStoreChange: null,
-      stateVersion: /* @__PURE__ */ Symbol(),
-      name: baseComponentName,
-      subscribe: function(onStoreChange) {
-        observerFinalizationRegistry.unregister(adm_1);
-        adm_1.onStoreChange = onStoreChange;
-        if (!adm_1.reaction) {
-          createReaction$1(adm_1);
-          adm_1.stateVersion = /* @__PURE__ */ Symbol();
-        }
-        return function() {
-          var _a2;
-          adm_1.onStoreChange = null;
-          (_a2 = adm_1.reaction) === null || _a2 === void 0 ? void 0 : _a2.dispose();
-          adm_1.reaction = null;
-        };
-      },
-      getSnapshot: function() {
-        return adm_1.stateVersion;
-      }
-    };
-    admRef.current = adm_1;
-  }
-  var adm = admRef.current;
-  if (!adm.reaction) {
-    createReaction$1(adm);
-    observerFinalizationRegistry.register(admRef, adm, adm);
-  }
-  React.useDebugValue(adm.reaction, printDebugValue);
-  shimExports.useSyncExternalStore(
-    // Both of these must be stable, otherwise it would keep resubscribing every render.
-    adm.subscribe,
-    adm.getSnapshot,
-    getServerSnapshot
-  );
-  var renderResult;
-  var exception;
-  adm.reaction.track(function() {
-    try {
-      renderResult = render();
-    } catch (e) {
-      exception = e;
-    }
-  });
-  if (exception) {
-    throw exception;
-  }
-  return renderResult;
-}
-var hasSymbol = typeof Symbol === "function" && Symbol.for;
-var ReactForwardRefSymbol = hasSymbol ? /* @__PURE__ */ Symbol.for("react.forward_ref") : typeof reactExports.forwardRef === "function" && reactExports.forwardRef(function(props) {
-  return null;
-})["$$typeof"];
-var ReactMemoSymbol = hasSymbol ? /* @__PURE__ */ Symbol.for("react.memo") : typeof reactExports.memo === "function" && reactExports.memo(function(props) {
-  return null;
-})["$$typeof"];
-function observer$1(baseComponent, options2) {
-  var _a2;
-  if (ReactMemoSymbol && baseComponent["$$typeof"] === ReactMemoSymbol) {
-    throw new Error("[mobx-react-lite] You are trying to use `observer` on a function component wrapped in either another `observer` or `React.memo`. The observer already applies 'React.memo' for you.");
-  }
-  var useForwardRef = (_a2 = void 0) !== null && _a2 !== void 0 ? _a2 : false;
-  var render = baseComponent;
-  var baseComponentName = baseComponent.displayName || baseComponent.name;
-  if (ReactForwardRefSymbol && baseComponent["$$typeof"] === ReactForwardRefSymbol) {
-    useForwardRef = true;
-    render = baseComponent["render"];
-    if (typeof render !== "function") {
-      throw new Error("[mobx-react-lite] `render` property of ForwardRef was not a function");
-    }
-  }
-  var observerComponent = function(props, ref) {
-    return useObserver(function() {
-      return render(props, ref);
-    }, baseComponentName);
-  };
-  observerComponent.displayName = baseComponent.displayName;
-  Object.defineProperty(observerComponent, "name", {
-    value: baseComponent.name,
-    writable: true,
-    configurable: true
-  });
-  if (baseComponent.contextTypes) {
-    observerComponent.contextTypes = baseComponent.contextTypes;
-  }
-  if (useForwardRef) {
-    observerComponent = reactExports.forwardRef(observerComponent);
-  }
-  observerComponent = reactExports.memo(observerComponent);
-  copyStaticProperties(baseComponent, observerComponent);
-  return observerComponent;
-}
-var hoistBlackList = {
-  $$typeof: true,
-  render: true,
-  compare: true,
-  type: true,
-  // Don't redefine `displayName`,
-  // it's defined as getter-setter pair on `memo` (see #3192).
-  displayName: true
-};
-function copyStaticProperties(base, target) {
-  Object.keys(base).forEach(function(key) {
-    if (!hoistBlackList[key]) {
-      Object.defineProperty(target, key, Object.getOwnPropertyDescriptor(base, key));
-    }
-  });
-}
-var _a;
-observerBatching(reactDomExports.unstable_batchedUpdates);
-(_a = observerFinalizationRegistry["finalizeAllImmediately"]) !== null && _a !== void 0 ? _a : (function() {
-});
-function shallowEqual(objA, objB) {
-  if (is(objA, objB)) {
-    return true;
-  }
-  if (typeof objA !== "object" || objA === null || typeof objB !== "object" || objB === null) {
-    return false;
-  }
-  var keysA = Object.keys(objA);
-  var keysB = Object.keys(objB);
-  if (keysA.length !== keysB.length) {
-    return false;
-  }
-  for (var i2 = 0; i2 < keysA.length; i2++) {
-    if (!Object.hasOwnProperty.call(objB, keysA[i2]) || !is(objA[keysA[i2]], objB[keysA[i2]])) {
-      return false;
-    }
-  }
-  return true;
-}
-function is(x, y) {
-  if (x === y) {
-    return x !== 0 || 1 / x === 1 / y;
-  } else {
-    return x !== x && y !== y;
-  }
-}
-var mobxMixins = /* @__PURE__ */ Symbol("patchMixins");
-var mobxPatchedDefinition = /* @__PURE__ */ Symbol("patchedDefinition");
-function getMixins(target, methodName) {
-  var mixins = target[mobxMixins] = target[mobxMixins] || {};
-  var methodMixins = mixins[methodName] = mixins[methodName] || {};
-  methodMixins.locks = methodMixins.locks || 0;
-  methodMixins.methods = methodMixins.methods || [];
-  return methodMixins;
-}
-function wrapper(realMethod, mixins) {
-  var _this = this;
-  for (var _len = arguments.length, args = new Array(_len > 2 ? _len - 2 : 0), _key = 2; _key < _len; _key++) {
-    args[_key - 2] = arguments[_key];
-  }
-  mixins.locks++;
-  try {
-    var retVal;
-    if (realMethod !== void 0 && realMethod !== null) {
-      retVal = realMethod.apply(this, args);
-    }
-    return retVal;
-  } finally {
-    mixins.locks--;
-    if (mixins.locks === 0) {
-      mixins.methods.forEach(function(mx) {
-        mx.apply(_this, args);
-      });
-    }
-  }
-}
-function wrapFunction(realMethod, mixins) {
-  var fn = function fn2() {
-    for (var _len2 = arguments.length, args = new Array(_len2), _key2 = 0; _key2 < _len2; _key2++) {
-      args[_key2] = arguments[_key2];
-    }
-    wrapper.call.apply(wrapper, [this, realMethod, mixins].concat(args));
-  };
-  return fn;
-}
-function patch(target, methodName, mixinMethod) {
-  var mixins = getMixins(target, methodName);
-  if (mixins.methods.indexOf(mixinMethod) < 0) {
-    mixins.methods.push(mixinMethod);
-  }
-  var oldDefinition = Object.getOwnPropertyDescriptor(target, methodName);
-  if (oldDefinition && oldDefinition[mobxPatchedDefinition]) {
-    return;
-  }
-  var originalMethod = target[methodName];
-  var newDefinition = createDefinition(target, methodName, oldDefinition ? oldDefinition.enumerable : void 0, mixins, originalMethod);
-  Object.defineProperty(target, methodName, newDefinition);
-}
-function createDefinition(target, methodName, enumerable, mixins, originalMethod) {
-  var _ref3;
-  var wrappedFunc = wrapFunction(originalMethod, mixins);
-  return _ref3 = {}, _ref3[mobxPatchedDefinition] = true, _ref3.get = function get4() {
-    return wrappedFunc;
-  }, _ref3.set = function set2(value) {
-    if (this === target) {
-      wrappedFunc = wrapFunction(value, mixins);
-    } else {
-      var newDefinition = createDefinition(this, methodName, enumerable, mixins, value);
-      Object.defineProperty(this, methodName, newDefinition);
-    }
-  }, _ref3.configurable = true, _ref3.enumerable = enumerable, _ref3;
-}
-var administrationSymbol = /* @__PURE__ */ Symbol("ObserverAdministration");
-var isMobXReactObserverSymbol = /* @__PURE__ */ Symbol("isMobXReactObserver");
-function getAdministration(component) {
-  var _component$administra;
-  return (_component$administra = component[administrationSymbol]) != null ? _component$administra : component[administrationSymbol] = {
-    reaction: null,
-    mounted: false,
-    reactionInvalidatedBeforeMount: false,
-    forceUpdate: null,
-    name: getDisplayName(component.constructor),
-    state: void 0,
-    props: void 0,
-    context: void 0
-  };
-}
-function makeClassComponentObserver(componentClass) {
-  var prototype = componentClass.prototype;
-  if (componentClass[isMobXReactObserverSymbol]) {
-    var displayName = getDisplayName(componentClass);
-    throw new Error("The provided component class (" + displayName + ") has already been declared as an observer component.");
-  } else {
-    componentClass[isMobXReactObserverSymbol] = true;
-  }
-  if (prototype.componentWillReact) {
-    throw new Error("The componentWillReact life-cycle event is no longer supported");
-  }
-  if (componentClass["__proto__"] !== reactExports.PureComponent) {
-    if (!prototype.shouldComponentUpdate) {
-      prototype.shouldComponentUpdate = observerSCU;
-    } else if (prototype.shouldComponentUpdate !== observerSCU) {
-      throw new Error("It is not allowed to use shouldComponentUpdate in observer based components.");
-    }
-  }
-  var originalRender = prototype.render;
-  if (typeof originalRender !== "function") {
-    var _displayName = getDisplayName(componentClass);
-    throw new Error("[mobx-react] class component (" + _displayName + ") is missing `render` method.\n`observer` requires `render` being a function defined on prototype.\n`render = () => {}` or `render = function() {}` is not supported.");
-  }
-  prototype.render = function() {
-    Object.defineProperty(this, "render", {
-      // There is no safe way to replace render, therefore it's forbidden.
-      configurable: false,
-      writable: false,
-      value: createReactiveRender.call(this, originalRender)
-    });
-    return this.render();
-  };
-  var originalComponentDidMount = prototype.componentDidMount;
-  prototype.componentDidMount = function() {
-    var _this = this;
-    var admin = getAdministration(this);
-    admin.mounted = true;
-    observerFinalizationRegistry.unregister(this);
-    admin.forceUpdate = function() {
-      return _this.forceUpdate();
-    };
-    if (!admin.reaction || admin.reactionInvalidatedBeforeMount) {
-      admin.forceUpdate();
-    }
-    return originalComponentDidMount == null ? void 0 : originalComponentDidMount.apply(this, arguments);
-  };
-  patch(prototype, "componentWillUnmount", function() {
-    var _admin$reaction;
-    var admin = getAdministration(this);
-    (_admin$reaction = admin.reaction) == null ? void 0 : _admin$reaction.dispose();
-    admin.reaction = null;
-    admin.forceUpdate = null;
-    admin.mounted = false;
-    admin.reactionInvalidatedBeforeMount = false;
-  });
-  return componentClass;
-}
-function getDisplayName(componentClass) {
-  return componentClass.displayName || componentClass.name || "<component>";
-}
-function createReactiveRender(originalRender) {
-  var boundOriginalRender = originalRender.bind(this);
-  var admin = getAdministration(this);
-  function reactiveRender() {
-    if (!admin.reaction) {
-      admin.reaction = createReaction(admin);
-      if (!admin.mounted) {
-        observerFinalizationRegistry.register(this, admin, this);
-      }
-    }
-    var error = void 0;
-    var renderResult = void 0;
-    admin.reaction.track(function() {
-      try {
-        renderResult = allowStateChanges(false, boundOriginalRender);
-      } catch (e) {
-        error = e;
-      }
-    });
-    if (error) {
-      throw error;
-    }
-    return renderResult;
-  }
-  return reactiveRender;
-}
-function createReaction(admin) {
-  return new Reaction(admin.name + ".render()", function() {
-    if (!admin.mounted) {
-      admin.reactionInvalidatedBeforeMount = true;
-      return;
-    }
-    try {
-      admin.forceUpdate == null ? void 0 : admin.forceUpdate();
-    } catch (error) {
-      var _admin$reaction2;
-      (_admin$reaction2 = admin.reaction) == null ? void 0 : _admin$reaction2.dispose();
-      admin.reaction = null;
-    }
-  });
-}
-function observerSCU(nextProps, nextState) {
-  if (this.state !== nextState) {
-    return true;
-  }
-  return !shallowEqual(this.props, nextProps);
-}
-function observer(component, context2) {
-  if (component["isMobxInjector"] === true) {
-    console.warn("Mobx observer: You are trying to use `observer` on a component that already has `inject`. Please apply `observer` before applying `inject`");
-  }
-  if (Object.prototype.isPrototypeOf.call(reactExports.Component, component) || Object.prototype.isPrototypeOf.call(reactExports.PureComponent, component)) {
-    return makeClassComponentObserver(component);
-  } else {
-    return observer$1(component);
-  }
-}
-/* @__PURE__ */ Number.parseInt(React.version.split(".")[0]);
-if (!reactExports.Component) {
-  throw new Error("mobx-react requires React to be available");
-}
-if (!observable) {
-  throw new Error("mobx-react requires mobx to be available");
-}
-function _extends$1() {
-  _extends$1 = Object.assign ? Object.assign.bind() : function(target) {
-    for (var i2 = 1; i2 < arguments.length; i2++) {
-      var source = arguments[i2];
-      for (var key in source) {
-        if (Object.prototype.hasOwnProperty.call(source, key)) {
-          target[key] = source[key];
-        }
-      }
-    }
-    return target;
-  };
-  return _extends$1.apply(this, arguments);
-}
-function _objectWithoutPropertiesLoose$1(source, excluded) {
-  if (source == null) return {};
-  var target = {};
-  var sourceKeys = Object.keys(source);
-  var key, i2;
-  for (i2 = 0; i2 < sourceKeys.length; i2++) {
-    key = sourceKeys[i2];
-    if (excluded.indexOf(key) >= 0) continue;
-    target[key] = source[key];
-  }
-  return target;
-}
-var classnames = { exports: {} };
-var hasRequiredClassnames;
-function requireClassnames() {
-  if (hasRequiredClassnames) return classnames.exports;
-  hasRequiredClassnames = 1;
-  (function(module) {
-    (function() {
-      var hasOwn = {}.hasOwnProperty;
-      function classNames2() {
-        var classes = [];
-        for (var i2 = 0; i2 < arguments.length; i2++) {
-          var arg = arguments[i2];
-          if (!arg) continue;
-          var argType = typeof arg;
-          if (argType === "string" || argType === "number") {
-            classes.push(arg);
-          } else if (Array.isArray(arg)) {
-            if (arg.length) {
-              var inner = classNames2.apply(null, arg);
-              if (inner) {
-                classes.push(inner);
-              }
-            }
-          } else if (argType === "object") {
-            if (arg.toString === Object.prototype.toString) {
-              for (var key in arg) {
-                if (hasOwn.call(arg, key) && arg[key]) {
-                  classes.push(key);
-                }
-              }
-            } else {
-              classes.push(arg.toString());
-            }
-          }
-        }
-        return classes.join(" ");
-      }
-      if (module.exports) {
-        classNames2.default = classNames2;
-        module.exports = classNames2;
-      } else {
-        window.classNames = classNames2;
-      }
-    })();
-  })(classnames);
-  return classnames.exports;
-}
-var classnamesExports = requireClassnames();
-const classNames$1 = /* @__PURE__ */ getDefaultExportFromCjs(classnamesExports);
-function defaultKey(key) {
-  return "default" + key.charAt(0).toUpperCase() + key.substr(1);
-}
-function _toPropertyKey(arg) {
-  var key = _toPrimitive(arg, "string");
-  return typeof key === "symbol" ? key : String(key);
-}
-function _toPrimitive(input, hint) {
-  if (typeof input !== "object" || input === null) return input;
-  var prim = input[Symbol.toPrimitive];
-  if (prim !== void 0) {
-    var res = prim.call(input, hint);
-    if (typeof res !== "object") return res;
-    throw new TypeError("@@toPrimitive must return a primitive value.");
-  }
-  return String(input);
-}
-function useUncontrolledProp(propValue, defaultValue, handler) {
-  var wasPropRef = reactExports.useRef(propValue !== void 0);
-  var _useState = reactExports.useState(defaultValue), stateValue = _useState[0], setState = _useState[1];
-  var isProp = propValue !== void 0;
-  var wasProp = wasPropRef.current;
-  wasPropRef.current = isProp;
-  if (!isProp && wasProp && stateValue !== defaultValue) {
-    setState(defaultValue);
-  }
-  return [isProp ? propValue : stateValue, reactExports.useCallback(function(value) {
-    for (var _len = arguments.length, args = new Array(_len > 1 ? _len - 1 : 0), _key = 1; _key < _len; _key++) {
-      args[_key - 1] = arguments[_key];
-    }
-    if (handler) handler.apply(void 0, [value].concat(args));
-    setState(value);
-  }, [handler])];
-}
-function useUncontrolled(props, config2) {
-  return Object.keys(config2).reduce(function(result, fieldName) {
-    var _extends2;
-    var _ref3 = result, defaultValue = _ref3[defaultKey(fieldName)], propsValue = _ref3[fieldName], rest = _objectWithoutPropertiesLoose$1(_ref3, [defaultKey(fieldName), fieldName].map(_toPropertyKey));
-    var handlerName = config2[fieldName];
-    var _useUncontrolledProp = useUncontrolledProp(propsValue, defaultValue, props[handlerName]), value = _useUncontrolledProp[0], handler = _useUncontrolledProp[1];
-    return _extends$1({}, rest, (_extends2 = {}, _extends2[fieldName] = value, _extends2[handlerName] = handler, _extends2));
-  }, props);
-}
-function _setPrototypeOf(o, p) {
-  _setPrototypeOf = Object.setPrototypeOf ? Object.setPrototypeOf.bind() : function _setPrototypeOf2(o2, p2) {
-    o2.__proto__ = p2;
-    return o2;
-  };
-  return _setPrototypeOf(o, p);
-}
-function _inheritsLoose(subClass, superClass) {
-  subClass.prototype = Object.create(superClass.prototype);
-  subClass.prototype.constructor = subClass;
-  _setPrototypeOf(subClass, superClass);
-}
-var ThemeContext$1 = /* @__PURE__ */ React.createContext({});
-ThemeContext$1.Consumer;
-ThemeContext$1.Provider;
-function useBootstrapPrefix(prefix2, defaultPrefix) {
-  var prefixes = reactExports.useContext(ThemeContext$1);
-  return prefix2 || prefixes[defaultPrefix] || defaultPrefix;
-}
-var SelectableContext = /* @__PURE__ */ React.createContext(null);
-var makeEventKey = function makeEventKey2(eventKey, href) {
-  if (href === void 0) {
-    href = null;
-  }
-  if (eventKey != null) return String(eventKey);
-  return href || null;
-};
-function ownerDocument(node2) {
-  return node2 && node2.ownerDocument || document;
-}
-function ownerWindow(node2) {
-  var doc = ownerDocument(node2);
-  return doc && doc.defaultView || window;
-}
-function getComputedStyle$3(node2, psuedoElement) {
-  return ownerWindow(node2).getComputedStyle(node2, psuedoElement);
-}
-var rUpper = /([A-Z])/g;
-function hyphenate(string2) {
-  return string2.replace(rUpper, "-$1").toLowerCase();
-}
-var msPattern = /^ms-/;
-function hyphenateStyleName(string2) {
-  return hyphenate(string2).replace(msPattern, "-ms-");
-}
-var supportedTransforms = /^((translate|rotate|scale)(X|Y|Z|3d)?|matrix(3d)?|perspective|skew(X|Y)?)$/i;
-function isTransform(value) {
-  return !!(value && supportedTransforms.test(value));
-}
-function style(node2, property) {
-  var css4 = "";
-  var transforms = "";
-  if (typeof property === "string") {
-    return node2.style.getPropertyValue(hyphenateStyleName(property)) || getComputedStyle$3(node2).getPropertyValue(hyphenateStyleName(property));
-  }
-  Object.keys(property).forEach(function(key) {
-    var value = property[key];
-    if (!value && value !== 0) {
-      node2.style.removeProperty(hyphenateStyleName(key));
-    } else if (isTransform(key)) {
-      transforms += key + "(" + value + ") ";
-    } else {
-      css4 += hyphenateStyleName(key) + ": " + value + ";";
-    }
-  });
-  if (transforms) {
-    css4 += "transform: " + transforms + ";";
-  }
-  node2.style.cssText += ";" + css4;
-}
-var propTypes$3 = { exports: {} };
-var ReactPropTypesSecret_1;
-var hasRequiredReactPropTypesSecret;
-function requireReactPropTypesSecret() {
-  if (hasRequiredReactPropTypesSecret) return ReactPropTypesSecret_1;
-  hasRequiredReactPropTypesSecret = 1;
-  var ReactPropTypesSecret = "SECRET_DO_NOT_PASS_THIS_OR_YOU_WILL_BE_FIRED";
-  ReactPropTypesSecret_1 = ReactPropTypesSecret;
-  return ReactPropTypesSecret_1;
-}
-var factoryWithThrowingShims;
-var hasRequiredFactoryWithThrowingShims;
-function requireFactoryWithThrowingShims() {
-  if (hasRequiredFactoryWithThrowingShims) return factoryWithThrowingShims;
-  hasRequiredFactoryWithThrowingShims = 1;
-  var ReactPropTypesSecret = requireReactPropTypesSecret();
-  function emptyFunction() {
-  }
-  function emptyFunctionWithReset() {
-  }
-  emptyFunctionWithReset.resetWarningCache = emptyFunction;
-  factoryWithThrowingShims = function() {
-    function shim2(props, propName, componentName, location, propFullName, secret) {
-      if (secret === ReactPropTypesSecret) {
-        return;
-      }
-      var err = new Error(
-        "Calling PropTypes validators directly is not supported by the `prop-types` package. Use PropTypes.checkPropTypes() to call them. Read more at http://fb.me/use-check-prop-types"
-      );
-      err.name = "Invariant Violation";
-      throw err;
-    }
-    shim2.isRequired = shim2;
-    function getShim() {
-      return shim2;
-    }
-    var ReactPropTypes = {
-      array: shim2,
-      bool: shim2,
-      func: shim2,
-      number: shim2,
-      object: shim2,
-      string: shim2,
-      symbol: shim2,
-      any: shim2,
-      arrayOf: getShim,
-      element: shim2,
-      elementType: shim2,
-      instanceOf: getShim,
-      node: shim2,
-      objectOf: getShim,
-      oneOf: getShim,
-      oneOfType: getShim,
-      shape: getShim,
-      exact: getShim,
-      checkPropTypes: emptyFunctionWithReset,
-      resetWarningCache: emptyFunction
-    };
-    ReactPropTypes.PropTypes = ReactPropTypes;
-    return ReactPropTypes;
-  };
-  return factoryWithThrowingShims;
-}
-var hasRequiredPropTypes;
-function requirePropTypes() {
-  if (hasRequiredPropTypes) return propTypes$3.exports;
-  hasRequiredPropTypes = 1;
-  {
-    propTypes$3.exports = requireFactoryWithThrowingShims()();
-  }
-  return propTypes$3.exports;
-}
-var propTypesExports = requirePropTypes();
-const PropTypes = /* @__PURE__ */ getDefaultExportFromCjs(propTypesExports);
-const config = {
-  disabled: false
-};
-const TransitionGroupContext = React.createContext(null);
-var forceReflow = function forceReflow2(node2) {
-  return node2.scrollTop;
-};
-var UNMOUNTED = "unmounted";
-var EXITED = "exited";
-var ENTERING = "entering";
-var ENTERED = "entered";
-var EXITING = "exiting";
-var Transition = /* @__PURE__ */ (function(_React$Component) {
-  _inheritsLoose(Transition2, _React$Component);
-  function Transition2(props, context2) {
-    var _this;
-    _this = _React$Component.call(this, props, context2) || this;
-    var parentGroup = context2;
-    var appear = parentGroup && !parentGroup.isMounting ? props.enter : props.appear;
-    var initialStatus;
-    _this.appearStatus = null;
-    if (props.in) {
-      if (appear) {
-        initialStatus = EXITED;
-        _this.appearStatus = ENTERING;
-      } else {
-        initialStatus = ENTERED;
-      }
-    } else {
-      if (props.unmountOnExit || props.mountOnEnter) {
-        initialStatus = UNMOUNTED;
-      } else {
-        initialStatus = EXITED;
-      }
-    }
-    _this.state = {
-      status: initialStatus
-    };
-    _this.nextCallback = null;
-    return _this;
-  }
-  Transition2.getDerivedStateFromProps = function getDerivedStateFromProps(_ref3, prevState) {
-    var nextIn = _ref3.in;
-    if (nextIn && prevState.status === UNMOUNTED) {
-      return {
-        status: EXITED
-      };
-    }
-    return null;
-  };
-  var _proto = Transition2.prototype;
-  _proto.componentDidMount = function componentDidMount() {
-    this.updateStatus(true, this.appearStatus);
-  };
-  _proto.componentDidUpdate = function componentDidUpdate(prevProps) {
-    var nextStatus = null;
-    if (prevProps !== this.props) {
-      var status = this.state.status;
-      if (this.props.in) {
-        if (status !== ENTERING && status !== ENTERED) {
-          nextStatus = ENTERING;
-        }
-      } else {
-        if (status === ENTERING || status === ENTERED) {
-          nextStatus = EXITING;
-        }
-      }
-    }
-    this.updateStatus(false, nextStatus);
-  };
-  _proto.componentWillUnmount = function componentWillUnmount() {
-    this.cancelNextCallback();
-  };
-  _proto.getTimeouts = function getTimeouts() {
-    var timeout2 = this.props.timeout;
-    var exit, enter, appear;
-    exit = enter = appear = timeout2;
-    if (timeout2 != null && typeof timeout2 !== "number") {
-      exit = timeout2.exit;
-      enter = timeout2.enter;
-      appear = timeout2.appear !== void 0 ? timeout2.appear : enter;
-    }
-    return {
-      exit,
-      enter,
-      appear
-    };
-  };
-  _proto.updateStatus = function updateStatus(mounting, nextStatus) {
-    if (mounting === void 0) {
-      mounting = false;
-    }
-    if (nextStatus !== null) {
-      this.cancelNextCallback();
-      if (nextStatus === ENTERING) {
-        if (this.props.unmountOnExit || this.props.mountOnEnter) {
-          var node2 = this.props.nodeRef ? this.props.nodeRef.current : ReactDOM.findDOMNode(this);
-          if (node2) forceReflow(node2);
-        }
-        this.performEnter(mounting);
-      } else {
-        this.performExit();
-      }
-    } else if (this.props.unmountOnExit && this.state.status === EXITED) {
-      this.setState({
-        status: UNMOUNTED
-      });
-    }
-  };
-  _proto.performEnter = function performEnter(mounting) {
-    var _this2 = this;
-    var enter = this.props.enter;
-    var appearing = this.context ? this.context.isMounting : mounting;
-    var _ref22 = this.props.nodeRef ? [appearing] : [ReactDOM.findDOMNode(this), appearing], maybeNode = _ref22[0], maybeAppearing = _ref22[1];
-    var timeouts = this.getTimeouts();
-    var enterTimeout = appearing ? timeouts.appear : timeouts.enter;
-    if (!mounting && !enter || config.disabled) {
-      this.safeSetState({
-        status: ENTERED
-      }, function() {
-        _this2.props.onEntered(maybeNode);
-      });
-      return;
-    }
-    this.props.onEnter(maybeNode, maybeAppearing);
-    this.safeSetState({
-      status: ENTERING
-    }, function() {
-      _this2.props.onEntering(maybeNode, maybeAppearing);
-      _this2.onTransitionEnd(enterTimeout, function() {
-        _this2.safeSetState({
-          status: ENTERED
-        }, function() {
-          _this2.props.onEntered(maybeNode, maybeAppearing);
-        });
-      });
-    });
-  };
-  _proto.performExit = function performExit() {
-    var _this3 = this;
-    var exit = this.props.exit;
-    var timeouts = this.getTimeouts();
-    var maybeNode = this.props.nodeRef ? void 0 : ReactDOM.findDOMNode(this);
-    if (!exit || config.disabled) {
-      this.safeSetState({
-        status: EXITED
-      }, function() {
-        _this3.props.onExited(maybeNode);
-      });
-      return;
-    }
-    this.props.onExit(maybeNode);
-    this.safeSetState({
-      status: EXITING
-    }, function() {
-      _this3.props.onExiting(maybeNode);
-      _this3.onTransitionEnd(timeouts.exit, function() {
-        _this3.safeSetState({
-          status: EXITED
-        }, function() {
-          _this3.props.onExited(maybeNode);
-        });
-      });
-    });
-  };
-  _proto.cancelNextCallback = function cancelNextCallback() {
-    if (this.nextCallback !== null) {
-      this.nextCallback.cancel();
-      this.nextCallback = null;
-    }
-  };
-  _proto.safeSetState = function safeSetState(nextState, callback) {
-    callback = this.setNextCallback(callback);
-    this.setState(nextState, callback);
-  };
-  _proto.setNextCallback = function setNextCallback(callback) {
-    var _this4 = this;
-    var active = true;
-    this.nextCallback = function(event) {
-      if (active) {
-        active = false;
-        _this4.nextCallback = null;
-        callback(event);
-      }
-    };
-    this.nextCallback.cancel = function() {
-      active = false;
-    };
-    return this.nextCallback;
-  };
-  _proto.onTransitionEnd = function onTransitionEnd(timeout2, handler) {
-    this.setNextCallback(handler);
-    var node2 = this.props.nodeRef ? this.props.nodeRef.current : ReactDOM.findDOMNode(this);
-    var doesNotHaveTimeoutOrListener = timeout2 == null && !this.props.addEndListener;
-    if (!node2 || doesNotHaveTimeoutOrListener) {
-      setTimeout(this.nextCallback, 0);
-      return;
-    }
-    if (this.props.addEndListener) {
-      var _ref3 = this.props.nodeRef ? [this.nextCallback] : [node2, this.nextCallback], maybeNode = _ref3[0], maybeNextCallback = _ref3[1];
-      this.props.addEndListener(maybeNode, maybeNextCallback);
-    }
-    if (timeout2 != null) {
-      setTimeout(this.nextCallback, timeout2);
-    }
-  };
-  _proto.render = function render() {
-    var status = this.state.status;
-    if (status === UNMOUNTED) {
-      return null;
-    }
-    var _this$props = this.props, children2 = _this$props.children;
-    _this$props.in;
-    _this$props.mountOnEnter;
-    _this$props.unmountOnExit;
-    _this$props.appear;
-    _this$props.enter;
-    _this$props.exit;
-    _this$props.timeout;
-    _this$props.addEndListener;
-    _this$props.onEnter;
-    _this$props.onEntering;
-    _this$props.onEntered;
-    _this$props.onExit;
-    _this$props.onExiting;
-    _this$props.onExited;
-    _this$props.nodeRef;
-    var childProps = _objectWithoutPropertiesLoose$1(_this$props, ["children", "in", "mountOnEnter", "unmountOnExit", "appear", "enter", "exit", "timeout", "addEndListener", "onEnter", "onEntering", "onEntered", "onExit", "onExiting", "onExited", "nodeRef"]);
-    return (
-      // allows for nested Transitions
-      /* @__PURE__ */ React.createElement(TransitionGroupContext.Provider, {
-        value: null
-      }, typeof children2 === "function" ? children2(status, childProps) : React.cloneElement(React.Children.only(children2), childProps))
-    );
-  };
-  return Transition2;
-})(React.Component);
-Transition.contextType = TransitionGroupContext;
-Transition.propTypes = {};
-function noop$4() {
-}
-Transition.defaultProps = {
-  in: false,
-  mountOnEnter: false,
-  unmountOnExit: false,
-  appear: false,
-  enter: true,
-  exit: true,
-  onEnter: noop$4,
-  onEntering: noop$4,
-  onEntered: noop$4,
-  onExit: noop$4,
-  onExiting: noop$4,
-  onExited: noop$4
-};
-Transition.UNMOUNTED = UNMOUNTED;
-Transition.EXITED = EXITED;
-Transition.ENTERING = ENTERING;
-Transition.ENTERED = ENTERED;
-Transition.EXITING = EXITING;
-const canUseDOM$1 = !!(typeof window !== "undefined" && window.document && window.document.createElement);
-var optionsSupported = false;
-var onceSupported = false;
-try {
-  var options$2 = {
-    get passive() {
-      return optionsSupported = true;
-    },
-    get once() {
-      return onceSupported = optionsSupported = true;
-    }
-  };
-  if (canUseDOM$1) {
-    window.addEventListener("test", options$2, options$2);
-    window.removeEventListener("test", options$2, true);
-  }
-} catch (e) {
-}
-function addEventListener(node2, eventName, handler, options2) {
-  if (options2 && typeof options2 !== "boolean" && !onceSupported) {
-    var once2 = options2.once, capture = options2.capture;
-    var wrappedHandler = handler;
-    if (!onceSupported && once2) {
-      wrappedHandler = handler.__once || function onceHandler(event) {
-        this.removeEventListener(eventName, onceHandler, capture);
-        handler.call(this, event);
-      };
-      handler.__once = wrappedHandler;
-    }
-    node2.addEventListener(eventName, wrappedHandler, optionsSupported ? options2 : capture);
-  }
-  node2.addEventListener(eventName, handler, options2);
-}
-function removeEventListener(node2, eventName, handler, options2) {
-  var capture = options2 && typeof options2 !== "boolean" ? options2.capture : options2;
-  node2.removeEventListener(eventName, handler, capture);
-  if (handler.__once) {
-    node2.removeEventListener(eventName, handler.__once, capture);
-  }
-}
-function listen$1(node2, eventName, handler, options2) {
-  addEventListener(node2, eventName, handler, options2);
-  return function() {
-    removeEventListener(node2, eventName, handler, options2);
-  };
-}
-function triggerEvent(node2, eventName, bubbles, cancelable) {
-  if (cancelable === void 0) {
-    cancelable = true;
-  }
-  if (node2) {
-    var event = document.createEvent("HTMLEvents");
-    event.initEvent(eventName, bubbles, cancelable);
-    node2.dispatchEvent(event);
-  }
-}
-function parseDuration$1(node2) {
-  var str = style(node2, "transitionDuration") || "";
-  var mult = str.indexOf("ms") === -1 ? 1e3 : 1;
-  return parseFloat(str) * mult;
-}
-function emulateTransitionEnd(element2, duration, padding) {
-  if (padding === void 0) {
-    padding = 5;
-  }
-  var called = false;
-  var handle = setTimeout(function() {
-    if (!called) triggerEvent(element2, "transitionend", true);
-  }, duration + padding);
-  var remove = listen$1(element2, "transitionend", function() {
-    called = true;
-  }, {
-    once: true
-  });
-  return function() {
-    clearTimeout(handle);
-    remove();
-  };
-}
-function transitionEnd(element2, handler, duration, padding) {
-  if (duration == null) duration = parseDuration$1(element2) || 0;
-  var removeEmulate = emulateTransitionEnd(element2, duration, padding);
-  var remove = listen$1(element2, "transitionend", handler);
-  return function() {
-    removeEmulate();
-    remove();
-  };
-}
-function parseDuration(node2, property) {
-  var str = style(node2, property) || "";
-  var mult = str.indexOf("ms") === -1 ? 1e3 : 1;
-  return parseFloat(str) * mult;
-}
-function transitionEndListener(element2, handler) {
-  var duration = parseDuration(element2, "transitionDuration");
-  var delay = parseDuration(element2, "transitionDelay");
-  var remove = transitionEnd(element2, function(e) {
-    if (e.target === element2) {
-      remove();
-      handler(e);
-    }
-  }, duration + delay);
-}
-function createChainedFunction() {
-  for (var _len = arguments.length, funcs = new Array(_len), _key = 0; _key < _len; _key++) {
-    funcs[_key] = arguments[_key];
-  }
-  return funcs.filter(function(f) {
-    return f != null;
-  }).reduce(function(acc, f) {
-    if (typeof f !== "function") {
-      throw new Error("Invalid Argument Type, must only provide functions, undefined, or null.");
-    }
-    if (acc === null) return f;
-    return function chainedFunction() {
-      for (var _len2 = arguments.length, args = new Array(_len2), _key2 = 0; _key2 < _len2; _key2++) {
-        args[_key2] = arguments[_key2];
-      }
-      acc.apply(this, args);
-      f.apply(this, args);
-    };
-  }, null);
-}
-function triggerBrowserReflow(node2) {
-  node2.offsetHeight;
-}
-var _collapseStyles;
-var MARGINS = {
-  height: ["marginTop", "marginBottom"],
-  width: ["marginLeft", "marginRight"]
-};
-function getDefaultDimensionValue(dimension, elem) {
-  var offset2 = "offset" + dimension[0].toUpperCase() + dimension.slice(1);
-  var value = elem[offset2];
-  var margins = MARGINS[dimension];
-  return value + // @ts-ignore
-  parseInt(style(elem, margins[0]), 10) + // @ts-ignore
-  parseInt(style(elem, margins[1]), 10);
-}
-var collapseStyles = (_collapseStyles = {}, _collapseStyles[EXITED] = "collapse", _collapseStyles[EXITING] = "collapsing", _collapseStyles[ENTERING] = "collapsing", _collapseStyles[ENTERED] = "collapse show", _collapseStyles);
-var defaultProps$g = {
-  in: false,
-  timeout: 300,
-  mountOnEnter: false,
-  unmountOnExit: false,
-  appear: false,
-  getDimensionValue: getDefaultDimensionValue
-};
-var Collapse = /* @__PURE__ */ React.forwardRef(function(_ref3, ref) {
-  var onEnter = _ref3.onEnter, onEntering = _ref3.onEntering, onEntered = _ref3.onEntered, onExit = _ref3.onExit, onExiting = _ref3.onExiting, className = _ref3.className, children2 = _ref3.children, _ref$dimension = _ref3.dimension, dimension = _ref$dimension === void 0 ? "height" : _ref$dimension, _ref$getDimensionValu = _ref3.getDimensionValue, getDimensionValue = _ref$getDimensionValu === void 0 ? getDefaultDimensionValue : _ref$getDimensionValu, props = _objectWithoutPropertiesLoose$1(_ref3, ["onEnter", "onEntering", "onEntered", "onExit", "onExiting", "className", "children", "dimension", "getDimensionValue"]);
-  var computedDimension = typeof dimension === "function" ? dimension() : dimension;
-  var handleEnter = reactExports.useMemo(function() {
-    return createChainedFunction(function(elem) {
-      elem.style[computedDimension] = "0";
-    }, onEnter);
-  }, [computedDimension, onEnter]);
-  var handleEntering = reactExports.useMemo(function() {
-    return createChainedFunction(function(elem) {
-      var scroll2 = "scroll" + computedDimension[0].toUpperCase() + computedDimension.slice(1);
-      elem.style[computedDimension] = elem[scroll2] + "px";
-    }, onEntering);
-  }, [computedDimension, onEntering]);
-  var handleEntered = reactExports.useMemo(function() {
-    return createChainedFunction(function(elem) {
-      elem.style[computedDimension] = null;
-    }, onEntered);
-  }, [computedDimension, onEntered]);
-  var handleExit = reactExports.useMemo(function() {
-    return createChainedFunction(function(elem) {
-      elem.style[computedDimension] = getDimensionValue(computedDimension, elem) + "px";
-      triggerBrowserReflow(elem);
-    }, onExit);
-  }, [onExit, getDimensionValue, computedDimension]);
-  var handleExiting = reactExports.useMemo(function() {
-    return createChainedFunction(function(elem) {
-      elem.style[computedDimension] = null;
-    }, onExiting);
-  }, [computedDimension, onExiting]);
-  return /* @__PURE__ */ React.createElement(
-    Transition,
-    _extends$1({
-      ref,
-      addEndListener: transitionEndListener
-    }, props, {
-      "aria-expanded": props.role ? props.in : null,
-      onEnter: handleEnter,
-      onEntering: handleEntering,
-      onEntered: handleEntered,
-      onExit: handleExit,
-      onExiting: handleExiting
-    }),
-    function(state, innerProps) {
-      return /* @__PURE__ */ React.cloneElement(children2, _extends$1({}, innerProps, {
-        className: classNames$1(className, children2.props.className, collapseStyles[state], computedDimension === "width" && "width")
-      }));
-    }
-  );
-});
-Collapse.defaultProps = defaultProps$g;
-function useCommittedRef$1(value) {
-  var ref = reactExports.useRef(value);
-  reactExports.useEffect(function() {
-    ref.current = value;
-  }, [value]);
-  return ref;
-}
-function useEventCallback$1(fn) {
-  var ref = useCommittedRef$1(fn);
-  return reactExports.useCallback(function() {
-    return ref.current && ref.current.apply(ref, arguments);
-  }, [ref]);
-}
-var _fadeStyles;
-var defaultProps$f = {
-  in: false,
-  timeout: 300,
-  mountOnEnter: false,
-  unmountOnExit: false,
-  appear: false
-};
-var fadeStyles = (_fadeStyles = {}, _fadeStyles[ENTERING] = "show", _fadeStyles[ENTERED] = "show", _fadeStyles);
-var Fade = /* @__PURE__ */ React.forwardRef(function(_ref3, ref) {
-  var className = _ref3.className, children2 = _ref3.children, props = _objectWithoutPropertiesLoose$1(_ref3, ["className", "children"]);
-  var handleEnter = reactExports.useCallback(function(node2) {
-    triggerBrowserReflow(node2);
-    if (props.onEnter) props.onEnter(node2);
-  }, [props]);
-  return /* @__PURE__ */ React.createElement(Transition, _extends$1({
-    ref,
-    addEndListener: transitionEndListener
-  }, props, {
-    onEnter: handleEnter
-  }), function(status, innerProps) {
-    return /* @__PURE__ */ React.cloneElement(children2, _extends$1({}, innerProps, {
-      className: classNames$1("fade", className, children2.props.className, fadeStyles[status])
-    }));
-  });
-});
-Fade.defaultProps = defaultProps$f;
-Fade.displayName = "Fade";
-var propTypes$2 = {
-  label: PropTypes.string.isRequired,
-  onClick: PropTypes.func
-};
-var defaultProps$e = {
-  label: "Close"
-};
-var CloseButton = /* @__PURE__ */ React.forwardRef(function(_ref3, ref) {
-  var label = _ref3.label, onClick = _ref3.onClick, className = _ref3.className, props = _objectWithoutPropertiesLoose$1(_ref3, ["label", "onClick", "className"]);
-  return /* @__PURE__ */ React.createElement("button", _extends$1({
-    ref,
-    type: "button",
-    className: classNames$1("close", className),
-    onClick
-  }, props), /* @__PURE__ */ React.createElement("span", {
-    "aria-hidden": "true"
-  }, "×"), /* @__PURE__ */ React.createElement("span", {
-    className: "sr-only"
-  }, label));
-});
-CloseButton.displayName = "CloseButton";
-CloseButton.propTypes = propTypes$2;
-CloseButton.defaultProps = defaultProps$e;
-const divWithClassName = (function(className) {
-  return /* @__PURE__ */ React.forwardRef(function(p, ref) {
-    return /* @__PURE__ */ React.createElement("div", _extends$1({}, p, {
-      ref,
-      className: classNames$1(p.className, className)
-    }));
-  });
-});
-var rHyphen = /-(.)/g;
-function camelize(string2) {
-  return string2.replace(rHyphen, function(_, chr) {
-    return chr.toUpperCase();
-  });
-}
-var pascalCase = function pascalCase2(str) {
-  return str[0].toUpperCase() + camelize(str).slice(1);
-};
-function createWithBsPrefix(prefix2, _temp) {
-  var _ref3 = _temp === void 0 ? {} : _temp, _ref$displayName = _ref3.displayName, displayName = _ref$displayName === void 0 ? pascalCase(prefix2) : _ref$displayName, Component = _ref3.Component, defaultProps2 = _ref3.defaultProps;
-  var BsComponent = /* @__PURE__ */ React.forwardRef(function(_ref22, ref) {
-    var className = _ref22.className, bsPrefix = _ref22.bsPrefix, _ref2$as = _ref22.as, Tag = _ref2$as === void 0 ? Component || "div" : _ref2$as, props = _objectWithoutPropertiesLoose$1(_ref22, ["className", "bsPrefix", "as"]);
-    var resolvedPrefix = useBootstrapPrefix(bsPrefix, prefix2);
-    return /* @__PURE__ */ React.createElement(Tag, _extends$1({
-      ref,
-      className: classNames$1(className, resolvedPrefix)
-    }, props));
-  });
-  BsComponent.defaultProps = defaultProps2;
-  BsComponent.displayName = displayName;
-  return BsComponent;
-}
-function isTrivialHref(href) {
-  return !href || href.trim() === "#";
-}
-var SafeAnchor = /* @__PURE__ */ React.forwardRef(function(_ref3, ref) {
-  var _ref$as = _ref3.as, Component = _ref$as === void 0 ? "a" : _ref$as, disabled = _ref3.disabled, onKeyDown = _ref3.onKeyDown, props = _objectWithoutPropertiesLoose$1(_ref3, ["as", "disabled", "onKeyDown"]);
-  var handleClick = function handleClick2(event) {
-    var href = props.href, onClick = props.onClick;
-    if (disabled || isTrivialHref(href)) {
-      event.preventDefault();
-    }
-    if (disabled) {
-      event.stopPropagation();
-      return;
-    }
-    if (onClick) {
-      onClick(event);
-    }
-  };
-  var handleKeyDown = function handleKeyDown2(event) {
-    if (event.key === " ") {
-      event.preventDefault();
-      handleClick(event);
-    }
-  };
-  if (isTrivialHref(props.href)) {
-    props.role = props.role || "button";
-    props.href = props.href || "#";
-  }
-  if (disabled) {
-    props.tabIndex = -1;
-    props["aria-disabled"] = true;
-  }
-  return /* @__PURE__ */ React.createElement(Component, _extends$1({
-    ref
-  }, props, {
-    onClick: handleClick,
-    onKeyDown: createChainedFunction(handleKeyDown, onKeyDown)
-  }));
-});
-SafeAnchor.displayName = "SafeAnchor";
-var DivStyledAsH4$1 = divWithClassName("h4");
-DivStyledAsH4$1.displayName = "DivStyledAsH4";
-var AlertHeading = createWithBsPrefix("alert-heading", {
-  Component: DivStyledAsH4$1
-});
-var AlertLink = createWithBsPrefix("alert-link", {
-  Component: SafeAnchor
-});
-var defaultProps$d = {
-  show: true,
-  transition: Fade,
-  closeLabel: "Close alert"
-};
-var Alert = /* @__PURE__ */ React.forwardRef(function(uncontrolledProps, ref) {
-  var _useUncontrolled = useUncontrolled(uncontrolledProps, {
-    show: "onClose"
-  }), bsPrefix = _useUncontrolled.bsPrefix, show = _useUncontrolled.show, closeLabel = _useUncontrolled.closeLabel, className = _useUncontrolled.className, children2 = _useUncontrolled.children, variant = _useUncontrolled.variant, onClose = _useUncontrolled.onClose, dismissible = _useUncontrolled.dismissible, transition = _useUncontrolled.transition, props = _objectWithoutPropertiesLoose$1(_useUncontrolled, ["bsPrefix", "show", "closeLabel", "className", "children", "variant", "onClose", "dismissible", "transition"]);
-  var prefix2 = useBootstrapPrefix(bsPrefix, "alert");
-  var handleClose = useEventCallback$1(function(e) {
-    if (onClose) {
-      onClose(false, e);
-    }
-  });
-  var Transition2 = transition === true ? Fade : transition;
-  var alert = /* @__PURE__ */ React.createElement("div", _extends$1({
-    role: "alert"
-  }, !Transition2 ? props : void 0, {
-    ref,
-    className: classNames$1(className, prefix2, variant && prefix2 + "-" + variant, dismissible && prefix2 + "-dismissible")
-  }), dismissible && /* @__PURE__ */ React.createElement(CloseButton, {
-    onClick: handleClose,
-    label: closeLabel
-  }), children2);
-  if (!Transition2) return show ? alert : null;
-  return /* @__PURE__ */ React.createElement(Transition2, _extends$1({
-    unmountOnExit: true
-  }, props, {
-    ref: void 0,
-    in: show
-  }), alert);
-});
-Alert.displayName = "Alert";
-Alert.defaultProps = defaultProps$d;
-Alert.Link = AlertLink;
-Alert.Heading = AlertHeading;
-var defaultProps$c = {
-  pill: false
-};
-var Badge = /* @__PURE__ */ React.forwardRef(function(_ref3, ref) {
-  var bsPrefix = _ref3.bsPrefix, variant = _ref3.variant, pill = _ref3.pill, className = _ref3.className, _ref$as = _ref3.as, Component = _ref$as === void 0 ? "span" : _ref$as, props = _objectWithoutPropertiesLoose$1(_ref3, ["bsPrefix", "variant", "pill", "className", "as"]);
-  var prefix2 = useBootstrapPrefix(bsPrefix, "badge");
-  return /* @__PURE__ */ React.createElement(Component, _extends$1({
-    ref
-  }, props, {
-    className: classNames$1(className, prefix2, pill && prefix2 + "-pill", variant && prefix2 + "-" + variant)
-  }));
-});
-Badge.displayName = "Badge";
-Badge.defaultProps = defaultProps$c;
-var defaultProps$b = {
-  variant: "primary",
-  active: false,
-  disabled: false
-};
-var Button = /* @__PURE__ */ React.forwardRef(function(_ref3, ref) {
-  var bsPrefix = _ref3.bsPrefix, variant = _ref3.variant, size2 = _ref3.size, active = _ref3.active, className = _ref3.className, block = _ref3.block, type2 = _ref3.type, as = _ref3.as, props = _objectWithoutPropertiesLoose$1(_ref3, ["bsPrefix", "variant", "size", "active", "className", "block", "type", "as"]);
-  var prefix2 = useBootstrapPrefix(bsPrefix, "btn");
-  var classes = classNames$1(className, prefix2, active && "active", variant && prefix2 + "-" + variant, block && prefix2 + "-block", size2 && prefix2 + "-" + size2);
-  if (props.href) {
-    return /* @__PURE__ */ React.createElement(SafeAnchor, _extends$1({}, props, {
-      as,
-      ref,
-      className: classNames$1(classes, props.disabled && "disabled")
-    }));
-  }
-  if (ref) {
-    props.ref = ref;
-  }
-  if (type2) {
-    props.type = type2;
-  } else if (!as) {
-    props.type = "button";
-  }
-  var Component = as || "button";
-  return /* @__PURE__ */ React.createElement(Component, _extends$1({}, props, {
-    className: classes
-  }));
-});
-Button.displayName = "Button";
-Button.defaultProps = defaultProps$b;
-function useUpdatedRef$1(value) {
-  var valueRef = reactExports.useRef(value);
-  valueRef.current = value;
-  return valueRef;
-}
-function useWillUnmount$1(fn) {
-  var onUnmount = useUpdatedRef$1(fn);
-  reactExports.useEffect(function() {
-    return function() {
-      return onUnmount.current();
-    };
-  }, []);
-}
-var DEVICE_SIZES = ["xl", "lg", "md", "sm", "xs"];
-var Col = /* @__PURE__ */ React.forwardRef(
-  // Need to define the default "as" during prop destructuring to be compatible with styled-components github.com/react-bootstrap/react-bootstrap/issues/3595
-  function(_ref3, ref) {
-    var bsPrefix = _ref3.bsPrefix, className = _ref3.className, _ref$as = _ref3.as, Component = _ref$as === void 0 ? "div" : _ref$as, props = _objectWithoutPropertiesLoose$1(_ref3, ["bsPrefix", "className", "as"]);
-    var prefix2 = useBootstrapPrefix(bsPrefix, "col");
-    var spans = [];
-    var classes = [];
-    DEVICE_SIZES.forEach(function(brkPoint) {
-      var propValue = props[brkPoint];
-      delete props[brkPoint];
-      var span;
-      var offset2;
-      var order;
-      if (typeof propValue === "object" && propValue != null) {
-        var _propValue$span = propValue.span;
-        span = _propValue$span === void 0 ? true : _propValue$span;
-        offset2 = propValue.offset;
-        order = propValue.order;
-      } else {
-        span = propValue;
-      }
-      var infix = brkPoint !== "xs" ? "-" + brkPoint : "";
-      if (span) spans.push(span === true ? "" + prefix2 + infix : "" + prefix2 + infix + "-" + span);
-      if (order != null) classes.push("order" + infix + "-" + order);
-      if (offset2 != null) classes.push("offset" + infix + "-" + offset2);
-    });
-    if (!spans.length) {
-      spans.push(prefix2);
-    }
-    return /* @__PURE__ */ React.createElement(Component, _extends$1({}, props, {
-      ref,
-      className: classNames$1.apply(void 0, [className].concat(spans, classes))
-    }));
-  }
-);
-Col.displayName = "Col";
-var toArray = Function.prototype.bind.call(Function.prototype.call, [].slice);
-function qsa(element2, selector) {
-  return toArray(element2.querySelectorAll(selector));
-}
-function usePrevious(value) {
-  var ref = reactExports.useRef(null);
-  reactExports.useEffect(function() {
-    ref.current = value;
-  });
-  return ref.current;
-}
-function useCommittedRef(value) {
-  var ref = reactExports.useRef(value);
-  reactExports.useEffect(function() {
-    ref.current = value;
-  }, [value]);
-  return ref;
-}
-function useEventCallback(fn) {
-  var ref = useCommittedRef(fn);
-  return reactExports.useCallback(function() {
-    return ref.current && ref.current.apply(ref, arguments);
-  }, [ref]);
-}
-function useMounted() {
-  var mounted = reactExports.useRef(true);
-  var isMounted = reactExports.useRef(function() {
-    return mounted.current;
-  });
-  reactExports.useEffect(function() {
-    mounted.current = true;
-    return function() {
-      mounted.current = false;
-    };
-  }, []);
-  return isMounted.current;
-}
-function contains(context2, node2) {
-  if (context2.contains) return context2.contains(node2);
-  if (context2.compareDocumentPosition) return context2 === node2 || !!(context2.compareDocumentPosition(node2) & 16);
-}
-var NavContext = /* @__PURE__ */ React.createContext(null);
-NavContext.displayName = "NavContext";
-var toFnRef = function toFnRef2(ref) {
-  return !ref || typeof ref === "function" ? ref : function(value) {
-    ref.current = value;
-  };
-};
-function mergeRefs(refA, refB) {
-  var a = toFnRef(refA);
-  var b = toFnRef(refB);
-  return function(value) {
-    if (a) a(value);
-    if (b) b(value);
-  };
-}
-function useMergedRefs(refA, refB) {
-  return reactExports.useMemo(function() {
-    return mergeRefs(refA, refB);
-  }, [refA, refB]);
-}
-var context = /* @__PURE__ */ React.createContext(null);
-context.displayName = "NavbarContext";
-function hasClass(element2, className) {
-  if (element2.classList) return !!className && element2.classList.contains(className);
-  return (" " + (element2.className.baseVal || element2.className) + " ").indexOf(" " + className + " ") !== -1;
-}
-var all = { exports: {} };
-var createChainableTypeChecker = { exports: {} };
-var hasRequiredCreateChainableTypeChecker;
-function requireCreateChainableTypeChecker() {
-  if (hasRequiredCreateChainableTypeChecker) return createChainableTypeChecker.exports;
-  hasRequiredCreateChainableTypeChecker = 1;
-  (function(module, exports) {
-    Object.defineProperty(exports, "__esModule", {
-      value: true
-    });
-    exports.default = createChainableTypeChecker2;
-    function createChainableTypeChecker2(validate) {
-      function checkType(isRequired, props, propName, componentName, location, propFullName) {
-        var componentNameSafe = componentName || "<<anonymous>>";
-        var propFullNameSafe = propFullName || propName;
-        if (props[propName] == null) {
-          if (isRequired) {
-            return new Error("Required " + location + " `" + propFullNameSafe + "` was not specified " + ("in `" + componentNameSafe + "`."));
-          }
-          return null;
-        }
-        for (var _len = arguments.length, args = Array(_len > 6 ? _len - 6 : 0), _key = 6; _key < _len; _key++) {
-          args[_key - 6] = arguments[_key];
-        }
-        return validate.apply(void 0, [props, propName, componentNameSafe, location, propFullNameSafe].concat(args));
-      }
-      var chainedCheckType = checkType.bind(null, false);
-      chainedCheckType.isRequired = checkType.bind(null, true);
-      return chainedCheckType;
-    }
-    module.exports = exports["default"];
-  })(createChainableTypeChecker, createChainableTypeChecker.exports);
-  return createChainableTypeChecker.exports;
-}
-var hasRequiredAll;
-function requireAll() {
-  if (hasRequiredAll) return all.exports;
-  hasRequiredAll = 1;
-  (function(module, exports) {
-    Object.defineProperty(exports, "__esModule", {
-      value: true
-    });
-    exports.default = all2;
-    var _createChainableTypeChecker = requireCreateChainableTypeChecker();
-    var _createChainableTypeChecker2 = _interopRequireDefault(_createChainableTypeChecker);
-    function _interopRequireDefault(obj) {
-      return obj && obj.__esModule ? obj : { default: obj };
-    }
-    function all2() {
-      for (var _len = arguments.length, validators = Array(_len), _key = 0; _key < _len; _key++) {
-        validators[_key] = arguments[_key];
-      }
-      function allPropTypes() {
-        for (var _len2 = arguments.length, args = Array(_len2), _key2 = 0; _key2 < _len2; _key2++) {
-          args[_key2] = arguments[_key2];
-        }
-        var error = null;
-        validators.forEach(function(validator) {
-          if (error != null) {
-            return;
-          }
-          var result = validator.apply(void 0, args);
-          if (result != null) {
-            error = result;
-          }
-        });
-        return error;
-      }
-      return (0, _createChainableTypeChecker2.default)(allPropTypes);
-    }
-    module.exports = exports["default"];
-  })(all, all.exports);
-  return all.exports;
-}
-requireAll();
-var propTypes$1 = {
-  /**
-   * Specify whether the feedback is for valid or invalid fields
-   *
-   * @type {('valid'|'invalid')}
-   */
-  type: PropTypes.string,
-  /** Display feedback as a tooltip. */
-  tooltip: PropTypes.bool,
-  as: PropTypes.elementType
-};
-var Feedback = /* @__PURE__ */ React.forwardRef(
-  // Need to define the default "as" during prop destructuring to be compatible with styled-components github.com/react-bootstrap/react-bootstrap/issues/3595
-  function(_ref3, ref) {
-    var _ref$as = _ref3.as, Component = _ref$as === void 0 ? "div" : _ref$as, className = _ref3.className, _ref$type = _ref3.type, type2 = _ref$type === void 0 ? "valid" : _ref$type, _ref$tooltip = _ref3.tooltip, tooltip = _ref$tooltip === void 0 ? false : _ref$tooltip, props = _objectWithoutPropertiesLoose$1(_ref3, ["as", "className", "type", "tooltip"]);
-    return /* @__PURE__ */ React.createElement(Component, _extends$1({}, props, {
-      ref,
-      className: classNames$1(className, type2 + "-" + (tooltip ? "tooltip" : "feedback"))
-    }));
-  }
-);
-Feedback.displayName = "Feedback";
-Feedback.propTypes = propTypes$1;
-var FormContext = /* @__PURE__ */ React.createContext({
-  controlId: void 0
-});
-var FormCheckInput = /* @__PURE__ */ React.forwardRef(function(_ref3, ref) {
-  var id = _ref3.id, bsPrefix = _ref3.bsPrefix, bsCustomPrefix = _ref3.bsCustomPrefix, className = _ref3.className, _ref$type = _ref3.type, type2 = _ref$type === void 0 ? "checkbox" : _ref$type, _ref$isValid = _ref3.isValid, isValid = _ref$isValid === void 0 ? false : _ref$isValid, _ref$isInvalid = _ref3.isInvalid, isInvalid = _ref$isInvalid === void 0 ? false : _ref$isInvalid, isStatic = _ref3.isStatic, _ref$as = _ref3.as, Component = _ref$as === void 0 ? "input" : _ref$as, props = _objectWithoutPropertiesLoose$1(_ref3, ["id", "bsPrefix", "bsCustomPrefix", "className", "type", "isValid", "isInvalid", "isStatic", "as"]);
-  var _useContext = reactExports.useContext(FormContext), controlId = _useContext.controlId, custom = _useContext.custom;
-  var _ref22 = custom ? [bsCustomPrefix, "custom-control-input"] : [bsPrefix, "form-check-input"], prefix2 = _ref22[0], defaultPrefix = _ref22[1];
-  bsPrefix = useBootstrapPrefix(prefix2, defaultPrefix);
-  return /* @__PURE__ */ React.createElement(Component, _extends$1({}, props, {
-    ref,
-    type: type2,
-    id: id || controlId,
-    className: classNames$1(className, bsPrefix, isValid && "is-valid", isInvalid && "is-invalid", isStatic && "position-static")
-  }));
-});
-FormCheckInput.displayName = "FormCheckInput";
-var FormCheckLabel = /* @__PURE__ */ React.forwardRef(function(_ref3, ref) {
-  var bsPrefix = _ref3.bsPrefix, bsCustomPrefix = _ref3.bsCustomPrefix, className = _ref3.className, htmlFor = _ref3.htmlFor, props = _objectWithoutPropertiesLoose$1(_ref3, ["bsPrefix", "bsCustomPrefix", "className", "htmlFor"]);
-  var _useContext = reactExports.useContext(FormContext), controlId = _useContext.controlId, custom = _useContext.custom;
-  var _ref22 = custom ? [bsCustomPrefix, "custom-control-label"] : [bsPrefix, "form-check-label"], prefix2 = _ref22[0], defaultPrefix = _ref22[1];
-  bsPrefix = useBootstrapPrefix(prefix2, defaultPrefix);
-  return /* @__PURE__ */ React.createElement("label", _extends$1({}, props, {
-    ref,
-    htmlFor: htmlFor || controlId,
-    className: classNames$1(className, bsPrefix)
-  }));
-});
-FormCheckLabel.displayName = "FormCheckLabel";
-var FormCheck = /* @__PURE__ */ React.forwardRef(function(_ref3, ref) {
-  var id = _ref3.id, bsPrefix = _ref3.bsPrefix, bsCustomPrefix = _ref3.bsCustomPrefix, _ref$inline = _ref3.inline, inline = _ref$inline === void 0 ? false : _ref$inline, _ref$disabled = _ref3.disabled, disabled = _ref$disabled === void 0 ? false : _ref$disabled, _ref$isValid = _ref3.isValid, isValid = _ref$isValid === void 0 ? false : _ref$isValid, _ref$isInvalid = _ref3.isInvalid, isInvalid = _ref$isInvalid === void 0 ? false : _ref$isInvalid, _ref$feedbackTooltip = _ref3.feedbackTooltip, feedbackTooltip = _ref$feedbackTooltip === void 0 ? false : _ref$feedbackTooltip, feedback = _ref3.feedback, className = _ref3.className, style2 = _ref3.style, _ref$title = _ref3.title, title = _ref$title === void 0 ? "" : _ref$title, _ref$type = _ref3.type, type2 = _ref$type === void 0 ? "checkbox" : _ref$type, label = _ref3.label, children2 = _ref3.children, propCustom = _ref3.custom, _ref$as = _ref3.as, as = _ref$as === void 0 ? "input" : _ref$as, props = _objectWithoutPropertiesLoose$1(_ref3, ["id", "bsPrefix", "bsCustomPrefix", "inline", "disabled", "isValid", "isInvalid", "feedbackTooltip", "feedback", "className", "style", "title", "type", "label", "children", "custom", "as"]);
-  var custom = type2 === "switch" ? true : propCustom;
-  var _ref22 = custom ? [bsCustomPrefix, "custom-control"] : [bsPrefix, "form-check"], prefix2 = _ref22[0], defaultPrefix = _ref22[1];
-  bsPrefix = useBootstrapPrefix(prefix2, defaultPrefix);
-  var _useContext = reactExports.useContext(FormContext), controlId = _useContext.controlId;
-  var innerFormContext = reactExports.useMemo(function() {
-    return {
-      controlId: id || controlId,
-      custom
-    };
-  }, [controlId, custom, id]);
-  var hasLabel = custom || label != null && label !== false && !children2;
-  var input = /* @__PURE__ */ React.createElement(FormCheckInput, _extends$1({}, props, {
-    type: type2 === "switch" ? "checkbox" : type2,
-    ref,
-    isValid,
-    isInvalid,
-    isStatic: !hasLabel,
-    disabled,
-    as
-  }));
-  return /* @__PURE__ */ React.createElement(FormContext.Provider, {
-    value: innerFormContext
-  }, /* @__PURE__ */ React.createElement("div", {
-    style: style2,
-    className: classNames$1(className, bsPrefix, custom && "custom-" + type2, inline && bsPrefix + "-inline")
-  }, children2 || /* @__PURE__ */ React.createElement(React.Fragment, null, input, hasLabel && /* @__PURE__ */ React.createElement(FormCheckLabel, {
-    title
-  }, label), (isValid || isInvalid) && /* @__PURE__ */ React.createElement(Feedback, {
-    type: isValid ? "valid" : "invalid",
-    tooltip: feedbackTooltip
-  }, feedback))));
-});
-FormCheck.displayName = "FormCheck";
-FormCheck.Input = FormCheckInput;
-FormCheck.Label = FormCheckLabel;
-var FormFileInput = /* @__PURE__ */ React.forwardRef(function(_ref3, ref) {
-  var id = _ref3.id, bsPrefix = _ref3.bsPrefix, bsCustomPrefix = _ref3.bsCustomPrefix, className = _ref3.className, isValid = _ref3.isValid, isInvalid = _ref3.isInvalid, lang = _ref3.lang, _ref$as = _ref3.as, Component = _ref$as === void 0 ? "input" : _ref$as, props = _objectWithoutPropertiesLoose$1(_ref3, ["id", "bsPrefix", "bsCustomPrefix", "className", "isValid", "isInvalid", "lang", "as"]);
-  var _useContext = reactExports.useContext(FormContext), controlId = _useContext.controlId, custom = _useContext.custom;
-  var type2 = "file";
-  var _ref22 = custom ? [bsCustomPrefix, "custom-file-input"] : [bsPrefix, "form-control-file"], prefix2 = _ref22[0], defaultPrefix = _ref22[1];
-  bsPrefix = useBootstrapPrefix(prefix2, defaultPrefix);
-  return /* @__PURE__ */ React.createElement(Component, _extends$1({}, props, {
-    ref,
-    id: id || controlId,
-    type: type2,
-    lang,
-    className: classNames$1(className, bsPrefix, isValid && "is-valid", isInvalid && "is-invalid")
-  }));
-});
-FormFileInput.displayName = "FormFileInput";
-var FormFileLabel = /* @__PURE__ */ React.forwardRef(function(_ref3, ref) {
-  var bsPrefix = _ref3.bsPrefix, bsCustomPrefix = _ref3.bsCustomPrefix, className = _ref3.className, htmlFor = _ref3.htmlFor, props = _objectWithoutPropertiesLoose$1(_ref3, ["bsPrefix", "bsCustomPrefix", "className", "htmlFor"]);
-  var _useContext = reactExports.useContext(FormContext), controlId = _useContext.controlId, custom = _useContext.custom;
-  var _ref22 = custom ? [bsCustomPrefix, "custom-file-label"] : [bsPrefix, "form-file-label"], prefix2 = _ref22[0], defaultPrefix = _ref22[1];
-  bsPrefix = useBootstrapPrefix(prefix2, defaultPrefix);
-  return /* @__PURE__ */ React.createElement("label", _extends$1({}, props, {
-    ref,
-    htmlFor: htmlFor || controlId,
-    className: classNames$1(className, bsPrefix),
-    "data-browse": props["data-browse"]
-  }));
-});
-FormFileLabel.displayName = "FormFileLabel";
-var FormFile = /* @__PURE__ */ React.forwardRef(function(_ref3, ref) {
-  var id = _ref3.id, bsPrefix = _ref3.bsPrefix, bsCustomPrefix = _ref3.bsCustomPrefix, _ref$disabled = _ref3.disabled, disabled = _ref$disabled === void 0 ? false : _ref$disabled, _ref$isValid = _ref3.isValid, isValid = _ref$isValid === void 0 ? false : _ref$isValid, _ref$isInvalid = _ref3.isInvalid, isInvalid = _ref$isInvalid === void 0 ? false : _ref$isInvalid, _ref$feedbackTooltip = _ref3.feedbackTooltip, feedbackTooltip = _ref$feedbackTooltip === void 0 ? false : _ref$feedbackTooltip, feedback = _ref3.feedback, className = _ref3.className, style2 = _ref3.style, label = _ref3.label, children2 = _ref3.children, custom = _ref3.custom, lang = _ref3.lang, dataBrowse = _ref3["data-browse"], _ref$as = _ref3.as, Component = _ref$as === void 0 ? "div" : _ref$as, _ref$inputAs = _ref3.inputAs, inputAs = _ref$inputAs === void 0 ? "input" : _ref$inputAs, props = _objectWithoutPropertiesLoose$1(_ref3, ["id", "bsPrefix", "bsCustomPrefix", "disabled", "isValid", "isInvalid", "feedbackTooltip", "feedback", "className", "style", "label", "children", "custom", "lang", "data-browse", "as", "inputAs"]);
-  var _ref22 = custom ? [bsCustomPrefix, "custom"] : [bsPrefix, "form-file"], prefix2 = _ref22[0], defaultPrefix = _ref22[1];
-  bsPrefix = useBootstrapPrefix(prefix2, defaultPrefix);
-  var type2 = "file";
-  var _useContext = reactExports.useContext(FormContext), controlId = _useContext.controlId;
-  var innerFormContext = reactExports.useMemo(function() {
-    return {
-      controlId: id || controlId,
-      custom
-    };
-  }, [controlId, custom, id]);
-  var hasLabel = label != null && label !== false && !children2;
-  var input = /* @__PURE__ */ React.createElement(FormFileInput, _extends$1({}, props, {
-    ref,
-    isValid,
-    isInvalid,
-    disabled,
-    as: inputAs,
-    lang
-  }));
-  return /* @__PURE__ */ React.createElement(FormContext.Provider, {
-    value: innerFormContext
-  }, /* @__PURE__ */ React.createElement(Component, {
-    style: style2,
-    className: classNames$1(className, bsPrefix, custom && "custom-" + type2)
-  }, children2 || /* @__PURE__ */ React.createElement(React.Fragment, null, custom ? /* @__PURE__ */ React.createElement(React.Fragment, null, input, hasLabel && /* @__PURE__ */ React.createElement(FormFileLabel, {
-    "data-browse": dataBrowse
-  }, label)) : /* @__PURE__ */ React.createElement(React.Fragment, null, hasLabel && /* @__PURE__ */ React.createElement(FormFileLabel, null, label), input), (isValid || isInvalid) && /* @__PURE__ */ React.createElement(Feedback, {
-    type: isValid ? "valid" : "invalid",
-    tooltip: feedbackTooltip
-  }, feedback))));
-});
-FormFile.displayName = "FormFile";
-FormFile.Input = FormFileInput;
-FormFile.Label = FormFileLabel;
-var FormControl = /* @__PURE__ */ React.forwardRef(function(_ref3, ref) {
-  var bsPrefix = _ref3.bsPrefix, bsCustomPrefix = _ref3.bsCustomPrefix, type2 = _ref3.type, size2 = _ref3.size, htmlSize = _ref3.htmlSize, id = _ref3.id, className = _ref3.className, _ref$isValid = _ref3.isValid, isValid = _ref$isValid === void 0 ? false : _ref$isValid, _ref$isInvalid = _ref3.isInvalid, isInvalid = _ref$isInvalid === void 0 ? false : _ref$isInvalid, plaintext = _ref3.plaintext, readOnly = _ref3.readOnly, custom = _ref3.custom, _ref$as = _ref3.as, Component = _ref$as === void 0 ? "input" : _ref$as, props = _objectWithoutPropertiesLoose$1(_ref3, ["bsPrefix", "bsCustomPrefix", "type", "size", "htmlSize", "id", "className", "isValid", "isInvalid", "plaintext", "readOnly", "custom", "as"]);
-  var _useContext = reactExports.useContext(FormContext), controlId = _useContext.controlId;
-  var _ref22 = custom ? [bsCustomPrefix, "custom"] : [bsPrefix, "form-control"], prefix2 = _ref22[0], defaultPrefix = _ref22[1];
-  bsPrefix = useBootstrapPrefix(prefix2, defaultPrefix);
-  var classes;
-  if (plaintext) {
-    var _classes;
-    classes = (_classes = {}, _classes[bsPrefix + "-plaintext"] = true, _classes);
-  } else if (type2 === "file") {
-    var _classes2;
-    classes = (_classes2 = {}, _classes2[bsPrefix + "-file"] = true, _classes2);
-  } else if (type2 === "range") {
-    var _classes3;
-    classes = (_classes3 = {}, _classes3[bsPrefix + "-range"] = true, _classes3);
-  } else if (Component === "select" && custom) {
-    var _classes4;
-    classes = (_classes4 = {}, _classes4[bsPrefix + "-select"] = true, _classes4[bsPrefix + "-select-" + size2] = size2, _classes4);
-  } else {
-    var _classes5;
-    classes = (_classes5 = {}, _classes5[bsPrefix] = true, _classes5[bsPrefix + "-" + size2] = size2, _classes5);
-  }
-  return /* @__PURE__ */ React.createElement(Component, _extends$1({}, props, {
-    type: type2,
-    size: htmlSize,
-    ref,
-    readOnly,
-    id: id || controlId,
-    className: classNames$1(className, classes, isValid && "is-valid", isInvalid && "is-invalid")
-  }));
-});
-FormControl.displayName = "FormControl";
-const FormControl$1 = Object.assign(FormControl, {
-  Feedback
-});
-var FormGroup = /* @__PURE__ */ React.forwardRef(function(_ref3, ref) {
-  var bsPrefix = _ref3.bsPrefix, className = _ref3.className, children2 = _ref3.children, controlId = _ref3.controlId, _ref$as = _ref3.as, Component = _ref$as === void 0 ? "div" : _ref$as, props = _objectWithoutPropertiesLoose$1(_ref3, ["bsPrefix", "className", "children", "controlId", "as"]);
-  bsPrefix = useBootstrapPrefix(bsPrefix, "form-group");
-  var context2 = reactExports.useMemo(function() {
-    return {
-      controlId
-    };
-  }, [controlId]);
-  return /* @__PURE__ */ React.createElement(FormContext.Provider, {
-    value: context2
-  }, /* @__PURE__ */ React.createElement(Component, _extends$1({}, props, {
-    ref,
-    className: classNames$1(className, bsPrefix)
-  }), children2));
-});
-FormGroup.displayName = "FormGroup";
-var defaultProps$a = {
-  column: false,
-  srOnly: false
-};
-var FormLabel = /* @__PURE__ */ React.forwardRef(function(_ref3, ref) {
-  var _ref$as = _ref3.as, Component = _ref$as === void 0 ? "label" : _ref$as, bsPrefix = _ref3.bsPrefix, column2 = _ref3.column, srOnly = _ref3.srOnly, className = _ref3.className, htmlFor = _ref3.htmlFor, props = _objectWithoutPropertiesLoose$1(_ref3, ["as", "bsPrefix", "column", "srOnly", "className", "htmlFor"]);
-  var _useContext = reactExports.useContext(FormContext), controlId = _useContext.controlId;
-  bsPrefix = useBootstrapPrefix(bsPrefix, "form-label");
-  var columnClass = "col-form-label";
-  if (typeof column2 === "string") columnClass = columnClass + " " + columnClass + "-" + column2;
-  var classes = classNames$1(className, bsPrefix, srOnly && "sr-only", column2 && columnClass);
-  htmlFor = htmlFor || controlId;
-  if (column2) return /* @__PURE__ */ React.createElement(Col, _extends$1({
-    as: "label",
-    className: classes,
-    htmlFor
-  }, props));
-  return (
-    // eslint-disable-next-line jsx-a11y/label-has-for, jsx-a11y/label-has-associated-control
-    /* @__PURE__ */ React.createElement(Component, _extends$1({
-      ref,
-      className: classes,
-      htmlFor
-    }, props))
-  );
-});
-FormLabel.displayName = "FormLabel";
-FormLabel.defaultProps = defaultProps$a;
-var FormText = /* @__PURE__ */ React.forwardRef(
-  // Need to define the default "as" during prop destructuring to be compatible with styled-components github.com/react-bootstrap/react-bootstrap/issues/3595
-  function(_ref3, ref) {
-    var bsPrefix = _ref3.bsPrefix, className = _ref3.className, _ref$as = _ref3.as, Component = _ref$as === void 0 ? "small" : _ref$as, muted = _ref3.muted, props = _objectWithoutPropertiesLoose$1(_ref3, ["bsPrefix", "className", "as", "muted"]);
-    bsPrefix = useBootstrapPrefix(bsPrefix, "form-text");
-    return /* @__PURE__ */ React.createElement(Component, _extends$1({}, props, {
-      ref,
-      className: classNames$1(className, bsPrefix, muted && "text-muted")
-    }));
-  }
-);
-FormText.displayName = "FormText";
-var Switch = /* @__PURE__ */ React.forwardRef(function(props, ref) {
-  return /* @__PURE__ */ React.createElement(FormCheck, _extends$1({}, props, {
-    ref,
-    type: "switch"
-  }));
-});
-Switch.displayName = "Switch";
-Switch.Input = FormCheck.Input;
-Switch.Label = FormCheck.Label;
-var FormRow = createWithBsPrefix("form-row");
-var defaultProps$9 = {
-  inline: false
-};
-var FormImpl = /* @__PURE__ */ React.forwardRef(function(_ref3, ref) {
-  var bsPrefix = _ref3.bsPrefix, inline = _ref3.inline, className = _ref3.className, validated = _ref3.validated, _ref$as = _ref3.as, Component = _ref$as === void 0 ? "form" : _ref$as, props = _objectWithoutPropertiesLoose$1(_ref3, ["bsPrefix", "inline", "className", "validated", "as"]);
-  bsPrefix = useBootstrapPrefix(bsPrefix, "form");
-  return /* @__PURE__ */ React.createElement(Component, _extends$1({}, props, {
-    ref,
-    className: classNames$1(className, validated && "was-validated", inline && bsPrefix + "-inline")
-  }));
-});
-FormImpl.displayName = "Form";
-FormImpl.defaultProps = defaultProps$9;
-FormImpl.Row = FormRow;
-FormImpl.Group = FormGroup;
-FormImpl.Control = FormControl$1;
-FormImpl.Check = FormCheck;
-FormImpl.File = FormFile;
-FormImpl.Switch = Switch;
-FormImpl.Label = FormLabel;
-FormImpl.Text = FormText;
-function useForceUpdate() {
-  var _useReducer = reactExports.useReducer(function(state) {
-    return !state;
-  }, false), dispatch = _useReducer[1];
-  return dispatch;
-}
-var TabContext = /* @__PURE__ */ React.createContext(null);
-var noop$3 = function noop() {
-};
-var AbstractNav = /* @__PURE__ */ React.forwardRef(function(_ref3, ref) {
-  var _ref$as = _ref3.as, Component = _ref$as === void 0 ? "ul" : _ref$as, onSelect = _ref3.onSelect, activeKey = _ref3.activeKey, role = _ref3.role, onKeyDown = _ref3.onKeyDown, props = _objectWithoutPropertiesLoose$1(_ref3, ["as", "onSelect", "activeKey", "role", "onKeyDown"]);
-  var forceUpdate = useForceUpdate();
-  var needsRefocusRef = reactExports.useRef(false);
-  var parentOnSelect = reactExports.useContext(SelectableContext);
-  var tabContext = reactExports.useContext(TabContext);
-  var getControlledId, getControllerId;
-  if (tabContext) {
-    role = role || "tablist";
-    activeKey = tabContext.activeKey;
-    getControlledId = tabContext.getControlledId;
-    getControllerId = tabContext.getControllerId;
-  }
-  var listNode = reactExports.useRef(null);
-  var getNextActiveChild = function getNextActiveChild2(offset2) {
-    var currentListNode = listNode.current;
-    if (!currentListNode) return null;
-    var items = qsa(currentListNode, "[data-rb-event-key]:not(.disabled)");
-    var activeChild = currentListNode.querySelector(".active");
-    if (!activeChild) return null;
-    var index2 = items.indexOf(activeChild);
-    if (index2 === -1) return null;
-    var nextIndex = index2 + offset2;
-    if (nextIndex >= items.length) nextIndex = 0;
-    if (nextIndex < 0) nextIndex = items.length - 1;
-    return items[nextIndex];
-  };
-  var handleSelect = function handleSelect2(key, event) {
-    if (key == null) return;
-    if (onSelect) onSelect(key, event);
-    if (parentOnSelect) parentOnSelect(key, event);
-  };
-  var handleKeyDown = function handleKeyDown2(event) {
-    if (onKeyDown) onKeyDown(event);
-    var nextActiveChild;
-    switch (event.key) {
-      case "ArrowLeft":
-      case "ArrowUp":
-        nextActiveChild = getNextActiveChild(-1);
-        break;
-      case "ArrowRight":
-      case "ArrowDown":
-        nextActiveChild = getNextActiveChild(1);
-        break;
-      default:
-        return;
-    }
-    if (!nextActiveChild) return;
-    event.preventDefault();
-    handleSelect(nextActiveChild.dataset.rbEventKey, event);
-    needsRefocusRef.current = true;
-    forceUpdate();
-  };
-  reactExports.useEffect(function() {
-    if (listNode.current && needsRefocusRef.current) {
-      var activeChild = listNode.current.querySelector("[data-rb-event-key].active");
-      if (activeChild) activeChild.focus();
-    }
-    needsRefocusRef.current = false;
-  });
-  var mergedRef = useMergedRefs(ref, listNode);
-  return /* @__PURE__ */ React.createElement(SelectableContext.Provider, {
-    value: handleSelect
-  }, /* @__PURE__ */ React.createElement(NavContext.Provider, {
-    value: {
-      role,
-      // used by NavLink to determine it's role
-      activeKey: makeEventKey(activeKey),
-      getControlledId: getControlledId || noop$3,
-      getControllerId: getControllerId || noop$3
-    }
-  }, /* @__PURE__ */ React.createElement(Component, _extends$1({}, props, {
-    onKeyDown: handleKeyDown,
-    ref: mergedRef,
-    role
-  }))));
-});
-var defaultProps$8 = {
-  disabled: false
-};
-var AbstractNavItem = /* @__PURE__ */ React.forwardRef(function(_ref3, ref) {
-  var active = _ref3.active, className = _ref3.className, eventKey = _ref3.eventKey, onSelect = _ref3.onSelect, onClick = _ref3.onClick, Component = _ref3.as, props = _objectWithoutPropertiesLoose$1(_ref3, ["active", "className", "eventKey", "onSelect", "onClick", "as"]);
-  var navKey = makeEventKey(eventKey, props.href);
-  var parentOnSelect = reactExports.useContext(SelectableContext);
-  var navContext = reactExports.useContext(NavContext);
-  var isActive = active;
-  if (navContext) {
-    if (!props.role && navContext.role === "tablist") props.role = "tab";
-    var contextControllerId = navContext.getControllerId(navKey);
-    var contextControlledId = navContext.getControlledId(navKey);
-    props["data-rb-event-key"] = navKey;
-    props.id = contextControllerId || props.id;
-    props["aria-controls"] = contextControlledId || props["aria-controls"];
-    isActive = active == null && navKey != null ? navContext.activeKey === navKey : active;
-  }
-  if (props.role === "tab") {
-    if (props.disabled) {
-      props.tabIndex = -1;
-      props["aria-disabled"] = true;
-    }
-    props["aria-selected"] = isActive;
-  }
-  var handleOnclick = useEventCallback$1(function(e) {
-    if (onClick) onClick(e);
-    if (navKey == null) return;
-    if (onSelect) onSelect(navKey, e);
-    if (parentOnSelect) parentOnSelect(navKey, e);
-  });
-  return /* @__PURE__ */ React.createElement(Component, _extends$1({}, props, {
-    ref,
-    onClick: handleOnclick,
-    className: classNames$1(className, isActive && "active")
-  }));
-});
-AbstractNavItem.defaultProps = defaultProps$8;
-var defaultProps$7 = {
-  variant: void 0,
-  active: false,
-  disabled: false
-};
-var ListGroupItem = /* @__PURE__ */ React.forwardRef(function(_ref3, ref) {
-  var bsPrefix = _ref3.bsPrefix, active = _ref3.active, disabled = _ref3.disabled, className = _ref3.className, variant = _ref3.variant, action2 = _ref3.action, as = _ref3.as, onClick = _ref3.onClick, props = _objectWithoutPropertiesLoose$1(_ref3, ["bsPrefix", "active", "disabled", "className", "variant", "action", "as", "onClick"]);
-  bsPrefix = useBootstrapPrefix(bsPrefix, "list-group-item");
-  var handleClick = reactExports.useCallback(function(event) {
-    if (disabled) {
-      event.preventDefault();
-      event.stopPropagation();
-      return;
-    }
-    if (onClick) onClick(event);
-  }, [disabled, onClick]);
-  if (disabled && props.tabIndex === void 0) {
-    props.tabIndex = -1;
-    props["aria-disabled"] = true;
-  }
-  return /* @__PURE__ */ React.createElement(AbstractNavItem, _extends$1({
-    ref
-  }, props, {
-    // eslint-disable-next-line no-nested-ternary
-    as: as || (action2 ? props.href ? "a" : "button" : "div"),
-    onClick: handleClick,
-    className: classNames$1(className, bsPrefix, active && "active", disabled && "disabled", variant && bsPrefix + "-" + variant, action2 && bsPrefix + "-action")
-  }));
-});
-ListGroupItem.defaultProps = defaultProps$7;
-ListGroupItem.displayName = "ListGroupItem";
-var defaultProps$6 = {
-  variant: void 0,
-  horizontal: void 0
-};
-var ListGroup = /* @__PURE__ */ React.forwardRef(function(props, ref) {
-  var _useUncontrolled = useUncontrolled(props, {
-    activeKey: "onSelect"
-  }), className = _useUncontrolled.className, initialBsPrefix = _useUncontrolled.bsPrefix, variant = _useUncontrolled.variant, horizontal = _useUncontrolled.horizontal, _useUncontrolled$as = _useUncontrolled.as, as = _useUncontrolled$as === void 0 ? "div" : _useUncontrolled$as, controlledProps = _objectWithoutPropertiesLoose$1(_useUncontrolled, ["className", "bsPrefix", "variant", "horizontal", "as"]);
-  var bsPrefix = useBootstrapPrefix(initialBsPrefix, "list-group");
-  var horizontalVariant;
-  if (horizontal) {
-    horizontalVariant = horizontal === true ? "horizontal" : "horizontal-" + horizontal;
-  } else {
-    horizontalVariant = null;
-  }
-  return /* @__PURE__ */ React.createElement(AbstractNav, _extends$1({
-    ref
-  }, controlledProps, {
-    as,
-    className: classNames$1(className, bsPrefix, variant && bsPrefix + "-" + variant, horizontalVariant && bsPrefix + "-" + horizontalVariant)
-  }));
-});
-ListGroup.defaultProps = defaultProps$6;
-ListGroup.displayName = "ListGroup";
-ListGroup.Item = ListGroupItem;
-var size$3;
-function scrollbarSize(recalc) {
-  if (!size$3 && size$3 !== 0 || recalc) {
-    if (canUseDOM$1) {
-      var scrollDiv = document.createElement("div");
-      scrollDiv.style.position = "absolute";
-      scrollDiv.style.top = "-9999px";
-      scrollDiv.style.width = "50px";
-      scrollDiv.style.height = "50px";
-      scrollDiv.style.overflow = "scroll";
-      document.body.appendChild(scrollDiv);
-      size$3 = scrollDiv.offsetWidth - scrollDiv.clientWidth;
-      document.body.removeChild(scrollDiv);
-    }
-  }
-  return size$3;
-}
-function useCallbackRef$2() {
-  return reactExports.useState(null);
-}
-function activeElement(doc) {
-  if (doc === void 0) {
-    doc = ownerDocument();
-  }
-  try {
-    var active = doc.activeElement;
-    if (!active || !active.nodeName) return null;
-    return active;
-  } catch (e) {
-    return doc.body;
-  }
-}
-function useUpdatedRef(value) {
-  var valueRef = reactExports.useRef(value);
-  valueRef.current = value;
-  return valueRef;
-}
-function useWillUnmount(fn) {
-  var onUnmount = useUpdatedRef(fn);
-  reactExports.useEffect(function() {
-    return function() {
-      return onUnmount.current();
-    };
-  }, []);
-}
-function addClass(element2, className) {
-  if (element2.classList) element2.classList.add(className);
-  else if (!hasClass(element2, className)) if (typeof element2.className === "string") element2.className = element2.className + " " + className;
-  else element2.setAttribute("class", (element2.className && element2.className.baseVal || "") + " " + className);
-}
-function replaceClassName(origClass, classToRemove) {
-  return origClass.replace(new RegExp("(^|\\s)" + classToRemove + "(?:\\s|$)", "g"), "$1").replace(/\s+/g, " ").replace(/^\s*|\s*$/g, "");
-}
-function removeClass(element2, className) {
-  if (element2.classList) {
-    element2.classList.remove(className);
-  } else if (typeof element2.className === "string") {
-    element2.className = replaceClassName(element2.className, className);
-  } else {
-    element2.setAttribute("class", replaceClassName(element2.className && element2.className.baseVal || "", className));
-  }
-}
-function isDocument(element2) {
-  return "nodeType" in element2 && element2.nodeType === document.DOCUMENT_NODE;
-}
-function isWindow(node2) {
-  if ("window" in node2 && node2.window === node2) return node2;
-  if (isDocument(node2)) return node2.defaultView || false;
-  return false;
-}
-function isBody(node2) {
-  return node2 && node2.tagName.toLowerCase() === "body";
-}
-function bodyIsOverflowing(node2) {
-  var doc = isWindow(node2) ? ownerDocument() : ownerDocument(node2);
-  var win = isWindow(node2) || doc.defaultView;
-  return doc.body.clientWidth < win.innerWidth;
-}
-function isOverflowing(container) {
-  var win = isWindow(container);
-  return win || isBody(container) ? bodyIsOverflowing(container) : container.scrollHeight > container.clientHeight;
-}
-var BLACKLIST = ["template", "script", "style"];
-var isHidable = function isHidable2(_ref3) {
-  var nodeType = _ref3.nodeType, tagName = _ref3.tagName;
-  return nodeType === 1 && BLACKLIST.indexOf(tagName.toLowerCase()) === -1;
-};
-var siblings = function siblings2(container, exclude, cb) {
-  [].forEach.call(container.children, function(node2) {
-    if (exclude.indexOf(node2) === -1 && isHidable(node2)) {
-      cb(node2);
-    }
-  });
-};
-function ariaHidden(hide2, node2) {
-  if (!node2) return;
-  if (hide2) {
-    node2.setAttribute("aria-hidden", "true");
-  } else {
-    node2.removeAttribute("aria-hidden");
-  }
-}
-function hideSiblings(container, _ref22) {
-  var dialog = _ref22.dialog, backdrop = _ref22.backdrop;
-  siblings(container, [dialog, backdrop], function(node2) {
-    return ariaHidden(true, node2);
-  });
-}
-function showSiblings(container, _ref3) {
-  var dialog = _ref3.dialog, backdrop = _ref3.backdrop;
-  siblings(container, [dialog, backdrop], function(node2) {
-    return ariaHidden(false, node2);
-  });
-}
-function findIndexOf(arr, cb) {
-  var idx = -1;
-  arr.some(function(d, i2) {
-    if (cb(d, i2)) {
-      idx = i2;
-      return true;
-    }
-    return false;
-  });
-  return idx;
-}
-var ModalManager = /* @__PURE__ */ (function() {
-  function ModalManager2(_temp) {
-    var _ref3 = _temp === void 0 ? {} : _temp, _ref$hideSiblingNodes = _ref3.hideSiblingNodes, hideSiblingNodes = _ref$hideSiblingNodes === void 0 ? true : _ref$hideSiblingNodes, _ref$handleContainerO = _ref3.handleContainerOverflow, handleContainerOverflow = _ref$handleContainerO === void 0 ? true : _ref$handleContainerO;
-    this.hideSiblingNodes = void 0;
-    this.handleContainerOverflow = void 0;
-    this.modals = void 0;
-    this.containers = void 0;
-    this.data = void 0;
-    this.scrollbarSize = void 0;
-    this.hideSiblingNodes = hideSiblingNodes;
-    this.handleContainerOverflow = handleContainerOverflow;
-    this.modals = [];
-    this.containers = [];
-    this.data = [];
-    this.scrollbarSize = scrollbarSize();
-  }
-  var _proto = ModalManager2.prototype;
-  _proto.isContainerOverflowing = function isContainerOverflowing(modal) {
-    var data = this.data[this.containerIndexFromModal(modal)];
-    return data && data.overflowing;
-  };
-  _proto.containerIndexFromModal = function containerIndexFromModal(modal) {
-    return findIndexOf(this.data, function(d) {
-      return d.modals.indexOf(modal) !== -1;
-    });
-  };
-  _proto.setContainerStyle = function setContainerStyle(containerState, container) {
-    var style$1 = {
-      overflow: "hidden"
-    };
-    containerState.style = {
-      overflow: container.style.overflow,
-      paddingRight: container.style.paddingRight
-    };
-    if (containerState.overflowing) {
-      style$1.paddingRight = parseInt(style(container, "paddingRight") || "0", 10) + this.scrollbarSize + "px";
-    }
-    style(container, style$1);
-  };
-  _proto.removeContainerStyle = function removeContainerStyle(containerState, container) {
-    Object.assign(container.style, containerState.style);
-  };
-  _proto.add = function add(modal, container, className) {
-    var modalIdx = this.modals.indexOf(modal);
-    var containerIdx = this.containers.indexOf(container);
-    if (modalIdx !== -1) {
-      return modalIdx;
-    }
-    modalIdx = this.modals.length;
-    this.modals.push(modal);
-    if (this.hideSiblingNodes) {
-      hideSiblings(container, modal);
-    }
-    if (containerIdx !== -1) {
-      this.data[containerIdx].modals.push(modal);
-      return modalIdx;
-    }
-    var data = {
-      modals: [modal],
-      // right now only the first modal of a container will have its classes applied
-      classes: className ? className.split(/\s+/) : [],
-      overflowing: isOverflowing(container)
-    };
-    if (this.handleContainerOverflow) {
-      this.setContainerStyle(data, container);
-    }
-    data.classes.forEach(addClass.bind(null, container));
-    this.containers.push(container);
-    this.data.push(data);
-    return modalIdx;
-  };
-  _proto.remove = function remove(modal) {
-    var modalIdx = this.modals.indexOf(modal);
-    if (modalIdx === -1) {
-      return;
-    }
-    var containerIdx = this.containerIndexFromModal(modal);
-    var data = this.data[containerIdx];
-    var container = this.containers[containerIdx];
-    data.modals.splice(data.modals.indexOf(modal), 1);
-    this.modals.splice(modalIdx, 1);
-    if (data.modals.length === 0) {
-      data.classes.forEach(removeClass.bind(null, container));
-      if (this.handleContainerOverflow) {
-        this.removeContainerStyle(data, container);
-      }
-      if (this.hideSiblingNodes) {
-        showSiblings(container, modal);
-      }
-      this.containers.splice(containerIdx, 1);
-      this.data.splice(containerIdx, 1);
-    } else if (this.hideSiblingNodes) {
-      var _data$modals = data.modals[data.modals.length - 1], backdrop = _data$modals.backdrop, dialog = _data$modals.dialog;
-      ariaHidden(false, dialog);
-      ariaHidden(false, backdrop);
-    }
-  };
-  _proto.isTopModal = function isTopModal(modal) {
-    return !!this.modals.length && this.modals[this.modals.length - 1] === modal;
-  };
-  return ModalManager2;
-})();
-var resolveContainerRef = function resolveContainerRef2(ref) {
-  var _ref3;
-  if (typeof document === "undefined") return null;
-  if (ref == null) return ownerDocument().body;
-  if (typeof ref === "function") ref = ref();
-  if (ref && "current" in ref) ref = ref.current;
-  if ((_ref3 = ref) != null && _ref3.nodeType) return ref || null;
-  return null;
-};
-function useWaitForDOMRef(ref, onResolved) {
-  var _useState = reactExports.useState(function() {
-    return resolveContainerRef(ref);
-  }), resolvedRef = _useState[0], setRef2 = _useState[1];
-  if (!resolvedRef) {
-    var earlyRef = resolveContainerRef(ref);
-    if (earlyRef) setRef2(earlyRef);
-  }
-  reactExports.useEffect(function() {
-  }, [onResolved, resolvedRef]);
-  reactExports.useEffect(function() {
-    var nextRef = resolveContainerRef(ref);
-    if (nextRef !== resolvedRef) {
-      setRef2(nextRef);
-    }
-  }, [ref, resolvedRef]);
-  return resolvedRef;
-}
-var manager$1;
-function getManager() {
-  if (!manager$1) manager$1 = new ModalManager();
-  return manager$1;
-}
-function useModalManager(provided) {
-  var modalManager = provided || getManager();
-  var modal = reactExports.useRef({
-    dialog: null,
-    backdrop: null
-  });
-  return Object.assign(modal.current, {
-    add: function add(container, className) {
-      return modalManager.add(modal.current, container, className);
-    },
-    remove: function remove() {
-      return modalManager.remove(modal.current);
-    },
-    isTopModal: function isTopModal() {
-      return modalManager.isTopModal(modal.current);
-    },
-    setDialogRef: reactExports.useCallback(function(ref) {
-      modal.current.dialog = ref;
-    }, []),
-    setBackdropRef: reactExports.useCallback(function(ref) {
-      modal.current.backdrop = ref;
-    }, [])
-  });
-}
-var Modal$1 = /* @__PURE__ */ reactExports.forwardRef(function(_ref3, ref) {
-  var _ref$show = _ref3.show, show = _ref$show === void 0 ? false : _ref$show, _ref$role = _ref3.role, role = _ref$role === void 0 ? "dialog" : _ref$role, className = _ref3.className, style2 = _ref3.style, children2 = _ref3.children, _ref$backdrop = _ref3.backdrop, backdrop = _ref$backdrop === void 0 ? true : _ref$backdrop, _ref$keyboard = _ref3.keyboard, keyboard = _ref$keyboard === void 0 ? true : _ref$keyboard, onBackdropClick = _ref3.onBackdropClick, onEscapeKeyDown = _ref3.onEscapeKeyDown, transition = _ref3.transition, backdropTransition = _ref3.backdropTransition, _ref$autoFocus = _ref3.autoFocus, autoFocus = _ref$autoFocus === void 0 ? true : _ref$autoFocus, _ref$enforceFocus = _ref3.enforceFocus, enforceFocus = _ref$enforceFocus === void 0 ? true : _ref$enforceFocus, _ref$restoreFocus = _ref3.restoreFocus, restoreFocus = _ref$restoreFocus === void 0 ? true : _ref$restoreFocus, restoreFocusOptions = _ref3.restoreFocusOptions, renderDialog = _ref3.renderDialog, _ref$renderBackdrop = _ref3.renderBackdrop, renderBackdrop = _ref$renderBackdrop === void 0 ? function(props) {
-    return /* @__PURE__ */ React.createElement("div", props);
-  } : _ref$renderBackdrop, providedManager = _ref3.manager, containerRef = _ref3.container, containerClassName = _ref3.containerClassName, onShow = _ref3.onShow, _ref$onHide = _ref3.onHide, onHide2 = _ref$onHide === void 0 ? function() {
-  } : _ref$onHide, onExit = _ref3.onExit, onExited = _ref3.onExited, onExiting = _ref3.onExiting, onEnter = _ref3.onEnter, onEntering = _ref3.onEntering, onEntered = _ref3.onEntered, rest = _objectWithoutPropertiesLoose$1(_ref3, ["show", "role", "className", "style", "children", "backdrop", "keyboard", "onBackdropClick", "onEscapeKeyDown", "transition", "backdropTransition", "autoFocus", "enforceFocus", "restoreFocus", "restoreFocusOptions", "renderDialog", "renderBackdrop", "manager", "container", "containerClassName", "onShow", "onHide", "onExit", "onExited", "onExiting", "onEnter", "onEntering", "onEntered"]);
-  var container = useWaitForDOMRef(containerRef);
-  var modal = useModalManager(providedManager);
-  var isMounted = useMounted();
-  var prevShow = usePrevious(show);
-  var _useState = reactExports.useState(!show), exited = _useState[0], setExited = _useState[1];
-  var lastFocusRef = reactExports.useRef(null);
-  reactExports.useImperativeHandle(ref, function() {
-    return modal;
-  }, [modal]);
-  if (canUseDOM$1 && !prevShow && show) {
-    lastFocusRef.current = activeElement();
-  }
-  if (!transition && !show && !exited) {
-    setExited(true);
-  } else if (show && exited) {
-    setExited(false);
-  }
-  var handleShow = useEventCallback(function() {
-    modal.add(container, containerClassName);
-    removeKeydownListenerRef.current = listen$1(document, "keydown", handleDocumentKeyDown);
-    removeFocusListenerRef.current = listen$1(
-      document,
-      "focus",
-      // the timeout is necessary b/c this will run before the new modal is mounted
-      // and so steals focus from it
-      function() {
-        return setTimeout(handleEnforceFocus);
-      },
-      true
-    );
-    if (onShow) {
-      onShow();
-    }
-    if (autoFocus) {
-      var currentActiveElement = activeElement(document);
-      if (modal.dialog && currentActiveElement && !contains(modal.dialog, currentActiveElement)) {
-        lastFocusRef.current = currentActiveElement;
-        modal.dialog.focus();
-      }
-    }
-  });
-  var handleHide = useEventCallback(function() {
-    modal.remove();
-    removeKeydownListenerRef.current == null ? void 0 : removeKeydownListenerRef.current();
-    removeFocusListenerRef.current == null ? void 0 : removeFocusListenerRef.current();
-    if (restoreFocus) {
-      var _lastFocusRef$current;
-      (_lastFocusRef$current = lastFocusRef.current) == null ? void 0 : _lastFocusRef$current.focus == null ? void 0 : _lastFocusRef$current.focus(restoreFocusOptions);
-      lastFocusRef.current = null;
-    }
-  });
-  reactExports.useEffect(function() {
-    if (!show || !container) return;
-    handleShow();
-  }, [
-    show,
-    container,
-    /* should never change: */
-    handleShow
-  ]);
-  reactExports.useEffect(function() {
-    if (!exited) return;
-    handleHide();
-  }, [exited, handleHide]);
-  useWillUnmount(function() {
-    handleHide();
-  });
-  var handleEnforceFocus = useEventCallback(function() {
-    if (!enforceFocus || !isMounted() || !modal.isTopModal()) {
-      return;
-    }
-    var currentActiveElement = activeElement();
-    if (modal.dialog && currentActiveElement && !contains(modal.dialog, currentActiveElement)) {
-      modal.dialog.focus();
-    }
-  });
-  var handleBackdropClick = useEventCallback(function(e) {
-    if (e.target !== e.currentTarget) {
-      return;
-    }
-    onBackdropClick == null ? void 0 : onBackdropClick(e);
-    if (backdrop === true) {
-      onHide2();
-    }
-  });
-  var handleDocumentKeyDown = useEventCallback(function(e) {
-    if (keyboard && e.keyCode === 27 && modal.isTopModal()) {
-      onEscapeKeyDown == null ? void 0 : onEscapeKeyDown(e);
-      if (!e.defaultPrevented) {
-        onHide2();
-      }
-    }
-  });
-  var removeFocusListenerRef = reactExports.useRef();
-  var removeKeydownListenerRef = reactExports.useRef();
-  var handleHidden = function handleHidden2() {
-    setExited(true);
-    for (var _len = arguments.length, args = new Array(_len), _key = 0; _key < _len; _key++) {
-      args[_key] = arguments[_key];
-    }
-    onExited == null ? void 0 : onExited.apply(void 0, args);
-  };
-  var Transition2 = transition;
-  if (!container || !(show || Transition2 && !exited)) {
-    return null;
-  }
-  var dialogProps = _extends$1({
-    role,
-    ref: modal.setDialogRef,
-    // apparently only works on the dialog role element
-    "aria-modal": role === "dialog" ? true : void 0
-  }, rest, {
-    style: style2,
-    className,
-    tabIndex: -1
-  });
-  var dialog = renderDialog ? renderDialog(dialogProps) : /* @__PURE__ */ React.createElement("div", dialogProps, /* @__PURE__ */ React.cloneElement(children2, {
-    role: "document"
-  }));
-  if (Transition2) {
-    dialog = /* @__PURE__ */ React.createElement(Transition2, {
-      appear: true,
-      unmountOnExit: true,
-      "in": !!show,
-      onExit,
-      onExiting,
-      onExited: handleHidden,
-      onEnter,
-      onEntering,
-      onEntered
-    }, dialog);
-  }
-  var backdropElement = null;
-  if (backdrop) {
-    var BackdropTransition2 = backdropTransition;
-    backdropElement = renderBackdrop({
-      ref: modal.setBackdropRef,
-      onClick: handleBackdropClick
-    });
-    if (BackdropTransition2) {
-      backdropElement = /* @__PURE__ */ React.createElement(BackdropTransition2, {
-        appear: true,
-        "in": !!show
-      }, backdropElement);
-    }
-  }
-  return /* @__PURE__ */ React.createElement(React.Fragment, null, /* @__PURE__ */ ReactDOM.createPortal(/* @__PURE__ */ React.createElement(React.Fragment, null, backdropElement, dialog), container));
-});
-var propTypes = {
-  /**
-   * Set the visibility of the Modal
-   */
-  show: PropTypes.bool,
-  /**
-   * A DOM element, a `ref` to an element, or function that returns either. The Modal is appended to it's `container` element.
-   *
-   * For the sake of assistive technologies, the container should usually be the document body, so that the rest of the
-   * page content can be placed behind a virtual backdrop as well as a visual one.
-   */
-  container: PropTypes.any,
-  /**
-   * A callback fired when the Modal is opening.
-   */
-  onShow: PropTypes.func,
-  /**
-   * A callback fired when either the backdrop is clicked, or the escape key is pressed.
-   *
-   * The `onHide` callback only signals intent from the Modal,
-   * you must actually set the `show` prop to `false` for the Modal to close.
-   */
-  onHide: PropTypes.func,
-  /**
-   * Include a backdrop component.
-   */
-  backdrop: PropTypes.oneOfType([PropTypes.bool, PropTypes.oneOf(["static"])]),
-  /**
-   * A function that returns the dialog component. Useful for custom
-   * rendering. **Note:** the component should make sure to apply the provided ref.
-   *
-   * ```js static
-   * renderDialog={props => <MyDialog {...props} />}
-   * ```
-   */
-  renderDialog: PropTypes.func,
-  /**
-   * A function that returns a backdrop component. Useful for custom
-   * backdrop rendering.
-   *
-   * ```js
-   *  renderBackdrop={props => <MyBackdrop {...props} />}
-   * ```
-   */
-  renderBackdrop: PropTypes.func,
-  /**
-   * A callback fired when the escape key, if specified in `keyboard`, is pressed.
-   *
-   * If preventDefault() is called on the keyboard event, closing the modal will be cancelled.
-   */
-  onEscapeKeyDown: PropTypes.func,
-  /**
-   * A callback fired when the backdrop, if specified, is clicked.
-   */
-  onBackdropClick: PropTypes.func,
-  /**
-   * A css class or set of classes applied to the modal container when the modal is open,
-   * and removed when it is closed.
-   */
-  containerClassName: PropTypes.string,
-  /**
-   * Close the modal when escape key is pressed
-   */
-  keyboard: PropTypes.bool,
-  /**
-   * A `react-transition-group@2.0.0` `<Transition/>` component used
-   * to control animations for the dialog component.
-   */
-  transition: PropTypes.elementType,
-  /**
-   * A `react-transition-group@2.0.0` `<Transition/>` component used
-   * to control animations for the backdrop components.
-   */
-  backdropTransition: PropTypes.elementType,
-  /**
-   * When `true` The modal will automatically shift focus to itself when it opens, and
-   * replace it to the last focused element when it closes. This also
-   * works correctly with any Modal children that have the `autoFocus` prop.
-   *
-   * Generally this should never be set to `false` as it makes the Modal less
-   * accessible to assistive technologies, like screen readers.
-   */
-  autoFocus: PropTypes.bool,
-  /**
-   * When `true` The modal will prevent focus from leaving the Modal while open.
-   *
-   * Generally this should never be set to `false` as it makes the Modal less
-   * accessible to assistive technologies, like screen readers.
-   */
-  enforceFocus: PropTypes.bool,
-  /**
-   * When `true` The modal will restore focus to previously focused element once
-   * modal is hidden
-   */
-  restoreFocus: PropTypes.bool,
-  /**
-   * Options passed to focus function when `restoreFocus` is set to `true`
-   *
-   * @link  https://developer.mozilla.org/en-US/docs/Web/API/HTMLElement/focus#Parameters
-   */
-  restoreFocusOptions: PropTypes.shape({
-    preventScroll: PropTypes.bool
-  }),
-  /**
-   * Callback fired before the Modal transitions in
-   */
-  onEnter: PropTypes.func,
-  /**
-   * Callback fired as the Modal begins to transition in
-   */
-  onEntering: PropTypes.func,
-  /**
-   * Callback fired after the Modal finishes transitioning in
-   */
-  onEntered: PropTypes.func,
-  /**
-   * Callback fired right before the Modal transitions out
-   */
-  onExit: PropTypes.func,
-  /**
-   * Callback fired as the Modal begins to transition out
-   */
-  onExiting: PropTypes.func,
-  /**
-   * Callback fired after the Modal finishes transitioning out
-   */
-  onExited: PropTypes.func,
-  /**
-   * A ModalManager instance used to track and manage the state of open
-   * Modals. Useful when customizing how modals interact within a container
-   */
-  manager: PropTypes.instanceOf(ModalManager)
-};
-Modal$1.displayName = "Modal";
-Modal$1.propTypes = propTypes;
-const BaseModal = Object.assign(Modal$1, {
-  Manager: ModalManager
-});
-var Selector = {
-  FIXED_CONTENT: ".fixed-top, .fixed-bottom, .is-fixed, .sticky-top",
-  STICKY_CONTENT: ".sticky-top",
-  NAVBAR_TOGGLER: ".navbar-toggler"
-};
-var BootstrapModalManager = /* @__PURE__ */ (function(_ModalManager) {
-  _inheritsLoose(BootstrapModalManager2, _ModalManager);
-  function BootstrapModalManager2() {
-    return _ModalManager.apply(this, arguments) || this;
-  }
-  var _proto = BootstrapModalManager2.prototype;
-  _proto.adjustAndStore = function adjustAndStore(prop, element2, adjust) {
-    var _css;
-    var actual = element2.style[prop];
-    element2.dataset[prop] = actual;
-    style(element2, (_css = {}, _css[prop] = parseFloat(style(element2, prop)) + adjust + "px", _css));
-  };
-  _proto.restore = function restore(prop, element2) {
-    var value = element2.dataset[prop];
-    if (value !== void 0) {
-      var _css2;
-      delete element2.dataset[prop];
-      style(element2, (_css2 = {}, _css2[prop] = value, _css2));
-    }
-  };
-  _proto.setContainerStyle = function setContainerStyle(containerState, container) {
-    var _this = this;
-    _ModalManager.prototype.setContainerStyle.call(this, containerState, container);
-    if (!containerState.overflowing) return;
-    var size2 = scrollbarSize();
-    qsa(container, Selector.FIXED_CONTENT).forEach(function(el) {
-      return _this.adjustAndStore("paddingRight", el, size2);
-    });
-    qsa(container, Selector.STICKY_CONTENT).forEach(function(el) {
-      return _this.adjustAndStore("marginRight", el, -size2);
-    });
-    qsa(container, Selector.NAVBAR_TOGGLER).forEach(function(el) {
-      return _this.adjustAndStore("marginRight", el, size2);
-    });
-  };
-  _proto.removeContainerStyle = function removeContainerStyle(containerState, container) {
-    var _this2 = this;
-    _ModalManager.prototype.removeContainerStyle.call(this, containerState, container);
-    qsa(container, Selector.FIXED_CONTENT).forEach(function(el) {
-      return _this2.restore("paddingRight", el);
-    });
-    qsa(container, Selector.STICKY_CONTENT).forEach(function(el) {
-      return _this2.restore("marginRight", el);
-    });
-    qsa(container, Selector.NAVBAR_TOGGLER).forEach(function(el) {
-      return _this2.restore("marginRight", el);
-    });
-  };
-  return BootstrapModalManager2;
-})(ModalManager);
-const ModalBody = createWithBsPrefix("modal-body");
-var ModalContext = /* @__PURE__ */ React.createContext({
-  // eslint-disable-next-line @typescript-eslint/no-empty-function
-  onHide: function onHide() {
-  }
-});
-var ModalDialog = /* @__PURE__ */ React.forwardRef(function(_ref3, ref) {
-  var bsPrefix = _ref3.bsPrefix, className = _ref3.className, contentClassName = _ref3.contentClassName, centered = _ref3.centered, size2 = _ref3.size, children2 = _ref3.children, scrollable = _ref3.scrollable, props = _objectWithoutPropertiesLoose$1(_ref3, ["bsPrefix", "className", "contentClassName", "centered", "size", "children", "scrollable"]);
-  bsPrefix = useBootstrapPrefix(bsPrefix, "modal");
-  var dialogClass = bsPrefix + "-dialog";
-  return /* @__PURE__ */ React.createElement("div", _extends$1({}, props, {
-    ref,
-    className: classNames$1(dialogClass, className, size2 && bsPrefix + "-" + size2, centered && dialogClass + "-centered", scrollable && dialogClass + "-scrollable")
-  }), /* @__PURE__ */ React.createElement("div", {
-    className: classNames$1(bsPrefix + "-content", contentClassName)
-  }, children2));
-});
-ModalDialog.displayName = "ModalDialog";
-const ModalFooter = createWithBsPrefix("modal-footer");
-var defaultProps$5 = {
-  closeLabel: "Close",
-  closeButton: false
-};
-var ModalHeader = /* @__PURE__ */ React.forwardRef(function(_ref3, ref) {
-  var bsPrefix = _ref3.bsPrefix, closeLabel = _ref3.closeLabel, closeButton = _ref3.closeButton, onHide2 = _ref3.onHide, className = _ref3.className, children2 = _ref3.children, props = _objectWithoutPropertiesLoose$1(_ref3, ["bsPrefix", "closeLabel", "closeButton", "onHide", "className", "children"]);
-  bsPrefix = useBootstrapPrefix(bsPrefix, "modal-header");
-  var context2 = reactExports.useContext(ModalContext);
-  var handleClick = useEventCallback$1(function() {
-    if (context2) context2.onHide();
-    if (onHide2) onHide2();
-  });
-  return /* @__PURE__ */ React.createElement("div", _extends$1({
-    ref
-  }, props, {
-    className: classNames$1(className, bsPrefix)
-  }), children2, closeButton && /* @__PURE__ */ React.createElement(CloseButton, {
-    label: closeLabel,
-    onClick: handleClick
-  }));
-});
-ModalHeader.displayName = "ModalHeader";
-ModalHeader.defaultProps = defaultProps$5;
-var DivStyledAsH4 = divWithClassName("h4");
-const ModalTitle = createWithBsPrefix("modal-title", {
-  Component: DivStyledAsH4
-});
-var manager;
-var defaultProps$4 = {
-  show: false,
-  backdrop: true,
-  keyboard: true,
-  autoFocus: true,
-  enforceFocus: true,
-  restoreFocus: true,
-  animation: true,
-  dialogAs: ModalDialog
-};
-function DialogTransition(props) {
-  return /* @__PURE__ */ React.createElement(Fade, props);
-}
-function BackdropTransition(props) {
-  return /* @__PURE__ */ React.createElement(Fade, props);
-}
-var Modal = /* @__PURE__ */ React.forwardRef(function(_ref3, ref) {
-  var bsPrefix = _ref3.bsPrefix, className = _ref3.className, style2 = _ref3.style, dialogClassName = _ref3.dialogClassName, contentClassName = _ref3.contentClassName, children2 = _ref3.children, Dialog = _ref3.dialogAs, ariaLabelledby = _ref3["aria-labelledby"], show = _ref3.show, animation = _ref3.animation, backdrop = _ref3.backdrop, keyboard = _ref3.keyboard, onEscapeKeyDown = _ref3.onEscapeKeyDown, onShow = _ref3.onShow, onHide2 = _ref3.onHide, container = _ref3.container, autoFocus = _ref3.autoFocus, enforceFocus = _ref3.enforceFocus, restoreFocus = _ref3.restoreFocus, restoreFocusOptions = _ref3.restoreFocusOptions, onEntered = _ref3.onEntered, onExit = _ref3.onExit, onExiting = _ref3.onExiting, onEnter = _ref3.onEnter, onEntering = _ref3.onEntering, onExited = _ref3.onExited, backdropClassName = _ref3.backdropClassName, propsManager = _ref3.manager, props = _objectWithoutPropertiesLoose$1(_ref3, ["bsPrefix", "className", "style", "dialogClassName", "contentClassName", "children", "dialogAs", "aria-labelledby", "show", "animation", "backdrop", "keyboard", "onEscapeKeyDown", "onShow", "onHide", "container", "autoFocus", "enforceFocus", "restoreFocus", "restoreFocusOptions", "onEntered", "onExit", "onExiting", "onEnter", "onEntering", "onExited", "backdropClassName", "manager"]);
-  var _useState = reactExports.useState({}), modalStyle = _useState[0], setStyle = _useState[1];
-  var _useState2 = reactExports.useState(false), animateStaticModal = _useState2[0], setAnimateStaticModal = _useState2[1];
-  var waitingForMouseUpRef = reactExports.useRef(false);
-  var ignoreBackdropClickRef = reactExports.useRef(false);
-  var removeStaticModalAnimationRef = reactExports.useRef(null);
-  var _useCallbackRef = useCallbackRef$2(), modal = _useCallbackRef[0], setModalRef = _useCallbackRef[1];
-  var handleHide = useEventCallback$1(onHide2);
-  bsPrefix = useBootstrapPrefix(bsPrefix, "modal");
-  reactExports.useImperativeHandle(ref, function() {
-    return {
-      get _modal() {
-        return modal;
-      }
-    };
-  }, [modal]);
-  var modalContext = reactExports.useMemo(function() {
-    return {
-      onHide: handleHide
-    };
-  }, [handleHide]);
-  function getModalManager() {
-    if (propsManager) return propsManager;
-    if (!manager) manager = new BootstrapModalManager();
-    return manager;
-  }
-  function updateDialogStyle(node2) {
-    if (!canUseDOM$1) return;
-    var containerIsOverflowing = getModalManager().isContainerOverflowing(modal);
-    var modalIsOverflowing = node2.scrollHeight > ownerDocument(node2).documentElement.clientHeight;
-    setStyle({
-      paddingRight: containerIsOverflowing && !modalIsOverflowing ? scrollbarSize() : void 0,
-      paddingLeft: !containerIsOverflowing && modalIsOverflowing ? scrollbarSize() : void 0
-    });
-  }
-  var handleWindowResize = useEventCallback$1(function() {
-    if (modal) {
-      updateDialogStyle(modal.dialog);
-    }
-  });
-  useWillUnmount$1(function() {
-    removeEventListener(window, "resize", handleWindowResize);
-    if (removeStaticModalAnimationRef.current) {
-      removeStaticModalAnimationRef.current();
-    }
-  });
-  var handleDialogMouseDown = function handleDialogMouseDown2() {
-    waitingForMouseUpRef.current = true;
-  };
-  var handleMouseUp = function handleMouseUp2(e) {
-    if (waitingForMouseUpRef.current && modal && e.target === modal.dialog) {
-      ignoreBackdropClickRef.current = true;
-    }
-    waitingForMouseUpRef.current = false;
-  };
-  var handleStaticModalAnimation = function handleStaticModalAnimation2() {
-    setAnimateStaticModal(true);
-    removeStaticModalAnimationRef.current = transitionEnd(modal.dialog, function() {
-      setAnimateStaticModal(false);
-    });
-  };
-  var handleStaticBackdropClick = function handleStaticBackdropClick2(e) {
-    if (e.target !== e.currentTarget) {
-      return;
-    }
-    handleStaticModalAnimation();
-  };
-  var handleClick = function handleClick2(e) {
-    if (backdrop === "static") {
-      handleStaticBackdropClick(e);
-      return;
-    }
-    if (ignoreBackdropClickRef.current || e.target !== e.currentTarget) {
-      ignoreBackdropClickRef.current = false;
-      return;
-    }
-    onHide2();
-  };
-  var handleEscapeKeyDown = function handleEscapeKeyDown2(e) {
-    if (!keyboard && backdrop === "static") {
-      e.preventDefault();
-      handleStaticModalAnimation();
-    } else if (keyboard && onEscapeKeyDown) {
-      onEscapeKeyDown(e);
-    }
-  };
-  var handleEnter = function handleEnter2(node2) {
-    if (node2) {
-      node2.style.display = "block";
-      updateDialogStyle(node2);
-    }
-    for (var _len = arguments.length, args = new Array(_len > 1 ? _len - 1 : 0), _key = 1; _key < _len; _key++) {
-      args[_key - 1] = arguments[_key];
-    }
-    if (onEnter) onEnter.apply(void 0, [node2].concat(args));
-  };
-  var handleExit = function handleExit2(node2) {
-    if (removeStaticModalAnimationRef.current) {
-      removeStaticModalAnimationRef.current();
-    }
-    for (var _len2 = arguments.length, args = new Array(_len2 > 1 ? _len2 - 1 : 0), _key2 = 1; _key2 < _len2; _key2++) {
-      args[_key2 - 1] = arguments[_key2];
-    }
-    if (onExit) onExit.apply(void 0, [node2].concat(args));
-  };
-  var handleEntering = function handleEntering2(node2) {
-    for (var _len3 = arguments.length, args = new Array(_len3 > 1 ? _len3 - 1 : 0), _key3 = 1; _key3 < _len3; _key3++) {
-      args[_key3 - 1] = arguments[_key3];
-    }
-    if (onEntering) onEntering.apply(void 0, [node2].concat(args));
-    addEventListener(window, "resize", handleWindowResize);
-  };
-  var handleExited = function handleExited2(node2) {
-    if (node2) node2.style.display = "";
-    for (var _len4 = arguments.length, args = new Array(_len4 > 1 ? _len4 - 1 : 0), _key4 = 1; _key4 < _len4; _key4++) {
-      args[_key4 - 1] = arguments[_key4];
-    }
-    if (onExited) onExited.apply(void 0, args);
-    removeEventListener(window, "resize", handleWindowResize);
-  };
-  var renderBackdrop = reactExports.useCallback(function(backdropProps) {
-    return /* @__PURE__ */ React.createElement("div", _extends$1({}, backdropProps, {
-      className: classNames$1(bsPrefix + "-backdrop", backdropClassName, !animation && "show")
-    }));
-  }, [animation, backdropClassName, bsPrefix]);
-  var baseModalStyle = _extends$1({}, style2, modalStyle);
-  if (!animation) {
-    baseModalStyle.display = "block";
-  }
-  var renderDialog = function renderDialog2(dialogProps) {
-    return /* @__PURE__ */ React.createElement("div", _extends$1({
-      role: "dialog"
-    }, dialogProps, {
-      style: baseModalStyle,
-      className: classNames$1(className, bsPrefix, animateStaticModal && bsPrefix + "-static"),
-      onClick: backdrop ? handleClick : void 0,
-      onMouseUp: handleMouseUp,
-      "aria-labelledby": ariaLabelledby
-    }), /* @__PURE__ */ React.createElement(Dialog, _extends$1({}, props, {
-      onMouseDown: handleDialogMouseDown,
-      className: dialogClassName,
-      contentClassName
-    }), children2));
-  };
-  return /* @__PURE__ */ React.createElement(ModalContext.Provider, {
-    value: modalContext
-  }, /* @__PURE__ */ React.createElement(BaseModal, {
-    show,
-    ref: setModalRef,
-    backdrop,
-    container,
-    keyboard: true,
-    autoFocus,
-    enforceFocus,
-    restoreFocus,
-    restoreFocusOptions,
-    onEscapeKeyDown: handleEscapeKeyDown,
-    onShow,
-    onHide: onHide2,
-    onEnter: handleEnter,
-    onEntering: handleEntering,
-    onEntered,
-    onExit: handleExit,
-    onExiting,
-    onExited: handleExited,
-    manager: getModalManager(),
-    containerClassName: bsPrefix + "-open",
-    transition: animation ? DialogTransition : void 0,
-    backdropTransition: animation ? BackdropTransition : void 0,
-    renderBackdrop,
-    renderDialog
-  }));
-});
-Modal.displayName = "Modal";
-Modal.defaultProps = defaultProps$4;
-Modal.Body = ModalBody;
-Modal.Header = ModalHeader;
-Modal.Title = ModalTitle;
-Modal.Footer = ModalFooter;
-Modal.Dialog = ModalDialog;
-Modal.TRANSITION_DURATION = 300;
-Modal.BACKDROP_TRANSITION_DURATION = 150;
-var NavbarBrand = /* @__PURE__ */ React.forwardRef(function(_ref3, ref) {
-  var bsPrefix = _ref3.bsPrefix, className = _ref3.className, as = _ref3.as, props = _objectWithoutPropertiesLoose$1(_ref3, ["bsPrefix", "className", "as"]);
-  bsPrefix = useBootstrapPrefix(bsPrefix, "navbar-brand");
-  var Component = as || (props.href ? "a" : "span");
-  return /* @__PURE__ */ React.createElement(Component, _extends$1({}, props, {
-    ref,
-    className: classNames$1(className, bsPrefix)
-  }));
-});
-NavbarBrand.displayName = "NavbarBrand";
-var NavbarCollapse = /* @__PURE__ */ React.forwardRef(function(_ref3, ref) {
-  var children2 = _ref3.children, bsPrefix = _ref3.bsPrefix, props = _objectWithoutPropertiesLoose$1(_ref3, ["children", "bsPrefix"]);
-  bsPrefix = useBootstrapPrefix(bsPrefix, "navbar-collapse");
-  return /* @__PURE__ */ React.createElement(context.Consumer, null, function(context2) {
-    return /* @__PURE__ */ React.createElement(Collapse, _extends$1({
-      in: !!(context2 && context2.expanded)
-    }, props), /* @__PURE__ */ React.createElement("div", {
-      ref,
-      className: bsPrefix
-    }, children2));
-  });
-});
-NavbarCollapse.displayName = "NavbarCollapse";
-var defaultProps$3 = {
-  label: "Toggle navigation"
-};
-var NavbarToggle = /* @__PURE__ */ React.forwardRef(function(_ref3, ref) {
-  var bsPrefix = _ref3.bsPrefix, className = _ref3.className, children2 = _ref3.children, label = _ref3.label, _ref$as = _ref3.as, Component = _ref$as === void 0 ? "button" : _ref$as, onClick = _ref3.onClick, props = _objectWithoutPropertiesLoose$1(_ref3, ["bsPrefix", "className", "children", "label", "as", "onClick"]);
-  bsPrefix = useBootstrapPrefix(bsPrefix, "navbar-toggler");
-  var _ref22 = reactExports.useContext(context) || {}, onToggle = _ref22.onToggle, expanded = _ref22.expanded;
-  var handleClick = useEventCallback$1(function(e) {
-    if (onClick) onClick(e);
-    if (onToggle) onToggle();
-  });
-  if (Component === "button") {
-    props.type = "button";
-  }
-  return /* @__PURE__ */ React.createElement(Component, _extends$1({}, props, {
-    ref,
-    onClick: handleClick,
-    "aria-label": label,
-    className: classNames$1(className, bsPrefix, !expanded && "collapsed")
-  }), children2 || /* @__PURE__ */ React.createElement("span", {
-    className: bsPrefix + "-icon"
-  }));
-});
-NavbarToggle.displayName = "NavbarToggle";
-NavbarToggle.defaultProps = defaultProps$3;
-var NavbarText = createWithBsPrefix("navbar-text", {
-  Component: "span"
-});
-var defaultProps$2 = {
-  expand: true,
-  variant: "light",
-  collapseOnSelect: false
-};
-var Navbar = /* @__PURE__ */ React.forwardRef(function(props, ref) {
-  var _useUncontrolled = useUncontrolled(props, {
-    expanded: "onToggle"
-  }), initialBsPrefix = _useUncontrolled.bsPrefix, expand = _useUncontrolled.expand, variant = _useUncontrolled.variant, bg = _useUncontrolled.bg, fixed = _useUncontrolled.fixed, sticky = _useUncontrolled.sticky, className = _useUncontrolled.className, children2 = _useUncontrolled.children, _useUncontrolled$as = _useUncontrolled.as, Component = _useUncontrolled$as === void 0 ? "nav" : _useUncontrolled$as, expanded = _useUncontrolled.expanded, _onToggle = _useUncontrolled.onToggle, onSelect = _useUncontrolled.onSelect, collapseOnSelect = _useUncontrolled.collapseOnSelect, controlledProps = _objectWithoutPropertiesLoose$1(_useUncontrolled, ["bsPrefix", "expand", "variant", "bg", "fixed", "sticky", "className", "children", "as", "expanded", "onToggle", "onSelect", "collapseOnSelect"]);
-  var bsPrefix = useBootstrapPrefix(initialBsPrefix, "navbar");
-  var handleCollapse = reactExports.useCallback(function() {
-    if (onSelect) onSelect.apply(void 0, arguments);
-    if (collapseOnSelect && expanded) {
-      if (_onToggle) {
-        _onToggle(false);
-      }
-    }
-  }, [onSelect, collapseOnSelect, expanded, _onToggle]);
-  if (controlledProps.role === void 0 && Component !== "nav") {
-    controlledProps.role = "navigation";
-  }
-  var expandClass = bsPrefix + "-expand";
-  if (typeof expand === "string") expandClass = expandClass + "-" + expand;
-  var navbarContext = reactExports.useMemo(function() {
-    return {
-      onToggle: function onToggle() {
-        return _onToggle && _onToggle(!expanded);
-      },
-      bsPrefix,
-      expanded: !!expanded
-    };
-  }, [bsPrefix, expanded, _onToggle]);
-  return /* @__PURE__ */ React.createElement(context.Provider, {
-    value: navbarContext
-  }, /* @__PURE__ */ React.createElement(SelectableContext.Provider, {
-    value: handleCollapse
-  }, /* @__PURE__ */ React.createElement(Component, _extends$1({
-    ref
-  }, controlledProps, {
-    className: classNames$1(className, bsPrefix, expand && expandClass, variant && bsPrefix + "-" + variant, bg && "bg-" + bg, sticky && "sticky-" + sticky, fixed && "fixed-" + fixed)
-  }), children2)));
-});
-Navbar.defaultProps = defaultProps$2;
-Navbar.displayName = "Navbar";
-Navbar.Brand = NavbarBrand;
-Navbar.Toggle = NavbarToggle;
-Navbar.Collapse = NavbarCollapse;
-Navbar.Text = NavbarText;
-var defaultProps$1 = {
-  active: false,
-  disabled: false,
-  activeLabel: "(current)"
-};
-var PageItem = /* @__PURE__ */ React.forwardRef(function(_ref3, ref) {
-  var active = _ref3.active, disabled = _ref3.disabled, className = _ref3.className, style2 = _ref3.style, activeLabel = _ref3.activeLabel, children2 = _ref3.children, props = _objectWithoutPropertiesLoose$1(_ref3, ["active", "disabled", "className", "style", "activeLabel", "children"]);
-  var Component = active || disabled ? "span" : SafeAnchor;
-  return /* @__PURE__ */ React.createElement("li", {
-    ref,
-    style: style2,
-    className: classNames$1(className, "page-item", {
-      active,
-      disabled
-    })
-  }, /* @__PURE__ */ React.createElement(Component, _extends$1({
-    className: "page-link",
-    disabled
-  }, props), children2, active && activeLabel && /* @__PURE__ */ React.createElement("span", {
-    className: "sr-only"
-  }, activeLabel)));
-});
-PageItem.defaultProps = defaultProps$1;
-PageItem.displayName = "PageItem";
-function createButton(name, defaultValue, label) {
-  if (label === void 0) {
-    label = name;
-  }
-  function Button2(_ref22) {
-    var children2 = _ref22.children, props = _objectWithoutPropertiesLoose$1(_ref22, ["children"]);
-    return /* @__PURE__ */ React.createElement(PageItem, props, /* @__PURE__ */ React.createElement("span", {
-      "aria-hidden": "true"
-    }, children2 || defaultValue), /* @__PURE__ */ React.createElement("span", {
-      className: "sr-only"
-    }, label));
-  }
-  Button2.displayName = name;
-  return Button2;
-}
-var First = createButton("First", "«");
-var Prev = createButton("Prev", "‹", "Previous");
-var Ellipsis = createButton("Ellipsis", "…", "More");
-var Next = createButton("Next", "›");
-var Last = createButton("Last", "»");
-var Pagination = /* @__PURE__ */ React.forwardRef(function(_ref3, ref) {
-  var bsPrefix = _ref3.bsPrefix, className = _ref3.className, children2 = _ref3.children, size2 = _ref3.size, props = _objectWithoutPropertiesLoose$1(_ref3, ["bsPrefix", "className", "children", "size"]);
-  var decoratedBsPrefix = useBootstrapPrefix(bsPrefix, "pagination");
-  return /* @__PURE__ */ React.createElement("ul", _extends$1({
-    ref
-  }, props, {
-    className: classNames$1(className, decoratedBsPrefix, size2 && decoratedBsPrefix + "-" + size2)
-  }), children2);
-});
-Pagination.First = First;
-Pagination.Prev = Prev;
-Pagination.Ellipsis = Ellipsis;
-Pagination.Item = PageItem;
-Pagination.Next = Next;
-Pagination.Last = Last;
-var Spinner = /* @__PURE__ */ React.forwardRef(function(_ref3, ref) {
-  var bsPrefix = _ref3.bsPrefix, variant = _ref3.variant, animation = _ref3.animation, size2 = _ref3.size, children2 = _ref3.children, _ref$as = _ref3.as, Component = _ref$as === void 0 ? "div" : _ref$as, className = _ref3.className, props = _objectWithoutPropertiesLoose$1(_ref3, ["bsPrefix", "variant", "animation", "size", "children", "as", "className"]);
-  bsPrefix = useBootstrapPrefix(bsPrefix, "spinner");
-  var bsSpinnerPrefix = bsPrefix + "-" + animation;
-  return /* @__PURE__ */ React.createElement(Component, _extends$1({
-    ref
-  }, props, {
-    className: classNames$1(className, bsSpinnerPrefix, size2 && bsSpinnerPrefix + "-" + size2, variant && "text-" + variant)
-  }), children2);
-});
-Spinner.displayName = "Spinner";
-var Table = /* @__PURE__ */ React.forwardRef(function(_ref3, ref) {
-  var bsPrefix = _ref3.bsPrefix, className = _ref3.className, striped = _ref3.striped, bordered = _ref3.bordered, borderless = _ref3.borderless, hover = _ref3.hover, size2 = _ref3.size, variant = _ref3.variant, responsive = _ref3.responsive, props = _objectWithoutPropertiesLoose$1(_ref3, ["bsPrefix", "className", "striped", "bordered", "borderless", "hover", "size", "variant", "responsive"]);
-  var decoratedBsPrefix = useBootstrapPrefix(bsPrefix, "table");
-  var classes = classNames$1(className, decoratedBsPrefix, variant && decoratedBsPrefix + "-" + variant, size2 && decoratedBsPrefix + "-" + size2, striped && decoratedBsPrefix + "-striped", bordered && decoratedBsPrefix + "-bordered", borderless && decoratedBsPrefix + "-borderless", hover && decoratedBsPrefix + "-hover");
-  var table = /* @__PURE__ */ React.createElement("table", _extends$1({}, props, {
-    className: classes,
-    ref
-  }));
-  if (responsive) {
-    var responsiveClass = decoratedBsPrefix + "-responsive";
-    if (typeof responsive === "string") {
-      responsiveClass = responsiveClass + "-" + responsive;
-    }
-    return /* @__PURE__ */ React.createElement("div", {
-      className: responsiveClass
-    }, table);
-  }
-  return table;
-});
-const toKebabCase = (string2) => string2.replace(/([a-z0-9])([A-Z])/g, "$1-$2").toLowerCase();
-const toCamelCase = (string2) => string2.replace(
-  /^([A-Z])|[\s-_]+(\w)/g,
-  (match2, p1, p2) => p2 ? p2.toUpperCase() : p1.toLowerCase()
-);
-const toPascalCase = (string2) => {
-  const camelCase = toCamelCase(string2);
-  return camelCase.charAt(0).toUpperCase() + camelCase.slice(1);
-};
-const mergeClasses = (...classes) => classes.filter((className, index2, array3) => {
-  return Boolean(className) && className.trim() !== "" && array3.indexOf(className) === index2;
-}).join(" ").trim();
-const hasA11yProp = (props) => {
-  for (const prop in props) {
-    if (prop.startsWith("aria-") || prop === "role" || prop === "title") {
-      return true;
-    }
-  }
-};
-var defaultAttributes = {
-  xmlns: "http://www.w3.org/2000/svg",
-  width: 24,
-  height: 24,
-  viewBox: "0 0 24 24",
-  fill: "none",
-  stroke: "currentColor",
-  strokeWidth: 2,
-  strokeLinecap: "round",
-  strokeLinejoin: "round"
-};
-const Icon = reactExports.forwardRef(
-  ({
-    color = "currentColor",
-    size: size2 = 24,
-    strokeWidth = 2,
-    absoluteStrokeWidth,
-    className = "",
-    children: children2,
-    iconNode,
-    ...rest
-  }, ref) => {
-    return reactExports.createElement(
-      "svg",
-      {
-        ref,
-        ...defaultAttributes,
-        width: size2,
-        height: size2,
-        stroke: color,
-        strokeWidth: absoluteStrokeWidth ? Number(strokeWidth) * 24 / Number(size2) : strokeWidth,
-        className: mergeClasses("lucide", className),
-        ...!children2 && !hasA11yProp(rest) && { "aria-hidden": "true" },
-        ...rest
-      },
-      [
-        ...iconNode.map(([tag, attrs]) => reactExports.createElement(tag, attrs)),
-        ...Array.isArray(children2) ? children2 : [children2]
-      ]
-    );
-  }
-);
-const createLucideIcon = (iconName, iconNode) => {
-  const Component = reactExports.forwardRef(
-    ({ className, ...props }, ref) => reactExports.createElement(Icon, {
-      ref,
-      iconNode,
-      className: mergeClasses(
-        `lucide-${toKebabCase(toPascalCase(iconName))}`,
-        `lucide-${iconName}`,
-        className
-      ),
-      ...props
-    })
-  );
-  Component.displayName = toPascalCase(iconName);
-  return Component;
-};
-const __iconNode$1 = [
-  ["path", { d: "m8 2 1.88 1.88", key: "fmnt4t" }],
-  ["path", { d: "M14.12 3.88 16 2", key: "qol33r" }],
-  ["path", { d: "M9 7.13v-1a3.003 3.003 0 1 1 6 0v1", key: "d7y7pr" }],
-  [
-    "path",
-    {
-      d: "M12 20c-3.3 0-6-2.7-6-6v-3a4 4 0 0 1 4-4h4a4 4 0 0 1 4 4v3c0 3.3-2.7 6-6 6",
-      key: "xs1cw7"
-    }
-  ],
-  ["path", { d: "M12 20v-9", key: "1qisl0" }],
-  ["path", { d: "M6.53 9C4.6 8.8 3 7.1 3 5", key: "32zzws" }],
-  ["path", { d: "M6 13H2", key: "82j7cp" }],
-  ["path", { d: "M3 21c0-2.1 1.7-3.9 3.8-4", key: "4p0ekp" }],
-  ["path", { d: "M20.97 5c0 2.1-1.6 3.8-3.5 4", key: "18gb23" }],
-  ["path", { d: "M22 13h-4", key: "1jl80f" }],
-  ["path", { d: "M17.2 17c2.1.1 3.8 1.9 3.8 4", key: "k3fwyw" }]
-];
-const Bug = createLucideIcon("bug", __iconNode$1);
-const __iconNode = [
-  ["path", { d: "M18 6 6 18", key: "1bl5f8" }],
-  ["path", { d: "m6 6 12 12", key: "d8bk6v" }]
-];
-const X = createLucideIcon("x", __iconNode);
 class AbstractEvent {
   constructor(data) {
     this._canceled = false;
@@ -39672,18 +37869,18 @@ function requireNode$1() {
   if (hasRequiredNode$1) return node$1;
   hasRequiredNode$1 = 1;
   var __extends2 = node$1 && node$1.__extends || /* @__PURE__ */ (function() {
-    var extendStatics2 = function(d, b) {
-      extendStatics2 = Object.setPrototypeOf || { __proto__: [] } instanceof Array && function(d2, b2) {
+    var extendStatics = function(d, b) {
+      extendStatics = Object.setPrototypeOf || { __proto__: [] } instanceof Array && function(d2, b2) {
         d2.__proto__ = b2;
       } || function(d2, b2) {
         for (var p in b2) if (Object.prototype.hasOwnProperty.call(b2, p)) d2[p] = b2[p];
       };
-      return extendStatics2(d, b);
+      return extendStatics(d, b);
     };
     return function(d, b) {
       if (typeof b !== "function" && b !== null)
         throw new TypeError("Class extends value " + String(b) + " is not a constructor or null");
-      extendStatics2(d, b);
+      extendStatics(d, b);
       function __() {
         this.constructor = d;
       }
@@ -41951,18 +40148,18 @@ function requireNode() {
   if (hasRequiredNode) return node;
   hasRequiredNode = 1;
   var __extends2 = node && node.__extends || /* @__PURE__ */ (function() {
-    var extendStatics2 = function(d, b) {
-      extendStatics2 = Object.setPrototypeOf || { __proto__: [] } instanceof Array && function(d2, b2) {
+    var extendStatics = function(d, b) {
+      extendStatics = Object.setPrototypeOf || { __proto__: [] } instanceof Array && function(d2, b2) {
         d2.__proto__ = b2;
       } || function(d2, b2) {
         for (var p in b2) if (Object.prototype.hasOwnProperty.call(b2, p)) d2[p] = b2[p];
       };
-      return extendStatics2(d, b);
+      return extendStatics(d, b);
     };
     return function(d, b) {
       if (typeof b !== "function" && b !== null)
         throw new TypeError("Class extends value " + String(b) + " is not a constructor or null");
-      extendStatics2(d, b);
+      extendStatics(d, b);
       function __() {
         this.constructor = d;
       }
@@ -47380,7 +45577,7 @@ export {
   _ArrayExports,
   _functionExports,
   action,
-  array,
+  array2 as array,
   autorun,
   boolean,
   clientExports,
@@ -47389,10 +45586,7 @@ export {
   failure,
   flow,
   initReactI18next,
-  inject,
-  injectable,
   instance$9 as instance,
-  instance$a as instance$1,
   intersection,
   isLeft,
   isRight,

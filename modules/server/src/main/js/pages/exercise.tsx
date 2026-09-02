@@ -1,8 +1,7 @@
 import { observer } from "mobx-react";
-import React, { useCallback, useEffect, useState } from "react";
+import React, { useCallback, useEffect } from "react";
 import { Alert } from "react-bootstrap";
 import { useTranslation } from "react-i18next";
-import { container } from "tsyringe";
 import DebugButton from "../components/common/debug";
 import { InlineError } from "../components/common/errors";
 import { LoadingWrapper } from "../components/common/loader";
@@ -14,13 +13,13 @@ import { GenerateNextQuestionBtn } from "../components/exercise/generate-next-qu
 import { ExerciseHeader } from "../components/exercise/header";
 import { SurveyComponent } from "../components/exercise/survey";
 import tourSteps from "../data/introduction-tour";
-import { ExerciseStore } from "../stores/exercise-store";
+import { getExerciseStore } from "../stores/exercise-store";
 import { Survey } from "../types/survey";
 import { TourLauncher } from "../utils/TourLauncher";
 import { TourProvider } from "../utils/TourProvider";
 
 export const Exercise = observer(() => {
-    const [exerciseStore] = useState(() => container.resolve(ExerciseStore));
+    const exerciseStore = getExerciseStore();
     const { exerciseState, setExerciseState, storeState:excerciseStoreState, currentQuestion, survey } = exerciseStore;
     const { storeState:currentQuestionStoreState } = currentQuestion;
     const { t } = useTranslation();

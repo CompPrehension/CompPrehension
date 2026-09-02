@@ -1,9 +1,6 @@
 import * as E from "fp-ts/lib/Either";
 import { action, autorun, flow, makeObservable, observable, runInAction, toJS } from "mobx";
-import { inject, injectable } from "tsyringe";
-import { ExerciseController, IExerciseController } from "../controllers/exercise/exercise-controller";
-import { SurveyController } from "../controllers/exercise/survey-controller";
-import { IUserController, UserController } from "../controllers/exercise/user-controller";
+import { exerciseController, surveyController, userController } from "../controllers";
 import { Exercise } from "../types/exercise";
 import { ExerciseAttempt } from "../types/exercise-attempt";
 import { RequestError } from "../types/request-error";
@@ -11,7 +8,6 @@ import { Survey, SurveyQuestion } from "../types/survey";
 import { getUrlParameterByName } from "../types/utils";
 import { QuestionStore } from "./question-store";
 
-@injectable()
 export class ExerciseStore {
     @observable isExerciseLoading: boolean = false;
     @observable exerciseId: number;
@@ -25,13 +21,10 @@ export class ExerciseStore {
     @observable survey?: ExerciseSurveySettings = undefined;
     @observable isDebug = false;
 
-    constructor(@inject(ExerciseController) private readonly exerciseController: IExerciseController,
-        @inject(UserController) private readonly userController: IUserController,
-        @inject(SurveyController) private readonly surveyController: SurveyController,
-        @inject(QuestionStore) currentQuestion: QuestionStore) {
+    constructor() {
         // calc store initial state
         this.isDebug = getUrlParameterByName('debug') !== null;
-        this.currentQuestion = currentQuestion;
+        this.currentQuestion = new QuestionStore();
         
         const rawExerciseId = getUrlParameterByName('exerciseId');
         if (rawExerciseId === null) {
@@ -100,7 +93,7 @@ export class ExerciseStore {
             this.isExerciseLoading = true;
         })
 
-        const exercise = await this.exerciseController.getExerciseShortInfo(this.exerciseId, this.courseId);
+        const exercise = await exerciseController.getExerciseShortInfo(this.exerciseId, this.courseId);
         
         if (E.isRight(exercise)) {
             runInAction(() => {
@@ -124,7 +117,7 @@ export class ExerciseStore {
 
         this.forceSetValidState();
         const exerciseId = exercise.id;
-        const resultEither: E.Either<RequestError, ExerciseAttempt | null> = yield this.exerciseController.getExerciseAttempt(attemptId);
+        const resultEither: E.Either<RequestError, ExerciseAttempt | null> = yield exerciseController.getExerciseAttempt(attemptId);
         if (E.isLeft(resultEither)) {
             this.storeState = { tag: 'ERROR', error: resultEither.left };
             return;
@@ -148,7 +141,7 @@ export class ExerciseStore {
 
         this.forceSetValidState();
         const exerciseId = exercise.id;
-        const resultEither: E.Either<RequestError, ExerciseAttempt | null> = yield this.exerciseController.getExistingExerciseAttempt(exerciseId, this.courseId);
+        const resultEither: E.Either<RequestError, ExerciseAttempt | null> = yield exerciseController.getExistingExerciseAttempt(exerciseId, this.courseId);
         if (E.isLeft(resultEither)) {
             this.storeState = { tag: 'ERROR', error: resultEither.left };
             return;
@@ -177,7 +170,7 @@ export class ExerciseStore {
 
         this.forceSetValidState();
         const exerciseId = exercise.id;
-        const resultEither: E.Either<RequestError, ExerciseAttempt> = yield this.exerciseController.createExerciseAttempt(+exerciseId, this.courseId);
+        const resultEither: E.Either<RequestError, ExerciseAttempt> = yield exerciseController.createExerciseAttempt(+exerciseId, this.courseId);
         if (E.isLeft(resultEither)) {
             this.storeState = { tag: 'ERROR', error: resultEither.left };
             return;
@@ -195,7 +188,7 @@ export class ExerciseStore {
 
         this.forceSetValidState();
         const exerciseId = exercise.id;
-        const resultEither: E.Either<RequestError, ExerciseAttempt> = yield this.exerciseController.createDebugExerciseAttempt(+exerciseId, this.courseId);
+        const resultEither: E.Either<RequestError, ExerciseAttempt> = yield exerciseController.createDebugExerciseAttempt(+exerciseId, this.courseId);
         if (E.isLeft(resultEither)) {
             this.storeState = { tag: 'ERROR', error: resultEither.left };
             return;
@@ -226,8 +219,8 @@ export class ExerciseStore {
         const surveyId = this.exercise.options.surveyOptions.surveyId;
         const attemptId = this.currentAttempt.attemptId;
         const [survey, surveyResults] = await Promise.all([
-            this.surveyController.getSurvey(surveyId),
-            this.surveyController.getCurrentUserAttemptSurveyVotes(surveyId, attemptId),
+            surveyController.getSurvey(surveyId),
+            surveyController.getCurrentUserAttemptSurveyVotes(surveyId, attemptId),
         ]);
 
         runInAction(() => {
@@ -303,4 +296,11 @@ type QuestionSurveyResult = {
     status: 'ACTIVE' | 'COMPLETED',
     questions: number[],
     results: Record<number, string>,
+}
+
+let sharedExerciseStore: ExerciseStore | undefined;
+
+/** The exercise page and every component inside it work with one and the same store. */
+export function getExerciseStore(): ExerciseStore {
+    return sharedExerciseStore ??= new ExerciseStore();
 }

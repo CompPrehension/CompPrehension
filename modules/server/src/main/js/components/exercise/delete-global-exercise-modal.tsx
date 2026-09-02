@@ -1,8 +1,7 @@
 import React, { useEffect, useState } from 'react';
 import { useTranslation } from 'react-i18next';
-import { container } from 'tsyringe';
 import * as E from 'fp-ts/lib/Either';
-import { CourseController } from '../../controllers/course/course-controller';
+import { courseController } from '../../controllers';
 import { CourseDto } from '../../types/course';
 import { Modal } from '../common/modal';
 
@@ -15,7 +14,6 @@ type Props = {
 export const DeleteGlobalExerciseModal: React.FC<Props> = ({ exerciseId, onConfirm, onCancel }) => {
     const { t } = useTranslation();
     const [memberships, setMemberships] = useState<CourseDto[] | null>(null);
-    const [courseController] = useState(() => container.resolve(CourseController));
 
     useEffect(() => {
         (async () => {

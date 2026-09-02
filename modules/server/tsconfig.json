@@ -2,10 +2,9 @@
   "compilerOptions": {
     "lib": ["dom", "esnext", "es2018.promise"],
     "types": ["vite/client"],
+    // still needed by the legacy mobx decorators (@observable, @action)
     "experimentalDecorators": true,
-    // esbuild (and therefore Vite) cannot emit `design:paramtypes`, so tsyringe gets its
-    // tokens exclusively from explicit `@inject(...)` decorators: every constructor
-    // parameter of an `@injectable` class must carry one.
+    // esbuild (and therefore Vite) cannot emit `design:paramtypes`
     "emitDecoratorMetadata": false,
     "strict": true,
     "moduleResolution": "Node",

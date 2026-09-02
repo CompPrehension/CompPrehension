@@ -1,8 +1,7 @@
 import { observer } from "mobx-react";
 import React, { useEffect, useState } from "react";
 import { ListGroup } from "react-bootstrap";
-import { ExerciseController, IExerciseController } from "../controllers/exercise/exercise-controller";
-import { container } from "tsyringe";
+import { exerciseController } from "../controllers";
 import * as E from "fp-ts/lib/Either";
 
 export const ExercisesList = observer(() => {
@@ -11,7 +10,7 @@ export const ExercisesList = observer(() => {
     useEffect(() => {
         (async() => {
             setIsLoading(true);
-            const controller = container.resolve<IExerciseController>(ExerciseController);
+            const controller = exerciseController;
             const dataEither = await controller.getExercises();
             if (E.isRight(dataEither)) {
                 setData(dataEither.right);

@@ -1,6 +1,5 @@
 import React, { useEffect, useState } from 'react';
 import { observer } from 'mobx-react';
-import { container } from 'tsyringe';
 import { Button } from 'react-bootstrap';
 import { useTranslation } from 'react-i18next';
 import { GlobalPoolStore, ImportMode } from '../../stores/global-pool-store';
@@ -17,7 +16,7 @@ type Props = {
 
 export const ImportFromGlobalModal = observer(({ courseId, canInherit, canClone, onClose, onImported }: Props) => {
     const { t } = useTranslation();
-    const [store] = useState(() => container.resolve(GlobalPoolStore));
+    const [store] = useState(() => new GlobalPoolStore());
     const [mode, setMode] = useState<ImportMode>(canInherit ? 'INHERIT' : 'CLONE');
     const [busyId, setBusyId] = useState<number | null>(null);
     const modeAllowed = mode === 'INHERIT' ? canInherit : canClone;

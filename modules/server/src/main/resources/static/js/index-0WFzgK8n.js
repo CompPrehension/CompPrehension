@@ -1,4 +1,4 @@
-import { union, nullType, undefinedType, literal, type, array, number, makeAutoObservable, EitherExports, success, intersection, boolean, partial, string, injectable, Type, _ArrayExports, _functionExports, NonEmptyArrayExports, OptionExports, failure, keyof, recursion, toJS, tuple, makeObservable, runInAction, observable, action, computed, flow, inject, autorun, instance, instance$1, initReactI18next, observer, jsxRuntimeExports, reactExports, Button, Bug, useTranslation, Alert, Spinner, Modal as Modal$1, Droppable, ResizeMirror, StateManagedSelect$1, ReactDOM, components, parse, Popover, PopoverTrigger, PopoverContent, X, Badge, Pagination as Pagination$1, Navbar, isLeft, isRight, FormImpl, Shepherd, Table, ListGroup, useSearchParams, Link, useNavigate, clientExports, BrowserRouter, Routes, Route, Navigate } from "./vendor-1YL4hu9N.js";
+import { instance, initReactI18next, observer, jsxRuntimeExports, reactExports, Button, Bug, makeAutoObservable, useTranslation, Alert, Spinner, union, nullType, undefinedType, literal, Modal as Modal$1, EitherExports, success, type, string, number, intersection, boolean, partial, array, Type, _ArrayExports, _functionExports, NonEmptyArrayExports, OptionExports, failure, keyof, recursion, toJS, tuple, makeObservable, runInAction, observable, action, computed, flow, autorun, Droppable, ResizeMirror, StateManagedSelect$1, ReactDOM, components, parse, Popover, PopoverTrigger, PopoverContent, X, Badge, Pagination as Pagination$1, Navbar, isLeft, isRight, FormImpl, Shepherd, Table, ListGroup, useSearchParams, Link, useNavigate, clientExports, BrowserRouter, Routes, Route, Navigate } from "./vendor-B1Edy10t.js";
 (function polyfill() {
   const relList = document.createElement("link").relList;
   if (relList && relList.supports && relList.supports("modulepreload")) return;
@@ -28,1858 +28,6 @@ import { union, nullType, undefinedType, literal, type, array, number, makeAutoO
     fetch(link.href, fetchOpts);
   }
 })();
-union([nullType, undefinedType, literal("")]);
-function TOptionalRequestResult(type2, name) {
-  return union([type2, nullType, undefinedType, literal("")], type2.name);
-}
-function delayPromise(timeout) {
-  return new Promise((resolve) => setTimeout(() => resolve(), timeout));
-}
-function isNullOrUndefined(value) {
-  return value === null || value === void 0;
-}
-const TExerciseAttempt = type({
-  attemptId: number,
-  exerciseId: number,
-  questionIds: array(number)
-}, "ExerciseAttempt");
-const TOptionalExerciseAttemptResult = TOptionalRequestResult(TExerciseAttempt);
-const TExerciseStatisticsItem = type({
-  attemptId: number,
-  questionsCount: number,
-  totalInteractionsCount: number,
-  totalInteractionsWithErrorsCount: number,
-  averageGrade: number
-}, "ExerciseStatisticsItem");
-const TExerciseStatisticsItems = array(TExerciseStatisticsItem);
-const AUTO_DISMISS_MS = 12e3;
-const CLAIM_WINDOW_MS = 250;
-const keyOf = (error) => `${error.status}\0${error.message}`;
-class NotificationsStore {
-  notifications = [];
-  nextId = 1;
-  pending = /* @__PURE__ */ new Map();
-  constructor() {
-    makeAutoObservable(this, {
-      nextId: false,
-      pending: false
-    });
-  }
-  /** Show a failed request to the user - unless the page claims it within the grace period. */
-  report(error) {
-    const key = keyOf(error);
-    clearTimeout(this.pending.get(key));
-    this.pending.set(key, setTimeout(() => {
-      this.pending.delete(key);
-      this.show(error);
-    }, CLAIM_WINDOW_MS));
-  }
-  /**
-   * The page renders this error itself, so it needs no notification: an error is shown
-   * either in place or as a notification, never both.
-   */
-  handled(error) {
-    const key = keyOf(error);
-    clearTimeout(this.pending.get(key));
-    this.pending.delete(key);
-    this.notifications = this.notifications.filter((n) => keyOf(n.error) !== key);
-  }
-  dismiss(id) {
-    this.notifications = this.notifications.filter((n) => n.id !== id);
-  }
-  show(error) {
-    const key = keyOf(error);
-    const same = this.notifications.find((n) => keyOf(n.error) === key);
-    if (same) {
-      same.count++;
-      return;
-    }
-    const id = this.nextId++;
-    this.notifications.push({ id, error, count: 1 });
-    setTimeout(() => this.dismiss(id), AUTO_DISMISS_MS);
-  }
-}
-const notifications = new NotificationsStore();
-const commonParams = {
-  method: "GET",
-  headers: {
-    "Content-Type": "application/json"
-  }
-  //redirect: 'manual',
-};
-async function ajaxGet(url, validator, signal) {
-  const params = {
-    ...commonParams,
-    signal
-  };
-  return await ajax(url, params, validator);
-}
-async function ajaxPost(url, body, validator, signal, payloadType) {
-  const params = {
-    ...commonParams,
-    method: "POST",
-    body: JSON.stringify(body),
-    signal
-  };
-  return await ajax(url, params, validator, payloadType);
-}
-async function ajaxPut(url, body, validator, signal) {
-  const params = {
-    ...commonParams,
-    method: "PUT",
-    body: JSON.stringify(body),
-    signal
-  };
-  return await ajax(url, params, validator);
-}
-async function ajaxDelete(url, validator, signal) {
-  const params = {
-    ...commonParams,
-    method: "DELETE",
-    signal
-  };
-  return await ajax(url, params, validator);
-}
-const statusTexts = {
-  400: "Bad request",
-  401: "Unauthorized",
-  403: "Forbidden",
-  404: "Not found",
-  405: "Method not allowed",
-  409: "Conflict",
-  413: "Payload too large",
-  415: "Unsupported media type",
-  422: "Unprocessable entity",
-  429: "Too many requests",
-  500: "Internal server error",
-  502: "Bad gateway",
-  503: "Service unavailable",
-  504: "Gateway timeout"
-};
-const asText = (value) => typeof value === "string" && value.trim() !== "" ? value.trim() : void 0;
-function parseErrorBody(body) {
-  try {
-    const parsed = JSON.parse(body);
-    return typeof parsed === "object" && parsed !== null ? parsed : void 0;
-  } catch {
-    return void 0;
-  }
-}
-function plainTextBody(body) {
-  const text = asText(body);
-  return text !== void 0 && text.length <= 300 && !text.startsWith("<") ? text : void 0;
-}
-async function toRequestError(response) {
-  const body = await response.text().catch(() => "");
-  const parsed = parseErrorBody(body);
-  const title = asText(parsed?.title) ?? asText(parsed?.error);
-  return {
-    status: response.status,
-    message: asText(parsed?.detail) ?? asText(parsed?.message) ?? title ?? (parsed === void 0 ? plainTextBody(body) : void 0) ?? statusTexts[response.status] ?? `Request failed with status ${response.status}`,
-    title,
-    path: asText(parsed?.instance) ?? asText(parsed?.path),
-    timestamp: asText(parsed?.timestamp),
-    trace: asText(parsed?.trace)
-  };
-}
-async function readPayload(response, payloadType) {
-  const body = await response.text();
-  if (payloadType === "raw") {
-    return body;
-  }
-  return body.trim() === "" ? "" : JSON.parse(body);
-}
-function fail(error) {
-  console.error(error);
-  notifications.report(error);
-  return EitherExports.left(error);
-}
-const isAbort = (err) => err instanceof DOMException && err.name === "AbortError";
-async function ajax(url, params, validator, payloadType) {
-  payloadType ??= "json";
-  let response;
-  try {
-    response = await fetch(url, params);
-  } catch (err) {
-    if (isAbort(err)) {
-      return EitherExports.left({ message: "Request aborted" });
-    }
-    return fail({ message: `Network error: ${err instanceof Error ? err.message : String(err)}` });
-  }
-  if (!response.ok) {
-    return fail(await toRequestError(response));
-  }
-  let payload;
-  try {
-    payload = await readPayload(response, payloadType);
-  } catch (err) {
-    if (isAbort(err)) {
-      return EitherExports.left({ message: "Request aborted" });
-    }
-    return fail({
-      status: response.status,
-      message: `Malformed response body: ${err instanceof Error ? err.message : String(err)}`
-    });
-  }
-  const decoded = validator ? validator.decode(payload) : success(payload);
-  if (EitherExports.isLeft(decoded)) {
-    return fail({
-      status: response.status,
-      message: `Type inconsistency for properties of ${validator?.name} type: ${getPaths(decoded.left).join(", ")}`
-    });
-  }
-  return EitherExports.right(decoded.right);
-}
-const getPaths = (errors) => {
-  return errors.map((error) => error.context.map(({ key }) => key).join("."));
-};
-const API_URL = "";
-const TExerciseOptions = intersection([
-  type({
-    forceNewAttemptCreationEnabled: boolean,
-    debugButtonEnabled: boolean,
-    newQuestionGenerationEnabled: boolean,
-    supplementaryQuestionsEnabled: boolean,
-    correctAnswerGenerationEnabled: boolean,
-    preferDecisionTreeBasedSupplementaryEnabled: boolean,
-    maxExpectedConcurrentStudents: number
-  }),
-  partial({
-    surveyOptions: type({
-      enabled: boolean,
-      surveyId: string
-    })
-  })
-], "ExerciseOptions");
-const TExercise = type({
-  id: number,
-  options: TExerciseOptions
-}, "Exercise");
-var __getOwnPropDesc$f = Object.getOwnPropertyDescriptor;
-var __decorateClass$f = (decorators, target, key, kind) => {
-  var result = kind > 1 ? void 0 : kind ? __getOwnPropDesc$f(target, key) : target;
-  for (var i = decorators.length - 1, decorator; i >= 0; i--)
-    if (decorator = decorators[i])
-      result = decorator(result) || result;
-  return result;
-};
-let ExerciseController = class {
-  getExerciseShortInfo(id, courseId) {
-    const courseParam = courseId != null ? `&courseId=${courseId}` : "";
-    return ajaxGet(`${API_URL}/api/exercise/shortInfo?id=${id}${courseParam}`, TExercise);
-  }
-  getExerciseAttempt(attemptId) {
-    return ajaxGet(`${API_URL}/api/exercise/getExerciseAttempt?attemptId=${attemptId}`, TExerciseAttempt);
-  }
-  getExistingExerciseAttempt(exerciseId, courseId) {
-    const courseParam = courseId != null ? `&courseId=${courseId}` : "";
-    return ajaxGet(`${API_URL}/api/exercise/getExistingExerciseAttempt?exerciseId=${exerciseId}${courseParam}`, TOptionalExerciseAttemptResult);
-  }
-  createExerciseAttempt(exerciseId, courseId) {
-    const courseParam = courseId != null ? `&courseId=${courseId}` : "";
-    return ajaxGet(`${API_URL}/api/exercise/createExerciseAttempt?exerciseId=${exerciseId}${courseParam}`, TExerciseAttempt);
-  }
-  createDebugExerciseAttempt(exerciseId, courseId) {
-    const courseParam = courseId != null ? `&courseId=${courseId}` : "";
-    return ajaxGet(`${API_URL}/api/exercise/createDebugExerciseAttempt?exerciseId=${exerciseId}${courseParam}`, TExerciseAttempt);
-  }
-  getExerciseStatistics(exerciseId) {
-    return ajaxGet(`${API_URL}/api/exercise/getExerciseStatistics?exerciseId=${exerciseId}`, TExerciseStatisticsItems);
-  }
-  getExercises() {
-    return ajaxGet(`${API_URL}/api/exercise/getExercises`, array(number));
-  }
-};
-ExerciseController = __decorateClass$f([
-  injectable()
-], ExerciseController);
-function nonEmptyArray(codec, name = `NonEmptyArray<${codec.name}>`) {
-  const arr = array(codec);
-  return new Type(
-    name,
-    (u) => arr.is(u) && _ArrayExports.isNonEmpty(u),
-    (u, c) => _functionExports.pipe(
-      arr.validate(u, c),
-      EitherExports.chain((as) => {
-        const onea = NonEmptyArrayExports.fromArray(as);
-        return OptionExports.isNone(onea) ? failure(u, c) : success(onea.value);
-      })
-    ),
-    NonEmptyArrayExports.map(codec.encode)
-  );
-}
-function getUrlParameterByName(name) {
-  const urlParams = new URLSearchParams(window.location.search);
-  return urlParams.get(name);
-}
-const TExerciseListItem = type({
-  id: number,
-  name: string,
-  isPublic: boolean
-});
-const TExerciseListPermissions = type({
-  canCreateExercise: boolean,
-  canImportInherit: boolean,
-  canImportClone: boolean
-}, "ExerciseListPermissions");
-const noExerciseListPermissions = {
-  canCreateExercise: false,
-  canImportInherit: false,
-  canImportClone: false
-};
-const TExerciseList = type({
-  exercises: array(TExerciseListItem),
-  permissions: TExerciseListPermissions
-}, "ExerciseList");
-const TExerciseCardConcept = type({
-  name: string,
-  kind: keyof({
-    "FORBIDDEN": null,
-    "PERMITTED": null,
-    "TARGETED": null
-  })
-});
-const TExerciseCardLaw = type({
-  name: string,
-  kind: keyof({
-    "FORBIDDEN": null,
-    "PERMITTED": null,
-    "TARGETED": null
-  })
-});
-const TExerciseCardSkill = type({
-  name: string,
-  kind: keyof({
-    "FORBIDDEN": null,
-    "PERMITTED": null,
-    "TARGETED": null
-  })
-});
-const TExerciseStage = type({
-  numberOfQuestions: number,
-  complexity: number,
-  concepts: array(TExerciseCardConcept),
-  laws: array(TExerciseCardLaw),
-  skills: array(TExerciseCardSkill)
-});
-const TExerciseCardPermissions = type({
-  canEdit: boolean,
-  canDelete: boolean,
-  canCloneToCourse: boolean,
-  canCopyToGlobalPool: boolean,
-  canUnlinkFromCourse: boolean
-}, "ExerciseCardPermissions");
-const TExerciseCard = type({
-  id: number,
-  name: string,
-  domainId: string,
-  strategyId: string,
-  backendId: string,
-  stages: nonEmptyArray(TExerciseStage),
-  tags: array(string),
-  options: TExerciseOptions,
-  isPublic: boolean,
-  permissions: TExerciseCardPermissions
-});
-const TDomainSkill = recursion("DomainSkill", () => type({
-  name: string,
-  displayName: string,
-  childs: array(TDomainSkill)
-}));
-const TDomainLaw = recursion("DomainLaw", () => type({
-  name: string,
-  displayName: string,
-  bitflags: number,
-  childs: array(TDomainLaw)
-}));
-var DomainConceptFlag = /* @__PURE__ */ ((DomainConceptFlag2) => {
-  DomainConceptFlag2[DomainConceptFlag2["VisibleToTeacher"] = 1] = "VisibleToTeacher";
-  DomainConceptFlag2[DomainConceptFlag2["TargetEnabled"] = 2] = "TargetEnabled";
-  return DomainConceptFlag2;
-})(DomainConceptFlag || {});
-const TDomainConcept = recursion("DomainConcept", () => type({
-  name: string,
-  displayName: string,
-  bitflags: number,
-  childs: array(TDomainConcept)
-}));
-const TDomain = type({
-  id: string,
-  displayName: string,
-  description: union([string, nullType]),
-  laws: array(TDomainLaw),
-  skills: array(TDomainSkill),
-  concepts: array(TDomainConcept),
-  tags: array(string)
-});
-const TStrategy = type({
-  id: string,
-  displayName: string,
-  description: union([string, nullType]),
-  options: type({
-    multiStagesEnabled: boolean
-  })
-});
-const TQuestionBankSearchResult = type({
-  count: number,
-  topRatedCount: number,
-  questions: array(type({
-    metadataId: number,
-    name: string
-  }))
-});
-var __getOwnPropDesc$e = Object.getOwnPropertyDescriptor;
-var __decorateClass$e = (decorators, target, key, kind) => {
-  var result = kind > 1 ? void 0 : kind ? __getOwnPropDesc$e(target, key) : target;
-  for (var i = decorators.length - 1, decorator; i >= 0; i--)
-    if (decorator = decorators[i])
-      result = decorator(result) || result;
-  return result;
-};
-let ExerciseSettingsController = class {
-  listExercises(courseId) {
-    const q = courseId == null ? "" : `?courseId=${courseId}`;
-    return ajaxGet(`${API_URL}/api/exercise/list${q}`, TExerciseList);
-  }
-  getExercise(id, courseId = null) {
-    const courseQ = courseId == null ? "" : `&courseId=${courseId}`;
-    return ajaxGet(`${API_URL}/api/exercise?id=${encodeURIComponent(id)}${courseQ}`, TExerciseCard);
-  }
-  saveExercise(card, courseId = null) {
-    const q = courseId == null ? "" : `?courseId=${courseId}`;
-    return ajaxPost(`${API_URL}/api/exercise${q}`, toJS(card));
-  }
-  createExercise(name, domainId, strategyId, courseId = null) {
-    return ajaxPut(`${API_URL}/api/exercise`, { name, domainId, strategyId, courseId }, number);
-  }
-  cloneExercise(id, courseId) {
-    const q = courseId == null ? "" : `?courseId=${courseId}`;
-    return ajaxPost(`${API_URL}/api/exercise/${id}/clone${q}`, {}, number);
-  }
-  deleteExercise(id, courseId = null) {
-    const courseQ = courseId == null ? "" : `&courseId=${courseId}`;
-    return ajaxDelete(`${API_URL}/api/exercise?id=${encodeURIComponent(id)}${courseQ}`);
-  }
-  getStrategies() {
-    return ajaxGet(`${API_URL}/api/refTables/strategies`, array(TStrategy));
-  }
-  getBackends() {
-    return ajaxGet(`${API_URL}/api/refTables/backends`, array(string));
-  }
-  getDomains() {
-    return ajaxGet(`${API_URL}/api/refTables/domains`, array(TDomain));
-  }
-  getDomainLaws(domainsId) {
-    return ajaxGet(`${API_URL}/api/refTables/domainLaws?domaindId=${encodeURIComponent(domainsId)}`, array(string));
-  }
-  getDomainConcepts(domainsId) {
-    return ajaxGet(`${API_URL}/api/refTables/domainConcepts?domaindId=${encodeURIComponent(domainsId)}`, array(string));
-  }
-  search(domainId, concepts, laws, skills, tags, complexity, limit, courseId, signal) {
-    const body = {
-      domainId,
-      tags,
-      concepts,
-      laws,
-      skills,
-      complexity,
-      limit,
-      courseId
-    };
-    return ajaxPost(`${API_URL}/api/question-bank/search`, body, TQuestionBankSearchResult, signal);
-  }
-};
-ExerciseSettingsController = __decorateClass$e([
-  injectable()
-], ExerciseSettingsController);
-const TAnswer = intersection([
-  type({
-    answer: tuple([number, number]),
-    isСreatedByUser: boolean
-  }),
-  partial({
-    createdByInteraction: union([number, nullType])
-  })
-]);
-const TFeedbackViolationLaw = type({
-  name: string,
-  canCreateSupplementaryQuestion: boolean
-});
-const TFeedbackMessage = union([
-  type({
-    type: literal("SUCCESS"),
-    message: string,
-    violationLaws: union([array(TFeedbackViolationLaw), nullType])
-  }),
-  type({
-    type: literal("ERROR"),
-    message: string,
-    violationLaws: union([array(TFeedbackViolationLaw), nullType])
-  })
-]);
-const TFeedback = intersection([
-  type({
-    isCorrect: boolean
-  }),
-  partial({
-    isCorrect: boolean,
-    grade: union([number, nullType]),
-    violations: union([array(number), nullType]),
-    correctAnswers: union([array(TAnswer), nullType]),
-    correctSteps: union([number, nullType]),
-    stepsLeft: union([number, nullType]),
-    stepsWithErrors: union([number, nullType]),
-    message: union([array(TFeedbackMessage), nullType]),
-    strategyDecision: union([
-      keyof({
-        "CONTINUE": null,
-        "FINISH": null
-      }),
-      nullType
-    ])
-  })
-], "Feedback");
-const TOrderQuestionFeedback = intersection([
-  TFeedback,
-  partial({
-    trace: union([array(string), nullType])
-  })
-]);
-const TQuestionOptions = type({
-  requireContext: boolean,
-  showSupplementaryQuestions: boolean
-}, "QuestionOptions");
-const TOrderQuestionOptions = intersection([
-  TQuestionOptions,
-  type({
-    showTrace: boolean,
-    multipleSelectionEnabled: boolean,
-    requireAllAnswers: boolean
-  }),
-  partial({
-    orderNumberOptions: intersection([
-      type({
-        delimiter: string,
-        position: keyof({
-          "PREFIX": null,
-          "SUFFIX": null,
-          "BOTTOM": null,
-          "NONE": null
-        })
-      }),
-      partial({
-        replacers: union([array(string), nullType])
-      })
-    ])
-  })
-], "OrderQuestionOptions");
-const TMatchingQuestionOptions = intersection([
-  TQuestionOptions,
-  type({
-    multipleSelectionEnabled: boolean
-  }),
-  union([
-    type({
-      displayMode: literal("combobox")
-    }),
-    type({
-      displayMode: literal("dragNdrop"),
-      draggableStyle: string,
-      dropzoneStyle: string,
-      dropzoneHtml: string
-    })
-  ])
-], "MatchingQuestionOptions");
-const TSingleChoiceQuestionOptions = intersection([
-  TQuestionOptions,
-  type({
-    displayMode: keyof({
-      "radio": null,
-      "dragNdrop": null
-    })
-  })
-], "SingleChoiceQuestionOptions");
-const TMultiChoiceQuestionOptions = intersection([
-  TQuestionOptions,
-  union([
-    intersection([
-      type({
-        displayMode: literal("switch")
-      }),
-      partial({
-        selectorReplacers: union([tuple([string, string]), nullType])
-      })
-    ]),
-    type({
-      displayMode: literal("dragNdrop"),
-      dropzoneHtml: string,
-      dropzoneStyle: string,
-      draggableStyle: string
-    })
-  ])
-], "MultiChoiceQuestionOptions");
-const TQuestionType = keyof({
-  "SINGLE_CHOICE": null,
-  "MULTI_CHOICE": null,
-  "MATCHING": null,
-  "ORDER": null
-}, "QuestionType");
-const THtml = string;
-const TQuestionAnswer = type({
-  id: number,
-  text: THtml
-}, "QuestionAnswer");
-const TQuestionBase = type({
-  questionId: number,
-  questionMetadataId: number,
-  type: TQuestionType,
-  options: TQuestionOptions,
-  text: THtml,
-  answers: array(TQuestionAnswer),
-  responses: union([array(TAnswer), nullType]),
-  feedback: union([TFeedback, nullType])
-}, "QuestionBase");
-const TOrderQuestion = intersection([
-  TQuestionBase,
-  type({
-    type: literal("ORDER"),
-    options: TOrderQuestionOptions,
-    feedback: union([TOrderQuestionFeedback, nullType])
-  }),
-  partial({
-    initialTrace: union([array(string), nullType])
-  })
-], "OrderQuestion");
-const TSingleChoiceQuestion = intersection([
-  TQuestionBase,
-  type({
-    type: literal("SINGLE_CHOICE"),
-    options: TSingleChoiceQuestionOptions
-  })
-], "SingleChoiceQuestion");
-const TMultiChoiceQuestion = intersection([
-  TQuestionBase,
-  type({
-    type: literal("MULTI_CHOICE"),
-    options: TMultiChoiceQuestionOptions
-  })
-], "MultiChoiceQuestion");
-const TMatchingQuestion = intersection([
-  TQuestionBase,
-  type({
-    type: literal("MATCHING"),
-    answers: array(TQuestionAnswer),
-    groups: array(TQuestionAnswer),
-    options: TMatchingQuestionOptions
-  })
-], "MatchingQuestion");
-const TQuestion = union([TOrderQuestion, TSingleChoiceQuestion, TMultiChoiceQuestion, TMatchingQuestion], "Question");
-TOptionalRequestResult(TQuestion);
-const TSupplementaryFeedbackAction = keyof({
-  "CONTINUE_AUTO": null,
-  "CONTINUE_MANUAL": null,
-  "FINISH": null
-});
-const TSupplementaryFeedback = type({
-  message: TFeedbackMessage,
-  action: TSupplementaryFeedbackAction
-});
-const TSupplementaryQuestion = partial({
-  question: union([TQuestion, nullType]),
-  message: union([TSupplementaryFeedback, nullType])
-});
-var __getOwnPropDesc$d = Object.getOwnPropertyDescriptor;
-var __decorateClass$d = (decorators, target, key, kind) => {
-  var result = kind > 1 ? void 0 : kind ? __getOwnPropDesc$d(target, key) : target;
-  for (var i = decorators.length - 1, decorator; i >= 0; i--)
-    if (decorator = decorators[i])
-      result = decorator(result) || result;
-  return result;
-};
-let QuestionController = class {
-  generateQuestionByAttempt(attemptId) {
-    return ajaxGet(`${API_URL}/api/question/generate?attemptId=${attemptId}`, TQuestion);
-  }
-  generateQuestionByMetadata(metadataId) {
-    return ajaxGet(`${API_URL}/api/question/generateByMetadata?metadataId=${metadataId}`, TQuestion);
-  }
-  getQuestion(questionId) {
-    return ajaxGet(`${API_URL}/api/question?questionId=${questionId}`, TQuestion);
-  }
-  generateSupplementaryQuestion(questionRequest) {
-    return ajaxPost(`${API_URL}/api/question/generateSupplementaryQuestion`, questionRequest, TSupplementaryQuestion);
-  }
-  generateNextCorrectAnswer(questionId) {
-    return ajaxGet(`${API_URL}/api/question/generateNextCorrectAnswer?questionId=${questionId}`, TFeedback);
-  }
-  addQuestionAnswer(interaction) {
-    return ajaxPost(`${API_URL}/api/question/addQuestionAnswer`, interaction, TFeedback);
-  }
-  addSupplementaryQuestionAnswer(interaction) {
-    return ajaxPost(`${API_URL}/api/question/addSupplementaryQuestionAnswer`, interaction, TSupplementaryFeedback);
-  }
-};
-QuestionController = __decorateClass$d([
-  injectable()
-], QuestionController);
-const TSurveyQuestionTriggeringPolicy = union([
-  type({
-    kind: literal("AFTER_FIRST")
-  }),
-  type({
-    kind: literal("AFTER_LAST")
-  }),
-  type({
-    kind: literal("AFTER_EACH")
-  }),
-  type({
-    kind: literal("AFTER_SPECIFIC"),
-    numbers: array(number)
-  })
-]);
-const TYesNoSurveyQuestion = type({
-  id: number,
-  type: literal("yes-no"),
-  text: string,
-  policy: TSurveyQuestionTriggeringPolicy,
-  required: boolean,
-  options: type({
-    yesText: string,
-    yesValue: string,
-    noText: string,
-    noValue: string
-  })
-}, "YesNoSurveyQuestion");
-const TSingleChoiceSurveyQuestion = type({
-  id: number,
-  type: literal("single-choice"),
-  text: string,
-  policy: TSurveyQuestionTriggeringPolicy,
-  required: boolean,
-  options: array(type({
-    id: string,
-    text: string
-  }))
-});
-const TOpenEndedSurveyQuestion = type({
-  id: number,
-  type: literal("open-ended"),
-  text: string,
-  policy: TSurveyQuestionTriggeringPolicy,
-  required: boolean
-});
-const TSurveyQuestion = union([TYesNoSurveyQuestion, TSingleChoiceSurveyQuestion, TOpenEndedSurveyQuestion]);
-const TSurvey = type({
-  surveyId: string,
-  options: type({}),
-  questions: array(TSurveyQuestion)
-}, "Survey");
-const TSurveyResultItem = type({
-  surveyQuestionId: number,
-  questionId: number,
-  answer: string
-});
-var __getOwnPropDesc$c = Object.getOwnPropertyDescriptor;
-var __decorateClass$c = (decorators, target, key, kind) => {
-  var result = kind > 1 ? void 0 : kind ? __getOwnPropDesc$c(target, key) : target;
-  for (var i = decorators.length - 1, decorator; i >= 0; i--)
-    if (decorator = decorators[i])
-      result = decorator(result) || result;
-  return result;
-};
-let SurveyController = class {
-  surveyCache = {};
-  async getSurvey(suerveyId) {
-    if (this.surveyCache[suerveyId])
-      return EitherExports.right(this.surveyCache[suerveyId]);
-    var result = await ajaxGet(`${API_URL}/api/survey/${suerveyId}`, TSurvey);
-    if (EitherExports.isRight(result))
-      this.surveyCache[suerveyId] = result.right;
-    return result;
-  }
-  async postSurveyAnswer(surveyQuestionId, questionId, answer) {
-    return ajaxPost(`${API_URL}/api/survey`, { surveyQuestionId, questionId, answer });
-  }
-  async getCurrentUserAttemptSurveyVotes(surveyId, attemptId) {
-    return ajaxGet(`${API_URL}/api/survey/${encodeURIComponent(surveyId)}/user-votes?attemptId=${attemptId}`, array(TSurveyResultItem));
-  }
-};
-SurveyController = __decorateClass$c([
-  injectable()
-], SurveyController);
-var __getOwnPropDesc$b = Object.getOwnPropertyDescriptor;
-var __decorateClass$b = (decorators, target, key, kind) => {
-  var result = kind > 1 ? void 0 : kind ? __getOwnPropDesc$b(target, key) : target;
-  for (var i = decorators.length - 1, decorator; i >= 0; i--)
-    if (decorator = decorators[i])
-      result = decorator(result) || result;
-  return result;
-};
-let TestExerciseController = class {
-  async getCurrentUser() {
-    return EitherExports.right({
-      id: 999999,
-      displayName: "front user",
-      email: "test@mail.ru",
-      permissions: { canViewGlobalPool: true },
-      language: "EN"
-    });
-  }
-  async getExerciseShortInfo(id) {
-    return EitherExports.right({
-      id: -1,
-      options: {
-        debugButtonEnabled: false,
-        forceNewAttemptCreationEnabled: false,
-        correctAnswerGenerationEnabled: true,
-        newQuestionGenerationEnabled: true,
-        supplementaryQuestionsEnabled: true,
-        preferDecisionTreeBasedSupplementaryEnabled: false,
-        maxExpectedConcurrentStudents: 7
-      }
-    });
-  }
-  async getExistingExerciseAttempt(exerciseId, courseId) {
-    console.log(`getExistingExerciseAttempt?exerciseId=${exerciseId}&courseId=${courseId}`);
-    return EitherExports.right("");
-  }
-  async createExerciseAttempt(exerciseId, courseId) {
-    console.log(`createExerciseAttempt?exerciseId=${exerciseId}&courseId=${courseId}`);
-    await delayPromise(3e3);
-    return EitherExports.right({
-      attemptId: -1,
-      exerciseId: -1,
-      questionIds: [1, 2, 3, 4, 5, 6, 7]
-    });
-  }
-  async createDebugExerciseAttempt(exerciseId, courseId) {
-    console.log(`createDebugExerciseAttempt?exerciseId=${exerciseId}&courseId=${courseId}`);
-    await delayPromise(3e3);
-    return EitherExports.right({
-      attemptId: -1,
-      exerciseId: -1,
-      questionIds: [1, 2, 3, 4, 5, 6, 7]
-    });
-  }
-  async getQuestion(questionId) {
-    console.log(`getQuestion?questionId=${questionId}`);
-    await delayPromise(3e3);
-    let result;
-    if (questionId === 1) {
-      result = {
-        type: "SINGLE_CHOICE",
-        questionId: 1,
-        questionMetadataId: 1,
-        text: "question text",
-        answers: [
-          { id: 0, text: "answer1 answer1 answer1answer1answer1answer1answer1 answer1answer1 answer1 answer1 answer1answer1answer1answer1answer1 answer1answer1 answer1 answer1 answer1answer1answer1answer1answer1 answer1answer1 answer1 answer1 answer1answer1answer1answer1answer1 answer1answer1 answer1 answer1 answer1answer1answer1answer1answer1 answer1answer1 " },
-          { id: 1, text: "answer2answer1 answer1 answer1answer1answer1answer1answer1 answer1answer1 answer1 answer1 answer1answer1answer1answer1answer1 answer1answer1 answer1 answer1 answer1answer1answer1answer1answer1 answer1answer1 answer1 answer1 answer1answer1answer1answer1answer1 answer1answer1 " },
-          { id: 2, text: "answer2answer1 answer1 answer1answer1answer1answer1answer1 answer1answer1 answer1 answer1 answer1answer1answer1answer1answer1 answer1answer1 answer1 answer1 answer1answer1answer1answer1answer1 answer1answer1 answer1 answer1 answer1answer1answer1answer1answer1 answer1answer1 " }
-        ],
-        responses: [],
-        feedback: null,
-        options: {
-          requireContext: false,
-          showSupplementaryQuestions: true,
-          displayMode: "radio"
-        }
-      };
-    }
-    if (questionId === 2) {
-      result = {
-        type: "MULTI_CHOICE",
-        questionId: 2,
-        questionMetadataId: 2,
-        text: "question text",
-        answers: [
-          { id: 0, text: "answer1 answer1 answer1answer1answer1answer1answer1 answer1answer1 answer1 answer1 answer1answer1answer1answer1answer1 answer1answer1 answer1 answer1 answer1answer1answer1answer1answer1 answer1answer1 answer1 answer1 answer1answer1answer1answer1answer1 answer1answer1 answer1 answer1 answer1answer1answer1answer1answer1 answer1answer1 " },
-          { id: 1, text: "answer2answer1 answer1 answer1answer1answer1answer1answer1 answer1answer1 answer1 answer1 answer1answer1answer1answer1answer1 answer1answer1 answer1 answer1 answer1answer1answer1answer1answer1 answer1answer1 answer1 answer1 answer1answer1answer1answer1answer1 answer1answer1 " },
-          { id: 2, text: "answer2answer1 answer1 answer1answer1answer1answer1answer1 answer1answer1 answer1 answer1 answer1answer1answer1answer1answer1 answer1answer1 answer1 answer1 answer1answer1answer1answer1answer1 answer1answer1 answer1 answer1 answer1answer1answer1answer1answer1 answer1answer1 " }
-        ],
-        responses: [],
-        feedback: null,
-        options: {
-          requireContext: false,
-          showSupplementaryQuestions: true,
-          displayMode: "switch"
-        }
-      };
-    }
-    if (questionId === 3) {
-      result = {
-        type: "SINGLE_CHOICE",
-        questionId: 3,
-        questionMetadataId: 3,
-        text: 'question text with <span id="answer_0">select1</span> and <span id="answer_1">select2</span>',
-        answers: [],
-        responses: [],
-        feedback: null,
-        options: {
-          requireContext: true,
-          showSupplementaryQuestions: true,
-          displayMode: "radio"
-        }
-      };
-    }
-    if (questionId === 4) {
-      result = {
-        type: "MULTI_CHOICE",
-        questionId: 4,
-        questionMetadataId: 4,
-        text: 'question text with <span id="answer_0"></span> and <span id="answer_1"></span>',
-        answers: [],
-        responses: [],
-        feedback: null,
-        options: {
-          requireContext: true,
-          showSupplementaryQuestions: true,
-          displayMode: "switch"
-        }
-      };
-    }
-    if (questionId === 5) {
-      result = {
-        type: "MATCHING",
-        questionId: 5,
-        questionMetadataId: 5,
-        text: "question text ",
-        answers: [
-          {
-            id: 0,
-            text: "test1"
-          },
-          {
-            id: 1,
-            text: "test2"
-          },
-          {
-            id: 3,
-            text: "test3"
-          }
-        ],
-        groups: [
-          {
-            id: 0,
-            text: '<div style="width:70px; height: 40px;">group1<div/>'
-          },
-          {
-            id: 1,
-            text: '<div style="width:50px;height: 100px;">group2 group2 group2 group2<div/>'
-          }
-        ],
-        responses: [],
-        feedback: null,
-        options: {
-          requireContext: false,
-          showSupplementaryQuestions: true,
-          displayMode: "dragNdrop",
-          multipleSelectionEnabled: true,
-          dropzoneStyle: '{ "display": "inline-block", "minHeight": "40px", "minWidth": "80px" }',
-          dropzoneHtml: "drop",
-          draggableStyle: '{ "padding": "10px", "border": "5px solid", "borderRadius": "5px", "borderColor": "black", "backgroundColor": "white" }'
-        }
-      };
-    }
-    if (questionId === 6) {
-      result = {
-        type: "MATCHING",
-        questionMetadataId: 6,
-        questionId: 6,
-        text: 'question text with <span id="answer_0">drop</span> and <span id="answer_1">drop</span>',
-        answers: [],
-        groups: [
-          {
-            id: 0,
-            text: '<div style="width:70px; height: 40px;">group1<div/>'
-          },
-          {
-            id: 1,
-            text: '<div style="width:50px;height: 100px;">group2 group2 group2 group2<div/>'
-          }
-        ],
-        responses: [],
-        feedback: null,
-        options: {
-          requireContext: true,
-          showSupplementaryQuestions: true,
-          displayMode: "dragNdrop",
-          multipleSelectionEnabled: false,
-          dropzoneStyle: '{ "display": "inline-block", "minHeight": "40px", "minWidth": "80px" }',
-          dropzoneHtml: "drop",
-          draggableStyle: '{ "padding": "10px", "border": "5px solid", "borderRadius": "5px", "borderColor": "black", "backgroundColor": "white" }'
-        }
-      };
-    }
-    if (questionId === 7) {
-      result = {
-        type: "MULTI_CHOICE",
-        questionId: 7,
-        questionMetadataId: 7,
-        text: `question text with <span id="answer_0"></span> and <span id="answer_1"></span>`,
-        answers: [],
-        responses: [],
-        feedback: null,
-        options: {
-          requireContext: true,
-          showSupplementaryQuestions: true,
-          displayMode: "dragNdrop",
-          dropzoneStyle: '{ "display": "inline-block", "height": "20px", "width": "20px" }',
-          dropzoneHtml: "",
-          draggableStyle: '{ "height": "20px", "width": "20px" }'
-        }
-      };
-    }
-    if (result)
-      return EitherExports.right(result);
-    return EitherExports.left({ message: "No such question" });
-  }
-  async generateQuestionByAttempt(attemptId) {
-    console.log(`generateQuestionByAttempt?attemptId=${attemptId}`);
-    await delayPromise(3e3);
-    return EitherExports.left({ message: "Method not implemented." });
-  }
-  async generateQuestionByMetadata(metadataId) {
-    console.log(`generateQuestionByMetadata?metadataId=${metadataId}`);
-    await delayPromise(3e3);
-    return EitherExports.left({ message: "Method not implemented." });
-  }
-  async generateSupplementaryQuestion(questionRequest) {
-    console.log(`generateSupplementaryQuestion`, questionRequest);
-    await delayPromise(3e3);
-    return EitherExports.left({ message: "Method not implemented." });
-  }
-  async generateNextCorrectAnswer(questionId) {
-    console.log(`generateNextCorrectAnswer?questionId=${questionId}`);
-    await delayPromise(3e3);
-    return EitherExports.left({ message: "Method not implemented." });
-  }
-  async addQuestionAnswer(interaction) {
-    console.log("addQuestionAnswer", interaction);
-    await delayPromise(3e3);
-    return EitherExports.right({
-      isCorrect: true,
-      grade: 0.8,
-      correctAnswers: interaction.answers,
-      correctSteps: 1,
-      stepsLeft: 1,
-      stepsWithErrors: 1,
-      messages: null,
-      strategyDecision: "CONTINUE"
-    });
-  }
-  async addSupplementaryQuestionAnswer(interaction) {
-    console.log("addSupplementaryQuestionAnswer", interaction);
-    await delayPromise(3e3);
-    return EitherExports.right({
-      message: { type: "SUCCESS", message: "test", violationLaws: [] },
-      action: "CONTINUE_AUTO"
-    });
-  }
-  async getExerciseStatistics(exerciseId) {
-    console.log(`getExerciseStatistics?exerciseId=${exerciseId}`);
-    return EitherExports.left({ message: "Method not implemented." });
-  }
-  async getExercises() {
-    console.log(`getExercises`);
-    return EitherExports.left({ message: "Method not implemented." });
-  }
-  async getExerciseAttempt(attemptId) {
-    console.log(`getExerciseAttempt?attemptId=${attemptId}`);
-    return EitherExports.left({ message: "Method not implemented." });
-  }
-};
-TestExerciseController = __decorateClass$b([
-  injectable()
-], TestExerciseController);
-const TLanguage = keyof({
-  EN: null,
-  RU: null,
-  PL: null
-});
-const TUserPermissions = type({
-  canViewGlobalPool: boolean
-}, "UserPermissions");
-const TUserInfo = type({
-  id: number,
-  displayName: string,
-  email: union([string, nullType]),
-  language: TLanguage,
-  permissions: TUserPermissions
-}, "UserInfo");
-var __getOwnPropDesc$a = Object.getOwnPropertyDescriptor;
-var __decorateClass$a = (decorators, target, key, kind) => {
-  var result = kind > 1 ? void 0 : kind ? __getOwnPropDesc$a(target, key) : target;
-  for (var i = decorators.length - 1, decorator; i >= 0; i--)
-    if (decorator = decorators[i])
-      result = decorator(result) || result;
-  return result;
-};
-let UserController = class {
-  getCurrentUser() {
-    return ajaxGet(`${API_URL}/api/users/whoami`, TUserInfo);
-  }
-  async getLanguages() {
-    return EitherExports.right(["EN", "RU"]);
-  }
-  async setLanguage(language) {
-    return ajaxPost(`${API_URL}/api/users/language`, { language }, TLanguage, void 0, "raw");
-  }
-};
-UserController = __decorateClass$a([
-  injectable()
-], UserController);
-const TCourseDto = type({
-  id: number,
-  name: string,
-  educationResourceId: number,
-  educationResourceName: string
-});
-var __getOwnPropDesc$9 = Object.getOwnPropertyDescriptor;
-var __decorateClass$9 = (decorators, target, key, kind) => {
-  var result = kind > 1 ? void 0 : kind ? __getOwnPropDesc$9(target, key) : target;
-  for (var i = decorators.length - 1, decorator; i >= 0; i--)
-    if (decorator = decorators[i])
-      result = decorator(result) || result;
-  return result;
-};
-let CourseController = class {
-  getMyCourses() {
-    return ajaxGet(`${API_URL}/api/course/my`, array(TCourseDto));
-  }
-  getCourseExercises(courseId) {
-    return ajaxGet(`${API_URL}/api/exercise/list?courseId=${courseId}`, TExerciseList);
-  }
-  getExerciseMemberships(exerciseId) {
-    return ajaxGet(`${API_URL}/api/course/memberships?exerciseId=${exerciseId}`, array(TCourseDto));
-  }
-  addExerciseToCourse(exerciseId, courseId) {
-    return ajaxPost(`${API_URL}/api/course/exercise/add?exerciseId=${exerciseId}&courseId=${courseId}`, {});
-  }
-  removeExerciseFromCourse(exerciseId, courseId) {
-    return ajaxDelete(`${API_URL}/api/course/exercise/remove?exerciseId=${exerciseId}&courseId=${courseId}`);
-  }
-};
-CourseController = __decorateClass$9([
-  injectable()
-], CourseController);
-var __getOwnPropDesc$8 = Object.getOwnPropertyDescriptor;
-var __decorateClass$8 = (decorators, target, key, kind) => {
-  var result = kind > 1 ? void 0 : kind ? __getOwnPropDesc$8(target, key) : target;
-  for (var i = decorators.length - 1, decorator; i >= 0; i--)
-    if (decorator = decorators[i])
-      result = decorator(result) || result;
-  return result;
-};
-const TDeepLinkBuildResponse = type({
-  jwt: string,
-  returnUrl: string
-});
-const TDeepLinkExistingResponse = type({
-  exerciseIds: array(number)
-});
-let DeepLinkingController = class {
-  /** Build a signed LtiDeepLinkingResponse for the selected course exercises. */
-  build(exerciseIds) {
-    return ajaxPost(`${API_URL}/api/lti/deep-link/build`, { exerciseIds }, TDeepLinkBuildResponse);
-  }
-  /** exercise_id's already added to the Moodle course as activities (AGS-based dedup). */
-  existing() {
-    return ajaxGet(`${API_URL}/api/lti/deep-link/existing`, TDeepLinkExistingResponse);
-  }
-};
-DeepLinkingController = __decorateClass$8([
-  injectable()
-], DeepLinkingController);
-var __defProp$3 = Object.defineProperty;
-var __getOwnPropDesc$7 = Object.getOwnPropertyDescriptor;
-var __decorateClass$7 = (decorators, target, key, kind) => {
-  var result = kind > 1 ? void 0 : kind ? __getOwnPropDesc$7(target, key) : target;
-  for (var i = decorators.length - 1, decorator; i >= 0; i--)
-    if (decorator = decorators[i])
-      result = (kind ? decorator(target, key, result) : decorator(result)) || result;
-  if (kind && result) __defProp$3(target, key, result);
-  return result;
-};
-class SupplementaryQuestionStore {
-  constructor(questionController, sourceQuestionId) {
-    this.questionController = questionController;
-    this.sourceQuestionId = sourceQuestionId;
-    makeObservable(this);
-  }
-  questionController;
-  sourceQuestionId;
-  feedback = void 0;
-  question = void 0;
-  answer = [];
-  questionState = "INITIAL";
-  setQuestionState = (newState) => {
-    if (this.questionState !== newState)
-      this.questionState = newState;
-  };
-  get isQuestionFreezed() {
-    return this.questionState !== "LOADED";
-  }
-  get isFeedbackLoading() {
-    return this.questionState === "ANSWER_EVALUATING";
-  }
-  get canSendQuestionAnswers() {
-    if (!this.question || this.questionState === "COMPLETED")
-      return false;
-    switch (this.question.type) {
-      case "SINGLE_CHOICE":
-      case "MULTI_CHOICE":
-        return this.answer.length > 0;
-      case "ORDER":
-        return true;
-      case "MATCHING":
-        return this.answer.length === this.question.answers.length;
-      default:
-        return _functionExports.absurd(this.question);
-    }
-  }
-  get questionSubmitMode() {
-    if (!this.question)
-      return null;
-    return this.question.type === "SINGLE_CHOICE" ? "IMPLICIT" : "EXPLICIT";
-  }
-  generateSupplementaryQuestion = async (violationLaws) => {
-    if (violationLaws.length === 0)
-      throw new Error("violationLaws mist be non-empty");
-    this.setQuestionState("LOADING");
-    const questionRequest = {
-      questionId: this.sourceQuestionId,
-      violationLaws
-    };
-    const dataEither = await this.questionController.generateSupplementaryQuestion(questionRequest);
-    runInAction(() => {
-      if (EitherExports.isLeft(dataEither)) {
-        this.setQuestionState("LOADED");
-        return;
-      }
-      this.#onQuestionLoaded(dataEither.right.question, dataEither.right.message);
-    });
-  };
-  sendAnswers = async () => {
-    const { question } = this;
-    if (!question)
-      throw new Error("Question is empty");
-    const body = toJS({
-      questionId: question.questionId,
-      answers: toJS([...this.answer])
-    });
-    this.setQuestionState("ANSWER_EVALUATING");
-    const feedbackEither = await this.questionController.addSupplementaryQuestionAnswer(body);
-    runInAction(() => {
-      if (EitherExports.isLeft(feedbackEither)) {
-        this.setQuestionState("LOADED");
-        return;
-      }
-      this.setQuestionState("COMPLETED");
-      this.feedback = feedbackEither.right;
-    });
-  };
-  setAnswer = (newAnswer) => {
-    this.answer = newAnswer;
-  };
-  #onQuestionLoaded = (question, feedback) => {
-    if (question?.options.requireContext) {
-      var allMatches = question.text.matchAll(/(\<\w.*?\sid\s*?\=([\'\"]))\s*(answer_(\d+?))\2(.*?\>)/igm);
-      [...allMatches].forEach((match, matchIdx) => {
-        question.text = question.text.replace(
-          match[0],
-          `${match[1]}question_${question.questionId}_${match[3]}_${matchIdx}${match[2]} data-answer-id='${match[4]}' ${match[5]}`
-        );
-      });
-    }
-    this.question = question ?? void 0;
-    this.feedback = feedback ?? void 0;
-    this.answer = question?.responses ?? [];
-    this.questionState = !question ? "COMPLETED" : "LOADED";
-  };
-}
-__decorateClass$7([
-  observable
-], SupplementaryQuestionStore.prototype, "sourceQuestionId", 2);
-__decorateClass$7([
-  observable
-], SupplementaryQuestionStore.prototype, "feedback", 2);
-__decorateClass$7([
-  observable
-], SupplementaryQuestionStore.prototype, "question", 2);
-__decorateClass$7([
-  observable
-], SupplementaryQuestionStore.prototype, "answer", 2);
-__decorateClass$7([
-  observable
-], SupplementaryQuestionStore.prototype, "questionState", 2);
-__decorateClass$7([
-  action
-], SupplementaryQuestionStore.prototype, "setQuestionState", 2);
-__decorateClass$7([
-  computed
-], SupplementaryQuestionStore.prototype, "isQuestionFreezed", 1);
-__decorateClass$7([
-  computed
-], SupplementaryQuestionStore.prototype, "isFeedbackLoading", 1);
-__decorateClass$7([
-  computed
-], SupplementaryQuestionStore.prototype, "canSendQuestionAnswers", 1);
-__decorateClass$7([
-  computed
-], SupplementaryQuestionStore.prototype, "questionSubmitMode", 1);
-__decorateClass$7([
-  action
-], SupplementaryQuestionStore.prototype, "generateSupplementaryQuestion", 2);
-__decorateClass$7([
-  action
-], SupplementaryQuestionStore.prototype, "sendAnswers", 2);
-__decorateClass$7([
-  action
-], SupplementaryQuestionStore.prototype, "setAnswer", 2);
-var __defProp$2 = Object.defineProperty;
-var __getOwnPropDesc$6 = Object.getOwnPropertyDescriptor;
-var __decorateClass$6 = (decorators, target, key, kind) => {
-  var result = kind > 1 ? void 0 : kind ? __getOwnPropDesc$6(target, key) : target;
-  for (var i = decorators.length - 1, decorator; i >= 0; i--)
-    if (decorator = decorators[i])
-      result = (kind ? decorator(target, key, result) : decorator(result)) || result;
-  if (kind && result) __defProp$2(target, key, result);
-  return result;
-};
-var __decorateParam$5 = (index, decorator) => (target, key) => decorator(target, key, index);
-let QuestionStore = class {
-  constructor(questionController) {
-    this.questionController = questionController;
-    makeObservable(this);
-  }
-  questionController;
-  isFeedbackVisible = true;
-  isQuestionFreezed = false;
-  feedback = void 0;
-  question = void 0;
-  lastAnswer = [];
-  answersHistory = [];
-  supplementaryQuestion;
-  questionState = "INITIAL";
-  storeState = { tag: "VALID" };
-  onQuestionLoaded = (question) => {
-    if (question.options.requireContext) {
-      var allMatches = question.text.matchAll(/(\<\w.*?\sid\s*?\=([\'\"]))\s*(answer_(\d+?))\2(.*?\>)/igm);
-      [...allMatches].forEach((match, matchIdx) => {
-        question.text = question.text.replace(
-          match[0],
-          `${match[1]}question_${question.questionId}_${match[3]}_${matchIdx}${match[2]} data-answer-id='${match[4]}' ${match[5]}`
-        );
-      });
-    }
-    this.question = question;
-    this.supplementaryQuestion = new SupplementaryQuestionStore(this.questionController, question.questionId);
-    this.feedback = question.feedback ?? void 0;
-    this.isFeedbackVisible = true;
-    this.answersHistory = [];
-    this.lastAnswer = question.responses ?? [];
-    if (question.feedback && question.feedback.stepsLeft === 0) {
-      this.setQuestionState("COMPLETED");
-    }
-  };
-  onAnswerEvaluated(feedback) {
-    this.feedback = feedback;
-    this.isFeedbackVisible = true;
-    if (feedback && feedback.correctAnswers) {
-      this.setFullAnswer(feedback.correctAnswers, false);
-      if (!isNullOrUndefined(feedback.stepsLeft) && feedback.stepsLeft === 0) {
-        this.setQuestionState("COMPLETED");
-      }
-    }
-  }
-  setQuestionState = (newState) => {
-    if (this.questionState !== newState)
-      this.questionState = newState;
-  };
-  setValidStoreState = () => {
-    if (this.storeState.tag !== "VALID") {
-      this.storeState = { tag: "VALID" };
-    }
-  };
-  setErrorStoreState = (error) => {
-    this.storeState = { tag: "ERROR", error };
-  };
-  loadQuestion = flow(function* (questionId) {
-    this.setValidStoreState();
-    this.setQuestionState("LOADING");
-    const dataEither = yield this.questionController.getQuestion(questionId);
-    this.setQuestionState("LOADED");
-    if (EitherExports.isLeft(dataEither)) {
-      this.setErrorStoreState(dataEither.left);
-      return;
-    }
-    this.onQuestionLoaded(dataEither.right);
-  });
-  generateQuestion = flow(function* (attemptId) {
-    this.setValidStoreState();
-    this.setQuestionState("LOADING");
-    const dataEither = yield this.questionController.generateQuestionByAttempt(attemptId);
-    this.setQuestionState("LOADED");
-    if (EitherExports.isLeft(dataEither)) {
-      this.setErrorStoreState(dataEither.left);
-      return;
-    }
-    this.onQuestionLoaded(dataEither.right);
-  });
-  generateQuestionByMetadata = flow(function* (metadataId) {
-    this.setValidStoreState();
-    this.setQuestionState("LOADING");
-    const dataEither = yield this.questionController.generateQuestionByMetadata(metadataId);
-    this.setQuestionState("LOADED");
-    if (EitherExports.isLeft(dataEither)) {
-      this.setErrorStoreState(dataEither.left);
-      return;
-    }
-    this.onQuestionLoaded(dataEither.right);
-  });
-  generateNextCorrectAnswer = flow(function* () {
-    const { question } = this;
-    if (!question) {
-      throw new Error("Current question not found");
-    }
-    this.setValidStoreState();
-    this.setQuestionState("ANSWER_EVALUATING");
-    const feedbackEither = yield this.questionController.generateNextCorrectAnswer(question.questionId);
-    this.setQuestionState("LOADED");
-    if (EitherExports.isLeft(feedbackEither)) {
-      this.setErrorStoreState(feedbackEither.left);
-      return;
-    }
-    this.onAnswerEvaluated(feedbackEither.right);
-  });
-  sendAnswersImpl = flow(function* (questionId, answers) {
-    const body = toJS({
-      questionId,
-      answers: toJS([...answers])
-    });
-    this.setValidStoreState();
-    this.setQuestionState("ANSWER_EVALUATING");
-    const feedbackEither = yield this.questionController.addQuestionAnswer(body);
-    this.setQuestionState("LOADED");
-    if (EitherExports.isLeft(feedbackEither)) {
-      this.setErrorStoreState(feedbackEither.left);
-      return;
-    }
-    this.onAnswerEvaluated(feedbackEither.right);
-  });
-  sendAnswers = flow(function* () {
-    const { question, lastAnswer } = this;
-    if (!question) {
-      return;
-    }
-    yield this.sendAnswersImpl(question.questionId, toJS(lastAnswer));
-  });
-  onAnswersChanged = flow(function* (answer, sendAnswers = true) {
-    this.answersHistory.push(answer);
-    if (!sendAnswers) {
-      return;
-    }
-    try {
-      yield this.sendAnswers();
-    } catch {
-      this.answersHistory.pop();
-    }
-  });
-  setFullAnswer = flow(function* (fullAnswer, sendAnswers = true) {
-    if (!this.isAnswerChanged(fullAnswer)) {
-      return false;
-    }
-    const prevLastAnswer = this.lastAnswer;
-    this.lastAnswer = fullAnswer;
-    if (prevLastAnswer.length > 0) {
-      this.answersHistory.push(prevLastAnswer);
-    }
-    if (!sendAnswers) {
-      return true;
-    }
-    try {
-      yield this.sendAnswers();
-      return true;
-    } catch {
-      this.lastAnswer = prevLastAnswer;
-      if (prevLastAnswer.length > 0) {
-        this.answersHistory.pop();
-      }
-      return false;
-    }
-  });
-  isAnswerChanged = (newAnswer) => {
-    const { lastAnswer, question } = this;
-    if (!question) {
-      throw new Error("no question");
-    }
-    const answersHistoryRaw = lastAnswer.map((x) => x.answer);
-    const newHistoryRaw = newAnswer.map((x) => x.answer);
-    switch (question.type) {
-      case "ORDER":
-        return newHistoryRaw.length !== answersHistoryRaw.length || JSON.stringify(newHistoryRaw) !== JSON.stringify(answersHistoryRaw);
-      case "MATCHING":
-      case "MULTI_CHOICE":
-      case "SINGLE_CHOICE":
-        return newHistoryRaw.length !== answersHistoryRaw.length || JSON.stringify(newHistoryRaw.sort()) !== JSON.stringify(answersHistoryRaw.sort());
-    }
-  };
-};
-__decorateClass$6([
-  observable
-], QuestionStore.prototype, "isFeedbackVisible", 2);
-__decorateClass$6([
-  observable
-], QuestionStore.prototype, "isQuestionFreezed", 2);
-__decorateClass$6([
-  observable
-], QuestionStore.prototype, "feedback", 2);
-__decorateClass$6([
-  observable
-], QuestionStore.prototype, "question", 2);
-__decorateClass$6([
-  observable
-], QuestionStore.prototype, "lastAnswer", 2);
-__decorateClass$6([
-  observable
-], QuestionStore.prototype, "answersHistory", 2);
-__decorateClass$6([
-  observable
-], QuestionStore.prototype, "supplementaryQuestion", 2);
-__decorateClass$6([
-  observable
-], QuestionStore.prototype, "questionState", 2);
-__decorateClass$6([
-  observable
-], QuestionStore.prototype, "storeState", 2);
-__decorateClass$6([
-  action
-], QuestionStore.prototype, "setQuestionState", 2);
-__decorateClass$6([
-  action
-], QuestionStore.prototype, "setValidStoreState", 2);
-__decorateClass$6([
-  action
-], QuestionStore.prototype, "setErrorStoreState", 2);
-QuestionStore = __decorateClass$6([
-  injectable(),
-  __decorateParam$5(0, inject(QuestionController))
-], QuestionStore);
-var __defProp$1 = Object.defineProperty;
-var __getOwnPropDesc$5 = Object.getOwnPropertyDescriptor;
-var __decorateClass$5 = (decorators, target, key, kind) => {
-  var result = kind > 1 ? void 0 : kind ? __getOwnPropDesc$5(target, key) : target;
-  for (var i = decorators.length - 1, decorator; i >= 0; i--)
-    if (decorator = decorators[i])
-      result = (kind ? decorator(target, key, result) : decorator(result)) || result;
-  if (kind && result) __defProp$1(target, key, result);
-  return result;
-};
-var __decorateParam$4 = (index, decorator) => (target, key) => decorator(target, key, index);
-let ExerciseStore = class {
-  constructor(exerciseController, userController, surveyController, currentQuestion) {
-    this.exerciseController = exerciseController;
-    this.userController = userController;
-    this.surveyController = surveyController;
-    this.isDebug = getUrlParameterByName("debug") !== null;
-    this.currentQuestion = currentQuestion;
-    const rawExerciseId = getUrlParameterByName("exerciseId");
-    if (rawExerciseId === null) {
-      this.exerciseState = "LAUNCH_ERROR";
-      this.storeState = { tag: "ERROR", error: { message: "Invalid exercise id" } };
-    }
-    this.exerciseId = rawExerciseId !== null ? +rawExerciseId : -1;
-    const rawCourseId = getUrlParameterByName("courseId");
-    if (rawCourseId !== null) {
-      this.courseId = +rawCourseId;
-    }
-    const rawAttemptId = getUrlParameterByName("attemptId");
-    if (rawAttemptId !== null) {
-      this.currentAttemptId = +rawAttemptId;
-    }
-    makeObservable(this);
-    this.registerOnStrategyDecisionChangedAction();
-  }
-  exerciseController;
-  userController;
-  surveyController;
-  isExerciseLoading = false;
-  exerciseId;
-  courseId = void 0;
-  exercise = void 0;
-  currentAttemptId = void 0;
-  currentAttempt = void 0;
-  currentQuestion;
-  exerciseState = "INITIAL";
-  storeState = { tag: "VALID" };
-  survey = void 0;
-  isDebug = false;
-  registerOnStrategyDecisionChangedAction = () => {
-    autorun(() => {
-      if (this.currentQuestion.feedback?.strategyDecision === "FINISH" && this.exerciseState !== "COMPLETED") {
-        this.setExerciseState("COMPLETED");
-      }
-    });
-  };
-  forceSetValidState = () => {
-    if (this.storeState.tag !== "VALID") {
-      this.storeState = { tag: "VALID" };
-    }
-  };
-  setExerciseState = (newState) => {
-    if (this.exerciseState !== newState) {
-      this.exerciseState = newState;
-    }
-  };
-  setSurveyAnswers = (quesionId, answers) => {
-    if (!this.survey)
-      return;
-    runInAction(() => {
-      this.survey.questions[quesionId].status = "COMPLETED";
-      this.survey.questions[quesionId].results = answers;
-    });
-  };
-  loadExercise = async () => {
-    if (this.exercise) {
-      throw new Error("exerciseInfo loaded");
-    }
-    if (this.isExerciseLoading) {
-      return;
-    }
-    runInAction(() => {
-      this.forceSetValidState();
-      this.isExerciseLoading = true;
-    });
-    const exercise = await this.exerciseController.getExerciseShortInfo(this.exerciseId, this.courseId);
-    if (EitherExports.isRight(exercise)) {
-      runInAction(() => {
-        this.isExerciseLoading = false;
-        this.exercise = exercise.right;
-      });
-    } else {
-      runInAction(() => {
-        this.isExerciseLoading = false;
-        this.storeState = { tag: "ERROR", error: exercise.left };
-      });
-    }
-  };
-  loadExerciseAttempt = flow(function* (attemptId) {
-    const { exercise } = this;
-    if (!exercise) {
-      throw new Error("exerciseInfo is not defined");
-    }
-    this.forceSetValidState();
-    exercise.id;
-    const resultEither = yield this.exerciseController.getExerciseAttempt(attemptId);
-    if (EitherExports.isLeft(resultEither)) {
-      this.storeState = { tag: "ERROR", error: resultEither.left };
-      return;
-    }
-    const result = resultEither.right;
-    if (!result) {
-      return false;
-    }
-    this.currentAttempt = result;
-    yield this.onAttemptLoaded();
-    return true;
-  });
-  loadExistingExerciseAttempt = flow(function* () {
-    const { exercise } = this;
-    if (!exercise) {
-      throw new Error("exercise is not defined");
-    }
-    this.forceSetValidState();
-    const exerciseId = exercise.id;
-    const resultEither = yield this.exerciseController.getExistingExerciseAttempt(exerciseId, this.courseId);
-    if (EitherExports.isLeft(resultEither)) {
-      this.storeState = { tag: "ERROR", error: resultEither.left };
-      return;
-    }
-    const result = resultEither.right;
-    if (!result) {
-      return false;
-    }
-    this.currentAttempt = result;
-    yield this.onAttemptLoaded();
-    return true;
-  });
-  onAttemptLoaded = async () => {
-    await this.loadSurvey();
-  };
-  createExerciseAttempt = flow(function* () {
-    const { exercise } = this;
-    if (!exercise) {
-      throw new Error("exercise is not defined");
-    }
-    this.forceSetValidState();
-    const exerciseId = exercise.id;
-    const resultEither = yield this.exerciseController.createExerciseAttempt(+exerciseId, this.courseId);
-    if (EitherExports.isLeft(resultEither)) {
-      this.storeState = { tag: "ERROR", error: resultEither.left };
-      return;
-    }
-    this.currentAttempt = resultEither.right;
-    yield this.onAttemptLoaded();
-  });
-  createDebugExerciseAttempt = flow(function* () {
-    const { exercise } = this;
-    if (!exercise) {
-      throw new Error("exercise is not defined");
-    }
-    this.forceSetValidState();
-    const exerciseId = exercise.id;
-    const resultEither = yield this.exerciseController.createDebugExerciseAttempt(+exerciseId, this.courseId);
-    if (EitherExports.isLeft(resultEither)) {
-      this.storeState = { tag: "ERROR", error: resultEither.left };
-      return;
-    }
-    this.currentAttempt = resultEither.right;
-    yield this.onAttemptLoaded();
-  });
-  generateQuestion = flow(function* () {
-    const { exercise, currentAttempt } = this;
-    if (!exercise || !currentAttempt) {
-      throw new Error("Session is not defined");
-    }
-    this.forceSetValidState();
-    yield this.currentQuestion.generateQuestion(currentAttempt.attemptId);
-    currentAttempt.questionIds.push(this.currentQuestion.question?.questionId ?? -1);
-  });
-  loadSurvey = async () => {
-    if (this.survey || !this.currentAttempt || !this.exercise)
-      return;
-    if (!this.exercise.options.surveyOptions?.enabled || this.exercise.options.surveyOptions.surveyId.length === 0)
-      return;
-    const surveyId = this.exercise.options.surveyOptions.surveyId;
-    const attemptId = this.currentAttempt.attemptId;
-    const [survey, surveyResults] = await Promise.all([
-      this.surveyController.getSurvey(surveyId),
-      this.surveyController.getCurrentUserAttemptSurveyVotes(surveyId, attemptId)
-    ]);
-    runInAction(() => {
-      if (EitherExports.isRight(survey) && EitherExports.isRight(surveyResults)) {
-        const tmp = groupBy(surveyResults.right, (x) => x.questionId);
-        this.survey = {
-          survey: survey.right,
-          questions: [...tmp.keys()].map((k) => ({
-            questionId: k,
-            status: "COMPLETED",
-            questions: tmp.get(k)?.map((z) => z.surveyQuestionId) ?? [],
-            results: tmp.get(k)?.reduce((acc, z) => (acc[z.surveyQuestionId] = z.answer, acc), {}) ?? {}
-          })).reduce((acc, i) => (acc[i.questionId] = i, acc), {})
-        };
-      }
-    });
-  };
-  ensureQuestionSurveyExists = (questionId) => {
-    if (this.survey?.questions[questionId])
-      return this.survey?.questions[questionId].questions;
-    const qs = [];
-    const currentQuestionIdx = this.currentAttempt.questionIds.findIndex((z) => z === this.currentQuestion.question?.questionId);
-    for (let q of this.survey?.survey.questions || []) {
-      const policy = q.policy;
-      if (policy.kind === "AFTER_EACH" || policy.kind === "AFTER_FIRST" && currentQuestionIdx === 0 || policy.kind === "AFTER_LAST" && this.exerciseState === "COMPLETED" || policy.kind === "AFTER_SPECIFIC" && policy.numbers.includes(currentQuestionIdx + 1)) {
-        qs.push(q);
-      }
-    }
-    console.log("Selected questions");
-    console.log(toJS(qs));
-    var questionSurvey = {
-      questionId,
-      status: "ACTIVE",
-      questions: qs.map((z) => z.id),
-      results: {}
-    };
-    runInAction(() => {
-      this.survey.questions[questionId] = questionSurvey;
-    });
-    return qs.map((z) => z.id);
-  };
-};
-__decorateClass$5([
-  observable
-], ExerciseStore.prototype, "isExerciseLoading", 2);
-__decorateClass$5([
-  observable
-], ExerciseStore.prototype, "exerciseId", 2);
-__decorateClass$5([
-  observable
-], ExerciseStore.prototype, "courseId", 2);
-__decorateClass$5([
-  observable
-], ExerciseStore.prototype, "exercise", 2);
-__decorateClass$5([
-  observable
-], ExerciseStore.prototype, "currentAttemptId", 2);
-__decorateClass$5([
-  observable
-], ExerciseStore.prototype, "currentAttempt", 2);
-__decorateClass$5([
-  observable
-], ExerciseStore.prototype, "currentQuestion", 2);
-__decorateClass$5([
-  observable
-], ExerciseStore.prototype, "exerciseState", 2);
-__decorateClass$5([
-  observable
-], ExerciseStore.prototype, "storeState", 2);
-__decorateClass$5([
-  observable
-], ExerciseStore.prototype, "survey", 2);
-__decorateClass$5([
-  observable
-], ExerciseStore.prototype, "isDebug", 2);
-__decorateClass$5([
-  action
-], ExerciseStore.prototype, "forceSetValidState", 2);
-__decorateClass$5([
-  action
-], ExerciseStore.prototype, "setExerciseState", 2);
-__decorateClass$5([
-  action
-], ExerciseStore.prototype, "setSurveyAnswers", 2);
-__decorateClass$5([
-  action
-], ExerciseStore.prototype, "loadSurvey", 2);
-__decorateClass$5([
-  action
-], ExerciseStore.prototype, "ensureQuestionSurveyExists", 2);
-ExerciseStore = __decorateClass$5([
-  injectable(),
-  __decorateParam$4(0, inject(ExerciseController)),
-  __decorateParam$4(1, inject(UserController)),
-  __decorateParam$4(2, inject(SurveyController)),
-  __decorateParam$4(3, inject(QuestionStore))
-], ExerciseStore);
-function groupBy(list, keyGetter) {
-  const map = /* @__PURE__ */ new Map();
-  list.forEach((item) => {
-    const key = keyGetter(item);
-    const collection = map.get(key);
-    if (!collection) {
-      map.set(key, [item]);
-    } else {
-      collection.push(item);
-    }
-  });
-  return map;
-}
-const isSandbox = () => (new URLSearchParams(window.location.search).get("sandbox") ?? null) !== null;
-instance.register(ExerciseController, {
-  useFactory: () => isSandbox() ? new TestExerciseController() : new ExerciseController()
-});
-instance.register(QuestionController, {
-  useFactory: () => isSandbox() ? new TestExerciseController() : new QuestionController()
-});
-instance.register(UserController, {
-  useFactory: () => isSandbox() ? new TestExerciseController() : new UserController()
-});
-instance.register(QuestionStore, QuestionStore);
-instance.registerSingleton(ExerciseStore);
-instance.registerSingleton(SurveyController);
-instance.registerSingleton(ExerciseSettingsController);
-instance.registerSingleton(CourseController);
-instance.registerSingleton(DeepLinkingController);
 const resources = {
   EN: {
     translation: {
@@ -2286,7 +434,7 @@ const resources = {
     }
   }
 };
-instance$1.use(initReactI18next).init({
+instance.use(initReactI18next).init({
   resources,
   lng: "EN",
   interpolation: {
@@ -2347,6 +495,49 @@ const DebugButton = ({ metadataId, attemptId }) => {
     }
   );
 };
+const AUTO_DISMISS_MS = 12e3;
+const CLAIM_WINDOW_MS = 250;
+const keyOf = (error) => `${error.status}\0${error.message}`;
+class NotificationsStore {
+  notifications = [];
+  nextId = 1;
+  pending = /* @__PURE__ */ new Map();
+  constructor() {
+    makeAutoObservable(this, {
+      nextId: false,
+      pending: false
+    });
+  }
+  report(error) {
+    const key = keyOf(error);
+    clearTimeout(this.pending.get(key));
+    this.pending.set(key, setTimeout(() => {
+      this.pending.delete(key);
+      this.show(error);
+    }, CLAIM_WINDOW_MS));
+  }
+  handled(error) {
+    const key = keyOf(error);
+    clearTimeout(this.pending.get(key));
+    this.pending.delete(key);
+    this.notifications = this.notifications.filter((n) => keyOf(n.error) !== key);
+  }
+  dismiss(id) {
+    this.notifications = this.notifications.filter((n) => n.id !== id);
+  }
+  show(error) {
+    const key = keyOf(error);
+    const same = this.notifications.find((n) => keyOf(n.error) === key);
+    if (same) {
+      same.count++;
+      return;
+    }
+    const id = this.nextId++;
+    this.notifications.push({ id, error, count: 1 });
+    setTimeout(() => this.dismiss(id), AUTO_DISMISS_MS);
+  }
+}
+const notifications = new NotificationsStore();
 function statusLine(error) {
   if (error.status === void 0) {
     return null;
@@ -2413,6 +604,16 @@ const LoadingWrapper = observer((props) => {
   }
   return /* @__PURE__ */ jsxRuntimeExports.jsx(jsxRuntimeExports.Fragment, { children });
 });
+union([nullType, undefinedType, literal("")]);
+function TOptionalRequestResult(type2, name) {
+  return union([type2, nullType, undefinedType, literal("")], type2.name);
+}
+function delayPromise(timeout) {
+  return new Promise((resolve) => setTimeout(() => resolve(), timeout));
+}
+function isNullOrUndefined(value) {
+  return value === null || value === void 0;
+}
 const Modal = (props) => {
   const {
     title,
@@ -2450,6 +651,1408 @@ const ModalWrapper = (props) => {
   }
   return /* @__PURE__ */ jsxRuntimeExports.jsx(Modal$1, { size, show, onHide, children });
 };
+const commonParams = {
+  method: "GET",
+  headers: {
+    "Content-Type": "application/json"
+  }
+  //redirect: 'manual',
+};
+async function ajaxGet(url, validator, signal) {
+  const params = {
+    ...commonParams,
+    signal
+  };
+  return await ajax(url, params, validator);
+}
+async function ajaxPost(url, body, validator, signal, payloadType) {
+  const params = {
+    ...commonParams,
+    method: "POST",
+    body: JSON.stringify(body),
+    signal
+  };
+  return await ajax(url, params, validator, payloadType);
+}
+async function ajaxPut(url, body, validator, signal) {
+  const params = {
+    ...commonParams,
+    method: "PUT",
+    body: JSON.stringify(body),
+    signal
+  };
+  return await ajax(url, params, validator);
+}
+async function ajaxDelete(url, validator, signal) {
+  const params = {
+    ...commonParams,
+    method: "DELETE",
+    signal
+  };
+  return await ajax(url, params, validator);
+}
+const statusTexts = {
+  400: "Bad request",
+  401: "Unauthorized",
+  403: "Forbidden",
+  404: "Not found",
+  405: "Method not allowed",
+  409: "Conflict",
+  413: "Payload too large",
+  415: "Unsupported media type",
+  422: "Unprocessable entity",
+  429: "Too many requests",
+  500: "Internal server error",
+  502: "Bad gateway",
+  503: "Service unavailable",
+  504: "Gateway timeout"
+};
+const asText = (value) => typeof value === "string" && value.trim() !== "" ? value.trim() : void 0;
+function parseErrorBody(body) {
+  try {
+    const parsed = JSON.parse(body);
+    return typeof parsed === "object" && parsed !== null ? parsed : void 0;
+  } catch {
+    return void 0;
+  }
+}
+function plainTextBody(body) {
+  const text = asText(body);
+  return text !== void 0 && text.length <= 300 && !text.startsWith("<") ? text : void 0;
+}
+async function toRequestError(response) {
+  const body = await response.text().catch(() => "");
+  const parsed = parseErrorBody(body);
+  const title = asText(parsed?.title) ?? asText(parsed?.error);
+  return {
+    status: response.status,
+    message: asText(parsed?.detail) ?? asText(parsed?.message) ?? title ?? (parsed === void 0 ? plainTextBody(body) : void 0) ?? statusTexts[response.status] ?? `Request failed with status ${response.status}`,
+    title,
+    path: asText(parsed?.instance) ?? asText(parsed?.path),
+    timestamp: asText(parsed?.timestamp),
+    trace: asText(parsed?.trace)
+  };
+}
+async function readPayload(response, payloadType) {
+  const body = await response.text();
+  if (payloadType === "raw") {
+    return body;
+  }
+  return body.trim() === "" ? "" : JSON.parse(body);
+}
+function fail(error) {
+  console.error(error);
+  notifications.report(error);
+  return EitherExports.left(error);
+}
+const isAbort = (err) => err instanceof DOMException && err.name === "AbortError";
+async function ajax(url, params, validator, payloadType) {
+  payloadType ??= "json";
+  let response;
+  try {
+    response = await fetch(url, params);
+  } catch (err) {
+    if (isAbort(err)) {
+      return EitherExports.left({ message: "Request aborted" });
+    }
+    return fail({ message: `Network error: ${err instanceof Error ? err.message : String(err)}` });
+  }
+  if (!response.ok) {
+    return fail(await toRequestError(response));
+  }
+  let payload;
+  try {
+    payload = await readPayload(response, payloadType);
+  } catch (err) {
+    if (isAbort(err)) {
+      return EitherExports.left({ message: "Request aborted" });
+    }
+    return fail({
+      status: response.status,
+      message: `Malformed response body: ${err instanceof Error ? err.message : String(err)}`
+    });
+  }
+  const decoded = validator ? validator.decode(payload) : success(payload);
+  if (EitherExports.isLeft(decoded)) {
+    return fail({
+      status: response.status,
+      message: `Type inconsistency for properties of ${validator?.name} type: ${getPaths(decoded.left).join(", ")}`
+    });
+  }
+  return EitherExports.right(decoded.right);
+}
+const getPaths = (errors) => {
+  return errors.map((error) => error.context.map(({ key }) => key).join("."));
+};
+const API_URL = "";
+const TCourseDto = type({
+  id: number,
+  name: string,
+  educationResourceId: number,
+  educationResourceName: string
+});
+const TExerciseOptions = intersection([
+  type({
+    forceNewAttemptCreationEnabled: boolean,
+    debugButtonEnabled: boolean,
+    newQuestionGenerationEnabled: boolean,
+    supplementaryQuestionsEnabled: boolean,
+    correctAnswerGenerationEnabled: boolean,
+    preferDecisionTreeBasedSupplementaryEnabled: boolean,
+    maxExpectedConcurrentStudents: number
+  }),
+  partial({
+    surveyOptions: type({
+      enabled: boolean,
+      surveyId: string
+    })
+  })
+], "ExerciseOptions");
+function nonEmptyArray(codec, name = `NonEmptyArray<${codec.name}>`) {
+  const arr = array(codec);
+  return new Type(
+    name,
+    (u) => arr.is(u) && _ArrayExports.isNonEmpty(u),
+    (u, c) => _functionExports.pipe(
+      arr.validate(u, c),
+      EitherExports.chain((as) => {
+        const onea = NonEmptyArrayExports.fromArray(as);
+        return OptionExports.isNone(onea) ? failure(u, c) : success(onea.value);
+      })
+    ),
+    NonEmptyArrayExports.map(codec.encode)
+  );
+}
+function getUrlParameterByName(name) {
+  const urlParams = new URLSearchParams(window.location.search);
+  return urlParams.get(name);
+}
+const TExerciseListItem = type({
+  id: number,
+  name: string,
+  isPublic: boolean
+});
+const TExerciseListPermissions = type({
+  canCreateExercise: boolean,
+  canImportInherit: boolean,
+  canImportClone: boolean
+}, "ExerciseListPermissions");
+const noExerciseListPermissions = {
+  canCreateExercise: false,
+  canImportInherit: false,
+  canImportClone: false
+};
+const TExerciseList = type({
+  exercises: array(TExerciseListItem),
+  permissions: TExerciseListPermissions
+}, "ExerciseList");
+const TExerciseCardConcept = type({
+  name: string,
+  kind: keyof({
+    "FORBIDDEN": null,
+    "PERMITTED": null,
+    "TARGETED": null
+  })
+});
+const TExerciseCardLaw = type({
+  name: string,
+  kind: keyof({
+    "FORBIDDEN": null,
+    "PERMITTED": null,
+    "TARGETED": null
+  })
+});
+const TExerciseCardSkill = type({
+  name: string,
+  kind: keyof({
+    "FORBIDDEN": null,
+    "PERMITTED": null,
+    "TARGETED": null
+  })
+});
+const TExerciseStage = type({
+  numberOfQuestions: number,
+  complexity: number,
+  concepts: array(TExerciseCardConcept),
+  laws: array(TExerciseCardLaw),
+  skills: array(TExerciseCardSkill)
+});
+const TExerciseCardPermissions = type({
+  canEdit: boolean,
+  canDelete: boolean,
+  canCloneToCourse: boolean,
+  canCopyToGlobalPool: boolean,
+  canUnlinkFromCourse: boolean
+}, "ExerciseCardPermissions");
+const TExerciseCard = type({
+  id: number,
+  name: string,
+  domainId: string,
+  strategyId: string,
+  backendId: string,
+  stages: nonEmptyArray(TExerciseStage),
+  tags: array(string),
+  options: TExerciseOptions,
+  isPublic: boolean,
+  permissions: TExerciseCardPermissions
+});
+const TDomainSkill = recursion("DomainSkill", () => type({
+  name: string,
+  displayName: string,
+  childs: array(TDomainSkill)
+}));
+const TDomainLaw = recursion("DomainLaw", () => type({
+  name: string,
+  displayName: string,
+  bitflags: number,
+  childs: array(TDomainLaw)
+}));
+var DomainConceptFlag = /* @__PURE__ */ ((DomainConceptFlag2) => {
+  DomainConceptFlag2[DomainConceptFlag2["VisibleToTeacher"] = 1] = "VisibleToTeacher";
+  DomainConceptFlag2[DomainConceptFlag2["TargetEnabled"] = 2] = "TargetEnabled";
+  return DomainConceptFlag2;
+})(DomainConceptFlag || {});
+const TDomainConcept = recursion("DomainConcept", () => type({
+  name: string,
+  displayName: string,
+  bitflags: number,
+  childs: array(TDomainConcept)
+}));
+const TDomain = type({
+  id: string,
+  displayName: string,
+  description: union([string, nullType]),
+  laws: array(TDomainLaw),
+  skills: array(TDomainSkill),
+  concepts: array(TDomainConcept),
+  tags: array(string)
+});
+const TStrategy = type({
+  id: string,
+  displayName: string,
+  description: union([string, nullType]),
+  options: type({
+    multiStagesEnabled: boolean
+  })
+});
+const TQuestionBankSearchResult = type({
+  count: number,
+  topRatedCount: number,
+  questions: array(type({
+    metadataId: number,
+    name: string
+  }))
+});
+class CourseController {
+  getMyCourses() {
+    return ajaxGet(`${API_URL}/api/course/my`, array(TCourseDto));
+  }
+  getCourseExercises(courseId) {
+    return ajaxGet(`${API_URL}/api/exercise/list?courseId=${courseId}`, TExerciseList);
+  }
+  getExerciseMemberships(exerciseId) {
+    return ajaxGet(`${API_URL}/api/course/memberships?exerciseId=${exerciseId}`, array(TCourseDto));
+  }
+  addExerciseToCourse(exerciseId, courseId) {
+    return ajaxPost(`${API_URL}/api/course/exercise/add?exerciseId=${exerciseId}&courseId=${courseId}`, {});
+  }
+  removeExerciseFromCourse(exerciseId, courseId) {
+    return ajaxDelete(`${API_URL}/api/course/exercise/remove?exerciseId=${exerciseId}&courseId=${courseId}`);
+  }
+}
+const TExerciseAttempt = type({
+  attemptId: number,
+  exerciseId: number,
+  questionIds: array(number)
+}, "ExerciseAttempt");
+const TOptionalExerciseAttemptResult = TOptionalRequestResult(TExerciseAttempt);
+const TExerciseStatisticsItem = type({
+  attemptId: number,
+  questionsCount: number,
+  totalInteractionsCount: number,
+  totalInteractionsWithErrorsCount: number,
+  averageGrade: number
+}, "ExerciseStatisticsItem");
+const TExerciseStatisticsItems = array(TExerciseStatisticsItem);
+const TExercise = type({
+  id: number,
+  options: TExerciseOptions
+}, "Exercise");
+class ExerciseController {
+  getExerciseShortInfo(id, courseId) {
+    const courseParam = courseId != null ? `&courseId=${courseId}` : "";
+    return ajaxGet(`${API_URL}/api/exercise/shortInfo?id=${id}${courseParam}`, TExercise);
+  }
+  getExerciseAttempt(attemptId) {
+    return ajaxGet(`${API_URL}/api/exercise/getExerciseAttempt?attemptId=${attemptId}`, TExerciseAttempt);
+  }
+  getExistingExerciseAttempt(exerciseId, courseId) {
+    const courseParam = courseId != null ? `&courseId=${courseId}` : "";
+    return ajaxGet(`${API_URL}/api/exercise/getExistingExerciseAttempt?exerciseId=${exerciseId}${courseParam}`, TOptionalExerciseAttemptResult);
+  }
+  createExerciseAttempt(exerciseId, courseId) {
+    const courseParam = courseId != null ? `&courseId=${courseId}` : "";
+    return ajaxGet(`${API_URL}/api/exercise/createExerciseAttempt?exerciseId=${exerciseId}${courseParam}`, TExerciseAttempt);
+  }
+  createDebugExerciseAttempt(exerciseId, courseId) {
+    const courseParam = courseId != null ? `&courseId=${courseId}` : "";
+    return ajaxGet(`${API_URL}/api/exercise/createDebugExerciseAttempt?exerciseId=${exerciseId}${courseParam}`, TExerciseAttempt);
+  }
+  getExerciseStatistics(exerciseId) {
+    return ajaxGet(`${API_URL}/api/exercise/getExerciseStatistics?exerciseId=${exerciseId}`, TExerciseStatisticsItems);
+  }
+  getExercises() {
+    return ajaxGet(`${API_URL}/api/exercise/getExercises`, array(number));
+  }
+}
+class ExerciseSettingsController {
+  listExercises(courseId) {
+    const q = courseId == null ? "" : `?courseId=${courseId}`;
+    return ajaxGet(`${API_URL}/api/exercise/list${q}`, TExerciseList);
+  }
+  getExercise(id, courseId = null) {
+    const courseQ = courseId == null ? "" : `&courseId=${courseId}`;
+    return ajaxGet(`${API_URL}/api/exercise?id=${encodeURIComponent(id)}${courseQ}`, TExerciseCard);
+  }
+  saveExercise(card, courseId = null) {
+    const q = courseId == null ? "" : `?courseId=${courseId}`;
+    return ajaxPost(`${API_URL}/api/exercise${q}`, toJS(card));
+  }
+  createExercise(name, domainId, strategyId, courseId = null) {
+    return ajaxPut(`${API_URL}/api/exercise`, { name, domainId, strategyId, courseId }, number);
+  }
+  cloneExercise(id, courseId) {
+    const q = courseId == null ? "" : `?courseId=${courseId}`;
+    return ajaxPost(`${API_URL}/api/exercise/${id}/clone${q}`, {}, number);
+  }
+  deleteExercise(id, courseId = null) {
+    const courseQ = courseId == null ? "" : `&courseId=${courseId}`;
+    return ajaxDelete(`${API_URL}/api/exercise?id=${encodeURIComponent(id)}${courseQ}`);
+  }
+  getStrategies() {
+    return ajaxGet(`${API_URL}/api/refTables/strategies`, array(TStrategy));
+  }
+  getBackends() {
+    return ajaxGet(`${API_URL}/api/refTables/backends`, array(string));
+  }
+  getDomains() {
+    return ajaxGet(`${API_URL}/api/refTables/domains`, array(TDomain));
+  }
+  getDomainLaws(domainsId) {
+    return ajaxGet(`${API_URL}/api/refTables/domainLaws?domaindId=${encodeURIComponent(domainsId)}`, array(string));
+  }
+  getDomainConcepts(domainsId) {
+    return ajaxGet(`${API_URL}/api/refTables/domainConcepts?domaindId=${encodeURIComponent(domainsId)}`, array(string));
+  }
+  search(domainId, concepts, laws, skills, tags, complexity, limit, courseId, signal) {
+    const body = {
+      domainId,
+      tags,
+      concepts,
+      laws,
+      skills,
+      complexity,
+      limit,
+      courseId
+    };
+    return ajaxPost(`${API_URL}/api/question-bank/search`, body, TQuestionBankSearchResult, signal);
+  }
+}
+const TAnswer = intersection([
+  type({
+    answer: tuple([number, number]),
+    isСreatedByUser: boolean
+  }),
+  partial({
+    createdByInteraction: union([number, nullType])
+  })
+]);
+const TFeedbackViolationLaw = type({
+  name: string,
+  canCreateSupplementaryQuestion: boolean
+});
+const TFeedbackMessage = union([
+  type({
+    type: literal("SUCCESS"),
+    message: string,
+    violationLaws: union([array(TFeedbackViolationLaw), nullType])
+  }),
+  type({
+    type: literal("ERROR"),
+    message: string,
+    violationLaws: union([array(TFeedbackViolationLaw), nullType])
+  })
+]);
+const TFeedback = intersection([
+  type({
+    isCorrect: boolean
+  }),
+  partial({
+    isCorrect: boolean,
+    grade: union([number, nullType]),
+    violations: union([array(number), nullType]),
+    correctAnswers: union([array(TAnswer), nullType]),
+    correctSteps: union([number, nullType]),
+    stepsLeft: union([number, nullType]),
+    stepsWithErrors: union([number, nullType]),
+    message: union([array(TFeedbackMessage), nullType]),
+    strategyDecision: union([
+      keyof({
+        "CONTINUE": null,
+        "FINISH": null
+      }),
+      nullType
+    ])
+  })
+], "Feedback");
+const TOrderQuestionFeedback = intersection([
+  TFeedback,
+  partial({
+    trace: union([array(string), nullType])
+  })
+]);
+const TQuestionOptions = type({
+  requireContext: boolean,
+  showSupplementaryQuestions: boolean
+}, "QuestionOptions");
+const TOrderQuestionOptions = intersection([
+  TQuestionOptions,
+  type({
+    showTrace: boolean,
+    multipleSelectionEnabled: boolean,
+    requireAllAnswers: boolean
+  }),
+  partial({
+    orderNumberOptions: intersection([
+      type({
+        delimiter: string,
+        position: keyof({
+          "PREFIX": null,
+          "SUFFIX": null,
+          "BOTTOM": null,
+          "NONE": null
+        })
+      }),
+      partial({
+        replacers: union([array(string), nullType])
+      })
+    ])
+  })
+], "OrderQuestionOptions");
+const TMatchingQuestionOptions = intersection([
+  TQuestionOptions,
+  type({
+    multipleSelectionEnabled: boolean
+  }),
+  union([
+    type({
+      displayMode: literal("combobox")
+    }),
+    type({
+      displayMode: literal("dragNdrop"),
+      draggableStyle: string,
+      dropzoneStyle: string,
+      dropzoneHtml: string
+    })
+  ])
+], "MatchingQuestionOptions");
+const TSingleChoiceQuestionOptions = intersection([
+  TQuestionOptions,
+  type({
+    displayMode: keyof({
+      "radio": null,
+      "dragNdrop": null
+    })
+  })
+], "SingleChoiceQuestionOptions");
+const TMultiChoiceQuestionOptions = intersection([
+  TQuestionOptions,
+  union([
+    intersection([
+      type({
+        displayMode: literal("switch")
+      }),
+      partial({
+        selectorReplacers: union([tuple([string, string]), nullType])
+      })
+    ]),
+    type({
+      displayMode: literal("dragNdrop"),
+      dropzoneHtml: string,
+      dropzoneStyle: string,
+      draggableStyle: string
+    })
+  ])
+], "MultiChoiceQuestionOptions");
+const TQuestionType = keyof({
+  "SINGLE_CHOICE": null,
+  "MULTI_CHOICE": null,
+  "MATCHING": null,
+  "ORDER": null
+}, "QuestionType");
+const THtml = string;
+const TQuestionAnswer = type({
+  id: number,
+  text: THtml
+}, "QuestionAnswer");
+const TQuestionBase = type({
+  questionId: number,
+  questionMetadataId: number,
+  type: TQuestionType,
+  options: TQuestionOptions,
+  text: THtml,
+  answers: array(TQuestionAnswer),
+  responses: union([array(TAnswer), nullType]),
+  feedback: union([TFeedback, nullType])
+}, "QuestionBase");
+const TOrderQuestion = intersection([
+  TQuestionBase,
+  type({
+    type: literal("ORDER"),
+    options: TOrderQuestionOptions,
+    feedback: union([TOrderQuestionFeedback, nullType])
+  }),
+  partial({
+    initialTrace: union([array(string), nullType])
+  })
+], "OrderQuestion");
+const TSingleChoiceQuestion = intersection([
+  TQuestionBase,
+  type({
+    type: literal("SINGLE_CHOICE"),
+    options: TSingleChoiceQuestionOptions
+  })
+], "SingleChoiceQuestion");
+const TMultiChoiceQuestion = intersection([
+  TQuestionBase,
+  type({
+    type: literal("MULTI_CHOICE"),
+    options: TMultiChoiceQuestionOptions
+  })
+], "MultiChoiceQuestion");
+const TMatchingQuestion = intersection([
+  TQuestionBase,
+  type({
+    type: literal("MATCHING"),
+    answers: array(TQuestionAnswer),
+    groups: array(TQuestionAnswer),
+    options: TMatchingQuestionOptions
+  })
+], "MatchingQuestion");
+const TQuestion = union([TOrderQuestion, TSingleChoiceQuestion, TMultiChoiceQuestion, TMatchingQuestion], "Question");
+TOptionalRequestResult(TQuestion);
+const TSupplementaryFeedbackAction = keyof({
+  "CONTINUE_AUTO": null,
+  "CONTINUE_MANUAL": null,
+  "FINISH": null
+});
+const TSupplementaryFeedback = type({
+  message: TFeedbackMessage,
+  action: TSupplementaryFeedbackAction
+});
+const TSupplementaryQuestion = partial({
+  question: union([TQuestion, nullType]),
+  message: union([TSupplementaryFeedback, nullType])
+});
+class QuestionController {
+  generateQuestionByAttempt(attemptId) {
+    return ajaxGet(`${API_URL}/api/question/generate?attemptId=${attemptId}`, TQuestion);
+  }
+  generateQuestionByMetadata(metadataId) {
+    return ajaxGet(`${API_URL}/api/question/generateByMetadata?metadataId=${metadataId}`, TQuestion);
+  }
+  getQuestion(questionId) {
+    return ajaxGet(`${API_URL}/api/question?questionId=${questionId}`, TQuestion);
+  }
+  generateSupplementaryQuestion(questionRequest) {
+    return ajaxPost(`${API_URL}/api/question/generateSupplementaryQuestion`, questionRequest, TSupplementaryQuestion);
+  }
+  generateNextCorrectAnswer(questionId) {
+    return ajaxGet(`${API_URL}/api/question/generateNextCorrectAnswer?questionId=${questionId}`, TFeedback);
+  }
+  addQuestionAnswer(interaction) {
+    return ajaxPost(`${API_URL}/api/question/addQuestionAnswer`, interaction, TFeedback);
+  }
+  addSupplementaryQuestionAnswer(interaction) {
+    return ajaxPost(`${API_URL}/api/question/addSupplementaryQuestionAnswer`, interaction, TSupplementaryFeedback);
+  }
+}
+const TSurveyQuestionTriggeringPolicy = union([
+  type({
+    kind: literal("AFTER_FIRST")
+  }),
+  type({
+    kind: literal("AFTER_LAST")
+  }),
+  type({
+    kind: literal("AFTER_EACH")
+  }),
+  type({
+    kind: literal("AFTER_SPECIFIC"),
+    numbers: array(number)
+  })
+]);
+const TYesNoSurveyQuestion = type({
+  id: number,
+  type: literal("yes-no"),
+  text: string,
+  policy: TSurveyQuestionTriggeringPolicy,
+  required: boolean,
+  options: type({
+    yesText: string,
+    yesValue: string,
+    noText: string,
+    noValue: string
+  })
+}, "YesNoSurveyQuestion");
+const TSingleChoiceSurveyQuestion = type({
+  id: number,
+  type: literal("single-choice"),
+  text: string,
+  policy: TSurveyQuestionTriggeringPolicy,
+  required: boolean,
+  options: array(type({
+    id: string,
+    text: string
+  }))
+});
+const TOpenEndedSurveyQuestion = type({
+  id: number,
+  type: literal("open-ended"),
+  text: string,
+  policy: TSurveyQuestionTriggeringPolicy,
+  required: boolean
+});
+const TSurveyQuestion = union([TYesNoSurveyQuestion, TSingleChoiceSurveyQuestion, TOpenEndedSurveyQuestion]);
+const TSurvey = type({
+  surveyId: string,
+  options: type({}),
+  questions: array(TSurveyQuestion)
+}, "Survey");
+const TSurveyResultItem = type({
+  surveyQuestionId: number,
+  questionId: number,
+  answer: string
+});
+class SurveyController {
+  surveyCache = {};
+  async getSurvey(suerveyId) {
+    if (this.surveyCache[suerveyId])
+      return EitherExports.right(this.surveyCache[suerveyId]);
+    var result = await ajaxGet(`${API_URL}/api/survey/${suerveyId}`, TSurvey);
+    if (EitherExports.isRight(result))
+      this.surveyCache[suerveyId] = result.right;
+    return result;
+  }
+  async postSurveyAnswer(surveyQuestionId, questionId, answer) {
+    return ajaxPost(`${API_URL}/api/survey`, { surveyQuestionId, questionId, answer });
+  }
+  async getCurrentUserAttemptSurveyVotes(surveyId, attemptId) {
+    return ajaxGet(`${API_URL}/api/survey/${encodeURIComponent(surveyId)}/user-votes?attemptId=${attemptId}`, array(TSurveyResultItem));
+  }
+}
+const TLanguage = keyof({
+  EN: null,
+  RU: null,
+  PL: null
+});
+const TUserPermissions = type({
+  canViewGlobalPool: boolean
+}, "UserPermissions");
+const TUserInfo = type({
+  id: number,
+  displayName: string,
+  email: union([string, nullType]),
+  language: TLanguage,
+  permissions: TUserPermissions
+}, "UserInfo");
+class UserController {
+  getCurrentUser() {
+    return ajaxGet(`${API_URL}/api/users/whoami`, TUserInfo);
+  }
+  async getLanguages() {
+    return EitherExports.right(["EN", "RU"]);
+  }
+  async setLanguage(language) {
+    return ajaxPost(`${API_URL}/api/users/language`, { language }, TLanguage, void 0, "raw");
+  }
+}
+const TDeepLinkBuildResponse = type({
+  jwt: string,
+  returnUrl: string
+});
+const TDeepLinkExistingResponse = type({
+  exerciseIds: array(number)
+});
+class DeepLinkingController {
+  /** Build a signed LtiDeepLinkingResponse for the selected course exercises. */
+  build(exerciseIds) {
+    return ajaxPost(`${API_URL}/api/lti/deep-link/build`, { exerciseIds }, TDeepLinkBuildResponse);
+  }
+  /** exercise_id's already added to the Moodle course as activities (AGS-based dedup). */
+  existing() {
+    return ajaxGet(`${API_URL}/api/lti/deep-link/existing`, TDeepLinkExistingResponse);
+  }
+}
+const courseController = new CourseController();
+const deepLinkingController = new DeepLinkingController();
+const exerciseController = new ExerciseController();
+const exerciseSettingsController = new ExerciseSettingsController();
+const questionController = new QuestionController();
+const surveyController = new SurveyController();
+var __defProp$3 = Object.defineProperty;
+var __getOwnPropDesc$1 = Object.getOwnPropertyDescriptor;
+var __decorateClass$3 = (decorators, target, key, kind) => {
+  var result = kind > 1 ? void 0 : kind ? __getOwnPropDesc$1(target, key) : target;
+  for (var i = decorators.length - 1, decorator; i >= 0; i--)
+    if (decorator = decorators[i])
+      result = (kind ? decorator(target, key, result) : decorator(result)) || result;
+  if (kind && result) __defProp$3(target, key, result);
+  return result;
+};
+class SupplementaryQuestionStore {
+  sourceQuestionId;
+  feedback = void 0;
+  question = void 0;
+  answer = [];
+  questionState = "INITIAL";
+  constructor(sourceQuestionId) {
+    this.sourceQuestionId = sourceQuestionId;
+    makeObservable(this);
+  }
+  setQuestionState = (newState) => {
+    if (this.questionState !== newState)
+      this.questionState = newState;
+  };
+  get isQuestionFreezed() {
+    return this.questionState !== "LOADED";
+  }
+  get isFeedbackLoading() {
+    return this.questionState === "ANSWER_EVALUATING";
+  }
+  get canSendQuestionAnswers() {
+    if (!this.question || this.questionState === "COMPLETED")
+      return false;
+    switch (this.question.type) {
+      case "SINGLE_CHOICE":
+      case "MULTI_CHOICE":
+        return this.answer.length > 0;
+      case "ORDER":
+        return true;
+      case "MATCHING":
+        return this.answer.length === this.question.answers.length;
+      default:
+        return _functionExports.absurd(this.question);
+    }
+  }
+  get questionSubmitMode() {
+    if (!this.question)
+      return null;
+    return this.question.type === "SINGLE_CHOICE" ? "IMPLICIT" : "EXPLICIT";
+  }
+  generateSupplementaryQuestion = async (violationLaws) => {
+    if (violationLaws.length === 0)
+      throw new Error("violationLaws mist be non-empty");
+    this.setQuestionState("LOADING");
+    const questionRequest = {
+      questionId: this.sourceQuestionId,
+      violationLaws
+    };
+    const dataEither = await questionController.generateSupplementaryQuestion(questionRequest);
+    runInAction(() => {
+      if (EitherExports.isLeft(dataEither)) {
+        this.setQuestionState("LOADED");
+        return;
+      }
+      this.#onQuestionLoaded(dataEither.right.question, dataEither.right.message);
+    });
+  };
+  sendAnswers = async () => {
+    const { question } = this;
+    if (!question)
+      throw new Error("Question is empty");
+    const body = toJS({
+      questionId: question.questionId,
+      answers: toJS([...this.answer])
+    });
+    this.setQuestionState("ANSWER_EVALUATING");
+    const feedbackEither = await questionController.addSupplementaryQuestionAnswer(body);
+    runInAction(() => {
+      if (EitherExports.isLeft(feedbackEither)) {
+        this.setQuestionState("LOADED");
+        return;
+      }
+      this.setQuestionState("COMPLETED");
+      this.feedback = feedbackEither.right;
+    });
+  };
+  setAnswer = (newAnswer) => {
+    this.answer = newAnswer;
+  };
+  #onQuestionLoaded = (question, feedback) => {
+    if (question?.options.requireContext) {
+      var allMatches = question.text.matchAll(/(\<\w.*?\sid\s*?\=([\'\"]))\s*(answer_(\d+?))\2(.*?\>)/igm);
+      [...allMatches].forEach((match, matchIdx) => {
+        question.text = question.text.replace(
+          match[0],
+          `${match[1]}question_${question.questionId}_${match[3]}_${matchIdx}${match[2]} data-answer-id='${match[4]}' ${match[5]}`
+        );
+      });
+    }
+    this.question = question ?? void 0;
+    this.feedback = feedback ?? void 0;
+    this.answer = question?.responses ?? [];
+    this.questionState = !question ? "COMPLETED" : "LOADED";
+  };
+}
+__decorateClass$3([
+  observable
+], SupplementaryQuestionStore.prototype, "sourceQuestionId", 2);
+__decorateClass$3([
+  observable
+], SupplementaryQuestionStore.prototype, "feedback", 2);
+__decorateClass$3([
+  observable
+], SupplementaryQuestionStore.prototype, "question", 2);
+__decorateClass$3([
+  observable
+], SupplementaryQuestionStore.prototype, "answer", 2);
+__decorateClass$3([
+  observable
+], SupplementaryQuestionStore.prototype, "questionState", 2);
+__decorateClass$3([
+  action
+], SupplementaryQuestionStore.prototype, "setQuestionState", 2);
+__decorateClass$3([
+  computed
+], SupplementaryQuestionStore.prototype, "isQuestionFreezed", 1);
+__decorateClass$3([
+  computed
+], SupplementaryQuestionStore.prototype, "isFeedbackLoading", 1);
+__decorateClass$3([
+  computed
+], SupplementaryQuestionStore.prototype, "canSendQuestionAnswers", 1);
+__decorateClass$3([
+  computed
+], SupplementaryQuestionStore.prototype, "questionSubmitMode", 1);
+__decorateClass$3([
+  action
+], SupplementaryQuestionStore.prototype, "generateSupplementaryQuestion", 2);
+__decorateClass$3([
+  action
+], SupplementaryQuestionStore.prototype, "sendAnswers", 2);
+__decorateClass$3([
+  action
+], SupplementaryQuestionStore.prototype, "setAnswer", 2);
+var __defProp$2 = Object.defineProperty;
+var __decorateClass$2 = (decorators, target, key, kind) => {
+  var result = void 0;
+  for (var i = decorators.length - 1, decorator; i >= 0; i--)
+    if (decorator = decorators[i])
+      result = decorator(target, key, result) || result;
+  if (result) __defProp$2(target, key, result);
+  return result;
+};
+class QuestionStore {
+  isFeedbackVisible = true;
+  isQuestionFreezed = false;
+  feedback = void 0;
+  question = void 0;
+  lastAnswer = [];
+  answersHistory = [];
+  supplementaryQuestion;
+  questionState = "INITIAL";
+  storeState = { tag: "VALID" };
+  constructor() {
+    makeObservable(this);
+  }
+  onQuestionLoaded = (question) => {
+    if (question.options.requireContext) {
+      var allMatches = question.text.matchAll(/(\<\w.*?\sid\s*?\=([\'\"]))\s*(answer_(\d+?))\2(.*?\>)/igm);
+      [...allMatches].forEach((match, matchIdx) => {
+        question.text = question.text.replace(
+          match[0],
+          `${match[1]}question_${question.questionId}_${match[3]}_${matchIdx}${match[2]} data-answer-id='${match[4]}' ${match[5]}`
+        );
+      });
+    }
+    this.question = question;
+    this.supplementaryQuestion = new SupplementaryQuestionStore(question.questionId);
+    this.feedback = question.feedback ?? void 0;
+    this.isFeedbackVisible = true;
+    this.answersHistory = [];
+    this.lastAnswer = question.responses ?? [];
+    if (question.feedback && question.feedback.stepsLeft === 0) {
+      this.setQuestionState("COMPLETED");
+    }
+  };
+  onAnswerEvaluated(feedback) {
+    this.feedback = feedback;
+    this.isFeedbackVisible = true;
+    if (feedback && feedback.correctAnswers) {
+      this.setFullAnswer(feedback.correctAnswers, false);
+      if (!isNullOrUndefined(feedback.stepsLeft) && feedback.stepsLeft === 0) {
+        this.setQuestionState("COMPLETED");
+      }
+    }
+  }
+  setQuestionState = (newState) => {
+    if (this.questionState !== newState)
+      this.questionState = newState;
+  };
+  setValidStoreState = () => {
+    if (this.storeState.tag !== "VALID") {
+      this.storeState = { tag: "VALID" };
+    }
+  };
+  setErrorStoreState = (error) => {
+    this.storeState = { tag: "ERROR", error };
+  };
+  loadQuestion = flow(function* (questionId) {
+    this.setValidStoreState();
+    this.setQuestionState("LOADING");
+    const dataEither = yield questionController.getQuestion(questionId);
+    this.setQuestionState("LOADED");
+    if (EitherExports.isLeft(dataEither)) {
+      this.setErrorStoreState(dataEither.left);
+      return;
+    }
+    this.onQuestionLoaded(dataEither.right);
+  });
+  generateQuestion = flow(function* (attemptId) {
+    this.setValidStoreState();
+    this.setQuestionState("LOADING");
+    const dataEither = yield questionController.generateQuestionByAttempt(attemptId);
+    this.setQuestionState("LOADED");
+    if (EitherExports.isLeft(dataEither)) {
+      this.setErrorStoreState(dataEither.left);
+      return;
+    }
+    this.onQuestionLoaded(dataEither.right);
+  });
+  generateQuestionByMetadata = flow(function* (metadataId) {
+    this.setValidStoreState();
+    this.setQuestionState("LOADING");
+    const dataEither = yield questionController.generateQuestionByMetadata(metadataId);
+    this.setQuestionState("LOADED");
+    if (EitherExports.isLeft(dataEither)) {
+      this.setErrorStoreState(dataEither.left);
+      return;
+    }
+    this.onQuestionLoaded(dataEither.right);
+  });
+  generateNextCorrectAnswer = flow(function* () {
+    const { question } = this;
+    if (!question) {
+      throw new Error("Current question not found");
+    }
+    this.setValidStoreState();
+    this.setQuestionState("ANSWER_EVALUATING");
+    const feedbackEither = yield questionController.generateNextCorrectAnswer(question.questionId);
+    this.setQuestionState("LOADED");
+    if (EitherExports.isLeft(feedbackEither)) {
+      this.setErrorStoreState(feedbackEither.left);
+      return;
+    }
+    this.onAnswerEvaluated(feedbackEither.right);
+  });
+  sendAnswersImpl = flow(function* (questionId, answers) {
+    const body = toJS({
+      questionId,
+      answers: toJS([...answers])
+    });
+    this.setValidStoreState();
+    this.setQuestionState("ANSWER_EVALUATING");
+    const feedbackEither = yield questionController.addQuestionAnswer(body);
+    this.setQuestionState("LOADED");
+    if (EitherExports.isLeft(feedbackEither)) {
+      this.setErrorStoreState(feedbackEither.left);
+      return;
+    }
+    this.onAnswerEvaluated(feedbackEither.right);
+  });
+  sendAnswers = flow(function* () {
+    const { question, lastAnswer } = this;
+    if (!question) {
+      return;
+    }
+    yield this.sendAnswersImpl(question.questionId, toJS(lastAnswer));
+  });
+  onAnswersChanged = flow(function* (answer, sendAnswers = true) {
+    this.answersHistory.push(answer);
+    if (!sendAnswers) {
+      return;
+    }
+    try {
+      yield this.sendAnswers();
+    } catch {
+      this.answersHistory.pop();
+    }
+  });
+  setFullAnswer = flow(function* (fullAnswer, sendAnswers = true) {
+    if (!this.isAnswerChanged(fullAnswer)) {
+      return false;
+    }
+    const prevLastAnswer = this.lastAnswer;
+    this.lastAnswer = fullAnswer;
+    if (prevLastAnswer.length > 0) {
+      this.answersHistory.push(prevLastAnswer);
+    }
+    if (!sendAnswers) {
+      return true;
+    }
+    try {
+      yield this.sendAnswers();
+      return true;
+    } catch {
+      this.lastAnswer = prevLastAnswer;
+      if (prevLastAnswer.length > 0) {
+        this.answersHistory.pop();
+      }
+      return false;
+    }
+  });
+  isAnswerChanged = (newAnswer) => {
+    const { lastAnswer, question } = this;
+    if (!question) {
+      throw new Error("no question");
+    }
+    const answersHistoryRaw = lastAnswer.map((x) => x.answer);
+    const newHistoryRaw = newAnswer.map((x) => x.answer);
+    switch (question.type) {
+      case "ORDER":
+        return newHistoryRaw.length !== answersHistoryRaw.length || JSON.stringify(newHistoryRaw) !== JSON.stringify(answersHistoryRaw);
+      case "MATCHING":
+      case "MULTI_CHOICE":
+      case "SINGLE_CHOICE":
+        return newHistoryRaw.length !== answersHistoryRaw.length || JSON.stringify(newHistoryRaw.sort()) !== JSON.stringify(answersHistoryRaw.sort());
+    }
+  };
+}
+__decorateClass$2([
+  observable
+], QuestionStore.prototype, "isFeedbackVisible");
+__decorateClass$2([
+  observable
+], QuestionStore.prototype, "isQuestionFreezed");
+__decorateClass$2([
+  observable
+], QuestionStore.prototype, "feedback");
+__decorateClass$2([
+  observable
+], QuestionStore.prototype, "question");
+__decorateClass$2([
+  observable
+], QuestionStore.prototype, "lastAnswer");
+__decorateClass$2([
+  observable
+], QuestionStore.prototype, "answersHistory");
+__decorateClass$2([
+  observable
+], QuestionStore.prototype, "supplementaryQuestion");
+__decorateClass$2([
+  observable
+], QuestionStore.prototype, "questionState");
+__decorateClass$2([
+  observable
+], QuestionStore.prototype, "storeState");
+__decorateClass$2([
+  action
+], QuestionStore.prototype, "setQuestionState");
+__decorateClass$2([
+  action
+], QuestionStore.prototype, "setValidStoreState");
+__decorateClass$2([
+  action
+], QuestionStore.prototype, "setErrorStoreState");
+var __defProp$1 = Object.defineProperty;
+var __decorateClass$1 = (decorators, target, key, kind) => {
+  var result = void 0;
+  for (var i = decorators.length - 1, decorator; i >= 0; i--)
+    if (decorator = decorators[i])
+      result = decorator(target, key, result) || result;
+  if (result) __defProp$1(target, key, result);
+  return result;
+};
+class ExerciseStore {
+  isExerciseLoading = false;
+  exerciseId;
+  courseId = void 0;
+  exercise = void 0;
+  currentAttemptId = void 0;
+  currentAttempt = void 0;
+  currentQuestion;
+  exerciseState = "INITIAL";
+  storeState = { tag: "VALID" };
+  survey = void 0;
+  isDebug = false;
+  constructor() {
+    this.isDebug = getUrlParameterByName("debug") !== null;
+    this.currentQuestion = new QuestionStore();
+    const rawExerciseId = getUrlParameterByName("exerciseId");
+    if (rawExerciseId === null) {
+      this.exerciseState = "LAUNCH_ERROR";
+      this.storeState = { tag: "ERROR", error: { message: "Invalid exercise id" } };
+    }
+    this.exerciseId = rawExerciseId !== null ? +rawExerciseId : -1;
+    const rawCourseId = getUrlParameterByName("courseId");
+    if (rawCourseId !== null) {
+      this.courseId = +rawCourseId;
+    }
+    const rawAttemptId = getUrlParameterByName("attemptId");
+    if (rawAttemptId !== null) {
+      this.currentAttemptId = +rawAttemptId;
+    }
+    makeObservable(this);
+    this.registerOnStrategyDecisionChangedAction();
+  }
+  registerOnStrategyDecisionChangedAction = () => {
+    autorun(() => {
+      if (this.currentQuestion.feedback?.strategyDecision === "FINISH" && this.exerciseState !== "COMPLETED") {
+        this.setExerciseState("COMPLETED");
+      }
+    });
+  };
+  forceSetValidState = () => {
+    if (this.storeState.tag !== "VALID") {
+      this.storeState = { tag: "VALID" };
+    }
+  };
+  setExerciseState = (newState) => {
+    if (this.exerciseState !== newState) {
+      this.exerciseState = newState;
+    }
+  };
+  setSurveyAnswers = (quesionId, answers) => {
+    if (!this.survey)
+      return;
+    runInAction(() => {
+      this.survey.questions[quesionId].status = "COMPLETED";
+      this.survey.questions[quesionId].results = answers;
+    });
+  };
+  loadExercise = async () => {
+    if (this.exercise) {
+      throw new Error("exerciseInfo loaded");
+    }
+    if (this.isExerciseLoading) {
+      return;
+    }
+    runInAction(() => {
+      this.forceSetValidState();
+      this.isExerciseLoading = true;
+    });
+    const exercise = await exerciseController.getExerciseShortInfo(this.exerciseId, this.courseId);
+    if (EitherExports.isRight(exercise)) {
+      runInAction(() => {
+        this.isExerciseLoading = false;
+        this.exercise = exercise.right;
+      });
+    } else {
+      runInAction(() => {
+        this.isExerciseLoading = false;
+        this.storeState = { tag: "ERROR", error: exercise.left };
+      });
+    }
+  };
+  loadExerciseAttempt = flow(function* (attemptId) {
+    const { exercise } = this;
+    if (!exercise) {
+      throw new Error("exerciseInfo is not defined");
+    }
+    this.forceSetValidState();
+    exercise.id;
+    const resultEither = yield exerciseController.getExerciseAttempt(attemptId);
+    if (EitherExports.isLeft(resultEither)) {
+      this.storeState = { tag: "ERROR", error: resultEither.left };
+      return;
+    }
+    const result = resultEither.right;
+    if (!result) {
+      return false;
+    }
+    this.currentAttempt = result;
+    yield this.onAttemptLoaded();
+    return true;
+  });
+  loadExistingExerciseAttempt = flow(function* () {
+    const { exercise } = this;
+    if (!exercise) {
+      throw new Error("exercise is not defined");
+    }
+    this.forceSetValidState();
+    const exerciseId = exercise.id;
+    const resultEither = yield exerciseController.getExistingExerciseAttempt(exerciseId, this.courseId);
+    if (EitherExports.isLeft(resultEither)) {
+      this.storeState = { tag: "ERROR", error: resultEither.left };
+      return;
+    }
+    const result = resultEither.right;
+    if (!result) {
+      return false;
+    }
+    this.currentAttempt = result;
+    yield this.onAttemptLoaded();
+    return true;
+  });
+  onAttemptLoaded = async () => {
+    await this.loadSurvey();
+  };
+  createExerciseAttempt = flow(function* () {
+    const { exercise } = this;
+    if (!exercise) {
+      throw new Error("exercise is not defined");
+    }
+    this.forceSetValidState();
+    const exerciseId = exercise.id;
+    const resultEither = yield exerciseController.createExerciseAttempt(+exerciseId, this.courseId);
+    if (EitherExports.isLeft(resultEither)) {
+      this.storeState = { tag: "ERROR", error: resultEither.left };
+      return;
+    }
+    this.currentAttempt = resultEither.right;
+    yield this.onAttemptLoaded();
+  });
+  createDebugExerciseAttempt = flow(function* () {
+    const { exercise } = this;
+    if (!exercise) {
+      throw new Error("exercise is not defined");
+    }
+    this.forceSetValidState();
+    const exerciseId = exercise.id;
+    const resultEither = yield exerciseController.createDebugExerciseAttempt(+exerciseId, this.courseId);
+    if (EitherExports.isLeft(resultEither)) {
+      this.storeState = { tag: "ERROR", error: resultEither.left };
+      return;
+    }
+    this.currentAttempt = resultEither.right;
+    yield this.onAttemptLoaded();
+  });
+  generateQuestion = flow(function* () {
+    const { exercise, currentAttempt } = this;
+    if (!exercise || !currentAttempt) {
+      throw new Error("Session is not defined");
+    }
+    this.forceSetValidState();
+    yield this.currentQuestion.generateQuestion(currentAttempt.attemptId);
+    currentAttempt.questionIds.push(this.currentQuestion.question?.questionId ?? -1);
+  });
+  loadSurvey = async () => {
+    if (this.survey || !this.currentAttempt || !this.exercise)
+      return;
+    if (!this.exercise.options.surveyOptions?.enabled || this.exercise.options.surveyOptions.surveyId.length === 0)
+      return;
+    const surveyId = this.exercise.options.surveyOptions.surveyId;
+    const attemptId = this.currentAttempt.attemptId;
+    const [survey, surveyResults] = await Promise.all([
+      surveyController.getSurvey(surveyId),
+      surveyController.getCurrentUserAttemptSurveyVotes(surveyId, attemptId)
+    ]);
+    runInAction(() => {
+      if (EitherExports.isRight(survey) && EitherExports.isRight(surveyResults)) {
+        const tmp = groupBy(surveyResults.right, (x) => x.questionId);
+        this.survey = {
+          survey: survey.right,
+          questions: [...tmp.keys()].map((k) => ({
+            questionId: k,
+            status: "COMPLETED",
+            questions: tmp.get(k)?.map((z) => z.surveyQuestionId) ?? [],
+            results: tmp.get(k)?.reduce((acc, z) => (acc[z.surveyQuestionId] = z.answer, acc), {}) ?? {}
+          })).reduce((acc, i) => (acc[i.questionId] = i, acc), {})
+        };
+      }
+    });
+  };
+  ensureQuestionSurveyExists = (questionId) => {
+    if (this.survey?.questions[questionId])
+      return this.survey?.questions[questionId].questions;
+    const qs = [];
+    const currentQuestionIdx = this.currentAttempt.questionIds.findIndex((z) => z === this.currentQuestion.question?.questionId);
+    for (let q of this.survey?.survey.questions || []) {
+      const policy = q.policy;
+      if (policy.kind === "AFTER_EACH" || policy.kind === "AFTER_FIRST" && currentQuestionIdx === 0 || policy.kind === "AFTER_LAST" && this.exerciseState === "COMPLETED" || policy.kind === "AFTER_SPECIFIC" && policy.numbers.includes(currentQuestionIdx + 1)) {
+        qs.push(q);
+      }
+    }
+    console.log("Selected questions");
+    console.log(toJS(qs));
+    var questionSurvey = {
+      questionId,
+      status: "ACTIVE",
+      questions: qs.map((z) => z.id),
+      results: {}
+    };
+    runInAction(() => {
+      this.survey.questions[questionId] = questionSurvey;
+    });
+    return qs.map((z) => z.id);
+  };
+}
+__decorateClass$1([
+  observable
+], ExerciseStore.prototype, "isExerciseLoading");
+__decorateClass$1([
+  observable
+], ExerciseStore.prototype, "exerciseId");
+__decorateClass$1([
+  observable
+], ExerciseStore.prototype, "courseId");
+__decorateClass$1([
+  observable
+], ExerciseStore.prototype, "exercise");
+__decorateClass$1([
+  observable
+], ExerciseStore.prototype, "currentAttemptId");
+__decorateClass$1([
+  observable
+], ExerciseStore.prototype, "currentAttempt");
+__decorateClass$1([
+  observable
+], ExerciseStore.prototype, "currentQuestion");
+__decorateClass$1([
+  observable
+], ExerciseStore.prototype, "exerciseState");
+__decorateClass$1([
+  observable
+], ExerciseStore.prototype, "storeState");
+__decorateClass$1([
+  observable
+], ExerciseStore.prototype, "survey");
+__decorateClass$1([
+  observable
+], ExerciseStore.prototype, "isDebug");
+__decorateClass$1([
+  action
+], ExerciseStore.prototype, "forceSetValidState");
+__decorateClass$1([
+  action
+], ExerciseStore.prototype, "setExerciseState");
+__decorateClass$1([
+  action
+], ExerciseStore.prototype, "setSurveyAnswers");
+__decorateClass$1([
+  action
+], ExerciseStore.prototype, "loadSurvey");
+__decorateClass$1([
+  action
+], ExerciseStore.prototype, "ensureQuestionSurveyExists");
+function groupBy(list, keyGetter) {
+  const map = /* @__PURE__ */ new Map();
+  list.forEach((item) => {
+    const key = keyGetter(item);
+    const collection = map.get(key);
+    if (!collection) {
+      map.set(key, [item]);
+    } else {
+      collection.push(item);
+    }
+  });
+  return map;
+}
+let sharedExerciseStore;
+function getExerciseStore() {
+  return sharedExerciseStore ??= new ExerciseStore();
+}
 const MatchingQuestionComponent = observer((props) => {
   const { question } = props;
   const { options } = question;
@@ -3255,7 +2858,7 @@ const Question = observer((props) => {
   ] });
 });
 const CurrentQuestion = observer(() => {
-  const [exerciseStore] = reactExports.useState(() => instance.resolve(ExerciseStore));
+  const exerciseStore = getExerciseStore();
   return /* @__PURE__ */ jsxRuntimeExports.jsx(Question, { store: exerciseStore.currentQuestion, showExtendedFeedback: exerciseStore.exercise?.options.supplementaryQuestionsEnabled ?? true });
 });
 const GenerateNextAnswerBtn = observer(({ store }) => {
@@ -3272,7 +2875,7 @@ const GenerateNextAnswerBtn = observer(({ store }) => {
   return /* @__PURE__ */ jsxRuntimeExports.jsx(Button, { onClick: onClicked, className: "comp-ph-hint-btn", variant: "primary", children: t("nextCorrectAnswerBtn") });
 });
 const GenerateNextQuestionBtn = observer(() => {
-  const [exerciseStore] = reactExports.useState(() => instance.resolve(ExerciseStore));
+  const exerciseStore = getExerciseStore();
   const { t } = useTranslation();
   const [isModalVisible, setIsModalVisible] = reactExports.useState(false);
   const { exercise, currentAttempt } = exerciseStore;
@@ -3329,7 +2932,7 @@ const GenerateNextQuestionBtn = observer(() => {
   ] });
 });
 const Pagination = observer(() => {
-  const [exerciseStore] = reactExports.useState(() => instance.resolve(ExerciseStore));
+  const exerciseStore = getExerciseStore();
   if (!exerciseStore.currentQuestion.question || !exerciseStore.currentAttempt) {
     return null;
   }
@@ -3457,9 +3060,9 @@ const Header = observer((props) => {
   ] });
 });
 var __defProp = Object.defineProperty;
-var __getOwnPropDesc$4 = Object.getOwnPropertyDescriptor;
-var __decorateClass$4 = (decorators, target, key, kind) => {
-  var result = kind > 1 ? void 0 : kind ? __getOwnPropDesc$4(target, key) : target;
+var __getOwnPropDesc = Object.getOwnPropertyDescriptor;
+var __decorateClass = (decorators, target, key, kind) => {
+  var result = kind > 1 ? void 0 : kind ? __getOwnPropDesc(target, key) : target;
   for (var i = decorators.length - 1, decorator; i >= 0; i--)
     if (decorator = decorators[i])
       result = (kind ? decorator(target, key, result) : decorator(result)) || result;
@@ -3505,8 +3108,8 @@ class SessionStore {
       }
       this.user = user.right;
       this.languages = languages.right;
-      if (this.user.language !== instance$1.language) {
-        instance$1.changeLanguage(this.user.language);
+      if (this.user.language !== instance.language) {
+        instance.changeLanguage(this.user.language);
       }
     });
   };
@@ -3516,7 +3119,7 @@ class SessionStore {
       if (isRight(res)) {
         runInAction(() => {
           this.user.language = res.right;
-          instance$1.changeLanguage(res.right);
+          instance.changeLanguage(res.right);
         });
       } else {
         console.error("Failed to change language", res.left);
@@ -3524,22 +3127,22 @@ class SessionStore {
     }
   };
 }
-__decorateClass$4([
+__decorateClass([
   observable
 ], SessionStore.prototype, "user", 2);
-__decorateClass$4([
+__decorateClass([
   observable
 ], SessionStore.prototype, "languages", 2);
-__decorateClass$4([
+__decorateClass([
   observable
 ], SessionStore.prototype, "isSessionLoading", 2);
-__decorateClass$4([
+__decorateClass([
   observable
 ], SessionStore.prototype, "error", 2);
-__decorateClass$4([
+__decorateClass([
   computed
 ], SessionStore.prototype, "selectedLanguage", 1);
-__decorateClass$4([
+__decorateClass([
   computed
 ], SessionStore.prototype, "isSessionLoaded", 1);
 const SessionContext = reactExports.createContext(null);
@@ -3565,7 +3168,7 @@ const useCurrentUser = () => {
   return session.user;
 };
 const ExerciseHeader = observer(() => {
-  const [exerciseStore] = reactExports.useState(() => instance.resolve(ExerciseStore));
+  const exerciseStore = getExerciseStore();
   const { t, i18n } = useTranslation();
   const session = useSession();
   const user = useCurrentUser();
@@ -3595,7 +3198,6 @@ const ExerciseHeader = observer(() => {
 });
 const SurveyComponent = (props) => {
   const { survey, enabledSurveyQuestions, isCompleted } = props;
-  const [endpoint] = reactExports.useState(() => instance.resolve(SurveyController));
   const [surveyState, setSurveyState] = reactExports.useState(isCompleted ? "COMPLETED" : "INITAL");
   const [surveyAnswers, setSurveyAnswers] = reactExports.useState(props.value || {});
   const { t } = useTranslation();
@@ -3610,7 +3212,7 @@ const SurveyComponent = (props) => {
       const requiredQuestionIds = surveyQuestions.filter((x) => x.required).map((x) => x.id);
       if (requiredQuestionIds.every((id) => surveyAnswers[id])) {
         setSurveyState("SENDING_RESULTS");
-        await Promise.all(surveyQuestions.map((q) => endpoint.postSurveyAnswer(q.id, props.questionId, surveyAnswers[q.id])));
+        await Promise.all(surveyQuestions.map((q) => surveyController.postSurveyAnswer(q.id, props.questionId, surveyAnswers[q.id])));
         setSurveyState("COMPLETED");
         props.onAnswersSended(survey, props.questionId, surveyAnswers);
       } else {
@@ -3961,7 +3563,7 @@ const TourLauncher = () => {
   return null;
 };
 const Exercise = observer(() => {
-  const [exerciseStore] = reactExports.useState(() => instance.resolve(ExerciseStore));
+  const exerciseStore = getExerciseStore();
   const { exerciseState, setExerciseState, storeState: excerciseStoreState, currentQuestion, survey } = exerciseStore;
   const { storeState: currentQuestionStoreState } = currentQuestion;
   const { t } = useTranslation();
@@ -4142,7 +3744,7 @@ const Statistics = () => {
       if (exerciseId === null || Number.isNaN(+exerciseId)) {
         throw new Error("Invalid exerciseId url param");
       }
-      const controller = instance.resolve(ExerciseController);
+      const controller = exerciseController;
       setIsLoading(true);
       const statistics2 = await controller.getExerciseStatistics(+exerciseId);
       if (EitherExports.isRight(statistics2)) {
@@ -4174,7 +3776,7 @@ const ExercisesList = observer(() => {
   reactExports.useEffect(() => {
     (async () => {
       setIsLoading(true);
-      const controller = instance.resolve(ExerciseController);
+      const controller = exerciseController;
       const dataEither = await controller.getExercises();
       if (EitherExports.isRight(dataEither)) {
         setData(dataEither.right);
@@ -4185,7 +3787,7 @@ const ExercisesList = observer(() => {
   return /* @__PURE__ */ jsxRuntimeExports.jsx("div", { children: /* @__PURE__ */ jsxRuntimeExports.jsx(ListGroup, { children: data.map((i) => /* @__PURE__ */ jsxRuntimeExports.jsx(ListGroup.Item, { children: /* @__PURE__ */ jsxRuntimeExports.jsx("a", { href: `exercise?exerciseId=${i}`, children: i }) })) }) });
 });
 const SurveyPage = observer(() => {
-  const [exerciseStore] = reactExports.useState(() => instance.resolve(ExerciseStore));
+  const exerciseStore = getExerciseStore();
   const { exerciseState, setExerciseState, storeState: excerciseStoreState, currentQuestion, survey } = exerciseStore;
   const { storeState: currentQuestionStoreState } = currentQuestion;
   const { t } = useTranslation();
@@ -4245,18 +3847,8 @@ const SurveyPage = observer(() => {
     [excerciseStoreState, currentQuestionStoreState].filter((x) => x.tag === "ERROR").map((x, idx, arr) => x.tag === "ERROR" && /* @__PURE__ */ jsxRuntimeExports.jsx("div", { className: "mt-2", children: /* @__PURE__ */ jsxRuntimeExports.jsx(InlineError, { error: x.error }) }))
   ] });
 });
-var __getOwnPropDesc$3 = Object.getOwnPropertyDescriptor;
-var __decorateClass$3 = (decorators, target, key, kind) => {
-  var result = kind > 1 ? void 0 : kind ? __getOwnPropDesc$3(target, key) : target;
-  for (var i = decorators.length - 1, decorator; i >= 0; i--)
-    if (decorator = decorators[i])
-      result = decorator(result) || result;
-  return result;
-};
-var __decorateParam$3 = (index, decorator) => (target, key) => decorator(target, key, index);
 class ExerciseStageStore {
-  constructor(exerciseSettingsController, courseId, card, stage) {
-    this.exerciseSettingsController = exerciseSettingsController;
+  constructor(courseId, card, stage) {
     this.courseId = courseId;
     this.concepts = stage.concepts;
     this.laws = stage.laws;
@@ -4273,7 +3865,6 @@ class ExerciseStageStore {
       this.updateBankStats(concepts, laws, skills, card.tags, complexity);
     }, { delay: 1e3 });
   }
-  exerciseSettingsController;
   courseId;
   card;
   concepts;
@@ -4294,7 +3885,7 @@ class ExerciseStageStore {
     const currentAbortController = new AbortController();
     this.abortController = currentAbortController;
     runInAction(() => this.bankLoadingState = "IN_PROGRESS");
-    const newData = yield this.exerciseSettingsController.search(card.domainId, concepts, laws, skills, tags, complexity, 5, this.courseId, currentAbortController.signal);
+    const newData = yield exerciseSettingsController.search(card.domainId, concepts, laws, skills, tags, complexity, 5, this.courseId, currentAbortController.signal);
     if (EitherExports.isRight(newData)) {
       runInAction(() => {
         this.bankSearchResult = newData.right;
@@ -4314,18 +3905,7 @@ class ExerciseStageStore {
     }
   }
 }
-let ExerciseSettingsStore = class {
-  constructor(exerciseSettingsController, userController, exerciseController, courseController) {
-    this.exerciseSettingsController = exerciseSettingsController;
-    this.userController = userController;
-    this.exerciseController = exerciseController;
-    this.courseController = courseController;
-    makeAutoObservable(this);
-  }
-  exerciseSettingsController;
-  userController;
-  exerciseController;
-  courseController;
+class ExerciseSettingsStore {
   exercisesLoadStatus = "NONE";
   exercises = null;
   permissions = noExerciseListPermissions;
@@ -4334,6 +3914,9 @@ let ExerciseSettingsStore = class {
   strategies = null;
   currentCard = null;
   courseId = null;
+  constructor() {
+    makeAutoObservable(this);
+  }
   applyExerciseList(list) {
     this.exercises = list.exercises;
     this.permissions = list.permissions;
@@ -4355,7 +3938,7 @@ let ExerciseSettingsStore = class {
     });
     result.stages = _functionExports.pipe(
       card.stages,
-      NonEmptyArrayExports.map((stage) => new ExerciseStageStore(this.exerciseSettingsController, this.courseId, result, stage))
+      NonEmptyArrayExports.map((stage) => new ExerciseStageStore(this.courseId, result, stage))
     );
     return result;
   }
@@ -4376,10 +3959,10 @@ let ExerciseSettingsStore = class {
       this.courseId = courseId;
     });
     const [rawExercises, domains, backends, strategies] = await Promise.all([
-      this.exerciseSettingsController.listExercises(courseId),
-      this.exerciseSettingsController.getDomains(),
-      this.exerciseSettingsController.getBackends(),
-      this.exerciseSettingsController.getStrategies()
+      exerciseSettingsController.listExercises(courseId),
+      exerciseSettingsController.getDomains(),
+      exerciseSettingsController.getBackends(),
+      exerciseSettingsController.getStrategies()
     ]);
     if (EitherExports.isRight(rawExercises) && EitherExports.isRight(domains) && EitherExports.isRight(backends) && EitherExports.isRight(strategies)) {
       runInAction(() => {
@@ -4395,7 +3978,7 @@ let ExerciseSettingsStore = class {
     if (this.exercisesLoadStatus !== "LOADED")
       throw new Error("Exercises must be loaded first");
     runInAction(() => this.exercisesLoadStatus = "EXERCISELOADING");
-    const rawExercise = await this.exerciseSettingsController.getExercise(exerciseId, this.courseId);
+    const rawExercise = await exerciseSettingsController.getExercise(exerciseId, this.courseId);
     if (EitherExports.isRight(rawExercise)) {
       runInAction(() => {
         this.currentCard = this.toCardViewModel(rawExercise.right);
@@ -4406,7 +3989,7 @@ let ExerciseSettingsStore = class {
   async createNewExecise() {
     if (this.exercisesLoadStatus !== "LOADED")
       throw new Error("Exercises must be loaded first");
-    const newExerciseId = await this.exerciseSettingsController.createExercise(
+    const newExerciseId = await exerciseSettingsController.createExercise(
       "(empty)",
       this.domains[0].id,
       this.strategies[0].id,
@@ -4416,8 +3999,8 @@ let ExerciseSettingsStore = class {
       return;
     runInAction(() => this.exercisesLoadStatus = "EXERCISELOADING");
     const [rawExercise, newExercisesList] = await Promise.all([
-      this.exerciseSettingsController.getExercise(newExerciseId.right, this.courseId),
-      this.exerciseSettingsController.listExercises(this.courseId)
+      exerciseSettingsController.getExercise(newExerciseId.right, this.courseId),
+      exerciseSettingsController.listExercises(this.courseId)
     ]);
     if (EitherExports.isRight(rawExercise) && EitherExports.isRight(newExercisesList)) {
       runInAction(() => {
@@ -4429,12 +4012,12 @@ let ExerciseSettingsStore = class {
   }
   async cloneCurrentToCourse(targetCourseId) {
     if (!this.currentCard) return;
-    const result = await this.exerciseSettingsController.cloneExercise(this.currentCard.id, targetCourseId);
+    const result = await exerciseSettingsController.cloneExercise(this.currentCard.id, targetCourseId);
     if (!EitherExports.isRight(result)) return;
     const newId = result.right;
     const [rawExercise, newExercisesList] = await Promise.all([
-      this.exerciseSettingsController.getExercise(newId, this.courseId),
-      this.exerciseSettingsController.listExercises(this.courseId)
+      exerciseSettingsController.getExercise(newId, this.courseId),
+      exerciseSettingsController.listExercises(this.courseId)
     ]);
     if (EitherExports.isRight(rawExercise) && EitherExports.isRight(newExercisesList)) {
       runInAction(() => {
@@ -4445,13 +4028,13 @@ let ExerciseSettingsStore = class {
   }
   async copyCurrentToPool() {
     if (!this.currentCard) return null;
-    const result = await this.exerciseSettingsController.cloneExercise(this.currentCard.id, null);
+    const result = await exerciseSettingsController.cloneExercise(this.currentCard.id, null);
     return EitherExports.isRight(result) ? result.right : null;
   }
   async unlinkFromCourse(courseId) {
     if (!this.currentCard) return;
-    await this.courseController.removeExerciseFromCourse(this.currentCard.id, courseId);
-    const refreshed = await this.exerciseSettingsController.listExercises(this.courseId);
+    await courseController.removeExerciseFromCourse(this.currentCard.id, courseId);
+    const refreshed = await exerciseSettingsController.listExercises(this.courseId);
     if (EitherExports.isRight(refreshed)) {
       runInAction(() => {
         this.applyExerciseList(refreshed.right);
@@ -4462,8 +4045,8 @@ let ExerciseSettingsStore = class {
   async deleteCurrentExercise() {
     if (!this.currentCard) return;
     const id = this.currentCard.id;
-    await this.exerciseSettingsController.deleteExercise(id, this.courseId);
-    const refreshed = await this.exerciseSettingsController.listExercises(this.courseId);
+    await exerciseSettingsController.deleteExercise(id, this.courseId);
+    const refreshed = await exerciseSettingsController.listExercises(this.courseId);
     if (EitherExports.isRight(refreshed)) {
       runInAction(() => {
         this.applyExerciseList(refreshed.right);
@@ -4475,8 +4058,8 @@ let ExerciseSettingsStore = class {
     if (!this.currentCard)
       return;
     runInAction(() => this.exercisesLoadStatus = "EXERCISELOADING");
-    await this.exerciseSettingsController.saveExercise(this.fromCardViewModel(this.currentCard), this.courseId);
-    const newExercisesList = await this.exerciseSettingsController.listExercises(this.courseId);
+    await exerciseSettingsController.saveExercise(this.fromCardViewModel(this.currentCard), this.courseId);
+    const newExercisesList = await exerciseSettingsController.listExercises(this.courseId);
     if (EitherExports.isRight(newExercisesList)) {
       runInAction(() => {
         this.applyExerciseList(newExercisesList.right);
@@ -4711,7 +4294,6 @@ let ExerciseSettingsStore = class {
       return;
     const card = this.currentCard;
     const newStage = new ExerciseStageStore(
-      this.exerciseSettingsController,
       this.courseId,
       card,
       {
@@ -4734,14 +4316,7 @@ let ExerciseSettingsStore = class {
     stageToRemove[Symbol.dispose]();
     this.currentCard.stages.splice(stageIdx, 1);
   }
-};
-ExerciseSettingsStore = __decorateClass$3([
-  injectable(),
-  __decorateParam$3(0, inject(ExerciseSettingsController)),
-  __decorateParam$3(1, inject(UserController)),
-  __decorateParam$3(2, inject(ExerciseController)),
-  __decorateParam$3(3, inject(CourseController))
-], ExerciseSettingsStore);
+}
 function useCourseId() {
   const [params] = useSearchParams();
   const raw = params.get("courseId");
@@ -4762,7 +4337,6 @@ const ExerciseRowBadge = ({ linkType }) => {
 const DeleteGlobalExerciseModal = ({ exerciseId, onConfirm, onCancel }) => {
   const { t } = useTranslation();
   const [memberships, setMemberships] = reactExports.useState(null);
-  const [courseController] = reactExports.useState(() => instance.resolve(CourseController));
   reactExports.useEffect(() => {
     (async () => {
       const r = await courseController.getExerciseMemberships(exerciseId);
@@ -4800,7 +4374,7 @@ const DeleteGlobalExerciseModal = ({ exerciseId, onConfirm, onCancel }) => {
   );
 };
 const ExerciseSettings = observer(() => {
-  const [exerciseStore] = reactExports.useState(() => instance.resolve(ExerciseSettingsStore));
+  const [exerciseStore] = reactExports.useState(() => new ExerciseSettingsStore());
   const { t } = useTranslation();
   const user = useCurrentUser();
   const session = useSession();
@@ -5516,7 +5090,7 @@ const StrategySettings = observer(() => {
   ] }) }) }) });
 });
 const QuestionPage = observer(() => {
-  const [question] = reactExports.useState(() => instance.resolve(QuestionStore));
+  const [question] = reactExports.useState(() => new QuestionStore());
   reactExports.useEffect(() => {
     const urlParams = new URLSearchParams(window.location.search);
     const metadataId = urlParams.get("metadataId");
@@ -5533,33 +5107,20 @@ const QuestionPage = observer(() => {
     ] })
   ] });
 });
-var __getOwnPropDesc$2 = Object.getOwnPropertyDescriptor;
-var __decorateClass$2 = (decorators, target, key, kind) => {
-  var result = kind > 1 ? void 0 : kind ? __getOwnPropDesc$2(target, key) : target;
-  for (var i = decorators.length - 1, decorator; i >= 0; i--)
-    if (decorator = decorators[i])
-      result = decorator(result) || result;
-  return result;
-};
-var __decorateParam$2 = (index, decorator) => (target, key) => decorator(target, key, index);
-let GlobalPoolStore = class {
-  constructor(settingsController, courseController) {
-    this.settingsController = settingsController;
-    this.courseController = courseController;
-    makeAutoObservable(this);
-  }
-  settingsController;
-  courseController;
+class GlobalPoolStore {
   exercises = [];
   permissions = noExerciseListPermissions;
   loadStatus = "NONE";
   error = null;
+  constructor() {
+    makeAutoObservable(this);
+  }
   async loadGlobalPool() {
     runInAction(() => {
       this.loadStatus = "LOADING";
       this.error = null;
     });
-    const r = await this.settingsController.listExercises(null);
+    const r = await exerciseSettingsController.listExercises(null);
     runInAction(() => {
       if (EitherExports.isLeft(r)) {
         this.error = r.left;
@@ -5573,20 +5134,15 @@ let GlobalPoolStore = class {
   }
   async importToCourse(exerciseId, targetCourseId, mode) {
     if (mode === "INHERIT") {
-      const r2 = await this.courseController.addExerciseToCourse(exerciseId, targetCourseId);
+      const r2 = await courseController.addExerciseToCourse(exerciseId, targetCourseId);
       return EitherExports.isRight(r2);
     }
-    const r = await this.settingsController.cloneExercise(exerciseId, targetCourseId);
+    const r = await exerciseSettingsController.cloneExercise(exerciseId, targetCourseId);
     return EitherExports.isRight(r);
   }
-};
-GlobalPoolStore = __decorateClass$2([
-  injectable(),
-  __decorateParam$2(0, inject(ExerciseSettingsController)),
-  __decorateParam$2(1, inject(CourseController))
-], GlobalPoolStore);
+}
 const GlobalPool = observer(() => {
-  const [store] = reactExports.useState(() => instance.resolve(GlobalPoolStore));
+  const [store] = reactExports.useState(() => new GlobalPoolStore());
   const navigate = useNavigate();
   const user = useCurrentUser();
   const session = useSession();
@@ -5630,33 +5186,22 @@ const GlobalPool = observer(() => {
     ] })
   ] });
 });
-var __getOwnPropDesc$1 = Object.getOwnPropertyDescriptor;
-var __decorateClass$1 = (decorators, target, key, kind) => {
-  var result = kind > 1 ? void 0 : kind ? __getOwnPropDesc$1(target, key) : target;
-  for (var i = decorators.length - 1, decorator; i >= 0; i--)
-    if (decorator = decorators[i])
-      result = decorator(result) || result;
-  return result;
-};
-var __decorateParam$1 = (index, decorator) => (target, key) => decorator(target, key, index);
-let CourseStore = class {
-  constructor(courseController) {
-    this.courseController = courseController;
-    makeAutoObservable(this);
-  }
-  courseController;
+class CourseStore {
   courseId = null;
   exercises = [];
   permissions = noExerciseListPermissions;
   loadStatus = "NONE";
   error = null;
+  constructor() {
+    makeAutoObservable(this);
+  }
   async loadCourse(courseId) {
     runInAction(() => {
       this.loadStatus = "LOADING";
       this.courseId = courseId;
       this.error = null;
     });
-    const r = await this.courseController.getCourseExercises(courseId);
+    const r = await courseController.getCourseExercises(courseId);
     runInAction(() => {
       if (EitherExports.isLeft(r)) {
         this.error = r.left;
@@ -5668,14 +5213,10 @@ let CourseStore = class {
       this.loadStatus = "LOADED";
     });
   }
-};
-CourseStore = __decorateClass$1([
-  injectable(),
-  __decorateParam$1(0, inject(CourseController))
-], CourseStore);
+}
 const ImportFromGlobalModal = observer(({ courseId, canInherit, canClone, onClose, onImported }) => {
   const { t } = useTranslation();
-  const [store] = reactExports.useState(() => instance.resolve(GlobalPoolStore));
+  const [store] = reactExports.useState(() => new GlobalPoolStore());
   const [mode, setMode] = reactExports.useState(canInherit ? "INHERIT" : "CLONE");
   const [busyId, setBusyId] = reactExports.useState(null);
   const modeAllowed = mode === "INHERIT" ? canInherit : canClone;
@@ -5774,7 +5315,7 @@ const DeepLinkSelection = ({ exercises }) => {
   const [payload, setPayload] = reactExports.useState(null);
   reactExports.useEffect(() => {
     (async () => {
-      const res = await instance.resolve(DeepLinkingController).existing();
+      const res = await deepLinkingController.existing();
       if (EitherExports.isRight(res)) setExisting(new Set(res.right.exerciseIds));
     })();
   }, []);
@@ -5796,7 +5337,7 @@ const DeepLinkSelection = ({ exercises }) => {
     }
     setSubmitting(true);
     setError(null);
-    const res = await instance.resolve(DeepLinkingController).build(Array.from(selected));
+    const res = await deepLinkingController.build(Array.from(selected));
     if (EitherExports.isRight(res)) {
       setPayload(res.right);
     } else {
@@ -5841,7 +5382,7 @@ const DeepLinkSelection = ({ exercises }) => {
   ] });
 };
 const CoursePage = observer(() => {
-  const [store] = reactExports.useState(() => instance.resolve(CourseStore));
+  const [store] = reactExports.useState(() => new CourseStore());
   const navigate = useNavigate();
   const user = useCurrentUser();
   const session = useSession();
@@ -5919,30 +5460,19 @@ const CoursePage = observer(() => {
     )
   ] });
 });
-var __getOwnPropDesc = Object.getOwnPropertyDescriptor;
-var __decorateClass = (decorators, target, key, kind) => {
-  var result = kind > 1 ? void 0 : kind ? __getOwnPropDesc(target, key) : target;
-  for (var i = decorators.length - 1, decorator; i >= 0; i--)
-    if (decorator = decorators[i])
-      result = decorator(result) || result;
-  return result;
-};
-var __decorateParam = (index, decorator) => (target, key) => decorator(target, key, index);
-let CoursesStore = class {
-  constructor(api) {
-    this.api = api;
-    makeAutoObservable(this);
-  }
-  api;
+class CoursesStore {
   courses = [];
   loadStatus = "NONE";
   error = null;
+  constructor() {
+    makeAutoObservable(this);
+  }
   async loadMyCourses() {
     runInAction(() => {
       this.loadStatus = "LOADING";
       this.error = null;
     });
-    const r = await this.api.getMyCourses();
+    const r = await courseController.getMyCourses();
     runInAction(() => {
       if (EitherExports.isLeft(r)) {
         this.error = r.left;
@@ -5953,13 +5483,9 @@ let CoursesStore = class {
       this.loadStatus = "LOADED";
     });
   }
-};
-CoursesStore = __decorateClass([
-  injectable(),
-  __decorateParam(0, inject(CourseController))
-], CoursesStore);
+}
 const CoursesPage = observer(() => {
-  const [store] = reactExports.useState(() => instance.resolve(CoursesStore));
+  const [store] = reactExports.useState(() => new CoursesStore());
   const navigate = useNavigate();
   const user = useCurrentUser();
   const session = useSession();
@@ -6024,6 +5550,11 @@ const Home = () => /* @__PURE__ */ jsxRuntimeExports.jsxs(jsxRuntimeExports.Frag
     /* @__PURE__ */ jsxRuntimeExports.jsx(Route, { path: "/", element: /* @__PURE__ */ jsxRuntimeExports.jsx(Navigate, { to: "/pages/courses", replace: true }) })
   ] }) }) }) })
 ] });
+async function startMocking() {
+  {
+    return;
+  }
+}
 const container = document.getElementById("root");
 const root = clientExports.createRoot(container);
-root.render(/* @__PURE__ */ jsxRuntimeExports.jsx(Home, {}));
+startMocking().catch((err) => console.error("[mocks] could not start, the api is NOT mocked:", err)).finally(() => root.render(/* @__PURE__ */ jsxRuntimeExports.jsx(Home, {})));

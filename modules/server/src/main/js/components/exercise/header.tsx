@@ -1,18 +1,14 @@
 import { observer } from 'mobx-react';
 import * as React from 'react';
-import { Navbar } from 'react-bootstrap';
-import { Link } from 'react-router-dom';
-import { Optional } from '../common/optional';
 import { Pagination } from './pagination';
-import { container } from "tsyringe";
-import { ExerciseStore } from "../../stores/exercise-store";
-import { useCallback, useState } from 'react';
+import { getExerciseStore } from "../../stores/exercise-store";
+import { useCallback } from 'react';
 import { useTranslation } from "react-i18next";
 import { Header } from '../common/header';
 import { useCurrentUser, useSession } from '../../hooks/session-context';
 
 export const ExerciseHeader = observer(() => {
-    const [exerciseStore] = useState(() => container.resolve(ExerciseStore));
+    const exerciseStore = getExerciseStore();
     const { t, i18n } = useTranslation();
     const session = useSession();
     const user = useCurrentUser();

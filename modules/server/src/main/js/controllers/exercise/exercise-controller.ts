@@ -1,4 +1,3 @@
-import { injectable } from "tsyringe";
 import { ExerciseAttempt, TExerciseAttempt, TOptionalExerciseAttemptResult } from "../../types/exercise-attempt";
 import { ExerciseStatisticsItem, TExerciseStatisticsItems } from "../../types/exercise-statistics";
 import { ajaxGet, PromiseEither } from "../../utils/ajax";
@@ -7,19 +6,7 @@ import { RequestError } from "../../types/request-error";
 import { API_URL } from "../../appconfig";
 import { Exercise, TExercise } from "../../types/exercise";
 
-
-export interface IExerciseController {
-    getExerciseShortInfo(id: number, courseId?: number): PromiseEither<RequestError, Exercise>;
-    getExistingExerciseAttempt(exerciseId: number, courseId?: number): PromiseEither<RequestError, ExerciseAttempt | null | undefined | ''>;
-    getExerciseAttempt(attemptId: number): PromiseEither<RequestError, ExerciseAttempt>;
-    createDebugExerciseAttempt(exerciseId: number, courseId?: number): PromiseEither<RequestError, ExerciseAttempt>;
-    createExerciseAttempt(exerciseId: number, courseId?: number): PromiseEither<RequestError, ExerciseAttempt>;
-    getExerciseStatistics(exerciseId: number): PromiseEither<RequestError, ExerciseStatisticsItem[]>;
-    getExercises(): PromiseEither<RequestError, number[]>
-}
-
-@injectable()
-export class ExerciseController implements IExerciseController {
+export class ExerciseController {
 
     getExerciseShortInfo(id: number, courseId?: number): PromiseEither<RequestError, Exercise> {
         const courseParam = courseId != null ? `&courseId=${courseId}` : '';

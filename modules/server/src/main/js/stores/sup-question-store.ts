@@ -6,7 +6,7 @@ import { Answer } from "../types/answer";
 import { NonEmptyArray } from "fp-ts/lib/NonEmptyArray";
 import * as E from "fp-ts/lib/Either";
 import { absurd } from "fp-ts/lib/function";
-import { IQuestionController } from "../controllers/exercise/question-controller";
+import { questionController } from "../controllers";
 
 export class SupplementaryQuestionStore {
     @observable sourceQuestionId: number;
@@ -15,7 +15,7 @@ export class SupplementaryQuestionStore {
     @observable answer: ReadonlyArray<Answer> = [];
     @observable questionState: 'INITIAL' | 'LOADING' | 'LOADED' | 'ANSWER_EVALUATING' | 'COMPLETED' = 'INITIAL';
 
-    constructor(private questionController: IQuestionController, sourceQuestionId: number) {
+    constructor(sourceQuestionId: number) {
         this.sourceQuestionId = sourceQuestionId;
         
         makeObservable(this);
@@ -75,7 +75,7 @@ export class SupplementaryQuestionStore {
             questionId: this.sourceQuestionId,
             violationLaws: violationLaws as NonEmptyArray<string>,
         };        
-        const dataEither = await this.questionController.generateSupplementaryQuestion(questionRequest);
+        const dataEither = await questionController.generateSupplementaryQuestion(questionRequest);
 
         runInAction(() => {
             if (E.isLeft(dataEither)) {                
@@ -99,7 +99,7 @@ export class SupplementaryQuestionStore {
         })
 
         this.setQuestionState('ANSWER_EVALUATING');
-        const feedbackEither = await this.questionController.addSupplementaryQuestionAnswer(body);
+        const feedbackEither = await questionController.addSupplementaryQuestionAnswer(body);
 
         runInAction(() => { 
             if (E.isLeft(feedbackEither)) {

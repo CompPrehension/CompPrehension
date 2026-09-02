@@ -1,11 +1,8 @@
-import React, { useCallback, useEffect, useState } from "react";
-import { container } from "tsyringe";
-import { SurveyController } from "../../controllers/exercise/survey-controller";
+import React, { useState } from "react";
+import { surveyController } from "../../controllers";
 import { OpenEndedSurveyQuestion, SingleChoiceSurveyQuestion, Survey, SurveyQuestion, YesNoSurveyQuestion } from "../../types/survey";
-import * as E from "fp-ts/lib/Either";
 import { Loader } from "../common/loader";
 import { Button, Form } from "react-bootstrap";
-import { Optional } from "../common/optional";
 import { useTranslation } from "react-i18next";
 
 export type SurveyComponentProps = {
@@ -18,7 +15,7 @@ export type SurveyComponentProps = {
 }
 export const SurveyComponent = (props: SurveyComponentProps) => {
     const { survey, enabledSurveyQuestions, isCompleted } = props;
-    const [endpoint] = useState(() => container.resolve(SurveyController));
+    
     const [surveyState, setSurveyState] = useState<'INITAL' | 'VALIDATION_ERROR' | 'SENDING_RESULTS' | 'COMPLETED'>(isCompleted ? 'COMPLETED' : 'INITAL');
     const [surveyAnswers, setSurveyAnswers] = useState<Record<number, string>>(props.value || {});    
     const { t } = useTranslation();
@@ -36,7 +33,7 @@ export const SurveyComponent = (props: SurveyComponentProps) => {
             if (requiredQuestionIds.every(id => surveyAnswers[id])) {
                 setSurveyState('SENDING_RESULTS');
                 await Promise.all(surveyQuestions
-                    .map(q => endpoint.postSurveyAnswer(q.id, props.questionId, surveyAnswers[q.id])));
+                    .map(q => surveyController.postSurveyAnswer(q.id, props.questionId, surveyAnswers[q.id])));
                 setSurveyState('COMPLETED');
                 props.onAnswersSended(survey, props.questionId, surveyAnswers);
             } else {

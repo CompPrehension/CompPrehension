@@ -1,11 +1,10 @@
 import { observer } from "mobx-react"
 import React, { useEffect, useState } from "react"
-import { ExerciseController, IExerciseController } from "../controllers/exercise/exercise-controller";
+import { exerciseController } from "../controllers";
 import * as E from "fp-ts/lib/Either";
 import { ExerciseStatisticsItem } from "../types/exercise-statistics";
 import { LoadingWrapper } from "../components/common/loader";
 import { Table } from "react-bootstrap";
-import { container } from "tsyringe";
 
 export const Statistics = () => {
     const [statistics, setStatistics] = useState([] as ExerciseStatisticsItem[]);
@@ -19,7 +18,7 @@ export const Statistics = () => {
                 throw new Error("Invalid exerciseId url param");
             }
 
-            const controller = container.resolve<IExerciseController>(ExerciseController);
+            const controller = exerciseController;
             setIsLoading(true);
             const statistics = await controller.getExerciseStatistics(+exerciseId);
             if (E.isRight(statistics)) {

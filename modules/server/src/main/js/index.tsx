@@ -1,6 +1,6 @@
 import {createRoot} from 'react-dom/client';
 import React from 'react';
-import "./bootstrapper";
+import "./i18n";
 import "./styles/index.css";
 import 'bootstrap/dist/css/bootstrap.min.css';
 import {BrowserRouter as Router, Navigate, Route, Routes} from 'react-router-dom';
@@ -42,6 +42,22 @@ const Home = () => (
     </>
 )
 
+/**
+ * `npm run dev:mock` answers the whole api from src/main/js/mocks via a service worker.
+ * The branch is dead code in a production build, so msw never reaches the bundle.
+ */
+async function startMocking() {
+    if (!import.meta.env.DEV || import.meta.env.VITE_MOCK_API !== 'true') {
+        return;
+    }
+    const { worker } = await import('./mocks/browser');
+    await worker.start({ onUnhandledRequest: 'bypass' });
+}
+
 const container = document.getElementById('root');
 const root = createRoot(container!);
-root.render(<Home />);
+startMocking()
+    // a browser that refuses to register the worker must not cost us the whole page:
+    // the app still starts, it just talks to the real api
+    .catch(err => console.error('[mocks] could not start, the api is NOT mocked:', err))
+    .finally(() => root.render(<Home />));
