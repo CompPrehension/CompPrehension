@@ -52,3 +52,11 @@ logs/
 
 ### Dev screenshots ###
 modules/bkt/*.png
+
+### Vite local env overrides ###
+**/.env*.local
+
+### Local frontend dev-server certificate ###
+modules/server/dev.crt
+modules/server/dev.key
+modules/server/dev.pfx
