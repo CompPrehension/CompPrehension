@@ -1,43 +1,39 @@
-import { action, computed, makeObservable, observable, runInAction, toJS } from "mobx";
-import { Question } from "../types/question";
-import { Interaction } from "../types/interaction";
-import { SupplementaryFeedback, SupplementaryQuestionRequest } from "../types/supplementary-question";
-import { Answer } from "../types/answer";
-import { NonEmptyArray } from "fp-ts/lib/NonEmptyArray";
 import * as E from "fp-ts/lib/Either";
 import { absurd } from "fp-ts/lib/function";
+import { NonEmptyArray } from "fp-ts/lib/NonEmptyArray";
+import { makeAutoObservable, toJS } from "mobx";
 import { questionController } from "../controllers";
+import { Answer } from "../types/answer";
+import { Interaction } from "../types/interaction";
+import { Question } from "../types/question";
+import { SupplementaryFeedback, SupplementaryQuestionRequest } from "../types/supplementary-question";
 
 export class SupplementaryQuestionStore {
-    @observable sourceQuestionId: number;
-    @observable feedback?: SupplementaryFeedback = undefined;
-    @observable question?: Question = undefined;
-    @observable answer: ReadonlyArray<Answer> = [];
-    @observable questionState: 'INITIAL' | 'LOADING' | 'LOADED' | 'ANSWER_EVALUATING' | 'COMPLETED' = 'INITIAL';
+    sourceQuestionId: number;
+    feedback?: SupplementaryFeedback = undefined;
+    question?: Question = undefined;
+    answer: ReadonlyArray<Answer> = [];
+    questionState: 'INITIAL' | 'LOADING' | 'LOADED' | 'ANSWER_EVALUATING' | 'COMPLETED' = 'INITIAL';
 
     constructor(sourceQuestionId: number) {
         this.sourceQuestionId = sourceQuestionId;
-        
-        makeObservable(this);
+
+        makeAutoObservable(this);
     }
 
-    @action
     setQuestionState = (newState: SupplementaryQuestionStore['questionState']) => {
         if (this.questionState !== newState)
             this.questionState = newState;
     }
 
-    @computed
     get isQuestionFreezed() {
         return this.questionState !== 'LOADED'
     }
 
-    @computed
     get isFeedbackLoading() {
         return this.questionState === 'ANSWER_EVALUATING'
     }
 
-    @computed
     get canSendQuestionAnswers() : boolean {
         if (!this.question || this.questionState === "COMPLETED")
             return false;
@@ -51,13 +47,12 @@ export class SupplementaryQuestionStore {
             case 'MATCHING':
                 return this.answer.length === this.question.answers.length;
             default:
-                // compile-time checking whether the question has `never` type 
+                // compile-time checking whether the question has `never` type
                 // to ensure that all case branches have been processed
                 return absurd<boolean>(this.question);
         }
     }
 
-    @computed
     get questionSubmitMode() : 'IMPLICIT' | 'EXPLICIT' | null  {
         if (!this.question)
             return null;
@@ -65,8 +60,7 @@ export class SupplementaryQuestionStore {
         return this.question.type === 'SINGLE_CHOICE' ? 'IMPLICIT' : 'EXPLICIT';
     }
 
-    @action
-    generateSupplementaryQuestion = async (violationLaws: string[]) => {     
+    generateSupplementaryQuestion = async (violationLaws: string[]) => {
         if (violationLaws.length === 0)
             throw new Error("violationLaws mist be non-empty");
 
@@ -74,20 +68,17 @@ export class SupplementaryQuestionStore {
         const questionRequest: SupplementaryQuestionRequest = {
             questionId: this.sourceQuestionId,
             violationLaws: violationLaws as NonEmptyArray<string>,
-        };        
+        };
         const dataEither = await questionController.generateSupplementaryQuestion(questionRequest);
 
-        runInAction(() => {
-            if (E.isLeft(dataEither)) {                
-                this.setQuestionState('LOADED');
-                return;
-            }
-            
-            this.#onQuestionLoaded(dataEither.right.question, dataEither.right.message);
-        })
+        if (E.isLeft(dataEither)) {
+            this.setQuestionState('LOADED');
+            return;
+        }
+
+        this.#onQuestionLoaded(dataEither.right.question, dataEither.right.message);
     }
 
-    @action
     sendAnswers = async () => {
         const { question } = this;
         if (!question)
@@ -101,23 +92,20 @@ export class SupplementaryQuestionStore {
         this.setQuestionState('ANSWER_EVALUATING');
         const feedbackEither = await questionController.addSupplementaryQuestionAnswer(body);
 
-        runInAction(() => { 
-            if (E.isLeft(feedbackEither)) {
-                this.setQuestionState('LOADED');
-                return;
-            }
-    
-            this.setQuestionState('COMPLETED');
-            this.feedback = feedbackEither.right;
-        })
+        if (E.isLeft(feedbackEither)) {
+            this.setQuestionState('LOADED');
+            return;
+        }
+
+        this.setQuestionState('COMPLETED');
+        this.feedback = feedbackEither.right;
     }
 
-    @action
     setAnswer = (newAnswer: Answer[]) => {
         this.answer = newAnswer;
     }
 
-    #onQuestionLoaded = (question?: Question | null, feedback?: SupplementaryFeedback | null) => {        
+    #onQuestionLoaded = (question?: Question | null, feedback?: SupplementaryFeedback | null) => {
         // add question id to answers
         if (question?.options.requireContext) {
             // regex searchs all tags with id='answer_id' and prepends them with question id
@@ -129,7 +117,7 @@ export class SupplementaryQuestionStore {
                 )
             })
         }
-        
+
         this.question      = question ?? undefined;
         this.feedback      = feedback ?? undefined;
         this.answer        = question?.responses ?? [];

@@ -1,11 +1,10 @@
-import { IReactionDisposer, action, autorun, comparer, flow, makeAutoObservable, makeObservable, observable, reaction, runInAction, toJS, when } from "mobx";
-import { courseController, exerciseController, exerciseSettingsController, userController } from "../controllers";
+import { IReactionDisposer, autorun, makeAutoObservable, observable, untracked } from "mobx";
+import { courseController, exerciseSettingsController } from "../controllers";
 import { Domain, ExerciseCard, ExerciseCardConcept, ExerciseCardConceptKind, ExerciseCardLaw, ExerciseCardPermissions, ExerciseCardSkill, ExerciseList, ExerciseListItem, ExerciseListPermissions, ExerciseStage, QuestionBankSearchResult, Strategy, noExerciseListPermissions } from "../types/exercise-settings";
 import * as E from "fp-ts/lib/Either";
 import { ExerciseOptions } from "../types/exercise-options";
 import * as NEA from "fp-ts/lib/NonEmptyArray";
 import { pipe } from "fp-ts/lib/function";
-import { RequestError } from "../types/request-error";
 
 export type ExerciseCardViewModel = {
     id: number,
@@ -45,16 +44,20 @@ export class ExerciseStageStore implements Disposable {
 
         makeAutoObservable(this);
 
-        this.autorunner = autorun(async () => {
+        this.autorunner = autorun(() => {
             const complexity = this.complexity;
             const laws = this.laws.slice()
             const concepts = this.concepts.slice()
             const skills = this.skills.slice()
-            this.updateBankStats(concepts, laws, skills, card.tags, complexity);
+            // the search itself is a side effect, not an input: `makeAutoObservable` marks
+            // plain methods as `autoAction`, which keeps tracking when called from inside a
+            // derivation, so without `untracked` this autorun would also subscribe to what
+            // updateBankStats reads - including the abortController it writes to itself
+            untracked(() => this.updateBankStats(concepts, laws, skills, card.tags, complexity));
         }, { delay: 1000 });
     }
     
-    *updateBankStats(concepts: ExerciseCardConcept[], laws: ExerciseCardLaw[], skills: ExerciseCardSkill[], tags: string[], complexity: number) {
+    async updateBankStats(concepts: ExerciseCardConcept[], laws: ExerciseCardLaw[], skills: ExerciseCardSkill[], tags: string[], complexity: number) {
         const { card } = this;
 
         // Cancel previous request
@@ -66,16 +69,14 @@ export class ExerciseStageStore implements Disposable {
         // Create new controller for this request
         const currentAbortController = new AbortController();
         this.abortController = currentAbortController;
-        runInAction(() => this.bankLoadingState = 'IN_PROGRESS');
+        this.bankLoadingState = 'IN_PROGRESS';
 
-        const newData: E.Either<RequestError, QuestionBankSearchResult> = yield exerciseSettingsController.search(card.domainId, concepts, laws, skills, tags, complexity, 5, this.courseId, currentAbortController.signal);
+        const newData = await exerciseSettingsController.search(card.domainId, concepts, laws, skills, tags, complexity, 5, this.courseId, currentAbortController.signal);
         if (E.isRight(newData)) {
-            runInAction(() => {
-                this.bankSearchResult = newData.right;
-            });
+            this.bankSearchResult = newData.right;
 
             // TODO handle AbortError properly
-            runInAction(() => this.bankLoadingState = 'COMPLETED');
+            this.bankLoadingState = 'COMPLETED';
         }
 
         // Cleanup if this is still the active request
@@ -154,10 +155,8 @@ export class ExerciseSettingsStore {
         if (this.exercisesLoadStatus === 'LOADED' || this.exercisesLoadStatus === 'LOADING')
             return;
 
-        runInAction(() => {
-            this.exercisesLoadStatus = 'LOADING';
-            this.courseId = courseId;
-        });
+        this.exercisesLoadStatus = 'LOADING';
+        this.courseId = courseId;
         const [rawExercises, domains, backends, strategies] = await Promise.all([
             exerciseSettingsController.listExercises(courseId),
             exerciseSettingsController.getDomains(),
@@ -166,28 +165,24 @@ export class ExerciseSettingsStore {
         ])
         if (E.isRight(rawExercises) && E.isRight(domains) &&
             E.isRight(backends) && E.isRight(strategies)) {
-            runInAction(() => {
-                this.applyExerciseList(rawExercises.right);
-                this.domains = domains.right;
-                this.backends = backends.right;
-                this.strategies = strategies.right;
-            });
+            this.applyExerciseList(rawExercises.right);
+            this.domains = domains.right;
+            this.backends = backends.right;
+            this.strategies = strategies.right;
         }
-        runInAction(() => this.exercisesLoadStatus = 'LOADED');
+        this.exercisesLoadStatus = 'LOADED';
     }
 
     async loadExercise(exerciseId: number) {
         if (this.exercisesLoadStatus !== 'LOADED')
             throw new Error("Exercises must be loaded first");
 
-        runInAction(() => this.exercisesLoadStatus = 'EXERCISELOADING');
+        this.exercisesLoadStatus = 'EXERCISELOADING';
         const rawExercise = await exerciseSettingsController.getExercise(exerciseId, this.courseId);
         if (E.isRight(rawExercise)) {
-            runInAction(() => {
-                this.currentCard = this.toCardViewModel(rawExercise.right);
-            });
+            this.currentCard = this.toCardViewModel(rawExercise.right);
         }
-        runInAction(() => this.exercisesLoadStatus = 'LOADED');
+        this.exercisesLoadStatus = 'LOADED';
     }
 
     async createNewExecise() {
@@ -199,18 +194,16 @@ export class ExerciseSettingsStore {
         if (!E.isRight(newExerciseId))
             return;
 
-        runInAction(() => this.exercisesLoadStatus = 'EXERCISELOADING');
+        this.exercisesLoadStatus = 'EXERCISELOADING';
         const [rawExercise, newExercisesList] = await Promise.all([
             exerciseSettingsController.getExercise(newExerciseId.right, this.courseId),
             exerciseSettingsController.listExercises(this.courseId),
         ]);
         if (E.isRight(rawExercise) && E.isRight(newExercisesList)) {
-            runInAction(() => {
-                this.currentCard = this.toCardViewModel(rawExercise.right);
-                this.applyExerciseList(newExercisesList.right);
-            });
+            this.currentCard = this.toCardViewModel(rawExercise.right);
+            this.applyExerciseList(newExercisesList.right);
         }
-        runInAction(() => this.exercisesLoadStatus = 'LOADED');
+        this.exercisesLoadStatus = 'LOADED';
     }
 
     async cloneCurrentToCourse(targetCourseId: number) {
@@ -224,10 +217,8 @@ export class ExerciseSettingsStore {
             exerciseSettingsController.listExercises(this.courseId),
         ]);
         if (E.isRight(rawExercise) && E.isRight(newExercisesList)) {
-            runInAction(() => {
-                this.currentCard = this.toCardViewModel(rawExercise.right);
-                this.applyExerciseList(newExercisesList.right);
-            });
+            this.currentCard = this.toCardViewModel(rawExercise.right);
+            this.applyExerciseList(newExercisesList.right);
         }
     }
 
@@ -243,10 +234,8 @@ export class ExerciseSettingsStore {
         // After unlink the exercise no longer belongs to this course; reload list and clear card.
         const refreshed = await exerciseSettingsController.listExercises(this.courseId);
         if (E.isRight(refreshed)) {
-            runInAction(() => {
-                this.applyExerciseList(refreshed.right);
-                this.currentCard = null;
-            });
+            this.applyExerciseList(refreshed.right);
+            this.currentCard = null;
         }
     }
 
@@ -256,10 +245,8 @@ export class ExerciseSettingsStore {
         await exerciseSettingsController.deleteExercise(id, this.courseId);
         const refreshed = await exerciseSettingsController.listExercises(this.courseId);
         if (E.isRight(refreshed)) {
-            runInAction(() => {
-                this.applyExerciseList(refreshed.right);
-                this.currentCard = null;
-            });
+            this.applyExerciseList(refreshed.right);
+            this.currentCard = null;
         }
     }
 
@@ -268,15 +255,13 @@ export class ExerciseSettingsStore {
         if (!this.currentCard)
             return;
 
-        runInAction(() => this.exercisesLoadStatus = 'EXERCISELOADING');
+        this.exercisesLoadStatus = 'EXERCISELOADING';
         await exerciseSettingsController.saveExercise(this.fromCardViewModel(this.currentCard), this.courseId);
         const newExercisesList = await exerciseSettingsController.listExercises(this.courseId);
         if (E.isRight(newExercisesList)) {
-            runInAction(() => {
-                this.applyExerciseList(newExercisesList.right);
-            })
+            this.applyExerciseList(newExercisesList.right);
         }
-        runInAction(() => this.exercisesLoadStatus = 'LOADED');
+        this.exercisesLoadStatus = 'LOADED';
     }
 
     setCardName(name: string) {

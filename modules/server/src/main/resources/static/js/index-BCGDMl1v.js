@@ -1,4 +1,4 @@
-import { instance, initReactI18next, observer, jsxRuntimeExports, reactExports, Button, Bug, makeAutoObservable, useTranslation, Alert, Spinner, union, nullType, undefinedType, literal, Modal as Modal$1, EitherExports, success, type, string, number, intersection, boolean, partial, array, Type, _ArrayExports, _functionExports, NonEmptyArrayExports, OptionExports, failure, keyof, recursion, toJS, tuple, makeObservable, runInAction, observable, action, computed, flow, autorun, Droppable, ResizeMirror, StateManagedSelect$1, ReactDOM, components, parse, Popover, PopoverTrigger, PopoverContent, X, Badge, Pagination as Pagination$1, Navbar, isLeft, isRight, FormImpl, Shepherd, Table, ListGroup, useSearchParams, Link, useNavigate, clientExports, BrowserRouter, Routes, Route, Navigate } from "./vendor-B1Edy10t.js";
+import { configure, instance, initReactI18next, observer, jsxRuntimeExports, reactExports, Button, Bug, makeAutoObservable, useTranslation, Alert, Spinner, union, nullType, undefinedType, literal, Modal as Modal$1, EitherExports, success, type, string, number, intersection, boolean, partial, array, Type, _ArrayExports, _functionExports, NonEmptyArrayExports, OptionExports, failure, keyof, recursion, toJS, tuple, autorun, action, Droppable, ResizeMirror, StateManagedSelect$1, ReactDOM, components, parse, Popover, PopoverTrigger, PopoverContent, X, Badge, Pagination as Pagination$1, Navbar, isLeft, FormImpl, Shepherd, Table, ListGroup, observable, untracked, useSearchParams, Link, useNavigate, clientExports, BrowserRouter, Routes, Route, Navigate } from "./vendor-kzz-7jV2.js";
 (function polyfill() {
   const relList = document.createElement("link").relList;
   if (relList && relList.supports && relList.supports("modulepreload")) return;
@@ -28,6 +28,7 @@ import { instance, initReactI18next, observer, jsxRuntimeExports, reactExports, 
     fetch(link.href, fetchOpts);
   }
 })();
+configure({ enforceActions: "never" });
 const resources = {
   EN: {
     translation: {
@@ -1400,16 +1401,7 @@ const exerciseController = new ExerciseController();
 const exerciseSettingsController = new ExerciseSettingsController();
 const questionController = new QuestionController();
 const surveyController = new SurveyController();
-var __defProp$3 = Object.defineProperty;
-var __getOwnPropDesc$1 = Object.getOwnPropertyDescriptor;
-var __decorateClass$3 = (decorators, target, key, kind) => {
-  var result = kind > 1 ? void 0 : kind ? __getOwnPropDesc$1(target, key) : target;
-  for (var i = decorators.length - 1, decorator; i >= 0; i--)
-    if (decorator = decorators[i])
-      result = (kind ? decorator(target, key, result) : decorator(result)) || result;
-  if (kind && result) __defProp$3(target, key, result);
-  return result;
-};
+const userController = new UserController();
 class SupplementaryQuestionStore {
   sourceQuestionId;
   feedback = void 0;
@@ -1418,7 +1410,7 @@ class SupplementaryQuestionStore {
   questionState = "INITIAL";
   constructor(sourceQuestionId) {
     this.sourceQuestionId = sourceQuestionId;
-    makeObservable(this);
+    makeAutoObservable(this);
   }
   setQuestionState = (newState) => {
     if (this.questionState !== newState)
@@ -1459,13 +1451,11 @@ class SupplementaryQuestionStore {
       violationLaws
     };
     const dataEither = await questionController.generateSupplementaryQuestion(questionRequest);
-    runInAction(() => {
-      if (EitherExports.isLeft(dataEither)) {
-        this.setQuestionState("LOADED");
-        return;
-      }
-      this.#onQuestionLoaded(dataEither.right.question, dataEither.right.message);
-    });
+    if (EitherExports.isLeft(dataEither)) {
+      this.setQuestionState("LOADED");
+      return;
+    }
+    this.#onQuestionLoaded(dataEither.right.question, dataEither.right.message);
   };
   sendAnswers = async () => {
     const { question } = this;
@@ -1477,14 +1467,12 @@ class SupplementaryQuestionStore {
     });
     this.setQuestionState("ANSWER_EVALUATING");
     const feedbackEither = await questionController.addSupplementaryQuestionAnswer(body);
-    runInAction(() => {
-      if (EitherExports.isLeft(feedbackEither)) {
-        this.setQuestionState("LOADED");
-        return;
-      }
-      this.setQuestionState("COMPLETED");
-      this.feedback = feedbackEither.right;
-    });
+    if (EitherExports.isLeft(feedbackEither)) {
+      this.setQuestionState("LOADED");
+      return;
+    }
+    this.setQuestionState("COMPLETED");
+    this.feedback = feedbackEither.right;
   };
   setAnswer = (newAnswer) => {
     this.answer = newAnswer;
@@ -1505,54 +1493,6 @@ class SupplementaryQuestionStore {
     this.questionState = !question ? "COMPLETED" : "LOADED";
   };
 }
-__decorateClass$3([
-  observable
-], SupplementaryQuestionStore.prototype, "sourceQuestionId", 2);
-__decorateClass$3([
-  observable
-], SupplementaryQuestionStore.prototype, "feedback", 2);
-__decorateClass$3([
-  observable
-], SupplementaryQuestionStore.prototype, "question", 2);
-__decorateClass$3([
-  observable
-], SupplementaryQuestionStore.prototype, "answer", 2);
-__decorateClass$3([
-  observable
-], SupplementaryQuestionStore.prototype, "questionState", 2);
-__decorateClass$3([
-  action
-], SupplementaryQuestionStore.prototype, "setQuestionState", 2);
-__decorateClass$3([
-  computed
-], SupplementaryQuestionStore.prototype, "isQuestionFreezed", 1);
-__decorateClass$3([
-  computed
-], SupplementaryQuestionStore.prototype, "isFeedbackLoading", 1);
-__decorateClass$3([
-  computed
-], SupplementaryQuestionStore.prototype, "canSendQuestionAnswers", 1);
-__decorateClass$3([
-  computed
-], SupplementaryQuestionStore.prototype, "questionSubmitMode", 1);
-__decorateClass$3([
-  action
-], SupplementaryQuestionStore.prototype, "generateSupplementaryQuestion", 2);
-__decorateClass$3([
-  action
-], SupplementaryQuestionStore.prototype, "sendAnswers", 2);
-__decorateClass$3([
-  action
-], SupplementaryQuestionStore.prototype, "setAnswer", 2);
-var __defProp$2 = Object.defineProperty;
-var __decorateClass$2 = (decorators, target, key, kind) => {
-  var result = void 0;
-  for (var i = decorators.length - 1, decorator; i >= 0; i--)
-    if (decorator = decorators[i])
-      result = decorator(target, key, result) || result;
-  if (result) __defProp$2(target, key, result);
-  return result;
-};
 class QuestionStore {
   isFeedbackVisible = true;
   isQuestionFreezed = false;
@@ -1564,7 +1504,7 @@ class QuestionStore {
   questionState = "INITIAL";
   storeState = { tag: "VALID" };
   constructor() {
-    makeObservable(this);
+    makeAutoObservable(this);
   }
   onQuestionLoaded = (question) => {
     if (question.options.requireContext) {
@@ -1608,88 +1548,88 @@ class QuestionStore {
   setErrorStoreState = (error) => {
     this.storeState = { tag: "ERROR", error };
   };
-  loadQuestion = flow(function* (questionId) {
+  loadQuestion = async (questionId) => {
     this.setValidStoreState();
     this.setQuestionState("LOADING");
-    const dataEither = yield questionController.getQuestion(questionId);
+    const dataEither = await questionController.getQuestion(questionId);
     this.setQuestionState("LOADED");
     if (EitherExports.isLeft(dataEither)) {
       this.setErrorStoreState(dataEither.left);
       return;
     }
     this.onQuestionLoaded(dataEither.right);
-  });
-  generateQuestion = flow(function* (attemptId) {
+  };
+  generateQuestion = async (attemptId) => {
     this.setValidStoreState();
     this.setQuestionState("LOADING");
-    const dataEither = yield questionController.generateQuestionByAttempt(attemptId);
+    const dataEither = await questionController.generateQuestionByAttempt(attemptId);
     this.setQuestionState("LOADED");
     if (EitherExports.isLeft(dataEither)) {
       this.setErrorStoreState(dataEither.left);
       return;
     }
     this.onQuestionLoaded(dataEither.right);
-  });
-  generateQuestionByMetadata = flow(function* (metadataId) {
+  };
+  generateQuestionByMetadata = async (metadataId) => {
     this.setValidStoreState();
     this.setQuestionState("LOADING");
-    const dataEither = yield questionController.generateQuestionByMetadata(metadataId);
+    const dataEither = await questionController.generateQuestionByMetadata(metadataId);
     this.setQuestionState("LOADED");
     if (EitherExports.isLeft(dataEither)) {
       this.setErrorStoreState(dataEither.left);
       return;
     }
     this.onQuestionLoaded(dataEither.right);
-  });
-  generateNextCorrectAnswer = flow(function* () {
+  };
+  generateNextCorrectAnswer = async () => {
     const { question } = this;
     if (!question) {
       throw new Error("Current question not found");
     }
     this.setValidStoreState();
     this.setQuestionState("ANSWER_EVALUATING");
-    const feedbackEither = yield questionController.generateNextCorrectAnswer(question.questionId);
+    const feedbackEither = await questionController.generateNextCorrectAnswer(question.questionId);
     this.setQuestionState("LOADED");
     if (EitherExports.isLeft(feedbackEither)) {
       this.setErrorStoreState(feedbackEither.left);
       return;
     }
     this.onAnswerEvaluated(feedbackEither.right);
-  });
-  sendAnswersImpl = flow(function* (questionId, answers) {
+  };
+  sendAnswersImpl = async (questionId, answers) => {
     const body = toJS({
       questionId,
       answers: toJS([...answers])
     });
     this.setValidStoreState();
     this.setQuestionState("ANSWER_EVALUATING");
-    const feedbackEither = yield questionController.addQuestionAnswer(body);
+    const feedbackEither = await questionController.addQuestionAnswer(body);
     this.setQuestionState("LOADED");
     if (EitherExports.isLeft(feedbackEither)) {
       this.setErrorStoreState(feedbackEither.left);
       return;
     }
     this.onAnswerEvaluated(feedbackEither.right);
-  });
-  sendAnswers = flow(function* () {
+  };
+  sendAnswers = async () => {
     const { question, lastAnswer } = this;
     if (!question) {
       return;
     }
-    yield this.sendAnswersImpl(question.questionId, toJS(lastAnswer));
-  });
-  onAnswersChanged = flow(function* (answer, sendAnswers = true) {
+    await this.sendAnswersImpl(question.questionId, toJS(lastAnswer));
+  };
+  onAnswersChanged = async (answer, sendAnswers = true) => {
     this.answersHistory.push(answer);
     if (!sendAnswers) {
       return;
     }
     try {
-      yield this.sendAnswers();
+      await this.sendAnswers();
     } catch {
       this.answersHistory.pop();
     }
-  });
-  setFullAnswer = flow(function* (fullAnswer, sendAnswers = true) {
+  };
+  setFullAnswer = async (fullAnswer, sendAnswers = true) => {
     if (!this.isAnswerChanged(fullAnswer)) {
       return false;
     }
@@ -1702,7 +1642,7 @@ class QuestionStore {
       return true;
     }
     try {
-      yield this.sendAnswers();
+      await this.sendAnswers();
       return true;
     } catch {
       this.lastAnswer = prevLastAnswer;
@@ -1711,7 +1651,7 @@ class QuestionStore {
       }
       return false;
     }
-  });
+  };
   isAnswerChanged = (newAnswer) => {
     const { lastAnswer, question } = this;
     if (!question) {
@@ -1729,51 +1669,6 @@ class QuestionStore {
     }
   };
 }
-__decorateClass$2([
-  observable
-], QuestionStore.prototype, "isFeedbackVisible");
-__decorateClass$2([
-  observable
-], QuestionStore.prototype, "isQuestionFreezed");
-__decorateClass$2([
-  observable
-], QuestionStore.prototype, "feedback");
-__decorateClass$2([
-  observable
-], QuestionStore.prototype, "question");
-__decorateClass$2([
-  observable
-], QuestionStore.prototype, "lastAnswer");
-__decorateClass$2([
-  observable
-], QuestionStore.prototype, "answersHistory");
-__decorateClass$2([
-  observable
-], QuestionStore.prototype, "supplementaryQuestion");
-__decorateClass$2([
-  observable
-], QuestionStore.prototype, "questionState");
-__decorateClass$2([
-  observable
-], QuestionStore.prototype, "storeState");
-__decorateClass$2([
-  action
-], QuestionStore.prototype, "setQuestionState");
-__decorateClass$2([
-  action
-], QuestionStore.prototype, "setValidStoreState");
-__decorateClass$2([
-  action
-], QuestionStore.prototype, "setErrorStoreState");
-var __defProp$1 = Object.defineProperty;
-var __decorateClass$1 = (decorators, target, key, kind) => {
-  var result = void 0;
-  for (var i = decorators.length - 1, decorator; i >= 0; i--)
-    if (decorator = decorators[i])
-      result = decorator(target, key, result) || result;
-  if (result) __defProp$1(target, key, result);
-  return result;
-};
 class ExerciseStore {
   isExerciseLoading = false;
   exerciseId;
@@ -1803,7 +1698,10 @@ class ExerciseStore {
     if (rawAttemptId !== null) {
       this.currentAttemptId = +rawAttemptId;
     }
-    makeObservable(this);
+    makeAutoObservable(this, {
+      setExerciseState: action,
+      ensureQuestionSurveyExists: action
+    });
     this.registerOnStrategyDecisionChangedAction();
   }
   registerOnStrategyDecisionChangedAction = () => {
@@ -1826,10 +1724,8 @@ class ExerciseStore {
   setSurveyAnswers = (quesionId, answers) => {
     if (!this.survey)
       return;
-    runInAction(() => {
-      this.survey.questions[quesionId].status = "COMPLETED";
-      this.survey.questions[quesionId].results = answers;
-    });
+    this.survey.questions[quesionId].status = "COMPLETED";
+    this.survey.questions[quesionId].results = answers;
   };
   loadExercise = async () => {
     if (this.exercise) {
@@ -1838,105 +1734,91 @@ class ExerciseStore {
     if (this.isExerciseLoading) {
       return;
     }
-    runInAction(() => {
-      this.forceSetValidState();
-      this.isExerciseLoading = true;
-    });
+    this.forceSetValidState();
+    this.isExerciseLoading = true;
     const exercise = await exerciseController.getExerciseShortInfo(this.exerciseId, this.courseId);
+    this.isExerciseLoading = false;
     if (EitherExports.isRight(exercise)) {
-      runInAction(() => {
-        this.isExerciseLoading = false;
-        this.exercise = exercise.right;
-      });
+      this.exercise = exercise.right;
     } else {
-      runInAction(() => {
-        this.isExerciseLoading = false;
-        this.storeState = { tag: "ERROR", error: exercise.left };
-      });
+      this.storeState = { tag: "ERROR", error: exercise.left };
     }
   };
-  loadExerciseAttempt = flow(function* (attemptId) {
-    const { exercise } = this;
-    if (!exercise) {
+  loadExerciseAttempt = async (attemptId) => {
+    if (!this.exercise) {
       throw new Error("exerciseInfo is not defined");
     }
     this.forceSetValidState();
-    exercise.id;
-    const resultEither = yield exerciseController.getExerciseAttempt(attemptId);
+    const resultEither = await exerciseController.getExerciseAttempt(attemptId);
     if (EitherExports.isLeft(resultEither)) {
       this.storeState = { tag: "ERROR", error: resultEither.left };
       return;
     }
-    const result = resultEither.right;
-    if (!result) {
+    if (!resultEither.right) {
       return false;
     }
-    this.currentAttempt = result;
-    yield this.onAttemptLoaded();
+    this.currentAttempt = resultEither.right;
+    await this.onAttemptLoaded();
     return true;
-  });
-  loadExistingExerciseAttempt = flow(function* () {
+  };
+  loadExistingExerciseAttempt = async () => {
     const { exercise } = this;
     if (!exercise) {
       throw new Error("exercise is not defined");
     }
     this.forceSetValidState();
-    const exerciseId = exercise.id;
-    const resultEither = yield exerciseController.getExistingExerciseAttempt(exerciseId, this.courseId);
+    const resultEither = await exerciseController.getExistingExerciseAttempt(exercise.id, this.courseId);
     if (EitherExports.isLeft(resultEither)) {
       this.storeState = { tag: "ERROR", error: resultEither.left };
       return;
     }
-    const result = resultEither.right;
-    if (!result) {
+    if (!resultEither.right) {
       return false;
     }
-    this.currentAttempt = result;
-    yield this.onAttemptLoaded();
+    this.currentAttempt = resultEither.right;
+    await this.onAttemptLoaded();
     return true;
-  });
+  };
   onAttemptLoaded = async () => {
     await this.loadSurvey();
   };
-  createExerciseAttempt = flow(function* () {
+  createExerciseAttempt = async () => {
     const { exercise } = this;
     if (!exercise) {
       throw new Error("exercise is not defined");
     }
     this.forceSetValidState();
-    const exerciseId = exercise.id;
-    const resultEither = yield exerciseController.createExerciseAttempt(+exerciseId, this.courseId);
+    const resultEither = await exerciseController.createExerciseAttempt(exercise.id, this.courseId);
     if (EitherExports.isLeft(resultEither)) {
       this.storeState = { tag: "ERROR", error: resultEither.left };
       return;
     }
     this.currentAttempt = resultEither.right;
-    yield this.onAttemptLoaded();
-  });
-  createDebugExerciseAttempt = flow(function* () {
+    await this.onAttemptLoaded();
+  };
+  createDebugExerciseAttempt = async () => {
     const { exercise } = this;
     if (!exercise) {
       throw new Error("exercise is not defined");
     }
     this.forceSetValidState();
-    const exerciseId = exercise.id;
-    const resultEither = yield exerciseController.createDebugExerciseAttempt(+exerciseId, this.courseId);
+    const resultEither = await exerciseController.createDebugExerciseAttempt(exercise.id, this.courseId);
     if (EitherExports.isLeft(resultEither)) {
       this.storeState = { tag: "ERROR", error: resultEither.left };
       return;
     }
     this.currentAttempt = resultEither.right;
-    yield this.onAttemptLoaded();
-  });
-  generateQuestion = flow(function* () {
+    await this.onAttemptLoaded();
+  };
+  generateQuestion = async () => {
     const { exercise, currentAttempt } = this;
     if (!exercise || !currentAttempt) {
       throw new Error("Session is not defined");
     }
     this.forceSetValidState();
-    yield this.currentQuestion.generateQuestion(currentAttempt.attemptId);
+    await this.currentQuestion.generateQuestion(currentAttempt.attemptId);
     currentAttempt.questionIds.push(this.currentQuestion.question?.questionId ?? -1);
-  });
+  };
   loadSurvey = async () => {
     if (this.survey || !this.currentAttempt || !this.exercise)
       return;
@@ -1948,20 +1830,18 @@ class ExerciseStore {
       surveyController.getSurvey(surveyId),
       surveyController.getCurrentUserAttemptSurveyVotes(surveyId, attemptId)
     ]);
-    runInAction(() => {
-      if (EitherExports.isRight(survey) && EitherExports.isRight(surveyResults)) {
-        const tmp = groupBy(surveyResults.right, (x) => x.questionId);
-        this.survey = {
-          survey: survey.right,
-          questions: [...tmp.keys()].map((k) => ({
-            questionId: k,
-            status: "COMPLETED",
-            questions: tmp.get(k)?.map((z) => z.surveyQuestionId) ?? [],
-            results: tmp.get(k)?.reduce((acc, z) => (acc[z.surveyQuestionId] = z.answer, acc), {}) ?? {}
-          })).reduce((acc, i) => (acc[i.questionId] = i, acc), {})
-        };
-      }
-    });
+    if (EitherExports.isRight(survey) && EitherExports.isRight(surveyResults)) {
+      const tmp = groupBy(surveyResults.right, (x) => x.questionId);
+      this.survey = {
+        survey: survey.right,
+        questions: [...tmp.keys()].map((k) => ({
+          questionId: k,
+          status: "COMPLETED",
+          questions: tmp.get(k)?.map((z) => z.surveyQuestionId) ?? [],
+          results: tmp.get(k)?.reduce((acc, z) => (acc[z.surveyQuestionId] = z.answer, acc), {}) ?? {}
+        })).reduce((acc, i) => (acc[i.questionId] = i, acc), {})
+      };
+    }
   };
   ensureQuestionSurveyExists = (questionId) => {
     if (this.survey?.questions[questionId])
@@ -1982,60 +1862,10 @@ class ExerciseStore {
       questions: qs.map((z) => z.id),
       results: {}
     };
-    runInAction(() => {
-      this.survey.questions[questionId] = questionSurvey;
-    });
+    this.survey.questions[questionId] = questionSurvey;
     return qs.map((z) => z.id);
   };
 }
-__decorateClass$1([
-  observable
-], ExerciseStore.prototype, "isExerciseLoading");
-__decorateClass$1([
-  observable
-], ExerciseStore.prototype, "exerciseId");
-__decorateClass$1([
-  observable
-], ExerciseStore.prototype, "courseId");
-__decorateClass$1([
-  observable
-], ExerciseStore.prototype, "exercise");
-__decorateClass$1([
-  observable
-], ExerciseStore.prototype, "currentAttemptId");
-__decorateClass$1([
-  observable
-], ExerciseStore.prototype, "currentAttempt");
-__decorateClass$1([
-  observable
-], ExerciseStore.prototype, "currentQuestion");
-__decorateClass$1([
-  observable
-], ExerciseStore.prototype, "exerciseState");
-__decorateClass$1([
-  observable
-], ExerciseStore.prototype, "storeState");
-__decorateClass$1([
-  observable
-], ExerciseStore.prototype, "survey");
-__decorateClass$1([
-  observable
-], ExerciseStore.prototype, "isDebug");
-__decorateClass$1([
-  action
-], ExerciseStore.prototype, "forceSetValidState");
-__decorateClass$1([
-  action
-], ExerciseStore.prototype, "setExerciseState");
-__decorateClass$1([
-  action
-], ExerciseStore.prototype, "setSurveyAnswers");
-__decorateClass$1([
-  action
-], ExerciseStore.prototype, "loadSurvey");
-__decorateClass$1([
-  action
-], ExerciseStore.prototype, "ensureQuestionSurveyExists");
 function groupBy(list, keyGetter) {
   const map = /* @__PURE__ */ new Map();
   list.forEach((item) => {
@@ -3059,22 +2889,11 @@ const Header = observer((props) => {
     ] })
   ] });
 });
-var __defProp = Object.defineProperty;
-var __getOwnPropDesc = Object.getOwnPropertyDescriptor;
-var __decorateClass = (decorators, target, key, kind) => {
-  var result = kind > 1 ? void 0 : kind ? __getOwnPropDesc(target, key) : target;
-  for (var i = decorators.length - 1, decorator; i >= 0; i--)
-    if (decorator = decorators[i])
-      result = (kind ? decorator(target, key, result) : decorator(result)) || result;
-  if (kind && result) __defProp(target, key, result);
-  return result;
-};
 class SessionStore {
   user = void 0;
   languages = [];
   isSessionLoading = false;
   error = null;
-  usersApi = new UserController();
   get selectedLanguage() {
     return this.user?.language;
   }
@@ -3082,69 +2901,46 @@ class SessionStore {
     return this.user !== void 0;
   }
   constructor() {
-    makeObservable(this);
+    makeAutoObservable(this);
   }
   loadSessionInfo = async () => {
     if (this.isSessionLoading) {
       return;
     }
-    runInAction(() => {
-      this.isSessionLoading = true;
-      this.error = null;
-    });
+    this.isSessionLoading = true;
+    this.error = null;
     const [user, languages] = await Promise.all([
-      this.usersApi.getCurrentUser(),
-      this.usersApi.getLanguages()
+      userController.getCurrentUser(),
+      userController.getLanguages()
     ]);
-    runInAction(() => {
-      this.isSessionLoading = false;
-      if (isLeft(user)) {
-        this.error = user.left;
-        return;
-      }
-      if (isLeft(languages)) {
-        this.error = languages.left;
-        return;
-      }
-      this.user = user.right;
-      this.languages = languages.right;
-      if (this.user.language !== instance.language) {
-        instance.changeLanguage(this.user.language);
-      }
-    });
-  };
-  changeLanguage = async (newLang) => {
-    if (this.user && this.user.language !== newLang) {
-      const res = await this.usersApi.setLanguage(newLang);
-      if (isRight(res)) {
-        runInAction(() => {
-          this.user.language = res.right;
-          instance.changeLanguage(res.right);
-        });
-      } else {
-        console.error("Failed to change language", res.left);
-      }
+    this.isSessionLoading = false;
+    if (isLeft(user)) {
+      this.error = user.left;
+      return;
+    }
+    if (isLeft(languages)) {
+      this.error = languages.left;
+      return;
+    }
+    this.user = user.right;
+    this.languages = languages.right;
+    if (this.user.language !== instance.language) {
+      instance.changeLanguage(this.user.language);
     }
   };
+  changeLanguage = async (newLang) => {
+    if (!this.user || this.user.language === newLang) {
+      return;
+    }
+    const res = await userController.setLanguage(newLang);
+    if (isLeft(res)) {
+      console.error("Failed to change language", res.left);
+      return;
+    }
+    this.user.language = res.right;
+    instance.changeLanguage(res.right);
+  };
 }
-__decorateClass([
-  observable
-], SessionStore.prototype, "user", 2);
-__decorateClass([
-  observable
-], SessionStore.prototype, "languages", 2);
-__decorateClass([
-  observable
-], SessionStore.prototype, "isSessionLoading", 2);
-__decorateClass([
-  observable
-], SessionStore.prototype, "error", 2);
-__decorateClass([
-  computed
-], SessionStore.prototype, "selectedLanguage", 1);
-__decorateClass([
-  computed
-], SessionStore.prototype, "isSessionLoaded", 1);
 const SessionContext = reactExports.createContext(null);
 const SessionProvider = observer(({ children }) => {
   const [session] = reactExports.useState(() => new SessionStore());
@@ -3857,12 +3653,12 @@ class ExerciseStageStore {
     this.complexity = stage.complexity;
     this.card = card;
     makeAutoObservable(this);
-    this.autorunner = autorun(async () => {
+    this.autorunner = autorun(() => {
       const complexity = this.complexity;
       const laws = this.laws.slice();
       const concepts = this.concepts.slice();
       const skills = this.skills.slice();
-      this.updateBankStats(concepts, laws, skills, card.tags, complexity);
+      untracked(() => this.updateBankStats(concepts, laws, skills, card.tags, complexity));
     }, { delay: 1e3 });
   }
   courseId;
@@ -3876,7 +3672,7 @@ class ExerciseStageStore {
   complexity = 0.5;
   autorunner;
   abortController = null;
-  *updateBankStats(concepts, laws, skills, tags, complexity) {
+  async updateBankStats(concepts, laws, skills, tags, complexity) {
     const { card } = this;
     if (this.abortController) {
       this.abortController.abort();
@@ -3884,13 +3680,11 @@ class ExerciseStageStore {
     }
     const currentAbortController = new AbortController();
     this.abortController = currentAbortController;
-    runInAction(() => this.bankLoadingState = "IN_PROGRESS");
-    const newData = yield exerciseSettingsController.search(card.domainId, concepts, laws, skills, tags, complexity, 5, this.courseId, currentAbortController.signal);
+    this.bankLoadingState = "IN_PROGRESS";
+    const newData = await exerciseSettingsController.search(card.domainId, concepts, laws, skills, tags, complexity, 5, this.courseId, currentAbortController.signal);
     if (EitherExports.isRight(newData)) {
-      runInAction(() => {
-        this.bankSearchResult = newData.right;
-      });
-      runInAction(() => this.bankLoadingState = "COMPLETED");
+      this.bankSearchResult = newData.right;
+      this.bankLoadingState = "COMPLETED";
     }
     if (this.abortController === currentAbortController) {
       this.abortController = null;
@@ -3954,10 +3748,8 @@ class ExerciseSettingsStore {
   async loadExercises(courseId = null) {
     if (this.exercisesLoadStatus === "LOADED" || this.exercisesLoadStatus === "LOADING")
       return;
-    runInAction(() => {
-      this.exercisesLoadStatus = "LOADING";
-      this.courseId = courseId;
-    });
+    this.exercisesLoadStatus = "LOADING";
+    this.courseId = courseId;
     const [rawExercises, domains, backends, strategies] = await Promise.all([
       exerciseSettingsController.listExercises(courseId),
       exerciseSettingsController.getDomains(),
@@ -3965,26 +3757,22 @@ class ExerciseSettingsStore {
       exerciseSettingsController.getStrategies()
     ]);
     if (EitherExports.isRight(rawExercises) && EitherExports.isRight(domains) && EitherExports.isRight(backends) && EitherExports.isRight(strategies)) {
-      runInAction(() => {
-        this.applyExerciseList(rawExercises.right);
-        this.domains = domains.right;
-        this.backends = backends.right;
-        this.strategies = strategies.right;
-      });
+      this.applyExerciseList(rawExercises.right);
+      this.domains = domains.right;
+      this.backends = backends.right;
+      this.strategies = strategies.right;
     }
-    runInAction(() => this.exercisesLoadStatus = "LOADED");
+    this.exercisesLoadStatus = "LOADED";
   }
   async loadExercise(exerciseId) {
     if (this.exercisesLoadStatus !== "LOADED")
       throw new Error("Exercises must be loaded first");
-    runInAction(() => this.exercisesLoadStatus = "EXERCISELOADING");
+    this.exercisesLoadStatus = "EXERCISELOADING";
     const rawExercise = await exerciseSettingsController.getExercise(exerciseId, this.courseId);
     if (EitherExports.isRight(rawExercise)) {
-      runInAction(() => {
-        this.currentCard = this.toCardViewModel(rawExercise.right);
-      });
+      this.currentCard = this.toCardViewModel(rawExercise.right);
     }
-    runInAction(() => this.exercisesLoadStatus = "LOADED");
+    this.exercisesLoadStatus = "LOADED";
   }
   async createNewExecise() {
     if (this.exercisesLoadStatus !== "LOADED")
@@ -3997,18 +3785,16 @@ class ExerciseSettingsStore {
     );
     if (!EitherExports.isRight(newExerciseId))
       return;
-    runInAction(() => this.exercisesLoadStatus = "EXERCISELOADING");
+    this.exercisesLoadStatus = "EXERCISELOADING";
     const [rawExercise, newExercisesList] = await Promise.all([
       exerciseSettingsController.getExercise(newExerciseId.right, this.courseId),
       exerciseSettingsController.listExercises(this.courseId)
     ]);
     if (EitherExports.isRight(rawExercise) && EitherExports.isRight(newExercisesList)) {
-      runInAction(() => {
-        this.currentCard = this.toCardViewModel(rawExercise.right);
-        this.applyExerciseList(newExercisesList.right);
-      });
+      this.currentCard = this.toCardViewModel(rawExercise.right);
+      this.applyExerciseList(newExercisesList.right);
     }
-    runInAction(() => this.exercisesLoadStatus = "LOADED");
+    this.exercisesLoadStatus = "LOADED";
   }
   async cloneCurrentToCourse(targetCourseId) {
     if (!this.currentCard) return;
@@ -4020,10 +3806,8 @@ class ExerciseSettingsStore {
       exerciseSettingsController.listExercises(this.courseId)
     ]);
     if (EitherExports.isRight(rawExercise) && EitherExports.isRight(newExercisesList)) {
-      runInAction(() => {
-        this.currentCard = this.toCardViewModel(rawExercise.right);
-        this.applyExerciseList(newExercisesList.right);
-      });
+      this.currentCard = this.toCardViewModel(rawExercise.right);
+      this.applyExerciseList(newExercisesList.right);
     }
   }
   async copyCurrentToPool() {
@@ -4036,10 +3820,8 @@ class ExerciseSettingsStore {
     await courseController.removeExerciseFromCourse(this.currentCard.id, courseId);
     const refreshed = await exerciseSettingsController.listExercises(this.courseId);
     if (EitherExports.isRight(refreshed)) {
-      runInAction(() => {
-        this.applyExerciseList(refreshed.right);
-        this.currentCard = null;
-      });
+      this.applyExerciseList(refreshed.right);
+      this.currentCard = null;
     }
   }
   async deleteCurrentExercise() {
@@ -4048,24 +3830,20 @@ class ExerciseSettingsStore {
     await exerciseSettingsController.deleteExercise(id, this.courseId);
     const refreshed = await exerciseSettingsController.listExercises(this.courseId);
     if (EitherExports.isRight(refreshed)) {
-      runInAction(() => {
-        this.applyExerciseList(refreshed.right);
-        this.currentCard = null;
-      });
+      this.applyExerciseList(refreshed.right);
+      this.currentCard = null;
     }
   }
   async saveCard() {
     if (!this.currentCard)
       return;
-    runInAction(() => this.exercisesLoadStatus = "EXERCISELOADING");
+    this.exercisesLoadStatus = "EXERCISELOADING";
     await exerciseSettingsController.saveExercise(this.fromCardViewModel(this.currentCard), this.courseId);
     const newExercisesList = await exerciseSettingsController.listExercises(this.courseId);
     if (EitherExports.isRight(newExercisesList)) {
-      runInAction(() => {
-        this.applyExerciseList(newExercisesList.right);
-      });
+      this.applyExerciseList(newExercisesList.right);
     }
-    runInAction(() => this.exercisesLoadStatus = "LOADED");
+    this.exercisesLoadStatus = "LOADED";
   }
   setCardName(name) {
     if (!this.currentCard)
@@ -5116,21 +4894,17 @@ class GlobalPoolStore {
     makeAutoObservable(this);
   }
   async loadGlobalPool() {
-    runInAction(() => {
-      this.loadStatus = "LOADING";
-      this.error = null;
-    });
+    this.loadStatus = "LOADING";
+    this.error = null;
     const r = await exerciseSettingsController.listExercises(null);
-    runInAction(() => {
-      if (EitherExports.isLeft(r)) {
-        this.error = r.left;
-        this.loadStatus = "FAILED";
-        return;
-      }
-      this.exercises = r.right.exercises;
-      this.permissions = r.right.permissions;
-      this.loadStatus = "LOADED";
-    });
+    if (EitherExports.isLeft(r)) {
+      this.error = r.left;
+      this.loadStatus = "FAILED";
+      return;
+    }
+    this.exercises = r.right.exercises;
+    this.permissions = r.right.permissions;
+    this.loadStatus = "LOADED";
   }
   async importToCourse(exerciseId, targetCourseId, mode) {
     if (mode === "INHERIT") {
@@ -5196,22 +4970,18 @@ class CourseStore {
     makeAutoObservable(this);
   }
   async loadCourse(courseId) {
-    runInAction(() => {
-      this.loadStatus = "LOADING";
-      this.courseId = courseId;
-      this.error = null;
-    });
+    this.loadStatus = "LOADING";
+    this.courseId = courseId;
+    this.error = null;
     const r = await courseController.getCourseExercises(courseId);
-    runInAction(() => {
-      if (EitherExports.isLeft(r)) {
-        this.error = r.left;
-        this.loadStatus = "FAILED";
-        return;
-      }
-      this.exercises = r.right.exercises;
-      this.permissions = r.right.permissions;
-      this.loadStatus = "LOADED";
-    });
+    if (EitherExports.isLeft(r)) {
+      this.error = r.left;
+      this.loadStatus = "FAILED";
+      return;
+    }
+    this.exercises = r.right.exercises;
+    this.permissions = r.right.permissions;
+    this.loadStatus = "LOADED";
   }
 }
 const ImportFromGlobalModal = observer(({ courseId, canInherit, canClone, onClose, onImported }) => {
@@ -5468,20 +5238,16 @@ class CoursesStore {
     makeAutoObservable(this);
   }
   async loadMyCourses() {
-    runInAction(() => {
-      this.loadStatus = "LOADING";
-      this.error = null;
-    });
+    this.loadStatus = "LOADING";
+    this.error = null;
     const r = await courseController.getMyCourses();
-    runInAction(() => {
-      if (EitherExports.isLeft(r)) {
-        this.error = r.left;
-        this.loadStatus = "FAILED";
-        return;
-      }
-      this.courses = r.right;
-      this.loadStatus = "LOADED";
-    });
+    if (EitherExports.isLeft(r)) {
+      this.error = r.left;
+      this.loadStatus = "FAILED";
+      return;
+    }
+    this.courses = r.right;
+    this.loadStatus = "LOADED";
   }
 }
 const CoursesPage = observer(() => {

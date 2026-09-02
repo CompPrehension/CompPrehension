@@ -1,6 +1,6 @@
 import * as E from "fp-ts/lib/Either";
-import { action, autorun, flow, makeObservable, observable, runInAction, toJS } from "mobx";
-import { exerciseController, surveyController, userController } from "../controllers";
+import { action, autorun, makeAutoObservable, toJS } from "mobx";
+import { exerciseController, surveyController } from "../controllers";
 import { Exercise } from "../types/exercise";
 import { ExerciseAttempt } from "../types/exercise-attempt";
 import { RequestError } from "../types/request-error";
@@ -9,23 +9,23 @@ import { getUrlParameterByName } from "../types/utils";
 import { QuestionStore } from "./question-store";
 
 export class ExerciseStore {
-    @observable isExerciseLoading: boolean = false;
-    @observable exerciseId: number;
-    @observable courseId?: number = undefined;
-    @observable exercise?: Exercise = undefined;
-    @observable currentAttemptId?: number = undefined;
-    @observable currentAttempt?: ExerciseAttempt = undefined;
-    @observable currentQuestion: QuestionStore;
-    @observable exerciseState: 'LAUNCH_ERROR' | 'INITIAL' | 'MODAL' | 'EXERCISE' | 'COMPLETED' = 'INITIAL';
-    @observable storeState: { tag: 'VALID' } | { tag: 'ERROR', error: RequestError, } = { tag: 'VALID' };
-    @observable survey?: ExerciseSurveySettings = undefined;
-    @observable isDebug = false;
+    isExerciseLoading: boolean = false;
+    exerciseId: number;
+    courseId?: number = undefined;
+    exercise?: Exercise = undefined;
+    currentAttemptId?: number = undefined;
+    currentAttempt?: ExerciseAttempt = undefined;
+    currentQuestion: QuestionStore;
+    exerciseState: 'LAUNCH_ERROR' | 'INITIAL' | 'MODAL' | 'EXERCISE' | 'COMPLETED' = 'INITIAL';
+    storeState: { tag: 'VALID' } | { tag: 'ERROR', error: RequestError, } = { tag: 'VALID' };
+    survey?: ExerciseSurveySettings = undefined;
+    isDebug = false;
 
     constructor() {
         // calc store initial state
         this.isDebug = getUrlParameterByName('debug') !== null;
         this.currentQuestion = new QuestionStore();
-        
+
         const rawExerciseId = getUrlParameterByName('exerciseId');
         if (rawExerciseId === null) {
             this.exerciseState = 'LAUNCH_ERROR';
@@ -43,7 +43,15 @@ export class ExerciseStore {
             this.currentAttemptId = +rawAttemptId;
         }
 
-        makeObservable(this);
+        // both of these are called from inside a derivation - setExerciseState from the
+        // autorun below, ensureQuestionSurveyExists straight from the exercise page render -
+        // and they write state. `makeAutoObservable` would infer `autoAction`, which keeps
+        // tracking in that situation and would make each call invalidate its own caller;
+        // a real action untracks, which is what they need.
+        makeAutoObservable(this, {
+            setExerciseState: action,
+            ensureQuestionSurveyExists: action,
+        });
         this.registerOnStrategyDecisionChangedAction();
     }
 
@@ -55,29 +63,24 @@ export class ExerciseStore {
         })
     }
 
-    @action
     private forceSetValidState = () => {
         if (this.storeState.tag !== 'VALID') {
             this.storeState = { tag: 'VALID' };
         }
     }
 
-    @action
     setExerciseState = (newState: ExerciseStore['exerciseState']) => {
         if (this.exerciseState !== newState) {
             this.exerciseState = newState;
         }
     }
 
-    @action
     setSurveyAnswers = (quesionId: number, answers: Record<number, string>) => {
         if (!this.survey)
             return;
 
-        runInAction(() => {
-            this.survey!.questions[quesionId].status = 'COMPLETED';            
-            this.survey!.questions[quesionId].results = answers;
-        })
+        this.survey.questions[quesionId].status = 'COMPLETED';
+        this.survey.questions[quesionId].results = answers;
     }
 
     loadExercise = async () => {
@@ -88,128 +91,111 @@ export class ExerciseStore {
             return;
         }
 
-        runInAction(() => {
-            this.forceSetValidState();
-            this.isExerciseLoading = true;
-        })
+        this.forceSetValidState();
+        this.isExerciseLoading = true;
 
         const exercise = await exerciseController.getExerciseShortInfo(this.exerciseId, this.courseId);
-        
+        this.isExerciseLoading = false;
+
         if (E.isRight(exercise)) {
-            runInAction(() => {
-                this.isExerciseLoading = false;
-                this.exercise = exercise.right;
-            })
+            this.exercise = exercise.right;
         } else {
-            runInAction(() => {
-                this.isExerciseLoading = false;
-                this.storeState = { tag: 'ERROR', error: exercise.left };
-            })
+            this.storeState = { tag: 'ERROR', error: exercise.left };
         }
     };
 
-
-    loadExerciseAttempt = flow(function* (this: ExerciseStore, attemptId: number) {
-        const { exercise } = this;
-        if (!exercise) {
+    loadExerciseAttempt = async (attemptId: number) => {
+        if (!this.exercise) {
             throw new Error("exerciseInfo is not defined");
         }
 
         this.forceSetValidState();
-        const exerciseId = exercise.id;
-        const resultEither: E.Either<RequestError, ExerciseAttempt | null> = yield exerciseController.getExerciseAttempt(attemptId);
+        const resultEither = await exerciseController.getExerciseAttempt(attemptId);
         if (E.isLeft(resultEither)) {
             this.storeState = { tag: 'ERROR', error: resultEither.left };
             return;
         }
 
-        const result = resultEither.right;
-        if (!result) {
+        if (!resultEither.right) {
             return false;
         }
 
-        this.currentAttempt = result;
-        yield this.onAttemptLoaded();
+        this.currentAttempt = resultEither.right;
+        await this.onAttemptLoaded();
         return true;
-    });
+    };
 
-    loadExistingExerciseAttempt = flow(function* (this: ExerciseStore) {
+    loadExistingExerciseAttempt = async () => {
         const { exercise } = this;
         if (!exercise) {
             throw new Error("exercise is not defined");
         }
 
         this.forceSetValidState();
-        const exerciseId = exercise.id;
-        const resultEither: E.Either<RequestError, ExerciseAttempt | null> = yield exerciseController.getExistingExerciseAttempt(exerciseId, this.courseId);
+        const resultEither = await exerciseController.getExistingExerciseAttempt(exercise.id, this.courseId);
         if (E.isLeft(resultEither)) {
             this.storeState = { tag: 'ERROR', error: resultEither.left };
             return;
         }
 
-        const result = resultEither.right;
-        if (!result) {
+        if (!resultEither.right) {
             return false;
         }
 
-        this.currentAttempt = result;
-        yield this.onAttemptLoaded();
+        this.currentAttempt = resultEither.right;
+        await this.onAttemptLoaded();
         return true;
-    });
-
+    };
 
     onAttemptLoaded = async () => {
         await this.loadSurvey();
     }
 
-    createExerciseAttempt = flow(function* (this: ExerciseStore) {
+    createExerciseAttempt = async () => {
         const { exercise } = this;
         if (!exercise) {
             throw new Error("exercise is not defined");
         }
 
         this.forceSetValidState();
-        const exerciseId = exercise.id;
-        const resultEither: E.Either<RequestError, ExerciseAttempt> = yield exerciseController.createExerciseAttempt(+exerciseId, this.courseId);
+        const resultEither = await exerciseController.createExerciseAttempt(exercise.id, this.courseId);
         if (E.isLeft(resultEither)) {
             this.storeState = { tag: 'ERROR', error: resultEither.left };
             return;
         }
 
         this.currentAttempt = resultEither.right;
-        yield this.onAttemptLoaded();
-    });
+        await this.onAttemptLoaded();
+    };
 
-    createDebugExerciseAttempt = flow(function* (this: ExerciseStore) {
+    createDebugExerciseAttempt = async () => {
         const { exercise } = this;
         if (!exercise) {
             throw new Error("exercise is not defined");
         }
 
         this.forceSetValidState();
-        const exerciseId = exercise.id;
-        const resultEither: E.Either<RequestError, ExerciseAttempt> = yield exerciseController.createDebugExerciseAttempt(+exerciseId, this.courseId);
+        const resultEither = await exerciseController.createDebugExerciseAttempt(exercise.id, this.courseId);
         if (E.isLeft(resultEither)) {
             this.storeState = { tag: 'ERROR', error: resultEither.left };
             return;
         }
 
         this.currentAttempt = resultEither.right;
-        yield this.onAttemptLoaded();
-    });
+        await this.onAttemptLoaded();
+    };
 
-    generateQuestion = flow(function* (this: ExerciseStore) {
+    generateQuestion = async () => {
         const { exercise, currentAttempt } = this;
         if (!exercise || !currentAttempt) {
             throw new Error("Session is not defined");
         }
 
         this.forceSetValidState();
-        yield this.currentQuestion.generateQuestion(currentAttempt.attemptId);
+        await this.currentQuestion.generateQuestion(currentAttempt.attemptId);
         currentAttempt.questionIds.push(this.currentQuestion.question?.questionId ?? -1);
-    });
+    };
 
-    @action
     loadSurvey = async () => {
         if (this.survey || !this.currentAttempt || !this.exercise)
             return;
@@ -223,23 +209,20 @@ export class ExerciseStore {
             surveyController.getCurrentUserAttemptSurveyVotes(surveyId, attemptId),
         ]);
 
-        runInAction(() => {
-            if (E.isRight(survey) && E.isRight(surveyResults)) {
-                const tmp = groupBy(surveyResults.right, x => x.questionId)
-                this.survey = {
-                    survey: survey.right,
-                    questions: [...tmp.keys()].map(k => ({
-                        questionId: k,
-                        status: 'COMPLETED' as const,
-                        questions: tmp.get(k)?.map(z => z.surveyQuestionId) ?? [],
-                        results: tmp.get(k)?.reduce((acc, z) => (acc[z.surveyQuestionId] = z.answer, acc), {} as Record<number, string>) ?? {},
-                    })).reduce((acc, i) => (acc[i.questionId] = i, acc), {} as Record<number, QuestionSurveyResult>),
-                }
+        if (E.isRight(survey) && E.isRight(surveyResults)) {
+            const tmp = groupBy(surveyResults.right, x => x.questionId)
+            this.survey = {
+                survey: survey.right,
+                questions: [...tmp.keys()].map(k => ({
+                    questionId: k,
+                    status: 'COMPLETED' as const,
+                    questions: tmp.get(k)?.map(z => z.surveyQuestionId) ?? [],
+                    results: tmp.get(k)?.reduce((acc, z) => (acc[z.surveyQuestionId] = z.answer, acc), {} as Record<number, string>) ?? {},
+                })).reduce((acc, i) => (acc[i.questionId] = i, acc), {} as Record<number, QuestionSurveyResult>),
             }
-        })
+        }
     }
 
-    @action
     ensureQuestionSurveyExists = (questionId: number) => {
         if (this.survey?.questions[questionId])
             return this.survey?.questions[questionId].questions;
@@ -265,9 +248,7 @@ export class ExerciseStore {
             results: {},
         };
 
-        runInAction(() => {
-            this.survey!.questions[questionId] = questionSurvey;
-        })
+        this.survey!.questions[questionId] = questionSurvey;
         return qs.map(z => z.id);
     }
 }

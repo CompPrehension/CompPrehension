@@ -1,3 +1,4 @@
+import './mobx-config';
 import {createRoot} from 'react-dom/client';
 import React from 'react';
 import "./i18n";
