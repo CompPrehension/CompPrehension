@@ -102,7 +102,7 @@ const SwitchMultiChoiceQuestionWithCtxComponent = observer((props: MultiChoiceQu
     useEffect(() => {
         // drop all changes
         document.querySelectorAll(`#question_${question.questionId} input[data-answer-id]`).forEach((e: any) => {
-            const answerId = +e.getAttribute('data-answer-id') ?? -1;
+            const answerId = +(e.getAttribute('data-answer-id') ?? -1);
             //if (!answersHistory.some(h => h[0] === id)) {
             e.checked = undefined;
             //}                

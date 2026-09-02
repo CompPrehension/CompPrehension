@@ -29,7 +29,7 @@ export async function ajaxGet<T = unknown>(url: string, validator?: io.Type<T, T
 }
 
 export async function ajaxGetWithParams<T = unknown>(url: string, params: Record<string, string>, validator?: io.Type<T>) : PromiseEither<RequestError, T> {
-    const preparedUrl = new URL(url);
+    const preparedUrl = new URL(url, window.location.origin);
     preparedUrl.search = new URLSearchParams(params).toString();
 
     return await ajax(preparedUrl.toString(), commonParams, validator);    

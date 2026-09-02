@@ -1,5 +1,5 @@
 import { Droppable, DroppableEventNames, Plugins } from "@shopify/draggable";
-import { DraggableEventNames } from "@shopify/draggable/lib/draggable.bundle.legacy";
+import type { DraggableEventNames } from "@shopify/draggable/lib/draggable.bundle.legacy";
 import { observer } from "mobx-react";
 import React, { useEffect } from "react";
 import ReactDOM from "react-dom";

@@ -1,16 +1,23 @@
 {
   "compilerOptions": {
     "lib": ["dom", "esnext", "es2018.promise"],
+    "types": ["vite/client"],
     "experimentalDecorators": true,
-    "emitDecoratorMetadata": true,
+    // esbuild (and therefore Vite) cannot emit `design:paramtypes`, so tsyringe gets its
+    // tokens exclusively from explicit `@inject(...)` decorators: every constructor
+    // parameter of an `@injectable` class must carry one.
+    "emitDecoratorMetadata": false,
     "strict": true,
     "moduleResolution": "Node",
     "module": "esnext",
     "target": "es6",
-    "jsx": "react",
+    "jsx": "react-jsx",
     "allowJs": true,
     "allowSyntheticDefaultImports": true,
+    "esModuleInterop": true,
     "useDefineForClassFields": true,
+    "isolatedModules": true,
+    "noEmit": true,
     "sourceMap": true,
     "skipLibCheck": true
   },
