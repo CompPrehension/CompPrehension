@@ -201,7 +201,11 @@ const resources = {
             exerciseModeBar_unlinkFromCourse: "Remove from course",
             exerciseModeBar_copyToPool: "Copy to global pool",
             exerciseModeBar_deleteExercise: "Delete exercise",
-            exerciseModeBar_confirmDelete: "Delete exercise? Attempt history will be deleted."
+            exerciseModeBar_confirmDelete: "Delete exercise? Attempt history will be deleted.",
+
+            error_notification_title: "Request failed",
+            error_page_title: "Failed to load",
+            error_page_retry: "Retry"
         },
     },
     RU: {
@@ -367,7 +371,11 @@ const resources = {
             exerciseModeBar_unlinkFromCourse: "Удалить из курса",
             exerciseModeBar_copyToPool: "Скопировать в глобальный пул",
             exerciseModeBar_deleteExercise: "Удалить упражнение",
-            exerciseModeBar_confirmDelete: "Удалить упражнение? История попыток будет удалена."
+            exerciseModeBar_confirmDelete: "Удалить упражнение? История попыток будет удалена.",
+
+            error_notification_title: "Запрос не выполнен",
+            error_page_title: "Не удалось загрузить",
+            error_page_retry: "Повторить"
         },
     },
     PL: {
@@ -489,7 +497,11 @@ const resources = {
             exerciseModeBar_unlinkFromCourse: "Usuń z kursu",
             exerciseModeBar_copyToPool: "Skopiuj do globalnej puli",
             exerciseModeBar_deleteExercise: "Usuń ćwiczenie",
-            exerciseModeBar_confirmDelete: "Usunąć ćwiczenie? Historia prób zostanie usunięta."
+            exerciseModeBar_confirmDelete: "Usunąć ćwiczenie? Historia prób zostanie usunięta.",
+
+            error_notification_title: "Żądanie nie powiodło się",
+            error_page_title: "Nie udało się załadować",
+            error_page_retry: "Ponów"
         },
     },
 };

@@ -1,4 +1,4 @@
-import { union, nullType, undefinedType, literal, type, array, number, success, EitherExports, intersection, boolean, partial, string, injectable, Type, _ArrayExports, _functionExports, NonEmptyArrayExports, OptionExports, failure, keyof, recursion, toJS, tuple, makeObservable, runInAction, observable, action, computed, flow, inject, autorun, instance, instance$1, initReactI18next, observer, jsxRuntimeExports, reactExports, Button, Bug, Spinner, Modal as Modal$1, Droppable, ResizeMirror, StateManagedSelect$1, ReactDOM, components, useTranslation, Alert, parse, Popover, PopoverTrigger, PopoverContent, X, Badge, Pagination as Pagination$1, Navbar, isRight, FormImpl, Shepherd, Table, ListGroup, makeAutoObservable, useSearchParams, Link, useNavigate, clientExports, BrowserRouter, Routes, Route, Navigate } from "./vendor-BgC0viRe.js";
+import { union, nullType, undefinedType, literal, type, array, number, makeAutoObservable, EitherExports, success, intersection, boolean, partial, string, injectable, Type, _ArrayExports, _functionExports, NonEmptyArrayExports, OptionExports, failure, keyof, recursion, toJS, tuple, makeObservable, runInAction, observable, action, computed, flow, inject, autorun, instance, instance$1, initReactI18next, observer, jsxRuntimeExports, reactExports, Button, Bug, useTranslation, Alert, Spinner, Modal as Modal$1, Droppable, ResizeMirror, StateManagedSelect$1, ReactDOM, components, parse, Popover, PopoverTrigger, PopoverContent, X, Badge, Pagination as Pagination$1, Navbar, isLeft, isRight, FormImpl, Shepherd, Table, ListGroup, useSearchParams, Link, useNavigate, clientExports, BrowserRouter, Routes, Route, Navigate } from "./vendor-1YL4hu9N.js";
 (function polyfill() {
   const relList = document.createElement("link").relList;
   if (relList && relList.supports && relList.supports("modulepreload")) return;
@@ -52,6 +52,54 @@ const TExerciseStatisticsItem = type({
   averageGrade: number
 }, "ExerciseStatisticsItem");
 const TExerciseStatisticsItems = array(TExerciseStatisticsItem);
+const AUTO_DISMISS_MS = 12e3;
+const CLAIM_WINDOW_MS = 250;
+const keyOf = (error) => `${error.status}\0${error.message}`;
+class NotificationsStore {
+  notifications = [];
+  nextId = 1;
+  pending = /* @__PURE__ */ new Map();
+  constructor() {
+    makeAutoObservable(this, {
+      nextId: false,
+      pending: false
+    });
+  }
+  /** Show a failed request to the user - unless the page claims it within the grace period. */
+  report(error) {
+    const key = keyOf(error);
+    clearTimeout(this.pending.get(key));
+    this.pending.set(key, setTimeout(() => {
+      this.pending.delete(key);
+      this.show(error);
+    }, CLAIM_WINDOW_MS));
+  }
+  /**
+   * The page renders this error itself, so it needs no notification: an error is shown
+   * either in place or as a notification, never both.
+   */
+  handled(error) {
+    const key = keyOf(error);
+    clearTimeout(this.pending.get(key));
+    this.pending.delete(key);
+    this.notifications = this.notifications.filter((n) => keyOf(n.error) !== key);
+  }
+  dismiss(id) {
+    this.notifications = this.notifications.filter((n) => n.id !== id);
+  }
+  show(error) {
+    const key = keyOf(error);
+    const same = this.notifications.find((n) => keyOf(n.error) === key);
+    if (same) {
+      same.count++;
+      return;
+    }
+    const id = this.nextId++;
+    this.notifications.push({ id, error, count: 1 });
+    setTimeout(() => this.dismiss(id), AUTO_DISMISS_MS);
+  }
+}
+const notifications = new NotificationsStore();
 const commonParams = {
   method: "GET",
   headers: {
@@ -92,31 +140,95 @@ async function ajaxDelete(url, validator, signal) {
   };
   return await ajax(url, params, validator);
 }
+const statusTexts = {
+  400: "Bad request",
+  401: "Unauthorized",
+  403: "Forbidden",
+  404: "Not found",
+  405: "Method not allowed",
+  409: "Conflict",
+  413: "Payload too large",
+  415: "Unsupported media type",
+  422: "Unprocessable entity",
+  429: "Too many requests",
+  500: "Internal server error",
+  502: "Bad gateway",
+  503: "Service unavailable",
+  504: "Gateway timeout"
+};
+const asText = (value) => typeof value === "string" && value.trim() !== "" ? value.trim() : void 0;
+function parseErrorBody(body) {
+  try {
+    const parsed = JSON.parse(body);
+    return typeof parsed === "object" && parsed !== null ? parsed : void 0;
+  } catch {
+    return void 0;
+  }
+}
+function plainTextBody(body) {
+  const text = asText(body);
+  return text !== void 0 && text.length <= 300 && !text.startsWith("<") ? text : void 0;
+}
+async function toRequestError(response) {
+  const body = await response.text().catch(() => "");
+  const parsed = parseErrorBody(body);
+  const title = asText(parsed?.title) ?? asText(parsed?.error);
+  return {
+    status: response.status,
+    message: asText(parsed?.detail) ?? asText(parsed?.message) ?? title ?? (parsed === void 0 ? plainTextBody(body) : void 0) ?? statusTexts[response.status] ?? `Request failed with status ${response.status}`,
+    title,
+    path: asText(parsed?.instance) ?? asText(parsed?.path),
+    timestamp: asText(parsed?.timestamp),
+    trace: asText(parsed?.trace)
+  };
+}
+async function readPayload(response, payloadType) {
+  const body = await response.text();
+  if (payloadType === "raw") {
+    return body;
+  }
+  return body.trim() === "" ? "" : JSON.parse(body);
+}
+function fail(error) {
+  console.error(error);
+  notifications.report(error);
+  return EitherExports.left(error);
+}
+const isAbort = (err) => err instanceof DOMException && err.name === "AbortError";
 async function ajax(url, params, validator, payloadType) {
   payloadType ??= "json";
-  const result = await fetch(url, params).then(async (data) => {
-    if (data.ok) {
-      return { status: "ok", payload: validator && validator.decode(payloadType === "json" ? await data.json() : await data.text()) || success(payloadType === "json" ? await data.json() : await data.text()) };
+  let response;
+  try {
+    response = await fetch(url, params);
+  } catch (err) {
+    if (isAbort(err)) {
+      return EitherExports.left({ message: "Request aborted" });
     }
-    if (data.status === 401) {
-      return { status: "unauthorized" };
-    }
-    if (data.status === 500) {
-      return { status: "server_error", payload: await data.json() };
-    }
-    return { status: "unexpected", payload: { message: "Unexpected error" } };
-  }).catch((err) => ({ status: "unexpected", payload: { message: "Unexpected error " + err } }));
-  if (result.status === "ok") {
-    if (EitherExports.isLeft(result.payload)) {
-      const error = { message: `Type inconsistency for properties of ${validator?.name} type: ${getPaths(result.payload.left).join(", ")}` };
-      return console.error(error), EitherExports.left(error);
-    }
-    return EitherExports.right(result.payload.right);
+    return fail({ message: `Network error: ${err instanceof Error ? err.message : String(err)}` });
   }
-  if (result.status === "unauthorized") {
-    return EitherExports.left({ message: "Unauthorized" });
+  if (!response.ok) {
+    return fail(await toRequestError(response));
   }
-  return EitherExports.left(result.payload ?? { message: "Unexpected error " });
+  let payload;
+  try {
+    payload = await readPayload(response, payloadType);
+  } catch (err) {
+    if (isAbort(err)) {
+      return EitherExports.left({ message: "Request aborted" });
+    }
+    return fail({
+      status: response.status,
+      message: `Malformed response body: ${err instanceof Error ? err.message : String(err)}`
+    });
+  }
+  const decoded = validator ? validator.decode(payload) : success(payload);
+  if (EitherExports.isLeft(decoded)) {
+    return fail({
+      status: response.status,
+      message: `Type inconsistency for properties of ${validator?.name} type: ${getPaths(decoded.left).join(", ")}`
+    });
+  }
+  return EitherExports.right(decoded.right);
 }
 const getPaths = (errors) => {
   return errors.map((error) => error.context.map(({ key }) => key).join("."));
@@ -1907,7 +2019,10 @@ const resources = {
       exerciseModeBar_unlinkFromCourse: "Remove from course",
       exerciseModeBar_copyToPool: "Copy to global pool",
       exerciseModeBar_deleteExercise: "Delete exercise",
-      exerciseModeBar_confirmDelete: "Delete exercise? Attempt history will be deleted."
+      exerciseModeBar_confirmDelete: "Delete exercise? Attempt history will be deleted.",
+      error_notification_title: "Request failed",
+      error_page_title: "Failed to load",
+      error_page_retry: "Retry"
     }
   },
   RU: {
@@ -2050,7 +2165,10 @@ const resources = {
       exerciseModeBar_unlinkFromCourse: "Удалить из курса",
       exerciseModeBar_copyToPool: "Скопировать в глобальный пул",
       exerciseModeBar_deleteExercise: "Удалить упражнение",
-      exerciseModeBar_confirmDelete: "Удалить упражнение? История попыток будет удалена."
+      exerciseModeBar_confirmDelete: "Удалить упражнение? История попыток будет удалена.",
+      error_notification_title: "Запрос не выполнен",
+      error_page_title: "Не удалось загрузить",
+      error_page_retry: "Повторить"
     }
   },
   PL: {
@@ -2161,7 +2279,10 @@ const resources = {
       exerciseModeBar_unlinkFromCourse: "Usuń z kursu",
       exerciseModeBar_copyToPool: "Skopiuj do globalnej puli",
       exerciseModeBar_deleteExercise: "Usuń ćwiczenie",
-      exerciseModeBar_confirmDelete: "Usunąć ćwiczenie? Historia prób zostanie usunięta."
+      exerciseModeBar_confirmDelete: "Usunąć ćwiczenie? Historia prób zostanie usunięta.",
+      error_notification_title: "Żądanie nie powiodło się",
+      error_page_title: "Nie udało się załadować",
+      error_page_retry: "Ponów"
     }
   }
 };
@@ -2226,6 +2347,52 @@ const DebugButton = ({ metadataId, attemptId }) => {
     }
   );
 };
+function statusLine(error) {
+  if (error.status === void 0) {
+    return null;
+  }
+  return error.title ? `${error.status} ${error.title}` : `${error.status}`;
+}
+const ErrorNotificationAlert = observer(({ notification }) => {
+  const { t } = useTranslation();
+  const { error, count } = notification;
+  const status = statusLine(error);
+  return /* @__PURE__ */ jsxRuntimeExports.jsxs(Alert, { variant: "danger", dismissible: true, onClose: () => notifications.dismiss(notification.id), children: [
+    /* @__PURE__ */ jsxRuntimeExports.jsxs(Alert.Heading, { as: "h6", className: "d-flex align-items-center", children: [
+      /* @__PURE__ */ jsxRuntimeExports.jsx("span", { children: status ?? t("error_notification_title") }),
+      count > 1 && /* @__PURE__ */ jsxRuntimeExports.jsx("span", { className: "badge badge-light ml-2", children: count })
+    ] }),
+    /* @__PURE__ */ jsxRuntimeExports.jsx("div", { className: "comp-ph-error-notification-message", children: error.message }),
+    error.path && /* @__PURE__ */ jsxRuntimeExports.jsx("small", { className: "text-muted d-block mt-1", children: error.path })
+  ] });
+});
+const ErrorNotifications = observer(() => {
+  if (notifications.notifications.length === 0) {
+    return null;
+  }
+  return /* @__PURE__ */ jsxRuntimeExports.jsx("div", { className: "comp-ph-error-notifications", children: notifications.notifications.map((n) => /* @__PURE__ */ jsxRuntimeExports.jsx(ErrorNotificationAlert, { notification: n }, n.id)) });
+});
+function useHandledError(error) {
+  reactExports.useEffect(() => {
+    if (error) {
+      notifications.handled(error);
+    }
+  }, [error]);
+}
+const InlineError = observer(({ error }) => {
+  useHandledError(error);
+  return /* @__PURE__ */ jsxRuntimeExports.jsx(Alert, { variant: "danger", children: error.message });
+});
+const LoadFailure = observer(({ error, onRetry }) => {
+  const { t } = useTranslation();
+  const status = statusLine(error);
+  useHandledError(error);
+  return /* @__PURE__ */ jsxRuntimeExports.jsxs(Alert, { variant: "danger", children: [
+    /* @__PURE__ */ jsxRuntimeExports.jsx(Alert.Heading, { as: "h6", children: t("error_page_title") }),
+    /* @__PURE__ */ jsxRuntimeExports.jsx("div", { className: "comp-ph-error-notification-message", children: status ? `${status} — ${error.message}` : error.message }),
+    onRetry && /* @__PURE__ */ jsxRuntimeExports.jsx(Button, { variant: "outline-danger", size: "sm", className: "mt-2", onClick: onRetry, children: t("error_page_retry") })
+  ] });
+});
 const Loader = observer((props) => {
   const delay = props.delay ?? 0;
   const [enabled, setEnabled] = reactExports.useState(delay === 0);
@@ -3303,6 +3470,7 @@ class SessionStore {
   user = void 0;
   languages = [];
   isSessionLoading = false;
+  error = null;
   usersApi = new UserController();
   get selectedLanguage() {
     return this.user?.language;
@@ -3319,21 +3487,28 @@ class SessionStore {
     }
     runInAction(() => {
       this.isSessionLoading = true;
+      this.error = null;
     });
     const [user, languages] = await Promise.all([
       this.usersApi.getCurrentUser(),
       this.usersApi.getLanguages()
     ]);
-    if (isRight(user) && isRight(languages)) {
-      runInAction(() => {
-        this.isSessionLoading = false;
-        this.user = user.right;
-        this.languages = languages.right;
-        if (this.user.language !== instance$1.language) {
-          instance$1.changeLanguage(this.user.language);
-        }
-      });
-    }
+    runInAction(() => {
+      this.isSessionLoading = false;
+      if (isLeft(user)) {
+        this.error = user.left;
+        return;
+      }
+      if (isLeft(languages)) {
+        this.error = languages.left;
+        return;
+      }
+      this.user = user.right;
+      this.languages = languages.right;
+      if (this.user.language !== instance$1.language) {
+        instance$1.changeLanguage(this.user.language);
+      }
+    });
   };
   changeLanguage = async (newLang) => {
     if (this.user && this.user.language !== newLang) {
@@ -3359,6 +3534,9 @@ __decorateClass$4([
   observable
 ], SessionStore.prototype, "isSessionLoading", 2);
 __decorateClass$4([
+  observable
+], SessionStore.prototype, "error", 2);
+__decorateClass$4([
   computed
 ], SessionStore.prototype, "selectedLanguage", 1);
 __decorateClass$4([
@@ -3370,7 +3548,7 @@ const SessionProvider = observer(({ children }) => {
   reactExports.useEffect(() => {
     session.loadSessionInfo();
   }, [session]);
-  return /* @__PURE__ */ jsxRuntimeExports.jsx(SessionContext.Provider, { value: session, children });
+  return /* @__PURE__ */ jsxRuntimeExports.jsx(SessionContext.Provider, { value: session, children: session.error && !session.user ? /* @__PURE__ */ jsxRuntimeExports.jsx("div", { className: "container pt-3", children: /* @__PURE__ */ jsxRuntimeExports.jsx(LoadFailure, { error: session.error, onRetry: () => session.loadSessionInfo() }) }) : children });
 });
 const useSession = () => {
   const session = reactExports.useContext(SessionContext);
@@ -3947,7 +4125,7 @@ const Exercise = observer(() => {
             }
           ),
           [excerciseStoreState, currentQuestionStoreState].filter((x) => x.tag === "ERROR").map(
-            (x, idx, arr) => x.tag === "ERROR" && /* @__PURE__ */ jsxRuntimeExports.jsx("div", { className: "mt-2", children: /* @__PURE__ */ jsxRuntimeExports.jsx(Alert, { variant: "danger", children: x.error.message }) })
+            (x, idx, arr) => x.tag === "ERROR" && /* @__PURE__ */ jsxRuntimeExports.jsx("div", { className: "mt-2", children: /* @__PURE__ */ jsxRuntimeExports.jsx(InlineError, { error: x.error }) })
           )
         ]
       }
@@ -4064,7 +4242,7 @@ const SurveyPage = observer(() => {
         ) }) })
       ] })
     ] }) }),
-    [excerciseStoreState, currentQuestionStoreState].filter((x) => x.tag === "ERROR").map((x, idx, arr) => x.tag === "ERROR" && /* @__PURE__ */ jsxRuntimeExports.jsx("div", { className: "mt-2", children: /* @__PURE__ */ jsxRuntimeExports.jsx(Alert, { variant: "danger", children: x.error.message }) }))
+    [excerciseStoreState, currentQuestionStoreState].filter((x) => x.tag === "ERROR").map((x, idx, arr) => x.tag === "ERROR" && /* @__PURE__ */ jsxRuntimeExports.jsx("div", { className: "mt-2", children: /* @__PURE__ */ jsxRuntimeExports.jsx(InlineError, { error: x.error }) }))
   ] });
 });
 var __getOwnPropDesc$3 = Object.getOwnPropertyDescriptor;
@@ -5375,18 +5553,21 @@ let GlobalPoolStore = class {
   exercises = [];
   permissions = noExerciseListPermissions;
   loadStatus = "NONE";
+  error = null;
   async loadGlobalPool() {
     runInAction(() => {
       this.loadStatus = "LOADING";
+      this.error = null;
     });
     const r = await this.settingsController.listExercises(null);
-    if (EitherExports.isRight(r)) {
-      runInAction(() => {
-        this.exercises = r.right.exercises;
-        this.permissions = r.right.permissions;
-      });
-    }
     runInAction(() => {
+      if (EitherExports.isLeft(r)) {
+        this.error = r.left;
+        this.loadStatus = "FAILED";
+        return;
+      }
+      this.exercises = r.right.exercises;
+      this.permissions = r.right.permissions;
       this.loadStatus = "LOADED";
     });
   }
@@ -5432,6 +5613,7 @@ const GlobalPool = observer(() => {
         logoutLabel: t("logout_header")
       }
     ) }),
+    store.loadStatus === "FAILED" && store.error && /* @__PURE__ */ jsxRuntimeExports.jsx(LoadFailure, { error: store.error, onRetry: () => store.loadGlobalPool() }),
     store.permissions.canCreateExercise && /* @__PURE__ */ jsxRuntimeExports.jsx("div", { className: "mb-3", children: /* @__PURE__ */ jsxRuntimeExports.jsx(
       Button,
       {
@@ -5467,19 +5649,22 @@ let CourseStore = class {
   exercises = [];
   permissions = noExerciseListPermissions;
   loadStatus = "NONE";
+  error = null;
   async loadCourse(courseId) {
     runInAction(() => {
       this.loadStatus = "LOADING";
       this.courseId = courseId;
+      this.error = null;
     });
     const r = await this.courseController.getCourseExercises(courseId);
-    if (EitherExports.isRight(r)) {
-      runInAction(() => {
-        this.exercises = r.right.exercises;
-        this.permissions = r.right.permissions;
-      });
-    }
     runInAction(() => {
+      if (EitherExports.isLeft(r)) {
+        this.error = r.left;
+        this.loadStatus = "FAILED";
+        return;
+      }
+      this.exercises = r.right.exercises;
+      this.permissions = r.right.permissions;
       this.loadStatus = "LOADED";
     });
   }
@@ -5697,6 +5882,7 @@ const CoursePage = observer(() => {
       }
     ) }),
     isDeepLink && !inIframe && /* @__PURE__ */ jsxRuntimeExports.jsx("div", { className: "alert alert-info", children: t("deeplink_blockHint") }),
+    store.loadStatus === "FAILED" && store.error && /* @__PURE__ */ jsxRuntimeExports.jsx(LoadFailure, { error: store.error, onRetry: reload }),
     (canCreateExercise || canImport) && /* @__PURE__ */ jsxRuntimeExports.jsxs("div", { className: "mb-3 d-flex", style: { gap: "0.5rem" }, children: [
       canCreateExercise && /* @__PURE__ */ jsxRuntimeExports.jsx(
         Button,
@@ -5750,17 +5936,20 @@ let CoursesStore = class {
   api;
   courses = [];
   loadStatus = "NONE";
+  error = null;
   async loadMyCourses() {
     runInAction(() => {
       this.loadStatus = "LOADING";
+      this.error = null;
     });
     const r = await this.api.getMyCourses();
-    if (EitherExports.isRight(r)) {
-      runInAction(() => {
-        this.courses = r.right;
-      });
-    }
     runInAction(() => {
+      if (EitherExports.isLeft(r)) {
+        this.error = r.left;
+        this.loadStatus = "FAILED";
+        return;
+      }
+      this.courses = r.right;
       this.loadStatus = "LOADED";
     });
   }
@@ -5805,7 +5994,7 @@ const CoursesPage = observer(() => {
         children: t("courses_page_globalPoolBtn")
       }
     ) }),
-    store.courses.length === 0 ? /* @__PURE__ */ jsxRuntimeExports.jsx("div", { className: "alert alert-info", children: t("courses_page_empty") }) : /* @__PURE__ */ jsxRuntimeExports.jsx("div", { className: "row row-cols-1 row-cols-md-2 row-cols-lg-3", children: store.courses.map((c) => /* @__PURE__ */ jsxRuntimeExports.jsx("div", { className: "col mb-4", children: /* @__PURE__ */ jsxRuntimeExports.jsx(
+    store.loadStatus === "FAILED" && store.error ? /* @__PURE__ */ jsxRuntimeExports.jsx(LoadFailure, { error: store.error, onRetry: () => store.loadMyCourses() }) : store.courses.length === 0 ? /* @__PURE__ */ jsxRuntimeExports.jsx("div", { className: "alert alert-info", children: t("courses_page_empty") }) : /* @__PURE__ */ jsxRuntimeExports.jsx("div", { className: "row row-cols-1 row-cols-md-2 row-cols-lg-3", children: store.courses.map((c) => /* @__PURE__ */ jsxRuntimeExports.jsx("div", { className: "col mb-4", children: /* @__PURE__ */ jsxRuntimeExports.jsx(
       "div",
       {
         className: "card h-100",
@@ -5819,19 +6008,22 @@ const CoursesPage = observer(() => {
     ) }, c.id)) })
   ] });
 });
-const Home = () => /* @__PURE__ */ jsxRuntimeExports.jsx(SessionProvider, { children: /* @__PURE__ */ jsxRuntimeExports.jsx("div", { className: "container comp-ph-container", children: /* @__PURE__ */ jsxRuntimeExports.jsx(BrowserRouter, { children: /* @__PURE__ */ jsxRuntimeExports.jsxs(Routes, { children: [
-  /* @__PURE__ */ jsxRuntimeExports.jsx(Route, { path: "/pages/statistics", element: /* @__PURE__ */ jsxRuntimeExports.jsx(Statistics, {}) }),
-  /* @__PURE__ */ jsxRuntimeExports.jsx(Route, { path: "/pages/exercise", element: /* @__PURE__ */ jsxRuntimeExports.jsx(Exercise, {}) }),
-  /* @__PURE__ */ jsxRuntimeExports.jsx(Route, { path: "/pages/exercise-settings", element: /* @__PURE__ */ jsxRuntimeExports.jsx(ExerciseSettings, {}) }),
-  /* @__PURE__ */ jsxRuntimeExports.jsx(Route, { path: "/pages/strategy-settings", element: /* @__PURE__ */ jsxRuntimeExports.jsx(StrategySettings, {}) }),
-  /* @__PURE__ */ jsxRuntimeExports.jsx(Route, { path: "/pages/survey", element: /* @__PURE__ */ jsxRuntimeExports.jsx(SurveyPage, {}) }),
-  /* @__PURE__ */ jsxRuntimeExports.jsx(Route, { path: "/pages/question", element: /* @__PURE__ */ jsxRuntimeExports.jsx(QuestionPage, {}) }),
-  /* @__PURE__ */ jsxRuntimeExports.jsx(Route, { path: "/pages/exercises-list", element: /* @__PURE__ */ jsxRuntimeExports.jsx(ExercisesList, {}) }),
-  /* @__PURE__ */ jsxRuntimeExports.jsx(Route, { path: "/pages/global-pool", element: /* @__PURE__ */ jsxRuntimeExports.jsx(GlobalPool, {}) }),
-  /* @__PURE__ */ jsxRuntimeExports.jsx(Route, { path: "/pages/course", element: /* @__PURE__ */ jsxRuntimeExports.jsx(CoursePage, {}) }),
-  /* @__PURE__ */ jsxRuntimeExports.jsx(Route, { path: "/pages/courses", element: /* @__PURE__ */ jsxRuntimeExports.jsx(CoursesPage, {}) }),
-  /* @__PURE__ */ jsxRuntimeExports.jsx(Route, { path: "/", element: /* @__PURE__ */ jsxRuntimeExports.jsx(Navigate, { to: "/pages/courses", replace: true }) })
-] }) }) }) });
+const Home = () => /* @__PURE__ */ jsxRuntimeExports.jsxs(jsxRuntimeExports.Fragment, { children: [
+  /* @__PURE__ */ jsxRuntimeExports.jsx(ErrorNotifications, {}),
+  /* @__PURE__ */ jsxRuntimeExports.jsx(SessionProvider, { children: /* @__PURE__ */ jsxRuntimeExports.jsx("div", { className: "container comp-ph-container", children: /* @__PURE__ */ jsxRuntimeExports.jsx(BrowserRouter, { children: /* @__PURE__ */ jsxRuntimeExports.jsxs(Routes, { children: [
+    /* @__PURE__ */ jsxRuntimeExports.jsx(Route, { path: "/pages/statistics", element: /* @__PURE__ */ jsxRuntimeExports.jsx(Statistics, {}) }),
+    /* @__PURE__ */ jsxRuntimeExports.jsx(Route, { path: "/pages/exercise", element: /* @__PURE__ */ jsxRuntimeExports.jsx(Exercise, {}) }),
+    /* @__PURE__ */ jsxRuntimeExports.jsx(Route, { path: "/pages/exercise-settings", element: /* @__PURE__ */ jsxRuntimeExports.jsx(ExerciseSettings, {}) }),
+    /* @__PURE__ */ jsxRuntimeExports.jsx(Route, { path: "/pages/strategy-settings", element: /* @__PURE__ */ jsxRuntimeExports.jsx(StrategySettings, {}) }),
+    /* @__PURE__ */ jsxRuntimeExports.jsx(Route, { path: "/pages/survey", element: /* @__PURE__ */ jsxRuntimeExports.jsx(SurveyPage, {}) }),
+    /* @__PURE__ */ jsxRuntimeExports.jsx(Route, { path: "/pages/question", element: /* @__PURE__ */ jsxRuntimeExports.jsx(QuestionPage, {}) }),
+    /* @__PURE__ */ jsxRuntimeExports.jsx(Route, { path: "/pages/exercises-list", element: /* @__PURE__ */ jsxRuntimeExports.jsx(ExercisesList, {}) }),
+    /* @__PURE__ */ jsxRuntimeExports.jsx(Route, { path: "/pages/global-pool", element: /* @__PURE__ */ jsxRuntimeExports.jsx(GlobalPool, {}) }),
+    /* @__PURE__ */ jsxRuntimeExports.jsx(Route, { path: "/pages/course", element: /* @__PURE__ */ jsxRuntimeExports.jsx(CoursePage, {}) }),
+    /* @__PURE__ */ jsxRuntimeExports.jsx(Route, { path: "/pages/courses", element: /* @__PURE__ */ jsxRuntimeExports.jsx(CoursesPage, {}) }),
+    /* @__PURE__ */ jsxRuntimeExports.jsx(Route, { path: "/", element: /* @__PURE__ */ jsxRuntimeExports.jsx(Navigate, { to: "/pages/courses", replace: true }) })
+  ] }) }) }) })
+] });
 const container = document.getElementById("root");
 const root = clientExports.createRoot(container);
 root.render(/* @__PURE__ */ jsxRuntimeExports.jsx(Home, {}));

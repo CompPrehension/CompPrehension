@@ -4,6 +4,7 @@ import { Alert } from "react-bootstrap";
 import { useTranslation } from "react-i18next";
 import { container } from "tsyringe";
 import DebugButton from "../components/common/debug";
+import { InlineError } from "../components/common/errors";
 import { LoadingWrapper } from "../components/common/loader";
 import { Modal } from "../components/common/modal";
 import { Optional } from "../components/common/optional";
@@ -235,7 +236,7 @@ export const Exercise = observer(() => {
               (x, idx, arr) =>
                 x.tag === 'ERROR' && (
                   <div className='mt-2'>
-                    <Alert variant='danger'>{x.error.message}</Alert>
+                    <InlineError error={x.error} />
                   </div>
                 )
             )}

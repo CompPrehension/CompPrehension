@@ -4,12 +4,14 @@ import { UserController } from "../controllers/exercise/user-controller";
 import * as E from "fp-ts/Either";
 import i18next from "i18next";
 import { Language } from "../types/language";
+import { RequestError } from "../types/request-error";
 
 
 export class SessionStore {
     @observable user?: UserInfo = undefined;
     @observable languages: string[] = [];
     @observable isSessionLoading: boolean = false;
+    @observable error: RequestError | null = null;
     private usersApi = new UserController()
 
     @computed get selectedLanguage(): string | undefined {
@@ -28,26 +30,35 @@ export class SessionStore {
             return;
         }
 
-        runInAction(() => {                
+        runInAction(() => {
             this.isSessionLoading = true;
+            this.error = null;
         })
 
         const [user, languages] = await Promise.all([
             this.usersApi.getCurrentUser(),
             this.usersApi.getLanguages(),
         ])
-        
-        if (E.isRight(user) && E.isRight(languages)) {
-            runInAction(() => {
-                this.isSessionLoading = false;
-                this.user = user.right;
-                this.languages = languages.right;
 
-                if (this.user.language !== i18next.language) {
-                    i18next.changeLanguage(this.user.language);
-                }
-            })
-        }
+        runInAction(() => {
+            this.isSessionLoading = false;
+
+            if (E.isLeft(user)) {
+                this.error = user.left;
+                return;
+            }
+            if (E.isLeft(languages)) {
+                this.error = languages.left;
+                return;
+            }
+
+            this.user = user.right;
+            this.languages = languages.right;
+
+            if (this.user.language !== i18next.language) {
+                i18next.changeLanguage(this.user.language);
+            }
+        })
     };
 
     changeLanguage = async (newLang: Language) => {

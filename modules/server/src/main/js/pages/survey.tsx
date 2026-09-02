@@ -3,6 +3,7 @@ import React, { useCallback, useEffect, useState } from "react";
 import { Alert } from "react-bootstrap";
 import { useTranslation } from "react-i18next";
 import { container } from "tsyringe";
+import { InlineError } from "../components/common/errors";
 import { LoadingWrapper } from "../components/common/loader";
 import { Optional } from "../components/common/optional";
 import { CurrentQuestion } from "../components/exercise/current-question";
@@ -131,7 +132,7 @@ export const SurveyPage = observer(() => {
             {
                 [excerciseStoreState, currentQuestionStoreState]
                     .filter(x => x.tag === 'ERROR')
-                    .map((x, idx, arr) => x.tag === 'ERROR' && <div className="mt-2"><Alert variant='danger'>{x.error.message}</Alert></div>)
+                    .map((x, idx, arr) => x.tag === 'ERROR' && <div className="mt-2"><InlineError error={x.error} /></div>)
             }
         </>
     );

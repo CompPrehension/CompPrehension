@@ -6,6 +6,7 @@ import { Link, useNavigate, useSearchParams } from 'react-router-dom';
 import { CourseStore } from '../stores/course-store';
 import { Header } from '../components/common/header';
 import { Loader } from '../components/common/loader';
+import { LoadFailure } from '../components/common/errors';
 import { useCurrentUser, useSession } from '../hooks/session-context';
 import { useCourseId } from '../hooks/use-course-id';
 import { ImportFromGlobalModal } from '../components/exercise/import-from-global-modal';
@@ -158,6 +159,9 @@ export const CoursePage = observer(() => {
             </div>
             {isDeepLink && !inIframe && (
                 <div className="alert alert-info">{t('deeplink_blockHint')}</div>
+            )}
+            {store.loadStatus === 'FAILED' && store.error && (
+                <LoadFailure error={store.error} onRetry={reload} />
             )}
             {(canCreateExercise || canImport) && (
                 <div className="mb-3 d-flex" style={{ gap: '0.5rem' }}>

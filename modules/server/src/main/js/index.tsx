@@ -15,8 +15,11 @@ import {GlobalPool} from './pages/global-pool';
 import {CoursePage} from './pages/course';
 import {CoursesPage} from './pages/courses';
 import {SessionProvider} from './hooks/session-context';
+import {ErrorNotifications} from './components/common/errors';
 
 const Home = () => (
+    <>
+    <ErrorNotifications />
     <SessionProvider>
         <div className="container comp-ph-container">
             <Router>
@@ -36,6 +39,7 @@ const Home = () => (
             </Router>
         </div>
     </SessionProvider>
+    </>
 )
 
 const container = document.getElementById('root');

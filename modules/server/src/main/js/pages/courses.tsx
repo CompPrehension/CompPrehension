@@ -6,6 +6,7 @@ import { useNavigate } from 'react-router-dom';
 import { CoursesStore } from '../stores/courses-store';
 import { Header } from '../components/common/header';
 import { Loader } from '../components/common/loader';
+import { LoadFailure } from '../components/common/errors';
 import { useCurrentUser, useSession } from '../hooks/session-context';
 import { useTranslation } from 'react-i18next';
 
@@ -45,7 +46,9 @@ export const CoursesPage = observer(() => {
                     </Button>
                 </div>
             )}
-            {store.courses.length === 0 ? (
+            {store.loadStatus === 'FAILED' && store.error ? (
+                <LoadFailure error={store.error} onRetry={() => store.loadMyCourses()} />
+            ) : store.courses.length === 0 ? (
                 <div className="alert alert-info">{t('courses_page_empty')}</div>
             ) : (
                 <div className="row row-cols-1 row-cols-md-2 row-cols-lg-3">

@@ -553,3 +553,23 @@ table.comp-ph-trace tr:first-child td {
     cursor: default;
     position: relative;
 }
+
+/* Ошибки запросов: показываются поверх страницы и сами исчезают */
+.comp-ph-error-notifications {
+    position: fixed;
+    top: 1rem;
+    right: 1rem;
+    z-index: 1060; /* выше модалок bootstrap */
+    width: 24rem;
+    max-width: calc(100% - 2rem);
+    max-height: calc(100% - 2rem);
+    overflow-y: auto;
+}
+
+.comp-ph-error-notifications .alert {
+    box-shadow: 0 .25rem .75rem rgba(0, 0, 0, .15);
+}
+
+.comp-ph-error-notification-message {
+    overflow-wrap: anywhere;
+}

@@ -4,6 +4,7 @@ import * as E from 'fp-ts/lib/Either';
 import { ExerciseSettingsController } from '../controllers/exercise/exercise-settings';
 import { CourseController } from '../controllers/course/course-controller';
 import { ExerciseListItem, ExerciseListPermissions, noExerciseListPermissions } from '../types/exercise-settings';
+import { RequestError } from '../types/request-error';
 
 export type ImportMode = 'INHERIT' | 'CLONE';
 
@@ -11,7 +12,8 @@ export type ImportMode = 'INHERIT' | 'CLONE';
 export class GlobalPoolStore {
     exercises: ExerciseListItem[] = [];
     permissions: ExerciseListPermissions = noExerciseListPermissions;
-    loadStatus: 'NONE' | 'LOADING' | 'LOADED' = 'NONE';
+    loadStatus: 'NONE' | 'LOADING' | 'LOADED' | 'FAILED' = 'NONE';
+    error: RequestError | null = null;
 
     constructor(
         @inject(ExerciseSettingsController) private readonly settingsController: ExerciseSettingsController,
@@ -21,15 +23,18 @@ export class GlobalPoolStore {
     }
 
     async loadGlobalPool() {
-        runInAction(() => { this.loadStatus = 'LOADING'; });
+        runInAction(() => { this.loadStatus = 'LOADING'; this.error = null; });
         const r = await this.settingsController.listExercises(null);
-        if (E.isRight(r)) {
-            runInAction(() => {
-                this.exercises = r.right.exercises;
-                this.permissions = r.right.permissions;
-            });
-        }
-        runInAction(() => { this.loadStatus = 'LOADED'; });
+        runInAction(() => {
+            if (E.isLeft(r)) {
+                this.error = r.left;
+                this.loadStatus = 'FAILED';
+                return;
+            }
+            this.exercises = r.right.exercises;
+            this.permissions = r.right.permissions;
+            this.loadStatus = 'LOADED';
+        });
     }
 
     async importToCourse(exerciseId: number, targetCourseId: number, mode: ImportMode): Promise<boolean> {

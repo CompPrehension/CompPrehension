@@ -6,6 +6,7 @@ import { Link, useNavigate } from 'react-router-dom';
 import { GlobalPoolStore } from '../stores/global-pool-store';
 import { Header } from '../components/common/header';
 import { Loader } from '../components/common/loader';
+import { LoadFailure } from '../components/common/errors';
 import { useCurrentUser, useSession } from '../hooks/session-context';
 import { useTranslation } from 'react-i18next';
 
@@ -37,6 +38,8 @@ export const GlobalPool = observer(() => {
                         userHref={null}
                         logoutLabel={t('logout_header')} />
             </div>
+            {store.loadStatus === 'FAILED' && store.error &&
+                <LoadFailure error={store.error} onRetry={() => store.loadGlobalPool()} />}
             {store.permissions.canCreateExercise &&
                 <div className="mb-3">
                     <Button variant="primary"
