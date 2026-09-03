@@ -10,8 +10,7 @@ export const ExercisesList = observer(() => {
     useEffect(() => {
         (async() => {
             setIsLoading(true);
-            const controller = exerciseController;
-            const dataEither = await controller.getExercises();
+            const dataEither = await exerciseController.getExercises();
             if (E.isRight(dataEither)) {
                 setData(dataEither.right);
             }

@@ -32,16 +32,6 @@ export const db = {
 
 
 export const StrategySettings = observer(() => {
-
-    const multiselectCss = {
-        'width': '200px',
-    }
-    const buttonCss = {
-        border: '1.5px solid rgb(182 182 182)',
-        borderRadius: '5px',
-    }
-
-
     return (
         <div className="container-fluid" style={{ color: 'black', fontSize: '18px'}}>
             <div className="row">

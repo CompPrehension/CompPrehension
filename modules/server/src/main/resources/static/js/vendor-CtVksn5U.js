@@ -28760,6 +28760,2966 @@ class SortableStopEvent extends SortableEvent {
   }
 }
 SortableStopEvent.type = "sortable:stop";
+var lib$4 = {};
+var htmlToDom = {};
+var domparser = {};
+var utilities$2 = {};
+var lib$3 = {};
+var lib$2 = {};
+var hasRequiredLib$4;
+function requireLib$4() {
+  if (hasRequiredLib$4) return lib$2;
+  hasRequiredLib$4 = 1;
+  (function(exports) {
+    Object.defineProperty(exports, "__esModule", { value: true });
+    exports.Doctype = exports.CDATA = exports.Tag = exports.Style = exports.Script = exports.Comment = exports.Directive = exports.Text = exports.Root = exports.isTag = exports.ElementType = void 0;
+    var ElementType;
+    (function(ElementType2) {
+      ElementType2["Root"] = "root";
+      ElementType2["Text"] = "text";
+      ElementType2["Directive"] = "directive";
+      ElementType2["Comment"] = "comment";
+      ElementType2["Script"] = "script";
+      ElementType2["Style"] = "style";
+      ElementType2["Tag"] = "tag";
+      ElementType2["CDATA"] = "cdata";
+      ElementType2["Doctype"] = "doctype";
+    })(ElementType = exports.ElementType || (exports.ElementType = {}));
+    function isTag(elem) {
+      return elem.type === ElementType.Tag || elem.type === ElementType.Script || elem.type === ElementType.Style;
+    }
+    exports.isTag = isTag;
+    exports.Root = ElementType.Root;
+    exports.Text = ElementType.Text;
+    exports.Directive = ElementType.Directive;
+    exports.Comment = ElementType.Comment;
+    exports.Script = ElementType.Script;
+    exports.Style = ElementType.Style;
+    exports.Tag = ElementType.Tag;
+    exports.CDATA = ElementType.CDATA;
+    exports.Doctype = ElementType.Doctype;
+  })(lib$2);
+  return lib$2;
+}
+var node$2 = {};
+var hasRequiredNode$1;
+function requireNode$1() {
+  if (hasRequiredNode$1) return node$2;
+  hasRequiredNode$1 = 1;
+  var __extends2 = node$2 && node$2.__extends || /* @__PURE__ */ (function() {
+    var extendStatics = function(d, b) {
+      extendStatics = Object.setPrototypeOf || { __proto__: [] } instanceof Array && function(d2, b2) {
+        d2.__proto__ = b2;
+      } || function(d2, b2) {
+        for (var p in b2) if (Object.prototype.hasOwnProperty.call(b2, p)) d2[p] = b2[p];
+      };
+      return extendStatics(d, b);
+    };
+    return function(d, b) {
+      if (typeof b !== "function" && b !== null)
+        throw new TypeError("Class extends value " + String(b) + " is not a constructor or null");
+      extendStatics(d, b);
+      function __() {
+        this.constructor = d;
+      }
+      d.prototype = b === null ? Object.create(b) : (__.prototype = b.prototype, new __());
+    };
+  })();
+  var __assign2 = node$2 && node$2.__assign || function() {
+    __assign2 = Object.assign || function(t) {
+      for (var s, i2 = 1, n = arguments.length; i2 < n; i2++) {
+        s = arguments[i2];
+        for (var p in s) if (Object.prototype.hasOwnProperty.call(s, p))
+          t[p] = s[p];
+      }
+      return t;
+    };
+    return __assign2.apply(this, arguments);
+  };
+  Object.defineProperty(node$2, "__esModule", { value: true });
+  node$2.cloneNode = node$2.hasChildren = node$2.isDocument = node$2.isDirective = node$2.isComment = node$2.isText = node$2.isCDATA = node$2.isTag = node$2.Element = node$2.Document = node$2.CDATA = node$2.NodeWithChildren = node$2.ProcessingInstruction = node$2.Comment = node$2.Text = node$2.DataNode = node$2.Node = void 0;
+  var domelementtype_1 = /* @__PURE__ */ requireLib$4();
+  var Node2 = (
+    /** @class */
+    (function() {
+      function Node3() {
+        this.parent = null;
+        this.prev = null;
+        this.next = null;
+        this.startIndex = null;
+        this.endIndex = null;
+      }
+      Object.defineProperty(Node3.prototype, "parentNode", {
+        // Read-write aliases for properties
+        /**
+         * Same as {@link parent}.
+         * [DOM spec](https://dom.spec.whatwg.org)-compatible alias.
+         */
+        get: function() {
+          return this.parent;
+        },
+        set: function(parent) {
+          this.parent = parent;
+        },
+        enumerable: false,
+        configurable: true
+      });
+      Object.defineProperty(Node3.prototype, "previousSibling", {
+        /**
+         * Same as {@link prev}.
+         * [DOM spec](https://dom.spec.whatwg.org)-compatible alias.
+         */
+        get: function() {
+          return this.prev;
+        },
+        set: function(prev2) {
+          this.prev = prev2;
+        },
+        enumerable: false,
+        configurable: true
+      });
+      Object.defineProperty(Node3.prototype, "nextSibling", {
+        /**
+         * Same as {@link next}.
+         * [DOM spec](https://dom.spec.whatwg.org)-compatible alias.
+         */
+        get: function() {
+          return this.next;
+        },
+        set: function(next2) {
+          this.next = next2;
+        },
+        enumerable: false,
+        configurable: true
+      });
+      Node3.prototype.cloneNode = function(recursive) {
+        if (recursive === void 0) {
+          recursive = false;
+        }
+        return cloneNode(this, recursive);
+      };
+      return Node3;
+    })()
+  );
+  node$2.Node = Node2;
+  var DataNode = (
+    /** @class */
+    (function(_super) {
+      __extends2(DataNode2, _super);
+      function DataNode2(data) {
+        var _this = _super.call(this) || this;
+        _this.data = data;
+        return _this;
+      }
+      Object.defineProperty(DataNode2.prototype, "nodeValue", {
+        /**
+         * Same as {@link data}.
+         * [DOM spec](https://dom.spec.whatwg.org)-compatible alias.
+         */
+        get: function() {
+          return this.data;
+        },
+        set: function(data) {
+          this.data = data;
+        },
+        enumerable: false,
+        configurable: true
+      });
+      return DataNode2;
+    })(Node2)
+  );
+  node$2.DataNode = DataNode;
+  var Text = (
+    /** @class */
+    (function(_super) {
+      __extends2(Text2, _super);
+      function Text2() {
+        var _this = _super !== null && _super.apply(this, arguments) || this;
+        _this.type = domelementtype_1.ElementType.Text;
+        return _this;
+      }
+      Object.defineProperty(Text2.prototype, "nodeType", {
+        get: function() {
+          return 3;
+        },
+        enumerable: false,
+        configurable: true
+      });
+      return Text2;
+    })(DataNode)
+  );
+  node$2.Text = Text;
+  var Comment = (
+    /** @class */
+    (function(_super) {
+      __extends2(Comment2, _super);
+      function Comment2() {
+        var _this = _super !== null && _super.apply(this, arguments) || this;
+        _this.type = domelementtype_1.ElementType.Comment;
+        return _this;
+      }
+      Object.defineProperty(Comment2.prototype, "nodeType", {
+        get: function() {
+          return 8;
+        },
+        enumerable: false,
+        configurable: true
+      });
+      return Comment2;
+    })(DataNode)
+  );
+  node$2.Comment = Comment;
+  var ProcessingInstruction = (
+    /** @class */
+    (function(_super) {
+      __extends2(ProcessingInstruction2, _super);
+      function ProcessingInstruction2(name, data) {
+        var _this = _super.call(this, data) || this;
+        _this.name = name;
+        _this.type = domelementtype_1.ElementType.Directive;
+        return _this;
+      }
+      Object.defineProperty(ProcessingInstruction2.prototype, "nodeType", {
+        get: function() {
+          return 1;
+        },
+        enumerable: false,
+        configurable: true
+      });
+      return ProcessingInstruction2;
+    })(DataNode)
+  );
+  node$2.ProcessingInstruction = ProcessingInstruction;
+  var NodeWithChildren = (
+    /** @class */
+    (function(_super) {
+      __extends2(NodeWithChildren2, _super);
+      function NodeWithChildren2(children2) {
+        var _this = _super.call(this) || this;
+        _this.children = children2;
+        return _this;
+      }
+      Object.defineProperty(NodeWithChildren2.prototype, "firstChild", {
+        // Aliases
+        /** First child of the node. */
+        get: function() {
+          var _a2;
+          return (_a2 = this.children[0]) !== null && _a2 !== void 0 ? _a2 : null;
+        },
+        enumerable: false,
+        configurable: true
+      });
+      Object.defineProperty(NodeWithChildren2.prototype, "lastChild", {
+        /** Last child of the node. */
+        get: function() {
+          return this.children.length > 0 ? this.children[this.children.length - 1] : null;
+        },
+        enumerable: false,
+        configurable: true
+      });
+      Object.defineProperty(NodeWithChildren2.prototype, "childNodes", {
+        /**
+         * Same as {@link children}.
+         * [DOM spec](https://dom.spec.whatwg.org)-compatible alias.
+         */
+        get: function() {
+          return this.children;
+        },
+        set: function(children2) {
+          this.children = children2;
+        },
+        enumerable: false,
+        configurable: true
+      });
+      return NodeWithChildren2;
+    })(Node2)
+  );
+  node$2.NodeWithChildren = NodeWithChildren;
+  var CDATA = (
+    /** @class */
+    (function(_super) {
+      __extends2(CDATA2, _super);
+      function CDATA2() {
+        var _this = _super !== null && _super.apply(this, arguments) || this;
+        _this.type = domelementtype_1.ElementType.CDATA;
+        return _this;
+      }
+      Object.defineProperty(CDATA2.prototype, "nodeType", {
+        get: function() {
+          return 4;
+        },
+        enumerable: false,
+        configurable: true
+      });
+      return CDATA2;
+    })(NodeWithChildren)
+  );
+  node$2.CDATA = CDATA;
+  var Document = (
+    /** @class */
+    (function(_super) {
+      __extends2(Document2, _super);
+      function Document2() {
+        var _this = _super !== null && _super.apply(this, arguments) || this;
+        _this.type = domelementtype_1.ElementType.Root;
+        return _this;
+      }
+      Object.defineProperty(Document2.prototype, "nodeType", {
+        get: function() {
+          return 9;
+        },
+        enumerable: false,
+        configurable: true
+      });
+      return Document2;
+    })(NodeWithChildren)
+  );
+  node$2.Document = Document;
+  var Element2 = (
+    /** @class */
+    (function(_super) {
+      __extends2(Element3, _super);
+      function Element3(name, attribs, children2, type2) {
+        if (children2 === void 0) {
+          children2 = [];
+        }
+        if (type2 === void 0) {
+          type2 = name === "script" ? domelementtype_1.ElementType.Script : name === "style" ? domelementtype_1.ElementType.Style : domelementtype_1.ElementType.Tag;
+        }
+        var _this = _super.call(this, children2) || this;
+        _this.name = name;
+        _this.attribs = attribs;
+        _this.type = type2;
+        return _this;
+      }
+      Object.defineProperty(Element3.prototype, "nodeType", {
+        get: function() {
+          return 1;
+        },
+        enumerable: false,
+        configurable: true
+      });
+      Object.defineProperty(Element3.prototype, "tagName", {
+        // DOM Level 1 aliases
+        /**
+         * Same as {@link name}.
+         * [DOM spec](https://dom.spec.whatwg.org)-compatible alias.
+         */
+        get: function() {
+          return this.name;
+        },
+        set: function(name) {
+          this.name = name;
+        },
+        enumerable: false,
+        configurable: true
+      });
+      Object.defineProperty(Element3.prototype, "attributes", {
+        get: function() {
+          var _this = this;
+          return Object.keys(this.attribs).map(function(name) {
+            var _a2, _b;
+            return {
+              name,
+              value: _this.attribs[name],
+              namespace: (_a2 = _this["x-attribsNamespace"]) === null || _a2 === void 0 ? void 0 : _a2[name],
+              prefix: (_b = _this["x-attribsPrefix"]) === null || _b === void 0 ? void 0 : _b[name]
+            };
+          });
+        },
+        enumerable: false,
+        configurable: true
+      });
+      return Element3;
+    })(NodeWithChildren)
+  );
+  node$2.Element = Element2;
+  function isTag(node2) {
+    return (0, domelementtype_1.isTag)(node2);
+  }
+  node$2.isTag = isTag;
+  function isCDATA(node2) {
+    return node2.type === domelementtype_1.ElementType.CDATA;
+  }
+  node$2.isCDATA = isCDATA;
+  function isText(node2) {
+    return node2.type === domelementtype_1.ElementType.Text;
+  }
+  node$2.isText = isText;
+  function isComment(node2) {
+    return node2.type === domelementtype_1.ElementType.Comment;
+  }
+  node$2.isComment = isComment;
+  function isDirective(node2) {
+    return node2.type === domelementtype_1.ElementType.Directive;
+  }
+  node$2.isDirective = isDirective;
+  function isDocument2(node2) {
+    return node2.type === domelementtype_1.ElementType.Root;
+  }
+  node$2.isDocument = isDocument2;
+  function hasChildren(node2) {
+    return Object.prototype.hasOwnProperty.call(node2, "children");
+  }
+  node$2.hasChildren = hasChildren;
+  function cloneNode(node2, recursive) {
+    if (recursive === void 0) {
+      recursive = false;
+    }
+    var result;
+    if (isText(node2)) {
+      result = new Text(node2.data);
+    } else if (isComment(node2)) {
+      result = new Comment(node2.data);
+    } else if (isTag(node2)) {
+      var children2 = recursive ? cloneChildren(node2.children) : [];
+      var clone_1 = new Element2(node2.name, __assign2({}, node2.attribs), children2);
+      children2.forEach(function(child) {
+        return child.parent = clone_1;
+      });
+      if (node2.namespace != null) {
+        clone_1.namespace = node2.namespace;
+      }
+      if (node2["x-attribsNamespace"]) {
+        clone_1["x-attribsNamespace"] = __assign2({}, node2["x-attribsNamespace"]);
+      }
+      if (node2["x-attribsPrefix"]) {
+        clone_1["x-attribsPrefix"] = __assign2({}, node2["x-attribsPrefix"]);
+      }
+      result = clone_1;
+    } else if (isCDATA(node2)) {
+      var children2 = recursive ? cloneChildren(node2.children) : [];
+      var clone_2 = new CDATA(children2);
+      children2.forEach(function(child) {
+        return child.parent = clone_2;
+      });
+      result = clone_2;
+    } else if (isDocument2(node2)) {
+      var children2 = recursive ? cloneChildren(node2.children) : [];
+      var clone_3 = new Document(children2);
+      children2.forEach(function(child) {
+        return child.parent = clone_3;
+      });
+      if (node2["x-mode"]) {
+        clone_3["x-mode"] = node2["x-mode"];
+      }
+      result = clone_3;
+    } else if (isDirective(node2)) {
+      var instruction = new ProcessingInstruction(node2.name, node2.data);
+      if (node2["x-name"] != null) {
+        instruction["x-name"] = node2["x-name"];
+        instruction["x-publicId"] = node2["x-publicId"];
+        instruction["x-systemId"] = node2["x-systemId"];
+      }
+      result = instruction;
+    } else {
+      throw new Error("Not implemented yet: ".concat(node2.type));
+    }
+    result.startIndex = node2.startIndex;
+    result.endIndex = node2.endIndex;
+    if (node2.sourceCodeLocation != null) {
+      result.sourceCodeLocation = node2.sourceCodeLocation;
+    }
+    return result;
+  }
+  node$2.cloneNode = cloneNode;
+  function cloneChildren(childs) {
+    var children2 = childs.map(function(child) {
+      return cloneNode(child, true);
+    });
+    for (var i2 = 1; i2 < children2.length; i2++) {
+      children2[i2].prev = children2[i2 - 1];
+      children2[i2 - 1].next = children2[i2];
+    }
+    return children2;
+  }
+  return node$2;
+}
+var hasRequiredLib$3;
+function requireLib$3() {
+  if (hasRequiredLib$3) return lib$3;
+  hasRequiredLib$3 = 1;
+  (function(exports) {
+    var __createBinding = lib$3 && lib$3.__createBinding || (Object.create ? (function(o, m, k, k2) {
+      if (k2 === void 0) k2 = k;
+      var desc = Object.getOwnPropertyDescriptor(m, k);
+      if (!desc || ("get" in desc ? !m.__esModule : desc.writable || desc.configurable)) {
+        desc = { enumerable: true, get: function() {
+          return m[k];
+        } };
+      }
+      Object.defineProperty(o, k2, desc);
+    }) : (function(o, m, k, k2) {
+      if (k2 === void 0) k2 = k;
+      o[k2] = m[k];
+    }));
+    var __exportStar = lib$3 && lib$3.__exportStar || function(m, exports2) {
+      for (var p in m) if (p !== "default" && !Object.prototype.hasOwnProperty.call(exports2, p)) __createBinding(exports2, m, p);
+    };
+    Object.defineProperty(exports, "__esModule", { value: true });
+    exports.DomHandler = void 0;
+    var domelementtype_1 = /* @__PURE__ */ requireLib$4();
+    var node_js_1 = /* @__PURE__ */ requireNode$1();
+    __exportStar(/* @__PURE__ */ requireNode$1(), exports);
+    var defaultOpts = {
+      withStartIndices: false,
+      withEndIndices: false,
+      xmlMode: false
+    };
+    var DomHandler = (
+      /** @class */
+      (function() {
+        function DomHandler2(callback, options2, elementCB) {
+          this.dom = [];
+          this.root = new node_js_1.Document(this.dom);
+          this.done = false;
+          this.tagStack = [this.root];
+          this.lastNode = null;
+          this.parser = null;
+          if (typeof options2 === "function") {
+            elementCB = options2;
+            options2 = defaultOpts;
+          }
+          if (typeof callback === "object") {
+            options2 = callback;
+            callback = void 0;
+          }
+          this.callback = callback !== null && callback !== void 0 ? callback : null;
+          this.options = options2 !== null && options2 !== void 0 ? options2 : defaultOpts;
+          this.elementCB = elementCB !== null && elementCB !== void 0 ? elementCB : null;
+        }
+        DomHandler2.prototype.onparserinit = function(parser) {
+          this.parser = parser;
+        };
+        DomHandler2.prototype.onreset = function() {
+          this.dom = [];
+          this.root = new node_js_1.Document(this.dom);
+          this.done = false;
+          this.tagStack = [this.root];
+          this.lastNode = null;
+          this.parser = null;
+        };
+        DomHandler2.prototype.onend = function() {
+          if (this.done)
+            return;
+          this.done = true;
+          this.parser = null;
+          this.handleCallback(null);
+        };
+        DomHandler2.prototype.onerror = function(error) {
+          this.handleCallback(error);
+        };
+        DomHandler2.prototype.onclosetag = function() {
+          this.lastNode = null;
+          var elem = this.tagStack.pop();
+          if (this.options.withEndIndices) {
+            elem.endIndex = this.parser.endIndex;
+          }
+          if (this.elementCB)
+            this.elementCB(elem);
+        };
+        DomHandler2.prototype.onopentag = function(name, attribs) {
+          var type2 = this.options.xmlMode ? domelementtype_1.ElementType.Tag : void 0;
+          var element2 = new node_js_1.Element(name, attribs, void 0, type2);
+          this.addNode(element2);
+          this.tagStack.push(element2);
+        };
+        DomHandler2.prototype.ontext = function(data) {
+          var lastNode = this.lastNode;
+          if (lastNode && lastNode.type === domelementtype_1.ElementType.Text) {
+            lastNode.data += data;
+            if (this.options.withEndIndices) {
+              lastNode.endIndex = this.parser.endIndex;
+            }
+          } else {
+            var node2 = new node_js_1.Text(data);
+            this.addNode(node2);
+            this.lastNode = node2;
+          }
+        };
+        DomHandler2.prototype.oncomment = function(data) {
+          if (this.lastNode && this.lastNode.type === domelementtype_1.ElementType.Comment) {
+            this.lastNode.data += data;
+            return;
+          }
+          var node2 = new node_js_1.Comment(data);
+          this.addNode(node2);
+          this.lastNode = node2;
+        };
+        DomHandler2.prototype.oncommentend = function() {
+          this.lastNode = null;
+        };
+        DomHandler2.prototype.oncdatastart = function() {
+          var text2 = new node_js_1.Text("");
+          var node2 = new node_js_1.CDATA([text2]);
+          this.addNode(node2);
+          text2.parent = node2;
+          this.lastNode = text2;
+        };
+        DomHandler2.prototype.oncdataend = function() {
+          this.lastNode = null;
+        };
+        DomHandler2.prototype.onprocessinginstruction = function(name, data) {
+          var node2 = new node_js_1.ProcessingInstruction(name, data);
+          this.addNode(node2);
+        };
+        DomHandler2.prototype.handleCallback = function(error) {
+          if (typeof this.callback === "function") {
+            this.callback(error, this.dom);
+          } else if (error) {
+            throw error;
+          }
+        };
+        DomHandler2.prototype.addNode = function(node2) {
+          var parent = this.tagStack[this.tagStack.length - 1];
+          var previousSibling = parent.children[parent.children.length - 1];
+          if (this.options.withStartIndices) {
+            node2.startIndex = this.parser.startIndex;
+          }
+          if (this.options.withEndIndices) {
+            node2.endIndex = this.parser.endIndex;
+          }
+          parent.children.push(node2);
+          if (previousSibling) {
+            node2.prev = previousSibling;
+            previousSibling.next = node2;
+          }
+          node2.parent = parent;
+          this.lastNode = null;
+        };
+        return DomHandler2;
+      })()
+    );
+    exports.DomHandler = DomHandler;
+    exports.default = DomHandler;
+  })(lib$3);
+  return lib$3;
+}
+var constants = {};
+var hasRequiredConstants;
+function requireConstants() {
+  if (hasRequiredConstants) return constants;
+  hasRequiredConstants = 1;
+  (function(exports) {
+    Object.defineProperty(exports, "__esModule", { value: true });
+    exports.CARRIAGE_RETURN_PLACEHOLDER_REGEX = exports.CARRIAGE_RETURN_PLACEHOLDER = exports.CARRIAGE_RETURN_REGEX = exports.CARRIAGE_RETURN = exports.CASE_SENSITIVE_TAG_NAMES_MAP = exports.CASE_SENSITIVE_TAG_NAMES = void 0;
+    exports.CASE_SENSITIVE_TAG_NAMES = [
+      "animateMotion",
+      "animateTransform",
+      "clipPath",
+      "feBlend",
+      "feColorMatrix",
+      "feComponentTransfer",
+      "feComposite",
+      "feConvolveMatrix",
+      "feDiffuseLighting",
+      "feDisplacementMap",
+      "feDropShadow",
+      "feFlood",
+      "feFuncA",
+      "feFuncB",
+      "feFuncG",
+      "feFuncR",
+      "feGaussianBlur",
+      "feImage",
+      "feMerge",
+      "feMergeNode",
+      "feMorphology",
+      "feOffset",
+      "fePointLight",
+      "feSpecularLighting",
+      "feSpotLight",
+      "feTile",
+      "feTurbulence",
+      "foreignObject",
+      "linearGradient",
+      "radialGradient",
+      "textPath"
+    ];
+    exports.CASE_SENSITIVE_TAG_NAMES_MAP = exports.CASE_SENSITIVE_TAG_NAMES.reduce(function(accumulator, tagName) {
+      accumulator[tagName.toLowerCase()] = tagName;
+      return accumulator;
+    }, {});
+    exports.CARRIAGE_RETURN = "\r";
+    exports.CARRIAGE_RETURN_REGEX = new RegExp(exports.CARRIAGE_RETURN, "g");
+    exports.CARRIAGE_RETURN_PLACEHOLDER = "__HTML_DOM_PARSER_CARRIAGE_RETURN_PLACEHOLDER_".concat(Date.now(), "__");
+    exports.CARRIAGE_RETURN_PLACEHOLDER_REGEX = new RegExp(exports.CARRIAGE_RETURN_PLACEHOLDER, "g");
+  })(constants);
+  return constants;
+}
+var hasRequiredUtilities$2;
+function requireUtilities$2() {
+  if (hasRequiredUtilities$2) return utilities$2;
+  hasRequiredUtilities$2 = 1;
+  Object.defineProperty(utilities$2, "__esModule", { value: true });
+  utilities$2.formatAttributes = formatAttributes;
+  utilities$2.escapeSpecialCharacters = escapeSpecialCharacters;
+  utilities$2.revertEscapedCharacters = revertEscapedCharacters;
+  utilities$2.formatDOM = formatDOM;
+  var domhandler_1 = /* @__PURE__ */ requireLib$3();
+  var constants_1 = requireConstants();
+  function getCaseSensitiveTagName(tagName) {
+    return constants_1.CASE_SENSITIVE_TAG_NAMES_MAP[tagName];
+  }
+  function formatAttributes(attributes) {
+    var map2 = {};
+    var index2 = 0;
+    var attributesLength = attributes.length;
+    for (; index2 < attributesLength; index2++) {
+      var attribute = attributes[index2];
+      map2[attribute.name] = attribute.value;
+    }
+    return map2;
+  }
+  function formatTagName(tagName) {
+    tagName = tagName.toLowerCase();
+    var caseSensitiveTagName = getCaseSensitiveTagName(tagName);
+    if (caseSensitiveTagName) {
+      return caseSensitiveTagName;
+    }
+    return tagName;
+  }
+  function escapeSpecialCharacters(html) {
+    return html.replace(constants_1.CARRIAGE_RETURN_REGEX, constants_1.CARRIAGE_RETURN_PLACEHOLDER);
+  }
+  function revertEscapedCharacters(text2) {
+    return text2.replace(constants_1.CARRIAGE_RETURN_PLACEHOLDER_REGEX, constants_1.CARRIAGE_RETURN);
+  }
+  function formatDOM(nodes, parent, directive) {
+    if (parent === void 0) {
+      parent = null;
+    }
+    var domNodes = [];
+    var current;
+    var index2 = 0;
+    var nodesLength = nodes.length;
+    for (; index2 < nodesLength; index2++) {
+      var node2 = nodes[index2];
+      switch (node2.nodeType) {
+        case 1: {
+          var tagName = formatTagName(node2.nodeName);
+          current = new domhandler_1.Element(tagName, formatAttributes(node2.attributes));
+          current.children = formatDOM(
+            // template children are on content
+            tagName === "template" ? node2.content.childNodes : node2.childNodes,
+            current
+          );
+          break;
+        }
+        case 3:
+          current = new domhandler_1.Text(revertEscapedCharacters(node2.nodeValue));
+          break;
+        case 8:
+          current = new domhandler_1.Comment(node2.nodeValue);
+          break;
+        default:
+          continue;
+      }
+      var prev2 = domNodes[index2 - 1] || null;
+      if (prev2) {
+        prev2.next = current;
+      }
+      current.parent = parent;
+      current.prev = prev2;
+      current.next = null;
+      domNodes.push(current);
+    }
+    if (directive) {
+      current = new domhandler_1.ProcessingInstruction(directive.substring(0, directive.indexOf(" ")).toLowerCase(), directive);
+      current.next = domNodes[0] || null;
+      current.parent = parent;
+      domNodes.unshift(current);
+      if (domNodes[1]) {
+        domNodes[1].prev = domNodes[0];
+      }
+    }
+    return domNodes;
+  }
+  return utilities$2;
+}
+var hasRequiredDomparser;
+function requireDomparser() {
+  if (hasRequiredDomparser) return domparser;
+  hasRequiredDomparser = 1;
+  Object.defineProperty(domparser, "__esModule", { value: true });
+  domparser.default = domparser$1;
+  var utilities_1 = requireUtilities$2();
+  var HTML = "html";
+  var HEAD = "head";
+  var BODY = "body";
+  var FIRST_TAG_REGEX = /<([a-zA-Z]+[0-9]?)/;
+  var HEAD_TAG_REGEX = /<head[^]*>/i;
+  var BODY_TAG_REGEX = /<body[^]*>/i;
+  var parseFromDocument = function(html, tagName) {
+    throw new Error("This browser does not support `document.implementation.createHTMLDocument`");
+  };
+  var parseFromString = function(html, tagName) {
+    throw new Error("This browser does not support `DOMParser.prototype.parseFromString`");
+  };
+  var DOMParser = typeof window === "object" && window.DOMParser;
+  if (typeof DOMParser === "function") {
+    var domParser_1 = new DOMParser();
+    var mimeType_1 = "text/html";
+    parseFromString = function(html, tagName) {
+      if (tagName) {
+        html = "<".concat(tagName, ">").concat(html, "</").concat(tagName, ">");
+      }
+      return domParser_1.parseFromString(html, mimeType_1);
+    };
+    parseFromDocument = parseFromString;
+  }
+  if (typeof document === "object" && document.implementation) {
+    var htmlDocument_1 = document.implementation.createHTMLDocument();
+    parseFromDocument = function(html, tagName) {
+      if (tagName) {
+        var element2 = htmlDocument_1.documentElement.querySelector(tagName);
+        if (element2) {
+          element2.innerHTML = html;
+        }
+        return htmlDocument_1;
+      }
+      htmlDocument_1.documentElement.innerHTML = html;
+      return htmlDocument_1;
+    };
+  }
+  var template = typeof document === "object" && document.createElement("template");
+  var parseFromTemplate;
+  if (template && template.content) {
+    parseFromTemplate = function(html) {
+      template.innerHTML = html;
+      return template.content.childNodes;
+    };
+  }
+  function domparser$1(html) {
+    var _a2, _b;
+    html = (0, utilities_1.escapeSpecialCharacters)(html);
+    var match2 = html.match(FIRST_TAG_REGEX);
+    var firstTagName = match2 && match2[1] ? match2[1].toLowerCase() : "";
+    switch (firstTagName) {
+      case HTML: {
+        var doc = parseFromString(html);
+        if (!HEAD_TAG_REGEX.test(html)) {
+          var element2 = doc.querySelector(HEAD);
+          (_a2 = element2 === null || element2 === void 0 ? void 0 : element2.parentNode) === null || _a2 === void 0 ? void 0 : _a2.removeChild(element2);
+        }
+        if (!BODY_TAG_REGEX.test(html)) {
+          var element2 = doc.querySelector(BODY);
+          (_b = element2 === null || element2 === void 0 ? void 0 : element2.parentNode) === null || _b === void 0 ? void 0 : _b.removeChild(element2);
+        }
+        return doc.querySelectorAll(HTML);
+      }
+      case HEAD:
+      case BODY: {
+        var elements = parseFromDocument(html).querySelectorAll(firstTagName);
+        if (BODY_TAG_REGEX.test(html) && HEAD_TAG_REGEX.test(html)) {
+          return elements[0].parentNode.childNodes;
+        }
+        return elements;
+      }
+      // low-level tag or text
+      default: {
+        if (parseFromTemplate) {
+          return parseFromTemplate(html);
+        }
+        var element2 = parseFromDocument(html, BODY).querySelector(BODY);
+        return element2.childNodes;
+      }
+    }
+  }
+  return domparser;
+}
+var hasRequiredHtmlToDom;
+function requireHtmlToDom() {
+  if (hasRequiredHtmlToDom) return htmlToDom;
+  hasRequiredHtmlToDom = 1;
+  var __importDefault = htmlToDom && htmlToDom.__importDefault || function(mod) {
+    return mod && mod.__esModule ? mod : { "default": mod };
+  };
+  Object.defineProperty(htmlToDom, "__esModule", { value: true });
+  htmlToDom.default = HTMLDOMParser;
+  var domparser_1 = __importDefault(requireDomparser());
+  var utilities_1 = requireUtilities$2();
+  var DIRECTIVE_REGEX = /<(![a-zA-Z\s]+)>/;
+  function HTMLDOMParser(html) {
+    if (typeof html !== "string") {
+      throw new TypeError("First argument must be a string");
+    }
+    if (!html) {
+      return [];
+    }
+    var match2 = html.match(DIRECTIVE_REGEX);
+    var directive = match2 ? match2[1] : void 0;
+    return (0, utilities_1.formatDOM)((0, domparser_1.default)(html), null, directive);
+  }
+  return htmlToDom;
+}
+var attributesToProps = {};
+var lib$1 = {};
+var possibleStandardNamesOptimized = {};
+var hasRequiredPossibleStandardNamesOptimized;
+function requirePossibleStandardNamesOptimized() {
+  if (hasRequiredPossibleStandardNamesOptimized) return possibleStandardNamesOptimized;
+  hasRequiredPossibleStandardNamesOptimized = 1;
+  var SAME = 0;
+  possibleStandardNamesOptimized.SAME = SAME;
+  var CAMELCASE = 1;
+  possibleStandardNamesOptimized.CAMELCASE = CAMELCASE;
+  possibleStandardNamesOptimized.possibleStandardNames = {
+    accept: 0,
+    acceptCharset: 1,
+    "accept-charset": "acceptCharset",
+    accessKey: 1,
+    action: 0,
+    allowFullScreen: 1,
+    alt: 0,
+    as: 0,
+    async: 0,
+    autoCapitalize: 1,
+    autoComplete: 1,
+    autoCorrect: 1,
+    autoFocus: 1,
+    autoPlay: 1,
+    autoSave: 1,
+    capture: 0,
+    cellPadding: 1,
+    cellSpacing: 1,
+    challenge: 0,
+    charSet: 1,
+    checked: 0,
+    children: 0,
+    cite: 0,
+    class: "className",
+    classID: 1,
+    className: 1,
+    cols: 0,
+    colSpan: 1,
+    content: 0,
+    contentEditable: 1,
+    contextMenu: 1,
+    controls: 0,
+    controlsList: 1,
+    coords: 0,
+    crossOrigin: 1,
+    dangerouslySetInnerHTML: 1,
+    data: 0,
+    dateTime: 1,
+    default: 0,
+    defaultChecked: 1,
+    defaultValue: 1,
+    defer: 0,
+    dir: 0,
+    disabled: 0,
+    disablePictureInPicture: 1,
+    disableRemotePlayback: 1,
+    download: 0,
+    draggable: 0,
+    encType: 1,
+    enterKeyHint: 1,
+    for: "htmlFor",
+    form: 0,
+    formMethod: 1,
+    formAction: 1,
+    formEncType: 1,
+    formNoValidate: 1,
+    formTarget: 1,
+    frameBorder: 1,
+    headers: 0,
+    height: 0,
+    hidden: 0,
+    high: 0,
+    href: 0,
+    hrefLang: 1,
+    htmlFor: 1,
+    httpEquiv: 1,
+    "http-equiv": "httpEquiv",
+    icon: 0,
+    id: 0,
+    innerHTML: 1,
+    inputMode: 1,
+    integrity: 0,
+    is: 0,
+    itemID: 1,
+    itemProp: 1,
+    itemRef: 1,
+    itemScope: 1,
+    itemType: 1,
+    keyParams: 1,
+    keyType: 1,
+    kind: 0,
+    label: 0,
+    lang: 0,
+    list: 0,
+    loop: 0,
+    low: 0,
+    manifest: 0,
+    marginWidth: 1,
+    marginHeight: 1,
+    max: 0,
+    maxLength: 1,
+    media: 0,
+    mediaGroup: 1,
+    method: 0,
+    min: 0,
+    minLength: 1,
+    multiple: 0,
+    muted: 0,
+    name: 0,
+    noModule: 1,
+    nonce: 0,
+    noValidate: 1,
+    open: 0,
+    optimum: 0,
+    pattern: 0,
+    placeholder: 0,
+    playsInline: 1,
+    poster: 0,
+    preload: 0,
+    profile: 0,
+    radioGroup: 1,
+    readOnly: 1,
+    referrerPolicy: 1,
+    rel: 0,
+    required: 0,
+    reversed: 0,
+    role: 0,
+    rows: 0,
+    rowSpan: 1,
+    sandbox: 0,
+    scope: 0,
+    scoped: 0,
+    scrolling: 0,
+    seamless: 0,
+    selected: 0,
+    shape: 0,
+    size: 0,
+    sizes: 0,
+    span: 0,
+    spellCheck: 1,
+    src: 0,
+    srcDoc: 1,
+    srcLang: 1,
+    srcSet: 1,
+    start: 0,
+    step: 0,
+    style: 0,
+    summary: 0,
+    tabIndex: 1,
+    target: 0,
+    title: 0,
+    type: 0,
+    useMap: 1,
+    value: 0,
+    width: 0,
+    wmode: 0,
+    wrap: 0,
+    about: 0,
+    accentHeight: 1,
+    "accent-height": "accentHeight",
+    accumulate: 0,
+    additive: 0,
+    alignmentBaseline: 1,
+    "alignment-baseline": "alignmentBaseline",
+    allowReorder: 1,
+    alphabetic: 0,
+    amplitude: 0,
+    arabicForm: 1,
+    "arabic-form": "arabicForm",
+    ascent: 0,
+    attributeName: 1,
+    attributeType: 1,
+    autoReverse: 1,
+    azimuth: 0,
+    baseFrequency: 1,
+    baselineShift: 1,
+    "baseline-shift": "baselineShift",
+    baseProfile: 1,
+    bbox: 0,
+    begin: 0,
+    bias: 0,
+    by: 0,
+    calcMode: 1,
+    capHeight: 1,
+    "cap-height": "capHeight",
+    clip: 0,
+    clipPath: 1,
+    "clip-path": "clipPath",
+    clipPathUnits: 1,
+    clipRule: 1,
+    "clip-rule": "clipRule",
+    color: 0,
+    colorInterpolation: 1,
+    "color-interpolation": "colorInterpolation",
+    colorInterpolationFilters: 1,
+    "color-interpolation-filters": "colorInterpolationFilters",
+    colorProfile: 1,
+    "color-profile": "colorProfile",
+    colorRendering: 1,
+    "color-rendering": "colorRendering",
+    contentScriptType: 1,
+    contentStyleType: 1,
+    cursor: 0,
+    cx: 0,
+    cy: 0,
+    d: 0,
+    datatype: 0,
+    decelerate: 0,
+    descent: 0,
+    diffuseConstant: 1,
+    direction: 0,
+    display: 0,
+    divisor: 0,
+    dominantBaseline: 1,
+    "dominant-baseline": "dominantBaseline",
+    dur: 0,
+    dx: 0,
+    dy: 0,
+    edgeMode: 1,
+    elevation: 0,
+    enableBackground: 1,
+    "enable-background": "enableBackground",
+    end: 0,
+    exponent: 0,
+    externalResourcesRequired: 1,
+    fill: 0,
+    fillOpacity: 1,
+    "fill-opacity": "fillOpacity",
+    fillRule: 1,
+    "fill-rule": "fillRule",
+    filter: 0,
+    filterRes: 1,
+    filterUnits: 1,
+    floodOpacity: 1,
+    "flood-opacity": "floodOpacity",
+    floodColor: 1,
+    "flood-color": "floodColor",
+    focusable: 0,
+    fontFamily: 1,
+    "font-family": "fontFamily",
+    fontSize: 1,
+    "font-size": "fontSize",
+    fontSizeAdjust: 1,
+    "font-size-adjust": "fontSizeAdjust",
+    fontStretch: 1,
+    "font-stretch": "fontStretch",
+    fontStyle: 1,
+    "font-style": "fontStyle",
+    fontVariant: 1,
+    "font-variant": "fontVariant",
+    fontWeight: 1,
+    "font-weight": "fontWeight",
+    format: 0,
+    from: 0,
+    fx: 0,
+    fy: 0,
+    g1: 0,
+    g2: 0,
+    glyphName: 1,
+    "glyph-name": "glyphName",
+    glyphOrientationHorizontal: 1,
+    "glyph-orientation-horizontal": "glyphOrientationHorizontal",
+    glyphOrientationVertical: 1,
+    "glyph-orientation-vertical": "glyphOrientationVertical",
+    glyphRef: 1,
+    gradientTransform: 1,
+    gradientUnits: 1,
+    hanging: 0,
+    horizAdvX: 1,
+    "horiz-adv-x": "horizAdvX",
+    horizOriginX: 1,
+    "horiz-origin-x": "horizOriginX",
+    ideographic: 0,
+    imageRendering: 1,
+    "image-rendering": "imageRendering",
+    in2: 0,
+    in: 0,
+    inlist: 0,
+    intercept: 0,
+    k1: 0,
+    k2: 0,
+    k3: 0,
+    k4: 0,
+    k: 0,
+    kernelMatrix: 1,
+    kernelUnitLength: 1,
+    kerning: 0,
+    keyPoints: 1,
+    keySplines: 1,
+    keyTimes: 1,
+    lengthAdjust: 1,
+    letterSpacing: 1,
+    "letter-spacing": "letterSpacing",
+    lightingColor: 1,
+    "lighting-color": "lightingColor",
+    limitingConeAngle: 1,
+    local: 0,
+    markerEnd: 1,
+    "marker-end": "markerEnd",
+    markerHeight: 1,
+    markerMid: 1,
+    "marker-mid": "markerMid",
+    markerStart: 1,
+    "marker-start": "markerStart",
+    markerUnits: 1,
+    markerWidth: 1,
+    mask: 0,
+    maskContentUnits: 1,
+    maskUnits: 1,
+    mathematical: 0,
+    mode: 0,
+    numOctaves: 1,
+    offset: 0,
+    opacity: 0,
+    operator: 0,
+    order: 0,
+    orient: 0,
+    orientation: 0,
+    origin: 0,
+    overflow: 0,
+    overlinePosition: 1,
+    "overline-position": "overlinePosition",
+    overlineThickness: 1,
+    "overline-thickness": "overlineThickness",
+    paintOrder: 1,
+    "paint-order": "paintOrder",
+    panose1: 0,
+    "panose-1": "panose1",
+    pathLength: 1,
+    patternContentUnits: 1,
+    patternTransform: 1,
+    patternUnits: 1,
+    pointerEvents: 1,
+    "pointer-events": "pointerEvents",
+    points: 0,
+    pointsAtX: 1,
+    pointsAtY: 1,
+    pointsAtZ: 1,
+    prefix: 0,
+    preserveAlpha: 1,
+    preserveAspectRatio: 1,
+    primitiveUnits: 1,
+    property: 0,
+    r: 0,
+    radius: 0,
+    refX: 1,
+    refY: 1,
+    renderingIntent: 1,
+    "rendering-intent": "renderingIntent",
+    repeatCount: 1,
+    repeatDur: 1,
+    requiredExtensions: 1,
+    requiredFeatures: 1,
+    resource: 0,
+    restart: 0,
+    result: 0,
+    results: 0,
+    rotate: 0,
+    rx: 0,
+    ry: 0,
+    scale: 0,
+    security: 0,
+    seed: 0,
+    shapeRendering: 1,
+    "shape-rendering": "shapeRendering",
+    slope: 0,
+    spacing: 0,
+    specularConstant: 1,
+    specularExponent: 1,
+    speed: 0,
+    spreadMethod: 1,
+    startOffset: 1,
+    stdDeviation: 1,
+    stemh: 0,
+    stemv: 0,
+    stitchTiles: 1,
+    stopColor: 1,
+    "stop-color": "stopColor",
+    stopOpacity: 1,
+    "stop-opacity": "stopOpacity",
+    strikethroughPosition: 1,
+    "strikethrough-position": "strikethroughPosition",
+    strikethroughThickness: 1,
+    "strikethrough-thickness": "strikethroughThickness",
+    string: 0,
+    stroke: 0,
+    strokeDasharray: 1,
+    "stroke-dasharray": "strokeDasharray",
+    strokeDashoffset: 1,
+    "stroke-dashoffset": "strokeDashoffset",
+    strokeLinecap: 1,
+    "stroke-linecap": "strokeLinecap",
+    strokeLinejoin: 1,
+    "stroke-linejoin": "strokeLinejoin",
+    strokeMiterlimit: 1,
+    "stroke-miterlimit": "strokeMiterlimit",
+    strokeWidth: 1,
+    "stroke-width": "strokeWidth",
+    strokeOpacity: 1,
+    "stroke-opacity": "strokeOpacity",
+    suppressContentEditableWarning: 1,
+    suppressHydrationWarning: 1,
+    surfaceScale: 1,
+    systemLanguage: 1,
+    tableValues: 1,
+    targetX: 1,
+    targetY: 1,
+    textAnchor: 1,
+    "text-anchor": "textAnchor",
+    textDecoration: 1,
+    "text-decoration": "textDecoration",
+    textLength: 1,
+    textRendering: 1,
+    "text-rendering": "textRendering",
+    to: 0,
+    transform: 0,
+    typeof: 0,
+    u1: 0,
+    u2: 0,
+    underlinePosition: 1,
+    "underline-position": "underlinePosition",
+    underlineThickness: 1,
+    "underline-thickness": "underlineThickness",
+    unicode: 0,
+    unicodeBidi: 1,
+    "unicode-bidi": "unicodeBidi",
+    unicodeRange: 1,
+    "unicode-range": "unicodeRange",
+    unitsPerEm: 1,
+    "units-per-em": "unitsPerEm",
+    unselectable: 0,
+    vAlphabetic: 1,
+    "v-alphabetic": "vAlphabetic",
+    values: 0,
+    vectorEffect: 1,
+    "vector-effect": "vectorEffect",
+    version: 0,
+    vertAdvY: 1,
+    "vert-adv-y": "vertAdvY",
+    vertOriginX: 1,
+    "vert-origin-x": "vertOriginX",
+    vertOriginY: 1,
+    "vert-origin-y": "vertOriginY",
+    vHanging: 1,
+    "v-hanging": "vHanging",
+    vIdeographic: 1,
+    "v-ideographic": "vIdeographic",
+    viewBox: 1,
+    viewTarget: 1,
+    visibility: 0,
+    vMathematical: 1,
+    "v-mathematical": "vMathematical",
+    vocab: 0,
+    widths: 0,
+    wordSpacing: 1,
+    "word-spacing": "wordSpacing",
+    writingMode: 1,
+    "writing-mode": "writingMode",
+    x1: 0,
+    x2: 0,
+    x: 0,
+    xChannelSelector: 1,
+    xHeight: 1,
+    "x-height": "xHeight",
+    xlinkActuate: 1,
+    "xlink:actuate": "xlinkActuate",
+    xlinkArcrole: 1,
+    "xlink:arcrole": "xlinkArcrole",
+    xlinkHref: 1,
+    "xlink:href": "xlinkHref",
+    xlinkRole: 1,
+    "xlink:role": "xlinkRole",
+    xlinkShow: 1,
+    "xlink:show": "xlinkShow",
+    xlinkTitle: 1,
+    "xlink:title": "xlinkTitle",
+    xlinkType: 1,
+    "xlink:type": "xlinkType",
+    xmlBase: 1,
+    "xml:base": "xmlBase",
+    xmlLang: 1,
+    "xml:lang": "xmlLang",
+    xmlns: 0,
+    "xml:space": "xmlSpace",
+    xmlnsXlink: 1,
+    "xmlns:xlink": "xmlnsXlink",
+    xmlSpace: 1,
+    y1: 0,
+    y2: 0,
+    y: 0,
+    yChannelSelector: 1,
+    z: 0,
+    zoomAndPan: 1
+  };
+  return possibleStandardNamesOptimized;
+}
+var hasRequiredLib$2;
+function requireLib$2() {
+  if (hasRequiredLib$2) return lib$1;
+  hasRequiredLib$2 = 1;
+  const RESERVED = 0;
+  const STRING = 1;
+  const BOOLEANISH_STRING = 2;
+  const BOOLEAN = 3;
+  const OVERLOADED_BOOLEAN = 4;
+  const NUMERIC = 5;
+  const POSITIVE_NUMERIC = 6;
+  function getPropertyInfo(name) {
+    return properties.hasOwnProperty(name) ? properties[name] : null;
+  }
+  function PropertyInfoRecord(name, type2, mustUseProperty, attributeName, attributeNamespace, sanitizeURL, removeEmptyString) {
+    this.acceptsBooleans = type2 === BOOLEANISH_STRING || type2 === BOOLEAN || type2 === OVERLOADED_BOOLEAN;
+    this.attributeName = attributeName;
+    this.attributeNamespace = attributeNamespace;
+    this.mustUseProperty = mustUseProperty;
+    this.propertyName = name;
+    this.type = type2;
+    this.sanitizeURL = sanitizeURL;
+    this.removeEmptyString = removeEmptyString;
+  }
+  const properties = {};
+  const reservedProps = [
+    "children",
+    "dangerouslySetInnerHTML",
+    // TODO: This prevents the assignment of defaultValue to regular
+    // elements (not just inputs). Now that ReactDOMInput assigns to the
+    // defaultValue property -- do we need this?
+    "defaultValue",
+    "defaultChecked",
+    "innerHTML",
+    "suppressContentEditableWarning",
+    "suppressHydrationWarning",
+    "style"
+  ];
+  reservedProps.forEach((name) => {
+    properties[name] = new PropertyInfoRecord(
+      name,
+      RESERVED,
+      false,
+      // mustUseProperty
+      name,
+      // attributeName
+      null,
+      // attributeNamespace
+      false,
+      // sanitizeURL
+      false
+      // removeEmptyString
+    );
+  });
+  [
+    ["acceptCharset", "accept-charset"],
+    ["className", "class"],
+    ["htmlFor", "for"],
+    ["httpEquiv", "http-equiv"]
+  ].forEach(([name, attributeName]) => {
+    properties[name] = new PropertyInfoRecord(
+      name,
+      STRING,
+      false,
+      // mustUseProperty
+      attributeName,
+      // attributeName
+      null,
+      // attributeNamespace
+      false,
+      // sanitizeURL
+      false
+      // removeEmptyString
+    );
+  });
+  ["contentEditable", "draggable", "spellCheck", "value"].forEach((name) => {
+    properties[name] = new PropertyInfoRecord(
+      name,
+      BOOLEANISH_STRING,
+      false,
+      // mustUseProperty
+      name.toLowerCase(),
+      // attributeName
+      null,
+      // attributeNamespace
+      false,
+      // sanitizeURL
+      false
+      // removeEmptyString
+    );
+  });
+  [
+    "autoReverse",
+    "externalResourcesRequired",
+    "focusable",
+    "preserveAlpha"
+  ].forEach((name) => {
+    properties[name] = new PropertyInfoRecord(
+      name,
+      BOOLEANISH_STRING,
+      false,
+      // mustUseProperty
+      name,
+      // attributeName
+      null,
+      // attributeNamespace
+      false,
+      // sanitizeURL
+      false
+      // removeEmptyString
+    );
+  });
+  [
+    "allowFullScreen",
+    "async",
+    // Note: there is a special case that prevents it from being written to the DOM
+    // on the client side because the browsers are inconsistent. Instead we call focus().
+    "autoFocus",
+    "autoPlay",
+    "controls",
+    "default",
+    "defer",
+    "disabled",
+    "disablePictureInPicture",
+    "disableRemotePlayback",
+    "formNoValidate",
+    "hidden",
+    "loop",
+    "noModule",
+    "noValidate",
+    "open",
+    "playsInline",
+    "readOnly",
+    "required",
+    "reversed",
+    "scoped",
+    "seamless",
+    // Microdata
+    "itemScope"
+  ].forEach((name) => {
+    properties[name] = new PropertyInfoRecord(
+      name,
+      BOOLEAN,
+      false,
+      // mustUseProperty
+      name.toLowerCase(),
+      // attributeName
+      null,
+      // attributeNamespace
+      false,
+      // sanitizeURL
+      false
+      // removeEmptyString
+    );
+  });
+  [
+    "checked",
+    // Note: `option.selected` is not updated if `select.multiple` is
+    // disabled with `removeAttribute`. We have special logic for handling this.
+    "multiple",
+    "muted",
+    "selected"
+    // NOTE: if you add a camelCased prop to this list,
+    // you'll need to set attributeName to name.toLowerCase()
+    // instead in the assignment below.
+  ].forEach((name) => {
+    properties[name] = new PropertyInfoRecord(
+      name,
+      BOOLEAN,
+      true,
+      // mustUseProperty
+      name,
+      // attributeName
+      null,
+      // attributeNamespace
+      false,
+      // sanitizeURL
+      false
+      // removeEmptyString
+    );
+  });
+  [
+    "capture",
+    "download"
+    // NOTE: if you add a camelCased prop to this list,
+    // you'll need to set attributeName to name.toLowerCase()
+    // instead in the assignment below.
+  ].forEach((name) => {
+    properties[name] = new PropertyInfoRecord(
+      name,
+      OVERLOADED_BOOLEAN,
+      false,
+      // mustUseProperty
+      name,
+      // attributeName
+      null,
+      // attributeNamespace
+      false,
+      // sanitizeURL
+      false
+      // removeEmptyString
+    );
+  });
+  [
+    "cols",
+    "rows",
+    "size",
+    "span"
+    // NOTE: if you add a camelCased prop to this list,
+    // you'll need to set attributeName to name.toLowerCase()
+    // instead in the assignment below.
+  ].forEach((name) => {
+    properties[name] = new PropertyInfoRecord(
+      name,
+      POSITIVE_NUMERIC,
+      false,
+      // mustUseProperty
+      name,
+      // attributeName
+      null,
+      // attributeNamespace
+      false,
+      // sanitizeURL
+      false
+      // removeEmptyString
+    );
+  });
+  ["rowSpan", "start"].forEach((name) => {
+    properties[name] = new PropertyInfoRecord(
+      name,
+      NUMERIC,
+      false,
+      // mustUseProperty
+      name.toLowerCase(),
+      // attributeName
+      null,
+      // attributeNamespace
+      false,
+      // sanitizeURL
+      false
+      // removeEmptyString
+    );
+  });
+  const CAMELIZE = /[\-\:]([a-z])/g;
+  const capitalize2 = (token2) => token2[1].toUpperCase();
+  [
+    "accent-height",
+    "alignment-baseline",
+    "arabic-form",
+    "baseline-shift",
+    "cap-height",
+    "clip-path",
+    "clip-rule",
+    "color-interpolation",
+    "color-interpolation-filters",
+    "color-profile",
+    "color-rendering",
+    "dominant-baseline",
+    "enable-background",
+    "fill-opacity",
+    "fill-rule",
+    "flood-color",
+    "flood-opacity",
+    "font-family",
+    "font-size",
+    "font-size-adjust",
+    "font-stretch",
+    "font-style",
+    "font-variant",
+    "font-weight",
+    "glyph-name",
+    "glyph-orientation-horizontal",
+    "glyph-orientation-vertical",
+    "horiz-adv-x",
+    "horiz-origin-x",
+    "image-rendering",
+    "letter-spacing",
+    "lighting-color",
+    "marker-end",
+    "marker-mid",
+    "marker-start",
+    "overline-position",
+    "overline-thickness",
+    "paint-order",
+    "panose-1",
+    "pointer-events",
+    "rendering-intent",
+    "shape-rendering",
+    "stop-color",
+    "stop-opacity",
+    "strikethrough-position",
+    "strikethrough-thickness",
+    "stroke-dasharray",
+    "stroke-dashoffset",
+    "stroke-linecap",
+    "stroke-linejoin",
+    "stroke-miterlimit",
+    "stroke-opacity",
+    "stroke-width",
+    "text-anchor",
+    "text-decoration",
+    "text-rendering",
+    "underline-position",
+    "underline-thickness",
+    "unicode-bidi",
+    "unicode-range",
+    "units-per-em",
+    "v-alphabetic",
+    "v-hanging",
+    "v-ideographic",
+    "v-mathematical",
+    "vector-effect",
+    "vert-adv-y",
+    "vert-origin-x",
+    "vert-origin-y",
+    "word-spacing",
+    "writing-mode",
+    "xmlns:xlink",
+    "x-height"
+    // NOTE: if you add a camelCased prop to this list,
+    // you'll need to set attributeName to name.toLowerCase()
+    // instead in the assignment below.
+  ].forEach((attributeName) => {
+    const name = attributeName.replace(CAMELIZE, capitalize2);
+    properties[name] = new PropertyInfoRecord(
+      name,
+      STRING,
+      false,
+      // mustUseProperty
+      attributeName,
+      null,
+      // attributeNamespace
+      false,
+      // sanitizeURL
+      false
+      // removeEmptyString
+    );
+  });
+  [
+    "xlink:actuate",
+    "xlink:arcrole",
+    "xlink:role",
+    "xlink:show",
+    "xlink:title",
+    "xlink:type"
+    // NOTE: if you add a camelCased prop to this list,
+    // you'll need to set attributeName to name.toLowerCase()
+    // instead in the assignment below.
+  ].forEach((attributeName) => {
+    const name = attributeName.replace(CAMELIZE, capitalize2);
+    properties[name] = new PropertyInfoRecord(
+      name,
+      STRING,
+      false,
+      // mustUseProperty
+      attributeName,
+      "http://www.w3.org/1999/xlink",
+      false,
+      // sanitizeURL
+      false
+      // removeEmptyString
+    );
+  });
+  [
+    "xml:base",
+    "xml:lang",
+    "xml:space"
+    // NOTE: if you add a camelCased prop to this list,
+    // you'll need to set attributeName to name.toLowerCase()
+    // instead in the assignment below.
+  ].forEach((attributeName) => {
+    const name = attributeName.replace(CAMELIZE, capitalize2);
+    properties[name] = new PropertyInfoRecord(
+      name,
+      STRING,
+      false,
+      // mustUseProperty
+      attributeName,
+      "http://www.w3.org/XML/1998/namespace",
+      false,
+      // sanitizeURL
+      false
+      // removeEmptyString
+    );
+  });
+  ["tabIndex", "crossOrigin"].forEach((attributeName) => {
+    properties[attributeName] = new PropertyInfoRecord(
+      attributeName,
+      STRING,
+      false,
+      // mustUseProperty
+      attributeName.toLowerCase(),
+      // attributeName
+      null,
+      // attributeNamespace
+      false,
+      // sanitizeURL
+      false
+      // removeEmptyString
+    );
+  });
+  const xlinkHref = "xlinkHref";
+  properties[xlinkHref] = new PropertyInfoRecord(
+    "xlinkHref",
+    STRING,
+    false,
+    // mustUseProperty
+    "xlink:href",
+    "http://www.w3.org/1999/xlink",
+    true,
+    // sanitizeURL
+    false
+    // removeEmptyString
+  );
+  ["src", "href", "action", "formAction"].forEach((attributeName) => {
+    properties[attributeName] = new PropertyInfoRecord(
+      attributeName,
+      STRING,
+      false,
+      // mustUseProperty
+      attributeName.toLowerCase(),
+      // attributeName
+      null,
+      // attributeNamespace
+      true,
+      // sanitizeURL
+      true
+      // removeEmptyString
+    );
+  });
+  const {
+    CAMELCASE,
+    SAME,
+    possibleStandardNames: possibleStandardNamesOptimized2
+  } = requirePossibleStandardNamesOptimized();
+  const ATTRIBUTE_NAME_START_CHAR = ":A-Z_a-z\\u00C0-\\u00D6\\u00D8-\\u00F6\\u00F8-\\u02FF\\u0370-\\u037D\\u037F-\\u1FFF\\u200C-\\u200D\\u2070-\\u218F\\u2C00-\\u2FEF\\u3001-\\uD7FF\\uF900-\\uFDCF\\uFDF0-\\uFFFD";
+  const ATTRIBUTE_NAME_CHAR = ATTRIBUTE_NAME_START_CHAR + "\\-.0-9\\u00B7\\u0300-\\u036F\\u203F-\\u2040";
+  const isCustomAttribute = RegExp.prototype.test.bind(
+    // eslint-disable-next-line no-misleading-character-class
+    new RegExp("^(data|aria)-[" + ATTRIBUTE_NAME_CHAR + "]*$")
+  );
+  const possibleStandardNames = Object.keys(
+    possibleStandardNamesOptimized2
+  ).reduce((accumulator, standardName) => {
+    const propName = possibleStandardNamesOptimized2[standardName];
+    if (propName === SAME) {
+      accumulator[standardName] = standardName;
+    } else if (propName === CAMELCASE) {
+      accumulator[standardName.toLowerCase()] = standardName;
+    } else {
+      accumulator[standardName] = propName;
+    }
+    return accumulator;
+  }, {});
+  lib$1.BOOLEAN = BOOLEAN;
+  lib$1.BOOLEANISH_STRING = BOOLEANISH_STRING;
+  lib$1.NUMERIC = NUMERIC;
+  lib$1.OVERLOADED_BOOLEAN = OVERLOADED_BOOLEAN;
+  lib$1.POSITIVE_NUMERIC = POSITIVE_NUMERIC;
+  lib$1.RESERVED = RESERVED;
+  lib$1.STRING = STRING;
+  lib$1.getPropertyInfo = getPropertyInfo;
+  lib$1.isCustomAttribute = isCustomAttribute;
+  lib$1.possibleStandardNames = possibleStandardNames;
+  return lib$1;
+}
+var utilities$1 = {};
+var cjs$1 = {};
+var inlineStyleParser;
+var hasRequiredInlineStyleParser;
+function requireInlineStyleParser() {
+  if (hasRequiredInlineStyleParser) return inlineStyleParser;
+  hasRequiredInlineStyleParser = 1;
+  var COMMENT_REGEX = /\/\*[^*]*\*+([^/*][^*]*\*+)*\//g;
+  var NEWLINE_REGEX = /\n/g;
+  var WHITESPACE_REGEX = /^\s*/;
+  var PROPERTY_REGEX = /^(\*?[-#/*\\\w]+(\[[0-9a-z_-]+\])?)\s*/;
+  var COLON_REGEX = /^:\s*/;
+  var VALUE_REGEX = /^((?:'(?:\\'|.)*?'|"(?:\\"|.)*?"|\([^)]*?\)|[^};])+)/;
+  var SEMICOLON_REGEX = /^[;\s]*/;
+  var TRIM_REGEX = /^\s+|\s+$/g;
+  var NEWLINE = "\n";
+  var FORWARD_SLASH = "/";
+  var ASTERISK = "*";
+  var EMPTY_STRING = "";
+  var TYPE_COMMENT = "comment";
+  var TYPE_DECLARATION = "declaration";
+  inlineStyleParser = function(style2, options2) {
+    if (typeof style2 !== "string") {
+      throw new TypeError("First argument must be a string");
+    }
+    if (!style2) return [];
+    options2 = options2 || {};
+    var lineno = 1;
+    var column2 = 1;
+    function updatePosition(str) {
+      var lines = str.match(NEWLINE_REGEX);
+      if (lines) lineno += lines.length;
+      var i2 = str.lastIndexOf(NEWLINE);
+      column2 = ~i2 ? str.length - i2 : column2 + str.length;
+    }
+    function position2() {
+      var start = { line: lineno, column: column2 };
+      return function(node2) {
+        node2.position = new Position(start);
+        whitespace2();
+        return node2;
+      };
+    }
+    function Position(start) {
+      this.start = start;
+      this.end = { line: lineno, column: column2 };
+      this.source = options2.source;
+    }
+    Position.prototype.content = style2;
+    function error(msg) {
+      var err = new Error(
+        options2.source + ":" + lineno + ":" + column2 + ": " + msg
+      );
+      err.reason = msg;
+      err.filename = options2.source;
+      err.line = lineno;
+      err.column = column2;
+      err.source = style2;
+      if (options2.silent) ;
+      else {
+        throw err;
+      }
+    }
+    function match2(re) {
+      var m = re.exec(style2);
+      if (!m) return;
+      var str = m[0];
+      updatePosition(str);
+      style2 = style2.slice(str.length);
+      return m;
+    }
+    function whitespace2() {
+      match2(WHITESPACE_REGEX);
+    }
+    function comments(rules) {
+      var c;
+      rules = rules || [];
+      while (c = comment2()) {
+        if (c !== false) {
+          rules.push(c);
+        }
+      }
+      return rules;
+    }
+    function comment2() {
+      var pos = position2();
+      if (FORWARD_SLASH != style2.charAt(0) || ASTERISK != style2.charAt(1)) return;
+      var i2 = 2;
+      while (EMPTY_STRING != style2.charAt(i2) && (ASTERISK != style2.charAt(i2) || FORWARD_SLASH != style2.charAt(i2 + 1))) {
+        ++i2;
+      }
+      i2 += 2;
+      if (EMPTY_STRING === style2.charAt(i2 - 1)) {
+        return error("End of comment missing");
+      }
+      var str = style2.slice(2, i2 - 2);
+      column2 += 2;
+      updatePosition(str);
+      style2 = style2.slice(i2);
+      column2 += 2;
+      return pos({
+        type: TYPE_COMMENT,
+        comment: str
+      });
+    }
+    function declaration2() {
+      var pos = position2();
+      var prop = match2(PROPERTY_REGEX);
+      if (!prop) return;
+      comment2();
+      if (!match2(COLON_REGEX)) return error("property missing ':'");
+      var val = match2(VALUE_REGEX);
+      var ret = pos({
+        type: TYPE_DECLARATION,
+        property: trim2(prop[0].replace(COMMENT_REGEX, EMPTY_STRING)),
+        value: val ? trim2(val[0].replace(COMMENT_REGEX, EMPTY_STRING)) : EMPTY_STRING
+      });
+      match2(SEMICOLON_REGEX);
+      return ret;
+    }
+    function declarations() {
+      var decls = [];
+      comments(decls);
+      var decl;
+      while (decl = declaration2()) {
+        if (decl !== false) {
+          decls.push(decl);
+          comments(decls);
+        }
+      }
+      return decls;
+    }
+    whitespace2();
+    return declarations();
+  };
+  function trim2(str) {
+    return str ? str.replace(TRIM_REGEX, EMPTY_STRING) : EMPTY_STRING;
+  }
+  return inlineStyleParser;
+}
+var hasRequiredCjs$1;
+function requireCjs$1() {
+  if (hasRequiredCjs$1) return cjs$1;
+  hasRequiredCjs$1 = 1;
+  var __importDefault = cjs$1 && cjs$1.__importDefault || function(mod) {
+    return mod && mod.__esModule ? mod : { "default": mod };
+  };
+  Object.defineProperty(cjs$1, "__esModule", { value: true });
+  cjs$1.default = StyleToObject;
+  var inline_style_parser_1 = __importDefault(requireInlineStyleParser());
+  function StyleToObject(style2, iterator) {
+    var styleObject = null;
+    if (!style2 || typeof style2 !== "string") {
+      return styleObject;
+    }
+    var declarations = (0, inline_style_parser_1.default)(style2);
+    var hasIterator = typeof iterator === "function";
+    declarations.forEach(function(declaration2) {
+      if (declaration2.type !== "declaration") {
+        return;
+      }
+      var property = declaration2.property, value = declaration2.value;
+      if (hasIterator) {
+        iterator(property, value, declaration2);
+      } else if (value) {
+        styleObject = styleObject || {};
+        styleObject[property] = value;
+      }
+    });
+    return styleObject;
+  }
+  return cjs$1;
+}
+var utilities = {};
+var hasRequiredUtilities$1;
+function requireUtilities$1() {
+  if (hasRequiredUtilities$1) return utilities;
+  hasRequiredUtilities$1 = 1;
+  Object.defineProperty(utilities, "__esModule", { value: true });
+  utilities.camelCase = void 0;
+  var CUSTOM_PROPERTY_REGEX = /^--[a-zA-Z0-9_-]+$/;
+  var HYPHEN_REGEX = /-([a-z])/g;
+  var NO_HYPHEN_REGEX = /^[^-]+$/;
+  var VENDOR_PREFIX_REGEX = /^-(webkit|moz|ms|o|khtml)-/;
+  var MS_VENDOR_PREFIX_REGEX = /^-(ms)-/;
+  var skipCamelCase = function(property) {
+    return !property || NO_HYPHEN_REGEX.test(property) || CUSTOM_PROPERTY_REGEX.test(property);
+  };
+  var capitalize2 = function(match2, character2) {
+    return character2.toUpperCase();
+  };
+  var trimHyphen = function(match2, prefix2) {
+    return "".concat(prefix2, "-");
+  };
+  var camelCase = function(property, options2) {
+    if (options2 === void 0) {
+      options2 = {};
+    }
+    if (skipCamelCase(property)) {
+      return property;
+    }
+    property = property.toLowerCase();
+    if (options2.reactCompat) {
+      property = property.replace(MS_VENDOR_PREFIX_REGEX, trimHyphen);
+    } else {
+      property = property.replace(VENDOR_PREFIX_REGEX, trimHyphen);
+    }
+    return property.replace(HYPHEN_REGEX, capitalize2);
+  };
+  utilities.camelCase = camelCase;
+  return utilities;
+}
+var cjs;
+var hasRequiredCjs;
+function requireCjs() {
+  if (hasRequiredCjs) return cjs;
+  hasRequiredCjs = 1;
+  var __importDefault = cjs && cjs.__importDefault || function(mod) {
+    return mod && mod.__esModule ? mod : { "default": mod };
+  };
+  var style_to_object_1 = __importDefault(requireCjs$1());
+  var utilities_1 = requireUtilities$1();
+  function StyleToJS(style2, options2) {
+    var output = {};
+    if (!style2 || typeof style2 !== "string") {
+      return output;
+    }
+    (0, style_to_object_1.default)(style2, function(property, value) {
+      if (property && value) {
+        output[(0, utilities_1.camelCase)(property, options2)] = value;
+      }
+    });
+    return output;
+  }
+  StyleToJS.default = StyleToJS;
+  cjs = StyleToJS;
+  return cjs;
+}
+var hasRequiredUtilities;
+function requireUtilities() {
+  if (hasRequiredUtilities) return utilities$1;
+  hasRequiredUtilities = 1;
+  (function(exports) {
+    var __importDefault = utilities$1 && utilities$1.__importDefault || function(mod) {
+      return mod && mod.__esModule ? mod : { "default": mod };
+    };
+    Object.defineProperty(exports, "__esModule", { value: true });
+    exports.returnFirstArg = exports.canTextBeChildOfNode = exports.ELEMENTS_WITH_NO_TEXT_CHILDREN = exports.PRESERVE_CUSTOM_ATTRIBUTES = void 0;
+    exports.isCustomComponent = isCustomComponent;
+    exports.setStyleProp = setStyleProp;
+    var react_1 = requireReact();
+    var style_to_js_1 = __importDefault(requireCjs());
+    var RESERVED_SVG_MATHML_ELEMENTS = /* @__PURE__ */ new Set([
+      "annotation-xml",
+      "color-profile",
+      "font-face",
+      "font-face-src",
+      "font-face-uri",
+      "font-face-format",
+      "font-face-name",
+      "missing-glyph"
+    ]);
+    function isCustomComponent(tagName, props) {
+      if (!tagName.includes("-")) {
+        return Boolean(props && typeof props.is === "string");
+      }
+      if (RESERVED_SVG_MATHML_ELEMENTS.has(tagName)) {
+        return false;
+      }
+      return true;
+    }
+    var styleOptions = {
+      reactCompat: true
+    };
+    function setStyleProp(style2, props) {
+      if (typeof style2 !== "string") {
+        return;
+      }
+      if (!style2.trim()) {
+        props.style = {};
+        return;
+      }
+      try {
+        props.style = (0, style_to_js_1.default)(style2, styleOptions);
+      } catch (error) {
+        props.style = {};
+      }
+    }
+    exports.PRESERVE_CUSTOM_ATTRIBUTES = Number(react_1.version.split(".")[0]) >= 16;
+    exports.ELEMENTS_WITH_NO_TEXT_CHILDREN = /* @__PURE__ */ new Set([
+      "tr",
+      "tbody",
+      "thead",
+      "tfoot",
+      "colgroup",
+      "table",
+      "head",
+      "html",
+      "frameset"
+    ]);
+    var canTextBeChildOfNode = function(node2) {
+      return !exports.ELEMENTS_WITH_NO_TEXT_CHILDREN.has(node2.name);
+    };
+    exports.canTextBeChildOfNode = canTextBeChildOfNode;
+    var returnFirstArg = function(arg) {
+      return arg;
+    };
+    exports.returnFirstArg = returnFirstArg;
+  })(utilities$1);
+  return utilities$1;
+}
+var hasRequiredAttributesToProps;
+function requireAttributesToProps() {
+  if (hasRequiredAttributesToProps) return attributesToProps;
+  hasRequiredAttributesToProps = 1;
+  Object.defineProperty(attributesToProps, "__esModule", { value: true });
+  attributesToProps.default = attributesToProps$1;
+  var react_property_1 = requireLib$2();
+  var utilities_1 = requireUtilities();
+  var UNCONTROLLED_COMPONENT_ATTRIBUTES = ["checked", "value"];
+  var UNCONTROLLED_COMPONENT_NAMES = ["input", "select", "textarea"];
+  var valueOnlyInputs = {
+    reset: true,
+    submit: true
+  };
+  function attributesToProps$1(attributes, nodeName) {
+    if (attributes === void 0) {
+      attributes = {};
+    }
+    var props = {};
+    var isInputValueOnly = Boolean(attributes.type && valueOnlyInputs[attributes.type]);
+    for (var attributeName in attributes) {
+      var attributeValue = attributes[attributeName];
+      if ((0, react_property_1.isCustomAttribute)(attributeName)) {
+        props[attributeName] = attributeValue;
+        continue;
+      }
+      var attributeNameLowerCased = attributeName.toLowerCase();
+      var propName = getPropName(attributeNameLowerCased);
+      if (propName) {
+        var propertyInfo = (0, react_property_1.getPropertyInfo)(propName);
+        if (UNCONTROLLED_COMPONENT_ATTRIBUTES.includes(propName) && UNCONTROLLED_COMPONENT_NAMES.includes(nodeName) && !isInputValueOnly) {
+          propName = getPropName("default" + attributeNameLowerCased);
+        }
+        props[propName] = attributeValue;
+        switch (propertyInfo && propertyInfo.type) {
+          case react_property_1.BOOLEAN:
+            props[propName] = true;
+            break;
+          case react_property_1.OVERLOADED_BOOLEAN:
+            if (attributeValue === "") {
+              props[propName] = true;
+            }
+            break;
+        }
+        continue;
+      }
+      if (utilities_1.PRESERVE_CUSTOM_ATTRIBUTES) {
+        props[attributeName] = attributeValue;
+      }
+    }
+    (0, utilities_1.setStyleProp)(attributes.style, props);
+    return props;
+  }
+  function getPropName(attributeName) {
+    return react_property_1.possibleStandardNames[attributeName];
+  }
+  return attributesToProps;
+}
+var domToReact = {};
+var hasRequiredDomToReact;
+function requireDomToReact() {
+  if (hasRequiredDomToReact) return domToReact;
+  hasRequiredDomToReact = 1;
+  var __importDefault = domToReact && domToReact.__importDefault || function(mod) {
+    return mod && mod.__esModule ? mod : { "default": mod };
+  };
+  Object.defineProperty(domToReact, "__esModule", { value: true });
+  domToReact.default = domToReact$1;
+  var react_1 = requireReact();
+  var attributes_to_props_1 = __importDefault(requireAttributesToProps());
+  var utilities_1 = requireUtilities();
+  var React2 = {
+    cloneElement: react_1.cloneElement,
+    createElement: react_1.createElement,
+    isValidElement: react_1.isValidElement
+  };
+  function domToReact$1(nodes, options2) {
+    if (options2 === void 0) {
+      options2 = {};
+    }
+    var reactElements = [];
+    var hasReplace = typeof options2.replace === "function";
+    var transform = options2.transform || utilities_1.returnFirstArg;
+    var _a2 = options2.library || React2, cloneElement = _a2.cloneElement, createElement = _a2.createElement, isValidElement = _a2.isValidElement;
+    var nodesLength = nodes.length;
+    for (var index2 = 0; index2 < nodesLength; index2++) {
+      var node2 = nodes[index2];
+      if (hasReplace) {
+        var replaceElement = options2.replace(node2, index2);
+        if (isValidElement(replaceElement)) {
+          if (nodesLength > 1) {
+            replaceElement = cloneElement(replaceElement, {
+              key: replaceElement.key || index2
+            });
+          }
+          reactElements.push(transform(replaceElement, node2, index2));
+          continue;
+        }
+      }
+      if (node2.type === "text") {
+        var isWhitespace = !node2.data.trim().length;
+        if (isWhitespace && node2.parent && !(0, utilities_1.canTextBeChildOfNode)(node2.parent)) {
+          continue;
+        }
+        if (options2.trim && isWhitespace) {
+          continue;
+        }
+        reactElements.push(transform(node2.data, node2, index2));
+        continue;
+      }
+      var element2 = node2;
+      var props = {};
+      if (skipAttributesToProps(element2)) {
+        (0, utilities_1.setStyleProp)(element2.attribs.style, element2.attribs);
+        props = element2.attribs;
+      } else if (element2.attribs) {
+        props = (0, attributes_to_props_1.default)(element2.attribs, element2.name);
+      }
+      var children2 = void 0;
+      switch (node2.type) {
+        case "script":
+        case "style":
+          if (node2.children[0]) {
+            props.dangerouslySetInnerHTML = {
+              __html: node2.children[0].data
+            };
+          }
+          break;
+        case "tag":
+          if (node2.name === "textarea" && node2.children[0]) {
+            props.defaultValue = node2.children[0].data;
+          } else if (node2.children && node2.children.length) {
+            children2 = domToReact$1(node2.children, options2);
+          }
+          break;
+        // skip all other cases (e.g., comment)
+        default:
+          continue;
+      }
+      if (nodesLength > 1) {
+        props.key = index2;
+      }
+      reactElements.push(transform(createElement(node2.name, props, children2), node2, index2));
+    }
+    return reactElements.length === 1 ? reactElements[0] : reactElements;
+  }
+  function skipAttributesToProps(node2) {
+    return utilities_1.PRESERVE_CUSTOM_ATTRIBUTES && node2.type === "tag" && (0, utilities_1.isCustomComponent)(node2.name, node2.attribs);
+  }
+  return domToReact;
+}
+var lib = {};
+var node$1 = {};
+var hasRequiredNode;
+function requireNode() {
+  if (hasRequiredNode) return node$1;
+  hasRequiredNode = 1;
+  var __extends2 = node$1 && node$1.__extends || /* @__PURE__ */ (function() {
+    var extendStatics = function(d, b) {
+      extendStatics = Object.setPrototypeOf || { __proto__: [] } instanceof Array && function(d2, b2) {
+        d2.__proto__ = b2;
+      } || function(d2, b2) {
+        for (var p in b2) if (Object.prototype.hasOwnProperty.call(b2, p)) d2[p] = b2[p];
+      };
+      return extendStatics(d, b);
+    };
+    return function(d, b) {
+      if (typeof b !== "function" && b !== null)
+        throw new TypeError("Class extends value " + String(b) + " is not a constructor or null");
+      extendStatics(d, b);
+      function __() {
+        this.constructor = d;
+      }
+      d.prototype = b === null ? Object.create(b) : (__.prototype = b.prototype, new __());
+    };
+  })();
+  var __assign2 = node$1 && node$1.__assign || function() {
+    __assign2 = Object.assign || function(t) {
+      for (var s, i2 = 1, n = arguments.length; i2 < n; i2++) {
+        s = arguments[i2];
+        for (var p in s) if (Object.prototype.hasOwnProperty.call(s, p))
+          t[p] = s[p];
+      }
+      return t;
+    };
+    return __assign2.apply(this, arguments);
+  };
+  Object.defineProperty(node$1, "__esModule", { value: true });
+  node$1.cloneNode = node$1.hasChildren = node$1.isDocument = node$1.isDirective = node$1.isComment = node$1.isText = node$1.isCDATA = node$1.isTag = node$1.Element = node$1.Document = node$1.CDATA = node$1.NodeWithChildren = node$1.ProcessingInstruction = node$1.Comment = node$1.Text = node$1.DataNode = node$1.Node = void 0;
+  var domelementtype_1 = /* @__PURE__ */ requireLib$4();
+  var Node2 = (
+    /** @class */
+    (function() {
+      function Node3() {
+        this.parent = null;
+        this.prev = null;
+        this.next = null;
+        this.startIndex = null;
+        this.endIndex = null;
+      }
+      Object.defineProperty(Node3.prototype, "parentNode", {
+        // Read-write aliases for properties
+        /**
+         * Same as {@link parent}.
+         * [DOM spec](https://dom.spec.whatwg.org)-compatible alias.
+         */
+        get: function() {
+          return this.parent;
+        },
+        set: function(parent) {
+          this.parent = parent;
+        },
+        enumerable: false,
+        configurable: true
+      });
+      Object.defineProperty(Node3.prototype, "previousSibling", {
+        /**
+         * Same as {@link prev}.
+         * [DOM spec](https://dom.spec.whatwg.org)-compatible alias.
+         */
+        get: function() {
+          return this.prev;
+        },
+        set: function(prev2) {
+          this.prev = prev2;
+        },
+        enumerable: false,
+        configurable: true
+      });
+      Object.defineProperty(Node3.prototype, "nextSibling", {
+        /**
+         * Same as {@link next}.
+         * [DOM spec](https://dom.spec.whatwg.org)-compatible alias.
+         */
+        get: function() {
+          return this.next;
+        },
+        set: function(next2) {
+          this.next = next2;
+        },
+        enumerable: false,
+        configurable: true
+      });
+      Node3.prototype.cloneNode = function(recursive) {
+        if (recursive === void 0) {
+          recursive = false;
+        }
+        return cloneNode(this, recursive);
+      };
+      return Node3;
+    })()
+  );
+  node$1.Node = Node2;
+  var DataNode = (
+    /** @class */
+    (function(_super) {
+      __extends2(DataNode2, _super);
+      function DataNode2(data) {
+        var _this = _super.call(this) || this;
+        _this.data = data;
+        return _this;
+      }
+      Object.defineProperty(DataNode2.prototype, "nodeValue", {
+        /**
+         * Same as {@link data}.
+         * [DOM spec](https://dom.spec.whatwg.org)-compatible alias.
+         */
+        get: function() {
+          return this.data;
+        },
+        set: function(data) {
+          this.data = data;
+        },
+        enumerable: false,
+        configurable: true
+      });
+      return DataNode2;
+    })(Node2)
+  );
+  node$1.DataNode = DataNode;
+  var Text = (
+    /** @class */
+    (function(_super) {
+      __extends2(Text2, _super);
+      function Text2() {
+        var _this = _super !== null && _super.apply(this, arguments) || this;
+        _this.type = domelementtype_1.ElementType.Text;
+        return _this;
+      }
+      Object.defineProperty(Text2.prototype, "nodeType", {
+        get: function() {
+          return 3;
+        },
+        enumerable: false,
+        configurable: true
+      });
+      return Text2;
+    })(DataNode)
+  );
+  node$1.Text = Text;
+  var Comment = (
+    /** @class */
+    (function(_super) {
+      __extends2(Comment2, _super);
+      function Comment2() {
+        var _this = _super !== null && _super.apply(this, arguments) || this;
+        _this.type = domelementtype_1.ElementType.Comment;
+        return _this;
+      }
+      Object.defineProperty(Comment2.prototype, "nodeType", {
+        get: function() {
+          return 8;
+        },
+        enumerable: false,
+        configurable: true
+      });
+      return Comment2;
+    })(DataNode)
+  );
+  node$1.Comment = Comment;
+  var ProcessingInstruction = (
+    /** @class */
+    (function(_super) {
+      __extends2(ProcessingInstruction2, _super);
+      function ProcessingInstruction2(name, data) {
+        var _this = _super.call(this, data) || this;
+        _this.name = name;
+        _this.type = domelementtype_1.ElementType.Directive;
+        return _this;
+      }
+      Object.defineProperty(ProcessingInstruction2.prototype, "nodeType", {
+        get: function() {
+          return 1;
+        },
+        enumerable: false,
+        configurable: true
+      });
+      return ProcessingInstruction2;
+    })(DataNode)
+  );
+  node$1.ProcessingInstruction = ProcessingInstruction;
+  var NodeWithChildren = (
+    /** @class */
+    (function(_super) {
+      __extends2(NodeWithChildren2, _super);
+      function NodeWithChildren2(children2) {
+        var _this = _super.call(this) || this;
+        _this.children = children2;
+        return _this;
+      }
+      Object.defineProperty(NodeWithChildren2.prototype, "firstChild", {
+        // Aliases
+        /** First child of the node. */
+        get: function() {
+          var _a2;
+          return (_a2 = this.children[0]) !== null && _a2 !== void 0 ? _a2 : null;
+        },
+        enumerable: false,
+        configurable: true
+      });
+      Object.defineProperty(NodeWithChildren2.prototype, "lastChild", {
+        /** Last child of the node. */
+        get: function() {
+          return this.children.length > 0 ? this.children[this.children.length - 1] : null;
+        },
+        enumerable: false,
+        configurable: true
+      });
+      Object.defineProperty(NodeWithChildren2.prototype, "childNodes", {
+        /**
+         * Same as {@link children}.
+         * [DOM spec](https://dom.spec.whatwg.org)-compatible alias.
+         */
+        get: function() {
+          return this.children;
+        },
+        set: function(children2) {
+          this.children = children2;
+        },
+        enumerable: false,
+        configurable: true
+      });
+      return NodeWithChildren2;
+    })(Node2)
+  );
+  node$1.NodeWithChildren = NodeWithChildren;
+  var CDATA = (
+    /** @class */
+    (function(_super) {
+      __extends2(CDATA2, _super);
+      function CDATA2() {
+        var _this = _super !== null && _super.apply(this, arguments) || this;
+        _this.type = domelementtype_1.ElementType.CDATA;
+        return _this;
+      }
+      Object.defineProperty(CDATA2.prototype, "nodeType", {
+        get: function() {
+          return 4;
+        },
+        enumerable: false,
+        configurable: true
+      });
+      return CDATA2;
+    })(NodeWithChildren)
+  );
+  node$1.CDATA = CDATA;
+  var Document = (
+    /** @class */
+    (function(_super) {
+      __extends2(Document2, _super);
+      function Document2() {
+        var _this = _super !== null && _super.apply(this, arguments) || this;
+        _this.type = domelementtype_1.ElementType.Root;
+        return _this;
+      }
+      Object.defineProperty(Document2.prototype, "nodeType", {
+        get: function() {
+          return 9;
+        },
+        enumerable: false,
+        configurable: true
+      });
+      return Document2;
+    })(NodeWithChildren)
+  );
+  node$1.Document = Document;
+  var Element2 = (
+    /** @class */
+    (function(_super) {
+      __extends2(Element3, _super);
+      function Element3(name, attribs, children2, type2) {
+        if (children2 === void 0) {
+          children2 = [];
+        }
+        if (type2 === void 0) {
+          type2 = name === "script" ? domelementtype_1.ElementType.Script : name === "style" ? domelementtype_1.ElementType.Style : domelementtype_1.ElementType.Tag;
+        }
+        var _this = _super.call(this, children2) || this;
+        _this.name = name;
+        _this.attribs = attribs;
+        _this.type = type2;
+        return _this;
+      }
+      Object.defineProperty(Element3.prototype, "nodeType", {
+        get: function() {
+          return 1;
+        },
+        enumerable: false,
+        configurable: true
+      });
+      Object.defineProperty(Element3.prototype, "tagName", {
+        // DOM Level 1 aliases
+        /**
+         * Same as {@link name}.
+         * [DOM spec](https://dom.spec.whatwg.org)-compatible alias.
+         */
+        get: function() {
+          return this.name;
+        },
+        set: function(name) {
+          this.name = name;
+        },
+        enumerable: false,
+        configurable: true
+      });
+      Object.defineProperty(Element3.prototype, "attributes", {
+        get: function() {
+          var _this = this;
+          return Object.keys(this.attribs).map(function(name) {
+            var _a2, _b;
+            return {
+              name,
+              value: _this.attribs[name],
+              namespace: (_a2 = _this["x-attribsNamespace"]) === null || _a2 === void 0 ? void 0 : _a2[name],
+              prefix: (_b = _this["x-attribsPrefix"]) === null || _b === void 0 ? void 0 : _b[name]
+            };
+          });
+        },
+        enumerable: false,
+        configurable: true
+      });
+      return Element3;
+    })(NodeWithChildren)
+  );
+  node$1.Element = Element2;
+  function isTag(node2) {
+    return (0, domelementtype_1.isTag)(node2);
+  }
+  node$1.isTag = isTag;
+  function isCDATA(node2) {
+    return node2.type === domelementtype_1.ElementType.CDATA;
+  }
+  node$1.isCDATA = isCDATA;
+  function isText(node2) {
+    return node2.type === domelementtype_1.ElementType.Text;
+  }
+  node$1.isText = isText;
+  function isComment(node2) {
+    return node2.type === domelementtype_1.ElementType.Comment;
+  }
+  node$1.isComment = isComment;
+  function isDirective(node2) {
+    return node2.type === domelementtype_1.ElementType.Directive;
+  }
+  node$1.isDirective = isDirective;
+  function isDocument2(node2) {
+    return node2.type === domelementtype_1.ElementType.Root;
+  }
+  node$1.isDocument = isDocument2;
+  function hasChildren(node2) {
+    return Object.prototype.hasOwnProperty.call(node2, "children");
+  }
+  node$1.hasChildren = hasChildren;
+  function cloneNode(node2, recursive) {
+    if (recursive === void 0) {
+      recursive = false;
+    }
+    var result;
+    if (isText(node2)) {
+      result = new Text(node2.data);
+    } else if (isComment(node2)) {
+      result = new Comment(node2.data);
+    } else if (isTag(node2)) {
+      var children2 = recursive ? cloneChildren(node2.children) : [];
+      var clone_1 = new Element2(node2.name, __assign2({}, node2.attribs), children2);
+      children2.forEach(function(child) {
+        return child.parent = clone_1;
+      });
+      if (node2.namespace != null) {
+        clone_1.namespace = node2.namespace;
+      }
+      if (node2["x-attribsNamespace"]) {
+        clone_1["x-attribsNamespace"] = __assign2({}, node2["x-attribsNamespace"]);
+      }
+      if (node2["x-attribsPrefix"]) {
+        clone_1["x-attribsPrefix"] = __assign2({}, node2["x-attribsPrefix"]);
+      }
+      result = clone_1;
+    } else if (isCDATA(node2)) {
+      var children2 = recursive ? cloneChildren(node2.children) : [];
+      var clone_2 = new CDATA(children2);
+      children2.forEach(function(child) {
+        return child.parent = clone_2;
+      });
+      result = clone_2;
+    } else if (isDocument2(node2)) {
+      var children2 = recursive ? cloneChildren(node2.children) : [];
+      var clone_3 = new Document(children2);
+      children2.forEach(function(child) {
+        return child.parent = clone_3;
+      });
+      if (node2["x-mode"]) {
+        clone_3["x-mode"] = node2["x-mode"];
+      }
+      result = clone_3;
+    } else if (isDirective(node2)) {
+      var instruction = new ProcessingInstruction(node2.name, node2.data);
+      if (node2["x-name"] != null) {
+        instruction["x-name"] = node2["x-name"];
+        instruction["x-publicId"] = node2["x-publicId"];
+        instruction["x-systemId"] = node2["x-systemId"];
+      }
+      result = instruction;
+    } else {
+      throw new Error("Not implemented yet: ".concat(node2.type));
+    }
+    result.startIndex = node2.startIndex;
+    result.endIndex = node2.endIndex;
+    if (node2.sourceCodeLocation != null) {
+      result.sourceCodeLocation = node2.sourceCodeLocation;
+    }
+    return result;
+  }
+  node$1.cloneNode = cloneNode;
+  function cloneChildren(childs) {
+    var children2 = childs.map(function(child) {
+      return cloneNode(child, true);
+    });
+    for (var i2 = 1; i2 < children2.length; i2++) {
+      children2[i2].prev = children2[i2 - 1];
+      children2[i2 - 1].next = children2[i2];
+    }
+    return children2;
+  }
+  return node$1;
+}
+var hasRequiredLib$1;
+function requireLib$1() {
+  if (hasRequiredLib$1) return lib;
+  hasRequiredLib$1 = 1;
+  (function(exports) {
+    var __createBinding = lib && lib.__createBinding || (Object.create ? (function(o, m, k, k2) {
+      if (k2 === void 0) k2 = k;
+      var desc = Object.getOwnPropertyDescriptor(m, k);
+      if (!desc || ("get" in desc ? !m.__esModule : desc.writable || desc.configurable)) {
+        desc = { enumerable: true, get: function() {
+          return m[k];
+        } };
+      }
+      Object.defineProperty(o, k2, desc);
+    }) : (function(o, m, k, k2) {
+      if (k2 === void 0) k2 = k;
+      o[k2] = m[k];
+    }));
+    var __exportStar = lib && lib.__exportStar || function(m, exports2) {
+      for (var p in m) if (p !== "default" && !Object.prototype.hasOwnProperty.call(exports2, p)) __createBinding(exports2, m, p);
+    };
+    Object.defineProperty(exports, "__esModule", { value: true });
+    exports.DomHandler = void 0;
+    var domelementtype_1 = /* @__PURE__ */ requireLib$4();
+    var node_js_1 = /* @__PURE__ */ requireNode();
+    __exportStar(/* @__PURE__ */ requireNode(), exports);
+    var defaultOpts = {
+      withStartIndices: false,
+      withEndIndices: false,
+      xmlMode: false
+    };
+    var DomHandler = (
+      /** @class */
+      (function() {
+        function DomHandler2(callback, options2, elementCB) {
+          this.dom = [];
+          this.root = new node_js_1.Document(this.dom);
+          this.done = false;
+          this.tagStack = [this.root];
+          this.lastNode = null;
+          this.parser = null;
+          if (typeof options2 === "function") {
+            elementCB = options2;
+            options2 = defaultOpts;
+          }
+          if (typeof callback === "object") {
+            options2 = callback;
+            callback = void 0;
+          }
+          this.callback = callback !== null && callback !== void 0 ? callback : null;
+          this.options = options2 !== null && options2 !== void 0 ? options2 : defaultOpts;
+          this.elementCB = elementCB !== null && elementCB !== void 0 ? elementCB : null;
+        }
+        DomHandler2.prototype.onparserinit = function(parser) {
+          this.parser = parser;
+        };
+        DomHandler2.prototype.onreset = function() {
+          this.dom = [];
+          this.root = new node_js_1.Document(this.dom);
+          this.done = false;
+          this.tagStack = [this.root];
+          this.lastNode = null;
+          this.parser = null;
+        };
+        DomHandler2.prototype.onend = function() {
+          if (this.done)
+            return;
+          this.done = true;
+          this.parser = null;
+          this.handleCallback(null);
+        };
+        DomHandler2.prototype.onerror = function(error) {
+          this.handleCallback(error);
+        };
+        DomHandler2.prototype.onclosetag = function() {
+          this.lastNode = null;
+          var elem = this.tagStack.pop();
+          if (this.options.withEndIndices) {
+            elem.endIndex = this.parser.endIndex;
+          }
+          if (this.elementCB)
+            this.elementCB(elem);
+        };
+        DomHandler2.prototype.onopentag = function(name, attribs) {
+          var type2 = this.options.xmlMode ? domelementtype_1.ElementType.Tag : void 0;
+          var element2 = new node_js_1.Element(name, attribs, void 0, type2);
+          this.addNode(element2);
+          this.tagStack.push(element2);
+        };
+        DomHandler2.prototype.ontext = function(data) {
+          var lastNode = this.lastNode;
+          if (lastNode && lastNode.type === domelementtype_1.ElementType.Text) {
+            lastNode.data += data;
+            if (this.options.withEndIndices) {
+              lastNode.endIndex = this.parser.endIndex;
+            }
+          } else {
+            var node2 = new node_js_1.Text(data);
+            this.addNode(node2);
+            this.lastNode = node2;
+          }
+        };
+        DomHandler2.prototype.oncomment = function(data) {
+          if (this.lastNode && this.lastNode.type === domelementtype_1.ElementType.Comment) {
+            this.lastNode.data += data;
+            return;
+          }
+          var node2 = new node_js_1.Comment(data);
+          this.addNode(node2);
+          this.lastNode = node2;
+        };
+        DomHandler2.prototype.oncommentend = function() {
+          this.lastNode = null;
+        };
+        DomHandler2.prototype.oncdatastart = function() {
+          var text2 = new node_js_1.Text("");
+          var node2 = new node_js_1.CDATA([text2]);
+          this.addNode(node2);
+          text2.parent = node2;
+          this.lastNode = text2;
+        };
+        DomHandler2.prototype.oncdataend = function() {
+          this.lastNode = null;
+        };
+        DomHandler2.prototype.onprocessinginstruction = function(name, data) {
+          var node2 = new node_js_1.ProcessingInstruction(name, data);
+          this.addNode(node2);
+        };
+        DomHandler2.prototype.handleCallback = function(error) {
+          if (typeof this.callback === "function") {
+            this.callback(error, this.dom);
+          } else if (error) {
+            throw error;
+          }
+        };
+        DomHandler2.prototype.addNode = function(node2) {
+          var parent = this.tagStack[this.tagStack.length - 1];
+          var previousSibling = parent.children[parent.children.length - 1];
+          if (this.options.withStartIndices) {
+            node2.startIndex = this.parser.startIndex;
+          }
+          if (this.options.withEndIndices) {
+            node2.endIndex = this.parser.endIndex;
+          }
+          parent.children.push(node2);
+          if (previousSibling) {
+            node2.prev = previousSibling;
+            previousSibling.next = node2;
+          }
+          node2.parent = parent;
+          this.lastNode = null;
+        };
+        return DomHandler2;
+      })()
+    );
+    exports.DomHandler = DomHandler;
+    exports.default = DomHandler;
+  })(lib);
+  return lib;
+}
+var hasRequiredLib;
+function requireLib() {
+  if (hasRequiredLib) return lib$4;
+  hasRequiredLib = 1;
+  (function(exports) {
+    var __importDefault = lib$4 && lib$4.__importDefault || function(mod) {
+      return mod && mod.__esModule ? mod : { "default": mod };
+    };
+    Object.defineProperty(exports, "__esModule", { value: true });
+    exports.htmlToDOM = exports.domToReact = exports.attributesToProps = exports.Text = exports.ProcessingInstruction = exports.Element = exports.Comment = void 0;
+    exports.default = HTMLReactParser2;
+    var html_dom_parser_1 = __importDefault(requireHtmlToDom());
+    exports.htmlToDOM = html_dom_parser_1.default;
+    var attributes_to_props_1 = __importDefault(requireAttributesToProps());
+    exports.attributesToProps = attributes_to_props_1.default;
+    var dom_to_react_1 = __importDefault(requireDomToReact());
+    exports.domToReact = dom_to_react_1.default;
+    var domhandler_1 = /* @__PURE__ */ requireLib$1();
+    Object.defineProperty(exports, "Comment", { enumerable: true, get: function() {
+      return domhandler_1.Comment;
+    } });
+    Object.defineProperty(exports, "Element", { enumerable: true, get: function() {
+      return domhandler_1.Element;
+    } });
+    Object.defineProperty(exports, "ProcessingInstruction", { enumerable: true, get: function() {
+      return domhandler_1.ProcessingInstruction;
+    } });
+    Object.defineProperty(exports, "Text", { enumerable: true, get: function() {
+      return domhandler_1.Text;
+    } });
+    var domParserOptions = { lowerCaseAttributeNames: false };
+    function HTMLReactParser2(html, options2) {
+      if (typeof html !== "string") {
+        throw new TypeError("First argument must be a string");
+      }
+      if (!html) {
+        return [];
+      }
+      return (0, dom_to_react_1.default)((0, html_dom_parser_1.default)(html, (options2 === null || options2 === void 0 ? void 0 : options2.htmlparser2) || domParserOptions), options2);
+    }
+  })(lib$4);
+  return lib$4;
+}
+var libExports = requireLib();
+const HTMLReactParser = /* @__PURE__ */ getDefaultExportFromCjs(libExports);
+const parse$2 = HTMLReactParser.default || HTMLReactParser;
 function _typeof(o) {
   "@babel/helpers - typeof";
   return _typeof = "function" == typeof Symbol && "symbol" == typeof Symbol.iterator ? function(o2) {
@@ -29140,11 +32100,11 @@ var length = 0;
 var position = 0;
 var character = 0;
 var characters = "";
-function node$2(value, root, parent, type2, props, children2, length2) {
+function node(value, root, parent, type2, props, children2, length2) {
   return { value, root, parent, type: type2, props, children: children2, line, column, length: length2, return: "" };
 }
 function copy(root, props) {
-  return assign$1(node$2("", null, null, "", null, null, 0), root, { length: -root.length }, props);
+  return assign$1(node("", null, null, "", null, null, 0), root, { length: -root.length }, props);
 }
 function char() {
   return character;
@@ -29269,9 +32229,9 @@ function identifier(index2) {
   return slice(index2, position);
 }
 function compile(value) {
-  return dealloc(parse$2("", null, null, null, [""], value = alloc(value), 0, [0], value));
+  return dealloc(parse$1("", null, null, null, [""], value = alloc(value), 0, [0], value));
 }
-function parse$2(value, root, parent, rule, rules, rulesets, pseudo, points, declarations) {
+function parse$1(value, root, parent, rule, rules, rulesets, pseudo, points, declarations) {
   var index2 = 0;
   var offset2 = 0;
   var length2 = pseudo;
@@ -29349,17 +32309,17 @@ function parse$2(value, root, parent, rule, rules, rulesets, pseudo, points, dec
             append$1(reference = ruleset(characters2, root, parent, index2, offset2, rules, points, type2, props = [], children2 = [], length2), rulesets);
             if (character2 === 123)
               if (offset2 === 0)
-                parse$2(characters2, root, reference, reference, props, rulesets, length2, points, children2);
+                parse$1(characters2, root, reference, reference, props, rulesets, length2, points, children2);
               else
                 switch (atrule === 99 && charat(characters2, 3) === 110 ? 100 : atrule) {
                   // d m s
                   case 100:
                   case 109:
                   case 115:
-                    parse$2(value, reference, reference, rule && append$1(ruleset(value, reference, reference, 0, 0, rules, points, type2, rules, props = [], length2), children2), rules, children2, length2, points, rule ? props : children2);
+                    parse$1(value, reference, reference, rule && append$1(ruleset(value, reference, reference, 0, 0, rules, points, type2, rules, props = [], length2), children2), rules, children2, length2, points, rule ? props : children2);
                     break;
                   default:
-                    parse$2(characters2, reference, reference, reference, [""], children2, 0, points, children2);
+                    parse$1(characters2, reference, reference, reference, [""], children2, 0, points, children2);
                 }
         }
         index2 = offset2 = property = 0, variable = ampersand = 1, type2 = characters2 = "", length2 = pseudo;
@@ -29405,13 +32365,13 @@ function ruleset(value, root, parent, index2, offset2, rules, points, type2, pro
     for (var x = 0, y = substr(value, post + 1, post = abs(j2 = points[i2])), z = value; x < size2; ++x)
       if (z = trim(j2 > 0 ? rule[x] + " " + y : replace2(y, /&\f/g, rule[x])))
         props[k++] = z;
-  return node$2(value, root, parent, offset2 === 0 ? RULESET : type2, props, children2, length2);
+  return node(value, root, parent, offset2 === 0 ? RULESET : type2, props, children2, length2);
 }
 function comment(value, root, parent) {
-  return node$2(value, root, parent, COMMENT, from(char()), substr(value, 2, -2), 0);
+  return node(value, root, parent, COMMENT, from(char()), substr(value, 2, -2), 0);
 }
 function declaration(value, root, parent, length2) {
-  return node$2(value, root, parent, DECLARATION, substr(value, 0, length2), substr(value, length2 + 1, -1), length2);
+  return node(value, root, parent, DECLARATION, substr(value, 0, length2), substr(value, length2 + 1, -1), length2);
 }
 function serialize(children2, callback) {
   var output = "";
@@ -37200,7 +40160,7 @@ var zeroGap = {
   right: 0,
   gap: 0
 };
-var parse$1 = function(x) {
+var parse = function(x) {
   return parseInt(x || "", 10) || 0;
 };
 var getOffset = function(gapMode) {
@@ -37208,7 +40168,7 @@ var getOffset = function(gapMode) {
   var left2 = cs[gapMode === "padding" ? "paddingLeft" : "marginLeft"];
   var top = cs[gapMode === "padding" ? "paddingTop" : "marginTop"];
   var right2 = cs[gapMode === "padding" ? "paddingRight" : "marginRight"];
-  return [parse$1(left2), parse$1(top), parse$1(right2)];
+  return [parse(left2), parse(top), parse(right2)];
 };
 var getGapWidth = function(gapMode) {
   if (gapMode === void 0) {
@@ -37815,2966 +40775,6 @@ PopoverArrow.displayName = ARROW_NAME;
 function getState(open) {
   return open ? "open" : "closed";
 }
-var lib$4 = {};
-var htmlToDom = {};
-var domparser = {};
-var utilities$2 = {};
-var lib$3 = {};
-var lib$2 = {};
-var hasRequiredLib$4;
-function requireLib$4() {
-  if (hasRequiredLib$4) return lib$2;
-  hasRequiredLib$4 = 1;
-  (function(exports) {
-    Object.defineProperty(exports, "__esModule", { value: true });
-    exports.Doctype = exports.CDATA = exports.Tag = exports.Style = exports.Script = exports.Comment = exports.Directive = exports.Text = exports.Root = exports.isTag = exports.ElementType = void 0;
-    var ElementType;
-    (function(ElementType2) {
-      ElementType2["Root"] = "root";
-      ElementType2["Text"] = "text";
-      ElementType2["Directive"] = "directive";
-      ElementType2["Comment"] = "comment";
-      ElementType2["Script"] = "script";
-      ElementType2["Style"] = "style";
-      ElementType2["Tag"] = "tag";
-      ElementType2["CDATA"] = "cdata";
-      ElementType2["Doctype"] = "doctype";
-    })(ElementType = exports.ElementType || (exports.ElementType = {}));
-    function isTag(elem) {
-      return elem.type === ElementType.Tag || elem.type === ElementType.Script || elem.type === ElementType.Style;
-    }
-    exports.isTag = isTag;
-    exports.Root = ElementType.Root;
-    exports.Text = ElementType.Text;
-    exports.Directive = ElementType.Directive;
-    exports.Comment = ElementType.Comment;
-    exports.Script = ElementType.Script;
-    exports.Style = ElementType.Style;
-    exports.Tag = ElementType.Tag;
-    exports.CDATA = ElementType.CDATA;
-    exports.Doctype = ElementType.Doctype;
-  })(lib$2);
-  return lib$2;
-}
-var node$1 = {};
-var hasRequiredNode$1;
-function requireNode$1() {
-  if (hasRequiredNode$1) return node$1;
-  hasRequiredNode$1 = 1;
-  var __extends2 = node$1 && node$1.__extends || /* @__PURE__ */ (function() {
-    var extendStatics = function(d, b) {
-      extendStatics = Object.setPrototypeOf || { __proto__: [] } instanceof Array && function(d2, b2) {
-        d2.__proto__ = b2;
-      } || function(d2, b2) {
-        for (var p in b2) if (Object.prototype.hasOwnProperty.call(b2, p)) d2[p] = b2[p];
-      };
-      return extendStatics(d, b);
-    };
-    return function(d, b) {
-      if (typeof b !== "function" && b !== null)
-        throw new TypeError("Class extends value " + String(b) + " is not a constructor or null");
-      extendStatics(d, b);
-      function __() {
-        this.constructor = d;
-      }
-      d.prototype = b === null ? Object.create(b) : (__.prototype = b.prototype, new __());
-    };
-  })();
-  var __assign2 = node$1 && node$1.__assign || function() {
-    __assign2 = Object.assign || function(t) {
-      for (var s, i2 = 1, n = arguments.length; i2 < n; i2++) {
-        s = arguments[i2];
-        for (var p in s) if (Object.prototype.hasOwnProperty.call(s, p))
-          t[p] = s[p];
-      }
-      return t;
-    };
-    return __assign2.apply(this, arguments);
-  };
-  Object.defineProperty(node$1, "__esModule", { value: true });
-  node$1.cloneNode = node$1.hasChildren = node$1.isDocument = node$1.isDirective = node$1.isComment = node$1.isText = node$1.isCDATA = node$1.isTag = node$1.Element = node$1.Document = node$1.CDATA = node$1.NodeWithChildren = node$1.ProcessingInstruction = node$1.Comment = node$1.Text = node$1.DataNode = node$1.Node = void 0;
-  var domelementtype_1 = /* @__PURE__ */ requireLib$4();
-  var Node2 = (
-    /** @class */
-    (function() {
-      function Node3() {
-        this.parent = null;
-        this.prev = null;
-        this.next = null;
-        this.startIndex = null;
-        this.endIndex = null;
-      }
-      Object.defineProperty(Node3.prototype, "parentNode", {
-        // Read-write aliases for properties
-        /**
-         * Same as {@link parent}.
-         * [DOM spec](https://dom.spec.whatwg.org)-compatible alias.
-         */
-        get: function() {
-          return this.parent;
-        },
-        set: function(parent) {
-          this.parent = parent;
-        },
-        enumerable: false,
-        configurable: true
-      });
-      Object.defineProperty(Node3.prototype, "previousSibling", {
-        /**
-         * Same as {@link prev}.
-         * [DOM spec](https://dom.spec.whatwg.org)-compatible alias.
-         */
-        get: function() {
-          return this.prev;
-        },
-        set: function(prev2) {
-          this.prev = prev2;
-        },
-        enumerable: false,
-        configurable: true
-      });
-      Object.defineProperty(Node3.prototype, "nextSibling", {
-        /**
-         * Same as {@link next}.
-         * [DOM spec](https://dom.spec.whatwg.org)-compatible alias.
-         */
-        get: function() {
-          return this.next;
-        },
-        set: function(next2) {
-          this.next = next2;
-        },
-        enumerable: false,
-        configurable: true
-      });
-      Node3.prototype.cloneNode = function(recursive) {
-        if (recursive === void 0) {
-          recursive = false;
-        }
-        return cloneNode(this, recursive);
-      };
-      return Node3;
-    })()
-  );
-  node$1.Node = Node2;
-  var DataNode = (
-    /** @class */
-    (function(_super) {
-      __extends2(DataNode2, _super);
-      function DataNode2(data) {
-        var _this = _super.call(this) || this;
-        _this.data = data;
-        return _this;
-      }
-      Object.defineProperty(DataNode2.prototype, "nodeValue", {
-        /**
-         * Same as {@link data}.
-         * [DOM spec](https://dom.spec.whatwg.org)-compatible alias.
-         */
-        get: function() {
-          return this.data;
-        },
-        set: function(data) {
-          this.data = data;
-        },
-        enumerable: false,
-        configurable: true
-      });
-      return DataNode2;
-    })(Node2)
-  );
-  node$1.DataNode = DataNode;
-  var Text = (
-    /** @class */
-    (function(_super) {
-      __extends2(Text2, _super);
-      function Text2() {
-        var _this = _super !== null && _super.apply(this, arguments) || this;
-        _this.type = domelementtype_1.ElementType.Text;
-        return _this;
-      }
-      Object.defineProperty(Text2.prototype, "nodeType", {
-        get: function() {
-          return 3;
-        },
-        enumerable: false,
-        configurable: true
-      });
-      return Text2;
-    })(DataNode)
-  );
-  node$1.Text = Text;
-  var Comment = (
-    /** @class */
-    (function(_super) {
-      __extends2(Comment2, _super);
-      function Comment2() {
-        var _this = _super !== null && _super.apply(this, arguments) || this;
-        _this.type = domelementtype_1.ElementType.Comment;
-        return _this;
-      }
-      Object.defineProperty(Comment2.prototype, "nodeType", {
-        get: function() {
-          return 8;
-        },
-        enumerable: false,
-        configurable: true
-      });
-      return Comment2;
-    })(DataNode)
-  );
-  node$1.Comment = Comment;
-  var ProcessingInstruction = (
-    /** @class */
-    (function(_super) {
-      __extends2(ProcessingInstruction2, _super);
-      function ProcessingInstruction2(name, data) {
-        var _this = _super.call(this, data) || this;
-        _this.name = name;
-        _this.type = domelementtype_1.ElementType.Directive;
-        return _this;
-      }
-      Object.defineProperty(ProcessingInstruction2.prototype, "nodeType", {
-        get: function() {
-          return 1;
-        },
-        enumerable: false,
-        configurable: true
-      });
-      return ProcessingInstruction2;
-    })(DataNode)
-  );
-  node$1.ProcessingInstruction = ProcessingInstruction;
-  var NodeWithChildren = (
-    /** @class */
-    (function(_super) {
-      __extends2(NodeWithChildren2, _super);
-      function NodeWithChildren2(children2) {
-        var _this = _super.call(this) || this;
-        _this.children = children2;
-        return _this;
-      }
-      Object.defineProperty(NodeWithChildren2.prototype, "firstChild", {
-        // Aliases
-        /** First child of the node. */
-        get: function() {
-          var _a2;
-          return (_a2 = this.children[0]) !== null && _a2 !== void 0 ? _a2 : null;
-        },
-        enumerable: false,
-        configurable: true
-      });
-      Object.defineProperty(NodeWithChildren2.prototype, "lastChild", {
-        /** Last child of the node. */
-        get: function() {
-          return this.children.length > 0 ? this.children[this.children.length - 1] : null;
-        },
-        enumerable: false,
-        configurable: true
-      });
-      Object.defineProperty(NodeWithChildren2.prototype, "childNodes", {
-        /**
-         * Same as {@link children}.
-         * [DOM spec](https://dom.spec.whatwg.org)-compatible alias.
-         */
-        get: function() {
-          return this.children;
-        },
-        set: function(children2) {
-          this.children = children2;
-        },
-        enumerable: false,
-        configurable: true
-      });
-      return NodeWithChildren2;
-    })(Node2)
-  );
-  node$1.NodeWithChildren = NodeWithChildren;
-  var CDATA = (
-    /** @class */
-    (function(_super) {
-      __extends2(CDATA2, _super);
-      function CDATA2() {
-        var _this = _super !== null && _super.apply(this, arguments) || this;
-        _this.type = domelementtype_1.ElementType.CDATA;
-        return _this;
-      }
-      Object.defineProperty(CDATA2.prototype, "nodeType", {
-        get: function() {
-          return 4;
-        },
-        enumerable: false,
-        configurable: true
-      });
-      return CDATA2;
-    })(NodeWithChildren)
-  );
-  node$1.CDATA = CDATA;
-  var Document = (
-    /** @class */
-    (function(_super) {
-      __extends2(Document2, _super);
-      function Document2() {
-        var _this = _super !== null && _super.apply(this, arguments) || this;
-        _this.type = domelementtype_1.ElementType.Root;
-        return _this;
-      }
-      Object.defineProperty(Document2.prototype, "nodeType", {
-        get: function() {
-          return 9;
-        },
-        enumerable: false,
-        configurable: true
-      });
-      return Document2;
-    })(NodeWithChildren)
-  );
-  node$1.Document = Document;
-  var Element2 = (
-    /** @class */
-    (function(_super) {
-      __extends2(Element3, _super);
-      function Element3(name, attribs, children2, type2) {
-        if (children2 === void 0) {
-          children2 = [];
-        }
-        if (type2 === void 0) {
-          type2 = name === "script" ? domelementtype_1.ElementType.Script : name === "style" ? domelementtype_1.ElementType.Style : domelementtype_1.ElementType.Tag;
-        }
-        var _this = _super.call(this, children2) || this;
-        _this.name = name;
-        _this.attribs = attribs;
-        _this.type = type2;
-        return _this;
-      }
-      Object.defineProperty(Element3.prototype, "nodeType", {
-        get: function() {
-          return 1;
-        },
-        enumerable: false,
-        configurable: true
-      });
-      Object.defineProperty(Element3.prototype, "tagName", {
-        // DOM Level 1 aliases
-        /**
-         * Same as {@link name}.
-         * [DOM spec](https://dom.spec.whatwg.org)-compatible alias.
-         */
-        get: function() {
-          return this.name;
-        },
-        set: function(name) {
-          this.name = name;
-        },
-        enumerable: false,
-        configurable: true
-      });
-      Object.defineProperty(Element3.prototype, "attributes", {
-        get: function() {
-          var _this = this;
-          return Object.keys(this.attribs).map(function(name) {
-            var _a2, _b;
-            return {
-              name,
-              value: _this.attribs[name],
-              namespace: (_a2 = _this["x-attribsNamespace"]) === null || _a2 === void 0 ? void 0 : _a2[name],
-              prefix: (_b = _this["x-attribsPrefix"]) === null || _b === void 0 ? void 0 : _b[name]
-            };
-          });
-        },
-        enumerable: false,
-        configurable: true
-      });
-      return Element3;
-    })(NodeWithChildren)
-  );
-  node$1.Element = Element2;
-  function isTag(node2) {
-    return (0, domelementtype_1.isTag)(node2);
-  }
-  node$1.isTag = isTag;
-  function isCDATA(node2) {
-    return node2.type === domelementtype_1.ElementType.CDATA;
-  }
-  node$1.isCDATA = isCDATA;
-  function isText(node2) {
-    return node2.type === domelementtype_1.ElementType.Text;
-  }
-  node$1.isText = isText;
-  function isComment(node2) {
-    return node2.type === domelementtype_1.ElementType.Comment;
-  }
-  node$1.isComment = isComment;
-  function isDirective(node2) {
-    return node2.type === domelementtype_1.ElementType.Directive;
-  }
-  node$1.isDirective = isDirective;
-  function isDocument2(node2) {
-    return node2.type === domelementtype_1.ElementType.Root;
-  }
-  node$1.isDocument = isDocument2;
-  function hasChildren(node2) {
-    return Object.prototype.hasOwnProperty.call(node2, "children");
-  }
-  node$1.hasChildren = hasChildren;
-  function cloneNode(node2, recursive) {
-    if (recursive === void 0) {
-      recursive = false;
-    }
-    var result;
-    if (isText(node2)) {
-      result = new Text(node2.data);
-    } else if (isComment(node2)) {
-      result = new Comment(node2.data);
-    } else if (isTag(node2)) {
-      var children2 = recursive ? cloneChildren(node2.children) : [];
-      var clone_1 = new Element2(node2.name, __assign2({}, node2.attribs), children2);
-      children2.forEach(function(child) {
-        return child.parent = clone_1;
-      });
-      if (node2.namespace != null) {
-        clone_1.namespace = node2.namespace;
-      }
-      if (node2["x-attribsNamespace"]) {
-        clone_1["x-attribsNamespace"] = __assign2({}, node2["x-attribsNamespace"]);
-      }
-      if (node2["x-attribsPrefix"]) {
-        clone_1["x-attribsPrefix"] = __assign2({}, node2["x-attribsPrefix"]);
-      }
-      result = clone_1;
-    } else if (isCDATA(node2)) {
-      var children2 = recursive ? cloneChildren(node2.children) : [];
-      var clone_2 = new CDATA(children2);
-      children2.forEach(function(child) {
-        return child.parent = clone_2;
-      });
-      result = clone_2;
-    } else if (isDocument2(node2)) {
-      var children2 = recursive ? cloneChildren(node2.children) : [];
-      var clone_3 = new Document(children2);
-      children2.forEach(function(child) {
-        return child.parent = clone_3;
-      });
-      if (node2["x-mode"]) {
-        clone_3["x-mode"] = node2["x-mode"];
-      }
-      result = clone_3;
-    } else if (isDirective(node2)) {
-      var instruction = new ProcessingInstruction(node2.name, node2.data);
-      if (node2["x-name"] != null) {
-        instruction["x-name"] = node2["x-name"];
-        instruction["x-publicId"] = node2["x-publicId"];
-        instruction["x-systemId"] = node2["x-systemId"];
-      }
-      result = instruction;
-    } else {
-      throw new Error("Not implemented yet: ".concat(node2.type));
-    }
-    result.startIndex = node2.startIndex;
-    result.endIndex = node2.endIndex;
-    if (node2.sourceCodeLocation != null) {
-      result.sourceCodeLocation = node2.sourceCodeLocation;
-    }
-    return result;
-  }
-  node$1.cloneNode = cloneNode;
-  function cloneChildren(childs) {
-    var children2 = childs.map(function(child) {
-      return cloneNode(child, true);
-    });
-    for (var i2 = 1; i2 < children2.length; i2++) {
-      children2[i2].prev = children2[i2 - 1];
-      children2[i2 - 1].next = children2[i2];
-    }
-    return children2;
-  }
-  return node$1;
-}
-var hasRequiredLib$3;
-function requireLib$3() {
-  if (hasRequiredLib$3) return lib$3;
-  hasRequiredLib$3 = 1;
-  (function(exports) {
-    var __createBinding = lib$3 && lib$3.__createBinding || (Object.create ? (function(o, m, k, k2) {
-      if (k2 === void 0) k2 = k;
-      var desc = Object.getOwnPropertyDescriptor(m, k);
-      if (!desc || ("get" in desc ? !m.__esModule : desc.writable || desc.configurable)) {
-        desc = { enumerable: true, get: function() {
-          return m[k];
-        } };
-      }
-      Object.defineProperty(o, k2, desc);
-    }) : (function(o, m, k, k2) {
-      if (k2 === void 0) k2 = k;
-      o[k2] = m[k];
-    }));
-    var __exportStar = lib$3 && lib$3.__exportStar || function(m, exports2) {
-      for (var p in m) if (p !== "default" && !Object.prototype.hasOwnProperty.call(exports2, p)) __createBinding(exports2, m, p);
-    };
-    Object.defineProperty(exports, "__esModule", { value: true });
-    exports.DomHandler = void 0;
-    var domelementtype_1 = /* @__PURE__ */ requireLib$4();
-    var node_js_1 = /* @__PURE__ */ requireNode$1();
-    __exportStar(/* @__PURE__ */ requireNode$1(), exports);
-    var defaultOpts = {
-      withStartIndices: false,
-      withEndIndices: false,
-      xmlMode: false
-    };
-    var DomHandler = (
-      /** @class */
-      (function() {
-        function DomHandler2(callback, options2, elementCB) {
-          this.dom = [];
-          this.root = new node_js_1.Document(this.dom);
-          this.done = false;
-          this.tagStack = [this.root];
-          this.lastNode = null;
-          this.parser = null;
-          if (typeof options2 === "function") {
-            elementCB = options2;
-            options2 = defaultOpts;
-          }
-          if (typeof callback === "object") {
-            options2 = callback;
-            callback = void 0;
-          }
-          this.callback = callback !== null && callback !== void 0 ? callback : null;
-          this.options = options2 !== null && options2 !== void 0 ? options2 : defaultOpts;
-          this.elementCB = elementCB !== null && elementCB !== void 0 ? elementCB : null;
-        }
-        DomHandler2.prototype.onparserinit = function(parser) {
-          this.parser = parser;
-        };
-        DomHandler2.prototype.onreset = function() {
-          this.dom = [];
-          this.root = new node_js_1.Document(this.dom);
-          this.done = false;
-          this.tagStack = [this.root];
-          this.lastNode = null;
-          this.parser = null;
-        };
-        DomHandler2.prototype.onend = function() {
-          if (this.done)
-            return;
-          this.done = true;
-          this.parser = null;
-          this.handleCallback(null);
-        };
-        DomHandler2.prototype.onerror = function(error) {
-          this.handleCallback(error);
-        };
-        DomHandler2.prototype.onclosetag = function() {
-          this.lastNode = null;
-          var elem = this.tagStack.pop();
-          if (this.options.withEndIndices) {
-            elem.endIndex = this.parser.endIndex;
-          }
-          if (this.elementCB)
-            this.elementCB(elem);
-        };
-        DomHandler2.prototype.onopentag = function(name, attribs) {
-          var type2 = this.options.xmlMode ? domelementtype_1.ElementType.Tag : void 0;
-          var element2 = new node_js_1.Element(name, attribs, void 0, type2);
-          this.addNode(element2);
-          this.tagStack.push(element2);
-        };
-        DomHandler2.prototype.ontext = function(data) {
-          var lastNode = this.lastNode;
-          if (lastNode && lastNode.type === domelementtype_1.ElementType.Text) {
-            lastNode.data += data;
-            if (this.options.withEndIndices) {
-              lastNode.endIndex = this.parser.endIndex;
-            }
-          } else {
-            var node2 = new node_js_1.Text(data);
-            this.addNode(node2);
-            this.lastNode = node2;
-          }
-        };
-        DomHandler2.prototype.oncomment = function(data) {
-          if (this.lastNode && this.lastNode.type === domelementtype_1.ElementType.Comment) {
-            this.lastNode.data += data;
-            return;
-          }
-          var node2 = new node_js_1.Comment(data);
-          this.addNode(node2);
-          this.lastNode = node2;
-        };
-        DomHandler2.prototype.oncommentend = function() {
-          this.lastNode = null;
-        };
-        DomHandler2.prototype.oncdatastart = function() {
-          var text2 = new node_js_1.Text("");
-          var node2 = new node_js_1.CDATA([text2]);
-          this.addNode(node2);
-          text2.parent = node2;
-          this.lastNode = text2;
-        };
-        DomHandler2.prototype.oncdataend = function() {
-          this.lastNode = null;
-        };
-        DomHandler2.prototype.onprocessinginstruction = function(name, data) {
-          var node2 = new node_js_1.ProcessingInstruction(name, data);
-          this.addNode(node2);
-        };
-        DomHandler2.prototype.handleCallback = function(error) {
-          if (typeof this.callback === "function") {
-            this.callback(error, this.dom);
-          } else if (error) {
-            throw error;
-          }
-        };
-        DomHandler2.prototype.addNode = function(node2) {
-          var parent = this.tagStack[this.tagStack.length - 1];
-          var previousSibling = parent.children[parent.children.length - 1];
-          if (this.options.withStartIndices) {
-            node2.startIndex = this.parser.startIndex;
-          }
-          if (this.options.withEndIndices) {
-            node2.endIndex = this.parser.endIndex;
-          }
-          parent.children.push(node2);
-          if (previousSibling) {
-            node2.prev = previousSibling;
-            previousSibling.next = node2;
-          }
-          node2.parent = parent;
-          this.lastNode = null;
-        };
-        return DomHandler2;
-      })()
-    );
-    exports.DomHandler = DomHandler;
-    exports.default = DomHandler;
-  })(lib$3);
-  return lib$3;
-}
-var constants = {};
-var hasRequiredConstants;
-function requireConstants() {
-  if (hasRequiredConstants) return constants;
-  hasRequiredConstants = 1;
-  (function(exports) {
-    Object.defineProperty(exports, "__esModule", { value: true });
-    exports.CARRIAGE_RETURN_PLACEHOLDER_REGEX = exports.CARRIAGE_RETURN_PLACEHOLDER = exports.CARRIAGE_RETURN_REGEX = exports.CARRIAGE_RETURN = exports.CASE_SENSITIVE_TAG_NAMES_MAP = exports.CASE_SENSITIVE_TAG_NAMES = void 0;
-    exports.CASE_SENSITIVE_TAG_NAMES = [
-      "animateMotion",
-      "animateTransform",
-      "clipPath",
-      "feBlend",
-      "feColorMatrix",
-      "feComponentTransfer",
-      "feComposite",
-      "feConvolveMatrix",
-      "feDiffuseLighting",
-      "feDisplacementMap",
-      "feDropShadow",
-      "feFlood",
-      "feFuncA",
-      "feFuncB",
-      "feFuncG",
-      "feFuncR",
-      "feGaussianBlur",
-      "feImage",
-      "feMerge",
-      "feMergeNode",
-      "feMorphology",
-      "feOffset",
-      "fePointLight",
-      "feSpecularLighting",
-      "feSpotLight",
-      "feTile",
-      "feTurbulence",
-      "foreignObject",
-      "linearGradient",
-      "radialGradient",
-      "textPath"
-    ];
-    exports.CASE_SENSITIVE_TAG_NAMES_MAP = exports.CASE_SENSITIVE_TAG_NAMES.reduce(function(accumulator, tagName) {
-      accumulator[tagName.toLowerCase()] = tagName;
-      return accumulator;
-    }, {});
-    exports.CARRIAGE_RETURN = "\r";
-    exports.CARRIAGE_RETURN_REGEX = new RegExp(exports.CARRIAGE_RETURN, "g");
-    exports.CARRIAGE_RETURN_PLACEHOLDER = "__HTML_DOM_PARSER_CARRIAGE_RETURN_PLACEHOLDER_".concat(Date.now(), "__");
-    exports.CARRIAGE_RETURN_PLACEHOLDER_REGEX = new RegExp(exports.CARRIAGE_RETURN_PLACEHOLDER, "g");
-  })(constants);
-  return constants;
-}
-var hasRequiredUtilities$2;
-function requireUtilities$2() {
-  if (hasRequiredUtilities$2) return utilities$2;
-  hasRequiredUtilities$2 = 1;
-  Object.defineProperty(utilities$2, "__esModule", { value: true });
-  utilities$2.formatAttributes = formatAttributes;
-  utilities$2.escapeSpecialCharacters = escapeSpecialCharacters;
-  utilities$2.revertEscapedCharacters = revertEscapedCharacters;
-  utilities$2.formatDOM = formatDOM;
-  var domhandler_1 = /* @__PURE__ */ requireLib$3();
-  var constants_1 = requireConstants();
-  function getCaseSensitiveTagName(tagName) {
-    return constants_1.CASE_SENSITIVE_TAG_NAMES_MAP[tagName];
-  }
-  function formatAttributes(attributes) {
-    var map2 = {};
-    var index2 = 0;
-    var attributesLength = attributes.length;
-    for (; index2 < attributesLength; index2++) {
-      var attribute = attributes[index2];
-      map2[attribute.name] = attribute.value;
-    }
-    return map2;
-  }
-  function formatTagName(tagName) {
-    tagName = tagName.toLowerCase();
-    var caseSensitiveTagName = getCaseSensitiveTagName(tagName);
-    if (caseSensitiveTagName) {
-      return caseSensitiveTagName;
-    }
-    return tagName;
-  }
-  function escapeSpecialCharacters(html) {
-    return html.replace(constants_1.CARRIAGE_RETURN_REGEX, constants_1.CARRIAGE_RETURN_PLACEHOLDER);
-  }
-  function revertEscapedCharacters(text2) {
-    return text2.replace(constants_1.CARRIAGE_RETURN_PLACEHOLDER_REGEX, constants_1.CARRIAGE_RETURN);
-  }
-  function formatDOM(nodes, parent, directive) {
-    if (parent === void 0) {
-      parent = null;
-    }
-    var domNodes = [];
-    var current;
-    var index2 = 0;
-    var nodesLength = nodes.length;
-    for (; index2 < nodesLength; index2++) {
-      var node2 = nodes[index2];
-      switch (node2.nodeType) {
-        case 1: {
-          var tagName = formatTagName(node2.nodeName);
-          current = new domhandler_1.Element(tagName, formatAttributes(node2.attributes));
-          current.children = formatDOM(
-            // template children are on content
-            tagName === "template" ? node2.content.childNodes : node2.childNodes,
-            current
-          );
-          break;
-        }
-        case 3:
-          current = new domhandler_1.Text(revertEscapedCharacters(node2.nodeValue));
-          break;
-        case 8:
-          current = new domhandler_1.Comment(node2.nodeValue);
-          break;
-        default:
-          continue;
-      }
-      var prev2 = domNodes[index2 - 1] || null;
-      if (prev2) {
-        prev2.next = current;
-      }
-      current.parent = parent;
-      current.prev = prev2;
-      current.next = null;
-      domNodes.push(current);
-    }
-    if (directive) {
-      current = new domhandler_1.ProcessingInstruction(directive.substring(0, directive.indexOf(" ")).toLowerCase(), directive);
-      current.next = domNodes[0] || null;
-      current.parent = parent;
-      domNodes.unshift(current);
-      if (domNodes[1]) {
-        domNodes[1].prev = domNodes[0];
-      }
-    }
-    return domNodes;
-  }
-  return utilities$2;
-}
-var hasRequiredDomparser;
-function requireDomparser() {
-  if (hasRequiredDomparser) return domparser;
-  hasRequiredDomparser = 1;
-  Object.defineProperty(domparser, "__esModule", { value: true });
-  domparser.default = domparser$1;
-  var utilities_1 = requireUtilities$2();
-  var HTML = "html";
-  var HEAD = "head";
-  var BODY = "body";
-  var FIRST_TAG_REGEX = /<([a-zA-Z]+[0-9]?)/;
-  var HEAD_TAG_REGEX = /<head[^]*>/i;
-  var BODY_TAG_REGEX = /<body[^]*>/i;
-  var parseFromDocument = function(html, tagName) {
-    throw new Error("This browser does not support `document.implementation.createHTMLDocument`");
-  };
-  var parseFromString = function(html, tagName) {
-    throw new Error("This browser does not support `DOMParser.prototype.parseFromString`");
-  };
-  var DOMParser = typeof window === "object" && window.DOMParser;
-  if (typeof DOMParser === "function") {
-    var domParser_1 = new DOMParser();
-    var mimeType_1 = "text/html";
-    parseFromString = function(html, tagName) {
-      if (tagName) {
-        html = "<".concat(tagName, ">").concat(html, "</").concat(tagName, ">");
-      }
-      return domParser_1.parseFromString(html, mimeType_1);
-    };
-    parseFromDocument = parseFromString;
-  }
-  if (typeof document === "object" && document.implementation) {
-    var htmlDocument_1 = document.implementation.createHTMLDocument();
-    parseFromDocument = function(html, tagName) {
-      if (tagName) {
-        var element2 = htmlDocument_1.documentElement.querySelector(tagName);
-        if (element2) {
-          element2.innerHTML = html;
-        }
-        return htmlDocument_1;
-      }
-      htmlDocument_1.documentElement.innerHTML = html;
-      return htmlDocument_1;
-    };
-  }
-  var template = typeof document === "object" && document.createElement("template");
-  var parseFromTemplate;
-  if (template && template.content) {
-    parseFromTemplate = function(html) {
-      template.innerHTML = html;
-      return template.content.childNodes;
-    };
-  }
-  function domparser$1(html) {
-    var _a2, _b;
-    html = (0, utilities_1.escapeSpecialCharacters)(html);
-    var match2 = html.match(FIRST_TAG_REGEX);
-    var firstTagName = match2 && match2[1] ? match2[1].toLowerCase() : "";
-    switch (firstTagName) {
-      case HTML: {
-        var doc = parseFromString(html);
-        if (!HEAD_TAG_REGEX.test(html)) {
-          var element2 = doc.querySelector(HEAD);
-          (_a2 = element2 === null || element2 === void 0 ? void 0 : element2.parentNode) === null || _a2 === void 0 ? void 0 : _a2.removeChild(element2);
-        }
-        if (!BODY_TAG_REGEX.test(html)) {
-          var element2 = doc.querySelector(BODY);
-          (_b = element2 === null || element2 === void 0 ? void 0 : element2.parentNode) === null || _b === void 0 ? void 0 : _b.removeChild(element2);
-        }
-        return doc.querySelectorAll(HTML);
-      }
-      case HEAD:
-      case BODY: {
-        var elements = parseFromDocument(html).querySelectorAll(firstTagName);
-        if (BODY_TAG_REGEX.test(html) && HEAD_TAG_REGEX.test(html)) {
-          return elements[0].parentNode.childNodes;
-        }
-        return elements;
-      }
-      // low-level tag or text
-      default: {
-        if (parseFromTemplate) {
-          return parseFromTemplate(html);
-        }
-        var element2 = parseFromDocument(html, BODY).querySelector(BODY);
-        return element2.childNodes;
-      }
-    }
-  }
-  return domparser;
-}
-var hasRequiredHtmlToDom;
-function requireHtmlToDom() {
-  if (hasRequiredHtmlToDom) return htmlToDom;
-  hasRequiredHtmlToDom = 1;
-  var __importDefault = htmlToDom && htmlToDom.__importDefault || function(mod) {
-    return mod && mod.__esModule ? mod : { "default": mod };
-  };
-  Object.defineProperty(htmlToDom, "__esModule", { value: true });
-  htmlToDom.default = HTMLDOMParser;
-  var domparser_1 = __importDefault(requireDomparser());
-  var utilities_1 = requireUtilities$2();
-  var DIRECTIVE_REGEX = /<(![a-zA-Z\s]+)>/;
-  function HTMLDOMParser(html) {
-    if (typeof html !== "string") {
-      throw new TypeError("First argument must be a string");
-    }
-    if (!html) {
-      return [];
-    }
-    var match2 = html.match(DIRECTIVE_REGEX);
-    var directive = match2 ? match2[1] : void 0;
-    return (0, utilities_1.formatDOM)((0, domparser_1.default)(html), null, directive);
-  }
-  return htmlToDom;
-}
-var attributesToProps = {};
-var lib$1 = {};
-var possibleStandardNamesOptimized = {};
-var hasRequiredPossibleStandardNamesOptimized;
-function requirePossibleStandardNamesOptimized() {
-  if (hasRequiredPossibleStandardNamesOptimized) return possibleStandardNamesOptimized;
-  hasRequiredPossibleStandardNamesOptimized = 1;
-  var SAME = 0;
-  possibleStandardNamesOptimized.SAME = SAME;
-  var CAMELCASE = 1;
-  possibleStandardNamesOptimized.CAMELCASE = CAMELCASE;
-  possibleStandardNamesOptimized.possibleStandardNames = {
-    accept: 0,
-    acceptCharset: 1,
-    "accept-charset": "acceptCharset",
-    accessKey: 1,
-    action: 0,
-    allowFullScreen: 1,
-    alt: 0,
-    as: 0,
-    async: 0,
-    autoCapitalize: 1,
-    autoComplete: 1,
-    autoCorrect: 1,
-    autoFocus: 1,
-    autoPlay: 1,
-    autoSave: 1,
-    capture: 0,
-    cellPadding: 1,
-    cellSpacing: 1,
-    challenge: 0,
-    charSet: 1,
-    checked: 0,
-    children: 0,
-    cite: 0,
-    class: "className",
-    classID: 1,
-    className: 1,
-    cols: 0,
-    colSpan: 1,
-    content: 0,
-    contentEditable: 1,
-    contextMenu: 1,
-    controls: 0,
-    controlsList: 1,
-    coords: 0,
-    crossOrigin: 1,
-    dangerouslySetInnerHTML: 1,
-    data: 0,
-    dateTime: 1,
-    default: 0,
-    defaultChecked: 1,
-    defaultValue: 1,
-    defer: 0,
-    dir: 0,
-    disabled: 0,
-    disablePictureInPicture: 1,
-    disableRemotePlayback: 1,
-    download: 0,
-    draggable: 0,
-    encType: 1,
-    enterKeyHint: 1,
-    for: "htmlFor",
-    form: 0,
-    formMethod: 1,
-    formAction: 1,
-    formEncType: 1,
-    formNoValidate: 1,
-    formTarget: 1,
-    frameBorder: 1,
-    headers: 0,
-    height: 0,
-    hidden: 0,
-    high: 0,
-    href: 0,
-    hrefLang: 1,
-    htmlFor: 1,
-    httpEquiv: 1,
-    "http-equiv": "httpEquiv",
-    icon: 0,
-    id: 0,
-    innerHTML: 1,
-    inputMode: 1,
-    integrity: 0,
-    is: 0,
-    itemID: 1,
-    itemProp: 1,
-    itemRef: 1,
-    itemScope: 1,
-    itemType: 1,
-    keyParams: 1,
-    keyType: 1,
-    kind: 0,
-    label: 0,
-    lang: 0,
-    list: 0,
-    loop: 0,
-    low: 0,
-    manifest: 0,
-    marginWidth: 1,
-    marginHeight: 1,
-    max: 0,
-    maxLength: 1,
-    media: 0,
-    mediaGroup: 1,
-    method: 0,
-    min: 0,
-    minLength: 1,
-    multiple: 0,
-    muted: 0,
-    name: 0,
-    noModule: 1,
-    nonce: 0,
-    noValidate: 1,
-    open: 0,
-    optimum: 0,
-    pattern: 0,
-    placeholder: 0,
-    playsInline: 1,
-    poster: 0,
-    preload: 0,
-    profile: 0,
-    radioGroup: 1,
-    readOnly: 1,
-    referrerPolicy: 1,
-    rel: 0,
-    required: 0,
-    reversed: 0,
-    role: 0,
-    rows: 0,
-    rowSpan: 1,
-    sandbox: 0,
-    scope: 0,
-    scoped: 0,
-    scrolling: 0,
-    seamless: 0,
-    selected: 0,
-    shape: 0,
-    size: 0,
-    sizes: 0,
-    span: 0,
-    spellCheck: 1,
-    src: 0,
-    srcDoc: 1,
-    srcLang: 1,
-    srcSet: 1,
-    start: 0,
-    step: 0,
-    style: 0,
-    summary: 0,
-    tabIndex: 1,
-    target: 0,
-    title: 0,
-    type: 0,
-    useMap: 1,
-    value: 0,
-    width: 0,
-    wmode: 0,
-    wrap: 0,
-    about: 0,
-    accentHeight: 1,
-    "accent-height": "accentHeight",
-    accumulate: 0,
-    additive: 0,
-    alignmentBaseline: 1,
-    "alignment-baseline": "alignmentBaseline",
-    allowReorder: 1,
-    alphabetic: 0,
-    amplitude: 0,
-    arabicForm: 1,
-    "arabic-form": "arabicForm",
-    ascent: 0,
-    attributeName: 1,
-    attributeType: 1,
-    autoReverse: 1,
-    azimuth: 0,
-    baseFrequency: 1,
-    baselineShift: 1,
-    "baseline-shift": "baselineShift",
-    baseProfile: 1,
-    bbox: 0,
-    begin: 0,
-    bias: 0,
-    by: 0,
-    calcMode: 1,
-    capHeight: 1,
-    "cap-height": "capHeight",
-    clip: 0,
-    clipPath: 1,
-    "clip-path": "clipPath",
-    clipPathUnits: 1,
-    clipRule: 1,
-    "clip-rule": "clipRule",
-    color: 0,
-    colorInterpolation: 1,
-    "color-interpolation": "colorInterpolation",
-    colorInterpolationFilters: 1,
-    "color-interpolation-filters": "colorInterpolationFilters",
-    colorProfile: 1,
-    "color-profile": "colorProfile",
-    colorRendering: 1,
-    "color-rendering": "colorRendering",
-    contentScriptType: 1,
-    contentStyleType: 1,
-    cursor: 0,
-    cx: 0,
-    cy: 0,
-    d: 0,
-    datatype: 0,
-    decelerate: 0,
-    descent: 0,
-    diffuseConstant: 1,
-    direction: 0,
-    display: 0,
-    divisor: 0,
-    dominantBaseline: 1,
-    "dominant-baseline": "dominantBaseline",
-    dur: 0,
-    dx: 0,
-    dy: 0,
-    edgeMode: 1,
-    elevation: 0,
-    enableBackground: 1,
-    "enable-background": "enableBackground",
-    end: 0,
-    exponent: 0,
-    externalResourcesRequired: 1,
-    fill: 0,
-    fillOpacity: 1,
-    "fill-opacity": "fillOpacity",
-    fillRule: 1,
-    "fill-rule": "fillRule",
-    filter: 0,
-    filterRes: 1,
-    filterUnits: 1,
-    floodOpacity: 1,
-    "flood-opacity": "floodOpacity",
-    floodColor: 1,
-    "flood-color": "floodColor",
-    focusable: 0,
-    fontFamily: 1,
-    "font-family": "fontFamily",
-    fontSize: 1,
-    "font-size": "fontSize",
-    fontSizeAdjust: 1,
-    "font-size-adjust": "fontSizeAdjust",
-    fontStretch: 1,
-    "font-stretch": "fontStretch",
-    fontStyle: 1,
-    "font-style": "fontStyle",
-    fontVariant: 1,
-    "font-variant": "fontVariant",
-    fontWeight: 1,
-    "font-weight": "fontWeight",
-    format: 0,
-    from: 0,
-    fx: 0,
-    fy: 0,
-    g1: 0,
-    g2: 0,
-    glyphName: 1,
-    "glyph-name": "glyphName",
-    glyphOrientationHorizontal: 1,
-    "glyph-orientation-horizontal": "glyphOrientationHorizontal",
-    glyphOrientationVertical: 1,
-    "glyph-orientation-vertical": "glyphOrientationVertical",
-    glyphRef: 1,
-    gradientTransform: 1,
-    gradientUnits: 1,
-    hanging: 0,
-    horizAdvX: 1,
-    "horiz-adv-x": "horizAdvX",
-    horizOriginX: 1,
-    "horiz-origin-x": "horizOriginX",
-    ideographic: 0,
-    imageRendering: 1,
-    "image-rendering": "imageRendering",
-    in2: 0,
-    in: 0,
-    inlist: 0,
-    intercept: 0,
-    k1: 0,
-    k2: 0,
-    k3: 0,
-    k4: 0,
-    k: 0,
-    kernelMatrix: 1,
-    kernelUnitLength: 1,
-    kerning: 0,
-    keyPoints: 1,
-    keySplines: 1,
-    keyTimes: 1,
-    lengthAdjust: 1,
-    letterSpacing: 1,
-    "letter-spacing": "letterSpacing",
-    lightingColor: 1,
-    "lighting-color": "lightingColor",
-    limitingConeAngle: 1,
-    local: 0,
-    markerEnd: 1,
-    "marker-end": "markerEnd",
-    markerHeight: 1,
-    markerMid: 1,
-    "marker-mid": "markerMid",
-    markerStart: 1,
-    "marker-start": "markerStart",
-    markerUnits: 1,
-    markerWidth: 1,
-    mask: 0,
-    maskContentUnits: 1,
-    maskUnits: 1,
-    mathematical: 0,
-    mode: 0,
-    numOctaves: 1,
-    offset: 0,
-    opacity: 0,
-    operator: 0,
-    order: 0,
-    orient: 0,
-    orientation: 0,
-    origin: 0,
-    overflow: 0,
-    overlinePosition: 1,
-    "overline-position": "overlinePosition",
-    overlineThickness: 1,
-    "overline-thickness": "overlineThickness",
-    paintOrder: 1,
-    "paint-order": "paintOrder",
-    panose1: 0,
-    "panose-1": "panose1",
-    pathLength: 1,
-    patternContentUnits: 1,
-    patternTransform: 1,
-    patternUnits: 1,
-    pointerEvents: 1,
-    "pointer-events": "pointerEvents",
-    points: 0,
-    pointsAtX: 1,
-    pointsAtY: 1,
-    pointsAtZ: 1,
-    prefix: 0,
-    preserveAlpha: 1,
-    preserveAspectRatio: 1,
-    primitiveUnits: 1,
-    property: 0,
-    r: 0,
-    radius: 0,
-    refX: 1,
-    refY: 1,
-    renderingIntent: 1,
-    "rendering-intent": "renderingIntent",
-    repeatCount: 1,
-    repeatDur: 1,
-    requiredExtensions: 1,
-    requiredFeatures: 1,
-    resource: 0,
-    restart: 0,
-    result: 0,
-    results: 0,
-    rotate: 0,
-    rx: 0,
-    ry: 0,
-    scale: 0,
-    security: 0,
-    seed: 0,
-    shapeRendering: 1,
-    "shape-rendering": "shapeRendering",
-    slope: 0,
-    spacing: 0,
-    specularConstant: 1,
-    specularExponent: 1,
-    speed: 0,
-    spreadMethod: 1,
-    startOffset: 1,
-    stdDeviation: 1,
-    stemh: 0,
-    stemv: 0,
-    stitchTiles: 1,
-    stopColor: 1,
-    "stop-color": "stopColor",
-    stopOpacity: 1,
-    "stop-opacity": "stopOpacity",
-    strikethroughPosition: 1,
-    "strikethrough-position": "strikethroughPosition",
-    strikethroughThickness: 1,
-    "strikethrough-thickness": "strikethroughThickness",
-    string: 0,
-    stroke: 0,
-    strokeDasharray: 1,
-    "stroke-dasharray": "strokeDasharray",
-    strokeDashoffset: 1,
-    "stroke-dashoffset": "strokeDashoffset",
-    strokeLinecap: 1,
-    "stroke-linecap": "strokeLinecap",
-    strokeLinejoin: 1,
-    "stroke-linejoin": "strokeLinejoin",
-    strokeMiterlimit: 1,
-    "stroke-miterlimit": "strokeMiterlimit",
-    strokeWidth: 1,
-    "stroke-width": "strokeWidth",
-    strokeOpacity: 1,
-    "stroke-opacity": "strokeOpacity",
-    suppressContentEditableWarning: 1,
-    suppressHydrationWarning: 1,
-    surfaceScale: 1,
-    systemLanguage: 1,
-    tableValues: 1,
-    targetX: 1,
-    targetY: 1,
-    textAnchor: 1,
-    "text-anchor": "textAnchor",
-    textDecoration: 1,
-    "text-decoration": "textDecoration",
-    textLength: 1,
-    textRendering: 1,
-    "text-rendering": "textRendering",
-    to: 0,
-    transform: 0,
-    typeof: 0,
-    u1: 0,
-    u2: 0,
-    underlinePosition: 1,
-    "underline-position": "underlinePosition",
-    underlineThickness: 1,
-    "underline-thickness": "underlineThickness",
-    unicode: 0,
-    unicodeBidi: 1,
-    "unicode-bidi": "unicodeBidi",
-    unicodeRange: 1,
-    "unicode-range": "unicodeRange",
-    unitsPerEm: 1,
-    "units-per-em": "unitsPerEm",
-    unselectable: 0,
-    vAlphabetic: 1,
-    "v-alphabetic": "vAlphabetic",
-    values: 0,
-    vectorEffect: 1,
-    "vector-effect": "vectorEffect",
-    version: 0,
-    vertAdvY: 1,
-    "vert-adv-y": "vertAdvY",
-    vertOriginX: 1,
-    "vert-origin-x": "vertOriginX",
-    vertOriginY: 1,
-    "vert-origin-y": "vertOriginY",
-    vHanging: 1,
-    "v-hanging": "vHanging",
-    vIdeographic: 1,
-    "v-ideographic": "vIdeographic",
-    viewBox: 1,
-    viewTarget: 1,
-    visibility: 0,
-    vMathematical: 1,
-    "v-mathematical": "vMathematical",
-    vocab: 0,
-    widths: 0,
-    wordSpacing: 1,
-    "word-spacing": "wordSpacing",
-    writingMode: 1,
-    "writing-mode": "writingMode",
-    x1: 0,
-    x2: 0,
-    x: 0,
-    xChannelSelector: 1,
-    xHeight: 1,
-    "x-height": "xHeight",
-    xlinkActuate: 1,
-    "xlink:actuate": "xlinkActuate",
-    xlinkArcrole: 1,
-    "xlink:arcrole": "xlinkArcrole",
-    xlinkHref: 1,
-    "xlink:href": "xlinkHref",
-    xlinkRole: 1,
-    "xlink:role": "xlinkRole",
-    xlinkShow: 1,
-    "xlink:show": "xlinkShow",
-    xlinkTitle: 1,
-    "xlink:title": "xlinkTitle",
-    xlinkType: 1,
-    "xlink:type": "xlinkType",
-    xmlBase: 1,
-    "xml:base": "xmlBase",
-    xmlLang: 1,
-    "xml:lang": "xmlLang",
-    xmlns: 0,
-    "xml:space": "xmlSpace",
-    xmlnsXlink: 1,
-    "xmlns:xlink": "xmlnsXlink",
-    xmlSpace: 1,
-    y1: 0,
-    y2: 0,
-    y: 0,
-    yChannelSelector: 1,
-    z: 0,
-    zoomAndPan: 1
-  };
-  return possibleStandardNamesOptimized;
-}
-var hasRequiredLib$2;
-function requireLib$2() {
-  if (hasRequiredLib$2) return lib$1;
-  hasRequiredLib$2 = 1;
-  const RESERVED = 0;
-  const STRING = 1;
-  const BOOLEANISH_STRING = 2;
-  const BOOLEAN = 3;
-  const OVERLOADED_BOOLEAN = 4;
-  const NUMERIC = 5;
-  const POSITIVE_NUMERIC = 6;
-  function getPropertyInfo(name) {
-    return properties.hasOwnProperty(name) ? properties[name] : null;
-  }
-  function PropertyInfoRecord(name, type2, mustUseProperty, attributeName, attributeNamespace, sanitizeURL, removeEmptyString) {
-    this.acceptsBooleans = type2 === BOOLEANISH_STRING || type2 === BOOLEAN || type2 === OVERLOADED_BOOLEAN;
-    this.attributeName = attributeName;
-    this.attributeNamespace = attributeNamespace;
-    this.mustUseProperty = mustUseProperty;
-    this.propertyName = name;
-    this.type = type2;
-    this.sanitizeURL = sanitizeURL;
-    this.removeEmptyString = removeEmptyString;
-  }
-  const properties = {};
-  const reservedProps = [
-    "children",
-    "dangerouslySetInnerHTML",
-    // TODO: This prevents the assignment of defaultValue to regular
-    // elements (not just inputs). Now that ReactDOMInput assigns to the
-    // defaultValue property -- do we need this?
-    "defaultValue",
-    "defaultChecked",
-    "innerHTML",
-    "suppressContentEditableWarning",
-    "suppressHydrationWarning",
-    "style"
-  ];
-  reservedProps.forEach((name) => {
-    properties[name] = new PropertyInfoRecord(
-      name,
-      RESERVED,
-      false,
-      // mustUseProperty
-      name,
-      // attributeName
-      null,
-      // attributeNamespace
-      false,
-      // sanitizeURL
-      false
-      // removeEmptyString
-    );
-  });
-  [
-    ["acceptCharset", "accept-charset"],
-    ["className", "class"],
-    ["htmlFor", "for"],
-    ["httpEquiv", "http-equiv"]
-  ].forEach(([name, attributeName]) => {
-    properties[name] = new PropertyInfoRecord(
-      name,
-      STRING,
-      false,
-      // mustUseProperty
-      attributeName,
-      // attributeName
-      null,
-      // attributeNamespace
-      false,
-      // sanitizeURL
-      false
-      // removeEmptyString
-    );
-  });
-  ["contentEditable", "draggable", "spellCheck", "value"].forEach((name) => {
-    properties[name] = new PropertyInfoRecord(
-      name,
-      BOOLEANISH_STRING,
-      false,
-      // mustUseProperty
-      name.toLowerCase(),
-      // attributeName
-      null,
-      // attributeNamespace
-      false,
-      // sanitizeURL
-      false
-      // removeEmptyString
-    );
-  });
-  [
-    "autoReverse",
-    "externalResourcesRequired",
-    "focusable",
-    "preserveAlpha"
-  ].forEach((name) => {
-    properties[name] = new PropertyInfoRecord(
-      name,
-      BOOLEANISH_STRING,
-      false,
-      // mustUseProperty
-      name,
-      // attributeName
-      null,
-      // attributeNamespace
-      false,
-      // sanitizeURL
-      false
-      // removeEmptyString
-    );
-  });
-  [
-    "allowFullScreen",
-    "async",
-    // Note: there is a special case that prevents it from being written to the DOM
-    // on the client side because the browsers are inconsistent. Instead we call focus().
-    "autoFocus",
-    "autoPlay",
-    "controls",
-    "default",
-    "defer",
-    "disabled",
-    "disablePictureInPicture",
-    "disableRemotePlayback",
-    "formNoValidate",
-    "hidden",
-    "loop",
-    "noModule",
-    "noValidate",
-    "open",
-    "playsInline",
-    "readOnly",
-    "required",
-    "reversed",
-    "scoped",
-    "seamless",
-    // Microdata
-    "itemScope"
-  ].forEach((name) => {
-    properties[name] = new PropertyInfoRecord(
-      name,
-      BOOLEAN,
-      false,
-      // mustUseProperty
-      name.toLowerCase(),
-      // attributeName
-      null,
-      // attributeNamespace
-      false,
-      // sanitizeURL
-      false
-      // removeEmptyString
-    );
-  });
-  [
-    "checked",
-    // Note: `option.selected` is not updated if `select.multiple` is
-    // disabled with `removeAttribute`. We have special logic for handling this.
-    "multiple",
-    "muted",
-    "selected"
-    // NOTE: if you add a camelCased prop to this list,
-    // you'll need to set attributeName to name.toLowerCase()
-    // instead in the assignment below.
-  ].forEach((name) => {
-    properties[name] = new PropertyInfoRecord(
-      name,
-      BOOLEAN,
-      true,
-      // mustUseProperty
-      name,
-      // attributeName
-      null,
-      // attributeNamespace
-      false,
-      // sanitizeURL
-      false
-      // removeEmptyString
-    );
-  });
-  [
-    "capture",
-    "download"
-    // NOTE: if you add a camelCased prop to this list,
-    // you'll need to set attributeName to name.toLowerCase()
-    // instead in the assignment below.
-  ].forEach((name) => {
-    properties[name] = new PropertyInfoRecord(
-      name,
-      OVERLOADED_BOOLEAN,
-      false,
-      // mustUseProperty
-      name,
-      // attributeName
-      null,
-      // attributeNamespace
-      false,
-      // sanitizeURL
-      false
-      // removeEmptyString
-    );
-  });
-  [
-    "cols",
-    "rows",
-    "size",
-    "span"
-    // NOTE: if you add a camelCased prop to this list,
-    // you'll need to set attributeName to name.toLowerCase()
-    // instead in the assignment below.
-  ].forEach((name) => {
-    properties[name] = new PropertyInfoRecord(
-      name,
-      POSITIVE_NUMERIC,
-      false,
-      // mustUseProperty
-      name,
-      // attributeName
-      null,
-      // attributeNamespace
-      false,
-      // sanitizeURL
-      false
-      // removeEmptyString
-    );
-  });
-  ["rowSpan", "start"].forEach((name) => {
-    properties[name] = new PropertyInfoRecord(
-      name,
-      NUMERIC,
-      false,
-      // mustUseProperty
-      name.toLowerCase(),
-      // attributeName
-      null,
-      // attributeNamespace
-      false,
-      // sanitizeURL
-      false
-      // removeEmptyString
-    );
-  });
-  const CAMELIZE = /[\-\:]([a-z])/g;
-  const capitalize2 = (token2) => token2[1].toUpperCase();
-  [
-    "accent-height",
-    "alignment-baseline",
-    "arabic-form",
-    "baseline-shift",
-    "cap-height",
-    "clip-path",
-    "clip-rule",
-    "color-interpolation",
-    "color-interpolation-filters",
-    "color-profile",
-    "color-rendering",
-    "dominant-baseline",
-    "enable-background",
-    "fill-opacity",
-    "fill-rule",
-    "flood-color",
-    "flood-opacity",
-    "font-family",
-    "font-size",
-    "font-size-adjust",
-    "font-stretch",
-    "font-style",
-    "font-variant",
-    "font-weight",
-    "glyph-name",
-    "glyph-orientation-horizontal",
-    "glyph-orientation-vertical",
-    "horiz-adv-x",
-    "horiz-origin-x",
-    "image-rendering",
-    "letter-spacing",
-    "lighting-color",
-    "marker-end",
-    "marker-mid",
-    "marker-start",
-    "overline-position",
-    "overline-thickness",
-    "paint-order",
-    "panose-1",
-    "pointer-events",
-    "rendering-intent",
-    "shape-rendering",
-    "stop-color",
-    "stop-opacity",
-    "strikethrough-position",
-    "strikethrough-thickness",
-    "stroke-dasharray",
-    "stroke-dashoffset",
-    "stroke-linecap",
-    "stroke-linejoin",
-    "stroke-miterlimit",
-    "stroke-opacity",
-    "stroke-width",
-    "text-anchor",
-    "text-decoration",
-    "text-rendering",
-    "underline-position",
-    "underline-thickness",
-    "unicode-bidi",
-    "unicode-range",
-    "units-per-em",
-    "v-alphabetic",
-    "v-hanging",
-    "v-ideographic",
-    "v-mathematical",
-    "vector-effect",
-    "vert-adv-y",
-    "vert-origin-x",
-    "vert-origin-y",
-    "word-spacing",
-    "writing-mode",
-    "xmlns:xlink",
-    "x-height"
-    // NOTE: if you add a camelCased prop to this list,
-    // you'll need to set attributeName to name.toLowerCase()
-    // instead in the assignment below.
-  ].forEach((attributeName) => {
-    const name = attributeName.replace(CAMELIZE, capitalize2);
-    properties[name] = new PropertyInfoRecord(
-      name,
-      STRING,
-      false,
-      // mustUseProperty
-      attributeName,
-      null,
-      // attributeNamespace
-      false,
-      // sanitizeURL
-      false
-      // removeEmptyString
-    );
-  });
-  [
-    "xlink:actuate",
-    "xlink:arcrole",
-    "xlink:role",
-    "xlink:show",
-    "xlink:title",
-    "xlink:type"
-    // NOTE: if you add a camelCased prop to this list,
-    // you'll need to set attributeName to name.toLowerCase()
-    // instead in the assignment below.
-  ].forEach((attributeName) => {
-    const name = attributeName.replace(CAMELIZE, capitalize2);
-    properties[name] = new PropertyInfoRecord(
-      name,
-      STRING,
-      false,
-      // mustUseProperty
-      attributeName,
-      "http://www.w3.org/1999/xlink",
-      false,
-      // sanitizeURL
-      false
-      // removeEmptyString
-    );
-  });
-  [
-    "xml:base",
-    "xml:lang",
-    "xml:space"
-    // NOTE: if you add a camelCased prop to this list,
-    // you'll need to set attributeName to name.toLowerCase()
-    // instead in the assignment below.
-  ].forEach((attributeName) => {
-    const name = attributeName.replace(CAMELIZE, capitalize2);
-    properties[name] = new PropertyInfoRecord(
-      name,
-      STRING,
-      false,
-      // mustUseProperty
-      attributeName,
-      "http://www.w3.org/XML/1998/namespace",
-      false,
-      // sanitizeURL
-      false
-      // removeEmptyString
-    );
-  });
-  ["tabIndex", "crossOrigin"].forEach((attributeName) => {
-    properties[attributeName] = new PropertyInfoRecord(
-      attributeName,
-      STRING,
-      false,
-      // mustUseProperty
-      attributeName.toLowerCase(),
-      // attributeName
-      null,
-      // attributeNamespace
-      false,
-      // sanitizeURL
-      false
-      // removeEmptyString
-    );
-  });
-  const xlinkHref = "xlinkHref";
-  properties[xlinkHref] = new PropertyInfoRecord(
-    "xlinkHref",
-    STRING,
-    false,
-    // mustUseProperty
-    "xlink:href",
-    "http://www.w3.org/1999/xlink",
-    true,
-    // sanitizeURL
-    false
-    // removeEmptyString
-  );
-  ["src", "href", "action", "formAction"].forEach((attributeName) => {
-    properties[attributeName] = new PropertyInfoRecord(
-      attributeName,
-      STRING,
-      false,
-      // mustUseProperty
-      attributeName.toLowerCase(),
-      // attributeName
-      null,
-      // attributeNamespace
-      true,
-      // sanitizeURL
-      true
-      // removeEmptyString
-    );
-  });
-  const {
-    CAMELCASE,
-    SAME,
-    possibleStandardNames: possibleStandardNamesOptimized2
-  } = requirePossibleStandardNamesOptimized();
-  const ATTRIBUTE_NAME_START_CHAR = ":A-Z_a-z\\u00C0-\\u00D6\\u00D8-\\u00F6\\u00F8-\\u02FF\\u0370-\\u037D\\u037F-\\u1FFF\\u200C-\\u200D\\u2070-\\u218F\\u2C00-\\u2FEF\\u3001-\\uD7FF\\uF900-\\uFDCF\\uFDF0-\\uFFFD";
-  const ATTRIBUTE_NAME_CHAR = ATTRIBUTE_NAME_START_CHAR + "\\-.0-9\\u00B7\\u0300-\\u036F\\u203F-\\u2040";
-  const isCustomAttribute = RegExp.prototype.test.bind(
-    // eslint-disable-next-line no-misleading-character-class
-    new RegExp("^(data|aria)-[" + ATTRIBUTE_NAME_CHAR + "]*$")
-  );
-  const possibleStandardNames = Object.keys(
-    possibleStandardNamesOptimized2
-  ).reduce((accumulator, standardName) => {
-    const propName = possibleStandardNamesOptimized2[standardName];
-    if (propName === SAME) {
-      accumulator[standardName] = standardName;
-    } else if (propName === CAMELCASE) {
-      accumulator[standardName.toLowerCase()] = standardName;
-    } else {
-      accumulator[standardName] = propName;
-    }
-    return accumulator;
-  }, {});
-  lib$1.BOOLEAN = BOOLEAN;
-  lib$1.BOOLEANISH_STRING = BOOLEANISH_STRING;
-  lib$1.NUMERIC = NUMERIC;
-  lib$1.OVERLOADED_BOOLEAN = OVERLOADED_BOOLEAN;
-  lib$1.POSITIVE_NUMERIC = POSITIVE_NUMERIC;
-  lib$1.RESERVED = RESERVED;
-  lib$1.STRING = STRING;
-  lib$1.getPropertyInfo = getPropertyInfo;
-  lib$1.isCustomAttribute = isCustomAttribute;
-  lib$1.possibleStandardNames = possibleStandardNames;
-  return lib$1;
-}
-var utilities$1 = {};
-var cjs$1 = {};
-var inlineStyleParser;
-var hasRequiredInlineStyleParser;
-function requireInlineStyleParser() {
-  if (hasRequiredInlineStyleParser) return inlineStyleParser;
-  hasRequiredInlineStyleParser = 1;
-  var COMMENT_REGEX = /\/\*[^*]*\*+([^/*][^*]*\*+)*\//g;
-  var NEWLINE_REGEX = /\n/g;
-  var WHITESPACE_REGEX = /^\s*/;
-  var PROPERTY_REGEX = /^(\*?[-#/*\\\w]+(\[[0-9a-z_-]+\])?)\s*/;
-  var COLON_REGEX = /^:\s*/;
-  var VALUE_REGEX = /^((?:'(?:\\'|.)*?'|"(?:\\"|.)*?"|\([^)]*?\)|[^};])+)/;
-  var SEMICOLON_REGEX = /^[;\s]*/;
-  var TRIM_REGEX = /^\s+|\s+$/g;
-  var NEWLINE = "\n";
-  var FORWARD_SLASH = "/";
-  var ASTERISK = "*";
-  var EMPTY_STRING = "";
-  var TYPE_COMMENT = "comment";
-  var TYPE_DECLARATION = "declaration";
-  inlineStyleParser = function(style2, options2) {
-    if (typeof style2 !== "string") {
-      throw new TypeError("First argument must be a string");
-    }
-    if (!style2) return [];
-    options2 = options2 || {};
-    var lineno = 1;
-    var column2 = 1;
-    function updatePosition(str) {
-      var lines = str.match(NEWLINE_REGEX);
-      if (lines) lineno += lines.length;
-      var i2 = str.lastIndexOf(NEWLINE);
-      column2 = ~i2 ? str.length - i2 : column2 + str.length;
-    }
-    function position2() {
-      var start = { line: lineno, column: column2 };
-      return function(node2) {
-        node2.position = new Position(start);
-        whitespace2();
-        return node2;
-      };
-    }
-    function Position(start) {
-      this.start = start;
-      this.end = { line: lineno, column: column2 };
-      this.source = options2.source;
-    }
-    Position.prototype.content = style2;
-    function error(msg) {
-      var err = new Error(
-        options2.source + ":" + lineno + ":" + column2 + ": " + msg
-      );
-      err.reason = msg;
-      err.filename = options2.source;
-      err.line = lineno;
-      err.column = column2;
-      err.source = style2;
-      if (options2.silent) ;
-      else {
-        throw err;
-      }
-    }
-    function match2(re) {
-      var m = re.exec(style2);
-      if (!m) return;
-      var str = m[0];
-      updatePosition(str);
-      style2 = style2.slice(str.length);
-      return m;
-    }
-    function whitespace2() {
-      match2(WHITESPACE_REGEX);
-    }
-    function comments(rules) {
-      var c;
-      rules = rules || [];
-      while (c = comment2()) {
-        if (c !== false) {
-          rules.push(c);
-        }
-      }
-      return rules;
-    }
-    function comment2() {
-      var pos = position2();
-      if (FORWARD_SLASH != style2.charAt(0) || ASTERISK != style2.charAt(1)) return;
-      var i2 = 2;
-      while (EMPTY_STRING != style2.charAt(i2) && (ASTERISK != style2.charAt(i2) || FORWARD_SLASH != style2.charAt(i2 + 1))) {
-        ++i2;
-      }
-      i2 += 2;
-      if (EMPTY_STRING === style2.charAt(i2 - 1)) {
-        return error("End of comment missing");
-      }
-      var str = style2.slice(2, i2 - 2);
-      column2 += 2;
-      updatePosition(str);
-      style2 = style2.slice(i2);
-      column2 += 2;
-      return pos({
-        type: TYPE_COMMENT,
-        comment: str
-      });
-    }
-    function declaration2() {
-      var pos = position2();
-      var prop = match2(PROPERTY_REGEX);
-      if (!prop) return;
-      comment2();
-      if (!match2(COLON_REGEX)) return error("property missing ':'");
-      var val = match2(VALUE_REGEX);
-      var ret = pos({
-        type: TYPE_DECLARATION,
-        property: trim2(prop[0].replace(COMMENT_REGEX, EMPTY_STRING)),
-        value: val ? trim2(val[0].replace(COMMENT_REGEX, EMPTY_STRING)) : EMPTY_STRING
-      });
-      match2(SEMICOLON_REGEX);
-      return ret;
-    }
-    function declarations() {
-      var decls = [];
-      comments(decls);
-      var decl;
-      while (decl = declaration2()) {
-        if (decl !== false) {
-          decls.push(decl);
-          comments(decls);
-        }
-      }
-      return decls;
-    }
-    whitespace2();
-    return declarations();
-  };
-  function trim2(str) {
-    return str ? str.replace(TRIM_REGEX, EMPTY_STRING) : EMPTY_STRING;
-  }
-  return inlineStyleParser;
-}
-var hasRequiredCjs$1;
-function requireCjs$1() {
-  if (hasRequiredCjs$1) return cjs$1;
-  hasRequiredCjs$1 = 1;
-  var __importDefault = cjs$1 && cjs$1.__importDefault || function(mod) {
-    return mod && mod.__esModule ? mod : { "default": mod };
-  };
-  Object.defineProperty(cjs$1, "__esModule", { value: true });
-  cjs$1.default = StyleToObject;
-  var inline_style_parser_1 = __importDefault(requireInlineStyleParser());
-  function StyleToObject(style2, iterator) {
-    var styleObject = null;
-    if (!style2 || typeof style2 !== "string") {
-      return styleObject;
-    }
-    var declarations = (0, inline_style_parser_1.default)(style2);
-    var hasIterator = typeof iterator === "function";
-    declarations.forEach(function(declaration2) {
-      if (declaration2.type !== "declaration") {
-        return;
-      }
-      var property = declaration2.property, value = declaration2.value;
-      if (hasIterator) {
-        iterator(property, value, declaration2);
-      } else if (value) {
-        styleObject = styleObject || {};
-        styleObject[property] = value;
-      }
-    });
-    return styleObject;
-  }
-  return cjs$1;
-}
-var utilities = {};
-var hasRequiredUtilities$1;
-function requireUtilities$1() {
-  if (hasRequiredUtilities$1) return utilities;
-  hasRequiredUtilities$1 = 1;
-  Object.defineProperty(utilities, "__esModule", { value: true });
-  utilities.camelCase = void 0;
-  var CUSTOM_PROPERTY_REGEX = /^--[a-zA-Z0-9_-]+$/;
-  var HYPHEN_REGEX = /-([a-z])/g;
-  var NO_HYPHEN_REGEX = /^[^-]+$/;
-  var VENDOR_PREFIX_REGEX = /^-(webkit|moz|ms|o|khtml)-/;
-  var MS_VENDOR_PREFIX_REGEX = /^-(ms)-/;
-  var skipCamelCase = function(property) {
-    return !property || NO_HYPHEN_REGEX.test(property) || CUSTOM_PROPERTY_REGEX.test(property);
-  };
-  var capitalize2 = function(match2, character2) {
-    return character2.toUpperCase();
-  };
-  var trimHyphen = function(match2, prefix2) {
-    return "".concat(prefix2, "-");
-  };
-  var camelCase = function(property, options2) {
-    if (options2 === void 0) {
-      options2 = {};
-    }
-    if (skipCamelCase(property)) {
-      return property;
-    }
-    property = property.toLowerCase();
-    if (options2.reactCompat) {
-      property = property.replace(MS_VENDOR_PREFIX_REGEX, trimHyphen);
-    } else {
-      property = property.replace(VENDOR_PREFIX_REGEX, trimHyphen);
-    }
-    return property.replace(HYPHEN_REGEX, capitalize2);
-  };
-  utilities.camelCase = camelCase;
-  return utilities;
-}
-var cjs;
-var hasRequiredCjs;
-function requireCjs() {
-  if (hasRequiredCjs) return cjs;
-  hasRequiredCjs = 1;
-  var __importDefault = cjs && cjs.__importDefault || function(mod) {
-    return mod && mod.__esModule ? mod : { "default": mod };
-  };
-  var style_to_object_1 = __importDefault(requireCjs$1());
-  var utilities_1 = requireUtilities$1();
-  function StyleToJS(style2, options2) {
-    var output = {};
-    if (!style2 || typeof style2 !== "string") {
-      return output;
-    }
-    (0, style_to_object_1.default)(style2, function(property, value) {
-      if (property && value) {
-        output[(0, utilities_1.camelCase)(property, options2)] = value;
-      }
-    });
-    return output;
-  }
-  StyleToJS.default = StyleToJS;
-  cjs = StyleToJS;
-  return cjs;
-}
-var hasRequiredUtilities;
-function requireUtilities() {
-  if (hasRequiredUtilities) return utilities$1;
-  hasRequiredUtilities = 1;
-  (function(exports) {
-    var __importDefault = utilities$1 && utilities$1.__importDefault || function(mod) {
-      return mod && mod.__esModule ? mod : { "default": mod };
-    };
-    Object.defineProperty(exports, "__esModule", { value: true });
-    exports.returnFirstArg = exports.canTextBeChildOfNode = exports.ELEMENTS_WITH_NO_TEXT_CHILDREN = exports.PRESERVE_CUSTOM_ATTRIBUTES = void 0;
-    exports.isCustomComponent = isCustomComponent;
-    exports.setStyleProp = setStyleProp;
-    var react_1 = requireReact();
-    var style_to_js_1 = __importDefault(requireCjs());
-    var RESERVED_SVG_MATHML_ELEMENTS = /* @__PURE__ */ new Set([
-      "annotation-xml",
-      "color-profile",
-      "font-face",
-      "font-face-src",
-      "font-face-uri",
-      "font-face-format",
-      "font-face-name",
-      "missing-glyph"
-    ]);
-    function isCustomComponent(tagName, props) {
-      if (!tagName.includes("-")) {
-        return Boolean(props && typeof props.is === "string");
-      }
-      if (RESERVED_SVG_MATHML_ELEMENTS.has(tagName)) {
-        return false;
-      }
-      return true;
-    }
-    var styleOptions = {
-      reactCompat: true
-    };
-    function setStyleProp(style2, props) {
-      if (typeof style2 !== "string") {
-        return;
-      }
-      if (!style2.trim()) {
-        props.style = {};
-        return;
-      }
-      try {
-        props.style = (0, style_to_js_1.default)(style2, styleOptions);
-      } catch (error) {
-        props.style = {};
-      }
-    }
-    exports.PRESERVE_CUSTOM_ATTRIBUTES = Number(react_1.version.split(".")[0]) >= 16;
-    exports.ELEMENTS_WITH_NO_TEXT_CHILDREN = /* @__PURE__ */ new Set([
-      "tr",
-      "tbody",
-      "thead",
-      "tfoot",
-      "colgroup",
-      "table",
-      "head",
-      "html",
-      "frameset"
-    ]);
-    var canTextBeChildOfNode = function(node2) {
-      return !exports.ELEMENTS_WITH_NO_TEXT_CHILDREN.has(node2.name);
-    };
-    exports.canTextBeChildOfNode = canTextBeChildOfNode;
-    var returnFirstArg = function(arg) {
-      return arg;
-    };
-    exports.returnFirstArg = returnFirstArg;
-  })(utilities$1);
-  return utilities$1;
-}
-var hasRequiredAttributesToProps;
-function requireAttributesToProps() {
-  if (hasRequiredAttributesToProps) return attributesToProps;
-  hasRequiredAttributesToProps = 1;
-  Object.defineProperty(attributesToProps, "__esModule", { value: true });
-  attributesToProps.default = attributesToProps$1;
-  var react_property_1 = requireLib$2();
-  var utilities_1 = requireUtilities();
-  var UNCONTROLLED_COMPONENT_ATTRIBUTES = ["checked", "value"];
-  var UNCONTROLLED_COMPONENT_NAMES = ["input", "select", "textarea"];
-  var valueOnlyInputs = {
-    reset: true,
-    submit: true
-  };
-  function attributesToProps$1(attributes, nodeName) {
-    if (attributes === void 0) {
-      attributes = {};
-    }
-    var props = {};
-    var isInputValueOnly = Boolean(attributes.type && valueOnlyInputs[attributes.type]);
-    for (var attributeName in attributes) {
-      var attributeValue = attributes[attributeName];
-      if ((0, react_property_1.isCustomAttribute)(attributeName)) {
-        props[attributeName] = attributeValue;
-        continue;
-      }
-      var attributeNameLowerCased = attributeName.toLowerCase();
-      var propName = getPropName(attributeNameLowerCased);
-      if (propName) {
-        var propertyInfo = (0, react_property_1.getPropertyInfo)(propName);
-        if (UNCONTROLLED_COMPONENT_ATTRIBUTES.includes(propName) && UNCONTROLLED_COMPONENT_NAMES.includes(nodeName) && !isInputValueOnly) {
-          propName = getPropName("default" + attributeNameLowerCased);
-        }
-        props[propName] = attributeValue;
-        switch (propertyInfo && propertyInfo.type) {
-          case react_property_1.BOOLEAN:
-            props[propName] = true;
-            break;
-          case react_property_1.OVERLOADED_BOOLEAN:
-            if (attributeValue === "") {
-              props[propName] = true;
-            }
-            break;
-        }
-        continue;
-      }
-      if (utilities_1.PRESERVE_CUSTOM_ATTRIBUTES) {
-        props[attributeName] = attributeValue;
-      }
-    }
-    (0, utilities_1.setStyleProp)(attributes.style, props);
-    return props;
-  }
-  function getPropName(attributeName) {
-    return react_property_1.possibleStandardNames[attributeName];
-  }
-  return attributesToProps;
-}
-var domToReact = {};
-var hasRequiredDomToReact;
-function requireDomToReact() {
-  if (hasRequiredDomToReact) return domToReact;
-  hasRequiredDomToReact = 1;
-  var __importDefault = domToReact && domToReact.__importDefault || function(mod) {
-    return mod && mod.__esModule ? mod : { "default": mod };
-  };
-  Object.defineProperty(domToReact, "__esModule", { value: true });
-  domToReact.default = domToReact$1;
-  var react_1 = requireReact();
-  var attributes_to_props_1 = __importDefault(requireAttributesToProps());
-  var utilities_1 = requireUtilities();
-  var React2 = {
-    cloneElement: react_1.cloneElement,
-    createElement: react_1.createElement,
-    isValidElement: react_1.isValidElement
-  };
-  function domToReact$1(nodes, options2) {
-    if (options2 === void 0) {
-      options2 = {};
-    }
-    var reactElements = [];
-    var hasReplace = typeof options2.replace === "function";
-    var transform = options2.transform || utilities_1.returnFirstArg;
-    var _a2 = options2.library || React2, cloneElement = _a2.cloneElement, createElement = _a2.createElement, isValidElement = _a2.isValidElement;
-    var nodesLength = nodes.length;
-    for (var index2 = 0; index2 < nodesLength; index2++) {
-      var node2 = nodes[index2];
-      if (hasReplace) {
-        var replaceElement = options2.replace(node2, index2);
-        if (isValidElement(replaceElement)) {
-          if (nodesLength > 1) {
-            replaceElement = cloneElement(replaceElement, {
-              key: replaceElement.key || index2
-            });
-          }
-          reactElements.push(transform(replaceElement, node2, index2));
-          continue;
-        }
-      }
-      if (node2.type === "text") {
-        var isWhitespace = !node2.data.trim().length;
-        if (isWhitespace && node2.parent && !(0, utilities_1.canTextBeChildOfNode)(node2.parent)) {
-          continue;
-        }
-        if (options2.trim && isWhitespace) {
-          continue;
-        }
-        reactElements.push(transform(node2.data, node2, index2));
-        continue;
-      }
-      var element2 = node2;
-      var props = {};
-      if (skipAttributesToProps(element2)) {
-        (0, utilities_1.setStyleProp)(element2.attribs.style, element2.attribs);
-        props = element2.attribs;
-      } else if (element2.attribs) {
-        props = (0, attributes_to_props_1.default)(element2.attribs, element2.name);
-      }
-      var children2 = void 0;
-      switch (node2.type) {
-        case "script":
-        case "style":
-          if (node2.children[0]) {
-            props.dangerouslySetInnerHTML = {
-              __html: node2.children[0].data
-            };
-          }
-          break;
-        case "tag":
-          if (node2.name === "textarea" && node2.children[0]) {
-            props.defaultValue = node2.children[0].data;
-          } else if (node2.children && node2.children.length) {
-            children2 = domToReact$1(node2.children, options2);
-          }
-          break;
-        // skip all other cases (e.g., comment)
-        default:
-          continue;
-      }
-      if (nodesLength > 1) {
-        props.key = index2;
-      }
-      reactElements.push(transform(createElement(node2.name, props, children2), node2, index2));
-    }
-    return reactElements.length === 1 ? reactElements[0] : reactElements;
-  }
-  function skipAttributesToProps(node2) {
-    return utilities_1.PRESERVE_CUSTOM_ATTRIBUTES && node2.type === "tag" && (0, utilities_1.isCustomComponent)(node2.name, node2.attribs);
-  }
-  return domToReact;
-}
-var lib = {};
-var node = {};
-var hasRequiredNode;
-function requireNode() {
-  if (hasRequiredNode) return node;
-  hasRequiredNode = 1;
-  var __extends2 = node && node.__extends || /* @__PURE__ */ (function() {
-    var extendStatics = function(d, b) {
-      extendStatics = Object.setPrototypeOf || { __proto__: [] } instanceof Array && function(d2, b2) {
-        d2.__proto__ = b2;
-      } || function(d2, b2) {
-        for (var p in b2) if (Object.prototype.hasOwnProperty.call(b2, p)) d2[p] = b2[p];
-      };
-      return extendStatics(d, b);
-    };
-    return function(d, b) {
-      if (typeof b !== "function" && b !== null)
-        throw new TypeError("Class extends value " + String(b) + " is not a constructor or null");
-      extendStatics(d, b);
-      function __() {
-        this.constructor = d;
-      }
-      d.prototype = b === null ? Object.create(b) : (__.prototype = b.prototype, new __());
-    };
-  })();
-  var __assign2 = node && node.__assign || function() {
-    __assign2 = Object.assign || function(t) {
-      for (var s, i2 = 1, n = arguments.length; i2 < n; i2++) {
-        s = arguments[i2];
-        for (var p in s) if (Object.prototype.hasOwnProperty.call(s, p))
-          t[p] = s[p];
-      }
-      return t;
-    };
-    return __assign2.apply(this, arguments);
-  };
-  Object.defineProperty(node, "__esModule", { value: true });
-  node.cloneNode = node.hasChildren = node.isDocument = node.isDirective = node.isComment = node.isText = node.isCDATA = node.isTag = node.Element = node.Document = node.CDATA = node.NodeWithChildren = node.ProcessingInstruction = node.Comment = node.Text = node.DataNode = node.Node = void 0;
-  var domelementtype_1 = /* @__PURE__ */ requireLib$4();
-  var Node2 = (
-    /** @class */
-    (function() {
-      function Node3() {
-        this.parent = null;
-        this.prev = null;
-        this.next = null;
-        this.startIndex = null;
-        this.endIndex = null;
-      }
-      Object.defineProperty(Node3.prototype, "parentNode", {
-        // Read-write aliases for properties
-        /**
-         * Same as {@link parent}.
-         * [DOM spec](https://dom.spec.whatwg.org)-compatible alias.
-         */
-        get: function() {
-          return this.parent;
-        },
-        set: function(parent) {
-          this.parent = parent;
-        },
-        enumerable: false,
-        configurable: true
-      });
-      Object.defineProperty(Node3.prototype, "previousSibling", {
-        /**
-         * Same as {@link prev}.
-         * [DOM spec](https://dom.spec.whatwg.org)-compatible alias.
-         */
-        get: function() {
-          return this.prev;
-        },
-        set: function(prev2) {
-          this.prev = prev2;
-        },
-        enumerable: false,
-        configurable: true
-      });
-      Object.defineProperty(Node3.prototype, "nextSibling", {
-        /**
-         * Same as {@link next}.
-         * [DOM spec](https://dom.spec.whatwg.org)-compatible alias.
-         */
-        get: function() {
-          return this.next;
-        },
-        set: function(next2) {
-          this.next = next2;
-        },
-        enumerable: false,
-        configurable: true
-      });
-      Node3.prototype.cloneNode = function(recursive) {
-        if (recursive === void 0) {
-          recursive = false;
-        }
-        return cloneNode(this, recursive);
-      };
-      return Node3;
-    })()
-  );
-  node.Node = Node2;
-  var DataNode = (
-    /** @class */
-    (function(_super) {
-      __extends2(DataNode2, _super);
-      function DataNode2(data) {
-        var _this = _super.call(this) || this;
-        _this.data = data;
-        return _this;
-      }
-      Object.defineProperty(DataNode2.prototype, "nodeValue", {
-        /**
-         * Same as {@link data}.
-         * [DOM spec](https://dom.spec.whatwg.org)-compatible alias.
-         */
-        get: function() {
-          return this.data;
-        },
-        set: function(data) {
-          this.data = data;
-        },
-        enumerable: false,
-        configurable: true
-      });
-      return DataNode2;
-    })(Node2)
-  );
-  node.DataNode = DataNode;
-  var Text = (
-    /** @class */
-    (function(_super) {
-      __extends2(Text2, _super);
-      function Text2() {
-        var _this = _super !== null && _super.apply(this, arguments) || this;
-        _this.type = domelementtype_1.ElementType.Text;
-        return _this;
-      }
-      Object.defineProperty(Text2.prototype, "nodeType", {
-        get: function() {
-          return 3;
-        },
-        enumerable: false,
-        configurable: true
-      });
-      return Text2;
-    })(DataNode)
-  );
-  node.Text = Text;
-  var Comment = (
-    /** @class */
-    (function(_super) {
-      __extends2(Comment2, _super);
-      function Comment2() {
-        var _this = _super !== null && _super.apply(this, arguments) || this;
-        _this.type = domelementtype_1.ElementType.Comment;
-        return _this;
-      }
-      Object.defineProperty(Comment2.prototype, "nodeType", {
-        get: function() {
-          return 8;
-        },
-        enumerable: false,
-        configurable: true
-      });
-      return Comment2;
-    })(DataNode)
-  );
-  node.Comment = Comment;
-  var ProcessingInstruction = (
-    /** @class */
-    (function(_super) {
-      __extends2(ProcessingInstruction2, _super);
-      function ProcessingInstruction2(name, data) {
-        var _this = _super.call(this, data) || this;
-        _this.name = name;
-        _this.type = domelementtype_1.ElementType.Directive;
-        return _this;
-      }
-      Object.defineProperty(ProcessingInstruction2.prototype, "nodeType", {
-        get: function() {
-          return 1;
-        },
-        enumerable: false,
-        configurable: true
-      });
-      return ProcessingInstruction2;
-    })(DataNode)
-  );
-  node.ProcessingInstruction = ProcessingInstruction;
-  var NodeWithChildren = (
-    /** @class */
-    (function(_super) {
-      __extends2(NodeWithChildren2, _super);
-      function NodeWithChildren2(children2) {
-        var _this = _super.call(this) || this;
-        _this.children = children2;
-        return _this;
-      }
-      Object.defineProperty(NodeWithChildren2.prototype, "firstChild", {
-        // Aliases
-        /** First child of the node. */
-        get: function() {
-          var _a2;
-          return (_a2 = this.children[0]) !== null && _a2 !== void 0 ? _a2 : null;
-        },
-        enumerable: false,
-        configurable: true
-      });
-      Object.defineProperty(NodeWithChildren2.prototype, "lastChild", {
-        /** Last child of the node. */
-        get: function() {
-          return this.children.length > 0 ? this.children[this.children.length - 1] : null;
-        },
-        enumerable: false,
-        configurable: true
-      });
-      Object.defineProperty(NodeWithChildren2.prototype, "childNodes", {
-        /**
-         * Same as {@link children}.
-         * [DOM spec](https://dom.spec.whatwg.org)-compatible alias.
-         */
-        get: function() {
-          return this.children;
-        },
-        set: function(children2) {
-          this.children = children2;
-        },
-        enumerable: false,
-        configurable: true
-      });
-      return NodeWithChildren2;
-    })(Node2)
-  );
-  node.NodeWithChildren = NodeWithChildren;
-  var CDATA = (
-    /** @class */
-    (function(_super) {
-      __extends2(CDATA2, _super);
-      function CDATA2() {
-        var _this = _super !== null && _super.apply(this, arguments) || this;
-        _this.type = domelementtype_1.ElementType.CDATA;
-        return _this;
-      }
-      Object.defineProperty(CDATA2.prototype, "nodeType", {
-        get: function() {
-          return 4;
-        },
-        enumerable: false,
-        configurable: true
-      });
-      return CDATA2;
-    })(NodeWithChildren)
-  );
-  node.CDATA = CDATA;
-  var Document = (
-    /** @class */
-    (function(_super) {
-      __extends2(Document2, _super);
-      function Document2() {
-        var _this = _super !== null && _super.apply(this, arguments) || this;
-        _this.type = domelementtype_1.ElementType.Root;
-        return _this;
-      }
-      Object.defineProperty(Document2.prototype, "nodeType", {
-        get: function() {
-          return 9;
-        },
-        enumerable: false,
-        configurable: true
-      });
-      return Document2;
-    })(NodeWithChildren)
-  );
-  node.Document = Document;
-  var Element2 = (
-    /** @class */
-    (function(_super) {
-      __extends2(Element3, _super);
-      function Element3(name, attribs, children2, type2) {
-        if (children2 === void 0) {
-          children2 = [];
-        }
-        if (type2 === void 0) {
-          type2 = name === "script" ? domelementtype_1.ElementType.Script : name === "style" ? domelementtype_1.ElementType.Style : domelementtype_1.ElementType.Tag;
-        }
-        var _this = _super.call(this, children2) || this;
-        _this.name = name;
-        _this.attribs = attribs;
-        _this.type = type2;
-        return _this;
-      }
-      Object.defineProperty(Element3.prototype, "nodeType", {
-        get: function() {
-          return 1;
-        },
-        enumerable: false,
-        configurable: true
-      });
-      Object.defineProperty(Element3.prototype, "tagName", {
-        // DOM Level 1 aliases
-        /**
-         * Same as {@link name}.
-         * [DOM spec](https://dom.spec.whatwg.org)-compatible alias.
-         */
-        get: function() {
-          return this.name;
-        },
-        set: function(name) {
-          this.name = name;
-        },
-        enumerable: false,
-        configurable: true
-      });
-      Object.defineProperty(Element3.prototype, "attributes", {
-        get: function() {
-          var _this = this;
-          return Object.keys(this.attribs).map(function(name) {
-            var _a2, _b;
-            return {
-              name,
-              value: _this.attribs[name],
-              namespace: (_a2 = _this["x-attribsNamespace"]) === null || _a2 === void 0 ? void 0 : _a2[name],
-              prefix: (_b = _this["x-attribsPrefix"]) === null || _b === void 0 ? void 0 : _b[name]
-            };
-          });
-        },
-        enumerable: false,
-        configurable: true
-      });
-      return Element3;
-    })(NodeWithChildren)
-  );
-  node.Element = Element2;
-  function isTag(node2) {
-    return (0, domelementtype_1.isTag)(node2);
-  }
-  node.isTag = isTag;
-  function isCDATA(node2) {
-    return node2.type === domelementtype_1.ElementType.CDATA;
-  }
-  node.isCDATA = isCDATA;
-  function isText(node2) {
-    return node2.type === domelementtype_1.ElementType.Text;
-  }
-  node.isText = isText;
-  function isComment(node2) {
-    return node2.type === domelementtype_1.ElementType.Comment;
-  }
-  node.isComment = isComment;
-  function isDirective(node2) {
-    return node2.type === domelementtype_1.ElementType.Directive;
-  }
-  node.isDirective = isDirective;
-  function isDocument2(node2) {
-    return node2.type === domelementtype_1.ElementType.Root;
-  }
-  node.isDocument = isDocument2;
-  function hasChildren(node2) {
-    return Object.prototype.hasOwnProperty.call(node2, "children");
-  }
-  node.hasChildren = hasChildren;
-  function cloneNode(node2, recursive) {
-    if (recursive === void 0) {
-      recursive = false;
-    }
-    var result;
-    if (isText(node2)) {
-      result = new Text(node2.data);
-    } else if (isComment(node2)) {
-      result = new Comment(node2.data);
-    } else if (isTag(node2)) {
-      var children2 = recursive ? cloneChildren(node2.children) : [];
-      var clone_1 = new Element2(node2.name, __assign2({}, node2.attribs), children2);
-      children2.forEach(function(child) {
-        return child.parent = clone_1;
-      });
-      if (node2.namespace != null) {
-        clone_1.namespace = node2.namespace;
-      }
-      if (node2["x-attribsNamespace"]) {
-        clone_1["x-attribsNamespace"] = __assign2({}, node2["x-attribsNamespace"]);
-      }
-      if (node2["x-attribsPrefix"]) {
-        clone_1["x-attribsPrefix"] = __assign2({}, node2["x-attribsPrefix"]);
-      }
-      result = clone_1;
-    } else if (isCDATA(node2)) {
-      var children2 = recursive ? cloneChildren(node2.children) : [];
-      var clone_2 = new CDATA(children2);
-      children2.forEach(function(child) {
-        return child.parent = clone_2;
-      });
-      result = clone_2;
-    } else if (isDocument2(node2)) {
-      var children2 = recursive ? cloneChildren(node2.children) : [];
-      var clone_3 = new Document(children2);
-      children2.forEach(function(child) {
-        return child.parent = clone_3;
-      });
-      if (node2["x-mode"]) {
-        clone_3["x-mode"] = node2["x-mode"];
-      }
-      result = clone_3;
-    } else if (isDirective(node2)) {
-      var instruction = new ProcessingInstruction(node2.name, node2.data);
-      if (node2["x-name"] != null) {
-        instruction["x-name"] = node2["x-name"];
-        instruction["x-publicId"] = node2["x-publicId"];
-        instruction["x-systemId"] = node2["x-systemId"];
-      }
-      result = instruction;
-    } else {
-      throw new Error("Not implemented yet: ".concat(node2.type));
-    }
-    result.startIndex = node2.startIndex;
-    result.endIndex = node2.endIndex;
-    if (node2.sourceCodeLocation != null) {
-      result.sourceCodeLocation = node2.sourceCodeLocation;
-    }
-    return result;
-  }
-  node.cloneNode = cloneNode;
-  function cloneChildren(childs) {
-    var children2 = childs.map(function(child) {
-      return cloneNode(child, true);
-    });
-    for (var i2 = 1; i2 < children2.length; i2++) {
-      children2[i2].prev = children2[i2 - 1];
-      children2[i2 - 1].next = children2[i2];
-    }
-    return children2;
-  }
-  return node;
-}
-var hasRequiredLib$1;
-function requireLib$1() {
-  if (hasRequiredLib$1) return lib;
-  hasRequiredLib$1 = 1;
-  (function(exports) {
-    var __createBinding = lib && lib.__createBinding || (Object.create ? (function(o, m, k, k2) {
-      if (k2 === void 0) k2 = k;
-      var desc = Object.getOwnPropertyDescriptor(m, k);
-      if (!desc || ("get" in desc ? !m.__esModule : desc.writable || desc.configurable)) {
-        desc = { enumerable: true, get: function() {
-          return m[k];
-        } };
-      }
-      Object.defineProperty(o, k2, desc);
-    }) : (function(o, m, k, k2) {
-      if (k2 === void 0) k2 = k;
-      o[k2] = m[k];
-    }));
-    var __exportStar = lib && lib.__exportStar || function(m, exports2) {
-      for (var p in m) if (p !== "default" && !Object.prototype.hasOwnProperty.call(exports2, p)) __createBinding(exports2, m, p);
-    };
-    Object.defineProperty(exports, "__esModule", { value: true });
-    exports.DomHandler = void 0;
-    var domelementtype_1 = /* @__PURE__ */ requireLib$4();
-    var node_js_1 = /* @__PURE__ */ requireNode();
-    __exportStar(/* @__PURE__ */ requireNode(), exports);
-    var defaultOpts = {
-      withStartIndices: false,
-      withEndIndices: false,
-      xmlMode: false
-    };
-    var DomHandler = (
-      /** @class */
-      (function() {
-        function DomHandler2(callback, options2, elementCB) {
-          this.dom = [];
-          this.root = new node_js_1.Document(this.dom);
-          this.done = false;
-          this.tagStack = [this.root];
-          this.lastNode = null;
-          this.parser = null;
-          if (typeof options2 === "function") {
-            elementCB = options2;
-            options2 = defaultOpts;
-          }
-          if (typeof callback === "object") {
-            options2 = callback;
-            callback = void 0;
-          }
-          this.callback = callback !== null && callback !== void 0 ? callback : null;
-          this.options = options2 !== null && options2 !== void 0 ? options2 : defaultOpts;
-          this.elementCB = elementCB !== null && elementCB !== void 0 ? elementCB : null;
-        }
-        DomHandler2.prototype.onparserinit = function(parser) {
-          this.parser = parser;
-        };
-        DomHandler2.prototype.onreset = function() {
-          this.dom = [];
-          this.root = new node_js_1.Document(this.dom);
-          this.done = false;
-          this.tagStack = [this.root];
-          this.lastNode = null;
-          this.parser = null;
-        };
-        DomHandler2.prototype.onend = function() {
-          if (this.done)
-            return;
-          this.done = true;
-          this.parser = null;
-          this.handleCallback(null);
-        };
-        DomHandler2.prototype.onerror = function(error) {
-          this.handleCallback(error);
-        };
-        DomHandler2.prototype.onclosetag = function() {
-          this.lastNode = null;
-          var elem = this.tagStack.pop();
-          if (this.options.withEndIndices) {
-            elem.endIndex = this.parser.endIndex;
-          }
-          if (this.elementCB)
-            this.elementCB(elem);
-        };
-        DomHandler2.prototype.onopentag = function(name, attribs) {
-          var type2 = this.options.xmlMode ? domelementtype_1.ElementType.Tag : void 0;
-          var element2 = new node_js_1.Element(name, attribs, void 0, type2);
-          this.addNode(element2);
-          this.tagStack.push(element2);
-        };
-        DomHandler2.prototype.ontext = function(data) {
-          var lastNode = this.lastNode;
-          if (lastNode && lastNode.type === domelementtype_1.ElementType.Text) {
-            lastNode.data += data;
-            if (this.options.withEndIndices) {
-              lastNode.endIndex = this.parser.endIndex;
-            }
-          } else {
-            var node2 = new node_js_1.Text(data);
-            this.addNode(node2);
-            this.lastNode = node2;
-          }
-        };
-        DomHandler2.prototype.oncomment = function(data) {
-          if (this.lastNode && this.lastNode.type === domelementtype_1.ElementType.Comment) {
-            this.lastNode.data += data;
-            return;
-          }
-          var node2 = new node_js_1.Comment(data);
-          this.addNode(node2);
-          this.lastNode = node2;
-        };
-        DomHandler2.prototype.oncommentend = function() {
-          this.lastNode = null;
-        };
-        DomHandler2.prototype.oncdatastart = function() {
-          var text2 = new node_js_1.Text("");
-          var node2 = new node_js_1.CDATA([text2]);
-          this.addNode(node2);
-          text2.parent = node2;
-          this.lastNode = text2;
-        };
-        DomHandler2.prototype.oncdataend = function() {
-          this.lastNode = null;
-        };
-        DomHandler2.prototype.onprocessinginstruction = function(name, data) {
-          var node2 = new node_js_1.ProcessingInstruction(name, data);
-          this.addNode(node2);
-        };
-        DomHandler2.prototype.handleCallback = function(error) {
-          if (typeof this.callback === "function") {
-            this.callback(error, this.dom);
-          } else if (error) {
-            throw error;
-          }
-        };
-        DomHandler2.prototype.addNode = function(node2) {
-          var parent = this.tagStack[this.tagStack.length - 1];
-          var previousSibling = parent.children[parent.children.length - 1];
-          if (this.options.withStartIndices) {
-            node2.startIndex = this.parser.startIndex;
-          }
-          if (this.options.withEndIndices) {
-            node2.endIndex = this.parser.endIndex;
-          }
-          parent.children.push(node2);
-          if (previousSibling) {
-            node2.prev = previousSibling;
-            previousSibling.next = node2;
-          }
-          node2.parent = parent;
-          this.lastNode = null;
-        };
-        return DomHandler2;
-      })()
-    );
-    exports.DomHandler = DomHandler;
-    exports.default = DomHandler;
-  })(lib);
-  return lib;
-}
-var hasRequiredLib;
-function requireLib() {
-  if (hasRequiredLib) return lib$4;
-  hasRequiredLib = 1;
-  (function(exports) {
-    var __importDefault = lib$4 && lib$4.__importDefault || function(mod) {
-      return mod && mod.__esModule ? mod : { "default": mod };
-    };
-    Object.defineProperty(exports, "__esModule", { value: true });
-    exports.htmlToDOM = exports.domToReact = exports.attributesToProps = exports.Text = exports.ProcessingInstruction = exports.Element = exports.Comment = void 0;
-    exports.default = HTMLReactParser2;
-    var html_dom_parser_1 = __importDefault(requireHtmlToDom());
-    exports.htmlToDOM = html_dom_parser_1.default;
-    var attributes_to_props_1 = __importDefault(requireAttributesToProps());
-    exports.attributesToProps = attributes_to_props_1.default;
-    var dom_to_react_1 = __importDefault(requireDomToReact());
-    exports.domToReact = dom_to_react_1.default;
-    var domhandler_1 = /* @__PURE__ */ requireLib$1();
-    Object.defineProperty(exports, "Comment", { enumerable: true, get: function() {
-      return domhandler_1.Comment;
-    } });
-    Object.defineProperty(exports, "Element", { enumerable: true, get: function() {
-      return domhandler_1.Element;
-    } });
-    Object.defineProperty(exports, "ProcessingInstruction", { enumerable: true, get: function() {
-      return domhandler_1.ProcessingInstruction;
-    } });
-    Object.defineProperty(exports, "Text", { enumerable: true, get: function() {
-      return domhandler_1.Text;
-    } });
-    var domParserOptions = { lowerCaseAttributeNames: false };
-    function HTMLReactParser2(html, options2) {
-      if (typeof html !== "string") {
-        throw new TypeError("First argument must be a string");
-      }
-      if (!html) {
-        return [];
-      }
-      return (0, dom_to_react_1.default)((0, html_dom_parser_1.default)(html, (options2 === null || options2 === void 0 ? void 0 : options2.htmlparser2) || domParserOptions), options2);
-    }
-  })(lib$4);
-  return lib$4;
-}
-var libExports = requireLib();
-const HTMLReactParser = /* @__PURE__ */ getDefaultExportFromCjs(libExports);
-const parse = HTMLReactParser.default || HTMLReactParser;
 function isElement$1(value) {
   return value instanceof Element;
 }
@@ -45557,7 +45557,7 @@ export {
   Popover,
   PopoverContent,
   PopoverTrigger,
-  ReactDOM,
+  React,
   ResizeMirror,
   Route,
   Routes,
@@ -45583,13 +45583,14 @@ export {
   isLeft,
   jsxRuntimeExports,
   keyof,
+  libExports,
   literal,
   makeAutoObservable,
   nullType,
   number$1 as number,
   observable,
   observer,
-  parse,
+  parse$2 as parse,
   partial,
   reactExports,
   recursion,

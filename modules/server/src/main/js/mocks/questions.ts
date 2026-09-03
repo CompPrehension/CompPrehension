@@ -119,6 +119,31 @@ export const mockQuestions: Record<number, Question> = {
             draggableStyle: '{ "height": "20px", "width": "20px" }',
         },
     },
+    8: {
+        type: 'MATCHING',
+        questionId: 8,
+        questionMetadataId: 8,
+        text: 'question text with <span id="answer_0">pick one</span> and <span id="answer_1">pick another</span>',
+        answers: [],
+        groups,
+        responses: [],
+        feedback: null,
+        options: { requireContext: true, showSupplementaryQuestions: true, displayMode: 'combobox', multipleSelectionEnabled: false },
+    },
+    9: {
+        type: 'MATCHING',
+        questionId: 9,
+        questionMetadataId: 9,
+        text: 'question text',
+        answers: [
+            { id: 0, text: 'test1' },
+            { id: 1, text: 'test2' },
+        ],
+        groups,
+        responses: [],
+        feedback: null,
+        options: { requireContext: false, showSupplementaryQuestions: true, displayMode: 'combobox', multipleSelectionEnabled: false },
+    },
 };
 
 export const mockAttempt = {

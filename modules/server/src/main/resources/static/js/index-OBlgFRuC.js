@@ -1,4 +1,4 @@
-import { configure, instance, initReactI18next, observer, jsxRuntimeExports, reactExports, Button, Bug, makeAutoObservable, useTranslation, Alert, Spinner, union, nullType, undefinedType, literal, Modal as Modal$1, EitherExports, success, type, string, number, intersection, boolean, partial, array, Type, _ArrayExports, _functionExports, NonEmptyArrayExports, OptionExports, failure, keyof, recursion, toJS, tuple, autorun, action, Droppable, ResizeMirror, StateManagedSelect$1, ReactDOM, components, parse, Popover, PopoverTrigger, PopoverContent, X, Badge, Pagination as Pagination$1, Navbar, isLeft, FormImpl, Shepherd, Table, ListGroup, observable, untracked, useSearchParams, Link, useNavigate, clientExports, BrowserRouter, Routes, Route, Navigate } from "./vendor-kzz-7jV2.js";
+import { configure, instance, initReactI18next, observer, jsxRuntimeExports, reactExports, Button, Bug, makeAutoObservable, useTranslation, Alert, Spinner, union, nullType, undefinedType, literal, Modal as Modal$1, EitherExports, success, type, string, number, intersection, boolean, partial, array, Type, _ArrayExports, _functionExports, NonEmptyArrayExports, OptionExports, failure, keyof, recursion, toJS, tuple, autorun, action, Droppable, ResizeMirror, StateManagedSelect$1, parse, components, libExports, Popover, PopoverTrigger, PopoverContent, X, Badge, Pagination as Pagination$1, Navbar, isLeft, FormImpl, Shepherd, Table, ListGroup, observable, untracked, useSearchParams, Link, useNavigate, React, clientExports, BrowserRouter, Routes, Route, Navigate } from "./vendor-CtVksn5U.js";
 (function polyfill() {
   const relList = document.createElement("link").relList;
   if (relList && relList.supports && relList.supports("modulepreload")) return;
@@ -171,7 +171,9 @@ const resources = {
       exerciseModeBar_confirmDelete: "Delete exercise? Attempt history will be deleted.",
       error_notification_title: "Request failed",
       error_page_title: "Failed to load",
-      error_page_retry: "Retry"
+      error_page_retry: "Retry",
+      error_boundary_title: "Something went wrong",
+      error_boundary_reload: "Reload the page"
     }
   },
   RU: {
@@ -317,7 +319,9 @@ const resources = {
       exerciseModeBar_confirmDelete: "Удалить упражнение? История попыток будет удалена.",
       error_notification_title: "Запрос не выполнен",
       error_page_title: "Не удалось загрузить",
-      error_page_retry: "Повторить"
+      error_page_retry: "Повторить",
+      error_boundary_title: "Что-то пошло не так",
+      error_boundary_reload: "Перезагрузить страницу"
     }
   },
   PL: {
@@ -431,7 +435,9 @@ const resources = {
       exerciseModeBar_confirmDelete: "Usunąć ćwiczenie? Historia prób zostanie usunięta.",
       error_notification_title: "Żądanie nie powiodło się",
       error_page_title: "Nie udało się załadować",
-      error_page_retry: "Ponów"
+      error_page_retry: "Ponów",
+      error_boundary_title: "Coś poszło nie tak",
+      error_boundary_reload: "Odśwież stronę"
     }
   }
 };
@@ -1883,6 +1889,13 @@ let sharedExerciseStore;
 function getExerciseStore() {
   return sharedExerciseStore ??= new ExerciseStore();
 }
+function answerSlotId(node) {
+  const attribs = node.attribs;
+  if (node.type !== "tag" || attribs?.["data-answer-id"] === void 0) {
+    return null;
+  }
+  return +attribs["data-answer-id"];
+}
 const MatchingQuestionComponent = observer((props) => {
   const { question } = props;
   const { options } = question;
@@ -1995,10 +2008,13 @@ const ComboboxMatchingQuestionWithCtxComponent = observer((props) => {
     return null;
   }
   const { groups = [], options } = question;
-  reactExports.useEffect(() => {
-    document.querySelectorAll(`#question_${question.questionId} [data-answer-id]`).forEach((elem) => {
-      const answerId = +elem.getAttribute("data-answer-id");
-      const selector = /* @__PURE__ */ jsxRuntimeExports.jsx(
+  const content = parse(question.text, {
+    replace: (node) => {
+      const answerId = answerSlotId(node);
+      if (answerId === null) {
+        return;
+      }
+      return /* @__PURE__ */ jsxRuntimeExports.jsx(
         StateManagedSelect$1,
         {
           options: groups.map((g) => ({ value: g.id, label: g.text })),
@@ -2014,10 +2030,9 @@ const ComboboxMatchingQuestionWithCtxComponent = observer((props) => {
           })
         }
       );
-      ReactDOM.render(selector, elem);
-    });
-  }, [question.questionId]);
-  return /* @__PURE__ */ jsxRuntimeExports.jsx("div", { id: `question_${question.questionId}`, children: /* @__PURE__ */ jsxRuntimeExports.jsx("p", { className: "comp-ph-question-text", dangerouslySetInnerHTML: { __html: question.text } }) });
+    }
+  });
+  return /* @__PURE__ */ jsxRuntimeExports.jsx("div", { id: `question_${question.questionId}`, children: /* @__PURE__ */ jsxRuntimeExports.jsx("div", { className: "comp-ph-question-text", children: content }) });
 });
 const RawHtmlSelectOption = (props) => {
   const { innerRef, innerProps, children, ...rest } = props;
@@ -2121,38 +2136,25 @@ const SwitchMultiChoiceQuestionWithCtxComponent = observer((props) => {
     ];
     onChanged(newHistory);
   };
-  reactExports.useEffect(() => {
-    document.querySelectorAll(`#question_${question.questionId} [data-answer-id]`).forEach((e) => {
-      const id = +(e.getAttribute("data-answer-id") ?? -1);
-      const component = /* @__PURE__ */ jsxRuntimeExports.jsx(
+  const content = parse(question.text, {
+    replace: (node) => {
+      const id = answerSlotId(node);
+      if (id === null) {
+        return;
+      }
+      return /* @__PURE__ */ jsxRuntimeExports.jsx(
         ToggleSwitch,
         {
           id: `toggle_answer_${id}`,
-          selected: selectorTexts[getAnswers().filter((h) => h.answer[0] === +id)?.[0]?.answer?.[1]] ?? "",
+          selected: selectorTexts[getAnswers().filter((h) => h.answer[0] === id)?.[0]?.answer?.[1]] ?? "",
           inputAttributes: { "data-answer-id": id },
           values: selectorTexts,
-          onChange: (val) => onSwitched(+id, val)
+          onChange: (val) => onSwitched(id, val)
         }
       );
-      ReactDOM.render(component, e);
-      e.id = "";
-    });
-  }, [question.questionId]);
-  reactExports.useEffect(() => {
-    document.querySelectorAll(`#question_${question.questionId} input[data-answer-id]`).forEach((e) => {
-      +(e.getAttribute("data-answer-id") ?? -1);
-      e.checked = void 0;
-    });
-    getAnswers().forEach(({ answer }) => {
-      const [id, value] = answer;
-      const answr = document.querySelector(`#toggle_answer_${id} input[data-value='${selectorTexts[value]}']`);
-      if (!answr || answr.checked) {
-        return;
-      }
-      setTimeout(() => answr.checked = true, 10);
-    });
-  }, [question.questionId, getAnswers()]);
-  return /* @__PURE__ */ jsxRuntimeExports.jsx("div", { id: `question_${question.questionId}`, children: /* @__PURE__ */ jsxRuntimeExports.jsx("p", { children: /* @__PURE__ */ jsxRuntimeExports.jsx("div", { className: "comp-ph-question-text", dangerouslySetInnerHTML: { __html: question.text } }) }) });
+    }
+  });
+  return /* @__PURE__ */ jsxRuntimeExports.jsx("div", { id: `question_${question.questionId}`, children: /* @__PURE__ */ jsxRuntimeExports.jsx("div", { className: "comp-ph-question-text", children: content }) });
 });
 const DndMultiChoiceQuestionComponent = observer((props) => {
   const { question, getAnswers, onChanged, answers } = props;
@@ -2190,7 +2192,7 @@ const OrderQuestionComponent = observer((props) => {
     const originalText2 = document.createElement("div");
     originalText2.innerHTML = question.text;
     return originalText2;
-  }, []);
+  }, [question.text]);
   reactExports.useEffect(() => {
     document.querySelectorAll(`#question_${question.questionId} [data-answer-id]`).forEach((e) => {
       const idStr = e.getAttribute("data-answer-id") ?? "";
@@ -2301,7 +2303,8 @@ const RadioSingleChoiceQuestionComponent = observer((props) => {
           ) }),
           /* @__PURE__ */ jsxRuntimeExports.jsx("div", { dangerouslySetInnerHTML: { __html: a.text } })
         ]
-      }
+      },
+      a.id
     )) })
   ] });
 });
@@ -2310,16 +2313,18 @@ const RadioSingleChoiceQuestionWithCtxComponent = observer((props) => {
   if (question.options.displayMode !== "radio") {
     return null;
   }
-  const { options } = question;
   const selfOnChange = (answerId, checked) => {
     if (checked) {
       onChanged([{ answer: [answerId, answerId], isСreatedByUser: true }]);
     }
   };
-  reactExports.useEffect(() => {
-    document.querySelectorAll(`#question_${question.questionId} [data-answer-id]`).forEach((e) => {
-      const id = e.getAttribute("data-answer-id") ?? -1;
-      const component = /* @__PURE__ */ jsxRuntimeExports.jsxs(
+  const content = parse(question.text, {
+    replace: (node) => {
+      const id = answerSlotId(node);
+      if (id === null) {
+        return;
+      }
+      return /* @__PURE__ */ jsxRuntimeExports.jsxs(
         "label",
         {
           htmlFor: `question_${question.questionId}_answer_${id}`,
@@ -2332,33 +2337,18 @@ const RadioSingleChoiceQuestionWithCtxComponent = observer((props) => {
                 name: `switch_${question.questionId}`,
                 "data-answer-id": id,
                 type: "radio",
-                checked: getAnswers().some((h) => h.answer[0] === +id),
-                onChange: (e2) => selfOnChange(+id, e2.target.checked),
+                checked: getAnswers().some((h) => h.answer[0] === id),
+                onChange: (e) => selfOnChange(id, e.target.checked),
                 readOnly: true
               }
             ),
-            /* @__PURE__ */ jsxRuntimeExports.jsx("span", { dangerouslySetInnerHTML: { __html: e.innerHTML } })
+            /* @__PURE__ */ jsxRuntimeExports.jsx("span", { children: libExports.domToReact(node.children) })
           ]
         }
       );
-      ReactDOM.render(component, e);
-      e.id = "";
-    });
-  }, [question.questionId]);
-  reactExports.useEffect(() => {
-    document.querySelectorAll(`#question_${question.questionId} input[data-answer-id]`).forEach((e) => {
-      e.checked = void 0;
-    });
-    getAnswers().forEach(({ answer }) => {
-      const id = answer[0];
-      const answr = document.querySelector(`#question_${question.questionId} input[data-answer-id='${id}']`);
-      if (!answr) {
-        return;
-      }
-      setTimeout(() => answr.checked = true, 10);
-    });
-  }, [question.questionId, getAnswers()]);
-  return /* @__PURE__ */ jsxRuntimeExports.jsx("div", { id: `question_${question.questionId}`, children: /* @__PURE__ */ jsxRuntimeExports.jsx("p", { children: /* @__PURE__ */ jsxRuntimeExports.jsx("div", { className: "comp-ph-question-text", dangerouslySetInnerHTML: { __html: question.text } }) }) });
+    }
+  });
+  return /* @__PURE__ */ jsxRuntimeExports.jsx("div", { id: `question_${question.questionId}`, children: /* @__PURE__ */ jsxRuntimeExports.jsx("div", { className: "comp-ph-question-text", children: content }) });
 });
 const QuestionComponent = observer((props) => {
   const { question, answers, onChanged, getAnswers, getFeedback, isFeedbackLoading, isQuestionFreezed } = props;
@@ -3027,7 +3017,7 @@ const SurveyComponent = (props) => {
   ] });
 };
 const SurveyYesNoQuestion = (props) => {
-  const { question, onAnswered, value, isCompleted } = props;
+  const { question, onAnswered, value } = props;
   return /* @__PURE__ */ jsxRuntimeExports.jsxs("div", { children: [
     /* @__PURE__ */ jsxRuntimeExports.jsx("div", { className: "mb-1", children: question.text }),
     /* @__PURE__ */ jsxRuntimeExports.jsxs("div", { className: "d-flex flex-row mt-2", children: [
@@ -3328,7 +3318,7 @@ const TourProvider = ({ steps: steps2, children }) => {
       showNextStep();
     };
     setIsReady(true);
-  }, [steps2]);
+  }, [steps2, t]);
   return /* @__PURE__ */ jsxRuntimeExports.jsx(
     TourContext.Provider,
     {
@@ -3571,8 +3561,7 @@ const ExercisesList = observer(() => {
   reactExports.useEffect(() => {
     (async () => {
       setIsLoading(true);
-      const controller = exerciseController;
-      const dataEither = await controller.getExercises();
+      const dataEither = await exerciseController.getExercises();
       if (EitherExports.isRight(dataEither)) {
         setData(dataEither.right);
       }
@@ -3583,9 +3572,8 @@ const ExercisesList = observer(() => {
 });
 const SurveyPage = observer(() => {
   const exerciseStore = getExerciseStore();
-  const { exerciseState, setExerciseState, storeState: excerciseStoreState, currentQuestion, survey } = exerciseStore;
+  const { exerciseState, setExerciseState, storeState: excerciseStoreState, currentQuestion } = exerciseStore;
   const { storeState: currentQuestionStoreState } = currentQuestion;
-  const { t } = useTranslation();
   const [surveyState, setSurveyState] = reactExports.useState("ACTIVE");
   reactExports.useEffect(() => {
     (async () => {
@@ -3614,7 +3602,7 @@ const SurveyPage = observer(() => {
     await exerciseStore.createExerciseAttempt();
     await loadQuestion();
   };
-  const onSurveyAnswered = reactExports.useCallback((survey2, questionId, answers) => {
+  const onSurveyAnswered = reactExports.useCallback((survey, questionId, answers) => {
     console.log("лень рефакторить, не работает крч");
   }, []);
   const surveyOptions = exerciseStore.exercise?.options.surveyOptions;
@@ -4170,7 +4158,7 @@ const ExerciseSettings = observer(() => {
     (async () => {
       await exerciseStore.createNewExecise();
     })();
-  }, [exerciseStore, exerciseStore.exercises?.length]);
+  }, [exerciseStore]);
   const onLangClicked = reactExports.useCallback(() => {
     const currentLang = user?.language;
     const newLang = currentLang === "RU" ? "EN" : "RU";
@@ -4226,12 +4214,8 @@ const ExerciseSettings = observer(() => {
   ] });
 });
 const ExerciseCardElement = observer((props) => {
-  const { card, domains, backends, strategies, store } = props;
+  const { card, domains, strategies, store } = props;
   const { t } = useTranslation();
-  const user = useCurrentUser();
-  reactExports.useMemo(() => {
-    return [t("exercisesettings_optDenied"), t("exercisesettings_optAllowed"), t("exercisesettings_optTarget")];
-  }, [t, user?.language]);
   if (store.exercisesLoadStatus === "EXERCISELOADING")
     return /* @__PURE__ */ jsxRuntimeExports.jsx(Loader, { delay: 200 });
   if (card == null)
@@ -5299,9 +5283,38 @@ const CoursesPage = observer(() => {
     ) }, c.id)) })
   ] });
 });
+const RenderFailure = ({ error }) => {
+  const { t } = useTranslation();
+  return /* @__PURE__ */ jsxRuntimeExports.jsx("div", { className: "container pt-3", children: /* @__PURE__ */ jsxRuntimeExports.jsxs(Alert, { variant: "danger", children: [
+    /* @__PURE__ */ jsxRuntimeExports.jsx(Alert.Heading, { as: "h6", children: t("error_boundary_title") }),
+    /* @__PURE__ */ jsxRuntimeExports.jsx("div", { className: "comp-ph-error-notification-message", children: error.message }),
+    /* @__PURE__ */ jsxRuntimeExports.jsx(
+      Button,
+      {
+        variant: "outline-danger",
+        size: "sm",
+        className: "mt-2",
+        onClick: () => window.location.reload(),
+        children: t("error_boundary_reload")
+      }
+    )
+  ] }) });
+};
+class ErrorBoundary extends React.Component {
+  state = { error: null };
+  static getDerivedStateFromError(error) {
+    return { error };
+  }
+  componentDidCatch(error, info) {
+    console.error("Render failed:", error, info.componentStack);
+  }
+  render() {
+    return this.state.error !== null ? /* @__PURE__ */ jsxRuntimeExports.jsx(RenderFailure, { error: this.state.error }) : this.props.children;
+  }
+}
 const Home = () => /* @__PURE__ */ jsxRuntimeExports.jsxs(jsxRuntimeExports.Fragment, { children: [
   /* @__PURE__ */ jsxRuntimeExports.jsx(ErrorNotifications, {}),
-  /* @__PURE__ */ jsxRuntimeExports.jsx(SessionProvider, { children: /* @__PURE__ */ jsxRuntimeExports.jsx("div", { className: "container comp-ph-container", children: /* @__PURE__ */ jsxRuntimeExports.jsx(BrowserRouter, { children: /* @__PURE__ */ jsxRuntimeExports.jsxs(Routes, { children: [
+  /* @__PURE__ */ jsxRuntimeExports.jsx(ErrorBoundary, { children: /* @__PURE__ */ jsxRuntimeExports.jsx(SessionProvider, { children: /* @__PURE__ */ jsxRuntimeExports.jsx("div", { className: "container comp-ph-container", children: /* @__PURE__ */ jsxRuntimeExports.jsx(BrowserRouter, { children: /* @__PURE__ */ jsxRuntimeExports.jsxs(Routes, { children: [
     /* @__PURE__ */ jsxRuntimeExports.jsx(Route, { path: "/pages/statistics", element: /* @__PURE__ */ jsxRuntimeExports.jsx(Statistics, {}) }),
     /* @__PURE__ */ jsxRuntimeExports.jsx(Route, { path: "/pages/exercise", element: /* @__PURE__ */ jsxRuntimeExports.jsx(Exercise, {}) }),
     /* @__PURE__ */ jsxRuntimeExports.jsx(Route, { path: "/pages/exercise-settings", element: /* @__PURE__ */ jsxRuntimeExports.jsx(ExerciseSettings, {}) }),
@@ -5313,7 +5326,7 @@ const Home = () => /* @__PURE__ */ jsxRuntimeExports.jsxs(jsxRuntimeExports.Frag
     /* @__PURE__ */ jsxRuntimeExports.jsx(Route, { path: "/pages/course", element: /* @__PURE__ */ jsxRuntimeExports.jsx(CoursePage, {}) }),
     /* @__PURE__ */ jsxRuntimeExports.jsx(Route, { path: "/pages/courses", element: /* @__PURE__ */ jsxRuntimeExports.jsx(CoursesPage, {}) }),
     /* @__PURE__ */ jsxRuntimeExports.jsx(Route, { path: "/", element: /* @__PURE__ */ jsxRuntimeExports.jsx(Navigate, { to: "/pages/courses", replace: true }) })
-  ] }) }) }) })
+  ] }) }) }) }) })
 ] });
 async function startMocking() {
   {

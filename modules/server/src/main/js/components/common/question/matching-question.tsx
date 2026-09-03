@@ -1,11 +1,12 @@
 import { Droppable, DroppableEventNames, Plugins } from "@shopify/draggable";
 import type { DraggableEventNames } from "@shopify/draggable/lib/draggable.bundle.legacy";
+import parse from "html-react-parser";
 import { observer } from "mobx-react";
 import React, { useEffect } from "react";
-import ReactDOM from "react-dom";
 import Select, { components } from "react-select";
 import { Answer } from "../../../types/answer";
 import { MatchingQuestion } from "../../../types/question";
+import { answerSlotId } from "./answer-slot";
 
 type MatchingQuestionComponentProps = {
     question: MatchingQuestion,
@@ -168,31 +169,34 @@ const ComboboxMatchingQuestionWithCtxComponent = observer((props: MatchingQuesti
     }
     const { groups = [], options } = question;      
 
-    useEffect(() => {
-        // replace all placeholders on first render
-        document.querySelectorAll(`#question_${question.questionId} [data-answer-id]`)
-            .forEach(elem => {
-                const answerId = +elem.getAttribute('data-answer-id')!;
-                const selector = <Select options={groups.map(g => ({ value: g.id, label: g.text }))}
-                                         components={{ Option: RawHtmlSelectOption, SingleValue: RawHtmlSelectSingleValue }} 
-                                         onChange={(v => {
-                                            if (!v) {
-                                               return;
-                                            }
+    const content = parse(question.text, {
+        replace: (node) => {
+            const answerId = answerSlotId(node);
+            if (answerId === null) {
+                return;
+            }
 
-                                            const otherHistoryItems = getAnswers().filter(v => v.answer[0] !== answerId);
-                                            const historyItem = { answer: [answerId, +v.value] as [number, number], isСreatedByUser: true };
-                                            const newAnswersHistory = [...otherHistoryItems, historyItem];
-                                            onChanged(newAnswersHistory);     
-                                        })}
-                                    />
-                ReactDOM.render(selector, elem);
-            });        
-    }, [question.questionId]);
+            return (
+                <Select options={groups.map(g => ({ value: g.id, label: g.text }))}
+                        components={{ Option: RawHtmlSelectOption, SingleValue: RawHtmlSelectSingleValue }}
+                        onChange={(v => {
+                            if (!v) {
+                                return;
+                            }
+
+                            const otherHistoryItems = getAnswers().filter(v => v.answer[0] !== answerId);
+                            const historyItem = { answer: [answerId, +v.value] as [number, number], isСreatedByUser: true };
+                            const newAnswersHistory = [...otherHistoryItems, historyItem];
+                            onChanged(newAnswersHistory);
+                        })}
+                />
+            );
+        },
+    });
 
     return (
         <div id={`question_${question.questionId}`}>
-            <p className="comp-ph-question-text" dangerouslySetInnerHTML={{ __html: question.text }} />
+            <div className="comp-ph-question-text">{content}</div>
         </div>
     );
 });

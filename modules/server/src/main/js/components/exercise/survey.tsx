@@ -85,7 +85,7 @@ type SurveyYesNoQuestionProps = {
     onAnswered: (questionId: number, answer: string) => void,
 }
 const SurveyYesNoQuestion = (props: SurveyYesNoQuestionProps) => {
-    const { question, onAnswered, value, isCompleted } = props;
+    const { question, onAnswered, value, } = props;
     return (
         <div>
             <div className="mb-1">

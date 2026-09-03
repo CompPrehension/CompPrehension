@@ -47,7 +47,7 @@ export const ExerciseSettings = observer(() => {
         (async () => {
             await exerciseStore.createNewExecise();
         })()
-    }, [exerciseStore, exerciseStore.exercises?.length]);
+    }, [exerciseStore]);
 
     const onLangClicked = useCallback(() => {
         const currentLang = user?.language;
@@ -113,12 +113,8 @@ type ExerciseCardElementProps = {
 }
 
 const ExerciseCardElement = observer((props: ExerciseCardElementProps) => {
-    const { card, domains, backends, strategies, store } = props;
+    const { card, domains, strategies, store } = props;
     const { t } = useTranslation();
-    const user = useCurrentUser();
-    const conceptFlagNames = useMemo(() => {
-        return [t('exercisesettings_optDenied'), t('exercisesettings_optAllowed'), t('exercisesettings_optTarget')]
-    }, [t, user?.language])
 
     if (store.exercisesLoadStatus === 'EXERCISELOADING')
         return <Loader delay={200} />;

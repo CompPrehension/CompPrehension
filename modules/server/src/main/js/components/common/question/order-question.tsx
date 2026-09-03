@@ -24,7 +24,7 @@ export const OrderQuestionComponent = observer((props: OrderQuestionComponentPro
         const originalText = document.createElement('div')
         originalText.innerHTML = question.text;
         return originalText;
-    }, []);    
+    }, [question.text]);
 
     // actions on questionId changed (onInit)
     useEffect(() => {    

@@ -17,10 +17,12 @@ import {CoursePage} from './pages/course';
 import {CoursesPage} from './pages/courses';
 import {SessionProvider} from './hooks/session-context';
 import {ErrorNotifications} from './components/common/errors';
+import {ErrorBoundary} from './components/common/error-boundary';
 
 const Home = () => (
     <>
     <ErrorNotifications />
+    <ErrorBoundary>
     <SessionProvider>
         <div className="container comp-ph-container">
             <Router>
@@ -40,6 +42,7 @@ const Home = () => (
             </Router>
         </div>
     </SessionProvider>
+    </ErrorBoundary>
     </>
 )
 

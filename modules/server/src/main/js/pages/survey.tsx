@@ -1,7 +1,6 @@
 import { observer } from "mobx-react";
 import React, { useCallback, useEffect, useState } from "react";
 import { Alert } from "react-bootstrap";
-import { useTranslation } from "react-i18next";
 import { InlineError } from "../components/common/errors";
 import { LoadingWrapper } from "../components/common/loader";
 import { Optional } from "../components/common/optional";
@@ -13,9 +12,8 @@ import { Survey } from "../types/survey";
 
 export const SurveyPage = observer(() => {
     const exerciseStore = getExerciseStore();
-    const { exerciseState, setExerciseState, storeState:excerciseStoreState, currentQuestion, survey } = exerciseStore;
+    const { exerciseState, setExerciseState, storeState:excerciseStoreState, currentQuestion, } = exerciseStore;
     const { storeState:currentQuestionStoreState } = currentQuestion;
-    const { t } = useTranslation();
     const [surveyState, setSurveyState]= useState<'ACTIVE' | 'COMPLETED'>('ACTIVE');
 
     // on first render

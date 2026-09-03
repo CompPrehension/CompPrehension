@@ -1,9 +1,9 @@
+import parse from "html-react-parser";
 import { observer } from "mobx-react";
-import React, { useEffect } from "react";
-import ReactDOM from "react-dom";
 import { Answer } from "../../../types/answer";
 import { MatchingQuestion, MultiChoiceQuestion } from "../../../types/question";
 import { ToggleSwitch } from "../toggle";
+import { answerSlotId } from "./answer-slot";
 import { DragAndDropMatchingQuestionComponent } from "./matching-question";
 
 type MultiChoiceQuestionComponentProps = {
@@ -83,48 +83,26 @@ const SwitchMultiChoiceQuestionWithCtxComponent = observer((props: MultiChoiceQu
         onChanged(newHistory);
     }
 
-    // on First Render 
-    useEffect(() => {    
-        // add button click event handlers
-        document.querySelectorAll(`#question_${question.questionId} [data-answer-id]`).forEach(e => {
-            const id = +(e.getAttribute('data-answer-id') ?? -1);
-            const component = <ToggleSwitch id={`toggle_answer_${id}`} 
-                                            selected={selectorTexts[getAnswers().filter(h => h.answer[0] === +id)?.[0]?.answer?.[1]] ?? ""} 
-                                            inputAttributes={{ 'data-answer-id': id }}
-                                            values={selectorTexts} 
-                                            onChange={val => onSwitched(+id, val)} />
-            ReactDOM.render(component, e);
-            e.id = "";   
-        })
-    }, [question.questionId]);
-
-    // apply history changes
-    useEffect(() => {
-        // drop all changes
-        document.querySelectorAll(`#question_${question.questionId} input[data-answer-id]`).forEach((e: any) => {
-            const answerId = +(e.getAttribute('data-answer-id') ?? -1);
-            //if (!answersHistory.some(h => h[0] === id)) {
-            e.checked = undefined;
-            //}                
-        });
-
-        // apply history changes    
-        getAnswers().forEach(({ answer }) => {
-            const [id, value] = answer;
-            const answr: any = document.querySelector(`#toggle_answer_${id} input[data-value='${selectorTexts[value]}']`);
-            if (!answr || answr.checked) {
+    const content = parse(question.text, {
+        replace: (node) => {
+            const id = answerSlotId(node);
+            if (id === null) {
                 return;
             }
-            setTimeout(() => answr.checked = true, 10)
-            //answr.value = value;
-        });
-    }, [question.questionId, getAnswers()])
-    
+
+            return (
+                <ToggleSwitch id={`toggle_answer_${id}`}
+                              selected={selectorTexts[getAnswers().filter(h => h.answer[0] === id)?.[0]?.answer?.[1]] ?? ""}
+                              inputAttributes={{ 'data-answer-id': id }}
+                              values={selectorTexts}
+                              onChange={val => onSwitched(id, val)} />
+            );
+        },
+    });
+
     return (
         <div id={`question_${question.questionId}`}>
-            <p>
-                <div className="comp-ph-question-text" dangerouslySetInnerHTML={{ __html: question.text }} />
-            </p>            
+            <div className="comp-ph-question-text">{content}</div>
         </div>
     );
 })

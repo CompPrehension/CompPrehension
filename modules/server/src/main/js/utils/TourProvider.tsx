@@ -165,7 +165,7 @@ export const TourProvider = ({ steps, children }: TourProviderProps) => {
     };
 
     setIsReady(true);
-  }, [steps]);
+  }, [steps, t]);
 
   return (
     <TourContext.Provider

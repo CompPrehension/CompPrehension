@@ -5,6 +5,7 @@ import * as E from "fp-ts/lib/Either";
 import { ExerciseOptions } from "../types/exercise-options";
 import * as NEA from "fp-ts/lib/NonEmptyArray";
 import { pipe } from "fp-ts/lib/function";
+import {NonEmptyArray} from "fp-ts/lib/NonEmptyArray";
 
 export type ExerciseCardViewModel = {
     id: number,
@@ -130,7 +131,7 @@ export class ExerciseSettingsStore {
         const result: ExerciseCardViewModel = observable({
             ...card,
             tags: card.tags.filter(t => cardDomain.tags.some(tt => tt === t)),
-            stages: [] as any,
+            stages: [] as unknown as NonEmptyArray<ExerciseStageStore>,
         });
         result.stages = pipe(
             card.stages,
