@@ -3,13 +3,18 @@ package org.vstu.compprehension.authorization;
 import org.vstu.compprehension.infrastructure.TestData;
 
 import org.junit.jupiter.api.Test;
+import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.http.MediaType;
+import org.vstu.compprehension.Service.ExerciseAttemptService;
 
+import static org.junit.jupiter.api.Assertions.assertDoesNotThrow;
 import static org.springframework.test.web.servlet.request.MockMvcRequestBuilders.get;
 import static org.springframework.test.web.servlet.request.MockMvcRequestBuilders.post;
 import static org.springframework.test.web.servlet.result.MockMvcResultMatchers.status;
 
 class QuestionControllerAuthorizationTest extends AbstractAuthorizationTest {
+
+    @Autowired private ExerciseAttemptService exerciseAttemptService;
 
     /** Вопрос принадлежит чужой попытке. */
     @Test
@@ -165,5 +170,46 @@ class QuestionControllerAuthorizationTest extends AbstractAuthorizationTest {
 
         // Assert.
         result.andExpect(status().isForbidden());
+    }
+
+    /** Студенту недоступен вопрос без попытки. */
+    @Test
+    void getQuestionForbiddenForAttemptlessQuestionAndGlobalStudent() throws Exception {
+        // Arrange.
+        var question = createQuestionWithoutAttempt();
+        actingAs(TestData.GLOBAL_STUDENT_ID);
+
+        // Act.
+        var result = mockMvc.perform(get("/api/question")
+                .param("questionId", String.valueOf(question.getId())));
+
+        // Assert.
+        result.andExpect(status().isForbidden());
+    }
+
+    /** Преподавателю курса недоступен вопрос без попытки. */
+    @Test
+    void generateNextCorrectAnswerForbiddenForAttemptlessQuestionAndCourseTeacher() throws Exception {
+        // Arrange.
+        var question = createQuestionWithoutAttempt();
+        actingAs(TestData.MAIN_COURSE_TEACHER_ID);
+
+        // Act.
+        var result = mockMvc.perform(get("/api/question/generateNextCorrectAnswer")
+                .param("questionId", String.valueOf(question.getId())));
+
+        // Assert.
+        result.andExpect(status().isForbidden());
+    }
+
+    /** Автору пула вопрос без попытки открыт */
+    @Test
+    void attemptlessQuestionIsAccessibleToGlobalAuthor() {
+        // Arrange.
+        var question = createQuestionWithoutAttempt();
+
+        // Act & Assert.
+        assertDoesNotThrow(() -> exerciseAttemptService
+                .ensureCanAccessQuestion(TestData.GLOBAL_EXERCISE_AUTHOR_ID, question.getId()));
     }
 }

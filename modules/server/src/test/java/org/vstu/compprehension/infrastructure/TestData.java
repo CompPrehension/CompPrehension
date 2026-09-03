@@ -29,6 +29,8 @@ public final class TestData {
     public static final long USER_WITHOUT_ROLES_ID = -8L;
     public static final long EDUCATION_RESOURCE_ADMIN_ID = -9L;
 
+    public static final int EXPRESSION_QUESTION_METADATA_ID = -1;
+
     public static final String DOMAIN_ID = "ProgrammingLanguageExpressionDTDomain";
     public static final String STRATEGY_ID = "StaticStrategy";
     public static final String BACKEND_ID = "ProductionBackend";
