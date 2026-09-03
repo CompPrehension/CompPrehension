@@ -1,6 +1,6 @@
 import React, { useState } from "react";
 import { surveyController } from "../../controllers";
-import { OpenEndedSurveyQuestion, SingleChoiceSurveyQuestion, Survey, SurveyQuestion, YesNoSurveyQuestion } from "../../types/survey";
+import { OpenEndedSurveyQuestion, SingleChoiceSurveyQuestion, Survey, YesNoSurveyQuestion } from "../../types/survey";
 import { Loader } from "../common/loader";
 import { Button, Form } from "react-bootstrap";
 import { useTranslation } from "react-i18next";
@@ -21,7 +21,7 @@ export const SurveyComponent = (props: SurveyComponentProps) => {
     const { t } = useTranslation();
     const surveyQuestions = props.survey.questions.filter(q => enabledSurveyQuestions.includes(q.id))
 
-    var onAnswered = (questionId: number, answer: string) => {        
+    const onAnswered = (questionId: number, answer: string) => {        
         const newAnswers = { ...surveyAnswers, [questionId]: answer };
         setSurveyAnswers(newAnswers);
         console.log(newAnswers);
@@ -126,7 +126,7 @@ export const SingleChoiceSurveyQuestionComponent = (props: SurveySigleChoiceQues
             </div>
             <div className="d-flex mt-2">
                 <div>
-                    {question.options.map((o, idx, opts) =>
+                    {question.options.map((o) =>
                         <div key={o.id}>
                             <Form.Check
                                 disabled={isCompleted}

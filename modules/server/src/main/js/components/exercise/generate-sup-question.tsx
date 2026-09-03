@@ -155,8 +155,7 @@ type ShortFeedbackAlertProps = {
     supQuestionStore?: SupplementaryQuestionStore,
 }
 export const ShortFeedbackAlert = observer((props: ShortFeedbackAlertProps) => {
-    let { supQuestionStore, message, showGenerateSupQuestion } = props;    
-    showGenerateSupQuestion = showGenerateSupQuestion && supQuestionStore != undefined;
+    const { message } = props;
 
     const variant = message.type === 'SUCCESS' ? 'success' : 'danger';
     return(

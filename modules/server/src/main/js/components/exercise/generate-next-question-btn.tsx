@@ -1,7 +1,7 @@
 
 import { observer } from 'mobx-react';
 import * as React from 'react';
-import { useCallback, useState } from 'react';
+import { useState } from 'react';
 import { Button } from 'react-bootstrap';
 import { getExerciseStore } from "../../stores/exercise-store";
 import { useTranslation } from "react-i18next";

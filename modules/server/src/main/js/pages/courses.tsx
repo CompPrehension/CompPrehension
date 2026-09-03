@@ -16,7 +16,7 @@ export const CoursesPage = observer(() => {
     const session = useSession();
     const { t } = useTranslation();
 
-    useEffect(() => { store.loadMyCourses(); }, []);
+    useEffect(() => { store.loadMyCourses(); }, [store]);
 
     const onLangClicked = () => {
         const newLang = user?.language === 'RU' ? 'EN' : 'RU';

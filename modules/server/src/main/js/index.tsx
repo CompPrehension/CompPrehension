@@ -48,7 +48,7 @@ const Home = () => (
  * The branch is dead code in a production build, so msw never reaches the bundle.
  */
 async function startMocking() {
-    if (!import.meta.env.DEV || import.meta.env.VITE_MOCK_API !== 'true') {
+    if (!import.meta.env.DEV || import.meta.env.MODE !== 'mock') {
         return;
     }
     const { worker } = await import('./mocks/browser');

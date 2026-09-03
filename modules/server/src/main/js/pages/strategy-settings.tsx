@@ -1,5 +1,5 @@
 import { observer } from "mobx-react";
-import React, { useState } from "react";
+import React from "react";
 import { ToggleSwitch } from "../components/common/toggle";
 
 export const db = {
@@ -120,7 +120,7 @@ export const StrategySettings = observer(() => {
                                                 selected={'Allowed'}
                                                 values={['Denied', 'Allowed', 'Target']}
                                                 valueStyles={[{ backgroundColor: '#eb2828' }, null, { backgroundColor: '#009700' }]}
-                                                onChange={val => 0} />
+                                                onChange={() => 0} />
                                             <div style={{ marginLeft: '15px' }}>{c}</div>
                                         </div>)}
                                 </div>
@@ -131,7 +131,7 @@ export const StrategySettings = observer(() => {
                                                 selected={'Allowed'}
                                                 values={['Denied', 'Allowed', 'Target']}
                                                 valueStyles={[{ backgroundColor: '#eb2828' }, null, { backgroundColor: '#009700' }]}
-                                                onChange={val => 0} />
+                                                onChange={() => 0} />
                                             <div style={{ marginLeft: '15px' }}>{c}</div>
                                         </div>)}
                                 </div>
@@ -149,7 +149,7 @@ export const StrategySettings = observer(() => {
                                         selected={'Allowed'}
                                         values={['Denied', 'Allowed', 'Target']}
                                         valueStyles={[{ backgroundColor: '#eb2828' }, null, { backgroundColor: '#009700' }]}
-                                        onChange={val => 0} />
+                                        onChange={() => 0} />
                                 </div>
                                 <div style={{ marginLeft: '15px' }}>{c}</div>
                             </div>))}

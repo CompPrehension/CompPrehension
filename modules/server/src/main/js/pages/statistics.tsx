@@ -1,4 +1,3 @@
-import { observer } from "mobx-react"
 import React, { useEffect, useState } from "react"
 import { exerciseController } from "../controllers";
 import * as E from "fp-ts/lib/Either";

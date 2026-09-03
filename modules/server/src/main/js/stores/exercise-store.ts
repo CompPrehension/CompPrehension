@@ -229,7 +229,7 @@ export class ExerciseStore {
 
         const qs: SurveyQuestion[] = [];
         const currentQuestionIdx = this.currentAttempt!.questionIds.findIndex(z => z === this.currentQuestion.question?.questionId)
-        for (let q of this.survey?.survey.questions || []) {
+        for (const q of this.survey?.survey.questions || []) {
             const policy = q.policy;
             if (policy.kind === 'AFTER_EACH'
                 || policy.kind === 'AFTER_FIRST' && currentQuestionIdx === 0
@@ -241,7 +241,7 @@ export class ExerciseStore {
         console.log("Selected questions")
         console.log(toJS(qs))
 
-        var questionSurvey: QuestionSurveyResult = {
+        const questionSurvey: QuestionSurveyResult = {
             questionId: questionId,
             status: 'ACTIVE',
             questions: qs.map(z => z.id),

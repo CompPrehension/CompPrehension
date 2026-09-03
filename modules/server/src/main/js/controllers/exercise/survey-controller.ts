@@ -13,7 +13,7 @@ export class SurveyController {
     async getSurvey(suerveyId: string): PromiseEither<RequestError, Survey> {
         if (this.surveyCache[suerveyId])
             return E.right(this.surveyCache[suerveyId]);
-        var result = await ajaxGet(`${API_URL}/api/survey/${suerveyId}`, TSurvey);
+        const result = await ajaxGet(`${API_URL}/api/survey/${suerveyId}`, TSurvey);
         if (E.isRight(result))
             this.surveyCache[suerveyId] = result.right;
         return result;

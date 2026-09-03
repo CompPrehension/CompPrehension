@@ -1,6 +1,5 @@
-import { observable } from "mobx";
 import { observer } from "mobx-react";
-import React, { useState } from "react";
+import React from "react";
 
 type ClickableLabelProps = {
   id: string, 
@@ -30,7 +29,7 @@ export type ToggleSwitchProps<T extends string> = {
     values: T[],
     displayNames?: string[],
     valueStyles?: (React.CSSProperties | null | undefined)[],
-    inputAttributes?: {},
+    inputAttributes?: Record<string, string | number | boolean>,
     selected: T,
     onChange?: (val: T) => void,
 }

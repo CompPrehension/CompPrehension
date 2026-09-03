@@ -123,7 +123,7 @@ export const CoursePage = observer(() => {
 
     useEffect(() => {
         if (courseId != null) store.loadCourse(courseId);
-    }, [courseId]);
+    }, [courseId, store]);
 
     const onLangClicked = () => {
         const newLang = user?.language === 'RU' ? 'EN' : 'RU';

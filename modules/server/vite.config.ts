@@ -101,7 +101,7 @@ function springAuthGate(backendOrigin: string): Plugin {
 
 export default defineConfig(({ command, mode }) => {
   const env = loadEnv(mode, moduleRoot);
-  const mocking = env.VITE_MOCK_API === 'true';
+  const mocking = mode === 'mock';
   const backendOrigin = env.VITE_BACKEND_ORIGIN || 'https://localhost:8433';
   const devPort = Number(env.VITE_DEV_PORT || 4200);
 

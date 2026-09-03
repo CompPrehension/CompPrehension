@@ -1340,7 +1340,7 @@ class SurveyController {
   async getSurvey(suerveyId) {
     if (this.surveyCache[suerveyId])
       return EitherExports.right(this.surveyCache[suerveyId]);
-    var result = await ajaxGet(`${API_URL}/api/survey/${suerveyId}`, TSurvey);
+    const result = await ajaxGet(`${API_URL}/api/survey/${suerveyId}`, TSurvey);
     if (EitherExports.isRight(result))
       this.surveyCache[suerveyId] = result.right;
     return result;
@@ -1479,7 +1479,7 @@ class SupplementaryQuestionStore {
   };
   #onQuestionLoaded = (question, feedback) => {
     if (question?.options.requireContext) {
-      var allMatches = question.text.matchAll(/(\<\w.*?\sid\s*?\=([\'\"]))\s*(answer_(\d+?))\2(.*?\>)/igm);
+      const allMatches = question.text.matchAll(/(<\w.*?\sid\s*?=(['"]))\s*(answer_(\d+?))\2(.*?>)/igm);
       [...allMatches].forEach((match, matchIdx) => {
         question.text = question.text.replace(
           match[0],
@@ -1508,7 +1508,7 @@ class QuestionStore {
   }
   onQuestionLoaded = (question) => {
     if (question.options.requireContext) {
-      var allMatches = question.text.matchAll(/(\<\w.*?\sid\s*?\=([\'\"]))\s*(answer_(\d+?))\2(.*?\>)/igm);
+      const allMatches = question.text.matchAll(/(<\w.*?\sid\s*?=(['"]))\s*(answer_(\d+?))\2(.*?>)/igm);
       [...allMatches].forEach((match, matchIdx) => {
         question.text = question.text.replace(
           match[0],
@@ -1848,7 +1848,7 @@ class ExerciseStore {
       return this.survey?.questions[questionId].questions;
     const qs = [];
     const currentQuestionIdx = this.currentAttempt.questionIds.findIndex((z) => z === this.currentQuestion.question?.questionId);
-    for (let q of this.survey?.survey.questions || []) {
+    for (const q of this.survey?.survey.questions || []) {
       const policy = q.policy;
       if (policy.kind === "AFTER_EACH" || policy.kind === "AFTER_FIRST" && currentQuestionIdx === 0 || policy.kind === "AFTER_LAST" && this.exerciseState === "COMPLETED" || policy.kind === "AFTER_SPECIFIC" && policy.numbers.includes(currentQuestionIdx + 1)) {
         qs.push(q);
@@ -1856,7 +1856,7 @@ class ExerciseStore {
     }
     console.log("Selected questions");
     console.log(toJS(qs));
-    var questionSurvey = {
+    const questionSurvey = {
       questionId,
       status: "ACTIVE",
       questions: qs.map((z) => z.id),
@@ -2224,7 +2224,7 @@ const OrderQuestionComponent = observer((props) => {
       result.push(answer);
       return [answer.createdByInteraction || -1, result];
     }), [0, []])[1].reverse();
-    getAnswers().forEach((answer, idx, answers) => {
+    getAnswers().forEach((answer, idx) => {
       const { answer: asnwerPair } = answer;
       const [h] = asnwerPair;
       const answrs = document.querySelectorAll(`[data-answer-id='${h}']`);
@@ -2492,8 +2492,7 @@ const SupQuestion = observer((props) => {
   ] });
 });
 const ShortFeedbackAlert = observer((props) => {
-  let { supQuestionStore, message, showGenerateSupQuestion } = props;
-  showGenerateSupQuestion = showGenerateSupQuestion && supQuestionStore != void 0;
+  const { message } = props;
   const variant = message.type === "SUCCESS" ? "success" : "danger";
   return /* @__PURE__ */ jsxRuntimeExports.jsx(Alert, { variant, children: /* @__PURE__ */ jsxRuntimeExports.jsx("span", { dangerouslySetInnerHTML: { __html: message.message } }) });
 });
@@ -2646,8 +2645,8 @@ const Feedback = observer(({ store, showExtendedFeedback }) => {
   ] }) });
 });
 const FeedbackAlert = observer((props) => {
-  let { supQuestionStore, message, showGenerateSupQuestion } = props;
-  showGenerateSupQuestion = showGenerateSupQuestion && supQuestionStore != void 0;
+  const { supQuestionStore, message } = props;
+  const showGenerateSupQuestion = props.showGenerateSupQuestion && supQuestionStore != void 0;
   const variant = message.type === "SUCCESS" ? "success" : "danger";
   return /* @__PURE__ */ jsxRuntimeExports.jsxs(Alert, { variant, className: variant === "danger" ? "comp-ph-feedback-error" : "comp-ph-feedback-success", children: [
     /* @__PURE__ */ jsxRuntimeExports.jsx(
@@ -2998,7 +2997,7 @@ const SurveyComponent = (props) => {
   const [surveyAnswers, setSurveyAnswers] = reactExports.useState(props.value || {});
   const { t } = useTranslation();
   const surveyQuestions = props.survey.questions.filter((q) => enabledSurveyQuestions.includes(q.id));
-  var onAnswered = (questionId, answer) => {
+  const onAnswered = (questionId, answer) => {
     const newAnswers = { ...surveyAnswers, [questionId]: answer };
     setSurveyAnswers(newAnswers);
     console.log(newAnswers);
@@ -3060,7 +3059,7 @@ const SingleChoiceSurveyQuestionComponent = (props) => {
   const { question, onAnswered, value, isCompleted } = props;
   return /* @__PURE__ */ jsxRuntimeExports.jsxs("div", { children: [
     /* @__PURE__ */ jsxRuntimeExports.jsx("div", { className: "mb-1", children: question.text }),
-    /* @__PURE__ */ jsxRuntimeExports.jsx("div", { className: "d-flex mt-2", children: /* @__PURE__ */ jsxRuntimeExports.jsx("div", { children: question.options.map((o, idx, opts) => /* @__PURE__ */ jsxRuntimeExports.jsx("div", { children: /* @__PURE__ */ jsxRuntimeExports.jsx(
+    /* @__PURE__ */ jsxRuntimeExports.jsx("div", { className: "d-flex mt-2", children: /* @__PURE__ */ jsxRuntimeExports.jsx("div", { children: question.options.map((o) => /* @__PURE__ */ jsxRuntimeExports.jsx("div", { children: /* @__PURE__ */ jsxRuntimeExports.jsx(
       FormImpl.Check,
       {
         disabled: isCompleted,
@@ -3219,7 +3218,7 @@ const TourProvider = ({ steps: steps2, children }) => {
   const tourRef = reactExports.useRef();
   const [isReady, setIsReady] = reactExports.useState(false);
   const isTourCompletedRef = reactExports.useRef(false);
-  const { t: t2 } = useTranslation();
+  const { t } = useTranslation();
   const bindActions = (tour, steps22) => {
     return steps22.map((step) => {
       const completeTour = () => {
@@ -3230,7 +3229,7 @@ const TourProvider = ({ steps: steps2, children }) => {
         }
       };
       const buttons = step.buttons?.map((button) => {
-        let text = typeof button.text === "function" ? button.text() : button.text || "";
+        const text = typeof button.text === "function" ? button.text() : button.text || "";
         if (text === "next") {
           return {
             ...button,
@@ -3275,23 +3274,23 @@ const TourProvider = ({ steps: steps2, children }) => {
         (step) => step.destroy()
       );
       const stepsWithActions = bindActions(tour, steps2);
-      let pendingSteps = [...stepsWithActions];
+      const pendingSteps = [...stepsWithActions];
       const showNextStep = async () => {
         if (isTourCompletedRef.current) return;
         if (pendingSteps.length === 0) return;
         for (let i = 0; i < pendingSteps.length; i++) {
           const step = Object.assign({}, pendingSteps[i]);
-          step.title = t2(step.title);
-          step.text = t2(step.text);
+          step.title = t(step.title);
+          step.text = t(step.text);
           step.buttons = step.buttons?.map((button) => ({
             ...button,
-            text: t2(button.text)
+            text: t(button.text)
           }));
           const selector = typeof step.attachTo === "object" ? step.attachTo?.element : null;
           if (typeof selector === "string") {
             const element = document.querySelector(selector);
             if (element) {
-              let completedSteps = new Set(
+              const completedSteps = new Set(
                 JSON.parse(localStorage.getItem("tour_completed_steps") ?? "[]")
               );
               if (localStorage.getItem("tour_completed") !== "never" && !step.id?.endsWith("-always")) {
@@ -3408,21 +3407,21 @@ const Exercise = observer(() => {
       await exerciseStore.createExerciseAttempt();
       loadQuestion();
     })();
-  }, [exerciseStore]);
+  }, [exerciseStore, loadQuestion]);
   const createDebugAttemptAndLoadQuestion = reactExports.useCallback(() => {
     (async () => {
       exerciseStore.currentQuestion.setQuestionState("LOADING");
       await exerciseStore.createDebugExerciseAttempt();
       loadQuestion();
     })();
-  }, [exerciseStore]);
+  }, [exerciseStore, loadQuestion]);
   const getAttemptAndLoadQuestion = reactExports.useCallback((attemptId) => {
     (async () => {
       exerciseStore.currentQuestion.setQuestionState("LOADING");
       await exerciseStore.loadExerciseAttempt(attemptId);
       loadQuestion();
     })();
-  }, [exerciseStore]);
+  }, [exerciseStore, loadQuestion]);
   const onSurveyAnswered = reactExports.useCallback((survey2, questionId, answers) => {
     exerciseStore.setSurveyAnswers(questionId, answers);
   }, [exerciseStore]);
@@ -3431,7 +3430,7 @@ const Exercise = observer(() => {
     /* @__PURE__ */ jsxRuntimeExports.jsxs(
       "div",
       {
-        className: `compph-exercise ${exerciseStore.isDebug && "compph-exercise--debug"}` || "",
+        className: `compph-exercise${exerciseStore.isDebug ? " compph-exercise--debug" : ""}`,
         children: [
           /* @__PURE__ */ jsxRuntimeExports.jsxs(
             LoadingWrapper,
@@ -3523,7 +3522,7 @@ const Exercise = observer(() => {
             }
           ),
           [excerciseStoreState, currentQuestionStoreState].filter((x) => x.tag === "ERROR").map(
-            (x, idx, arr) => x.tag === "ERROR" && /* @__PURE__ */ jsxRuntimeExports.jsx("div", { className: "mt-2", children: /* @__PURE__ */ jsxRuntimeExports.jsx(InlineError, { error: x.error }) })
+            (x) => x.tag === "ERROR" && /* @__PURE__ */ jsxRuntimeExports.jsx("div", { className: "mt-2", children: /* @__PURE__ */ jsxRuntimeExports.jsx(InlineError, { error: x.error }) })
           )
         ]
       }
@@ -3617,7 +3616,7 @@ const SurveyPage = observer(() => {
   };
   const onSurveyAnswered = reactExports.useCallback((survey2, questionId, answers) => {
     console.log("лень рефакторить, не работает крч");
-  }, [exerciseStore]);
+  }, []);
   const surveyOptions = exerciseStore.exercise?.options.surveyOptions;
   exerciseStore.currentQuestion.question?.questionId;
   if (!surveyOptions?.enabled)
@@ -3640,7 +3639,7 @@ const SurveyPage = observer(() => {
         ) }) })
       ] })
     ] }) }),
-    [excerciseStoreState, currentQuestionStoreState].filter((x) => x.tag === "ERROR").map((x, idx, arr) => x.tag === "ERROR" && /* @__PURE__ */ jsxRuntimeExports.jsx("div", { className: "mt-2", children: /* @__PURE__ */ jsxRuntimeExports.jsx(InlineError, { error: x.error }) }))
+    [excerciseStoreState, currentQuestionStoreState].filter((x) => x.tag === "ERROR").map((x) => x.tag === "ERROR" && /* @__PURE__ */ jsxRuntimeExports.jsx("div", { className: "mt-2", children: /* @__PURE__ */ jsxRuntimeExports.jsx(InlineError, { error: x.error }) }))
   ] });
 });
 class ExerciseStageStore {
@@ -4166,12 +4165,12 @@ const ExerciseSettings = observer(() => {
         await exerciseStore.loadExercise(Number.parseInt(currentExercise));
       }
     })();
-  }, [courseId]);
+  }, [courseId, exerciseStore]);
   const onNewExerciseClicked = reactExports.useCallback(() => {
     (async () => {
       await exerciseStore.createNewExecise();
     })();
-  }, [exerciseStore.exercises?.length]);
+  }, [exerciseStore, exerciseStore.exercises?.length]);
   const onLangClicked = reactExports.useCallback(() => {
     const currentLang = user?.language;
     const newLang = currentLang === "RU" ? "EN" : "RU";
@@ -4232,7 +4231,7 @@ const ExerciseCardElement = observer((props) => {
   const user = useCurrentUser();
   reactExports.useMemo(() => {
     return [t("exercisesettings_optDenied"), t("exercisesettings_optAllowed"), t("exercisesettings_optTarget")];
-  }, [user?.language]);
+  }, [t, user?.language]);
   if (store.exercisesLoadStatus === "EXERCISELOADING")
     return /* @__PURE__ */ jsxRuntimeExports.jsx(Loader, { delay: 200 });
   if (card == null)
@@ -4645,7 +4644,7 @@ const ExerciseConcepts = observer((props) => {
   const user = useCurrentUser();
   const conceptFlagNames = reactExports.useMemo(() => {
     return [t("exercisesettings_optDenied"), t("exercisesettings_optAllowed"), t("exercisesettings_optTarget")];
-  }, [user?.language]);
+  }, [t, user?.language]);
   return /* @__PURE__ */ jsxRuntimeExports.jsx(jsxRuntimeExports.Fragment, { children: concepts.map((coreConcept, idx) => /* @__PURE__ */ jsxRuntimeExports.jsxs("div", { className: "list-group-item p-0 bg-transparent pt-2 pb-2", children: [
     /* @__PURE__ */ jsxRuntimeExports.jsx("div", { children: /* @__PURE__ */ jsxRuntimeExports.jsxs("div", { className: `d-flex flex-row align-items-center`, children: [
       /* @__PURE__ */ jsxRuntimeExports.jsx(
@@ -4693,7 +4692,7 @@ const ExerciseLaws = observer((props) => {
   const user = useCurrentUser();
   const lawFlagNames = reactExports.useMemo(() => {
     return [t("exercisesettings_optDenied"), t("exercisesettings_optAllowed"), t("exercisesettings_optTarget")];
-  }, [user?.language]);
+  }, [t, user?.language]);
   return /* @__PURE__ */ jsxRuntimeExports.jsx(jsxRuntimeExports.Fragment, { children: laws.map((coreLaw, idx) => /* @__PURE__ */ jsxRuntimeExports.jsxs("div", { className: "list-group-item p-0 bg-transparent pt-2 pb-2", children: [
     /* @__PURE__ */ jsxRuntimeExports.jsx("div", { children: /* @__PURE__ */ jsxRuntimeExports.jsxs("div", { className: `d-flex flex-row align-items-center`, children: [
       /* @__PURE__ */ jsxRuntimeExports.jsx(
@@ -4734,7 +4733,7 @@ const ExerciseSkills = observer((props) => {
   const user = useCurrentUser();
   const skillFlagNames = reactExports.useMemo(() => {
     return [t("exercisesettings_optDenied"), t("exercisesettings_optAllowed"), t("exercisesettings_optTarget")];
-  }, [user?.language]);
+  }, [t, user?.language]);
   return /* @__PURE__ */ jsxRuntimeExports.jsx(jsxRuntimeExports.Fragment, { children: skills.map((coreSkill, idx) => /* @__PURE__ */ jsxRuntimeExports.jsxs("div", { className: "list-group-item p-0 bg-transparent pt-2 pb-2", children: [
     /* @__PURE__ */ jsxRuntimeExports.jsx("div", { children: /* @__PURE__ */ jsxRuntimeExports.jsxs("div", { className: `d-flex flex-row align-items-center`, children: [
       /* @__PURE__ */ jsxRuntimeExports.jsx(
@@ -4829,7 +4828,7 @@ const StrategySettings = observer(() => {
               selected: "Allowed",
               values: ["Denied", "Allowed", "Target"],
               valueStyles: [{ backgroundColor: "#eb2828" }, null, { backgroundColor: "#009700" }],
-              onChange: (val) => 0
+              onChange: () => 0
             }
           ),
           /* @__PURE__ */ jsxRuntimeExports.jsx("div", { style: { marginLeft: "15px" }, children: c })
@@ -4842,7 +4841,7 @@ const StrategySettings = observer(() => {
               selected: "Allowed",
               values: ["Denied", "Allowed", "Target"],
               valueStyles: [{ backgroundColor: "#eb2828" }, null, { backgroundColor: "#009700" }],
-              onChange: (val) => 0
+              onChange: () => 0
             }
           ),
           /* @__PURE__ */ jsxRuntimeExports.jsx("div", { style: { marginLeft: "15px" }, children: c })
@@ -4859,7 +4858,7 @@ const StrategySettings = observer(() => {
             selected: "Allowed",
             values: ["Denied", "Allowed", "Target"],
             valueStyles: [{ backgroundColor: "#eb2828" }, null, { backgroundColor: "#009700" }],
-            onChange: (val) => 0
+            onChange: () => 0
           }
         ) }),
         /* @__PURE__ */ jsxRuntimeExports.jsx("div", { style: { marginLeft: "15px" }, children: c })
@@ -4923,7 +4922,7 @@ const GlobalPool = observer(() => {
   const { t } = useTranslation();
   reactExports.useEffect(() => {
     store.loadGlobalPool();
-  }, []);
+  }, [store]);
   const onLangClicked = () => {
     const newLang = user?.language === "RU" ? "EN" : "RU";
     session.changeLanguage(newLang);
@@ -4992,7 +4991,7 @@ const ImportFromGlobalModal = observer(({ courseId, canInherit, canClone, onClos
   const modeAllowed = mode === "INHERIT" ? canInherit : canClone;
   reactExports.useEffect(() => {
     store.loadGlobalPool();
-  }, []);
+  }, [store]);
   const onImportClick = async (exerciseId) => {
     setBusyId(exerciseId);
     const ok = await store.importToCourse(exerciseId, courseId, mode);
@@ -5164,7 +5163,7 @@ const CoursePage = observer(() => {
   const inIframe = typeof window !== "undefined" && window.self !== window.top;
   reactExports.useEffect(() => {
     if (courseId != null) store.loadCourse(courseId);
-  }, [courseId]);
+  }, [courseId, store]);
   const onLangClicked = () => {
     const newLang = user?.language === "RU" ? "EN" : "RU";
     session.changeLanguage(newLang);
@@ -5258,7 +5257,7 @@ const CoursesPage = observer(() => {
   const { t } = useTranslation();
   reactExports.useEffect(() => {
     store.loadMyCourses();
-  }, []);
+  }, [store]);
   const onLangClicked = () => {
     const newLang = user?.language === "RU" ? "EN" : "RU";
     session.changeLanguage(newLang);

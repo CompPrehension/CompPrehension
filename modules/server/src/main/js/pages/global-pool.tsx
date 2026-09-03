@@ -16,7 +16,7 @@ export const GlobalPool = observer(() => {
     const session = useSession();
     const { t } = useTranslation();
 
-    useEffect(() => { store.loadGlobalPool(); }, []);
+    useEffect(() => { store.loadGlobalPool(); }, [store]);
 
     const onLangClicked = () => {
         const newLang = user?.language === 'RU' ? 'EN' : 'RU';

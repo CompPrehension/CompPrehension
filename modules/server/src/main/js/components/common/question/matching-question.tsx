@@ -6,7 +6,6 @@ import ReactDOM from "react-dom";
 import Select, { components } from "react-select";
 import { Answer } from "../../../types/answer";
 import { MatchingQuestion } from "../../../types/question";
-import { Optional } from "../optional";
 
 type MatchingQuestionComponentProps = {
     question: MatchingQuestion,

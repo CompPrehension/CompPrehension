@@ -74,7 +74,7 @@ export const OrderQuestionComponent = observer((props: OrderQuestionComponentPro
             }), [0, []])[1].reverse();
 
         // apply history changes    
-        getAnswers().forEach((answer, idx, answers) => {
+        getAnswers().forEach((answer, idx) => {
             const { answer:asnwerPair } = answer;
             const [h] = asnwerPair;
             const answrs = document.querySelectorAll(`[data-answer-id='${h}']`);

@@ -41,13 +41,13 @@ export const ExerciseSettings = observer(() => {
                 await exerciseStore.loadExercise(Number.parseInt(currentExercise));
             }
         })()
-    }, [courseId]);
+    }, [courseId, exerciseStore]);
 
     const onNewExerciseClicked = useCallback(() => {
         (async () => {
             await exerciseStore.createNewExecise();
         })()
-    }, [exerciseStore.exercises?.length]);
+    }, [exerciseStore, exerciseStore.exercises?.length]);
 
     const onLangClicked = useCallback(() => {
         const currentLang = user?.language;
@@ -118,7 +118,7 @@ const ExerciseCardElement = observer((props: ExerciseCardElementProps) => {
     const user = useCurrentUser();
     const conceptFlagNames = useMemo(() => {
         return [t('exercisesettings_optDenied'), t('exercisesettings_optAllowed'), t('exercisesettings_optTarget')]
-    }, [user?.language])
+    }, [t, user?.language])
 
     if (store.exercisesLoadStatus === 'EXERCISELOADING')
         return <Loader delay={200} />;
@@ -608,7 +608,7 @@ const ExerciseConcepts = observer((props: ExerciseConceptsProps) => {
     
     const conceptFlagNames = useMemo(() => {
         return [t('exercisesettings_optDenied'), t('exercisesettings_optAllowed'), t('exercisesettings_optTarget')]
-    }, [user?.language])
+    }, [t, user?.language])
     
 
     return (
@@ -666,7 +666,7 @@ const ExerciseLaws = observer((props: ExerciseLawsProps) => {
     
     const lawFlagNames = useMemo(() => {
         return [t('exercisesettings_optDenied'), t('exercisesettings_optAllowed'), t('exercisesettings_optTarget')]
-    }, [user?.language])
+    }, [t, user?.language])
 
     return(
     <>
@@ -722,7 +722,7 @@ const ExerciseSkills = observer((props: ExerciseSkillsProps) => {
     
     const skillFlagNames = useMemo(() => {
         return [t('exercisesettings_optDenied'), t('exercisesettings_optAllowed'), t('exercisesettings_optTarget')]
-    }, [user?.language])
+    }, [t, user?.language])
 
     return(
     <>

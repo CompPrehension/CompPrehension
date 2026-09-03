@@ -79,21 +79,21 @@ export const Exercise = observer(() => {
             await exerciseStore.createExerciseAttempt();
             loadQuestion();
         })()
-    }, [exerciseStore]);
+    }, [exerciseStore, loadQuestion]);
     const createDebugAttemptAndLoadQuestion = useCallback(() => {
         (async () => {
             exerciseStore.currentQuestion.setQuestionState('LOADING');
             await exerciseStore.createDebugExerciseAttempt();
             loadQuestion();
         })()
-    }, [exerciseStore]);
+    }, [exerciseStore, loadQuestion]);
     const getAttemptAndLoadQuestion = useCallback((attemptId: number) => {
         (async () => {
             exerciseStore.currentQuestion.setQuestionState('LOADING');
             await exerciseStore.loadExerciseAttempt(attemptId);
             loadQuestion();
         })()
-    }, [exerciseStore]);
+    }, [exerciseStore, loadQuestion]);
 
     const onSurveyAnswered = useCallback((survey: Survey, questionId: number, answers: Record<number, string>) => {
         exerciseStore.setSurveyAnswers(questionId, answers);
@@ -104,9 +104,7 @@ export const Exercise = observer(() => {
         <TourLauncher />
         <div
           className={
-            `compph-exercise ${
-              exerciseStore.isDebug && 'compph-exercise--debug'
-            }` || ''
+            `compph-exercise${exerciseStore.isDebug ? ' compph-exercise--debug' : ''}`
           }
         >
           <LoadingWrapper
@@ -232,7 +230,7 @@ export const Exercise = observer(() => {
           {[excerciseStoreState, currentQuestionStoreState]
             .filter((x) => x.tag === 'ERROR')
             .map(
-              (x, idx, arr) =>
+              (x) =>
                 x.tag === 'ERROR' && (
                   <div className='mt-2'>
                     <InlineError error={x.error} />

@@ -1,4 +1,3 @@
-import { t } from 'i18next';
 import React, {
   createContext,
   ReactNode,
@@ -45,7 +44,7 @@ export const TourProvider = ({ steps, children }: TourProviderProps) => {
       };
 
       const buttons = step.buttons?.map((button) => {
-        let text =
+        const text =
           typeof button.text === 'function' ? button.text() : button.text || '';
 
         if (text === 'next') {
@@ -97,7 +96,7 @@ export const TourProvider = ({ steps, children }: TourProviderProps) => {
       );
 
       const stepsWithActions = bindActions(tour, steps);
-      let pendingSteps = [...stepsWithActions];
+      const pendingSteps = [...stepsWithActions];
 
       const showNextStep = async (): Promise<void> => {
         if (isTourCompletedRef.current) return; // Если тур завершён, прерываем
@@ -118,7 +117,7 @@ export const TourProvider = ({ steps, children }: TourProviderProps) => {
           if (typeof selector === 'string') {
             const element = document.querySelector(selector);
             if (element) {
-              let completedSteps = new Set(
+              const completedSteps = new Set(
                 JSON.parse(localStorage.getItem('tour_completed_steps') ?? '[]')
               );
               if (

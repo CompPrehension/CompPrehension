@@ -109,7 +109,7 @@ export class SupplementaryQuestionStore {
         // add question id to answers
         if (question?.options.requireContext) {
             // regex searchs all tags with id='answer_id' and prepends them with question id
-            var allMatches = question.text.matchAll(/(\<\w.*?\sid\s*?\=([\'\"]))\s*(answer_(\d+?))\2(.*?\>)/igm);
+            const allMatches = question.text.matchAll(/(<\w.*?\sid\s*?=(['"]))\s*(answer_(\d+?))\2(.*?>)/igm);
             [...allMatches].forEach((match, matchIdx) => {
                 question.text = question.text.replace(
                     match[0],

@@ -2,7 +2,6 @@ import { NonEmptyArray } from 'fp-ts/lib/NonEmptyArray'
 import * as io from 'io-ts'
 import { FeedbackMessage, TFeedbackMessage } from './feedback';
 import { TQuestion } from './question';
-import { MergeIntersections, MergeIntersectionsDeep } from './utils';
 
 export type SupplementaryQuestionRequest = {
     questionId: number,

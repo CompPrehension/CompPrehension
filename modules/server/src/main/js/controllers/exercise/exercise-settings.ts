@@ -1,4 +1,4 @@
-import { Domain, ExerciseCard, ExerciseCardConcept, ExerciseCardLaw, ExerciseCardSkill, ExerciseList, ExerciseListItem, QuestionBankSearchResult, Strategy, TDomain, TExerciseCard, TExerciseList, TExerciseListItem, TQuestionBankSearchResult, TStrategy } from "../../types/exercise-settings";
+import { Domain, ExerciseCard, ExerciseCardConcept, ExerciseCardLaw, ExerciseCardSkill, ExerciseList, QuestionBankSearchResult, Strategy, TDomain, TExerciseCard, TExerciseList, TQuestionBankSearchResult, TStrategy } from "../../types/exercise-settings";
 import { ajaxDelete, ajaxGet, ajaxPost, ajaxPut, PromiseEither } from "../../utils/ajax";
 import * as io from 'io-ts';
 import { RequestError } from "../../types/request-error";

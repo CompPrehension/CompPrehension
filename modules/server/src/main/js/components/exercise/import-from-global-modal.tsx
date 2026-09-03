@@ -21,7 +21,7 @@ export const ImportFromGlobalModal = observer(({ courseId, canInherit, canClone,
     const [busyId, setBusyId] = useState<number | null>(null);
     const modeAllowed = mode === 'INHERIT' ? canInherit : canClone;
 
-    useEffect(() => { store.loadGlobalPool(); }, []);
+    useEffect(() => { store.loadGlobalPool(); }, [store]);
 
     const onImportClick = async (exerciseId: number) => {
         setBusyId(exerciseId);

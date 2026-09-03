@@ -2,7 +2,6 @@ import { observer } from "mobx-react";
 import React from "react";
 import { QuestionStore } from "../../stores/question-store";
 import { Answer } from "../../types/answer";
-import DebugButton from "../common/debug";
 import { Loader } from "../common/loader";
 import { QuestionComponent } from "../common/question/question";
 import { Feedback } from "./feedback";

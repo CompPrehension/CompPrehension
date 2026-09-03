@@ -59,8 +59,8 @@ export type SurveyQuestion = YesNoSurveyQuestion | SingleChoiceSurveyQuestion | 
 
 export type Survey = {
     surveyId: string,
-    options: {
-    },
+    /** the backend sends an object with no fields yet - mirrors `io.type({})` below */
+    options: Record<string, never>,
     questions: SurveyQuestion[],
 }
 export const TSurvey : io.Type<Survey> = io.type({

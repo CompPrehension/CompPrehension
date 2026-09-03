@@ -73,7 +73,7 @@ export const SurveyPage = observer(() => {
             await exerciseStore.generateQuestion();
         })()        
         */
-    }, [exerciseStore]);
+    }, []);
 
     const surveyOptions = exerciseStore.exercise?.options.surveyOptions;
     const currentQuestionId = exerciseStore.currentQuestion.question?.questionId;
@@ -131,7 +131,7 @@ export const SurveyPage = observer(() => {
             {
                 [excerciseStoreState, currentQuestionStoreState]
                     .filter(x => x.tag === 'ERROR')
-                    .map((x, idx, arr) => x.tag === 'ERROR' && <div className="mt-2"><InlineError error={x.error} /></div>)
+                    .map(x => x.tag === 'ERROR' && <div className="mt-2"><InlineError error={x.error} /></div>)
             }
         </>
     );
