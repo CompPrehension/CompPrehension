@@ -1,4 +1,3 @@
-import { injectable } from "tsyringe";
 import * as io from "io-ts";
 import { API_URL } from "../../appconfig";
 import { RequestError } from "../../types/request-error";
@@ -15,13 +14,7 @@ export const TDeepLinkExistingResponse = io.type({
 });
 export type DeepLinkExistingResponse = io.TypeOf<typeof TDeepLinkExistingResponse>;
 
-export interface IDeepLinkingController {
-    build(exerciseIds: number[]): PromiseEither<RequestError, DeepLinkBuildResponse>;
-    existing(): PromiseEither<RequestError, DeepLinkExistingResponse>;
-}
-
-@injectable()
-export class DeepLinkingController implements IDeepLinkingController {
+export class DeepLinkingController {
     /** Build a signed LtiDeepLinkingResponse for the selected course exercises. */
     build(exerciseIds: number[]): PromiseEither<RequestError, DeepLinkBuildResponse> {
         return ajaxPost(`${API_URL}/api/lti/deep-link/build`, { exerciseIds }, TDeepLinkBuildResponse);

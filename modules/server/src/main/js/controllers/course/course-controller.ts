@@ -1,4 +1,3 @@
-import { injectable } from 'tsyringe';
 import * as io from 'io-ts';
 import { ajaxDelete, ajaxGet, ajaxPost, PromiseEither } from '../../utils/ajax';
 import { API_URL } from '../../appconfig';
@@ -6,7 +5,6 @@ import { CourseDto, TCourseDto } from '../../types/course';
 import { ExerciseList, TExerciseList } from '../../types/exercise-settings';
 import { RequestError } from '../../types/request-error';
 
-@injectable()
 export class CourseController {
     getMyCourses(): PromiseEither<RequestError, CourseDto[]> {
         return ajaxGet(`${API_URL}/api/course/my`, io.array(TCourseDto));

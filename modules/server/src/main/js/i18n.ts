@@ -1,41 +1,5 @@
 import i18next from "i18next";
 import { initReactI18next } from "react-i18next";
-import "reflect-metadata";
-import { container } from "tsyringe";
-import { ExerciseController } from "./controllers/exercise/exercise-controller";
-import { ExerciseSettingsController } from "./controllers/exercise/exercise-settings";
-import { QuestionController } from "./controllers/exercise/question-controller";
-import { SurveyController } from "./controllers/exercise/survey-controller";
-import { TestExerciseController } from "./controllers/exercise/test-exercise-controller";
-import { UserController } from "./controllers/exercise/user-controller";
-import { CourseController } from "./controllers/course/course-controller";
-import { DeepLinkingController } from "./controllers/lti/deep-linking-controller";
-import { ExerciseStore } from "./stores/exercise-store";
-import { QuestionStore } from "./stores/question-store";
-
-// init DI container
-const isSandbox = () => (new URLSearchParams(window.location.search).get('sandbox') ?? null) !== null;
-container.register(ExerciseController, { 
-    useFactory: () => isSandbox()
-        ? new TestExerciseController() 
-        : new ExerciseController()
-});
-container.register(QuestionController, { 
-    useFactory: () => isSandbox()
-        ? new TestExerciseController() 
-        : new QuestionController()
-});
-container.register(UserController, { 
-    useFactory: () => isSandbox()
-        ? new TestExerciseController() 
-        : new UserController()
-});
-container.register(QuestionStore, QuestionStore);
-container.registerSingleton(ExerciseStore);
-container.registerSingleton(SurveyController);
-container.registerSingleton(ExerciseSettingsController);
-container.registerSingleton(CourseController);
-container.registerSingleton(DeepLinkingController);
 
 // init localisation
 const resources = {
@@ -201,7 +165,11 @@ const resources = {
             exerciseModeBar_unlinkFromCourse: "Remove from course",
             exerciseModeBar_copyToPool: "Copy to global pool",
             exerciseModeBar_deleteExercise: "Delete exercise",
-            exerciseModeBar_confirmDelete: "Delete exercise? Attempt history will be deleted."
+            exerciseModeBar_confirmDelete: "Delete exercise? Attempt history will be deleted.",
+
+            error_notification_title: "Request failed",
+            error_page_title: "Failed to load",
+            error_page_retry: "Retry"
         },
     },
     RU: {
@@ -367,7 +335,11 @@ const resources = {
             exerciseModeBar_unlinkFromCourse: "Удалить из курса",
             exerciseModeBar_copyToPool: "Скопировать в глобальный пул",
             exerciseModeBar_deleteExercise: "Удалить упражнение",
-            exerciseModeBar_confirmDelete: "Удалить упражнение? История попыток будет удалена."
+            exerciseModeBar_confirmDelete: "Удалить упражнение? История попыток будет удалена.",
+
+            error_notification_title: "Запрос не выполнен",
+            error_page_title: "Не удалось загрузить",
+            error_page_retry: "Повторить"
         },
     },
     PL: {
@@ -489,7 +461,11 @@ const resources = {
             exerciseModeBar_unlinkFromCourse: "Usuń z kursu",
             exerciseModeBar_copyToPool: "Skopiuj do globalnej puli",
             exerciseModeBar_deleteExercise: "Usuń ćwiczenie",
-            exerciseModeBar_confirmDelete: "Usunąć ćwiczenie? Historia prób zostanie usunięta."
+            exerciseModeBar_confirmDelete: "Usunąć ćwiczenie? Historia prób zostanie usunięta.",
+
+            error_notification_title: "Żądanie nie powiodło się",
+            error_page_title: "Nie udało się załadować",
+            error_page_retry: "Ponów"
         },
     },
 };

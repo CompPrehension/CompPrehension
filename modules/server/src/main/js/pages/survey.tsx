@@ -2,17 +2,17 @@ import { observer } from "mobx-react";
 import React, { useCallback, useEffect, useState } from "react";
 import { Alert } from "react-bootstrap";
 import { useTranslation } from "react-i18next";
-import { container } from "tsyringe";
+import { InlineError } from "../components/common/errors";
 import { LoadingWrapper } from "../components/common/loader";
 import { Optional } from "../components/common/optional";
 import { CurrentQuestion } from "../components/exercise/current-question";
 import { ExerciseHeader } from "../components/exercise/header";
 import { SurveyComponent } from "../components/exercise/survey";
-import { ExerciseStore } from "../stores/exercise-store";
+import { getExerciseStore } from "../stores/exercise-store";
 import { Survey } from "../types/survey";
 
 export const SurveyPage = observer(() => {
-    const [exerciseStore] = useState(() => container.resolve(ExerciseStore));
+    const exerciseStore = getExerciseStore();
     const { exerciseState, setExerciseState, storeState:excerciseStoreState, currentQuestion, survey } = exerciseStore;
     const { storeState:currentQuestionStoreState } = currentQuestion;
     const { t } = useTranslation();
@@ -73,7 +73,7 @@ export const SurveyPage = observer(() => {
             await exerciseStore.generateQuestion();
         })()        
         */
-    }, [exerciseStore]);
+    }, []);
 
     const surveyOptions = exerciseStore.exercise?.options.surveyOptions;
     const currentQuestionId = exerciseStore.currentQuestion.question?.questionId;
@@ -131,7 +131,7 @@ export const SurveyPage = observer(() => {
             {
                 [excerciseStoreState, currentQuestionStoreState]
                     .filter(x => x.tag === 'ERROR')
-                    .map((x, idx, arr) => x.tag === 'ERROR' && <div className="mt-2"><Alert variant='danger'>{x.error.message}</Alert></div>)
+                    .map(x => x.tag === 'ERROR' && <div className="mt-2"><InlineError error={x.error} /></div>)
             }
         </>
     );

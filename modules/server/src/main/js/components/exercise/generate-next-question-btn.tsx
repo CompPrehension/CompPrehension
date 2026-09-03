@@ -1,15 +1,14 @@
 
 import { observer } from 'mobx-react';
 import * as React from 'react';
-import { useCallback, useState } from 'react';
+import { useState } from 'react';
 import { Button } from 'react-bootstrap';
-import { container } from "tsyringe";
-import { ExerciseStore } from "../../stores/exercise-store";
+import { getExerciseStore } from "../../stores/exercise-store";
 import { useTranslation } from "react-i18next";
 import { Modal } from '../common/modal';
 
 export const GenerateNextQuestionBtn = observer(() => {
-    const [exerciseStore] = useState(() => container.resolve(ExerciseStore));
+    const exerciseStore = getExerciseStore();
     const { t } = useTranslation();
     const [isModalVisible, setIsModalVisible] = useState(false);
     

@@ -1,9 +1,9 @@
 import { observer } from "mobx-react";
-import React, { useCallback, useEffect, useState } from "react";
+import React, { useCallback, useEffect } from "react";
 import { Alert } from "react-bootstrap";
 import { useTranslation } from "react-i18next";
-import { container } from "tsyringe";
 import DebugButton from "../components/common/debug";
+import { InlineError } from "../components/common/errors";
 import { LoadingWrapper } from "../components/common/loader";
 import { Modal } from "../components/common/modal";
 import { Optional } from "../components/common/optional";
@@ -13,13 +13,13 @@ import { GenerateNextQuestionBtn } from "../components/exercise/generate-next-qu
 import { ExerciseHeader } from "../components/exercise/header";
 import { SurveyComponent } from "../components/exercise/survey";
 import tourSteps from "../data/introduction-tour";
-import { ExerciseStore } from "../stores/exercise-store";
+import { getExerciseStore } from "../stores/exercise-store";
 import { Survey } from "../types/survey";
 import { TourLauncher } from "../utils/TourLauncher";
 import { TourProvider } from "../utils/TourProvider";
 
 export const Exercise = observer(() => {
-    const [exerciseStore] = useState(() => container.resolve(ExerciseStore));
+    const exerciseStore = getExerciseStore();
     const { exerciseState, setExerciseState, storeState:excerciseStoreState, currentQuestion, survey } = exerciseStore;
     const { storeState:currentQuestionStoreState } = currentQuestion;
     const { t } = useTranslation();
@@ -79,21 +79,21 @@ export const Exercise = observer(() => {
             await exerciseStore.createExerciseAttempt();
             loadQuestion();
         })()
-    }, [exerciseStore]);
+    }, [exerciseStore, loadQuestion]);
     const createDebugAttemptAndLoadQuestion = useCallback(() => {
         (async () => {
             exerciseStore.currentQuestion.setQuestionState('LOADING');
             await exerciseStore.createDebugExerciseAttempt();
             loadQuestion();
         })()
-    }, [exerciseStore]);
+    }, [exerciseStore, loadQuestion]);
     const getAttemptAndLoadQuestion = useCallback((attemptId: number) => {
         (async () => {
             exerciseStore.currentQuestion.setQuestionState('LOADING');
             await exerciseStore.loadExerciseAttempt(attemptId);
             loadQuestion();
         })()
-    }, [exerciseStore]);
+    }, [exerciseStore, loadQuestion]);
 
     const onSurveyAnswered = useCallback((survey: Survey, questionId: number, answers: Record<number, string>) => {
         exerciseStore.setSurveyAnswers(questionId, answers);
@@ -104,9 +104,7 @@ export const Exercise = observer(() => {
         <TourLauncher />
         <div
           className={
-            `compph-exercise ${
-              exerciseStore.isDebug && 'compph-exercise--debug'
-            }` || ''
+            `compph-exercise${exerciseStore.isDebug ? ' compph-exercise--debug' : ''}`
           }
         >
           <LoadingWrapper
@@ -232,10 +230,10 @@ export const Exercise = observer(() => {
           {[excerciseStoreState, currentQuestionStoreState]
             .filter((x) => x.tag === 'ERROR')
             .map(
-              (x, idx, arr) =>
+              (x) =>
                 x.tag === 'ERROR' && (
                   <div className='mt-2'>
-                    <Alert variant='danger'>{x.error.message}</Alert>
+                    <InlineError error={x.error} />
                   </div>
                 )
             )}

@@ -99,8 +99,9 @@ function springAuthGate(backendOrigin: string): Plugin {
   };
 }
 
-export default defineConfig(({ mode }) => {
+export default defineConfig(({ command, mode }) => {
   const env = loadEnv(mode, moduleRoot);
+  const mocking = mode === 'mock';
   const backendOrigin = env.VITE_BACKEND_ORIGIN || 'https://localhost:8433';
   const devPort = Number(env.VITE_DEV_PORT || 4200);
 
@@ -126,16 +127,20 @@ export default defineConfig(({ mode }) => {
     }],
   ]);
 
-  const devHttps = devCertificate();
-  const plugins: PluginOption[] = [react(), springAuthGate(backendOrigin)];
-  if (!devHttps) {
-    // no dev.crt/dev.key next to this config - fall back to an auto-generated certificate
+  const devHttps = mocking ? undefined : devCertificate();
+
+  // and with no backend there is nothing to ask about the session either
+  const plugins: PluginOption[] = mocking
+    ? [react()]
+    : [react(), springAuthGate(backendOrigin)];
+  if (!mocking && !devHttps) {
     plugins.push(basicSsl());
   }
 
   return {
     root: moduleRoot,
     base: '/',
+    publicDir: command === 'serve' ? 'public' : false,
     plugins,
     server: {
       host: 'localhost',
@@ -145,13 +150,11 @@ export default defineConfig(({ mode }) => {
       open: true,
       proxy,
       fs: {
-        // the Vite root is the whole maven module, so keep its non-frontend parts
-        // out of reach of the dev server
+        // keep non-frontend parts out of reach of the dev server
         deny: ['**/*.{key,pfx,p12,jks}', '**/pom.xml', '**/target/**', '**/src/main/java/**', '**/src/main/resources/**'],
       },
     },
     build: {
-      // Spring serves this directory (Thymeleaf renders classpath:/static/index.html)
       outDir: staticRoot,
       emptyOutDir: true,
       sourcemap: false,

@@ -36,9 +36,8 @@ public interface ExerciseAttemptRepository extends CrudRepository<ExerciseAttemp
     @Query("""
             select new org.vstu.compprehension.models.repository.ExerciseAttemptRepository$AttemptOwner(a.user.id, a.course.id)
             from ExerciseAttemptEntity a
-            where a.id in (
-                select q.exerciseAttempt.id from QuestionEntity q
-                where q.id = :questionId and q.exerciseAttempt is not null)
+            join QuestionEntity q on a.id = q.exerciseAttempt.id
+            where q.id = :questionId
             """)
     Optional<AttemptOwner> findOwnerByQuestionId(@Param("questionId") long questionId);
     @Query("select distinct a from ExerciseAttemptEntity a inner join fetch a.exercise left join fetch a.questions left join fetch a.user where a.exercise.id = ?1 and a.user.id = ?2 and a.attemptStatus = ?3")

@@ -1,6 +1,7 @@
 package org.vstu.compprehension.Service;
 
 import org.jetbrains.annotations.NotNull;
+import org.jetbrains.annotations.Nullable;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Propagation;
 import org.springframework.transaction.annotation.Transactional;
@@ -61,16 +62,16 @@ public class ExerciseAttemptService {
     @Transactional(readOnly = true)
     public void ensureCanAccessQuestion(long userId, long questionId) {
         AttemptOwner owner = exerciseAttemptRepository.findOwnerByQuestionId(questionId)
-                .orElseThrow(() -> new IllegalArgumentException("No attempt for question " + questionId));
+                .orElse(null);
         ensureOwnerOrPrivileged(userId, owner, questionId);
     }
 
-    private void ensureOwnerOrPrivileged(long userId, AttemptOwner owner, long targetId) {
-        if (owner.userId() != null && owner.userId() == userId) {
+    private void ensureOwnerOrPrivileged(long userId, @Nullable AttemptOwner owner, long targetId) {
+        if (owner != null && owner.userId() != null && owner.userId() == userId) {
             authService.ensureAuthorized(userId, SystemPermission.SOLVE_EXERCISE, authScopes.courseOrGlobal(owner.courseId()));
             return;
         }
-        if (authService.isAuthorized(userId, SystemPermission.EDIT_EXERCISE, authScopes.courseOrGlobal(owner.courseId()))) {
+        if (authService.isAuthorized(userId, SystemPermission.EDIT_EXERCISE, authScopes.courseOrGlobal(owner != null ? owner.courseId() : null))) {
             return;
         }
         throw new SecurityException(String.format(

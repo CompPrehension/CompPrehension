@@ -1,22 +1,22 @@
 import React, { useEffect, useState } from 'react';
 import { observer } from 'mobx-react';
-import { container } from 'tsyringe';
 import { Button } from 'react-bootstrap';
 import { useNavigate } from 'react-router-dom';
 import { CoursesStore } from '../stores/courses-store';
 import { Header } from '../components/common/header';
 import { Loader } from '../components/common/loader';
+import { LoadFailure } from '../components/common/errors';
 import { useCurrentUser, useSession } from '../hooks/session-context';
 import { useTranslation } from 'react-i18next';
 
 export const CoursesPage = observer(() => {
-    const [store] = useState(() => container.resolve(CoursesStore));
+    const [store] = useState(() => new CoursesStore());
     const navigate = useNavigate();
     const user = useCurrentUser();
     const session = useSession();
     const { t } = useTranslation();
 
-    useEffect(() => { store.loadMyCourses(); }, []);
+    useEffect(() => { store.loadMyCourses(); }, [store]);
 
     const onLangClicked = () => {
         const newLang = user?.language === 'RU' ? 'EN' : 'RU';
@@ -45,7 +45,9 @@ export const CoursesPage = observer(() => {
                     </Button>
                 </div>
             )}
-            {store.courses.length === 0 ? (
+            {store.loadStatus === 'FAILED' && store.error ? (
+                <LoadFailure error={store.error} onRetry={() => store.loadMyCourses()} />
+            ) : store.courses.length === 0 ? (
                 <div className="alert alert-info">{t('courses_page_empty')}</div>
             ) : (
                 <div className="row row-cols-1 row-cols-md-2 row-cols-lg-3">

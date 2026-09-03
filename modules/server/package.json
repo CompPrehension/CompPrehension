@@ -5,9 +5,14 @@
   "type": "module",
   "scripts": {
     "dev": "vite",
-    "build": "npm run typecheck && vite build",
+    "dev:mock": "vite --mode mock",
+    "build": "npm run lint && npm run typecheck && vite build",
     "preview": "vite preview",
-    "typecheck": "tsc --noEmit -p tsconfig.json && tsc --noEmit -p tsconfig.node.json"
+    "typecheck": "tsc --noEmit -p tsconfig.json && tsc --noEmit -p tsconfig.node.json",
+    "lint": "npm run lint:js && npm run lint:css",
+    "lint:js": "eslint .",
+    "lint:css": "stylelint \"src/main/js/**/*.css\"",
+    "lint:fix": "eslint . --fix && stylelint \"src/main/js/**/*.css\" --fix"
   },
   "author": "",
   "license": "ISC",
@@ -28,10 +33,8 @@
     "react-i18next": "^14.0.8",
     "react-router-dom": "^6.22.2",
     "react-select": "^5.8.0",
-    "reflect-metadata": "^0.2.1",
     "remixicon": "^4.7.0",
-    "shepherd.js": "^14.5.0",
-    "tsyringe": "^4.8.0"
+    "shepherd.js": "^14.5.0"
   },
   "devDependencies": {
     "@types/node": "^22.13.10",
@@ -39,7 +42,21 @@
     "@types/react-dom": "^18.2.21",
     "@vitejs/plugin-basic-ssl": "^2.0.0",
     "@vitejs/plugin-react": "^5.0.0",
+    "eslint": "^9.39.5",
+    "eslint-plugin-react-hooks": "^5.2.0",
+    "eslint-plugin-react-refresh": "^0.4.26",
+    "eslint-plugin-unused-imports": "^4.4.1",
+    "globals": "^17.12.0",
+    "msw": "^2.15.0",
+    "stylelint": "^17.14.1",
+    "stylelint-config-standard": "^40.0.0",
     "typescript": "^5.9.3",
+    "typescript-eslint": "^8.69.0",
     "vite": "^7.0.0"
+  },
+  "msw": {
+    "workerDirectory": [
+      "public"
+    ]
   }
 }

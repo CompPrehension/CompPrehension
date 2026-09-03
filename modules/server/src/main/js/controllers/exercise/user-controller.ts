@@ -1,4 +1,3 @@
-import { injectable } from "tsyringe";
 import { API_URL } from "../../appconfig";
 import { RequestError } from "../../types/request-error";
 import { UserInfo, TUserInfo } from "../../types/user-info";
@@ -6,12 +5,7 @@ import { PromiseEither, ajaxGet, ajaxPost } from "../../utils/ajax";
 import * as E from "fp-ts/lib/Either";
 import { Language, TLanguage } from "../../types/language";
 
-export interface IUserController {
-    getCurrentUser(): PromiseEither<RequestError, UserInfo>;
-}
-
-@injectable()
-export class UserController implements IUserController {
+export class UserController {
     getCurrentUser(): PromiseEither<RequestError, UserInfo> {
         return ajaxGet(`${API_URL}/api/users/whoami`, TUserInfo);
     }

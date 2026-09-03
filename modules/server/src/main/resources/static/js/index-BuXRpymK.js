@@ -1,4 +1,4 @@
-import { union, nullType, undefinedType, literal, type, array, number, success, EitherExports, intersection, boolean, partial, string, injectable, Type, _ArrayExports, _functionExports, NonEmptyArrayExports, OptionExports, failure, keyof, recursion, toJS, tuple, makeObservable, runInAction, observable, action, computed, flow, inject, autorun, instance, instance$1, initReactI18next, observer, jsxRuntimeExports, reactExports, Button, Bug, Spinner, Modal as Modal$1, Droppable, ResizeMirror, StateManagedSelect$1, ReactDOM, components, useTranslation, Alert, parse, Popover, PopoverTrigger, PopoverContent, X, Badge, Pagination as Pagination$1, Navbar, isRight, FormImpl, Shepherd, Table, ListGroup, makeAutoObservable, useSearchParams, Link, useNavigate, clientExports, BrowserRouter, Routes, Route, Navigate } from "./vendor-BgC0viRe.js";
+import { configure, instance, initReactI18next, observer, jsxRuntimeExports, reactExports, Button, Bug, makeAutoObservable, useTranslation, Alert, Spinner, union, nullType, undefinedType, literal, Modal as Modal$1, EitherExports, success, type, string, number, intersection, boolean, partial, array, Type, _ArrayExports, _functionExports, NonEmptyArrayExports, OptionExports, failure, keyof, recursion, toJS, tuple, autorun, action, Droppable, ResizeMirror, StateManagedSelect$1, ReactDOM, components, parse, Popover, PopoverTrigger, PopoverContent, X, Badge, Pagination as Pagination$1, Navbar, isLeft, FormImpl, Shepherd, Table, ListGroup, observable, untracked, useSearchParams, Link, useNavigate, clientExports, BrowserRouter, Routes, Route, Navigate } from "./vendor-kzz-7jV2.js";
 (function polyfill() {
   const relList = document.createElement("link").relList;
   if (relList && relList.supports && relList.supports("modulepreload")) return;
@@ -28,6 +28,583 @@ import { union, nullType, undefinedType, literal, type, array, number, success, 
     fetch(link.href, fetchOpts);
   }
 })();
+configure({ enforceActions: "never" });
+const resources = {
+  EN: {
+    translation: {
+      question_header: "Question #{{questionNumber}}",
+      language_header: "Language",
+      signedin_as_header: "Signed in as",
+      logout_header: "Logout",
+      nextCorrectAnswerBtn: "I'm confused, tell me the next correct step",
+      generateNextQuestion_nextQuestion: "Next question",
+      generateNextQuestion_warning: "Warning",
+      generateNextQuestion_continueAttempt: "Continue attempt",
+      generateNextQuestion_modalMessage1: "It is recommended to move on to the next question only after solving all the previous ones.",
+      generateNextQuestion_modalMessage2: "Are you sure you want to move on to the next question?",
+      grade_feeback: "Grade",
+      correctsteps_feeback: "Correct steps",
+      stepswitherrors_feeback: "Steps with errors",
+      stepsleft_feeback: "Steps left",
+      issolved_feeback: "Everything operator is already evaluated. Task is solved",
+      foundExisitingAttempt_title: "Found existing attempt",
+      foundExisitingAttempt_descr: "Would you like to continue the existing attempt or start a new one",
+      foundExisitingAttempt_continueattempt: "Continue",
+      foundExisitingAttempt_newattempt: "New",
+      exercise_completed: "Exercise completed",
+      exercise_supquestion_gotit: "Got it",
+      exercise_supquestion_details: "More details",
+      exercise_supquestion_send_answer: "Send answer",
+      exercise_supquestion_next_question: "Next question",
+      exercisesettings_title: "Exercise settings",
+      exercisesettings_name: "Name",
+      exercisesettings_domain: "Domain",
+      exercisesettings_strategy: "Strategy",
+      exercisesettings_qcomplexity: "Question difficulty",
+      exercisesettings_answlen: "Answer length",
+      exercisesettings_qopt: "Options",
+      exercisesettings_qopt_forceAttCreation: "Always create a new attempt",
+      exercisesettings_qopt_genCorAnsw: "Allow 'generate correct answer' button",
+      exercisesettings_qopt_forceShowGenNextQ: "Always show 'generate new question' button",
+      exercisesettings_qopt_supQ: "Allow supplementary questions",
+      exercisesettings_qopt_preferDTsup: "Prefer Decision-Tree-based approach to supplementary question generation",
+      exercisesettings_qopt_debugBtn: "Enable debug information button",
+      exercisesettings_max_concurrent_students: "Maximum expected number of students performing the exercise simultaneously",
+      exercisesettings_survey: "Survey",
+      exercisesettings_tags: "Tags",
+      exercisesettings_commonConcepts: "Common concepts",
+      exercisesettings_commonLaws: "Common laws",
+      exercisesettings_commonSkills: "Common skills",
+      exercisesettings_stages: "Stage",
+      exercisesettings_stageN: "Stage #{{stageNumber}}",
+      exercisesettings_stageN_qnumber: "Number of questions",
+      exercisesettings_stageN_concepts: "Concepts",
+      exercisesettings_stageN_laws: "Laws",
+      exercisesettings_stageN_skills: "Skills",
+      exercisesettings_stageN_matchedQuestionExamples: "Question examples",
+      exercisesettings_addStage: "Add stage",
+      exercisesettings_removeStage: "Remove stage",
+      exercisesettings_save: "Save",
+      exercisesettings_saveNopen: "Save & Open",
+      exercisesettings_open: "Open",
+      exercisesettings_genDebugAtt: "Generate debug attempt",
+      exercisesettings_optDenied: "Denied",
+      exercisesettings_optAllowed: "Allowed",
+      exercisesettings_optTarget: "Target",
+      exercisesettings_questionsInBank: "Questions in bank",
+      exercisesettings_noQuestionsFound: "No suitable questions found",
+      survey_sendresults: "Send survey results",
+      tour_skip: "Skip introduction",
+      tour_complete: "Complete",
+      tour_next: "Next",
+      tour_exprs_intro: "Welcome to the CompPrehension exercise. Since this is your first time, we recommend taking the tutorial.",
+      tour_exprs_intro_title: "First introduction to the trainer",
+      tour_exprs_expr: "In this task, you need to select the operators in the expression in the order in which they will be evaluated during program execution.",
+      tour_exprs_expr_title: "This is your task",
+      tour_exprs_operator: "All the operators that can be selected in this exercise for successful task solution look like this",
+      tour_exprs_operator_title: "Operators",
+      tour_exprs_hint: "If you're unsure about the next correct step, click this button to request a hint. The correct step will be selected automatically.",
+      tour_exprs_hint_title: "Request a hint",
+      tour_exprs_error_hint: "This section shows information about an error you made while solving the task, along with a short hint for resolving it.",
+      tour_exprs_error_hint_title: "Hint about the mistake",
+      tour_exprs_feedback_grade: "This section shows your score for solving the task, in the range from 0 to 1.",
+      tour_exprs_feedback_grade_title: "Score",
+      tour_exprs_feedback_steps: "This section shows the steps remaining until the task is completed.",
+      tour_exprs_feedback_steps_title: "Remaining steps",
+      tour_exprs_feedback_errors: "This section shows how many mistakes you made while solving this task.",
+      tour_exprs_feedback_errors_title: "Mistakes in solution",
+      tour_exprs_earlyfinish: "If you think there's nothing more to evaluate in the expression, click this button.",
+      tour_exprs_earlyfinish_title: "Everything is evaluated",
+      tour_exprs_tracevalue: "This hint helps you understand the value an operand had at the moment of evaluation.",
+      tour_exprs_tracevalue_title: "Operand value at evaluation",
+      tour_exprs_selectedop: "Selected and evaluated operators will be displayed in this style. The number below indicates the evaluation order.",
+      tour_exprs_selectedop_title: "Evaluated operators",
+      tour_exprs_pages: "You can switch between questions in the exercise using these buttons. You can also use the 'Next question' button to go to the next one.",
+      tour_exprs_pages_title: "Switching between questions",
+      importModal_title: "Import from global pool",
+      importModal_modeLabel: "Mode:",
+      importModal_inherit_body: "the course will use the shared pool entry. Any change the author makes in the pool will be immediately reflected here and may break ongoing student attempts if the content changes. Convenient for synchronization, but risky during active use. If unsure — choose Clone.",
+      importModal_clone_body: "an independent copy is created. The course then works with its own version; the author's changes in the pool do not affect this copy.",
+      importModal_loading: "Loading…",
+      importModal_importing: "Importing…",
+      importModal_import: "Import",
+      importModal_cancel: "Cancel",
+      deleteModal_title: "Remove exercise from global pool",
+      deleteModal_loading: "Loading…",
+      deleteModal_noUsages: "This exercise is not used by anyone. It will be removed from the pool.",
+      deleteModal_warning: "Warning:",
+      deleteModal_warningBody: "independent copies of this exercise will be created in all courses listed below. The link to the original will be broken, and the original will be removed from the pool.",
+      deleteModal_cancel: "Cancel",
+      deleteModal_confirm: "Delete",
+      courses_page_title: "Courses",
+      courses_page_globalPoolBtn: "Global exercise pool",
+      courses_page_empty: "No courses available",
+      course_page_title: "Course #{{id}}",
+      course_page_courseIdRequired: "courseId is required",
+      course_page_createExerciseBtn: "Create new exercise in course",
+      course_page_importBtn: "Import from global pool",
+      course_page_empty: "This course has no exercises yet",
+      deeplink_title: "Add exercises to the Moodle course",
+      deeplink_hint: "Select exercises — Moodle will create an External Tool activity for each.",
+      deeplink_blockHint: "Fill the course with exercises, then in Moodle: “Add an activity or resource” → “CompPrehension” → “Select content” — Moodle will create the activities automatically.",
+      deeplink_addBtn: "Add selected to Moodle",
+      deeplink_added: "added",
+      deeplink_submitting: "Sending…",
+      deeplink_error: "Failed to prepare the Moodle response",
+      deeplink_selectAtLeastOne: "Select at least one exercise",
+      deeplink_empty: "This course has no exercises yet — add some first.",
+      globalPool_page_title: "Global exercise pool",
+      globalPool_page_createBtn: "Create new exercise in pool",
+      globalPool_page_empty: "Pool is empty",
+      importModal_inherit_label: "⚠ Inherit:",
+      importModal_clone_label: "Clone:",
+      importModal_inherit_btn: "⚠ Inherit",
+      importModal_clone_btn: "Clone",
+      exerciseBadge_global: "Global",
+      exerciseBadge_original: "Course-private",
+      exerciseBadge_inherited: "Inherited from global",
+      exerciseBadge_cloned: "Cloned from global",
+      exerciseModeBar_convertToClone: "Convert to clone",
+      exerciseModeBar_unlinkFromCourse: "Remove from course",
+      exerciseModeBar_copyToPool: "Copy to global pool",
+      exerciseModeBar_deleteExercise: "Delete exercise",
+      exerciseModeBar_confirmDelete: "Delete exercise? Attempt history will be deleted.",
+      error_notification_title: "Request failed",
+      error_page_title: "Failed to load",
+      error_page_retry: "Retry"
+    }
+  },
+  RU: {
+    translation: {
+      question_header: "Вопрос #{{questionNumber}}",
+      language_header: "Язык",
+      signedin_as_header: "Пользователь",
+      logout_header: "Выйти",
+      nextCorrectAnswerBtn: "Я в замешательстве, подскажи следующий шаг",
+      generateNextQuestion_nextQuestion: "Следующий вопрос",
+      generateNextQuestion_warning: "Предупреждение",
+      generateNextQuestion_continueAttempt: "Продолжить попытку",
+      generateNextQuestion_modalMessage1: "Рекомендуется переходить к следующему вопросу только после решения всех предыдущих.",
+      generateNextQuestion_modalMessage2: "Вы действительно хотите перейти к следующему вопросу?",
+      grade_feeback: "Оценка",
+      correctsteps_feeback: "Правильных шагов",
+      stepswitherrors_feeback: "Шагов с ошибками",
+      stepsleft_feeback: "Шагов осталось",
+      issolved_feeback: "Все действия программы выполнены. Задача решена",
+      foundExisitingAttempt_title: "Найдена неоконченная попытка",
+      foundExisitingAttempt_descr: "Вы хотите продолжить существующую попытку или начать новую",
+      foundExisitingAttempt_continueattempt: "Продолжить",
+      foundExisitingAttempt_newattempt: "Новая",
+      exercise_completed: "Упражнение завершено",
+      exercise_supquestion_gotit: "Понятно",
+      exercise_supquestion_details: "Разобраться подробнее",
+      exercise_supquestion_send_answer: "Отправить ответ",
+      exercise_supquestion_next_question: "Следующий вопрос",
+      exercisesettings_title: "Настройка упражнений",
+      exercisesettings_name: "Название",
+      exercisesettings_domain: "Домен",
+      exercisesettings_strategy: "Стратегия",
+      exercisesettings_qcomplexity: "Сложность вопросов",
+      exercisesettings_answlen: "Длина ответа",
+      exercisesettings_qopt: "Опции",
+      exercisesettings_qopt_forceAttCreation: "Всегда создавать новую попытку",
+      exercisesettings_qopt_genCorAnsw: "Разрешить подсказку следующего шага",
+      exercisesettings_qopt_forceShowGenNextQ: "Разрешить неоконченные вопросы",
+      exercisesettings_qopt_supQ: "Разрешить вспомогательные вопросы",
+      exercisesettings_qopt_preferDTsup: "Предпочитать генерацию вспомогательных вопросов по дереву рассуждений",
+      exercisesettings_qopt_debugBtn: "Включить кнопку для получения отладочной информации",
+      exercisesettings_max_concurrent_students: "Максимальное ожидаемое количество студентов, выполняющих упражнение одновременно",
+      exercisesettings_survey: "Опрос",
+      exercisesettings_tags: "Теги",
+      exercisesettings_commonConcepts: "Общие концепты",
+      exercisesettings_commonLaws: "Общие законы",
+      exercisesettings_commonSkills: "Общие умения",
+      exercisesettings_stages: "Стадии упражнения",
+      exercisesettings_stageN: "Стадия #{{stageNumber}}",
+      exercisesettings_stageN_qnumber: "Количество вопросов",
+      exercisesettings_stageN_concepts: "Концепты",
+      exercisesettings_stageN_laws: "Законы",
+      exercisesettings_stageN_skills: "Умения",
+      exercisesettings_stageN_matchedQuestionExamples: "Примеры вопросов",
+      exercisesettings_addStage: "Добавить стадию",
+      exercisesettings_removeStage: "Удалить стадию",
+      exercisesettings_save: "Сохранить",
+      exercisesettings_saveNopen: "Сохранить & Открыть",
+      exercisesettings_open: "Открыть",
+      exercisesettings_genDebugAtt: "Создать отладочную попытку",
+      exercisesettings_optDenied: "Запрет",
+      exercisesettings_optAllowed: "Разреш.",
+      exercisesettings_optTarget: "Цель",
+      exercisesettings_questionsInBank: "Вопросов в банке задач",
+      exercisesettings_noQuestionsFound: "Подходящих вопросов не найдено",
+      survey_sendresults: "Отправить результаты опроса",
+      // tour_skip: "Пропустить обучение",
+      tour_skip: "Не показывать",
+      tour_complete: "Завершить",
+      // tour_next: "Продолжить",
+      tour_next: "Далее",
+      tour_exprs_intro: "Добро пожаловать в упражнение CompPrehension! Новичкам рекомендуется познакомиться с элементами управления. Начнём?",
+      tour_exprs_intro_title: "Знакомство с тренажёром",
+      tour_exprs_expr: "В этом задании нужно «прокликать» операторы в выражения в том порядке, в каком они должны быть вычислены при выполнении программы",
+      tour_exprs_expr_title: "Задание",
+      tour_exprs_operator: "Это один из операторов выражения, и он подчёркнут. Их нужно нажимать в процессе решения задачи.",
+      tour_exprs_operator_title: "Оператор",
+      tour_exprs_hint: "Не знаете, что должно быть вычислено? Нажмите, чтобы запросить следующий корректный шаг.",
+      tour_exprs_hint_title: "Запрос подсказки",
+      tour_exprs_error_hint: "На красном фоне даётся описание текущей ошибки и подсказка",
+      tour_exprs_error_hint_title: "Ошибки",
+      tour_exprs_feedback_grade: "Ваша оценка за решение всех заданий, в диапазоне от 0 до 1",
+      tour_exprs_feedback_grade_title: "Оценка за серию вопросов",
+      tour_exprs_feedback_steps: "Столько шагов остаётся до окончания решения задачи",
+      tour_exprs_feedback_steps_title: "Обратный счётчик шагов",
+      tour_exprs_feedback_errors: "Столько раз вы при решении этой задачи вы нажали «не туда»",
+      tour_exprs_feedback_errors_title: "Счётчик ошибок",
+      tour_exprs_earlyfinish: "В некоторых задачах не все операторы должны быть вычислены. Нажмите эту кнопку, когда вычислено всё, что нужно.",
+      tour_exprs_earlyfinish_title: "Раннее завершение",
+      tour_exprs_tracevalue: "Некоторые операторы ведут себя по-разному в зависимости от значения своих операндов. Значения таких операндов отображаются здесь. «true» — истина (ДА), «false» — ложь (НЕТ).",
+      tour_exprs_tracevalue_title: "Значение операнда",
+      tour_exprs_selectedop: "Вычисленные и использованные операторы отображаются с зелёным подчёркиванием и номером снизу",
+      tour_exprs_selectedop_title: "Вычисленные операторы",
+      tour_exprs_pages: "С помощью этих кнопок можно вернуться к любому вопросу в упражнении. Для перехода вперёд используйте кнопку «Следующий вопрос» внизу.",
+      tour_exprs_pages_title: "Переключение между вопросами",
+      importModal_title: "Импорт из глобального пула",
+      importModal_modeLabel: "Режим:",
+      importModal_inherit_body: "курс будет использовать общую запись из пула. Любое изменение автора в пуле сразу отразится здесь и поломает уже идущие attempt'ы студентов, если автор поменяет наполнение. Это удобно для синхронизации, но опасно при активном использовании. Если не уверен — выбери Clone.",
+      importModal_clone_body: "создаётся независимая копия. Дальше курс работает со своей версией; изменения автора в пуле никак не влияют на эту копию.",
+      importModal_loading: "Загрузка…",
+      importModal_importing: "Импорт…",
+      importModal_import: "Импортировать",
+      importModal_cancel: "Отмена",
+      deleteModal_title: "Удалить упражнение из глобального пула",
+      deleteModal_loading: "Загрузка…",
+      deleteModal_noUsages: "Это упражнение никем не используется. Будет удалено из пула.",
+      deleteModal_warning: "Внимание:",
+      deleteModal_warningBody: "во всех курсах ниже будут созданы независимые копии этого упражнения. Связь с оригиналом разорвётся, оригинал будет удалён из пула.",
+      deleteModal_cancel: "Отмена",
+      deleteModal_confirm: "Удалить",
+      courses_page_title: "Курсы",
+      courses_page_globalPoolBtn: "Глобальный пул упражнений",
+      courses_page_empty: "Нет доступных курсов",
+      course_page_title: "Курс #{{id}}",
+      course_page_courseIdRequired: "Требуется courseId",
+      course_page_createExerciseBtn: "Создать новое упражнение в курсе",
+      course_page_importBtn: "Импортировать из глобального пула",
+      course_page_empty: "В этом курсе пока нет упражнений",
+      deeplink_title: "Добавить упражнения в курс Moodle",
+      deeplink_hint: "Выберите упражнения — Moodle создаст по активности «Внешний инструмент» на каждое.",
+      deeplink_blockHint: "Наполните курс упражнениями, затем в Moodle: «Добавить элемент курса» → «CompPrehension» → «Выбрать содержимое» — Moodle создаст активности автоматически.",
+      deeplink_addBtn: "Добавить выбранные в Moodle",
+      deeplink_added: "добавлено",
+      deeplink_submitting: "Отправка…",
+      deeplink_error: "Не удалось подготовить ответ для Moodle",
+      deeplink_selectAtLeastOne: "Выберите хотя бы одно упражнение",
+      deeplink_empty: "В курсе пока нет упражнений — сначала добавьте их.",
+      globalPool_page_title: "Глобальный пул упражнений",
+      globalPool_page_createBtn: "Создать новое упражнение в пуле",
+      globalPool_page_empty: "Пул пуст",
+      importModal_inherit_label: "⚠ Inherit:",
+      importModal_clone_label: "Clone:",
+      importModal_inherit_btn: "⚠ Inherit",
+      importModal_clone_btn: "Clone",
+      exerciseBadge_global: "Глобальное",
+      exerciseBadge_original: "Только в курсе",
+      exerciseBadge_inherited: "Унаследовано из пула",
+      exerciseBadge_cloned: "Клонировано из пула",
+      exerciseModeBar_convertToClone: "Преобразовать в клон",
+      exerciseModeBar_unlinkFromCourse: "Удалить из курса",
+      exerciseModeBar_copyToPool: "Скопировать в глобальный пул",
+      exerciseModeBar_deleteExercise: "Удалить упражнение",
+      exerciseModeBar_confirmDelete: "Удалить упражнение? История попыток будет удалена.",
+      error_notification_title: "Запрос не выполнен",
+      error_page_title: "Не удалось загрузить",
+      error_page_retry: "Повторить"
+    }
+  },
+  PL: {
+    translation: {
+      question_header: "Pytanie #{{questionNumber}}",
+      language_header: "Język",
+      signedin_as_header: "Zalogowany jako",
+      logout_header: "Wyloguj się",
+      nextCorrectAnswerBtn: "Nie wiem co robić dalej, podpowiedz mi następny poprawny krok",
+      generateNextQuestion_nextQuestion: "Następne pytanie",
+      generateNextQuestion_warning: "Ostrzeżenie",
+      generateNextQuestion_continueAttempt: "Kontynuuj podejście",
+      generateNextQuestion_modalMessage1: "Zaleca się przejście do następnego pytania dopiero po rozwiązaniu wszystkich poprzednich.",
+      generateNextQuestion_modalMessage2: "Czy na pewno chcesz przejść do następnego pytania?",
+      grade_feeback: "Ocena",
+      correctsteps_feeback: "Poprawne kroki",
+      stepswitherrors_feeback: "Kroki z błędami",
+      stepsleft_feeback: "Pozostałe kroki",
+      issolved_feeback: "Rozwiązane",
+      foundExisitingAttempt_title: "Znaleziono już istniejące podejście",
+      foundExisitingAttempt_descr: "Czy chcesz kontynuować dotychczasowe podejście, czy rozpocząć nowe",
+      foundExisitingAttempt_continueattempt: "Kontynuuj",
+      foundExisitingAttempt_newattempt: "Nowe",
+      exercise_completed: "Ćwiczenie zakończone",
+      exercise_supquestion_gotit: "Oczywiście!",
+      exercise_supquestion_details: "Zobacz szczegóły",
+      exercise_supquestion_send_answer: "Wyślij odpowiedź",
+      exercise_supquestion_next_question: "Następne pytanie",
+      exercisesettings_title: "Exercise settings",
+      exercisesettings_name: "Name",
+      exercisesettings_domain: "Domain",
+      exercisesettings_strategy: "Strategy",
+      exercisesettings_qcomplexity: "Question difficulty",
+      exercisesettings_answlen: "Answer length",
+      exercisesettings_qopt: "Options",
+      exercisesettings_qopt_forceAttCreation: "Always create a new attempt",
+      exercisesettings_qopt_genCorAnsw: "Allow 'generate correct answer' button",
+      exercisesettings_qopt_forceShowGenNextQ: "Always show 'generate new question' button",
+      exercisesettings_qopt_supQ: "Allow supplementary questions",
+      exercisesettings_qopt_preferDTsup: "Prefer Decision-Tree-based approach to supplementary question generation",
+      exercisesettings_max_concurrent_students: "Maximum expected number of students performing the exercise simultaneously",
+      exercisesettings_survey: "Survey",
+      exercisesettings_tags: "Tags",
+      exercisesettings_commonConcepts: "Common concepts",
+      exercisesettings_commonLaws: "Common laws",
+      exercisesettings_stages: "Stage",
+      exercisesettings_stageN: "Stage #{{stageNumber}}",
+      exercisesettings_stageN_qnumber: "Number of questions",
+      exercisesettings_stageN_concepts: "Concepts",
+      exercisesettings_stageN_laws: "Laws",
+      exercisesettings_stageN_matchedQuestionExamples: "Question examples",
+      exercisesettings_addStage: "Add stage",
+      exercisesettings_removeStage: "Remove stage",
+      exercisesettings_save: "Save",
+      exercisesettings_saveNopen: "Save & Open",
+      exercisesettings_open: "Open",
+      exercisesettings_genDebugAtt: "Generate debug attempt",
+      exercisesettings_optDenied: "Denied",
+      exercisesettings_optAllowed: "Allowed",
+      exercisesettings_optTarget: "Target",
+      exercisesettings_questionsInBank: "Questions in bank",
+      exercisesettings_noQuestionsFound: "No suitable questions found",
+      survey_sendresults: "Send survey results",
+      importModal_title: "Importuj z globalnej puli",
+      importModal_modeLabel: "Tryb:",
+      importModal_inherit_body: "kurs będzie korzystał ze wspólnego wpisu z puli. Każda zmiana autora w puli natychmiast się tutaj pojawi i może zepsuć trwające próby studentów, jeśli autor zmieni zawartość. Wygodne do synchronizacji, ale ryzykowne przy aktywnym użytkowaniu. Jeśli nie jesteś pewien — wybierz Clone.",
+      importModal_clone_body: "tworzona jest niezależna kopia. Kurs następnie pracuje z własną wersją; zmiany autora w puli nie mają wpływu na tę kopię.",
+      importModal_loading: "Ładowanie…",
+      importModal_importing: "Importowanie…",
+      importModal_import: "Importuj",
+      importModal_cancel: "Anuluj",
+      deleteModal_title: "Usuń ćwiczenie z globalnej puli",
+      deleteModal_loading: "Ładowanie…",
+      deleteModal_noUsages: "To ćwiczenie nie jest używane przez nikogo. Zostanie usunięte z puli.",
+      deleteModal_warning: "Uwaga:",
+      deleteModal_warningBody: "we wszystkich poniższych kursach zostaną utworzone niezależne kopie tego ćwiczenia. Połączenie z oryginałem zostanie zerwane, a oryginał zostanie usunięty z puli.",
+      deleteModal_cancel: "Anuluj",
+      deleteModal_confirm: "Usuń",
+      courses_page_title: "Kursy",
+      courses_page_globalPoolBtn: "Globalna pula ćwiczeń",
+      courses_page_empty: "Brak dostępnych kursów",
+      course_page_title: "Kurs #{{id}}",
+      course_page_courseIdRequired: "Wymagany jest courseId",
+      course_page_createExerciseBtn: "Utwórz nowe ćwiczenie w kursie",
+      course_page_importBtn: "Importuj z globalnej puli",
+      course_page_empty: "Ten kurs nie ma jeszcze ćwiczeń",
+      deeplink_title: "Dodaj ćwiczenia do kursu Moodle",
+      deeplink_hint: "Wybierz ćwiczenia — Moodle utworzy dla każdego aktywność „Narzędzie zewnętrzne”.",
+      deeplink_blockHint: "Wypełnij kurs ćwiczeniami, a następnie w Moodle: „Dodaj aktywność lub zasób” → „CompPrehension” → „Wybierz zawartość” — Moodle utworzy aktywności automatycznie.",
+      deeplink_addBtn: "Dodaj wybrane do Moodle",
+      deeplink_added: "dodano",
+      deeplink_submitting: "Wysyłanie…",
+      deeplink_error: "Nie udało się przygotować odpowiedzi dla Moodle",
+      deeplink_selectAtLeastOne: "Wybierz co najmniej jedno ćwiczenie",
+      deeplink_empty: "Ten kurs nie ma jeszcze ćwiczeń — najpierw je dodaj.",
+      globalPool_page_title: "Globalna pula ćwiczeń",
+      globalPool_page_createBtn: "Utwórz nowe ćwiczenie w puli",
+      globalPool_page_empty: "Pula jest pusta",
+      importModal_inherit_label: "⚠ Inherit:",
+      importModal_clone_label: "Clone:",
+      importModal_inherit_btn: "⚠ Inherit",
+      importModal_clone_btn: "Clone",
+      exerciseBadge_global: "Globalne",
+      exerciseBadge_original: "Tylko w kursie",
+      exerciseBadge_inherited: "Odziedziczone z puli",
+      exerciseBadge_cloned: "Sklonowane z puli",
+      exerciseModeBar_convertToClone: "Konwertuj na klon",
+      exerciseModeBar_unlinkFromCourse: "Usuń z kursu",
+      exerciseModeBar_copyToPool: "Skopiuj do globalnej puli",
+      exerciseModeBar_deleteExercise: "Usuń ćwiczenie",
+      exerciseModeBar_confirmDelete: "Usunąć ćwiczenie? Historia prób zostanie usunięta.",
+      error_notification_title: "Żądanie nie powiodło się",
+      error_page_title: "Nie udało się załadować",
+      error_page_retry: "Ponów"
+    }
+  }
+};
+instance.use(initReactI18next).init({
+  resources,
+  lng: "EN",
+  interpolation: {
+    escapeValue: false
+  }
+});
+const Optional = observer((props) => {
+  const { isVisible, children } = props;
+  if (!isVisible) {
+    return null;
+  }
+  return /* @__PURE__ */ jsxRuntimeExports.jsx(jsxRuntimeExports.Fragment, { children });
+});
+const DebugButton = ({ metadataId, attemptId }) => {
+  const [clicked, setClicked] = reactExports.useState(false);
+  reactExports.useEffect(() => {
+    setClicked(false);
+  }, [metadataId, attemptId]);
+  return /* @__PURE__ */ jsxRuntimeExports.jsx(
+    "div",
+    {
+      className: "position-absolute",
+      style: { bottom: "0.5rem", right: "0.5rem", zIndex: 1050 },
+      children: !clicked ? /* @__PURE__ */ jsxRuntimeExports.jsx(
+        Button,
+        {
+          variant: "light",
+          className: "border-0",
+          style: {
+            backgroundColor: "transparent",
+            color: "transparent",
+            padding: "0.2rem",
+            transition: "all 0.3s ease"
+          },
+          onMouseEnter: (e) => {
+            e.currentTarget.style.color = "#dc3545";
+            e.currentTarget.style.backgroundColor = "#f8d7da";
+          },
+          onMouseLeave: (e) => {
+            e.currentTarget.style.color = "transparent";
+            e.currentTarget.style.backgroundColor = "transparent";
+          },
+          onClick: () => setClicked(true),
+          children: /* @__PURE__ */ jsxRuntimeExports.jsx(Bug, { size: 18 })
+        }
+      ) : /* @__PURE__ */ jsxRuntimeExports.jsxs("div", { className: "alert alert-danger p-2 mb-0", role: "alert", children: [
+        /* @__PURE__ */ jsxRuntimeExports.jsx("div", { children: /* @__PURE__ */ jsxRuntimeExports.jsxs("small", { children: [
+          /* @__PURE__ */ jsxRuntimeExports.jsx("strong", { children: "Metadata ID:" }),
+          " ",
+          metadataId
+        ] }) }),
+        /* @__PURE__ */ jsxRuntimeExports.jsx(Optional, { isVisible: attemptId !== void 0, children: /* @__PURE__ */ jsxRuntimeExports.jsx("div", { children: /* @__PURE__ */ jsxRuntimeExports.jsxs("small", { children: [
+          /* @__PURE__ */ jsxRuntimeExports.jsx("strong", { children: "Attempt ID:" }),
+          " ",
+          attemptId
+        ] }) }) })
+      ] })
+    }
+  );
+};
+const AUTO_DISMISS_MS = 12e3;
+const CLAIM_WINDOW_MS = 250;
+const keyOf = (error) => `${error.status}\0${error.message}`;
+class NotificationsStore {
+  notifications = [];
+  nextId = 1;
+  pending = /* @__PURE__ */ new Map();
+  constructor() {
+    makeAutoObservable(this, {
+      nextId: false,
+      pending: false
+    });
+  }
+  report(error) {
+    const key = keyOf(error);
+    clearTimeout(this.pending.get(key));
+    this.pending.set(key, setTimeout(() => {
+      this.pending.delete(key);
+      this.show(error);
+    }, CLAIM_WINDOW_MS));
+  }
+  handled(error) {
+    const key = keyOf(error);
+    clearTimeout(this.pending.get(key));
+    this.pending.delete(key);
+    this.notifications = this.notifications.filter((n) => keyOf(n.error) !== key);
+  }
+  dismiss(id) {
+    this.notifications = this.notifications.filter((n) => n.id !== id);
+  }
+  show(error) {
+    const key = keyOf(error);
+    const same = this.notifications.find((n) => keyOf(n.error) === key);
+    if (same) {
+      same.count++;
+      return;
+    }
+    const id = this.nextId++;
+    this.notifications.push({ id, error, count: 1 });
+    setTimeout(() => this.dismiss(id), AUTO_DISMISS_MS);
+  }
+}
+const notifications = new NotificationsStore();
+function statusLine(error) {
+  if (error.status === void 0) {
+    return null;
+  }
+  return error.title ? `${error.status} ${error.title}` : `${error.status}`;
+}
+const ErrorNotificationAlert = observer(({ notification }) => {
+  const { t } = useTranslation();
+  const { error, count } = notification;
+  const status = statusLine(error);
+  return /* @__PURE__ */ jsxRuntimeExports.jsxs(Alert, { variant: "danger", dismissible: true, onClose: () => notifications.dismiss(notification.id), children: [
+    /* @__PURE__ */ jsxRuntimeExports.jsxs(Alert.Heading, { as: "h6", className: "d-flex align-items-center", children: [
+      /* @__PURE__ */ jsxRuntimeExports.jsx("span", { children: status ?? t("error_notification_title") }),
+      count > 1 && /* @__PURE__ */ jsxRuntimeExports.jsx("span", { className: "badge badge-light ml-2", children: count })
+    ] }),
+    /* @__PURE__ */ jsxRuntimeExports.jsx("div", { className: "comp-ph-error-notification-message", children: error.message }),
+    error.path && /* @__PURE__ */ jsxRuntimeExports.jsx("small", { className: "text-muted d-block mt-1", children: error.path })
+  ] });
+});
+const ErrorNotifications = observer(() => {
+  if (notifications.notifications.length === 0) {
+    return null;
+  }
+  return /* @__PURE__ */ jsxRuntimeExports.jsx("div", { className: "comp-ph-error-notifications", children: notifications.notifications.map((n) => /* @__PURE__ */ jsxRuntimeExports.jsx(ErrorNotificationAlert, { notification: n }, n.id)) });
+});
+function useHandledError(error) {
+  reactExports.useEffect(() => {
+    if (error) {
+      notifications.handled(error);
+    }
+  }, [error]);
+}
+const InlineError = observer(({ error }) => {
+  useHandledError(error);
+  return /* @__PURE__ */ jsxRuntimeExports.jsx(Alert, { variant: "danger", children: error.message });
+});
+const LoadFailure = observer(({ error, onRetry }) => {
+  const { t } = useTranslation();
+  const status = statusLine(error);
+  useHandledError(error);
+  return /* @__PURE__ */ jsxRuntimeExports.jsxs(Alert, { variant: "danger", children: [
+    /* @__PURE__ */ jsxRuntimeExports.jsx(Alert.Heading, { as: "h6", children: t("error_page_title") }),
+    /* @__PURE__ */ jsxRuntimeExports.jsx("div", { className: "comp-ph-error-notification-message", children: status ? `${status} — ${error.message}` : error.message }),
+    onRetry && /* @__PURE__ */ jsxRuntimeExports.jsx(Button, { variant: "outline-danger", size: "sm", className: "mt-2", onClick: onRetry, children: t("error_page_retry") })
+  ] });
+});
+const Loader = observer((props) => {
+  const delay = props.delay ?? 0;
+  const [enabled, setEnabled] = reactExports.useState(delay === 0);
+  reactExports.useEffect(() => {
+    if (delay > 0) {
+      setTimeout(() => !enabled && setEnabled(true), delay);
+    }
+  });
+  if (!enabled) {
+    return null;
+  }
+  return /* @__PURE__ */ jsxRuntimeExports.jsx(Spinner, { style: { ...props.styleOverride }, animation: "border", variant: "primary" });
+});
+const LoadingWrapper = observer((props) => {
+  const { children, isLoading } = props;
+  if (isLoading) {
+    return /* @__PURE__ */ jsxRuntimeExports.jsx(Loader, { ...props });
+  }
+  return /* @__PURE__ */ jsxRuntimeExports.jsx(jsxRuntimeExports.Fragment, { children });
+});
 union([nullType, undefinedType, literal("")]);
 function TOptionalRequestResult(type2, name) {
   return union([type2, nullType, undefinedType, literal("")], type2.name);
@@ -38,20 +615,43 @@ function delayPromise(timeout) {
 function isNullOrUndefined(value) {
   return value === null || value === void 0;
 }
-const TExerciseAttempt = type({
-  attemptId: number,
-  exerciseId: number,
-  questionIds: array(number)
-}, "ExerciseAttempt");
-const TOptionalExerciseAttemptResult = TOptionalRequestResult(TExerciseAttempt);
-const TExerciseStatisticsItem = type({
-  attemptId: number,
-  questionsCount: number,
-  totalInteractionsCount: number,
-  totalInteractionsWithErrorsCount: number,
-  averageGrade: number
-}, "ExerciseStatisticsItem");
-const TExerciseStatisticsItems = array(TExerciseStatisticsItem);
+const Modal = (props) => {
+  const {
+    title,
+    primaryBtnTitle,
+    primaryBtnVariant,
+    handlePrimaryBtnClicked,
+    secondaryBtnTitle,
+    handleSecondaryBtnClicked,
+    children,
+    closeButton,
+    show,
+    handleClose,
+    type: type2,
+    size
+  } = props;
+  return /* @__PURE__ */ jsxRuntimeExports.jsx(Optional, { isVisible: show ?? true, children: /* @__PURE__ */ jsxRuntimeExports.jsxs(ModalWrapper, { type: type2 ?? "MODAL", show: show ?? true, onHide: handleClose ?? void 0, size, children: [
+    /* @__PURE__ */ jsxRuntimeExports.jsx(Optional, { isVisible: !isNullOrUndefined(title) && title.length > 0, children: /* @__PURE__ */ jsxRuntimeExports.jsx(Modal$1.Header, { closeButton: closeButton ?? void 0, placeholder: null, children: /* @__PURE__ */ jsxRuntimeExports.jsx(Modal$1.Title, { children: title }) }) }),
+    /* @__PURE__ */ jsxRuntimeExports.jsx(Modal$1.Body, { children }),
+    secondaryBtnTitle || primaryBtnTitle ? /* @__PURE__ */ jsxRuntimeExports.jsxs(Modal$1.Footer, { children: [
+      secondaryBtnTitle && /* @__PURE__ */ jsxRuntimeExports.jsx(Button, { variant: "secondary", onClick: handleSecondaryBtnClicked ?? void 0, children: secondaryBtnTitle }),
+      primaryBtnTitle && /* @__PURE__ */ jsxRuntimeExports.jsx(Button, { variant: primaryBtnVariant ?? "primary", onClick: handlePrimaryBtnClicked ?? void 0, children: primaryBtnTitle })
+    ] }) : null
+  ] }) });
+};
+const ModalWrapper = (props) => {
+  const {
+    type: type2,
+    show,
+    onHide,
+    children,
+    size
+  } = props;
+  if (type2 === "DIALOG") {
+    return /* @__PURE__ */ jsxRuntimeExports.jsx(Modal$1.Dialog, { size, children });
+  }
+  return /* @__PURE__ */ jsxRuntimeExports.jsx(Modal$1, { size, show, onHide, children });
+};
 const commonParams = {
   method: "GET",
   headers: {
@@ -92,36 +692,106 @@ async function ajaxDelete(url, validator, signal) {
   };
   return await ajax(url, params, validator);
 }
+const statusTexts = {
+  400: "Bad request",
+  401: "Unauthorized",
+  403: "Forbidden",
+  404: "Not found",
+  405: "Method not allowed",
+  409: "Conflict",
+  413: "Payload too large",
+  415: "Unsupported media type",
+  422: "Unprocessable entity",
+  429: "Too many requests",
+  500: "Internal server error",
+  502: "Bad gateway",
+  503: "Service unavailable",
+  504: "Gateway timeout"
+};
+const asText = (value) => typeof value === "string" && value.trim() !== "" ? value.trim() : void 0;
+function parseErrorBody(body) {
+  try {
+    const parsed = JSON.parse(body);
+    return typeof parsed === "object" && parsed !== null ? parsed : void 0;
+  } catch {
+    return void 0;
+  }
+}
+function plainTextBody(body) {
+  const text = asText(body);
+  return text !== void 0 && text.length <= 300 && !text.startsWith("<") ? text : void 0;
+}
+async function toRequestError(response) {
+  const body = await response.text().catch(() => "");
+  const parsed = parseErrorBody(body);
+  const title = asText(parsed?.title) ?? asText(parsed?.error);
+  return {
+    status: response.status,
+    message: asText(parsed?.detail) ?? asText(parsed?.message) ?? title ?? (parsed === void 0 ? plainTextBody(body) : void 0) ?? statusTexts[response.status] ?? `Request failed with status ${response.status}`,
+    title,
+    path: asText(parsed?.instance) ?? asText(parsed?.path),
+    timestamp: asText(parsed?.timestamp),
+    trace: asText(parsed?.trace)
+  };
+}
+async function readPayload(response, payloadType) {
+  const body = await response.text();
+  if (payloadType === "raw") {
+    return body;
+  }
+  return body.trim() === "" ? "" : JSON.parse(body);
+}
+function fail(error) {
+  console.error(error);
+  notifications.report(error);
+  return EitherExports.left(error);
+}
+const isAbort = (err) => err instanceof DOMException && err.name === "AbortError";
 async function ajax(url, params, validator, payloadType) {
   payloadType ??= "json";
-  const result = await fetch(url, params).then(async (data) => {
-    if (data.ok) {
-      return { status: "ok", payload: validator && validator.decode(payloadType === "json" ? await data.json() : await data.text()) || success(payloadType === "json" ? await data.json() : await data.text()) };
+  let response;
+  try {
+    response = await fetch(url, params);
+  } catch (err) {
+    if (isAbort(err)) {
+      return EitherExports.left({ message: "Request aborted" });
     }
-    if (data.status === 401) {
-      return { status: "unauthorized" };
-    }
-    if (data.status === 500) {
-      return { status: "server_error", payload: await data.json() };
-    }
-    return { status: "unexpected", payload: { message: "Unexpected error" } };
-  }).catch((err) => ({ status: "unexpected", payload: { message: "Unexpected error " + err } }));
-  if (result.status === "ok") {
-    if (EitherExports.isLeft(result.payload)) {
-      const error = { message: `Type inconsistency for properties of ${validator?.name} type: ${getPaths(result.payload.left).join(", ")}` };
-      return console.error(error), EitherExports.left(error);
-    }
-    return EitherExports.right(result.payload.right);
+    return fail({ message: `Network error: ${err instanceof Error ? err.message : String(err)}` });
   }
-  if (result.status === "unauthorized") {
-    return EitherExports.left({ message: "Unauthorized" });
+  if (!response.ok) {
+    return fail(await toRequestError(response));
   }
-  return EitherExports.left(result.payload ?? { message: "Unexpected error " });
+  let payload;
+  try {
+    payload = await readPayload(response, payloadType);
+  } catch (err) {
+    if (isAbort(err)) {
+      return EitherExports.left({ message: "Request aborted" });
+    }
+    return fail({
+      status: response.status,
+      message: `Malformed response body: ${err instanceof Error ? err.message : String(err)}`
+    });
+  }
+  const decoded = validator ? validator.decode(payload) : success(payload);
+  if (EitherExports.isLeft(decoded)) {
+    return fail({
+      status: response.status,
+      message: `Type inconsistency for properties of ${validator?.name} type: ${getPaths(decoded.left).join(", ")}`
+    });
+  }
+  return EitherExports.right(decoded.right);
 }
 const getPaths = (errors) => {
   return errors.map((error) => error.context.map(({ key }) => key).join("."));
 };
 const API_URL = "";
+const TCourseDto = type({
+  id: number,
+  name: string,
+  educationResourceId: number,
+  educationResourceName: string
+});
 const TExerciseOptions = intersection([
   type({
     forceNewAttemptCreationEnabled: boolean,
@@ -139,48 +809,6 @@ const TExerciseOptions = intersection([
     })
   })
 ], "ExerciseOptions");
-const TExercise = type({
-  id: number,
-  options: TExerciseOptions
-}, "Exercise");
-var __getOwnPropDesc$f = Object.getOwnPropertyDescriptor;
-var __decorateClass$f = (decorators, target, key, kind) => {
-  var result = kind > 1 ? void 0 : kind ? __getOwnPropDesc$f(target, key) : target;
-  for (var i = decorators.length - 1, decorator; i >= 0; i--)
-    if (decorator = decorators[i])
-      result = decorator(result) || result;
-  return result;
-};
-let ExerciseController = class {
-  getExerciseShortInfo(id, courseId) {
-    const courseParam = courseId != null ? `&courseId=${courseId}` : "";
-    return ajaxGet(`${API_URL}/api/exercise/shortInfo?id=${id}${courseParam}`, TExercise);
-  }
-  getExerciseAttempt(attemptId) {
-    return ajaxGet(`${API_URL}/api/exercise/getExerciseAttempt?attemptId=${attemptId}`, TExerciseAttempt);
-  }
-  getExistingExerciseAttempt(exerciseId, courseId) {
-    const courseParam = courseId != null ? `&courseId=${courseId}` : "";
-    return ajaxGet(`${API_URL}/api/exercise/getExistingExerciseAttempt?exerciseId=${exerciseId}${courseParam}`, TOptionalExerciseAttemptResult);
-  }
-  createExerciseAttempt(exerciseId, courseId) {
-    const courseParam = courseId != null ? `&courseId=${courseId}` : "";
-    return ajaxGet(`${API_URL}/api/exercise/createExerciseAttempt?exerciseId=${exerciseId}${courseParam}`, TExerciseAttempt);
-  }
-  createDebugExerciseAttempt(exerciseId, courseId) {
-    const courseParam = courseId != null ? `&courseId=${courseId}` : "";
-    return ajaxGet(`${API_URL}/api/exercise/createDebugExerciseAttempt?exerciseId=${exerciseId}${courseParam}`, TExerciseAttempt);
-  }
-  getExerciseStatistics(exerciseId) {
-    return ajaxGet(`${API_URL}/api/exercise/getExerciseStatistics?exerciseId=${exerciseId}`, TExerciseStatisticsItems);
-  }
-  getExercises() {
-    return ajaxGet(`${API_URL}/api/exercise/getExercises`, array(number));
-  }
-};
-ExerciseController = __decorateClass$f([
-  injectable()
-], ExerciseController);
 function nonEmptyArray(codec, name = `NonEmptyArray<${codec.name}>`) {
   const arr = array(codec);
   return new Type(
@@ -316,15 +944,69 @@ const TQuestionBankSearchResult = type({
     name: string
   }))
 });
-var __getOwnPropDesc$e = Object.getOwnPropertyDescriptor;
-var __decorateClass$e = (decorators, target, key, kind) => {
-  var result = kind > 1 ? void 0 : kind ? __getOwnPropDesc$e(target, key) : target;
-  for (var i = decorators.length - 1, decorator; i >= 0; i--)
-    if (decorator = decorators[i])
-      result = decorator(result) || result;
-  return result;
-};
-let ExerciseSettingsController = class {
+class CourseController {
+  getMyCourses() {
+    return ajaxGet(`${API_URL}/api/course/my`, array(TCourseDto));
+  }
+  getCourseExercises(courseId) {
+    return ajaxGet(`${API_URL}/api/exercise/list?courseId=${courseId}`, TExerciseList);
+  }
+  getExerciseMemberships(exerciseId) {
+    return ajaxGet(`${API_URL}/api/course/memberships?exerciseId=${exerciseId}`, array(TCourseDto));
+  }
+  addExerciseToCourse(exerciseId, courseId) {
+    return ajaxPost(`${API_URL}/api/course/exercise/add?exerciseId=${exerciseId}&courseId=${courseId}`, {});
+  }
+  removeExerciseFromCourse(exerciseId, courseId) {
+    return ajaxDelete(`${API_URL}/api/course/exercise/remove?exerciseId=${exerciseId}&courseId=${courseId}`);
+  }
+}
+const TExerciseAttempt = type({
+  attemptId: number,
+  exerciseId: number,
+  questionIds: array(number)
+}, "ExerciseAttempt");
+const TOptionalExerciseAttemptResult = TOptionalRequestResult(TExerciseAttempt);
+const TExerciseStatisticsItem = type({
+  attemptId: number,
+  questionsCount: number,
+  totalInteractionsCount: number,
+  totalInteractionsWithErrorsCount: number,
+  averageGrade: number
+}, "ExerciseStatisticsItem");
+const TExerciseStatisticsItems = array(TExerciseStatisticsItem);
+const TExercise = type({
+  id: number,
+  options: TExerciseOptions
+}, "Exercise");
+class ExerciseController {
+  getExerciseShortInfo(id, courseId) {
+    const courseParam = courseId != null ? `&courseId=${courseId}` : "";
+    return ajaxGet(`${API_URL}/api/exercise/shortInfo?id=${id}${courseParam}`, TExercise);
+  }
+  getExerciseAttempt(attemptId) {
+    return ajaxGet(`${API_URL}/api/exercise/getExerciseAttempt?attemptId=${attemptId}`, TExerciseAttempt);
+  }
+  getExistingExerciseAttempt(exerciseId, courseId) {
+    const courseParam = courseId != null ? `&courseId=${courseId}` : "";
+    return ajaxGet(`${API_URL}/api/exercise/getExistingExerciseAttempt?exerciseId=${exerciseId}${courseParam}`, TOptionalExerciseAttemptResult);
+  }
+  createExerciseAttempt(exerciseId, courseId) {
+    const courseParam = courseId != null ? `&courseId=${courseId}` : "";
+    return ajaxGet(`${API_URL}/api/exercise/createExerciseAttempt?exerciseId=${exerciseId}${courseParam}`, TExerciseAttempt);
+  }
+  createDebugExerciseAttempt(exerciseId, courseId) {
+    const courseParam = courseId != null ? `&courseId=${courseId}` : "";
+    return ajaxGet(`${API_URL}/api/exercise/createDebugExerciseAttempt?exerciseId=${exerciseId}${courseParam}`, TExerciseAttempt);
+  }
+  getExerciseStatistics(exerciseId) {
+    return ajaxGet(`${API_URL}/api/exercise/getExerciseStatistics?exerciseId=${exerciseId}`, TExerciseStatisticsItems);
+  }
+  getExercises() {
+    return ajaxGet(`${API_URL}/api/exercise/getExercises`, array(number));
+  }
+}
+class ExerciseSettingsController {
   listExercises(courseId) {
     const q = courseId == null ? "" : `?courseId=${courseId}`;
     return ajaxGet(`${API_URL}/api/exercise/list${q}`, TExerciseList);
@@ -376,10 +1058,7 @@ let ExerciseSettingsController = class {
     };
     return ajaxPost(`${API_URL}/api/question-bank/search`, body, TQuestionBankSearchResult, signal);
   }
-};
-ExerciseSettingsController = __decorateClass$e([
-  injectable()
-], ExerciseSettingsController);
+}
 const TAnswer = intersection([
   type({
     answer: tuple([number, number]),
@@ -576,15 +1255,7 @@ const TSupplementaryQuestion = partial({
   question: union([TQuestion, nullType]),
   message: union([TSupplementaryFeedback, nullType])
 });
-var __getOwnPropDesc$d = Object.getOwnPropertyDescriptor;
-var __decorateClass$d = (decorators, target, key, kind) => {
-  var result = kind > 1 ? void 0 : kind ? __getOwnPropDesc$d(target, key) : target;
-  for (var i = decorators.length - 1, decorator; i >= 0; i--)
-    if (decorator = decorators[i])
-      result = decorator(result) || result;
-  return result;
-};
-let QuestionController = class {
+class QuestionController {
   generateQuestionByAttempt(attemptId) {
     return ajaxGet(`${API_URL}/api/question/generate?attemptId=${attemptId}`, TQuestion);
   }
@@ -606,10 +1277,7 @@ let QuestionController = class {
   addSupplementaryQuestionAnswer(interaction) {
     return ajaxPost(`${API_URL}/api/question/addSupplementaryQuestionAnswer`, interaction, TSupplementaryFeedback);
   }
-};
-QuestionController = __decorateClass$d([
-  injectable()
-], QuestionController);
+}
 const TSurveyQuestionTriggeringPolicy = union([
   type({
     kind: literal("AFTER_FIRST")
@@ -667,20 +1335,12 @@ const TSurveyResultItem = type({
   questionId: number,
   answer: string
 });
-var __getOwnPropDesc$c = Object.getOwnPropertyDescriptor;
-var __decorateClass$c = (decorators, target, key, kind) => {
-  var result = kind > 1 ? void 0 : kind ? __getOwnPropDesc$c(target, key) : target;
-  for (var i = decorators.length - 1, decorator; i >= 0; i--)
-    if (decorator = decorators[i])
-      result = decorator(result) || result;
-  return result;
-};
-let SurveyController = class {
+class SurveyController {
   surveyCache = {};
   async getSurvey(suerveyId) {
     if (this.surveyCache[suerveyId])
       return EitherExports.right(this.surveyCache[suerveyId]);
-    var result = await ajaxGet(`${API_URL}/api/survey/${suerveyId}`, TSurvey);
+    const result = await ajaxGet(`${API_URL}/api/survey/${suerveyId}`, TSurvey);
     if (EitherExports.isRight(result))
       this.surveyCache[suerveyId] = result.right;
     return result;
@@ -691,294 +1351,7 @@ let SurveyController = class {
   async getCurrentUserAttemptSurveyVotes(surveyId, attemptId) {
     return ajaxGet(`${API_URL}/api/survey/${encodeURIComponent(surveyId)}/user-votes?attemptId=${attemptId}`, array(TSurveyResultItem));
   }
-};
-SurveyController = __decorateClass$c([
-  injectable()
-], SurveyController);
-var __getOwnPropDesc$b = Object.getOwnPropertyDescriptor;
-var __decorateClass$b = (decorators, target, key, kind) => {
-  var result = kind > 1 ? void 0 : kind ? __getOwnPropDesc$b(target, key) : target;
-  for (var i = decorators.length - 1, decorator; i >= 0; i--)
-    if (decorator = decorators[i])
-      result = decorator(result) || result;
-  return result;
-};
-let TestExerciseController = class {
-  async getCurrentUser() {
-    return EitherExports.right({
-      id: 999999,
-      displayName: "front user",
-      email: "test@mail.ru",
-      permissions: { canViewGlobalPool: true },
-      language: "EN"
-    });
-  }
-  async getExerciseShortInfo(id) {
-    return EitherExports.right({
-      id: -1,
-      options: {
-        debugButtonEnabled: false,
-        forceNewAttemptCreationEnabled: false,
-        correctAnswerGenerationEnabled: true,
-        newQuestionGenerationEnabled: true,
-        supplementaryQuestionsEnabled: true,
-        preferDecisionTreeBasedSupplementaryEnabled: false,
-        maxExpectedConcurrentStudents: 7
-      }
-    });
-  }
-  async getExistingExerciseAttempt(exerciseId, courseId) {
-    console.log(`getExistingExerciseAttempt?exerciseId=${exerciseId}&courseId=${courseId}`);
-    return EitherExports.right("");
-  }
-  async createExerciseAttempt(exerciseId, courseId) {
-    console.log(`createExerciseAttempt?exerciseId=${exerciseId}&courseId=${courseId}`);
-    await delayPromise(3e3);
-    return EitherExports.right({
-      attemptId: -1,
-      exerciseId: -1,
-      questionIds: [1, 2, 3, 4, 5, 6, 7]
-    });
-  }
-  async createDebugExerciseAttempt(exerciseId, courseId) {
-    console.log(`createDebugExerciseAttempt?exerciseId=${exerciseId}&courseId=${courseId}`);
-    await delayPromise(3e3);
-    return EitherExports.right({
-      attemptId: -1,
-      exerciseId: -1,
-      questionIds: [1, 2, 3, 4, 5, 6, 7]
-    });
-  }
-  async getQuestion(questionId) {
-    console.log(`getQuestion?questionId=${questionId}`);
-    await delayPromise(3e3);
-    let result;
-    if (questionId === 1) {
-      result = {
-        type: "SINGLE_CHOICE",
-        questionId: 1,
-        questionMetadataId: 1,
-        text: "question text",
-        answers: [
-          { id: 0, text: "answer1 answer1 answer1answer1answer1answer1answer1 answer1answer1 answer1 answer1 answer1answer1answer1answer1answer1 answer1answer1 answer1 answer1 answer1answer1answer1answer1answer1 answer1answer1 answer1 answer1 answer1answer1answer1answer1answer1 answer1answer1 answer1 answer1 answer1answer1answer1answer1answer1 answer1answer1 " },
-          { id: 1, text: "answer2answer1 answer1 answer1answer1answer1answer1answer1 answer1answer1 answer1 answer1 answer1answer1answer1answer1answer1 answer1answer1 answer1 answer1 answer1answer1answer1answer1answer1 answer1answer1 answer1 answer1 answer1answer1answer1answer1answer1 answer1answer1 " },
-          { id: 2, text: "answer2answer1 answer1 answer1answer1answer1answer1answer1 answer1answer1 answer1 answer1 answer1answer1answer1answer1answer1 answer1answer1 answer1 answer1 answer1answer1answer1answer1answer1 answer1answer1 answer1 answer1 answer1answer1answer1answer1answer1 answer1answer1 " }
-        ],
-        responses: [],
-        feedback: null,
-        options: {
-          requireContext: false,
-          showSupplementaryQuestions: true,
-          displayMode: "radio"
-        }
-      };
-    }
-    if (questionId === 2) {
-      result = {
-        type: "MULTI_CHOICE",
-        questionId: 2,
-        questionMetadataId: 2,
-        text: "question text",
-        answers: [
-          { id: 0, text: "answer1 answer1 answer1answer1answer1answer1answer1 answer1answer1 answer1 answer1 answer1answer1answer1answer1answer1 answer1answer1 answer1 answer1 answer1answer1answer1answer1answer1 answer1answer1 answer1 answer1 answer1answer1answer1answer1answer1 answer1answer1 answer1 answer1 answer1answer1answer1answer1answer1 answer1answer1 " },
-          { id: 1, text: "answer2answer1 answer1 answer1answer1answer1answer1answer1 answer1answer1 answer1 answer1 answer1answer1answer1answer1answer1 answer1answer1 answer1 answer1 answer1answer1answer1answer1answer1 answer1answer1 answer1 answer1 answer1answer1answer1answer1answer1 answer1answer1 " },
-          { id: 2, text: "answer2answer1 answer1 answer1answer1answer1answer1answer1 answer1answer1 answer1 answer1 answer1answer1answer1answer1answer1 answer1answer1 answer1 answer1 answer1answer1answer1answer1answer1 answer1answer1 answer1 answer1 answer1answer1answer1answer1answer1 answer1answer1 " }
-        ],
-        responses: [],
-        feedback: null,
-        options: {
-          requireContext: false,
-          showSupplementaryQuestions: true,
-          displayMode: "switch"
-        }
-      };
-    }
-    if (questionId === 3) {
-      result = {
-        type: "SINGLE_CHOICE",
-        questionId: 3,
-        questionMetadataId: 3,
-        text: 'question text with <span id="answer_0">select1</span> and <span id="answer_1">select2</span>',
-        answers: [],
-        responses: [],
-        feedback: null,
-        options: {
-          requireContext: true,
-          showSupplementaryQuestions: true,
-          displayMode: "radio"
-        }
-      };
-    }
-    if (questionId === 4) {
-      result = {
-        type: "MULTI_CHOICE",
-        questionId: 4,
-        questionMetadataId: 4,
-        text: 'question text with <span id="answer_0"></span> and <span id="answer_1"></span>',
-        answers: [],
-        responses: [],
-        feedback: null,
-        options: {
-          requireContext: true,
-          showSupplementaryQuestions: true,
-          displayMode: "switch"
-        }
-      };
-    }
-    if (questionId === 5) {
-      result = {
-        type: "MATCHING",
-        questionId: 5,
-        questionMetadataId: 5,
-        text: "question text ",
-        answers: [
-          {
-            id: 0,
-            text: "test1"
-          },
-          {
-            id: 1,
-            text: "test2"
-          },
-          {
-            id: 3,
-            text: "test3"
-          }
-        ],
-        groups: [
-          {
-            id: 0,
-            text: '<div style="width:70px; height: 40px;">group1<div/>'
-          },
-          {
-            id: 1,
-            text: '<div style="width:50px;height: 100px;">group2 group2 group2 group2<div/>'
-          }
-        ],
-        responses: [],
-        feedback: null,
-        options: {
-          requireContext: false,
-          showSupplementaryQuestions: true,
-          displayMode: "dragNdrop",
-          multipleSelectionEnabled: true,
-          dropzoneStyle: '{ "display": "inline-block", "minHeight": "40px", "minWidth": "80px" }',
-          dropzoneHtml: "drop",
-          draggableStyle: '{ "padding": "10px", "border": "5px solid", "borderRadius": "5px", "borderColor": "black", "backgroundColor": "white" }'
-        }
-      };
-    }
-    if (questionId === 6) {
-      result = {
-        type: "MATCHING",
-        questionMetadataId: 6,
-        questionId: 6,
-        text: 'question text with <span id="answer_0">drop</span> and <span id="answer_1">drop</span>',
-        answers: [],
-        groups: [
-          {
-            id: 0,
-            text: '<div style="width:70px; height: 40px;">group1<div/>'
-          },
-          {
-            id: 1,
-            text: '<div style="width:50px;height: 100px;">group2 group2 group2 group2<div/>'
-          }
-        ],
-        responses: [],
-        feedback: null,
-        options: {
-          requireContext: true,
-          showSupplementaryQuestions: true,
-          displayMode: "dragNdrop",
-          multipleSelectionEnabled: false,
-          dropzoneStyle: '{ "display": "inline-block", "minHeight": "40px", "minWidth": "80px" }',
-          dropzoneHtml: "drop",
-          draggableStyle: '{ "padding": "10px", "border": "5px solid", "borderRadius": "5px", "borderColor": "black", "backgroundColor": "white" }'
-        }
-      };
-    }
-    if (questionId === 7) {
-      result = {
-        type: "MULTI_CHOICE",
-        questionId: 7,
-        questionMetadataId: 7,
-        text: `question text with <span id="answer_0"></span> and <span id="answer_1"></span>`,
-        answers: [],
-        responses: [],
-        feedback: null,
-        options: {
-          requireContext: true,
-          showSupplementaryQuestions: true,
-          displayMode: "dragNdrop",
-          dropzoneStyle: '{ "display": "inline-block", "height": "20px", "width": "20px" }',
-          dropzoneHtml: "",
-          draggableStyle: '{ "height": "20px", "width": "20px" }'
-        }
-      };
-    }
-    if (result)
-      return EitherExports.right(result);
-    return EitherExports.left({ message: "No such question" });
-  }
-  async generateQuestionByAttempt(attemptId) {
-    console.log(`generateQuestionByAttempt?attemptId=${attemptId}`);
-    await delayPromise(3e3);
-    return EitherExports.left({ message: "Method not implemented." });
-  }
-  async generateQuestionByMetadata(metadataId) {
-    console.log(`generateQuestionByMetadata?metadataId=${metadataId}`);
-    await delayPromise(3e3);
-    return EitherExports.left({ message: "Method not implemented." });
-  }
-  async generateSupplementaryQuestion(questionRequest) {
-    console.log(`generateSupplementaryQuestion`, questionRequest);
-    await delayPromise(3e3);
-    return EitherExports.left({ message: "Method not implemented." });
-  }
-  async generateNextCorrectAnswer(questionId) {
-    console.log(`generateNextCorrectAnswer?questionId=${questionId}`);
-    await delayPromise(3e3);
-    return EitherExports.left({ message: "Method not implemented." });
-  }
-  async addQuestionAnswer(interaction) {
-    console.log("addQuestionAnswer", interaction);
-    await delayPromise(3e3);
-    return EitherExports.right({
-      isCorrect: true,
-      grade: 0.8,
-      correctAnswers: interaction.answers,
-      correctSteps: 1,
-      stepsLeft: 1,
-      stepsWithErrors: 1,
-      messages: null,
-      strategyDecision: "CONTINUE"
-    });
-  }
-  async addSupplementaryQuestionAnswer(interaction) {
-    console.log("addSupplementaryQuestionAnswer", interaction);
-    await delayPromise(3e3);
-    return EitherExports.right({
-      message: { type: "SUCCESS", message: "test", violationLaws: [] },
-      action: "CONTINUE_AUTO"
-    });
-  }
-  async getExerciseStatistics(exerciseId) {
-    console.log(`getExerciseStatistics?exerciseId=${exerciseId}`);
-    return EitherExports.left({ message: "Method not implemented." });
-  }
-  async getExercises() {
-    console.log(`getExercises`);
-    return EitherExports.left({ message: "Method not implemented." });
-  }
-  async getExerciseAttempt(attemptId) {
-    console.log(`getExerciseAttempt?attemptId=${attemptId}`);
-    return EitherExports.left({ message: "Method not implemented." });
-  }
-};
-TestExerciseController = __decorateClass$b([
-  injectable()
-], TestExerciseController);
+}
 const TLanguage = keyof({
   EN: null,
   RU: null,
@@ -994,15 +1367,7 @@ const TUserInfo = type({
   language: TLanguage,
   permissions: TUserPermissions
 }, "UserInfo");
-var __getOwnPropDesc$a = Object.getOwnPropertyDescriptor;
-var __decorateClass$a = (decorators, target, key, kind) => {
-  var result = kind > 1 ? void 0 : kind ? __getOwnPropDesc$a(target, key) : target;
-  for (var i = decorators.length - 1, decorator; i >= 0; i--)
-    if (decorator = decorators[i])
-      result = decorator(result) || result;
-  return result;
-};
-let UserController = class {
+class UserController {
   getCurrentUser() {
     return ajaxGet(`${API_URL}/api/users/whoami`, TUserInfo);
   }
@@ -1012,52 +1377,7 @@ let UserController = class {
   async setLanguage(language) {
     return ajaxPost(`${API_URL}/api/users/language`, { language }, TLanguage, void 0, "raw");
   }
-};
-UserController = __decorateClass$a([
-  injectable()
-], UserController);
-const TCourseDto = type({
-  id: number,
-  name: string,
-  educationResourceId: number,
-  educationResourceName: string
-});
-var __getOwnPropDesc$9 = Object.getOwnPropertyDescriptor;
-var __decorateClass$9 = (decorators, target, key, kind) => {
-  var result = kind > 1 ? void 0 : kind ? __getOwnPropDesc$9(target, key) : target;
-  for (var i = decorators.length - 1, decorator; i >= 0; i--)
-    if (decorator = decorators[i])
-      result = decorator(result) || result;
-  return result;
-};
-let CourseController = class {
-  getMyCourses() {
-    return ajaxGet(`${API_URL}/api/course/my`, array(TCourseDto));
-  }
-  getCourseExercises(courseId) {
-    return ajaxGet(`${API_URL}/api/exercise/list?courseId=${courseId}`, TExerciseList);
-  }
-  getExerciseMemberships(exerciseId) {
-    return ajaxGet(`${API_URL}/api/course/memberships?exerciseId=${exerciseId}`, array(TCourseDto));
-  }
-  addExerciseToCourse(exerciseId, courseId) {
-    return ajaxPost(`${API_URL}/api/course/exercise/add?exerciseId=${exerciseId}&courseId=${courseId}`, {});
-  }
-  removeExerciseFromCourse(exerciseId, courseId) {
-    return ajaxDelete(`${API_URL}/api/course/exercise/remove?exerciseId=${exerciseId}&courseId=${courseId}`);
-  }
-};
-CourseController = __decorateClass$9([
-  injectable()
-], CourseController);
-var __getOwnPropDesc$8 = Object.getOwnPropertyDescriptor;
-var __decorateClass$8 = (decorators, target, key, kind) => {
-  var result = kind > 1 ? void 0 : kind ? __getOwnPropDesc$8(target, key) : target;
-  for (var i = decorators.length - 1, decorator; i >= 0; i--)
-    if (decorator = decorators[i])
-      result = decorator(result) || result;
-  return result;
-};
+}
 const TDeepLinkBuildResponse = type({
   jwt: string,
   returnUrl: string
@@ -1065,7 +1385,7 @@ const TDeepLinkBuildResponse = type({
 const TDeepLinkExistingResponse = type({
   exerciseIds: array(number)
 });
-let DeepLinkingController = class {
+class DeepLinkingController {
   /** Build a signed LtiDeepLinkingResponse for the selected course exercises. */
   build(exerciseIds) {
     return ajaxPost(`${API_URL}/api/lti/deep-link/build`, { exerciseIds }, TDeepLinkBuildResponse);
@@ -1074,32 +1394,24 @@ let DeepLinkingController = class {
   existing() {
     return ajaxGet(`${API_URL}/api/lti/deep-link/existing`, TDeepLinkExistingResponse);
   }
-};
-DeepLinkingController = __decorateClass$8([
-  injectable()
-], DeepLinkingController);
-var __defProp$3 = Object.defineProperty;
-var __getOwnPropDesc$7 = Object.getOwnPropertyDescriptor;
-var __decorateClass$7 = (decorators, target, key, kind) => {
-  var result = kind > 1 ? void 0 : kind ? __getOwnPropDesc$7(target, key) : target;
-  for (var i = decorators.length - 1, decorator; i >= 0; i--)
-    if (decorator = decorators[i])
-      result = (kind ? decorator(target, key, result) : decorator(result)) || result;
-  if (kind && result) __defProp$3(target, key, result);
-  return result;
-};
+}
+const courseController = new CourseController();
+const deepLinkingController = new DeepLinkingController();
+const exerciseController = new ExerciseController();
+const exerciseSettingsController = new ExerciseSettingsController();
+const questionController = new QuestionController();
+const surveyController = new SurveyController();
+const userController = new UserController();
 class SupplementaryQuestionStore {
-  constructor(questionController, sourceQuestionId) {
-    this.questionController = questionController;
-    this.sourceQuestionId = sourceQuestionId;
-    makeObservable(this);
-  }
-  questionController;
   sourceQuestionId;
   feedback = void 0;
   question = void 0;
   answer = [];
   questionState = "INITIAL";
+  constructor(sourceQuestionId) {
+    this.sourceQuestionId = sourceQuestionId;
+    makeAutoObservable(this);
+  }
   setQuestionState = (newState) => {
     if (this.questionState !== newState)
       this.questionState = newState;
@@ -1138,14 +1450,12 @@ class SupplementaryQuestionStore {
       questionId: this.sourceQuestionId,
       violationLaws
     };
-    const dataEither = await this.questionController.generateSupplementaryQuestion(questionRequest);
-    runInAction(() => {
-      if (EitherExports.isLeft(dataEither)) {
-        this.setQuestionState("LOADED");
-        return;
-      }
-      this.#onQuestionLoaded(dataEither.right.question, dataEither.right.message);
-    });
+    const dataEither = await questionController.generateSupplementaryQuestion(questionRequest);
+    if (EitherExports.isLeft(dataEither)) {
+      this.setQuestionState("LOADED");
+      return;
+    }
+    this.#onQuestionLoaded(dataEither.right.question, dataEither.right.message);
   };
   sendAnswers = async () => {
     const { question } = this;
@@ -1156,22 +1466,20 @@ class SupplementaryQuestionStore {
       answers: toJS([...this.answer])
     });
     this.setQuestionState("ANSWER_EVALUATING");
-    const feedbackEither = await this.questionController.addSupplementaryQuestionAnswer(body);
-    runInAction(() => {
-      if (EitherExports.isLeft(feedbackEither)) {
-        this.setQuestionState("LOADED");
-        return;
-      }
-      this.setQuestionState("COMPLETED");
-      this.feedback = feedbackEither.right;
-    });
+    const feedbackEither = await questionController.addSupplementaryQuestionAnswer(body);
+    if (EitherExports.isLeft(feedbackEither)) {
+      this.setQuestionState("LOADED");
+      return;
+    }
+    this.setQuestionState("COMPLETED");
+    this.feedback = feedbackEither.right;
   };
   setAnswer = (newAnswer) => {
     this.answer = newAnswer;
   };
   #onQuestionLoaded = (question, feedback) => {
     if (question?.options.requireContext) {
-      var allMatches = question.text.matchAll(/(\<\w.*?\sid\s*?\=([\'\"]))\s*(answer_(\d+?))\2(.*?\>)/igm);
+      const allMatches = question.text.matchAll(/(<\w.*?\sid\s*?=(['"]))\s*(answer_(\d+?))\2(.*?>)/igm);
       [...allMatches].forEach((match, matchIdx) => {
         question.text = question.text.replace(
           match[0],
@@ -1185,62 +1493,7 @@ class SupplementaryQuestionStore {
     this.questionState = !question ? "COMPLETED" : "LOADED";
   };
 }
-__decorateClass$7([
-  observable
-], SupplementaryQuestionStore.prototype, "sourceQuestionId", 2);
-__decorateClass$7([
-  observable
-], SupplementaryQuestionStore.prototype, "feedback", 2);
-__decorateClass$7([
-  observable
-], SupplementaryQuestionStore.prototype, "question", 2);
-__decorateClass$7([
-  observable
-], SupplementaryQuestionStore.prototype, "answer", 2);
-__decorateClass$7([
-  observable
-], SupplementaryQuestionStore.prototype, "questionState", 2);
-__decorateClass$7([
-  action
-], SupplementaryQuestionStore.prototype, "setQuestionState", 2);
-__decorateClass$7([
-  computed
-], SupplementaryQuestionStore.prototype, "isQuestionFreezed", 1);
-__decorateClass$7([
-  computed
-], SupplementaryQuestionStore.prototype, "isFeedbackLoading", 1);
-__decorateClass$7([
-  computed
-], SupplementaryQuestionStore.prototype, "canSendQuestionAnswers", 1);
-__decorateClass$7([
-  computed
-], SupplementaryQuestionStore.prototype, "questionSubmitMode", 1);
-__decorateClass$7([
-  action
-], SupplementaryQuestionStore.prototype, "generateSupplementaryQuestion", 2);
-__decorateClass$7([
-  action
-], SupplementaryQuestionStore.prototype, "sendAnswers", 2);
-__decorateClass$7([
-  action
-], SupplementaryQuestionStore.prototype, "setAnswer", 2);
-var __defProp$2 = Object.defineProperty;
-var __getOwnPropDesc$6 = Object.getOwnPropertyDescriptor;
-var __decorateClass$6 = (decorators, target, key, kind) => {
-  var result = kind > 1 ? void 0 : kind ? __getOwnPropDesc$6(target, key) : target;
-  for (var i = decorators.length - 1, decorator; i >= 0; i--)
-    if (decorator = decorators[i])
-      result = (kind ? decorator(target, key, result) : decorator(result)) || result;
-  if (kind && result) __defProp$2(target, key, result);
-  return result;
-};
-var __decorateParam$5 = (index, decorator) => (target, key) => decorator(target, key, index);
-let QuestionStore = class {
-  constructor(questionController) {
-    this.questionController = questionController;
-    makeObservable(this);
-  }
-  questionController;
+class QuestionStore {
   isFeedbackVisible = true;
   isQuestionFreezed = false;
   feedback = void 0;
@@ -1250,9 +1503,12 @@ let QuestionStore = class {
   supplementaryQuestion;
   questionState = "INITIAL";
   storeState = { tag: "VALID" };
+  constructor() {
+    makeAutoObservable(this);
+  }
   onQuestionLoaded = (question) => {
     if (question.options.requireContext) {
-      var allMatches = question.text.matchAll(/(\<\w.*?\sid\s*?\=([\'\"]))\s*(answer_(\d+?))\2(.*?\>)/igm);
+      const allMatches = question.text.matchAll(/(<\w.*?\sid\s*?=(['"]))\s*(answer_(\d+?))\2(.*?>)/igm);
       [...allMatches].forEach((match, matchIdx) => {
         question.text = question.text.replace(
           match[0],
@@ -1261,7 +1517,7 @@ let QuestionStore = class {
       });
     }
     this.question = question;
-    this.supplementaryQuestion = new SupplementaryQuestionStore(this.questionController, question.questionId);
+    this.supplementaryQuestion = new SupplementaryQuestionStore(question.questionId);
     this.feedback = question.feedback ?? void 0;
     this.isFeedbackVisible = true;
     this.answersHistory = [];
@@ -1292,88 +1548,88 @@ let QuestionStore = class {
   setErrorStoreState = (error) => {
     this.storeState = { tag: "ERROR", error };
   };
-  loadQuestion = flow(function* (questionId) {
+  loadQuestion = async (questionId) => {
     this.setValidStoreState();
     this.setQuestionState("LOADING");
-    const dataEither = yield this.questionController.getQuestion(questionId);
+    const dataEither = await questionController.getQuestion(questionId);
     this.setQuestionState("LOADED");
     if (EitherExports.isLeft(dataEither)) {
       this.setErrorStoreState(dataEither.left);
       return;
     }
     this.onQuestionLoaded(dataEither.right);
-  });
-  generateQuestion = flow(function* (attemptId) {
+  };
+  generateQuestion = async (attemptId) => {
     this.setValidStoreState();
     this.setQuestionState("LOADING");
-    const dataEither = yield this.questionController.generateQuestionByAttempt(attemptId);
+    const dataEither = await questionController.generateQuestionByAttempt(attemptId);
     this.setQuestionState("LOADED");
     if (EitherExports.isLeft(dataEither)) {
       this.setErrorStoreState(dataEither.left);
       return;
     }
     this.onQuestionLoaded(dataEither.right);
-  });
-  generateQuestionByMetadata = flow(function* (metadataId) {
+  };
+  generateQuestionByMetadata = async (metadataId) => {
     this.setValidStoreState();
     this.setQuestionState("LOADING");
-    const dataEither = yield this.questionController.generateQuestionByMetadata(metadataId);
+    const dataEither = await questionController.generateQuestionByMetadata(metadataId);
     this.setQuestionState("LOADED");
     if (EitherExports.isLeft(dataEither)) {
       this.setErrorStoreState(dataEither.left);
       return;
     }
     this.onQuestionLoaded(dataEither.right);
-  });
-  generateNextCorrectAnswer = flow(function* () {
+  };
+  generateNextCorrectAnswer = async () => {
     const { question } = this;
     if (!question) {
       throw new Error("Current question not found");
     }
     this.setValidStoreState();
     this.setQuestionState("ANSWER_EVALUATING");
-    const feedbackEither = yield this.questionController.generateNextCorrectAnswer(question.questionId);
+    const feedbackEither = await questionController.generateNextCorrectAnswer(question.questionId);
     this.setQuestionState("LOADED");
     if (EitherExports.isLeft(feedbackEither)) {
       this.setErrorStoreState(feedbackEither.left);
       return;
     }
     this.onAnswerEvaluated(feedbackEither.right);
-  });
-  sendAnswersImpl = flow(function* (questionId, answers) {
+  };
+  sendAnswersImpl = async (questionId, answers) => {
     const body = toJS({
       questionId,
       answers: toJS([...answers])
     });
     this.setValidStoreState();
     this.setQuestionState("ANSWER_EVALUATING");
-    const feedbackEither = yield this.questionController.addQuestionAnswer(body);
+    const feedbackEither = await questionController.addQuestionAnswer(body);
     this.setQuestionState("LOADED");
     if (EitherExports.isLeft(feedbackEither)) {
       this.setErrorStoreState(feedbackEither.left);
       return;
     }
     this.onAnswerEvaluated(feedbackEither.right);
-  });
-  sendAnswers = flow(function* () {
+  };
+  sendAnswers = async () => {
     const { question, lastAnswer } = this;
     if (!question) {
       return;
     }
-    yield this.sendAnswersImpl(question.questionId, toJS(lastAnswer));
-  });
-  onAnswersChanged = flow(function* (answer, sendAnswers = true) {
+    await this.sendAnswersImpl(question.questionId, toJS(lastAnswer));
+  };
+  onAnswersChanged = async (answer, sendAnswers = true) => {
     this.answersHistory.push(answer);
     if (!sendAnswers) {
       return;
     }
     try {
-      yield this.sendAnswers();
+      await this.sendAnswers();
     } catch {
       this.answersHistory.pop();
     }
-  });
-  setFullAnswer = flow(function* (fullAnswer, sendAnswers = true) {
+  };
+  setFullAnswer = async (fullAnswer, sendAnswers = true) => {
     if (!this.isAnswerChanged(fullAnswer)) {
       return false;
     }
@@ -1386,7 +1642,7 @@ let QuestionStore = class {
       return true;
     }
     try {
-      yield this.sendAnswers();
+      await this.sendAnswers();
       return true;
     } catch {
       this.lastAnswer = prevLastAnswer;
@@ -1395,7 +1651,7 @@ let QuestionStore = class {
       }
       return false;
     }
-  });
+  };
   isAnswerChanged = (newAnswer) => {
     const { lastAnswer, question } = this;
     if (!question) {
@@ -1412,65 +1668,22 @@ let QuestionStore = class {
         return newHistoryRaw.length !== answersHistoryRaw.length || JSON.stringify(newHistoryRaw.sort()) !== JSON.stringify(answersHistoryRaw.sort());
     }
   };
-};
-__decorateClass$6([
-  observable
-], QuestionStore.prototype, "isFeedbackVisible", 2);
-__decorateClass$6([
-  observable
-], QuestionStore.prototype, "isQuestionFreezed", 2);
-__decorateClass$6([
-  observable
-], QuestionStore.prototype, "feedback", 2);
-__decorateClass$6([
-  observable
-], QuestionStore.prototype, "question", 2);
-__decorateClass$6([
-  observable
-], QuestionStore.prototype, "lastAnswer", 2);
-__decorateClass$6([
-  observable
-], QuestionStore.prototype, "answersHistory", 2);
-__decorateClass$6([
-  observable
-], QuestionStore.prototype, "supplementaryQuestion", 2);
-__decorateClass$6([
-  observable
-], QuestionStore.prototype, "questionState", 2);
-__decorateClass$6([
-  observable
-], QuestionStore.prototype, "storeState", 2);
-__decorateClass$6([
-  action
-], QuestionStore.prototype, "setQuestionState", 2);
-__decorateClass$6([
-  action
-], QuestionStore.prototype, "setValidStoreState", 2);
-__decorateClass$6([
-  action
-], QuestionStore.prototype, "setErrorStoreState", 2);
-QuestionStore = __decorateClass$6([
-  injectable(),
-  __decorateParam$5(0, inject(QuestionController))
-], QuestionStore);
-var __defProp$1 = Object.defineProperty;
-var __getOwnPropDesc$5 = Object.getOwnPropertyDescriptor;
-var __decorateClass$5 = (decorators, target, key, kind) => {
-  var result = kind > 1 ? void 0 : kind ? __getOwnPropDesc$5(target, key) : target;
-  for (var i = decorators.length - 1, decorator; i >= 0; i--)
-    if (decorator = decorators[i])
-      result = (kind ? decorator(target, key, result) : decorator(result)) || result;
-  if (kind && result) __defProp$1(target, key, result);
-  return result;
-};
-var __decorateParam$4 = (index, decorator) => (target, key) => decorator(target, key, index);
-let ExerciseStore = class {
-  constructor(exerciseController, userController, surveyController, currentQuestion) {
-    this.exerciseController = exerciseController;
-    this.userController = userController;
-    this.surveyController = surveyController;
+}
+class ExerciseStore {
+  isExerciseLoading = false;
+  exerciseId;
+  courseId = void 0;
+  exercise = void 0;
+  currentAttemptId = void 0;
+  currentAttempt = void 0;
+  currentQuestion;
+  exerciseState = "INITIAL";
+  storeState = { tag: "VALID" };
+  survey = void 0;
+  isDebug = false;
+  constructor() {
     this.isDebug = getUrlParameterByName("debug") !== null;
-    this.currentQuestion = currentQuestion;
+    this.currentQuestion = new QuestionStore();
     const rawExerciseId = getUrlParameterByName("exerciseId");
     if (rawExerciseId === null) {
       this.exerciseState = "LAUNCH_ERROR";
@@ -1485,23 +1698,12 @@ let ExerciseStore = class {
     if (rawAttemptId !== null) {
       this.currentAttemptId = +rawAttemptId;
     }
-    makeObservable(this);
+    makeAutoObservable(this, {
+      setExerciseState: action,
+      ensureQuestionSurveyExists: action
+    });
     this.registerOnStrategyDecisionChangedAction();
   }
-  exerciseController;
-  userController;
-  surveyController;
-  isExerciseLoading = false;
-  exerciseId;
-  courseId = void 0;
-  exercise = void 0;
-  currentAttemptId = void 0;
-  currentAttempt = void 0;
-  currentQuestion;
-  exerciseState = "INITIAL";
-  storeState = { tag: "VALID" };
-  survey = void 0;
-  isDebug = false;
   registerOnStrategyDecisionChangedAction = () => {
     autorun(() => {
       if (this.currentQuestion.feedback?.strategyDecision === "FINISH" && this.exerciseState !== "COMPLETED") {
@@ -1522,10 +1724,8 @@ let ExerciseStore = class {
   setSurveyAnswers = (quesionId, answers) => {
     if (!this.survey)
       return;
-    runInAction(() => {
-      this.survey.questions[quesionId].status = "COMPLETED";
-      this.survey.questions[quesionId].results = answers;
-    });
+    this.survey.questions[quesionId].status = "COMPLETED";
+    this.survey.questions[quesionId].results = answers;
   };
   loadExercise = async () => {
     if (this.exercise) {
@@ -1534,105 +1734,91 @@ let ExerciseStore = class {
     if (this.isExerciseLoading) {
       return;
     }
-    runInAction(() => {
-      this.forceSetValidState();
-      this.isExerciseLoading = true;
-    });
-    const exercise = await this.exerciseController.getExerciseShortInfo(this.exerciseId, this.courseId);
+    this.forceSetValidState();
+    this.isExerciseLoading = true;
+    const exercise = await exerciseController.getExerciseShortInfo(this.exerciseId, this.courseId);
+    this.isExerciseLoading = false;
     if (EitherExports.isRight(exercise)) {
-      runInAction(() => {
-        this.isExerciseLoading = false;
-        this.exercise = exercise.right;
-      });
+      this.exercise = exercise.right;
     } else {
-      runInAction(() => {
-        this.isExerciseLoading = false;
-        this.storeState = { tag: "ERROR", error: exercise.left };
-      });
+      this.storeState = { tag: "ERROR", error: exercise.left };
     }
   };
-  loadExerciseAttempt = flow(function* (attemptId) {
-    const { exercise } = this;
-    if (!exercise) {
+  loadExerciseAttempt = async (attemptId) => {
+    if (!this.exercise) {
       throw new Error("exerciseInfo is not defined");
     }
     this.forceSetValidState();
-    exercise.id;
-    const resultEither = yield this.exerciseController.getExerciseAttempt(attemptId);
+    const resultEither = await exerciseController.getExerciseAttempt(attemptId);
     if (EitherExports.isLeft(resultEither)) {
       this.storeState = { tag: "ERROR", error: resultEither.left };
       return;
     }
-    const result = resultEither.right;
-    if (!result) {
+    if (!resultEither.right) {
       return false;
     }
-    this.currentAttempt = result;
-    yield this.onAttemptLoaded();
+    this.currentAttempt = resultEither.right;
+    await this.onAttemptLoaded();
     return true;
-  });
-  loadExistingExerciseAttempt = flow(function* () {
+  };
+  loadExistingExerciseAttempt = async () => {
     const { exercise } = this;
     if (!exercise) {
       throw new Error("exercise is not defined");
     }
     this.forceSetValidState();
-    const exerciseId = exercise.id;
-    const resultEither = yield this.exerciseController.getExistingExerciseAttempt(exerciseId, this.courseId);
+    const resultEither = await exerciseController.getExistingExerciseAttempt(exercise.id, this.courseId);
     if (EitherExports.isLeft(resultEither)) {
       this.storeState = { tag: "ERROR", error: resultEither.left };
       return;
     }
-    const result = resultEither.right;
-    if (!result) {
+    if (!resultEither.right) {
       return false;
     }
-    this.currentAttempt = result;
-    yield this.onAttemptLoaded();
+    this.currentAttempt = resultEither.right;
+    await this.onAttemptLoaded();
     return true;
-  });
+  };
   onAttemptLoaded = async () => {
     await this.loadSurvey();
   };
-  createExerciseAttempt = flow(function* () {
+  createExerciseAttempt = async () => {
     const { exercise } = this;
     if (!exercise) {
       throw new Error("exercise is not defined");
     }
     this.forceSetValidState();
-    const exerciseId = exercise.id;
-    const resultEither = yield this.exerciseController.createExerciseAttempt(+exerciseId, this.courseId);
+    const resultEither = await exerciseController.createExerciseAttempt(exercise.id, this.courseId);
     if (EitherExports.isLeft(resultEither)) {
       this.storeState = { tag: "ERROR", error: resultEither.left };
       return;
     }
     this.currentAttempt = resultEither.right;
-    yield this.onAttemptLoaded();
-  });
-  createDebugExerciseAttempt = flow(function* () {
+    await this.onAttemptLoaded();
+  };
+  createDebugExerciseAttempt = async () => {
     const { exercise } = this;
     if (!exercise) {
       throw new Error("exercise is not defined");
     }
     this.forceSetValidState();
-    const exerciseId = exercise.id;
-    const resultEither = yield this.exerciseController.createDebugExerciseAttempt(+exerciseId, this.courseId);
+    const resultEither = await exerciseController.createDebugExerciseAttempt(exercise.id, this.courseId);
     if (EitherExports.isLeft(resultEither)) {
       this.storeState = { tag: "ERROR", error: resultEither.left };
       return;
     }
     this.currentAttempt = resultEither.right;
-    yield this.onAttemptLoaded();
-  });
-  generateQuestion = flow(function* () {
+    await this.onAttemptLoaded();
+  };
+  generateQuestion = async () => {
     const { exercise, currentAttempt } = this;
     if (!exercise || !currentAttempt) {
       throw new Error("Session is not defined");
     }
     this.forceSetValidState();
-    yield this.currentQuestion.generateQuestion(currentAttempt.attemptId);
+    await this.currentQuestion.generateQuestion(currentAttempt.attemptId);
     currentAttempt.questionIds.push(this.currentQuestion.question?.questionId ?? -1);
-  });
+  };
   loadSurvey = async () => {
     if (this.survey || !this.currentAttempt || !this.exercise)
       return;
@@ -1641,30 +1827,28 @@ let ExerciseStore = class {
     const surveyId = this.exercise.options.surveyOptions.surveyId;
     const attemptId = this.currentAttempt.attemptId;
     const [survey, surveyResults] = await Promise.all([
-      this.surveyController.getSurvey(surveyId),
-      this.surveyController.getCurrentUserAttemptSurveyVotes(surveyId, attemptId)
+      surveyController.getSurvey(surveyId),
+      surveyController.getCurrentUserAttemptSurveyVotes(surveyId, attemptId)
     ]);
-    runInAction(() => {
-      if (EitherExports.isRight(survey) && EitherExports.isRight(surveyResults)) {
-        const tmp = groupBy(surveyResults.right, (x) => x.questionId);
-        this.survey = {
-          survey: survey.right,
-          questions: [...tmp.keys()].map((k) => ({
-            questionId: k,
-            status: "COMPLETED",
-            questions: tmp.get(k)?.map((z) => z.surveyQuestionId) ?? [],
-            results: tmp.get(k)?.reduce((acc, z) => (acc[z.surveyQuestionId] = z.answer, acc), {}) ?? {}
-          })).reduce((acc, i) => (acc[i.questionId] = i, acc), {})
-        };
-      }
-    });
+    if (EitherExports.isRight(survey) && EitherExports.isRight(surveyResults)) {
+      const tmp = groupBy(surveyResults.right, (x) => x.questionId);
+      this.survey = {
+        survey: survey.right,
+        questions: [...tmp.keys()].map((k) => ({
+          questionId: k,
+          status: "COMPLETED",
+          questions: tmp.get(k)?.map((z) => z.surveyQuestionId) ?? [],
+          results: tmp.get(k)?.reduce((acc, z) => (acc[z.surveyQuestionId] = z.answer, acc), {}) ?? {}
+        })).reduce((acc, i) => (acc[i.questionId] = i, acc), {})
+      };
+    }
   };
   ensureQuestionSurveyExists = (questionId) => {
     if (this.survey?.questions[questionId])
       return this.survey?.questions[questionId].questions;
     const qs = [];
     const currentQuestionIdx = this.currentAttempt.questionIds.findIndex((z) => z === this.currentQuestion.question?.questionId);
-    for (let q of this.survey?.survey.questions || []) {
+    for (const q of this.survey?.survey.questions || []) {
       const policy = q.policy;
       if (policy.kind === "AFTER_EACH" || policy.kind === "AFTER_FIRST" && currentQuestionIdx === 0 || policy.kind === "AFTER_LAST" && this.exerciseState === "COMPLETED" || policy.kind === "AFTER_SPECIFIC" && policy.numbers.includes(currentQuestionIdx + 1)) {
         qs.push(q);
@@ -1672,73 +1856,16 @@ let ExerciseStore = class {
     }
     console.log("Selected questions");
     console.log(toJS(qs));
-    var questionSurvey = {
+    const questionSurvey = {
       questionId,
       status: "ACTIVE",
       questions: qs.map((z) => z.id),
       results: {}
     };
-    runInAction(() => {
-      this.survey.questions[questionId] = questionSurvey;
-    });
+    this.survey.questions[questionId] = questionSurvey;
     return qs.map((z) => z.id);
   };
-};
-__decorateClass$5([
-  observable
-], ExerciseStore.prototype, "isExerciseLoading", 2);
-__decorateClass$5([
-  observable
-], ExerciseStore.prototype, "exerciseId", 2);
-__decorateClass$5([
-  observable
-], ExerciseStore.prototype, "courseId", 2);
-__decorateClass$5([
-  observable
-], ExerciseStore.prototype, "exercise", 2);
-__decorateClass$5([
-  observable
-], ExerciseStore.prototype, "currentAttemptId", 2);
-__decorateClass$5([
-  observable
-], ExerciseStore.prototype, "currentAttempt", 2);
-__decorateClass$5([
-  observable
-], ExerciseStore.prototype, "currentQuestion", 2);
-__decorateClass$5([
-  observable
-], ExerciseStore.prototype, "exerciseState", 2);
-__decorateClass$5([
-  observable
-], ExerciseStore.prototype, "storeState", 2);
-__decorateClass$5([
-  observable
-], ExerciseStore.prototype, "survey", 2);
-__decorateClass$5([
-  observable
-], ExerciseStore.prototype, "isDebug", 2);
-__decorateClass$5([
-  action
-], ExerciseStore.prototype, "forceSetValidState", 2);
-__decorateClass$5([
-  action
-], ExerciseStore.prototype, "setExerciseState", 2);
-__decorateClass$5([
-  action
-], ExerciseStore.prototype, "setSurveyAnswers", 2);
-__decorateClass$5([
-  action
-], ExerciseStore.prototype, "loadSurvey", 2);
-__decorateClass$5([
-  action
-], ExerciseStore.prototype, "ensureQuestionSurveyExists", 2);
-ExerciseStore = __decorateClass$5([
-  injectable(),
-  __decorateParam$4(0, inject(ExerciseController)),
-  __decorateParam$4(1, inject(UserController)),
-  __decorateParam$4(2, inject(SurveyController)),
-  __decorateParam$4(3, inject(QuestionStore))
-], ExerciseStore);
+}
 function groupBy(list, keyGetter) {
   const map = /* @__PURE__ */ new Map();
   list.forEach((item) => {
@@ -1752,537 +1879,10 @@ function groupBy(list, keyGetter) {
   });
   return map;
 }
-const isSandbox = () => (new URLSearchParams(window.location.search).get("sandbox") ?? null) !== null;
-instance.register(ExerciseController, {
-  useFactory: () => isSandbox() ? new TestExerciseController() : new ExerciseController()
-});
-instance.register(QuestionController, {
-  useFactory: () => isSandbox() ? new TestExerciseController() : new QuestionController()
-});
-instance.register(UserController, {
-  useFactory: () => isSandbox() ? new TestExerciseController() : new UserController()
-});
-instance.register(QuestionStore, QuestionStore);
-instance.registerSingleton(ExerciseStore);
-instance.registerSingleton(SurveyController);
-instance.registerSingleton(ExerciseSettingsController);
-instance.registerSingleton(CourseController);
-instance.registerSingleton(DeepLinkingController);
-const resources = {
-  EN: {
-    translation: {
-      question_header: "Question #{{questionNumber}}",
-      language_header: "Language",
-      signedin_as_header: "Signed in as",
-      logout_header: "Logout",
-      nextCorrectAnswerBtn: "I'm confused, tell me the next correct step",
-      generateNextQuestion_nextQuestion: "Next question",
-      generateNextQuestion_warning: "Warning",
-      generateNextQuestion_continueAttempt: "Continue attempt",
-      generateNextQuestion_modalMessage1: "It is recommended to move on to the next question only after solving all the previous ones.",
-      generateNextQuestion_modalMessage2: "Are you sure you want to move on to the next question?",
-      grade_feeback: "Grade",
-      correctsteps_feeback: "Correct steps",
-      stepswitherrors_feeback: "Steps with errors",
-      stepsleft_feeback: "Steps left",
-      issolved_feeback: "Everything operator is already evaluated. Task is solved",
-      foundExisitingAttempt_title: "Found existing attempt",
-      foundExisitingAttempt_descr: "Would you like to continue the existing attempt or start a new one",
-      foundExisitingAttempt_continueattempt: "Continue",
-      foundExisitingAttempt_newattempt: "New",
-      exercise_completed: "Exercise completed",
-      exercise_supquestion_gotit: "Got it",
-      exercise_supquestion_details: "More details",
-      exercise_supquestion_send_answer: "Send answer",
-      exercise_supquestion_next_question: "Next question",
-      exercisesettings_title: "Exercise settings",
-      exercisesettings_name: "Name",
-      exercisesettings_domain: "Domain",
-      exercisesettings_strategy: "Strategy",
-      exercisesettings_qcomplexity: "Question difficulty",
-      exercisesettings_answlen: "Answer length",
-      exercisesettings_qopt: "Options",
-      exercisesettings_qopt_forceAttCreation: "Always create a new attempt",
-      exercisesettings_qopt_genCorAnsw: "Allow 'generate correct answer' button",
-      exercisesettings_qopt_forceShowGenNextQ: "Always show 'generate new question' button",
-      exercisesettings_qopt_supQ: "Allow supplementary questions",
-      exercisesettings_qopt_preferDTsup: "Prefer Decision-Tree-based approach to supplementary question generation",
-      exercisesettings_qopt_debugBtn: "Enable debug information button",
-      exercisesettings_max_concurrent_students: "Maximum expected number of students performing the exercise simultaneously",
-      exercisesettings_survey: "Survey",
-      exercisesettings_tags: "Tags",
-      exercisesettings_commonConcepts: "Common concepts",
-      exercisesettings_commonLaws: "Common laws",
-      exercisesettings_commonSkills: "Common skills",
-      exercisesettings_stages: "Stage",
-      exercisesettings_stageN: "Stage #{{stageNumber}}",
-      exercisesettings_stageN_qnumber: "Number of questions",
-      exercisesettings_stageN_concepts: "Concepts",
-      exercisesettings_stageN_laws: "Laws",
-      exercisesettings_stageN_skills: "Skills",
-      exercisesettings_stageN_matchedQuestionExamples: "Question examples",
-      exercisesettings_addStage: "Add stage",
-      exercisesettings_removeStage: "Remove stage",
-      exercisesettings_save: "Save",
-      exercisesettings_saveNopen: "Save & Open",
-      exercisesettings_open: "Open",
-      exercisesettings_genDebugAtt: "Generate debug attempt",
-      exercisesettings_optDenied: "Denied",
-      exercisesettings_optAllowed: "Allowed",
-      exercisesettings_optTarget: "Target",
-      exercisesettings_questionsInBank: "Questions in bank",
-      exercisesettings_noQuestionsFound: "No suitable questions found",
-      survey_sendresults: "Send survey results",
-      tour_skip: "Skip introduction",
-      tour_complete: "Complete",
-      tour_next: "Next",
-      tour_exprs_intro: "Welcome to the CompPrehension exercise. Since this is your first time, we recommend taking the tutorial.",
-      tour_exprs_intro_title: "First introduction to the trainer",
-      tour_exprs_expr: "In this task, you need to select the operators in the expression in the order in which they will be evaluated during program execution.",
-      tour_exprs_expr_title: "This is your task",
-      tour_exprs_operator: "All the operators that can be selected in this exercise for successful task solution look like this",
-      tour_exprs_operator_title: "Operators",
-      tour_exprs_hint: "If you're unsure about the next correct step, click this button to request a hint. The correct step will be selected automatically.",
-      tour_exprs_hint_title: "Request a hint",
-      tour_exprs_error_hint: "This section shows information about an error you made while solving the task, along with a short hint for resolving it.",
-      tour_exprs_error_hint_title: "Hint about the mistake",
-      tour_exprs_feedback_grade: "This section shows your score for solving the task, in the range from 0 to 1.",
-      tour_exprs_feedback_grade_title: "Score",
-      tour_exprs_feedback_steps: "This section shows the steps remaining until the task is completed.",
-      tour_exprs_feedback_steps_title: "Remaining steps",
-      tour_exprs_feedback_errors: "This section shows how many mistakes you made while solving this task.",
-      tour_exprs_feedback_errors_title: "Mistakes in solution",
-      tour_exprs_earlyfinish: "If you think there's nothing more to evaluate in the expression, click this button.",
-      tour_exprs_earlyfinish_title: "Everything is evaluated",
-      tour_exprs_tracevalue: "This hint helps you understand the value an operand had at the moment of evaluation.",
-      tour_exprs_tracevalue_title: "Operand value at evaluation",
-      tour_exprs_selectedop: "Selected and evaluated operators will be displayed in this style. The number below indicates the evaluation order.",
-      tour_exprs_selectedop_title: "Evaluated operators",
-      tour_exprs_pages: "You can switch between questions in the exercise using these buttons. You can also use the 'Next question' button to go to the next one.",
-      tour_exprs_pages_title: "Switching between questions",
-      importModal_title: "Import from global pool",
-      importModal_modeLabel: "Mode:",
-      importModal_inherit_body: "the course will use the shared pool entry. Any change the author makes in the pool will be immediately reflected here and may break ongoing student attempts if the content changes. Convenient for synchronization, but risky during active use. If unsure — choose Clone.",
-      importModal_clone_body: "an independent copy is created. The course then works with its own version; the author's changes in the pool do not affect this copy.",
-      importModal_loading: "Loading…",
-      importModal_importing: "Importing…",
-      importModal_import: "Import",
-      importModal_cancel: "Cancel",
-      deleteModal_title: "Remove exercise from global pool",
-      deleteModal_loading: "Loading…",
-      deleteModal_noUsages: "This exercise is not used by anyone. It will be removed from the pool.",
-      deleteModal_warning: "Warning:",
-      deleteModal_warningBody: "independent copies of this exercise will be created in all courses listed below. The link to the original will be broken, and the original will be removed from the pool.",
-      deleteModal_cancel: "Cancel",
-      deleteModal_confirm: "Delete",
-      courses_page_title: "Courses",
-      courses_page_globalPoolBtn: "Global exercise pool",
-      courses_page_empty: "No courses available",
-      course_page_title: "Course #{{id}}",
-      course_page_courseIdRequired: "courseId is required",
-      course_page_createExerciseBtn: "Create new exercise in course",
-      course_page_importBtn: "Import from global pool",
-      course_page_empty: "This course has no exercises yet",
-      deeplink_title: "Add exercises to the Moodle course",
-      deeplink_hint: "Select exercises — Moodle will create an External Tool activity for each.",
-      deeplink_blockHint: "Fill the course with exercises, then in Moodle: “Add an activity or resource” → “CompPrehension” → “Select content” — Moodle will create the activities automatically.",
-      deeplink_addBtn: "Add selected to Moodle",
-      deeplink_added: "added",
-      deeplink_submitting: "Sending…",
-      deeplink_error: "Failed to prepare the Moodle response",
-      deeplink_selectAtLeastOne: "Select at least one exercise",
-      deeplink_empty: "This course has no exercises yet — add some first.",
-      globalPool_page_title: "Global exercise pool",
-      globalPool_page_createBtn: "Create new exercise in pool",
-      globalPool_page_empty: "Pool is empty",
-      importModal_inherit_label: "⚠ Inherit:",
-      importModal_clone_label: "Clone:",
-      importModal_inherit_btn: "⚠ Inherit",
-      importModal_clone_btn: "Clone",
-      exerciseBadge_global: "Global",
-      exerciseBadge_original: "Course-private",
-      exerciseBadge_inherited: "Inherited from global",
-      exerciseBadge_cloned: "Cloned from global",
-      exerciseModeBar_convertToClone: "Convert to clone",
-      exerciseModeBar_unlinkFromCourse: "Remove from course",
-      exerciseModeBar_copyToPool: "Copy to global pool",
-      exerciseModeBar_deleteExercise: "Delete exercise",
-      exerciseModeBar_confirmDelete: "Delete exercise? Attempt history will be deleted."
-    }
-  },
-  RU: {
-    translation: {
-      question_header: "Вопрос #{{questionNumber}}",
-      language_header: "Язык",
-      signedin_as_header: "Пользователь",
-      logout_header: "Выйти",
-      nextCorrectAnswerBtn: "Я в замешательстве, подскажи следующий шаг",
-      generateNextQuestion_nextQuestion: "Следующий вопрос",
-      generateNextQuestion_warning: "Предупреждение",
-      generateNextQuestion_continueAttempt: "Продолжить попытку",
-      generateNextQuestion_modalMessage1: "Рекомендуется переходить к следующему вопросу только после решения всех предыдущих.",
-      generateNextQuestion_modalMessage2: "Вы действительно хотите перейти к следующему вопросу?",
-      grade_feeback: "Оценка",
-      correctsteps_feeback: "Правильных шагов",
-      stepswitherrors_feeback: "Шагов с ошибками",
-      stepsleft_feeback: "Шагов осталось",
-      issolved_feeback: "Все действия программы выполнены. Задача решена",
-      foundExisitingAttempt_title: "Найдена неоконченная попытка",
-      foundExisitingAttempt_descr: "Вы хотите продолжить существующую попытку или начать новую",
-      foundExisitingAttempt_continueattempt: "Продолжить",
-      foundExisitingAttempt_newattempt: "Новая",
-      exercise_completed: "Упражнение завершено",
-      exercise_supquestion_gotit: "Понятно",
-      exercise_supquestion_details: "Разобраться подробнее",
-      exercise_supquestion_send_answer: "Отправить ответ",
-      exercise_supquestion_next_question: "Следующий вопрос",
-      exercisesettings_title: "Настройка упражнений",
-      exercisesettings_name: "Название",
-      exercisesettings_domain: "Домен",
-      exercisesettings_strategy: "Стратегия",
-      exercisesettings_qcomplexity: "Сложность вопросов",
-      exercisesettings_answlen: "Длина ответа",
-      exercisesettings_qopt: "Опции",
-      exercisesettings_qopt_forceAttCreation: "Всегда создавать новую попытку",
-      exercisesettings_qopt_genCorAnsw: "Разрешить подсказку следующего шага",
-      exercisesettings_qopt_forceShowGenNextQ: "Разрешить неоконченные вопросы",
-      exercisesettings_qopt_supQ: "Разрешить вспомогательные вопросы",
-      exercisesettings_qopt_preferDTsup: "Предпочитать генерацию вспомогательных вопросов по дереву рассуждений",
-      exercisesettings_qopt_debugBtn: "Включить кнопку для получения отладочной информации",
-      exercisesettings_max_concurrent_students: "Максимальное ожидаемое количество студентов, выполняющих упражнение одновременно",
-      exercisesettings_survey: "Опрос",
-      exercisesettings_tags: "Теги",
-      exercisesettings_commonConcepts: "Общие концепты",
-      exercisesettings_commonLaws: "Общие законы",
-      exercisesettings_commonSkills: "Общие умения",
-      exercisesettings_stages: "Стадии упражнения",
-      exercisesettings_stageN: "Стадия #{{stageNumber}}",
-      exercisesettings_stageN_qnumber: "Количество вопросов",
-      exercisesettings_stageN_concepts: "Концепты",
-      exercisesettings_stageN_laws: "Законы",
-      exercisesettings_stageN_skills: "Умения",
-      exercisesettings_stageN_matchedQuestionExamples: "Примеры вопросов",
-      exercisesettings_addStage: "Добавить стадию",
-      exercisesettings_removeStage: "Удалить стадию",
-      exercisesettings_save: "Сохранить",
-      exercisesettings_saveNopen: "Сохранить & Открыть",
-      exercisesettings_open: "Открыть",
-      exercisesettings_genDebugAtt: "Создать отладочную попытку",
-      exercisesettings_optDenied: "Запрет",
-      exercisesettings_optAllowed: "Разреш.",
-      exercisesettings_optTarget: "Цель",
-      exercisesettings_questionsInBank: "Вопросов в банке задач",
-      exercisesettings_noQuestionsFound: "Подходящих вопросов не найдено",
-      survey_sendresults: "Отправить результаты опроса",
-      // tour_skip: "Пропустить обучение",
-      tour_skip: "Не показывать",
-      tour_complete: "Завершить",
-      // tour_next: "Продолжить",
-      tour_next: "Далее",
-      tour_exprs_intro: "Добро пожаловать в упражнение CompPrehension! Новичкам рекомендуется познакомиться с элементами управления. Начнём?",
-      tour_exprs_intro_title: "Знакомство с тренажёром",
-      tour_exprs_expr: "В этом задании нужно «прокликать» операторы в выражения в том порядке, в каком они должны быть вычислены при выполнении программы",
-      tour_exprs_expr_title: "Задание",
-      tour_exprs_operator: "Это один из операторов выражения, и он подчёркнут. Их нужно нажимать в процессе решения задачи.",
-      tour_exprs_operator_title: "Оператор",
-      tour_exprs_hint: "Не знаете, что должно быть вычислено? Нажмите, чтобы запросить следующий корректный шаг.",
-      tour_exprs_hint_title: "Запрос подсказки",
-      tour_exprs_error_hint: "На красном фоне даётся описание текущей ошибки и подсказка",
-      tour_exprs_error_hint_title: "Ошибки",
-      tour_exprs_feedback_grade: "Ваша оценка за решение всех заданий, в диапазоне от 0 до 1",
-      tour_exprs_feedback_grade_title: "Оценка за серию вопросов",
-      tour_exprs_feedback_steps: "Столько шагов остаётся до окончания решения задачи",
-      tour_exprs_feedback_steps_title: "Обратный счётчик шагов",
-      tour_exprs_feedback_errors: "Столько раз вы при решении этой задачи вы нажали «не туда»",
-      tour_exprs_feedback_errors_title: "Счётчик ошибок",
-      tour_exprs_earlyfinish: "В некоторых задачах не все операторы должны быть вычислены. Нажмите эту кнопку, когда вычислено всё, что нужно.",
-      tour_exprs_earlyfinish_title: "Раннее завершение",
-      tour_exprs_tracevalue: "Некоторые операторы ведут себя по-разному в зависимости от значения своих операндов. Значения таких операндов отображаются здесь. «true» — истина (ДА), «false» — ложь (НЕТ).",
-      tour_exprs_tracevalue_title: "Значение операнда",
-      tour_exprs_selectedop: "Вычисленные и использованные операторы отображаются с зелёным подчёркиванием и номером снизу",
-      tour_exprs_selectedop_title: "Вычисленные операторы",
-      tour_exprs_pages: "С помощью этих кнопок можно вернуться к любому вопросу в упражнении. Для перехода вперёд используйте кнопку «Следующий вопрос» внизу.",
-      tour_exprs_pages_title: "Переключение между вопросами",
-      importModal_title: "Импорт из глобального пула",
-      importModal_modeLabel: "Режим:",
-      importModal_inherit_body: "курс будет использовать общую запись из пула. Любое изменение автора в пуле сразу отразится здесь и поломает уже идущие attempt'ы студентов, если автор поменяет наполнение. Это удобно для синхронизации, но опасно при активном использовании. Если не уверен — выбери Clone.",
-      importModal_clone_body: "создаётся независимая копия. Дальше курс работает со своей версией; изменения автора в пуле никак не влияют на эту копию.",
-      importModal_loading: "Загрузка…",
-      importModal_importing: "Импорт…",
-      importModal_import: "Импортировать",
-      importModal_cancel: "Отмена",
-      deleteModal_title: "Удалить упражнение из глобального пула",
-      deleteModal_loading: "Загрузка…",
-      deleteModal_noUsages: "Это упражнение никем не используется. Будет удалено из пула.",
-      deleteModal_warning: "Внимание:",
-      deleteModal_warningBody: "во всех курсах ниже будут созданы независимые копии этого упражнения. Связь с оригиналом разорвётся, оригинал будет удалён из пула.",
-      deleteModal_cancel: "Отмена",
-      deleteModal_confirm: "Удалить",
-      courses_page_title: "Курсы",
-      courses_page_globalPoolBtn: "Глобальный пул упражнений",
-      courses_page_empty: "Нет доступных курсов",
-      course_page_title: "Курс #{{id}}",
-      course_page_courseIdRequired: "Требуется courseId",
-      course_page_createExerciseBtn: "Создать новое упражнение в курсе",
-      course_page_importBtn: "Импортировать из глобального пула",
-      course_page_empty: "В этом курсе пока нет упражнений",
-      deeplink_title: "Добавить упражнения в курс Moodle",
-      deeplink_hint: "Выберите упражнения — Moodle создаст по активности «Внешний инструмент» на каждое.",
-      deeplink_blockHint: "Наполните курс упражнениями, затем в Moodle: «Добавить элемент курса» → «CompPrehension» → «Выбрать содержимое» — Moodle создаст активности автоматически.",
-      deeplink_addBtn: "Добавить выбранные в Moodle",
-      deeplink_added: "добавлено",
-      deeplink_submitting: "Отправка…",
-      deeplink_error: "Не удалось подготовить ответ для Moodle",
-      deeplink_selectAtLeastOne: "Выберите хотя бы одно упражнение",
-      deeplink_empty: "В курсе пока нет упражнений — сначала добавьте их.",
-      globalPool_page_title: "Глобальный пул упражнений",
-      globalPool_page_createBtn: "Создать новое упражнение в пуле",
-      globalPool_page_empty: "Пул пуст",
-      importModal_inherit_label: "⚠ Inherit:",
-      importModal_clone_label: "Clone:",
-      importModal_inherit_btn: "⚠ Inherit",
-      importModal_clone_btn: "Clone",
-      exerciseBadge_global: "Глобальное",
-      exerciseBadge_original: "Только в курсе",
-      exerciseBadge_inherited: "Унаследовано из пула",
-      exerciseBadge_cloned: "Клонировано из пула",
-      exerciseModeBar_convertToClone: "Преобразовать в клон",
-      exerciseModeBar_unlinkFromCourse: "Удалить из курса",
-      exerciseModeBar_copyToPool: "Скопировать в глобальный пул",
-      exerciseModeBar_deleteExercise: "Удалить упражнение",
-      exerciseModeBar_confirmDelete: "Удалить упражнение? История попыток будет удалена."
-    }
-  },
-  PL: {
-    translation: {
-      question_header: "Pytanie #{{questionNumber}}",
-      language_header: "Język",
-      signedin_as_header: "Zalogowany jako",
-      logout_header: "Wyloguj się",
-      nextCorrectAnswerBtn: "Nie wiem co robić dalej, podpowiedz mi następny poprawny krok",
-      generateNextQuestion_nextQuestion: "Następne pytanie",
-      generateNextQuestion_warning: "Ostrzeżenie",
-      generateNextQuestion_continueAttempt: "Kontynuuj podejście",
-      generateNextQuestion_modalMessage1: "Zaleca się przejście do następnego pytania dopiero po rozwiązaniu wszystkich poprzednich.",
-      generateNextQuestion_modalMessage2: "Czy na pewno chcesz przejść do następnego pytania?",
-      grade_feeback: "Ocena",
-      correctsteps_feeback: "Poprawne kroki",
-      stepswitherrors_feeback: "Kroki z błędami",
-      stepsleft_feeback: "Pozostałe kroki",
-      issolved_feeback: "Rozwiązane",
-      foundExisitingAttempt_title: "Znaleziono już istniejące podejście",
-      foundExisitingAttempt_descr: "Czy chcesz kontynuować dotychczasowe podejście, czy rozpocząć nowe",
-      foundExisitingAttempt_continueattempt: "Kontynuuj",
-      foundExisitingAttempt_newattempt: "Nowe",
-      exercise_completed: "Ćwiczenie zakończone",
-      exercise_supquestion_gotit: "Oczywiście!",
-      exercise_supquestion_details: "Zobacz szczegóły",
-      exercise_supquestion_send_answer: "Wyślij odpowiedź",
-      exercise_supquestion_next_question: "Następne pytanie",
-      exercisesettings_title: "Exercise settings",
-      exercisesettings_name: "Name",
-      exercisesettings_domain: "Domain",
-      exercisesettings_strategy: "Strategy",
-      exercisesettings_qcomplexity: "Question difficulty",
-      exercisesettings_answlen: "Answer length",
-      exercisesettings_qopt: "Options",
-      exercisesettings_qopt_forceAttCreation: "Always create a new attempt",
-      exercisesettings_qopt_genCorAnsw: "Allow 'generate correct answer' button",
-      exercisesettings_qopt_forceShowGenNextQ: "Always show 'generate new question' button",
-      exercisesettings_qopt_supQ: "Allow supplementary questions",
-      exercisesettings_qopt_preferDTsup: "Prefer Decision-Tree-based approach to supplementary question generation",
-      exercisesettings_max_concurrent_students: "Maximum expected number of students performing the exercise simultaneously",
-      exercisesettings_survey: "Survey",
-      exercisesettings_tags: "Tags",
-      exercisesettings_commonConcepts: "Common concepts",
-      exercisesettings_commonLaws: "Common laws",
-      exercisesettings_stages: "Stage",
-      exercisesettings_stageN: "Stage #{{stageNumber}}",
-      exercisesettings_stageN_qnumber: "Number of questions",
-      exercisesettings_stageN_concepts: "Concepts",
-      exercisesettings_stageN_laws: "Laws",
-      exercisesettings_stageN_matchedQuestionExamples: "Question examples",
-      exercisesettings_addStage: "Add stage",
-      exercisesettings_removeStage: "Remove stage",
-      exercisesettings_save: "Save",
-      exercisesettings_saveNopen: "Save & Open",
-      exercisesettings_open: "Open",
-      exercisesettings_genDebugAtt: "Generate debug attempt",
-      exercisesettings_optDenied: "Denied",
-      exercisesettings_optAllowed: "Allowed",
-      exercisesettings_optTarget: "Target",
-      exercisesettings_questionsInBank: "Questions in bank",
-      exercisesettings_noQuestionsFound: "No suitable questions found",
-      survey_sendresults: "Send survey results",
-      importModal_title: "Importuj z globalnej puli",
-      importModal_modeLabel: "Tryb:",
-      importModal_inherit_body: "kurs będzie korzystał ze wspólnego wpisu z puli. Każda zmiana autora w puli natychmiast się tutaj pojawi i może zepsuć trwające próby studentów, jeśli autor zmieni zawartość. Wygodne do synchronizacji, ale ryzykowne przy aktywnym użytkowaniu. Jeśli nie jesteś pewien — wybierz Clone.",
-      importModal_clone_body: "tworzona jest niezależna kopia. Kurs następnie pracuje z własną wersją; zmiany autora w puli nie mają wpływu na tę kopię.",
-      importModal_loading: "Ładowanie…",
-      importModal_importing: "Importowanie…",
-      importModal_import: "Importuj",
-      importModal_cancel: "Anuluj",
-      deleteModal_title: "Usuń ćwiczenie z globalnej puli",
-      deleteModal_loading: "Ładowanie…",
-      deleteModal_noUsages: "To ćwiczenie nie jest używane przez nikogo. Zostanie usunięte z puli.",
-      deleteModal_warning: "Uwaga:",
-      deleteModal_warningBody: "we wszystkich poniższych kursach zostaną utworzone niezależne kopie tego ćwiczenia. Połączenie z oryginałem zostanie zerwane, a oryginał zostanie usunięty z puli.",
-      deleteModal_cancel: "Anuluj",
-      deleteModal_confirm: "Usuń",
-      courses_page_title: "Kursy",
-      courses_page_globalPoolBtn: "Globalna pula ćwiczeń",
-      courses_page_empty: "Brak dostępnych kursów",
-      course_page_title: "Kurs #{{id}}",
-      course_page_courseIdRequired: "Wymagany jest courseId",
-      course_page_createExerciseBtn: "Utwórz nowe ćwiczenie w kursie",
-      course_page_importBtn: "Importuj z globalnej puli",
-      course_page_empty: "Ten kurs nie ma jeszcze ćwiczeń",
-      deeplink_title: "Dodaj ćwiczenia do kursu Moodle",
-      deeplink_hint: "Wybierz ćwiczenia — Moodle utworzy dla każdego aktywność „Narzędzie zewnętrzne”.",
-      deeplink_blockHint: "Wypełnij kurs ćwiczeniami, a następnie w Moodle: „Dodaj aktywność lub zasób” → „CompPrehension” → „Wybierz zawartość” — Moodle utworzy aktywności automatycznie.",
-      deeplink_addBtn: "Dodaj wybrane do Moodle",
-      deeplink_added: "dodano",
-      deeplink_submitting: "Wysyłanie…",
-      deeplink_error: "Nie udało się przygotować odpowiedzi dla Moodle",
-      deeplink_selectAtLeastOne: "Wybierz co najmniej jedno ćwiczenie",
-      deeplink_empty: "Ten kurs nie ma jeszcze ćwiczeń — najpierw je dodaj.",
-      globalPool_page_title: "Globalna pula ćwiczeń",
-      globalPool_page_createBtn: "Utwórz nowe ćwiczenie w puli",
-      globalPool_page_empty: "Pula jest pusta",
-      importModal_inherit_label: "⚠ Inherit:",
-      importModal_clone_label: "Clone:",
-      importModal_inherit_btn: "⚠ Inherit",
-      importModal_clone_btn: "Clone",
-      exerciseBadge_global: "Globalne",
-      exerciseBadge_original: "Tylko w kursie",
-      exerciseBadge_inherited: "Odziedziczone z puli",
-      exerciseBadge_cloned: "Sklonowane z puli",
-      exerciseModeBar_convertToClone: "Konwertuj na klon",
-      exerciseModeBar_unlinkFromCourse: "Usuń z kursu",
-      exerciseModeBar_copyToPool: "Skopiuj do globalnej puli",
-      exerciseModeBar_deleteExercise: "Usuń ćwiczenie",
-      exerciseModeBar_confirmDelete: "Usunąć ćwiczenie? Historia prób zostanie usunięta."
-    }
-  }
-};
-instance$1.use(initReactI18next).init({
-  resources,
-  lng: "EN",
-  interpolation: {
-    escapeValue: false
-  }
-});
-const Optional = observer((props) => {
-  const { isVisible, children } = props;
-  if (!isVisible) {
-    return null;
-  }
-  return /* @__PURE__ */ jsxRuntimeExports.jsx(jsxRuntimeExports.Fragment, { children });
-});
-const DebugButton = ({ metadataId, attemptId }) => {
-  const [clicked, setClicked] = reactExports.useState(false);
-  reactExports.useEffect(() => {
-    setClicked(false);
-  }, [metadataId, attemptId]);
-  return /* @__PURE__ */ jsxRuntimeExports.jsx(
-    "div",
-    {
-      className: "position-absolute",
-      style: { bottom: "0.5rem", right: "0.5rem", zIndex: 1050 },
-      children: !clicked ? /* @__PURE__ */ jsxRuntimeExports.jsx(
-        Button,
-        {
-          variant: "light",
-          className: "border-0",
-          style: {
-            backgroundColor: "transparent",
-            color: "transparent",
-            padding: "0.2rem",
-            transition: "all 0.3s ease"
-          },
-          onMouseEnter: (e) => {
-            e.currentTarget.style.color = "#dc3545";
-            e.currentTarget.style.backgroundColor = "#f8d7da";
-          },
-          onMouseLeave: (e) => {
-            e.currentTarget.style.color = "transparent";
-            e.currentTarget.style.backgroundColor = "transparent";
-          },
-          onClick: () => setClicked(true),
-          children: /* @__PURE__ */ jsxRuntimeExports.jsx(Bug, { size: 18 })
-        }
-      ) : /* @__PURE__ */ jsxRuntimeExports.jsxs("div", { className: "alert alert-danger p-2 mb-0", role: "alert", children: [
-        /* @__PURE__ */ jsxRuntimeExports.jsx("div", { children: /* @__PURE__ */ jsxRuntimeExports.jsxs("small", { children: [
-          /* @__PURE__ */ jsxRuntimeExports.jsx("strong", { children: "Metadata ID:" }),
-          " ",
-          metadataId
-        ] }) }),
-        /* @__PURE__ */ jsxRuntimeExports.jsx(Optional, { isVisible: attemptId !== void 0, children: /* @__PURE__ */ jsxRuntimeExports.jsx("div", { children: /* @__PURE__ */ jsxRuntimeExports.jsxs("small", { children: [
-          /* @__PURE__ */ jsxRuntimeExports.jsx("strong", { children: "Attempt ID:" }),
-          " ",
-          attemptId
-        ] }) }) })
-      ] })
-    }
-  );
-};
-const Loader = observer((props) => {
-  const delay = props.delay ?? 0;
-  const [enabled, setEnabled] = reactExports.useState(delay === 0);
-  reactExports.useEffect(() => {
-    if (delay > 0) {
-      setTimeout(() => !enabled && setEnabled(true), delay);
-    }
-  });
-  if (!enabled) {
-    return null;
-  }
-  return /* @__PURE__ */ jsxRuntimeExports.jsx(Spinner, { style: { ...props.styleOverride }, animation: "border", variant: "primary" });
-});
-const LoadingWrapper = observer((props) => {
-  const { children, isLoading } = props;
-  if (isLoading) {
-    return /* @__PURE__ */ jsxRuntimeExports.jsx(Loader, { ...props });
-  }
-  return /* @__PURE__ */ jsxRuntimeExports.jsx(jsxRuntimeExports.Fragment, { children });
-});
-const Modal = (props) => {
-  const {
-    title,
-    primaryBtnTitle,
-    primaryBtnVariant,
-    handlePrimaryBtnClicked,
-    secondaryBtnTitle,
-    handleSecondaryBtnClicked,
-    children,
-    closeButton,
-    show,
-    handleClose,
-    type: type2,
-    size
-  } = props;
-  return /* @__PURE__ */ jsxRuntimeExports.jsx(Optional, { isVisible: show ?? true, children: /* @__PURE__ */ jsxRuntimeExports.jsxs(ModalWrapper, { type: type2 ?? "MODAL", show: show ?? true, onHide: handleClose ?? void 0, size, children: [
-    /* @__PURE__ */ jsxRuntimeExports.jsx(Optional, { isVisible: !isNullOrUndefined(title) && title.length > 0, children: /* @__PURE__ */ jsxRuntimeExports.jsx(Modal$1.Header, { closeButton: closeButton ?? void 0, placeholder: null, children: /* @__PURE__ */ jsxRuntimeExports.jsx(Modal$1.Title, { children: title }) }) }),
-    /* @__PURE__ */ jsxRuntimeExports.jsx(Modal$1.Body, { children }),
-    secondaryBtnTitle || primaryBtnTitle ? /* @__PURE__ */ jsxRuntimeExports.jsxs(Modal$1.Footer, { children: [
-      secondaryBtnTitle && /* @__PURE__ */ jsxRuntimeExports.jsx(Button, { variant: "secondary", onClick: handleSecondaryBtnClicked ?? void 0, children: secondaryBtnTitle }),
-      primaryBtnTitle && /* @__PURE__ */ jsxRuntimeExports.jsx(Button, { variant: primaryBtnVariant ?? "primary", onClick: handlePrimaryBtnClicked ?? void 0, children: primaryBtnTitle })
-    ] }) : null
-  ] }) });
-};
-const ModalWrapper = (props) => {
-  const {
-    type: type2,
-    show,
-    onHide,
-    children,
-    size
-  } = props;
-  if (type2 === "DIALOG") {
-    return /* @__PURE__ */ jsxRuntimeExports.jsx(Modal$1.Dialog, { size, children });
-  }
-  return /* @__PURE__ */ jsxRuntimeExports.jsx(Modal$1, { size, show, onHide, children });
-};
+let sharedExerciseStore;
+function getExerciseStore() {
+  return sharedExerciseStore ??= new ExerciseStore();
+}
 const MatchingQuestionComponent = observer((props) => {
   const { question } = props;
   const { options } = question;
@@ -2624,7 +2224,7 @@ const OrderQuestionComponent = observer((props) => {
       result.push(answer);
       return [answer.createdByInteraction || -1, result];
     }), [0, []])[1].reverse();
-    getAnswers().forEach((answer, idx, answers) => {
+    getAnswers().forEach((answer, idx) => {
       const { answer: asnwerPair } = answer;
       const [h] = asnwerPair;
       const answrs = document.querySelectorAll(`[data-answer-id='${h}']`);
@@ -2892,8 +2492,7 @@ const SupQuestion = observer((props) => {
   ] });
 });
 const ShortFeedbackAlert = observer((props) => {
-  let { supQuestionStore, message, showGenerateSupQuestion } = props;
-  showGenerateSupQuestion = showGenerateSupQuestion && supQuestionStore != void 0;
+  const { message } = props;
   const variant = message.type === "SUCCESS" ? "success" : "danger";
   return /* @__PURE__ */ jsxRuntimeExports.jsx(Alert, { variant, children: /* @__PURE__ */ jsxRuntimeExports.jsx("span", { dangerouslySetInnerHTML: { __html: message.message } }) });
 });
@@ -3046,8 +2645,8 @@ const Feedback = observer(({ store, showExtendedFeedback }) => {
   ] }) });
 });
 const FeedbackAlert = observer((props) => {
-  let { supQuestionStore, message, showGenerateSupQuestion } = props;
-  showGenerateSupQuestion = showGenerateSupQuestion && supQuestionStore != void 0;
+  const { supQuestionStore, message } = props;
+  const showGenerateSupQuestion = props.showGenerateSupQuestion && supQuestionStore != void 0;
   const variant = message.type === "SUCCESS" ? "success" : "danger";
   return /* @__PURE__ */ jsxRuntimeExports.jsxs(Alert, { variant, className: variant === "danger" ? "comp-ph-feedback-error" : "comp-ph-feedback-success", children: [
     /* @__PURE__ */ jsxRuntimeExports.jsx(
@@ -3088,7 +2687,7 @@ const Question = observer((props) => {
   ] });
 });
 const CurrentQuestion = observer(() => {
-  const [exerciseStore] = reactExports.useState(() => instance.resolve(ExerciseStore));
+  const exerciseStore = getExerciseStore();
   return /* @__PURE__ */ jsxRuntimeExports.jsx(Question, { store: exerciseStore.currentQuestion, showExtendedFeedback: exerciseStore.exercise?.options.supplementaryQuestionsEnabled ?? true });
 });
 const GenerateNextAnswerBtn = observer(({ store }) => {
@@ -3105,7 +2704,7 @@ const GenerateNextAnswerBtn = observer(({ store }) => {
   return /* @__PURE__ */ jsxRuntimeExports.jsx(Button, { onClick: onClicked, className: "comp-ph-hint-btn", variant: "primary", children: t("nextCorrectAnswerBtn") });
 });
 const GenerateNextQuestionBtn = observer(() => {
-  const [exerciseStore] = reactExports.useState(() => instance.resolve(ExerciseStore));
+  const exerciseStore = getExerciseStore();
   const { t } = useTranslation();
   const [isModalVisible, setIsModalVisible] = reactExports.useState(false);
   const { exercise, currentAttempt } = exerciseStore;
@@ -3162,7 +2761,7 @@ const GenerateNextQuestionBtn = observer(() => {
   ] });
 });
 const Pagination = observer(() => {
-  const [exerciseStore] = reactExports.useState(() => instance.resolve(ExerciseStore));
+  const exerciseStore = getExerciseStore();
   if (!exerciseStore.currentQuestion.question || !exerciseStore.currentAttempt) {
     return null;
   }
@@ -3289,21 +2888,11 @@ const Header = observer((props) => {
     ] })
   ] });
 });
-var __defProp = Object.defineProperty;
-var __getOwnPropDesc$4 = Object.getOwnPropertyDescriptor;
-var __decorateClass$4 = (decorators, target, key, kind) => {
-  var result = kind > 1 ? void 0 : kind ? __getOwnPropDesc$4(target, key) : target;
-  for (var i = decorators.length - 1, decorator; i >= 0; i--)
-    if (decorator = decorators[i])
-      result = (kind ? decorator(target, key, result) : decorator(result)) || result;
-  if (kind && result) __defProp(target, key, result);
-  return result;
-};
 class SessionStore {
   user = void 0;
   languages = [];
   isSessionLoading = false;
-  usersApi = new UserController();
+  error = null;
   get selectedLanguage() {
     return this.user?.language;
   }
@@ -3311,66 +2900,53 @@ class SessionStore {
     return this.user !== void 0;
   }
   constructor() {
-    makeObservable(this);
+    makeAutoObservable(this);
   }
   loadSessionInfo = async () => {
     if (this.isSessionLoading) {
       return;
     }
-    runInAction(() => {
-      this.isSessionLoading = true;
-    });
+    this.isSessionLoading = true;
+    this.error = null;
     const [user, languages] = await Promise.all([
-      this.usersApi.getCurrentUser(),
-      this.usersApi.getLanguages()
+      userController.getCurrentUser(),
+      userController.getLanguages()
     ]);
-    if (isRight(user) && isRight(languages)) {
-      runInAction(() => {
-        this.isSessionLoading = false;
-        this.user = user.right;
-        this.languages = languages.right;
-        if (this.user.language !== instance$1.language) {
-          instance$1.changeLanguage(this.user.language);
-        }
-      });
+    this.isSessionLoading = false;
+    if (isLeft(user)) {
+      this.error = user.left;
+      return;
+    }
+    if (isLeft(languages)) {
+      this.error = languages.left;
+      return;
+    }
+    this.user = user.right;
+    this.languages = languages.right;
+    if (this.user.language !== instance.language) {
+      instance.changeLanguage(this.user.language);
     }
   };
   changeLanguage = async (newLang) => {
-    if (this.user && this.user.language !== newLang) {
-      const res = await this.usersApi.setLanguage(newLang);
-      if (isRight(res)) {
-        runInAction(() => {
-          this.user.language = res.right;
-          instance$1.changeLanguage(res.right);
-        });
-      } else {
-        console.error("Failed to change language", res.left);
-      }
+    if (!this.user || this.user.language === newLang) {
+      return;
     }
+    const res = await userController.setLanguage(newLang);
+    if (isLeft(res)) {
+      console.error("Failed to change language", res.left);
+      return;
+    }
+    this.user.language = res.right;
+    instance.changeLanguage(res.right);
   };
 }
-__decorateClass$4([
-  observable
-], SessionStore.prototype, "user", 2);
-__decorateClass$4([
-  observable
-], SessionStore.prototype, "languages", 2);
-__decorateClass$4([
-  observable
-], SessionStore.prototype, "isSessionLoading", 2);
-__decorateClass$4([
-  computed
-], SessionStore.prototype, "selectedLanguage", 1);
-__decorateClass$4([
-  computed
-], SessionStore.prototype, "isSessionLoaded", 1);
 const SessionContext = reactExports.createContext(null);
 const SessionProvider = observer(({ children }) => {
   const [session] = reactExports.useState(() => new SessionStore());
   reactExports.useEffect(() => {
     session.loadSessionInfo();
   }, [session]);
-  return /* @__PURE__ */ jsxRuntimeExports.jsx(SessionContext.Provider, { value: session, children });
+  return /* @__PURE__ */ jsxRuntimeExports.jsx(SessionContext.Provider, { value: session, children: session.error && !session.user ? /* @__PURE__ */ jsxRuntimeExports.jsx("div", { className: "container pt-3", children: /* @__PURE__ */ jsxRuntimeExports.jsx(LoadFailure, { error: session.error, onRetry: () => session.loadSessionInfo() }) }) : children });
 });
 const useSession = () => {
   const session = reactExports.useContext(SessionContext);
@@ -3387,7 +2963,7 @@ const useCurrentUser = () => {
   return session.user;
 };
 const ExerciseHeader = observer(() => {
-  const [exerciseStore] = reactExports.useState(() => instance.resolve(ExerciseStore));
+  const exerciseStore = getExerciseStore();
   const { t, i18n } = useTranslation();
   const session = useSession();
   const user = useCurrentUser();
@@ -3417,12 +2993,11 @@ const ExerciseHeader = observer(() => {
 });
 const SurveyComponent = (props) => {
   const { survey, enabledSurveyQuestions, isCompleted } = props;
-  const [endpoint] = reactExports.useState(() => instance.resolve(SurveyController));
   const [surveyState, setSurveyState] = reactExports.useState(isCompleted ? "COMPLETED" : "INITAL");
   const [surveyAnswers, setSurveyAnswers] = reactExports.useState(props.value || {});
   const { t } = useTranslation();
   const surveyQuestions = props.survey.questions.filter((q) => enabledSurveyQuestions.includes(q.id));
-  var onAnswered = (questionId, answer) => {
+  const onAnswered = (questionId, answer) => {
     const newAnswers = { ...surveyAnswers, [questionId]: answer };
     setSurveyAnswers(newAnswers);
     console.log(newAnswers);
@@ -3432,7 +3007,7 @@ const SurveyComponent = (props) => {
       const requiredQuestionIds = surveyQuestions.filter((x) => x.required).map((x) => x.id);
       if (requiredQuestionIds.every((id) => surveyAnswers[id])) {
         setSurveyState("SENDING_RESULTS");
-        await Promise.all(surveyQuestions.map((q) => endpoint.postSurveyAnswer(q.id, props.questionId, surveyAnswers[q.id])));
+        await Promise.all(surveyQuestions.map((q) => surveyController.postSurveyAnswer(q.id, props.questionId, surveyAnswers[q.id])));
         setSurveyState("COMPLETED");
         props.onAnswersSended(survey, props.questionId, surveyAnswers);
       } else {
@@ -3484,7 +3059,7 @@ const SingleChoiceSurveyQuestionComponent = (props) => {
   const { question, onAnswered, value, isCompleted } = props;
   return /* @__PURE__ */ jsxRuntimeExports.jsxs("div", { children: [
     /* @__PURE__ */ jsxRuntimeExports.jsx("div", { className: "mb-1", children: question.text }),
-    /* @__PURE__ */ jsxRuntimeExports.jsx("div", { className: "d-flex mt-2", children: /* @__PURE__ */ jsxRuntimeExports.jsx("div", { children: question.options.map((o, idx, opts) => /* @__PURE__ */ jsxRuntimeExports.jsx("div", { children: /* @__PURE__ */ jsxRuntimeExports.jsx(
+    /* @__PURE__ */ jsxRuntimeExports.jsx("div", { className: "d-flex mt-2", children: /* @__PURE__ */ jsxRuntimeExports.jsx("div", { children: question.options.map((o) => /* @__PURE__ */ jsxRuntimeExports.jsx("div", { children: /* @__PURE__ */ jsxRuntimeExports.jsx(
       FormImpl.Check,
       {
         disabled: isCompleted,
@@ -3643,7 +3218,7 @@ const TourProvider = ({ steps: steps2, children }) => {
   const tourRef = reactExports.useRef();
   const [isReady, setIsReady] = reactExports.useState(false);
   const isTourCompletedRef = reactExports.useRef(false);
-  const { t: t2 } = useTranslation();
+  const { t } = useTranslation();
   const bindActions = (tour, steps22) => {
     return steps22.map((step) => {
       const completeTour = () => {
@@ -3654,7 +3229,7 @@ const TourProvider = ({ steps: steps2, children }) => {
         }
       };
       const buttons = step.buttons?.map((button) => {
-        let text = typeof button.text === "function" ? button.text() : button.text || "";
+        const text = typeof button.text === "function" ? button.text() : button.text || "";
         if (text === "next") {
           return {
             ...button,
@@ -3699,23 +3274,23 @@ const TourProvider = ({ steps: steps2, children }) => {
         (step) => step.destroy()
       );
       const stepsWithActions = bindActions(tour, steps2);
-      let pendingSteps = [...stepsWithActions];
+      const pendingSteps = [...stepsWithActions];
       const showNextStep = async () => {
         if (isTourCompletedRef.current) return;
         if (pendingSteps.length === 0) return;
         for (let i = 0; i < pendingSteps.length; i++) {
           const step = Object.assign({}, pendingSteps[i]);
-          step.title = t2(step.title);
-          step.text = t2(step.text);
+          step.title = t(step.title);
+          step.text = t(step.text);
           step.buttons = step.buttons?.map((button) => ({
             ...button,
-            text: t2(button.text)
+            text: t(button.text)
           }));
           const selector = typeof step.attachTo === "object" ? step.attachTo?.element : null;
           if (typeof selector === "string") {
             const element = document.querySelector(selector);
             if (element) {
-              let completedSteps = new Set(
+              const completedSteps = new Set(
                 JSON.parse(localStorage.getItem("tour_completed_steps") ?? "[]")
               );
               if (localStorage.getItem("tour_completed") !== "never" && !step.id?.endsWith("-always")) {
@@ -3783,7 +3358,7 @@ const TourLauncher = () => {
   return null;
 };
 const Exercise = observer(() => {
-  const [exerciseStore] = reactExports.useState(() => instance.resolve(ExerciseStore));
+  const exerciseStore = getExerciseStore();
   const { exerciseState, setExerciseState, storeState: excerciseStoreState, currentQuestion, survey } = exerciseStore;
   const { storeState: currentQuestionStoreState } = currentQuestion;
   const { t } = useTranslation();
@@ -3832,21 +3407,21 @@ const Exercise = observer(() => {
       await exerciseStore.createExerciseAttempt();
       loadQuestion();
     })();
-  }, [exerciseStore]);
+  }, [exerciseStore, loadQuestion]);
   const createDebugAttemptAndLoadQuestion = reactExports.useCallback(() => {
     (async () => {
       exerciseStore.currentQuestion.setQuestionState("LOADING");
       await exerciseStore.createDebugExerciseAttempt();
       loadQuestion();
     })();
-  }, [exerciseStore]);
+  }, [exerciseStore, loadQuestion]);
   const getAttemptAndLoadQuestion = reactExports.useCallback((attemptId) => {
     (async () => {
       exerciseStore.currentQuestion.setQuestionState("LOADING");
       await exerciseStore.loadExerciseAttempt(attemptId);
       loadQuestion();
     })();
-  }, [exerciseStore]);
+  }, [exerciseStore, loadQuestion]);
   const onSurveyAnswered = reactExports.useCallback((survey2, questionId, answers) => {
     exerciseStore.setSurveyAnswers(questionId, answers);
   }, [exerciseStore]);
@@ -3855,7 +3430,7 @@ const Exercise = observer(() => {
     /* @__PURE__ */ jsxRuntimeExports.jsxs(
       "div",
       {
-        className: `compph-exercise ${exerciseStore.isDebug && "compph-exercise--debug"}` || "",
+        className: `compph-exercise${exerciseStore.isDebug ? " compph-exercise--debug" : ""}`,
         children: [
           /* @__PURE__ */ jsxRuntimeExports.jsxs(
             LoadingWrapper,
@@ -3947,7 +3522,7 @@ const Exercise = observer(() => {
             }
           ),
           [excerciseStoreState, currentQuestionStoreState].filter((x) => x.tag === "ERROR").map(
-            (x, idx, arr) => x.tag === "ERROR" && /* @__PURE__ */ jsxRuntimeExports.jsx("div", { className: "mt-2", children: /* @__PURE__ */ jsxRuntimeExports.jsx(Alert, { variant: "danger", children: x.error.message }) })
+            (x) => x.tag === "ERROR" && /* @__PURE__ */ jsxRuntimeExports.jsx("div", { className: "mt-2", children: /* @__PURE__ */ jsxRuntimeExports.jsx(InlineError, { error: x.error }) })
           )
         ]
       }
@@ -3964,7 +3539,7 @@ const Statistics = () => {
       if (exerciseId === null || Number.isNaN(+exerciseId)) {
         throw new Error("Invalid exerciseId url param");
       }
-      const controller = instance.resolve(ExerciseController);
+      const controller = exerciseController;
       setIsLoading(true);
       const statistics2 = await controller.getExerciseStatistics(+exerciseId);
       if (EitherExports.isRight(statistics2)) {
@@ -3996,7 +3571,7 @@ const ExercisesList = observer(() => {
   reactExports.useEffect(() => {
     (async () => {
       setIsLoading(true);
-      const controller = instance.resolve(ExerciseController);
+      const controller = exerciseController;
       const dataEither = await controller.getExercises();
       if (EitherExports.isRight(dataEither)) {
         setData(dataEither.right);
@@ -4007,7 +3582,7 @@ const ExercisesList = observer(() => {
   return /* @__PURE__ */ jsxRuntimeExports.jsx("div", { children: /* @__PURE__ */ jsxRuntimeExports.jsx(ListGroup, { children: data.map((i) => /* @__PURE__ */ jsxRuntimeExports.jsx(ListGroup.Item, { children: /* @__PURE__ */ jsxRuntimeExports.jsx("a", { href: `exercise?exerciseId=${i}`, children: i }) })) }) });
 });
 const SurveyPage = observer(() => {
-  const [exerciseStore] = reactExports.useState(() => instance.resolve(ExerciseStore));
+  const exerciseStore = getExerciseStore();
   const { exerciseState, setExerciseState, storeState: excerciseStoreState, currentQuestion, survey } = exerciseStore;
   const { storeState: currentQuestionStoreState } = currentQuestion;
   const { t } = useTranslation();
@@ -4041,7 +3616,7 @@ const SurveyPage = observer(() => {
   };
   const onSurveyAnswered = reactExports.useCallback((survey2, questionId, answers) => {
     console.log("лень рефакторить, не работает крч");
-  }, [exerciseStore]);
+  }, []);
   const surveyOptions = exerciseStore.exercise?.options.surveyOptions;
   exerciseStore.currentQuestion.question?.questionId;
   if (!surveyOptions?.enabled)
@@ -4064,21 +3639,11 @@ const SurveyPage = observer(() => {
         ) }) })
       ] })
     ] }) }),
-    [excerciseStoreState, currentQuestionStoreState].filter((x) => x.tag === "ERROR").map((x, idx, arr) => x.tag === "ERROR" && /* @__PURE__ */ jsxRuntimeExports.jsx("div", { className: "mt-2", children: /* @__PURE__ */ jsxRuntimeExports.jsx(Alert, { variant: "danger", children: x.error.message }) }))
+    [excerciseStoreState, currentQuestionStoreState].filter((x) => x.tag === "ERROR").map((x) => x.tag === "ERROR" && /* @__PURE__ */ jsxRuntimeExports.jsx("div", { className: "mt-2", children: /* @__PURE__ */ jsxRuntimeExports.jsx(InlineError, { error: x.error }) }))
   ] });
 });
-var __getOwnPropDesc$3 = Object.getOwnPropertyDescriptor;
-var __decorateClass$3 = (decorators, target, key, kind) => {
-  var result = kind > 1 ? void 0 : kind ? __getOwnPropDesc$3(target, key) : target;
-  for (var i = decorators.length - 1, decorator; i >= 0; i--)
-    if (decorator = decorators[i])
-      result = decorator(result) || result;
-  return result;
-};
-var __decorateParam$3 = (index, decorator) => (target, key) => decorator(target, key, index);
 class ExerciseStageStore {
-  constructor(exerciseSettingsController, courseId, card, stage) {
-    this.exerciseSettingsController = exerciseSettingsController;
+  constructor(courseId, card, stage) {
     this.courseId = courseId;
     this.concepts = stage.concepts;
     this.laws = stage.laws;
@@ -4087,15 +3652,14 @@ class ExerciseStageStore {
     this.complexity = stage.complexity;
     this.card = card;
     makeAutoObservable(this);
-    this.autorunner = autorun(async () => {
+    this.autorunner = autorun(() => {
       const complexity = this.complexity;
       const laws = this.laws.slice();
       const concepts = this.concepts.slice();
       const skills = this.skills.slice();
-      this.updateBankStats(concepts, laws, skills, card.tags, complexity);
+      untracked(() => this.updateBankStats(concepts, laws, skills, card.tags, complexity));
     }, { delay: 1e3 });
   }
-  exerciseSettingsController;
   courseId;
   card;
   concepts;
@@ -4107,7 +3671,7 @@ class ExerciseStageStore {
   complexity = 0.5;
   autorunner;
   abortController = null;
-  *updateBankStats(concepts, laws, skills, tags, complexity) {
+  async updateBankStats(concepts, laws, skills, tags, complexity) {
     const { card } = this;
     if (this.abortController) {
       this.abortController.abort();
@@ -4115,13 +3679,11 @@ class ExerciseStageStore {
     }
     const currentAbortController = new AbortController();
     this.abortController = currentAbortController;
-    runInAction(() => this.bankLoadingState = "IN_PROGRESS");
-    const newData = yield this.exerciseSettingsController.search(card.domainId, concepts, laws, skills, tags, complexity, 5, this.courseId, currentAbortController.signal);
+    this.bankLoadingState = "IN_PROGRESS";
+    const newData = await exerciseSettingsController.search(card.domainId, concepts, laws, skills, tags, complexity, 5, this.courseId, currentAbortController.signal);
     if (EitherExports.isRight(newData)) {
-      runInAction(() => {
-        this.bankSearchResult = newData.right;
-      });
-      runInAction(() => this.bankLoadingState = "COMPLETED");
+      this.bankSearchResult = newData.right;
+      this.bankLoadingState = "COMPLETED";
     }
     if (this.abortController === currentAbortController) {
       this.abortController = null;
@@ -4136,18 +3698,7 @@ class ExerciseStageStore {
     }
   }
 }
-let ExerciseSettingsStore = class {
-  constructor(exerciseSettingsController, userController, exerciseController, courseController) {
-    this.exerciseSettingsController = exerciseSettingsController;
-    this.userController = userController;
-    this.exerciseController = exerciseController;
-    this.courseController = courseController;
-    makeAutoObservable(this);
-  }
-  exerciseSettingsController;
-  userController;
-  exerciseController;
-  courseController;
+class ExerciseSettingsStore {
   exercisesLoadStatus = "NONE";
   exercises = null;
   permissions = noExerciseListPermissions;
@@ -4156,6 +3707,9 @@ let ExerciseSettingsStore = class {
   strategies = null;
   currentCard = null;
   courseId = null;
+  constructor() {
+    makeAutoObservable(this);
+  }
   applyExerciseList(list) {
     this.exercises = list.exercises;
     this.permissions = list.permissions;
@@ -4177,7 +3731,7 @@ let ExerciseSettingsStore = class {
     });
     result.stages = _functionExports.pipe(
       card.stages,
-      NonEmptyArrayExports.map((stage) => new ExerciseStageStore(this.exerciseSettingsController, this.courseId, result, stage))
+      NonEmptyArrayExports.map((stage) => new ExerciseStageStore(this.courseId, result, stage))
     );
     return result;
   }
@@ -4193,42 +3747,36 @@ let ExerciseSettingsStore = class {
   async loadExercises(courseId = null) {
     if (this.exercisesLoadStatus === "LOADED" || this.exercisesLoadStatus === "LOADING")
       return;
-    runInAction(() => {
-      this.exercisesLoadStatus = "LOADING";
-      this.courseId = courseId;
-    });
+    this.exercisesLoadStatus = "LOADING";
+    this.courseId = courseId;
     const [rawExercises, domains, backends, strategies] = await Promise.all([
-      this.exerciseSettingsController.listExercises(courseId),
-      this.exerciseSettingsController.getDomains(),
-      this.exerciseSettingsController.getBackends(),
-      this.exerciseSettingsController.getStrategies()
+      exerciseSettingsController.listExercises(courseId),
+      exerciseSettingsController.getDomains(),
+      exerciseSettingsController.getBackends(),
+      exerciseSettingsController.getStrategies()
     ]);
     if (EitherExports.isRight(rawExercises) && EitherExports.isRight(domains) && EitherExports.isRight(backends) && EitherExports.isRight(strategies)) {
-      runInAction(() => {
-        this.applyExerciseList(rawExercises.right);
-        this.domains = domains.right;
-        this.backends = backends.right;
-        this.strategies = strategies.right;
-      });
+      this.applyExerciseList(rawExercises.right);
+      this.domains = domains.right;
+      this.backends = backends.right;
+      this.strategies = strategies.right;
     }
-    runInAction(() => this.exercisesLoadStatus = "LOADED");
+    this.exercisesLoadStatus = "LOADED";
   }
   async loadExercise(exerciseId) {
     if (this.exercisesLoadStatus !== "LOADED")
       throw new Error("Exercises must be loaded first");
-    runInAction(() => this.exercisesLoadStatus = "EXERCISELOADING");
-    const rawExercise = await this.exerciseSettingsController.getExercise(exerciseId, this.courseId);
+    this.exercisesLoadStatus = "EXERCISELOADING";
+    const rawExercise = await exerciseSettingsController.getExercise(exerciseId, this.courseId);
     if (EitherExports.isRight(rawExercise)) {
-      runInAction(() => {
-        this.currentCard = this.toCardViewModel(rawExercise.right);
-      });
+      this.currentCard = this.toCardViewModel(rawExercise.right);
     }
-    runInAction(() => this.exercisesLoadStatus = "LOADED");
+    this.exercisesLoadStatus = "LOADED";
   }
   async createNewExecise() {
     if (this.exercisesLoadStatus !== "LOADED")
       throw new Error("Exercises must be loaded first");
-    const newExerciseId = await this.exerciseSettingsController.createExercise(
+    const newExerciseId = await exerciseSettingsController.createExercise(
       "(empty)",
       this.domains[0].id,
       this.strategies[0].id,
@@ -4236,75 +3784,65 @@ let ExerciseSettingsStore = class {
     );
     if (!EitherExports.isRight(newExerciseId))
       return;
-    runInAction(() => this.exercisesLoadStatus = "EXERCISELOADING");
+    this.exercisesLoadStatus = "EXERCISELOADING";
     const [rawExercise, newExercisesList] = await Promise.all([
-      this.exerciseSettingsController.getExercise(newExerciseId.right, this.courseId),
-      this.exerciseSettingsController.listExercises(this.courseId)
+      exerciseSettingsController.getExercise(newExerciseId.right, this.courseId),
+      exerciseSettingsController.listExercises(this.courseId)
     ]);
     if (EitherExports.isRight(rawExercise) && EitherExports.isRight(newExercisesList)) {
-      runInAction(() => {
-        this.currentCard = this.toCardViewModel(rawExercise.right);
-        this.applyExerciseList(newExercisesList.right);
-      });
+      this.currentCard = this.toCardViewModel(rawExercise.right);
+      this.applyExerciseList(newExercisesList.right);
     }
-    runInAction(() => this.exercisesLoadStatus = "LOADED");
+    this.exercisesLoadStatus = "LOADED";
   }
   async cloneCurrentToCourse(targetCourseId) {
     if (!this.currentCard) return;
-    const result = await this.exerciseSettingsController.cloneExercise(this.currentCard.id, targetCourseId);
+    const result = await exerciseSettingsController.cloneExercise(this.currentCard.id, targetCourseId);
     if (!EitherExports.isRight(result)) return;
     const newId = result.right;
     const [rawExercise, newExercisesList] = await Promise.all([
-      this.exerciseSettingsController.getExercise(newId, this.courseId),
-      this.exerciseSettingsController.listExercises(this.courseId)
+      exerciseSettingsController.getExercise(newId, this.courseId),
+      exerciseSettingsController.listExercises(this.courseId)
     ]);
     if (EitherExports.isRight(rawExercise) && EitherExports.isRight(newExercisesList)) {
-      runInAction(() => {
-        this.currentCard = this.toCardViewModel(rawExercise.right);
-        this.applyExerciseList(newExercisesList.right);
-      });
+      this.currentCard = this.toCardViewModel(rawExercise.right);
+      this.applyExerciseList(newExercisesList.right);
     }
   }
   async copyCurrentToPool() {
     if (!this.currentCard) return null;
-    const result = await this.exerciseSettingsController.cloneExercise(this.currentCard.id, null);
+    const result = await exerciseSettingsController.cloneExercise(this.currentCard.id, null);
     return EitherExports.isRight(result) ? result.right : null;
   }
   async unlinkFromCourse(courseId) {
     if (!this.currentCard) return;
-    await this.courseController.removeExerciseFromCourse(this.currentCard.id, courseId);
-    const refreshed = await this.exerciseSettingsController.listExercises(this.courseId);
+    await courseController.removeExerciseFromCourse(this.currentCard.id, courseId);
+    const refreshed = await exerciseSettingsController.listExercises(this.courseId);
     if (EitherExports.isRight(refreshed)) {
-      runInAction(() => {
-        this.applyExerciseList(refreshed.right);
-        this.currentCard = null;
-      });
+      this.applyExerciseList(refreshed.right);
+      this.currentCard = null;
     }
   }
   async deleteCurrentExercise() {
     if (!this.currentCard) return;
     const id = this.currentCard.id;
-    await this.exerciseSettingsController.deleteExercise(id, this.courseId);
-    const refreshed = await this.exerciseSettingsController.listExercises(this.courseId);
+    await exerciseSettingsController.deleteExercise(id, this.courseId);
+    const refreshed = await exerciseSettingsController.listExercises(this.courseId);
     if (EitherExports.isRight(refreshed)) {
-      runInAction(() => {
-        this.applyExerciseList(refreshed.right);
-        this.currentCard = null;
-      });
+      this.applyExerciseList(refreshed.right);
+      this.currentCard = null;
     }
   }
   async saveCard() {
     if (!this.currentCard)
       return;
-    runInAction(() => this.exercisesLoadStatus = "EXERCISELOADING");
-    await this.exerciseSettingsController.saveExercise(this.fromCardViewModel(this.currentCard), this.courseId);
-    const newExercisesList = await this.exerciseSettingsController.listExercises(this.courseId);
+    this.exercisesLoadStatus = "EXERCISELOADING";
+    await exerciseSettingsController.saveExercise(this.fromCardViewModel(this.currentCard), this.courseId);
+    const newExercisesList = await exerciseSettingsController.listExercises(this.courseId);
     if (EitherExports.isRight(newExercisesList)) {
-      runInAction(() => {
-        this.applyExerciseList(newExercisesList.right);
-      });
+      this.applyExerciseList(newExercisesList.right);
     }
-    runInAction(() => this.exercisesLoadStatus = "LOADED");
+    this.exercisesLoadStatus = "LOADED";
   }
   setCardName(name) {
     if (!this.currentCard)
@@ -4533,7 +4071,6 @@ let ExerciseSettingsStore = class {
       return;
     const card = this.currentCard;
     const newStage = new ExerciseStageStore(
-      this.exerciseSettingsController,
       this.courseId,
       card,
       {
@@ -4556,14 +4093,7 @@ let ExerciseSettingsStore = class {
     stageToRemove[Symbol.dispose]();
     this.currentCard.stages.splice(stageIdx, 1);
   }
-};
-ExerciseSettingsStore = __decorateClass$3([
-  injectable(),
-  __decorateParam$3(0, inject(ExerciseSettingsController)),
-  __decorateParam$3(1, inject(UserController)),
-  __decorateParam$3(2, inject(ExerciseController)),
-  __decorateParam$3(3, inject(CourseController))
-], ExerciseSettingsStore);
+}
 function useCourseId() {
   const [params] = useSearchParams();
   const raw = params.get("courseId");
@@ -4584,7 +4114,6 @@ const ExerciseRowBadge = ({ linkType }) => {
 const DeleteGlobalExerciseModal = ({ exerciseId, onConfirm, onCancel }) => {
   const { t } = useTranslation();
   const [memberships, setMemberships] = reactExports.useState(null);
-  const [courseController] = reactExports.useState(() => instance.resolve(CourseController));
   reactExports.useEffect(() => {
     (async () => {
       const r = await courseController.getExerciseMemberships(exerciseId);
@@ -4622,7 +4151,7 @@ const DeleteGlobalExerciseModal = ({ exerciseId, onConfirm, onCancel }) => {
   );
 };
 const ExerciseSettings = observer(() => {
-  const [exerciseStore] = reactExports.useState(() => instance.resolve(ExerciseSettingsStore));
+  const [exerciseStore] = reactExports.useState(() => new ExerciseSettingsStore());
   const { t } = useTranslation();
   const user = useCurrentUser();
   const session = useSession();
@@ -4636,12 +4165,12 @@ const ExerciseSettings = observer(() => {
         await exerciseStore.loadExercise(Number.parseInt(currentExercise));
       }
     })();
-  }, [courseId]);
+  }, [courseId, exerciseStore]);
   const onNewExerciseClicked = reactExports.useCallback(() => {
     (async () => {
       await exerciseStore.createNewExecise();
     })();
-  }, [exerciseStore.exercises?.length]);
+  }, [exerciseStore, exerciseStore.exercises?.length]);
   const onLangClicked = reactExports.useCallback(() => {
     const currentLang = user?.language;
     const newLang = currentLang === "RU" ? "EN" : "RU";
@@ -4702,7 +4231,7 @@ const ExerciseCardElement = observer((props) => {
   const user = useCurrentUser();
   reactExports.useMemo(() => {
     return [t("exercisesettings_optDenied"), t("exercisesettings_optAllowed"), t("exercisesettings_optTarget")];
-  }, [user?.language]);
+  }, [t, user?.language]);
   if (store.exercisesLoadStatus === "EXERCISELOADING")
     return /* @__PURE__ */ jsxRuntimeExports.jsx(Loader, { delay: 200 });
   if (card == null)
@@ -5115,7 +4644,7 @@ const ExerciseConcepts = observer((props) => {
   const user = useCurrentUser();
   const conceptFlagNames = reactExports.useMemo(() => {
     return [t("exercisesettings_optDenied"), t("exercisesettings_optAllowed"), t("exercisesettings_optTarget")];
-  }, [user?.language]);
+  }, [t, user?.language]);
   return /* @__PURE__ */ jsxRuntimeExports.jsx(jsxRuntimeExports.Fragment, { children: concepts.map((coreConcept, idx) => /* @__PURE__ */ jsxRuntimeExports.jsxs("div", { className: "list-group-item p-0 bg-transparent pt-2 pb-2", children: [
     /* @__PURE__ */ jsxRuntimeExports.jsx("div", { children: /* @__PURE__ */ jsxRuntimeExports.jsxs("div", { className: `d-flex flex-row align-items-center`, children: [
       /* @__PURE__ */ jsxRuntimeExports.jsx(
@@ -5163,7 +4692,7 @@ const ExerciseLaws = observer((props) => {
   const user = useCurrentUser();
   const lawFlagNames = reactExports.useMemo(() => {
     return [t("exercisesettings_optDenied"), t("exercisesettings_optAllowed"), t("exercisesettings_optTarget")];
-  }, [user?.language]);
+  }, [t, user?.language]);
   return /* @__PURE__ */ jsxRuntimeExports.jsx(jsxRuntimeExports.Fragment, { children: laws.map((coreLaw, idx) => /* @__PURE__ */ jsxRuntimeExports.jsxs("div", { className: "list-group-item p-0 bg-transparent pt-2 pb-2", children: [
     /* @__PURE__ */ jsxRuntimeExports.jsx("div", { children: /* @__PURE__ */ jsxRuntimeExports.jsxs("div", { className: `d-flex flex-row align-items-center`, children: [
       /* @__PURE__ */ jsxRuntimeExports.jsx(
@@ -5204,7 +4733,7 @@ const ExerciseSkills = observer((props) => {
   const user = useCurrentUser();
   const skillFlagNames = reactExports.useMemo(() => {
     return [t("exercisesettings_optDenied"), t("exercisesettings_optAllowed"), t("exercisesettings_optTarget")];
-  }, [user?.language]);
+  }, [t, user?.language]);
   return /* @__PURE__ */ jsxRuntimeExports.jsx(jsxRuntimeExports.Fragment, { children: skills.map((coreSkill, idx) => /* @__PURE__ */ jsxRuntimeExports.jsxs("div", { className: "list-group-item p-0 bg-transparent pt-2 pb-2", children: [
     /* @__PURE__ */ jsxRuntimeExports.jsx("div", { children: /* @__PURE__ */ jsxRuntimeExports.jsxs("div", { className: `d-flex flex-row align-items-center`, children: [
       /* @__PURE__ */ jsxRuntimeExports.jsx(
@@ -5299,7 +4828,7 @@ const StrategySettings = observer(() => {
               selected: "Allowed",
               values: ["Denied", "Allowed", "Target"],
               valueStyles: [{ backgroundColor: "#eb2828" }, null, { backgroundColor: "#009700" }],
-              onChange: (val) => 0
+              onChange: () => 0
             }
           ),
           /* @__PURE__ */ jsxRuntimeExports.jsx("div", { style: { marginLeft: "15px" }, children: c })
@@ -5312,7 +4841,7 @@ const StrategySettings = observer(() => {
               selected: "Allowed",
               values: ["Denied", "Allowed", "Target"],
               valueStyles: [{ backgroundColor: "#eb2828" }, null, { backgroundColor: "#009700" }],
-              onChange: (val) => 0
+              onChange: () => 0
             }
           ),
           /* @__PURE__ */ jsxRuntimeExports.jsx("div", { style: { marginLeft: "15px" }, children: c })
@@ -5329,7 +4858,7 @@ const StrategySettings = observer(() => {
             selected: "Allowed",
             values: ["Denied", "Allowed", "Target"],
             valueStyles: [{ backgroundColor: "#eb2828" }, null, { backgroundColor: "#009700" }],
-            onChange: (val) => 0
+            onChange: () => 0
           }
         ) }),
         /* @__PURE__ */ jsxRuntimeExports.jsx("div", { style: { marginLeft: "15px" }, children: c })
@@ -5338,7 +4867,7 @@ const StrategySettings = observer(() => {
   ] }) }) }) });
 });
 const QuestionPage = observer(() => {
-  const [question] = reactExports.useState(() => instance.resolve(QuestionStore));
+  const [question] = reactExports.useState(() => new QuestionStore());
   reactExports.useEffect(() => {
     const urlParams = new URLSearchParams(window.location.search);
     const metadataId = urlParams.get("metadataId");
@@ -5355,64 +4884,45 @@ const QuestionPage = observer(() => {
     ] })
   ] });
 });
-var __getOwnPropDesc$2 = Object.getOwnPropertyDescriptor;
-var __decorateClass$2 = (decorators, target, key, kind) => {
-  var result = kind > 1 ? void 0 : kind ? __getOwnPropDesc$2(target, key) : target;
-  for (var i = decorators.length - 1, decorator; i >= 0; i--)
-    if (decorator = decorators[i])
-      result = decorator(result) || result;
-  return result;
-};
-var __decorateParam$2 = (index, decorator) => (target, key) => decorator(target, key, index);
-let GlobalPoolStore = class {
-  constructor(settingsController, courseController) {
-    this.settingsController = settingsController;
-    this.courseController = courseController;
-    makeAutoObservable(this);
-  }
-  settingsController;
-  courseController;
+class GlobalPoolStore {
   exercises = [];
   permissions = noExerciseListPermissions;
   loadStatus = "NONE";
+  error = null;
+  constructor() {
+    makeAutoObservable(this);
+  }
   async loadGlobalPool() {
-    runInAction(() => {
-      this.loadStatus = "LOADING";
-    });
-    const r = await this.settingsController.listExercises(null);
-    if (EitherExports.isRight(r)) {
-      runInAction(() => {
-        this.exercises = r.right.exercises;
-        this.permissions = r.right.permissions;
-      });
+    this.loadStatus = "LOADING";
+    this.error = null;
+    const r = await exerciseSettingsController.listExercises(null);
+    if (EitherExports.isLeft(r)) {
+      this.error = r.left;
+      this.loadStatus = "FAILED";
+      return;
     }
-    runInAction(() => {
-      this.loadStatus = "LOADED";
-    });
+    this.exercises = r.right.exercises;
+    this.permissions = r.right.permissions;
+    this.loadStatus = "LOADED";
   }
   async importToCourse(exerciseId, targetCourseId, mode) {
     if (mode === "INHERIT") {
-      const r2 = await this.courseController.addExerciseToCourse(exerciseId, targetCourseId);
+      const r2 = await courseController.addExerciseToCourse(exerciseId, targetCourseId);
       return EitherExports.isRight(r2);
     }
-    const r = await this.settingsController.cloneExercise(exerciseId, targetCourseId);
+    const r = await exerciseSettingsController.cloneExercise(exerciseId, targetCourseId);
     return EitherExports.isRight(r);
   }
-};
-GlobalPoolStore = __decorateClass$2([
-  injectable(),
-  __decorateParam$2(0, inject(ExerciseSettingsController)),
-  __decorateParam$2(1, inject(CourseController))
-], GlobalPoolStore);
+}
 const GlobalPool = observer(() => {
-  const [store] = reactExports.useState(() => instance.resolve(GlobalPoolStore));
+  const [store] = reactExports.useState(() => new GlobalPoolStore());
   const navigate = useNavigate();
   const user = useCurrentUser();
   const session = useSession();
   const { t } = useTranslation();
   reactExports.useEffect(() => {
     store.loadGlobalPool();
-  }, []);
+  }, [store]);
   const onLangClicked = () => {
     const newLang = user?.language === "RU" ? "EN" : "RU";
     session.changeLanguage(newLang);
@@ -5432,6 +4942,7 @@ const GlobalPool = observer(() => {
         logoutLabel: t("logout_header")
       }
     ) }),
+    store.loadStatus === "FAILED" && store.error && /* @__PURE__ */ jsxRuntimeExports.jsx(LoadFailure, { error: store.error, onRetry: () => store.loadGlobalPool() }),
     store.permissions.canCreateExercise && /* @__PURE__ */ jsxRuntimeExports.jsx("div", { className: "mb-3", children: /* @__PURE__ */ jsxRuntimeExports.jsx(
       Button,
       {
@@ -5448,55 +4959,39 @@ const GlobalPool = observer(() => {
     ] })
   ] });
 });
-var __getOwnPropDesc$1 = Object.getOwnPropertyDescriptor;
-var __decorateClass$1 = (decorators, target, key, kind) => {
-  var result = kind > 1 ? void 0 : kind ? __getOwnPropDesc$1(target, key) : target;
-  for (var i = decorators.length - 1, decorator; i >= 0; i--)
-    if (decorator = decorators[i])
-      result = decorator(result) || result;
-  return result;
-};
-var __decorateParam$1 = (index, decorator) => (target, key) => decorator(target, key, index);
-let CourseStore = class {
-  constructor(courseController) {
-    this.courseController = courseController;
-    makeAutoObservable(this);
-  }
-  courseController;
+class CourseStore {
   courseId = null;
   exercises = [];
   permissions = noExerciseListPermissions;
   loadStatus = "NONE";
-  async loadCourse(courseId) {
-    runInAction(() => {
-      this.loadStatus = "LOADING";
-      this.courseId = courseId;
-    });
-    const r = await this.courseController.getCourseExercises(courseId);
-    if (EitherExports.isRight(r)) {
-      runInAction(() => {
-        this.exercises = r.right.exercises;
-        this.permissions = r.right.permissions;
-      });
-    }
-    runInAction(() => {
-      this.loadStatus = "LOADED";
-    });
+  error = null;
+  constructor() {
+    makeAutoObservable(this);
   }
-};
-CourseStore = __decorateClass$1([
-  injectable(),
-  __decorateParam$1(0, inject(CourseController))
-], CourseStore);
+  async loadCourse(courseId) {
+    this.loadStatus = "LOADING";
+    this.courseId = courseId;
+    this.error = null;
+    const r = await courseController.getCourseExercises(courseId);
+    if (EitherExports.isLeft(r)) {
+      this.error = r.left;
+      this.loadStatus = "FAILED";
+      return;
+    }
+    this.exercises = r.right.exercises;
+    this.permissions = r.right.permissions;
+    this.loadStatus = "LOADED";
+  }
+}
 const ImportFromGlobalModal = observer(({ courseId, canInherit, canClone, onClose, onImported }) => {
   const { t } = useTranslation();
-  const [store] = reactExports.useState(() => instance.resolve(GlobalPoolStore));
+  const [store] = reactExports.useState(() => new GlobalPoolStore());
   const [mode, setMode] = reactExports.useState(canInherit ? "INHERIT" : "CLONE");
   const [busyId, setBusyId] = reactExports.useState(null);
   const modeAllowed = mode === "INHERIT" ? canInherit : canClone;
   reactExports.useEffect(() => {
     store.loadGlobalPool();
-  }, []);
+  }, [store]);
   const onImportClick = async (exerciseId) => {
     setBusyId(exerciseId);
     const ok = await store.importToCourse(exerciseId, courseId, mode);
@@ -5589,7 +5084,7 @@ const DeepLinkSelection = ({ exercises }) => {
   const [payload, setPayload] = reactExports.useState(null);
   reactExports.useEffect(() => {
     (async () => {
-      const res = await instance.resolve(DeepLinkingController).existing();
+      const res = await deepLinkingController.existing();
       if (EitherExports.isRight(res)) setExisting(new Set(res.right.exerciseIds));
     })();
   }, []);
@@ -5611,7 +5106,7 @@ const DeepLinkSelection = ({ exercises }) => {
     }
     setSubmitting(true);
     setError(null);
-    const res = await instance.resolve(DeepLinkingController).build(Array.from(selected));
+    const res = await deepLinkingController.build(Array.from(selected));
     if (EitherExports.isRight(res)) {
       setPayload(res.right);
     } else {
@@ -5656,7 +5151,7 @@ const DeepLinkSelection = ({ exercises }) => {
   ] });
 };
 const CoursePage = observer(() => {
-  const [store] = reactExports.useState(() => instance.resolve(CourseStore));
+  const [store] = reactExports.useState(() => new CourseStore());
   const navigate = useNavigate();
   const user = useCurrentUser();
   const session = useSession();
@@ -5668,7 +5163,7 @@ const CoursePage = observer(() => {
   const inIframe = typeof window !== "undefined" && window.self !== window.top;
   reactExports.useEffect(() => {
     if (courseId != null) store.loadCourse(courseId);
-  }, [courseId]);
+  }, [courseId, store]);
   const onLangClicked = () => {
     const newLang = user?.language === "RU" ? "EN" : "RU";
     session.changeLanguage(newLang);
@@ -5697,6 +5192,7 @@ const CoursePage = observer(() => {
       }
     ) }),
     isDeepLink && !inIframe && /* @__PURE__ */ jsxRuntimeExports.jsx("div", { className: "alert alert-info", children: t("deeplink_blockHint") }),
+    store.loadStatus === "FAILED" && store.error && /* @__PURE__ */ jsxRuntimeExports.jsx(LoadFailure, { error: store.error, onRetry: reload }),
     (canCreateExercise || canImport) && /* @__PURE__ */ jsxRuntimeExports.jsxs("div", { className: "mb-3 d-flex", style: { gap: "0.5rem" }, children: [
       canCreateExercise && /* @__PURE__ */ jsxRuntimeExports.jsx(
         Button,
@@ -5733,51 +5229,35 @@ const CoursePage = observer(() => {
     )
   ] });
 });
-var __getOwnPropDesc = Object.getOwnPropertyDescriptor;
-var __decorateClass = (decorators, target, key, kind) => {
-  var result = kind > 1 ? void 0 : kind ? __getOwnPropDesc(target, key) : target;
-  for (var i = decorators.length - 1, decorator; i >= 0; i--)
-    if (decorator = decorators[i])
-      result = decorator(result) || result;
-  return result;
-};
-var __decorateParam = (index, decorator) => (target, key) => decorator(target, key, index);
-let CoursesStore = class {
-  constructor(api) {
-    this.api = api;
-    makeAutoObservable(this);
-  }
-  api;
+class CoursesStore {
   courses = [];
   loadStatus = "NONE";
-  async loadMyCourses() {
-    runInAction(() => {
-      this.loadStatus = "LOADING";
-    });
-    const r = await this.api.getMyCourses();
-    if (EitherExports.isRight(r)) {
-      runInAction(() => {
-        this.courses = r.right;
-      });
-    }
-    runInAction(() => {
-      this.loadStatus = "LOADED";
-    });
+  error = null;
+  constructor() {
+    makeAutoObservable(this);
   }
-};
-CoursesStore = __decorateClass([
-  injectable(),
-  __decorateParam(0, inject(CourseController))
-], CoursesStore);
+  async loadMyCourses() {
+    this.loadStatus = "LOADING";
+    this.error = null;
+    const r = await courseController.getMyCourses();
+    if (EitherExports.isLeft(r)) {
+      this.error = r.left;
+      this.loadStatus = "FAILED";
+      return;
+    }
+    this.courses = r.right;
+    this.loadStatus = "LOADED";
+  }
+}
 const CoursesPage = observer(() => {
-  const [store] = reactExports.useState(() => instance.resolve(CoursesStore));
+  const [store] = reactExports.useState(() => new CoursesStore());
   const navigate = useNavigate();
   const user = useCurrentUser();
   const session = useSession();
   const { t } = useTranslation();
   reactExports.useEffect(() => {
     store.loadMyCourses();
-  }, []);
+  }, [store]);
   const onLangClicked = () => {
     const newLang = user?.language === "RU" ? "EN" : "RU";
     session.changeLanguage(newLang);
@@ -5805,7 +5285,7 @@ const CoursesPage = observer(() => {
         children: t("courses_page_globalPoolBtn")
       }
     ) }),
-    store.courses.length === 0 ? /* @__PURE__ */ jsxRuntimeExports.jsx("div", { className: "alert alert-info", children: t("courses_page_empty") }) : /* @__PURE__ */ jsxRuntimeExports.jsx("div", { className: "row row-cols-1 row-cols-md-2 row-cols-lg-3", children: store.courses.map((c) => /* @__PURE__ */ jsxRuntimeExports.jsx("div", { className: "col mb-4", children: /* @__PURE__ */ jsxRuntimeExports.jsx(
+    store.loadStatus === "FAILED" && store.error ? /* @__PURE__ */ jsxRuntimeExports.jsx(LoadFailure, { error: store.error, onRetry: () => store.loadMyCourses() }) : store.courses.length === 0 ? /* @__PURE__ */ jsxRuntimeExports.jsx("div", { className: "alert alert-info", children: t("courses_page_empty") }) : /* @__PURE__ */ jsxRuntimeExports.jsx("div", { className: "row row-cols-1 row-cols-md-2 row-cols-lg-3", children: store.courses.map((c) => /* @__PURE__ */ jsxRuntimeExports.jsx("div", { className: "col mb-4", children: /* @__PURE__ */ jsxRuntimeExports.jsx(
       "div",
       {
         className: "card h-100",
@@ -5819,19 +5299,27 @@ const CoursesPage = observer(() => {
     ) }, c.id)) })
   ] });
 });
-const Home = () => /* @__PURE__ */ jsxRuntimeExports.jsx(SessionProvider, { children: /* @__PURE__ */ jsxRuntimeExports.jsx("div", { className: "container comp-ph-container", children: /* @__PURE__ */ jsxRuntimeExports.jsx(BrowserRouter, { children: /* @__PURE__ */ jsxRuntimeExports.jsxs(Routes, { children: [
-  /* @__PURE__ */ jsxRuntimeExports.jsx(Route, { path: "/pages/statistics", element: /* @__PURE__ */ jsxRuntimeExports.jsx(Statistics, {}) }),
-  /* @__PURE__ */ jsxRuntimeExports.jsx(Route, { path: "/pages/exercise", element: /* @__PURE__ */ jsxRuntimeExports.jsx(Exercise, {}) }),
-  /* @__PURE__ */ jsxRuntimeExports.jsx(Route, { path: "/pages/exercise-settings", element: /* @__PURE__ */ jsxRuntimeExports.jsx(ExerciseSettings, {}) }),
-  /* @__PURE__ */ jsxRuntimeExports.jsx(Route, { path: "/pages/strategy-settings", element: /* @__PURE__ */ jsxRuntimeExports.jsx(StrategySettings, {}) }),
-  /* @__PURE__ */ jsxRuntimeExports.jsx(Route, { path: "/pages/survey", element: /* @__PURE__ */ jsxRuntimeExports.jsx(SurveyPage, {}) }),
-  /* @__PURE__ */ jsxRuntimeExports.jsx(Route, { path: "/pages/question", element: /* @__PURE__ */ jsxRuntimeExports.jsx(QuestionPage, {}) }),
-  /* @__PURE__ */ jsxRuntimeExports.jsx(Route, { path: "/pages/exercises-list", element: /* @__PURE__ */ jsxRuntimeExports.jsx(ExercisesList, {}) }),
-  /* @__PURE__ */ jsxRuntimeExports.jsx(Route, { path: "/pages/global-pool", element: /* @__PURE__ */ jsxRuntimeExports.jsx(GlobalPool, {}) }),
-  /* @__PURE__ */ jsxRuntimeExports.jsx(Route, { path: "/pages/course", element: /* @__PURE__ */ jsxRuntimeExports.jsx(CoursePage, {}) }),
-  /* @__PURE__ */ jsxRuntimeExports.jsx(Route, { path: "/pages/courses", element: /* @__PURE__ */ jsxRuntimeExports.jsx(CoursesPage, {}) }),
-  /* @__PURE__ */ jsxRuntimeExports.jsx(Route, { path: "/", element: /* @__PURE__ */ jsxRuntimeExports.jsx(Navigate, { to: "/pages/courses", replace: true }) })
-] }) }) }) });
+const Home = () => /* @__PURE__ */ jsxRuntimeExports.jsxs(jsxRuntimeExports.Fragment, { children: [
+  /* @__PURE__ */ jsxRuntimeExports.jsx(ErrorNotifications, {}),
+  /* @__PURE__ */ jsxRuntimeExports.jsx(SessionProvider, { children: /* @__PURE__ */ jsxRuntimeExports.jsx("div", { className: "container comp-ph-container", children: /* @__PURE__ */ jsxRuntimeExports.jsx(BrowserRouter, { children: /* @__PURE__ */ jsxRuntimeExports.jsxs(Routes, { children: [
+    /* @__PURE__ */ jsxRuntimeExports.jsx(Route, { path: "/pages/statistics", element: /* @__PURE__ */ jsxRuntimeExports.jsx(Statistics, {}) }),
+    /* @__PURE__ */ jsxRuntimeExports.jsx(Route, { path: "/pages/exercise", element: /* @__PURE__ */ jsxRuntimeExports.jsx(Exercise, {}) }),
+    /* @__PURE__ */ jsxRuntimeExports.jsx(Route, { path: "/pages/exercise-settings", element: /* @__PURE__ */ jsxRuntimeExports.jsx(ExerciseSettings, {}) }),
+    /* @__PURE__ */ jsxRuntimeExports.jsx(Route, { path: "/pages/strategy-settings", element: /* @__PURE__ */ jsxRuntimeExports.jsx(StrategySettings, {}) }),
+    /* @__PURE__ */ jsxRuntimeExports.jsx(Route, { path: "/pages/survey", element: /* @__PURE__ */ jsxRuntimeExports.jsx(SurveyPage, {}) }),
+    /* @__PURE__ */ jsxRuntimeExports.jsx(Route, { path: "/pages/question", element: /* @__PURE__ */ jsxRuntimeExports.jsx(QuestionPage, {}) }),
+    /* @__PURE__ */ jsxRuntimeExports.jsx(Route, { path: "/pages/exercises-list", element: /* @__PURE__ */ jsxRuntimeExports.jsx(ExercisesList, {}) }),
+    /* @__PURE__ */ jsxRuntimeExports.jsx(Route, { path: "/pages/global-pool", element: /* @__PURE__ */ jsxRuntimeExports.jsx(GlobalPool, {}) }),
+    /* @__PURE__ */ jsxRuntimeExports.jsx(Route, { path: "/pages/course", element: /* @__PURE__ */ jsxRuntimeExports.jsx(CoursePage, {}) }),
+    /* @__PURE__ */ jsxRuntimeExports.jsx(Route, { path: "/pages/courses", element: /* @__PURE__ */ jsxRuntimeExports.jsx(CoursesPage, {}) }),
+    /* @__PURE__ */ jsxRuntimeExports.jsx(Route, { path: "/", element: /* @__PURE__ */ jsxRuntimeExports.jsx(Navigate, { to: "/pages/courses", replace: true }) })
+  ] }) }) }) })
+] });
+async function startMocking() {
+  {
+    return;
+  }
+}
 const container = document.getElementById("root");
 const root = clientExports.createRoot(container);
-root.render(/* @__PURE__ */ jsxRuntimeExports.jsx(Home, {}));
+startMocking().catch((err) => console.error("[mocks] could not start, the api is NOT mocked:", err)).finally(() => root.render(/* @__PURE__ */ jsxRuntimeExports.jsx(Home, {})));

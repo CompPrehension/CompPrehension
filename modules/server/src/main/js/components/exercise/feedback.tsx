@@ -112,8 +112,8 @@ type FeedbackAlertProps = {
     supQuestionStore?: SupplementaryQuestionStore,
 }
 export const FeedbackAlert = observer((props: FeedbackAlertProps) => {
-    let { supQuestionStore, message, showGenerateSupQuestion } = props;    
-    showGenerateSupQuestion = showGenerateSupQuestion && supQuestionStore != undefined;
+    const { supQuestionStore, message } = props;
+    const showGenerateSupQuestion = props.showGenerateSupQuestion && supQuestionStore != undefined;
 
     const variant = message.type === 'SUCCESS' ? 'success' : 'danger';
     return (
