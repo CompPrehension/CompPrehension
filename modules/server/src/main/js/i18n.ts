@@ -169,7 +169,10 @@ const resources = {
 
             error_notification_title: "Request failed",
             error_page_title: "Failed to load",
-            error_page_retry: "Retry"
+            error_page_retry: "Retry",
+
+            error_boundary_title: "Something went wrong",
+            error_boundary_reload: "Reload the page"
         },
     },
     RU: {
@@ -339,7 +342,10 @@ const resources = {
 
             error_notification_title: "Запрос не выполнен",
             error_page_title: "Не удалось загрузить",
-            error_page_retry: "Повторить"
+            error_page_retry: "Повторить",
+
+            error_boundary_title: "Что-то пошло не так",
+            error_boundary_reload: "Перезагрузить страницу"
         },
     },
     PL: {
@@ -465,7 +471,10 @@ const resources = {
 
             error_notification_title: "Żądanie nie powiodło się",
             error_page_title: "Nie udało się załadować",
-            error_page_retry: "Ponów"
+            error_page_retry: "Ponów",
+
+            error_boundary_title: "Coś poszło nie tak",
+            error_boundary_reload: "Odśwież stronę"
         },
     },
 };

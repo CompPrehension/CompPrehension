@@ -1,4 +1,4 @@
-import { configure, instance, initReactI18next, observer, jsxRuntimeExports, reactExports, Button, Bug, makeAutoObservable, useTranslation, Alert, Spinner, union, nullType, undefinedType, literal, Modal as Modal$1, EitherExports, success, type, string, number, intersection, boolean, partial, array, Type, _ArrayExports, _functionExports, NonEmptyArrayExports, OptionExports, failure, keyof, recursion, toJS, tuple, autorun, action, Droppable, ResizeMirror, StateManagedSelect$1, ReactDOM, components, parse, Popover, PopoverTrigger, PopoverContent, X, Badge, Pagination as Pagination$1, Navbar, isLeft, FormImpl, Shepherd, Table, ListGroup, observable, untracked, useSearchParams, Link, useNavigate, clientExports, BrowserRouter, Routes, Route, Navigate } from "./vendor-kzz-7jV2.js";
+import { configure, instance, initReactI18next, observer, jsxRuntimeExports, reactExports, Button, Bug, makeAutoObservable, useTranslation, Alert, Spinner, union, nullType, undefinedType, literal, RBModal, left, success, isLeft, right, type, string, number, intersection, boolean, partial, array, Type, isNonEmpty, pipe, chain, fromArray, isNone, failure, map, keyof, recursion, toJS, tuple, isRight, absurd, autorun, action, Droppable, ResizeMirror, StateManagedSelect$1, parse, components, libExports, Popover, PopoverTrigger, PopoverContent, X, Badge, BootstrapPagination, Navbar, Form, Shepherd, Table, ListGroup, observable, untracked, useSearchParams, Link, useNavigate, React, clientExports, BrowserRouter, Routes, Route, Navigate } from "./vendor-DTD_nlzk.js";
 (function polyfill() {
   const relList = document.createElement("link").relList;
   if (relList && relList.supports && relList.supports("modulepreload")) return;
@@ -171,7 +171,9 @@ const resources = {
       exerciseModeBar_confirmDelete: "Delete exercise? Attempt history will be deleted.",
       error_notification_title: "Request failed",
       error_page_title: "Failed to load",
-      error_page_retry: "Retry"
+      error_page_retry: "Retry",
+      error_boundary_title: "Something went wrong",
+      error_boundary_reload: "Reload the page"
     }
   },
   RU: {
@@ -317,7 +319,9 @@ const resources = {
       exerciseModeBar_confirmDelete: "Удалить упражнение? История попыток будет удалена.",
       error_notification_title: "Запрос не выполнен",
       error_page_title: "Не удалось загрузить",
-      error_page_retry: "Повторить"
+      error_page_retry: "Повторить",
+      error_boundary_title: "Что-то пошло не так",
+      error_boundary_reload: "Перезагрузить страницу"
     }
   },
   PL: {
@@ -431,7 +435,9 @@ const resources = {
       exerciseModeBar_confirmDelete: "Usunąć ćwiczenie? Historia prób zostanie usunięta.",
       error_notification_title: "Żądanie nie powiodło się",
       error_page_title: "Nie udało się załadować",
-      error_page_retry: "Ponów"
+      error_page_retry: "Ponów",
+      error_boundary_title: "Coś poszło nie tak",
+      error_boundary_reload: "Odśwież stronę"
     }
   }
 };
@@ -552,7 +558,7 @@ const ErrorNotificationAlert = observer(({ notification }) => {
   return /* @__PURE__ */ jsxRuntimeExports.jsxs(Alert, { variant: "danger", dismissible: true, onClose: () => notifications.dismiss(notification.id), children: [
     /* @__PURE__ */ jsxRuntimeExports.jsxs(Alert.Heading, { as: "h6", className: "d-flex align-items-center", children: [
       /* @__PURE__ */ jsxRuntimeExports.jsx("span", { children: status ?? t("error_notification_title") }),
-      count > 1 && /* @__PURE__ */ jsxRuntimeExports.jsx("span", { className: "badge badge-light ml-2", children: count })
+      count > 1 && /* @__PURE__ */ jsxRuntimeExports.jsx("span", { className: "badge bg-light text-dark ms-2", children: count })
     ] }),
     /* @__PURE__ */ jsxRuntimeExports.jsx("div", { className: "comp-ph-error-notification-message", children: error.message }),
     error.path && /* @__PURE__ */ jsxRuntimeExports.jsx("small", { className: "text-muted d-block mt-1", children: error.path })
@@ -631,9 +637,9 @@ const Modal = (props) => {
     size
   } = props;
   return /* @__PURE__ */ jsxRuntimeExports.jsx(Optional, { isVisible: show ?? true, children: /* @__PURE__ */ jsxRuntimeExports.jsxs(ModalWrapper, { type: type2 ?? "MODAL", show: show ?? true, onHide: handleClose ?? void 0, size, children: [
-    /* @__PURE__ */ jsxRuntimeExports.jsx(Optional, { isVisible: !isNullOrUndefined(title) && title.length > 0, children: /* @__PURE__ */ jsxRuntimeExports.jsx(Modal$1.Header, { closeButton: closeButton ?? void 0, placeholder: null, children: /* @__PURE__ */ jsxRuntimeExports.jsx(Modal$1.Title, { children: title }) }) }),
-    /* @__PURE__ */ jsxRuntimeExports.jsx(Modal$1.Body, { children }),
-    secondaryBtnTitle || primaryBtnTitle ? /* @__PURE__ */ jsxRuntimeExports.jsxs(Modal$1.Footer, { children: [
+    /* @__PURE__ */ jsxRuntimeExports.jsx(Optional, { isVisible: !isNullOrUndefined(title) && title.length > 0, children: /* @__PURE__ */ jsxRuntimeExports.jsx(RBModal.Header, { closeButton: closeButton ?? void 0, children: /* @__PURE__ */ jsxRuntimeExports.jsx(RBModal.Title, { children: title }) }) }),
+    /* @__PURE__ */ jsxRuntimeExports.jsx(RBModal.Body, { children }),
+    secondaryBtnTitle || primaryBtnTitle ? /* @__PURE__ */ jsxRuntimeExports.jsxs(RBModal.Footer, { children: [
       secondaryBtnTitle && /* @__PURE__ */ jsxRuntimeExports.jsx(Button, { variant: "secondary", onClick: handleSecondaryBtnClicked ?? void 0, children: secondaryBtnTitle }),
       primaryBtnTitle && /* @__PURE__ */ jsxRuntimeExports.jsx(Button, { variant: primaryBtnVariant ?? "primary", onClick: handlePrimaryBtnClicked ?? void 0, children: primaryBtnTitle })
     ] }) : null
@@ -648,9 +654,9 @@ const ModalWrapper = (props) => {
     size
   } = props;
   if (type2 === "DIALOG") {
-    return /* @__PURE__ */ jsxRuntimeExports.jsx(Modal$1.Dialog, { size, children });
+    return /* @__PURE__ */ jsxRuntimeExports.jsx("div", { className: "modal position-static d-block", children: /* @__PURE__ */ jsxRuntimeExports.jsx(RBModal.Dialog, { size, children }) });
   }
-  return /* @__PURE__ */ jsxRuntimeExports.jsx(Modal$1, { size, show, onHide, children });
+  return /* @__PURE__ */ jsxRuntimeExports.jsx(RBModal, { size, show, onHide, children });
 };
 const commonParams = {
   method: "GET",
@@ -744,7 +750,7 @@ async function readPayload(response, payloadType) {
 function fail(error) {
   console.error(error);
   notifications.report(error);
-  return EitherExports.left(error);
+  return left(error);
 }
 const isAbort = (err) => err instanceof DOMException && err.name === "AbortError";
 async function ajax(url, params, validator, payloadType) {
@@ -754,7 +760,7 @@ async function ajax(url, params, validator, payloadType) {
     response = await fetch(url, params);
   } catch (err) {
     if (isAbort(err)) {
-      return EitherExports.left({ message: "Request aborted" });
+      return left({ message: "Request aborted" });
     }
     return fail({ message: `Network error: ${err instanceof Error ? err.message : String(err)}` });
   }
@@ -766,7 +772,7 @@ async function ajax(url, params, validator, payloadType) {
     payload = await readPayload(response, payloadType);
   } catch (err) {
     if (isAbort(err)) {
-      return EitherExports.left({ message: "Request aborted" });
+      return left({ message: "Request aborted" });
     }
     return fail({
       status: response.status,
@@ -774,13 +780,13 @@ async function ajax(url, params, validator, payloadType) {
     });
   }
   const decoded = validator ? validator.decode(payload) : success(payload);
-  if (EitherExports.isLeft(decoded)) {
+  if (isLeft(decoded)) {
     return fail({
       status: response.status,
       message: `Type inconsistency for properties of ${validator?.name} type: ${getPaths(decoded.left).join(", ")}`
     });
   }
-  return EitherExports.right(decoded.right);
+  return right(decoded.right);
 }
 const getPaths = (errors) => {
   return errors.map((error) => error.context.map(({ key }) => key).join("."));
@@ -813,15 +819,15 @@ function nonEmptyArray(codec, name = `NonEmptyArray<${codec.name}>`) {
   const arr = array(codec);
   return new Type(
     name,
-    (u) => arr.is(u) && _ArrayExports.isNonEmpty(u),
-    (u, c) => _functionExports.pipe(
+    (u) => arr.is(u) && isNonEmpty(u),
+    (u, c) => pipe(
       arr.validate(u, c),
-      EitherExports.chain((as) => {
-        const onea = NonEmptyArrayExports.fromArray(as);
-        return OptionExports.isNone(onea) ? failure(u, c) : success(onea.value);
+      chain((as) => {
+        const onea = fromArray(as);
+        return isNone(onea) ? failure(u, c) : success(onea.value);
       })
     ),
-    NonEmptyArrayExports.map(codec.encode)
+    map(codec.encode)
   );
 }
 function getUrlParameterByName(name) {
@@ -1062,7 +1068,7 @@ class ExerciseSettingsController {
 const TAnswer = intersection([
   type({
     answer: tuple([number, number]),
-    isСreatedByUser: boolean
+    isCreatedByUser: boolean
   }),
   partial({
     createdByInteraction: union([number, nullType])
@@ -1339,9 +1345,9 @@ class SurveyController {
   surveyCache = {};
   async getSurvey(suerveyId) {
     if (this.surveyCache[suerveyId])
-      return EitherExports.right(this.surveyCache[suerveyId]);
+      return right(this.surveyCache[suerveyId]);
     const result = await ajaxGet(`${API_URL}/api/survey/${suerveyId}`, TSurvey);
-    if (EitherExports.isRight(result))
+    if (isRight(result))
       this.surveyCache[suerveyId] = result.right;
     return result;
   }
@@ -1372,7 +1378,7 @@ class UserController {
     return ajaxGet(`${API_URL}/api/users/whoami`, TUserInfo);
   }
   async getLanguages() {
-    return EitherExports.right(["EN", "RU"]);
+    return right(["EN", "RU"]);
   }
   async setLanguage(language) {
     return ajaxPost(`${API_URL}/api/users/language`, { language }, TLanguage, void 0, "raw");
@@ -1434,7 +1440,7 @@ class SupplementaryQuestionStore {
       case "MATCHING":
         return this.answer.length === this.question.answers.length;
       default:
-        return _functionExports.absurd(this.question);
+        return absurd(this.question);
     }
   }
   get questionSubmitMode() {
@@ -1451,7 +1457,7 @@ class SupplementaryQuestionStore {
       violationLaws
     };
     const dataEither = await questionController.generateSupplementaryQuestion(questionRequest);
-    if (EitherExports.isLeft(dataEither)) {
+    if (isLeft(dataEither)) {
       this.setQuestionState("LOADED");
       return;
     }
@@ -1467,7 +1473,7 @@ class SupplementaryQuestionStore {
     });
     this.setQuestionState("ANSWER_EVALUATING");
     const feedbackEither = await questionController.addSupplementaryQuestionAnswer(body);
-    if (EitherExports.isLeft(feedbackEither)) {
+    if (isLeft(feedbackEither)) {
       this.setQuestionState("LOADED");
       return;
     }
@@ -1553,7 +1559,7 @@ class QuestionStore {
     this.setQuestionState("LOADING");
     const dataEither = await questionController.getQuestion(questionId);
     this.setQuestionState("LOADED");
-    if (EitherExports.isLeft(dataEither)) {
+    if (isLeft(dataEither)) {
       this.setErrorStoreState(dataEither.left);
       return;
     }
@@ -1564,7 +1570,7 @@ class QuestionStore {
     this.setQuestionState("LOADING");
     const dataEither = await questionController.generateQuestionByAttempt(attemptId);
     this.setQuestionState("LOADED");
-    if (EitherExports.isLeft(dataEither)) {
+    if (isLeft(dataEither)) {
       this.setErrorStoreState(dataEither.left);
       return;
     }
@@ -1575,7 +1581,7 @@ class QuestionStore {
     this.setQuestionState("LOADING");
     const dataEither = await questionController.generateQuestionByMetadata(metadataId);
     this.setQuestionState("LOADED");
-    if (EitherExports.isLeft(dataEither)) {
+    if (isLeft(dataEither)) {
       this.setErrorStoreState(dataEither.left);
       return;
     }
@@ -1590,7 +1596,7 @@ class QuestionStore {
     this.setQuestionState("ANSWER_EVALUATING");
     const feedbackEither = await questionController.generateNextCorrectAnswer(question.questionId);
     this.setQuestionState("LOADED");
-    if (EitherExports.isLeft(feedbackEither)) {
+    if (isLeft(feedbackEither)) {
       this.setErrorStoreState(feedbackEither.left);
       return;
     }
@@ -1605,7 +1611,7 @@ class QuestionStore {
     this.setQuestionState("ANSWER_EVALUATING");
     const feedbackEither = await questionController.addQuestionAnswer(body);
     this.setQuestionState("LOADED");
-    if (EitherExports.isLeft(feedbackEither)) {
+    if (isLeft(feedbackEither)) {
       this.setErrorStoreState(feedbackEither.left);
       return;
     }
@@ -1738,7 +1744,7 @@ class ExerciseStore {
     this.isExerciseLoading = true;
     const exercise = await exerciseController.getExerciseShortInfo(this.exerciseId, this.courseId);
     this.isExerciseLoading = false;
-    if (EitherExports.isRight(exercise)) {
+    if (isRight(exercise)) {
       this.exercise = exercise.right;
     } else {
       this.storeState = { tag: "ERROR", error: exercise.left };
@@ -1750,7 +1756,7 @@ class ExerciseStore {
     }
     this.forceSetValidState();
     const resultEither = await exerciseController.getExerciseAttempt(attemptId);
-    if (EitherExports.isLeft(resultEither)) {
+    if (isLeft(resultEither)) {
       this.storeState = { tag: "ERROR", error: resultEither.left };
       return;
     }
@@ -1768,7 +1774,7 @@ class ExerciseStore {
     }
     this.forceSetValidState();
     const resultEither = await exerciseController.getExistingExerciseAttempt(exercise.id, this.courseId);
-    if (EitherExports.isLeft(resultEither)) {
+    if (isLeft(resultEither)) {
       this.storeState = { tag: "ERROR", error: resultEither.left };
       return;
     }
@@ -1789,7 +1795,7 @@ class ExerciseStore {
     }
     this.forceSetValidState();
     const resultEither = await exerciseController.createExerciseAttempt(exercise.id, this.courseId);
-    if (EitherExports.isLeft(resultEither)) {
+    if (isLeft(resultEither)) {
       this.storeState = { tag: "ERROR", error: resultEither.left };
       return;
     }
@@ -1803,7 +1809,7 @@ class ExerciseStore {
     }
     this.forceSetValidState();
     const resultEither = await exerciseController.createDebugExerciseAttempt(exercise.id, this.courseId);
-    if (EitherExports.isLeft(resultEither)) {
+    if (isLeft(resultEither)) {
       this.storeState = { tag: "ERROR", error: resultEither.left };
       return;
     }
@@ -1830,7 +1836,7 @@ class ExerciseStore {
       surveyController.getSurvey(surveyId),
       surveyController.getCurrentUserAttemptSurveyVotes(surveyId, attemptId)
     ]);
-    if (EitherExports.isRight(survey) && EitherExports.isRight(surveyResults)) {
+    if (isRight(survey) && isRight(surveyResults)) {
       const tmp = groupBy(surveyResults.right, (x) => x.questionId);
       this.survey = {
         survey: survey.right,
@@ -1867,22 +1873,30 @@ class ExerciseStore {
   };
 }
 function groupBy(list, keyGetter) {
-  const map = /* @__PURE__ */ new Map();
+  const map2 = /* @__PURE__ */ new Map();
   list.forEach((item) => {
     const key = keyGetter(item);
-    const collection = map.get(key);
+    const collection = map2.get(key);
     if (!collection) {
-      map.set(key, [item]);
+      map2.set(key, [item]);
     } else {
       collection.push(item);
     }
   });
-  return map;
+  return map2;
 }
 let sharedExerciseStore;
 function getExerciseStore() {
   return sharedExerciseStore ??= new ExerciseStore();
 }
+function answerSlotId(node) {
+  const attribs = node.attribs;
+  if (node.type !== "tag" || attribs?.["data-answer-id"] === void 0) {
+    return null;
+  }
+  return +attribs["data-answer-id"];
+}
+const selectedOption = (options, answers, slotId) => options.find((o) => o.value === answers.find((a) => a.answer[0] === slotId)?.answer[1]) ?? null;
 const MatchingQuestionComponent = observer((props) => {
   const { question } = props;
   const { options } = question;
@@ -1897,7 +1911,7 @@ const MatchingQuestionComponent = observer((props) => {
   return /* @__PURE__ */ jsxRuntimeExports.jsx("div", { children: "Not Implemented" });
 });
 const DragAndDropMatchingQuestionComponent = observer((props) => {
-  const { question, getAnswers, onChanged } = props;
+  const { question, getAnswers, getFeedback, onChanged } = props;
   if (question.options.displayMode !== "dragNdrop") {
     return null;
   }
@@ -1908,7 +1922,7 @@ const DragAndDropMatchingQuestionComponent = observer((props) => {
   reactExports.useEffect(() => {
     document.querySelectorAll(`[id^="question_${question.questionId}_answer_"]`).forEach((e) => {
       e.classList.add("comp-ph-dropzone");
-      Object.keys(dropzoneStyle).forEach((k) => e.style[k] = dropzoneStyle[k]);
+      Object.assign(e.style, dropzoneStyle);
       e.innerHTML = `<div class="comp-ph-dropzone-placeholder">${options.dropzoneHtml}</div>`;
     });
     const droppable = new Droppable(document.querySelectorAll(".comp-ph-droppable-container"), {
@@ -1921,8 +1935,8 @@ const DragAndDropMatchingQuestionComponent = observer((props) => {
     });
     droppable.on("drag:over", () => console.log("is out"));
     droppable.on("droppable:stop", (e) => {
-      const draggableId = e?.data?.dragEvent?.data?.source?.id;
-      const droppableId = e?.data?.dropzone?.id;
+      const draggableId = e.dragEvent?.source?.id;
+      const droppableId = e.dropzone?.id;
       if (!draggableId || !droppableId) {
         return;
       }
@@ -1936,25 +1950,62 @@ const DragAndDropMatchingQuestionComponent = observer((props) => {
       }
       setTimeout(() => {
         const newHistory = [...document.querySelectorAll(`[id^="question_${question.questionId}_answer_"] > [id^="dragAnswer_"]`)].map((e2) => {
-          const leftId = e2.parentElement?.id.split(`question_${question.questionId}_answer_`)[1] ?? "";
+          const slot = e2.parentElement;
+          const leftId = slot?.getAttribute("data-answer-id") ?? slot?.id.split(`question_${question.questionId}_answer_`)[1] ?? "";
           const rightId = e2?.id.split("dragAnswer_")[1] ?? "";
           return [+leftId, +rightId];
         });
         const oldHistory = getAnswers();
-        onChanged(newHistory.map((h) => ({ answer: h, isСreatedByUser: oldHistory.find((x) => x.answer[0] === h[0] && x.answer[1] === h[1])?.isСreatedByUser ?? true })));
+        onChanged(newHistory.map((h) => ({ answer: h, isCreatedByUser: oldHistory.find((x) => x.answer[0] === h[0] && x.answer[1] === h[1])?.isCreatedByUser ?? true })));
       }, 10);
     });
   }, [question.questionId]);
-  return /* @__PURE__ */ jsxRuntimeExports.jsx("div", { children: /* @__PURE__ */ jsxRuntimeExports.jsxs("div", { className: "row", children: [
-    /* @__PURE__ */ jsxRuntimeExports.jsx("div", { className: "col-md", children: !options.requireContext ? /* @__PURE__ */ jsxRuntimeExports.jsx("p", { className: "d-flex flex-column comp-ph-droppable-container comp-ph-question-text", children: question.answers.map((a) => /* @__PURE__ */ jsxRuntimeExports.jsxs("div", { className: "d-flex flex-row mb-3", children: [
-      /* @__PURE__ */ jsxRuntimeExports.jsx("div", { className: "mr-2 mt-1", children: /* @__PURE__ */ jsxRuntimeExports.jsx("div", { id: `question_${question.questionId}_answer_${a.id}` }) }),
-      /* @__PURE__ */ jsxRuntimeExports.jsx("div", { dangerouslySetInnerHTML: { __html: a.text } })
-    ] })) }) : /* @__PURE__ */ jsxRuntimeExports.jsx("p", { className: "comp-ph-droppable-container comp-ph-question-text", dangerouslySetInnerHTML: { __html: question.text } }) }),
-    /* @__PURE__ */ jsxRuntimeExports.jsx("div", { className: "col-md comp-ph-droppable-container d-flex justify-content-start align-items-start flex-column", children: groups.map((g) => /* @__PURE__ */ jsxRuntimeExports.jsxs("div", { id: `dragAnswerWrapper_${g.id}`, className: "comp-ph-dropzone mb-2", style: dropzoneStyle, children: [
-      /* @__PURE__ */ jsxRuntimeExports.jsx("div", { className: "comp-ph-dropzone-placeholder", dangerouslySetInnerHTML: { __html: options.dropzoneHtml } }),
-      /* @__PURE__ */ jsxRuntimeExports.jsx("div", { id: `dragAnswer_${g.id}`, className: "comp-ph-draggable", style: draggableStyle, dangerouslySetInnerHTML: { __html: g.text } })
-    ] })) })
-  ] }) });
+  const answerKey = getAnswers().map((a) => a.answer.join(":")).join(",");
+  const confirmed = new Set((getFeedback?.()?.correctAnswers ?? []).map((a) => a.answer.join(":")));
+  const confirmedKey = [...confirmed].join(",");
+  reactExports.useEffect(() => {
+    const slots = Array.from(document.querySelectorAll(`[id^="question_${question.questionId}_answer_"]`));
+    const answers = getAnswers();
+    slots.forEach((slot) => {
+      const slotId = +(slot.getAttribute("data-answer-id") ?? slot.id.split(`question_${question.questionId}_answer_`)[1] ?? "");
+      const answer = answers.find((a) => a.answer[0] === slotId);
+      const placed = slot.querySelector(".comp-ph-draggable");
+      const placedGroupId = +(placed?.id.split("dragAnswer_")[1] ?? "");
+      if (placed && answer?.answer[1] !== placedGroupId) {
+        const wrapper = document.getElementById(`dragAnswerWrapper_${placedGroupId}`);
+        if (!options.multipleSelectionEnabled && wrapper && !wrapper.querySelector(".comp-ph-draggable")) {
+          wrapper.appendChild(placed);
+        } else {
+          placed.remove();
+        }
+        slot.classList.remove("draggable-dropzone--occupied");
+      }
+      if (answer && !slot.querySelector(".comp-ph-draggable")) {
+        const source = document.querySelector(`#dragAnswerWrapper_${answer.answer[1]} .comp-ph-draggable`);
+        if (source) {
+          slot.appendChild(options.multipleSelectionEnabled ? source.cloneNode(true) : source);
+          slot.classList.add("draggable-dropzone--occupied");
+        }
+      }
+      slot.classList.toggle(
+        "comp-ph-answer-locked",
+        answer !== void 0 && confirmed.has(answer.answer.join(":"))
+      );
+    });
+  }, [question.questionId, answerKey, confirmedKey]);
+  return /* @__PURE__ */ jsxRuntimeExports.jsxs("div", { children: [
+    !options.requireContext && /* @__PURE__ */ jsxRuntimeExports.jsx("p", { className: "mb-3 comp-ph-question-text", dangerouslySetInnerHTML: { __html: question.text } }),
+    /* @__PURE__ */ jsxRuntimeExports.jsxs("div", { className: "row", children: [
+      /* @__PURE__ */ jsxRuntimeExports.jsx("div", { className: "col-md", children: !options.requireContext ? /* @__PURE__ */ jsxRuntimeExports.jsx("p", { className: "d-flex flex-column comp-ph-droppable-container comp-ph-question-text", children: question.answers.map((a) => /* @__PURE__ */ jsxRuntimeExports.jsxs("div", { className: "d-flex flex-row mb-3", children: [
+        /* @__PURE__ */ jsxRuntimeExports.jsx("div", { className: "me-2 mt-1", children: /* @__PURE__ */ jsxRuntimeExports.jsx("div", { id: `question_${question.questionId}_answer_${a.id}` }) }),
+        /* @__PURE__ */ jsxRuntimeExports.jsx("div", { dangerouslySetInnerHTML: { __html: a.text } })
+      ] })) }) : /* @__PURE__ */ jsxRuntimeExports.jsx("p", { className: "comp-ph-droppable-container comp-ph-question-text", dangerouslySetInnerHTML: { __html: question.text } }) }),
+      /* @__PURE__ */ jsxRuntimeExports.jsx("div", { className: "col-md comp-ph-droppable-container d-flex justify-content-start align-items-start flex-column", children: groups.map((g) => /* @__PURE__ */ jsxRuntimeExports.jsxs("div", { id: `dragAnswerWrapper_${g.id}`, className: "comp-ph-dropzone mb-2", style: dropzoneStyle, children: [
+        /* @__PURE__ */ jsxRuntimeExports.jsx("div", { className: "comp-ph-dropzone-placeholder", dangerouslySetInnerHTML: { __html: options.dropzoneHtml } }),
+        /* @__PURE__ */ jsxRuntimeExports.jsx("div", { id: `dragAnswer_${g.id}`, className: "comp-ph-draggable", style: draggableStyle, dangerouslySetInnerHTML: { __html: g.text } })
+      ] })) })
+    ] })
+  ] });
 });
 const ComboboxMatchingQuestionComponent = observer((props) => {
   const { question, getAnswers, onChanged } = props;
@@ -1963,6 +2014,7 @@ const ComboboxMatchingQuestionComponent = observer((props) => {
   }
   const { groups = [] } = question;
   const groupsMaxLength = groups.reduce((len, g) => g.text.length > len ? g.text.length : len, 0);
+  const groupOptions = groups.map((g) => ({ value: g.id, label: g.text }));
   return /* @__PURE__ */ jsxRuntimeExports.jsxs("div", { children: [
     /* @__PURE__ */ jsxRuntimeExports.jsx("p", { className: "mb-5 comp-ph-question-text", dangerouslySetInnerHTML: { __html: question.text } }),
     /* @__PURE__ */ jsxRuntimeExports.jsx("div", { children: question.answers.map(
@@ -1971,15 +2023,15 @@ const ComboboxMatchingQuestionComponent = observer((props) => {
         /* @__PURE__ */ jsxRuntimeExports.jsx("div", { className: "col-md-auto", children: /* @__PURE__ */ jsxRuntimeExports.jsx("div", { style: { width: `${8 * groupsMaxLength + 100}px` }, children: /* @__PURE__ */ jsxRuntimeExports.jsx(
           StateManagedSelect$1,
           {
-            defaultValue: getAnswers().find((v) => v.answer[0] === asw.id)?.answer?.[1] ?? null,
-            options: groups.map((g) => ({ value: g.id, label: g.text })),
+            value: selectedOption(groupOptions, getAnswers(), asw.id),
+            options: groupOptions,
             components: { Option: RawHtmlSelectOption, SingleValue: RawHtmlSelectSingleValue },
             onChange: ((v) => {
               if (!v) {
                 return;
               }
               const otherHistoryItems = getAnswers().filter((v2) => v2.answer[0] !== asw.id);
-              const historyItem = { answer: [asw.id, +v.value], isСreatedByUser: true };
+              const historyItem = { answer: [asw.id, +v.value], isCreatedByUser: true };
               const newAnswersHistory = [...otherHistoryItems, historyItem];
               onChanged(newAnswersHistory);
             })
@@ -1994,39 +2046,37 @@ const ComboboxMatchingQuestionWithCtxComponent = observer((props) => {
   if (question.options.displayMode !== "combobox") {
     return null;
   }
-  const { groups = [], options } = question;
-  reactExports.useEffect(() => {
-    document.querySelectorAll(`#question_${question.questionId} [data-answer-id]`).forEach((elem) => {
-      const answerId = +elem.getAttribute("data-answer-id");
-      const selector = /* @__PURE__ */ jsxRuntimeExports.jsx(
+  const { groups = [] } = question;
+  const groupOptions = groups.map((g) => ({ value: g.id, label: g.text }));
+  const content = parse(question.text, {
+    replace: (node) => {
+      const answerId = answerSlotId(node);
+      if (answerId === null) {
+        return;
+      }
+      return /* @__PURE__ */ jsxRuntimeExports.jsx(
         StateManagedSelect$1,
         {
-          options: groups.map((g) => ({ value: g.id, label: g.text })),
+          value: selectedOption(groupOptions, getAnswers(), answerId),
+          options: groupOptions,
           components: { Option: RawHtmlSelectOption, SingleValue: RawHtmlSelectSingleValue },
           onChange: ((v) => {
             if (!v) {
               return;
             }
             const otherHistoryItems = getAnswers().filter((v2) => v2.answer[0] !== answerId);
-            const historyItem = { answer: [answerId, +v.value], isСreatedByUser: true };
+            const historyItem = { answer: [answerId, +v.value], isCreatedByUser: true };
             const newAnswersHistory = [...otherHistoryItems, historyItem];
             onChanged(newAnswersHistory);
           })
         }
       );
-      ReactDOM.render(selector, elem);
-    });
-  }, [question.questionId]);
-  return /* @__PURE__ */ jsxRuntimeExports.jsx("div", { id: `question_${question.questionId}`, children: /* @__PURE__ */ jsxRuntimeExports.jsx("p", { className: "comp-ph-question-text", dangerouslySetInnerHTML: { __html: question.text } }) });
+    }
+  });
+  return /* @__PURE__ */ jsxRuntimeExports.jsx("div", { id: `question_${question.questionId}`, children: /* @__PURE__ */ jsxRuntimeExports.jsx("div", { className: "comp-ph-question-text", children: content }) });
 });
-const RawHtmlSelectOption = (props) => {
-  const { innerRef, innerProps, children, ...rest } = props;
-  return /* @__PURE__ */ jsxRuntimeExports.jsx(components.Option, { ...rest, children: /* @__PURE__ */ jsxRuntimeExports.jsx("div", { ref: innerRef, ...innerProps, dangerouslySetInnerHTML: { __html: props.label } }) });
-};
-const RawHtmlSelectSingleValue = (props) => {
-  const { innerRef, innerProps, children, ...rest } = props;
-  return /* @__PURE__ */ jsxRuntimeExports.jsx(components.SingleValue, { ...rest, children: props.getValue()?.map((v) => /* @__PURE__ */ jsxRuntimeExports.jsx("div", { ref: innerRef, ...innerProps, dangerouslySetInnerHTML: { __html: v.label } })) });
-};
+const RawHtmlSelectOption = (props) => /* @__PURE__ */ jsxRuntimeExports.jsx(components.Option, { ...props, children: /* @__PURE__ */ jsxRuntimeExports.jsx("div", { dangerouslySetInnerHTML: { __html: props.data.label } }) });
+const RawHtmlSelectSingleValue = (props) => /* @__PURE__ */ jsxRuntimeExports.jsx(components.SingleValue, { ...props, children: /* @__PURE__ */ jsxRuntimeExports.jsx("div", { dangerouslySetInnerHTML: { __html: props.data.label } }) });
 const ClickableLabel = ({ id, title, value, onChange, isChecked, style, ...props }) => /* @__PURE__ */ jsxRuntimeExports.jsx("label", { htmlFor: id, onClick: () => onChange(value), style: isChecked && style || void 0, ...props, children: title });
 const ConcealedRadio = ({ id, value, name, selected, ...props }) => /* @__PURE__ */ jsxRuntimeExports.jsx("input", { id, type: "radio", name, checked: selected === value, readOnly: true, ...props });
 const ToggleSwitch = observer((props) => {
@@ -2085,14 +2135,14 @@ const SwitchMultiChoiceQuestionComponent = observer((props) => {
     const value = selectorTexts.indexOf(val);
     const newHistory = [
       ...getAnswers().filter((v) => v.answer[0] !== answerId),
-      { answer: [answerId, value], isСreatedByUser: true }
+      { answer: [answerId, value], isCreatedByUser: true }
     ];
     onChanged(newHistory);
   };
   return /* @__PURE__ */ jsxRuntimeExports.jsxs("div", { children: [
     /* @__PURE__ */ jsxRuntimeExports.jsx("p", { children: /* @__PURE__ */ jsxRuntimeExports.jsx("div", { className: "comp-ph-question-text", dangerouslySetInnerHTML: { __html: question.text } }) }),
     /* @__PURE__ */ jsxRuntimeExports.jsx("p", { className: "d-flex flex-column", children: question.answers.map((a) => /* @__PURE__ */ jsxRuntimeExports.jsxs("div", { className: "d-flex flex-row mb-3", children: [
-      /* @__PURE__ */ jsxRuntimeExports.jsx("div", { className: "mr-2 mt-1", children: /* @__PURE__ */ jsxRuntimeExports.jsx(
+      /* @__PURE__ */ jsxRuntimeExports.jsx("div", { className: "me-2 mt-1", children: /* @__PURE__ */ jsxRuntimeExports.jsx(
         ToggleSwitch,
         {
           id: `question_${question.questionId}_anwser_${a.id}`,
@@ -2117,45 +2167,32 @@ const SwitchMultiChoiceQuestionWithCtxComponent = observer((props) => {
     const value = selectorTexts.indexOf(val);
     const newHistory = [
       ...getAnswers().filter((v) => v.answer[0] !== answerId),
-      { answer: [answerId, value], isСreatedByUser: true }
+      { answer: [answerId, value], isCreatedByUser: true }
     ];
     onChanged(newHistory);
   };
-  reactExports.useEffect(() => {
-    document.querySelectorAll(`#question_${question.questionId} [data-answer-id]`).forEach((e) => {
-      const id = +(e.getAttribute("data-answer-id") ?? -1);
-      const component = /* @__PURE__ */ jsxRuntimeExports.jsx(
+  const content = parse(question.text, {
+    replace: (node) => {
+      const id = answerSlotId(node);
+      if (id === null) {
+        return;
+      }
+      return /* @__PURE__ */ jsxRuntimeExports.jsx(
         ToggleSwitch,
         {
           id: `toggle_answer_${id}`,
-          selected: selectorTexts[getAnswers().filter((h) => h.answer[0] === +id)?.[0]?.answer?.[1]] ?? "",
+          selected: selectorTexts[getAnswers().filter((h) => h.answer[0] === id)?.[0]?.answer?.[1]] ?? "",
           inputAttributes: { "data-answer-id": id },
           values: selectorTexts,
-          onChange: (val) => onSwitched(+id, val)
+          onChange: (val) => onSwitched(id, val)
         }
       );
-      ReactDOM.render(component, e);
-      e.id = "";
-    });
-  }, [question.questionId]);
-  reactExports.useEffect(() => {
-    document.querySelectorAll(`#question_${question.questionId} input[data-answer-id]`).forEach((e) => {
-      +(e.getAttribute("data-answer-id") ?? -1);
-      e.checked = void 0;
-    });
-    getAnswers().forEach(({ answer }) => {
-      const [id, value] = answer;
-      const answr = document.querySelector(`#toggle_answer_${id} input[data-value='${selectorTexts[value]}']`);
-      if (!answr || answr.checked) {
-        return;
-      }
-      setTimeout(() => answr.checked = true, 10);
-    });
-  }, [question.questionId, getAnswers()]);
-  return /* @__PURE__ */ jsxRuntimeExports.jsx("div", { id: `question_${question.questionId}`, children: /* @__PURE__ */ jsxRuntimeExports.jsx("p", { children: /* @__PURE__ */ jsxRuntimeExports.jsx("div", { className: "comp-ph-question-text", dangerouslySetInnerHTML: { __html: question.text } }) }) });
+    }
+  });
+  return /* @__PURE__ */ jsxRuntimeExports.jsx("div", { id: `question_${question.questionId}`, children: /* @__PURE__ */ jsxRuntimeExports.jsx("div", { className: "comp-ph-question-text", children: content }) });
 });
 const DndMultiChoiceQuestionComponent = observer((props) => {
-  const { question, getAnswers, onChanged, answers } = props;
+  const { question, getAnswers, getFeedback, onChanged, answers } = props;
   if (question.options.displayMode !== "dragNdrop") {
     return null;
   }
@@ -2169,15 +2206,15 @@ const DndMultiChoiceQuestionComponent = observer((props) => {
     groups: [
       {
         id: 0,
-        text: `<span class="badge badge-success" style="height: 100%; width: 100%;display: flex; align-items: center;justify-content: center;">✓</span>`
+        text: `<span class="badge bg-success" style="height: 100%; width: 100%;display: flex; align-items: center;justify-content: center;">✓</span>`
       },
       {
         id: 1,
-        text: `<span class="badge badge-danger" style="height: 100%; width: 100%;display: flex; align-items: center;justify-content: center;">x</span>`
+        text: `<span class="badge bg-danger" style="height: 100%; width: 100%;display: flex; align-items: center;justify-content: center;">x</span>`
       }
     ]
   };
-  return /* @__PURE__ */ jsxRuntimeExports.jsx(DragAndDropMatchingQuestionComponent, { question: matchingQuestion, getAnswers, onChanged, answers });
+  return /* @__PURE__ */ jsxRuntimeExports.jsx(DragAndDropMatchingQuestionComponent, { question: matchingQuestion, getAnswers, getFeedback, onChanged, answers });
 });
 const OrderQuestionComponent = observer((props) => {
   const { question, getAnswers, onChanged, getFeedback } = props;
@@ -2190,12 +2227,12 @@ const OrderQuestionComponent = observer((props) => {
     const originalText2 = document.createElement("div");
     originalText2.innerHTML = question.text;
     return originalText2;
-  }, []);
+  }, [question.text]);
   reactExports.useEffect(() => {
     document.querySelectorAll(`#question_${question.questionId} [data-answer-id]`).forEach((e) => {
       const idStr = e.getAttribute("data-answer-id") ?? "";
       const id = +idStr;
-      e.addEventListener("click", () => onChanged([...getAnswers(), { answer: [id, id], isСreatedByUser: true }]));
+      e.addEventListener("click", () => onChanged([...getAnswers(), { answer: [id, id], isCreatedByUser: true }]));
     });
     document.querySelectorAll("[data-comp-ph-value]").forEach((e) => {
       const value = e.getAttribute("data-comp-ph-value");
@@ -2206,6 +2243,7 @@ const OrderQuestionComponent = observer((props) => {
       e.innerHTML += `<span class="comp-ph-expr-top-hint">${pos}</span>`;
     });
   }, [question.questionId]);
+  const answersCount = getAnswers().length;
   reactExports.useEffect(() => {
     document.querySelectorAll(`#question_${question.questionId} [data-answer-id]`).forEach((e) => {
       const value = e.getAttribute("data-comp-ph-value");
@@ -2219,7 +2257,7 @@ const OrderQuestionComponent = observer((props) => {
       const [prevInteractionId, result] = acc;
       if (prevInteractionId === -1)
         return acc;
-      if (answer.isСreatedByUser || prevInteractionId !== 0 && prevInteractionId !== answer.createdByInteraction)
+      if (answer.isCreatedByUser || prevInteractionId !== 0 && prevInteractionId !== answer.createdByInteraction)
         return [-1, result];
       result.push(answer);
       return [answer.createdByInteraction || -1, result];
@@ -2246,7 +2284,7 @@ const OrderQuestionComponent = observer((props) => {
         }
       });
     });
-  }, [question.questionId, getAnswers().length]);
+  }, [question.questionId, answersCount]);
   const trace = getFeedback()?.trace ?? (getAnswers().length === 0 ? question.initialTrace : null);
   const isTraceVisible = options.showTrace && !isNullOrUndefined(trace) && trace.length > 0;
   return /* @__PURE__ */ jsxRuntimeExports.jsxs("div", { id: `question_${question.questionId}`, children: [
@@ -2271,7 +2309,7 @@ const RadioSingleChoiceQuestionComponent = observer((props) => {
   }
   const selfOnChange = (answerId, checked) => {
     if (checked) {
-      onChanged([{ answer: [answerId, answerId], isСreatedByUser: true }]);
+      onChanged([{ answer: [answerId, answerId], isCreatedByUser: true }]);
     }
   };
   return /* @__PURE__ */ jsxRuntimeExports.jsxs("div", { children: [
@@ -2288,7 +2326,7 @@ const RadioSingleChoiceQuestionComponent = observer((props) => {
         htmlFor: `question_${question.questionId}_answer_${a.id}`,
         className: `comp-ph-singlechoice-label d-flex flex-row ${idx !== question.answers.length - 1 && "mb-3" || ""}`,
         children: [
-          /* @__PURE__ */ jsxRuntimeExports.jsx("div", { className: "mr-2 mt-1", children: /* @__PURE__ */ jsxRuntimeExports.jsx(
+          /* @__PURE__ */ jsxRuntimeExports.jsx("div", { className: "me-2 mt-1", children: /* @__PURE__ */ jsxRuntimeExports.jsx(
             "input",
             {
               id: `question_${question.questionId}_answer_${a.id}`,
@@ -2301,7 +2339,8 @@ const RadioSingleChoiceQuestionComponent = observer((props) => {
           ) }),
           /* @__PURE__ */ jsxRuntimeExports.jsx("div", { dangerouslySetInnerHTML: { __html: a.text } })
         ]
-      }
+      },
+      a.id
     )) })
   ] });
 });
@@ -2310,16 +2349,18 @@ const RadioSingleChoiceQuestionWithCtxComponent = observer((props) => {
   if (question.options.displayMode !== "radio") {
     return null;
   }
-  const { options } = question;
   const selfOnChange = (answerId, checked) => {
     if (checked) {
-      onChanged([{ answer: [answerId, answerId], isСreatedByUser: true }]);
+      onChanged([{ answer: [answerId, answerId], isCreatedByUser: true }]);
     }
   };
-  reactExports.useEffect(() => {
-    document.querySelectorAll(`#question_${question.questionId} [data-answer-id]`).forEach((e) => {
-      const id = e.getAttribute("data-answer-id") ?? -1;
-      const component = /* @__PURE__ */ jsxRuntimeExports.jsxs(
+  const content = parse(question.text, {
+    replace: (node) => {
+      const id = answerSlotId(node);
+      if (id === null) {
+        return;
+      }
+      return /* @__PURE__ */ jsxRuntimeExports.jsxs(
         "label",
         {
           htmlFor: `question_${question.questionId}_answer_${id}`,
@@ -2332,43 +2373,28 @@ const RadioSingleChoiceQuestionWithCtxComponent = observer((props) => {
                 name: `switch_${question.questionId}`,
                 "data-answer-id": id,
                 type: "radio",
-                checked: getAnswers().some((h) => h.answer[0] === +id),
-                onChange: (e2) => selfOnChange(+id, e2.target.checked),
+                checked: getAnswers().some((h) => h.answer[0] === id),
+                onChange: (e) => selfOnChange(id, e.target.checked),
                 readOnly: true
               }
             ),
-            /* @__PURE__ */ jsxRuntimeExports.jsx("span", { dangerouslySetInnerHTML: { __html: e.innerHTML } })
+            /* @__PURE__ */ jsxRuntimeExports.jsx("span", { children: libExports.domToReact(node.children) })
           ]
         }
       );
-      ReactDOM.render(component, e);
-      e.id = "";
-    });
-  }, [question.questionId]);
-  reactExports.useEffect(() => {
-    document.querySelectorAll(`#question_${question.questionId} input[data-answer-id]`).forEach((e) => {
-      e.checked = void 0;
-    });
-    getAnswers().forEach(({ answer }) => {
-      const id = answer[0];
-      const answr = document.querySelector(`#question_${question.questionId} input[data-answer-id='${id}']`);
-      if (!answr) {
-        return;
-      }
-      setTimeout(() => answr.checked = true, 10);
-    });
-  }, [question.questionId, getAnswers()]);
-  return /* @__PURE__ */ jsxRuntimeExports.jsx("div", { id: `question_${question.questionId}`, children: /* @__PURE__ */ jsxRuntimeExports.jsx("p", { children: /* @__PURE__ */ jsxRuntimeExports.jsx("div", { className: "comp-ph-question-text", dangerouslySetInnerHTML: { __html: question.text } }) }) });
+    }
+  });
+  return /* @__PURE__ */ jsxRuntimeExports.jsx("div", { id: `question_${question.questionId}`, children: /* @__PURE__ */ jsxRuntimeExports.jsx("div", { className: "comp-ph-question-text", children: content }) });
 });
 const QuestionComponent = observer((props) => {
   const { question, answers, onChanged, getAnswers, getFeedback, isFeedbackLoading, isQuestionFreezed } = props;
   let questonComponent;
   switch (question.type) {
     case "MATCHING":
-      questonComponent = /* @__PURE__ */ jsxRuntimeExports.jsx(MatchingQuestionComponent, { question, onChanged, answers, getAnswers });
+      questonComponent = /* @__PURE__ */ jsxRuntimeExports.jsx(MatchingQuestionComponent, { question, onChanged, answers, getAnswers, getFeedback });
       break;
     case "MULTI_CHOICE":
-      questonComponent = /* @__PURE__ */ jsxRuntimeExports.jsx(MultiChoiceQuestionComponent, { question, onChanged, answers, getAnswers });
+      questonComponent = /* @__PURE__ */ jsxRuntimeExports.jsx(MultiChoiceQuestionComponent, { question, onChanged, answers, getAnswers, getFeedback });
       break;
     case "SINGLE_CHOICE":
       questonComponent = /* @__PURE__ */ jsxRuntimeExports.jsx(SingleChoiceQuestionComponent, { question, onChanged, answers, getAnswers });
@@ -2377,7 +2403,7 @@ const QuestionComponent = observer((props) => {
       questonComponent = /* @__PURE__ */ jsxRuntimeExports.jsx(OrderQuestionComponent, { question, onChanged, answers, getAnswers, getFeedback });
       break;
     default:
-      return _functionExports.absurd(question);
+      return absurd();
   }
   const wrapperClassName = [
     "comp-ph-question-wrapper",
@@ -2437,7 +2463,7 @@ const GenerateSupQuestion = observer((props) => {
   return /* @__PURE__ */ jsxRuntimeExports.jsxs(Optional, { isVisible: isAllVisible, children: [
     /* @__PURE__ */ jsxRuntimeExports.jsx(Optional, { isVisible: isButtonsVisible, children: /* @__PURE__ */ jsxRuntimeExports.jsxs("div", { className: "d-flex flex-row mt-3", children: [
       /* @__PURE__ */ jsxRuntimeExports.jsx(Button, { onClick: onDetailsClicked, variant: "primary", children: t("exercise_supquestion_details") }),
-      /* @__PURE__ */ jsxRuntimeExports.jsx(Button, { onClick: onGotitClicked, variant: "success", className: "ml-2", children: t("exercise_supquestion_gotit") })
+      /* @__PURE__ */ jsxRuntimeExports.jsx(Button, { onClick: onGotitClicked, variant: "success", className: "ms-2", children: t("exercise_supquestion_gotit") })
     ] }) }),
     /* @__PURE__ */ jsxRuntimeExports.jsx(
       Modal,
@@ -2535,7 +2561,7 @@ function DomainTerm({
             "button",
             {
               type: "button",
-              className: "close position-absolute",
+              className: "btn btn-link p-0 border-0 text-muted position-absolute",
               style: {
                 top: "0.5rem",
                 right: "0.5rem",
@@ -2592,7 +2618,7 @@ const Feedback = observer(({ store, showExtendedFeedback }) => {
           Badge,
           {
             className: "comp-ph-feedback-grade",
-            variant: "primary",
+            bg: "primary",
             children: [
               t("grade_feeback"),
               ": ",
@@ -2603,7 +2629,7 @@ const Feedback = observer(({ store, showExtendedFeedback }) => {
         " "
       ] }),
       feedback.correctSteps !== null && /* @__PURE__ */ jsxRuntimeExports.jsxs(jsxRuntimeExports.Fragment, { children: [
-        /* @__PURE__ */ jsxRuntimeExports.jsxs(Badge, { variant: "success", children: [
+        /* @__PURE__ */ jsxRuntimeExports.jsxs(Badge, { bg: "success", children: [
           t("correctsteps_feeback"),
           ": ",
           feedback.correctSteps
@@ -2615,7 +2641,7 @@ const Feedback = observer(({ store, showExtendedFeedback }) => {
           Badge,
           {
             className: "comp-ph-feedback-error-steps",
-            variant: "danger",
+            bg: "danger",
             children: [
               t("stepswitherrors_feeback"),
               ":",
@@ -2631,7 +2657,7 @@ const Feedback = observer(({ store, showExtendedFeedback }) => {
           Badge,
           {
             className: "comp-ph-feedback-remaining-steps",
-            variant: "info",
+            bg: "info",
             children: [
               t("stepsleft_feeback"),
               ": ",
@@ -2776,9 +2802,9 @@ const Pagination = observer(() => {
   const currentQuestionNumber = questionIds.find((v) => v.id === currentQuestionId)?.number ?? -1;
   const currentQuestionPosition = currentQuestionNumber - middleSliceSize <= 0 ? "BEGIN" : currentQuestionNumber + middleSliceSize > questionIds.length ? "END" : "MIDDLE";
   const offset = Math.floor(middleSliceSize / 2);
-  return /* @__PURE__ */ jsxRuntimeExports.jsx("div", { className: "d-flex justify-content-center", children: /* @__PURE__ */ jsxRuntimeExports.jsxs(Pagination$1, { className: "p-3", style: { marginBottom: "0 !important" }, children: [
+  return /* @__PURE__ */ jsxRuntimeExports.jsx("div", { className: "d-flex justify-content-center", children: /* @__PURE__ */ jsxRuntimeExports.jsxs(BootstrapPagination, { className: "p-3", style: { marginBottom: "0 !important" }, children: [
     /* @__PURE__ */ jsxRuntimeExports.jsx(Optional, { isVisible: questionIds.length <= maxNumbersInRow, children: questionIds.map((id) => /* @__PURE__ */ jsxRuntimeExports.jsx(
-      Pagination$1.Item,
+      BootstrapPagination.Item,
       {
         active: currentQuestionId === id.id,
         onClick: () => exerciseStore.currentQuestion.loadQuestion(id.id),
@@ -2787,11 +2813,11 @@ const Pagination = observer(() => {
       id.number
     )) }),
     /* @__PURE__ */ jsxRuntimeExports.jsxs(Optional, { isVisible: questionIds.length > maxNumbersInRow, children: [
-      /* @__PURE__ */ jsxRuntimeExports.jsx(Pagination$1.First, { disabled: currentQuestionId === questionIds[0].id, onClick: () => exerciseStore.currentQuestion.loadQuestion(questionIds[0].id) }),
-      /* @__PURE__ */ jsxRuntimeExports.jsx(Pagination$1.Prev, { disabled: currentQuestionId === questionIds[0].id, onClick: () => exerciseStore.currentQuestion.loadQuestion(questionIds[questionIds.findIndex((x) => currentQuestionId === x.id) - 1].id) }),
+      /* @__PURE__ */ jsxRuntimeExports.jsx(BootstrapPagination.First, { disabled: currentQuestionId === questionIds[0].id, onClick: () => exerciseStore.currentQuestion.loadQuestion(questionIds[0].id) }),
+      /* @__PURE__ */ jsxRuntimeExports.jsx(BootstrapPagination.Prev, { disabled: currentQuestionId === questionIds[0].id, onClick: () => exerciseStore.currentQuestion.loadQuestion(questionIds[questionIds.findIndex((x) => currentQuestionId === x.id) - 1].id) }),
       /* @__PURE__ */ jsxRuntimeExports.jsxs(Optional, { isVisible: currentQuestionPosition === "BEGIN", children: [
         questionIds.filter((id) => id.number <= beginEndSliceSize).map((id) => /* @__PURE__ */ jsxRuntimeExports.jsx(
-          Pagination$1.Item,
+          BootstrapPagination.Item,
           {
             active: currentQuestionId === id.id,
             onClick: () => exerciseStore.currentQuestion.loadQuestion(id.id),
@@ -2799,9 +2825,9 @@ const Pagination = observer(() => {
           },
           id.number
         )),
-        /* @__PURE__ */ jsxRuntimeExports.jsx(Pagination$1.Ellipsis, { disabled: true }),
+        /* @__PURE__ */ jsxRuntimeExports.jsx(BootstrapPagination.Ellipsis, { disabled: true }),
         /* @__PURE__ */ jsxRuntimeExports.jsx(
-          Pagination$1.Item,
+          BootstrapPagination.Item,
           {
             active: false,
             onClick: () => exerciseStore.currentQuestion.loadQuestion(questionIds[questionIds.length - 1].id),
@@ -2812,7 +2838,7 @@ const Pagination = observer(() => {
       ] }),
       /* @__PURE__ */ jsxRuntimeExports.jsxs(Optional, { isVisible: currentQuestionPosition === "MIDDLE", children: [
         /* @__PURE__ */ jsxRuntimeExports.jsx(
-          Pagination$1.Item,
+          BootstrapPagination.Item,
           {
             active: false,
             onClick: () => exerciseStore.currentQuestion.loadQuestion(questionIds[0].id),
@@ -2820,9 +2846,9 @@ const Pagination = observer(() => {
           },
           questionIds[0].number
         ),
-        /* @__PURE__ */ jsxRuntimeExports.jsx(Pagination$1.Ellipsis, { disabled: true }),
+        /* @__PURE__ */ jsxRuntimeExports.jsx(BootstrapPagination.Ellipsis, { disabled: true }),
         questionIds.filter((id) => id.number >= currentQuestionNumber - offset && id.number <= currentQuestionNumber + offset).map((id) => /* @__PURE__ */ jsxRuntimeExports.jsx(
-          Pagination$1.Item,
+          BootstrapPagination.Item,
           {
             active: currentQuestionId === id.id,
             onClick: () => exerciseStore.currentQuestion.loadQuestion(id.id),
@@ -2830,9 +2856,9 @@ const Pagination = observer(() => {
           },
           id.number
         )),
-        /* @__PURE__ */ jsxRuntimeExports.jsx(Pagination$1.Ellipsis, { disabled: true }),
+        /* @__PURE__ */ jsxRuntimeExports.jsx(BootstrapPagination.Ellipsis, { disabled: true }),
         /* @__PURE__ */ jsxRuntimeExports.jsx(
-          Pagination$1.Item,
+          BootstrapPagination.Item,
           {
             active: false,
             onClick: () => exerciseStore.currentQuestion.loadQuestion(questionIds[questionIds.length - 1].id),
@@ -2843,7 +2869,7 @@ const Pagination = observer(() => {
       ] }),
       /* @__PURE__ */ jsxRuntimeExports.jsxs(Optional, { isVisible: currentQuestionPosition === "END", children: [
         /* @__PURE__ */ jsxRuntimeExports.jsx(
-          Pagination$1.Item,
+          BootstrapPagination.Item,
           {
             active: false,
             onClick: () => exerciseStore.currentQuestion.loadQuestion(questionIds[0].id),
@@ -2851,9 +2877,9 @@ const Pagination = observer(() => {
           },
           questionIds[0].number
         ),
-        /* @__PURE__ */ jsxRuntimeExports.jsx(Pagination$1.Ellipsis, { disabled: true }),
+        /* @__PURE__ */ jsxRuntimeExports.jsx(BootstrapPagination.Ellipsis, { disabled: true }),
         questionIds.filter((id) => id.number > questionIds.length - beginEndSliceSize).map((id) => /* @__PURE__ */ jsxRuntimeExports.jsx(
-          Pagination$1.Item,
+          BootstrapPagination.Item,
           {
             active: currentQuestionId === id.id,
             onClick: () => exerciseStore.currentQuestion.loadQuestion(id.id),
@@ -2862,8 +2888,8 @@ const Pagination = observer(() => {
           id.number
         ))
       ] }),
-      /* @__PURE__ */ jsxRuntimeExports.jsx(Pagination$1.Next, { disabled: currentQuestionId === questionIds[questionIds.length - 1].id, onClick: () => exerciseStore.currentQuestion.loadQuestion(questionIds[questionIds.findIndex((x) => currentQuestionId === x.id) + 1].id) }),
-      /* @__PURE__ */ jsxRuntimeExports.jsx(Pagination$1.Last, { disabled: currentQuestionId === questionIds[questionIds.length - 1].id, onClick: () => exerciseStore.currentQuestion.loadQuestion(questionIds[questionIds.length - 1].id) })
+      /* @__PURE__ */ jsxRuntimeExports.jsx(BootstrapPagination.Next, { disabled: currentQuestionId === questionIds[questionIds.length - 1].id, onClick: () => exerciseStore.currentQuestion.loadQuestion(questionIds[questionIds.findIndex((x) => currentQuestionId === x.id) + 1].id) }),
+      /* @__PURE__ */ jsxRuntimeExports.jsx(BootstrapPagination.Last, { disabled: currentQuestionId === questionIds[questionIds.length - 1].id, onClick: () => exerciseStore.currentQuestion.loadQuestion(questionIds[questionIds.length - 1].id) })
     ] })
   ] }) });
 });
@@ -2964,15 +2990,9 @@ const useCurrentUser = () => {
 };
 const ExerciseHeader = observer(() => {
   const exerciseStore = getExerciseStore();
-  const { t, i18n } = useTranslation();
-  const session = useSession();
+  const { t } = useTranslation();
   const user = useCurrentUser();
   const { currentAttempt, exercise, currentQuestion } = exerciseStore;
-  reactExports.useCallback(() => {
-    const currentLang = user?.language;
-    const newLang = currentLang === "RU" ? "EN" : "RU";
-    session.changeLanguage(newLang);
-  }, [session, user]);
   if (!currentAttempt || !exercise || !user) {
     return null;
   }
@@ -3027,7 +3047,7 @@ const SurveyComponent = (props) => {
   ] });
 };
 const SurveyYesNoQuestion = (props) => {
-  const { question, onAnswered, value, isCompleted } = props;
+  const { question, onAnswered, value } = props;
   return /* @__PURE__ */ jsxRuntimeExports.jsxs("div", { children: [
     /* @__PURE__ */ jsxRuntimeExports.jsx("div", { className: "mb-1", children: question.text }),
     /* @__PURE__ */ jsxRuntimeExports.jsxs("div", { className: "d-flex flex-row mt-2", children: [
@@ -3035,7 +3055,7 @@ const SurveyYesNoQuestion = (props) => {
         Button,
         {
           variant: "secondary",
-          className: "mr-2",
+          className: "me-2",
           active: question.options.yesValue === value,
           onClick: () => onAnswered(question.id, question.options.yesValue),
           disabled: value !== void 0,
@@ -3060,7 +3080,7 @@ const SingleChoiceSurveyQuestionComponent = (props) => {
   return /* @__PURE__ */ jsxRuntimeExports.jsxs("div", { children: [
     /* @__PURE__ */ jsxRuntimeExports.jsx("div", { className: "mb-1", children: question.text }),
     /* @__PURE__ */ jsxRuntimeExports.jsx("div", { className: "d-flex mt-2", children: /* @__PURE__ */ jsxRuntimeExports.jsx("div", { children: question.options.map((o) => /* @__PURE__ */ jsxRuntimeExports.jsx("div", { children: /* @__PURE__ */ jsxRuntimeExports.jsx(
-      FormImpl.Check,
+      Form.Check,
       {
         disabled: isCompleted,
         checked: value === o.id,
@@ -3079,7 +3099,7 @@ const OpenEndedSurveyQuestionComponent = (props) => {
   return /* @__PURE__ */ jsxRuntimeExports.jsxs("div", { children: [
     /* @__PURE__ */ jsxRuntimeExports.jsx("div", { className: "mb-1", children: question.text }),
     /* @__PURE__ */ jsxRuntimeExports.jsx("div", { className: "d-flex flex-row mt-2", children: /* @__PURE__ */ jsxRuntimeExports.jsx(
-      FormImpl.Control,
+      Form.Control,
       {
         disabled: isCompleted,
         value,
@@ -3269,7 +3289,7 @@ const TourProvider = ({ steps: steps2, children }) => {
     });
     tourRef.current = tour;
     tour.start = async () => {
-      tour.cancel();
+      await tour.cancel();
       tour.steps.forEach(
         (step) => step.destroy()
       );
@@ -3325,15 +3345,16 @@ const TourProvider = ({ steps: steps2, children }) => {
           setTimeout(() => showNextStep(), 500);
         }
       };
-      showNextStep();
+      await showNextStep();
     };
     setIsReady(true);
-  }, [steps2]);
+  }, [steps2, t]);
+  const start = reactExports.useCallback(() => tourRef.current?.start?.(), []);
   return /* @__PURE__ */ jsxRuntimeExports.jsx(
     TourContext.Provider,
     {
       value: {
-        start: () => tourRef.current?.start?.(),
+        start,
         tour: tourRef.current,
         isReady
       },
@@ -3354,7 +3375,7 @@ const TourLauncher = () => {
     if (shown !== "true") {
       start();
     }
-  }, [isReady]);
+  }, [isReady, start]);
   return null;
 };
 const Exercise = observer(() => {
@@ -3542,7 +3563,7 @@ const Statistics = () => {
       const controller = exerciseController;
       setIsLoading(true);
       const statistics2 = await controller.getExerciseStatistics(+exerciseId);
-      if (EitherExports.isRight(statistics2)) {
+      if (isRight(statistics2)) {
         setStatistics(statistics2.right);
       }
       setIsLoading(false);
@@ -3571,22 +3592,20 @@ const ExercisesList = observer(() => {
   reactExports.useEffect(() => {
     (async () => {
       setIsLoading(true);
-      const controller = exerciseController;
-      const dataEither = await controller.getExercises();
-      if (EitherExports.isRight(dataEither)) {
+      const dataEither = await exerciseController.getExercises();
+      if (isRight(dataEither)) {
         setData(dataEither.right);
       }
       setIsLoading(false);
     })();
   }, []);
-  return /* @__PURE__ */ jsxRuntimeExports.jsx("div", { children: /* @__PURE__ */ jsxRuntimeExports.jsx(ListGroup, { children: data.map((i) => /* @__PURE__ */ jsxRuntimeExports.jsx(ListGroup.Item, { children: /* @__PURE__ */ jsxRuntimeExports.jsx("a", { href: `exercise?exerciseId=${i}`, children: i }) })) }) });
+  return /* @__PURE__ */ jsxRuntimeExports.jsx("div", { children: /* @__PURE__ */ jsxRuntimeExports.jsx(LoadingWrapper, { isLoading, children: /* @__PURE__ */ jsxRuntimeExports.jsx(ListGroup, { children: data.map((i) => /* @__PURE__ */ jsxRuntimeExports.jsx(ListGroup.Item, { children: /* @__PURE__ */ jsxRuntimeExports.jsx("a", { href: `exercise?exerciseId=${i}`, children: i }) }, i)) }) }) });
 });
 const SurveyPage = observer(() => {
   const exerciseStore = getExerciseStore();
-  const { exerciseState, setExerciseState, storeState: excerciseStoreState, currentQuestion, survey } = exerciseStore;
+  const { exerciseState, setExerciseState, storeState: excerciseStoreState, currentQuestion } = exerciseStore;
   const { storeState: currentQuestionStoreState } = currentQuestion;
-  const { t } = useTranslation();
-  const [surveyState, setSurveyState] = reactExports.useState("ACTIVE");
+  const [surveyState] = reactExports.useState("ACTIVE");
   reactExports.useEffect(() => {
     (async () => {
       if (exerciseState === "LAUNCH_ERROR") {
@@ -3614,11 +3633,11 @@ const SurveyPage = observer(() => {
     await exerciseStore.createExerciseAttempt();
     await loadQuestion();
   };
-  const onSurveyAnswered = reactExports.useCallback((survey2, questionId, answers) => {
+  const onSurveyAnswered = reactExports.useCallback((_survey, _questionId, _answers) => {
     console.log("лень рефакторить, не работает крч");
   }, []);
   const surveyOptions = exerciseStore.exercise?.options.surveyOptions;
-  exerciseStore.currentQuestion.question?.questionId;
+  const currentQuestionId = exerciseStore.currentQuestion.question?.questionId ?? -1;
   if (!surveyOptions?.enabled)
     return null;
   return /* @__PURE__ */ jsxRuntimeExports.jsxs(jsxRuntimeExports.Fragment, { children: [
@@ -3630,10 +3649,10 @@ const SurveyPage = observer(() => {
         /* @__PURE__ */ jsxRuntimeExports.jsx(Optional, { isVisible: surveyState !== "COMPLETED" && currentQuestion.questionState === "LOADED", children: /* @__PURE__ */ jsxRuntimeExports.jsx("div", { className: "mt-2", children: /* @__PURE__ */ jsxRuntimeExports.jsx(
           SurveyComponent,
           {
-            questionId: exerciseStore.currentQuestion.question?.questionId ?? -1,
+            questionId: currentQuestionId,
             survey: exerciseStore.survey.survey,
-            value: exerciseStore.survey?.questions[exerciseStore.currentQuestion.question?.questionId ?? -1].results,
-            enabledSurveyQuestions: exerciseStore.survey?.questions[exerciseStore.currentQuestion.question?.questionId ?? -1].questions ?? [],
+            value: exerciseStore.survey?.questions[currentQuestionId].results,
+            enabledSurveyQuestions: exerciseStore.survey?.questions[currentQuestionId].questions ?? [],
             onAnswersSended: onSurveyAnswered
           }
         ) }) })
@@ -3657,7 +3676,8 @@ class ExerciseStageStore {
       const laws = this.laws.slice();
       const concepts = this.concepts.slice();
       const skills = this.skills.slice();
-      untracked(() => this.updateBankStats(concepts, laws, skills, card.tags, complexity));
+      const tags = card.tags.slice();
+      untracked(() => this.updateBankStats(concepts, laws, skills, tags, complexity));
     }, { delay: 1e3 });
   }
   courseId;
@@ -3681,7 +3701,7 @@ class ExerciseStageStore {
     this.abortController = currentAbortController;
     this.bankLoadingState = "IN_PROGRESS";
     const newData = await exerciseSettingsController.search(card.domainId, concepts, laws, skills, tags, complexity, 5, this.courseId, currentAbortController.signal);
-    if (EitherExports.isRight(newData)) {
+    if (isRight(newData)) {
       this.bankSearchResult = newData.right;
       this.bankLoadingState = "COMPLETED";
     }
@@ -3707,6 +3727,8 @@ class ExerciseSettingsStore {
   strategies = null;
   currentCard = null;
   courseId = null;
+  storeState = { tag: "VALID" };
+  loadToken = 0;
   constructor() {
     makeAutoObservable(this);
   }
@@ -3723,30 +3745,31 @@ class ExerciseSettingsStore {
   toCardViewModel(card) {
     const cardDomain = this.domains?.find((x) => x.id === card.domainId);
     if (!cardDomain)
-      throw new Error(`не найден домен ${card.domainId}`);
+      throw new Error(`The exercise is bound to domain '${card.domainId}', which the server does not list`);
     const result = observable({
       ...card,
       tags: card.tags.filter((t) => cardDomain.tags.some((tt) => tt === t)),
       stages: []
     });
-    result.stages = _functionExports.pipe(
+    result.stages = pipe(
       card.stages,
-      NonEmptyArrayExports.map((stage) => new ExerciseStageStore(this.courseId, result, stage))
+      map((stage) => new ExerciseStageStore(this.courseId, result, stage))
     );
     return result;
   }
   fromCardViewModel(card) {
     return {
       ...card,
-      stages: _functionExports.pipe(
+      stages: pipe(
         card.stages,
-        NonEmptyArrayExports.map((stage) => ({ concepts: stage.concepts, laws: stage.laws, skills: stage.skills, numberOfQuestions: stage.numberOfQuestions, complexity: stage.complexity }))
+        map((stage) => ({ concepts: stage.concepts, laws: stage.laws, skills: stage.skills, numberOfQuestions: stage.numberOfQuestions, complexity: stage.complexity }))
       )
     };
   }
   async loadExercises(courseId = null) {
     if (this.exercisesLoadStatus === "LOADED" || this.exercisesLoadStatus === "LOADING")
       return;
+    this.storeState = { tag: "VALID" };
     this.exercisesLoadStatus = "LOADING";
     this.courseId = courseId;
     const [rawExercises, domains, backends, strategies] = await Promise.all([
@@ -3755,23 +3778,40 @@ class ExerciseSettingsStore {
       exerciseSettingsController.getBackends(),
       exerciseSettingsController.getStrategies()
     ]);
-    if (EitherExports.isRight(rawExercises) && EitherExports.isRight(domains) && EitherExports.isRight(backends) && EitherExports.isRight(strategies)) {
-      this.applyExerciseList(rawExercises.right);
-      this.domains = domains.right;
-      this.backends = backends.right;
-      this.strategies = strategies.right;
+    const failed = [rawExercises, domains, backends, strategies].find(isLeft);
+    if (failed) {
+      this.storeState = { tag: "ERROR", error: failed.left };
+      this.exercisesLoadStatus = "NONE";
+      return;
     }
+    this.applyExerciseList(rawExercises.right);
+    this.domains = domains.right;
+    this.backends = backends.right;
+    this.strategies = strategies.right;
     this.exercisesLoadStatus = "LOADED";
   }
   async loadExercise(exerciseId) {
-    if (this.exercisesLoadStatus !== "LOADED")
+    if (this.exercisesLoadStatus === "NONE" || this.exercisesLoadStatus === "LOADING")
       throw new Error("Exercises must be loaded first");
+    const token = ++this.loadToken;
+    this.storeState = { tag: "VALID" };
     this.exercisesLoadStatus = "EXERCISELOADING";
-    const rawExercise = await exerciseSettingsController.getExercise(exerciseId, this.courseId);
-    if (EitherExports.isRight(rawExercise)) {
+    try {
+      const rawExercise = await exerciseSettingsController.getExercise(exerciseId, this.courseId);
+      if (token !== this.loadToken)
+        return;
+      if (isLeft(rawExercise)) {
+        this.storeState = { tag: "ERROR", error: rawExercise.left };
+        return;
+      }
       this.currentCard = this.toCardViewModel(rawExercise.right);
+    } catch (error) {
+      this.currentCard = null;
+      this.storeState = { tag: "ERROR", error: { message: error instanceof Error ? error.message : String(error) } };
+    } finally {
+      if (token === this.loadToken)
+        this.exercisesLoadStatus = "LOADED";
     }
-    this.exercisesLoadStatus = "LOADED";
   }
   async createNewExecise() {
     if (this.exercisesLoadStatus !== "LOADED")
@@ -3782,14 +3822,14 @@ class ExerciseSettingsStore {
       this.strategies[0].id,
       this.courseId
     );
-    if (!EitherExports.isRight(newExerciseId))
+    if (!isRight(newExerciseId))
       return;
     this.exercisesLoadStatus = "EXERCISELOADING";
     const [rawExercise, newExercisesList] = await Promise.all([
       exerciseSettingsController.getExercise(newExerciseId.right, this.courseId),
       exerciseSettingsController.listExercises(this.courseId)
     ]);
-    if (EitherExports.isRight(rawExercise) && EitherExports.isRight(newExercisesList)) {
+    if (isRight(rawExercise) && isRight(newExercisesList)) {
       this.currentCard = this.toCardViewModel(rawExercise.right);
       this.applyExerciseList(newExercisesList.right);
     }
@@ -3798,13 +3838,13 @@ class ExerciseSettingsStore {
   async cloneCurrentToCourse(targetCourseId) {
     if (!this.currentCard) return;
     const result = await exerciseSettingsController.cloneExercise(this.currentCard.id, targetCourseId);
-    if (!EitherExports.isRight(result)) return;
+    if (!isRight(result)) return;
     const newId = result.right;
     const [rawExercise, newExercisesList] = await Promise.all([
       exerciseSettingsController.getExercise(newId, this.courseId),
       exerciseSettingsController.listExercises(this.courseId)
     ]);
-    if (EitherExports.isRight(rawExercise) && EitherExports.isRight(newExercisesList)) {
+    if (isRight(rawExercise) && isRight(newExercisesList)) {
       this.currentCard = this.toCardViewModel(rawExercise.right);
       this.applyExerciseList(newExercisesList.right);
     }
@@ -3812,13 +3852,13 @@ class ExerciseSettingsStore {
   async copyCurrentToPool() {
     if (!this.currentCard) return null;
     const result = await exerciseSettingsController.cloneExercise(this.currentCard.id, null);
-    return EitherExports.isRight(result) ? result.right : null;
+    return isRight(result) ? result.right : null;
   }
   async unlinkFromCourse(courseId) {
     if (!this.currentCard) return;
     await courseController.removeExerciseFromCourse(this.currentCard.id, courseId);
     const refreshed = await exerciseSettingsController.listExercises(this.courseId);
-    if (EitherExports.isRight(refreshed)) {
+    if (isRight(refreshed)) {
       this.applyExerciseList(refreshed.right);
       this.currentCard = null;
     }
@@ -3828,7 +3868,7 @@ class ExerciseSettingsStore {
     const id = this.currentCard.id;
     await exerciseSettingsController.deleteExercise(id, this.courseId);
     const refreshed = await exerciseSettingsController.listExercises(this.courseId);
-    if (EitherExports.isRight(refreshed)) {
+    if (isRight(refreshed)) {
       this.applyExerciseList(refreshed.right);
       this.currentCard = null;
     }
@@ -3839,7 +3879,7 @@ class ExerciseSettingsStore {
     this.exercisesLoadStatus = "EXERCISELOADING";
     await exerciseSettingsController.saveExercise(this.fromCardViewModel(this.currentCard), this.courseId);
     const newExercisesList = await exerciseSettingsController.listExercises(this.courseId);
-    if (EitherExports.isRight(newExercisesList)) {
+    if (isRight(newExercisesList)) {
       this.applyExerciseList(newExercisesList.right);
     }
     this.exercisesLoadStatus = "LOADED";
@@ -4102,10 +4142,10 @@ function useCourseId() {
   return Number.isFinite(n) ? n : null;
 }
 const variants = {
-  global: "badge-warning",
-  original: "badge-success",
-  inherited: "badge-info",
-  cloned: "badge-secondary"
+  global: "bg-warning text-dark",
+  original: "bg-success",
+  inherited: "bg-info text-dark",
+  cloned: "bg-secondary"
 };
 const ExerciseRowBadge = ({ linkType }) => {
   const { t } = useTranslation();
@@ -4117,7 +4157,7 @@ const DeleteGlobalExerciseModal = ({ exerciseId, onConfirm, onCancel }) => {
   reactExports.useEffect(() => {
     (async () => {
       const r = await courseController.getExerciseMemberships(exerciseId);
-      if (EitherExports.isRight(r)) setMemberships(r.right);
+      if (isRight(r)) setMemberships(r.right);
     })();
   }, [exerciseId]);
   const byLms = (memberships ?? []).reduce((acc, m) => {
@@ -4143,7 +4183,7 @@ const DeleteGlobalExerciseModal = ({ exerciseId, onConfirm, onCancel }) => {
           t("deleteModal_warningBody")
         ] }),
         Object.entries(byLms).map(([lms, courses]) => /* @__PURE__ */ jsxRuntimeExports.jsxs("div", { className: "mb-2", children: [
-          /* @__PURE__ */ jsxRuntimeExports.jsx("div", { className: "font-weight-bold", children: lms }),
+          /* @__PURE__ */ jsxRuntimeExports.jsx("div", { className: "fw-bold", children: lms }),
           /* @__PURE__ */ jsxRuntimeExports.jsx("ul", { children: courses.map((c) => /* @__PURE__ */ jsxRuntimeExports.jsx("li", { children: c.name }, c.id)) })
         ] }, lms))
       ] })
@@ -4170,7 +4210,7 @@ const ExerciseSettings = observer(() => {
     (async () => {
       await exerciseStore.createNewExecise();
     })();
-  }, [exerciseStore, exerciseStore.exercises?.length]);
+  }, [exerciseStore]);
   const onLangClicked = reactExports.useCallback(() => {
     const currentLang = user?.language;
     const newLang = currentLang === "RU" ? "EN" : "RU";
@@ -4198,7 +4238,7 @@ const ExerciseSettings = observer(() => {
     /* @__PURE__ */ jsxRuntimeExports.jsxs("div", { className: "flex-xl-nowrap row", children: [
       /* @__PURE__ */ jsxRuntimeExports.jsxs("div", { className: "col-xl-3 col-md-3 col-12 d-flex flex-column", children: [
         canCreate && /* @__PURE__ */ jsxRuntimeExports.jsx(Button, { variant: "primary", className: "mb-3", onClick: onNewExerciseClicked, children: "Create new" }),
-        /* @__PURE__ */ jsxRuntimeExports.jsx("ul", { className: "list-group", children: exerciseStore.exercises?.map(
+        /* @__PURE__ */ jsxRuntimeExports.jsx("div", { className: "list-group", children: exerciseStore.exercises?.map(
           (e) => /* @__PURE__ */ jsxRuntimeExports.jsx(
             Link,
             {
@@ -4212,26 +4252,25 @@ const ExerciseSettings = observer(() => {
           )
         ) })
       ] }),
-      /* @__PURE__ */ jsxRuntimeExports.jsx("div", { className: "col-xl-9 col-md-9 col-12", children: /* @__PURE__ */ jsxRuntimeExports.jsx(
-        ExerciseCardElement,
-        {
-          store: exerciseStore,
-          card: exerciseStore.currentCard,
-          domains: exerciseStore.domains ?? [],
-          backends: exerciseStore.backends ?? [],
-          strategies: exerciseStore.strategies ?? []
-        }
-      ) })
+      /* @__PURE__ */ jsxRuntimeExports.jsxs("div", { className: "col-xl-9 col-md-9 col-12", children: [
+        exerciseStore.storeState.tag === "ERROR" && /* @__PURE__ */ jsxRuntimeExports.jsx(LoadFailure, { error: exerciseStore.storeState.error }),
+        /* @__PURE__ */ jsxRuntimeExports.jsx(
+          ExerciseCardElement,
+          {
+            store: exerciseStore,
+            card: exerciseStore.currentCard,
+            domains: exerciseStore.domains ?? [],
+            backends: exerciseStore.backends ?? [],
+            strategies: exerciseStore.strategies ?? []
+          }
+        )
+      ] })
     ] })
   ] });
 });
 const ExerciseCardElement = observer((props) => {
-  const { card, domains, backends, strategies, store } = props;
+  const { card, domains, strategies, store } = props;
   const { t } = useTranslation();
-  const user = useCurrentUser();
-  reactExports.useMemo(() => {
-    return [t("exercisesettings_optDenied"), t("exercisesettings_optAllowed"), t("exercisesettings_optTarget")];
-  }, [t, user?.language]);
   if (store.exercisesLoadStatus === "EXERCISELOADING")
     return /* @__PURE__ */ jsxRuntimeExports.jsx(Loader, { delay: 200 });
   if (card == null)
@@ -4251,24 +4290,24 @@ const ExerciseCardElement = observer((props) => {
   return /* @__PURE__ */ jsxRuntimeExports.jsxs("div", { children: [
     /* @__PURE__ */ jsxRuntimeExports.jsx(ExerciseModeBar, { store, linkType, courseId: store.courseId }),
     /* @__PURE__ */ jsxRuntimeExports.jsx("fieldset", { disabled: !canEdit, style: !canEdit ? { pointerEvents: "none", opacity: 0.65 } : void 0, children: /* @__PURE__ */ jsxRuntimeExports.jsxs("form", { className: "exercise-settings-form", children: [
-      /* @__PURE__ */ jsxRuntimeExports.jsxs("div", { className: "form-group", children: [
-        /* @__PURE__ */ jsxRuntimeExports.jsx("label", { className: "font-weight-bold", htmlFor: "exampleInputEmail1", children: t("exercisesettings_name") }),
-        /* @__PURE__ */ jsxRuntimeExports.jsx(FormImpl.Control, { value: card.name, type: "email", id: "exampleInputEmail1", "aria-describedby": "emailHelp", placeholder: "Enter email", onChange: (e) => store.setCardName(e.target.value) })
+      /* @__PURE__ */ jsxRuntimeExports.jsxs("div", { className: "mb-3", children: [
+        /* @__PURE__ */ jsxRuntimeExports.jsx("label", { className: "fw-bold", htmlFor: "exampleInputEmail1", children: t("exercisesettings_name") }),
+        /* @__PURE__ */ jsxRuntimeExports.jsx(Form.Control, { value: card.name, type: "email", id: "exampleInputEmail1", "aria-describedby": "emailHelp", placeholder: "Enter email", onChange: (e) => store.setCardName(e.target.value) })
       ] }),
-      /* @__PURE__ */ jsxRuntimeExports.jsxs("div", { className: "form-group", children: [
-        /* @__PURE__ */ jsxRuntimeExports.jsx("label", { className: "font-weight-bold", children: t("exercisesettings_domain") }),
-        /* @__PURE__ */ jsxRuntimeExports.jsx(FormImpl.Control, { as: "select", id: "domainId", "aria-describedby": "domainDescription", value: card.domainId, onChange: (e) => store.setCardDomain(e.target.value), title: currentDomain?.displayName, children: domains?.map((d) => /* @__PURE__ */ jsxRuntimeExports.jsx("option", { value: d.id, title: d.description ?? d.displayName, children: d.displayName }, d.id)) }),
+      /* @__PURE__ */ jsxRuntimeExports.jsxs("div", { className: "mb-3", children: [
+        /* @__PURE__ */ jsxRuntimeExports.jsx("label", { className: "fw-bold", children: t("exercisesettings_domain") }),
+        /* @__PURE__ */ jsxRuntimeExports.jsx(Form.Select, { id: "domainId", "aria-describedby": "domainDescription", value: card.domainId, onChange: (e) => store.setCardDomain(e.target.value), title: currentDomain?.displayName, children: domains?.map((d) => /* @__PURE__ */ jsxRuntimeExports.jsx("option", { value: d.id, title: d.description ?? d.displayName, children: d.displayName }, d.id)) }),
         /* @__PURE__ */ jsxRuntimeExports.jsx("small", { id: "domainDescription", className: "form-text text-muted", children: currentDomain?.description ?? "" })
       ] }),
-      /* @__PURE__ */ jsxRuntimeExports.jsxs("div", { className: "form-group", children: [
-        /* @__PURE__ */ jsxRuntimeExports.jsx("label", { className: "font-weight-bold", children: t("exercisesettings_strategy") }),
-        /* @__PURE__ */ jsxRuntimeExports.jsx(FormImpl.Control, { as: "select", id: "strategyId", "aria-describedby": "strategyDescription", value: card.strategyId, onChange: (e) => store.setCardStrategy(e.target.value), title: currentStrategy?.displayName, children: strategies?.map((d) => /* @__PURE__ */ jsxRuntimeExports.jsx("option", { value: d.id, title: d.description ?? d.displayName, children: d.displayName }, d.id)) }),
+      /* @__PURE__ */ jsxRuntimeExports.jsxs("div", { className: "mb-3", children: [
+        /* @__PURE__ */ jsxRuntimeExports.jsx("label", { className: "fw-bold", children: t("exercisesettings_strategy") }),
+        /* @__PURE__ */ jsxRuntimeExports.jsx(Form.Select, { id: "strategyId", "aria-describedby": "strategyDescription", value: card.strategyId, onChange: (e) => store.setCardStrategy(e.target.value), title: currentStrategy?.displayName, children: strategies?.map((d) => /* @__PURE__ */ jsxRuntimeExports.jsx("option", { value: d.id, title: d.description ?? d.displayName, children: d.displayName }, d.id)) }),
         /* @__PURE__ */ jsxRuntimeExports.jsx("small", { id: "strategyDescription", className: "form-text text-muted", children: currentStrategy?.description ?? "" })
       ] }),
-      /* @__PURE__ */ jsxRuntimeExports.jsxs("div", { className: "form-group", children: [
-        /* @__PURE__ */ jsxRuntimeExports.jsx("label", { className: "font-weight-bold", children: t("exercisesettings_qopt") }),
+      /* @__PURE__ */ jsxRuntimeExports.jsxs("div", { className: "mb-3", children: [
+        /* @__PURE__ */ jsxRuntimeExports.jsx("label", { className: "fw-bold", children: t("exercisesettings_qopt") }),
         /* @__PURE__ */ jsxRuntimeExports.jsx(
-          FormImpl.Check,
+          Form.Check,
           {
             type: "checkbox",
             id: "forceNewAttemptCreationEnabled",
@@ -4278,7 +4317,7 @@ const ExerciseCardElement = observer((props) => {
           }
         ),
         /* @__PURE__ */ jsxRuntimeExports.jsx(
-          FormImpl.Check,
+          Form.Check,
           {
             type: "checkbox",
             id: "correctAnswerGenerationEnabled",
@@ -4288,7 +4327,7 @@ const ExerciseCardElement = observer((props) => {
           }
         ),
         /* @__PURE__ */ jsxRuntimeExports.jsx(
-          FormImpl.Check,
+          Form.Check,
           {
             type: "checkbox",
             id: "newQuestionGenerationEnabled",
@@ -4298,7 +4337,7 @@ const ExerciseCardElement = observer((props) => {
           }
         ),
         /* @__PURE__ */ jsxRuntimeExports.jsx(
-          FormImpl.Check,
+          Form.Check,
           {
             type: "checkbox",
             id: "supplementaryQuestionsEnabled",
@@ -4308,7 +4347,7 @@ const ExerciseCardElement = observer((props) => {
           }
         ),
         /* @__PURE__ */ jsxRuntimeExports.jsx(
-          FormImpl.Check,
+          Form.Check,
           {
             type: "checkbox",
             id: "preferDecisionTreeBasedSupplementaryEnabled",
@@ -4318,7 +4357,7 @@ const ExerciseCardElement = observer((props) => {
           }
         ),
         /* @__PURE__ */ jsxRuntimeExports.jsx(
-          FormImpl.Check,
+          Form.Check,
           {
             type: "checkbox",
             id: "debugButtonEnabled",
@@ -4328,10 +4367,10 @@ const ExerciseCardElement = observer((props) => {
           }
         )
       ] }),
-      /* @__PURE__ */ jsxRuntimeExports.jsxs("div", { className: "form-group", children: [
-        /* @__PURE__ */ jsxRuntimeExports.jsx("label", { className: "font-weight-bold", htmlFor: `maxExpectedConcurrentStudents`, children: t("exercisesettings_max_concurrent_students") }),
+      /* @__PURE__ */ jsxRuntimeExports.jsxs("div", { className: "mb-3", children: [
+        /* @__PURE__ */ jsxRuntimeExports.jsx("label", { className: "fw-bold", htmlFor: `maxExpectedConcurrentStudents`, children: t("exercisesettings_max_concurrent_students") }),
         /* @__PURE__ */ jsxRuntimeExports.jsx(
-          FormImpl.Control,
+          Form.Control,
           {
             type: "number",
             id: `maxExpectedConcurrentStudents`,
@@ -4340,10 +4379,10 @@ const ExerciseCardElement = observer((props) => {
           }
         )
       ] }),
-      /* @__PURE__ */ jsxRuntimeExports.jsxs("div", { className: "form-group", children: [
-        /* @__PURE__ */ jsxRuntimeExports.jsx("label", { htmlFor: "survOptions", className: "font-weight-bold", children: t("exercisesettings_survey") }),
+      /* @__PURE__ */ jsxRuntimeExports.jsxs("div", { className: "mb-3", children: [
+        /* @__PURE__ */ jsxRuntimeExports.jsx("label", { htmlFor: "survOptions", className: "fw-bold", children: t("exercisesettings_survey") }),
         /* @__PURE__ */ jsxRuntimeExports.jsxs("div", { className: "input-group mb-3", children: [
-          /* @__PURE__ */ jsxRuntimeExports.jsx("div", { className: "input-group-prepend", children: /* @__PURE__ */ jsxRuntimeExports.jsx("div", { className: "input-group-text", children: /* @__PURE__ */ jsxRuntimeExports.jsx(
+          /* @__PURE__ */ jsxRuntimeExports.jsx("div", { className: "input-group-text", children: /* @__PURE__ */ jsxRuntimeExports.jsx(
             "input",
             {
               checked: card.options.surveyOptions?.enabled,
@@ -4351,9 +4390,9 @@ const ExerciseCardElement = observer((props) => {
               "aria-label": "Checkbox for following text input",
               onChange: (x) => store.setCardSurveyEnabled(x.target.checked)
             }
-          ) }) }),
+          ) }),
           /* @__PURE__ */ jsxRuntimeExports.jsx(
-            FormImpl.Control,
+            Form.Control,
             {
               id: "survOptions",
               type: "text",
@@ -4365,10 +4404,10 @@ const ExerciseCardElement = observer((props) => {
           )
         ] })
       ] }),
-      /* @__PURE__ */ jsxRuntimeExports.jsxs("div", { className: "form-group", children: [
-        /* @__PURE__ */ jsxRuntimeExports.jsx("label", { htmlFor: "exTagsValues", className: "font-weight-bold", children: t("exercisesettings_tags") }),
+      /* @__PURE__ */ jsxRuntimeExports.jsxs("div", { className: "mb-3", children: [
+        /* @__PURE__ */ jsxRuntimeExports.jsx("label", { htmlFor: "exTagsValues", className: "fw-bold", children: t("exercisesettings_tags") }),
         currentDomain?.tags.map((t2, i) => /* @__PURE__ */ jsxRuntimeExports.jsx(
-          FormImpl.Check,
+          Form.Check,
           {
             type: "checkbox",
             id: `tag_checkbox_${t2}`,
@@ -4380,8 +4419,8 @@ const ExerciseCardElement = observer((props) => {
           i
         ))
       ] }),
-      sharedDomainConcepts?.length && /* @__PURE__ */ jsxRuntimeExports.jsxs("div", { className: "form-group", children: [
-        /* @__PURE__ */ jsxRuntimeExports.jsx("div", { children: /* @__PURE__ */ jsxRuntimeExports.jsx("label", { className: "font-weight-bold", children: t("exercisesettings_commonConcepts") }) }),
+      sharedDomainConcepts?.length && /* @__PURE__ */ jsxRuntimeExports.jsxs("div", { className: "mb-3", children: [
+        /* @__PURE__ */ jsxRuntimeExports.jsx("div", { children: /* @__PURE__ */ jsxRuntimeExports.jsx("label", { className: "fw-bold", children: t("exercisesettings_commonConcepts") }) }),
         /* @__PURE__ */ jsxRuntimeExports.jsx("div", { className: "row", children: /* @__PURE__ */ jsxRuntimeExports.jsx("div", { className: "col-md-12", children: /* @__PURE__ */ jsxRuntimeExports.jsx("div", { className: "list-group list-group-flush", children: /* @__PURE__ */ jsxRuntimeExports.jsx(
           ExerciseConcepts,
           {
@@ -4399,8 +4438,8 @@ const ExerciseCardElement = observer((props) => {
           }
         ) }) }) })
       ] }) || null,
-      sharedDomainLaws?.length && /* @__PURE__ */ jsxRuntimeExports.jsxs("div", { className: "form-group", children: [
-        /* @__PURE__ */ jsxRuntimeExports.jsx("label", { className: "font-weight-bold", children: t("exercisesettings_commonLaws") }),
+      sharedDomainLaws?.length && /* @__PURE__ */ jsxRuntimeExports.jsxs("div", { className: "mb-3", children: [
+        /* @__PURE__ */ jsxRuntimeExports.jsx("label", { className: "fw-bold", children: t("exercisesettings_commonLaws") }),
         /* @__PURE__ */ jsxRuntimeExports.jsx("div", { className: "list-group list-group-flush", children: /* @__PURE__ */ jsxRuntimeExports.jsx(
           ExerciseLaws,
           {
@@ -4418,8 +4457,8 @@ const ExerciseCardElement = observer((props) => {
           }
         ) })
       ] }) || null,
-      sharedDomainSkills?.length && /* @__PURE__ */ jsxRuntimeExports.jsxs("div", { className: "form-group", children: [
-        /* @__PURE__ */ jsxRuntimeExports.jsx("label", { className: "font-weight-bold", children: t("exercisesettings_commonSkills") }),
+      sharedDomainSkills?.length && /* @__PURE__ */ jsxRuntimeExports.jsxs("div", { className: "mb-3", children: [
+        /* @__PURE__ */ jsxRuntimeExports.jsx("label", { className: "fw-bold", children: t("exercisesettings_commonSkills") }),
         /* @__PURE__ */ jsxRuntimeExports.jsx("div", { className: "list-group list-group-flush", children: /* @__PURE__ */ jsxRuntimeExports.jsx(
           ExerciseSkills,
           {
@@ -4437,8 +4476,8 @@ const ExerciseCardElement = observer((props) => {
           }
         ) })
       ] }) || null,
-      /* @__PURE__ */ jsxRuntimeExports.jsxs("div", { className: "form-group", children: [
-        /* @__PURE__ */ jsxRuntimeExports.jsx("label", { className: "font-weight-bold", children: t("exercisesettings_stages") }),
+      /* @__PURE__ */ jsxRuntimeExports.jsxs("div", { className: "mb-3", children: [
+        /* @__PURE__ */ jsxRuntimeExports.jsx("label", { className: "fw-bold mb-2", children: t("exercisesettings_stages") }),
         /* @__PURE__ */ jsxRuntimeExports.jsx("div", { className: "list-group list-group-flush", children: card.stages.map((stage, stageIdx, stages) => /* @__PURE__ */ jsxRuntimeExports.jsx(
           ExerciseStage,
           {
@@ -4457,10 +4496,10 @@ const ExerciseCardElement = observer((props) => {
       currentStrategy?.options.multiStagesEnabled ? /* @__PURE__ */ jsxRuntimeExports.jsx("div", { style: { marginTop: "-1rem" }, children: /* @__PURE__ */ jsxRuntimeExports.jsx(Button, { variant: "success", onClick: () => store.addStage(), children: t("exercisesettings_addStage") }) }) : null
     ] }) }),
     /* @__PURE__ */ jsxRuntimeExports.jsxs("div", { className: "mt-5", children: [
-      canEdit && /* @__PURE__ */ jsxRuntimeExports.jsx(Button, { variant: "primary", className: "mr-2", onClick: () => store.saveCard(), children: t("exercisesettings_save") }),
-      canEdit && /* @__PURE__ */ jsxRuntimeExports.jsx(Button, { variant: "primary", className: "mr-2", onClick: () => store.saveCard().then(() => window.open(`${window.location.origin}/pages/exercise?exerciseId=${card.id}${store.courseId != null ? `&courseId=${store.courseId}` : ""}`, "_blank")?.focus()), children: t("exercisesettings_saveNopen") }),
-      /* @__PURE__ */ jsxRuntimeExports.jsx(Button, { variant: "primary", className: "mr-2", onClick: () => window.open(`${window.location.origin}/pages/exercise?exerciseId=${card.id}${store.courseId != null ? `&courseId=${store.courseId}` : ""}`, "_blank")?.focus(), children: t("exercisesettings_open") }),
-      canEdit && currentStrategy?.options.multiStagesEnabled && /* @__PURE__ */ jsxRuntimeExports.jsx(Button, { variant: "primary", className: "mr-2", onClick: () => window.open(`${window.location.origin}/pages/exercise?exerciseId=${card.id}${store.courseId != null ? `&courseId=${store.courseId}` : ""}&debug`, "_blank")?.focus(), children: t("exercisesettings_genDebugAtt") })
+      canEdit && /* @__PURE__ */ jsxRuntimeExports.jsx(Button, { variant: "primary", className: "me-2", onClick: () => store.saveCard(), children: t("exercisesettings_save") }),
+      canEdit && /* @__PURE__ */ jsxRuntimeExports.jsx(Button, { variant: "primary", className: "me-2", onClick: () => store.saveCard().then(() => window.open(`${window.location.origin}/pages/exercise?exerciseId=${card.id}${store.courseId != null ? `&courseId=${store.courseId}` : ""}`, "_blank")?.focus()), children: t("exercisesettings_saveNopen") }),
+      /* @__PURE__ */ jsxRuntimeExports.jsx(Button, { variant: "primary", className: "me-2", onClick: () => window.open(`${window.location.origin}/pages/exercise?exerciseId=${card.id}${store.courseId != null ? `&courseId=${store.courseId}` : ""}`, "_blank")?.focus(), children: t("exercisesettings_open") }),
+      canEdit && currentStrategy?.options.multiStagesEnabled && /* @__PURE__ */ jsxRuntimeExports.jsx(Button, { variant: "primary", className: "me-2", onClick: () => window.open(`${window.location.origin}/pages/exercise?exerciseId=${card.id}${store.courseId != null ? `&courseId=${store.courseId}` : ""}&debug`, "_blank")?.focus(), children: t("exercisesettings_genDebugAtt") })
     ] })
   ] });
 });
@@ -4533,7 +4572,7 @@ const ExerciseStage = observer((props) => {
   const cardLaws = stage.laws.reduce((acc, i) => (acc[i.name] = i, acc), {});
   const cardSkills = stage.skills.reduce((acc, i) => (acc[i.name] = i, acc), {});
   return /* @__PURE__ */ jsxRuntimeExports.jsx("div", { className: "card mb-3", children: /* @__PURE__ */ jsxRuntimeExports.jsxs("div", { className: "card-body", children: [
-    /* @__PURE__ */ jsxRuntimeExports.jsxs("div", { className: "form-group", style: { display: "flex", justifyContent: "space-between" }, children: [
+    /* @__PURE__ */ jsxRuntimeExports.jsxs("div", { className: "mb-3", style: { display: "flex", justifyContent: "space-between" }, children: [
       /* @__PURE__ */ jsxRuntimeExports.jsx("div", { children: t("exercisesettings_stageN", { stageNumber: stageIdx + 1 }) }),
       /* @__PURE__ */ jsxRuntimeExports.jsxs("div", { children: [
         /* @__PURE__ */ jsxRuntimeExports.jsxs("span", { children: [
@@ -4543,10 +4582,10 @@ const ExerciseStage = observer((props) => {
         stage.bankLoadingState === "IN_PROGRESS" || stage.bankSearchResult === null ? /* @__PURE__ */ jsxRuntimeExports.jsx(Loader, { styleOverride: { width: "1rem", height: "1rem" }, delay: 0 }) : /* @__PURE__ */ jsxRuntimeExports.jsx("span", { children: `${stage.bankSearchResult.count} (${stage.bankSearchResult?.topRatedCount})` })
       ] })
     ] }),
-    strategy?.options.multiStagesEnabled && /* @__PURE__ */ jsxRuntimeExports.jsxs("div", { className: "form-group", children: [
-      /* @__PURE__ */ jsxRuntimeExports.jsx("label", { className: "font-weight-bold", htmlFor: `numberOfQuestions_stage${stageIdx}`, children: t("exercisesettings_stageN_qnumber") }),
+    strategy?.options.multiStagesEnabled && /* @__PURE__ */ jsxRuntimeExports.jsxs("div", { className: "mb-3", children: [
+      /* @__PURE__ */ jsxRuntimeExports.jsx("label", { className: "fw-bold", htmlFor: `numberOfQuestions_stage${stageIdx}`, children: t("exercisesettings_stageN_qnumber") }),
       /* @__PURE__ */ jsxRuntimeExports.jsx(
-        FormImpl.Control,
+        Form.Control,
         {
           type: "text",
           id: `numberOfQuestions_stage${stageIdx}`,
@@ -4555,24 +4594,24 @@ const ExerciseStage = observer((props) => {
         }
       )
     ] }) || null,
-    /* @__PURE__ */ jsxRuntimeExports.jsxs("div", { className: "form-group", children: [
-      /* @__PURE__ */ jsxRuntimeExports.jsx("label", { className: "font-weight-bold", children: t("exercisesettings_qcomplexity") }),
+    /* @__PURE__ */ jsxRuntimeExports.jsxs("div", { className: "mb-3", children: [
+      /* @__PURE__ */ jsxRuntimeExports.jsx("label", { className: "fw-bold", children: t("exercisesettings_qcomplexity") }),
       /* @__PURE__ */ jsxRuntimeExports.jsxs("div", { className: "d-flex", children: [
         /* @__PURE__ */ jsxRuntimeExports.jsx(
           "input",
           {
             type: "range",
-            className: "form-control-range",
+            className: "form-range",
             id: `complexity_stage${stageIdx}`,
             value: (stage.complexity ?? 0.5) * 100,
             onChange: (e) => store.setCardStageComplexity(stageIdx, e.target.value)
           }
         ),
-        /* @__PURE__ */ jsxRuntimeExports.jsx("div", { className: "ml-2", children: stage.complexity.toFixed(2) })
+        /* @__PURE__ */ jsxRuntimeExports.jsx("div", { className: "ms-2", children: stage.complexity.toFixed(2) })
       ] })
     ] }),
-    stageDomainConcepts && stageDomainConcepts.length > 0 && /* @__PURE__ */ jsxRuntimeExports.jsxs("div", { className: "form-group", children: [
-      /* @__PURE__ */ jsxRuntimeExports.jsx("label", { className: "font-weight-bold", children: t("exercisesettings_stageN_concepts") }),
+    stageDomainConcepts && stageDomainConcepts.length > 0 && /* @__PURE__ */ jsxRuntimeExports.jsxs("div", { className: "mb-3", children: [
+      /* @__PURE__ */ jsxRuntimeExports.jsx("label", { className: "fw-bold", children: t("exercisesettings_stageN_concepts") }),
       /* @__PURE__ */ jsxRuntimeExports.jsx("div", { className: "list-group list-group-flush", children: /* @__PURE__ */ jsxRuntimeExports.jsx(
         ExerciseConcepts,
         {
@@ -4590,8 +4629,8 @@ const ExerciseStage = observer((props) => {
         }
       ) })
     ] }) || null,
-    stageDomainLaws && stageDomainLaws.length > 0 && /* @__PURE__ */ jsxRuntimeExports.jsxs("div", { className: "form-group", children: [
-      /* @__PURE__ */ jsxRuntimeExports.jsx("label", { className: "font-weight-bold", children: t("exercisesettings_stageN_laws") }),
+    stageDomainLaws && stageDomainLaws.length > 0 && /* @__PURE__ */ jsxRuntimeExports.jsxs("div", { className: "mb-3", children: [
+      /* @__PURE__ */ jsxRuntimeExports.jsx("label", { className: "fw-bold", children: t("exercisesettings_stageN_laws") }),
       /* @__PURE__ */ jsxRuntimeExports.jsx("div", { className: "list-group list-group-flush", children: /* @__PURE__ */ jsxRuntimeExports.jsx(
         ExerciseLaws,
         {
@@ -4609,8 +4648,8 @@ const ExerciseStage = observer((props) => {
         }
       ) })
     ] }) || null,
-    stageDomainSkills && stageDomainSkills.length > 0 && /* @__PURE__ */ jsxRuntimeExports.jsxs("div", { className: "form-group", children: [
-      /* @__PURE__ */ jsxRuntimeExports.jsx("label", { className: "font-weight-bold", children: t("exercisesettings_stageN_skills") }),
+    stageDomainSkills && stageDomainSkills.length > 0 && /* @__PURE__ */ jsxRuntimeExports.jsxs("div", { className: "mb-3", children: [
+      /* @__PURE__ */ jsxRuntimeExports.jsx("label", { className: "fw-bold", children: t("exercisesettings_stageN_skills") }),
       /* @__PURE__ */ jsxRuntimeExports.jsx("div", { className: "list-group list-group-flush", children: /* @__PURE__ */ jsxRuntimeExports.jsx(
         ExerciseSkills,
         {
@@ -4628,9 +4667,10 @@ const ExerciseStage = observer((props) => {
         }
       ) })
     ] }) || null,
-    /* @__PURE__ */ jsxRuntimeExports.jsxs("div", { className: "form-group", children: [
-      /* @__PURE__ */ jsxRuntimeExports.jsx("label", { className: "font-weight-bold", children: t("exercisesettings_stageN_matchedQuestionExamples") }),
-      stage.bankLoadingState === "IN_PROGRESS" && /* @__PURE__ */ jsxRuntimeExports.jsx(Loader, { styleOverride: { width: "1rem", height: "1rem" }, delay: 0 }) || /* @__PURE__ */ jsxRuntimeExports.jsx("div", { className: "list-group", children: stage.bankSearchResult.questions.length === 0 ? /* @__PURE__ */ jsxRuntimeExports.jsx("div", { className: "list-group-item", children: t("exercisesettings_noQuestionsFound") }) : stage.bankSearchResult.questions.map((q, i) => /* @__PURE__ */ jsxRuntimeExports.jsx("div", { className: "list-group-item", children: /* @__PURE__ */ jsxRuntimeExports.jsx("a", { target: "_blank", href: `${API_URL}/pages/question?metadataId=${q.metadataId}`, children: q.name }) }, i)) })
+    /* @__PURE__ */ jsxRuntimeExports.jsxs("div", { className: "mb-3", children: [
+      /* @__PURE__ */ jsxRuntimeExports.jsx("label", { className: "fw-bold", children: t("exercisesettings_stageN_matchedQuestionExamples") }),
+      stage.bankLoadingState === "IN_PROGRESS" && /* @__PURE__ */ jsxRuntimeExports.jsx(Loader, { styleOverride: { marginLeft: "0.5rem", width: "1rem", height: "1rem" }, delay: 0 }),
+      /* @__PURE__ */ jsxRuntimeExports.jsx("div", { className: "list-group", children: stage.bankSearchResult.questions.length === 0 ? /* @__PURE__ */ jsxRuntimeExports.jsx("div", { className: "list-group-item", children: t("exercisesettings_noQuestionsFound") }) : stage.bankSearchResult.questions.map((q, i) => /* @__PURE__ */ jsxRuntimeExports.jsx("div", { className: "list-group-item", children: /* @__PURE__ */ jsxRuntimeExports.jsx("a", { target: "_blank", href: `${API_URL}/pages/question?metadataId=${q.metadataId}`, children: q.name }) }, i)) })
     ] }),
     showDeleteBtn && /* @__PURE__ */ jsxRuntimeExports.jsx("div", { className: "d-flex justify-content-end", children: /* @__PURE__ */ jsxRuntimeExports.jsx(Button, { variant: "danger", onClick: () => store.removeStage(stageIdx), children: t("exercisesettings_removeStage") }) }) || null
   ] }) });
@@ -4641,10 +4681,9 @@ const ExerciseConcepts = observer((props) => {
   const card = store.currentCard;
   if (!card)
     throw new Error("card not set");
-  const user = useCurrentUser();
   const conceptFlagNames = reactExports.useMemo(() => {
     return [t("exercisesettings_optDenied"), t("exercisesettings_optAllowed"), t("exercisesettings_optTarget")];
-  }, [t, user?.language]);
+  }, [t]);
   return /* @__PURE__ */ jsxRuntimeExports.jsx(jsxRuntimeExports.Fragment, { children: concepts.map((coreConcept, idx) => /* @__PURE__ */ jsxRuntimeExports.jsxs("div", { className: "list-group-item p-0 bg-transparent pt-2 pb-2", children: [
     /* @__PURE__ */ jsxRuntimeExports.jsx("div", { children: /* @__PURE__ */ jsxRuntimeExports.jsxs("div", { className: `d-flex flex-row align-items-center`, children: [
       /* @__PURE__ */ jsxRuntimeExports.jsx(
@@ -4689,10 +4728,9 @@ const ExerciseLaws = observer((props) => {
   const card = store.currentCard;
   if (!card)
     throw new Error("card not set");
-  const user = useCurrentUser();
   const lawFlagNames = reactExports.useMemo(() => {
     return [t("exercisesettings_optDenied"), t("exercisesettings_optAllowed"), t("exercisesettings_optTarget")];
-  }, [t, user?.language]);
+  }, [t]);
   return /* @__PURE__ */ jsxRuntimeExports.jsx(jsxRuntimeExports.Fragment, { children: laws.map((coreLaw, idx) => /* @__PURE__ */ jsxRuntimeExports.jsxs("div", { className: "list-group-item p-0 bg-transparent pt-2 pb-2", children: [
     /* @__PURE__ */ jsxRuntimeExports.jsx("div", { children: /* @__PURE__ */ jsxRuntimeExports.jsxs("div", { className: `d-flex flex-row align-items-center`, children: [
       /* @__PURE__ */ jsxRuntimeExports.jsx(
@@ -4730,10 +4768,9 @@ const ExerciseSkills = observer((props) => {
   const card = store.currentCard;
   if (!card)
     throw new Error("card not set");
-  const user = useCurrentUser();
   const skillFlagNames = reactExports.useMemo(() => {
     return [t("exercisesettings_optDenied"), t("exercisesettings_optAllowed"), t("exercisesettings_optTarget")];
-  }, [t, user?.language]);
+  }, [t]);
   return /* @__PURE__ */ jsxRuntimeExports.jsx(jsxRuntimeExports.Fragment, { children: skills.map((coreSkill, idx) => /* @__PURE__ */ jsxRuntimeExports.jsxs("div", { className: "list-group-item p-0 bg-transparent pt-2 pb-2", children: [
     /* @__PURE__ */ jsxRuntimeExports.jsx("div", { children: /* @__PURE__ */ jsxRuntimeExports.jsxs("div", { className: `d-flex flex-row align-items-center`, children: [
       /* @__PURE__ */ jsxRuntimeExports.jsx(
@@ -4803,22 +4840,22 @@ const db = {
 };
 const StrategySettings = observer(() => {
   return /* @__PURE__ */ jsxRuntimeExports.jsx("div", { className: "container-fluid", style: { color: "black", fontSize: "18px" }, children: /* @__PURE__ */ jsxRuntimeExports.jsx("div", { className: "row", children: /* @__PURE__ */ jsxRuntimeExports.jsx("div", { className: "col-md-8", children: /* @__PURE__ */ jsxRuntimeExports.jsxs("form", { children: [
-    /* @__PURE__ */ jsxRuntimeExports.jsxs("div", { className: "form-group", children: [
-      /* @__PURE__ */ jsxRuntimeExports.jsx("label", { className: "font-weight-bold", children: "Domain" }),
-      /* @__PURE__ */ jsxRuntimeExports.jsx("select", { className: "form-control", children: /* @__PURE__ */ jsxRuntimeExports.jsx("option", { children: "Order of Expression Evaluation" }) })
+    /* @__PURE__ */ jsxRuntimeExports.jsxs("div", { className: "mb-3", children: [
+      /* @__PURE__ */ jsxRuntimeExports.jsx("label", { className: "fw-bold", children: "Domain" }),
+      /* @__PURE__ */ jsxRuntimeExports.jsx("select", { className: "form-select", children: /* @__PURE__ */ jsxRuntimeExports.jsx("option", { children: "Order of Expression Evaluation" }) })
     ] }),
     /* @__PURE__ */ jsxRuntimeExports.jsxs("div", { className: "row", children: [
-      /* @__PURE__ */ jsxRuntimeExports.jsx("div", { className: "col-md-6", children: /* @__PURE__ */ jsxRuntimeExports.jsxs("div", { className: "form-group", children: [
-        /* @__PURE__ */ jsxRuntimeExports.jsx("label", { className: "font-weight-bold", children: "Question complexity" }),
-        /* @__PURE__ */ jsxRuntimeExports.jsx("div", { children: /* @__PURE__ */ jsxRuntimeExports.jsx("input", { type: "range", className: "form-control-range", id: "formControlRange1" }) })
+      /* @__PURE__ */ jsxRuntimeExports.jsx("div", { className: "col-md-6", children: /* @__PURE__ */ jsxRuntimeExports.jsxs("div", { className: "mb-3", children: [
+        /* @__PURE__ */ jsxRuntimeExports.jsx("label", { className: "fw-bold", children: "Question complexity" }),
+        /* @__PURE__ */ jsxRuntimeExports.jsx("div", { children: /* @__PURE__ */ jsxRuntimeExports.jsx("input", { type: "range", className: "form-range", id: "formControlRange1" }) })
       ] }) }),
-      /* @__PURE__ */ jsxRuntimeExports.jsx("div", { className: "col-md-6", children: /* @__PURE__ */ jsxRuntimeExports.jsxs("div", { className: "form-group", children: [
-        /* @__PURE__ */ jsxRuntimeExports.jsx("label", { className: "font-weight-bold", children: "Answer length" }),
-        /* @__PURE__ */ jsxRuntimeExports.jsx("div", { children: /* @__PURE__ */ jsxRuntimeExports.jsx("input", { type: "range", className: "form-control-range", id: "formControlRange1" }) })
+      /* @__PURE__ */ jsxRuntimeExports.jsx("div", { className: "col-md-6", children: /* @__PURE__ */ jsxRuntimeExports.jsxs("div", { className: "mb-3", children: [
+        /* @__PURE__ */ jsxRuntimeExports.jsx("label", { className: "fw-bold", children: "Answer length" }),
+        /* @__PURE__ */ jsxRuntimeExports.jsx("div", { children: /* @__PURE__ */ jsxRuntimeExports.jsx("input", { type: "range", className: "form-range", id: "formControlRange1" }) })
       ] }) })
     ] }),
-    /* @__PURE__ */ jsxRuntimeExports.jsxs("div", { className: "form-group", children: [
-      /* @__PURE__ */ jsxRuntimeExports.jsx("div", { children: /* @__PURE__ */ jsxRuntimeExports.jsx("label", { className: "font-weight-bold", children: "Concepts" }) }),
+    /* @__PURE__ */ jsxRuntimeExports.jsxs("div", { className: "mb-3", children: [
+      /* @__PURE__ */ jsxRuntimeExports.jsx("div", { children: /* @__PURE__ */ jsxRuntimeExports.jsx("label", { className: "fw-bold", children: "Concepts" }) }),
       /* @__PURE__ */ jsxRuntimeExports.jsxs("div", { className: "row", children: [
         /* @__PURE__ */ jsxRuntimeExports.jsx("div", { className: "col-md-6", children: db.concepts.filter((_, i) => i % 2 === 0).map((c, idx) => /* @__PURE__ */ jsxRuntimeExports.jsxs("div", { className: "d-flex flex-row align-items-center", style: { marginBottom: "10px" }, children: [
           /* @__PURE__ */ jsxRuntimeExports.jsx(
@@ -4848,8 +4885,8 @@ const StrategySettings = observer(() => {
         ] })) })
       ] })
     ] }),
-    /* @__PURE__ */ jsxRuntimeExports.jsxs("div", { className: "form-group", children: [
-      /* @__PURE__ */ jsxRuntimeExports.jsx("label", { className: "font-weight-bold", children: "Laws" }),
+    /* @__PURE__ */ jsxRuntimeExports.jsxs("div", { className: "mb-3", children: [
+      /* @__PURE__ */ jsxRuntimeExports.jsx("label", { className: "fw-bold", children: "Laws" }),
       db.laws.map((c, idx) => /* @__PURE__ */ jsxRuntimeExports.jsxs("div", { className: "d-flex flex-row align-items-start justify-content-start", style: { marginBottom: "10px" }, children: [
         /* @__PURE__ */ jsxRuntimeExports.jsx("div", { children: /* @__PURE__ */ jsxRuntimeExports.jsx(
           ToggleSwitch,
@@ -4896,7 +4933,7 @@ class GlobalPoolStore {
     this.loadStatus = "LOADING";
     this.error = null;
     const r = await exerciseSettingsController.listExercises(null);
-    if (EitherExports.isLeft(r)) {
+    if (isLeft(r)) {
       this.error = r.left;
       this.loadStatus = "FAILED";
       return;
@@ -4908,10 +4945,10 @@ class GlobalPoolStore {
   async importToCourse(exerciseId, targetCourseId, mode) {
     if (mode === "INHERIT") {
       const r2 = await courseController.addExerciseToCourse(exerciseId, targetCourseId);
-      return EitherExports.isRight(r2);
+      return isRight(r2);
     }
     const r = await exerciseSettingsController.cloneExercise(exerciseId, targetCourseId);
-    return EitherExports.isRight(r);
+    return isRight(r);
   }
 }
 const GlobalPool = observer(() => {
@@ -4951,11 +4988,11 @@ const GlobalPool = observer(() => {
         children: t("globalPool_page_createBtn")
       }
     ) }),
-    /* @__PURE__ */ jsxRuntimeExports.jsxs("ul", { className: "list-group", children: [
+    /* @__PURE__ */ jsxRuntimeExports.jsxs("div", { className: "list-group", children: [
       store.exercises.map(
-        (e) => /* @__PURE__ */ jsxRuntimeExports.jsx("li", { className: "list-group-item", children: /* @__PURE__ */ jsxRuntimeExports.jsx(Link, { to: `/pages/exercise-settings?exerciseId=${e.id}`, children: e.name }) }, e.id)
+        (e) => /* @__PURE__ */ jsxRuntimeExports.jsx(Link, { className: "list-group-item", to: `/pages/exercise-settings?exerciseId=${e.id}`, children: e.name }, e.id)
       ),
-      store.exercises.length === 0 && store.loadStatus === "LOADED" && /* @__PURE__ */ jsxRuntimeExports.jsx("li", { className: "list-group-item text-muted", children: t("globalPool_page_empty") })
+      store.exercises.length === 0 && store.loadStatus === "LOADED" && /* @__PURE__ */ jsxRuntimeExports.jsx("a", { className: "list-group-item text-muted", children: t("globalPool_page_empty") })
     ] })
   ] });
 });
@@ -4973,7 +5010,7 @@ class CourseStore {
     this.courseId = courseId;
     this.error = null;
     const r = await courseController.getCourseExercises(courseId);
-    if (EitherExports.isLeft(r)) {
+    if (isLeft(r)) {
       this.error = r.left;
       this.loadStatus = "FAILED";
       return;
@@ -5023,7 +5060,7 @@ const ImportFromGlobalModal = observer(({ courseId, canInherit, canClone, onClos
       handleSecondaryBtnClicked: onClose,
       children: [
         /* @__PURE__ */ jsxRuntimeExports.jsxs("div", { className: "mb-3", children: [
-          /* @__PURE__ */ jsxRuntimeExports.jsx("label", { className: "font-weight-bold mr-2", children: t("importModal_modeLabel") }),
+          /* @__PURE__ */ jsxRuntimeExports.jsx("label", { className: "fw-bold me-2", children: t("importModal_modeLabel") }),
           /* @__PURE__ */ jsxRuntimeExports.jsxs("div", { className: "btn-group", role: "group", children: [
             /* @__PURE__ */ jsxRuntimeExports.jsx(
               Button,
@@ -5085,7 +5122,7 @@ const DeepLinkSelection = ({ exercises }) => {
   reactExports.useEffect(() => {
     (async () => {
       const res = await deepLinkingController.existing();
-      if (EitherExports.isRight(res)) setExisting(new Set(res.right.exerciseIds));
+      if (isRight(res)) setExisting(new Set(res.right.exerciseIds));
     })();
   }, []);
   const toggle = (id) => {
@@ -5107,7 +5144,7 @@ const DeepLinkSelection = ({ exercises }) => {
     setSubmitting(true);
     setError(null);
     const res = await deepLinkingController.build(Array.from(selected));
-    if (EitherExports.isRight(res)) {
+    if (isRight(res)) {
       setPayload(res.right);
     } else {
       setError(t("deeplink_error"));
@@ -5125,7 +5162,7 @@ const DeepLinkSelection = ({ exercises }) => {
       const already = existing.has(e.id);
       return /* @__PURE__ */ jsxRuntimeExports.jsxs("li", { className: "list-group-item d-flex align-items-center", style: { gap: "0.5rem" }, children: [
         /* @__PURE__ */ jsxRuntimeExports.jsx(
-          FormImpl.Check.Input,
+          Form.Check.Input,
           {
             type: "checkbox",
             className: "mt-0",
@@ -5215,7 +5252,7 @@ const CoursePage = observer(() => {
       store.exercises.map(
         (e) => /* @__PURE__ */ jsxRuntimeExports.jsx("li", { className: "list-group-item", children: /* @__PURE__ */ jsxRuntimeExports.jsx(Link, { to: `/pages/exercise-settings?exerciseId=${e.id}&courseId=${courseId}`, children: e.name }) }, e.id)
       ),
-      store.exercises.length === 0 && store.loadStatus === "LOADED" && /* @__PURE__ */ jsxRuntimeExports.jsx("li", { className: "list-group-item text-muted", children: t("course_page_empty") })
+      store.exercises.length === 0 && store.loadStatus === "LOADED" && /* @__PURE__ */ jsxRuntimeExports.jsx("li", { className: "list-group-item text-muted", children: t("course_page_empty") }, "undefined")
     ] }),
     canImport && showImportModal && /* @__PURE__ */ jsxRuntimeExports.jsx(
       ImportFromGlobalModal,
@@ -5240,7 +5277,7 @@ class CoursesStore {
     this.loadStatus = "LOADING";
     this.error = null;
     const r = await courseController.getMyCourses();
-    if (EitherExports.isLeft(r)) {
+    if (isLeft(r)) {
       this.error = r.left;
       this.loadStatus = "FAILED";
       return;
@@ -5299,9 +5336,38 @@ const CoursesPage = observer(() => {
     ) }, c.id)) })
   ] });
 });
+const RenderFailure = ({ error }) => {
+  const { t } = useTranslation();
+  return /* @__PURE__ */ jsxRuntimeExports.jsx("div", { className: "container pt-3", children: /* @__PURE__ */ jsxRuntimeExports.jsxs(Alert, { variant: "danger", children: [
+    /* @__PURE__ */ jsxRuntimeExports.jsx(Alert.Heading, { as: "h6", children: t("error_boundary_title") }),
+    /* @__PURE__ */ jsxRuntimeExports.jsx("div", { className: "comp-ph-error-notification-message", children: error.message }),
+    /* @__PURE__ */ jsxRuntimeExports.jsx(
+      Button,
+      {
+        variant: "outline-danger",
+        size: "sm",
+        className: "mt-2",
+        onClick: () => window.location.reload(),
+        children: t("error_boundary_reload")
+      }
+    )
+  ] }) });
+};
+class ErrorBoundary extends React.Component {
+  state = { error: null };
+  static getDerivedStateFromError(error) {
+    return { error };
+  }
+  componentDidCatch(error, info) {
+    console.error("Render failed:", error, info.componentStack);
+  }
+  render() {
+    return this.state.error !== null ? /* @__PURE__ */ jsxRuntimeExports.jsx(RenderFailure, { error: this.state.error }) : this.props.children;
+  }
+}
 const Home = () => /* @__PURE__ */ jsxRuntimeExports.jsxs(jsxRuntimeExports.Fragment, { children: [
   /* @__PURE__ */ jsxRuntimeExports.jsx(ErrorNotifications, {}),
-  /* @__PURE__ */ jsxRuntimeExports.jsx(SessionProvider, { children: /* @__PURE__ */ jsxRuntimeExports.jsx("div", { className: "container comp-ph-container", children: /* @__PURE__ */ jsxRuntimeExports.jsx(BrowserRouter, { children: /* @__PURE__ */ jsxRuntimeExports.jsxs(Routes, { children: [
+  /* @__PURE__ */ jsxRuntimeExports.jsx(ErrorBoundary, { children: /* @__PURE__ */ jsxRuntimeExports.jsx(SessionProvider, { children: /* @__PURE__ */ jsxRuntimeExports.jsx("div", { className: "container comp-ph-container", children: /* @__PURE__ */ jsxRuntimeExports.jsx(BrowserRouter, { children: /* @__PURE__ */ jsxRuntimeExports.jsxs(Routes, { children: [
     /* @__PURE__ */ jsxRuntimeExports.jsx(Route, { path: "/pages/statistics", element: /* @__PURE__ */ jsxRuntimeExports.jsx(Statistics, {}) }),
     /* @__PURE__ */ jsxRuntimeExports.jsx(Route, { path: "/pages/exercise", element: /* @__PURE__ */ jsxRuntimeExports.jsx(Exercise, {}) }),
     /* @__PURE__ */ jsxRuntimeExports.jsx(Route, { path: "/pages/exercise-settings", element: /* @__PURE__ */ jsxRuntimeExports.jsx(ExerciseSettings, {}) }),
@@ -5313,7 +5379,7 @@ const Home = () => /* @__PURE__ */ jsxRuntimeExports.jsxs(jsxRuntimeExports.Frag
     /* @__PURE__ */ jsxRuntimeExports.jsx(Route, { path: "/pages/course", element: /* @__PURE__ */ jsxRuntimeExports.jsx(CoursePage, {}) }),
     /* @__PURE__ */ jsxRuntimeExports.jsx(Route, { path: "/pages/courses", element: /* @__PURE__ */ jsxRuntimeExports.jsx(CoursesPage, {}) }),
     /* @__PURE__ */ jsxRuntimeExports.jsx(Route, { path: "/", element: /* @__PURE__ */ jsxRuntimeExports.jsx(Navigate, { to: "/pages/courses", replace: true }) })
-  ] }) }) }) })
+  ] }) }) }) }) })
 ] });
 async function startMocking() {
   {

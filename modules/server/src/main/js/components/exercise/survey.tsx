@@ -85,7 +85,7 @@ type SurveyYesNoQuestionProps = {
     onAnswered: (questionId: number, answer: string) => void,
 }
 const SurveyYesNoQuestion = (props: SurveyYesNoQuestionProps) => {
-    const { question, onAnswered, value, isCompleted } = props;
+    const { question, onAnswered, value, } = props;
     return (
         <div>
             <div className="mb-1">
@@ -93,7 +93,7 @@ const SurveyYesNoQuestion = (props: SurveyYesNoQuestionProps) => {
             </div>
             <div className="d-flex flex-row mt-2">
                 <Button variant="secondary"
-                    className="mr-2"
+                    className="me-2"
                     active={question.options.yesValue === value}
                     onClick={() => onAnswered(question.id, question.options.yesValue)}
                     disabled={value !== undefined}>

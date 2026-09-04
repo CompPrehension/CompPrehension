@@ -2,21 +2,14 @@ import { HttpResponse, delay, http } from 'msw';
 import { ExerciseCard } from '../types/exercise-settings';
 import { Interaction } from '../types/interaction';
 import { mockBackends, mockCard, mockDomains, mockStrategies, saveMockCard } from './exercise-settings';
-import { mockAttempt, mockQuestions } from './questions';
+import { Grade, gradeAnswers, mockAttempt, mockQuestions, nextCorrectAnswer, recordAnswers, resetAnswers } from './questions';
 
 /** Pretend the backend is thinking, so loading states are actually visible. */
 const THINKING_MS = 800;
 
-const feedback = (correctAnswers: Interaction['answers']) => ({
-    isCorrect: true,
-    grade: 0.8,
-    correctAnswers,
-    correctSteps: 1,
-    stepsLeft: 1,
-    stepsWithErrors: 1,
-    messages: null,
-    strategyDecision: 'CONTINUE',
-});
+// stepsLeft counts steps of this question; FINISH would mean the whole attempt is over,
+// which makes the exercise page latch to 'completed' for every other question
+const feedback = (grade: Grade) => ({ ...grade, strategyDecision: 'CONTINUE' });
 
 /** RFC 7807 ProblemDetail, the same shape `GlobalExceptionHandler` returns. */
 const problem = (status: number, title: string, detail: string) =>
@@ -131,33 +124,43 @@ export const handlers = [
     http.get('/api/question', async ({ request }) => {
         await delay(THINKING_MS);
         const questionId = Number(new URL(request.url).searchParams.get('questionId'));
-        const question = mockQuestions[questionId];
-        return question
-            ? HttpResponse.json(question)
-            : problem(404, 'Not Found', `No mocked question with id ${questionId}`);
+        const fixture = mockQuestions[questionId];
+        if (!fixture) {
+            return problem(404, 'Not Found', `No mocked question with id ${questionId}`);
+        }
+        resetAnswers(questionId);
+        return HttpResponse.json(fixture.question);
     }),
 
     // the exercise hands out a fixed list of question ids, so generation only happens
     // when the ui asks for one more
     http.get('/api/question/generate', async () => {
         await delay(THINKING_MS);
-        return HttpResponse.json(mockQuestions[1]);
+        resetAnswers(1);
+        return HttpResponse.json(mockQuestions[1].question);
     }),
 
     http.get('/api/question/generateByMetadata', async () => {
         await delay(THINKING_MS);
-        return HttpResponse.json(mockQuestions[1]);
+        resetAnswers(1);
+        return HttpResponse.json(mockQuestions[1].question);
     }),
 
-    http.get('/api/question/generateNextCorrectAnswer', async () => {
+    http.get('/api/question/generateNextCorrectAnswer', async ({ request }) => {
         await delay(THINKING_MS);
-        return HttpResponse.json(feedback([{ answer: [0, 0], isСreatedByUser: false }]));
+        const questionId = Number(new URL(request.url).searchParams.get('questionId'));
+        const answers = nextCorrectAnswer(questionId);
+        const graded = gradeAnswers(questionId, answers);
+        recordAnswers(questionId, answers);
+        return HttpResponse.json(feedback(graded));
     }),
 
     http.post('/api/question/addQuestionAnswer', async ({ request }) => {
         await delay(THINKING_MS);
         const interaction = await request.json() as Interaction;
-        return HttpResponse.json(feedback(interaction.answers));
+        const graded = gradeAnswers(interaction.questionId, interaction.answers);
+        recordAnswers(interaction.questionId, interaction.answers);
+        return HttpResponse.json(feedback(graded));
     }),
 
     http.post('/api/question/addSupplementaryQuestionAnswer', async () => {

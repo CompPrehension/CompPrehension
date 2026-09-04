@@ -140,6 +140,13 @@ export default defineConfig(({ command, mode }) => {
   return {
     root: moduleRoot,
     base: '/',
+    resolve: {
+      alias: [
+        // fp-ts/lib is its commonjs build, which rollup cannot tree-shake: importing one
+        // function from it drags the whole library in. es6 is the same code as modules.
+        { find: /^fp-ts\/lib\/(.*)$/, replacement: 'fp-ts/es6/$1' },
+      ],
+    },
     publicDir: command === 'serve' ? 'public' : false,
     plugins,
     server: {
@@ -166,6 +173,7 @@ export default defineConfig(({ command, mode }) => {
           // rollup shortens cross-chunk exports to single letters by default, which
           // reshuffles the whole import list on any change - keep the real names
           minifyInternalExports: false,
+          manualChunks: (id) => (id.includes('node_modules') ? 'vendor' : undefined),
           entryFileNames: 'js/[name]-[hash].js',
           chunkFileNames: 'js/[name]-[hash].js',
           assetFileNames: (asset) => {
@@ -174,7 +182,6 @@ export default defineConfig(({ command, mode }) => {
               ? 'css/[name]-[hash][extname]'
               : 'assets/[name]-[hash][extname]';
           },
-          manualChunks: (id) => (id.includes('node_modules') ? 'vendor' : undefined),
         },
       },
     },

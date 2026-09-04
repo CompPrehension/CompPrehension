@@ -10,7 +10,7 @@ export const TourLauncher = () => {
     if (shown !== 'true') {
       start(); // запускаем тур
     }
-  }, [isReady]);
+  }, [isReady, start]);
 
   return null; // этот компонент ничего не рендерит
 };

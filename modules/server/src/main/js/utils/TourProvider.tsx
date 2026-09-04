@@ -1,6 +1,7 @@
 import React, {
   createContext,
   ReactNode,
+  useCallback,
   useContext,
   useEffect,
   useRef,
@@ -90,7 +91,7 @@ export const TourProvider = ({ steps, children }: TourProviderProps) => {
     tourRef.current = tour;
 
     tour.start = async () => {
-      tour.cancel();
+      await tour.cancel();
       (tour.steps as Array<{ destroy: () => void }>).forEach((step) =>
         step.destroy()
       );
@@ -161,16 +162,18 @@ export const TourProvider = ({ steps, children }: TourProviderProps) => {
         }
       };
 
-      showNextStep();
+      await showNextStep();
     };
 
     setIsReady(true);
-  }, [steps]);
+  }, [steps, t]);
+
+  const start = useCallback(() => tourRef.current?.start?.(), []);
 
   return (
     <TourContext.Provider
       value={{
-        start: () => tourRef.current?.start?.(),
+        start,
         tour: tourRef.current,
         isReady,
       }}

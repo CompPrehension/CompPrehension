@@ -24,7 +24,7 @@ export const OrderQuestionComponent = observer((props: OrderQuestionComponentPro
         const originalText = document.createElement('div')
         originalText.innerHTML = question.text;
         return originalText;
-    }, []);    
+    }, [question.text]);
 
     // actions on questionId changed (onInit)
     useEffect(() => {    
@@ -32,7 +32,7 @@ export const OrderQuestionComponent = observer((props: OrderQuestionComponentPro
         document.querySelectorAll(`#question_${question.questionId} [data-answer-id]`).forEach(e => {
             const idStr = e.getAttribute('data-answer-id') ?? '';
             const id = +idStr;
-            e.addEventListener('click', () => onChanged([...getAnswers(), { answer: [id, id], isСreatedByUser: true }]));
+            e.addEventListener('click', () => onChanged([...getAnswers(), { answer: [id, id], isCreatedByUser: true }]));
         })
 
         // show elements values
@@ -47,8 +47,11 @@ export const OrderQuestionComponent = observer((props: OrderQuestionComponentPro
             e.innerHTML += `<span class="comp-ph-expr-top-hint">${pos}</span>`;
         })
 
+        // listeners are attached once per question
+        // eslint-disable-next-line react-hooks/exhaustive-deps
     }, [question.questionId]);
 
+    const answersCount = getAnswers().length;
     useEffect(() => {
         // drop all changes, set original qustion text    
         document.querySelectorAll(`#question_${question.questionId} [data-answer-id]`).forEach(e => {
@@ -67,7 +70,7 @@ export const OrderQuestionComponent = observer((props: OrderQuestionComponentPro
                 const [prevInteractionId, result] = acc;
                 if (prevInteractionId === -1)
                     return acc;
-                if (answer.isСreatedByUser || prevInteractionId !== 0 && prevInteractionId !== answer.createdByInteraction)
+                if (answer.isCreatedByUser || prevInteractionId !== 0 && prevInteractionId !== answer.createdByInteraction)
                     return [-1, result];
                 result.push(answer);
                 return [answer.createdByInteraction || -1, result];
@@ -103,7 +106,10 @@ export const OrderQuestionComponent = observer((props: OrderQuestionComponentPro
                 }
             })            
         });
-    }, [question.questionId, getAnswers().length])
+        // answersCount stands in for the answers themselves: the callbacks are new on
+        // every render, the count changes only when a step is taken
+        // eslint-disable-next-line react-hooks/exhaustive-deps
+    }, [question.questionId, answersCount])
     
     const trace = getFeedback()?.trace ?? (getAnswers().length === 0 ? question.initialTrace : null);
     const isTraceVisible = options.showTrace && !isNullOrUndefined(trace) && trace.length > 0;

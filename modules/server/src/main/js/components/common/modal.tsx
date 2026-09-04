@@ -37,7 +37,7 @@ export const Modal = (props: ModalProps) => {
         <Optional isVisible={show ?? true}>
             <ModalWrapper type={type ?? 'MODAL'} show={show ?? true} onHide={handleClose ?? undefined} size={size}>
                 <Optional isVisible={!isNullOrUndefined(title) && title.length > 0}>
-                    <RBModal.Header closeButton={closeButton ?? undefined} placeholder={null}>
+                    <RBModal.Header closeButton={closeButton ?? undefined}>
                         <RBModal.Title>{title}</RBModal.Title>
                     </RBModal.Header>
                 </Optional>      
@@ -64,8 +64,12 @@ const ModalWrapper = (props: { type: 'MODAL' | 'DIALOG', size?: 'sm' | 'lg' | 'x
         size,
     } = props;
     if (type === 'DIALOG') {
+        // bootstrap 5 declares the modal custom properties on .modal itself, so a dialog
+        // rendered outside one comes out with no background, border or padding
         return (
-            <RBModal.Dialog size={size}>{children}</RBModal.Dialog>
+            <div className="modal position-static d-block">
+                <RBModal.Dialog size={size}>{children}</RBModal.Dialog>
+            </div>
         );
     }
     return (

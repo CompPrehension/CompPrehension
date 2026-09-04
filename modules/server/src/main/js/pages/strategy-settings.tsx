@@ -2,7 +2,7 @@ import { observer } from "mobx-react";
 import React from "react";
 import { ToggleSwitch } from "../components/common/toggle";
 
-export const db = {
+const db = {
     concepts: [
         'literal',
         'variable',
@@ -32,33 +32,23 @@ export const db = {
 
 
 export const StrategySettings = observer(() => {
-
-    const multiselectCss = {
-        'width': '200px',
-    }
-    const buttonCss = {
-        border: '1.5px solid rgb(182 182 182)',
-        borderRadius: '5px',
-    }
-
-
     return (
         <div className="container-fluid" style={{ color: 'black', fontSize: '18px'}}>
             <div className="row">
                 <div className="col-md-8">
                     <form>
-                        <div className="form-group">
-                            <label className="font-weight-bold">Domain</label>
-                            <select className="form-control">
+                        <div className="mb-3">
+                            <label className="fw-bold">Domain</label>
+                            <select className="form-select">
                                 <option>Order of Expression Evaluation</option>
                             </select>
                         </div>
                         <div className="row">
                             <div className="col-md-6">
-                                <div className="form-group">
-                                    <label className="font-weight-bold">Question complexity</label>
+                                <div className="mb-3">
+                                    <label className="fw-bold">Question complexity</label>
                                     <div>
-                                        <input type="range" className="form-control-range" id="formControlRange1" />
+                                        <input type="range" className="form-range" id="formControlRange1" />
                                         {/*
                                             <div className="form-check form-check-inline" >
                                                 <input className="form-check-input" type="radio" name="inlineRadioOptions" id="inlineRadio1" value="option1" checked={true} />
@@ -78,10 +68,10 @@ export const StrategySettings = observer(() => {
                                 </div>
                             </div>
                             <div className="col-md-6">
-                                <div className="form-group">
-                                    <label className="font-weight-bold">Answer length</label>
+                                <div className="mb-3">
+                                    <label className="fw-bold">Answer length</label>
                                     <div>
-                                        <input type="range" className="form-control-range" id="formControlRange1" />
+                                        <input type="range" className="form-range" id="formControlRange1" />
                                         
                                         {/**
                                             <div className="form-check form-check-inline">
@@ -107,9 +97,9 @@ export const StrategySettings = observer(() => {
 
 
 
-                        <div className="form-group">
+                        <div className="mb-3">
                             <div>
-                                <label className="font-weight-bold">Concepts</label>
+                                <label className="fw-bold">Concepts</label>
                             </div>
 
                             <div className="row">
@@ -137,11 +127,11 @@ export const StrategySettings = observer(() => {
                                 </div>
 
                             </div>
-                            {/* <div className="font-weight-bold text-justify" style={{ marginTop: '-10px', fontSize: '19px', letterSpacing: '3px' }}>...</div> */}
+                            {/* <div className="fw-bold text-justify" style={{ marginTop: '-10px', fontSize: '19px', letterSpacing: '3px' }}>...</div> */}
 
                         </div>
-                        <div className="form-group">
-                            <label className="font-weight-bold">Laws</label>
+                        <div className="mb-3">
+                            <label className="fw-bold">Laws</label>
                             {db.laws.map((c, idx) =>
                             (<div className="d-flex flex-row align-items-start justify-content-start" style={{ marginBottom: '10px' }}>
                                 <div>
@@ -153,7 +143,7 @@ export const StrategySettings = observer(() => {
                                 </div>
                                 <div style={{ marginLeft: '15px' }}>{c}</div>
                             </div>))}
-                            {/* <div className="font-weight-bold text-justify" style={{ marginTop: '-10px', fontSize: '19px', letterSpacing: '3px' }}>...</div> */}
+                            {/* <div className="fw-bold text-justify" style={{ marginTop: '-10px', fontSize: '19px', letterSpacing: '3px' }}>...</div> */}
 
                         </div>
 

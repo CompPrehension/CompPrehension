@@ -72,7 +72,7 @@ export const GenerateSupQuestion = observer((props : GenerateSupQuestionProps) =
             <Optional isVisible={isButtonsVisible}>
                 <div className="d-flex flex-row mt-3">
                     <Button onClick={onDetailsClicked} variant="primary">{t('exercise_supquestion_details')}</Button>
-                    <Button onClick={onGotitClicked} variant="success" className="ml-2">{t('exercise_supquestion_gotit')}</Button>
+                    <Button onClick={onGotitClicked} variant="success" className="ms-2">{t('exercise_supquestion_gotit')}</Button>
                 </div>
             </Optional>            
             <Modal  type={'DIALOG'} size={'xl'} 

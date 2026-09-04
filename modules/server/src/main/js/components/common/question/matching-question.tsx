@@ -1,16 +1,29 @@
-import { Droppable, DroppableEventNames, Plugins } from "@shopify/draggable";
+import { Droppable, DroppableEventNames, DroppableStopEvent, Plugins } from "@shopify/draggable";
 import type { DraggableEventNames } from "@shopify/draggable/lib/draggable.bundle.legacy";
+import parse from "html-react-parser";
 import { observer } from "mobx-react";
 import React, { useEffect } from "react";
-import ReactDOM from "react-dom";
-import Select, { components } from "react-select";
+import Select, { OptionProps, SingleValueProps, components } from "react-select";
 import { Answer } from "../../../types/answer";
+import { Feedback } from "../../../types/feedback";
 import { MatchingQuestion } from "../../../types/question";
+import { answerSlotId } from "./answer-slot";
+
+type GroupOption = { value: number, label: string };
+
+/**
+ * The store owns the answers, so the selects are controlled by it: `defaultValue` would
+ * only be read once and would ignore everything that does not come from a click - a
+ * reloaded question, or a step the server filled in.
+ */
+const selectedOption = (options: GroupOption[], answers: Answer[], slotId: number) =>
+    options.find(o => o.value === answers.find(a => a.answer[0] === slotId)?.answer[1]) ?? null;
 
 type MatchingQuestionComponentProps = {
     question: MatchingQuestion,
     answers: Answer[],
     getAnswers: () => Answer[],
+    getFeedback?: () => Feedback | undefined,
     onChanged: (newAnswers: Answer[]) => void,
 }
 
@@ -29,7 +42,7 @@ export const MatchingQuestionComponent = observer((props: MatchingQuestionCompon
 });
 
 export const DragAndDropMatchingQuestionComponent = observer((props: MatchingQuestionComponentProps) => {
-    const { question, getAnswers, onChanged } = props;
+    const { question, getAnswers, getFeedback, onChanged } = props;
     if (question.options.displayMode !== 'dragNdrop') {
         return null;
     }
@@ -43,7 +56,7 @@ export const DragAndDropMatchingQuestionComponent = observer((props: MatchingQue
         (document.querySelectorAll(`[id^="question_${question.questionId}_answer_"]`) as unknown as HTMLSpanElement[])
             .forEach(e => {
                 e.classList.add("comp-ph-dropzone");
-                Object.keys(dropzoneStyle).forEach(k => e.style[k as any] = dropzoneStyle[k]);
+                Object.assign(e.style, dropzoneStyle);
                 e.innerHTML = `<div class="comp-ph-dropzone-placeholder">${options.dropzoneHtml}</div>`;
             });
 
@@ -58,9 +71,9 @@ export const DragAndDropMatchingQuestionComponent = observer((props: MatchingQue
 
         droppable.on('drag:over', () => console.log('is out'));
 
-        droppable.on('droppable:stop', (e: any) => {
-            const draggableId: string | undefined = e?.data?.dragEvent?.data?.source?.id;
-            const droppableId: string | undefined = e?.data?.dropzone?.id;
+        droppable.on('droppable:stop', (e: DroppableStopEvent) => {
+            const draggableId: string | undefined = e.dragEvent?.source?.id;
+            const droppableId: string | undefined = e.dropzone?.id;
             if (!draggableId || !droppableId) {
                 return;
             }
@@ -79,20 +92,69 @@ export const DragAndDropMatchingQuestionComponent = observer((props: MatchingQue
             setTimeout(() => {
                 const newHistory = [...(document.querySelectorAll(`[id^="question_${question.questionId}_answer_"] > [id^="dragAnswer_"]`) as unknown as Element[])]
                     .map<[number, number]>(e => {
-                        const leftId = e.parentElement?.id.split(`question_${question.questionId}_answer_`)[1] ?? '';
+                        const slot = e.parentElement;
+                        const leftId = slot?.getAttribute('data-answer-id')
+                            ?? slot?.id.split(`question_${question.questionId}_answer_`)[1]
+                            ?? '';
                         const rightId = e?.id.split('dragAnswer_')[1] ?? '';
                         return [+leftId, +rightId];
                     });
                 const oldHistory = getAnswers();
                 
                 onChanged(newHistory.map(h => 
-                    ({ answer: h, isСreatedByUser: oldHistory.find(x => x.answer[0] === h[0] && x.answer[1] === h[1])?.isСreatedByUser ?? true })));
+                    ({ answer: h, isCreatedByUser: oldHistory.find(x => x.answer[0] === h[0] && x.answer[1] === h[1])?.isCreatedByUser ?? true })));
             }, 10);
         });
+        // the drag library is set up once per question: re-running it on every render
+        // would tear down a live drag session
+        // eslint-disable-next-line react-hooks/exhaustive-deps
     }, [question.questionId])
-    
+
+    const answerKey = getAnswers().map(a => a.answer.join(':')).join(',');
+    const confirmed = new Set((getFeedback?.()?.correctAnswers ?? []).map(a => a.answer.join(':')));
+    const confirmedKey = [...confirmed].join(',');
+    useEffect(() => {
+        const slots = Array.from(document.querySelectorAll<HTMLElement>(`[id^="question_${question.questionId}_answer_"]`));
+        const answers = getAnswers();
+
+        slots.forEach(slot => {
+            const slotId = +(slot.getAttribute('data-answer-id')
+                ?? slot.id.split(`question_${question.questionId}_answer_`)[1]
+                ?? '');
+            const answer = answers.find(a => a.answer[0] === slotId);
+            const placed = slot.querySelector<HTMLElement>('.comp-ph-draggable');
+            const placedGroupId = +(placed?.id.split('dragAnswer_')[1] ?? '');
+
+            if (placed && answer?.answer[1] !== placedGroupId) {
+                const wrapper = document.getElementById(`dragAnswerWrapper_${placedGroupId}`);
+                if (!options.multipleSelectionEnabled && wrapper && !wrapper.querySelector('.comp-ph-draggable')) {
+                    wrapper.appendChild(placed);
+                } else {
+                    placed.remove();
+                }
+                slot.classList.remove('draggable-dropzone--occupied');
+            }
+
+            if (answer && !slot.querySelector('.comp-ph-draggable')) {
+                const source = document.querySelector(`#dragAnswerWrapper_${answer.answer[1]} .comp-ph-draggable`);
+                if (source) {
+                    slot.appendChild(options.multipleSelectionEnabled ? source.cloneNode(true) : source);
+                    slot.classList.add('draggable-dropzone--occupied');
+                }
+            }
+
+            slot.classList.toggle('comp-ph-answer-locked',
+                answer !== undefined && confirmed.has(answer.answer.join(':')));
+        });
+        // answerKey and confirmedKey stand in for the answers themselves: the callbacks
+        // are new on every render, the serialised keys change only when the data does
+        // eslint-disable-next-line react-hooks/exhaustive-deps
+    }, [question.questionId, answerKey, confirmedKey])
+
     return (
         <div>
+            {!options.requireContext &&
+                <p className="mb-3 comp-ph-question-text" dangerouslySetInnerHTML={{ __html: question.text }} />}
             <div className="row">
                 <div className="col-md">                    
                     {
@@ -100,7 +162,7 @@ export const DragAndDropMatchingQuestionComponent = observer((props: MatchingQue
                             ? <p className="d-flex flex-column comp-ph-droppable-container comp-ph-question-text">
                                 {question.answers.map(a =>
                                     <div className="d-flex flex-row mb-3">
-                                        <div className="mr-2 mt-1">
+                                        <div className="me-2 mt-1">
                                             <div id={`question_${question.questionId}_answer_${a.id}`}></div>
                                         </div>
                                         <div dangerouslySetInnerHTML={{ __html: a.text}}></div>
@@ -129,6 +191,8 @@ const ComboboxMatchingQuestionComponent = observer((props: MatchingQuestionCompo
 
     const { groups = [], } = question;   
     const groupsMaxLength = groups.reduce((len, g) => g.text.length > len ? g.text.length : len, 0);
+    const groupOptions: GroupOption[] = groups//.filter(g => !options.hideSelected || !Object.values(currentState).includes(g.id) || currentState[asw.id] == g.id)
+                                              .map(g => ({ value: g.id, label: g.text }));
     return (
         <div>
             <p className="mb-5 comp-ph-question-text" dangerouslySetInnerHTML={{ __html: question.text }} />            
@@ -139,16 +203,15 @@ const ComboboxMatchingQuestionComponent = observer((props: MatchingQuestionCompo
                         </div>
                         <div className="col-md-auto">
                             <div style={{width: `${(8*groupsMaxLength) + 100}px`}}>
-                                <Select defaultValue={(getAnswers().find(v => v.answer[0] === asw.id)?.answer?.[1] ?? null) as any}
-                                        options={groups//.filter(g => !options.hideSelected || !Object.values(currentState).includes(g.id) || currentState[asw.id] == g.id)
-                                                        .map(g => ({ value: g.id, label: g.text }))}
+                                <Select value={selectedOption(groupOptions, getAnswers(), asw.id)}
+                                        options={groupOptions}
                                         components={{ Option: RawHtmlSelectOption, SingleValue: RawHtmlSelectSingleValue }}               
                                         onChange={(v => {
                                             if (!v) {
                                                 return;
                                             }
                                             const otherHistoryItems = getAnswers().filter(v => v.answer[0] !== asw.id);
-                                            const historyItem = { answer: [asw.id, +v.value] as [number, number], isСreatedByUser: true };
+                                            const historyItem = { answer: [asw.id, +v.value] as [number, number], isCreatedByUser: true };
                                             const newAnswersHistory = [...otherHistoryItems, historyItem];
                                             onChanged(newAnswersHistory);                                            
                                         })} /> 
@@ -166,51 +229,50 @@ const ComboboxMatchingQuestionWithCtxComponent = observer((props: MatchingQuesti
     if (question.options.displayMode !== 'combobox') {
         return null;
     }
-    const { groups = [], options } = question;      
+    const { groups = [] } = question;
+    const groupOptions: GroupOption[] = groups.map(g => ({ value: g.id, label: g.text }));
 
-    useEffect(() => {
-        // replace all placeholders on first render
-        document.querySelectorAll(`#question_${question.questionId} [data-answer-id]`)
-            .forEach(elem => {
-                const answerId = +elem.getAttribute('data-answer-id')!;
-                const selector = <Select options={groups.map(g => ({ value: g.id, label: g.text }))}
-                                         components={{ Option: RawHtmlSelectOption, SingleValue: RawHtmlSelectSingleValue }} 
-                                         onChange={(v => {
-                                            if (!v) {
-                                               return;
-                                            }
+    const content = parse(question.text, {
+        replace: (node) => {
+            const answerId = answerSlotId(node);
+            if (answerId === null) {
+                return;
+            }
 
-                                            const otherHistoryItems = getAnswers().filter(v => v.answer[0] !== answerId);
-                                            const historyItem = { answer: [answerId, +v.value] as [number, number], isСreatedByUser: true };
-                                            const newAnswersHistory = [...otherHistoryItems, historyItem];
-                                            onChanged(newAnswersHistory);     
-                                        })}
-                                    />
-                ReactDOM.render(selector, elem);
-            });        
-    }, [question.questionId]);
+            return (
+                <Select value={selectedOption(groupOptions, getAnswers(), answerId)}
+                        options={groupOptions}
+                        components={{ Option: RawHtmlSelectOption, SingleValue: RawHtmlSelectSingleValue }}
+                        onChange={(v => {
+                            if (!v) {
+                                return;
+                            }
+
+                            const otherHistoryItems = getAnswers().filter(v => v.answer[0] !== answerId);
+                            const historyItem = { answer: [answerId, +v.value] as [number, number], isCreatedByUser: true };
+                            const newAnswersHistory = [...otherHistoryItems, historyItem];
+                            onChanged(newAnswersHistory);
+                        })}
+                />
+            );
+        },
+    });
 
     return (
         <div id={`question_${question.questionId}`}>
-            <p className="comp-ph-question-text" dangerouslySetInnerHTML={{ __html: question.text }} />
+            <div className="comp-ph-question-text">{content}</div>
         </div>
     );
 });
 
-const RawHtmlSelectOption = (props : any) => {
-    const {innerRef, innerProps, children, ...rest} = props;
-    return (   
-        <components.Option {...rest}>
-            <div ref={innerRef} {...innerProps} dangerouslySetInnerHTML={{__html: props.label}}></div>
-        </components.Option>
-    );
-};
+const RawHtmlSelectOption = (props: OptionProps<GroupOption, false>) => (
+    <components.Option {...props}>
+        <div dangerouslySetInnerHTML={{ __html: props.data.label }}></div>
+    </components.Option>
+);
 
-const RawHtmlSelectSingleValue = (props : any) => {
-    const { innerRef, innerProps, children, ...rest } = props;
-    return (   
-        <components.SingleValue {...rest}>
-            {props.getValue()?.map((v : any) => <div ref={innerRef} {...innerProps} dangerouslySetInnerHTML={{__html: v.label}}></div>)}
-        </components.SingleValue>
-    );
-};
+const RawHtmlSelectSingleValue = (props: SingleValueProps<GroupOption, false>) => (
+    <components.SingleValue {...props}>
+        <div dangerouslySetInnerHTML={{ __html: props.data.label }}></div>
+    </components.SingleValue>
+);

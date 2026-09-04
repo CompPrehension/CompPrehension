@@ -21,7 +21,7 @@ const ErrorNotificationAlert = observer(({ notification }: { notification: Error
         <Alert variant="danger" dismissible onClose={() => notifications.dismiss(notification.id)}>
             <Alert.Heading as="h6" className="d-flex align-items-center">
                 <span>{status ?? t('error_notification_title')}</span>
-                {count > 1 && <span className="badge badge-light ml-2">{count}</span>}
+                {count > 1 && <span className="badge bg-light text-dark ms-2">{count}</span>}
             </Alert.Heading>
             <div className="comp-ph-error-notification-message">{error.message}</div>
             {error.path && <small className="text-muted d-block mt-1">{error.path}</small>}

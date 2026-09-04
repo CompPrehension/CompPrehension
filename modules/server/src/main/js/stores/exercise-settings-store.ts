@@ -3,8 +3,10 @@ import { courseController, exerciseSettingsController } from "../controllers";
 import { Domain, ExerciseCard, ExerciseCardConcept, ExerciseCardConceptKind, ExerciseCardLaw, ExerciseCardPermissions, ExerciseCardSkill, ExerciseList, ExerciseListItem, ExerciseListPermissions, ExerciseStage, QuestionBankSearchResult, Strategy, noExerciseListPermissions } from "../types/exercise-settings";
 import * as E from "fp-ts/lib/Either";
 import { ExerciseOptions } from "../types/exercise-options";
+import { RequestError } from "../types/request-error";
 import * as NEA from "fp-ts/lib/NonEmptyArray";
 import { pipe } from "fp-ts/lib/function";
+import {NonEmptyArray} from "fp-ts/lib/NonEmptyArray";
 
 export type ExerciseCardViewModel = {
     id: number,
@@ -49,11 +51,12 @@ export class ExerciseStageStore implements Disposable {
             const laws = this.laws.slice()
             const concepts = this.concepts.slice()
             const skills = this.skills.slice()
+            const tags = card.tags.slice()
             // the search itself is a side effect, not an input: `makeAutoObservable` marks
             // plain methods as `autoAction`, which keeps tracking when called from inside a
             // derivation, so without `untracked` this autorun would also subscribe to what
             // updateBankStats reads - including the abortController it writes to itself
-            untracked(() => this.updateBankStats(concepts, laws, skills, card.tags, complexity));
+            untracked(() => this.updateBankStats(concepts, laws, skills, tags, complexity));
         }, { delay: 1000 });
     }
     
@@ -105,6 +108,8 @@ export class ExerciseSettingsStore {
     strategies: Strategy[] | null = null;
     currentCard: ExerciseCardViewModel | null = null;
     courseId: number | null = null;
+    storeState: { tag: 'VALID' } | { tag: 'ERROR', error: RequestError } = { tag: 'VALID' };
+    private loadToken = 0;
 
     constructor() {
         makeAutoObservable(this);
@@ -125,12 +130,12 @@ export class ExerciseSettingsStore {
     private toCardViewModel(card: ExerciseCard): ExerciseCardViewModel {
         const cardDomain = this.domains?.find(x => x.id === card.domainId);
         if (!cardDomain)
-            throw new Error(`не найден домен ${card.domainId}`);    
+            throw new Error(`The exercise is bound to domain '${card.domainId}', which the server does not list`);
 
         const result: ExerciseCardViewModel = observable({
             ...card,
             tags: card.tags.filter(t => cardDomain.tags.some(tt => tt === t)),
-            stages: [] as any,
+            stages: [] as unknown as NonEmptyArray<ExerciseStageStore>,
         });
         result.stages = pipe(
             card.stages,
@@ -155,6 +160,7 @@ export class ExerciseSettingsStore {
         if (this.exercisesLoadStatus === 'LOADED' || this.exercisesLoadStatus === 'LOADING')
             return;
 
+        this.storeState = { tag: 'VALID' };
         this.exercisesLoadStatus = 'LOADING';
         this.courseId = courseId;
         const [rawExercises, domains, backends, strategies] = await Promise.all([
@@ -163,26 +169,43 @@ export class ExerciseSettingsStore {
             exerciseSettingsController.getBackends(),
             exerciseSettingsController.getStrategies()
         ])
-        if (E.isRight(rawExercises) && E.isRight(domains) &&
-            E.isRight(backends) && E.isRight(strategies)) {
-            this.applyExerciseList(rawExercises.right);
-            this.domains = domains.right;
-            this.backends = backends.right;
-            this.strategies = strategies.right;
+        const failed = [rawExercises, domains, backends, strategies].find(E.isLeft);
+        if (failed) {
+            this.storeState = { tag: 'ERROR', error: failed.left };
+            this.exercisesLoadStatus = 'NONE';
+            return;
         }
+
+        this.applyExerciseList((rawExercises as E.Right<ExerciseList>).right);
+        this.domains = (domains as E.Right<Domain[]>).right;
+        this.backends = (backends as E.Right<string[]>).right;
+        this.strategies = (strategies as E.Right<Strategy[]>).right;
         this.exercisesLoadStatus = 'LOADED';
     }
 
     async loadExercise(exerciseId: number) {
-        if (this.exercisesLoadStatus !== 'LOADED')
+        if (this.exercisesLoadStatus === 'NONE' || this.exercisesLoadStatus === 'LOADING')
             throw new Error("Exercises must be loaded first");
 
+        const token = ++this.loadToken;
+        this.storeState = { tag: 'VALID' };
         this.exercisesLoadStatus = 'EXERCISELOADING';
-        const rawExercise = await exerciseSettingsController.getExercise(exerciseId, this.courseId);
-        if (E.isRight(rawExercise)) {
+        try {
+            const rawExercise = await exerciseSettingsController.getExercise(exerciseId, this.courseId);
+            if (token !== this.loadToken)
+                return;
+            if (E.isLeft(rawExercise)) {
+                this.storeState = { tag: 'ERROR', error: rawExercise.left };
+                return;
+            }
             this.currentCard = this.toCardViewModel(rawExercise.right);
+        } catch (error) {
+            this.currentCard = null;
+            this.storeState = { tag: 'ERROR', error: { message: error instanceof Error ? error.message : String(error) } };
+        } finally {
+            if (token === this.loadToken)
+                this.exercisesLoadStatus = 'LOADED';
         }
-        this.exercisesLoadStatus = 'LOADED';
     }
 
     async createNewExecise() {

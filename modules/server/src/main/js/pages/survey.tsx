@@ -1,7 +1,6 @@
 import { observer } from "mobx-react";
 import React, { useCallback, useEffect, useState } from "react";
 import { Alert } from "react-bootstrap";
-import { useTranslation } from "react-i18next";
 import { InlineError } from "../components/common/errors";
 import { LoadingWrapper } from "../components/common/loader";
 import { Optional } from "../components/common/optional";
@@ -13,10 +12,9 @@ import { Survey } from "../types/survey";
 
 export const SurveyPage = observer(() => {
     const exerciseStore = getExerciseStore();
-    const { exerciseState, setExerciseState, storeState:excerciseStoreState, currentQuestion, survey } = exerciseStore;
+    const { exerciseState, setExerciseState, storeState:excerciseStoreState, currentQuestion, } = exerciseStore;
     const { storeState:currentQuestionStoreState } = currentQuestion;
-    const { t } = useTranslation();
-    const [surveyState, setSurveyState]= useState<'ACTIVE' | 'COMPLETED'>('ACTIVE');
+    const [surveyState]= useState<'ACTIVE' | 'COMPLETED'>('ACTIVE');
 
     // on first render
     useEffect(() => {
@@ -43,6 +41,8 @@ export const SurveyPage = observer(() => {
             }
             */
         })()
+        // startup sequence: runs once, on mount
+        // eslint-disable-next-line react-hooks/exhaustive-deps
     }, []);
 
     const loadQuestion = async () => {        
@@ -60,7 +60,7 @@ export const SurveyPage = observer(() => {
         await loadQuestion();
     }
 
-    const onSurveyAnswered = useCallback((survey: Survey, questionId: number, answers: Record<number, string>) => {
+    const onSurveyAnswered = useCallback((_survey: Survey, _questionId: number, _answers: Record<number, string>) => {
 
         console.log('лень рефакторить, не работает крч');
         /*
@@ -76,7 +76,7 @@ export const SurveyPage = observer(() => {
     }, []);
 
     const surveyOptions = exerciseStore.exercise?.options.surveyOptions;
-    const currentQuestionId = exerciseStore.currentQuestion.question?.questionId;
+    const currentQuestionId = exerciseStore.currentQuestion.question?.questionId ?? -1;
 
     if (!surveyOptions?.enabled)
         return null;
@@ -99,10 +99,10 @@ export const SurveyPage = observer(() => {
                         </Optional>
                         <Optional isVisible={surveyState !== 'COMPLETED' && currentQuestion.questionState === 'LOADED'}>
                             <div className="mt-2">
-                                <SurveyComponent questionId={exerciseStore.currentQuestion.question?.questionId ?? -1} 
+                                <SurveyComponent questionId={currentQuestionId} 
                                                  survey={exerciseStore.survey!.survey}
-                                                 value={exerciseStore.survey?.questions[exerciseStore.currentQuestion.question?.questionId ?? -1].results}
-                                                 enabledSurveyQuestions={exerciseStore.survey?.questions[exerciseStore.currentQuestion.question?.questionId ?? -1].questions ?? []} 
+                                                 value={exerciseStore.survey?.questions[currentQuestionId].results}
+                                                 enabledSurveyQuestions={exerciseStore.survey?.questions[currentQuestionId].questions ?? []} 
                                                  onAnswersSended={onSurveyAnswered}/>
                             </div>
                         </Optional>
