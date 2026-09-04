@@ -1,4 +1,4 @@
-import { configure, instance, initReactI18next, observer, jsxRuntimeExports, reactExports, Button, Bug, makeAutoObservable, useTranslation, Alert, Spinner, union, nullType, undefinedType, literal, Modal as Modal$1, EitherExports, success, type, string, number, intersection, boolean, partial, array, Type, _ArrayExports, _functionExports, NonEmptyArrayExports, OptionExports, failure, keyof, recursion, toJS, tuple, autorun, action, Droppable, ResizeMirror, StateManagedSelect$1, parse, components, libExports, Popover, PopoverTrigger, PopoverContent, X, Badge, Pagination as Pagination$1, Navbar, isLeft, FormImpl, Shepherd, Table, ListGroup, observable, untracked, useSearchParams, Link, useNavigate, React, clientExports, BrowserRouter, Routes, Route, Navigate } from "./vendor-4buD99kU.js";
+import { configure, instance, initReactI18next, observer, jsxRuntimeExports, reactExports, Button, Bug, makeAutoObservable, useTranslation, Alert, Spinner, union, nullType, undefinedType, literal, Modal as Modal$1, left, success, isLeft, right, type, string, number, intersection, boolean, partial, array, Type, isNonEmpty, pipe, chain, fromArray, isNone, failure, map, keyof, recursion, toJS, tuple, isRight, absurd, autorun, action, Droppable, ResizeMirror, StateManagedSelect$1, parse, components, libExports, Popover, PopoverTrigger, PopoverContent, X, Badge, Pagination as Pagination$1, Navbar, FormImpl, Shepherd, Table, ListGroup, observable, untracked, useSearchParams, Link, useNavigate, React, clientExports, BrowserRouter, Routes, Route, Navigate } from "./vendor-yL0fAmd4.js";
 (function polyfill() {
   const relList = document.createElement("link").relList;
   if (relList && relList.supports && relList.supports("modulepreload")) return;
@@ -750,7 +750,7 @@ async function readPayload(response, payloadType) {
 function fail(error) {
   console.error(error);
   notifications.report(error);
-  return EitherExports.left(error);
+  return left(error);
 }
 const isAbort = (err) => err instanceof DOMException && err.name === "AbortError";
 async function ajax(url, params, validator, payloadType) {
@@ -760,7 +760,7 @@ async function ajax(url, params, validator, payloadType) {
     response = await fetch(url, params);
   } catch (err) {
     if (isAbort(err)) {
-      return EitherExports.left({ message: "Request aborted" });
+      return left({ message: "Request aborted" });
     }
     return fail({ message: `Network error: ${err instanceof Error ? err.message : String(err)}` });
   }
@@ -772,7 +772,7 @@ async function ajax(url, params, validator, payloadType) {
     payload = await readPayload(response, payloadType);
   } catch (err) {
     if (isAbort(err)) {
-      return EitherExports.left({ message: "Request aborted" });
+      return left({ message: "Request aborted" });
     }
     return fail({
       status: response.status,
@@ -780,13 +780,13 @@ async function ajax(url, params, validator, payloadType) {
     });
   }
   const decoded = validator ? validator.decode(payload) : success(payload);
-  if (EitherExports.isLeft(decoded)) {
+  if (isLeft(decoded)) {
     return fail({
       status: response.status,
       message: `Type inconsistency for properties of ${validator?.name} type: ${getPaths(decoded.left).join(", ")}`
     });
   }
-  return EitherExports.right(decoded.right);
+  return right(decoded.right);
 }
 const getPaths = (errors) => {
   return errors.map((error) => error.context.map(({ key }) => key).join("."));
@@ -819,15 +819,15 @@ function nonEmptyArray(codec, name = `NonEmptyArray<${codec.name}>`) {
   const arr = array(codec);
   return new Type(
     name,
-    (u) => arr.is(u) && _ArrayExports.isNonEmpty(u),
-    (u, c) => _functionExports.pipe(
+    (u) => arr.is(u) && isNonEmpty(u),
+    (u, c) => pipe(
       arr.validate(u, c),
-      EitherExports.chain((as) => {
-        const onea = NonEmptyArrayExports.fromArray(as);
-        return OptionExports.isNone(onea) ? failure(u, c) : success(onea.value);
+      chain((as) => {
+        const onea = fromArray(as);
+        return isNone(onea) ? failure(u, c) : success(onea.value);
       })
     ),
-    NonEmptyArrayExports.map(codec.encode)
+    map(codec.encode)
   );
 }
 function getUrlParameterByName(name) {
@@ -1345,9 +1345,9 @@ class SurveyController {
   surveyCache = {};
   async getSurvey(suerveyId) {
     if (this.surveyCache[suerveyId])
-      return EitherExports.right(this.surveyCache[suerveyId]);
+      return right(this.surveyCache[suerveyId]);
     const result = await ajaxGet(`${API_URL}/api/survey/${suerveyId}`, TSurvey);
-    if (EitherExports.isRight(result))
+    if (isRight(result))
       this.surveyCache[suerveyId] = result.right;
     return result;
   }
@@ -1378,7 +1378,7 @@ class UserController {
     return ajaxGet(`${API_URL}/api/users/whoami`, TUserInfo);
   }
   async getLanguages() {
-    return EitherExports.right(["EN", "RU"]);
+    return right(["EN", "RU"]);
   }
   async setLanguage(language) {
     return ajaxPost(`${API_URL}/api/users/language`, { language }, TLanguage, void 0, "raw");
@@ -1440,7 +1440,7 @@ class SupplementaryQuestionStore {
       case "MATCHING":
         return this.answer.length === this.question.answers.length;
       default:
-        return _functionExports.absurd(this.question);
+        return absurd(this.question);
     }
   }
   get questionSubmitMode() {
@@ -1457,7 +1457,7 @@ class SupplementaryQuestionStore {
       violationLaws
     };
     const dataEither = await questionController.generateSupplementaryQuestion(questionRequest);
-    if (EitherExports.isLeft(dataEither)) {
+    if (isLeft(dataEither)) {
       this.setQuestionState("LOADED");
       return;
     }
@@ -1473,7 +1473,7 @@ class SupplementaryQuestionStore {
     });
     this.setQuestionState("ANSWER_EVALUATING");
     const feedbackEither = await questionController.addSupplementaryQuestionAnswer(body);
-    if (EitherExports.isLeft(feedbackEither)) {
+    if (isLeft(feedbackEither)) {
       this.setQuestionState("LOADED");
       return;
     }
@@ -1559,7 +1559,7 @@ class QuestionStore {
     this.setQuestionState("LOADING");
     const dataEither = await questionController.getQuestion(questionId);
     this.setQuestionState("LOADED");
-    if (EitherExports.isLeft(dataEither)) {
+    if (isLeft(dataEither)) {
       this.setErrorStoreState(dataEither.left);
       return;
     }
@@ -1570,7 +1570,7 @@ class QuestionStore {
     this.setQuestionState("LOADING");
     const dataEither = await questionController.generateQuestionByAttempt(attemptId);
     this.setQuestionState("LOADED");
-    if (EitherExports.isLeft(dataEither)) {
+    if (isLeft(dataEither)) {
       this.setErrorStoreState(dataEither.left);
       return;
     }
@@ -1581,7 +1581,7 @@ class QuestionStore {
     this.setQuestionState("LOADING");
     const dataEither = await questionController.generateQuestionByMetadata(metadataId);
     this.setQuestionState("LOADED");
-    if (EitherExports.isLeft(dataEither)) {
+    if (isLeft(dataEither)) {
       this.setErrorStoreState(dataEither.left);
       return;
     }
@@ -1596,7 +1596,7 @@ class QuestionStore {
     this.setQuestionState("ANSWER_EVALUATING");
     const feedbackEither = await questionController.generateNextCorrectAnswer(question.questionId);
     this.setQuestionState("LOADED");
-    if (EitherExports.isLeft(feedbackEither)) {
+    if (isLeft(feedbackEither)) {
       this.setErrorStoreState(feedbackEither.left);
       return;
     }
@@ -1611,7 +1611,7 @@ class QuestionStore {
     this.setQuestionState("ANSWER_EVALUATING");
     const feedbackEither = await questionController.addQuestionAnswer(body);
     this.setQuestionState("LOADED");
-    if (EitherExports.isLeft(feedbackEither)) {
+    if (isLeft(feedbackEither)) {
       this.setErrorStoreState(feedbackEither.left);
       return;
     }
@@ -1744,7 +1744,7 @@ class ExerciseStore {
     this.isExerciseLoading = true;
     const exercise = await exerciseController.getExerciseShortInfo(this.exerciseId, this.courseId);
     this.isExerciseLoading = false;
-    if (EitherExports.isRight(exercise)) {
+    if (isRight(exercise)) {
       this.exercise = exercise.right;
     } else {
       this.storeState = { tag: "ERROR", error: exercise.left };
@@ -1756,7 +1756,7 @@ class ExerciseStore {
     }
     this.forceSetValidState();
     const resultEither = await exerciseController.getExerciseAttempt(attemptId);
-    if (EitherExports.isLeft(resultEither)) {
+    if (isLeft(resultEither)) {
       this.storeState = { tag: "ERROR", error: resultEither.left };
       return;
     }
@@ -1774,7 +1774,7 @@ class ExerciseStore {
     }
     this.forceSetValidState();
     const resultEither = await exerciseController.getExistingExerciseAttempt(exercise.id, this.courseId);
-    if (EitherExports.isLeft(resultEither)) {
+    if (isLeft(resultEither)) {
       this.storeState = { tag: "ERROR", error: resultEither.left };
       return;
     }
@@ -1795,7 +1795,7 @@ class ExerciseStore {
     }
     this.forceSetValidState();
     const resultEither = await exerciseController.createExerciseAttempt(exercise.id, this.courseId);
-    if (EitherExports.isLeft(resultEither)) {
+    if (isLeft(resultEither)) {
       this.storeState = { tag: "ERROR", error: resultEither.left };
       return;
     }
@@ -1809,7 +1809,7 @@ class ExerciseStore {
     }
     this.forceSetValidState();
     const resultEither = await exerciseController.createDebugExerciseAttempt(exercise.id, this.courseId);
-    if (EitherExports.isLeft(resultEither)) {
+    if (isLeft(resultEither)) {
       this.storeState = { tag: "ERROR", error: resultEither.left };
       return;
     }
@@ -1836,7 +1836,7 @@ class ExerciseStore {
       surveyController.getSurvey(surveyId),
       surveyController.getCurrentUserAttemptSurveyVotes(surveyId, attemptId)
     ]);
-    if (EitherExports.isRight(survey) && EitherExports.isRight(surveyResults)) {
+    if (isRight(survey) && isRight(surveyResults)) {
       const tmp = groupBy(surveyResults.right, (x) => x.questionId);
       this.survey = {
         survey: survey.right,
@@ -1873,17 +1873,17 @@ class ExerciseStore {
   };
 }
 function groupBy(list, keyGetter) {
-  const map = /* @__PURE__ */ new Map();
+  const map2 = /* @__PURE__ */ new Map();
   list.forEach((item) => {
     const key = keyGetter(item);
-    const collection = map.get(key);
+    const collection = map2.get(key);
     if (!collection) {
-      map.set(key, [item]);
+      map2.set(key, [item]);
     } else {
       collection.push(item);
     }
   });
-  return map;
+  return map2;
 }
 let sharedExerciseStore;
 function getExerciseStore() {
@@ -2400,7 +2400,7 @@ const QuestionComponent = observer((props) => {
       questonComponent = /* @__PURE__ */ jsxRuntimeExports.jsx(OrderQuestionComponent, { question, onChanged, answers, getAnswers, getFeedback });
       break;
     default:
-      return _functionExports.absurd(question);
+      return absurd();
   }
   const wrapperClassName = [
     "comp-ph-question-wrapper",
@@ -3560,7 +3560,7 @@ const Statistics = () => {
       const controller = exerciseController;
       setIsLoading(true);
       const statistics2 = await controller.getExerciseStatistics(+exerciseId);
-      if (EitherExports.isRight(statistics2)) {
+      if (isRight(statistics2)) {
         setStatistics(statistics2.right);
       }
       setIsLoading(false);
@@ -3590,7 +3590,7 @@ const ExercisesList = observer(() => {
     (async () => {
       setIsLoading(true);
       const dataEither = await exerciseController.getExercises();
-      if (EitherExports.isRight(dataEither)) {
+      if (isRight(dataEither)) {
         setData(dataEither.right);
       }
       setIsLoading(false);
@@ -3697,7 +3697,7 @@ class ExerciseStageStore {
     this.abortController = currentAbortController;
     this.bankLoadingState = "IN_PROGRESS";
     const newData = await exerciseSettingsController.search(card.domainId, concepts, laws, skills, tags, complexity, 5, this.courseId, currentAbortController.signal);
-    if (EitherExports.isRight(newData)) {
+    if (isRight(newData)) {
       this.bankSearchResult = newData.right;
       this.bankLoadingState = "COMPLETED";
     }
@@ -3745,18 +3745,18 @@ class ExerciseSettingsStore {
       tags: card.tags.filter((t) => cardDomain.tags.some((tt) => tt === t)),
       stages: []
     });
-    result.stages = _functionExports.pipe(
+    result.stages = pipe(
       card.stages,
-      NonEmptyArrayExports.map((stage) => new ExerciseStageStore(this.courseId, result, stage))
+      map((stage) => new ExerciseStageStore(this.courseId, result, stage))
     );
     return result;
   }
   fromCardViewModel(card) {
     return {
       ...card,
-      stages: _functionExports.pipe(
+      stages: pipe(
         card.stages,
-        NonEmptyArrayExports.map((stage) => ({ concepts: stage.concepts, laws: stage.laws, skills: stage.skills, numberOfQuestions: stage.numberOfQuestions, complexity: stage.complexity }))
+        map((stage) => ({ concepts: stage.concepts, laws: stage.laws, skills: stage.skills, numberOfQuestions: stage.numberOfQuestions, complexity: stage.complexity }))
       )
     };
   }
@@ -3771,7 +3771,7 @@ class ExerciseSettingsStore {
       exerciseSettingsController.getBackends(),
       exerciseSettingsController.getStrategies()
     ]);
-    if (EitherExports.isRight(rawExercises) && EitherExports.isRight(domains) && EitherExports.isRight(backends) && EitherExports.isRight(strategies)) {
+    if (isRight(rawExercises) && isRight(domains) && isRight(backends) && isRight(strategies)) {
       this.applyExerciseList(rawExercises.right);
       this.domains = domains.right;
       this.backends = backends.right;
@@ -3784,7 +3784,7 @@ class ExerciseSettingsStore {
       throw new Error("Exercises must be loaded first");
     this.exercisesLoadStatus = "EXERCISELOADING";
     const rawExercise = await exerciseSettingsController.getExercise(exerciseId, this.courseId);
-    if (EitherExports.isRight(rawExercise)) {
+    if (isRight(rawExercise)) {
       this.currentCard = this.toCardViewModel(rawExercise.right);
     }
     this.exercisesLoadStatus = "LOADED";
@@ -3798,14 +3798,14 @@ class ExerciseSettingsStore {
       this.strategies[0].id,
       this.courseId
     );
-    if (!EitherExports.isRight(newExerciseId))
+    if (!isRight(newExerciseId))
       return;
     this.exercisesLoadStatus = "EXERCISELOADING";
     const [rawExercise, newExercisesList] = await Promise.all([
       exerciseSettingsController.getExercise(newExerciseId.right, this.courseId),
       exerciseSettingsController.listExercises(this.courseId)
     ]);
-    if (EitherExports.isRight(rawExercise) && EitherExports.isRight(newExercisesList)) {
+    if (isRight(rawExercise) && isRight(newExercisesList)) {
       this.currentCard = this.toCardViewModel(rawExercise.right);
       this.applyExerciseList(newExercisesList.right);
     }
@@ -3814,13 +3814,13 @@ class ExerciseSettingsStore {
   async cloneCurrentToCourse(targetCourseId) {
     if (!this.currentCard) return;
     const result = await exerciseSettingsController.cloneExercise(this.currentCard.id, targetCourseId);
-    if (!EitherExports.isRight(result)) return;
+    if (!isRight(result)) return;
     const newId = result.right;
     const [rawExercise, newExercisesList] = await Promise.all([
       exerciseSettingsController.getExercise(newId, this.courseId),
       exerciseSettingsController.listExercises(this.courseId)
     ]);
-    if (EitherExports.isRight(rawExercise) && EitherExports.isRight(newExercisesList)) {
+    if (isRight(rawExercise) && isRight(newExercisesList)) {
       this.currentCard = this.toCardViewModel(rawExercise.right);
       this.applyExerciseList(newExercisesList.right);
     }
@@ -3828,13 +3828,13 @@ class ExerciseSettingsStore {
   async copyCurrentToPool() {
     if (!this.currentCard) return null;
     const result = await exerciseSettingsController.cloneExercise(this.currentCard.id, null);
-    return EitherExports.isRight(result) ? result.right : null;
+    return isRight(result) ? result.right : null;
   }
   async unlinkFromCourse(courseId) {
     if (!this.currentCard) return;
     await courseController.removeExerciseFromCourse(this.currentCard.id, courseId);
     const refreshed = await exerciseSettingsController.listExercises(this.courseId);
-    if (EitherExports.isRight(refreshed)) {
+    if (isRight(refreshed)) {
       this.applyExerciseList(refreshed.right);
       this.currentCard = null;
     }
@@ -3844,7 +3844,7 @@ class ExerciseSettingsStore {
     const id = this.currentCard.id;
     await exerciseSettingsController.deleteExercise(id, this.courseId);
     const refreshed = await exerciseSettingsController.listExercises(this.courseId);
-    if (EitherExports.isRight(refreshed)) {
+    if (isRight(refreshed)) {
       this.applyExerciseList(refreshed.right);
       this.currentCard = null;
     }
@@ -3855,7 +3855,7 @@ class ExerciseSettingsStore {
     this.exercisesLoadStatus = "EXERCISELOADING";
     await exerciseSettingsController.saveExercise(this.fromCardViewModel(this.currentCard), this.courseId);
     const newExercisesList = await exerciseSettingsController.listExercises(this.courseId);
-    if (EitherExports.isRight(newExercisesList)) {
+    if (isRight(newExercisesList)) {
       this.applyExerciseList(newExercisesList.right);
     }
     this.exercisesLoadStatus = "LOADED";
@@ -4133,7 +4133,7 @@ const DeleteGlobalExerciseModal = ({ exerciseId, onConfirm, onCancel }) => {
   reactExports.useEffect(() => {
     (async () => {
       const r = await courseController.getExerciseMemberships(exerciseId);
-      if (EitherExports.isRight(r)) setMemberships(r.right);
+      if (isRight(r)) setMemberships(r.right);
     })();
   }, [exerciseId]);
   const byLms = (memberships ?? []).reduce((acc, m) => {
@@ -4905,7 +4905,7 @@ class GlobalPoolStore {
     this.loadStatus = "LOADING";
     this.error = null;
     const r = await exerciseSettingsController.listExercises(null);
-    if (EitherExports.isLeft(r)) {
+    if (isLeft(r)) {
       this.error = r.left;
       this.loadStatus = "FAILED";
       return;
@@ -4917,10 +4917,10 @@ class GlobalPoolStore {
   async importToCourse(exerciseId, targetCourseId, mode) {
     if (mode === "INHERIT") {
       const r2 = await courseController.addExerciseToCourse(exerciseId, targetCourseId);
-      return EitherExports.isRight(r2);
+      return isRight(r2);
     }
     const r = await exerciseSettingsController.cloneExercise(exerciseId, targetCourseId);
-    return EitherExports.isRight(r);
+    return isRight(r);
   }
 }
 const GlobalPool = observer(() => {
@@ -4982,7 +4982,7 @@ class CourseStore {
     this.courseId = courseId;
     this.error = null;
     const r = await courseController.getCourseExercises(courseId);
-    if (EitherExports.isLeft(r)) {
+    if (isLeft(r)) {
       this.error = r.left;
       this.loadStatus = "FAILED";
       return;
@@ -5094,7 +5094,7 @@ const DeepLinkSelection = ({ exercises }) => {
   reactExports.useEffect(() => {
     (async () => {
       const res = await deepLinkingController.existing();
-      if (EitherExports.isRight(res)) setExisting(new Set(res.right.exerciseIds));
+      if (isRight(res)) setExisting(new Set(res.right.exerciseIds));
     })();
   }, []);
   const toggle = (id) => {
@@ -5116,7 +5116,7 @@ const DeepLinkSelection = ({ exercises }) => {
     setSubmitting(true);
     setError(null);
     const res = await deepLinkingController.build(Array.from(selected));
-    if (EitherExports.isRight(res)) {
+    if (isRight(res)) {
       setPayload(res.right);
     } else {
       setError(t("deeplink_error"));
@@ -5249,7 +5249,7 @@ class CoursesStore {
     this.loadStatus = "LOADING";
     this.error = null;
     const r = await courseController.getMyCourses();
-    if (EitherExports.isLeft(r)) {
+    if (isLeft(r)) {
       this.error = r.left;
       this.loadStatus = "FAILED";
       return;
