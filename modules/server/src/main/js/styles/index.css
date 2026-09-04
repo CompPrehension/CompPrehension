@@ -10,6 +10,26 @@ body ul {
   margin: 0; 
 }
 
+/* Ошибки запросов: показываются поверх страницы и сами исчезают */
+.comp-ph-error-notifications {
+    position: fixed;
+    top: 1rem;
+    right: 1rem;
+    z-index: 1060; /* выше модалок bootstrap */
+    width: 24rem;
+    max-width: calc(100% - 2rem);
+    max-height: calc(100% - 2rem);
+    overflow-y: auto;
+}
+
+.comp-ph-error-notifications .alert {
+    box-shadow: 0 .25rem .75rem rgb(0 0 0 / 15%);
+}
+
+.comp-ph-error-notification-message {
+    overflow-wrap: anywhere;
+}
+
 .comp-ph-container {
   padding: 1rem;
   margin-bottom: 1rem;
@@ -38,6 +58,11 @@ body ul {
 .comp-ph-question-wrapper.comp-ph-question-wrapper--finished .comp-ph-singlechoice-label, 
 .comp-ph-question-wrapper.comp-ph-question-wrapper--loading-feedback .comp-ph-singlechoice-label,
 .comp-ph-question-wrapper.comp-ph-question-wrapper--freezed .comp-ph-singlechoice-label {
+  pointer-events: none !important;
+}
+
+.comp-ph-answer-locked,
+.comp-ph-answer-locked * {
   pointer-events: none !important;
 }
 
@@ -97,6 +122,26 @@ body ul {
 
 .comp-ph-expr .comp-ph-expr-op-btn.disabled {
   border-bottom: 2px solid #79d68e;
+  cursor: default;
+  pointer-events: none;
+}
+
+.comp-ph-expr .comp-ph-expr-bottom-hint {
+  position: absolute;
+  bottom: -17px;
+  left: 0;
+  right: 0;
+  text-align: center;
+  font-size: 9px;
+}
+
+.comp-ph-expr .comp-ph-expr-top-hint {
+  position: absolute;
+  top: -17px;
+  left: 0;
+  right: 0;
+  text-align: center;
+  font-size: 9px;
 }
 
 .comp-ph-expr .btn.comp-ph-complete-btn {
@@ -124,30 +169,6 @@ body ul {
 
 .comp-ph-expr .btn.comp-ph-complete-btn:focus {
   box-shadow: none;
-}
-
-
-.comp-ph-expr .comp-ph-expr-op-btn.disabled {
-  cursor: default;
-  pointer-events: none;
-}
-
-.comp-ph-expr .comp-ph-expr-bottom-hint {
-  position: absolute;
-  bottom: -17px;
-  left: 0;
-  right: 0;
-  text-align: center;
-  font-size: 9px;
-}
-
-.comp-ph-expr .comp-ph-expr-top-hint {
-  position: absolute;
-  top: -17px;
-  left: 0;
-  right: 0;
-  text-align: center;
-  font-size: 9px;
 }
 
 .comp-ph-expr .comp-ph-expr-lr-hint {
@@ -220,7 +241,7 @@ body ul {
 
 .switch-field input {
     position: absolute !important;
-    clip: rect(0, 0, 0, 0);
+    clip-path: inset(50%);
     height: 1px;
     width: 1px;
     border: 0;
@@ -229,9 +250,6 @@ body ul {
 
 .switch-field label {
   float: left;
-}
-
-.switch-field label {
   display: inline-block;
   margin: 0;
   width: 35px;
@@ -271,7 +289,7 @@ body ul {
 }
 
 table.comp-ph-trace {
-  font-family: courier;
+  font-family: courier, monospace;
   width: 100%;
   background: #fff;
   margin: 1em 0;
@@ -551,24 +569,4 @@ table.comp-ph-trace tr:first-child td {
 .ctrl-flow-domain-code-block .token {
     cursor: default;
     position: relative;
-}
-
-/* Ошибки запросов: показываются поверх страницы и сами исчезают */
-.comp-ph-error-notifications {
-    position: fixed;
-    top: 1rem;
-    right: 1rem;
-    z-index: 1060; /* выше модалок bootstrap */
-    width: 24rem;
-    max-width: calc(100% - 2rem);
-    max-height: calc(100% - 2rem);
-    overflow-y: auto;
-}
-
-.comp-ph-error-notifications .alert {
-    box-shadow: 0 .25rem .75rem rgb(0 0 0 / 15%);
-}
-
-.comp-ph-error-notification-message {
-    overflow-wrap: anywhere;
 }

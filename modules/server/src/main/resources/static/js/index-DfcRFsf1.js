@@ -1068,7 +1068,7 @@ class ExerciseSettingsController {
 const TAnswer = intersection([
   type({
     answer: tuple([number, number]),
-    isСreatedByUser: boolean
+    isCreatedByUser: boolean
   }),
   partial({
     createdByInteraction: union([number, nullType])
@@ -1910,7 +1910,7 @@ const MatchingQuestionComponent = observer((props) => {
   return /* @__PURE__ */ jsxRuntimeExports.jsx("div", { children: "Not Implemented" });
 });
 const DragAndDropMatchingQuestionComponent = observer((props) => {
-  const { question, getAnswers, onChanged } = props;
+  const { question, getAnswers, getFeedback, onChanged } = props;
   if (question.options.displayMode !== "dragNdrop") {
     return null;
   }
@@ -1949,25 +1949,62 @@ const DragAndDropMatchingQuestionComponent = observer((props) => {
       }
       setTimeout(() => {
         const newHistory = [...document.querySelectorAll(`[id^="question_${question.questionId}_answer_"] > [id^="dragAnswer_"]`)].map((e2) => {
-          const leftId = e2.parentElement?.id.split(`question_${question.questionId}_answer_`)[1] ?? "";
+          const slot = e2.parentElement;
+          const leftId = slot?.getAttribute("data-answer-id") ?? slot?.id.split(`question_${question.questionId}_answer_`)[1] ?? "";
           const rightId = e2?.id.split("dragAnswer_")[1] ?? "";
           return [+leftId, +rightId];
         });
         const oldHistory = getAnswers();
-        onChanged(newHistory.map((h) => ({ answer: h, isСreatedByUser: oldHistory.find((x) => x.answer[0] === h[0] && x.answer[1] === h[1])?.isСreatedByUser ?? true })));
+        onChanged(newHistory.map((h) => ({ answer: h, isCreatedByUser: oldHistory.find((x) => x.answer[0] === h[0] && x.answer[1] === h[1])?.isCreatedByUser ?? true })));
       }, 10);
     });
   }, [question.questionId]);
-  return /* @__PURE__ */ jsxRuntimeExports.jsx("div", { children: /* @__PURE__ */ jsxRuntimeExports.jsxs("div", { className: "row", children: [
-    /* @__PURE__ */ jsxRuntimeExports.jsx("div", { className: "col-md", children: !options.requireContext ? /* @__PURE__ */ jsxRuntimeExports.jsx("p", { className: "d-flex flex-column comp-ph-droppable-container comp-ph-question-text", children: question.answers.map((a) => /* @__PURE__ */ jsxRuntimeExports.jsxs("div", { className: "d-flex flex-row mb-3", children: [
-      /* @__PURE__ */ jsxRuntimeExports.jsx("div", { className: "mr-2 mt-1", children: /* @__PURE__ */ jsxRuntimeExports.jsx("div", { id: `question_${question.questionId}_answer_${a.id}` }) }),
-      /* @__PURE__ */ jsxRuntimeExports.jsx("div", { dangerouslySetInnerHTML: { __html: a.text } })
-    ] })) }) : /* @__PURE__ */ jsxRuntimeExports.jsx("p", { className: "comp-ph-droppable-container comp-ph-question-text", dangerouslySetInnerHTML: { __html: question.text } }) }),
-    /* @__PURE__ */ jsxRuntimeExports.jsx("div", { className: "col-md comp-ph-droppable-container d-flex justify-content-start align-items-start flex-column", children: groups.map((g) => /* @__PURE__ */ jsxRuntimeExports.jsxs("div", { id: `dragAnswerWrapper_${g.id}`, className: "comp-ph-dropzone mb-2", style: dropzoneStyle, children: [
-      /* @__PURE__ */ jsxRuntimeExports.jsx("div", { className: "comp-ph-dropzone-placeholder", dangerouslySetInnerHTML: { __html: options.dropzoneHtml } }),
-      /* @__PURE__ */ jsxRuntimeExports.jsx("div", { id: `dragAnswer_${g.id}`, className: "comp-ph-draggable", style: draggableStyle, dangerouslySetInnerHTML: { __html: g.text } })
-    ] })) })
-  ] }) });
+  const answerKey = getAnswers().map((a) => a.answer.join(":")).join(",");
+  const confirmed = new Set((getFeedback?.()?.correctAnswers ?? []).map((a) => a.answer.join(":")));
+  const confirmedKey = [...confirmed].join(",");
+  reactExports.useEffect(() => {
+    const slots = Array.from(document.querySelectorAll(`[id^="question_${question.questionId}_answer_"]`));
+    const answers = getAnswers();
+    slots.forEach((slot) => {
+      const slotId = +(slot.getAttribute("data-answer-id") ?? slot.id.split(`question_${question.questionId}_answer_`)[1] ?? "");
+      const answer = answers.find((a) => a.answer[0] === slotId);
+      const placed = slot.querySelector(".comp-ph-draggable");
+      const placedGroupId = +(placed?.id.split("dragAnswer_")[1] ?? "");
+      if (placed && answer?.answer[1] !== placedGroupId) {
+        const wrapper = document.getElementById(`dragAnswerWrapper_${placedGroupId}`);
+        if (!options.multipleSelectionEnabled && wrapper && !wrapper.querySelector(".comp-ph-draggable")) {
+          wrapper.appendChild(placed);
+        } else {
+          placed.remove();
+        }
+        slot.classList.remove("draggable-dropzone--occupied");
+      }
+      if (answer && !slot.querySelector(".comp-ph-draggable")) {
+        const source = document.querySelector(`#dragAnswerWrapper_${answer.answer[1]} .comp-ph-draggable`);
+        if (source) {
+          slot.appendChild(options.multipleSelectionEnabled ? source.cloneNode(true) : source);
+          slot.classList.add("draggable-dropzone--occupied");
+        }
+      }
+      slot.classList.toggle(
+        "comp-ph-answer-locked",
+        answer !== void 0 && confirmed.has(answer.answer.join(":"))
+      );
+    });
+  }, [question.questionId, answerKey, confirmedKey]);
+  return /* @__PURE__ */ jsxRuntimeExports.jsxs("div", { children: [
+    !options.requireContext && /* @__PURE__ */ jsxRuntimeExports.jsx("p", { className: "mb-3 comp-ph-question-text", dangerouslySetInnerHTML: { __html: question.text } }),
+    /* @__PURE__ */ jsxRuntimeExports.jsxs("div", { className: "row", children: [
+      /* @__PURE__ */ jsxRuntimeExports.jsx("div", { className: "col-md", children: !options.requireContext ? /* @__PURE__ */ jsxRuntimeExports.jsx("p", { className: "d-flex flex-column comp-ph-droppable-container comp-ph-question-text", children: question.answers.map((a) => /* @__PURE__ */ jsxRuntimeExports.jsxs("div", { className: "d-flex flex-row mb-3", children: [
+        /* @__PURE__ */ jsxRuntimeExports.jsx("div", { className: "mr-2 mt-1", children: /* @__PURE__ */ jsxRuntimeExports.jsx("div", { id: `question_${question.questionId}_answer_${a.id}` }) }),
+        /* @__PURE__ */ jsxRuntimeExports.jsx("div", { dangerouslySetInnerHTML: { __html: a.text } })
+      ] })) }) : /* @__PURE__ */ jsxRuntimeExports.jsx("p", { className: "comp-ph-droppable-container comp-ph-question-text", dangerouslySetInnerHTML: { __html: question.text } }) }),
+      /* @__PURE__ */ jsxRuntimeExports.jsx("div", { className: "col-md comp-ph-droppable-container d-flex justify-content-start align-items-start flex-column", children: groups.map((g) => /* @__PURE__ */ jsxRuntimeExports.jsxs("div", { id: `dragAnswerWrapper_${g.id}`, className: "comp-ph-dropzone mb-2", style: dropzoneStyle, children: [
+        /* @__PURE__ */ jsxRuntimeExports.jsx("div", { className: "comp-ph-dropzone-placeholder", dangerouslySetInnerHTML: { __html: options.dropzoneHtml } }),
+        /* @__PURE__ */ jsxRuntimeExports.jsx("div", { id: `dragAnswer_${g.id}`, className: "comp-ph-draggable", style: draggableStyle, dangerouslySetInnerHTML: { __html: g.text } })
+      ] })) })
+    ] })
+  ] });
 });
 const ComboboxMatchingQuestionComponent = observer((props) => {
   const { question, getAnswers, onChanged } = props;
@@ -1992,7 +2029,7 @@ const ComboboxMatchingQuestionComponent = observer((props) => {
                 return;
               }
               const otherHistoryItems = getAnswers().filter((v2) => v2.answer[0] !== asw.id);
-              const historyItem = { answer: [asw.id, +v.value], isСreatedByUser: true };
+              const historyItem = { answer: [asw.id, +v.value], isCreatedByUser: true };
               const newAnswersHistory = [...otherHistoryItems, historyItem];
               onChanged(newAnswersHistory);
             })
@@ -2024,7 +2061,7 @@ const ComboboxMatchingQuestionWithCtxComponent = observer((props) => {
               return;
             }
             const otherHistoryItems = getAnswers().filter((v2) => v2.answer[0] !== answerId);
-            const historyItem = { answer: [answerId, +v.value], isСreatedByUser: true };
+            const historyItem = { answer: [answerId, +v.value], isCreatedByUser: true };
             const newAnswersHistory = [...otherHistoryItems, historyItem];
             onChanged(newAnswersHistory);
           })
@@ -2100,7 +2137,7 @@ const SwitchMultiChoiceQuestionComponent = observer((props) => {
     const value = selectorTexts.indexOf(val);
     const newHistory = [
       ...getAnswers().filter((v) => v.answer[0] !== answerId),
-      { answer: [answerId, value], isСreatedByUser: true }
+      { answer: [answerId, value], isCreatedByUser: true }
     ];
     onChanged(newHistory);
   };
@@ -2132,7 +2169,7 @@ const SwitchMultiChoiceQuestionWithCtxComponent = observer((props) => {
     const value = selectorTexts.indexOf(val);
     const newHistory = [
       ...getAnswers().filter((v) => v.answer[0] !== answerId),
-      { answer: [answerId, value], isСreatedByUser: true }
+      { answer: [answerId, value], isCreatedByUser: true }
     ];
     onChanged(newHistory);
   };
@@ -2157,7 +2194,7 @@ const SwitchMultiChoiceQuestionWithCtxComponent = observer((props) => {
   return /* @__PURE__ */ jsxRuntimeExports.jsx("div", { id: `question_${question.questionId}`, children: /* @__PURE__ */ jsxRuntimeExports.jsx("div", { className: "comp-ph-question-text", children: content }) });
 });
 const DndMultiChoiceQuestionComponent = observer((props) => {
-  const { question, getAnswers, onChanged, answers } = props;
+  const { question, getAnswers, getFeedback, onChanged, answers } = props;
   if (question.options.displayMode !== "dragNdrop") {
     return null;
   }
@@ -2179,7 +2216,7 @@ const DndMultiChoiceQuestionComponent = observer((props) => {
       }
     ]
   };
-  return /* @__PURE__ */ jsxRuntimeExports.jsx(DragAndDropMatchingQuestionComponent, { question: matchingQuestion, getAnswers, onChanged, answers });
+  return /* @__PURE__ */ jsxRuntimeExports.jsx(DragAndDropMatchingQuestionComponent, { question: matchingQuestion, getAnswers, getFeedback, onChanged, answers });
 });
 const OrderQuestionComponent = observer((props) => {
   const { question, getAnswers, onChanged, getFeedback } = props;
@@ -2197,7 +2234,7 @@ const OrderQuestionComponent = observer((props) => {
     document.querySelectorAll(`#question_${question.questionId} [data-answer-id]`).forEach((e) => {
       const idStr = e.getAttribute("data-answer-id") ?? "";
       const id = +idStr;
-      e.addEventListener("click", () => onChanged([...getAnswers(), { answer: [id, id], isСreatedByUser: true }]));
+      e.addEventListener("click", () => onChanged([...getAnswers(), { answer: [id, id], isCreatedByUser: true }]));
     });
     document.querySelectorAll("[data-comp-ph-value]").forEach((e) => {
       const value = e.getAttribute("data-comp-ph-value");
@@ -2221,7 +2258,7 @@ const OrderQuestionComponent = observer((props) => {
       const [prevInteractionId, result] = acc;
       if (prevInteractionId === -1)
         return acc;
-      if (answer.isСreatedByUser || prevInteractionId !== 0 && prevInteractionId !== answer.createdByInteraction)
+      if (answer.isCreatedByUser || prevInteractionId !== 0 && prevInteractionId !== answer.createdByInteraction)
         return [-1, result];
       result.push(answer);
       return [answer.createdByInteraction || -1, result];
@@ -2273,7 +2310,7 @@ const RadioSingleChoiceQuestionComponent = observer((props) => {
   }
   const selfOnChange = (answerId, checked) => {
     if (checked) {
-      onChanged([{ answer: [answerId, answerId], isСreatedByUser: true }]);
+      onChanged([{ answer: [answerId, answerId], isCreatedByUser: true }]);
     }
   };
   return /* @__PURE__ */ jsxRuntimeExports.jsxs("div", { children: [
@@ -2315,7 +2352,7 @@ const RadioSingleChoiceQuestionWithCtxComponent = observer((props) => {
   }
   const selfOnChange = (answerId, checked) => {
     if (checked) {
-      onChanged([{ answer: [answerId, answerId], isСreatedByUser: true }]);
+      onChanged([{ answer: [answerId, answerId], isCreatedByUser: true }]);
     }
   };
   const content = parse(question.text, {
@@ -2355,10 +2392,10 @@ const QuestionComponent = observer((props) => {
   let questonComponent;
   switch (question.type) {
     case "MATCHING":
-      questonComponent = /* @__PURE__ */ jsxRuntimeExports.jsx(MatchingQuestionComponent, { question, onChanged, answers, getAnswers });
+      questonComponent = /* @__PURE__ */ jsxRuntimeExports.jsx(MatchingQuestionComponent, { question, onChanged, answers, getAnswers, getFeedback });
       break;
     case "MULTI_CHOICE":
-      questonComponent = /* @__PURE__ */ jsxRuntimeExports.jsx(MultiChoiceQuestionComponent, { question, onChanged, answers, getAnswers });
+      questonComponent = /* @__PURE__ */ jsxRuntimeExports.jsx(MultiChoiceQuestionComponent, { question, onChanged, answers, getAnswers, getFeedback });
       break;
     case "SINGLE_CHOICE":
       questonComponent = /* @__PURE__ */ jsxRuntimeExports.jsx(SingleChoiceQuestionComponent, { question, onChanged, answers, getAnswers });

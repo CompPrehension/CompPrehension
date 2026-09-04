@@ -32,7 +32,7 @@ export const OrderQuestionComponent = observer((props: OrderQuestionComponentPro
         document.querySelectorAll(`#question_${question.questionId} [data-answer-id]`).forEach(e => {
             const idStr = e.getAttribute('data-answer-id') ?? '';
             const id = +idStr;
-            e.addEventListener('click', () => onChanged([...getAnswers(), { answer: [id, id], isСreatedByUser: true }]));
+            e.addEventListener('click', () => onChanged([...getAnswers(), { answer: [id, id], isCreatedByUser: true }]));
         })
 
         // show elements values
@@ -67,7 +67,7 @@ export const OrderQuestionComponent = observer((props: OrderQuestionComponentPro
                 const [prevInteractionId, result] = acc;
                 if (prevInteractionId === -1)
                     return acc;
-                if (answer.isСreatedByUser || prevInteractionId !== 0 && prevInteractionId !== answer.createdByInteraction)
+                if (answer.isCreatedByUser || prevInteractionId !== 0 && prevInteractionId !== answer.createdByInteraction)
                     return [-1, result];
                 result.push(answer);
                 return [answer.createdByInteraction || -1, result];

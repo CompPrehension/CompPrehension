@@ -29,7 +29,7 @@ const RadioSingleChoiceQuestionComponent = observer((props: SingleChoiceQuestion
     }
     const selfOnChange = (answerId: number, checked: boolean) => {
         if (checked) {
-            onChanged([{ answer: [answerId, answerId], isСreatedByUser: true }])
+            onChanged([{ answer: [answerId, answerId], isCreatedByUser: true }])
         }
     }
 
@@ -76,7 +76,7 @@ const RadioSingleChoiceQuestionWithCtxComponent = observer((props: SingleChoiceQ
     }
     const selfOnChange = (answerId: number, checked: boolean) => {
         if (checked) {
-            onChanged([{ answer: [answerId, answerId], isСreatedByUser: true }])
+            onChanged([{ answer: [answerId, answerId], isCreatedByUser: true }])
         }
     }
 

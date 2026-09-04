@@ -17,7 +17,7 @@ public class AnswerDto {
     }
 
     private Long[] answer;
-    @JsonProperty("isСreatedByUser")
+    @JsonProperty("isCreatedByUser")
     private boolean isCreatedByUser;
     private Long createdByInteraction;
 }

@@ -1,6 +1,7 @@
 import parse from "html-react-parser";
 import { observer } from "mobx-react";
 import { Answer } from "../../../types/answer";
+import { Feedback } from "../../../types/feedback";
 import { MatchingQuestion, MultiChoiceQuestion } from "../../../types/question";
 import { ToggleSwitch } from "../toggle";
 import { answerSlotId } from "./answer-slot";
@@ -10,6 +11,7 @@ type MultiChoiceQuestionComponentProps = {
     question: MultiChoiceQuestion,
     answers: Answer[],
     getAnswers: () => Answer[],
+    getFeedback?: () => Feedback | undefined,
     onChanged: (newAnswers: Answer[]) => void,
 }
 
@@ -40,7 +42,7 @@ const SwitchMultiChoiceQuestionComponent = observer((props: MultiChoiceQuestionC
         const value = selectorTexts.indexOf(val);
         const newHistory = [ 
             ...getAnswers().filter(v => v.answer[0] !== answerId),
-            { answer: [answerId, value] as [number, number], isСreatedByUser: true },
+            { answer: [answerId, value] as [number, number], isCreatedByUser: true },
         ];
         onChanged(newHistory);
     }
@@ -78,7 +80,7 @@ const SwitchMultiChoiceQuestionWithCtxComponent = observer((props: MultiChoiceQu
         const value = selectorTexts.indexOf(val);
         const newHistory = [ 
             ...getAnswers().filter(v => v.answer[0] !== answerId),
-            { answer: [answerId, value] as [number, number], isСreatedByUser: true, },
+            { answer: [answerId, value] as [number, number], isCreatedByUser: true, },
         ];
         onChanged(newHistory);
     }
@@ -109,7 +111,7 @@ const SwitchMultiChoiceQuestionWithCtxComponent = observer((props: MultiChoiceQu
 
 
 const DndMultiChoiceQuestionComponent = observer((props: MultiChoiceQuestionComponentProps) => {
-    const { question, getAnswers, onChanged, answers } = props;
+    const { question, getAnswers, getFeedback, onChanged, answers } = props;
     if (question.options.displayMode !== 'dragNdrop') {
         return null;
     }
@@ -133,5 +135,5 @@ const DndMultiChoiceQuestionComponent = observer((props: MultiChoiceQuestionComp
         ],
     }
 
-    return (<DragAndDropMatchingQuestionComponent question={matchingQuestion} getAnswers={getAnswers} onChanged={onChanged} answers={answers}/>)
+    return (<DragAndDropMatchingQuestionComponent question={matchingQuestion} getAnswers={getAnswers} getFeedback={getFeedback} onChanged={onChanged} answers={answers}/>)
 })

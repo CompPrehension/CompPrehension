@@ -25,10 +25,10 @@ export const QuestionComponent = observer((props: QuestionComponentProps) => {
     let questonComponent: JSX.Element;
     switch(question.type) {
         case 'MATCHING':                
-            questonComponent = <MatchingQuestionComponent question={question} onChanged={onChanged} answers={answers} getAnswers={getAnswers}/>;
+            questonComponent = <MatchingQuestionComponent question={question} onChanged={onChanged} answers={answers} getAnswers={getAnswers} getFeedback={getFeedback}/>;
             break;
         case 'MULTI_CHOICE':
-            questonComponent = <MultiChoiceQuestionComponent question={question} onChanged={onChanged} answers={answers} getAnswers={getAnswers}/>;
+            questonComponent = <MultiChoiceQuestionComponent question={question} onChanged={onChanged} answers={answers} getAnswers={getAnswers} getFeedback={getFeedback}/>;
             break;
         case 'SINGLE_CHOICE':
             questonComponent = <SingleChoiceQuestionComponent question={question} onChanged={onChanged} answers={answers} getAnswers={getAnswers}/>;

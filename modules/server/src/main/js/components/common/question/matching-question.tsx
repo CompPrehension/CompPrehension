@@ -5,6 +5,7 @@ import { observer } from "mobx-react";
 import React, { useEffect } from "react";
 import Select, { components } from "react-select";
 import { Answer } from "../../../types/answer";
+import { Feedback } from "../../../types/feedback";
 import { MatchingQuestion } from "../../../types/question";
 import { answerSlotId } from "./answer-slot";
 
@@ -12,6 +13,7 @@ type MatchingQuestionComponentProps = {
     question: MatchingQuestion,
     answers: Answer[],
     getAnswers: () => Answer[],
+    getFeedback?: () => Feedback | undefined,
     onChanged: (newAnswers: Answer[]) => void,
 }
 
@@ -30,7 +32,7 @@ export const MatchingQuestionComponent = observer((props: MatchingQuestionCompon
 });
 
 export const DragAndDropMatchingQuestionComponent = observer((props: MatchingQuestionComponentProps) => {
-    const { question, getAnswers, onChanged } = props;
+    const { question, getAnswers, getFeedback, onChanged } = props;
     if (question.options.displayMode !== 'dragNdrop') {
         return null;
     }
@@ -80,20 +82,63 @@ export const DragAndDropMatchingQuestionComponent = observer((props: MatchingQue
             setTimeout(() => {
                 const newHistory = [...(document.querySelectorAll(`[id^="question_${question.questionId}_answer_"] > [id^="dragAnswer_"]`) as unknown as Element[])]
                     .map<[number, number]>(e => {
-                        const leftId = e.parentElement?.id.split(`question_${question.questionId}_answer_`)[1] ?? '';
+                        const slot = e.parentElement;
+                        const leftId = slot?.getAttribute('data-answer-id')
+                            ?? slot?.id.split(`question_${question.questionId}_answer_`)[1]
+                            ?? '';
                         const rightId = e?.id.split('dragAnswer_')[1] ?? '';
                         return [+leftId, +rightId];
                     });
                 const oldHistory = getAnswers();
                 
                 onChanged(newHistory.map(h => 
-                    ({ answer: h, isСreatedByUser: oldHistory.find(x => x.answer[0] === h[0] && x.answer[1] === h[1])?.isСreatedByUser ?? true })));
+                    ({ answer: h, isCreatedByUser: oldHistory.find(x => x.answer[0] === h[0] && x.answer[1] === h[1])?.isCreatedByUser ?? true })));
             }, 10);
         });
     }, [question.questionId])
-    
+
+    const answerKey = getAnswers().map(a => a.answer.join(':')).join(',');
+    const confirmed = new Set((getFeedback?.()?.correctAnswers ?? []).map(a => a.answer.join(':')));
+    const confirmedKey = [...confirmed].join(',');
+    useEffect(() => {
+        const slots = Array.from(document.querySelectorAll<HTMLElement>(`[id^="question_${question.questionId}_answer_"]`));
+        const answers = getAnswers();
+
+        slots.forEach(slot => {
+            const slotId = +(slot.getAttribute('data-answer-id')
+                ?? slot.id.split(`question_${question.questionId}_answer_`)[1]
+                ?? '');
+            const answer = answers.find(a => a.answer[0] === slotId);
+            const placed = slot.querySelector<HTMLElement>('.comp-ph-draggable');
+            const placedGroupId = +(placed?.id.split('dragAnswer_')[1] ?? '');
+
+            if (placed && answer?.answer[1] !== placedGroupId) {
+                const wrapper = document.getElementById(`dragAnswerWrapper_${placedGroupId}`);
+                if (!options.multipleSelectionEnabled && wrapper && !wrapper.querySelector('.comp-ph-draggable')) {
+                    wrapper.appendChild(placed);
+                } else {
+                    placed.remove();
+                }
+                slot.classList.remove('draggable-dropzone--occupied');
+            }
+
+            if (answer && !slot.querySelector('.comp-ph-draggable')) {
+                const source = document.querySelector(`#dragAnswerWrapper_${answer.answer[1]} .comp-ph-draggable`);
+                if (source) {
+                    slot.appendChild(options.multipleSelectionEnabled ? source.cloneNode(true) : source);
+                    slot.classList.add('draggable-dropzone--occupied');
+                }
+            }
+
+            slot.classList.toggle('comp-ph-answer-locked',
+                answer !== undefined && confirmed.has(answer.answer.join(':')));
+        });
+    }, [question.questionId, answerKey, confirmedKey])
+
     return (
         <div>
+            {!options.requireContext &&
+                <p className="mb-3 comp-ph-question-text" dangerouslySetInnerHTML={{ __html: question.text }} />}
             <div className="row">
                 <div className="col-md">                    
                     {
@@ -149,7 +194,7 @@ const ComboboxMatchingQuestionComponent = observer((props: MatchingQuestionCompo
                                                 return;
                                             }
                                             const otherHistoryItems = getAnswers().filter(v => v.answer[0] !== asw.id);
-                                            const historyItem = { answer: [asw.id, +v.value] as [number, number], isСreatedByUser: true };
+                                            const historyItem = { answer: [asw.id, +v.value] as [number, number], isCreatedByUser: true };
                                             const newAnswersHistory = [...otherHistoryItems, historyItem];
                                             onChanged(newAnswersHistory);                                            
                                         })} /> 
@@ -185,7 +230,7 @@ const ComboboxMatchingQuestionWithCtxComponent = observer((props: MatchingQuesti
                             }
 
                             const otherHistoryItems = getAnswers().filter(v => v.answer[0] !== answerId);
-                            const historyItem = { answer: [answerId, +v.value] as [number, number], isСreatedByUser: true };
+                            const historyItem = { answer: [answerId, +v.value] as [number, number], isCreatedByUser: true };
                             const newAnswersHistory = [...otherHistoryItems, historyItem];
                             onChanged(newAnswersHistory);
                         })}
