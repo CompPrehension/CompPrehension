@@ -1921,7 +1921,7 @@ const DragAndDropMatchingQuestionComponent = observer((props) => {
   reactExports.useEffect(() => {
     document.querySelectorAll(`[id^="question_${question.questionId}_answer_"]`).forEach((e) => {
       e.classList.add("comp-ph-dropzone");
-      Object.keys(dropzoneStyle).forEach((k) => e.style[k] = dropzoneStyle[k]);
+      Object.assign(e.style, dropzoneStyle);
       e.innerHTML = `<div class="comp-ph-dropzone-placeholder">${options.dropzoneHtml}</div>`;
     });
     const droppable = new Droppable(document.querySelectorAll(".comp-ph-droppable-container"), {
@@ -1934,8 +1934,8 @@ const DragAndDropMatchingQuestionComponent = observer((props) => {
     });
     droppable.on("drag:over", () => console.log("is out"));
     droppable.on("droppable:stop", (e) => {
-      const draggableId = e?.data?.dragEvent?.data?.source?.id;
-      const droppableId = e?.data?.dropzone?.id;
+      const draggableId = e.dragEvent?.source?.id;
+      const droppableId = e.dropzone?.id;
       if (!draggableId || !droppableId) {
         return;
       }
@@ -2013,6 +2013,7 @@ const ComboboxMatchingQuestionComponent = observer((props) => {
   }
   const { groups = [] } = question;
   const groupsMaxLength = groups.reduce((len, g) => g.text.length > len ? g.text.length : len, 0);
+  const groupOptions = groups.map((g) => ({ value: g.id, label: g.text }));
   return /* @__PURE__ */ jsxRuntimeExports.jsxs("div", { children: [
     /* @__PURE__ */ jsxRuntimeExports.jsx("p", { className: "mb-5 comp-ph-question-text", dangerouslySetInnerHTML: { __html: question.text } }),
     /* @__PURE__ */ jsxRuntimeExports.jsx("div", { children: question.answers.map(
@@ -2021,8 +2022,8 @@ const ComboboxMatchingQuestionComponent = observer((props) => {
         /* @__PURE__ */ jsxRuntimeExports.jsx("div", { className: "col-md-auto", children: /* @__PURE__ */ jsxRuntimeExports.jsx("div", { style: { width: `${8 * groupsMaxLength + 100}px` }, children: /* @__PURE__ */ jsxRuntimeExports.jsx(
           StateManagedSelect$1,
           {
-            defaultValue: getAnswers().find((v) => v.answer[0] === asw.id)?.answer?.[1] ?? null,
-            options: groups.map((g) => ({ value: g.id, label: g.text })),
+            defaultValue: groupOptions.find((o) => o.value === getAnswers().find((a) => a.answer[0] === asw.id)?.answer[1]) ?? null,
+            options: groupOptions,
             components: { Option: RawHtmlSelectOption, SingleValue: RawHtmlSelectSingleValue },
             onChange: ((v) => {
               if (!v) {
@@ -2044,7 +2045,7 @@ const ComboboxMatchingQuestionWithCtxComponent = observer((props) => {
   if (question.options.displayMode !== "combobox") {
     return null;
   }
-  const { groups = [], options } = question;
+  const { groups = [] } = question;
   const content = parse(question.text, {
     replace: (node) => {
       const answerId = answerSlotId(node);
@@ -2071,14 +2072,8 @@ const ComboboxMatchingQuestionWithCtxComponent = observer((props) => {
   });
   return /* @__PURE__ */ jsxRuntimeExports.jsx("div", { id: `question_${question.questionId}`, children: /* @__PURE__ */ jsxRuntimeExports.jsx("div", { className: "comp-ph-question-text", children: content }) });
 });
-const RawHtmlSelectOption = (props) => {
-  const { innerRef, innerProps, children, ...rest } = props;
-  return /* @__PURE__ */ jsxRuntimeExports.jsx(components.Option, { ...rest, children: /* @__PURE__ */ jsxRuntimeExports.jsx("div", { ref: innerRef, ...innerProps, dangerouslySetInnerHTML: { __html: props.label } }) });
-};
-const RawHtmlSelectSingleValue = (props) => {
-  const { innerRef, innerProps, children, ...rest } = props;
-  return /* @__PURE__ */ jsxRuntimeExports.jsx(components.SingleValue, { ...rest, children: props.getValue()?.map((v) => /* @__PURE__ */ jsxRuntimeExports.jsx("div", { ref: innerRef, ...innerProps, dangerouslySetInnerHTML: { __html: v.label } })) });
-};
+const RawHtmlSelectOption = (props) => /* @__PURE__ */ jsxRuntimeExports.jsx(components.Option, { ...props, children: /* @__PURE__ */ jsxRuntimeExports.jsx("div", { dangerouslySetInnerHTML: { __html: props.data.label } }) });
+const RawHtmlSelectSingleValue = (props) => /* @__PURE__ */ jsxRuntimeExports.jsx(components.SingleValue, { ...props, children: /* @__PURE__ */ jsxRuntimeExports.jsx("div", { dangerouslySetInnerHTML: { __html: props.data.label } }) });
 const ClickableLabel = ({ id, title, value, onChange, isChecked, style, ...props }) => /* @__PURE__ */ jsxRuntimeExports.jsx("label", { htmlFor: id, onClick: () => onChange(value), style: isChecked && style || void 0, ...props, children: title });
 const ConcealedRadio = ({ id, value, name, selected, ...props }) => /* @__PURE__ */ jsxRuntimeExports.jsx("input", { id, type: "radio", name, checked: selected === value, readOnly: true, ...props });
 const ToggleSwitch = observer((props) => {
@@ -2245,6 +2240,7 @@ const OrderQuestionComponent = observer((props) => {
       e.innerHTML += `<span class="comp-ph-expr-top-hint">${pos}</span>`;
     });
   }, [question.questionId]);
+  const answersCount = getAnswers().length;
   reactExports.useEffect(() => {
     document.querySelectorAll(`#question_${question.questionId} [data-answer-id]`).forEach((e) => {
       const value = e.getAttribute("data-comp-ph-value");
@@ -2285,7 +2281,7 @@ const OrderQuestionComponent = observer((props) => {
         }
       });
     });
-  }, [question.questionId, getAnswers().length]);
+  }, [question.questionId, answersCount]);
   const trace = getFeedback()?.trace ?? (getAnswers().length === 0 ? question.initialTrace : null);
   const isTraceVisible = options.showTrace && !isNullOrUndefined(trace) && trace.length > 0;
   return /* @__PURE__ */ jsxRuntimeExports.jsxs("div", { id: `question_${question.questionId}`, children: [
@@ -2991,15 +2987,9 @@ const useCurrentUser = () => {
 };
 const ExerciseHeader = observer(() => {
   const exerciseStore = getExerciseStore();
-  const { t, i18n } = useTranslation();
-  const session = useSession();
+  const { t } = useTranslation();
   const user = useCurrentUser();
   const { currentAttempt, exercise, currentQuestion } = exerciseStore;
-  reactExports.useCallback(() => {
-    const currentLang = user?.language;
-    const newLang = currentLang === "RU" ? "EN" : "RU";
-    session.changeLanguage(newLang);
-  }, [session, user]);
   if (!currentAttempt || !exercise || !user) {
     return null;
   }
@@ -3296,7 +3286,7 @@ const TourProvider = ({ steps: steps2, children }) => {
     });
     tourRef.current = tour;
     tour.start = async () => {
-      tour.cancel();
+      await tour.cancel();
       tour.steps.forEach(
         (step) => step.destroy()
       );
@@ -3352,15 +3342,16 @@ const TourProvider = ({ steps: steps2, children }) => {
           setTimeout(() => showNextStep(), 500);
         }
       };
-      showNextStep();
+      await showNextStep();
     };
     setIsReady(true);
   }, [steps2, t]);
+  const start = reactExports.useCallback(() => tourRef.current?.start?.(), []);
   return /* @__PURE__ */ jsxRuntimeExports.jsx(
     TourContext.Provider,
     {
       value: {
-        start: () => tourRef.current?.start?.(),
+        start,
         tour: tourRef.current,
         isReady
       },
@@ -3381,7 +3372,7 @@ const TourLauncher = () => {
     if (shown !== "true") {
       start();
     }
-  }, [isReady]);
+  }, [isReady, start]);
   return null;
 };
 const Exercise = observer(() => {
@@ -3605,13 +3596,13 @@ const ExercisesList = observer(() => {
       setIsLoading(false);
     })();
   }, []);
-  return /* @__PURE__ */ jsxRuntimeExports.jsx("div", { children: /* @__PURE__ */ jsxRuntimeExports.jsx(ListGroup, { children: data.map((i) => /* @__PURE__ */ jsxRuntimeExports.jsx(ListGroup.Item, { children: /* @__PURE__ */ jsxRuntimeExports.jsx("a", { href: `exercise?exerciseId=${i}`, children: i }) })) }) });
+  return /* @__PURE__ */ jsxRuntimeExports.jsx("div", { children: /* @__PURE__ */ jsxRuntimeExports.jsx(LoadingWrapper, { isLoading, children: /* @__PURE__ */ jsxRuntimeExports.jsx(ListGroup, { children: data.map((i) => /* @__PURE__ */ jsxRuntimeExports.jsx(ListGroup.Item, { children: /* @__PURE__ */ jsxRuntimeExports.jsx("a", { href: `exercise?exerciseId=${i}`, children: i }) })) }) }) });
 });
 const SurveyPage = observer(() => {
   const exerciseStore = getExerciseStore();
   const { exerciseState, setExerciseState, storeState: excerciseStoreState, currentQuestion } = exerciseStore;
   const { storeState: currentQuestionStoreState } = currentQuestion;
-  const [surveyState, setSurveyState] = reactExports.useState("ACTIVE");
+  const [surveyState] = reactExports.useState("ACTIVE");
   reactExports.useEffect(() => {
     (async () => {
       if (exerciseState === "LAUNCH_ERROR") {
@@ -3639,11 +3630,11 @@ const SurveyPage = observer(() => {
     await exerciseStore.createExerciseAttempt();
     await loadQuestion();
   };
-  const onSurveyAnswered = reactExports.useCallback((survey, questionId, answers) => {
+  const onSurveyAnswered = reactExports.useCallback((_survey, _questionId, _answers) => {
     console.log("лень рефакторить, не работает крч");
   }, []);
   const surveyOptions = exerciseStore.exercise?.options.surveyOptions;
-  exerciseStore.currentQuestion.question?.questionId;
+  const currentQuestionId = exerciseStore.currentQuestion.question?.questionId ?? -1;
   if (!surveyOptions?.enabled)
     return null;
   return /* @__PURE__ */ jsxRuntimeExports.jsxs(jsxRuntimeExports.Fragment, { children: [
@@ -3655,10 +3646,10 @@ const SurveyPage = observer(() => {
         /* @__PURE__ */ jsxRuntimeExports.jsx(Optional, { isVisible: surveyState !== "COMPLETED" && currentQuestion.questionState === "LOADED", children: /* @__PURE__ */ jsxRuntimeExports.jsx("div", { className: "mt-2", children: /* @__PURE__ */ jsxRuntimeExports.jsx(
           SurveyComponent,
           {
-            questionId: exerciseStore.currentQuestion.question?.questionId ?? -1,
+            questionId: currentQuestionId,
             survey: exerciseStore.survey.survey,
-            value: exerciseStore.survey?.questions[exerciseStore.currentQuestion.question?.questionId ?? -1].results,
-            enabledSurveyQuestions: exerciseStore.survey?.questions[exerciseStore.currentQuestion.question?.questionId ?? -1].questions ?? [],
+            value: exerciseStore.survey?.questions[currentQuestionId].results,
+            enabledSurveyQuestions: exerciseStore.survey?.questions[currentQuestionId].questions ?? [],
             onAnswersSended: onSurveyAnswered
           }
         ) }) })
@@ -4662,10 +4653,9 @@ const ExerciseConcepts = observer((props) => {
   const card = store.currentCard;
   if (!card)
     throw new Error("card not set");
-  const user = useCurrentUser();
   const conceptFlagNames = reactExports.useMemo(() => {
     return [t("exercisesettings_optDenied"), t("exercisesettings_optAllowed"), t("exercisesettings_optTarget")];
-  }, [t, user?.language]);
+  }, [t]);
   return /* @__PURE__ */ jsxRuntimeExports.jsx(jsxRuntimeExports.Fragment, { children: concepts.map((coreConcept, idx) => /* @__PURE__ */ jsxRuntimeExports.jsxs("div", { className: "list-group-item p-0 bg-transparent pt-2 pb-2", children: [
     /* @__PURE__ */ jsxRuntimeExports.jsx("div", { children: /* @__PURE__ */ jsxRuntimeExports.jsxs("div", { className: `d-flex flex-row align-items-center`, children: [
       /* @__PURE__ */ jsxRuntimeExports.jsx(
@@ -4710,10 +4700,9 @@ const ExerciseLaws = observer((props) => {
   const card = store.currentCard;
   if (!card)
     throw new Error("card not set");
-  const user = useCurrentUser();
   const lawFlagNames = reactExports.useMemo(() => {
     return [t("exercisesettings_optDenied"), t("exercisesettings_optAllowed"), t("exercisesettings_optTarget")];
-  }, [t, user?.language]);
+  }, [t]);
   return /* @__PURE__ */ jsxRuntimeExports.jsx(jsxRuntimeExports.Fragment, { children: laws.map((coreLaw, idx) => /* @__PURE__ */ jsxRuntimeExports.jsxs("div", { className: "list-group-item p-0 bg-transparent pt-2 pb-2", children: [
     /* @__PURE__ */ jsxRuntimeExports.jsx("div", { children: /* @__PURE__ */ jsxRuntimeExports.jsxs("div", { className: `d-flex flex-row align-items-center`, children: [
       /* @__PURE__ */ jsxRuntimeExports.jsx(
@@ -4751,10 +4740,9 @@ const ExerciseSkills = observer((props) => {
   const card = store.currentCard;
   if (!card)
     throw new Error("card not set");
-  const user = useCurrentUser();
   const skillFlagNames = reactExports.useMemo(() => {
     return [t("exercisesettings_optDenied"), t("exercisesettings_optAllowed"), t("exercisesettings_optTarget")];
-  }, [t, user?.language]);
+  }, [t]);
   return /* @__PURE__ */ jsxRuntimeExports.jsx(jsxRuntimeExports.Fragment, { children: skills.map((coreSkill, idx) => /* @__PURE__ */ jsxRuntimeExports.jsxs("div", { className: "list-group-item p-0 bg-transparent pt-2 pb-2", children: [
     /* @__PURE__ */ jsxRuntimeExports.jsx("div", { children: /* @__PURE__ */ jsxRuntimeExports.jsxs("div", { className: `d-flex flex-row align-items-center`, children: [
       /* @__PURE__ */ jsxRuntimeExports.jsx(

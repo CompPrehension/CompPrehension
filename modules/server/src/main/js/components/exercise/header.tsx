@@ -2,23 +2,23 @@ import { observer } from 'mobx-react';
 import * as React from 'react';
 import { Pagination } from './pagination';
 import { getExerciseStore } from "../../stores/exercise-store";
-import { useCallback } from 'react';
 import { useTranslation } from "react-i18next";
 import { Header } from '../common/header';
-import { useCurrentUser, useSession } from '../../hooks/session-context';
+import { useCurrentUser } from '../../hooks/session-context';
 
 export const ExerciseHeader = observer(() => {
     const exerciseStore = getExerciseStore();
-    const { t, i18n } = useTranslation();
-    const session = useSession();
+    const { t } = useTranslation();
     const user = useCurrentUser();
     const { currentAttempt, exercise, currentQuestion } = exerciseStore;
-    
+
+    /*
     const onLangClicked = useCallback(() => {
         const currentLang = user?.language;
         const newLang = currentLang === "RU" ? "EN" : "RU";
         session.changeLanguage(newLang);
     }, [session, user]);
+    */
 
     if (!currentAttempt || !exercise || !user) {
         return null;

@@ -38,12 +38,6 @@ export const ToggleSwitch = observer(<T extends string>(props: ToggleSwitchProps
     props.onChange?.(val);
   };
 
-  const selectionStyle = () => {
-    return {
-      left: `${props.values.indexOf(props.selected) / 3 * 100}%`,
-    };
-  };
-
   return (
     <div id={props.id} className="switch-field d-inline-flex flex-row">
       {props.values.map((val, i) => {
@@ -69,4 +63,3 @@ export const ToggleSwitch = observer(<T extends string>(props: ToggleSwitchProps
     </div>
   );
 })
-

@@ -60,6 +60,8 @@ export const Exercise = observer(() => {
                 
             setExerciseState('MODAL');
         })()
+        // startup sequence: runs once, on mount
+        // eslint-disable-next-line react-hooks/exhaustive-deps
     }, []);
 
     const loadQuestion = useCallback(() => {

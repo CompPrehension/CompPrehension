@@ -2,7 +2,7 @@ import { observer } from "mobx-react";
 import React from "react";
 import { ToggleSwitch } from "../components/common/toggle";
 
-export const db = {
+const db = {
     concepts: [
         'literal',
         'variable',

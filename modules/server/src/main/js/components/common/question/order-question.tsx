@@ -47,8 +47,11 @@ export const OrderQuestionComponent = observer((props: OrderQuestionComponentPro
             e.innerHTML += `<span class="comp-ph-expr-top-hint">${pos}</span>`;
         })
 
+        // listeners are attached once per question
+        // eslint-disable-next-line react-hooks/exhaustive-deps
     }, [question.questionId]);
 
+    const answersCount = getAnswers().length;
     useEffect(() => {
         // drop all changes, set original qustion text    
         document.querySelectorAll(`#question_${question.questionId} [data-answer-id]`).forEach(e => {
@@ -103,7 +106,10 @@ export const OrderQuestionComponent = observer((props: OrderQuestionComponentPro
                 }
             })            
         });
-    }, [question.questionId, getAnswers().length])
+        // answersCount stands in for the answers themselves: the callbacks are new on
+        // every render, the count changes only when a step is taken
+        // eslint-disable-next-line react-hooks/exhaustive-deps
+    }, [question.questionId, answersCount])
     
     const trace = getFeedback()?.trace ?? (getAnswers().length === 0 ? question.initialTrace : null);
     const isTraceVisible = options.showTrace && !isNullOrUndefined(trace) && trace.length > 0;

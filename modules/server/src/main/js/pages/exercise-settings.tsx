@@ -600,12 +600,9 @@ const ExerciseConcepts = observer((props: ExerciseConceptsProps) => {
     const card = store.currentCard;
     if (!card)
         throw new Error('card not set');
-    const user = useCurrentUser();
-    
     const conceptFlagNames = useMemo(() => {
         return [t('exercisesettings_optDenied'), t('exercisesettings_optAllowed'), t('exercisesettings_optTarget')]
-    }, [t, user?.language])
-    
+    }, [t])
 
     return (
         <>
@@ -658,11 +655,9 @@ const ExerciseLaws = observer((props: ExerciseLawsProps) => {
     const card = store.currentCard;
     if (!card)
         throw new Error('card not set');
-    const user = useCurrentUser();   
-    
     const lawFlagNames = useMemo(() => {
         return [t('exercisesettings_optDenied'), t('exercisesettings_optAllowed'), t('exercisesettings_optTarget')]
-    }, [t, user?.language])
+    }, [t])
 
     return(
     <>
@@ -714,11 +709,9 @@ const ExerciseSkills = observer((props: ExerciseSkillsProps) => {
     const card = store.currentCard;
     if (!card)
         throw new Error('card not set');   
-    const user = useCurrentUser();
-    
     const skillFlagNames = useMemo(() => {
         return [t('exercisesettings_optDenied'), t('exercisesettings_optAllowed'), t('exercisesettings_optTarget')]
-    }, [t, user?.language])
+    }, [t])
 
     return(
     <>

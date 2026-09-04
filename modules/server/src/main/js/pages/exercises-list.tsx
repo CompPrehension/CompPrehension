@@ -1,6 +1,7 @@
 import { observer } from "mobx-react";
 import React, { useEffect, useState } from "react";
 import { ListGroup } from "react-bootstrap";
+import { LoadingWrapper } from "../components/common/loader";
 import { exerciseController } from "../controllers";
 import * as E from "fp-ts/lib/Either";
 
@@ -20,9 +21,11 @@ export const ExercisesList = observer(() => {
 
     return(
         <div>
-            <ListGroup>
-                {data.map(i => <ListGroup.Item><a href={`exercise?exerciseId=${i}`}>{i}</a></ListGroup.Item>)}
-            </ListGroup>
+            <LoadingWrapper isLoading={isLoading}>
+                <ListGroup>
+                    {data.map(i => <ListGroup.Item><a href={`exercise?exerciseId=${i}`}>{i}</a></ListGroup.Item>)}
+                </ListGroup>
+            </LoadingWrapper>
         </div>
     )
 })

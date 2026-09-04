@@ -46,10 +46,21 @@ export default defineConfig([
       // `interface X extends Y {}` is how io-ts declares its codec types - that one is fine,
       // a bare `{}` type is not
       '@typescript-eslint/no-empty-object-type': ['error', { allowInterfaces: 'with-single-extends' }],
-      // advisory: it only costs a full reload instead of a hot update, and obeying it would
-      // mean splitting files apart for the sake of the dev server
-      'react-refresh/only-export-components': 'warn',
+      // advisory: it only costs a full reload instead of a hot update. A provider next to
+      // its own hook is how this codebase is written, so those hooks are spelled out here
+      // rather than split into files of their own for the sake of the dev server
+      'react-refresh/only-export-components': ['warn', {
+        allowConstantExport: true,
+        allowExportNames: ['useSession', 'useCurrentUser', 'useTour', 'useHandledError'],
+      }],
     },
+  },
+
+  // the entry point exports nothing to refresh, and an error boundary has to be a class,
+  // which fast refresh cannot handle either way
+  {
+    files: ['src/main/js/index.tsx', 'src/main/js/components/common/error-boundary.tsx'],
+    rules: { 'react-refresh/only-export-components': 'off' },
   },
 
   // build tooling runs in node
