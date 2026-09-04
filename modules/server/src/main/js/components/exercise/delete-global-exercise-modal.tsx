@@ -51,7 +51,7 @@ export const DeleteGlobalExerciseModal: React.FC<Props> = ({ exerciseId, onConfi
                             </p>
                             {Object.entries(byLms).map(([lms, courses]) => (
                                 <div key={lms} className="mb-2">
-                                    <div className="font-weight-bold">{lms}</div>
+                                    <div className="fw-bold">{lms}</div>
                                     <ul>
                                         {courses.map(c => <li key={c.id}>{c.name}</li>)}
                                     </ul>

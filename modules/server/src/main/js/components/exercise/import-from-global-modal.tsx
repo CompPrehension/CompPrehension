@@ -53,7 +53,7 @@ export const ImportFromGlobalModal = observer(({ courseId, canInherit, canClone,
                secondaryBtnTitle={t('importModal_cancel')}
                handleSecondaryBtnClicked={onClose}>
             <div className="mb-3">
-                <label className="font-weight-bold mr-2">{t('importModal_modeLabel')}</label>
+                <label className="fw-bold me-2">{t('importModal_modeLabel')}</label>
                 <div className="btn-group" role="group">
                     <Button variant={mode === 'INHERIT' ? 'warning' : 'outline-warning'}
                             size="sm"

@@ -13995,8 +13995,8 @@ function computeScore(path, index2) {
   return segments.filter((s) => !isSplat(s)).reduce((score, segment) => score + (paramRe.test(segment) ? dynamicSegmentValue : segment === "" ? emptySegmentValue : staticSegmentValue), initialScore);
 }
 function compareIndexes(a, b) {
-  let siblings3 = a.length === b.length && a.slice(0, -1).every((n, i2) => n === b[i2]);
-  return siblings3 ? (
+  let siblings = a.length === b.length && a.slice(0, -1).every((n, i2) => n === b[i2]);
+  return siblings ? (
     // If two routes are siblings, we should try to match the earlier sibling
     // first. This allows people to have fine-grained control over the matching
     // behavior by simply putting routes with identical paths in the order they
@@ -14814,7 +14814,7 @@ function _extends$2() {
   };
   return _extends$2.apply(this, arguments);
 }
-function _objectWithoutPropertiesLoose$2(source, excluded) {
+function _objectWithoutPropertiesLoose$9(source, excluded) {
   if (source == null) return {};
   var target = {};
   var sourceKeys = Object.keys(source);
@@ -14856,7 +14856,7 @@ function getSearchParamsForLocation(locationSearch, defaultSearchParams) {
   }
   return searchParams;
 }
-const _excluded$H = ["onClick", "relative", "reloadDocument", "replace", "state", "target", "to", "preventScrollReset", "unstable_viewTransition"];
+const _excluded$e = ["onClick", "relative", "reloadDocument", "replace", "state", "target", "to", "preventScrollReset", "unstable_viewTransition"];
 const REACT_ROUTER_VERSION = "6";
 try {
   window.__reactRouterVersion = REACT_ROUTER_VERSION;
@@ -14912,7 +14912,7 @@ const Link = /* @__PURE__ */ reactExports.forwardRef(function LinkWithRef(_ref7,
     to,
     preventScrollReset,
     unstable_viewTransition
-  } = _ref7, rest = _objectWithoutPropertiesLoose$2(_ref7, _excluded$H);
+  } = _ref7, rest = _objectWithoutPropertiesLoose$9(_ref7, _excluded$e);
   let {
     basename
   } = reactExports.useContext(NavigationContext);
@@ -15135,55 +15135,61 @@ var observerFinalizationRegistry = new UniversalFinalizationRegistry(function(ad
   adm.reaction = null;
 });
 var shim = { exports: {} };
-var useSyncExternalStoreShim_production_min = {};
-var hasRequiredUseSyncExternalStoreShim_production_min;
-function requireUseSyncExternalStoreShim_production_min() {
-  if (hasRequiredUseSyncExternalStoreShim_production_min) return useSyncExternalStoreShim_production_min;
-  hasRequiredUseSyncExternalStoreShim_production_min = 1;
-  var e = requireReact();
-  function h(a, b) {
-    return a === b && (0 !== a || 1 / a === 1 / b) || a !== a && b !== b;
+var useSyncExternalStoreShim_production = {};
+var hasRequiredUseSyncExternalStoreShim_production;
+function requireUseSyncExternalStoreShim_production() {
+  if (hasRequiredUseSyncExternalStoreShim_production) return useSyncExternalStoreShim_production;
+  hasRequiredUseSyncExternalStoreShim_production = 1;
+  var React2 = requireReact();
+  function is2(x, y) {
+    return x === y && (0 !== x || 1 / x === 1 / y) || x !== x && y !== y;
   }
-  var k = "function" === typeof Object.is ? Object.is : h, l = e.useState, m = e.useEffect, n = e.useLayoutEffect, p = e.useDebugValue;
-  function q(a, b) {
-    var d = b(), f = l({ inst: { value: d, getSnapshot: b } }), c = f[0].inst, g = f[1];
-    n(function() {
-      c.value = d;
-      c.getSnapshot = b;
-      r(c) && g({ inst: c });
-    }, [a, d, b]);
-    m(function() {
-      r(c) && g({ inst: c });
-      return a(function() {
-        r(c) && g({ inst: c });
-      });
-    }, [a]);
-    p(d);
-    return d;
+  var objectIs = "function" === typeof Object.is ? Object.is : is2, useState = React2.useState, useEffect = React2.useEffect, useLayoutEffect = React2.useLayoutEffect, useDebugValue = React2.useDebugValue;
+  function useSyncExternalStore$2(subscribe, getSnapshot) {
+    var value = getSnapshot(), _useState = useState({ inst: { value, getSnapshot } }), inst = _useState[0].inst, forceUpdate = _useState[1];
+    useLayoutEffect(
+      function() {
+        inst.value = value;
+        inst.getSnapshot = getSnapshot;
+        checkIfSnapshotChanged(inst) && forceUpdate({ inst });
+      },
+      [subscribe, value, getSnapshot]
+    );
+    useEffect(
+      function() {
+        checkIfSnapshotChanged(inst) && forceUpdate({ inst });
+        return subscribe(function() {
+          checkIfSnapshotChanged(inst) && forceUpdate({ inst });
+        });
+      },
+      [subscribe]
+    );
+    useDebugValue(value);
+    return value;
   }
-  function r(a) {
-    var b = a.getSnapshot;
-    a = a.value;
+  function checkIfSnapshotChanged(inst) {
+    var latestGetSnapshot = inst.getSnapshot;
+    inst = inst.value;
     try {
-      var d = b();
-      return !k(a, d);
-    } catch (f) {
+      var nextValue = latestGetSnapshot();
+      return !objectIs(inst, nextValue);
+    } catch (error) {
       return true;
     }
   }
-  function t(a, b) {
-    return b();
+  function useSyncExternalStore$1(subscribe, getSnapshot) {
+    return getSnapshot();
   }
-  var u = "undefined" === typeof window || "undefined" === typeof window.document || "undefined" === typeof window.document.createElement ? t : q;
-  useSyncExternalStoreShim_production_min.useSyncExternalStore = void 0 !== e.useSyncExternalStore ? e.useSyncExternalStore : u;
-  return useSyncExternalStoreShim_production_min;
+  var shim2 = "undefined" === typeof window || "undefined" === typeof window.document || "undefined" === typeof window.document.createElement ? useSyncExternalStore$1 : useSyncExternalStore$2;
+  useSyncExternalStoreShim_production.useSyncExternalStore = void 0 !== React2.useSyncExternalStore ? React2.useSyncExternalStore : shim2;
+  return useSyncExternalStoreShim_production;
 }
 var hasRequiredShim;
 function requireShim() {
   if (hasRequiredShim) return shim.exports;
   hasRequiredShim = 1;
   {
-    shim.exports = requireUseSyncExternalStoreShim_production_min();
+    shim.exports = requireUseSyncExternalStoreShim_production();
   }
   return shim.exports;
 }
@@ -15548,32 +15554,6 @@ if (!reactExports.Component) {
 if (!observable) {
   throw new Error("mobx-react requires mobx to be available");
 }
-function _extends$1() {
-  _extends$1 = Object.assign ? Object.assign.bind() : function(target) {
-    for (var i2 = 1; i2 < arguments.length; i2++) {
-      var source = arguments[i2];
-      for (var key in source) {
-        if (Object.prototype.hasOwnProperty.call(source, key)) {
-          target[key] = source[key];
-        }
-      }
-    }
-    return target;
-  };
-  return _extends$1.apply(this, arguments);
-}
-function _objectWithoutPropertiesLoose$1(source, excluded) {
-  if (source == null) return {};
-  var target = {};
-  var sourceKeys = Object.keys(source);
-  var key, i2;
-  for (i2 = 0; i2 < sourceKeys.length; i2++) {
-    key = sourceKeys[i2];
-    if (excluded.indexOf(key) >= 0) continue;
-    target[key] = source[key];
-  }
-  return target;
-}
 var classnames = { exports: {} };
 var hasRequiredClassnames;
 function requireClassnames() {
@@ -15634,6 +15614,24 @@ function requireClassnames() {
 }
 var classnamesExports = requireClassnames();
 const classNames$1 = /* @__PURE__ */ getDefaultExportFromCjs(classnamesExports);
+function _extends$1() {
+  return _extends$1 = Object.assign ? Object.assign.bind() : function(n) {
+    for (var e = 1; e < arguments.length; e++) {
+      var t = arguments[e];
+      for (var r in t) ({}).hasOwnProperty.call(t, r) && (n[r] = t[r]);
+    }
+    return n;
+  }, _extends$1.apply(null, arguments);
+}
+function _objectWithoutPropertiesLoose$8(r, e) {
+  if (null == r) return {};
+  var t = {};
+  for (var n in r) if ({}.hasOwnProperty.call(r, n)) {
+    if (-1 !== e.indexOf(n)) continue;
+    t[n] = r[n];
+  }
+  return t;
+}
 function defaultKey(key) {
   return "default" + key.charAt(0).toUpperCase() + key.substr(1);
 }
@@ -15671,39 +15669,55 @@ function useUncontrolledProp(propValue, defaultValue, handler) {
 function useUncontrolled(props, config2) {
   return Object.keys(config2).reduce(function(result, fieldName) {
     var _extends2;
-    var _ref3 = result, defaultValue = _ref3[defaultKey(fieldName)], propsValue = _ref3[fieldName], rest = _objectWithoutPropertiesLoose$1(_ref3, [defaultKey(fieldName), fieldName].map(_toPropertyKey));
+    var _ref3 = result, defaultValue = _ref3[defaultKey(fieldName)], propsValue = _ref3[fieldName], rest = _objectWithoutPropertiesLoose$8(_ref3, [defaultKey(fieldName), fieldName].map(_toPropertyKey));
     var handlerName = config2[fieldName];
     var _useUncontrolledProp = useUncontrolledProp(propsValue, defaultValue, props[handlerName]), value = _useUncontrolledProp[0], handler = _useUncontrolledProp[1];
     return _extends$1({}, rest, (_extends2 = {}, _extends2[fieldName] = value, _extends2[handlerName] = handler, _extends2));
   }, props);
 }
-function _setPrototypeOf(o, p) {
-  _setPrototypeOf = Object.setPrototypeOf ? Object.setPrototypeOf.bind() : function _setPrototypeOf2(o2, p2) {
-    o2.__proto__ = p2;
-    return o2;
-  };
-  return _setPrototypeOf(o, p);
+function _setPrototypeOf(t, e) {
+  return _setPrototypeOf = Object.setPrototypeOf ? Object.setPrototypeOf.bind() : function(t2, e2) {
+    return t2.__proto__ = e2, t2;
+  }, _setPrototypeOf(t, e);
 }
-function _inheritsLoose(subClass, superClass) {
-  subClass.prototype = Object.create(superClass.prototype);
-  subClass.prototype.constructor = subClass;
-  _setPrototypeOf(subClass, superClass);
+function _inheritsLoose(t, o) {
+  t.prototype = Object.create(o.prototype), t.prototype.constructor = t, _setPrototypeOf(t, o);
 }
-var ThemeContext$1 = /* @__PURE__ */ React.createContext({});
-ThemeContext$1.Consumer;
-ThemeContext$1.Provider;
+const DEFAULT_BREAKPOINTS = ["xxl", "xl", "lg", "md", "sm", "xs"];
+const DEFAULT_MIN_BREAKPOINT = "xs";
+const ThemeContext$1 = /* @__PURE__ */ reactExports.createContext({
+  prefixes: {},
+  breakpoints: DEFAULT_BREAKPOINTS,
+  minBreakpoint: DEFAULT_MIN_BREAKPOINT
+});
+const {
+  Consumer,
+  Provider
+} = ThemeContext$1;
 function useBootstrapPrefix(prefix2, defaultPrefix) {
-  var prefixes = reactExports.useContext(ThemeContext$1);
+  const {
+    prefixes
+  } = reactExports.useContext(ThemeContext$1);
   return prefix2 || prefixes[defaultPrefix] || defaultPrefix;
 }
-var SelectableContext = /* @__PURE__ */ React.createContext(null);
-var makeEventKey = function makeEventKey2(eventKey, href) {
-  if (href === void 0) {
-    href = null;
-  }
-  if (eventKey != null) return String(eventKey);
-  return href || null;
-};
+function useBootstrapBreakpoints() {
+  const {
+    breakpoints
+  } = reactExports.useContext(ThemeContext$1);
+  return breakpoints;
+}
+function useBootstrapMinBreakpoint() {
+  const {
+    minBreakpoint
+  } = reactExports.useContext(ThemeContext$1);
+  return minBreakpoint;
+}
+function useIsRTL() {
+  const {
+    dir
+  } = reactExports.useContext(ThemeContext$1);
+  return dir === "rtl";
+}
 function ownerDocument(node2) {
   return node2 && node2.ownerDocument || document;
 }
@@ -15762,7 +15776,7 @@ var hasRequiredFactoryWithThrowingShims;
 function requireFactoryWithThrowingShims() {
   if (hasRequiredFactoryWithThrowingShims) return factoryWithThrowingShims;
   hasRequiredFactoryWithThrowingShims = 1;
-  var ReactPropTypesSecret = requireReactPropTypesSecret();
+  var ReactPropTypesSecret = /* @__PURE__ */ requireReactPropTypesSecret();
   function emptyFunction() {
   }
   function emptyFunctionWithReset() {
@@ -15785,6 +15799,7 @@ function requireFactoryWithThrowingShims() {
     }
     var ReactPropTypes = {
       array: shim2,
+      bigint: shim2,
       bool: shim2,
       func: shim2,
       number: shim2,
@@ -15815,11 +15830,11 @@ function requirePropTypes() {
   if (hasRequiredPropTypes) return propTypes$3.exports;
   hasRequiredPropTypes = 1;
   {
-    propTypes$3.exports = requireFactoryWithThrowingShims()();
+    propTypes$3.exports = /* @__PURE__ */ requireFactoryWithThrowingShims()();
   }
   return propTypes$3.exports;
 }
-var propTypesExports = requirePropTypes();
+var propTypesExports = /* @__PURE__ */ requirePropTypes();
 const PropTypes = /* @__PURE__ */ getDefaultExportFromCjs(propTypesExports);
 const config = {
   disabled: false
@@ -16048,7 +16063,7 @@ var Transition = /* @__PURE__ */ (function(_React$Component) {
     _this$props.onExiting;
     _this$props.onExited;
     _this$props.nodeRef;
-    var childProps = _objectWithoutPropertiesLoose$1(_this$props, ["children", "in", "mountOnEnter", "unmountOnExit", "appear", "enter", "exit", "timeout", "addEndListener", "onEnter", "onEntering", "onEntered", "onExit", "onExiting", "onExited", "nodeRef"]);
+    var childProps = _objectWithoutPropertiesLoose$8(_this$props, ["children", "in", "mountOnEnter", "unmountOnExit", "appear", "enter", "exit", "timeout", "addEndListener", "onEnter", "onEntering", "onEntered", "onExit", "onExiting", "onExited", "nodeRef"]);
     return (
       // allows for nested Transitions
       /* @__PURE__ */ React.createElement(TransitionGroupContext.Provider, {
@@ -16081,6 +16096,27 @@ Transition.EXITED = EXITED;
 Transition.ENTERING = ENTERING;
 Transition.ENTERED = ENTERED;
 Transition.EXITING = EXITING;
+function isEscKey(e) {
+  return e.code === "Escape" || e.keyCode === 27;
+}
+function getReactVersion() {
+  const parts = reactExports.version.split(".");
+  return {
+    major: +parts[0],
+    minor: +parts[1],
+    patch: +parts[2]
+  };
+}
+function getChildRef(element2) {
+  if (!element2 || typeof element2 === "function") {
+    return null;
+  }
+  const {
+    major
+  } = getReactVersion();
+  const childRef = major >= 19 ? element2.props.ref : element2.ref;
+  return childRef;
+}
 const canUseDOM$1 = !!(typeof window !== "undefined" && window.document && window.document.createElement);
 var optionsSupported = false;
 var onceSupported = false;
@@ -16170,35 +16206,27 @@ function transitionEnd(element2, handler, duration, padding) {
   };
 }
 function parseDuration(node2, property) {
-  var str = style(node2, property) || "";
-  var mult = str.indexOf("ms") === -1 ? 1e3 : 1;
+  const str = style(node2, property) || "";
+  const mult = str.indexOf("ms") === -1 ? 1e3 : 1;
   return parseFloat(str) * mult;
 }
 function transitionEndListener(element2, handler) {
-  var duration = parseDuration(element2, "transitionDuration");
-  var delay = parseDuration(element2, "transitionDelay");
-  var remove = transitionEnd(element2, function(e) {
+  const duration = parseDuration(element2, "transitionDuration");
+  const delay = parseDuration(element2, "transitionDelay");
+  const remove = transitionEnd(element2, (e) => {
     if (e.target === element2) {
       remove();
       handler(e);
     }
   }, duration + delay);
 }
-function createChainedFunction() {
-  for (var _len = arguments.length, funcs = new Array(_len), _key = 0; _key < _len; _key++) {
-    funcs[_key] = arguments[_key];
-  }
-  return funcs.filter(function(f) {
-    return f != null;
-  }).reduce(function(acc, f) {
+function createChainedFunction(...funcs) {
+  return funcs.filter((f) => f != null).reduce((acc, f) => {
     if (typeof f !== "function") {
       throw new Error("Invalid Argument Type, must only provide functions, undefined, or null.");
     }
     if (acc === null) return f;
-    return function chainedFunction() {
-      for (var _len2 = arguments.length, args = new Array(_len2), _key2 = 0; _key2 < _len2; _key2++) {
-        args[_key2] = arguments[_key2];
-      }
+    return function chainedFunction(...args) {
       acc.apply(this, args);
       f.apply(this, args);
     };
@@ -16207,80 +16235,191 @@ function createChainedFunction() {
 function triggerBrowserReflow(node2) {
   node2.offsetHeight;
 }
-var _excluded$G = ["onEnter", "onEntering", "onEntered", "onExit", "onExiting", "className", "children", "dimension", "getDimensionValue"];
-var _collapseStyles;
-var MARGINS = {
+const toFnRef$1 = (ref) => !ref || typeof ref === "function" ? ref : (value) => {
+  ref.current = value;
+};
+function mergeRefs$1(refA, refB) {
+  const a = toFnRef$1(refA);
+  const b = toFnRef$1(refB);
+  return (value) => {
+    if (a) a(value);
+    if (b) b(value);
+  };
+}
+function useMergedRefs$1(refA, refB) {
+  return reactExports.useMemo(() => mergeRefs$1(refA, refB), [refA, refB]);
+}
+function safeFindDOMNode(componentOrElement) {
+  if (componentOrElement && "setState" in componentOrElement) {
+    return ReactDOM.findDOMNode(componentOrElement);
+  }
+  return componentOrElement != null ? componentOrElement : null;
+}
+const TransitionWrapper = /* @__PURE__ */ React.forwardRef(({
+  onEnter,
+  onEntering,
+  onEntered,
+  onExit,
+  onExiting,
+  onExited,
+  addEndListener,
+  children: children2,
+  childRef,
+  ...props
+}, ref) => {
+  const nodeRef = reactExports.useRef(null);
+  const mergedRef = useMergedRefs$1(nodeRef, childRef);
+  const attachRef = (r) => {
+    mergedRef(safeFindDOMNode(r));
+  };
+  const normalize = (callback) => (param) => {
+    if (callback && nodeRef.current) {
+      callback(nodeRef.current, param);
+    }
+  };
+  const handleEnter = reactExports.useCallback(normalize(onEnter), [onEnter]);
+  const handleEntering = reactExports.useCallback(normalize(onEntering), [onEntering]);
+  const handleEntered = reactExports.useCallback(normalize(onEntered), [onEntered]);
+  const handleExit = reactExports.useCallback(normalize(onExit), [onExit]);
+  const handleExiting = reactExports.useCallback(normalize(onExiting), [onExiting]);
+  const handleExited = reactExports.useCallback(normalize(onExited), [onExited]);
+  const handleAddEndListener = reactExports.useCallback(normalize(addEndListener), [addEndListener]);
+  return /* @__PURE__ */ jsxRuntimeExports.jsx(Transition, {
+    ref,
+    ...props,
+    onEnter: handleEnter,
+    onEntered: handleEntered,
+    onEntering: handleEntering,
+    onExit: handleExit,
+    onExited: handleExited,
+    onExiting: handleExiting,
+    addEndListener: handleAddEndListener,
+    nodeRef,
+    children: typeof children2 === "function" ? (status, innerProps) => (
+      // TODO: Types for RTG missing innerProps, so need to cast.
+      children2(status, {
+        ...innerProps,
+        ref: attachRef
+      })
+    ) : /* @__PURE__ */ React.cloneElement(children2, {
+      ref: attachRef
+    })
+  });
+});
+TransitionWrapper.displayName = "TransitionWrapper";
+const MARGINS = {
   height: ["marginTop", "marginBottom"],
   width: ["marginLeft", "marginRight"]
 };
 function getDefaultDimensionValue(dimension, elem) {
-  var offset2 = "offset" + dimension[0].toUpperCase() + dimension.slice(1);
-  var value = elem[offset2];
-  var margins = MARGINS[dimension];
-  return value + // @ts-ignore
-  parseInt(style(elem, margins[0]), 10) + // @ts-ignore
+  const offset2 = `offset${dimension[0].toUpperCase()}${dimension.slice(1)}`;
+  const value = elem[offset2];
+  const margins = MARGINS[dimension];
+  return value + // @ts-expect-error TODO
+  parseInt(style(elem, margins[0]), 10) + // @ts-expect-error TODO
   parseInt(style(elem, margins[1]), 10);
 }
-var collapseStyles = (_collapseStyles = {}, _collapseStyles[EXITED] = "collapse", _collapseStyles[EXITING] = "collapsing", _collapseStyles[ENTERING] = "collapsing", _collapseStyles[ENTERED] = "collapse show", _collapseStyles);
-var defaultProps$g = {
-  in: false,
-  timeout: 300,
-  mountOnEnter: false,
-  unmountOnExit: false,
-  appear: false,
-  getDimensionValue: getDefaultDimensionValue
+const collapseStyles = {
+  [EXITED]: "collapse",
+  [EXITING]: "collapsing",
+  [ENTERING]: "collapsing",
+  [ENTERED]: "collapse show"
 };
-var Collapse = /* @__PURE__ */ React.forwardRef(function(_ref3, ref) {
-  var onEnter = _ref3.onEnter, onEntering = _ref3.onEntering, onEntered = _ref3.onEntered, onExit = _ref3.onExit, onExiting = _ref3.onExiting, className = _ref3.className, children2 = _ref3.children, _ref$dimension = _ref3.dimension, dimension = _ref$dimension === void 0 ? "height" : _ref$dimension, _ref$getDimensionValu = _ref3.getDimensionValue, getDimensionValue = _ref$getDimensionValu === void 0 ? getDefaultDimensionValue : _ref$getDimensionValu, props = _objectWithoutPropertiesLoose$1(_ref3, _excluded$G);
-  var computedDimension = typeof dimension === "function" ? dimension() : dimension;
-  var handleEnter = reactExports.useMemo(function() {
-    return createChainedFunction(function(elem) {
-      elem.style[computedDimension] = "0";
-    }, onEnter);
-  }, [computedDimension, onEnter]);
-  var handleEntering = reactExports.useMemo(function() {
-    return createChainedFunction(function(elem) {
-      var scroll2 = "scroll" + computedDimension[0].toUpperCase() + computedDimension.slice(1);
-      elem.style[computedDimension] = elem[scroll2] + "px";
-    }, onEntering);
-  }, [computedDimension, onEntering]);
-  var handleEntered = reactExports.useMemo(function() {
-    return createChainedFunction(function(elem) {
-      elem.style[computedDimension] = null;
-    }, onEntered);
-  }, [computedDimension, onEntered]);
-  var handleExit = reactExports.useMemo(function() {
-    return createChainedFunction(function(elem) {
-      elem.style[computedDimension] = getDimensionValue(computedDimension, elem) + "px";
-      triggerBrowserReflow(elem);
-    }, onExit);
-  }, [onExit, getDimensionValue, computedDimension]);
-  var handleExiting = reactExports.useMemo(function() {
-    return createChainedFunction(function(elem) {
-      elem.style[computedDimension] = null;
-    }, onExiting);
-  }, [computedDimension, onExiting]);
-  return /* @__PURE__ */ React.createElement(
-    Transition,
-    _extends$1({
-      ref,
-      addEndListener: transitionEndListener
-    }, props, {
-      "aria-expanded": props.role ? props.in : null,
-      onEnter: handleEnter,
-      onEntering: handleEntering,
-      onEntered: handleEntered,
-      onExit: handleExit,
-      onExiting: handleExiting
-    }),
-    function(state, innerProps) {
-      return /* @__PURE__ */ React.cloneElement(children2, _extends$1({}, innerProps, {
-        className: classNames$1(className, children2.props.className, collapseStyles[state], computedDimension === "width" && "width")
-      }));
-    }
-  );
+const Collapse = /* @__PURE__ */ React.forwardRef(({
+  onEnter,
+  onEntering,
+  onEntered,
+  onExit,
+  onExiting,
+  className,
+  children: children2,
+  dimension = "height",
+  in: inProp = false,
+  timeout = 300,
+  mountOnEnter = false,
+  unmountOnExit = false,
+  appear = false,
+  getDimensionValue = getDefaultDimensionValue,
+  ...props
+}, ref) => {
+  const computedDimension = typeof dimension === "function" ? dimension() : dimension;
+  const handleEnter = reactExports.useMemo(() => createChainedFunction((elem) => {
+    elem.style[computedDimension] = "0";
+  }, onEnter), [computedDimension, onEnter]);
+  const handleEntering = reactExports.useMemo(() => createChainedFunction((elem) => {
+    const scroll2 = `scroll${computedDimension[0].toUpperCase()}${computedDimension.slice(1)}`;
+    elem.style[computedDimension] = `${elem[scroll2]}px`;
+  }, onEntering), [computedDimension, onEntering]);
+  const handleEntered = reactExports.useMemo(() => createChainedFunction((elem) => {
+    elem.style[computedDimension] = null;
+  }, onEntered), [computedDimension, onEntered]);
+  const handleExit = reactExports.useMemo(() => createChainedFunction((elem) => {
+    elem.style[computedDimension] = `${getDimensionValue(computedDimension, elem)}px`;
+    triggerBrowserReflow(elem);
+  }, onExit), [onExit, getDimensionValue, computedDimension]);
+  const handleExiting = reactExports.useMemo(() => createChainedFunction((elem) => {
+    elem.style[computedDimension] = null;
+  }, onExiting), [computedDimension, onExiting]);
+  return /* @__PURE__ */ jsxRuntimeExports.jsx(TransitionWrapper, {
+    ref,
+    addEndListener: transitionEndListener,
+    ...props,
+    "aria-expanded": props.role ? inProp : null,
+    onEnter: handleEnter,
+    onEntering: handleEntering,
+    onEntered: handleEntered,
+    onExit: handleExit,
+    onExiting: handleExiting,
+    childRef: getChildRef(children2),
+    in: inProp,
+    timeout,
+    mountOnEnter,
+    unmountOnExit,
+    appear,
+    children: (state, innerProps) => /* @__PURE__ */ React.cloneElement(children2, {
+      ...innerProps,
+      className: classNames$1(className, children2.props.className, collapseStyles[state], computedDimension === "width" && "collapse-horizontal")
+    })
+  });
 });
-Collapse.defaultProps = defaultProps$g;
+Collapse.displayName = "Collapse";
+function useCommittedRef$1(value) {
+  const ref = reactExports.useRef(value);
+  reactExports.useEffect(() => {
+    ref.current = value;
+  }, [value]);
+  return ref;
+}
+function useEventCallback$1(fn) {
+  const ref = useCommittedRef$1(fn);
+  return reactExports.useCallback(function(...args) {
+    return ref.current && ref.current(...args);
+  }, [ref]);
+}
+const divWithClassName = ((className) => (
+  // eslint-disable-next-line react/display-name
+  /* @__PURE__ */ reactExports.forwardRef((p, ref) => /* @__PURE__ */ jsxRuntimeExports.jsx("div", {
+    ...p,
+    ref,
+    className: classNames$1(p.className, className)
+  }))
+));
+const DivStyledAsH4$1 = divWithClassName("h4");
+DivStyledAsH4$1.displayName = "DivStyledAsH4";
+const AlertHeading = /* @__PURE__ */ reactExports.forwardRef(({
+  className,
+  bsPrefix,
+  as: Component = DivStyledAsH4$1,
+  ...props
+}, ref) => {
+  bsPrefix = useBootstrapPrefix(bsPrefix, "alert-heading");
+  return /* @__PURE__ */ jsxRuntimeExports.jsx(Component, {
+    ref,
+    className: classNames$1(className, bsPrefix),
+    ...props
+  });
+});
+AlertHeading.displayName = "AlertHeading";
 function useCommittedRef(value) {
   const ref = reactExports.useRef(value);
   reactExports.useEffect(() => {
@@ -16294,225 +16433,6 @@ function useEventCallback(fn) {
     return ref.current && ref.current(...args);
   }, [ref]);
 }
-var _excluded$F = ["className", "children"];
-var _fadeStyles;
-var defaultProps$f = {
-  in: false,
-  timeout: 300,
-  mountOnEnter: false,
-  unmountOnExit: false,
-  appear: false
-};
-var fadeStyles = (_fadeStyles = {}, _fadeStyles[ENTERING] = "show", _fadeStyles[ENTERED] = "show", _fadeStyles);
-var Fade = /* @__PURE__ */ React.forwardRef(function(_ref3, ref) {
-  var className = _ref3.className, children2 = _ref3.children, props = _objectWithoutPropertiesLoose$1(_ref3, _excluded$F);
-  var handleEnter = reactExports.useCallback(function(node2) {
-    triggerBrowserReflow(node2);
-    if (props.onEnter) props.onEnter(node2);
-  }, [props]);
-  return /* @__PURE__ */ React.createElement(Transition, _extends$1({
-    ref,
-    addEndListener: transitionEndListener
-  }, props, {
-    onEnter: handleEnter
-  }), function(status, innerProps) {
-    return /* @__PURE__ */ React.cloneElement(children2, _extends$1({}, innerProps, {
-      className: classNames$1("fade", className, children2.props.className, fadeStyles[status])
-    }));
-  });
-});
-Fade.defaultProps = defaultProps$f;
-Fade.displayName = "Fade";
-var _excluded$E = ["label", "onClick", "className"];
-var propTypes$2 = {
-  label: PropTypes.string.isRequired,
-  onClick: PropTypes.func
-};
-var defaultProps$e = {
-  label: "Close"
-};
-var CloseButton = /* @__PURE__ */ React.forwardRef(function(_ref3, ref) {
-  var label = _ref3.label, onClick = _ref3.onClick, className = _ref3.className, props = _objectWithoutPropertiesLoose$1(_ref3, _excluded$E);
-  return /* @__PURE__ */ React.createElement("button", _extends$1({
-    ref,
-    type: "button",
-    className: classNames$1("close", className),
-    onClick
-  }, props), /* @__PURE__ */ React.createElement("span", {
-    "aria-hidden": "true"
-  }, "×"), /* @__PURE__ */ React.createElement("span", {
-    className: "sr-only"
-  }, label));
-});
-CloseButton.displayName = "CloseButton";
-CloseButton.propTypes = propTypes$2;
-CloseButton.defaultProps = defaultProps$e;
-const divWithClassName = (function(className) {
-  return /* @__PURE__ */ React.forwardRef(function(p, ref) {
-    return /* @__PURE__ */ React.createElement("div", _extends$1({}, p, {
-      ref,
-      className: classNames$1(p.className, className)
-    }));
-  });
-});
-var rHyphen = /-(.)/g;
-function camelize(string2) {
-  return string2.replace(rHyphen, function(_, chr) {
-    return chr.toUpperCase();
-  });
-}
-var _excluded$D = ["className", "bsPrefix", "as"];
-var pascalCase = function pascalCase2(str) {
-  return str[0].toUpperCase() + camelize(str).slice(1);
-};
-function createWithBsPrefix(prefix2, _temp) {
-  var _ref3 = _temp === void 0 ? {} : _temp, _ref$displayName = _ref3.displayName, displayName = _ref$displayName === void 0 ? pascalCase(prefix2) : _ref$displayName, Component = _ref3.Component, defaultProps2 = _ref3.defaultProps;
-  var BsComponent = /* @__PURE__ */ React.forwardRef(function(_ref22, ref) {
-    var className = _ref22.className, bsPrefix = _ref22.bsPrefix, _ref2$as = _ref22.as, Tag = _ref2$as === void 0 ? Component || "div" : _ref2$as, props = _objectWithoutPropertiesLoose$1(_ref22, _excluded$D);
-    var resolvedPrefix = useBootstrapPrefix(bsPrefix, prefix2);
-    return /* @__PURE__ */ React.createElement(Tag, _extends$1({
-      ref,
-      className: classNames$1(className, resolvedPrefix)
-    }, props));
-  });
-  BsComponent.defaultProps = defaultProps2;
-  BsComponent.displayName = displayName;
-  return BsComponent;
-}
-var _excluded$C = ["as", "disabled", "onKeyDown"];
-function isTrivialHref(href) {
-  return !href || href.trim() === "#";
-}
-var SafeAnchor = /* @__PURE__ */ React.forwardRef(function(_ref3, ref) {
-  var _ref$as = _ref3.as, Component = _ref$as === void 0 ? "a" : _ref$as, disabled = _ref3.disabled, onKeyDown = _ref3.onKeyDown, props = _objectWithoutPropertiesLoose$1(_ref3, _excluded$C);
-  var handleClick = function handleClick2(event) {
-    var href = props.href, onClick = props.onClick;
-    if (disabled || isTrivialHref(href)) {
-      event.preventDefault();
-    }
-    if (disabled) {
-      event.stopPropagation();
-      return;
-    }
-    if (onClick) {
-      onClick(event);
-    }
-  };
-  var handleKeyDown = function handleKeyDown2(event) {
-    if (event.key === " ") {
-      event.preventDefault();
-      handleClick(event);
-    }
-  };
-  if (isTrivialHref(props.href)) {
-    props.role = props.role || "button";
-    props.href = props.href || "#";
-  }
-  if (disabled) {
-    props.tabIndex = -1;
-    props["aria-disabled"] = true;
-  }
-  return /* @__PURE__ */ React.createElement(Component, _extends$1({
-    ref
-  }, props, {
-    onClick: handleClick,
-    onKeyDown: createChainedFunction(handleKeyDown, onKeyDown)
-  }));
-});
-SafeAnchor.displayName = "SafeAnchor";
-var _excluded$B = ["bsPrefix", "show", "closeLabel", "className", "children", "variant", "onClose", "dismissible", "transition"];
-var DivStyledAsH4$1 = divWithClassName("h4");
-DivStyledAsH4$1.displayName = "DivStyledAsH4";
-var AlertHeading = createWithBsPrefix("alert-heading", {
-  Component: DivStyledAsH4$1
-});
-var AlertLink = createWithBsPrefix("alert-link", {
-  Component: SafeAnchor
-});
-var defaultProps$d = {
-  show: true,
-  transition: Fade,
-  closeLabel: "Close alert"
-};
-var Alert = /* @__PURE__ */ React.forwardRef(function(uncontrolledProps, ref) {
-  var _useUncontrolled = useUncontrolled(uncontrolledProps, {
-    show: "onClose"
-  }), bsPrefix = _useUncontrolled.bsPrefix, show = _useUncontrolled.show, closeLabel = _useUncontrolled.closeLabel, className = _useUncontrolled.className, children2 = _useUncontrolled.children, variant = _useUncontrolled.variant, onClose = _useUncontrolled.onClose, dismissible = _useUncontrolled.dismissible, transition = _useUncontrolled.transition, props = _objectWithoutPropertiesLoose$1(_useUncontrolled, _excluded$B);
-  var prefix2 = useBootstrapPrefix(bsPrefix, "alert");
-  var handleClose = useEventCallback(function(e) {
-    if (onClose) {
-      onClose(false, e);
-    }
-  });
-  var Transition2 = transition === true ? Fade : transition;
-  var alert = /* @__PURE__ */ React.createElement("div", _extends$1({
-    role: "alert"
-  }, !Transition2 ? props : void 0, {
-    ref,
-    className: classNames$1(className, prefix2, variant && prefix2 + "-" + variant, dismissible && prefix2 + "-dismissible")
-  }), dismissible && /* @__PURE__ */ React.createElement(CloseButton, {
-    onClick: handleClose,
-    label: closeLabel
-  }), children2);
-  if (!Transition2) return show ? alert : null;
-  return /* @__PURE__ */ React.createElement(Transition2, _extends$1({
-    unmountOnExit: true
-  }, props, {
-    ref: void 0,
-    in: show
-  }), alert);
-});
-Alert.displayName = "Alert";
-Alert.defaultProps = defaultProps$d;
-Alert.Link = AlertLink;
-Alert.Heading = AlertHeading;
-var _excluded$A = ["bsPrefix", "variant", "pill", "className", "as"];
-var defaultProps$c = {
-  pill: false
-};
-var Badge = /* @__PURE__ */ React.forwardRef(function(_ref3, ref) {
-  var bsPrefix = _ref3.bsPrefix, variant = _ref3.variant, pill = _ref3.pill, className = _ref3.className, _ref$as = _ref3.as, Component = _ref$as === void 0 ? "span" : _ref$as, props = _objectWithoutPropertiesLoose$1(_ref3, _excluded$A);
-  var prefix2 = useBootstrapPrefix(bsPrefix, "badge");
-  return /* @__PURE__ */ React.createElement(Component, _extends$1({
-    ref
-  }, props, {
-    className: classNames$1(className, prefix2, pill && prefix2 + "-pill", variant && prefix2 + "-" + variant)
-  }));
-});
-Badge.displayName = "Badge";
-Badge.defaultProps = defaultProps$c;
-var _excluded$z = ["bsPrefix", "variant", "size", "active", "className", "block", "type", "as"];
-var defaultProps$b = {
-  variant: "primary",
-  active: false,
-  disabled: false
-};
-var Button = /* @__PURE__ */ React.forwardRef(function(_ref3, ref) {
-  var bsPrefix = _ref3.bsPrefix, variant = _ref3.variant, size2 = _ref3.size, active = _ref3.active, className = _ref3.className, block = _ref3.block, type2 = _ref3.type, as = _ref3.as, props = _objectWithoutPropertiesLoose$1(_ref3, _excluded$z);
-  var prefix2 = useBootstrapPrefix(bsPrefix, "btn");
-  var classes = classNames$1(className, prefix2, active && "active", variant && prefix2 + "-" + variant, block && prefix2 + "-block", size2 && prefix2 + "-" + size2);
-  if (props.href) {
-    return /* @__PURE__ */ React.createElement(SafeAnchor, _extends$1({}, props, {
-      as,
-      ref,
-      className: classNames$1(classes, props.disabled && "disabled")
-    }));
-  }
-  if (ref) {
-    props.ref = ref;
-  }
-  if (type2) {
-    props.type = type2;
-  } else if (!as) {
-    props.type = "button";
-  }
-  var Component = as || "button";
-  return /* @__PURE__ */ React.createElement(Component, _extends$1({}, props, {
-    className: classes
-  }));
-});
-Button.displayName = "Button";
-Button.defaultProps = defaultProps$b;
 function useMounted() {
   const mounted = reactExports.useRef(true);
   const isMounted = reactExports.useRef(() => mounted.current);
@@ -16524,57 +16444,6 @@ function useMounted() {
   }, []);
   return isMounted.current;
 }
-function useUpdatedRef(value) {
-  const valueRef = reactExports.useRef(value);
-  valueRef.current = value;
-  return valueRef;
-}
-function useWillUnmount(fn) {
-  const onUnmount = useUpdatedRef(fn);
-  reactExports.useEffect(() => () => onUnmount.current(), []);
-}
-var _excluded$y = ["bsPrefix", "className", "as"];
-var DEVICE_SIZES = ["xl", "lg", "md", "sm", "xs"];
-var Col = /* @__PURE__ */ React.forwardRef(
-  // Need to define the default "as" during prop destructuring to be compatible with styled-components github.com/react-bootstrap/react-bootstrap/issues/3595
-  function(_ref3, ref) {
-    var bsPrefix = _ref3.bsPrefix, className = _ref3.className, _ref$as = _ref3.as, Component = _ref$as === void 0 ? "div" : _ref$as, props = _objectWithoutPropertiesLoose$1(_ref3, _excluded$y);
-    var prefix2 = useBootstrapPrefix(bsPrefix, "col");
-    var spans = [];
-    var classes = [];
-    DEVICE_SIZES.forEach(function(brkPoint) {
-      var propValue = props[brkPoint];
-      delete props[brkPoint];
-      var span;
-      var offset2;
-      var order;
-      if (typeof propValue === "object" && propValue != null) {
-        var _propValue$span = propValue.span;
-        span = _propValue$span === void 0 ? true : _propValue$span;
-        offset2 = propValue.offset;
-        order = propValue.order;
-      } else {
-        span = propValue;
-      }
-      var infix = brkPoint !== "xs" ? "-" + brkPoint : "";
-      if (span) spans.push(span === true ? "" + prefix2 + infix : "" + prefix2 + infix + "-" + span);
-      if (order != null) classes.push("order" + infix + "-" + order);
-      if (offset2 != null) classes.push("offset" + infix + "-" + offset2);
-    });
-    if (!spans.length) {
-      spans.push(prefix2);
-    }
-    return /* @__PURE__ */ React.createElement(Component, _extends$1({}, props, {
-      ref,
-      className: classNames$1.apply(void 0, [className].concat(spans, classes))
-    }));
-  }
-);
-Col.displayName = "Col";
-var toArray = Function.prototype.bind.call(Function.prototype.call, [].slice);
-function qsa(element2, selector) {
-  return toArray(element2.querySelectorAll(selector));
-}
 function usePrevious(value) {
   const ref = reactExports.useRef(null);
   reactExports.useEffect(() => {
@@ -16582,19 +16451,784 @@ function usePrevious(value) {
   });
   return ref.current;
 }
-function useForceUpdate() {
-  const [, dispatch] = reactExports.useReducer((state) => !state, false);
-  return dispatch;
+const isReactNative$1 = typeof global !== "undefined" && // @ts-ignore
+global.navigator && // @ts-ignore
+global.navigator.product === "ReactNative";
+const isDOM$1 = typeof document !== "undefined";
+const useIsomorphicEffect$1 = isDOM$1 || isReactNative$1 ? reactExports.useLayoutEffect : reactExports.useEffect;
+const _excluded$d = ["as", "disabled"];
+function _objectWithoutPropertiesLoose$7(r, e) {
+  if (null == r) return {};
+  var t = {};
+  for (var n in r) if ({}.hasOwnProperty.call(r, n)) {
+    if (e.indexOf(n) >= 0) continue;
+    t[n] = r[n];
+  }
+  return t;
 }
-function useCallbackRef$2() {
-  return reactExports.useState(null);
+function isTrivialHref$1(href) {
+  return !href || href.trim() === "#";
+}
+function useButtonProps({
+  tagName,
+  disabled,
+  href,
+  target,
+  rel,
+  role,
+  onClick,
+  tabIndex = 0,
+  type: type2
+}) {
+  if (!tagName) {
+    if (href != null || target != null || rel != null) {
+      tagName = "a";
+    } else {
+      tagName = "button";
+    }
+  }
+  const meta = {
+    tagName
+  };
+  if (tagName === "button") {
+    return [{
+      type: type2 || "button",
+      disabled
+    }, meta];
+  }
+  const handleClick = (event) => {
+    if (disabled || tagName === "a" && isTrivialHref$1(href)) {
+      event.preventDefault();
+    }
+    if (disabled) {
+      event.stopPropagation();
+      return;
+    }
+    onClick == null ? void 0 : onClick(event);
+  };
+  const handleKeyDown = (event) => {
+    if (event.key === " ") {
+      event.preventDefault();
+      handleClick(event);
+    }
+  };
+  if (tagName === "a") {
+    href || (href = "#");
+    if (disabled) {
+      href = void 0;
+    }
+  }
+  return [{
+    role: role != null ? role : "button",
+    // explicitly undefined so that it overrides the props disabled in a spread
+    // e.g. <Tag {...props} {...hookProps} />
+    disabled: void 0,
+    tabIndex: disabled ? void 0 : tabIndex,
+    href,
+    target: tagName === "a" ? target : void 0,
+    "aria-disabled": !disabled ? void 0 : disabled,
+    rel: tagName === "a" ? rel : void 0,
+    onClick: handleClick,
+    onKeyDown: handleKeyDown
+  }, meta];
+}
+const Button$1 = /* @__PURE__ */ reactExports.forwardRef((_ref3, ref) => {
+  let {
+    as: asProp,
+    disabled
+  } = _ref3, props = _objectWithoutPropertiesLoose$7(_ref3, _excluded$d);
+  const [buttonProps, {
+    tagName: Component
+  }] = useButtonProps(Object.assign({
+    tagName: asProp,
+    disabled
+  }, props));
+  return /* @__PURE__ */ jsxRuntimeExports.jsx(Component, Object.assign({}, props, buttonProps, {
+    ref
+  }));
+});
+Button$1.displayName = "Button";
+const _excluded$c = ["onKeyDown"];
+function _objectWithoutPropertiesLoose$6(r, e) {
+  if (null == r) return {};
+  var t = {};
+  for (var n in r) if ({}.hasOwnProperty.call(r, n)) {
+    if (e.indexOf(n) >= 0) continue;
+    t[n] = r[n];
+  }
+  return t;
+}
+function isTrivialHref(href) {
+  return !href || href.trim() === "#";
+}
+const Anchor$1 = /* @__PURE__ */ reactExports.forwardRef((_ref3, ref) => {
+  let {
+    onKeyDown
+  } = _ref3, props = _objectWithoutPropertiesLoose$6(_ref3, _excluded$c);
+  const [buttonProps] = useButtonProps(Object.assign({
+    tagName: "a"
+  }, props));
+  const handleKeyDown = useEventCallback((e) => {
+    buttonProps.onKeyDown(e);
+    onKeyDown == null ? void 0 : onKeyDown(e);
+  });
+  if (isTrivialHref(props.href) || props.role === "button") {
+    return /* @__PURE__ */ jsxRuntimeExports.jsx("a", Object.assign({
+      ref
+    }, props, buttonProps, {
+      onKeyDown: handleKeyDown
+    }));
+  }
+  return /* @__PURE__ */ jsxRuntimeExports.jsx("a", Object.assign({
+    ref
+  }, props, {
+    onKeyDown
+  }));
+});
+Anchor$1.displayName = "Anchor";
+const AlertLink = /* @__PURE__ */ reactExports.forwardRef(({
+  className,
+  bsPrefix,
+  as: Component = Anchor$1,
+  ...props
+}, ref) => {
+  bsPrefix = useBootstrapPrefix(bsPrefix, "alert-link");
+  return /* @__PURE__ */ jsxRuntimeExports.jsx(Component, {
+    ref,
+    className: classNames$1(className, bsPrefix),
+    ...props
+  });
+});
+AlertLink.displayName = "AlertLink";
+const fadeStyles = {
+  [ENTERING]: "show",
+  [ENTERED]: "show"
+};
+const Fade = /* @__PURE__ */ reactExports.forwardRef(({
+  className,
+  children: children2,
+  transitionClasses = {},
+  onEnter,
+  ...rest
+}, ref) => {
+  const props = {
+    in: false,
+    timeout: 300,
+    mountOnEnter: false,
+    unmountOnExit: false,
+    appear: false,
+    ...rest
+  };
+  const handleEnter = reactExports.useCallback((node2, isAppearing) => {
+    triggerBrowserReflow(node2);
+    onEnter == null || onEnter(node2, isAppearing);
+  }, [onEnter]);
+  return /* @__PURE__ */ jsxRuntimeExports.jsx(TransitionWrapper, {
+    ref,
+    addEndListener: transitionEndListener,
+    ...props,
+    onEnter: handleEnter,
+    childRef: getChildRef(children2),
+    children: (status, innerProps) => /* @__PURE__ */ reactExports.cloneElement(children2, {
+      ...innerProps,
+      className: classNames$1("fade", className, children2.props.className, fadeStyles[status], transitionClasses[status])
+    })
+  });
+});
+Fade.displayName = "Fade";
+const propTypes$2 = {
+  /** An accessible label indicating the relevant information about the Close Button. */
+  "aria-label": PropTypes.string,
+  /** A callback fired after the Close Button is clicked. */
+  onClick: PropTypes.func,
+  /**
+   * Render different color variant for the button.
+   *
+   * Omitting this will render the default dark color.
+   */
+  variant: PropTypes.oneOf(["white"])
+};
+const CloseButton = /* @__PURE__ */ reactExports.forwardRef(({
+  className,
+  variant,
+  "aria-label": ariaLabel = "Close",
+  ...props
+}, ref) => /* @__PURE__ */ jsxRuntimeExports.jsx("button", {
+  ref,
+  type: "button",
+  className: classNames$1("btn-close", variant && `btn-close-${variant}`, className),
+  "aria-label": ariaLabel,
+  ...props
+}));
+CloseButton.displayName = "CloseButton";
+CloseButton.propTypes = propTypes$2;
+const Alert = /* @__PURE__ */ reactExports.forwardRef((uncontrolledProps, ref) => {
+  const {
+    bsPrefix,
+    show = true,
+    closeLabel = "Close alert",
+    closeVariant,
+    className,
+    children: children2,
+    variant = "primary",
+    onClose,
+    dismissible,
+    transition = Fade,
+    ...props
+  } = useUncontrolled(uncontrolledProps, {
+    show: "onClose"
+  });
+  const prefix2 = useBootstrapPrefix(bsPrefix, "alert");
+  const handleClose = useEventCallback$1((e) => {
+    if (onClose) {
+      onClose(false, e);
+    }
+  });
+  const Transition2 = transition === true ? Fade : transition;
+  const alert = /* @__PURE__ */ jsxRuntimeExports.jsxs("div", {
+    role: "alert",
+    ...!Transition2 ? props : void 0,
+    ref,
+    className: classNames$1(className, prefix2, variant && `${prefix2}-${variant}`, dismissible && `${prefix2}-dismissible`),
+    children: [dismissible && /* @__PURE__ */ jsxRuntimeExports.jsx(CloseButton, {
+      onClick: handleClose,
+      "aria-label": closeLabel,
+      variant: closeVariant
+    }), children2]
+  });
+  if (!Transition2) return show ? alert : null;
+  return /* @__PURE__ */ jsxRuntimeExports.jsx(Transition2, {
+    unmountOnExit: true,
+    ...props,
+    ref: void 0,
+    in: show,
+    children: alert
+  });
+});
+Alert.displayName = "Alert";
+const Alert$1 = Object.assign(Alert, {
+  Link: AlertLink,
+  Heading: AlertHeading
+});
+const Badge = /* @__PURE__ */ reactExports.forwardRef(({
+  bsPrefix,
+  bg = "primary",
+  pill = false,
+  text: text2,
+  className,
+  as: Component = "span",
+  ...props
+}, ref) => {
+  const prefix2 = useBootstrapPrefix(bsPrefix, "badge");
+  return /* @__PURE__ */ jsxRuntimeExports.jsx(Component, {
+    ref,
+    ...props,
+    className: classNames$1(className, prefix2, pill && `rounded-pill`, text2 && `text-${text2}`, bg && `bg-${bg}`)
+  });
+});
+Badge.displayName = "Badge";
+const Button = /* @__PURE__ */ reactExports.forwardRef(({
+  as,
+  bsPrefix,
+  variant = "primary",
+  size: size2,
+  active = false,
+  disabled = false,
+  className,
+  ...props
+}, ref) => {
+  const prefix2 = useBootstrapPrefix(bsPrefix, "btn");
+  const [buttonProps, {
+    tagName
+  }] = useButtonProps({
+    tagName: as,
+    disabled,
+    ...props
+  });
+  const Component = tagName;
+  return /* @__PURE__ */ jsxRuntimeExports.jsx(Component, {
+    ...buttonProps,
+    ...props,
+    ref,
+    disabled,
+    className: classNames$1(className, prefix2, active && "active", variant && `${prefix2}-${variant}`, size2 && `${prefix2}-${size2}`, props.href && disabled && "disabled")
+  });
+});
+Button.displayName = "Button";
+function useUpdatedRef$1(value) {
+  const valueRef = reactExports.useRef(value);
+  valueRef.current = value;
+  return valueRef;
+}
+function useWillUnmount$1(fn) {
+  const onUnmount = useUpdatedRef$1(fn);
+  reactExports.useEffect(() => () => onUnmount.current(), []);
+}
+function hasChildOfType(children2, type2) {
+  return reactExports.Children.toArray(children2).some((child) => /* @__PURE__ */ reactExports.isValidElement(child) && child.type === type2);
+}
+function useCol({
+  as,
+  bsPrefix,
+  className,
+  ...props
+}) {
+  bsPrefix = useBootstrapPrefix(bsPrefix, "col");
+  const breakpoints = useBootstrapBreakpoints();
+  const minBreakpoint = useBootstrapMinBreakpoint();
+  const spans = [];
+  const classes = [];
+  breakpoints.forEach((brkPoint) => {
+    const propValue = props[brkPoint];
+    delete props[brkPoint];
+    let span;
+    let offset2;
+    let order;
+    if (typeof propValue === "object" && propValue != null) {
+      ({
+        span,
+        offset: offset2,
+        order
+      } = propValue);
+    } else {
+      span = propValue;
+    }
+    const infix = brkPoint !== minBreakpoint ? `-${brkPoint}` : "";
+    if (span) spans.push(span === true ? `${bsPrefix}${infix}` : `${bsPrefix}${infix}-${span}`);
+    if (order != null) classes.push(`order${infix}-${order}`);
+    if (offset2 != null) classes.push(`offset${infix}-${offset2}`);
+  });
+  return [{
+    ...props,
+    className: classNames$1(className, ...spans, ...classes)
+  }, {
+    as,
+    bsPrefix,
+    spans
+  }];
+}
+const Col = /* @__PURE__ */ reactExports.forwardRef(
+  // Need to define the default "as" during prop destructuring to be compatible with styled-components github.com/react-bootstrap/react-bootstrap/issues/3595
+  (props, ref) => {
+    const [{
+      className,
+      ...colProps
+    }, {
+      as: Component = "div",
+      bsPrefix,
+      spans
+    }] = useCol(props);
+    return /* @__PURE__ */ jsxRuntimeExports.jsx(Component, {
+      ...colProps,
+      ref,
+      className: classNames$1(className, !spans.length && bsPrefix)
+    });
+  }
+);
+Col.displayName = "Col";
+var toArray = Function.prototype.bind.call(Function.prototype.call, [].slice);
+function qsa(element2, selector) {
+  return toArray(element2.querySelectorAll(selector));
+}
+function useForceUpdate() {
+  const [, dispatch] = reactExports.useReducer((revision) => revision + 1, 0);
+  return dispatch;
 }
 function contains(context2, node2) {
   if (context2.contains) return context2.contains(node2);
   if (context2.compareDocumentPosition) return context2 === node2 || !!(context2.compareDocumentPosition(node2) & 16);
 }
-var NavContext = /* @__PURE__ */ React.createContext(null);
+const SelectableContext = /* @__PURE__ */ reactExports.createContext(null);
+const makeEventKey = (eventKey, href = null) => {
+  if (eventKey != null) return String(eventKey);
+  return href || null;
+};
+const NavContext = /* @__PURE__ */ reactExports.createContext(null);
 NavContext.displayName = "NavContext";
+const ATTRIBUTE_PREFIX = `data-rr-ui-`;
+const PROPERTY_PREFIX = `rrUi`;
+function dataAttr(property) {
+  return `${ATTRIBUTE_PREFIX}${property}`;
+}
+function dataProp(property) {
+  return `${PROPERTY_PREFIX}${property}`;
+}
+const Context = /* @__PURE__ */ reactExports.createContext(canUseDOM$1 ? window : void 0);
+Context.Provider;
+function useWindow() {
+  return reactExports.useContext(Context);
+}
+const isReactNative = typeof global !== "undefined" && // @ts-ignore
+global.navigator && // @ts-ignore
+global.navigator.product === "ReactNative";
+const isDOM = typeof document !== "undefined";
+const useIsomorphicEffect = isDOM || isReactNative ? reactExports.useLayoutEffect : reactExports.useEffect;
+const context = /* @__PURE__ */ reactExports.createContext(null);
+context.displayName = "NavbarContext";
+const propTypes$1 = {
+  /**
+   * Specify whether the feedback is for valid or invalid fields
+   *
+   * @type {('valid'|'invalid')}
+   */
+  type: PropTypes.string,
+  /** Display feedback as a tooltip. */
+  tooltip: PropTypes.bool,
+  as: PropTypes.elementType
+};
+const Feedback = /* @__PURE__ */ reactExports.forwardRef(
+  // Need to define the default "as" during prop destructuring to be compatible with styled-components github.com/react-bootstrap/react-bootstrap/issues/3595
+  ({
+    as: Component = "div",
+    className,
+    type: type2 = "valid",
+    tooltip = false,
+    ...props
+  }, ref) => /* @__PURE__ */ jsxRuntimeExports.jsx(Component, {
+    ...props,
+    ref,
+    className: classNames$1(className, `${type2}-${tooltip ? "tooltip" : "feedback"}`)
+  })
+);
+Feedback.displayName = "Feedback";
+Feedback.propTypes = propTypes$1;
+const FormContext = /* @__PURE__ */ reactExports.createContext({});
+const FormCheckInput = /* @__PURE__ */ reactExports.forwardRef(({
+  id,
+  bsPrefix,
+  className,
+  type: type2 = "checkbox",
+  isValid = false,
+  isInvalid = false,
+  // Need to define the default "as" during prop destructuring to be compatible with styled-components github.com/react-bootstrap/react-bootstrap/issues/3595
+  as: Component = "input",
+  ...props
+}, ref) => {
+  const {
+    controlId
+  } = reactExports.useContext(FormContext);
+  bsPrefix = useBootstrapPrefix(bsPrefix, "form-check-input");
+  return /* @__PURE__ */ jsxRuntimeExports.jsx(Component, {
+    ...props,
+    ref,
+    type: type2,
+    id: id || controlId,
+    className: classNames$1(className, bsPrefix, isValid && "is-valid", isInvalid && "is-invalid")
+  });
+});
+FormCheckInput.displayName = "FormCheckInput";
+const FormCheckLabel = /* @__PURE__ */ reactExports.forwardRef(({
+  bsPrefix,
+  className,
+  htmlFor,
+  ...props
+}, ref) => {
+  const {
+    controlId
+  } = reactExports.useContext(FormContext);
+  bsPrefix = useBootstrapPrefix(bsPrefix, "form-check-label");
+  return /* @__PURE__ */ jsxRuntimeExports.jsx("label", {
+    ...props,
+    ref,
+    htmlFor: htmlFor || controlId,
+    className: classNames$1(className, bsPrefix)
+  });
+});
+FormCheckLabel.displayName = "FormCheckLabel";
+const FormCheck = /* @__PURE__ */ reactExports.forwardRef(({
+  id,
+  bsPrefix,
+  bsSwitchPrefix,
+  inline = false,
+  reverse: reverse2 = false,
+  disabled = false,
+  isValid = false,
+  isInvalid = false,
+  feedbackTooltip = false,
+  feedback,
+  feedbackType,
+  className,
+  style: style2,
+  title = "",
+  type: type2 = "checkbox",
+  label,
+  children: children2,
+  // Need to define the default "as" during prop destructuring to be compatible with styled-components github.com/react-bootstrap/react-bootstrap/issues/3595
+  as = "input",
+  ...props
+}, ref) => {
+  bsPrefix = useBootstrapPrefix(bsPrefix, "form-check");
+  bsSwitchPrefix = useBootstrapPrefix(bsSwitchPrefix, "form-switch");
+  const {
+    controlId
+  } = reactExports.useContext(FormContext);
+  const innerFormContext = reactExports.useMemo(() => ({
+    controlId: id || controlId
+  }), [controlId, id]);
+  const hasLabel = !children2 && label != null && label !== false || hasChildOfType(children2, FormCheckLabel);
+  const input = /* @__PURE__ */ jsxRuntimeExports.jsx(FormCheckInput, {
+    ...props,
+    type: type2 === "switch" ? "checkbox" : type2,
+    ref,
+    isValid,
+    isInvalid,
+    disabled,
+    as
+  });
+  return /* @__PURE__ */ jsxRuntimeExports.jsx(FormContext.Provider, {
+    value: innerFormContext,
+    children: /* @__PURE__ */ jsxRuntimeExports.jsx("div", {
+      style: style2,
+      className: classNames$1(className, hasLabel && bsPrefix, inline && `${bsPrefix}-inline`, reverse2 && `${bsPrefix}-reverse`, type2 === "switch" && bsSwitchPrefix),
+      children: children2 || /* @__PURE__ */ jsxRuntimeExports.jsxs(jsxRuntimeExports.Fragment, {
+        children: [input, hasLabel && /* @__PURE__ */ jsxRuntimeExports.jsx(FormCheckLabel, {
+          title,
+          children: label
+        }), feedback && /* @__PURE__ */ jsxRuntimeExports.jsx(Feedback, {
+          type: feedbackType,
+          tooltip: feedbackTooltip,
+          children: feedback
+        })]
+      })
+    })
+  });
+});
+FormCheck.displayName = "FormCheck";
+const FormCheck$1 = Object.assign(FormCheck, {
+  Input: FormCheckInput,
+  Label: FormCheckLabel
+});
+const FormControl = /* @__PURE__ */ reactExports.forwardRef(({
+  bsPrefix,
+  type: type2,
+  size: size2,
+  htmlSize,
+  id,
+  className,
+  isValid = false,
+  isInvalid = false,
+  plaintext,
+  readOnly,
+  // Need to define the default "as" during prop destructuring to be compatible with styled-components github.com/react-bootstrap/react-bootstrap/issues/3595
+  as: Component = "input",
+  ...props
+}, ref) => {
+  const {
+    controlId
+  } = reactExports.useContext(FormContext);
+  bsPrefix = useBootstrapPrefix(bsPrefix, "form-control");
+  return /* @__PURE__ */ jsxRuntimeExports.jsx(Component, {
+    ...props,
+    type: type2,
+    size: htmlSize,
+    ref,
+    readOnly,
+    id: id || controlId,
+    className: classNames$1(className, plaintext ? `${bsPrefix}-plaintext` : bsPrefix, size2 && `${bsPrefix}-${size2}`, type2 === "color" && `${bsPrefix}-color`, isValid && "is-valid", isInvalid && "is-invalid")
+  });
+});
+FormControl.displayName = "FormControl";
+const FormControl$1 = Object.assign(FormControl, {
+  Feedback
+});
+const FormFloating = /* @__PURE__ */ reactExports.forwardRef(({
+  className,
+  bsPrefix,
+  as: Component = "div",
+  ...props
+}, ref) => {
+  bsPrefix = useBootstrapPrefix(bsPrefix, "form-floating");
+  return /* @__PURE__ */ jsxRuntimeExports.jsx(Component, {
+    ref,
+    className: classNames$1(className, bsPrefix),
+    ...props
+  });
+});
+FormFloating.displayName = "FormFloating";
+const FormGroup = /* @__PURE__ */ reactExports.forwardRef(({
+  controlId,
+  // Need to define the default "as" during prop destructuring to be compatible with styled-components github.com/react-bootstrap/react-bootstrap/issues/3595
+  as: Component = "div",
+  ...props
+}, ref) => {
+  const context2 = reactExports.useMemo(() => ({
+    controlId
+  }), [controlId]);
+  return /* @__PURE__ */ jsxRuntimeExports.jsx(FormContext.Provider, {
+    value: context2,
+    children: /* @__PURE__ */ jsxRuntimeExports.jsx(Component, {
+      ...props,
+      ref
+    })
+  });
+});
+FormGroup.displayName = "FormGroup";
+const FormLabel = /* @__PURE__ */ reactExports.forwardRef(({
+  // Need to define the default "as" during prop destructuring to be compatible with styled-components github.com/react-bootstrap/react-bootstrap/issues/3595
+  as: Component = "label",
+  bsPrefix,
+  column: column2 = false,
+  visuallyHidden = false,
+  className,
+  htmlFor,
+  ...props
+}, ref) => {
+  const {
+    controlId
+  } = reactExports.useContext(FormContext);
+  bsPrefix = useBootstrapPrefix(bsPrefix, "form-label");
+  let columnClass = "col-form-label";
+  if (typeof column2 === "string") columnClass = `${columnClass} ${columnClass}-${column2}`;
+  const classes = classNames$1(className, bsPrefix, visuallyHidden && "visually-hidden", column2 && columnClass);
+  htmlFor = htmlFor || controlId;
+  if (column2) return /* @__PURE__ */ jsxRuntimeExports.jsx(Col, {
+    ref,
+    as: "label",
+    className: classes,
+    htmlFor,
+    ...props
+  });
+  return /* @__PURE__ */ jsxRuntimeExports.jsx(Component, {
+    ref,
+    className: classes,
+    htmlFor,
+    ...props
+  });
+});
+FormLabel.displayName = "FormLabel";
+const FormRange = /* @__PURE__ */ reactExports.forwardRef(({
+  bsPrefix,
+  className,
+  id,
+  ...props
+}, ref) => {
+  const {
+    controlId
+  } = reactExports.useContext(FormContext);
+  bsPrefix = useBootstrapPrefix(bsPrefix, "form-range");
+  return /* @__PURE__ */ jsxRuntimeExports.jsx("input", {
+    ...props,
+    type: "range",
+    ref,
+    className: classNames$1(className, bsPrefix),
+    id: id || controlId
+  });
+});
+FormRange.displayName = "FormRange";
+const FormSelect = /* @__PURE__ */ reactExports.forwardRef(({
+  bsPrefix,
+  size: size2,
+  htmlSize,
+  className,
+  isValid = false,
+  isInvalid = false,
+  id,
+  ...props
+}, ref) => {
+  const {
+    controlId
+  } = reactExports.useContext(FormContext);
+  bsPrefix = useBootstrapPrefix(bsPrefix, "form-select");
+  return /* @__PURE__ */ jsxRuntimeExports.jsx("select", {
+    ...props,
+    size: htmlSize,
+    ref,
+    className: classNames$1(className, bsPrefix, size2 && `${bsPrefix}-${size2}`, isValid && `is-valid`, isInvalid && `is-invalid`),
+    id: id || controlId
+  });
+});
+FormSelect.displayName = "FormSelect";
+const FormText = /* @__PURE__ */ reactExports.forwardRef(
+  // Need to define the default "as" during prop destructuring to be compatible with styled-components github.com/react-bootstrap/react-bootstrap/issues/3595
+  ({
+    bsPrefix,
+    className,
+    as: Component = "small",
+    muted,
+    ...props
+  }, ref) => {
+    bsPrefix = useBootstrapPrefix(bsPrefix, "form-text");
+    return /* @__PURE__ */ jsxRuntimeExports.jsx(Component, {
+      ...props,
+      ref,
+      className: classNames$1(className, bsPrefix, muted && "text-muted")
+    });
+  }
+);
+FormText.displayName = "FormText";
+const Switch = /* @__PURE__ */ reactExports.forwardRef((props, ref) => /* @__PURE__ */ jsxRuntimeExports.jsx(FormCheck$1, {
+  ...props,
+  ref,
+  type: "switch"
+}));
+Switch.displayName = "Switch";
+const Switch$1 = Object.assign(Switch, {
+  Input: FormCheck$1.Input,
+  Label: FormCheck$1.Label
+});
+const FloatingLabel = /* @__PURE__ */ reactExports.forwardRef(({
+  bsPrefix,
+  className,
+  children: children2,
+  controlId,
+  label,
+  ...props
+}, ref) => {
+  bsPrefix = useBootstrapPrefix(bsPrefix, "form-floating");
+  return /* @__PURE__ */ jsxRuntimeExports.jsxs(FormGroup, {
+    ref,
+    className: classNames$1(className, bsPrefix),
+    controlId,
+    ...props,
+    children: [children2, /* @__PURE__ */ jsxRuntimeExports.jsx("label", {
+      htmlFor: controlId,
+      children: label
+    })]
+  });
+});
+FloatingLabel.displayName = "FloatingLabel";
+const propTypes = {
+  /**
+   * The Form `ref` will be forwarded to the underlying element,
+   * which means, unless it's rendered `as` a composite component,
+   * it will be a DOM node, when resolved.
+   *
+   * @type {ReactRef}
+   * @alias ref
+   */
+  _ref: PropTypes.any,
+  /**
+   * Mark a form as having been validated. Setting it to `true` will
+   * toggle any validation styles on the forms elements.
+   */
+  validated: PropTypes.bool,
+  as: PropTypes.elementType
+};
+const Form = /* @__PURE__ */ reactExports.forwardRef(({
+  className,
+  validated,
+  // Need to define the default "as" during prop destructuring to be compatible with styled-components github.com/react-bootstrap/react-bootstrap/issues/3595
+  as: Component = "form",
+  ...props
+}, ref) => /* @__PURE__ */ jsxRuntimeExports.jsx(Component, {
+  ...props,
+  ref,
+  className: classNames$1(className, validated && "was-validated")
+}));
+Form.displayName = "Form";
+Form.propTypes = propTypes;
+const Form$1 = Object.assign(Form, {
+  Group: FormGroup,
+  Control: FormControl$1,
+  Floating: FormFloating,
+  Check: FormCheck$1,
+  Switch: Switch$1,
+  Label: FormLabel,
+  Text: FormText,
+  Range: FormRange,
+  Select: FormSelect,
+  FloatingLabel
+});
 const toFnRef = (ref) => !ref || typeof ref === "function" ? ref : (value) => {
   ref.current = value;
 };
@@ -16609,552 +17243,255 @@ function mergeRefs(refA, refB) {
 function useMergedRefs(refA, refB) {
   return reactExports.useMemo(() => mergeRefs(refA, refB), [refA, refB]);
 }
-var context = /* @__PURE__ */ React.createContext(null);
-context.displayName = "NavbarContext";
-function hasClass(element2, className) {
-  if (element2.classList) return !!className && element2.classList.contains(className);
-  return (" " + (element2.className.baseVal || element2.className) + " ").indexOf(" " + className + " ") !== -1;
-}
-var all = { exports: {} };
-var createChainableTypeChecker = { exports: {} };
-var hasRequiredCreateChainableTypeChecker;
-function requireCreateChainableTypeChecker() {
-  if (hasRequiredCreateChainableTypeChecker) return createChainableTypeChecker.exports;
-  hasRequiredCreateChainableTypeChecker = 1;
-  (function(module, exports) {
-    Object.defineProperty(exports, "__esModule", {
-      value: true
-    });
-    exports.default = createChainableTypeChecker2;
-    function createChainableTypeChecker2(validate) {
-      function checkType(isRequired, props, propName, componentName, location, propFullName) {
-        var componentNameSafe = componentName || "<<anonymous>>";
-        var propFullNameSafe = propFullName || propName;
-        if (props[propName] == null) {
-          if (isRequired) {
-            return new Error("Required " + location + " `" + propFullNameSafe + "` was not specified " + ("in `" + componentNameSafe + "`."));
-          }
-          return null;
-        }
-        for (var _len = arguments.length, args = Array(_len > 6 ? _len - 6 : 0), _key = 6; _key < _len; _key++) {
-          args[_key - 6] = arguments[_key];
-        }
-        return validate.apply(void 0, [props, propName, componentNameSafe, location, propFullNameSafe].concat(args));
-      }
-      var chainedCheckType = checkType.bind(null, false);
-      chainedCheckType.isRequired = checkType.bind(null, true);
-      return chainedCheckType;
-    }
-    module.exports = exports["default"];
-  })(createChainableTypeChecker, createChainableTypeChecker.exports);
-  return createChainableTypeChecker.exports;
-}
-var hasRequiredAll;
-function requireAll() {
-  if (hasRequiredAll) return all.exports;
-  hasRequiredAll = 1;
-  (function(module, exports) {
-    Object.defineProperty(exports, "__esModule", {
-      value: true
-    });
-    exports.default = all2;
-    var _createChainableTypeChecker = requireCreateChainableTypeChecker();
-    var _createChainableTypeChecker2 = _interopRequireDefault(_createChainableTypeChecker);
-    function _interopRequireDefault(obj) {
-      return obj && obj.__esModule ? obj : { default: obj };
-    }
-    function all2() {
-      for (var _len = arguments.length, validators = Array(_len), _key = 0; _key < _len; _key++) {
-        validators[_key] = arguments[_key];
-      }
-      function allPropTypes() {
-        for (var _len2 = arguments.length, args = Array(_len2), _key2 = 0; _key2 < _len2; _key2++) {
-          args[_key2] = arguments[_key2];
-        }
-        var error = null;
-        validators.forEach(function(validator) {
-          if (error != null) {
-            return;
-          }
-          var result = validator.apply(void 0, args);
-          if (result != null) {
-            error = result;
-          }
-        });
-        return error;
-      }
-      return (0, _createChainableTypeChecker2.default)(allPropTypes);
-    }
-    module.exports = exports["default"];
-  })(all, all.exports);
-  return all.exports;
-}
-requireAll();
-var _excluded$x = ["as", "className", "type", "tooltip"];
-var propTypes$1 = {
-  /**
-   * Specify whether the feedback is for valid or invalid fields
-   *
-   * @type {('valid'|'invalid')}
-   */
-  type: PropTypes.string,
-  /** Display feedback as a tooltip. */
-  tooltip: PropTypes.bool,
-  as: PropTypes.elementType
-};
-var Feedback = /* @__PURE__ */ React.forwardRef(
-  // Need to define the default "as" during prop destructuring to be compatible with styled-components github.com/react-bootstrap/react-bootstrap/issues/3595
-  function(_ref3, ref) {
-    var _ref$as = _ref3.as, Component = _ref$as === void 0 ? "div" : _ref$as, className = _ref3.className, _ref$type = _ref3.type, type2 = _ref$type === void 0 ? "valid" : _ref$type, _ref$tooltip = _ref3.tooltip, tooltip = _ref$tooltip === void 0 ? false : _ref$tooltip, props = _objectWithoutPropertiesLoose$1(_ref3, _excluded$x);
-    return /* @__PURE__ */ React.createElement(Component, _extends$1({}, props, {
-      ref,
-      className: classNames$1(className, type2 + "-" + (tooltip ? "tooltip" : "feedback"))
-    }));
+const TabContext = /* @__PURE__ */ reactExports.createContext(null);
+const _excluded$b = ["as", "active", "eventKey"];
+function _objectWithoutPropertiesLoose$5(r, e) {
+  if (null == r) return {};
+  var t = {};
+  for (var n in r) if ({}.hasOwnProperty.call(r, n)) {
+    if (e.indexOf(n) >= 0) continue;
+    t[n] = r[n];
   }
-);
-Feedback.displayName = "Feedback";
-Feedback.propTypes = propTypes$1;
-var FormContext = /* @__PURE__ */ React.createContext({
-  controlId: void 0
-});
-var _excluded$w = ["id", "bsPrefix", "bsCustomPrefix", "className", "type", "isValid", "isInvalid", "isStatic", "as"];
-var FormCheckInput = /* @__PURE__ */ React.forwardRef(function(_ref3, ref) {
-  var id = _ref3.id, bsPrefix = _ref3.bsPrefix, bsCustomPrefix = _ref3.bsCustomPrefix, className = _ref3.className, _ref$type = _ref3.type, type2 = _ref$type === void 0 ? "checkbox" : _ref$type, _ref$isValid = _ref3.isValid, isValid = _ref$isValid === void 0 ? false : _ref$isValid, _ref$isInvalid = _ref3.isInvalid, isInvalid = _ref$isInvalid === void 0 ? false : _ref$isInvalid, isStatic = _ref3.isStatic, _ref$as = _ref3.as, Component = _ref$as === void 0 ? "input" : _ref$as, props = _objectWithoutPropertiesLoose$1(_ref3, _excluded$w);
-  var _useContext = reactExports.useContext(FormContext), controlId = _useContext.controlId, custom = _useContext.custom;
-  var _ref22 = custom ? [bsCustomPrefix, "custom-control-input"] : [bsPrefix, "form-check-input"], prefix2 = _ref22[0], defaultPrefix = _ref22[1];
-  bsPrefix = useBootstrapPrefix(prefix2, defaultPrefix);
-  return /* @__PURE__ */ React.createElement(Component, _extends$1({}, props, {
-    ref,
-    type: type2,
-    id: id || controlId,
-    className: classNames$1(className, bsPrefix, isValid && "is-valid", isInvalid && "is-invalid", isStatic && "position-static")
-  }));
-});
-FormCheckInput.displayName = "FormCheckInput";
-var _excluded$v = ["bsPrefix", "bsCustomPrefix", "className", "htmlFor"];
-var FormCheckLabel = /* @__PURE__ */ React.forwardRef(function(_ref3, ref) {
-  var bsPrefix = _ref3.bsPrefix, bsCustomPrefix = _ref3.bsCustomPrefix, className = _ref3.className, htmlFor = _ref3.htmlFor, props = _objectWithoutPropertiesLoose$1(_ref3, _excluded$v);
-  var _useContext = reactExports.useContext(FormContext), controlId = _useContext.controlId, custom = _useContext.custom;
-  var _ref22 = custom ? [bsCustomPrefix, "custom-control-label"] : [bsPrefix, "form-check-label"], prefix2 = _ref22[0], defaultPrefix = _ref22[1];
-  bsPrefix = useBootstrapPrefix(prefix2, defaultPrefix);
-  return /* @__PURE__ */ React.createElement("label", _extends$1({}, props, {
-    ref,
-    htmlFor: htmlFor || controlId,
-    className: classNames$1(className, bsPrefix)
-  }));
-});
-FormCheckLabel.displayName = "FormCheckLabel";
-var _excluded$u = ["id", "bsPrefix", "bsCustomPrefix", "inline", "disabled", "isValid", "isInvalid", "feedbackTooltip", "feedback", "className", "style", "title", "type", "label", "children", "custom", "as"];
-var FormCheck = /* @__PURE__ */ React.forwardRef(function(_ref3, ref) {
-  var id = _ref3.id, bsPrefix = _ref3.bsPrefix, bsCustomPrefix = _ref3.bsCustomPrefix, _ref$inline = _ref3.inline, inline = _ref$inline === void 0 ? false : _ref$inline, _ref$disabled = _ref3.disabled, disabled = _ref$disabled === void 0 ? false : _ref$disabled, _ref$isValid = _ref3.isValid, isValid = _ref$isValid === void 0 ? false : _ref$isValid, _ref$isInvalid = _ref3.isInvalid, isInvalid = _ref$isInvalid === void 0 ? false : _ref$isInvalid, _ref$feedbackTooltip = _ref3.feedbackTooltip, feedbackTooltip = _ref$feedbackTooltip === void 0 ? false : _ref$feedbackTooltip, feedback = _ref3.feedback, className = _ref3.className, style2 = _ref3.style, _ref$title = _ref3.title, title = _ref$title === void 0 ? "" : _ref$title, _ref$type = _ref3.type, type2 = _ref$type === void 0 ? "checkbox" : _ref$type, label = _ref3.label, children2 = _ref3.children, propCustom = _ref3.custom, _ref$as = _ref3.as, as = _ref$as === void 0 ? "input" : _ref$as, props = _objectWithoutPropertiesLoose$1(_ref3, _excluded$u);
-  var custom = type2 === "switch" ? true : propCustom;
-  var _ref22 = custom ? [bsCustomPrefix, "custom-control"] : [bsPrefix, "form-check"], prefix2 = _ref22[0], defaultPrefix = _ref22[1];
-  bsPrefix = useBootstrapPrefix(prefix2, defaultPrefix);
-  var _useContext = reactExports.useContext(FormContext), controlId = _useContext.controlId;
-  var innerFormContext = reactExports.useMemo(function() {
-    return {
-      controlId: id || controlId,
-      custom
-    };
-  }, [controlId, custom, id]);
-  var hasLabel = custom || label != null && label !== false && !children2;
-  var input = /* @__PURE__ */ React.createElement(FormCheckInput, _extends$1({}, props, {
-    type: type2 === "switch" ? "checkbox" : type2,
-    ref,
-    isValid,
-    isInvalid,
-    isStatic: !hasLabel,
-    disabled,
-    as
-  }));
-  return /* @__PURE__ */ React.createElement(FormContext.Provider, {
-    value: innerFormContext
-  }, /* @__PURE__ */ React.createElement("div", {
-    style: style2,
-    className: classNames$1(className, bsPrefix, custom && "custom-" + type2, inline && bsPrefix + "-inline")
-  }, children2 || /* @__PURE__ */ React.createElement(React.Fragment, null, input, hasLabel && /* @__PURE__ */ React.createElement(FormCheckLabel, {
-    title
-  }, label), (isValid || isInvalid) && /* @__PURE__ */ React.createElement(Feedback, {
-    type: isValid ? "valid" : "invalid",
-    tooltip: feedbackTooltip
-  }, feedback))));
-});
-FormCheck.displayName = "FormCheck";
-FormCheck.Input = FormCheckInput;
-FormCheck.Label = FormCheckLabel;
-var _excluded$t = ["id", "bsPrefix", "bsCustomPrefix", "className", "isValid", "isInvalid", "lang", "as"];
-var FormFileInput = /* @__PURE__ */ React.forwardRef(function(_ref3, ref) {
-  var id = _ref3.id, bsPrefix = _ref3.bsPrefix, bsCustomPrefix = _ref3.bsCustomPrefix, className = _ref3.className, isValid = _ref3.isValid, isInvalid = _ref3.isInvalid, lang = _ref3.lang, _ref$as = _ref3.as, Component = _ref$as === void 0 ? "input" : _ref$as, props = _objectWithoutPropertiesLoose$1(_ref3, _excluded$t);
-  var _useContext = reactExports.useContext(FormContext), controlId = _useContext.controlId, custom = _useContext.custom;
-  var type2 = "file";
-  var _ref22 = custom ? [bsCustomPrefix, "custom-file-input"] : [bsPrefix, "form-control-file"], prefix2 = _ref22[0], defaultPrefix = _ref22[1];
-  bsPrefix = useBootstrapPrefix(prefix2, defaultPrefix);
-  return /* @__PURE__ */ React.createElement(Component, _extends$1({}, props, {
-    ref,
-    id: id || controlId,
-    type: type2,
-    lang,
-    className: classNames$1(className, bsPrefix, isValid && "is-valid", isInvalid && "is-invalid")
-  }));
-});
-FormFileInput.displayName = "FormFileInput";
-var _excluded$s = ["bsPrefix", "bsCustomPrefix", "className", "htmlFor"];
-var FormFileLabel = /* @__PURE__ */ React.forwardRef(function(_ref3, ref) {
-  var bsPrefix = _ref3.bsPrefix, bsCustomPrefix = _ref3.bsCustomPrefix, className = _ref3.className, htmlFor = _ref3.htmlFor, props = _objectWithoutPropertiesLoose$1(_ref3, _excluded$s);
-  var _useContext = reactExports.useContext(FormContext), controlId = _useContext.controlId, custom = _useContext.custom;
-  var _ref22 = custom ? [bsCustomPrefix, "custom-file-label"] : [bsPrefix, "form-file-label"], prefix2 = _ref22[0], defaultPrefix = _ref22[1];
-  bsPrefix = useBootstrapPrefix(prefix2, defaultPrefix);
-  return /* @__PURE__ */ React.createElement("label", _extends$1({}, props, {
-    ref,
-    htmlFor: htmlFor || controlId,
-    className: classNames$1(className, bsPrefix),
-    "data-browse": props["data-browse"]
-  }));
-});
-FormFileLabel.displayName = "FormFileLabel";
-var _excluded$r = ["id", "bsPrefix", "bsCustomPrefix", "disabled", "isValid", "isInvalid", "feedbackTooltip", "feedback", "className", "style", "label", "children", "custom", "lang", "data-browse", "as", "inputAs"];
-var FormFile = /* @__PURE__ */ React.forwardRef(function(_ref3, ref) {
-  var id = _ref3.id, bsPrefix = _ref3.bsPrefix, bsCustomPrefix = _ref3.bsCustomPrefix, _ref$disabled = _ref3.disabled, disabled = _ref$disabled === void 0 ? false : _ref$disabled, _ref$isValid = _ref3.isValid, isValid = _ref$isValid === void 0 ? false : _ref$isValid, _ref$isInvalid = _ref3.isInvalid, isInvalid = _ref$isInvalid === void 0 ? false : _ref$isInvalid, _ref$feedbackTooltip = _ref3.feedbackTooltip, feedbackTooltip = _ref$feedbackTooltip === void 0 ? false : _ref$feedbackTooltip, feedback = _ref3.feedback, className = _ref3.className, style2 = _ref3.style, label = _ref3.label, children2 = _ref3.children, custom = _ref3.custom, lang = _ref3.lang, dataBrowse = _ref3["data-browse"], _ref$as = _ref3.as, Component = _ref$as === void 0 ? "div" : _ref$as, _ref$inputAs = _ref3.inputAs, inputAs = _ref$inputAs === void 0 ? "input" : _ref$inputAs, props = _objectWithoutPropertiesLoose$1(_ref3, _excluded$r);
-  var _ref22 = custom ? [bsCustomPrefix, "custom"] : [bsPrefix, "form-file"], prefix2 = _ref22[0], defaultPrefix = _ref22[1];
-  bsPrefix = useBootstrapPrefix(prefix2, defaultPrefix);
-  var type2 = "file";
-  var _useContext = reactExports.useContext(FormContext), controlId = _useContext.controlId;
-  var innerFormContext = reactExports.useMemo(function() {
-    return {
-      controlId: id || controlId,
-      custom
-    };
-  }, [controlId, custom, id]);
-  var hasLabel = label != null && label !== false && !children2;
-  var input = /* @__PURE__ */ React.createElement(FormFileInput, _extends$1({}, props, {
-    ref,
-    isValid,
-    isInvalid,
-    disabled,
-    as: inputAs,
-    lang
-  }));
-  return /* @__PURE__ */ React.createElement(FormContext.Provider, {
-    value: innerFormContext
-  }, /* @__PURE__ */ React.createElement(Component, {
-    style: style2,
-    className: classNames$1(className, bsPrefix, custom && "custom-" + type2)
-  }, children2 || /* @__PURE__ */ React.createElement(React.Fragment, null, custom ? /* @__PURE__ */ React.createElement(React.Fragment, null, input, hasLabel && /* @__PURE__ */ React.createElement(FormFileLabel, {
-    "data-browse": dataBrowse
-  }, label)) : /* @__PURE__ */ React.createElement(React.Fragment, null, hasLabel && /* @__PURE__ */ React.createElement(FormFileLabel, null, label), input), (isValid || isInvalid) && /* @__PURE__ */ React.createElement(Feedback, {
-    type: isValid ? "valid" : "invalid",
-    tooltip: feedbackTooltip
-  }, feedback))));
-});
-FormFile.displayName = "FormFile";
-FormFile.Input = FormFileInput;
-FormFile.Label = FormFileLabel;
-var _excluded$q = ["bsPrefix", "bsCustomPrefix", "type", "size", "htmlSize", "id", "className", "isValid", "isInvalid", "plaintext", "readOnly", "custom", "as"];
-var FormControl = /* @__PURE__ */ React.forwardRef(function(_ref3, ref) {
-  var bsPrefix = _ref3.bsPrefix, bsCustomPrefix = _ref3.bsCustomPrefix, type2 = _ref3.type, size2 = _ref3.size, htmlSize = _ref3.htmlSize, id = _ref3.id, className = _ref3.className, _ref$isValid = _ref3.isValid, isValid = _ref$isValid === void 0 ? false : _ref$isValid, _ref$isInvalid = _ref3.isInvalid, isInvalid = _ref$isInvalid === void 0 ? false : _ref$isInvalid, plaintext = _ref3.plaintext, readOnly = _ref3.readOnly, custom = _ref3.custom, _ref$as = _ref3.as, Component = _ref$as === void 0 ? "input" : _ref$as, props = _objectWithoutPropertiesLoose$1(_ref3, _excluded$q);
-  var _useContext = reactExports.useContext(FormContext), controlId = _useContext.controlId;
-  var _ref22 = custom ? [bsCustomPrefix, "custom"] : [bsPrefix, "form-control"], prefix2 = _ref22[0], defaultPrefix = _ref22[1];
-  bsPrefix = useBootstrapPrefix(prefix2, defaultPrefix);
-  var classes;
-  if (plaintext) {
-    var _classes;
-    classes = (_classes = {}, _classes[bsPrefix + "-plaintext"] = true, _classes);
-  } else if (type2 === "file") {
-    var _classes2;
-    classes = (_classes2 = {}, _classes2[bsPrefix + "-file"] = true, _classes2);
-  } else if (type2 === "range") {
-    var _classes3;
-    classes = (_classes3 = {}, _classes3[bsPrefix + "-range"] = true, _classes3);
-  } else if (Component === "select" && custom) {
-    var _classes4;
-    classes = (_classes4 = {}, _classes4[bsPrefix + "-select"] = true, _classes4[bsPrefix + "-select-" + size2] = size2, _classes4);
-  } else {
-    var _classes5;
-    classes = (_classes5 = {}, _classes5[bsPrefix] = true, _classes5[bsPrefix + "-" + size2] = size2, _classes5);
+  return t;
+}
+function useNavItem({
+  key,
+  onClick,
+  active,
+  id,
+  role,
+  disabled
+}) {
+  const parentOnSelect = reactExports.useContext(SelectableContext);
+  const navContext = reactExports.useContext(NavContext);
+  const tabContext = reactExports.useContext(TabContext);
+  let isActive = active;
+  const props = {
+    role
+  };
+  if (navContext) {
+    if (!role && navContext.role === "tablist") props.role = "tab";
+    const contextControllerId = navContext.getControllerId(key != null ? key : null);
+    const contextControlledId = navContext.getControlledId(key != null ? key : null);
+    props[dataAttr("event-key")] = key;
+    props.id = contextControllerId || id;
+    isActive = active == null && key != null ? navContext.activeKey === key : active;
+    if (isActive || !(tabContext != null && tabContext.unmountOnExit) && !(tabContext != null && tabContext.mountOnEnter)) props["aria-controls"] = contextControlledId;
   }
-  return /* @__PURE__ */ React.createElement(Component, _extends$1({}, props, {
-    type: type2,
-    size: htmlSize,
-    ref,
-    readOnly,
-    id: id || controlId,
-    className: classNames$1(className, classes, isValid && "is-valid", isInvalid && "is-invalid")
-  }));
-});
-FormControl.displayName = "FormControl";
-const FormControl$1 = Object.assign(FormControl, {
-  Feedback
-});
-var _excluded$p = ["bsPrefix", "className", "children", "controlId", "as"];
-var FormGroup = /* @__PURE__ */ React.forwardRef(function(_ref3, ref) {
-  var bsPrefix = _ref3.bsPrefix, className = _ref3.className, children2 = _ref3.children, controlId = _ref3.controlId, _ref$as = _ref3.as, Component = _ref$as === void 0 ? "div" : _ref$as, props = _objectWithoutPropertiesLoose$1(_ref3, _excluded$p);
-  bsPrefix = useBootstrapPrefix(bsPrefix, "form-group");
-  var context2 = reactExports.useMemo(function() {
-    return {
-      controlId
-    };
-  }, [controlId]);
-  return /* @__PURE__ */ React.createElement(FormContext.Provider, {
-    value: context2
-  }, /* @__PURE__ */ React.createElement(Component, _extends$1({}, props, {
-    ref,
-    className: classNames$1(className, bsPrefix)
-  }), children2));
-});
-FormGroup.displayName = "FormGroup";
-var _excluded$o = ["as", "bsPrefix", "column", "srOnly", "className", "htmlFor"];
-var defaultProps$a = {
-  column: false,
-  srOnly: false
-};
-var FormLabel = /* @__PURE__ */ React.forwardRef(function(_ref3, ref) {
-  var _ref$as = _ref3.as, Component = _ref$as === void 0 ? "label" : _ref$as, bsPrefix = _ref3.bsPrefix, column2 = _ref3.column, srOnly = _ref3.srOnly, className = _ref3.className, htmlFor = _ref3.htmlFor, props = _objectWithoutPropertiesLoose$1(_ref3, _excluded$o);
-  var _useContext = reactExports.useContext(FormContext), controlId = _useContext.controlId;
-  bsPrefix = useBootstrapPrefix(bsPrefix, "form-label");
-  var columnClass = "col-form-label";
-  if (typeof column2 === "string") columnClass = columnClass + " " + columnClass + "-" + column2;
-  var classes = classNames$1(className, bsPrefix, srOnly && "sr-only", column2 && columnClass);
-  htmlFor = htmlFor || controlId;
-  if (column2) return /* @__PURE__ */ React.createElement(Col, _extends$1({
-    ref,
-    as: "label",
-    className: classes,
-    htmlFor
-  }, props));
-  return (
-    // eslint-disable-next-line jsx-a11y/label-has-for, jsx-a11y/label-has-associated-control
-    /* @__PURE__ */ React.createElement(Component, _extends$1({
-      ref,
-      className: classes,
-      htmlFor
-    }, props))
-  );
-});
-FormLabel.displayName = "FormLabel";
-FormLabel.defaultProps = defaultProps$a;
-var _excluded$n = ["bsPrefix", "className", "as", "muted"];
-var FormText = /* @__PURE__ */ React.forwardRef(
-  // Need to define the default "as" during prop destructuring to be compatible with styled-components github.com/react-bootstrap/react-bootstrap/issues/3595
-  function(_ref3, ref) {
-    var bsPrefix = _ref3.bsPrefix, className = _ref3.className, _ref$as = _ref3.as, Component = _ref$as === void 0 ? "small" : _ref$as, muted = _ref3.muted, props = _objectWithoutPropertiesLoose$1(_ref3, _excluded$n);
-    bsPrefix = useBootstrapPrefix(bsPrefix, "form-text");
-    return /* @__PURE__ */ React.createElement(Component, _extends$1({}, props, {
-      ref,
-      className: classNames$1(className, bsPrefix, muted && "text-muted")
-    }));
+  if (props.role === "tab") {
+    props["aria-selected"] = isActive;
+    if (!isActive) {
+      props.tabIndex = -1;
+    }
+    if (disabled) {
+      props.tabIndex = -1;
+      props["aria-disabled"] = true;
+    }
   }
-);
-FormText.displayName = "FormText";
-var Switch = /* @__PURE__ */ React.forwardRef(function(props, ref) {
-  return /* @__PURE__ */ React.createElement(FormCheck, _extends$1({}, props, {
-    ref,
-    type: "switch"
+  props.onClick = useEventCallback((e) => {
+    if (disabled) return;
+    onClick == null ? void 0 : onClick(e);
+    if (key == null) {
+      return;
+    }
+    if (parentOnSelect && !e.isPropagationStopped()) {
+      parentOnSelect(key, e);
+    }
+  });
+  return [props, {
+    isActive
+  }];
+}
+const NavItem = /* @__PURE__ */ reactExports.forwardRef((_ref3, ref) => {
+  let {
+    as: Component = Button$1,
+    active,
+    eventKey
+  } = _ref3, options2 = _objectWithoutPropertiesLoose$5(_ref3, _excluded$b);
+  const [props, meta] = useNavItem(Object.assign({
+    key: makeEventKey(eventKey, options2.href),
+    active
+  }, options2));
+  props[dataAttr("active")] = meta.isActive;
+  return /* @__PURE__ */ jsxRuntimeExports.jsx(Component, Object.assign({}, options2, props, {
+    ref
   }));
 });
-Switch.displayName = "Switch";
-Switch.Input = FormCheck.Input;
-Switch.Label = FormCheck.Label;
-var _excluded$m = ["bsPrefix", "inline", "className", "validated", "as"];
-var FormRow = createWithBsPrefix("form-row");
-var defaultProps$9 = {
-  inline: false
+NavItem.displayName = "NavItem";
+const _excluded$a = ["as", "onSelect", "activeKey", "role", "onKeyDown"];
+function _objectWithoutPropertiesLoose$4(r, e) {
+  if (null == r) return {};
+  var t = {};
+  for (var n in r) if ({}.hasOwnProperty.call(r, n)) {
+    if (e.indexOf(n) >= 0) continue;
+    t[n] = r[n];
+  }
+  return t;
+}
+const noop$3 = () => {
 };
-var FormImpl = /* @__PURE__ */ React.forwardRef(function(_ref3, ref) {
-  var bsPrefix = _ref3.bsPrefix, inline = _ref3.inline, className = _ref3.className, validated = _ref3.validated, _ref$as = _ref3.as, Component = _ref$as === void 0 ? "form" : _ref$as, props = _objectWithoutPropertiesLoose$1(_ref3, _excluded$m);
-  bsPrefix = useBootstrapPrefix(bsPrefix, "form");
-  return /* @__PURE__ */ React.createElement(Component, _extends$1({}, props, {
-    ref,
-    className: classNames$1(className, validated && "was-validated", inline && bsPrefix + "-inline")
-  }));
-});
-FormImpl.displayName = "Form";
-FormImpl.defaultProps = defaultProps$9;
-FormImpl.Row = FormRow;
-FormImpl.Group = FormGroup;
-FormImpl.Control = FormControl$1;
-FormImpl.Check = FormCheck;
-FormImpl.File = FormFile;
-FormImpl.Switch = Switch;
-FormImpl.Label = FormLabel;
-FormImpl.Text = FormText;
-var TabContext = /* @__PURE__ */ React.createContext(null);
-var _excluded$l = ["as", "onSelect", "activeKey", "role", "onKeyDown"];
-var noop$3 = function noop() {
-};
-var AbstractNav = /* @__PURE__ */ React.forwardRef(function(_ref3, ref) {
-  var _ref$as = _ref3.as, Component = _ref$as === void 0 ? "ul" : _ref$as, onSelect = _ref3.onSelect, activeKey = _ref3.activeKey, role = _ref3.role, onKeyDown = _ref3.onKeyDown, props = _objectWithoutPropertiesLoose$1(_ref3, _excluded$l);
-  var forceUpdate = useForceUpdate();
-  var needsRefocusRef = reactExports.useRef(false);
-  var parentOnSelect = reactExports.useContext(SelectableContext);
-  var tabContext = reactExports.useContext(TabContext);
-  var getControlledId, getControllerId;
+const EVENT_KEY_ATTR = dataAttr("event-key");
+const Nav = /* @__PURE__ */ reactExports.forwardRef((_ref3, ref) => {
+  let {
+    // Need to define the default "as" during prop destructuring to be compatible with styled-components github.com/react-bootstrap/react-bootstrap/issues/3595
+    as: Component = "div",
+    onSelect,
+    activeKey,
+    role,
+    onKeyDown
+  } = _ref3, props = _objectWithoutPropertiesLoose$4(_ref3, _excluded$a);
+  const forceUpdate = useForceUpdate();
+  const needsRefocusRef = reactExports.useRef(false);
+  const parentOnSelect = reactExports.useContext(SelectableContext);
+  const tabContext = reactExports.useContext(TabContext);
+  let getControlledId, getControllerId;
   if (tabContext) {
     role = role || "tablist";
     activeKey = tabContext.activeKey;
     getControlledId = tabContext.getControlledId;
     getControllerId = tabContext.getControllerId;
   }
-  var listNode = reactExports.useRef(null);
-  var getNextActiveChild = function getNextActiveChild2(offset2) {
-    var currentListNode = listNode.current;
+  const listNode = reactExports.useRef(null);
+  const getNextActiveTab = (offset2) => {
+    const currentListNode = listNode.current;
     if (!currentListNode) return null;
-    var items = qsa(currentListNode, "[data-rb-event-key]:not(.disabled)");
-    var activeChild = currentListNode.querySelector(".active");
-    if (!activeChild) return null;
-    var index2 = items.indexOf(activeChild);
+    const items = qsa(currentListNode, `[${EVENT_KEY_ATTR}]:not([aria-disabled=true])`);
+    const activeChild = currentListNode.querySelector("[aria-selected=true]");
+    if (!activeChild || activeChild !== document.activeElement) return null;
+    const index2 = items.indexOf(activeChild);
     if (index2 === -1) return null;
-    var nextIndex = index2 + offset2;
+    let nextIndex = index2 + offset2;
     if (nextIndex >= items.length) nextIndex = 0;
     if (nextIndex < 0) nextIndex = items.length - 1;
     return items[nextIndex];
   };
-  var handleSelect = function handleSelect2(key, event) {
+  const handleSelect = (key, event) => {
     if (key == null) return;
-    if (onSelect) onSelect(key, event);
-    if (parentOnSelect) parentOnSelect(key, event);
+    onSelect == null ? void 0 : onSelect(key, event);
+    parentOnSelect == null ? void 0 : parentOnSelect(key, event);
   };
-  var handleKeyDown = function handleKeyDown2(event) {
-    if (onKeyDown) onKeyDown(event);
-    var nextActiveChild;
+  const handleKeyDown = (event) => {
+    onKeyDown == null ? void 0 : onKeyDown(event);
+    if (!tabContext) {
+      return;
+    }
+    let nextActiveChild;
     switch (event.key) {
       case "ArrowLeft":
       case "ArrowUp":
-        nextActiveChild = getNextActiveChild(-1);
+        nextActiveChild = getNextActiveTab(-1);
         break;
       case "ArrowRight":
       case "ArrowDown":
-        nextActiveChild = getNextActiveChild(1);
+        nextActiveChild = getNextActiveTab(1);
         break;
       default:
         return;
     }
     if (!nextActiveChild) return;
     event.preventDefault();
-    handleSelect(nextActiveChild.dataset.rbEventKey, event);
+    handleSelect(nextActiveChild.dataset[dataProp("EventKey")] || null, event);
     needsRefocusRef.current = true;
     forceUpdate();
   };
-  reactExports.useEffect(function() {
+  reactExports.useEffect(() => {
     if (listNode.current && needsRefocusRef.current) {
-      var activeChild = listNode.current.querySelector("[data-rb-event-key].active");
-      if (activeChild) activeChild.focus();
+      const activeChild = listNode.current.querySelector(`[${EVENT_KEY_ATTR}][aria-selected=true]`);
+      activeChild == null ? void 0 : activeChild.focus();
     }
     needsRefocusRef.current = false;
   });
-  var mergedRef = useMergedRefs(ref, listNode);
-  return /* @__PURE__ */ React.createElement(SelectableContext.Provider, {
-    value: handleSelect
-  }, /* @__PURE__ */ React.createElement(NavContext.Provider, {
-    value: {
-      role,
-      // used by NavLink to determine it's role
-      activeKey: makeEventKey(activeKey),
-      getControlledId: getControlledId || noop$3,
-      getControllerId: getControllerId || noop$3
-    }
-  }, /* @__PURE__ */ React.createElement(Component, _extends$1({}, props, {
-    onKeyDown: handleKeyDown,
-    ref: mergedRef,
-    role
-  }))));
-});
-var _excluded$k = ["active", "className", "eventKey", "onSelect", "onClick", "as"];
-var defaultProps$8 = {
-  disabled: false
-};
-var AbstractNavItem = /* @__PURE__ */ React.forwardRef(function(_ref3, ref) {
-  var active = _ref3.active, className = _ref3.className, eventKey = _ref3.eventKey, onSelect = _ref3.onSelect, onClick = _ref3.onClick, Component = _ref3.as, props = _objectWithoutPropertiesLoose$1(_ref3, _excluded$k);
-  var navKey = makeEventKey(eventKey, props.href);
-  var parentOnSelect = reactExports.useContext(SelectableContext);
-  var navContext = reactExports.useContext(NavContext);
-  var isActive = active;
-  if (navContext) {
-    if (!props.role && navContext.role === "tablist") props.role = "tab";
-    var contextControllerId = navContext.getControllerId(navKey);
-    var contextControlledId = navContext.getControlledId(navKey);
-    props["data-rb-event-key"] = navKey;
-    props.id = contextControllerId || props.id;
-    props["aria-controls"] = contextControlledId || props["aria-controls"];
-    isActive = active == null && navKey != null ? navContext.activeKey === navKey : active;
-  }
-  if (props.role === "tab") {
-    if (props.disabled) {
-      props.tabIndex = -1;
-      props["aria-disabled"] = true;
-    }
-    props["aria-selected"] = isActive;
-  }
-  var handleOnclick = useEventCallback(function(e) {
-    if (onClick) onClick(e);
-    if (navKey == null) return;
-    if (onSelect) onSelect(navKey, e);
-    if (parentOnSelect) parentOnSelect(navKey, e);
+  const mergedRef = useMergedRefs(ref, listNode);
+  return /* @__PURE__ */ jsxRuntimeExports.jsx(SelectableContext.Provider, {
+    value: handleSelect,
+    children: /* @__PURE__ */ jsxRuntimeExports.jsx(NavContext.Provider, {
+      value: {
+        role,
+        // used by NavLink to determine it's role
+        activeKey: makeEventKey(activeKey),
+        getControlledId: getControlledId || noop$3,
+        getControllerId: getControllerId || noop$3
+      },
+      children: /* @__PURE__ */ jsxRuntimeExports.jsx(Component, Object.assign({}, props, {
+        onKeyDown: handleKeyDown,
+        ref: mergedRef,
+        role
+      }))
+    })
   });
-  return /* @__PURE__ */ React.createElement(Component, _extends$1({}, props, {
-    ref,
-    onClick: handleOnclick,
-    className: classNames$1(className, isActive && "active")
-  }));
 });
-AbstractNavItem.defaultProps = defaultProps$8;
-var _excluded$j = ["bsPrefix", "active", "disabled", "className", "variant", "action", "as", "onClick"];
-var defaultProps$7 = {
-  variant: void 0,
-  active: false,
-  disabled: false
-};
-var ListGroupItem = /* @__PURE__ */ React.forwardRef(function(_ref3, ref) {
-  var bsPrefix = _ref3.bsPrefix, active = _ref3.active, disabled = _ref3.disabled, className = _ref3.className, variant = _ref3.variant, action2 = _ref3.action, as = _ref3.as, onClick = _ref3.onClick, props = _objectWithoutPropertiesLoose$1(_ref3, _excluded$j);
+Nav.displayName = "Nav";
+const BaseNav = Object.assign(Nav, {
+  Item: NavItem
+});
+const ListGroupItem = /* @__PURE__ */ reactExports.forwardRef(({
+  bsPrefix,
+  active,
+  disabled,
+  eventKey,
+  className,
+  variant,
+  action: action2,
+  as,
+  ...props
+}, ref) => {
   bsPrefix = useBootstrapPrefix(bsPrefix, "list-group-item");
-  var handleClick = reactExports.useCallback(function(event) {
+  const [navItemProps, meta] = useNavItem({
+    key: makeEventKey(eventKey, props.href),
+    active,
+    ...props
+  });
+  const handleClick = useEventCallback$1((event) => {
     if (disabled) {
       event.preventDefault();
       event.stopPropagation();
       return;
     }
-    if (onClick) onClick(event);
-  }, [disabled, onClick]);
+    navItemProps.onClick(event);
+  });
   if (disabled && props.tabIndex === void 0) {
     props.tabIndex = -1;
     props["aria-disabled"] = true;
   }
-  return /* @__PURE__ */ React.createElement(AbstractNavItem, _extends$1({
-    ref
-  }, props, {
-    // eslint-disable-next-line no-nested-ternary
-    as: as || (action2 ? props.href ? "a" : "button" : "div"),
+  const Component = as || (action2 ? props.href ? "a" : "button" : "div");
+  return /* @__PURE__ */ jsxRuntimeExports.jsx(Component, {
+    ref,
+    ...props,
+    ...navItemProps,
     onClick: handleClick,
-    className: classNames$1(className, bsPrefix, active && "active", disabled && "disabled", variant && bsPrefix + "-" + variant, action2 && bsPrefix + "-action")
-  }));
+    className: classNames$1(className, bsPrefix, meta.isActive && "active", disabled && "disabled", variant && `${bsPrefix}-${variant}`, action2 && `${bsPrefix}-action`)
+  });
 });
-ListGroupItem.defaultProps = defaultProps$7;
 ListGroupItem.displayName = "ListGroupItem";
-var _excluded$i = ["className", "bsPrefix", "variant", "horizontal", "as"];
-var defaultProps$6 = {
-  variant: void 0,
-  horizontal: void 0
-};
-var ListGroup = /* @__PURE__ */ React.forwardRef(function(props, ref) {
-  var _useUncontrolled = useUncontrolled(props, {
+const ListGroup = /* @__PURE__ */ reactExports.forwardRef((props, ref) => {
+  const {
+    className,
+    bsPrefix: initialBsPrefix,
+    variant,
+    horizontal,
+    numbered,
+    // Need to define the default "as" during prop destructuring to be compatible with styled-components github.com/react-bootstrap/react-bootstrap/issues/3595
+    as = "div",
+    ...controlledProps
+  } = useUncontrolled(props, {
     activeKey: "onSelect"
-  }), className = _useUncontrolled.className, initialBsPrefix = _useUncontrolled.bsPrefix, variant = _useUncontrolled.variant, horizontal = _useUncontrolled.horizontal, _useUncontrolled$as = _useUncontrolled.as, as = _useUncontrolled$as === void 0 ? "div" : _useUncontrolled$as, controlledProps = _objectWithoutPropertiesLoose$1(_useUncontrolled, _excluded$i);
-  var bsPrefix = useBootstrapPrefix(initialBsPrefix, "list-group");
-  var horizontalVariant;
+  });
+  const bsPrefix = useBootstrapPrefix(initialBsPrefix, "list-group");
+  let horizontalVariant;
   if (horizontal) {
-    horizontalVariant = horizontal === true ? "horizontal" : "horizontal-" + horizontal;
-  } else {
-    horizontalVariant = null;
+    horizontalVariant = horizontal === true ? "horizontal" : `horizontal-${horizontal}`;
   }
-  return /* @__PURE__ */ React.createElement(AbstractNav, _extends$1({
-    ref
-  }, controlledProps, {
+  return /* @__PURE__ */ jsxRuntimeExports.jsx(BaseNav, {
+    ref,
+    ...controlledProps,
     as,
-    className: classNames$1(className, bsPrefix, variant && bsPrefix + "-" + variant, horizontalVariant && bsPrefix + "-" + horizontalVariant)
-  }));
+    className: classNames$1(className, bsPrefix, variant && `${bsPrefix}-${variant}`, horizontalVariant && `${bsPrefix}-${horizontalVariant}`, numbered && `${bsPrefix}-numbered`)
+  });
 });
-ListGroup.defaultProps = defaultProps$6;
 ListGroup.displayName = "ListGroup";
-ListGroup.Item = ListGroupItem;
+const ListGroup$1 = Object.assign(ListGroup, {
+  Item: ListGroupItem
+});
 var size$3;
 function scrollbarSize(recalc) {
   if (!size$3 && size$3 !== 0 || recalc) {
@@ -17172,6 +17509,9 @@ function scrollbarSize(recalc) {
   }
   return size$3;
 }
+function useCallbackRef$2() {
+  return reactExports.useState(null);
+}
 function activeElement(doc) {
   if (doc === void 0) {
     doc = ownerDocument();
@@ -17183,6 +17523,535 @@ function activeElement(doc) {
   } catch (e) {
     return doc.body;
   }
+}
+function useUpdatedRef(value) {
+  const valueRef = reactExports.useRef(value);
+  valueRef.current = value;
+  return valueRef;
+}
+function useWillUnmount(fn) {
+  const onUnmount = useUpdatedRef(fn);
+  reactExports.useEffect(() => () => onUnmount.current(), []);
+}
+function getBodyScrollbarWidth(ownerDocument2 = document) {
+  const window2 = ownerDocument2.defaultView;
+  return Math.abs(window2.innerWidth - ownerDocument2.documentElement.clientWidth);
+}
+const OPEN_DATA_ATTRIBUTE = dataAttr("modal-open");
+class ModalManager {
+  constructor({
+    ownerDocument: ownerDocument2,
+    handleContainerOverflow = true,
+    isRTL: isRTL2 = false
+  } = {}) {
+    this.handleContainerOverflow = handleContainerOverflow;
+    this.isRTL = isRTL2;
+    this.modals = [];
+    this.ownerDocument = ownerDocument2;
+  }
+  getScrollbarWidth() {
+    return getBodyScrollbarWidth(this.ownerDocument);
+  }
+  getElement() {
+    return (this.ownerDocument || document).body;
+  }
+  setModalAttributes(_modal) {
+  }
+  removeModalAttributes(_modal) {
+  }
+  setContainerStyle(containerState) {
+    const style$1 = {
+      overflow: "hidden"
+    };
+    const paddingProp = this.isRTL ? "paddingLeft" : "paddingRight";
+    const container = this.getElement();
+    containerState.style = {
+      overflow: container.style.overflow,
+      [paddingProp]: container.style[paddingProp]
+    };
+    if (containerState.scrollBarWidth) {
+      style$1[paddingProp] = `${parseInt(style(container, paddingProp) || "0", 10) + containerState.scrollBarWidth}px`;
+    }
+    container.setAttribute(OPEN_DATA_ATTRIBUTE, "");
+    style(container, style$1);
+  }
+  reset() {
+    [...this.modals].forEach((m) => this.remove(m));
+  }
+  removeContainerStyle(containerState) {
+    const container = this.getElement();
+    container.removeAttribute(OPEN_DATA_ATTRIBUTE);
+    Object.assign(container.style, containerState.style);
+  }
+  add(modal) {
+    let modalIdx = this.modals.indexOf(modal);
+    if (modalIdx !== -1) {
+      return modalIdx;
+    }
+    modalIdx = this.modals.length;
+    this.modals.push(modal);
+    this.setModalAttributes(modal);
+    if (modalIdx !== 0) {
+      return modalIdx;
+    }
+    this.state = {
+      scrollBarWidth: this.getScrollbarWidth(),
+      style: {}
+    };
+    if (this.handleContainerOverflow) {
+      this.setContainerStyle(this.state);
+    }
+    return modalIdx;
+  }
+  remove(modal) {
+    const modalIdx = this.modals.indexOf(modal);
+    if (modalIdx === -1) {
+      return;
+    }
+    this.modals.splice(modalIdx, 1);
+    if (!this.modals.length && this.handleContainerOverflow) {
+      this.removeContainerStyle(this.state);
+    }
+    this.removeModalAttributes(modal);
+  }
+  isTopModal(modal) {
+    return !!this.modals.length && this.modals[this.modals.length - 1] === modal;
+  }
+}
+const resolveContainerRef = (ref, document2) => {
+  if (!canUseDOM$1) return null;
+  if (ref == null) return (document2 || ownerDocument()).body;
+  if (typeof ref === "function") ref = ref();
+  if (ref && "current" in ref) ref = ref.current;
+  if (ref && ("nodeType" in ref || ref.getBoundingClientRect)) return ref;
+  return null;
+};
+function useWaitForDOMRef(ref, onResolved) {
+  const window2 = useWindow();
+  const [resolvedRef, setRef2] = reactExports.useState(() => resolveContainerRef(ref, window2 == null ? void 0 : window2.document));
+  if (!resolvedRef) {
+    const earlyRef = resolveContainerRef(ref);
+    if (earlyRef) setRef2(earlyRef);
+  }
+  reactExports.useEffect(() => {
+  }, [onResolved, resolvedRef]);
+  reactExports.useEffect(() => {
+    const nextRef = resolveContainerRef(ref);
+    if (nextRef !== resolvedRef) {
+      setRef2(nextRef);
+    }
+  }, [ref, resolvedRef]);
+  return resolvedRef;
+}
+function NoopTransition({
+  children: children2,
+  in: inProp,
+  onExited,
+  mountOnEnter,
+  unmountOnExit
+}) {
+  const ref = reactExports.useRef(null);
+  const hasEnteredRef = reactExports.useRef(inProp);
+  const handleExited = useEventCallback(onExited);
+  reactExports.useEffect(() => {
+    if (inProp) hasEnteredRef.current = true;
+    else {
+      handleExited(ref.current);
+    }
+  }, [inProp, handleExited]);
+  const combinedRef = useMergedRefs(ref, getChildRef(children2));
+  const child = /* @__PURE__ */ reactExports.cloneElement(children2, {
+    ref: combinedRef
+  });
+  if (inProp) return child;
+  if (unmountOnExit) {
+    return null;
+  }
+  if (!hasEnteredRef.current && mountOnEnter) {
+    return null;
+  }
+  return child;
+}
+const _excluded$9 = ["onEnter", "onEntering", "onEntered", "onExit", "onExiting", "onExited", "addEndListener", "children"];
+function _objectWithoutPropertiesLoose$3(r, e) {
+  if (null == r) return {};
+  var t = {};
+  for (var n in r) if ({}.hasOwnProperty.call(r, n)) {
+    if (e.indexOf(n) >= 0) continue;
+    t[n] = r[n];
+  }
+  return t;
+}
+function useRTGTransitionProps(_ref3) {
+  let {
+    onEnter,
+    onEntering,
+    onEntered,
+    onExit,
+    onExiting,
+    onExited,
+    addEndListener,
+    children: children2
+  } = _ref3, props = _objectWithoutPropertiesLoose$3(_ref3, _excluded$9);
+  const nodeRef = reactExports.useRef(null);
+  const mergedRef = useMergedRefs(nodeRef, getChildRef(children2));
+  const normalize = (callback) => (param) => {
+    if (callback && nodeRef.current) {
+      callback(nodeRef.current, param);
+    }
+  };
+  const handleEnter = reactExports.useCallback(normalize(onEnter), [onEnter]);
+  const handleEntering = reactExports.useCallback(normalize(onEntering), [onEntering]);
+  const handleEntered = reactExports.useCallback(normalize(onEntered), [onEntered]);
+  const handleExit = reactExports.useCallback(normalize(onExit), [onExit]);
+  const handleExiting = reactExports.useCallback(normalize(onExiting), [onExiting]);
+  const handleExited = reactExports.useCallback(normalize(onExited), [onExited]);
+  const handleAddEndListener = reactExports.useCallback(normalize(addEndListener), [addEndListener]);
+  return Object.assign({}, props, {
+    nodeRef
+  }, onEnter && {
+    onEnter: handleEnter
+  }, onEntering && {
+    onEntering: handleEntering
+  }, onEntered && {
+    onEntered: handleEntered
+  }, onExit && {
+    onExit: handleExit
+  }, onExiting && {
+    onExiting: handleExiting
+  }, onExited && {
+    onExited: handleExited
+  }, addEndListener && {
+    addEndListener: handleAddEndListener
+  }, {
+    children: typeof children2 === "function" ? (status, innerProps) => (
+      // TODO: Types for RTG missing innerProps, so need to cast.
+      children2(status, Object.assign({}, innerProps, {
+        ref: mergedRef
+      }))
+    ) : /* @__PURE__ */ reactExports.cloneElement(children2, {
+      ref: mergedRef
+    })
+  });
+}
+const _excluded$8 = ["component"];
+function _objectWithoutPropertiesLoose$2(r, e) {
+  if (null == r) return {};
+  var t = {};
+  for (var n in r) if ({}.hasOwnProperty.call(r, n)) {
+    if (e.indexOf(n) >= 0) continue;
+    t[n] = r[n];
+  }
+  return t;
+}
+const RTGTransition = /* @__PURE__ */ reactExports.forwardRef((_ref3, ref) => {
+  let {
+    component: Component
+  } = _ref3, props = _objectWithoutPropertiesLoose$2(_ref3, _excluded$8);
+  const transitionProps = useRTGTransitionProps(props);
+  return /* @__PURE__ */ jsxRuntimeExports.jsx(Component, Object.assign({
+    ref
+  }, transitionProps));
+});
+function useTransition({
+  in: inProp,
+  onTransition
+}) {
+  const ref = reactExports.useRef(null);
+  const isInitialRef = reactExports.useRef(true);
+  const handleTransition = useEventCallback(onTransition);
+  useIsomorphicEffect$1(() => {
+    if (!ref.current) {
+      return void 0;
+    }
+    let stale = false;
+    handleTransition({
+      in: inProp,
+      element: ref.current,
+      initial: isInitialRef.current,
+      isStale: () => stale
+    });
+    return () => {
+      stale = true;
+    };
+  }, [inProp, handleTransition]);
+  useIsomorphicEffect$1(() => {
+    isInitialRef.current = false;
+    return () => {
+      isInitialRef.current = true;
+    };
+  }, []);
+  return ref;
+}
+function ImperativeTransition({
+  children: children2,
+  in: inProp,
+  onExited,
+  onEntered,
+  transition
+}) {
+  const [exited, setExited] = reactExports.useState(!inProp);
+  if (inProp && exited) {
+    setExited(false);
+  }
+  const ref = useTransition({
+    in: !!inProp,
+    onTransition: (options2) => {
+      const onFinish = () => {
+        if (options2.isStale()) return;
+        if (options2.in) {
+          onEntered == null ? void 0 : onEntered(options2.element, options2.initial);
+        } else {
+          setExited(true);
+          onExited == null ? void 0 : onExited(options2.element);
+        }
+      };
+      Promise.resolve(transition(options2)).then(onFinish, (error) => {
+        if (!options2.in) setExited(true);
+        throw error;
+      });
+    }
+  });
+  const combinedRef = useMergedRefs(ref, getChildRef(children2));
+  return exited && !inProp ? null : /* @__PURE__ */ reactExports.cloneElement(children2, {
+    ref: combinedRef
+  });
+}
+function renderTransition(component, runTransition, props) {
+  if (component) {
+    return /* @__PURE__ */ jsxRuntimeExports.jsx(RTGTransition, Object.assign({}, props, {
+      component
+    }));
+  }
+  if (runTransition) {
+    return /* @__PURE__ */ jsxRuntimeExports.jsx(ImperativeTransition, Object.assign({}, props, {
+      transition: runTransition
+    }));
+  }
+  return /* @__PURE__ */ jsxRuntimeExports.jsx(NoopTransition, Object.assign({}, props));
+}
+const _excluded$7 = ["show", "role", "className", "style", "children", "backdrop", "keyboard", "onBackdropClick", "onEscapeKeyDown", "transition", "runTransition", "backdropTransition", "runBackdropTransition", "autoFocus", "enforceFocus", "restoreFocus", "restoreFocusOptions", "renderDialog", "renderBackdrop", "manager", "container", "onShow", "onHide", "onExit", "onExited", "onExiting", "onEnter", "onEntering", "onEntered"];
+function _objectWithoutPropertiesLoose$1(r, e) {
+  if (null == r) return {};
+  var t = {};
+  for (var n in r) if ({}.hasOwnProperty.call(r, n)) {
+    if (e.indexOf(n) >= 0) continue;
+    t[n] = r[n];
+  }
+  return t;
+}
+let manager;
+function getManager(window2) {
+  if (!manager) manager = new ModalManager({
+    ownerDocument: window2 == null ? void 0 : window2.document
+  });
+  return manager;
+}
+function useModalManager(provided) {
+  const window2 = useWindow();
+  const modalManager = provided || getManager(window2);
+  const modal = reactExports.useRef({
+    dialog: null,
+    backdrop: null
+  });
+  return Object.assign(modal.current, {
+    add: () => modalManager.add(modal.current),
+    remove: () => modalManager.remove(modal.current),
+    isTopModal: () => modalManager.isTopModal(modal.current),
+    setDialogRef: reactExports.useCallback((ref) => {
+      modal.current.dialog = ref;
+    }, []),
+    setBackdropRef: reactExports.useCallback((ref) => {
+      modal.current.backdrop = ref;
+    }, [])
+  });
+}
+const Modal$1 = /* @__PURE__ */ reactExports.forwardRef((_ref3, ref) => {
+  let {
+    show = false,
+    role = "dialog",
+    className,
+    style: style2,
+    children: children2,
+    backdrop = true,
+    keyboard = true,
+    onBackdropClick,
+    onEscapeKeyDown,
+    transition,
+    runTransition,
+    backdropTransition,
+    runBackdropTransition,
+    autoFocus = true,
+    enforceFocus = true,
+    restoreFocus = true,
+    restoreFocusOptions,
+    renderDialog,
+    renderBackdrop = (props) => /* @__PURE__ */ jsxRuntimeExports.jsx("div", Object.assign({}, props)),
+    manager: providedManager,
+    container: containerRef,
+    onShow,
+    onHide = () => {
+    },
+    onExit,
+    onExited,
+    onExiting,
+    onEnter,
+    onEntering,
+    onEntered
+  } = _ref3, rest = _objectWithoutPropertiesLoose$1(_ref3, _excluded$7);
+  const ownerWindow2 = useWindow();
+  const container = useWaitForDOMRef(containerRef);
+  const modal = useModalManager(providedManager);
+  const isMounted = useMounted();
+  const prevShow = usePrevious(show);
+  const [exited, setExited] = reactExports.useState(!show);
+  const lastFocusRef = reactExports.useRef(null);
+  reactExports.useImperativeHandle(ref, () => modal, [modal]);
+  if (canUseDOM$1 && !prevShow && show) {
+    lastFocusRef.current = activeElement(ownerWindow2 == null ? void 0 : ownerWindow2.document);
+  }
+  if (show && exited) {
+    setExited(false);
+  }
+  const handleShow = useEventCallback(() => {
+    modal.add();
+    removeKeydownListenerRef.current = listen$1(document, "keydown", handleDocumentKeyDown);
+    removeFocusListenerRef.current = listen$1(
+      document,
+      "focus",
+      // the timeout is necessary b/c this will run before the new modal is mounted
+      // and so steals focus from it
+      () => setTimeout(handleEnforceFocus),
+      true
+    );
+    if (onShow) {
+      onShow();
+    }
+    if (autoFocus) {
+      var _modal$dialog$ownerDo, _modal$dialog;
+      const currentActiveElement = activeElement((_modal$dialog$ownerDo = (_modal$dialog = modal.dialog) == null ? void 0 : _modal$dialog.ownerDocument) != null ? _modal$dialog$ownerDo : ownerWindow2 == null ? void 0 : ownerWindow2.document);
+      if (modal.dialog && currentActiveElement && !contains(modal.dialog, currentActiveElement)) {
+        lastFocusRef.current = currentActiveElement;
+        modal.dialog.focus();
+      }
+    }
+  });
+  const handleHide = useEventCallback(() => {
+    modal.remove();
+    removeKeydownListenerRef.current == null ? void 0 : removeKeydownListenerRef.current();
+    removeFocusListenerRef.current == null ? void 0 : removeFocusListenerRef.current();
+    if (restoreFocus) {
+      var _lastFocusRef$current;
+      (_lastFocusRef$current = lastFocusRef.current) == null ? void 0 : _lastFocusRef$current.focus == null ? void 0 : _lastFocusRef$current.focus(restoreFocusOptions);
+      lastFocusRef.current = null;
+    }
+  });
+  reactExports.useEffect(() => {
+    if (!show || !container) return;
+    handleShow();
+  }, [
+    show,
+    container,
+    /* should never change: */
+    handleShow
+  ]);
+  reactExports.useEffect(() => {
+    if (!exited) return;
+    handleHide();
+  }, [exited, handleHide]);
+  useWillUnmount(() => {
+    handleHide();
+  });
+  const handleEnforceFocus = useEventCallback(() => {
+    if (!enforceFocus || !isMounted() || !modal.isTopModal()) {
+      return;
+    }
+    const currentActiveElement = activeElement(ownerWindow2 == null ? void 0 : ownerWindow2.document);
+    if (modal.dialog && currentActiveElement && !contains(modal.dialog, currentActiveElement)) {
+      modal.dialog.focus();
+    }
+  });
+  const handleBackdropClick = useEventCallback((e) => {
+    if (e.target !== e.currentTarget) {
+      return;
+    }
+    onBackdropClick == null ? void 0 : onBackdropClick(e);
+    if (backdrop === true) {
+      onHide();
+    }
+  });
+  const handleDocumentKeyDown = useEventCallback((e) => {
+    if (keyboard && isEscKey(e) && modal.isTopModal()) {
+      onEscapeKeyDown == null ? void 0 : onEscapeKeyDown(e);
+      if (!e.defaultPrevented) {
+        onHide();
+      }
+    }
+  });
+  const removeFocusListenerRef = reactExports.useRef();
+  const removeKeydownListenerRef = reactExports.useRef();
+  const handleHidden = (...args) => {
+    setExited(true);
+    onExited == null ? void 0 : onExited(...args);
+  };
+  if (!container) {
+    return null;
+  }
+  const dialogProps = Object.assign({
+    role,
+    ref: modal.setDialogRef,
+    // apparently only works on the dialog role element
+    "aria-modal": role === "dialog" ? true : void 0
+  }, rest, {
+    style: style2,
+    className,
+    tabIndex: -1
+  });
+  let dialog = renderDialog ? renderDialog(dialogProps) : /* @__PURE__ */ jsxRuntimeExports.jsx("div", Object.assign({}, dialogProps, {
+    children: /* @__PURE__ */ reactExports.cloneElement(children2, {
+      role: "document"
+    })
+  }));
+  dialog = renderTransition(transition, runTransition, {
+    unmountOnExit: true,
+    mountOnEnter: true,
+    appear: true,
+    in: !!show,
+    onExit,
+    onExiting,
+    onExited: handleHidden,
+    onEnter,
+    onEntering,
+    onEntered,
+    children: dialog
+  });
+  let backdropElement = null;
+  if (backdrop) {
+    backdropElement = renderBackdrop({
+      ref: modal.setBackdropRef,
+      onClick: handleBackdropClick
+    });
+    backdropElement = renderTransition(backdropTransition, runBackdropTransition, {
+      in: !!show,
+      appear: true,
+      mountOnEnter: true,
+      unmountOnExit: true,
+      children: backdropElement
+    });
+  }
+  return /* @__PURE__ */ jsxRuntimeExports.jsx(jsxRuntimeExports.Fragment, {
+    children: /* @__PURE__ */ ReactDOM.createPortal(/* @__PURE__ */ jsxRuntimeExports.jsxs(jsxRuntimeExports.Fragment, {
+      children: [backdropElement, dialog]
+    }), container)
+  });
+});
+Modal$1.displayName = "Modal";
+const BaseModal = Object.assign(Modal$1, {
+  Manager: ModalManager
+});
+function hasClass(element2, className) {
+  if (element2.classList) return element2.classList.contains(className);
+  return (" " + (element2.className.baseVal || element2.className) + " ").indexOf(" " + className + " ") !== -1;
 }
 function addClass(element2, className) {
   if (element2.classList) element2.classList.add(className);
@@ -17201,712 +18070,274 @@ function removeClass(element2, className) {
     element2.setAttribute("class", replaceClassName(element2.className && element2.className.baseVal || "", className));
   }
 }
-function isDocument(element2) {
-  return "nodeType" in element2 && element2.nodeType === document.DOCUMENT_NODE;
-}
-function isWindow(node2) {
-  if ("window" in node2 && node2.window === node2) return node2;
-  if (isDocument(node2)) return node2.defaultView || false;
-  return false;
-}
-function isBody(node2) {
-  return node2 && node2.tagName.toLowerCase() === "body";
-}
-function bodyIsOverflowing(node2) {
-  var doc = isWindow(node2) ? ownerDocument() : ownerDocument(node2);
-  var win = isWindow(node2) || doc.defaultView;
-  return doc.body.clientWidth < win.innerWidth;
-}
-function isOverflowing(container) {
-  var win = isWindow(container);
-  return win || isBody(container) ? bodyIsOverflowing(container) : container.scrollHeight > container.clientHeight;
-}
-var BLACKLIST = ["template", "script", "style"];
-var isHidable = function isHidable2(_ref3) {
-  var nodeType = _ref3.nodeType, tagName = _ref3.tagName;
-  return nodeType === 1 && BLACKLIST.indexOf(tagName.toLowerCase()) === -1;
-};
-var siblings = function siblings2(container, exclude, cb) {
-  [].forEach.call(container.children, function(node2) {
-    if (exclude.indexOf(node2) === -1 && isHidable(node2)) {
-      cb(node2);
-    }
-  });
-};
-function ariaHidden(hide2, node2) {
-  if (!node2) return;
-  if (hide2) {
-    node2.setAttribute("aria-hidden", "true");
-  } else {
-    node2.removeAttribute("aria-hidden");
-  }
-}
-function hideSiblings(container, _ref22) {
-  var dialog = _ref22.dialog, backdrop = _ref22.backdrop;
-  siblings(container, [dialog, backdrop], function(node2) {
-    return ariaHidden(true, node2);
-  });
-}
-function showSiblings(container, _ref3) {
-  var dialog = _ref3.dialog, backdrop = _ref3.backdrop;
-  siblings(container, [dialog, backdrop], function(node2) {
-    return ariaHidden(false, node2);
-  });
-}
-function findIndexOf(arr, cb) {
-  var idx = -1;
-  arr.some(function(d, i2) {
-    if (cb(d, i2)) {
-      idx = i2;
-      return true;
-    }
-    return false;
-  });
-  return idx;
-}
-var ModalManager = /* @__PURE__ */ (function() {
-  function ModalManager2(_temp) {
-    var _ref3 = _temp === void 0 ? {} : _temp, _ref$hideSiblingNodes = _ref3.hideSiblingNodes, hideSiblingNodes = _ref$hideSiblingNodes === void 0 ? true : _ref$hideSiblingNodes, _ref$handleContainerO = _ref3.handleContainerOverflow, handleContainerOverflow = _ref$handleContainerO === void 0 ? true : _ref$handleContainerO;
-    this.hideSiblingNodes = void 0;
-    this.handleContainerOverflow = void 0;
-    this.modals = void 0;
-    this.containers = void 0;
-    this.data = void 0;
-    this.scrollbarSize = void 0;
-    this.hideSiblingNodes = hideSiblingNodes;
-    this.handleContainerOverflow = handleContainerOverflow;
-    this.modals = [];
-    this.containers = [];
-    this.data = [];
-    this.scrollbarSize = scrollbarSize();
-  }
-  var _proto = ModalManager2.prototype;
-  _proto.isContainerOverflowing = function isContainerOverflowing(modal) {
-    var data = this.data[this.containerIndexFromModal(modal)];
-    return data && data.overflowing;
-  };
-  _proto.containerIndexFromModal = function containerIndexFromModal(modal) {
-    return findIndexOf(this.data, function(d) {
-      return d.modals.indexOf(modal) !== -1;
-    });
-  };
-  _proto.setContainerStyle = function setContainerStyle(containerState, container) {
-    var style$1 = {
-      overflow: "hidden"
-    };
-    containerState.style = {
-      overflow: container.style.overflow,
-      paddingRight: container.style.paddingRight
-    };
-    if (containerState.overflowing) {
-      style$1.paddingRight = parseInt(style(container, "paddingRight") || "0", 10) + this.scrollbarSize + "px";
-    }
-    style(container, style$1);
-  };
-  _proto.removeContainerStyle = function removeContainerStyle(containerState, container) {
-    Object.assign(container.style, containerState.style);
-  };
-  _proto.add = function add(modal, container, className) {
-    var modalIdx = this.modals.indexOf(modal);
-    var containerIdx = this.containers.indexOf(container);
-    if (modalIdx !== -1) {
-      return modalIdx;
-    }
-    modalIdx = this.modals.length;
-    this.modals.push(modal);
-    if (this.hideSiblingNodes) {
-      hideSiblings(container, modal);
-    }
-    if (containerIdx !== -1) {
-      this.data[containerIdx].modals.push(modal);
-      return modalIdx;
-    }
-    var data = {
-      modals: [modal],
-      // right now only the first modal of a container will have its classes applied
-      classes: className ? className.split(/\s+/) : [],
-      overflowing: isOverflowing(container)
-    };
-    if (this.handleContainerOverflow) {
-      this.setContainerStyle(data, container);
-    }
-    data.classes.forEach(addClass.bind(null, container));
-    this.containers.push(container);
-    this.data.push(data);
-    return modalIdx;
-  };
-  _proto.remove = function remove(modal) {
-    var modalIdx = this.modals.indexOf(modal);
-    if (modalIdx === -1) {
-      return;
-    }
-    var containerIdx = this.containerIndexFromModal(modal);
-    var data = this.data[containerIdx];
-    var container = this.containers[containerIdx];
-    data.modals.splice(data.modals.indexOf(modal), 1);
-    this.modals.splice(modalIdx, 1);
-    if (data.modals.length === 0) {
-      data.classes.forEach(removeClass.bind(null, container));
-      if (this.handleContainerOverflow) {
-        this.removeContainerStyle(data, container);
-      }
-      if (this.hideSiblingNodes) {
-        showSiblings(container, modal);
-      }
-      this.containers.splice(containerIdx, 1);
-      this.data.splice(containerIdx, 1);
-    } else if (this.hideSiblingNodes) {
-      var _data$modals = data.modals[data.modals.length - 1], backdrop = _data$modals.backdrop, dialog = _data$modals.dialog;
-      ariaHidden(false, dialog);
-      ariaHidden(false, backdrop);
-    }
-  };
-  _proto.isTopModal = function isTopModal(modal) {
-    return !!this.modals.length && this.modals[this.modals.length - 1] === modal;
-  };
-  return ModalManager2;
-})();
-var resolveContainerRef = function resolveContainerRef2(ref) {
-  var _ref3;
-  if (typeof document === "undefined") return null;
-  if (ref == null) return ownerDocument().body;
-  if (typeof ref === "function") ref = ref();
-  if (ref && "current" in ref) ref = ref.current;
-  if ((_ref3 = ref) != null && _ref3.nodeType) return ref || null;
-  return null;
-};
-function useWaitForDOMRef(ref, onResolved) {
-  var _useState = reactExports.useState(function() {
-    return resolveContainerRef(ref);
-  }), resolvedRef = _useState[0], setRef2 = _useState[1];
-  if (!resolvedRef) {
-    var earlyRef = resolveContainerRef(ref);
-    if (earlyRef) setRef2(earlyRef);
-  }
-  reactExports.useEffect(function() {
-  }, [onResolved, resolvedRef]);
-  reactExports.useEffect(function() {
-    var nextRef = resolveContainerRef(ref);
-    if (nextRef !== resolvedRef) {
-      setRef2(nextRef);
-    }
-  }, [ref, resolvedRef]);
-  return resolvedRef;
-}
-var manager$1;
-function getManager() {
-  if (!manager$1) manager$1 = new ModalManager();
-  return manager$1;
-}
-function useModalManager(provided) {
-  var modalManager = provided || getManager();
-  var modal = reactExports.useRef({
-    dialog: null,
-    backdrop: null
-  });
-  return Object.assign(modal.current, {
-    add: function add(container, className) {
-      return modalManager.add(modal.current, container, className);
-    },
-    remove: function remove() {
-      return modalManager.remove(modal.current);
-    },
-    isTopModal: function isTopModal() {
-      return modalManager.isTopModal(modal.current);
-    },
-    setDialogRef: reactExports.useCallback(function(ref) {
-      modal.current.dialog = ref;
-    }, []),
-    setBackdropRef: reactExports.useCallback(function(ref) {
-      modal.current.backdrop = ref;
-    }, [])
-  });
-}
-var Modal$1 = /* @__PURE__ */ reactExports.forwardRef(function(_ref3, ref) {
-  var _ref$show = _ref3.show, show = _ref$show === void 0 ? false : _ref$show, _ref$role = _ref3.role, role = _ref$role === void 0 ? "dialog" : _ref$role, className = _ref3.className, style2 = _ref3.style, children2 = _ref3.children, _ref$backdrop = _ref3.backdrop, backdrop = _ref$backdrop === void 0 ? true : _ref$backdrop, _ref$keyboard = _ref3.keyboard, keyboard = _ref$keyboard === void 0 ? true : _ref$keyboard, onBackdropClick = _ref3.onBackdropClick, onEscapeKeyDown = _ref3.onEscapeKeyDown, transition = _ref3.transition, backdropTransition = _ref3.backdropTransition, _ref$autoFocus = _ref3.autoFocus, autoFocus = _ref$autoFocus === void 0 ? true : _ref$autoFocus, _ref$enforceFocus = _ref3.enforceFocus, enforceFocus = _ref$enforceFocus === void 0 ? true : _ref$enforceFocus, _ref$restoreFocus = _ref3.restoreFocus, restoreFocus = _ref$restoreFocus === void 0 ? true : _ref$restoreFocus, restoreFocusOptions = _ref3.restoreFocusOptions, renderDialog = _ref3.renderDialog, _ref$renderBackdrop = _ref3.renderBackdrop, renderBackdrop = _ref$renderBackdrop === void 0 ? function(props) {
-    return /* @__PURE__ */ React.createElement("div", props);
-  } : _ref$renderBackdrop, providedManager = _ref3.manager, containerRef = _ref3.container, containerClassName = _ref3.containerClassName, onShow = _ref3.onShow, _ref$onHide = _ref3.onHide, onHide2 = _ref$onHide === void 0 ? function() {
-  } : _ref$onHide, onExit = _ref3.onExit, onExited = _ref3.onExited, onExiting = _ref3.onExiting, onEnter = _ref3.onEnter, onEntering = _ref3.onEntering, onEntered = _ref3.onEntered, rest = _objectWithoutPropertiesLoose$1(_ref3, ["show", "role", "className", "style", "children", "backdrop", "keyboard", "onBackdropClick", "onEscapeKeyDown", "transition", "backdropTransition", "autoFocus", "enforceFocus", "restoreFocus", "restoreFocusOptions", "renderDialog", "renderBackdrop", "manager", "container", "containerClassName", "onShow", "onHide", "onExit", "onExited", "onExiting", "onEnter", "onEntering", "onEntered"]);
-  var container = useWaitForDOMRef(containerRef);
-  var modal = useModalManager(providedManager);
-  var isMounted = useMounted();
-  var prevShow = usePrevious(show);
-  var _useState = reactExports.useState(!show), exited = _useState[0], setExited = _useState[1];
-  var lastFocusRef = reactExports.useRef(null);
-  reactExports.useImperativeHandle(ref, function() {
-    return modal;
-  }, [modal]);
-  if (canUseDOM$1 && !prevShow && show) {
-    lastFocusRef.current = activeElement();
-  }
-  if (!transition && !show && !exited) {
-    setExited(true);
-  } else if (show && exited) {
-    setExited(false);
-  }
-  var handleShow = useEventCallback(function() {
-    modal.add(container, containerClassName);
-    removeKeydownListenerRef.current = listen$1(document, "keydown", handleDocumentKeyDown);
-    removeFocusListenerRef.current = listen$1(
-      document,
-      "focus",
-      // the timeout is necessary b/c this will run before the new modal is mounted
-      // and so steals focus from it
-      function() {
-        return setTimeout(handleEnforceFocus);
-      },
-      true
-    );
-    if (onShow) {
-      onShow();
-    }
-    if (autoFocus) {
-      var currentActiveElement = activeElement(document);
-      if (modal.dialog && currentActiveElement && !contains(modal.dialog, currentActiveElement)) {
-        lastFocusRef.current = currentActiveElement;
-        modal.dialog.focus();
-      }
-    }
-  });
-  var handleHide = useEventCallback(function() {
-    modal.remove();
-    removeKeydownListenerRef.current == null ? void 0 : removeKeydownListenerRef.current();
-    removeFocusListenerRef.current == null ? void 0 : removeFocusListenerRef.current();
-    if (restoreFocus) {
-      var _lastFocusRef$current;
-      (_lastFocusRef$current = lastFocusRef.current) == null ? void 0 : _lastFocusRef$current.focus == null ? void 0 : _lastFocusRef$current.focus(restoreFocusOptions);
-      lastFocusRef.current = null;
-    }
-  });
-  reactExports.useEffect(function() {
-    if (!show || !container) return;
-    handleShow();
-  }, [
-    show,
-    container,
-    /* should never change: */
-    handleShow
-  ]);
-  reactExports.useEffect(function() {
-    if (!exited) return;
-    handleHide();
-  }, [exited, handleHide]);
-  useWillUnmount(function() {
-    handleHide();
-  });
-  var handleEnforceFocus = useEventCallback(function() {
-    if (!enforceFocus || !isMounted() || !modal.isTopModal()) {
-      return;
-    }
-    var currentActiveElement = activeElement();
-    if (modal.dialog && currentActiveElement && !contains(modal.dialog, currentActiveElement)) {
-      modal.dialog.focus();
-    }
-  });
-  var handleBackdropClick = useEventCallback(function(e) {
-    if (e.target !== e.currentTarget) {
-      return;
-    }
-    onBackdropClick == null ? void 0 : onBackdropClick(e);
-    if (backdrop === true) {
-      onHide2();
-    }
-  });
-  var handleDocumentKeyDown = useEventCallback(function(e) {
-    if (keyboard && e.keyCode === 27 && modal.isTopModal()) {
-      onEscapeKeyDown == null ? void 0 : onEscapeKeyDown(e);
-      if (!e.defaultPrevented) {
-        onHide2();
-      }
-    }
-  });
-  var removeFocusListenerRef = reactExports.useRef();
-  var removeKeydownListenerRef = reactExports.useRef();
-  var handleHidden = function handleHidden2() {
-    setExited(true);
-    for (var _len = arguments.length, args = new Array(_len), _key = 0; _key < _len; _key++) {
-      args[_key] = arguments[_key];
-    }
-    onExited == null ? void 0 : onExited.apply(void 0, args);
-  };
-  var Transition2 = transition;
-  if (!container || !(show || Transition2 && !exited)) {
-    return null;
-  }
-  var dialogProps = _extends$1({
-    role,
-    ref: modal.setDialogRef,
-    // apparently only works on the dialog role element
-    "aria-modal": role === "dialog" ? true : void 0
-  }, rest, {
-    style: style2,
-    className,
-    tabIndex: -1
-  });
-  var dialog = renderDialog ? renderDialog(dialogProps) : /* @__PURE__ */ React.createElement("div", dialogProps, /* @__PURE__ */ React.cloneElement(children2, {
-    role: "document"
-  }));
-  if (Transition2) {
-    dialog = /* @__PURE__ */ React.createElement(Transition2, {
-      appear: true,
-      unmountOnExit: true,
-      "in": !!show,
-      onExit,
-      onExiting,
-      onExited: handleHidden,
-      onEnter,
-      onEntering,
-      onEntered
-    }, dialog);
-  }
-  var backdropElement = null;
-  if (backdrop) {
-    var BackdropTransition2 = backdropTransition;
-    backdropElement = renderBackdrop({
-      ref: modal.setBackdropRef,
-      onClick: handleBackdropClick
-    });
-    if (BackdropTransition2) {
-      backdropElement = /* @__PURE__ */ React.createElement(BackdropTransition2, {
-        appear: true,
-        "in": !!show
-      }, backdropElement);
-    }
-  }
-  return /* @__PURE__ */ React.createElement(React.Fragment, null, /* @__PURE__ */ ReactDOM.createPortal(/* @__PURE__ */ React.createElement(React.Fragment, null, backdropElement, dialog), container));
-});
-var propTypes = {
-  /**
-   * Set the visibility of the Modal
-   */
-  show: PropTypes.bool,
-  /**
-   * A DOM element, a `ref` to an element, or function that returns either. The Modal is appended to it's `container` element.
-   *
-   * For the sake of assistive technologies, the container should usually be the document body, so that the rest of the
-   * page content can be placed behind a virtual backdrop as well as a visual one.
-   */
-  container: PropTypes.any,
-  /**
-   * A callback fired when the Modal is opening.
-   */
-  onShow: PropTypes.func,
-  /**
-   * A callback fired when either the backdrop is clicked, or the escape key is pressed.
-   *
-   * The `onHide` callback only signals intent from the Modal,
-   * you must actually set the `show` prop to `false` for the Modal to close.
-   */
-  onHide: PropTypes.func,
-  /**
-   * Include a backdrop component.
-   */
-  backdrop: PropTypes.oneOfType([PropTypes.bool, PropTypes.oneOf(["static"])]),
-  /**
-   * A function that returns the dialog component. Useful for custom
-   * rendering. **Note:** the component should make sure to apply the provided ref.
-   *
-   * ```js static
-   * renderDialog={props => <MyDialog {...props} />}
-   * ```
-   */
-  renderDialog: PropTypes.func,
-  /**
-   * A function that returns a backdrop component. Useful for custom
-   * backdrop rendering.
-   *
-   * ```js
-   *  renderBackdrop={props => <MyBackdrop {...props} />}
-   * ```
-   */
-  renderBackdrop: PropTypes.func,
-  /**
-   * A callback fired when the escape key, if specified in `keyboard`, is pressed.
-   *
-   * If preventDefault() is called on the keyboard event, closing the modal will be cancelled.
-   */
-  onEscapeKeyDown: PropTypes.func,
-  /**
-   * A callback fired when the backdrop, if specified, is clicked.
-   */
-  onBackdropClick: PropTypes.func,
-  /**
-   * A css class or set of classes applied to the modal container when the modal is open,
-   * and removed when it is closed.
-   */
-  containerClassName: PropTypes.string,
-  /**
-   * Close the modal when escape key is pressed
-   */
-  keyboard: PropTypes.bool,
-  /**
-   * A `react-transition-group@2.0.0` `<Transition/>` component used
-   * to control animations for the dialog component.
-   */
-  transition: PropTypes.elementType,
-  /**
-   * A `react-transition-group@2.0.0` `<Transition/>` component used
-   * to control animations for the backdrop components.
-   */
-  backdropTransition: PropTypes.elementType,
-  /**
-   * When `true` The modal will automatically shift focus to itself when it opens, and
-   * replace it to the last focused element when it closes. This also
-   * works correctly with any Modal children that have the `autoFocus` prop.
-   *
-   * Generally this should never be set to `false` as it makes the Modal less
-   * accessible to assistive technologies, like screen readers.
-   */
-  autoFocus: PropTypes.bool,
-  /**
-   * When `true` The modal will prevent focus from leaving the Modal while open.
-   *
-   * Generally this should never be set to `false` as it makes the Modal less
-   * accessible to assistive technologies, like screen readers.
-   */
-  enforceFocus: PropTypes.bool,
-  /**
-   * When `true` The modal will restore focus to previously focused element once
-   * modal is hidden
-   */
-  restoreFocus: PropTypes.bool,
-  /**
-   * Options passed to focus function when `restoreFocus` is set to `true`
-   *
-   * @link  https://developer.mozilla.org/en-US/docs/Web/API/HTMLElement/focus#Parameters
-   */
-  restoreFocusOptions: PropTypes.shape({
-    preventScroll: PropTypes.bool
-  }),
-  /**
-   * Callback fired before the Modal transitions in
-   */
-  onEnter: PropTypes.func,
-  /**
-   * Callback fired as the Modal begins to transition in
-   */
-  onEntering: PropTypes.func,
-  /**
-   * Callback fired after the Modal finishes transitioning in
-   */
-  onEntered: PropTypes.func,
-  /**
-   * Callback fired right before the Modal transitions out
-   */
-  onExit: PropTypes.func,
-  /**
-   * Callback fired as the Modal begins to transition out
-   */
-  onExiting: PropTypes.func,
-  /**
-   * Callback fired after the Modal finishes transitioning out
-   */
-  onExited: PropTypes.func,
-  /**
-   * A ModalManager instance used to track and manage the state of open
-   * Modals. Useful when customizing how modals interact within a container
-   */
-  manager: PropTypes.instanceOf(ModalManager)
-};
-Modal$1.displayName = "Modal";
-Modal$1.propTypes = propTypes;
-const BaseModal = Object.assign(Modal$1, {
-  Manager: ModalManager
-});
-var Selector = {
+const Selector = {
   FIXED_CONTENT: ".fixed-top, .fixed-bottom, .is-fixed, .sticky-top",
   STICKY_CONTENT: ".sticky-top",
   NAVBAR_TOGGLER: ".navbar-toggler"
 };
-var BootstrapModalManager = /* @__PURE__ */ (function(_ModalManager) {
-  _inheritsLoose(BootstrapModalManager2, _ModalManager);
-  function BootstrapModalManager2() {
-    return _ModalManager.apply(this, arguments) || this;
-  }
-  var _proto = BootstrapModalManager2.prototype;
-  _proto.adjustAndStore = function adjustAndStore(prop, element2, adjust) {
-    var _css;
-    var actual = element2.style[prop];
+class BootstrapModalManager extends ModalManager {
+  adjustAndStore(prop, element2, adjust) {
+    const actual = element2.style[prop];
     element2.dataset[prop] = actual;
-    style(element2, (_css = {}, _css[prop] = parseFloat(style(element2, prop)) + adjust + "px", _css));
-  };
-  _proto.restore = function restore(prop, element2) {
-    var value = element2.dataset[prop];
+    style(element2, {
+      [prop]: `${parseFloat(style(element2, prop)) + adjust}px`
+    });
+  }
+  restore(prop, element2) {
+    const value = element2.dataset[prop];
     if (value !== void 0) {
-      var _css2;
       delete element2.dataset[prop];
-      style(element2, (_css2 = {}, _css2[prop] = value, _css2));
+      style(element2, {
+        [prop]: value
+      });
     }
-  };
-  _proto.setContainerStyle = function setContainerStyle(containerState, container) {
-    var _this = this;
-    _ModalManager.prototype.setContainerStyle.call(this, containerState, container);
-    if (!containerState.overflowing) return;
-    var size2 = scrollbarSize();
-    qsa(container, Selector.FIXED_CONTENT).forEach(function(el) {
-      return _this.adjustAndStore("paddingRight", el, size2);
-    });
-    qsa(container, Selector.STICKY_CONTENT).forEach(function(el) {
-      return _this.adjustAndStore("marginRight", el, -size2);
-    });
-    qsa(container, Selector.NAVBAR_TOGGLER).forEach(function(el) {
-      return _this.adjustAndStore("marginRight", el, size2);
-    });
-  };
-  _proto.removeContainerStyle = function removeContainerStyle(containerState, container) {
-    var _this2 = this;
-    _ModalManager.prototype.removeContainerStyle.call(this, containerState, container);
-    qsa(container, Selector.FIXED_CONTENT).forEach(function(el) {
-      return _this2.restore("paddingRight", el);
-    });
-    qsa(container, Selector.STICKY_CONTENT).forEach(function(el) {
-      return _this2.restore("marginRight", el);
-    });
-    qsa(container, Selector.NAVBAR_TOGGLER).forEach(function(el) {
-      return _this2.restore("marginRight", el);
-    });
-  };
-  return BootstrapModalManager2;
-})(ModalManager);
-const ModalBody = createWithBsPrefix("modal-body");
-var ModalContext = /* @__PURE__ */ React.createContext({
-  // eslint-disable-next-line @typescript-eslint/no-empty-function
-  onHide: function onHide() {
+  }
+  setContainerStyle(containerState) {
+    super.setContainerStyle(containerState);
+    const container = this.getElement();
+    addClass(container, "modal-open");
+    if (!containerState.scrollBarWidth) return;
+    const paddingProp = this.isRTL ? "paddingLeft" : "paddingRight";
+    const marginProp = this.isRTL ? "marginLeft" : "marginRight";
+    qsa(container, Selector.FIXED_CONTENT).forEach((el) => this.adjustAndStore(paddingProp, el, containerState.scrollBarWidth));
+    qsa(container, Selector.STICKY_CONTENT).forEach((el) => this.adjustAndStore(marginProp, el, -containerState.scrollBarWidth));
+    qsa(container, Selector.NAVBAR_TOGGLER).forEach((el) => this.adjustAndStore(marginProp, el, containerState.scrollBarWidth));
+  }
+  removeContainerStyle(containerState) {
+    super.removeContainerStyle(containerState);
+    const container = this.getElement();
+    removeClass(container, "modal-open");
+    const paddingProp = this.isRTL ? "paddingLeft" : "paddingRight";
+    const marginProp = this.isRTL ? "marginLeft" : "marginRight";
+    qsa(container, Selector.FIXED_CONTENT).forEach((el) => this.restore(paddingProp, el));
+    qsa(container, Selector.STICKY_CONTENT).forEach((el) => this.restore(marginProp, el));
+    qsa(container, Selector.NAVBAR_TOGGLER).forEach((el) => this.restore(marginProp, el));
+  }
+}
+let sharedManager;
+function getSharedManager(options2) {
+  if (!sharedManager) sharedManager = new BootstrapModalManager(options2);
+  return sharedManager;
+}
+const ModalBody = /* @__PURE__ */ reactExports.forwardRef(({
+  className,
+  bsPrefix,
+  as: Component = "div",
+  ...props
+}, ref) => {
+  bsPrefix = useBootstrapPrefix(bsPrefix, "modal-body");
+  return /* @__PURE__ */ jsxRuntimeExports.jsx(Component, {
+    ref,
+    className: classNames$1(className, bsPrefix),
+    ...props
+  });
+});
+ModalBody.displayName = "ModalBody";
+const ModalContext = /* @__PURE__ */ reactExports.createContext({
+  onHide() {
   }
 });
-var _excluded$h = ["bsPrefix", "className", "contentClassName", "centered", "size", "children", "scrollable"];
-var ModalDialog = /* @__PURE__ */ React.forwardRef(function(_ref3, ref) {
-  var bsPrefix = _ref3.bsPrefix, className = _ref3.className, contentClassName = _ref3.contentClassName, centered = _ref3.centered, size2 = _ref3.size, children2 = _ref3.children, scrollable = _ref3.scrollable, props = _objectWithoutPropertiesLoose$1(_ref3, _excluded$h);
+const ModalDialog = /* @__PURE__ */ reactExports.forwardRef(({
+  bsPrefix,
+  className,
+  contentClassName,
+  centered,
+  size: size2,
+  fullscreen,
+  children: children2,
+  scrollable,
+  ...props
+}, ref) => {
   bsPrefix = useBootstrapPrefix(bsPrefix, "modal");
-  var dialogClass = bsPrefix + "-dialog";
-  return /* @__PURE__ */ React.createElement("div", _extends$1({}, props, {
+  const dialogClass = `${bsPrefix}-dialog`;
+  const fullScreenClass = typeof fullscreen === "string" ? `${bsPrefix}-fullscreen-${fullscreen}` : `${bsPrefix}-fullscreen`;
+  return /* @__PURE__ */ jsxRuntimeExports.jsx("div", {
+    ...props,
     ref,
-    className: classNames$1(dialogClass, className, size2 && bsPrefix + "-" + size2, centered && dialogClass + "-centered", scrollable && dialogClass + "-scrollable")
-  }), /* @__PURE__ */ React.createElement("div", {
-    className: classNames$1(bsPrefix + "-content", contentClassName)
-  }, children2));
+    className: classNames$1(dialogClass, className, size2 && `${bsPrefix}-${size2}`, centered && `${dialogClass}-centered`, scrollable && `${dialogClass}-scrollable`, fullscreen && fullScreenClass),
+    children: /* @__PURE__ */ jsxRuntimeExports.jsx("div", {
+      className: classNames$1(`${bsPrefix}-content`, contentClassName),
+      children: children2
+    })
+  });
 });
 ModalDialog.displayName = "ModalDialog";
-const ModalFooter = createWithBsPrefix("modal-footer");
-var _excluded$g = ["bsPrefix", "closeLabel", "closeButton", "onHide", "className", "children"];
-var defaultProps$5 = {
-  closeLabel: "Close",
-  closeButton: false
-};
-var ModalHeader = /* @__PURE__ */ React.forwardRef(function(_ref3, ref) {
-  var bsPrefix = _ref3.bsPrefix, closeLabel = _ref3.closeLabel, closeButton = _ref3.closeButton, onHide2 = _ref3.onHide, className = _ref3.className, children2 = _ref3.children, props = _objectWithoutPropertiesLoose$1(_ref3, _excluded$g);
-  bsPrefix = useBootstrapPrefix(bsPrefix, "modal-header");
-  var context2 = reactExports.useContext(ModalContext);
-  var handleClick = useEventCallback(function() {
-    if (context2) context2.onHide();
-    if (onHide2) onHide2();
+const ModalFooter = /* @__PURE__ */ reactExports.forwardRef(({
+  className,
+  bsPrefix,
+  as: Component = "div",
+  ...props
+}, ref) => {
+  bsPrefix = useBootstrapPrefix(bsPrefix, "modal-footer");
+  return /* @__PURE__ */ jsxRuntimeExports.jsx(Component, {
+    ref,
+    className: classNames$1(className, bsPrefix),
+    ...props
   });
-  return /* @__PURE__ */ React.createElement("div", _extends$1({
-    ref
-  }, props, {
-    className: classNames$1(className, bsPrefix)
-  }), children2, closeButton && /* @__PURE__ */ React.createElement(CloseButton, {
-    label: closeLabel,
-    onClick: handleClick
-  }));
+});
+ModalFooter.displayName = "ModalFooter";
+const AbstractModalHeader = /* @__PURE__ */ reactExports.forwardRef(({
+  closeLabel = "Close",
+  closeVariant,
+  closeButton = false,
+  onHide,
+  children: children2,
+  ...props
+}, ref) => {
+  const context2 = reactExports.useContext(ModalContext);
+  const handleClick = useEventCallback$1(() => {
+    context2 == null || context2.onHide();
+    onHide == null || onHide();
+  });
+  return /* @__PURE__ */ jsxRuntimeExports.jsxs("div", {
+    ref,
+    ...props,
+    children: [children2, closeButton && /* @__PURE__ */ jsxRuntimeExports.jsx(CloseButton, {
+      "aria-label": closeLabel,
+      variant: closeVariant,
+      onClick: handleClick
+    })]
+  });
+});
+AbstractModalHeader.displayName = "AbstractModalHeader";
+const ModalHeader = /* @__PURE__ */ reactExports.forwardRef(({
+  bsPrefix,
+  className,
+  closeLabel = "Close",
+  closeButton = false,
+  ...props
+}, ref) => {
+  bsPrefix = useBootstrapPrefix(bsPrefix, "modal-header");
+  return /* @__PURE__ */ jsxRuntimeExports.jsx(AbstractModalHeader, {
+    ref,
+    ...props,
+    className: classNames$1(className, bsPrefix),
+    closeLabel,
+    closeButton
+  });
 });
 ModalHeader.displayName = "ModalHeader";
-ModalHeader.defaultProps = defaultProps$5;
-var DivStyledAsH4 = divWithClassName("h4");
-const ModalTitle = createWithBsPrefix("modal-title", {
-  Component: DivStyledAsH4
+const DivStyledAsH4 = divWithClassName("h4");
+const ModalTitle = /* @__PURE__ */ reactExports.forwardRef(({
+  className,
+  bsPrefix,
+  as: Component = DivStyledAsH4,
+  ...props
+}, ref) => {
+  bsPrefix = useBootstrapPrefix(bsPrefix, "modal-title");
+  return /* @__PURE__ */ jsxRuntimeExports.jsx(Component, {
+    ref,
+    className: classNames$1(className, bsPrefix),
+    ...props
+  });
 });
-var _excluded$f = ["bsPrefix", "className", "style", "dialogClassName", "contentClassName", "children", "dialogAs", "aria-labelledby", "aria-describedby", "aria-label", "show", "animation", "backdrop", "keyboard", "onEscapeKeyDown", "onShow", "onHide", "container", "autoFocus", "enforceFocus", "restoreFocus", "restoreFocusOptions", "onEntered", "onExit", "onExiting", "onEnter", "onEntering", "onExited", "backdropClassName", "manager"];
-var manager;
-var defaultProps$4 = {
-  show: false,
-  backdrop: true,
-  keyboard: true,
-  autoFocus: true,
-  enforceFocus: true,
-  restoreFocus: true,
-  animation: true,
-  dialogAs: ModalDialog
-};
-function DialogTransition(props) {
-  return /* @__PURE__ */ React.createElement(Fade, _extends$1({}, props, {
+ModalTitle.displayName = "ModalTitle";
+function DialogTransition$1(props) {
+  return /* @__PURE__ */ jsxRuntimeExports.jsx(Fade, {
+    ...props,
     timeout: null
-  }));
+  });
 }
-function BackdropTransition(props) {
-  return /* @__PURE__ */ React.createElement(Fade, _extends$1({}, props, {
+function BackdropTransition$1(props) {
+  return /* @__PURE__ */ jsxRuntimeExports.jsx(Fade, {
+    ...props,
     timeout: null
-  }));
+  });
 }
-var Modal = /* @__PURE__ */ React.forwardRef(function(_ref3, ref) {
-  var bsPrefix = _ref3.bsPrefix, className = _ref3.className, style2 = _ref3.style, dialogClassName = _ref3.dialogClassName, contentClassName = _ref3.contentClassName, children2 = _ref3.children, Dialog = _ref3.dialogAs, ariaLabelledby = _ref3["aria-labelledby"], ariaDescribedby = _ref3["aria-describedby"], ariaLabel = _ref3["aria-label"], show = _ref3.show, animation = _ref3.animation, backdrop = _ref3.backdrop, keyboard = _ref3.keyboard, onEscapeKeyDown = _ref3.onEscapeKeyDown, onShow = _ref3.onShow, onHide2 = _ref3.onHide, container = _ref3.container, autoFocus = _ref3.autoFocus, enforceFocus = _ref3.enforceFocus, restoreFocus = _ref3.restoreFocus, restoreFocusOptions = _ref3.restoreFocusOptions, onEntered = _ref3.onEntered, onExit = _ref3.onExit, onExiting = _ref3.onExiting, onEnter = _ref3.onEnter, onEntering = _ref3.onEntering, onExited = _ref3.onExited, backdropClassName = _ref3.backdropClassName, propsManager = _ref3.manager, props = _objectWithoutPropertiesLoose$1(_ref3, _excluded$f);
-  var _useState = reactExports.useState({}), modalStyle = _useState[0], setStyle = _useState[1];
-  var _useState2 = reactExports.useState(false), animateStaticModal = _useState2[0], setAnimateStaticModal = _useState2[1];
-  var waitingForMouseUpRef = reactExports.useRef(false);
-  var ignoreBackdropClickRef = reactExports.useRef(false);
-  var removeStaticModalAnimationRef = reactExports.useRef(null);
-  var _useCallbackRef = useCallbackRef$2(), modal = _useCallbackRef[0], setModalRef = _useCallbackRef[1];
-  var handleHide = useEventCallback(onHide2);
+const Modal = /* @__PURE__ */ reactExports.forwardRef(({
+  bsPrefix,
+  className,
+  style: style2,
+  dialogClassName,
+  contentClassName,
+  children: children2,
+  dialogAs: Dialog = ModalDialog,
+  "data-bs-theme": dataBsTheme,
+  "aria-labelledby": ariaLabelledby,
+  "aria-describedby": ariaDescribedby,
+  "aria-label": ariaLabel,
+  /* BaseModal props */
+  show = false,
+  animation = true,
+  backdrop = true,
+  keyboard = true,
+  onEscapeKeyDown,
+  onShow,
+  onHide,
+  container,
+  autoFocus = true,
+  enforceFocus = true,
+  restoreFocus = true,
+  restoreFocusOptions,
+  onEntered,
+  onExit,
+  onExiting,
+  onEnter,
+  onEntering,
+  onExited,
+  backdropClassName,
+  manager: propsManager,
+  ...props
+}, ref) => {
+  const [modalStyle, setStyle] = reactExports.useState({});
+  const [animateStaticModal, setAnimateStaticModal] = reactExports.useState(false);
+  const waitingForMouseUpRef = reactExports.useRef(false);
+  const ignoreBackdropClickRef = reactExports.useRef(false);
+  const removeStaticModalAnimationRef = reactExports.useRef(null);
+  const [modal, setModalRef] = useCallbackRef$2();
+  const mergedRef = useMergedRefs$1(ref, setModalRef);
+  const handleHide = useEventCallback$1(onHide);
+  const isRTL2 = useIsRTL();
   bsPrefix = useBootstrapPrefix(bsPrefix, "modal");
-  reactExports.useImperativeHandle(ref, function() {
-    return {
-      get _modal() {
-        return modal;
-      }
-    };
-  }, [modal]);
-  var modalContext = reactExports.useMemo(function() {
-    return {
-      onHide: handleHide
-    };
-  }, [handleHide]);
+  const modalContext = reactExports.useMemo(() => ({
+    onHide: handleHide
+  }), [handleHide]);
   function getModalManager() {
     if (propsManager) return propsManager;
-    if (!manager) manager = new BootstrapModalManager();
-    return manager;
+    return getSharedManager({
+      isRTL: isRTL2
+    });
   }
   function updateDialogStyle(node2) {
     if (!canUseDOM$1) return;
-    var containerIsOverflowing = getModalManager().isContainerOverflowing(modal);
-    var modalIsOverflowing = node2.scrollHeight > ownerDocument(node2).documentElement.clientHeight;
+    const containerIsOverflowing = getModalManager().getScrollbarWidth() > 0;
+    const modalIsOverflowing = node2.scrollHeight > ownerDocument(node2).documentElement.clientHeight;
     setStyle({
       paddingRight: containerIsOverflowing && !modalIsOverflowing ? scrollbarSize() : void 0,
       paddingLeft: !containerIsOverflowing && modalIsOverflowing ? scrollbarSize() : void 0
     });
   }
-  var handleWindowResize = useEventCallback(function() {
+  const handleWindowResize = useEventCallback$1(() => {
     if (modal) {
       updateDialogStyle(modal.dialog);
     }
   });
-  useWillUnmount(function() {
+  useWillUnmount$1(() => {
     removeEventListener(window, "resize", handleWindowResize);
-    if (removeStaticModalAnimationRef.current) {
-      removeStaticModalAnimationRef.current();
-    }
+    removeStaticModalAnimationRef.current == null || removeStaticModalAnimationRef.current();
   });
-  var handleDialogMouseDown = function handleDialogMouseDown2() {
+  const handleDialogMouseDown = () => {
     waitingForMouseUpRef.current = true;
   };
-  var handleMouseUp = function handleMouseUp2(e) {
+  const handleMouseUp = (e) => {
     if (waitingForMouseUpRef.current && modal && e.target === modal.dialog) {
       ignoreBackdropClickRef.current = true;
     }
     waitingForMouseUpRef.current = false;
   };
-  var handleStaticModalAnimation = function handleStaticModalAnimation2() {
+  const handleStaticModalAnimation = () => {
     setAnimateStaticModal(true);
-    removeStaticModalAnimationRef.current = transitionEnd(modal.dialog, function() {
+    removeStaticModalAnimationRef.current = transitionEnd(modal.dialog, () => {
       setAnimateStaticModal(false);
     });
   };
-  var handleStaticBackdropClick = function handleStaticBackdropClick2(e) {
+  const handleStaticBackdropClick = (e) => {
     if (e.target !== e.currentTarget) {
       return;
     }
     handleStaticModalAnimation();
   };
-  var handleClick = function handleClick2(e) {
+  const handleClick = (e) => {
     if (backdrop === "static") {
       handleStaticBackdropClick(e);
       return;
@@ -17915,296 +18346,680 @@ var Modal = /* @__PURE__ */ React.forwardRef(function(_ref3, ref) {
       ignoreBackdropClickRef.current = false;
       return;
     }
-    onHide2 == null ? void 0 : onHide2();
+    onHide == null || onHide();
   };
-  var handleEscapeKeyDown = function handleEscapeKeyDown2(e) {
-    if (!keyboard && backdrop === "static") {
+  const handleEscapeKeyDown = (e) => {
+    if (keyboard) {
+      onEscapeKeyDown == null || onEscapeKeyDown(e);
+    } else {
       e.preventDefault();
-      handleStaticModalAnimation();
-    } else if (keyboard && onEscapeKeyDown) {
-      onEscapeKeyDown(e);
+      if (backdrop === "static") {
+        handleStaticModalAnimation();
+      }
     }
   };
-  var handleEnter = function handleEnter2(node2, isAppearing) {
+  const handleEnter = (node2, isAppearing) => {
     if (node2) {
-      node2.style.display = "block";
       updateDialogStyle(node2);
     }
-    onEnter == null ? void 0 : onEnter(node2, isAppearing);
+    onEnter == null || onEnter(node2, isAppearing);
   };
-  var handleExit = function handleExit2(node2) {
-    removeStaticModalAnimationRef.current == null ? void 0 : removeStaticModalAnimationRef.current();
-    onExit == null ? void 0 : onExit(node2);
+  const handleExit = (node2) => {
+    removeStaticModalAnimationRef.current == null || removeStaticModalAnimationRef.current();
+    onExit == null || onExit(node2);
   };
-  var handleEntering = function handleEntering2(node2, isAppearing) {
-    onEntering == null ? void 0 : onEntering(node2, isAppearing);
+  const handleEntering = (node2, isAppearing) => {
+    onEntering == null || onEntering(node2, isAppearing);
     addEventListener(window, "resize", handleWindowResize);
   };
-  var handleExited = function handleExited2(node2) {
+  const handleExited = (node2) => {
     if (node2) node2.style.display = "";
-    onExited == null ? void 0 : onExited(node2);
+    onExited == null || onExited(node2);
     removeEventListener(window, "resize", handleWindowResize);
   };
-  var renderBackdrop = reactExports.useCallback(function(backdropProps) {
-    return /* @__PURE__ */ React.createElement("div", _extends$1({}, backdropProps, {
-      className: classNames$1(bsPrefix + "-backdrop", backdropClassName, !animation && "show")
-    }));
-  }, [animation, backdropClassName, bsPrefix]);
-  var baseModalStyle = _extends$1({}, style2, modalStyle);
-  if (!animation) {
-    baseModalStyle.display = "block";
-  }
-  var renderDialog = function renderDialog2(dialogProps) {
-    return /* @__PURE__ */ React.createElement("div", _extends$1({
-      role: "dialog"
-    }, dialogProps, {
-      style: baseModalStyle,
-      className: classNames$1(className, bsPrefix, animateStaticModal && bsPrefix + "-static"),
-      onClick: backdrop ? handleClick : void 0,
-      onMouseUp: handleMouseUp,
-      "aria-label": ariaLabel,
-      "aria-labelledby": ariaLabelledby,
-      "aria-describedby": ariaDescribedby
-    }), /* @__PURE__ */ React.createElement(Dialog, _extends$1({}, props, {
+  const renderBackdrop = reactExports.useCallback((backdropProps) => /* @__PURE__ */ jsxRuntimeExports.jsx("div", {
+    ...backdropProps,
+    className: classNames$1(`${bsPrefix}-backdrop`, backdropClassName, !animation && "show")
+  }), [animation, backdropClassName, bsPrefix]);
+  const baseModalStyle = {
+    ...style2,
+    ...modalStyle
+  };
+  baseModalStyle.display = "block";
+  const renderDialog = (dialogProps) => /* @__PURE__ */ jsxRuntimeExports.jsx("div", {
+    role: "dialog",
+    ...dialogProps,
+    style: baseModalStyle,
+    className: classNames$1(className, bsPrefix, animateStaticModal && `${bsPrefix}-static`, !animation && "show"),
+    onClick: backdrop ? handleClick : void 0,
+    onMouseUp: handleMouseUp,
+    "data-bs-theme": dataBsTheme,
+    "aria-label": ariaLabel,
+    "aria-labelledby": ariaLabelledby,
+    "aria-describedby": ariaDescribedby,
+    children: /* @__PURE__ */ jsxRuntimeExports.jsx(Dialog, {
+      ...props,
       onMouseDown: handleDialogMouseDown,
       className: dialogClassName,
-      contentClassName
-    }), children2));
-  };
-  return /* @__PURE__ */ React.createElement(ModalContext.Provider, {
-    value: modalContext
-  }, /* @__PURE__ */ React.createElement(BaseModal, {
-    show,
-    ref: setModalRef,
-    backdrop,
-    container,
-    keyboard: true,
-    autoFocus,
-    enforceFocus,
-    restoreFocus,
-    restoreFocusOptions,
-    onEscapeKeyDown: handleEscapeKeyDown,
-    onShow,
-    onHide: onHide2,
-    onEnter: handleEnter,
-    onEntering: handleEntering,
-    onEntered,
-    onExit: handleExit,
-    onExiting,
-    onExited: handleExited,
-    manager: getModalManager(),
-    containerClassName: bsPrefix + "-open",
-    transition: animation ? DialogTransition : void 0,
-    backdropTransition: animation ? BackdropTransition : void 0,
-    renderBackdrop,
-    renderDialog
-  }));
+      contentClassName,
+      children: children2
+    })
+  });
+  return /* @__PURE__ */ jsxRuntimeExports.jsx(ModalContext.Provider, {
+    value: modalContext,
+    children: /* @__PURE__ */ jsxRuntimeExports.jsx(BaseModal, {
+      show,
+      ref: mergedRef,
+      backdrop,
+      container,
+      keyboard: true,
+      autoFocus,
+      enforceFocus,
+      restoreFocus,
+      restoreFocusOptions,
+      onEscapeKeyDown: handleEscapeKeyDown,
+      onShow,
+      onHide,
+      onEnter: handleEnter,
+      onEntering: handleEntering,
+      onEntered,
+      onExit: handleExit,
+      onExiting,
+      onExited: handleExited,
+      manager: getModalManager(),
+      transition: animation ? DialogTransition$1 : void 0,
+      backdropTransition: animation ? BackdropTransition$1 : void 0,
+      renderBackdrop,
+      renderDialog
+    })
+  });
 });
 Modal.displayName = "Modal";
-Modal.defaultProps = defaultProps$4;
-Modal.Body = ModalBody;
-Modal.Header = ModalHeader;
-Modal.Title = ModalTitle;
-Modal.Footer = ModalFooter;
-Modal.Dialog = ModalDialog;
-Modal.TRANSITION_DURATION = 300;
-Modal.BACKDROP_TRANSITION_DURATION = 150;
-var _excluded$e = ["bsPrefix", "className", "as"];
-var NavbarBrand = /* @__PURE__ */ React.forwardRef(function(_ref3, ref) {
-  var bsPrefix = _ref3.bsPrefix, className = _ref3.className, as = _ref3.as, props = _objectWithoutPropertiesLoose$1(_ref3, _excluded$e);
+const RBModal = Object.assign(Modal, {
+  Body: ModalBody,
+  Header: ModalHeader,
+  Title: ModalTitle,
+  Footer: ModalFooter,
+  Dialog: ModalDialog,
+  TRANSITION_DURATION: 300,
+  BACKDROP_TRANSITION_DURATION: 150
+});
+const NavbarBrand = /* @__PURE__ */ reactExports.forwardRef(({
+  bsPrefix,
+  className,
+  as,
+  ...props
+}, ref) => {
   bsPrefix = useBootstrapPrefix(bsPrefix, "navbar-brand");
-  var Component = as || (props.href ? "a" : "span");
-  return /* @__PURE__ */ React.createElement(Component, _extends$1({}, props, {
+  const Component = as || (props.href ? "a" : "span");
+  return /* @__PURE__ */ jsxRuntimeExports.jsx(Component, {
+    ...props,
     ref,
     className: classNames$1(className, bsPrefix)
-  }));
+  });
 });
 NavbarBrand.displayName = "NavbarBrand";
-var _excluded$d = ["children", "bsPrefix"];
-var NavbarCollapse = /* @__PURE__ */ React.forwardRef(function(_ref3, ref) {
-  var children2 = _ref3.children, bsPrefix = _ref3.bsPrefix, props = _objectWithoutPropertiesLoose$1(_ref3, _excluded$d);
+const NavbarCollapse = /* @__PURE__ */ reactExports.forwardRef(({
+  children: children2,
+  bsPrefix,
+  ...props
+}, ref) => {
   bsPrefix = useBootstrapPrefix(bsPrefix, "navbar-collapse");
-  return /* @__PURE__ */ React.createElement(context.Consumer, null, function(context2) {
-    return /* @__PURE__ */ React.createElement(Collapse, _extends$1({
-      in: !!(context2 && context2.expanded)
-    }, props), /* @__PURE__ */ React.createElement("div", {
+  const context$1 = reactExports.useContext(context);
+  return /* @__PURE__ */ jsxRuntimeExports.jsx(Collapse, {
+    in: !!(context$1 && context$1.expanded),
+    ...props,
+    children: /* @__PURE__ */ jsxRuntimeExports.jsx("div", {
       ref,
-      className: bsPrefix
-    }, children2));
+      className: bsPrefix,
+      children: children2
+    })
   });
 });
 NavbarCollapse.displayName = "NavbarCollapse";
-var _excluded$c = ["bsPrefix", "className", "children", "label", "as", "onClick"];
-var defaultProps$3 = {
-  label: "Toggle navigation"
-};
-var NavbarToggle = /* @__PURE__ */ React.forwardRef(function(_ref3, ref) {
-  var bsPrefix = _ref3.bsPrefix, className = _ref3.className, children2 = _ref3.children, label = _ref3.label, _ref$as = _ref3.as, Component = _ref$as === void 0 ? "button" : _ref$as, onClick = _ref3.onClick, props = _objectWithoutPropertiesLoose$1(_ref3, _excluded$c);
+const NavbarToggle = /* @__PURE__ */ reactExports.forwardRef(({
+  bsPrefix,
+  className,
+  children: children2,
+  label = "Toggle navigation",
+  // Need to define the default "as" during prop destructuring to be compatible with styled-components github.com/react-bootstrap/react-bootstrap/issues/3595
+  as: Component = "button",
+  onClick,
+  ...props
+}, ref) => {
   bsPrefix = useBootstrapPrefix(bsPrefix, "navbar-toggler");
-  var _ref22 = reactExports.useContext(context) || {}, onToggle = _ref22.onToggle, expanded = _ref22.expanded;
-  var handleClick = useEventCallback(function(e) {
+  const {
+    onToggle,
+    expanded
+  } = reactExports.useContext(context) || {};
+  const handleClick = useEventCallback$1((e) => {
     if (onClick) onClick(e);
     if (onToggle) onToggle();
   });
   if (Component === "button") {
     props.type = "button";
   }
-  return /* @__PURE__ */ React.createElement(Component, _extends$1({}, props, {
+  return /* @__PURE__ */ jsxRuntimeExports.jsx(Component, {
+    ...props,
     ref,
     onClick: handleClick,
     "aria-label": label,
-    className: classNames$1(className, bsPrefix, !expanded && "collapsed")
-  }), children2 || /* @__PURE__ */ React.createElement("span", {
-    className: bsPrefix + "-icon"
-  }));
+    className: classNames$1(className, bsPrefix, !expanded && "collapsed"),
+    children: children2 || /* @__PURE__ */ jsxRuntimeExports.jsx("span", {
+      className: `${bsPrefix}-icon`
+    })
+  });
 });
 NavbarToggle.displayName = "NavbarToggle";
-NavbarToggle.defaultProps = defaultProps$3;
-var _excluded$b = ["bsPrefix", "expand", "variant", "bg", "fixed", "sticky", "className", "children", "as", "expanded", "onToggle", "onSelect", "collapseOnSelect"];
-var NavbarText = createWithBsPrefix("navbar-text", {
-  Component: "span"
-});
-var defaultProps$2 = {
-  expand: true,
-  variant: "light",
-  collapseOnSelect: false
+const matchersByWindow = /* @__PURE__ */ new WeakMap();
+const getMatcher = (query, targetWindow) => {
+  if (!query || !targetWindow) return void 0;
+  const matchers = matchersByWindow.get(targetWindow) || /* @__PURE__ */ new Map();
+  matchersByWindow.set(targetWindow, matchers);
+  let mql = matchers.get(query);
+  if (!mql) {
+    mql = targetWindow.matchMedia(query);
+    mql.refCount = 0;
+    matchers.set(mql.media, mql);
+  }
+  return mql;
 };
-var Navbar = /* @__PURE__ */ React.forwardRef(function(props, ref) {
-  var _useUncontrolled = useUncontrolled(props, {
-    expanded: "onToggle"
-  }), initialBsPrefix = _useUncontrolled.bsPrefix, expand = _useUncontrolled.expand, variant = _useUncontrolled.variant, bg = _useUncontrolled.bg, fixed = _useUncontrolled.fixed, sticky = _useUncontrolled.sticky, className = _useUncontrolled.className, children2 = _useUncontrolled.children, _useUncontrolled$as = _useUncontrolled.as, Component = _useUncontrolled$as === void 0 ? "nav" : _useUncontrolled$as, expanded = _useUncontrolled.expanded, _onToggle = _useUncontrolled.onToggle, onSelect = _useUncontrolled.onSelect, collapseOnSelect = _useUncontrolled.collapseOnSelect, controlledProps = _objectWithoutPropertiesLoose$1(_useUncontrolled, _excluded$b);
-  var bsPrefix = useBootstrapPrefix(initialBsPrefix, "navbar");
-  var handleCollapse = reactExports.useCallback(function() {
-    if (onSelect) onSelect.apply(void 0, arguments);
-    if (collapseOnSelect && expanded) {
-      if (_onToggle) {
-        _onToggle(false);
-      }
+function useMediaQuery(query, targetWindow = typeof window === "undefined" ? void 0 : window) {
+  const mql = getMatcher(query, targetWindow);
+  const [matches, setMatches] = reactExports.useState(() => mql ? mql.matches : false);
+  useIsomorphicEffect(() => {
+    let mql2 = getMatcher(query, targetWindow);
+    if (!mql2) {
+      return setMatches(false);
     }
-  }, [onSelect, collapseOnSelect, expanded, _onToggle]);
+    let matchers = matchersByWindow.get(targetWindow);
+    const handleChange = () => {
+      setMatches(mql2.matches);
+    };
+    mql2.refCount++;
+    mql2.addListener(handleChange);
+    handleChange();
+    return () => {
+      mql2.removeListener(handleChange);
+      mql2.refCount--;
+      if (mql2.refCount <= 0) {
+        matchers == null ? void 0 : matchers.delete(mql2.media);
+      }
+      mql2 = void 0;
+    };
+  }, [query]);
+  return matches;
+}
+function createBreakpointHook(breakpointValues) {
+  const names = Object.keys(breakpointValues);
+  function and(query, next2) {
+    if (query === next2) {
+      return next2;
+    }
+    return query ? `${query} and ${next2}` : next2;
+  }
+  function getNext(breakpoint) {
+    return names[Math.min(names.indexOf(breakpoint) + 1, names.length - 1)];
+  }
+  function getMaxQuery(breakpoint) {
+    const next2 = getNext(breakpoint);
+    let value = breakpointValues[next2];
+    if (typeof value === "number") value = `${value - 0.2}px`;
+    else value = `calc(${value} - 0.2px)`;
+    return `(max-width: ${value})`;
+  }
+  function getMinQuery(breakpoint) {
+    let value = breakpointValues[breakpoint];
+    if (typeof value === "number") {
+      value = `${value}px`;
+    }
+    return `(min-width: ${value})`;
+  }
+  function useBreakpoint2(breakpointOrMap, direction, window2) {
+    let breakpointMap;
+    if (typeof breakpointOrMap === "object") {
+      breakpointMap = breakpointOrMap;
+      window2 = direction;
+      direction = true;
+    } else {
+      direction = direction || true;
+      breakpointMap = {
+        [breakpointOrMap]: direction
+      };
+    }
+    let query = reactExports.useMemo(() => Object.entries(breakpointMap).reduce((query2, [key, direction2]) => {
+      if (direction2 === "up" || direction2 === true) {
+        query2 = and(query2, getMinQuery(key));
+      }
+      if (direction2 === "down" || direction2 === true) {
+        query2 = and(query2, getMaxQuery(key));
+      }
+      return query2;
+    }, ""), [JSON.stringify(breakpointMap)]);
+    return useMediaQuery(query, window2);
+  }
+  return useBreakpoint2;
+}
+const useBreakpoint = createBreakpointHook({
+  xs: 0,
+  sm: 576,
+  md: 768,
+  lg: 992,
+  xl: 1200,
+  xxl: 1400
+});
+const OffcanvasBody = /* @__PURE__ */ reactExports.forwardRef(({
+  className,
+  bsPrefix,
+  as: Component = "div",
+  ...props
+}, ref) => {
+  bsPrefix = useBootstrapPrefix(bsPrefix, "offcanvas-body");
+  return /* @__PURE__ */ jsxRuntimeExports.jsx(Component, {
+    ref,
+    className: classNames$1(className, bsPrefix),
+    ...props
+  });
+});
+OffcanvasBody.displayName = "OffcanvasBody";
+const transitionStyles = {
+  [ENTERING]: "show",
+  [ENTERED]: "show"
+};
+const OffcanvasToggling = /* @__PURE__ */ reactExports.forwardRef(({
+  bsPrefix,
+  className,
+  children: children2,
+  in: inProp = false,
+  mountOnEnter = false,
+  unmountOnExit = false,
+  appear = false,
+  ...props
+}, ref) => {
+  bsPrefix = useBootstrapPrefix(bsPrefix, "offcanvas");
+  return /* @__PURE__ */ jsxRuntimeExports.jsx(TransitionWrapper, {
+    ref,
+    addEndListener: transitionEndListener,
+    in: inProp,
+    mountOnEnter,
+    unmountOnExit,
+    appear,
+    ...props,
+    childRef: getChildRef(children2),
+    children: (status, innerProps) => /* @__PURE__ */ reactExports.cloneElement(children2, {
+      ...innerProps,
+      className: classNames$1(className, children2.props.className, (status === ENTERING || status === EXITING) && `${bsPrefix}-toggling`, transitionStyles[status])
+    })
+  });
+});
+OffcanvasToggling.displayName = "OffcanvasToggling";
+const OffcanvasHeader = /* @__PURE__ */ reactExports.forwardRef(({
+  bsPrefix,
+  className,
+  closeLabel = "Close",
+  closeButton = false,
+  ...props
+}, ref) => {
+  bsPrefix = useBootstrapPrefix(bsPrefix, "offcanvas-header");
+  return /* @__PURE__ */ jsxRuntimeExports.jsx(AbstractModalHeader, {
+    ref,
+    ...props,
+    className: classNames$1(className, bsPrefix),
+    closeLabel,
+    closeButton
+  });
+});
+OffcanvasHeader.displayName = "OffcanvasHeader";
+const DivStyledAsH5 = divWithClassName("h5");
+const OffcanvasTitle = /* @__PURE__ */ reactExports.forwardRef(({
+  className,
+  bsPrefix,
+  as: Component = DivStyledAsH5,
+  ...props
+}, ref) => {
+  bsPrefix = useBootstrapPrefix(bsPrefix, "offcanvas-title");
+  return /* @__PURE__ */ jsxRuntimeExports.jsx(Component, {
+    ref,
+    className: classNames$1(className, bsPrefix),
+    ...props
+  });
+});
+OffcanvasTitle.displayName = "OffcanvasTitle";
+function DialogTransition(props) {
+  return /* @__PURE__ */ jsxRuntimeExports.jsx(OffcanvasToggling, {
+    ...props
+  });
+}
+function BackdropTransition(props) {
+  return /* @__PURE__ */ jsxRuntimeExports.jsx(Fade, {
+    ...props
+  });
+}
+const Offcanvas = /* @__PURE__ */ reactExports.forwardRef(({
+  bsPrefix,
+  className,
+  children: children2,
+  "aria-labelledby": ariaLabelledby,
+  placement = "start",
+  responsive,
+  /* BaseModal props */
+  show = false,
+  backdrop = true,
+  keyboard = true,
+  scroll: scroll2 = false,
+  onEscapeKeyDown,
+  onShow,
+  onHide,
+  container,
+  autoFocus = true,
+  enforceFocus = true,
+  restoreFocus = true,
+  restoreFocusOptions,
+  onEntered,
+  onExit,
+  onExiting,
+  onEnter,
+  onEntering,
+  onExited,
+  backdropClassName,
+  manager: propsManager,
+  renderStaticNode = false,
+  ...props
+}, ref) => {
+  const modalManager = reactExports.useRef();
+  bsPrefix = useBootstrapPrefix(bsPrefix, "offcanvas");
+  const [showOffcanvas, setShowOffcanvas] = reactExports.useState(false);
+  const handleHide = useEventCallback$1(onHide);
+  const hideResponsiveOffcanvas = useBreakpoint(responsive || "xs", "up");
+  reactExports.useEffect(() => {
+    setShowOffcanvas(responsive ? show && !hideResponsiveOffcanvas : show);
+  }, [show, responsive, hideResponsiveOffcanvas]);
+  const modalContext = reactExports.useMemo(() => ({
+    onHide: handleHide
+  }), [handleHide]);
+  function getModalManager() {
+    if (propsManager) return propsManager;
+    if (scroll2) {
+      if (!modalManager.current) modalManager.current = new BootstrapModalManager({
+        handleContainerOverflow: false
+      });
+      return modalManager.current;
+    }
+    return getSharedManager();
+  }
+  const handleEnter = (node2, ...args) => {
+    if (node2) node2.style.visibility = "visible";
+    onEnter == null || onEnter(node2, ...args);
+  };
+  const handleExited = (node2, ...args) => {
+    if (node2) node2.style.visibility = "";
+    onExited == null || onExited(...args);
+  };
+  const renderBackdrop = reactExports.useCallback((backdropProps) => /* @__PURE__ */ jsxRuntimeExports.jsx("div", {
+    ...backdropProps,
+    className: classNames$1(`${bsPrefix}-backdrop`, backdropClassName)
+  }), [backdropClassName, bsPrefix]);
+  const renderDialog = (dialogProps) => /* @__PURE__ */ jsxRuntimeExports.jsx("div", {
+    ...dialogProps,
+    ...props,
+    className: classNames$1(className, responsive ? `${bsPrefix}-${responsive}` : bsPrefix, `${bsPrefix}-${placement}`),
+    "aria-labelledby": ariaLabelledby,
+    children: children2
+  });
+  return /* @__PURE__ */ jsxRuntimeExports.jsxs(jsxRuntimeExports.Fragment, {
+    children: [!showOffcanvas && (responsive || renderStaticNode) && renderDialog({}), /* @__PURE__ */ jsxRuntimeExports.jsx(ModalContext.Provider, {
+      value: modalContext,
+      children: /* @__PURE__ */ jsxRuntimeExports.jsx(BaseModal, {
+        show: showOffcanvas,
+        ref,
+        backdrop,
+        container,
+        keyboard,
+        autoFocus,
+        enforceFocus: enforceFocus && !scroll2,
+        restoreFocus,
+        restoreFocusOptions,
+        onEscapeKeyDown,
+        onShow,
+        onHide: handleHide,
+        onEnter: handleEnter,
+        onEntering,
+        onEntered,
+        onExit,
+        onExiting,
+        onExited: handleExited,
+        manager: getModalManager(),
+        transition: DialogTransition,
+        backdropTransition: BackdropTransition,
+        renderBackdrop,
+        renderDialog
+      })
+    })]
+  });
+});
+Offcanvas.displayName = "Offcanvas";
+const Offcanvas$1 = Object.assign(Offcanvas, {
+  Body: OffcanvasBody,
+  Header: OffcanvasHeader,
+  Title: OffcanvasTitle
+});
+const NavbarOffcanvas = /* @__PURE__ */ reactExports.forwardRef(({
+  onHide,
+  ...props
+}, ref) => {
+  const context$1 = reactExports.useContext(context);
+  const handleHide = useEventCallback$1(() => {
+    context$1 == null || context$1.onToggle == null || context$1.onToggle();
+    onHide == null || onHide();
+  });
+  return /* @__PURE__ */ jsxRuntimeExports.jsx(Offcanvas$1, {
+    ref,
+    show: !!(context$1 != null && context$1.expanded),
+    ...props,
+    renderStaticNode: true,
+    onHide: handleHide
+  });
+});
+NavbarOffcanvas.displayName = "NavbarOffcanvas";
+const NavbarText = /* @__PURE__ */ reactExports.forwardRef(({
+  className,
+  bsPrefix,
+  as: Component = "span",
+  ...props
+}, ref) => {
+  bsPrefix = useBootstrapPrefix(bsPrefix, "navbar-text");
+  return /* @__PURE__ */ jsxRuntimeExports.jsx(Component, {
+    ref,
+    className: classNames$1(className, bsPrefix),
+    ...props
+  });
+});
+NavbarText.displayName = "NavbarText";
+const Navbar = /* @__PURE__ */ reactExports.forwardRef((props, ref) => {
+  const {
+    bsPrefix: initialBsPrefix,
+    expand = true,
+    variant = "light",
+    bg,
+    fixed,
+    sticky,
+    className,
+    // Need to define the default "as" during prop destructuring to be compatible with styled-components github.com/react-bootstrap/react-bootstrap/issues/3595
+    as: Component = "nav",
+    expanded,
+    onToggle,
+    onSelect,
+    collapseOnSelect = false,
+    ...controlledProps
+  } = useUncontrolled(props, {
+    expanded: "onToggle"
+  });
+  const bsPrefix = useBootstrapPrefix(initialBsPrefix, "navbar");
+  const handleCollapse = reactExports.useCallback((...args) => {
+    onSelect == null || onSelect(...args);
+    if (collapseOnSelect && expanded) {
+      onToggle == null || onToggle(false);
+    }
+  }, [onSelect, collapseOnSelect, expanded, onToggle]);
   if (controlledProps.role === void 0 && Component !== "nav") {
     controlledProps.role = "navigation";
   }
-  var expandClass = bsPrefix + "-expand";
-  if (typeof expand === "string") expandClass = expandClass + "-" + expand;
-  var navbarContext = reactExports.useMemo(function() {
-    return {
-      onToggle: function onToggle() {
-        return _onToggle && _onToggle(!expanded);
-      },
-      bsPrefix,
-      expanded: !!expanded
-    };
-  }, [bsPrefix, expanded, _onToggle]);
-  return /* @__PURE__ */ React.createElement(context.Provider, {
-    value: navbarContext
-  }, /* @__PURE__ */ React.createElement(SelectableContext.Provider, {
-    value: handleCollapse
-  }, /* @__PURE__ */ React.createElement(Component, _extends$1({
-    ref
-  }, controlledProps, {
-    className: classNames$1(className, bsPrefix, expand && expandClass, variant && bsPrefix + "-" + variant, bg && "bg-" + bg, sticky && "sticky-" + sticky, fixed && "fixed-" + fixed)
-  }), children2)));
+  let expandClass = `${bsPrefix}-expand`;
+  if (typeof expand === "string") expandClass = `${expandClass}-${expand}`;
+  const navbarContext = reactExports.useMemo(() => ({
+    onToggle: () => onToggle == null ? void 0 : onToggle(!expanded),
+    bsPrefix,
+    expanded: !!expanded,
+    expand
+  }), [bsPrefix, expanded, expand, onToggle]);
+  return /* @__PURE__ */ jsxRuntimeExports.jsx(context.Provider, {
+    value: navbarContext,
+    children: /* @__PURE__ */ jsxRuntimeExports.jsx(SelectableContext.Provider, {
+      value: handleCollapse,
+      children: /* @__PURE__ */ jsxRuntimeExports.jsx(Component, {
+        ref,
+        ...controlledProps,
+        className: classNames$1(className, bsPrefix, expand && expandClass, variant && `${bsPrefix}-${variant}`, bg && `bg-${bg}`, sticky && `sticky-${sticky}`, fixed && `fixed-${fixed}`)
+      })
+    })
+  });
 });
-Navbar.defaultProps = defaultProps$2;
 Navbar.displayName = "Navbar";
-Navbar.Brand = NavbarBrand;
-Navbar.Toggle = NavbarToggle;
-Navbar.Collapse = NavbarCollapse;
-Navbar.Text = NavbarText;
-var _excluded$a = ["active", "disabled", "className", "style", "activeLabel", "children"], _excluded2$3 = ["children"];
-var defaultProps$1 = {
-  active: false,
-  disabled: false,
-  activeLabel: "(current)"
-};
-var PageItem = /* @__PURE__ */ React.forwardRef(function(_ref3, ref) {
-  var active = _ref3.active, disabled = _ref3.disabled, className = _ref3.className, style2 = _ref3.style, activeLabel = _ref3.activeLabel, children2 = _ref3.children, props = _objectWithoutPropertiesLoose$1(_ref3, _excluded$a);
-  var Component = active || disabled ? "span" : SafeAnchor;
-  return /* @__PURE__ */ React.createElement("li", {
+const Navbar$1 = Object.assign(Navbar, {
+  Brand: NavbarBrand,
+  Collapse: NavbarCollapse,
+  Offcanvas: NavbarOffcanvas,
+  Text: NavbarText,
+  Toggle: NavbarToggle
+});
+const PageItem = /* @__PURE__ */ reactExports.forwardRef(({
+  active = false,
+  disabled = false,
+  className,
+  style: style2,
+  activeLabel = "(current)",
+  children: children2,
+  linkStyle,
+  linkClassName,
+  as = Anchor$1,
+  ...props
+}, ref) => {
+  const Component = active || disabled ? "span" : as;
+  return /* @__PURE__ */ jsxRuntimeExports.jsx("li", {
     ref,
     style: style2,
     className: classNames$1(className, "page-item", {
       active,
       disabled
+    }),
+    children: /* @__PURE__ */ jsxRuntimeExports.jsxs(Component, {
+      className: classNames$1("page-link", linkClassName),
+      style: linkStyle,
+      ...props,
+      children: [children2, active && activeLabel && /* @__PURE__ */ jsxRuntimeExports.jsx("span", {
+        className: "visually-hidden",
+        children: activeLabel
+      })]
     })
-  }, /* @__PURE__ */ React.createElement(Component, _extends$1({
-    className: "page-link",
-    disabled
-  }, props), children2, active && activeLabel && /* @__PURE__ */ React.createElement("span", {
-    className: "sr-only"
-  }, activeLabel)));
+  });
 });
-PageItem.defaultProps = defaultProps$1;
 PageItem.displayName = "PageItem";
-function createButton(name, defaultValue, label) {
-  if (label === void 0) {
-    label = name;
-  }
-  function Button2(_ref22) {
-    var children2 = _ref22.children, props = _objectWithoutPropertiesLoose$1(_ref22, _excluded2$3);
-    return /* @__PURE__ */ React.createElement(PageItem, props, /* @__PURE__ */ React.createElement("span", {
-      "aria-hidden": "true"
-    }, children2 || defaultValue), /* @__PURE__ */ React.createElement("span", {
-      className: "sr-only"
-    }, label));
-  }
+function createButton(name, defaultValue, label = name) {
+  const Button2 = /* @__PURE__ */ reactExports.forwardRef(({
+    children: children2,
+    ...props
+  }, ref) => /* @__PURE__ */ jsxRuntimeExports.jsxs(PageItem, {
+    ...props,
+    ref,
+    children: [/* @__PURE__ */ jsxRuntimeExports.jsx("span", {
+      "aria-hidden": "true",
+      children: children2 || defaultValue
+    }), /* @__PURE__ */ jsxRuntimeExports.jsx("span", {
+      className: "visually-hidden",
+      children: label
+    })]
+  }));
   Button2.displayName = name;
   return Button2;
 }
-var First = createButton("First", "«");
-var Prev = createButton("Prev", "‹", "Previous");
-var Ellipsis = createButton("Ellipsis", "…", "More");
-var Next = createButton("Next", "›");
-var Last = createButton("Last", "»");
-var _excluded$9 = ["bsPrefix", "className", "children", "size"];
-var Pagination = /* @__PURE__ */ React.forwardRef(function(_ref3, ref) {
-  var bsPrefix = _ref3.bsPrefix, className = _ref3.className, children2 = _ref3.children, size2 = _ref3.size, props = _objectWithoutPropertiesLoose$1(_ref3, _excluded$9);
-  var decoratedBsPrefix = useBootstrapPrefix(bsPrefix, "pagination");
-  return /* @__PURE__ */ React.createElement("ul", _extends$1({
-    ref
-  }, props, {
-    className: classNames$1(className, decoratedBsPrefix, size2 && decoratedBsPrefix + "-" + size2)
-  }), children2);
+const First = createButton("First", "«");
+const Prev = createButton("Prev", "‹", "Previous");
+const Ellipsis = createButton("Ellipsis", "…", "More");
+const Next = createButton("Next", "›");
+const Last = createButton("Last", "»");
+const Pagination = /* @__PURE__ */ reactExports.forwardRef(({
+  bsPrefix,
+  className,
+  size: size2,
+  ...props
+}, ref) => {
+  const decoratedBsPrefix = useBootstrapPrefix(bsPrefix, "pagination");
+  return /* @__PURE__ */ jsxRuntimeExports.jsx("ul", {
+    ref,
+    ...props,
+    className: classNames$1(className, decoratedBsPrefix, size2 && `${decoratedBsPrefix}-${size2}`)
+  });
 });
-Pagination.First = First;
-Pagination.Prev = Prev;
-Pagination.Ellipsis = Ellipsis;
-Pagination.Item = PageItem;
-Pagination.Next = Next;
-Pagination.Last = Last;
-var _excluded$8 = ["bsPrefix", "variant", "animation", "size", "children", "as", "className"];
-var Spinner = /* @__PURE__ */ React.forwardRef(function(_ref3, ref) {
-  var bsPrefix = _ref3.bsPrefix, variant = _ref3.variant, animation = _ref3.animation, size2 = _ref3.size, children2 = _ref3.children, _ref$as = _ref3.as, Component = _ref$as === void 0 ? "div" : _ref$as, className = _ref3.className, props = _objectWithoutPropertiesLoose$1(_ref3, _excluded$8);
+Pagination.displayName = "Pagination";
+const BootstrapPagination = Object.assign(Pagination, {
+  First,
+  Prev,
+  Ellipsis,
+  Item: PageItem,
+  Next,
+  Last
+});
+const Spinner = /* @__PURE__ */ reactExports.forwardRef(({
+  bsPrefix,
+  variant,
+  animation = "border",
+  size: size2,
+  // Need to define the default "as" during prop destructuring to be compatible with styled-components github.com/react-bootstrap/react-bootstrap/issues/3595
+  as: Component = "div",
+  className,
+  ...props
+}, ref) => {
   bsPrefix = useBootstrapPrefix(bsPrefix, "spinner");
-  var bsSpinnerPrefix = bsPrefix + "-" + animation;
-  return /* @__PURE__ */ React.createElement(Component, _extends$1({
-    ref
-  }, props, {
-    className: classNames$1(className, bsSpinnerPrefix, size2 && bsSpinnerPrefix + "-" + size2, variant && "text-" + variant)
-  }), children2);
+  const bsSpinnerPrefix = `${bsPrefix}-${animation}`;
+  return /* @__PURE__ */ jsxRuntimeExports.jsx(Component, {
+    ref,
+    ...props,
+    className: classNames$1(className, bsSpinnerPrefix, size2 && `${bsSpinnerPrefix}-${size2}`, variant && `text-${variant}`)
+  });
 });
 Spinner.displayName = "Spinner";
-var _excluded$7 = ["bsPrefix", "className", "striped", "bordered", "borderless", "hover", "size", "variant", "responsive"];
-var Table = /* @__PURE__ */ React.forwardRef(function(_ref3, ref) {
-  var bsPrefix = _ref3.bsPrefix, className = _ref3.className, striped = _ref3.striped, bordered = _ref3.bordered, borderless = _ref3.borderless, hover = _ref3.hover, size2 = _ref3.size, variant = _ref3.variant, responsive = _ref3.responsive, props = _objectWithoutPropertiesLoose$1(_ref3, _excluded$7);
-  var decoratedBsPrefix = useBootstrapPrefix(bsPrefix, "table");
-  var classes = classNames$1(className, decoratedBsPrefix, variant && decoratedBsPrefix + "-" + variant, size2 && decoratedBsPrefix + "-" + size2, striped && decoratedBsPrefix + "-striped", bordered && decoratedBsPrefix + "-bordered", borderless && decoratedBsPrefix + "-borderless", hover && decoratedBsPrefix + "-hover");
-  var table = /* @__PURE__ */ React.createElement("table", _extends$1({}, props, {
+const Table = /* @__PURE__ */ reactExports.forwardRef(({
+  bsPrefix,
+  className,
+  striped,
+  bordered,
+  borderless,
+  hover,
+  size: size2,
+  variant,
+  responsive,
+  ...props
+}, ref) => {
+  const decoratedBsPrefix = useBootstrapPrefix(bsPrefix, "table");
+  const classes = classNames$1(className, decoratedBsPrefix, variant && `${decoratedBsPrefix}-${variant}`, size2 && `${decoratedBsPrefix}-${size2}`, striped && `${decoratedBsPrefix}-${typeof striped === "string" ? `striped-${striped}` : "striped"}`, bordered && `${decoratedBsPrefix}-bordered`, borderless && `${decoratedBsPrefix}-borderless`, hover && `${decoratedBsPrefix}-hover`);
+  const table = /* @__PURE__ */ jsxRuntimeExports.jsx("table", {
+    ...props,
     className: classes,
     ref
-  }));
+  });
   if (responsive) {
-    var responsiveClass = decoratedBsPrefix + "-responsive";
+    let responsiveClass = `${decoratedBsPrefix}-responsive`;
     if (typeof responsive === "string") {
-      responsiveClass = responsiveClass + "-" + responsive;
+      responsiveClass = `${responsiveClass}-${responsive}`;
     }
-    return /* @__PURE__ */ React.createElement("div", {
-      className: responsiveClass
-    }, table);
+    return /* @__PURE__ */ jsxRuntimeExports.jsx("div", {
+      className: responsiveClass,
+      children: table
+    });
   }
   return table;
 });
+Table.displayName = "Table";
 const toKebabCase = (string2) => string2.replace(/([a-z0-9])([A-Z])/g, "$1-$2").toLowerCase();
 const toCamelCase = (string2) => string2.replace(
   /^([A-Z])|[\s-_]+(\w)/g,
@@ -18417,8 +19232,8 @@ var __extends = /* @__PURE__ */ (function() {
     d.prototype = b === null ? Object.create(b) : (__.prototype = b.prototype, new __());
   };
 })();
-var __assign$2 = function() {
-  __assign$2 = Object.assign || function(t) {
+var __assign$1 = function() {
+  __assign$1 = Object.assign || function(t) {
     for (var s, i2 = 1, n = arguments.length; i2 < n; i2++) {
       s = arguments[i2];
       for (var p in s) if (Object.prototype.hasOwnProperty.call(s, p))
@@ -18426,7 +19241,7 @@ var __assign$2 = function() {
     }
     return t;
   };
-  return __assign$2.apply(this, arguments);
+  return __assign$1.apply(this, arguments);
 };
 (function(to, from2, pack) {
   if (pack || arguments.length === 2) for (var i2 = 0, l = from2.length, ar; i2 < l; i2++) {
@@ -18673,7 +19488,7 @@ function getIndex(codecs) {
   var keys = Object.keys(tags);
   var len = codecs.length;
   var _loop_1 = function(k2) {
-    var all2 = tags[k2].slice();
+    var all = tags[k2].slice();
     var index2 = [tags[k2]];
     for (var i2 = 1; i2 < len; i2++) {
       var codec = codecs[i2];
@@ -18683,11 +19498,11 @@ function getIndex(codecs) {
         return "continue-keys";
       } else {
         if (values.some(function(v) {
-          return all2.indexOf(v) !== -1;
+          return all.indexOf(v) !== -1;
         })) {
           return "continue-keys";
         } else {
-          all2.push.apply(all2, values);
+          all.push.apply(all, values);
           index2.push(values);
         }
       }
@@ -19084,7 +19899,7 @@ function type(props, name) {
         var vak = result.right;
         if (vak !== ak || vak === void 0 && !hasOwnProperty$1.call(a, k)) {
           if (a === o) {
-            a = __assign$2({}, o);
+            a = __assign$1({}, o);
           }
           a[k] = vak;
         }
@@ -19092,7 +19907,7 @@ function type(props, name) {
     }
     return errors.length > 0 ? failures(errors) : success(a);
   }, useIdentity(types) ? identity : function(a) {
-    var s = __assign$2({}, a);
+    var s = __assign$1({}, a);
     for (var i2 = 0; i2 < len; i2++) {
       var k = keys[i2];
       var encode = types[i2].encode;
@@ -19158,7 +19973,7 @@ function partial(props, name) {
         var vak = result.right;
         if (vak !== ak) {
           if (a === o) {
-            a = __assign$2({}, o);
+            a = __assign$1({}, o);
           }
           a[k] = vak;
         }
@@ -19166,7 +19981,7 @@ function partial(props, name) {
     }
     return errors.length > 0 ? failures(errors) : success(a);
   }, useIdentity(types) ? identity : function(a) {
-    var s = __assign$2({}, a);
+    var s = __assign$1({}, a);
     for (var i2 = 0; i2 < len; i2++) {
       var k = keys[i2];
       var ak = a[k];
@@ -22532,10 +23347,10 @@ function requireNode$1() {
     return node2.type === domelementtype_1.ElementType.Directive;
   }
   node$2.isDirective = isDirective;
-  function isDocument2(node2) {
+  function isDocument(node2) {
     return node2.type === domelementtype_1.ElementType.Root;
   }
-  node$2.isDocument = isDocument2;
+  node$2.isDocument = isDocument;
   function hasChildren(node2) {
     return Object.prototype.hasOwnProperty.call(node2, "children");
   }
@@ -22572,7 +23387,7 @@ function requireNode$1() {
         return child.parent = clone_2;
       });
       result = clone_2;
-    } else if (isDocument2(node2)) {
+    } else if (isDocument(node2)) {
       var children2 = recursive ? cloneChildren(node2.children) : [];
       var clone_3 = new Document(children2);
       children2.forEach(function(child) {
@@ -24811,10 +25626,10 @@ function requireNode() {
     return node2.type === domelementtype_1.ElementType.Directive;
   }
   node$1.isDirective = isDirective;
-  function isDocument2(node2) {
+  function isDocument(node2) {
     return node2.type === domelementtype_1.ElementType.Root;
   }
-  node$1.isDocument = isDocument2;
+  node$1.isDocument = isDocument;
   function hasChildren(node2) {
     return Object.prototype.hasOwnProperty.call(node2, "children");
   }
@@ -24851,7 +25666,7 @@ function requireNode() {
         return child.parent = clone_2;
       });
       result = clone_2;
-    } else if (isDocument2(node2)) {
+    } else if (isDocument(node2)) {
       var children2 = recursive ? cloneChildren(node2.children) : [];
       var clone_3 = new Document(children2);
       children2.forEach(function(child) {
@@ -25118,21 +25933,15 @@ function toPrimitive(t, r) {
 }
 function toPropertyKey(t) {
   var i2 = toPrimitive(t, "string");
-  return "symbol" == _typeof(i2) ? i2 : String(i2);
+  return "symbol" == _typeof(i2) ? i2 : i2 + "";
 }
-function _defineProperty(obj, key, value) {
-  key = toPropertyKey(key);
-  if (key in obj) {
-    Object.defineProperty(obj, key, {
-      value,
-      enumerable: true,
-      configurable: true,
-      writable: true
-    });
-  } else {
-    obj[key] = value;
-  }
-  return obj;
+function _defineProperty(e, r, t) {
+  return (r = toPropertyKey(r)) in e ? Object.defineProperty(e, r, {
+    value: t,
+    enumerable: true,
+    configurable: true,
+    writable: true
+  }) : e[r] = t, e;
 }
 function ownKeys(e, r) {
   var t = Object.keys(e);
@@ -25155,8 +25964,8 @@ function _objectSpread2(e) {
   }
   return e;
 }
-function _arrayWithHoles(arr) {
-  if (Array.isArray(arr)) return arr;
+function _arrayWithHoles(r) {
+  if (Array.isArray(r)) return r;
 }
 function _iterableToArrayLimit(r, l) {
   var t = null == r ? null : "undefined" != typeof Symbol && r[Symbol.iterator] || r["@@iterator"];
@@ -25179,39 +25988,32 @@ function _iterableToArrayLimit(r, l) {
     return a;
   }
 }
-function _arrayLikeToArray(arr, len) {
-  if (len == null || len > arr.length) len = arr.length;
-  for (var i2 = 0, arr2 = new Array(len); i2 < len; i2++) arr2[i2] = arr[i2];
-  return arr2;
+function _arrayLikeToArray(r, a) {
+  (null == a || a > r.length) && (a = r.length);
+  for (var e = 0, n = Array(a); e < a; e++) n[e] = r[e];
+  return n;
 }
-function _unsupportedIterableToArray(o, minLen) {
-  if (!o) return;
-  if (typeof o === "string") return _arrayLikeToArray(o, minLen);
-  var n = Object.prototype.toString.call(o).slice(8, -1);
-  if (n === "Object" && o.constructor) n = o.constructor.name;
-  if (n === "Map" || n === "Set") return Array.from(o);
-  if (n === "Arguments" || /^(?:Ui|I)nt(?:8|16|32)(?:Clamped)?Array$/.test(n)) return _arrayLikeToArray(o, minLen);
+function _unsupportedIterableToArray(r, a) {
+  if (r) {
+    if ("string" == typeof r) return _arrayLikeToArray(r, a);
+    var t = {}.toString.call(r).slice(8, -1);
+    return "Object" === t && r.constructor && (t = r.constructor.name), "Map" === t || "Set" === t ? Array.from(r) : "Arguments" === t || /^(?:Ui|I)nt(?:8|16|32)(?:Clamped)?Array$/.test(t) ? _arrayLikeToArray(r, a) : void 0;
+  }
 }
 function _nonIterableRest() {
   throw new TypeError("Invalid attempt to destructure non-iterable instance.\nIn order to be iterable, non-array objects must have a [Symbol.iterator]() method.");
 }
-function _slicedToArray(arr, i2) {
-  return _arrayWithHoles(arr) || _iterableToArrayLimit(arr, i2) || _unsupportedIterableToArray(arr, i2) || _nonIterableRest();
+function _slicedToArray(r, e) {
+  return _arrayWithHoles(r) || _iterableToArrayLimit(r, e) || _unsupportedIterableToArray(r, e) || _nonIterableRest();
 }
-function _objectWithoutProperties(source, excluded) {
-  if (source == null) return {};
-  var target = _objectWithoutPropertiesLoose$1(source, excluded);
-  var key, i2;
+function _objectWithoutProperties(e, t) {
+  if (null == e) return {};
+  var o, r, i2 = _objectWithoutPropertiesLoose$8(e, t);
   if (Object.getOwnPropertySymbols) {
-    var sourceSymbolKeys = Object.getOwnPropertySymbols(source);
-    for (i2 = 0; i2 < sourceSymbolKeys.length; i2++) {
-      key = sourceSymbolKeys[i2];
-      if (excluded.indexOf(key) >= 0) continue;
-      if (!Object.prototype.propertyIsEnumerable.call(source, key)) continue;
-      target[key] = source[key];
-    }
+    var n = Object.getOwnPropertySymbols(e);
+    for (r = 0; r < n.length; r++) o = n[r], -1 === t.indexOf(o) && {}.propertyIsEnumerable.call(e, o) && (i2[o] = e[o]);
   }
-  return target;
+  return i2;
 }
 var _excluded$6 = ["defaultInputValue", "defaultMenuIsOpen", "defaultValue", "inputValue", "menuIsOpen", "onChange", "onInputChange", "onMenuClose", "onMenuOpen", "value"];
 function useStateManager(_ref3) {
@@ -25257,49 +26059,36 @@ function useStateManager(_ref3) {
     value
   });
 }
-function _classCallCheck(instance2, Constructor) {
-  if (!(instance2 instanceof Constructor)) {
-    throw new TypeError("Cannot call a class as a function");
+function _classCallCheck(a, n) {
+  if (!(a instanceof n)) throw new TypeError("Cannot call a class as a function");
+}
+function _defineProperties(e, r) {
+  for (var t = 0; t < r.length; t++) {
+    var o = r[t];
+    o.enumerable = o.enumerable || false, o.configurable = true, "value" in o && (o.writable = true), Object.defineProperty(e, toPropertyKey(o.key), o);
   }
 }
-function _defineProperties(target, props) {
-  for (var i2 = 0; i2 < props.length; i2++) {
-    var descriptor = props[i2];
-    descriptor.enumerable = descriptor.enumerable || false;
-    descriptor.configurable = true;
-    if ("value" in descriptor) descriptor.writable = true;
-    Object.defineProperty(target, toPropertyKey(descriptor.key), descriptor);
-  }
-}
-function _createClass(Constructor, protoProps, staticProps) {
-  if (protoProps) _defineProperties(Constructor.prototype, protoProps);
-  if (staticProps) _defineProperties(Constructor, staticProps);
-  Object.defineProperty(Constructor, "prototype", {
+function _createClass(e, r, t) {
+  return r && _defineProperties(e.prototype, r), t && _defineProperties(e, t), Object.defineProperty(e, "prototype", {
     writable: false
-  });
-  return Constructor;
+  }), e;
 }
-function _inherits(subClass, superClass) {
-  if (typeof superClass !== "function" && superClass !== null) {
-    throw new TypeError("Super expression must either be null or a function");
-  }
-  subClass.prototype = Object.create(superClass && superClass.prototype, {
+function _inherits(t, e) {
+  if ("function" != typeof e && null !== e) throw new TypeError("Super expression must either be null or a function");
+  t.prototype = Object.create(e && e.prototype, {
     constructor: {
-      value: subClass,
+      value: t,
       writable: true,
       configurable: true
     }
-  });
-  Object.defineProperty(subClass, "prototype", {
+  }), Object.defineProperty(t, "prototype", {
     writable: false
-  });
-  if (superClass) _setPrototypeOf(subClass, superClass);
+  }), e && _setPrototypeOf(t, e);
 }
-function _getPrototypeOf(o) {
-  _getPrototypeOf = Object.setPrototypeOf ? Object.getPrototypeOf.bind() : function _getPrototypeOf2(o2) {
-    return o2.__proto__ || Object.getPrototypeOf(o2);
-  };
-  return _getPrototypeOf(o);
+function _getPrototypeOf(t) {
+  return _getPrototypeOf = Object.setPrototypeOf ? Object.getPrototypeOf.bind() : function(t2) {
+    return t2.__proto__ || Object.getPrototypeOf(t2);
+  }, _getPrototypeOf(t);
 }
 function _isNativeReflectConstruct() {
   try {
@@ -25311,44 +26100,37 @@ function _isNativeReflectConstruct() {
     return !!t;
   })();
 }
-function _assertThisInitialized(self2) {
-  if (self2 === void 0) {
-    throw new ReferenceError("this hasn't been initialised - super() hasn't been called");
-  }
-  return self2;
+function _assertThisInitialized(e) {
+  if (void 0 === e) throw new ReferenceError("this hasn't been initialised - super() hasn't been called");
+  return e;
 }
-function _possibleConstructorReturn(self2, call) {
-  if (call && (_typeof(call) === "object" || typeof call === "function")) {
-    return call;
-  } else if (call !== void 0) {
-    throw new TypeError("Derived constructors may only return object or undefined");
-  }
-  return _assertThisInitialized(self2);
+function _possibleConstructorReturn(t, e) {
+  if (e && ("object" == _typeof(e) || "function" == typeof e)) return e;
+  if (void 0 !== e) throw new TypeError("Derived constructors may only return object or undefined");
+  return _assertThisInitialized(t);
 }
-function _createSuper(Derived) {
-  var hasNativeReflectConstruct = _isNativeReflectConstruct();
-  return function _createSuperInternal() {
-    var Super = _getPrototypeOf(Derived), result;
-    if (hasNativeReflectConstruct) {
-      var NewTarget = _getPrototypeOf(this).constructor;
-      result = Reflect.construct(Super, arguments, NewTarget);
-    } else {
-      result = Super.apply(this, arguments);
-    }
-    return _possibleConstructorReturn(this, result);
+function _createSuper(t) {
+  var r = _isNativeReflectConstruct();
+  return function() {
+    var e, o = _getPrototypeOf(t);
+    if (r) {
+      var s = _getPrototypeOf(this).constructor;
+      e = Reflect.construct(o, arguments, s);
+    } else e = o.apply(this, arguments);
+    return _possibleConstructorReturn(this, e);
   };
 }
-function _arrayWithoutHoles(arr) {
-  if (Array.isArray(arr)) return _arrayLikeToArray(arr);
+function _arrayWithoutHoles(r) {
+  if (Array.isArray(r)) return _arrayLikeToArray(r);
 }
-function _iterableToArray(iter) {
-  if (typeof Symbol !== "undefined" && iter[Symbol.iterator] != null || iter["@@iterator"] != null) return Array.from(iter);
+function _iterableToArray(r) {
+  if ("undefined" != typeof Symbol && null != r[Symbol.iterator] || null != r["@@iterator"]) return Array.from(r);
 }
 function _nonIterableSpread() {
   throw new TypeError("Invalid attempt to spread non-iterable instance.\nIn order to be iterable, non-array objects must have a [Symbol.iterator]() method.");
 }
-function _toConsumableArray(arr) {
-  return _arrayWithoutHoles(arr) || _iterableToArray(arr) || _unsupportedIterableToArray(arr) || _nonIterableSpread();
+function _toConsumableArray(r) {
+  return _arrayWithoutHoles(r) || _iterableToArray(r) || _unsupportedIterableToArray(r) || _nonIterableSpread();
 }
 function sheetForTag(tag) {
   if (tag.sheet) {
@@ -26702,13 +27484,10 @@ var keyframes = function keyframes2() {
     }
   };
 };
-function _taggedTemplateLiteral(strings, raw) {
-  if (!raw) {
-    raw = strings.slice(0);
-  }
-  return Object.freeze(Object.defineProperties(strings, {
+function _taggedTemplateLiteral(e, t) {
+  return t || (t = e.slice(0)), Object.freeze(Object.defineProperties(e, {
     raw: {
-      value: Object.freeze(raw)
+      value: Object.freeze(t)
     }
   }));
 }
@@ -27690,9 +28469,9 @@ function getOverflowAncestors$1(node2, list, traverseIframes) {
     traverseIframes = true;
   }
   const scrollableAncestor = getNearestOverflowAncestor$1(node2);
-  const isBody2 = scrollableAncestor === ((_node$ownerDocument2 = node2.ownerDocument) == null ? void 0 : _node$ownerDocument2.body);
+  const isBody = scrollableAncestor === ((_node$ownerDocument2 = node2.ownerDocument) == null ? void 0 : _node$ownerDocument2.body);
   const win = getWindow$1(scrollableAncestor);
-  if (isBody2) {
+  if (isBody) {
     const frameElement = getFrameElement$1(win);
     return list.concat(win, win.visualViewport || [], isOverflowElement$1(scrollableAncestor) ? scrollableAncestor : [], frameElement && traverseIframes ? getOverflowAncestors$1(frameElement) : []);
   }
@@ -31683,21 +32462,21 @@ function createContextScope(scopeName, createContextScopeDeps = []) {
     const BaseContext = reactExports.createContext(defaultContext);
     const index2 = defaultContexts.length;
     defaultContexts = [...defaultContexts, defaultContext];
-    const Provider = (props) => {
+    const Provider2 = (props) => {
       const { scope, children: children2, ...context2 } = props;
-      const Context = scope?.[scopeName]?.[index2] || BaseContext;
+      const Context2 = scope?.[scopeName]?.[index2] || BaseContext;
       const value = reactExports.useMemo(() => context2, Object.values(context2));
-      return /* @__PURE__ */ jsxRuntimeExports.jsx(Context.Provider, { value, children: children2 });
+      return /* @__PURE__ */ jsxRuntimeExports.jsx(Context2.Provider, { value, children: children2 });
     };
-    Provider.displayName = rootComponentName + "Provider";
+    Provider2.displayName = rootComponentName + "Provider";
     function useContext2(consumerName, scope) {
-      const Context = scope?.[scopeName]?.[index2] || BaseContext;
-      const context2 = reactExports.useContext(Context);
+      const Context2 = scope?.[scopeName]?.[index2] || BaseContext;
+      const context2 = reactExports.useContext(Context2);
       if (context2) return context2;
       if (defaultContext !== void 0) return defaultContext;
       throw new Error(`\`${consumerName}\` must be used within \`${rootComponentName}\``);
     }
-    return [Provider, useContext2];
+    return [Provider2, useContext2];
   }
   const createScope = () => {
     const scopeContexts = defaultContexts.map((defaultContext) => {
@@ -32307,7 +33086,7 @@ function useId(deterministicId) {
   return deterministicId || (id ? `radix-${id}` : "");
 }
 var isClient = typeof document !== "undefined";
-var noop$1 = function noop3() {
+var noop$1 = function noop() {
 };
 var index = isClient ? reactExports.useLayoutEffect : noop$1;
 function deepEqual(a, b) {
@@ -33206,17 +33985,17 @@ var hideOthers = function(originalTarget, parentNode, markerName) {
   targets.push.apply(targets, Array.from(activeParentNode.querySelectorAll("[aria-live], script")));
   return applyAttributeToOthers(targets, activeParentNode, markerName, "aria-hidden");
 };
-var __assign$1 = function() {
-  __assign$1 = Object.assign || function __assign2(t) {
+var __assign = function() {
+  __assign = Object.assign || function __assign2(t) {
     for (var s, i2 = 1, n = arguments.length; i2 < n; i2++) {
       s = arguments[i2];
       for (var p in s) if (Object.prototype.hasOwnProperty.call(s, p)) t[p] = s[p];
     }
     return t;
   };
-  return __assign$1.apply(this, arguments);
+  return __assign.apply(this, arguments);
 };
-function __rest$1(s, e) {
+function __rest(s, e) {
   var t = {};
   for (var p in s) if (Object.prototype.hasOwnProperty.call(s, p) && e.indexOf(p) < 0)
     t[p] = s[p];
@@ -33306,31 +34085,6 @@ function useMergeRefs(refs, defaultValue) {
   }, [refs]);
   return callbackRef;
 }
-var __assign = function() {
-  __assign = Object.assign || function __assign2(t) {
-    for (var s, i2 = 1, n = arguments.length; i2 < n; i2++) {
-      s = arguments[i2];
-      for (var p in s) if (Object.prototype.hasOwnProperty.call(s, p)) t[p] = s[p];
-    }
-    return t;
-  };
-  return __assign.apply(this, arguments);
-};
-function __rest(s, e) {
-  var t = {};
-  for (var p in s) if (Object.prototype.hasOwnProperty.call(s, p) && e.indexOf(p) < 0)
-    t[p] = s[p];
-  if (s != null && typeof Object.getOwnPropertySymbols === "function")
-    for (var i2 = 0, p = Object.getOwnPropertySymbols(s); i2 < p.length; i2++) {
-      if (e.indexOf(p[i2]) < 0 && Object.prototype.propertyIsEnumerable.call(s, p[i2]))
-        t[p[i2]] = s[p[i2]];
-    }
-  return t;
-}
-typeof SuppressedError === "function" ? SuppressedError : function(error, suppressed, message) {
-  var e = new Error(message);
-  return e.name = "SuppressedError", e.error = error, e.suppressed = suppressed, e;
-};
 function ItoI(a) {
   return a;
 }
@@ -33442,15 +34196,15 @@ var RemoveScroll = reactExports.forwardRef(function(props, parentRef) {
     onWheelCapture: nothing,
     onTouchMoveCapture: nothing
   }), callbacks = _a2[0], setCallbacks = _a2[1];
-  var forwardProps = props.forwardProps, children2 = props.children, className = props.className, removeScrollBar = props.removeScrollBar, enabled = props.enabled, shards = props.shards, sideCar = props.sideCar, noRelative = props.noRelative, noIsolation = props.noIsolation, inert = props.inert, allowPinchZoom = props.allowPinchZoom, _b = props.as, Container = _b === void 0 ? "div" : _b, gapMode = props.gapMode, rest = __rest$1(props, ["forwardProps", "children", "className", "removeScrollBar", "enabled", "shards", "sideCar", "noRelative", "noIsolation", "inert", "allowPinchZoom", "as", "gapMode"]);
+  var forwardProps = props.forwardProps, children2 = props.children, className = props.className, removeScrollBar = props.removeScrollBar, enabled = props.enabled, shards = props.shards, sideCar = props.sideCar, noRelative = props.noRelative, noIsolation = props.noIsolation, inert = props.inert, allowPinchZoom = props.allowPinchZoom, _b = props.as, Container = _b === void 0 ? "div" : _b, gapMode = props.gapMode, rest = __rest(props, ["forwardProps", "children", "className", "removeScrollBar", "enabled", "shards", "sideCar", "noRelative", "noIsolation", "inert", "allowPinchZoom", "as", "gapMode"]);
   var SideCar2 = sideCar;
   var containerRef = useMergeRefs([ref, parentRef]);
-  var containerProps = __assign$1(__assign$1({}, rest), callbacks);
+  var containerProps = __assign(__assign({}, rest), callbacks);
   return reactExports.createElement(
     reactExports.Fragment,
     null,
     enabled && reactExports.createElement(SideCar2, { sideCar: effectCar, removeScrollBar, shards, noRelative, noIsolation, inert, setCallbacks, allowPinchZoom: !!allowPinchZoom, lockRef: ref, gapMode }),
-    forwardProps ? reactExports.cloneElement(reactExports.Children.only(children2), __assign$1(__assign$1({}, containerProps), { ref: containerRef })) : reactExports.createElement(Container, __assign$1({}, containerProps, { className, ref: containerRef }), children2)
+    forwardProps ? reactExports.cloneElement(reactExports.Children.only(children2), __assign(__assign({}, containerProps), { ref: containerRef })) : reactExports.createElement(Container, __assign({}, containerProps, { className, ref: containerRef }), children2)
   );
 });
 RemoveScroll.defaultProps = {
@@ -33882,7 +34636,7 @@ function getOutermostShadowParent(node2) {
 }
 const SideCar = exportSidecar(effectCar, RemoveScrollSideCar);
 var ReactRemoveScroll = reactExports.forwardRef(function(props, ref) {
-  return reactExports.createElement(RemoveScroll, __assign$1({}, props, { ref, sideCar: SideCar }));
+  return reactExports.createElement(RemoveScroll, __assign({}, props, { ref, sideCar: SideCar }));
 });
 ReactRemoveScroll.classNames = RemoveScroll.classNames;
 var POPOVER_NAME = "Popover";
@@ -35447,9 +36201,9 @@ function getOverflowAncestors(node2, list, traverseIframes) {
     traverseIframes = true;
   }
   const scrollableAncestor = getNearestOverflowAncestor(node2);
-  const isBody2 = scrollableAncestor === ((_node$ownerDocument2 = node2.ownerDocument) == null ? void 0 : _node$ownerDocument2.body);
+  const isBody = scrollableAncestor === ((_node$ownerDocument2 = node2.ownerDocument) == null ? void 0 : _node$ownerDocument2.body);
   const win = getWindow(scrollableAncestor);
-  if (isBody2) {
+  if (isBody) {
     const frameElement = getFrameElement(win);
     return list.concat(win, win.visualViewport || [], isOverflowElement(scrollableAncestor) ? scrollableAncestor : [], frameElement && traverseIframes ? getOverflowAncestors(frameElement) : []);
   }
@@ -36172,7 +36926,7 @@ function addArrow(step) {
   }
   return false;
 }
-function noop4() {
+function noop3() {
 }
 function assign(tar, src) {
   for (const k in src) tar[k] = src[k];
@@ -36466,7 +37220,7 @@ function init(component, options2, instance2, create_fragment2, not_equal, props
     ctx: [],
     // state
     props,
-    update: noop4,
+    update: noop3,
     not_equal,
     bound: blank_object(),
     // lifecycle
@@ -36518,7 +37272,7 @@ class SvelteComponent {
   /** @returns {void} */
   $destroy() {
     destroy_component(this, 1);
-    this.$destroy = noop4;
+    this.$destroy = noop3;
   }
   /**
    * @template {Extract<keyof Events, string>} K
@@ -36528,7 +37282,7 @@ class SvelteComponent {
    */
   $on(type2, callback) {
     if (!is_function(callback)) {
-      return noop4;
+      return noop3;
     }
     const callbacks = this.$$.callbacks[type2] || (this.$$.callbacks[type2] = []);
     callbacks.push(callback);
@@ -36615,8 +37369,8 @@ function create_fragment$8(ctx) {
         ctx[2];
       }
     },
-    i: noop4,
-    o: noop4,
+    i: noop3,
+    o: noop3,
     d(detaching) {
       if (detaching) {
         detach(button);
@@ -36924,8 +37678,8 @@ function create_fragment$6(ctx) {
         attr(button, "aria-label", button_aria_label_value);
       }
     },
-    i: noop4,
-    o: noop4,
+    i: noop3,
+    o: noop3,
     d(detaching) {
       if (detaching) {
         detach(button);
@@ -36987,8 +37741,8 @@ function create_fragment$5(ctx) {
         );
       }
     },
-    i: noop4,
-    o: noop4,
+    i: noop3,
+    o: noop3,
     d(detaching) {
       if (detaching) {
         detach(h3);
@@ -37281,8 +38035,8 @@ function create_fragment$3(ctx) {
         );
       }
     },
-    i: noop4,
-    o: noop4,
+    i: noop3,
+    o: noop3,
     d(detaching) {
       if (detaching) {
         detach(div);
@@ -38390,8 +39144,8 @@ function create_fragment(ctx) {
         attr(svg, "class", svg_class_value);
       }
     },
-    i: noop4,
-    o: noop4,
+    i: noop3,
+    o: noop3,
     d(detaching) {
       if (detaching) {
         detach(svg);
@@ -38916,22 +39670,22 @@ const isServerSide = typeof window === "undefined";
 Shepherd.Step = isServerSide ? StepNoOp : Step;
 Shepherd.Tour = isServerSide ? TourNoOp : Tour;
 export {
-  Alert,
+  Alert$1 as Alert,
   Badge,
+  BootstrapPagination,
   BrowserRouter,
   Bug,
   Button,
   Droppable,
-  FormImpl,
+  Form$1 as Form,
   Link,
-  ListGroup,
-  Modal,
-  Navbar,
+  ListGroup$1 as ListGroup,
+  Navbar$1 as Navbar,
   Navigate,
-  Pagination,
   Popover,
   PopoverContent,
   PopoverTrigger,
+  RBModal,
   React,
   ResizeMirror,
   Route,

@@ -64,8 +64,12 @@ const ModalWrapper = (props: { type: 'MODAL' | 'DIALOG', size?: 'sm' | 'lg' | 'x
         size,
     } = props;
     if (type === 'DIALOG') {
+        // bootstrap 5 declares the modal custom properties on .modal itself, so a dialog
+        // rendered outside one comes out with no background, border or padding
         return (
-            <RBModal.Dialog size={size}>{children}</RBModal.Dialog>
+            <div className="modal position-static d-block">
+                <RBModal.Dialog size={size}>{children}</RBModal.Dialog>
+            </div>
         );
     }
     return (

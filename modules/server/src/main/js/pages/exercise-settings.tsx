@@ -16,6 +16,7 @@ import {observer} from "mobx-react";
 import {ToggleSwitch} from "../components/common/toggle";
 import {Button, Form} from "react-bootstrap";
 import {Link} from "react-router-dom";
+import { LoadFailure } from "../components/common/errors";
 import {Loader} from "../components/common/loader";
 import {useTranslation} from "react-i18next";
 import {Header} from "../components/common/header";
@@ -80,16 +81,18 @@ export const ExerciseSettings = observer(() => {
                     <ul className="list-group">
                         {exerciseStore.exercises?.map(e =>
                             <Link key={e.id}
-                                className={`list-group-item ${e.id === exerciseStore.currentCard?.id && "active" || ""}`}
-                                to={`?exerciseId=${e.id}${courseId != null ? `&courseId=${courseId}` : ''}`}
-                                onClick={() => exerciseStore.loadExercise(e.id)}
-                                title={e.name} >
+                                  className={`list-group-item ${e.id === exerciseStore.currentCard?.id && "active" || ""}`}
+                                  to={`?exerciseId=${e.id}${courseId != null ? `&courseId=${courseId}` : ''}`}
+                                  onClick={() => exerciseStore.loadExercise(e.id)}
+                                  title={e.name} >
                                 {e.name.length > 22 ? `${e.name.substring(0, 22)}...` : e.name}
                             </Link>
                         )}
                     </ul>
                 </div>
                 <div className="col-xl-9 col-md-9 col-12">
+                    {exerciseStore.storeState.tag === 'ERROR' &&
+                        <LoadFailure error={exerciseStore.storeState.error} />}
                     <ExerciseCardElement
                         store={exerciseStore}
                         card={exerciseStore.currentCard}
@@ -144,27 +147,27 @@ const ExerciseCardElement = observer((props: ExerciseCardElementProps) => {
             <ExerciseModeBar store={store} linkType={linkType} courseId={store.courseId} />
             <fieldset disabled={!canEdit} style={!canEdit ? { pointerEvents: 'none', opacity: 0.65 } : undefined}>
             <form className="exercise-settings-form">
-                <div className="form-group">
-                    <label className="font-weight-bold" htmlFor="exampleInputEmail1">{t('exercisesettings_name')}</label>
+                <div className="mb-3">
+                    <label className="fw-bold" htmlFor="exampleInputEmail1">{t('exercisesettings_name')}</label>
                     <Form.Control value={card.name} type="email" id="exampleInputEmail1" aria-describedby="emailHelp" placeholder="Enter email" onChange={e => store.setCardName(e.target.value)} />
                 </div>
-                <div className="form-group">
-                    <label className="font-weight-bold">{t('exercisesettings_domain')}</label>
-                    <Form.Control as="select" id="domainId" aria-describedby="domainDescription" value={card.domainId} onChange={e => store.setCardDomain(e.target.value)} title={currentDomain?.displayName}>
+                <div className="mb-3">
+                    <label className="fw-bold">{t('exercisesettings_domain')}</label>
+                    <Form.Select id="domainId" aria-describedby="domainDescription" value={card.domainId} onChange={e => store.setCardDomain(e.target.value)} title={currentDomain?.displayName}>
                         {domains?.map(d => <option key={d.id} value={d.id} title={d.description ?? d.displayName}>{d.displayName}</option>)}
-                    </Form.Control>
+                    </Form.Select>
                     <small id="domainDescription" className="form-text text-muted">{currentDomain?.description ?? ""}</small>
                 </div>
-                <div className="form-group">
-                    <label className="font-weight-bold">{t('exercisesettings_strategy')}</label>
-                    <Form.Control as="select" id="strategyId" aria-describedby="strategyDescription" value={card.strategyId} onChange={e => store.setCardStrategy(e.target.value)} title={currentStrategy?.displayName}>
+                <div className="mb-3">
+                    <label className="fw-bold">{t('exercisesettings_strategy')}</label>
+                    <Form.Select id="strategyId" aria-describedby="strategyDescription" value={card.strategyId} onChange={e => store.setCardStrategy(e.target.value)} title={currentStrategy?.displayName}>
                         {strategies?.map(d => <option key={d.id} value={d.id} title={d.description ?? d.displayName}>{d.displayName}</option>)}
-                    </Form.Control>
+                    </Form.Select>
                     <small id="strategyDescription" className="form-text text-muted">{currentStrategy?.description ?? ""}</small>
                 </div>
 
-                <div className="form-group">
-                    <label className="font-weight-bold">{t('exercisesettings_qopt')}</label>
+                <div className="mb-3">
+                    <label className="fw-bold">{t('exercisesettings_qopt')}</label>
                     <Form.Check type="checkbox"
                                 id="forceNewAttemptCreationEnabled"
                                 label={t('exercisesettings_qopt_forceAttCreation')}
@@ -197,24 +200,22 @@ const ExerciseCardElement = observer((props: ExerciseCardElementProps) => {
                                 onChange={x => store.setCardOption('debugButtonEnabled', x.target.checked)} />
                 </div>
 
-                <div className="form-group">
-                    <label className="font-weight-bold" htmlFor={`maxExpectedConcurrentStudents`}>{t('exercisesettings_max_concurrent_students')}</label>
+                <div className="mb-3">
+                    <label className="fw-bold" htmlFor={`maxExpectedConcurrentStudents`}>{t('exercisesettings_max_concurrent_students')}</label>
                     <Form.Control type="number"
                         id={`maxExpectedConcurrentStudents`}
                         value={store.currentCard?.options.maxExpectedConcurrentStudents}
                         onChange={e => store.setCardOption('maxExpectedConcurrentStudents', +e.target.value)} />
                 </div>
 
-                <div className="form-group">
-                    <label htmlFor="survOptions" className="font-weight-bold">{t('exercisesettings_survey')}</label>
+                <div className="mb-3">
+                    <label htmlFor="survOptions" className="fw-bold">{t('exercisesettings_survey')}</label>
                     <div className="input-group mb-3">
-                        <div className="input-group-prepend">
-                            <div className="input-group-text">
-                                <input checked={card.options.surveyOptions?.enabled}
-                                    type="checkbox"
-                                    aria-label="Checkbox for following text input"
-                                    onChange={x => store.setCardSurveyEnabled(x.target.checked)} />
-                            </div>
+                        <div className="input-group-text">
+                            <input checked={card.options.surveyOptions?.enabled}
+                                type="checkbox"
+                                aria-label="Checkbox for following text input"
+                                onChange={x => store.setCardSurveyEnabled(x.target.checked)} />
                         </div>
                         <Form.Control id="survOptions"
                             type="text"
@@ -224,8 +225,8 @@ const ExerciseCardElement = observer((props: ExerciseCardElementProps) => {
                             onChange={x => store.setCardSurveyId(x.target.value)} />
                     </div>
                 </div>
-                <div className="form-group">
-                    <label htmlFor="exTagsValues" className="font-weight-bold">{t('exercisesettings_tags')}</label>
+                <div className="mb-3">
+                    <label htmlFor="exTagsValues" className="fw-bold">{t('exercisesettings_tags')}</label>
                     {currentDomain?.tags.map((t, i) =>
                         <Form.Check key={i}
                             type="checkbox"
@@ -238,9 +239,9 @@ const ExerciseCardElement = observer((props: ExerciseCardElementProps) => {
                                 : store.setCardTags([...card.tags.filter(z => z !== x.target.value)])} />)}
                 </div>
                 {sharedDomainConcepts?.length
-                    && <div className="form-group">
+                    && <div className="mb-3">
                         <div>
-                            <label className="font-weight-bold">{t('exercisesettings_commonConcepts')}</label>
+                            <label className="fw-bold">{t('exercisesettings_commonConcepts')}</label>
                         </div>
                         <div className="row">
                             <div className="col-md-12">
@@ -264,8 +265,8 @@ const ExerciseCardElement = observer((props: ExerciseCardElementProps) => {
                     || null
                 }
                 {sharedDomainLaws?.length
-                    && <div className="form-group">
-                        <label className="font-weight-bold">{t('exercisesettings_commonLaws')}</label>
+                    && <div className="mb-3">
+                        <label className="fw-bold">{t('exercisesettings_commonLaws')}</label>
                         <div className="list-group list-group-flush">
                             <ExerciseLaws
                                 id="common_laws"
@@ -285,8 +286,8 @@ const ExerciseCardElement = observer((props: ExerciseCardElementProps) => {
                     || null
                 }
                 {sharedDomainSkills?.length
-                    && <div className="form-group">
-                        <label className="font-weight-bold">{t('exercisesettings_commonSkills')}</label>
+                    && <div className="mb-3">
+                        <label className="fw-bold">{t('exercisesettings_commonSkills')}</label>
                         <div className="list-group list-group-flush">
                             <ExerciseSkills
                                 id="common_skills"
@@ -305,8 +306,8 @@ const ExerciseCardElement = observer((props: ExerciseCardElementProps) => {
                     </div>
                     || null
                 }
-                <div className="form-group">
-                    <label className="font-weight-bold">{t('exercisesettings_stages')}</label>
+                <div className="mb-3">
+                    <label className="fw-bold mb-2">{t('exercisesettings_stages')}</label>
                     <div className="list-group list-group-flush">
                         {card.stages.map((stage, stageIdx, stages) => 
                             <ExerciseStage
@@ -331,11 +332,11 @@ const ExerciseCardElement = observer((props: ExerciseCardElementProps) => {
             </form >
             </fieldset>
             <div className="mt-5">
-                {canEdit && <Button variant="primary" className="mr-2" onClick={() => store.saveCard()}>{t('exercisesettings_save')}</Button>}
-                {canEdit && <Button variant="primary" className="mr-2" onClick={() => store.saveCard().then(() => window.open(`${window.location.origin}/pages/exercise?exerciseId=${card.id}${store.courseId != null ? `&courseId=${store.courseId}` : ''}`, '_blank')?.focus()) }>{t('exercisesettings_saveNopen')}</Button>}
-                <Button variant="primary" className="mr-2" onClick={() => window.open(`${window.location.origin}/pages/exercise?exerciseId=${card.id}${store.courseId != null ? `&courseId=${store.courseId}` : ''}`, '_blank')?.focus()}>{t('exercisesettings_open')}</Button>
+                {canEdit && <Button variant="primary" className="me-2" onClick={() => store.saveCard()}>{t('exercisesettings_save')}</Button>}
+                {canEdit && <Button variant="primary" className="me-2" onClick={() => store.saveCard().then(() => window.open(`${window.location.origin}/pages/exercise?exerciseId=${card.id}${store.courseId != null ? `&courseId=${store.courseId}` : ''}`, '_blank')?.focus()) }>{t('exercisesettings_saveNopen')}</Button>}
+                <Button variant="primary" className="me-2" onClick={() => window.open(`${window.location.origin}/pages/exercise?exerciseId=${card.id}${store.courseId != null ? `&courseId=${store.courseId}` : ''}`, '_blank')?.focus()}>{t('exercisesettings_open')}</Button>
                 {canEdit && currentStrategy?.options.multiStagesEnabled &&
-                    <Button variant="primary" className="mr-2" onClick={() => window.open(`${window.location.origin}/pages/exercise?exerciseId=${card.id}${store.courseId != null ? `&courseId=${store.courseId}` : ''}&debug`, '_blank')?.focus()}>{t('exercisesettings_genDebugAtt')}</Button>
+                    <Button variant="primary" className="me-2" onClick={() => window.open(`${window.location.origin}/pages/exercise?exerciseId=${card.id}${store.courseId != null ? `&courseId=${store.courseId}` : ''}&debug`, '_blank')?.focus()}>{t('exercisesettings_genDebugAtt')}</Button>
                 }
             </div>
             </div >
@@ -463,7 +464,7 @@ const ExerciseStage = observer((props: ExerciseStageProps) => {
     return (
         <div className="card mb-3">
             <div className="card-body">
-                <div className="form-group" style={{ display: 'flex', justifyContent: 'space-between' }}>
+                <div className="mb-3" style={{ display: 'flex', justifyContent: 'space-between' }}>
                     <div>{t('exercisesettings_stageN', { stageNumber: stageIdx + 1 })}</div>                                            
                     <div>
                         <span>{t('exercisesettings_questionsInBank')}:&nbsp;</span>
@@ -475,8 +476,8 @@ const ExerciseStage = observer((props: ExerciseStageProps) => {
                     </div>
                 </div>
                 {strategy?.options.multiStagesEnabled
-                    && <div className="form-group">
-                            <label className="font-weight-bold" htmlFor={`numberOfQuestions_stage${stageIdx}`}>{t('exercisesettings_stageN_qnumber')}</label>
+                    && <div className="mb-3">
+                            <label className="fw-bold" htmlFor={`numberOfQuestions_stage${stageIdx}`}>{t('exercisesettings_stageN_qnumber')}</label>
                             <Form.Control type="text"
                                 id={`numberOfQuestions_stage${stageIdx}`}
                                 value={stage.numberOfQuestions}
@@ -484,20 +485,20 @@ const ExerciseStage = observer((props: ExerciseStageProps) => {
                         </div>
                     || null
                 }
-                <div className="form-group">
-                    <label className="font-weight-bold">{t('exercisesettings_qcomplexity')}</label>
+                <div className="mb-3">
+                    <label className="fw-bold">{t('exercisesettings_qcomplexity')}</label>
                     <div className="d-flex">
                         <input type="range"
-                            className="form-control-range"
+                            className="form-range"
                             id={`complexity_stage${stageIdx}`}
                             value={(stage.complexity ?? 0.5) * 100}
                             onChange={e => store.setCardStageComplexity(stageIdx, e.target.value)} />
-                        <div className="ml-2">{stage.complexity.toFixed(2)}</div>
+                        <div className="ms-2">{stage.complexity.toFixed(2)}</div>
                     </div>
                 </div>
                 {(stageDomainConcepts && stageDomainConcepts.length > 0) &&
-                    <div className="form-group">
-                        <label className="font-weight-bold">{t('exercisesettings_stageN_concepts')}</label>
+                    <div className="mb-3">
+                        <label className="fw-bold">{t('exercisesettings_stageN_concepts')}</label>
                         <div className="list-group list-group-flush">
                             <ExerciseConcepts
                                 id={`stage${stageIdx}_concepts`}
@@ -516,8 +517,8 @@ const ExerciseStage = observer((props: ExerciseStageProps) => {
                     || null}
                 {(stageDomainLaws && stageDomainLaws.length > 0)
                     &&
-                    <div className="form-group">
-                        <label className="font-weight-bold">{t('exercisesettings_stageN_laws')}</label>
+                    <div className="mb-3">
+                        <label className="fw-bold">{t('exercisesettings_stageN_laws')}</label>
                         <div className="list-group list-group-flush">
                             <ExerciseLaws
                                 id={`stage${stageIdx}_laws`}
@@ -538,8 +539,8 @@ const ExerciseStage = observer((props: ExerciseStageProps) => {
                 }
                 {(stageDomainSkills && stageDomainSkills.length > 0)
                     &&
-                    <div className="form-group">
-                        <label className="font-weight-bold">{t('exercisesettings_stageN_skills')}</label>
+                    <div className="mb-3">
+                        <label className="fw-bold">{t('exercisesettings_stageN_skills')}</label>
                         <div className="list-group list-group-flush">
                             <ExerciseSkills
                                 id={`stage${stageIdx}_skills`}
@@ -559,12 +560,11 @@ const ExerciseStage = observer((props: ExerciseStageProps) => {
                     || null
                 }
                 
-                <div className="form-group">
-                    <label className="font-weight-bold">{t('exercisesettings_stageN_matchedQuestionExamples')}</label>
+                <div className="mb-3">
+                    <label className="fw-bold">{t('exercisesettings_stageN_matchedQuestionExamples')}</label>
                     {
-                        stage.bankLoadingState === 'IN_PROGRESS' 
-                            && <Loader styleOverride={{ width: '1rem', height: '1rem' }} delay={0} />
-                            || <div className="list-group">
+                        stage.bankLoadingState === 'IN_PROGRESS' && <Loader styleOverride={{ marginLeft: '0.5rem', width: '1rem', height: '1rem' }} delay={0} />}
+                        <div className="list-group">
                                 {
                                     stage.bankSearchResult.questions.length === 0
                                     ? <div className="list-group-item">{t('exercisesettings_noQuestionsFound')}</div>
@@ -573,8 +573,7 @@ const ExerciseStage = observer((props: ExerciseStageProps) => {
                                             <a target="_blank" href={`${API_URL}/pages/question?metadataId=${q.metadataId}`}>{q.name}</a>
                                         </div>)
                                 }
-                               </div>
-                    }
+                        </div>
                 </div>
                 {showDeleteBtn &&
                     <div className="d-flex justify-content-end">

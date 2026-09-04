@@ -93,7 +93,7 @@ const SurveyYesNoQuestion = (props: SurveyYesNoQuestionProps) => {
             </div>
             <div className="d-flex flex-row mt-2">
                 <Button variant="secondary"
-                    className="mr-2"
+                    className="me-2"
                     active={question.options.yesValue === value}
                     onClick={() => onAnswered(question.id, question.options.yesValue)}
                     disabled={value !== undefined}>

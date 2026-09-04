@@ -4,10 +4,10 @@ import { useTranslation } from 'react-i18next';
 export type ExerciseLinkType = 'global' | 'original' | 'inherited' | 'cloned';
 
 const variants: Record<ExerciseLinkType, string> = {
-    global: 'badge-warning',
-    original: 'badge-success',
-    inherited: 'badge-info',
-    cloned: 'badge-secondary',
+    global: 'bg-warning text-dark',
+    original: 'bg-success',
+    inherited: 'bg-info text-dark',
+    cloned: 'bg-secondary',
 };
 
 export const ExerciseRowBadge: React.FC<{ linkType: ExerciseLinkType }> = ({ linkType }) => {

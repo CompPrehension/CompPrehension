@@ -231,7 +231,7 @@ export function gradeAnswers(questionId: number, submitted: Answer[]): Grade {
         messages: wrong.map(a => ({
             type: 'ERROR',
             message: `${key(a.answer)} is not one of the expected pairs`,
-            violationLaws: [],
+            violationLaws: [{ name: 'mocked_law', canCreateSupplementaryQuestion: true }],
         })),
     };
 }

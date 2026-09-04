@@ -162,7 +162,7 @@ export const DragAndDropMatchingQuestionComponent = observer((props: MatchingQue
                             ? <p className="d-flex flex-column comp-ph-droppable-container comp-ph-question-text">
                                 {question.answers.map(a =>
                                     <div className="d-flex flex-row mb-3">
-                                        <div className="mr-2 mt-1">
+                                        <div className="me-2 mt-1">
                                             <div id={`question_${question.questionId}_answer_${a.id}`}></div>
                                         </div>
                                         <div dangerouslySetInnerHTML={{ __html: a.text}}></div>

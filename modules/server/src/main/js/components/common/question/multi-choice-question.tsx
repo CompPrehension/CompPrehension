@@ -55,7 +55,7 @@ const SwitchMultiChoiceQuestionComponent = observer((props: MultiChoiceQuestionC
             <p className="d-flex flex-column">                
                 {question.answers.map(a => 
                     <div className="d-flex flex-row mb-3">
-                        <div className="mr-2 mt-1">
+                        <div className="me-2 mt-1">
                             <ToggleSwitch id={`question_${question.questionId}_anwser_${a.id}`} 
                                           selected={selectorTexts[getAnswers().filter(h => h.answer[0] === a.id)?.[0]?.answer?.[1]] ?? ""} 
                                           values={selectorTexts} 
@@ -126,11 +126,11 @@ const DndMultiChoiceQuestionComponent = observer((props: MultiChoiceQuestionComp
         groups: [
             {
                 id: 0,
-                text: `<span class="badge badge-success" style="height: 100%; width: 100%;display: flex; align-items: center;justify-content: center;">✓</span>`,
+                text: `<span class="badge bg-success" style="height: 100%; width: 100%;display: flex; align-items: center;justify-content: center;">✓</span>`,
             },
             {
                 id: 1,
-                text: `<span class="badge badge-danger" style="height: 100%; width: 100%;display: flex; align-items: center;justify-content: center;">x</span>`,
+                text: `<span class="badge bg-danger" style="height: 100%; width: 100%;display: flex; align-items: center;justify-content: center;">x</span>`,
             },
         ],
     }

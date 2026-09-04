@@ -50,7 +50,7 @@ const RadioSingleChoiceQuestionComponent = observer((props: SingleChoiceQuestion
                 (idx !== question.answers.length - 1 && 'mb-3') || ''
               }`}
             >
-              <div className='mr-2 mt-1'>
+              <div className='me-2 mt-1'>
                 <input
                   id={`question_${question.questionId}_answer_${a.id}`}
                   name={`switch_${question.questionId}`}

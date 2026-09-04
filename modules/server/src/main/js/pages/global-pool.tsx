@@ -48,9 +48,7 @@ export const GlobalPool = observer(() => {
                 </div>}
             <ul className="list-group">
                 {store.exercises.map(e =>
-                    <li key={e.id} className="list-group-item">
-                        <Link to={`/pages/exercise-settings?exerciseId=${e.id}`}>{e.name}</Link>
-                    </li>
+                    <Link key={e.id} className="list-group-item" to={`/pages/exercise-settings?exerciseId=${e.id}`}>{e.name}</Link>
                 )}
                 {store.exercises.length === 0 && store.loadStatus === 'LOADED' && (
                     <li className="list-group-item text-muted">{t('globalPool_page_empty')}</li>
