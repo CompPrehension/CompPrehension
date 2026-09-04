@@ -14856,7 +14856,7 @@ function getSearchParamsForLocation(locationSearch, defaultSearchParams) {
   }
   return searchParams;
 }
-const _excluded$7 = ["onClick", "relative", "reloadDocument", "replace", "state", "target", "to", "preventScrollReset", "unstable_viewTransition"];
+const _excluded$H = ["onClick", "relative", "reloadDocument", "replace", "state", "target", "to", "preventScrollReset", "unstable_viewTransition"];
 const REACT_ROUTER_VERSION = "6";
 try {
   window.__reactRouterVersion = REACT_ROUTER_VERSION;
@@ -14912,7 +14912,7 @@ const Link = /* @__PURE__ */ reactExports.forwardRef(function LinkWithRef(_ref7,
     to,
     preventScrollReset,
     unstable_viewTransition
-  } = _ref7, rest = _objectWithoutPropertiesLoose$2(_ref7, _excluded$7);
+  } = _ref7, rest = _objectWithoutPropertiesLoose$2(_ref7, _excluded$H);
   let {
     basename
   } = reactExports.useContext(NavigationContext);
@@ -15583,33 +15583,44 @@ function requireClassnames() {
     (function() {
       var hasOwn = {}.hasOwnProperty;
       function classNames2() {
-        var classes = [];
+        var classes = "";
         for (var i2 = 0; i2 < arguments.length; i2++) {
           var arg = arguments[i2];
-          if (!arg) continue;
-          var argType = typeof arg;
-          if (argType === "string" || argType === "number") {
-            classes.push(arg);
-          } else if (Array.isArray(arg)) {
-            if (arg.length) {
-              var inner = classNames2.apply(null, arg);
-              if (inner) {
-                classes.push(inner);
-              }
-            }
-          } else if (argType === "object") {
-            if (arg.toString === Object.prototype.toString) {
-              for (var key in arg) {
-                if (hasOwn.call(arg, key) && arg[key]) {
-                  classes.push(key);
-                }
-              }
-            } else {
-              classes.push(arg.toString());
-            }
+          if (arg) {
+            classes = appendClass(classes, parseValue(arg));
           }
         }
-        return classes.join(" ");
+        return classes;
+      }
+      function parseValue(arg) {
+        if (typeof arg === "string" || typeof arg === "number") {
+          return arg;
+        }
+        if (typeof arg !== "object") {
+          return "";
+        }
+        if (Array.isArray(arg)) {
+          return classNames2.apply(null, arg);
+        }
+        if (arg.toString !== Object.prototype.toString && !arg.toString.toString().includes("[native code]")) {
+          return arg.toString();
+        }
+        var classes = "";
+        for (var key in arg) {
+          if (hasOwn.call(arg, key) && arg[key]) {
+            classes = appendClass(classes, key);
+          }
+        }
+        return classes;
+      }
+      function appendClass(value, newClass) {
+        if (!newClass) {
+          return value;
+        }
+        if (value) {
+          return value + " " + newClass;
+        }
+        return value + newClass;
       }
       if (module.exports) {
         classNames2.default = classNames2;
@@ -16196,6 +16207,7 @@ function createChainedFunction() {
 function triggerBrowserReflow(node2) {
   node2.offsetHeight;
 }
+var _excluded$G = ["onEnter", "onEntering", "onEntered", "onExit", "onExiting", "className", "children", "dimension", "getDimensionValue"];
 var _collapseStyles;
 var MARGINS = {
   height: ["marginTop", "marginBottom"],
@@ -16219,7 +16231,7 @@ var defaultProps$g = {
   getDimensionValue: getDefaultDimensionValue
 };
 var Collapse = /* @__PURE__ */ React.forwardRef(function(_ref3, ref) {
-  var onEnter = _ref3.onEnter, onEntering = _ref3.onEntering, onEntered = _ref3.onEntered, onExit = _ref3.onExit, onExiting = _ref3.onExiting, className = _ref3.className, children2 = _ref3.children, _ref$dimension = _ref3.dimension, dimension = _ref$dimension === void 0 ? "height" : _ref$dimension, _ref$getDimensionValu = _ref3.getDimensionValue, getDimensionValue = _ref$getDimensionValu === void 0 ? getDefaultDimensionValue : _ref$getDimensionValu, props = _objectWithoutPropertiesLoose$1(_ref3, ["onEnter", "onEntering", "onEntered", "onExit", "onExiting", "className", "children", "dimension", "getDimensionValue"]);
+  var onEnter = _ref3.onEnter, onEntering = _ref3.onEntering, onEntered = _ref3.onEntered, onExit = _ref3.onExit, onExiting = _ref3.onExiting, className = _ref3.className, children2 = _ref3.children, _ref$dimension = _ref3.dimension, dimension = _ref$dimension === void 0 ? "height" : _ref$dimension, _ref$getDimensionValu = _ref3.getDimensionValue, getDimensionValue = _ref$getDimensionValu === void 0 ? getDefaultDimensionValue : _ref$getDimensionValu, props = _objectWithoutPropertiesLoose$1(_ref3, _excluded$G);
   var computedDimension = typeof dimension === "function" ? dimension() : dimension;
   var handleEnter = reactExports.useMemo(function() {
     return createChainedFunction(function(elem) {
@@ -16269,19 +16281,20 @@ var Collapse = /* @__PURE__ */ React.forwardRef(function(_ref3, ref) {
   );
 });
 Collapse.defaultProps = defaultProps$g;
-function useCommittedRef$1(value) {
-  var ref = reactExports.useRef(value);
-  reactExports.useEffect(function() {
+function useCommittedRef(value) {
+  const ref = reactExports.useRef(value);
+  reactExports.useEffect(() => {
     ref.current = value;
   }, [value]);
   return ref;
 }
-function useEventCallback$1(fn) {
-  var ref = useCommittedRef$1(fn);
-  return reactExports.useCallback(function() {
-    return ref.current && ref.current.apply(ref, arguments);
+function useEventCallback(fn) {
+  const ref = useCommittedRef(fn);
+  return reactExports.useCallback(function(...args) {
+    return ref.current && ref.current(...args);
   }, [ref]);
 }
+var _excluded$F = ["className", "children"];
 var _fadeStyles;
 var defaultProps$f = {
   in: false,
@@ -16292,7 +16305,7 @@ var defaultProps$f = {
 };
 var fadeStyles = (_fadeStyles = {}, _fadeStyles[ENTERING] = "show", _fadeStyles[ENTERED] = "show", _fadeStyles);
 var Fade = /* @__PURE__ */ React.forwardRef(function(_ref3, ref) {
-  var className = _ref3.className, children2 = _ref3.children, props = _objectWithoutPropertiesLoose$1(_ref3, ["className", "children"]);
+  var className = _ref3.className, children2 = _ref3.children, props = _objectWithoutPropertiesLoose$1(_ref3, _excluded$F);
   var handleEnter = reactExports.useCallback(function(node2) {
     triggerBrowserReflow(node2);
     if (props.onEnter) props.onEnter(node2);
@@ -16310,6 +16323,7 @@ var Fade = /* @__PURE__ */ React.forwardRef(function(_ref3, ref) {
 });
 Fade.defaultProps = defaultProps$f;
 Fade.displayName = "Fade";
+var _excluded$E = ["label", "onClick", "className"];
 var propTypes$2 = {
   label: PropTypes.string.isRequired,
   onClick: PropTypes.func
@@ -16318,7 +16332,7 @@ var defaultProps$e = {
   label: "Close"
 };
 var CloseButton = /* @__PURE__ */ React.forwardRef(function(_ref3, ref) {
-  var label = _ref3.label, onClick = _ref3.onClick, className = _ref3.className, props = _objectWithoutPropertiesLoose$1(_ref3, ["label", "onClick", "className"]);
+  var label = _ref3.label, onClick = _ref3.onClick, className = _ref3.className, props = _objectWithoutPropertiesLoose$1(_ref3, _excluded$E);
   return /* @__PURE__ */ React.createElement("button", _extends$1({
     ref,
     type: "button",
@@ -16347,13 +16361,14 @@ function camelize(string2) {
     return chr.toUpperCase();
   });
 }
+var _excluded$D = ["className", "bsPrefix", "as"];
 var pascalCase = function pascalCase2(str) {
   return str[0].toUpperCase() + camelize(str).slice(1);
 };
 function createWithBsPrefix(prefix2, _temp) {
   var _ref3 = _temp === void 0 ? {} : _temp, _ref$displayName = _ref3.displayName, displayName = _ref$displayName === void 0 ? pascalCase(prefix2) : _ref$displayName, Component = _ref3.Component, defaultProps2 = _ref3.defaultProps;
   var BsComponent = /* @__PURE__ */ React.forwardRef(function(_ref22, ref) {
-    var className = _ref22.className, bsPrefix = _ref22.bsPrefix, _ref2$as = _ref22.as, Tag = _ref2$as === void 0 ? Component || "div" : _ref2$as, props = _objectWithoutPropertiesLoose$1(_ref22, ["className", "bsPrefix", "as"]);
+    var className = _ref22.className, bsPrefix = _ref22.bsPrefix, _ref2$as = _ref22.as, Tag = _ref2$as === void 0 ? Component || "div" : _ref2$as, props = _objectWithoutPropertiesLoose$1(_ref22, _excluded$D);
     var resolvedPrefix = useBootstrapPrefix(bsPrefix, prefix2);
     return /* @__PURE__ */ React.createElement(Tag, _extends$1({
       ref,
@@ -16364,11 +16379,12 @@ function createWithBsPrefix(prefix2, _temp) {
   BsComponent.displayName = displayName;
   return BsComponent;
 }
+var _excluded$C = ["as", "disabled", "onKeyDown"];
 function isTrivialHref(href) {
   return !href || href.trim() === "#";
 }
 var SafeAnchor = /* @__PURE__ */ React.forwardRef(function(_ref3, ref) {
-  var _ref$as = _ref3.as, Component = _ref$as === void 0 ? "a" : _ref$as, disabled = _ref3.disabled, onKeyDown = _ref3.onKeyDown, props = _objectWithoutPropertiesLoose$1(_ref3, ["as", "disabled", "onKeyDown"]);
+  var _ref$as = _ref3.as, Component = _ref$as === void 0 ? "a" : _ref$as, disabled = _ref3.disabled, onKeyDown = _ref3.onKeyDown, props = _objectWithoutPropertiesLoose$1(_ref3, _excluded$C);
   var handleClick = function handleClick2(event) {
     var href = props.href, onClick = props.onClick;
     if (disabled || isTrivialHref(href)) {
@@ -16404,6 +16420,7 @@ var SafeAnchor = /* @__PURE__ */ React.forwardRef(function(_ref3, ref) {
   }));
 });
 SafeAnchor.displayName = "SafeAnchor";
+var _excluded$B = ["bsPrefix", "show", "closeLabel", "className", "children", "variant", "onClose", "dismissible", "transition"];
 var DivStyledAsH4$1 = divWithClassName("h4");
 DivStyledAsH4$1.displayName = "DivStyledAsH4";
 var AlertHeading = createWithBsPrefix("alert-heading", {
@@ -16420,9 +16437,9 @@ var defaultProps$d = {
 var Alert = /* @__PURE__ */ React.forwardRef(function(uncontrolledProps, ref) {
   var _useUncontrolled = useUncontrolled(uncontrolledProps, {
     show: "onClose"
-  }), bsPrefix = _useUncontrolled.bsPrefix, show = _useUncontrolled.show, closeLabel = _useUncontrolled.closeLabel, className = _useUncontrolled.className, children2 = _useUncontrolled.children, variant = _useUncontrolled.variant, onClose = _useUncontrolled.onClose, dismissible = _useUncontrolled.dismissible, transition = _useUncontrolled.transition, props = _objectWithoutPropertiesLoose$1(_useUncontrolled, ["bsPrefix", "show", "closeLabel", "className", "children", "variant", "onClose", "dismissible", "transition"]);
+  }), bsPrefix = _useUncontrolled.bsPrefix, show = _useUncontrolled.show, closeLabel = _useUncontrolled.closeLabel, className = _useUncontrolled.className, children2 = _useUncontrolled.children, variant = _useUncontrolled.variant, onClose = _useUncontrolled.onClose, dismissible = _useUncontrolled.dismissible, transition = _useUncontrolled.transition, props = _objectWithoutPropertiesLoose$1(_useUncontrolled, _excluded$B);
   var prefix2 = useBootstrapPrefix(bsPrefix, "alert");
-  var handleClose = useEventCallback$1(function(e) {
+  var handleClose = useEventCallback(function(e) {
     if (onClose) {
       onClose(false, e);
     }
@@ -16449,11 +16466,12 @@ Alert.displayName = "Alert";
 Alert.defaultProps = defaultProps$d;
 Alert.Link = AlertLink;
 Alert.Heading = AlertHeading;
+var _excluded$A = ["bsPrefix", "variant", "pill", "className", "as"];
 var defaultProps$c = {
   pill: false
 };
 var Badge = /* @__PURE__ */ React.forwardRef(function(_ref3, ref) {
-  var bsPrefix = _ref3.bsPrefix, variant = _ref3.variant, pill = _ref3.pill, className = _ref3.className, _ref$as = _ref3.as, Component = _ref$as === void 0 ? "span" : _ref$as, props = _objectWithoutPropertiesLoose$1(_ref3, ["bsPrefix", "variant", "pill", "className", "as"]);
+  var bsPrefix = _ref3.bsPrefix, variant = _ref3.variant, pill = _ref3.pill, className = _ref3.className, _ref$as = _ref3.as, Component = _ref$as === void 0 ? "span" : _ref$as, props = _objectWithoutPropertiesLoose$1(_ref3, _excluded$A);
   var prefix2 = useBootstrapPrefix(bsPrefix, "badge");
   return /* @__PURE__ */ React.createElement(Component, _extends$1({
     ref
@@ -16463,13 +16481,14 @@ var Badge = /* @__PURE__ */ React.forwardRef(function(_ref3, ref) {
 });
 Badge.displayName = "Badge";
 Badge.defaultProps = defaultProps$c;
+var _excluded$z = ["bsPrefix", "variant", "size", "active", "className", "block", "type", "as"];
 var defaultProps$b = {
   variant: "primary",
   active: false,
   disabled: false
 };
 var Button = /* @__PURE__ */ React.forwardRef(function(_ref3, ref) {
-  var bsPrefix = _ref3.bsPrefix, variant = _ref3.variant, size2 = _ref3.size, active = _ref3.active, className = _ref3.className, block = _ref3.block, type2 = _ref3.type, as = _ref3.as, props = _objectWithoutPropertiesLoose$1(_ref3, ["bsPrefix", "variant", "size", "active", "className", "block", "type", "as"]);
+  var bsPrefix = _ref3.bsPrefix, variant = _ref3.variant, size2 = _ref3.size, active = _ref3.active, className = _ref3.className, block = _ref3.block, type2 = _ref3.type, as = _ref3.as, props = _objectWithoutPropertiesLoose$1(_ref3, _excluded$z);
   var prefix2 = useBootstrapPrefix(bsPrefix, "btn");
   var classes = classNames$1(className, prefix2, active && "active", variant && prefix2 + "-" + variant, block && prefix2 + "-block", size2 && prefix2 + "-" + size2);
   if (props.href) {
@@ -16494,24 +16513,32 @@ var Button = /* @__PURE__ */ React.forwardRef(function(_ref3, ref) {
 });
 Button.displayName = "Button";
 Button.defaultProps = defaultProps$b;
-function useUpdatedRef$1(value) {
-  var valueRef = reactExports.useRef(value);
+function useMounted() {
+  const mounted = reactExports.useRef(true);
+  const isMounted = reactExports.useRef(() => mounted.current);
+  reactExports.useEffect(() => {
+    mounted.current = true;
+    return () => {
+      mounted.current = false;
+    };
+  }, []);
+  return isMounted.current;
+}
+function useUpdatedRef(value) {
+  const valueRef = reactExports.useRef(value);
   valueRef.current = value;
   return valueRef;
 }
-function useWillUnmount$1(fn) {
-  var onUnmount = useUpdatedRef$1(fn);
-  reactExports.useEffect(function() {
-    return function() {
-      return onUnmount.current();
-    };
-  }, []);
+function useWillUnmount(fn) {
+  const onUnmount = useUpdatedRef(fn);
+  reactExports.useEffect(() => () => onUnmount.current(), []);
 }
+var _excluded$y = ["bsPrefix", "className", "as"];
 var DEVICE_SIZES = ["xl", "lg", "md", "sm", "xs"];
 var Col = /* @__PURE__ */ React.forwardRef(
   // Need to define the default "as" during prop destructuring to be compatible with styled-components github.com/react-bootstrap/react-bootstrap/issues/3595
   function(_ref3, ref) {
-    var bsPrefix = _ref3.bsPrefix, className = _ref3.className, _ref$as = _ref3.as, Component = _ref$as === void 0 ? "div" : _ref$as, props = _objectWithoutPropertiesLoose$1(_ref3, ["bsPrefix", "className", "as"]);
+    var bsPrefix = _ref3.bsPrefix, className = _ref3.className, _ref$as = _ref3.as, Component = _ref$as === void 0 ? "div" : _ref$as, props = _objectWithoutPropertiesLoose$1(_ref3, _excluded$y);
     var prefix2 = useBootstrapPrefix(bsPrefix, "col");
     var spans = [];
     var classes = [];
@@ -16549,37 +16576,18 @@ function qsa(element2, selector) {
   return toArray(element2.querySelectorAll(selector));
 }
 function usePrevious(value) {
-  var ref = reactExports.useRef(null);
-  reactExports.useEffect(function() {
+  const ref = reactExports.useRef(null);
+  reactExports.useEffect(() => {
     ref.current = value;
   });
   return ref.current;
 }
-function useCommittedRef(value) {
-  var ref = reactExports.useRef(value);
-  reactExports.useEffect(function() {
-    ref.current = value;
-  }, [value]);
-  return ref;
+function useForceUpdate() {
+  const [, dispatch] = reactExports.useReducer((state) => !state, false);
+  return dispatch;
 }
-function useEventCallback(fn) {
-  var ref = useCommittedRef(fn);
-  return reactExports.useCallback(function() {
-    return ref.current && ref.current.apply(ref, arguments);
-  }, [ref]);
-}
-function useMounted() {
-  var mounted = reactExports.useRef(true);
-  var isMounted = reactExports.useRef(function() {
-    return mounted.current;
-  });
-  reactExports.useEffect(function() {
-    mounted.current = true;
-    return function() {
-      mounted.current = false;
-    };
-  }, []);
-  return isMounted.current;
+function useCallbackRef$2() {
+  return reactExports.useState(null);
 }
 function contains(context2, node2) {
   if (context2.contains) return context2.contains(node2);
@@ -16587,23 +16595,19 @@ function contains(context2, node2) {
 }
 var NavContext = /* @__PURE__ */ React.createContext(null);
 NavContext.displayName = "NavContext";
-var toFnRef = function toFnRef2(ref) {
-  return !ref || typeof ref === "function" ? ref : function(value) {
-    ref.current = value;
-  };
+const toFnRef = (ref) => !ref || typeof ref === "function" ? ref : (value) => {
+  ref.current = value;
 };
 function mergeRefs(refA, refB) {
-  var a = toFnRef(refA);
-  var b = toFnRef(refB);
-  return function(value) {
+  const a = toFnRef(refA);
+  const b = toFnRef(refB);
+  return (value) => {
     if (a) a(value);
     if (b) b(value);
   };
 }
 function useMergedRefs(refA, refB) {
-  return reactExports.useMemo(function() {
-    return mergeRefs(refA, refB);
-  }, [refA, refB]);
+  return reactExports.useMemo(() => mergeRefs(refA, refB), [refA, refB]);
 }
 var context = /* @__PURE__ */ React.createContext(null);
 context.displayName = "NavbarContext";
@@ -16686,6 +16690,7 @@ function requireAll() {
   return all.exports;
 }
 requireAll();
+var _excluded$x = ["as", "className", "type", "tooltip"];
 var propTypes$1 = {
   /**
    * Specify whether the feedback is for valid or invalid fields
@@ -16700,7 +16705,7 @@ var propTypes$1 = {
 var Feedback = /* @__PURE__ */ React.forwardRef(
   // Need to define the default "as" during prop destructuring to be compatible with styled-components github.com/react-bootstrap/react-bootstrap/issues/3595
   function(_ref3, ref) {
-    var _ref$as = _ref3.as, Component = _ref$as === void 0 ? "div" : _ref$as, className = _ref3.className, _ref$type = _ref3.type, type2 = _ref$type === void 0 ? "valid" : _ref$type, _ref$tooltip = _ref3.tooltip, tooltip = _ref$tooltip === void 0 ? false : _ref$tooltip, props = _objectWithoutPropertiesLoose$1(_ref3, ["as", "className", "type", "tooltip"]);
+    var _ref$as = _ref3.as, Component = _ref$as === void 0 ? "div" : _ref$as, className = _ref3.className, _ref$type = _ref3.type, type2 = _ref$type === void 0 ? "valid" : _ref$type, _ref$tooltip = _ref3.tooltip, tooltip = _ref$tooltip === void 0 ? false : _ref$tooltip, props = _objectWithoutPropertiesLoose$1(_ref3, _excluded$x);
     return /* @__PURE__ */ React.createElement(Component, _extends$1({}, props, {
       ref,
       className: classNames$1(className, type2 + "-" + (tooltip ? "tooltip" : "feedback"))
@@ -16712,8 +16717,9 @@ Feedback.propTypes = propTypes$1;
 var FormContext = /* @__PURE__ */ React.createContext({
   controlId: void 0
 });
+var _excluded$w = ["id", "bsPrefix", "bsCustomPrefix", "className", "type", "isValid", "isInvalid", "isStatic", "as"];
 var FormCheckInput = /* @__PURE__ */ React.forwardRef(function(_ref3, ref) {
-  var id = _ref3.id, bsPrefix = _ref3.bsPrefix, bsCustomPrefix = _ref3.bsCustomPrefix, className = _ref3.className, _ref$type = _ref3.type, type2 = _ref$type === void 0 ? "checkbox" : _ref$type, _ref$isValid = _ref3.isValid, isValid = _ref$isValid === void 0 ? false : _ref$isValid, _ref$isInvalid = _ref3.isInvalid, isInvalid = _ref$isInvalid === void 0 ? false : _ref$isInvalid, isStatic = _ref3.isStatic, _ref$as = _ref3.as, Component = _ref$as === void 0 ? "input" : _ref$as, props = _objectWithoutPropertiesLoose$1(_ref3, ["id", "bsPrefix", "bsCustomPrefix", "className", "type", "isValid", "isInvalid", "isStatic", "as"]);
+  var id = _ref3.id, bsPrefix = _ref3.bsPrefix, bsCustomPrefix = _ref3.bsCustomPrefix, className = _ref3.className, _ref$type = _ref3.type, type2 = _ref$type === void 0 ? "checkbox" : _ref$type, _ref$isValid = _ref3.isValid, isValid = _ref$isValid === void 0 ? false : _ref$isValid, _ref$isInvalid = _ref3.isInvalid, isInvalid = _ref$isInvalid === void 0 ? false : _ref$isInvalid, isStatic = _ref3.isStatic, _ref$as = _ref3.as, Component = _ref$as === void 0 ? "input" : _ref$as, props = _objectWithoutPropertiesLoose$1(_ref3, _excluded$w);
   var _useContext = reactExports.useContext(FormContext), controlId = _useContext.controlId, custom = _useContext.custom;
   var _ref22 = custom ? [bsCustomPrefix, "custom-control-input"] : [bsPrefix, "form-check-input"], prefix2 = _ref22[0], defaultPrefix = _ref22[1];
   bsPrefix = useBootstrapPrefix(prefix2, defaultPrefix);
@@ -16725,8 +16731,9 @@ var FormCheckInput = /* @__PURE__ */ React.forwardRef(function(_ref3, ref) {
   }));
 });
 FormCheckInput.displayName = "FormCheckInput";
+var _excluded$v = ["bsPrefix", "bsCustomPrefix", "className", "htmlFor"];
 var FormCheckLabel = /* @__PURE__ */ React.forwardRef(function(_ref3, ref) {
-  var bsPrefix = _ref3.bsPrefix, bsCustomPrefix = _ref3.bsCustomPrefix, className = _ref3.className, htmlFor = _ref3.htmlFor, props = _objectWithoutPropertiesLoose$1(_ref3, ["bsPrefix", "bsCustomPrefix", "className", "htmlFor"]);
+  var bsPrefix = _ref3.bsPrefix, bsCustomPrefix = _ref3.bsCustomPrefix, className = _ref3.className, htmlFor = _ref3.htmlFor, props = _objectWithoutPropertiesLoose$1(_ref3, _excluded$v);
   var _useContext = reactExports.useContext(FormContext), controlId = _useContext.controlId, custom = _useContext.custom;
   var _ref22 = custom ? [bsCustomPrefix, "custom-control-label"] : [bsPrefix, "form-check-label"], prefix2 = _ref22[0], defaultPrefix = _ref22[1];
   bsPrefix = useBootstrapPrefix(prefix2, defaultPrefix);
@@ -16737,8 +16744,9 @@ var FormCheckLabel = /* @__PURE__ */ React.forwardRef(function(_ref3, ref) {
   }));
 });
 FormCheckLabel.displayName = "FormCheckLabel";
+var _excluded$u = ["id", "bsPrefix", "bsCustomPrefix", "inline", "disabled", "isValid", "isInvalid", "feedbackTooltip", "feedback", "className", "style", "title", "type", "label", "children", "custom", "as"];
 var FormCheck = /* @__PURE__ */ React.forwardRef(function(_ref3, ref) {
-  var id = _ref3.id, bsPrefix = _ref3.bsPrefix, bsCustomPrefix = _ref3.bsCustomPrefix, _ref$inline = _ref3.inline, inline = _ref$inline === void 0 ? false : _ref$inline, _ref$disabled = _ref3.disabled, disabled = _ref$disabled === void 0 ? false : _ref$disabled, _ref$isValid = _ref3.isValid, isValid = _ref$isValid === void 0 ? false : _ref$isValid, _ref$isInvalid = _ref3.isInvalid, isInvalid = _ref$isInvalid === void 0 ? false : _ref$isInvalid, _ref$feedbackTooltip = _ref3.feedbackTooltip, feedbackTooltip = _ref$feedbackTooltip === void 0 ? false : _ref$feedbackTooltip, feedback = _ref3.feedback, className = _ref3.className, style2 = _ref3.style, _ref$title = _ref3.title, title = _ref$title === void 0 ? "" : _ref$title, _ref$type = _ref3.type, type2 = _ref$type === void 0 ? "checkbox" : _ref$type, label = _ref3.label, children2 = _ref3.children, propCustom = _ref3.custom, _ref$as = _ref3.as, as = _ref$as === void 0 ? "input" : _ref$as, props = _objectWithoutPropertiesLoose$1(_ref3, ["id", "bsPrefix", "bsCustomPrefix", "inline", "disabled", "isValid", "isInvalid", "feedbackTooltip", "feedback", "className", "style", "title", "type", "label", "children", "custom", "as"]);
+  var id = _ref3.id, bsPrefix = _ref3.bsPrefix, bsCustomPrefix = _ref3.bsCustomPrefix, _ref$inline = _ref3.inline, inline = _ref$inline === void 0 ? false : _ref$inline, _ref$disabled = _ref3.disabled, disabled = _ref$disabled === void 0 ? false : _ref$disabled, _ref$isValid = _ref3.isValid, isValid = _ref$isValid === void 0 ? false : _ref$isValid, _ref$isInvalid = _ref3.isInvalid, isInvalid = _ref$isInvalid === void 0 ? false : _ref$isInvalid, _ref$feedbackTooltip = _ref3.feedbackTooltip, feedbackTooltip = _ref$feedbackTooltip === void 0 ? false : _ref$feedbackTooltip, feedback = _ref3.feedback, className = _ref3.className, style2 = _ref3.style, _ref$title = _ref3.title, title = _ref$title === void 0 ? "" : _ref$title, _ref$type = _ref3.type, type2 = _ref$type === void 0 ? "checkbox" : _ref$type, label = _ref3.label, children2 = _ref3.children, propCustom = _ref3.custom, _ref$as = _ref3.as, as = _ref$as === void 0 ? "input" : _ref$as, props = _objectWithoutPropertiesLoose$1(_ref3, _excluded$u);
   var custom = type2 === "switch" ? true : propCustom;
   var _ref22 = custom ? [bsCustomPrefix, "custom-control"] : [bsPrefix, "form-check"], prefix2 = _ref22[0], defaultPrefix = _ref22[1];
   bsPrefix = useBootstrapPrefix(prefix2, defaultPrefix);
@@ -16774,8 +16782,9 @@ var FormCheck = /* @__PURE__ */ React.forwardRef(function(_ref3, ref) {
 FormCheck.displayName = "FormCheck";
 FormCheck.Input = FormCheckInput;
 FormCheck.Label = FormCheckLabel;
+var _excluded$t = ["id", "bsPrefix", "bsCustomPrefix", "className", "isValid", "isInvalid", "lang", "as"];
 var FormFileInput = /* @__PURE__ */ React.forwardRef(function(_ref3, ref) {
-  var id = _ref3.id, bsPrefix = _ref3.bsPrefix, bsCustomPrefix = _ref3.bsCustomPrefix, className = _ref3.className, isValid = _ref3.isValid, isInvalid = _ref3.isInvalid, lang = _ref3.lang, _ref$as = _ref3.as, Component = _ref$as === void 0 ? "input" : _ref$as, props = _objectWithoutPropertiesLoose$1(_ref3, ["id", "bsPrefix", "bsCustomPrefix", "className", "isValid", "isInvalid", "lang", "as"]);
+  var id = _ref3.id, bsPrefix = _ref3.bsPrefix, bsCustomPrefix = _ref3.bsCustomPrefix, className = _ref3.className, isValid = _ref3.isValid, isInvalid = _ref3.isInvalid, lang = _ref3.lang, _ref$as = _ref3.as, Component = _ref$as === void 0 ? "input" : _ref$as, props = _objectWithoutPropertiesLoose$1(_ref3, _excluded$t);
   var _useContext = reactExports.useContext(FormContext), controlId = _useContext.controlId, custom = _useContext.custom;
   var type2 = "file";
   var _ref22 = custom ? [bsCustomPrefix, "custom-file-input"] : [bsPrefix, "form-control-file"], prefix2 = _ref22[0], defaultPrefix = _ref22[1];
@@ -16789,8 +16798,9 @@ var FormFileInput = /* @__PURE__ */ React.forwardRef(function(_ref3, ref) {
   }));
 });
 FormFileInput.displayName = "FormFileInput";
+var _excluded$s = ["bsPrefix", "bsCustomPrefix", "className", "htmlFor"];
 var FormFileLabel = /* @__PURE__ */ React.forwardRef(function(_ref3, ref) {
-  var bsPrefix = _ref3.bsPrefix, bsCustomPrefix = _ref3.bsCustomPrefix, className = _ref3.className, htmlFor = _ref3.htmlFor, props = _objectWithoutPropertiesLoose$1(_ref3, ["bsPrefix", "bsCustomPrefix", "className", "htmlFor"]);
+  var bsPrefix = _ref3.bsPrefix, bsCustomPrefix = _ref3.bsCustomPrefix, className = _ref3.className, htmlFor = _ref3.htmlFor, props = _objectWithoutPropertiesLoose$1(_ref3, _excluded$s);
   var _useContext = reactExports.useContext(FormContext), controlId = _useContext.controlId, custom = _useContext.custom;
   var _ref22 = custom ? [bsCustomPrefix, "custom-file-label"] : [bsPrefix, "form-file-label"], prefix2 = _ref22[0], defaultPrefix = _ref22[1];
   bsPrefix = useBootstrapPrefix(prefix2, defaultPrefix);
@@ -16802,8 +16812,9 @@ var FormFileLabel = /* @__PURE__ */ React.forwardRef(function(_ref3, ref) {
   }));
 });
 FormFileLabel.displayName = "FormFileLabel";
+var _excluded$r = ["id", "bsPrefix", "bsCustomPrefix", "disabled", "isValid", "isInvalid", "feedbackTooltip", "feedback", "className", "style", "label", "children", "custom", "lang", "data-browse", "as", "inputAs"];
 var FormFile = /* @__PURE__ */ React.forwardRef(function(_ref3, ref) {
-  var id = _ref3.id, bsPrefix = _ref3.bsPrefix, bsCustomPrefix = _ref3.bsCustomPrefix, _ref$disabled = _ref3.disabled, disabled = _ref$disabled === void 0 ? false : _ref$disabled, _ref$isValid = _ref3.isValid, isValid = _ref$isValid === void 0 ? false : _ref$isValid, _ref$isInvalid = _ref3.isInvalid, isInvalid = _ref$isInvalid === void 0 ? false : _ref$isInvalid, _ref$feedbackTooltip = _ref3.feedbackTooltip, feedbackTooltip = _ref$feedbackTooltip === void 0 ? false : _ref$feedbackTooltip, feedback = _ref3.feedback, className = _ref3.className, style2 = _ref3.style, label = _ref3.label, children2 = _ref3.children, custom = _ref3.custom, lang = _ref3.lang, dataBrowse = _ref3["data-browse"], _ref$as = _ref3.as, Component = _ref$as === void 0 ? "div" : _ref$as, _ref$inputAs = _ref3.inputAs, inputAs = _ref$inputAs === void 0 ? "input" : _ref$inputAs, props = _objectWithoutPropertiesLoose$1(_ref3, ["id", "bsPrefix", "bsCustomPrefix", "disabled", "isValid", "isInvalid", "feedbackTooltip", "feedback", "className", "style", "label", "children", "custom", "lang", "data-browse", "as", "inputAs"]);
+  var id = _ref3.id, bsPrefix = _ref3.bsPrefix, bsCustomPrefix = _ref3.bsCustomPrefix, _ref$disabled = _ref3.disabled, disabled = _ref$disabled === void 0 ? false : _ref$disabled, _ref$isValid = _ref3.isValid, isValid = _ref$isValid === void 0 ? false : _ref$isValid, _ref$isInvalid = _ref3.isInvalid, isInvalid = _ref$isInvalid === void 0 ? false : _ref$isInvalid, _ref$feedbackTooltip = _ref3.feedbackTooltip, feedbackTooltip = _ref$feedbackTooltip === void 0 ? false : _ref$feedbackTooltip, feedback = _ref3.feedback, className = _ref3.className, style2 = _ref3.style, label = _ref3.label, children2 = _ref3.children, custom = _ref3.custom, lang = _ref3.lang, dataBrowse = _ref3["data-browse"], _ref$as = _ref3.as, Component = _ref$as === void 0 ? "div" : _ref$as, _ref$inputAs = _ref3.inputAs, inputAs = _ref$inputAs === void 0 ? "input" : _ref$inputAs, props = _objectWithoutPropertiesLoose$1(_ref3, _excluded$r);
   var _ref22 = custom ? [bsCustomPrefix, "custom"] : [bsPrefix, "form-file"], prefix2 = _ref22[0], defaultPrefix = _ref22[1];
   bsPrefix = useBootstrapPrefix(prefix2, defaultPrefix);
   var type2 = "file";
@@ -16838,8 +16849,9 @@ var FormFile = /* @__PURE__ */ React.forwardRef(function(_ref3, ref) {
 FormFile.displayName = "FormFile";
 FormFile.Input = FormFileInput;
 FormFile.Label = FormFileLabel;
+var _excluded$q = ["bsPrefix", "bsCustomPrefix", "type", "size", "htmlSize", "id", "className", "isValid", "isInvalid", "plaintext", "readOnly", "custom", "as"];
 var FormControl = /* @__PURE__ */ React.forwardRef(function(_ref3, ref) {
-  var bsPrefix = _ref3.bsPrefix, bsCustomPrefix = _ref3.bsCustomPrefix, type2 = _ref3.type, size2 = _ref3.size, htmlSize = _ref3.htmlSize, id = _ref3.id, className = _ref3.className, _ref$isValid = _ref3.isValid, isValid = _ref$isValid === void 0 ? false : _ref$isValid, _ref$isInvalid = _ref3.isInvalid, isInvalid = _ref$isInvalid === void 0 ? false : _ref$isInvalid, plaintext = _ref3.plaintext, readOnly = _ref3.readOnly, custom = _ref3.custom, _ref$as = _ref3.as, Component = _ref$as === void 0 ? "input" : _ref$as, props = _objectWithoutPropertiesLoose$1(_ref3, ["bsPrefix", "bsCustomPrefix", "type", "size", "htmlSize", "id", "className", "isValid", "isInvalid", "plaintext", "readOnly", "custom", "as"]);
+  var bsPrefix = _ref3.bsPrefix, bsCustomPrefix = _ref3.bsCustomPrefix, type2 = _ref3.type, size2 = _ref3.size, htmlSize = _ref3.htmlSize, id = _ref3.id, className = _ref3.className, _ref$isValid = _ref3.isValid, isValid = _ref$isValid === void 0 ? false : _ref$isValid, _ref$isInvalid = _ref3.isInvalid, isInvalid = _ref$isInvalid === void 0 ? false : _ref$isInvalid, plaintext = _ref3.plaintext, readOnly = _ref3.readOnly, custom = _ref3.custom, _ref$as = _ref3.as, Component = _ref$as === void 0 ? "input" : _ref$as, props = _objectWithoutPropertiesLoose$1(_ref3, _excluded$q);
   var _useContext = reactExports.useContext(FormContext), controlId = _useContext.controlId;
   var _ref22 = custom ? [bsCustomPrefix, "custom"] : [bsPrefix, "form-control"], prefix2 = _ref22[0], defaultPrefix = _ref22[1];
   bsPrefix = useBootstrapPrefix(prefix2, defaultPrefix);
@@ -16873,8 +16885,9 @@ FormControl.displayName = "FormControl";
 const FormControl$1 = Object.assign(FormControl, {
   Feedback
 });
+var _excluded$p = ["bsPrefix", "className", "children", "controlId", "as"];
 var FormGroup = /* @__PURE__ */ React.forwardRef(function(_ref3, ref) {
-  var bsPrefix = _ref3.bsPrefix, className = _ref3.className, children2 = _ref3.children, controlId = _ref3.controlId, _ref$as = _ref3.as, Component = _ref$as === void 0 ? "div" : _ref$as, props = _objectWithoutPropertiesLoose$1(_ref3, ["bsPrefix", "className", "children", "controlId", "as"]);
+  var bsPrefix = _ref3.bsPrefix, className = _ref3.className, children2 = _ref3.children, controlId = _ref3.controlId, _ref$as = _ref3.as, Component = _ref$as === void 0 ? "div" : _ref$as, props = _objectWithoutPropertiesLoose$1(_ref3, _excluded$p);
   bsPrefix = useBootstrapPrefix(bsPrefix, "form-group");
   var context2 = reactExports.useMemo(function() {
     return {
@@ -16889,12 +16902,13 @@ var FormGroup = /* @__PURE__ */ React.forwardRef(function(_ref3, ref) {
   }), children2));
 });
 FormGroup.displayName = "FormGroup";
+var _excluded$o = ["as", "bsPrefix", "column", "srOnly", "className", "htmlFor"];
 var defaultProps$a = {
   column: false,
   srOnly: false
 };
 var FormLabel = /* @__PURE__ */ React.forwardRef(function(_ref3, ref) {
-  var _ref$as = _ref3.as, Component = _ref$as === void 0 ? "label" : _ref$as, bsPrefix = _ref3.bsPrefix, column2 = _ref3.column, srOnly = _ref3.srOnly, className = _ref3.className, htmlFor = _ref3.htmlFor, props = _objectWithoutPropertiesLoose$1(_ref3, ["as", "bsPrefix", "column", "srOnly", "className", "htmlFor"]);
+  var _ref$as = _ref3.as, Component = _ref$as === void 0 ? "label" : _ref$as, bsPrefix = _ref3.bsPrefix, column2 = _ref3.column, srOnly = _ref3.srOnly, className = _ref3.className, htmlFor = _ref3.htmlFor, props = _objectWithoutPropertiesLoose$1(_ref3, _excluded$o);
   var _useContext = reactExports.useContext(FormContext), controlId = _useContext.controlId;
   bsPrefix = useBootstrapPrefix(bsPrefix, "form-label");
   var columnClass = "col-form-label";
@@ -16902,6 +16916,7 @@ var FormLabel = /* @__PURE__ */ React.forwardRef(function(_ref3, ref) {
   var classes = classNames$1(className, bsPrefix, srOnly && "sr-only", column2 && columnClass);
   htmlFor = htmlFor || controlId;
   if (column2) return /* @__PURE__ */ React.createElement(Col, _extends$1({
+    ref,
     as: "label",
     className: classes,
     htmlFor
@@ -16917,10 +16932,11 @@ var FormLabel = /* @__PURE__ */ React.forwardRef(function(_ref3, ref) {
 });
 FormLabel.displayName = "FormLabel";
 FormLabel.defaultProps = defaultProps$a;
+var _excluded$n = ["bsPrefix", "className", "as", "muted"];
 var FormText = /* @__PURE__ */ React.forwardRef(
   // Need to define the default "as" during prop destructuring to be compatible with styled-components github.com/react-bootstrap/react-bootstrap/issues/3595
   function(_ref3, ref) {
-    var bsPrefix = _ref3.bsPrefix, className = _ref3.className, _ref$as = _ref3.as, Component = _ref$as === void 0 ? "small" : _ref$as, muted = _ref3.muted, props = _objectWithoutPropertiesLoose$1(_ref3, ["bsPrefix", "className", "as", "muted"]);
+    var bsPrefix = _ref3.bsPrefix, className = _ref3.className, _ref$as = _ref3.as, Component = _ref$as === void 0 ? "small" : _ref$as, muted = _ref3.muted, props = _objectWithoutPropertiesLoose$1(_ref3, _excluded$n);
     bsPrefix = useBootstrapPrefix(bsPrefix, "form-text");
     return /* @__PURE__ */ React.createElement(Component, _extends$1({}, props, {
       ref,
@@ -16938,12 +16954,13 @@ var Switch = /* @__PURE__ */ React.forwardRef(function(props, ref) {
 Switch.displayName = "Switch";
 Switch.Input = FormCheck.Input;
 Switch.Label = FormCheck.Label;
+var _excluded$m = ["bsPrefix", "inline", "className", "validated", "as"];
 var FormRow = createWithBsPrefix("form-row");
 var defaultProps$9 = {
   inline: false
 };
 var FormImpl = /* @__PURE__ */ React.forwardRef(function(_ref3, ref) {
-  var bsPrefix = _ref3.bsPrefix, inline = _ref3.inline, className = _ref3.className, validated = _ref3.validated, _ref$as = _ref3.as, Component = _ref$as === void 0 ? "form" : _ref$as, props = _objectWithoutPropertiesLoose$1(_ref3, ["bsPrefix", "inline", "className", "validated", "as"]);
+  var bsPrefix = _ref3.bsPrefix, inline = _ref3.inline, className = _ref3.className, validated = _ref3.validated, _ref$as = _ref3.as, Component = _ref$as === void 0 ? "form" : _ref$as, props = _objectWithoutPropertiesLoose$1(_ref3, _excluded$m);
   bsPrefix = useBootstrapPrefix(bsPrefix, "form");
   return /* @__PURE__ */ React.createElement(Component, _extends$1({}, props, {
     ref,
@@ -16960,17 +16977,12 @@ FormImpl.File = FormFile;
 FormImpl.Switch = Switch;
 FormImpl.Label = FormLabel;
 FormImpl.Text = FormText;
-function useForceUpdate() {
-  var _useReducer = reactExports.useReducer(function(state) {
-    return !state;
-  }, false), dispatch = _useReducer[1];
-  return dispatch;
-}
 var TabContext = /* @__PURE__ */ React.createContext(null);
+var _excluded$l = ["as", "onSelect", "activeKey", "role", "onKeyDown"];
 var noop$3 = function noop() {
 };
 var AbstractNav = /* @__PURE__ */ React.forwardRef(function(_ref3, ref) {
-  var _ref$as = _ref3.as, Component = _ref$as === void 0 ? "ul" : _ref$as, onSelect = _ref3.onSelect, activeKey = _ref3.activeKey, role = _ref3.role, onKeyDown = _ref3.onKeyDown, props = _objectWithoutPropertiesLoose$1(_ref3, ["as", "onSelect", "activeKey", "role", "onKeyDown"]);
+  var _ref$as = _ref3.as, Component = _ref$as === void 0 ? "ul" : _ref$as, onSelect = _ref3.onSelect, activeKey = _ref3.activeKey, role = _ref3.role, onKeyDown = _ref3.onKeyDown, props = _objectWithoutPropertiesLoose$1(_ref3, _excluded$l);
   var forceUpdate = useForceUpdate();
   var needsRefocusRef = reactExports.useRef(false);
   var parentOnSelect = reactExports.useContext(SelectableContext);
@@ -17046,11 +17058,12 @@ var AbstractNav = /* @__PURE__ */ React.forwardRef(function(_ref3, ref) {
     role
   }))));
 });
+var _excluded$k = ["active", "className", "eventKey", "onSelect", "onClick", "as"];
 var defaultProps$8 = {
   disabled: false
 };
 var AbstractNavItem = /* @__PURE__ */ React.forwardRef(function(_ref3, ref) {
-  var active = _ref3.active, className = _ref3.className, eventKey = _ref3.eventKey, onSelect = _ref3.onSelect, onClick = _ref3.onClick, Component = _ref3.as, props = _objectWithoutPropertiesLoose$1(_ref3, ["active", "className", "eventKey", "onSelect", "onClick", "as"]);
+  var active = _ref3.active, className = _ref3.className, eventKey = _ref3.eventKey, onSelect = _ref3.onSelect, onClick = _ref3.onClick, Component = _ref3.as, props = _objectWithoutPropertiesLoose$1(_ref3, _excluded$k);
   var navKey = makeEventKey(eventKey, props.href);
   var parentOnSelect = reactExports.useContext(SelectableContext);
   var navContext = reactExports.useContext(NavContext);
@@ -17071,7 +17084,7 @@ var AbstractNavItem = /* @__PURE__ */ React.forwardRef(function(_ref3, ref) {
     }
     props["aria-selected"] = isActive;
   }
-  var handleOnclick = useEventCallback$1(function(e) {
+  var handleOnclick = useEventCallback(function(e) {
     if (onClick) onClick(e);
     if (navKey == null) return;
     if (onSelect) onSelect(navKey, e);
@@ -17084,13 +17097,14 @@ var AbstractNavItem = /* @__PURE__ */ React.forwardRef(function(_ref3, ref) {
   }));
 });
 AbstractNavItem.defaultProps = defaultProps$8;
+var _excluded$j = ["bsPrefix", "active", "disabled", "className", "variant", "action", "as", "onClick"];
 var defaultProps$7 = {
   variant: void 0,
   active: false,
   disabled: false
 };
 var ListGroupItem = /* @__PURE__ */ React.forwardRef(function(_ref3, ref) {
-  var bsPrefix = _ref3.bsPrefix, active = _ref3.active, disabled = _ref3.disabled, className = _ref3.className, variant = _ref3.variant, action2 = _ref3.action, as = _ref3.as, onClick = _ref3.onClick, props = _objectWithoutPropertiesLoose$1(_ref3, ["bsPrefix", "active", "disabled", "className", "variant", "action", "as", "onClick"]);
+  var bsPrefix = _ref3.bsPrefix, active = _ref3.active, disabled = _ref3.disabled, className = _ref3.className, variant = _ref3.variant, action2 = _ref3.action, as = _ref3.as, onClick = _ref3.onClick, props = _objectWithoutPropertiesLoose$1(_ref3, _excluded$j);
   bsPrefix = useBootstrapPrefix(bsPrefix, "list-group-item");
   var handleClick = reactExports.useCallback(function(event) {
     if (disabled) {
@@ -17115,6 +17129,7 @@ var ListGroupItem = /* @__PURE__ */ React.forwardRef(function(_ref3, ref) {
 });
 ListGroupItem.defaultProps = defaultProps$7;
 ListGroupItem.displayName = "ListGroupItem";
+var _excluded$i = ["className", "bsPrefix", "variant", "horizontal", "as"];
 var defaultProps$6 = {
   variant: void 0,
   horizontal: void 0
@@ -17122,7 +17137,7 @@ var defaultProps$6 = {
 var ListGroup = /* @__PURE__ */ React.forwardRef(function(props, ref) {
   var _useUncontrolled = useUncontrolled(props, {
     activeKey: "onSelect"
-  }), className = _useUncontrolled.className, initialBsPrefix = _useUncontrolled.bsPrefix, variant = _useUncontrolled.variant, horizontal = _useUncontrolled.horizontal, _useUncontrolled$as = _useUncontrolled.as, as = _useUncontrolled$as === void 0 ? "div" : _useUncontrolled$as, controlledProps = _objectWithoutPropertiesLoose$1(_useUncontrolled, ["className", "bsPrefix", "variant", "horizontal", "as"]);
+  }), className = _useUncontrolled.className, initialBsPrefix = _useUncontrolled.bsPrefix, variant = _useUncontrolled.variant, horizontal = _useUncontrolled.horizontal, _useUncontrolled$as = _useUncontrolled.as, as = _useUncontrolled$as === void 0 ? "div" : _useUncontrolled$as, controlledProps = _objectWithoutPropertiesLoose$1(_useUncontrolled, _excluded$i);
   var bsPrefix = useBootstrapPrefix(initialBsPrefix, "list-group");
   var horizontalVariant;
   if (horizontal) {
@@ -17157,9 +17172,6 @@ function scrollbarSize(recalc) {
   }
   return size$3;
 }
-function useCallbackRef$2() {
-  return reactExports.useState(null);
-}
 function activeElement(doc) {
   if (doc === void 0) {
     doc = ownerDocument();
@@ -17171,19 +17183,6 @@ function activeElement(doc) {
   } catch (e) {
     return doc.body;
   }
-}
-function useUpdatedRef(value) {
-  var valueRef = reactExports.useRef(value);
-  valueRef.current = value;
-  return valueRef;
-}
-function useWillUnmount(fn) {
-  var onUnmount = useUpdatedRef(fn);
-  reactExports.useEffect(function() {
-    return function() {
-      return onUnmount.current();
-    };
-  }, []);
 }
 function addClass(element2, className) {
   if (element2.classList) element2.classList.add(className);
@@ -17775,8 +17774,9 @@ var ModalContext = /* @__PURE__ */ React.createContext({
   onHide: function onHide() {
   }
 });
+var _excluded$h = ["bsPrefix", "className", "contentClassName", "centered", "size", "children", "scrollable"];
 var ModalDialog = /* @__PURE__ */ React.forwardRef(function(_ref3, ref) {
-  var bsPrefix = _ref3.bsPrefix, className = _ref3.className, contentClassName = _ref3.contentClassName, centered = _ref3.centered, size2 = _ref3.size, children2 = _ref3.children, scrollable = _ref3.scrollable, props = _objectWithoutPropertiesLoose$1(_ref3, ["bsPrefix", "className", "contentClassName", "centered", "size", "children", "scrollable"]);
+  var bsPrefix = _ref3.bsPrefix, className = _ref3.className, contentClassName = _ref3.contentClassName, centered = _ref3.centered, size2 = _ref3.size, children2 = _ref3.children, scrollable = _ref3.scrollable, props = _objectWithoutPropertiesLoose$1(_ref3, _excluded$h);
   bsPrefix = useBootstrapPrefix(bsPrefix, "modal");
   var dialogClass = bsPrefix + "-dialog";
   return /* @__PURE__ */ React.createElement("div", _extends$1({}, props, {
@@ -17788,15 +17788,16 @@ var ModalDialog = /* @__PURE__ */ React.forwardRef(function(_ref3, ref) {
 });
 ModalDialog.displayName = "ModalDialog";
 const ModalFooter = createWithBsPrefix("modal-footer");
+var _excluded$g = ["bsPrefix", "closeLabel", "closeButton", "onHide", "className", "children"];
 var defaultProps$5 = {
   closeLabel: "Close",
   closeButton: false
 };
 var ModalHeader = /* @__PURE__ */ React.forwardRef(function(_ref3, ref) {
-  var bsPrefix = _ref3.bsPrefix, closeLabel = _ref3.closeLabel, closeButton = _ref3.closeButton, onHide2 = _ref3.onHide, className = _ref3.className, children2 = _ref3.children, props = _objectWithoutPropertiesLoose$1(_ref3, ["bsPrefix", "closeLabel", "closeButton", "onHide", "className", "children"]);
+  var bsPrefix = _ref3.bsPrefix, closeLabel = _ref3.closeLabel, closeButton = _ref3.closeButton, onHide2 = _ref3.onHide, className = _ref3.className, children2 = _ref3.children, props = _objectWithoutPropertiesLoose$1(_ref3, _excluded$g);
   bsPrefix = useBootstrapPrefix(bsPrefix, "modal-header");
   var context2 = reactExports.useContext(ModalContext);
-  var handleClick = useEventCallback$1(function() {
+  var handleClick = useEventCallback(function() {
     if (context2) context2.onHide();
     if (onHide2) onHide2();
   });
@@ -17815,6 +17816,7 @@ var DivStyledAsH4 = divWithClassName("h4");
 const ModalTitle = createWithBsPrefix("modal-title", {
   Component: DivStyledAsH4
 });
+var _excluded$f = ["bsPrefix", "className", "style", "dialogClassName", "contentClassName", "children", "dialogAs", "aria-labelledby", "aria-describedby", "aria-label", "show", "animation", "backdrop", "keyboard", "onEscapeKeyDown", "onShow", "onHide", "container", "autoFocus", "enforceFocus", "restoreFocus", "restoreFocusOptions", "onEntered", "onExit", "onExiting", "onEnter", "onEntering", "onExited", "backdropClassName", "manager"];
 var manager;
 var defaultProps$4 = {
   show: false,
@@ -17827,20 +17829,24 @@ var defaultProps$4 = {
   dialogAs: ModalDialog
 };
 function DialogTransition(props) {
-  return /* @__PURE__ */ React.createElement(Fade, props);
+  return /* @__PURE__ */ React.createElement(Fade, _extends$1({}, props, {
+    timeout: null
+  }));
 }
 function BackdropTransition(props) {
-  return /* @__PURE__ */ React.createElement(Fade, props);
+  return /* @__PURE__ */ React.createElement(Fade, _extends$1({}, props, {
+    timeout: null
+  }));
 }
 var Modal = /* @__PURE__ */ React.forwardRef(function(_ref3, ref) {
-  var bsPrefix = _ref3.bsPrefix, className = _ref3.className, style2 = _ref3.style, dialogClassName = _ref3.dialogClassName, contentClassName = _ref3.contentClassName, children2 = _ref3.children, Dialog = _ref3.dialogAs, ariaLabelledby = _ref3["aria-labelledby"], show = _ref3.show, animation = _ref3.animation, backdrop = _ref3.backdrop, keyboard = _ref3.keyboard, onEscapeKeyDown = _ref3.onEscapeKeyDown, onShow = _ref3.onShow, onHide2 = _ref3.onHide, container = _ref3.container, autoFocus = _ref3.autoFocus, enforceFocus = _ref3.enforceFocus, restoreFocus = _ref3.restoreFocus, restoreFocusOptions = _ref3.restoreFocusOptions, onEntered = _ref3.onEntered, onExit = _ref3.onExit, onExiting = _ref3.onExiting, onEnter = _ref3.onEnter, onEntering = _ref3.onEntering, onExited = _ref3.onExited, backdropClassName = _ref3.backdropClassName, propsManager = _ref3.manager, props = _objectWithoutPropertiesLoose$1(_ref3, ["bsPrefix", "className", "style", "dialogClassName", "contentClassName", "children", "dialogAs", "aria-labelledby", "show", "animation", "backdrop", "keyboard", "onEscapeKeyDown", "onShow", "onHide", "container", "autoFocus", "enforceFocus", "restoreFocus", "restoreFocusOptions", "onEntered", "onExit", "onExiting", "onEnter", "onEntering", "onExited", "backdropClassName", "manager"]);
+  var bsPrefix = _ref3.bsPrefix, className = _ref3.className, style2 = _ref3.style, dialogClassName = _ref3.dialogClassName, contentClassName = _ref3.contentClassName, children2 = _ref3.children, Dialog = _ref3.dialogAs, ariaLabelledby = _ref3["aria-labelledby"], ariaDescribedby = _ref3["aria-describedby"], ariaLabel = _ref3["aria-label"], show = _ref3.show, animation = _ref3.animation, backdrop = _ref3.backdrop, keyboard = _ref3.keyboard, onEscapeKeyDown = _ref3.onEscapeKeyDown, onShow = _ref3.onShow, onHide2 = _ref3.onHide, container = _ref3.container, autoFocus = _ref3.autoFocus, enforceFocus = _ref3.enforceFocus, restoreFocus = _ref3.restoreFocus, restoreFocusOptions = _ref3.restoreFocusOptions, onEntered = _ref3.onEntered, onExit = _ref3.onExit, onExiting = _ref3.onExiting, onEnter = _ref3.onEnter, onEntering = _ref3.onEntering, onExited = _ref3.onExited, backdropClassName = _ref3.backdropClassName, propsManager = _ref3.manager, props = _objectWithoutPropertiesLoose$1(_ref3, _excluded$f);
   var _useState = reactExports.useState({}), modalStyle = _useState[0], setStyle = _useState[1];
   var _useState2 = reactExports.useState(false), animateStaticModal = _useState2[0], setAnimateStaticModal = _useState2[1];
   var waitingForMouseUpRef = reactExports.useRef(false);
   var ignoreBackdropClickRef = reactExports.useRef(false);
   var removeStaticModalAnimationRef = reactExports.useRef(null);
   var _useCallbackRef = useCallbackRef$2(), modal = _useCallbackRef[0], setModalRef = _useCallbackRef[1];
-  var handleHide = useEventCallback$1(onHide2);
+  var handleHide = useEventCallback(onHide2);
   bsPrefix = useBootstrapPrefix(bsPrefix, "modal");
   reactExports.useImperativeHandle(ref, function() {
     return {
@@ -17868,12 +17874,12 @@ var Modal = /* @__PURE__ */ React.forwardRef(function(_ref3, ref) {
       paddingLeft: !containerIsOverflowing && modalIsOverflowing ? scrollbarSize() : void 0
     });
   }
-  var handleWindowResize = useEventCallback$1(function() {
+  var handleWindowResize = useEventCallback(function() {
     if (modal) {
       updateDialogStyle(modal.dialog);
     }
   });
-  useWillUnmount$1(function() {
+  useWillUnmount(function() {
     removeEventListener(window, "resize", handleWindowResize);
     if (removeStaticModalAnimationRef.current) {
       removeStaticModalAnimationRef.current();
@@ -17909,7 +17915,7 @@ var Modal = /* @__PURE__ */ React.forwardRef(function(_ref3, ref) {
       ignoreBackdropClickRef.current = false;
       return;
     }
-    onHide2();
+    onHide2 == null ? void 0 : onHide2();
   };
   var handleEscapeKeyDown = function handleEscapeKeyDown2(e) {
     if (!keyboard && backdrop === "static") {
@@ -17919,38 +17925,24 @@ var Modal = /* @__PURE__ */ React.forwardRef(function(_ref3, ref) {
       onEscapeKeyDown(e);
     }
   };
-  var handleEnter = function handleEnter2(node2) {
+  var handleEnter = function handleEnter2(node2, isAppearing) {
     if (node2) {
       node2.style.display = "block";
       updateDialogStyle(node2);
     }
-    for (var _len = arguments.length, args = new Array(_len > 1 ? _len - 1 : 0), _key = 1; _key < _len; _key++) {
-      args[_key - 1] = arguments[_key];
-    }
-    if (onEnter) onEnter.apply(void 0, [node2].concat(args));
+    onEnter == null ? void 0 : onEnter(node2, isAppearing);
   };
   var handleExit = function handleExit2(node2) {
-    if (removeStaticModalAnimationRef.current) {
-      removeStaticModalAnimationRef.current();
-    }
-    for (var _len2 = arguments.length, args = new Array(_len2 > 1 ? _len2 - 1 : 0), _key2 = 1; _key2 < _len2; _key2++) {
-      args[_key2 - 1] = arguments[_key2];
-    }
-    if (onExit) onExit.apply(void 0, [node2].concat(args));
+    removeStaticModalAnimationRef.current == null ? void 0 : removeStaticModalAnimationRef.current();
+    onExit == null ? void 0 : onExit(node2);
   };
-  var handleEntering = function handleEntering2(node2) {
-    for (var _len3 = arguments.length, args = new Array(_len3 > 1 ? _len3 - 1 : 0), _key3 = 1; _key3 < _len3; _key3++) {
-      args[_key3 - 1] = arguments[_key3];
-    }
-    if (onEntering) onEntering.apply(void 0, [node2].concat(args));
+  var handleEntering = function handleEntering2(node2, isAppearing) {
+    onEntering == null ? void 0 : onEntering(node2, isAppearing);
     addEventListener(window, "resize", handleWindowResize);
   };
   var handleExited = function handleExited2(node2) {
     if (node2) node2.style.display = "";
-    for (var _len4 = arguments.length, args = new Array(_len4 > 1 ? _len4 - 1 : 0), _key4 = 1; _key4 < _len4; _key4++) {
-      args[_key4 - 1] = arguments[_key4];
-    }
-    if (onExited) onExited.apply(void 0, args);
+    onExited == null ? void 0 : onExited(node2);
     removeEventListener(window, "resize", handleWindowResize);
   };
   var renderBackdrop = reactExports.useCallback(function(backdropProps) {
@@ -17970,7 +17962,9 @@ var Modal = /* @__PURE__ */ React.forwardRef(function(_ref3, ref) {
       className: classNames$1(className, bsPrefix, animateStaticModal && bsPrefix + "-static"),
       onClick: backdrop ? handleClick : void 0,
       onMouseUp: handleMouseUp,
-      "aria-labelledby": ariaLabelledby
+      "aria-label": ariaLabel,
+      "aria-labelledby": ariaLabelledby,
+      "aria-describedby": ariaDescribedby
     }), /* @__PURE__ */ React.createElement(Dialog, _extends$1({}, props, {
       onMouseDown: handleDialogMouseDown,
       className: dialogClassName,
@@ -18015,8 +18009,9 @@ Modal.Footer = ModalFooter;
 Modal.Dialog = ModalDialog;
 Modal.TRANSITION_DURATION = 300;
 Modal.BACKDROP_TRANSITION_DURATION = 150;
+var _excluded$e = ["bsPrefix", "className", "as"];
 var NavbarBrand = /* @__PURE__ */ React.forwardRef(function(_ref3, ref) {
-  var bsPrefix = _ref3.bsPrefix, className = _ref3.className, as = _ref3.as, props = _objectWithoutPropertiesLoose$1(_ref3, ["bsPrefix", "className", "as"]);
+  var bsPrefix = _ref3.bsPrefix, className = _ref3.className, as = _ref3.as, props = _objectWithoutPropertiesLoose$1(_ref3, _excluded$e);
   bsPrefix = useBootstrapPrefix(bsPrefix, "navbar-brand");
   var Component = as || (props.href ? "a" : "span");
   return /* @__PURE__ */ React.createElement(Component, _extends$1({}, props, {
@@ -18025,8 +18020,9 @@ var NavbarBrand = /* @__PURE__ */ React.forwardRef(function(_ref3, ref) {
   }));
 });
 NavbarBrand.displayName = "NavbarBrand";
+var _excluded$d = ["children", "bsPrefix"];
 var NavbarCollapse = /* @__PURE__ */ React.forwardRef(function(_ref3, ref) {
-  var children2 = _ref3.children, bsPrefix = _ref3.bsPrefix, props = _objectWithoutPropertiesLoose$1(_ref3, ["children", "bsPrefix"]);
+  var children2 = _ref3.children, bsPrefix = _ref3.bsPrefix, props = _objectWithoutPropertiesLoose$1(_ref3, _excluded$d);
   bsPrefix = useBootstrapPrefix(bsPrefix, "navbar-collapse");
   return /* @__PURE__ */ React.createElement(context.Consumer, null, function(context2) {
     return /* @__PURE__ */ React.createElement(Collapse, _extends$1({
@@ -18038,14 +18034,15 @@ var NavbarCollapse = /* @__PURE__ */ React.forwardRef(function(_ref3, ref) {
   });
 });
 NavbarCollapse.displayName = "NavbarCollapse";
+var _excluded$c = ["bsPrefix", "className", "children", "label", "as", "onClick"];
 var defaultProps$3 = {
   label: "Toggle navigation"
 };
 var NavbarToggle = /* @__PURE__ */ React.forwardRef(function(_ref3, ref) {
-  var bsPrefix = _ref3.bsPrefix, className = _ref3.className, children2 = _ref3.children, label = _ref3.label, _ref$as = _ref3.as, Component = _ref$as === void 0 ? "button" : _ref$as, onClick = _ref3.onClick, props = _objectWithoutPropertiesLoose$1(_ref3, ["bsPrefix", "className", "children", "label", "as", "onClick"]);
+  var bsPrefix = _ref3.bsPrefix, className = _ref3.className, children2 = _ref3.children, label = _ref3.label, _ref$as = _ref3.as, Component = _ref$as === void 0 ? "button" : _ref$as, onClick = _ref3.onClick, props = _objectWithoutPropertiesLoose$1(_ref3, _excluded$c);
   bsPrefix = useBootstrapPrefix(bsPrefix, "navbar-toggler");
   var _ref22 = reactExports.useContext(context) || {}, onToggle = _ref22.onToggle, expanded = _ref22.expanded;
-  var handleClick = useEventCallback$1(function(e) {
+  var handleClick = useEventCallback(function(e) {
     if (onClick) onClick(e);
     if (onToggle) onToggle();
   });
@@ -18063,6 +18060,7 @@ var NavbarToggle = /* @__PURE__ */ React.forwardRef(function(_ref3, ref) {
 });
 NavbarToggle.displayName = "NavbarToggle";
 NavbarToggle.defaultProps = defaultProps$3;
+var _excluded$b = ["bsPrefix", "expand", "variant", "bg", "fixed", "sticky", "className", "children", "as", "expanded", "onToggle", "onSelect", "collapseOnSelect"];
 var NavbarText = createWithBsPrefix("navbar-text", {
   Component: "span"
 });
@@ -18074,7 +18072,7 @@ var defaultProps$2 = {
 var Navbar = /* @__PURE__ */ React.forwardRef(function(props, ref) {
   var _useUncontrolled = useUncontrolled(props, {
     expanded: "onToggle"
-  }), initialBsPrefix = _useUncontrolled.bsPrefix, expand = _useUncontrolled.expand, variant = _useUncontrolled.variant, bg = _useUncontrolled.bg, fixed = _useUncontrolled.fixed, sticky = _useUncontrolled.sticky, className = _useUncontrolled.className, children2 = _useUncontrolled.children, _useUncontrolled$as = _useUncontrolled.as, Component = _useUncontrolled$as === void 0 ? "nav" : _useUncontrolled$as, expanded = _useUncontrolled.expanded, _onToggle = _useUncontrolled.onToggle, onSelect = _useUncontrolled.onSelect, collapseOnSelect = _useUncontrolled.collapseOnSelect, controlledProps = _objectWithoutPropertiesLoose$1(_useUncontrolled, ["bsPrefix", "expand", "variant", "bg", "fixed", "sticky", "className", "children", "as", "expanded", "onToggle", "onSelect", "collapseOnSelect"]);
+  }), initialBsPrefix = _useUncontrolled.bsPrefix, expand = _useUncontrolled.expand, variant = _useUncontrolled.variant, bg = _useUncontrolled.bg, fixed = _useUncontrolled.fixed, sticky = _useUncontrolled.sticky, className = _useUncontrolled.className, children2 = _useUncontrolled.children, _useUncontrolled$as = _useUncontrolled.as, Component = _useUncontrolled$as === void 0 ? "nav" : _useUncontrolled$as, expanded = _useUncontrolled.expanded, _onToggle = _useUncontrolled.onToggle, onSelect = _useUncontrolled.onSelect, collapseOnSelect = _useUncontrolled.collapseOnSelect, controlledProps = _objectWithoutPropertiesLoose$1(_useUncontrolled, _excluded$b);
   var bsPrefix = useBootstrapPrefix(initialBsPrefix, "navbar");
   var handleCollapse = reactExports.useCallback(function() {
     if (onSelect) onSelect.apply(void 0, arguments);
@@ -18114,13 +18112,14 @@ Navbar.Brand = NavbarBrand;
 Navbar.Toggle = NavbarToggle;
 Navbar.Collapse = NavbarCollapse;
 Navbar.Text = NavbarText;
+var _excluded$a = ["active", "disabled", "className", "style", "activeLabel", "children"], _excluded2$3 = ["children"];
 var defaultProps$1 = {
   active: false,
   disabled: false,
   activeLabel: "(current)"
 };
 var PageItem = /* @__PURE__ */ React.forwardRef(function(_ref3, ref) {
-  var active = _ref3.active, disabled = _ref3.disabled, className = _ref3.className, style2 = _ref3.style, activeLabel = _ref3.activeLabel, children2 = _ref3.children, props = _objectWithoutPropertiesLoose$1(_ref3, ["active", "disabled", "className", "style", "activeLabel", "children"]);
+  var active = _ref3.active, disabled = _ref3.disabled, className = _ref3.className, style2 = _ref3.style, activeLabel = _ref3.activeLabel, children2 = _ref3.children, props = _objectWithoutPropertiesLoose$1(_ref3, _excluded$a);
   var Component = active || disabled ? "span" : SafeAnchor;
   return /* @__PURE__ */ React.createElement("li", {
     ref,
@@ -18143,7 +18142,7 @@ function createButton(name, defaultValue, label) {
     label = name;
   }
   function Button2(_ref22) {
-    var children2 = _ref22.children, props = _objectWithoutPropertiesLoose$1(_ref22, ["children"]);
+    var children2 = _ref22.children, props = _objectWithoutPropertiesLoose$1(_ref22, _excluded2$3);
     return /* @__PURE__ */ React.createElement(PageItem, props, /* @__PURE__ */ React.createElement("span", {
       "aria-hidden": "true"
     }, children2 || defaultValue), /* @__PURE__ */ React.createElement("span", {
@@ -18158,8 +18157,9 @@ var Prev = createButton("Prev", "‹", "Previous");
 var Ellipsis = createButton("Ellipsis", "…", "More");
 var Next = createButton("Next", "›");
 var Last = createButton("Last", "»");
+var _excluded$9 = ["bsPrefix", "className", "children", "size"];
 var Pagination = /* @__PURE__ */ React.forwardRef(function(_ref3, ref) {
-  var bsPrefix = _ref3.bsPrefix, className = _ref3.className, children2 = _ref3.children, size2 = _ref3.size, props = _objectWithoutPropertiesLoose$1(_ref3, ["bsPrefix", "className", "children", "size"]);
+  var bsPrefix = _ref3.bsPrefix, className = _ref3.className, children2 = _ref3.children, size2 = _ref3.size, props = _objectWithoutPropertiesLoose$1(_ref3, _excluded$9);
   var decoratedBsPrefix = useBootstrapPrefix(bsPrefix, "pagination");
   return /* @__PURE__ */ React.createElement("ul", _extends$1({
     ref
@@ -18173,8 +18173,9 @@ Pagination.Ellipsis = Ellipsis;
 Pagination.Item = PageItem;
 Pagination.Next = Next;
 Pagination.Last = Last;
+var _excluded$8 = ["bsPrefix", "variant", "animation", "size", "children", "as", "className"];
 var Spinner = /* @__PURE__ */ React.forwardRef(function(_ref3, ref) {
-  var bsPrefix = _ref3.bsPrefix, variant = _ref3.variant, animation = _ref3.animation, size2 = _ref3.size, children2 = _ref3.children, _ref$as = _ref3.as, Component = _ref$as === void 0 ? "div" : _ref$as, className = _ref3.className, props = _objectWithoutPropertiesLoose$1(_ref3, ["bsPrefix", "variant", "animation", "size", "children", "as", "className"]);
+  var bsPrefix = _ref3.bsPrefix, variant = _ref3.variant, animation = _ref3.animation, size2 = _ref3.size, children2 = _ref3.children, _ref$as = _ref3.as, Component = _ref$as === void 0 ? "div" : _ref$as, className = _ref3.className, props = _objectWithoutPropertiesLoose$1(_ref3, _excluded$8);
   bsPrefix = useBootstrapPrefix(bsPrefix, "spinner");
   var bsSpinnerPrefix = bsPrefix + "-" + animation;
   return /* @__PURE__ */ React.createElement(Component, _extends$1({
@@ -18184,8 +18185,9 @@ var Spinner = /* @__PURE__ */ React.forwardRef(function(_ref3, ref) {
   }), children2);
 });
 Spinner.displayName = "Spinner";
+var _excluded$7 = ["bsPrefix", "className", "striped", "bordered", "borderless", "hover", "size", "variant", "responsive"];
 var Table = /* @__PURE__ */ React.forwardRef(function(_ref3, ref) {
-  var bsPrefix = _ref3.bsPrefix, className = _ref3.className, striped = _ref3.striped, bordered = _ref3.bordered, borderless = _ref3.borderless, hover = _ref3.hover, size2 = _ref3.size, variant = _ref3.variant, responsive = _ref3.responsive, props = _objectWithoutPropertiesLoose$1(_ref3, ["bsPrefix", "className", "striped", "bordered", "borderless", "hover", "size", "variant", "responsive"]);
+  var bsPrefix = _ref3.bsPrefix, className = _ref3.className, striped = _ref3.striped, bordered = _ref3.bordered, borderless = _ref3.borderless, hover = _ref3.hover, size2 = _ref3.size, variant = _ref3.variant, responsive = _ref3.responsive, props = _objectWithoutPropertiesLoose$1(_ref3, _excluded$7);
   var decoratedBsPrefix = useBootstrapPrefix(bsPrefix, "table");
   var classes = classNames$1(className, decoratedBsPrefix, variant && decoratedBsPrefix + "-" + variant, size2 && decoratedBsPrefix + "-" + size2, striped && decoratedBsPrefix + "-striped", bordered && decoratedBsPrefix + "-bordered", borderless && decoratedBsPrefix + "-borderless", hover && decoratedBsPrefix + "-hover");
   var table = /* @__PURE__ */ React.createElement("table", _extends$1({}, props, {

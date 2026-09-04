@@ -20,15 +20,18 @@ export default defineConfig([
     extends: [
       js.configs.recommended,
       tseslint.configs.recommended,
-      reactHooks.configs['recommended-latest'],
       reactRefresh.configs.vite,
     ],
-    plugins: { 'unused-imports': unusedImports },
+    plugins: { 'react-hooks': reactHooks, 'unused-imports': unusedImports },
     languageOptions: {
       ecmaVersion: 'latest',
       globals: globals.browser,
     },
     rules: {
+      // the plugin ships the react compiler rules as well, and adopting those is a project
+      // of its own; this config signs up for the two classic hook rules only
+      'react-hooks/rules-of-hooks': 'error',
+      'react-hooks/exhaustive-deps': 'warn',
       // the codebase leans on inference; annotating every boundary is not the house style
       '@typescript-eslint/explicit-module-boundary-types': 'off',
       // `any` is still used in a few dom-wrangling spots; worth seeing, not worth blocking
@@ -50,6 +53,9 @@ export default defineConfig([
       // its own hook is how this codebase is written, so those hooks are spelled out here
       // rather than split into files of their own for the sake of the dev server
       'react-refresh/only-export-components': ['warn', {
+        // nearly every component here is wrapped in mobx's observer, which the plugin
+        // cannot recognise as a component factory on its own
+        extraHOCs: ['observer'],
         allowConstantExport: true,
         allowExportNames: ['useSession', 'useCurrentUser', 'useTour', 'useHandledError'],
       }],

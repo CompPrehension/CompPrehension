@@ -37,7 +37,7 @@ export const Modal = (props: ModalProps) => {
         <Optional isVisible={show ?? true}>
             <ModalWrapper type={type ?? 'MODAL'} show={show ?? true} onHide={handleClose ?? undefined} size={size}>
                 <Optional isVisible={!isNullOrUndefined(title) && title.length > 0}>
-                    <RBModal.Header closeButton={closeButton ?? undefined} placeholder={null}>
+                    <RBModal.Header closeButton={closeButton ?? undefined}>
                         <RBModal.Title>{title}</RBModal.Title>
                     </RBModal.Header>
                 </Optional>      
