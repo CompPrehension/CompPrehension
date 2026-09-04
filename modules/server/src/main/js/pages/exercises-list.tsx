@@ -23,7 +23,7 @@ export const ExercisesList = observer(() => {
         <div>
             <LoadingWrapper isLoading={isLoading}>
                 <ListGroup>
-                    {data.map(i => <ListGroup.Item><a href={`exercise?exerciseId=${i}`}>{i}</a></ListGroup.Item>)}
+                    {data.map(i => <ListGroup.Item key={i}><a href={`exercise?exerciseId=${i}`}>{i}</a></ListGroup.Item>)}
                 </ListGroup>
             </LoadingWrapper>
         </div>

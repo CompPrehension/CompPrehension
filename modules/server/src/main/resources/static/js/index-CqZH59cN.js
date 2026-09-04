@@ -3599,7 +3599,7 @@ const ExercisesList = observer(() => {
       setIsLoading(false);
     })();
   }, []);
-  return /* @__PURE__ */ jsxRuntimeExports.jsx("div", { children: /* @__PURE__ */ jsxRuntimeExports.jsx(LoadingWrapper, { isLoading, children: /* @__PURE__ */ jsxRuntimeExports.jsx(ListGroup, { children: data.map((i) => /* @__PURE__ */ jsxRuntimeExports.jsx(ListGroup.Item, { children: /* @__PURE__ */ jsxRuntimeExports.jsx("a", { href: `exercise?exerciseId=${i}`, children: i }) })) }) }) });
+  return /* @__PURE__ */ jsxRuntimeExports.jsx("div", { children: /* @__PURE__ */ jsxRuntimeExports.jsx(LoadingWrapper, { isLoading, children: /* @__PURE__ */ jsxRuntimeExports.jsx(ListGroup, { children: data.map((i) => /* @__PURE__ */ jsxRuntimeExports.jsx(ListGroup.Item, { children: /* @__PURE__ */ jsxRuntimeExports.jsx("a", { href: `exercise?exerciseId=${i}`, children: i }) }, i)) }) }) });
 });
 const SurveyPage = observer(() => {
   const exerciseStore = getExerciseStore();
