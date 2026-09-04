@@ -11,6 +11,14 @@ import { answerSlotId } from "./answer-slot";
 
 type GroupOption = { value: number, label: string };
 
+/**
+ * The store owns the answers, so the selects are controlled by it: `defaultValue` would
+ * only be read once and would ignore everything that does not come from a click - a
+ * reloaded question, or a step the server filled in.
+ */
+const selectedOption = (options: GroupOption[], answers: Answer[], slotId: number) =>
+    options.find(o => o.value === answers.find(a => a.answer[0] === slotId)?.answer[1]) ?? null;
+
 type MatchingQuestionComponentProps = {
     question: MatchingQuestion,
     answers: Answer[],
@@ -195,7 +203,7 @@ const ComboboxMatchingQuestionComponent = observer((props: MatchingQuestionCompo
                         </div>
                         <div className="col-md-auto">
                             <div style={{width: `${(8*groupsMaxLength) + 100}px`}}>
-                                <Select defaultValue={groupOptions.find(o => o.value === getAnswers().find(a => a.answer[0] === asw.id)?.answer[1]) ?? null}
+                                <Select value={selectedOption(groupOptions, getAnswers(), asw.id)}
                                         options={groupOptions}
                                         components={{ Option: RawHtmlSelectOption, SingleValue: RawHtmlSelectSingleValue }}               
                                         onChange={(v => {
@@ -222,6 +230,7 @@ const ComboboxMatchingQuestionWithCtxComponent = observer((props: MatchingQuesti
         return null;
     }
     const { groups = [] } = question;
+    const groupOptions: GroupOption[] = groups.map(g => ({ value: g.id, label: g.text }));
 
     const content = parse(question.text, {
         replace: (node) => {
@@ -231,7 +240,8 @@ const ComboboxMatchingQuestionWithCtxComponent = observer((props: MatchingQuesti
             }
 
             return (
-                <Select options={groups.map(g => ({ value: g.id, label: g.text }))}
+                <Select value={selectedOption(groupOptions, getAnswers(), answerId)}
+                        options={groupOptions}
                         components={{ Option: RawHtmlSelectOption, SingleValue: RawHtmlSelectSingleValue }}
                         onChange={(v => {
                             if (!v) {

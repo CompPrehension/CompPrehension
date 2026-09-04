@@ -1896,6 +1896,7 @@ function answerSlotId(node) {
   }
   return +attribs["data-answer-id"];
 }
+const selectedOption = (options, answers, slotId) => options.find((o) => o.value === answers.find((a) => a.answer[0] === slotId)?.answer[1]) ?? null;
 const MatchingQuestionComponent = observer((props) => {
   const { question } = props;
   const { options } = question;
@@ -2022,7 +2023,7 @@ const ComboboxMatchingQuestionComponent = observer((props) => {
         /* @__PURE__ */ jsxRuntimeExports.jsx("div", { className: "col-md-auto", children: /* @__PURE__ */ jsxRuntimeExports.jsx("div", { style: { width: `${8 * groupsMaxLength + 100}px` }, children: /* @__PURE__ */ jsxRuntimeExports.jsx(
           StateManagedSelect$1,
           {
-            defaultValue: groupOptions.find((o) => o.value === getAnswers().find((a) => a.answer[0] === asw.id)?.answer[1]) ?? null,
+            value: selectedOption(groupOptions, getAnswers(), asw.id),
             options: groupOptions,
             components: { Option: RawHtmlSelectOption, SingleValue: RawHtmlSelectSingleValue },
             onChange: ((v) => {
@@ -2046,6 +2047,7 @@ const ComboboxMatchingQuestionWithCtxComponent = observer((props) => {
     return null;
   }
   const { groups = [] } = question;
+  const groupOptions = groups.map((g) => ({ value: g.id, label: g.text }));
   const content = parse(question.text, {
     replace: (node) => {
       const answerId = answerSlotId(node);
@@ -2055,7 +2057,8 @@ const ComboboxMatchingQuestionWithCtxComponent = observer((props) => {
       return /* @__PURE__ */ jsxRuntimeExports.jsx(
         StateManagedSelect$1,
         {
-          options: groups.map((g) => ({ value: g.id, label: g.text })),
+          value: selectedOption(groupOptions, getAnswers(), answerId),
+          options: groupOptions,
           components: { Option: RawHtmlSelectOption, SingleValue: RawHtmlSelectSingleValue },
           onChange: ((v) => {
             if (!v) {
