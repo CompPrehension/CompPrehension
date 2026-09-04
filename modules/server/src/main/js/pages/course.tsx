@@ -185,7 +185,7 @@ export const CoursePage = observer(() => {
                     </li>
                 )}
                 {store.exercises.length === 0 && store.loadStatus === 'LOADED' && (
-                    <li className="list-group-item text-muted">{t('course_page_empty')}</li>
+                    <li key={'undefined'} className="list-group-item text-muted">{t('course_page_empty')}</li>
                 )}
             </ul>
             {canImport && showImportModal && (

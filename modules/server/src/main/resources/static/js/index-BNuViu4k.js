@@ -3676,7 +3676,8 @@ class ExerciseStageStore {
       const laws = this.laws.slice();
       const concepts = this.concepts.slice();
       const skills = this.skills.slice();
-      untracked(() => this.updateBankStats(concepts, laws, skills, card.tags, complexity));
+      const tags = card.tags.slice();
+      untracked(() => this.updateBankStats(concepts, laws, skills, tags, complexity));
     }, { delay: 1e3 });
   }
   courseId;
@@ -4237,7 +4238,7 @@ const ExerciseSettings = observer(() => {
     /* @__PURE__ */ jsxRuntimeExports.jsxs("div", { className: "flex-xl-nowrap row", children: [
       /* @__PURE__ */ jsxRuntimeExports.jsxs("div", { className: "col-xl-3 col-md-3 col-12 d-flex flex-column", children: [
         canCreate && /* @__PURE__ */ jsxRuntimeExports.jsx(Button, { variant: "primary", className: "mb-3", onClick: onNewExerciseClicked, children: "Create new" }),
-        /* @__PURE__ */ jsxRuntimeExports.jsx("ul", { className: "list-group", children: exerciseStore.exercises?.map(
+        /* @__PURE__ */ jsxRuntimeExports.jsx("div", { className: "list-group", children: exerciseStore.exercises?.map(
           (e) => /* @__PURE__ */ jsxRuntimeExports.jsx(
             Link,
             {
@@ -4987,11 +4988,11 @@ const GlobalPool = observer(() => {
         children: t("globalPool_page_createBtn")
       }
     ) }),
-    /* @__PURE__ */ jsxRuntimeExports.jsxs("ul", { className: "list-group", children: [
+    /* @__PURE__ */ jsxRuntimeExports.jsxs("div", { className: "list-group", children: [
       store.exercises.map(
         (e) => /* @__PURE__ */ jsxRuntimeExports.jsx(Link, { className: "list-group-item", to: `/pages/exercise-settings?exerciseId=${e.id}`, children: e.name }, e.id)
       ),
-      store.exercises.length === 0 && store.loadStatus === "LOADED" && /* @__PURE__ */ jsxRuntimeExports.jsx("li", { className: "list-group-item text-muted", children: t("globalPool_page_empty") })
+      store.exercises.length === 0 && store.loadStatus === "LOADED" && /* @__PURE__ */ jsxRuntimeExports.jsx("a", { className: "list-group-item text-muted", children: t("globalPool_page_empty") })
     ] })
   ] });
 });
@@ -5251,7 +5252,7 @@ const CoursePage = observer(() => {
       store.exercises.map(
         (e) => /* @__PURE__ */ jsxRuntimeExports.jsx("li", { className: "list-group-item", children: /* @__PURE__ */ jsxRuntimeExports.jsx(Link, { to: `/pages/exercise-settings?exerciseId=${e.id}&courseId=${courseId}`, children: e.name }) }, e.id)
       ),
-      store.exercises.length === 0 && store.loadStatus === "LOADED" && /* @__PURE__ */ jsxRuntimeExports.jsx("li", { className: "list-group-item text-muted", children: t("course_page_empty") })
+      store.exercises.length === 0 && store.loadStatus === "LOADED" && /* @__PURE__ */ jsxRuntimeExports.jsx("li", { className: "list-group-item text-muted", children: t("course_page_empty") }, "undefined")
     ] }),
     canImport && showImportModal && /* @__PURE__ */ jsxRuntimeExports.jsx(
       ImportFromGlobalModal,

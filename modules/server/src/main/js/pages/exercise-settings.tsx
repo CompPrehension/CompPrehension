@@ -78,7 +78,7 @@ export const ExerciseSettings = observer(() => {
             <div className="flex-xl-nowrap row">
                 <div className="col-xl-3 col-md-3 col-12 d-flex flex-column">
                     {canCreate && <Button variant="primary" className="mb-3" onClick={onNewExerciseClicked}>Create new</Button>}
-                    <ul className="list-group">
+                    <div className="list-group">
                         {exerciseStore.exercises?.map(e =>
                             <Link key={e.id}
                                   className={`list-group-item ${e.id === exerciseStore.currentCard?.id && "active" || ""}`}
@@ -88,7 +88,7 @@ export const ExerciseSettings = observer(() => {
                                 {e.name.length > 22 ? `${e.name.substring(0, 22)}...` : e.name}
                             </Link>
                         )}
-                    </ul>
+                    </div>
                 </div>
                 <div className="col-xl-9 col-md-9 col-12">
                     {exerciseStore.storeState.tag === 'ERROR' &&

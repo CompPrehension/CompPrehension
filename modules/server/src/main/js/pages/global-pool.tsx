@@ -46,14 +46,14 @@ export const GlobalPool = observer(() => {
                         {t('globalPool_page_createBtn')}
                     </Button>
                 </div>}
-            <ul className="list-group">
+            <div className="list-group">
                 {store.exercises.map(e =>
                     <Link key={e.id} className="list-group-item" to={`/pages/exercise-settings?exerciseId=${e.id}`}>{e.name}</Link>
                 )}
                 {store.exercises.length === 0 && store.loadStatus === 'LOADED' && (
-                    <li className="list-group-item text-muted">{t('globalPool_page_empty')}</li>
+                    <a className="list-group-item text-muted">{t('globalPool_page_empty')}</a>
                 )}
-            </ul>
+            </div>
         </div>
     );
 });

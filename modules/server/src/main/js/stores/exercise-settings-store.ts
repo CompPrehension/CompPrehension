@@ -51,11 +51,12 @@ export class ExerciseStageStore implements Disposable {
             const laws = this.laws.slice()
             const concepts = this.concepts.slice()
             const skills = this.skills.slice()
+            const tags = card.tags.slice()
             // the search itself is a side effect, not an input: `makeAutoObservable` marks
             // plain methods as `autoAction`, which keeps tracking when called from inside a
             // derivation, so without `untracked` this autorun would also subscribe to what
             // updateBankStats reads - including the abortController it writes to itself
-            untracked(() => this.updateBankStats(concepts, laws, skills, card.tags, complexity));
+            untracked(() => this.updateBankStats(concepts, laws, skills, tags, complexity));
         }, { delay: 1000 });
     }
     
