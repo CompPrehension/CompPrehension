@@ -1,5 +1,7 @@
 package org.vstu.compprehension.models.entities.exercise;
 
+import org.vstu.compprehension.models.data.ExerciseOptionsData;
+import org.vstu.compprehension.models.data.ExerciseStageData;
 import com.vladmihalcea.hibernate.type.json.JsonType;
 import jakarta.persistence.*;
 import lombok.Data;
@@ -55,11 +57,11 @@ public class ExerciseEntity implements Cloneable {
 
     @Type(JsonType.class)
     @Column(name = "options_json", columnDefinition = "json", nullable = false)
-    private ExerciseOptionsEntity options;
+    private ExerciseOptionsData options;
 
     @Type(JsonType.class)
     @Column(name = "stages_json", columnDefinition = "json", nullable = false)
-    private List<ExerciseStageEntity> stages;
+    private List<ExerciseStageData> stages;
 
     @Column(name = "backend_id", nullable = false, length = 100)
     private @NotNull String backendId;

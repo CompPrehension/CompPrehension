@@ -1,5 +1,6 @@
 package org.vstu.compprehension.models.businesslogic.backend;
 
+import org.vstu.compprehension.models.data.BackendFactData;
 import com.clarkparsia.pellet.owlapiv3.PelletReasoner;
 import com.clarkparsia.pellet.owlapiv3.PelletReasonerFactory;
 import org.apache.commons.lang3.NotImplementedException;
@@ -13,7 +14,6 @@ import org.semanticweb.owlapi.reasoner.NodeSet;
 import org.vstu.compprehension.models.businesslogic.Law;
 import org.vstu.compprehension.models.businesslogic.backend.facts.Fact;
 import org.vstu.compprehension.models.businesslogic.backend.util.ReasoningOptions;
-import org.vstu.compprehension.models.entities.BackendFactEntity;
 
 import java.util.*;
 
@@ -82,13 +82,13 @@ public class PelletBackend extends SWRLBackend {
     }
 
     @Override
-    public List<BackendFactEntity> getObjectProperties(String objectProperty) {
-        List<BackendFactEntity> facts = new ArrayList<>();
+    public List<BackendFactData> getObjectProperties(String objectProperty) {
+        List<BackendFactData> facts = new ArrayList<>();
         HashMap<OWLNamedIndividual, Set<OWLNamedIndividual>> relations = getObjectPropertyRelations(objectProperty);
 
         for (Map.Entry<OWLNamedIndividual, Set<OWLNamedIndividual>> relationsEntry : relations.entrySet()) {
             for (OWLNamedIndividual to : relationsEntry.getValue()) {
-                facts.add(new BackendFactEntity(
+                facts.add(new BackendFactData(
                         "owl:NamedIndividual",
                         relationsEntry.getKey().getIRI().getShortForm(),
                         objectProperty,
@@ -107,13 +107,13 @@ public class PelletBackend extends SWRLBackend {
     }
 
     @Override
-    public List<BackendFactEntity> getDataProperties(String dataProperty) {
-        List<BackendFactEntity> facts = new ArrayList<>();
+    public List<BackendFactData> getDataProperties(String dataProperty) {
+        List<BackendFactData> facts = new ArrayList<>();
         HashMap<OWLNamedIndividual, Set<OWLLiteral>> relations = getDataPropertyRelations(dataProperty);
 
         for (Map.Entry<OWLNamedIndividual, Set<OWLLiteral>> relationsEntry : relations.entrySet()) {
             for (OWLLiteral to : relationsEntry.getValue()) {
-                facts.add(new BackendFactEntity(
+                facts.add(new BackendFactData(
                         "owl:NamedIndividual",
                         relationsEntry.getKey().getIRI().getShortForm(),
                         dataProperty,
@@ -141,11 +141,11 @@ public class PelletBackend extends SWRLBackend {
 
     @Override
     public Collection<Fact> solve(List<Law> laws, Collection<Fact> statement, ReasoningOptions reasoningOptions) {
-        throw new NotImplementedException("PelletBackend implements solve() version that uses List<BackendFactEntity>");
+        throw new NotImplementedException("PelletBackend implements solve() version that uses List<BackendFactData>");
     }
 
     @Override
     public Collection<Fact> judge(List<Law> laws, Collection<Fact> statement, Collection<Fact> correctAnswer, Collection<Fact> response, ReasoningOptions reasoningOptions) {
-        throw new NotImplementedException("PelletBackend implements judge() version that uses List<BackendFactEntity>");
+        throw new NotImplementedException("PelletBackend implements judge() version that uses List<BackendFactData>");
     }
 }

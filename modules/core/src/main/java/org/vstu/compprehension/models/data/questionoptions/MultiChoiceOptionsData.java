@@ -1,4 +1,4 @@
-package org.vstu.compprehension.models.entities.QuestionOptions;
+package org.vstu.compprehension.models.data.questionoptions;
 
 import com.fasterxml.jackson.annotation.JsonIgnoreProperties;
 import com.fasterxml.jackson.annotation.JsonProperty;
@@ -12,7 +12,7 @@ import lombok.extern.jackson.Jacksonized;
 @SuperBuilder
 @Jacksonized
 @JsonIgnoreProperties(ignoreUnknown = true)
-public class MultiChoiceOptionsEntity extends QuestionOptionsEntity {
+public class MultiChoiceOptionsData extends QuestionOptionsData {
     @Builder.Default
     private DisplayMode displayMode = DisplayMode.SWITCH;
 

@@ -1,5 +1,7 @@
 package org.vstu.compprehension.models.businesslogic.domains;
 
+import org.vstu.compprehension.models.data.ExerciseStageData;
+import org.vstu.compprehension.models.data.DomainOptionsData;
 import io.brookite.termannotations.DomainTermDictionary;
 import lombok.Getter;
 import lombok.extern.log4j.Log4j2;
@@ -7,12 +9,10 @@ import org.jetbrains.annotations.NotNull;
 import org.jetbrains.annotations.Nullable;
 import org.springframework.web.context.annotation.RequestScope;
 import org.vstu.compprehension.models.businesslogic.Question;
-import org.vstu.compprehension.models.entities.exercise.ExerciseStageEntity;
 import org.vstu.compprehension.Service.ExerciseAttemptService;
 import org.vstu.compprehension.Service.SupplementaryStepService;
 import org.vstu.compprehension.models.businesslogic.*;
 import org.vstu.compprehension.models.data.DomainData;
-import org.vstu.compprehension.models.entities.DomainOptionsEntity;
 import org.vstu.compprehension.models.entities.EnumData.Language;
 import org.vstu.compprehension.utils.RandomProvider;
 
@@ -67,7 +67,7 @@ public abstract class DomainBase implements Domain {
     }
 
     @Override
-    public Optional<ExerciseStageEntity> getExerciseStageOf(@NotNull Question question) {
+    public Optional<ExerciseStageData> getExerciseStageOf(@NotNull Question question) {
         var questionId = question.getQuestionData().getId();
         return questionId == null ? Optional.empty()
                 : exerciseAttemptService.findStageForQuestion(questionId);
@@ -101,7 +101,7 @@ public abstract class DomainBase implements Domain {
     public String getShortnameForQuestionSearch(){
         return getShortName();
     }
-    public DomainOptionsEntity getOptions() { return domainData.options(); }
+    public DomainOptionsData getOptions() { return domainData.options(); }
 
     public @Nullable Tag getTag(@NotNull String name) {
         return getTags().get(name);

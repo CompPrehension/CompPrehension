@@ -1,5 +1,6 @@
 package org.vstu.compprehension.models.businesslogic.strategies;
 
+import org.vstu.compprehension.models.data.ExerciseStageData;
 import lombok.val;
 import org.jetbrains.annotations.NotNull;
 import org.vstu.compprehension.Service.ExerciseAttemptService;
@@ -15,7 +16,6 @@ import org.vstu.compprehension.models.data.AttemptExerciseData;
 import org.vstu.compprehension.models.data.AttemptQuestionData;
 import org.vstu.compprehension.models.data.ExerciseAttemptWithQuestionsData;
 import org.vstu.compprehension.models.entities.EnumData.*;
-import org.vstu.compprehension.models.entities.exercise.ExerciseStageEntity;
 
 import java.util.*;
 import java.util.stream.Collectors;
@@ -109,12 +109,12 @@ public abstract class StrategyBase implements AbstractStrategy {
      * @param exerciseAttempt attempt in progress
      * @return stage applied for next question generated for this attempt
      */
-    protected ExerciseStageEntity getStageForNextQuestion(ExerciseAttemptWithQuestionsData exerciseAttempt) {
+    protected ExerciseStageData getStageForNextQuestion(ExerciseAttemptWithQuestionsData exerciseAttempt) {
         if (exerciseAttempt == null || exerciseAttempt.questions() == null) {
             return null;
         }
 
-        List<ExerciseStageEntity> stages = exerciseAttempt.exercise().stages();
+        List<ExerciseStageData> stages = exerciseAttempt.exercise().stages();
         int nQuestions = exerciseAttempt.questions().size();
         int questionsInStagesCumulative = 0;
 
@@ -122,8 +122,8 @@ public abstract class StrategyBase implements AbstractStrategy {
 //        int stageIndex = 0;
 //        for (; stageIndex < nStages; ++stageIndex) {
 //            st = stages.get(stageIndex);
-        ExerciseStageEntity lastStage = null;
-        for (ExerciseStageEntity currStage : stages) {
+        ExerciseStageData lastStage = null;
+        for (ExerciseStageData currStage : stages) {
             questionsInStagesCumulative += currStage.getNumberOfQuestions();
             if (nQuestions < questionsInStagesCumulative) {  // not `<=` since we want `next` question
                 return currStage;
@@ -142,11 +142,11 @@ public abstract class StrategyBase implements AbstractStrategy {
         if (exercise == null || exercise.stages() == null) {
             return -1;
         }
-        return exercise.stages().stream().map(ExerciseStageEntity::getNumberOfQuestions).reduce(Integer::sum).orElse(0);
+        return exercise.stages().stream().map(ExerciseStageData::getNumberOfQuestions).reduce(Integer::sum).orElse(0);
     }
 
     /** Fill target and denied concepts and laws, complexity and denied questions from the attempt */
-    protected QuestionRequest initQuestionRequest(ExerciseAttemptWithQuestionsData exerciseAttempt, ExerciseStageEntity exerciseStage, Domain domain) {
+    protected QuestionRequest initQuestionRequest(ExerciseAttemptWithQuestionsData exerciseAttempt, ExerciseStageData exerciseStage, Domain domain) {
         QuestionRequest qr = new QuestionRequest();
         qr.setExerciseAttemptId(exerciseAttempt.id());
         // // qr.setDomainShortname(domain.getShortName());

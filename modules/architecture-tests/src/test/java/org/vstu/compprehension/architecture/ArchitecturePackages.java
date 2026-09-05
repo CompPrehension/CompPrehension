@@ -26,6 +26,12 @@ public final class ArchitecturePackages {
     /** JPA-сущности. */
     public static final String ENTITIES = "..models.entities..";
 
+    /** Модели данных, которыми сервисы говорят с бизнес-логикой. */
+    public static final String DATA_MODELS = "..models.data..";
+
+    /** Перенос между сущностями и моделями данных. */
+    public static final String MAPPERS = "..Service.mapping..";
+
     /** Типы, которые уезжают наружу по HTTP. */
     public static final String DTO = "..dto..";
 

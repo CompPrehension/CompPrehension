@@ -1,28 +1,28 @@
 package org.vstu.compprehension.models.businesslogic.backend.facts;
 
-import org.vstu.compprehension.models.entities.BackendFactEntity;
 
+import org.vstu.compprehension.models.data.BackendFactData;
 import java.util.Collection;
 import java.util.List;
 import java.util.stream.Collectors;
 
 public class Fact {
 
-    private BackendFactEntity entity;
+    private BackendFactData entity;
 
 
     public Fact() {
-        entity = new BackendFactEntity();
+        entity = new BackendFactData();
     }
 
-    public Fact(BackendFactEntity entity) {
+    public Fact(BackendFactData entity) {
         this.entity = entity;
     }
 
     /** copying constructor */
     public Fact(Fact fact) {
-        BackendFactEntity e = fact.asBackendFact();
-        this.entity = new BackendFactEntity(
+        BackendFactData e = fact.asBackendFact();
+        this.entity = new BackendFactData(
                 e.getSubjectType(), e.getSubject(),
                 e.getVerb(),
                 e.getObjectType(), e.getObject()
@@ -30,13 +30,13 @@ public class Fact {
     }
 
     public Fact(String subjectType, String subject, String verb, String objectType, String object) {
-        entity = new BackendFactEntity(subjectType, subject, verb, objectType, object);
+        entity = new BackendFactData(subjectType, subject, verb, objectType, object);
     }
     public Fact(String subject, String verb, String object) {
-        entity = new BackendFactEntity(subject, verb, object);
+        entity = new BackendFactData(subject, verb, object);
     }
 
-    public BackendFactEntity asBackendFact() {
+    public BackendFactData asBackendFact() {
         return entity;
     }
 
@@ -50,10 +50,10 @@ public class Fact {
     }
 
 
-    public static List<Fact> entitiesToFacts(Collection<BackendFactEntity> factEntities) {
+    public static List<Fact> entitiesToFacts(Collection<BackendFactData> factEntities) {
         return factEntities.stream().map(Fact::new).collect(Collectors.toList());
     }
-    public static List<BackendFactEntity> factsToEntities(Collection<Fact> facts) {
+    public static List<BackendFactData> factsToEntities(Collection<Fact> facts) {
         return facts.stream().map(Fact::asBackendFact).collect(Collectors.toList());
     }
 

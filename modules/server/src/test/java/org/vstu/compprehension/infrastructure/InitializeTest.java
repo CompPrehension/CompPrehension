@@ -1,12 +1,12 @@
 package org.vstu.compprehension.infrastructure;
 
+import org.vstu.compprehension.models.data.DomainOptionsData;
 import org.vstu.compprehension.*;
 
 import org.junit.jupiter.api.Test;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.transaction.annotation.Transactional;
 import org.vstu.compprehension.models.entities.DomainEntity;
-import org.vstu.compprehension.models.entities.DomainOptionsEntity;
 import org.vstu.compprehension.models.repository.DomainRepository;
 
 import java.util.stream.Collectors;
@@ -27,7 +27,7 @@ public class InitializeTest extends AbstractIntegrationTest {
         newDomain.setName(FAKE_DOMAIN);
         newDomain.setShortName(FAKE_DOMAIN);
         newDomain.setVersion("1");
-        newDomain.setOptions(new DomainOptionsEntity());
+        newDomain.setOptions(new DomainOptionsData());
 
         domainRepository.save(newDomain);
     }

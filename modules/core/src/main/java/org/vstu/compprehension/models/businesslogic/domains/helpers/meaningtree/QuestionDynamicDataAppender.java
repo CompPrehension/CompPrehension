@@ -32,7 +32,7 @@ public class QuestionDynamicDataAppender {
      * @param domain target domain
      * @return filled domain question object
      */
-    public static Question appendQuestionData(Question q, @Nullable ExerciseAttemptEntity attempt, QuestionBank bank,
+    public static Question appendQuestionData(Question q, QuestionBank bank,
                                               SupportedLanguage lang, ProgrammingLanguageExpressionDTDomain domain, Language userLang) {
         var meta = q.getMetadata();
         if (meta != null && meta.getVersion() < MeaningTreeOrderQuestionBuilder.MIN_VERSION) {

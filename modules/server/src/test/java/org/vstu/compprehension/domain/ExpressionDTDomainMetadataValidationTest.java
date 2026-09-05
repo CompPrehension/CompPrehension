@@ -1,5 +1,7 @@
 package org.vstu.compprehension.domain;
 
+import org.vstu.compprehension.models.data.ExerciseOptionsData;
+import org.vstu.compprehension.models.data.ExerciseStageData;
 import org.vstu.compprehension.models.data.ResponseData;
 import org.vstu.compprehension.Service.mapping.QuestionDataMapper;
 import org.vstu.compprehension.models.data.AnswerObjectData;
@@ -24,8 +26,6 @@ import org.vstu.compprehension.models.entities.EnumData.Language;
 import org.vstu.compprehension.models.entities.ExerciseAttemptEntity;
 import org.vstu.compprehension.models.entities.QuestionMetadataEntity;
 import org.vstu.compprehension.models.entities.exercise.ExerciseEntity;
-import org.vstu.compprehension.models.entities.exercise.ExerciseOptionsEntity;
-import org.vstu.compprehension.models.entities.exercise.ExerciseStageEntity;
 import org.vstu.compprehension.models.repository.ExerciseAttemptRepository;
 import org.vstu.compprehension.models.repository.ExerciseRepository;
 import org.vstu.compprehension.models.repository.QuestionMetadataRepository;
@@ -71,11 +71,11 @@ public class ExpressionDTDomainMetadataValidationTest extends AbstractIntegratio
         exercise.setDomain(domainService.getDomainEntity(domain.getName()));
         exercise.setBackendId("DTReasoner");
         exercise.setTags("");
-        exercise.setOptions(new ExerciseOptionsEntity(null, true,
+        exercise.setOptions(new ExerciseOptionsData(null, true,
                 true, true, true,
                 true, true, 7, null, null));
         exercise.setName("test");
-        exercise.setStages(Collections.singletonList(new ExerciseStageEntity()));
+        exercise.setStages(Collections.singletonList(new ExerciseStageData()));
         exercise.setStrategyId("StaticStrategy");
         exercise.getStages().getFirst();
         exerciseRepository.save(exercise);
@@ -207,7 +207,7 @@ public class ExpressionDTDomainMetadataValidationTest extends AbstractIntegratio
     public Question prepareQuestion(QuestionMetadataEntity meta) {
         SupportedLanguage lang = MeaningTreeUtils.detectLanguageFromTags(meta.getTagBits(), domain);
         Question q = meta.getQuestionData().getData().toQuestion(domain, QuestionDataMapper.toData(meta));
-        return QuestionDynamicDataAppender.appendQuestionData(q, attempt, qBank, lang, domain, Language.ENGLISH);
+        return QuestionDynamicDataAppender.appendQuestionData(q, qBank, lang, domain, Language.ENGLISH);
     }
 
     public Domain.InterpretSentenceResult solve(Question q, SupportedLanguage language, List<AnswerObjectData> answerSequence) {

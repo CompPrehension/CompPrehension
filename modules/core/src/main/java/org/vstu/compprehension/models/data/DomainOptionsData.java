@@ -1,4 +1,4 @@
-package org.vstu.compprehension.models.entities;
+package org.vstu.compprehension.models.data;
 
 import lombok.AllArgsConstructor;
 import lombok.Data;
@@ -10,5 +10,5 @@ import lombok.extern.jackson.Jacksonized;
 @AllArgsConstructor
 @SuperBuilder
 @Jacksonized
-public class DomainOptionsEntity {
+public class DomainOptionsData {
 }

@@ -1,8 +1,8 @@
 package org.vstu.compprehension.adapters;
 
+import org.vstu.compprehension.models.data.DomainOptionsData;
 import org.jetbrains.annotations.NotNull;
 import org.vstu.compprehension.models.entities.DomainEntity;
-import org.vstu.compprehension.models.entities.DomainOptionsEntity;
 import org.vstu.compprehension.models.repository.DomainRepository;
 
 import java.util.List;
@@ -26,7 +26,7 @@ public class FakeDomainRepository implements DomainRepository {
         e.setName("expression");
         e.setShortName("expression");
         e.setVersion("1.0.0");
-        e.setOptions(new DomainOptionsEntity());
+        e.setOptions(new DomainOptionsData());
         return Optional.of(e);
     }
 

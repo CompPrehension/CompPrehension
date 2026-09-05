@@ -1,5 +1,6 @@
 package org.vstu.compprehension.models.entities;
 
+import org.vstu.compprehension.models.data.DomainOptionsData;
 import com.vladmihalcea.hibernate.type.json.JsonType;
 import jakarta.persistence.*;
 import lombok.Data;
@@ -23,5 +24,5 @@ public class DomainEntity {
 
     @Type(JsonType.class)
     @Column(name = "options_json", columnDefinition = "json", nullable = false)
-    private DomainOptionsEntity options;
+    private DomainOptionsData options;
 }

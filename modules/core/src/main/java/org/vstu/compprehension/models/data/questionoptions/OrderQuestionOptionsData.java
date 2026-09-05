@@ -1,4 +1,4 @@
-package org.vstu.compprehension.models.entities.QuestionOptions;
+package org.vstu.compprehension.models.data.questionoptions;
 
 import com.fasterxml.jackson.annotation.JsonIgnoreProperties;
 import com.fasterxml.jackson.annotation.JsonProperty;
@@ -10,7 +10,7 @@ import lombok.extern.jackson.Jacksonized;
 @AllArgsConstructor @NoArgsConstructor
 @SuperBuilder @Jacksonized
 @JsonIgnoreProperties(ignoreUnknown = true)
-public class OrderQuestionOptionsEntity extends QuestionOptionsEntity {
+public class OrderQuestionOptionsData extends QuestionOptionsData {
     /// Show answer trace
     @Builder.Default
     private boolean showTrace = false;

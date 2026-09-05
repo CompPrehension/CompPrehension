@@ -45,10 +45,10 @@ public class BusinessContractTest {
 
     @ArchTest
     static final ArchRule domain_contracts_should_not_expose_jpa_entities =
-            FreezingArchRule.freeze(classes()
+            classes()
                     .that(are_business_logic_contracts())
                     .should(not_expose_jpa_entities_in_signatures())
-                    .as("domain contracts should not expose JPA entities"));
+                    .as("domain contracts should not expose JPA entities");
 
     /**
      * Стратегии работают только с данными, которые им дали сервисы.

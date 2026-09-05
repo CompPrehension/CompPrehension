@@ -1,5 +1,6 @@
 package org.vstu.compprehension.strategies;
 
+import org.vstu.compprehension.models.data.ExerciseStageData;
 import lombok.extern.log4j.Log4j2;
 import org.jetbrains.annotations.NotNull;
 import org.jetbrains.annotations.Nullable;
@@ -16,7 +17,6 @@ import org.vstu.compprehension.models.data.AttemptExerciseData;
 import org.vstu.compprehension.models.data.AttemptInteractionData;
 import org.vstu.compprehension.models.data.AttemptQuestionData;
 import org.vstu.compprehension.models.entities.EnumData.*;
-import org.vstu.compprehension.models.entities.exercise.ExerciseStageEntity;
 
 import java.util.List;
 
@@ -72,7 +72,7 @@ public class StaticStrategy extends StrategyBase {
         AttemptExerciseData exercise = exerciseAttempt.exercise();
         Domain domain = domainFactory.getDomain(exercise.domainName());
 
-        ExerciseStageEntity exerciseStage = getStageForNextQuestion(exerciseAttempt);
+        ExerciseStageData exerciseStage = getStageForNextQuestion(exerciseAttempt);
 
         QuestionRequest qr = initQuestionRequest(exerciseAttempt, exerciseStage, domain);
 
@@ -94,7 +94,7 @@ public class StaticStrategy extends StrategyBase {
     public float grade(long exerciseAttemptId, Domain.InterpretSentenceResult judgeResult) {
         var exerciseAttempt = getAttempt(exerciseAttemptId);
         // all questions defined by exercise
-        int nQuestionsExpected = exerciseAttempt.exercise().stages().stream().mapToInt(ExerciseStageEntity::getNumberOfQuestions).reduce(Integer::sum).orElse(1);
+        int nQuestionsExpected = exerciseAttempt.exercise().stages().stream().mapToInt(ExerciseStageData::getNumberOfQuestions).reduce(Integer::sum).orElse(1);
         // current progress over all questions
         float cumulativeGrade = 0;
         for(AttemptQuestionData q : exerciseAttempt.questions()) {

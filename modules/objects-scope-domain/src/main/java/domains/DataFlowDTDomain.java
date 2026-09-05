@@ -1,5 +1,11 @@
 package domains;
 
+import org.vstu.compprehension.models.data.SupplementaryStepData;
+import org.vstu.compprehension.models.data.ExerciseOptionsData;
+import org.vstu.compprehension.models.data.ViolationData;
+import org.vstu.compprehension.models.data.questionoptions.QuestionOptionsData;
+import org.vstu.compprehension.models.data.BackendFactData;
+import org.vstu.compprehension.models.data.questionoptions.OrderQuestionOptionsData;
 import helpers.GenerateErrorTextForScopeObjects;
 import its.model.DomainSolvingModel;
 import its.model.definition.DomainModel;
@@ -40,8 +46,6 @@ import org.vstu.compprehension.models.entities.EnumData.FeedbackType;
 import org.vstu.compprehension.models.entities.EnumData.Language;
 import org.vstu.compprehension.models.entities.EnumData.QuestionType;
 import org.vstu.compprehension.models.entities.EnumData.SearchDirections;
-import org.vstu.compprehension.models.entities.QuestionOptions.OrderQuestionOptionsEntity;
-import org.vstu.compprehension.models.entities.QuestionOptions.QuestionOptionsEntity;
 import org.vstu.compprehension.utils.HyperText;
 import org.vstu.compprehension.utils.RandomProvider;
 
@@ -213,7 +217,7 @@ public class DataFlowDTDomain extends DecisionTreeReasoningDomain {
     @NotNull
     @Override
     public Question makeQuestion(@NotNull QuestionRequest questionRequest,
-                                 @Nullable ExerciseAttemptEntity exerciseAttempt,
+                                 @Nullable ExerciseOptionsData exerciseOptions,
                                  @NotNull Language userLanguage) {
         HashSet<String> conceptNames = new HashSet<>();
         for (Concept concept : questionRequest.getTargetConcepts()) {
@@ -222,7 +226,7 @@ public class DataFlowDTDomain extends DecisionTreeReasoningDomain {
 
         List<QuestionMetadataData> foundQuestions = null;
         try {
-            var exerciseOptions = exerciseAttempt.getExercise().getOptions();
+            
             int generatorThreshold = exerciseOptions.getGeneratorThreshold() != null
                     ? exerciseOptions.getGeneratorThreshold()
                     : (int)(exerciseOptions.getMaxExpectedConcurrentStudents() * 1.5);
@@ -250,27 +254,26 @@ public class DataFlowDTDomain extends DecisionTreeReasoningDomain {
         }
 
         var res = foundQuestions.getFirst();
-        return makeQuestion(res, exerciseAttempt, questionRequest.getTargetTags(), userLanguage);
+        return makeQuestion(res, questionRequest.getTargetTags(), userLanguage);
     }
 
     @NotNull
     @Override
     public Question makeQuestion(@NotNull QuestionMetadataData metadata,
-                                 @Nullable ExerciseAttemptEntity exerciseAttemptEntity,
-                                 @NotNull List<Tag> tags,
+                                                                  @NotNull List<Tag> tags,
                                  @NotNull Language userLang) {
         var questionData = metadata.getData();
-        return makeQuestion(questionData.toQuestion(this, metadata), exerciseAttemptEntity, tags, userLang);
+        return makeQuestion(questionData.toQuestion(this, metadata), tags, userLang);
     }
 
-    protected Question makeQuestion(Question q, ExerciseAttemptEntity exerciseAttemptEntity, List<Tag> tags, Language userLanguage) {
-        QuestionOptionsEntity orderQuestionOptions = OrderQuestionOptionsEntity.builder()
+    protected Question makeQuestion(Question q, List<Tag> tags, Language userLanguage) {
+        QuestionOptionsData orderQuestionOptions = OrderQuestionOptionsData.builder()
                 .requireContext(true)
                 .showTrace(true)
                 .multipleSelectionEnabled(false)
                 .showSupplementaryQuestions(false)
                 .requireAllAnswers(true)
-                .orderNumberOptions(new OrderQuestionOptionsEntity.OrderNumberOptions("", OrderQuestionOptionsEntity.OrderNumberPosition.NONE, null))
+                .orderNumberOptions(new OrderQuestionOptionsData.OrderNumberOptions("", OrderQuestionOptionsData.OrderNumberPosition.NONE, null))
                 .build();
 
         QuestionData entity = new QuestionData();
@@ -281,7 +284,7 @@ public class DataFlowDTDomain extends DecisionTreeReasoningDomain {
         entity.setTags(tags.stream().map(Tag::getName).collect(Collectors.toList()));
 
         // DON'T: add schema facts
-        List<BackendFactEntity> facts = new ArrayList<>(/*getSchemaFacts(true)*/);
+        List<BackendFactData> facts = new ArrayList<>(/*getSchemaFacts(true)*/);
         // statement facts are already prepared in the Question's JSON
         facts.addAll(factsListDeepCopy(q.getStatementFacts()));
         entity.setStatementFacts(facts);
@@ -489,12 +492,12 @@ public class DataFlowDTDomain extends DecisionTreeReasoningDomain {
     //-----Суждение вопросов и подобное ------
 
     @Override
-    public Set<String> getViolationVerbs(String questionDomainType, List<BackendFactEntity> statementFacts) {
+    public Set<String> getViolationVerbs(String questionDomainType, List<BackendFactData> statementFacts) {
         throw new NotImplementedException();
     }
 
     @Override
-    public Set<String> getSolutionVerbs(String questionDomainType, List<BackendFactEntity> statementFacts) {
+    public Set<String> getSolutionVerbs(String questionDomainType, List<BackendFactData> statementFacts) {
         throw new NotImplementedException();
     }
 
@@ -516,7 +519,7 @@ public class DataFlowDTDomain extends DecisionTreeReasoningDomain {
     }
 
     @Override
-    public Explanation makeExplanation(List<ViolationEntity> mistakes, FeedbackType feedbackType, Language lang) {
+    public Explanation makeExplanation(List<ViolationData> mistakes, FeedbackType feedbackType, Language lang) {
         throw new NotImplementedException();
     }
 
@@ -560,7 +563,7 @@ public class DataFlowDTDomain extends DecisionTreeReasoningDomain {
                 .build();
     }
 
-    private static DomainModel factsToDomainModel(DomainSolvingModel domainSolvingModel, Collection<BackendFactEntity> factEntities) {
+    private static DomainModel factsToDomainModel(DomainSolvingModel domainSolvingModel, Collection<BackendFactData> factEntities) {
         JenaBackend jenaBackend = new JenaBackend();
         JenaFactList jenaFactList = jenaBackend.convertFactEntities(factEntities);
         DomainModel situationModel = domainSolvingModel.getDomainModel().copy();
@@ -574,12 +577,12 @@ public class DataFlowDTDomain extends DecisionTreeReasoningDomain {
 
     //------ Наводящие вопросы --------
     @Override
-    public SupplementaryResponseGenerationResult makeSupplementaryQuestion(QuestionData sourceQuestion, ViolationEntity violation, Language lang) {
+    public SupplementaryResponseGenerationResult makeSupplementaryQuestion(QuestionData sourceQuestion, ViolationData violation, Language lang) {
         throw new NotImplementedException();
     }
 
     @Override
-    public SupplementaryFeedbackGenerationResult judgeSupplementaryQuestion(Question question, SupplementaryStepEntity supplementaryStep, List<ResponseData> responses) {
+    public SupplementaryFeedbackGenerationResult judgeSupplementaryQuestion(Question question, SupplementaryStepData supplementaryStep, List<ResponseData> responses) {
         throw new NotImplementedException();
     }
 
@@ -664,7 +667,7 @@ public class DataFlowDTDomain extends DecisionTreeReasoningDomain {
             result.correctlyAppliedLaws = new ArrayList<>();
             result.isAnswerCorrect = result.explanation.getRawMessage().isEmpty();
             if(!result.isAnswerCorrect) {
-                ViolationEntity v = new ViolationEntity();
+                ViolationData v = new ViolationData();
                 v.setLawName("incorrectAnswer");
                 v.setViolationFacts(new ArrayList<>());
                 result.violations.add(v);

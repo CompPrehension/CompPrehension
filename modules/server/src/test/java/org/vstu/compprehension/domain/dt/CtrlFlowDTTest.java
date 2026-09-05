@@ -73,7 +73,7 @@ public class CtrlFlowDTTest {
 
     public Question loadQuestion(String questionName) {
         var metas = qMetaRepo.findByName(questionName);
-        return domain.makeQuestion(QuestionDataMapper.toData(metas.getFirst()), attempt, List.of(domain.getTag("Python")), Language.ENGLISH);
+        return domain.makeQuestion(QuestionDataMapper.toData(metas.getFirst()), List.of(domain.getTag("Python")), Language.ENGLISH);
     }
 
     private String walkDecisionTreeTrace(DecisionTreeTrace trace) {

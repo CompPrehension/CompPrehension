@@ -1,5 +1,6 @@
 package org.vstu.compprehension.authorization;
 
+import org.vstu.compprehension.models.data.BackendFactData;
 import org.vstu.compprehension.infrastructure.TestData;
 import org.vstu.compprehension.infrastructure.AbstractIntegrationTest;
 
@@ -15,7 +16,6 @@ import org.springframework.transaction.annotation.Transactional;
 import org.springframework.web.context.WebApplicationContext;
 import org.vstu.compprehension.models.businesslogic.storage.SerializableQuestion;
 import org.vstu.compprehension.models.entities.AnswerObjectEntity;
-import org.vstu.compprehension.models.entities.BackendFactEntity;
 import org.vstu.compprehension.models.entities.EnumData.AttemptStatus;
 import org.vstu.compprehension.models.entities.EnumData.QuestionStatus;
 import org.vstu.compprehension.models.entities.ExerciseAttemptEntity;
@@ -112,7 +112,7 @@ public abstract class AbstractAuthorizationTest extends AbstractIntegrationTest 
         question.setOptions(bankQuestion.getOptions());
         question.setTags(new ArrayList<>(metadata.getQuestionData().getData().getTags()));
         question.setStatementFacts(bankQuestion.getStatementFacts().stream()
-                .map(f -> new BackendFactEntity(
+                .map(f -> new BackendFactData(
                         f.getSubjectType(), f.getSubject(), f.getVerb(), f.getObjectType(), f.getObject()))
                 .collect(Collectors.toCollection(ArrayList::new)));
         question.setSolutionFacts(new ArrayList<>());

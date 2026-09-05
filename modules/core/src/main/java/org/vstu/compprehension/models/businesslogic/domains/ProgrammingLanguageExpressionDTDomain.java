@@ -1,5 +1,9 @@
 package org.vstu.compprehension.models.businesslogic.domains;
 
+import org.vstu.compprehension.models.data.SupplementaryStepData;
+import org.vstu.compprehension.models.data.ExerciseOptionsData;
+import org.vstu.compprehension.models.data.ViolationData;
+import org.vstu.compprehension.models.data.BackendFactData;
 import com.google.gson.Gson;
 import com.google.gson.GsonBuilder;
 import com.google.gson.JsonSyntaxException;
@@ -204,21 +208,20 @@ public class ProgrammingLanguageExpressionDTDomain extends DecisionTreeReasoning
 
     @Override
     public @NotNull Question makeQuestion(@NotNull QuestionRequest questionRequest,
-                                          @NotNull ExerciseAttemptEntity exerciseAttempt,
+                                          @Nullable ExerciseOptionsData exerciseOptions,
                                           @NotNull Language userLanguage) {
         SupportedLanguage lang = MeaningTreeUtils.detectLanguageFromTags(questionRequest.getTargetTags().stream().map(Tag::getName).toList());
 
-        return QuestionDynamicDataAppender.appendQuestionData(baseDomain.makeQuestion(questionRequest, exerciseAttempt, userLanguage, this), exerciseAttempt, qMetaStorage, lang, this, userLanguage);
+        return QuestionDynamicDataAppender.appendQuestionData(baseDomain.makeQuestion(questionRequest, exerciseOptions, userLanguage, this), qMetaStorage, lang, this, userLanguage);
     }
 
     @Override
     public @NotNull Question makeQuestion(@NotNull QuestionMetadataData metadata,
-                                          @Nullable ExerciseAttemptEntity exerciseAttemptEntity,
                                           @NotNull List<Tag> tags,
                                           @NotNull Language userLang) {
         SupportedLanguage lang = MeaningTreeUtils.detectLanguageFromTags(tags.stream().map(Tag::getName).toList());
 
-        return QuestionDynamicDataAppender.appendQuestionData(baseDomain.makeQuestion(metadata, exerciseAttemptEntity, tags, userLang, this), exerciseAttemptEntity, qMetaStorage, lang, this, userLang);
+        return QuestionDynamicDataAppender.appendQuestionData(baseDomain.makeQuestion(metadata, tags, userLang, this), qMetaStorage, lang, this, userLang);
     }
 
     public static final String DOMAIN_MODEL_LOCATION = ProgrammingLanguageExpressionDomain.RESOURCES_LOCATION + "programming-language-expression-domain-model/";
@@ -323,11 +326,11 @@ public class ProgrammingLanguageExpressionDTDomain extends DecisionTreeReasoning
 
     //-----Суждение вопросов и подобное ------
 
-    public Set<String> getSolutionVerbs(String questionDomainType, List<BackendFactEntity> statementFacts) {
+    public Set<String> getSolutionVerbs(String questionDomainType, List<BackendFactData> statementFacts) {
         return new HashSet<>(); //Не нужно для DT
     }
 
-    public Set<String> getViolationVerbs(String questionDomainType, List<BackendFactEntity> statementFacts) {
+    public Set<String> getViolationVerbs(String questionDomainType, List<BackendFactData> statementFacts) {
         return new HashSet<>(); //Не нужно для DT
     }
 
@@ -376,7 +379,7 @@ public class ProgrammingLanguageExpressionDTDomain extends DecisionTreeReasoning
                         .stream().map(ExerciseSkillDto::getName).toList();
             }
 
-            ViolationEntity violation = new ViolationEntity();
+            ViolationData violation = new ViolationData();
             violation.setLawName(STILL_UNEVALUATED_LEFT_VIOLATION_NAME);
             violation.setViolationFacts(new ArrayList<>());
             InterpretSentenceResult result = new InterpretSentenceResult();
@@ -389,7 +392,7 @@ public class ProgrammingLanguageExpressionDTDomain extends DecisionTreeReasoning
                     deniedSkills,
                     getUserLanguageByQuestion(judgedQuestion));
             result.violations.addAll(result.explanation.getDomainLawNames().stream().map(skill -> {
-                ViolationEntity v = new ViolationEntity();
+                ViolationData v = new ViolationData();
                 v.setLawName(skill);
                 v.setViolationFacts(new ArrayList<>());
                 return v;
@@ -472,12 +475,12 @@ public class ProgrammingLanguageExpressionDTDomain extends DecisionTreeReasoning
         }
     }
 
-    protected static String oldQuestionModelToTokens(List<BackendFactEntity> facts) {
+    protected static String oldQuestionModelToTokens(List<BackendFactData> facts) {
         Map<Integer, String> indexes = new HashMap<>();
         Map<String, String> tokenValues = new HashMap<>();
         StringBuilder tokenBuilder = new StringBuilder();
 
-        for (BackendFactEntity st : facts) {
+        for (BackendFactData st : facts) {
             if (st.getVerb().equals("index")) {
                 indexes.put(Integer.parseInt(st.getObject()), st.getSubject());
             } else if (st.getVerb().equals("text")) {
@@ -978,12 +981,12 @@ public class ProgrammingLanguageExpressionDTDomain extends DecisionTreeReasoning
     );
 
     @Override
-    public SupplementaryResponseGenerationResult makeSupplementaryQuestion(QuestionData sourceQuestion, ViolationEntity violation, Language lang) {
+    public SupplementaryResponseGenerationResult makeSupplementaryQuestion(QuestionData sourceQuestion, ViolationData violation, Language lang) {
         return dtSupplementaryQuestionHelper.makeSupplementaryQuestion(sourceQuestion, lang);
     }
 
     @Override
-    public SupplementaryFeedbackGenerationResult judgeSupplementaryQuestion(Question question, SupplementaryStepEntity supplementaryStep, List<ResponseData> responses) {
+    public SupplementaryFeedbackGenerationResult judgeSupplementaryQuestion(Question question, SupplementaryStepData supplementaryStep, List<ResponseData> responses) {
         return dtSupplementaryQuestionHelper.judgeSupplementaryQuestion(supplementaryStep, responses);
     }
 
@@ -995,15 +998,15 @@ public class ProgrammingLanguageExpressionDTDomain extends DecisionTreeReasoning
     }
 
     @Override
-    public Explanation makeExplanation(List<ViolationEntity> mistakes, FeedbackType feedbackType, Language lang) {
+    public Explanation makeExplanation(List<ViolationData> mistakes, FeedbackType feedbackType, Language lang) {
         ArrayList<Explanation> result = new ArrayList<>();
-        for (ViolationEntity mistake : mistakes) {
+        for (ViolationData mistake : mistakes) {
             result.add(new Explanation(Explanation.Type.ERROR, makeSingleExplanation(mistake, feedbackType, lang)));
         }
         return Explanation.aggregate(Explanation.Type.ERROR, result);
     }
 
-    private HyperText makeSingleExplanation(ViolationEntity mistake, FeedbackType feedbackType, Language lang) {
+    private HyperText makeSingleExplanation(ViolationData mistake, FeedbackType feedbackType, Language lang) {
         return new HyperText("WRONG");
     }
 

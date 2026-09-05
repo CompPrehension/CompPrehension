@@ -1,11 +1,11 @@
 package org.vstu.compprehension.models.businesslogic.backend;
 
+import org.vstu.compprehension.models.data.BackendFactData;
 import lombok.extern.log4j.Log4j2;
 import org.apache.commons.lang3.NotImplementedException;
 import org.vstu.compprehension.models.businesslogic.Law;
 import org.vstu.compprehension.models.businesslogic.backend.facts.Fact;
 import org.vstu.compprehension.models.businesslogic.backend.util.ReasoningOptions;
-import org.vstu.compprehension.models.entities.BackendFactEntity;
 import org.vstu.compprehension.models.businesslogic.LawFormulation;
 import org.semanticweb.owlapi.apibinding.OWLManager;
 import org.semanticweb.owlapi.model.*;
@@ -64,7 +64,7 @@ public abstract class SWRLBackend extends FactBackend {
         return IRI.create(OntologyIRI + "#" + name);
     }
 
-    void addStatementFact(BackendFactEntity fact) {
+    void addStatementFact(BackendFactData fact) {
         assert fact != null;
         assert fact.getVerb() != null;
         if (fact.getVerb().equals("rdf:type")) {
@@ -96,8 +96,8 @@ public abstract class SWRLBackend extends FactBackend {
         }
     }
 
-    abstract List<BackendFactEntity> getObjectProperties(String objectProperty);
-    abstract List<BackendFactEntity> getDataProperties(String dataProperty);
+    abstract List<BackendFactData> getObjectProperties(String objectProperty);
+    abstract List<BackendFactData> getDataProperties(String dataProperty);
     abstract void callReasoner();
 
     void addOWLLawFormulation(String name, String type) {
@@ -135,13 +135,13 @@ public abstract class SWRLBackend extends FactBackend {
     }
 
     @Override
-    public Collection<Fact> solve(List<Law> laws, List<BackendFactEntity> statement, ReasoningOptions reasoningOptions) {
+    public Collection<Fact> solve(List<Law> laws, List<BackendFactData> statement, ReasoningOptions reasoningOptions) {
         createOntology();
         for (Law law : laws) {
             addLaw(law);
         }
 
-        for (BackendFactEntity fact : statement) {
+        for (BackendFactData fact : statement) {
             addStatementFact(fact);
         }
 
@@ -151,20 +151,20 @@ public abstract class SWRLBackend extends FactBackend {
     }
 
     @Override
-    public Collection<Fact> judge(List<Law> laws, List<BackendFactEntity> statement, List<BackendFactEntity> correctAnswer, List<BackendFactEntity> response, ReasoningOptions reasoningOptions) {
+    public Collection<Fact> judge(List<Law> laws, List<BackendFactData> statement, List<BackendFactData> correctAnswer, List<BackendFactData> response, ReasoningOptions reasoningOptions) {
         createOntology();
 
         for (Law law : laws) {
             addLaw(law);
         }
 
-        for (BackendFactEntity fact : statement) {
+        for (BackendFactData fact : statement) {
             addStatementFact(fact);
         }
-        for (BackendFactEntity fact : response) {
+        for (BackendFactData fact : response) {
             addStatementFact(fact);
         }
-        for (BackendFactEntity fact : correctAnswer) {
+        for (BackendFactData fact : correctAnswer) {
             addStatementFact(fact);
         }
 
@@ -174,13 +174,13 @@ public abstract class SWRLBackend extends FactBackend {
     }
 
     List<Fact> getFacts(Set<String> verbs) {
-        List<BackendFactEntity> result = new ArrayList<>();
+        List<BackendFactData> result = new ArrayList<>();
         if (verbs == null)
             throw new NotImplementedException("Old implementation of SWRLBackend does not support null or empty `verbs` on either `solve` or `judge`. 2023.02");
         for (String verb : verbs) {
-            List<BackendFactEntity> verbFacts = getObjectProperties(verb);
+            List<BackendFactData> verbFacts = getObjectProperties(verb);
             result.addAll(verbFacts);
-            List<BackendFactEntity> verbFactsData = getDataProperties(verb);
+            List<BackendFactData> verbFactsData = getDataProperties(verb);
             result.addAll(verbFactsData);
         }
         return Fact.entitiesToFacts(result);

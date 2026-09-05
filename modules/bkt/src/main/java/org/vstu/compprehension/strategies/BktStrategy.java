@@ -1,5 +1,6 @@
 package org.vstu.compprehension.strategies;
 
+import org.vstu.compprehension.models.data.ExerciseStageData;
 import lombok.extern.log4j.Log4j2;
 import lombok.val;
 import org.jetbrains.annotations.NotNull;
@@ -24,7 +25,6 @@ import org.vstu.compprehension.models.businesslogic.strategies.AbstractStrategy;
 import org.vstu.compprehension.models.businesslogic.strategies.StrategyOptions;
 import org.vstu.compprehension.models.businesslogic.strategies.StrategyBase;
 import org.vstu.compprehension.models.entities.EnumData.*;
-import org.vstu.compprehension.models.entities.exercise.ExerciseStageEntity;
 import org.vstu.compprehension.strategies.util.LeafEngagedSkillsExtractor;
 
 import java.util.*;
@@ -103,7 +103,7 @@ public class BktStrategy extends StrategyBase {
                 .map(domain::getSkill)
                 .toList();
 
-        ExerciseStageEntity exerciseStage = getStageForNextQuestion(attempt);
+        ExerciseStageData exerciseStage = getStageForNextQuestion(attempt);
         QuestionRequest qr = initQuestionRequest(attempt, exerciseStage, domain);
 
         Concept badConcept = domain.getConcept("SystemIntegrationTest");
@@ -144,7 +144,7 @@ public class BktStrategy extends StrategyBase {
         val nQuestionsExpected = attempt.exercise()
                 .stages()
                 .stream()
-                .mapToInt(ExerciseStageEntity::getNumberOfQuestions)
+                .mapToInt(ExerciseStageData::getNumberOfQuestions)
                 .reduce(Integer::sum)
                 .orElse(1);
 

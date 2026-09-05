@@ -1,13 +1,12 @@
 package org.vstu.compprehension.models.data;
 
+import org.vstu.compprehension.models.data.questionoptions.QuestionOptionsData;
 import lombok.Data;
 import lombok.NoArgsConstructor;
 import org.jetbrains.annotations.NotNull;
 import org.jetbrains.annotations.Nullable;
-import org.vstu.compprehension.models.entities.BackendFactEntity;
 import org.vstu.compprehension.models.entities.EnumData.QuestionStatus;
 import org.vstu.compprehension.models.entities.EnumData.QuestionType;
-import org.vstu.compprehension.models.entities.QuestionOptions.QuestionOptionsEntity;
 
 import java.util.ArrayList;
 import java.util.Date;
@@ -27,7 +26,7 @@ import java.util.List;
  *   <li>{@code domainEntity} — домен проставляет {@code QuestionService} при сохранении;</li>
  *   <li>{@code questionRequestLog} — запись журнала запроса тоже дело сервиса.</li>
  * </ul>
- * {@code QuestionOptionsEntity} и {@code BackendFactEntity} вопреки именам не JPA-сущности,
+ * {@code QuestionOptionsData} и {@code BackendFactData} вопреки именам не JPA-сущности,
  * а значения из json-колонок, поэтому используются как есть.
  */
 @Data
@@ -41,10 +40,10 @@ public class QuestionData {
     private Date createdAt;
     private @Nullable QuestionMetadataData metadata;
     private String questionDomainType;
-    private QuestionOptionsEntity options;
+    private QuestionOptionsData options;
     private @NotNull List<String> tags = new ArrayList<>(0);
     private List<AnswerObjectData> answerObjects = new ArrayList<>();
     private @NotNull List<QuestionInteractionData> interactions = new ArrayList<>(0);
-    private List<BackendFactEntity> statementFacts = new ArrayList<>();
-    private List<BackendFactEntity> solutionFacts = new ArrayList<>();
+    private List<BackendFactData> statementFacts = new ArrayList<>();
+    private List<BackendFactData> solutionFacts = new ArrayList<>();
 }

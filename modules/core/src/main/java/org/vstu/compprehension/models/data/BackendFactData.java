@@ -1,4 +1,4 @@
-package org.vstu.compprehension.models.entities;
+package org.vstu.compprehension.models.data;
 
 import jakarta.persistence.*;
 import lombok.*;
@@ -7,7 +7,7 @@ import lombok.*;
 @EqualsAndHashCode
 @NoArgsConstructor
 @Table(name = "BackendFacts")
-public class BackendFactEntity {
+public class BackendFactData {
     private String object;
     private String objectType;
     private String subject;
@@ -21,7 +21,7 @@ public class BackendFactEntity {
                 + "]";
     }
 
-    public BackendFactEntity(String subjectType, String subject, String verb, String objectType, String object) {
+    public BackendFactData(String subjectType, String subject, String verb, String objectType, String object) {
         this.object = object;
         this.objectType = objectType;
         this.subject = subject;
@@ -29,7 +29,7 @@ public class BackendFactEntity {
         this.verb = verb;
     }
 
-    public BackendFactEntity(String subject, String verb, String object) {
+    public BackendFactData(String subject, String verb, String object) {
         this.object = object;
         this.objectType = "";
         this.subject = subject;

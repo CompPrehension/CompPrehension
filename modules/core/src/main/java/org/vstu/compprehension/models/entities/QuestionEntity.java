@@ -1,5 +1,8 @@
 package org.vstu.compprehension.models.entities;
 
+import org.vstu.compprehension.models.data.questionoptions.QuestionOptionsData;
+import org.vstu.compprehension.models.data.ExerciseStageData;
+import org.vstu.compprehension.models.data.BackendFactData;
 import com.vladmihalcea.hibernate.type.json.JsonType;
 import jakarta.persistence.*;
 import lombok.Getter;
@@ -14,8 +17,6 @@ import org.jetbrains.annotations.NotNull;
 import org.jetbrains.annotations.Nullable;
 import org.vstu.compprehension.models.entities.EnumData.QuestionStatus;
 import org.vstu.compprehension.models.entities.EnumData.QuestionType;
-import org.vstu.compprehension.models.entities.QuestionOptions.QuestionOptionsEntity;
-import org.vstu.compprehension.models.entities.exercise.ExerciseStageEntity;
 
 import java.util.ArrayList;
 import java.util.Date;
@@ -61,7 +62,7 @@ public class QuestionEntity {
 
     @Type(JsonType.class)
     @Column(name = "options_json", columnDefinition = "json")
-    private QuestionOptionsEntity options;
+    private QuestionOptionsData options;
 
     @Type(JsonType.class)
     @Column(name = "tags", columnDefinition = "json", nullable = false)
@@ -97,10 +98,10 @@ public class QuestionEntity {
     @Type(JsonType.class)
     @Column(name = "statement_facts", nullable = false)
     @Basic(fetch = FetchType.LAZY)
-    private List<BackendFactEntity> statementFacts = new ArrayList<>();
+    private List<BackendFactData> statementFacts = new ArrayList<>();
 
     @Type(JsonType.class)
     @Column(name = "solution_facts", nullable = false)
     @Basic(fetch = FetchType.LAZY)
-    private List<BackendFactEntity> solutionFacts = new ArrayList<>();
+    private List<BackendFactData> solutionFacts = new ArrayList<>();
 }

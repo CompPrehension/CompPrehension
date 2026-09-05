@@ -1,4 +1,4 @@
-package org.vstu.compprehension.models.entities.exercise;
+package org.vstu.compprehension.models.data;
 
 import com.fasterxml.jackson.annotation.JsonIgnoreProperties;
 import com.fasterxml.jackson.annotation.JsonInclude;
@@ -14,8 +14,8 @@ import lombok.extern.jackson.Jacksonized;
 @SuperBuilder
 @Jacksonized @JsonIgnoreProperties(ignoreUnknown = true)
 @JsonInclude(JsonInclude.Include.NON_NULL)
-public class ExerciseOptionsEntity {
-    private ExerciseSurveyOptionsEntity surveyOptions;
+public class ExerciseOptionsData {
+    private ExerciseSurveyOptionsData surveyOptions;
     private boolean newQuestionGenerationEnabled;
     private boolean supplementaryQuestionsEnabled;
     private boolean correctAnswerGenerationEnabled;
@@ -31,7 +31,7 @@ public class ExerciseOptionsEntity {
     @AllArgsConstructor @NoArgsConstructor
     @SuperBuilder
     @Jacksonized @JsonIgnoreProperties(ignoreUnknown = true)
-    public static class ExerciseSurveyOptionsEntity {
+    public static class ExerciseSurveyOptionsData {
         private Boolean enabled;
         private String surveyId;
     }

@@ -1,5 +1,6 @@
 package org.vstu.compprehension.models.businesslogic.backend;
 
+import org.vstu.compprehension.models.data.BackendFactData;
 import org.vstu.compprehension.models.data.ResponseData;
 import org.vstu.compprehension.models.businesslogic.DomainToBackendAdapter;
 import org.vstu.compprehension.models.businesslogic.Law;
@@ -8,7 +9,6 @@ import org.vstu.compprehension.models.businesslogic.Tag;
 import org.vstu.compprehension.models.businesslogic.backend.facts.Fact;
 import org.vstu.compprehension.models.businesslogic.backend.util.ReasoningOptions;
 import org.vstu.compprehension.models.businesslogic.domains.Domain;
-import org.vstu.compprehension.models.entities.BackendFactEntity;
 import org.vstu.compprehension.models.entities.EnumData.FeedbackType;
 import org.vstu.compprehension.models.entities.EnumData.Language;
 
@@ -58,7 +58,7 @@ public abstract class FactBackend implements Backend<FactBackend.Input, Collecti
         );
     }
 
-    public abstract Collection<Fact> solve(List<Law> laws, List<BackendFactEntity> statement, ReasoningOptions reasoningOptions);
+    public abstract Collection<Fact> solve(List<Law> laws, List<BackendFactData> statement, ReasoningOptions reasoningOptions);
 
     public abstract Collection<Fact> solve(List<Law> laws, Collection<Fact> statement, ReasoningOptions reasoningOptions);
 
@@ -69,9 +69,9 @@ public abstract class FactBackend implements Backend<FactBackend.Input, Collecti
      */
     public abstract Collection<Fact> judge(
         List<Law> laws,
-        List<BackendFactEntity> statement,
-        List<BackendFactEntity> correctAnswer,
-        List<BackendFactEntity> response,
+        List<BackendFactData> statement,
+        List<BackendFactData> correctAnswer,
+        List<BackendFactData> response,
         ReasoningOptions reasoningOptions
     );
 
@@ -85,13 +85,13 @@ public abstract class FactBackend implements Backend<FactBackend.Input, Collecti
 
     /* helpers: fact conversion */
 
-    public Fact convertFactEntity(BackendFactEntity factEntity) {
+    public Fact convertFactEntity(BackendFactData factEntity) {
         return convertFact(new Fact(factEntity));
     }
     public Fact convertFact(Fact fact) {
         return fact;
     }
-    public Collection<Fact> convertFactEntities(Collection<BackendFactEntity> factEntities) {
+    public Collection<Fact> convertFactEntities(Collection<BackendFactData> factEntities) {
         return factEntities.stream().map(this::convertFactEntity).collect(Collectors.toList());
     }
     public Collection<Fact> convertFacts(Collection<Fact> facts) {
@@ -150,7 +150,7 @@ public abstract class FactBackend implements Backend<FactBackend.Input, Collecti
 
         @Override
         public void updateQuestionAfterSolve(Question question, Collection<Fact> solution) {
-            List<BackendFactEntity> storedSolution = question.getQuestionData().getSolutionFacts();
+            List<BackendFactData> storedSolution = question.getQuestionData().getSolutionFacts();
             if (storedSolution != null && !storedSolution.isEmpty()) {
                 // add anything set as solution before
                 solution.addAll(Fact.entitiesToFacts(storedSolution));

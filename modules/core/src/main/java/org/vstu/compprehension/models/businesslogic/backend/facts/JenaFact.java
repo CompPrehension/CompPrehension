@@ -1,5 +1,6 @@
 package org.vstu.compprehension.models.businesslogic.backend.facts;
 
+import org.vstu.compprehension.models.data.BackendFactData;
 import com.fasterxml.jackson.annotation.JsonIgnore;
 import lombok.Getter;
 import lombok.Setter;
@@ -8,7 +9,6 @@ import org.apache.commons.lang3.tuple.Pair;
 import org.apache.jena.rdf.model.*;
 import org.apache.jena.vocabulary.RDF;
 import org.vstu.compprehension.models.businesslogic.backend.util.TermMapping;
-import org.vstu.compprehension.models.entities.BackendFactEntity;
 
 import java.util.Optional;
 
@@ -47,11 +47,11 @@ public class JenaFact extends Fact {
         super(fact.getSubjectType(), fact.getSubject(), fact.getVerb(), fact.getObjectType(), fact.getObject());
         this.statement = statement;
     }
-    public JenaFact(BackendFactEntity fact, Statement statement) {
+    public JenaFact(BackendFactData fact, Statement statement) {
         super(fact.getSubjectType(), fact.getSubject(), fact.getVerb(), fact.getObjectType(), fact.getObject());
         this.statement = statement;
     }
-    public JenaFact(BackendFactEntity fact) {
+    public JenaFact(BackendFactData fact) {
         super(fact.getSubjectType(), fact.getSubject(), fact.getVerb(), fact.getObjectType(), fact.getObject());
     }
 
@@ -85,8 +85,8 @@ public class JenaFact extends Fact {
                 + "]";
     }
 
-    public BackendFactEntity asBackendFact() {
-        return new BackendFactEntity(
+    public BackendFactData asBackendFact() {
+        return new BackendFactData(
                 getSubjectType(), getSubject(), // getters ensure filling all fields with values
                 getVerb(),
                 getObjectType(), getObject()

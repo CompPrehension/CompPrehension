@@ -1,5 +1,9 @@
 package domains;
 
+import org.vstu.compprehension.models.data.SupplementaryStepData;
+import org.vstu.compprehension.models.data.ExerciseOptionsData;
+import org.vstu.compprehension.models.data.ViolationData;
+import org.vstu.compprehension.models.data.BackendFactData;
 import com.fasterxml.jackson.databind.JsonNode;
 import com.fasterxml.jackson.databind.ObjectMapper;
 import its.model.DomainSolvingModel;
@@ -538,7 +542,8 @@ public class ControlFlowDTDomain extends DecisionTreeReasoningDomain {
     }
 
     @Override
-    public Collection<Fact> responseToFacts(String questionDomainType, List<ResponseData> responses, List<AnswerObjectData> answerObjects) {
+    public Collection<Fact> responseToFacts(Question question, List<ResponseData> responses) {
+        var questionDomainType = question.getQuestionDomainType();
         if (questionDomainType.equals(EXECUTION_ORDER_QUESTION_TYPE)) {
             List<Fact> result = new ArrayList<>();
             for (ResponseData response : responses) {
@@ -561,12 +566,12 @@ public class ControlFlowDTDomain extends DecisionTreeReasoningDomain {
     }
 
     @Override
-    public Set<String> getViolationVerbs(String questionDomainType, List<BackendFactEntity> statementFacts) {
+    public Set<String> getViolationVerbs(String questionDomainType, List<BackendFactData> statementFacts) {
         return Set.of();
     }
 
     @Override
-    public Set<String> getSolutionVerbs(String questionDomainType, List<BackendFactEntity> statementFacts) {
+    public Set<String> getSolutionVerbs(String questionDomainType, List<BackendFactData> statementFacts) {
         return Set.of();
     }
 
@@ -592,15 +597,15 @@ public class ControlFlowDTDomain extends DecisionTreeReasoningDomain {
     }
 
     @Override
-    public Explanation makeExplanation(List<ViolationEntity> mistakes, FeedbackType feedbackType, Language lang) {
+    public Explanation makeExplanation(List<ViolationData> mistakes, FeedbackType feedbackType, Language lang) {
         ArrayList<Explanation> result = new ArrayList<>();
-        for (ViolationEntity mistake : mistakes) {
+        for (ViolationData mistake : mistakes) {
             result.add(new Explanation(Explanation.Type.ERROR, makeSingleExplanation(mistake, feedbackType, lang)));
         }
         return Explanation.aggregate(Explanation.Type.ERROR, result);
     }
 
-    private HyperText makeSingleExplanation(ViolationEntity mistake, FeedbackType feedbackType, Language lang) {
+    private HyperText makeSingleExplanation(ViolationData mistake, FeedbackType feedbackType, Language lang) {
         return new HyperText("WRONG");
     }
 
@@ -608,7 +613,7 @@ public class ControlFlowDTDomain extends DecisionTreeReasoningDomain {
     @NotNull
     @Override
     public Question makeQuestion(@NotNull QuestionRequest questionRequest,
-                                 @NotNull ExerciseAttemptEntity exerciseAttempt,
+                                 @Nullable ExerciseOptionsData exerciseOptions,
                                  @NotNull Language userLanguage
     ) {
         HashSet<String> conceptNames = new HashSet<>();
@@ -619,7 +624,6 @@ public class ControlFlowDTDomain extends DecisionTreeReasoningDomain {
         List<QuestionMetadataData> foundQuestions = null;
 
         try {
-            var exerciseOptions = exerciseAttempt.getExercise().getOptions();
             int generatorThreshold = exerciseOptions.getGeneratorThreshold() != null
                     ? exerciseOptions.getGeneratorThreshold()
                     : (int)(exerciseOptions.getMaxExpectedConcurrentStudents() * 1.5);
@@ -648,14 +652,13 @@ public class ControlFlowDTDomain extends DecisionTreeReasoningDomain {
         }
 
         var res = foundQuestions.getFirst();
-        return makeQuestion(res, exerciseAttempt, List.of(), userLanguage);
+        return makeQuestion(res, List.of(), userLanguage);
     }
 
     @NotNull
     @Override
     public Question makeQuestion(@NotNull QuestionMetadataData metadata,
-                                 @Nullable ExerciseAttemptEntity exerciseAttemptEntity,
-                                 @NotNull List<Tag> tags, @NotNull Language userLang
+                                                                  @NotNull List<Tag> tags, @NotNull Language userLang
     ) {
         var result = metadata.getData().toQuestion(this, metadata);
         result.getQuestionData().setQuestionText(getMessage("question_prompt", userLang)
@@ -664,7 +667,7 @@ public class ControlFlowDTDomain extends DecisionTreeReasoningDomain {
     }
 
     @Override
-    public SupplementaryResponseGenerationResult makeSupplementaryQuestion(QuestionData sourceQuestion, ViolationEntity violation, Language lang) {
+    public SupplementaryResponseGenerationResult makeSupplementaryQuestion(QuestionData sourceQuestion, ViolationData violation, Language lang) {
         return null;
     }
 
@@ -677,7 +680,7 @@ public class ControlFlowDTDomain extends DecisionTreeReasoningDomain {
     }
 
     @Override
-    public SupplementaryFeedbackGenerationResult judgeSupplementaryQuestion(Question question, SupplementaryStepEntity supplementaryStep, List<ResponseData> responses) {
+    public SupplementaryFeedbackGenerationResult judgeSupplementaryQuestion(Question question, SupplementaryStepData supplementaryStep, List<ResponseData> responses) {
         return null;
     }
 

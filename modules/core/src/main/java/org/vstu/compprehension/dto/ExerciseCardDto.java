@@ -1,10 +1,10 @@
 package org.vstu.compprehension.dto;
 
+import org.vstu.compprehension.models.data.ExerciseOptionsData;
 import com.fasterxml.jackson.annotation.JsonProperty;
 import lombok.*;
 import com.fasterxml.jackson.annotation.JsonProperty.Access;
 import org.jetbrains.annotations.NotNull;
-import org.vstu.compprehension.models.entities.exercise.ExerciseOptionsEntity;
 
 import java.util.List;
 
@@ -20,7 +20,7 @@ public class ExerciseCardDto {
     private @NotNull String backendId;
     private @NotNull List<String> tags;
     private @NotNull List<ExerciseStageDto> stages;
-    private @NotNull ExerciseOptionsEntity options;
+    private @NotNull ExerciseOptionsData options;
     @JsonProperty("isPublic") private boolean isPublic;
 
     @JsonProperty(access = Access.READ_ONLY)
@@ -28,7 +28,7 @@ public class ExerciseCardDto {
 
     //@NotNull List<String> tags;
     /*
-    @NotNull ExerciseOptionsEntity options;
+    @NotNull ExerciseOptionsData options;
     @NotNull List<ExerciseLawsEntity> laws;
     @NotNull List<ExerciseConceptEntity> concepts;
     */

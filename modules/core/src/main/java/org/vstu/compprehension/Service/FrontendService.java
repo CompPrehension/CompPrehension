@@ -1,5 +1,9 @@
 package org.vstu.compprehension.Service;
 
+import org.vstu.compprehension.Service.mapping.QuestionDataMapper;
+import org.vstu.compprehension.models.data.ViolationData;
+import org.vstu.compprehension.models.data.ExerciseStageData;
+import org.vstu.compprehension.models.data.questionoptions.OrderQuestionOptionsData;
 import jakarta.persistence.EntityManager;
 import lombok.SneakyThrows;
 import lombok.extern.log4j.Log4j2;
@@ -26,8 +30,6 @@ import org.vstu.compprehension.models.entities.EnumData.AttemptStatus;
 import org.vstu.compprehension.models.entities.EnumData.Decision;
 import org.vstu.compprehension.models.entities.EnumData.Language;
 import org.vstu.compprehension.models.entities.EnumData.QuestionType;
-import org.vstu.compprehension.models.entities.QuestionOptions.OrderQuestionOptionsEntity;
-import org.vstu.compprehension.models.entities.exercise.ExerciseStageEntity;
 import org.vstu.compprehension.models.repository.*;
 import org.vstu.compprehension.utils.Checkpointer;
 import org.vstu.compprehension.utils.Mapper;
@@ -49,13 +51,14 @@ public class FrontendService {
     private final AbstractStrategyFactory strategyFactory;
     private final FeedbackRepository feedbackRepository;
     private final InteractionRepository interactionRepository;
+    private final QuestionDataMapper questionDataMapper;
     private final LocalizationService localizationService;
     private final DomainFactory domainFactory;
     private final EntityManager entityManager;
     private final CourseService courseService;
 
 
-    public FrontendService(ExerciseAttemptRepository exerciseAttemptRepository, ExerciseAttemptService exerciseAttemptService, QuestionRepository questionRepository, ExerciseService exerciseService, EntityManager entityManager, QuestionService questionService, LocalizationService localizationService, AbstractStrategyFactory strategyFactory, DomainFactory domainFactory, FeedbackRepository feedbackRepository, InteractionRepository interactionRepository, CourseService courseService) {
+    public FrontendService(ExerciseAttemptRepository exerciseAttemptRepository, ExerciseAttemptService exerciseAttemptService, QuestionRepository questionRepository, ExerciseService exerciseService, EntityManager entityManager, QuestionService questionService, LocalizationService localizationService, AbstractStrategyFactory strategyFactory, DomainFactory domainFactory, FeedbackRepository feedbackRepository, InteractionRepository interactionRepository, CourseService courseService, QuestionDataMapper questionDataMapper) {
         this.exerciseAttemptRepository = exerciseAttemptRepository;
         this.exerciseAttemptService = exerciseAttemptService;
         this.questionRepository = questionRepository;
@@ -67,6 +70,7 @@ public class FrontendService {
         this.domainFactory = domainFactory;
         this.feedbackRepository = feedbackRepository;
         this.interactionRepository = interactionRepository;
+        this.questionDataMapper = questionDataMapper;
         this.courseService = courseService;
     }
 
@@ -111,7 +115,7 @@ public class FrontendService {
         // загрузка обслуживается кэшем первого уровня, без запроса.
         val questionEntity = questionService.getQuestionEntity(questionId);
         val existingInteractions = questionEntity.getInteractions();
-        val ie = new InteractionEntity(SEND_RESPONSE, questionEntity, judgeResult.violations, judgeResult.correctlyAppliedLaws, responses, newResponses);
+        val ie = new InteractionEntity(SEND_RESPONSE, questionEntity, toViolationEntities(judgeResult.violations), judgeResult.correctlyAppliedLaws, responses, newResponses);
         existingInteractions.add(ie);
         val correctInteractionsCount = (int)existingInteractions.stream().filter(i -> i.getViolations().isEmpty()).count();
         // ch.hit("add interaction ("+correctInteractionsCount+")");
@@ -140,7 +144,7 @@ public class FrontendService {
         val locale = getQuestionLanguage(attempt);
         // calculate error message
         val violations = judgeResult.violations.stream()
-                .map(v -> FeedbackViolationLawDto.builder().name(v.getLawName()).canCreateSupplementaryQuestion(domain.needSupplementaryQuestion(v.getLawName(), v.getInteraction() == null ? null : v.getInteraction().getInteractionType())).build())
+                .map(v -> FeedbackViolationLawDto.builder().name(v.getLawName()).canCreateSupplementaryQuestion(domain.needSupplementaryQuestion(v.getLawName(), v.getInteractionType())).build())
                 .filter(Objects::nonNull).toList();
         Collection<Explanation> explanationSource = judgeResult.explanation.getRawMessage().isEmpty() ? judgeResult.explanation.getChildren() : List.of(judgeResult.explanation);
         val errors = explanationSource.stream().map(e -> Pair.of(
@@ -165,7 +169,7 @@ public class FrontendService {
         // special case for order question
         // force complete answer if the last but one answer is correct
         val isAnswerCorrect = errors.isEmpty() && judgeResult.isAnswerCorrect;
-        val orderQuestionOptions = Utils.tryCast(question.getQuestionData().getOptions(), OrderQuestionOptionsEntity.class).orElse(null);
+        val orderQuestionOptions = Utils.tryCast(question.getQuestionData().getOptions(), OrderQuestionOptionsData.class).orElse(null);
         if (isAnswerCorrect && question.getQuestionData().getQuestionType().equals(QuestionType.ORDER) &&
                 orderQuestionOptions != null && !orderQuestionOptions.isMultipleSelectionEnabled() &&
                 ie.getFeedback().getInteractionsLeft() == 1 && question.getQuestionData().getAnswerObjects().size() - correctAnswers.length == 1) {
@@ -218,11 +222,20 @@ public class FrontendService {
         val question = questionRepository.findByIdEager(questionId)
                 .orElseThrow();
 
-        val violation = new ViolationEntity(); //TODO: make normal choice
+        val violation = new ViolationData(); //TODO: make normal choice
         violation.setLawName(violationLaws[0]);
 
         var language = getQuestionLanguage(question);
         return questionService.generateSupplementaryQuestion(question, violation, language);
+    }
+
+    /**
+     * Нарушения из данных в сущности перед записью: домены создают их данными,
+     * а связь со взаимодействием проставляет сам {@code InteractionEntity}.
+     */
+    private List<ViolationEntity> toViolationEntities(List<ViolationData> violations) {
+        return violations == null ? List.of()
+                : violations.stream().map(questionDataMapper::toEntity).collect(Collectors.toList());
     }
 
     private Language getQuestionLanguage(QuestionEntity question) {
@@ -278,7 +291,7 @@ public class FrontendService {
 
         // add interaction
         var existingInteractions = questionEntity.getInteractions();
-        val ie = new InteractionEntity(REQUEST_CORRECT_ANSWER, questionEntity, judgeResult.violations, judgeResult.correctlyAppliedLaws, responses, newResponses);
+        val ie = new InteractionEntity(REQUEST_CORRECT_ANSWER, questionEntity, toViolationEntities(judgeResult.violations), judgeResult.correctlyAppliedLaws, responses, newResponses);
         existingInteractions.add(ie);
         val correctInteractionsCount = (int)existingInteractions.stream().filter(i -> i.getViolations().isEmpty()).count();
 
@@ -381,7 +394,7 @@ public class FrontendService {
         var strategy = strategyFactory.getStrategy(ea.getExercise().getStrategyId());
         var targetQuestionCount = strategy.getOptions().isMultiStagesEnabled()
                 ? ea.getExercise().getStages().stream()
-                    .map(ExerciseStageEntity::getNumberOfQuestions)
+                    .map(ExerciseStageData::getNumberOfQuestions)
                     .reduce(Integer::sum)
                     .orElse(1)
                 : 1;

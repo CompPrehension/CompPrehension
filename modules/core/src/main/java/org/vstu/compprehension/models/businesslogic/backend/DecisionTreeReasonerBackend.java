@@ -1,5 +1,6 @@
 package org.vstu.compprehension.models.businesslogic.backend;
 
+import org.vstu.compprehension.models.data.ViolationData;
 import io.brookite.termannotations.DomainTermAnnotationProcessor;
 import its.model.TypedVariable;
 import its.model.definition.DomainModel;
@@ -24,7 +25,6 @@ import org.vstu.compprehension.models.businesslogic.domains.Domain;
 import org.vstu.compprehension.models.businesslogic.domains.DomainBase;
 import org.vstu.compprehension.models.businesslogic.domains.helpers.DomainTermTooltipVisualizer;
 import org.vstu.compprehension.models.entities.EnumData.Language;
-import org.vstu.compprehension.models.entities.ViolationEntity;
 import org.vstu.compprehension.utils.HyperText;
 
 import java.util.*;
@@ -322,9 +322,9 @@ public class DecisionTreeReasonerBackend
                     judgedQuestion.getDomain(), deniedSkills, lang
             );
             if (!result.isAnswerCorrect) {
-                List<ViolationEntity> mistakes = result.explanation.getDomainLawNames()
+                List<ViolationData> mistakes = result.explanation.getDomainLawNames()
                         .stream().map(errorName -> {
-                            ViolationEntity violation = new ViolationEntity();
+                            ViolationData violation = new ViolationData();
                             violation.setLawName(errorName);
                             violation.setViolationFacts(new ArrayList<>());
                             return violation;

@@ -1,11 +1,11 @@
 package org.vstu.compprehension.models.businesslogic.backend.facts;
 
+import org.vstu.compprehension.models.data.BackendFactData;
 import lombok.Getter;
 import lombok.extern.log4j.Log4j2;
 import org.apache.jena.rdf.model.*;
 import org.jetbrains.annotations.NotNull;
 import org.vstu.compprehension.models.businesslogic.backend.util.TermMapping;
-import org.vstu.compprehension.models.entities.BackendFactEntity;
 
 import java.util.*;
 import java.util.stream.Collectors;
@@ -51,12 +51,12 @@ public class JenaFactList implements Collection<Fact> {
         }
     }
 
-    /*public JenaFactList(Collection<? extends BackendFactEntity> facts) {
+    /*public JenaFactList(Collection<? extends BackendFactData> facts) {
         this();
         this.addBackendFacts(facts);
     }*/
 
-    public static JenaFactList fromBackendFacts(Collection<? extends BackendFactEntity> facts) {
+    public static JenaFactList fromBackendFacts(Collection<? extends BackendFactData> facts) {
         JenaFactList fl = new JenaFactList();
         fl.addBackendFacts(facts);
         return fl;
@@ -437,8 +437,8 @@ public class JenaFactList implements Collection<Fact> {
         }
         return true;
     }
-    public boolean addBackendFacts(@NotNull Collection<? extends BackendFactEntity> c) {
-        for (BackendFactEntity el : c) {
+    public boolean addBackendFacts(@NotNull Collection<? extends BackendFactData> c) {
+        for (BackendFactData el : c) {
             add(new JenaFact(el));
         }
         return true;
@@ -616,7 +616,7 @@ public class JenaFactList implements Collection<Fact> {
                 .collect(Collectors.toList());
     }*/
 
-    public List<BackendFactEntity> asBackendFactList() {
+    public List<BackendFactData> asBackendFactList() {
         if (!listIsUpToDate) {
             fillList();
         }

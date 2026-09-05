@@ -1,6 +1,7 @@
 package org.vstu.compprehension.models.businesslogic.backend;
 
 
+import org.vstu.compprehension.models.data.BackendFactData;
 import lombok.extern.log4j.Log4j2;
 import org.apache.jena.datatypes.RDFDatatype;
 import org.apache.jena.ontology.*;
@@ -25,7 +26,6 @@ import org.vstu.compprehension.models.businesslogic.backend.facts.JenaFactList;
 import org.vstu.compprehension.models.businesslogic.backend.util.MakeNamedSkolem;
 import org.vstu.compprehension.models.businesslogic.backend.util.ReasoningOptions;
 import org.vstu.compprehension.models.businesslogic.domains.DomainVocabulary;
-import org.vstu.compprehension.models.entities.BackendFactEntity;
 import org.vstu.compprehension.utils.Checkpointer;
 
 import java.io.FileNotFoundException;
@@ -55,13 +55,13 @@ public class JenaBackend extends FactBackend {
     OntModel model;
     HashMap<Integer, ArrayList<Rule>> domainRuleSets = new HashMap<>();
 
-    public JenaFact convertFactEntity(BackendFactEntity factEntity) {
+    public JenaFact convertFactEntity(BackendFactData factEntity) {
         return new JenaFact(factEntity);
     }
     public JenaFact convertFact(Fact fact) {
         return JenaFact.fromFact(fact);
     }
-    public JenaFactList convertFactEntities(Collection<BackendFactEntity> factEntities) {
+    public JenaFactList convertFactEntities(Collection<BackendFactData> factEntities) {
         return JenaFactList.fromBackendFacts(factEntities);
     }
     public JenaFactList convertFacts(Collection<Fact> facts) {
@@ -69,7 +69,7 @@ public class JenaBackend extends FactBackend {
     }
 
 
-    public static List<BackendFactEntity> modelToFacts(Model factsModel, String baseUri) {
+    public static List<BackendFactData> modelToFacts(Model factsModel, String baseUri) {
         JenaFactList fl = new JenaFactList(baseUri);
         fl.addFromModel(factsModel);
         return fl.asBackendFactList();
@@ -228,7 +228,7 @@ public class JenaBackend extends FactBackend {
         ruleSet.add(parsedRule);
     }
 
-    void addStatementFact(BackendFactEntity fact) {
+    void addStatementFact(BackendFactData fact) {
         assert fact != null;
 
         String subj = fact.getSubject();
@@ -402,8 +402,8 @@ public class JenaBackend extends FactBackend {
         return s;
     }
 
-    private List<BackendFactEntity> getPropertyRelations(Property property) {
-        List<BackendFactEntity> facts = new ArrayList<>();
+    private List<BackendFactData> getPropertyRelations(Property property) {
+        List<BackendFactData> facts = new ArrayList<>();
 
 //        boolean isObjectProp = property instanceof ObjectProperty;
         boolean isObjectProp = false;
@@ -462,7 +462,7 @@ public class JenaBackend extends FactBackend {
                 subj = subjResource.toString();
             }
 
-            facts.add(new BackendFactEntity(
+            facts.add(new BackendFactData(
                     subjType,
                     subj,
                     propName,
@@ -473,14 +473,14 @@ public class JenaBackend extends FactBackend {
         return facts;
     }
 
-    public List<BackendFactEntity> getFacts(Set<String> verbs) {
+    public List<BackendFactData> getFacts(Set<String> verbs) {
         // todo: move functionality of this method to JenaFactList ?? (getBackendFactsFilteredByVerb(Set))
 
         JenaFactList fl = new JenaFactList(model);
         if (verbs == null || verbs.isEmpty())
             return fl.asBackendFactList();
 
-        List<BackendFactEntity> result = new ArrayList<>();
+        List<BackendFactData> result = new ArrayList<>();
 
         for (Fact t : fl) {
             if (verbs.contains(t.getVerb())) {
@@ -553,7 +553,7 @@ public class JenaBackend extends FactBackend {
     }
 
     @Override
-    public JenaFactList solve(List<Law> laws, List<BackendFactEntity> statement, ReasoningOptions reasoningOptions) {
+    public JenaFactList solve(List<Law> laws, List<BackendFactData> statement, ReasoningOptions reasoningOptions) {
         createOntology();
         for (Law law : laws) {
             addLaw(law);
@@ -583,7 +583,7 @@ public class JenaBackend extends FactBackend {
         return new JenaFactList(model);
     }
 
-    public void addBackendFacts(List<BackendFactEntity> facts) {
+    public void addBackendFacts(List<BackendFactData> facts) {
         JenaFactList fl = new JenaFactList();
         fl.setModel(this.model); // update model via updating fl
         fl.addBackendFacts(facts);
@@ -595,7 +595,7 @@ public class JenaBackend extends FactBackend {
     }
 
     @Override
-    public JenaFactList judge(List<Law> laws, List<BackendFactEntity> statement, List<BackendFactEntity> correctAnswer, List<BackendFactEntity> response, ReasoningOptions reasoningOptions) {
+    public JenaFactList judge(List<Law> laws, List<BackendFactData> statement, List<BackendFactData> correctAnswer, List<BackendFactData> response, ReasoningOptions reasoningOptions) {
         Checkpointer ch = new Checkpointer(log);
 
         createOntology();

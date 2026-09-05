@@ -1,5 +1,6 @@
 package org.vstu.compprehension.Service;
 
+import org.vstu.compprehension.models.data.ExerciseStageData;
 import org.jetbrains.annotations.NotNull;
 import org.jetbrains.annotations.Nullable;
 import org.springframework.stereotype.Service;
@@ -11,7 +12,6 @@ import org.vstu.compprehension.models.entities.EnumData.Decision;
 import org.vstu.compprehension.models.entities.EnumData.Language;
 import org.vstu.compprehension.models.entities.ExerciseAttemptEntity;
 import org.vstu.compprehension.models.entities.course.CourseEntity;
-import org.vstu.compprehension.models.entities.exercise.ExerciseStageEntity;
 import org.vstu.compprehension.models.entities.course.ExerciseCourseLinkEntity;
 import org.vstu.compprehension.models.data.AttemptExerciseData;
 import org.vstu.compprehension.models.data.AttemptInteractionData;
@@ -167,7 +167,7 @@ public class ExerciseAttemptService {
      * @return пусто, если вопрос не привязан к попытке или у упражнения нет этапов
      */
     @Transactional(readOnly = true)
-    public Optional<ExerciseStageEntity> findStageForQuestion(long questionId) {
+    public Optional<ExerciseStageData> findStageForQuestion(long questionId) {
         var attempt = exerciseAttemptRepository.findByQuestionId(questionId).orElse(null);
         if (attempt == null) {
             return Optional.empty();
@@ -179,7 +179,7 @@ public class ExerciseAttemptService {
 
         long questionNumber = questionRepository.countUpToQuestionInAttempt(attempt.getId(), questionId);
         int questionsPassed = 0;
-        ExerciseStageEntity stage = stages.getFirst();
+        ExerciseStageData stage = stages.getFirst();
         for (int i = 0; i < stages.size() && questionsPassed < questionNumber; i++) {
             stage = stages.get(i);
             questionsPassed += stage.getNumberOfQuestions();

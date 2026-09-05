@@ -5,6 +5,7 @@ import lombok.val;
 import org.jetbrains.annotations.NotNull;
 import org.jetbrains.annotations.Nullable;
 import org.springframework.stereotype.Service;
+import org.vstu.compprehension.models.data.ViolationData;
 import org.vstu.compprehension.dto.AnswerDto;
 import org.vstu.compprehension.dto.SupplementaryFeedbackDto;
 import org.vstu.compprehension.dto.SupplementaryQuestionDto;
@@ -42,9 +43,10 @@ public class QuestionService {
     private final DomainFactory domainFactory;
     private final QuestionRequestLogRepository questionRequestLogRepository;
     private final QuestionBank questionStorage;
+    private final QuestionMetadataRepository questionMetadataRepository;
     private final QuestionDataMapper questionDataMapper;
 
-    public QuestionService(QuestionRepository questionRepository, AnswerObjectRepository answerObjectRepository, AbstractStrategyFactory strategyFactory, DomainService domainService, InteractionRepository interactionRepository, ResponseRepository responseRepository, SupplementaryStepRepository supplementaryStepRepository, DomainFactory domainFactory, QuestionRequestLogRepository questionRequestLogRepository, QuestionBank questionStorage, QuestionDataMapper questionDataMapper) {
+    public QuestionService(QuestionRepository questionRepository, AnswerObjectRepository answerObjectRepository, AbstractStrategyFactory strategyFactory, DomainService domainService, InteractionRepository interactionRepository, ResponseRepository responseRepository, SupplementaryStepRepository supplementaryStepRepository, DomainFactory domainFactory, QuestionRequestLogRepository questionRequestLogRepository, QuestionBank questionStorage, QuestionDataMapper questionDataMapper, QuestionMetadataRepository questionMetadataRepository) {
         this.questionRepository = questionRepository;
         this.answerObjectRepository = answerObjectRepository;
         this.strategyFactory = strategyFactory;
@@ -56,6 +58,7 @@ public class QuestionService {
         this.questionRequestLogRepository = questionRequestLogRepository;
         this.questionStorage = questionStorage;
         this.questionDataMapper = questionDataMapper;
+        this.questionMetadataRepository = questionMetadataRepository;
     }
 
 
@@ -66,7 +69,8 @@ public class QuestionService {
         QuestionRequest qr = strategy.generateQuestionRequest(exerciseAttempt.getId());
         qr = domain.ensureQuestionRequestValid(qr);
 
-        Question question = domain.makeQuestion(qr, exerciseAttempt, exerciseAttempt.getUser().getPreferred_language());
+        Question question = domain.makeQuestion(qr, exerciseAttempt.getExercise().getOptions(),
+                exerciseAttempt.getUser().getPreferred_language());
 
         saveQuestion(question, qr.getLogEntity(), exerciseAttempt);
         return question;
@@ -81,12 +85,12 @@ public class QuestionService {
         var tags = domain.getAllTags().stream()
                 .filter(t -> rawQuestion.getTagBits() != null && (rawQuestion.getTagBits() & t.getBitmask()) != 0)
                 .toList();
-        var question = domain.makeQuestion(questionDataMapper.toData(rawQuestion), null, tags, lang);
+        var question = domain.makeQuestion(questionDataMapper.toData(rawQuestion), tags, lang);
         saveQuestion(question);
         return question;
     }
 
-    public @NotNull SupplementaryQuestionDto generateSupplementaryQuestion(@NotNull QuestionEntity sourceQuestion, @NotNull ViolationEntity violation, Language lang) {
+    public @NotNull SupplementaryQuestionDto generateSupplementaryQuestion(@NotNull QuestionEntity sourceQuestion, @NotNull ViolationData violation, Language lang) {
         val domain = domainFactory.getDomain(sourceQuestion.getDomainEntity().getName());
         val responseGen = domain.makeSupplementaryQuestion(
                 questionDataMapper.toData(sourceQuestion), violation, lang);
@@ -110,7 +114,9 @@ public class QuestionService {
         Domain domain = question.getDomain();
         val supplementaryInfo = supplementaryStepRepository.findBySupplementaryQuestion(
                 getQuestionEntity(question.getQuestionData().getId()));
-        val feedbackGen = domain.judgeSupplementaryQuestion(question, supplementaryInfo, toResponseData(responses));
+        val feedbackGen = domain.judgeSupplementaryQuestion(question,
+                supplementaryInfo == null ? null : QuestionDataMapper.toData(supplementaryInfo),
+                toResponseData(responses));
         if(feedbackGen.getNewStep() != null){
             supplementaryStepRepository.save(feedbackGen.getNewStep());
         }
@@ -223,11 +229,18 @@ public class QuestionService {
 
         // Существующий вопрос обновляется на месте, новый создаётся: id есть только
         // у поднятых из БД.
+        // Сущность метаданных резолвит сервис: маппер по определению не ходит в БД.
+        // Метаданные приходят из банка заданий и уже существуют, поэтому берутся по id.
+        var metadata = data.getMetadata() == null || data.getMetadata().getId() == null
+                ? null
+                : questionMetadataRepository.findById(data.getMetadata().getId()).orElse(null);
+
         var entity = data.getId() == null
-                ? questionDataMapper.toNewEntity(data)
-                : questionRepository.findById(data.getId()).orElseGet(() -> questionDataMapper.toNewEntity(data));
+                ? questionDataMapper.toNewEntity(data, metadata)
+                : questionRepository.findById(data.getId())
+                        .orElseGet(() -> questionDataMapper.toNewEntity(data, metadata));
         if (data.getId() != null) {
-            questionDataMapper.applyToEntity(data, entity);
+            questionDataMapper.applyToEntity(data, entity, metadata);
         }
 
         if (questionRequestLog != null) {

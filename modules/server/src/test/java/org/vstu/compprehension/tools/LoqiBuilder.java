@@ -1,5 +1,7 @@
 package org.vstu.compprehension.tools;
 
+import org.vstu.compprehension.models.data.ExerciseOptionsData;
+import org.vstu.compprehension.models.data.ExerciseStageData;
 import lombok.SneakyThrows;
 import lombok.extern.log4j.Log4j2;
 import org.testcontainers.shaded.org.bouncycastle.oer.its.etsi102941.CaCertificateRekeyingMessage;
@@ -25,8 +27,6 @@ import org.vstu.compprehension.models.businesslogic.domains.helpers.meaningtree.
 import org.vstu.compprehension.models.businesslogic.domains.helpers.meaningtree.MeaningTreeRDFTransformer;
 import org.vstu.compprehension.models.entities.ExerciseAttemptEntity;
 import org.vstu.compprehension.models.entities.exercise.ExerciseEntity;
-import org.vstu.compprehension.models.entities.exercise.ExerciseOptionsEntity;
-import org.vstu.compprehension.models.entities.exercise.ExerciseStageEntity;
 import org.vstu.compprehension.models.repository.ExerciseAttemptRepository;
 import org.vstu.compprehension.models.repository.ExerciseRepository;
 import org.vstu.compprehension.models.repository.UserRepository;
@@ -75,11 +75,11 @@ public class LoqiBuilder extends AbstractIntegrationTest {
         exercise.setDomain(domainService.getDomainEntity(domain.getName()));
         exercise.setBackendId("DTReasoner");
         exercise.setTags("");
-        exercise.setOptions(new ExerciseOptionsEntity(null, true,
+        exercise.setOptions(new ExerciseOptionsData(null, true,
                 true, true, true, true,
                 true, 7, null, null));
         exercise.setName("test");
-        exercise.setStages(Collections.singletonList(new ExerciseStageEntity()));
+        exercise.setStages(Collections.singletonList(new ExerciseStageData()));
         exercise.setStrategyId("StaticStrategy");
         exercise.getStages().getFirst();
         exerciseRepository.save(exercise);

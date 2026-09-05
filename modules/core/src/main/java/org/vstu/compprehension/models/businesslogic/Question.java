@@ -1,5 +1,6 @@
 package org.vstu.compprehension.models.businesslogic;
 
+import org.vstu.compprehension.models.data.BackendFactData;
 import lombok.Getter;
 import lombok.Setter;
 import org.jetbrains.annotations.NotNull;
@@ -10,7 +11,6 @@ import org.vstu.compprehension.models.data.AnswerObjectData;
 import org.vstu.compprehension.models.data.QuestionData;
 import org.vstu.compprehension.models.data.QuestionMetadataData;
 import org.vstu.compprehension.models.data.ResponseData;
-import org.vstu.compprehension.models.entities.BackendFactEntity;
 import org.vstu.compprehension.models.entities.EnumData.QuestionType;
 import org.vstu.compprehension.utils.HyperText;
 
@@ -135,7 +135,7 @@ public class Question {
         return domain.responseToFacts(this, responses);
     }
 
-    public List<BackendFactEntity> getStatementFacts() {
+    public List<BackendFactData> getStatementFacts() {
         return questionData.getStatementFacts();
     }
 
@@ -144,7 +144,7 @@ public class Question {
         return domain.getQuestionStatementFactsWithSchema(this);        
     }
 
-    public List<BackendFactEntity> getSolutionFacts() {
+    public List<BackendFactData> getSolutionFacts() {
         return questionData.getSolutionFacts();
     }
 

@@ -1,5 +1,9 @@
 package org.vstu.compprehension.models.businesslogic.domains;
 
+import org.vstu.compprehension.models.data.SupplementaryStepData;
+import org.vstu.compprehension.models.data.ViolationData;
+import org.vstu.compprehension.models.data.ExerciseStageData;
+import org.vstu.compprehension.models.data.BackendFactData;
 import its.reasoner.nodes.DecisionTreeTrace;
 import lombok.AllArgsConstructor;
 import lombok.Data;
@@ -9,6 +13,7 @@ import org.vstu.compprehension.models.data.QuestionMetadataData;
 import org.vstu.compprehension.models.businesslogic.*;
 import org.vstu.compprehension.models.businesslogic.backend.facts.Fact;
 import org.vstu.compprehension.models.data.AnswerObjectData;
+import org.vstu.compprehension.models.data.ExerciseOptionsData;
 import org.vstu.compprehension.models.data.DomainData;
 import org.vstu.compprehension.models.data.QuestionData;
 import org.vstu.compprehension.models.data.QuestionMetadataData;
@@ -17,7 +22,6 @@ import org.vstu.compprehension.models.entities.*;
 import org.vstu.compprehension.models.entities.EnumData.FeedbackType;
 import org.vstu.compprehension.models.entities.EnumData.InteractionType;
 import org.vstu.compprehension.models.entities.EnumData.Language;
-import org.vstu.compprehension.models.entities.exercise.ExerciseStageEntity;
 import org.vstu.compprehension.utils.HyperText;
 
 import java.util.*;
@@ -37,10 +41,10 @@ public interface Domain {
     /**
      * Этап упражнения, на котором задан вопрос; пусто, если вопрос вне попытки.
      * <p>
-     * {@code ExerciseStageEntity} вопреки имени не JPA-сущность, а значение из
+     * {@code ExerciseStageData} вопреки имени не JPA-сущность, а значение из
      * json-колонки, поэтому возвращается как есть.
      */
-    Optional<ExerciseStageEntity> getExerciseStageOf(@NotNull Question question);
+    Optional<ExerciseStageData> getExerciseStageOf(@NotNull Question question);
 
     /** Язык, выбранный автором попытки, породившей вопрос. */
     @NotNull Language getUserLanguageOf(@NotNull Question question);
@@ -75,7 +79,7 @@ public interface Domain {
      * @param questionDomainType type of question
      * @param statementFacts     question statement facts
      */
-    Set<String> getViolationVerbs(String questionDomainType, List<BackendFactEntity> statementFacts);
+    Set<String> getViolationVerbs(String questionDomainType, List<BackendFactData> statementFacts);
 
     /**
      * Get all needed solution Fact verbs for db saving
@@ -83,7 +87,7 @@ public interface Domain {
      * @param questionDomainType type of question
      * @param statementFacts     question statement facts
      */
-    Set<String> getSolutionVerbs(String questionDomainType, List<BackendFactEntity> statementFacts);
+    Set<String> getSolutionVerbs(String questionDomainType, List<BackendFactData> statementFacts);
 
     /**
      * Get all needed (positive and negative) laws in this questionType
@@ -122,7 +126,7 @@ public interface Domain {
      * @param lang user preferred language
      * @return explanation for each violation in random order
      */
-    Explanation makeExplanation(List<ViolationEntity> violations, FeedbackType feedbackType, Language lang);
+    Explanation makeExplanation(List<ViolationData> violations, FeedbackType feedbackType, Language lang);
 
     /**
      * Check that violation has supplementary questions
@@ -162,18 +166,16 @@ public interface Domain {
      * @return generated question
      */
     @NotNull Question makeQuestion(@NotNull QuestionRequest questionRequest,
-                                   @NotNull ExerciseAttemptEntity exerciseAttempt,
+                                   @Nullable ExerciseOptionsData exerciseOptions,
                                    @NotNull Language userLanguage);
 
     /**
      * Generate domain question from question data
      * @param metadata question metadata
-     * @param exerciseAttemptEntity exercise attempt
      * @param userLang question wording language
      * @return generated question
      */
     @NotNull Question makeQuestion(@NotNull QuestionMetadataData metadata,
-                                   @Nullable ExerciseAttemptEntity exerciseAttemptEntity,
                                    @NotNull List<Tag> tags,
                                    @NotNull Language userLang);
 
@@ -183,9 +185,9 @@ public interface Domain {
      * @param sourceQuestion source question
      * @return supplementary question
      */
-    SupplementaryResponseGenerationResult makeSupplementaryQuestion(QuestionData sourceQuestion, ViolationEntity violation, Language lang);
+    SupplementaryResponseGenerationResult makeSupplementaryQuestion(QuestionData sourceQuestion, ViolationData violation, Language lang);
 
-    SupplementaryFeedbackGenerationResult judgeSupplementaryQuestion(Question question, SupplementaryStepEntity supplementaryStep, List<ResponseData> responses);
+    SupplementaryFeedbackGenerationResult judgeSupplementaryQuestion(Question question, SupplementaryStepData supplementaryStep, List<ResponseData> responses);
 
     /**
      * Get any correct answer at current iteration
@@ -286,7 +288,7 @@ public interface Domain {
         /**
          * All violations
          */
-        public List<ViolationEntity> violations;
+        public List<ViolationData> violations;
 
         public List<String> domainSkills = new ArrayList<>();
 

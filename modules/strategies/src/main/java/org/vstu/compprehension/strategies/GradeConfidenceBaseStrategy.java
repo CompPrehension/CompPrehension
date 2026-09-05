@@ -1,5 +1,6 @@
 package org.vstu.compprehension.strategies;
 
+import org.vstu.compprehension.models.data.ExerciseStageData;
 import lombok.extern.log4j.Log4j2;
 import org.jetbrains.annotations.NotNull;
 import org.jetbrains.annotations.Nullable;
@@ -20,7 +21,6 @@ import org.vstu.compprehension.models.businesslogic.strategies.StrategyOptions;
 import org.vstu.compprehension.models.businesslogic.strategies.StrategyBase;
 import org.vstu.compprehension.models.entities.*;
 import org.vstu.compprehension.models.entities.EnumData.*;
-import org.vstu.compprehension.models.entities.exercise.ExerciseStageEntity;
 
 import java.util.*;
 
@@ -82,7 +82,7 @@ public class    GradeConfidenceBaseStrategy extends StrategyBase {
         Domain domain = domainFactory.getDomain(exercise.domainName());
 
 
-        ExerciseStageEntity exerciseStage = exercise.stages().get(0);
+        ExerciseStageData exerciseStage = exercise.stages().get(0);
         QuestionRequest qr = initQuestionRequest(exerciseAttempt, exerciseStage, domain);
 
 //        qr.setAllowedConcepts(List.of());
@@ -448,7 +448,7 @@ public class    GradeConfidenceBaseStrategy extends StrategyBase {
         HashMap<String, List<Boolean>> allLawsUsage = new HashMap<>();
 
         AttemptExerciseData exercise = exerciseAttempt.exercise();
-        ExerciseStageEntity stage = exercise.stages().get(0);  // используем первый (скорее всего, единственный) этап упражнения
+        ExerciseStageData stage = exercise.stages().get(0);  // используем первый (скорее всего, единственный) этап упражнения
 
         if (!stage.getLaws().isEmpty()) {
             // получить целевые (target) законы из упражнения

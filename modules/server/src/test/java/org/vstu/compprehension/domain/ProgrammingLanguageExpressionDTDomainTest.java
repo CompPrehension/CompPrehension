@@ -1,5 +1,7 @@
 package org.vstu.compprehension.domain;
 
+import org.vstu.compprehension.models.data.ExerciseOptionsData;
+import org.vstu.compprehension.models.data.ExerciseStageData;
 import org.vstu.compprehension.Service.DomainService;
 import org.vstu.compprehension.models.businesslogic.*;
 import org.vstu.compprehension.models.businesslogic.Tag;
@@ -22,8 +24,6 @@ import org.vstu.compprehension.models.entities.EnumData.Language;
 import org.vstu.compprehension.models.entities.ExerciseAttemptEntity;
 import org.vstu.compprehension.models.entities.ResponseEntity;
 import org.vstu.compprehension.models.entities.exercise.ExerciseEntity;
-import org.vstu.compprehension.models.entities.exercise.ExerciseOptionsEntity;
-import org.vstu.compprehension.models.entities.exercise.ExerciseStageEntity;
 import org.vstu.compprehension.models.repository.ExerciseAttemptRepository;
 import org.vstu.compprehension.models.repository.ExerciseRepository;
 import org.vstu.compprehension.models.repository.UserRepository;
@@ -70,11 +70,11 @@ public class ProgrammingLanguageExpressionDTDomainTest extends AbstractIntegrati
         exercise.setDomain(domainService.getDomainEntity(domain.getName()));
         exercise.setBackendId("DTReasoner");
         exercise.setTags("");
-        exercise.setOptions(new ExerciseOptionsEntity(null, true,
+        exercise.setOptions(new ExerciseOptionsData(null, true,
                 true, true, true, true,
                 true, 7, null, null));
         exercise.setName("test");
-        exercise.setStages(Collections.singletonList(new ExerciseStageEntity()));
+        exercise.setStages(Collections.singletonList(new ExerciseStageData()));
         exercise.setStrategyId("StaticStrategy");
         exercise.getStages().getFirst();
         exerciseRepository.save(exercise);
@@ -169,7 +169,7 @@ public class ProgrammingLanguageExpressionDTDomainTest extends AbstractIntegrati
                 .stepsMax(10)
                 .complexity(0.8f)
                 .build();
-        Question q = domain.makeQuestion(r, attempt, Language.ENGLISH);
+        Question q = domain.makeQuestion(r, attempt.getExercise().getOptions(), Language.ENGLISH);
         if (q == null) {
             return;
         }
@@ -206,7 +206,7 @@ public class ProgrammingLanguageExpressionDTDomainTest extends AbstractIntegrati
                 .stepsMax(10)
                 .complexity(0.8f)
                 .build();
-        Question q = domain.makeQuestion(r, attempt, Language.ENGLISH);
+        Question q = domain.makeQuestion(r, attempt.getExercise().getOptions(), Language.ENGLISH);
         if (q == null) {
             return;
         }

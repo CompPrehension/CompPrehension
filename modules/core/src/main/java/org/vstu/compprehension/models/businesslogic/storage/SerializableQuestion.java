@@ -1,5 +1,11 @@
 package org.vstu.compprehension.models.businesslogic.storage;
 
+import org.vstu.compprehension.models.data.BackendFactData;
+import org.vstu.compprehension.models.data.questionoptions.OrderQuestionOptionsData;
+import org.vstu.compprehension.models.data.questionoptions.QuestionOptionsData;
+import org.vstu.compprehension.models.data.questionoptions.MultiChoiceOptionsData;
+import org.vstu.compprehension.models.data.questionoptions.MatchingQuestionOptionsData;
+import org.vstu.compprehension.models.data.questionoptions.SingleChoiceOptionsData;
 import com.google.gson.*;
 import com.google.gson.reflect.TypeToken;
 import lombok.Builder;
@@ -13,9 +19,8 @@ import org.vstu.compprehension.models.data.QuestionMetadataData;
 import org.vstu.compprehension.models.data.AnswerObjectData;
 import org.vstu.compprehension.models.businesslogic.Question;
 import org.vstu.compprehension.models.businesslogic.domains.Domain;
-import org.vstu.compprehension.models.entities.BackendFactEntity;
 import org.vstu.compprehension.models.entities.EnumData.QuestionType;
-import org.vstu.compprehension.models.entities.QuestionOptions.*;
+import org.vstu.compprehension.models.data.questionoptions.*;
 
 import java.io.*;
 import java.lang.reflect.Type;
@@ -46,7 +51,7 @@ public class SerializableQuestion {
         private String questionText;
         private String questionName;
         private String questionDomainType;
-        private QuestionOptionsEntity options;
+        private QuestionOptionsData options;
         private List<AnswerObject> answerObjects;
         private List<StatementFact> statementFacts;
     }
@@ -141,7 +146,7 @@ public class SerializableQuestion {
         // а FK нужен только в момент записи
         questionEntity.setStatementFacts(questionData.getStatementFacts()
                 .stream()
-                .map(s -> new BackendFactEntity(
+                .map(s -> new BackendFactData(
                         s.getSubjectType(),
                         s.getSubject(),
                         s.getVerb(),
@@ -226,15 +231,15 @@ public class SerializableQuestion {
             var answerObjects = context.<List<AnswerObject>>deserialize(questionObject.get("answerObjects"), new TypeToken<List<AnswerObject>>(){}.getType());
             var statementFacts = context.<List<StatementFact>>deserialize(questionObject.get("statementFacts"), new TypeToken<List<StatementFact>>(){}.getType());
             
-            QuestionOptionsEntity options = switch (questionType) {
+            QuestionOptionsData options = switch (questionType) {
                 case QuestionType.ORDER ->
-                        context.deserialize(questionObject.get("options"), OrderQuestionOptionsEntity.class);
+                        context.deserialize(questionObject.get("options"), OrderQuestionOptionsData.class);
                 case QuestionType.MATCHING ->
-                        context.deserialize(questionObject.get("options"), MatchingQuestionOptionsEntity.class);
+                        context.deserialize(questionObject.get("options"), MatchingQuestionOptionsData.class);
                 case QuestionType.SINGLE_CHOICE ->
-                        context.deserialize(questionObject.get("options"), SingleChoiceOptionsEntity.class);
+                        context.deserialize(questionObject.get("options"), SingleChoiceOptionsData.class);
                 case QuestionType.MULTI_CHOICE ->
-                        context.deserialize(questionObject.get("options"), MultiChoiceOptionsEntity.class);
+                        context.deserialize(questionObject.get("options"), MultiChoiceOptionsData.class);
             };
 
             return QuestionData.builder()

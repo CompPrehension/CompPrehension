@@ -1,11 +1,11 @@
 package org.vstu.compprehension.models.businesslogic;
 
+import org.vstu.compprehension.models.data.BackendFactData;
 import org.vstu.compprehension.models.data.QuestionData;
 import org.vstu.compprehension.models.data.AnswerObjectData;
 import org.vstu.compprehension.models.data.ResponseData;
 import org.vstu.compprehension.models.businesslogic.backend.facts.Fact;
 import org.vstu.compprehension.models.businesslogic.domains.Domain;
-import org.vstu.compprehension.models.entities.BackendFactEntity;
 
 import java.util.ArrayList;
 import java.util.Collection;

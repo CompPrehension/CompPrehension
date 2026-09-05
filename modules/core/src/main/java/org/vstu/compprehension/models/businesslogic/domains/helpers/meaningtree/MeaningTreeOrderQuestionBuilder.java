@@ -1,5 +1,8 @@
 package org.vstu.compprehension.models.businesslogic.domains.helpers.meaningtree;
 
+import org.vstu.compprehension.models.data.questionoptions.QuestionOptionsData;
+import org.vstu.compprehension.models.data.BackendFactData;
+import org.vstu.compprehension.models.data.questionoptions.OrderQuestionOptionsData;
 import lombok.Getter;
 import lombok.extern.log4j.Log4j2;
 import org.apache.commons.lang3.tuple.ImmutablePair;
@@ -17,10 +20,7 @@ import org.vstu.compprehension.models.businesslogic.*;
 import org.vstu.compprehension.models.businesslogic.domains.ProgrammingLanguageExpressionDTDomain;
 import org.vstu.compprehension.models.businesslogic.storage.SerializableQuestion;
 import org.vstu.compprehension.models.businesslogic.storage.SerializableQuestionTemplate;
-import org.vstu.compprehension.models.entities.BackendFactEntity;
 import org.vstu.compprehension.models.entities.EnumData.QuestionType;
-import org.vstu.compprehension.models.entities.QuestionOptions.OrderQuestionOptionsEntity;
-import org.vstu.compprehension.models.entities.QuestionOptions.QuestionOptionsEntity;
 import org.vstu.meaningtree.MeaningTree;
 import org.vstu.meaningtree.SupportedLanguage;
 import org.vstu.meaningtree.exceptions.MeaningTreeException;
@@ -175,7 +175,7 @@ public class MeaningTreeOrderQuestionBuilder {
      * @param facts old-format facts
      * @return meaning tree
      */
-    protected static MeaningTree extractExpression(List<BackendFactEntity> facts) {
+    protected static MeaningTree extractExpression(List<BackendFactData> facts) {
         CppTranslator cppTranslator = new CppTranslator(new MeaningTreeDefaultExpressionConfig());
         StringBuilder tokenBuilder = new StringBuilder();
 
@@ -183,7 +183,7 @@ public class MeaningTreeOrderQuestionBuilder {
         Map<String, String> tokenValues = new HashMap<>();
         Map<String, Boolean> semanticValues = new HashMap<>();
 
-        for (BackendFactEntity st : facts) {
+        for (BackendFactData st : facts) {
             if (st.getVerb().equals("index")) {
                 indexes.put(Integer.parseInt(st.getObject()), st.getSubject());
             } else if (st.getVerb().equals("text")) {
@@ -572,13 +572,13 @@ public class MeaningTreeOrderQuestionBuilder {
      */
     protected void processQuestionData(List<SerializableQuestion.StatementFact> facts) {
         String questionText = "";
-        QuestionOptionsEntity orderQuestionOptions = OrderQuestionOptionsEntity.builder()
+        QuestionOptionsData orderQuestionOptions = OrderQuestionOptionsData.builder()
                 .requireContext(true)
                 .showTrace(true)
                 .multipleSelectionEnabled(false)
                 .showSupplementaryQuestions(true)
                 .requireAllAnswers(true)
-                .orderNumberOptions(new OrderQuestionOptionsEntity.OrderNumberOptions("#", OrderQuestionOptionsEntity.OrderNumberPosition.BOTTOM, null))
+                .orderNumberOptions(new OrderQuestionOptionsData.OrderNumberOptions("#", OrderQuestionOptionsData.OrderNumberPosition.BOTTOM, null))
                 .build();
         qdata = SerializableQuestion.QuestionData.builder()
                 .questionText(questionText)

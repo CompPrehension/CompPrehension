@@ -1,10 +1,10 @@
 package org.vstu.compprehension.models.businesslogic.domains.helpers.meaningtree;
 
+import org.vstu.compprehension.models.data.BackendFactData;
 import org.apache.jena.ontology.OntModel;
 import org.apache.jena.rdf.model.Model;
 import org.vstu.compprehension.models.businesslogic.backend.JenaBackend;
 import org.vstu.compprehension.models.businesslogic.storage.SerializableQuestion;
-import org.vstu.compprehension.models.entities.BackendFactEntity;
 import org.vstu.meaningtree.MeaningTree;
 import org.vstu.meaningtree.SupportedLanguage;
 import org.vstu.meaningtree.exceptions.MeaningTreeException;
@@ -20,13 +20,13 @@ import java.util.List;
 public class MeaningTreeRDFHelper {
     private static final boolean APPLY_RUNTIME_FIXES = true;
 
-    public static List<BackendFactEntity> serializableToBackendFacts(List<SerializableQuestion.StatementFact> facts) {
+    public static List<BackendFactData> serializableToBackendFacts(List<SerializableQuestion.StatementFact> facts) {
         return facts.stream().map((SerializableQuestion.StatementFact fact) ->
-                new BackendFactEntity(fact.getSubjectType(), fact.getSubject(), fact.getVerb(), fact.getObjectType(), fact.getObject())).toList();
+                new BackendFactData(fact.getSubjectType(), fact.getSubject(), fact.getVerb(), fact.getObjectType(), fact.getObject())).toList();
     }
 
-    public static List<SerializableQuestion.StatementFact> backendFactsToSerialized(List<BackendFactEntity> facts) {
-        return facts.stream().map((BackendFactEntity fact) -> SerializableQuestion.StatementFact.builder()
+    public static List<SerializableQuestion.StatementFact> backendFactsToSerialized(List<BackendFactData> facts) {
+        return facts.stream().map((BackendFactData fact) -> SerializableQuestion.StatementFact.builder()
                 .verb(fact.getVerb())
                 .objectType(fact.getObjectType())
                 .object(fact.getObject())
@@ -34,23 +34,23 @@ public class MeaningTreeRDFHelper {
                 .subject(fact.getSubject()).build()).toList();
     }
 
-    public static List<BackendFactEntity> factsFromModel(Model m) {
+    public static List<BackendFactData> factsFromModel(Model m) {
         JenaBackend jback = new JenaBackend();
         jback.createOntology("http://vstu.ru/poas/code");
         OntModel model = jback.getModel();
         model.add(m);
-        List<BackendFactEntity> facts = jback.getFacts(null);
+        List<BackendFactData> facts = jback.getFacts(null);
         return facts;
     }
 
-    public static Model backendFactsToModel(List<BackendFactEntity> statementFacts) {
+    public static Model backendFactsToModel(List<BackendFactData> statementFacts) {
         JenaBackend jback = new JenaBackend();
         jback.createOntology("http://vstu.ru/poas/code");
         jback.addBackendFacts(statementFacts);
         return jback.getModel();
     }
 
-    public static TokenList backendFactsToTokens(List<BackendFactEntity> stmtFacts, SupportedLanguage language) {
+    public static TokenList backendFactsToTokens(List<BackendFactData> stmtFacts, SupportedLanguage language) {
         Model model = backendFactsToModel(stmtFacts);
         MeaningTree mt = new RDFDeserializer().deserializeTree(model);
         try {
@@ -65,11 +65,11 @@ public class MeaningTreeRDFHelper {
         }
     }
 
-    public static MeaningTree backendFactsToMeaningTree(List<BackendFactEntity> facts) {
+    public static MeaningTree backendFactsToMeaningTree(List<BackendFactData> facts) {
         return new RDFDeserializer().deserializeTree(backendFactsToModel(facts));
     }
 
-    public static List<BackendFactEntity> applyRuntimeFixes(List<BackendFactEntity> stmtFacts) {
+    public static List<BackendFactData> applyRuntimeFixes(List<BackendFactData> stmtFacts) {
         if (!APPLY_RUNTIME_FIXES) {
             return stmtFacts;
         }

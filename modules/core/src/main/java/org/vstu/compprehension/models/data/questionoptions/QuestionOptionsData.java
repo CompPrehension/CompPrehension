@@ -1,4 +1,4 @@
-package org.vstu.compprehension.models.entities.QuestionOptions;
+package org.vstu.compprehension.models.data.questionoptions;
 
 import com.fasterxml.jackson.annotation.JsonSubTypes;
 import com.fasterxml.jackson.annotation.JsonTypeInfo;
@@ -20,15 +20,15 @@ import java.io.Serializable;
     property = "_type")
 @JsonSubTypes({
     // defines mapping to subtypes
-    @JsonSubTypes.Type(value = OrderQuestionOptionsEntity.class, name = "OrderQuestionOptionsEntity"),
-    @JsonSubTypes.Type(value = MatchingQuestionOptionsEntity.class, name = "MatchingQuestionOptionsEntity"),
-    @JsonSubTypes.Type(value = MultiChoiceOptionsEntity.class, name = "MultiChoiceOptionsEntity"),
-    @JsonSubTypes.Type(value = SingleChoiceOptionsEntity.class, name = "SingleChoiceOptionsEntity"),
+    @JsonSubTypes.Type(value = OrderQuestionOptionsData.class, name = "OrderQuestionOptionsEntity"),
+    @JsonSubTypes.Type(value = MatchingQuestionOptionsData.class, name = "MatchingQuestionOptionsEntity"),
+    @JsonSubTypes.Type(value = MultiChoiceOptionsData.class, name = "MultiChoiceOptionsEntity"),
+    @JsonSubTypes.Type(value = SingleChoiceOptionsData.class, name = "SingleChoiceOptionsEntity"),
 })
 @Data
 @AllArgsConstructor @NoArgsConstructor
 @SuperBuilder @Jacksonized
-public class QuestionOptionsEntity implements Serializable {
+public class QuestionOptionsData implements Serializable {
     /// Question text contains answers
     @Builder.Default
     protected boolean requireContext = false;

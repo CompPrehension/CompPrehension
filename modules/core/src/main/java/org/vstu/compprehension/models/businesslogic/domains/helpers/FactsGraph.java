@@ -1,32 +1,32 @@
 package org.vstu.compprehension.models.businesslogic.domains.helpers;
 
+import org.vstu.compprehension.models.data.BackendFactData;
 import org.jetbrains.annotations.Nullable;
-import org.vstu.compprehension.models.entities.BackendFactEntity;
 
 import java.util.*;
 
 public class FactsGraph {
-    private List<BackendFactEntity> facts;
+    private List<BackendFactData> facts;
 
     // indexing facts by S,P,O
-    private HashMap<String, List<BackendFactEntity>> subj2fs;
-    private HashMap<String, List<BackendFactEntity>> prop2fs;
-    private HashMap<String, List<BackendFactEntity>> obj2fs;
+    private HashMap<String, List<BackendFactData>> subj2fs;
+    private HashMap<String, List<BackendFactData>> prop2fs;
+    private HashMap<String, List<BackendFactData>> obj2fs;
 
     public FactsGraph() {
         initEmptyFields();
     }
 
-    public FactsGraph(List<BackendFactEntity> initialFacts) {
+    public FactsGraph(List<BackendFactData> initialFacts) {
         initEmptyFields();
         addFacts(initialFacts);
     }
 
-    public List<BackendFactEntity> getFacts() {
+    public List<BackendFactData> getFacts() {
         return new ArrayList<>(facts);
     }
 
-    public List<BackendFactEntity> getFactsAsIs() {
+    public List<BackendFactData> getFactsAsIs() {
         return facts;
     }
 
@@ -37,19 +37,19 @@ public class FactsGraph {
         obj2fs = new HashMap<>();
     }
 
-    private static void add2Map(HashMap<String, List<BackendFactEntity>> map, String key, BackendFactEntity value) {
+    private static void add2Map(HashMap<String, List<BackendFactData>> map, String key, BackendFactData value) {
         if (map.containsKey(key)) {
             map.get(key).add(value);
         } else {
-            List<BackendFactEntity> list = new ArrayList<>();
+            List<BackendFactData> list = new ArrayList<>();
             list.add(value);
             map.put(key, list);
         }
     }
 
-    private static void removeFromMap(HashMap<String, List<BackendFactEntity>> map, String key, BackendFactEntity value) {
+    private static void removeFromMap(HashMap<String, List<BackendFactData>> map, String key, BackendFactData value) {
         if (map.containsKey(key)) {
-            List<BackendFactEntity> list = map.get(key);
+            List<BackendFactData> list = map.get(key);
             list.remove(value);
             if (list.isEmpty()) {
                 map.remove(key);
@@ -57,10 +57,10 @@ public class FactsGraph {
         }
     }
 
-    public void addFact(BackendFactEntity newFact) {
+    public void addFact(BackendFactData newFact) {
         facts.add(newFact);
 
-        BackendFactEntity f = newFact;
+        BackendFactData f = newFact;
         String key = f.getSubject();
         add2Map(subj2fs, key, f);
         key = f.getVerb();
@@ -69,10 +69,10 @@ public class FactsGraph {
         add2Map(obj2fs, key, f);
     }
 
-    public void addFacts(List<BackendFactEntity> newFacts) {
+    public void addFacts(List<BackendFactData> newFacts) {
         facts.addAll(newFacts);
 
-        for(BackendFactEntity f : newFacts) {
+        for(BackendFactData f : newFacts) {
             String key = f.getSubject();
             add2Map(subj2fs, key, f);
             key = f.getVerb();
@@ -83,13 +83,13 @@ public class FactsGraph {
     }
 
     /**
-     * Remove exact BackendFactEntity objects.
+     * Remove exact BackendFactData objects.
      * @param extraFacts
      */
-    public void removeFacts(List<BackendFactEntity> extraFacts) {
+    public void removeFacts(List<BackendFactData> extraFacts) {
         facts.removeAll(extraFacts);
 
-        for(BackendFactEntity f : extraFacts) {
+        for(BackendFactData f : extraFacts) {
             String key = f.getSubject();
             removeFromMap(subj2fs, key, f);
             key = f.getVerb();
@@ -102,7 +102,7 @@ public class FactsGraph {
     public HashMap<Integer, Integer> describeDuplicates() {
         HashMap<String, Integer> f2count = new HashMap<>();
 
-        for(BackendFactEntity f : facts) {
+        for(BackendFactData f : facts) {
             String s = f.getSubject();
             String p = f.getVerb();
             String o = f.getObject();
@@ -126,12 +126,12 @@ public class FactsGraph {
     }
 
     public FactsGraph removeDuplicates() {
-        for(BackendFactEntity f : new ArrayList<>(facts)) {
+        for(BackendFactData f : new ArrayList<>(facts)) {
             String s = f.getSubject();
             String p = f.getVerb();
             String o = f.getObject();
 
-            List<BackendFactEntity> list = filterFacts(s, p, o);
+            List<BackendFactData> list = filterFacts(s, p, o);
             if (list.size() > 1) {
                 list.remove(0); // keep exactly one
                 removeFacts(list);
@@ -146,13 +146,13 @@ public class FactsGraph {
      * @param undesirableFacts
      * @return this, for chaining
      */
-    public FactsGraph removeAllLike(List<BackendFactEntity> undesirableFacts) {
-        for(BackendFactEntity f : undesirableFacts) {
+    public FactsGraph removeAllLike(List<BackendFactData> undesirableFacts) {
+        for(BackendFactData f : undesirableFacts) {
             String s = f.getSubject();
             String p = f.getVerb();
             String o = f.getObject();
 
-            List<BackendFactEntity> list = filterFacts(s, p, o);
+            List<BackendFactData> list = filterFacts(s, p, o);
             if (list.size() > 0) {
                 removeFacts(list);
             }
@@ -161,18 +161,18 @@ public class FactsGraph {
         return this;
     }
 
-    public List<BackendFactEntity> filterFacts(@Nullable String s, @Nullable String p, @Nullable String o) {
-//        Set<BackendFactEntity> candidates = new HashSet<>();
-        List<BackendFactEntity> candidates = new ArrayList<>();
+    public List<BackendFactData> filterFacts(@Nullable String s, @Nullable String p, @Nullable String o) {
+//        Set<BackendFactData> candidates = new HashSet<>();
+        List<BackendFactData> candidates = new ArrayList<>();
         if (p != null) {
-            List<BackendFactEntity> indexed = prop2fs.get(p);
+            List<BackendFactData> indexed = prop2fs.get(p);
             if (indexed == null) {
                 return candidates; // empty
             }
             candidates.addAll(indexed);
         }
         if (s != null) {
-            List<BackendFactEntity> indexed = subj2fs.get(s);
+            List<BackendFactData> indexed = subj2fs.get(s);
             if (indexed == null) { // no such subjects
                 candidates.clear();
                 return candidates; // empty
@@ -183,7 +183,7 @@ public class FactsGraph {
                 candidates.retainAll(indexed);
         }
         if (o != null) {
-            List<BackendFactEntity> indexed = obj2fs.get(o);
+            List<BackendFactData> indexed = obj2fs.get(o);
             if (indexed == null) {
                 candidates.clear();
                 return candidates; // empty
@@ -196,7 +196,7 @@ public class FactsGraph {
         return candidates;
     }
 
-    public List<BackendFactEntity> findFactsLike(BackendFactEntity fact) {
+    public List<BackendFactData> findFactsLike(BackendFactData fact) {
         return filterFacts(fact.getSubject(), fact.getVerb(), fact.getObject());
     }
 
@@ -204,8 +204,8 @@ public class FactsGraph {
         return ! filterFacts(s, p, o).isEmpty();
     }
 
-    public BackendFactEntity findOne(@Nullable String s, @Nullable String p, @Nullable String o) {
-        List<BackendFactEntity> candidates = filterFacts(s, p, o);
+    public BackendFactData findOne(@Nullable String s, @Nullable String p, @Nullable String o) {
+        List<BackendFactData> candidates = filterFacts(s, p, o);
         return candidates.isEmpty() ? null : candidates.get(0);
     }
 
@@ -244,17 +244,17 @@ public class FactsGraph {
             // find what subjects are reachable from current set along `p`
             HashSet<String> nextSubjs = new HashSet<>();
             for (String cs : currentSubjs) {
-                List<BackendFactEntity> suitableFacts;
+                List<BackendFactData> suitableFacts;
                 if (!inverse) {
                     suitableFacts = filterFacts(cs, p, null);
                     if (suitableFacts == null) continue;
-                    for (BackendFactEntity f : suitableFacts) {
+                    for (BackendFactData f : suitableFacts) {
                         nextSubjs.add(f.getObject());
                     }
                 } else {
                     suitableFacts = filterFacts(null, p, cs);
                     if (suitableFacts == null) continue;
-                    for (BackendFactEntity f : suitableFacts) {
+                    for (BackendFactData f : suitableFacts) {
                         nextSubjs.add(f.getSubject());
                     }
                 }
@@ -267,11 +267,11 @@ public class FactsGraph {
     }
 
 
-    public static ArrayList<BackendFactEntity> factsListDeepCopy(List<BackendFactEntity> list) {
-        ArrayList<BackendFactEntity> result = new ArrayList<>();
+    public static ArrayList<BackendFactData> factsListDeepCopy(List<BackendFactData> list) {
+        ArrayList<BackendFactData> result = new ArrayList<>();
         // re-create each fact
-        for (BackendFactEntity f : list) {
-            result.add(new BackendFactEntity(
+        for (BackendFactData f : list) {
+            result.add(new BackendFactData(
                     f.getSubjectType(),
                     f.getSubject(),
                     f.getVerb(),
@@ -288,10 +288,10 @@ public class FactsGraph {
      * @param list the list being updated
      * @param newFacts collection of facts can be appended
      */
-    public static void updateFactsList(List<BackendFactEntity> list, List<BackendFactEntity> newFacts) {
+    public static void updateFactsList(List<BackendFactData> list, List<BackendFactData> newFacts) {
         FactsGraph fg = new FactsGraph(list);
 
-        for (BackendFactEntity fact : newFacts) {
+        for (BackendFactData fact : newFacts) {
             if (fg.findFactsLike(fact).isEmpty()) {
                 list.add(fact);
                 fg.addFact(fact);

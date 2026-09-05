@@ -1,5 +1,6 @@
 package org.vstu.compprehension.models.entities;
 
+import org.vstu.compprehension.models.data.BackendFactData;
 import com.vladmihalcea.hibernate.type.json.JsonType;
 import jakarta.persistence.*;
 import lombok.Getter;
@@ -38,5 +39,5 @@ public class ViolationEntity {
 
     @Type(JsonType.class)
     @Column(name = "violation_facts", nullable = false)
-    private List<BackendFactEntity> violationFacts;
+    private List<BackendFactData> violationFacts;
 }

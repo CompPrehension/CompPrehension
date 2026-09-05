@@ -1,5 +1,14 @@
 package org.vstu.compprehension.models.businesslogic.domains;
 
+import org.vstu.compprehension.models.data.SupplementaryStepData;
+import org.vstu.compprehension.models.data.ExerciseOptionsData;
+import org.vstu.compprehension.models.data.ViolationData;
+import org.vstu.compprehension.models.data.BackendFactData;
+import org.vstu.compprehension.models.data.questionoptions.OrderQuestionOptionsData;
+import org.vstu.compprehension.models.data.questionoptions.QuestionOptionsData;
+import org.vstu.compprehension.models.data.questionoptions.MultiChoiceOptionsData;
+import org.vstu.compprehension.models.data.questionoptions.MatchingQuestionOptionsData;
+import org.vstu.compprehension.models.data.questionoptions.SingleChoiceOptionsData;
 import com.google.gson.Gson;
 import com.google.gson.GsonBuilder;
 import com.google.gson.typeadapters.RuntimeTypeAdapterFactory;
@@ -55,7 +64,7 @@ import org.vstu.compprehension.models.entities.EnumData.FeedbackType;
 import org.vstu.compprehension.models.entities.EnumData.Language;
 import org.vstu.compprehension.models.entities.EnumData.QuestionType;
 import org.vstu.compprehension.models.entities.EnumData.SearchDirections;
-import org.vstu.compprehension.models.entities.QuestionOptions.*;
+import org.vstu.compprehension.models.data.questionoptions.*;
 import org.vstu.compprehension.utils.ExpressionSituationPythonCaller;
 import org.vstu.compprehension.utils.HyperText;
 import org.vstu.compprehension.utils.RandomProvider;
@@ -436,13 +445,13 @@ public class ProgrammingLanguageExpressionDomain extends JenaReasoningDomain {
 
     @Override
     public @NotNull Question makeQuestion(@NotNull QuestionRequest questionRequest,
-                                          @NotNull ExerciseAttemptEntity exerciseAttempt,
+                                          @Nullable ExerciseOptionsData exerciseOptions,
                                           @NotNull Language userLanguage) {
-        return makeQuestion(questionRequest, exerciseAttempt, userLanguage, this);
+        return makeQuestion(questionRequest, exerciseOptions, userLanguage, this);
     }
 
     public @NotNull Question makeQuestion(@NotNull QuestionRequest questionRequest,
-                                          @NotNull ExerciseAttemptEntity exerciseAttempt,
+                                          @Nullable ExerciseOptionsData exerciseOptions,
                                           @NotNull Language userLanguage, @NotNull DomainBase domain) {
         HashSet<String> conceptNames = new HashSet<>();
         for (Concept concept : questionRequest.getTargetConcepts()) {
@@ -451,7 +460,7 @@ public class ProgrammingLanguageExpressionDomain extends JenaReasoningDomain {
 
         List<QuestionMetadataData> foundQuestions = null;
         try {
-            var exerciseOptions = exerciseAttempt.getExercise().getOptions();
+            
             int generatorThreshold = exerciseOptions.getGeneratorThreshold() != null 
                     ? exerciseOptions.getGeneratorThreshold() 
                     : (int)(exerciseOptions.getMaxExpectedConcurrentStudents() * 1.5);
@@ -479,44 +488,42 @@ public class ProgrammingLanguageExpressionDomain extends JenaReasoningDomain {
         }
 
         var res = foundQuestions.getFirst();
-        return makeQuestion(res, exerciseAttempt, questionRequest.getTargetTags(), userLanguage, domain);
+        return makeQuestion(res, questionRequest.getTargetTags(), userLanguage, domain);
     }
 
     @Override
     public @NotNull Question makeQuestion(@NotNull QuestionMetadataData metadata,
-                                          @Nullable ExerciseAttemptEntity exerciseAttemptEntity,
-                                          @NotNull List<Tag> tags,
+                                                                                    @NotNull List<Tag> tags,
                                           @NotNull Language userLang) {
-        return makeQuestion(metadata, exerciseAttemptEntity, tags, userLang, this);
+        return makeQuestion(metadata, tags, userLang, this);
     }
 
     public @NotNull Question makeQuestion(@NotNull QuestionMetadataData metadata,
-                                          @Nullable ExerciseAttemptEntity exerciseAttemptEntity,
-                                          @NotNull List<Tag> tags,
+                                                                                    @NotNull List<Tag> tags,
                                           @NotNull Language userLang,
                                           @NotNull DomainBase domain) {
         var questionData = metadata.getData();
-        return makeQuestion(domain, questionData.toQuestion(domain, metadata), exerciseAttemptEntity, tags, userLang);
+        return makeQuestion(domain, questionData.toQuestion(domain, metadata), tags, userLang);
     }
 
-    private Question makeQuestion(DomainBase domain, Question q, ExerciseAttemptEntity exerciseAttemptEntity, List<Tag> tags, Language userLang) {
-        QuestionOptionsEntity orderQuestionOptions = OrderQuestionOptionsEntity.builder()
+    private Question makeQuestion(DomainBase domain, Question q, List<Tag> tags, Language userLang) {
+        QuestionOptionsData orderQuestionOptions = OrderQuestionOptionsData.builder()
                 .requireContext(true)
                 .showTrace(true)
                 .multipleSelectionEnabled(false)
-                .orderNumberOptions(new OrderQuestionOptionsEntity.OrderNumberOptions("#", OrderQuestionOptionsEntity.OrderNumberPosition.BOTTOM, null))
+                .orderNumberOptions(new OrderQuestionOptionsData.OrderNumberOptions("#", OrderQuestionOptionsData.OrderNumberPosition.BOTTOM, null))
                 .build();
 
-        QuestionOptionsEntity matchingQuestionOptions = MatchingQuestionOptionsEntity.builder()
+        QuestionOptionsData matchingQuestionOptions = MatchingQuestionOptionsData.builder()
                 .requireContext(false)
-                .displayMode(MatchingQuestionOptionsEntity.DisplayMode.COMBOBOX)
+                .displayMode(MatchingQuestionOptionsData.DisplayMode.COMBOBOX)
                 .build();
 
-        QuestionOptionsEntity multiChoiceQuestionOptions = MultiChoiceOptionsEntity.builder()
+        QuestionOptionsData multiChoiceQuestionOptions = MultiChoiceOptionsData.builder()
                 .requireContext(false)
                 .build();
 
-        QuestionOptionsEntity singleChoiceQuestionOptions = SingleChoiceOptionsEntity.builder()
+        QuestionOptionsData singleChoiceQuestionOptions = SingleChoiceOptionsData.builder()
                 .requireContext(false)
                 .build();
 
@@ -618,7 +625,7 @@ public class ProgrammingLanguageExpressionDomain extends JenaReasoningDomain {
         OntProperty index = m.createOntProperty("http://vstu.ru/poas/code#index");
         OntProperty not_selectable = m.createOntProperty("http://vstu.ru/poas/code#not_selectable");
         // get facts for expression tokens (ordered)
-        List<BackendFactEntity> expression = new ArrayList<>();
+        List<BackendFactData> expression = new ArrayList<>();
         List<Statement> operandStatements = m.listStatements(null, text_prop, (String) null).toList();
         // sort array by subject's index (so tokens are in right order)
         operandStatements.sort(Comparator.comparing(a -> Optional.ofNullable(
@@ -640,7 +647,7 @@ public class ProgrammingLanguageExpressionDomain extends JenaReasoningDomain {
                 tokenText = END_EVALUATION;
             }
 
-            BackendFactEntity fact = new BackendFactEntity(
+            BackendFactData fact = new BackendFactData(
                     tokenType,
                     "text", // probably redundant, may be null (?)
                     tokenText);
@@ -670,12 +677,12 @@ public class ProgrammingLanguageExpressionDomain extends JenaReasoningDomain {
         return answerObject;
     }
 
-    public static String ExpressionToHtml(List<BackendFactEntity> expression) {
+    public static String ExpressionToHtml(List<BackendFactData> expression) {
         StringBuilder sb = new StringBuilder();
         sb.append("<p class='comp-ph-expr'>");
         int idx = 0;
         int answerIdx = -1;
-        for (BackendFactEntity fact : expression) {
+        for (BackendFactData fact : expression) {
             String tokenValue = "";
             if (fact.getSubjectType() != null) { // Token has value
                 tokenValue = fact.getSubjectType();
@@ -691,14 +698,14 @@ public class ProgrammingLanguageExpressionDomain extends JenaReasoningDomain {
         }
 
         sb.append("<!-- Original expression: ");
-        for (BackendFactEntity fact : expression) {
+        for (BackendFactData fact : expression) {
             sb.append(fact.getObject()).append(" ");
         }
         sb.append("-->").append("</p>");
         return QuestionTextToHtml(sb.toString());
     }
 
-    public static String ExpressionToHtmlEnablingButtonDuplicates(List<BackendFactEntity> expression) {
+    public static String ExpressionToHtmlEnablingButtonDuplicates(List<BackendFactData> expression) {
         StringBuilder sb = new StringBuilder();
         sb.append("<p class='comp-ph-expr'>");
         int idx = 0;
@@ -706,7 +713,7 @@ public class ProgrammingLanguageExpressionDomain extends JenaReasoningDomain {
         List<Integer> answerIdxStack = new ArrayList<>();  // pairedTwoTokenFirstAnswerIdxStack
         // todo: save placeholders or "empty" (non-operator) tokens as well
         for (int i = 0, expressionSize = expression.size(); i < expressionSize; i++) {
-            BackendFactEntity fact = expression.get(i);
+            BackendFactData fact = expression.get(i);
             String tokenValue = "";
             // suppress the value of token (always leave empty)
             /*if (fact.getSubjectType() != null) { // Token has value
@@ -734,7 +741,7 @@ public class ProgrammingLanguageExpressionDomain extends JenaReasoningDomain {
                 }
                 if (i < expressionSize - 1 - 1) {  // not last, + ")" must be later
                     // check out next token if it is a function's "("
-                    BackendFactEntity nextFact = expression.get(i + 1);
+                    BackendFactData nextFact = expression.get(i + 1);
                     if (nextFact.getObject().equals("(") && nextFact.getSubject().equals("operator")) {
                         answerIdxForButton = answerIdx + 1; // value of the following token
                         needAddOrdinaryToken = false;
@@ -758,7 +765,7 @@ public class ProgrammingLanguageExpressionDomain extends JenaReasoningDomain {
         }
 
         sb.append("<!-- Original expression: ");
-        for (BackendFactEntity fact : expression) {
+        for (BackendFactData fact : expression) {
             sb.append(fact.getObject()).append(" ");
         }
         sb.append("-->").append("</p>");
@@ -778,24 +785,24 @@ public class ProgrammingLanguageExpressionDomain extends JenaReasoningDomain {
         return "op__" + step + "__" + index;
     }
 
-    public List<BackendFactEntity> getBackendFacts(List<BackendFactEntity> expression) {
-        List<BackendFactEntity> facts = new ArrayList<>();
+    public List<BackendFactData> getBackendFacts(List<BackendFactData> expression) {
+        List<BackendFactData> facts = new ArrayList<>();
         int index = 0;
-        for (BackendFactEntity token : expression) {
+        for (BackendFactData token : expression) {
             index++;
             String name = getName(0, index);
-            facts.add(new BackendFactEntity(name, "rdf:type", "owl:NamedIndividual"));
-            facts.add(new BackendFactEntity("owl:NamedIndividual", name, "index", "xsd:int", String.valueOf(index)));
-            facts.add(new BackendFactEntity("owl:NamedIndividual", getName(0, index), "text", "xsd:string", token.getObject()));
+            facts.add(new BackendFactData(name, "rdf:type", "owl:NamedIndividual"));
+            facts.add(new BackendFactData("owl:NamedIndividual", name, "index", "xsd:int", String.valueOf(index)));
+            facts.add(new BackendFactData("owl:NamedIndividual", getName(0, index), "text", "xsd:string", token.getObject()));
             if (token.getVerb() != null) {
-                facts.add(new BackendFactEntity("owl:NamedIndividual", getName(0, index), token.getVerb(), token.getSubjectType(), token.getSubject()));
+                facts.add(new BackendFactData("owl:NamedIndividual", getName(0, index), token.getVerb(), token.getSubjectType(), token.getSubject()));
             }
             if (token.getObjectType() != null) { // Hack to insert boolean result
-                facts.add(new BackendFactEntity("owl:NamedIndividual", getName(0, index), "has_value", "xsd:boolean", token.getObjectType()));
+                facts.add(new BackendFactData("owl:NamedIndividual", getName(0, index), "has_value", "xsd:boolean", token.getObjectType()));
             }
         }
-        facts.add(new BackendFactEntity("owl:NamedIndividual", getName(0, 1), "first", "xsd:boolean", "true"));
-        facts.add(new BackendFactEntity("owl:NamedIndividual", getName(0, expression.size()), "last_index", "xsd:boolean", "true"));
+        facts.add(new BackendFactData("owl:NamedIndividual", getName(0, 1), "first", "xsd:boolean", "true"));
+        facts.add(new BackendFactData("owl:NamedIndividual", getName(0, expression.size()), "last_index", "xsd:boolean", "true"));
         return facts;
     }
 
@@ -897,7 +904,7 @@ public class ProgrammingLanguageExpressionDomain extends JenaReasoningDomain {
         return new ArrayList<>(List.of());
     }
 
-    public Set<String> getSolutionVerbs(String questionDomainType, List<BackendFactEntity> statementFacts) {
+    public Set<String> getSolutionVerbs(String questionDomainType, List<BackendFactData> statementFacts) {
         if (questionDomainType.equals(EVALUATION_ORDER_QUESTION_TYPE) || questionDomainType.equals(OPERANDS_TYPE_QUESTION_TYPE)) {
             return new HashSet<>(Arrays.asList(
                     "has_operand",
@@ -948,7 +955,7 @@ public class ProgrammingLanguageExpressionDomain extends JenaReasoningDomain {
         return new HashSet<>();
     }
 
-    public Set<String> getViolationVerbs(String questionDomainType, List<BackendFactEntity> statementFacts) {
+    public Set<String> getViolationVerbs(String questionDomainType, List<BackendFactData> statementFacts) {
         if (questionDomainType.equals(EVALUATION_ORDER_QUESTION_TYPE)) {
             return new HashSet<>(Arrays.asList(
                     "student_error_more_precedence",
@@ -1235,7 +1242,7 @@ public class ProgrammingLanguageExpressionDomain extends JenaReasoningDomain {
         MultiValuedMap<String, String> beforeThirdOperator = new HashSetValuedHashMap<>();
         MultiValuedMap<String, String> beforeAsOperand = new HashSetValuedHashMap<>();
 
-        for (BackendFactEntity fact : q.getSolutionFacts()) {
+        for (BackendFactData fact : q.getSolutionFacts()) {
             if (fact.getVerb().equals("before_direct")) {
                 before.put(fact.getSubject(), fact.getObject());
             } else if (fact.getVerb().equals("before")) {
@@ -1454,7 +1461,7 @@ public class ProgrammingLanguageExpressionDomain extends JenaReasoningDomain {
         return possibleViolations(q.getSolutionFacts(), completedSteps);
     }
 
-    public Set<String> possibleViolations(List<BackendFactEntity> solutionFacts, List<ResponseData> completedSteps) {
+    public Set<String> possibleViolations(List<BackendFactData> solutionFacts, List<ResponseData> completedSteps) {
         Set<String> result = new HashSet<>();
         Set<String> madeSteps = new HashSet<>();
         if (completedSteps != null) {
@@ -1463,7 +1470,7 @@ public class ProgrammingLanguageExpressionDomain extends JenaReasoningDomain {
                 madeSteps.add(r.getRightAnswerObject().getDomainInfo());
             }
         }
-        for (BackendFactEntity f : solutionFacts) {
+        for (BackendFactData f : solutionFacts) {
             if (f.getVerb().startsWith("student_error") && !madeSteps.contains(f.getSubject()) && !madeSteps.contains(f.getObject())
                     && getIndexFromName(f.getSubject(), false).isPresent()
                     && getIndexFromName(f.getObject(), false).isPresent()) {
@@ -1488,7 +1495,7 @@ public class ProgrammingLanguageExpressionDomain extends JenaReasoningDomain {
 
                     // check subject's text
                     boolean is_error_base_enclosing_operators = false;
-                    for (BackendFactEntity fa : solutionFacts) {
+                    for (BackendFactData fa : solutionFacts) {
                         if (fa.getVerb().equals("text") && fa.getSubject().equals(f.getSubject())) {
                             is_error_base_enclosing_operators = List.of("(", "[", "?").contains(fa.getObject());
                             break;
@@ -1504,8 +1511,8 @@ public class ProgrammingLanguageExpressionDomain extends JenaReasoningDomain {
     }
 
     /** Тип взаимодействия, в котором обнаружено нарушение, если он известен. */
-    private static InteractionType interactionTypeOf(ViolationEntity violation) {
-        return violation.getInteraction() == null ? null : violation.getInteraction().getInteractionType();
+    private static InteractionType interactionTypeOf(ViolationData violation) {
+        return violation.getInteractionType();
     }
 
     @Override
@@ -1539,7 +1546,7 @@ public class ProgrammingLanguageExpressionDomain extends JenaReasoningDomain {
     );
 
     @Override
-    public SupplementaryResponseGenerationResult makeSupplementaryQuestion(QuestionData sourceQuestion, ViolationEntity violation, Language lang) {
+    public SupplementaryResponseGenerationResult makeSupplementaryQuestion(QuestionData sourceQuestion, ViolationData violation, Language lang) {
         if (prefersDecisionTreeSupplementary(sourceQuestion.getId())){
             return dtSupplementaryQuestionHelper.makeSupplementaryQuestion(sourceQuestion, lang);
         }
@@ -1549,7 +1556,7 @@ public class ProgrammingLanguageExpressionDomain extends JenaReasoningDomain {
     }
 
     @Override
-    public SupplementaryFeedbackGenerationResult judgeSupplementaryQuestion(Question question, SupplementaryStepEntity supplementaryStep, List<ResponseData> responses) {
+    public SupplementaryFeedbackGenerationResult judgeSupplementaryQuestion(Question question, SupplementaryStepData supplementaryStep, List<ResponseData> responses) {
         if(supplementaryStep != null) { //FIXME? как правильно определять, как был сгенерирован вопрос?
             return dtSupplementaryQuestionHelper.judgeSupplementaryQuestion(supplementaryStep, responses);
         }
@@ -1572,7 +1579,7 @@ public class ProgrammingLanguageExpressionDomain extends JenaReasoningDomain {
     }
 
 
-    public Question makeSupplementaryQuestionBasic(QuestionData question, ViolationEntity violation, Language userLang) {
+    public Question makeSupplementaryQuestionBasic(QuestionData question, ViolationData violation, Language userLang) {
         if (!needSupplementaryQuestion(violation.getLawName(), interactionTypeOf(violation))) {
             return null;
         }
@@ -1592,7 +1599,7 @@ public class ProgrammingLanguageExpressionDomain extends JenaReasoningDomain {
 
         Question res = findQuestion(new ArrayList<>(), targetConcepts, new HashSet<>(), new HashSet<>(), new HashSet<>(), new HashSet<>());
         if (res != null) {
-            Question copy = makeQuestion(this, res, null, List.of(), userLang);
+            Question copy = makeQuestion(this, res, List.of(), userLang);
             return fillSupplementaryAnswerObjects(question, failedLaw, copy, userLang);
         }
 
@@ -1609,7 +1616,7 @@ public class ProgrammingLanguageExpressionDomain extends JenaReasoningDomain {
         MultiValuedMap<String, String> samePrecedenceRightAssoc = new HashSetValuedHashMap<>();
         HashSet<String> used = new HashSet<>();
 
-        for (BackendFactEntity fact : originalQuestion.getSolutionFacts()) {
+        for (BackendFactData fact : originalQuestion.getSolutionFacts()) {
             if (fact.getVerb().equals("before_direct")) {
                 if (!before.containsKey(fact.getObject())) {
                     before.put(fact.getObject(), new ArrayList<>());
@@ -1644,9 +1651,9 @@ public class ProgrammingLanguageExpressionDomain extends JenaReasoningDomain {
             return null;
         }
 
-        List<BackendFactEntity> possibleViolationFacts = new ArrayList<>();
+        List<BackendFactData> possibleViolationFacts = new ArrayList<>();
         {
-            BackendFactEntity factOriginalMistake = new BackendFactEntity("","","original_mistake", "", failedLaw);
+            BackendFactData factOriginalMistake = new BackendFactData("","","original_mistake", "", failedLaw);
             possibleViolationFacts.add(factOriginalMistake);
         }
 
@@ -1661,8 +1668,8 @@ public class ProgrammingLanguageExpressionDomain extends JenaReasoningDomain {
             Integer index = Integer.parseInt(indexes.get(origAnswer.getDomainInfo()));
             String domainInfo = origAnswer.getDomainInfo();
 
-            possibleViolationFacts.add(new BackendFactEntity(String.valueOf(origAnswer.getAnswerId()), "text", text));
-            possibleViolationFacts.add(new BackendFactEntity(String.valueOf(origAnswer.getAnswerId()), "index", String.valueOf(index)));
+            possibleViolationFacts.add(new BackendFactData(String.valueOf(origAnswer.getAnswerId()), "text", text));
+            possibleViolationFacts.add(new BackendFactData(String.valueOf(origAnswer.getAnswerId()), "index", String.valueOf(index)));
 
             if (origAnswer.getDomainInfo().equals(failedAnswer.getDomainInfo())) {
                 templates.put("operator", text);
@@ -1775,7 +1782,7 @@ public class ProgrammingLanguageExpressionDomain extends JenaReasoningDomain {
                         newAnswer.setDomainInfo(transition.question);
                         isAnswerCorrect = transition.correct;
                         if (!isAnswerCorrect) {
-                            BackendFactEntity mistake = new BackendFactEntity(String.valueOf(answer.getAnswerId()), "detailed_law", transition.detailed_law);
+                            BackendFactData mistake = new BackendFactData(String.valueOf(answer.getAnswerId()), "detailed_law", transition.detailed_law);
                             possibleViolationFacts.add(mistake);
                         }
                         break;
@@ -1788,7 +1795,7 @@ public class ProgrammingLanguageExpressionDomain extends JenaReasoningDomain {
 
                 // skip question with same answers
                 if (sameAnswers && isAnswerCorrect) {
-                    ViolationEntity violationEntity = new ViolationEntity();
+                    ViolationData violationEntity = new ViolationData();
                     violationEntity.setLawName(newAnswer.getDomainInfo());
                     return makeSupplementaryQuestionBasic(originalQuestion, violationEntity, lang);
                 }
@@ -1809,15 +1816,15 @@ public class ProgrammingLanguageExpressionDomain extends JenaReasoningDomain {
         interpretSentenceResult.violations = new ArrayList<>();
         interpretSentenceResult.isAnswerCorrect = true;
 
-        ViolationEntity violationEntity = new ViolationEntity();
+        ViolationData violationEntity = new ViolationData();
         if (answer.getDomainInfo() != null) {
             violationEntity.setLawName(answer.getDomainInfo());
         }
 
-        List<BackendFactEntity> violationFacts = new ArrayList<>();
+        List<BackendFactData> violationFacts = new ArrayList<>();
         violationFacts.addAll(question.getSolutionFacts());
 
-        for (BackendFactEntity fact : question.getSolutionFacts()) {
+        for (BackendFactData fact : question.getSolutionFacts()) {
             if (fact.getSubject().equals(String.valueOf(answer.getAnswerId()))) {
                 if (fact.getVerb().equals("detailed_law")) {
                     violationEntity.setDetailedLawName(fact.getObject());
@@ -1842,7 +1849,7 @@ public class ProgrammingLanguageExpressionDomain extends JenaReasoningDomain {
 
     @Override
     public InterpretSentenceResult interpretSentence(Collection<Fact> violations) {
-        List<ViolationEntity> mistakes = new ArrayList<>();
+        List<ViolationData> mistakes = new ArrayList<>();
 
         String questionType = "";
         for (Fact violation : violations) {
@@ -1879,7 +1886,7 @@ public class ProgrammingLanguageExpressionDomain extends JenaReasoningDomain {
 
             // filter facts and fill mistakes list ...
             for (Fact violation : violations) {
-                ViolationEntity violationEntity = new ViolationEntity();
+                ViolationData violationEntity = new ViolationData();
                 if (violation.getVerb().equals("student_error_more_precedence")) {
                     if (getIndexFromName(violation.getSubject(), false).orElse(0) > getIndexFromName(violation.getObject(), false).orElse(0)) {
                         violationEntity.setLawName("error_base_higher_precedence_left");
@@ -1990,12 +1997,12 @@ public class ProgrammingLanguageExpressionDomain extends JenaReasoningDomain {
 
             for (Map.Entry<String, String> kv : studentOperatorType.entrySet()) {
                 if (!operatorType.get(kv.getKey()).equals(kv.getValue())) {
-                    ViolationEntity violationEntity = new ViolationEntity();
+                    ViolationData violationEntity = new ViolationData();
                     violationEntity.setLawName("wrong_operand_type");
-                    ArrayList<BackendFactEntity> violationFacts = new ArrayList<>();
-                    violationFacts.add(new BackendFactEntity(kv.getKey(), "student_operand_type", kv.getValue()));
-                    violationFacts.add(new BackendFactEntity(kv.getKey(), "real_operand_type", operatorType.get(kv.getKey())));
-                    violationFacts.add(new BackendFactEntity(kv.getKey(), "index", String.valueOf(nameToPos.get(kv.getKey()))));
+                    ArrayList<BackendFactData> violationFacts = new ArrayList<>();
+                    violationFacts.add(new BackendFactData(kv.getKey(), "student_operand_type", kv.getValue()));
+                    violationFacts.add(new BackendFactData(kv.getKey(), "real_operand_type", operatorType.get(kv.getKey())));
+                    violationFacts.add(new BackendFactData(kv.getKey(), "index", String.valueOf(nameToPos.get(kv.getKey()))));
                     violationEntity.setViolationFacts(new ArrayList<>() /* violationFacts ??*/);
                     mistakes.add(violationEntity);
                 }
@@ -2034,12 +2041,12 @@ public class ProgrammingLanguageExpressionDomain extends JenaReasoningDomain {
 
             for (Map.Entry<String, String> kv : studentPrecedenceType.entrySet()) {
                 if (!precedenceType.get(kv.getKey()).equals(kv.getValue())) {
-                    ViolationEntity violationEntity = new ViolationEntity();
+                    ViolationData violationEntity = new ViolationData();
                     violationEntity.setLawName("wrong_precedence_type");
-                    ArrayList<BackendFactEntity> violationFacts = new ArrayList<>();
-                    violationFacts.add(new BackendFactEntity(kv.getKey(), "student_precedence_type", kv.getValue()));
-                    violationFacts.add(new BackendFactEntity(kv.getKey(), "real_precedence_type", precedenceType.get(kv.getKey())));
-                    violationFacts.add(new BackendFactEntity(kv.getKey(), "index", String.valueOf(nameToPos.get(kv.getKey()))));
+                    ArrayList<BackendFactData> violationFacts = new ArrayList<>();
+                    violationFacts.add(new BackendFactData(kv.getKey(), "student_precedence_type", kv.getValue()));
+                    violationFacts.add(new BackendFactData(kv.getKey(), "real_precedence_type", precedenceType.get(kv.getKey())));
+                    violationFacts.add(new BackendFactData(kv.getKey(), "index", String.valueOf(nameToPos.get(kv.getKey()))));
                     violationEntity.setViolationFacts(new ArrayList<>());
                     mistakes.add(violationEntity);
                 }
@@ -2105,9 +2112,9 @@ public class ProgrammingLanguageExpressionDomain extends JenaReasoningDomain {
     }
 
     @Override
-    public Explanation makeExplanation(List<ViolationEntity> mistakes, FeedbackType feedbackType, Language lang) {
+    public Explanation makeExplanation(List<ViolationData> mistakes, FeedbackType feedbackType, Language lang) {
         ArrayList<Explanation> result = new ArrayList<>();
-        for (ViolationEntity mistake : mistakes) {
+        for (ViolationData mistake : mistakes) {
             result.add(new Explanation(Explanation.Type.ERROR, makeExplanation(mistake, feedbackType, lang)));
         }
         return Explanation.aggregate(Explanation.Type.ERROR, result);
@@ -2124,13 +2131,13 @@ public class ProgrammingLanguageExpressionDomain extends JenaReasoningDomain {
         return getMessage("OPERATOR", lang);
     }
 
-    private HyperText makeExplanation(ViolationEntity mistake, FeedbackType feedbackType, Language lang) {
+    private HyperText makeExplanation(ViolationData mistake, FeedbackType feedbackType, Language lang) {
         if (mistake.getLawName().equals("error_select_precedence_or_associativity")) {
             return new HyperText(getMessage("ERROR_PRECEDENCE_BEFORE_ASSOC", lang));
         } else if (mistake.getLawName().equals("error_select_highest_precedence")) {
             String text = "";
             String index;
-            for (BackendFactEntity fact : mistake.getViolationFacts()) {
+            for (BackendFactData fact : mistake.getViolationFacts()) {
                 if (fact.getVerb().equals("text")) {
                     text = fact.getObject();
                 } else if (fact.getVerb().equals("index")) {
@@ -2142,7 +2149,7 @@ public class ProgrammingLanguageExpressionDomain extends JenaReasoningDomain {
             String realType = "";
             String studentType = "";
             String index = "";
-            for (BackendFactEntity fact : mistake.getViolationFacts()) {
+            for (BackendFactData fact : mistake.getViolationFacts()) {
                 if (fact.getVerb().equals("student_operand_type")) {
                     studentType = fact.getObject();
                 } else if (fact.getVerb().equals("real_operand_type")) {
@@ -2156,7 +2163,7 @@ public class ProgrammingLanguageExpressionDomain extends JenaReasoningDomain {
             String realType = "";
             String studentType = "";
             String index = "";
-            for (BackendFactEntity fact : mistake.getViolationFacts()) {
+            for (BackendFactData fact : mistake.getViolationFacts()) {
                 if (fact.getVerb().equals("student_precedence_type")) {
                     studentType = fact.getObject();
                 } else if (fact.getVerb().equals("real_precedence_type")) {
@@ -2169,11 +2176,11 @@ public class ProgrammingLanguageExpressionDomain extends JenaReasoningDomain {
         }
 
         // retrieve subjects' info from facts, and find base and third ...
-        BackendFactEntity base = null;
-        BackendFactEntity third = null;
+        BackendFactData base = null;
+        BackendFactData third = null;
         Map<String, String> nameToText = new HashMap<>();
         Map<String, String> nameToPos = new HashMap<>();
-        for (BackendFactEntity fact : mistake.getViolationFacts()) {
+        for (BackendFactData fact : mistake.getViolationFacts()) {
             if (fact.getVerb().equals("before_third_operator")) {
                 third = fact;
             } else if (fact.getVerb().equals("index")) {
@@ -2282,7 +2289,7 @@ public class ProgrammingLanguageExpressionDomain extends JenaReasoningDomain {
         return new HyperText(joiner.toString());
     }
 
-    private List<BackendFactEntity> modelToFacts(Model factsModel, boolean onlySolvedFacts) {
+    private List<BackendFactData> modelToFacts(Model factsModel, boolean onlySolvedFacts) {
         JenaBackend jback = new JenaBackend();
         jback.createOntology(NS_code.base());
 
@@ -2296,7 +2303,7 @@ public class ProgrammingLanguageExpressionDomain extends JenaReasoningDomain {
         return jback.getFacts(null);
     }
 
-    public static OntModel factsToOntModel(List<BackendFactEntity> backendFacts) {
+    public static OntModel factsToOntModel(List<BackendFactData> backendFacts) {
         JenaBackend jback = new JenaBackend();
         jback.createOntology(NS_code.base());
 
@@ -2310,33 +2317,33 @@ public class ProgrammingLanguageExpressionDomain extends JenaReasoningDomain {
     public Map<String, Model> generateDistinctQuestions(String parsedQuestionName, Model solvedTemplate, Model domainSchema, int questionsLimit) {
         FactsGraph fg = new FactsGraph(modelToFacts(solvedTemplate, false));
 
-        Map<String,List<BackendFactEntity>> addedFacts = new HashMap<>();
+        Map<String,List<BackendFactData>> addedFacts = new HashMap<>();
 
         if (!fg.filterFacts(null, "text", "?:").isEmpty() || !fg.filterFacts(null, "text", "").isEmpty()) {
             return new HashMap<>(); // Skip bad generation of ternary operator
         }
         addedFacts.put(parsedQuestionName + "_v", new ArrayList<>());
 
-        List<BackendFactEntity> switchPoints = fg.filterFacts(null, "has_value_eval_restriction", null);
+        List<BackendFactData> switchPoints = fg.filterFacts(null, "has_value_eval_restriction", null);
         switchPoints.sort(
-                Comparator.comparingInt((BackendFactEntity a) -> Integer.parseInt(a.getSubject().substring("op__0__".length()))));
-        for (BackendFactEntity branchOperands : switchPoints) {
-            List<BackendFactEntity> leftOp = fg.filterFacts(branchOperands.getSubject(), "has_left_operand", null);
+                Comparator.comparingInt((BackendFactData a) -> Integer.parseInt(a.getSubject().substring("op__0__".length()))));
+        for (BackendFactData branchOperands : switchPoints) {
+            List<BackendFactData> leftOp = fg.filterFacts(branchOperands.getSubject(), "has_left_operand", null);
             assert 1 == leftOp.size();
-            Map<String,List<BackendFactEntity>> newAddedFacts = new HashMap<>();
+            Map<String,List<BackendFactData>> newAddedFacts = new HashMap<>();
 
-            List<BackendFactEntity> left_op_is_switch = fg.filterFacts(leftOp.get(0).getObject(), "has_value_eval_restriction", null);
-            List<BackendFactEntity> left_op_is_ternary = fg.filterFacts(leftOp.get(0).getObject(), "has_inner_operand", null);
+            List<BackendFactData> left_op_is_switch = fg.filterFacts(leftOp.get(0).getObject(), "has_value_eval_restriction", null);
+            List<BackendFactData> left_op_is_ternary = fg.filterFacts(leftOp.get(0).getObject(), "has_inner_operand", null);
             String left_op_left_op = null;
             if (!left_op_is_switch.isEmpty() && left_op_is_ternary.isEmpty()) {
                 left_op_left_op = fg.filterFacts(leftOp.get(0).getObject(), "has_left_operand", null).get(0).getObject();
             }
 
-            for (Map.Entry<String, List<BackendFactEntity>> facts : addedFacts.entrySet()) {
+            for (Map.Entry<String, List<BackendFactData>> facts : addedFacts.entrySet()) {
                 boolean canBeTrue = true;
                 boolean canBeFalse = true;
                 if (left_op_left_op != null) {
-                    for (BackendFactEntity prevFact : facts.getValue()) {
+                    for (BackendFactData prevFact : facts.getValue()) {
                         if (left_op_left_op.equals(prevFact.getSubject())) {
                             if (left_op_is_switch.get(0).getObject().equals("no_right_if_true") && prevFact.getObject().equals("true")) {
                                 canBeFalse = false;
@@ -2357,16 +2364,16 @@ public class ProgrammingLanguageExpressionDomain extends JenaReasoningDomain {
                 }
 
                 if (canBeTrue) {
-                    List<BackendFactEntity> addedTrueFacts = new ArrayList<>();
+                    List<BackendFactData> addedTrueFacts = new ArrayList<>();
                     addedTrueFacts.addAll(facts.getValue());
-                    addedTrueFacts.add(new BackendFactEntity("owl:NamedIndividual", leftOp.get(0).getObject(), "has_value", "xsd:boolean", "true"));
+                    addedTrueFacts.add(new BackendFactData("owl:NamedIndividual", leftOp.get(0).getObject(), "has_value", "xsd:boolean", "true"));
                     newAddedFacts.put(facts.getKey() + "t", addedTrueFacts);
                 }
 
                 if (canBeFalse) {
-                    List<BackendFactEntity> addedFalseFacts = new ArrayList<>();
+                    List<BackendFactData> addedFalseFacts = new ArrayList<>();
                     addedFalseFacts.addAll(facts.getValue());
-                    addedFalseFacts.add(new BackendFactEntity("owl:NamedIndividual", leftOp.get(0).getObject(), "has_value", "xsd:boolean", "false"));
+                    addedFalseFacts.add(new BackendFactData("owl:NamedIndividual", leftOp.get(0).getObject(), "has_value", "xsd:boolean", "false"));
                     newAddedFacts.put(facts.getKey() + "f", addedFalseFacts);
                 }
             }
@@ -2375,7 +2382,7 @@ public class ProgrammingLanguageExpressionDomain extends JenaReasoningDomain {
 
         log.debug("Generated: {} questions", addedFacts.size());
         HashMap<String, Model> questions = new HashMap<>();
-        for (Map.Entry<String, List<BackendFactEntity>> facts : addedFacts.entrySet()) {
+        for (Map.Entry<String, List<BackendFactData>> facts : addedFacts.entrySet()) {
             questions.put(facts.getKey(), factsToOntModel(facts.getValue()));
             if (questions.size() > questionsLimit || addedFacts.size() > 10000 && questions.size() >= 5) {
                 break;
@@ -2390,26 +2397,26 @@ public class ProgrammingLanguageExpressionDomain extends JenaReasoningDomain {
      * @return fresh Ordering Question
      */
     private Question createQuestionFromModel(String questionName, String templateName, String origin, Model model) {
-        List<BackendFactEntity> facts = modelToFacts(model, false);
-        facts.add(new BackendFactEntity("owl:NamedIndividual", "end_token", "text", "xsd:string", "end_token"));
+        List<BackendFactData> facts = modelToFacts(model, false);
+        facts.add(new BackendFactData("owl:NamedIndividual", "end_token", "text", "xsd:string", "end_token"));
         FactsGraph fg = new FactsGraph(facts);
 
         QuestionData entity = new QuestionData();
         List<AnswerObjectData> answerObjectEntities = new ArrayList<>();
         int ans_id = 0;
         int solution_length = 0;
-        Map<Integer, BackendFactEntity> texts = new TreeMap<>(); // expression tokens
-        Map<Integer, BackendFactEntity> orderAnswers = new TreeMap<>();
+        Map<Integer, BackendFactData> texts = new TreeMap<>(); // expression tokens
+        Map<Integer, BackendFactData> orderAnswers = new TreeMap<>();
 
-        for (BackendFactEntity token : fg.filterFacts(null, "index", null)) {
+        for (BackendFactData token : fg.filterFacts(null, "index", null)) {
             orderAnswers.put(Integer.parseInt(token.getObject()), token);
         }
 
-        for (BackendFactEntity token : orderAnswers.values()) {
+        for (BackendFactData token : orderAnswers.values()) {
             String text = fg.filterFacts(token.getSubject(), "text", null).get(0).getObject();
-            BackendFactEntity initFacts = new BackendFactEntity(null,null, null,null,text);
+            BackendFactData initFacts = new BackendFactData(null,null, null,null,text);
 
-            List<BackendFactEntity> hasValue = fg.filterFacts(token.getSubject(), "has_value", null);
+            List<BackendFactData> hasValue = fg.filterFacts(token.getSubject(), "has_value", null);
             if (!hasValue.isEmpty()) {
                 initFacts.setSubjectType(hasValue.get(0).getObject());
             }
@@ -2443,7 +2450,7 @@ public class ProgrammingLanguageExpressionDomain extends JenaReasoningDomain {
         newAnswerObjectEntity.setHyperText(END_EVALUATION);
         newAnswerObjectEntity.setRightCol(false);
         answerObjectEntities.add(newAnswerObjectEntity);
-        texts.put(1000000, new BackendFactEntity(null,END_EVALUATION,null,null,END_EVALUATION));
+        texts.put(1000000, new BackendFactData(null,END_EVALUATION,null,null,END_EVALUATION));
 
         entity.setAnswerObjects(answerObjectEntities);
         entity.setQuestionDomainType("OrderOperators");
@@ -2457,7 +2464,7 @@ public class ProgrammingLanguageExpressionDomain extends JenaReasoningDomain {
             // too small or too large question
             return null;
 
-        List<BackendFactEntity> textFacts = new ArrayList<>(texts.values());
+        List<BackendFactData> textFacts = new ArrayList<>(texts.values());
         entity.setQuestionText(ExpressionToHtml(textFacts));
 //        entity.setQuestionText(ExpressionToHtmlEnablingButtonDuplicates(textFacts));
         entity.setQuestionName(questionName);
@@ -2465,13 +2472,13 @@ public class ProgrammingLanguageExpressionDomain extends JenaReasoningDomain {
         Question question = new Question(entity, this);
 
         Set<String> lawNames = new HashSet<>();
-        for (BackendFactEntity fact : fg.filterFacts(null, "law_name", null)) {
+        for (BackendFactData fact : fg.filterFacts(null, "law_name", null)) {
             lawNames.add(fact.getObject());
         }
         // question.getPositiveLaws().addAll(lawNames); // no PositiveLaws in question entity
 
         Set<String> concepts = new HashSet<>();
-        for (BackendFactEntity fact : fg.filterFacts(null, "concept", null)) {
+        for (BackendFactData fact : fg.filterFacts(null, "concept", null)) {
             concepts.add(fact.getObject());
         }
         concepts.add("operator");
@@ -2481,7 +2488,7 @@ public class ProgrammingLanguageExpressionDomain extends JenaReasoningDomain {
 
         // use Python parser to infer possibly more concepts and violations
         // convert tokens to string omitting last one that is END_EVALUATION
-        String exprString = textFacts.stream().map(BackendFactEntity::getObject).takeWhile(s -> !s.equals(END_EVALUATION)).collect(Collectors.joining(" "));
+        String exprString = textFacts.stream().map(BackendFactData::getObject).takeWhile(s -> !s.equals(END_EVALUATION)).collect(Collectors.joining(" "));
         try (var pythonCaller = new ExpressionSituationPythonCaller()) {
             var concepts_violations = pythonCaller.invoke(exprString);
             log.debug("python returns concepts_violations: {}", concepts_violations);
@@ -2514,11 +2521,11 @@ public class ProgrammingLanguageExpressionDomain extends JenaReasoningDomain {
 
         // make Options instance if absent
         if (entity.getOptions() == null) {
-            var options = OrderQuestionOptionsEntity.builder()
+            var options = OrderQuestionOptionsData.builder()
                     .requireContext(true)
                     .showTrace(true)
                     .multipleSelectionEnabled(false)
-                    .orderNumberOptions(new OrderQuestionOptionsEntity.OrderNumberOptions("#", OrderQuestionOptionsEntity.OrderNumberPosition.BOTTOM, null))
+                    .orderNumberOptions(new OrderQuestionOptionsData.OrderNumberOptions("#", OrderQuestionOptionsData.OrderNumberPosition.BOTTOM, null))
                     .build();
             entity.setOptions(options);
         }
@@ -2615,7 +2622,7 @@ public class ProgrammingLanguageExpressionDomain extends JenaReasoningDomain {
                             false);
 
                     // Generate only questions with different error sets
-                    List<BackendFactEntity> facts = JenaBackend.modelToFacts(solvedQuestionModel, NS_code.get());
+                    List<BackendFactData> facts = JenaBackend.modelToFacts(solvedQuestionModel, NS_code.get());
                     Set<String> violations = this.possibleViolations(facts, null);
                     if (possibleViolations.contains(violations)) {
                         log.debug("Skip question with same violations: {}", question.getKey());
@@ -2769,7 +2776,7 @@ public class ProgrammingLanguageExpressionDomain extends JenaReasoningDomain {
                              "</span>");
                 builder.add("<span>" + getMessage("CALCULATED", lang) + "</span>");
 
-                List<BackendFactEntity> value = qg.filterFacts(domainInfo, "has_value", null);
+                List<BackendFactData> value = qg.filterFacts(domainInfo, "has_value", null);
                 if (!value.isEmpty()) {
                     builder.add("<span>" + getMessage("WITH_VALUE", lang) + "</span>");
                     builder.add("<span style='color: #f08;font-style: italic;font-weight: bold;'>" +

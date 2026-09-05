@@ -1,6 +1,7 @@
 package org.vstu.compprehension.models.businesslogic.domains.helpers.meaningtree;
 
 
+import org.vstu.compprehension.models.data.BackendFactData;
 import its.model.DomainSolvingModel;
 import its.model.definition.*;
 import its.model.definition.loqi.DomainLoqiWriter;
@@ -11,7 +12,6 @@ import org.vstu.compprehension.models.data.ResponseData;
 import org.vstu.compprehension.models.businesslogic.Tag;
 import org.vstu.compprehension.models.businesslogic.domains.ProgrammingLanguageExpressionDTDomain;
 import org.vstu.compprehension.models.businesslogic.domains.helpers.ProgrammingLanguageExpressionsSolver;
-import org.vstu.compprehension.models.entities.BackendFactEntity;
 import org.vstu.meaningtree.MeaningTree;
 import org.vstu.meaningtree.SupportedLanguage;
 import org.vstu.meaningtree.exceptions.MeaningTreeException;
@@ -47,7 +47,7 @@ public class MeaningTreeRDFTransformer {
     }
 
 
-    public static TokenList tokenize(List<BackendFactEntity> facts, SupportedLanguage language) {
+    public static TokenList tokenize(List<BackendFactData> facts, SupportedLanguage language) {
         Model m = MeaningTreeRDFHelper.backendFactsToModel(facts);
         MeaningTree mt = new RDFDeserializer().deserializeTree(m);
         try {
@@ -67,12 +67,12 @@ public class MeaningTreeRDFTransformer {
         return SupportedLanguage.CPP;
     }
 
-    public static DomainModel questionToDomainModel(DomainSolvingModel model, List<BackendFactEntity> facts,
+    public static DomainModel questionToDomainModel(DomainSolvingModel model, List<BackendFactData> facts,
                                                     List<ResponseData> responses, List<Tag> tags) {
         return questionToDomainModel(model, facts, responses, tags, true);
     }
 
-    public static DomainModel questionToDomainModel(DomainSolvingModel model, List<BackendFactEntity> facts,
+    public static DomainModel questionToDomainModel(DomainSolvingModel model, List<BackendFactData> facts,
                                                     List<ResponseData> responses, List<Tag> tags, boolean setX) {
         Model base = MeaningTreeRDFHelper.backendFactsToModel(facts);
         Map<String, DecisionTree> decisionTreeMap = model.getDecisionTrees();

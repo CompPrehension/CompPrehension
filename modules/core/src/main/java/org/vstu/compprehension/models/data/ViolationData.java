@@ -4,7 +4,7 @@ import lombok.AllArgsConstructor;
 import lombok.Builder;
 import lombok.Data;
 import lombok.NoArgsConstructor;
-import org.vstu.compprehension.models.entities.BackendFactEntity;
+import org.vstu.compprehension.models.entities.EnumData.InteractionType;
 
 import java.util.ArrayList;
 import java.util.List;
@@ -15,7 +15,7 @@ import java.util.List;
  * Изменяемый контейнер: домены создают такие объекты по ходу разбора (раньше — напрямую
  * {@code ViolationEntity}), а сервис переносит их в сущности при сохранении.
  * <p>
- * {@code BackendFactEntity} вопреки имени не JPA-сущность, а значение из json-колонки,
+ * {@code BackendFactData} вопреки имени не JPA-сущность, а значение из json-колонки,
  * поэтому используется как есть.
  */
 @Data
@@ -26,8 +26,15 @@ public class ViolationData {
     private Long id;
     private String lawName;
     private String detailedLawName;
+
+    /**
+     * Тип взаимодействия, в котором нарушение обнаружено; null у только что созданных.
+     * <p>
+     * Проекция вместо обратной ссылки: из взаимодействия читался только его тип.
+     */
+    private InteractionType interactionType;
     @Builder.Default
-    private List<BackendFactEntity> violationFacts = new ArrayList<>();
+    private List<BackendFactData> violationFacts = new ArrayList<>();
     @Builder.Default
     private List<ExplanationTemplateInfoData> explanationTemplateInfo = new ArrayList<>();
 }

@@ -1,5 +1,6 @@
 package org.vstu.compprehension.jobs.bankloadtesting;
 
+import org.vstu.compprehension.models.data.ExerciseStageData;
 import lombok.SneakyThrows;
 import lombok.extern.log4j.Log4j2;
 import org.apache.commons.collections4.IteratorUtils;
@@ -15,7 +16,6 @@ import org.vstu.compprehension.dto.ExerciseAttemptDto;
 import org.vstu.compprehension.dto.question.QuestionDto;
 import org.vstu.compprehension.models.entities.EnumData.AttemptStatus;
 import org.vstu.compprehension.models.entities.UserEntity;
-import org.vstu.compprehension.models.entities.exercise.ExerciseStageEntity;
 import org.vstu.compprehension.models.repository.ExerciseRepository;
 import org.vstu.compprehension.models.repository.QuestionGenerationRequestRepository;
 import org.vstu.compprehension.models.repository.QuestionMetadataRepository;
@@ -155,7 +155,7 @@ public class BankLoadTestingJob {
 
         var questionsNumber = transactionScope.execute(() ->exerciseRepository.findById(config.getExerciseId()).orElseThrow()
                 .getStages().stream()
-                .map(ExerciseStageEntity::getNumberOfQuestions)
+                .map(ExerciseStageData::getNumberOfQuestions)
                 .mapToInt(Integer::intValue)
                 .sum());
 

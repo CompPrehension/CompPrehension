@@ -1,5 +1,6 @@
 package org.vstu.compprehension.adapters;
 
+import org.vstu.compprehension.models.data.BackendFactData;
 import com.google.common.cache.Cache;
 import org.jetbrains.annotations.NotNull;
 import org.vstu.compprehension.models.businesslogic.Law;
@@ -9,7 +10,6 @@ import org.vstu.compprehension.models.businesslogic.backend.JenaBackend;
 import org.vstu.compprehension.models.businesslogic.backend.facts.Fact;
 import org.vstu.compprehension.models.businesslogic.backend.facts.JenaFactList;
 import org.vstu.compprehension.models.businesslogic.backend.util.ReasoningOptions;
-import org.vstu.compprehension.models.entities.BackendFactEntity;
 
 import java.util.Collection;
 import java.util.List;
@@ -43,7 +43,7 @@ public class SolutionCachingJenaBackendDecorator extends FactBackend {
     }
 
     @Override
-    public Collection<Fact> solve(List<Law> laws, List<BackendFactEntity> statement, ReasoningOptions reasoningOptions) {
+    public Collection<Fact> solve(List<Law> laws, List<BackendFactData> statement, ReasoningOptions reasoningOptions) {
         return solve(laws, JenaFactList.fromBackendFacts(statement), reasoningOptions);
     }
 
@@ -69,7 +69,7 @@ public class SolutionCachingJenaBackendDecorator extends FactBackend {
     }
 
     @Override
-    public Collection<Fact> judge(List<Law> laws, List<BackendFactEntity> statement, List<BackendFactEntity> correctAnswer, List<BackendFactEntity> response, ReasoningOptions reasoningOptions) {
+    public Collection<Fact> judge(List<Law> laws, List<BackendFactData> statement, List<BackendFactData> correctAnswer, List<BackendFactData> response, ReasoningOptions reasoningOptions) {
         return decoratee.judge(laws, statement, correctAnswer, response, reasoningOptions);
     }
 

@@ -1,5 +1,10 @@
 package org.vstu.compprehension.models.businesslogic.domains;
 
+import org.vstu.compprehension.models.data.SupplementaryStepData;
+import org.vstu.compprehension.models.data.ExerciseOptionsData;
+import org.vstu.compprehension.models.data.questionoptions.MatchingQuestionOptionsData;
+import org.vstu.compprehension.models.data.questionoptions.MultiChoiceOptionsData;
+import org.vstu.compprehension.models.data.questionoptions.SingleChoiceOptionsData;
 import its.model.DomainSolvingModel;
 import its.model.definition.DomainModel;
 import its.model.nodes.BranchResult;
@@ -24,9 +29,6 @@ import org.vstu.compprehension.models.businesslogic.SupplementaryResponseGenerat
 import org.vstu.compprehension.models.entities.*;
 import org.vstu.compprehension.models.entities.EnumData.Language;
 import org.vstu.compprehension.models.entities.EnumData.QuestionType;
-import org.vstu.compprehension.models.entities.QuestionOptions.MatchingQuestionOptionsEntity;
-import org.vstu.compprehension.models.entities.QuestionOptions.MultiChoiceOptionsEntity;
-import org.vstu.compprehension.models.entities.QuestionOptions.SingleChoiceOptionsEntity;
 
 import java.net.URL;
 import java.util.ArrayList;
@@ -121,13 +123,12 @@ public class DecisionTreeSupQuestionHelper {
         return new SupplementaryResponseGenerationResult(response, supplementaryChain);
     }
 
-    public SupplementaryFeedbackGenerationResult judgeSupplementaryQuestion(SupplementaryStepEntity supplementaryInfo, List<ResponseData> responses){
+    public SupplementaryFeedbackGenerationResult judgeSupplementaryQuestion(SupplementaryStepData supplementaryInfo, List<ResponseData> responses){
         //получить состояние автомата вопросов, соответствующее данному вопросу
         QuestionState state = supplementaryAutomata.get(supplementaryInfo.getNextStateId());
 
         //Создать соответствующую ситуации рдф-модель
-        QuestionInteractionData mainQuestionInteraction =
-                QuestionDataMapper.toData(supplementaryInfo.getMainQuestionInteraction());
+        QuestionInteractionData mainQuestionInteraction = supplementaryInfo.getMainQuestionInteraction();
         DomainModel situationModel = mainQuestionToModelTransformer.apply(mainQuestionInteraction);
 
         //создать ситуацию, описывающую контекст задания вспомогательных вопросов
@@ -162,13 +163,16 @@ public class DecisionTreeSupQuestionHelper {
         //получить фидбек ответа и изменение состояния
         QuestionStateChange change = state.proceedWithAnswer(situation, answers);
 
+        // Взаимодействие берём сущностью по id: новый шаг цепочки — запись в БД.
         SupplementaryStepEntity newSupplementaryChain = new SupplementaryStepEntity(
-                supplementaryInfo.getMainQuestionInteraction(), situation, null, change.getNextState() != null ? change.getNextState().getId() : null
+                domain.getSupplementaryStepService().getInteraction(
+                        supplementaryInfo.getMainQuestionInteraction().getId()),
+                situation, null, change.getNextState() != null ? change.getNextState().getId() : null
         );
         return new SupplementaryFeedbackGenerationResult(stateChangeAsSupplementaryFeedbackDto(change), newSupplementaryChain);
     }
 
-    private org.vstu.compprehension.models.businesslogic.Question transformQuestionFormats(Question q, @Nullable ExerciseAttemptEntity exerciseAttempt, Language language){
+    private org.vstu.compprehension.models.businesslogic.Question transformQuestionFormats(Question q, @Nullable ExerciseOptionsData exerciseOptions, Language language){
         QuestionData generated = new QuestionData();
         generated.setQuestionText(q.getText());
         //generated.setQuestionName(String.valueOf(creatorStateId));    //FIXME?
@@ -197,20 +201,20 @@ public class DecisionTreeSupQuestionHelper {
                 generated.setAnswerObjects(answers);
 
                 generated.setQuestionType(QuestionType.MATCHING);
-                val opt = new MatchingQuestionOptionsEntity();
-                opt.setDisplayMode(MatchingQuestionOptionsEntity.DisplayMode.COMBOBOX);
+                val opt = new MatchingQuestionOptionsData();
+                opt.setDisplayMode(MatchingQuestionOptionsData.DisplayMode.COMBOBOX);
                 generated.setOptions(opt);
             }
             case single -> {
                 generated.setQuestionType(QuestionType.SINGLE_CHOICE);
-                val opt = new SingleChoiceOptionsEntity();
-                opt.setDisplayMode(SingleChoiceOptionsEntity.DisplayMode.RADIO);
+                val opt = new SingleChoiceOptionsData();
+                opt.setDisplayMode(SingleChoiceOptionsData.DisplayMode.RADIO);
                 generated.setOptions(opt);
             }
             case multiple -> {
                 generated.setQuestionType(QuestionType.MULTI_CHOICE);
-                val opt = new MultiChoiceOptionsEntity();
-                opt.setDisplayMode(MultiChoiceOptionsEntity.DisplayMode.SWITCH);
+                val opt = new MultiChoiceOptionsData();
+                opt.setDisplayMode(MultiChoiceOptionsData.DisplayMode.SWITCH);
                 generated.setOptions(opt);
             }
         }
@@ -230,9 +234,9 @@ public class DecisionTreeSupQuestionHelper {
                         : expl != null && expl.getShouldPause() ? SupplementaryFeedbackDto.Action.ContinueManual : SupplementaryFeedbackDto.Action.ContinueAuto
         );
     }
-    private SupplementaryResponse stateResultAsSupplementaryResponse(QuestionStateResult q, @Nullable ExerciseAttemptEntity exerciseAttempt, Language language){
+    private SupplementaryResponse stateResultAsSupplementaryResponse(QuestionStateResult q, @Nullable ExerciseOptionsData exerciseOptions, Language language){
         if(q instanceof Question){
-            org.vstu.compprehension.models.businesslogic.Question supQuestion = transformQuestionFormats((Question) q, exerciseAttempt, language);
+            org.vstu.compprehension.models.businesslogic.Question supQuestion = transformQuestionFormats((Question) q, exerciseOptions, language);
             return new SupplementaryResponse(supQuestion);
         }
         else {

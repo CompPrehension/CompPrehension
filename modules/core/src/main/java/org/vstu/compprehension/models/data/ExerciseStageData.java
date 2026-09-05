@@ -1,4 +1,4 @@
-package org.vstu.compprehension.models.entities.exercise;
+package org.vstu.compprehension.models.data;
 
 import com.fasterxml.jackson.annotation.JsonIgnoreProperties;
 import com.fasterxml.jackson.annotation.JsonInclude;
@@ -23,7 +23,7 @@ import java.util.List;
 @Jacksonized
 @JsonIgnoreProperties(ignoreUnknown = true)
 @JsonInclude(JsonInclude.Include.NON_NULL)
-public class ExerciseStageEntity {    
+public class ExerciseStageData {    
     @Builder.Default
     int numberOfQuestions = 5;
     

@@ -1,12 +1,11 @@
 package org.vstu.compprehension.Service.mapping;
 
-import lombok.RequiredArgsConstructor;
+import org.vstu.compprehension.models.data.BackendFactData;
 import org.jetbrains.annotations.NotNull;
 import org.jetbrains.annotations.Nullable;
 import org.springframework.stereotype.Component;
 import org.vstu.compprehension.models.data.*;
 import org.vstu.compprehension.models.entities.*;
-import org.vstu.compprehension.models.repository.QuestionMetadataRepository;
 
 import java.util.ArrayList;
 import java.util.List;
@@ -20,12 +19,13 @@ import java.util.stream.Collectors;
  * Направление записи намеренно <b>уже</b> направления чтения: читается всё, что нужно
  * доменам, включая взаимодействия студента, а записывается только то, что домены реально
  * меняют. Что именно не переносится обратно и почему — см. {@link #applyToEntity}.
+ * <p>
+ * У маппера нет зависимостей: ни репозиториев, ни сервисов. Всё, чего нет в данных —
+ * например, сущность метаданных из банка заданий, — обязана предоставить вызывающая
+ * сторона. Так поведение маппера остаётся очевидным из его сигнатур.
  */
 @Component
-@RequiredArgsConstructor
 public class QuestionDataMapper {
-
-    private final QuestionMetadataRepository questionMetadataRepository;
 
     // ---------------------------------------------------------------- чтение
 
@@ -94,6 +94,8 @@ public class QuestionDataMapper {
         data.setId(entity.getId());
         data.setLawName(entity.getLawName());
         data.setDetailedLawName(entity.getDetailedLawName());
+        data.setInteractionType(entity.getInteraction() == null ? null
+                : entity.getInteraction().getInteractionType());
         data.setViolationFacts(copyFacts(entity.getViolationFacts()));
         data.setExplanationTemplateInfo(map(entity.getExplanationTemplateInfo(),
                 t -> new ExplanationTemplateInfoData(t.getId(), t.getFieldName(), t.getValue())));
@@ -165,7 +167,44 @@ public class QuestionDataMapper {
         return data;
     }
 
+    /** Шаг цепочки вспомогательных вопросов в данные. */
+    public static @NotNull SupplementaryStepData toData(@NotNull SupplementaryStepEntity entity) {
+        return SupplementaryStepData.builder()
+                .id(entity.getId())
+                .mainQuestionInteraction(entity.getMainQuestionInteraction() == null ? null
+                        : toData(entity.getMainQuestionInteraction()))
+                .situationInfo(entity.getSituationInfo())
+                .nextStateId(entity.getNextStateId())
+                .build();
+    }
+
     // ---------------------------------------------------------------- запись
+
+    /**
+     * Нарушение из данных в сущность.
+     * <p>
+     * Нарушения создаёт домен по ходу разбора ответа, а записывает их сервис — поэтому
+     * перенос нужен в обе стороны. Связь со взаимодействием проставляет вызывающий:
+     * у маппера нет доступа к БД.
+     */
+    public @NotNull ViolationEntity toEntity(@NotNull ViolationData data) {
+        var entity = new ViolationEntity();
+        entity.setId(data.getId());
+        entity.setLawName(data.getLawName());
+        entity.setDetailedLawName(data.getDetailedLawName());
+        entity.setViolationFacts(data.getViolationFacts() == null
+                ? new ArrayList<>() : new ArrayList<>(data.getViolationFacts()));
+        entity.setExplanationTemplateInfo(map(data.getExplanationTemplateInfo(), info -> {
+            var infoEntity = new ExplanationTemplateInfoEntity();
+            infoEntity.setId(info.getId());
+            infoEntity.setFieldName(info.getFieldName());
+            infoEntity.setValue(info.getValue());
+            infoEntity.setViolation(entity);
+            return infoEntity;
+        }));
+        return entity;
+    }
+
 
     /**
      * Переносит в сущность то, что домены действительно меняют.
@@ -183,7 +222,8 @@ public class QuestionDataMapper {
      * Существующие варианты ответа (с непустым id) обновляются на месте, новые
      * добавляются. Удаление вариантов не поддерживается: домены их не удаляют.
      */
-    public void applyToEntity(@NotNull QuestionData data, @NotNull QuestionEntity target) {
+    public void applyToEntity(@NotNull QuestionData data, @NotNull QuestionEntity target,
+                              @Nullable QuestionMetadataEntity metadata) {
         target.setQuestionType(data.getQuestionType());
         target.setQuestionStatus(data.getQuestionStatus());
         target.setQuestionText(data.getQuestionText());
@@ -193,33 +233,22 @@ public class QuestionDataMapper {
         target.setTags(data.getTags() == null ? new ArrayList<>() : new ArrayList<>(data.getTags()));
         target.setStatementFacts(copyFacts(data.getStatementFacts()));
         target.setSolutionFacts(copyFacts(data.getSolutionFacts()));
-        applyMetadata(data, target);
+        target.setMetadata(metadata);
         applyAnswerObjects(data, target);
     }
 
-    /** Новая сущность вопроса по данным. */
-    public @NotNull QuestionEntity toNewEntity(@NotNull QuestionData data) {
+    /**
+     * Новая сущность вопроса по данным.
+     *
+     * @param metadata строка метаданных банка, если вопрос из банка; резолвит её вызывающий
+     */
+    public @NotNull QuestionEntity toNewEntity(@NotNull QuestionData data,
+                                               @Nullable QuestionMetadataEntity metadata) {
         var entity = new QuestionEntity();
         entity.setAnswerObjects(new ArrayList<>());
         entity.setInteractions(new ArrayList<>());
-        applyToEntity(data, entity);
+        applyToEntity(data, entity, metadata);
         return entity;
-    }
-
-    /**
-     * Метаданные заново не создаются: они приходят из банка заданий и уже лежат в БД,
-     * поэтому связь восстанавливается по id.
-     */
-    private void applyMetadata(QuestionData data, QuestionEntity target) {
-        var metadata = data.getMetadata();
-        if (metadata == null || metadata.getId() == null) {
-            target.setMetadata(null);
-            return;
-        }
-        if (target.getMetadata() != null && metadata.getId().equals(target.getMetadata().getId())) {
-            return;
-        }
-        target.setMetadata(questionMetadataRepository.findById(metadata.getId()).orElse(null));
     }
 
     private void applyAnswerObjects(QuestionData data, QuestionEntity target) {
@@ -250,7 +279,7 @@ public class QuestionDataMapper {
 
     // ---------------------------------------------------------------- утилиты
 
-    private static List<BackendFactEntity> copyFacts(@Nullable List<BackendFactEntity> facts) {
+    private static List<BackendFactData> copyFacts(@Nullable List<BackendFactData> facts) {
         return facts == null ? new ArrayList<>() : new ArrayList<>(facts);
     }
 

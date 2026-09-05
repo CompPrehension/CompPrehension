@@ -1,6 +1,8 @@
 package org.vstu.compprehension.Service;
 
 
+import org.vstu.compprehension.models.data.ExerciseOptionsData;
+import org.vstu.compprehension.models.data.ExerciseStageData;
 import lombok.extern.log4j.Log4j2;
 import org.jetbrains.annotations.NotNull;
 import org.jetbrains.annotations.Nullable;
@@ -12,8 +14,6 @@ import org.vstu.compprehension.dto.ExerciseDto;
 import org.vstu.compprehension.dto.ExerciseStageDto;
 import org.vstu.compprehension.models.businesslogic.domains.DomainFactory;
 import org.vstu.compprehension.models.entities.exercise.ExerciseEntity;
-import org.vstu.compprehension.models.entities.exercise.ExerciseOptionsEntity;
-import org.vstu.compprehension.models.entities.exercise.ExerciseStageEntity;
 import org.vstu.compprehension.models.repository.*;
 
 import java.util.ArrayList;
@@ -96,7 +96,7 @@ public class ExerciseService {
         exercise.setDomain(domainEntity);
         exercise.setBackendId(backendId);
         exercise.setStrategyId(strategyId);
-        exercise.setOptions(ExerciseOptionsEntity.builder()
+        exercise.setOptions(ExerciseOptionsData.builder()
                 .forceNewAttemptCreationEnabled(true)
                 .correctAnswerGenerationEnabled(true)
                 .newQuestionGenerationEnabled(true)
@@ -104,7 +104,7 @@ public class ExerciseService {
                 .debugButtonEnabled(false)
                 .preferDecisionTreeBasedSupplementaryEnabled(false)
                 .build());
-        exercise.setStages(new ArrayList<>(List.of(new ExerciseStageEntity(5, 0.5f, new ArrayList<>(), new ArrayList<>(), new ArrayList<>()))));
+        exercise.setStages(new ArrayList<>(List.of(new ExerciseStageData(5, 0.5f, new ArrayList<>(), new ArrayList<>(), new ArrayList<>()))));
         exercise.setTags("");
         exercise.setPublic(courseId == null);
         exerciseRepository.save(exercise);
@@ -203,7 +203,7 @@ public class ExerciseService {
         exercise.setTags(String.join(", ", card.getTags()));
         exercise.setOptions(card.getOptions());
         exercise.setStages(card.getStages()
-                .stream().map(s -> new ExerciseStageEntity(s.getNumberOfQuestions(), s.getComplexity(), s.getLaws(), s.getConcepts(), s.getSkills()))
+                .stream().map(s -> new ExerciseStageData(s.getNumberOfQuestions(), s.getComplexity(), s.getLaws(), s.getConcepts(), s.getSkills()))
                 .collect(Collectors.toList()));
 
         exerciseRepository.save(exercise);
