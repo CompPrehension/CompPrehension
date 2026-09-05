@@ -2,6 +2,7 @@ package org.vstu.compprehension.models.businesslogic.storage;
 
 import lombok.extern.log4j.Log4j2;
 import org.jetbrains.annotations.NotNull;
+import org.vstu.compprehension.models.data.QuestionMetadataData;
 import org.vstu.compprehension.models.repository.QuestionMetadataRepository;
 
 import java.time.LocalDateTime;
@@ -43,7 +44,7 @@ public class QuestionMetadataManager {
         return newStats;
     }
 
-    /* List<QuestionMetadataEntity> findQuestionsAroundComplexityWithoutQIds(
+    /* List<QuestionMetadataData> findQuestionsAroundComplexityWithoutQIds(
             QuestionRequest qr,
             double complexityMaxDifference,
             int limit,
@@ -62,9 +63,9 @@ public class QuestionMetadataManager {
         }
         if (randomPoolLimit < limit)
             randomPoolLimit = limit;
-        Iterable<? extends QuestionMetadataEntity> iter = questionRepository.findSampleAroundComplexityWithoutQIds(qr, complexityMaxDifference,
+        Iterable<? extends QuestionMetadataData> iter = questionRepository.findSampleAroundComplexityWithoutQIds(qr, complexityMaxDifference,
                 limit, randomPoolLimit);
-        ArrayList<QuestionMetadataEntity> foundQuestions = new ArrayList<>();
+        ArrayList<QuestionMetadataData> foundQuestions = new ArrayList<>();
         iter.forEach(foundQuestions::add);
         return foundQuestions;
     } */

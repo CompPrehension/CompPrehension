@@ -17,10 +17,13 @@ import org.vstu.compprehension.models.repository.CourseRepository;
 import org.vstu.compprehension.models.repository.ExerciseCourseLinkRepository;
 import org.vstu.compprehension.models.repository.ExerciseRepository;
 
+import java.util.Collection;
 import java.util.HashSet;
 import java.util.List;
 import java.util.NoSuchElementException;
 import java.util.Optional;
+import java.util.Set;
+import java.util.stream.Collectors;
 
 @Service
 @RequiredArgsConstructor
@@ -88,6 +91,33 @@ public class CourseService {
         return exerciseCourseLinkRepository.findAllByExerciseId(exerciseId).stream()
                 .map(link -> link.getCourse().getId())
                 .toList();
+    }
+
+    /** Ссылка на упражнение курса: ровно то, что нужно вызывающему, без JPA-сущности. */
+    public record ExerciseRef(Long exerciseId, String name) {
+    }
+
+    /**
+     * Упражнения курса из перечисленных id.
+     * <p>
+     * Одним запросом на весь список: вызов по одному упражнению в цикле давал и N+1,
+     * и обращение к ленивой связи уже за пределами транзакции.
+     *
+     * @throws IllegalArgumentException если хотя бы одного упражнения нет в курсе
+     */
+    @Transactional(readOnly = true)
+    public List<ExerciseRef> getExerciseRefsInCourseOrThrow(long courseId, Collection<Long> exerciseIds) {
+        var refs = exerciseCourseLinkRepository
+                .findAllByCourseIdAndExerciseIdsFetchingExercise(courseId, exerciseIds).stream()
+                .map(link -> new ExerciseRef(link.getExercise().getId(), link.getExercise().getName()))
+                .toList();
+        if (refs.size() != Set.copyOf(exerciseIds).size()) {
+            var found = refs.stream().map(ExerciseRef::exerciseId).collect(Collectors.toSet());
+            var missing = exerciseIds.stream().filter(id -> !found.contains(id)).toList();
+            throw new IllegalArgumentException(String.format(
+                    "Exercises %s are not in course %s", missing, courseId));
+        }
+        return refs;
     }
 
     @Transactional(readOnly = true)

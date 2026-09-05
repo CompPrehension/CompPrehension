@@ -23,7 +23,7 @@ public class ExplanationTemplateInfoEntity {
     private String value;
 
     @ToString.Exclude
-    @ManyToOne
+    @ManyToOne(fetch = FetchType.LAZY)
     @JoinColumn(name = "violation_id", nullable = false)
     private ViolationEntity violation;
 }

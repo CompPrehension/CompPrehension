@@ -7,6 +7,10 @@ import domains.ObjectsScopeDTDomain;
 import org.jetbrains.annotations.NotNull;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Component;
+import org.vstu.compprehension.Service.SupplementaryStepService;
+import org.vstu.compprehension.Service.ExerciseAttemptService;
+import org.vstu.compprehension.models.entities.DomainEntity;
+import org.vstu.compprehension.models.data.DomainData;
 import org.vstu.compprehension.Service.LocalizationService;
 import org.vstu.compprehension.models.businesslogic.domains.*;
 import org.vstu.compprehension.models.businesslogic.storage.QuestionBank;
@@ -27,7 +31,9 @@ public class DomainFactoryImpl implements DomainFactory {
     public DomainFactoryImpl(DomainRepository domainRepository,
                              LocalizationService localizationService,
                              RandomProvider randomProvider,
-                             QuestionBank questionStorage) {
+                             QuestionBank questionStorage,
+                             ExerciseAttemptService exerciseAttemptService,
+                             SupplementaryStepService supplementaryStepService) {
 
         var domains = Lists.newArrayList(domainRepository.findAll());
         {
@@ -36,9 +42,11 @@ public class DomainFactoryImpl implements DomainFactory {
                     .findFirst()
                     .orElseThrow();
             var progExprDomain = new ProgrammingLanguageExpressionDomain(
-                    progExprDomainEntity,
+                    toDomainData(progExprDomainEntity),
                     localizationService,
                     randomProvider,
+                    exerciseAttemptService,
+                    supplementaryStepService,
                     questionStorage);
             domainIdToClassMap.put(progExprDomain.getDomainId(), progExprDomain);
             domainShortNameToClassMap.put(progExprDomainEntity.getShortName(), progExprDomain);
@@ -49,9 +57,11 @@ public class DomainFactoryImpl implements DomainFactory {
                     .findFirst()
                     .orElseThrow();
             var controlFlowDomain = new ControlFlowStatementsDomain(
-                    controlFlowDomainEntity,
+                    toDomainData(controlFlowDomainEntity),
                     localizationService,
                     randomProvider,
+                    exerciseAttemptService,
+                    supplementaryStepService,
                     questionStorage);
             domainIdToClassMap.put(controlFlowDomain.getDomainId(), controlFlowDomain);
             domainShortNameToClassMap.put(controlFlowDomainEntity.getShortName(), controlFlowDomain);
@@ -63,8 +73,10 @@ public class DomainFactoryImpl implements DomainFactory {
                     .findFirst()
                     .orElseThrow();
             var dtDomain = new ProgrammingLanguageExpressionDTDomain(
-                    dtDomainEntity,
-                    progExprDomain);
+                    toDomainData(dtDomainEntity),
+                    progExprDomain,
+                    exerciseAttemptService,
+                    supplementaryStepService);
             domainIdToClassMap.put(dtDomain.getDomainId(), dtDomain);
             domainShortNameToClassMap.put(dtDomainEntity.getShortName(), dtDomain);
         }
@@ -74,8 +86,10 @@ public class DomainFactoryImpl implements DomainFactory {
                     .findFirst()
                     .orElseThrow();
             var ctrlFlowDomain = new ControlFlowDTDomain(
-                    domainEntity,
+                    toDomainData(domainEntity),
                     randomProvider,
+                    exerciseAttemptService,
+                    supplementaryStepService,
                     localizationService,
                     questionStorage);
             domainIdToClassMap.put(ctrlFlowDomain.getDomainId(), ctrlFlowDomain);
@@ -87,9 +101,11 @@ public class DomainFactoryImpl implements DomainFactory {
                     .findFirst()
                     .orElseThrow();
             var objectsScopeDomain = new ObjectsScopeDTDomain(
-                    objectsScopeDomainEntity,
+                    toDomainData(objectsScopeDomainEntity),
                     localizationService,
                     randomProvider,
+                    exerciseAttemptService,
+                    supplementaryStepService,
                     questionStorage);
             domainIdToClassMap.put(objectsScopeDomain.getDomainId(), objectsScopeDomain);
             domainShortNameToClassMap.put(objectsScopeDomainEntity.getShortName(), objectsScopeDomain);
@@ -100,9 +116,11 @@ public class DomainFactoryImpl implements DomainFactory {
                     .findFirst()
                     .orElseThrow();
             var dataFlowDomain = new DataFlowDTDomain(
-                    dataFlowDomainEntity,
+                    toDomainData(dataFlowDomainEntity),
                     localizationService,
                     randomProvider,
+                    exerciseAttemptService,
+                    supplementaryStepService,
                     questionStorage);
             domainIdToClassMap.put(dataFlowDomain.getDomainId(), dataFlowDomain);
             domainShortNameToClassMap.put(dataFlowDomainEntity.getShortName(), dataFlowDomain);
@@ -130,5 +148,10 @@ public class DomainFactoryImpl implements DomainFactory {
             throw new RuntimeException(String.format("Couldn't resolve domain with id %s", domainId));
         }
         return domain;
+    }
+
+    /** Сущность домена нужна только здесь, дальше по коду ходят данные. */
+    private static DomainData toDomainData(DomainEntity entity) {
+        return new DomainData(entity.getName(), entity.getShortName(), entity.getVersion(), entity.getOptions());
     }
 }

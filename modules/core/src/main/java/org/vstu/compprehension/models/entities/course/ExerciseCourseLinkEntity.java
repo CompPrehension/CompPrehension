@@ -18,12 +18,12 @@ import java.time.LocalDateTime;
 public class ExerciseCourseLinkEntity {
 
     @Id
-    @ManyToOne(optional = false)
+    @ManyToOne(optional = false, fetch = FetchType.LAZY)
     @JoinColumn(name = "exercise_id", nullable = false)
     private ExerciseEntity exercise;
 
     @Id
-    @ManyToOne(optional = false)
+    @ManyToOne(optional = false, fetch = FetchType.LAZY)
     @JoinColumn(name = "course_id", nullable = false)
     private CourseEntity course;
 

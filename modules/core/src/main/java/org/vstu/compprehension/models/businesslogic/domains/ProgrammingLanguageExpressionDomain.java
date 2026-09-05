@@ -24,11 +24,20 @@ import org.apache.logging.log4j.Level;
 import org.jetbrains.annotations.NotNull;
 import org.jetbrains.annotations.Nullable;
 import org.springframework.web.util.HtmlUtils;
+import org.vstu.compprehension.Service.SupplementaryStepService;
+import org.vstu.compprehension.Service.mapping.QuestionDataMapper;
+import org.vstu.compprehension.models.data.QuestionMetadataData;
+import org.vstu.compprehension.models.data.QuestionInteractionData;
+import org.vstu.compprehension.models.data.QuestionData;
+import org.vstu.compprehension.models.data.AnswerObjectData;
+import org.vstu.compprehension.models.data.ResponseData;
+import org.vstu.compprehension.Service.ExerciseAttemptService;
 import org.vstu.compprehension.Service.LocalizationService;
 import org.vstu.compprehension.common.StringHelper;
 import org.vstu.compprehension.dto.SupplementaryFeedbackDto;
 import org.vstu.compprehension.dto.feedback.FeedbackDto;
 import org.vstu.compprehension.dto.feedback.FeedbackViolationLawDto;
+import org.vstu.compprehension.models.data.DomainData;
 import org.vstu.compprehension.models.businesslogic.*;
 import org.vstu.compprehension.models.businesslogic.backend.JenaBackend;
 import org.vstu.compprehension.models.businesslogic.backend.facts.Fact;
@@ -40,6 +49,7 @@ import org.vstu.compprehension.models.businesslogic.storage.GraphRole;
 import org.vstu.compprehension.models.businesslogic.storage.NamespaceUtil;
 import org.vstu.compprehension.models.businesslogic.storage.QuestionBank;
 import org.vstu.compprehension.models.businesslogic.storage.SerializableQuestion;
+import org.vstu.compprehension.models.entities.EnumData.InteractionType;
 import org.vstu.compprehension.models.entities.*;
 import org.vstu.compprehension.models.entities.EnumData.FeedbackType;
 import org.vstu.compprehension.models.entities.EnumData.Language;
@@ -100,12 +110,14 @@ public class ProgrammingLanguageExpressionDomain extends JenaReasoningDomain {
 
     @SneakyThrows
     public ProgrammingLanguageExpressionDomain(
-            DomainEntity domainEntity,
+            DomainData domainData,
             LocalizationService localizationService,
             RandomProvider randomProvider,
+            ExerciseAttemptService exerciseAttemptService,
+            SupplementaryStepService supplementaryStepService,
             QuestionBank qMetaStorage) {
 
-        super(domainEntity, randomProvider);
+        super(domainData, randomProvider, exerciseAttemptService, supplementaryStepService);
 
         this.localizationService = localizationService;
         this.qMetaStorage = qMetaStorage;
@@ -431,13 +443,13 @@ public class ProgrammingLanguageExpressionDomain extends JenaReasoningDomain {
 
     public @NotNull Question makeQuestion(@NotNull QuestionRequest questionRequest,
                                           @NotNull ExerciseAttemptEntity exerciseAttempt,
-                                          @NotNull Language userLanguage, @NotNull Domain domain) {
+                                          @NotNull Language userLanguage, @NotNull DomainBase domain) {
         HashSet<String> conceptNames = new HashSet<>();
         for (Concept concept : questionRequest.getTargetConcepts()) {
             conceptNames.add(concept.getName());
         }
 
-        List<QuestionMetadataEntity> foundQuestions = null;
+        List<QuestionMetadataData> foundQuestions = null;
         try {
             var exerciseOptions = exerciseAttempt.getExercise().getOptions();
             int generatorThreshold = exerciseOptions.getGeneratorThreshold() != null 
@@ -446,13 +458,15 @@ public class ProgrammingLanguageExpressionDomain extends JenaReasoningDomain {
             int generatorAdditionalQuestionsToGenerate = exerciseOptions.getGeneratorAdditionalQuestionsToGenerate() != null
                     ? exerciseOptions.getGeneratorAdditionalQuestionsToGenerate()
                     : 3;
-            foundQuestions = qMetaStorage.searchQuestions(questionRequest, 1, generatorThreshold, generatorAdditionalQuestionsToGenerate).getQuestions();
+            foundQuestions = qMetaStorage.searchQuestions(questionRequest, 1, generatorThreshold, generatorAdditionalQuestionsToGenerate).getQuestions()
+                    .stream().map(QuestionDataMapper::toData).toList();
 
             // search again if nothing found with "TO_COMPLEX"
             SearchDirections lawsSearchDir = questionRequest.getLawsSearchDirection();
             if (foundQuestions.isEmpty() && lawsSearchDir == SearchDirections.TO_COMPLEX) {
                 questionRequest.setLawsSearchDirection(SearchDirections.TO_SIMPLE);
-                foundQuestions = qMetaStorage.searchQuestions(questionRequest, 1, generatorThreshold, generatorAdditionalQuestionsToGenerate).getQuestions();
+                foundQuestions = qMetaStorage.searchQuestions(questionRequest, 1, generatorThreshold, generatorAdditionalQuestionsToGenerate).getQuestions()
+                    .stream().map(QuestionDataMapper::toData).toList();
             }
         } catch (Exception e) {
             // file storage was not configured properly...
@@ -469,23 +483,23 @@ public class ProgrammingLanguageExpressionDomain extends JenaReasoningDomain {
     }
 
     @Override
-    public @NotNull Question makeQuestion(@NotNull QuestionMetadataEntity metadata,
+    public @NotNull Question makeQuestion(@NotNull QuestionMetadataData metadata,
                                           @Nullable ExerciseAttemptEntity exerciseAttemptEntity,
                                           @NotNull List<Tag> tags,
                                           @NotNull Language userLang) {
         return makeQuestion(metadata, exerciseAttemptEntity, tags, userLang, this);
     }
 
-    public @NotNull Question makeQuestion(@NotNull QuestionMetadataEntity metadata,
+    public @NotNull Question makeQuestion(@NotNull QuestionMetadataData metadata,
                                           @Nullable ExerciseAttemptEntity exerciseAttemptEntity,
                                           @NotNull List<Tag> tags,
                                           @NotNull Language userLang,
-                                          @NotNull Domain domain) {
-        var questionData = metadata.getQuestionData();
-        return makeQuestion(domain, questionData.getData().toQuestion(domain, metadata), exerciseAttemptEntity, tags, userLang);
+                                          @NotNull DomainBase domain) {
+        var questionData = metadata.getData();
+        return makeQuestion(domain, questionData.toQuestion(domain, metadata), exerciseAttemptEntity, tags, userLang);
     }
 
-    private Question makeQuestion(Domain domain, Question q, ExerciseAttemptEntity exerciseAttemptEntity, List<Tag> tags, Language userLang) {
+    private Question makeQuestion(DomainBase domain, Question q, ExerciseAttemptEntity exerciseAttemptEntity, List<Tag> tags, Language userLang) {
         QuestionOptionsEntity orderQuestionOptions = OrderQuestionOptionsEntity.builder()
                 .requireContext(true)
                 .showTrace(true)
@@ -506,10 +520,10 @@ public class ProgrammingLanguageExpressionDomain extends JenaReasoningDomain {
                 .requireContext(false)
                 .build();
 
-        QuestionEntity entity = new QuestionEntity();
-        List<AnswerObjectEntity> answerObjectEntities = new ArrayList<>();
-        for (AnswerObjectEntity answerObjectEntity : q.getAnswerObjects()) {
-            AnswerObjectEntity newAnswerObjectEntity = new AnswerObjectEntity();
+        QuestionData entity = new QuestionData();
+        List<AnswerObjectData> answerObjectEntities = new ArrayList<>();
+        for (AnswerObjectData answerObjectEntity : q.getAnswerObjects()) {
+            AnswerObjectData newAnswerObjectEntity = new AnswerObjectData();
             newAnswerObjectEntity.setAnswerId(answerObjectEntity.getAnswerId());
             newAnswerObjectEntity.setConcept(answerObjectEntity.getConcept());
             newAnswerObjectEntity.setDomainInfo(answerObjectEntity.getDomainInfo());
@@ -520,15 +534,10 @@ public class ProgrammingLanguageExpressionDomain extends JenaReasoningDomain {
             }
 
             newAnswerObjectEntity.setHyperText(text);
-            newAnswerObjectEntity.setQuestion(entity);
             newAnswerObjectEntity.setRightCol(answerObjectEntity.isRightCol());
-            newAnswerObjectEntity.setResponsesLeft(new ArrayList<>());
-            newAnswerObjectEntity.setResponsesRight(new ArrayList<>());
             answerObjectEntities.add(newAnswerObjectEntity);
         }
         entity.setAnswerObjects(answerObjectEntities);
-        entity.setExerciseAttempt(exerciseAttemptEntity);
-        entity.setDomainEntity(getDomainEntity());
         entity.setQuestionDomainType(q.getQuestionDomainType());
         entity.setMetadata(q.getMetadata());
         entity.setTags(tags.stream().map(Tag::getName).collect(Collectors.toList()));
@@ -651,14 +660,13 @@ public class ProgrammingLanguageExpressionDomain extends JenaReasoningDomain {
                 .build();
     }
 
-    private AnswerObjectEntity createAnswerObject(QuestionEntity question, int id, String text, String concept, String domainInfo, boolean isLeft) {
-        AnswerObjectEntity answerObject = new AnswerObjectEntity();
+    private AnswerObjectData createAnswerObject(QuestionData question, int id, String text, String concept, String domainInfo, boolean isLeft) {
+        AnswerObjectData answerObject = new AnswerObjectData();
         answerObject.setAnswerId(id);
         answerObject.setHyperText(text);
         answerObject.setRightCol(!isLeft);
         answerObject.setDomainInfo(domainInfo);
         answerObject.setConcept(concept);
-        answerObject.setQuestion(question);
         return answerObject;
     }
 
@@ -999,12 +1007,13 @@ public class ProgrammingLanguageExpressionDomain extends JenaReasoningDomain {
     }
 
     @Override
-    public Collection<Fact> responseToFacts(String questionDomainType, List<ResponseEntity> responses, List<AnswerObjectEntity> answerObjects) {
+    public Collection<Fact> responseToFacts(Question question, List<ResponseData> responses) {
+        var questionDomainType = question.getQuestionDomainType();
         if (questionDomainType.equals(EVALUATION_ORDER_QUESTION_TYPE)) {
             List<Fact> result = new ArrayList<>();
             int pos = 1;
             HashSet<String> used = new HashSet<>();
-            for (ResponseEntity response : responses) {
+            for (ResponseData response : responses) {
                 result.add(new Fact(
                         "owl:NamedIndividual",
                         response.getLeftAnswerObject().getDomainInfo(),
@@ -1034,7 +1043,8 @@ public class ProgrammingLanguageExpressionDomain extends JenaReasoningDomain {
                 pos = pos + 1;
             }
 
-            for (AnswerObjectEntity answerObject : answerObjects) {
+            var answerObjects = question.getAnswerObjects();
+            for (AnswerObjectData answerObject : answerObjects) {
                 if (!used.contains(answerObject.getDomainInfo())) {
                     for (String earlier : used) {
                         result.add(new Fact(
@@ -1050,7 +1060,7 @@ public class ProgrammingLanguageExpressionDomain extends JenaReasoningDomain {
             return result;
         } else if (questionDomainType.equals(DEFINE_TYPE_QUESTION_TYPE)) {
             List<Fact> result = new ArrayList<>();
-            for (ResponseEntity response : responses) {
+            for (ResponseData response : responses) {
                 result.add(new Fact(
                         "owl:NamedIndividual",
                         response.getLeftAnswerObject().getDomainInfo(),
@@ -1062,7 +1072,7 @@ public class ProgrammingLanguageExpressionDomain extends JenaReasoningDomain {
             return result;
         } else if (questionDomainType.equals(OPERANDS_TYPE_QUESTION_TYPE)) {
             List<Fact> result = new ArrayList<>();
-            for (ResponseEntity response : responses) {
+            for (ResponseData response : responses) {
                 result.add(new Fact(
                         "owl:NamedIndividual",
                         response.getLeftAnswerObject().getDomainInfo(),
@@ -1074,7 +1084,7 @@ public class ProgrammingLanguageExpressionDomain extends JenaReasoningDomain {
             return result;
         } else if (questionDomainType.equals(PRECEDENCE_TYPE_QUESTION_TYPE)) {
             List<Fact> result = new ArrayList<>();
-            for (ResponseEntity response : responses) {
+            for (ResponseData response : responses) {
                 result.add(new Fact(
                         "owl:NamedIndividual",
                         response.getLeftAnswerObject().getDomainInfo(),
@@ -1212,7 +1222,7 @@ public class ProgrammingLanguageExpressionDomain extends JenaReasoningDomain {
         return result;
     }
 
-    HyperText getCorrectExplanation(Question q, AnswerObjectEntity answer) {
+    HyperText getCorrectExplanation(Question q, AnswerObjectData answer) {
         HashMap<String, String> indexes = new HashMap<>();
         HashMap<String, String> texts = new HashMap<>();
         HashMap<String, String> isStrict = new HashMap<>();
@@ -1256,20 +1266,18 @@ public class ProgrammingLanguageExpressionDomain extends JenaReasoningDomain {
             return new HyperText("");
         }
 
-        AnswerObjectEntity last = null;
-        ArrayList<AnswerObjectEntity> explain = new ArrayList<>();
+        AnswerObjectData last = null;
+        ArrayList<AnswerObjectData> explain = new ArrayList<>();
         TreeMap<Integer, String> posToExplanation = new TreeMap<>();
         
-        Language lang = Optional.ofNullable(q.getQuestionData().getExerciseAttempt())
-                .map(a -> a.getUser().getPreferred_language())
-                .orElse(Language.RUSSIAN/*ENGLISH*/);
+        Language lang = getUserLanguageOf(q);
 
         int answerPos = Integer.parseInt(indexes.get(answer.getDomainInfo()));
         String answerText = texts.get(answer.getDomainInfo());
         String answerTemplate = StringHelper.joinWithSpace(answerText, getMessage("AT_POS", lang), answerPos);
         posToExplanation.put(-1, StringHelper.joinWithSpace(getMessage("OPERATOR", lang), answerTemplate, getMessage("EVALUATES", lang)));
 
-        for (AnswerObjectEntity answerObjectEntity : q.getAnswerObjects()) {
+        for (AnswerObjectData answerObjectEntity : q.getAnswerObjects()) {
             if (beforeByThirdOperator.containsKey(answerObjectEntity.getDomainInfo())) {
                 for (String leftPart : beforeIndirectReversed.get(answerObjectEntity.getDomainInfo())) {
                     for (String rightPart : beforeByThirdOperator.get(answerObjectEntity.getDomainInfo())) {
@@ -1282,7 +1290,7 @@ public class ProgrammingLanguageExpressionDomain extends JenaReasoningDomain {
             }
         }
 
-        for (AnswerObjectEntity answerObjectEntity : q.getAnswerObjects()) {
+        for (AnswerObjectData answerObjectEntity : q.getAnswerObjects()) {
             if (answer == answerObjectEntity && last != null) {
                 explain.add(last);
             } else if (answer == last) {
@@ -1361,7 +1369,7 @@ public class ProgrammingLanguageExpressionDomain extends JenaReasoningDomain {
             last = answerObjectEntity;
         }
 
-        for (AnswerObjectEntity reason : explain) {
+        for (AnswerObjectData reason : explain) {
             if (reason.getDomainInfo().equals("end_token")) {
                 continue;
             }
@@ -1419,12 +1427,12 @@ public class ProgrammingLanguageExpressionDomain extends JenaReasoningDomain {
         val solution = Fact.entitiesToFacts(q.getSolutionFacts());
         assert solution != null;
         solution.addAll(lastCorrectInteraction
-                .flatMap(i -> Optional.ofNullable(responseToFacts(q.getQuestionDomainType(), i.getResponses(), q.getAnswerObjects()))).stream()
+                .flatMap(i -> Optional.ofNullable(responseToFacts(q, i.getResponses()))).stream()
                 .flatMap(Collection::stream)
                 .collect(Collectors.toList()));
 
         List<CorrectAnswerImpl> correctAnswerImpls = getCorrectAnswers(solution);
-        for (AnswerObjectEntity answer : q.getAnswerObjects()) {
+        for (AnswerObjectData answer : q.getAnswerObjects()) {
             for (CorrectAnswerImpl answerImpl : correctAnswerImpls) {
                 if (answerImpl.domainID.equals(answer.getDomainInfo())) {
                     val answers = new ArrayList<CorrectAnswer.Response>();
@@ -1442,15 +1450,15 @@ public class ProgrammingLanguageExpressionDomain extends JenaReasoningDomain {
         return null;
     }
 
-    public Set<String> possibleViolations(Question q, List<ResponseEntity> completedSteps) {
+    public Set<String> possibleViolations(Question q, List<ResponseData> completedSteps) {
         return possibleViolations(q.getSolutionFacts(), completedSteps);
     }
 
-    public Set<String> possibleViolations(List<BackendFactEntity> solutionFacts, List<ResponseEntity> completedSteps) {
+    public Set<String> possibleViolations(List<BackendFactEntity> solutionFacts, List<ResponseData> completedSteps) {
         Set<String> result = new HashSet<>();
         Set<String> madeSteps = new HashSet<>();
         if (completedSteps != null) {
-            for (ResponseEntity r : completedSteps) {
+            for (ResponseData r : completedSteps) {
                 madeSteps.add(r.getLeftAnswerObject().getDomainInfo());
                 madeSteps.add(r.getRightAnswerObject().getDomainInfo());
             }
@@ -1495,12 +1503,17 @@ public class ProgrammingLanguageExpressionDomain extends JenaReasoningDomain {
         return result;
     }
 
+    /** Тип взаимодействия, в котором обнаружено нарушение, если он известен. */
+    private static InteractionType interactionTypeOf(ViolationEntity violation) {
+        return violation.getInteraction() == null ? null : violation.getInteraction().getInteractionType();
+    }
+
     @Override
-    public boolean needSupplementaryQuestion(ViolationEntity violation) {
-        if (violation.getLawName().equals("error_base_student_error_in_complex") ||
-                violation.getLawName().equals("error_base_student_error_strict_operands_order") ||
-                violation.getLawName().equals("error_base_student_error_unevaluated_operand") ||
-                violation.getLawName().equals("error_base_student_error_early_finish")) {
+    public boolean needSupplementaryQuestion(String violationLawName, InteractionType interactionType) {
+        if (violationLawName.equals("error_base_student_error_in_complex") ||
+                violationLawName.equals("error_base_student_error_strict_operands_order") ||
+                violationLawName.equals("error_base_student_error_unevaluated_operand") ||
+                violationLawName.equals("error_base_student_error_early_finish")) {
             return false;
         }
         return true;
@@ -1508,7 +1521,7 @@ public class ProgrammingLanguageExpressionDomain extends JenaReasoningDomain {
 
     static final String DOMAIN_MODEL_DIRECTORY = RESOURCES_LOCATION + "programming-language-expression-domain-model/";
 
-    private DomainModel mainQuestionToModel(InteractionEntity lastMainQuestionInteraction) {
+    private DomainModel mainQuestionToModel(QuestionInteractionData lastMainQuestionInteraction) {
         List<Tag> tags = lastMainQuestionInteraction.getQuestion().getTags().stream().map(this::getTag).filter(Objects::nonNull).toList();
         Question q = new Question(lastMainQuestionInteraction.getQuestion(), this);
         q = MeaningTreeOrderQuestionBuilder.fastBuildFromExisting(q, SupportedLanguage.CPP, null);
@@ -1526,9 +1539,8 @@ public class ProgrammingLanguageExpressionDomain extends JenaReasoningDomain {
     );
 
     @Override
-    public SupplementaryResponseGenerationResult makeSupplementaryQuestion(QuestionEntity sourceQuestion, ViolationEntity violation, Language lang) {
-        var attempt = sourceQuestion.getExerciseAttempt();
-        if (attempt == null || attempt.getExercise().getOptions().isPreferDecisionTreeBasedSupplementaryEnabled()){
+    public SupplementaryResponseGenerationResult makeSupplementaryQuestion(QuestionData sourceQuestion, ViolationEntity violation, Language lang) {
+        if (prefersDecisionTreeSupplementary(sourceQuestion.getId())){
             return dtSupplementaryQuestionHelper.makeSupplementaryQuestion(sourceQuestion, lang);
         }
         else {
@@ -1537,7 +1549,7 @@ public class ProgrammingLanguageExpressionDomain extends JenaReasoningDomain {
     }
 
     @Override
-    public SupplementaryFeedbackGenerationResult judgeSupplementaryQuestion(Question question, SupplementaryStepEntity supplementaryStep, List<ResponseEntity> responses) {
+    public SupplementaryFeedbackGenerationResult judgeSupplementaryQuestion(Question question, SupplementaryStepEntity supplementaryStep, List<ResponseData> responses) {
         if(supplementaryStep != null) { //FIXME? как правильно определять, как был сгенерирован вопрос?
             return dtSupplementaryQuestionHelper.judgeSupplementaryQuestion(supplementaryStep, responses);
         }
@@ -1545,12 +1557,10 @@ public class ProgrammingLanguageExpressionDomain extends JenaReasoningDomain {
             assert responses.size() == 1;
             val judgeResult = judgeSupplementaryQuestionBasic(question, responses.get(0).getLeftAnswerObject());
             val violation = judgeResult.violations.stream()
-                    .map(v -> FeedbackViolationLawDto.builder().name(v.getLawName()).canCreateSupplementaryQuestion(this.needSupplementaryQuestion(v)).build())
+                    .map(v -> FeedbackViolationLawDto.builder().name(v.getLawName()).canCreateSupplementaryQuestion(this.needSupplementaryQuestion(v.getLawName(), interactionTypeOf(v))).build())
                     .findFirst()
                     .orElse(null);
-            val locale = Optional.ofNullable(question.getQuestionData().getExerciseAttempt())
-                    .map(a -> a.getUser().getPreferred_language())
-                    .orElse(Language.RUSSIAN/*ENGLISH*/);
+            val locale = getUserLanguageOf(question);
             val message = judgeResult.isAnswerCorrect
                     ? FeedbackDto.Message.Success(localizationService.getMessage("exercise_correct-sup-question-answer", locale), List.of(violation))
                     : FeedbackDto.Message.Error(localizationService.getMessage("exercise_wrong-sup-question-answer", locale), List.of(violation));
@@ -1562,8 +1572,8 @@ public class ProgrammingLanguageExpressionDomain extends JenaReasoningDomain {
     }
 
 
-    public Question makeSupplementaryQuestionBasic(QuestionEntity question, ViolationEntity violation, Language userLang) {
-        if (!needSupplementaryQuestion(violation)) {
+    public Question makeSupplementaryQuestionBasic(QuestionData question, ViolationEntity violation, Language userLang) {
+        if (!needSupplementaryQuestion(violation.getLawName(), interactionTypeOf(violation))) {
             return null;
         }
 
@@ -1572,8 +1582,8 @@ public class ProgrammingLanguageExpressionDomain extends JenaReasoningDomain {
         targetConcepts.add(failedLaw);
         targetConcepts.add("supplementary");
 
-        ExerciseAttemptEntity exerciseAttemptEntity = question.getExerciseAttempt();
-        if (exerciseAttemptEntity == null) {
+        // Привязку к попытке делает сервис, домену важно лишь, что вопрос в ней задан.
+        if (!isQuestionInAttempt(question.getId())) {
             return null;
         }
         if (!supplementaryConfig.containsKey(failedLaw)) {
@@ -1582,14 +1592,14 @@ public class ProgrammingLanguageExpressionDomain extends JenaReasoningDomain {
 
         Question res = findQuestion(new ArrayList<>(), targetConcepts, new HashSet<>(), new HashSet<>(), new HashSet<>(), new HashSet<>());
         if (res != null) {
-            Question copy = makeQuestion(this, res, exerciseAttemptEntity, List.of(), userLang);
+            Question copy = makeQuestion(this, res, null, List.of(), userLang);
             return fillSupplementaryAnswerObjects(question, failedLaw, copy, userLang);
         }
 
         return null;
     }
 
-    Question fillSupplementaryAnswerObjects(QuestionEntity originalQuestion, String failedLaw, Question supplementaryQuestion, Language lang) {
+    Question fillSupplementaryAnswerObjects(QuestionData originalQuestion, String failedLaw, Question supplementaryQuestion, Language lang) {
         Map<String, List<String>> before = new HashMap<>();
         MultiValuedMap<String, String> beforeIndirect = new HashSetValuedHashMap<>();
         Map<String, String> texts = new HashMap<>();
@@ -1620,12 +1630,12 @@ public class ProgrammingLanguageExpressionDomain extends JenaReasoningDomain {
             }
         }
 
-        AnswerObjectEntity failedAnswer = null;
+        AnswerObjectData failedAnswer = null;
         if (originalQuestion.getInteractions() == null || originalQuestion.getInteractions().size() == 0) {
             return null;
         }
-        InteractionEntity interaction = originalQuestion.getInteractions().get(originalQuestion.getInteractions().size() - 1);
-        for (ResponseEntity response : interaction.getResponses()) {
+        QuestionInteractionData interaction = originalQuestion.getInteractions().get(originalQuestion.getInteractions().size() - 1);
+        for (ResponseData response : interaction.getResponses()) {
             used.add(response.getLeftAnswerObject().getDomainInfo());
             failedAnswer = response.getLeftAnswerObject();
         }
@@ -1643,7 +1653,7 @@ public class ProgrammingLanguageExpressionDomain extends JenaReasoningDomain {
         Integer failedIndex = Integer.parseInt(indexes.get(failedAnswer.getDomainInfo()));
 
         HashMap<String, String> templates = new HashMap<>();
-        for (AnswerObjectEntity origAnswer : originalQuestion.getAnswerObjects()) {
+        for (AnswerObjectData origAnswer : originalQuestion.getAnswerObjects()) {
             if (origAnswer.getDomainInfo().equals("end_token")) {
                 continue;
             }
@@ -1721,15 +1731,15 @@ public class ProgrammingLanguageExpressionDomain extends JenaReasoningDomain {
 
         boolean sameAnswers = false;
         HashSet<String> answerTexts = new HashSet<>();
-        List<AnswerObjectEntity> answers = new ArrayList<>();
-        for (AnswerObjectEntity answer : supplementaryQuestion.getAnswerObjects()) {
+        List<AnswerObjectData> answers = new ArrayList<>();
+        for (AnswerObjectData answer : supplementaryQuestion.getAnswerObjects()) {
             try {
                 String result = stringSubstitutor.replace(answer.getHyperText());
                 if (answerTexts.contains(result)) {
                     sameAnswers = true;
                 }
 
-                AnswerObjectEntity newAnswer = new AnswerObjectEntity();
+                AnswerObjectData newAnswer = new AnswerObjectData();
                 answerTexts.add(result);
                 newAnswer.setHyperText(result);
                 newAnswer.setAnswerId(answer.getAnswerId());
@@ -1793,7 +1803,7 @@ public class ProgrammingLanguageExpressionDomain extends JenaReasoningDomain {
         return supplementaryQuestion;
     }
 
-    public InterpretSentenceResult judgeSupplementaryQuestionBasic(Question question, AnswerObjectEntity answer) {
+    public InterpretSentenceResult judgeSupplementaryQuestionBasic(Question question, AnswerObjectData answer) {
         InterpretSentenceResult interpretSentenceResult = new InterpretSentenceResult();
 
         interpretSentenceResult.violations = new ArrayList<>();
@@ -2384,8 +2394,8 @@ public class ProgrammingLanguageExpressionDomain extends JenaReasoningDomain {
         facts.add(new BackendFactEntity("owl:NamedIndividual", "end_token", "text", "xsd:string", "end_token"));
         FactsGraph fg = new FactsGraph(facts);
 
-        QuestionEntity entity = new QuestionEntity();
-        List<AnswerObjectEntity> answerObjectEntities = new ArrayList<>();
+        QuestionData entity = new QuestionData();
+        List<AnswerObjectData> answerObjectEntities = new ArrayList<>();
         int ans_id = 0;
         int solution_length = 0;
         Map<Integer, BackendFactEntity> texts = new TreeMap<>(); // expression tokens
@@ -2416,39 +2426,31 @@ public class ProgrammingLanguageExpressionDomain extends JenaReasoningDomain {
             initFacts.setSubject("operator");
             texts.put(Integer.parseInt(token.getObject()), initFacts);
 
-            AnswerObjectEntity newAnswerObjectEntity = new AnswerObjectEntity();
+            AnswerObjectData newAnswerObjectEntity = new AnswerObjectData();
             newAnswerObjectEntity.setAnswerId(ans_id);
             ans_id++;
             newAnswerObjectEntity.setConcept("operator");
             newAnswerObjectEntity.setDomainInfo("op__0__" + token.getObject());
             newAnswerObjectEntity.setHyperText(text);
-            newAnswerObjectEntity.setQuestion(null);
             newAnswerObjectEntity.setRightCol(false);
-            newAnswerObjectEntity.setResponsesLeft(new ArrayList<>());
-            newAnswerObjectEntity.setResponsesRight(new ArrayList<>());
             answerObjectEntities.add(newAnswerObjectEntity);
         }
         // Add answer for stop evaluation
-        AnswerObjectEntity newAnswerObjectEntity = new AnswerObjectEntity();
+        AnswerObjectData newAnswerObjectEntity = new AnswerObjectData();
         newAnswerObjectEntity.setAnswerId(ans_id);
         newAnswerObjectEntity.setConcept(END_EVALUATION);
         newAnswerObjectEntity.setDomainInfo("end_token");
         newAnswerObjectEntity.setHyperText(END_EVALUATION);
-        newAnswerObjectEntity.setQuestion(null);
         newAnswerObjectEntity.setRightCol(false);
-        newAnswerObjectEntity.setResponsesLeft(new ArrayList<>());
-        newAnswerObjectEntity.setResponsesRight(new ArrayList<>());
         answerObjectEntities.add(newAnswerObjectEntity);
         texts.put(1000000, new BackendFactEntity(null,END_EVALUATION,null,null,END_EVALUATION));
 
         entity.setAnswerObjects(answerObjectEntities);
-        entity.setExerciseAttempt(null);
         entity.setQuestionDomainType("OrderOperators");
         entity.setStatementFacts(facts);
         entity.setSolutionFacts(facts);
         entity.setQuestionType(QuestionType.ORDER);
         entity.setQuestionName("");
-        entity.setDomainEntity(getDomainEntity());
 
         // check the size of question
         if (ans_id < 3 || ans_id > 30)
@@ -2527,7 +2529,7 @@ public class ProgrammingLanguageExpressionDomain extends JenaReasoningDomain {
         var conceptBits = concepts.stream().map(this::getConcept).filter(Objects::nonNull).map(Concept::getBitmask).reduce((a,b) -> a|b).orElse(0L);
         double complexity = 0.18549906 * solution_length - 0.01883239 * violations.size();
         double integralComplexity = 1/( 1 + Math.exp(-1*complexity));
-        QuestionMetadataEntity meta = QuestionMetadataEntity.builder()
+        QuestionMetadataData meta = QuestionMetadataData.builder()
                 .name(questionName)
                 .templateId(templateName)
                 .origin(origin)
@@ -2741,9 +2743,7 @@ public class ProgrammingLanguageExpressionDomain extends JenaReasoningDomain {
 
     @Override
     public List<HyperText> getFullSolutionTrace(Question question) {
-        Language lang = Optional.ofNullable(question.getQuestionData().getExerciseAttempt())
-            .map(a -> a.getUser().getPreferred_language())
-            .orElse(Language.RUSSIAN/*ENGLISH*/);
+        Language lang = getUserLanguageOf(question);
 
         ArrayList<HyperText> result = new ArrayList<>();
 
@@ -2751,11 +2751,11 @@ public class ProgrammingLanguageExpressionDomain extends JenaReasoningDomain {
         if (qType.equals(EVALUATION_ORDER_QUESTION_TYPE)) {
             FactsGraph qg = new FactsGraph(question.getQuestionData().getStatementFacts());
 
-            for (ResponseEntity response : responsesForTrace(question.getQuestionData(), true)) {
+            for (ResponseData response : responsesForTrace(question.getQuestionData(), true)) {
                 StringJoiner builder = new StringJoiner(" ");
                 builder.add("<span>" + getMessage("OPERATOR", lang) + "</span>");
                 // format a trace line ...
-                AnswerObjectEntity answerObj = response.getLeftAnswerObject();
+                AnswerObjectData answerObj = response.getLeftAnswerObject();
                 String domainInfo = answerObj.getDomainInfo();
                 if (domainInfo.equals("end_token")) {
                     continue;
@@ -2777,7 +2777,7 @@ public class ProgrammingLanguageExpressionDomain extends JenaReasoningDomain {
                                 "</span>");
                 }
 
-                boolean responseIsWrong = !response.getInteraction().getViolations().isEmpty();
+                boolean responseIsWrong = response.isInteractionHasViolations();
                 var finalHtml = responseIsWrong
                         ? "<span style='background-color: #ff9;'>" + builder + "</span>"
                         : builder.toString();
@@ -2794,10 +2794,10 @@ public class ProgrammingLanguageExpressionDomain extends JenaReasoningDomain {
         return result;
     }
 
-    protected List<ResponseEntity> responsesForTrace(QuestionEntity q, boolean allowLastIncorrect) {
+    protected List<ResponseData> responsesForTrace(QuestionData q, boolean allowLastIncorrect) {
 
-        List<ResponseEntity> responses = new ArrayList<>();
-        List<InteractionEntity> interactions = q.getInteractions();
+        List<ResponseData> responses = new ArrayList<>();
+        List<QuestionInteractionData> interactions = q.getInteractions();
 
         if (interactions == null || interactions.isEmpty()) {
             return responses; // empty so far
@@ -2808,7 +2808,7 @@ public class ProgrammingLanguageExpressionDomain extends JenaReasoningDomain {
                 .flatMap(Collection::stream)
                 .filter(i -> i.getFeedback().getInteractionsLeft() >= 0 && i.getViolations().size() == 0) // select only interactions without mistakes
                 .reduce((first, second) -> second)
-                .map(InteractionEntity::getResponses)
+                .map(QuestionInteractionData::getResponses)
                 .map(ArrayList::new)  // make a shallow copy so that it can be safely modified
                 .orElseGet(ArrayList::new);
 

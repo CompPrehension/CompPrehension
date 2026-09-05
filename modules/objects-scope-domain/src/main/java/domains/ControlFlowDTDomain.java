@@ -18,14 +18,24 @@ import lombok.val;
 import org.apache.commons.text.StringSubstitutor;
 import org.jetbrains.annotations.NotNull;
 import org.jetbrains.annotations.Nullable;
+import org.vstu.compprehension.Service.mapping.QuestionDataMapper;
+import org.vstu.compprehension.Service.SupplementaryStepService;
+import org.vstu.compprehension.models.data.QuestionMetadataData;
+import org.vstu.compprehension.models.data.QuestionInteractionData;
+import org.vstu.compprehension.models.data.QuestionData;
+import org.vstu.compprehension.models.data.AnswerObjectData;
+import org.vstu.compprehension.models.data.ResponseData;
+import org.vstu.compprehension.Service.ExerciseAttemptService;
 import org.vstu.compprehension.Service.LocalizationService;
 import org.vstu.compprehension.dto.ExerciseSkillDto;
+import org.vstu.compprehension.models.data.DomainData;
 import org.vstu.compprehension.models.businesslogic.*;
 import org.vstu.compprehension.models.businesslogic.backend.DecisionTreeReasonerBackend;
 import org.vstu.compprehension.models.businesslogic.backend.facts.Fact;
 import org.vstu.compprehension.models.businesslogic.backend.facts.JenaFactList;
 import org.vstu.compprehension.models.businesslogic.domains.DecisionTreeReasoningDomain;
 import org.vstu.compprehension.models.businesslogic.storage.QuestionBank;
+import org.vstu.compprehension.models.entities.EnumData.InteractionType;
 import org.vstu.compprehension.models.entities.*;
 import org.vstu.compprehension.models.entities.EnumData.FeedbackType;
 import org.vstu.compprehension.models.entities.EnumData.Language;
@@ -309,7 +319,7 @@ public class ControlFlowDTDomain extends DecisionTreeReasoningDomain {
         }
 
         @Override
-        public DecisionTreeReasonerBackend.Input prepareBackendInfoForJudge(Question question, List<ResponseEntity> responses, List<Tag> tags) {
+        public DecisionTreeReasonerBackend.Input prepareBackendInfoForJudge(Question question, List<ResponseData> responses, List<Tag> tags) {
             if (question.getMetadata().getVersion() != 2) {
                 throw new UnsupportedOperationException("Unsupported version of CtrlFlow question");
             }
@@ -397,7 +407,7 @@ public class ControlFlowDTDomain extends DecisionTreeReasoningDomain {
             questionModel.getVariables().add(new VariableDef("L0", L0.getName()));
         }
 
-        ObjectDef makeTrace(DomainModel questionModel, List<ResponseEntity> responses, boolean includeLast) {
+        ObjectDef makeTrace(DomainModel questionModel, List<ResponseData> responses, boolean includeLast) {
             ObjectDef firstTraceAct = findStartOfProgram(questionModel);
 
             ObjectDef currentTraceAct;
@@ -408,7 +418,7 @@ public class ControlFlowDTDomain extends DecisionTreeReasoningDomain {
                 currentTraceAct = firstTraceAct.getRelationshipLink("directlyBeforeOf").getObjects().getFirst();
             }
             for (int i = 0; i < end; i++) {
-                ResponseEntity response = responses.get(i);
+                ResponseData response = responses.get(i);
                 String domainInfo = response.getLeftAnswerObject().getDomainInfo();
                 ObjectDef cfgNode = questionModel.getObjects().stream()
                         .filter(obj -> obj.getClassName().equals("Node"))
@@ -484,10 +494,12 @@ public class ControlFlowDTDomain extends DecisionTreeReasoningDomain {
                                 && pathInfo.getRelationshipLink("to_").getObjects().getFirst().equals(to)).findFirst();
     }
 
-    public ControlFlowDTDomain(DomainEntity domainEntity,
+    public ControlFlowDTDomain(DomainData domainData,
                                RandomProvider randomProvider,
+            ExerciseAttemptService exerciseAttemptService,
+            SupplementaryStepService supplementaryStepService,
                                LocalizationService localizationService, QuestionBank qMetaStorage) {
-        super(domainEntity, randomProvider);
+        super(domainData, randomProvider, exerciseAttemptService, supplementaryStepService);
         this.qMetaStorage = qMetaStorage;
         this.localizationService = localizationService;
         this.concepts = Map.of();
@@ -526,10 +538,10 @@ public class ControlFlowDTDomain extends DecisionTreeReasoningDomain {
     }
 
     @Override
-    public Collection<Fact> responseToFacts(String questionDomainType, List<ResponseEntity> responses, List<AnswerObjectEntity> answerObjects) {
+    public Collection<Fact> responseToFacts(String questionDomainType, List<ResponseData> responses, List<AnswerObjectData> answerObjects) {
         if (questionDomainType.equals(EXECUTION_ORDER_QUESTION_TYPE)) {
             List<Fact> result = new ArrayList<>();
-            for (ResponseEntity response : responses) {
+            for (ResponseData response : responses) {
                 result.add(new Fact(
                         "owl:NamedIndividual",
                         response.getLeftAnswerObject().getDomainInfo(),
@@ -604,7 +616,7 @@ public class ControlFlowDTDomain extends DecisionTreeReasoningDomain {
             conceptNames.add(concept.getName());
         }
 
-        List<QuestionMetadataEntity> foundQuestions = null;
+        List<QuestionMetadataData> foundQuestions = null;
 
         try {
             var exerciseOptions = exerciseAttempt.getExercise().getOptions();
@@ -614,13 +626,15 @@ public class ControlFlowDTDomain extends DecisionTreeReasoningDomain {
             int generatorAdditionalQuestionsToGenerate = exerciseOptions.getGeneratorAdditionalQuestionsToGenerate() != null
                     ? exerciseOptions.getGeneratorAdditionalQuestionsToGenerate()
                     : 3;
-            foundQuestions = qMetaStorage.searchQuestions(questionRequest, 1, generatorThreshold, generatorAdditionalQuestionsToGenerate).getQuestions();
+            foundQuestions = qMetaStorage.searchQuestions(questionRequest, 1, generatorThreshold, generatorAdditionalQuestionsToGenerate).getQuestions()
+                    .stream().map(QuestionDataMapper::toData).toList();
 
             // search again if nothing found with "TO_COMPLEX"
             SearchDirections lawsSearchDir = questionRequest.getLawsSearchDirection();
             if (foundQuestions.isEmpty() && lawsSearchDir == SearchDirections.TO_COMPLEX) {
                 questionRequest.setLawsSearchDirection(SearchDirections.TO_SIMPLE);
-                foundQuestions = qMetaStorage.searchQuestions(questionRequest, 1, generatorThreshold, generatorAdditionalQuestionsToGenerate).getQuestions();
+                foundQuestions = qMetaStorage.searchQuestions(questionRequest, 1, generatorThreshold, generatorAdditionalQuestionsToGenerate).getQuestions()
+                    .stream().map(QuestionDataMapper::toData).toList();
             }
         } catch (Exception e) {
             // file storage was not configured properly...
@@ -639,19 +653,18 @@ public class ControlFlowDTDomain extends DecisionTreeReasoningDomain {
 
     @NotNull
     @Override
-    public Question makeQuestion(@NotNull QuestionMetadataEntity metadata,
+    public Question makeQuestion(@NotNull QuestionMetadataData metadata,
                                  @Nullable ExerciseAttemptEntity exerciseAttemptEntity,
                                  @NotNull List<Tag> tags, @NotNull Language userLang
     ) {
-        var result = metadata.getQuestionData().getData().toQuestion(this, metadata);
+        var result = metadata.getData().toQuestion(this, metadata);
         result.getQuestionData().setQuestionText(getMessage("question_prompt", userLang)
                 .concat(result.getQuestionData().getQuestionText()));
-        result.getQuestionData().setExerciseAttempt(exerciseAttemptEntity);
         return result;
     }
 
     @Override
-    public SupplementaryResponseGenerationResult makeSupplementaryQuestion(QuestionEntity sourceQuestion, ViolationEntity violation, Language lang) {
+    public SupplementaryResponseGenerationResult makeSupplementaryQuestion(QuestionData sourceQuestion, ViolationEntity violation, Language lang) {
         return null;
     }
 
@@ -664,12 +677,12 @@ public class ControlFlowDTDomain extends DecisionTreeReasoningDomain {
     }
 
     @Override
-    public SupplementaryFeedbackGenerationResult judgeSupplementaryQuestion(Question question, SupplementaryStepEntity supplementaryStep, List<ResponseEntity> responses) {
+    public SupplementaryFeedbackGenerationResult judgeSupplementaryQuestion(Question question, SupplementaryStepEntity supplementaryStep, List<ResponseData> responses) {
         return null;
     }
 
     @Override
-    public boolean needSupplementaryQuestion(ViolationEntity violation) {
+    public boolean needSupplementaryQuestion(String violationLawName, InteractionType interactionType) {
         return false;
     }
 
@@ -711,20 +724,18 @@ public class ControlFlowDTDomain extends DecisionTreeReasoningDomain {
 
     @Override
     public CorrectAnswer getAnyNextCorrectAnswer(Question q) {
-        Language lang = Optional.ofNullable(q.getQuestionData().getExerciseAttempt())
-                .map(a -> a.getUser().getPreferred_language())
-                .orElse(Language.RUSSIAN/*ENGLISH*/);
+        Language lang = getUserLanguageOf(q);
         List<String> deniedSkills = List.of();
-        var exerciseStage = q.getExerciseStage();
+        var exerciseStage = getExerciseStageOf(q);
         if (exerciseStage.isPresent()) {
             deniedSkills = exerciseStage.get().getSkills()
                     .stream().map(ExerciseSkillDto::getName).toList();
         }
-        Optional<InteractionEntity> lastCorrectInteraction = Optional.ofNullable(q.getQuestionData().getInteractions()).stream()
+        Optional<QuestionInteractionData> lastCorrectInteraction = Optional.ofNullable(q.getQuestionData().getInteractions()).stream()
                 .flatMap(Collection::stream)
                 .filter(i -> i.getFeedback().getInteractionsLeft() >= 0 && i.getViolations().isEmpty())
                 .reduce((first, second) -> second);
-        List<ResponseEntity> responses = new ArrayList<>();
+        List<ResponseData> responses = new ArrayList<>();
         lastCorrectInteraction.ifPresent(interactionEntity -> responses.addAll(interactionEntity.getResponses()));
         var model = getDomainSolvingModels().getFirst();
         ControlFlowDTDomain.DecisionTreeInterface treeInterface = (ControlFlowDTDomain.DecisionTreeInterface) getBackendInterface();
@@ -744,7 +755,7 @@ public class ControlFlowDTDomain extends DecisionTreeReasoningDomain {
                 solveRes.trace(), questionModel,
                 this, deniedSkills, lang
         );
-        AnswerObjectEntity answer = q.getAnswerObjects().stream().filter(ans -> ans.getDomainInfo().equals(cfgId)).findFirst().orElse(null);
+        AnswerObjectData answer = q.getAnswerObjects().stream().filter(ans -> ans.getDomainInfo().equals(cfgId)).findFirst().orElse(null);
         correctAnswer.answers = List.of(new CorrectAnswer.Response(answer, answer));
         correctAnswer.question = q.getQuestionData();
         correctAnswer.lawName = null;
@@ -870,10 +881,10 @@ public class ControlFlowDTDomain extends DecisionTreeReasoningDomain {
         return sb.toString();
     }
 
-    protected List<ResponseEntity> responsesForTrace(QuestionEntity q, boolean allowLastIncorrect) {
+    protected List<ResponseData> responsesForTrace(QuestionData q, boolean allowLastIncorrect) {
 
-        List<ResponseEntity> responses = new ArrayList<>();
-        List<InteractionEntity> interactions = q.getInteractions();
+        List<ResponseData> responses = new ArrayList<>();
+        List<QuestionInteractionData> interactions = q.getInteractions();
 
         if (interactions == null || interactions.isEmpty()) {
             return responses; // empty so far
@@ -884,7 +895,7 @@ public class ControlFlowDTDomain extends DecisionTreeReasoningDomain {
                 .flatMap(Collection::stream)
                 .filter(i -> i.getFeedback().getInteractionsLeft() >= 0 && i.getViolations().size() == 0) // select only interactions without mistakes
                 .reduce((first, second) -> second)
-                .map(InteractionEntity::getResponses)
+                .map(QuestionInteractionData::getResponses)
                 .map(ArrayList::new)  // make a shallow copy so that it can be safely modified
                 .orElseGet(ArrayList::new);
 
@@ -917,9 +928,7 @@ public class ControlFlowDTDomain extends DecisionTreeReasoningDomain {
 
     @Override
     public List<HyperText> getFullSolutionTrace(Question question) {
-        Language lang = Optional.ofNullable(question.getQuestionData().getExerciseAttempt())
-                .map(a -> a.getUser().getPreferred_language())
-                .orElse(Language.RUSSIAN/*ENGLISH*/);
+        Language lang = getUserLanguageOf(question);
         List<HyperText> trace = new ArrayList<>();
         var questionModel = prepareQuestionModel(question, this.domainSolvingModel);
         var treeInterface = (DecisionTreeInterface) getBackendInterface();
@@ -1015,7 +1024,7 @@ public class ControlFlowDTDomain extends DecisionTreeReasoningDomain {
                 );
                 var traceElementText = replaceInString(mainString, substitutions);
                 if (!(Boolean) object.getPropertyValue("is_known_correct", Map.of())
-                        && !responses.getLast().getInteraction().getViolations().isEmpty()
+                        && responses.getLast().isInteractionHasViolations()
                 ) {
                     traceElementText = htmlStyleFormat(traceElementText, "warning");
                 }

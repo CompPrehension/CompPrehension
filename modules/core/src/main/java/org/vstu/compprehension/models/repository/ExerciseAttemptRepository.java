@@ -23,6 +23,19 @@ public interface ExerciseAttemptRepository extends CrudRepository<ExerciseAttemp
             "left join fetch a.user " +
             "where a.id IN (select q.exerciseAttempt.id from QuestionEntity q where q.id = ?1 and q.exerciseAttempt is not null)")
     Optional<ExerciseAttemptEntity> findByQuestionId(long questionId);
+
+    /**
+     * Попытка вместе с упражнением и доменом — одним запросом.
+     * <p>
+     * join fetch обязателен: обе связи ленивые, а вызывающему нужны их поля.
+     */
+    @Query("""
+            select a from ExerciseAttemptEntity a
+            join fetch a.exercise e
+            join fetch e.domain
+            where a.id = :attemptId
+            """)
+    Optional<ExerciseAttemptEntity> findByIdFetchingExerciseAndDomain(@Param("attemptId") long attemptId);
     @Query("select distinct a from ExerciseAttemptEntity a inner join fetch a.exercise left join fetch a.questions left join fetch a.user left join fetch a.course where a.id = ?1")
     Optional<ExerciseAttemptEntity> getById(Long attemptId);
 

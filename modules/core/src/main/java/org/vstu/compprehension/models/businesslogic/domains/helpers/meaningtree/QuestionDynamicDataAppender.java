@@ -1,16 +1,16 @@
 package org.vstu.compprehension.models.businesslogic.domains.helpers.meaningtree;
 
 import org.jetbrains.annotations.Nullable;
+import org.vstu.compprehension.models.data.QuestionMetadataData;
+import org.vstu.compprehension.models.data.AnswerObjectData;
 import org.vstu.compprehension.models.businesslogic.Question;
 import org.vstu.compprehension.models.businesslogic.Tag;
 import org.vstu.compprehension.models.businesslogic.domains.ProgrammingLanguageExpressionDTDomain;
 import org.vstu.compprehension.models.businesslogic.storage.QuestionBank;
 import org.vstu.compprehension.models.businesslogic.storage.SerializableQuestion;
-import org.vstu.compprehension.models.entities.AnswerObjectEntity;
 import org.vstu.compprehension.models.entities.EnumData.Language;
 import org.vstu.compprehension.models.entities.ExerciseAttemptEntity;
 import org.vstu.compprehension.models.entities.QuestionDataEntity;
-import org.vstu.compprehension.models.entities.QuestionMetadataEntity;
 import org.vstu.meaningtree.SupportedLanguage;
 import org.vstu.meaningtree.utils.tokens.ComplexOperatorToken;
 import org.vstu.meaningtree.utils.tokens.OperatorToken;
@@ -42,15 +42,17 @@ public class QuestionDynamicDataAppender {
             }
             QuestionDataEntity dataEntity = new QuestionDataEntity(null, SerializableQuestion.fromQuestion(q));
             bank.saveQuestionDataEntity(dataEntity);
-            meta.setQuestionData(dataEntity);
-            bank.saveMetadataEntity(q.getMetadata());
+            // Связь метаданных с сериализованным вопросом пишет банк: у вопроса
+            // в бизнес-логике есть только данные метаданных, без сущности.
+            meta.setData(dataEntity.getData());
+            bank.attachQuestionData(meta.getId(), dataEntity);
         }
 
         q.getQuestionData().setStatementFacts(MeaningTreeRDFHelper.applyRuntimeFixes(q.getStatementFacts()));
         TokenList tokens = MeaningTreeRDFHelper.backendFactsToTokens(q.getStatementFacts(), lang);
         q.setAnswerObjects(new ArrayList<>(MeaningTreeOrderQuestionBuilder.generateAnswerObjects(tokens).stream().map(
                 (SerializableQuestion.AnswerObject obj) -> {
-                    AnswerObjectEntity ansEntity = new AnswerObjectEntity();
+                    AnswerObjectData ansEntity = new AnswerObjectData();
                     ansEntity.setConcept(obj.getConcept());
                     ansEntity.setDomainInfo(obj.getDomainInfo());
                     ansEntity.setHyperText(obj.getHyperText());
@@ -59,8 +61,6 @@ public class QuestionDynamicDataAppender {
                     return ansEntity;
                 }).toList()));
         q.getQuestionData().setQuestionText(questionToHtml(tokens, domain, userLang, q.getMetadata()));
-        q.getQuestionData().setExerciseAttempt(attempt);
-        q.getQuestionData().setDomainEntity(domain.getDomainEntity());
         return q;
     }
 
@@ -73,7 +73,7 @@ public class QuestionDynamicDataAppender {
      */
     static String questionToHtml(TokenList tokens,
                                  ProgrammingLanguageExpressionDTDomain domain,
-                                 Language lang, QuestionMetadataEntity metadata
+                                 Language lang, QuestionMetadataData metadata
     ) {
         StringBuilder sb = new StringBuilder("<div class='comp-ph-question'>");
         sb.append(domain.getMessage("BASE_QUESTION_TEXT", lang));

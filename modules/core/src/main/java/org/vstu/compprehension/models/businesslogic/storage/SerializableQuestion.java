@@ -9,13 +9,12 @@ import lombok.ToString;
 import lombok.extern.log4j.Log4j2;
 import org.jetbrains.annotations.NotNull;
 import org.jetbrains.annotations.Nullable;
+import org.vstu.compprehension.models.data.QuestionMetadataData;
+import org.vstu.compprehension.models.data.AnswerObjectData;
 import org.vstu.compprehension.models.businesslogic.Question;
 import org.vstu.compprehension.models.businesslogic.domains.Domain;
-import org.vstu.compprehension.models.entities.AnswerObjectEntity;
 import org.vstu.compprehension.models.entities.BackendFactEntity;
 import org.vstu.compprehension.models.entities.EnumData.QuestionType;
-import org.vstu.compprehension.models.entities.QuestionEntity;
-import org.vstu.compprehension.models.entities.QuestionMetadataEntity;
 import org.vstu.compprehension.models.entities.QuestionOptions.*;
 
 import java.io.*;
@@ -112,13 +111,15 @@ public class SerializableQuestion {
         return toQuestion(domain, null);
     }
 
-    public Question toQuestion(@NotNull Domain domain, @Nullable QuestionMetadataEntity qMeta) {
+    public Question toQuestion(@NotNull Domain domain, @Nullable QuestionMetadataData qMeta) {
         if (qMeta != null && !domain.getShortName().equals(qMeta.getDomainShortname())) {
             log.info("Domain mismatch: {} vs {}", qMeta.getDomainShortname(), domain.getShortName());
         }
         
         var questionData = getQuestionData();
-        var questionEntity = new QuestionEntity();
+        // Полное имя: у SerializableQuestion есть свой вложенный QuestionData —
+        // сериализованная полезная нагрузка, это другой тип.
+        var questionEntity = new org.vstu.compprehension.models.data.QuestionData();
         questionEntity.setQuestionType(questionData.getQuestionType());
         questionEntity.setQuestionText(questionData.getQuestionText());
         questionEntity.setQuestionName(questionData.getQuestionName());
@@ -127,7 +128,7 @@ public class SerializableQuestion {
         questionEntity.setOptions(questionData.getOptions());
         questionEntity.setAnswerObjects(questionData.getAnswerObjects()
                 .stream()
-                .map(a -> AnswerObjectEntity.builder()
+                .map(a -> AnswerObjectData.builder()
                         .answerId(a.getAnswerId())
                         .hyperText(a.getHyperText())
                         .domainInfo(a.getDomainInfo())
@@ -136,7 +137,8 @@ public class SerializableQuestion {
                         .build())
                 .collect(Collectors.toCollection(ArrayList::new)));
         questionEntity.setInteractions(new ArrayList<>());
-        questionEntity.setDomainEntity(domain.getDomainEntity());
+        // домен проставляет QuestionService при сохранении: здесь нет доступа к БД,
+        // а FK нужен только в момент записи
         questionEntity.setStatementFacts(questionData.getStatementFacts()
                 .stream()
                 .map(s -> new BackendFactEntity(

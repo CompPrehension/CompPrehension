@@ -1,0 +1,8 @@
+#
+#Fri Sep 04 20:48:13 MSK 2026
+@ManyToOne\ and\ @OneToOne\ associations\ should\ declare\ fetch\ \=\ LAZY=d9cf1419-6485-4c1e-8e7c-ef67be0485ef
+JPA\ entities\ should\ not\ appear\ in\ controllers=6c747947-6742-40f7-9469-e1c9005ecb50
+business\ logic\ should\ not\ depend\ on\ the\ web\ stack=ffa72197-86d9-441f-a565-47ea0a0c0459
+dependencies\ should\ be\ injected\ via\ constructor,\ not\ into\ fields=65619d94-dd54-4112-9dbc-d57ebcafb7b7
+domain\ contracts\ should\ not\ expose\ JPA\ entities=094bd1e1-0536-463f-bebd-b4c618b676cc
+repositories\ should\ not\ depend\ on\ web\ DTOs=1f8e148f-e6bd-4e46-ae02-b8df7ebb7e77

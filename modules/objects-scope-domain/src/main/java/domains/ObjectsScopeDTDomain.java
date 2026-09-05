@@ -14,8 +14,17 @@ import lombok.val;
 import org.apache.commons.lang3.NotImplementedException;
 import org.jetbrains.annotations.NotNull;
 import org.jetbrains.annotations.Nullable;
+import org.vstu.compprehension.Service.mapping.QuestionDataMapper;
+import org.vstu.compprehension.Service.SupplementaryStepService;
+import org.vstu.compprehension.models.data.QuestionMetadataData;
+import org.vstu.compprehension.models.data.QuestionInteractionData;
+import org.vstu.compprehension.models.data.QuestionData;
+import org.vstu.compprehension.models.data.AnswerObjectData;
+import org.vstu.compprehension.models.data.ResponseData;
+import org.vstu.compprehension.Service.ExerciseAttemptService;
 import org.vstu.compprehension.Service.LocalizationService;
 import org.vstu.compprehension.common.StringHelper;
+import org.vstu.compprehension.models.data.DomainData;
 import org.vstu.compprehension.models.businesslogic.*;
 import org.vstu.compprehension.models.businesslogic.backend.DecisionTreeReasonerBackend;
 import org.vstu.compprehension.models.businesslogic.backend.JenaBackend;
@@ -25,6 +34,7 @@ import org.vstu.compprehension.models.businesslogic.domains.DecisionTreeReasonin
 import org.vstu.compprehension.models.businesslogic.domains.DecisionTreeSupQuestionHelper;
 import helpers.GenerateErrorTextForScopeObjects;
 import org.vstu.compprehension.models.businesslogic.storage.QuestionBank;
+import org.vstu.compprehension.models.entities.EnumData.InteractionType;
 import org.vstu.compprehension.models.entities.*;
 import org.vstu.compprehension.models.entities.EnumData.FeedbackType;
 import org.vstu.compprehension.models.entities.EnumData.Language;
@@ -92,12 +102,14 @@ public class ObjectsScopeDTDomain extends DecisionTreeReasoningDomain {
     private final DecisionTreeInterface backendInterface = new DecisionTreeInterface();
 
     public ObjectsScopeDTDomain(
-            DomainEntity domainEntity,
+            DomainData domainData,
             LocalizationService localizationService,
             RandomProvider randomProvider,
+            ExerciseAttemptService exerciseAttemptService,
+            SupplementaryStepService supplementaryStepService,
             QuestionBank qMetaStorage
     ) {
-        super(domainEntity, randomProvider);
+        super(domainData, randomProvider, exerciseAttemptService, supplementaryStepService);
 
         this.localizationService = localizationService;
         this.qMetaStorage = qMetaStorage;
@@ -193,11 +205,11 @@ public class ObjectsScopeDTDomain extends DecisionTreeReasoningDomain {
     }
 
     @Override
-    public Collection<Fact> responseToFacts(String questionDomainType, List<ResponseEntity> responses, List<AnswerObjectEntity> answerObjects) {
+    public Collection<Fact> responseToFacts(String questionDomainType, List<ResponseData> responses, List<AnswerObjectData> answerObjects) {
         System.out.println("responseToFacts");
         if (questionDomainType.equals(LIFE_TIME)) {
             List<Fact> result = new ArrayList<>();
-            for (ResponseEntity response : responses) {
+            for (ResponseData response : responses) {
                 result.add(new Fact(
                         "owl:NamedIndividual",
                         response.getLeftAnswerObject().getDomainInfo(),
@@ -209,7 +221,7 @@ public class ObjectsScopeDTDomain extends DecisionTreeReasoningDomain {
             return result;
         } else if (questionDomainType.equals(OBJECT_VISIBILITY)) {
             List<Fact> result = new ArrayList<>();
-            for (ResponseEntity response : responses) {
+            for (ResponseData response : responses) {
                 result.add(new Fact(
                         "owl:NamedIndividual",
                         response.getLeftAnswerObject().getDomainInfo(),
@@ -221,7 +233,7 @@ public class ObjectsScopeDTDomain extends DecisionTreeReasoningDomain {
             return result;
         } else if(questionDomainType.equals(OBJECTS_VISIBILITY)) {
             List<Fact> result = new ArrayList<>();
-            for (ResponseEntity response : responses) {
+            for (ResponseData response : responses) {
                 result.add(new Fact(
                         "owl:NamedIndividual",
                         response.getLeftAnswerObject().getDomainInfo(),
@@ -250,7 +262,7 @@ public class ObjectsScopeDTDomain extends DecisionTreeReasoningDomain {
             conceptNames.add(concept.getName());
         }
 
-        List<QuestionMetadataEntity> foundQuestions = null;
+        List<QuestionMetadataData> foundQuestions = null;
         try {
             var exerciseOptions = exerciseAttempt.getExercise().getOptions();
             int generatorThreshold = exerciseOptions.getGeneratorThreshold() != null
@@ -259,13 +271,15 @@ public class ObjectsScopeDTDomain extends DecisionTreeReasoningDomain {
             int generatorAdditionalQuestionsToGenerate = exerciseOptions.getGeneratorAdditionalQuestionsToGenerate() != null
                     ? exerciseOptions.getGeneratorAdditionalQuestionsToGenerate()
                     : 3;
-            foundQuestions = qMetaStorage.searchQuestions(questionRequest, 1, generatorThreshold, generatorAdditionalQuestionsToGenerate).getQuestions();
+            foundQuestions = qMetaStorage.searchQuestions(questionRequest, 1, generatorThreshold, generatorAdditionalQuestionsToGenerate).getQuestions()
+                    .stream().map(QuestionDataMapper::toData).toList();
 
             // search again if nothing found with "TO_COMPLEX"
             SearchDirections lawsSearchDir = questionRequest.getLawsSearchDirection();
             if (foundQuestions.isEmpty() && lawsSearchDir == SearchDirections.TO_COMPLEX) {
                 questionRequest.setLawsSearchDirection(SearchDirections.TO_SIMPLE);
-                foundQuestions = qMetaStorage.searchQuestions(questionRequest, 1, generatorThreshold, generatorAdditionalQuestionsToGenerate).getQuestions();
+                foundQuestions = qMetaStorage.searchQuestions(questionRequest, 1, generatorThreshold, generatorAdditionalQuestionsToGenerate).getQuestions()
+                    .stream().map(QuestionDataMapper::toData).toList();
             }
         } catch (Exception e) {
             // file storage was not configured properly...
@@ -283,12 +297,12 @@ public class ObjectsScopeDTDomain extends DecisionTreeReasoningDomain {
 
     @NotNull
     @Override
-    public Question makeQuestion(@NotNull QuestionMetadataEntity metadata,
+    public Question makeQuestion(@NotNull QuestionMetadataData metadata,
                                  @Nullable ExerciseAttemptEntity exerciseAttemptEntity,
                                  @NotNull List<Tag> tags,
                                  @NotNull Language userLang) {
-        var questionData = metadata.getQuestionData();
-        return makeQuestion(questionData.getData().toQuestion(this, metadata), exerciseAttemptEntity, tags, userLang);
+        var questionData = metadata.getData();
+        return makeQuestion(questionData.toQuestion(this, metadata), exerciseAttemptEntity, tags, userLang);
     }
 
     protected Question makeQuestion(Question q, ExerciseAttemptEntity exerciseAttemptEntity, List<Tag> tags, Language userLanguage) {
@@ -301,10 +315,8 @@ public class ObjectsScopeDTDomain extends DecisionTreeReasoningDomain {
                 .orderNumberOptions(new OrderQuestionOptionsEntity.OrderNumberOptions("", OrderQuestionOptionsEntity.OrderNumberPosition.NONE, null))
                 .build();
 
-        QuestionEntity entity = new QuestionEntity();
+        QuestionData entity = new QuestionData();
         entity.setAnswerObjects(q.getAnswerObjects());
-        entity.setExerciseAttempt(exerciseAttemptEntity);
-        entity.setDomainEntity(getDomainEntity());
         entity.setQuestionDomainType(q.getQuestionDomainType());
         entity.setQuestionName(q.getQuestionName());
         entity.setMetadata(q.getMetadata());
@@ -349,13 +361,13 @@ public class ObjectsScopeDTDomain extends DecisionTreeReasoningDomain {
         }
     }
 
-    public String ExpressionToHtml(List<AnswerObjectEntity> answers, String questionDomainType, Language userLanguage) {
+    public String ExpressionToHtml(List<AnswerObjectData> answers, String questionDomainType, Language userLanguage) {
         if(questionDomainType.equals(LIFE_TIME)) {
             StringBuilder sb = new StringBuilder();
             sb.append("<div class='comp-ph-expr trace'>");
             int index = 1;
             sb.append("<p style='height: 400px; overflow: scroll;'>");
-            for (AnswerObjectEntity answer : answers) {
+            for (AnswerObjectData answer : answers) {
                 if(answer.getDomainInfo().equals(END_ANSWER)) {
                     continue;
                 }
@@ -381,7 +393,7 @@ public class ObjectsScopeDTDomain extends DecisionTreeReasoningDomain {
             StringBuilder sb = new StringBuilder();
             sb.append("<p class='comp-ph-expr'>");
             int index = 1;
-            for (AnswerObjectEntity answer : answers) {
+            for (AnswerObjectData answer : answers) {
                 if(answer.getDomainInfo().equals(END_ANSWER)) {
                     continue;
                 }
@@ -416,7 +428,7 @@ public class ObjectsScopeDTDomain extends DecisionTreeReasoningDomain {
             StringBuilder sb = new StringBuilder();
             sb.append("<p class='comp-ph-expr'>");
             int index = 1;
-            for (AnswerObjectEntity answer : answers) {
+            for (AnswerObjectData answer : answers) {
                 if(answer.getDomainInfo().equals(END_ANSWER)) {
                     continue;
                 }
@@ -470,20 +482,18 @@ public class ObjectsScopeDTDomain extends DecisionTreeReasoningDomain {
 
     @Override
     public CorrectAnswer getAnyNextCorrectAnswer(Question q) {
-        Language lang = Optional.ofNullable(q.getQuestionData().getExerciseAttempt())
-                .map(a -> a.getUser().getPreferred_language())
-                .orElse(Language.RUSSIAN/*ENGLISH*/);
+        Language lang = getUserLanguageOf(q);
 
-        Optional<InteractionEntity> lastCorrectInteraction = Optional.ofNullable(q.getQuestionData().getInteractions()).stream()
+        Optional<QuestionInteractionData> lastCorrectInteraction = Optional.ofNullable(q.getQuestionData().getInteractions()).stream()
                 .flatMap(Collection::stream)
                 .filter(i -> i.getFeedback().getInteractionsLeft() >= 0 && i.getViolations().isEmpty())
                 .reduce((first, second) -> second);
-        List<ResponseEntity> responses = new ArrayList<>();
+        List<ResponseData> responses = new ArrayList<>();
         lastCorrectInteraction.ifPresent(interactionEntity -> responses.addAll(interactionEntity.getResponses()));
 
         if(q.getQuestionDomainType().equals(LIFE_TIME)) {
             DomainModel situationModel = factsToDomainModel(domainLifeTimeSolvingModel, q.getQuestionData().getStatementFacts());
-            for (ResponseEntity response : responses) {
+            for (ResponseData response : responses) {
                 if(!response.getLeftAnswerObject().getDomainInfo().equals(END_ANSWER)) {
                     val step = situationModel.getDomainModel().getObjects().get(response.getLeftAnswerObject().getDomainInfo());
                     setBoolProperty(step, "isEvaluated", true);
@@ -509,7 +519,7 @@ public class ObjectsScopeDTDomain extends DecisionTreeReasoningDomain {
                 Explanation hintExplanation = GenerateErrorTextForScopeObjects.generateHintExplanation(decisionTreeTrace, learningSituation.getDomainModel(), lang);
 
                 if(!hintExplanation.getChildren().getFirst().getRawMessage().isEmpty()) {
-                    AnswerObjectEntity answer = q.getAnswerObjects().stream()
+                    AnswerObjectData answer = q.getAnswerObjects().stream()
                             .filter(entity -> object.getName().equals(entity.getDomainInfo()))
                             .findFirst()
                             .orElse(null);
@@ -525,7 +535,7 @@ public class ObjectsScopeDTDomain extends DecisionTreeReasoningDomain {
             }
         } else if (q.getQuestionDomainType().equals(OBJECT_VISIBILITY)) {
             DomainModel situationModel = factsToDomainModel(domainObjectVisibilitySolvingModel, q.getQuestionData().getStatementFacts());
-            for (ResponseEntity response : responses) {
+            for (ResponseData response : responses) {
                 if(!response.getLeftAnswerObject().getDomainInfo().equals(END_ANSWER)) {
                     val line = situationModel.getDomainModel().getObjects().get(response.getLeftAnswerObject().getDomainInfo());
                     setBoolProperty(line, "isEvaluated", true);
@@ -550,7 +560,7 @@ public class ObjectsScopeDTDomain extends DecisionTreeReasoningDomain {
                 Explanation hintExplanation = GenerateErrorTextForScopeObjects.generateHintExplanation(decisionTreeTrace, learningSituation.getDomainModel(), lang);
 
                 if(!hintExplanation.getChildren().getFirst().getRawMessage().isEmpty()) {
-                    AnswerObjectEntity answer = q.getAnswerObjects().stream()
+                    AnswerObjectData answer = q.getAnswerObjects().stream()
                             .filter(entity -> object.getName().equals(entity.getDomainInfo()))
                             .findFirst()
                             .orElse(null);
@@ -566,7 +576,7 @@ public class ObjectsScopeDTDomain extends DecisionTreeReasoningDomain {
             }
         } else if(q.getQuestionDomainType().equals(OBJECTS_VISIBILITY)) {
             DomainModel situationModel = factsToDomainModel(domainObjectsVisibilityInLineSolvingModel, q.getQuestionData().getStatementFacts());
-            for (ResponseEntity response : responses) {
+            for (ResponseData response : responses) {
                 val context = situationModel.getDomainModel().getObjects().get(response.getLeftAnswerObject().getDomainInfo());
                 setBoolProperty(context, "isEvaluated", true);
             }
@@ -589,7 +599,7 @@ public class ObjectsScopeDTDomain extends DecisionTreeReasoningDomain {
                 Explanation hintExplanation = GenerateErrorTextForScopeObjects.generateHintExplanation(decisionTreeTrace, learningSituation.getDomainModel(), lang);
 
                 if(!hintExplanation.getChildren().getFirst().getRawMessage().isEmpty()) {
-                    AnswerObjectEntity answer = q.getAnswerObjects().stream()
+                    AnswerObjectData answer = q.getAnswerObjects().stream()
                             .filter(entity -> object.getName().equals(entity.getDomainInfo()))
                             .findFirst()
                             .orElse(null);
@@ -604,7 +614,7 @@ public class ObjectsScopeDTDomain extends DecisionTreeReasoningDomain {
                 situationModel.getVariables().remove("currentCt");
             }
         }
-        AnswerObjectEntity answer = q.getAnswerObjects().stream()
+        AnswerObjectData answer = q.getAnswerObjects().stream()
                 .filter(entity -> END_ANSWER.equals(entity.getDomainInfo()))
                 .findFirst()
                 .orElse(null);
@@ -719,12 +729,12 @@ public class ObjectsScopeDTDomain extends DecisionTreeReasoningDomain {
                 .build();
     }
 
-    private DomainModel mainQuestionToModel(InteractionEntity lastMainQuestionInteraction) {
+    private DomainModel mainQuestionToModel(QuestionInteractionData lastMainQuestionInteraction) {
         Question question = new Question(lastMainQuestionInteraction.getQuestion(), this);
 
         DomainModel situationModel = factsToDomainModel(domainLifeTimeSolvingModel, question.getQuestionData().getStatementFacts());
-        ResponseEntity lastResponse = lastMainQuestionInteraction.getResponses().getLast();
-        for (ResponseEntity response : lastMainQuestionInteraction.getResponses()) {
+        ResponseData lastResponse = lastMainQuestionInteraction.getResponses().getLast();
+        for (ResponseData response : lastMainQuestionInteraction.getResponses()) {
             if(response != lastResponse && !response.getLeftAnswerObject().getDomainInfo().equals(END_ANSWER)) {
                 val step = situationModel.getDomainModel().getObjects().get(response.getLeftAnswerObject().getDomainInfo());
                 setBoolProperty(step, "isEvaluated", true);
@@ -760,18 +770,18 @@ public class ObjectsScopeDTDomain extends DecisionTreeReasoningDomain {
     }
 
     @Override
-    public SupplementaryResponseGenerationResult makeSupplementaryQuestion(QuestionEntity sourceQuestion, ViolationEntity violation, Language lang) {
+    public SupplementaryResponseGenerationResult makeSupplementaryQuestion(QuestionData sourceQuestion, ViolationEntity violation, Language lang) {
             return dtSupplementaryQuestionHelper.makeSupplementaryQuestion(sourceQuestion, lang);
     }
 
     @Override
-    public SupplementaryFeedbackGenerationResult judgeSupplementaryQuestion(Question question, SupplementaryStepEntity supplementaryStep, List<ResponseEntity> responses) {
+    public SupplementaryFeedbackGenerationResult judgeSupplementaryQuestion(Question question, SupplementaryStepEntity supplementaryStep, List<ResponseData> responses) {
             return dtSupplementaryQuestionHelper.judgeSupplementaryQuestion(supplementaryStep, responses);
     }
 
     @Override
-    public boolean needSupplementaryQuestion(ViolationEntity violation) {
-        return violation.getLawName().equals("incorrectStep");
+    public boolean needSupplementaryQuestion(String violationLawName, InteractionType interactionType) {
+        return violationLawName.equals("incorrectStep");
     }
 
     @Override
@@ -783,7 +793,7 @@ public class ObjectsScopeDTDomain extends DecisionTreeReasoningDomain {
         @Override
         public DecisionTreeReasonerBackend.Input prepareBackendInfoForJudge(
                 Question question,
-                List<ResponseEntity> responses,
+                List<ResponseData> responses,
                 List<Tag> tags
         ) {
             var domain = question.getDomain();
@@ -794,8 +804,8 @@ public class ObjectsScopeDTDomain extends DecisionTreeReasoningDomain {
             if(question.getQuestionDomainType().equals(LIFE_TIME)) {
                 var domainSolvingModel = realDomain.domainLifeTimeSolvingModel;
                 DomainModel situationModel = factsToDomainModel(domainSolvingModel, question.getQuestionData().getStatementFacts());
-                ResponseEntity lastResponse = responses.getLast();
-                for (ResponseEntity response : responses) {
+                ResponseData lastResponse = responses.getLast();
+                for (ResponseData response : responses) {
                     if(response != lastResponse && !response.getLeftAnswerObject().getDomainInfo().equals(END_ANSWER)) {
                         val step = situationModel.getDomainModel().getObjects().get(response.getLeftAnswerObject().getDomainInfo());
                         setBoolProperty(step, "isEvaluated", true);
@@ -812,8 +822,8 @@ public class ObjectsScopeDTDomain extends DecisionTreeReasoningDomain {
             } else if (question.getQuestionDomainType().equals(OBJECT_VISIBILITY)) {
                 var domainSolvingModel = realDomain.domainObjectVisibilitySolvingModel;
                 DomainModel situationModel = factsToDomainModel(domainSolvingModel, question.getQuestionData().getStatementFacts());
-                ResponseEntity lastResponse = responses.getLast();
-                for (ResponseEntity response : responses) {
+                ResponseData lastResponse = responses.getLast();
+                for (ResponseData response : responses) {
                     if(response != lastResponse && !response.getLeftAnswerObject().getDomainInfo().equals(END_ANSWER)) {
                         val line = situationModel.getDomainModel().getObjects().get(response.getLeftAnswerObject().getDomainInfo());
                         setBoolProperty(line, "isEvaluated", true);
@@ -830,8 +840,8 @@ public class ObjectsScopeDTDomain extends DecisionTreeReasoningDomain {
             } else if(question.getQuestionDomainType().equals(OBJECTS_VISIBILITY)) {
                 var domainSolvingModel = realDomain.domainObjectsVisibilityInLineSolvingModel;
                 DomainModel situationModel = factsToDomainModel(domainSolvingModel, question.getQuestionData().getStatementFacts());
-                ResponseEntity lastResponse = responses.getLast();
-                for (ResponseEntity response : responses) {
+                ResponseData lastResponse = responses.getLast();
+                for (ResponseData response : responses) {
                     if(response != lastResponse) {
                         val context = situationModel.getDomainModel().getObjects().get(response.getLeftAnswerObject().getDomainInfo());
                         setBoolProperty(context, "isEvaluated", true);

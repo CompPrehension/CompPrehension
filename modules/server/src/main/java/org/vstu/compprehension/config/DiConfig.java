@@ -11,6 +11,7 @@ import org.springframework.context.annotation.Lazy;
 import org.springframework.context.annotation.Primary;
 import org.springframework.web.context.annotation.RequestScope;
 import org.springframework.web.context.annotation.SessionScope;
+import org.vstu.compprehension.Service.ExerciseAttemptService;
 import org.vstu.compprehension.service.BktService;
 import org.vstu.compprehension.Service.RoleAssignmentService;
 import org.vstu.compprehension.Service.CourseService;
@@ -60,29 +61,33 @@ public class DiConfig {
     @Bean
     @Singleton
     @ConditionalOnProperty(prefix = "bkt", name = "enabled", havingValue = "true")
-    BktStrategy getBktStrategy(@Autowired BktService bktService, @Autowired DomainFactory domainFactory) {
-        return new BktStrategy(bktService, domainFactory);
+    BktStrategy getBktStrategy(@Autowired BktService bktService, @Autowired DomainFactory domainFactory,
+                               @Autowired ExerciseAttemptService exerciseAttemptService) {
+        return new BktStrategy(bktService, domainFactory, exerciseAttemptService);
     }
 
     @Bean
     @Singleton @Primary
-    GradeConfidenceBaseStrategy getGradeConfidenceBaseStrategy(@Autowired DomainFactory domainFactory) {
-        return new GradeConfidenceBaseStrategy(domainFactory);
+    GradeConfidenceBaseStrategy getGradeConfidenceBaseStrategy(@Autowired DomainFactory domainFactory,
+                                                               @Autowired ExerciseAttemptService exerciseAttemptService) {
+        return new GradeConfidenceBaseStrategy(domainFactory, exerciseAttemptService);
     }
     @Bean
     @Singleton
-    GradeConfidenceBaseStrategy_Manual50Autogen50 getGradeConfidenceBaseStrategy_Manual50Autogen50(@Autowired DomainFactory domainFactory, @Autowired RandomProvider randomProvider) {
-        return new GradeConfidenceBaseStrategy_Manual50Autogen50(domainFactory, randomProvider);
+    GradeConfidenceBaseStrategy_Manual50Autogen50 getGradeConfidenceBaseStrategy_Manual50Autogen50(@Autowired DomainFactory domainFactory, @Autowired RandomProvider randomProvider,
+                                                                                                    @Autowired ExerciseAttemptService exerciseAttemptService) {
+        return new GradeConfidenceBaseStrategy_Manual50Autogen50(domainFactory, randomProvider, exerciseAttemptService);
     }
     @Bean
     @Singleton
-    StaticStrategy getStaticStrategy(@Autowired DomainFactory domainFactory) {
-        return new StaticStrategy(domainFactory);
+    StaticStrategy getStaticStrategy(@Autowired DomainFactory domainFactory,
+                                     @Autowired ExerciseAttemptService exerciseAttemptService) {
+        return new StaticStrategy(domainFactory, exerciseAttemptService);
     }
     @Bean
     @Singleton
-    Strategy getStrategy(@Autowired DomainFactory domainFactory, @Autowired RandomProvider randomProvider) {
-        return new Strategy(domainFactory, randomProvider);
+    Strategy getStrategy(@Autowired DomainFactory domainFactory, @Autowired RandomProvider randomProvider, @Autowired ExerciseAttemptService exerciseAttemptService) {
+        return new Strategy(domainFactory, randomProvider, exerciseAttemptService);
     }
 
     @Bean

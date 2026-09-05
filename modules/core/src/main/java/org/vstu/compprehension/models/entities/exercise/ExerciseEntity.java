@@ -85,7 +85,7 @@ public class ExerciseEntity implements Cloneable {
     @Enumerated(EnumType.ORDINAL)
     private Language language;
 
-    @ManyToOne
+    @ManyToOne(fetch = FetchType.LAZY)
     @JoinColumn(name = "domain_id", nullable = false)
     private DomainEntity domain;
 

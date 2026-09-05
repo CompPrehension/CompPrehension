@@ -47,7 +47,7 @@ public class AnswerObjectEntity {
     @OneToMany(mappedBy = "rightAnswerObject", fetch = FetchType.LAZY)
     private List<ResponseEntity> responsesRight;
 
-    @ManyToOne(cascade = CascadeType.ALL)
+    @ManyToOne(cascade = CascadeType.ALL, fetch = FetchType.LAZY)
     @JoinColumn(name = "question_id")
     private QuestionEntity question;
     

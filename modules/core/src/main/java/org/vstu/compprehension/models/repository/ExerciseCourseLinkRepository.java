@@ -9,6 +9,7 @@ import org.vstu.compprehension.dto.course.CourseDto;
 import org.vstu.compprehension.models.entities.course.ExerciseCourseLinkEntity;
 import org.vstu.compprehension.models.entities.course.ExerciseCourseLinkId;
 
+import java.util.Collection;
 import java.util.List;
 
 @Repository
@@ -28,6 +29,22 @@ public interface ExerciseCourseLinkRepository extends JpaRepository<ExerciseCour
     int createIfAbsent(@Param("exerciseId") long exerciseId, @Param("courseId") long courseId);
 
     List<ExerciseCourseLinkEntity> findAllByExerciseId(long exerciseId);
+
+    /**
+     * Связи курса с перечисленными упражнениями, с уже загруженным упражнением.
+     * <p>
+     * join fetch здесь обязателен: {@link ExerciseCourseLinkEntity#getExercise()} — ленивая
+     * связь, и без него вызывающий код получит прокси, который вне транзакции не
+     * инициализируется.
+     */
+    @Query("""
+            select ecl from ExerciseCourseLinkEntity ecl
+            join fetch ecl.exercise
+            where ecl.course.id = :courseId and ecl.exercise.id in :exerciseIds
+            """)
+    List<ExerciseCourseLinkEntity> findAllByCourseIdAndExerciseIdsFetchingExercise(
+            @Param("courseId") long courseId,
+            @Param("exerciseIds") Collection<Long> exerciseIds);
 
     @Query("""
             select new org.vstu.compprehension.dto.course.CourseDto(

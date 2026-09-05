@@ -1,5 +1,6 @@
 package org.vstu.compprehension.domain;
 
+import org.vstu.compprehension.Service.DomainService;
 import org.vstu.compprehension.models.businesslogic.*;
 import org.vstu.compprehension.models.businesslogic.Tag;
 
@@ -46,6 +47,8 @@ public class ProgrammingLanguageExpressionDTDomainTest extends AbstractIntegrati
     @Autowired
     DomainFactory domainFactory;
     @Autowired
+    private DomainService domainService;
+    @Autowired
     private ExerciseAttemptRepository exerciseAttemptRepository;
     @Autowired
     private ExerciseRepository exerciseRepository;
@@ -64,7 +67,7 @@ public class ProgrammingLanguageExpressionDTDomainTest extends AbstractIntegrati
     public void tearUp() {
         domain = (ProgrammingLanguageExpressionDTDomain) domainFactory.getDomain(domainId);
         exercise = new ExerciseEntity();
-        exercise.setDomain(domain.getDomainEntity());
+        exercise.setDomain(domainService.getDomainEntity(domain.getName()));
         exercise.setBackendId("DTReasoner");
         exercise.setTags("");
         exercise.setOptions(new ExerciseOptionsEntity(null, true,

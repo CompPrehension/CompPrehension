@@ -47,7 +47,7 @@ public class QuestionEntity {
     private Date createdAt;
 
     @ToString.Exclude
-    @ManyToOne
+    @ManyToOne(fetch = FetchType.LAZY)
     @JoinColumn(name = "metadata_id", nullable = true)
     @OnDelete(action = OnDeleteAction.SET_NULL)
     @Nullable
@@ -78,19 +78,19 @@ public class QuestionEntity {
     private @NotNull List<InteractionEntity> interactions = new ArrayList<>(0);
 
     @ToString.Exclude
-    @ManyToOne
+    @ManyToOne(fetch = FetchType.LAZY)
     @JoinColumn(name = "question_request_id", nullable = true)
     private @Nullable QuestionRequestLogEntity questionRequestLog;
 
     @ToString.Exclude
-    @ManyToOne
+    @ManyToOne(fetch = FetchType.LAZY)
     @OnDelete(action = OnDeleteAction.SET_NULL)
     @JoinColumn(name = "exercise_attempt_id", nullable = true)
     @Nullable
     private ExerciseAttemptEntity exerciseAttempt;
 
     @ToString.Exclude
-    @ManyToOne
+    @ManyToOne(fetch = FetchType.LAZY)
     @JoinColumn(name = "domain_name", nullable = false)
     private DomainEntity domainEntity;
 

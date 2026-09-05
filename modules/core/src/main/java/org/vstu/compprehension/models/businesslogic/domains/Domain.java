@@ -5,11 +5,19 @@ import lombok.AllArgsConstructor;
 import lombok.Data;
 import org.jetbrains.annotations.NotNull;
 import org.jetbrains.annotations.Nullable;
+import org.vstu.compprehension.models.data.QuestionMetadataData;
 import org.vstu.compprehension.models.businesslogic.*;
 import org.vstu.compprehension.models.businesslogic.backend.facts.Fact;
+import org.vstu.compprehension.models.data.AnswerObjectData;
+import org.vstu.compprehension.models.data.DomainData;
+import org.vstu.compprehension.models.data.QuestionData;
+import org.vstu.compprehension.models.data.QuestionMetadataData;
+import org.vstu.compprehension.models.data.ResponseData;
 import org.vstu.compprehension.models.entities.*;
 import org.vstu.compprehension.models.entities.EnumData.FeedbackType;
+import org.vstu.compprehension.models.entities.EnumData.InteractionType;
 import org.vstu.compprehension.models.entities.EnumData.Language;
+import org.vstu.compprehension.models.entities.exercise.ExerciseStageEntity;
 import org.vstu.compprehension.utils.HyperText;
 
 import java.util.*;
@@ -26,7 +34,19 @@ public interface Domain {
      */
     @NotNull String getBackendId();
 
-    @NotNull DomainEntity getDomainEntity();
+    /**
+     * Этап упражнения, на котором задан вопрос; пусто, если вопрос вне попытки.
+     * <p>
+     * {@code ExerciseStageEntity} вопреки имени не JPA-сущность, а значение из
+     * json-колонки, поэтому возвращается как есть.
+     */
+    Optional<ExerciseStageEntity> getExerciseStageOf(@NotNull Question question);
+
+    /** Язык, выбранный автором попытки, породившей вопрос. */
+    @NotNull Language getUserLanguageOf(@NotNull Question question);
+
+    /** Описание предметной области: имя, короткое имя, версия, опции. */
+    @NotNull DomainData getDomainData();
 
     /**
      * A temporary method to reuse DB-stored questions between Domains
@@ -44,7 +64,7 @@ public interface Domain {
      * факты в универсальной форме
      * @return - факты в универсальной форме
      */
-    Collection<Fact> responseToFacts(String questionDomainType, List<ResponseEntity> responses, List<AnswerObjectEntity> answerObjects);
+    Collection<Fact> responseToFacts(Question question, List<ResponseData> responses);
 
     /** Get statement facts with common domain definitions for reasoning (schema) added */
     Collection<Fact> getQuestionStatementFactsWithSchema(Question q);
@@ -106,10 +126,11 @@ public interface Domain {
 
     /**
      * Check that violation has supplementary questions
-     * @param violation info about mistake
+     * @param violationLawName name of the violated law
+     * @param interactionType   type of the interaction the violation was detected in, if known
      * @return violation has supplementary questions
      */
-    boolean needSupplementaryQuestion(ViolationEntity violation);
+    boolean needSupplementaryQuestion(String violationLawName, @Nullable InteractionType interactionType);
 
     Collection<Concept> getConcepts();
     @Nullable Concept getConcept(String name);
@@ -151,7 +172,7 @@ public interface Domain {
      * @param userLang question wording language
      * @return generated question
      */
-    @NotNull Question makeQuestion(@NotNull QuestionMetadataEntity metadata,
+    @NotNull Question makeQuestion(@NotNull QuestionMetadataData metadata,
                                    @Nullable ExerciseAttemptEntity exerciseAttemptEntity,
                                    @NotNull List<Tag> tags,
                                    @NotNull Language userLang);
@@ -162,9 +183,9 @@ public interface Domain {
      * @param sourceQuestion source question
      * @return supplementary question
      */
-    SupplementaryResponseGenerationResult makeSupplementaryQuestion(QuestionEntity sourceQuestion, ViolationEntity violation, Language lang);
+    SupplementaryResponseGenerationResult makeSupplementaryQuestion(QuestionData sourceQuestion, ViolationEntity violation, Language lang);
 
-    SupplementaryFeedbackGenerationResult judgeSupplementaryQuestion(Question question, SupplementaryStepEntity supplementaryStep, List<ResponseEntity> responses);
+    SupplementaryFeedbackGenerationResult judgeSupplementaryQuestion(Question question, SupplementaryStepEntity supplementaryStep, List<ResponseData> responses);
 
     /**
      * Get any correct answer at current iteration
@@ -205,7 +226,7 @@ public interface Domain {
      * @param tags Exercise tags
      * @return interpretation of backend's judgement
      */
-    InterpretSentenceResult judgeQuestion(Question question, List<ResponseEntity> responses, List<Tag> tags);
+    InterpretSentenceResult judgeQuestion(Question question, List<ResponseData> responses, List<Tag> tags);
 
     /**
      * Any available correct answer at current iteration
@@ -214,7 +235,7 @@ public interface Domain {
         /**
          * Question
          */
-        public QuestionEntity question;
+        public QuestionData question;
         /**
          * Correct answer objects
          */
@@ -235,8 +256,8 @@ public interface Domain {
         @AllArgsConstructor
         @Data
         public static class Response {
-            private AnswerObjectEntity left;
-            private AnswerObjectEntity right;
+            private AnswerObjectData left;
+            private AnswerObjectData right;
         }
     }
 

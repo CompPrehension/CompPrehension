@@ -14,7 +14,7 @@ public class CorrectLawEntity {
     @GeneratedValue(strategy = GenerationType.IDENTITY)
     private Long id;
 
-    @ManyToOne
+    @ManyToOne(fetch = FetchType.LAZY)
     @JoinColumn(name = "interaction_id", referencedColumnName = "id", nullable = false)
     private InteractionEntity interaction;
 

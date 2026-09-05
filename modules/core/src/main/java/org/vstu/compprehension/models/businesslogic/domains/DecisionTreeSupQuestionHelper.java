@@ -10,6 +10,11 @@ import its.questions.gen.strategies.QuestionAutomata;
 import kotlin.Pair;
 import lombok.val;
 import org.jetbrains.annotations.Nullable;
+import org.vstu.compprehension.Service.mapping.QuestionDataMapper;
+import org.vstu.compprehension.models.data.QuestionInteractionData;
+import org.vstu.compprehension.models.data.QuestionData;
+import org.vstu.compprehension.models.data.AnswerObjectData;
+import org.vstu.compprehension.models.data.ResponseData;
 import org.vstu.compprehension.dto.SupplementaryFeedbackDto;
 import org.vstu.compprehension.dto.feedback.FeedbackDto;
 import org.vstu.compprehension.dto.feedback.FeedbackViolationLawDto;
@@ -32,9 +37,9 @@ import java.util.stream.Collectors;
 
 public class DecisionTreeSupQuestionHelper {
     public DecisionTreeSupQuestionHelper(
-            Domain domain,
+            DomainBase domain,
             DomainSolvingModel domainSolvingModel,
-            Function<InteractionEntity, DomainModel> mainQuestionToModelTransformer
+            Function<QuestionInteractionData, DomainModel> mainQuestionToModelTransformer
     ) {
         this.domain = domain;
         this.domainModel = domainSolvingModel;
@@ -45,9 +50,9 @@ public class DecisionTreeSupQuestionHelper {
     }
 
     public DecisionTreeSupQuestionHelper(
-            Domain domain,
+            DomainBase domain,
             URL domainModelDirectoryURL,
-            Function<InteractionEntity, DomainModel> mainQuestionToModelTransformer
+            Function<QuestionInteractionData, DomainModel> mainQuestionToModelTransformer
     ) {
         this(
                 domain,
@@ -56,22 +61,24 @@ public class DecisionTreeSupQuestionHelper {
         );
     }
 
-    private final Domain domain;
+    private final DomainBase domain;
     final DomainSolvingModel domainModel ;
     private final QuestionAutomata supplementaryAutomata;
-    private final Function<InteractionEntity, DomainModel> mainQuestionToModelTransformer;
+    private final Function<QuestionInteractionData, DomainModel> mainQuestionToModelTransformer;
 
     //DT = Decision Tree
-    public SupplementaryResponseGenerationResult makeSupplementaryQuestion(QuestionEntity mainQuestion, Language userLang) {
+    public SupplementaryResponseGenerationResult makeSupplementaryQuestion(QuestionData mainQuestion, Language userLang) {
         //Получить ошибочную интеракцию с основным вопросом
-        List<InteractionEntity> interactions = mainQuestion.getInteractions();
+        List<QuestionInteractionData> interactions = mainQuestion.getInteractions();
         if (interactions == null || interactions.isEmpty()) {
             return null;
         }
-        InteractionEntity lastInteraction = interactions.get(interactions.size() - 1);
+        QuestionInteractionData lastInteraction = interactions.get(interactions.size() - 1);
         //Получить последний шаг цепочки вспомогательных вопросов
-        List<SupplementaryStepEntity> supplementarySteps = lastInteraction.getRelatedSupplementarySteps();
-        SupplementaryStepEntity latestStep = supplementarySteps.isEmpty() ? null : supplementarySteps.get(supplementarySteps.size() - 1);
+        // Шаги цепочки — записи в БД, у взаимодействия в бизнес-логике их нет:
+        // спрашиваем сервис по идентификатору.
+        SupplementaryStepEntity latestStep =
+                domain.getSupplementaryStepService().findLatestStepOfInteraction(lastInteraction.getId());
 
         //Создать соответствующую ситуации рдф-модель
         DomainModel situationModel = mainQuestionToModelTransformer.apply(lastInteraction);
@@ -101,25 +108,26 @@ public class DecisionTreeSupQuestionHelper {
             res = state.getQuestion(situation);
         }
 
-        SupplementaryStepEntity supplementaryChain = new SupplementaryStepEntity(lastInteraction, situation, null,
+        SupplementaryStepEntity supplementaryChain = new SupplementaryStepEntity(
+                domain.getSupplementaryStepService().getInteraction(lastInteraction.getId()), situation, null,
                 res instanceof  QuestionStateChange
                         ? ((QuestionStateChange) res).getNextState() != null ? ((QuestionStateChange) res).getNextState().getId() : 0
                         : state.getId()
         );
 
-        SupplementaryResponse response = stateResultAsSupplementaryResponse(res, mainQuestion.getExerciseAttempt(), userLang);
-        if(response.getQuestion() != null){
-            supplementaryChain.setSupplementaryQuestion(response.getQuestion().getQuestionData());
-        }
+        // Попытка и связь шага со сгенерированным вопросом проставляются сервисом
+        // после сохранения: у домена нет ни сущности попытки, ни сущности вопроса.
+        SupplementaryResponse response = stateResultAsSupplementaryResponse(res, null, userLang);
         return new SupplementaryResponseGenerationResult(response, supplementaryChain);
     }
 
-    public SupplementaryFeedbackGenerationResult judgeSupplementaryQuestion(SupplementaryStepEntity supplementaryInfo, List<ResponseEntity> responses){
+    public SupplementaryFeedbackGenerationResult judgeSupplementaryQuestion(SupplementaryStepEntity supplementaryInfo, List<ResponseData> responses){
         //получить состояние автомата вопросов, соответствующее данному вопросу
         QuestionState state = supplementaryAutomata.get(supplementaryInfo.getNextStateId());
 
         //Создать соответствующую ситуации рдф-модель
-        InteractionEntity mainQuestionInteraction = supplementaryInfo.getMainQuestionInteraction();
+        QuestionInteractionData mainQuestionInteraction =
+                QuestionDataMapper.toData(supplementaryInfo.getMainQuestionInteraction());
         DomainModel situationModel = mainQuestionToModelTransformer.apply(mainQuestionInteraction);
 
         //создать ситуацию, описывающую контекст задания вспомогательных вопросов
@@ -135,13 +143,13 @@ public class DecisionTreeSupQuestionHelper {
                 }
                 case multiple -> {
                     answers = responses.stream()
-                        .map(ResponseEntity::getLeftAnswerObject)
-                        .map(AnswerObjectEntity::getAnswerId)
+                        .map(ResponseData::getLeftAnswerObject)
+                        .map(AnswerObjectData::getAnswerId)
                         .collect(Collectors.toList());
                 }
                 case matching -> {
                     answers = new ArrayList<>(Collections.nCopies(question.getOptions().size(), 0));
-                    for (ResponseEntity r : responses) {
+                    for (ResponseData r : responses) {
                         answers.set(
                             r.getLeftAnswerObject().getAnswerId(),
                             r.getRightAnswerObject().getAnswerId() - question.getOptions().size()
@@ -161,15 +169,14 @@ public class DecisionTreeSupQuestionHelper {
     }
 
     private org.vstu.compprehension.models.businesslogic.Question transformQuestionFormats(Question q, @Nullable ExerciseAttemptEntity exerciseAttempt, Language language){
-        QuestionEntity generated = new QuestionEntity();
+        QuestionData generated = new QuestionData();
         generated.setQuestionText(q.getText());
         //generated.setQuestionName(String.valueOf(creatorStateId));    //FIXME?
         generated.setQuestionDomainType(domain.getDefaultQuestionType(true));
-        generated.setExerciseAttempt(exerciseAttempt);
         generated.setAnswerObjects(
             q.getOptions().stream()
                 .map(opt -> {
-                    AnswerObjectEntity ans = new AnswerObjectEntity();
+                    AnswerObjectData ans = new AnswerObjectData();
                     ans.setAnswerId(opt.getSecond());
                     ans.setHyperText(opt.getFirst());
                     return ans;
@@ -178,10 +185,10 @@ public class DecisionTreeSupQuestionHelper {
         );
         switch (q.getType()) {
             case matching -> {
-                List<AnswerObjectEntity> answers = generated.getAnswerObjects();
+                List<AnswerObjectData> answers = generated.getAnswerObjects();
                 int matchOptionsShift = answers.size(); //чтобы избежать пересечения с answerId ответов
                 for (Pair<String, Integer> m : q.getMatchingOptions()) {
-                    AnswerObjectEntity ans = new AnswerObjectEntity();
+                    AnswerObjectData ans = new AnswerObjectData();
                     ans.setAnswerId(m.getSecond() + matchOptionsShift);
                     ans.setHyperText(m.getFirst());
                     ans.setRightCol(true);

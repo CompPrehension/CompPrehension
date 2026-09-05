@@ -311,7 +311,7 @@ public class DecisionTreeReasonerBackend
             updateJudgeInterpretationResult(result, backendOutput);
 
             Language lang = getUserLanguageByQuestion(judgedQuestion);
-            var exerciseStage = judgedQuestion.getExerciseStage();
+            var exerciseStage = judgedQuestion.getDomain().getExerciseStageOf(judgedQuestion);
             List<String> deniedSkills = List.of();
             if (exerciseStage.isPresent()) {
                 deniedSkills = exerciseStage.get().getSkills()
@@ -341,15 +341,13 @@ public class DecisionTreeReasonerBackend
         /**
          * Get current user's language from a question
          */
+        /**
+         * Язык пользователя берётся у домена, а не обходом попытки: раньше здесь стояло
+         * {@code question.getQuestionData().getExerciseAttempt().getUser()}, то есть
+         * ленивый обход из бэкенда, да ещё и с перехватом NPE вместо проверки.
+         */
         default Language getUserLanguageByQuestion(Question question){
-            try {
-                return question.getQuestionData()
-                    .getExerciseAttempt()
-                    .getUser()
-                    .getPreferred_language(); // The language currently selected in UI
-            } catch (NullPointerException e) {
-                return Language.RUSSIAN/*ENGLISH*/;  // fallback if it cannot be figured out
-            }
+            return question.getDomain().getUserLanguageOf(question);
         }
 
         /**

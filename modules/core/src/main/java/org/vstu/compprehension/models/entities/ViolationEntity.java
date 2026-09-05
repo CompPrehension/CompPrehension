@@ -21,7 +21,7 @@ public class ViolationEntity {
     @GeneratedValue(strategy = GenerationType.IDENTITY)
     private Long id;
 
-    @ManyToOne
+    @ManyToOne(fetch = FetchType.LAZY)
     @ToString.Exclude
     @JoinColumn(name = "interaction_id", referencedColumnName = "id", nullable = false)
     private InteractionEntity interaction;

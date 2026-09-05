@@ -1,0 +1,2 @@
+Field <org.vstu.compprehension.config.WebConfig.randomSeedSetInterceptor> is annotated with @Autowired in (WebConfig.java:0)
+Field <org.vstu.compprehension.config.logs.DbLogAppenderConfig.env> is annotated with @Autowired in (DbLogAppenderConfig.java:0)

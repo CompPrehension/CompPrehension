@@ -1,8 +1,8 @@
 package org.vstu.compprehension.models.businesslogic;
 
+import org.vstu.compprehension.models.data.ResponseData;
 import org.vstu.compprehension.models.businesslogic.backend.Backend;
 import org.vstu.compprehension.models.businesslogic.domains.Domain;
-import org.vstu.compprehension.models.entities.ResponseEntity;
 
 import java.util.List;
 
@@ -20,7 +20,7 @@ public interface DomainToBackendAdapter<BackendInput, BackendOutput, Back extend
      */
     BackendInput prepareBackendInfoForJudge(
         Question question,
-        List<ResponseEntity> responses,
+        List<ResponseData> responses,
         List<Tag> tags
     );
 

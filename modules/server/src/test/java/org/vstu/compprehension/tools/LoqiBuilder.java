@@ -3,6 +3,9 @@ package org.vstu.compprehension.tools;
 import lombok.SneakyThrows;
 import lombok.extern.log4j.Log4j2;
 import org.testcontainers.shaded.org.bouncycastle.oer.its.etsi102941.CaCertificateRekeyingMessage;
+import org.vstu.compprehension.models.data.AnswerObjectData;
+import org.vstu.compprehension.models.data.ResponseData;
+import org.vstu.compprehension.Service.DomainService;
 import org.vstu.compprehension.models.businesslogic.*;
 
 import org.vstu.compprehension.infrastructure.AbstractIntegrationTest;
@@ -20,9 +23,7 @@ import org.vstu.compprehension.models.businesslogic.domains.DomainFactory;
 import org.vstu.compprehension.models.businesslogic.domains.ProgrammingLanguageExpressionDTDomain;
 import org.vstu.compprehension.models.businesslogic.domains.helpers.meaningtree.MeaningTreeOrderQuestionBuilder;
 import org.vstu.compprehension.models.businesslogic.domains.helpers.meaningtree.MeaningTreeRDFTransformer;
-import org.vstu.compprehension.models.entities.AnswerObjectEntity;
 import org.vstu.compprehension.models.entities.ExerciseAttemptEntity;
-import org.vstu.compprehension.models.entities.ResponseEntity;
 import org.vstu.compprehension.models.entities.exercise.ExerciseEntity;
 import org.vstu.compprehension.models.entities.exercise.ExerciseOptionsEntity;
 import org.vstu.compprehension.models.entities.exercise.ExerciseStageEntity;
@@ -43,6 +44,8 @@ import java.util.List;
 public class LoqiBuilder extends AbstractIntegrationTest {
     @Autowired
     DomainFactory domainFactory;
+    @Autowired
+    private DomainService domainService;
     @Autowired
     private ExerciseAttemptRepository exerciseAttemptRepository;
     @Autowired
@@ -69,7 +72,7 @@ public class LoqiBuilder extends AbstractIntegrationTest {
     public void tearUp() {
         domain = (ProgrammingLanguageExpressionDTDomain) domainFactory.getDomain(domainId);
         exercise = new ExerciseEntity();
-        exercise.setDomain(domain.getDomainEntity());
+        exercise.setDomain(domainService.getDomainEntity(domain.getName()));
         exercise.setBackendId("DTReasoner");
         exercise.setTags("");
         exercise.setOptions(new ExerciseOptionsEntity(null, true,
@@ -106,12 +109,12 @@ public class LoqiBuilder extends AbstractIntegrationTest {
 
         boolean allPassed = true;
         for (Question q : questions) {
-            List<ResponseEntity> responses = new ArrayList<>();
+            List<ResponseData> responses = new ArrayList<>();
             for (Integer response : sequence) {
-                AnswerObjectEntity answerObject = AnswerObjectEntity
+                AnswerObjectData answerObject = AnswerObjectData
                         .builder().answerId(response)
                         .domainInfo("token_" + response).build();
-                responses.add(ResponseEntity.builder().leftAnswerObject(answerObject).rightAnswerObject(answerObject).build());
+                responses.add(ResponseData.builder().leftAnswerObject(answerObject).rightAnswerObject(answerObject).build());
             }
             DomainModel model = MeaningTreeRDFTransformer.questionToDomainModel(
                     domainSolvingModel, q.getStatementFacts(), responses, List.of(domain.getTag(outLangStr))

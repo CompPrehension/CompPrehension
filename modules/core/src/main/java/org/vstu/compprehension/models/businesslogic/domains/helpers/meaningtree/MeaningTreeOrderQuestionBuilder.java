@@ -7,6 +7,9 @@ import org.apache.commons.lang3.tuple.Pair;
 import org.apache.jena.rdf.model.Model;
 import org.jetbrains.annotations.NotNull;
 import org.jetbrains.annotations.Nullable;
+import org.vstu.compprehension.models.entities.QuestionMetadataEntity;
+import org.vstu.compprehension.Service.mapping.QuestionDataMapper;
+import org.vstu.compprehension.models.data.QuestionMetadataData;
 import org.vstu.compprehension.common.MathHelper;
 import org.vstu.compprehension.common.StringHelper;
 import org.vstu.compprehension.common.Utils;
@@ -16,7 +19,6 @@ import org.vstu.compprehension.models.businesslogic.storage.SerializableQuestion
 import org.vstu.compprehension.models.businesslogic.storage.SerializableQuestionTemplate;
 import org.vstu.compprehension.models.entities.BackendFactEntity;
 import org.vstu.compprehension.models.entities.EnumData.QuestionType;
-import org.vstu.compprehension.models.entities.QuestionMetadataEntity;
 import org.vstu.compprehension.models.entities.QuestionOptions.OrderQuestionOptionsEntity;
 import org.vstu.compprehension.models.entities.QuestionOptions.QuestionOptionsEntity;
 import org.vstu.meaningtree.MeaningTree;
@@ -60,7 +62,7 @@ import java.util.stream.Collectors;
 @Log4j2
 public class MeaningTreeOrderQuestionBuilder {
     protected MeaningTree sourceExpressionTree = null; // initial expression in MT format (not mutations)
-    protected QuestionMetadataEntity existingMetadata = null; // existing metadata (if existing question regenerates)
+    protected QuestionMetadataData existingMetadata = null; // existing metadata (if existing question regenerates)
 
     // Additional information for question source
     protected String questionOrigin = null; // source of question (for example, source code repository full name)
@@ -234,8 +236,8 @@ public class MeaningTreeOrderQuestionBuilder {
      * @return new metadata entity
      */
     public static QuestionMetadataEntity metadataRecalculate(ProgrammingLanguageExpressionDTDomain domain,
-                                                                                    QuestionMetadataEntity qMeta) {
-        Question q = qMeta.getQuestionData().getData().toQuestion(domain, qMeta);
+                                                                                    QuestionMetadataData qMeta) {
+        Question q = qMeta.getData().toQuestion(domain, qMeta);
         MeaningTreeOrderQuestionBuilder builder = MeaningTreeOrderQuestionBuilder.newQuestion(domain).existingQuestion(q);
         SupportedLanguage language = MeaningTreeUtils.detectLanguageFromTags(qMeta.getTagBits(), domain);
         var data = builder.generateExpressionDataAccurate(builder.sourceExpressionTree, language);
@@ -397,7 +399,7 @@ public class MeaningTreeOrderQuestionBuilder {
     public List<Question> buildQuestions(SupportedLanguage lang) {
         return build(lang).stream().map(
                 (Pair<SerializableQuestion, SerializableQuestionTemplate.QuestionMetadata> q) ->
-                        q.getKey().toQuestion(domain, q.getValue().toMetadataEntity())).toList();
+                        q.getKey().toQuestion(domain, QuestionDataMapper.toData(q.getValue().toMetadataEntity()))).toList();
     }
 
     private String debugTokensString(MeaningTree mt, SupportedLanguage lang) {
@@ -602,7 +604,7 @@ public class MeaningTreeOrderQuestionBuilder {
         } else if (domain == null) {
             throw new MeaningTreeException("No valid data present for metadata");
         }
-        QuestionMetadataEntity metadata = existingMetadata == null ? null : existingMetadata;
+        QuestionMetadataData metadata = existingMetadata == null ? null : existingMetadata;
         List<String> tags = new ArrayList<>(List.of("basics", "operators", "order", "evaluation", "errors"));
         String languageStr = language.toString();
         tags.add(languageStr.substring(0, 1).toUpperCase() + languageStr.substring(1));

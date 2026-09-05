@@ -3,6 +3,8 @@ package org.vstu.compprehension.utils;
 import lombok.val;
 import org.jetbrains.annotations.NotNull;
 import org.jetbrains.annotations.Nullable;
+import org.vstu.compprehension.models.data.AnswerObjectData;
+import org.vstu.compprehension.models.data.ResponseData;
 import org.vstu.compprehension.dto.*;
 import org.vstu.compprehension.dto.feedback.FeedbackDto;
 import org.vstu.compprehension.dto.feedback.OrderQuestionFeedbackDto;
@@ -60,6 +62,16 @@ public class Mapper {
                 .build();
     }
 
+    /** Ответ студента в виде данных — так их отдаёт вопрос после перехода на QuestionData. */
+    public static @NotNull AnswerDto toDto(@NotNull ResponseData response) {
+        return AnswerDto.builder()
+                .isCreatedByUser(response.getCreatedByInteractionType() == InteractionType.SEND_RESPONSE)
+                .createdByInteraction(response.getCreatedByInteractionId())
+                .answer(new Long[] { (long)response.getLeftAnswerObject().getAnswerId(),
+                        (long)response.getRightAnswerObject().getAnswerId() })
+                .build();
+    }
+
     public static @NotNull AnswerDto toDto(@NotNull ResponseEntity response) {
         return AnswerDto.builder()
                 .isCreatedByUser(response.getCreatedByInteraction().getInteractionType() == InteractionType.SEND_RESPONSE)
@@ -110,7 +122,7 @@ public class Mapper {
                 .map(i -> Mapper.toFeedbackDto(questionObject, null, correctInteractionsCount, interactionsWithErrorsCount, i.getFeedback().getGrade(), i.getFeedback().getInteractionsLeft(), null, i.getViolations().size() == 0, null))
                 .orElse(null);
 
-        val answers = question.getAnswerObjects() != null ? question.getAnswerObjects() : new ArrayList<AnswerObjectEntity>(0);
+        val answers = question.getAnswerObjects() != null ? question.getAnswerObjects() : new ArrayList<AnswerObjectData>(0);
         val answerDtos = answers.stream()
                 .map(a -> new QuestionAnswerDto((long)a.getAnswerId(), a.getHyperText()))
                 .toArray(QuestionAnswerDto[]::new);

@@ -28,7 +28,7 @@ public class CourseEntity {
     @Column(name = "external_course_id", length = 255)
     private String externalCourseId;
 
-    @ManyToOne(optional = false)
+    @ManyToOne(optional = false, fetch = FetchType.LAZY)
     @JoinColumn(name = "education_resource_id", nullable = false)
     private EducationResourceEntity educationResource;
 

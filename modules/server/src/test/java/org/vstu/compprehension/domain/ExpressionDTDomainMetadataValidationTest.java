@@ -1,5 +1,9 @@
 package org.vstu.compprehension.domain;
 
+import org.vstu.compprehension.models.data.ResponseData;
+import org.vstu.compprehension.Service.mapping.QuestionDataMapper;
+import org.vstu.compprehension.models.data.AnswerObjectData;
+import org.vstu.compprehension.Service.DomainService;
 import org.vstu.compprehension.models.businesslogic.*;
 
 import org.vstu.compprehension.infrastructure.AbstractIntegrationTest;
@@ -16,11 +20,9 @@ import org.vstu.compprehension.models.businesslogic.domains.helpers.meaningtree.
 import org.vstu.compprehension.models.businesslogic.domains.helpers.meaningtree.MeaningTreeUtils;
 import org.vstu.compprehension.models.businesslogic.domains.helpers.meaningtree.QuestionDynamicDataAppender;
 import org.vstu.compprehension.models.businesslogic.storage.QuestionBank;
-import org.vstu.compprehension.models.entities.AnswerObjectEntity;
 import org.vstu.compprehension.models.entities.EnumData.Language;
 import org.vstu.compprehension.models.entities.ExerciseAttemptEntity;
 import org.vstu.compprehension.models.entities.QuestionMetadataEntity;
-import org.vstu.compprehension.models.entities.ResponseEntity;
 import org.vstu.compprehension.models.entities.exercise.ExerciseEntity;
 import org.vstu.compprehension.models.entities.exercise.ExerciseOptionsEntity;
 import org.vstu.compprehension.models.entities.exercise.ExerciseStageEntity;
@@ -41,6 +43,8 @@ import java.util.List;
 public class ExpressionDTDomainMetadataValidationTest extends AbstractIntegrationTest {
     @Autowired
     DomainFactory domainFactory;
+    @Autowired
+    private DomainService domainService;
     @Autowired
     private ExerciseAttemptRepository exerciseAttemptRepository;
     @Autowired
@@ -64,7 +68,7 @@ public class ExpressionDTDomainMetadataValidationTest extends AbstractIntegratio
     public void tearUp() {
         domain = (ProgrammingLanguageExpressionDTDomain) domainFactory.getDomain(domainId);
         exercise = new ExerciseEntity();
-        exercise.setDomain(domain.getDomainEntity());
+        exercise.setDomain(domainService.getDomainEntity(domain.getName()));
         exercise.setBackendId("DTReasoner");
         exercise.setTags("");
         exercise.setOptions(new ExerciseOptionsEntity(null, true,
@@ -107,9 +111,9 @@ public class ExpressionDTDomainMetadataValidationTest extends AbstractIntegratio
                 }
                 String qInfo = String.format("[Question metadata id %d, lang %s, text: %s]: ", meta.getId(), lang.toString(), text);
                 System.err.println(qInfo.concat("Processing"));
-                List<AnswerObjectEntity> ansObj = q.getAnswerObjects().stream()
-                        .filter((AnswerObjectEntity obj) -> !obj.getDomainInfo().equals("end_token")).toList();
-                List<List<AnswerObjectEntity>> combinations = generateAllCombinations(ansObj);
+                List<AnswerObjectData> ansObj = q.getAnswerObjects().stream()
+                        .filter((AnswerObjectData obj) -> !obj.getDomainInfo().equals("end_token")).toList();
+                List<List<AnswerObjectData>> combinations = generateAllCombinations(ansObj);
                 HashSet<Skill> allSkills = new HashSet<>();
                 HashSet<NegativeLaw> allLaws = new HashSet<>();
 
@@ -124,7 +128,7 @@ public class ExpressionDTDomainMetadataValidationTest extends AbstractIntegratio
                         (NegativeLaw nLaw) -> nLaw.getLawsImplied() != null && !nLaw.getLawsImplied().isEmpty()).toList());
                 questionLaws.remove(domain.getNegativeLaw("error_base_student_error_early_finish"));
                 boolean foundCorrectSolution = false;
-                for (List<AnswerObjectEntity> ans : combinations) {
+                for (List<AnswerObjectData> ans : combinations) {
                     var result = solve(q, lang, ans);
                     if (result.IterationsLeft == 0) {
                         foundCorrectSolution = true;
@@ -202,11 +206,11 @@ public class ExpressionDTDomainMetadataValidationTest extends AbstractIntegratio
 
     public Question prepareQuestion(QuestionMetadataEntity meta) {
         SupportedLanguage lang = MeaningTreeUtils.detectLanguageFromTags(meta.getTagBits(), domain);
-        Question q = meta.getQuestionData().getData().toQuestion(domain, meta);
+        Question q = meta.getQuestionData().getData().toQuestion(domain, QuestionDataMapper.toData(meta));
         return QuestionDynamicDataAppender.appendQuestionData(q, attempt, qBank, lang, domain, Language.ENGLISH);
     }
 
-    public Domain.InterpretSentenceResult solve(Question q, SupportedLanguage language, List<AnswerObjectEntity> answerSequence) {
+    public Domain.InterpretSentenceResult solve(Question q, SupportedLanguage language, List<AnswerObjectData> answerSequence) {
         String outLangStr = language.toString().substring(0, 1).toUpperCase() + language.toString().substring(1);
 
         // Check metadata
@@ -218,11 +222,11 @@ public class ExpressionDTDomainMetadataValidationTest extends AbstractIntegratio
                 q.getMetadata().getDistinctErrorsCount(),
                 q.getMetadata().getSolutionSteps()));
 
-        List<ResponseEntity> responses = new ArrayList<>();
-        for (AnswerObjectEntity answerObject : answerSequence) {
-            responses.add(ResponseEntity.builder().leftAnswerObject(answerObject).rightAnswerObject(answerObject).build());
+        List<ResponseData> responses = new ArrayList<>();
+        for (AnswerObjectData answerObject : answerSequence) {
+            responses.add(ResponseData.builder().leftAnswerObject(answerObject).rightAnswerObject(answerObject).build());
         }
-        return questionService.judgeQuestion(q, responses, List.of(domain.getTag(outLangStr)));
+        return q.getDomain().judgeQuestion(q, responses, List.of(domain.getTag(outLangStr)));
     }
 
     // Метод для получения всех комбинаций

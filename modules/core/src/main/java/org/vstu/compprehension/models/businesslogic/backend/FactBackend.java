@@ -1,5 +1,6 @@
 package org.vstu.compprehension.models.businesslogic.backend;
 
+import org.vstu.compprehension.models.data.ResponseData;
 import org.vstu.compprehension.models.businesslogic.DomainToBackendAdapter;
 import org.vstu.compprehension.models.businesslogic.Law;
 import org.vstu.compprehension.models.businesslogic.Question;
@@ -10,7 +11,6 @@ import org.vstu.compprehension.models.businesslogic.domains.Domain;
 import org.vstu.compprehension.models.entities.BackendFactEntity;
 import org.vstu.compprehension.models.entities.EnumData.FeedbackType;
 import org.vstu.compprehension.models.entities.EnumData.Language;
-import org.vstu.compprehension.models.entities.ResponseEntity;
 
 import java.util.ArrayList;
 import java.util.Collection;
@@ -108,7 +108,7 @@ public abstract class FactBackend implements Backend<FactBackend.Input, Collecti
         }
 
         @Override
-        public Input prepareBackendInfoForJudge(Question question, List<ResponseEntity> responses, List<Tag> tags) {
+        public Input prepareBackendInfoForJudge(Question question, List<ResponseData> responses, List<Tag> tags) {
             return new Input(
                 new ArrayList<>(domain.getQuestionNegativeLaws(question.getQuestionDomainType(), tags)),
                 question.getStatementFactsWithSchema(),
@@ -129,12 +129,9 @@ public abstract class FactBackend implements Backend<FactBackend.Input, Collecti
         ) {
             Domain.InterpretSentenceResult result = domain.interpretSentence(backendOutput);
 
-            Language lang;
-            try {
-                lang = judgedQuestion.getQuestionData().getExerciseAttempt().getUser().getPreferred_language(); // The language currently selected in UI
-            } catch (NullPointerException e) {
-                lang = Language.RUSSIAN/*ENGLISH*/;  // fallback if it cannot be figured out
-            }
+            // Язык берётся у домена: раньше здесь был ленивый обход попытки,
+            // да ещё и с перехватом NPE вместо проверки.
+            Language lang = judgedQuestion.getDomain().getUserLanguageOf(judgedQuestion);
             result.explanation = domain.makeExplanation(result.violations, FeedbackType.EXPLANATION, lang);
             return result;
         }

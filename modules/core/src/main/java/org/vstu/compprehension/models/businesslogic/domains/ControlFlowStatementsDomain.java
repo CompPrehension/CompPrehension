@@ -16,13 +16,23 @@ import org.apache.jena.vocabulary.RDF;
 import org.jetbrains.annotations.NotNull;
 import org.jetbrains.annotations.Nullable;
 import org.opentest4j.AssertionFailedError;
+import org.vstu.compprehension.Service.SupplementaryStepService;
+import org.vstu.compprehension.Service.mapping.QuestionDataMapper;
+import org.vstu.compprehension.models.data.QuestionMetadataData;
+import org.vstu.compprehension.models.data.QuestionInteractionData;
+import org.vstu.compprehension.models.data.QuestionData;
+import org.vstu.compprehension.models.data.AnswerObjectData;
+import org.vstu.compprehension.models.data.ResponseData;
+import org.vstu.compprehension.Service.ExerciseAttemptService;
 import org.vstu.compprehension.Service.LocalizationService;
+import org.vstu.compprehension.models.data.DomainData;
 import org.vstu.compprehension.models.businesslogic.*;
 import org.vstu.compprehension.models.businesslogic.backend.facts.Fact;
 import org.vstu.compprehension.models.businesslogic.backend.facts.JenaFactList;
 import org.vstu.compprehension.models.businesslogic.domains.helpers.FactsGraph;
 import org.vstu.compprehension.models.businesslogic.storage.QuestionBank;
 import org.vstu.compprehension.models.businesslogic.storage.SerializableQuestion;
+import org.vstu.compprehension.models.entities.EnumData.InteractionType;
 import org.vstu.compprehension.models.entities.*;
 import org.vstu.compprehension.models.entities.EnumData.FeedbackType;
 import org.vstu.compprehension.models.entities.EnumData.Language;
@@ -81,11 +91,13 @@ public class ControlFlowStatementsDomain extends JenaReasoningDomain {
 
     @SneakyThrows
     public ControlFlowStatementsDomain(
-            DomainEntity domainEntity,
+            DomainData domainData,
             LocalizationService localizationService,
             RandomProvider randomProvider,
+            ExerciseAttemptService exerciseAttemptService,
+            SupplementaryStepService supplementaryStepService,
             QuestionBank qMetaStorage) {
-        super(domainEntity, randomProvider);
+        super(domainData, randomProvider, exerciseAttemptService, supplementaryStepService);
 
         this.localizationService = localizationService;
         this.qMetaStorage = qMetaStorage;
@@ -235,7 +247,7 @@ public class ControlFlowStatementsDomain extends JenaReasoningDomain {
         String qType = question.getQuestionData().getQuestionDomainType();
         if (qType.equals(EXECUTION_ORDER_QUESTION_TYPE) || qType.equals("Type" + EXECUTION_ORDER_QUESTION_TYPE)) {
             // gather correct steps
-            List<AnswerObjectEntity> correctTraceAnswersObjects = new ArrayList<>();
+            List<AnswerObjectData> correctTraceAnswersObjects = new ArrayList<>();
             OntModel model = modelToOntModel(getSolutionModelOfQuestion(question));
 
             while (true) {
@@ -245,7 +257,7 @@ public class ControlFlowStatementsDomain extends JenaReasoningDomain {
                     break;
                 result.add(ca);
 
-                AnswerObjectEntity answerObj = ca.answers.get(0).getLeft(); // one answer, anyway
+                AnswerObjectData answerObj = ca.answers.get(0).getLeft(); // one answer, anyway
                 correctTraceAnswersObjects.add(answerObj);
             }
         }
@@ -269,7 +281,7 @@ public class ControlFlowStatementsDomain extends JenaReasoningDomain {
             final List<String> actionKinds = getActionKinds();
 
             // gather correct steps
-            List<AnswerObjectEntity> correctTraceAnswersObjects = new ArrayList<>();
+            List<AnswerObjectData> correctTraceAnswersObjects = new ArrayList<>();
             Model model = getSolutionModelOfQuestion(question);
 
             while (true) {
@@ -278,7 +290,7 @@ public class ControlFlowStatementsDomain extends JenaReasoningDomain {
                 if (ca == null)
                     break;
 
-                AnswerObjectEntity answerObj = ca.answers.get(0).getLeft(); // one answer, anyway
+                AnswerObjectData answerObj = ca.answers.get(0).getLeft(); // one answer, anyway
                 correctTraceAnswersObjects.add(answerObj);
 
                 // format a trace line ...
@@ -310,10 +322,10 @@ public class ControlFlowStatementsDomain extends JenaReasoningDomain {
 
             final List<String> actionKinds = getActionKinds();
 
-            for (ResponseEntity response : responsesForTrace(question.getQuestionData(), true)) {
+            for (ResponseData response : responsesForTrace(question.getQuestionData(), true)) {
 
-                AnswerObjectEntity answerObj = response.getLeftAnswerObject();
-                boolean responseIsWrong = ! response.getInteraction().getViolations().isEmpty();
+                AnswerObjectData answerObj = response.getLeftAnswerObject();
+                boolean responseIsWrong = response.isInteractionHasViolations();
 
                 // format a trace line ...
 
@@ -357,10 +369,10 @@ public class ControlFlowStatementsDomain extends JenaReasoningDomain {
         );
     }
 
-    protected HyperText _formatTraceLine(QuestionEntity question, String textMode, Language lang,
+    protected HyperText _formatTraceLine(QuestionData question, String textMode, Language lang,
                                        HashMap<String, Integer> exprName2ExecTime, FactsGraph qg, List<String> actionKinds,
-                                       AnswerObjectEntity answerObj, boolean lineIsWrong) {
-//        AnswerObjectEntity answerObj = response.getLeftAnswerObject();
+                                       AnswerObjectData answerObj, boolean lineIsWrong) {
+//        AnswerObjectData answerObj = response.getLeftAnswerObject();
         String domainInfo = answerObj.getDomainInfo();
         AnswerDomainInfo info = new AnswerDomainInfo(domainInfo).invoke();
         String line;
@@ -442,9 +454,9 @@ public class ControlFlowStatementsDomain extends JenaReasoningDomain {
         return new HyperText(line);
     }
 
-    protected List<ResponseEntity> responsesForTrace(QuestionEntity q, boolean allowLastIncorrect) {
+    protected List<ResponseData> responsesForTrace(QuestionData q, boolean allowLastIncorrect) {
 
-        List<ResponseEntity> responses = new ArrayList<>();
+        List<ResponseData> responses = new ArrayList<>();
 
         var interactions = q.getInteractions();
 
@@ -453,13 +465,13 @@ public class ControlFlowStatementsDomain extends JenaReasoningDomain {
             // early exit: no further checks for emptiness
         }
 
-//        InteractionEntity lastCorrectInteraction = null;
+//        QuestionInteractionData lastCorrectInteraction = null;
 
         responses = Optional.of(interactions).stream()
                 .flatMap(Collection::stream)
                 .filter(i -> i.getFeedback().getInteractionsLeft() >= 0 && i.getViolations().size() == 0) // select only interactions without mistakes
                 .reduce((first, second) -> second)
-                .map(InteractionEntity::getResponses)
+                .map(QuestionInteractionData::getResponses)
                 .map(ArrayList::new)  // make a shallow copy so that it can be safely modified
                 .orElseGet(ArrayList::new);
 
@@ -495,7 +507,7 @@ public class ControlFlowStatementsDomain extends JenaReasoningDomain {
         Question res;
         var tags = questionRequest.getTargetTags();
 
-        List<QuestionMetadataEntity> foundQuestions = new ArrayList<>();
+        List<QuestionMetadataData> foundQuestions = new ArrayList<>();
         double chance = questionRequest.getChanceToPickAutogeneratedQuestion();
         if (chance == 1.0 ||
                         chance > 0.0 &&
@@ -510,13 +522,15 @@ public class ControlFlowStatementsDomain extends JenaReasoningDomain {
                 int generatorAdditionalQuestionsToGenerate = exerciseOptions.getGeneratorAdditionalQuestionsToGenerate() != null
                         ? exerciseOptions.getGeneratorAdditionalQuestionsToGenerate()
                         : 3;
-                foundQuestions = qMetaStorage.searchQuestions(questionRequest, randomPoolSize, generatorThreshold, generatorAdditionalQuestionsToGenerate).getQuestions();
+                foundQuestions = qMetaStorage.searchQuestions(questionRequest, randomPoolSize, generatorThreshold, generatorAdditionalQuestionsToGenerate).getQuestions()
+                    .stream().map(QuestionDataMapper::toData).toList();
 
                 // search again if nothing found with "TO_COMPLEX"
                 SearchDirections lawsSearchDir = questionRequest.getLawsSearchDirection();
                 if (foundQuestions.isEmpty() && lawsSearchDir == SearchDirections.TO_COMPLEX) {
                     questionRequest.setLawsSearchDirection(SearchDirections.TO_SIMPLE);
-                    foundQuestions = qMetaStorage.searchQuestions(questionRequest, randomPoolSize, generatorThreshold, generatorAdditionalQuestionsToGenerate).getQuestions();
+                    foundQuestions = qMetaStorage.searchQuestions(questionRequest, randomPoolSize, generatorThreshold, generatorAdditionalQuestionsToGenerate).getQuestions()
+                    .stream().map(QuestionDataMapper::toData).toList();
                 }
                 log.info("Autogenerated questions found: {}", foundQuestions.size());
             } catch (Exception e) {
@@ -530,10 +544,10 @@ public class ControlFlowStatementsDomain extends JenaReasoningDomain {
         int qN = foundQuestions.size();
         if (qN > 0) {
             if (qN == 1) {
-                res = foundQuestions.get(0).getQuestionData().getData().toQuestion(this);
+                res = foundQuestions.get(0).getData().toQuestion(this);
             } else {
                 res = foundQuestions.get(randomProvider.getRandom().nextInt(foundQuestions.size()))
-                        .getQuestionData().getData().toQuestion(this);
+                        .getData().toQuestion(this);
             }
         } else {
             // old version - search in domain's in-memory questions (created manually)
@@ -565,7 +579,7 @@ public class ControlFlowStatementsDomain extends JenaReasoningDomain {
 
             //        HashSet<String> deniedQuestions = new HashSet<>();
             //        if (questionRequest.getExerciseAttempt() != null && questionRequest.getExerciseAttempt().getQuestions() != null) {
-            //            for (QuestionEntity q : questionRequest.getExerciseAttempt().getQuestions()) {
+            //            for (QuestionData q : questionRequest.getExerciseAttempt().getQuestions()) {
             //                deniedQuestions.add(q.getQuestionName());
             //            }
             //        }
@@ -611,12 +625,12 @@ public class ControlFlowStatementsDomain extends JenaReasoningDomain {
     }
 
     @Override
-    public @NotNull Question makeQuestion(@NotNull QuestionMetadataEntity metadata,
+    public @NotNull Question makeQuestion(@NotNull QuestionMetadataData metadata,
                                           @Nullable ExerciseAttemptEntity exerciseAttemptEntity,
                                           @NotNull List<Tag> tags,
                                           @NotNull Language userLang) {
-        var questionData = metadata.getQuestionData();
-        return makeQuestion(questionData.getData().toQuestion(this, metadata), exerciseAttemptEntity, tags, userLang);
+        var questionData = metadata.getData();
+        return makeQuestion(questionData.toQuestion(this, metadata), exerciseAttemptEntity, tags, userLang);
     }
 
     @Override
@@ -662,11 +676,10 @@ public class ControlFlowStatementsDomain extends JenaReasoningDomain {
                 .requireContext(false)
                 .build();
 
-        QuestionEntity entity = new QuestionEntity();
-        List<AnswerObjectEntity> answerObjectEntities = new ArrayList<>();
-        for (AnswerObjectEntity answerObjectEntity : q.getAnswerObjects()) {
-            AnswerObjectEntity newAnswerObjectEntity = new AnswerObjectEntity();
-            newAnswerObjectEntity.setQuestion(entity);
+        QuestionData entity = new QuestionData();
+        List<AnswerObjectData> answerObjectEntities = new ArrayList<>();
+        for (AnswerObjectData answerObjectEntity : q.getAnswerObjects()) {
+            AnswerObjectData newAnswerObjectEntity = new AnswerObjectData();
             newAnswerObjectEntity.setAnswerId(answerObjectEntity.getAnswerId());
             newAnswerObjectEntity.setConcept(answerObjectEntity.getConcept());
             String di = answerObjectEntity.getDomainInfo();
@@ -677,15 +690,10 @@ public class ControlFlowStatementsDomain extends JenaReasoningDomain {
             if (ht.length() >= 255)
                 ht = di.substring(0, 253);  // hack
             newAnswerObjectEntity.setHyperText(ht);
-            newAnswerObjectEntity.setQuestion(entity);
             newAnswerObjectEntity.setRightCol(answerObjectEntity.isRightCol());
-            newAnswerObjectEntity.setResponsesLeft(new ArrayList<>());
-            newAnswerObjectEntity.setResponsesRight(new ArrayList<>());
             answerObjectEntities.add(newAnswerObjectEntity);
         }
         entity.setAnswerObjects(answerObjectEntities);
-        entity.setExerciseAttempt(exerciseAttemptEntity);
-        entity.setDomainEntity(getDomainEntity());
         entity.setQuestionDomainType(q.getQuestionDomainType());
         entity.setQuestionName(q.getQuestionName());
         entity.setMetadata(q.getMetadata());
@@ -726,7 +734,7 @@ public class ControlFlowStatementsDomain extends JenaReasoningDomain {
     }
 
     /** show expr values aside the expressions (on the same line) */
-    public QuestionEntity patchQuestionTextShowValuesInline(QuestionEntity question, Language lang) {
+    public QuestionData patchQuestionTextShowValuesInline(QuestionData question, Language lang) {
         String text = question.getQuestionText();
         if (text.contains("<!-- patched: inline expr values -->"))
             return question;
@@ -1077,19 +1085,19 @@ public class ControlFlowStatementsDomain extends JenaReasoningDomain {
     }
 
     @Override
-    public Collection<Fact> responseToFacts(String questionDomainType, List<ResponseEntity> responses, List<AnswerObjectEntity> answerObjects) {
-        // proxy to static method
+    public Collection<Fact> responseToFacts(Question question, List<ResponseData> responses) {
+        var questionDomainType = question.getQuestionDomainType();
         if (questionDomainType.equals(EXECUTION_ORDER_QUESTION_TYPE)) {
 
             // get question
-            QuestionEntity q = answerObjects.get(0).getQuestion();
+            QuestionData q = question.getQuestionData();
 
             // obtain correct only responses (in different way!)
-            List<ResponseEntity> responsesByQ = responsesForTrace(q, false);
+            List<ResponseData> responsesByQ = responsesForTrace(q, false);
 
             // append the latest response to list of correct responses
             if (!responses.isEmpty()) {
-                ResponseEntity latestResponse = responses.get(responses.size() - 1);
+                ResponseData latestResponse = responses.get(responses.size() - 1);
                 responsesByQ.add(latestResponse);
             }
 
@@ -1154,19 +1162,19 @@ public class ControlFlowStatementsDomain extends JenaReasoningDomain {
             HashMap<String, MutablePair<String, Integer>> id2exprName = new HashMap<>();
             String prevActIRI = trace;
 
-            ResponseEntity latestResponse = null;
+            ResponseData latestResponse = null;
             if (!responses.isEmpty()) {
                 latestResponse = responses.get(responses.size() - 1);
             }
 
-            for (ResponseEntity response : responses) {
+            for (ResponseData response : responses) {
 //                if (response.getInteraction() != null && !response.getInteraction().getViolations().isEmpty())
 //                    // skip responses known to be  erroneous
 //                    continue;
                 boolean isLatest = (response == latestResponse);
 
                 trace_index ++;
-                AnswerObjectEntity ao = response.getLeftAnswerObject();
+                AnswerObjectData ao = response.getLeftAnswerObject();
                 String domainInfo = ao.getDomainInfo();
                 ///
                 /// System.out.println("Adding act from response: " + ao.getHyperText());
@@ -1580,17 +1588,17 @@ public class ControlFlowStatementsDomain extends JenaReasoningDomain {
     }
 
     @Override
-    public boolean needSupplementaryQuestion(ViolationEntity violation) {
+    public boolean needSupplementaryQuestion(String violationLawName, InteractionType interactionType) {
         return false;
     }
 
     @Override
-    public SupplementaryResponseGenerationResult makeSupplementaryQuestion(QuestionEntity sourceQuestion, ViolationEntity violation, Language lang) {
+    public SupplementaryResponseGenerationResult makeSupplementaryQuestion(QuestionData sourceQuestion, ViolationEntity violation, Language lang) {
         throw new NotImplementedException();
     }
 
     @Override
-    public SupplementaryFeedbackGenerationResult judgeSupplementaryQuestion(Question question, SupplementaryStepEntity supplementaryStep, List<ResponseEntity> responses) {
+    public SupplementaryFeedbackGenerationResult judgeSupplementaryQuestion(Question question, SupplementaryStepEntity supplementaryStep, List<ResponseData> responses) {
         throw new NotImplementedException();
     }
 
@@ -1741,7 +1749,7 @@ public class ControlFlowStatementsDomain extends JenaReasoningDomain {
                 .flatMap(i -> Optional.ofNullable(i.getResponses())).stream()
                 .flatMap(Collection::stream)
                 // In Ordering Question, we need left answer objects only.
-                .map(ResponseEntity::getLeftAnswerObject)
+                .map(ResponseData::getLeftAnswerObject)
                 .collect(Collectors.toList());
 
         return getNextCorrectAnswer(q, lastCorrectInteractionAnswers);
@@ -1759,12 +1767,12 @@ public class ControlFlowStatementsDomain extends JenaReasoningDomain {
     }
 
     @Nullable
-    protected CorrectAnswer getNextCorrectAnswer(Question q, @Nullable List<AnswerObjectEntity> correctTraceAnswersObjects) {
+    protected CorrectAnswer getNextCorrectAnswer(Question q, @Nullable List<AnswerObjectData> correctTraceAnswersObjects) {
         return getNextCorrectAnswer(q, correctTraceAnswersObjects, modelToOntModel(getSolutionModelOfQuestion(q)));
     }
 
     @Nullable
-    protected CorrectAnswer getNextCorrectAnswer(Question q, @Nullable List<AnswerObjectEntity> correctTraceAnswersObjects, OntModel model) {
+    protected CorrectAnswer getNextCorrectAnswer(Question q, @Nullable List<AnswerObjectData> correctTraceAnswersObjects, OntModel model) {
 
 
         // get shortcuts to properties
@@ -1789,7 +1797,7 @@ public class ControlFlowStatementsDomain extends JenaReasoningDomain {
 
         } else {
             //// = correctTraceAnswers.get(correctTraceAnswers.size() - 1).answers.get(0).getLeft();
-            AnswerObjectEntity lastAnswer = correctTraceAnswersObjects
+            AnswerObjectData lastAnswer = correctTraceAnswersObjects
                     .stream()
                     .reduce((first, second) -> second)
                     .orElse(null);
@@ -1812,7 +1820,7 @@ public class ControlFlowStatementsDomain extends JenaReasoningDomain {
 
             // count current exec_time using given steps
             if (correctTraceAnswersObjects != null) {
-                for (AnswerObjectEntity answerObj : correctTraceAnswersObjects) {
+                for (AnswerObjectData answerObj : correctTraceAnswersObjects) {
                     String domainInfo = answerObj.getDomainInfo();
                     if (domainInfo.startsWith(qaInfoPrefix)) {
                         ++count;
@@ -1820,8 +1828,8 @@ public class ControlFlowStatementsDomain extends JenaReasoningDomain {
                 }
             }
 /*          old variant, using student's progress on the question
-            for (ResponseEntity response : responsesForTrace(q.getQuestionData(), false)) {
-                AnswerObjectEntity answerObj = response.getLeftAnswerObject();
+            for (ResponseData response : responsesForTrace(q.getQuestionData(), false)) {
+                AnswerObjectData answerObj = response.getLeftAnswerObject();
                 String domainInfo = answerObj.getDomainInfo();
                 if (domainInfo.startsWith(qaInfoPrefix)) {
                     ++ count;
@@ -1921,7 +1929,7 @@ public class ControlFlowStatementsDomain extends JenaReasoningDomain {
 
         // find question answer
         ArrayList<CorrectAnswer.Response> answers = new ArrayList<>();  // lastCorrectInteractionAnswers;
-        for (AnswerObjectEntity answer : q.getAnswerObjects()) {
+        for (AnswerObjectData answer : q.getAnswerObjects()) {
             if (answer.getDomainInfo().startsWith(qaInfoPrefix)) {
                 answers.add(new CorrectAnswer.Response(answer, answer));
                  break; // (?)
@@ -1952,21 +1960,21 @@ public class ControlFlowStatementsDomain extends JenaReasoningDomain {
     private Language getUserLanguage(Question q) {
         Language userLang;  // natural language to format explanation
         try {
-            userLang = q.getQuestionData().getExerciseAttempt().getUser().getPreferred_language(); // The language currently selected in UI
+            userLang = getUserLanguageOf(q); // The language currently selected in UI
         } catch (NullPointerException e) {
             userLang = Language.ENGLISH;  // fallback if it cannot be figured out
         }
         return userLang;
     }
 
-    public Set<Set<String>> possibleViolationsByStep(Question q, List<ResponseEntity> completedSteps) {
+    public Set<Set<String>> possibleViolationsByStep(Question q, List<ResponseData> completedSteps) {
 
         // use existing solution steps if given
-        List<AnswerObjectEntity> correctTraceAnswersObjects = new ArrayList<>();
+        List<AnswerObjectData> correctTraceAnswersObjects = new ArrayList<>();
 
         if (completedSteps != null) {
             // extract answerObjects from given responses
-            correctTraceAnswersObjects.addAll(completedSteps.stream().map(ResponseEntity::getLeftAnswerObject).collect(Collectors.toList()));
+            correctTraceAnswersObjects.addAll(completedSteps.stream().map(ResponseData::getLeftAnswerObject).collect(Collectors.toList()));
         }
 
         HashMap<String, Set<String>> map = new HashMap<>();
@@ -2017,7 +2025,7 @@ public class ControlFlowStatementsDomain extends JenaReasoningDomain {
     }
 
     /** return stmt_name or `null` if not an `expr` */
-    private String getActionNameById(QuestionEntity question, int actionId, String actionRdfType) {
+    private String getActionNameById(QuestionData question, int actionId, String actionRdfType) {
         String instance = null;
         for (BackendFactEntity fact : question.getStatementFacts()) {
             if (fact.getVerb().equals("id") && Integer.parseInt(fact.getObject()) == actionId) {
@@ -2048,7 +2056,7 @@ public class ControlFlowStatementsDomain extends JenaReasoningDomain {
      * @param executionTime 1-based number
      * @return
      */
-    public int getValueForExpression(QuestionEntity question, String expressionName, int executionTime) {
+    public int getValueForExpression(QuestionData question, String expressionName, int executionTime) {
         for (BackendFactEntity fact : question.getStatementFacts()) {
             if (fact.getSubject().equals(expressionName) && fact.getVerb().equals("not-for-reasoner:expr_values") && fact.getObjectType().equals("List<boolean>")) {
                 String values = fact.getObject();

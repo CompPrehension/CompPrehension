@@ -20,7 +20,6 @@ import org.vstu.compprehension.models.businesslogic.lti.LtiDeepLinkingContext;
 import org.vstu.compprehension.models.businesslogic.auth.AuthObjects.SystemPermission;
 import org.vstu.compprehension.models.entities.course.CourseEntity;
 import org.vstu.compprehension.models.entities.external_system.EducationResourceEntity;
-import org.vstu.compprehension.models.entities.exercise.ExerciseEntity;
 import org.vstu.compprehension.service.lti.DeepLinkingResponseService;
 
 import java.util.ArrayList;
@@ -63,14 +62,10 @@ public class LtiDeepLinkingController {
             throw new IllegalArgumentException("exerciseIds must not be empty");
         }
 
-        List<DeepLinkingResponseService.DeepLinkItem> items = new ArrayList<>();
-        for (Long exerciseId : body.exerciseIds()) {
-            ExerciseEntity exercise = courseService.findExerciseCourseLink(exerciseId, courseId)
-                    .orElseThrow(() -> new IllegalArgumentException(
-                            String.format("Exercise %s is not in course %s", exerciseId, courseId)))
-                    .getExercise();
-            items.add(new DeepLinkingResponseService.DeepLinkItem(exerciseId, exercise.getName()));
-        }
+        List<DeepLinkingResponseService.DeepLinkItem> items =
+                courseService.getExerciseRefsInCourseOrThrow(courseId, body.exerciseIds()).stream()
+                        .map(ref -> new DeepLinkingResponseService.DeepLinkItem(ref.exerciseId(), ref.name()))
+                        .toList();
 
         String jwt = deepLinkingResponseService.buildSignedResponse(dl, items);
         return new DeepLinkBuildResponse(jwt, dl.deepLinkReturnUrl());

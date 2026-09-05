@@ -20,8 +20,16 @@ import org.apache.jena.rdf.model.ModelFactory;
 import org.apache.jena.riot.RDFDataMgr;
 import org.jetbrains.annotations.NotNull;
 import org.jetbrains.annotations.Nullable;
+import org.vstu.compprehension.Service.SupplementaryStepService;
+import org.vstu.compprehension.models.data.QuestionMetadataData;
+import org.vstu.compprehension.models.data.QuestionInteractionData;
+import org.vstu.compprehension.models.data.QuestionData;
+import org.vstu.compprehension.models.data.AnswerObjectData;
+import org.vstu.compprehension.models.data.ResponseData;
+import org.vstu.compprehension.Service.ExerciseAttemptService;
 import org.vstu.compprehension.Service.LocalizationService;
 import org.vstu.compprehension.dto.ExerciseSkillDto;
+import org.vstu.compprehension.models.data.DomainData;
 import org.vstu.compprehension.models.businesslogic.*;
 import org.vstu.compprehension.models.businesslogic.backend.DecisionTreeReasonerBackend;
 import org.vstu.compprehension.models.businesslogic.backend.facts.Fact;
@@ -57,8 +65,10 @@ public class ProgrammingLanguageExpressionDTDomain extends DecisionTreeReasoning
     private final DecisionTreeInterface backendInterface = new DecisionTreeInterface();
 
     @SneakyThrows
-    public ProgrammingLanguageExpressionDTDomain(DomainEntity domainEntity, ProgrammingLanguageExpressionDomain baseDomain) {
-        super(domainEntity, baseDomain.randomProvider);
+    public ProgrammingLanguageExpressionDTDomain(DomainData domainData, ProgrammingLanguageExpressionDomain baseDomain,
+                                                ExerciseAttemptService exerciseAttemptService,
+                                                SupplementaryStepService supplementaryStepService) {
+        super(domainData, baseDomain.randomProvider, exerciseAttemptService, supplementaryStepService);
 
         this.baseDomain = baseDomain;
         this.localizationService = baseDomain.localizationService;
@@ -202,7 +212,7 @@ public class ProgrammingLanguageExpressionDTDomain extends DecisionTreeReasoning
     }
 
     @Override
-    public @NotNull Question makeQuestion(@NotNull QuestionMetadataEntity metadata,
+    public @NotNull Question makeQuestion(@NotNull QuestionMetadataData metadata,
                                           @Nullable ExerciseAttemptEntity exerciseAttemptEntity,
                                           @NotNull List<Tag> tags,
                                           @NotNull Language userLang) {
@@ -327,7 +337,7 @@ public class ProgrammingLanguageExpressionDTDomain extends DecisionTreeReasoning
         @Override
         public DecisionTreeReasonerBackend.Input prepareBackendInfoForJudge(
                 Question question,
-                List<ResponseEntity> responses,
+                List<ResponseData> responses,
                 List<Tag> tags
         ) {
             var domain = question.getDomain();
@@ -359,7 +369,7 @@ public class ProgrammingLanguageExpressionDTDomain extends DecisionTreeReasoning
             ProgrammingLanguageExpressionsSolver.SolveResult solveResult = solver.solveNoVars(preparedSituation.getDomainModel(),
                     domainSolvingModel.decisionTree("earlyfinish")
             );
-            var exerciseStage = judgedQuestion.getExerciseStage();
+            var exerciseStage = judgedQuestion.getDomain().getExerciseStageOf(judgedQuestion);
             List<String> deniedSkills = List.of();
             if (exerciseStage.isPresent()) {
                 deniedSkills = exerciseStage.get().getSkills()
@@ -622,15 +632,15 @@ public class ProgrammingLanguageExpressionDTDomain extends DecisionTreeReasoning
 
     @Override
     public Collection<Fact> responseToFacts(
-            String questionDomainType,
-            List<ResponseEntity> responses,
-            List<AnswerObjectEntity> answerObjects
+            Question question,
+            List<ResponseData> responses
     ) {
+        var questionDomainType = question.getQuestionDomainType();
         if (questionDomainType.equals(ProgrammingLanguageExpressionDomain.EVALUATION_ORDER_QUESTION_TYPE)) {
             List<Fact> result = new ArrayList<>();
             int pos = 1;
             HashSet<String> used = new HashSet<>();
-            for (ResponseEntity response : responses) {
+            for (ResponseData response : responses) {
                 result.add(new Fact(
                         "owl:NamedIndividual",
                         response.getLeftAnswerObject().getDomainInfo(),
@@ -660,7 +670,8 @@ public class ProgrammingLanguageExpressionDTDomain extends DecisionTreeReasoning
                 pos = pos + 1;
             }
 
-            for (AnswerObjectEntity answerObject : answerObjects) {
+            var answerObjects = question.getAnswerObjects();
+            for (AnswerObjectData answerObject : answerObjects) {
                 if (!used.contains(answerObject.getDomainInfo())) {
                     for (String earlier : used) {
                         result.add(new Fact(
@@ -676,7 +687,7 @@ public class ProgrammingLanguageExpressionDTDomain extends DecisionTreeReasoning
             return result;
         } else if (questionDomainType.equals(ProgrammingLanguageExpressionDomain.DEFINE_TYPE_QUESTION_TYPE)) {
             List<Fact> result = new ArrayList<>();
-            for (ResponseEntity response : responses) {
+            for (ResponseData response : responses) {
                 result.add(new Fact(
                         "owl:NamedIndividual",
                         response.getLeftAnswerObject().getDomainInfo(),
@@ -688,7 +699,7 @@ public class ProgrammingLanguageExpressionDTDomain extends DecisionTreeReasoning
             return result;
         } else if (questionDomainType.equals(ProgrammingLanguageExpressionDomain.OPERANDS_TYPE_QUESTION_TYPE)) {
             List<Fact> result = new ArrayList<>();
-            for (ResponseEntity response : responses) {
+            for (ResponseData response : responses) {
                 result.add(new Fact(
                         "owl:NamedIndividual",
                         response.getLeftAnswerObject().getDomainInfo(),
@@ -700,7 +711,7 @@ public class ProgrammingLanguageExpressionDTDomain extends DecisionTreeReasoning
             return result;
         } else if (questionDomainType.equals(ProgrammingLanguageExpressionDomain.PRECEDENCE_TYPE_QUESTION_TYPE)) {
             List<Fact> result = new ArrayList<>();
-            for (ResponseEntity response : responses) {
+            for (ResponseData response : responses) {
                 result.add(new Fact(
                         "owl:NamedIndividual",
                         response.getLeftAnswerObject().getDomainInfo(),
@@ -777,9 +788,7 @@ public class ProgrammingLanguageExpressionDTDomain extends DecisionTreeReasoning
 
     @Override
     public List<HyperText> getFullSolutionTrace(Question question) {
-        Language lang = Optional.ofNullable(question.getQuestionData().getExerciseAttempt())
-            .map(a -> a.getUser().getPreferred_language())
-            .orElse(Language.RUSSIAN/*ENGLISH*/);
+        Language lang = getUserLanguageOf(question);
         SupportedLanguage plang = MeaningTreeUtils.detectLanguageFromTags(question.getMetadata().getTagBits(), this);
 
         ArrayList<HyperText> result = new ArrayList<>();
@@ -819,16 +828,16 @@ public class ProgrammingLanguageExpressionDTDomain extends DecisionTreeReasoning
                 }
             }
 
-            for (ResponseEntity response : baseDomain.responsesForTrace(question.getQuestionData(), true)) {
+            for (ResponseData response : baseDomain.responsesForTrace(question.getQuestionData(), true)) {
                 // format a trace line ...
-                AnswerObjectEntity answerObj = response.getLeftAnswerObject();
+                AnswerObjectData answerObj = response.getLeftAnswerObject();
                 String domainInfo = answerObj.getDomainInfo();
                 if (domainInfo.equals("end_token")) {
                     continue;
                 }
                 String[] domainInfoComponents = domainInfo.split("_");
                 int tokenIndex = Integer.parseInt(domainInfoComponents[domainInfoComponents.length - 1]);
-                boolean responseIsCorrect = response.getInteraction().getViolations().isEmpty();
+                boolean responseIsCorrect = !response.isInteractionHasViolations();
 
                 // Show the value only if this is a correct choice.
                 Token t = tokens.get(tokenIndex);
@@ -860,21 +869,19 @@ public class ProgrammingLanguageExpressionDTDomain extends DecisionTreeReasoning
 
     @Override
     public CorrectAnswer getAnyNextCorrectAnswer(Question q) {
-        Language lang = Optional.ofNullable(q.getQuestionData().getExerciseAttempt())
-                .map(a -> a.getUser().getPreferred_language())
-                .orElse(Language.RUSSIAN/*ENGLISH*/);
-        var exerciseStage = q.getExerciseStage();
+        Language lang = getUserLanguageOf(q);
+        var exerciseStage = getExerciseStageOf(q);
         List<String> deniedSkills = List.of();
         if (exerciseStage.isPresent()) {
             deniedSkills = exerciseStage.get().getSkills()
                     .stream().map(ExerciseSkillDto::getName).toList();
         }
 
-        Optional<InteractionEntity> lastCorrectInteraction = Optional.ofNullable(q.getQuestionData().getInteractions()).stream()
+        Optional<QuestionInteractionData> lastCorrectInteraction = Optional.ofNullable(q.getQuestionData().getInteractions()).stream()
                 .flatMap(Collection::stream)
                 .filter(i -> i.getFeedback().getInteractionsLeft() >= 0 && i.getViolations().isEmpty())
                 .reduce((first, second) -> second);
-        List<ResponseEntity> responses = new ArrayList<>();
+        List<ResponseData> responses = new ArrayList<>();
         lastCorrectInteraction.ifPresent(interactionEntity -> responses.addAll(interactionEntity.getResponses()));
         List<Integer> responseTokenIndexes = responses.stream()
                 .map(res ->
@@ -903,7 +910,7 @@ public class ProgrammingLanguageExpressionDTDomain extends DecisionTreeReasoning
             var solveRes = found.get().getRight();
             String[] objName = found.get().getLeft().getName().split("_");
             int tokenPos = Integer.parseInt(objName[objName.length - 1]);
-            for (AnswerObjectEntity answer : q.getAnswerObjects()) {
+            for (AnswerObjectData answer : q.getAnswerObjects()) {
                 if (answer.getDomainInfo().endsWith(String.valueOf(tokenPos))) {
 
                     Explanation explanation = DecisionTreeReasonerBackend.collectExplanationsFromTrace(
@@ -926,7 +933,7 @@ public class ProgrammingLanguageExpressionDTDomain extends DecisionTreeReasoning
                 }
             }
         }
-        AnswerObjectEntity everythingIsEvaluated = q.getAnswerObjects().getLast();
+        AnswerObjectData everythingIsEvaluated = q.getAnswerObjects().getLast();
         CorrectAnswer correctAnswer = new CorrectAnswer();
         correctAnswer.answers = List.of(new CorrectAnswer.Response(everythingIsEvaluated, everythingIsEvaluated));
         correctAnswer.question = q.getQuestionData();
@@ -939,7 +946,7 @@ public class ProgrammingLanguageExpressionDTDomain extends DecisionTreeReasoning
         return correctAnswer;
     }
 
-    private int answerObjectToTokenIndex(AnswerObjectEntity ans) {
+    private int answerObjectToTokenIndex(AnswerObjectData ans) {
         String domainInfo = ans.getDomainInfo();
         if (!domainInfo.isEmpty() && Character.isDigit(domainInfo.charAt(domainInfo.length() - 1))) {
             return Integer.parseInt(domainInfo.split("_")[1]);
@@ -950,12 +957,12 @@ public class ProgrammingLanguageExpressionDTDomain extends DecisionTreeReasoning
     //----------Вспомогательные вопросы------------
 
     @Override
-    public boolean needSupplementaryQuestion(ViolationEntity violation) {
-        Skill skill = getSkill(violation.getLawName());
-        return skill != null && violation.getInteraction().getInteractionType() != InteractionType.REQUEST_CORRECT_ANSWER;
+    public boolean needSupplementaryQuestion(String violationLawName, InteractionType interactionType) {
+        Skill skill = getSkill(violationLawName);
+        return skill != null && interactionType != InteractionType.REQUEST_CORRECT_ANSWER;
     }
 
-    private DomainModel mainQuestionToModel(InteractionEntity lastMainQuestionInteraction) {
+    private DomainModel mainQuestionToModel(QuestionInteractionData lastMainQuestionInteraction) {
         List<Tag> tags = lastMainQuestionInteraction.getQuestion().getTags().stream().map(this::getTag).filter(Objects::nonNull).toList();
         return MeaningTreeRDFTransformer.questionToDomainModel(
                 domainSolvingModel,
@@ -971,12 +978,12 @@ public class ProgrammingLanguageExpressionDTDomain extends DecisionTreeReasoning
     );
 
     @Override
-    public SupplementaryResponseGenerationResult makeSupplementaryQuestion(QuestionEntity sourceQuestion, ViolationEntity violation, Language lang) {
+    public SupplementaryResponseGenerationResult makeSupplementaryQuestion(QuestionData sourceQuestion, ViolationEntity violation, Language lang) {
         return dtSupplementaryQuestionHelper.makeSupplementaryQuestion(sourceQuestion, lang);
     }
 
     @Override
-    public SupplementaryFeedbackGenerationResult judgeSupplementaryQuestion(Question question, SupplementaryStepEntity supplementaryStep, List<ResponseEntity> responses) {
+    public SupplementaryFeedbackGenerationResult judgeSupplementaryQuestion(Question question, SupplementaryStepEntity supplementaryStep, List<ResponseData> responses) {
         return dtSupplementaryQuestionHelper.judgeSupplementaryQuestion(supplementaryStep, responses);
     }
 

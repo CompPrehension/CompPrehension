@@ -1,6 +1,7 @@
 package org.vstu.compprehension.tools;
 
 import org.junit.jupiter.api.Disabled;
+import org.vstu.compprehension.Service.mapping.QuestionDataMapper;
 import org.vstu.compprehension.models.businesslogic.*;
 
 import org.vstu.compprehension.infrastructure.AbstractIntegrationTest;
@@ -77,7 +78,7 @@ public class ExpressionDTReclassificationTask extends AbstractIntegrationTest {
             System.err.printf("Processing metadata id=%d%n", meta.getId());
             QuestionMetadataEntity obj;
             try {
-                obj = MeaningTreeOrderQuestionBuilder.metadataRecalculate(domain, meta);
+                obj = MeaningTreeOrderQuestionBuilder.metadataRecalculate(domain, QuestionDataMapper.toData(meta));
             } catch (Exception e) {
                 e.printStackTrace();
                 obj = null;

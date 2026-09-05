@@ -20,21 +20,21 @@ public class ResponseEntity {
     @Enumerated(EnumType.ORDINAL)
     private SpecValue specValue;
 
-    @ManyToOne
+    @ManyToOne(fetch = FetchType.LAZY)
     @JoinColumn(name = "leftObject_id")
     private AnswerObjectEntity leftAnswerObject;
 
-    @ManyToOne
+    @ManyToOne(fetch = FetchType.LAZY)
     @JoinColumn(name = "rightObject_id")
     private AnswerObjectEntity rightAnswerObject;
 
     @ToString.Exclude
-    @ManyToOne(cascade = CascadeType.ALL)
+    @ManyToOne(cascade = CascadeType.ALL, fetch = FetchType.LAZY)
     @JoinColumn(name = "created_by_interaction_id")
     private InteractionEntity createdByInteraction;
 
     @ToString.Exclude
-    @ManyToOne(cascade = CascadeType.ALL)
+    @ManyToOne(cascade = CascadeType.ALL, fetch = FetchType.LAZY)
     @JoinColumn(name = "interaction_id")
     private InteractionEntity interaction;
 }

@@ -23,19 +23,19 @@ public class SurveyAnswerEntity {
 
     @Id
     @ToString.Exclude
-    @ManyToOne
+    @ManyToOne(fetch = FetchType.LAZY)
     @JoinColumn(name = "survey_question_id")
     private @NotNull SurveyQuestionEntity surveyQuestion;
 
     @Id
     @ToString.Exclude
-    @ManyToOne
+    @ManyToOne(fetch = FetchType.LAZY)
     @JoinColumn(name = "question_id")
     private @NotNull QuestionEntity question;
 
     @Id
     @ToString.Exclude
-    @ManyToOne
+    @ManyToOne(fetch = FetchType.LAZY)
     @JoinColumn(name = "user_id")
     private @NotNull UserEntity user;
 

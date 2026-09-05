@@ -36,6 +36,11 @@ public class InteractionEntity {
     @Column(name = "created_at", nullable = false, updatable = false)
     private Date createdAt;
 
+    // Единственная связь, намеренно оставленная EAGER. @NotFound(IGNORE) в Hibernate
+    // несовместим с ленивой загрузкой: чтобы решить, подставлять прокси или null,
+    // Hibernate обязан сходить в БД, поэтому fetch = LAZY здесь молча игнорируется.
+    // Написать LAZY означало бы соврать читателю. Настоящее решение — убрать @NotFound
+    // и починить висячие ссылки на feedback в данных; это отдельная задача.
     @OneToOne(cascade = CascadeType.ALL, fetch = FetchType.EAGER)
     @JoinColumn(name = "feedback_id", referencedColumnName = "id")
     @NotFound(action = NotFoundAction.IGNORE)
@@ -62,7 +67,7 @@ public class InteractionEntity {
     private List<SupplementaryStepEntity> relatedSupplementarySteps;
 
     @ToString.Exclude
-    @ManyToOne
+    @ManyToOne(fetch = FetchType.LAZY)
     @JoinColumn(name = "question_id", nullable = false)
     private QuestionEntity question;
 

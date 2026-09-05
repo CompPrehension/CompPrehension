@@ -12,6 +12,7 @@ import org.jetbrains.annotations.Nullable;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Propagation;
 import org.springframework.transaction.annotation.Transactional;
+import org.vstu.compprehension.models.entities.AnswerObjectEntity;
 import org.vstu.compprehension.common.Utils;
 import org.vstu.compprehension.dto.*;
 import org.vstu.compprehension.dto.feedback.FeedbackDto;
@@ -105,8 +106,12 @@ public class FrontendService {
         ch.hit("judgeQuestion done");
 
         // add interaction
-        val existingInteractions = question.getQuestionData().getInteractions();
-        val ie = new InteractionEntity(SEND_RESPONSE, question.getQuestionData(), judgeResult.violations, judgeResult.correctlyAppliedLaws, responses, newResponses);
+        // Взаимодействия — это запись в БД, поэтому ведутся на сущности: вопрос как
+        // объект домена (Question) их больше не хранит. В той же транзакции повторная
+        // загрузка обслуживается кэшем первого уровня, без запроса.
+        val questionEntity = questionService.getQuestionEntity(questionId);
+        val existingInteractions = questionEntity.getInteractions();
+        val ie = new InteractionEntity(SEND_RESPONSE, questionEntity, judgeResult.violations, judgeResult.correctlyAppliedLaws, responses, newResponses);
         existingInteractions.add(ie);
         val correctInteractionsCount = (int)existingInteractions.stream().filter(i -> i.getViolations().isEmpty()).count();
         // ch.hit("add interaction ("+correctInteractionsCount+")");
@@ -118,10 +123,10 @@ public class FrontendService {
         var strategyAttemptDecision = Decision.CONTINUE;
         if (attempt != null) {
             var strategy = strategyFactory.getStrategy(attempt.getExercise().getStrategyId());
-            grade = strategy.grade(attempt, judgeResult);
+            grade = strategy.grade(attempt.getId(), judgeResult);
             ch.hit("graded with strategy ("+grade+")");
 
-            strategyAttemptDecision = strategy.decide(attempt);
+            strategyAttemptDecision = strategy.decide(attempt.getId());
         }
         feedback.setGrade(grade);
         feedbackRepository.save(feedback);
@@ -135,7 +140,7 @@ public class FrontendService {
         val locale = getQuestionLanguage(attempt);
         // calculate error message
         val violations = judgeResult.violations.stream()
-                .map(v -> FeedbackViolationLawDto.builder().name(v.getLawName()).canCreateSupplementaryQuestion(domain.needSupplementaryQuestion(v)).build())
+                .map(v -> FeedbackViolationLawDto.builder().name(v.getLawName()).canCreateSupplementaryQuestion(domain.needSupplementaryQuestion(v.getLawName(), v.getInteraction() == null ? null : v.getInteraction().getInteractionType())).build())
                 .filter(Objects::nonNull).toList();
         Collection<Explanation> explanationSource = judgeResult.explanation.getRawMessage().isEmpty() ? judgeResult.explanation.getChildren() : List.of(judgeResult.explanation);
         val errors = explanationSource.stream().map(e -> Pair.of(
@@ -240,13 +245,21 @@ public class FrontendService {
     public @NotNull FeedbackDto generateNextCorrectAnswer(@NotNull Long questionId) {
         // get next correct answer
         val question = questionService.getSolvedQuestion(questionId);
+        val questionEntity = questionService.getQuestionEntity(questionId);
         val correctAnswer = questionService.getNextCorrectAnswer(question);
+        // Домен отдаёт варианты ответа данными, а ответ студента пишется в БД — поэтому
+        // здесь варианты сопоставляются с сущностями по answerId.
+        val answerObjectsById = questionEntity.getAnswerObjects().stream()
+                .collect(Collectors.toMap(AnswerObjectEntity::getAnswerId, a -> a, (a, b) -> a));
         val correctAnswerResponses = correctAnswer.answers.stream()
-                .map(x -> ResponseEntity.builder().leftAnswerObject(x.getLeft()).rightAnswerObject(x.getRight()).build())
+                .map(x -> ResponseEntity.builder()
+                        .leftAnswerObject(answerObjectsById.get(x.getLeft().getAnswerId()))
+                        .rightAnswerObject(answerObjectsById.get(x.getRight().getAnswerId()))
+                        .build())
                 .collect(Collectors.toList());
 
         // get last correct interaction responses
-        val lastCorrectInteraction = question.getQuestionData().getInteractions().stream()
+        val lastCorrectInteraction = questionEntity.getInteractions().stream()
                 .filter(i -> i.getFeedback().getInteractionsLeft() >= 0 && i.getViolations().isEmpty())
                 .reduce((first, second) -> second);
         val lastCorrectInteractionResponses = lastCorrectInteraction
@@ -258,14 +271,14 @@ public class FrontendService {
         //responseRepository.saveAll(responses);
 
         // evaluate new answer
-        val attempt = question.getQuestionData().getExerciseAttempt();
+        val attempt = questionEntity.getExerciseAttempt();
         val tags = question.getTags();
         val newResponses = responses.stream().filter(x -> x.getCreatedByInteraction() == null).collect(Collectors.toList());
         val judgeResult = questionService.judgeQuestion(question, responses, tags);
 
         // add interaction
-        var existingInteractions = question.getQuestionData().getInteractions();
-        val ie = new InteractionEntity(REQUEST_CORRECT_ANSWER, question.getQuestionData(), judgeResult.violations, judgeResult.correctlyAppliedLaws, responses, newResponses);
+        var existingInteractions = questionEntity.getInteractions();
+        val ie = new InteractionEntity(REQUEST_CORRECT_ANSWER, questionEntity, judgeResult.violations, judgeResult.correctlyAppliedLaws, responses, newResponses);
         existingInteractions.add(ie);
         val correctInteractionsCount = (int)existingInteractions.stream().filter(i -> i.getViolations().isEmpty()).count();
 
@@ -276,9 +289,9 @@ public class FrontendService {
         var strategyAttemptDecision = Decision.CONTINUE;
         if (attempt != null) {
             var strategy = strategyFactory.getStrategy(attempt.getExercise().getStrategyId());
-            grade = strategy.grade(attempt, judgeResult);
+            grade = strategy.grade(attempt.getId(), judgeResult);
 
-            strategyAttemptDecision = strategy.decide(attempt);
+            strategyAttemptDecision = strategy.decide(attempt.getId());
         }
         feedback.setGrade(grade);
         feedbackRepository.save(feedback);

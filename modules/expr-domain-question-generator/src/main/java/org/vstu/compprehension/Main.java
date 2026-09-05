@@ -4,6 +4,7 @@ import com.beust.jcommander.JCommander;
 import com.beust.jcommander.Parameter;
 import com.beust.jcommander.ParameterException;
 import lombok.extern.log4j.Log4j2;
+import org.vstu.compprehension.models.data.DomainData;
 import org.vstu.compprehension.adapters.*;
 import org.vstu.compprehension.models.businesslogic.domains.ProgrammingLanguageExpressionDTDomain;
 import org.vstu.compprehension.models.businesslogic.domains.ProgrammingLanguageExpressionDomain;
@@ -52,12 +53,18 @@ public class Main {
         //ProgrammingLanguageExpressionDomain domain = (ProgrammingLanguageExpressionDomain) df.getDomain("ProgrammingLanguageExpressionDomain");
 
         var domainEntity = new FakeDomainRepository().findById("").orElseThrow();
+        var domainData = new DomainData(domainEntity.getName(), domainEntity.getShortName(),
+                domainEntity.getVersion(), domainEntity.getOptions());
         var domain = new ProgrammingLanguageExpressionDTDomain(
-                domainEntity,
+                domainData,
                 new ProgrammingLanguageExpressionDomain(
-                        domainEntity,
+                        domainData,
                         new FakeLocalizationService(),
                         new FakeRandomProvider(),
+                        // генератор работает вне попыток: ни этап упражнения, ни язык
+                        // пользователя, ни цепочки вспомогательных вопросов ему не нужны
+                        null,
+                        null,
                         new QuestionBank(
                                 new FakeQuestionMetadataRepository(),
                                 new FakeQuestionDataRepository(),
@@ -65,7 +72,9 @@ public class Main {
                                 null,
                                 new TransactionScopeFactoryStub()
                         )
-                )
+                ),
+                null,
+                null
         );
 
         // Find files in local directory

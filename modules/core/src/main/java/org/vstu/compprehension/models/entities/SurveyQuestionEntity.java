@@ -33,7 +33,7 @@ public class SurveyQuestionEntity {
     @Column(name = "options_json", columnDefinition = "json", nullable = false)
     private Object options;
 
-    @ManyToOne
+    @ManyToOne(fetch = FetchType.LAZY)
     @JoinColumn(name = "survey_id")
     @ToString.Exclude
     private SurveyEntity survey;

@@ -6,14 +6,19 @@ import lombok.extern.log4j.Log4j2;
 import org.jetbrains.annotations.NotNull;
 import org.jetbrains.annotations.Nullable;
 import org.springframework.web.context.annotation.RequestScope;
+import org.vstu.compprehension.models.businesslogic.Question;
+import org.vstu.compprehension.models.entities.exercise.ExerciseStageEntity;
+import org.vstu.compprehension.Service.ExerciseAttemptService;
+import org.vstu.compprehension.Service.SupplementaryStepService;
 import org.vstu.compprehension.models.businesslogic.*;
-import org.vstu.compprehension.models.entities.DomainEntity;
+import org.vstu.compprehension.models.data.DomainData;
 import org.vstu.compprehension.models.entities.DomainOptionsEntity;
 import org.vstu.compprehension.models.entities.EnumData.Language;
 import org.vstu.compprehension.utils.RandomProvider;
 
 import java.util.*;
 import java.util.stream.Collectors;
+import java.util.Optional;
 import java.util.stream.Stream;
 
 @Log4j2
@@ -30,23 +35,61 @@ public abstract class DomainBase implements Domain {
     @Getter
     protected final RandomProvider randomProvider;
     @Getter
-    private final DomainEntity domainEntity;
+    private final DomainData domainData;
 
-    protected DomainBase(DomainEntity domainEntity, RandomProvider randomProvider) {
-        this.domainEntity = domainEntity;
+    /**
+     * Контекст попытки для вопроса. Домены сами по попытке не ходят: связи ленивые,
+     * а обход ради одного этапа поднимал все вопросы попытки.
+     */
+    private final ExerciseAttemptService exerciseAttemptService;
+
+    @Getter
+    private final SupplementaryStepService supplementaryStepService;
+
+    protected DomainBase(DomainData domainData, RandomProvider randomProvider,
+                         ExerciseAttemptService exerciseAttemptService,
+                         SupplementaryStepService supplementaryStepService) {
+        this.domainData = domainData;
         this.randomProvider = randomProvider;
+        this.exerciseAttemptService = exerciseAttemptService;
+        this.supplementaryStepService = supplementaryStepService;
+    }
+
+    /** Есть ли у вопроса попытка, в рамках которой он задан. */
+    protected boolean isQuestionInAttempt(@Nullable Long questionId) {
+        return questionId != null && exerciseAttemptService.findAttemptIdOfQuestion(questionId).isPresent();
+    }
+
+    /** Включён ли для упражнения вопроса режим вспомогательных вопросов на дереве решений. */
+    protected boolean prefersDecisionTreeSupplementary(@Nullable Long questionId) {
+        return questionId == null
+                || exerciseAttemptService.prefersDecisionTreeSupplementary(questionId);
+    }
+
+    @Override
+    public Optional<ExerciseStageEntity> getExerciseStageOf(@NotNull Question question) {
+        var questionId = question.getQuestionData().getId();
+        return questionId == null ? Optional.empty()
+                : exerciseAttemptService.findStageForQuestion(questionId);
+    }
+
+    @Override
+    public @NotNull Language getUserLanguageOf(@NotNull Question question) {
+        var questionId = question.getQuestionData().getId();
+        return questionId == null ? Language.RUSSIAN
+                : exerciseAttemptService.findUserLanguageForQuestion(questionId);
     }
 
     public @NotNull String getDomainId() {
-        return domainEntity.getName();
+        return domainData.name();
     }
     @NotNull
     public String getName() {
-        return domainEntity.getName();
+        return domainData.name();
     }
     @NotNull
     public String getShortName() {
-        return domainEntity.getShortName();  // same as name by default
+        return domainData.shortName();  // same as name by default
     }
 
     /**
@@ -58,11 +101,7 @@ public abstract class DomainBase implements Domain {
     public String getShortnameForQuestionSearch(){
         return getShortName();
     }
-    public DomainOptionsEntity getOptions() { return domainEntity.getOptions(); }
-
-    public DomainEntity getEntity() {
-        return domainEntity;
-    }
+    public DomainOptionsEntity getOptions() { return domainData.options(); }
 
     public @Nullable Tag getTag(@NotNull String name) {
         return getTags().get(name);

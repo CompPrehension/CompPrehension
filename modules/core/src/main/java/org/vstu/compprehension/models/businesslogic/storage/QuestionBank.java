@@ -5,6 +5,7 @@ import lombok.extern.log4j.Log4j2;
 import lombok.val;
 import org.jetbrains.annotations.NotNull;
 import org.jetbrains.annotations.Nullable;
+import org.vstu.compprehension.models.entities.QuestionMetadataEntity;
 import org.vstu.compprehension.dto.QuestionBankSearchStatsDto;
 import org.vstu.compprehension.models.businesslogic.QuestionBankSearchRequest;
 import org.vstu.compprehension.models.businesslogic.QuestionRequest;
@@ -318,5 +319,18 @@ public class QuestionBank {
 
     public QuestionDataEntity saveQuestionDataEntity(QuestionDataEntity questionData) {
         return questionDataRepository.save(questionData);
+    }
+
+    /**
+     * Привязывает сериализованный вопрос к строке метаданных банка.
+     * <p>
+     * Нужно потому, что вопрос в бизнес-логике больше не держит сущность метаданных:
+     * у него есть только их данные, а связь пишется здесь, по идентификатору.
+     */
+    public void attachQuestionData(@NotNull Integer metadataId, @NotNull QuestionDataEntity dataEntity) {
+        questionMetadataRepository.findById(metadataId).ifPresent(metadata -> {
+            metadata.setQuestionData(dataEntity);
+            questionMetadataRepository.save(metadata);
+        });
     }
 }

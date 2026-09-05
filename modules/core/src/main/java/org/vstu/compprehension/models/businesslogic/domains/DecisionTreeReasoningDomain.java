@@ -2,18 +2,23 @@ package org.vstu.compprehension.models.businesslogic.domains;
 
 import its.model.DomainSolvingModel;
 import org.jetbrains.annotations.NotNull;
+import org.vstu.compprehension.Service.SupplementaryStepService;
+import org.vstu.compprehension.models.data.ResponseData;
+import org.vstu.compprehension.Service.ExerciseAttemptService;
+import org.vstu.compprehension.models.data.DomainData;
 import org.vstu.compprehension.models.businesslogic.Question;
 import org.vstu.compprehension.models.businesslogic.Tag;
 import org.vstu.compprehension.models.businesslogic.backend.DecisionTreeReasonerBackend;
 import org.vstu.compprehension.models.entities.DomainEntity;
-import org.vstu.compprehension.models.entities.ResponseEntity;
 import org.vstu.compprehension.utils.RandomProvider;
 
 import java.util.List;
 
 public abstract class DecisionTreeReasoningDomain extends DomainBase {
-    protected DecisionTreeReasoningDomain(DomainEntity domainEntity, RandomProvider randomProvider) {
-        super(domainEntity, randomProvider);
+    protected DecisionTreeReasoningDomain(DomainData domainData, RandomProvider randomProvider,
+            ExerciseAttemptService exerciseAttemptService,
+            SupplementaryStepService supplementaryStepService) {
+        super(domainData, randomProvider, exerciseAttemptService, supplementaryStepService);
     }
 
     public abstract List<DomainSolvingModel> getDomainSolvingModels();
@@ -35,7 +40,7 @@ public abstract class DecisionTreeReasoningDomain extends DomainBase {
         return question;
     }
 
-    public InterpretSentenceResult judgeQuestion(Question question, List<ResponseEntity> responses, List<Tag> tags) {
+    public InterpretSentenceResult judgeQuestion(Question question, List<ResponseData> responses, List<Tag> tags) {
         var backend = new DecisionTreeReasonerBackend();
         var backendInterface = getBackendInterface();
         var output = backend.judge(backendInterface.prepareBackendInfoForJudge(question, responses, tags));

@@ -6,24 +6,35 @@ import org.jetbrains.annotations.NotNull;
 import org.jetbrains.annotations.Nullable;
 import org.vstu.compprehension.models.businesslogic.backend.facts.Fact;
 import org.vstu.compprehension.models.businesslogic.domains.Domain;
-import org.vstu.compprehension.models.entities.*;
+import org.vstu.compprehension.models.data.AnswerObjectData;
+import org.vstu.compprehension.models.data.QuestionData;
+import org.vstu.compprehension.models.data.QuestionMetadataData;
+import org.vstu.compprehension.models.data.ResponseData;
+import org.vstu.compprehension.models.entities.BackendFactEntity;
 import org.vstu.compprehension.models.entities.EnumData.QuestionType;
-import org.vstu.compprehension.models.entities.exercise.ExerciseStageEntity;
 import org.vstu.compprehension.utils.HyperText;
 
 import java.util.*;
 
 public class Question {
+    /**
+     * Данные вопроса.
+     * <p>
+     * Раньше здесь лежала {@code QuestionData}, и вместе с ней в домены протекали
+     * Hibernate и ленивые связи. Теперь это отсоединённый изменяемый контейнер: домены
+     * дописывают в него варианты ответов и факты решения, как и раньше, а перенос
+     * в сущность делает сервис через {@code QuestionDataMapper}.
+     */
     @Getter
     @NotNull
-    protected QuestionEntity questionData;
+    protected QuestionData questionData;
     
     @Getter @Setter
     protected List<String> concepts;
     @Setter
     protected List<String> negativeLaws;
 
-    public @Nullable QuestionMetadataEntity getMetadata() {
+    public @Nullable QuestionMetadataData getMetadata() {
         return questionData.getMetadata();
     }
 
@@ -31,7 +42,7 @@ public class Question {
     @NotNull 
     final protected Domain domain;
     
-    public Question(@NotNull QuestionEntity questionData, @NotNull Domain domain) {
+    public Question(@NotNull QuestionData questionData, @NotNull Domain domain) {
         this.questionData = questionData;
         this.domain = domain;
         concepts = new ArrayList<>();
@@ -53,17 +64,17 @@ public class Question {
                 .toList();
     }
 
-    public void addAnswerObject(AnswerObjectEntity newObject) {
+    public void addAnswerObject(AnswerObjectData newObject) {
         
         questionData.getAnswerObjects().add(newObject);
     }
 
-    public void setAnswerObjects(List<AnswerObjectEntity> objects) {
+    public void setAnswerObjects(List<AnswerObjectData> objects) {
 
         questionData.setAnswerObjects(objects);
     }
 
-    public List<AnswerObjectEntity> getAnswerObjects() {
+    public List<AnswerObjectData> getAnswerObjects() {
         
         return questionData.getAnswerObjects();
     }
@@ -78,13 +89,6 @@ public class Question {
         return questionData.getQuestionName();
     }
 
-    public @Nullable QuestionRequestLogEntity getQuestionRequest() {
-        return questionData.getQuestionRequestLog();
-    }
-    public void setQuestionRequest(QuestionRequestLogEntity qrLog) {
-        questionData.setQuestionRequestLog(qrLog);
-    }
-
     /** Make an identifier of the question template that is unique in system scope. Intended to be used as a solution key in reasoner's cache for this question and questions having the same solution (i.e. generated from the same template).
      * @return name of the question template or question itself prefixed with domain short name
      */
@@ -92,13 +96,13 @@ public class Question {
         String domainPrefix = domain.getShortName();
 
         return domainPrefix + Optional.ofNullable(getMetadata())
-                .map(QuestionMetadataEntity::getTemplateId)
+                .map(QuestionMetadataData::getTemplateId)
                 .filter(Objects::nonNull)
                 .map(tId -> ":template-id:" + tId)
                 .orElse(":question:"+getQuestionName());
     }
 
-    public AnswerObjectEntity getAnswerObject(int answerId) {
+    public AnswerObjectData getAnswerObject(int answerId) {
         return questionData.getAnswerObjects().stream()
                 .filter(a -> a.getAnswerId() == answerId)
                 .findFirst()
@@ -127,8 +131,8 @@ public class Question {
      *
      * @return - факты в универсальной форме
      */
-    public Collection<Fact> responseToFacts(List<ResponseEntity> responses) {
-        return domain.responseToFacts(questionData.getQuestionDomainType(), responses, questionData.getAnswerObjects());
+    public Collection<Fact> responseToFacts(List<ResponseData> responses) {
+        return domain.responseToFacts(this, responses);
     }
 
     public List<BackendFactEntity> getStatementFacts() {
@@ -150,21 +154,5 @@ public class Question {
 
     public boolean isSupplementary() {
         return this.questionData.getQuestionDomainType().contains("Supplementary");
-    }
-
-    public Optional<ExerciseStageEntity> getExerciseStage() {
-        var exerciseAttempt = questionData.getExerciseAttempt();
-        if (exerciseAttempt == null)
-            return Optional.empty();
-
-        int qNum = exerciseAttempt.getQuestions().indexOf(questionData) + 1;
-        var stages = exerciseAttempt.getExercise().getStages();
-        int qPassed = 0;
-        ExerciseStageEntity stage = stages.getFirst();
-        for (int i = 0; i < stages.size() && qPassed < qNum; i++) {
-            stage = stages.get(i);
-            qPassed += stage.getNumberOfQuestions();
-        }
-        return Optional.ofNullable(stage);
     }
 }
