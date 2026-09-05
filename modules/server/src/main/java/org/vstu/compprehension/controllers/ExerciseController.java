@@ -60,16 +60,15 @@ public class ExerciseController {
     public ExerciseInfoDto getExerciseShortInfo(@RequestParam long id,
                                                 @RequestParam(value = "courseId", required = false) Long courseId,
                                                 HttpServletRequest request) throws Exception {
-        var userId = userService.getCurrentUser().getId();
+        var userId = userService.getCurrentUser().id();
         authService.ensureAuthorized(userId, SystemPermission.SOLVE_EXERCISE, authScopes.courseOrGlobal(courseId));
-        var exercise = exerciseService.getExerciseInContext(id, courseId);
-        return new ExerciseInfoDto(id, exercise.getOptions());
+        return new ExerciseInfoDto(id, exerciseService.getExerciseOptionsInContext(id, courseId));
     }
 
     @RequestMapping(value = {"getExerciseAttempt"}, method = { RequestMethod.GET })
     @ResponseBody
     public @NotNull ExerciseAttemptDto getExerciseAttempt(@RequestParam Long attemptId, HttpServletRequest request) throws Exception {
-        var userId = userService.getCurrentUser().getId();
+        var userId = userService.getCurrentUser().id();
         exerciseAttemptService.ensureCanAccessAttempt(userId, attemptId);
         var result = frontendService.getExerciseAttempt(attemptId);
         if (result == null) {
@@ -90,7 +89,7 @@ public class ExerciseController {
     public ExerciseAttemptDto getExistingExerciseAttempt(@RequestParam Long exerciseId,
                                                          @RequestParam(value = "courseId", required = false) Long courseId,
                                                          HttpServletRequest request) throws Exception {
-        var userId = userService.getCurrentUser().getId();
+        var userId = userService.getCurrentUser().id();
         ensureCanSolve(userId, exerciseId, courseId);
         return frontendService.getExistingExerciseAttempt(exerciseId, userId, courseId);
     }
@@ -100,7 +99,7 @@ public class ExerciseController {
     public ExerciseAttemptDto createExerciseAttempt(@RequestParam Long exerciseId,
                                                     @RequestParam(value = "courseId", required = false) Long courseId,
                                                     HttpServletRequest request) throws Exception {
-        var userId = userService.getCurrentUser().getId();
+        var userId = userService.getCurrentUser().id();
         ensureCanSolve(userId, exerciseId, courseId);
         return frontendService.createExerciseAttempt(exerciseId, userId, courseId);
     }
@@ -110,7 +109,7 @@ public class ExerciseController {
     public ExerciseAttemptDto createDebugExerciseAttempt(@RequestParam Long exerciseId,
                                                          @RequestParam(value = "courseId", required = false) Long courseId,
                                                          HttpServletRequest request) throws Exception {
-        var userId = userService.getCurrentUser().getId();
+        var userId = userService.getCurrentUser().id();
         authService.ensureAuthorized(userId, SystemPermission.EDIT_EXERCISE, authScopes.courseOrGlobal(courseId));
         exerciseService.getExerciseInContext(exerciseId, courseId);
         return frontendService.createSolvedExerciseAttempt(exerciseId, userId, courseId);

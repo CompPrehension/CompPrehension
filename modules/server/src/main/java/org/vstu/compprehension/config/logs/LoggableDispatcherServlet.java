@@ -9,6 +9,7 @@ import org.springframework.web.servlet.DispatcherServlet;
 import org.springframework.web.servlet.HandlerExecutionChain;
 import org.springframework.web.util.ContentCachingResponseWrapper;
 import org.springframework.web.util.WebUtils;
+import org.vstu.compprehension.models.data.CurrentUserData;
 import org.vstu.compprehension.Service.UserService;
 import org.vstu.compprehension.config.cache.CachedHttpServletRequest;
 
@@ -64,7 +65,7 @@ public class LoggableDispatcherServlet extends DispatcherServlet {
         ThreadContext.put("correlationId", UUID.randomUUID().toString());
         ThreadContext.put("sessionId", requestToCache.getSession().getId());
         ThreadContext.put("userId", userService.tryGetCurrentUser()
-                .map(u -> u.getId().toString()).orElse(null));
+                .map(u -> String.valueOf(u.id())).orElse(null));
 
         var parameters = Collections.list(requestToCache.getParameterNames())
                 .stream()

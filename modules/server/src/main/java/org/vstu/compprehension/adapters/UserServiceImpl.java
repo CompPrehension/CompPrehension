@@ -8,6 +8,8 @@ import org.springframework.security.core.GrantedAuthority;
 import org.springframework.security.core.context.SecurityContextHolder;
 import org.springframework.security.oauth2.core.oidc.OidcIdToken;
 import org.springframework.security.oauth2.core.oidc.user.OidcUser;
+import org.vstu.compprehension.Service.mapping.UserDataMapper;
+import org.vstu.compprehension.models.data.CurrentUserData;
 import org.vstu.compprehension.Service.RoleAssignmentService;
 import org.vstu.compprehension.Service.CourseService;
 import org.vstu.compprehension.Service.EducationResourceService;
@@ -58,7 +60,13 @@ public class UserServiceImpl implements UserService {
         this.roleAssignmentService = roleAssignmentService;
     }
 
-    public UserEntity getCurrentUser() throws Exception {
+    @Override
+    public CurrentUserData getCurrentUser() throws Exception {
+        return UserDataMapper.toCurrentUser(getCurrentUserEntity());
+    }
+
+    /** Сущность нужна только здесь: снаружи пользователь ходит данными. */
+    private UserEntity getCurrentUserEntity() throws Exception {
         Authentication authentication = SecurityContextHolder.getContext().getAuthentication();
         var parsedIdToken = getToken(authentication);
         var externalId = getExternalId(authentication, parsedIdToken);

@@ -14,6 +14,30 @@ import org.vstu.compprehension.models.entities.exercise.ExerciseEntity;
 public class ExercisePermissionService {
     private final AuthService authService;
     private final AuthScopeFactory authScopes;
+    private final ExerciseService exerciseService;
+    private final CourseService courseService;
+
+    /**
+     * Может ли пользователь читать упражнение в его собственном контексте: публичное — по
+     * правам в GLOBAL-области, приватное — по правам хотя бы в одном из курсов, к которым
+     * оно привязано.
+     * <p>
+     * Раньше проверка жила в контроллере и принимала {@code ExerciseEntity}. Теперь берёт
+     * идентификатор: сущность контроллеру не нужна.
+     *
+     * @throws SecurityException если читать нельзя
+     */
+    public void ensureCanViewSource(long userId, long exerciseId) {
+        if (exerciseService.isExercisePublic(exerciseId)
+                && authService.isAuthorized(userId, SystemPermission.VIEW_EXERCISE, authScopes.global())) {
+            return;
+        }
+        var courseIds = courseService.findCourseIdsByExerciseId(exerciseId);
+        if (!authService.isAuthorized(userId, SystemPermission.VIEW_EXERCISE, authScopes.anyOfCourses(courseIds))) {
+            throw new SecurityException(String.format(
+                    "User %s is not allowed to read exercise %s", userId, exerciseId));
+        }
+    }
 
     public ExerciseCardPermissionsDto ofExercise(long userId, ExerciseEntity exercise, @Nullable Long courseId) {
         var scoped = authService.getPermissions(userId, authScopes.courseOrGlobal(courseId));

@@ -32,7 +32,7 @@ import org.apache.jena.util.PrintUtil;
 import org.apache.logging.log4j.Level;
 import org.jetbrains.annotations.NotNull;
 import org.jetbrains.annotations.Nullable;
-import org.springframework.web.util.HtmlUtils;
+import org.apache.commons.text.StringEscapeUtils;
 import org.vstu.compprehension.Service.SupplementaryStepService;
 import org.vstu.compprehension.Service.mapping.QuestionDataMapper;
 import org.vstu.compprehension.models.data.QuestionMetadataData;
@@ -721,7 +721,7 @@ public class ProgrammingLanguageExpressionDomain extends JenaReasoningDomain {
             }*/
 
             if (fact.getSubject() != null && fact.getSubject().equals("operator")) {
-                sb.append("<span data-comp-ph-pos='").append(++idx).append("' id='answer_").append(++answerIdx).append("' class='comp-ph-expr-op-btn' data-comp-ph-value='").append(tokenValue).append("'>").append(HtmlUtils.htmlEscape(fact.getObject())).append("</span>");
+                sb.append("<span data-comp-ph-pos='").append(++idx).append("' id='answer_").append(++answerIdx).append("' class='comp-ph-expr-op-btn' data-comp-ph-value='").append(tokenValue).append("'>").append(StringEscapeUtils.escapeHtml4(fact.getObject())).append("</span>");
                 // remember answer index of the first token of two-token operator
                 if (List.of("(", "[", "?").contains(fact.getObject())) {
                     answerIdxStack.add(answerIdx);
@@ -749,12 +749,12 @@ public class ProgrammingLanguageExpressionDomain extends JenaReasoningDomain {
                 }
                 if (!needAddOrdinaryToken) {
                     // add clickable token instead of plain token
-                    sb.append("<span data-comp-ph-pos='").append(++idx).append("' id='answer_").append(answerIdxForButton).append("' class='comp-ph-expr-op-btn' data-comp-ph-value='").append(tokenValue).append("'>").append(HtmlUtils.htmlEscape(fact.getObject())).append("</span>");
+                    sb.append("<span data-comp-ph-pos='").append(++idx).append("' id='answer_").append(answerIdxForButton).append("' class='comp-ph-expr-op-btn' data-comp-ph-value='").append(tokenValue).append("'>").append(StringEscapeUtils.escapeHtml4(fact.getObject())).append("</span>");
                 }
                 if (needAddOrdinaryToken) {
                     // add ordinary token
                     sb.append("<span data-comp-ph-pos='").append(++idx).append("' class='comp-ph-expr-const' " +
-                            "data-comp-ph-value='").append(tokenValue).append("'>").append(HtmlUtils.htmlEscape(fact.getObject())).append("</span>");
+                            "data-comp-ph-value='").append(tokenValue).append("'>").append(StringEscapeUtils.escapeHtml4(fact.getObject())).append("</span>");
 
                     // save placeholders or "empty" (non-operator) tokens as well: this keeps the stack valid
                     if (List.of("(", "[", "?").contains(fact.getObject())) {

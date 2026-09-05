@@ -1,16 +1,16 @@
 package org.vstu.compprehension.adapters;
 
 import org.springframework.security.core.context.SecurityContextHolder;
+import org.vstu.compprehension.models.data.CurrentUserData;
 import org.vstu.compprehension.Service.UserService;
 import org.vstu.compprehension.models.entities.EnumData.Language;
-import org.vstu.compprehension.models.entities.UserEntity;
 
 import javax.annotation.Nullable;
 
 public class CachedUserService implements UserService {
     private final UserService decoratee;
 
-    private @Nullable UserEntity cachedCurrentUser;
+    private @Nullable CurrentUserData cachedCurrentUser;
     private @Nullable Object cachedCurrentUserPrincipal;
 
     public CachedUserService(UserService decoratee) {
@@ -18,7 +18,7 @@ public class CachedUserService implements UserService {
     }
 
     @Override
-    public UserEntity getCurrentUser() throws Exception {
+    public CurrentUserData getCurrentUser() throws Exception {
         Object principal = SecurityContextHolder.getContext().getAuthentication().getPrincipal();
         if (cachedCurrentUserPrincipal == principal && cachedCurrentUser != null) {
             return cachedCurrentUser;

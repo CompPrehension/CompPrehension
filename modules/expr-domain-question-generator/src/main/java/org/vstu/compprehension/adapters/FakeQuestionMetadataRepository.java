@@ -2,7 +2,6 @@ package org.vstu.compprehension.adapters;
 
 import org.jetbrains.annotations.NotNull;
 import org.jetbrains.annotations.Nullable;
-import org.vstu.compprehension.dto.ComplexityStats;
 import org.vstu.compprehension.models.businesslogic.QuestionBankSearchRequest;
 import org.vstu.compprehension.models.entities.QuestionMetadataEntity;
 import org.vstu.compprehension.models.repository.QuestionMetadataRepository;
@@ -125,9 +124,17 @@ public class FakeQuestionMetadataRepository implements QuestionMetadataRepositor
 
     }
 
+    /** Заглушка: у генератора нет статистики по банку. */
+    private record EmptyComplexityStats() implements QuestionMetadataRepository.ComplexityStatsView {
+        @Override public Long getCount() { return 0L; }
+        @Override public Double getMin() { return null; }
+        @Override public Double getMean() { return null; }
+        @Override public Double getMax() { return null; }
+    }
+
     @Override
-    public ComplexityStats getStatOnComplexityField(String domainShortName) {
-        return new ComplexityStats(0L, null, null, null);
+    public QuestionMetadataRepository.ComplexityStatsView getStatOnComplexityField(String domainShortName) {
+        return new EmptyComplexityStats();
     }
 
     @Override

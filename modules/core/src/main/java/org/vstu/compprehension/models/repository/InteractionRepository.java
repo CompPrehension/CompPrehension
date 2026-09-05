@@ -14,16 +14,18 @@ import java.util.List;
 public interface InteractionRepository extends CrudRepository<InteractionEntity, Long> {
 
     /** Взаимодействие без обхода ленивых связей: feedback подтянут join-ом. */
-    record InteractionRow(
-            Long questionId,
-            Long interactionId,
-            Integer orderNumber,
-            InteractionType interactionType,
-            Integer interactionsLeft) {
+    interface InteractionRow {
+        Long getQuestionId();
+        Long getInteractionId();
+        Integer getOrderNumber();
+        InteractionType getInteractionType();
+        Integer getInteractionsLeft();
     }
 
     /** Имя закона, привязанное к взаимодействию: и для нарушений, и для верно применённых. */
-    record InteractionLawRow(Long interactionId, String lawName) {
+    interface InteractionLawRow {
+        Long getInteractionId();
+        String getLawName();
     }
 
     /**
@@ -33,8 +35,9 @@ public interface InteractionRepository extends CrudRepository<InteractionEntity,
      * то есть грузится жадно отдельным запросом на каждое взаимодействие.
      */
     @Query("""
-            select new org.vstu.compprehension.models.repository.InteractionRepository$InteractionRow(
-                i.question.id, i.id, i.orderNumber, i.interactionType, f.interactionsLeft)
+            select i.question.id as questionId, i.id as interactionId,
+                   i.orderNumber as orderNumber, i.interactionType as interactionType,
+                   f.interactionsLeft as interactionsLeft
             from InteractionEntity i
             left join i.feedback f
             where i.question.id in :questionIds
@@ -43,8 +46,7 @@ public interface InteractionRepository extends CrudRepository<InteractionEntity,
     List<InteractionRow> findRowsByQuestionIdIn(@Param("questionIds") Collection<Long> questionIds);
 
     @Query("""
-            select new org.vstu.compprehension.models.repository.InteractionRepository$InteractionLawRow(
-                v.interaction.id, v.lawName)
+            select v.interaction.id as interactionId, v.lawName as lawName
             from ViolationEntity v
             where v.interaction.id in :interactionIds
             order by v.id
@@ -52,8 +54,7 @@ public interface InteractionRepository extends CrudRepository<InteractionEntity,
     List<InteractionLawRow> findViolationLawsByInteractionIdIn(@Param("interactionIds") Collection<Long> interactionIds);
 
     @Query("""
-            select new org.vstu.compprehension.models.repository.InteractionRepository$InteractionLawRow(
-                cl.interaction.id, cl.lawName)
+            select cl.interaction.id as interactionId, cl.lawName as lawName
             from CorrectLawEntity cl
             where cl.interaction.id in :interactionIds
             order by cl.id

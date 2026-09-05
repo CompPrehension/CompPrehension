@@ -3,6 +3,7 @@ package org.vstu.compprehension.utils;
 import lombok.val;
 import org.jetbrains.annotations.NotNull;
 import org.jetbrains.annotations.Nullable;
+import org.vstu.compprehension.models.data.CurrentUserData;
 import org.vstu.compprehension.models.data.AnswerObjectData;
 import org.vstu.compprehension.models.data.ResponseData;
 import org.vstu.compprehension.dto.*;
@@ -49,15 +50,15 @@ public class Mapper {
     }
 
 
-    public static @NotNull UserInfoDto toDto(@NotNull UserEntity user, @NotNull UserPermissionsDto permissions) {
-        val displayName = Stream.of(user.getFirstName(), user.getLastName())
+    public static @NotNull UserInfoDto toDto(@NotNull CurrentUserData user, @NotNull UserPermissionsDto permissions) {
+        val displayName = Stream.of(user.firstName(), user.lastName())
                 .filter(s -> s != null && !s.isEmpty())
                 .collect(Collectors.joining(" "));
         return UserInfoDto.builder()
-                .id(user.getId())
+                .id(user.id())
                 .displayName(displayName)
-                .email(user.getEmail())
-                .language(user.getPreferred_language().toLocaleString())
+                .email(user.email())
+                .language(user.language().toLocaleString())
                 .permissions(permissions)
                 .build();
     }

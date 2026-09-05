@@ -44,7 +44,14 @@ public class SurveyService {
     @Transactional(readOnly = true)
     public @NotNull List<SurveyResultDto> getUserAttemptVotes(
             long userId, long attemptId, @NotNull String surveyId) {
-        return surveyRepository.findUserAttemptVotes(userId, attemptId, surveyId);
+        // Форма ответа API — забота сервиса, репозиторий отдаёт свою проекцию.
+        return surveyRepository.findUserAttemptVotes(userId, attemptId, surveyId).stream()
+                .map(v -> SurveyResultDto.builder()
+                        .surveyQuestionId(v.getSurveyQuestionId())
+                        .questionId(v.getQuestionId())
+                        .answer(v.getAnswer())
+                        .build())
+                .toList();
     }
 
     /**

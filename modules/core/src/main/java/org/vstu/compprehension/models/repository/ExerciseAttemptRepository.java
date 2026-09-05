@@ -14,7 +14,15 @@ import java.util.Optional;
 @Repository
 public interface ExerciseAttemptRepository extends CrudRepository<ExerciseAttemptEntity, Long> {
 
-    record AttemptOwner(Long userId, Long courseId) {
+    /**
+     * Владелец попытки.
+     * <p>
+     * Интерфейс, а не запись: оба поля — {@code Long}, и при позиционном связывании
+     * их перестановка не вызвала бы ни ошибки компиляции, ни исключения.
+     */
+    interface AttemptOwner {
+        Long getUserId();
+        Long getCourseId();
     }
 
     @Query("select a from ExerciseAttemptEntity a " +
@@ -40,14 +48,14 @@ public interface ExerciseAttemptRepository extends CrudRepository<ExerciseAttemp
     Optional<ExerciseAttemptEntity> getById(Long attemptId);
 
     @Query("""
-            select new org.vstu.compprehension.models.repository.ExerciseAttemptRepository$AttemptOwner(a.user.id, a.course.id)
+            select a.user.id as userId, a.course.id as courseId
             from ExerciseAttemptEntity a
             where a.id = :attemptId
             """)
     Optional<AttemptOwner> findOwnerByAttemptId(@Param("attemptId") long attemptId);
 
     @Query("""
-            select new org.vstu.compprehension.models.repository.ExerciseAttemptRepository$AttemptOwner(a.user.id, a.course.id)
+            select a.user.id as userId, a.course.id as courseId
             from ExerciseAttemptEntity a
             join QuestionEntity q on a.id = q.exerciseAttempt.id
             where q.id = :questionId

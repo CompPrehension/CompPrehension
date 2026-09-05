@@ -15,7 +15,6 @@ import org.vstu.compprehension.dto.ExerciseCardDto;
 import org.vstu.compprehension.dto.ExerciseDto;
 import org.vstu.compprehension.dto.ExerciseListDto;
 import org.vstu.compprehension.models.businesslogic.auth.AuthObjects.SystemPermission;
-import org.vstu.compprehension.models.entities.exercise.ExerciseEntity;
 
 import java.util.List;
 
@@ -48,7 +47,7 @@ public class ExerciseSettingsController {
     @RequestMapping(value = {"exercise"}, method = {RequestMethod.GET})
     @ResponseBody
     public ExerciseCardDto get(@RequestParam("id") long id, @RequestParam(value = "courseId", required = false) Long courseId) {
-        var userId = userService.getCurrentUser().getId();
+        var userId = userService.getCurrentUser().id();
         authService.ensureAuthorized(userId, SystemPermission.VIEW_EXERCISE, authScopes.courseOrGlobal(courseId));
         var exercise = exerciseService.getExerciseInContext(id, courseId);
         return exerciseService.getExerciseCard(
@@ -59,7 +58,7 @@ public class ExerciseSettingsController {
     @RequestMapping(value = {"exercise/list"}, method = {RequestMethod.GET})
     @ResponseBody
     public ExerciseListDto list(@RequestParam(value = "courseId", required = false) Long courseId) {
-        var userId = userService.getCurrentUser().getId();
+        var userId = userService.getCurrentUser().id();
         authService.ensureAuthorized(userId, SystemPermission.VIEW_EXERCISE, authScopes.courseOrGlobal(courseId));
         List<ExerciseDto> exercises = courseId != null
                 ? exerciseService.getCourseExercises(courseId)
@@ -71,9 +70,9 @@ public class ExerciseSettingsController {
     @RequestMapping(value = {"exercise"}, method = {RequestMethod.POST})
     @ResponseBody
     public void update(@RequestBody ExerciseCardDto card, @RequestParam(value = "courseId", required = false) Long courseId) {
-        var userId = userService.getCurrentUser().getId();
+        var userId = userService.getCurrentUser().id();
         authService.ensureAuthorized(userId, SystemPermission.EDIT_EXERCISE, authScopes.courseOrGlobal(courseId));
-        ensureNotInherited(exerciseService.getExerciseInContext(card.getId(), courseId), courseId);
+        exerciseService.ensureNotInheritedInCourse(card.getId(), courseId);
         exerciseService.saveExerciseCard(card);
     }
 
@@ -81,7 +80,7 @@ public class ExerciseSettingsController {
     @RequestMapping(value = {"exercise"}, method = {RequestMethod.PUT})
     @ResponseBody
     public long create(@RequestBody ObjectNode json) {
-        var userId = userService.getCurrentUser().getId();
+        var userId = userService.getCurrentUser().id();
         var name = json.get("name").asText();
         var domainId = json.get("domainId").asText();
         var strategyId = json.get("strategyId").asText();
@@ -89,7 +88,7 @@ public class ExerciseSettingsController {
                 ? json.get("courseId").asLong()
                 : null;
         authService.ensureAuthorized(userId, SystemPermission.CREATE_EXERCISE, authScopes.courseOrGlobal(courseId));
-        return exerciseService.createExercise(name, domainId, strategyId, courseId).getId();
+        return exerciseService.createExerciseAndGetId(name, domainId, strategyId, courseId);
     }
 
     @SneakyThrows
@@ -97,42 +96,22 @@ public class ExerciseSettingsController {
     @ResponseBody
     public long clone(@PathVariable("id") long id,
                       @RequestParam(value = "courseId", required = false) Long courseId) {
-        var userId = userService.getCurrentUser().getId();
+        var userId = userService.getCurrentUser().id();
         // courseId здесь — куда клонируем, поэтому доступ к источнику проверяется отдельно,
         // в его собственном контексте.
         authService.ensureAuthorized(userId, SystemPermission.CREATE_EXERCISE, authScopes.courseOrGlobal(courseId));
-        ensureCanViewSource(userId, exerciseService.getExercise(id));
-        return exerciseService.cloneExercise(id, courseId).getId();
+        exercisePermissionService.ensureCanViewSource(userId, id);
+        return exerciseService.cloneExerciseAndGetId(id, courseId);
     }
 
     @SneakyThrows
     @ResponseBody
     @RequestMapping(value = {"exercise"}, method = {RequestMethod.DELETE})
     public void delete(@RequestParam("id") long id, @RequestParam(value = "courseId", required = false) Long courseId) {
-        var userId = userService.getCurrentUser().getId();
+        var userId = userService.getCurrentUser().id();
         authService.ensureAuthorized(userId, SystemPermission.DELETE_EXERCISE, authScopes.courseOrGlobal(courseId));
-        ensureNotInherited(exerciseService.getExerciseInContext(id, courseId), courseId);
+        exerciseService.ensureNotInheritedInCourse(id, courseId);
         exerciseService.deleteExercise(id);
     }
 
-    /**
-     * Может ли пользователь читать упражнение в его собственном контексте: публичное — по правам
-     * в GLOBAL-области, приватное — по правам хотя бы в одном из курсов, к которым оно привязано.
-     */
-    private void ensureCanViewSource(long userId, ExerciseEntity exercise) {
-        if (exercise.isPublic() && authService.isAuthorized(userId, SystemPermission.VIEW_EXERCISE, authScopes.global())) {
-            return;
-        }
-        var courseIds = courseService.findCourseIdsByExerciseId(exercise.getId());
-        if (!authService.isAuthorized(userId, SystemPermission.VIEW_EXERCISE, authScopes.anyOfCourses(courseIds))) {
-            throw new SecurityException(String.format(
-                    "User %s is not allowed to read exercise %s", userId, exercise.getId()));
-        }
-    }
-
-    private static void ensureNotInherited(ExerciseEntity exercise, Long courseId) {
-        if (ExerciseService.isInheritedInCourse(exercise, courseId)) {
-            throw new IllegalStateException("inherited_exercise_is_read_only");
-        }
-    }
 }

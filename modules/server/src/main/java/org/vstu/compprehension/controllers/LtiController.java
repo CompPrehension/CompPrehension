@@ -42,8 +42,6 @@ import org.vstu.compprehension.models.businesslogic.auth.AuthObjects.SystemPermi
 import org.vstu.compprehension.common.StringHelper;
 import org.vstu.compprehension.config.LtiRegistrationsProperties;
 import org.vstu.compprehension.models.businesslogic.lti.LtiContext;
-import org.vstu.compprehension.models.entities.course.CourseEntity;
-import org.vstu.compprehension.models.entities.external_system.EducationResourceEntity;
 import org.vstu.compprehension.utils.HttpRequestHelper;
 import org.vstu.compprehension.utils.SessionHelper;
 
@@ -227,7 +225,7 @@ public class LtiController {
         authenticateFromLti13ResourceLinkRequest(request, response);
 
         // Триггерит upsert пользователя + назначение RBAC-роли (LTI Instructor -> Teacher в scope курса).
-        long userId = userService.getCurrentUser().getId();
+        long userId = userService.getCurrentUser().id();
 
         LtiContext ctx = ltiContextProvider.getCurrentLtiContext()
                 .orElseThrow(() -> new IllegalArgumentException("LTI context absent"));
@@ -245,9 +243,8 @@ public class LtiController {
     private Long resolveCourseFromContext(LtiContext ctx) {
         if (ctx.course() == null || ctx.course().courseId() == null) return null;
 
-        EducationResourceEntity eduResource = educationResourceService.getOrCreateTrusted(ctx.lmsUrl(), ctx.lmsType());
-        CourseEntity course = courseService.resolveOrCreateFromLtiContext(ctx, eduResource.getId());
-        return course == null ? null : course.getId();
+        long eduResourceId = educationResourceService.getOrCreateTrustedId(ctx.lmsUrl(), ctx.lmsType());
+        return courseService.resolveOrCreateIdFromLtiContext(ctx, eduResourceId).orElse(null);
     }
 
     private void authenticateFromLti13ResourceLinkRequest(HttpServletRequest request, HttpServletResponse response) throws AuthenticationException, ParseException {

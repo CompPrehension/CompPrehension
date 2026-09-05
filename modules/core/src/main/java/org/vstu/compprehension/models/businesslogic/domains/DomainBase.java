@@ -7,7 +7,6 @@ import lombok.Getter;
 import lombok.extern.log4j.Log4j2;
 import org.jetbrains.annotations.NotNull;
 import org.jetbrains.annotations.Nullable;
-import org.springframework.web.context.annotation.RequestScope;
 import org.vstu.compprehension.models.businesslogic.Question;
 import org.vstu.compprehension.Service.ExerciseAttemptService;
 import org.vstu.compprehension.Service.SupplementaryStepService;
@@ -22,7 +21,6 @@ import java.util.Optional;
 import java.util.stream.Stream;
 
 @Log4j2
-@RequestScope
 public abstract class DomainBase implements Domain {
     public static final String NAME_PREFIX_IS_HUMAN = "[human]";
     protected Map<String, PositiveLaw> positiveLaws;

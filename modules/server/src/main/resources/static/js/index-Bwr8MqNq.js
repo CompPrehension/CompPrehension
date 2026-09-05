@@ -796,7 +796,7 @@ const TCourseDto = type({
   id: number,
   name: string,
   educationResourceId: number,
-  educationResourceName: string
+  educationResourceUrl: string
 });
 const TExerciseOptions = intersection([
   type({
@@ -4161,7 +4161,7 @@ const DeleteGlobalExerciseModal = ({ exerciseId, onConfirm, onCancel }) => {
     })();
   }, [exerciseId]);
   const byLms = (memberships ?? []).reduce((acc, m) => {
-    (acc[m.educationResourceName] ??= []).push(m);
+    (acc[m.educationResourceUrl] ??= []).push(m);
     return acc;
   }, {});
   return /* @__PURE__ */ jsxRuntimeExports.jsx(
@@ -5330,7 +5330,7 @@ const CoursesPage = observer(() => {
         onClick: () => navigate(`/pages/course?courseId=${c.id}`),
         children: /* @__PURE__ */ jsxRuntimeExports.jsxs("div", { className: "card-body", children: [
           /* @__PURE__ */ jsxRuntimeExports.jsx("h5", { className: "card-title", children: c.name }),
-          /* @__PURE__ */ jsxRuntimeExports.jsx("h6", { className: "card-subtitle text-muted", children: c.educationResourceName || `#${c.educationResourceId}` })
+          /* @__PURE__ */ jsxRuntimeExports.jsx("h6", { className: "card-subtitle text-muted", children: c.educationResourceUrl || `#${c.educationResourceId}` })
         ] })
       }
     ) }, c.id)) })

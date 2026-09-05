@@ -5,7 +5,6 @@ import org.springframework.data.jpa.repository.Modifying;
 import org.springframework.data.jpa.repository.Query;
 import org.springframework.data.repository.query.Param;
 import org.springframework.stereotype.Repository;
-import org.vstu.compprehension.dto.course.CourseDto;
 import org.vstu.compprehension.models.entities.course.ExerciseCourseLinkEntity;
 import org.vstu.compprehension.models.entities.course.ExerciseCourseLinkId;
 
@@ -47,14 +46,13 @@ public interface ExerciseCourseLinkRepository extends JpaRepository<ExerciseCour
             @Param("exerciseIds") Collection<Long> exerciseIds);
 
     @Query("""
-            select new org.vstu.compprehension.dto.course.CourseDto(
-                ecl.course.id, ecl.course.name,
-                ecl.course.educationResource.id, ecl.course.educationResource.url
-            )
+            select ecl.course.id as id, ecl.course.name as name,
+                   ecl.course.educationResource.id as educationResourceId,
+                   ecl.course.educationResource.url as educationResourceUrl
             from ExerciseCourseLinkEntity ecl
             where ecl.exercise.id = :exerciseId
             """)
-    List<CourseDto> findCourseDtosByExerciseId(@Param("exerciseId") long exerciseId);
+    List<CourseRepository.CourseView> findCourseViewsByExerciseId(@Param("exerciseId") long exerciseId);
 
     @Modifying(clearAutomatically = true)
     void deleteByExerciseIdAndCourseId(long exerciseId, long courseId);

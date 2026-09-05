@@ -28,6 +28,18 @@ public class EducationResourceService {
                 .orElseThrow(() -> new IllegalStateException("createIfAbsent: entity not found after insert"));
     }
 
+    /** Идентификатор доверенного образовательного ресурса; создаёт его при необходимости. */
+    @Transactional
+    public long getOrCreateTrustedId(String url, EducationResourceType type) {
+        return getOrCreateTrusted(url, type).getId();
+    }
+
+    /** Идентификатор ресурса по адресу и типу, если он уже заведён. */
+    @Transactional(readOnly = true)
+    public Optional<Long> findIdByUrlAndType(String url, EducationResourceType type) {
+        return findByUrlAndType(url, type).map(EducationResourceEntity::getId);
+    }
+
     /**
      * Возвращает образовательный ресурс по (url, type), создавая его при отсутствии, и проверяет,
      * что он доверенный. Бросает {@link SecurityException}, если ресурс ещё не переведён в

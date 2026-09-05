@@ -15,7 +15,8 @@ import org.apache.commons.lang3.tuple.Pair;
 import org.jetbrains.annotations.NotNull;
 import org.springframework.context.annotation.Primary;
 import org.springframework.stereotype.Component;
-import org.springframework.web.context.annotation.RequestScope;
+import org.springframework.context.annotation.Scope;
+import org.springframework.context.annotation.ScopedProxyMode;
 import org.vstu.compprehension.common.Utils;
 import org.vstu.compprehension.dto.ExerciseSkillDto;
 import org.vstu.compprehension.models.businesslogic.DomainToBackendAdapter;
@@ -40,7 +41,9 @@ import static org.vstu.compprehension.models.businesslogic.domains.Domain.Interp
  */
 @Primary
 @Component
-@RequestScope
+// То же, что @RequestScope, но без зависимости бизнес-логики от spring-web:
+// @RequestScope — это ровно @Scope("request") с прокси на класс.
+@Scope(value = "request", proxyMode = ScopedProxyMode.TARGET_CLASS)
 @Log4j2
 public class DecisionTreeReasonerBackend
     implements Backend<DecisionTreeReasonerBackend.Input, DecisionTreeReasonerBackend.Output>

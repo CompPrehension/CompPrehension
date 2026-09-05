@@ -4,7 +4,6 @@ import com.tngtech.archunit.core.importer.ImportOption;
 import com.tngtech.archunit.junit.AnalyzeClasses;
 import com.tngtech.archunit.junit.ArchTest;
 import com.tngtech.archunit.lang.ArchRule;
-import com.tngtech.archunit.library.freeze.FreezingArchRule;
 import jakarta.persistence.Entity;
 import org.springframework.data.repository.Repository;
 
@@ -25,25 +24,29 @@ public class LayerBoundaryTest {
      * Репозиторий не должен знать про типы, которые отдаются наружу по HTTP.
      * Проекции для чтения — это отдельные типы, живущие рядом с репозиторием;
      * иначе изменение формата ответа API заставляет править JPQL.
+     * <p>
+     * Правило строгое, без заморозки: долг выбран до нуля и возвращаться не должен.
      */
     @ArchTest
     static final ArchRule repositories_should_not_depend_on_web_dto =
-            FreezingArchRule.freeze(noClasses()
+            noClasses()
                     .that().resideInAPackage(REPOSITORIES)
                     .should().dependOnClassesThat().resideInAPackage(DTO)
-                    .as("repositories should not depend on web DTOs"));
+                    .as("repositories should not depend on web DTOs");
 
     /**
      * Главное правило про N+1: JPA-сущность не выходит за границу сервиса.
      * За пределами транзакции у сущности ленивые связи либо взрываются, либо (при
      * open-in-view=true) молча делают дополнительные запросы.
+     * <p>
+     * Правило строгое, без заморозки: долг выбран до нуля и возвращаться не должен.
      */
     @ArchTest
     static final ArchRule entities_should_not_leak_into_controllers =
-            FreezingArchRule.freeze(noClasses()
+            noClasses()
                     .that().resideInAPackage(CONTROLLERS)
                     .should().dependOnClassesThat().areAnnotatedWith(Entity.class)
-                    .as("JPA entities should not appear in controllers"));
+                    .as("JPA entities should not appear in controllers");
 
     /** Контроллер ходит в БД только через слой приложения. */
     @ArchTest

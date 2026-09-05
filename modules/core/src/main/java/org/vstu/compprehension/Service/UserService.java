@@ -1,14 +1,22 @@
 package org.vstu.compprehension.Service;
 
+import org.vstu.compprehension.models.data.CurrentUserData;
 import org.vstu.compprehension.models.entities.EnumData.Language;
-import org.vstu.compprehension.models.entities.UserEntity;
 
 import java.util.Optional;
 
+/**
+ * Текущий пользователь.
+ * <p>
+ * Отдаёт данные, а не {@code UserEntity}: вызывающим нужны идентификатор, язык и пара
+ * полей для карточки, а сущность протекала в контроллеры вместе с ленивыми связями.
+ */
 public interface UserService {
-    UserEntity getCurrentUser() throws Exception;
+    CurrentUserData getCurrentUser() throws Exception;
+
     void setLanguage(Language language) throws Exception;
-    default Optional<UserEntity> tryGetCurrentUser() {
+
+    default Optional<CurrentUserData> tryGetCurrentUser() {
         try {
             return Optional.of(getCurrentUser());
         } catch (Exception e) {

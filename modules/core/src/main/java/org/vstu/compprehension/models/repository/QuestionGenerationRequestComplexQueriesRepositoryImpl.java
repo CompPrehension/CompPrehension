@@ -4,8 +4,8 @@ import com.google.gson.Gson;
 import jakarta.persistence.EntityManager;
 import lombok.AllArgsConstructor;
 import lombok.Data;
-import org.vstu.compprehension.dto.GenerationRequest;
-import org.vstu.compprehension.dto.GenerationRequestGroup;
+import org.vstu.compprehension.models.data.GenerationRequestData;
+import org.vstu.compprehension.models.data.GenerationRequestGroupData;
 import org.vstu.compprehension.models.businesslogic.QuestionBankSearchRequest;
 
 import java.time.LocalDateTime;
@@ -21,7 +21,7 @@ public class QuestionGenerationRequestComplexQueriesRepositoryImpl implements Qu
 
 
     @Override
-    public List<GenerationRequestGroup> findAllActual(String domainShortname, LocalDateTime createdAfter) {
+    public List<GenerationRequestGroupData> findAllActual(String domainShortname, LocalDateTime createdAfter) {
         var query = entityManager.createNativeQuery(
                         "SELECT " +
                                 "JSON_UNQUOTE(JSON_ARRAYAGG(r.id)) AS generationrequestids, " +
@@ -53,12 +53,12 @@ public class QuestionGenerationRequestComplexQueriesRepositoryImpl implements Qu
         //noinspection unchecked
         var rawResult = (List<RawFindAllActualResult>)query.getResultList();
 
-        var result = new ArrayList<GenerationRequestGroup>(rawResult.size());
+        var result = new ArrayList<GenerationRequestGroupData>(rawResult.size());
         var gson = new Gson();
         for (var raw : rawResult) {
-            result.add(new GenerationRequestGroup(
+            result.add(new GenerationRequestGroupData(
                     gson.fromJson(raw.getGenerationRequestIds(), Integer[].class),
-                    gson.fromJson(raw.getGenerationRequests(), GenerationRequest[].class),
+                    gson.fromJson(raw.getGenerationRequests(), GenerationRequestData[].class),
                     gson.fromJson(raw.getQuestionRequest(), QuestionBankSearchRequest.class),
                     (int)raw.getQuestionsToGenerate()
             ));

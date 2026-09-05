@@ -29,15 +29,14 @@ public class CourseController {
     @RequestMapping(value = {"my"}, method = {RequestMethod.GET})
     @ResponseBody
     public List<CourseDto> getMyCourses() {
-        var currentUser = userService.getCurrentUser();
-        return courseService.getUserCourses(currentUser);
+        return courseService.getUserCourses(userService.getCurrentUser().id());
     }
 
     @SneakyThrows
     @RequestMapping(value = {"memberships"}, method = {RequestMethod.GET})
     @ResponseBody
     public List<CourseDto> getExerciseMemberships(@RequestParam("exerciseId") long exerciseId) {
-        var userId = userService.getCurrentUser().getId();
+        var userId = userService.getCurrentUser().id();
         authService.ensureAuthorized(userId, SystemPermission.VIEW_EXERCISE, authScopes.global());
         return courseService.getExerciseMemberships(exerciseId);
     }
@@ -47,7 +46,7 @@ public class CourseController {
     @RequestMapping(value = {"exercise/add"}, method = {RequestMethod.POST})
     public void add(@RequestParam("exerciseId") long exerciseId,
                     @RequestParam("courseId") long courseId) {
-        var userId = userService.getCurrentUser().getId();
+        var userId = userService.getCurrentUser().id();
         authService.ensureAuthorized(userId, SystemPermission.MANAGE_COURSE_CONTENT, authScopes.course(courseId));
         courseService.addExerciseToCourse(exerciseId, courseId);
     }
@@ -57,7 +56,7 @@ public class CourseController {
     @RequestMapping(value = {"exercise/remove"}, method = {RequestMethod.DELETE})
     public void remove(@RequestParam("exerciseId") long exerciseId,
                        @RequestParam("courseId") long courseId) {
-        var userId = userService.getCurrentUser().getId();
+        var userId = userService.getCurrentUser().id();
         authService.ensureAuthorized(userId, SystemPermission.MANAGE_COURSE_CONTENT, authScopes.course(courseId));
         courseService.removeExerciseFromCourse(exerciseId, courseId);
     }

@@ -48,7 +48,7 @@ public class QuestionController {
             consumes = "application/json")
     @ResponseBody
     public FeedbackDto addQuestionAnswer(@RequestBody InteractionDto interaction, HttpServletRequest request) throws Exception {
-        var userId = userService.getCurrentUser().getId();
+        var userId = userService.getCurrentUser().id();
         exerciseAttemptService.ensureCanAccessQuestion(userId, interaction.getQuestionId());
         return frontendService.addQuestionAnswer(interaction);
     }
@@ -64,7 +64,7 @@ public class QuestionController {
             consumes = "application/json")
     @ResponseBody
     public SupplementaryFeedbackDto addSupplementaryQuestionAnswer(@RequestBody InteractionDto interaction, HttpServletRequest request) throws Exception {
-        var userId = userService.getCurrentUser().getId();
+        var userId = userService.getCurrentUser().id();
         exerciseAttemptService.ensureCanAccessQuestion(userId, interaction.getQuestionId());
         return frontendService.addSupplementaryQuestionAnswer(interaction);
     }
@@ -79,7 +79,7 @@ public class QuestionController {
     @RequestMapping(value = {"generate"}, method = { RequestMethod.GET })
     @ResponseBody
     public QuestionDto generateQuestion(Long attemptId, HttpServletRequest request) throws Exception {
-        var userId = userService.getCurrentUser().getId();
+        var userId = userService.getCurrentUser().id();
         exerciseAttemptService.ensureCanAccessAttempt(userId, attemptId);
         var locale = LocaleContextHolder.getLocale();
         return frontendService.generateQuestion(attemptId);
@@ -96,9 +96,9 @@ public class QuestionController {
     @ResponseBody
     public QuestionDto generateQuestionByMetadata(Integer metadataId, HttpServletRequest request) throws Exception {
         var currentUser = userService.getCurrentUser();
-        authService.ensureAuthorized(currentUser.getId(), SystemPermission.EDIT_EXERCISE, authScopes.global());
+        authService.ensureAuthorized(currentUser.id(), SystemPermission.EDIT_EXERCISE, authScopes.global());
 
-        return frontendService.generateQuestionByMetadata(metadataId, currentUser.getPreferred_language());
+        return frontendService.generateQuestionByMetadata(metadataId, currentUser.language());
     }
 
     /**
@@ -111,7 +111,7 @@ public class QuestionController {
     @RequestMapping(value = {"generateSupplementaryQuestion"}, method = { RequestMethod.POST })
     @ResponseBody
     public SupplementaryQuestionDto generateSupplementaryQuestion(@RequestBody SupplementaryQuestionRequestDto questionRequest, HttpServletRequest request) throws Exception {
-        var userId = userService.getCurrentUser().getId();
+        var userId = userService.getCurrentUser().id();
         exerciseAttemptService.ensureCanAccessQuestion(userId, questionRequest.getQuestionId());
         var locale = LocaleContextHolder.getLocale();
         return frontendService.generateSupplementaryQuestion(questionRequest.getQuestionId(), questionRequest.getViolationLaws());
@@ -127,7 +127,7 @@ public class QuestionController {
     @RequestMapping(method = { RequestMethod.GET })
     @ResponseBody
     public QuestionDto getQuestion(Long questionId, HttpServletRequest request) throws Exception {
-        var userId = userService.getCurrentUser().getId();
+        var userId = userService.getCurrentUser().id();
         exerciseAttemptService.ensureCanAccessQuestion(userId, questionId);
         return frontendService.getQuestion(questionId);
     }
@@ -142,7 +142,7 @@ public class QuestionController {
     @RequestMapping(value = {"generateNextCorrectAnswer"}, method = { RequestMethod.GET })
     @ResponseBody
     public FeedbackDto generateNextCorrectAnswer(@RequestParam Long questionId, HttpServletRequest request) throws Exception {
-        var userId = userService.getCurrentUser().getId();
+        var userId = userService.getCurrentUser().id();
         exerciseAttemptService.ensureCanAccessQuestion(userId, questionId);
         var locale = LocaleContextHolder.getLocale();
         return frontendService.generateNextCorrectAnswer(questionId);

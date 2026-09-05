@@ -69,8 +69,12 @@ public class WebConfig implements WebMvcConfigurer {
         return localeInterceptor;
     }
 
-    @Autowired
-    private RandomSeedSetInterceptor randomSeedSetInterceptor;
+    private final RandomSeedSetInterceptor randomSeedSetInterceptor;
+
+    public WebConfig(RandomSeedSetInterceptor randomSeedSetInterceptor) {
+        this.randomSeedSetInterceptor = randomSeedSetInterceptor;
+    }
+
     @Override
     public void addInterceptors(InterceptorRegistry registry) {
         registry.addInterceptor(randomSeedSetInterceptor);

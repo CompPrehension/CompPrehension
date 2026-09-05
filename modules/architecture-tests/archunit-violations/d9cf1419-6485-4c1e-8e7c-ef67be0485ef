@@ -1,1 +1,0 @@
-org.vstu.compprehension.models.entities.InteractionEntity.feedback is eagerly fetched: @OneToOne declares fetch = EAGER, in (InteractionEntity.java:0)

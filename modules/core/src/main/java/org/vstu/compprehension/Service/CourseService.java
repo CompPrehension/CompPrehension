@@ -52,6 +52,19 @@ public class CourseService {
                 .orElseThrow(() -> new IllegalStateException("createIfAbsent: course not found after insert"));
     }
 
+    /** Идентификатор курса из LTI-контекста; создаёт курс при необходимости. */
+    @Transactional
+    public Optional<Long> resolveOrCreateIdFromLtiContext(LtiContext ctx, Long educationResourceId) {
+        return Optional.ofNullable(resolveOrCreateFromLtiContext(ctx, educationResourceId))
+                .map(CourseEntity::getId);
+    }
+
+    /** Идентификатор курса по внешнему id и ресурсу. */
+    @Transactional(readOnly = true)
+    public Optional<Long> findCourseIdByExternalIdAndResourceId(String externalCourseId, Long educationResourceId) {
+        return findByExternalIdAndResourceId(externalCourseId, educationResourceId).map(CourseEntity::getId);
+    }
+
     /**
      * Курс из LTI-контекста в рамках уже разрешённого education resource: ищет по
      * {@code (externalContextId, educationResourceId)}, создаёт при отсутствии (имя — из контекста,
@@ -127,11 +140,23 @@ public class CourseService {
         )));
     }
 
+    /**
+     * Проекция репозитория в web-контракт.
+     * <p>
+     * Репозиторий отдаёт свой тип, а форма ответа API — забота сервиса: иначе изменение
+     * контракта фронта заставляло бы править JPQL.
+     */
+    private static List<CourseDto> toCourseDtos(List<CourseRepository.CourseView> views) {
+        return views.stream()
+                .map(v -> new CourseDto(v.getId(), v.getName(),
+                        v.getEducationResourceId(), v.getEducationResourceUrl()))
+                .toList();
+    }
+
     @Transactional(readOnly = true)
-    public List<CourseDto> getUserCourses(UserEntity user) {
-        long userId = user.getId();
+    public List<CourseDto> getUserCourses(long userId) {
         if (authService.isAuthorized(userId, SystemPermission.VIEW_COURSE, authScopes.global())) {
-            return courseRepository.findAllCourseDtos();
+            return toCourseDtos(courseRepository.findAllCourseViews());
         }
 
         var courseIds = new HashSet<>(
@@ -144,12 +169,13 @@ public class CourseService {
             courseIds.addAll(courseRepository.findCourseIdsByEducationResourceIdIn(educationResourceIds));
         }
 
-        return courseIds.isEmpty() ? List.of() : courseRepository.findCourseDtosByIdIn(courseIds);
+        return courseIds.isEmpty() ? List.of()
+                : toCourseDtos(courseRepository.findCourseViewsByIdIn(courseIds));
     }
 
     @Transactional(readOnly = true)
     public List<CourseDto> getExerciseMemberships(long exerciseId) {
-        return exerciseCourseLinkRepository.findCourseDtosByExerciseId(exerciseId);
+        return toCourseDtos(exerciseCourseLinkRepository.findCourseViewsByExerciseId(exerciseId));
     }
 
     @Transactional

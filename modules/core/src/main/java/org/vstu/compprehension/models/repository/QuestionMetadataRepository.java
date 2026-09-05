@@ -8,7 +8,6 @@ import org.springframework.data.jpa.repository.QueryHints;
 import org.springframework.data.repository.CrudRepository;
 import org.springframework.data.repository.query.Param;
 import org.springframework.stereotype.Repository;
-import org.vstu.compprehension.dto.ComplexityStats;
 import org.vstu.compprehension.models.entities.QuestionMetadataEntity;
 
 import java.time.LocalDateTime;
@@ -78,13 +77,25 @@ public interface QuestionMetadataRepository extends CrudRepository<QuestionMetad
     @Query("select distinct m.templateId from QuestionMetadataEntity m where m.domainShortname = :domainShortname and m.templateId in :templateIds")
     HashSet<String> findExistingTemplateIds(@Param("domainShortname") String domainShortname, @Param("templateIds") Collection<String> templateIds);
 
-    @Query(value = "select new org.vstu.compprehension.dto.ComplexityStats(" +
-            "count(*), " +
-            "min(q.integralComplexity), " +
-            "avg(q.integralComplexity), " +
-            "max(q.integralComplexity)) " +
+    /**
+     * Статистика по сложности вопросов домена.
+     * <p>
+     * Интерфейс, а не конструкторное выражение: три подряд идущих {@code Double}
+     * (min, avg, max) при позиционном связывании переставляются молча.
+     */
+    interface ComplexityStatsView {
+        Long getCount();
+        Double getMin();
+        Double getMean();
+        Double getMax();
+    }
+
+    @Query(value = "select count(*) as count, " +
+            "min(q.integralComplexity) as min, " +
+            "avg(q.integralComplexity) as mean, " +
+            "max(q.integralComplexity) as max " +
             "from QuestionMetadataEntity q where q.domainShortname = :DOMAIN_NAME ")
-    ComplexityStats getStatOnComplexityField(
+    ComplexityStatsView getStatOnComplexityField(
             @Param("DOMAIN_NAME") String domainShortName
     );
 

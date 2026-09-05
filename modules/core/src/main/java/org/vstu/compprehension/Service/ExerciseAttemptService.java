@@ -21,6 +21,7 @@ import org.vstu.compprehension.models.data.QuestionMetadataBitsData;
 import org.vstu.compprehension.models.entities.QuestionEntity;
 import org.vstu.compprehension.models.entities.QuestionMetadataEntity;
 import org.vstu.compprehension.models.repository.ExerciseAttemptRepository;
+import org.vstu.compprehension.models.repository.ExerciseRepository;
 import org.vstu.compprehension.models.repository.ExerciseAttemptRepository.AttemptOwner;
 import org.vstu.compprehension.models.repository.InteractionRepository;
 import org.vstu.compprehension.models.repository.InteractionRepository.InteractionLawRow;
@@ -38,7 +39,14 @@ import java.util.stream.Collectors;
 @Service
 public class ExerciseAttemptService {
     private final ExerciseAttemptRepository exerciseAttemptRepository;
-    private final ExerciseService exerciseService;
+    /**
+     * Упражнение берётся из репозитория, а не из {@code ExerciseService}.
+     * <p>
+     * Через сервис получался цикл бинов: DomainFactory -> ExerciseAttemptService ->
+     * ExerciseService -> DomainFactory. Нужен здесь ровно один поиск по id, ради него
+     * тащить сервис незачем.
+     */
+    private final ExerciseRepository exerciseRepository;
     private final UserRepository userRepository;
     private final LtiContextProvider ltiContextProvider;
     private final GradePassbackService gradePassbackService;
@@ -49,7 +57,7 @@ public class ExerciseAttemptService {
     private final InteractionRepository interactionRepository;
 
     public ExerciseAttemptService(ExerciseAttemptRepository exerciseAttemptRepository,
-                                  ExerciseService exerciseService,
+                                  ExerciseRepository exerciseRepository,
                                   UserRepository userRepository,
                                   LtiContextProvider ltiContextProvider,
                                   GradePassbackService gradePassbackService,
@@ -59,7 +67,7 @@ public class ExerciseAttemptService {
                                   QuestionRepository questionRepository,
                                   InteractionRepository interactionRepository) {
         this.exerciseAttemptRepository = exerciseAttemptRepository;
-        this.exerciseService = exerciseService;
+        this.exerciseRepository = exerciseRepository;
         this.userRepository = userRepository;
         this.ltiContextProvider = ltiContextProvider;
         this.gradePassbackService = gradePassbackService;
@@ -100,7 +108,7 @@ public class ExerciseAttemptService {
         var interactionRows = questionIds.isEmpty()
                 ? List.<InteractionRow>of()
                 : interactionRepository.findRowsByQuestionIdIn(questionIds);
-        var interactionIds = interactionRows.stream().map(InteractionRow::interactionId).toList();
+        var interactionIds = interactionRows.stream().map(InteractionRow::getInteractionId).toList();
 
         Map<Long, List<String>> violationsByInteraction = interactionIds.isEmpty()
                 ? Map.of() : groupLawNames(interactionRepository.findViolationLawsByInteractionIdIn(interactionIds));
@@ -109,14 +117,14 @@ public class ExerciseAttemptService {
 
         Map<Long, List<AttemptInteractionData>> interactionsByQuestion = interactionRows.stream()
                 .collect(Collectors.groupingBy(
-                        InteractionRow::questionId,
+                        InteractionRow::getQuestionId,
                         Collectors.mapping(row -> new AttemptInteractionData(
-                                row.interactionId(),
-                                row.orderNumber() == null ? 0 : row.orderNumber(),
-                                row.interactionType(),
-                                row.interactionsLeft(),
-                                violationsByInteraction.getOrDefault(row.interactionId(), List.of()),
-                                correctLawsByInteraction.getOrDefault(row.interactionId(), List.of())
+                                row.getInteractionId(),
+                                row.getOrderNumber() == null ? 0 : row.getOrderNumber(),
+                                row.getInteractionType(),
+                                row.getInteractionsLeft(),
+                                violationsByInteraction.getOrDefault(row.getInteractionId(), List.of()),
+                                correctLawsByInteraction.getOrDefault(row.getInteractionId(), List.of())
                         ), Collectors.toList())));
 
         var questionsData = questions.stream()
@@ -135,8 +143,8 @@ public class ExerciseAttemptService {
 
     private static Map<Long, List<String>> groupLawNames(List<InteractionLawRow> rows) {
         return rows.stream().collect(Collectors.groupingBy(
-                InteractionLawRow::interactionId,
-                Collectors.mapping(InteractionLawRow::lawName, Collectors.toList())));
+                InteractionLawRow::getInteractionId,
+                Collectors.mapping(InteractionLawRow::getLawName, Collectors.toList())));
     }
 
     private static @Nullable QuestionMetadataBitsData toBits(@Nullable QuestionMetadataEntity metadata) {
@@ -232,11 +240,11 @@ public class ExerciseAttemptService {
     }
 
     private void ensureOwnerOrPrivileged(long userId, @Nullable AttemptOwner owner, long targetId) {
-        if (owner != null && owner.userId() != null && owner.userId() == userId) {
-            authService.ensureAuthorized(userId, SystemPermission.SOLVE_EXERCISE, authScopes.courseOrGlobal(owner.courseId()));
+        if (owner != null && owner.getUserId() != null && owner.getUserId() == userId) {
+            authService.ensureAuthorized(userId, SystemPermission.SOLVE_EXERCISE, authScopes.courseOrGlobal(owner.getCourseId()));
             return;
         }
-        if (authService.isAuthorized(userId, SystemPermission.EDIT_EXERCISE, authScopes.courseOrGlobal(owner != null ? owner.courseId() : null))) {
+        if (authService.isAuthorized(userId, SystemPermission.EDIT_EXERCISE, authScopes.courseOrGlobal(owner != null ? owner.getCourseId() : null))) {
             return;
         }
         throw new SecurityException(String.format(
@@ -256,7 +264,8 @@ public class ExerciseAttemptService {
                     exerciseId, userId, AttemptStatus.INCOMPLETE, AttemptStatus.COMPLETED_BY_SYSTEM);
         }
 
-        var exercise = exerciseService.getExercise(exerciseId);
+        var exercise = exerciseRepository.findById(exerciseId).orElseThrow(() ->
+                new NoSuchElementException("Exercise with id: " + exerciseId + " not Found"));
         var user = userRepository.findById(userId).orElseThrow();
 
         var ea = new ExerciseAttemptEntity();

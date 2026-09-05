@@ -15,8 +15,8 @@ import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Service;
 import org.vstu.compprehension.common.BatchingIterator;
 import org.vstu.compprehension.common.FileHelper;
-import org.vstu.compprehension.dto.GenerationRequest;
-import org.vstu.compprehension.dto.GenerationRequestGroup;
+import org.vstu.compprehension.models.data.GenerationRequestData;
+import org.vstu.compprehension.models.data.GenerationRequestGroupData;
 import org.vstu.compprehension.models.businesslogic.SourceCodeRepositoryInfo;
 import org.vstu.compprehension.models.businesslogic.storage.QuestionBank;
 import org.vstu.compprehension.models.businesslogic.storage.SerializableQuestionTemplate;
@@ -143,7 +143,7 @@ public class TaskGenerationJob {
             }
 
             var generationRequestIds = generationRequests.stream()
-                    .map(GenerationRequestGroup::getGenerationRequestIds)
+                    .map(GenerationRequestGroupData::getGenerationRequestIds)
                     .collect(Collectors.toList());
             log.info("Loaded generation requests with ids: {}", generationRequestIds);
 
@@ -176,7 +176,7 @@ public class TaskGenerationJob {
         }
     }
 
-    private List<GenerationRequestGroup> getGenerationRequests(String domainShortName) {
+    private List<GenerationRequestGroupData> getGenerationRequests(String domainShortName) {
         var requests = generatorRequestsQueue.findAllActual(domainShortName, LocalDateTime.now().minusMonths(3));
 
         if (!requests.isEmpty()) {
@@ -545,7 +545,7 @@ public class TaskGenerationJob {
     }
 
     @SneakyThrows
-    private void saveQuestions(TaskGenerationJobConfig.TaskConfig config, List<Path> generatedRepos, @Nullable List<GenerationRequestGroup> generationRequests) {
+    private void saveQuestions(TaskGenerationJobConfig.TaskConfig config, List<Path> generatedRepos, @Nullable List<GenerationRequestGroupData> generationRequests) {
         var generatorConfig = config.getGenerator();
         if (!generatorConfig.isEnabled()) {
             log.info("generator is disabled by config");
@@ -554,9 +554,9 @@ public class TaskGenerationJob {
 
         log.info("Start saving problems generated from {} repositories ...", generatedRepos.size());
 
-        var questionsGenerated = new HashMap<GenerationRequest, Integer>();
-        var incompletedRequests = new HashMap<GenerationRequestGroup, HashSet<GenerationRequest>>();
-        for (var gr : (generationRequests == null ? List.<GenerationRequestGroup>of() : generationRequests)) {
+        var questionsGenerated = new HashMap<GenerationRequestData, Integer>();
+        var incompletedRequests = new HashMap<GenerationRequestGroupData, HashSet<GenerationRequestData>>();
+        for (var gr : (generationRequests == null ? List.<GenerationRequestGroupData>of() : generationRequests)) {
             incompletedRequests.put(gr, Arrays.stream(gr.getGenerationRequests()).collect(Collectors.toCollection(HashSet::new)));
         }
 

@@ -44,7 +44,7 @@ public class QuestionBankController {
     @ResponseBody
     public QuestionBankSearchStatsDto search(@RequestBody QuestionBankSearchRequestDto searchRequest,
                                              HttpServletRequest request) throws Exception {
-        var userId = userService.getCurrentUser().getId();
+        var userId = userService.getCurrentUser().id();
         authService.ensureAuthorized(userId, SystemPermission.VIEW_EXERCISE, authScopes.courseOrGlobal(searchRequest.getCourseId()));
 
 

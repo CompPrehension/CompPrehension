@@ -112,8 +112,7 @@ public class QuestionService {
 
     public SupplementaryFeedbackDto judgeSupplementaryQuestion(Question question, List<ResponseEntity> responses) {
         Domain domain = question.getDomain();
-        val supplementaryInfo = supplementaryStepRepository.findBySupplementaryQuestion(
-                getQuestionEntity(question.getQuestionData().getId()));
+        val supplementaryInfo = supplementaryStepRepository.findBySupplementaryQuestion(question.getQuestionData().getId());
         val feedbackGen = domain.judgeSupplementaryQuestion(question,
                 supplementaryInfo == null ? null : QuestionDataMapper.toData(supplementaryInfo),
                 toResponseData(responses));

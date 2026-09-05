@@ -5,8 +5,6 @@ import org.springframework.data.jpa.repository.Modifying;
 import org.springframework.data.jpa.repository.Query;
 import org.springframework.data.repository.query.Param;
 import org.springframework.stereotype.Repository;
-import org.vstu.compprehension.dto.course.CourseDto;
-import org.vstu.compprehension.dto.course.CourseEducationResourceDto;
 import org.vstu.compprehension.models.entities.course.CourseEntity;
 
 import java.util.Collection;
@@ -19,22 +17,43 @@ public interface CourseRepository extends JpaRepository<CourseEntity, Long> {
 
     List<CourseEntity> findByEducationResourceIdAndExternalCourseIdIsNotNull(Long educationResourceId);
 
+    /**
+     * Курс в объёме, нужном для списков.
+     * <p>
+     * Интерфейс, а не конструкторное выражение: Spring Data связывает значения по имени
+     * геттера, а {@code select new} — по позиции. При позиционном связывании перестановка
+     * двух полей одного типа компилируется, выглядит невинно и молча подставляет не те
+     * данные.
+     */
+    interface CourseView {
+        long getId();
+        String getName();
+        long getEducationResourceId();
+        String getEducationResourceUrl();
+    }
+
+    /** Пара «курс — образовательный ресурс». */
+    interface CourseEducationResourceView {
+        Long getCourseId();
+        Long getEducationResourceId();
+    }
+
     @Query("""
-            select new org.vstu.compprehension.dto.course.CourseDto(
-                c.id, c.name, c.educationResource.id, c.educationResource.url
-            )
+            select c.id as id, c.name as name,
+                   c.educationResource.id as educationResourceId,
+                   c.educationResource.url as educationResourceUrl
             from CourseEntity c
             where c.id in :courseIds
             """)
-    List<CourseDto> findCourseDtosByIdIn(@Param("courseIds") Collection<Long> courseIds);
+    List<CourseView> findCourseViewsByIdIn(@Param("courseIds") Collection<Long> courseIds);
 
     @Query("""
-            select new org.vstu.compprehension.dto.course.CourseDto(
-                c.id, c.name, c.educationResource.id, c.educationResource.url
-            )
+            select c.id as id, c.name as name,
+                   c.educationResource.id as educationResourceId,
+                   c.educationResource.url as educationResourceUrl
             from CourseEntity c
             """)
-    List<CourseDto> findAllCourseDtos();
+    List<CourseView> findAllCourseViews();
 
     @Query("select c.id from CourseEntity c where c.educationResource.id in :educationResourceIds")
     List<Long> findCourseIdsByEducationResourceIdIn(@Param("educationResourceIds") Collection<Long> educationResourceIds);
@@ -43,13 +62,11 @@ public interface CourseRepository extends JpaRepository<CourseEntity, Long> {
     Optional<Long> findEducationResourceIdByCourseId(@Param("courseId") Long courseId);
 
     @Query("""
-            select new org.vstu.compprehension.dto.course.CourseEducationResourceDto(
-                c.id, c.educationResource.id
-            )
+            select c.id as courseId, c.educationResource.id as educationResourceId
             from CourseEntity c
             where c.id in :courseIds
             """)
-    List<CourseEducationResourceDto> findEducationResourceRefsByCourseIdIn(@Param("courseIds") Collection<Long> courseIds);
+    List<CourseEducationResourceView> findEducationResourceRefsByCourseIdIn(@Param("courseIds") Collection<Long> courseIds);
 
     @Modifying(clearAutomatically = true)
     @Query(value = """

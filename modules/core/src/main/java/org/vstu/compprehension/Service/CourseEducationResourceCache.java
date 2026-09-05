@@ -49,8 +49,8 @@ public class CourseEducationResourceCache {
                 cache.put(courseId, new CachedValue(ABSENT, expiresAt));
             }
             for (var ref : courseRepository.findEducationResourceRefsByCourseIdIn(missing)) {
-                cache.put(ref.courseId(), new CachedValue(ref.educationResourceId(), expiresAt));
-                resolved.add(ref.educationResourceId());
+                cache.put(ref.getCourseId(), new CachedValue(ref.getEducationResourceId(), expiresAt));
+                resolved.add(ref.getEducationResourceId());
             }
         }
 

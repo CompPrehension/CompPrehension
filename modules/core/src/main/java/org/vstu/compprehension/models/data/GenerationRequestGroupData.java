@@ -1,4 +1,4 @@
-package org.vstu.compprehension.dto;
+package org.vstu.compprehension.models.data;
 
 import lombok.AllArgsConstructor;
 import lombok.Value;
@@ -6,9 +6,9 @@ import org.vstu.compprehension.models.businesslogic.QuestionBankSearchRequest;
 
 @AllArgsConstructor
 @Value
-public class GenerationRequestGroup {
+public class GenerationRequestGroupData {
     Integer[] generationRequestIds;
-    GenerationRequest[] generationRequests;
+    GenerationRequestData[] generationRequests;
     QuestionBankSearchRequest questionRequest;
     int questionsToGenerate;
 }

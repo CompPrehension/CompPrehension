@@ -12,7 +12,6 @@ import org.vstu.compprehension.Service.ExercisePermissionService;
 import org.vstu.compprehension.Service.UserService;
 import org.vstu.compprehension.dto.UserInfoDto;
 import org.vstu.compprehension.models.entities.EnumData.Language;
-import org.vstu.compprehension.models.entities.UserEntity;
 import org.vstu.compprehension.utils.Mapper;
 
 @Controller
@@ -31,8 +30,8 @@ public class UsersController {
     @RequestMapping(value = { "whoami"}, method = { RequestMethod.GET })
     @ResponseBody
     public UserInfoDto getAll() throws Exception {
-        UserEntity user = userService.getCurrentUser();
-        return Mapper.toDto(user, exercisePermissionService.ofUser(user.getId()));
+        var user = userService.getCurrentUser();
+        return Mapper.toDto(user, exercisePermissionService.ofUser(user.id()));
     }
 
     private record SetLanguageRequest(String language) {}
@@ -40,6 +39,6 @@ public class UsersController {
     @ResponseBody
     public String setLanguage(@RequestBody SetLanguageRequest language) throws Exception {
         userService.setLanguage(Language.fromString(language.language));
-        return userService.getCurrentUser().getPreferred_language().toLocaleString();
+        return userService.getCurrentUser().language().toLocaleString();
     }
 }

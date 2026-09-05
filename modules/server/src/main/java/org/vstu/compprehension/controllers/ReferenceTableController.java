@@ -5,6 +5,7 @@ import org.springframework.stereotype.Controller;
 import org.springframework.web.bind.annotation.RequestMapping;
 import org.springframework.web.bind.annotation.RequestMethod;
 import org.springframework.web.bind.annotation.ResponseBody;
+import org.vstu.compprehension.models.data.CurrentUserData;
 import org.vstu.compprehension.Service.UserService;
 import org.vstu.compprehension.adapters.StrategyFactory;
 import org.vstu.compprehension.dto.*;
@@ -16,7 +17,6 @@ import org.vstu.compprehension.models.businesslogic.backend.JenaBackend;
 import org.vstu.compprehension.models.businesslogic.domains.DomainFactory;
 import org.vstu.compprehension.models.businesslogic.strategies.AbstractStrategyFactory;
 import org.vstu.compprehension.models.entities.EnumData.Language;
-import org.vstu.compprehension.models.entities.UserEntity;
 
 import java.util.List;
 import java.util.Set;
@@ -41,7 +41,7 @@ public class ReferenceTableController {
     public List<StrategyDto> getStrategies() {
         var strategyIds = strategyFactory.getStrategyIds();
         var currentLanguage = userService.tryGetCurrentUser()
-                .map(UserEntity::getPreferred_language)
+                .map(CurrentUserData::language)
                 .orElse(Language.ENGLISH);
         return strategyIds.stream()
                 .map(strategyFactory::getStrategy)
@@ -66,7 +66,7 @@ public class ReferenceTableController {
     public List<DomainDto> getDomains() throws Exception {
         var domainIds= domainFactory.getDomainIds();
         var currentLanguage = userService.tryGetCurrentUser()
-                .map(UserEntity::getPreferred_language)
+                .map(CurrentUserData::language)
                 .orElse(Language.ENGLISH);
         return domainIds.stream()
                 .map(domainFactory::getDomain)

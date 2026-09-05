@@ -37,13 +37,13 @@ public class QuestionSurveyController {
     @ResponseBody
     public List<SurveyResultDto> getCurrentUserAttemptSurveyResults(@PathVariable("id") String surveyId,
                                                                     @RequestParam("attemptId") Long attemptId) {
-        var userId = userService.getCurrentUser().getId();
+        var userId = userService.getCurrentUser().id();
         return surveyService.getUserAttemptVotes(userId, attemptId, surveyId);
     }
 
     @PostMapping("")
     public ResponseEntity<?> addSurveyResult(@RequestBody SurveyResultDto result) throws Exception {
-        var userId = userService.getCurrentUser().getId();
+        var userId = userService.getCurrentUser().id();
         surveyService.saveAnswer(userId, result);
         return ResponseEntity.ok().build();
     }

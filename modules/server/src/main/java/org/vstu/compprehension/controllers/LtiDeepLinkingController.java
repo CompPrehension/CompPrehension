@@ -18,8 +18,6 @@ import org.vstu.compprehension.models.businesslogic.lti.LtiContext;
 import org.vstu.compprehension.models.businesslogic.lti.LtiCourseContext;
 import org.vstu.compprehension.models.businesslogic.lti.LtiDeepLinkingContext;
 import org.vstu.compprehension.models.businesslogic.auth.AuthObjects.SystemPermission;
-import org.vstu.compprehension.models.entities.course.CourseEntity;
-import org.vstu.compprehension.models.entities.external_system.EducationResourceEntity;
 import org.vstu.compprehension.service.lti.DeepLinkingResponseService;
 
 import java.util.ArrayList;
@@ -99,13 +97,13 @@ public class LtiDeepLinkingController {
         if (course == null || course.courseId() == null) {
             throw new IllegalArgumentException("No course in LTI context");
         }
-        EducationResourceEntity eduRes = educationResourceService.findByUrlAndType(ctx.lmsUrl(), ctx.lmsType())
+        long eduResId = educationResourceService.findIdByUrlAndType(ctx.lmsUrl(), ctx.lmsType())
                 .orElseThrow(() -> new IllegalArgumentException("Unknown education resource"));
-        CourseEntity courseEntity = courseService.findByExternalIdAndResourceId(course.courseId(), eduRes.getId())
+        long courseId = courseService.findCourseIdByExternalIdAndResourceId(course.courseId(), eduResId)
                 .orElseThrow(() -> new IllegalArgumentException("Course not found for LTI context"));
 
-        long userId = userService.getCurrentUser().getId();
-        authService.ensureAuthorized(userId, SystemPermission.MANAGE_COURSE_CONTENT, authScopes.course(courseEntity.getId()));
-        return courseEntity.getId();
+        long userId = userService.getCurrentUser().id();
+        authService.ensureAuthorized(userId, SystemPermission.MANAGE_COURSE_CONTENT, authScopes.course(courseId));
+        return courseId;
     }
 }

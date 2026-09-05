@@ -4,7 +4,6 @@ import com.tngtech.archunit.core.importer.ImportOption;
 import com.tngtech.archunit.junit.AnalyzeClasses;
 import com.tngtech.archunit.junit.ArchTest;
 import com.tngtech.archunit.lang.ArchRule;
-import com.tngtech.archunit.library.freeze.FreezingArchRule;
 import org.springframework.beans.factory.annotation.Autowired;
 
 import static com.tngtech.archunit.lang.syntax.ArchRuleDefinition.fields;
@@ -28,9 +27,9 @@ public class SpringCouplingTest {
      */
     @ArchTest
     static final ArchRule no_field_injection =
-            FreezingArchRule.freeze(fields()
+            fields()
                     .should().notBeAnnotatedWith(Autowired.class)
-                    .as("dependencies should be injected via constructor, not into fields"));
+                    .as("dependencies should be injected via constructor, not into fields");
 
     /**
      * Бизнес-логика зависит от spring-context (аннотации, транзакции), но не должна
@@ -50,11 +49,11 @@ public class SpringCouplingTest {
      */
     @ArchTest
     static final ArchRule business_logic_should_not_depend_on_web_stack =
-            FreezingArchRule.freeze(noClasses()
+            noClasses()
                     .that().resideInAnyPackage(BUSINESS_LOGIC)
                     .should().dependOnClassesThat().resideInAnyPackage(
                             "org.springframework.web..",
                             "org.springframework.http..",
                             "jakarta.servlet..")
-                    .as("business logic should not depend on the web stack"));
+                    .as("business logic should not depend on the web stack");
 }

@@ -54,6 +54,43 @@ public class ExerciseService {
         this.attemptReassignExecutor = attemptReassignExecutor;
     }
 
+    /** Публично ли упражнение. */
+    @Transactional(readOnly = true)
+    public boolean isExercisePublic(long exerciseId) {
+        return getExercise(exerciseId).isPublic();
+    }
+
+    /** Настройки упражнения в контексте курса. */
+    @Transactional(readOnly = true)
+    public ExerciseOptionsData getExerciseOptionsInContext(long exerciseId, @Nullable Long courseId) {
+        return getExerciseInContext(exerciseId, courseId).getOptions();
+    }
+
+    /**
+     * Упражнение показано в курсе, но принадлежит глобальному пулу — править его нельзя.
+     *
+     * @throws IllegalStateException если упражнение унаследовано в этот курс
+     */
+    @Transactional(readOnly = true)
+    public void ensureNotInheritedInCourse(long exerciseId, @Nullable Long courseId) {
+        if (isInheritedInCourse(getExerciseInContext(exerciseId, courseId), courseId)) {
+            throw new IllegalStateException("inherited_exercise_is_read_only");
+        }
+    }
+
+    /** Идентификатор созданного упражнения. */
+    @Transactional
+    public long createExerciseAndGetId(@NotNull String name, @NotNull String domainId,
+                                       @NotNull String strategyId, @Nullable Long courseId) {
+        return createExercise(name, domainId, strategyId, courseId).getId();
+    }
+
+    /** Идентификатор клона упражнения. */
+    @Transactional
+    public long cloneExerciseAndGetId(long sourceExerciseId, @Nullable Long targetCourseId) {
+        return cloneExercise(sourceExerciseId, targetCourseId).getId();
+    }
+
     public ExerciseEntity getExercise(long exerciseId) {
         return exerciseRepository.findById(exerciseId).orElseThrow(()->
                 new NoSuchElementException("Exercise with id: " + exerciseId + " not Found"));

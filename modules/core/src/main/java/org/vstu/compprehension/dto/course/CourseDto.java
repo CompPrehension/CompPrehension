@@ -13,5 +13,6 @@ public class CourseDto {
     private long id;
     private String name;
     private long educationResourceId;
-    private String educationResourceName;
+    /** У образовательного ресурса нет имени — подписью служит его адрес. */
+    private String educationResourceUrl;
 }
