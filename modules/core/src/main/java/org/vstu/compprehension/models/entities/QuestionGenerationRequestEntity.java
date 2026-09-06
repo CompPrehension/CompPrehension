@@ -119,10 +119,14 @@ public class QuestionGenerationRequestEntity {
     private Integer stepsMax;
     
     //endregion
-    
-    public static enum Status {
+
+    /** Порядок констант значим: в БД статус хранится числом. */
+    public enum Status {
+        /** Заявка ждёт обработки. */
         ACTUAL,
+        /** Нужное число вопросов сгенерировано. */
         COMPLETED,
+        /** Заявка снята: генерировать по ней больше не нужно. */
         CANCELLED,
     }
 }

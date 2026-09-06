@@ -4,6 +4,7 @@ import org.junit.jupiter.api.Test;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.transaction.support.TransactionSynchronizationManager;
 import org.vstu.compprehension.Service.CourseService;
+import org.vstu.compprehension.models.data.CourseExerciseData;
 import org.vstu.compprehension.infrastructure.AbstractIntegrationTest;
 import org.vstu.compprehension.infrastructure.TestData;
 
@@ -38,19 +39,19 @@ class LazyLoadingBoundaryTest extends AbstractIntegrationTest {
         assertFalse(TransactionSynchronizationManager.isActualTransactionActive(),
                 "Тест обязан идти без транзакции, иначе он ничего не проверяет");
 
-        var refs = courseService.getExerciseRefsInCourseOrThrow(
+        var refs = courseService.getExercisesInCourseOrThrow(
                 TestData.MAIN_COURSE_ID,
                 List.of(TestData.MAIN_COURSE_EXERCISE_ID, TestData.INHERITED_EXERCISE_ID));
 
         assertEquals(
                 List.of("Inherited exercise", "Main course exercise"),
-                refs.stream().map(CourseService.ExerciseRef::name).sorted().toList());
+                refs.stream().map(CourseExerciseData::name).sorted().toList());
     }
 
     /** Упражнение из другого курса не должно проходить проверку принадлежности. */
     @Test
     void exerciseFromAnotherCourseIsRejected() {
-        assertThrows(IllegalArgumentException.class, () -> courseService.getExerciseRefsInCourseOrThrow(
+        assertThrows(IllegalArgumentException.class, () -> courseService.getExercisesInCourseOrThrow(
                 TestData.MAIN_COURSE_ID,
                 List.of(TestData.OTHER_COURSE_EXERCISE_ID)));
     }

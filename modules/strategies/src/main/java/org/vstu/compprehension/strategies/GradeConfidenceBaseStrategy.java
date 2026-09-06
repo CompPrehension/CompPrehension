@@ -19,7 +19,6 @@ import org.vstu.compprehension.models.businesslogic.domains.DomainFactory;
 import org.vstu.compprehension.models.businesslogic.strategies.AbstractStrategy;
 import org.vstu.compprehension.models.businesslogic.strategies.StrategyOptions;
 import org.vstu.compprehension.models.businesslogic.strategies.StrategyBase;
-import org.vstu.compprehension.models.entities.*;
 import org.vstu.compprehension.models.entities.EnumData.*;
 
 import java.util.*;

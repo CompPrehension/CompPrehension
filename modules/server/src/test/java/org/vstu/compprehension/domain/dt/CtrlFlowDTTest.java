@@ -12,7 +12,7 @@ import org.junit.jupiter.api.TestInstance;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.boot.test.context.SpringBootTest;
 import org.springframework.test.context.ActiveProfiles;
-import org.vstu.compprehension.Service.mapping.QuestionDataMapper;
+import org.vstu.compprehension.infrastructure.TestQuestionMetadata;
 import org.vstu.compprehension.models.data.ResponseData;
 import org.vstu.compprehension.models.data.AnswerObjectData;
 import org.vstu.compprehension.Service.QuestionService;
@@ -73,7 +73,7 @@ public class CtrlFlowDTTest {
 
     public Question loadQuestion(String questionName) {
         var metas = qMetaRepo.findByName(questionName);
-        return domain.makeQuestion(QuestionDataMapper.toData(metas.getFirst()), List.of(domain.getTag("Python")), Language.ENGLISH);
+        return domain.makeQuestion(TestQuestionMetadata.toData(metas.getFirst()), List.of(domain.getTag("Python")), Language.ENGLISH);
     }
 
     private String walkDecisionTreeTrace(DecisionTreeTrace trace) {

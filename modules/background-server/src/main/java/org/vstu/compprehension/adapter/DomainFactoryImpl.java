@@ -1,6 +1,5 @@
 package org.vstu.compprehension.adapter;
 
-import com.google.common.collect.Lists;
 import domains.ControlFlowDTDomain;
 import domains.DataFlowDTDomain;
 import domains.ObjectsScopeDTDomain;
@@ -9,12 +8,10 @@ import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Component;
 import org.vstu.compprehension.Service.SupplementaryStepService;
 import org.vstu.compprehension.Service.ExerciseAttemptService;
-import org.vstu.compprehension.models.entities.DomainEntity;
-import org.vstu.compprehension.models.data.DomainData;
 import org.vstu.compprehension.Service.LocalizationService;
 import org.vstu.compprehension.models.businesslogic.domains.*;
 import org.vstu.compprehension.models.businesslogic.storage.QuestionBank;
-import org.vstu.compprehension.models.repository.DomainRepository;
+import org.vstu.compprehension.models.repository.data.DomainDataRepository;
 import org.vstu.compprehension.utils.RandomProvider;
 
 import java.util.HashMap;
@@ -26,72 +23,72 @@ public class DomainFactoryImpl implements DomainFactory {
     private @NotNull HashMap<String, Domain> domainShortNameToClassMap = new HashMap<>(); // TODO remove this
 
     @Autowired
-    public DomainFactoryImpl(DomainRepository domainRepository,
+    public DomainFactoryImpl(DomainDataRepository domainDataRepository,
                              LocalizationService localizationService,
                              RandomProvider randomProvider,
                              QuestionBank questionStorage,
                              ExerciseAttemptService exerciseAttemptService,
                              SupplementaryStepService supplementaryStepService) {
 
-        var domains = Lists.newArrayList(domainRepository.findAll());
+        var domains = domainDataRepository.findAll();
         {
-            var progExprDomainEntity = domains
-                    .stream().filter(x -> x.getShortName().equals("expression"))
+            var progExprDomainData = domains
+                    .stream().filter(x -> x.shortName().equals("expression"))
                     .findFirst()
                     .orElseThrow();
             var progExprDomain = new ProgrammingLanguageExpressionDomain(
-                    toDomainData(progExprDomainEntity),
+                    progExprDomainData,
                     localizationService,
                     randomProvider,
                     exerciseAttemptService,
                     supplementaryStepService,
                     questionStorage);
             domainIdToClassMap.put(progExprDomain.getDomainId(), progExprDomain);
-            domainShortNameToClassMap.put(progExprDomainEntity.getShortName(), progExprDomain);
+            domainShortNameToClassMap.put(progExprDomainData.shortName(), progExprDomain);
         }
         {
-            var controlFlowDomainEntity = domains
-                    .stream().filter(x -> x.getShortName().equals("ctrl_flow"))
+            var controlFlowDomainData = domains
+                    .stream().filter(x -> x.shortName().equals("ctrl_flow"))
                     .findFirst()
                     .orElseThrow();
             var controlFlowDomain = new ControlFlowStatementsDomain(
-                    toDomainData(controlFlowDomainEntity),
+                    controlFlowDomainData,
                     localizationService,
                     randomProvider,
                     exerciseAttemptService,
                     supplementaryStepService,
                     questionStorage);
             domainIdToClassMap.put(controlFlowDomain.getDomainId(), controlFlowDomain);
-            domainShortNameToClassMap.put(controlFlowDomainEntity.getShortName(), controlFlowDomain);
+            domainShortNameToClassMap.put(controlFlowDomainData.shortName(), controlFlowDomain);
         }
         {
             var progExprDomain = (ProgrammingLanguageExpressionDomain)domainShortNameToClassMap.get("expression");
-            var dtDomainEntity = domains
-                    .stream().filter(x -> x.getShortName().equals("expression_dt"))
+            var dtDomainData = domains
+                    .stream().filter(x -> x.shortName().equals("expression_dt"))
                     .findFirst()
                     .orElseThrow();
             var dtDomain = new ProgrammingLanguageExpressionDTDomain(
-                    toDomainData(dtDomainEntity),
+                    dtDomainData,
                     progExprDomain,
                     exerciseAttemptService,
                     supplementaryStepService);
             domainIdToClassMap.put(dtDomain.getDomainId(), dtDomain);
-            domainShortNameToClassMap.put(dtDomainEntity.getShortName(), dtDomain);
+            domainShortNameToClassMap.put(dtDomainData.shortName(), dtDomain);
         }
         {
-            var domainEntity = domains
-                    .stream().filter(x -> x.getShortName().equals("ctrl_flow_dt25"))
+            var domainData = domains
+                    .stream().filter(x -> x.shortName().equals("ctrl_flow_dt25"))
                     .findFirst()
                     .orElseThrow();
             var ctrlFlowDomain = new ControlFlowDTDomain(
-                    toDomainData(domainEntity),
+                    domainData,
                     randomProvider,
                     exerciseAttemptService,
                     supplementaryStepService,
                     localizationService,
                     questionStorage);
             domainIdToClassMap.put(ctrlFlowDomain.getDomainId(), ctrlFlowDomain);
-            domainShortNameToClassMap.put(domainEntity.getShortName(), ctrlFlowDomain);
+            domainShortNameToClassMap.put(domainData.shortName(), ctrlFlowDomain);
         }
     }
 
@@ -115,10 +112,5 @@ public class DomainFactoryImpl implements DomainFactory {
             throw new RuntimeException(String.format("Couldn't resolve domain with id %s", domainId));
         }
         return domain;
-    }
-
-    /** Сущность домена нужна только здесь, дальше по коду ходят данные. */
-    private static DomainData toDomainData(DomainEntity entity) {
-        return new DomainData(entity.getName(), entity.getShortName(), entity.getVersion(), entity.getOptions());
     }
 }

@@ -1,4 +1,4 @@
-package org.vstu.compprehension.adapters;
+package org.vstu.compprehension.models.repository;
 
 import com.google.common.collect.Lists;
 import org.jetbrains.annotations.NotNull;
@@ -8,7 +8,6 @@ import org.springframework.data.domain.Pageable;
 import org.springframework.data.domain.Sort;
 import org.springframework.data.repository.query.FluentQuery;
 import org.vstu.compprehension.models.entities.QuestionDataEntity;
-import org.vstu.compprehension.models.repository.SerializedQuestionRepository;
 
 import java.util.List;
 import java.util.Optional;

@@ -15,6 +15,7 @@ import org.vstu.compprehension.Service.ExerciseAttemptService;
 import org.vstu.compprehension.service.BktService;
 import org.vstu.compprehension.Service.RoleAssignmentService;
 import org.vstu.compprehension.Service.CourseService;
+import org.vstu.compprehension.models.repository.data.UserDataRepository;
 import org.vstu.compprehension.Service.EducationResourceService;
 import org.vstu.compprehension.Service.ExternalAccountService;
 import org.vstu.compprehension.Service.LtiContextProvider;
@@ -27,7 +28,7 @@ import org.vstu.compprehension.models.businesslogic.backend.PelletBackend;
 import org.vstu.compprehension.models.businesslogic.backend.facts.JenaFactList;
 import org.vstu.compprehension.models.businesslogic.domains.DomainFactory;
 import org.vstu.compprehension.models.businesslogic.storage.QuestionBank;
-import org.vstu.compprehension.models.repository.*;
+import org.vstu.compprehension.models.repository.data.QuestionBankDataRepository;
 import org.vstu.compprehension.strategies.*;
 import org.vstu.compprehension.utils.RandomProvider;
 import org.vstu.compprehension.utils.transactions.TransactionScopeFactory;
@@ -92,26 +93,19 @@ public class DiConfig {
 
     @Bean
     @SessionScope
-    UserService getUserService(@Autowired UserRepository userRepository,
+    UserService getUserService(@Autowired UserDataRepository userDataRepository,
                                @Autowired EducationResourceService educationResourceService,
                                @Autowired ExternalAccountService externalAccountService,
                                @Autowired LtiContextProvider ltiContextProvider,
                                @Autowired CourseService courseService,
                                @Autowired RoleAssignmentService roleAssignmentService) {
-        return new CachedUserService(new UserServiceImpl(userRepository, educationResourceService, externalAccountService, ltiContextProvider, courseService, roleAssignmentService));
+        return new CachedUserService(new UserServiceImpl(userDataRepository, educationResourceService, externalAccountService, ltiContextProvider, courseService, roleAssignmentService));
     }
 
     @Bean
     @Singleton
-    QuestionBank getQuestionBank(
-            @Autowired DomainRepository domainRepository,
-            @Autowired QuestionMetadataRepository metadataRepository,
-            @Autowired SerializedQuestionRepository serializedQuestionRepository,
-            @Autowired QuestionGenerationRequestRepository generationRequestRepository,
-            @Autowired QuestionMetadataSearchRequestRepository questionSearchRequestLogRepository,
-            @Autowired TransactionScopeFactory transactionScopeFactory) throws Exception {
-        //var allDomains = domainRepository.findAll();
-        return new QuestionBank(metadataRepository, serializedQuestionRepository, generationRequestRepository, questionSearchRequestLogRepository, transactionScopeFactory);
+    QuestionBank getQuestionBank(@Autowired QuestionBankDataRepository bankDataRepository) {
+        return new QuestionBank(bankDataRepository);
     }
     
     @Bean

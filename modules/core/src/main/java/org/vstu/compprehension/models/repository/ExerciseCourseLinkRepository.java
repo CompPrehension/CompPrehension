@@ -27,7 +27,14 @@ public interface ExerciseCourseLinkRepository extends JpaRepository<ExerciseCour
             nativeQuery = true)
     int createIfAbsent(@Param("exerciseId") long exerciseId, @Param("courseId") long courseId);
 
-    List<ExerciseCourseLinkEntity> findAllByExerciseId(long exerciseId);
+    /**
+     * Курсы, в которых показано упражнение.
+     * <p>
+     * Проекция, а не сами связи: из связи читается единственное поле, а её ленивый
+     * {@code getCourse()} вне транзакции не инициализируется.
+     */
+    @Query("select ecl.course.id from ExerciseCourseLinkEntity ecl where ecl.exercise.id = :exerciseId")
+    List<Long> findCourseIdsByExerciseId(@Param("exerciseId") long exerciseId);
 
     /**
      * Связи курса с перечисленными упражнениями, с уже загруженным упражнением.

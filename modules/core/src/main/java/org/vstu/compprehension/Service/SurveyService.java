@@ -6,10 +6,8 @@ import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
 import org.vstu.compprehension.dto.survey.SurveyDto;
 import org.vstu.compprehension.dto.survey.SurveyResultDto;
-import org.vstu.compprehension.models.entities.SurveyAnswerEntity;
-import org.vstu.compprehension.models.repository.SurveyAnswerRepository;
-import org.vstu.compprehension.models.repository.SurveyRepository;
-import org.vstu.compprehension.models.repository.UserRepository;
+import org.vstu.compprehension.models.data.SurveyVoteData;
+import org.vstu.compprehension.models.repository.data.SurveyDataRepository;
 import org.vstu.compprehension.utils.Mapper;
 
 import java.util.List;
@@ -25,31 +23,26 @@ import java.util.NoSuchElementException;
 @Service
 @RequiredArgsConstructor
 public class SurveyService {
-    private final SurveyRepository surveyRepository;
-    private final SurveyAnswerRepository surveyAnswerRepository;
-    private final UserRepository userRepository;
+
+    private final SurveyDataRepository surveys;
     private final QuestionService questionService;
 
     /** Опрос вместе с его вопросами. */
     @Transactional(readOnly = true)
     public @NotNull SurveyDto getSurvey(@NotNull String surveyId) {
-        var survey = surveyRepository.findOne(surveyId)
-                .orElseThrow(() -> new NoSuchElementException(
-                        String.format("Couldn't find survey with id %s", surveyId)));
-        // Маппинг внутри транзакции: Mapper обходит survey.getQuestions().
-        return Mapper.toDto(survey);
+        return Mapper.toDto(surveys.getById(surveyId));
     }
 
     /** Ответы пользователя на опрос в рамках одной попытки. */
     @Transactional(readOnly = true)
     public @NotNull List<SurveyResultDto> getUserAttemptVotes(
             long userId, long attemptId, @NotNull String surveyId) {
-        // Форма ответа API — забота сервиса, репозиторий отдаёт свою проекцию.
-        return surveyRepository.findUserAttemptVotes(userId, attemptId, surveyId).stream()
+        // Форма ответа API — забота сервиса, слой доступа к данным отдаёт свои записи.
+        return surveys.findUserAttemptVotes(userId, attemptId, surveyId).stream()
                 .map(v -> SurveyResultDto.builder()
-                        .surveyQuestionId(v.getSurveyQuestionId())
-                        .questionId(v.getQuestionId())
-                        .answer(v.getAnswer())
+                        .surveyQuestionId(v.surveyQuestionId())
+                        .questionId(v.questionId())
+                        .answer(v.answer())
                         .build())
                 .toList();
     }
@@ -69,19 +62,7 @@ public class SurveyService {
                     "User %s is not allowed to answer surveys for question %s", userId, result.getQuestionId()));
         }
 
-        var surveyQuestion = surveyRepository.findSurveyQuestion(result.getSurveyQuestionId())
-                .orElseThrow(() -> new NoSuchElementException(String.format(
-                        "Invalid survey question %s", result.getSurveyQuestionId())));
-
-        var id = new SurveyAnswerEntity.SurveyResultId(
-                result.getSurveyQuestionId(), result.getQuestionId(), userId);
-        var answer = surveyAnswerRepository.findById(id).orElseGet(SurveyAnswerEntity::new);
-        answer.setQuestion(questionService.getQuestionEntity(result.getQuestionId()));
-        answer.setSurveyQuestion(surveyQuestion);
-        // Существование пользователя уже доказано проверкой владельца выше,
-        // поэтому ссылка без запроса.
-        answer.setUser(userRepository.getReferenceById(userId));
-        answer.setResult(result.getAnswer());
-        surveyAnswerRepository.save(answer);
+        surveys.saveVote(userId, new SurveyVoteData(
+                result.getSurveyQuestionId(), result.getQuestionId(), result.getAnswer()));
     }
 }

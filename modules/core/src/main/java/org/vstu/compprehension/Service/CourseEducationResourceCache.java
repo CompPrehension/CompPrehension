@@ -2,7 +2,7 @@ package org.vstu.compprehension.Service;
 
 import lombok.RequiredArgsConstructor;
 import org.springframework.stereotype.Service;
-import org.vstu.compprehension.models.repository.CourseRepository;
+import org.vstu.compprehension.models.repository.data.CourseDataRepository;
 
 import java.time.Duration;
 import java.util.ArrayList;
@@ -26,7 +26,7 @@ public class CourseEducationResourceCache {
     private record CachedValue(Long educationResourceId, long expiresAtNanos) {
     }
 
-    private final CourseRepository courseRepository;
+    private final CourseDataRepository courses;
     private final Map<Long, CachedValue> cache = new ConcurrentHashMap<>();
 
     public List<Long> educationResourceIdsOf(Collection<Long> courseIds) {
@@ -48,9 +48,9 @@ public class CourseEducationResourceCache {
             for (Long courseId : missing) {
                 cache.put(courseId, new CachedValue(ABSENT, expiresAt));
             }
-            for (var ref : courseRepository.findEducationResourceRefsByCourseIdIn(missing)) {
-                cache.put(ref.getCourseId(), new CachedValue(ref.getEducationResourceId(), expiresAt));
-                resolved.add(ref.getEducationResourceId());
+            for (var ref : courses.findEducationResourceRefs(missing)) {
+                cache.put(ref.courseId(), new CachedValue(ref.educationResourceId(), expiresAt));
+                resolved.add(ref.educationResourceId());
             }
         }
 

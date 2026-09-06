@@ -18,6 +18,7 @@ public interface EducationResourceRepository extends JpaRepository<EducationReso
 
     List<EducationResourceEntity> findByTypeAndTrustStatus(EducationResourceType type, EducationResourceTrustStatus trustStatus);
 
+
     /**
      * Inserts a row only if no row with the same ({@link EducationResourceEntity#url}, {@link EducationResourceEntity#type}) exists.
      *

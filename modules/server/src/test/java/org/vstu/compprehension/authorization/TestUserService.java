@@ -3,11 +3,9 @@ package org.vstu.compprehension.authorization;
 import org.springframework.context.annotation.Primary;
 import org.springframework.context.annotation.Profile;
 import org.springframework.stereotype.Component;
-import org.vstu.compprehension.Service.mapping.UserDataMapper;
 import org.vstu.compprehension.models.data.CurrentUserData;
 import org.vstu.compprehension.Service.UserService;
 import org.vstu.compprehension.models.entities.EnumData.Language;
-import org.vstu.compprehension.models.entities.UserEntity;
 import org.vstu.compprehension.models.repository.UserRepository;
 
 import java.util.NoSuchElementException;
@@ -39,8 +37,12 @@ public class TestUserService implements UserService {
         if (userId == null) {
             throw new IllegalStateException("Текущий пользователь не задан: вызовите actingAs(...)");
         }
-        return UserDataMapper.toCurrentUser(userRepository.findById(userId)
-                .orElseThrow(() -> new NoSuchElementException("Нет пользователя с id " + userId)));
+        // Тестовый дубль собирает карточку прямо из сущности: настоящий путь входа
+        // (OIDC-токен, запись учётной записи, выдача ролей) здесь не воспроизводится.
+        var user = userRepository.findById(userId)
+                .orElseThrow(() -> new NoSuchElementException("Нет пользователя с id " + userId));
+        return new CurrentUserData(user.getId(), user.getFirstName(), user.getLastName(),
+                user.getEmail(), user.getPreferred_language());
     }
 
     @Override

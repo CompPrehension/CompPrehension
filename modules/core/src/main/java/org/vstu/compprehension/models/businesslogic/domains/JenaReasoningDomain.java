@@ -9,7 +9,6 @@ import org.vstu.compprehension.models.businesslogic.Question;
 import org.vstu.compprehension.models.businesslogic.Tag;
 import org.vstu.compprehension.models.businesslogic.backend.FactBackend;
 import org.vstu.compprehension.models.businesslogic.backend.JenaBackend;
-import org.vstu.compprehension.models.entities.DomainEntity;
 import org.vstu.compprehension.utils.RandomProvider;
 
 import java.util.List;

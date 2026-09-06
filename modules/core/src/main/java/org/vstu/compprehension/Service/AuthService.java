@@ -2,13 +2,13 @@ package org.vstu.compprehension.Service;
 
 import lombok.RequiredArgsConstructor;
 import org.springframework.stereotype.Service;
-import org.vstu.compprehension.models.businesslogic.auth.PermissionList;
 import org.vstu.compprehension.models.businesslogic.auth.AuthScope;
 import org.vstu.compprehension.models.businesslogic.auth.Permission;
+import org.vstu.compprehension.models.businesslogic.auth.PermissionList;
 import org.vstu.compprehension.models.businesslogic.auth.Role;
 import org.vstu.compprehension.models.entities.EnumData.PermissionScope;
 import org.vstu.compprehension.models.entities.EnumData.PermissionScopeKind;
-import org.vstu.compprehension.models.repository.*;
+import org.vstu.compprehension.models.repository.data.RbacDataRepository;
 
 import java.util.List;
 
@@ -19,14 +19,14 @@ import java.util.List;
 @RequiredArgsConstructor
 public class AuthService {
 
-    private final RoleUserAssignmentRepository ruaRepository;
+    private final RbacDataRepository rbac;
 
     public boolean isAuthorized(long userId, Permission permission, AuthScope scope) {
         AuthScope applicable = scope.allowing(permission);
         if (applicable.isEmpty()) {
             return false;
         }
-        return ruaRepository.isAuthorizedInAnyScope(userId, permission.id(), applicable.queryKeys()) != 0L;
+        return rbac.isAuthorizedInAnyScope(userId, permission.id(), applicable.queryKeys());
     }
 
     public void ensureAuthorized(long userId, Permission permission, AuthScope scope) {
@@ -40,14 +40,14 @@ public class AuthService {
         if (scope.isEmpty()) {
             return PermissionList.none();
         }
-        return PermissionList.of(ruaRepository.findPermissionIdsInAnyScope(userId, scope.queryKeys()));
+        return PermissionList.of(rbac.findPermissionIdsInAnyScope(userId, scope.queryKeys()));
     }
 
     public boolean hasRole(long userId, Role role, PermissionScope scope) {
-        return ruaRepository.existsRoleInScope(userId, role, scope.kind(), scope.itemId());
+        return rbac.hasRoleInScope(userId, role, scope.kind(), scope.itemId());
     }
 
     public List<Long> findScopeItemIdsWithPermission(long userId, Permission permission, PermissionScopeKind kind) {
-        return ruaRepository.findScopeItemIdsWithPermission(userId, permission, kind);
+        return rbac.findScopeItemIdsWithPermission(userId, permission, kind);
     }
 }

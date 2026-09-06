@@ -9,7 +9,6 @@ import org.vstu.compprehension.models.data.DomainData;
 import org.vstu.compprehension.models.businesslogic.Question;
 import org.vstu.compprehension.models.businesslogic.Tag;
 import org.vstu.compprehension.models.businesslogic.backend.DecisionTreeReasonerBackend;
-import org.vstu.compprehension.models.entities.DomainEntity;
 import org.vstu.compprehension.utils.RandomProvider;
 
 import java.util.List;

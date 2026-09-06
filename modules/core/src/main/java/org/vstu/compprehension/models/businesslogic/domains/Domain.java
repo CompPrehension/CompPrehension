@@ -18,7 +18,6 @@ import org.vstu.compprehension.models.data.DomainData;
 import org.vstu.compprehension.models.data.QuestionData;
 import org.vstu.compprehension.models.data.QuestionMetadataData;
 import org.vstu.compprehension.models.data.ResponseData;
-import org.vstu.compprehension.models.entities.*;
 import org.vstu.compprehension.models.entities.EnumData.FeedbackType;
 import org.vstu.compprehension.models.entities.EnumData.InteractionType;
 import org.vstu.compprehension.models.entities.EnumData.Language;

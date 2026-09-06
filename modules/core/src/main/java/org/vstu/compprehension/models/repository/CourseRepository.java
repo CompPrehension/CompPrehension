@@ -15,7 +15,28 @@ import java.util.Optional;
 public interface CourseRepository extends JpaRepository<CourseEntity, Long> {
     Optional<CourseEntity> findByExternalCourseIdAndEducationResourceId(String externalCourseId, Long educationResourceId);
 
-    List<CourseEntity> findByEducationResourceIdAndExternalCourseIdIsNotNull(Long educationResourceId);
+    /** Курс, заведённый по курсу внешней системы. */
+    interface ExternalCourseView {
+        Long getId();
+        String getName();
+        String getExternalCourseId();
+    }
+
+    @Query("""
+            select c.id as id, c.name as name, c.externalCourseId as externalCourseId
+            from CourseEntity c
+            where c.educationResource.id = :educationResourceId and c.externalCourseId is not null
+            """)
+    List<ExternalCourseView> findExternalCourses(@Param("educationResourceId") long educationResourceId);
+
+    /**
+     * Отвязать курсы от внешней системы: курс становится локальным.
+     * <p>
+     * Так уходят курсы, удалённые в LMS: следующая синхронизация их уже не запросит.
+     */
+    @Modifying(clearAutomatically = true)
+    @Query("update CourseEntity c set c.externalCourseId = null where c.id in :courseIds")
+    int detachFromExternalSystem(@Param("courseIds") Collection<Long> courseIds);
 
     /**
      * Курс в объёме, нужном для списков.

@@ -6,6 +6,7 @@ import org.jetbrains.annotations.Nullable;
 import org.springframework.stereotype.Repository;
 import org.springframework.transaction.annotation.Transactional;
 import org.vstu.compprehension.models.data.AttemptExerciseData;
+import org.vstu.compprehension.models.data.AttemptGenerationContextData;
 import org.vstu.compprehension.models.data.AttemptInteractionData;
 import org.vstu.compprehension.models.data.AttemptOwnerData;
 import org.vstu.compprehension.models.data.AttemptQuestionData;
@@ -113,6 +114,24 @@ public class ExerciseAttemptDataRepository {
         // getUser() ленивый, но getId() обслуживается самим прокси и запроса не делает
         return new ExerciseAttemptWithQuestionsData(
                 attempt.getId(), attempt.getUser().getId(), exerciseData, questionsData);
+    }
+
+    /**
+     * Всё, что нужно для генерации очередного вопроса попытки: один запрос.
+     *
+     * @throws NoSuchElementException если попытки нет
+     */
+    @Transactional(readOnly = true)
+    public @NotNull AttemptGenerationContextData getGenerationContext(long attemptId) {
+        var attempt = exerciseAttemptRepository.findByIdFetchingExerciseDomainAndUser(attemptId)
+                .orElseThrow(() -> new NoSuchElementException("Exercise attempt " + attemptId + " not found"));
+        var exercise = attempt.getExercise();
+        return new AttemptGenerationContextData(
+                attempt.getId(),
+                exercise.getDomain().getName(),
+                exercise.getStrategyId(),
+                exercise.getOptions(),
+                attempt.getUser().getPreferred_language());
     }
 
     /**
@@ -256,6 +275,7 @@ public class ExerciseAttemptDataRepository {
         return new QuestionAttemptContextData(
                 attempt.getId(),
                 attempt.getUser().getPreferred_language(),
+                exercise.getStrategyId(),
                 exercise.getStages() == null ? List.of() : List.copyOf(exercise.getStages()),
                 exercise.getOptions().isPreferDecisionTreeBasedSupplementaryEnabled());
     }

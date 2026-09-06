@@ -76,6 +76,36 @@ public class LayerBoundaryTest {
                     .orShould().dependOnClassesThat().resideInAPackage(REPOSITORIES)
                     .as("entities should not depend on services or repositories");
 
+    /**
+     * В репозитории Spring Data ходит только слой доступа к данным.
+     * <p>
+     * Всё, что выше — сервисы, домены, стратегии, решатели, фоновые задания, — работает
+     * с {@code *Data} через классы из {@code models.repository.data}. Так форма выборки
+     * и разбор её результата остаются рядом друг с другом: репозиторий сущностей,
+     * вызванный из сервиса, отдаёт граф, о полноте которого сервис ничего не знает.
+     */
+    @ArchTest
+    static final ArchRule spring_data_repositories_should_be_used_only_by_the_data_access_layer =
+            noClasses()
+                    .that().resideOutsideOfPackage(REPOSITORIES)
+                    .should().dependOnClassesThat().areAssignableTo(Repository.class)
+                    .as("only the data access layer should use Spring Data repositories");
+
+    /**
+     * JPA-сущность не выходит за пределы слоя доступа к данным.
+     * <p>
+     * Та же причина, что и у правила про контроллеры, только шире: у сущности за
+     * границей транзакции ленивые связи либо взрываются, либо молча делают запросы.
+     * Домены и стратегии тем более не должны их видеть — они обязаны работать
+     * с отсоединёнными данными.
+     */
+    @ArchTest
+    static final ArchRule entities_should_not_leak_out_of_the_data_access_layer =
+            noClasses()
+                    .that().resideOutsideOfPackages(REPOSITORIES, ENTITIES)
+                    .should().dependOnClassesThat().areAnnotatedWith(Entity.class)
+                    .as("JPA entities should not leak out of the data access layer");
+
     /** Слой приложения не знает, что поверх него стоит HTTP. */
     @ArchTest
     static final ArchRule services_should_not_depend_on_controllers =

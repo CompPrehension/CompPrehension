@@ -2,25 +2,22 @@ package org.vstu.compprehension.Service;
 
 import lombok.RequiredArgsConstructor;
 import lombok.extern.log4j.Log4j2;
+import org.jetbrains.annotations.NotNull;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
 import org.vstu.compprehension.dto.course.CourseDto;
+import org.vstu.compprehension.models.businesslogic.auth.AuthObjects.SystemPermission;
 import org.vstu.compprehension.models.businesslogic.lti.LtiContext;
 import org.vstu.compprehension.models.businesslogic.lti.LtiCourseContext;
-import org.vstu.compprehension.models.businesslogic.auth.AuthObjects.SystemPermission;
+import org.vstu.compprehension.models.data.CourseExerciseData;
+import org.vstu.compprehension.models.data.CourseSummaryData;
 import org.vstu.compprehension.models.entities.EnumData.PermissionScopeKind;
-import org.vstu.compprehension.models.entities.UserEntity;
-import org.vstu.compprehension.models.entities.course.CourseEntity;
-import org.vstu.compprehension.models.entities.course.ExerciseCourseLinkEntity;
-import org.vstu.compprehension.models.entities.course.ExerciseCourseLinkId;
-import org.vstu.compprehension.models.repository.CourseRepository;
-import org.vstu.compprehension.models.repository.ExerciseCourseLinkRepository;
-import org.vstu.compprehension.models.repository.ExerciseRepository;
+import org.vstu.compprehension.models.repository.data.CourseDataRepository;
+import org.vstu.compprehension.models.repository.data.ExerciseDataRepository;
 
 import java.util.Collection;
 import java.util.HashSet;
 import java.util.List;
-import java.util.NoSuchElementException;
 import java.util.Optional;
 import java.util.Set;
 import java.util.stream.Collectors;
@@ -30,64 +27,44 @@ import java.util.stream.Collectors;
 @Log4j2
 public class CourseService {
 
-    private final CourseRepository courseRepository;
-    private final ExerciseCourseLinkRepository exerciseCourseLinkRepository;
-    private final ExerciseRepository exerciseRepository;
+    private final CourseDataRepository courses;
+    private final ExerciseDataRepository exercises;
     private final AuthService authService;
     private final AuthScopeFactory authScopes;
 
+    /** Идентификатор курса по внешнему id и образовательному ресурсу. */
     @Transactional(readOnly = true)
-    public Optional<CourseEntity> findByExternalIdAndResourceId(String externalCourseId, Long educationResourceId) {
-        return courseRepository.findByExternalCourseIdAndEducationResourceId(externalCourseId, educationResourceId);
-    }
-
-    @Transactional
-    public CourseEntity createOrGetExisting(
-            String externalCourseId,
-            String name,
-            Long educationResourceId
-    ) {
-        courseRepository.createIfAbsent(externalCourseId, name, educationResourceId);
-        return courseRepository.findByExternalCourseIdAndEducationResourceId(externalCourseId, educationResourceId)
-                .orElseThrow(() -> new IllegalStateException("createIfAbsent: course not found after insert"));
-    }
-
-    /** Идентификатор курса из LTI-контекста; создаёт курс при необходимости. */
-    @Transactional
-    public Optional<Long> resolveOrCreateIdFromLtiContext(LtiContext ctx, Long educationResourceId) {
-        return Optional.ofNullable(resolveOrCreateFromLtiContext(ctx, educationResourceId))
-                .map(CourseEntity::getId);
-    }
-
-    /** Идентификатор курса по внешнему id и ресурсу. */
-    @Transactional(readOnly = true)
-    public Optional<Long> findCourseIdByExternalIdAndResourceId(String externalCourseId, Long educationResourceId) {
-        return findByExternalIdAndResourceId(externalCourseId, educationResourceId).map(CourseEntity::getId);
+    public @NotNull Optional<Long> findCourseIdByExternalIdAndResourceId(
+            @NotNull String externalCourseId, long educationResourceId) {
+        return courses.findIdByExternalId(externalCourseId, educationResourceId);
     }
 
     /**
-     * Курс из LTI-контекста в рамках уже разрешённого education resource: ищет по
-     * {@code (externalContextId, educationResourceId)}, создаёт при отсутствии (имя — из контекста,
-     * fallback {@code "id_<externalId>"}). Возвращает {@code null}, когда в контексте нет курса.
+     * Идентификатор курса из LTI-контекста в рамках уже разрешённого образовательного
+     * ресурса: ищет по {@code (externalContextId, educationResourceId)}, создаёт при
+     * отсутствии (имя — из контекста, иначе {@code "id_<externalId>"}).
+     *
+     * @return пусто, когда в контексте нет курса
      */
     @Transactional
-    public CourseEntity resolveOrCreateFromLtiContext(LtiContext ctx, Long educationResourceId) {
+    public @NotNull Optional<Long> resolveOrCreateIdFromLtiContext(
+            @NotNull LtiContext ctx, long educationResourceId) {
         LtiCourseContext ltiCourse = ctx.course();
         if (ltiCourse == null || ltiCourse.courseId() == null) {
-            return null;
+            return Optional.empty();
         }
         String externalCourseId = ltiCourse.courseId();
         String courseName = ltiCourse.courseName() != null
-            ? ltiCourse.courseName()
+                ? ltiCourse.courseName()
                 : String.format("id_%s", externalCourseId);
-        return findByExternalIdAndResourceId(externalCourseId, educationResourceId)
-                .orElseGet(() -> createOrGetExisting(externalCourseId, courseName, educationResourceId));
+        return Optional.of(courses.findIdByExternalId(externalCourseId, educationResourceId)
+                .orElseGet(() -> courses.createIfAbsentAndGetId(
+                        externalCourseId, courseName, educationResourceId)));
     }
 
     @Transactional
     public void linkExerciseWithCourseIfMissing(long exerciseId, long courseId) {
-        int affectedRows = exerciseCourseLinkRepository.createIfAbsent(exerciseId, courseId);
-        if (affectedRows > 0) {
+        if (courses.linkExerciseIfAbsent(exerciseId, courseId)) {
             log.info("Linked exercise {} to course {}", exerciseId, courseId);
         } else {
             log.debug("Exercise {} already linked to course {}, skipping", exerciseId, courseId);
@@ -95,94 +72,78 @@ public class CourseService {
     }
 
     @Transactional(readOnly = true)
-    public Optional<ExerciseCourseLinkEntity> findExerciseCourseLink(long exerciseId, long courseId) {
-        return exerciseCourseLinkRepository.findById(new ExerciseCourseLinkId(exerciseId, courseId));
-    }
-
-    @Transactional(readOnly = true)
-    public List<Long> findCourseIdsByExerciseId(long exerciseId) {
-        return exerciseCourseLinkRepository.findAllByExerciseId(exerciseId).stream()
-                .map(link -> link.getCourse().getId())
-                .toList();
-    }
-
-    /** Ссылка на упражнение курса: ровно то, что нужно вызывающему, без JPA-сущности. */
-    public record ExerciseRef(Long exerciseId, String name) {
+    public @NotNull List<Long> findCourseIdsByExerciseId(long exerciseId) {
+        return courses.findCourseIdsByExerciseId(exerciseId);
     }
 
     /**
      * Упражнения курса из перечисленных id.
-     * <p>
-     * Одним запросом на весь список: вызов по одному упражнению в цикле давал и N+1,
-     * и обращение к ленивой связи уже за пределами транзакции.
      *
      * @throws IllegalArgumentException если хотя бы одного упражнения нет в курсе
      */
     @Transactional(readOnly = true)
-    public List<ExerciseRef> getExerciseRefsInCourseOrThrow(long courseId, Collection<Long> exerciseIds) {
-        var refs = exerciseCourseLinkRepository
-                .findAllByCourseIdAndExerciseIdsFetchingExercise(courseId, exerciseIds).stream()
-                .map(link -> new ExerciseRef(link.getExercise().getId(), link.getExercise().getName()))
-                .toList();
-        if (refs.size() != Set.copyOf(exerciseIds).size()) {
-            var found = refs.stream().map(ExerciseRef::exerciseId).collect(Collectors.toSet());
-            var missing = exerciseIds.stream().filter(id -> !found.contains(id)).toList();
+    public @NotNull List<CourseExerciseData> getExercisesInCourseOrThrow(
+            long courseId, @NotNull Collection<Long> exerciseIds) {
+        var found = courses.findExercisesInCourse(courseId, exerciseIds);
+        if (found.size() != Set.copyOf(exerciseIds).size()) {
+            var foundIds = found.stream().map(CourseExerciseData::exerciseId).collect(Collectors.toSet());
+            var missing = exerciseIds.stream().filter(id -> !foundIds.contains(id)).toList();
             throw new IllegalArgumentException(String.format(
                     "Exercises %s are not in course %s", missing, courseId));
         }
-        return refs;
-    }
-
-    @Transactional(readOnly = true)
-    public ExerciseCourseLinkEntity findExerciseCourseLinkOrThrow(long exerciseId, long courseId) {
-        return findExerciseCourseLink(exerciseId, courseId).orElseThrow(() -> new IllegalStateException(String.format(
-                "There is no relation between the course (id=%s) and the exercise (id=%s)", courseId, exerciseId
-        )));
+        return found;
     }
 
     /**
-     * Проекция репозитория в web-контракт.
-     * <p>
-     * Репозиторий отдаёт свой тип, а форма ответа API — забота сервиса: иначе изменение
-     * контракта фронта заставляло бы править JPQL.
+     * Упражнение показано в курсе.
+     *
+     * @throws IllegalStateException если связи нет
      */
-    private static List<CourseDto> toCourseDtos(List<CourseRepository.CourseView> views) {
-        return views.stream()
-                .map(v -> new CourseDto(v.getId(), v.getName(),
-                        v.getEducationResourceId(), v.getEducationResourceUrl()))
-                .toList();
+    @Transactional(readOnly = true)
+    public void ensureExerciseInCourse(long exerciseId, long courseId) {
+        if (!courses.isExerciseInCourse(exerciseId, courseId)) {
+            throw new IllegalStateException(String.format(
+                    "There is no relation between the course (id=%s) and the exercise (id=%s)",
+                    courseId, exerciseId));
+        }
     }
 
+    /**
+     * Курсы, которые пользователю разрешено видеть.
+     * <p>
+     * Право в образовательном ресурсе действует во всех его курсах сразу, поэтому
+     * к явно разрешённым курсам добавляются все курсы разрешённых ресурсов.
+     */
     @Transactional(readOnly = true)
-    public List<CourseDto> getUserCourses(long userId) {
+    public @NotNull List<CourseDto> getUserCourses(long userId) {
         if (authService.isAuthorized(userId, SystemPermission.VIEW_COURSE, authScopes.global())) {
-            return toCourseDtos(courseRepository.findAllCourseViews());
+            return toCourseDtos(courses.findAllSummaries());
         }
 
-        var courseIds = new HashSet<>(
-                authService.findScopeItemIdsWithPermission(userId, SystemPermission.VIEW_COURSE, PermissionScopeKind.COURSE));
+        var courseIds = new HashSet<>(authService.findScopeItemIdsWithPermission(
+                userId, SystemPermission.VIEW_COURSE, PermissionScopeKind.COURSE));
 
-        // Право в образовательном ресурсе действует во всех его курсах сразу.
-        var educationResourceIds =
-                authService.findScopeItemIdsWithPermission(userId, SystemPermission.VIEW_COURSE, PermissionScopeKind.EDUCATION_RESOURCE);
-        if (!educationResourceIds.isEmpty()) {
-            courseIds.addAll(courseRepository.findCourseIdsByEducationResourceIdIn(educationResourceIds));
-        }
+        var educationResourceIds = authService.findScopeItemIdsWithPermission(
+                userId, SystemPermission.VIEW_COURSE, PermissionScopeKind.EDUCATION_RESOURCE);
+        courseIds.addAll(courses.findIdsByEducationResourceIds(educationResourceIds));
 
-        return courseIds.isEmpty() ? List.of()
-                : toCourseDtos(courseRepository.findCourseViewsByIdIn(courseIds));
+        return toCourseDtos(courses.findSummariesByIds(courseIds));
     }
 
     @Transactional(readOnly = true)
-    public List<CourseDto> getExerciseMemberships(long exerciseId) {
-        return toCourseDtos(exerciseCourseLinkRepository.findCourseViewsByExerciseId(exerciseId));
+    public @NotNull List<CourseDto> getExerciseMemberships(long exerciseId) {
+        return toCourseDtos(courses.findSummariesByExerciseId(exerciseId));
     }
 
+    /**
+     * Показать в курсе упражнение из глобального пула.
+     *
+     * @throws IllegalStateException если упражнение приватное — приватное принадлежит
+     *                               одному курсу и в другой не переносится
+     */
     @Transactional
     public void addExerciseToCourse(long exerciseId, long courseId) {
-        var exercise = exerciseRepository.findById(exerciseId)
-                .orElseThrow(() -> new NoSuchElementException("exercise not found"));
-        if (!exercise.isPublic()) {
+        if (!exercises.getById(exerciseId).isPublic()) {
             throw new IllegalStateException("source_not_in_global_pool");
         }
         linkExerciseWithCourseIfMissing(exerciseId, courseId);
@@ -190,6 +151,18 @@ public class CourseService {
 
     @Transactional
     public void removeExerciseFromCourse(long exerciseId, long courseId) {
-        exerciseCourseLinkRepository.deleteByExerciseIdAndCourseId(exerciseId, courseId);
+        courses.unlinkExercise(exerciseId, courseId);
+    }
+
+    /**
+     * Данные в web-контракт.
+     * <p>
+     * Форма ответа API — забота сервиса: иначе изменение контракта фронта заставляло бы
+     * править слой доступа к данным.
+     */
+    private static @NotNull List<CourseDto> toCourseDtos(@NotNull List<CourseSummaryData> summaries) {
+        return summaries.stream()
+                .map(c -> new CourseDto(c.id(), c.name(), c.educationResourceId(), c.educationResourceUrl()))
+                .toList();
     }
 }

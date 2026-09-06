@@ -1,7 +1,8 @@
 package org.vstu.compprehension.tools;
 
 import org.junit.jupiter.api.Disabled;
-import org.vstu.compprehension.Service.mapping.QuestionDataMapper;
+import org.vstu.compprehension.infrastructure.TestQuestionMetadata;
+import org.vstu.compprehension.models.data.QuestionMetadataData;
 import org.vstu.compprehension.models.businesslogic.*;
 
 import org.vstu.compprehension.infrastructure.AbstractIntegrationTest;
@@ -76,9 +77,9 @@ public class ExpressionDTReclassificationTask extends AbstractIntegrationTest {
             }
 
             System.err.printf("Processing metadata id=%d%n", meta.getId());
-            QuestionMetadataEntity obj;
+            QuestionMetadataData obj;
             try {
-                obj = MeaningTreeOrderQuestionBuilder.metadataRecalculate(domain, QuestionDataMapper.toData(meta));
+                obj = MeaningTreeOrderQuestionBuilder.metadataRecalculate(domain, TestQuestionMetadata.toData(meta));
             } catch (Exception e) {
                 e.printStackTrace();
                 obj = null;
@@ -92,10 +93,11 @@ public class ExpressionDTReclassificationTask extends AbstractIntegrationTest {
             }
 
             obj.setId(meta.getId());
-            obj.setQuestionData(meta.getQuestionData());
             obj.setGenerationRequestId(meta.getGenerationRequestId());
             obj.setCreatedAt(meta.getCreatedAt());
-            newMeta.add(obj);
+            var updated = TestQuestionMetadata.toEntity(obj);
+            updated.setQuestionData(meta.getQuestionData());
+            newMeta.add(updated);
             lastId = meta.getId();
         }
 

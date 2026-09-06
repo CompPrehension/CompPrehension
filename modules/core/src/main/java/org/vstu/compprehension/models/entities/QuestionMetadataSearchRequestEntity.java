@@ -10,6 +10,8 @@ import org.hibernate.annotations.Type;
 import org.jetbrains.annotations.NotNull;
 import org.jetbrains.annotations.Nullable;
 import org.vstu.compprehension.models.businesslogic.QuestionBankSearchRequest;
+import org.vstu.compprehension.models.data.SearchIterationData;
+import org.vstu.compprehension.models.data.SearchQuality;
 
 import java.util.Date;
 import java.util.List;
@@ -25,14 +27,6 @@ import java.util.UUID;
     @Index(name = "idx_qmsr_quality", columnList = "quality"),
 })
 public class QuestionMetadataSearchRequestEntity {
-    public enum Quality {
-        BestUnused,
-        BestUsed,
-        Normal,
-        Relaxed,
-    }
-    public record Iteration(@NotNull Quality quality, @NotNull Integer limit, @NotNull Integer found){ };
-    
     @Id
     @GeneratedValue(strategy = GenerationType.IDENTITY)
     private Long id;
@@ -46,7 +40,7 @@ public class QuestionMetadataSearchRequestEntity {
 
     @Enumerated(EnumType.ORDINAL)
     @Column(name = "quality", nullable = false)
-    private Quality quality;
+    private SearchQuality quality;
 
     @Column(name = "qlimit", nullable = false) // limit заразервировано mysql
     private int limit;
@@ -60,9 +54,9 @@ public class QuestionMetadataSearchRequestEntity {
 
     @Type(JsonType.class)
     @Column(name = "search_iterations", nullable = false, columnDefinition = "json")
-    private List<Iteration> iterations;
+    private List<SearchIterationData> iterations;
 
-    public QuestionMetadataSearchRequestEntity(@NotNull QuestionBankSearchRequest searchRequest, @NotNull List<Iteration> iterations, @Nullable UUID questionRequestId) {
+    public QuestionMetadataSearchRequestEntity(@NotNull QuestionBankSearchRequest searchRequest, @NotNull List<SearchIterationData> iterations, @Nullable UUID questionRequestId) {
         if (iterations.isEmpty()){
             throw new IllegalArgumentException("The iterations list must not be empty: at least one iteration is required to initialize QuestionMetadataSearchRequestEntity.");
         }
@@ -70,9 +64,9 @@ public class QuestionMetadataSearchRequestEntity {
         this.iterations = iterations;
 
         var lastIteration = iterations.getLast();
-        this.found = lastIteration.found;
-        this.quality = lastIteration.quality;
-        this.limit = lastIteration.limit;
+        this.found = lastIteration.found();
+        this.quality = lastIteration.quality();
+        this.limit = lastIteration.limit();
         this.questionRequestId = questionRequestId;
     }
 }

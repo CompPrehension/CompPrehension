@@ -20,7 +20,7 @@ import org.vstu.compprehension.adapter.UserServiceImpl;
 import org.vstu.compprehension.models.businesslogic.backend.facts.JenaFactList;
 import org.vstu.compprehension.models.businesslogic.domains.DomainFactory;
 import org.vstu.compprehension.models.businesslogic.storage.QuestionBank;
-import org.vstu.compprehension.models.repository.*;
+import org.vstu.compprehension.models.repository.data.QuestionBankDataRepository;
 import org.vstu.compprehension.service.BktService;
 import org.vstu.compprehension.strategies.*;
 import org.vstu.compprehension.utils.RandomProvider;
@@ -67,7 +67,8 @@ public class CoreConfg {
 
     @Bean
     @SessionScope
-    UserService getUserService(@Autowired UserRepository userRepository) {
+    UserService getUserService() {
+        // Фоновому серверу пользователь не нужен: заданий от лица студента он не решает.
         return new UserServiceImpl();
     }
 
@@ -96,15 +97,8 @@ public class CoreConfg {
 
     @Bean
     @Singleton
-    QuestionBank getQuestionBank(
-            @Autowired DomainRepository domainRepository,
-            @Autowired QuestionMetadataRepository metadataRepository,
-            @Autowired SerializedQuestionRepository serializedQuestionRepository,
-            @Autowired QuestionGenerationRequestRepository generationRequestRepository,
-            @Autowired QuestionMetadataSearchRequestRepository questionSearchRequestLogRepository,
-            @Autowired TransactionScopeFactory transactionScopeFactory) throws Exception {
-        //var allDomains = domainRepository.findAll();
-        return new QuestionBank(metadataRepository, serializedQuestionRepository, generationRequestRepository, questionSearchRequestLogRepository, transactionScopeFactory);
+    QuestionBank getQuestionBank(@Autowired QuestionBankDataRepository bankDataRepository) {
+        return new QuestionBank(bankDataRepository);
     }
     
     @Bean

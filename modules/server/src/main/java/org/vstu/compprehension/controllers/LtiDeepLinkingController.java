@@ -61,7 +61,7 @@ public class LtiDeepLinkingController {
         }
 
         List<DeepLinkingResponseService.DeepLinkItem> items =
-                courseService.getExerciseRefsInCourseOrThrow(courseId, body.exerciseIds()).stream()
+                courseService.getExercisesInCourseOrThrow(courseId, body.exerciseIds()).stream()
                         .map(ref -> new DeepLinkingResponseService.DeepLinkItem(ref.exerciseId(), ref.name()))
                         .toList();
 

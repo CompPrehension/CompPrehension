@@ -1,8 +1,9 @@
 package org.vstu.compprehension.domain;
 
+import org.vstu.compprehension.models.data.AnswerObjectData;
 import org.vstu.compprehension.models.data.ExerciseOptionsData;
+import org.vstu.compprehension.models.data.ResponseData;
 import org.vstu.compprehension.models.data.ExerciseStageData;
-import org.vstu.compprehension.Service.DomainService;
 import org.vstu.compprehension.models.businesslogic.*;
 import org.vstu.compprehension.models.businesslogic.Tag;
 
@@ -19,12 +20,11 @@ import org.vstu.compprehension.models.businesslogic.domains.ProgrammingLanguageE
 import org.vstu.compprehension.models.businesslogic.domains.helpers.meaningtree.MeaningTreeDefaultExpressionConfig;
 import org.vstu.compprehension.models.businesslogic.domains.helpers.meaningtree.MeaningTreeOrderQuestionBuilder;
 import org.vstu.compprehension.models.businesslogic.domains.helpers.meaningtree.MeaningTreeRDFHelper;
-import org.vstu.compprehension.models.entities.AnswerObjectEntity;
 import org.vstu.compprehension.models.entities.EnumData.Language;
 import org.vstu.compprehension.models.entities.ExerciseAttemptEntity;
-import org.vstu.compprehension.models.entities.ResponseEntity;
 import org.vstu.compprehension.models.entities.exercise.ExerciseEntity;
 import org.vstu.compprehension.models.repository.ExerciseAttemptRepository;
+import org.vstu.compprehension.models.repository.DomainRepository;
 import org.vstu.compprehension.models.repository.ExerciseRepository;
 import org.vstu.compprehension.models.repository.UserRepository;
 import org.vstu.meaningtree.MeaningTree;
@@ -47,7 +47,7 @@ public class ProgrammingLanguageExpressionDTDomainTest extends AbstractIntegrati
     @Autowired
     DomainFactory domainFactory;
     @Autowired
-    private DomainService domainService;
+    private DomainRepository domainRepository;
     @Autowired
     private ExerciseAttemptRepository exerciseAttemptRepository;
     @Autowired
@@ -67,7 +67,7 @@ public class ProgrammingLanguageExpressionDTDomainTest extends AbstractIntegrati
     public void tearUp() {
         domain = (ProgrammingLanguageExpressionDTDomain) domainFactory.getDomain(domainId);
         exercise = new ExerciseEntity();
-        exercise.setDomain(domainService.getDomainEntity(domain.getName()));
+        exercise.setDomain(domainRepository.findById(domain.getName()).orElseThrow());
         exercise.setBackendId("DTReasoner");
         exercise.setTags("");
         exercise.setOptions(new ExerciseOptionsData(null, true,
@@ -106,18 +106,18 @@ public class ProgrammingLanguageExpressionDTDomainTest extends AbstractIntegrati
                 q.getMetadata().getDistinctErrorsCount(),
                 q.getMetadata().getSolutionSteps()));
 
-        List<ResponseEntity> responses = new ArrayList<>();
+        List<ResponseData> responses = new ArrayList<>();
         for (Integer response : sequence) {
-            AnswerObjectEntity answerObject = AnswerObjectEntity
+            AnswerObjectData answerObject = AnswerObjectData
                     .builder().answerId(response)
                     .domainInfo("token_" + response).build();
-            responses.add(ResponseEntity.builder().leftAnswerObject(answerObject).rightAnswerObject(answerObject).build());
+            responses.add(ResponseData.builder().leftAnswerObject(answerObject).rightAnswerObject(answerObject).build());
             var result = questionService.judgeQuestion(q, responses, List.of(domain.getTag(outLangStr)));
             allPassed = allPassed && result.isAnswerCorrect;
             if (!result.isAnswerCorrect) {
                 Assertions.fail(String.format("%s: %s", responses.stream()
-                        .map(ResponseEntity::getLeftAnswerObject)
-                        .map(AnswerObjectEntity::getDomainInfo).toList(), result.explanation.getChildren()
+                        .map(ResponseData::getLeftAnswerObject)
+                        .map(AnswerObjectData::getDomainInfo).toList(), result.explanation.getChildren()
                         .stream().map(e -> e.toHyperText(Language.ENGLISH).getText())
                         .collect(Collectors.joining("\n"))));
             }

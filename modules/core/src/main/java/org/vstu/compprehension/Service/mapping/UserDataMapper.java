@@ -3,18 +3,24 @@ package org.vstu.compprehension.Service.mapping;
 import org.jetbrains.annotations.NotNull;
 import org.springframework.stereotype.Component;
 import org.vstu.compprehension.models.data.CurrentUserData;
-import org.vstu.compprehension.models.entities.UserEntity;
+import org.vstu.compprehension.models.data.UserAccountData;
 
-/** Перенос пользователя из сущности в данные. Без зависимостей, как и все мапперы. */
+/**
+ * Учётная запись в карточку текущего пользователя.
+ * <p>
+ * Данные в данные: сущность превращает в {@link UserAccountData} слой доступа к данным,
+ * а здесь из полной записи остаётся то, что показывают в интерфейсе. Без зависимостей,
+ * как и все мапперы.
+ */
 @Component
 public class UserDataMapper {
 
-    public static @NotNull CurrentUserData toCurrentUser(@NotNull UserEntity entity) {
+    public static @NotNull CurrentUserData toCurrentUser(@NotNull UserAccountData account) {
         return new CurrentUserData(
-                entity.getId(),
-                entity.getFirstName(),
-                entity.getLastName(),
-                entity.getEmail(),
-                entity.getPreferred_language());
+                account.id(),
+                account.firstName(),
+                account.lastName(),
+                account.email(),
+                account.language());
     }
 }

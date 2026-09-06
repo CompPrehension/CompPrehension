@@ -38,9 +38,16 @@ public interface ExternalAccountRepository extends JpaRepository<ExternalAccount
     Optional<String> findExternalId(@Param("userId") long userId,
                                     @Param("educationResourceId") long educationResourceId);
 
+    /** Привязка учётной записи к внешней системе. */
+    interface ExternalAccountView {
+        Long getUserId();
+        String getExternalId();
+    }
+
     @Query("""
-            select ea from ExternalAccountEntity ea
-            where ea.educationResource.id = :educationResourceId
+            select ea.id.userId as userId, ea.externalId as externalId
+            from ExternalAccountEntity ea
+            where ea.id.educationResourceId = :educationResourceId
             """)
-    List<ExternalAccountEntity> findByEducationResourceId(@Param("educationResourceId") Long educationResourceId);
+    List<ExternalAccountView> findAccountsByEducationResourceId(@Param("educationResourceId") long educationResourceId);
 }

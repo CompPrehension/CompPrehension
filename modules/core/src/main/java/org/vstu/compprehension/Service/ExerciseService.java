@@ -1,8 +1,6 @@
 package org.vstu.compprehension.Service;
 
-
-import org.vstu.compprehension.models.data.ExerciseOptionsData;
-import org.vstu.compprehension.models.data.ExerciseStageData;
+import lombok.RequiredArgsConstructor;
 import lombok.extern.log4j.Log4j2;
 import org.jetbrains.annotations.NotNull;
 import org.jetbrains.annotations.Nullable;
@@ -13,57 +11,70 @@ import org.vstu.compprehension.dto.ExerciseCardPermissionsDto;
 import org.vstu.compprehension.dto.ExerciseDto;
 import org.vstu.compprehension.dto.ExerciseStageDto;
 import org.vstu.compprehension.models.businesslogic.domains.DomainFactory;
-import org.vstu.compprehension.models.entities.exercise.ExerciseEntity;
-import org.vstu.compprehension.models.repository.*;
+import org.vstu.compprehension.models.data.ExerciseCardUpdateData;
+import org.vstu.compprehension.models.data.ExerciseData;
+import org.vstu.compprehension.models.data.ExerciseOptionsData;
+import org.vstu.compprehension.models.data.ExerciseStageData;
+import org.vstu.compprehension.models.data.ExerciseSummaryData;
+import org.vstu.compprehension.models.data.NewExerciseData;
+import org.vstu.compprehension.models.repository.data.ExerciseDataRepository;
 
 import java.util.ArrayList;
-import java.util.HashMap;
 import java.util.List;
-import java.util.NoSuchElementException;
-import java.util.stream.Collectors;
 
 @Service
+@RequiredArgsConstructor
 @Log4j2
 public class ExerciseService {
-    private final DomainRepository domainRepository;
-    private final ExerciseRepository exerciseRepository;
-    private final ExerciseCourseLinkRepository exerciseCourseLinkRepository;
-    private final ExerciseAttemptRepository exerciseAttemptRepository;
+
+    private final ExerciseDataRepository exercises;
     private final DomainFactory domainFactory;
     private final CourseService courseService;
-    private final ExerciseCourseLinkReassignExecutor linkReassignExecutor;
-    private final ExerciseAttemptReassignExecutor attemptReassignExecutor;
-
-    public ExerciseService(
-            DomainRepository domainRepository,
-            ExerciseRepository exerciseRepository,
-            ExerciseCourseLinkRepository exerciseCourseLinkRepository,
-            ExerciseAttemptRepository exerciseAttemptRepository,
-            DomainFactory domainFactory,
-            CourseService courseService,
-            ExerciseCourseLinkReassignExecutor linkReassignExecutor,
-            ExerciseAttemptReassignExecutor attemptReassignExecutor
-    ) {
-        this.domainRepository = domainRepository;
-        this.exerciseRepository = exerciseRepository;
-        this.exerciseCourseLinkRepository = exerciseCourseLinkRepository;
-        this.exerciseAttemptRepository = exerciseAttemptRepository;
-        this.domainFactory = domainFactory;
-        this.courseService = courseService;
-        this.linkReassignExecutor = linkReassignExecutor;
-        this.attemptReassignExecutor = attemptReassignExecutor;
-    }
 
     /** Публично ли упражнение. */
     @Transactional(readOnly = true)
     public boolean isExercisePublic(long exerciseId) {
-        return getExercise(exerciseId).isPublic();
+        return exercises.getById(exerciseId).isPublic();
+    }
+
+    /** Упражнение по идентификатору. */
+    @Transactional(readOnly = true)
+    public @NotNull ExerciseData getExercise(long exerciseId) {
+        return exercises.getById(exerciseId);
     }
 
     /** Настройки упражнения в контексте курса. */
     @Transactional(readOnly = true)
-    public ExerciseOptionsData getExerciseOptionsInContext(long exerciseId, @Nullable Long courseId) {
-        return getExerciseInContext(exerciseId, courseId).getOptions();
+    public @NotNull ExerciseOptionsData getExerciseOptionsInContext(long exerciseId, @Nullable Long courseId) {
+        return getExerciseInContext(exerciseId, courseId).options();
+    }
+
+    /**
+     * Упражнение, доступное из этого контекста.
+     * <p>
+     * Вне курса видно только глобальный пул; из курса — то, что в нём показано.
+     *
+     * @throws IllegalStateException если упражнение не относится к этому контексту
+     */
+    @Transactional(readOnly = true)
+    public @NotNull ExerciseData getExerciseInContext(long exerciseId, @Nullable Long courseId) {
+        var exercise = exercises.getById(exerciseId);
+        if (courseId == null) {
+            if (!exercise.isPublic()) {
+                throw new IllegalStateException("exercise_not_in_global_pool");
+            }
+        } else {
+            courseService.ensureExerciseInCourse(exerciseId, courseId);
+        }
+        return exercise;
+    }
+
+    /**
+     * Упражнение показано в курсе, но принадлежит глобальному пулу. Из курса оно доступно
+     * только на чтение: правка или удаление затронули бы все курсы, которые его наследуют.
+     */
+    public static boolean isInheritedInCourse(@NotNull ExerciseData exercise, @Nullable Long courseId) {
+        return courseId != null && exercise.isPublic();
     }
 
     /**
@@ -78,189 +89,129 @@ public class ExerciseService {
         }
     }
 
-    /** Идентификатор созданного упражнения. */
+    /**
+     * Завести упражнение с настройками по умолчанию.
+     * <p>
+     * Заведённое вне курса попадает в глобальный пул, заведённое в курсе принадлежит
+     * этому курсу.
+     *
+     * @return идентификатор созданного упражнения
+     */
     @Transactional
     public long createExerciseAndGetId(@NotNull String name, @NotNull String domainId,
                                        @NotNull String strategyId, @Nullable Long courseId) {
-        return createExercise(name, domainId, strategyId, courseId).getId();
-    }
+        // Решатель определяется предметной областью, а не выбором преподавателя.
+        var backendId = domainFactory.getDomain(domainId).getBackendId();
 
-    /** Идентификатор клона упражнения. */
-    @Transactional
-    public long cloneExerciseAndGetId(long sourceExerciseId, @Nullable Long targetCourseId) {
-        return cloneExercise(sourceExerciseId, targetCourseId).getId();
-    }
+        long exerciseId = exercises.create(new NewExerciseData(
+                name,
+                domainId,
+                backendId,
+                strategyId,
+                ExerciseOptionsData.builder()
+                        .forceNewAttemptCreationEnabled(true)
+                        .correctAnswerGenerationEnabled(true)
+                        .newQuestionGenerationEnabled(true)
+                        .supplementaryQuestionsEnabled(true)
+                        .debugButtonEnabled(false)
+                        .preferDecisionTreeBasedSupplementaryEnabled(false)
+                        .build(),
+                List.of(new ExerciseStageData(5, 0.5f, new ArrayList<>(), new ArrayList<>(), new ArrayList<>())),
+                List.of(),
+                courseId == null));
 
-    public ExerciseEntity getExercise(long exerciseId) {
-        return exerciseRepository.findById(exerciseId).orElseThrow(()->
-                new NoSuchElementException("Exercise with id: " + exerciseId + " not Found"));
+        if (courseId != null) {
+            courseService.linkExerciseWithCourseIfMissing(exerciseId, courseId);
+        }
+        return exerciseId;
     }
 
     /**
-     * Упражнение показано в курсе, но принадлежит глобальному пулу. Из курса оно доступно
-     * только на чтение: правка или удаление затронули бы все курсы, которые его наследуют.
+     * Скопировать упражнение.
+     * <p>
+     * Копирование между курсами запрещено: приватное упражнение живёт в своём курсе,
+     * и чтобы отдать его другому, его сначала переносят в глобальный пул.
+     *
+     * @return идентификатор копии
+     * @throws IllegalStateException если копируется приватное упражнение в курс
      */
-    public static boolean isInheritedInCourse(@NotNull ExerciseEntity exercise, @Nullable Long courseId) {
-        return courseId != null && exercise.isPublic();
-    }
-
-    @Transactional(readOnly = true)
-    public ExerciseEntity getExerciseInContext(long exerciseId, @Nullable Long courseId) {
-        var exercise = getExercise(exerciseId);
-        if (courseId == null) {
-            if (!exercise.isPublic()) {
-                throw new IllegalStateException("exercise_not_in_global_pool");
-            }
-        } else {
-            courseService.findExerciseCourseLinkOrThrow(exerciseId, courseId);
-        }
-        return exercise;
-    }
-
     @Transactional
-    public ExerciseEntity createExercise(@NotNull String name,
-                                         @NotNull String domainId,
-                                         @NotNull String strategyId,
-                                         @Nullable Long courseId
-    ) {
-        var domainEntity = domainRepository.findById(domainId)
-                .orElseThrow();
-        var domain = domainFactory.getDomain(domainEntity.getName());
-        var backendId = domain.getBackendId();
-
-        var exercise = new ExerciseEntity();
-        exercise.setName(name);
-        exercise.setDomain(domainEntity);
-        exercise.setBackendId(backendId);
-        exercise.setStrategyId(strategyId);
-        exercise.setOptions(ExerciseOptionsData.builder()
-                .forceNewAttemptCreationEnabled(true)
-                .correctAnswerGenerationEnabled(true)
-                .newQuestionGenerationEnabled(true)
-                .supplementaryQuestionsEnabled(true)
-                .debugButtonEnabled(false)
-                .preferDecisionTreeBasedSupplementaryEnabled(false)
-                .build());
-        exercise.setStages(new ArrayList<>(List.of(new ExerciseStageData(5, 0.5f, new ArrayList<>(), new ArrayList<>(), new ArrayList<>()))));
-        exercise.setTags("");
-        exercise.setPublic(courseId == null);
-        exerciseRepository.save(exercise);
-
-        if (courseId != null) {
-            courseService.linkExerciseWithCourseIfMissing(exercise.getId(), courseId);
-        }
-        return exercise;
-    }
-
-    @Transactional
-    public ExerciseEntity cloneExercise(long sourceExerciseId, @Nullable Long targetCourseId) {
-        var source = exerciseRepository.findById(sourceExerciseId)
-                .orElseThrow(() -> new NoSuchElementException("exercise not found"));
+    public long cloneExerciseAndGetId(long sourceExerciseId, @Nullable Long targetCourseId) {
+        var source = exercises.getById(sourceExerciseId);
 
         if (!source.isPublic() && targetCourseId != null) {
-            var sourceLinks = exerciseCourseLinkRepository.findAllByExerciseId(sourceExerciseId);
-            Long sourceCourseId = sourceLinks.size() == 1 ? sourceLinks.get(0).getCourse().getId() : null;
-            if (targetCourseId.equals(sourceCourseId)) {
+            var sourceCourseIds = courseService.findCourseIdsByExerciseId(sourceExerciseId);
+            if (sourceCourseIds.size() == 1 && targetCourseId.equals(sourceCourseIds.get(0))) {
                 throw new IllegalStateException("duplicating_in_same_course");
             }
             throw new IllegalStateException("course_to_course_forbidden: copy to pool first, then link");
         }
 
-        var clone = source.clone();
-        clone.setPublic(targetCourseId == null);
-        exerciseRepository.save(clone);
-
+        long cloneId = exercises.copy(sourceExerciseId, targetCourseId == null);
         if (targetCourseId != null) {
-            courseService.linkExerciseWithCourseIfMissing(clone.getId(), targetCourseId);
+            courseService.linkExerciseWithCourseIfMissing(cloneId, targetCourseId);
         }
-        return clone;
+        return cloneId;
     }
 
     @Transactional
     public void deleteExercise(long exerciseId) {
-        var exercise = exerciseRepository.findById(exerciseId)
-                .orElseThrow(() -> new NoSuchElementException("exercise not found"));
-
-        if (!exercise.isPublic()) {
-            exerciseCourseLinkRepository.deleteByExerciseId(exerciseId);
-            exerciseAttemptRepository.deleteByExerciseId(exerciseId);
-            exerciseRepository.deleteById(exerciseId);
-            return;
-        }
-
-        var links = exerciseCourseLinkRepository.findAllByExerciseId(exerciseId);
-        if (!links.isEmpty()) {
-            var clones = new ArrayList<ExerciseEntity>(links.size());
-            for (var ignored : links) {
-                clones.add(exercise.clone());
-            }
-            exerciseRepository.saveAll(clones);
-            exerciseRepository.flush();
-
-            var courseToCloneId = new HashMap<Long, Long>();
-            for (int i = 0; i < links.size(); i++) {
-                courseToCloneId.put(links.get(i).getCourse().getId(), clones.get(i).getId());
-            }
-
-            linkReassignExecutor.reassign(exerciseId, courseToCloneId);
-            attemptReassignExecutor.reassign(exerciseId, courseToCloneId);
-        }
-
-        exerciseCourseLinkRepository.deleteByExerciseId(exerciseId);
-        exerciseAttemptRepository.deleteByExerciseId(exerciseId);
-        exerciseRepository.deleteById(exerciseId);
+        exercises.delete(exerciseId);
     }
 
     @Transactional(readOnly = true)
-    public List<ExerciseDto> getCourseExercises(long courseId) {
-        return exerciseRepository.findAllByCourseId(courseId).stream()
-                .map(e -> new ExerciseDto(e.getId(), e.getName(), e.isPublic()))
-                .collect(Collectors.toList());
+    public @NotNull List<ExerciseDto> getCourseExercises(long courseId) {
+        return toExerciseDtos(exercises.findSummariesByCourseId(courseId));
     }
 
     @Transactional(readOnly = true)
-    public List<ExerciseDto> getPublicExercises() {
-        return exerciseRepository.findAllByIsPublicTrue().stream()
-                .map(e -> new ExerciseDto(e.getId(), e.getName(), e.isPublic()))
-                .collect(Collectors.toList());
+    public @NotNull List<ExerciseDto> getPublicExercises() {
+        return toExerciseDtos(exercises.findPublicSummaries());
     }
 
-    public void saveExerciseCard(ExerciseCardDto card) {
-        var exercise = exerciseRepository.findById(card.getId()).orElseThrow(() ->
-                new NoSuchElementException("Exercise with id: " + card.getId() + " not found"));
-        var domainEntity = domainRepository.findById(card.getDomainId())
-                .orElseThrow();
-        var domain = domainFactory.getDomain(domainEntity.getName());
-        var backendId = domain.getBackendId();
+    @Transactional
+    public void saveExerciseCard(@NotNull ExerciseCardDto card) {
+        // Решатель определяется предметной областью, а не карточкой: пришедшее с фронта
+        // значение backendId игнорируется.
+        var backendId = domainFactory.getDomain(card.getDomainId()).getBackendId();
 
-        exercise.setName(card.getName());
-        exercise.setDomain(domainEntity);
-        exercise.setStrategyId(card.getStrategyId());
-        exercise.setBackendId(backendId);
-        exercise.setTags(String.join(", ", card.getTags()));
-        exercise.setOptions(card.getOptions());
-        exercise.setStages(card.getStages()
-                .stream().map(s -> new ExerciseStageData(s.getNumberOfQuestions(), s.getComplexity(), s.getLaws(), s.getConcepts(), s.getSkills()))
-                .collect(Collectors.toList()));
-
-        exerciseRepository.save(exercise);
+        exercises.updateCard(new ExerciseCardUpdateData(
+                card.getId(),
+                card.getName(),
+                card.getDomainId(),
+                backendId,
+                card.getStrategyId(),
+                card.getOptions(),
+                card.getStages().stream()
+                        .map(s -> new ExerciseStageData(s.getNumberOfQuestions(), s.getComplexity(),
+                                s.getLaws(), s.getConcepts(), s.getSkills()))
+                        .toList(),
+                card.getTags()));
     }
 
-    public ExerciseCardDto getExerciseCard(ExerciseEntity exercise, ExerciseCardPermissionsDto permissions) {
+    public @NotNull ExerciseCardDto getExerciseCard(@NotNull ExerciseData exercise,
+                                                    @NotNull ExerciseCardPermissionsDto permissions) {
         return ExerciseCardDto.builder()
-                .id(exercise.getId())
-                .name(exercise.getName())
-                .domainId(exercise.getDomain().getName())
-                .strategyId(exercise.getStrategyId())
-                .backendId(exercise.getBackendId())
-                .stages(exercise.getStages()
-                        .stream().map(s -> new ExerciseStageDto(
-                                s.getNumberOfQuestions(), s.getComplexity(), s.getLaws(), s.getConcepts(), s.getSkills()))
-                        .collect(Collectors.toList()))
-                .options(exercise.getOptions())
-                .tags(exercise.getTags())
+                .id(exercise.id())
+                .name(exercise.name())
+                .domainId(exercise.domainId())
+                .strategyId(exercise.strategyId())
+                .backendId(exercise.backendId())
+                .stages(exercise.stages().stream()
+                        .map(s -> new ExerciseStageDto(s.getNumberOfQuestions(), s.getComplexity(),
+                                s.getLaws(), s.getConcepts(), s.getSkills()))
+                        .toList())
+                .options(exercise.options())
+                .tags(exercise.tags())
                 .isPublic(exercise.isPublic())
                 .permissions(permissions)
                 .build();
+    }
+
+    private static @NotNull List<ExerciseDto> toExerciseDtos(
+            @NotNull List<ExerciseSummaryData> summaries) {
+        return summaries.stream()
+                .map(e -> new ExerciseDto(e.id(), e.name(), e.isPublic()))
+                .toList();
     }
 }

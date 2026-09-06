@@ -4,6 +4,7 @@ import lombok.val;
 import org.jetbrains.annotations.NotNull;
 import org.jetbrains.annotations.Nullable;
 import org.vstu.compprehension.models.data.AttemptSummaryData;
+import org.vstu.compprehension.models.data.SurveyData;
 import org.vstu.compprehension.models.data.CurrentUserData;
 import org.vstu.compprehension.models.data.AnswerObjectData;
 import org.vstu.compprehension.models.data.ResponseData;
@@ -17,7 +18,6 @@ import org.vstu.compprehension.dto.survey.SurveyDto;
 import org.vstu.compprehension.dto.survey.SurveyQuestionDto;
 import org.vstu.compprehension.models.businesslogic.Question;
 import org.vstu.compprehension.models.businesslogic.SupplementaryResponse;
-import org.vstu.compprehension.models.entities.*;
 import org.vstu.compprehension.models.entities.EnumData.Decision;
 import org.vstu.compprehension.models.entities.EnumData.InteractionType;
 import org.vstu.compprehension.models.entities.EnumData.QuestionType;
@@ -32,22 +32,21 @@ import java.util.stream.Stream;
 
 public class Mapper {
 
-    public static @NotNull SurveyDto toDto(@NotNull SurveyEntity survey) {
-        var result = SurveyDto.builder()
-                .surveyId(survey.getSurveyId())
-                .options(survey.getOptions())
-                .questions(survey.getQuestions().stream()
+    public static @NotNull SurveyDto toDto(@NotNull SurveyData survey) {
+        return SurveyDto.builder()
+                .surveyId(survey.surveyId())
+                .options(survey.options())
+                .questions(survey.questions().stream()
                         .map(q -> SurveyQuestionDto.builder()
-                                .id(q.getId())
-                                .type(q.getType())
-                                .text(q.getText())
-                                .required(q.isRequired())
-                                .policy(q.getPolicy())
-                                .options(q.getOptions())
+                                .id(q.id())
+                                .type(q.type())
+                                .text(q.text())
+                                .required(q.required())
+                                .policy(q.policy())
+                                .options(q.options())
                                 .build())
                         .toArray(SurveyQuestionDto[]::new))
                 .build();
-        return result;
     }
 
 
@@ -71,14 +70,6 @@ public class Mapper {
                 .createdByInteraction(response.getCreatedByInteractionId())
                 .answer(new Long[] { (long)response.getLeftAnswerObject().getAnswerId(),
                         (long)response.getRightAnswerObject().getAnswerId() })
-                .build();
-    }
-
-    public static @NotNull AnswerDto toDto(@NotNull ResponseEntity response) {
-        return AnswerDto.builder()
-                .isCreatedByUser(response.getCreatedByInteraction().getInteractionType() == InteractionType.SEND_RESPONSE)
-                .createdByInteraction(response.getCreatedByInteraction().getId())
-                .answer(new Long[] { (long)response.getLeftAnswerObject().getAnswerId(), (long)response.getRightAnswerObject().getAnswerId() })
                 .build();
     }
 

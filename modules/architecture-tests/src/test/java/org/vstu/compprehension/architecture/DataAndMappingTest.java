@@ -9,7 +9,6 @@ import com.tngtech.archunit.lang.ArchCondition;
 import com.tngtech.archunit.lang.ArchRule;
 import com.tngtech.archunit.lang.ConditionEvents;
 import com.tngtech.archunit.lang.SimpleConditionEvent;
-import com.tngtech.archunit.library.freeze.FreezingArchRule;
 import jakarta.persistence.Entity;
 import org.springframework.data.repository.Repository;
 import org.springframework.stereotype.Service;
@@ -21,8 +20,9 @@ import static org.vstu.compprehension.architecture.ArchitecturePackages.*;
 /**
  * Правила про модели данных и мапперы.
  * <p>
- * Первые три строгие, без заморозки. Четвёртое — заморожено: перенос всего маппинга
- * Entity → Data в {@code models.repository.data} только начался.
+ * Все строгие. Правило про место маппинга Entity → Data какое-то время было заморожено:
+ * перенос шёл постепенно, сервис за сервисом. Список исключений исчерпан, заморозка снята —
+ * новое нарушение теперь падает сразу.
  */
 @AnalyzeClasses(locations = ProjectClassesLocationProvider.class, importOptions = ImportOption.DoNotIncludeTests.class)
 public class DataAndMappingTest {
@@ -86,16 +86,16 @@ public class DataAndMappingTest {
      * пакете по недоразумению и сущностями не являются. Сами сущности тоже исключены —
      * они ссылаются на значения json-колонок из {@code models.data} по определению.
      * <p>
-     * Правило заморожено: в списке — сервисы, которые ещё не переведены на слой доступа
-     * к данным. Список должен только сокращаться.
+     * Интерфейсы Spring Data исключены вместе со всем {@code models.repository}: они и
+     * есть слой хранения, а перечисления вроде статуса заявки приходят к ним параметрами
+     * запроса.
      */
     @ArchTest
     static final ArchRule entity_to_data_mapping_should_live_in_the_data_access_layer =
-            FreezingArchRule.freeze(
-                    classes()
-                            .that().resideOutsideOfPackages(DATA_ACCESS, ENTITIES)
-                            .should(notConvertEntitiesIntoDataModels())
-                            .as("only the data access layer should map JPA entities to data models"));
+            classes()
+                    .that().resideOutsideOfPackages(REPOSITORIES, ENTITIES)
+                    .should(notConvertEntitiesIntoDataModels())
+                    .as("only the data access layer should map JPA entities to data models");
 
     private static ArchCondition<JavaClass> notConvertEntitiesIntoDataModels() {
         return new ArchCondition<>("not depend on both JPA entities and data models") {

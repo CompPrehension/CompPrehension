@@ -10,6 +10,7 @@ import org.vstu.compprehension.models.businesslogic.auth.AuthObjects.SystemPermi
 import org.vstu.compprehension.models.entities.EnumData.AttemptStatus;
 import org.vstu.compprehension.models.entities.EnumData.Decision;
 import org.vstu.compprehension.models.entities.EnumData.Language;
+import org.vstu.compprehension.models.data.AttemptGenerationContextData;
 import org.vstu.compprehension.models.data.ExerciseAttemptWithQuestionsData;
 import org.vstu.compprehension.models.data.AttemptOwnerData;
 import org.vstu.compprehension.models.data.AttemptSummaryData;
@@ -45,6 +46,22 @@ public class ExerciseAttemptService {
     @Transactional(readOnly = true)
     public @NotNull ExerciseAttemptWithQuestionsData getAttemptWithQuestions(long attemptId) {
         return exerciseAttemptDataRepository.getAttemptWithQuestions(attemptId);
+    }
+
+    /** Всё, что нужно для генерации очередного вопроса попытки. */
+    @Transactional(readOnly = true)
+    public @NotNull AttemptGenerationContextData getGenerationContext(long attemptId) {
+        return exerciseAttemptDataRepository.getGenerationContext(attemptId);
+    }
+
+    /**
+     * Контекст попытки, в которой задан вопрос.
+     *
+     * @return пусто, если вопрос задан вне попытки
+     */
+    @Transactional(readOnly = true)
+    public Optional<QuestionAttemptContextData> findQuestionContext(long questionId) {
+        return exerciseAttemptDataRepository.findQuestionAttemptContext(questionId);
     }
 
     /**
@@ -154,7 +171,7 @@ public class ExerciseAttemptService {
     public @NotNull AttemptSummaryData createNewAttempt(long exerciseId, long userId,
                                                         @Nullable Long courseId) {
         if (courseId != null) {
-            courseService.findExerciseCourseLinkOrThrow(exerciseId, courseId);
+            courseService.ensureExerciseInCourse(exerciseId, courseId);
         }
         var lti = ltiContextProvider.getCurrentLtiContext().orElse(null);
         return exerciseAttemptDataRepository.create(

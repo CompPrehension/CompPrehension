@@ -17,7 +17,6 @@ import its.questions.gen.strategies.QuestionAutomata;
 import kotlin.Pair;
 import lombok.val;
 import org.jetbrains.annotations.Nullable;
-import org.vstu.compprehension.Service.mapping.QuestionDataMapper;
 import org.vstu.compprehension.models.data.QuestionInteractionData;
 import org.vstu.compprehension.models.data.QuestionData;
 import org.vstu.compprehension.models.data.AnswerObjectData;
@@ -28,7 +27,6 @@ import org.vstu.compprehension.dto.feedback.FeedbackViolationLawDto;
 import org.vstu.compprehension.models.businesslogic.SupplementaryFeedbackGenerationResult;
 import org.vstu.compprehension.models.businesslogic.SupplementaryResponse;
 import org.vstu.compprehension.models.businesslogic.SupplementaryResponseGenerationResult;
-import org.vstu.compprehension.models.entities.*;
 import org.vstu.compprehension.models.entities.EnumData.Language;
 import org.vstu.compprehension.models.entities.EnumData.QuestionType;
 

@@ -1,6 +1,6 @@
 package org.vstu.compprehension.models.businesslogic.storage;
 
-import org.vstu.compprehension.models.entities.QuestionMetadataEntity;
+import org.vstu.compprehension.models.data.QuestionMetadataData;
 import com.google.gson.Gson;
 import com.google.gson.GsonBuilder;
 import lombok.Builder;
@@ -100,8 +100,9 @@ public class SerializableQuestionTemplate {
         private int treeHashCode;
         private long skillBits;
 
-        public QuestionMetadataEntity toMetadataEntity() {
-            return QuestionMetadataEntity.builder()
+        /** Метаданные в форме, с которой работает банк: без строки таблицы. */
+        public QuestionMetadataData toMetadataData() {
+            return QuestionMetadataData.builder()
                     .name(this.getName())
                     .domainShortname(this.getDomainShortname())
                     .templateId(this.getTemplateId())

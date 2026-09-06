@@ -3,9 +3,8 @@ package org.vstu.compprehension.domain;
 import org.vstu.compprehension.models.data.ExerciseOptionsData;
 import org.vstu.compprehension.models.data.ExerciseStageData;
 import org.vstu.compprehension.models.data.ResponseData;
-import org.vstu.compprehension.Service.mapping.QuestionDataMapper;
+import org.vstu.compprehension.infrastructure.TestQuestionMetadata;
 import org.vstu.compprehension.models.data.AnswerObjectData;
-import org.vstu.compprehension.Service.DomainService;
 import org.vstu.compprehension.models.businesslogic.*;
 
 import org.vstu.compprehension.infrastructure.AbstractIntegrationTest;
@@ -27,6 +26,7 @@ import org.vstu.compprehension.models.entities.ExerciseAttemptEntity;
 import org.vstu.compprehension.models.entities.QuestionMetadataEntity;
 import org.vstu.compprehension.models.entities.exercise.ExerciseEntity;
 import org.vstu.compprehension.models.repository.ExerciseAttemptRepository;
+import org.vstu.compprehension.models.repository.DomainRepository;
 import org.vstu.compprehension.models.repository.ExerciseRepository;
 import org.vstu.compprehension.models.repository.QuestionMetadataRepository;
 import org.vstu.compprehension.models.repository.UserRepository;
@@ -44,7 +44,7 @@ public class ExpressionDTDomainMetadataValidationTest extends AbstractIntegratio
     @Autowired
     DomainFactory domainFactory;
     @Autowired
-    private DomainService domainService;
+    private DomainRepository domainRepository;
     @Autowired
     private ExerciseAttemptRepository exerciseAttemptRepository;
     @Autowired
@@ -68,7 +68,7 @@ public class ExpressionDTDomainMetadataValidationTest extends AbstractIntegratio
     public void tearUp() {
         domain = (ProgrammingLanguageExpressionDTDomain) domainFactory.getDomain(domainId);
         exercise = new ExerciseEntity();
-        exercise.setDomain(domainService.getDomainEntity(domain.getName()));
+        exercise.setDomain(domainRepository.findById(domain.getName()).orElseThrow());
         exercise.setBackendId("DTReasoner");
         exercise.setTags("");
         exercise.setOptions(new ExerciseOptionsData(null, true,
@@ -206,7 +206,7 @@ public class ExpressionDTDomainMetadataValidationTest extends AbstractIntegratio
 
     public Question prepareQuestion(QuestionMetadataEntity meta) {
         SupportedLanguage lang = MeaningTreeUtils.detectLanguageFromTags(meta.getTagBits(), domain);
-        Question q = meta.getQuestionData().getData().toQuestion(domain, QuestionDataMapper.toData(meta));
+        Question q = meta.getQuestionData().getData().toQuestion(domain, TestQuestionMetadata.toData(meta));
         return QuestionDynamicDataAppender.appendQuestionData(q, qBank, lang, domain, Language.ENGLISH);
     }
 

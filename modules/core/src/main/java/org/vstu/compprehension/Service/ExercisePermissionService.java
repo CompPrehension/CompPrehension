@@ -7,7 +7,7 @@ import org.vstu.compprehension.dto.ExerciseCardPermissionsDto;
 import org.vstu.compprehension.dto.ExerciseListPermissionsDto;
 import org.vstu.compprehension.dto.UserPermissionsDto;
 import org.vstu.compprehension.models.businesslogic.auth.AuthObjects.SystemPermission;
-import org.vstu.compprehension.models.entities.exercise.ExerciseEntity;
+import org.vstu.compprehension.models.data.ExerciseData;
 
 @Service
 @RequiredArgsConstructor
@@ -39,7 +39,7 @@ public class ExercisePermissionService {
         }
     }
 
-    public ExerciseCardPermissionsDto ofExercise(long userId, ExerciseEntity exercise, @Nullable Long courseId) {
+    public ExerciseCardPermissionsDto ofExercise(long userId, ExerciseData exercise, @Nullable Long courseId) {
         var scoped = authService.getPermissions(userId, authScopes.courseOrGlobal(courseId));
         // Копирование в глобальный пул авторизуется в GLOBAL-области, а не в области страницы.
         var global = courseId == null ? scoped : authService.getPermissions(userId, authScopes.global());

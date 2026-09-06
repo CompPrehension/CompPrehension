@@ -9,8 +9,6 @@ import org.vstu.compprehension.models.businesslogic.domains.ProgrammingLanguageE
 import org.vstu.compprehension.models.businesslogic.storage.QuestionBank;
 import org.vstu.compprehension.models.businesslogic.storage.SerializableQuestion;
 import org.vstu.compprehension.models.entities.EnumData.Language;
-import org.vstu.compprehension.models.entities.ExerciseAttemptEntity;
-import org.vstu.compprehension.models.entities.QuestionDataEntity;
 import org.vstu.meaningtree.SupportedLanguage;
 import org.vstu.meaningtree.utils.tokens.ComplexOperatorToken;
 import org.vstu.meaningtree.utils.tokens.OperatorToken;
@@ -40,12 +38,11 @@ public class QuestionDynamicDataAppender {
             if (q == null) {
                 return null;
             }
-            QuestionDataEntity dataEntity = new QuestionDataEntity(null, SerializableQuestion.fromQuestion(q));
-            bank.saveQuestionDataEntity(dataEntity);
-            // Связь метаданных с сериализованным вопросом пишет банк: у вопроса
-            // в бизнес-логике есть только данные метаданных, без сущности.
-            meta.setData(dataEntity.getData());
-            bank.attachQuestionData(meta.getId(), dataEntity);
+            // Тело вопроса переписывается в банке: метаданные остаются прежними,
+            // меняется только сериализованный вопрос, на который они ссылаются.
+            var body = SerializableQuestion.fromQuestion(q);
+            bank.replaceQuestionBody(meta.getId(), body);
+            meta.setData(body);
         }
 
         q.getQuestionData().setStatementFacts(MeaningTreeRDFHelper.applyRuntimeFixes(q.getStatementFacts()));

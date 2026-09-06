@@ -1,12 +1,12 @@
 package org.vstu.compprehension.Service;
 
+import lombok.RequiredArgsConstructor;
 import lombok.extern.log4j.Log4j2;
 import lombok.val;
 import org.jetbrains.annotations.NotNull;
 import org.jetbrains.annotations.Nullable;
 import org.springframework.stereotype.Service;
 import org.vstu.compprehension.models.data.ViolationData;
-import org.vstu.compprehension.dto.AnswerDto;
 import org.vstu.compprehension.dto.SupplementaryFeedbackDto;
 import org.vstu.compprehension.dto.SupplementaryQuestionDto;
 import org.vstu.compprehension.models.businesslogic.Question;
@@ -17,66 +17,46 @@ import org.vstu.compprehension.models.businesslogic.domains.DomainFactory;
 import org.vstu.compprehension.models.businesslogic.storage.QuestionBank;
 import org.vstu.compprehension.models.businesslogic.strategies.AbstractStrategy;
 import org.vstu.compprehension.models.businesslogic.strategies.AbstractStrategyFactory;
-import org.vstu.compprehension.Service.mapping.QuestionDataMapper;
+import org.vstu.compprehension.models.data.InteractionResponsesData;
+import org.vstu.compprehension.models.data.NewInteractionData;
 import org.vstu.compprehension.models.data.QuestionData;
+import org.vstu.compprehension.models.data.QuestionRequestLogData;
+import org.vstu.compprehension.models.data.RecordedInteractionData;
 import org.vstu.compprehension.models.data.ResponseData;
-import org.vstu.compprehension.models.entities.*;
+import org.vstu.compprehension.models.data.SubmittedAnswerData;
 import org.vstu.compprehension.models.entities.EnumData.Language;
-import org.vstu.compprehension.models.repository.*;
+import org.vstu.compprehension.models.repository.data.InteractionDataRepository;
 import org.vstu.compprehension.models.repository.data.QuestionDataRepository;
 import org.vstu.compprehension.models.repository.data.SupplementaryStepDataRepository;
 import org.vstu.compprehension.utils.Mapper;
 
-import java.util.ArrayList;
 import java.util.List;
 import java.util.Optional;
-import java.util.stream.Collectors;
 
 @Log4j2
 @Service
+@RequiredArgsConstructor
 public class QuestionService {
-    private final QuestionRepository questionRepository;
-    private final AnswerObjectRepository answerObjectRepository;
     private final AbstractStrategyFactory strategyFactory;
-    private final DomainRepository domainRepository;
-    private final InteractionRepository interactionRepository;
-    private final ResponseRepository responseRepository;
     private final SupplementaryStepDataRepository supplementaryStepDataRepository;
     private final QuestionDataRepository questionDataRepository;
+    private final InteractionDataRepository interactionDataRepository;
+    private final ExerciseAttemptService exerciseAttemptService;
     private final DomainFactory domainFactory;
-    private final QuestionRequestLogRepository questionRequestLogRepository;
     private final QuestionBank questionStorage;
-    private final QuestionMetadataRepository questionMetadataRepository;
-    private final QuestionDataMapper questionDataMapper;
-
-    public QuestionService(QuestionRepository questionRepository, AnswerObjectRepository answerObjectRepository, AbstractStrategyFactory strategyFactory, DomainRepository domainRepository, InteractionRepository interactionRepository, ResponseRepository responseRepository, SupplementaryStepDataRepository supplementaryStepDataRepository, QuestionDataRepository questionDataRepository, DomainFactory domainFactory, QuestionRequestLogRepository questionRequestLogRepository, QuestionBank questionStorage, QuestionDataMapper questionDataMapper, QuestionMetadataRepository questionMetadataRepository) {
-        this.questionRepository = questionRepository;
-        this.answerObjectRepository = answerObjectRepository;
-        this.strategyFactory = strategyFactory;
-        this.domainRepository = domainRepository;
-        this.interactionRepository = interactionRepository;
-        this.responseRepository = responseRepository;
-        this.supplementaryStepDataRepository = supplementaryStepDataRepository;
-        this.questionDataRepository = questionDataRepository;
-        this.domainFactory = domainFactory;
-        this.questionRequestLogRepository = questionRequestLogRepository;
-        this.questionStorage = questionStorage;
-        this.questionDataMapper = questionDataMapper;
-        this.questionMetadataRepository = questionMetadataRepository;
-    }
 
 
-    public Question generateQuestion(ExerciseAttemptEntity exerciseAttempt) {
-        Domain domain = domainFactory.getDomain(exerciseAttempt.getExercise().getDomain().getName());
-        AbstractStrategy strategy = strategyFactory.getStrategy(exerciseAttempt.getExercise().getStrategyId());
+    public Question generateQuestion(long exerciseAttemptId) {
+        var context = exerciseAttemptService.getGenerationContext(exerciseAttemptId);
+        Domain domain = domainFactory.getDomain(context.domainId());
+        AbstractStrategy strategy = strategyFactory.getStrategy(context.strategyId());
 
-        QuestionRequest qr = strategy.generateQuestionRequest(exerciseAttempt.getId());
+        QuestionRequest qr = strategy.generateQuestionRequest(exerciseAttemptId);
         qr = domain.ensureQuestionRequestValid(qr);
 
-        Question question = domain.makeQuestion(qr, exerciseAttempt.getExercise().getOptions(),
-                exerciseAttempt.getUser().getPreferred_language());
+        Question question = domain.makeQuestion(qr, context.exerciseOptions(), context.userLanguage());
 
-        saveQuestion(question, qr.getLogEntity(), exerciseAttempt);
+        saveQuestion(question, qr.toLogData(), exerciseAttemptId);
         return question;
     }
 
@@ -89,7 +69,7 @@ public class QuestionService {
         var tags = domain.getAllTags().stream()
                 .filter(t -> rawQuestion.getTagBits() != null && (rawQuestion.getTagBits() & t.getBitmask()) != 0)
                 .toList();
-        var question = domain.makeQuestion(questionDataMapper.toData(rawQuestion), tags, lang);
+        var question = domain.makeQuestion(rawQuestion, tags, lang);
         saveQuestion(question);
         return question;
     }
@@ -104,7 +84,8 @@ public class QuestionService {
         Long supplementaryQuestionId = null;
         if(responseGen.getResponse().getQuestion() != null){
             val supplementary = responseGen.getResponse().getQuestion();
-            saveQuestion(supplementary, null, getQuestionEntity(sourceQuestionId).getExerciseAttempt());
+            saveQuestion(supplementary, null,
+                    exerciseAttemptService.findAttemptIdOfQuestion(sourceQuestionId).orElse(null));
             supplementaryQuestionId = supplementary.getQuestionData().getId();
         }
         if(responseGen.getNewStep() != null){
@@ -113,12 +94,11 @@ public class QuestionService {
         return Mapper.toDto(responseGen.getResponse());
     }
 
-    public SupplementaryFeedbackDto judgeSupplementaryQuestion(Question question, List<ResponseEntity> responses) {
+    public SupplementaryFeedbackDto judgeSupplementaryQuestion(Question question, List<ResponseData> responses) {
         Domain domain = question.getDomain();
         val supplementaryInfo = supplementaryStepDataRepository
                 .findBySupplementaryQuestionId(question.getQuestionData().getId());
-        val feedbackGen = domain.judgeSupplementaryQuestion(question, supplementaryInfo,
-                toResponseData(responses));
+        val feedbackGen = domain.judgeSupplementaryQuestion(question, supplementaryInfo, responses);
         if(feedbackGen.getNewStep() != null){
             supplementaryStepDataRepository.create(feedbackGen.getNewStep(), null);
         }
@@ -130,45 +110,39 @@ public class QuestionService {
         return question.getDomain().solveQuestion(question, tags);
     }
 
-    /*
-    public List<ResponseEntity> responseQuestion(Question question, List<Integer> responses) {
-        val result = new ArrayList<ResponseEntity>();
-        for (val answerId : responses) {
-            result.add(makeResponse(question.getAnswerObject(answerId)));
-        }
-        return result;
+    /**
+     * Ответы, пришедшие с фронта, в вид, с которым работают домены.
+     * <p>
+     * В БД при этом ничего не пишется: ответ становится строкой только вместе со
+     * взаимодействием, которое его объясняет.
+     */
+    public List<ResponseData> resolveAnswers(long questionId, List<SubmittedAnswerData> answers) {
+        return interactionDataRepository.resolveAnswers(questionId, answers);
     }
-    */
 
-    public List<ResponseEntity> responseQuestion(Question question, AnswerDto[] answers) {
-        val result = new ArrayList<ResponseEntity>();
-        // Домен отдаёт варианты ответа данными, а ответ пишется в БД — сопоставляем
-        // с сущностями по answerId.
-        val answerObjectsById = getQuestionEntity(question.getQuestionData().getId())
-                .getAnswerObjects().stream()
-                .collect(Collectors.toMap(AnswerObjectEntity::getAnswerId, a -> a, (a, b) -> a));
-        for (val answer: answers) {
-            val left = answerObjectsById.get(answer.getAnswer()[0].intValue());
-            val right = answerObjectsById.get(answer.getAnswer()[1].intValue());
-            val createdByInteraction = Optional.ofNullable(answer.getCreatedByInteraction())
-                    .flatMap(id -> interactionRepository.findById(id))
-                    .orElse(null);
-            val response = makeResponse(left, right, createdByInteraction);
-            result.add(response);
-        }
-        return result;
+    /** Ответы последнего взаимодействия, после которого вопрос ещё можно продолжать. */
+    public Optional<InteractionResponsesData> findLatestCorrectInteraction(long questionId) {
+        return interactionDataRepository.findLatestCorrectInteraction(questionId);
+    }
+
+    /**
+     * Записать взаимодействие студента с вопросом.
+     * <p>
+     * Оценка выставляется отдельно: её считает стратегия по истории попытки, в которую
+     * входит и это взаимодействие.
+     */
+    public RecordedInteractionData recordInteraction(NewInteractionData interaction) {
+        return interactionDataRepository.record(interaction);
+    }
+
+    /** Выставить оценку за уже записанное взаимодействие. */
+    public void gradeInteraction(long interactionId, float grade) {
+        interactionDataRepository.grade(interactionId, grade);
     }
 
     @SuppressWarnings("unchecked")
-    public Domain.InterpretSentenceResult judgeQuestion(Question question, List<ResponseEntity> responses, List<Tag> tags) {
-        // Ответы приходят сущностями: их сохраняет сервис. Домену они нужны как данные.
-        return question.getDomain().judgeQuestion(question, toResponseData(responses), tags);
-    }
-
-    /** Ответы студента в вид, с которым работают домены. */
-    private List<ResponseData> toResponseData(List<ResponseEntity> responses) {
-        return responses == null ? List.of()
-                : responses.stream().map(QuestionDataMapper::toNewResponseData).toList();
+    public Domain.InterpretSentenceResult judgeQuestion(Question question, List<ResponseData> responses, List<Tag> tags) {
+        return question.getDomain().judgeQuestion(question, responses, tags);
     }
 
     public Question getQuestion(Long questionId) {
@@ -176,10 +150,9 @@ public class QuestionService {
                 domainFactory.getDomain(getDomainName(questionId)));
     }
 
-    /** Имя домена вопроса — скалярным запросом, без подъёма сущности. */
+    /** Имя домена вопроса — скалярным запросом, без подъёма всего вопроса. */
     private @NotNull String getDomainName(long questionId) {
-        return questionRepository.findDomainName(questionId)
-                .orElseThrow(() -> new java.util.NoSuchElementException("Question " + questionId + " not found"));
+        return questionDataRepository.getDomainName(questionId);
     }
 
     public Question getSolvedQuestion(Long questionId) {
@@ -203,119 +176,36 @@ public class QuestionService {
      * Id пользователя, которому принадлежит попытка, породившая вопрос.
      */
     public Optional<Long> findQuestionOwnerUserId(Long questionId) {
-        return questionRepository.findOwnerUserId(questionId);
-    }
-
-    public QuestionEntity getQuestionEntity(Long questionId) {
-        return questionRepository.findById(questionId).get();
+        return questionDataRepository.findOwnerUserId(questionId);
     }
 
     public void saveQuestion(Question question) {
         saveQuestion(question, null, null);
     }
 
-    public void saveQuestion(Question question, @Nullable QuestionRequestLogEntity questionRequestLog) {
+    public void saveQuestion(Question question, @Nullable QuestionRequestLogData questionRequestLog) {
         saveQuestion(question, questionRequestLog, null);
     }
 
     /**
-     * Переносит вопрос из данных в сущность и сохраняет.
+     * Записать вопрос.
      * <p>
-     * Здесь собрано всё, что домены больше не делают сами, потому что для этого нужен
-     * доступ к БД: привязка к домену, к попытке и к журналу запроса. Это единственный
-     * сток всех путей генерации, так что пропустить привязку нельзя.
+     * Домен, попытка и журнал запроса в самих данных вопроса не лежат, поэтому
+     * передаются рядом: это единственный сток всех путей генерации, и пропустить
+     * привязку нельзя.
      *
-     * @param questionRequestLog журнал запроса, если вопрос сгенерирован по запросу;
-     *                           сохраняется раньше вопроса, связь идёт по его id
-     * @param exerciseAttempt    попытка, в рамках которой задан вопрос, если она есть
+     * @param questionRequestLog журнал запроса, если вопрос сгенерирован по запросу
+     * @param exerciseAttemptId  попытка, в рамках которой задан вопрос, если она есть
      */
     public void saveQuestion(Question question,
-                             @Nullable QuestionRequestLogEntity questionRequestLog,
-                             @Nullable ExerciseAttemptEntity exerciseAttempt) {
-        var data = question.getQuestionData();
-
-        // Существующий вопрос обновляется на месте, новый создаётся: id есть только
-        // у поднятых из БД.
-        // Сущность метаданных резолвит сервис: маппер по определению не ходит в БД.
-        // Метаданные приходят из банка заданий и уже существуют, поэтому берутся по id.
-        var metadata = data.getMetadata() == null || data.getMetadata().getId() == null
-                ? null
-                : questionMetadataRepository.getReferenceById(data.getMetadata().getId());
-
-        var entity = data.getId() == null
-                ? questionDataMapper.toNewEntity(data, metadata)
-                : questionRepository.findById(data.getId())
-                        .orElseGet(() -> questionDataMapper.toNewEntity(data, metadata));
-        if (data.getId() != null) {
-            questionDataMapper.applyToEntity(data, entity, metadata);
-        }
-
-        if (questionRequestLog != null) {
-            questionRequestLogRepository.save(questionRequestLog);
-            entity.setQuestionRequestLog(questionRequestLog);
-        }
-        if (exerciseAttempt != null) {
-            entity.setExerciseAttempt(exerciseAttempt);
-        }
-        if (entity.getDomainEntity() == null) {
-            entity.setDomainEntity(domainRepository.getReferenceById(question.getDomain().getName()));
-        }
-
-        questionRepository.save(entity);
-
-        // Варианты ответа сохраняются после вопроса: у новых связь идёт по его id.
-        if (entity.getAnswerObjects() != null) {
-            for (AnswerObjectEntity answerObject : entity.getAnswerObjects()) {
-                if (answerObject.getQuestion() == null) {
-                    answerObject.setQuestion(entity);
-                }
-            }
-            answerObjectRepository.saveAll(entity.getAnswerObjects().stream().filter(a -> a.getId() == null)::iterator);
-        }
-
-        // Идентификаторы, назначенные базой, возвращаются в данные: вызывающий код
-        // продолжает работать с тем же объектом вопроса.
-        data.setId(entity.getId());
-        for (int i = 0; i < entity.getAnswerObjects().size() && i < data.getAnswerObjects().size(); i++) {
-            data.getAnswerObjects().get(i).setId(entity.getAnswerObjects().get(i).getId());
-        }
+                             @Nullable QuestionRequestLogData questionRequestLog,
+                             @Nullable Long exerciseAttemptId) {
+        questionDataRepository.save(question.getQuestionData(), question.getDomain().getName(),
+                questionRequestLog, exerciseAttemptId);
     }
 
     public Domain.CorrectAnswer getNextCorrectAnswer(Question question) {
         return question.getDomain().getAnyNextCorrectAnswer(question);
     }
 
-    /*
-    public Question generateBusinessLogicQuestion(ExerciseAttemptEntity exerciseAttempt) {
-        
-        //Генерируем вопрос
-        QuestionRequest qr = strategy.generateQuestionRequest(exerciseAttempt.getId());
-        Language userLanguage = exerciseAttempt.getUser().getPreferred_language();
-        Domain domain = core.getDomain(
-                exerciseAttempt.getExercise().getDomain().getName());
-        Question newQuestion =
-                domain.makeQuestion(qr, exerciseAttempt.getExercise().getTags(), userLanguage);
-        
-        saveQuestion(newQuestion.getQuestionData());
-        
-        return newQuestion;
-    }
-    */
-
-    private ResponseEntity makeResponse(AnswerObjectEntity answer) {
-        ResponseEntity response = new ResponseEntity();
-        response.setLeftAnswerObject(answer);
-        response.setRightAnswerObject(answer);
-        responseRepository.save(response);
-        return response;
-    }
-
-    private ResponseEntity makeResponse(AnswerObjectEntity answerL, AnswerObjectEntity answerR, InteractionEntity createdByInteraction) {
-        ResponseEntity response = new ResponseEntity();
-        response.setLeftAnswerObject(answerL);
-        response.setRightAnswerObject(answerR);
-        response.setCreatedByInteraction(createdByInteraction);
-        responseRepository.save(response);
-        return response;
-    }
 }

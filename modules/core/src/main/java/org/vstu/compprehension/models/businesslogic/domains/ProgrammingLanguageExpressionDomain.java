@@ -34,7 +34,6 @@ import org.jetbrains.annotations.NotNull;
 import org.jetbrains.annotations.Nullable;
 import org.apache.commons.text.StringEscapeUtils;
 import org.vstu.compprehension.Service.SupplementaryStepService;
-import org.vstu.compprehension.Service.mapping.QuestionDataMapper;
 import org.vstu.compprehension.models.data.QuestionMetadataData;
 import org.vstu.compprehension.models.data.QuestionInteractionData;
 import org.vstu.compprehension.models.data.QuestionData;
@@ -59,7 +58,6 @@ import org.vstu.compprehension.models.businesslogic.storage.NamespaceUtil;
 import org.vstu.compprehension.models.businesslogic.storage.QuestionBank;
 import org.vstu.compprehension.models.businesslogic.storage.SerializableQuestion;
 import org.vstu.compprehension.models.entities.EnumData.InteractionType;
-import org.vstu.compprehension.models.entities.*;
 import org.vstu.compprehension.models.entities.EnumData.FeedbackType;
 import org.vstu.compprehension.models.entities.EnumData.Language;
 import org.vstu.compprehension.models.entities.EnumData.QuestionType;
@@ -467,15 +465,13 @@ public class ProgrammingLanguageExpressionDomain extends JenaReasoningDomain {
             int generatorAdditionalQuestionsToGenerate = exerciseOptions.getGeneratorAdditionalQuestionsToGenerate() != null
                     ? exerciseOptions.getGeneratorAdditionalQuestionsToGenerate()
                     : 3;
-            foundQuestions = qMetaStorage.searchQuestions(questionRequest, 1, generatorThreshold, generatorAdditionalQuestionsToGenerate).getQuestions()
-                    .stream().map(QuestionDataMapper::toData).toList();
+            foundQuestions = qMetaStorage.searchQuestions(questionRequest, 1, generatorThreshold, generatorAdditionalQuestionsToGenerate).getQuestions();
 
             // search again if nothing found with "TO_COMPLEX"
             SearchDirections lawsSearchDir = questionRequest.getLawsSearchDirection();
             if (foundQuestions.isEmpty() && lawsSearchDir == SearchDirections.TO_COMPLEX) {
                 questionRequest.setLawsSearchDirection(SearchDirections.TO_SIMPLE);
-                foundQuestions = qMetaStorage.searchQuestions(questionRequest, 1, generatorThreshold, generatorAdditionalQuestionsToGenerate).getQuestions()
-                    .stream().map(QuestionDataMapper::toData).toList();
+                foundQuestions = qMetaStorage.searchQuestions(questionRequest, 1, generatorThreshold, generatorAdditionalQuestionsToGenerate).getQuestions();
             }
         } catch (Exception e) {
             // file storage was not configured properly...

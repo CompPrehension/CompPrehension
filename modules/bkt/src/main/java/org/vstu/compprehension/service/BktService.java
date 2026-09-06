@@ -1,12 +1,9 @@
 package org.vstu.compprehension.service;
 
 import io.grpc.StatusRuntimeException;
-import its.model.definition.ThisShouldNotHappen;
-import jakarta.persistence.EntityManager;
-import jakarta.persistence.PersistenceContext;
 import org.jetbrains.annotations.Nullable;
+import its.model.definition.ThisShouldNotHappen;
 import org.springframework.boot.autoconfigure.condition.ConditionalOnBean;
-import org.springframework.dao.DataIntegrityViolationException;
 import org.springframework.orm.ObjectOptimisticLockingFailureException;
 import org.springframework.retry.annotation.Backoff;
 import org.springframework.retry.annotation.Retryable;
@@ -16,9 +13,7 @@ import lombok.RequiredArgsConstructor;
 import lombok.val;
 import org.springframework.stereotype.Service;
 import org.vstu.compprehension.bkt.grpc.*;
-import org.vstu.compprehension.models.entities.BktUserDataEntity;
-import org.vstu.compprehension.models.repository.BktDomainDataRepository;
-import org.vstu.compprehension.models.repository.BktUserDataRepository;
+import org.vstu.compprehension.models.repository.data.BktDataRepository;
 
 import java.util.Collections;
 import java.util.List;
@@ -32,11 +27,7 @@ import java.util.List;
 public class BktService {
 
     private final BktServiceGrpc.BktServiceBlockingStub stub;
-    private final BktDomainDataRepository bktDomainDataRepository;
-    private final BktUserDataRepository bktUserDataRepository;
-
-    @PersistenceContext
-    private EntityManager entityManager;
+    private final BktDataRepository bktData;
 
     @Retryable(
             retryFor = { ObjectOptimisticLockingFailureException.class },
@@ -45,10 +36,8 @@ public class BktService {
     )
     @Transactional(propagation = Propagation.MANDATORY)
     public void updateBktRoster(String domainId, Long userId, boolean correct, List<String> skills) {
-        val data = getBktData(domainId, userId);
-        if (data == null) return;
-        val roster = data.getRoster();
-        if (roster.isBlank()) return;
+        val roster = getRoster(domainId, userId);
+        if (roster == null) return;
 
         val request = UpdateRosterRequest.newBuilder()
                 .setStudent(userId.toString())
@@ -60,9 +49,7 @@ public class BktService {
         try {
             val response = stub.updateRoster(request); // blocking
 
-            val updatedRoster = response.getRoster();
-            data.setRoster(updatedRoster);
-            entityManager.flush();
+            bktData.updateRoster(domainId, userId, response.getRoster());
         } catch (StatusRuntimeException ignored) {
             throw new ThisShouldNotHappen();
         }
@@ -70,10 +57,8 @@ public class BktService {
 
     @Transactional(propagation = Propagation.MANDATORY, readOnly = true)
     public List<SkillState> getSkillStates(String domainId, Long userId, List<String> skills) {
-        val data = getBktData(domainId, userId);
-        if (data == null) return Collections.emptyList();
-        val roster = data.getRoster();
-        if (roster.isBlank()) return Collections.emptyList();
+        val roster = getRoster(domainId, userId);
+        if (roster == null) return Collections.emptyList();
 
         val request = GetSkillStatesRequest.newBuilder()
                 .setRoster(roster)
@@ -92,10 +77,8 @@ public class BktService {
 
     @Transactional(propagation = Propagation.MANDATORY, readOnly = true)
     public List<String> chooseBestQuestion(String domainId, Long userId, List<String> skills) {
-        val data = getBktData(domainId, userId);
-        if (data == null) return Collections.emptyList();
-        val roster = data.getRoster();
-        if (roster.isBlank()) return Collections.emptyList();
+        val roster = getRoster(domainId, userId);
+        if (roster == null) return Collections.emptyList();
 
         val request = ChooseBestQuestionRequest.newBuilder()
                 .setRoster(roster)
@@ -113,27 +96,9 @@ public class BktService {
         }
     }
 
-    @Transactional(propagation = Propagation.MANDATORY)
-    private @Nullable BktUserDataEntity getBktData(String domainId, Long userId) {
-        val bktDomainData = bktDomainDataRepository.findById(domainId).orElse(null);
-        if (bktDomainData == null) return null;
-        // Проверяем наличие roster у домена. Он обязателен для использования bkt
-        val emptyRoster = bktDomainData.getEmptyRoster();
-        if (emptyRoster.isBlank()) return null;
-
-        // Достаем roster пользователя, либо создаем новый пустой
-        val dataId = new BktUserDataEntity.BktUserDataId(userId, domainId);
-        return bktUserDataRepository.findById(dataId).orElseGet(() -> {
-            // Создаем новую запись
-            val newData = new BktUserDataEntity();
-            newData.setUserId(userId);       // ключ‑часть #1
-            newData.setDomainName(domainId); // ключ‑часть #2
-            newData.setRoster(emptyRoster);  // дефолт‑roster (пустой, заполнится позже)
-            try {
-                return bktUserDataRepository.save(newData);
-            } catch (DataIntegrityViolationException ignored) {
-                return bktUserDataRepository.findById(dataId).orElseThrow();
-            }
-        });
+    /** Roster студента; null, если BKT для области не настроен или roster пуст. */
+    private @Nullable String getRoster(String domainId, Long userId) {
+        val roster = bktData.findRoster(domainId, userId).orElse(null);
+        return roster == null || roster.isBlank() ? null : roster;
     }
 }

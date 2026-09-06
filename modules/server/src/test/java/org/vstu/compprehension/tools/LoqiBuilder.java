@@ -7,7 +7,6 @@ import lombok.extern.log4j.Log4j2;
 import org.testcontainers.shaded.org.bouncycastle.oer.its.etsi102941.CaCertificateRekeyingMessage;
 import org.vstu.compprehension.models.data.AnswerObjectData;
 import org.vstu.compprehension.models.data.ResponseData;
-import org.vstu.compprehension.Service.DomainService;
 import org.vstu.compprehension.models.businesslogic.*;
 
 import org.vstu.compprehension.infrastructure.AbstractIntegrationTest;
@@ -28,6 +27,7 @@ import org.vstu.compprehension.models.businesslogic.domains.helpers.meaningtree.
 import org.vstu.compprehension.models.entities.ExerciseAttemptEntity;
 import org.vstu.compprehension.models.entities.exercise.ExerciseEntity;
 import org.vstu.compprehension.models.repository.ExerciseAttemptRepository;
+import org.vstu.compprehension.models.repository.DomainRepository;
 import org.vstu.compprehension.models.repository.ExerciseRepository;
 import org.vstu.compprehension.models.repository.UserRepository;
 import org.vstu.meaningtree.SupportedLanguage;
@@ -45,7 +45,7 @@ public class LoqiBuilder extends AbstractIntegrationTest {
     @Autowired
     DomainFactory domainFactory;
     @Autowired
-    private DomainService domainService;
+    private DomainRepository domainRepository;
     @Autowired
     private ExerciseAttemptRepository exerciseAttemptRepository;
     @Autowired
@@ -72,7 +72,7 @@ public class LoqiBuilder extends AbstractIntegrationTest {
     public void tearUp() {
         domain = (ProgrammingLanguageExpressionDTDomain) domainFactory.getDomain(domainId);
         exercise = new ExerciseEntity();
-        exercise.setDomain(domainService.getDomainEntity(domain.getName()));
+        exercise.setDomain(domainRepository.findById(domain.getName()).orElseThrow());
         exercise.setBackendId("DTReasoner");
         exercise.setTags("");
         exercise.setOptions(new ExerciseOptionsData(null, true,

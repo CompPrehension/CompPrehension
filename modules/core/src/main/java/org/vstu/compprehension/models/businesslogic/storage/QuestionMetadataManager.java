@@ -2,23 +2,28 @@ package org.vstu.compprehension.models.businesslogic.storage;
 
 import lombok.extern.log4j.Log4j2;
 import org.jetbrains.annotations.NotNull;
-import org.vstu.compprehension.models.data.QuestionMetadataData;
-import org.vstu.compprehension.models.repository.QuestionMetadataRepository;
+import org.vstu.compprehension.models.repository.data.QuestionBankDataRepository;
 
 import java.time.LocalDateTime;
 import java.util.Optional;
 import java.util.concurrent.ConcurrentHashMap;
 
+/**
+ * Разброс сложности вопросов по доменам, с кэшем на четверть часа.
+ * <p>
+ * Кэш нужен потому, что статистика читается при каждом поиске в банке, а меняется она
+ * только по мере наполнения банка генератором.
+ */
 @Log4j2
 public class QuestionMetadataManager {
-    private final QuestionMetadataRepository questionRepository;
+    private final QuestionBankDataRepository bankRepository;
     private final ConcurrentHashMap<String, ComplexityStats> complexityStats;
 
     private record ComplexityStats(LocalDateTime createDate, NumericStat stats) {}
 
-    public QuestionMetadataManager(QuestionMetadataRepository questionMetadataRepository) {
-        this.questionRepository = questionMetadataRepository;
-        this.complexityStats    = new ConcurrentHashMap<>();
+    public QuestionMetadataManager(QuestionBankDataRepository bankRepository) {
+        this.bankRepository = bankRepository;
+        this.complexityStats = new ConcurrentHashMap<>();
     }
 
     public NumericStat getComplexityStats(String domainShortname) {
@@ -32,41 +37,17 @@ public class QuestionMetadataManager {
             return currentStats;
         }
 
-        var stats = questionRepository.getStatOnComplexityField(domainShortname);
+        var stats = bankRepository.getComplexityStats(domainShortname);
+        // Подстановки на случай пустого банка: без вопросов домена шкала сложности
+        // вырождается, и нормализовать запрос не по чему.
         var complexityStats = new NumericStat(
-                (int)(long)stats.getCount(),
-                Optional.ofNullable(stats.getMin()).orElse(0.0),
-                Optional.ofNullable(stats.getMean()).orElse(0.5),
-                Optional.ofNullable(stats.getMax()).orElse(1.0)
+                (int) stats.count(),
+                Optional.ofNullable(stats.min()).orElse(0.0),
+                Optional.ofNullable(stats.mean()).orElse(0.5),
+                Optional.ofNullable(stats.max()).orElse(1.0)
         );
         var newStats = new ComplexityStats(LocalDateTime.now(), complexityStats);
         this.complexityStats.put(domainShortname, newStats);
         return newStats;
     }
-
-    /* List<QuestionMetadataData> findQuestionsAroundComplexityWithoutQIds(
-            QuestionRequest qr,
-            double complexityMaxDifference,
-            int limit,
-            int randomPoolLimit
-    ) {
-        ensureBankStatLoaded();
-
-        // lists cannot be empty in SQL: workaround
-        val templatesIds = qr.getDeniedQuestionTemplateIds();
-        if (templatesIds == null || templatesIds.isEmpty()) {
-            qr.setDeniedQuestionTemplateIds(List.of(0));
-        }
-        val questionsIds = qr.getDeniedQuestionMetaIds();
-        if (questionsIds == null || questionsIds.isEmpty()) {
-            qr.setDeniedQuestionMetaIds(List.of(0));
-        }
-        if (randomPoolLimit < limit)
-            randomPoolLimit = limit;
-        Iterable<? extends QuestionMetadataData> iter = questionRepository.findSampleAroundComplexityWithoutQIds(qr, complexityMaxDifference,
-                limit, randomPoolLimit);
-        ArrayList<QuestionMetadataData> foundQuestions = new ArrayList<>();
-        iter.forEach(foundQuestions::add);
-        return foundQuestions;
-    } */
 }

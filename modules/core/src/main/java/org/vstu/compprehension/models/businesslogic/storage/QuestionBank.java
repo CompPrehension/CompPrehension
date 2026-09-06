@@ -2,48 +2,43 @@ package org.vstu.compprehension.models.businesslogic.storage;
 
 import com.google.gson.Gson;
 import lombok.extern.log4j.Log4j2;
-import lombok.val;
 import org.jetbrains.annotations.NotNull;
 import org.jetbrains.annotations.Nullable;
-import org.vstu.compprehension.models.entities.QuestionMetadataEntity;
 import org.vstu.compprehension.dto.QuestionBankSearchStatsDto;
 import org.vstu.compprehension.models.businesslogic.QuestionBankSearchRequest;
 import org.vstu.compprehension.models.businesslogic.QuestionRequest;
-import org.vstu.compprehension.models.entities.*;
-import org.vstu.compprehension.models.repository.SerializedQuestionRepository;
-import org.vstu.compprehension.models.repository.QuestionGenerationRequestRepository;
-import org.vstu.compprehension.models.repository.QuestionMetadataRepository;
-import org.vstu.compprehension.models.repository.QuestionMetadataSearchRequestRepository;
-import org.vstu.compprehension.utils.transactions.TransactionScope;
-import org.vstu.compprehension.utils.transactions.TransactionScopeFactory;
+import org.vstu.compprehension.models.data.GenerationRequestGroupData;
+import org.vstu.compprehension.models.data.NewBankQuestionData;
+import org.vstu.compprehension.models.data.QuestionMaskData;
+import org.vstu.compprehension.models.data.QuestionMetadataData;
+import org.vstu.compprehension.models.data.QuestionRequestLogData;
+import org.vstu.compprehension.models.data.SearchIterationData;
+import org.vstu.compprehension.models.data.SearchQuality;
+import org.vstu.compprehension.models.repository.data.QuestionBankDataRepository;
 
+import java.time.LocalDateTime;
 import java.util.ArrayList;
+import java.util.Collection;
 import java.util.List;
-import java.util.stream.Collectors;
+import java.util.Optional;
+import java.util.Set;
 
+/**
+ * Банк готовых заданий: поиск подходящего вопроса и заказ генерации, когда их мало.
+ * <p>
+ * Работает данными: ни строк таблиц, ни репозиториев сущностей здесь нет — всё это
+ * закрыто {@link QuestionBankDataRepository}. Раньше банк отдавал наружу
+ * {@code QuestionMetadataEntity}, и каждый домен разворачивал её в данные сам, попутно
+ * дёргая ленивую связь с телом вопроса по запросу на строку.
+ */
 @Log4j2
 public class QuestionBank {
-    private final QuestionMetadataRepository questionMetadataRepository;
-    private final SerializedQuestionRepository serializedQuestionRepository;
+    private final QuestionBankDataRepository bankRepository;
     private final QuestionMetadataManager questionMetadataManager;
-    private final QuestionGenerationRequestRepository generationRequestRepository;
-    private final QuestionMetadataSearchRequestRepository questionSearchRequestLogRepository;
-    private final TransactionScope logSavingTransactionScope;
 
-    public QuestionBank(
-            QuestionMetadataRepository questionMetadataRepository,
-            SerializedQuestionRepository serializedQuestionRepository,
-            QuestionGenerationRequestRepository generationRequestRepository,
-            QuestionMetadataSearchRequestRepository questionSearchRequestLogRepository,
-            TransactionScopeFactory transactionScopeFactory) {
-        this.questionMetadataRepository = questionMetadataRepository;
-        this.serializedQuestionRepository = serializedQuestionRepository;
-        this.questionMetadataManager = new QuestionMetadataManager(questionMetadataRepository);
-        this.generationRequestRepository = generationRequestRepository;
-        this.questionSearchRequestLogRepository = questionSearchRequestLogRepository;
-        
-        // for actions that must be executed in new transaction (like save logs)
-        this.logSavingTransactionScope = transactionScopeFactory.create(TransactionScope.PropagationBehavior.REQUIRES_NEW);
+    public QuestionBank(QuestionBankDataRepository bankRepository) {
+        this.bankRepository = bankRepository;
+        this.questionMetadataManager = new QuestionMetadataManager(bankRepository);
     }
 
     private QuestionBankSearchRequest createBankSearchRequest(QuestionRequest qr) {
@@ -53,7 +48,7 @@ public class QuestionBank {
         return QuestionBankSearchRequest.fromQuestionRequest(qr, minComplexity, maxComplexity);
     }
 
-    public boolean isMatch(@NotNull QuestionMetadataEntity meta, @NotNull QuestionRequestLogEntity qrLog) {
+    public boolean isMatch(@NotNull QuestionMetadataData meta, @NotNull QuestionRequestLogData qrLog) {
         var minComplexity = questionMetadataManager.getComplexityStats(qrLog.getDomainShortname()).getMin();
         var maxComplexity = questionMetadataManager.getComplexityStats(qrLog.getDomainShortname()).getMax();
 
@@ -67,10 +62,10 @@ public class QuestionBank {
      * @param qr поисковый запрос к банку вопросов (complexity нормализована на диапазон сложности в банке)
      * @return true, если имеет место совпадение вопроса с поисковым запросом
      */
-    public boolean isMatch(@NotNull QuestionMetadataEntity meta, @NotNull QuestionBankSearchRequest qr) {
+    public boolean isMatch(@NotNull QuestionMetadataData meta, @NotNull QuestionBankSearchRequest qr) {
         // Если не совпадает имя домена – мы пытаемся сделать что-то Неправильно!
         if (qr.getDomainShortname() != null && ! qr.getDomainShortname().equalsIgnoreCase(meta.getDomainShortname())) {
-            throw new RuntimeException(String.format("Trying matching a question with a QuestionRequest(LogEntity) of different domain ! (%s != %s)", meta.getDomainShortname(), qr.getDomainShortname()));
+            throw new RuntimeException(String.format("Trying matching a question with a QuestionRequest(Log) of different domain ! (%s != %s)", meta.getDomainShortname(), qr.getDomainShortname()));
         }
 
         // проверка запрещаемых критериев
@@ -91,7 +86,7 @@ public class QuestionBank {
             return false;
         }
 
-        // сложность должна быть в пределах COMPLEXITY_WINDOW от запрашиваемой
+        // сложность должна быть в пределах COMPLEXITY_WINDOW от запрашиваемой
         if (qr.getComplexity() != 0 && Math.abs(qr.getComplexity() - meta.getIntegralComplexity()) > qr.getComplexityWindow()) {
             return false;
         }
@@ -109,28 +104,20 @@ public class QuestionBank {
             return false;
         }
 
-        /*
-        // Присутствует хотя бы половина целевых концептов и законов
-        if (qr.getTargetConceptsBitmask() != 0 && ((meta.getConceptBits() & qr.getTargetConceptsBitmask()) == 0 || Long.bitCount(meta.getConceptBits() & qr.getTargetConceptsBitmask()) < Long.bitCount(qr.getTargetConceptsBitmask()) / 2)
-                || qr.getTargetLawsBitmask() != 0 && ((meta.getViolationBits() & qr.getTargetLawsBitmask()) == 0 || Long.bitCount(meta.getLawBits() & qr.getTargetLawsBitmask()) < Long.bitCount(qr.getTargetLawsBitmask()) / 2)
-        ) {
-            return false;
-        }
-        */
-
         return true;
     }
 
     public int countQuestions(QuestionRequest qr) {
         var bankSearchRequest = createBankSearchRequest(qr);
-        return questionMetadataRepository.countQuestions(bankSearchRequest);
+        return bankRepository.countQuestions(bankSearchRequest);
     }
 
     public QuestionBankSearchStatsDto getStatsByQuestionRequest(QuestionRequest qr, int limit) {
         var bankSearchRequest = createBankSearchRequest(qr);
-        var ordinaryCount = questionMetadataRepository.countQuestions(bankSearchRequest);
-        var topRatedCount = questionMetadataRepository.countTopRatedQuestions(bankSearchRequest);
-        var metadata = questionMetadataRepository.findMetadata(bankSearchRequest, limit)
+        var ordinaryCount = bankRepository.countQuestions(bankSearchRequest);
+        var topRatedCount = bankRepository.countTopRatedQuestions(bankSearchRequest);
+        // Тела вопросов здесь не нужны: в статистику уезжают только имя и идентификатор.
+        var metadata = bankRepository.findMetadataWithoutBodies(bankSearchRequest, limit)
             .stream()
             .map(m -> new QuestionBankSearchStatsDto.QuestionMetadataDto(m.getId(), m.getName()))
             .toList();
@@ -140,16 +127,16 @@ public class QuestionBank {
     public QuestionBankSearchResult searchQuestions(@NotNull QuestionRequest qr, int limit, int generatorThreshold, int generatorAdditionalQuestionsToGenerate) {
 
         var bankSearchRequest = createBankSearchRequest(qr);
-        
-        var prevQuestionsMetadata = qr.getExerciseAttemptId() != null
-            ? questionMetadataRepository.findLastNExerciseAttemptMeta(qr.getExerciseAttemptId(), 4)
-            : List.<QuestionMetadataEntity>of();
+
+        var prevQuestionsMasks = qr.getExerciseAttemptId() != null
+            ? bankRepository.findRecentAttemptQuestionMasks(qr.getExerciseAttemptId(), 4)
+            : List.<QuestionMaskData>of();
 
         long targetConceptsBitmaskInPlan = bankSearchRequest.getTargetConceptsBitmask();
         long targetConceptsBitmask = targetConceptsBitmaskInPlan;
         long deniedConceptsBitmask = bankSearchRequest.getDeniedConceptsBitmask();
-        long unwantedConceptsBitmask = prevQuestionsMetadata.stream()
-                .mapToLong(QuestionMetadataEntity::getConceptBits).
+        long unwantedConceptsBitmask = prevQuestionsMasks.stream()
+                .mapToLong(QuestionMaskData::conceptBits).
                 reduce((t, t2) -> t | t2).orElse(0);
         // guard: don't allow overlapping of target & denied
         targetConceptsBitmask &= ~deniedConceptsBitmask;
@@ -159,22 +146,22 @@ public class QuestionBank {
         long targetViolationsBitmaskInPlan = bankSearchRequest.getTargetLawsBitmask();
         long targetLawsBitmask = targetViolationsBitmaskInPlan;
         long deniedLawsBitmask = bankSearchRequest.getDeniedLawsBitmask();
-        long unwantedLawsBitmask = prevQuestionsMetadata.stream()
-                .mapToLong(QuestionMetadataEntity::getLawBits).
+        long unwantedLawsBitmask = prevQuestionsMasks.stream()
+                .mapToLong(QuestionMaskData::lawBits).
                 reduce((t, t2) -> t | t2).orElse(0);
         // guard: don't allow overlapping of target & denied
         targetLawsBitmask &= ~deniedLawsBitmask;
 
         // use violations from all questions is exercise attempt
-        long unwantedViolationsBitmask = prevQuestionsMetadata.stream()
-                .mapToLong(QuestionMetadataEntity::getViolationBits)
+        long unwantedViolationsBitmask = prevQuestionsMasks.stream()
+                .mapToLong(QuestionMaskData::violationBits)
                 .reduce((t, t2) -> t | t2).orElse(0);
 
         long targetSkillsBitmaskInPlan = bankSearchRequest.getTargetSkillsBitmask();
         long targetSkillsBitmask = targetSkillsBitmaskInPlan;
         long deniedSkillsBitmask = bankSearchRequest.getDeniedSkillsBitmask();
-        long unwantedSkillsBitmask = prevQuestionsMetadata.stream()
-                .mapToLong(QuestionMetadataEntity::getLawBits).
+        long unwantedSkillsBitmask = prevQuestionsMasks.stream()
+                .mapToLong(QuestionMaskData::lawBits).
                 reduce((t, t2) -> t | t2).orElse(0);
         // guard: don't allow overlapping of target & denied
         targetSkillsBitmask &= ~deniedSkillsBitmask;
@@ -187,8 +174,8 @@ public class QuestionBank {
             generatorAdditionalQuestionsToGenerate = 0;
         }
 
-        var searchSteps = new ArrayList<QuestionMetadataSearchRequestEntity.Iteration>(3);
-        List<QuestionMetadataEntity> foundQuestionMetas;
+        var searchSteps = new ArrayList<SearchIterationData>(3);
+        List<QuestionMetadataData> foundQuestionMetas;
 
         var preparedQuery = bankSearchRequest.toBuilder()
                 .targetConceptsBitmask(targetConceptsBitmask)
@@ -205,16 +192,16 @@ public class QuestionBank {
 
         {
             int topRatedLimit = generatorThreshold + 3;
-            log.debug("trying to do {} search with {} limit", QuestionMetadataSearchRequestEntity.Quality.BestUnused, topRatedLimit);
-            foundQuestionMetas = questionMetadataRepository.findTopRatedUnusedMetadata(preparedQuery, topRatedLimit);
-            log.info("search executed with {} strategy and returns {} problems found ({} requested, {} generatorThreshold)", QuestionMetadataSearchRequestEntity.Quality.BestUnused, foundQuestionMetas.size(), topRatedLimit, generatorThreshold);
-            searchSteps.add(new QuestionMetadataSearchRequestEntity.Iteration(QuestionMetadataSearchRequestEntity.Quality.BestUnused, topRatedLimit, foundQuestionMetas.size()));
+            log.debug("trying to do {} search with {} limit", SearchQuality.BestUnused, topRatedLimit);
+            foundQuestionMetas = bankRepository.findTopRatedUnusedMetadata(preparedQuery, topRatedLimit);
+            log.info("search executed with {} strategy and returns {} problems found ({} requested, {} generatorThreshold)", SearchQuality.BestUnused, foundQuestionMetas.size(), topRatedLimit, generatorThreshold);
+            searchSteps.add(new SearchIterationData(SearchQuality.BestUnused, topRatedLimit, foundQuestionMetas.size()));
         }
 
         // runtime assert to find possible desync between findTopRatedMetadata and isMatch methods
         {
             List<Integer> notMatchedMetadata = null;
-            for (QuestionMetadataEntity question : foundQuestionMetas) {
+            for (QuestionMetadataData question : foundQuestionMetas) {
                 if (!isMatch(question, preparedQuery)) {
                     if (notMatchedMetadata == null)
                         notMatchedMetadata = new ArrayList<>();
@@ -231,35 +218,33 @@ public class QuestionBank {
 
             // calculate how many questions to generate based on the number of found questions and existing generation requests
             var rawQuestionsToGenerate = generatorThreshold + generatorAdditionalQuestionsToGenerate - foundQuestionMetas.size(); // +generatorAdditionalQuestionsToGenerate additional questions to be sure that we will have enough
-            var currentlyGeneratingQuestions = generationRequestRepository.findNumberOfCurrentlyGeneratingQuestions(qr.getDomainShortname(), preparedQuery);
+            var currentlyGeneratingQuestions = bankRepository.countCurrentlyGeneratingQuestions(qr.getDomainShortname(), preparedQuery);
             var questionsToGenerate = Math.max(1, rawQuestionsToGenerate - currentlyGeneratingQuestions);
-            var genRequest = logSavingTransactionScope.execute(() -> {
-                var generationRequest = new QuestionGenerationRequestEntity(preparedQuery, questionsToGenerate, qr.getExerciseAttemptId());
-                return generationRequestRepository.save(generationRequest);
-            });
-            log.info("created generation request with id {} with {} problems to generate", genRequest.getId(), genRequest.getQuestionsToGenerate());
+            var genRequestId = bankRepository.createGenerationRequest(
+                    preparedQuery, questionsToGenerate, qr.getExerciseAttemptId());
+            log.info("created generation request with id {} with {} problems to generate", genRequestId, questionsToGenerate);
         }
-        
+
         if (foundQuestionMetas.isEmpty()) {
             int normalLimit = 100;
-            log.debug("trying to do {} search with {} limit", QuestionMetadataSearchRequestEntity.Quality.Normal, normalLimit);
-            foundQuestionMetas = questionMetadataRepository.findMetadata(preparedQuery, normalLimit);
-            log.info("search executed with {} strategy and returns {} problems ({} requested)", QuestionMetadataSearchRequestEntity.Quality.Normal, foundQuestionMetas.size(), normalLimit);
-            searchSteps.add(new QuestionMetadataSearchRequestEntity.Iteration(QuestionMetadataSearchRequestEntity.Quality.Normal, normalLimit, foundQuestionMetas.size()));
+            log.debug("trying to do {} search with {} limit", SearchQuality.Normal, normalLimit);
+            foundQuestionMetas = bankRepository.findMetadata(preparedQuery, normalLimit);
+            log.info("search executed with {} strategy and returns {} problems ({} requested)", SearchQuality.Normal, foundQuestionMetas.size(), normalLimit);
+            searchSteps.add(new SearchIterationData(SearchQuality.Normal, normalLimit, foundQuestionMetas.size()));
         }
-        
+
         if (foundQuestionMetas.isEmpty()) {
             int relaxedLimit = 100;
-            log.debug("trying to do {} search with {} limit", QuestionMetadataSearchRequestEntity.Quality.Relaxed, relaxedLimit);
-            foundQuestionMetas = questionMetadataRepository.findMetadataRelaxed(preparedQuery, relaxedLimit);
-            log.info("search executed with {} strategy and returns {} problems", QuestionMetadataSearchRequestEntity.Quality.Relaxed, foundQuestionMetas.size());
-            searchSteps.add(new QuestionMetadataSearchRequestEntity.Iteration(QuestionMetadataSearchRequestEntity.Quality.Relaxed, relaxedLimit, foundQuestionMetas.size()));
+            log.debug("trying to do {} search with {} limit", SearchQuality.Relaxed, relaxedLimit);
+            foundQuestionMetas = bankRepository.findMetadataRelaxed(preparedQuery, relaxedLimit);
+            log.info("search executed with {} strategy and returns {} problems", SearchQuality.Relaxed, foundQuestionMetas.size());
+            searchSteps.add(new SearchIterationData(SearchQuality.Relaxed, relaxedLimit, foundQuestionMetas.size()));
         }
 
         foundQuestionMetas = foundQuestionMetas.subList(0, Math.min(limit, foundQuestionMetas.size()));
-        
+
         // set concepts from request (for future reference via questions' saved metadata)
-        for (QuestionMetadataEntity m : foundQuestionMetas) {
+        for (QuestionMetadataData m : foundQuestionMetas) {
             m.setConceptBitsInPlan(targetConceptsBitmaskInPlan);
             m.setViolationBitsInPlan(targetViolationsBitmaskInPlan);
             m.setSkillBitsInPlan(targetSkillsBitmaskInPlan);
@@ -274,18 +259,15 @@ public class QuestionBank {
         }
 
         // save search request to db
-        var logEntity = logSavingTransactionScope.execute(() -> {
-            var entity = new QuestionMetadataSearchRequestEntity(preparedQuery, searchSteps, qr.getId());
-            return questionSearchRequestLogRepository.save(entity);
-        });
+        var quality = bankRepository.logSearch(preparedQuery, searchSteps, qr.getId());
 
-        return new QuestionBankSearchResult(logEntity.getQuality(), foundQuestionMetas);
+        return new QuestionBankSearchResult(quality, foundQuestionMetas);
     }
 
-    public @Nullable QuestionMetadataEntity loadQuestion(int questionMetadataId) {
+    /** Вопрос банка вместе с телом; null, если такого нет или его не удалось прочитать. */
+    public @Nullable QuestionMetadataData loadQuestion(int questionMetadataId) {
         try {
-            var questionMeta = questionMetadataRepository.findById(questionMetadataId)
-                    .orElse(null);
+            var questionMeta = bankRepository.findMetadataById(questionMetadataId).orElse(null);
             if (questionMeta != null) {
                 return questionMeta;
             }
@@ -297,40 +279,60 @@ public class QuestionBank {
     }
 
     public boolean questionExists(String questionName) {
-        val repo = this.questionMetadataRepository;
-        if (repo == null)
-            return false;
-
-        return repo.existsByName(questionName);
+        return bankRepository.questionExists(questionName);
     }
 
-    @NotNull
-    public QuestionMetadataEntity saveMetadataEntity(QuestionMetadataEntity meta) {
-        return questionMetadataRepository.save(meta);
+    public long countQuestionsInDomain(String domainShortname) {
+        return bankRepository.countByDomain(domainShortname);
     }
 
-    public void saveMetadataWithDataEntities(List<QuestionMetadataEntity> metas) {
-        var allData = metas.stream()
-                .map(QuestionMetadataEntity::getQuestionData)
-                .collect(Collectors.toSet());
-        serializedQuestionRepository.saveAll(allData);
-        questionMetadataRepository.saveAll(metas);
+    /** Какие из перечисленных имён вопросов в банке уже заняты. */
+    public Set<String> findExistingNames(String domainShortname, Collection<String> questionNames) {
+        return bankRepository.findExistingNames(domainShortname, questionNames);
     }
 
-    public QuestionDataEntity saveQuestionDataEntity(QuestionDataEntity questionData) {
-        return serializedQuestionRepository.save(questionData);
+    /** Какие из перечисленных шаблонов в банке уже заняты. */
+    public Set<String> findExistingTemplateIds(String domainShortname, Collection<String> templateIds) {
+        return bankRepository.findExistingTemplateIds(domainShortname, templateIds);
+    }
+
+    /** Из каких источников в банк уже брали вопросы после указанного момента. */
+    public Set<String> findProcessedOrigins(String domainShortname, LocalDateTime since) {
+        return bankRepository.findProcessedOrigins(domainShortname, since);
     }
 
     /**
-     * Привязывает сериализованный вопрос к строке метаданных банка.
-     * <p>
-     * Нужно потому, что вопрос в бизнес-логике больше не держит сущность метаданных:
-     * у него есть только их данные, а связь пишется здесь, по идентификатору.
+     * Положить в банк сгенерированные вопросы.
+     *
+     * @return сколько строк метаданных записано
      */
-    public void attachQuestionData(@NotNull Integer metadataId, @NotNull QuestionDataEntity dataEntity) {
-        questionMetadataRepository.findById(metadataId).ifPresent(metadata -> {
-            metadata.setQuestionData(dataEntity);
-            questionMetadataRepository.save(metadata);
-        });
+    public int saveQuestions(List<NewBankQuestionData> questions) {
+        return bankRepository.saveQuestions(questions);
+    }
+
+    /**
+     * Заменить тело вопроса новым, оставив метаданные прежними.
+     * <p>
+     * Нужно, когда вопрос старого формата пересобирается на лету: метаданные уже
+     * записаны, а тело устарело.
+     */
+    public void replaceQuestionBody(int metadataId, SerializableQuestion body) {
+        bankRepository.replaceQuestionBody(metadataId, body);
+    }
+
+    /** Незакрытые заявки на генерацию, сгруппированные по одинаковому запросу. */
+    public List<GenerationRequestGroupData> findActualGenerationRequests(
+            String domainShortname, LocalDateTime createdAfter) {
+        return bankRepository.findActualGenerationRequests(domainShortname, createdAfter);
+    }
+
+    /** Отметить, что по заявкам сгенерировано столько вопросов, сколько просили. */
+    public void refreshGenerationRequests(Integer[] generationRequestIds) {
+        bankRepository.refreshGenerationRequests(generationRequestIds);
+    }
+
+    /** Последняя заявка на генерацию, заведённая в рамках попытки. */
+    public Optional<Long> findLastGenerationRequestIdOfAttempt(long exerciseAttemptId) {
+        return bankRepository.findLastGenerationRequestIdOfAttempt(exerciseAttemptId);
     }
 }

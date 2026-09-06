@@ -6,7 +6,7 @@ import lombok.Getter;
 import lombok.NoArgsConstructor;
 import org.jetbrains.annotations.Nullable;
 import org.vstu.compprehension.common.MathHelper;
-import org.vstu.compprehension.models.entities.QuestionRequestLogEntity;
+import org.vstu.compprehension.models.data.QuestionRequestLogData;
 
 import java.util.List;
 import java.util.UUID;
@@ -86,7 +86,7 @@ public class QuestionBankSearchRequest {
                 .build();
     }
 
-    public static QuestionBankSearchRequest fromQuestionRequestLog(QuestionRequestLogEntity qr, double bankMinComplexity, double bankMaxComplexity) {
+    public static QuestionBankSearchRequest fromQuestionRequestLog(QuestionRequestLogData qr, double bankMinComplexity, double bankMaxComplexity) {
         var normalizedComplexity = MathHelper.linearInterpolateToNewRange(
                 qr.getComplexity(),
                 0,

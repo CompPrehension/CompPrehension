@@ -56,6 +56,22 @@ public interface ExerciseAttemptRepository extends JpaRepository<ExerciseAttempt
             where a.id = :attemptId
             """)
     Optional<ExerciseAttemptEntity> findByIdFetchingExerciseAndDomain(@Param("attemptId") long attemptId);
+
+    /**
+     * Попытка вместе с упражнением, доменом и автором — одним запросом.
+     * <p>
+     * Отличается от предыдущего наличием автора: при генерации вопроса нужен ещё и
+     * выбранный им язык, а связь ленивая.
+     */
+    @Query("""
+            select a from ExerciseAttemptEntity a
+            join fetch a.exercise e
+            join fetch e.domain
+            left join fetch a.user
+            where a.id = :attemptId
+            """)
+    Optional<ExerciseAttemptEntity> findByIdFetchingExerciseDomainAndUser(@Param("attemptId") long attemptId);
+
     /**
      * Попытка в объёме, который уезжает на фронт.
      * <p>

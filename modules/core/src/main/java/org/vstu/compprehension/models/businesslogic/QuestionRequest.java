@@ -7,7 +7,7 @@ import lombok.NoArgsConstructor;
 import org.jetbrains.annotations.NotNull;
 import org.jetbrains.annotations.Nullable;
 import org.vstu.compprehension.models.entities.EnumData.SearchDirections;
-import org.vstu.compprehension.models.entities.QuestionRequestLogEntity;
+import org.vstu.compprehension.models.data.QuestionRequestLogData;
 
 import java.util.List;
 import java.util.UUID;
@@ -76,8 +76,9 @@ public class QuestionRequest {
 
     private @Nullable Long exerciseAttemptId;
 
-    public QuestionRequestLogEntity getLogEntity() {
-        return QuestionRequestLogEntity.builder()
+    /** Запрос в форме, пригодной для журнала: понятия и законы — именами и масками. */
+    public QuestionRequestLogData toLogData() {
+        return QuestionRequestLogData.builder()
                 .id(id)
                 .exerciseAttemptId(exerciseAttemptId)
                 .domainShortname(domainShortname)

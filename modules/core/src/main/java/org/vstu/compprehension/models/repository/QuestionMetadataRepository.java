@@ -14,6 +14,7 @@ import java.time.LocalDateTime;
 import java.util.Collection;
 import java.util.HashSet;
 import java.util.List;
+import java.util.Optional;
 
 // Основной интерфейс для поиска вопросов по их метаданным
 @Primary
@@ -70,6 +71,54 @@ public interface QuestionMetadataRepository extends JpaRepository<QuestionMetada
 
     @Query
     boolean existsByName(String questionName);
+
+    /** Строка метаданных вместе с сериализованным телом вопроса. */
+    @Query("""
+            select m from QuestionMetadataEntity m
+            join fetch m.questionData
+            where m.id = :metadataId
+            """)
+    Optional<QuestionMetadataEntity> findByIdFetchingData(@Param("metadataId") int metadataId);
+
+    /**
+     * Поднять тела вопросов для уже найденных метаданных.
+     * <p>
+     * Результат не нужен: важен побочный эффект — после этого запроса связь
+     * {@code questionData} инициализирована у всех перечисленных строк, и обход их
+     * в цикле не порождает по запросу на каждую.
+     */
+    @Query("""
+            select m from QuestionMetadataEntity m
+            join fetch m.questionData
+            where m.id in :metadataIds
+            """)
+    List<QuestionMetadataEntity> fetchQuestionData(@Param("metadataIds") Collection<Integer> metadataIds);
+
+    /** Битовые маски вопросов попытки, самые свежие первыми. */
+    @Query("""
+            select meta.conceptBits as conceptBits, meta.lawBits as lawBits,
+                   meta.violationBits as violationBits, meta.skillBits as skillBits
+            from QuestionEntity q
+            join q.metadata meta
+            where q.exerciseAttempt.id = :attemptId
+            order by q.createdAt desc
+            limit :limit
+            """)
+    List<QuestionMaskView> findRecentAttemptQuestionMasks(@Param("attemptId") long attemptId,
+                                                          @Param("limit") int limit);
+
+    /**
+     * Чем «занят» вопрос: понятия, законы, нарушения, умения.
+     * <p>
+     * Интерфейс, а не конструкторное выражение: четыре подряд идущих {@code Long}
+     * при позиционном связывании переставляются молча.
+     */
+    interface QuestionMaskView {
+        Long getConceptBits();
+        Long getLawBits();
+        Long getViolationBits();
+        Long getSkillBits();
+    }
 
     @Query("select distinct m.name from QuestionMetadataEntity m where m.domainShortname = :domainShortname and m.name in :questionNames")
     HashSet<String> findExistingNames(@Param("domainShortname") String domainShortname, @Param("questionNames") Collection<String> questionNames);

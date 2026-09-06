@@ -1,14 +1,9 @@
 package org.vstu.compprehension.Service;
 
-import org.vstu.compprehension.Service.mapping.QuestionDataMapper;
-import org.vstu.compprehension.models.data.AttemptSummaryData;
-import org.vstu.compprehension.models.data.ViolationData;
-import org.vstu.compprehension.models.data.ExerciseStageData;
-import org.vstu.compprehension.models.data.questionoptions.OrderQuestionOptionsData;
+import lombok.RequiredArgsConstructor;
 import lombok.SneakyThrows;
 import lombok.extern.log4j.Log4j2;
 import lombok.val;
-import org.apache.commons.collections4.ListUtils;
 import org.apache.commons.lang3.ArrayUtils;
 import org.apache.commons.lang3.tuple.Pair;
 import org.jetbrains.annotations.NotNull;
@@ -16,71 +11,57 @@ import org.jetbrains.annotations.Nullable;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Propagation;
 import org.springframework.transaction.annotation.Transactional;
-import org.vstu.compprehension.models.entities.AnswerObjectEntity;
 import org.vstu.compprehension.common.Utils;
 import org.vstu.compprehension.dto.*;
 import org.vstu.compprehension.dto.feedback.FeedbackDto;
 import org.vstu.compprehension.dto.feedback.FeedbackViolationLawDto;
 import org.vstu.compprehension.dto.question.QuestionDto;
 import org.vstu.compprehension.models.businesslogic.Explanation;
-import org.vstu.compprehension.models.businesslogic.domains.DomainFactory;
+import org.vstu.compprehension.models.businesslogic.domains.Domain;
 import org.vstu.compprehension.models.businesslogic.strategies.AbstractStrategyFactory;
-import org.vstu.compprehension.models.entities.*;
+import org.vstu.compprehension.models.data.AttemptSummaryData;
+import org.vstu.compprehension.models.data.ExerciseStageData;
+import org.vstu.compprehension.models.data.NewInteractionData;
+import org.vstu.compprehension.models.data.QuestionAttemptContextData;
+import org.vstu.compprehension.models.data.ResponseData;
+import org.vstu.compprehension.models.data.SubmittedAnswerData;
+import org.vstu.compprehension.models.data.ViolationData;
+import org.vstu.compprehension.models.data.questionoptions.OrderQuestionOptionsData;
 import org.vstu.compprehension.models.entities.EnumData.Decision;
 import org.vstu.compprehension.models.entities.EnumData.Language;
 import org.vstu.compprehension.models.entities.EnumData.QuestionType;
-import org.vstu.compprehension.models.repository.*;
 import org.vstu.compprehension.utils.Checkpointer;
 import org.vstu.compprehension.utils.Mapper;
 
 import java.util.*;
 import java.util.stream.Collectors;
+import java.util.stream.Stream;
 
 import static org.vstu.compprehension.models.entities.EnumData.InteractionType.REQUEST_CORRECT_ANSWER;
 import static org.vstu.compprehension.models.entities.EnumData.InteractionType.SEND_RESPONSE;
 
 @Service
+@RequiredArgsConstructor
 @Log4j2
 public class FrontendService {
-    private final QuestionRepository questionRepository;
-    private final ExerciseAttemptRepository exerciseAttemptRepository;
     private final ExerciseAttemptService exerciseAttemptService;
     private final ExerciseService exerciseService;
     private final QuestionService questionService;
     private final AbstractStrategyFactory strategyFactory;
-    private final FeedbackRepository feedbackRepository;
-    private final InteractionRepository interactionRepository;
-    private final QuestionDataMapper questionDataMapper;
     private final LocalizationService localizationService;
-    private final DomainFactory domainFactory;
-    private final CourseService courseService;
-
-
-    public FrontendService(ExerciseAttemptRepository exerciseAttemptRepository, ExerciseAttemptService exerciseAttemptService, QuestionRepository questionRepository, ExerciseService exerciseService, QuestionService questionService, LocalizationService localizationService, AbstractStrategyFactory strategyFactory, DomainFactory domainFactory, FeedbackRepository feedbackRepository, InteractionRepository interactionRepository, CourseService courseService, QuestionDataMapper questionDataMapper) {
-        this.exerciseAttemptRepository = exerciseAttemptRepository;
-        this.exerciseAttemptService = exerciseAttemptService;
-        this.questionRepository = questionRepository;
-        this.exerciseService = exerciseService;
-        this.questionService = questionService;
-        this.localizationService = localizationService;
-        this.strategyFactory = strategyFactory;
-        this.domainFactory = domainFactory;
-        this.feedbackRepository = feedbackRepository;
-        this.interactionRepository = interactionRepository;
-        this.questionDataMapper = questionDataMapper;
-        this.courseService = courseService;
-    }
 
     @Transactional(propagation = Propagation.REQUIRED)
     public @NotNull SupplementaryFeedbackDto addSupplementaryQuestionAnswer(@NotNull InteractionDto interaction) throws Exception {
         val questionId = interaction.getQuestionId();
-        val answers = interaction.getAnswers();
         val question = questionService.getQuestion(questionId);
         if (!question.isSupplementary()) {
             throw new Exception("Question with id" + questionId + " isn't supplementary");
         }
 
-        val responses = questionService.responseQuestion(question, answers);
+        // Ответ на вспомогательный вопрос в БД не попадает: цепочка ведёт своё состояние
+        // шагами, а взаимодействия у неё нет. Раньше строки ответов всё равно писались
+        // и оставались ни с чем не связанными.
+        val responses = questionService.resolveAnswers(questionId, toSubmittedAnswers(interaction.getAnswers()));
 
         return questionService.judgeSupplementaryQuestion(question, responses);
     }
@@ -90,55 +71,41 @@ public class FrontendService {
         Checkpointer ch = new Checkpointer(log);
 
         val questionId = interaction.getQuestionId();
-        val answers = interaction.getAnswers();
-
-        ExerciseAttemptEntity attempt = exerciseAttemptRepository.findByQuestionIdFetchingExerciseAndUser(questionId)
-                .orElse(null);
+        val answers = toSubmittedAnswers(interaction.getAnswers());
+        val context = exerciseAttemptService.findQuestionContext(questionId).orElse(null);
 
         // evaluate answer
         val question = questionService.getSolvedQuestion(questionId);
         val domain = question.getDomain();
         val tags = question.getTags();
         ch.hit("solved question obtained");
-        val responses = questionService.responseQuestion(question, answers);
-        val newResponses = responses.stream().filter(x -> x.getCreatedByInteraction() == null).collect(Collectors.toList());
+        val responses = questionService.resolveAnswers(questionId, answers);
         ch.hit("responses collected");
         val judgeResult = questionService.judgeQuestion(question, responses, tags);
         ch.hit("judgeQuestion done");
 
         // add interaction
-        // Взаимодействия — это запись в БД, поэтому ведутся на сущности: вопрос как
-        // объект домена (Question) их больше не хранит. В той же транзакции повторная
-        // загрузка обслуживается кэшем первого уровня, без запроса.
-        val questionEntity = questionService.getQuestionEntity(questionId);
-        val existingInteractions = questionEntity.getInteractions();
-        val ie = new InteractionEntity(SEND_RESPONSE, questionEntity, toViolationEntities(judgeResult.violations), judgeResult.correctlyAppliedLaws, responses, newResponses);
-        existingInteractions.add(ie);
-        val correctInteractionsCount = (int)existingInteractions.stream().filter(i -> i.getViolations().isEmpty()).count();
-        // ch.hit("add interaction ("+correctInteractionsCount+")");
+        val recorded = questionService.recordInteraction(new NewInteractionData(
+                questionId,
+                SEND_RESPONSE,
+                List.of(),
+                answers,
+                orEmpty(judgeResult.violations),
+                orEmpty(judgeResult.correctlyAppliedLaws),
+                judgeResult.IterationsLeft));
 
-        // add feedback & decide next exercise state
-        var feedback = ie.getFeedback();
-        feedback.setInteractionsLeft(judgeResult.IterationsLeft);
-        var grade = 1f;
-        var strategyAttemptDecision = Decision.CONTINUE;
-        if (attempt != null) {
-            var strategy = strategyFactory.getStrategy(attempt.getExercise().getStrategyId());
-            grade = strategy.grade(attempt.getId(), judgeResult);
-            ch.hit("graded with strategy ("+grade+")");
-
-            strategyAttemptDecision = strategy.decide(attempt.getId());
-        }
-        feedback.setGrade(grade);
-        feedbackRepository.save(feedback);
-        ch.hit("add feedback ("+judgeResult.IterationsLeft+" interactions left)");
-
-        if (attempt != null) {
-            exerciseAttemptService.ensureAttemptStatus(attempt.getId(), strategyAttemptDecision);
-            ch.hit("decide next exercise state ("+strategyAttemptDecision.name()+")");
+        // Оценка считается после записи: стратегия смотрит на историю попытки, и это
+        // взаимодействие обязано быть её частью — иначе решение принимается по
+        // предыдущему ответу.
+        val outcome = gradeAndDecide(context, judgeResult);
+        questionService.gradeInteraction(recorded.interactionId(), outcome.getLeft());
+        ch.hit("graded with strategy (" + outcome.getLeft() + ")");
+        if (context != null) {
+            exerciseAttemptService.ensureAttemptStatus(context.attemptId(), outcome.getRight());
+            ch.hit("decide next exercise state (" + outcome.getRight().name() + ")");
         }
 
-        val locale = getQuestionLanguage(attempt);
+        val locale = questionLanguage(context);
         // calculate error message
         val violations = judgeResult.violations.stream()
                 .map(v -> FeedbackViolationLawDto.builder().name(v.getLawName()).canCreateSupplementaryQuestion(domain.needSupplementaryQuestion(v.getLawName(), v.getInteractionType())).build())
@@ -151,17 +118,13 @@ public class FrontendService {
                 : judgeResult.IterationsLeft == 0 && judgeResult.isAnswerCorrect ? new FeedbackDto.Message[] { FeedbackDto.Message.Success(localizationService.getMessage("exercise_correct-last-question-answer", locale), violations) }
                 : judgeResult.IterationsLeft > 0 && judgeResult.isAnswerCorrect ? new FeedbackDto.Message[] { FeedbackDto.Message.Success(localizationService.getMessage("exercise_correct-question-answer", locale), violations) }
                 : null;
-        // ch.hit("calculate error message ("+ (messages != null ? messages.length : 0) +")");
 
         // return result of the last correct interaction
-        val correctInteraction = existingInteractions.stream()
-                .filter(i -> i.getFeedback().getInteractionsLeft() >= 0 && i.getViolations().isEmpty()) // select only interactions without mistakes
-                .reduce((first, second) -> second);
-        val correctAnswers = correctInteraction
-                .map(InteractionEntity::getResponses).stream()
-                .flatMap(Collection::stream)
-                .map(Mapper::toDto)
-                .toArray(AnswerDto[]::new);
+        val correctAnswers = recorded.latestCorrectInteraction() == null
+                ? new AnswerDto[0]
+                : recorded.latestCorrectInteraction().responses().stream()
+                        .map(Mapper::toDto)
+                        .toArray(AnswerDto[]::new);
 
         // special case for order question
         // force complete answer if the last but one answer is correct
@@ -169,14 +132,13 @@ public class FrontendService {
         val orderQuestionOptions = Utils.tryCast(question.getQuestionData().getOptions(), OrderQuestionOptionsData.class).orElse(null);
         if (isAnswerCorrect && question.getQuestionData().getQuestionType().equals(QuestionType.ORDER) &&
                 orderQuestionOptions != null && !orderQuestionOptions.isMultipleSelectionEnabled() &&
-                ie.getFeedback().getInteractionsLeft() == 1 && question.getQuestionData().getAnswerObjects().size() - correctAnswers.length == 1) {
+                judgeResult.IterationsLeft == 1 && question.getQuestionData().getAnswerObjects().size() - correctAnswers.length == 1) {
             val correctAnswersIds = Arrays.stream(correctAnswers).map(a -> a.getAnswer()[0]).collect(Collectors.toSet());
             val missingAnswer = question.getQuestionData().getAnswerObjects().stream()
                     .filter(ao -> !correctAnswersIds.contains(ao.getAnswerId().longValue()))
                     .map(ao -> new AnswerDto(ao.getAnswerId().longValue(), ao.getAnswerId().longValue(), true, null))
                     .findFirst().get();
             val newAnswer = ArrayUtils.add(correctAnswers, missingAnswer);
-//            ch.hit("results made");
             val res = addQuestionAnswer(new InteractionDto(questionId, newAnswer));
             ch.since_start("addOrdinaryQuestionAnswer() + fill last answer: completed in");
             return res;
@@ -187,21 +149,19 @@ public class FrontendService {
 
         return Mapper.toFeedbackDto(question,
                 messages,
-                correctInteractionsCount,
-                (int)existingInteractions.stream().filter(i -> !i.getViolations().isEmpty()).count(),
-                ie.getFeedback().getGrade(),
-                ie.getFeedback().getInteractionsLeft(),
+                recorded.correctInteractionsCount(),
+                recorded.erroneousInteractionsCount(),
+                outcome.getLeft(),
+                judgeResult.IterationsLeft,
                 correctAnswers,
                 isAnswerCorrect,
-                strategyAttemptDecision);
+                outcome.getRight());
     }
 
     @SneakyThrows
     @Transactional(propagation = Propagation.REQUIRED)
     public @NotNull QuestionDto generateQuestion(@NotNull Long exAttemptId) {
-        val attempt = exerciseAttemptRepository.findById(exAttemptId)
-                .orElseThrow(() -> new Exception("Can't find attempt with id " + exAttemptId));
-        val question = questionService.generateQuestion(attempt);
+        val question = questionService.generateQuestion(exAttemptId);
         return Mapper.toDto(question);
     }
 
@@ -223,21 +183,6 @@ public class FrontendService {
         return questionService.generateSupplementaryQuestion(questionId, violation, language);
     }
 
-    /**
-     * Нарушения из данных в сущности перед записью: домены создают их данными,
-     * а связь со взаимодействием проставляет сам {@code InteractionEntity}.
-     */
-    private List<ViolationEntity> toViolationEntities(List<ViolationData> violations) {
-        return violations == null ? List.of()
-                : violations.stream().map(questionDataMapper::toEntity).collect(Collectors.toList());
-    }
-
-    private Language getQuestionLanguage(ExerciseAttemptEntity attempt) {
-        return attempt != null
-            ? attempt.getUser().getPreferred_language()
-            : Language.RUSSIAN/*ENGLISH*/;
-    }
-
     @Transactional(propagation = Propagation.REQUIRED)
     public @NotNull QuestionDto getQuestion(@NotNull Long questionId) throws Exception {
         val question = questionService.getQuestion(questionId);
@@ -248,64 +193,43 @@ public class FrontendService {
     public @NotNull FeedbackDto generateNextCorrectAnswer(@NotNull Long questionId) {
         // get next correct answer
         val question = questionService.getSolvedQuestion(questionId);
-        val questionEntity = questionService.getQuestionEntity(questionId);
+        val context = exerciseAttemptService.findQuestionContext(questionId).orElse(null);
         val correctAnswer = questionService.getNextCorrectAnswer(question);
-        // Домен отдаёт варианты ответа данными, а ответ студента пишется в БД — поэтому
-        // здесь варианты сопоставляются с сущностями по answerId.
-        val answerObjectsById = questionEntity.getAnswerObjects().stream()
-                .collect(Collectors.toMap(AnswerObjectEntity::getAnswerId, a -> a, (a, b) -> a));
-        val correctAnswerResponses = correctAnswer.answers.stream()
-                .map(x -> ResponseEntity.builder()
-                        .leftAnswerObject(answerObjectsById.get(x.getLeft().getAnswerId()))
-                        .rightAnswerObject(answerObjectsById.get(x.getRight().getAnswerId()))
-                        .build())
-                .collect(Collectors.toList());
 
-        // get last correct interaction responses
-        val lastCorrectInteraction = questionEntity.getInteractions().stream()
-                .filter(i -> i.getFeedback().getInteractionsLeft() >= 0 && i.getViolations().isEmpty())
-                .reduce((first, second) -> second);
-        val lastCorrectInteractionResponses = lastCorrectInteraction
-                .map(InteractionEntity::getResponses)
-                .orElseGet(ArrayList::new);
-
-        // concat last correct interaction responses with new correct answers
-        val responses = ListUtils.union(lastCorrectInteractionResponses, correctAnswerResponses);
-        //responseRepository.saveAll(responses);
+        // Подсказка достраивает уже данные студентом ответы, а не начинает решение
+        // заново: ответы последнего верного взаимодействия переезжают в это.
+        val carried = questionService.findLatestCorrectInteraction(questionId).orElse(null);
+        val carriedResponses = carried == null ? List.<ResponseData>of() : carried.responses();
+        val newAnswers = correctAnswer.answers.stream()
+                .map(x -> new SubmittedAnswerData(x.getLeft().getAnswerId(), x.getRight().getAnswerId(), null))
+                .toList();
 
         // evaluate new answer
-        val attempt = questionEntity.getExerciseAttempt();
-        val tags = question.getTags();
-        val newResponses = responses.stream().filter(x -> x.getCreatedByInteraction() == null).collect(Collectors.toList());
-        val judgeResult = questionService.judgeQuestion(question, responses, tags);
+        val responses = Stream.concat(
+                carriedResponses.stream(),
+                questionService.resolveAnswers(questionId, newAnswers).stream()).toList();
+        val judgeResult = questionService.judgeQuestion(question, responses, question.getTags());
 
         // add interaction
-        var existingInteractions = questionEntity.getInteractions();
-        val ie = new InteractionEntity(REQUEST_CORRECT_ANSWER, questionEntity, toViolationEntities(judgeResult.violations), judgeResult.correctlyAppliedLaws, responses, newResponses);
-        existingInteractions.add(ie);
-        val correctInteractionsCount = (int)existingInteractions.stream().filter(i -> i.getViolations().isEmpty()).count();
+        val recorded = questionService.recordInteraction(new NewInteractionData(
+                questionId,
+                REQUEST_CORRECT_ANSWER,
+                carriedResponses.stream().map(ResponseData::getId).toList(),
+                newAnswers,
+                orEmpty(judgeResult.violations),
+                orEmpty(judgeResult.correctlyAppliedLaws),
+                judgeResult.IterationsLeft));
 
-        // add feedback & decide next exercise state
-        var feedback = ie.getFeedback();
-        feedback.setInteractionsLeft(judgeResult.IterationsLeft);
-        var grade = 1f;
-        var strategyAttemptDecision = Decision.CONTINUE;
-        if (attempt != null) {
-            var strategy = strategyFactory.getStrategy(attempt.getExercise().getStrategyId());
-            grade = strategy.grade(attempt.getId(), judgeResult);
-
-            strategyAttemptDecision = strategy.decide(attempt.getId());
-        }
-        feedback.setGrade(grade);
-        feedbackRepository.save(feedback);
-
-        if (attempt != null) {
-            exerciseAttemptService.ensureAttemptStatus(attempt.getId(), strategyAttemptDecision);
+        val outcome = gradeAndDecide(context, judgeResult);
+        questionService.gradeInteraction(recorded.interactionId(), outcome.getLeft());
+        if (context != null) {
+            exerciseAttemptService.ensureAttemptStatus(context.attemptId(), outcome.getRight());
         }
 
         // build feedback message
+        val locale = questionLanguage(context);
         val messages = correctAnswer.explanation.getChildren().stream()
-                .map(e -> FeedbackDto.Message.Success(e.toHyperText(getQuestionLanguage(attempt)).getText(),
+                .map(e -> FeedbackDto.Message.Success(e.toHyperText(locale).getText(),
                         e.getDomainLawNames().stream().map(law ->
                                 FeedbackViolationLawDto.builder()
                                         .name(law)
@@ -314,40 +238,55 @@ public class FrontendService {
 
         return Mapper.toFeedbackDto(question,
                 messages,
-                correctInteractionsCount,
-                (int)existingInteractions.stream().filter(i -> !i.getViolations().isEmpty()).count(),
-                ie.getFeedback().getGrade(),
-                ie.getFeedback().getInteractionsLeft(),
-                ie.getResponses().stream().map(Mapper::toDto).toArray(AnswerDto[]::new),
+                recorded.correctInteractionsCount(),
+                recorded.erroneousInteractionsCount(),
+                outcome.getLeft(),
+                judgeResult.IterationsLeft,
+                recorded.responses().stream().map(Mapper::toDto).toArray(AnswerDto[]::new),
                 /*true*/ judgeResult.violations.isEmpty() && judgeResult.isAnswerCorrect,
-                strategyAttemptDecision);
+                outcome.getRight());
     }
 
-    private ExerciseStatisticsItemDto toStatisticsItemDto(ExerciseAttemptEntity att) {
-        val questionsCount = att.getQuestions().size();
-        val totalInteractionsCount = att.getQuestions().stream()
-                .filter(q -> q.getInteractions() != null)
-                .flatMap(q -> q.getInteractions().stream()).count();
-        val totalInteractionsWithErrorsCount = att.getQuestions().stream()
-                .filter(q -> q.getInteractions() != null)
-                .flatMap(q -> q.getInteractions().stream())
-                .filter(i -> i.getViolations().size() > 0).count();
-        double avgGrade = att.getQuestions().stream()
-                .filter(q -> q.getInteractions() != null && q.getInteractions().size() > 0)
-                .mapToDouble(q -> {
-                    val last = q.getInteractions().stream().reduce((f, s) -> s);
-                    return last.map(l -> l.getFeedback()).map(f -> f.getGrade()).orElse(0f);
-                })
-                .average()
-                .orElse(0d);
+    /**
+     * Оценка за взаимодействие и решение стратегии о судьбе попытки.
+     * <p>
+     * У вопроса вне попытки стратегии нет: он оценивается единицей и продолжается,
+     * как было и раньше.
+     */
+    private @NotNull Pair<Float, Decision> gradeAndDecide(@Nullable QuestionAttemptContextData context,
+                                                          @NotNull Domain.InterpretSentenceResult judgeResult) {
+        if (context == null) {
+            return Pair.of(1f, Decision.CONTINUE);
+        }
+        var strategy = strategyFactory.getStrategy(context.strategyId());
+        float grade = strategy.grade(context.attemptId(), judgeResult);
+        return Pair.of(grade, strategy.decide(context.attemptId()));
+    }
 
-        return ExerciseStatisticsItemDto.builder()
-                .attemptId(att.getId())
-                .averageGrade(avgGrade)
-                .questionsCount(questionsCount)
-                .totalInteractionsCount((int)totalInteractionsCount)
-                .totalInteractionsWithErrorsCount((int)totalInteractionsWithErrorsCount)
-                .build();
+    /**
+     * Списки разбора, которые домен вправе оставить пустыми.
+     * <p>
+     * {@code InterpretSentenceResult} — обычный класс с полями без инициализации, и
+     * часть доменов их не заполняет. {@code *Data} такого не допускает, поэтому пустота
+     * приводится к пустому списку прямо на границе.
+     */
+    private static <T> @NotNull List<T> orEmpty(@Nullable List<T> values) {
+        return values == null ? List.of() : values;
+    }
+
+    /** Язык вопроса; вне попытки — русский, как было и раньше. */
+    private static @NotNull Language questionLanguage(@Nullable QuestionAttemptContextData context) {
+        return context == null ? Language.RUSSIAN/*ENGLISH*/ : context.userLanguage();
+    }
+
+    /** Ответы с фронта в вид слоя доступа к данным: номера вариантов и их происхождение. */
+    private static @NotNull List<SubmittedAnswerData> toSubmittedAnswers(@Nullable AnswerDto[] answers) {
+        return answers == null ? List.of() : Arrays.stream(answers)
+                .map(answer -> new SubmittedAnswerData(
+                        answer.getAnswer()[0].intValue(),
+                        answer.getAnswer()[1].intValue(),
+                        answer.getCreatedByInteraction()))
+                .toList();
     }
 
     public @Nullable ExerciseAttemptDto getExerciseAttempt(@NotNull Long attemptId) throws Exception {
@@ -379,9 +318,9 @@ public class FrontendService {
 
     private @NotNull ExerciseAttemptDto createSolvedExerciseAttempt(AttemptSummaryData ea) throws Exception {
         var exercise = exerciseService.getExercise(ea.exerciseId());
-        var strategy = strategyFactory.getStrategy(exercise.getStrategyId());
+        var strategy = strategyFactory.getStrategy(exercise.strategyId());
         var targetQuestionCount = strategy.getOptions().isMultiStagesEnabled()
-                ? exercise.getStages().stream()
+                ? exercise.stages().stream()
                     .map(ExerciseStageData::getNumberOfQuestions)
                     .reduce(Integer::sum)
                     .orElse(1)

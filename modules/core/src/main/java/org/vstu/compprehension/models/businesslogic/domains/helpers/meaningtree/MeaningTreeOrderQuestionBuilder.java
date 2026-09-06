@@ -10,8 +10,6 @@ import org.apache.commons.lang3.tuple.Pair;
 import org.apache.jena.rdf.model.Model;
 import org.jetbrains.annotations.NotNull;
 import org.jetbrains.annotations.Nullable;
-import org.vstu.compprehension.models.entities.QuestionMetadataEntity;
-import org.vstu.compprehension.Service.mapping.QuestionDataMapper;
 import org.vstu.compprehension.models.data.QuestionMetadataData;
 import org.vstu.compprehension.common.MathHelper;
 import org.vstu.compprehension.common.StringHelper;
@@ -232,11 +230,11 @@ public class MeaningTreeOrderQuestionBuilder {
     /**
      * Recalculate only metadata of question. Useful for testing purposes
      * @param domain target DT domain
-     * @param qMeta metadata entity from DB
-     * @return new metadata entity
+     * @param qMeta metadata from the question bank
+     * @return recalculated metadata
      */
-    public static QuestionMetadataEntity metadataRecalculate(ProgrammingLanguageExpressionDTDomain domain,
-                                                                                    QuestionMetadataData qMeta) {
+    public static QuestionMetadataData metadataRecalculate(ProgrammingLanguageExpressionDTDomain domain,
+                                                           QuestionMetadataData qMeta) {
         Question q = qMeta.getData().toQuestion(domain, qMeta);
         MeaningTreeOrderQuestionBuilder builder = MeaningTreeOrderQuestionBuilder.newQuestion(domain).existingQuestion(q);
         SupportedLanguage language = MeaningTreeUtils.detectLanguageFromTags(qMeta.getTagBits(), domain);
@@ -253,7 +251,7 @@ public class MeaningTreeOrderQuestionBuilder {
         if (!builder.allChecksArePassed) {
             return null;
         }
-        return builder.metadata.toMetadataEntity();
+        return builder.metadata.toMetadataData();
     }
 
     /**
@@ -399,7 +397,7 @@ public class MeaningTreeOrderQuestionBuilder {
     public List<Question> buildQuestions(SupportedLanguage lang) {
         return build(lang).stream().map(
                 (Pair<SerializableQuestion, SerializableQuestionTemplate.QuestionMetadata> q) ->
-                        q.getKey().toQuestion(domain, QuestionDataMapper.toData(q.getValue().toMetadataEntity()))).toList();
+                        q.getKey().toQuestion(domain, q.getValue().toMetadataData())).toList();
     }
 
     private String debugTokensString(MeaningTree mt, SupportedLanguage lang) {

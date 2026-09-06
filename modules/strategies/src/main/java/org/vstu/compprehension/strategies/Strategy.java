@@ -20,7 +20,6 @@ import org.vstu.compprehension.models.businesslogic.domains.ProgrammingLanguageE
 import org.vstu.compprehension.models.businesslogic.strategies.AbstractStrategy;
 import org.vstu.compprehension.models.businesslogic.strategies.StrategyOptions;
 import org.vstu.compprehension.models.businesslogic.strategies.StrategyBase;
-import org.vstu.compprehension.models.entities.*;
 import org.vstu.compprehension.models.entities.EnumData.Decision;
 import org.vstu.compprehension.models.entities.EnumData.DisplayingFeedbackType;
 import org.vstu.compprehension.models.entities.EnumData.FeedbackType;

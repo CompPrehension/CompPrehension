@@ -1,4 +1,4 @@
-package org.vstu.compprehension.adapters;
+package org.vstu.compprehension.models.repository;
 
 import com.google.common.collect.Lists;
 import org.jetbrains.annotations.NotNull;
@@ -10,7 +10,6 @@ import org.springframework.data.domain.Sort;
 import org.springframework.data.repository.query.FluentQuery;
 import org.vstu.compprehension.models.businesslogic.QuestionBankSearchRequest;
 import org.vstu.compprehension.models.entities.QuestionMetadataEntity;
-import org.vstu.compprehension.models.repository.QuestionMetadataRepository;
 
 import java.time.LocalDate;
 import java.time.LocalDateTime;
@@ -70,6 +69,21 @@ public class FakeQuestionMetadataRepository implements QuestionMetadataRepositor
     @NotNull
     @Override
     public List<QuestionMetadataEntity> findByName(String questionName) {
+        return List.of();
+    }
+
+    @Override
+    public Optional<QuestionMetadataEntity> findByIdFetchingData(int metadataId) {
+        return Optional.empty();
+    }
+
+    @Override
+    public List<QuestionMetadataEntity> fetchQuestionData(Collection<Integer> metadataIds) {
+        return List.of();
+    }
+
+    @Override
+    public List<QuestionMaskView> findRecentAttemptQuestionMasks(long attemptId, int limit) {
         return List.of();
     }
 

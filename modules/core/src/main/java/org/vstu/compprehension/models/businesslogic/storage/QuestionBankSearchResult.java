@@ -1,19 +1,20 @@
 package org.vstu.compprehension.models.businesslogic.storage;
 
-import org.vstu.compprehension.models.entities.QuestionMetadataEntity;
 import lombok.Getter;
 import org.jetbrains.annotations.NotNull;
-import org.vstu.compprehension.models.entities.QuestionMetadataSearchRequestEntity;
+import org.vstu.compprehension.models.data.QuestionMetadataData;
+import org.vstu.compprehension.models.data.SearchQuality;
 
 import java.util.List;
 
-public class QuestionBankSearchResult { 
+/** Что банк нашёл по запросу и насколько хорошо. */
+public class QuestionBankSearchResult {
     @Getter @NotNull
-    private final QuestionMetadataSearchRequestEntity.Quality quality;
+    private final SearchQuality quality;
     @Getter @NotNull
-    private final List<QuestionMetadataEntity> questions;
+    private final List<QuestionMetadataData> questions;
 
-    public QuestionBankSearchResult(@NotNull QuestionMetadataSearchRequestEntity.Quality quality, @NotNull List<QuestionMetadataEntity> questions) {
+    public QuestionBankSearchResult(@NotNull SearchQuality quality, @NotNull List<QuestionMetadataData> questions) {
         this.quality = quality;
         this.questions = questions;
     }

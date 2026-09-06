@@ -41,7 +41,6 @@ import org.vstu.compprehension.models.businesslogic.domains.helpers.ProgrammingL
 import org.vstu.compprehension.models.businesslogic.domains.helpers.meaningtree.*;
 import org.vstu.compprehension.models.businesslogic.storage.QuestionBank;
 import org.vstu.compprehension.models.businesslogic.storage.SerializableQuestionTemplate;
-import org.vstu.compprehension.models.entities.*;
 import org.vstu.compprehension.models.entities.EnumData.FeedbackType;
 import org.vstu.compprehension.models.entities.EnumData.InteractionType;
 import org.vstu.compprehension.models.entities.EnumData.Language;

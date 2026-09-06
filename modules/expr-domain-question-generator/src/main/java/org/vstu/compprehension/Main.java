@@ -5,11 +5,12 @@ import com.beust.jcommander.Parameter;
 import com.beust.jcommander.ParameterException;
 import lombok.extern.log4j.Log4j2;
 import org.vstu.compprehension.models.data.DomainData;
+import org.vstu.compprehension.models.data.DomainOptionsData;
 import org.vstu.compprehension.adapters.*;
+import org.vstu.compprehension.models.repository.FakeDataAccess;
 import org.vstu.compprehension.models.businesslogic.domains.ProgrammingLanguageExpressionDTDomain;
 import org.vstu.compprehension.models.businesslogic.domains.ProgrammingLanguageExpressionDomain;
 import org.vstu.compprehension.models.businesslogic.storage.QuestionBank;
-import org.vstu.compprehension.utils.transactions.TransactionScopeFactoryStub;
 
 import java.io.IOException;
 import java.nio.file.Files;
@@ -52,9 +53,10 @@ public class Main {
 
         //ProgrammingLanguageExpressionDomain domain = (ProgrammingLanguageExpressionDomain) df.getDomain("ProgrammingLanguageExpressionDomain");
 
-        var domainEntity = new FakeDomainRepository().findById("").orElseThrow();
-        var domainData = new DomainData(domainEntity.getName(), domainEntity.getShortName(),
-                domainEntity.getVersion(), domainEntity.getOptions());
+        // Генератор работает без базы: описание области задано здесь же, а не читается
+        // из справочника доменов. Раньше ради этих четырёх значений существовала
+        // подделка репозитория сущностей.
+        var domainData = new DomainData("expression", "expression", "1.0.0", new DomainOptionsData());
         var domain = new ProgrammingLanguageExpressionDTDomain(
                 domainData,
                 new ProgrammingLanguageExpressionDomain(
@@ -65,13 +67,9 @@ public class Main {
                         // пользователя, ни цепочки вспомогательных вопросов ему не нужны
                         null,
                         null,
-                        new QuestionBank(
-                                new FakeQuestionMetadataRepository(),
-                                new FakeSerializedQuestionRepository(),
-                                null,
-                                null,
-                                new TransactionScopeFactoryStub()
-                        )
+                        // Банк генератору не нужен: он не ищет готовые вопросы,
+                        // а порождает новые. Подставлен пустой, чтобы домен собрался.
+                        new QuestionBank(FakeDataAccess.questionBank())
                 ),
                 null,
                 null

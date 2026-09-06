@@ -1,59 +1,51 @@
 package org.vstu.compprehension.Service;
 
 import lombok.RequiredArgsConstructor;
+import org.jetbrains.annotations.NotNull;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
+import org.vstu.compprehension.models.data.EducationResourceData;
 import org.vstu.compprehension.models.entities.EnumData.EducationResourceTrustStatus;
 import org.vstu.compprehension.models.entities.EnumData.EducationResourceType;
-import org.vstu.compprehension.models.entities.external_system.EducationResourceEntity;
-import org.vstu.compprehension.models.repository.EducationResourceRepository;
+import org.vstu.compprehension.models.repository.data.ExternalSystemDataRepository;
 
 import java.util.Optional;
 
+/**
+ * Внешние образовательные системы, из которых к нам приходят по LTI.
+ * <p>
+ * Наружу отдаются идентификаторы: всё, что вызывающие делают с ресурсом, — привязывают
+ * к нему учётную запись, курс и роли. Сам ресурс остаётся внутри сервиса, потому что
+ * читается у него ровно одно поле сверх идентификатора — статус доверия.
+ */
 @Service
 @RequiredArgsConstructor
 public class EducationResourceService {
 
-    private final EducationResourceRepository repository;
-
-    @Transactional(readOnly = true)
-    public Optional<EducationResourceEntity> findByUrlAndType(String url, EducationResourceType type) {
-        return repository.findByUrlAndType(url, type);
-    }
-
-    @Transactional
-    public EducationResourceEntity createOrGetExisting(String url, EducationResourceType type) {
-        repository.createIfAbsent(url, type.name());
-        return repository.findByUrlAndType(url, type)
-                .orElseThrow(() -> new IllegalStateException("createIfAbsent: entity not found after insert"));
-    }
-
-    /** Идентификатор доверенного образовательного ресурса; создаёт его при необходимости. */
-    @Transactional
-    public long getOrCreateTrustedId(String url, EducationResourceType type) {
-        return getOrCreateTrusted(url, type).getId();
-    }
+    private final ExternalSystemDataRepository externalSystems;
 
     /** Идентификатор ресурса по адресу и типу, если он уже заведён. */
     @Transactional(readOnly = true)
-    public Optional<Long> findIdByUrlAndType(String url, EducationResourceType type) {
-        return findByUrlAndType(url, type).map(EducationResourceEntity::getId);
+    public @NotNull Optional<Long> findIdByUrlAndType(@NotNull String url, @NotNull EducationResourceType type) {
+        return externalSystems.findEducationResource(url, type).map(EducationResourceData::id);
     }
 
     /**
-     * Возвращает образовательный ресурс по (url, type), создавая его при отсутствии, и проверяет,
-     * что он доверенный. Бросает {@link SecurityException}, если ресурс ещё не переведён в
-     * {@link EducationResourceTrustStatus#TRUSTED} — до этого момента LTI-привязка и работа с курсами
+     * Идентификатор доверенного образовательного ресурса; заводит ресурс при отсутствии.
+     * <p>
+     * Новый ресурс появляется недоверенным, и до перевода его в
+     * {@link EducationResourceTrustStatus#TRUSTED} вручную LTI-привязка и работа с курсами
      * запрещены (approval-gate).
+     *
+     * @throws SecurityException если ресурс ещё не переведён в доверенные
      */
     @Transactional
-    public EducationResourceEntity getOrCreateTrusted(String url, EducationResourceType type) {
-        EducationResourceEntity eduRes = findByUrlAndType(url, type)
-                .orElseGet(() -> createOrGetExisting(url, type));
-        if (eduRes.getTrustStatus() != EducationResourceTrustStatus.TRUSTED) {
-            throw new SecurityException(String.format("EducationResource %s is not trusted", eduRes.getUrl()));
+    public long getOrCreateTrustedId(@NotNull String url, @NotNull EducationResourceType type) {
+        var resource = externalSystems.findEducationResource(url, type)
+                .orElseGet(() -> externalSystems.createEducationResourceIfAbsent(url, type));
+        if (resource.trustStatus() != EducationResourceTrustStatus.TRUSTED) {
+            throw new SecurityException(String.format("EducationResource %s is not trusted", resource.url()));
         }
-        return eduRes;
+        return resource.id();
     }
 }
-

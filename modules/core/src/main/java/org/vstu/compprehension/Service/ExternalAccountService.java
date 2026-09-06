@@ -4,7 +4,7 @@ import lombok.RequiredArgsConstructor;
 import org.jetbrains.annotations.NotNull;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
-import org.vstu.compprehension.models.repository.ExternalAccountRepository;
+import org.vstu.compprehension.models.repository.data.ExternalSystemDataRepository;
 
 import java.util.Optional;
 
@@ -19,17 +19,17 @@ import java.util.Optional;
 @RequiredArgsConstructor
 public class ExternalAccountService {
 
-    private final ExternalAccountRepository repository;
+    private final ExternalSystemDataRepository externalSystems;
 
     /** Идентификатор пользователя во внешней системе; пусто, если связи нет. */
     @Transactional(readOnly = true)
     public @NotNull Optional<String> findExternalId(long userId, long educationResourceId) {
-        return repository.findExternalId(userId, educationResourceId);
+        return externalSystems.findExternalAccountId(userId, educationResourceId);
     }
 
     /** Завести связь, если её ещё нет. */
     @Transactional
     public void createIfAbsent(long userId, long educationResourceId, @NotNull String externalId) {
-        repository.createIfAbsent(userId, educationResourceId, externalId);
+        externalSystems.createExternalAccountIfAbsent(userId, educationResourceId, externalId);
     }
 }
