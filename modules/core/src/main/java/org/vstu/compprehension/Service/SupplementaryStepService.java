@@ -5,39 +5,38 @@ import org.jetbrains.annotations.NotNull;
 import org.jetbrains.annotations.Nullable;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
-import org.vstu.compprehension.models.entities.InteractionEntity;
-import org.vstu.compprehension.models.entities.SupplementaryStepEntity;
-import org.vstu.compprehension.models.repository.InteractionRepository;
-import org.vstu.compprehension.models.repository.SupplementaryStepRepository;
-
-import java.util.List;
+import org.vstu.compprehension.models.data.QuestionInteractionData;
+import org.vstu.compprehension.models.data.SupplementaryStepData;
+import org.vstu.compprehension.models.repository.data.QuestionDataRepository;
+import org.vstu.compprehension.models.repository.data.SupplementaryStepDataRepository;
 
 /**
- * Цепочки вспомогательных вопросов.
+ * Цепочки вспомогательных вопросов — то, что о них нужно знать доменам.
  * <p>
- * Заведён потому, что доменам нужны сущности взаимодействия и шага цепочки — это записи
- * в БД, а вопрос в бизнес-логике их больше не держит. Домены обращаются сюда по
- * идентификатору вместо обхода ленивых связей.
+ * Домены обращаются сюда по идентификатору: ни сущностей, ни ленивых связей у них нет.
+ * Сервис не собирает данные сам, а берёт их у {@code models.repository.data}, где форма
+ * выборки и маппинг заданы вместе.
  */
 @Service
 @RequiredArgsConstructor
 public class SupplementaryStepService {
 
-    private final SupplementaryStepRepository supplementaryStepRepository;
-    private final InteractionRepository interactionRepository;
+    private final SupplementaryStepDataRepository supplementaryStepDataRepository;
+    private final QuestionDataRepository questionDataRepository;
 
-    /** Последний шаг цепочки для взаимодействия; пусто, если цепочка ещё не начата. */
+    /** Последний шаг цепочки для взаимодействия; null, если цепочка ещё не начата. */
     @Transactional(readOnly = true)
-    public @Nullable SupplementaryStepEntity findLatestStepOfInteraction(long interactionId) {
-        List<SupplementaryStepEntity> steps =
-                supplementaryStepRepository.findAllByMainQuestionInteractionIdOrderByIdAsc(interactionId);
-        return steps.isEmpty() ? null : steps.get(steps.size() - 1);
+    public @Nullable SupplementaryStepData findLatestStepOfInteraction(long interactionId) {
+        return supplementaryStepDataRepository.findLatestStepOfInteraction(interactionId);
     }
 
-    /** Взаимодействие по идентификатору — нужно, чтобы связать с ним новый шаг цепочки. */
+    /**
+     * Взаимодействие с главным вопросом, с которого началась цепочка.
+     * <p>
+     * Возвращается вместе с вопросом: домен строит по нему модель ситуации.
+     */
     @Transactional(readOnly = true)
-    public @NotNull InteractionEntity getInteraction(long interactionId) {
-        return interactionRepository.findById(interactionId)
-                .orElseThrow(() -> new java.util.NoSuchElementException("Interaction " + interactionId + " not found"));
+    public @NotNull QuestionInteractionData getMainQuestionInteraction(long interactionId) {
+        return questionDataRepository.findInteractionById(interactionId);
     }
 }

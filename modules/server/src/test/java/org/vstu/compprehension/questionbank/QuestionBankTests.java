@@ -21,7 +21,7 @@ public class QuestionBankTests extends AbstractIntegrationTest {
     @Autowired
     private QuestionMetadataRepository questionMetadataRepository;
     @Autowired
-    private QuestionDataRepository questionDataRepository;
+    private SerializedQuestionRepository serializedQuestionRepository;
     @Autowired
     private QuestionGenerationRequestRepository questionGenerationRequestRepository;
     @Autowired
@@ -33,7 +33,7 @@ public class QuestionBankTests extends AbstractIntegrationTest {
     public void isMatchAndFindTopRatedMetadataEqualityTest() {
         var questionBank = new QuestionBank(
                 questionMetadataRepository,
-                questionDataRepository,
+                serializedQuestionRepository,
                 questionGenerationRequestRepository,
                 questionSearchRequestLogRepository,
                 transactionScopeFactory

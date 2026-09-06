@@ -9,6 +9,7 @@ import org.vstu.compprehension.models.entities.InteractionEntity;
 
 import java.util.Collection;
 import java.util.List;
+import java.util.Optional;
 
 @Repository
 public interface InteractionRepository extends CrudRepository<InteractionEntity, Long> {
@@ -60,4 +61,41 @@ public interface InteractionRepository extends CrudRepository<InteractionEntity,
             order by cl.id
             """)
     List<InteractionLawRow> findCorrectLawsByInteractionIdIn(@Param("interactionIds") Collection<Long> interactionIds);
+
+    // Три запроса ниже поднимают взаимодействия вопроса по одной коллекции за раз.
+    // Одним запросом нельзя: несколько List-коллекций в одном join fetch — это
+    // MultipleBagFetchException. Все три попадают в один контекст персистентности,
+    // поэтому после них у взаимодействий инициализированы все три коллекции.
+
+    /** Взаимодействия вопроса с оценкой и нарушениями. */
+    @Query("""
+            select distinct i from InteractionEntity i
+            left join fetch i.feedback
+            left join fetch i.violations
+            where i.question.id = :questionId
+            """)
+    List<InteractionEntity> findAllByQuestionIdFetchingViolations(@Param("questionId") long questionId);
+
+    /** Взаимодействия вопроса с ответами студента и выбранными вариантами. */
+    @Query("""
+            select distinct i from InteractionEntity i
+            left join fetch i.responses r
+            left join fetch r.leftAnswerObject
+            left join fetch r.rightAnswerObject
+            left join fetch r.createdByInteraction
+            where i.question.id = :questionId
+            """)
+    List<InteractionEntity> findAllByQuestionIdFetchingResponses(@Param("questionId") long questionId);
+
+    /** Взаимодействия вопроса с верно применёнными законами. */
+    @Query("""
+            select distinct i from InteractionEntity i
+            left join fetch i.correctLaw
+            where i.question.id = :questionId
+            """)
+    List<InteractionEntity> findAllByQuestionIdFetchingCorrectLaws(@Param("questionId") long questionId);
+
+    /** Вопрос, которому принадлежит взаимодействие. */
+    @Query("select i.question.id from InteractionEntity i where i.id = :interactionId")
+    Optional<Long> findQuestionId(@Param("interactionId") long interactionId);
 }

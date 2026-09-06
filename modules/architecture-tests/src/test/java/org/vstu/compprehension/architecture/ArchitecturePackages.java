@@ -23,6 +23,14 @@ public final class ArchitecturePackages {
     /** Слой доступа к данным. */
     public static final String REPOSITORIES = "..models.repository..";
 
+    /**
+     * Единственное место, где JPA-сущности превращаются в модели данных.
+     * <p>
+     * Запрос и маппинг лежат здесь вместе, поэтому маппинг может быть тотальным:
+     * форма выборки известна ровно там, где по ней собираются данные.
+     */
+    public static final String DATA_ACCESS = "..models.repository.data..";
+
     /** JPA-сущности. */
     public static final String ENTITIES = "..models.entities..";
 

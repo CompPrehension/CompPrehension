@@ -99,12 +99,12 @@ public class CoreConfg {
     QuestionBank getQuestionBank(
             @Autowired DomainRepository domainRepository,
             @Autowired QuestionMetadataRepository metadataRepository,
-            @Autowired QuestionDataRepository questionDataRepository,
+            @Autowired SerializedQuestionRepository serializedQuestionRepository,
             @Autowired QuestionGenerationRequestRepository generationRequestRepository,
             @Autowired QuestionMetadataSearchRequestRepository questionSearchRequestLogRepository,
             @Autowired TransactionScopeFactory transactionScopeFactory) throws Exception {
         //var allDomains = domainRepository.findAll();
-        return new QuestionBank(metadataRepository, questionDataRepository, generationRequestRepository, questionSearchRequestLogRepository, transactionScopeFactory);
+        return new QuestionBank(metadataRepository, serializedQuestionRepository, generationRequestRepository, questionSearchRequestLogRepository, transactionScopeFactory);
     }
     
     @Bean

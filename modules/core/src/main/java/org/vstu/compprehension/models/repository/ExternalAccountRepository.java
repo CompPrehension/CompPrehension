@@ -9,6 +9,7 @@ import org.vstu.compprehension.models.entities.external_system.ExternalAccountEn
 import org.vstu.compprehension.models.entities.external_system.ExternalAccountId;
 
 import java.util.List;
+import java.util.Optional;
 
 @Repository
 public interface ExternalAccountRepository extends JpaRepository<ExternalAccountEntity, ExternalAccountId> {
@@ -28,6 +29,14 @@ public interface ExternalAccountRepository extends JpaRepository<ExternalAccount
             @Param("educationResourceId") Long educationResourceId,
             @Param("externalId") String externalId
     );
+
+    /** Идентификатор пользователя во внешней системе; пусто, если связи нет. */
+    @Query("""
+            select ea.externalId from ExternalAccountEntity ea
+            where ea.id.userId = :userId and ea.id.educationResourceId = :educationResourceId
+            """)
+    Optional<String> findExternalId(@Param("userId") long userId,
+                                    @Param("educationResourceId") long educationResourceId);
 
     @Query("""
             select ea from ExternalAccountEntity ea

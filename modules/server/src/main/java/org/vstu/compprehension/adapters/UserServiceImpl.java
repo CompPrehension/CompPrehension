@@ -126,12 +126,7 @@ public class UserServiceImpl implements UserService {
 
         // roleAssignmentService.assignGlobalRole(user.getId(), SystemRole.STUDENT);
 
-        boolean externalAccountNonExists = externalAccountService.findByUserAndEducationResource(
-                user.getId(), eduRes.getId()
-        ).isEmpty();
-        if (externalAccountNonExists) {
-            externalAccountService.createOrGetExisting(user.getId(), eduRes.getId(), parsedIdToken.getSubject());
-        }
+        externalAccountService.createIfAbsent(user.getId(), eduRes.getId(), parsedIdToken.getSubject());
 
         Role eduResRole = ltiRoles.contains("ROLE_Administrator") ? SystemRole.EDUCATION_RESOURCE_ADMIN : null;
         roleAssignmentService.reconcileRoleInEducationResource(user.getId(), eduRes.getId(), eduResRole);

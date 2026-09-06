@@ -29,7 +29,6 @@ import java.util.List;
 @Log4j2
 public class ExerciseController {
     private final FrontendService frontendService;
-    private final CourseService courseService;
     private final UserService userService;
     private final ExerciseService exerciseService;
     private final AuthService authService;
@@ -37,11 +36,10 @@ public class ExerciseController {
     private final ExerciseAttemptService exerciseAttemptService;
 
     @Autowired
-    public ExerciseController(FrontendService frontendService, CourseService courseService, UserService userService,
+    public ExerciseController(FrontendService frontendService, UserService userService,
                               ExerciseService exerciseService, AuthService authService, AuthScopeFactory authScopes,
                               ExerciseAttemptService exerciseAttemptService) {
         this.frontendService = frontendService;
-        this.courseService = courseService;
         this.userService = userService;
         this.exerciseService = exerciseService;
         this.authService = authService;

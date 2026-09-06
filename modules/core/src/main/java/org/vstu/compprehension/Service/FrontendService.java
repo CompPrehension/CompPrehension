@@ -1,10 +1,10 @@
 package org.vstu.compprehension.Service;
 
 import org.vstu.compprehension.Service.mapping.QuestionDataMapper;
+import org.vstu.compprehension.models.data.AttemptSummaryData;
 import org.vstu.compprehension.models.data.ViolationData;
 import org.vstu.compprehension.models.data.ExerciseStageData;
 import org.vstu.compprehension.models.data.questionoptions.OrderQuestionOptionsData;
-import jakarta.persistence.EntityManager;
 import lombok.SneakyThrows;
 import lombok.extern.log4j.Log4j2;
 import lombok.val;
@@ -26,7 +26,6 @@ import org.vstu.compprehension.models.businesslogic.Explanation;
 import org.vstu.compprehension.models.businesslogic.domains.DomainFactory;
 import org.vstu.compprehension.models.businesslogic.strategies.AbstractStrategyFactory;
 import org.vstu.compprehension.models.entities.*;
-import org.vstu.compprehension.models.entities.EnumData.AttemptStatus;
 import org.vstu.compprehension.models.entities.EnumData.Decision;
 import org.vstu.compprehension.models.entities.EnumData.Language;
 import org.vstu.compprehension.models.entities.EnumData.QuestionType;
@@ -54,16 +53,14 @@ public class FrontendService {
     private final QuestionDataMapper questionDataMapper;
     private final LocalizationService localizationService;
     private final DomainFactory domainFactory;
-    private final EntityManager entityManager;
     private final CourseService courseService;
 
 
-    public FrontendService(ExerciseAttemptRepository exerciseAttemptRepository, ExerciseAttemptService exerciseAttemptService, QuestionRepository questionRepository, ExerciseService exerciseService, EntityManager entityManager, QuestionService questionService, LocalizationService localizationService, AbstractStrategyFactory strategyFactory, DomainFactory domainFactory, FeedbackRepository feedbackRepository, InteractionRepository interactionRepository, CourseService courseService, QuestionDataMapper questionDataMapper) {
+    public FrontendService(ExerciseAttemptRepository exerciseAttemptRepository, ExerciseAttemptService exerciseAttemptService, QuestionRepository questionRepository, ExerciseService exerciseService, QuestionService questionService, LocalizationService localizationService, AbstractStrategyFactory strategyFactory, DomainFactory domainFactory, FeedbackRepository feedbackRepository, InteractionRepository interactionRepository, CourseService courseService, QuestionDataMapper questionDataMapper) {
         this.exerciseAttemptRepository = exerciseAttemptRepository;
         this.exerciseAttemptService = exerciseAttemptService;
         this.questionRepository = questionRepository;
         this.exerciseService = exerciseService;
-        this.entityManager = entityManager;
         this.questionService = questionService;
         this.localizationService = localizationService;
         this.strategyFactory = strategyFactory;
@@ -95,7 +92,7 @@ public class FrontendService {
         val questionId = interaction.getQuestionId();
         val answers = interaction.getAnswers();
 
-        ExerciseAttemptEntity attempt = exerciseAttemptRepository.findByQuestionId(questionId)
+        ExerciseAttemptEntity attempt = exerciseAttemptRepository.findByQuestionIdFetchingExerciseAndUser(questionId)
                 .orElse(null);
 
         // evaluate answer
@@ -137,7 +134,7 @@ public class FrontendService {
         ch.hit("add feedback ("+judgeResult.IterationsLeft+" interactions left)");
 
         if (attempt != null) {
-            exerciseAttemptService.ensureAttemptStatus(attempt, strategyAttemptDecision);
+            exerciseAttemptService.ensureAttemptStatus(attempt.getId(), strategyAttemptDecision);
             ch.hit("decide next exercise state ("+strategyAttemptDecision.name()+")");
         }
 
@@ -219,14 +216,11 @@ public class FrontendService {
 
     @Transactional(propagation = Propagation.REQUIRED)
     public @NotNull SupplementaryQuestionDto generateSupplementaryQuestion(@NotNull Long questionId, @NotNull String[] violationLaws) throws Exception {
-        val question = questionRepository.findByIdEager(questionId)
-                .orElseThrow();
-
         val violation = new ViolationData(); //TODO: make normal choice
         violation.setLawName(violationLaws[0]);
 
-        var language = getQuestionLanguage(question);
-        return questionService.generateSupplementaryQuestion(question, violation, language);
+        var language = exerciseAttemptService.findUserLanguageForQuestion(questionId);
+        return questionService.generateSupplementaryQuestion(questionId, violation, language);
     }
 
     /**
@@ -236,10 +230,6 @@ public class FrontendService {
     private List<ViolationEntity> toViolationEntities(List<ViolationData> violations) {
         return violations == null ? List.of()
                 : violations.stream().map(questionDataMapper::toEntity).collect(Collectors.toList());
-    }
-
-    private Language getQuestionLanguage(QuestionEntity question) {
-        return getQuestionLanguage(question.getExerciseAttempt());
     }
 
     private Language getQuestionLanguage(ExerciseAttemptEntity attempt) {
@@ -310,7 +300,7 @@ public class FrontendService {
         feedbackRepository.save(feedback);
 
         if (attempt != null) {
-            exerciseAttemptService.ensureAttemptStatus(attempt, strategyAttemptDecision);
+            exerciseAttemptService.ensureAttemptStatus(attempt.getId(), strategyAttemptDecision);
         }
 
         // build feedback message
@@ -361,18 +351,15 @@ public class FrontendService {
     }
 
     public @Nullable ExerciseAttemptDto getExerciseAttempt(@NotNull Long attemptId) throws Exception {
-        val existingAttempt = exerciseAttemptRepository
-                .getById(attemptId);
-        return existingAttempt
+        return exerciseAttemptService.findSummary(attemptId)
                 .map(Mapper::toDto)
                 .orElse(null);
     }
 
     public @Nullable ExerciseAttemptDto getExistingExerciseAttempt(@NotNull Long exerciseId, @NotNull Long userId, @Nullable Long courseId) throws Exception {
-        val attempt = courseId != null
-                ? exerciseAttemptRepository.getLastWithStatusByCourse(exerciseId, courseId, userId, AttemptStatus.INCOMPLETE)
-                : exerciseAttemptRepository.getLastWithStatus(exerciseId, userId, AttemptStatus.INCOMPLETE);
-        val result = attempt.map(Mapper::toDto).orElse(null);
+        val result = exerciseAttemptService.findIncompleteAttempt(exerciseId, userId, courseId)
+                .map(Mapper::toDto)
+                .orElse(null);
         log.info("Is course attempt exists: {}", result != null);
 
         return result;
@@ -390,17 +377,18 @@ public class FrontendService {
         return createSolvedExerciseAttempt(ea);
     }
 
-    private @NotNull ExerciseAttemptDto createSolvedExerciseAttempt(ExerciseAttemptEntity ea) throws Exception {
-        var strategy = strategyFactory.getStrategy(ea.getExercise().getStrategyId());
+    private @NotNull ExerciseAttemptDto createSolvedExerciseAttempt(AttemptSummaryData ea) throws Exception {
+        var exercise = exerciseService.getExercise(ea.exerciseId());
+        var strategy = strategyFactory.getStrategy(exercise.getStrategyId());
         var targetQuestionCount = strategy.getOptions().isMultiStagesEnabled()
-                ? ea.getExercise().getStages().stream()
+                ? exercise.getStages().stream()
                     .map(ExerciseStageData::getNumberOfQuestions)
                     .reduce(Integer::sum)
                     .orElse(1)
                 : 1;
 
         for (int idx = 0; idx < targetQuestionCount; ++idx) {
-            var currentQuestion = generateQuestion(ea.getId());
+            var currentQuestion = generateQuestion(ea.attemptId());
             // var question = questionService.getSolvedQuestion(currentQuestion.getQuestionId());
             /*
             var allCorrectAnswers = domain.getAllAnswersOfSolvedQuestion(question);
@@ -409,13 +397,11 @@ public class FrontendService {
                     .map(x -> AnswerDto.builder().answer(new Long[]{ (long)x.getLeft().getAnswerId(), (long)x.getRight().getAnswerId() }).build())
                     .toArray(AnswerDto[]::new);
             addOrdinaryQuestionAnswer(InteractionDto.builder()
-                    .attemptId(ea.getId())
+                    .attemptId(ea.attemptId())
                     .questionId(currentQuestion.getQuestionId())
                     .answers(allAnswers)
                     .build());
             */
-
-            entityManager.refresh(ea);
 
             // debug delay for massive question generation
             if (false) {
@@ -425,6 +411,7 @@ public class FrontendService {
             }
         }
 
-        return Mapper.toDto(ea);
+        // Сводка перечитывается: за время цикла у попытки появились вопросы.
+        return Mapper.toDto(exerciseAttemptService.findSummary(ea.attemptId()).orElseThrow());
     }
 }

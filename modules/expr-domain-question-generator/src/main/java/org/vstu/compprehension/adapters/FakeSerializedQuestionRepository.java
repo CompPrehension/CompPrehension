@@ -2,12 +2,12 @@ package org.vstu.compprehension.adapters;
 
 import org.jetbrains.annotations.NotNull;
 import org.vstu.compprehension.models.entities.QuestionDataEntity;
-import org.vstu.compprehension.models.repository.QuestionDataRepository;
+import org.vstu.compprehension.models.repository.SerializedQuestionRepository;
 
 import java.util.List;
 import java.util.Optional;
 
-public class FakeQuestionDataRepository implements QuestionDataRepository {
+public class FakeSerializedQuestionRepository implements SerializedQuestionRepository {
     @Override
     public QuestionDataEntity save(QuestionDataEntity questionData) {
         return questionData;

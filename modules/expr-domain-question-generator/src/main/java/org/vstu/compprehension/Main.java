@@ -67,7 +67,7 @@ public class Main {
                         null,
                         new QuestionBank(
                                 new FakeQuestionMetadataRepository(),
-                                new FakeQuestionDataRepository(),
+                                new FakeSerializedQuestionRepository(),
                                 null,
                                 null,
                                 new TransactionScopeFactoryStub()

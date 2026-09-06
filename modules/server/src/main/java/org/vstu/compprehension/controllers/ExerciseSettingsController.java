@@ -22,7 +22,6 @@ import java.util.List;
 @RequestMapping("api")
 public class ExerciseSettingsController {
     private final ExerciseService exerciseService;
-    private final CourseService courseService;
     private final UserService userService;
     private final AuthService authService;
     private final AuthScopeFactory authScopes;
@@ -30,13 +29,11 @@ public class ExerciseSettingsController {
 
     @Autowired
     public ExerciseSettingsController(ExerciseService exerciseService,
-                                      CourseService courseService,
                                       UserService userService,
                                       AuthService authService,
                                       AuthScopeFactory authScopes,
                                       ExercisePermissionService exercisePermissionService) {
         this.exerciseService = exerciseService;
-        this.courseService = courseService;
         this.userService = userService;
         this.authService = authService;
         this.authScopes = authScopes;

@@ -3,6 +3,7 @@ package org.vstu.compprehension.utils;
 import lombok.val;
 import org.jetbrains.annotations.NotNull;
 import org.jetbrains.annotations.Nullable;
+import org.vstu.compprehension.models.data.AttemptSummaryData;
 import org.vstu.compprehension.models.data.CurrentUserData;
 import org.vstu.compprehension.models.data.AnswerObjectData;
 import org.vstu.compprehension.models.data.ResponseData;
@@ -183,19 +184,14 @@ public class Mapper {
         }
     }
 
-    public static @NotNull ExerciseAttemptDto toDto(@NotNull ExerciseAttemptEntity attempt) {
-        val questionIds = Optional.ofNullable(attempt.getQuestions()).stream()
-                .flatMap(Collection::stream)
-                .filter(q -> !q.getQuestionDomainType().contains("Supplementary"))
-                .map(QuestionEntity::getId)
-                .toArray(Long[]::new);
+    public static @NotNull ExerciseAttemptDto toDto(@NotNull AttemptSummaryData attempt) {
         return ExerciseAttemptDto.builder()
-                .userId(attempt.getUser().getId())
-                .exerciseId(attempt.getExercise().getId())
-                .courseId(attempt.getCourse() != null ? attempt.getCourse().getId() : null)
-                .attemptId(attempt.getId())
-                .questionIds(questionIds)
-                .status(attempt.getAttemptStatus())
+                .userId(attempt.userId())
+                .exerciseId(attempt.exerciseId())
+                .courseId(attempt.courseId())
+                .attemptId(attempt.attemptId())
+                .questionIds(attempt.questionIds().toArray(Long[]::new))
+                .status(attempt.status())
                 .build();
     }
 

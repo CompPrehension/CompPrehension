@@ -12,11 +12,9 @@ import org.vstu.compprehension.moodle.response.MoodleLtiActivity;
 import org.vstu.compprehension.moodle.MoodleService;
 import org.vstu.compprehension.moodle.MoodleWsResult;
 import org.vstu.compprehension.moodle.config.WsFuncMoodleConfig;
+import org.jetbrains.annotations.NotNull;
+import org.vstu.compprehension.models.data.GradePassbackTargetData;
 import org.vstu.compprehension.models.entities.EnumData.EducationResourceType;
-import org.vstu.compprehension.models.entities.ExerciseAttemptEntity;
-import org.vstu.compprehension.models.entities.course.CourseEntity;
-import org.vstu.compprehension.models.entities.external_system.EducationResourceEntity;
-import org.vstu.compprehension.models.entities.external_system.ExternalAccountEntity;
 
 import java.util.List;
 import java.util.Optional;
@@ -45,48 +43,49 @@ public class MoodleDiscoveryGradePassbackStrategy implements GradePassbackStrate
     private final ExternalAccountService externalAccountService;
 
     @Override
-    public boolean supports(ExerciseAttemptEntity attempt) {
+    public boolean supports(@NotNull GradePassbackTargetData target) {
         // Взаимоисключающе с AGS: если есть lineitemUrl — оценку отправит LtiAgsGradePassbackStrategy.
-        if (attempt.getLtiLineitemUrl() != null) {
+        if (target.ltiLineitemUrl() != null) {
             return false;
         }
-        CourseEntity course = attempt.getCourse();
-        if (course == null || course.getExternalCourseId() == null) {
+        var course = target.course();
+        if (course == null || course.externalCourseId() == null) {
             return false;
         }
-        EducationResourceEntity eduRes = course.getEducationResource();
-        if (eduRes == null || eduRes.getType() != EducationResourceType.MOODLE) {
+        var eduRes = course.educationResource();
+        if (eduRes.type() != EducationResourceType.MOODLE) {
             return false;
         }
-        return wsFuncMoodleConfig.findByBaseUrl(eduRes.getUrl()).isPresent();
+        return wsFuncMoodleConfig.findByBaseUrl(eduRes.url()).isPresent();
     }
 
     @Override
-    public boolean passGrade(ExerciseAttemptEntity attempt, double grade) {
-        CourseEntity course = attempt.getCourse();
-        EducationResourceEntity eduRes = course.getEducationResource();
-        String baseUrl = eduRes.getUrl();
-        String externalCourseId = course.getExternalCourseId();
+    public boolean passGrade(@NotNull GradePassbackTargetData target, double grade) {
+        // Вызывается только после supports(), а тот уже отсеял попытки без курса.
+        var course = target.course();
+        var eduRes = course.educationResource();
+        String baseUrl = eduRes.url();
+        String externalCourseId = course.externalCourseId();
 
         String wsToken = wsFuncMoodleConfig.findByBaseUrl(baseUrl)
                 .map(r -> r.registration().getWebserviceToken())
                 .orElse(null);
         if (wsToken == null) {
             log.warn("No WS-moodle registration for {} — cannot pass grade for attempt {}",
-                    baseUrl, attempt.getId());
+                    baseUrl, target.attemptId());
             return false;
         }
 
-        Optional<ExternalAccountEntity> account = externalAccountService
-                .findByUserAndEducationResource(attempt.getUser().getId(), eduRes.getId());
-        if (account.isEmpty()) {
+        Optional<String> moodleUserIdOrEmpty = externalAccountService
+                .findExternalId(target.userId(), eduRes.id());
+        if (moodleUserIdOrEmpty.isEmpty()) {
             log.warn("No external account linking user {} to {} — cannot pass grade for attempt {}",
-                    attempt.getUser().getId(), baseUrl, attempt.getId());
+                    target.userId(), baseUrl, target.attemptId());
             return false;
         }
-        String moodleUserId = account.get().getExternalId();
+        String moodleUserId = moodleUserIdOrEmpty.get();
 
-        long exerciseId = attempt.getExercise().getId();
+        long exerciseId = target.exerciseId();
         MoodleWsResult<List<MoodleLtiActivity>> ltiActivitiesResult =
                 moodleService.getLtiActivitiesInCourse(baseUrl, wsToken, externalCourseId);
         List<MoodleLtiActivity> activities;
@@ -94,7 +93,7 @@ public class MoodleDiscoveryGradePassbackStrategy implements GradePassbackStrate
             case MoodleWsResult.Success<List<MoodleLtiActivity>> s -> activities = s.value();
             case MoodleWsResult.Failure<List<MoodleLtiActivity>> f -> {
                 log.warn("Failed to fetch mod_lti activities for course {} ({}) [{}]: {} — cannot pass grade for attempt {}",
-                        externalCourseId, baseUrl, f.errorcode(), f.message(), attempt.getId());
+                        externalCourseId, baseUrl, f.errorcode(), f.message(), target.attemptId());
                 return false;
             }
         }
@@ -103,13 +102,13 @@ public class MoodleDiscoveryGradePassbackStrategy implements GradePassbackStrate
                 .findFirst();
         if (activity.isEmpty()) {
             log.warn("No mod_lti activity for exercise {} in course {} ({}) — cannot pass grade for attempt {}",
-                    exerciseId, externalCourseId, baseUrl, attempt.getId());
+                    exerciseId, externalCourseId, baseUrl, target.attemptId());
             return false;
         }
         MoodleLtiActivity lti = activity.get();
         if (lti.getCourseModuleId() == null) {
             log.warn("mod_lti activity {} for exercise {} in course {} ({}) has no course module id — cannot pass grade for attempt {}",
-                    lti.getId(), exerciseId, externalCourseId, baseUrl, attempt.getId());
+                    lti.getId(), exerciseId, externalCourseId, baseUrl, target.attemptId());
             return false;
         }
 
@@ -121,13 +120,13 @@ public class MoodleDiscoveryGradePassbackStrategy implements GradePassbackStrate
             case MoodleWsResult.Success<Boolean> s -> {
                 if (!s.value()) {
                     log.warn("Moodle returned non-OK code updating grade for attempt {} (course {}, {})",
-                            attempt.getId(), externalCourseId, baseUrl);
+                            target.attemptId(), externalCourseId, baseUrl);
                 }
                 yield s.value();
             }
             case MoodleWsResult.Failure<Boolean> f -> {
                 log.warn("Failed to update grade for attempt {} (course {}, {}) [{}]: {}",
-                        attempt.getId(), externalCourseId, baseUrl, f.errorcode(), f.message());
+                        target.attemptId(), externalCourseId, baseUrl, f.errorcode(), f.message());
                 yield false;
             }
         };

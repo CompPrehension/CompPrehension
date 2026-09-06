@@ -10,182 +10,61 @@ import org.vstu.compprehension.models.businesslogic.auth.AuthObjects.SystemPermi
 import org.vstu.compprehension.models.entities.EnumData.AttemptStatus;
 import org.vstu.compprehension.models.entities.EnumData.Decision;
 import org.vstu.compprehension.models.entities.EnumData.Language;
-import org.vstu.compprehension.models.entities.ExerciseAttemptEntity;
-import org.vstu.compprehension.models.entities.course.CourseEntity;
-import org.vstu.compprehension.models.entities.course.ExerciseCourseLinkEntity;
-import org.vstu.compprehension.models.data.AttemptExerciseData;
-import org.vstu.compprehension.models.data.AttemptInteractionData;
-import org.vstu.compprehension.models.data.AttemptQuestionData;
 import org.vstu.compprehension.models.data.ExerciseAttemptWithQuestionsData;
-import org.vstu.compprehension.models.data.QuestionMetadataBitsData;
-import org.vstu.compprehension.models.entities.QuestionEntity;
-import org.vstu.compprehension.models.entities.QuestionMetadataEntity;
-import org.vstu.compprehension.models.repository.ExerciseAttemptRepository;
-import org.vstu.compprehension.models.repository.ExerciseRepository;
-import org.vstu.compprehension.models.repository.ExerciseAttemptRepository.AttemptOwner;
-import org.vstu.compprehension.models.repository.InteractionRepository;
-import org.vstu.compprehension.models.repository.InteractionRepository.InteractionLawRow;
-import org.vstu.compprehension.models.repository.InteractionRepository.InteractionRow;
-import org.vstu.compprehension.models.repository.QuestionRepository;
-import org.vstu.compprehension.models.repository.UserRepository;
+import org.vstu.compprehension.models.data.AttemptOwnerData;
+import org.vstu.compprehension.models.data.AttemptSummaryData;
+import org.vstu.compprehension.models.data.QuestionAttemptContextData;
+import org.vstu.compprehension.models.repository.data.ExerciseAttemptDataRepository;
 
-import java.util.ArrayList;
-import java.util.List;
-import java.util.Map;
-import java.util.NoSuchElementException;
 import java.util.Optional;
-import java.util.stream.Collectors;
 
 @Service
 public class ExerciseAttemptService {
-    private final ExerciseAttemptRepository exerciseAttemptRepository;
-    /**
-     * Упражнение берётся из репозитория, а не из {@code ExerciseService}.
-     * <p>
-     * Через сервис получался цикл бинов: DomainFactory -> ExerciseAttemptService ->
-     * ExerciseService -> DomainFactory. Нужен здесь ровно один поиск по id, ради него
-     * тащить сервис незачем.
-     */
-    private final ExerciseRepository exerciseRepository;
-    private final UserRepository userRepository;
     private final LtiContextProvider ltiContextProvider;
     private final GradePassbackService gradePassbackService;
     private final CourseService courseService;
     private final AuthService authService;
     private final AuthScopeFactory authScopes;
-    private final QuestionRepository questionRepository;
-    private final InteractionRepository interactionRepository;
+    private final ExerciseAttemptDataRepository exerciseAttemptDataRepository;
 
-    public ExerciseAttemptService(ExerciseAttemptRepository exerciseAttemptRepository,
-                                  ExerciseRepository exerciseRepository,
-                                  UserRepository userRepository,
-                                  LtiContextProvider ltiContextProvider,
+    public ExerciseAttemptService(LtiContextProvider ltiContextProvider,
                                   GradePassbackService gradePassbackService,
                                   CourseService courseService,
                                   AuthService authService,
                                   AuthScopeFactory authScopes,
-                                  QuestionRepository questionRepository,
-                                  InteractionRepository interactionRepository) {
-        this.exerciseAttemptRepository = exerciseAttemptRepository;
-        this.exerciseRepository = exerciseRepository;
-        this.userRepository = userRepository;
+                                  ExerciseAttemptDataRepository exerciseAttemptDataRepository) {
         this.ltiContextProvider = ltiContextProvider;
         this.gradePassbackService = gradePassbackService;
         this.courseService = courseService;
         this.authService = authService;
         this.authScopes = authScopes;
-        this.questionRepository = questionRepository;
-        this.interactionRepository = interactionRepository;
+        this.exerciseAttemptDataRepository = exerciseAttemptDataRepository;
     }
 
-    @Transactional(readOnly = true)
-    public Optional<ExerciseAttemptEntity> findById(Long attemptId) {
-        return exerciseAttemptRepository.findById(attemptId);
-    }
-
-    /**
-     * Попытка со всеми вопросами и взаимодействиями — в виде отсоединённых данных.
-     * <p>
-     * Ровно пять запросов независимо от размера попытки: попытка с упражнением и доменом,
-     * вопросы с метаданными, взаимодействия, нарушенные законы, верно применённые законы.
-     * Обхода ленивого графа нет, поэтому потребителю (стратегии) не нужны ни сессия
-     * Hibernate, ни знание о том, как это разложено по таблицам.
-     */
+    /** Попытка со всеми вопросами и взаимодействиями — для стратегий. */
     @Transactional(readOnly = true)
     public @NotNull ExerciseAttemptWithQuestionsData getAttemptWithQuestions(long attemptId) {
-        var attempt = exerciseAttemptRepository.findByIdFetchingExerciseAndDomain(attemptId)
-                .orElseThrow(() -> new NoSuchElementException("Exercise attempt " + attemptId + " not found"));
-        var exercise = attempt.getExercise();
-        var exerciseData = new AttemptExerciseData(
-                exercise.getId(),
-                exercise.getDomain().getName(),
-                exercise.getStages() == null ? List.of() : List.copyOf(exercise.getStages()),
-                exercise.getTags());
-
-        var questions = questionRepository.findAllByAttemptIdFetchingMetadata(attemptId);
-        var questionIds = questions.stream().map(QuestionEntity::getId).toList();
-
-        var interactionRows = questionIds.isEmpty()
-                ? List.<InteractionRow>of()
-                : interactionRepository.findRowsByQuestionIdIn(questionIds);
-        var interactionIds = interactionRows.stream().map(InteractionRow::getInteractionId).toList();
-
-        Map<Long, List<String>> violationsByInteraction = interactionIds.isEmpty()
-                ? Map.of() : groupLawNames(interactionRepository.findViolationLawsByInteractionIdIn(interactionIds));
-        Map<Long, List<String>> correctLawsByInteraction = interactionIds.isEmpty()
-                ? Map.of() : groupLawNames(interactionRepository.findCorrectLawsByInteractionIdIn(interactionIds));
-
-        Map<Long, List<AttemptInteractionData>> interactionsByQuestion = interactionRows.stream()
-                .collect(Collectors.groupingBy(
-                        InteractionRow::getQuestionId,
-                        Collectors.mapping(row -> new AttemptInteractionData(
-                                row.getInteractionId(),
-                                row.getOrderNumber() == null ? 0 : row.getOrderNumber(),
-                                row.getInteractionType(),
-                                row.getInteractionsLeft(),
-                                violationsByInteraction.getOrDefault(row.getInteractionId(), List.of()),
-                                correctLawsByInteraction.getOrDefault(row.getInteractionId(), List.of())
-                        ), Collectors.toList())));
-
-        var questionsData = questions.stream()
-                .map(q -> new AttemptQuestionData(
-                        q.getId(),
-                        q.getQuestionName(),
-                        q.getQuestionDomainType(),
-                        toBits(q.getMetadata()),
-                        interactionsByQuestion.getOrDefault(q.getId(), List.of())))
-                .toList();
-
-        // getUser() ленивый, но getId() обслуживается самим прокси и запроса не делает
-        return new ExerciseAttemptWithQuestionsData(
-                attempt.getId(), attempt.getUser().getId(), exerciseData, questionsData);
-    }
-
-    private static Map<Long, List<String>> groupLawNames(List<InteractionLawRow> rows) {
-        return rows.stream().collect(Collectors.groupingBy(
-                InteractionLawRow::getInteractionId,
-                Collectors.mapping(InteractionLawRow::getLawName, Collectors.toList())));
-    }
-
-    private static @Nullable QuestionMetadataBitsData toBits(@Nullable QuestionMetadataEntity metadata) {
-        if (metadata == null) {
-            return null;
-        }
-        // Формулы остаются в сущности, здесь только снятый результат.
-        return new QuestionMetadataBitsData(
-                metadata.getId(),
-                metadata.traceConceptsSatisfiedFromPlan(),
-                metadata.traceConceptsUnsatisfiedFromPlan(),
-                metadata.traceConceptsSatisfiedFromRequest(),
-                metadata.getConceptBitsInRequest(),
-                metadata.violationsSatisfiedFromPlan(),
-                metadata.violationsUnsatisfiedFromPlan(),
-                metadata.violationsSatisfiedFromRequest(),
-                metadata.getViolationBitsInRequest(),
-                metadata.getSkillBits());
+        return exerciseAttemptDataRepository.getAttemptWithQuestions(attemptId);
     }
 
     /**
      * Этап упражнения, на котором задан вопрос.
      * <p>
-     * Раньше это считал сам вопрос, обходя {@code getExerciseAttempt().getQuestions()}
-     * и поднимая ради одного этапа все вопросы попытки. Здесь — попытка с упражнением
-     * и один скалярный запрос за порядковым номером.
+     * Контекст попытки и порядковый номер вопроса — два запроса; сам разбор по этапам
+     * остаётся здесь, потому что это правило упражнения, а не форма хранения.
      *
      * @return пусто, если вопрос не привязан к попытке или у упражнения нет этапов
      */
     @Transactional(readOnly = true)
     public Optional<ExerciseStageData> findStageForQuestion(long questionId) {
-        var attempt = exerciseAttemptRepository.findByQuestionId(questionId).orElse(null);
-        if (attempt == null) {
+        var context = exerciseAttemptDataRepository.findQuestionAttemptContext(questionId).orElse(null);
+        if (context == null || context.stages().isEmpty()) {
             return Optional.empty();
         }
-        var stages = attempt.getExercise().getStages();
-        if (stages == null || stages.isEmpty()) {
-            return Optional.empty();
-        }
+        var stages = context.stages();
 
-        long questionNumber = questionRepository.countUpToQuestionInAttempt(attempt.getId(), questionId);
+        long questionNumber = exerciseAttemptDataRepository
+                .countQuestionsUpTo(context.attemptId(), questionId);
         int questionsPassed = 0;
         ExerciseStageData stage = stages.getFirst();
         for (int i = 0; i < stages.size() && questionsPassed < questionNumber; i++) {
@@ -202,15 +81,16 @@ public class ExerciseAttemptService {
      */
     @Transactional(readOnly = true)
     public Language findUserLanguageForQuestion(long questionId) {
-        return exerciseAttemptRepository.findByQuestionId(questionId)
-                .map(attempt -> attempt.getUser().getPreferred_language())
+        return exerciseAttemptDataRepository.findQuestionAttemptContext(questionId)
+                .map(QuestionAttemptContextData::userLanguage)
                 .orElse(Language.RUSSIAN);
     }
 
     /** Идентификатор попытки, в рамках которой задан вопрос. */
     @Transactional(readOnly = true)
     public Optional<Long> findAttemptIdOfQuestion(long questionId) {
-        return exerciseAttemptRepository.findByQuestionId(questionId).map(ExerciseAttemptEntity::getId);
+        return exerciseAttemptDataRepository.findQuestionAttemptContext(questionId)
+                .map(QuestionAttemptContextData::attemptId);
     }
 
     /**
@@ -219,82 +99,84 @@ public class ExerciseAttemptService {
      */
     @Transactional(readOnly = true)
     public boolean prefersDecisionTreeSupplementary(long questionId) {
-        return exerciseAttemptRepository.findByQuestionId(questionId)
-                .map(attempt -> attempt.getExercise().getOptions()
-                        .isPreferDecisionTreeBasedSupplementaryEnabled())
+        return exerciseAttemptDataRepository.findQuestionAttemptContext(questionId)
+                .map(QuestionAttemptContextData::preferDecisionTreeSupplementary)
                 .orElse(true);
     }
 
     @Transactional(readOnly = true)
     public void ensureCanAccessAttempt(long userId, long attemptId) {
-        AttemptOwner owner = exerciseAttemptRepository.findOwnerByAttemptId(attemptId)
+        AttemptOwnerData owner = exerciseAttemptDataRepository.findOwnerByAttemptId(attemptId)
                 .orElseThrow(() -> new IllegalArgumentException("No attempt with id " + attemptId));
         ensureOwnerOrPrivileged(userId, owner, attemptId);
     }
 
     @Transactional(readOnly = true)
     public void ensureCanAccessQuestion(long userId, long questionId) {
-        AttemptOwner owner = exerciseAttemptRepository.findOwnerByQuestionId(questionId)
+        AttemptOwnerData owner = exerciseAttemptDataRepository.findOwnerByQuestionId(questionId)
                 .orElse(null);
         ensureOwnerOrPrivileged(userId, owner, questionId);
     }
 
-    private void ensureOwnerOrPrivileged(long userId, @Nullable AttemptOwner owner, long targetId) {
-        if (owner != null && owner.getUserId() != null && owner.getUserId() == userId) {
-            authService.ensureAuthorized(userId, SystemPermission.SOLVE_EXERCISE, authScopes.courseOrGlobal(owner.getCourseId()));
+    private void ensureOwnerOrPrivileged(long userId, @Nullable AttemptOwnerData owner, long targetId) {
+        if (owner != null && owner.userId() != null && owner.userId() == userId) {
+            authService.ensureAuthorized(userId, SystemPermission.SOLVE_EXERCISE, authScopes.courseOrGlobal(owner.courseId()));
             return;
         }
-        if (authService.isAuthorized(userId, SystemPermission.EDIT_EXERCISE, authScopes.courseOrGlobal(owner != null ? owner.getCourseId() : null))) {
+        if (authService.isAuthorized(userId, SystemPermission.EDIT_EXERCISE, authScopes.courseOrGlobal(owner != null ? owner.courseId() : null))) {
             return;
         }
         throw new SecurityException(String.format(
                 "User %s is not allowed to access attempt data %s", userId, targetId));
     }
 
-    @Transactional(propagation = Propagation.REQUIRED)
-    public ExerciseAttemptEntity createNewAttempt(@NotNull Long exerciseId, @NotNull Long userId, Long courseId) {
-        CourseEntity course = null;
-        if (courseId != null) {
-            ExerciseCourseLinkEntity exerciseCourse = courseService.findExerciseCourseLinkOrThrow(exerciseId, courseId);
-            course = exerciseCourse.getCourse();
-            exerciseAttemptRepository.changeExistingAttemptsStatusByCourse(
-                    exerciseId, courseId, userId, AttemptStatus.INCOMPLETE, AttemptStatus.COMPLETED_BY_SYSTEM);
-        } else {
-            exerciseAttemptRepository.changeExistingAttemptsStatus(
-                    exerciseId, userId, AttemptStatus.INCOMPLETE, AttemptStatus.COMPLETED_BY_SYSTEM);
-        }
-
-        var exercise = exerciseRepository.findById(exerciseId).orElseThrow(() ->
-                new NoSuchElementException("Exercise with id: " + exerciseId + " not Found"));
-        var user = userRepository.findById(userId).orElseThrow();
-
-        var ea = new ExerciseAttemptEntity();
-        ea.setExercise(exercise);
-        ea.setCourse(course);
-        ea.setUser(user);
-        ea.setAttemptStatus(AttemptStatus.INCOMPLETE);
-        ea.setQuestions(new ArrayList<>());
-
-        ltiContextProvider.getCurrentLtiContext().ifPresent(ctx -> {
-            ea.setLtiLineitemUrl(ctx.lineitemUrl());
-            if (ctx.course() != null) {
-                ea.setLtiContextId(ctx.course().courseId());
-            }
-        });
-
-        exerciseAttemptRepository.save(ea);
-        return ea;
+    /** Попытка в объёме, который уезжает на фронт; пусто, если попытки нет. */
+    @Transactional(readOnly = true)
+    public Optional<AttemptSummaryData> findSummary(long attemptId) {
+        return exerciseAttemptDataRepository.findSummary(attemptId);
     }
 
-    public void ensureAttemptStatus(ExerciseAttemptEntity attempt, Decision decision) {
-        if (decision == Decision.FINISH && attempt.getAttemptStatus() == AttemptStatus.INCOMPLETE) {
-            attempt.setAttemptStatus(AttemptStatus.COMPLETED_BY_USER);
-            exerciseAttemptRepository.save(attempt);
-            double grade = exerciseAttemptRepository.calculateFinalGrade(attempt.getId())
-                    .orElse(0.0);
-            gradePassbackService.passGrade(attempt, grade);
-        } else {
-            exerciseAttemptRepository.save(attempt);
+    /** Незавершённая попытка пользователя по упражнению; пусто, если такой нет. */
+    @Transactional(readOnly = true)
+    public Optional<AttemptSummaryData> findIncompleteAttempt(long exerciseId, long userId,
+                                                              @Nullable Long courseId) {
+        return exerciseAttemptDataRepository.findSummaryWithStatus(
+                exerciseId, userId, courseId, AttemptStatus.INCOMPLETE);
+    }
+
+    /**
+     * Завести попытку, закрыв незавершённые попытки того же пользователя по упражнению.
+     * <p>
+     * Здесь остаются две вещи, которых нет у слоя доступа к данным: проверка, что курс
+     * и упражнение связаны, и LTI-контекст текущего запроса.
+     */
+    @Transactional(propagation = Propagation.REQUIRED)
+    public @NotNull AttemptSummaryData createNewAttempt(long exerciseId, long userId,
+                                                        @Nullable Long courseId) {
+        if (courseId != null) {
+            courseService.findExerciseCourseLinkOrThrow(exerciseId, courseId);
         }
+        var lti = ltiContextProvider.getCurrentLtiContext().orElse(null);
+        return exerciseAttemptDataRepository.create(
+                exerciseId, userId, courseId,
+                lti == null ? null : lti.lineitemUrl(),
+                lti == null || lti.course() == null ? null : lti.course().courseId());
+    }
+
+    /**
+     * Отметить попытку завершённой, если стратегия так решила, и выставить оценку.
+     * <p>
+     * Прежняя версия в остальных случаях звала {@code save} на управляемой сущности —
+     * при открытой транзакции это ничего не делало.
+     */
+    @Transactional(propagation = Propagation.REQUIRED)
+    public void ensureAttemptStatus(long attemptId, Decision decision) {
+        if (decision != Decision.FINISH) {
+            return;
+        }
+        if (!exerciseAttemptDataRepository.finishIfIncomplete(attemptId)) {
+            return;
+        }
+        gradePassbackService.passGrade(attemptId, exerciseAttemptDataRepository.getFinalGrade(attemptId));
     }
 }

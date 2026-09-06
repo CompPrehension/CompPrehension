@@ -1,34 +1,35 @@
 package org.vstu.compprehension.Service;
 
 import lombok.RequiredArgsConstructor;
+import org.jetbrains.annotations.NotNull;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
-import org.vstu.compprehension.models.entities.external_system.ExternalAccountEntity;
-import org.vstu.compprehension.models.entities.external_system.ExternalAccountId;
 import org.vstu.compprehension.models.repository.ExternalAccountRepository;
 
 import java.util.Optional;
 
+/**
+ * Связь учётной записи пользователя с его записью во внешней системе.
+ * <p>
+ * Наружу отдаётся только внешний идентификатор: он — единственное, что из этой связи
+ * читают вызывающие, а сущность за границей сервиса означала бы ленивые связи там,
+ * где сессии может уже не быть.
+ */
 @Service
 @RequiredArgsConstructor
 public class ExternalAccountService {
 
     private final ExternalAccountRepository repository;
 
+    /** Идентификатор пользователя во внешней системе; пусто, если связи нет. */
     @Transactional(readOnly = true)
-    public Optional<ExternalAccountEntity> findByUserAndEducationResource(Long userId, Long educationResourceId) {
-        return repository.findById(new ExternalAccountId(userId, educationResourceId));
+    public @NotNull Optional<String> findExternalId(long userId, long educationResourceId) {
+        return repository.findExternalId(userId, educationResourceId);
     }
 
+    /** Завести связь, если её ещё нет. */
     @Transactional
-    public ExternalAccountEntity createOrGetExisting(
-            Long userId,
-            Long educationResourceId,
-            String externalId
-    ) {
+    public void createIfAbsent(long userId, long educationResourceId, @NotNull String externalId) {
         repository.createIfAbsent(userId, educationResourceId, externalId);
-        return repository.findById(new ExternalAccountId(userId, educationResourceId))
-                .orElseThrow(() -> new IllegalStateException("createIfAbsent: entity not found after insert"));
     }
 }
-

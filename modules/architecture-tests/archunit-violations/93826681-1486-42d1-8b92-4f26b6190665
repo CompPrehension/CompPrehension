@@ -1,0 +1,15 @@
+org.vstu.compprehension.Main depends on both JPA entities and data models
+org.vstu.compprehension.Service.ExerciseService depends on both JPA entities and data models
+org.vstu.compprehension.Service.FrontendService depends on both JPA entities and data models
+org.vstu.compprehension.Service.QuestionService depends on both JPA entities and data models
+org.vstu.compprehension.Service.mapping.QuestionDataMapper depends on both JPA entities and data models
+org.vstu.compprehension.Service.mapping.UserDataMapper depends on both JPA entities and data models
+org.vstu.compprehension.adapter.DomainFactoryImpl depends on both JPA entities and data models
+org.vstu.compprehension.adapters.DomainFactoryImpl depends on both JPA entities and data models
+org.vstu.compprehension.adapters.FakeDomainRepository depends on both JPA entities and data models
+org.vstu.compprehension.adapters.UserServiceImpl depends on both JPA entities and data models
+org.vstu.compprehension.jobs.bankloadtesting.BankLoadTestingJob depends on both JPA entities and data models
+org.vstu.compprehension.jobs.tasksgeneration.TaskGenerationJob depends on both JPA entities and data models
+org.vstu.compprehension.models.businesslogic.domains.helpers.meaningtree.MeaningTreeOrderQuestionBuilder depends on both JPA entities and data models
+org.vstu.compprehension.models.businesslogic.domains.helpers.meaningtree.QuestionDynamicDataAppender depends on both JPA entities and data models
+org.vstu.compprehension.utils.Mapper depends on both JPA entities and data models

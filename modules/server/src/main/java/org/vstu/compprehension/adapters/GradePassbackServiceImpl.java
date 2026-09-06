@@ -1,17 +1,16 @@
 package org.vstu.compprehension.adapters;
 
 import lombok.extern.log4j.Log4j2;
-import org.springframework.context.annotation.Lazy;
 import org.springframework.scheduling.annotation.Async;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Propagation;
 import org.springframework.transaction.annotation.Transactional;
 import org.vstu.compprehension.Service.AuthService;
-import org.vstu.compprehension.Service.ExerciseAttemptService;
 import org.vstu.compprehension.Service.GradePassbackService;
 import org.vstu.compprehension.models.businesslogic.auth.AuthObjects.SystemRole;
+import org.vstu.compprehension.models.data.GradePassbackTargetData;
 import org.vstu.compprehension.models.entities.EnumData.PermissionScope;
-import org.vstu.compprehension.models.entities.ExerciseAttemptEntity;
+import org.vstu.compprehension.models.repository.data.ExerciseAttemptDataRepository;
 import org.vstu.compprehension.service.gradepassback.GradePassbackStrategy;
 
 import java.util.List;
@@ -24,56 +23,64 @@ import java.util.List;
 public class GradePassbackServiceImpl implements GradePassbackService {
 
     private final List<GradePassbackStrategy> strategies;
-    private final ExerciseAttemptService exerciseAttemptService;
+    /**
+     * Адресат оценки перечитывается по идентификатору: метод асинхронный и работает
+     * в своей транзакции, так что объект, собранный вызывающим, здесь не годится.
+     * <p>
+     * Через {@code ExerciseAttemptService} получался цикл бинов, который приходилось
+     * разрывать {@code @Lazy}: ExerciseAttemptService -> GradePassbackService ->
+     * ExerciseAttemptService.
+     */
+    private final ExerciseAttemptDataRepository exerciseAttemptDataRepository;
     private final AuthService authService;
 
     public GradePassbackServiceImpl(
             List<GradePassbackStrategy> strategies,
-            @Lazy ExerciseAttemptService exerciseAttemptService,
+            ExerciseAttemptDataRepository exerciseAttemptDataRepository,
             AuthService authService
     ) {
         this.strategies = strategies;
-        this.exerciseAttemptService = exerciseAttemptService;
+        this.exerciseAttemptDataRepository = exerciseAttemptDataRepository;
         this.authService = authService;
     }
 
     @Async
     @Transactional(propagation = Propagation.REQUIRES_NEW)
     @Override
-    public void passGrade(ExerciseAttemptEntity attempt, double grade) {
-        ExerciseAttemptEntity fresh = exerciseAttemptService
-                .findById(attempt.getId()).orElse(null);
-        if (fresh == null) {
-            log.warn("Attempt {} not found for grade passback", attempt.getId());
+    public void passGrade(long attemptId, double grade) {
+        GradePassbackTargetData target = exerciseAttemptDataRepository
+                .findGradePassbackTarget(attemptId).orElse(null);
+        if (target == null) {
+            log.warn("Attempt {} not found for grade passback", attemptId);
             return;
         }
 
-        Long userId = fresh.getUser().getId();
-        Long courseId = fresh.getCourse() != null ? fresh.getCourse().getId() : null;
+        long userId = target.userId();
+        Long courseId = target.course() == null ? null : target.course().courseId();
         boolean isStudent = courseId != null
                 && authService.hasRole(userId, SystemRole.STUDENT, PermissionScope.course(courseId));
         if (!isStudent) {
             log.info("Skipping grade passback for attempt {}: user {} is not a STUDENT in course {}",
-                    fresh.getId(), userId, courseId);
+                    attemptId, userId, courseId);
             return;
         }
 
         boolean anyStrategySupported = false;
         for (GradePassbackStrategy s : strategies) {
-            if (s.supports(fresh)) {
+            if (s.supports(target)) {
                 anyStrategySupported = true;
                 String strategyName = s.getClass().getSimpleName();
-                log.info("Grade passback for attempt {} via {}", fresh.getId(), strategyName);
-                boolean sent = s.passGrade(fresh, grade);
+                log.info("Grade passback for attempt {} via {}", attemptId, strategyName);
+                boolean sent = s.passGrade(target, grade);
                 if (sent) {
-                    log.info("Grade passback success for attempt {} via {}", fresh.getId(), strategyName);
+                    log.info("Grade passback success for attempt {} via {}", attemptId, strategyName);
                 } else {
-                    log.warn("Grade passback via {} failed for attempt {}", strategyName, fresh.getId());
+                    log.warn("Grade passback via {} failed for attempt {}", strategyName, attemptId);
                 }
             }
         }
         if (!anyStrategySupported) {
-            log.warn("No suitable grade passback strategy found for attempt {}", fresh.getId());
+            log.warn("No suitable grade passback strategy found for attempt {}", attemptId);
         }
     }
 }

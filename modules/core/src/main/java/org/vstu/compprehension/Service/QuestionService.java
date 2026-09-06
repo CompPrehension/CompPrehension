@@ -23,6 +23,8 @@ import org.vstu.compprehension.models.data.ResponseData;
 import org.vstu.compprehension.models.entities.*;
 import org.vstu.compprehension.models.entities.EnumData.Language;
 import org.vstu.compprehension.models.repository.*;
+import org.vstu.compprehension.models.repository.data.QuestionDataRepository;
+import org.vstu.compprehension.models.repository.data.SupplementaryStepDataRepository;
 import org.vstu.compprehension.utils.Mapper;
 
 import java.util.ArrayList;
@@ -39,21 +41,23 @@ public class QuestionService {
     private final DomainService domainService;
     private final InteractionRepository interactionRepository;
     private final ResponseRepository responseRepository;
-    private final SupplementaryStepRepository supplementaryStepRepository;
+    private final SupplementaryStepDataRepository supplementaryStepDataRepository;
+    private final QuestionDataRepository questionDataRepository;
     private final DomainFactory domainFactory;
     private final QuestionRequestLogRepository questionRequestLogRepository;
     private final QuestionBank questionStorage;
     private final QuestionMetadataRepository questionMetadataRepository;
     private final QuestionDataMapper questionDataMapper;
 
-    public QuestionService(QuestionRepository questionRepository, AnswerObjectRepository answerObjectRepository, AbstractStrategyFactory strategyFactory, DomainService domainService, InteractionRepository interactionRepository, ResponseRepository responseRepository, SupplementaryStepRepository supplementaryStepRepository, DomainFactory domainFactory, QuestionRequestLogRepository questionRequestLogRepository, QuestionBank questionStorage, QuestionDataMapper questionDataMapper, QuestionMetadataRepository questionMetadataRepository) {
+    public QuestionService(QuestionRepository questionRepository, AnswerObjectRepository answerObjectRepository, AbstractStrategyFactory strategyFactory, DomainService domainService, InteractionRepository interactionRepository, ResponseRepository responseRepository, SupplementaryStepDataRepository supplementaryStepDataRepository, QuestionDataRepository questionDataRepository, DomainFactory domainFactory, QuestionRequestLogRepository questionRequestLogRepository, QuestionBank questionStorage, QuestionDataMapper questionDataMapper, QuestionMetadataRepository questionMetadataRepository) {
         this.questionRepository = questionRepository;
         this.answerObjectRepository = answerObjectRepository;
         this.strategyFactory = strategyFactory;
         this.domainService = domainService;
         this.interactionRepository = interactionRepository;
         this.responseRepository = responseRepository;
-        this.supplementaryStepRepository = supplementaryStepRepository;
+        this.supplementaryStepDataRepository = supplementaryStepDataRepository;
+        this.questionDataRepository = questionDataRepository;
         this.domainFactory = domainFactory;
         this.questionRequestLogRepository = questionRequestLogRepository;
         this.questionStorage = questionStorage;
@@ -90,34 +94,33 @@ public class QuestionService {
         return question;
     }
 
-    public @NotNull SupplementaryQuestionDto generateSupplementaryQuestion(@NotNull QuestionEntity sourceQuestion, @NotNull ViolationData violation, Language lang) {
-        val domain = domainFactory.getDomain(sourceQuestion.getDomainEntity().getName());
+    public @NotNull SupplementaryQuestionDto generateSupplementaryQuestion(long sourceQuestionId, @NotNull ViolationData violation, Language lang) {
+        val domain = domainFactory.getDomain(getDomainName(sourceQuestionId));
         val responseGen = domain.makeSupplementaryQuestion(
-                questionDataMapper.toData(sourceQuestion), violation, lang);
+                questionDataRepository.findById(sourceQuestionId), violation, lang);
+
+        // Связь шага цепочки со сгенерированным вопросом проставляется здесь: до
+        // сохранения у вопроса ещё нет идентификатора, а домену он недоступен.
+        Long supplementaryQuestionId = null;
         if(responseGen.getResponse().getQuestion() != null){
             val supplementary = responseGen.getResponse().getQuestion();
-            saveQuestion(supplementary, null, sourceQuestion.getExerciseAttempt());
-            // Связь шага цепочки с вопросом проставляется здесь: до сохранения у вопроса
-            // ещё нет идентификатора, а домену сущности недоступны.
-            if (responseGen.getNewStep() != null) {
-                responseGen.getNewStep().setSupplementaryQuestion(
-                        getQuestionEntity(supplementary.getQuestionData().getId()));
-            }
+            saveQuestion(supplementary, null, getQuestionEntity(sourceQuestionId).getExerciseAttempt());
+            supplementaryQuestionId = supplementary.getQuestionData().getId();
         }
         if(responseGen.getNewStep() != null){
-            supplementaryStepRepository.save(responseGen.getNewStep());
+            supplementaryStepDataRepository.create(responseGen.getNewStep(), supplementaryQuestionId);
         }
         return Mapper.toDto(responseGen.getResponse());
     }
 
     public SupplementaryFeedbackDto judgeSupplementaryQuestion(Question question, List<ResponseEntity> responses) {
         Domain domain = question.getDomain();
-        val supplementaryInfo = supplementaryStepRepository.findBySupplementaryQuestion(question.getQuestionData().getId());
-        val feedbackGen = domain.judgeSupplementaryQuestion(question,
-                supplementaryInfo == null ? null : QuestionDataMapper.toData(supplementaryInfo),
+        val supplementaryInfo = supplementaryStepDataRepository
+                .findBySupplementaryQuestionId(question.getQuestionData().getId());
+        val feedbackGen = domain.judgeSupplementaryQuestion(question, supplementaryInfo,
                 toResponseData(responses));
         if(feedbackGen.getNewStep() != null){
-            supplementaryStepRepository.save(feedbackGen.getNewStep());
+            supplementaryStepDataRepository.create(feedbackGen.getNewStep(), null);
         }
         return feedbackGen.getFeedback();
     }
@@ -165,13 +168,18 @@ public class QuestionService {
     /** Ответы студента в вид, с которым работают домены. */
     private List<ResponseData> toResponseData(List<ResponseEntity> responses) {
         return responses == null ? List.of()
-                : responses.stream().map(response -> QuestionDataMapper.toData(response)).toList();
+                : responses.stream().map(QuestionDataMapper::toNewResponseData).toList();
     }
 
     public Question getQuestion(Long questionId) {
-        var rawQuestion = questionRepository.findByIdEager(questionId).orElseThrow();
-        Question question = generateBusinessLogicQuestion(rawQuestion);
-        return question;
+        return new Question(questionDataRepository.findById(questionId),
+                domainFactory.getDomain(getDomainName(questionId)));
+    }
+
+    /** Имя домена вопроса — скалярным запросом, без подъёма сущности. */
+    private @NotNull String getDomainName(long questionId) {
+        return questionRepository.findDomainName(questionId)
+                .orElseThrow(() -> new java.util.NoSuchElementException("Question " + questionId + " not found"));
     }
 
     public Question getSolvedQuestion(Long questionId) {
@@ -293,11 +301,6 @@ public class QuestionService {
         return newQuestion;
     }
     */
-
-    public Question generateBusinessLogicQuestion(QuestionEntity question) {
-        Domain domain = domainFactory.getDomain(question.getDomainEntity().getName());
-        return new Question(questionDataMapper.toData(question), domain);
-    }
 
     private ResponseEntity makeResponse(AnswerObjectEntity answer) {
         ResponseEntity response = new ResponseEntity();

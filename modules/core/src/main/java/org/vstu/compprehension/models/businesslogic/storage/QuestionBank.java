@@ -10,7 +10,7 @@ import org.vstu.compprehension.dto.QuestionBankSearchStatsDto;
 import org.vstu.compprehension.models.businesslogic.QuestionBankSearchRequest;
 import org.vstu.compprehension.models.businesslogic.QuestionRequest;
 import org.vstu.compprehension.models.entities.*;
-import org.vstu.compprehension.models.repository.QuestionDataRepository;
+import org.vstu.compprehension.models.repository.SerializedQuestionRepository;
 import org.vstu.compprehension.models.repository.QuestionGenerationRequestRepository;
 import org.vstu.compprehension.models.repository.QuestionMetadataRepository;
 import org.vstu.compprehension.models.repository.QuestionMetadataSearchRequestRepository;
@@ -24,7 +24,7 @@ import java.util.stream.Collectors;
 @Log4j2
 public class QuestionBank {
     private final QuestionMetadataRepository questionMetadataRepository;
-    private final QuestionDataRepository questionDataRepository;
+    private final SerializedQuestionRepository serializedQuestionRepository;
     private final QuestionMetadataManager questionMetadataManager;
     private final QuestionGenerationRequestRepository generationRequestRepository;
     private final QuestionMetadataSearchRequestRepository questionSearchRequestLogRepository;
@@ -32,12 +32,12 @@ public class QuestionBank {
 
     public QuestionBank(
             QuestionMetadataRepository questionMetadataRepository,
-            QuestionDataRepository questionDataRepository,
+            SerializedQuestionRepository serializedQuestionRepository,
             QuestionGenerationRequestRepository generationRequestRepository,
             QuestionMetadataSearchRequestRepository questionSearchRequestLogRepository,
             TransactionScopeFactory transactionScopeFactory) {
         this.questionMetadataRepository = questionMetadataRepository;
-        this.questionDataRepository = questionDataRepository;
+        this.serializedQuestionRepository = serializedQuestionRepository;
         this.questionMetadataManager = new QuestionMetadataManager(questionMetadataRepository);
         this.generationRequestRepository = generationRequestRepository;
         this.questionSearchRequestLogRepository = questionSearchRequestLogRepository;
@@ -313,12 +313,12 @@ public class QuestionBank {
         var allData = metas.stream()
                 .map(QuestionMetadataEntity::getQuestionData)
                 .collect(Collectors.toSet());
-        questionDataRepository.saveAll(allData);
+        serializedQuestionRepository.saveAll(allData);
         questionMetadataRepository.saveAll(metas);
     }
 
     public QuestionDataEntity saveQuestionDataEntity(QuestionDataEntity questionData) {
-        return questionDataRepository.save(questionData);
+        return serializedQuestionRepository.save(questionData);
     }
 
     /**

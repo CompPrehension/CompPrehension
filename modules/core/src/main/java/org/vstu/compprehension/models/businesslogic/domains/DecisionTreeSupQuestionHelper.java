@@ -1,6 +1,8 @@
 package org.vstu.compprehension.models.businesslogic.domains;
 
 import org.vstu.compprehension.models.data.SupplementaryStepData;
+import org.vstu.compprehension.models.data.NewSupplementaryStepData;
+import org.vstu.compprehension.models.data.SupplementarySituationData;
 import org.vstu.compprehension.models.data.ExerciseOptionsData;
 import org.vstu.compprehension.models.data.questionoptions.MatchingQuestionOptionsData;
 import org.vstu.compprehension.models.data.questionoptions.MultiChoiceOptionsData;
@@ -79,7 +81,7 @@ public class DecisionTreeSupQuestionHelper {
         //Получить последний шаг цепочки вспомогательных вопросов
         // Шаги цепочки — записи в БД, у взаимодействия в бизнес-логике их нет:
         // спрашиваем сервис по идентификатору.
-        SupplementaryStepEntity latestStep =
+        SupplementaryStepData latestStep =
                 domain.getSupplementaryStepService().findLatestStepOfInteraction(lastInteraction.getId());
 
         //Создать соответствующую ситуации рдф-модель
@@ -110,8 +112,9 @@ public class DecisionTreeSupQuestionHelper {
             res = state.getQuestion(situation);
         }
 
-        SupplementaryStepEntity supplementaryChain = new SupplementaryStepEntity(
-                domain.getSupplementaryStepService().getInteraction(lastInteraction.getId()), situation, null,
+        NewSupplementaryStepData supplementaryChain = new NewSupplementaryStepData(
+                lastInteraction.getId(),
+                new SupplementarySituationData(situation),
                 res instanceof  QuestionStateChange
                         ? ((QuestionStateChange) res).getNextState() != null ? ((QuestionStateChange) res).getNextState().getId() : 0
                         : state.getId()
@@ -128,7 +131,11 @@ public class DecisionTreeSupQuestionHelper {
         QuestionState state = supplementaryAutomata.get(supplementaryInfo.getNextStateId());
 
         //Создать соответствующую ситуации рдф-модель
-        QuestionInteractionData mainQuestionInteraction = supplementaryInfo.getMainQuestionInteraction();
+        // Взаимодействие берётся по идентификатору: в шаге лежит только ссылка, а
+        // модель ситуации строится по главному вопросу, то есть взаимодействие нужно
+        // вместе с ним.
+        QuestionInteractionData mainQuestionInteraction = domain.getSupplementaryStepService()
+                .getMainQuestionInteraction(supplementaryInfo.getMainQuestionInteractionId());
         DomainModel situationModel = mainQuestionToModelTransformer.apply(mainQuestionInteraction);
 
         //создать ситуацию, описывающую контекст задания вспомогательных вопросов
@@ -163,11 +170,10 @@ public class DecisionTreeSupQuestionHelper {
         //получить фидбек ответа и изменение состояния
         QuestionStateChange change = state.proceedWithAnswer(situation, answers);
 
-        // Взаимодействие берём сущностью по id: новый шаг цепочки — запись в БД.
-        SupplementaryStepEntity newSupplementaryChain = new SupplementaryStepEntity(
-                domain.getSupplementaryStepService().getInteraction(
-                        supplementaryInfo.getMainQuestionInteraction().getId()),
-                situation, null, change.getNextState() != null ? change.getNextState().getId() : null
+        NewSupplementaryStepData newSupplementaryChain = new NewSupplementaryStepData(
+                supplementaryInfo.getMainQuestionInteractionId(),
+                new SupplementarySituationData(situation),
+                change.getNextState() != null ? change.getNextState().getId() : null
         );
         return new SupplementaryFeedbackGenerationResult(stateChangeAsSupplementaryFeedbackDto(change), newSupplementaryChain);
     }

@@ -8,7 +8,8 @@ import org.springframework.http.MediaType;
 import org.springframework.http.ResponseEntity;
 import org.springframework.stereotype.Service;
 import org.springframework.web.client.RestTemplate;
-import org.vstu.compprehension.models.entities.ExerciseAttemptEntity;
+import org.jetbrains.annotations.NotNull;
+import org.vstu.compprehension.models.data.GradePassbackTargetData;
 import org.vstu.compprehension.service.lti.LtiTokenService;
 
 import java.net.URI;
@@ -35,27 +36,27 @@ public class LtiAgsGradePassbackStrategy implements GradePassbackStrategy {
     }
 
     @Override
-    public boolean supports(ExerciseAttemptEntity attempt) {
-        return attempt.getLtiLineitemUrl() != null;
+    public boolean supports(@NotNull GradePassbackTargetData target) {
+        return target.ltiLineitemUrl() != null;
     }
 
     @Override
-    public boolean passGrade(ExerciseAttemptEntity attempt, double grade) {
-        String lineitemUrl = attempt.getLtiLineitemUrl();
+    public boolean passGrade(@NotNull GradePassbackTargetData target, double grade) {
+        String lineitemUrl = target.ltiLineitemUrl();
         try {
             String moodleBaseUrl = extractMoodleBaseUrl(lineitemUrl);
 
-            String externalUserId = attempt.getUser().getExternalUserId();
+            String externalUserId = target.externalUserId();
             if (externalUserId == null || externalUserId.isBlank()) {
                 throw new IllegalStateException(
-                        "No externalUserId for user " + attempt.getUser().getId()
+                        "No externalUserId for user " + target.userId()
                                 + " — пользователь должен войти через LTI до отправки оценки");
             }
 
             String accessToken = tokenService.obtainAccessToken(moodleBaseUrl, SCORE_SCOPE);
             return postScore(lineitemUrl, externalUserId, grade, accessToken);
         } catch (Exception e) {
-            log.error("LTI AGS grade passback failed for attempt {}: {}", attempt.getId(), e.getMessage(), e);
+            log.error("LTI AGS grade passback failed for attempt {}: {}", target.attemptId(), e.getMessage(), e);
             return false;
         }
     }

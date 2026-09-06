@@ -10,10 +10,34 @@ import java.util.List;
 import java.util.Optional;
 
 @Repository
-public interface QuestionRepository extends CrudRepository<QuestionEntity, Long>, CustomQuestionRepository {
-    //@Query(value = "select q from QuestionEntity q where q.id = ?1")
-    //@EntityGraph(value="with-interactions")
-    //public abstract Optional<QuestionEntity> findByIdEager(Long id);
+public interface QuestionRepository extends CrudRepository<QuestionEntity, Long> {
+
+    /**
+     * Вопрос с метаданными и сериализованным телом из банка заданий.
+     * <p>
+     * Первый из запросов, которыми {@code QuestionDataRepository} собирает полный
+     * {@code QuestionData}. Метаданные могут отсутствовать (вопрос сгенерирован не из
+     * банка), поэтому left join; тело банка, наоборот, обязательно, если метаданные есть.
+     */
+    @Query("""
+            select q from QuestionEntity q
+            left join fetch q.metadata m
+            left join fetch m.questionData
+            where q.id = :questionId
+            """)
+    Optional<QuestionEntity> findByIdFetchingMetadata(@Param("questionId") long questionId);
+
+    /** Варианты ответа вопроса, в порядке {@code answerId}. */
+    @Query("""
+            select distinct q from QuestionEntity q
+            left join fetch q.answerObjects
+            where q.id = :questionId
+            """)
+    Optional<QuestionEntity> findByIdFetchingAnswerObjects(@Param("questionId") long questionId);
+
+    /** Имя домена вопроса — без подъёма самой сущности домена. */
+    @Query("select q.domainEntity.name from QuestionEntity q where q.id = :questionId")
+    Optional<String> findDomainName(@Param("questionId") long questionId);
 
     /**
      * Id пользователя, которому принадлежит попытка, породившая вопрос.

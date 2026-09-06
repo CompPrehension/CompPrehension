@@ -25,6 +25,8 @@ public class ImportCoverageTest {
     static void every_layer_under_rules_is_actually_imported(JavaClasses classes) {
         assertNotEmpty(classes, "controllers", c -> c.getPackageName().contains(".controllers"));
         assertNotEmpty(classes, "repositories", c -> c.getPackageName().contains(".models.repository"));
+        assertNotEmpty(classes, "data access", c -> c.getPackageName().contains(".models.repository.data"));
+        assertNotEmpty(classes, "data models", c -> c.getPackageName().contains(".models.data"));
         assertNotEmpty(classes, "services", c -> c.getPackageName().endsWith(".Service")
                 || c.getPackageName().contains(".service"));
         assertNotEmpty(classes, "web DTOs", c -> c.getPackageName().contains(".dto"));
