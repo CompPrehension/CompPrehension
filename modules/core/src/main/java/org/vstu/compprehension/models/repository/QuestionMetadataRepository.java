@@ -3,9 +3,9 @@ package org.vstu.compprehension.models.repository;
 import jakarta.persistence.QueryHint;
 import org.jetbrains.annotations.NotNull;
 import org.springframework.context.annotation.Primary;
+import org.springframework.data.jpa.repository.JpaRepository;
 import org.springframework.data.jpa.repository.Query;
 import org.springframework.data.jpa.repository.QueryHints;
-import org.springframework.data.repository.CrudRepository;
 import org.springframework.data.repository.query.Param;
 import org.springframework.stereotype.Repository;
 import org.vstu.compprehension.models.entities.QuestionMetadataEntity;
@@ -18,7 +18,7 @@ import java.util.List;
 // Основной интерфейс для поиска вопросов по их метаданным
 @Primary
 @Repository
-public interface QuestionMetadataRepository extends CrudRepository<QuestionMetadataEntity, Integer>, QuestionMetadataComplexQueriesRepository {
+public interface QuestionMetadataRepository extends JpaRepository<QuestionMetadataEntity, Integer>, QuestionMetadataComplexQueriesRepository {
 
     @NotNull
     @Query(value = 
@@ -55,7 +55,7 @@ public interface QuestionMetadataRepository extends CrudRepository<QuestionMetad
     
     @NotNull
     @Override
-    Iterable<QuestionMetadataEntity> findAll();
+    List<QuestionMetadataEntity> findAll();
 
     @NotNull
     @Query("select q from #{#entityName} q where q.name = :questionName")

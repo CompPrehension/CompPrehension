@@ -1,17 +1,21 @@
 package org.vstu.compprehension.adapters;
 
+import com.google.common.collect.Lists;
 import org.jetbrains.annotations.NotNull;
 import org.jetbrains.annotations.Nullable;
+import org.springframework.data.domain.Example;
+import org.springframework.data.domain.Page;
+import org.springframework.data.domain.Pageable;
+import org.springframework.data.domain.Sort;
+import org.springframework.data.repository.query.FluentQuery;
 import org.vstu.compprehension.models.businesslogic.QuestionBankSearchRequest;
 import org.vstu.compprehension.models.entities.QuestionMetadataEntity;
 import org.vstu.compprehension.models.repository.QuestionMetadataRepository;
 
 import java.time.LocalDate;
 import java.time.LocalDateTime;
-import java.util.Collection;
-import java.util.HashSet;
-import java.util.List;
-import java.util.Optional;
+import java.util.*;
+import java.util.function.Function;
 
 public class FakeQuestionMetadataRepository implements QuestionMetadataRepository {
     @Override
@@ -20,8 +24,8 @@ public class FakeQuestionMetadataRepository implements QuestionMetadataRepositor
     }
 
     @Override
-    public <S extends QuestionMetadataEntity> Iterable<S> saveAll(Iterable<S> iterable) {
-        return iterable;
+    public <S extends QuestionMetadataEntity> List<S> saveAll(Iterable<S> iterable) {
+        return Lists.newArrayList(iterable.iterator());
     }
 
     @Override
@@ -59,7 +63,7 @@ public class FakeQuestionMetadataRepository implements QuestionMetadataRepositor
 
     @NotNull
     @Override
-    public Iterable<QuestionMetadataEntity> findAll() {
+    public List<QuestionMetadataEntity> findAll() {
         return List.of();
     }
 
@@ -90,7 +94,7 @@ public class FakeQuestionMetadataRepository implements QuestionMetadataRepositor
     }
 
     @Override
-    public Iterable<QuestionMetadataEntity> findAllById(Iterable<Integer> iterable) {
+    public List<QuestionMetadataEntity> findAllById(Iterable<Integer> iterable) {
         return List.of();
     }
 
@@ -122,6 +126,96 @@ public class FakeQuestionMetadataRepository implements QuestionMetadataRepositor
     @Override
     public void deleteAll() {
 
+    }
+
+    @Override
+    public void flush() {
+        
+    }
+
+    @Override
+    public <S extends QuestionMetadataEntity> S saveAndFlush(S entity) {
+        return entity;
+    }
+
+    @Override
+    public <S extends QuestionMetadataEntity> List<S> saveAllAndFlush(Iterable<S> entities) {
+        return List.of();
+    }
+
+    @Override
+    public void deleteAllInBatch(Iterable<QuestionMetadataEntity> entities) {
+
+    }
+
+    @Override
+    public void deleteAllByIdInBatch(Iterable<Integer> integers) {
+
+    }
+
+    @Override
+    public void deleteAllInBatch() {
+
+    }
+
+    @Override
+    public QuestionMetadataEntity getOne(Integer integer) {
+        return null;
+    }
+
+    @Override
+    public QuestionMetadataEntity getById(Integer integer) {
+        return null;
+    }
+
+    @Override
+    public QuestionMetadataEntity getReferenceById(Integer integer) {
+        return null;
+    }
+
+    @Override
+    public <S extends QuestionMetadataEntity> Optional<S> findOne(Example<S> example) {
+        return Optional.empty();
+    }
+
+    @Override
+    public <S extends QuestionMetadataEntity> List<S> findAll(Example<S> example) {
+        return List.of();
+    }
+
+    @Override
+    public <S extends QuestionMetadataEntity> List<S> findAll(Example<S> example, Sort sort) {
+        return List.of();
+    }
+
+    @Override
+    public <S extends QuestionMetadataEntity> Page<S> findAll(Example<S> example, Pageable pageable) {
+        return null;
+    }
+
+    @Override
+    public <S extends QuestionMetadataEntity> long count(Example<S> example) {
+        return 0;
+    }
+
+    @Override
+    public <S extends QuestionMetadataEntity> boolean exists(Example<S> example) {
+        return false;
+    }
+
+    @Override
+    public <S extends QuestionMetadataEntity, R> R findBy(Example<S> example, Function<FluentQuery.FetchableFluentQuery<S>, R> queryFunction) {
+        return null;
+    }
+
+    @Override
+    public List<QuestionMetadataEntity> findAll(Sort sort) {
+        return List.of();
+    }
+
+    @Override
+    public Page<QuestionMetadataEntity> findAll(Pageable pageable) {
+        return null;
     }
 
     /** Заглушка: у генератора нет статистики по банку. */

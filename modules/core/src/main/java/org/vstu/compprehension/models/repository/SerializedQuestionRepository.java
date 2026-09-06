@@ -2,6 +2,7 @@ package org.vstu.compprehension.models.repository;
 
 import jakarta.persistence.QueryHint;
 import org.jetbrains.annotations.NotNull;
+import org.springframework.data.jpa.repository.JpaRepository;
 import org.springframework.data.jpa.repository.Query;
 import org.springframework.data.jpa.repository.QueryHints;
 import org.springframework.data.repository.CrudRepository;
@@ -11,7 +12,7 @@ import org.vstu.compprehension.models.entities.QuestionDataEntity;
 import java.util.List;
 import java.util.Optional;
 
-public interface SerializedQuestionRepository extends CrudRepository<QuestionDataEntity, Integer> {
+public interface SerializedQuestionRepository extends JpaRepository<QuestionDataEntity, Integer> {
     @Query("select q from QuestionDataEntity q inner join QuestionMetadataEntity m on q.id = m.questionData.id where m.id = ?1")
     Optional<QuestionDataEntity> findByMetadataId(int questionMetadataId);
 

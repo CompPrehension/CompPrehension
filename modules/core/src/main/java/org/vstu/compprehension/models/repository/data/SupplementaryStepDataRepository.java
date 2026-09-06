@@ -60,9 +60,7 @@ public class SupplementaryStepDataRepository {
         entity.setSituationInfo(step.getSituationInfo());
         entity.setNextStateId(step.getNextStateId());
         if (supplementaryQuestionId != null) {
-            entity.setSupplementaryQuestion(questionRepository.findById(supplementaryQuestionId)
-                    .orElseThrow(() -> new NoSuchElementException(
-                            "Question " + supplementaryQuestionId + " not found")));
+            entity.setSupplementaryQuestion(questionRepository.getReferenceById(supplementaryQuestionId));
         }
         return supplementaryStepRepository.save(entity).getId();
     }

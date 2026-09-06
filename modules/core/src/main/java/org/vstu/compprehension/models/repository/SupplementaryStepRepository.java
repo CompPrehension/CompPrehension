@@ -1,5 +1,6 @@
 package org.vstu.compprehension.models.repository;
 
+import org.springframework.data.jpa.repository.JpaRepository;
 import org.springframework.data.jpa.repository.Query;
 import org.springframework.data.repository.CrudRepository;
 import org.springframework.data.repository.query.Param;
@@ -7,7 +8,7 @@ import org.vstu.compprehension.models.entities.SupplementaryStepEntity;
 
 import java.util.List;
 
-public interface SupplementaryStepRepository extends CrudRepository<SupplementaryStepEntity, Long> {
+public interface SupplementaryStepRepository extends JpaRepository<SupplementaryStepEntity, Long> {
 
     /**
      * Шаг вместе с идентификатором взаимодействия, начавшего цепочку.

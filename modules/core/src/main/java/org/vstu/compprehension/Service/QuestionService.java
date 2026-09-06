@@ -38,7 +38,7 @@ public class QuestionService {
     private final QuestionRepository questionRepository;
     private final AnswerObjectRepository answerObjectRepository;
     private final AbstractStrategyFactory strategyFactory;
-    private final DomainService domainService;
+    private final DomainRepository domainRepository;
     private final InteractionRepository interactionRepository;
     private final ResponseRepository responseRepository;
     private final SupplementaryStepDataRepository supplementaryStepDataRepository;
@@ -49,11 +49,11 @@ public class QuestionService {
     private final QuestionMetadataRepository questionMetadataRepository;
     private final QuestionDataMapper questionDataMapper;
 
-    public QuestionService(QuestionRepository questionRepository, AnswerObjectRepository answerObjectRepository, AbstractStrategyFactory strategyFactory, DomainService domainService, InteractionRepository interactionRepository, ResponseRepository responseRepository, SupplementaryStepDataRepository supplementaryStepDataRepository, QuestionDataRepository questionDataRepository, DomainFactory domainFactory, QuestionRequestLogRepository questionRequestLogRepository, QuestionBank questionStorage, QuestionDataMapper questionDataMapper, QuestionMetadataRepository questionMetadataRepository) {
+    public QuestionService(QuestionRepository questionRepository, AnswerObjectRepository answerObjectRepository, AbstractStrategyFactory strategyFactory, DomainRepository domainRepository, InteractionRepository interactionRepository, ResponseRepository responseRepository, SupplementaryStepDataRepository supplementaryStepDataRepository, QuestionDataRepository questionDataRepository, DomainFactory domainFactory, QuestionRequestLogRepository questionRequestLogRepository, QuestionBank questionStorage, QuestionDataMapper questionDataMapper, QuestionMetadataRepository questionMetadataRepository) {
         this.questionRepository = questionRepository;
         this.answerObjectRepository = answerObjectRepository;
         this.strategyFactory = strategyFactory;
-        this.domainService = domainService;
+        this.domainRepository = domainRepository;
         this.interactionRepository = interactionRepository;
         this.responseRepository = responseRepository;
         this.supplementaryStepDataRepository = supplementaryStepDataRepository;
@@ -240,7 +240,7 @@ public class QuestionService {
         // Метаданные приходят из банка заданий и уже существуют, поэтому берутся по id.
         var metadata = data.getMetadata() == null || data.getMetadata().getId() == null
                 ? null
-                : questionMetadataRepository.findById(data.getMetadata().getId()).orElse(null);
+                : questionMetadataRepository.getReferenceById(data.getMetadata().getId());
 
         var entity = data.getId() == null
                 ? questionDataMapper.toNewEntity(data, metadata)
@@ -258,7 +258,7 @@ public class QuestionService {
             entity.setExerciseAttempt(exerciseAttempt);
         }
         if (entity.getDomainEntity() == null) {
-            entity.setDomainEntity(domainService.getDomainEntity(question.getDomain().getName()));
+            entity.setDomainEntity(domainRepository.getReferenceById(question.getDomain().getName()));
         }
 
         questionRepository.save(entity);

@@ -1,5 +1,6 @@
 package org.vstu.compprehension.models.repository;
 
+import org.springframework.data.jpa.repository.JpaRepository;
 import org.springframework.data.jpa.repository.Query;
 import org.springframework.data.repository.CrudRepository;
 import org.vstu.compprehension.models.entities.SurveyEntity;
@@ -8,7 +9,7 @@ import org.vstu.compprehension.models.entities.SurveyQuestionEntity;
 import java.util.List;
 import java.util.Optional;
 
-public interface SurveyRepository extends CrudRepository<SurveyEntity, String> {
+public interface SurveyRepository extends JpaRepository<SurveyEntity, String> {
     @Query("select s from SurveyEntity s left join fetch s.questions q where s.surveyId = ?1")
     Optional<SurveyEntity> findOne(String id);
 

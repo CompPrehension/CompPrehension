@@ -1,7 +1,7 @@
 package org.vstu.compprehension.models.repository;
 
+import org.springframework.data.jpa.repository.JpaRepository;
 import org.springframework.data.jpa.repository.Query;
-import org.springframework.data.repository.CrudRepository;
 import org.springframework.data.repository.query.Param;
 import org.springframework.stereotype.Repository;
 import org.vstu.compprehension.models.entities.QuestionEntity;
@@ -10,7 +10,7 @@ import java.util.List;
 import java.util.Optional;
 
 @Repository
-public interface QuestionRepository extends CrudRepository<QuestionEntity, Long> {
+public interface QuestionRepository extends JpaRepository<QuestionEntity, Long> {
 
     /**
      * Вопрос с метаданными и сериализованным телом из банка заданий.

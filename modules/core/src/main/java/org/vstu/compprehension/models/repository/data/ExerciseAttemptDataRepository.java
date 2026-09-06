@@ -191,12 +191,9 @@ public class ExerciseAttemptDataRepository {
         }
 
         var attempt = new ExerciseAttemptEntity();
-        attempt.setExercise(exerciseRepository.findById(exerciseId).orElseThrow(() ->
-                new NoSuchElementException("Exercise with id: " + exerciseId + " not Found")));
-        attempt.setUser(userRepository.findById(userId).orElseThrow(() ->
-                new NoSuchElementException("User with id: " + userId + " not Found")));
-        attempt.setCourse(courseId == null ? null : courseRepository.findById(courseId).orElseThrow(() ->
-                new NoSuchElementException("Course with id: " + courseId + " not Found")));
+        attempt.setExercise(exerciseRepository.getReferenceById(exerciseId));
+        attempt.setUser(userRepository.getReferenceById(userId));
+        attempt.setCourse(courseId == null ? null : courseRepository.getReferenceById(courseId));
         attempt.setAttemptStatus(AttemptStatus.INCOMPLETE);
         attempt.setQuestions(new ArrayList<>());
         attempt.setLtiLineitemUrl(ltiLineitemUrl);
