@@ -12,9 +12,9 @@ import java.util.Optional;
  * полей для карточки, а сущность протекала в контроллеры вместе с ленивыми связями.
  */
 public interface UserService {
-    CurrentUserData getCurrentUser() throws Exception;
+    CurrentUserData getCurrentUser();
 
-    void setLanguage(Language language) throws Exception;
+    void setLanguage(Language language);
 
     default Optional<CurrentUserData> tryGetCurrentUser() {
         try {

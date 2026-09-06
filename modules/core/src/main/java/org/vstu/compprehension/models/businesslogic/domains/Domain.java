@@ -45,9 +45,6 @@ public interface Domain {
      */
     Optional<ExerciseStageData> getExerciseStageOf(@NotNull Question question);
 
-    /** Язык, выбранный автором попытки, породившей вопрос. */
-    @NotNull Language getUserLanguageOf(@NotNull Question question);
-
     /** Описание предметной области: имя, короткое имя, версия, опции. */
     @NotNull DomainData getDomainData();
 
@@ -186,21 +183,21 @@ public interface Domain {
      */
     SupplementaryResponseGenerationResult makeSupplementaryQuestion(QuestionData sourceQuestion, ViolationData violation, Language lang);
 
-    SupplementaryFeedbackGenerationResult judgeSupplementaryQuestion(Question question, SupplementaryStepData supplementaryStep, List<ResponseData> responses);
+    SupplementaryFeedbackGenerationResult judgeSupplementaryQuestion(Question question, SupplementaryStepData supplementaryStep, List<ResponseData> responses, Language language);
 
     /**
      * Get any correct answer at current iteration
      * @param q question
      * @return any correct answer
      */
-    CorrectAnswer getAnyNextCorrectAnswer(Question q);
+    CorrectAnswer getAnyNextCorrectAnswer(Question q, Language language);
 
     /**
      * Get text description of all steps to right solution
      * @param question tested question
      * @return list of step descriptions
      */
-    List<HyperText> getFullSolutionTrace(Question question);
+    List<HyperText> getFullSolutionTrace(Question question, Language language);
 
     /** Get concepts with given flags (e.g. visible) organized into two-level hierarchy
      * @param requiredFlags e.g. Concept.FLAG_VISIBLE_TO_TEACHER
@@ -227,7 +224,7 @@ public interface Domain {
      * @param tags Exercise tags
      * @return interpretation of backend's judgement
      */
-    InterpretSentenceResult judgeQuestion(Question question, List<ResponseData> responses, List<Tag> tags);
+    InterpretSentenceResult judgeQuestion(Question question, List<ResponseData> responses, List<Tag> tags, Language language);
 
     /**
      * Any available correct answer at current iteration

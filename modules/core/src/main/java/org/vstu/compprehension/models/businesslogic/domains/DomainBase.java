@@ -34,13 +34,8 @@ public abstract class DomainBase implements Domain {
     protected final RandomProvider randomProvider;
     @Getter
     private final DomainData domainData;
-
-    /**
-     * Контекст попытки для вопроса. Домены сами по попытке не ходят: связи ленивые,
-     * а обход ради одного этапа поднимал все вопросы попытки.
-     */
+    @Getter
     private final ExerciseAttemptService exerciseAttemptService;
-
     @Getter
     private final SupplementaryStepService supplementaryStepService;
 
@@ -53,29 +48,11 @@ public abstract class DomainBase implements Domain {
         this.supplementaryStepService = supplementaryStepService;
     }
 
-    /** Есть ли у вопроса попытка, в рамках которой он задан. */
-    protected boolean isQuestionInAttempt(@Nullable Long questionId) {
-        return questionId != null && exerciseAttemptService.findAttemptIdOfQuestion(questionId).isPresent();
-    }
-
-    /** Включён ли для упражнения вопроса режим вспомогательных вопросов на дереве решений. */
-    protected boolean prefersDecisionTreeSupplementary(@Nullable Long questionId) {
-        return questionId == null
-                || exerciseAttemptService.prefersDecisionTreeSupplementary(questionId);
-    }
-
     @Override
     public Optional<ExerciseStageData> getExerciseStageOf(@NotNull Question question) {
         var questionId = question.getQuestionData().getId();
         return questionId == null ? Optional.empty()
                 : exerciseAttemptService.findStageForQuestion(questionId);
-    }
-
-    @Override
-    public @NotNull Language getUserLanguageOf(@NotNull Question question) {
-        var questionId = question.getQuestionData().getId();
-        return questionId == null ? Language.RUSSIAN
-                : exerciseAttemptService.findUserLanguageForQuestion(questionId);
     }
 
     public @NotNull String getDomainId() {

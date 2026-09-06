@@ -1,5 +1,6 @@
 package org.vstu.compprehension.models.businesslogic.domains;
 
+import org.vstu.compprehension.Service.SupplementaryStepService;
 import org.vstu.compprehension.models.data.SupplementaryStepData;
 import org.vstu.compprehension.models.data.NewSupplementaryStepData;
 import org.vstu.compprehension.models.data.SupplementarySituationData;
@@ -39,12 +40,14 @@ import java.util.stream.Collectors;
 
 public class DecisionTreeSupQuestionHelper {
     public DecisionTreeSupQuestionHelper(
-            DomainBase domain,
+            Domain domain,
             DomainSolvingModel domainSolvingModel,
-            Function<QuestionInteractionData, DomainModel> mainQuestionToModelTransformer
+            Function<QuestionInteractionData, DomainModel> mainQuestionToModelTransformer,
+            SupplementaryStepService supplementaryStepService
     ) {
         this.domain = domain;
         this.domainModel = domainSolvingModel;
+        this.supplementaryStepService = supplementaryStepService;
         this.supplementaryAutomata = FullBranchStrategy.INSTANCE.buildAndFinalize(
                 domainModel.getDecisionTree().getMainBranch(), new EndQuestionState()
         );
@@ -54,19 +57,22 @@ public class DecisionTreeSupQuestionHelper {
     public DecisionTreeSupQuestionHelper(
             DomainBase domain,
             URL domainModelDirectoryURL,
-            Function<QuestionInteractionData, DomainModel> mainQuestionToModelTransformer
+            Function<QuestionInteractionData, DomainModel> mainQuestionToModelTransformer,
+            SupplementaryStepService supplementaryStepService
     ) {
         this(
                 domain,
                 new DomainSolvingModel(domainModelDirectoryURL, DomainSolvingModel.BuildMethod.LOQI),
-                mainQuestionToModelTransformer
+                mainQuestionToModelTransformer,
+                supplementaryStepService
         );
     }
 
-    private final DomainBase domain;
+    private final Domain domain;
     final DomainSolvingModel domainModel ;
     private final QuestionAutomata supplementaryAutomata;
     private final Function<QuestionInteractionData, DomainModel> mainQuestionToModelTransformer;
+    private final SupplementaryStepService supplementaryStepService;
 
     //DT = Decision Tree
     public SupplementaryResponseGenerationResult makeSupplementaryQuestion(QuestionData mainQuestion, Language userLang) {
@@ -79,8 +85,7 @@ public class DecisionTreeSupQuestionHelper {
         //Получить последний шаг цепочки вспомогательных вопросов
         // Шаги цепочки — записи в БД, у взаимодействия в бизнес-логике их нет:
         // спрашиваем сервис по идентификатору.
-        SupplementaryStepData latestStep =
-                domain.getSupplementaryStepService().findLatestStepOfInteraction(lastInteraction.getId());
+        SupplementaryStepData latestStep = supplementaryStepService.findLatestStepOfInteraction(lastInteraction.getId());
 
         //Создать соответствующую ситуации рдф-модель
         DomainModel situationModel = mainQuestionToModelTransformer.apply(lastInteraction);
@@ -128,12 +133,7 @@ public class DecisionTreeSupQuestionHelper {
         //получить состояние автомата вопросов, соответствующее данному вопросу
         QuestionState state = supplementaryAutomata.get(supplementaryInfo.getNextStateId());
 
-        //Создать соответствующую ситуации рдф-модель
-        // Взаимодействие берётся по идентификатору: в шаге лежит только ссылка, а
-        // модель ситуации строится по главному вопросу, то есть взаимодействие нужно
-        // вместе с ним.
-        QuestionInteractionData mainQuestionInteraction = domain.getSupplementaryStepService()
-                .getMainQuestionInteraction(supplementaryInfo.getMainQuestionInteractionId());
+        QuestionInteractionData mainQuestionInteraction = supplementaryStepService.getMainQuestionInteraction(supplementaryInfo.getMainQuestionInteractionId());
         DomainModel situationModel = mainQuestionToModelTransformer.apply(mainQuestionInteraction);
 
         //создать ситуацию, описывающую контекст задания вспомогательных вопросов

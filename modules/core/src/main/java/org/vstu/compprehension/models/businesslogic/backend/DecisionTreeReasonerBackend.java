@@ -291,11 +291,12 @@ public class DecisionTreeReasonerBackend
         @Override
         default InterpretSentenceResult interpretJudgeOutput(
             Question judgedQuestion,
-            Output backendOutput
+            Output backendOutput,
+            Language language
         ) {
 
             if(!backendOutput.isReasoningDone){
-                return interpretJudgeNotPerformed(judgedQuestion, backendOutput.situation);
+                return interpretJudgeNotPerformed(judgedQuestion, backendOutput.situation, language);
             }
             List<DecisionTreeTraceElement<?, ?>> traceElements = nestedTraceElements(backendOutput.results);
 
@@ -313,7 +314,6 @@ public class DecisionTreeReasonerBackend
 
             updateJudgeInterpretationResult(result, backendOutput);
 
-            Language lang = getUserLanguageByQuestion(judgedQuestion);
             var exerciseStage = judgedQuestion.getDomain().getExerciseStageOf(judgedQuestion);
             List<String> deniedSkills = List.of();
             if (exerciseStage.isPresent()) {
@@ -322,7 +322,7 @@ public class DecisionTreeReasonerBackend
             }
             result.explanation = collectExplanationsFromTrace(Explanation.Type.ERROR, backendOutput.results,
                     backendOutput.situation.getDomainModel(),
-                    judgedQuestion.getDomain(), deniedSkills, lang
+                    judgedQuestion.getDomain(), deniedSkills, language
             );
             if (!result.isAnswerCorrect) {
                 List<ViolationData> mistakes = result.explanation.getDomainLawNames()
@@ -342,18 +342,6 @@ public class DecisionTreeReasonerBackend
         }
 
         /**
-         * Get current user's language from a question
-         */
-        /**
-         * Язык пользователя берётся у домена, а не обходом попытки: раньше здесь стояло
-         * {@code question.getQuestionData().getExerciseAttempt().getUser()}, то есть
-         * ленивый обход из бэкенда, да ещё и с перехватом NPE вместо проверки.
-         */
-        default Language getUserLanguageByQuestion(Question question){
-            return question.getDomain().getUserLanguageOf(question);
-        }
-
-        /**
          * Create an interpretation result for a situation, in which a reasoning could not be performed
          * (Currently only possible if not all input variables are present)
          * @param judgedQuestion a question which prompted the unfinished judge
@@ -361,7 +349,8 @@ public class DecisionTreeReasonerBackend
          */
         InterpretSentenceResult interpretJudgeNotPerformed(
             Question judgedQuestion,
-            LearningSituation preparedSituation
+            LearningSituation preparedSituation,
+            Language language
         );
 
         /**

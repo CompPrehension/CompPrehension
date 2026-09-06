@@ -1,5 +1,6 @@
 package org.vstu.compprehension.adapters;
 
+import lombok.SneakyThrows;
 import lombok.extern.log4j.Log4j2;
 import org.jetbrains.annotations.NotNull;
 import org.jetbrains.annotations.Nullable;
@@ -60,8 +61,9 @@ public class UserServiceImpl implements UserService {
         this.roleAssignmentService = roleAssignmentService;
     }
 
+    @SneakyThrows
     @Override
-    public CurrentUserData getCurrentUser() throws Exception {
+    public CurrentUserData getCurrentUser() {
         return UserDataMapper.toCurrentUser(signIn());
     }
 
@@ -179,8 +181,9 @@ public class UserServiceImpl implements UserService {
         return SystemRole.STUDENT;
     }
 
+    @SneakyThrows
     @Override
-    public void setLanguage(Language language) throws Exception {
+    public void setLanguage(Language language) {
         Authentication authentication = SecurityContextHolder.getContext().getAuthentication();
         var parsedIdToken = getToken(authentication);
         var email = parsedIdToken.getEmail();

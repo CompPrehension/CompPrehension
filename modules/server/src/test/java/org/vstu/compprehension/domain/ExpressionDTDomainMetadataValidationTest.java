@@ -226,7 +226,7 @@ public class ExpressionDTDomainMetadataValidationTest extends AbstractIntegratio
         for (AnswerObjectData answerObject : answerSequence) {
             responses.add(ResponseData.builder().leftAnswerObject(answerObject).rightAnswerObject(answerObject).build());
         }
-        return q.getDomain().judgeQuestion(q, responses, List.of(domain.getTag(outLangStr)));
+        return q.getDomain().judgeQuestion(q, responses, List.of(domain.getTag(outLangStr)), Language.ENGLISH);
     }
 
     // Метод для получения всех комбинаций

@@ -91,23 +91,18 @@ public class QuestionService {
         if(responseGen.getNewStep() != null){
             supplementaryStepDataRepository.create(responseGen.getNewStep(), supplementaryQuestionId);
         }
-        return Mapper.toDto(responseGen.getResponse());
+        return Mapper.toDto(responseGen.getResponse(), lang);
     }
 
-    public SupplementaryFeedbackDto judgeSupplementaryQuestion(Question question, List<ResponseData> responses) {
+    public SupplementaryFeedbackDto judgeSupplementaryQuestion(Question question, List<ResponseData> responses, Language language) {
         Domain domain = question.getDomain();
         val supplementaryInfo = supplementaryStepDataRepository
                 .findBySupplementaryQuestionId(question.getQuestionData().getId());
-        val feedbackGen = domain.judgeSupplementaryQuestion(question, supplementaryInfo, responses);
+        val feedbackGen = domain.judgeSupplementaryQuestion(question, supplementaryInfo, responses, language);
         if(feedbackGen.getNewStep() != null){
             supplementaryStepDataRepository.create(feedbackGen.getNewStep(), null);
         }
         return feedbackGen.getFeedback();
-    }
-
-    @SuppressWarnings("unchecked")
-    public Question solveQuestion(Question question, List<Tag> tags) {
-        return question.getDomain().solveQuestion(question, tags);
     }
 
     /**
@@ -140,13 +135,9 @@ public class QuestionService {
         interactionDataRepository.grade(interactionId, grade);
     }
 
-    @SuppressWarnings("unchecked")
-    public Domain.InterpretSentenceResult judgeQuestion(Question question, List<ResponseData> responses, List<Tag> tags) {
-        return question.getDomain().judgeQuestion(question, responses, tags);
-    }
-
     public Question getQuestion(Long questionId) {
-        return new Question(questionDataRepository.findById(questionId),
+        return new Question(
+                questionDataRepository.findById(questionId),
                 domainFactory.getDomain(getDomainName(questionId)));
     }
 
@@ -158,7 +149,8 @@ public class QuestionService {
     public Question getSolvedQuestion(Long questionId) {
         val question = getQuestion(questionId);
         var tags = question.getTags();
-        val solved = solveQuestion(question, tags);
+        var domain = question.getDomain();
+        val solved = domain.solveQuestion(question, tags);
 
         // Решение дописывает в вопрос факты (FactBackend.updateQuestionAfterSolve),
         // и до этой строки они сохранялись неявно: вопрос загружен из БД, значит
@@ -202,10 +194,6 @@ public class QuestionService {
                              @Nullable Long exerciseAttemptId) {
         questionDataRepository.save(question.getQuestionData(), question.getDomain().getName(),
                 questionRequestLog, exerciseAttemptId);
-    }
-
-    public Domain.CorrectAnswer getNextCorrectAnswer(Question question) {
-        return question.getDomain().getAnyNextCorrectAnswer(question);
     }
 
 }

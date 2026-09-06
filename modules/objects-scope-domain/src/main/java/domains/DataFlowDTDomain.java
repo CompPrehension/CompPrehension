@@ -358,8 +358,7 @@ public class DataFlowDTDomain extends DecisionTreeReasoningDomain {
     }
 
     @Override
-    public CorrectAnswer getAnyNextCorrectAnswer(Question q) {
-        Language lang = getUserLanguageOf(q);
+    public CorrectAnswer getAnyNextCorrectAnswer(Question q, Language language) {
 
         Optional<QuestionInteractionData> lastCorrectInteraction = Optional.ofNullable(q.getQuestionData().getInteractions()).stream()
                 .flatMap(Collection::stream)
@@ -408,7 +407,7 @@ public class DataFlowDTDomain extends DecisionTreeReasoningDomain {
                         domainSolvingModel.getDecisionTree(),
                         learningSituation
                 );
-                Explanation hintExplanation = GenerateErrorTextForScopeObjects.generateHintExplanationDataFlow(result, learningSituation.getDomainModel(), lang);
+                Explanation hintExplanation = GenerateErrorTextForScopeObjects.generateHintExplanationDataFlow(result, learningSituation.getDomainModel(), language);
 
                 if(!hintExplanation.getChildren().getFirst().getRawMessage().isEmpty()) {
                     AnswerObjectData answer = q.getAnswerObjects().stream()
@@ -421,7 +420,7 @@ public class DataFlowDTDomain extends DecisionTreeReasoningDomain {
                     correctAnswer.lawName = null;
                     correctAnswer.skillName = null;
 
-                    Explanation newHintExplanation = replaceEnumInExplanation(hintExplanation.getChildren().getFirst(), lang);
+                    Explanation newHintExplanation = replaceEnumInExplanation(hintExplanation.getChildren().getFirst(), language);
                     correctAnswer.explanation = hintExplanation;
                     correctAnswer.explanation.getChildren().removeFirst();
                     correctAnswer.explanation.getChildren().addFirst(newHintExplanation);
@@ -444,7 +443,7 @@ public class DataFlowDTDomain extends DecisionTreeReasoningDomain {
                 Explanation.Type.HINT,
                 ""
         );
-        explanation.getChildren().add(new Explanation(Explanation.Type.HINT, getMessage("hint_all", lang)));
+        explanation.getChildren().add(new Explanation(Explanation.Type.HINT, getMessage("hint_all", language)));
         correctAnswer.explanation = explanation;
         return correctAnswer;
     }
@@ -464,7 +463,7 @@ public class DataFlowDTDomain extends DecisionTreeReasoningDomain {
     }
 
     @Override
-    public List<HyperText> getFullSolutionTrace(Question question) {
+    public List<HyperText> getFullSolutionTrace(Question question, Language language) {
         return null;
     }
 
@@ -578,7 +577,7 @@ public class DataFlowDTDomain extends DecisionTreeReasoningDomain {
     }
 
     @Override
-    public SupplementaryFeedbackGenerationResult judgeSupplementaryQuestion(Question question, SupplementaryStepData supplementaryStep, List<ResponseData> responses) {
+    public SupplementaryFeedbackGenerationResult judgeSupplementaryQuestion(Question question, SupplementaryStepData supplementaryStep, List<ResponseData> responses, Language language) {
         throw new NotImplementedException();
     }
 
@@ -638,25 +637,24 @@ public class DataFlowDTDomain extends DecisionTreeReasoningDomain {
         }
 
         @Override
-        public InterpretSentenceResult interpretJudgeOutput(Question judgedQuestion, DecisionTreeReasonerBackend.Output backendOutput) {
+        public InterpretSentenceResult interpretJudgeOutput(Question judgedQuestion, DecisionTreeReasonerBackend.Output backendOutput, Language language) {
             var domain = judgedQuestion.getDomain();
             if (!(domain instanceof DataFlowDTDomain realDomain)) {
                 throw new IllegalArgumentException("Domain is not a DataFlowDTDomain");
             }
 
             if(!backendOutput.isReasoningDone()){
-                return interpretJudgeNotPerformed(judgedQuestion, backendOutput.situation());
+                return interpretJudgeNotPerformed(judgedQuestion, backendOutput.situation(), language);
             }
             InterpretSentenceResult result = new InterpretSentenceResult();
             updateJudgeInterpretationResult(result, backendOutput);
 
-            Language lang = getUserLanguageByQuestion(judgedQuestion);
             result.explanation = GenerateErrorTextForScopeObjects.generateErrorExplanation(
                     backendOutput.results(),
                     backendOutput.situation().getDomainModel(),
-                    lang
+                    language
             );
-            result.explanation = realDomain.replaceEnumInExplanation(result.explanation, lang);
+            result.explanation = realDomain.replaceEnumInExplanation(result.explanation, language);
             result.explanation.setCurrentDomainLawName("incorrectAnswer");
 
             result.violations = new ArrayList<>();
@@ -676,7 +674,8 @@ public class DataFlowDTDomain extends DecisionTreeReasoningDomain {
         @Override
         public InterpretSentenceResult interpretJudgeNotPerformed(
                 Question judgedQuestion,
-                LearningSituation preparedSituation
+                LearningSituation preparedSituation,
+                Language language
         ) {
             InterpretSentenceResult result = new InterpretSentenceResult();
             result.violations = new ArrayList<>();

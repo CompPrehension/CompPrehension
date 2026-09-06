@@ -20,6 +20,7 @@ import org.vstu.compprehension.models.businesslogic.Question;
 import org.vstu.compprehension.models.businesslogic.SupplementaryResponse;
 import org.vstu.compprehension.models.entities.EnumData.Decision;
 import org.vstu.compprehension.models.entities.EnumData.InteractionType;
+import org.vstu.compprehension.models.entities.EnumData.Language;
 import org.vstu.compprehension.models.entities.EnumData.QuestionType;
 
 import java.util.ArrayList;
@@ -86,7 +87,7 @@ public class Mapper {
     }
     */
 
-    public static @NotNull QuestionDto toDto(@NotNull Question questionObject) {
+    public static @NotNull QuestionDto toDto(@NotNull Question questionObject, Language language) {
         val question = questionObject.getQuestionData();
 
         // calculate last interaction responses
@@ -112,7 +113,7 @@ public class Mapper {
                 .toArray(AnswerDto[]::new);
 
         val feedback = lastInteraction
-                .map(i -> Mapper.toFeedbackDto(questionObject, null, correctInteractionsCount, interactionsWithErrorsCount, i.getFeedback().getGrade(), i.getFeedback().getInteractionsLeft(), null, i.getViolations().size() == 0, null))
+                .map(i -> Mapper.toFeedbackDto(questionObject, null, correctInteractionsCount, interactionsWithErrorsCount, i.getFeedback().getGrade(), i.getFeedback().getInteractionsLeft(), null, i.getViolations().size() == 0, null, language))
                 .orElse(null);
 
         val answers = question.getAnswerObjects() != null ? question.getAnswerObjects() : new ArrayList<AnswerObjectData>(0);
@@ -122,7 +123,7 @@ public class Mapper {
         switch (question.getQuestionType()) {
             case ORDER:
                 val trace = Optional.ofNullable(questionObject.getDomain())
-                        .map(d -> d.getFullSolutionTrace(questionObject)).stream()
+                        .map(d -> d.getFullSolutionTrace(questionObject, language)).stream()
                         .flatMap(Collection::stream)
                         .map(HyperText::getText)
                         .toArray(String[]::new);
@@ -195,11 +196,12 @@ public class Mapper {
             @Nullable Integer interactionsLeft,
             @Nullable AnswerDto[] correctAnswers,
             boolean isCorrect,
-            @Nullable Decision strategyDecision
+            @Nullable Decision strategyDecision,
+            @NotNull Language language
     ) {
         if (question.getQuestionData().getQuestionType() == QuestionType.ORDER) {
             val trace = Optional.ofNullable(question.getDomain())
-                    .map(d -> d.getFullSolutionTrace(question)).stream()
+                    .map(d -> d.getFullSolutionTrace(question, language)).stream()
                     .flatMap(Collection::stream)
                     .map(HyperText::getText)
                     .toArray(String[]::new);
@@ -228,9 +230,9 @@ public class Mapper {
     }
 
 
-    public static @NotNull SupplementaryQuestionDto toDto(@NotNull SupplementaryResponse response){
+    public static @NotNull SupplementaryQuestionDto toDto(@NotNull SupplementaryResponse response, @NotNull Language language) {
         if(response.getQuestion() != null) {
-            QuestionDto questionDto = Mapper.toDto(response.getQuestion());
+            QuestionDto questionDto = Mapper.toDto(response.getQuestion(), language);
             return questionDto.getAnswers().length > 0 ? SupplementaryQuestionDto.FromQuestion(questionDto)
                     : SupplementaryQuestionDto.FromMessage(new SupplementaryFeedbackDto(FeedbackDto.Message.Success(questionDto.getText().replaceAll("<[^>]*>", "")), SupplementaryFeedbackDto.Action.Finish));
         }

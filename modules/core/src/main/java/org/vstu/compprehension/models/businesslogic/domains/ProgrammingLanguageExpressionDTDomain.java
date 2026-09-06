@@ -359,7 +359,8 @@ public class ProgrammingLanguageExpressionDTDomain extends DecisionTreeReasoning
         @Override
         public InterpretSentenceResult interpretJudgeNotPerformed(
                 Question judgedQuestion,
-                LearningSituation preparedSituation
+                LearningSituation preparedSituation,
+                Language language
         ) {
             var domain = judgedQuestion.getDomain();
             if (!(domain instanceof ProgrammingLanguageExpressionDTDomain realDomain)) {
@@ -389,7 +390,7 @@ public class ProgrammingLanguageExpressionDTDomain extends DecisionTreeReasoning
                     preparedSituation.getDomainModel(),
                     domain,
                     deniedSkills,
-                    getUserLanguageByQuestion(judgedQuestion));
+                    language);
             result.violations.addAll(result.explanation.getDomainLawNames().stream().map(skill -> {
                 ViolationData v = new ViolationData();
                 v.setLawName(skill);
@@ -789,8 +790,7 @@ public class ProgrammingLanguageExpressionDTDomain extends DecisionTreeReasoning
     }
 
     @Override
-    public List<HyperText> getFullSolutionTrace(Question question) {
-        Language lang = getUserLanguageOf(question);
+    public List<HyperText> getFullSolutionTrace(Question question, Language language) {
         SupportedLanguage plang = MeaningTreeUtils.detectLanguageFromTags(question.getMetadata().getTagBits(), this);
 
         ArrayList<HyperText> result = new ArrayList<>();
@@ -824,7 +824,7 @@ public class ProgrammingLanguageExpressionDTDomain extends DecisionTreeReasoning
                                 Boolean.toString(cond.get().getAssignedValue() != null ?
                                     (boolean) cond.get().getAssignedValue() : false),
                                 "#fceed2",
-                                tokens, lang
+                                tokens, language
                                 ));
                     }
                 }
@@ -855,7 +855,7 @@ public class ProgrammingLanguageExpressionDTDomain extends DecisionTreeReasoning
                         tokenIndex, responseIsCorrect,
                         value == null ? "" : Boolean.toString((boolean) value),
                         !responseIsCorrect ? "#ff9" : "",
-                        tokens, lang
+                        tokens, language
                 ));
             }
         } else {
@@ -870,8 +870,7 @@ public class ProgrammingLanguageExpressionDTDomain extends DecisionTreeReasoning
     }
 
     @Override
-    public CorrectAnswer getAnyNextCorrectAnswer(Question q) {
-        Language lang = getUserLanguageOf(q);
+    public CorrectAnswer getAnyNextCorrectAnswer(Question q, Language language) {
         var exerciseStage = getExerciseStageOf(q);
         List<String> deniedSkills = List.of();
         if (exerciseStage.isPresent()) {
@@ -918,11 +917,11 @@ public class ProgrammingLanguageExpressionDTDomain extends DecisionTreeReasoning
                     Explanation explanation = DecisionTreeReasonerBackend.collectExplanationsFromTrace(
                             Explanation.Type.HINT,
                             solveRes.trace(), domain,
-                            this, deniedSkills, lang
+                            this, deniedSkills, language
                     );
                     if (explanation.isEmpty()) {
                         explanation.getChildren().add(new Explanation(Explanation.Type.HINT, new HyperText(
-                                        getMessage("explanations.missing_correct_answer_explanation", lang))));
+                                        getMessage("explanations.missing_correct_answer_explanation", language))));
                     }
 
                     CorrectAnswer correctAnswer = new CorrectAnswer();
@@ -943,7 +942,7 @@ public class ProgrammingLanguageExpressionDTDomain extends DecisionTreeReasoning
         correctAnswer.skillName = List.of();
         correctAnswer.explanation = DecisionTreeReasonerBackend.collectExplanationsFromTrace(Explanation.Type.HINT,
                 solver.solveNoVars(domain, domainSolvingModel.decisionTree("earlyfinish")).trace(),
-                domain, this, deniedSkills, lang
+                domain, this, deniedSkills, language
                 );
         return correctAnswer;
     }
@@ -976,7 +975,8 @@ public class ProgrammingLanguageExpressionDTDomain extends DecisionTreeReasoning
     private final DecisionTreeSupQuestionHelper dtSupplementaryQuestionHelper = new DecisionTreeSupQuestionHelper(
             this,
             domainSolvingModel,
-            this::mainQuestionToModel
+            this::mainQuestionToModel,
+            this.getSupplementaryStepService()
     );
 
     @Override
@@ -985,7 +985,7 @@ public class ProgrammingLanguageExpressionDTDomain extends DecisionTreeReasoning
     }
 
     @Override
-    public SupplementaryFeedbackGenerationResult judgeSupplementaryQuestion(Question question, SupplementaryStepData supplementaryStep, List<ResponseData> responses) {
+    public SupplementaryFeedbackGenerationResult judgeSupplementaryQuestion(Question question, SupplementaryStepData supplementaryStep, List<ResponseData> responses, Language language) {
         return dtSupplementaryQuestionHelper.judgeSupplementaryQuestion(supplementaryStep, responses);
     }
 

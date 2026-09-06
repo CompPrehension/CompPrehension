@@ -1225,7 +1225,7 @@ public class ProgrammingLanguageExpressionDomain extends JenaReasoningDomain {
         return result;
     }
 
-    HyperText getCorrectExplanation(Question q, AnswerObjectData answer) {
+    HyperText getCorrectExplanation(Question q, AnswerObjectData answer, Language language) {
         HashMap<String, String> indexes = new HashMap<>();
         HashMap<String, String> texts = new HashMap<>();
         HashMap<String, String> isStrict = new HashMap<>();
@@ -1272,13 +1272,11 @@ public class ProgrammingLanguageExpressionDomain extends JenaReasoningDomain {
         AnswerObjectData last = null;
         ArrayList<AnswerObjectData> explain = new ArrayList<>();
         TreeMap<Integer, String> posToExplanation = new TreeMap<>();
-        
-        Language lang = getUserLanguageOf(q);
 
         int answerPos = Integer.parseInt(indexes.get(answer.getDomainInfo()));
         String answerText = texts.get(answer.getDomainInfo());
-        String answerTemplate = StringHelper.joinWithSpace(answerText, getMessage("AT_POS", lang), answerPos);
-        posToExplanation.put(-1, StringHelper.joinWithSpace(getMessage("OPERATOR", lang), answerTemplate, getMessage("EVALUATES", lang)));
+        String answerTemplate = StringHelper.joinWithSpace(answerText, getMessage("AT_POS", language), answerPos);
+        posToExplanation.put(-1, StringHelper.joinWithSpace(getMessage("OPERATOR", language), answerTemplate, getMessage("EVALUATES", language)));
 
         for (AnswerObjectData answerObjectEntity : q.getAnswerObjects()) {
             if (beforeByThirdOperator.containsKey(answerObjectEntity.getDomainInfo())) {
@@ -1304,27 +1302,27 @@ public class ProgrammingLanguageExpressionDomain extends JenaReasoningDomain {
                     if (before.containsMapping(answerObjectEntity.getDomainInfo(), thirdOperator)) {
                         int pos = Integer.parseInt(indexes.get(answerObjectEntity.getDomainInfo()));
                         String text = texts.get(answerObjectEntity.getDomainInfo());
-                        String template = StringHelper.joinWithSpace(text, getMessage("AT_POS", lang), pos);
+                        String template = StringHelper.joinWithSpace(text, getMessage("AT_POS", language), pos);
 
                         int thirdPos = Integer.parseInt(indexes.get(thirdOperator));
                         String thirdText = texts.get(thirdOperator);
-                        String thirdTemplate = StringHelper.joinWithSpace(thirdText, getMessage("AT_POS", lang), thirdPos);
+                        String thirdTemplate = StringHelper.joinWithSpace(thirdText, getMessage("AT_POS", language), thirdPos);
 
                         if (isStrict.containsKey(thirdOperator)) {
                             posToExplanation.put(pos, StringHelper.joinWithSpace(
-                                    getMessage("BEFORE_OPERATOR", lang),
+                                    getMessage("BEFORE_OPERATOR", language),
                                     template,
                                     ":",
-                                    getMessage("OPERATOR", lang),
+                                    getMessage("OPERATOR", language),
                                     answerTemplate,
-                                    getMessage("LEFT_SUBOPERATOR", lang),
+                                    getMessage("LEFT_SUBOPERATOR", language),
                                     thirdTemplate,
-                                    getMessage("WHILE_OPERATOR", lang),
+                                    getMessage("WHILE_OPERATOR", language),
                                     template,
-                                    getMessage("TO_LEFT_OPERAND", lang) + ",",
-                                    getMessage("AND_LEFT_OPERAND", lang),
+                                    getMessage("TO_LEFT_OPERAND", language) + ",",
+                                    getMessage("AND_LEFT_OPERAND", language),
                                     thirdText,
-                                    getMessage("EVALUATES_BEFORE_RIGHT", lang)));
+                                    getMessage("EVALUATES_BEFORE_RIGHT", language)));
                         }
                     }
                 }
@@ -1334,37 +1332,37 @@ public class ProgrammingLanguageExpressionDomain extends JenaReasoningDomain {
                     if (before.containsMapping(answerObjectEntity.getDomainInfo(), thirdOperator)) {
                         int pos = Integer.parseInt(indexes.get(answerObjectEntity.getDomainInfo()));
                         String text = texts.get(answerObjectEntity.getDomainInfo());
-                        String template = StringHelper.joinWithSpace(text, getMessage("AT_POS", lang), pos);
+                        String template = StringHelper.joinWithSpace(text, getMessage("AT_POS", language), pos);
 
                         int thirdPos = Integer.parseInt(indexes.get(thirdOperator));
                         String thirdText = texts.get(thirdOperator);
-                        String thirdTemplate = StringHelper.joinWithSpace(thirdText, getMessage("AT_POS", lang), thirdPos);
+                        String thirdTemplate = StringHelper.joinWithSpace(thirdText, getMessage("AT_POS", language), thirdPos);
 
                         if (isStrict.containsKey(thirdOperator)) {
                             posToExplanation.put(pos, StringHelper.joinWithSpace(
-                                    getMessage("AFTER_OPERATOR", lang),
+                                    getMessage("AFTER_OPERATOR", language),
                                     template,
                                     ":",
-                                    getMessage("OPERATOR", lang),
+                                    getMessage("OPERATOR", language),
                                     answerTemplate,
-                                    getMessage("RIGHT_SUBOPERATOR", lang),
+                                    getMessage("RIGHT_SUBOPERATOR", language),
                                     thirdTemplate,
-                                    getMessage("WHILE_OPERATOR", lang),
+                                    getMessage("WHILE_OPERATOR", language),
                                     template,
-                                    getMessage("TO_LEFT_OPERAND", lang) + ",",
-                                    getMessage("AND_LEFT_OPERAND", lang),
+                                    getMessage("TO_LEFT_OPERAND", language) + ",",
+                                    getMessage("AND_LEFT_OPERAND", language),
                                     thirdText,
-                                    getMessage("EVALUATES_BEFORE_RIGHT", lang)));
+                                    getMessage("EVALUATES_BEFORE_RIGHT", language)));
                         } else if (thirdText.equals("(")) {
                             posToExplanation.put(pos, StringHelper.joinWithSpace(
-                                    getMessage("AFTER_OPERATOR", lang),
+                                    getMessage("AFTER_OPERATOR", language),
                                     template,
                                     ":",
-                                    getMessage("OPERATOR", lang),
+                                    getMessage("OPERATOR", language),
                                     template,
-                                    getMessage("ENCLOSED_PARENTHESIS", lang),
+                                    getMessage("ENCLOSED_PARENTHESIS", language),
                                     thirdPos,
-                                    getMessage("INSIDE_PARENTHESIS_FIRST", lang)));
+                                    getMessage("INSIDE_PARENTHESIS_FIRST", language)));
                         }
                     }
                 }
@@ -1378,32 +1376,32 @@ public class ProgrammingLanguageExpressionDomain extends JenaReasoningDomain {
             }
             int pos = Integer.parseInt(indexes.get(reason.getDomainInfo()));
             String text = texts.get(reason.getDomainInfo());
-            String template = StringHelper.joinWithSpace(text, getMessage("AT_POS", lang), pos);
+            String template = StringHelper.joinWithSpace(text, getMessage("AT_POS", language), pos);
 
             if (beforeHighPriority.containsMapping(answer.getDomainInfo(), reason.getDomainInfo())) {
                 posToExplanation.put(pos, StringHelper.joinWithSpace(
-                        getMessage("BEFORE_OPERATOR", lang), template, ":", getMessage("OPERATOR", lang),
-                        answerText, getMessage("HAS_HIGHER_PRECEDENCE", lang), getMessage("THAN_OPERATOR", lang), text));
+                        getMessage("BEFORE_OPERATOR", language), template, ":", getMessage("OPERATOR", language),
+                        answerText, getMessage("HAS_HIGHER_PRECEDENCE", language), getMessage("THAN_OPERATOR", language), text));
             } else if (beforeHighPriority.containsMapping(reason.getDomainInfo(), answer.getDomainInfo())) {
                 posToExplanation.put(pos, StringHelper.joinWithSpace(
-                        getMessage("AFTER_OPERATOR", lang), template, ":", getMessage("OPERATOR", lang),
-                        answerText, getMessage("HAS_LOWER_PRECEDENCE", lang), getMessage("THAN_OPERATOR", lang), text));
+                        getMessage("AFTER_OPERATOR", language), template, ":", getMessage("OPERATOR", language),
+                        answerText, getMessage("HAS_LOWER_PRECEDENCE", language), getMessage("THAN_OPERATOR", language), text));
             } else if (beforeLeftAssoc.containsMapping(answer.getDomainInfo(), reason.getDomainInfo())) {
                 posToExplanation.put(pos, StringHelper.joinWithSpace(
-                        getMessage("BEFORE_OPERATOR", lang), template, ":", getMessage("OPERATOR", lang),
-                        answerText, getMessage("LEFT_ASSOC_DESC", lang)));
+                        getMessage("BEFORE_OPERATOR", language), template, ":", getMessage("OPERATOR", language),
+                        answerText, getMessage("LEFT_ASSOC_DESC", language)));
             } else if (beforeLeftAssoc.containsMapping(reason.getDomainInfo(), answer.getDomainInfo())) {
                 posToExplanation.put(pos, StringHelper.joinWithSpace(
-                        getMessage("AFTER_OPERATOR", lang), template, ":", getMessage("OPERATOR", lang),
-                        answerText, getMessage("LEFT_ASSOC_DESC", lang)));
+                        getMessage("AFTER_OPERATOR", language), template, ":", getMessage("OPERATOR", language),
+                        answerText, getMessage("LEFT_ASSOC_DESC", language)));
             } else if (beforeRightAssoc.containsMapping(answer.getDomainInfo(), reason.getDomainInfo())) {
                 posToExplanation.put(pos, StringHelper.joinWithSpace(
-                        getMessage("BEFORE_OPERATOR", lang), template, ":", getMessage("OPERATOR", lang),
-                        answerText, getMessage("RIGHT_ASSOC_DESC", lang)));
+                        getMessage("BEFORE_OPERATOR", language), template, ":", getMessage("OPERATOR", language),
+                        answerText, getMessage("RIGHT_ASSOC_DESC", language)));
             } else if (beforeRightAssoc.containsMapping(reason.getDomainInfo(), answer.getDomainInfo())) {
                 posToExplanation.put(pos, StringHelper.joinWithSpace(
-                        getMessage("AFTER_OPERATOR", lang), template, ":", getMessage("OPERATOR", lang),
-                        answerText, getMessage("RIGHT_ASSOC_DESC", lang)));
+                        getMessage("AFTER_OPERATOR", language), template, ":", getMessage("OPERATOR", language),
+                        answerText, getMessage("RIGHT_ASSOC_DESC", language)));
             }
         }
 
@@ -1416,7 +1414,7 @@ public class ProgrammingLanguageExpressionDomain extends JenaReasoningDomain {
     }
 
     @Override
-    public CorrectAnswer getAnyNextCorrectAnswer(Question q) {
+    public CorrectAnswer getAnyNextCorrectAnswer(Question q, Language language) {
         val lastCorrectInteraction = Optional.ofNullable(q.getQuestionData().getInteractions()).stream()
                 .flatMap(Collection::stream)
                 .filter(i -> i.getFeedback().getInteractionsLeft() >= 0 && i.getViolations().size() == 0)
@@ -1445,7 +1443,7 @@ public class ProgrammingLanguageExpressionDomain extends JenaReasoningDomain {
                     correctAnswer.question = q.getQuestionData();
                     correctAnswer.answers = answers;
                     correctAnswer.lawName = answerImpl.lawName;
-                    correctAnswer.explanation = new Explanation(Explanation.Type.HINT, getCorrectExplanation(q, answer));
+                    correctAnswer.explanation = new Explanation(Explanation.Type.HINT, getCorrectExplanation(q, answer, language));
                     return correctAnswer;
                 }
             }
@@ -1538,12 +1536,13 @@ public class ProgrammingLanguageExpressionDomain extends JenaReasoningDomain {
     private final DecisionTreeSupQuestionHelper dtSupplementaryQuestionHelper = new DecisionTreeSupQuestionHelper(
             this,
             this.getClass().getClassLoader().getResource(DOMAIN_MODEL_DIRECTORY),
-            this::mainQuestionToModel
+            this::mainQuestionToModel,
+            this.getSupplementaryStepService()
     );
 
     @Override
     public SupplementaryResponseGenerationResult makeSupplementaryQuestion(QuestionData sourceQuestion, ViolationData violation, Language lang) {
-        if (prefersDecisionTreeSupplementary(sourceQuestion.getId())){
+        if (getExerciseAttemptService().prefersDecisionTreeSupplementary(sourceQuestion.getId())){
             return dtSupplementaryQuestionHelper.makeSupplementaryQuestion(sourceQuestion, lang);
         }
         else {
@@ -1552,7 +1551,7 @@ public class ProgrammingLanguageExpressionDomain extends JenaReasoningDomain {
     }
 
     @Override
-    public SupplementaryFeedbackGenerationResult judgeSupplementaryQuestion(Question question, SupplementaryStepData supplementaryStep, List<ResponseData> responses) {
+    public SupplementaryFeedbackGenerationResult judgeSupplementaryQuestion(Question question, SupplementaryStepData supplementaryStep, List<ResponseData> responses, Language language) {
         if(supplementaryStep != null) { //FIXME? как правильно определять, как был сгенерирован вопрос?
             return dtSupplementaryQuestionHelper.judgeSupplementaryQuestion(supplementaryStep, responses);
         }
@@ -1563,10 +1562,9 @@ public class ProgrammingLanguageExpressionDomain extends JenaReasoningDomain {
                     .map(v -> FeedbackViolationLawDto.builder().name(v.getLawName()).canCreateSupplementaryQuestion(this.needSupplementaryQuestion(v.getLawName(), interactionTypeOf(v))).build())
                     .findFirst()
                     .orElse(null);
-            val locale = getUserLanguageOf(question);
             val message = judgeResult.isAnswerCorrect
-                    ? FeedbackDto.Message.Success(localizationService.getMessage("exercise_correct-sup-question-answer", locale), List.of(violation))
-                    : FeedbackDto.Message.Error(localizationService.getMessage("exercise_wrong-sup-question-answer", locale), List.of(violation));
+                    ? FeedbackDto.Message.Success(localizationService.getMessage("exercise_correct-sup-question-answer", language), List.of(violation))
+                    : FeedbackDto.Message.Error(localizationService.getMessage("exercise_wrong-sup-question-answer", language), List.of(violation));
             val feedback =  new SupplementaryFeedbackDto(
                     message,
                     judgeResult.isAnswerCorrect ? SupplementaryFeedbackDto.Action.ContinueAuto : SupplementaryFeedbackDto.Action.ContinueManual);
@@ -1585,10 +1583,6 @@ public class ProgrammingLanguageExpressionDomain extends JenaReasoningDomain {
         targetConcepts.add(failedLaw);
         targetConcepts.add("supplementary");
 
-        // Привязку к попытке делает сервис, домену важно лишь, что вопрос в ней задан.
-        if (!isQuestionInAttempt(question.getId())) {
-            return null;
-        }
         if (!supplementaryConfig.containsKey(failedLaw)) {
             return null;
         }
@@ -2745,9 +2739,7 @@ public class ProgrammingLanguageExpressionDomain extends JenaReasoningDomain {
     }
 
     @Override
-    public List<HyperText> getFullSolutionTrace(Question question) {
-        Language lang = getUserLanguageOf(question);
-
+    public List<HyperText> getFullSolutionTrace(Question question, Language language) {
         ArrayList<HyperText> result = new ArrayList<>();
 
         String qType = question.getQuestionData().getQuestionDomainType();
@@ -2756,7 +2748,7 @@ public class ProgrammingLanguageExpressionDomain extends JenaReasoningDomain {
 
             for (ResponseData response : responsesForTrace(question.getQuestionData(), true)) {
                 StringJoiner builder = new StringJoiner(" ");
-                builder.add("<span>" + getMessage("OPERATOR", lang) + "</span>");
+                builder.add("<span>" + getMessage("OPERATOR", language) + "</span>");
                 // format a trace line ...
                 AnswerObjectData answerObj = response.getLeftAnswerObject();
                 String domainInfo = answerObj.getDomainInfo();
@@ -2766,15 +2758,15 @@ public class ProgrammingLanguageExpressionDomain extends JenaReasoningDomain {
                 builder.add("<span style='color: #700;text-decoration: underline;'>" +
                                 qg.filterFacts(domainInfo, "text", null).stream().findFirst().get().getObject() +
                             "</span>");
-                builder.add("<span>" + getMessage("AT_POS", lang) + "</span>");
+                builder.add("<span>" + getMessage("AT_POS", language) + "</span>");
                 builder.add("<span style='color: #f00;font-weight: bold;'>" +
                                     qg.filterFacts(domainInfo, "index", null).stream().findFirst().get().getObject() +
                              "</span>");
-                builder.add("<span>" + getMessage("CALCULATED", lang) + "</span>");
+                builder.add("<span>" + getMessage("CALCULATED", language) + "</span>");
 
                 List<BackendFactData> value = qg.filterFacts(domainInfo, "has_value", null);
                 if (!value.isEmpty()) {
-                    builder.add("<span>" + getMessage("WITH_VALUE", lang) + "</span>");
+                    builder.add("<span>" + getMessage("WITH_VALUE", language) + "</span>");
                     builder.add("<span style='color: #f08;font-style: italic;font-weight: bold;'>" +
                                     value.get(0).getObject() +
                                 "</span>");

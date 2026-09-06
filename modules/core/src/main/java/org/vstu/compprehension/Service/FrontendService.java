@@ -49,6 +49,7 @@ public class FrontendService {
     private final QuestionService questionService;
     private final AbstractStrategyFactory strategyFactory;
     private final LocalizationService localizationService;
+    private final UserService userService;
 
     @Transactional(propagation = Propagation.REQUIRED)
     public @NotNull SupplementaryFeedbackDto addSupplementaryQuestionAnswer(@NotNull InteractionDto interaction) throws Exception {
@@ -58,12 +59,15 @@ public class FrontendService {
             throw new Exception("Question with id" + questionId + " isn't supplementary");
         }
 
+        var currentUser = userService.getCurrentUser();
+        var language = currentUser.language();
+        
         // Ответ на вспомогательный вопрос в БД не попадает: цепочка ведёт своё состояние
         // шагами, а взаимодействия у неё нет. Раньше строки ответов всё равно писались
         // и оставались ни с чем не связанными.
         val responses = questionService.resolveAnswers(questionId, toSubmittedAnswers(interaction.getAnswers()));
 
-        return questionService.judgeSupplementaryQuestion(question, responses);
+        return questionService.judgeSupplementaryQuestion(question, responses, language);
     }
 
     @Transactional(propagation = Propagation.REQUIRED)
@@ -73,6 +77,9 @@ public class FrontendService {
         val questionId = interaction.getQuestionId();
         val answers = toSubmittedAnswers(interaction.getAnswers());
         val context = exerciseAttemptService.findQuestionContext(questionId).orElse(null);
+        
+        var currentUser = userService.getCurrentUser();
+        var language = currentUser.language();
 
         // evaluate answer
         val question = questionService.getSolvedQuestion(questionId);
@@ -81,7 +88,7 @@ public class FrontendService {
         ch.hit("solved question obtained");
         val responses = questionService.resolveAnswers(questionId, answers);
         ch.hit("responses collected");
-        val judgeResult = questionService.judgeQuestion(question, responses, tags);
+        val judgeResult = domain.judgeQuestion(question, responses, tags, language);
         ch.hit("judgeQuestion done");
 
         // add interaction
@@ -155,14 +162,15 @@ public class FrontendService {
                 judgeResult.IterationsLeft,
                 correctAnswers,
                 isAnswerCorrect,
-                outcome.getRight());
+                outcome.getRight(),
+                language);
     }
 
     @SneakyThrows
     @Transactional(propagation = Propagation.REQUIRED)
     public @NotNull QuestionDto generateQuestion(@NotNull Long exAttemptId) {
         val question = questionService.generateQuestion(exAttemptId);
-        return Mapper.toDto(question);
+        return Mapper.toDto(question, userService.getCurrentUser().language());
     }
 
     @Transactional(propagation = Propagation.REQUIRED)
@@ -171,7 +179,7 @@ public class FrontendService {
             throw new Exception("Metadata id is null");
         }
         val question = questionService.generateQuestion(metadataId, lang);
-        return Mapper.toDto(question);
+        return Mapper.toDto(question, userService.getCurrentUser().language());
     }
 
     @Transactional(propagation = Propagation.REQUIRED)
@@ -186,7 +194,7 @@ public class FrontendService {
     @Transactional(propagation = Propagation.REQUIRED)
     public @NotNull QuestionDto getQuestion(@NotNull Long questionId) throws Exception {
         val question = questionService.getQuestion(questionId);
-        return Mapper.toDto(question);
+        return Mapper.toDto(question, userService.getCurrentUser().language());
     }
 
     @Transactional(propagation = Propagation.REQUIRED)
@@ -194,7 +202,10 @@ public class FrontendService {
         // get next correct answer
         val question = questionService.getSolvedQuestion(questionId);
         val context = exerciseAttemptService.findQuestionContext(questionId).orElse(null);
-        val correctAnswer = questionService.getNextCorrectAnswer(question);
+        var domain = question.getDomain();
+        var currentUser = userService.getCurrentUser();
+        var language = currentUser.language();
+        val correctAnswer = domain.getAnyNextCorrectAnswer(question, language);
 
         // Подсказка достраивает уже данные студентом ответы, а не начинает решение
         // заново: ответы последнего верного взаимодействия переезжают в это.
@@ -208,7 +219,7 @@ public class FrontendService {
         val responses = Stream.concat(
                 carriedResponses.stream(),
                 questionService.resolveAnswers(questionId, newAnswers).stream()).toList();
-        val judgeResult = questionService.judgeQuestion(question, responses, question.getTags());
+        val judgeResult = domain.judgeQuestion(question, responses, question.getTags(), language);
 
         // add interaction
         val recorded = questionService.recordInteraction(new NewInteractionData(
@@ -244,7 +255,8 @@ public class FrontendService {
                 judgeResult.IterationsLeft,
                 recorded.responses().stream().map(Mapper::toDto).toArray(AnswerDto[]::new),
                 /*true*/ judgeResult.violations.isEmpty() && judgeResult.isAnswerCorrect,
-                outcome.getRight());
+                outcome.getRight(),
+                language);
     }
 
     /**

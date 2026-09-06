@@ -125,14 +125,11 @@ public abstract class FactBackend implements Backend<FactBackend.Input, Collecti
         @Override
         public Domain.InterpretSentenceResult interpretJudgeOutput(
             Question judgedQuestion,
-            Collection<Fact> backendOutput
+            Collection<Fact> backendOutput,
+            Language language
         ) {
             Domain.InterpretSentenceResult result = domain.interpretSentence(backendOutput);
-
-            // Язык берётся у домена: раньше здесь был ленивый обход попытки,
-            // да ещё и с перехватом NPE вместо проверки.
-            Language lang = judgedQuestion.getDomain().getUserLanguageOf(judgedQuestion);
-            result.explanation = domain.makeExplanation(result.violations, FeedbackType.EXPLANATION, lang);
+            result.explanation = domain.makeExplanation(result.violations, FeedbackType.EXPLANATION, language);
             return result;
         }
 

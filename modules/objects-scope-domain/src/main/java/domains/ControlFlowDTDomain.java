@@ -235,7 +235,7 @@ public class ControlFlowDTDomain extends DecisionTreeReasoningDomain {
     private static class DecisionTreeInterface implements DecisionTreeReasonerBackend.Interface {
 
         @Override
-        public InterpretSentenceResult interpretJudgeNotPerformed(Question judgedQuestion, LearningSituation preparedSituation) {
+        public InterpretSentenceResult interpretJudgeNotPerformed(Question judgedQuestion, LearningSituation preparedSituation, Language language) {
             return null;
         }
 
@@ -676,7 +676,7 @@ public class ControlFlowDTDomain extends DecisionTreeReasoningDomain {
     }
 
     @Override
-    public SupplementaryFeedbackGenerationResult judgeSupplementaryQuestion(Question question, SupplementaryStepData supplementaryStep, List<ResponseData> responses) {
+    public SupplementaryFeedbackGenerationResult judgeSupplementaryQuestion(Question question, SupplementaryStepData supplementaryStep, List<ResponseData> responses, Language language) {
         return null;
     }
 
@@ -722,8 +722,7 @@ public class ControlFlowDTDomain extends DecisionTreeReasoningDomain {
     }
 
     @Override
-    public CorrectAnswer getAnyNextCorrectAnswer(Question q) {
-        Language lang = getUserLanguageOf(q);
+    public CorrectAnswer getAnyNextCorrectAnswer(Question q, Language language) {
         List<String> deniedSkills = List.of();
         var exerciseStage = getExerciseStageOf(q);
         if (exerciseStage.isPresent()) {
@@ -752,7 +751,7 @@ public class ControlFlowDTDomain extends DecisionTreeReasoningDomain {
         Explanation explanation = DecisionTreeReasonerBackend.collectExplanationsFromTrace(
                 Explanation.Type.HINT,
                 solveRes.trace(), questionModel,
-                this, deniedSkills, lang
+                this, deniedSkills, language
         );
         AnswerObjectData answer = q.getAnswerObjects().stream().filter(ans -> ans.getDomainInfo().equals(cfgId)).findFirst().orElse(null);
         correctAnswer.answers = List.of(new CorrectAnswer.Response(answer, answer));
@@ -926,8 +925,7 @@ public class ControlFlowDTDomain extends DecisionTreeReasoningDomain {
     }
 
     @Override
-    public List<HyperText> getFullSolutionTrace(Question question) {
-        Language lang = getUserLanguageOf(question);
+    public List<HyperText> getFullSolutionTrace(Question question, Language language) {
         List<HyperText> trace = new ArrayList<>();
         var questionModel = prepareQuestionModel(question, this.domainSolvingModel);
         var treeInterface = (DecisionTreeInterface) getBackendInterface();
@@ -959,7 +957,7 @@ public class ControlFlowDTDomain extends DecisionTreeReasoningDomain {
                         ((String) construct.getPropertyValue("kind", Map.of())).split("\\.")
                 ).toList();
 
-                var mainString = getMessage("trace.template", lang);
+                var mainString = getMessage("trace.template", language);
 
                 var localeTraceName = (String) action.getPropertyValue("_locale_trace_name", Map.of());
                 if (localeTraceName.isEmpty()) {
@@ -984,17 +982,17 @@ public class ControlFlowDTDomain extends DecisionTreeReasoningDomain {
                 if (localeTraceName.startsWith("condition")) {
                     String conditionEnumValue = ((EnumValueRef) object.getPropertyValue("condition_value", Map.of())).getValueName();
                     if (conditionEnumValue.equals("true") || conditionEnumValue.equals("false")) {
-                        condition = " - ".concat(htmlStyleFormat(getMessage("trace.condition.%s".formatted(conditionEnumValue), lang), "atom"));
+                        condition = " - ".concat(htmlStyleFormat(getMessage("trace.condition.%s".formatted(conditionEnumValue), language), "atom"));
                     }
-                    actionState = getMessageWithSuffix("trace.evaluated", rawNameSuffix, lang);
+                    actionState = getMessageWithSuffix("trace.evaluated", rawNameSuffix, language);
                 } else if (nodeKind.equals("atom")) {
-                    actionState = getMessageWithSuffix("trace.executed", rawNameSuffix, lang);
+                    actionState = getMessageWithSuffix("trace.executed", rawNameSuffix, language);
                 } else {
                     boolean isEnd = nodeKind.equals("END");
                     if (isEnd) {
-                        actionState = getMessageWithSuffix("trace.ended", rawNameSuffix, lang);
+                        actionState = getMessageWithSuffix("trace.ended", rawNameSuffix, language);
                     } else {
-                        actionState = getMessageWithSuffix("trace.began", rawNameSuffix, lang);
+                        actionState = getMessageWithSuffix("trace.began", rawNameSuffix, language);
                     }
                 }
 
@@ -1005,15 +1003,15 @@ public class ControlFlowDTDomain extends DecisionTreeReasoningDomain {
                         .findFirst();
                 if (runtimeInfoLinks.isPresent() && !runtimeInfoLinks.get().getObjects().isEmpty()) {
                     ObjectDef runtimeInfo = runtimeInfoLinks.get().getObjects().getFirst();
-                    runtimeInfoStr = formatRuntimeInfo(runtimeInfo, lang);
+                    runtimeInfoStr = formatRuntimeInfo(runtimeInfo, language);
                     if (!runtimeInfoStr.isEmpty()) {
                         runtimeInfoStr = htmlStyleFormat(runtimeInfoStr,
                                 runtimeInfoStr.startsWith("#") ? "runtime-info-comment" : "runtime-info");
                     }
                 }
 
-                String nthTime = htmlStyleFormat(formatNthTime(n, lang), "number") + " " + getMessage("trace.template.time_text", lang);
-                String definition = (String) object.getMetadata().get(lang.toLocaleString().toUpperCase(), "localizedName");
+                String nthTime = htmlStyleFormat(formatNthTime(n, language), "number") + " " + getMessage("trace.template.time_text", language);
+                String definition = (String) object.getMetadata().get(language.toLocaleString().toUpperCase(), "localizedName");
                 var substitutions = Map.of(
                         "structure", htmlStyleFormat(definition, "action"),
                         "action_state", htmlStyleFormat(actionState, "keyword"),

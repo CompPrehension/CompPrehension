@@ -18,7 +18,7 @@ public class CachedUserService implements UserService {
     }
 
     @Override
-    public CurrentUserData getCurrentUser() throws Exception {
+    public CurrentUserData getCurrentUser() {
         Object principal = SecurityContextHolder.getContext().getAuthentication().getPrincipal();
         if (cachedCurrentUserPrincipal == principal && cachedCurrentUser != null) {
             return cachedCurrentUser;
@@ -32,7 +32,7 @@ public class CachedUserService implements UserService {
 
 
     @Override
-    public void setLanguage(Language language) throws Exception {
+    public void setLanguage(Language language) {
         decoratee.setLanguage(language);
 
         // Update the cached user after setting the language

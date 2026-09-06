@@ -243,78 +243,12 @@ public class ControlFlowStatementsDomain extends JenaReasoningDomain {
                 : EXECUTION_ORDER_QUESTION_TYPE;
     }
 
-    public List<CorrectAnswer> getAllAnswersOfSolvedQuestion(Question question) {
-
-        ArrayList<CorrectAnswer> result = new ArrayList<>();
-
-        String qType = question.getQuestionData().getQuestionDomainType();
-        if (qType.equals(EXECUTION_ORDER_QUESTION_TYPE) || qType.equals("Type" + EXECUTION_ORDER_QUESTION_TYPE)) {
-            // gather correct steps
-            List<AnswerObjectData> correctTraceAnswersObjects = new ArrayList<>();
-            OntModel model = modelToOntModel(getSolutionModelOfQuestion(question));
-
-            while (true) {
-                log.debug("Getting getNextCorrectAnswer having {}", correctTraceAnswersObjects.size());
-                CorrectAnswer ca = getNextCorrectAnswer(question, correctTraceAnswersObjects, model);
-                if (ca == null)
-                    break;
-                result.add(ca);
-
-                AnswerObjectData answerObj = ca.answers.get(0).getLeft(); // one answer, anyway
-                correctTraceAnswersObjects.add(answerObj);
-            }
-        }
-
-        return result;
-    }
-
-    public List<HyperText> getCompleteSolvedTrace(Question question) {
-//        final String textMode = "text";
-        final String textMode = "html";
-
-        Language lang = getUserLanguage(question);
-
-        ArrayList<HyperText> result = new ArrayList<>();
-
-        String qType = question.getQuestionData().getQuestionDomainType();
-        if (qType.equals(EXECUTION_ORDER_QUESTION_TYPE) || qType.equals("Type" + EXECUTION_ORDER_QUESTION_TYPE)) {
-            HashMap<String, Integer> exprName2ExecTime = new HashMap<>();
-            FactsGraph qg = new FactsGraph(question.getQuestionData().getStatementFacts());
-
-            final List<String> actionKinds = getActionKinds();
-
-            // gather correct steps
-            List<AnswerObjectData> correctTraceAnswersObjects = new ArrayList<>();
-            Model model = getSolutionModelOfQuestion(question);
-
-            while (true) {
-                log.debug("Getting getNextCorrectAnswer № {}", correctTraceAnswersObjects.size());
-                CorrectAnswer ca = getNextCorrectAnswer(question, correctTraceAnswersObjects, modelToOntModel(model));
-                if (ca == null)
-                    break;
-
-                AnswerObjectData answerObj = ca.answers.get(0).getLeft(); // one answer, anyway
-                correctTraceAnswersObjects.add(answerObj);
-
-                // format a trace line ...
-
-                HyperText htext = _formatTraceLine(question.getQuestionData(), textMode, lang, exprName2ExecTime, qg,
-                        actionKinds, answerObj, false);
-                result.add(htext);
-            }
-        }
-
-        return result;
-    }
-
     @Override
-    public List<HyperText> getFullSolutionTrace(Question question) {
+    public List<HyperText> getFullSolutionTrace(Question question, Language language) {
         /// System.out.println("\t\tGetting the trace ...");
 
 //        final String textMode = "text";
         final String textMode = "html";
-
-        Language lang = getUserLanguage(question);
 
         ArrayList<HyperText> result = new ArrayList<>();
 
@@ -332,7 +266,7 @@ public class ControlFlowStatementsDomain extends JenaReasoningDomain {
 
                 // format a trace line ...
 
-                HyperText htext = _formatTraceLine(question.getQuestionData(), textMode, lang, exprName2ExecTime, qg,
+                HyperText htext = _formatTraceLine(question.getQuestionData(), textMode, language, exprName2ExecTime, qg,
                         actionKinds, answerObj, responseIsWrong);
                 result.add(htext);
 //                System.out.println(result.get(result.size() - 1).getText());
@@ -627,7 +561,7 @@ public class ControlFlowStatementsDomain extends JenaReasoningDomain {
 
     @Override
     public @NotNull Question makeQuestion(@NotNull QuestionMetadataData metadata,
-                                                                                    @NotNull List<Tag> tags,
+                                          @NotNull List<Tag> tags,
                                           @NotNull Language userLang) {
         var questionData = metadata.getData();
         return makeQuestion(questionData.toQuestion(this, metadata), tags, userLang);
@@ -1597,7 +1531,7 @@ public class ControlFlowStatementsDomain extends JenaReasoningDomain {
     }
 
     @Override
-    public SupplementaryFeedbackGenerationResult judgeSupplementaryQuestion(Question question, SupplementaryStepData supplementaryStep, List<ResponseData> responses) {
+    public SupplementaryFeedbackGenerationResult judgeSupplementaryQuestion(Question question, SupplementaryStepData supplementaryStep, List<ResponseData> responses, Language language) {
         throw new NotImplementedException();
     }
 
@@ -1739,7 +1673,7 @@ public class ControlFlowStatementsDomain extends JenaReasoningDomain {
     }
 
     @Override
-    public CorrectAnswer getAnyNextCorrectAnswer(Question q) {
+    public CorrectAnswer getAnyNextCorrectAnswer(Question q, Language language) {
         val lastCorrectInteraction = Optional.ofNullable(q.getQuestionData().getInteractions()).stream()
                 .flatMap(Collection::stream)
                 .filter(i -> i.getFeedback().getInteractionsLeft() >= 0 && i.getViolations().size() == 0) // select only interactions without mistakes
@@ -1751,7 +1685,7 @@ public class ControlFlowStatementsDomain extends JenaReasoningDomain {
                 .map(ResponseData::getLeftAnswerObject)
                 .collect(Collectors.toList());
 
-        return getNextCorrectAnswer(q, lastCorrectInteractionAnswers);
+        return getNextCorrectAnswer(q, lastCorrectInteractionAnswers, language);
     }
 
     /**
@@ -1766,12 +1700,12 @@ public class ControlFlowStatementsDomain extends JenaReasoningDomain {
     }
 
     @Nullable
-    protected CorrectAnswer getNextCorrectAnswer(Question q, @Nullable List<AnswerObjectData> correctTraceAnswersObjects) {
-        return getNextCorrectAnswer(q, correctTraceAnswersObjects, modelToOntModel(getSolutionModelOfQuestion(q)));
+    protected CorrectAnswer getNextCorrectAnswer(Question q, @Nullable List<AnswerObjectData> correctTraceAnswersObjects, Language language) {
+        return getNextCorrectAnswer(q, correctTraceAnswersObjects, modelToOntModel(getSolutionModelOfQuestion(q)), language);
     }
 
     @Nullable
-    protected CorrectAnswer getNextCorrectAnswer(Question q, @Nullable List<AnswerObjectData> correctTraceAnswersObjects, OntModel model) {
+    protected CorrectAnswer getNextCorrectAnswer(Question q, @Nullable List<AnswerObjectData> correctTraceAnswersObjects, OntModel model, Language language) {
 
 
         // get shortcuts to properties
@@ -1902,7 +1836,6 @@ public class ControlFlowStatementsDomain extends JenaReasoningDomain {
         } else {
             reason_node = reason_nodes.get(0);
         }
-        Language userLang = getUserLanguage(q);
         HashMap<String, String> placeholders = new HashMap<>();
         if (reason_node != null) {
             for (StmtIterator it = model.listStatements((Resource) reason_node, null, (String) null); it.hasNext(); ) {
@@ -1911,7 +1844,7 @@ public class ControlFlowStatementsDomain extends JenaReasoningDomain {
                 if (getFieldProperties().contains(verb)) {
                     String fieldName = verb.replaceAll("field_", "");
                     String value = statement.getString();
-                    value = replaceLocaleMarks(userLang, value);
+                    value = replaceLocaleMarks(language, value);
                     if (!value.contains("«"))
                         value = "«" + value + "»";
                     if (placeholders.containsKey(fieldName)) {
@@ -1943,7 +1876,7 @@ public class ControlFlowStatementsDomain extends JenaReasoningDomain {
 
         HyperText explanation;
         if (localMessageExists(reasonName)) {
-            String message = getMessage(reasonName, userLang);
+            String message = getMessage(reasonName, language);
             // Replace in message
             message = replaceInString(message, placeholders);
             message = postProcessFormattedMessage(message);
@@ -1956,17 +1889,7 @@ public class ControlFlowStatementsDomain extends JenaReasoningDomain {
         return correctAnswer;
     }
 
-    private Language getUserLanguage(Question q) {
-        Language userLang;  // natural language to format explanation
-        try {
-            userLang = getUserLanguageOf(q); // The language currently selected in UI
-        } catch (NullPointerException e) {
-            userLang = Language.ENGLISH;  // fallback if it cannot be figured out
-        }
-        return userLang;
-    }
-
-    public Set<Set<String>> possibleViolationsByStep(Question q, List<ResponseData> completedSteps) {
+    public Set<Set<String>> possibleViolationsByStep(Question q, List<ResponseData> completedSteps, Language language) {
 
         // use existing solution steps if given
         List<AnswerObjectData> correctTraceAnswersObjects = new ArrayList<>();
@@ -1980,7 +1903,7 @@ public class ControlFlowStatementsDomain extends JenaReasoningDomain {
 
         // Construct remaining trace virtually, step by step
         while (true) {
-            CorrectAnswer currentAct = getNextCorrectAnswer(q, correctTraceAnswersObjects);
+            CorrectAnswer currentAct = getNextCorrectAnswer(q, correctTraceAnswersObjects, language);
             if (currentAct == null)
                 break;
 

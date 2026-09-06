@@ -9,6 +9,7 @@ import org.vstu.compprehension.models.businesslogic.Question;
 import org.vstu.compprehension.models.businesslogic.Tag;
 import org.vstu.compprehension.models.businesslogic.backend.FactBackend;
 import org.vstu.compprehension.models.businesslogic.backend.JenaBackend;
+import org.vstu.compprehension.models.entities.EnumData.Language;
 import org.vstu.compprehension.utils.RandomProvider;
 
 import java.util.List;
@@ -38,9 +39,9 @@ public abstract class JenaReasoningDomain extends DomainBase {
         return question;
     }
 
-    public InterpretSentenceResult judgeQuestion(Question question, List<ResponseData> responses, List<Tag> tags) {
+    public InterpretSentenceResult judgeQuestion(Question question, List<ResponseData> responses, List<Tag> tags, Language language) {
         var backend = new JenaBackend();
         var output = backend.judge(backendInterface.prepareBackendInfoForJudge(question, responses, tags));
-        return backendInterface.interpretJudgeOutput(question, output);
+        return backendInterface.interpretJudgeOutput(question, output, language);
     }
 }

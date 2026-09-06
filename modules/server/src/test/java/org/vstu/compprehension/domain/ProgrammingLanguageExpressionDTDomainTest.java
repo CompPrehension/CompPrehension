@@ -112,7 +112,8 @@ public class ProgrammingLanguageExpressionDTDomainTest extends AbstractIntegrati
                     .builder().answerId(response)
                     .domainInfo("token_" + response).build();
             responses.add(ResponseData.builder().leftAnswerObject(answerObject).rightAnswerObject(answerObject).build());
-            var result = questionService.judgeQuestion(q, responses, List.of(domain.getTag(outLangStr)));
+            var domain = q.getDomain();
+            var result = domain.judgeQuestion(q, responses, List.of(domain.getTag(outLangStr)), Language.ENGLISH);
             allPassed = allPassed && result.isAnswerCorrect;
             if (!result.isAnswerCorrect) {
                 Assertions.fail(String.format("%s: %s", responses.stream()

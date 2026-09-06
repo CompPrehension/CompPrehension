@@ -481,8 +481,7 @@ public class ObjectsScopeDTDomain extends DecisionTreeReasoningDomain {
     }
 
     @Override
-    public CorrectAnswer getAnyNextCorrectAnswer(Question q) {
-        Language lang = getUserLanguageOf(q);
+    public CorrectAnswer getAnyNextCorrectAnswer(Question q, Language language) {
 
         Optional<QuestionInteractionData> lastCorrectInteraction = Optional.ofNullable(q.getQuestionData().getInteractions()).stream()
                 .flatMap(Collection::stream)
@@ -516,7 +515,7 @@ public class ObjectsScopeDTDomain extends DecisionTreeReasoningDomain {
                         learningSituation
                 );
 
-                Explanation hintExplanation = GenerateErrorTextForScopeObjects.generateHintExplanation(decisionTreeTrace, learningSituation.getDomainModel(), lang);
+                Explanation hintExplanation = GenerateErrorTextForScopeObjects.generateHintExplanation(decisionTreeTrace, learningSituation.getDomainModel(), language);
 
                 if(!hintExplanation.getChildren().getFirst().getRawMessage().isEmpty()) {
                     AnswerObjectData answer = q.getAnswerObjects().stream()
@@ -557,7 +556,7 @@ public class ObjectsScopeDTDomain extends DecisionTreeReasoningDomain {
                         domainObjectVisibilitySolvingModel.getDecisionTree(),
                         learningSituation
                 );
-                Explanation hintExplanation = GenerateErrorTextForScopeObjects.generateHintExplanation(decisionTreeTrace, learningSituation.getDomainModel(), lang);
+                Explanation hintExplanation = GenerateErrorTextForScopeObjects.generateHintExplanation(decisionTreeTrace, learningSituation.getDomainModel(), language);
 
                 if(!hintExplanation.getChildren().getFirst().getRawMessage().isEmpty()) {
                     AnswerObjectData answer = q.getAnswerObjects().stream()
@@ -596,7 +595,7 @@ public class ObjectsScopeDTDomain extends DecisionTreeReasoningDomain {
                         domainObjectsVisibilityInLineSolvingModel.getDecisionTree(),
                         learningSituation
                 );
-                Explanation hintExplanation = GenerateErrorTextForScopeObjects.generateHintExplanation(decisionTreeTrace, learningSituation.getDomainModel(), lang);
+                Explanation hintExplanation = GenerateErrorTextForScopeObjects.generateHintExplanation(decisionTreeTrace, learningSituation.getDomainModel(), language);
 
                 if(!hintExplanation.getChildren().getFirst().getRawMessage().isEmpty()) {
                     AnswerObjectData answer = q.getAnswerObjects().stream()
@@ -628,13 +627,13 @@ public class ObjectsScopeDTDomain extends DecisionTreeReasoningDomain {
                 Explanation.Type.HINT,
                 ""
         );
-        explanation.getChildren().add(new Explanation(Explanation.Type.HINT, getMessage("hint_all", lang)));
+        explanation.getChildren().add(new Explanation(Explanation.Type.HINT, getMessage("hint_all", language)));
         correctAnswer.explanation = explanation;
         return correctAnswer;
     }
 
     @Override
-    public List<HyperText> getFullSolutionTrace(Question question) {
+    public List<HyperText> getFullSolutionTrace(Question question, Language language) {
         return null;
     }
 
@@ -761,7 +760,8 @@ public class ObjectsScopeDTDomain extends DecisionTreeReasoningDomain {
     private final DecisionTreeSupQuestionHelper dtSupplementaryQuestionHelper = new DecisionTreeSupQuestionHelper(
             this,
             domainLifeTimeSolvingModel,
-            this::mainQuestionToModel
+            this::mainQuestionToModel,
+            this.getSupplementaryStepService()
     );
 
     @Override
@@ -775,7 +775,7 @@ public class ObjectsScopeDTDomain extends DecisionTreeReasoningDomain {
     }
 
     @Override
-    public SupplementaryFeedbackGenerationResult judgeSupplementaryQuestion(Question question, SupplementaryStepData supplementaryStep, List<ResponseData> responses) {
+    public SupplementaryFeedbackGenerationResult judgeSupplementaryQuestion(Question question, SupplementaryStepData supplementaryStep, List<ResponseData> responses, Language language) {
             return dtSupplementaryQuestionHelper.judgeSupplementaryQuestion(supplementaryStep, responses);
     }
 
@@ -858,18 +858,17 @@ public class ObjectsScopeDTDomain extends DecisionTreeReasoningDomain {
         }
 
         @Override
-        public InterpretSentenceResult interpretJudgeOutput(Question judgedQuestion, DecisionTreeReasonerBackend.Output backendOutput) {
+        public InterpretSentenceResult interpretJudgeOutput(Question judgedQuestion, DecisionTreeReasonerBackend.Output backendOutput, Language language) {
             if(!backendOutput.isReasoningDone()){
-                return interpretJudgeNotPerformed(judgedQuestion, backendOutput.situation());
+                return interpretJudgeNotPerformed(judgedQuestion, backendOutput.situation(), language);
             }
             InterpretSentenceResult result = new InterpretSentenceResult();
             updateInterpretationResult(judgedQuestion.getQuestionDomainType(), result, backendOutput.situation());
 
-            Language lang = getUserLanguageByQuestion(judgedQuestion);
             result.explanation = GenerateErrorTextForScopeObjects.generateErrorExplanation(
                     backendOutput.results(),
                     backendOutput.situation().getDomainModel(),
-                    lang
+                    language
             );
             result.violations = new ArrayList<>();
             result.correctlyAppliedLaws = new ArrayList<>();
@@ -906,7 +905,8 @@ public class ObjectsScopeDTDomain extends DecisionTreeReasoningDomain {
         @Override
         public InterpretSentenceResult interpretJudgeNotPerformed(
                 Question judgedQuestion,
-                LearningSituation preparedSituation
+                LearningSituation preparedSituation,
+                Language language
         ) {
             var domain = judgedQuestion.getDomain();
             if (!(domain instanceof ObjectsScopeDTDomain realDomain)) {
@@ -924,7 +924,7 @@ public class ObjectsScopeDTDomain extends DecisionTreeReasoningDomain {
                 result.explanation = GenerateErrorTextForScopeObjects.generateErrorExplanation(
                         decisionTreeTrace,
                         preparedSituation.getDomainModel(),
-                        getUserLanguageByQuestion(judgedQuestion)
+                        language
                 );
                 result.explanation.setCurrentDomainLawName("incorrectSteps");
 
@@ -947,7 +947,7 @@ public class ObjectsScopeDTDomain extends DecisionTreeReasoningDomain {
                 result.explanation = GenerateErrorTextForScopeObjects.generateErrorExplanation(
                         decisionTreeTrace,
                         preparedSituation.getDomainModel(),
-                        getUserLanguageByQuestion(judgedQuestion)
+                        language
                 );
                 result.explanation.setCurrentDomainLawName("incorrectLines");
 
