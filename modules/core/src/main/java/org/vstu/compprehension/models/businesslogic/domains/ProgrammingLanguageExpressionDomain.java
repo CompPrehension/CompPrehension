@@ -3,6 +3,7 @@ package org.vstu.compprehension.models.businesslogic.domains;
 import com.google.gson.Gson;
 import com.google.gson.GsonBuilder;
 import com.google.gson.typeadapters.RuntimeTypeAdapterFactory;
+import its.model.definition.DomainModel;
 import lombok.SneakyThrows;
 import lombok.extern.log4j.Log4j2;
 import lombok.val;
@@ -33,7 +34,8 @@ import org.vstu.compprehension.models.businesslogic.backend.JenaBackend;
 import org.vstu.compprehension.models.businesslogic.backend.facts.Fact;
 import org.vstu.compprehension.models.businesslogic.backend.facts.JenaFactList;
 import org.vstu.compprehension.models.businesslogic.domains.helpers.FactsGraph;
-import org.vstu.compprehension.models.businesslogic.domains.helpers.ProgrammingLanguageExpressionRDFTransformer;
+import org.vstu.compprehension.models.businesslogic.domains.helpers.meaningtree.MeaningTreeOrderQuestionBuilder;
+import org.vstu.compprehension.models.businesslogic.domains.helpers.meaningtree.MeaningTreeRDFTransformer;
 import org.vstu.compprehension.models.businesslogic.storage.GraphRole;
 import org.vstu.compprehension.models.businesslogic.storage.NamespaceUtil;
 import org.vstu.compprehension.models.businesslogic.storage.QuestionBank;
@@ -47,6 +49,7 @@ import org.vstu.compprehension.models.entities.QuestionOptions.*;
 import org.vstu.compprehension.utils.ExpressionSituationPythonCaller;
 import org.vstu.compprehension.utils.HyperText;
 import org.vstu.compprehension.utils.RandomProvider;
+import org.vstu.meaningtree.SupportedLanguage;
 
 import java.io.InputStream;
 import java.io.InputStreamReader;
@@ -60,7 +63,7 @@ import static java.lang.Math.max;
 import static java.lang.Math.random;
 
 @Log4j2
-public class ProgrammingLanguageExpressionDomain extends Domain {
+public class ProgrammingLanguageExpressionDomain extends JenaReasoningDomain {
     static final String EVALUATION_ORDER_QUESTION_TYPE = "OrderOperators";
     static final String EVALUATION_ORDER_SUPPLEMENTARY_QUESTION_TYPE = "OrderOperatorsSupplementary";
     static final String OPERANDS_TYPE_QUESTION_TYPE = "OperandsType";
@@ -151,8 +154,9 @@ public class ProgrammingLanguageExpressionDomain extends Domain {
         Concept operatorBinaryDivideConcept = addConcept("operator_/", List.of(singleTokenBinaryConcept, arithmetics), "x / y", invisible);
         Concept operatorUnaryPlusConcept = addConcept("operator_unary_+", List.of(singleTokenUnaryConcept, arithmetics), "+z", invisible);
         Concept operatorUnaryMinusConcept = addConcept("operator_unary_-", List.of(singleTokenUnaryConcept, arithmetics), "-z", invisible);
-        // Concept operatorBinaryDivideIntConcept = addConcept("operator_//", List.of(singleTokenBinaryConcept, arithmetics), "x // y", invisible);  // Python only
-        // Concept operatorMatMulConcept = addConcept("operator_@", List.of(singleTokenBinaryConcept, arithmetics), "x @ y", invisible);  // Python only
+        Concept operatorBinaryDivideIntConcept = addConcept("operator_//", List.of(singleTokenBinaryConcept, arithmetics), "x // y", invisible);  // Python only
+        Concept operatorMatMulConcept = addConcept("operator_@", List.of(singleTokenBinaryConcept, arithmetics), "x @ y", invisible);  // Python only
+        Concept operatorModConcept = addConcept("operator_mod", List.of(singleTokenBinaryConcept, arithmetics), "x % y", invisible);
 
         Concept incrementConcept = addConcept("increment", List.of(unaryConcept), "Инкремент и декремент", flags);
         Concept prefixOperatorConcept = addConcept("prefix", List.of(incrementConcept));
@@ -174,7 +178,7 @@ public class ProgrammingLanguageExpressionDomain extends Domain {
         addConcept("operator_^=", List.of(aug_assignments), "a ^= b", invisible);
         addConcept("operator_<<=",List.of(aug_assignments), "a <<= b", invisible);
         addConcept("operator_>>=",List.of(aug_assignments), "a >>= b", invisible);
-        // addConcept("operator_:=", List.of(aug_assignments), "a := b", invisible);  // Python only
+        addConcept("operator_:=", List.of(aug_assignments), "a := b", invisible);  // Python only
 
         Concept comparison = addConcept("comparison", List.of(singleTokenBinaryConcept), "Операции сравнения", flags);
         Concept operatorEqualsConcept = addConcept("operator_==", List.of(comparison), "a == b", invisible);
@@ -184,15 +188,17 @@ public class ProgrammingLanguageExpressionDomain extends Domain {
         Concept operatorLeConcept = addConcept("operator_<=", List.of(comparison), "a <= b", invisible);
         Concept operatorGeConcept = addConcept("operator_>=", List.of(comparison), "a >= b", invisible);
         Concept operatorEqConcept = addConcept("operator_<=>", List.of(comparison), "a <=> b", invisible);
-        // Concept operatorIsConcept = addConcept("operator_is", List.of(comparison), "a is b", invisible);  // Python only
+        Concept operatorIsConcept = addConcept("operator_is", List.of(comparison), "a is b", invisible);  // Python only
+        Concept operatorInConcept = addConcept("operator_in", List.of(comparison), "a in b", invisible);  // Python only
 
         Concept logical = addConcept("logical", List.of(), "Логические операции", flags);
         addConcept("operator_!", List.of(singleTokenUnaryConcept, logical), "!a", invisible);
         addConcept("operator_&&", List.of(singleTokenBinaryConcept, logical), "a && b", invisible);
         addConcept("operator_||", List.of(singleTokenBinaryConcept, logical), "a || b", invisible);
-        // addConcept("operator_and", List.of(singleTokenBinaryConcept, logical), "a and b", invisible);  // Python only
-        // addConcept("operator_or", List.of(singleTokenBinaryConcept, logical), "a or b", invisible);  // Python only
+        addConcept("operator_and", List.of(singleTokenBinaryConcept, logical), "a and b", invisible);  // Python only
+        addConcept("operator_or", List.of(singleTokenBinaryConcept, logical), "a or b", invisible);  // Python only
 
+        Concept stream_io = addConcept("stream_io", List.of(), "Потоковый in/out", flags);
         Concept bitwise = addConcept("bitwise", List.of(), "Побитовые операции", flags);
         addConcept("operator_~", List.of(singleTokenUnaryConcept, bitwise), "~b", invisible);
         addConcept("operator_binary_&", List.of(singleTokenBinaryConcept, bitwise), "a & b", invisible);
@@ -204,6 +210,7 @@ public class ProgrammingLanguageExpressionDomain extends Domain {
 
         Concept arrays = addConcept("arrays", List.of(), "Массивы", noFlags);
         Concept subscriptConcept = addConcept("operator_subscript", List.of(twoTokenBinaryConcept, arrays), "Индексация массива a[i]", flags);
+        Concept collections = addConcept("collection_literal", List.of(arrays), "Литералы коллекций и массивов", flags);
 
         Concept pointers = addConcept("pointers", List.of(singleTokenUnaryConcept), "Операции c указателями", flags);
         addConcept("operator_unary_*", List.of(pointers), "*ptr", invisible);
@@ -215,13 +222,13 @@ public class ProgrammingLanguageExpressionDomain extends Domain {
 
         Concept functionCallConcept = addConcept("function_call", List.of(twoTokenUnaryConcept), "Вызов функции", invisible);
         Concept functionCallConcept_2 = addConcept("operator_function_call", List.of(twoTokenUnaryConcept), "Вызов функции", flags);
-        Concept operatorTernaryConcept = addConcept("operator_?", List.of(twoTokenTernaryConcept, operatorEvaluatingLeftOperandFirstConcept), "Тернарный оператор (?:)", invisible);  // c ? a : b
+        Concept operatorTernaryConcept = addConcept("operator_?", List.of(twoTokenTernaryConcept, operatorEvaluatingLeftOperandFirstConcept), "Тернарный оператор (?:)", flags);  // c ? a : b
 
         Concept operatorBinaryCommaConcept = addConcept("operator_,", List.of(singleTokenBinaryConcept), "Запятая между выражениями", flags);
+        Concept operatorNew = addConcept("operator_new", List.of(), "Создание нового динамического объекта или массива", flags);
 
-        Concept stream_io = addConcept("stream_io", List.of(), "Потоковый in/out", noFlags);
-        addConcept("operator_>>", List.of(singleTokenBinaryConcept, stream_io), "in >> var", invisible);
-        addConcept("operator_<<", List.of(singleTokenBinaryConcept, stream_io), "out << msg", invisible);
+        addConcept("operator_cast", List.of(twoTokenUnaryConcept), "(type)a", flags);
+        addConcept("operator_sizeof", List.of(twoTokenUnaryConcept), "sizeof(int)", flags);
 
         // currently, absent in the data:
 //        Concept namespace_static = addConcept("namespace_static", List.of(), "Пространство имён", noFlags);
@@ -349,11 +356,6 @@ public class ProgrammingLanguageExpressionDomain extends Domain {
         }
     }
 
-    @Override
-    public List<Concept> getLawConcepts(Law law) {
-        return law.getConcepts();
-    }
-
     @NotNull
     @Override
     public String getDisplayName(Language language) {
@@ -420,7 +422,70 @@ public class ProgrammingLanguageExpressionDomain extends Domain {
         return fl;
     }
 
-    Question makeQuestionCopy(Question q, ExerciseAttemptEntity exerciseAttemptEntity, Language userLang) {
+    @Override
+    public @NotNull Question makeQuestion(@NotNull QuestionRequest questionRequest,
+                                          @NotNull ExerciseAttemptEntity exerciseAttempt,
+                                          @NotNull Language userLanguage) {
+        return makeQuestion(questionRequest, exerciseAttempt, userLanguage, this);
+    }
+
+    public @NotNull Question makeQuestion(@NotNull QuestionRequest questionRequest,
+                                          @NotNull ExerciseAttemptEntity exerciseAttempt,
+                                          @NotNull Language userLanguage, @NotNull Domain domain) {
+        HashSet<String> conceptNames = new HashSet<>();
+        for (Concept concept : questionRequest.getTargetConcepts()) {
+            conceptNames.add(concept.getName());
+        }
+
+        List<QuestionMetadataEntity> foundQuestions = null;
+        try {
+            var exerciseOptions = exerciseAttempt.getExercise().getOptions();
+            int generatorThreshold = exerciseOptions.getGeneratorThreshold() != null 
+                    ? exerciseOptions.getGeneratorThreshold() 
+                    : (int)(exerciseOptions.getMaxExpectedConcurrentStudents() * 1.5);
+            int generatorAdditionalQuestionsToGenerate = exerciseOptions.getGeneratorAdditionalQuestionsToGenerate() != null
+                    ? exerciseOptions.getGeneratorAdditionalQuestionsToGenerate()
+                    : 3;
+            foundQuestions = qMetaStorage.searchQuestions(questionRequest, 1, generatorThreshold, generatorAdditionalQuestionsToGenerate).getQuestions();
+
+            // search again if nothing found with "TO_COMPLEX"
+            SearchDirections lawsSearchDir = questionRequest.getLawsSearchDirection();
+            if (foundQuestions.isEmpty() && lawsSearchDir == SearchDirections.TO_COMPLEX) {
+                questionRequest.setLawsSearchDirection(SearchDirections.TO_SIMPLE);
+                foundQuestions = qMetaStorage.searchQuestions(questionRequest, 1, generatorThreshold, generatorAdditionalQuestionsToGenerate).getQuestions();
+            }
+        } catch (Exception e) {
+            // file storage was not configured properly...
+            log.error("Error searching questions - {}", e.getMessage(), e);
+            throw e;
+        }
+
+        if (foundQuestions.isEmpty()) {
+            throw new IllegalStateException("No valid questions found");
+        }
+
+        var res = foundQuestions.getFirst();
+        return makeQuestion(res, exerciseAttempt, questionRequest.getTargetTags(), userLanguage, domain);
+    }
+
+    @Override
+    public @NotNull Question makeQuestion(@NotNull QuestionMetadataEntity metadata,
+                                          @Nullable ExerciseAttemptEntity exerciseAttemptEntity,
+                                          @NotNull List<Tag> tags,
+                                          @NotNull Language userLang) {
+        return makeQuestion(metadata, exerciseAttemptEntity, tags, userLang, this);
+    }
+
+    public @NotNull Question makeQuestion(@NotNull QuestionMetadataEntity metadata,
+                                          @Nullable ExerciseAttemptEntity exerciseAttemptEntity,
+                                          @NotNull List<Tag> tags,
+                                          @NotNull Language userLang,
+                                          @NotNull Domain domain) {
+        var questionData = metadata.getQuestionData();
+        return makeQuestion(domain, questionData.getData().toQuestion(domain, metadata), exerciseAttemptEntity, tags, userLang);
+    }
+
+    private Question makeQuestion(Domain domain, Question q, ExerciseAttemptEntity exerciseAttemptEntity, List<Tag> tags, Language userLang) {
         QuestionOptionsEntity orderQuestionOptions = OrderQuestionOptionsEntity.builder()
                 .requireContext(true)
                 .showTrace(true)
@@ -466,6 +531,7 @@ public class ProgrammingLanguageExpressionDomain extends Domain {
         entity.setDomainEntity(getDomainEntity());
         entity.setQuestionDomainType(q.getQuestionDomainType());
         entity.setMetadata(q.getMetadata());
+        entity.setTags(tags.stream().map(Tag::getName).collect(Collectors.toList()));
 
         //TODO: remove this hack supporting old format
         if (!q.getStatementFacts().isEmpty() && (q.getStatementFacts().get(0).getVerb() == null)) {
@@ -508,7 +574,7 @@ public class ProgrammingLanguageExpressionDomain extends Domain {
                             .replace("student_end_evaluation", getMessage("STUDENT_END_EVALUATION", userLang)));
                 }
                 entity.setOptions(orderQuestionOptions);
-                Question question = new Question(entity, this);
+                Question question = new Question(entity, domain);
                 // patch the newly created question with the concepts from the "template"
                 question.getConcepts().addAll(q.getConcepts());
                 // ^ shouldn't this be done in a more straightforward way..?
@@ -516,15 +582,15 @@ public class ProgrammingLanguageExpressionDomain extends Domain {
             case MATCHING:
                 entity.setQuestionText(QuestionTextToHtml(text));
                 entity.setOptions(matchingQuestionOptions);
-                return new Question(entity, this);
+                return new Question(entity, domain);
             case MULTI_CHOICE:
                 entity.setQuestionText(QuestionTextToHtml(text));
                 entity.setOptions(multiChoiceQuestionOptions);
-                return new Question(entity, this);
+                return new Question(entity, domain);
             case SINGLE_CHOICE:
                 entity.setQuestionText(QuestionTextToHtml(text));
                 entity.setOptions(singleChoiceQuestionOptions);
-                return new Question(entity, this);
+                return new Question(entity, domain);
             default:
                 throw new UnsupportedOperationException("Unknown type in ProgrammingLanguageExpressionDomain::makeQuestion: " + q.getQuestionType());
         }
@@ -532,6 +598,10 @@ public class ProgrammingLanguageExpressionDomain extends Domain {
 
     @NotNull
     private static String reformatQuestionText(Question q) {
+        if (q.getMetadata().getVersion() >= 12) {
+            return q.getQuestionText().getText();
+        }
+
         // avoid changing generated files: re-generate html
         OntModel m = factsToOntModel(q.getStatementFacts());
         OntProperty text_prop = m.createOntProperty("http://vstu.ru/poas/code#text");
@@ -571,42 +641,6 @@ public class ProgrammingLanguageExpressionDomain extends Domain {
         // replace with generated html
         String text = ExpressionToHtmlEnablingButtonDuplicates(expression);
         return text;
-    }
-
-    @Override
-    public Question makeQuestion(ExerciseAttemptEntity exerciseAttempt, QuestionRequest questionRequest, List<Tag> tags, Language userLanguage) {
-
-        HashSet<String> conceptNames = new HashSet<>();
-        for (Concept concept : questionRequest.getTargetConcepts()) {
-            conceptNames.add(concept.getName());
-        }
-
-        List<Question> foundQuestions = null;
-        if (!conceptNames.contains("SystemIntegrationTest")) {
-            try {
-                // new version - invoke rdfStorage search
-                foundQuestions = qMetaStorage.searchQuestions(this, exerciseAttempt, questionRequest, 1);
-
-                // search again if nothing found with "TO_COMPLEX"
-                SearchDirections lawsSearchDir = questionRequest.getLawsSearchDirection();
-                if (foundQuestions.isEmpty() && lawsSearchDir == SearchDirections.TO_COMPLEX) {
-                    questionRequest.setLawsSearchDirection(SearchDirections.TO_SIMPLE);
-                    foundQuestions = qMetaStorage.searchQuestions(this, exerciseAttempt, questionRequest, 1);
-                }
-            } catch (Exception e) {
-                // file storage was not configured properly...
-                log.error("Error searching questions - {}", e.getMessage(), e);
-                foundQuestions = new ArrayList<>();
-            }
-        }
-        
-        if (foundQuestions == null || foundQuestions.isEmpty()) {
-            throw new IllegalStateException("No valid questions found");
-        }
-
-        var res = foundQuestions.getFirst();
-        log.info("Expression domain has prepared the question: {}", res.getQuestionName());
-        return makeQuestionCopy(res, exerciseAttempt, userLanguage);
     }
 
     @Override
@@ -798,14 +832,6 @@ public class ProgrammingLanguageExpressionDomain extends Domain {
             schemaModel.read(VOCAB_SCHEMA_PATH);
         }
         return schemaModel;
-    }
-
-    /**
-     * Get domain-defined backend id, which determines the backend used to SOLVE this domain's questions
-     * Returns {@link JenaBackend#BackendId}
-     */
-    public String getSolvingBackendId(){
-        return JenaBackend.BackendId;
     }
 
     @Override
@@ -1137,7 +1163,6 @@ public class ProgrammingLanguageExpressionDomain extends Domain {
         return result;
     }
 
-    @Override
     public ProcessSolutionResult processSolution(Collection<Fact> solution) {
         Map<String, String> studentPos = new HashMap<>();
         Map<String, String> unevalOp = new HashMap<>();
@@ -1235,7 +1260,9 @@ public class ProgrammingLanguageExpressionDomain extends Domain {
         ArrayList<AnswerObjectEntity> explain = new ArrayList<>();
         TreeMap<Integer, String> posToExplanation = new TreeMap<>();
         
-        Language lang = q.getQuestionData().getExerciseAttempt().getUser().getPreferred_language();
+        Language lang = Optional.ofNullable(q.getQuestionData().getExerciseAttempt())
+                .map(a -> a.getUser().getPreferred_language())
+                .orElse(Language.RUSSIAN/*ENGLISH*/);
 
         int answerPos = Integer.parseInt(indexes.get(answer.getDomainInfo()));
         String answerText = texts.get(answer.getDomainInfo());
@@ -1407,7 +1434,7 @@ public class ProgrammingLanguageExpressionDomain extends Domain {
                     correctAnswer.question = q.getQuestionData();
                     correctAnswer.answers = answers;
                     correctAnswer.lawName = answerImpl.lawName;
-                    correctAnswer.explanation = getCorrectExplanation(q, answer);
+                    correctAnswer.explanation = new Explanation(Explanation.Type.HINT, getCorrectExplanation(q, answer));
                     return correctAnswer;
                 }
             }
@@ -1415,7 +1442,6 @@ public class ProgrammingLanguageExpressionDomain extends Domain {
         return null;
     }
 
-    @Override
     public Set<String> possibleViolations(Question q, List<ResponseEntity> completedSteps) {
         return possibleViolations(q.getSolutionFacts(), completedSteps);
     }
@@ -1470,11 +1496,6 @@ public class ProgrammingLanguageExpressionDomain extends Domain {
     }
 
     @Override
-    public Set<Set<String>> possibleViolationsByStep(Question q, List<ResponseEntity> completedSteps) {
-        return new HashSet<>();
-    }
-
-    @Override
     public boolean needSupplementaryQuestion(ViolationEntity violation) {
         if (violation.getLawName().equals("error_base_student_error_in_complex") ||
                 violation.getLawName().equals("error_base_student_error_strict_operands_order") ||
@@ -1487,11 +1508,14 @@ public class ProgrammingLanguageExpressionDomain extends Domain {
 
     static final String DOMAIN_MODEL_DIRECTORY = RESOURCES_LOCATION + "programming-language-expression-domain-model/";
 
-    private its.model.definition.Domain mainQuestionToModel(InteractionEntity lastMainQuestionInteraction) {
-        return ProgrammingLanguageExpressionRDFTransformer.questionToDomainModel(
-            dtSupplementaryQuestionHelper.domainModel.getDomain(),
-            lastMainQuestionInteraction.getQuestion(),
-            lastMainQuestionInteraction
+    private DomainModel mainQuestionToModel(InteractionEntity lastMainQuestionInteraction) {
+        List<Tag> tags = lastMainQuestionInteraction.getQuestion().getTags().stream().map(this::getTag).filter(Objects::nonNull).toList();
+        Question q = new Question(lastMainQuestionInteraction.getQuestion(), this);
+        q = MeaningTreeOrderQuestionBuilder.fastBuildFromExisting(q, SupportedLanguage.CPP, null);
+        return MeaningTreeRDFTransformer.questionToDomainModel(
+                dtSupplementaryQuestionHelper.domainModel,
+                q.getStatementFacts(),
+                lastMainQuestionInteraction.getResponses(), tags
         );
     }
 
@@ -1503,7 +1527,8 @@ public class ProgrammingLanguageExpressionDomain extends Domain {
 
     @Override
     public SupplementaryResponseGenerationResult makeSupplementaryQuestion(QuestionEntity sourceQuestion, ViolationEntity violation, Language lang) {
-        if(sourceQuestion.getExerciseAttempt().getExercise().getOptions().isPreferDecisionTreeBasedSupplementaryEnabled()){
+        var attempt = sourceQuestion.getExerciseAttempt();
+        if (attempt == null || attempt.getExercise().getOptions().isPreferDecisionTreeBasedSupplementaryEnabled()){
             return dtSupplementaryQuestionHelper.makeSupplementaryQuestion(sourceQuestion, lang);
         }
         else {
@@ -1523,10 +1548,12 @@ public class ProgrammingLanguageExpressionDomain extends Domain {
                     .map(v -> FeedbackViolationLawDto.builder().name(v.getLawName()).canCreateSupplementaryQuestion(this.needSupplementaryQuestion(v)).build())
                     .findFirst()
                     .orElse(null);
-            val locale = question.getQuestionData().getExerciseAttempt().getUser().getPreferred_language().toLocale();
+            val locale = Optional.ofNullable(question.getQuestionData().getExerciseAttempt())
+                    .map(a -> a.getUser().getPreferred_language())
+                    .orElse(Language.RUSSIAN/*ENGLISH*/);
             val message = judgeResult.isAnswerCorrect
-                    ? FeedbackDto.Message.Success(localizationService.getMessage("exercise_correct-sup-question-answer", locale), violation)
-                    : FeedbackDto.Message.Error(localizationService.getMessage("exercise_wrong-sup-question-answer", locale), violation);
+                    ? FeedbackDto.Message.Success(localizationService.getMessage("exercise_correct-sup-question-answer", locale), List.of(violation))
+                    : FeedbackDto.Message.Error(localizationService.getMessage("exercise_wrong-sup-question-answer", locale), List.of(violation));
             val feedback =  new SupplementaryFeedbackDto(
                     message,
                     judgeResult.isAnswerCorrect ? SupplementaryFeedbackDto.Action.ContinueAuto : SupplementaryFeedbackDto.Action.ContinueManual);
@@ -1555,7 +1582,7 @@ public class ProgrammingLanguageExpressionDomain extends Domain {
 
         Question res = findQuestion(new ArrayList<>(), targetConcepts, new HashSet<>(), new HashSet<>(), new HashSet<>(), new HashSet<>());
         if (res != null) {
-            Question copy = makeQuestionCopy(res, exerciseAttemptEntity, userLang);
+            Question copy = makeQuestion(this, res, exerciseAttemptEntity, List.of(), userLang);
             return fillSupplementaryAnswerObjects(question, failedLaw, copy, userLang);
         }
 
@@ -2068,12 +2095,12 @@ public class ProgrammingLanguageExpressionDomain extends Domain {
     }
 
     @Override
-    public List<HyperText> makeExplanation(List<ViolationEntity> mistakes, FeedbackType feedbackType, Language lang) {
-        ArrayList<HyperText> result = new ArrayList<>();
+    public Explanation makeExplanation(List<ViolationEntity> mistakes, FeedbackType feedbackType, Language lang) {
+        ArrayList<Explanation> result = new ArrayList<>();
         for (ViolationEntity mistake : mistakes) {
-            result.add(makeExplanation(mistake, feedbackType, lang));
+            result.add(new Explanation(Explanation.Type.ERROR, makeExplanation(mistake, feedbackType, lang)));
         }
-        return result;
+        return Explanation.aggregate(Explanation.Type.ERROR, result);
     }
 
     private String getOperatorTextDescription(String errorText, Language lang) {
@@ -2350,7 +2377,6 @@ public class ProgrammingLanguageExpressionDomain extends Domain {
     /**
      * @param questionName name for the question
      * @param model solved model
-     * @param rs instance of Storage
      * @return fresh Ordering Question
      */
     private Question createQuestionFromModel(String questionName, String templateName, String origin, Model model) {
@@ -2480,8 +2506,7 @@ public class ProgrammingLanguageExpressionDomain extends Domain {
         // finished with the results of external Python tool.
 
         List<String> tagNames = List.of("basics", "operators", "order", "evaluation", "errors", "C++");
-
-        question.getTags().addAll(tagNames);
+        entity.setTags(tagNames);
 
         entity.setSolutionFacts(null);
 
@@ -2496,7 +2521,6 @@ public class ProgrammingLanguageExpressionDomain extends Domain {
             entity.setOptions(options);
         }
 
-        question.setTags(new HashSet<>(tagNames));
         question.setNegativeLaws(new ArrayList<>(violations));
         question.setConcepts(new ArrayList<>(concepts));
         
@@ -2533,12 +2557,14 @@ public class ProgrammingLanguageExpressionDomain extends Domain {
      * @param questionsLimit
      * @param origin
      */
-    public void generateManyQuestions(List<String> ttlTemplatePaths, String outputDir, int questionsLimit, String origin) {
+    public void generateManyQuestions(List<String> ttlTemplatePaths, String outputDir, int questionsLimit,
+                                      String origin) {
         int count = 0;  // templates
         int qCount = 0;
         int savedCount = 0;
 
         for (String file : ttlTemplatePaths) {
+            file = file.replaceAll("\\\\","/");
             log.info("Start generating question(s) for template {}", file);
             try {
                 if (qCount > questionsLimit)
@@ -2715,7 +2741,9 @@ public class ProgrammingLanguageExpressionDomain extends Domain {
 
     @Override
     public List<HyperText> getFullSolutionTrace(Question question) {
-        Language lang = question.getQuestionData().getExerciseAttempt().getUser().getPreferred_language();
+        Language lang = Optional.ofNullable(question.getQuestionData().getExerciseAttempt())
+            .map(a -> a.getUser().getPreferred_language())
+            .orElse(Language.RUSSIAN/*ENGLISH*/);
 
         ArrayList<HyperText> result = new ArrayList<>();
 
@@ -2766,7 +2794,7 @@ public class ProgrammingLanguageExpressionDomain extends Domain {
         return result;
     }
 
-    private List<ResponseEntity> responsesForTrace(QuestionEntity q, boolean allowLastIncorrect) {
+    protected List<ResponseEntity> responsesForTrace(QuestionEntity q, boolean allowLastIncorrect) {
 
         List<ResponseEntity> responses = new ArrayList<>();
         List<InteractionEntity> interactions = q.getInteractions();
@@ -2809,6 +2837,7 @@ public class ProgrammingLanguageExpressionDomain extends Domain {
         name2bit.put("operator_==", 0x4L);  	// (4)
         name2bit.put("operator_!", 0x8L);  	// (8)
         name2bit.put("operator_&&", 0x10L);  	// (16)
+        name2bit.put("operator_and", 0x10L);  	// (16)
         name2bit.put("operator_<=", 0x20L);  	// (32)
         name2bit.put("precedence", 0x40L);  	// (64)
         name2bit.put("associativity", 0x80L);  	// (128)
@@ -2816,6 +2845,7 @@ public class ProgrammingLanguageExpressionDomain extends Domain {
         name2bit.put("operator_>=", 0x200L);  	// (512)
         name2bit.put("operator_binary_-", 0x400L);  	// (1024)
         name2bit.put("operator_||", 0x800L);  	// (2048)
+        name2bit.put("operator_or", 0x800L);  	// (2048)
         name2bit.put("operator_&", 0x1000L);  	// (4096)
         name2bit.put("operator_=", 0x2000L);  	// (8192)
         name2bit.put("operator_binary_+", 0x4000L);  	// (16384)
@@ -2850,6 +2880,17 @@ public class ProgrammingLanguageExpressionDomain extends Domain {
         name2bit.put("operator_subscript", 0x40000000000L);  	// (4398046511104)
         name2bit.put("operator_prefix_++", 0x80000000000L);  	// (8796093022208)
         name2bit.put("operator_prefix_--", 0x100000000000L);  	// (17592186044416)
+        name2bit.put("operator_:=", 0x200000000000L);  	// (35184372088832)
+        name2bit.put("operator_is", 0x400000000000L);  	// (70368744177664)
+        name2bit.put("operator_in", 0x800000000000L);  	// (140737488355328)
+        name2bit.put("operator_@", 0x1000000000000L);  	// (281474976710656)
+        name2bit.put("operator_//", 0x2000000000000L);  	// (562949953421312)
+        name2bit.put("operator_?", 0x4000000000000L);  	// (1125899906842624)
+        name2bit.put("operator_sizeof", 0x8000000000000L);
+        name2bit.put("operator_cast", 0x10000000000000L);
+        name2bit.put("stream_io", 0x20000000000000L);
+        name2bit.put("operator_new", 0x40000000000000L);
+        name2bit.put("collection_literal", 0x80000000000000L);
         return name2bit;
         // (developer tip: see sqlite2mysql)
     }
@@ -2870,6 +2911,7 @@ public class ProgrammingLanguageExpressionDomain extends Domain {
         name2bit.put("error_base_binary_having_associativity_right", 0x1000L);  // (4096)
         name2bit.put("error_base_unary_having_associativity_left", 0x2000L);  	// (8192)
         name2bit.put("error_base_enclosing_operators", 0x4000L);  	// (16384)
+        name2bit.put("error_base_parenthesized_operators", 0x8000L);  	// (16384)
         return name2bit;
     }
     private HashMap<String, Long> _getLawsName2bit() {

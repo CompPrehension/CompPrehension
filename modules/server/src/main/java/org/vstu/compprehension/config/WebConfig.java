@@ -1,6 +1,7 @@
 package org.vstu.compprehension.config;
 
-import lombok.val;
+import domains.DataFlowDTDomain;
+import domains.ObjectsScopeDTDomain;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.boot.autoconfigure.web.servlet.DispatcherServletAutoConfiguration;
 import org.springframework.boot.web.servlet.ServletRegistrationBean;
@@ -47,12 +48,14 @@ public class WebConfig implements WebMvcConfigurer {
 
     @Bean(name = "messageSource")
     public MessageSource getMessageSource() {
-        val messageSource = new ReloadableResourceBundleMessageSource();
+        var messageSource = new ReloadableResourceBundleMessageSource();
         messageSource.addBasenames("classpath:/messages/common-messages");
         messageSource.addBasenames(ControlFlowStatementsDomain.MESSAGES_CONFIG_PATH);
         messageSource.addBasenames(ProgrammingLanguageExpressionDomain.MESSAGES_CONFIG_PATH);
         messageSource.addBasenames(ProgrammingLanguageExpressionDTDomain.MESSAGES_CONFIG_PATH);
         messageSource.addBasenames(ControlFlowStatementsDTDomain.MESSAGES_CONFIG_PATH);
+        messageSource.addBasenames(ObjectsScopeDTDomain.MESSAGES_CONFIG_PATH);
+        messageSource.addBasenames(DataFlowDTDomain.MESSAGES_CONFIG_PATH);
         messageSource.setDefaultEncoding("UTF-8");
         return messageSource;
     }

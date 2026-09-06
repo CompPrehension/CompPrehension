@@ -1,31 +1,31 @@
 
 import { observer } from 'mobx-react';
 import * as React from 'react';
-import { useState } from 'react';
 import { Button } from 'react-bootstrap';
-import { container } from "tsyringe";
-import { ExerciseStore } from "../../stores/exercise-store";
 import { useTranslation } from "react-i18next";
+import { QuestionStore } from '../../stores/question-store';
 
-export const GenerateNextAnswerBtn = observer(() => {    
-    const [exerciseStore] = useState(() => container.resolve(ExerciseStore));
+type GenerateNextAnswerBtnProps = {
+    store: QuestionStore;
+};
+
+export const GenerateNextAnswerBtn = observer(({ store }: GenerateNextAnswerBtnProps) => {    
     const { t } = useTranslation();
-    if (!exerciseStore.exercise?.options.correctAnswerGenerationEnabled) {
-        return null;
-    }    
-    const { exercise, currentAttempt, currentQuestion } = exerciseStore;
-    const { question, feedback } = currentQuestion;
-    const isFeedbackLoading = currentQuestion.questionState === 'ANSWER_EVALUATING';
-    const isQuestionLoading = currentQuestion.questionState === 'LOADING';
-    if (!question || !exercise || !currentAttempt || isFeedbackLoading || isQuestionLoading || feedback?.stepsLeft === 0) {
+
+    const { question, feedback } = store;
+    const isFeedbackLoading = store.questionState === 'ANSWER_EVALUATING';
+    const isQuestionLoading = store.questionState === 'LOADING';
+    if (!question || isFeedbackLoading || isQuestionLoading || feedback?.stepsLeft === 0) {
         return null;
     }
-
+    
     const onClicked = () => {
-        exerciseStore.currentQuestion.generateNextCorrectAnswer();
+        store.generateNextCorrectAnswer();
     };
 
     return (        
-        <Button onClick={onClicked} variant="primary">{t('nextCorrectAnswerBtn')}</Button>
+        <Button onClick={onClicked} className='comp-ph-hint-btn' variant="primary">
+            {t('nextCorrectAnswerBtn')}
+        </Button>
     )
 })

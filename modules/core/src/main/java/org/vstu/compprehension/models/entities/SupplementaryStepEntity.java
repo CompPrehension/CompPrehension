@@ -1,7 +1,9 @@
 package org.vstu.compprehension.models.entities;
 
 import com.vladmihalcea.hibernate.type.json.JsonType;
+import its.model.definition.DomainModel;
 import its.model.definition.ObjectRef;
+import its.model.nodes.BranchResult;
 import its.questions.gen.QuestioningSituation;
 import its.reasoner.LearningSituation;
 import jakarta.persistence.*;
@@ -9,11 +11,8 @@ import lombok.Getter;
 import lombok.NoArgsConstructor;
 import lombok.Setter;
 import lombok.ToString;
-import org.apache.commons.lang3.tuple.Pair;
-import org.apache.jena.rdf.model.Model;
 import org.hibernate.annotations.Type;
 
-import java.util.HashMap;
 import java.util.Map;
 import java.util.stream.Collectors;
 
@@ -36,7 +35,7 @@ public class SupplementaryStepEntity {
         private Map<String, String> reasoningVariables;
         private Map<String, String> discussedVariables;
         private Map<Integer, Integer> givenAnswers;
-        private Map<String, Boolean> assumedResults;
+        private Map<String, BranchResult> assumedResults;
         private String localizationCode;
         
         public SupplementarySituation(QuestioningSituation situation){
@@ -48,8 +47,8 @@ public class SupplementaryStepEntity {
             this.assumedResults = situation.getAssumedResults();
             this.localizationCode = situation.getLocalizationCode();
         }
-        
-        public QuestioningSituation toQuestioningSituation(its.model.definition.Domain situationModel){
+
+        public QuestioningSituation toQuestioningSituation(DomainModel situationModel) {
             Map<String, ObjectRef> vars = reasoningVariables
                 .entrySet().stream()
                 .collect(Collectors.toMap(Map.Entry::getKey, e -> new ObjectRef(e.getValue())));

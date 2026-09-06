@@ -1,13 +1,15 @@
 import React from "react";
-import { QuestionStore } from "../../stores/question-store";
-import { Loader } from "../common/loader";
-import { FeedbackMessage, FeedbackSuccessMessage } from "../../types/feedback";
-import { SupplementaryQuestionStore } from "../../stores/sup-question-store";
-import { GenerateSupQuestion } from "./generate-sup-question";
-import { observer } from "mobx-react";
-import { Alert, Badge } from "react-bootstrap";
-import { useTranslation } from "react-i18next";
-import { notNulAndUndefinded } from "../../utils/helpers";
+import {QuestionStore} from "../../stores/question-store";
+import {Loader} from "../common/loader";
+import {FeedbackMessage, FeedbackSuccessMessage} from "../../types/feedback";
+import {SupplementaryQuestionStore} from "../../stores/sup-question-store";
+import {GenerateSupQuestion} from "./generate-sup-question";
+import {observer} from "mobx-react";
+import {Alert, Badge} from "react-bootstrap";
+import {useTranslation} from "react-i18next";
+import {isNullOrUndefined} from "../../utils/helpers";
+import {ParsedMessage} from "./domain-terms";
+
 
 type FeedbackProps = { 
     store: QuestionStore,
@@ -27,34 +29,80 @@ export const Feedback = observer(({ store, showExtendedFeedback }: FeedbackProps
         return null;
     }
 
-    const feedbackMessages = store.questionState === 'COMPLETED'
-        ? [{ type: 'SUCCESS', message: t('issolved_feeback') }] as FeedbackSuccessMessage[]
-        : feedback.messages;
+    const defaultFeedbackMessage: FeedbackSuccessMessage = { type: 'SUCCESS',
+         message: t('issolved_feeback'), violationLaws: [] };
+
+    const feedbackMessages = feedback.messages;
+    if (feedbackMessages !== null && store.questionState === 'COMPLETED') {
+        feedbackMessages?.push(defaultFeedbackMessage);
+    }
 
     return (
-        <div className="comp-ph-feedback-wrapper mt-2">
-            {isFeedbackVisible && 
-                <>
-                    <div className="mb-3">
-                        {feedbackMessages?.map((m) => 
-                            <FeedbackAlert                            
-                                message={m}
-                                supQuestionStore={store.supplementaryQuestion}
-                                showGenerateSupQuestion={showExtendedFeedback && question.options.showSupplementaryQuestions && 
-                                    m.type === 'ERROR' && m.violationLaw.canCreateSupplementaryQuestion} 
-                            />)}                
-                    </div>
-                    {showExtendedFeedback && 
-                        <div>
-                            {feedback.grade !== null && <><Badge variant="primary">{t('grade_feeback')}: {feedback.grade}</Badge>{' '}</>}
-                            {feedback.correctSteps !== null && <><Badge variant="success">{t('correctsteps_feeback')}: {feedback.correctSteps}</Badge>{' '}</>}
-                            {notNulAndUndefinded(feedback.stepsWithErrors) && feedback.stepsWithErrors > 0 && <><Badge variant="danger">{t('stepswitherrors_feeback')}: {feedback.stepsWithErrors}</Badge>{' '}</>}
-                            {notNulAndUndefinded(feedback.stepsLeft) && feedback.stepsLeft > 0 && <><Badge variant="info">{t('stepsleft_feeback')}: {feedback.stepsLeft}</Badge>{' '}</>}
-                        </div>
-                    }
-                </>
-            }          
-        </div>
+      <div className='comp-ph-feedback-wrapper mt-2'>
+        {isFeedbackVisible && (
+          <>
+            <div className='mb-3'>
+              {feedbackMessages?.map((m, i) => (
+                <FeedbackAlert
+                  key={i}
+                  message={m}
+                  supQuestionStore={store.supplementaryQuestion}
+                  showGenerateSupQuestion={
+                    showExtendedFeedback &&
+                    question.options.showSupplementaryQuestions &&
+                    m.type === 'ERROR' &&
+                    m.violationLaws?.every(
+                      (e) => e.canCreateSupplementaryQuestion
+                    )
+                  }
+                />
+              ))}
+            </div>
+            {showExtendedFeedback && (
+              <div>
+                {feedback.grade !== null && (
+                  <>
+                    <Badge
+                      className='comp-ph-feedback-grade'
+                      variant='primary'
+                    >
+                      {t('grade_feeback')}: {feedback.grade}
+                    </Badge>{' '}
+                  </>
+                )}
+                {feedback.correctSteps !== null && (
+                  <>
+                    <Badge variant='success'>
+                      {t('correctsteps_feeback')}: {feedback.correctSteps}
+                    </Badge>{' '}
+                  </>
+                )}
+                {!isNullOrUndefined(feedback.stepsWithErrors) &&
+                  feedback.stepsWithErrors > 0 && (
+                    <>
+                      <Badge
+                        className='comp-ph-feedback-error-steps'
+                        variant='danger'
+                      >
+                        {t('stepswitherrors_feeback')}:{' '}
+                        {feedback.stepsWithErrors}
+                      </Badge>{' '}
+                    </>
+                  )}
+                {!isNullOrUndefined(feedback.stepsLeft) &&
+                  feedback.stepsLeft > 0 && (
+                    <>
+                      <Badge className='comp-ph-feedback-remaining-steps'
+                      variant='info'>
+                        {t('stepsleft_feeback')}: {feedback.stepsLeft}
+                      </Badge>{' '}
+                    </>
+                  )}
+              </div>
+            )}
+          </>
+        )}
+      </div>
     );
 });
 
@@ -68,15 +116,23 @@ export const FeedbackAlert = observer((props: FeedbackAlertProps) => {
     showGenerateSupQuestion = showGenerateSupQuestion && supQuestionStore != undefined;
 
     const variant = message.type === 'SUCCESS' ? 'success' : 'danger';
-    return(
-        <Alert variant={variant}>
-            <div dangerouslySetInnerHTML={{ __html: message.message }} />
-            {showGenerateSupQuestion && message.type === 'ERROR' && message.violationLaw &&
-                <GenerateSupQuestion 
-                    store={supQuestionStore!}
-                    violationLaw={message.violationLaw}/> || null
-            }
-        </Alert>
-    )
+    return (
+      <Alert variant={variant} className={variant === 'danger' ? 'comp-ph-feedback-error' : 'comp-ph-feedback-success'}>
+        <div
+          data-domain-laws={message.violationLaws?.map((v) => v.name).join(';')}
+        >
+          <ParsedMessage html={message.message} />
+        </div>
+        {(showGenerateSupQuestion &&
+          message.type === 'ERROR' &&
+          message.violationLaws && (
+            <GenerateSupQuestion
+              store={supQuestionStore!}
+              violationLaw={message.violationLaws}
+            />
+          )) ||
+          null}
+      </Alert>
+    );
 })
 

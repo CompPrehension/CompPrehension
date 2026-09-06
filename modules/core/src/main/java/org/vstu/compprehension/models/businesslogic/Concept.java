@@ -1,7 +1,6 @@
 package org.vstu.compprehension.models.businesslogic;
 
 import lombok.*;
-import org.apache.commons.lang3.builder.ToStringExclude;
 
 import java.util.*;
 
@@ -21,11 +20,11 @@ public class Concept implements TreeNodeWithBitmask {
     @EqualsAndHashCode.Include
     String name;
 
-    @ToStringExclude
+    @ToString.Exclude
     List<Concept> baseConcepts;
 
     /** Cached references to Concept instances */
-    @ToStringExclude
+    @ToString.Exclude
     @Getter
     @Setter
     Collection<Concept> childConcepts = null;
@@ -35,7 +34,6 @@ public class Concept implements TreeNodeWithBitmask {
     @Getter @Setter
     long bitmask;
 
-    @Builder.Default
     @Getter @Setter
     int sortOrder = 999;
 

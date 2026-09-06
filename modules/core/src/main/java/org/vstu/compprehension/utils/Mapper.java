@@ -55,6 +55,7 @@ public class Mapper {
                 .displayName(displayName)
                 .email(user.getEmail())
                 .language(user.getPreferred_language().toLocaleString())
+                .roles(user.getRoles().stream().map(Enum::name).collect(Collectors.toList()))
                 .build();
     }
 
@@ -120,8 +121,8 @@ public class Mapper {
                         .map(HyperText::getText)
                         .toArray(String[]::new);
                 return OrderQuestionDto.builder()
-                        .attemptId(question.getExerciseAttempt().getId())
                         .questionId(question.getId())
+                        .questionMetadataId(question.getMetadata() == null ? -1: question.getMetadata().getId())
                         .type(question.getQuestionType().toString())
                         .answers(answerDtos)
                         .text(question.getQuestionText())
@@ -133,8 +134,8 @@ public class Mapper {
             case MULTI_CHOICE:
             case SINGLE_CHOICE:
                 return QuestionDto.builder()
-                        .attemptId(question.getExerciseAttempt().getId())
                         .questionId(question.getId())
+                        .questionMetadataId(question.getMetadata() == null ? -1: question.getMetadata().getId())
                         .type(question.getQuestionType().toString())
                         .answers(answerDtos)
                         .text(question.getQuestionText())
@@ -153,8 +154,8 @@ public class Mapper {
                         .toArray(QuestionAnswerDto[]::new);
 
                 return MatchingQuestionDto.builder()
-                        .attemptId(question.getExerciseAttempt().getId())
                         .questionId(question.getId())
+                        .questionMetadataId(question.getMetadata() == null ? -1: question.getMetadata().getId())
                         .type(question.getQuestionType().toString())
                         .answers(left)
                         .groups(right)

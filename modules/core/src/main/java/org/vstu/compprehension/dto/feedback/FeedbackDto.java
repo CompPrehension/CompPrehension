@@ -10,6 +10,8 @@ import org.jetbrains.annotations.Nullable;
 import org.vstu.compprehension.dto.AnswerDto;
 import org.vstu.compprehension.models.entities.EnumData.Decision;
 
+import java.util.List;
+
 @Data
 @SuperBuilder
 @NoArgsConstructor
@@ -37,15 +39,15 @@ public class FeedbackDto {
     public static class Message {
         @NotNull private MessageType type;
         @NotNull private String message;
-        @Nullable private FeedbackViolationLawDto violationLaw;
+        @Nullable private List<FeedbackViolationLawDto> violationLaws;
 
         public static Message Success(@NotNull String message) {
             return new Message(MessageType.SUCCESS, message, null);
         }
-        public static Message Success(@NotNull String message, @Nullable FeedbackViolationLawDto violationLaw) {
+        public static Message Success(@NotNull String message, @Nullable List<FeedbackViolationLawDto> violationLaw) {
             return new Message(MessageType.SUCCESS, message, violationLaw);
         }
-        public static Message Error(@NotNull String message, @Nullable FeedbackViolationLawDto violationLaw) {
+        public static Message Error(@NotNull String message, @Nullable List<FeedbackViolationLawDto> violationLaw) {
             return new Message(MessageType.ERROR, message, violationLaw);
         }
     }

@@ -7,7 +7,9 @@ import org.vstu.compprehension.models.businesslogic.QuestionBankSearchRequest;
 import org.vstu.compprehension.models.entities.QuestionMetadataEntity;
 import org.vstu.compprehension.models.repository.QuestionMetadataRepository;
 
+import java.time.LocalDate;
 import java.time.LocalDateTime;
+import java.util.Collection;
 import java.util.HashSet;
 import java.util.List;
 import java.util.Optional;
@@ -39,6 +41,18 @@ public class FakeQuestionMetadataRepository implements QuestionMetadataRepositor
         return List.of();
     }
 
+    @NotNull
+    @Override
+    public List<QuestionMetadataEntity> loadPageWithData(int lastLoadedId, int limit) {
+        return List.of();
+    }
+
+    @NotNull
+    @Override
+    public List<QuestionMetadataEntity> loadPage(int lastLoadedId, String domainShortName, int limit) {
+        return List.of();
+    }
+
     @Override
     public long countByDomainShortname(String domainShortname) {
         return 0;
@@ -67,8 +81,13 @@ public class FakeQuestionMetadataRepository implements QuestionMetadataRepositor
     }
 
     @Override
-    public boolean existsByNameOrTemplateId(String domainShortname, String questionName, @Nullable String templateId) {
-        return false;
+    public HashSet<String> findExistingNames(String domainShortname, Collection<String> questionNames) {
+        return new HashSet<>();
+    }
+
+    @Override
+    public HashSet<String> findExistingTemplateIds(String domainShortname, Collection<String> templateIds) {
+        return new HashSet<>();
     }
 
     @Override
@@ -112,12 +131,12 @@ public class FakeQuestionMetadataRepository implements QuestionMetadataRepositor
     }
 
     @Override
-    public int countQuestions(QuestionBankSearchRequest qr, float complexityWindow) {
+    public int countQuestions(QuestionBankSearchRequest qrw) {
         return 0;
     }
 
     @Override
-    public int countTopRatedQuestions(QuestionBankSearchRequest qr, float complexityWindow) {
+    public int countTopRatedQuestions(QuestionBankSearchRequest qr) {
         return 0;
     }
 
@@ -127,23 +146,45 @@ public class FakeQuestionMetadataRepository implements QuestionMetadataRepositor
     }
 
     @Override
-    public List<QuestionMetadataEntity> findTopRatedMetadata(QuestionBankSearchRequest qr, float complexityWindow, int limitNumber) {
+    public List<QuestionMetadataEntity> findTopRatedUnusedMetadata(QuestionBankSearchRequest qr, int limitNumber) {
         return List.of();
     }
 
     @Override
-    public List<QuestionMetadataEntity> findMetadata(QuestionBankSearchRequest qr, float complexityWindow, int limitNumber) {
+    public List<QuestionMetadataEntity> findTopRatedMetadata(QuestionBankSearchRequest qr, int limitNumber) {
         return List.of();
     }
 
     @Override
-    public List<QuestionMetadataEntity> findMetadataRelaxed(QuestionBankSearchRequest qr, float complexityWindow, int limitNumber) {
+    public List<QuestionMetadataEntity> findMetadata(QuestionBankSearchRequest qr, int limitNumber) {
         return List.of();
+    }
+
+    @Override
+    public List<QuestionMetadataEntity> findMetadataRelaxed(QuestionBankSearchRequest qr, int limitNumber) {
+        return List.of();
+    }
+
+    @Override
+    public int deleteMetadataFromDate(LocalDate date) {
+        return 0;
     }
 
     @NotNull
     @Override
-    public HashSet<String> findAllOrigins(String domainName, LocalDateTime from) {
+    public HashSet<String> findFullyProcessedOrigins(String domainName) {
+        return new HashSet<>();
+    }
+
+    @NotNull
+    @Override
+    public HashSet<String> findProcessedOrigins(String domainShortname) {
+        return new HashSet<>();
+    }
+
+    @NotNull
+    @Override
+    public HashSet<String> findProcessedOrigins(String domainShortname, LocalDateTime dateFrom) {
         return new HashSet<>();
     }
 

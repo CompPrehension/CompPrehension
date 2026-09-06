@@ -1,0 +1,8 @@
+text|STRING||FALSE|OperatorType|
+type|ENUM|typeVariable|FALSE|Type|
+number|INTEGER||FALSE|Expression|1-99
+paramNumber|INTEGER||FALSE|Param|1-99
+argNumber|INTEGER||FALSE|Expression|1-99
+name|STRING||FALSE|FunctionDef;Variable|
+position|ENUM|positionExpression|FALSE|Position|
+isEvaluated|BOOLEAN||FALSE|Variable|

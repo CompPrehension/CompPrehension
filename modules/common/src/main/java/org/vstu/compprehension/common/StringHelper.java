@@ -1,6 +1,5 @@
 package org.vstu.compprehension.common;
 
-import lombok.val;
 import org.jetbrains.annotations.Contract;
 import org.jetbrains.annotations.NotNull;
 import org.jetbrains.annotations.Nullable;
@@ -13,8 +12,8 @@ public class StringHelper {
     }
 
     public static String joinWithDelimiter(@NotNull String delim, Object... parts) {
-        val joiner = new StringJoiner(delim);
-        for (val part : parts) {
+        var joiner = new StringJoiner(delim);
+        for (var part : parts) {
             joiner.add(part == null ? null : part.toString());
         }
         return joiner.toString();
@@ -67,5 +66,24 @@ public class StringHelper {
             return true;
         }
         return false;
+    }
+
+    public static String truncate(@Nullable String input, int maxLength) {
+        if (input == null) return null;
+        return input.length() > maxLength ? input.substring(0, maxLength) : input;
+    }
+    
+    public static StringBuilder replaceAll(@NotNull StringBuilder builder, @NotNull String from, @NotNull String to) {
+        int index = builder.indexOf(from);
+        while (index != -1) {
+            builder.replace(index, index + from.length(), to);
+            index += to.length(); // Move to the end of the replacement
+            index = builder.indexOf(from, index);
+        }
+        return builder;
+    }
+
+    public static String stripTags(String input) {
+        return input.replaceAll("<[^>]+>", "");
     }
 }

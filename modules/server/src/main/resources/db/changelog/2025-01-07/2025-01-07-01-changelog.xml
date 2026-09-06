@@ -1,0 +1,57 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<databaseChangeLog
+        xmlns="http://www.liquibase.org/xml/ns/dbchangelog"
+        xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance"
+        xsi:schemaLocation="http://www.liquibase.org/xml/ns/dbchangelog
+                      http://www.liquibase.org/xml/ns/dbchangelog/dbchangelog-4.24.xsd"
+        objectQuotingStrategy="QUOTE_ONLY_RESERVED_WORDS">
+    <changeSet id="1736279243389-65" author="Artem Prokudin">
+        <addColumn tableName="question">
+            <column name="tags" type="json"/>
+        </addColumn>
+
+        <sql>
+            WITH RECURSIVE exercise_splitted_tags AS (
+                SELECT
+                    id,
+                    TRIM(SUBSTRING_INDEX(tags, ',', 1)) AS part,
+                    SUBSTRING(tags, LENGTH(SUBSTRING_INDEX(tags, ',', 1)) + 2) AS rest
+                FROM exercise
+
+                UNION ALL
+
+                SELECT
+                    id,
+                    TRIM(SUBSTRING_INDEX(rest, ',', 1)) AS part,
+                    SUBSTRING(rest, LENGTH(SUBSTRING_INDEX(rest, ',', 1)) + 2) AS rest
+                FROM exercise_splitted_tags
+                WHERE rest &lt;&gt; ''
+            ),
+            exercise_tags AS (
+                SELECT
+                    id,
+                    CASE
+                        WHEN JSON_ARRAYAGG(part) = JSON_ARRAY('') THEN JSON_ARRAY()
+                        ELSE JSON_ARRAYAGG(part)
+                    END AS json_array
+                FROM exercise_splitted_tags
+                GROUP BY id
+            )
+            UPDATE question
+            SET tags = (
+                SELECT json_array FROM exercise_tags
+                INNER JOIN exercise_attempt ON exercise_tags.id = exercise_attempt.exercise_id
+                WHERE exercise_attempt.id = question.exercise_attempt_id
+            );
+        </sql>
+
+        <addNotNullConstraint columnDataType="json"
+                              columnName="tags"
+                              tableName="question"/>
+
+        <dropNotNullConstraint columnDataType="bigint"
+                               columnName="exercise_attempt_id"
+                               tableName="question"/>
+    </changeSet>
+
+</databaseChangeLog>

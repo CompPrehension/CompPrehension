@@ -1,26 +1,28 @@
 package org.vstu.compprehension.models.businesslogic.backend;
 
+import io.brookite.termannotations.DomainTermAnnotationProcessor;
 import its.model.TypedVariable;
-import its.model.definition.Domain;
-import its.model.definition.MetadataProperty;
-import its.model.nodes.BranchResultNode;
-import its.model.nodes.DecisionTree;
-import its.questions.gen.QuestioningSituation;
+import its.model.definition.DomainModel;
+import its.model.nodes.*;
+import its.questions.gen.formulations.TemplatingUtils;
 import its.reasoner.LearningSituation;
 import its.reasoner.nodes.DecisionTreeReasoner;
-import lombok.AllArgsConstructor;
-import lombok.Getter;
+import its.reasoner.nodes.DecisionTreeTrace;
+import its.reasoner.nodes.DecisionTreeTraceElement;
 import lombok.extern.log4j.Log4j2;
-import org.apache.commons.lang3.NotImplementedException;
+import org.apache.commons.lang3.tuple.Pair;
 import org.jetbrains.annotations.NotNull;
 import org.springframework.context.annotation.Primary;
 import org.springframework.stereotype.Component;
 import org.springframework.web.context.annotation.RequestScope;
-import org.vstu.compprehension.models.businesslogic.DTLaw;
-import org.vstu.compprehension.models.businesslogic.Law;
-import org.vstu.compprehension.models.businesslogic.backend.facts.Fact;
-import org.vstu.compprehension.models.businesslogic.backend.util.ReasoningOptions;
-import org.vstu.compprehension.models.entities.BackendFactEntity;
+import org.vstu.compprehension.common.Utils;
+import org.vstu.compprehension.dto.ExerciseSkillDto;
+import org.vstu.compprehension.models.businesslogic.DomainToBackendAdapter;
+import org.vstu.compprehension.models.businesslogic.Explanation;
+import org.vstu.compprehension.models.businesslogic.Question;
+import org.vstu.compprehension.models.businesslogic.domains.Domain;
+import org.vstu.compprehension.models.businesslogic.domains.DomainBase;
+import org.vstu.compprehension.models.businesslogic.domains.helpers.DomainTermTooltipVisualizer;
 import org.vstu.compprehension.models.entities.EnumData.Language;
 import org.vstu.compprehension.models.entities.ViolationEntity;
 import org.vstu.compprehension.utils.HyperText;
@@ -28,18 +30,38 @@ import org.vstu.compprehension.utils.HyperText;
 import java.util.*;
 import java.util.stream.Collectors;
 
+import static org.vstu.compprehension.models.businesslogic.domains.Domain.InterpretSentenceResult;
+
 /**
- * TODO Class Description
- *
- * @author Marat Gumerov
- * @since 28.01.2024
+ * A reasoning backend that works with decision-tree based reasoning;<br>
+ * Uses {@link DomainModel} objects to encode data, and {@link DecisionTree}s to encode reasoning processes.<br>
+ * Domains aiming to support this backend should have a corresponding {@link Interface}
+ * @see its.model.DomainSolvingModel
  */
 @Primary
 @Component
 @RequestScope
 @Log4j2
-public class DecisionTreeReasonerBackend implements Backend {
+public class DecisionTreeReasonerBackend
+    implements Backend<DecisionTreeReasonerBackend.Input, DecisionTreeReasonerBackend.Output>
+{
     public static String BACKEND_ID = "DTReasoner";
+    public final static int MAX_SIMILAR_EXPLANATION_COUNT = 3;
+
+    private static final Map<String, Map<String, String>> utilLoc = Map.ofEntries(
+            Pair.of("RU", Map.ofEntries(
+                    Pair.of("andAlsoHint", "влияет всё из нижеперечисленного..."),
+                    Pair.of("orAlsoHint", "влияет любое из нижеперечисленного..."),
+                    Pair.of("moreErrorHint", "...и еще %d похожих ошибок"),
+                    Pair.of("moreHint", "...и еще %d похожих подсказок")
+            )),
+            Pair.of("EN", Map.ofEntries(
+                    Pair.of("andAlsoHint", "it is influenced by all of the following..."),
+                    Pair.of("orAlsoHint", "it is influenced by any of the following..."),
+                    Pair.of("moreErrorHint", "...and also %d more similar errors"),
+                    Pair.of("moreHint", "...and also %d more similar hints")
+            ))
+    );
 
     @NotNull
     @Override
@@ -47,178 +69,363 @@ public class DecisionTreeReasonerBackend implements Backend {
         return BACKEND_ID;
     }
 
-    @Override
-    public Collection<Fact> solve(
-        List<Law> laws,
-        List<BackendFactEntity> statement,
-        ReasoningOptions reasoningOptions
-    ) {
-        throw new NotImplementedException();
+    /**
+     * Information, needed to perform a decision-tree based reasoning
+     * @param situationDomainModel combined question and domain data, described in the {@link DomainModel} form
+     * @param decisionTree a decision tree structure that describes the reasoning process
+     */
+    public record Input(
+        DomainModel situationDomainModel,
+        DecisionTree decisionTree
+    ){}
+
+    /**
+     * Aggregation policy for creating explanation messages
+     */
+    public enum AggregationPolicy {
+        SimAND,
+        SimOR,
+        Default
+    }
+
+    /**
+     * Output of a decision-tree based reasoning
+     * @param situation the situation object, describing the (possibly) changed state of the source question
+     * @param isReasoningDone false, if no reasoning actually happened (see {@link Interface#interpretJudgeNotPerformed}),
+     *                       otherwise true
+     * @param results if reasoning was actually performed, describes its results
+     */
+    public record Output(
+        LearningSituation situation,
+        boolean isReasoningDone,
+        DecisionTreeTrace results
+    ){}
+
+    public static List<DecisionTreeTraceElement<?, ?>> nestedTraceElements(DecisionTreeTrace trace) {
+        ArrayList<DecisionTreeTraceElement<?, ?>> elements = new ArrayList<>();
+        _nestedTraceWalk(trace, elements);
+        return elements;
+    }
+
+    private static void _nestedTraceWalk(DecisionTreeTrace trace, List<DecisionTreeTraceElement<?,?>> elements) {
+        for (DecisionTreeTraceElement<?, ?> element : trace) {
+            elements.add(element);
+            for (DecisionTreeTrace subTrace : Objects.requireNonNullElse(element.nestedTraces(), new ArrayList<DecisionTreeTrace>())) {
+                _nestedTraceWalk(subTrace, elements);
+            }
+        }
+    }
+
+    /**
+     * Собрать все объяснения с учетом агрегаций в древовидную структуру
+     * @param type тип объяснения, например объяснение ошибки
+     * @param trace трасса путей интерпретатора по Decision Tree
+     * @param domainModel домен Decision Tree
+     * @param appDomain домен - компонент CompPrehension
+     * @param lang язык пользователя
+     * @return объект объяснения в виде агрегированных в него других объяснений
+     */
+    public static Explanation collectExplanationsFromTrace(Explanation.Type type,
+                                                            DecisionTreeTrace trace,
+                                                            DomainModel domainModel,
+                                                            Domain appDomain,
+                                                            List<String> deniedSkills,
+                                                            Language lang) {
+        DomainTermAnnotationProcessor annotationProcessor = null;
+        if (appDomain instanceof DomainBase domainBase && domainBase.getTermDictionary().isPresent()) {
+            annotationProcessor = new DomainTermAnnotationProcessor(domainBase.getTermDictionary().get(), lang.toLocale());
+        }
+        Explanation result = Explanation.aggregate(type, collectExplanations(type, trace, null,
+                AggregationPolicy.Default,
+                domainModel, annotationProcessor, deniedSkills, lang));
+        String prefix = Explanation.getCommonPrefix(result.getChildren(), "");
+        if (result.getChildren().size() > 1 && !prefix.isEmpty()) {
+            result.setRawMessage(new HyperText(prefix.trim().concat(":")));
+        }
+        // Если в ветви все объяснения принадлежат одному навыку, то у всей ветви этот навык
+        if (result.getChildren().stream().map(Explanation::getDomainLawNames).collect(Collectors.toSet()).size() == 1) {
+            result.setCurrentDomainLawName(result.getChildren().getFirst().getCurrentDomainLawName());
+        }
+        reduceSimilarExplanations(result.getChildren(), type, lang);
+        if (Utils.intersectSets(result.getDomainLawNames(), deniedSkills).size() == result.getDomainLawNames().size()) {
+            result.removeAllMute();
+        }
+        return result;
+    }
+
+    // Рекурсивный сбор объяснений для очередной трассы дерева
+    private static List<Explanation> collectExplanations(Explanation.Type type,
+                                                         DecisionTreeTrace trace,
+                                                         Explanation parent,
+                                                         AggregationPolicy policy,
+                                                         DomainModel domain,
+                                                         DomainTermAnnotationProcessor annotationProcessor,
+                                                         List<String> deniedSkills, Language lang) {
+        List<Explanation> traceExplanations = new ArrayList<>(); // временный буфер
+        for (DecisionTreeTraceElement<?, ?> element : trace) {
+            LearningSituation learningSituation = new LearningSituation(domain, element.getVariablesSnapshot());
+            if (Objects.requireNonNullElse(element.nestedTraces(), new ArrayList<DecisionTreeTrace>()).isEmpty()
+                    && element.getNode() instanceof BranchResultNode res
+                    && (type == Explanation.Type.ERROR) != element.getNodeResult().equals(BranchResult.CORRECT)
+                    && element.getNode().getMetadata().containsAny("explanation")) {
+                // одиночное объяснение по заданному типу объяснения
+                var explanation = Interface.extractExplanation(res,
+                        lang.toLocaleString(), learningSituation);
+                if (annotationProcessor != null) {
+                    var annotatedMessage = annotationProcessor.apply(explanation.getRawMessage().toString(), new DomainTermTooltipVisualizer());
+                    explanation.setRawMessage(new HyperText(annotatedMessage));
+                }
+                if (Utils.intersectSets(explanation.getDomainLawNames(), deniedSkills).size() > 0) {
+                    explanation.setMuted(true);
+                }
+                traceExplanations.add(explanation);
+            } else {
+                // Элемент трассы может включать другие трассы
+                Explanation newParent = parent;
+                AggregationPolicy newPolicy = policy;
+                if (element.getNode() instanceof AggregationNode agg && agg.getAggregationMethod().equals(AggregationMethod.AND)) {
+                    newPolicy = AggregationPolicy.SimAND;
+                    if (type == Explanation.Type.HINT && policy != newPolicy) {
+                        // Для Sim:AND и подсказок элементы агрегаций должны быть объединены, если только он не находится в агрегации AND уже
+                        newParent = new Explanation(type, ":");
+                        traceExplanations.add(newParent);
+                    }
+                } else if (element.getNode() instanceof AggregationNode agg && agg.getAggregationMethod().equals(AggregationMethod.OR)) {
+                    newPolicy = AggregationPolicy.SimOR;
+                    if (type == Explanation.Type.ERROR && policy != newPolicy) {
+                        // Для Sim:OR и ошибок элементы агрегаций должны быть объединены в новую ветвь, если только он не находится в агрегации OR уже
+                        String msg = String.format("<i>%s</i>", utilLoc.get(lang.toLocaleString()).get("orAlsoHint"));
+                        newParent = new Explanation(type, msg);
+                        traceExplanations.add(newParent);
+                    }
+                }
+                // Собрать с дочерних трасс элементы
+                for (DecisionTreeTrace subTrace : Objects.requireNonNullElse(element.nestedTraces(), new ArrayList<DecisionTreeTrace>())) {
+                    traceExplanations.addAll(collectExplanations(type, subTrace, newParent, newPolicy, domain,
+                            annotationProcessor, deniedSkills, lang));
+                }
+                // Если в агрегированной ветви один элемент - хранить в буфере только его, а если вообще нет элементов - удалить ветвь
+                if (newParent != null && (newParent.getChildren().isEmpty() || newParent.getChildren().size() == 1)) {
+                    traceExplanations.remove(newParent);
+                    if (newParent.getChildren().size() == 1) traceExplanations.add(newParent.getChildren().getFirst());
+                }
+            }
+        }
+
+        if (parent == null) {
+            ArrayList<Explanation> list = new ArrayList<>(traceExplanations.stream()
+                    .filter(e -> !e.isEmpty())
+                    .toList());
+            reduceSimilarExplanations(list, type, lang);
+            return list;
+        } else {
+            parent.getChildren().addAll(traceExplanations.stream()
+                    .filter(e -> !e.isEmpty())
+                    .toList());
+            reduceSimilarExplanations(parent.getChildren(), type, lang);
+            // Если в ветви все объяснения принадлежат одному навыку, то у всей ветви этот навык
+            if (parent.getChildren().stream().map(Explanation::getDomainLawNames).collect(Collectors.toSet()).size() == 1) {
+                parent.setCurrentDomainLawName(parent.getChildren().getFirst().getCurrentDomainLawName());
+            }
+            return List.of();
+        }
+    }
+
+    // Сокращает число схожих объяснений (схожесть по навыкам) в списке/ветви, схожие элементы заменяются подсказкой с числом
+    private static void reduceSimilarExplanations(Collection<Explanation> explanations, Explanation.Type type, Language lang) {
+        Map<String, Integer> skillCounter = new HashMap<>();
+        List<Explanation> deleteCandidates = new ArrayList<>();
+        for (Explanation item : explanations) {
+            int total = skillCounter.getOrDefault(item.getCurrentDomainLawName(), 0) + 1;
+            skillCounter.put(item.getCurrentDomainLawName(), total);
+            if (total > MAX_SIMILAR_EXPLANATION_COUNT && item.getCurrentDomainLawName() != null) {
+                deleteCandidates.add(item);
+            }
+        }
+        explanations.removeAll(deleteCandidates);
+        if (!deleteCandidates.isEmpty()) {
+            String skipTemplate = type == Explanation.Type.ERROR ? utilLoc.get(lang.toLocaleString()).get("moreErrorHint") :
+                    utilLoc.get(lang.toLocaleString()).get("moreHint");
+            skipTemplate = String.format(skipTemplate, deleteCandidates.size());
+            explanations.add(new Explanation(type, String.format("<i>%s</i>", skipTemplate)));
+        }
     }
 
     @Override
-    public Collection<Fact> solve(
-        List<Law> laws,
-        Collection<Fact> statement,
-        ReasoningOptions reasoningOptions
-    ) {
-
-        DecisionTree decisionTree = laws.stream()
-            .filter(l -> l instanceof DTLaw)
-            .findFirst()
-            .map(l -> ((DTLaw)l).getDecisionTree())
-            .orElseThrow();
-
-        Domain situationModel = statement.stream()
-            .filter(f -> f instanceof DomainFact)
-            .findFirst()
-            .map(f -> ((DomainFact) f).getDomain())
-            .orElseThrow();
-
-        LearningSituation situation = new LearningSituation(situationModel, new HashMap<>());
-
-//        DecisionTreeReasoner.solve(decisionTree, situation);
-
-        List<Fact> solution = new ArrayList<>();
-        solution.add(new DomainFact(situation.getDomain()));
-        return solution;
-    }
-
-    @Override
-    public Collection<Fact> judge(
-        List<Law> laws,
-        List<BackendFactEntity> statement,
-        List<BackendFactEntity> correctAnswer,
-        List<BackendFactEntity> response,
-        ReasoningOptions reasoningOptions
-    ) {
-        throw new NotImplementedException();
-    }
-
-    @Override
-    public Collection<Fact> judge(
-        List<Law> laws,
-        Collection<Fact> statement,
-        Collection<Fact> correctAnswer,
-        Collection<Fact> response,
-        ReasoningOptions reasoningOptions
-    ) {
-        DecisionTree decisionTree = laws.stream()
-            .filter(l -> l instanceof DTLaw)
-            .findFirst()
-            .map(l -> ((DTLaw)l).getDecisionTree())
-            .orElseThrow();
-
-        Domain situationModel = statement.stream()
-            .filter(f -> f instanceof DomainFact)
-            .findFirst()
-            .map(f -> ((DomainFact) f).getDomain())
-            .orElseThrow();
+    public DecisionTreeReasonerBackend.Output judge(Input questionData) {
+        DomainModel situationModel = questionData.situationDomainModel;
+        DecisionTree decisionTree = questionData.decisionTree;
 
         LearningSituation situation = new LearningSituation(
             situationModel,
             LearningSituation.collectDecisionTreeVariables(situationModel)
         );
 
-
-        List<Fact> reasonerOutput = new ArrayList<>();
         if(situation.getDecisionTreeVariables().keySet().containsAll(
             decisionTree.getVariables().stream().map(TypedVariable::getVarName).collect(Collectors.toSet())
         )){
-            List<DecisionTreeReasoner.DecisionTreeEvaluationResult> judgeResults =
-                DecisionTreeReasoner.solve(decisionTree, situation);
-
-            int i = 0;
-            for(var result: judgeResults){
-                reasonerOutput.addAll(reasonerOutputToFacts(result, ++i));
-            }
-        } else {
-            log.warn("Required Decision Tree variables are NOT SET !");
+            return new Output(
+                situation,
+                true,
+                DecisionTreeReasoner.solve(decisionTree, situation)
+            );
         }
 
-        reasonerOutput.add(new DomainFact(situation.getDomain()));
-        return reasonerOutput;
-    }
-
-    private final static String ERROR_NODE_ATTR = "errorNode";
-    private static List<Fact> reasonerOutputToFacts(DecisionTreeReasoner.DecisionTreeEvaluationResult result, int i){
-        List<Fact> facts = new ArrayList<>();
-        BranchResultNode resultNode = result.getNode();
-        String nodeId = (String) resultNode.getMetadata().get(ERROR_NODE_ATTR);
-        if(resultNode.getValue()) return facts; //игнорируем зеленые узлы
-        if (nodeId == null) return facts;
-
-        facts.add(new EvaluationResultFact(result));
-        facts.add(new Fact(String.valueOf(i), ERROR_NODE_ATTR, nodeId));
-        result.getVariablesSnapshot().forEach((varName, obj) -> {
-            facts.add(new Fact(String.valueOf(i), "var", varName + " = " + obj.getObjectName()));
-        });
-        return facts;
-    }
-
-    public static List<ViolationEntity> reasonerOutputFactsToViolations(List<Fact> reasonerOutputFacts){
-        Map<String, List<Fact>> groupedByResults = reasonerOutputFacts.stream()
-            .collect(Collectors.groupingBy(fact -> fact.getSubject() == null ? "" : fact.getSubject()));
-
-        List<ViolationEntity> violations = new ArrayList<>();
-        groupedByResults.forEach((i, facts) -> {
-            if (i.isEmpty()) {  // ignore facts having empty subject.
-                return;
-            }
-            ViolationEntity violation = new ViolationEntity();
-            facts.stream()
-                .filter(fact -> ERROR_NODE_ATTR.equals(fact.getVerb()))
-                .findFirst().ifPresent(fact -> violation.setLawName(fact.getObject()));
-            violation.setViolationFacts(Fact.factsToEntities(facts));
-            violations.add(violation);
-        });
-        return violations;
-    }
-
-    public static List<HyperText> makeExplanations(List<Fact> reasonerOutputFacts, Language lang){
-
-        List<Fact> describingFacts = reasonerOutputFacts.stream()
-            .filter(fact -> fact.getSubject() == null)
-            .toList(); //FIXME?
-
-        Domain situation = describingFacts.stream()
-            .filter(f -> f instanceof DomainFact)
-            .findFirst().map(f -> ((DomainFact) f).getDomain())
-            .orElseThrow();
-
-        List<DecisionTreeReasoner.DecisionTreeEvaluationResult> results = describingFacts.stream()
-            .filter(f -> f instanceof EvaluationResultFact)
-            .map(f -> ((EvaluationResultFact)f).getEvaluationResult())
-            .toList();
-
-        QuestioningSituation textSituation = new QuestioningSituation(situation, lang.toLocaleString());
-
-        List<HyperText> explanations = new ArrayList<>();
-        for(var result : results){
-            textSituation.getDecisionTreeVariables().clear();
-            textSituation.getDecisionTreeVariables().putAll(result.getVariablesSnapshot());
-            explanations.add(new HyperText(getExplanation(result.getNode(), textSituation)));
-        }
-        return explanations;
-    }
-
-    private static String getExplanation(BranchResultNode resultNode, QuestioningSituation textSituation){
-        Object explanation = resultNode.getMetadata().get(
-            new MetadataProperty("explanation") //FIXME
+        return new Output(
+            situation,
+            false,
+            null
         );
-        String explanationTemplate = explanation == null ? "WRONG" : explanation.toString();
-        return textSituation.getTemplating().interpret(explanationTemplate);
     }
 
-    @AllArgsConstructor
-    @Getter
-    public static class DomainFact extends Fact {
-        private final Domain domain;
+    @Override
+    public DecisionTreeReasonerBackend.Output solve(Input questionData) {
+        return null;
     }
 
-    @AllArgsConstructor
-    @Getter
-    public static class EvaluationResultFact extends Fact {
-        private final DecisionTreeReasoner.DecisionTreeEvaluationResult evaluationResult;
+    public interface Interface extends DomainToBackendAdapter<Input, Output, DecisionTreeReasonerBackend> {
+
+        @Override
+        default InterpretSentenceResult interpretJudgeOutput(
+            Question judgedQuestion,
+            Output backendOutput
+        ) {
+
+            if(!backendOutput.isReasoningDone){
+                return interpretJudgeNotPerformed(judgedQuestion, backendOutput.situation);
+            }
+            List<DecisionTreeTraceElement<?, ?>> traceElements = nestedTraceElements(backendOutput.results);
+
+            InterpretSentenceResult result = new InterpretSentenceResult();
+            result.decisionTreeTrace = backendOutput.results;
+            for (DecisionTreeTraceElement<?,?> res : traceElements) {
+                String[] resSkill = res.getNode().getMetadata().containsAny("skill") && res.getNode().getMetadata().get("skill") != null ?
+                        res.getNode().getMetadata().get("skill").toString().split(";") : new String[0];
+                String[] resLaw = res.getNode().getMetadata().containsAny("law") && res.getNode().getMetadata().get("law") != null ?
+                        res.getNode().getMetadata().get("law").toString().split(";") : new String[0];
+                Collections.addAll(result.domainSkills, resSkill);
+                Collections.addAll(result.domainNegativeLaws, resLaw);
+            }
+
+            updateJudgeInterpretationResult(result, backendOutput);
+
+            Language lang = getUserLanguageByQuestion(judgedQuestion);
+            var exerciseStage = judgedQuestion.getExerciseStage();
+            List<String> deniedSkills = List.of();
+            if (exerciseStage.isPresent()) {
+                deniedSkills = exerciseStage.get().getSkills()
+                        .stream().map(ExerciseSkillDto::getName).toList();
+            }
+            result.explanation = collectExplanationsFromTrace(Explanation.Type.ERROR, backendOutput.results,
+                    backendOutput.situation.getDomainModel(),
+                    judgedQuestion.getDomain(), deniedSkills, lang
+            );
+            List<ViolationEntity> mistakes = result.explanation.getDomainLawNames()
+                    .stream().map(errorName -> {
+                        ViolationEntity violation = new ViolationEntity();
+                        violation.setLawName(errorName);
+                        violation.setViolationFacts(new ArrayList<>());
+                        return violation;
+                    })
+                    .collect(Collectors.toList());
+            result.violations = mistakes;
+            result.correctlyAppliedLaws = new ArrayList<>();
+            result.isAnswerCorrect = mistakes.isEmpty();
+            return result;
+        }
+
+        /**
+         * Get current user's language from a question
+         */
+        default Language getUserLanguageByQuestion(Question question){
+            try {
+                return question.getQuestionData()
+                    .getExerciseAttempt()
+                    .getUser()
+                    .getPreferred_language(); // The language currently selected in UI
+            } catch (NullPointerException e) {
+                return Language.RUSSIAN/*ENGLISH*/;  // fallback if it cannot be figured out
+            }
+        }
+
+        /**
+         * Create an interpretation result for a situation, in which a reasoning could not be performed
+         * (Currently only possible if not all input variables are present)
+         * @param judgedQuestion a question which prompted the unfinished judge
+         * @param preparedSituation a learning situation that was prepared for this question by {@link #prepareBackendInfoForJudge} 
+         */
+        InterpretSentenceResult interpretJudgeNotPerformed(
+            Question judgedQuestion,
+            LearningSituation preparedSituation
+        );
+
+        /**
+         * Update a {@link #judge} interpretation result with domain-specific logic
+         * Mainly used on {@link InterpretSentenceResult#IterationsLeft}
+         * @param interpretationResult the updated result
+         * @param backendOutput the output from the backend's {@link #judge} method
+         */
+        void updateJudgeInterpretationResult(
+            InterpretSentenceResult interpretationResult,
+            Output backendOutput
+        );
+
+        static String getCommonExplanationPrefix(LearningSituation situation,
+                                                        DecisionTree dt,
+                                                        Explanation.Type type, String localizationCode) {
+            Object meta = dt.getMainBranch().getMetadata().get(localizationCode,
+                    (type == Explanation.Type.HINT ? "hint" : "error") + "_prefix");
+            String rawPrefix = meta != null ? meta.toString() : "";
+            String expanded = TemplatingUtils.interpret(rawPrefix, situation, localizationCode, Map.of());
+            {
+                if (expanded.contains("операто ")) {
+                    // Fix spelling (note the space at the end).
+                    expanded = expanded.replaceAll("операто ", "оператор ");
+                }
+                if (expanded.contains("operato ")) {
+                    // Fix spelling (note the space at the end).
+                    expanded = expanded.replaceAll("operato ", "operator ");
+                }
+            }
+            return expanded;
+        }
+
+        static Explanation extractExplanation(BranchResultNode resultNode,
+                                              String localizationCode,
+                                              LearningSituation learningSituation){
+            Explanation.Type type = resultNode.getValue() == BranchResult.CORRECT ?
+                    Explanation.Type.HINT : Explanation.Type.ERROR;
+            Object explanation = resultNode.getMetadata().get(localizationCode, "explanation");
+            String prefix = getCommonExplanationPrefix(learningSituation, resultNode.getDecisionTree(), type, localizationCode);
+            String explanationTemplate = explanation == null ? "WRONG" : prefix.concat(explanation.toString());
+            String expanded = TemplatingUtils.interpret(explanationTemplate, learningSituation, localizationCode, Map.of());
+            {
+                if (expanded.contains("операто ")) {
+                    // Fix spelling (note the space at the end).
+                    expanded = expanded.replaceAll("операто ", "оператор ");
+                }
+                if (expanded.contains("operato ")) {
+                    // Fix spelling (note the space at the end).
+                    expanded = expanded.replaceAll("operato ", "operator ");
+                }
+            }
+            Explanation expl = new Explanation(type, expanded);
+            if (resultNode.getMetadata().containsAny("skill")) {
+                String skillName = resultNode.getMetadata().getString("skill");
+                expl.setCurrentDomainLawName(skillName);
+            }
+            if (resultNode.getMetadata().containsAny("muted")
+                    && resultNode.getMetadata().get("muted").toString().toLowerCase().trim().equals("true")) {
+                expl.setMuted(true);
+            }
+            return expl;
+        }
+
+        @Override
+        default void updateQuestionAfterSolve(
+            Question question,
+            Output backendOutput
+        ) {
+        }
     }
 }

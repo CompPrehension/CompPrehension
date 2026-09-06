@@ -15,10 +15,12 @@ import org.jetbrains.annotations.Nullable;
 import org.vstu.compprehension.models.entities.EnumData.QuestionStatus;
 import org.vstu.compprehension.models.entities.EnumData.QuestionType;
 import org.vstu.compprehension.models.entities.QuestionOptions.QuestionOptionsEntity;
+import org.vstu.compprehension.models.entities.exercise.ExerciseStageEntity;
 
 import java.util.ArrayList;
 import java.util.Date;
 import java.util.List;
+import java.util.Optional;
 
 @Entity @Getter @Setter
 @NoArgsConstructor
@@ -61,6 +63,11 @@ public class QuestionEntity {
     @Column(name = "options_json", columnDefinition = "json")
     private QuestionOptionsEntity options;
 
+    @Type(JsonType.class)
+    @Column(name = "tags", columnDefinition = "json", nullable = false)
+    @NotNull
+    private List<String> tags = new ArrayList<>(0);
+
     @ToString.Exclude
     @OneToMany(mappedBy = "question", fetch = FetchType.LAZY)
     @OrderBy("answerId")
@@ -77,7 +84,8 @@ public class QuestionEntity {
 
     @ToString.Exclude
     @ManyToOne
-    @JoinColumn(name = "exerciseAttempt_id", nullable = false)
+    @JoinColumn(name = "exercise_attempt_id", nullable = true)
+    @Nullable
     private ExerciseAttemptEntity exerciseAttempt;
 
     @ToString.Exclude

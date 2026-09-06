@@ -462,7 +462,7 @@ public class Strategy implements AbstractStrategy {
     }
 
     @Override
-    public float grade(ExerciseAttemptEntity exerciseAttempt) {
+    public float grade(ExerciseAttemptEntity exerciseAttempt, Domain.InterpretSentenceResult judgeResult) {
 
         val res = getLawGrade(exerciseAttempt);
         if(res.keySet().isEmpty()){

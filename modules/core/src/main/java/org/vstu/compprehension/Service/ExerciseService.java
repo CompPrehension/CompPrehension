@@ -45,7 +45,7 @@ public class ExerciseService {
         var domainEntity = domainRepository.findById(domainId)
                 .orElseThrow();
         var domain = domainFactory.getDomain(domainEntity.getName());
-        var backendId = domain.getSolvingBackendId();
+        var backendId = domain.getBackendId();
 
         var exercise = new ExerciseEntity();
         exercise.setName(name);
@@ -57,9 +57,10 @@ public class ExerciseService {
                 .correctAnswerGenerationEnabled(true)
                 .newQuestionGenerationEnabled(true)
                 .supplementaryQuestionsEnabled(true)
+                .debugButtonEnabled(false)
                 .preferDecisionTreeBasedSupplementaryEnabled(false)
                 .build());
-        exercise.setStages(new ArrayList<>(List.of(new ExerciseStageEntity(5, 0.5f, new ArrayList<>(), new ArrayList<>()))));
+        exercise.setStages(new ArrayList<>(List.of(new ExerciseStageEntity(5, 0.5f, new ArrayList<>(), new ArrayList<>(), new ArrayList<>()))));
         exercise.setTags("");
         exerciseRepository.save(exercise);
         return exercise;
@@ -71,7 +72,7 @@ public class ExerciseService {
         var domainEntity = domainRepository.findById(card.getDomainId())
                 .orElseThrow();
         var domain = domainFactory.getDomain(domainEntity.getName());
-        var backendId = domain.getSolvingBackendId();
+        var backendId = domain.getBackendId();
 
         exercise.setName(card.getName());
         exercise.setDomain(domainEntity);
@@ -80,7 +81,7 @@ public class ExerciseService {
         exercise.setTags(String.join(", ", card.getTags()));
         exercise.setOptions(card.getOptions());
         exercise.setStages(card.getStages()
-                .stream().map(s -> new ExerciseStageEntity(s.getNumberOfQuestions(), s.getComplexity(), s.getLaws(), s.getConcepts()))
+                .stream().map(s -> new ExerciseStageEntity(s.getNumberOfQuestions(), s.getComplexity(), s.getLaws(), s.getConcepts(), s.getSkills()))
                 .collect(Collectors.toList()));
 
         exerciseRepository.save(exercise);
@@ -97,7 +98,8 @@ public class ExerciseService {
                 .strategyId(exercise.getStrategyId())
                 .backendId(exercise.getBackendId())
                 .stages(exercise.getStages()
-                        .stream().map(s -> new ExerciseStageDto(s.getNumberOfQuestions(), s.getComplexity(), s.getLaws(), s.getConcepts()))
+                        .stream().map(s -> new ExerciseStageDto(
+                                s.getNumberOfQuestions(), s.getComplexity(), s.getLaws(), s.getConcepts(), s.getSkills()))
                         .collect(Collectors.toList()))
                 .options(exercise.getOptions())
                 .tags(exercise.getTags())

@@ -1,0 +1,14 @@
+Prefix||
+GlobalPrefix|Prefix|
+LocalPrefix|Prefix|
+Context||
+ContextType||
+Line||
+DataStructure|Context|
+DataStructureType|ContextType|
+LifecycleType||
+ContextRelationType||
+VisibilityModifierType||
+DeclarationLine|Line|
+Token||
+Declaration|Context|

@@ -4,6 +4,7 @@ import org.jobrunr.configuration.JobRunr;
 import org.jobrunr.jobs.mappers.JobMapper;
 import org.jobrunr.scheduling.JobScheduler;
 import org.jobrunr.server.JobActivator;
+import org.jobrunr.storage.InMemoryStorageProvider;
 import org.jobrunr.storage.StorageProvider;
 import org.jobrunr.storage.sql.common.SqlStorageProviderFactory;
 import org.springframework.boot.SpringApplication;
@@ -30,8 +31,13 @@ public class BackgroundServerMain {
 
     @Bean
     public StorageProvider storageProvider(JobMapper jobMapper, DataSource dataSource) {
+        // In-memory provider allows concurrent instances of jobs application.
+        // db provider cause race conditions for this use-case on job registration
+        return new InMemoryStorageProvider();
+        /*
         var storageProvider = SqlStorageProviderFactory.using(dataSource, "jobs_");
         storageProvider.setJobMapper(jobMapper);
         return storageProvider;
+        */
     }
 }

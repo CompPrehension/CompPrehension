@@ -2,22 +2,15 @@ package org.vstu.compprehension.adapters;
 
 import lombok.SneakyThrows;
 import org.jetbrains.annotations.NotNull;
-import org.vstu.compprehension.models.businesslogic.Law;
 import org.vstu.compprehension.models.businesslogic.backend.Backend;
-import org.vstu.compprehension.models.businesslogic.backend.facts.Fact;
-import org.vstu.compprehension.models.businesslogic.backend.util.ReasoningOptions;
-import org.vstu.compprehension.models.entities.BackendFactEntity;
 
-import java.util.Collection;
-import java.util.List;
-
-public class RateLimitBackendDecorator implements Backend {
+public class RateLimitBackendDecorator<I, O> implements Backend<I, O> {
     private final @NotNull String backendId;
-    private final @NotNull Backend decoratee;
+    private final @NotNull Backend<I, O> decoratee;
     private final @NotNull BackendTaskQueue taskQueue;
 
     public RateLimitBackendDecorator(@NotNull String backendId,
-                                     @NotNull Backend decoratee,
+                                     @NotNull Backend<I, O> decoratee,
                                      @NotNull BackendTaskQueue taskQueue) {
         this.backendId = backendId;
         this.decoratee = decoratee;
@@ -30,27 +23,20 @@ public class RateLimitBackendDecorator implements Backend {
         return backendId;
     }
 
-    @SneakyThrows
     @Override
-    public Collection<Fact> solve(List<Law> laws, List<BackendFactEntity> statement, ReasoningOptions reasoningOptions) {
-        return taskQueue.postAsync(() -> decoratee.solve(laws, statement, reasoningOptions)).get();
+    public Backend<I, O> getActualBackend() {
+        return decoratee.getActualBackend();
     }
 
     @SneakyThrows
     @Override
-    public Collection<Fact> solve(List<Law> laws, Collection<Fact> statement, ReasoningOptions reasoningOptions) {
-        return taskQueue.postAsync(() -> decoratee.solve(laws, statement, reasoningOptions)).get();
+    public O judge(I questionData) {
+        return taskQueue.postAsync(() -> decoratee.judge(questionData)).get();
     }
 
     @SneakyThrows
     @Override
-    public Collection<Fact> judge(List<Law> laws, List<BackendFactEntity> statement, List<BackendFactEntity> correctAnswer, List<BackendFactEntity> response, ReasoningOptions reasoningOptions) {
-        return taskQueue.postAsync(() -> decoratee.judge(laws, statement, correctAnswer, response, reasoningOptions)).get();
-    }
-
-    @SneakyThrows
-    @Override
-    public Collection<Fact> judge(List<Law> laws, Collection<Fact> statement, Collection<Fact> correctAnswer, Collection<Fact> response, ReasoningOptions reasoningOptions) {
-        return taskQueue.postAsync(() -> decoratee.judge(laws, statement, correctAnswer, response, reasoningOptions)).get();
+    public O solve(I questionData) {
+        return taskQueue.postAsync(() -> decoratee.solve(questionData)).get();
     }
 }

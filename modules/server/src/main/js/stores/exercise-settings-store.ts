@@ -1,7 +1,7 @@
 import { IReactionDisposer, action, autorun, comparer, flow, makeAutoObservable, makeObservable, observable, reaction, runInAction, toJS, when } from "mobx";
 import { inject, injectable } from "tsyringe";
 import { ExerciseSettingsController } from "../controllers/exercise/exercise-settings";
-import { Domain, DomainConceptFlag, ExerciseCard, ExerciseCardConcept, ExerciseCardConceptKind, ExerciseCardLaw, ExerciseListItem, ExerciseStage, QuestionBankCount, Strategy } from "../types/exercise-settings";
+import { Domain, DomainConceptFlag, ExerciseCard, ExerciseCardConcept, ExerciseCardConceptKind, ExerciseCardLaw, ExerciseCardSkill, ExerciseListItem, ExerciseStage, QuestionBankSearchResult, Strategy } from "../types/exercise-settings";
 import * as E from "fp-ts/lib/Either";
 import { ExerciseOptions } from "../types/exercise-options";
 import { KeysWithValsOfType } from "../types/utils";
@@ -12,6 +12,8 @@ import i18next from "i18next";
 import * as NEA from "fp-ts/lib/NonEmptyArray";
 import { pipe } from "fp-ts/lib/function";
 import { RequestError } from "../types/request-error";
+import { useCallback } from "react";
+import { IUserController, UserController } from "../controllers/exercise/user-controller";
 
 export type ExerciseCardViewModel = {
     id: number,
@@ -28,15 +30,18 @@ export class ExerciseStageStore implements Disposable {
     card: ExerciseCardViewModel
     concepts: ExerciseCardConcept[]
     laws: ExerciseCardLaw[]
+    skills: ExerciseCardSkill[]
     numberOfQuestions: number
     bankLoadingState: 'NOT_STARTED' | 'IN_PROGRESS' | 'COMPLETED' = 'NOT_STARTED'
-    bankQuestionsCount: QuestionBankCount | null = null
+    bankSearchResult: QuestionBankSearchResult = { questions: [], count: 0, topRatedCount: 0 }
     complexity: number = 0.5
     autorunner?: IReactionDisposer
+    private abortController: AbortController | null = null
 
     constructor(private readonly exerciseSettingsController: ExerciseSettingsController, card: ExerciseCardViewModel, stage: ExerciseStage) {
         this.concepts = stage.concepts;
         this.laws     = stage.laws;
+        this.skills     = stage.skills;
         this.numberOfQuestions = stage.numberOfQuestions;
         this.complexity        = stage.complexity;
         this.card     = card;
@@ -47,25 +52,49 @@ export class ExerciseStageStore implements Disposable {
             const complexity = this.complexity;
             const laws = this.laws.slice()
             const concepts = this.concepts.slice()
-            await this.updateBankStats(concepts, laws, card.tags, complexity);
+            const skills = this.skills.slice()
+            this.updateBankStats(concepts, laws, skills, card.tags, complexity);
         }, { delay: 1000 });
     }
     
-    *updateBankStats(concepts: ExerciseCardConcept[], laws: ExerciseCardLaw[], tags: string[], complexity: number) {
+    *updateBankStats(concepts: ExerciseCardConcept[], laws: ExerciseCardLaw[], skills: ExerciseCardSkill[], tags: string[], complexity: number) {
         const { card } = this;
+
+        // Cancel previous request
+        if (this.abortController) {
+            this.abortController.abort();
+            this.abortController = null;
+        }
+
+        // Create new controller for this request
+        const currentAbortController = new AbortController();
+        this.abortController = currentAbortController;
         runInAction(() => this.bankLoadingState = 'IN_PROGRESS');
-        const newData: E.Either<RequestError, QuestionBankCount> = yield this.exerciseSettingsController.getBankStats(card.domainId, concepts, laws, tags, complexity);
+
+        const newData: E.Either<RequestError, QuestionBankSearchResult> = yield this.exerciseSettingsController.search(card.domainId, concepts, laws, skills, tags, complexity, 5, currentAbortController.signal);
         if (E.isRight(newData)) {
             runInAction(() => {
-                this.bankQuestionsCount = newData.right;
+                this.bankSearchResult = newData.right;
             });
+
+            // TODO handle AbortError properly
+            runInAction(() => this.bankLoadingState = 'COMPLETED');
         }
-        runInAction(() => this.bankLoadingState = 'COMPLETED');
+
+        // Cleanup if this is still the active request
+        if (this.abortController === currentAbortController) {
+            this.abortController = null;
+        }
     }
     
     [Symbol.dispose](): void {
         if (this.autorunner)
             this.autorunner();
+        // Cancel any pending request on dispose
+        if (this.abortController) {
+            this.abortController.abort();
+            this.abortController = null;
+        }
     }
 }
 
@@ -77,10 +106,10 @@ export class ExerciseSettingsStore {
     backends: string[] | null = null;
     strategies: Strategy[] | null = null;
     currentCard: ExerciseCardViewModel | null = null;
-    user: UserInfo | null = null;
 
     constructor(
         @inject(ExerciseSettingsController) private readonly exerciseSettingsController: ExerciseSettingsController,
+        @inject(UserController) private readonly userController: IUserController,
         @inject(ExerciseController) private readonly exerciseController: IExerciseController) {
         
         makeAutoObservable(this);
@@ -109,7 +138,7 @@ export class ExerciseSettingsStore {
             ...card,
             stages: pipe(
                 card.stages,
-                NEA.map(stage => ({ concepts: stage.concepts, laws: stage.laws, numberOfQuestions: stage.numberOfQuestions, complexity: stage.complexity })),
+                NEA.map(stage => ({ concepts: stage.concepts, laws: stage.laws, skills: stage.skills, numberOfQuestions: stage.numberOfQuestions, complexity: stage.complexity })),
             ),
         }
     }
@@ -120,32 +149,22 @@ export class ExerciseSettingsStore {
             return;
 
         runInAction(() => this.exercisesLoadStatus = 'LOADING');
-        const [rawExercises, domains, backends, strategies, user] = await Promise.all([
+        const [rawExercises, domains, backends, strategies] = await Promise.all([
             this.exerciseSettingsController.getAllExercises(),
             this.exerciseSettingsController.getDomains(),
             this.exerciseSettingsController.getBackends(),
-            this.exerciseSettingsController.getStrategies(),
-            this.exerciseController.getCurrentUser(),
+            this.exerciseSettingsController.getStrategies()
         ])
         if (E.isRight(rawExercises) && E.isRight(domains) &&
-            E.isRight(backends) && E.isRight(strategies) && E.isRight(user)) {
+            E.isRight(backends) && E.isRight(strategies)) {
             runInAction(() => {
                 this.exercises = rawExercises.right;
                 this.domains = domains.right;
                 this.backends = backends.right;
                 this.strategies = strategies.right;
-                this.user = user.right;
-                i18next.changeLanguage(user.right.language);
             });
         }
         runInAction(() => this.exercisesLoadStatus = 'LOADED');
-    }
-    
-    changeLanguage = (newLang: Language) => {
-        if (this.user && this.user.language !== newLang) {
-            this.user.language = newLang;
-            i18next.changeLanguage(newLang);
-        }
     }
 
     async loadExercise(exerciseId: number) {
@@ -342,6 +361,57 @@ export class ExerciseSettingsStore {
             }
         }
     }
+
+     setCardStageSkillValue(stageIdx: number, skillName: string, skillValue: ExerciseCardConceptKind) {
+        if (!this.currentCard || !this.currentCard.stages[stageIdx])
+            return;
+        const stage = this.currentCard.stages[stageIdx];
+        const targetSkillIdx = stage.skills.findIndex(x => x.name == skillName);
+        let targetSkill = targetSkillIdx !== -1 ? stage.skills[targetSkillIdx] : null;
+        if (skillValue === 'PERMITTED') {
+            if (targetSkill)
+                stage.skills.splice(targetSkillIdx, 1)
+            return;
+        }
+        if (!targetSkill) {
+            targetSkill = {
+                name: skillName,
+                kind: skillValue,
+            }
+            stage.skills = [...stage.skills, targetSkill];
+        } else {
+            stage.skills[targetSkillIdx] = {
+                ...targetSkill,
+                kind: skillValue,
+            }
+        }
+    }
+
+    setCardCommonSkillValue(skillName: string, skillValue: ExerciseCardConceptKind) {
+        if (!this.currentCard)
+            return;
+        for(const stage of this.currentCard.stages) {
+            const targetSkillIdx = stage.skills.findIndex(x => x.name == skillName);
+            let targetSkill = targetSkillIdx !== -1 ? stage.laws[targetSkillIdx] : null;
+            if (skillValue === 'PERMITTED') {
+                if (targetSkill)
+                    stage.laws.splice(targetSkillIdx, 1)
+                continue;
+            }
+            if (!targetSkill) {
+                targetSkill = {
+                    name: skillName,
+                    kind: skillValue,
+                }
+                stage.skills = [...stage.skills, targetSkill];
+            } else {
+                stage.skills[targetSkillIdx] = {
+                    ...targetSkill,
+                    kind: skillValue,
+                }
+            }
+        }        
+    }
     
     setCardStageNumberOfQuestions(stageIdx: number, rawNumberOfQuesions: string) {
         if (!this.currentCard || !this.currentCard.stages[stageIdx])
@@ -386,11 +456,10 @@ export class ExerciseSettingsStore {
         this.currentCard.tags = tags;
     }
 
-    
-    setCardFlag(optionId: KeysWithValsOfType<ExerciseOptions, boolean>, checked: boolean) {
+    setCardOption<TKey extends keyof ExerciseOptions, TValue extends ExerciseOptions[TKey]>(optionId: TKey, value: TValue) {
         if (!this.currentCard)
             return;
-        this.currentCard.options[optionId] = checked;
+        this.currentCard.options[optionId] = value;
     }
     
     addStage() {
@@ -399,24 +468,31 @@ export class ExerciseSettingsStore {
 
         const card = this.currentCard;
 
+        /*
         const sharedDomainLaws = this.domains.find(z => z.id === card.domainId)?.laws
             .filter(l => (l.bitflags & DomainConceptFlag.TargetEnabled) === 0) ?? [];
         const sharedDomainConcepts = this.domains.find(z => z.id === card.domainId)?.concepts
             .flatMap(c => [c, ...c.childs])
             .filter(c => (c.bitflags & DomainConceptFlag.TargetEnabled) === 0) ?? [];
+        const sharedDomainSkills = this.domains.find(z => z.id === card.domainId)?.skills
+            .flatMap(c => [c, ...c.childs]) ?? [];
         var stageConcepts = card.stages[0].concepts
             .filter(c => c.kind !== 'PERMITTED' && sharedDomainConcepts.some(x => x.name === c.name))
+        var stageSkills = card.stages[0].skills
+            .filter(c => c.kind !== 'PERMITTED' && sharedDomainSkills.some(x => x.name === c.name))
         var stageLaws = card.stages[0].laws
             .filter(l => l.kind !== 'PERMITTED' && sharedDomainLaws.some(x => x.name === l.name));
+        */
 
         const newStage = new ExerciseStageStore(
             this.exerciseSettingsController,
-            this.currentCard, 
+            card,
             {
                 numberOfQuestions: 10,
                 complexity: 0.5,
-                laws: stageLaws,
-                concepts: stageConcepts,
+                laws: [],
+                concepts: [],
+                skills: [],
             });
         this.currentCard.stages.push(newStage);
     }

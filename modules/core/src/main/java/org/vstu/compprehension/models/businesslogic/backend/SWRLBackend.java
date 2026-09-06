@@ -17,7 +17,7 @@ import org.swrlapi.parser.SWRLParseException;
 import java.util.*;
 
 @Log4j2
-public abstract class SWRLBackend implements Backend {
+public abstract class SWRLBackend extends FactBackend {
 
     IRI OntologyIRI;
     OWLOntology Ontology;

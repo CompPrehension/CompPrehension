@@ -1,0 +1,39 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<databaseChangeLog
+        xmlns="http://www.liquibase.org/xml/ns/dbchangelog"
+        xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance"
+        xsi:schemaLocation="http://www.liquibase.org/xml/ns/dbchangelog
+                      http://www.liquibase.org/xml/ns/dbchangelog/dbchangelog-4.24.xsd"
+        objectQuotingStrategy="QUOTE_ONLY_RESERVED_WORDS">
+    <changeSet id="1746785064453-39" author="Max-Person">
+        <createTable tableName="text_template_edit">
+            <column name="value" type="TEXT"/>
+            <column name="domain_name" type="VARCHAR(100)">
+                <constraints nullable="false" primaryKey="true" primaryKeyName="pk_text_template_edit"/>
+            </column>
+            <column name="template_location" type="VARCHAR(20)">
+                <constraints nullable="false" primaryKey="true" primaryKeyName="pk_text_template_edit"/>
+            </column>
+            <column name="sub_location_name" type="VARCHAR(100)">
+                <constraints nullable="false" primaryKey="true" primaryKeyName="pk_text_template_edit"/>
+            </column>
+            <column name="template_id" type="INT">
+                <constraints nullable="false" primaryKey="true" primaryKeyName="pk_text_template_edit"/>
+            </column>
+            <column name="loc_code" type="VARCHAR(20)">
+                <constraints nullable="false" primaryKey="true" primaryKeyName="pk_text_template_edit"/>
+            </column>
+            <column name="property_name" type="VARCHAR(255)">
+                <constraints nullable="false" primaryKey="true" primaryKeyName="pk_text_template_edit"/>
+            </column>
+        </createTable>
+    </changeSet>
+    <changeSet id="1746785064453-40" author="Max-Person">
+        <addForeignKeyConstraint baseColumnNames="domain_name"
+                                 baseTableName="text_template_edit"
+                                 constraintName="FK_TEXT_TEMPLATE_EDIT_ON_DOMAIN_NAME"
+                                 referencedColumnNames="name"
+                                 referencedTableName="domain"/>
+    </changeSet>
+
+</databaseChangeLog>

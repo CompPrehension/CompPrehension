@@ -7,13 +7,12 @@ import org.springframework.web.bind.annotation.RequestMethod;
 import org.springframework.web.bind.annotation.ResponseBody;
 import org.vstu.compprehension.Service.UserService;
 import org.vstu.compprehension.adapters.StrategyFactory;
-import org.vstu.compprehension.dto.ConceptTreeItemDto;
-import org.vstu.compprehension.dto.DomainDto;
-import org.vstu.compprehension.dto.LawTreeItemDto;
-import org.vstu.compprehension.dto.StrategyDto;
+import org.vstu.compprehension.dto.*;
 import org.vstu.compprehension.models.businesslogic.Concept;
 import org.vstu.compprehension.models.businesslogic.Law;
-import org.vstu.compprehension.models.businesslogic.backend.BackendFactory;
+import org.vstu.compprehension.models.businesslogic.Skill;
+import org.vstu.compprehension.models.businesslogic.backend.DecisionTreeReasonerBackend;
+import org.vstu.compprehension.models.businesslogic.backend.JenaBackend;
 import org.vstu.compprehension.models.businesslogic.domains.DomainFactory;
 import org.vstu.compprehension.models.businesslogic.strategies.AbstractStrategyFactory;
 import org.vstu.compprehension.models.entities.EnumData.Language;
@@ -22,21 +21,18 @@ import org.vstu.compprehension.models.entities.UserEntity;
 import java.util.List;
 import java.util.Set;
 import java.util.stream.Collectors;
-import java.util.stream.Stream;
 
 @Controller
 @RequestMapping({"api/refTables" })
 public class ReferenceTableController {
     private final DomainFactory domainFactory;
     private final AbstractStrategyFactory strategyFactory;
-    private final BackendFactory backendFactory;
     private final UserService userService;
 
     @Autowired
-    public ReferenceTableController(DomainFactory domainFactory, StrategyFactory strategyFactory, BackendFactory backendFactory, UserService userService) {
+    public ReferenceTableController(DomainFactory domainFactory, StrategyFactory strategyFactory, UserService userService) {
         this.domainFactory = domainFactory;
         this.strategyFactory = strategyFactory;
-        this.backendFactory = backendFactory;
         this.userService = userService;
     }
 
@@ -62,7 +58,7 @@ public class ReferenceTableController {
     @RequestMapping(value = {"/backends"}, method = { RequestMethod.GET })
     @ResponseBody
     public Set<String> getBackends() {
-        return backendFactory.getBackendIds();
+        return Set.of(JenaBackend.BackendId, DecisionTreeReasonerBackend.BACKEND_ID);
     }
 
     @RequestMapping(value = {"/domains"}, method = { RequestMethod.GET })
@@ -104,6 +100,21 @@ public class ReferenceTableController {
                                                 d.getLawDisplayName(z.getName(), currentLanguage),
                                                 z.getBitflags())
                                         ).toArray(LawTreeItemDto[]::new)))
+                                .collect(Collectors.toList()))
+                        .skills(d.getSkillSimplifiedHierarchy(Skill.FLAG_VISIBLE_TO_TEACHER)
+                                .entrySet()
+                                .stream()
+                                .map(kv -> new SkillTreeItemDto(
+                                        kv.getKey().getName(),
+                                        d.getSkillDisplayName(kv.getKey().getName(), currentLanguage),
+                                        kv.getValue().stream().map(z -> new SkillTreeItemDto(
+                                                z.getName(),
+                                                d.getLawDisplayName(z.getName(), currentLanguage),
+                                                z.getBitflags()
+                                                )
+                                        ).toArray(SkillTreeItemDto[]::new),
+                                        kv.getKey().getBitflags()
+                                ))
                                 .collect(Collectors.toList()))
                         .build())
                 .collect(Collectors.toList());

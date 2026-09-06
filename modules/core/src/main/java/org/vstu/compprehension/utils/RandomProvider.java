@@ -7,7 +7,7 @@ import org.springframework.web.context.annotation.SessionScope;
 import java.util.Date;
 import java.util.Random;
 
-@Component @SessionScope
+@Component
 public class RandomProvider {
     @Getter
     private Random random;

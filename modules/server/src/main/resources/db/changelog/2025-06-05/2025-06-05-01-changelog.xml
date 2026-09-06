@@ -1,0 +1,31 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<databaseChangeLog
+        xmlns="http://www.liquibase.org/xml/ns/dbchangelog"
+        xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance"
+        xsi:schemaLocation="http://www.liquibase.org/xml/ns/dbchangelog
+                      http://www.liquibase.org/xml/ns/dbchangelog/dbchangelog-4.24.xsd">
+
+    <changeSet id="20250605-01-fix-bkt-data" author="Andrey Krygin">
+        <dropColumn columnName="empty_roster" tableName="domain"/>
+        <renameTable oldTableName="bkt_data" newTableName="bkt_user_data"/>
+        <createTable tableName="bkt_domain_data">
+            <column name="domain_name" type="VARCHAR(255)" />
+            <column name="empty_roster" type="TEXT" />
+        </createTable>
+        <addPrimaryKey
+                tableName="bkt_domain_data"
+                columnNames="domain_name"
+                constraintName="pk_bkt_domain_data"/>
+        <addForeignKeyConstraint
+                baseTableName="bkt_domain_data"
+                baseColumnNames="domain_name"
+                constraintName="fk_bkt_domain_data_domain"
+                referencedTableName="domain"
+                referencedColumnNames="name"/>
+        <addNotNullConstraint
+                tableName="bkt_domain_data"
+                columnName="empty_roster"
+                columnDataType="TEXT" />
+    </changeSet>
+
+</databaseChangeLog>

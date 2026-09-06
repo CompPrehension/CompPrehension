@@ -1,0 +1,17 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<databaseChangeLog
+        xmlns="http://www.liquibase.org/xml/ns/dbchangelog"
+        xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance"
+        xsi:schemaLocation="http://www.liquibase.org/xml/ns/dbchangelog
+                      http://www.liquibase.org/xml/ns/dbchangelog/dbchangelog-4.24.xsd">
+    <changeSet id="1737635503000-1" author="Dmitry Shashkov">
+        <!-- Добавляем новые столбцы, связанные со скиллами в лог запросов вопросов-->
+        <addColumn tableName="question_request_log">
+            <column name="skills_targeted_bitmask" type="bigint" afterColumn="laws_targeted_bitmask" />
+            <column name="skills_denied_bitmask" type="bigint" afterColumn="laws_denied_bitmask" />
+            <column name="target_skill_names" type="json" afterColumn="target_law_names" />
+            <column name="allowed_skill_names" type="json" afterColumn="allowed_law_names" />
+            <column name="denied_skill_names" type="json" afterColumn="denied_law_names" />
+        </addColumn>
+    </changeSet>
+</databaseChangeLog>

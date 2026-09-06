@@ -1,0 +1,450 @@
+@prefix : <poas:poas/> .
+@prefix owl: <http://www.w3.org/2002/07/owl#> .
+@prefix xsd: <http://www.w3.org/2001/XMLSchema#> .
+@prefix rdf: <http://www.w3.org/1999/02/22-rdf-syntax-ns#> .
+@prefix rdfs: <http://www.w3.org/2000/01/rdf-schema#> .
+
+:EndObject rdf:type owl:NamedIndividual .
+
+# Classes
+
+:GlobalPrefix
+    rdfs:subClassOf :Prefix .
+
+:LocalPrefix
+    rdfs:subClassOf :Prefix .
+
+:DataStructureType
+    rdfs:subClassOf :ContextType .
+
+:DataStructure
+    rdfs:subClassOf :Context .
+
+###  poas:poas/Context
+:Context rdf:type owl:Class ;
+         rdfs:label "Context" .
+
+###  poas:poas/DataStructure
+:DataStructure rdf:type owl:Class ;
+               rdfs:label "DataStructure" .
+
+###  poas:poas/Declaration
+:Declaration rdf:type owl:Class ;
+             rdfs:subClassOf :Context ;
+             rdfs:label "Declaration" .
+
+###  poas:poas/DeclarationLine
+:DeclarationLine rdf:type owl:Class ;
+                 rdfs:subClassOf :Line ;
+                 rdfs:label "DeclarationLine" .
+
+###  poas:poas/Line
+:Line rdf:type owl:Class ;
+      rdfs:label "Line" .
+
+###  poas:poas/LocalPrefix
+:LocalPrefix rdf:type owl:Class ;
+             rdfs:label "LocalPrefix" .
+
+###  poas:poas/Token
+:Token rdf:type owl:Class ;
+       rdfs:label "Token" .
+
+
+# Objects
+
+# ContextType
+
+:class
+    a :DataStructureType ;
+    :name "class"^^xsd:string ;
+    :nameEn "class"^^xsd:string ;
+    :nameR "класса"^^xsd:string ;
+    :nameI "Класс"^^xsd:string ;
+    :nameLI "класс"^^xsd:string ;
+    :fiveErrorText "элемент пути выбранного ответа"^^xsd:string ;
+    :fiveErrorTextEn "path element of the selected answer"^^xsd:string ;
+    :transparent "false"^^xsd:boolean ;
+    :allowsViewAfter "true"^^xsd:boolean ;
+    :canViewAfter "false"^^xsd:boolean ;
+    :canBeVisible :canBeVisibleClass1_1 ;
+    :canBeVisible :canBeVisibleClass2_1 ;
+    :canBeVisible :canBeVisibleClass2_2 ;
+    :canBeVisible :canBeVisibleClass2_3 ;
+    :canBeVisible :canBeVisibleClass3_1 ;
+    :canBeVisible :canBeVisibleClass3_2 ;
+    :canBeLive :canBeLiveClass1_1 ;
+    :canBeLive :canBeLiveClass2_1 ;
+    :canBeLive :canBeLiveClass2_2 ;
+    :canBeLive :canBeLiveClass3_1 ;
+    :canBeLive :canBeLiveClass3_2 .
+
+
+
+:enum
+    a :DataStructureType ;
+    :name "enum"^^xsd:string ;
+    :nameEn "enum"^^xsd:string ;
+    :nameI "Перечисление"^^xsd:string ;
+    :nameR "перечисления"^^xsd:string ;
+    :nameLI "перечисление"^^xsd:string ;
+    :fiveErrorText "элемент пути выбранного ответа"^^xsd:string ;
+    :fiveErrorTextEn "path element of the selected answer"^^xsd:string ;
+    :transparent "true"^^xsd:boolean ;
+    :allowsViewAfter "false"^^xsd:boolean ;
+    :canViewAfter "false"^^xsd:boolean ;
+    :canBeVisible :canBeVisibleEnum1_1 ;
+    :canBeVisible :canBeVisibleEnum2_1 ;
+    :canBeLive :canBeLiveEnum1_1 ;
+    :canBeLive :canBeLiveEnum1_2 ;
+    :canBeLive :canBeLiveEnum2_1 .
+
+:namespace
+    a :DataStructureType ;
+    :name "namespace"^^xsd:string ;
+    :nameEn "namespace"^^xsd:string ;
+    :nameR "пространства имен"^^xsd:string ;
+    :nameI "Пространство имен"^^xsd:string ;
+    :nameLI "пространство имен"^^xsd:string ;
+    :fiveErrorText "элемент пути выбранного ответа"^^xsd:string ;
+    :fiveErrorTextEn "path element of the selected answer"^^xsd:string ;
+    :transparent "false"^^xsd:boolean ;
+    :allowsViewAfter "false"^^xsd:boolean ;
+    :canViewAfter "false"^^xsd:boolean ;
+    :canBeVisible :canBeVisibleNamespace1_1 ;
+    :canBeVisible :canBeVisibleNamespace2_1 ;
+    :canBeLive :canBeLiveNamespace1_1 ;
+    :canBeLive :canBeLiveNamespace1_2 ;
+    :canBeLive :canBeLiveNamespace2_1 ;
+    :canBeLive :canBeLiveNamespace2_2 .
+
+:global
+    a :ContextType ;
+    :name "global"^^xsd:string ;
+    :nameEn "global"^^xsd:string ;
+    :nameR "глобальной области"^^xsd:string ;
+    :transparent "false"^^xsd:boolean ;
+    :allowsViewAfter "false"^^xsd:boolean ;
+    :canViewAfter "false"^^xsd:boolean ;
+    :canBeVisible :canBeVisibleGlobal1_1 ;
+    :canBeLive :canBeLiveGlobal2_1 ;
+    :canBeLive :canBeLiveGlobal2_2 .
+
+:functionParams
+    a :ContextType ;
+    :name "function parameters"^^xsd:string ;
+    :nameEn "function parameters"^^xsd:string ;
+    :transparent "false"^^xsd:boolean ;
+    :allowsViewAfter "false"^^xsd:boolean ;
+    :canViewAfter "false"^^xsd:boolean ;
+    :canBeVisible :canBeVisibleFunctionParams1_1 ;
+    :canBeLive :canBeLiveFunctionParams2_1 ;
+    :canBeLive :canBeLiveFunctionParams2_2 .
+
+:methodParams
+    a :ContextType ;
+    :name "method parameters"^^xsd:string ;
+    :nameEn "method parameters"^^xsd:string ;
+    :transparent "false"^^xsd:boolean ;
+    :allowsViewAfter "false"^^xsd:boolean ;
+    :canViewAfter "true"^^xsd:boolean ;
+    :canBeVisible :canBeVisibleMethodParams1_1 ;
+    :canBeLive :canBeLiveMethodParams2_1 ;
+    :canBeLive :canBeLiveMethodParams2_2 .
+
+:ifCondition
+    a :ContextType ;
+    :name "if condition"^^xsd:string ;
+    :nameEn "if condition"^^xsd:string ;
+    :transparent "false"^^xsd:boolean ;
+    :allowsViewAfter "false"^^xsd:boolean ;
+    :canViewAfter "false"^^xsd:boolean ;
+    :canBeVisible :canBeVisibleIfCondition1_1 ;
+    :canBeLive :canBeLiveIfCondition2_1 ;
+    :canBeLive :canBeLiveIfCondition2_2 .
+
+:whileCondition
+    a :ContextType ;
+    :name "while condition"^^xsd:string ;
+    :nameEn "while condition"^^xsd:string ;
+    :transparent "false"^^xsd:boolean ;
+    :allowsViewAfter "false"^^xsd:boolean ;
+    :canViewAfter "false"^^xsd:boolean ;
+    :canBeVisible :canBeVisibleWhileCondition1_1 ;
+    :canBeLive :canBeLiveWhileCondition2_1 ;
+    :canBeLive :canBeLiveWhileCondition2_2 .
+
+:forCondition
+    a :ContextType ;
+    :name "for condition"^^xsd:string ;
+    :nameEn "for condition"^^xsd:string ;
+    :transparent "false"^^xsd:boolean ;
+    :allowsViewAfter "false"^^xsd:boolean ;
+    :canViewAfter "false"^^xsd:boolean ;
+    :canBeVisible :canBeVisibleForCondition1_1 ;
+    :canBeLive :canBeLiveForCondition2_1 ;
+    :canBeLive :canBeLiveForCondition2_2 .
+
+:body
+    a :ContextType ;
+    :name "body"^^xsd:string ;
+    :nameEn "body"^^xsd:string ;
+    :transparent "false"^^xsd:boolean ;
+    :allowsViewAfter "false"^^xsd:boolean ;
+    :canViewAfter "false"^^xsd:boolean ;
+    :canBeVisible :canBeVisibleBody1_1 ;
+    :canBeLive :canBeLiveBody2_1 ;
+    :canBeLive :canBeLiveBody2_2 .
+
+:declaration
+    a :ContextType ;
+    :name "declaration"^^xsd:string ;
+    :nameEn "variable"^^xsd:string ;
+    :nameI "Переменная"^^xsd:string ;
+    :nameLI "переменная"^^xsd:string ;
+    :fiveErrorText "выбранная переменная"^^xsd:string ;
+    :fiveErrorTextEn "selected variable"^^xsd:string ;
+    :transparent "false"^^xsd:boolean ;
+    :allowsViewAfter "false"^^xsd:boolean ;
+    :canViewAfter "false"^^xsd:boolean .
+
+# VisibilityModifierType
+
+:public
+    a :VisibilityModifierType ;
+    :text "public"^^xsd:string .
+
+:private
+    a :VisibilityModifierType ;
+    :text "private"^^xsd:string ;
+    :errorText "закрытым (private) и доступно только внутри класса"^^xsd:string ;
+    :errorTextEn "private and only available inside the class"^^xsd:string  .
+
+:protected
+    a :VisibilityModifierType ;
+    :text "protected"^^xsd:string ;
+    :errorText "защищенным (protected) и доступно только внтури класса и для его потомков"^^xsd:string ;
+    :errorTextEn "protected and available only inside the class and for its descendants"^^xsd:string .
+
+# ContextRelationType
+
+:internal
+    a :ContextRelationType ;
+    :text "внутри себя"^^xsd:string .
+
+:external
+    a :ContextRelationType ;
+    :text "вне себя"^^xsd:string .
+
+:child
+    a :ContextRelationType ;
+    :text "в дочернем контексте"^^xsd:string .
+
+# LificycleType
+
+:static
+    a :LifecycleType .
+
+:dynamic
+    a :LifecycleType .
+
+# Connections
+
+# --------------------------------------- Class ---------------------------------------
+
+:canBeVisibleClass1_1
+    :canBeVisible :external ;
+    :canBeVisible :public .
+
+:canBeVisibleClass2_1
+    :canBeVisible :internal ;
+    :canBeVisible :public .
+
+:canBeVisibleClass2_2
+    :canBeVisible :internal ;
+    :canBeVisible :private .
+
+:canBeVisibleClass2_3
+    :canBeVisible :internal ;
+    :canBeVisible :protected .
+
+:canBeVisibleClass3_1
+    :canBeVisible :child ;
+    :canBeVisible :public .
+
+:canBeVisibleClass3_2
+    :canBeVisible :child ;
+    :canBeVisible :protected .
+
+:canBeLiveClass1_1
+    :canBeLive :external ;
+    :canBeLive :static .
+
+:canBeLiveClass2_1
+    :canBeLive :internal ;
+    :canBeLive :static .
+
+:canBeLiveClass2_2
+    :canBeLive :internal ;
+    :canBeLive :dynamic .
+
+:canBeLiveClass3_1
+    :canBeLive :child ;
+    :canBeLive :static .
+
+:canBeLiveClass3_2
+    :canBeLive :child ;
+    :canBeLive :dynamic .
+
+# ------------------------------------------- Global ---------------------------------
+
+:canBeVisibleGlobal1_1
+    :canBeVisible :internal ;
+    :canBeVisible :public .
+
+:canBeLiveGlobal2_1
+    :canBeLive :internal ;
+    :canBeLive :dynamic .
+
+:canBeLiveGlobal2_2
+    :canBeLive :internal ;
+    :canBeLive :static .
+
+# ------------------------------------------- FunctionParams -------------------------
+
+:canBeVisibleFunctionParams1_1
+    :canBeVisible :internal ;
+    :canBeVisible :public .
+
+:canBeLiveFunctionParams2_1
+    :canBeLive :internal ;
+    :canBeLive :dynamic .
+
+:canBeLiveFunctionParams2_2
+    :canBeLive :internal ;
+    :canBeLive :static .
+
+# ----------------------------------------- MethodParams ------------------------------
+
+:canBeVisibleMethodParams1_1
+    :canBeVisible :internal ;
+    :canBeVisible :public .
+
+:canBeLiveMethodParams2_1
+    :canBeLive :internal ;
+    :canBeLive :dynamic .
+
+:canBeLiveMethodParams2_2
+    :canBeLive :internal ;
+    :canBeLive :static .
+
+# ------------------------------------------ Body --------------------------------------
+
+:canBeVisibleBody1_1
+    :canBeVisible :internal ;
+    :canBeVisible :public .
+
+:canBeLiveBody2_1
+    :canBeLive :internal ;
+    :canBeLive :dynamic .
+
+:canBeLiveBody2_2
+    :canBeLive :internal ;
+    :canBeLive :static .
+
+# ------------------------------------------ IfCondition --------------------------------
+
+:canBeVisibleIfCondition1_1
+    :canBeVisible :internal ;
+    :canBeVisible :public .
+
+:canBeLiveIfCondition2_1
+    :canBeLive :internal ;
+    :canBeLive :dynamic .
+
+:canBeLiveIfCondition2_2
+    :canBeLive :internal ;
+    :canBeLive :static .
+
+# ------------------------------------------ Enum ---------------------------------------
+
+:canBeVisibleEnum1_1
+    :canBeVisible :internal ;
+    :canBeVisible :public .
+
+:canBeVisibleEnum2_1
+    :canBeVisible :external ;
+    :canBeVisible :public .
+
+:canBeLiveEnum1_1
+    :canBeLive :internal ;
+    :canBeLive :static .
+
+:canBeLiveEnum1_2
+    :canBeLive :internal ;
+    :canBeLive :dynamic .
+
+:canBeLiveEnum2_1
+    :canBeLive :external ;
+    :canBeLive :static .
+
+# ------------------------------------------- Namespace ---------------------------------
+
+:canBeVisibleNamespace1_1
+    :canBeVisible :internal ;
+    :canBeVisible :public .
+
+:canBeVisibleNamespace2_1
+    :canBeVisible :external ;
+    :canBeVisible :public .
+
+:canBeLiveNamespace1_1
+    :canBeLive :internal ;
+    :canBeLive :static .
+
+:canBeLiveNamespace1_2
+    :canBeLive :internal ;
+    :canBeLive :dynamic .
+
+:canBeLiveNamespace2_1
+    :canBeLive :external ;
+    :canBeLive :static .
+
+:canBeLiveNamespace2_2
+    :canBeLive :external ;
+    :canBeLive :dynamic .
+
+# ------------------------------------------ WhileCondition --------------------------------
+
+:canBeVisibleWhileCondition1_1
+    :canBeVisible :internal ;
+    :canBeVisible :public .
+
+:canBeLiveWhileCondition2_1
+    :canBeLive :internal ;
+    :canBeLive :dynamic .
+
+:canBeLiveWhileCondition2_2
+    :canBeLive :internal ;
+    :canBeLive :static .
+
+# -------------------------------------------- ForCondition --------------------------------
+
+:canBeVisibleForCondition1_1
+    :canBeVisible :internal ;
+    :canBeVisible :public .
+
+:canBeLiveForCondition2_1
+    :canBeLive :internal ;
+    :canBeLive :dynamic .
+
+:canBeLiveForCondition2_2
+    :canBeLive :internal ;
+    :canBeLive :static .
+
+
+# ------------------------------------ Фейковый маркер начала префикса --------------------------------
+
+:startMarker
+    a :Token ;
+    :name ""^^xsd:string .

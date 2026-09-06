@@ -34,7 +34,7 @@ public class ResponseEntity {
     private InteractionEntity createdByInteraction;
 
     @ToString.Exclude
-    @ManyToOne
+    @ManyToOne(cascade = CascadeType.ALL)
     @JoinColumn(name = "interaction_id")
     private InteractionEntity interaction;
 }

@@ -4,9 +4,9 @@ import { Interaction } from "../types/interaction";
 import { SupplementaryFeedback, SupplementaryQuestionRequest } from "../types/supplementary-question";
 import { Answer } from "../types/answer";
 import { NonEmptyArray } from "fp-ts/lib/NonEmptyArray";
-import { IExerciseController } from "../controllers/exercise/exercise-controller";
 import * as E from "fp-ts/lib/Either";
 import { absurd } from "fp-ts/lib/function";
+import { IQuestionController } from "../controllers/exercise/question-controller";
 
 export class SupplementaryQuestionStore {
     @observable sourceQuestionId: number;
@@ -15,7 +15,7 @@ export class SupplementaryQuestionStore {
     @observable answer: ReadonlyArray<Answer> = [];
     @observable questionState: 'INITIAL' | 'LOADING' | 'LOADED' | 'ANSWER_EVALUATING' | 'COMPLETED' = 'INITIAL';
 
-    constructor(private exerciseController: IExerciseController, sourceQuestionId: number) {
+    constructor(private questionController: IQuestionController, sourceQuestionId: number) {
         this.sourceQuestionId = sourceQuestionId;
         
         makeObservable(this);
@@ -75,7 +75,7 @@ export class SupplementaryQuestionStore {
             questionId: this.sourceQuestionId,
             violationLaws: violationLaws as NonEmptyArray<string>,
         };        
-        const dataEither = await this.exerciseController.generateSupplementaryQuestion(questionRequest);
+        const dataEither = await this.questionController.generateSupplementaryQuestion(questionRequest);
 
         runInAction(() => {
             if (E.isLeft(dataEither)) {                
@@ -94,13 +94,12 @@ export class SupplementaryQuestionStore {
             throw new Error("Question is empty");
 
         const body: Interaction = toJS({
-            attemptId: question.attemptId,
             questionId: question.questionId,
             answers: toJS([...this.answer]),
         })
 
         this.setQuestionState('ANSWER_EVALUATING');
-        const feedbackEither = await this.exerciseController.addSupplementaryQuestionAnswer(body);
+        const feedbackEither = await this.questionController.addSupplementaryQuestionAnswer(body);
 
         runInAction(() => { 
             if (E.isLeft(feedbackEither)) {

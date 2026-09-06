@@ -59,7 +59,7 @@ export const GenerateNextQuestionBtn = observer(() => {
 
     return (
         <>
-            <Button onClick={onClicked} variant="primary" >{t('generateNextQuestion_nextQuestion')}</Button>
+            <Button onClick={onClicked} variant="primary" className='comp-ph-next-question-btn'>{t('generateNextQuestion_nextQuestion')}</Button>
             <Modal show={isModalVisible}
                    title={t('generateNextQuestion_warning')}
                    type='MODAL'

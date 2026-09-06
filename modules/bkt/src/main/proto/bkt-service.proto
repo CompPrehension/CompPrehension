@@ -1,0 +1,63 @@
+syntax = "proto3";
+package bkt;
+
+option java_multiple_files = true;
+option java_package = "org.vstu.compprehension.bkt.grpc";
+option java_outer_classname = "BktProto";
+
+message UpdateRosterRequest {
+  string roster = 1;
+  string student = 2;
+  bool correct = 3;
+  repeated string skills = 4;
+}
+
+message UpdateRosterResponse {
+  string roster = 1;
+}
+
+message SkillState {
+  string skill = 1;
+  string state = 2;
+  double correctPrediction = 3;
+  double statePrediction = 4;
+}
+
+message GetSkillStatesRequest {
+  string roster = 1;
+  string student = 2;
+  repeated string skills = 3;
+}
+
+message GetSkillStatesResponse {
+  repeated SkillState skillStates = 1;
+}
+
+message Question {
+  repeated string targetSkills = 1;
+}
+
+message CandidateQuestionsList {
+  repeated Question questions = 1;
+}
+
+message ChooseBestQuestionRequest {
+  string roster = 1;
+  string student = 2;
+  repeated string allSkills = 3;
+
+  oneof questionsSource {
+    CandidateQuestionsList candidateQuestions = 4;
+    uint32 maxQuestionSkillsCount = 5;
+  }
+}
+
+message ChooseBestQuestionResponse {
+  repeated string bestTargetSkills = 1;
+}
+
+service BktService {
+  rpc UpdateRoster (UpdateRosterRequest) returns (UpdateRosterResponse);
+  rpc GetSkillStates (GetSkillStatesRequest) returns (GetSkillStatesResponse);
+  rpc ChooseBestQuestion (ChooseBestQuestionRequest) returns (ChooseBestQuestionResponse);
+}

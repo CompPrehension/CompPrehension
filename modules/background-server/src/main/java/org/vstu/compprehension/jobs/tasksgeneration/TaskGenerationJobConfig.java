@@ -17,8 +17,7 @@ import java.util.regex.Pattern;
 @ConfigurationProperties(prefix = "task-generation")
 @Getter @Setter @NoArgsConstructor
 public class TaskGenerationJobConfig {
-    private boolean runOnce;
-    private String cronSchedule;
+    private String cronSchedule = "never";
     private List<TaskConfig> tasks;
 
     @Getter @Setter @NoArgsConstructor
@@ -34,6 +33,7 @@ public class TaskGenerationJobConfig {
         @Getter @Setter @NoArgsConstructor
         public static class ReposSearcherConfig {
             private boolean enabled = true;
+            private String query = null;
             private String githubOAuthToken;
             private String outputFolderPath;
             private boolean skipDownloadedRepositories = true;

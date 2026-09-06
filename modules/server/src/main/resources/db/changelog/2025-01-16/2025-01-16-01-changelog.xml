@@ -1,0 +1,13 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<databaseChangeLog
+        xmlns="http://www.liquibase.org/xml/ns/dbchangelog"
+        xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance"
+        xsi:schemaLocation="http://www.liquibase.org/xml/ns/dbchangelog
+                      http://www.liquibase.org/xml/ns/dbchangelog/dbchangelog-4.24.xsd">
+    <changeSet id="1737030824000-1" author="Dmitry Shashkov">
+        <!-- Добавляем новый столбец origin_license в таблицу questions_meta -->
+        <addColumn tableName="questions_meta">
+            <column name="origin_license" type="varchar(128)" afterColumn="origin" />
+        </addColumn>
+    </changeSet>
+</databaseChangeLog>

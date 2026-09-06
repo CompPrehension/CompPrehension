@@ -13,30 +13,46 @@
         <module>modules/common</module>
         <module>modules/core</module>
         <module>modules/strategies</module>
+        <module>modules/objects-scope-domain</module>
         <module>modules/background-server</module>
         <module>modules/expr-domain-question-generator</module>
         <module>modules/common-spring</module>
+        <module>modules/bkt</module>
     </modules>
 
     <properties>
         <java.version>21</java.version>
         <maven.compiler.source>21</maven.compiler.source>
         <maven.compiler.target>21</maven.compiler.target>
+        <maven.compiler.proc>full</maven.compiler.proc>
         <project.build.sourceEncoding>UTF-8</project.build.sourceEncoding>
         <project.reporting.outputEncoding>UTF-8</project.reporting.outputEncoding>
         <jena.version>4.6.1</jena.version>
         <spring.version>3.1.4</spring.version>
         <springcore.version>6.0.12</springcore.version>
-        <jackson.version>2.15.2</jackson.version>
+        <springretry.version>2.0.11</springretry.version>
+        <jackson.version>2.19.2</jackson.version>
         <log4j2.version>2.20.0</log4j2.version>
+        <meaningtree.version>396d39c63f</meaningtree.version>
+        <grpc.version>1.72.0</grpc.version>
+        <protobuf.version>4.30.2</protobuf.version>
     </properties>
 
-    <!-- required depedencies -->
+
+    <repositories>
+        <repository>
+            <id>jitpack.io</id>
+            <url>https://jitpack.io</url>
+        </repository>
+    </repositories>
+
+    <!-- required dependencies -->
     <dependencies>
         <dependency>
             <groupId>org.projectlombok</groupId>
             <artifactId>lombok</artifactId>
-            <version>1.18.30</version>
+            <scope>provided</scope>
+            <version>1.18.42</version>
         </dependency>
         <dependency>
             <groupId>org.jetbrains</groupId>
@@ -50,7 +66,7 @@
         </dependency>
     </dependencies>
 
-    <!-- optional depedencies -->
+    <!-- optional dependencies -->
     <dependencyManagement>
         <dependencies>
             <dependency>
@@ -93,6 +109,18 @@
                 <groupId>org.apache.commons</groupId>
                 <artifactId>commons-lang3</artifactId>
                 <version>3.13.0</version>
+            </dependency>
+            <dependency>
+                <groupId>com.google.protobuf</groupId>
+                <artifactId>protobuf-java</artifactId>
+                <version>${protobuf.version}</version>
+            </dependency>
+            <dependency>
+                <groupId>io.grpc</groupId>
+                <artifactId>grpc-bom</artifactId>
+                <version>${grpc.version}</version>
+                <type>pom</type>
+                <scope>import</scope>
             </dependency>
         </dependencies>
     </dependencyManagement>

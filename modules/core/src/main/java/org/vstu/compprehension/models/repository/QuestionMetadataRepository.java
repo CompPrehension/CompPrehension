@@ -1,9 +1,10 @@
 package org.vstu.compprehension.models.repository;
 
+import jakarta.persistence.QueryHint;
 import org.jetbrains.annotations.NotNull;
-import org.jetbrains.annotations.Nullable;
 import org.springframework.context.annotation.Primary;
 import org.springframework.data.jpa.repository.Query;
+import org.springframework.data.jpa.repository.QueryHints;
 import org.springframework.data.repository.CrudRepository;
 import org.springframework.data.repository.query.Param;
 import org.springframework.stereotype.Repository;
@@ -11,6 +12,7 @@ import org.vstu.compprehension.dto.ComplexityStats;
 import org.vstu.compprehension.models.entities.QuestionMetadataEntity;
 
 import java.time.LocalDateTime;
+import java.util.Collection;
 import java.util.HashSet;
 import java.util.List;
 
@@ -21,11 +23,33 @@ public interface QuestionMetadataRepository extends CrudRepository<QuestionMetad
 
     @NotNull
     @Query(value = 
-            "select * from questions_meta " +
-            "where id > :lastLoadedId " +
-            "order by id " +
-            "limit :limit", nativeQuery = true)
+            "select m from QuestionMetadataEntity m " +
+            "where m.id > :lastLoadedId " +
+            "order by m.id " +
+            "limit :limit")
+    @QueryHints(@QueryHint(name = "org.hibernate.readOnly", value = "true"))
     List<QuestionMetadataEntity> loadPage(@Param("lastLoadedId") int lastLoadedId, @Param("limit") int limit);
+
+    @NotNull
+    @Query(value =
+            "select m from QuestionMetadataEntity m " +
+            "inner join fetch m.questionData " +
+            "where m.id > :lastLoadedId " +
+            "order by m.id " +
+            "limit :limit"
+    )
+    @QueryHints(@QueryHint(name = "org.hibernate.readOnly", value = "true"))
+    List<QuestionMetadataEntity> loadPageWithData(@Param("lastLoadedId") int lastLoadedId, @Param("limit") int limit);
+
+    @NotNull
+    @Query(value =
+            "select m from QuestionMetadataEntity m " +
+            "where m.id > :lastLoadedId AND m.domainShortname = :domainShortName " +
+            "order by m.id " +
+            "limit :limit"
+    )
+    @QueryHints(@QueryHint(name = "org.hibernate.readOnly", value = "true"))
+    List<QuestionMetadataEntity> loadPage(@Param("lastLoadedId") int lastLoadedId, @Param("domainShortName") String domainShortName, @Param("limit") int limit);
     
     @Query
     long countByDomainShortname(String domainShortname);
@@ -48,8 +72,11 @@ public interface QuestionMetadataRepository extends CrudRepository<QuestionMetad
     @Query
     boolean existsByName(String questionName);
 
-    @Query("select exists(select m.id from QuestionMetadataEntity m where m.domainShortname = :domainShortname and (m.name = :questionName or :templateId is not null and m.templateId = :templateId))")
-    boolean existsByNameOrTemplateId(@Param("domainShortname") String domainShortname, @Param("questionName") String questionName, @Param("templateId") @Nullable String templateId);
+    @Query("select distinct m.name from QuestionMetadataEntity m where m.domainShortname = :domainShortname and m.name in :questionNames")
+    HashSet<String> findExistingNames(@Param("domainShortname") String domainShortname, @Param("questionNames") Collection<String> questionNames);
+
+    @Query("select distinct m.templateId from QuestionMetadataEntity m where m.domainShortname = :domainShortname and m.templateId in :templateIds")
+    HashSet<String> findExistingTemplateIds(@Param("domainShortname") String domainShortname, @Param("templateIds") Collection<String> templateIds);
 
     @Query(value = "select new org.vstu.compprehension.dto.ComplexityStats(" +
             "count(*), " +
@@ -62,8 +89,16 @@ public interface QuestionMetadataRepository extends CrudRepository<QuestionMetad
     );
 
     @NotNull
-    @Query("select distinct(q.origin) from QuestionMetadataEntity q where q.domainShortname = :domainShortname and q.createdAt >= :from")
-    HashSet<String> findAllOrigins(@Param("domainShortname") String domainShortname, @Param("from") LocalDateTime from);
+    @Query("select distinct(q.origin) from QuestionMetadataEntity q where q.domainShortname = :domainShortname and q.generatedBy is null")
+    HashSet<String> findFullyProcessedOrigins(@Param("domainShortname") String domainShortname);
+
+    @NotNull
+    @Query("select distinct(q.origin) from QuestionMetadataEntity q where q.domainShortname = :domainShortname")
+    HashSet<String> findProcessedOrigins(@Param("domainShortname") String domainShortname);
+
+    @NotNull
+    @Query("select distinct(q.origin) from QuestionMetadataEntity q where q.domainShortname = :domainShortname and q.createdAt >= :dateFrom")
+    HashSet<String> findProcessedOrigins(@Param("domainShortname") String domainShortname, @Param("dateFrom") LocalDateTime dateFrom);
 
     @Query("select exists(select m.id from QuestionMetadataEntity m where m.domainShortname = :domainShortname and m.templateId = :templateId)")
     boolean templateExists(@Param("domainShortname") String domainShortname, @Param("templateId") String templateId);

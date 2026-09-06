@@ -89,7 +89,7 @@ public class GradeConfidenceBaseStrategy implements AbstractStrategy {
         boolean isFirstQuestion = exerciseAttempt.getQuestions().size() == 0;
 
 
-        qr.setComplexity(grade(exerciseAttempt));//TODO
+        qr.setComplexity(grade(exerciseAttempt, null));//TODO
         //qr.setComplexity(1);//TODO
         qr.setSolvingDuration(5);
         qr.setExerciseAttemptId(exerciseAttempt.getId());
@@ -173,7 +173,7 @@ public class GradeConfidenceBaseStrategy implements AbstractStrategy {
     }
 
     @Override
-    public float grade(ExerciseAttemptEntity exerciseAttempt) {
+    public float grade(ExerciseAttemptEntity exerciseAttempt, Domain.InterpretSentenceResult judgeResult) {
 
         HashMap<String, List<Boolean>> allLaws = getTargetLawsInteractions(exerciseAttempt, 0);
 
@@ -201,7 +201,7 @@ public class GradeConfidenceBaseStrategy implements AbstractStrategy {
     @Override
     public Decision decide(ExerciseAttemptEntity exerciseAttempt) {
 
-        if(grade(exerciseAttempt) >= countTargetGrade() && isAllLawsUsedWindowCount(exerciseAttempt)){
+        if(grade(exerciseAttempt, null) >= countTargetGrade() && isAllLawsUsedWindowCount(exerciseAttempt)){
             return Decision.FINISH;
         }
         return Decision.CONTINUE;

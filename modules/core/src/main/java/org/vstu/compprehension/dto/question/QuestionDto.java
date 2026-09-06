@@ -14,8 +14,8 @@ import lombok.experimental.SuperBuilder;
 @NoArgsConstructor @AllArgsConstructor
 @SuperBuilder
 public class QuestionDto {
-    private Long attemptId;
     private Long questionId;
+    private Integer questionMetadataId;
     private String type;
     private String text;
     private QuestionOptionsEntity options;

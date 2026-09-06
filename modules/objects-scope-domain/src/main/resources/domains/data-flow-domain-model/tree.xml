@@ -1,0 +1,1661 @@
+<?xml version="1.0"?>
+<StartNode>
+    <InputVariables>
+        <DecisionTreeVarDecl name="var" type="Variable"/>
+        <DecisionTreeVarDecl name="answer" type="Type"/>
+    </InputVariables>
+    <ThoughtBranch _alias="startThought" type="bool">
+        <QuestionNode _id="0" _alias="answer является mutable?" type="bool" isSwitch="false">
+            <Expression>
+                <Compare operator="EQUAL">
+                    <GetPropertyValue>
+                        <DecisionTreeVar name="answer"/>
+                        <Property name="type"/>
+                    </GetPropertyValue>
+                    <Enum owner="typeVariable" value="mutable"/>
+                </Compare>
+            </Expression>
+            <Outcome value="False">
+                <CycleAggregationNode _id="1" _skill="variable is mutable"
+                                      _alias="Для всех переменных, которые имеют имя var.name&lt;div&gt;otherVar&lt;/div&gt;"
+                                      operator="AND">
+                    <SelectorExpression>
+                        <Compare operator="EQUAL">
+                            <GetPropertyValue>
+                                <Variable name="otherVar"/>
+                                <Property name="name"/>
+                            </GetPropertyValue>
+                            <GetPropertyValue>
+                                <DecisionTreeVar name="var"/>
+                                <Property name="name"/>
+                            </GetPropertyValue>
+                        </Compare>
+                    </SelectorExpression>
+                    <DecisionTreeVarDecl name="otherVar" type="Variable"/>
+                    <ThoughtBranch _alias="Тело" type="bool" paramName="otherVar">
+                        <FindActionNode _id="2" _alias="Найти родительское выражение otherVar&#10;parentExpr">
+                            <Expression>
+                                <GetByRelationship varName="">
+                                    <DecisionTreeVar name="otherVar"/>
+                                    <Relationship name="parent"/>
+                                </GetByRelationship>
+                            </Expression>
+                            <DecisionTreeVarDecl name="parentExpr" type="Expression"/>
+                            <Outcome value="Found">
+                                <QuestionNode _id="3" _skill="parent expression is function?"
+                                              _alias="parentExpr is FunctionCall" type="bool" isSwitch="false">
+                                    <Expression>
+                                        <CheckClass>
+                                            <DecisionTreeVar name="parentExpr"/>
+                                            <Class name="FunctionCall"/>
+                                        </CheckClass>
+                                    </Expression>
+                                    <Outcome value="False">
+                                        <FindActionNode _id="4"
+                                                        _alias="Найти тип otherVar на позиции у parentExpr&#10;otherVarType">
+                                            <Expression>
+                                                <GetByCondition type="Type" varName="type">
+                                                    <CheckRelationship>
+                                                        <Relationship name="has"/>
+                                                        <GetByRelationship varName="">
+                                                            <Cast>
+                                                                <DecisionTreeVar name="parentExpr"/>
+                                                                <Class name="Operator"/>
+                                                            </Cast>
+                                                            <Relationship name="operatorType"/>
+                                                        </GetByRelationship>
+                                                        <GetByRelationship varName="">
+                                                            <DecisionTreeVar name="otherVar"/>
+                                                            <Relationship name="position"/>
+                                                        </GetByRelationship>
+                                                        <Variable name="type"/>
+                                                    </CheckRelationship>
+                                                </GetByCondition>
+                                            </Expression>
+                                            <DecisionTreeVarDecl name="otherVarType" type="Type"/>
+                                            <Outcome value="Found">
+                                                <QuestionNode _id="5" _alias="otherVarType равен answer?" type="bool"
+                                                              isSwitch="false">
+                                                    <Expression>
+                                                        <Compare operator="EQUAL">
+                                                            <GetPropertyValue>
+                                                                <DecisionTreeVar name="otherVarType"/>
+                                                                <Property name="type"/>
+                                                            </GetPropertyValue>
+                                                            <GetPropertyValue>
+                                                                <DecisionTreeVar name="answer"/>
+                                                                <Property name="type"/>
+                                                            </GetPropertyValue>
+                                                        </Compare>
+                                                    </Expression>
+                                                    <Outcome value="False">
+                                                        <QuestionNode _id="6" _skill="type variable in operator"
+                                                                      _alias="type currentTypeVar?" type="enum"
+                                                                      isSwitch="true">
+                                                            <Expression>
+                                                                <GetPropertyValue>
+                                                                    <Object name="currentTypeVar"/>
+                                                                    <Property name="type"/>
+                                                                </GetPropertyValue>
+                                                            </Expression>
+                                                            <Outcome value="typeVariable:none">
+                                                                <QuestionNode _id="7" _skill="type variable in operator"
+                                                                              _alias="otherVar на позиции у parentExpr является входной?"
+                                                                              type="bool" isSwitch="false">
+                                                                    <Expression>
+                                                                        <Compare operator="EQUAL">
+                                                                            <GetPropertyValue>
+                                                                                <DecisionTreeVar name="otherVarType"/>
+                                                                                <Property name="type"/>
+                                                                            </GetPropertyValue>
+                                                                            <Enum owner="typeVariable" value="input"/>
+                                                                        </Compare>
+                                                                    </Expression>
+                                                                    <Outcome value="False">
+                                                                        <QuestionNode _id="8"
+                                                                                      _skill="type variable in operator"
+                                                                                      _alias="otherVar на позиции у parentExpr является выходной?"
+                                                                                      type="bool" isSwitch="false">
+                                                                            <Expression>
+                                                                                <Compare operator="EQUAL">
+                                                                                    <GetPropertyValue>
+                                                                                        <DecisionTreeVar
+                                                                                                name="otherVarType"/>
+                                                                                        <Property name="type"/>
+                                                                                    </GetPropertyValue>
+                                                                                    <Enum owner="typeVariable"
+                                                                                          value="output"/>
+                                                                                </Compare>
+                                                                            </Expression>
+                                                                            <Outcome value="True">
+                                                                                <BranchResultNode _id="9"
+                                                                                                  _alias="Переменная &quot;{var.name}&quot; на позиции {otherVar.number} является {otherVar-&gt;position.position} операндом оператора &quot;{parentExpr-&gt;operatorType.text}&quot; и является {otherVarType.type}."
+                                                                                                  _RU_explanation="Переменная &quot;{var.name}&quot; на позиции {otherVar.number} является {otherVar-&gt;position.position} операндом оператора &quot;{parentExpr-&gt;operatorType.text}&quot; и является {otherVarType.type}."
+                                                                                                  _EN_explanation="The variable &quot;{var.name}&quot; at position {otherVar.number} is the {otherVar-&gt;position.position} operand of the &quot;{parentExpr-&gt;operatorType.text}&quot; operator and is the {otherVarType.type}."
+                                                                                                  value="error">
+                                                                                    <Expression>
+                                                                                        <AssignToProperty>
+                                                                                            <Object name="currentTypeVar"/>
+                                                                                            <Property name="type"/>
+                                                                                            <Enum owner="typeVariable"
+                                                                                                  value="output"/>
+                                                                                        </AssignToProperty>
+                                                                                    </Expression>
+                                                                                </BranchResultNode>
+                                                                            </Outcome>
+                                                                            <Outcome value="False">
+                                                                                <QuestionNode _id="10"
+                                                                                              _skill="type variable in operator"
+                                                                                              _alias="otherVar на позиции у parentExpr является изменяемой?"
+                                                                                              type="bool"
+                                                                                              isSwitch="false">
+                                                                                    <Expression>
+                                                                                        <Compare operator="EQUAL">
+                                                                                            <GetPropertyValue>
+                                                                                                <DecisionTreeVar
+                                                                                                        name="otherVarType"/>
+                                                                                                <Property name="type"/>
+                                                                                            </GetPropertyValue>
+                                                                                            <Enum owner="typeVariable"
+                                                                                                  value="mutable"/>
+                                                                                        </Compare>
+                                                                                    </Expression>
+                                                                                    <Outcome value="True">
+                                                                                        <BranchResultNode _id="11"
+                                                                                                          _alias="Переменная &quot;{var.name}&quot; на позиции {otherVar.number} является {otherVar-&gt;position.position} операндом оператора &quot;{parentExpr-&gt;operatorType.text}&quot; и является {otherVarType.type}."
+                                                                                                          _RU_explanation="Переменная &quot;{var.name}&quot; на позиции {otherVar.number} является {otherVar-&gt;position.position} операндом оператора &quot;{parentExpr-&gt;operatorType.text}&quot; и является {otherVarType.type}."
+                                                                                                          _EN_explanation="The variable &quot;{var.name}&quot; at position {otherVar.number} is the {otherVar-&gt;position.position} operand of the &quot;{parentExpr-&gt;operatorType.text}&quot; operator and is the {otherVarType.type}."
+                                                                                                          value="error">
+                                                                                            <Expression>
+                                                                                                <AssignToProperty>
+                                                                                                    <Object name="currentTypeVar"/>
+                                                                                                    <Property
+                                                                                                            name="type"/>
+                                                                                                    <Enum owner="typeVariable"
+                                                                                                          value="mutable"/>
+                                                                                                </AssignToProperty>
+                                                                                            </Expression>
+                                                                                        </BranchResultNode>
+                                                                                    </Outcome>
+                                                                                </QuestionNode>
+                                                                            </Outcome>
+                                                                        </QuestionNode>
+                                                                    </Outcome>
+                                                                    <Outcome value="True">
+                                                                        <BranchResultNode _id="12"
+                                                                                          _alias="Переменная &quot;{var.name}&quot; на позиции {otherVar.number} является {otherVar-&gt;position.position} операндом оператора &quot;{parentExpr-&gt;operatorType.text}&quot; и является {otherVarType.type}."
+                                                                                          _RU_explanation="Переменная &quot;{var.name}&quot; на позиции {otherVar.number} является {otherVar-&gt;position.position} операндом оператора &quot;{parentExpr-&gt;operatorType.text}&quot; и является {otherVarType.type}."
+                                                                                          _EN_explanation="The variable &quot;{var.name}&quot; at position {otherVar.number} is the {otherVar-&gt;position.position} operand of the &quot;{parentExpr-&gt;operatorType.text}&quot; operator and is the {otherVarType.type}."
+                                                                                          value="error">
+                                                                            <Expression>
+                                                                                <AssignToProperty>
+                                                                                    <Object name="currentTypeVar"/>
+                                                                                    <Property name="type"/>
+                                                                                    <Enum owner="typeVariable"
+                                                                                          value="input"/>
+                                                                                </AssignToProperty>
+                                                                            </Expression>
+                                                                        </BranchResultNode>
+                                                                    </Outcome>
+                                                                </QuestionNode>
+                                                            </Outcome>
+                                                            <Outcome value="typeVariable:mutable">
+                                                                <BranchResultNode _id="13"
+                                                                                  _alias="Переменная &quot;{var.name}&quot; на позиции {otherVar.number} является {otherVar-&gt;position.position} операндом оператора &quot;{parentExpr-&gt;operatorType.text}&quot; и является {otherVarType.type}."
+                                                                                  _RU_explanation="Переменная &quot;{var.name}&quot; на позиции {otherVar.number} является {otherVar-&gt;position.position} операндом оператора &quot;{parentExpr-&gt;operatorType.text}&quot; и является {otherVarType.type}."
+                                                                                  _EN_explanation="The variable &quot;{var.name}&quot; at position {otherVar.number} is the {otherVar-&gt;position.position} operand of the &quot;{parentExpr-&gt;operatorType.text}&quot; operator and is the {otherVarType.type}."
+                                                                                  value="error">
+                                                                    <Expression>
+                                                                        <AssignToProperty>
+                                                                            <Object name="currentTypeVar"/>
+                                                                            <Property name="type"/>
+                                                                            <Enum owner="typeVariable" value="mutable"/>
+                                                                        </AssignToProperty>
+                                                                    </Expression>
+                                                                </BranchResultNode>
+                                                            </Outcome>
+                                                            <Outcome value="typeVariable:input">
+                                                                <QuestionNode _id="14"
+                                                                              _skill="type variable in operator"
+                                                                              _alias="otherVar на позиции у parentExpr является входной?"
+                                                                              type="bool" isSwitch="false">
+                                                                    <Expression>
+                                                                        <Compare operator="EQUAL">
+                                                                            <GetPropertyValue>
+                                                                                <DecisionTreeVar name="otherVarType"/>
+                                                                                <Property name="type"/>
+                                                                            </GetPropertyValue>
+                                                                            <Enum owner="typeVariable" value="input"/>
+                                                                        </Compare>
+                                                                    </Expression>
+                                                                    <Outcome value="True">
+                                                                        <BranchResultNode _id="15"
+                                                                                          _alias="Переменная &quot;{var.name}&quot; на позиции {otherVar.number} является {otherVar-&gt;position.position} операндом оператора &quot;{parentExpr-&gt;operatorType.text}&quot; и является {otherVarType.type}."
+                                                                                          _RU_explanation="Переменная &quot;{var.name}&quot; на позиции {otherVar.number} является {otherVar-&gt;position.position} операндом оператора &quot;{parentExpr-&gt;operatorType.text}&quot; и является {otherVarType.type}."
+                                                                                          _EN_explanation="The variable &quot;{var.name}&quot; at position {otherVar.number} is the {otherVar-&gt;position.position} operand of the &quot;{parentExpr-&gt;operatorType.text}&quot; operator and is the {otherVarType.type}."
+                                                                                          value="error">
+                                                                            <Expression>
+                                                                                <AssignToProperty>
+                                                                                    <Object name="currentTypeVar"/>
+                                                                                    <Property name="type"/>
+                                                                                    <Enum owner="typeVariable"
+                                                                                          value="input"/>
+                                                                                </AssignToProperty>
+                                                                            </Expression>
+                                                                        </BranchResultNode>
+                                                                    </Outcome>
+                                                                    <Outcome value="False">
+                                                                        <BranchResultNode _id="16"
+                                                                                          _alias="Переменная &quot;{var.name}&quot; на позиции {otherVar.number} является {otherVar-&gt;position.position} операндом оператора &quot;{parentExpr-&gt;operatorType.text}&quot; и является {otherVarType.type}."
+                                                                                          _RU_explanation="Переменная &quot;{var.name}&quot; на позиции {otherVar.number} является {otherVar-&gt;position.position} операндом оператора &quot;{parentExpr-&gt;operatorType.text}&quot; и является {otherVarType.type}."
+                                                                                          _EN_explanation="The variable &quot;{var.name}&quot; at position {otherVar.number} is the {otherVar-&gt;position.position} operand of the &quot;{parentExpr-&gt;operatorType.text}&quot; operator and is the {otherVarType.type}."
+                                                                                          value="error">
+                                                                            <Expression>
+                                                                                <AssignToProperty>
+                                                                                    <Object name="currentTypeVar"/>
+                                                                                    <Property name="type"/>
+                                                                                    <Enum owner="typeVariable"
+                                                                                          value="mutable"/>
+                                                                                </AssignToProperty>
+                                                                            </Expression>
+                                                                        </BranchResultNode>
+                                                                    </Outcome>
+                                                                </QuestionNode>
+                                                            </Outcome>
+                                                            <Outcome value="typeVariable:output">
+                                                                <QuestionNode _id="17"
+                                                                              _skill="type variable in operator"
+                                                                              _alias="otherVar на позиции у parentExpr является выходной?"
+                                                                              type="bool" isSwitch="false">
+                                                                    <Expression>
+                                                                        <Compare operator="EQUAL">
+                                                                            <GetPropertyValue>
+                                                                                <DecisionTreeVar name="otherVarType"/>
+                                                                                <Property name="type"/>
+                                                                            </GetPropertyValue>
+                                                                            <Enum owner="typeVariable" value="output"/>
+                                                                        </Compare>
+                                                                    </Expression>
+                                                                    <Outcome value="True">
+                                                                        <BranchResultNode _id="18"
+                                                                                          _alias="Переменная &quot;{var.name}&quot; на позиции {otherVar.number} является {otherVar-&gt;position.position} операндом оператора &quot;{parentExpr-&gt;operatorType.text}&quot; и является {otherVarType.type}."
+                                                                                          _RU_explanation="Переменная &quot;{var.name}&quot; на позиции {otherVar.number} является {otherVar-&gt;position.position} операндом оператора &quot;{parentExpr-&gt;operatorType.text}&quot; и является {otherVarType.type}."
+                                                                                          _EN_explanation="The variable &quot;{var.name}&quot; at position {otherVar.number} is the {otherVar-&gt;position.position} operand of the &quot;{parentExpr-&gt;operatorType.text}&quot; operator and is the {otherVarType.type}."
+                                                                                          value="error">
+                                                                            <Expression>
+                                                                                <AssignToProperty>
+                                                                                    <Object name="currentTypeVar"/>
+                                                                                    <Property name="type"/>
+                                                                                    <Enum owner="typeVariable"
+                                                                                          value="output"/>
+                                                                                </AssignToProperty>
+                                                                            </Expression>
+                                                                        </BranchResultNode>
+                                                                    </Outcome>
+                                                                    <Outcome value="False">
+                                                                        <BranchResultNode _id="19"
+                                                                                          _alias="Переменная &quot;{var.name}&quot; на позиции {otherVar.number} является {otherVar-&gt;position.position} операндом оператора &quot;{parentExpr-&gt;operatorType.text}&quot; и является {otherVarType.type}."
+                                                                                          _RU_explanation="Переменная &quot;{var.name}&quot; на позиции {otherVar.number} является {otherVar-&gt;position.position} операндом оператора &quot;{parentExpr-&gt;operatorType.text}&quot; и является {otherVarType.type}."
+                                                                                          _EN_explanation="The variable &quot;{var.name}&quot; at position {otherVar.number} is the {otherVar-&gt;position.position} operand of the &quot;{parentExpr-&gt;operatorType.text}&quot; operator and is the {otherVarType.type}."
+                                                                                          value="error">
+                                                                            <Expression>
+                                                                                <AssignToProperty>
+                                                                                    <Object name="currentTypeVar"/>
+                                                                                    <Property name="type"/>
+                                                                                    <Enum owner="typeVariable"
+                                                                                          value="mutable"/>
+                                                                                </AssignToProperty>
+                                                                            </Expression>
+                                                                        </BranchResultNode>
+                                                                    </Outcome>
+                                                                </QuestionNode>
+                                                            </Outcome>
+                                                        </QuestionNode>
+                                                    </Outcome>
+                                                    <Outcome value="True">
+                                                        <QuestionNode _id="20" _skill="type variable in operator"
+                                                                      _alias="type currentTypeVar?" type="enum"
+                                                                      isSwitch="true">
+                                                            <Expression>
+                                                                <GetPropertyValue>
+                                                                    <Object name="currentTypeVar"/>
+                                                                    <Property name="type"/>
+                                                                </GetPropertyValue>
+                                                            </Expression>
+                                                            <Outcome value="typeVariable:none">
+                                                                <QuestionNode _id="21"
+                                                                              _skill="type variable in operator"
+                                                                              _alias="otherVar на позиции у parentExpr является входной?"
+                                                                              type="bool" isSwitch="false">
+                                                                    <Expression>
+                                                                        <CheckRelationship>
+                                                                            <Relationship name="has"/>
+                                                                            <GetByRelationship varName="">
+                                                                                <Cast>
+                                                                                    <DecisionTreeVar name="parentExpr"/>
+                                                                                    <Class name="Operator"/>
+                                                                                </Cast>
+                                                                                <Relationship name="operatorType"/>
+                                                                            </GetByRelationship>
+                                                                            <GetByRelationship varName="">
+                                                                                <DecisionTreeVar name="otherVar"/>
+                                                                                <Relationship name="position"/>
+                                                                            </GetByRelationship>
+                                                                            <Object name="inputType"/>
+                                                                        </CheckRelationship>
+                                                                    </Expression>
+                                                                    <Outcome value="False">
+                                                                        <QuestionNode _id="22"
+                                                                                      _skill="type variable in operator"
+                                                                                      _alias="otherVar на позиции у parentExpr является выходной?"
+                                                                                      type="bool" isSwitch="false">
+                                                                            <Expression>
+                                                                                <CheckRelationship>
+                                                                                    <Relationship name="has"/>
+                                                                                    <GetByRelationship varName="">
+                                                                                        <Cast>
+                                                                                            <DecisionTreeVar
+                                                                                                    name="parentExpr"/>
+                                                                                            <Class name="Operator"/>
+                                                                                        </Cast>
+                                                                                        <Relationship
+                                                                                                name="operatorType"/>
+                                                                                    </GetByRelationship>
+                                                                                    <GetByRelationship varName="">
+                                                                                        <DecisionTreeVar
+                                                                                                name="otherVar"/>
+                                                                                        <Relationship name="position"/>
+                                                                                    </GetByRelationship>
+                                                                                    <Object name="outputType"/>
+                                                                                </CheckRelationship>
+                                                                            </Expression>
+                                                                            <Outcome value="False">
+                                                                                <QuestionNode _id="23"
+                                                                                              _skill="type variable in operator"
+                                                                                              _alias="otherVar на позиции у parentExpr является изменяемой?"
+                                                                                              type="bool"
+                                                                                              isSwitch="false">
+                                                                                    <Expression>
+                                                                                        <CheckRelationship>
+                                                                                            <Relationship name="has"/>
+                                                                                            <GetByRelationship
+                                                                                                    varName="">
+                                                                                                <Cast>
+                                                                                                    <DecisionTreeVar
+                                                                                                            name="parentExpr"/>
+                                                                                                    <Class name="Operator"/>
+                                                                                                </Cast>
+                                                                                                <Relationship
+                                                                                                        name="operatorType"/>
+                                                                                            </GetByRelationship>
+                                                                                            <GetByRelationship
+                                                                                                    varName="">
+                                                                                                <DecisionTreeVar
+                                                                                                        name="otherVar"/>
+                                                                                                <Relationship
+                                                                                                        name="position"/>
+                                                                                            </GetByRelationship>
+                                                                                            <Object name="mutableType"/>
+                                                                                        </CheckRelationship>
+                                                                                    </Expression>
+                                                                                    <Outcome value="True">
+                                                                                        <BranchResultNode _id="24"
+                                                                                                          value="correct">
+                                                                                            <Expression>
+                                                                                                <AssignToProperty>
+                                                                                                    <Object name="currentTypeVar"/>
+                                                                                                    <Property
+                                                                                                            name="type"/>
+                                                                                                    <Enum owner="typeVariable"
+                                                                                                          value="mutable"/>
+                                                                                                </AssignToProperty>
+                                                                                            </Expression>
+                                                                                        </BranchResultNode>
+                                                                                    </Outcome>
+                                                                                </QuestionNode>
+                                                                            </Outcome>
+                                                                            <Outcome value="True">
+                                                                                <BranchResultNode _id="25"
+                                                                                                  value="correct">
+                                                                                    <Expression>
+                                                                                        <AssignToProperty>
+                                                                                            <Object name="currentTypeVar"/>
+                                                                                            <Property name="type"/>
+                                                                                            <Enum owner="typeVariable"
+                                                                                                  value="output"/>
+                                                                                        </AssignToProperty>
+                                                                                    </Expression>
+                                                                                </BranchResultNode>
+                                                                            </Outcome>
+                                                                        </QuestionNode>
+                                                                    </Outcome>
+                                                                    <Outcome value="True">
+                                                                        <BranchResultNode _id="26" value="correct">
+                                                                            <Expression>
+                                                                                <AssignToProperty>
+                                                                                    <Object name="currentTypeVar"/>
+                                                                                    <Property name="type"/>
+                                                                                    <Enum owner="typeVariable"
+                                                                                          value="input"/>
+                                                                                </AssignToProperty>
+                                                                            </Expression>
+                                                                        </BranchResultNode>
+                                                                    </Outcome>
+                                                                </QuestionNode>
+                                                            </Outcome>
+                                                            <Outcome value="typeVariable:mutable">
+                                                                <BranchResultNode _id="27" value="correct">
+                                                                    <Expression>
+                                                                        <AssignToProperty>
+                                                                            <Object name="currentTypeVar"/>
+                                                                            <Property name="type"/>
+                                                                            <Enum owner="typeVariable" value="mutable"/>
+                                                                        </AssignToProperty>
+                                                                    </Expression>
+                                                                </BranchResultNode>
+                                                            </Outcome>
+                                                            <Outcome value="typeVariable:input">
+                                                                <QuestionNode _id="28"
+                                                                              _skill="type variable in operator"
+                                                                              _alias="otherVar на позиции у parentExpr является входной?"
+                                                                              type="bool" isSwitch="false">
+                                                                    <Expression>
+                                                                        <CheckRelationship>
+                                                                            <Relationship name="has"/>
+                                                                            <GetByRelationship varName="">
+                                                                                <Cast>
+                                                                                    <DecisionTreeVar name="parentExpr"/>
+                                                                                    <Class name="Operator"/>
+                                                                                </Cast>
+                                                                                <Relationship name="operatorType"/>
+                                                                            </GetByRelationship>
+                                                                            <GetByRelationship varName="">
+                                                                                <DecisionTreeVar name="otherVar"/>
+                                                                                <Relationship name="position"/>
+                                                                            </GetByRelationship>
+                                                                            <Object name="inputType"/>
+                                                                        </CheckRelationship>
+                                                                    </Expression>
+                                                                    <Outcome value="True">
+                                                                        <BranchResultNode _id="29" value="correct">
+                                                                            <Expression>
+                                                                                <AssignToProperty>
+                                                                                    <Object name="currentTypeVar"/>
+                                                                                    <Property name="type"/>
+                                                                                    <Enum owner="typeVariable"
+                                                                                          value="input"/>
+                                                                                </AssignToProperty>
+                                                                            </Expression>
+                                                                        </BranchResultNode>
+                                                                    </Outcome>
+                                                                    <Outcome value="False">
+                                                                        <BranchResultNode _id="30" value="correct">
+                                                                            <Expression>
+                                                                                <AssignToProperty>
+                                                                                    <Object name="currentTypeVar"/>
+                                                                                    <Property name="type"/>
+                                                                                    <Enum owner="typeVariable"
+                                                                                          value="mutable"/>
+                                                                                </AssignToProperty>
+                                                                            </Expression>
+                                                                        </BranchResultNode>
+                                                                    </Outcome>
+                                                                </QuestionNode>
+                                                            </Outcome>
+                                                            <Outcome value="typeVariable:output">
+                                                                <QuestionNode _id="31"
+                                                                              _skill="type variable in operator"
+                                                                              _alias="otherVar на позиции у parentExpr является выходной?"
+                                                                              type="bool" isSwitch="false">
+                                                                    <Expression>
+                                                                        <CheckRelationship>
+                                                                            <Relationship name="has"/>
+                                                                            <GetByRelationship varName="">
+                                                                                <Cast>
+                                                                                    <DecisionTreeVar name="parentExpr"/>
+                                                                                    <Class name="Operator"/>
+                                                                                </Cast>
+                                                                                <Relationship name="operatorType"/>
+                                                                            </GetByRelationship>
+                                                                            <GetByRelationship varName="">
+                                                                                <DecisionTreeVar name="otherVar"/>
+                                                                                <Relationship name="position"/>
+                                                                            </GetByRelationship>
+                                                                            <Object name="outputType"/>
+                                                                        </CheckRelationship>
+                                                                    </Expression>
+                                                                    <Outcome value="True">
+                                                                        <BranchResultNode _id="32" value="correct">
+                                                                            <Expression>
+                                                                                <AssignToProperty>
+                                                                                    <Object name="currentTypeVar"/>
+                                                                                    <Property name="type"/>
+                                                                                    <Enum owner="typeVariable"
+                                                                                          value="output"/>
+                                                                                </AssignToProperty>
+                                                                            </Expression>
+                                                                        </BranchResultNode>
+                                                                    </Outcome>
+                                                                    <Outcome value="False">
+                                                                        <BranchResultNode _id="33" value="correct">
+                                                                            <Expression>
+                                                                                <AssignToProperty>
+                                                                                    <Object name="currentTypeVar"/>
+                                                                                    <Property name="type"/>
+                                                                                    <Enum owner="typeVariable"
+                                                                                          value="mutable"/>
+                                                                                </AssignToProperty>
+                                                                            </Expression>
+                                                                        </BranchResultNode>
+                                                                    </Outcome>
+                                                                </QuestionNode>
+                                                            </Outcome>
+                                                        </QuestionNode>
+                                                    </Outcome>
+                                                </QuestionNode>
+                                            </Outcome>
+                                        </FindActionNode>
+                                    </Outcome>
+                                    <Outcome value="True">
+                                        <FindActionNode _id="34"
+                                                        _alias="Найти тип otherVar на позиции у функции parentExpr&#10;typeFuncArg">
+                                            <Expression>
+                                                <GetByRelationship varName="">
+                                                    <GetByCondition type="Param" varName="paramFunc">
+                                                        <LogicalAnd>
+                                                            <Compare operator="EQUAL">
+                                                                <GetPropertyValue>
+                                                                    <Variable name="paramFunc"/>
+                                                                    <Property name="paramNumber"/>
+                                                                </GetPropertyValue>
+                                                                <GetPropertyValue>
+                                                                    <DecisionTreeVar name="otherVar"/>
+                                                                    <Property name="argNumber"/>
+                                                                </GetPropertyValue>
+                                                            </Compare>
+                                                            <CheckRelationship>
+                                                                <Relationship name="param"/>
+                                                                <GetByRelationship varName="">
+                                                                    <GetByRelationship varName="">
+                                                                        <Cast>
+                                                                            <DecisionTreeVar name="parentExpr"/>
+                                                                            <Class name="FunctionCall"/>
+                                                                        </Cast>
+                                                                        <Relationship name="definition"/>
+                                                                    </GetByRelationship>
+                                                                    <Relationship name="params"/>
+                                                                </GetByRelationship>
+                                                                <Variable name="paramFunc"/>
+                                                            </CheckRelationship>
+                                                        </LogicalAnd>
+                                                    </GetByCondition>
+                                                    <Relationship name="paramType"/>
+                                                </GetByRelationship>
+                                            </Expression>
+                                            <DecisionTreeVarDecl name="typeFuncArg" type="Type"/>
+                                            <Outcome value="Found">
+                                                <QuestionNode _id="35" _alias="typeFuncArg равен answer?" type="bool"
+                                                              isSwitch="false">
+                                                    <Expression>
+                                                        <Compare operator="EQUAL">
+                                                            <GetPropertyValue>
+                                                                <DecisionTreeVar name="typeFuncArg"/>
+                                                                <Property name="type"/>
+                                                            </GetPropertyValue>
+                                                            <GetPropertyValue>
+                                                                <DecisionTreeVar name="answer"/>
+                                                                <Property name="type"/>
+                                                            </GetPropertyValue>
+                                                        </Compare>
+                                                    </Expression>
+                                                    <Outcome value="False">
+                                                        <QuestionNode _id="36" _skill="type variable in function"
+                                                                      _alias="type currentTypeVar?" type="enum"
+                                                                      isSwitch="true">
+                                                            <Expression>
+                                                                <GetPropertyValue>
+                                                                    <Object name="currentTypeVar"/>
+                                                                    <Property name="type"/>
+                                                                </GetPropertyValue>
+                                                            </Expression>
+                                                            <Outcome value="typeVariable:none">
+                                                                <QuestionNode _id="37"
+                                                                              _skill="type variable in function"
+                                                                              _alias="otherVar на позиции у функции parentExpr является входной?"
+                                                                              type="bool" isSwitch="false">
+                                                                    <Expression>
+                                                                        <Compare operator="EQUAL">
+                                                                            <GetPropertyValue>
+                                                                                <DecisionTreeVar name="typeFuncArg"/>
+                                                                                <Property name="type"/>
+                                                                            </GetPropertyValue>
+                                                                            <Enum owner="typeVariable" value="input"/>
+                                                                        </Compare>
+                                                                    </Expression>
+                                                                    <Outcome value="False">
+                                                                        <QuestionNode _id="38"
+                                                                                      _skill="type variable in function"
+                                                                                      _alias="otherVar на позиции у функции parentExpr является выходной?"
+                                                                                      type="bool" isSwitch="false">
+                                                                            <Expression>
+                                                                                <Compare operator="EQUAL">
+                                                                                    <GetPropertyValue>
+                                                                                        <DecisionTreeVar
+                                                                                                name="typeFuncArg"/>
+                                                                                        <Property name="type"/>
+                                                                                    </GetPropertyValue>
+                                                                                    <Enum owner="typeVariable"
+                                                                                          value="output"/>
+                                                                                </Compare>
+                                                                            </Expression>
+                                                                            <Outcome value="False">
+                                                                                <QuestionNode _id="39"
+                                                                                              _skill="type variable in function"
+                                                                                              _alias="otherVar на позиции у функции parentExpr является изменяемой?"
+                                                                                              type="bool"
+                                                                                              isSwitch="false">
+                                                                                    <Expression>
+                                                                                        <Compare operator="EQUAL">
+                                                                                            <GetPropertyValue>
+                                                                                                <DecisionTreeVar
+                                                                                                        name="typeFuncArg"/>
+                                                                                                <Property name="type"/>
+                                                                                            </GetPropertyValue>
+                                                                                            <Enum owner="typeVariable"
+                                                                                                  value="mutable"/>
+                                                                                        </Compare>
+                                                                                    </Expression>
+                                                                                    <Outcome value="True">
+                                                                                        <BranchResultNode _id="40"
+                                                                                                          _alias="Переменная &quot;{var.name}&quot; на позиции {otherVar.number} является {otherVar.argNumber} аргументом функции &quot;{parentExpr-&gt;definition.name}&quot; и является {typeFuncArg.type}."
+                                                                                                          _RU_explanation="Переменная &quot;{var.name}&quot; на позиции {otherVar.number} является {otherVar.argNumber} аргументом функции &quot;{parentExpr-&gt;definition.name}&quot; и является {typeFuncArg.type}."
+                                                                                                          _EN_explanation="The variable &quot;{var.name}&quot; at position {otherVar.number} is the {otherVar.argNumber} argument of the function &quot;{parentExpr-&gt;definition.name}&quot; and is the {typeFuncArg.type}."
+                                                                                                          value="error">
+                                                                                            <Expression>
+                                                                                                <AssignToProperty>
+                                                                                                    <Object name="currentTypeVar"/>
+                                                                                                    <Property
+                                                                                                            name="type"/>
+                                                                                                    <Enum owner="typeVariable"
+                                                                                                          value="mutable"/>
+                                                                                                </AssignToProperty>
+                                                                                            </Expression>
+                                                                                        </BranchResultNode>
+                                                                                    </Outcome>
+                                                                                </QuestionNode>
+                                                                            </Outcome>
+                                                                            <Outcome value="True">
+                                                                                <BranchResultNode _id="41"
+                                                                                                  _alias="Переменная &quot;{var.name}&quot; на позиции {otherVar.number} является {otherVar.argNumber} аргументом функции &quot;{parentExpr-&gt;definition.name}&quot; и является {typeFuncArg.type}."
+                                                                                                  _RU_explanation="Переменная &quot;{var.name}&quot; на позиции {otherVar.number} является {otherVar.argNumber} аргументом функции &quot;{parentExpr-&gt;definition.name}&quot; и является {typeFuncArg.type}."
+                                                                                                  _EN_explanation="The variable &quot;{var.name}&quot; at position {otherVar.number} is the {otherVar.argNumber} argument of the function &quot;{parentExpr-&gt;definition.name}&quot; and is the {typeFuncArg.type}."
+                                                                                                  value="error">
+                                                                                    <Expression>
+                                                                                        <AssignToProperty>
+                                                                                            <Object name="currentTypeVar"/>
+                                                                                            <Property name="type"/>
+                                                                                            <Enum owner="typeVariable"
+                                                                                                  value="output"/>
+                                                                                        </AssignToProperty>
+                                                                                    </Expression>
+                                                                                </BranchResultNode>
+                                                                            </Outcome>
+                                                                        </QuestionNode>
+                                                                    </Outcome>
+                                                                    <Outcome value="True">
+                                                                        <BranchResultNode _id="42"
+                                                                                          _alias="Переменная &quot;{var.name}&quot; на позиции {otherVar.number} является {otherVar.argNumber} аргументом функции &quot;{parentExpr-&gt;definition.name}&quot; и является {typeFuncArg.type}."
+                                                                                          _RU_explanation="Переменная &quot;{var.name}&quot; на позиции {otherVar.number} является {otherVar.argNumber} аргументом функции &quot;{parentExpr-&gt;definition.name}&quot; и является {typeFuncArg.type}."
+                                                                                          _EN_explanation="The variable &quot;{var.name}&quot; at position {otherVar.number} is the {otherVar.argNumber} argument of the function &quot;{parentExpr-&gt;definition.name}&quot; and is the {typeFuncArg.type}."
+                                                                                          value="error">
+                                                                            <Expression>
+                                                                                <AssignToProperty>
+                                                                                    <Object name="currentTypeVar"/>
+                                                                                    <Property name="type"/>
+                                                                                    <Enum owner="typeVariable"
+                                                                                          value="input"/>
+                                                                                </AssignToProperty>
+                                                                            </Expression>
+                                                                        </BranchResultNode>
+                                                                    </Outcome>
+                                                                </QuestionNode>
+                                                            </Outcome>
+                                                            <Outcome value="typeVariable:mutable">
+                                                                <BranchResultNode _id="43"
+                                                                                  _alias="Переменная &quot;{var.name}&quot; на позиции {otherVar.number} является {otherVar.argNumber} аргументом функции &quot;{parentExpr-&gt;definition.name}&quot; и является {typeFuncArg.type}."
+                                                                                  _RU_explanation="Переменная &quot;{var.name}&quot; на позиции {otherVar.number} является {otherVar.argNumber} аргументом функции &quot;{parentExpr-&gt;definition.name}&quot; и является {typeFuncArg.type}."
+                                                                                  _EN_explanation="The variable &quot;{var.name}&quot; at position {otherVar.number} is the {otherVar.argNumber} argument of the function &quot;{parentExpr-&gt;definition.name}&quot; and is the {typeFuncArg.type}."
+                                                                                  value="error">
+                                                                    <Expression>
+                                                                        <AssignToProperty>
+                                                                            <Object name="currentTypeVar"/>
+                                                                            <Property name="type"/>
+                                                                            <Enum owner="typeVariable" value="mutable"/>
+                                                                        </AssignToProperty>
+                                                                    </Expression>
+                                                                </BranchResultNode>
+                                                            </Outcome>
+                                                            <Outcome value="typeVariable:input">
+                                                                <QuestionNode _id="44"
+                                                                              _skill="type variable in function"
+                                                                              _alias="otherVar на позиции у функции parentExpr является входной?"
+                                                                              type="bool" isSwitch="false">
+                                                                    <Expression>
+                                                                        <Compare operator="EQUAL">
+                                                                            <GetPropertyValue>
+                                                                                <DecisionTreeVar name="typeFuncArg"/>
+                                                                                <Property name="type"/>
+                                                                            </GetPropertyValue>
+                                                                            <Enum owner="typeVariable" value="input"/>
+                                                                        </Compare>
+                                                                    </Expression>
+                                                                    <Outcome value="True">
+                                                                        <BranchResultNode _id="45"
+                                                                                          _alias="Переменная &quot;{var.name}&quot; на позиции {otherVar.number} является {otherVar.argNumber} аргументом функции &quot;{parentExpr-&gt;definition.name}&quot; и является {typeFuncArg.type}."
+                                                                                          _RU_explanation="Переменная &quot;{var.name}&quot; на позиции {otherVar.number} является {otherVar.argNumber} аргументом функции &quot;{parentExpr-&gt;definition.name}&quot; и является {typeFuncArg.type}."
+                                                                                          _EN_explanation="The variable &quot;{var.name}&quot; at position {otherVar.number} is the {otherVar.argNumber} argument of the function &quot;{parentExpr-&gt;definition.name}&quot; and is the {typeFuncArg.type}."
+                                                                                          value="error">
+                                                                            <Expression>
+                                                                                <AssignToProperty>
+                                                                                    <Object name="currentTypeVar"/>
+                                                                                    <Property name="type"/>
+                                                                                    <Enum owner="typeVariable"
+                                                                                          value="input"/>
+                                                                                </AssignToProperty>
+                                                                            </Expression>
+                                                                        </BranchResultNode>
+                                                                    </Outcome>
+                                                                    <Outcome value="False">
+                                                                        <BranchResultNode _id="46"
+                                                                                          _alias="Переменная &quot;{var.name}&quot; на позиции {otherVar.number} является {otherVar.argNumber} аргументом функции &quot;{parentExpr-&gt;definition.name}&quot; и является {typeFuncArg.type}."
+                                                                                          _RU_explanation="Переменная &quot;{var.name}&quot; на позиции {otherVar.number} является {otherVar.argNumber} аргументом функции &quot;{parentExpr-&gt;definition.name}&quot; и является {typeFuncArg.type}."
+                                                                                          _EN_explanation="The variable &quot;{var.name}&quot; at position {otherVar.number} is the {otherVar.argNumber} argument of the function &quot;{parentExpr-&gt;definition.name}&quot; and is the {typeFuncArg.type}."
+                                                                                          value="error">
+                                                                            <Expression>
+                                                                                <AssignToProperty>
+                                                                                    <Object name="currentTypeVar"/>
+                                                                                    <Property name="type"/>
+                                                                                    <Enum owner="typeVariable"
+                                                                                          value="mutable"/>
+                                                                                </AssignToProperty>
+                                                                            </Expression>
+                                                                        </BranchResultNode>
+                                                                    </Outcome>
+                                                                </QuestionNode>
+                                                            </Outcome>
+                                                            <Outcome value="typeVariable:output">
+                                                                <QuestionNode _id="47"
+                                                                              _skill="type variable in function"
+                                                                              _alias="otherVar на позиции у функции parentExpr является выходной?"
+                                                                              type="bool" isSwitch="false">
+                                                                    <Expression>
+                                                                        <Compare operator="EQUAL">
+                                                                            <GetPropertyValue>
+                                                                                <DecisionTreeVar name="typeFuncArg"/>
+                                                                                <Property name="type"/>
+                                                                            </GetPropertyValue>
+                                                                            <Enum owner="typeVariable" value="output"/>
+                                                                        </Compare>
+                                                                    </Expression>
+                                                                    <Outcome value="True">
+                                                                        <BranchResultNode _id="48"
+                                                                                          _alias="Переменная &quot;{var.name}&quot; на позиции {otherVar.number} является {otherVar.argNumber} аргументом функции &quot;{parentExpr-&gt;definition.name}&quot; и является {typeFuncArg.type}."
+                                                                                          _RU_explanation="Переменная &quot;{var.name}&quot; на позиции {otherVar.number} является {otherVar.argNumber} аргументом функции &quot;{parentExpr-&gt;definition.name}&quot; и является {typeFuncArg.type}."
+                                                                                          _EN_explanation="The variable &quot;{var.name}&quot; at position {otherVar.number} is the {otherVar.argNumber} argument of the function &quot;{parentExpr-&gt;definition.name}&quot; and is the {typeFuncArg.type}."
+                                                                                          value="error">
+                                                                            <Expression>
+                                                                                <AssignToProperty>
+                                                                                    <Object name="currentTypeVar"/>
+                                                                                    <Property name="type"/>
+                                                                                    <Enum owner="typeVariable"
+                                                                                          value="output"/>
+                                                                                </AssignToProperty>
+                                                                            </Expression>
+                                                                        </BranchResultNode>
+                                                                    </Outcome>
+                                                                    <Outcome value="False">
+                                                                        <BranchResultNode _id="49"
+                                                                                          _alias="Переменная &quot;{var.name}&quot; на позиции {otherVar.number} является {otherVar.argNumber} аргументом функции &quot;{parentExpr-&gt;definition.name}&quot; и является {typeFuncArg.type}."
+                                                                                          _RU_explanation="Переменная &quot;{var.name}&quot; на позиции {otherVar.number} является {otherVar.argNumber} аргументом функции &quot;{parentExpr-&gt;definition.name}&quot; и является {typeFuncArg.type}."
+                                                                                          _EN_explanation="The variable &quot;{var.name}&quot; at position {otherVar.number} is the {otherVar.argNumber} argument of the function &quot;{parentExpr-&gt;definition.name}&quot; and is the {typeFuncArg.type}."
+                                                                                          value="error">
+                                                                            <Expression>
+                                                                                <AssignToProperty>
+                                                                                    <Object name="currentTypeVar"/>
+                                                                                    <Property name="type"/>
+                                                                                    <Enum owner="typeVariable"
+                                                                                          value="mutable"/>
+                                                                                </AssignToProperty>
+                                                                            </Expression>
+                                                                        </BranchResultNode>
+                                                                    </Outcome>
+                                                                </QuestionNode>
+                                                            </Outcome>
+                                                        </QuestionNode>
+                                                    </Outcome>
+                                                    <Outcome value="True">
+                                                        <QuestionNode _id="50" _skill="type variable in function"
+                                                                      _alias="type currentTypeVar?" type="enum"
+                                                                      isSwitch="true">
+                                                            <Expression>
+                                                                <GetPropertyValue>
+                                                                    <Object name="currentTypeVar"/>
+                                                                    <Property name="type"/>
+                                                                </GetPropertyValue>
+                                                            </Expression>
+                                                            <Outcome value="typeVariable:none">
+                                                                <QuestionNode _id="51"
+                                                                              _skill="type variable in function"
+                                                                              _alias="otherVar на позиции у функции parentExpr является входной?"
+                                                                              type="bool" isSwitch="false">
+                                                                    <Expression>
+                                                                        <Compare operator="EQUAL">
+                                                                            <GetPropertyValue>
+                                                                                <DecisionTreeVar name="typeFuncArg"/>
+                                                                                <Property name="type"/>
+                                                                            </GetPropertyValue>
+                                                                            <Enum owner="typeVariable" value="input"/>
+                                                                        </Compare>
+                                                                    </Expression>
+                                                                    <Outcome value="False">
+                                                                        <QuestionNode _id="52"
+                                                                                      _skill="type variable in function"
+                                                                                      _alias="otherVar на позиции у функции parentExpr является выходной?"
+                                                                                      type="bool" isSwitch="false">
+                                                                            <Expression>
+                                                                                <Compare operator="EQUAL">
+                                                                                    <GetPropertyValue>
+                                                                                        <DecisionTreeVar
+                                                                                                name="typeFuncArg"/>
+                                                                                        <Property name="type"/>
+                                                                                    </GetPropertyValue>
+                                                                                    <Enum owner="typeVariable"
+                                                                                          value="output"/>
+                                                                                </Compare>
+                                                                            </Expression>
+                                                                            <Outcome value="False">
+                                                                                <QuestionNode _id="53"
+                                                                                              _skill="type variable in function"
+                                                                                              _alias="otherVar на позиции у функции parentExpr является изменяемой?"
+                                                                                              type="bool"
+                                                                                              isSwitch="false">
+                                                                                    <Expression>
+                                                                                        <Compare operator="EQUAL">
+                                                                                            <GetPropertyValue>
+                                                                                                <DecisionTreeVar
+                                                                                                        name="typeFuncArg"/>
+                                                                                                <Property name="type"/>
+                                                                                            </GetPropertyValue>
+                                                                                            <Enum owner="typeVariable"
+                                                                                                  value="mutable"/>
+                                                                                        </Compare>
+                                                                                    </Expression>
+                                                                                    <Outcome value="True">
+                                                                                        <BranchResultNode _id="54"
+                                                                                                          value="correct">
+                                                                                            <Expression>
+                                                                                                <AssignToProperty>
+                                                                                                    <Object name="currentTypeVar"/>
+                                                                                                    <Property
+                                                                                                            name="type"/>
+                                                                                                    <Enum owner="typeVariable"
+                                                                                                          value="mutable"/>
+                                                                                                </AssignToProperty>
+                                                                                            </Expression>
+                                                                                        </BranchResultNode>
+                                                                                    </Outcome>
+                                                                                </QuestionNode>
+                                                                            </Outcome>
+                                                                            <Outcome value="True">
+                                                                                <BranchResultNode _id="55"
+                                                                                                  value="correct">
+                                                                                    <Expression>
+                                                                                        <AssignToProperty>
+                                                                                            <Object name="currentTypeVar"/>
+                                                                                            <Property name="type"/>
+                                                                                            <Enum owner="typeVariable"
+                                                                                                  value="output"/>
+                                                                                        </AssignToProperty>
+                                                                                    </Expression>
+                                                                                </BranchResultNode>
+                                                                            </Outcome>
+                                                                        </QuestionNode>
+                                                                    </Outcome>
+                                                                    <Outcome value="True">
+                                                                        <BranchResultNode _id="56" value="correct">
+                                                                            <Expression>
+                                                                                <AssignToProperty>
+                                                                                    <Object name="currentTypeVar"/>
+                                                                                    <Property name="type"/>
+                                                                                    <Enum owner="typeVariable"
+                                                                                          value="input"/>
+                                                                                </AssignToProperty>
+                                                                            </Expression>
+                                                                        </BranchResultNode>
+                                                                    </Outcome>
+                                                                </QuestionNode>
+                                                            </Outcome>
+                                                            <Outcome value="typeVariable:mutable">
+                                                                <BranchResultNode _id="57" value="correct">
+                                                                    <Expression>
+                                                                        <AssignToProperty>
+                                                                            <Object name="currentTypeVar"/>
+                                                                            <Property name="type"/>
+                                                                            <Enum owner="typeVariable" value="mutable"/>
+                                                                        </AssignToProperty>
+                                                                    </Expression>
+                                                                </BranchResultNode>
+                                                            </Outcome>
+                                                            <Outcome value="typeVariable:input">
+                                                                <QuestionNode _id="58"
+                                                                              _skill="type variable in function"
+                                                                              _alias="otherVar на позиции у функции parentExpr является входной?"
+                                                                              type="bool" isSwitch="false">
+                                                                    <Expression>
+                                                                        <Compare operator="EQUAL">
+                                                                            <GetPropertyValue>
+                                                                                <DecisionTreeVar name="typeFuncArg"/>
+                                                                                <Property name="type"/>
+                                                                            </GetPropertyValue>
+                                                                            <Enum owner="typeVariable" value="input"/>
+                                                                        </Compare>
+                                                                    </Expression>
+                                                                    <Outcome value="True">
+                                                                        <BranchResultNode _id="59" value="correct">
+                                                                            <Expression>
+                                                                                <AssignToProperty>
+                                                                                    <Object name="currentTypeVar"/>
+                                                                                    <Property name="type"/>
+                                                                                    <Enum owner="typeVariable"
+                                                                                          value="input"/>
+                                                                                </AssignToProperty>
+                                                                            </Expression>
+                                                                        </BranchResultNode>
+                                                                    </Outcome>
+                                                                    <Outcome value="False">
+                                                                        <BranchResultNode _id="60" value="correct">
+                                                                            <Expression>
+                                                                                <AssignToProperty>
+                                                                                    <Object name="currentTypeVar"/>
+                                                                                    <Property name="type"/>
+                                                                                    <Enum owner="typeVariable"
+                                                                                          value="mutable"/>
+                                                                                </AssignToProperty>
+                                                                            </Expression>
+                                                                        </BranchResultNode>
+                                                                    </Outcome>
+                                                                </QuestionNode>
+                                                            </Outcome>
+                                                            <Outcome value="typeVariable:output">
+                                                                <QuestionNode _id="61"
+                                                                              _skill="type variable in function"
+                                                                              _alias="otherVar на позиции у функции parentExpr является выходной?"
+                                                                              type="bool" isSwitch="false">
+                                                                    <Expression>
+                                                                        <Compare operator="EQUAL">
+                                                                            <GetPropertyValue>
+                                                                                <DecisionTreeVar name="typeFuncArg"/>
+                                                                                <Property name="type"/>
+                                                                            </GetPropertyValue>
+                                                                            <Enum owner="typeVariable" value="output"/>
+                                                                        </Compare>
+                                                                    </Expression>
+                                                                    <Outcome value="True">
+                                                                        <BranchResultNode _id="62" value="correct">
+                                                                            <Expression>
+                                                                                <AssignToProperty>
+                                                                                    <Object name="currentTypeVar"/>
+                                                                                    <Property name="type"/>
+                                                                                    <Enum owner="typeVariable"
+                                                                                          value="output"/>
+                                                                                </AssignToProperty>
+                                                                            </Expression>
+                                                                        </BranchResultNode>
+                                                                    </Outcome>
+                                                                    <Outcome value="False">
+                                                                        <BranchResultNode _id="63" value="correct">
+                                                                            <Expression>
+                                                                                <AssignToProperty>
+                                                                                    <Object name="currentTypeVar"/>
+                                                                                    <Property name="type"/>
+                                                                                    <Enum owner="typeVariable"
+                                                                                          value="mutable"/>
+                                                                                </AssignToProperty>
+                                                                            </Expression>
+                                                                        </BranchResultNode>
+                                                                    </Outcome>
+                                                                </QuestionNode>
+                                                            </Outcome>
+                                                        </QuestionNode>
+                                                    </Outcome>
+                                                </QuestionNode>
+                                            </Outcome>
+                                        </FindActionNode>
+                                    </Outcome>
+                                </QuestionNode>
+                            </Outcome>
+                        </FindActionNode>
+                    </ThoughtBranch>
+                    <Outcome value="Correct">
+                        <BranchResultNode _id="64"
+                                          _alias="Переменная &quot;{var.name}&quot; является {answer.type}, так как во всех местах её использования она используется только как {answer.type(I)}."
+                                          _RU_explanation="Переменная &quot;{var.name}&quot; является {answer.type}, так как во всех местах её использования она используется только как {answer.type(I)}."
+                                          _EN_explanation="The variable &quot;{var.name}&quot; is the {answer.type}, as it is only used as {answer.type} in all places where it is used."
+                                          value="correct"/>
+                    </Outcome>
+                    <Outcome value="Error">
+                        <BranchResultNode _id="65"
+                                          _alias="Переменная &quot;{var.name}&quot; не является {answer.type}, так как:"
+                                          _RU_explanation="Переменная &quot;{var.name}&quot; не является {answer.type}, так как:"
+                                          _EN_explanation="The variable &quot;{var.name}&quot; is not the {answer.type} variable because:"
+                                          value="error"/>
+                    </Outcome>
+                </CycleAggregationNode>
+            </Outcome>
+            <Outcome value="True">
+                <CycleAggregationNode _id="66"
+                                      _alias="Для всех переменных, которые имеют имя var.name&lt;div&gt;otherVar&lt;/div&gt;"
+                                      operator="AND">
+                    <SelectorExpression>
+                        <Compare operator="EQUAL">
+                            <GetPropertyValue>
+                                <Variable name="otherVar"/>
+                                <Property name="name"/>
+                            </GetPropertyValue>
+                            <GetPropertyValue>
+                                <DecisionTreeVar name="var"/>
+                                <Property name="name"/>
+                            </GetPropertyValue>
+                        </Compare>
+                    </SelectorExpression>
+                    <DecisionTreeVarDecl name="otherVar" type="Variable"/>
+                    <ThoughtBranch _alias="Тело" type="bool" paramName="otherVar">
+                        <FindActionNode _id="67" _alias="Найти родительское выражение otherVar&#10;parentExpr">
+                            <Expression>
+                                <GetByRelationship varName="">
+                                    <DecisionTreeVar name="otherVar"/>
+                                    <Relationship name="parent"/>
+                                </GetByRelationship>
+                            </Expression>
+                            <DecisionTreeVarDecl name="parentExpr" type="Expression"/>
+                            <Outcome value="Found">
+                                <QuestionNode _id="68" _skill="parent expression is function?"
+                                              _alias="parentExpr is FunctionCall" type="bool" isSwitch="false">
+                                    <Expression>
+                                        <CheckClass>
+                                            <DecisionTreeVar name="parentExpr"/>
+                                            <Class name="FunctionCall"/>
+                                        </CheckClass>
+                                    </Expression>
+                                    <Outcome value="True">
+                                        <FindActionNode _id="69"
+                                                        _alias="Найти тип otherVar на позиции у функции parentExpr&#10;typeFuncArg">
+                                            <Expression>
+                                                <GetByRelationship varName="">
+                                                    <GetByCondition type="Param" varName="paramFunc">
+                                                        <LogicalAnd>
+                                                            <Compare operator="EQUAL">
+                                                                <GetPropertyValue>
+                                                                    <Variable name="paramFunc"/>
+                                                                    <Property name="paramNumber"/>
+                                                                </GetPropertyValue>
+                                                                <GetPropertyValue>
+                                                                    <DecisionTreeVar name="otherVar"/>
+                                                                    <Property name="argNumber"/>
+                                                                </GetPropertyValue>
+                                                            </Compare>
+                                                            <CheckRelationship>
+                                                                <Relationship name="param"/>
+                                                                <GetByRelationship varName="">
+                                                                    <GetByRelationship varName="">
+                                                                        <Cast>
+                                                                            <DecisionTreeVar name="parentExpr"/>
+                                                                            <Class name="FunctionCall"/>
+                                                                        </Cast>
+                                                                        <Relationship name="definition"/>
+                                                                    </GetByRelationship>
+                                                                    <Relationship name="params"/>
+                                                                </GetByRelationship>
+                                                                <Variable name="paramFunc"/>
+                                                            </CheckRelationship>
+                                                        </LogicalAnd>
+                                                    </GetByCondition>
+                                                    <Relationship name="paramType"/>
+                                                </GetByRelationship>
+                                            </Expression>
+                                            <DecisionTreeVarDecl name="typeFuncArg" type="Type"/>
+                                            <Outcome value="Found">
+                                                <QuestionNode _id="70" _skill="type variable in function"
+                                                              _alias="type currentTypeVar?" type="enum" isSwitch="true">
+                                                    <Expression>
+                                                        <GetPropertyValue>
+                                                            <Object name="currentTypeVar"/>
+                                                            <Property name="type"/>
+                                                        </GetPropertyValue>
+                                                    </Expression>
+                                                    <Outcome value="typeVariable:none">
+                                                        <QuestionNode _id="71" _skill="type variable in function"
+                                                                      _alias="otherVar на позиции у функции parentExpr является входной?"
+                                                                      type="bool" isSwitch="false">
+                                                            <Expression>
+                                                                <Compare operator="EQUAL">
+                                                                    <GetPropertyValue>
+                                                                        <DecisionTreeVar name="typeFuncArg"/>
+                                                                        <Property name="type"/>
+                                                                    </GetPropertyValue>
+                                                                    <Enum owner="typeVariable" value="input"/>
+                                                                </Compare>
+                                                            </Expression>
+                                                            <Outcome value="False">
+                                                                <QuestionNode _id="72"
+                                                                              _skill="type variable in function"
+                                                                              _alias="otherVar на позиции у функции parentExpr является выходной?"
+                                                                              type="bool" isSwitch="false">
+                                                                    <Expression>
+                                                                        <Compare operator="EQUAL">
+                                                                            <GetPropertyValue>
+                                                                                <DecisionTreeVar name="typeFuncArg"/>
+                                                                                <Property name="type"/>
+                                                                            </GetPropertyValue>
+                                                                            <Enum owner="typeVariable" value="output"/>
+                                                                        </Compare>
+                                                                    </Expression>
+                                                                    <Outcome value="False">
+                                                                        <QuestionNode _id="73"
+                                                                                      _skill="type variable in function"
+                                                                                      _alias="otherVar на позиции у функции parentExpr является изменяемой?"
+                                                                                      type="bool" isSwitch="false">
+                                                                            <Expression>
+                                                                                <Compare operator="EQUAL">
+                                                                                    <GetPropertyValue>
+                                                                                        <DecisionTreeVar
+                                                                                                name="typeFuncArg"/>
+                                                                                        <Property name="type"/>
+                                                                                    </GetPropertyValue>
+                                                                                    <Enum owner="typeVariable"
+                                                                                          value="mutable"/>
+                                                                                </Compare>
+                                                                            </Expression>
+                                                                            <Outcome value="True">
+                                                                                <BranchResultNode _id="74"
+                                                                                                  _alias="Переменная &quot;{var.name}&quot; на позиции {otherVar.number} является {otherVar.argNumber} аргументом функции &quot;{parentExpr-&gt;definition.name}&quot; и является {typeFuncArg.type}."
+                                                                                                  _RU_explanation="Переменная &quot;{var.name}&quot; на позиции {otherVar.number} является {otherVar.argNumber} аргументом функции &quot;{parentExpr-&gt;definition.name}&quot; и является {typeFuncArg.type}."
+                                                                                                  _EN_explanation="The variable &quot;{var.name}&quot; at position {otherVar.number} is the {otherVar.argNumber} argument of the function &quot;{parentExpr-&gt;definition.name}&quot; and is the {typeFuncArg.type}."
+                                                                                                  value="correct">
+                                                                                    <Expression>
+                                                                                        <AssignToProperty>
+                                                                                            <Object name="currentTypeVar"/>
+                                                                                            <Property name="type"/>
+                                                                                            <Enum owner="typeVariable"
+                                                                                                  value="mutable"/>
+                                                                                        </AssignToProperty>
+                                                                                    </Expression>
+                                                                                </BranchResultNode>
+                                                                            </Outcome>
+                                                                        </QuestionNode>
+                                                                    </Outcome>
+                                                                    <Outcome value="True">
+                                                                        <BranchResultNode _id="75"
+                                                                                          _alias="Переменная &quot;{var.name}&quot; на позиции {otherVar.number} является {otherVar.argNumber} аргументом функции &quot;{parentExpr-&gt;definition.name}&quot; и является {typeFuncArg.type}."
+                                                                                          _RU_explanation="Переменная &quot;{var.name}&quot; на позиции {otherVar.number} является {otherVar.argNumber} аргументом функции &quot;{parentExpr-&gt;definition.name}&quot; и является {typeFuncArg.type}."
+                                                                                          _EN_explanation="The variable &quot;{var.name}&quot; at position {otherVar.number} is the {otherVar.argNumber} argument of the function &quot;{parentExpr-&gt;definition.name}&quot; and is the {typeFuncArg.type}."
+                                                                                          value="correct">
+                                                                            <Expression>
+                                                                                <AssignToProperty>
+                                                                                    <Object name="currentTypeVar"/>
+                                                                                    <Property name="type"/>
+                                                                                    <Enum owner="typeVariable"
+                                                                                          value="output"/>
+                                                                                </AssignToProperty>
+                                                                            </Expression>
+                                                                        </BranchResultNode>
+                                                                    </Outcome>
+                                                                </QuestionNode>
+                                                            </Outcome>
+                                                            <Outcome value="True">
+                                                                <BranchResultNode _id="76"
+                                                                                  _alias="Переменная &quot;{var.name}&quot; на позиции {otherVar.number} является {otherVar.argNumber} аргументом функции &quot;{parentExpr-&gt;definition.name}&quot; и является {typeFuncArg.type}."
+                                                                                  _RU_explanation="Переменная &quot;{var.name}&quot; на позиции {otherVar.number} является {otherVar.argNumber} аргументом функции &quot;{parentExpr-&gt;definition.name}&quot; и является {typeFuncArg.type}."
+                                                                                  _EN_explanation="The variable &quot;{var.name}&quot; at position {otherVar.number} is the {otherVar.argNumber} argument of the function &quot;{parentExpr-&gt;definition.name}&quot; and is the {typeFuncArg.type}."
+                                                                                  value="correct">
+                                                                    <Expression>
+                                                                        <AssignToProperty>
+                                                                            <Object name="currentTypeVar"/>
+                                                                            <Property name="type"/>
+                                                                            <Enum owner="typeVariable" value="input"/>
+                                                                        </AssignToProperty>
+                                                                    </Expression>
+                                                                </BranchResultNode>
+                                                            </Outcome>
+                                                        </QuestionNode>
+                                                    </Outcome>
+                                                    <Outcome value="typeVariable:mutable">
+                                                        <BranchResultNode _id="77"
+                                                                          _alias="Переменная &quot;{var.name}&quot; на позиции {otherVar.number} является {otherVar.argNumber} аргументом функции &quot;{parentExpr-&gt;definition.name}&quot; и является {typeFuncArg.type}."
+                                                                          _RU_explanation="Переменная &quot;{var.name}&quot; на позиции {otherVar.number} является {otherVar.argNumber} аргументом функции &quot;{parentExpr-&gt;definition.name}&quot; и является {typeFuncArg.type}."
+                                                                          _EN_explanation="The variable &quot;{var.name}&quot; at position {otherVar.number} is the {otherVar.argNumber} argument of the function &quot;{parentExpr-&gt;definition.name}&quot; and is the {typeFuncArg.type}."
+                                                                          value="correct">
+                                                            <Expression>
+                                                                <AssignToProperty>
+                                                                    <Object name="currentTypeVar"/>
+                                                                    <Property name="type"/>
+                                                                    <Enum owner="typeVariable" value="mutable"/>
+                                                                </AssignToProperty>
+                                                            </Expression>
+                                                        </BranchResultNode>
+                                                    </Outcome>
+                                                    <Outcome value="typeVariable:input">
+                                                        <QuestionNode _id="78" _skill="type variable in function"
+                                                                      _alias="otherVar на позиции у функции parentExpr является входной?"
+                                                                      type="bool" isSwitch="false">
+                                                            <Expression>
+                                                                <Compare operator="EQUAL">
+                                                                    <GetPropertyValue>
+                                                                        <DecisionTreeVar name="typeFuncArg"/>
+                                                                        <Property name="type"/>
+                                                                    </GetPropertyValue>
+                                                                    <Enum owner="typeVariable" value="input"/>
+                                                                </Compare>
+                                                            </Expression>
+                                                            <Outcome value="True">
+                                                                <BranchResultNode _id="79"
+                                                                                  _alias="Переменная &quot;{var.name}&quot; на позиции {otherVar.number} является {otherVar.argNumber} аргументом функции &quot;{parentExpr-&gt;definition.name}&quot; и является {typeFuncArg.type}."
+                                                                                  _RU_explanation="Переменная &quot;{var.name}&quot; на позиции {otherVar.number} является {otherVar.argNumber} аргументом функции &quot;{parentExpr-&gt;definition.name}&quot; и является {typeFuncArg.type}."
+                                                                                  _EN_explanation="The variable &quot;{var.name}&quot; at position {otherVar.number} is the {otherVar.argNumber} argument of the function &quot;{parentExpr-&gt;definition.name}&quot; and is the {typeFuncArg.type}."
+                                                                                  value="correct">
+                                                                    <Expression>
+                                                                        <AssignToProperty>
+                                                                            <Object name="currentTypeVar"/>
+                                                                            <Property name="type"/>
+                                                                            <Enum owner="typeVariable" value="input"/>
+                                                                        </AssignToProperty>
+                                                                    </Expression>
+                                                                </BranchResultNode>
+                                                            </Outcome>
+                                                            <Outcome value="False">
+                                                                <BranchResultNode _id="80"
+                                                                                  _alias="Переменная &quot;{var.name}&quot; на позиции {otherVar.number} является {otherVar.argNumber} аргументом функции &quot;{parentExpr-&gt;definition.name}&quot; и является {typeFuncArg.type}."
+                                                                                  _RU_explanation="Переменная &quot;{var.name}&quot; на позиции {otherVar.number} является {otherVar.argNumber} аргументом функции &quot;{parentExpr-&gt;definition.name}&quot; и является {typeFuncArg.type}."
+                                                                                  _EN_explanation="The variable &quot;{var.name}&quot; at position {otherVar.number} is the {otherVar.argNumber} argument of the function &quot;{parentExpr-&gt;definition.name}&quot; and is the {typeFuncArg.type}."
+                                                                                  value="correct">
+                                                                    <Expression>
+                                                                        <AssignToProperty>
+                                                                            <Object name="currentTypeVar"/>
+                                                                            <Property name="type"/>
+                                                                            <Enum owner="typeVariable" value="mutable"/>
+                                                                        </AssignToProperty>
+                                                                    </Expression>
+                                                                </BranchResultNode>
+                                                            </Outcome>
+                                                        </QuestionNode>
+                                                    </Outcome>
+                                                    <Outcome value="typeVariable:output">
+                                                        <QuestionNode _id="81" _skill="type variable in function"
+                                                                      _alias="otherVar на позиции у функции parentExpr является выходной?"
+                                                                      type="bool" isSwitch="false">
+                                                            <Expression>
+                                                                <Compare operator="EQUAL">
+                                                                    <GetPropertyValue>
+                                                                        <DecisionTreeVar name="typeFuncArg"/>
+                                                                        <Property name="type"/>
+                                                                    </GetPropertyValue>
+                                                                    <Enum owner="typeVariable" value="output"/>
+                                                                </Compare>
+                                                            </Expression>
+                                                            <Outcome value="True">
+                                                                <BranchResultNode _id="82"
+                                                                                  _alias="Переменная &quot;{var.name}&quot; на позиции {otherVar.number} является {otherVar.argNumber} аргументом функции &quot;{parentExpr-&gt;definition.name}&quot; и является {typeFuncArg.type}."
+                                                                                  _RU_explanation="Переменная &quot;{var.name}&quot; на позиции {otherVar.number} является {otherVar.argNumber} аргументом функции &quot;{parentExpr-&gt;definition.name}&quot; и является {typeFuncArg.type}."
+                                                                                  _EN_explanation="The variable &quot;{var.name}&quot; at position {otherVar.number} is the {otherVar.argNumber} argument of the function &quot;{parentExpr-&gt;definition.name}&quot; and is the {typeFuncArg.type}."
+                                                                                  value="correct">
+                                                                    <Expression>
+                                                                        <AssignToProperty>
+                                                                            <Object name="currentTypeVar"/>
+                                                                            <Property name="type"/>
+                                                                            <Enum owner="typeVariable" value="output"/>
+                                                                        </AssignToProperty>
+                                                                    </Expression>
+                                                                </BranchResultNode>
+                                                            </Outcome>
+                                                            <Outcome value="False">
+                                                                <BranchResultNode _id="83"
+                                                                                  _alias="Переменная &quot;{var.name}&quot; на позиции {otherVar.number} является {otherVar.argNumber} аргументом функции &quot;{parentExpr-&gt;definition.name}&quot; и является {typeFuncArg.type}."
+                                                                                  _RU_explanation="Переменная &quot;{var.name}&quot; на позиции {otherVar.number} является {otherVar.argNumber} аргументом функции &quot;{parentExpr-&gt;definition.name}&quot; и является {typeFuncArg.type}."
+                                                                                  _EN_explanation="The variable &quot;{var.name}&quot; at position {otherVar.number} is the {otherVar.argNumber} argument of the function &quot;{parentExpr-&gt;definition.name}&quot; and is the {typeFuncArg.type}."
+                                                                                  value="correct">
+                                                                    <Expression>
+                                                                        <AssignToProperty>
+                                                                            <Object name="currentTypeVar"/>
+                                                                            <Property name="type"/>
+                                                                            <Enum owner="typeVariable" value="mutable"/>
+                                                                        </AssignToProperty>
+                                                                    </Expression>
+                                                                </BranchResultNode>
+                                                            </Outcome>
+                                                        </QuestionNode>
+                                                    </Outcome>
+                                                </QuestionNode>
+                                            </Outcome>
+                                        </FindActionNode>
+                                    </Outcome>
+                                    <Outcome value="False">
+                                        <FindActionNode _id="84"
+                                                        _alias="Найти тип otherVar на позиции у parentExpr&#10;otherVarType">
+                                            <Expression>
+                                                <GetByCondition type="Type" varName="type">
+                                                    <CheckRelationship>
+                                                        <Relationship name="has"/>
+                                                        <GetByRelationship varName="">
+                                                            <Cast>
+                                                                <DecisionTreeVar name="parentExpr"/>
+                                                                <Class name="Operator"/>
+                                                            </Cast>
+                                                            <Relationship name="operatorType"/>
+                                                        </GetByRelationship>
+                                                        <GetByRelationship varName="">
+                                                            <DecisionTreeVar name="otherVar"/>
+                                                            <Relationship name="position"/>
+                                                        </GetByRelationship>
+                                                        <Variable name="type"/>
+                                                    </CheckRelationship>
+                                                </GetByCondition>
+                                            </Expression>
+                                            <DecisionTreeVarDecl name="otherVarType" type="Type"/>
+                                            <Outcome value="Found">
+                                                <QuestionNode _id="85" _skill="type variable in operator"
+                                                              _alias="type currentTypeVar?" type="enum" isSwitch="true">
+                                                    <Expression>
+                                                        <GetPropertyValue>
+                                                            <Object name="currentTypeVar"/>
+                                                            <Property name="type"/>
+                                                        </GetPropertyValue>
+                                                    </Expression>
+                                                    <Outcome value="typeVariable:none">
+                                                        <QuestionNode _id="86" _skill="type variable in operator"
+                                                                      _alias="otherVar на позиции у parentExpr является входной?"
+                                                                      type="bool" isSwitch="false">
+                                                            <Expression>
+                                                                <CheckRelationship>
+                                                                    <Relationship name="has"/>
+                                                                    <GetByRelationship varName="">
+                                                                        <Cast>
+                                                                            <DecisionTreeVar name="parentExpr"/>
+                                                                            <Class name="Operator"/>
+                                                                        </Cast>
+                                                                        <Relationship name="operatorType"/>
+                                                                    </GetByRelationship>
+                                                                    <GetByRelationship varName="">
+                                                                        <DecisionTreeVar name="otherVar"/>
+                                                                        <Relationship name="position"/>
+                                                                    </GetByRelationship>
+                                                                    <Object name="inputType"/>
+                                                                </CheckRelationship>
+                                                            </Expression>
+                                                            <Outcome value="False">
+                                                                <QuestionNode _id="87"
+                                                                              _skill="type variable in operator"
+                                                                              _alias="otherVar на позиции у parentExpr является выходной?"
+                                                                              type="bool" isSwitch="false">
+                                                                    <Expression>
+                                                                        <CheckRelationship>
+                                                                            <Relationship name="has"/>
+                                                                            <GetByRelationship varName="">
+                                                                                <Cast>
+                                                                                    <DecisionTreeVar name="parentExpr"/>
+                                                                                    <Class name="Operator"/>
+                                                                                </Cast>
+                                                                                <Relationship name="operatorType"/>
+                                                                            </GetByRelationship>
+                                                                            <GetByRelationship varName="">
+                                                                                <DecisionTreeVar name="otherVar"/>
+                                                                                <Relationship name="position"/>
+                                                                            </GetByRelationship>
+                                                                            <Object name="outputType"/>
+                                                                        </CheckRelationship>
+                                                                    </Expression>
+                                                                    <Outcome value="False">
+                                                                        <QuestionNode _id="88"
+                                                                                      _skill="type variable in operator"
+                                                                                      _alias="otherVar на позиции у parentExpr является изменяемой?"
+                                                                                      type="bool" isSwitch="false">
+                                                                            <Expression>
+                                                                                <CheckRelationship>
+                                                                                    <Relationship name="has"/>
+                                                                                    <GetByRelationship varName="">
+                                                                                        <Cast>
+                                                                                            <DecisionTreeVar
+                                                                                                    name="parentExpr"/>
+                                                                                            <Class name="Operator"/>
+                                                                                        </Cast>
+                                                                                        <Relationship
+                                                                                                name="operatorType"/>
+                                                                                    </GetByRelationship>
+                                                                                    <GetByRelationship varName="">
+                                                                                        <DecisionTreeVar
+                                                                                                name="otherVar"/>
+                                                                                        <Relationship name="position"/>
+                                                                                    </GetByRelationship>
+                                                                                    <Object name="mutableType"/>
+                                                                                </CheckRelationship>
+                                                                            </Expression>
+                                                                            <Outcome value="True">
+                                                                                <BranchResultNode _id="89"
+                                                                                                  _alias="Переменная &quot;{var.name}&quot; на позиции {otherVar.number} является {otherVar-&gt;position.position} операндом оператора &quot;{parentExpr-&gt;operatorType.text}&quot; и считается {otherVarType.type}."
+                                                                                                  _RU_explanation="Переменная &quot;{var.name}&quot; на позиции {otherVar.number} является {otherVar-&gt;position.position} операндом оператора &quot;{parentExpr-&gt;operatorType.text}&quot; и считается {otherVarType.type}."
+                                                                                                  _EN_explanation="The variable &quot;{var.name}&quot; at position {otherVar.number} is the {otherVar-&gt;position.position} operand of the &quot;{parentExpr-&gt;operatorType.text}&quot; operator and is the {otherVarType.type}."
+                                                                                                  value="correct">
+                                                                                    <Expression>
+                                                                                        <AssignToProperty>
+                                                                                            <Object name="currentTypeVar"/>
+                                                                                            <Property name="type"/>
+                                                                                            <Enum owner="typeVariable"
+                                                                                                  value="mutable"/>
+                                                                                        </AssignToProperty>
+                                                                                    </Expression>
+                                                                                </BranchResultNode>
+                                                                            </Outcome>
+                                                                        </QuestionNode>
+                                                                    </Outcome>
+                                                                    <Outcome value="True">
+                                                                        <BranchResultNode _id="90"
+                                                                                          _alias="Переменная &quot;{var.name}&quot; на позиции {otherVar.number} является {otherVar-&gt;position.position} операндом оператора &quot;{parentExpr-&gt;operatorType.text}&quot; и считается {otherVarType.type}."
+                                                                                          _RU_explanation="Переменная &quot;{var.name}&quot; на позиции {otherVar.number} является {otherVar-&gt;position.position} операндом оператора &quot;{parentExpr-&gt;operatorType.text}&quot; и считается {otherVarType.type}."
+                                                                                          _EN_explanation="The variable &quot;{var.name}&quot; at position {otherVar.number} is the {otherVar-&gt;position.position} operand of the &quot;{parentExpr-&gt;operatorType.text}&quot; operator and is the {otherVarType.type}."
+                                                                                          value="correct">
+                                                                            <Expression>
+                                                                                <AssignToProperty>
+                                                                                    <Object name="currentTypeVar"/>
+                                                                                    <Property name="type"/>
+                                                                                    <Enum owner="typeVariable"
+                                                                                          value="output"/>
+                                                                                </AssignToProperty>
+                                                                            </Expression>
+                                                                        </BranchResultNode>
+                                                                    </Outcome>
+                                                                </QuestionNode>
+                                                            </Outcome>
+                                                            <Outcome value="True">
+                                                                <BranchResultNode _id="91"
+                                                                                  _alias="Переменная &quot;{var.name}&quot; на позиции {otherVar.number} является {otherVar-&gt;position.position} операндом оператора &quot;{parentExpr-&gt;operatorType.text}&quot; и считается {otherVarType.type}."
+                                                                                  _RU_explanation="Переменная &quot;{var.name}&quot; на позиции {otherVar.number} является {otherVar-&gt;position.position} операндом оператора &quot;{parentExpr-&gt;operatorType.text}&quot; и считается {otherVarType.type}."
+                                                                                  _EN_explanation="The variable &quot;{var.name}&quot; at position {otherVar.number} is the {otherVar-&gt;position.position} operand of the &quot;{parentExpr-&gt;operatorType.text}&quot; operator and is the {otherVarType.type}."
+                                                                                  value="correct">
+                                                                    <Expression>
+                                                                        <AssignToProperty>
+                                                                            <Object name="currentTypeVar"/>
+                                                                            <Property name="type"/>
+                                                                            <Enum owner="typeVariable" value="input"/>
+                                                                        </AssignToProperty>
+                                                                    </Expression>
+                                                                </BranchResultNode>
+                                                            </Outcome>
+                                                        </QuestionNode>
+                                                    </Outcome>
+                                                    <Outcome value="typeVariable:mutable">
+                                                        <BranchResultNode _id="92"
+                                                                          _alias="Переменная &quot;{var.name}&quot; на позиции {otherVar.number} является {otherVar-&gt;position.position} операндом оператора &quot;{parentExpr-&gt;operatorType.text}&quot; и считается {otherVarType.type}."
+                                                                          _RU_explanation="Переменная &quot;{var.name}&quot; на позиции {otherVar.number} является {otherVar-&gt;position.position} операндом оператора &quot;{parentExpr-&gt;operatorType.text}&quot; и считается {otherVarType.type}."
+                                                                          _EN_explanation="The variable &quot;{var.name}&quot; at position {otherVar.number} is the {otherVar-&gt;position.position} operand of the &quot;{parentExpr-&gt;operatorType.text}&quot; operator and is the {otherVarType.type}."
+                                                                          value="correct">
+                                                            <Expression>
+                                                                <AssignToProperty>
+                                                                    <Object name="currentTypeVar"/>
+                                                                    <Property name="type"/>
+                                                                    <Enum owner="typeVariable" value="mutable"/>
+                                                                </AssignToProperty>
+                                                            </Expression>
+                                                        </BranchResultNode>
+                                                    </Outcome>
+                                                    <Outcome value="typeVariable:input">
+                                                        <QuestionNode _id="93" _skill="type variable in operator"
+                                                                      _alias="otherVar на позиции у parentExpr является входной?"
+                                                                      type="bool" isSwitch="false">
+                                                            <Expression>
+                                                                <CheckRelationship>
+                                                                    <Relationship name="has"/>
+                                                                    <GetByRelationship varName="">
+                                                                        <Cast>
+                                                                            <DecisionTreeVar name="parentExpr"/>
+                                                                            <Class name="Operator"/>
+                                                                        </Cast>
+                                                                        <Relationship name="operatorType"/>
+                                                                    </GetByRelationship>
+                                                                    <GetByRelationship varName="">
+                                                                        <DecisionTreeVar name="otherVar"/>
+                                                                        <Relationship name="position"/>
+                                                                    </GetByRelationship>
+                                                                    <Object name="inputType"/>
+                                                                </CheckRelationship>
+                                                            </Expression>
+                                                            <Outcome value="True">
+                                                                <BranchResultNode _id="94"
+                                                                                  _alias="Переменная &quot;{var.name}&quot; на позиции {otherVar.number} является {otherVar-&gt;position.position} операндом оператора &quot;{parentExpr-&gt;operatorType.text}&quot; и считается {otherVarType.type}."
+                                                                                  _RU_explanation="Переменная &quot;{var.name}&quot; на позиции {otherVar.number} является {otherVar-&gt;position.position} операндом оператора &quot;{parentExpr-&gt;operatorType.text}&quot; и считается {otherVarType.type}."
+                                                                                  _EN_explanation="The variable &quot;{var.name}&quot; at position {otherVar.number} is the {otherVar-&gt;position.position} operand of the &quot;{parentExpr-&gt;operatorType.text}&quot; operator and is the {otherVarType.type}."
+                                                                                  value="correct">
+                                                                    <Expression>
+                                                                        <AssignToProperty>
+                                                                            <Object name="currentTypeVar"/>
+                                                                            <Property name="type"/>
+                                                                            <Enum owner="typeVariable" value="input"/>
+                                                                        </AssignToProperty>
+                                                                    </Expression>
+                                                                </BranchResultNode>
+                                                            </Outcome>
+                                                            <Outcome value="False">
+                                                                <BranchResultNode _id="95"
+                                                                                  _alias="Переменная &quot;{var.name}&quot; на позиции {otherVar.number} является {otherVar-&gt;position.position} операндом оператора &quot;{parentExpr-&gt;operatorType.text}&quot; и считается {otherVarType.type}."
+                                                                                  _RU_explanation="Переменная &quot;{var.name}&quot; на позиции {otherVar.number} является {otherVar-&gt;position.position} операндом оператора &quot;{parentExpr-&gt;operatorType.text}&quot; и считается {otherVarType.type}."
+                                                                                  _EN_explanation="The variable &quot;{var.name}&quot; at position {otherVar.number} is the {otherVar-&gt;position.position} operand of the &quot;{parentExpr-&gt;operatorType.text}&quot; operator and is the {otherVarType.type}."
+                                                                                  value="correct">
+                                                                    <Expression>
+                                                                        <AssignToProperty>
+                                                                            <Object name="currentTypeVar"/>
+                                                                            <Property name="type"/>
+                                                                            <Enum owner="typeVariable" value="mutable"/>
+                                                                        </AssignToProperty>
+                                                                    </Expression>
+                                                                </BranchResultNode>
+                                                            </Outcome>
+                                                        </QuestionNode>
+                                                    </Outcome>
+                                                    <Outcome value="typeVariable:output">
+                                                        <QuestionNode _id="96" _skill="type variable in operator"
+                                                                      _alias="otherVar на позиции у parentExpr является выходной?"
+                                                                      type="bool" isSwitch="false">
+                                                            <Expression>
+                                                                <CheckRelationship>
+                                                                    <Relationship name="has"/>
+                                                                    <GetByRelationship varName="">
+                                                                        <Cast>
+                                                                            <DecisionTreeVar name="parentExpr"/>
+                                                                            <Class name="Operator"/>
+                                                                        </Cast>
+                                                                        <Relationship name="operatorType"/>
+                                                                    </GetByRelationship>
+                                                                    <GetByRelationship varName="">
+                                                                        <DecisionTreeVar name="otherVar"/>
+                                                                        <Relationship name="position"/>
+                                                                    </GetByRelationship>
+                                                                    <Object name="outputType"/>
+                                                                </CheckRelationship>
+                                                            </Expression>
+                                                            <Outcome value="True">
+                                                                <BranchResultNode _id="97"
+                                                                                  _alias="Переменная &quot;{var.name}&quot; на позиции {otherVar.number} является {otherVar-&gt;position.position} операндом оператора &quot;{parentExpr-&gt;operatorType.text}&quot; и считается {otherVarType.type}."
+                                                                                  _RU_explanation="Переменная &quot;{var.name}&quot; на позиции {otherVar.number} является {otherVar-&gt;position.position} операндом оператора &quot;{parentExpr-&gt;operatorType.text}&quot; и считается {otherVarType.type}."
+                                                                                  _EN_explanation="The variable &quot;{var.name}&quot; at position {otherVar.number} is the {otherVar-&gt;position.position} operand of the &quot;{parentExpr-&gt;operatorType.text}&quot; operator and is the {otherVarType.type}."
+                                                                                  value="correct">
+                                                                    <Expression>
+                                                                        <AssignToProperty>
+                                                                            <Object name="currentTypeVar"/>
+                                                                            <Property name="type"/>
+                                                                            <Enum owner="typeVariable" value="output"/>
+                                                                        </AssignToProperty>
+                                                                    </Expression>
+                                                                </BranchResultNode>
+                                                            </Outcome>
+                                                            <Outcome value="False">
+                                                                <BranchResultNode _id="98"
+                                                                                  _alias="Переменная &quot;{var.name}&quot; на позиции {otherVar.number} является {otherVar-&gt;position.position} операндом оператора &quot;{parentExpr-&gt;operatorType.text}&quot; и считается {otherVarType.type}."
+                                                                                  _RU_explanation="Переменная &quot;{var.name}&quot; на позиции {otherVar.number} является {otherVar-&gt;position.position} операндом оператора &quot;{parentExpr-&gt;operatorType.text}&quot; и считается {otherVarType.type}."
+                                                                                  _EN_explanation="The variable &quot;{var.name}&quot; at position {otherVar.number} is the {otherVar-&gt;position.position} operand of the &quot;{parentExpr-&gt;operatorType.text}&quot; operator and is the {otherVarType.type}."
+                                                                                  value="correct">
+                                                                    <Expression>
+                                                                        <AssignToProperty>
+                                                                            <Object name="currentTypeVar"/>
+                                                                            <Property name="type"/>
+                                                                            <Enum owner="typeVariable" value="mutable"/>
+                                                                        </AssignToProperty>
+                                                                    </Expression>
+                                                                </BranchResultNode>
+                                                            </Outcome>
+                                                        </QuestionNode>
+                                                    </Outcome>
+                                                </QuestionNode>
+                                            </Outcome>
+                                        </FindActionNode>
+                                    </Outcome>
+                                </QuestionNode>
+                            </Outcome>
+                        </FindActionNode>
+                    </ThoughtBranch>
+                    <Outcome value="Correct">
+                        <QuestionNode _id="99" _skill="variable is mutable" _alias="answer равен currentTypeVar?"
+                                      type="bool" isSwitch="false">
+                            <Expression>
+                                <Compare operator="EQUAL">
+                                    <GetPropertyValue>
+                                        <DecisionTreeVar name="answer"/>
+                                        <Property name="type"/>
+                                    </GetPropertyValue>
+                                    <GetPropertyValue>
+                                        <Object name="currentTypeVar"/>
+                                        <Property name="type"/>
+                                    </GetPropertyValue>
+                                </Compare>
+                            </Expression>
+                            <Outcome value="False">
+                                <BranchResultNode _id="100"
+                                                  _alias="Переменная &quot;{var.name}&quot; не является изменяемой, так как во всех местах её использования она используется только как {$currentTypeVar.type(I)}."
+                                                  _RU_explanation="Переменная &quot;{var.name}&quot; не является изменяемой, так как во всех местах её использования она используется только как {$currentTypeVar.type(I)}."
+                                                  _EN_explanation="The variable &quot;{var.name}&quot; is not mutable, as it is only used as {$currentTypeVar.type} in all places where it is used."
+                                                  value="error"/>
+                            </Outcome>
+                            <Outcome value="True">
+                                <BranchResultNode _id="101"
+                                                  _alias="Переменная &quot;{var.name}&quot; является изменяемой, так как:"
+                                                  _RU_explanation="Переменная &quot;{var.name}&quot; является изменяемой, так как:"
+                                                  _EN_explanation="The variable &quot;{var.name}&quot; is mutable because:"
+                                                  value="correct"/>
+                            </Outcome>
+                        </QuestionNode>
+                    </Outcome>
+                    <Outcome value="Error">
+                        <BranchResultNode _id="102" value="error"/>
+                    </Outcome>
+                </CycleAggregationNode>
+            </Outcome>
+        </QuestionNode>
+    </ThoughtBranch>
+</StartNode>

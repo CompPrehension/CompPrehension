@@ -1,21 +1,20 @@
 import { observer } from 'mobx-react';
 import * as React from 'react';
-import {  useState } from 'react';
+import { useState } from 'react';
 import { Alert, Button } from 'react-bootstrap';
+import { useTranslation } from "react-i18next";
+import { SupplementaryQuestionStore } from '../../stores/sup-question-store';
+import { Answer } from '../../types/answer';
+import { FeedbackMessage, FeedbackViolationLaw } from '../../types/feedback';
 import { delayPromise } from '../../utils/helpers';
+import { Loader } from '../common/loader';
 import { Modal } from '../common/modal';
 import { Optional } from '../common/optional';
-import { useTranslation } from "react-i18next";
-import { FeedbackMessage, FeedbackViolationLaw } from '../../types/feedback';
-import { SupplementaryQuestionStore } from '../../stores/sup-question-store';
-import { Loader } from '../common/loader';
-import { Answer } from '../../types/answer';
 import { QuestionComponent } from '../common/question/question';
-import { toJS } from 'mobx';
 
 type GenerateSupQuestionProps = {
     store: SupplementaryQuestionStore,
-    violationLaw: FeedbackViolationLaw,
+    violationLaw: FeedbackViolationLaw[],
 }
 
 export const GenerateSupQuestion = observer((props : GenerateSupQuestionProps) => {
@@ -29,7 +28,7 @@ export const GenerateSupQuestion = observer((props : GenerateSupQuestionProps) =
     const onDetailsClicked = async () => { 
         setIsButtonsVisible(false);
         setIsModalVisible(true);
-        await store.generateSupplementaryQuestion([currentViolationLaw].map(v => v.name));
+        await store.generateSupplementaryQuestion(currentViolationLaw.map(v => v.name));
         if (!store.question || store.feedback?.action === 'FINISH') {
             console.log(`no need to generate sup question`);
             setAllVisible(false);
@@ -56,7 +55,7 @@ export const GenerateSupQuestion = observer((props : GenerateSupQuestionProps) =
         await tryContinueAuto();
     }
     const onNextQuestionClicked = async () => {
-        const newViolationLaw = store.feedback?.message?.violationLaw || null;
+        const newViolationLaw = store.feedback?.message?.violationLaws || null;
         if (!newViolationLaw) {
             console.log(`empty violation laws`);
             setAllVisible(false);
@@ -64,7 +63,7 @@ export const GenerateSupQuestion = observer((props : GenerateSupQuestionProps) =
         }
 
         setCurrentViolationLaw(newViolationLaw)
-        await store.generateSupplementaryQuestion([newViolationLaw].map(v => v.name));
+        await store.generateSupplementaryQuestion(newViolationLaw.map(v => v.name));
         await tryContinueAuto();
     }
 
@@ -112,7 +111,7 @@ const SupQuestion = observer((props: SupQuestionProps) => {
     const showSendAnswerButton = store.questionSubmitMode === 'EXPLICIT' && store.canSendQuestionAnswers;
     const showQuestionFeedback = store.questionState === 'COMPLETED' && !!store.feedback && !!questionData;
     const showMessageFeedback = store.questionState === 'COMPLETED' && !!store.feedback && !questionData;
-    const showNextQBtn = store.feedback?.action === 'CONTINUE_MANUAL' && (showQuestionFeedback || showMessageFeedback) && !!store.feedback?.message.violationLaw;
+    const showNextQBtn = store.feedback?.action === 'CONTINUE_MANUAL' && (showQuestionFeedback || showMessageFeedback) && !!store.feedback?.message.violationLaws;
 
     return (
         <>
@@ -162,7 +161,7 @@ export const ShortFeedbackAlert = observer((props: ShortFeedbackAlertProps) => {
     const variant = message.type === 'SUCCESS' ? 'success' : 'danger';
     return(
         <Alert variant={variant}>
-            {message.message}
+            <span dangerouslySetInnerHTML={{ __html: message.message }} />
         </Alert>
     )
 })

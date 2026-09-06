@@ -8,6 +8,8 @@ import lombok.Getter;
 import lombok.NoArgsConstructor;
 import lombok.Setter;
 import org.hibernate.annotations.*;
+import org.jetbrains.annotations.NotNull;
+import org.jetbrains.annotations.Nullable;
 import org.vstu.compprehension.models.businesslogic.QuestionBankSearchRequest;
 
 import java.util.Date;
@@ -19,7 +21,7 @@ import java.util.Date;
     @Index(name = "question_generation_requests_search_idx", columnList = "status,domain_shortname,created_at,questions_to_generate")
 })
 public class QuestionGenerationRequestEntity {
-    public QuestionGenerationRequestEntity(QuestionBankSearchRequest questionRequest, int questionsToGenerate, Long exerciseAttemptId) {
+    public QuestionGenerationRequestEntity(@NotNull QuestionBankSearchRequest questionRequest, int questionsToGenerate, @Nullable Long exerciseAttemptId) {
         this.questionRequest = questionRequest;
         this.questionsToGenerate = questionsToGenerate;
         this.exerciseAttemptId = exerciseAttemptId;
@@ -70,6 +72,16 @@ public class QuestionGenerationRequestEntity {
             columnDefinition = "bigint GENERATED ALWAYS AS (question_request->>\"$.deniedConceptsBitmask\") VIRTUAL NOT NULL",
             insertable = false, updatable = false)
     private Long deniedConceptsBitmask;
+
+    @Column(name = "denied_laws_bitmask",
+            columnDefinition = "bigint GENERATED ALWAYS AS (question_request->>\"$.deniedLawsBitmask\") VIRTUAL NOT NULL",
+            insertable = false, updatable = false)
+    private Long deniedLawsBitmask;
+
+    @Column(name = "denied_skills_bitmask",
+            columnDefinition = "bigint GENERATED ALWAYS AS (question_request->>\"$.deniedSkillsBitmask\") VIRTUAL NOT NULL",
+            insertable = false, updatable = false)
+    private Long deniedSkillsBitmask;
     
     @Column(name = "target_concepts_bitmask",
             columnDefinition = "bigint GENERATED ALWAYS AS (question_request->>\"$.targetConceptsBitmask\") VIRTUAL NOT NULL",
@@ -80,11 +92,11 @@ public class QuestionGenerationRequestEntity {
             columnDefinition = "bigint GENERATED ALWAYS AS (question_request->>\"$.targetLawsBitmask\") VIRTUAL NOT NULL",
             insertable = false, updatable = false)
     private Long targetLawsBitmask;
-    
-    @Column(name = "denied_laws_bitmask",
-            columnDefinition = "bigint GENERATED ALWAYS AS (question_request->>\"$.deniedLawsBitmask\") VIRTUAL NOT NULL",
+
+    @Column(name = "target_skills_bitmask",
+            columnDefinition = "bigint GENERATED ALWAYS AS (question_request->>\"$.targetSkillsBitmask\") VIRTUAL NOT NULL",
             insertable = false, updatable = false)
-    private Long deniedLawsBitmask;
+    private Long targetSkillsBitmask;
     
     @Column(name = "target_tags_bitmask",
             columnDefinition = "bigint GENERATED ALWAYS AS (question_request->>\"$.targetTagsBitmask\") VIRTUAL NOT NULL",
