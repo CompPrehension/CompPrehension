@@ -1,4 +1,4 @@
-package org.vstu.compprehension.models.businesslogic.domains;
+package org.vstu.compprehension.models.businesslogic.backend;
 
 import lombok.Getter;
 import org.apache.jena.ontology.OntClass;

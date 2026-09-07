@@ -1,6 +1,6 @@
 package org.vstu.compprehension.domain;
 
-import domains.ControlFlowDTDomain;
+import org.vstu.compprehension.models.businesslogic.domains.ControlFlowDTDomain;
 import jakarta.transaction.Transactional;
 import lombok.extern.slf4j.Slf4j;
 import org.junit.jupiter.api.Assertions;

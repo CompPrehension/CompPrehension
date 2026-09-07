@@ -25,7 +25,6 @@ import org.vstu.compprehension.models.businesslogic.backend.facts.JenaFact;
 import org.vstu.compprehension.models.businesslogic.backend.facts.JenaFactList;
 import org.vstu.compprehension.models.businesslogic.backend.util.MakeNamedSkolem;
 import org.vstu.compprehension.models.businesslogic.backend.util.ReasoningOptions;
-import org.vstu.compprehension.models.businesslogic.domains.DomainVocabulary;
 import org.vstu.compprehension.utils.Checkpointer;
 
 import java.io.FileNotFoundException;
@@ -35,7 +34,7 @@ import java.util.*;
 import java.util.stream.Collectors;
 
 import static org.apache.jena.ontology.OntModelSpec.OWL_MEM;
-import static org.vstu.compprehension.models.businesslogic.domains.DomainVocabulary.testSubClassOfTransitive;
+import static org.vstu.compprehension.models.businesslogic.backend.DomainVocabulary.testSubClassOfTransitive;
 
 
 @Log4j2

@@ -24,7 +24,6 @@ import org.vstu.compprehension.models.businesslogic.Explanation;
 import org.vstu.compprehension.models.businesslogic.Question;
 import org.vstu.compprehension.models.businesslogic.domains.Domain;
 import org.vstu.compprehension.models.businesslogic.domains.DomainBase;
-import org.vstu.compprehension.models.businesslogic.domains.helpers.DomainTermTooltipVisualizer;
 import org.vstu.compprehension.models.entities.EnumData.Language;
 import org.vstu.compprehension.utils.HyperText;
 

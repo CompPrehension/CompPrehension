@@ -1,4 +1,4 @@
-package org.vstu.compprehension.models.businesslogic.storage;
+package org.vstu.compprehension.models.businesslogic.domains;
 
 public enum GraphRole {
     SCHEMA("schema#"), // all static assertions important for reasoning

@@ -1,4 +1,4 @@
-package domains;
+package org.vstu.compprehension.models.businesslogic.domains;
 
 import org.vstu.compprehension.models.data.SupplementaryStepData;
 import org.vstu.compprehension.models.data.ExerciseOptionsData;
@@ -6,7 +6,7 @@ import org.vstu.compprehension.models.data.ViolationData;
 import org.vstu.compprehension.models.data.questionoptions.QuestionOptionsData;
 import org.vstu.compprehension.models.data.BackendFactData;
 import org.vstu.compprehension.models.data.questionoptions.OrderQuestionOptionsData;
-import helpers.GenerateErrorTextForScopeObjects;
+import org.vstu.compprehension.models.businesslogic.domains.helpers.GenerateErrorTextForScopeObjects;
 import its.model.DomainSolvingModel;
 import its.model.definition.DomainModel;
 import its.model.definition.ObjectDef;

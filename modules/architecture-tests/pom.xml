@@ -50,6 +50,18 @@
         </dependency>
         <dependency>
             <groupId>org.vstu.compprehension</groupId>
+            <artifactId>backends</artifactId>
+            <version>1.0-SNAPSHOT</version>
+            <scope>test</scope>
+        </dependency>
+        <dependency>
+            <groupId>org.vstu.compprehension</groupId>
+            <artifactId>domains</artifactId>
+            <version>1.0-SNAPSHOT</version>
+            <scope>test</scope>
+        </dependency>
+        <dependency>
+            <groupId>org.vstu.compprehension</groupId>
             <artifactId>server</artifactId>
             <version>1.0-SNAPSHOT</version>
             <scope>test</scope>

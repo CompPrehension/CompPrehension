@@ -1,4 +1,4 @@
-package org.vstu.compprehension.models.businesslogic.domains.helpers;
+package org.vstu.compprehension.models.businesslogic.backend;
 
 import io.brookite.termannotations.DomainTermAnnotation;
 import io.brookite.termannotations.DomainTermAnnotationVisualizer;

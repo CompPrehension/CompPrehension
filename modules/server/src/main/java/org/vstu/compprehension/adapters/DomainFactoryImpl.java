@@ -1,8 +1,8 @@
 package org.vstu.compprehension.adapters;
 
-import domains.ControlFlowDTDomain;
-import domains.DataFlowDTDomain;
-import domains.ObjectsScopeDTDomain;
+import org.vstu.compprehension.models.businesslogic.domains.ControlFlowDTDomain;
+import org.vstu.compprehension.models.businesslogic.domains.DataFlowDTDomain;
+import org.vstu.compprehension.models.businesslogic.domains.ObjectsScopeDTDomain;
 import org.jetbrains.annotations.NotNull;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Component;

@@ -1,6 +1,6 @@
 package org.vstu.compprehension.domain.dt;
 
-import domains.ControlFlowDTDomain;
+import org.vstu.compprehension.models.businesslogic.domains.ControlFlowDTDomain;
 import its.reasoner.nodes.*;
 import jakarta.transaction.Transactional;
 import org.apache.commons.lang3.tuple.Pair;

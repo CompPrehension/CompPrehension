@@ -1,4 +1,4 @@
-package domains;
+package org.vstu.compprehension.models.businesslogic.domains;
 
 import org.vstu.compprehension.models.data.SupplementaryStepData;
 import org.vstu.compprehension.models.data.ExerciseOptionsData;

@@ -1,8 +1,8 @@
 package org.vstu.compprehension.config;
 
-import domains.ControlFlowDTDomain;
-import domains.DataFlowDTDomain;
-import domains.ObjectsScopeDTDomain;
+import org.vstu.compprehension.models.businesslogic.domains.ControlFlowDTDomain;
+import org.vstu.compprehension.models.businesslogic.domains.DataFlowDTDomain;
+import org.vstu.compprehension.models.businesslogic.domains.ObjectsScopeDTDomain;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.boot.autoconfigure.web.servlet.DispatcherServletAutoConfiguration;
 import org.springframework.boot.web.servlet.ServletRegistrationBean;

@@ -56,8 +56,9 @@ import java.util.regex.Pattern;
 import java.util.stream.Collectors;
 
 import static org.apache.jena.ontology.OntModelSpec.OWL_MEM;
-import static org.vstu.compprehension.models.businesslogic.domains.DomainVocabulary.retainLeafOntClasses;
-import static org.vstu.compprehension.models.businesslogic.domains.DomainVocabulary.testSubClassOfTransitive;
+import org.vstu.compprehension.models.businesslogic.backend.DomainVocabulary;
+import static org.vstu.compprehension.models.businesslogic.backend.DomainVocabulary.retainLeafOntClasses;
+import static org.vstu.compprehension.models.businesslogic.backend.DomainVocabulary.testSubClassOfTransitive;
 import static org.vstu.compprehension.models.businesslogic.domains.helpers.FactsGraph.factsListDeepCopy;
 @Log4j2
 public class ControlFlowStatementsDomain extends JenaReasoningDomain {

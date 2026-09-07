@@ -1,4 +1,4 @@
-package helpers;
+package org.vstu.compprehension.models.businesslogic.domains.helpers;
 
 import its.model.definition.DomainModel;
 import its.model.definition.ObjectDef;

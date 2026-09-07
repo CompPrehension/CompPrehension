@@ -1,4 +1,4 @@
-package org.vstu.compprehension.models.businesslogic.storage;
+package org.vstu.compprehension.models.businesslogic.domains;
 
 import org.apache.jena.graph.Node;
 import org.apache.jena.graph.NodeFactory;

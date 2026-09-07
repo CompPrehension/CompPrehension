@@ -121,7 +121,12 @@
         </dependency>
         <dependency>
             <groupId>org.vstu.compprehension</groupId>
-            <artifactId>objects-scope-domain</artifactId>
+            <artifactId>domains</artifactId>
+            <version>1.0-SNAPSHOT</version>
+        </dependency>
+        <dependency>
+            <groupId>org.vstu.compprehension</groupId>
+            <artifactId>backends</artifactId>
             <version>1.0-SNAPSHOT</version>
         </dependency>
         <dependency>
@@ -132,11 +137,6 @@
         <dependency>
             <groupId>org.vstu.compprehension</groupId>
             <artifactId>bkt</artifactId>
-            <version>1.0-SNAPSHOT</version>
-        </dependency>
-        <dependency>
-            <groupId>org.vstu.compprehension</groupId>
-            <artifactId>objects-scope-domain</artifactId>
             <version>1.0-SNAPSHOT</version>
         </dependency>
     </dependencies>

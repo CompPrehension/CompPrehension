@@ -1,4 +1,4 @@
-package domains;
+package org.vstu.compprehension.models.businesslogic.domains;
 
 import org.vstu.compprehension.models.data.SupplementaryStepData;
 import org.vstu.compprehension.models.data.ExerciseOptionsData;
@@ -37,7 +37,7 @@ import org.vstu.compprehension.models.businesslogic.backend.facts.Fact;
 import org.vstu.compprehension.models.businesslogic.backend.facts.JenaFactList;
 import org.vstu.compprehension.models.businesslogic.domains.DecisionTreeReasoningDomain;
 import org.vstu.compprehension.models.businesslogic.domains.DecisionTreeSupQuestionHelper;
-import helpers.GenerateErrorTextForScopeObjects;
+import org.vstu.compprehension.models.businesslogic.domains.helpers.GenerateErrorTextForScopeObjects;
 import org.vstu.compprehension.models.businesslogic.storage.QuestionBank;
 import org.vstu.compprehension.models.entities.EnumData.InteractionType;
 import org.vstu.compprehension.models.entities.EnumData.FeedbackType;

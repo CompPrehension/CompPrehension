@@ -30,6 +30,8 @@ public class ProjectClassesLocationProvider implements LocationProvider {
      */
     static final List<String> ANALYZED_MODULES = List.of(
             "core",
+            "backends",
+            "domains",
             "server",
             "background-server",
             "bkt",
