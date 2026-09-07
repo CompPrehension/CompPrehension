@@ -4,8 +4,6 @@ import org.vstu.compprehension.data.question.BackendFactData;
 import lombok.extern.log4j.Log4j2;
 import org.apache.commons.lang3.NotImplementedException;
 import org.vstu.compprehension.businesslogic.Law;
-import org.vstu.compprehension.businesslogic.backend.facts.Fact;
-import org.vstu.compprehension.businesslogic.backend.util.ReasoningOptions;
 import org.vstu.compprehension.businesslogic.LawFormulation;
 import org.semanticweb.owlapi.apibinding.OWLManager;
 import org.semanticweb.owlapi.model.*;

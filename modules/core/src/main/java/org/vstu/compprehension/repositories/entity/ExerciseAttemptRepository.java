@@ -5,8 +5,8 @@ import org.springframework.data.jpa.repository.Modifying;
 import org.springframework.data.jpa.repository.Query;
 import org.springframework.data.repository.query.Param;
 import org.springframework.stereotype.Repository;
-import org.vstu.compprehension.data.enums.AttemptStatus;
-import org.vstu.compprehension.data.enums.EducationResourceType;
+import org.vstu.compprehension.enums.AttemptStatus;
+import org.vstu.compprehension.enums.EducationResourceType;
 import org.vstu.compprehension.entities.ExerciseAttemptEntity;
 
 import java.util.List;
@@ -15,25 +15,11 @@ import java.util.Optional;
 @Repository
 public interface ExerciseAttemptRepository extends JpaRepository<ExerciseAttemptEntity, Long> {
 
-    /**
-     * Владелец попытки.
-     * <p>
-     * Интерфейс, а не запись: оба поля — {@code Long}, и при позиционном связывании
-     * их перестановка не вызвала бы ни ошибки компиляции, ни исключения.
-     */
     interface AttemptOwner {
         Long getUserId();
         Long getCourseId();
     }
 
-    /**
-     * Попытка, в которой задан вопрос, вместе с упражнением и автором.
-     * <p>
-     * Вопросы попытки намеренно не поднимаются: у этого запроса четыре потребителя,
-     * и ни одному из них они не нужны — читаются язык автора, этапы упражнения и одна
-     * его настройка. Прежняя версия тянула {@code left join fetch a.questions}, то есть
-     * всю попытку целиком на каждое такое обращение.
-     */
     @Query("""
             select a from ExerciseAttemptEntity a
             inner join fetch a.exercise
@@ -43,11 +29,6 @@ public interface ExerciseAttemptRepository extends JpaRepository<ExerciseAttempt
             """)
     Optional<ExerciseAttemptEntity> findByQuestionIdFetchingExerciseAndUser(@Param("questionId") long questionId);
 
-    /**
-     * Попытка вместе с упражнением и доменом — одним запросом.
-     * <p>
-     * join fetch обязателен: обе связи ленивые, а вызывающему нужны их поля.
-     */
     @Query("""
             select a from ExerciseAttemptEntity a
             join fetch a.exercise e
@@ -56,12 +37,6 @@ public interface ExerciseAttemptRepository extends JpaRepository<ExerciseAttempt
             """)
     Optional<ExerciseAttemptEntity> findByIdFetchingExerciseAndDomain(@Param("attemptId") long attemptId);
 
-    /**
-     * Попытка вместе с упражнением, доменом и автором — одним запросом.
-     * <p>
-     * Отличается от предыдущего наличием автора: при генерации вопроса нужен ещё и
-     * выбранный им язык, а связь ленивая.
-     */
     @Query("""
             select a from ExerciseAttemptEntity a
             join fetch a.exercise e
@@ -71,13 +46,6 @@ public interface ExerciseAttemptRepository extends JpaRepository<ExerciseAttempt
             """)
     Optional<ExerciseAttemptEntity> findByIdFetchingExerciseDomainAndUser(@Param("attemptId") long attemptId);
 
-    /**
-     * Попытка в объёме, который уезжает на фронт.
-     * <p>
-     * Связи присоединены явными join-ами, а не путями вида {@code a.course.id}: путь
-     * через to-one связь порождает <b>внутреннее</b> соединение, и попытки вне курса
-     * молча выпали бы из выдачи.
-     */
     interface AttemptSummaryRow {
         Long getAttemptId();
         Long getUserId();
@@ -127,12 +95,6 @@ public interface ExerciseAttemptRepository extends JpaRepository<ExerciseAttempt
                                                                  @Param("userId") long userId,
                                                                  @Param("status") AttemptStatus status);
 
-    /**
-     * Адресат оценки за попытку.
-     * <p>
-     * Курс и его образовательный ресурс присоединены left join-ами: попытка может идти
-     * вне курса, и внутреннее соединение молча выкинуло бы её из выдачи.
-     */
     interface GradePassbackTargetRow {
         Long getAttemptId();
         Long getExerciseId();
@@ -162,14 +124,6 @@ public interface ExerciseAttemptRepository extends JpaRepository<ExerciseAttempt
             """)
     Optional<GradePassbackTargetRow> findGradePassbackTargetRow(@Param("attemptId") long attemptId);
 
-    /**
-     * Основные вопросы попытки, в порядке выдачи.
-     * <p>
-     * Вспомогательные отсеиваются в БД. Раньше это делалось в памяти над поднятой
-     * коллекцией вопросов: {@code !q.getQuestionDomainType().contains("Supplementary")}.
-     * Отличие одно — вопрос с пустым {@code questionDomainType} теперь не попадёт
-     * в выдачу вместо того, чтобы уронить маппинг на NPE.
-     */
     @Query("""
             select q.id from QuestionEntity q
             where q.exerciseAttempt.id = :attemptId
@@ -192,11 +146,14 @@ public interface ExerciseAttemptRepository extends JpaRepository<ExerciseAttempt
             where q.id = :questionId
             """)
     Optional<AttemptOwner> findOwnerByQuestionId(@Param("questionId") long questionId);
+
     @Query("select distinct a from ExerciseAttemptEntity a inner join fetch a.exercise left join fetch a.questions left join fetch a.user where a.exercise.id = ?1 and a.user.id = ?2 and a.attemptStatus = ?3")
     List<ExerciseAttemptEntity> getAllByStatus(Long exerciseId, Long userId, AttemptStatus status);
+
     @Modifying
     @Query(value = "UPDATE ExerciseAttemptEntity SET attemptStatus = :newStatus WHERE exercise.id = :exerciseId AND user.id = :userId AND attemptStatus = :oldStatus")
     int changeExistingAttemptsStatus(@Param("exerciseId") Long exerciseId, @Param("userId") Long userId, @Param("oldStatus") AttemptStatus oldStatus, @Param("newStatus") AttemptStatus newStatus);
+
     @Modifying
     @Query(value = "UPDATE ExerciseAttemptEntity SET attemptStatus = :newStatus WHERE exercise.id = :exerciseId AND course.id = :courseId AND user.id = :userId AND attemptStatus = :oldStatus")
     int changeExistingAttemptsStatusByCourse(@Param("exerciseId") Long exerciseId, @Param("courseId") Long courseId, @Param("userId") Long userId, @Param("oldStatus") AttemptStatus oldStatus, @Param("newStatus") AttemptStatus newStatus);

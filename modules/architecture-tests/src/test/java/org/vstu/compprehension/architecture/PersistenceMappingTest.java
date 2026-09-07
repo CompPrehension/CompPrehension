@@ -22,11 +22,7 @@ import static com.tngtech.archunit.lang.syntax.ArchRuleDefinition.fields;
 import static com.tngtech.archunit.lang.syntax.ArchRuleDefinition.methods;
 import static org.vstu.compprehension.architecture.ArchitecturePackages.*;
 
-/**
- * Правила о разметке JPA. Здесь ловится основной источник скрытых N+1: связи,
- * которые грузятся жадно, потому что в JPA {@code @ManyToOne} и {@code @OneToOne}
- * по умолчанию EAGER, и об этом легко забыть.
- */
+/** Правила о разметке JPA. */
 @AnalyzeClasses(locations = ProjectClassesLocationProvider.class, importOptions = ImportOption.DoNotIncludeTests.class)
 public class PersistenceMappingTest {
 
@@ -35,13 +31,7 @@ public class PersistenceMappingTest {
             "jakarta.persistence.OneToOne"
     );
 
-    /**
-     * {@code @ManyToOne}/{@code @OneToOne} обязаны объявлять {@code fetch = LAZY} явно.
-     * <p>
-     * Жадная связь добавляет join (или отдельный запрос) в каждую выборку сущности —
-     * даже там, где связанный объект не нужен. Умолчание в спецификации JPA неудачное,
-     * поэтому требуем писать fetch руками, а не полагаться на него.
-     */
+    /** {@code @ManyToOne}/{@code @OneToOne} обязаны объявлять {@code fetch = LAZY} явно. */
     @ArchTest
     static final ArchRule to_one_associations_must_be_explicitly_lazy =
             fields()
@@ -58,13 +48,7 @@ public class PersistenceMappingTest {
                     .should().resideInAPackage(ENTITIES)
                     .as("JPA entities should reside in " + ENTITIES);
 
-    /**
-     * То же самое для репозиториев.
-     * <p>
-     * Исключение — классы с префиксом {@code Fake}: это рукописные заглушки в памяти
-     * для standalone-генератора вопросов ({@code expr-domain-question-generator}),
-     * а не слой доступа к данным. К БД они не ходят и в приложение не попадают.
-     */
+    /** То же самое для репозиториев (кроме {@code Fake*} — заглушек в expr-domain-question-generator). */
     @ArchTest
     static final ArchRule repositories_should_reside_in_repository_package =
             classes()
@@ -74,14 +58,7 @@ public class PersistenceMappingTest {
                     .should().resideInAPackage(REPOSITORIES)
                     .as("repositories should reside in " + REPOSITORIES);
 
-    /**
-     * Запросы не собирают результат конструктором.
-     * <p>
-     * {@code select new Xxx(a, b, c)} связывает значения по позиции: перестановка двух
-     * полей одного типа компилируется, не бросает исключений и молча отдаёт не те данные.
-     * Интерфейсные проекции Spring Data связываются по имени геттера и такой ошибки
-     * не допускают.
-     */
+    /** Запросы не собирают результат конструктором ({@code select new}) — только интерфейсными проекциями. */
     @ArchTest
     static final ArchRule queries_should_not_use_constructor_expressions =
             methods()
@@ -105,7 +82,7 @@ public class PersistenceMappingTest {
         };
     }
 
-    /** Связи с {@code @NotFound}: Hibernate грузит их жадно независимо от fetch. */
+    /** {@code @NotFound}-связи всегда грузятся жадно, независимо от fetch. */
     private static DescribedPredicate<JavaField> are_not_annotated_with_not_found() {
         return new DescribedPredicate<>("не помечены @NotFound") {
             @Override

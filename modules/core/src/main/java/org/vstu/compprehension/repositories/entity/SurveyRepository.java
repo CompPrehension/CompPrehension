@@ -16,12 +16,6 @@ public interface SurveyRepository extends JpaRepository<SurveyEntity, String> {
     @Query("select s from SurveyQuestionEntity s where s.id = ?1")
     Optional<SurveyQuestionEntity> findSurveyQuestion(Long questionId);
 
-    /**
-     * Голос пользователя в опросе.
-     * <p>
-     * Своя проекция, а не web-контракт: {@code SurveyResultDto} — это ещё и тело входящего
-     * запроса, и его форму диктует фронт. Репозиторий не должен зависеть от неё.
-     */
     interface SurveyVoteView {
         Long getSurveyQuestionId();
         Long getQuestionId();

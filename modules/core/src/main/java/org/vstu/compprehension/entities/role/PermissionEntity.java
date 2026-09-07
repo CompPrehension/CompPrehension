@@ -4,7 +4,7 @@ import jakarta.persistence.*;
 import lombok.Getter;
 import lombok.NoArgsConstructor;
 import org.vstu.compprehension.businesslogic.auth.Permission;
-import org.vstu.compprehension.businesslogic.converters.PermissionConverter;
+import org.vstu.compprehension.entities.converters.PermissionConverter;
 
 @Entity
 @Getter

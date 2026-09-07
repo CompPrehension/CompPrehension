@@ -9,7 +9,7 @@ import org.vstu.compprehension.services.LtiContextProvider;
 import org.vstu.compprehension.businesslogic.lti.LtiContext;
 import org.vstu.compprehension.businesslogic.lti.LtiCourseContext;
 import org.vstu.compprehension.businesslogic.lti.LtiDeepLinkingContext;
-import org.vstu.compprehension.data.enums.EducationResourceType;
+import org.vstu.compprehension.enums.EducationResourceType;
 
 import java.util.List;
 import java.util.Optional;

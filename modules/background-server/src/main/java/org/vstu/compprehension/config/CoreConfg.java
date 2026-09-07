@@ -10,21 +10,17 @@ import org.springframework.context.annotation.Configuration;
 import org.springframework.context.annotation.Primary;
 import org.springframework.data.jpa.repository.config.EnableJpaRepositories;
 import org.springframework.web.context.annotation.SessionScope;
-import org.vstu.compprehension.services.ExerciseAttemptService;
-import org.vstu.compprehension.services.GradePassbackService;
-import org.vstu.compprehension.services.LtiContextProvider;
-import org.vstu.compprehension.services.UserService;
+import org.vstu.compprehension.services.*;
 import org.vstu.compprehension.businesslogic.lti.LtiContext;
 import org.vstu.compprehension.businesslogic.lti.LtiDeepLinkingContext;
 import org.vstu.compprehension.adapter.UserServiceImpl;
 import org.vstu.compprehension.businesslogic.backend.facts.JenaFactList;
 import org.vstu.compprehension.businesslogic.domains.DomainFactory;
 import org.vstu.compprehension.businesslogic.storage.QuestionBank;
+import org.vstu.compprehension.services.questionbank.QuestionBankImpl;
 import org.vstu.compprehension.repositories.data.QuestionBankDataRepository;
 import org.vstu.compprehension.service.BktService;
 import org.vstu.compprehension.strategies.*;
-import org.vstu.compprehension.utils.RandomProvider;
-import org.vstu.compprehension.utils.transactions.TransactionScopeFactory;
 
 import javax.inject.Singleton;
 import java.util.Optional;
@@ -37,37 +33,37 @@ public class CoreConfg {
     @Singleton
     @ConditionalOnProperty(prefix = "bkt", name = "enabled", havingValue = "true")
     BktStrategy getBktStrategy(@Autowired BktService bktService, @Autowired DomainFactory domainFactory,
-                               @Autowired ExerciseAttemptService exerciseAttemptService) {
+                               @Autowired ExerciseAttemptDataService exerciseAttemptService) {
         return new BktStrategy(bktService, domainFactory, exerciseAttemptService);
     }
 
     @Bean
     @Singleton @Primary
     GradeConfidenceBaseStrategy getGradeConfidenceBaseStrategy(@Autowired DomainFactory domainFactory,
-                                                               @Autowired ExerciseAttemptService exerciseAttemptService) {
+                                                               @Autowired ExerciseAttemptDataService exerciseAttemptService) {
         return new GradeConfidenceBaseStrategy(domainFactory, exerciseAttemptService);
     }
     @Bean
     @Singleton
     GradeConfidenceBaseStrategy_Manual50Autogen50 getGradeConfidenceBaseStrategy_Manual50Autogen50(@Autowired DomainFactory domainFactory, @Autowired RandomProvider randomProvider,
-                                                                                                    @Autowired ExerciseAttemptService exerciseAttemptService) {
+                                                                                                    @Autowired ExerciseAttemptDataService exerciseAttemptService) {
         return new GradeConfidenceBaseStrategy_Manual50Autogen50(domainFactory, randomProvider, exerciseAttemptService);
     }
     @Bean
     @Singleton
     StaticStrategy getStaticStrategy(@Autowired DomainFactory domainFactory,
-                                     @Autowired ExerciseAttemptService exerciseAttemptService) {
+                                     @Autowired ExerciseAttemptDataService exerciseAttemptService) {
         return new StaticStrategy(domainFactory, exerciseAttemptService);
     }
     @Bean
     @Singleton
-    Strategy getStrategy(@Autowired DomainFactory domainFactory, @Autowired RandomProvider randomProvider, @Autowired ExerciseAttemptService exerciseAttemptService) {
+    Strategy getStrategy(@Autowired DomainFactory domainFactory, @Autowired RandomProvider randomProvider, @Autowired ExerciseAttemptDataService exerciseAttemptService) {
         return new Strategy(domainFactory, randomProvider, exerciseAttemptService);
     }
 
     @Bean
     @SessionScope
-    UserService getUserService() {
+    UserDataService getUserService() {
         // Фоновому серверу пользователь не нужен: заданий от лица студента он не решает.
         return new UserServiceImpl();
     }
@@ -98,13 +94,13 @@ public class CoreConfg {
     @Bean
     @Singleton
     QuestionBank getQuestionBank(@Autowired QuestionBankDataRepository bankDataRepository) {
-        return new QuestionBank(bankDataRepository);
+        return new QuestionBankImpl(bankDataRepository);
     }
     
     @Bean
     @Singleton
     RandomProvider getRandomProvider() {
-        return new RandomProvider();
+        return new RandomProviderImpl();
     }
 
     @Bean

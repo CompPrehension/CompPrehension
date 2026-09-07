@@ -29,8 +29,6 @@ public class RoleAssignmentService {
 
     /**
      * Роль, которая должна быть у пользователя в курсе.
-     *
-     * @param role null — роли в этом курсе быть не должно
      */
     public record CourseRoleAssignment(Long userId, Long courseId, @Nullable Role role) {
     }
@@ -54,16 +52,6 @@ public class RoleAssignmentService {
         }
     }
 
-    /**
-     * Привести роли пользователей в курсах образовательного ресурса к желаемым.
-     *
-     * @param userIdsToReconcile пользователи, чьи роли пересматриваются; для остальных
-     *                           ничего не меняется
-     * @param desiredAssignments желаемое состояние; роль {@code null} означает, что роли
-     *                           в этом курсе быть не должно
-     * @param coursesToSweep     курсы, в которых роль, не упомянутая в желаемом состоянии,
-     *                           снимается; в остальных курсах лишние роли остаются
-     */
     @Transactional
     public void reconcileCourseRoleAssignments(
             Long educationResourceId,
@@ -113,8 +101,6 @@ public class RoleAssignmentService {
             }
         }
 
-        // Роль в подметаемом курсе, о которой желаемое состояние молчит, снимается:
-        // именно так уходит роль пользователя, отчисленного из курса во внешней системе.
         Set<Long> sweepable = new HashSet<>(coursesToSweep);
         for (var userEntry : currentByUserAndCourse.entrySet()) {
             Map<Long, Role> desiredForUser = desiredByUserAndCourse.getOrDefault(userEntry.getKey(), Map.of());

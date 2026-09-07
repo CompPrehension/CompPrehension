@@ -5,7 +5,7 @@ import jakarta.persistence.*;
 import lombok.*;
 import org.hibernate.annotations.CreationTimestamp;
 import org.hibernate.annotations.Type;
-import org.vstu.compprehension.data.enums.SearchDirections;
+import org.vstu.compprehension.enums.SearchDirections;
 
 import java.util.Date;
 import java.util.List;

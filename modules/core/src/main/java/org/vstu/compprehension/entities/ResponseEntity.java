@@ -1,7 +1,7 @@
 package org.vstu.compprehension.entities;
 
 import lombok.*;
-import org.vstu.compprehension.data.enums.SpecValue;
+import org.vstu.compprehension.enums.SpecValue;
 
 import jakarta.persistence.*;
 

@@ -1,142 +1,45 @@
 package org.vstu.compprehension.controllers;
 
-import org.springframework.beans.factory.annotation.Autowired;
+import lombok.RequiredArgsConstructor;
 import org.springframework.stereotype.Controller;
 import org.springframework.web.bind.annotation.RequestMapping;
 import org.springframework.web.bind.annotation.RequestMethod;
 import org.springframework.web.bind.annotation.ResponseBody;
-import org.vstu.compprehension.data.user.CurrentUserData;
-import org.vstu.compprehension.services.UserService;
-import org.vstu.compprehension.adapters.StrategyFactory;
-import org.vstu.compprehension.dto.*;
-import org.vstu.compprehension.businesslogic.Concept;
-import org.vstu.compprehension.businesslogic.Law;
-import org.vstu.compprehension.businesslogic.Skill;
-import org.vstu.compprehension.businesslogic.backend.DecisionTreeReasonerBackend;
-import org.vstu.compprehension.businesslogic.backend.JenaBackend;
-import org.vstu.compprehension.businesslogic.domains.DomainFactory;
-import org.vstu.compprehension.businesslogic.strategies.AbstractStrategyFactory;
-import org.vstu.compprehension.data.enums.Language;
+import org.vstu.compprehension.enums.Language;
+import org.vstu.compprehension.frontend.ReferenceTableFrontendService;
+import org.vstu.compprehension.frontend.UserFrontendService;
+import org.vstu.compprehension.frontend.dto.DomainDto;
+import org.vstu.compprehension.frontend.dto.StrategyDto;
 
 import java.util.List;
 import java.util.Set;
-import java.util.stream.Collectors;
 
 @Controller
 @RequestMapping({"api/refTables" })
+@RequiredArgsConstructor
 public class ReferenceTableController {
-    private final DomainFactory domainFactory;
-    private final AbstractStrategyFactory strategyFactory;
-    private final UserService userService;
+    private final ReferenceTableFrontendService referenceDataService;
+    private final UserFrontendService userService;
 
-    @Autowired
-    public ReferenceTableController(DomainFactory domainFactory, StrategyFactory strategyFactory, UserService userService) {
-        this.domainFactory = domainFactory;
-        this.strategyFactory = strategyFactory;
-        this.userService = userService;
+    private Language currentLanguage() {
+        return userService.tryGetCurrentUserLanguage().orElse(Language.ENGLISH);
     }
 
     @RequestMapping(value = {"/strategies"}, method = { RequestMethod.GET })
     @ResponseBody
     public List<StrategyDto> getStrategies() {
-        var strategyIds = strategyFactory.getStrategyIds();
-        var currentLanguage = userService.tryGetCurrentUser()
-                .map(CurrentUserData::language)
-                .orElse(Language.ENGLISH);
-        return strategyIds.stream()
-                .map(strategyFactory::getStrategy)
-                .filter(s -> s.getOptions().isVisibleToUser())
-                .map(s -> StrategyDto.builder()
-                        .id(s.getStrategyId())
-                        .displayName(s.getDisplayName(currentLanguage))
-                        .description(s.getDescription(currentLanguage))
-                        .options(s.getOptions())
-                        .build())
-                .collect(Collectors.toList());
+        return referenceDataService.getStrategies(currentLanguage());
     }
 
     @RequestMapping(value = {"/backends"}, method = { RequestMethod.GET })
     @ResponseBody
     public Set<String> getBackends() {
-        return Set.of(JenaBackend.BackendId, DecisionTreeReasonerBackend.BACKEND_ID);
+        return referenceDataService.getBackendIds();
     }
 
     @RequestMapping(value = {"/domains"}, method = { RequestMethod.GET })
     @ResponseBody
-    public List<DomainDto> getDomains() throws Exception {
-        var domainIds= domainFactory.getDomainIds();
-        var currentLanguage = userService.tryGetCurrentUser()
-                .map(CurrentUserData::language)
-                .orElse(Language.ENGLISH);
-        return domainIds.stream()
-                .map(domainFactory::getDomain)
-                .map(d -> DomainDto.builder()
-                        .id(d.getDomainId())
-                        .displayName(d.getDisplayName(currentLanguage))
-                        .description(d.getDescription(currentLanguage))
-                        .tags(d.getTags().keySet().stream().toList())
-                        .concepts(d.getConceptsSimplifiedHierarchy(Concept.FLAG_VISIBLE_TO_TEACHER)
-                                .entrySet()
-                                .stream()
-                                .map(kv -> new ConceptTreeItemDto(
-                                        kv.getKey().getName(),
-                                        d.getConceptDisplayName(kv.getKey().getName(), currentLanguage),
-                                        kv.getKey().getBitflags(),
-                                        kv.getValue().stream().map(z -> new ConceptTreeItemDto(
-                                                z.getName(),
-                                                d.getConceptDisplayName(z.getName(), currentLanguage),
-                                                z.getBitflags())
-                                        ).toArray(ConceptTreeItemDto[]::new)))
-                                .collect(Collectors.toList()))
-                        .laws(d.getLawsSimplifiedHierarchy(Law.FLAG_VISIBLE_TO_TEACHER)
-                                .entrySet()
-                                .stream()
-                                .map(kv -> new LawTreeItemDto(
-                                        kv.getKey().getName(),
-                                        d.getLawDisplayName(kv.getKey().getName(), currentLanguage),
-                                        kv.getKey().getBitflags(),
-                                        kv.getValue().stream().map(z -> new LawTreeItemDto(
-                                                z.getName(),
-                                                d.getLawDisplayName(z.getName(), currentLanguage),
-                                                z.getBitflags())
-                                        ).toArray(LawTreeItemDto[]::new)))
-                                .collect(Collectors.toList()))
-                        .skills(d.getSkillSimplifiedHierarchy(Skill.FLAG_VISIBLE_TO_TEACHER)
-                                .entrySet()
-                                .stream()
-                                .map(kv -> new SkillTreeItemDto(
-                                        kv.getKey().getName(),
-                                        d.getSkillDisplayName(kv.getKey().getName(), currentLanguage),
-                                        kv.getValue().stream().map(z -> new SkillTreeItemDto(
-                                                z.getName(),
-                                                d.getLawDisplayName(z.getName(), currentLanguage),
-                                                z.getBitflags()
-                                                )
-                                        ).toArray(SkillTreeItemDto[]::new),
-                                        kv.getKey().getBitflags()
-                                ))
-                                .collect(Collectors.toList()))
-                        .build())
-                .collect(Collectors.toList());
+    public List<DomainDto> getDomains() {
+        return referenceDataService.getDomains(currentLanguage());
     }
-
-    /*
-    @RequestMapping(value = {"/domainLaws"}, method = { RequestMethod.GET })
-    @ResponseBody
-    public List<Law> getDomainLaws(String domaindId) {
-        var domain = domainFactory.getDomain(domaindId);
-        var laws1 = domain.getPositiveLaws();
-        var laws2 = domain.getNegativeLaws();
-
-        return Stream.concat(laws1.stream(), laws2.stream())
-                .collect(Collectors.toList());
-    }
-
-    @RequestMapping(value = {"/domainConcepts"}, method = { RequestMethod.GET })
-    @ResponseBody
-    public List<Concept> getConcepts(String domaindId) {
-        var domain = domainFactory.getDomain(domaindId);
-        return domain.getConcepts();
-    }
-    */
 }

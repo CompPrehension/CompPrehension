@@ -14,11 +14,6 @@ import java.util.Optional;
 @Repository
 public interface ExternalAccountRepository extends JpaRepository<ExternalAccountEntity, ExternalAccountId> {
 
-    /**
-     * Inserts a row only if no row with the same ({@link ExternalAccountId#userId}, {@link ExternalAccountId#educationResourceId}) exists.
-     *
-     * @return number of affected rows
-     */
     @Modifying(clearAutomatically = true)
     @Query(value = """
             INSERT IGNORE INTO external_account (user_id, education_resource_id, external_id)

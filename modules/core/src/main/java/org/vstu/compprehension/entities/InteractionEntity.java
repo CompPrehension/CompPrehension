@@ -5,7 +5,7 @@ import lombok.*;
 import org.hibernate.annotations.CreationTimestamp;
 import org.hibernate.annotations.NotFound;
 import org.hibernate.annotations.NotFoundAction;
-import org.vstu.compprehension.data.enums.InteractionType;
+import org.vstu.compprehension.enums.InteractionType;
 
 import java.util.ArrayList;
 import java.util.Date;

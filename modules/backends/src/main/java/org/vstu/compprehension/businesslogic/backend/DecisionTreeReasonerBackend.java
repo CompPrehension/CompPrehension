@@ -1,5 +1,6 @@
 package org.vstu.compprehension.businesslogic.backend;
 
+import org.vstu.compprehension.enums.RoleInExercise;
 import org.vstu.compprehension.data.question.ViolationData;
 import io.brookite.termannotations.DomainTermAnnotationProcessor;
 import its.model.TypedVariable;
@@ -18,14 +19,14 @@ import org.springframework.stereotype.Component;
 import org.springframework.context.annotation.Scope;
 import org.springframework.context.annotation.ScopedProxyMode;
 import org.vstu.compprehension.common.Utils;
-import org.vstu.compprehension.dto.ExerciseSkillDto;
+import org.vstu.compprehension.frontend.dto.ExerciseSkillDto;
 import org.vstu.compprehension.businesslogic.DomainToBackendAdapter;
 import org.vstu.compprehension.businesslogic.Explanation;
 import org.vstu.compprehension.businesslogic.Question;
 import org.vstu.compprehension.businesslogic.domains.Domain;
 import org.vstu.compprehension.businesslogic.domains.DomainBase;
-import org.vstu.compprehension.data.enums.Language;
-import org.vstu.compprehension.utils.HyperText;
+import org.vstu.compprehension.enums.Language;
+import org.vstu.compprehension.businesslogic.HyperText;
 
 import java.util.*;
 import java.util.stream.Collectors;
@@ -317,7 +318,9 @@ public class DecisionTreeReasonerBackend
             List<String> deniedSkills = List.of();
             if (exerciseStage.isPresent()) {
                 deniedSkills = exerciseStage.get().getSkills()
-                        .stream().map(ExerciseSkillDto::getName).toList();
+                        .stream()
+                        .filter(s -> RoleInExercise.FORBIDDEN.equals(s.getKind()))
+                        .map(ExerciseSkillDto::getName).toList();
             }
             result.explanation = collectExplanationsFromTrace(Explanation.Type.ERROR, backendOutput.results,
                     backendOutput.situation.getDomainModel(),

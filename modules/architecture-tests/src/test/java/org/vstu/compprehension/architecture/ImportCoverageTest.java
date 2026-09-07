@@ -9,15 +9,7 @@ import org.junit.jupiter.api.Assertions;
 
 import static org.vstu.compprehension.architecture.ArchitecturePackages.*;
 
-/**
- * Страховка от главного способа обесценить архитектурные тесты: правило перестаёт
- * находить классы и с тех пор всегда зелёное.
- * <p>
- * Так уже было — server пакуется в spring-boot fat-jar, классы лежат под
- * {@code BOOT-INF/classes/}, и импорт по classpath не видел ни одного контроллера.
- * Правила про контроллеры при этом «проходили». Здесь проверяется, что каждый слой,
- * на который есть правила, реально попал в анализ.
- */
+/** Страховка от того, что правило перестанет находить классы своего слоя и станет всегда зелёным. */
 @AnalyzeClasses(locations = ProjectClassesLocationProvider.class, importOptions = ImportOption.DoNotIncludeTests.class)
 public class ImportCoverageTest {
 
@@ -31,6 +23,8 @@ public class ImportCoverageTest {
         assertNotEmpty(classes, "services", c -> c.getPackageName().contains(".service"));
         assertNotEmpty(classes, "web DTOs", c -> c.getPackageName().contains(".dto"));
         assertNotEmpty(classes, "JPA entities", c -> c.isAnnotatedWith(Entity.class));
+        assertNotEmpty(classes, "mappers", c -> c.getPackageName().contains(".mappers"));
+        assertNotEmpty(classes, "strategies", c -> c.getPackageName().contains(".strategies"));
     }
 
     private static void assertNotEmpty(

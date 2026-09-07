@@ -20,11 +20,9 @@ import org.apache.logging.log4j.Level;
 import org.jetbrains.annotations.NotNull;
 import org.vstu.compprehension.businesslogic.Law;
 import org.vstu.compprehension.businesslogic.LawFormulation;
-import org.vstu.compprehension.businesslogic.backend.facts.Fact;
 import org.vstu.compprehension.businesslogic.backend.facts.JenaFact;
 import org.vstu.compprehension.businesslogic.backend.facts.JenaFactList;
 import org.vstu.compprehension.businesslogic.backend.util.MakeNamedSkolem;
-import org.vstu.compprehension.businesslogic.backend.util.ReasoningOptions;
 import org.vstu.compprehension.utils.Checkpointer;
 
 import java.io.FileNotFoundException;

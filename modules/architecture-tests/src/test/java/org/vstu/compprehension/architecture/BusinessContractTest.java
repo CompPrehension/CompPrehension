@@ -25,20 +25,7 @@ import static com.tngtech.archunit.lang.syntax.ArchRuleDefinition.noClasses;
 import static org.vstu.compprehension.architecture.ArchitecturePackages.ROOT;
 import static org.vstu.compprehension.architecture.ArchitecturePackages.STRATEGIES;
 
-/**
- * Контракты предметного ядра — {@code Domain}, {@code Backend}, {@code AbstractStrategy}
- * и типы, объявленные внутри них, — не должны говорить о себе JPA-сущностями.
- * <p>
- * Сущность в сигнатуре означает, что реализация обязана получить объект, живущий в сессии
- * Hibernate, и что вызывающий обязан открыть транзакцию. Это привязывает предметную логику
- * к способу хранения и делает её нетестируемой без базы. {@code Backend} показывает, что
- * так можно не делать: он параметризован {@code BackendInput}/{@code BackendOutput}
- * и о персистентности не знает вовсе.
- * <p>
- * Правило смотрит только на сигнатуры (типы параметров, возвращаемые типы, поля),
- * разворачивая дженерики: {@code List<ResponseEntity>} — такое же нарушение, как
- * {@code ResponseEntity}. Тела default-методов не проверяются: это реализация, а не контракт.
- */
+/** Контракты предметного ядра ({@code Domain}, {@code Backend}, {@code AbstractStrategy}) не используют JPA-сущности в сигнатурах. */
 @AnalyzeClasses(locations = ProjectClassesLocationProvider.class, importOptions = ImportOption.DoNotIncludeTests.class)
 public class BusinessContractTest {
 
@@ -49,16 +36,7 @@ public class BusinessContractTest {
                     .should(not_expose_jpa_entities_in_signatures())
                     .as("domain contracts should not expose JPA entities");
 
-    /**
-     * Стратегии работают только с данными, которые им дали сервисы.
-     * <p>
-     * JPA-сущность у стратегии означала бы, что она обходит ленивый граф и порождает
-     * скрытые N+1, а вызывающий обязан держать открытой транзакцию. Данные для стратегий
-     * собирают сервисы фиксированным числом запросов и отдают отсоединёнными
-     * (см. {@code org.vstu.compprehension.data}).
-     * <p>
-     * Правило строгое, без заморозки: долг здесь выбран до нуля, и возвращаться нельзя.
-     */
+    /** Стратегии не используют JPA-сущности. */
     @ArchTest
     static final ArchRule strategies_should_not_use_jpa_entities =
             noClasses()
@@ -74,11 +52,7 @@ public class BusinessContractTest {
                     .should().dependOnClassesThat().areAssignableTo(Repository.class)
                     .as("strategies should not access repositories");
 
-    /**
-     * Контракт — это интерфейс в предметных пакетах или тип, объявленный внутри такого
-     * интерфейса (например, {@code Domain.InterpretSentenceResult}: формально это класс,
-     * но возвращается методом интерфейса, то есть часть контракта).
-     */
+    /** Контракт — интерфейс или тип, объявленный внутри него. */
     private static DescribedPredicate<JavaClass> are_business_logic_contracts() {
         return new DescribedPredicate<>("являются контрактами предметного ядра") {
             @Override
@@ -129,7 +103,7 @@ public class BusinessContractTest {
         }
     }
 
-    /** Разворачивает дженерики: из {@code List<ViolationEntity>} достаёт и List, и сущность. */
+    /** Разворачивает дженерики. */
     private static Set<JavaClass> flatten(JavaType type) {
         Set<JavaClass> result = new LinkedHashSet<>();
         collect(type, result);

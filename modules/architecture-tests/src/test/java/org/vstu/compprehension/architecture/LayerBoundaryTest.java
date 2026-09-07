@@ -10,23 +10,11 @@ import org.springframework.data.repository.Repository;
 import static com.tngtech.archunit.lang.syntax.ArchRuleDefinition.noClasses;
 import static org.vstu.compprehension.architecture.ArchitecturePackages.*;
 
-/**
- * Правила о том, что какой слой имеет право видеть.
- * <p>
- * Смысл именно в направлении зависимостей: web знает про приложение, приложение — про
- * persistence, и никогда наоборот. Нарушения этих правил — то, из-за чего сейчас
- * ленивые коллекции догружаются в контроллерах и мапперах, порождая скрытые N+1.
- */
+/** Правила о направлении зависимостей между слоями. */
 @AnalyzeClasses(locations = ProjectClassesLocationProvider.class, importOptions = ImportOption.DoNotIncludeTests.class)
 public class LayerBoundaryTest {
 
-    /**
-     * Репозиторий не должен знать про типы, которые отдаются наружу по HTTP.
-     * Проекции для чтения — это отдельные типы, живущие рядом с репозиторием;
-     * иначе изменение формата ответа API заставляет править JPQL.
-     * <p>
-     * Правило строгое, без заморозки: долг выбран до нуля и возвращаться не должен.
-     */
+    /** Репозиторий не должен знать про web-DTO. */
     @ArchTest
     static final ArchRule repositories_should_not_depend_on_web_dto =
             noClasses()
@@ -34,13 +22,7 @@ public class LayerBoundaryTest {
                     .should().dependOnClassesThat().resideInAPackage(DTO)
                     .as("repositories should not depend on web DTOs");
 
-    /**
-     * Главное правило про N+1: JPA-сущность не выходит за границу сервиса.
-     * За пределами транзакции у сущности ленивые связи либо взрываются, либо (при
-     * open-in-view=true) молча делают дополнительные запросы.
-     * <p>
-     * Правило строгое, без заморозки: долг выбран до нуля и возвращаться не должен.
-     */
+    /** JPA-сущность не выходит за пределы сервиса в контроллер. */
     @ArchTest
     static final ArchRule entities_should_not_leak_into_controllers =
             noClasses()
@@ -56,10 +38,7 @@ public class LayerBoundaryTest {
                     .should().dependOnClassesThat().areAssignableTo(Repository.class)
                     .as("controllers should not access repositories directly");
 
-    /**
-     * DTO — плоский снимок данных. Ссылка на сущность внутри DTO означает, что
-     * сериализация Jackson пойдёт по ленивому графу уже после закрытия транзакции.
-     */
+    /** DTO не ссылается на JPA-сущности. */
     @ArchTest
     static final ArchRule dtos_should_not_depend_on_entities =
             noClasses()
@@ -76,14 +55,7 @@ public class LayerBoundaryTest {
                     .orShould().dependOnClassesThat().resideInAPackage(REPOSITORIES)
                     .as("entities should not depend on services or repositories");
 
-    /**
-     * В репозитории Spring Data ходит только слой доступа к данным.
-     * <p>
-     * Всё, что выше — сервисы, домены, стратегии, решатели, фоновые задания, — работает
-     * с {@code *Data} через классы из {@code repositories.data}. Так форма выборки
-     * и разбор её результата остаются рядом друг с другом: репозиторий сущностей,
-     * вызванный из сервиса, отдаёт граф, о полноте которого сервис ничего не знает.
-     */
+    /** Spring Data репозитории использует только слой доступа к данным. */
     @ArchTest
     static final ArchRule spring_data_repositories_should_be_used_only_by_the_data_access_layer =
             noClasses()
@@ -91,14 +63,7 @@ public class LayerBoundaryTest {
                     .should().dependOnClassesThat().areAssignableTo(Repository.class)
                     .as("only the data access layer should use Spring Data repositories");
 
-    /**
-     * JPA-сущность не выходит за пределы слоя доступа к данным.
-     * <p>
-     * Та же причина, что и у правила про контроллеры, только шире: у сущности за
-     * границей транзакции ленивые связи либо взрываются, либо молча делают запросы.
-     * Домены и стратегии тем более не должны их видеть — они обязаны работать
-     * с отсоединёнными данными.
-     */
+    /** JPA-сущность не выходит за пределы слоя доступа к данным. */
     @ArchTest
     static final ArchRule entities_should_not_leak_out_of_the_data_access_layer =
             noClasses()

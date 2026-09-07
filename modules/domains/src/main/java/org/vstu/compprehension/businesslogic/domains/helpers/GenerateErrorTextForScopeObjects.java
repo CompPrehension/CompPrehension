@@ -7,7 +7,7 @@ import its.model.nodes.BranchResult;
 import its.model.nodes.BranchResultNode;
 import its.reasoner.nodes.DecisionTreeTrace;
 import org.vstu.compprehension.businesslogic.Explanation;
-import org.vstu.compprehension.data.enums.Language;
+import org.vstu.compprehension.enums.Language;
 
 import java.util.ArrayList;
 import java.util.List;

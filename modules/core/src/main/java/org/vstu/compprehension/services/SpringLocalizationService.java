@@ -4,7 +4,7 @@ import lombok.extern.log4j.Log4j2;
 import org.jetbrains.annotations.NotNull;
 import org.springframework.context.MessageSource;
 import org.springframework.stereotype.Service;
-import org.vstu.compprehension.data.enums.Language;
+import org.vstu.compprehension.enums.Language;
 
 import java.util.Locale;
 

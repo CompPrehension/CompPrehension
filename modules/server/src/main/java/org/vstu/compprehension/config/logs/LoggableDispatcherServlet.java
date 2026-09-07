@@ -9,7 +9,7 @@ import org.springframework.web.servlet.DispatcherServlet;
 import org.springframework.web.servlet.HandlerExecutionChain;
 import org.springframework.web.util.ContentCachingResponseWrapper;
 import org.springframework.web.util.WebUtils;
-import org.vstu.compprehension.services.UserService;
+import org.vstu.compprehension.services.UserDataService;
 import org.vstu.compprehension.config.cache.CachedHttpServletRequest;
 
 import java.io.*;
@@ -20,9 +20,9 @@ import java.util.stream.Collectors;
 
 @Log4j2
 public class LoggableDispatcherServlet extends DispatcherServlet {
-    private final UserService userService;
+    private final UserDataService userService;
 
-    public LoggableDispatcherServlet(UserService userService) {
+    public LoggableDispatcherServlet(UserDataService userService) {
         this.userService = userService;
     }
 

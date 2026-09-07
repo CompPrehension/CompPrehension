@@ -6,8 +6,8 @@ import com.fasterxml.jackson.databind.ObjectMapper;
 import org.junit.jupiter.api.Test;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.http.MediaType;
-import org.vstu.compprehension.dto.ExerciseCardDto;
-import org.vstu.compprehension.dto.ExerciseStageDto;
+import org.vstu.compprehension.frontend.dto.ExerciseCardDto;
+import org.vstu.compprehension.frontend.dto.ExerciseStageDto;
 import org.vstu.compprehension.repositories.entity.ExerciseRepository;
 
 import java.util.ArrayList;

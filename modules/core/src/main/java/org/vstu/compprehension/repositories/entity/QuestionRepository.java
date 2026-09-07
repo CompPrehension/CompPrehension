@@ -12,13 +12,6 @@ import java.util.Optional;
 @Repository
 public interface QuestionRepository extends JpaRepository<QuestionEntity, Long> {
 
-    /**
-     * Вопрос с метаданными и сериализованным телом из банка заданий.
-     * <p>
-     * Первый из запросов, которыми {@code QuestionDataRepository} собирает полный
-     * {@code QuestionData}. Метаданные могут отсутствовать (вопрос сгенерирован не из
-     * банка), поэтому left join; тело банка, наоборот, обязательно, если метаданные есть.
-     */
     @Query("""
             select q from QuestionEntity q
             left join fetch q.metadata m
@@ -35,7 +28,6 @@ public interface QuestionRepository extends JpaRepository<QuestionEntity, Long> 
             """)
     Optional<QuestionEntity> findByIdFetchingAnswerObjects(@Param("questionId") long questionId);
 
-    /** Имя домена вопроса — без подъёма самой сущности домена. */
     @Query("select q.domainEntity.name from QuestionEntity q where q.id = :questionId")
     Optional<String> findDomainName(@Param("questionId") long questionId);
 
@@ -46,10 +38,7 @@ public interface QuestionRepository extends JpaRepository<QuestionEntity, Long> 
     Optional<Long> findOwnerUserId(@Param("questionId") Long questionId);
 
     /**
-     * Вопросы попытки вместе с метаданными — одним запросом, в порядке выдачи.
-     * <p>
-     * Порядок задан явно: у {@code ExerciseAttemptEntity.questions} нет {@code @OrderBy},
-     * и код полагался на то, в каком порядке строки вернёт БД.
+     * Вопросы попытки вместе с метаданными.
      */
     @Query("""
             select q from QuestionEntity q

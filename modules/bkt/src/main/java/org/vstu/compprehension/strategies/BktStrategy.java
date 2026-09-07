@@ -6,13 +6,13 @@ import lombok.val;
 import org.jetbrains.annotations.NotNull;
 import org.jetbrains.annotations.Nullable;
 import org.springframework.beans.factory.annotation.Autowired;
-import org.vstu.compprehension.data.enums.Decision;
-import org.vstu.compprehension.data.enums.Language;
-import org.vstu.compprehension.data.enums.RoleInExercise;
-import org.vstu.compprehension.services.ExerciseAttemptService;
+import org.vstu.compprehension.enums.Decision;
+import org.vstu.compprehension.enums.Language;
+import org.vstu.compprehension.enums.RoleInExercise;
+import org.vstu.compprehension.services.ExerciseAttemptDataService;
 import org.vstu.compprehension.service.BktService;
-import org.vstu.compprehension.dto.ExerciseSkillDto;
-import org.vstu.compprehension.data.exerciseattempt.AttemptInteractionData;
+import org.vstu.compprehension.frontend.dto.ExerciseSkillDto;
+import org.vstu.compprehension.data.exerciseattempt.AttemptQuestionInteractionData;
 import org.vstu.compprehension.data.exerciseattempt.AttemptQuestionData;
 import org.vstu.compprehension.data.exercise.ExerciseAttemptWithQuestionsData;
 import org.vstu.compprehension.businesslogic.Concept;
@@ -40,7 +40,7 @@ public class BktStrategy extends StrategyBase {
 
     @Autowired
     public BktStrategy(BktService bktService, DomainFactory domainFactory,
-                       ExerciseAttemptService exerciseAttemptService) {
+                       ExerciseAttemptDataService exerciseAttemptService) {
         super(exerciseAttemptService);
         this.bktService = bktService;
         this.domainFactory = domainFactory;
@@ -307,7 +307,7 @@ public class BktStrategy extends StrategyBase {
         if (q.interactions().isEmpty()) {
             return false;
         }
-        AttemptInteractionData last = q.interactions().getLast();
+        AttemptQuestionInteractionData last = q.interactions().getLast();
         return last.interactionsLeft() == 0;
     }
 

@@ -22,29 +22,29 @@ import lombok.val;
 import org.apache.commons.lang3.NotImplementedException;
 import org.jetbrains.annotations.NotNull;
 import org.jetbrains.annotations.Nullable;
-import org.vstu.compprehension.services.SupplementaryStepService;
+import org.vstu.compprehension.services.RandomProvider;
+import org.vstu.compprehension.services.SupplementaryStepDataService;
 import org.vstu.compprehension.data.question.QuestionMetadataData;
 import org.vstu.compprehension.data.question.QuestionInteractionData;
 import org.vstu.compprehension.data.question.QuestionData;
 import org.vstu.compprehension.data.question.AnswerObjectData;
 import org.vstu.compprehension.data.question.ResponseData;
-import org.vstu.compprehension.services.ExerciseAttemptService;
+import org.vstu.compprehension.services.ExerciseAttemptDataService;
 import org.vstu.compprehension.services.LocalizationService;
 import org.vstu.compprehension.common.StringHelper;
 import org.vstu.compprehension.data.domain.DomainData;
 import org.vstu.compprehension.businesslogic.*;
 import org.vstu.compprehension.businesslogic.backend.DecisionTreeReasonerBackend;
 import org.vstu.compprehension.businesslogic.backend.JenaBackend;
-import org.vstu.compprehension.businesslogic.backend.facts.Fact;
+import org.vstu.compprehension.businesslogic.backend.Fact;
 import org.vstu.compprehension.businesslogic.backend.facts.JenaFactList;
 import org.vstu.compprehension.businesslogic.storage.QuestionBank;
-import org.vstu.compprehension.data.enums.InteractionType;
-import org.vstu.compprehension.data.enums.FeedbackType;
-import org.vstu.compprehension.data.enums.Language;
-import org.vstu.compprehension.data.enums.QuestionType;
-import org.vstu.compprehension.data.enums.SearchDirections;
-import org.vstu.compprehension.utils.HyperText;
-import org.vstu.compprehension.utils.RandomProvider;
+import org.vstu.compprehension.enums.InteractionType;
+import org.vstu.compprehension.enums.FeedbackType;
+import org.vstu.compprehension.enums.Language;
+import org.vstu.compprehension.enums.QuestionType;
+import org.vstu.compprehension.enums.SearchDirections;
+import org.vstu.compprehension.businesslogic.HyperText;
 
 import java.util.*;
 import java.util.stream.Collectors;
@@ -86,8 +86,8 @@ public class DataFlowDTDomain extends DecisionTreeReasoningDomain {
             DomainData domainData,
             LocalizationService localizationService,
             RandomProvider randomProvider,
-            ExerciseAttemptService exerciseAttemptService,
-            SupplementaryStepService supplementaryStepService,
+            ExerciseAttemptDataService exerciseAttemptService,
+            SupplementaryStepDataService supplementaryStepService,
             QuestionBank qMetaStorage
     ) {
         super(domainData, randomProvider, exerciseAttemptService, supplementaryStepService);

@@ -2,13 +2,13 @@ package org.vstu.compprehension.strategies;
 
 import org.jetbrains.annotations.NotNull;
 import org.jetbrains.annotations.Nullable;
-import org.vstu.compprehension.services.ExerciseAttemptService;
+import org.vstu.compprehension.services.ExerciseAttemptDataService;
 import org.vstu.compprehension.businesslogic.QuestionRequest;
 import org.vstu.compprehension.businesslogic.domains.DomainFactory;
 import org.vstu.compprehension.businesslogic.strategies.StrategyOptions;
-import org.vstu.compprehension.data.enums.Language;
-import org.vstu.compprehension.data.enums.SearchDirections;
-import org.vstu.compprehension.utils.RandomProvider;
+import org.vstu.compprehension.enums.Language;
+import org.vstu.compprehension.enums.SearchDirections;
+import org.vstu.compprehension.services.RandomProvider;
 
 /**
  * Modification of GradeConfidenceBaseStrategy that sets 50/50 probability to select manual or auto-generated question.
@@ -18,7 +18,7 @@ public class GradeConfidenceBaseStrategy_Manual50Autogen50 extends GradeConfiden
     private final RandomProvider randomProvider;
 
     public GradeConfidenceBaseStrategy_Manual50Autogen50(DomainFactory domainFactory, RandomProvider randomProvider,
-                                                         ExerciseAttemptService exerciseAttemptService) {
+                                                         ExerciseAttemptDataService exerciseAttemptService) {
         super(domainFactory, exerciseAttemptService);
         this.options = StrategyOptions.builder()
                 .multiStagesEnabled(false)

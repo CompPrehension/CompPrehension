@@ -2,22 +2,22 @@ package org.vstu.compprehension.businesslogic.domains;
 
 import its.model.DomainSolvingModel;
 import org.jetbrains.annotations.NotNull;
-import org.vstu.compprehension.services.SupplementaryStepService;
+import org.vstu.compprehension.services.RandomProvider;
+import org.vstu.compprehension.services.SupplementaryStepDataService;
 import org.vstu.compprehension.data.question.ResponseData;
-import org.vstu.compprehension.services.ExerciseAttemptService;
+import org.vstu.compprehension.services.ExerciseAttemptDataService;
 import org.vstu.compprehension.data.domain.DomainData;
 import org.vstu.compprehension.businesslogic.Question;
 import org.vstu.compprehension.businesslogic.Tag;
 import org.vstu.compprehension.businesslogic.backend.DecisionTreeReasonerBackend;
-import org.vstu.compprehension.data.enums.Language;
-import org.vstu.compprehension.utils.RandomProvider;
+import org.vstu.compprehension.enums.Language;
 
 import java.util.List;
 
 public abstract class DecisionTreeReasoningDomain extends DomainBase {
     protected DecisionTreeReasoningDomain(DomainData domainData, RandomProvider randomProvider,
-            ExerciseAttemptService exerciseAttemptService,
-            SupplementaryStepService supplementaryStepService) {
+            ExerciseAttemptDataService exerciseAttemptService,
+            SupplementaryStepDataService supplementaryStepService) {
         super(domainData, randomProvider, exerciseAttemptService, supplementaryStepService);
     }
 

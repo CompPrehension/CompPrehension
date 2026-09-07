@@ -1,90 +1,65 @@
 package org.vstu.compprehension.controllers;
 
 import com.fasterxml.jackson.databind.node.ObjectNode;
+import lombok.RequiredArgsConstructor;
 import lombok.SneakyThrows;
-import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Controller;
 import org.springframework.web.bind.annotation.*;
-import org.vstu.compprehension.services.AuthService;
-import org.vstu.compprehension.services.AuthScopeFactory;
-import org.vstu.compprehension.services.CourseService;
-import org.vstu.compprehension.services.ExercisePermissionService;
-import org.vstu.compprehension.services.ExerciseService;
-import org.vstu.compprehension.services.UserService;
-import org.vstu.compprehension.dto.ExerciseCardDto;
-import org.vstu.compprehension.dto.ExerciseDto;
-import org.vstu.compprehension.dto.ExerciseListDto;
+import org.vstu.compprehension.frontend.AuthFrontendService;
+import org.vstu.compprehension.frontend.ExerciseAttemptFrontendService;
+import org.vstu.compprehension.frontend.ExerciseFrontendService;
+import org.vstu.compprehension.frontend.UserFrontendService;
+import org.vstu.compprehension.frontend.dto.ExerciseCardDto;
+import org.vstu.compprehension.frontend.dto.ExerciseListDto;
 import org.vstu.compprehension.businesslogic.auth.AuthObjects.SystemPermission;
-
-import java.util.List;
 
 @Controller
 @RequestMapping("api")
+@RequiredArgsConstructor
 public class ExerciseSettingsController {
-    private final ExerciseService exerciseService;
-    private final UserService userService;
-    private final AuthService authService;
-    private final AuthScopeFactory authScopes;
-    private final ExercisePermissionService exercisePermissionService;
-
-    @Autowired
-    public ExerciseSettingsController(ExerciseService exerciseService,
-                                      UserService userService,
-                                      AuthService authService,
-                                      AuthScopeFactory authScopes,
-                                      ExercisePermissionService exercisePermissionService) {
-        this.exerciseService = exerciseService;
-        this.userService = userService;
-        this.authService = authService;
-        this.authScopes = authScopes;
-        this.exercisePermissionService = exercisePermissionService;
-    }
+    private final ExerciseFrontendService exerciseService;
+    private final UserFrontendService userService;
+    private final AuthFrontendService authService;
 
     @SneakyThrows
     @RequestMapping(value = {"exercise"}, method = {RequestMethod.GET})
     @ResponseBody
     public ExerciseCardDto get(@RequestParam("id") long id, @RequestParam(value = "courseId", required = false) Long courseId) {
-        var userId = userService.getCurrentUser().id();
-        authService.ensureAuthorized(userId, SystemPermission.VIEW_EXERCISE, authScopes.courseOrGlobal(courseId));
-        var exercise = exerciseService.getExerciseInContext(id, courseId);
-        return exerciseService.getExerciseCard(
-                exercise, exercisePermissionService.ofExercise(userId, exercise, courseId));
+        var userId = userService.getCurrentUserId();
+        authService.ensureAuthorized(userId, SystemPermission.VIEW_EXERCISE, authService.courseOrGlobal(courseId));
+        return exerciseService.getExerciseCard(id, courseId, userId);
     }
 
     @SneakyThrows
     @RequestMapping(value = {"exercise/list"}, method = {RequestMethod.GET})
     @ResponseBody
     public ExerciseListDto list(@RequestParam(value = "courseId", required = false) Long courseId) {
-        var userId = userService.getCurrentUser().id();
-        authService.ensureAuthorized(userId, SystemPermission.VIEW_EXERCISE, authScopes.courseOrGlobal(courseId));
-        List<ExerciseDto> exercises = courseId != null
-                ? exerciseService.getCourseExercises(courseId)
-                : exerciseService.getPublicExercises();
-        return new ExerciseListDto(exercises, exercisePermissionService.ofExerciseList(userId, courseId));
+        var userId = userService.getCurrentUserId();
+        authService.ensureAuthorized(userId, SystemPermission.VIEW_EXERCISE, authService.courseOrGlobal(courseId));
+        return exerciseService.listExercises(courseId, userId);
     }
 
     @SneakyThrows
     @RequestMapping(value = {"exercise"}, method = {RequestMethod.POST})
     @ResponseBody
     public void update(@RequestBody ExerciseCardDto card, @RequestParam(value = "courseId", required = false) Long courseId) {
-        var userId = userService.getCurrentUser().id();
-        authService.ensureAuthorized(userId, SystemPermission.EDIT_EXERCISE, authScopes.courseOrGlobal(courseId));
-        exerciseService.ensureNotInheritedInCourse(card.getId(), courseId);
-        exerciseService.saveExerciseCard(card);
+        var userId = userService.getCurrentUserId();
+        authService.ensureAuthorized(userId, SystemPermission.EDIT_EXERCISE, authService.courseOrGlobal(courseId));
+        exerciseService.saveExerciseCard(card, courseId);
     }
 
     @SneakyThrows
     @RequestMapping(value = {"exercise"}, method = {RequestMethod.PUT})
     @ResponseBody
     public long create(@RequestBody ObjectNode json) {
-        var userId = userService.getCurrentUser().id();
+        var userId = userService.getCurrentUserId();
         var name = json.get("name").asText();
         var domainId = json.get("domainId").asText();
         var strategyId = json.get("strategyId").asText();
         var courseId = json.has("courseId") && !json.get("courseId").isNull()
                 ? json.get("courseId").asLong()
                 : null;
-        authService.ensureAuthorized(userId, SystemPermission.CREATE_EXERCISE, authScopes.courseOrGlobal(courseId));
+        authService.ensureAuthorized(userId, SystemPermission.CREATE_EXERCISE, authService.courseOrGlobal(courseId));
         return exerciseService.createExerciseAndGetId(name, domainId, strategyId, courseId);
     }
 
@@ -93,11 +68,9 @@ public class ExerciseSettingsController {
     @ResponseBody
     public long clone(@PathVariable("id") long id,
                       @RequestParam(value = "courseId", required = false) Long courseId) {
-        var userId = userService.getCurrentUser().id();
-        // courseId здесь — куда клонируем, поэтому доступ к источнику проверяется отдельно,
-        // в его собственном контексте.
-        authService.ensureAuthorized(userId, SystemPermission.CREATE_EXERCISE, authScopes.courseOrGlobal(courseId));
-        exercisePermissionService.ensureCanViewSource(userId, id);
+        var userId = userService.getCurrentUserId();
+        authService.ensureAuthorized(userId, SystemPermission.CREATE_EXERCISE, authService.courseOrGlobal(courseId));
+        exerciseService.ensureCanViewExercise(userId, id);
         return exerciseService.cloneExerciseAndGetId(id, courseId);
     }
 
@@ -105,10 +78,9 @@ public class ExerciseSettingsController {
     @ResponseBody
     @RequestMapping(value = {"exercise"}, method = {RequestMethod.DELETE})
     public void delete(@RequestParam("id") long id, @RequestParam(value = "courseId", required = false) Long courseId) {
-        var userId = userService.getCurrentUser().id();
-        authService.ensureAuthorized(userId, SystemPermission.DELETE_EXERCISE, authScopes.courseOrGlobal(courseId));
-        exerciseService.ensureNotInheritedInCourse(id, courseId);
-        exerciseService.deleteExercise(id);
+        var userId = userService.getCurrentUserId();
+        authService.ensureAuthorized(userId, SystemPermission.DELETE_EXERCISE, authService.courseOrGlobal(courseId));
+        exerciseService.deleteExercise(id, courseId);
     }
 
 }

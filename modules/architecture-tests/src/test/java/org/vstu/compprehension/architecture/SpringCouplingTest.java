@@ -10,32 +10,18 @@ import static com.tngtech.archunit.lang.syntax.ArchRuleDefinition.fields;
 import static com.tngtech.archunit.lang.syntax.ArchRuleDefinition.noClasses;
 import static org.vstu.compprehension.architecture.ArchitecturePackages.*;
 
-/**
- * Правила про степень сцепления с фреймворком.
- * <p>
- * Цель не в том, чтобы «когда-нибудь уйти со Spring» — этого не случится. Цель в том,
- * чтобы бизнес-логику можно было завести обычным {@code new} в тесте, без поднятия
- * контекста, и чтобы тесты из-за этого шли секунды, а не минуты.
- */
+/** Правила про степень сцепления с фреймворком. */
 @AnalyzeClasses(locations = ProjectClassesLocationProvider.class, importOptions = ImportOption.DoNotIncludeTests.class)
 public class SpringCouplingTest {
 
-    /**
-     * Инъекция в поля не даёт создать объект конструктором и прячет реальный список
-     * зависимостей. В проекте уже есть классы с конструкторной инъекцией
-     * (например, ExerciseService) — правило фиксирует это как норму.
-     */
+    /** Инъекция в поля не даёт создать объект конструктором и прячет реальный список зависимостей. */
     @ArchTest
     static final ArchRule no_field_injection =
             fields()
                     .should().notBeAnnotatedWith(Autowired.class)
                     .as("dependencies should be injected via constructor, not into fields");
 
-    /**
-     * Бизнес-логика зависит от spring-context (аннотации, транзакции), но не должна
-     * зависеть от spring-boot: автоконфигурация, стартеры и properties — это забота
-     * запускающих модулей.
-     */
+    /** Бизнес-логика не должна зависеть от spring-boot. */
     @ArchTest
     static final ArchRule business_logic_should_not_depend_on_spring_boot =
             noClasses()
@@ -43,10 +29,7 @@ public class SpringCouplingTest {
                     .should().dependOnClassesThat().resideInAPackage("org.springframework.boot..")
                     .as("business logic should not depend on Spring Boot");
 
-    /**
-     * Бизнес-логика не должна знать про HTTP. Сейчас core тянет spring-web —
-     * правило показывает, где именно, чтобы это можно было расшить постепенно.
-     */
+    /** Бизнес-логика не должна знать про HTTP. */
     @ArchTest
     static final ArchRule business_logic_should_not_depend_on_web_stack =
             noClasses()

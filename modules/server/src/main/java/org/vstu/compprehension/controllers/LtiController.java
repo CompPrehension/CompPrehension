@@ -12,6 +12,7 @@ import jakarta.servlet.http.HttpServletRequest;
 import jakarta.servlet.http.HttpServletResponse;
 import lombok.Builder;
 import lombok.Data;
+import lombok.RequiredArgsConstructor;
 import lombok.SneakyThrows;
 import lombok.extern.log4j.Log4j2;
 import org.springframework.security.authentication.AuthenticationServiceException;
@@ -31,17 +32,16 @@ import org.springframework.web.bind.annotation.RequestMethod;
 import org.springframework.web.bind.annotation.RequestParam;
 import org.springframework.web.bind.annotation.ResponseBody;
 import org.apache.commons.lang3.tuple.Pair;
-import org.vstu.compprehension.services.AuthScopeFactory;
-import org.vstu.compprehension.services.AuthService;
-import org.vstu.compprehension.services.CourseService;
-import org.vstu.compprehension.services.EducationResourceService;
-import org.vstu.compprehension.services.UserService;
+import org.vstu.compprehension.frontend.AuthFrontendService;
+import org.vstu.compprehension.frontend.CourseFrontendService;
+import org.vstu.compprehension.frontend.EducationResourceFrontendService;
+import org.vstu.compprehension.frontend.UserFrontendService;
 import org.vstu.compprehension.service.lti.LtiContextInitializer;
-import org.vstu.compprehension.services.LtiContextProvider;
 import org.vstu.compprehension.businesslogic.auth.AuthObjects.SystemPermission;
 import org.vstu.compprehension.common.StringHelper;
 import org.vstu.compprehension.config.LtiRegistrationsProperties;
 import org.vstu.compprehension.businesslogic.lti.LtiContext;
+import org.vstu.compprehension.services.LtiContextProvider;
 import org.vstu.compprehension.utils.HttpRequestHelper;
 import org.vstu.compprehension.utils.SessionHelper;
 
@@ -63,39 +63,17 @@ import java.util.stream.Collectors;
 @Controller
 @RequestMapping("lti")
 @Log4j2
+@RequiredArgsConstructor
 public class LtiController {
     private final SecurityContextRepository securityContextRepository;
     private final SecurityContextHolderStrategy securityContextHolderStrategy;
     private final LtiRegistrationsProperties ltiRegistrations;
-    private final CourseService courseService;
-    private final EducationResourceService educationResourceService;
+    private final CourseFrontendService courseService;
+    private final EducationResourceFrontendService educationResourceFacade;
     private final LtiContextInitializer ltiContextInitializer;
-    private final LtiContextProvider ltiContextProvider;
-    private final UserService userService;
-    private final AuthService authService;
-    private final AuthScopeFactory authScopes;
-
-    public LtiController(SecurityContextRepository securityContextRepository,
-                         SecurityContextHolderStrategy securityContextHolderStrategy,
-                         LtiRegistrationsProperties ltiRegistrations,
-                         CourseService courseService,
-                         EducationResourceService educationResourceService,
-                         LtiContextInitializer ltiContextInitializer,
-                         LtiContextProvider ltiContextProvider,
-                         UserService userService,
-                         AuthService authService,
-                         AuthScopeFactory authScopes) {
-        this.securityContextRepository = securityContextRepository;
-        this.securityContextHolderStrategy = securityContextHolderStrategy;
-        this.ltiRegistrations = ltiRegistrations;
-        this.courseService = courseService;
-        this.educationResourceService = educationResourceService;
-        this.ltiContextInitializer = ltiContextInitializer;
-        this.ltiContextProvider = ltiContextProvider;
-        this.userService = userService;
-        this.authService = authService;
-        this.authScopes = authScopes;
-    }
+    private final LtiContextProvider ltiProvider;
+    private final UserFrontendService userService;
+    private final AuthFrontendService authService;
 
     @SneakyThrows
     @GetMapping(value = "1_3/jwks", produces = "application/json")
@@ -173,7 +151,7 @@ public class LtiController {
     public void exercise(@RequestParam(required = false) Long id, HttpServletRequest request, HttpServletResponse response) {
         authenticateFromLti13ResourceLinkRequest(request, response);
 
-        LtiContext ctx = ltiContextProvider.getCurrentLtiContext()
+        LtiContext ctx = ltiProvider.getCurrentLtiContext()
                 .orElseThrow(() -> new IllegalArgumentException("LTI context absent"));
 
         Pair<Long, Long> exerciseAndCourse = resolveExerciseAndCourse(ctx, id);
@@ -210,7 +188,7 @@ public class LtiController {
     public void exerciseSettings(HttpServletRequest request, HttpServletResponse response) {
         authenticateFromLti13ResourceLinkRequest(request, response);
 
-        Long courseId = ltiContextProvider.getCurrentLtiContext()
+        Long courseId = ltiProvider.getCurrentLtiContext()
                 .map(this::resolveCourseFromContext)
                 .orElse(null);
 
@@ -225,15 +203,15 @@ public class LtiController {
         authenticateFromLti13ResourceLinkRequest(request, response);
 
         // Триггерит upsert пользователя + назначение RBAC-роли (LTI Instructor -> Teacher в scope курса).
-        long userId = userService.getCurrentUser().id();
+        long userId = userService.getCurrentUserId();
 
-        LtiContext ctx = ltiContextProvider.getCurrentLtiContext()
+        LtiContext ctx = ltiProvider.getCurrentLtiContext()
                 .orElseThrow(() -> new IllegalArgumentException("LTI context absent"));
         Long courseId = resolveCourseFromContext(ctx);
         if (courseId == null) {
             throw new IllegalArgumentException("Absent information on the contextId");
         }
-        authService.ensureAuthorized(userId, SystemPermission.MANAGE_COURSE_CONTENT, authScopes.course(courseId));
+        authService.ensureAuthorized(userId, SystemPermission.MANAGE_COURSE_CONTENT, authService.course(courseId));
 
         String redirectUrl = String.format("/pages/course?courseId=%d&lti=deeplink", courseId);
         log.info("Redirect to configure-course, url:{}", redirectUrl);
@@ -243,7 +221,7 @@ public class LtiController {
     private Long resolveCourseFromContext(LtiContext ctx) {
         if (ctx.course() == null || ctx.course().courseId() == null) return null;
 
-        long eduResourceId = educationResourceService.getOrCreateTrustedId(ctx.lmsUrl(), ctx.lmsType());
+        long eduResourceId = educationResourceFacade.getOrCreateTrustedId(ctx.lmsUrl(), ctx.lmsType());
         return courseService.resolveOrCreateIdFromLtiContext(ctx, eduResourceId).orElse(null);
     }
 

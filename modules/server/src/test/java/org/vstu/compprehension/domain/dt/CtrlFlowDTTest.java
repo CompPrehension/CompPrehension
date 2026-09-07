@@ -15,11 +15,11 @@ import org.springframework.test.context.ActiveProfiles;
 import org.vstu.compprehension.infrastructure.TestQuestionMetadata;
 import org.vstu.compprehension.data.question.ResponseData;
 import org.vstu.compprehension.data.question.AnswerObjectData;
-import org.vstu.compprehension.services.QuestionService;
+import org.vstu.compprehension.services.QuestionDataService;
 import org.vstu.compprehension.businesslogic.Question;
 import org.vstu.compprehension.businesslogic.domains.Domain;
 import org.vstu.compprehension.businesslogic.domains.DomainFactory;
-import org.vstu.compprehension.data.enums.Language;
+import org.vstu.compprehension.enums.Language;
 import org.vstu.compprehension.entities.ExerciseAttemptEntity;
 import org.vstu.compprehension.entities.ExerciseEntity;
 import org.vstu.compprehension.repositories.entity.ExerciseAttemptRepository;
@@ -51,7 +51,7 @@ public class CtrlFlowDTTest {
     @Autowired
     private UserRepository userRepository;
     @Autowired
-    private QuestionService questionService;
+    private QuestionDataService questionService;
 
     private static final boolean DETAILED_TRACE = true;
 

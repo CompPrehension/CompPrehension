@@ -1,5 +1,6 @@
 package org.vstu.compprehension.businesslogic.domains;
 
+import org.vstu.compprehension.enums.RoleInExercise;
 import org.vstu.compprehension.data.question.SupplementaryStepData;
 import org.vstu.compprehension.data.exercise.ExerciseOptionsData;
 import org.vstu.compprehension.data.question.ViolationData;
@@ -24,27 +25,27 @@ import org.apache.jena.rdf.model.ModelFactory;
 import org.apache.jena.riot.RDFDataMgr;
 import org.jetbrains.annotations.NotNull;
 import org.jetbrains.annotations.Nullable;
-import org.vstu.compprehension.services.SupplementaryStepService;
+import org.vstu.compprehension.services.SupplementaryStepDataService;
 import org.vstu.compprehension.data.question.QuestionMetadataData;
 import org.vstu.compprehension.data.question.QuestionInteractionData;
 import org.vstu.compprehension.data.question.QuestionData;
 import org.vstu.compprehension.data.question.AnswerObjectData;
 import org.vstu.compprehension.data.question.ResponseData;
-import org.vstu.compprehension.services.ExerciseAttemptService;
+import org.vstu.compprehension.services.ExerciseAttemptDataService;
 import org.vstu.compprehension.services.LocalizationService;
-import org.vstu.compprehension.dto.ExerciseSkillDto;
+import org.vstu.compprehension.frontend.dto.ExerciseSkillDto;
 import org.vstu.compprehension.data.domain.DomainData;
 import org.vstu.compprehension.businesslogic.*;
 import org.vstu.compprehension.businesslogic.backend.DecisionTreeReasonerBackend;
-import org.vstu.compprehension.businesslogic.backend.facts.Fact;
+import org.vstu.compprehension.businesslogic.backend.Fact;
 import org.vstu.compprehension.businesslogic.domains.helpers.ProgrammingLanguageExpressionsSolver;
 import org.vstu.compprehension.businesslogic.domains.helpers.meaningtree.*;
 import org.vstu.compprehension.businesslogic.storage.QuestionBank;
 import org.vstu.compprehension.businesslogic.storage.SerializableQuestionTemplate;
-import org.vstu.compprehension.data.enums.FeedbackType;
-import org.vstu.compprehension.data.enums.InteractionType;
-import org.vstu.compprehension.data.enums.Language;
-import org.vstu.compprehension.utils.HyperText;
+import org.vstu.compprehension.enums.FeedbackType;
+import org.vstu.compprehension.enums.InteractionType;
+import org.vstu.compprehension.enums.Language;
+import org.vstu.compprehension.businesslogic.HyperText;
 import org.vstu.meaningtree.MeaningTree;
 import org.vstu.meaningtree.SupportedLanguage;
 import org.vstu.meaningtree.serializers.rdf.RDFDeserializer;
@@ -69,8 +70,8 @@ public class ProgrammingLanguageExpressionDTDomain extends DecisionTreeReasoning
 
     @SneakyThrows
     public ProgrammingLanguageExpressionDTDomain(DomainData domainData, ProgrammingLanguageExpressionDomain baseDomain,
-                                                ExerciseAttemptService exerciseAttemptService,
-                                                SupplementaryStepService supplementaryStepService) {
+                                                ExerciseAttemptDataService exerciseAttemptService,
+                                                SupplementaryStepDataService supplementaryStepService) {
         super(domainData, baseDomain.randomProvider, exerciseAttemptService, supplementaryStepService);
 
         this.baseDomain = baseDomain;
@@ -376,7 +377,9 @@ public class ProgrammingLanguageExpressionDTDomain extends DecisionTreeReasoning
             List<String> deniedSkills = List.of();
             if (exerciseStage.isPresent()) {
                 deniedSkills = exerciseStage.get().getSkills()
-                        .stream().map(ExerciseSkillDto::getName).toList();
+                        .stream()
+                        .filter(s -> RoleInExercise.FORBIDDEN.equals(s.getKind()))
+                        .map(ExerciseSkillDto::getName).toList();
             }
 
             ViolationData violation = new ViolationData();
@@ -875,7 +878,9 @@ public class ProgrammingLanguageExpressionDTDomain extends DecisionTreeReasoning
         List<String> deniedSkills = List.of();
         if (exerciseStage.isPresent()) {
             deniedSkills = exerciseStage.get().getSkills()
-                    .stream().map(ExerciseSkillDto::getName).toList();
+                    .stream()
+                    .filter(s -> RoleInExercise.FORBIDDEN.equals(s.getKind()))
+                    .map(ExerciseSkillDto::getName).toList();
         }
 
         Optional<QuestionInteractionData> lastCorrectInteraction = Optional.ofNullable(q.getQuestionData().getInteractions()).stream()

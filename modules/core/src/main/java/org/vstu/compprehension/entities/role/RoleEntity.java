@@ -4,7 +4,7 @@ import jakarta.persistence.*;
 import lombok.Getter;
 import lombok.NoArgsConstructor;
 import org.vstu.compprehension.businesslogic.auth.Role;
-import org.vstu.compprehension.businesslogic.converters.RoleConverter;
+import org.vstu.compprehension.entities.converters.RoleConverter;
 
 import java.util.List;
 

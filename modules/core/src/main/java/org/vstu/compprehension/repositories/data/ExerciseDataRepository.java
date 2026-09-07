@@ -23,21 +23,9 @@ import java.util.HashMap;
 import java.util.List;
 import java.util.NoSuchElementException;
 
-/**
- * Упражнения: настройки, из которых собирается задание, и их жизненный цикл.
- * <p>
- * Наружу не выходит ни {@code ExerciseEntity}, ни {@code DomainEntity}: домен
- * представлен идентификатором, потому что читалось из него только имя, а связь ленивая
- * и за пределами транзакции не инициализировалась.
- * <p>
- * Удаление живёт здесь целиком, а не разложено по сервису: это одна атомарная перестройка
- * ссылок в трёх таблицах, и промежуточные её состояния — упражнение без связей, курс со
- * ссылкой на удалённое упражнение — не должны быть достижимы снаружи.
- */
 @Repository
 @RequiredArgsConstructor
 public class ExerciseDataRepository {
-
     private final ExerciseRepository exerciseRepository;
     private final DomainRepository domainRepository;
     private final ExerciseCourseLinkRepository exerciseCourseLinkRepository;
@@ -45,17 +33,11 @@ public class ExerciseDataRepository {
     private final ExerciseCourseLinkReassignExecutor linkReassignExecutor;
     private final ExerciseAttemptReassignExecutor attemptReassignExecutor;
 
-    /**
-     * Упражнение по идентификатору.
-     *
-     * @throws NoSuchElementException если упражнения нет
-     */
     @Transactional(readOnly = true)
     public @NotNull ExerciseData getById(long exerciseId) {
         return toData(findEntity(exerciseId));
     }
 
-    /** Упражнения, показанные в курсе, в порядке добавления — самые новые первыми. */
     @Transactional(readOnly = true)
     public @NotNull List<ExerciseSummaryData> findSummariesByCourseId(long courseId) {
         return exerciseRepository.findAllByCourseId(courseId).stream()
@@ -63,7 +45,6 @@ public class ExerciseDataRepository {
                 .toList();
     }
 
-    /** Упражнения глобального пула. */
     @Transactional(readOnly = true)
     public @NotNull List<ExerciseSummaryData> findPublicSummaries() {
         return exerciseRepository.findAllByIsPublicTrue().stream()
@@ -71,12 +52,6 @@ public class ExerciseDataRepository {
                 .toList();
     }
 
-    /**
-     * Завести упражнение.
-     *
-     * @return идентификатор созданного упражнения
-     * @throws NoSuchElementException если предметной области нет
-     */
     @Transactional
     public long create(@NotNull NewExerciseData exercise) {
         var entity = new ExerciseEntity();
@@ -91,16 +66,6 @@ public class ExerciseDataRepository {
         return exerciseRepository.save(entity).getId();
     }
 
-    /**
-     * Скопировать упражнение.
-     * <p>
-     * Копия не наследует ни попыток, ни привязок к курсам: показать её в курсе —
-     * отдельное решение вызывающего.
-     *
-     * @param isPublic попадает ли копия в глобальный пул
-     * @return идентификатор копии
-     * @throws NoSuchElementException если исходного упражнения нет
-     */
     @Transactional
     public long copy(long sourceExerciseId, boolean isPublic) {
         var clone = findEntity(sourceExerciseId).clone();
@@ -108,14 +73,6 @@ public class ExerciseDataRepository {
         return exerciseRepository.save(clone).getId();
     }
 
-    /**
-     * Записать отредактированную карточку.
-     * <p>
-     * Пишутся только перечисленные в карточке поля: признак публичности и привязки
-     * к курсам ею не управляются.
-     *
-     * @throws NoSuchElementException если упражнения или предметной области нет
-     */
     @Transactional
     public void updateCard(@NotNull ExerciseCardUpdateData card) {
         var entity = findEntity(card.id());
@@ -129,15 +86,6 @@ public class ExerciseDataRepository {
         exerciseRepository.save(entity);
     }
 
-    /**
-     * Изменить настройки генератора вопросов у упражнения.
-     * <p>
-     * Отдельно от {@link #updateCard}: карточкой эти настройки не управляются, их
-     * подбирают нагрузочным экспериментом, и запись карточки целиком затёрла бы всё
-     * остальное.
-     *
-     * @throws NoSuchElementException если упражнения нет
-     */
     @Transactional
     public void updateGeneratorSettings(long exerciseId, @Nullable Integer generatorThreshold,
                                         @Nullable Integer additionalQuestionsToGenerate) {
@@ -151,16 +99,6 @@ public class ExerciseDataRepository {
         exerciseRepository.save(entity);
     }
 
-    /**
-     * Удалить упражнение вместе с его попытками.
-     * <p>
-     * Упражнение глобального пула может быть показано в нескольких курсах, и там оно
-     * не должно исчезнуть вместе с оригиналом: каждому такому курсу достаётся
-     * собственная копия, к которой переезжают и связь, и уже начатые попытки. Копия
-     * приватная — глобальный пул на то и глобальный, что запись в нём одна.
-     *
-     * @throws NoSuchElementException если упражнения нет
-     */
     @Transactional
     public void delete(long exerciseId) {
         var exercise = findEntity(exerciseId);
@@ -191,8 +129,6 @@ public class ExerciseDataRepository {
         exerciseRepository.deleteById(exerciseId);
     }
 
-    // ---------------------------------------------------------------- внутреннее
-
     private @NotNull ExerciseEntity findEntity(long exerciseId) {
         return exerciseRepository.findById(exerciseId)
                 .orElseThrow(() -> new NoSuchElementException("Exercise " + exerciseId + " not found"));
@@ -203,7 +139,6 @@ public class ExerciseDataRepository {
                 .orElseThrow(() -> new NoSuchElementException("Domain " + domainId + " not found"));
     }
 
-    /** Теги хранятся одной строкой через запятую — сущность разбирает её сама. */
     private static @NotNull String joinTags(@NotNull List<String> tags) {
         return String.join(", ", tags);
     }
@@ -222,8 +157,6 @@ public class ExerciseDataRepository {
                 Strict.required(domain.getName(), "domain.name", owner),
                 Strict.required(entity.getBackendId(), "backendId", owner),
                 Strict.required(entity.getStrategyId(), "strategyId", owner),
-                // Настройки и стадии объявлены not null в схеме, но это значения
-                // json-колонок: пустой текст в них даёт null уже после чтения строки.
                 Strict.required(entity.getOptions(), "options", owner),
                 List.copyOf(Strict.required(entity.getStages(), "stages", owner)),
                 List.copyOf(entity.getTags()),

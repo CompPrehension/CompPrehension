@@ -6,13 +6,10 @@ import org.vstu.compprehension.businesslogic.domains.ObjectsScopeDTDomain;
 import org.jetbrains.annotations.NotNull;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Component;
-import org.vstu.compprehension.services.SupplementaryStepService;
-import org.vstu.compprehension.services.ExerciseAttemptService;
-import org.vstu.compprehension.services.LocalizationService;
+import org.vstu.compprehension.services.*;
 import org.vstu.compprehension.businesslogic.domains.*;
 import org.vstu.compprehension.businesslogic.storage.QuestionBank;
 import org.vstu.compprehension.repositories.data.DomainDataRepository;
-import org.vstu.compprehension.utils.RandomProvider;
 
 import javax.inject.Singleton;
 import java.util.HashMap;
@@ -29,8 +26,8 @@ public class DomainFactoryImpl implements DomainFactory {
                              LocalizationService localizationService,
                              RandomProvider randomProvider,
                              QuestionBank questionStorage,
-                             ExerciseAttemptService exerciseAttemptService,
-                             SupplementaryStepService supplementaryStepService) {
+                             ExerciseAttemptDataService exerciseAttemptService,
+                             SupplementaryStepDataService supplementaryStepService) {
 
         var domains = domainDataRepository.findAll();
         {

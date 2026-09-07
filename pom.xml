@@ -11,6 +11,7 @@
     <modules>
         <module>modules/server</module>
         <module>modules/common</module>
+        <module>modules/core-api</module>
         <module>modules/core</module>
         <module>modules/backends</module>
         <module>modules/strategies</module>

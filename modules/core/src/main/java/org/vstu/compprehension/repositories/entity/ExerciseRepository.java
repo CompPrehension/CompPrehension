@@ -10,9 +10,6 @@ import java.util.List;
 
 @Repository
 public interface ExerciseRepository extends JpaRepository<ExerciseEntity, Long> {
-    @Query("select e.id from ExerciseEntity e")
-    List<Long> findAllIds();
-
     List<ExerciseEntity> findAllByIsPublicTrue();
 
     @Query("""

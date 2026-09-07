@@ -2,7 +2,7 @@ package org.vstu.compprehension.adapters;
 
 import org.jetbrains.annotations.NotNull;
 import org.vstu.compprehension.services.LocalizationService;
-import org.vstu.compprehension.data.enums.Language;
+import org.vstu.compprehension.enums.Language;
 
 import java.util.Locale;
 

@@ -148,7 +148,7 @@ public interface RoleUserAssignmentRepository extends JpaRepository<RoleUserAssi
             join fetch rua.user u
             join fetch rua.role r
             join fetch rua.permissionScope ps
-            where ps.kind = org.vstu.compprehension.entities.EnumData.PermissionScopeKind.COURSE
+            where ps.kind = PermissionScopeKind.COURSE
               and u.id in :userIds
               and ps.scopeItemId in (
                   select c.id from CourseEntity c where c.educationResource.id = :eduResId)

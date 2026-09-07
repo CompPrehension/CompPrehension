@@ -7,7 +7,7 @@ import org.springframework.stereotype.Repository;
 import org.springframework.transaction.annotation.Transactional;
 import org.vstu.compprehension.data.exerciseattempt.AttemptExerciseData;
 import org.vstu.compprehension.data.exerciseattempt.AttemptGenerationContextData;
-import org.vstu.compprehension.data.exerciseattempt.AttemptInteractionData;
+import org.vstu.compprehension.data.exerciseattempt.AttemptQuestionInteractionData;
 import org.vstu.compprehension.data.exerciseattempt.AttemptOwnerData;
 import org.vstu.compprehension.data.exerciseattempt.AttemptQuestionData;
 import org.vstu.compprehension.data.exerciseattempt.AttemptSummaryData;
@@ -15,7 +15,7 @@ import org.vstu.compprehension.data.exercise.ExerciseAttemptWithQuestionsData;
 import org.vstu.compprehension.data.exerciseattempt.GradePassbackTargetData;
 import org.vstu.compprehension.data.question.QuestionAttemptContextData;
 import org.vstu.compprehension.data.question.QuestionMetadataBitsData;
-import org.vstu.compprehension.data.enums.AttemptStatus;
+import org.vstu.compprehension.enums.AttemptStatus;
 import org.vstu.compprehension.entities.ExerciseAttemptEntity;
 import org.vstu.compprehension.entities.QuestionEntity;
 import org.vstu.compprehension.entities.QuestionMetadataEntity;
@@ -38,17 +38,9 @@ import java.util.NoSuchElementException;
 import java.util.Optional;
 import java.util.stream.Collectors;
 
-/**
- * Попытки прохождения упражнений в виде отсоединённых данных.
- * <p>
- * Читает только то, что нужно вызывающему: раньше все четыре вопроса «что известно
- * о попытке по этому вопросу» отвечались одним и тем же запросом, тянувшим вместе
- * с попыткой все её вопросы, — ради одного поля.
- */
 @Repository
 @RequiredArgsConstructor
 public class ExerciseAttemptDataRepository {
-
     private final ExerciseAttemptRepository exerciseAttemptRepository;
     private final QuestionRepository questionRepository;
     private final InteractionRepository interactionRepository;
@@ -56,16 +48,6 @@ public class ExerciseAttemptDataRepository {
     private final UserRepository userRepository;
     private final CourseRepository courseRepository;
 
-    /**
-     * Попытка со всеми вопросами и взаимодействиями.
-     * <p>
-     * Ровно пять запросов независимо от размера попытки: попытка с упражнением и доменом,
-     * вопросы с метаданными, взаимодействия, нарушенные законы, верно применённые законы.
-     * Обхода ленивого графа нет, поэтому потребителю (стратегии) не нужны ни сессия
-     * Hibernate, ни знание о том, как это разложено по таблицам.
-     *
-     * @throws NoSuchElementException если попытки нет
-     */
     @Transactional(readOnly = true)
     public @NotNull ExerciseAttemptWithQuestionsData getAttemptWithQuestions(long attemptId) {
         var attempt = exerciseAttemptRepository.findByIdFetchingExerciseAndDomain(attemptId)
@@ -90,10 +72,10 @@ public class ExerciseAttemptDataRepository {
         Map<Long, List<String>> correctLawsByInteraction = interactionIds.isEmpty()
                 ? Map.of() : groupLawNames(interactionRepository.findCorrectLawsByInteractionIdIn(interactionIds));
 
-        Map<Long, List<AttemptInteractionData>> interactionsByQuestion = interactionRows.stream()
+        Map<Long, List<AttemptQuestionInteractionData>> interactionsByQuestion = interactionRows.stream()
                 .collect(Collectors.groupingBy(
                         InteractionRow::getQuestionId,
-                        Collectors.mapping(row -> new AttemptInteractionData(
+                        Collectors.mapping(row -> new AttemptQuestionInteractionData(
                                 row.getInteractionId(),
                                 row.getOrderNumber() == null ? 0 : row.getOrderNumber(),
                                 row.getInteractionType(),
@@ -116,11 +98,6 @@ public class ExerciseAttemptDataRepository {
                 attempt.getId(), attempt.getUser().getId(), exerciseData, questionsData);
     }
 
-    /**
-     * Всё, что нужно для генерации очередного вопроса попытки: один запрос.
-     *
-     * @throws NoSuchElementException если попытки нет
-     */
     @Transactional(readOnly = true)
     public @NotNull AttemptGenerationContextData getGenerationContext(long attemptId) {
         var attempt = exerciseAttemptRepository.findByIdFetchingExerciseDomainAndUser(attemptId)
@@ -134,23 +111,12 @@ public class ExerciseAttemptDataRepository {
                 attempt.getUser().getPreferred_language());
     }
 
-    /**
-     * Контекст попытки, в которой задан вопрос: один запрос без подъёма её вопросов.
-     *
-     * @return пусто, если вопрос не привязан к попытке
-     */
     @Transactional(readOnly = true)
     public @NotNull Optional<QuestionAttemptContextData> findQuestionAttemptContext(long questionId) {
         return exerciseAttemptRepository.findByQuestionIdFetchingExerciseAndUser(questionId)
                 .map(ExerciseAttemptDataRepository::toContext);
     }
 
-    /**
-     * Порядковый номер вопроса внутри попытки, считая с единицы.
-     * <p>
-     * Раньше это считалось как {@code attempt.getQuestions().indexOf(question) + 1},
-     * то есть ради одного числа поднимались все вопросы попытки.
-     */
     @Transactional(readOnly = true)
     public long countQuestionsUpTo(long attemptId, long questionId) {
         return questionRepository.countUpToQuestionInAttempt(attemptId, questionId);
@@ -178,8 +144,6 @@ public class ExerciseAttemptDataRepository {
 
     /**
      * Попытка пользователя по упражнению в заданном статусе.
-     *
-     * @param courseId если задан, ищется попытка именно в этом курсе; иначе курс не учитывается
      */
     @Transactional(readOnly = true)
     public @NotNull Optional<AttemptSummaryData> findSummaryWithStatus(
@@ -192,11 +156,6 @@ public class ExerciseAttemptDataRepository {
 
     /**
      * Завести попытку, закрыв незавершённые попытки того же пользователя по этому упражнению.
-     * <p>
-     * Порядок сохранён: сначала массовое закрытие, потом вставка — иначе новая попытка
-     * закрыла бы саму себя.
-     *
-     * @param courseId курс, в рамках которого идёт попытка; null — попытка вне курса
      */
     @Transactional
     public @NotNull AttemptSummaryData create(long exerciseId, long userId, @Nullable Long courseId,
@@ -225,8 +184,6 @@ public class ExerciseAttemptDataRepository {
 
     /**
      * Отметить попытку завершённой пользователем.
-     *
-     * @return false, если попытка уже была завершена — тогда оценку выставлять не надо
      */
     @Transactional
     public boolean finishIfIncomplete(long attemptId) {
@@ -240,11 +197,6 @@ public class ExerciseAttemptDataRepository {
         return true;
     }
 
-    /**
-     * Адресат оценки за попытку: одним запросом, без обхода связей.
-     *
-     * @return пусто, если попытки нет
-     */
     @Transactional(readOnly = true)
     public @NotNull Optional<GradePassbackTargetData> findGradePassbackTarget(long attemptId) {
         return exerciseAttemptRepository.findGradePassbackTargetRow(attemptId)
@@ -282,8 +234,6 @@ public class ExerciseAttemptDataRepository {
 
     private static @NotNull GradePassbackTargetData toGradePassbackTarget(
             @NotNull GradePassbackTargetRow row) {
-        // Образовательный ресурс у курса обязателен схемой, поэтому вложенная запись
-        // существует ровно тогда, когда есть сам курс.
         var course = row.getCourseId() == null ? null : new GradePassbackTargetData.CourseTarget(
                 row.getCourseId(),
                 row.getExternalCourseId(),
@@ -314,7 +264,6 @@ public class ExerciseAttemptDataRepository {
         if (metadata == null) {
             return null;
         }
-        // Формулы остаются в сущности, здесь только снятый результат.
         return new QuestionMetadataBitsData(
                 metadata.getId(),
                 metadata.traceConceptsSatisfiedFromPlan(),

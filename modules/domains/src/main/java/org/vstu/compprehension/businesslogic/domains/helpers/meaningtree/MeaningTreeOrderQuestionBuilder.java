@@ -18,7 +18,7 @@ import org.vstu.compprehension.businesslogic.*;
 import org.vstu.compprehension.businesslogic.domains.ProgrammingLanguageExpressionDTDomain;
 import org.vstu.compprehension.businesslogic.storage.SerializableQuestion;
 import org.vstu.compprehension.businesslogic.storage.SerializableQuestionTemplate;
-import org.vstu.compprehension.data.enums.QuestionType;
+import org.vstu.compprehension.enums.QuestionType;
 import org.vstu.meaningtree.MeaningTree;
 import org.vstu.meaningtree.SupportedLanguage;
 import org.vstu.meaningtree.exceptions.MeaningTreeException;

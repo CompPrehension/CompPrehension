@@ -11,8 +11,8 @@ import org.hibernate.annotations.Type;
 import org.hibernate.annotations.UpdateTimestamp;
 import org.jetbrains.annotations.NotNull;
 import org.vstu.compprehension.common.StringHelper;
-import org.vstu.compprehension.data.enums.ExerciseType;
-import org.vstu.compprehension.data.enums.Language;
+import org.vstu.compprehension.enums.ExerciseType;
+import org.vstu.compprehension.enums.Language;
 
 import java.util.ArrayList;
 import java.util.Arrays;

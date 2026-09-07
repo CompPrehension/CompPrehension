@@ -10,20 +10,15 @@ import org.springframework.security.core.GrantedAuthority;
 import org.springframework.security.core.context.SecurityContextHolder;
 import org.springframework.security.oauth2.core.oidc.OidcIdToken;
 import org.springframework.security.oauth2.core.oidc.user.OidcUser;
-import org.vstu.compprehension.services.CourseService;
-import org.vstu.compprehension.services.EducationResourceService;
-import org.vstu.compprehension.services.ExternalAccountService;
-import org.vstu.compprehension.services.LtiContextProvider;
-import org.vstu.compprehension.services.RoleAssignmentService;
-import org.vstu.compprehension.services.UserService;
+import org.vstu.compprehension.services.*;
 import org.vstu.compprehension.mappers.UserDataMapper;
 import org.vstu.compprehension.businesslogic.auth.AuthObjects.SystemRole;
 import org.vstu.compprehension.businesslogic.auth.Role;
 import org.vstu.compprehension.businesslogic.lti.LtiContext;
-import org.vstu.compprehension.data.user.CurrentUserData;
+import org.vstu.compprehension.data.user.UserData;
 import org.vstu.compprehension.data.user.UserAccountData;
 import org.vstu.compprehension.data.user.UserAccountUpdateData;
-import org.vstu.compprehension.data.enums.Language;
+import org.vstu.compprehension.enums.Language;
 import org.vstu.compprehension.repositories.data.UserDataRepository;
 
 import java.util.Collection;
@@ -33,7 +28,7 @@ import java.util.Set;
 import java.util.stream.Collectors;
 
 @Log4j2
-public class UserServiceImpl implements UserService {
+public class UserServiceImpl implements UserDataService {
     private static final String LTI_VERSION_CLAIM = "https://purl.imsglobal.org/spec/lti/claim/version";
     private static final String LTI_LAUNCH_PRESENTATION_CLAIM = "https://purl.imsglobal.org/spec/lti/claim/launch_presentation";
     private static final String LTI_VERSION_1_3 = "1.3.0";
@@ -42,7 +37,7 @@ public class UserServiceImpl implements UserService {
     private final EducationResourceService educationResourceService;
     private final ExternalAccountService externalAccountService;
     private final LtiContextProvider ltiContextProvider;
-    private final CourseService courseService;
+    private final CourseDataService courseService;
     private final RoleAssignmentService roleAssignmentService;
 
     public UserServiceImpl(
@@ -50,7 +45,7 @@ public class UserServiceImpl implements UserService {
             EducationResourceService educationResourceService,
             ExternalAccountService externalAccountService,
             LtiContextProvider ltiContextProvider,
-            CourseService courseService,
+            CourseDataService courseService,
             RoleAssignmentService roleAssignmentService
     ) {
         this.users = users;
@@ -63,7 +58,7 @@ public class UserServiceImpl implements UserService {
 
     @SneakyThrows
     @Override
-    public CurrentUserData getCurrentUser() {
+    public UserData getCurrentUser() {
         return UserDataMapper.toCurrentUser(signIn());
     }
 

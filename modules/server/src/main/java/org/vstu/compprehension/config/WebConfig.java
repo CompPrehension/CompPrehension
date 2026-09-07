@@ -17,7 +17,7 @@ import org.springframework.web.servlet.config.annotation.InterceptorRegistry;
 import org.springframework.web.servlet.config.annotation.WebMvcConfigurer;
 import org.springframework.web.servlet.i18n.CookieLocaleResolver;
 import org.springframework.web.servlet.i18n.LocaleChangeInterceptor;
-import org.vstu.compprehension.services.UserService;
+import org.vstu.compprehension.services.UserDataService;
 import org.vstu.compprehension.config.interceptors.RandomSeedSetInterceptor;
 import org.vstu.compprehension.config.logs.LoggableDispatcherServlet;
 import org.vstu.compprehension.businesslogic.domains.ControlFlowStatementsDomain;
@@ -30,12 +30,12 @@ import java.util.Locale;
 public class WebConfig implements WebMvcConfigurer {
 
     @Bean
-    public ServletRegistrationBean dispatcherRegistration(@Autowired UserService userService) {
+    public ServletRegistrationBean dispatcherRegistration(@Autowired UserDataService userService) {
         return new ServletRegistrationBean(dispatcherServlet(userService));
     }
 
     @Bean(name = DispatcherServletAutoConfiguration.DEFAULT_DISPATCHER_SERVLET_BEAN_NAME)
-    public DispatcherServlet dispatcherServlet(@Autowired UserService userService) {
+    public DispatcherServlet dispatcherServlet(@Autowired UserDataService userService) {
         return new LoggableDispatcherServlet(userService);
     }
 

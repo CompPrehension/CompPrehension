@@ -10,13 +10,6 @@ import java.util.List;
 
 public interface SupplementaryStepRepository extends JpaRepository<SupplementaryStepEntity, Long> {
 
-    /**
-     * Шаг вместе с идентификатором взаимодействия, начавшего цепочку.
-     * <p>
-     * Сама сущность нужна ради {@code situationInfo}: это json-колонка со своим типом,
-     * и в списке выборки ей не место. А связь на взаимодействие не поднимается — из неё
-     * нужен только id, и он лежит в колонке внешнего ключа той же строки.
-     */
     interface StepRow {
         SupplementaryStepEntity getStep();
         Long getMainQuestionInteractionId();
@@ -29,7 +22,6 @@ public interface SupplementaryStepRepository extends JpaRepository<Supplementary
             """)
     StepRow findRowBySupplementaryQuestion(@Param("supplementary") long supplementaryQuestionId);
 
-    /** Шаги цепочки, начатой этим взаимодействием, от последнего к первому. */
     @Query("""
             select s as step, s.mainQuestionInteraction.id as mainQuestionInteractionId
             from SupplementaryStepEntity s

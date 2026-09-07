@@ -1,41 +1,29 @@
 package org.vstu.compprehension.controllers;
 
 import jakarta.servlet.http.HttpServletRequest;
+import lombok.RequiredArgsConstructor;
 import lombok.extern.log4j.Log4j2;
-import org.springframework.context.i18n.LocaleContextHolder;
 import org.springframework.stereotype.Controller;
 import org.springframework.web.bind.annotation.*;
-import org.vstu.compprehension.services.AuthScopeFactory;
-import org.vstu.compprehension.services.AuthService;
-import org.vstu.compprehension.services.ExerciseAttemptService;
-import org.vstu.compprehension.services.FrontendService;
-import org.vstu.compprehension.services.UserService;
-import org.vstu.compprehension.dto.InteractionDto;
-import org.vstu.compprehension.dto.SupplementaryFeedbackDto;
-import org.vstu.compprehension.dto.SupplementaryQuestionDto;
-import org.vstu.compprehension.dto.SupplementaryQuestionRequestDto;
-import org.vstu.compprehension.dto.feedback.FeedbackDto;
-import org.vstu.compprehension.dto.question.QuestionDto;
+import org.vstu.compprehension.frontend.AuthFrontendService;
+import org.vstu.compprehension.frontend.ExerciseAttemptFrontendService;
+import org.vstu.compprehension.frontend.UserFrontendService;
+import org.vstu.compprehension.frontend.dto.InteractionDto;
+import org.vstu.compprehension.frontend.dto.SupplementaryFeedbackDto;
+import org.vstu.compprehension.frontend.dto.SupplementaryQuestionDto;
+import org.vstu.compprehension.frontend.dto.SupplementaryQuestionRequestDto;
+import org.vstu.compprehension.frontend.dto.feedback.FeedbackDto;
+import org.vstu.compprehension.frontend.dto.question.QuestionDto;
 import org.vstu.compprehension.businesslogic.auth.AuthObjects.SystemPermission;
 
 @Controller
 @RequestMapping("api/question")
 @Log4j2
+@RequiredArgsConstructor
 public class QuestionController {
-    private final FrontendService frontendService;
-    private final UserService userService;
-    private final AuthService authService;
-    private final AuthScopeFactory authScopes;
-    private final ExerciseAttemptService exerciseAttemptService;
-
-    public QuestionController(FrontendService frontendService, UserService userService, AuthService authService, AuthScopeFactory authScopes,
-                              ExerciseAttemptService exerciseAttemptService) {
-        this.frontendService = frontendService;
-        this.userService = userService;
-        this.authService = authService;
-        this.authScopes = authScopes;
-        this.exerciseAttemptService = exerciseAttemptService;
-    }
+    private final ExerciseAttemptFrontendService exerciseAttemptService;
+    private final UserFrontendService userService;
+    private final AuthFrontendService authService;
 
     /**
      * Add an answer to the question
@@ -48,9 +36,9 @@ public class QuestionController {
             consumes = "application/json")
     @ResponseBody
     public FeedbackDto addQuestionAnswer(@RequestBody InteractionDto interaction, HttpServletRequest request) throws Exception {
-        var userId = userService.getCurrentUser().id();
+        var userId = userService.getCurrentUserId();
         exerciseAttemptService.ensureCanAccessQuestion(userId, interaction.getQuestionId());
-        return frontendService.addQuestionAnswer(interaction);
+        return exerciseAttemptService.addQuestionAnswer(interaction);
     }
 
     /**
@@ -64,9 +52,9 @@ public class QuestionController {
             consumes = "application/json")
     @ResponseBody
     public SupplementaryFeedbackDto addSupplementaryQuestionAnswer(@RequestBody InteractionDto interaction, HttpServletRequest request) throws Exception {
-        var userId = userService.getCurrentUser().id();
+        var userId = userService.getCurrentUserId();
         exerciseAttemptService.ensureCanAccessQuestion(userId, interaction.getQuestionId());
-        return frontendService.addSupplementaryQuestionAnswer(interaction);
+        return exerciseAttemptService.addSupplementaryQuestionAnswer(interaction);
     }
 
     /**
@@ -79,10 +67,9 @@ public class QuestionController {
     @RequestMapping(value = {"generate"}, method = { RequestMethod.GET })
     @ResponseBody
     public QuestionDto generateQuestion(Long attemptId, HttpServletRequest request) throws Exception {
-        var userId = userService.getCurrentUser().id();
+        var userId = userService.getCurrentUserId();
         exerciseAttemptService.ensureCanAccessAttempt(userId, attemptId);
-        var locale = LocaleContextHolder.getLocale();
-        return frontendService.generateQuestion(attemptId);
+        return exerciseAttemptService.generateQuestion(attemptId);
     }
 
     /**
@@ -95,10 +82,10 @@ public class QuestionController {
     @RequestMapping(value = {"generateByMetadata"}, method = { RequestMethod.GET })
     @ResponseBody
     public QuestionDto generateQuestionByMetadata(Integer metadataId, HttpServletRequest request) throws Exception {
-        var currentUser = userService.getCurrentUser();
-        authService.ensureAuthorized(currentUser.id(), SystemPermission.EDIT_EXERCISE, authScopes.global());
+        var userId = userService.getCurrentUserId();
+        authService.ensureAuthorized(userId, SystemPermission.EDIT_EXERCISE, authService.global());
 
-        return frontendService.generateQuestionByMetadata(metadataId, currentUser.language());
+        return exerciseAttemptService.generateQuestionByMetadata(metadataId, userService.getCurrentUserLanguage());
     }
 
     /**
@@ -111,10 +98,9 @@ public class QuestionController {
     @RequestMapping(value = {"generateSupplementaryQuestion"}, method = { RequestMethod.POST })
     @ResponseBody
     public SupplementaryQuestionDto generateSupplementaryQuestion(@RequestBody SupplementaryQuestionRequestDto questionRequest, HttpServletRequest request) throws Exception {
-        var userId = userService.getCurrentUser().id();
+        var userId = userService.getCurrentUserId();
         exerciseAttemptService.ensureCanAccessQuestion(userId, questionRequest.getQuestionId());
-        var locale = LocaleContextHolder.getLocale();
-        return frontendService.generateSupplementaryQuestion(questionRequest.getQuestionId(), questionRequest.getViolationLaws());
+        return exerciseAttemptService.generateSupplementaryQuestion(questionRequest.getQuestionId(), questionRequest.getViolationLaws());
     }
 
     /**
@@ -127,9 +113,9 @@ public class QuestionController {
     @RequestMapping(method = { RequestMethod.GET })
     @ResponseBody
     public QuestionDto getQuestion(Long questionId, HttpServletRequest request) throws Exception {
-        var userId = userService.getCurrentUser().id();
+        var userId = userService.getCurrentUserId();
         exerciseAttemptService.ensureCanAccessQuestion(userId, questionId);
-        return frontendService.getQuestion(questionId);
+        return exerciseAttemptService.getQuestion(questionId);
     }
 
     /**
@@ -142,9 +128,8 @@ public class QuestionController {
     @RequestMapping(value = {"generateNextCorrectAnswer"}, method = { RequestMethod.GET })
     @ResponseBody
     public FeedbackDto generateNextCorrectAnswer(@RequestParam Long questionId, HttpServletRequest request) throws Exception {
-        var userId = userService.getCurrentUser().id();
+        var userId = userService.getCurrentUserId();
         exerciseAttemptService.ensureCanAccessQuestion(userId, questionId);
-        var locale = LocaleContextHolder.getLocale();
-        return frontendService.generateNextCorrectAnswer(questionId);
+        return exerciseAttemptService.generateNextCorrectAnswer(questionId);
     }
 }

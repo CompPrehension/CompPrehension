@@ -1,13 +1,11 @@
 package org.vstu.compprehension.domain;
 
-import org.vstu.compprehension.*;
-
 import org.apache.jena.rdf.model.Model;
 import org.junit.jupiter.api.BeforeAll;
 import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.Test;
 import org.vstu.compprehension.businesslogic.Question;
-import org.vstu.compprehension.businesslogic.backend.facts.Fact;
+import org.vstu.compprehension.businesslogic.backend.Fact;
 import org.vstu.compprehension.businesslogic.backend.facts.JenaFact;
 import org.vstu.compprehension.businesslogic.backend.facts.JenaFactList;
 import org.vstu.compprehension.businesslogic.domains.ControlFlowStatementsDomain;

@@ -18,7 +18,7 @@ import org.junit.jupiter.api.BeforeAll;
 import org.junit.jupiter.api.Test;
 import org.junit.jupiter.api.TestInstance;
 import org.springframework.beans.factory.annotation.Autowired;
-import org.vstu.compprehension.services.QuestionService;
+import org.vstu.compprehension.services.QuestionDataService;
 import org.vstu.compprehension.businesslogic.domains.DomainFactory;
 import org.vstu.compprehension.businesslogic.domains.ProgrammingLanguageExpressionDTDomain;
 import org.vstu.compprehension.businesslogic.domains.helpers.meaningtree.MeaningTreeOrderQuestionBuilder;
@@ -52,7 +52,7 @@ public class LoqiBuilder extends AbstractIntegrationTest {
     @Autowired
     private UserRepository userRepository;
     @Autowired
-    private QuestionService questionService;
+    private QuestionDataService questionService;
 
     private ExerciseAttemptEntity attempt;
     private ExerciseEntity exercise;

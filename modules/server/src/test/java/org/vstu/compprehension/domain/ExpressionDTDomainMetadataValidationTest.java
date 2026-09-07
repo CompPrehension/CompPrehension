@@ -13,7 +13,7 @@ import jakarta.transaction.Transactional;
 import org.junit.jupiter.api.*;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.util.Assert;
-import org.vstu.compprehension.services.QuestionService;
+import org.vstu.compprehension.services.QuestionDataService;
 import org.vstu.compprehension.businesslogic.domains.Domain;
 import org.vstu.compprehension.businesslogic.domains.DomainFactory;
 import org.vstu.compprehension.businesslogic.domains.ProgrammingLanguageExpressionDTDomain;
@@ -21,7 +21,7 @@ import org.vstu.compprehension.businesslogic.domains.helpers.meaningtree.Meaning
 import org.vstu.compprehension.businesslogic.domains.helpers.meaningtree.MeaningTreeUtils;
 import org.vstu.compprehension.businesslogic.domains.helpers.meaningtree.QuestionDynamicDataAppender;
 import org.vstu.compprehension.businesslogic.storage.QuestionBank;
-import org.vstu.compprehension.data.enums.Language;
+import org.vstu.compprehension.enums.Language;
 import org.vstu.compprehension.entities.ExerciseAttemptEntity;
 import org.vstu.compprehension.entities.QuestionMetadataEntity;
 import org.vstu.compprehension.entities.ExerciseEntity;
@@ -52,7 +52,7 @@ public class ExpressionDTDomainMetadataValidationTest extends AbstractIntegratio
     @Autowired
     private UserRepository userRepository;
     @Autowired
-    private QuestionService questionService;
+    private QuestionDataService questionService;
     @Autowired
     private QuestionMetadataRepository qMetaRepo;
     @Autowired

@@ -14,7 +14,7 @@ import org.vstu.compprehension.moodle.MoodleWsResult;
 import org.vstu.compprehension.moodle.config.WsFuncMoodleConfig;
 import org.jetbrains.annotations.NotNull;
 import org.vstu.compprehension.data.exerciseattempt.GradePassbackTargetData;
-import org.vstu.compprehension.data.enums.EducationResourceType;
+import org.vstu.compprehension.enums.EducationResourceType;
 
 import java.util.List;
 import java.util.Optional;

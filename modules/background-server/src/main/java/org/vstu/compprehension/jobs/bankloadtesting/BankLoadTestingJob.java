@@ -1,5 +1,6 @@
 package org.vstu.compprehension.jobs.bankloadtesting;
 
+import lombok.RequiredArgsConstructor;
 import org.vstu.compprehension.data.exercise.ExerciseStageData;
 import lombok.SneakyThrows;
 import lombok.extern.log4j.Log4j2;
@@ -7,18 +8,16 @@ import org.apache.logging.log4j.ThreadContext;
 import org.hibernate.exception.LockTimeoutException;
 import org.jetbrains.annotations.Nullable;
 import org.jobrunr.jobs.annotations.Job;
-import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.dao.PessimisticLockingFailureException;
 import org.springframework.stereotype.Service;
-import org.vstu.compprehension.services.FrontendService;
-import org.vstu.compprehension.dto.ExerciseAttemptDto;
-import org.vstu.compprehension.dto.question.QuestionDto;
+import org.vstu.compprehension.frontend.ExerciseAttemptFrontendService;
+import org.vstu.compprehension.frontend.dto.ExerciseAttemptDto;
+import org.vstu.compprehension.frontend.dto.question.QuestionDto;
 import org.vstu.compprehension.repositories.data.ExerciseDataRepository;
 import org.vstu.compprehension.repositories.data.QuestionBankDataRepository;
 import org.vstu.compprehension.repositories.data.UserDataRepository;
-import org.vstu.compprehension.utils.RandomProvider;
+import org.vstu.compprehension.services.RandomProvider;
 import org.vstu.compprehension.utils.transactions.TransactionScope;
-import org.vstu.compprehension.utils.transactions.TransactionScopeFactory;
 
 import java.time.LocalDate;
 import java.util.concurrent.Callable;
@@ -28,8 +27,9 @@ import java.util.concurrent.TimeUnit;
 
 @Log4j2
 @Service
+@RequiredArgsConstructor
 public class BankLoadTestingJob {
-    private final FrontendService frontendService;
+    private final ExerciseAttemptFrontendService frontendService;
     private final ExerciseDataRepository exercises;
     private final UserDataRepository users;
     private final QuestionBankDataRepository bank;
@@ -37,18 +37,6 @@ public class BankLoadTestingJob {
     private final BankLoadTestingJobBatchConfig batchConfig;
     private final TransactionScope transactionScope;
     private final RandomProvider randomProvider;
-
-    @Autowired
-    public BankLoadTestingJob(FrontendService frontendService, ExerciseDataRepository exercises, UserDataRepository users, QuestionBankDataRepository bank, BankLoadTestingJobConfig config, BankLoadTestingJobBatchConfig batchConfig, TransactionScopeFactory transactionScopeFactory, RandomProvider randomProvider) {
-        this.frontendService = frontendService;
-        this.exercises = exercises;
-        this.users = users;
-        this.bank = bank;
-        this.config = config;
-        this.batchConfig = batchConfig;
-        this.transactionScope = transactionScopeFactory.create(TransactionScope.PropagationBehavior.REQUIRES_NEW);
-        this.randomProvider = randomProvider;
-    }
 
     @Job(name = "question-bank-load-testing-job", retries = 0)
     public void run() {

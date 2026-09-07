@@ -1,0 +1,16 @@
+package org.vstu.compprehension.data.user;
+
+import org.jetbrains.annotations.NotNull;
+import org.jetbrains.annotations.Nullable;
+import org.vstu.compprehension.enums.Language;
+
+/**
+ * Учётная запись.
+ */
+public record UserData(
+        long id,
+        @Nullable String firstName,
+        @Nullable String lastName,
+        @Nullable String email,
+        @NotNull Language language) {
+}

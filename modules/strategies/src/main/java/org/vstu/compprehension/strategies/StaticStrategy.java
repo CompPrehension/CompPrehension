@@ -11,12 +11,12 @@ import org.vstu.compprehension.businesslogic.domains.Domain;
 import org.vstu.compprehension.businesslogic.domains.DomainFactory;
 import org.vstu.compprehension.businesslogic.strategies.StrategyOptions;
 import org.vstu.compprehension.businesslogic.strategies.StrategyBase;
-import org.vstu.compprehension.data.enums.Decision;
-import org.vstu.compprehension.data.enums.InteractionType;
-import org.vstu.compprehension.data.enums.Language;
-import org.vstu.compprehension.services.ExerciseAttemptService;
+import org.vstu.compprehension.enums.Decision;
+import org.vstu.compprehension.enums.InteractionType;
+import org.vstu.compprehension.enums.Language;
+import org.vstu.compprehension.services.ExerciseAttemptDataService;
 import org.vstu.compprehension.data.exerciseattempt.AttemptExerciseData;
-import org.vstu.compprehension.data.exerciseattempt.AttemptInteractionData;
+import org.vstu.compprehension.data.exerciseattempt.AttemptQuestionInteractionData;
 import org.vstu.compprehension.data.exerciseattempt.AttemptQuestionData;
 
 import java.util.List;
@@ -28,7 +28,7 @@ public class StaticStrategy extends StrategyBase {
     private final StrategyOptions options;
 
     @Autowired
-    public StaticStrategy(DomainFactory domainFactory, ExerciseAttemptService exerciseAttemptService) {
+    public StaticStrategy(DomainFactory domainFactory, ExerciseAttemptDataService exerciseAttemptService) {
         super(exerciseAttemptService);
         this.domainFactory = domainFactory;
         this.options = StrategyOptions.builder()
@@ -99,7 +99,7 @@ public class StaticStrategy extends StrategyBase {
         // current progress over all questions
         float cumulativeGrade = 0;
         for(AttemptQuestionData q : exerciseAttempt.questions()) {
-            List<AttemptInteractionData> interactions = q.interactions();
+            List<AttemptQuestionInteractionData> interactions = q.interactions();
             int knownInteractions = interactions.size();
             long correctInteractions = interactions.stream()
                     .filter(inter -> inter != null
@@ -125,7 +125,7 @@ public class StaticStrategy extends StrategyBase {
 
         // Должно быть задано не менее X вопросов и последний вопрос должен быть завершён (завершение упражнения возможно только в момент завершения вопроса)
         if(questions.size() < minimumQuestionsToAsk ||
-                questions.stream().anyMatch(q -> q.id() == questions.get(questions.size() - 1).id() && (q.interactions().size() == 0 || q.interactions().get(q.interactions().size() - 1).interactionsLeft() > 0))){
+                questions.stream().anyMatch(q -> q.questionId() == questions.get(questions.size() - 1).questionId() && (q.interactions().size() == 0 || q.interactions().get(q.interactions().size() - 1).interactionsLeft() > 0))){
             return Decision.CONTINUE;
         }
 

@@ -1,6 +1,6 @@
 package org.vstu.compprehension.businesslogic.domains;
 
-import org.vstu.compprehension.services.SupplementaryStepService;
+import org.vstu.compprehension.services.SupplementaryStepDataService;
 import org.vstu.compprehension.data.question.SupplementaryStepData;
 import org.vstu.compprehension.data.question.NewSupplementaryStepData;
 import org.vstu.compprehension.data.question.SupplementarySituationData;
@@ -22,14 +22,14 @@ import org.vstu.compprehension.data.question.QuestionInteractionData;
 import org.vstu.compprehension.data.question.QuestionData;
 import org.vstu.compprehension.data.question.AnswerObjectData;
 import org.vstu.compprehension.data.question.ResponseData;
-import org.vstu.compprehension.dto.SupplementaryFeedbackDto;
-import org.vstu.compprehension.dto.feedback.FeedbackDto;
-import org.vstu.compprehension.dto.feedback.FeedbackViolationLawDto;
+import org.vstu.compprehension.frontend.dto.SupplementaryFeedbackDto;
+import org.vstu.compprehension.frontend.dto.feedback.FeedbackDto;
+import org.vstu.compprehension.frontend.dto.feedback.FeedbackViolationLawDto;
 import org.vstu.compprehension.businesslogic.SupplementaryFeedbackGenerationResult;
 import org.vstu.compprehension.businesslogic.SupplementaryResponse;
 import org.vstu.compprehension.businesslogic.SupplementaryResponseGenerationResult;
-import org.vstu.compprehension.data.enums.Language;
-import org.vstu.compprehension.data.enums.QuestionType;
+import org.vstu.compprehension.enums.Language;
+import org.vstu.compprehension.enums.QuestionType;
 
 import java.net.URL;
 import java.util.ArrayList;
@@ -43,7 +43,7 @@ public class DecisionTreeSupQuestionHelper {
             Domain domain,
             DomainSolvingModel domainSolvingModel,
             Function<QuestionInteractionData, DomainModel> mainQuestionToModelTransformer,
-            SupplementaryStepService supplementaryStepService
+            SupplementaryStepDataService supplementaryStepService
     ) {
         this.domain = domain;
         this.domainModel = domainSolvingModel;
@@ -58,7 +58,7 @@ public class DecisionTreeSupQuestionHelper {
             DomainBase domain,
             URL domainModelDirectoryURL,
             Function<QuestionInteractionData, DomainModel> mainQuestionToModelTransformer,
-            SupplementaryStepService supplementaryStepService
+            SupplementaryStepDataService supplementaryStepService
     ) {
         this(
                 domain,
@@ -72,7 +72,7 @@ public class DecisionTreeSupQuestionHelper {
     final DomainSolvingModel domainModel ;
     private final QuestionAutomata supplementaryAutomata;
     private final Function<QuestionInteractionData, DomainModel> mainQuestionToModelTransformer;
-    private final SupplementaryStepService supplementaryStepService;
+    private final SupplementaryStepDataService supplementaryStepService;
 
     //DT = Decision Tree
     public SupplementaryResponseGenerationResult makeSupplementaryQuestion(QuestionData mainQuestion, Language userLang) {

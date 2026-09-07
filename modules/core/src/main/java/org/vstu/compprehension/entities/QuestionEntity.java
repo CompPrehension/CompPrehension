@@ -14,8 +14,8 @@ import org.hibernate.annotations.OnDeleteAction;
 import org.hibernate.annotations.Type;
 import org.jetbrains.annotations.NotNull;
 import org.jetbrains.annotations.Nullable;
-import org.vstu.compprehension.data.enums.QuestionStatus;
-import org.vstu.compprehension.data.enums.QuestionType;
+import org.vstu.compprehension.enums.QuestionStatus;
+import org.vstu.compprehension.enums.QuestionType;
 
 import java.util.ArrayList;
 import java.util.Date;

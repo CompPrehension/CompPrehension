@@ -14,13 +14,6 @@ import org.vstu.compprehension.repositories.entity.SupplementaryStepRepository;
 
 import java.util.NoSuchElementException;
 
-/**
- * Цепочки вспомогательных вопросов.
- * <p>
- * Один запрос на чтение: шаг — это состояние автомата плюс json с ситуацией, связи из
- * него не поднимаются вовсе. Взаимодействие с главным вопросом отдаётся идентификатором;
- * собрать его целиком умеет {@link QuestionDataRepository#findInteractionById}.
- */
 @Repository
 @RequiredArgsConstructor
 public class SupplementaryStepDataRepository {
@@ -42,13 +35,6 @@ public class SupplementaryStepDataRepository {
         return rows.isEmpty() ? null : toData(rows.get(0));
     }
 
-    /**
-     * Записать новый шаг цепочки.
-     *
-     * @param supplementaryQuestionId вопрос, сгенерированный на этом шаге; null, если шаг
-     *                                лишь фиксирует переход автомата и вопроса не породил
-     * @return идентификатор записанного шага
-     */
     @Transactional
     public long create(@NotNull NewSupplementaryStepData step, @Nullable Long supplementaryQuestionId) {
         var interaction = interactionRepository.findById(step.getMainQuestionInteractionId())

@@ -6,7 +6,7 @@ import lombok.NoArgsConstructor;
 import lombok.ToString;
 import org.hibernate.annotations.CreationTimestamp;
 import org.hibernate.annotations.UpdateTimestamp;
-import org.vstu.compprehension.data.enums.AttemptStatus;
+import org.vstu.compprehension.enums.AttemptStatus;
 import org.vstu.compprehension.entities.course.CourseEntity;
 
 import java.util.Date;

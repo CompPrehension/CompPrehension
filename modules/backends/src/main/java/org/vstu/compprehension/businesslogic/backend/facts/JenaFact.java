@@ -1,5 +1,6 @@
 package org.vstu.compprehension.businesslogic.backend.facts;
 
+import org.vstu.compprehension.businesslogic.backend.Fact;
 import org.vstu.compprehension.data.question.BackendFactData;
 import com.fasterxml.jackson.annotation.JsonIgnore;
 import lombok.Getter;

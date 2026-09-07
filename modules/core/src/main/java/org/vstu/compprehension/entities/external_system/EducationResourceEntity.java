@@ -4,8 +4,8 @@ import jakarta.persistence.*;
 import lombok.Getter;
 import lombok.NoArgsConstructor;
 import lombok.Setter;
-import org.vstu.compprehension.data.enums.EducationResourceTrustStatus;
-import org.vstu.compprehension.data.enums.EducationResourceType;
+import org.vstu.compprehension.enums.EducationResourceTrustStatus;
+import org.vstu.compprehension.enums.EducationResourceType;
 
 @Entity
 @Getter

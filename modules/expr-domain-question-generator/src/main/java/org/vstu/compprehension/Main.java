@@ -10,7 +10,8 @@ import org.vstu.compprehension.adapters.*;
 import org.vstu.compprehension.repositories.entity.FakeDataAccess;
 import org.vstu.compprehension.businesslogic.domains.ProgrammingLanguageExpressionDTDomain;
 import org.vstu.compprehension.businesslogic.domains.ProgrammingLanguageExpressionDomain;
-import org.vstu.compprehension.businesslogic.storage.QuestionBank;
+import org.vstu.compprehension.services.RandomProviderImpl;
+import org.vstu.compprehension.services.questionbank.QuestionBankImpl;
 
 import java.io.IOException;
 import java.nio.file.Files;
@@ -62,14 +63,14 @@ public class Main {
                 new ProgrammingLanguageExpressionDomain(
                         domainData,
                         new FakeLocalizationService(),
-                        new FakeRandomProvider(),
+                        new RandomProviderImpl(),
                         // генератор работает вне попыток: ни этап упражнения, ни язык
                         // пользователя, ни цепочки вспомогательных вопросов ему не нужны
                         null,
                         null,
                         // Банк генератору не нужен: он не ищет готовые вопросы,
                         // а порождает новые. Подставлен пустой, чтобы домен собрался.
-                        new QuestionBank(FakeDataAccess.questionBank())
+                        new QuestionBankImpl(FakeDataAccess.questionBank())
                 ),
                 null,
                 null

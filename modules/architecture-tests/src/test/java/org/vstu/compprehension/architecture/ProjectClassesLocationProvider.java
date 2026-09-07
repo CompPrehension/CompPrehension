@@ -13,22 +13,12 @@ import java.util.List;
 import java.util.Set;
 import java.util.stream.Stream;
 
-/**
- * Отдаёт ArchUnit скомпилированные классы всех модулей проекта.
- * <p>
- * Импортировать по classpath нельзя: server и background-server пакуются
- * spring-boot-maven-plugin в fat-jar, где классы лежат под {@code BOOT-INF/classes/}
- * и по обычному имени пакета не находятся. Если положиться на classpath, правила про
- * контроллеры молча проверяют пустое множество и всегда зелёные — самый бесполезный
- * вариант отказа. Поэтому читаем {@code modules/../target/classes} напрямую.
- */
+/** Отдаёт ArchUnit скомпилированные классы всех модулей проекта. */
 public class ProjectClassesLocationProvider implements LocationProvider {
 
-    /**
-     * Модули, чьи классы обязаны попасть в анализ. Список явный, а не «всё, что нашлось»,
-     * чтобы удаление или переименование модуля ломало сборку, а не тихо сужало покрытие.
-     */
+    /** Модули, чьи классы попадают в анализ. */
     static final List<String> ANALYZED_MODULES = List.of(
+            "core-api",
             "core",
             "backends",
             "domains",
@@ -67,10 +57,7 @@ public class ProjectClassesLocationProvider implements LocationProvider {
         }
     }
 
-    /**
-     * Ищет каталог {@code modules} вверх от рабочего каталога: под surefire это каталог
-     * модуля, в IDE — обычно корень проекта.
-     */
+    /** Ищет каталог {@code modules} вверх от рабочего каталога. */
     private static Path findModulesDir() {
         for (Path dir = Paths.get("").toAbsolutePath(); dir != null; dir = dir.getParent()) {
             Path candidate = dir.resolve("modules");

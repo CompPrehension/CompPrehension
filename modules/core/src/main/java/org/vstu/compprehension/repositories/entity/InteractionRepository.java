@@ -4,7 +4,7 @@ import org.springframework.data.jpa.repository.JpaRepository;
 import org.springframework.data.jpa.repository.Query;
 import org.springframework.data.repository.query.Param;
 import org.springframework.stereotype.Repository;
-import org.vstu.compprehension.data.enums.InteractionType;
+import org.vstu.compprehension.enums.InteractionType;
 import org.vstu.compprehension.entities.InteractionEntity;
 
 import java.util.Collection;
@@ -14,7 +14,6 @@ import java.util.Optional;
 @Repository
 public interface InteractionRepository extends JpaRepository<InteractionEntity, Long> {
 
-    /** Взаимодействие без обхода ленивых связей: feedback подтянут join-ом. */
     interface InteractionRow {
         Long getQuestionId();
         Long getInteractionId();
@@ -23,18 +22,11 @@ public interface InteractionRepository extends JpaRepository<InteractionEntity, 
         Integer getInteractionsLeft();
     }
 
-    /** Имя закона, привязанное к взаимодействию: и для нарушений, и для верно применённых. */
     interface InteractionLawRow {
         Long getInteractionId();
         String getLawName();
     }
 
-    /**
-     * Взаимодействия перечисленных вопросов, в хронологическом порядке.
-     * <p>
-     * left join на feedback вместо обращения к связи: она объявлена с {@code @NotFound},
-     * то есть грузится жадно отдельным запросом на каждое взаимодействие.
-     */
     @Query("""
             select i.question.id as questionId, i.id as interactionId,
                    i.orderNumber as orderNumber, i.interactionType as interactionType,
@@ -61,11 +53,6 @@ public interface InteractionRepository extends JpaRepository<InteractionEntity, 
             order by cl.id
             """)
     List<InteractionLawRow> findCorrectLawsByInteractionIdIn(@Param("interactionIds") Collection<Long> interactionIds);
-
-    // Три запроса ниже поднимают взаимодействия вопроса по одной коллекции за раз.
-    // Одним запросом нельзя: несколько List-коллекций в одном join fetch — это
-    // MultipleBagFetchException. Все три попадают в один контекст персистентности,
-    // поэтому после них у взаимодействий инициализированы все три коллекции.
 
     /** Взаимодействия вопроса с оценкой и нарушениями. */
     @Query("""

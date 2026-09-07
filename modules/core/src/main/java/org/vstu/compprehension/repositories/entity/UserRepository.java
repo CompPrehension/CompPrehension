@@ -11,7 +11,6 @@ import java.util.Optional;
 
 @Repository
 public interface UserRepository extends JpaRepository<UserEntity, Long> {
-    /** Идентификаторы всех пользователей, по возрастанию. */
     @Query("select u.id from UserEntity u order by u.id")
     List<Long> findAllIds();
 

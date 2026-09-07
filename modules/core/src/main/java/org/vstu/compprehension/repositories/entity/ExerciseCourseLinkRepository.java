@@ -14,11 +14,6 @@ import java.util.List;
 @Repository
 public interface ExerciseCourseLinkRepository extends JpaRepository<ExerciseCourseLinkEntity, ExerciseCourseLinkId> {
 
-    /**
-     * Inserts a link only if no row with the same ({@link ExerciseCourseLinkEntity#exercise}, {@link ExerciseCourseLinkEntity#course}) exists.
-     *
-     * @return number of affected rows
-     */
     @Modifying(clearAutomatically = true)
     @Query(value = """
             INSERT IGNORE INTO exercise_course_link (exercise_id, course_id)
@@ -27,22 +22,9 @@ public interface ExerciseCourseLinkRepository extends JpaRepository<ExerciseCour
             nativeQuery = true)
     int createIfAbsent(@Param("exerciseId") long exerciseId, @Param("courseId") long courseId);
 
-    /**
-     * Курсы, в которых показано упражнение.
-     * <p>
-     * Проекция, а не сами связи: из связи читается единственное поле, а её ленивый
-     * {@code getCourse()} вне транзакции не инициализируется.
-     */
     @Query("select ecl.course.id from ExerciseCourseLinkEntity ecl where ecl.exercise.id = :exerciseId")
     List<Long> findCourseIdsByExerciseId(@Param("exerciseId") long exerciseId);
 
-    /**
-     * Связи курса с перечисленными упражнениями, с уже загруженным упражнением.
-     * <p>
-     * join fetch здесь обязателен: {@link ExerciseCourseLinkEntity#getExercise()} — ленивая
-     * связь, и без него вызывающий код получит прокси, который вне транзакции не
-     * инициализируется.
-     */
     @Query("""
             select ecl from ExerciseCourseLinkEntity ecl
             join fetch ecl.exercise
@@ -67,4 +49,3 @@ public interface ExerciseCourseLinkRepository extends JpaRepository<ExerciseCour
     @Modifying(clearAutomatically = true)
     void deleteByExerciseId(long exerciseId);
 }
-

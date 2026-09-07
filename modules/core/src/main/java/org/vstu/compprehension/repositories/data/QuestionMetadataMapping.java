@@ -5,30 +5,12 @@ import org.jetbrains.annotations.Nullable;
 import org.vstu.compprehension.data.question.QuestionMetadataData;
 import org.vstu.compprehension.entities.QuestionMetadataEntity;
 
-/**
- * Метаданные банка заданий: сущность в данные.
- * <p>
- * Общее место для двух репозиториев этого пакета: строка метаданных приходит и вместе
- * с сохранённым вопросом, и из поиска по банку. Форма результата одна, поэтому и
- * маппинг один — иначе два его экземпляра неизбежно разошлись бы.
- * <p>
- * Пакетно-приватный: снаружи вызвать его неоткуда, а значит, некому передать сюда
- * сущность, поднятую выборкой без сериализованного вопроса.
- */
+
 final class QuestionMetadataMapping {
 
     private QuestionMetadataMapping() {
     }
 
-    /**
-     * Метаданные вместе с телом вопроса из банка.
-     * <p>
-     * Перенесены все поля, кроме {@code generatedBy}: это ссылка на заявку на генерацию,
-     * бизнес-логика её не читает, а тянуть ради неё ещё одну сущность незачем.
-     *
-     * @param entity строка метаданных; связь {@code questionData} обязана быть поднята
-     *               той же выборкой — иначе на каждую строку уйдёт отдельный запрос
-     */
     static @Nullable QuestionMetadataData toData(@Nullable QuestionMetadataEntity entity) {
         if (entity == null) {
             return null;
@@ -64,13 +46,6 @@ final class QuestionMetadataMapping {
         return data;
     }
 
-    /**
-     * Новая строка метаданных по данным.
-     * <p>
-     * Обратный перенос нужен генератору: он собирает метаданные в памяти по разобранному
-     * исходнику и записывает их пачкой. Плановые и запрошенные маски не переносятся —
-     * они существуют только в оперативной памяти и в таблице их нет.
-     */
     static @NotNull QuestionMetadataEntity toEntity(@NotNull QuestionMetadataData data) {
         return QuestionMetadataEntity.builder()
                 .id(data.getId())

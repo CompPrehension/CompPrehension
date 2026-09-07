@@ -12,8 +12,6 @@ import org.semanticweb.owlapi.model.OWLObjectProperty;
 import org.semanticweb.owlapi.reasoner.Node;
 import org.semanticweb.owlapi.reasoner.NodeSet;
 import org.vstu.compprehension.businesslogic.Law;
-import org.vstu.compprehension.businesslogic.backend.facts.Fact;
-import org.vstu.compprehension.businesslogic.backend.util.ReasoningOptions;
 
 import java.util.*;
 

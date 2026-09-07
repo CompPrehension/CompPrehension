@@ -7,7 +7,7 @@ import org.vstu.compprehension.businesslogic.Tag;
 import org.vstu.compprehension.businesslogic.domains.ProgrammingLanguageExpressionDTDomain;
 import org.vstu.compprehension.businesslogic.storage.QuestionBank;
 import org.vstu.compprehension.businesslogic.storage.SerializableQuestion;
-import org.vstu.compprehension.data.enums.Language;
+import org.vstu.compprehension.enums.Language;
 import org.vstu.meaningtree.SupportedLanguage;
 import org.vstu.meaningtree.utils.tokens.ComplexOperatorToken;
 import org.vstu.meaningtree.utils.tokens.OperatorToken;

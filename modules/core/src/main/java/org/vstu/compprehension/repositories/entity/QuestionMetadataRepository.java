@@ -80,13 +80,6 @@ public interface QuestionMetadataRepository extends JpaRepository<QuestionMetada
             """)
     Optional<QuestionMetadataEntity> findByIdFetchingData(@Param("metadataId") int metadataId);
 
-    /**
-     * Поднять тела вопросов для уже найденных метаданных.
-     * <p>
-     * Результат не нужен: важен побочный эффект — после этого запроса связь
-     * {@code questionData} инициализирована у всех перечисленных строк, и обход их
-     * в цикле не порождает по запросу на каждую.
-     */
     @Query("""
             select m from QuestionMetadataEntity m
             join fetch m.questionData
@@ -104,15 +97,8 @@ public interface QuestionMetadataRepository extends JpaRepository<QuestionMetada
             order by q.createdAt desc
             limit :limit
             """)
-    List<QuestionMaskView> findRecentAttemptQuestionMasks(@Param("attemptId") long attemptId,
-                                                          @Param("limit") int limit);
+    List<QuestionMaskView> findRecentAttemptQuestionMasks(@Param("attemptId") long attemptId, @Param("limit") int limit);
 
-    /**
-     * Чем «занят» вопрос: понятия, законы, нарушения, умения.
-     * <p>
-     * Интерфейс, а не конструкторное выражение: четыре подряд идущих {@code Long}
-     * при позиционном связывании переставляются молча.
-     */
     interface QuestionMaskView {
         Long getConceptBits();
         Long getLawBits();
@@ -126,12 +112,6 @@ public interface QuestionMetadataRepository extends JpaRepository<QuestionMetada
     @Query("select distinct m.templateId from QuestionMetadataEntity m where m.domainShortname = :domainShortname and m.templateId in :templateIds")
     HashSet<String> findExistingTemplateIds(@Param("domainShortname") String domainShortname, @Param("templateIds") Collection<String> templateIds);
 
-    /**
-     * Статистика по сложности вопросов домена.
-     * <p>
-     * Интерфейс, а не конструкторное выражение: три подряд идущих {@code Double}
-     * (min, avg, max) при позиционном связывании переставляются молча.
-     */
     interface ComplexityStatsView {
         Long getCount();
         Double getMin();

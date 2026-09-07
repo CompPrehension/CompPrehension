@@ -5,9 +5,9 @@ import lombok.val;
 import org.jetbrains.annotations.NotNull;
 import org.jetbrains.annotations.Nullable;
 import org.springframework.data.util.Pair;
-import org.vstu.compprehension.services.ExerciseAttemptService;
+import org.vstu.compprehension.services.ExerciseAttemptDataService;
 import org.vstu.compprehension.data.exerciseattempt.AttemptExerciseData;
-import org.vstu.compprehension.data.exerciseattempt.AttemptInteractionData;
+import org.vstu.compprehension.data.exerciseattempt.AttemptQuestionInteractionData;
 import org.vstu.compprehension.data.exerciseattempt.AttemptQuestionData;
 import org.vstu.compprehension.data.exercise.ExerciseAttemptWithQuestionsData;
 import org.vstu.compprehension.businesslogic.Concept;
@@ -19,11 +19,11 @@ import org.vstu.compprehension.businesslogic.domains.DomainFactory;
 import org.vstu.compprehension.businesslogic.domains.ProgrammingLanguageExpressionDomain;
 import org.vstu.compprehension.businesslogic.strategies.StrategyOptions;
 import org.vstu.compprehension.businesslogic.strategies.StrategyBase;
-import org.vstu.compprehension.data.enums.Decision;
-import org.vstu.compprehension.data.enums.DisplayingFeedbackType;
-import org.vstu.compprehension.data.enums.FeedbackType;
-import org.vstu.compprehension.data.enums.Language;
-import org.vstu.compprehension.utils.RandomProvider;
+import org.vstu.compprehension.enums.Decision;
+import org.vstu.compprehension.enums.DisplayingFeedbackType;
+import org.vstu.compprehension.enums.FeedbackType;
+import org.vstu.compprehension.enums.Language;
+import org.vstu.compprehension.services.RandomProvider;
 
 import java.util.*;
 
@@ -37,7 +37,7 @@ public class Strategy extends StrategyBase {
     protected final StrategyOptions options;
 
     public Strategy(DomainFactory domainFactory, RandomProvider randomProvider,
-                    ExerciseAttemptService exerciseAttemptService) {
+                    ExerciseAttemptDataService exerciseAttemptService) {
         super(exerciseAttemptService);
         this.domainFactory = domainFactory;
         this.randomProvider = randomProvider;
@@ -109,9 +109,9 @@ public class Strategy extends StrategyBase {
             }
         }
 
-        AttemptInteractionData lastIE = null;
+        AttemptQuestionInteractionData lastIE = null;
         ArrayList<Pair<Pair<Boolean, Integer>, String>> allLaws = new ArrayList<>();
-        ArrayList<AttemptInteractionData> ies = new ArrayList<>();
+        ArrayList<AttemptQuestionInteractionData> ies = new ArrayList<>();
 
         if(qe.interactions() != null){
             ies = new ArrayList<>(qe.interactions());
@@ -124,7 +124,7 @@ public class Strategy extends StrategyBase {
 
         Collections.sort(ies, new InteractionOrderComparator());
         int iIndex = 0;
-        for(AttemptInteractionData ie : ies){
+        for(AttemptQuestionInteractionData ie : ies){
             ArrayList<Pair<Boolean, String>> tmp = findInteractionsDelta(lastIE, ie);
 
             for(Pair<Boolean, String> i: tmp){
@@ -221,11 +221,11 @@ public class Strategy extends StrategyBase {
                 ArrayList<Pair<Pair<Boolean, Integer>, String>> allLawsHistory = new ArrayList<>();
                 int index = 0;
                 for (AttemptQuestionData taskqe : qes){
-                    ArrayList<AttemptInteractionData> taskies = new ArrayList<>(taskqe.interactions());
+                    ArrayList<AttemptQuestionInteractionData> taskies = new ArrayList<>(taskqe.interactions());
 
                     Collections.sort(taskies, new InteractionOrderComparator());
-                    AttemptInteractionData tasklastIE = null;
-                    for(AttemptInteractionData ie : taskies){
+                    AttemptQuestionInteractionData tasklastIE = null;
+                    for(AttemptQuestionInteractionData ie : taskies){
                         ArrayList<Pair<Boolean, String>> tmp = findInteractionsDelta(tasklastIE, ie);
                         for(Pair<Boolean, String> law : tmp){
                             allLawsHistory.add(Pair.of(Pair.of(law.getFirst(), index), law.getSecond()));
@@ -427,10 +427,10 @@ public class Strategy extends StrategyBase {
 
     public DisplayingFeedbackType determineDisplayingFeedbackType(AttemptQuestionData question) {
 
-        List<AttemptInteractionData> interactions = question.interactions();
+        List<AttemptQuestionInteractionData> interactions = question.interactions();
 
         int interactionWithMistakes = 0;
-        for (AttemptInteractionData i : interactions) {
+        for (AttemptQuestionInteractionData i : interactions) {
 
             if (i.violationLawNames() != null || i.violationLawNames().size() != 0) {
 
@@ -449,10 +449,10 @@ public class Strategy extends StrategyBase {
 
     public FeedbackType determineFeedbackType(AttemptQuestionData question) {
 
-        List<AttemptInteractionData> interactions = question.interactions();
+        List<AttemptQuestionInteractionData> interactions = question.interactions();
 
         int interactionWithMistakes = 0;
-        for (AttemptInteractionData i : interactions) {
+        for (AttemptQuestionInteractionData i : interactions) {
 
             if (i.violationLawNames() != null || i.violationLawNames().size() != 0) {
 
@@ -492,7 +492,7 @@ public class Strategy extends StrategyBase {
         var exerciseAttempt = getAttempt(exerciseAttemptId);
         // Должно быть задано не менее 3 вопросов и все вопросы должны быть завершены
         if(exerciseAttempt.questions().size() <= 3 ||
-            exerciseAttempt.questions().stream().anyMatch(q -> q.id() == exerciseAttempt.questions().get(exerciseAttempt.questions().size() - 1).id() && (q.interactions().size() == 0 || q.interactions().get(q.interactions().size() - 1).interactionsLeft() > 0))){
+            exerciseAttempt.questions().stream().anyMatch(q -> q.questionId() == exerciseAttempt.questions().get(exerciseAttempt.questions().size() - 1).questionId() && (q.interactions().size() == 0 || q.interactions().get(q.interactions().size() - 1).interactionsLeft() > 0))){
             return Decision.CONTINUE;
         }
 
@@ -507,11 +507,11 @@ public class Strategy extends StrategyBase {
         ArrayList<Pair<Pair<Boolean, Integer>, String>> allLawsHistory = new ArrayList<>();
         int index = 0;
         for (AttemptQuestionData taskqe : qes){
-            ArrayList<AttemptInteractionData> taskies = new ArrayList<>(taskqe.interactions());
+            ArrayList<AttemptQuestionInteractionData> taskies = new ArrayList<>(taskqe.interactions());
 
             Collections.sort(taskies, new InteractionOrderComparator());
-            AttemptInteractionData tasklastIE = null;
-            for(AttemptInteractionData ie : taskies){
+            AttemptQuestionInteractionData tasklastIE = null;
+            for(AttemptQuestionInteractionData ie : taskies){
                 ArrayList<Pair<Boolean, String>> tmp = findInteractionsDelta(tasklastIE, ie);
                 for(Pair<Boolean, String> law : tmp){
                     allLawsHistory.add(Pair.of(Pair.of(law.getFirst(), index), law.getSecond()));
@@ -620,7 +620,7 @@ public class Strategy extends StrategyBase {
         ArrayList<AttemptQuestionData> questions = new ArrayList<>();
         questions.addAll(exerciseAttempt.questions());
 
-        ArrayList<AttemptInteractionData> ies = new ArrayList<>();
+        ArrayList<AttemptQuestionInteractionData> ies = new ArrayList<>();
         for(AttemptQuestionData qe : questions){
 
             val inter = qe.interactions();
@@ -632,7 +632,7 @@ public class Strategy extends StrategyBase {
         Collections.sort(ies, new InteractionOrderComparator());
         Collections.reverse(ies);
 
-        for (AttemptInteractionData ie : ies){
+        for (AttemptQuestionInteractionData ie : ies){
             ArrayList<String> mistakes = new ArrayList<>();
             if (ie.violationLawNames() != null) {
                 mistakes.addAll(ie.violationLawNames());
@@ -674,7 +674,7 @@ public class Strategy extends StrategyBase {
         return res;
     }
 
-    protected ArrayList<Pair<Boolean, String>> findInteractionsDelta(AttemptInteractionData last, AttemptInteractionData current){
+    protected ArrayList<Pair<Boolean, String>> findInteractionsDelta(AttemptQuestionInteractionData last, AttemptQuestionInteractionData current){
         ArrayList<Pair<Boolean, String>> result = new ArrayList<>();
 
         ArrayList<String> lastCorrectLaws = new ArrayList<>();
@@ -1718,9 +1718,9 @@ public class Strategy extends StrategyBase {
 
     }
 
-    class InteractionOrderComparator implements Comparator<AttemptInteractionData> {
+    class InteractionOrderComparator implements Comparator<AttemptQuestionInteractionData> {
         @Override
-        public int compare(AttemptInteractionData a, AttemptInteractionData b) {
+        public int compare(AttemptQuestionInteractionData a, AttemptQuestionInteractionData b) {
             return Integer.compare(a.orderNumber(), b.orderNumber());
         }
     }
@@ -1728,7 +1728,7 @@ public class Strategy extends StrategyBase {
     class QuestionOrderComparator implements Comparator<AttemptQuestionData> {
         @Override
         public int compare(AttemptQuestionData a, AttemptQuestionData b) {
-            return Long.compare(a.id(), b.id());
+            return Long.compare(a.questionId(), b.questionId());
         }
     }
 }

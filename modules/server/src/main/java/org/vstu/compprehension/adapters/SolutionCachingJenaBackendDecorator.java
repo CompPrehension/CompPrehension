@@ -7,9 +7,9 @@ import org.vstu.compprehension.businesslogic.Law;
 import org.vstu.compprehension.businesslogic.backend.Backend;
 import org.vstu.compprehension.businesslogic.backend.FactBackend;
 import org.vstu.compprehension.businesslogic.backend.JenaBackend;
-import org.vstu.compprehension.businesslogic.backend.facts.Fact;
+import org.vstu.compprehension.businesslogic.backend.Fact;
 import org.vstu.compprehension.businesslogic.backend.facts.JenaFactList;
-import org.vstu.compprehension.businesslogic.backend.util.ReasoningOptions;
+import org.vstu.compprehension.businesslogic.backend.ReasoningOptions;
 
 import java.util.Collection;
 import java.util.List;

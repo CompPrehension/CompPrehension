@@ -5,14 +5,14 @@ import lombok.extern.log4j.Log4j2;
 import org.jetbrains.annotations.NotNull;
 import org.jetbrains.annotations.Nullable;
 import org.springframework.data.util.Pair;
-import org.vstu.compprehension.data.enums.Decision;
-import org.vstu.compprehension.data.enums.Language;
-import org.vstu.compprehension.data.enums.RoleInExercise;
-import org.vstu.compprehension.data.enums.SearchDirections;
-import org.vstu.compprehension.services.ExerciseAttemptService;
-import org.vstu.compprehension.dto.ExerciseLawDto;
+import org.vstu.compprehension.enums.Decision;
+import org.vstu.compprehension.enums.Language;
+import org.vstu.compprehension.enums.RoleInExercise;
+import org.vstu.compprehension.enums.SearchDirections;
+import org.vstu.compprehension.services.ExerciseAttemptDataService;
+import org.vstu.compprehension.frontend.dto.ExerciseLawDto;
 import org.vstu.compprehension.data.exerciseattempt.AttemptExerciseData;
-import org.vstu.compprehension.data.exerciseattempt.AttemptInteractionData;
+import org.vstu.compprehension.data.exerciseattempt.AttemptQuestionInteractionData;
 import org.vstu.compprehension.data.exerciseattempt.AttemptQuestionData;
 import org.vstu.compprehension.data.exercise.ExerciseAttemptWithQuestionsData;
 import org.vstu.compprehension.businesslogic.Law;
@@ -36,7 +36,7 @@ public class    GradeConfidenceBaseStrategy extends StrategyBase {
     protected static float CONFIDENCE_MULTIPLIER = 1.0f /*(float)1.2*/;
     protected static int DEFAULT_LAW_COUNT = 2 /*5*/;
 
-    public GradeConfidenceBaseStrategy(DomainFactory domainFactory, ExerciseAttemptService exerciseAttemptService) {
+    public GradeConfidenceBaseStrategy(DomainFactory domainFactory, ExerciseAttemptDataService exerciseAttemptService) {
         super(exerciseAttemptService);
         this.domainFactory = domainFactory;
         this.options = StrategyOptions.builder()
@@ -142,11 +142,11 @@ public class    GradeConfidenceBaseStrategy extends StrategyBase {
                                         summarizedLawDeltaCount, lastLawDeltaCount, questions.size());
         if (studentsComplexity == -1) {
             //Директивное упрощение
-            ArrayList<AttemptInteractionData> inters = new ArrayList<>();
+            ArrayList<AttemptQuestionInteractionData> inters = new ArrayList<>();
             inters.addAll(questions.get(questions.size()-1).interactions());
             HashMap<String, List<Boolean>> allLawsError = new HashMap<>();
 
-            for (AttemptInteractionData inter: inters) {
+            for (AttemptQuestionInteractionData inter: inters) {
                 for (String vio: inter.violationLawNames()) {
                     allLawsError.put(
                             vio,
@@ -322,7 +322,7 @@ public class    GradeConfidenceBaseStrategy extends StrategyBase {
     private List<String> countQuestionLaws(AttemptQuestionData question){
 
         List<String> result = new ArrayList<>();
-        ArrayList<AttemptInteractionData> interactions = new ArrayList<>();
+        ArrayList<AttemptQuestionInteractionData> interactions = new ArrayList<>();
         interactions.addAll(question.interactions());
         for(int i = 0; i < interactions.size(); i++){
 
@@ -475,10 +475,10 @@ public class    GradeConfidenceBaseStrategy extends StrategyBase {
 
     private HashMap<String, List<Boolean>> getQuestionsLawConceptUsage(List<AttemptQuestionData> allQuestions, HashMap<String, List<Boolean>> allLawsUsage) {
         for (AttemptQuestionData currentQuestion : allQuestions) {
-            List<AttemptInteractionData> allInteractions = currentQuestion.interactions();
+            List<AttemptQuestionInteractionData> allInteractions = currentQuestion.interactions();
             allInteractions.sort(new InteractionOrderComparator());
 
-            for (AttemptInteractionData currentInteraction : allInteractions) {
+            for (AttemptQuestionInteractionData currentInteraction : allInteractions) {
 
                 List<String> allViolations = currentInteraction.violationLawNames();
                 for (String currentViolation : allViolations) {
@@ -691,13 +691,13 @@ public class    GradeConfidenceBaseStrategy extends StrategyBase {
     static class QuestionOrderComparator implements Comparator<AttemptQuestionData> {
         @Override
         public int compare(AttemptQuestionData a, AttemptQuestionData b) {
-            return Long.compare(a.id(), b.id());
+            return Long.compare(a.questionId(), b.questionId());
         }
     }
 
-    static class InteractionOrderComparator implements Comparator<AttemptInteractionData> {
+    static class InteractionOrderComparator implements Comparator<AttemptQuestionInteractionData> {
         @Override
-        public int compare(AttemptInteractionData a, AttemptInteractionData b) {
+        public int compare(AttemptQuestionInteractionData a, AttemptQuestionInteractionData b) {
             return Integer.compare(a.orderNumber(), b.orderNumber());
         }
     }

@@ -39,18 +39,6 @@ import java.util.Objects;
 import java.util.Optional;
 import java.util.stream.Collectors;
 
-/**
- * Вопрос целиком, в виде отсоединённых данных.
- * <p>
- * Ровно шесть запросов независимо от того, сколько у вопроса взаимодействий и ответов.
- * Форма выборки задана здесь же, рядом с маппингом, поэтому маппинг тотальный: каждое
- * поле {@link QuestionData} заполнено, кроме тех, что допускают null в самой схеме
- * (метаданные, оценка взаимодействия, породившее ответ взаимодействие).
- * <p>
- * Раньше это делалось связкой {@code findByIdEager} + маппером вопроса:
- * запрос поднимал вопрос со взаимодействиями, а всё остальное маппер добирал обходом
- * ленивых связей — по запросу на каждую коллекцию каждого взаимодействия.
- */
 @Repository
 @RequiredArgsConstructor
 public class QuestionDataRepository {
@@ -64,19 +52,11 @@ public class QuestionDataRepository {
     private final QuestionMetadataRepository questionMetadataRepository;
     private final QuestionRequestLogRepository questionRequestLogRepository;
 
-    /**
-     * Вопрос со всеми взаимодействиями, ответами и нарушениями.
-     *
-     * @throws NoSuchElementException если вопроса нет
-     */
     @Transactional(readOnly = true)
     public @NotNull QuestionData findById(long questionId) {
         var question = questionRepository.findByIdFetchingMetadata(questionId)
                 .orElseThrow(() -> new NoSuchElementException("Question " + questionId + " not found"));
 
-        // Дальше — та же сущность из контекста персистентности, у которой запросы
-        // по очереди инициализируют коллекции. Результаты не нужны: важен побочный
-        // эффект, после которого обход графа не порождает запросов.
         questionRepository.findByIdFetchingAnswerObjects(questionId);
         violationRepository.findAllByQuestionIdFetchingTemplates(questionId);
         var interactions = interactionRepository.findAllByQuestionIdFetchingViolations(questionId);
@@ -86,15 +66,6 @@ public class QuestionDataRepository {
         return toData(question, interactions);
     }
 
-    /**
-     * Одно взаимодействие вместе с вопросом, которому оно принадлежит.
-     * <p>
-     * Взаимодействие не собирается отдельно, а берётся из полного вопроса: только так
-     * обратная ссылка {@link QuestionInteractionData#getQuestion()} заполнена всегда.
-     * Именно на ней раньше падали домены, получая шаг цепочки вспомогательных вопросов.
-     *
-     * @throws NoSuchElementException если взаимодействия нет
-     */
     @Transactional(readOnly = true)
     public @NotNull QuestionInteractionData findInteractionById(long interactionId) {
         long questionId = interactionRepository.findQuestionId(interactionId)
@@ -106,37 +77,17 @@ public class QuestionDataRepository {
                         "Interaction " + interactionId + " is not among interactions of question " + questionId));
     }
 
-    /**
-     * Имя предметной области вопроса — скалярным запросом, без подъёма самого вопроса.
-     *
-     * @throws NoSuchElementException если вопроса нет
-     */
     @Transactional(readOnly = true)
     public @NotNull String getDomainName(long questionId) {
         return questionRepository.findDomainName(questionId)
                 .orElseThrow(() -> new NoSuchElementException("Question " + questionId + " not found"));
     }
 
-    /** Владелец попытки, породившей вопрос; пусто, если вопрос задан вне попытки. */
     @Transactional(readOnly = true)
     public @NotNull Optional<Long> findOwnerUserId(long questionId) {
         return questionRepository.findOwnerUserId(questionId);
     }
 
-    /**
-     * Записать вопрос: новый завести, существующий обновить на месте.
-     * <p>
-     * Единственный сток всех путей генерации, поэтому здесь же проставляются связи,
-     * которых в данных вопроса нет и быть не может: домен, попытка и журнал запроса.
-     * Идентификаторы, назначенные базой, возвращаются в переданные данные —
-     * вызывающий продолжает работать с тем же объектом вопроса.
-     *
-     * @param domainId          предметная область вопроса; известна вызывающему из домена
-     * @param questionRequestLog журнал запроса, если вопрос сгенерирован по запросу;
-     *                           записывается раньше вопроса — связь идёт по его id
-     * @param exerciseAttemptId  попытка, в рамках которой задан вопрос, если она есть
-     * @return идентификатор записанного вопроса
-     */
     @Transactional
     public long save(@NotNull QuestionData data, @NotNull String domainId,
                      @Nullable QuestionRequestLogData questionRequestLog,
@@ -189,11 +140,6 @@ public class QuestionDataRepository {
 
     // ---------------------------------------------------------------- маппинг
 
-    /**
-     * Новая сущность вопроса по данным.
-     *
-     * @param metadata строка метаданных банка, если вопрос из банка
-     */
     private static @NotNull QuestionEntity toNewEntity(
             @NotNull QuestionData data,
             @Nullable QuestionMetadataEntity metadata) {
@@ -204,22 +150,6 @@ public class QuestionDataRepository {
         return entity;
     }
 
-    /**
-     * Переносит в сущность то, что домены действительно меняют.
-     * <p>
-     * Намеренно <b>не</b> переносится:
-     * <ul>
-     *   <li>{@code interactions} — их пишет {@link InteractionDataRepository}, а в
-     *       {@link QuestionInteractionData} нет полей {@code orderNumber},
-     *       {@code createdAt}, {@code correctLaw} и {@code newResponses}, поэтому
-     *       обратный перенос молча их потерял бы;</li>
-     *   <li>{@code exerciseAttempt}, {@code domainEntity}, {@code questionRequestLog} —
-     *       их проставляет {@link #save}, в данных вопроса их нет вовсе;</li>
-     *   <li>{@code createdAt} — проставляется базой при вставке.</li>
-     * </ul>
-     * Существующие варианты ответа (с непустым id) обновляются на месте, новые
-     * добавляются. Удаление вариантов не поддерживается: домены их не удаляют.
-     */
     private static void applyToEntity(
             @NotNull QuestionData data, @NotNull QuestionEntity target,
             @Nullable QuestionMetadataEntity metadata) {
@@ -262,7 +192,6 @@ public class QuestionDataRepository {
         }
     }
 
-    /** Журнал запроса — плоская копия, связей у него нет. */
     private static @NotNull QuestionRequestLogEntity toEntity(@NotNull QuestionRequestLogData data) {
         return QuestionRequestLogEntity.builder()
                 .id(data.getId())
@@ -310,9 +239,6 @@ public class QuestionDataRepository {
         data.setQuestionDomainType(entity.getQuestionDomainType());
         data.setOptions(entity.getOptions());
         data.setTags(new ArrayList<>(entity.getTags()));
-        // Метаданные — плоская копия полей плюс тело из банка, поднятое тем же запросом.
-        // Маппинг общий с путём генерации из банка: там метаданные приходят собранными
-        // в памяти, и он одинаково тотален в обоих случаях.
         data.setMetadata(QuestionMetadataMapping.toData(entity.getMetadata()));
         data.setStatementFacts(copyFacts(entity.getStatementFacts()));
         data.setSolutionFacts(copyFacts(entity.getSolutionFacts()));
@@ -320,8 +246,6 @@ public class QuestionDataRepository {
                 .map(QuestionDataRepository::toData)
                 .collect(Collectors.toCollection(ArrayList::new)));
 
-        // Порядок задан явно: у коллекции взаимодействий нет @OrderBy, а домены берут
-        // последнее взаимодействие по позиции в списке.
         var interactionsData = interactions.stream()
                 .sorted(Comparator.comparing(InteractionEntity::getId))
                 .map(QuestionDataRepository::toData)
@@ -331,12 +255,6 @@ public class QuestionDataRepository {
         return data;
     }
 
-    /**
-     * Вариант ответа.
-     * <p>
-     * Null допускает сама схема: у ответа студента внешние ключи на варианты не
-     * обязательны. Это не «может быть не подгружено», а реально пустая ссылка.
-     */
     private static @Nullable AnswerObjectData toData(@Nullable AnswerObjectEntity entity) {
         if (entity == null) {
             return null;
@@ -374,7 +292,6 @@ public class QuestionDataRepository {
         return data;
     }
 
-    /** @param owner взаимодействие, которому нарушение принадлежит — из него берётся тип */
     private static @NotNull ViolationData toData(@NotNull ViolationEntity entity,
                                                  @NotNull InteractionEntity owner) {
         var data = new ViolationData();
@@ -389,7 +306,6 @@ public class QuestionDataRepository {
         return data;
     }
 
-    /** @param interactionHasViolations были ли нарушения во взаимодействии-владельце */
     private static @NotNull ResponseData toData(@NotNull ResponseEntity entity,
                                                 boolean interactionHasViolations) {
         var createdBy = entity.getCreatedByInteraction();

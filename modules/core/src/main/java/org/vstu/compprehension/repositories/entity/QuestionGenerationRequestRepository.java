@@ -15,9 +15,6 @@ import java.util.Optional;
 
 @Repository
 public interface QuestionGenerationRequestRepository extends JpaRepository<QuestionGenerationRequestEntity, Integer>, QuestionGenerationRequestComplexQueriesRepository {
-    /**
-     * Обновить статусы запросов на генерацию.
-     */
     @Transactional
     @Query(value = 
             "UPDATE question_generation_requests SET " +

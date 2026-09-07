@@ -13,11 +13,11 @@ import java.util.Map;
 import java.util.concurrent.ConcurrentHashMap;
 
 /**
- * Серсис закэшированных курсов с educational resources.
+ * Сервис закэшированных курсов с educational resources.
  */
 @Service
 @RequiredArgsConstructor
-public class CourseEducationResourceCache {
+class CourseEducationResourceCache {
 
     private static final Duration TTL = Duration.ofMinutes(10);
 

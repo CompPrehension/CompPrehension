@@ -14,13 +14,13 @@ import org.apache.jena.rdf.model.Model;
 import org.junit.jupiter.api.*;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.util.Assert;
-import org.vstu.compprehension.services.QuestionService;
+import org.vstu.compprehension.services.QuestionDataService;
 import org.vstu.compprehension.businesslogic.domains.DomainFactory;
 import org.vstu.compprehension.businesslogic.domains.ProgrammingLanguageExpressionDTDomain;
 import org.vstu.compprehension.businesslogic.domains.helpers.meaningtree.MeaningTreeDefaultExpressionConfig;
 import org.vstu.compprehension.businesslogic.domains.helpers.meaningtree.MeaningTreeOrderQuestionBuilder;
 import org.vstu.compprehension.businesslogic.domains.helpers.meaningtree.MeaningTreeRDFHelper;
-import org.vstu.compprehension.data.enums.Language;
+import org.vstu.compprehension.enums.Language;
 import org.vstu.compprehension.entities.ExerciseAttemptEntity;
 import org.vstu.compprehension.entities.ExerciseEntity;
 import org.vstu.compprehension.repositories.entity.ExerciseAttemptRepository;
@@ -55,7 +55,7 @@ public class ProgrammingLanguageExpressionDTDomainTest extends AbstractIntegrati
     @Autowired
     private UserRepository userRepository;
     @Autowired
-    private QuestionService questionService;
+    private QuestionDataService questionService;
 
     private ExerciseAttemptEntity attempt;
     private ExerciseEntity exercise;

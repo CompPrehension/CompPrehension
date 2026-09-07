@@ -20,13 +20,6 @@ import org.vstu.compprehension.repositories.entity.UserRepository;
 import java.util.List;
 import java.util.NoSuchElementException;
 
-/**
- * Опросы, показываемые поверх вопросов упражнения, и голоса в них.
- * <p>
- * Опрос читается одним запросом вместе с вопросами: раньше связь оставалась ленивой,
- * и обходил её маппер — то есть подъём вопросов зависел от того, успел ли вызов до
- * закрытия транзакции.
- */
 @Repository
 @RequiredArgsConstructor
 public class SurveyDataRepository {
@@ -36,18 +29,12 @@ public class SurveyDataRepository {
     private final QuestionRepository questionRepository;
     private final UserRepository userRepository;
 
-    /**
-     * Опрос вместе с его вопросами.
-     *
-     * @throws NoSuchElementException если опроса нет
-     */
     @Transactional(readOnly = true)
     public @NotNull SurveyData getById(@NotNull String surveyId) {
         return toData(surveyRepository.findOne(surveyId)
                 .orElseThrow(() -> new NoSuchElementException("Survey " + surveyId + " not found")));
     }
 
-    /** Голоса пользователя в опросе в рамках одной попытки, по порядку вопросов опроса. */
     @Transactional(readOnly = true)
     public @NotNull List<SurveyVoteData> findUserAttemptVotes(long userId, long attemptId,
                                                               @NotNull String surveyId) {
@@ -56,14 +43,6 @@ public class SurveyDataRepository {
                 .toList();
     }
 
-    /**
-     * Записать голос, перезаписав прежний ответ того же пользователя на тот же вопрос опроса.
-     * <p>
-     * Ключ голоса — тройка (вопрос опроса, вопрос упражнения, пользователь), поэтому
-     * повторная отправка формы не плодит строк.
-     *
-     * @throws NoSuchElementException если такого вопроса опроса нет
-     */
     @Transactional
     public void saveVote(long userId, @NotNull SurveyVoteData vote) {
         var surveyQuestion = surveyRepository.findSurveyQuestion(vote.surveyQuestionId())
@@ -104,8 +83,6 @@ public class SurveyDataRepository {
                 Strict.required(entity.getType(), "type", owner),
                 Strict.required(entity.getText(), "text", owner),
                 entity.isRequired(),
-                // policy и options — значения json-колонок: колонка not null, но пустой
-                // текст в ней даёт null уже после успешного чтения строки.
                 Strict.required(entity.getPolicy(), "policy", owner),
                 Strict.required(entity.getOptions(), "options", owner));
     }

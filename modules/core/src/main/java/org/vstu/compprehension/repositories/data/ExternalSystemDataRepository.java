@@ -6,8 +6,8 @@ import org.springframework.stereotype.Repository;
 import org.springframework.transaction.annotation.Transactional;
 import org.vstu.compprehension.data.cource.EducationResourceData;
 import org.vstu.compprehension.data.user.ExternalAccountData;
-import org.vstu.compprehension.data.enums.EducationResourceTrustStatus;
-import org.vstu.compprehension.data.enums.EducationResourceType;
+import org.vstu.compprehension.enums.EducationResourceTrustStatus;
+import org.vstu.compprehension.enums.EducationResourceType;
 import org.vstu.compprehension.entities.external_system.EducationResourceEntity;
 import org.vstu.compprehension.repositories.entity.EducationResourceRepository;
 import org.vstu.compprehension.repositories.entity.ExternalAccountRepository;
@@ -15,15 +15,6 @@ import org.vstu.compprehension.repositories.entity.ExternalAccountRepository;
 import java.util.List;
 import java.util.Optional;
 
-/**
- * Внешние системы: сами LMS и привязки к ним учётных записей.
- * <p>
- * Сгруппировано вместе, потому что и то и другое существует ради одного сценария —
- * входа по LTI, где ресурс заводится и тут же получает привязку пользователя. Связь
- * учётной записи наружу не отдаётся вовсе: из неё читают единственное поле, внешний
- * идентификатор, а остальные её поля — это те же самые user и ресурс, которые
- * вызывающий уже держит в руках.
- */
 @Repository
 @RequiredArgsConstructor
 public class ExternalSystemDataRepository {
@@ -31,7 +22,6 @@ public class ExternalSystemDataRepository {
     private final EducationResourceRepository educationResourceRepository;
     private final ExternalAccountRepository externalAccountRepository;
 
-    /** Образовательный ресурс по адресу и типу; пусто, если он ещё не заведён. */
     @Transactional(readOnly = true)
     public @NotNull Optional<EducationResourceData> findEducationResource(
             @NotNull String url, @NotNull EducationResourceType type) {
@@ -39,7 +29,6 @@ public class ExternalSystemDataRepository {
                 .map(ExternalSystemDataRepository::toData);
     }
 
-    /** Образовательные ресурсы заданного типа с заданным статусом доверия. */
     @Transactional(readOnly = true)
     public @NotNull List<EducationResourceData> findEducationResources(
             @NotNull EducationResourceType type, @NotNull EducationResourceTrustStatus trustStatus) {
@@ -48,7 +37,6 @@ public class ExternalSystemDataRepository {
                 .toList();
     }
 
-    /** Все привязки учётных записей к внешней системе. */
     @Transactional(readOnly = true)
     public @NotNull List<ExternalAccountData> findExternalAccounts(long educationResourceId) {
         return externalAccountRepository.findAccountsByEducationResourceId(educationResourceId).stream()
@@ -61,15 +49,6 @@ public class ExternalSystemDataRepository {
                 .toList();
     }
 
-    /**
-     * Образовательный ресурс по адресу и типу, заводя его при отсутствии.
-     * <p>
-     * Вставка идемпотентная ({@code insert ignore}) и после неё идёт чтение: при гонке
-     * двух LTI-запусков победит тот, кто вставил, а второй прочитает уже существующую
-     * строку. Новый ресурс появляется недоверенным — доверие проставляется вручную.
-     *
-     * @throws IllegalStateException если строки нет и после вставки
-     */
     @Transactional
     public @NotNull EducationResourceData createEducationResourceIfAbsent(
             @NotNull String url, @NotNull EducationResourceType type) {
@@ -79,13 +58,11 @@ public class ExternalSystemDataRepository {
                         "Education resource " + type + " " + url + " not found after insert"));
     }
 
-    /** Идентификатор пользователя во внешней системе; пусто, если привязки нет. */
     @Transactional(readOnly = true)
     public @NotNull Optional<String> findExternalAccountId(long userId, long educationResourceId) {
         return externalAccountRepository.findExternalId(userId, educationResourceId);
     }
 
-    /** Завести привязку учётной записи к внешней системе, если её ещё нет. */
     @Transactional
     public void createExternalAccountIfAbsent(long userId, long educationResourceId,
                                               @NotNull String externalId) {

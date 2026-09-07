@@ -25,17 +25,6 @@ import java.util.Map;
 import java.util.Set;
 import java.util.stream.Collectors;
 
-/**
- * Права: кому какая роль выдана и в какой области.
- * <p>
- * Роли, области и выдачи — одна таблица связей и два справочника, которые поодиночке
- * бессмысленны: выдать роль значит завести область, если её ещё нет, и только потом
- * вставить связь. Разложенное по трём репозиториям, это заставляло сервис знать порядок
- * действий, который на самом деле является свойством схемы.
- * <p>
- * Проверки прав отвечают {@code boolean} и списками идентификаторов: сущности здесь
- * не при чём, наружу идут ответы на вопрос «можно ли», а не строки таблиц.
- */
 @Repository
 @RequiredArgsConstructor
 public class RbacDataRepository {
@@ -45,43 +34,30 @@ public class RbacDataRepository {
     private final PermissionScopeRepository scopeRepository;
     private final RbacBulkInsertExecutor bulkInsertExecutor;
 
-    // ---------------------------------------------------------------- проверки
-
-    /** Есть ли у пользователя это право хотя бы в одной из областей. */
     @Transactional(readOnly = true)
     public boolean isAuthorizedInAnyScope(long userId, @NotNull String permissionId,
                                           @NotNull Collection<String> scopeKeys) {
         return ruaRepository.isAuthorizedInAnyScope(userId, permissionId, scopeKeys) != 0L;
     }
 
-    /** Все права пользователя, действующие хотя бы в одной из областей. */
     @Transactional(readOnly = true)
     public @NotNull List<String> findPermissionIdsInAnyScope(long userId,
                                                              @NotNull Collection<String> scopeKeys) {
         return ruaRepository.findPermissionIdsInAnyScope(userId, scopeKeys);
     }
 
-    /** Выдана ли пользователю именно эта роль именно в этой области. */
     @Transactional(readOnly = true)
     public boolean hasRoleInScope(long userId, @NotNull Role role, @NotNull PermissionScopeKind kind,
                                   @Nullable Long scopeItemId) {
         return ruaRepository.existsRoleInScope(userId, role, kind, scopeItemId);
     }
 
-    /** Области заданного вида, в которых у пользователя есть это право. */
     @Transactional(readOnly = true)
     public @NotNull List<Long> findScopeItemIdsWithPermission(long userId, @NotNull Permission permission,
                                                               @NotNull PermissionScopeKind kind) {
         return ruaRepository.findScopeItemIdsWithPermission(userId, permission, kind);
     }
 
-    // ---------------------------------------------------------------- выдача
-
-    /**
-     * Выдать роль в области, заведя саму область, если её ещё нет.
-     * <p>
-     * Повторная выдача той же роли ничего не меняет.
-     */
     @Transactional
     public void grantRole(long userId, @NotNull Role role, @NotNull PermissionScopeKind kind,
                           @Nullable Long scopeItemId) {
@@ -89,18 +65,12 @@ public class RbacDataRepository {
         ruaRepository.createIfAbsent(userId, role.id(), kind.name(), scopeItemId);
     }
 
-    /**
-     * Снять в области все роли пользователя, кроме одной.
-     *
-     * @param keepRole роль, которую надо оставить; null — снять все
-     */
     @Transactional
     public void revokeRolesInScopeExcept(long userId, @Nullable Role keepRole,
                                          @NotNull PermissionScopeKind kind, @Nullable Long scopeItemId) {
         ruaRepository.deleteRolesInScopeExcept(userId, keepRole, kind, scopeItemId);
     }
 
-    /** Роли перечисленных пользователей во всех курсах образовательного ресурса. */
     @Transactional(readOnly = true)
     public @NotNull List<CourseRoleAssignmentData> findCourseRoleAssignments(
             long educationResourceId, @NotNull Collection<Long> userIds) {
@@ -112,16 +82,6 @@ public class RbacDataRepository {
                 .toList();
     }
 
-    /**
-     * Применить рассчитанные изменения ролей в курсах: сначала выдачи, потом снятия.
-     * <p>
-     * Одним вызовом, потому что смена роли — это снятие плюс выдача, и между ними
-     * пользователь не должен оказаться ни без роли, ни с двумя. Области курсов
-     * заводятся здесь же: без них вставлять связь некуда.
-     *
-     * @throws IllegalStateException если роли нет в справочнике или область курса
-     *                               не удалось завести
-     */
     @Transactional
     public void applyCourseRoleChanges(@NotNull Collection<CourseRoleGrantData> grants,
                                        @NotNull Collection<Long> assignmentIdsToRevoke) {
@@ -146,8 +106,6 @@ public class RbacDataRepository {
             ruaRepository.deleteAllById(assignmentIdsToRevoke);
         }
     }
-
-    // ---------------------------------------------------------------- внутреннее
 
     private @NotNull Map<Role, RoleEntity> findRoles(@NotNull Set<Role> roles) {
         return roleRepository.findByNameIn(roles).stream()
@@ -186,7 +144,6 @@ public class RbacDataRepository {
     private static @NotNull CourseRoleAssignmentData toData(@NotNull RoleUserAssignmentEntity entity) {
         long id = Strict.required(entity.getId(), "id", "role assignment");
         String owner = "role assignment " + id;
-        // Все три связи подняты join fetch'ем того же запроса.
         var user = Strict.required(entity.getUser(), "user", owner);
         var role = Strict.required(entity.getRole(), "role", owner);
         var scope = Strict.required(entity.getPermissionScope(), "permissionScope", owner);
