@@ -6,12 +6,11 @@ import org.springframework.stereotype.Controller;
 import org.springframework.web.bind.annotation.RequestBody;
 import org.springframework.web.bind.annotation.RequestMapping;
 import org.springframework.web.bind.annotation.RequestMethod;
-import org.springframework.web.bind.annotation.RequestParam;
 import org.springframework.web.bind.annotation.ResponseBody;
-import org.vstu.compprehension.Service.ExercisePermissionService;
-import org.vstu.compprehension.Service.UserService;
+import org.vstu.compprehension.services.ExercisePermissionService;
+import org.vstu.compprehension.services.UserService;
 import org.vstu.compprehension.dto.UserInfoDto;
-import org.vstu.compprehension.models.entities.EnumData.Language;
+import org.vstu.compprehension.data.enums.Language;
 import org.vstu.compprehension.utils.Mapper;
 
 @Controller

@@ -1,7 +1,7 @@
 package org.vstu.compprehension.jobs.moodlesync;
 
-import org.vstu.compprehension.models.businesslogic.auth.AuthObjects.SystemRole;
-import org.vstu.compprehension.models.businesslogic.auth.Role;
+import org.vstu.compprehension.businesslogic.auth.AuthObjects.SystemRole;
+import org.vstu.compprehension.businesslogic.auth.Role;
 
 import java.util.LinkedHashSet;
 import java.util.Set;

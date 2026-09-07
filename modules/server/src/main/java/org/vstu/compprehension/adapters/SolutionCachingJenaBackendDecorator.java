@@ -1,15 +1,15 @@
 package org.vstu.compprehension.adapters;
 
-import org.vstu.compprehension.models.data.BackendFactData;
+import org.vstu.compprehension.data.question.BackendFactData;
 import com.google.common.cache.Cache;
 import org.jetbrains.annotations.NotNull;
-import org.vstu.compprehension.models.businesslogic.Law;
-import org.vstu.compprehension.models.businesslogic.backend.Backend;
-import org.vstu.compprehension.models.businesslogic.backend.FactBackend;
-import org.vstu.compprehension.models.businesslogic.backend.JenaBackend;
-import org.vstu.compprehension.models.businesslogic.backend.facts.Fact;
-import org.vstu.compprehension.models.businesslogic.backend.facts.JenaFactList;
-import org.vstu.compprehension.models.businesslogic.backend.util.ReasoningOptions;
+import org.vstu.compprehension.businesslogic.Law;
+import org.vstu.compprehension.businesslogic.backend.Backend;
+import org.vstu.compprehension.businesslogic.backend.FactBackend;
+import org.vstu.compprehension.businesslogic.backend.JenaBackend;
+import org.vstu.compprehension.businesslogic.backend.facts.Fact;
+import org.vstu.compprehension.businesslogic.backend.facts.JenaFactList;
+import org.vstu.compprehension.businesslogic.backend.util.ReasoningOptions;
 
 import java.util.Collection;
 import java.util.List;

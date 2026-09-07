@@ -8,16 +8,16 @@ import org.springframework.web.bind.annotation.RequestBody;
 import org.springframework.web.bind.annotation.RequestMapping;
 import org.springframework.web.bind.annotation.RequestMethod;
 import org.springframework.web.bind.annotation.ResponseBody;
-import org.vstu.compprehension.Service.AuthScopeFactory;
-import org.vstu.compprehension.Service.AuthService;
-import org.vstu.compprehension.Service.UserService;
+import org.vstu.compprehension.services.AuthScopeFactory;
+import org.vstu.compprehension.services.AuthService;
+import org.vstu.compprehension.services.UserService;
 import org.vstu.compprehension.dto.QuestionBankSearchRequestDto;
 import org.vstu.compprehension.dto.QuestionBankSearchStatsDto;
-import org.vstu.compprehension.models.businesslogic.QuestionRequest;
-import org.vstu.compprehension.models.businesslogic.domains.DomainFactory;
-import org.vstu.compprehension.models.businesslogic.storage.QuestionBank;
-import org.vstu.compprehension.models.businesslogic.auth.AuthObjects.SystemPermission;
-import org.vstu.compprehension.models.entities.EnumData.RoleInExercise;
+import org.vstu.compprehension.businesslogic.QuestionRequest;
+import org.vstu.compprehension.businesslogic.domains.DomainFactory;
+import org.vstu.compprehension.businesslogic.storage.QuestionBank;
+import org.vstu.compprehension.businesslogic.auth.AuthObjects.SystemPermission;
+import org.vstu.compprehension.data.enums.RoleInExercise;
 
 import java.util.Objects;
 

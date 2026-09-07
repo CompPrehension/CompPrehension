@@ -9,18 +9,18 @@ import org.springframework.web.bind.annotation.RequestMapping;
 import org.springframework.web.bind.annotation.RequestMethod;
 import org.springframework.web.bind.annotation.RequestParam;
 import org.springframework.web.bind.annotation.ResponseBody;
-import org.vstu.compprehension.Service.AuthScopeFactory;
-import org.vstu.compprehension.Service.AuthService;
-import org.vstu.compprehension.Service.CourseService;
-import org.vstu.compprehension.Service.ExerciseAttemptService;
-import org.vstu.compprehension.Service.ExerciseService;
-import org.vstu.compprehension.Service.FrontendService;
-import org.vstu.compprehension.Service.UserService;
+import org.vstu.compprehension.services.AuthScopeFactory;
+import org.vstu.compprehension.services.AuthService;
+import org.vstu.compprehension.services.CourseService;
+import org.vstu.compprehension.services.ExerciseAttemptService;
+import org.vstu.compprehension.services.ExerciseService;
+import org.vstu.compprehension.services.FrontendService;
+import org.vstu.compprehension.services.UserService;
 import org.vstu.compprehension.dto.ExerciseAttemptDto;
 import org.vstu.compprehension.dto.ExerciseDto;
 import org.vstu.compprehension.dto.ExerciseInfoDto;
 import org.vstu.compprehension.dto.ExerciseStatisticsItemDto;
-import org.vstu.compprehension.models.businesslogic.auth.AuthObjects.SystemPermission;
+import org.vstu.compprehension.businesslogic.auth.AuthObjects.SystemPermission;
 
 import java.util.List;
 

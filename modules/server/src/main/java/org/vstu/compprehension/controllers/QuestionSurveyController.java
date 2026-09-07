@@ -6,8 +6,8 @@ import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.http.ResponseEntity;
 import org.springframework.stereotype.Controller;
 import org.springframework.web.bind.annotation.*;
-import org.vstu.compprehension.Service.SurveyService;
-import org.vstu.compprehension.Service.UserService;
+import org.vstu.compprehension.services.SurveyService;
+import org.vstu.compprehension.services.UserService;
 import org.vstu.compprehension.dto.survey.SurveyDto;
 import org.vstu.compprehension.dto.survey.SurveyResultDto;
 

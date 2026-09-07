@@ -3,11 +3,11 @@ package org.vstu.compprehension.adapters;
 import org.springframework.stereotype.Component;
 import org.springframework.web.context.annotation.SessionScope;
 import org.vstu.compprehension.service.lti.LtiContextInitializer;
-import org.vstu.compprehension.Service.LtiContextProvider;
-import org.vstu.compprehension.models.businesslogic.lti.LtiContext;
-import org.vstu.compprehension.models.businesslogic.lti.LtiCourseContext;
-import org.vstu.compprehension.models.businesslogic.lti.LtiDeepLinkingContext;
-import org.vstu.compprehension.models.entities.EnumData.EducationResourceType;
+import org.vstu.compprehension.services.LtiContextProvider;
+import org.vstu.compprehension.businesslogic.lti.LtiContext;
+import org.vstu.compprehension.businesslogic.lti.LtiCourseContext;
+import org.vstu.compprehension.businesslogic.lti.LtiDeepLinkingContext;
+import org.vstu.compprehension.data.enums.EducationResourceType;
 
 import java.io.Serializable;
 import java.net.URI;

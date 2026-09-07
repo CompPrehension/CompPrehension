@@ -3,8 +3,8 @@ package org.vstu.compprehension.persistence;
 import org.junit.jupiter.api.Test;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.transaction.support.TransactionSynchronizationManager;
-import org.vstu.compprehension.Service.CourseService;
-import org.vstu.compprehension.models.data.CourseExerciseData;
+import org.vstu.compprehension.services.CourseService;
+import org.vstu.compprehension.data.cource.CourseExerciseData;
 import org.vstu.compprehension.infrastructure.AbstractIntegrationTest;
 import org.vstu.compprehension.infrastructure.TestData;
 

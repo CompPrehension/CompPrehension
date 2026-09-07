@@ -4,7 +4,7 @@ import lombok.AllArgsConstructor;
 import lombok.Builder;
 import lombok.Getter;
 import lombok.NoArgsConstructor;
-import org.vstu.compprehension.models.entities.EnumData.RoleInExercise;
+import org.vstu.compprehension.data.enums.RoleInExercise;
 
 @Getter
 @Builder

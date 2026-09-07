@@ -5,12 +5,12 @@ import org.springframework.scheduling.annotation.Async;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Propagation;
 import org.springframework.transaction.annotation.Transactional;
-import org.vstu.compprehension.Service.AuthService;
-import org.vstu.compprehension.Service.GradePassbackService;
-import org.vstu.compprehension.models.businesslogic.auth.AuthObjects.SystemRole;
-import org.vstu.compprehension.models.data.GradePassbackTargetData;
-import org.vstu.compprehension.models.entities.EnumData.PermissionScope;
-import org.vstu.compprehension.models.repository.data.ExerciseAttemptDataRepository;
+import org.vstu.compprehension.services.AuthService;
+import org.vstu.compprehension.services.GradePassbackService;
+import org.vstu.compprehension.businesslogic.auth.AuthObjects.SystemRole;
+import org.vstu.compprehension.data.exerciseattempt.GradePassbackTargetData;
+import org.vstu.compprehension.businesslogic.auth.PermissionScope;
+import org.vstu.compprehension.repositories.data.ExerciseAttemptDataRepository;
 import org.vstu.compprehension.service.gradepassback.GradePassbackStrategy;
 
 import java.util.List;

@@ -4,8 +4,8 @@ import org.jetbrains.annotations.NotNull;
 import org.springframework.beans.factory.NoSuchBeanDefinitionException;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Component;
-import org.vstu.compprehension.models.businesslogic.strategies.AbstractStrategy;
-import org.vstu.compprehension.models.businesslogic.strategies.AbstractStrategyFactory;
+import org.vstu.compprehension.businesslogic.strategies.AbstractStrategy;
+import org.vstu.compprehension.businesslogic.strategies.AbstractStrategyFactory;
 import org.vstu.compprehension.utils.ApplicationContextProvider;
 
 import java.util.HashMap;

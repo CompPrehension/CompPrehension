@@ -6,15 +6,15 @@ import org.springframework.core.annotation.Order;
 import org.springframework.stereotype.Service;
 import org.springframework.util.MultiValueMap;
 import org.springframework.web.util.UriComponents;
-import org.vstu.compprehension.Service.ExternalAccountService;
+import org.vstu.compprehension.services.ExternalAccountService;
 import org.vstu.compprehension.moodle.request.MoodleGrade;
 import org.vstu.compprehension.moodle.response.MoodleLtiActivity;
 import org.vstu.compprehension.moodle.MoodleService;
 import org.vstu.compprehension.moodle.MoodleWsResult;
 import org.vstu.compprehension.moodle.config.WsFuncMoodleConfig;
 import org.jetbrains.annotations.NotNull;
-import org.vstu.compprehension.models.data.GradePassbackTargetData;
-import org.vstu.compprehension.models.entities.EnumData.EducationResourceType;
+import org.vstu.compprehension.data.exerciseattempt.GradePassbackTargetData;
+import org.vstu.compprehension.data.enums.EducationResourceType;
 
 import java.util.List;
 import java.util.Optional;

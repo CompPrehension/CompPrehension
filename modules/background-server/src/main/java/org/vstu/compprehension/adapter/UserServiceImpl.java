@@ -2,9 +2,9 @@ package org.vstu.compprehension.adapter;
 
 import lombok.SneakyThrows;
 import org.springframework.stereotype.Component;
-import org.vstu.compprehension.Service.UserService;
-import org.vstu.compprehension.models.entities.EnumData.Language;
-import org.vstu.compprehension.models.data.CurrentUserData;
+import org.vstu.compprehension.services.UserService;
+import org.vstu.compprehension.data.enums.Language;
+import org.vstu.compprehension.data.user.CurrentUserData;
 
 @Component
 public class UserServiceImpl implements UserService {

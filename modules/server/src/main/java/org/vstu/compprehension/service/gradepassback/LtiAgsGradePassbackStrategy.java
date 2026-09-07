@@ -9,7 +9,7 @@ import org.springframework.http.ResponseEntity;
 import org.springframework.stereotype.Service;
 import org.springframework.web.client.RestTemplate;
 import org.jetbrains.annotations.NotNull;
-import org.vstu.compprehension.models.data.GradePassbackTargetData;
+import org.vstu.compprehension.data.exerciseattempt.GradePassbackTargetData;
 import org.vstu.compprehension.service.lti.LtiTokenService;
 
 import java.net.URI;

@@ -9,8 +9,7 @@ import org.springframework.web.servlet.DispatcherServlet;
 import org.springframework.web.servlet.HandlerExecutionChain;
 import org.springframework.web.util.ContentCachingResponseWrapper;
 import org.springframework.web.util.WebUtils;
-import org.vstu.compprehension.models.data.CurrentUserData;
-import org.vstu.compprehension.Service.UserService;
+import org.vstu.compprehension.services.UserService;
 import org.vstu.compprehension.config.cache.CachedHttpServletRequest;
 
 import java.io.*;

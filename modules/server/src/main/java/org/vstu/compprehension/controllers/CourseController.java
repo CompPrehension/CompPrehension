@@ -7,12 +7,12 @@ import org.springframework.web.bind.annotation.RequestMapping;
 import org.springframework.web.bind.annotation.RequestMethod;
 import org.springframework.web.bind.annotation.RequestParam;
 import org.springframework.web.bind.annotation.ResponseBody;
-import org.vstu.compprehension.Service.AuthScopeFactory;
-import org.vstu.compprehension.Service.AuthService;
-import org.vstu.compprehension.Service.CourseService;
-import org.vstu.compprehension.Service.UserService;
+import org.vstu.compprehension.services.AuthScopeFactory;
+import org.vstu.compprehension.services.AuthService;
+import org.vstu.compprehension.services.CourseService;
+import org.vstu.compprehension.services.UserService;
 import org.vstu.compprehension.dto.course.CourseDto;
-import org.vstu.compprehension.models.businesslogic.auth.AuthObjects.SystemPermission;
+import org.vstu.compprehension.businesslogic.auth.AuthObjects.SystemPermission;
 
 import java.util.List;
 

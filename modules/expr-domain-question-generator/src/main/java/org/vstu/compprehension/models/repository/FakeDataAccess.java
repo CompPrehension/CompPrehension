@@ -1,6 +1,6 @@
-package org.vstu.compprehension.models.repository;
+package org.vstu.compprehension.repositories.entity;
 
-import org.vstu.compprehension.models.repository.data.QuestionBankDataRepository;
+import org.vstu.compprehension.repositories.data.QuestionBankDataRepository;
 
 /**
  * Слой хранения генератора: ничего не хранит.

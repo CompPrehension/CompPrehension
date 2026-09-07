@@ -3,10 +3,10 @@ package org.vstu.compprehension.authorization;
 import org.springframework.context.annotation.Primary;
 import org.springframework.context.annotation.Profile;
 import org.springframework.stereotype.Component;
-import org.vstu.compprehension.models.data.CurrentUserData;
-import org.vstu.compprehension.Service.UserService;
-import org.vstu.compprehension.models.entities.EnumData.Language;
-import org.vstu.compprehension.models.repository.UserRepository;
+import org.vstu.compprehension.data.user.CurrentUserData;
+import org.vstu.compprehension.services.UserService;
+import org.vstu.compprehension.data.enums.Language;
+import org.vstu.compprehension.repositories.entity.UserRepository;
 
 import java.util.NoSuchElementException;
 

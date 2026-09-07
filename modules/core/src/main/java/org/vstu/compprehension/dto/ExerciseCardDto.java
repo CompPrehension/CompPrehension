@@ -1,6 +1,6 @@
 package org.vstu.compprehension.dto;
 
-import org.vstu.compprehension.models.data.ExerciseOptionsData;
+import org.vstu.compprehension.data.exercise.ExerciseOptionsData;
 import com.fasterxml.jackson.annotation.JsonProperty;
 import lombok.*;
 import com.fasterxml.jackson.annotation.JsonProperty.Access;

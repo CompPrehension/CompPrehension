@@ -1,9 +1,9 @@
 package org.vstu.compprehension.adapters;
 
 import org.springframework.security.core.context.SecurityContextHolder;
-import org.vstu.compprehension.models.data.CurrentUserData;
-import org.vstu.compprehension.Service.UserService;
-import org.vstu.compprehension.models.entities.EnumData.Language;
+import org.vstu.compprehension.data.user.CurrentUserData;
+import org.vstu.compprehension.services.UserService;
+import org.vstu.compprehension.data.enums.Language;
 
 import javax.annotation.Nullable;
 

@@ -4,7 +4,7 @@ import lombok.SneakyThrows;
 import lombok.extern.log4j.Log4j2;
 import org.jobrunr.jobs.annotations.Job;
 import org.springframework.stereotype.Service;
-import org.vstu.compprehension.models.repository.data.QuestionBankDataRepository;
+import org.vstu.compprehension.repositories.data.QuestionBankDataRepository;
 
 @Log4j2
 @Service

@@ -1,8 +1,8 @@
 package org.vstu.compprehension.infrastructure;
 
 import org.jetbrains.annotations.NotNull;
-import org.vstu.compprehension.models.data.QuestionMetadataData;
-import org.vstu.compprehension.models.entities.QuestionMetadataEntity;
+import org.vstu.compprehension.data.question.QuestionMetadataData;
+import org.vstu.compprehension.entities.QuestionMetadataEntity;
 
 /**
  * Перенос метаданных банка между сущностью и данными — только для тестов.

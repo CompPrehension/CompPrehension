@@ -1,4 +1,4 @@
-package org.vstu.compprehension.models.repository;
+package org.vstu.compprehension.repositories.entity;
 
 import com.google.common.collect.Lists;
 import org.jetbrains.annotations.NotNull;
@@ -8,8 +8,8 @@ import org.springframework.data.domain.Page;
 import org.springframework.data.domain.Pageable;
 import org.springframework.data.domain.Sort;
 import org.springframework.data.repository.query.FluentQuery;
-import org.vstu.compprehension.models.businesslogic.QuestionBankSearchRequest;
-import org.vstu.compprehension.models.entities.QuestionMetadataEntity;
+import org.vstu.compprehension.businesslogic.QuestionBankSearchRequest;
+import org.vstu.compprehension.entities.QuestionMetadataEntity;
 
 import java.time.LocalDate;
 import java.time.LocalDateTime;

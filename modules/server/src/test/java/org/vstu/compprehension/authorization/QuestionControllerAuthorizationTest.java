@@ -5,7 +5,7 @@ import org.vstu.compprehension.infrastructure.TestData;
 import org.junit.jupiter.api.Test;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.http.MediaType;
-import org.vstu.compprehension.Service.ExerciseAttemptService;
+import org.vstu.compprehension.services.ExerciseAttemptService;
 
 import static org.junit.jupiter.api.Assertions.assertDoesNotThrow;
 import static org.springframework.test.web.servlet.request.MockMvcRequestBuilders.get;

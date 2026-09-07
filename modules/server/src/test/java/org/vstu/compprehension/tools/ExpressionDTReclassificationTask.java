@@ -2,8 +2,7 @@ package org.vstu.compprehension.tools;
 
 import org.junit.jupiter.api.Disabled;
 import org.vstu.compprehension.infrastructure.TestQuestionMetadata;
-import org.vstu.compprehension.models.data.QuestionMetadataData;
-import org.vstu.compprehension.models.businesslogic.*;
+import org.vstu.compprehension.data.question.QuestionMetadataData;
 
 import org.vstu.compprehension.infrastructure.AbstractIntegrationTest;
 
@@ -14,11 +13,11 @@ import org.junit.jupiter.api.Test;
 import org.junit.jupiter.api.TestInstance;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.test.annotation.Rollback;
-import org.vstu.compprehension.models.businesslogic.domains.DomainFactory;
-import org.vstu.compprehension.models.businesslogic.domains.ProgrammingLanguageExpressionDTDomain;
-import org.vstu.compprehension.models.businesslogic.domains.helpers.meaningtree.MeaningTreeOrderQuestionBuilder;
-import org.vstu.compprehension.models.entities.QuestionMetadataEntity;
-import org.vstu.compprehension.models.repository.QuestionMetadataRepository;
+import org.vstu.compprehension.businesslogic.domains.DomainFactory;
+import org.vstu.compprehension.businesslogic.domains.ProgrammingLanguageExpressionDTDomain;
+import org.vstu.compprehension.businesslogic.domains.helpers.meaningtree.MeaningTreeOrderQuestionBuilder;
+import org.vstu.compprehension.entities.QuestionMetadataEntity;
+import org.vstu.compprehension.repositories.entity.QuestionMetadataRepository;
 
 import java.util.ArrayList;
 import java.util.List;

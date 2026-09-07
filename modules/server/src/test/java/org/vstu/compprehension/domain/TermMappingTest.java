@@ -7,7 +7,7 @@ import org.apache.jena.vocabulary.RDF;
 import org.junit.jupiter.api.Assertions;
 import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.Test;
-import org.vstu.compprehension.models.businesslogic.backend.util.TermMapping;
+import org.vstu.compprehension.businesslogic.backend.util.TermMapping;
 
 public class TermMappingTest {
     TermMapping tm;

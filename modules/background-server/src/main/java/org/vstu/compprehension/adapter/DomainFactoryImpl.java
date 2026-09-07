@@ -1,17 +1,17 @@
 package org.vstu.compprehension.adapter;
 
-import org.vstu.compprehension.models.businesslogic.domains.ControlFlowDTDomain;
-import org.vstu.compprehension.models.businesslogic.domains.DataFlowDTDomain;
-import org.vstu.compprehension.models.businesslogic.domains.ObjectsScopeDTDomain;
+import org.vstu.compprehension.businesslogic.domains.ControlFlowDTDomain;
+import org.vstu.compprehension.businesslogic.domains.DataFlowDTDomain;
+import org.vstu.compprehension.businesslogic.domains.ObjectsScopeDTDomain;
 import org.jetbrains.annotations.NotNull;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Component;
-import org.vstu.compprehension.Service.SupplementaryStepService;
-import org.vstu.compprehension.Service.ExerciseAttemptService;
-import org.vstu.compprehension.Service.LocalizationService;
-import org.vstu.compprehension.models.businesslogic.domains.*;
-import org.vstu.compprehension.models.businesslogic.storage.QuestionBank;
-import org.vstu.compprehension.models.repository.data.DomainDataRepository;
+import org.vstu.compprehension.services.SupplementaryStepService;
+import org.vstu.compprehension.services.ExerciseAttemptService;
+import org.vstu.compprehension.services.LocalizationService;
+import org.vstu.compprehension.businesslogic.domains.*;
+import org.vstu.compprehension.businesslogic.storage.QuestionBank;
+import org.vstu.compprehension.repositories.data.DomainDataRepository;
 import org.vstu.compprehension.utils.RandomProvider;
 
 import java.util.HashMap;

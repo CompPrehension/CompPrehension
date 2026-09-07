@@ -1,6 +1,6 @@
 package org.vstu.compprehension.questionbank;
 
-import org.vstu.compprehension.models.businesslogic.*;
+import org.vstu.compprehension.businesslogic.*;
 
 import org.vstu.compprehension.infrastructure.AbstractIntegrationTest;
 import org.vstu.compprehension.infrastructure.TestQuestionMetadata;
@@ -10,9 +10,9 @@ import org.junit.jupiter.api.Assertions;
 import org.junit.jupiter.api.Test;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.transaction.annotation.Transactional;
-import org.vstu.compprehension.models.businesslogic.storage.QuestionBank;
-import org.vstu.compprehension.models.entities.QuestionMetadataEntity;
-import org.vstu.compprehension.models.repository.*;
+import org.vstu.compprehension.businesslogic.storage.QuestionBank;
+import org.vstu.compprehension.entities.QuestionMetadataEntity;
+import org.vstu.compprehension.repositories.entity.*;
 
 import java.util.stream.Collectors;
 

@@ -18,7 +18,7 @@ import org.springframework.stereotype.Service;
 import org.springframework.web.client.RestTemplate;
 import org.vstu.compprehension.config.LtiRegistrationsProperties.Registration;
 import org.vstu.compprehension.config.LtiRegistrationsProperties.RegistrationWithName;
-import org.vstu.compprehension.models.businesslogic.lti.LtiDeepLinkingContext;
+import org.vstu.compprehension.businesslogic.lti.LtiDeepLinkingContext;
 
 import java.net.URI;
 import java.util.ArrayList;

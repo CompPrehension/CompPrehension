@@ -3,7 +3,7 @@ package org.vstu.compprehension.utils;
 import org.hibernate.HibernateException;
 import org.hibernate.engine.spi.SharedSessionContractImplementor;
 import org.hibernate.usertype.UserType;
-import org.vstu.compprehension.models.businesslogic.storage.SerializableQuestion;
+import org.vstu.compprehension.businesslogic.storage.SerializableQuestion;
 
 import java.io.Serializable;
 import java.sql.PreparedStatement;

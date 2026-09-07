@@ -1,6 +1,6 @@
 package org.vstu.compprehension.jobs.bankloadtesting;
 
-import org.vstu.compprehension.models.data.ExerciseStageData;
+import org.vstu.compprehension.data.exercise.ExerciseStageData;
 import lombok.SneakyThrows;
 import lombok.extern.log4j.Log4j2;
 import org.apache.logging.log4j.ThreadContext;
@@ -10,13 +10,12 @@ import org.jobrunr.jobs.annotations.Job;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.dao.PessimisticLockingFailureException;
 import org.springframework.stereotype.Service;
-import org.vstu.compprehension.Service.FrontendService;
+import org.vstu.compprehension.services.FrontendService;
 import org.vstu.compprehension.dto.ExerciseAttemptDto;
 import org.vstu.compprehension.dto.question.QuestionDto;
-import org.vstu.compprehension.models.entities.EnumData.AttemptStatus;
-import org.vstu.compprehension.models.repository.data.ExerciseDataRepository;
-import org.vstu.compprehension.models.repository.data.QuestionBankDataRepository;
-import org.vstu.compprehension.models.repository.data.UserDataRepository;
+import org.vstu.compprehension.repositories.data.ExerciseDataRepository;
+import org.vstu.compprehension.repositories.data.QuestionBankDataRepository;
+import org.vstu.compprehension.repositories.data.UserDataRepository;
 import org.vstu.compprehension.utils.RandomProvider;
 import org.vstu.compprehension.utils.transactions.TransactionScope;
 import org.vstu.compprehension.utils.transactions.TransactionScopeFactory;

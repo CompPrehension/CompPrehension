@@ -1,7 +1,7 @@
 package org.vstu.compprehension.service.gradepassback;
 
 import org.jetbrains.annotations.NotNull;
-import org.vstu.compprehension.models.data.GradePassbackTargetData;
+import org.vstu.compprehension.data.exerciseattempt.GradePassbackTargetData;
 
 /**
  * Реализация отвечает за один механизм отправки оценки (LTI AGS, Moodle WS и т.п.).

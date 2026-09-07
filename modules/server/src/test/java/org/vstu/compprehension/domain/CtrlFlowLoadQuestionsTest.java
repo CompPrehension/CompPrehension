@@ -1,6 +1,6 @@
 package org.vstu.compprehension.domain;
 
-import org.vstu.compprehension.models.businesslogic.domains.ControlFlowDTDomain;
+import org.vstu.compprehension.businesslogic.domains.ControlFlowDTDomain;
 import jakarta.transaction.Transactional;
 import lombok.extern.slf4j.Slf4j;
 import org.junit.jupiter.api.Assertions;
@@ -12,11 +12,11 @@ import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.boot.test.context.SpringBootTest;
 import org.springframework.test.annotation.Commit;
 import org.springframework.test.context.ActiveProfiles;
-import org.vstu.compprehension.models.businesslogic.domains.DomainFactory;
-import org.vstu.compprehension.models.businesslogic.storage.QuestionBank;
-import org.vstu.compprehension.models.businesslogic.storage.SerializableQuestionTemplate;
-import org.vstu.compprehension.models.data.NewBankQuestionData;
-import org.vstu.compprehension.models.repository.QuestionMetadataRepository;
+import org.vstu.compprehension.businesslogic.domains.DomainFactory;
+import org.vstu.compprehension.businesslogic.storage.QuestionBank;
+import org.vstu.compprehension.businesslogic.storage.SerializableQuestionTemplate;
+import org.vstu.compprehension.data.questionbank.NewBankQuestionData;
+import org.vstu.compprehension.repositories.entity.QuestionMetadataRepository;
 
 import java.io.IOException;
 import java.nio.file.Files;

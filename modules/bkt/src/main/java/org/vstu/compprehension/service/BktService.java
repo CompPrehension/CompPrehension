@@ -13,7 +13,7 @@ import lombok.RequiredArgsConstructor;
 import lombok.val;
 import org.springframework.stereotype.Service;
 import org.vstu.compprehension.bkt.grpc.*;
-import org.vstu.compprehension.models.repository.data.BktDataRepository;
+import org.vstu.compprehension.repositories.data.BktDataRepository;
 
 import java.util.Collections;
 import java.util.List;

@@ -2,7 +2,7 @@ package org.vstu.compprehension.dto;
 
 import lombok.Builder;
 import lombok.Data;
-import org.vstu.compprehension.models.entities.EnumData.AttemptStatus;
+import org.vstu.compprehension.data.enums.AttemptStatus;
 
 @Data
 @Builder

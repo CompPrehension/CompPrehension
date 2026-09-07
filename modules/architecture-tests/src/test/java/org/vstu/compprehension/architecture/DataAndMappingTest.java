@@ -30,7 +30,7 @@ public class DataAndMappingTest {
     /**
      * Модели данных не зависят от слоя хранения.
      * <p>
-     * Смысл {@code models.data} в том, что эти типы отсоединены от Hibernate: обращение
+     * Смысл {@code data} в том, что эти типы отсоединены от Hibernate: обращение
      * к любому их полю не выполняет запросов и не требует сессии. Ссылка на сущность —
      * пусть даже на такую, которая на самом деле является значением из json-колонки, —
      * это гарантию ломает и заставляет читателя проверять каждый раз.
@@ -39,7 +39,7 @@ public class DataAndMappingTest {
      * классов на деле является значениями из json-колонок, но по имени этого не видно,
      * и разбираться в этом при каждом чтении не должен никто.
      * <p>
-     * Перечисления из {@code models.entities.EnumData} правило не ловит: они не сущности
+     * Перечисления из {@code entities.EnumData} правило не ловит: они не сущности
      * и не названы {@code *Entity}, хотя лежат в неудачном пакете. Переезд — отдельная задача.
      */
     @ArchTest
@@ -82,11 +82,11 @@ public class DataAndMappingTest {
      * результат. Ровно так {@code toData(InteractionEntity)} оставлял вопрос пустым,
      * когда его звали из шага цепочки вспомогательных вопросов, — и домен падал на NPE.
      * <p>
-     * Перечисления из {@code models.entities.EnumData} не считаются: они лежат в этом
+     * Перечисления из {@code entities.EnumData} не считаются: они лежат в этом
      * пакете по недоразумению и сущностями не являются. Сами сущности тоже исключены —
-     * они ссылаются на значения json-колонок из {@code models.data} по определению.
+     * они ссылаются на значения json-колонок из {@code data} по определению.
      * <p>
-     * Интерфейсы Spring Data исключены вместе со всем {@code models.repository}: они и
+     * Интерфейсы Spring Data исключены вместе со всем {@code repositories}: они и
      * есть слой хранения, а перечисления вроде статуса заявки приходят к ним параметрами
      * запроса.
      */
@@ -105,9 +105,10 @@ public class DataAndMappingTest {
                 boolean touchesDataModels = false;
                 for (Dependency dependency : item.getDirectDependenciesFromSelf()) {
                     String target = dependency.getTargetClass().getPackageName();
-                    touchesEntities |= target.contains(".models.entities")
-                            && !target.contains(".models.entities.EnumData");
-                    touchesDataModels |= target.contains(".models.data");
+                    boolean inEntities = target.equals(ROOT + ".entities") || target.startsWith(ROOT + ".entities.");
+                    boolean inEnumData = target.equals(ROOT + ".entities.EnumData") || target.startsWith(ROOT + ".entities.EnumData.");
+                    touchesEntities |= inEntities && !inEnumData;
+                    touchesDataModels |= target.equals(ROOT + ".data") || target.startsWith(ROOT + ".data.");
                 }
                 if (touchesEntities && touchesDataModels) {
                     events.add(SimpleConditionEvent.violated(item,

@@ -1,22 +1,23 @@
 package org.vstu.compprehension.strategies;
 
-import org.vstu.compprehension.models.data.ExerciseStageData;
+import org.vstu.compprehension.data.exercise.ExerciseStageData;
 import lombok.extern.log4j.Log4j2;
 import org.jetbrains.annotations.NotNull;
 import org.jetbrains.annotations.Nullable;
 import org.springframework.beans.factory.annotation.Autowired;
-import org.vstu.compprehension.models.businesslogic.Concept;
-import org.vstu.compprehension.models.businesslogic.QuestionRequest;
-import org.vstu.compprehension.models.businesslogic.domains.Domain;
-import org.vstu.compprehension.models.businesslogic.domains.DomainFactory;
-import org.vstu.compprehension.models.businesslogic.strategies.AbstractStrategy;
-import org.vstu.compprehension.models.businesslogic.strategies.StrategyOptions;
-import org.vstu.compprehension.models.businesslogic.strategies.StrategyBase;
-import org.vstu.compprehension.Service.ExerciseAttemptService;
-import org.vstu.compprehension.models.data.AttemptExerciseData;
-import org.vstu.compprehension.models.data.AttemptInteractionData;
-import org.vstu.compprehension.models.data.AttemptQuestionData;
-import org.vstu.compprehension.models.entities.EnumData.*;
+import org.vstu.compprehension.businesslogic.Concept;
+import org.vstu.compprehension.businesslogic.QuestionRequest;
+import org.vstu.compprehension.businesslogic.domains.Domain;
+import org.vstu.compprehension.businesslogic.domains.DomainFactory;
+import org.vstu.compprehension.businesslogic.strategies.StrategyOptions;
+import org.vstu.compprehension.businesslogic.strategies.StrategyBase;
+import org.vstu.compprehension.data.enums.Decision;
+import org.vstu.compprehension.data.enums.InteractionType;
+import org.vstu.compprehension.data.enums.Language;
+import org.vstu.compprehension.services.ExerciseAttemptService;
+import org.vstu.compprehension.data.exerciseattempt.AttemptExerciseData;
+import org.vstu.compprehension.data.exerciseattempt.AttemptInteractionData;
+import org.vstu.compprehension.data.exerciseattempt.AttemptQuestionData;
 
 import java.util.List;
 

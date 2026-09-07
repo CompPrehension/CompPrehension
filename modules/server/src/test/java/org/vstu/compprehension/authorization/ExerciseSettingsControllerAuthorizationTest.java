@@ -8,7 +8,7 @@ import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.http.MediaType;
 import org.vstu.compprehension.dto.ExerciseCardDto;
 import org.vstu.compprehension.dto.ExerciseStageDto;
-import org.vstu.compprehension.models.repository.ExerciseRepository;
+import org.vstu.compprehension.repositories.entity.ExerciseRepository;
 
 import java.util.ArrayList;
 import java.util.List;

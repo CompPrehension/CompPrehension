@@ -51,7 +51,7 @@ public class ExpressionSituationPythonCaller implements AutoCloseable {
     }
 
     private static String getOrExtractPathToPyFolder(boolean override) {
-        var pathToResourcesFolder = "org/vstu/compprehension/models/businesslogic/domains/programming-language-expression-domain-model/generator";
+        var pathToResourcesFolder = "org/vstu/compprehension/businesslogic/domains/programming-language-expression-domain-model/generator";
         return ResourcesHelper.ensureFolderExtracted(ExpressionSituationPythonCaller.class, pathToResourcesFolder, "generator_py", override);
     }
 

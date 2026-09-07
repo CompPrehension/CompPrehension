@@ -5,18 +5,18 @@ import lombok.extern.log4j.Log4j2;
 import org.springframework.context.i18n.LocaleContextHolder;
 import org.springframework.stereotype.Controller;
 import org.springframework.web.bind.annotation.*;
-import org.vstu.compprehension.Service.AuthScopeFactory;
-import org.vstu.compprehension.Service.AuthService;
-import org.vstu.compprehension.Service.ExerciseAttemptService;
-import org.vstu.compprehension.Service.FrontendService;
-import org.vstu.compprehension.Service.UserService;
+import org.vstu.compprehension.services.AuthScopeFactory;
+import org.vstu.compprehension.services.AuthService;
+import org.vstu.compprehension.services.ExerciseAttemptService;
+import org.vstu.compprehension.services.FrontendService;
+import org.vstu.compprehension.services.UserService;
 import org.vstu.compprehension.dto.InteractionDto;
 import org.vstu.compprehension.dto.SupplementaryFeedbackDto;
 import org.vstu.compprehension.dto.SupplementaryQuestionDto;
 import org.vstu.compprehension.dto.SupplementaryQuestionRequestDto;
 import org.vstu.compprehension.dto.feedback.FeedbackDto;
 import org.vstu.compprehension.dto.question.QuestionDto;
-import org.vstu.compprehension.models.businesslogic.auth.AuthObjects.SystemPermission;
+import org.vstu.compprehension.businesslogic.auth.AuthObjects.SystemPermission;
 
 @Controller
 @RequestMapping("api/question")

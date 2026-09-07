@@ -1,13 +1,12 @@
 package org.vstu.compprehension.infrastructure;
 
-import org.vstu.compprehension.models.data.DomainOptionsData;
-import org.vstu.compprehension.*;
+import org.vstu.compprehension.data.domain.DomainOptionsData;
 
 import org.junit.jupiter.api.Test;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.transaction.annotation.Transactional;
-import org.vstu.compprehension.models.entities.DomainEntity;
-import org.vstu.compprehension.models.repository.DomainRepository;
+import org.vstu.compprehension.entities.DomainEntity;
+import org.vstu.compprehension.repositories.entity.DomainRepository;
 
 import java.util.stream.Collectors;
 

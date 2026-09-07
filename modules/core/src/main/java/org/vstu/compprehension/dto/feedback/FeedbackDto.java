@@ -8,7 +8,7 @@ import lombok.experimental.SuperBuilder;
 import org.jetbrains.annotations.NotNull;
 import org.jetbrains.annotations.Nullable;
 import org.vstu.compprehension.dto.AnswerDto;
-import org.vstu.compprehension.models.entities.EnumData.Decision;
+import org.vstu.compprehension.data.enums.Decision;
 
 import java.util.List;
 
@@ -52,4 +52,3 @@ public class FeedbackDto {
         }
     }
 }
-

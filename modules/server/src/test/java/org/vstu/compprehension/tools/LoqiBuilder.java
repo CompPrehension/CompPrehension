@@ -1,13 +1,12 @@
 package org.vstu.compprehension.tools;
 
-import org.vstu.compprehension.models.data.ExerciseOptionsData;
-import org.vstu.compprehension.models.data.ExerciseStageData;
+import org.vstu.compprehension.data.exercise.ExerciseOptionsData;
+import org.vstu.compprehension.data.exercise.ExerciseStageData;
 import lombok.SneakyThrows;
 import lombok.extern.log4j.Log4j2;
-import org.testcontainers.shaded.org.bouncycastle.oer.its.etsi102941.CaCertificateRekeyingMessage;
-import org.vstu.compprehension.models.data.AnswerObjectData;
-import org.vstu.compprehension.models.data.ResponseData;
-import org.vstu.compprehension.models.businesslogic.*;
+import org.vstu.compprehension.data.question.AnswerObjectData;
+import org.vstu.compprehension.data.question.ResponseData;
+import org.vstu.compprehension.businesslogic.*;
 
 import org.vstu.compprehension.infrastructure.AbstractIntegrationTest;
 
@@ -19,17 +18,17 @@ import org.junit.jupiter.api.BeforeAll;
 import org.junit.jupiter.api.Test;
 import org.junit.jupiter.api.TestInstance;
 import org.springframework.beans.factory.annotation.Autowired;
-import org.vstu.compprehension.Service.QuestionService;
-import org.vstu.compprehension.models.businesslogic.domains.DomainFactory;
-import org.vstu.compprehension.models.businesslogic.domains.ProgrammingLanguageExpressionDTDomain;
-import org.vstu.compprehension.models.businesslogic.domains.helpers.meaningtree.MeaningTreeOrderQuestionBuilder;
-import org.vstu.compprehension.models.businesslogic.domains.helpers.meaningtree.MeaningTreeRDFTransformer;
-import org.vstu.compprehension.models.entities.ExerciseAttemptEntity;
-import org.vstu.compprehension.models.entities.exercise.ExerciseEntity;
-import org.vstu.compprehension.models.repository.ExerciseAttemptRepository;
-import org.vstu.compprehension.models.repository.DomainRepository;
-import org.vstu.compprehension.models.repository.ExerciseRepository;
-import org.vstu.compprehension.models.repository.UserRepository;
+import org.vstu.compprehension.services.QuestionService;
+import org.vstu.compprehension.businesslogic.domains.DomainFactory;
+import org.vstu.compprehension.businesslogic.domains.ProgrammingLanguageExpressionDTDomain;
+import org.vstu.compprehension.businesslogic.domains.helpers.meaningtree.MeaningTreeOrderQuestionBuilder;
+import org.vstu.compprehension.businesslogic.domains.helpers.meaningtree.MeaningTreeRDFTransformer;
+import org.vstu.compprehension.entities.ExerciseAttemptEntity;
+import org.vstu.compprehension.entities.ExerciseEntity;
+import org.vstu.compprehension.repositories.entity.ExerciseAttemptRepository;
+import org.vstu.compprehension.repositories.entity.DomainRepository;
+import org.vstu.compprehension.repositories.entity.ExerciseRepository;
+import org.vstu.compprehension.repositories.entity.UserRepository;
 import org.vstu.meaningtree.SupportedLanguage;
 
 import java.io.File;
@@ -61,7 +60,7 @@ public class LoqiBuilder extends AbstractIntegrationTest {
 
     public static final String domainId = "ProgrammingLanguageExpressionDTDomain";
 
-    private static final String RESOURCES_LOCATION = "org/vstu/compprehension/models/businesslogic/domains/";
+    private static final String RESOURCES_LOCATION = "org/vstu/compprehension/businesslogic/domains/";
     private static final String DOMAIN_MODEL_LOCATION = RESOURCES_LOCATION + "programming-language-expression-domain-model/";
     private final DomainSolvingModel domainSolvingModel = new DomainSolvingModel(
             this.getClass().getClassLoader().getResource(DOMAIN_MODEL_LOCATION),

@@ -1,11 +1,11 @@
 package org.vstu.compprehension.domain;
 
-import org.vstu.compprehension.models.data.ExerciseOptionsData;
-import org.vstu.compprehension.models.data.ExerciseStageData;
-import org.vstu.compprehension.models.data.ResponseData;
+import org.vstu.compprehension.data.exercise.ExerciseOptionsData;
+import org.vstu.compprehension.data.exercise.ExerciseStageData;
+import org.vstu.compprehension.data.question.ResponseData;
 import org.vstu.compprehension.infrastructure.TestQuestionMetadata;
-import org.vstu.compprehension.models.data.AnswerObjectData;
-import org.vstu.compprehension.models.businesslogic.*;
+import org.vstu.compprehension.data.question.AnswerObjectData;
+import org.vstu.compprehension.businesslogic.*;
 
 import org.vstu.compprehension.infrastructure.AbstractIntegrationTest;
 
@@ -13,23 +13,23 @@ import jakarta.transaction.Transactional;
 import org.junit.jupiter.api.*;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.util.Assert;
-import org.vstu.compprehension.Service.QuestionService;
-import org.vstu.compprehension.models.businesslogic.domains.Domain;
-import org.vstu.compprehension.models.businesslogic.domains.DomainFactory;
-import org.vstu.compprehension.models.businesslogic.domains.ProgrammingLanguageExpressionDTDomain;
-import org.vstu.compprehension.models.businesslogic.domains.helpers.meaningtree.MeaningTreeRDFHelper;
-import org.vstu.compprehension.models.businesslogic.domains.helpers.meaningtree.MeaningTreeUtils;
-import org.vstu.compprehension.models.businesslogic.domains.helpers.meaningtree.QuestionDynamicDataAppender;
-import org.vstu.compprehension.models.businesslogic.storage.QuestionBank;
-import org.vstu.compprehension.models.entities.EnumData.Language;
-import org.vstu.compprehension.models.entities.ExerciseAttemptEntity;
-import org.vstu.compprehension.models.entities.QuestionMetadataEntity;
-import org.vstu.compprehension.models.entities.exercise.ExerciseEntity;
-import org.vstu.compprehension.models.repository.ExerciseAttemptRepository;
-import org.vstu.compprehension.models.repository.DomainRepository;
-import org.vstu.compprehension.models.repository.ExerciseRepository;
-import org.vstu.compprehension.models.repository.QuestionMetadataRepository;
-import org.vstu.compprehension.models.repository.UserRepository;
+import org.vstu.compprehension.services.QuestionService;
+import org.vstu.compprehension.businesslogic.domains.Domain;
+import org.vstu.compprehension.businesslogic.domains.DomainFactory;
+import org.vstu.compprehension.businesslogic.domains.ProgrammingLanguageExpressionDTDomain;
+import org.vstu.compprehension.businesslogic.domains.helpers.meaningtree.MeaningTreeRDFHelper;
+import org.vstu.compprehension.businesslogic.domains.helpers.meaningtree.MeaningTreeUtils;
+import org.vstu.compprehension.businesslogic.domains.helpers.meaningtree.QuestionDynamicDataAppender;
+import org.vstu.compprehension.businesslogic.storage.QuestionBank;
+import org.vstu.compprehension.data.enums.Language;
+import org.vstu.compprehension.entities.ExerciseAttemptEntity;
+import org.vstu.compprehension.entities.QuestionMetadataEntity;
+import org.vstu.compprehension.entities.ExerciseEntity;
+import org.vstu.compprehension.repositories.entity.ExerciseAttemptRepository;
+import org.vstu.compprehension.repositories.entity.DomainRepository;
+import org.vstu.compprehension.repositories.entity.ExerciseRepository;
+import org.vstu.compprehension.repositories.entity.QuestionMetadataRepository;
+import org.vstu.compprehension.repositories.entity.UserRepository;
 import org.vstu.meaningtree.SupportedLanguage;
 import org.vstu.meaningtree.exceptions.MeaningTreeException;
 

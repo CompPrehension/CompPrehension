@@ -4,7 +4,7 @@ import lombok.Builder;
 import lombok.Value;
 import lombok.extern.jackson.Jacksonized;
 import org.jetbrains.annotations.NotNull;
-import org.vstu.compprehension.models.data.SurveyOptionsData;
+import org.vstu.compprehension.data.survey.SurveyOptionsData;
 
 @Value
 @Jacksonized

@@ -1,6 +1,6 @@
 package org.vstu.compprehension.dto;
 
-import org.vstu.compprehension.models.data.ExerciseOptionsData;
+import org.vstu.compprehension.data.exercise.ExerciseOptionsData;
 import lombok.AllArgsConstructor;
 import lombok.Data;
 import lombok.NoArgsConstructor;
