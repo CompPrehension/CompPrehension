@@ -7,7 +7,6 @@ import org.vstu.compprehension.data.question.InteractionResponsesData;
 import org.vstu.compprehension.entities.InteractionEntity;
 import org.vstu.compprehension.mappers.Mapper;
 
-/** Ответы одного взаимодействия: и они, и нарушения обязаны быть подгружены. */
 @Component
 @RequiredArgsConstructor
 class InteractionResponsesMapper implements Mapper<InteractionEntity, InteractionResponsesData> {

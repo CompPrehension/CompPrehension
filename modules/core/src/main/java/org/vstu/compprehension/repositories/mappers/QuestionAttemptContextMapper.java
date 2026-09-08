@@ -8,7 +8,6 @@ import org.vstu.compprehension.mappers.Mapper;
 
 import java.util.List;
 
-/** Условия, в которых задан вопрос: упражнение и пользователь должны быть подгружены. */
 @Component
 class QuestionAttemptContextMapper implements Mapper<ExerciseAttemptEntity, QuestionAttemptContextData> {
 

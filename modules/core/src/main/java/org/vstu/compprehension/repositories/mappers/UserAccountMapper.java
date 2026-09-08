@@ -5,9 +5,8 @@ import org.springframework.stereotype.Component;
 import org.vstu.compprehension.data.user.UserAccountData;
 import org.vstu.compprehension.entities.UserEntity;
 import org.vstu.compprehension.mappers.Mapper;
-import org.vstu.compprehension.repositories.Strict;
+import org.vstu.compprehension.utils.Strict;
 
-/** Учётная запись пользователя. */
 @Component
 class UserAccountMapper implements Mapper<UserEntity, UserAccountData> {
 

@@ -70,7 +70,8 @@ public class Main {
                         null,
                         // Банк генератору не нужен: он не ищет готовые вопросы,
                         // а порождает новые. Подставлен пустой, чтобы домен собрался.
-                        new QuestionBankImpl(FakeDataAccess.questionBank())
+                        // Статистика поиска отсюда недостижима: генератор готовые вопросы не ищет.
+                        new QuestionBankImpl(FakeDataAccess.questionBank(), null)
                 ),
                 null,
                 null

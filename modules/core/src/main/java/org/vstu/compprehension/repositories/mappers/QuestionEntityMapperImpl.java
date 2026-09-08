@@ -3,13 +3,12 @@ package org.vstu.compprehension.repositories.mappers;
 import org.jetbrains.annotations.NotNull;
 import org.jetbrains.annotations.Nullable;
 import org.springframework.stereotype.Component;
+import org.vstu.compprehension.common.Utils;
 import org.vstu.compprehension.data.question.AnswerObjectData;
 import org.vstu.compprehension.data.question.QuestionData;
 import org.vstu.compprehension.entities.AnswerObjectEntity;
 import org.vstu.compprehension.entities.QuestionEntity;
 import org.vstu.compprehension.entities.QuestionMetadataEntity;
-
-import org.vstu.compprehension.repositories.Facts;
 
 import java.util.ArrayList;
 import java.util.stream.Collectors;
@@ -37,10 +36,9 @@ class QuestionEntityMapperImpl implements QuestionEntityMapper {
         destination.setQuestionName(question.getQuestionName());
         destination.setQuestionDomainType(question.getQuestionDomainType());
         destination.setOptions(question.getOptions());
-        destination.setTags(question.getTags() == null
-                ? new ArrayList<>() : new ArrayList<>(question.getTags()));
-        destination.setStatementFacts(Facts.copy(question.getStatementFacts()));
-        destination.setSolutionFacts(Facts.copy(question.getSolutionFacts()));
+        destination.setTags(Utils.copy(question.getTags()));
+        destination.setStatementFacts(Utils.copy(question.getStatementFacts()));
+        destination.setSolutionFacts(Utils.copy(question.getSolutionFacts()));
         destination.setMetadata(metadata);
         applyAnswerObjects(question, destination);
     }

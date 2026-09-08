@@ -8,7 +8,6 @@ import org.vstu.compprehension.entities.AnswerObjectEntity;
 import org.vstu.compprehension.entities.ExerciseEntity;
 import org.vstu.compprehension.mappers.Mapper;
 
-/** Вариант ответа. */
 @Component
 class AnswerObjectMapper implements Mapper<AnswerObjectEntity, AnswerObjectData> {
 

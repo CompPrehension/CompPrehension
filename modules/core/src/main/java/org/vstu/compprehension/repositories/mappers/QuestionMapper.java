@@ -8,13 +8,6 @@ import org.vstu.compprehension.mappers.Mapping;
 
 import java.util.List;
 
-/**
- * Вопрос целиком — то, с чем работает бизнес-логика.
- * <p>
- * Взаимодействия приходят отдельным списком, потому что подгружаются несколькими
- * запросами: вместе с нарушениями, ответами и подтверждёнными законами. Сам вопрос
- * обязан прийти с метаданными и вариантами ответа.
- */
 public interface QuestionMapper extends Mapping {
 
     @NotNull QuestionData map(@NotNull QuestionEntity question,

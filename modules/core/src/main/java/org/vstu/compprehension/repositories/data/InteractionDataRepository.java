@@ -2,7 +2,6 @@ package org.vstu.compprehension.repositories.data;
 
 import lombok.RequiredArgsConstructor;
 import org.jetbrains.annotations.NotNull;
-import org.jetbrains.annotations.Nullable;
 import org.springframework.stereotype.Repository;
 import org.springframework.transaction.annotation.Transactional;
 import org.vstu.compprehension.data.question.AnswerObjectData;
@@ -18,7 +17,7 @@ import org.vstu.compprehension.entities.QuestionEntity;
 import org.vstu.compprehension.entities.ResponseEntity;
 import org.vstu.compprehension.entities.ViolationEntity;
 import org.vstu.compprehension.mappers.Mapper;
-import org.vstu.compprehension.repositories.Strict;
+import org.vstu.compprehension.utils.Strict;
 import org.vstu.compprehension.repositories.entity.InteractionRepository;
 import org.vstu.compprehension.repositories.entity.QuestionRepository;
 import org.vstu.compprehension.repositories.entity.ResponseRepository;

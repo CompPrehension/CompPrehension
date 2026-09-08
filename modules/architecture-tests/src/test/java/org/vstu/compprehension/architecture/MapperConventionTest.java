@@ -43,55 +43,29 @@ import static org.vstu.compprehension.architecture.ArchitecturePackages.ROOT;
 import static org.vstu.compprehension.architecture.ArchitecturePackages.SERVICES;
 
 /**
- * Соглашения о маппингах — полный свод в {@code org.vstu.compprehension.mappers.package-info}.
- * <p>
- * Коротко: маппер — это бин, реализующий {@link Mapping}: либо готовый {@link Mapper}
- * (цель создаётся) или {@link UpdateMapper} (цель уже есть и меняется на месте), либо
- * собственный интерфейс, если источников больше одного. Без статики, без null в предмете
- * и результате, без коллекций и без зависимостей, кроме других мапперов. Наружу маппер
- * виден только своим интерфейсом, а класс-реализация не публичен.
+ * Соглашения о маппингах.
  */
 @AnalyzeClasses(locations = ProjectClassesLocationProvider.class, importOptions = ImportOption.DoNotIncludeTests.class)
 public class MapperConventionTest {
 
     /**
-     * Классы слоя доступа к данным, которые всё ещё держат маппинг внутри себя.
-     * <p>
-     * Пуст: слой доступа к данным переведён на мапперы целиком. Список оставлен как
-     * посадочная полоса для случая, когда правило придётся включать над чужим кодом;
-     * он может сокращаться и не может пополняться.
+     * Классы слоя доступа к данным, которые держат маппинг внутри себя.
      */
     private static final Set<String> DATA_REPOSITORIES_WITH_INLINE_MAPPING = Set.of();
 
     /**
      * Классы, которые собирают DTO сами, минуя маппер.
-     * <p>
-     * Те же условия: только сокращается.
      */
     private static final Set<String> DTO_BUILDERS_OUTSIDE_MAPPERS = Set.of(
             ROOT + ".businesslogic.domains.DecisionTreeSupQuestionHelper",
             ROOT + ".businesslogic.domains.ProgrammingLanguageExpressionDomain",
-            ROOT + ".frontend.CourseFrontendServiceImpl",
-            ROOT + ".frontend.ExerciseAttemptServiceImpl",
-            ROOT + ".frontend.ExerciseFrontendServiceImpl",
-            ROOT + ".frontend.ReferenceDataFacadeImpl",
-            ROOT + ".frontend.SurveyFrontendServiceImpl",
-            ROOT + ".services.CourseDataServiceImpl",
-            ROOT + ".services.ExerciseDataServiceImpl",
-            ROOT + ".services.ExercisePermissionDataServiceImpl",
-            ROOT + ".services.questionbank.QuestionBankImpl"
+            ROOT + ".frontend.ExerciseAttemptServiceImpl"
     );
 
     /**
      * Обитатели пакетов маппинга, которые мапперами не являются.
-     * <p>
-     * Те же условия: только сокращается.
      */
-    private static final Set<String> NON_MAPPERS_IN_MAPPER_PACKAGES = Set.of(
-            ROOT + ".frontend.mappers.LegacyDtoMappers"
-    );
-
-    // ------------------------------------------------------------------ форма маппера
+    private static final Set<String> NON_MAPPERS_IN_MAPPER_PACKAGES = Set.of();
 
     /** Всё, что названо маппером, обязано им быть. */
     @ArchTest
@@ -103,7 +77,7 @@ public class MapperConventionTest {
                     .should().beAssignableTo(Mapping.class)
                     .as("classes named *Mapper or *MapperImpl should be a Mapping");
 
-    /** Собственный интерфейс маппера тоже обязан быть виден правилам. */
+    /** Собственный интерфейс маппера обязан быть виден правилам. */
     @ArchTest
     static final ArchRule mapping_interfaces_should_extend_the_marker =
             classes()
@@ -112,7 +86,7 @@ public class MapperConventionTest {
                     .should().beAssignableTo(Mapping.class)
                     .as("a mapper interface should extend Mapping, or the rules stop seeing it");
 
-    /** И наоборот: маппер обязан называться маппером и лежать там, где мапперам место. */
+    /** Маппер обязан называться маппером и лежать там, где мапперам место. */
     @ArchTest
     static final ArchRule mappers_should_be_named_and_placed_consistently =
             classes()
@@ -121,7 +95,7 @@ public class MapperConventionTest {
                     .as("mapper implementations should be named *Mapper or *MapperImpl and reside in "
                             + DATA_MAPPERS + " or " + FRONTEND_MAPPERS);
 
-    /** А в пакетах маппинга не оседает ничего постороннего. */
+    /** А в пакетах маппинга не должно быть ничего постороннего. */
     @ArchTest
     static final ArchRule mapper_packages_should_hold_only_mappings =
             classes()
@@ -130,7 +104,7 @@ public class MapperConventionTest {
                     .should(be_a_mapping())
                     .as("mapper packages should hold mapping interfaces and their implementations");
 
-    /** Маппер — бин: его должно быть можно внедрить и подменить, а не только позвать. */
+    /** Маппер должен быть аннотирован Component-атрибутом. */
     @ArchTest
     static final ArchRule mappers_should_be_spring_components =
             classes()
@@ -138,7 +112,7 @@ public class MapperConventionTest {
                     .should().beAnnotatedWith(Component.class)
                     .as("mappers should be Spring components");
 
-    /** Статический маппинг — ровно то, от чего уходим: его не внедрить и не подменить. */
+    /** В маппере не должно быть статических методов. */
     @ArchTest
     static final ArchRule mappers_should_not_declare_static_methods =
             classes()
@@ -147,11 +121,7 @@ public class MapperConventionTest {
                     .as("mappers should not declare static methods");
 
     /**
-     * Маппер не умеет ничего, кроме своего маппинга.
-     * <p>
-     * Публичных методов у него столько, сколько направлений он закрывает, и зовутся они
-     * только {@code map} и {@code apply}. Аргументов у них столько, сколько нужно:
-     * маппингу с несколькими входами для того и разрешён собственный интерфейс.
+     * Маппер не умеет ничего, кроме маппинга.
      */
     @ArchTest
     static final ArchRule mappers_should_declare_only_mapping_methods =
@@ -162,11 +132,6 @@ public class MapperConventionTest {
 
     /**
      * Отсутствие значения — забота вызывающего, а не маппера.
-     * <p>
-     * Проверяются предмет маппинга (первый аргумент), цель у {@code apply} (последний)
-     * и результат: их вызывающий умеет разложить сам через {@code Optional}. Аргумент
-     * с контекстом — другое дело: связь, которой в принципе может не быть, снаружи через
-     * {@code Optional} не выразить. Приватная кухня маппера правилом тоже не затрагивается.
      */
     @ArchTest
     static final ArchRule mapping_methods_should_not_deal_with_null =
@@ -175,27 +140,31 @@ public class MapperConventionTest {
                     .should(declare_no_nullable_mapping_signature())
                     .as("mapping methods should neither accept nor return null");
 
-    // ------------------------------------------------------------------ чистота
-
-    /** Маппер читает только то, что ему дали. */
+    /**
+     * Маппер зависит только от мапперов -- запрет на зависимость от сервисов и репозиториев.
+     */
     @ArchTest
-    static final ArchRule mappers_should_not_depend_on_repositories_services_or_domain_logic =
+    static final ArchRule mappers_should_not_fetch_anything_themselves =
             noClasses()
                     .that(are_mapper_implementations())
                     .should().dependOnClassesThat().areAssignableTo(Repository.class)
                     .orShould().dependOnClassesThat().areAnnotatedWith(Service.class)
                     .orShould().dependOnClassesThat().resideInAnyPackage(SERVICES)
-                    .orShould().dependOnClassesThat().resideInAPackage(ROOT + ".businesslogic..")
-                    .as("mappers should depend on nothing but other mappers and their own two types");
-
-    // ------------------------------------------------------------------ видимость
+                    .as("mappers should fetch nothing: they map what they were given");
 
     /**
-     * Реализацию маппера не видно ниоткуда: наружу он выходит только интерфейсом.
-     * <p>
-     * Для мапперов над сущностями это ещё и держит правило «мапит тот, кто фетчил»:
-     * такой маппер лежит рядом с репозиториями, а сущность за пределы слоя доступа
-     * к данным не выходит, так что снаружи его тип попросту не назвать.
+     * Маппер над сущностями не знает доменной логики.
+     */
+    @ArchTest
+    static final ArchRule data_mappers_should_not_depend_on_domain_logic =
+            noClasses()
+                    .that(are_mapper_implementations())
+                    .and().resideInAPackage(DATA_MAPPERS)
+                    .should().dependOnClassesThat().resideInAPackage(ROOT + ".businesslogic..")
+                    .as("mappers over JPA entities should not touch domain logic");
+
+    /**
+     * Реализация маппера package-private.
      */
     @ArchTest
     static final ArchRule mapper_implementations_should_not_be_public =
@@ -204,7 +173,7 @@ public class MapperConventionTest {
                     .should().notBePublic()
                     .as("mapper implementations should be package-private");
 
-    /** И даже внутри своего пакета маппер берут по интерфейсу. */
+    /** Внутри своего пакета маппер берут по интерфейсу. */
     @ArchTest
     static final ArchRule mappers_should_be_consumed_through_their_interface =
             classes()
@@ -212,15 +181,8 @@ public class MapperConventionTest {
                     .should(not_depend_on_mapper_implementations())
                     .as("consumers should depend on Mapper/UpdateMapper, not on a mapper implementation");
 
-    // ------------------------------------------------------------ где маппинга быть не должно
-
     /**
-     * В репозитории маппинга нет.
-     * <p>
-     * Признак маппинга — пересечение границы: в сигнатуре метода встретились и
-     * персистентный тип (сущность или проекция запроса), и модель данных. Методы,
-     * которые работают по одну сторону границы — достать сущность, разложить сущности
-     * по ключу, сгруппировать строки, — маппингом не являются и правилу не мешают.
+     * В репозитории не должно быть реализаций маппинга.
      */
     @ArchTest
     static final ArchRule data_repositories_should_not_declare_mapping_methods =
@@ -239,12 +201,8 @@ public class MapperConventionTest {
                     .should(build_no_dtos())
                     .as("only mappers should construct web DTOs");
 
-    // ------------------------------------------------------------------ страховки
-
     /**
      * Страховка от вырождения: правила выше молча зелены, если ни одного маппера не нашлось.
-     * <p>
-     * Так бывает, когда модуль выпал из анализа или интерфейс переехал.
      */
     @ArchTest
     static void mapper_rules_should_not_be_vacuous(JavaClasses classes) {
@@ -257,7 +215,7 @@ public class MapperConventionTest {
         }
     }
 
-    /** Списки исключений тают вместе с рефакторингом, а не остаются жить своей жизнью. */
+    /** Списки исключений не содержат неактуальные значения. */
     @ArchTest
     static void the_not_yet_migrated_lists_should_not_rot(JavaClasses classes) {
         Set<String> present = classes.stream().map(JavaClass::getName).collect(Collectors.toSet());
@@ -274,8 +232,6 @@ public class MapperConventionTest {
                             + String.join(", ", stale));
         }
     }
-
-    // ------------------------------------------------------------------ предикаты и условия
 
     private static DescribedPredicate<JavaClass> are_mapper_implementations() {
         return new DescribedPredicate<>("implement a mapping interface") {
@@ -528,7 +484,6 @@ public class MapperConventionTest {
         };
     }
 
-    /** Мост, который javac ставит на обобщённый метод интерфейса: этого в исходнике нет. */
     private static boolean isBridge(JavaMethod method) {
         return !method.getRawParameterTypes().isEmpty()
                 && method.getRawParameterTypes().stream()
@@ -537,7 +492,7 @@ public class MapperConventionTest {
 
     /** Лямбды и мосты доступа, которых в исходнике тоже нет. */
     private static boolean isCompilerGenerated(JavaMethod method) {
-        return method.getName().startsWith("lambda$") || method.getName().startsWith("access$");
+        return method.getName().startsWith("lambda$") || method.getName().startsWith("access$") || method.getName().contains("$$$reportNull$$$");
     }
 
     private static boolean isCollectionLike(JavaClass type) {

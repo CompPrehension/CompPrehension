@@ -3,6 +3,7 @@ package org.vstu.compprehension.repositories.mappers;
 import lombok.RequiredArgsConstructor;
 import org.jetbrains.annotations.NotNull;
 import org.springframework.stereotype.Component;
+import org.vstu.compprehension.common.Utils;
 import org.vstu.compprehension.data.question.AnswerObjectData;
 import org.vstu.compprehension.data.question.QuestionData;
 import org.vstu.compprehension.data.question.QuestionInteractionData;
@@ -12,7 +13,6 @@ import org.vstu.compprehension.entities.InteractionEntity;
 import org.vstu.compprehension.entities.QuestionEntity;
 import org.vstu.compprehension.entities.QuestionMetadataEntity;
 import org.vstu.compprehension.mappers.Mapper;
-import org.vstu.compprehension.repositories.Facts;
 
 import java.util.ArrayList;
 import java.util.Comparator;
@@ -45,8 +45,8 @@ class QuestionMapperImpl implements QuestionMapper {
         data.setMetadata(Optional.ofNullable(question.getMetadata())
                 .map(questionMetadataMapper::map)
                 .orElse(null));
-        data.setStatementFacts(Facts.copy(question.getStatementFacts()));
-        data.setSolutionFacts(Facts.copy(question.getSolutionFacts()));
+        data.setStatementFacts(Utils.copy(question.getStatementFacts()));
+        data.setSolutionFacts(Utils.copy(question.getSolutionFacts()));
         data.setAnswerObjects(question.getAnswerObjects().stream()
                 .map(answerObjectMapper::map)
                 .collect(Collectors.toCollection(ArrayList::new)));

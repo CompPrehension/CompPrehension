@@ -6,7 +6,6 @@ import org.vstu.compprehension.data.exerciseattempt.AttemptOwnerData;
 import org.vstu.compprehension.mappers.Mapper;
 import org.vstu.compprehension.repositories.entity.ExerciseAttemptRepository.AttemptOwner;
 
-/** Владелец попытки. */
 @Component
 class AttemptOwnerMapper implements Mapper<AttemptOwner, AttemptOwnerData> {
 

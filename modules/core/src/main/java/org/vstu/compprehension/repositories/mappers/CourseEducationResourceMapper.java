@@ -6,7 +6,6 @@ import org.vstu.compprehension.data.cource.CourseEducationResourceData;
 import org.vstu.compprehension.mappers.Mapper;
 import org.vstu.compprehension.repositories.entity.CourseRepository.CourseView;
 
-/** Ссылка курса на внешнюю систему. */
 @Component
 class CourseEducationResourceMapper implements Mapper<CourseView, CourseEducationResourceData> {
 

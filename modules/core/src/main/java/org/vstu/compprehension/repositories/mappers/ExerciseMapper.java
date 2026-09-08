@@ -5,11 +5,10 @@ import org.springframework.stereotype.Component;
 import org.vstu.compprehension.data.exercise.ExerciseData;
 import org.vstu.compprehension.entities.ExerciseEntity;
 import org.vstu.compprehension.mappers.Mapper;
-import org.vstu.compprehension.repositories.Strict;
+import org.vstu.compprehension.utils.Strict;
 
 import java.util.List;
 
-/** Упражнение целиком. */
 @Component
 class ExerciseMapper implements Mapper<ExerciseEntity, ExerciseData> {
 

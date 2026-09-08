@@ -6,7 +6,6 @@ import org.vstu.compprehension.data.question.QuestionMaskData;
 import org.vstu.compprehension.mappers.Mapper;
 import org.vstu.compprehension.repositories.entity.QuestionMetadataRepository.QuestionMaskView;
 
-/** Маски вопроса; незаполненная маска читается как ноль. */
 @Component
 class QuestionMaskMapper implements Mapper<QuestionMaskView, QuestionMaskData> {
 

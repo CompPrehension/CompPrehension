@@ -6,9 +6,8 @@ import org.vstu.compprehension.data.cource.CourseExerciseData;
 import org.vstu.compprehension.entities.ExerciseEntity;
 import org.vstu.compprehension.entities.course.ExerciseCourseLinkEntity;
 import org.vstu.compprehension.mappers.Mapper;
-import org.vstu.compprehension.repositories.Strict;
+import org.vstu.compprehension.utils.Strict;
 
-/** Упражнение, попавшее в курс: связь обязана быть подгружена вместе с упражнением. */
 @Component
 class CourseExerciseMapper implements Mapper<ExerciseCourseLinkEntity, CourseExerciseData> {
 

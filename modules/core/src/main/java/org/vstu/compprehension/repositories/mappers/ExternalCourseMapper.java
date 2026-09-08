@@ -4,10 +4,9 @@ import org.jetbrains.annotations.NotNull;
 import org.springframework.stereotype.Component;
 import org.vstu.compprehension.data.cource.ExternalCourseData;
 import org.vstu.compprehension.mappers.Mapper;
-import org.vstu.compprehension.repositories.Strict;
+import org.vstu.compprehension.utils.Strict;
 import org.vstu.compprehension.repositories.entity.CourseRepository.CourseView;
 
-/** Курс в том виде, в каком он известен внешней системе. */
 @Component
 class ExternalCourseMapper implements Mapper<CourseView, ExternalCourseData> {
 

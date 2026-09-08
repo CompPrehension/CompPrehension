@@ -6,7 +6,6 @@ import org.vstu.compprehension.data.exerciseattempt.GradePassbackTargetData;
 import org.vstu.compprehension.mappers.Mapper;
 import org.vstu.compprehension.repositories.entity.ExerciseAttemptRepository.GradePassbackTargetRow;
 
-/** Куда возвращать оценку за попытку. */
 @Component
 class GradePassbackTargetMapper implements Mapper<GradePassbackTargetRow, GradePassbackTargetData> {
 

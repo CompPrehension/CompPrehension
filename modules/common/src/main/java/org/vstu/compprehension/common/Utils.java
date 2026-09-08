@@ -7,6 +7,11 @@ import java.util.*;
 import java.util.stream.Collectors;
 
 public class Utils {
+
+    public static <T> @NotNull List<T> copy(@Nullable List<T> facts) {
+        return facts == null ? new ArrayList<>() : new ArrayList<>(facts);
+    }
+
     public static <P, C extends P> Optional<C> tryCast(@Nullable P obj, @NotNull Class<C> target) {
         if (obj != null && target.isAssignableFrom(obj.getClass())) {
             //noinspection unchecked

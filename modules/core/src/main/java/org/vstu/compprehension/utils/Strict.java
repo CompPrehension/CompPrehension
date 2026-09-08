@@ -1,4 +1,4 @@
-package org.vstu.compprehension.repositories;
+package org.vstu.compprehension.utils;
 
 import org.jetbrains.annotations.NotNull;
 import org.jetbrains.annotations.Nullable;

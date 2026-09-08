@@ -8,12 +8,6 @@ import org.vstu.compprehension.mappers.Mapping;
 
 import java.util.List;
 
-/**
- * Вопрос в объёме попытки.
- * <p>
- * Взаимодействия собираются отдельными запросами и приходят уже готовыми; от вопроса
- * маппер читает только метаданные, которые обязаны быть подгружены.
- */
 public interface AttemptQuestionMapper extends Mapping {
 
     @NotNull AttemptQuestionData map(@NotNull QuestionEntity question,

@@ -5,9 +5,8 @@ import org.springframework.stereotype.Component;
 import org.vstu.compprehension.data.domain.DomainData;
 import org.vstu.compprehension.entities.DomainEntity;
 import org.vstu.compprehension.mappers.Mapper;
-import org.vstu.compprehension.repositories.Strict;
+import org.vstu.compprehension.utils.Strict;
 
-/** Домен целиком. */
 @Component
 class DomainMapper implements Mapper<DomainEntity, DomainData> {
 

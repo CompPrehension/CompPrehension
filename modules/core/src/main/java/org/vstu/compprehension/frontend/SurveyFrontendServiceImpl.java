@@ -9,7 +9,8 @@ import org.vstu.compprehension.frontend.dto.survey.SurveyResultDto;
 import org.vstu.compprehension.data.survey.SurveyVoteData;
 import org.vstu.compprehension.repositories.data.SurveyDataRepository;
 import org.vstu.compprehension.services.QuestionDataService;
-import org.vstu.compprehension.frontend.mappers.LegacyDtoMappers;
+import org.vstu.compprehension.data.survey.SurveyData;
+import org.vstu.compprehension.mappers.Mapper;
 
 import java.util.List;
 import java.util.NoSuchElementException;
@@ -20,23 +21,19 @@ class SurveyFrontendServiceImpl implements SurveyFrontendService {
 
     private final SurveyDataRepository surveys;
     private final QuestionDataService questionService;
+    private final Mapper<SurveyData, SurveyDto> surveyDtoMapper;
+    private final Mapper<SurveyVoteData, SurveyResultDto> surveyResultDtoMapper;
 
     @Transactional(readOnly = true)
     public @NotNull SurveyDto getSurvey(@NotNull String surveyId) {
-        return LegacyDtoMappers.toDto(surveys.getById(surveyId));
+        return surveyDtoMapper.map(surveys.getById(surveyId));
     }
 
     @Transactional(readOnly = true)
     public @NotNull List<SurveyResultDto> getUserAttemptVotes(
             long userId, long attemptId, @NotNull String surveyId) {
-        // Форма ответа API — забота сервиса, слой доступа к данным отдаёт свои записи.
-        return surveys.findUserAttemptVotes(userId, attemptId, surveyId).stream()
-                .map(v -> SurveyResultDto.builder()
-                        .surveyQuestionId(v.surveyQuestionId())
-                        .questionId(v.questionId())
-                        .answer(v.answer())
-                        .build())
-                .toList();
+        return surveyResultDtoMapper.mapAll(
+                surveys.findUserAttemptVotes(userId, attemptId, surveyId));
     }
 
     @Transactional

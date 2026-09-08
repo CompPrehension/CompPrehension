@@ -11,7 +11,7 @@ import org.vstu.compprehension.data.cource.ExternalCourseData;
 import org.vstu.compprehension.entities.course.ExerciseCourseLinkEntity;
 import org.vstu.compprehension.entities.course.ExerciseCourseLinkId;
 import org.vstu.compprehension.mappers.Mapper;
-import org.vstu.compprehension.repositories.Strict;
+import org.vstu.compprehension.utils.Strict;
 import org.vstu.compprehension.repositories.entity.CourseRepository.CourseView;
 import org.vstu.compprehension.repositories.entity.CourseRepository;
 import org.vstu.compprehension.repositories.entity.ExerciseCourseLinkRepository;

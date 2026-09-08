@@ -7,12 +7,6 @@ import org.vstu.compprehension.repositories.entity.InteractionRepository.Interac
 
 import java.util.List;
 
-/**
- * Взаимодействие в объёме попытки.
- * <p>
- * Нарушенные и подтверждённые законы приходят отдельными запросами: строка сама их
- * не содержит, а маппер за ними не ходит.
- */
 public interface AttemptQuestionInteractionMapper extends Mapping {
 
     @NotNull AttemptQuestionInteractionData map(@NotNull InteractionRow row,

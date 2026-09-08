@@ -22,4 +22,10 @@ public interface AbstractStrategy {
     float grade(long exerciseAttemptId, Domain.InterpretSentenceResult judgeResult);
 
     Decision decide(long exerciseAttemptId);
+    
+    default StrategyDecision gradeAndDecide(long exerciseAttemptId, Domain.InterpretSentenceResult judgeResult) {
+        var grade = grade(exerciseAttemptId, judgeResult);
+        var decision = decide(exerciseAttemptId);
+        return new StrategyDecision(grade, decision);
+    }
 }

@@ -6,7 +6,6 @@ import org.vstu.compprehension.data.question.QuestionMetadataData;
 import org.vstu.compprehension.entities.QuestionMetadataEntity;
 import org.vstu.compprehension.mappers.Mapper;
 
-/** Метаданные вопроса; тело вопроса читается, только если его подгрузили. */
 @Component
 class QuestionMetadataMapper implements Mapper<QuestionMetadataEntity, QuestionMetadataData> {
 

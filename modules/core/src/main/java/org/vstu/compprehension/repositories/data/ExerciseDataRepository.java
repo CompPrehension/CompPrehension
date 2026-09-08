@@ -12,7 +12,7 @@ import org.vstu.compprehension.data.exercise.NewExerciseData;
 import org.vstu.compprehension.entities.DomainEntity;
 import org.vstu.compprehension.entities.ExerciseEntity;
 import org.vstu.compprehension.mappers.Mapper;
-import org.vstu.compprehension.repositories.Strict;
+import org.vstu.compprehension.utils.Strict;
 import org.vstu.compprehension.repositories.entity.DomainRepository;
 import org.vstu.compprehension.repositories.entity.ExerciseAttemptReassignExecutor;
 import org.vstu.compprehension.repositories.entity.ExerciseAttemptRepository;

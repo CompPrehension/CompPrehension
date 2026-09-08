@@ -5,9 +5,8 @@ import org.springframework.stereotype.Component;
 import org.vstu.compprehension.data.cource.CourseRoleAssignmentData;
 import org.vstu.compprehension.entities.role.RoleUserAssignmentEntity;
 import org.vstu.compprehension.mappers.Mapper;
-import org.vstu.compprehension.repositories.Strict;
+import org.vstu.compprehension.utils.Strict;
 
-/** Назначение роли в области курса. */
 @Component
 class CourseRoleAssignmentMapper implements Mapper<RoleUserAssignmentEntity, CourseRoleAssignmentData> {
 

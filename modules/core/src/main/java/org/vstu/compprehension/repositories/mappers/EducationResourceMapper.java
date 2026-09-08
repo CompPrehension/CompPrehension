@@ -5,9 +5,8 @@ import org.springframework.stereotype.Component;
 import org.vstu.compprehension.data.cource.EducationResourceData;
 import org.vstu.compprehension.entities.external_system.EducationResourceEntity;
 import org.vstu.compprehension.mappers.Mapper;
-import org.vstu.compprehension.repositories.Strict;
+import org.vstu.compprehension.utils.Strict;
 
-/** Внешняя образовательная система. */
 @Component
 class EducationResourceMapper implements Mapper<EducationResourceEntity, EducationResourceData> {
 

@@ -25,14 +25,14 @@ class ExerciseAttemptDataServiceImpl implements ExerciseAttemptDataService {
     private final GradePassbackService gradePassbackService;
     private final CourseDataService courseService;
     private final AuthService authService;
-    private final AuthScopeFactoryImpl authScopes;
+    private final AuthScopeFactory authScopes;
     private final ExerciseAttemptDataRepository exerciseAttemptDataRepository;
 
     public ExerciseAttemptDataServiceImpl(LtiContextProvider ltiContextProvider,
                                           GradePassbackService gradePassbackService,
                                           CourseDataService courseService,
                                           AuthService authService,
-                                          AuthScopeFactoryImpl authScopes,
+                                          AuthScopeFactory authScopes,
                                           ExerciseAttemptDataRepository exerciseAttemptDataRepository) {
         this.ltiContextProvider = ltiContextProvider;
         this.gradePassbackService = gradePassbackService;

@@ -120,13 +120,13 @@ class ExerciseDataServiceImpl implements ExerciseDataService {
     }
 
     @Transactional(readOnly = true)
-    public @NotNull List<ExerciseDto> getCourseExercises(long courseId) {
-        return toExerciseDtos(exercises.findSummariesByCourseId(courseId));
+    public @NotNull List<ExerciseSummaryData> getCourseExercises(long courseId) {
+        return exercises.findSummariesByCourseId(courseId);
     }
 
     @Transactional(readOnly = true)
-    public @NotNull List<ExerciseDto> getPublicExercises() {
-        return toExerciseDtos(exercises.findPublicSummaries());
+    public @NotNull List<ExerciseSummaryData> getPublicExercises() {
+        return exercises.findPublicSummaries();
     }
 
     @Transactional
@@ -145,11 +145,5 @@ class ExerciseDataServiceImpl implements ExerciseDataService {
                                 s.getLaws(), s.getConcepts(), s.getSkills()))
                         .toList(),
                 card.getTags()));
-    }
-
-    private static @NotNull List<ExerciseDto> toExerciseDtos(@NotNull List<ExerciseSummaryData> summaries) {
-        return summaries.stream()
-                .map(e -> new ExerciseDto(e.id(), e.name(), e.isPublic()))
-                .toList();
     }
 }

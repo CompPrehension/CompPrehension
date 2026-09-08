@@ -32,7 +32,9 @@ import org.vstu.compprehension.enums.Language;
 import org.vstu.compprehension.enums.QuestionType;
 import org.vstu.compprehension.services.*;
 import org.vstu.compprehension.utils.Checkpointer;
-import org.vstu.compprehension.frontend.mappers.LegacyDtoMappers;
+import org.vstu.compprehension.mappers.Mapper;
+import org.vstu.compprehension.frontend.mappers.FeedbackDtoMapper;
+import org.vstu.compprehension.frontend.mappers.QuestionDtoMapper;
 
 import java.util.*;
 import java.util.stream.Collectors;
@@ -51,6 +53,10 @@ class ExerciseAttemptServiceImpl implements ExerciseAttemptFrontendService {
     private final AbstractStrategyFactory strategyFactory;
     private final LocalizationService localizationService;
     private final UserDataService userService;
+    private final QuestionDtoMapper questionDtoMapper;
+    private final FeedbackDtoMapper feedbackDtoMapper;
+    private final Mapper<AttemptSummaryData, ExerciseAttemptDto> exerciseAttemptDtoMapper;
+    private final Mapper<ResponseData, AnswerDto> answerDtoMapper;
 
     @Override
     public void ensureCanAccessAttempt(long userId, long attemptId) {
@@ -81,11 +87,10 @@ class ExerciseAttemptServiceImpl implements ExerciseAttemptFrontendService {
 
     @Transactional(propagation = Propagation.REQUIRED)
     public @NotNull FeedbackDto addQuestionAnswer(@NotNull InteractionDto interaction) {
-        Checkpointer ch = new Checkpointer(log);
-
         val questionId = interaction.getQuestionId();
         val answers = toSubmittedAnswers(interaction.getAnswers());
-        val context = exerciseAttemptService.findQuestionContext(questionId).orElse(null);
+        val context = exerciseAttemptService.findQuestionContext(questionId)
+                .orElseThrow();
         
         var currentUser = userService.getCurrentUser();
         var language = currentUser.language();
@@ -94,11 +99,8 @@ class ExerciseAttemptServiceImpl implements ExerciseAttemptFrontendService {
         val question = questionService.getSolvedQuestion(questionId);
         val domain = question.getDomain();
         val tags = question.getTags();
-        ch.hit("solved question obtained");
         val responses = questionService.resolveAnswers(questionId, answers);
-        ch.hit("responses collected");
         val judgeResult = domain.judgeQuestion(question, responses, tags, language);
-        ch.hit("judgeQuestion done");
 
         // add interaction
         val recorded = questionService.recordInteraction(new NewInteractionData(
@@ -110,15 +112,11 @@ class ExerciseAttemptServiceImpl implements ExerciseAttemptFrontendService {
                 orEmpty(judgeResult.correctlyAppliedLaws),
                 judgeResult.IterationsLeft));
 
-        // Оценка считается после записи: стратегия смотрит на историю попытки, и это
-        // взаимодействие обязано быть её частью — иначе решение принимается по
-        // предыдущему ответу.
-        val outcome = gradeAndDecide(context, judgeResult);
-        questionService.gradeInteraction(recorded.interactionId(), outcome.getLeft());
-        ch.hit("graded with strategy (" + outcome.getLeft() + ")");
+        var strategy = strategyFactory.getStrategy(context.strategyId());
+        var strategyDecision = strategy.gradeAndDecide(context.attemptId(), judgeResult);
+        questionService.gradeInteraction(recorded.interactionId(), strategyDecision.grade());
         if (context != null) {
-            exerciseAttemptService.ensureAttemptStatus(context.attemptId(), outcome.getRight());
-            ch.hit("decide next exercise state (" + outcome.getRight().name() + ")");
+            exerciseAttemptService.ensureAttemptStatus(context.attemptId(), strategyDecision.decision());
         }
 
         val locale = questionLanguage(context);
@@ -139,7 +137,7 @@ class ExerciseAttemptServiceImpl implements ExerciseAttemptFrontendService {
         val correctAnswers = recorded.latestCorrectInteraction() == null
                 ? new AnswerDto[0]
                 : recorded.latestCorrectInteraction().responses().stream()
-                        .map(LegacyDtoMappers::toDto)
+                        .map(answerDtoMapper::map)
                         .toArray(AnswerDto[]::new);
 
         // special case for order question
@@ -156,22 +154,18 @@ class ExerciseAttemptServiceImpl implements ExerciseAttemptFrontendService {
                     .findFirst().get();
             val newAnswer = ArrayUtils.add(correctAnswers, missingAnswer);
             val res = addQuestionAnswer(new InteractionDto(questionId, newAnswer));
-            ch.since_start("addOrdinaryQuestionAnswer() + fill last answer: completed in");
             return res;
         }
 
-        ch.hit("results made");
-        ch.since_start("addOrdinaryQuestionAnswer() completed in");
-
-        return LegacyDtoMappers.toFeedbackDto(question,
+        return feedbackDtoMapper.map(question,
                 messages,
                 recorded.correctInteractionsCount(),
                 recorded.erroneousInteractionsCount(),
-                outcome.getLeft(),
+                strategyDecision.grade(),
                 judgeResult.IterationsLeft,
                 correctAnswers,
                 isAnswerCorrect,
-                outcome.getRight(),
+                strategyDecision.decision(),
                 language);
     }
 
@@ -179,7 +173,7 @@ class ExerciseAttemptServiceImpl implements ExerciseAttemptFrontendService {
     @Transactional(propagation = Propagation.REQUIRED)
     public @NotNull QuestionDto generateQuestion(@NotNull Long exAttemptId) {
         val question = questionService.generateQuestion(exAttemptId);
-        return LegacyDtoMappers.toDto(question, userService.getCurrentUser().language());
+        return questionDtoMapper.map(question, userService.getCurrentUser().language());
     }
 
     @SneakyThrows
@@ -189,7 +183,7 @@ class ExerciseAttemptServiceImpl implements ExerciseAttemptFrontendService {
             throw new Exception("Metadata id is null");
         }
         val question = questionService.generateQuestion(metadataId, lang);
-        return LegacyDtoMappers.toDto(question, userService.getCurrentUser().language());
+        return questionDtoMapper.map(question, userService.getCurrentUser().language());
     }
 
     @Transactional(propagation = Propagation.REQUIRED)
@@ -204,14 +198,14 @@ class ExerciseAttemptServiceImpl implements ExerciseAttemptFrontendService {
     @Transactional(propagation = Propagation.REQUIRED)
     public @NotNull QuestionDto getQuestion(@NotNull Long questionId) {
         val question = questionService.getQuestion(questionId);
-        return LegacyDtoMappers.toDto(question, userService.getCurrentUser().language());
+        return questionDtoMapper.map(question, userService.getCurrentUser().language());
     }
 
     @Transactional(propagation = Propagation.REQUIRED)
     public @NotNull FeedbackDto generateNextCorrectAnswer(@NotNull Long questionId) {
         // get next correct answer
         val question = questionService.getSolvedQuestion(questionId);
-        val context = exerciseAttemptService.findQuestionContext(questionId).orElse(null);
+        val context = exerciseAttemptService.findQuestionContext(questionId).orElseThrow();
         var domain = question.getDomain();
         var currentUser = userService.getCurrentUser();
         var language = currentUser.language();
@@ -241,10 +235,11 @@ class ExerciseAttemptServiceImpl implements ExerciseAttemptFrontendService {
                 orEmpty(judgeResult.correctlyAppliedLaws),
                 judgeResult.IterationsLeft));
 
-        val outcome = gradeAndDecide(context, judgeResult);
-        questionService.gradeInteraction(recorded.interactionId(), outcome.getLeft());
+        var strategy = strategyFactory.getStrategy(context.strategyId());
+        var strategyDecision = strategy.gradeAndDecide(context.attemptId(), judgeResult);
+        questionService.gradeInteraction(recorded.interactionId(), strategyDecision.grade());
         if (context != null) {
-            exerciseAttemptService.ensureAttemptStatus(context.attemptId(), outcome.getRight());
+            exerciseAttemptService.ensureAttemptStatus(context.attemptId(), strategyDecision.decision());
         }
 
         // build feedback message
@@ -257,26 +252,16 @@ class ExerciseAttemptServiceImpl implements ExerciseAttemptFrontendService {
                                         .canCreateSupplementaryQuestion(false).build()).toList()))
                 .toList().toArray(new FeedbackDto.Message[0]);
 
-        return LegacyDtoMappers.toFeedbackDto(question,
+        return feedbackDtoMapper.map(question,
                 messages,
                 recorded.correctInteractionsCount(),
                 recorded.erroneousInteractionsCount(),
-                outcome.getLeft(),
+                strategyDecision.grade(),
                 judgeResult.IterationsLeft,
-                recorded.responses().stream().map(LegacyDtoMappers::toDto).toArray(AnswerDto[]::new),
+                recorded.responses().stream().map(answerDtoMapper::map).toArray(AnswerDto[]::new),
                 /*true*/ judgeResult.violations.isEmpty() && judgeResult.isAnswerCorrect,
-                outcome.getRight(),
+                strategyDecision.decision(),
                 language);
-    }
-
-    private @NotNull Pair<Float, Decision> gradeAndDecide(@Nullable QuestionAttemptContextData context,
-                                                          @NotNull Domain.InterpretSentenceResult judgeResult) {
-        if (context == null) {
-            return Pair.of(1f, Decision.CONTINUE);
-        }
-        var strategy = strategyFactory.getStrategy(context.strategyId());
-        float grade = strategy.grade(context.attemptId(), judgeResult);
-        return Pair.of(grade, strategy.decide(context.attemptId()));
     }
 
     private static <T> @NotNull List<T> orEmpty(@Nullable List<T> values) {
@@ -298,13 +283,13 @@ class ExerciseAttemptServiceImpl implements ExerciseAttemptFrontendService {
 
     public @Nullable ExerciseAttemptDto getExerciseAttempt(@NotNull Long attemptId) {
         return exerciseAttemptService.findSummary(attemptId)
-                .map(LegacyDtoMappers::toDto)
+                .map(exerciseAttemptDtoMapper::map)
                 .orElse(null);
     }
 
     public @Nullable ExerciseAttemptDto getExistingExerciseAttempt(@NotNull Long exerciseId, @NotNull Long userId, @Nullable Long courseId) {
         val result = exerciseAttemptService.findIncompleteAttempt(exerciseId, userId, courseId)
-                .map(LegacyDtoMappers::toDto)
+                .map(exerciseAttemptDtoMapper::map)
                 .orElse(null);
         log.info("Is course attempt exists: {}", result != null);
 
@@ -314,7 +299,7 @@ class ExerciseAttemptServiceImpl implements ExerciseAttemptFrontendService {
     @Transactional(propagation = Propagation.REQUIRED)
     public @NotNull ExerciseAttemptDto createExerciseAttempt(@NotNull Long exerciseId, @NotNull Long userId, @Nullable Long courseId) {
         var ea = exerciseAttemptService.createNewAttempt(exerciseId, userId, courseId);
-        return LegacyDtoMappers.toDto(ea);
+        return exerciseAttemptDtoMapper.map(ea);
     }
 
     @Transactional(propagation = Propagation.REQUIRED)
@@ -359,6 +344,6 @@ class ExerciseAttemptServiceImpl implements ExerciseAttemptFrontendService {
         }
 
         // Сводка перечитывается: за время цикла у попытки появились вопросы.
-        return LegacyDtoMappers.toDto(exerciseAttemptService.findSummary(ea.attemptId()).orElseThrow());
+        return exerciseAttemptDtoMapper.map(exerciseAttemptService.findSummary(ea.attemptId()).orElseThrow());
     }
 }

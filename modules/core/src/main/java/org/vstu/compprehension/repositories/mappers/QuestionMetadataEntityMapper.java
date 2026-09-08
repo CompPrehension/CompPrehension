@@ -6,7 +6,6 @@ import org.vstu.compprehension.data.question.QuestionMetadataData;
 import org.vstu.compprehension.entities.QuestionMetadataEntity;
 import org.vstu.compprehension.mappers.Mapper;
 
-/** Метаданные вопроса в сторону базы; тело сохраняется отдельно и здесь не трогается. */
 @Component
 class QuestionMetadataEntityMapper implements Mapper<QuestionMetadataData, QuestionMetadataEntity> {
 

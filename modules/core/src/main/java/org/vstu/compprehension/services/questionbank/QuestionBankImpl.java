@@ -8,6 +8,7 @@ import org.vstu.compprehension.businesslogic.storage.QuestionBank;
 import org.vstu.compprehension.businesslogic.storage.QuestionBankSearchResult;
 import org.vstu.compprehension.businesslogic.storage.SerializableQuestion;
 import org.vstu.compprehension.frontend.dto.QuestionBankSearchStatsDto;
+import org.vstu.compprehension.frontend.mappers.QuestionBankSearchStatsDtoMapper;
 import org.vstu.compprehension.businesslogic.QuestionBankSearchRequest;
 import org.vstu.compprehension.businesslogic.QuestionRequest;
 import org.vstu.compprehension.data.questionbank.GenerationRequestGroupData;
@@ -30,9 +31,12 @@ import java.util.Set;
 public class QuestionBankImpl implements QuestionBank {
     private final QuestionBankDataRepository bankRepository;
     private final QuestionMetadataManager questionMetadataManager;
+    private final QuestionBankSearchStatsDtoMapper questionBankSearchStatsDtoMapper;
 
-    public QuestionBankImpl(QuestionBankDataRepository bankRepository) {
+    public QuestionBankImpl(QuestionBankDataRepository bankRepository,
+                            QuestionBankSearchStatsDtoMapper questionBankSearchStatsDtoMapper) {
         this.bankRepository = bankRepository;
+        this.questionBankSearchStatsDtoMapper = questionBankSearchStatsDtoMapper;
         this.questionMetadataManager = new QuestionMetadataManager(bankRepository);
     }
 
@@ -111,12 +115,8 @@ public class QuestionBankImpl implements QuestionBank {
         var bankSearchRequest = createBankSearchRequest(qr);
         var ordinaryCount = bankRepository.countQuestions(bankSearchRequest);
         var topRatedCount = bankRepository.countTopRatedQuestions(bankSearchRequest);
-        // Тела вопросов здесь не нужны: в статистику уезжают только имя и идентификатор.
-        var metadata = bankRepository.findMetadataWithoutBodies(bankSearchRequest, limit)
-            .stream()
-            .map(m -> new QuestionBankSearchStatsDto.QuestionMetadataDto(m.getId(), m.getName()))
-            .toList();
-        return new QuestionBankSearchStatsDto(ordinaryCount, topRatedCount, metadata);
+        return questionBankSearchStatsDtoMapper.map(ordinaryCount, topRatedCount,
+                bankRepository.findMetadataWithoutBodies(bankSearchRequest, limit));
     }
 
     public QuestionBankSearchResult searchQuestions(@NotNull QuestionRequest qr, int limit, int generatorThreshold, int generatorAdditionalQuestionsToGenerate) {

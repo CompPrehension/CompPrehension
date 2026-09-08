@@ -5,9 +5,8 @@ import org.springframework.stereotype.Component;
 import org.vstu.compprehension.data.survey.SurveyQuestionData;
 import org.vstu.compprehension.entities.SurveyQuestionEntity;
 import org.vstu.compprehension.mappers.Mapper;
-import org.vstu.compprehension.repositories.Strict;
+import org.vstu.compprehension.utils.Strict;
 
-/** Вопрос опроса. */
 @Component
 class SurveyQuestionMapper implements Mapper<SurveyQuestionEntity, SurveyQuestionData> {
 

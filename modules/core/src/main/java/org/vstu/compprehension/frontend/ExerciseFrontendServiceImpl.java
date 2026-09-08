@@ -5,7 +5,9 @@ import org.jetbrains.annotations.Nullable;
 import org.springframework.stereotype.Component;
 import org.springframework.transaction.annotation.Propagation;
 import org.springframework.transaction.annotation.Transactional;
-import org.vstu.compprehension.data.exercise.ExerciseData;
+import org.vstu.compprehension.frontend.mappers.ExerciseCardDtoMapper;
+import org.vstu.compprehension.frontend.mappers.ExerciseInfoDtoMapper;
+import org.vstu.compprehension.frontend.mappers.ExerciseListDtoMapper;
 import org.vstu.compprehension.frontend.dto.*;
 import org.vstu.compprehension.services.ExercisePermissionDataService;
 import org.vstu.compprehension.services.ExerciseDataService;
@@ -16,10 +18,20 @@ import java.util.List;
 public class ExerciseFrontendServiceImpl implements ExerciseFrontendService {
     private final ExerciseDataService exerciseService;
     private final ExercisePermissionDataService exercisePermissionService;
+    private final ExerciseCardDtoMapper exerciseCardDtoMapper;
+    private final ExerciseListDtoMapper exerciseListDtoMapper;
+    private final ExerciseInfoDtoMapper exerciseInfoDtoMapper;
 
-    public ExerciseFrontendServiceImpl(ExerciseDataService exerciseService, ExercisePermissionDataService exercisePermissionService) {
+    public ExerciseFrontendServiceImpl(ExerciseDataService exerciseService,
+                                       ExercisePermissionDataService exercisePermissionService,
+                                       ExerciseCardDtoMapper exerciseCardDtoMapper,
+                                       ExerciseListDtoMapper exerciseListDtoMapper,
+                                       ExerciseInfoDtoMapper exerciseInfoDtoMapper) {
         this.exerciseService = exerciseService;
         this.exercisePermissionService = exercisePermissionService;
+        this.exerciseCardDtoMapper = exerciseCardDtoMapper;
+        this.exerciseListDtoMapper = exerciseListDtoMapper;
+        this.exerciseInfoDtoMapper = exerciseInfoDtoMapper;
     }
 
     @Override
@@ -29,7 +41,7 @@ public class ExerciseFrontendServiceImpl implements ExerciseFrontendService {
 
     @Override
     public @NotNull ExerciseInfoDto getExerciseShortInfo(long id, @Nullable Long courseId) {
-        return new ExerciseInfoDto(id, exerciseService.getExerciseOptionsInContext(id, courseId));
+        return exerciseInfoDtoMapper.map(id, exerciseService.getExerciseOptionsInContext(id, courseId));
     }
 
     @Override
@@ -40,15 +52,17 @@ public class ExerciseFrontendServiceImpl implements ExerciseFrontendService {
     @Override
     public @NotNull ExerciseCardDto getExerciseCard(long exerciseId, @Nullable Long courseId, long userId) {
         var exercise = exerciseService.getExerciseInContext(exerciseId, courseId);
-        return getExerciseCard(exercise, exercisePermissionService.ofExercise(userId, exercise, courseId));
+        return exerciseCardDtoMapper.map(
+                exercise, exercisePermissionService.ofExercise(userId, exercise, courseId));
     }
 
     @Override
     public @NotNull ExerciseListDto listExercises(@Nullable Long courseId, long userId) {
-        List<ExerciseDto> exercises = courseId != null
+        var exercises = courseId != null
                 ? exerciseService.getCourseExercises(courseId)
                 : exerciseService.getPublicExercises();
-        return new ExerciseListDto(exercises, exercisePermissionService.ofExerciseList(userId, courseId));
+        return exerciseListDtoMapper.map(
+                exercises, exercisePermissionService.ofExerciseList(userId, courseId));
     }
 
     @Transactional(propagation = Propagation.REQUIRED)
@@ -75,23 +89,5 @@ public class ExerciseFrontendServiceImpl implements ExerciseFrontendService {
     public void deleteExercise(long exerciseId, @Nullable Long courseId) {
         exerciseService.ensureNotInheritedInCourse(exerciseId, courseId);
         exerciseService.deleteExercise(exerciseId);
-    }
-
-    private @NotNull ExerciseCardDto getExerciseCard(@NotNull ExerciseData exercise, @NotNull ExerciseCardPermissionsDto permissions) {
-        return ExerciseCardDto.builder()
-                .id(exercise.id())
-                .name(exercise.name())
-                .domainId(exercise.domainId())
-                .strategyId(exercise.strategyId())
-                .backendId(exercise.backendId())
-                .stages(exercise.stages().stream()
-                        .map(s -> new ExerciseStageDto(s.getNumberOfQuestions(), s.getComplexity(),
-                                s.getLaws(), s.getConcepts(), s.getSkills()))
-                        .toList())
-                .options(exercise.options())
-                .tags(exercise.tags())
-                .isPublic(exercise.isPublic())
-                .permissions(permissions)
-                .build();
     }
 }

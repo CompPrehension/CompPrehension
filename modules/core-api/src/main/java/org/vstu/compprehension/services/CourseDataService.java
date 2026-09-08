@@ -1,5 +1,6 @@
 package org.vstu.compprehension.services;
 
+import org.vstu.compprehension.data.cource.CourseSummaryData;
 import org.jetbrains.annotations.NotNull;
 import org.vstu.compprehension.businesslogic.lti.LtiContext;
 import org.vstu.compprehension.data.cource.CourseExerciseData;
@@ -22,9 +23,9 @@ public interface CourseDataService {
 
     void ensureExerciseInCourse(long exerciseId, long courseId);
 
-    @NotNull List<CourseDto> getUserCourses(long userId);
+    @NotNull List<CourseSummaryData> getUserCourses(long userId);
 
-    @NotNull List<CourseDto> getExerciseMemberships(long exerciseId);
+    @NotNull List<CourseSummaryData> getExerciseMemberships(long exerciseId);
 
     void addExerciseToCourse(long exerciseId, long courseId);
 

@@ -12,7 +12,6 @@ import org.vstu.compprehension.mappers.Mapper;
 import java.util.ArrayList;
 import java.util.stream.Collectors;
 
-/** Взаимодействие целиком: нарушения, ответы и подтверждённые законы обязаны быть подгружены. */
 @Component
 @RequiredArgsConstructor
 class QuestionInteractionMapper implements Mapper<InteractionEntity, QuestionInteractionData> {

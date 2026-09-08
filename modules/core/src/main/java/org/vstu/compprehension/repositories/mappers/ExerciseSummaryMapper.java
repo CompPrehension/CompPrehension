@@ -5,9 +5,8 @@ import org.springframework.stereotype.Component;
 import org.vstu.compprehension.data.exercise.ExerciseSummaryData;
 import org.vstu.compprehension.entities.ExerciseEntity;
 import org.vstu.compprehension.mappers.Mapper;
-import org.vstu.compprehension.repositories.Strict;
+import org.vstu.compprehension.utils.Strict;
 
-/** Упражнение в объёме списка. */
 @Component
 class ExerciseSummaryMapper implements Mapper<ExerciseEntity, ExerciseSummaryData> {
 

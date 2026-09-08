@@ -8,7 +8,6 @@ import org.vstu.compprehension.mappers.Mapper;
 
 import java.util.List;
 
-/** Упражнение в объёме попытки: домен обязан быть подгружен вместе с упражнением. */
 @Component
 class AttemptExerciseMapper implements Mapper<ExerciseEntity, AttemptExerciseData> {
 

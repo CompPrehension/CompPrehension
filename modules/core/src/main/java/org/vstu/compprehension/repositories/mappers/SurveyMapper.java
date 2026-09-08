@@ -9,9 +9,8 @@ import org.vstu.compprehension.data.survey.SurveyQuestionData;
 import org.vstu.compprehension.entities.SurveyEntity;
 import org.vstu.compprehension.entities.SurveyQuestionEntity;
 import org.vstu.compprehension.mappers.Mapper;
-import org.vstu.compprehension.repositories.Strict;
+import org.vstu.compprehension.utils.Strict;
 
-/** Опрос вместе со своими вопросами: их обязан подгрузить вызывающий. */
 @Component
 @RequiredArgsConstructor
 class SurveyMapper implements Mapper<SurveyEntity, SurveyData> {

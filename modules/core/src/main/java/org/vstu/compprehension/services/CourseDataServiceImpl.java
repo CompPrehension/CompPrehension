@@ -30,7 +30,7 @@ class CourseDataServiceImpl implements CourseDataService {
     private final CourseDataRepository courses;
     private final ExerciseDataRepository exercises;
     private final AuthService authService;
-    private final AuthScopeFactoryImpl authScopes;
+    private final AuthScopeFactory authScopes;
 
     @Transactional(readOnly = true)
     public @NotNull Optional<Long> findCourseIdByExternalIdAndResourceId(@NotNull String externalCourseId, long educationResourceId) {
@@ -89,9 +89,9 @@ class CourseDataServiceImpl implements CourseDataService {
     }
 
     @Transactional(readOnly = true)
-    public @NotNull List<CourseDto> getUserCourses(long userId) {
+    public @NotNull List<CourseSummaryData> getUserCourses(long userId) {
         if (authService.isAuthorized(userId, SystemPermission.VIEW_COURSE, authScopes.global())) {
-            return toCourseDtos(courses.findAllSummaries());
+            return courses.findAllSummaries();
         }
 
         var courseIds = new HashSet<>(authService.findScopeItemIdsWithPermission(
@@ -101,12 +101,12 @@ class CourseDataServiceImpl implements CourseDataService {
                 userId, SystemPermission.VIEW_COURSE, PermissionScopeKind.EDUCATION_RESOURCE);
         courseIds.addAll(courses.findIdsByEducationResourceIds(educationResourceIds));
 
-        return toCourseDtos(courses.findSummariesByIds(courseIds));
+        return courses.findSummariesByIds(courseIds);
     }
 
     @Transactional(readOnly = true)
-    public @NotNull List<CourseDto> getExerciseMemberships(long exerciseId) {
-        return toCourseDtos(courses.findSummariesByExerciseId(exerciseId));
+    public @NotNull List<CourseSummaryData> getExerciseMemberships(long exerciseId) {
+        return courses.findSummariesByExerciseId(exerciseId);
     }
 
     @Transactional
@@ -120,11 +120,5 @@ class CourseDataServiceImpl implements CourseDataService {
     @Transactional
     public void removeExerciseFromCourse(long exerciseId, long courseId) {
         courses.unlinkExercise(exerciseId, courseId);
-    }
-
-    private static @NotNull List<CourseDto> toCourseDtos(@NotNull List<CourseSummaryData> summaries) {
-        return summaries.stream()
-                .map(c -> new CourseDto(c.id(), c.name(), c.educationResourceId(), c.educationResourceUrl()))
-                .toList();
     }
 }

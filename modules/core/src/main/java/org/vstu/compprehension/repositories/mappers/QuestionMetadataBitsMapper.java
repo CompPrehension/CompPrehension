@@ -6,7 +6,6 @@ import org.vstu.compprehension.data.question.QuestionMetadataBitsData;
 import org.vstu.compprehension.entities.QuestionMetadataEntity;
 import org.vstu.compprehension.mappers.Mapper;
 
-/** Битовые маски метаданных вопроса — то, по чему считается качество подбора. */
 @Component
 class QuestionMetadataBitsMapper implements Mapper<QuestionMetadataEntity, QuestionMetadataBitsData> {
 

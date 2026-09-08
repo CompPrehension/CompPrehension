@@ -6,7 +6,6 @@ import org.vstu.compprehension.data.question.QuestionRequestLogData;
 import org.vstu.compprehension.entities.QuestionRequestLogEntity;
 import org.vstu.compprehension.mappers.Mapper;
 
-/** Журнальная запись о том, каким запросом подбирался вопрос. */
 @Component
 class QuestionRequestLogEntityMapper implements Mapper<QuestionRequestLogData, QuestionRequestLogEntity> {
 

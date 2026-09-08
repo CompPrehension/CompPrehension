@@ -6,7 +6,6 @@ import org.vstu.compprehension.data.question.SupplementaryStepData;
 import org.vstu.compprehension.mappers.Mapper;
 import org.vstu.compprehension.repositories.entity.SupplementaryStepRepository.StepRow;
 
-/** Шаг цепочки вспомогательных вопросов. */
 @Component
 class SupplementaryStepMapper implements Mapper<StepRow, SupplementaryStepData> {
 

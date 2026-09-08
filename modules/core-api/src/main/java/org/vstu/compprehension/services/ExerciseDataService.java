@@ -1,5 +1,6 @@
 package org.vstu.compprehension.services;
 
+import org.vstu.compprehension.data.exercise.ExerciseSummaryData;
 import org.jetbrains.annotations.NotNull;
 import org.jetbrains.annotations.Nullable;
 import org.vstu.compprehension.data.exercise.ExerciseData;
@@ -28,9 +29,9 @@ public interface ExerciseDataService {
 
     void deleteExercise(long exerciseId);
 
-    List<ExerciseDto> getCourseExercises(long courseId);
+    List<ExerciseSummaryData> getCourseExercises(long courseId);
 
-    List<ExerciseDto> getPublicExercises();
+    List<ExerciseSummaryData> getPublicExercises();
 
     void saveExerciseCard(@NotNull ExerciseCardDto card);
 }
