@@ -1,5 +1,6 @@
 package org.vstu.compprehension.frontend;
 
+import lombok.RequiredArgsConstructor;
 import org.jetbrains.annotations.NotNull;
 import org.springframework.stereotype.Component;
 import org.vstu.compprehension.data.user.UserData;
@@ -12,18 +13,11 @@ import org.vstu.compprehension.frontend.mappers.UserInfoDtoMapper;
 import java.util.Optional;
 
 @Component
+@RequiredArgsConstructor
 public class UserFrontendServiceImpl implements UserFrontendService {
     private final UserDataService userService;
     private final ExercisePermissionDataService exercisePermissionService;
     private final UserInfoDtoMapper userInfoDtoMapper;
-
-    public UserFrontendServiceImpl(UserDataService userService,
-                                   ExercisePermissionDataService exercisePermissionService,
-                                   UserInfoDtoMapper userInfoDtoMapper) {
-        this.userService = userService;
-        this.exercisePermissionService = exercisePermissionService;
-        this.userInfoDtoMapper = userInfoDtoMapper;
-    }
 
     @Override
     public long getCurrentUserId() {

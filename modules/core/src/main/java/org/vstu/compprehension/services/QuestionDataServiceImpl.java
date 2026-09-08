@@ -6,6 +6,7 @@ import lombok.val;
 import org.jetbrains.annotations.NotNull;
 import org.jetbrains.annotations.Nullable;
 import org.springframework.stereotype.Service;
+import org.vstu.compprehension.data.question.AnswerData;
 import org.vstu.compprehension.data.question.ViolationData;
 import org.vstu.compprehension.frontend.dto.SupplementaryFeedbackDto;
 import org.vstu.compprehension.frontend.dto.SupplementaryQuestionDto;
@@ -20,7 +21,6 @@ import org.vstu.compprehension.data.question.InteractionResponsesData;
 import org.vstu.compprehension.data.question.NewInteractionData;
 import org.vstu.compprehension.data.question.QuestionRequestLogData;
 import org.vstu.compprehension.data.question.RecordedInteractionData;
-import org.vstu.compprehension.data.question.ResponseData;
 import org.vstu.compprehension.data.question.SubmittedAnswerData;
 import org.vstu.compprehension.enums.Language;
 import org.vstu.compprehension.repositories.data.InteractionDataRepository;
@@ -90,7 +90,7 @@ class QuestionDataServiceImpl implements QuestionDataService {
         return supplementaryQuestionDtoMapper.map(responseGen.getResponse(), lang);
     }
 
-    public SupplementaryFeedbackDto judgeSupplementaryQuestion(Question question, List<ResponseData> responses, Language language) {
+    public SupplementaryFeedbackDto judgeSupplementaryQuestion(Question question, List<? extends AnswerData> responses, Language language) {
         Domain domain = question.getDomain();
         val supplementaryInfo = supplementaryStepDataRepository
                 .findBySupplementaryQuestionId(question.getQuestionData().getId());
@@ -101,10 +101,7 @@ class QuestionDataServiceImpl implements QuestionDataService {
         return feedbackGen.getFeedback();
     }
 
-    /**
-     * Ответы, пришедшие с фронта, в вид, с которым работают домены.
-     */
-    public List<ResponseData> resolveAnswers(long questionId, List<SubmittedAnswerData> answers) {
+    public List<AnswerData> resolveAnswers(long questionId, List<SubmittedAnswerData> answers) {
         return interactionDataRepository.resolveAnswers(questionId, answers);
     }
 

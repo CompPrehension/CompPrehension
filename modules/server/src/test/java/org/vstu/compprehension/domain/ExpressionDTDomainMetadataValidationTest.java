@@ -3,8 +3,8 @@ package org.vstu.compprehension.domain;
 import lombok.RequiredArgsConstructor;
 import org.vstu.compprehension.data.exercise.ExerciseOptionsData;
 import org.vstu.compprehension.data.exercise.ExerciseStageData;
+import org.vstu.compprehension.data.question.AnswerData;
 import org.vstu.compprehension.data.question.QuestionMetadataData;
-import org.vstu.compprehension.data.question.ResponseData;
 import org.vstu.compprehension.data.question.AnswerObjectData;
 import org.vstu.compprehension.businesslogic.*;
 
@@ -42,16 +42,23 @@ import java.util.List;
 
 @TestInstance(TestInstance.Lifecycle.PER_CLASS)
 @Transactional
-@RequiredArgsConstructor
 public class ExpressionDTDomainMetadataValidationTest extends AbstractIntegrationTest {
-    private final DomainFactory domainFactory;
-    private final DomainRepository domainRepository;
-    private final ExerciseAttemptRepository exerciseAttemptRepository;
-    private final ExerciseRepository exerciseRepository;
-    private final UserRepository userRepository;
-    private final QuestionMetadataRepository qMetaRepo;
-    private final QuestionBank qBank;
-    private final Mapper<QuestionMetadataEntity, QuestionMetadataData> questionMetadataMapper;
+    @Autowired
+    private DomainFactory domainFactory;
+    @Autowired
+    private DomainRepository domainRepository;
+    @Autowired
+    private ExerciseAttemptRepository exerciseAttemptRepository;
+    @Autowired
+    private ExerciseRepository exerciseRepository;
+    @Autowired
+    private UserRepository userRepository;
+    @Autowired
+    private QuestionMetadataRepository qMetaRepo;
+    @Autowired
+    private QuestionBank qBank;
+    @Autowired
+    private Mapper<QuestionMetadataEntity, QuestionMetadataData> questionMetadataMapper;
     
     private ExerciseAttemptEntity attempt;
     private ExerciseEntity exercise;
@@ -217,9 +224,9 @@ public class ExpressionDTDomainMetadataValidationTest extends AbstractIntegratio
                 q.getMetadata().getDistinctErrorsCount(),
                 q.getMetadata().getSolutionSteps()));
 
-        List<ResponseData> responses = new ArrayList<>();
+        List<AnswerData> responses = new ArrayList<>();
         for (AnswerObjectData answerObject : answerSequence) {
-            responses.add(ResponseData.builder().leftAnswerObject(answerObject).rightAnswerObject(answerObject).build());
+            responses.add(AnswerData.of(answerObject, answerObject));
         }
         return q.getDomain().judgeQuestion(q, responses, List.of(domain.getTag(outLangStr)), Language.ENGLISH);
     }

@@ -1,5 +1,6 @@
 package org.vstu.compprehension.businesslogic.domains;
 
+import org.vstu.compprehension.data.question.AnswerData;
 import org.vstu.compprehension.data.question.SupplementaryStepData;
 import org.vstu.compprehension.data.exercise.ExerciseOptionsData;
 import org.vstu.compprehension.data.question.ViolationData;
@@ -188,11 +189,11 @@ public class DataFlowDTDomain extends DecisionTreeReasoningDomain {
     }
 
     @Override
-    public Collection<Fact> responseToFacts(Question question, List<ResponseData> responses) {
+    public Collection<Fact> responseToFacts(Question question, List<? extends AnswerData> responses) {
         var questionDomainType = question.getQuestionDomainType();
         if (questionDomainType.equals(DATA_FLOW)) {
             List<Fact> result = new ArrayList<>();
-            for (ResponseData response : responses) {
+            for (AnswerData response : responses) {
                 result.add(new Fact(
                         "owl:NamedIndividual",
                         response.getLeftAnswerObject().getDomainInfo(),
@@ -576,7 +577,7 @@ public class DataFlowDTDomain extends DecisionTreeReasoningDomain {
     }
 
     @Override
-    public SupplementaryFeedbackGenerationResult judgeSupplementaryQuestion(Question question, SupplementaryStepData supplementaryStep, List<ResponseData> responses, Language language) {
+    public SupplementaryFeedbackGenerationResult judgeSupplementaryQuestion(Question question, SupplementaryStepData supplementaryStep, List<? extends AnswerData> responses, Language language) {
         throw new NotImplementedException();
     }
 
@@ -594,7 +595,7 @@ public class DataFlowDTDomain extends DecisionTreeReasoningDomain {
         @Override
         public DecisionTreeReasonerBackend.Input prepareBackendInfoForJudge(
                 Question question,
-                List<ResponseData> responses,
+                List<? extends AnswerData> responses,
                 List<Tag> tags
         ) {
             var domain = question.getDomain();
@@ -604,8 +605,8 @@ public class DataFlowDTDomain extends DecisionTreeReasoningDomain {
             
             var domainSolvingModel = realDomain.getDomainSolvingModels().getFirst();
             DomainModel situationModel = factsToDomainModel(domainSolvingModel, question.getQuestionData().getStatementFacts());
-            ResponseData lastResponse = responses.getLast();
-            for (ResponseData response : responses) {
+            AnswerData lastResponse = responses.getLast();
+            for (AnswerData response : responses) {
                 if(response != lastResponse) {
                     String[] objects = response.getLeftAnswerObject().getDomainInfo().split(":");
                     LearningSituation learningSituation = new LearningSituation(

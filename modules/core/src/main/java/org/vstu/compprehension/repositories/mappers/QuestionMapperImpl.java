@@ -55,7 +55,6 @@ class QuestionMapperImpl implements QuestionMapper {
                 .sorted(Comparator.comparing(InteractionEntity::getId))
                 .map(questionInteractionMapper::map)
                 .collect(Collectors.toCollection(ArrayList::new));
-        interactionsData.forEach(interaction -> interaction.setQuestion(data));
         data.setInteractions(interactionsData);
         return data;
     }

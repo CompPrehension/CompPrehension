@@ -8,8 +8,7 @@ import org.vstu.compprehension.data.question.ResponseData;
 import org.vstu.compprehension.entities.AnswerObjectEntity;
 import org.vstu.compprehension.entities.ResponseEntity;
 import org.vstu.compprehension.mappers.Mapper;
-
-import java.util.Optional;
+import org.vstu.compprehension.utils.Strict;
 
 @Component
 @RequiredArgsConstructor
@@ -20,12 +19,14 @@ class ResponseMapperImpl implements ResponseMapper {
     @Override
     public @NotNull ResponseData map(@NotNull ResponseEntity response, boolean interactionHasViolations) {
         var createdBy = response.getCreatedByInteraction();
+        var owner = "response " + response.getId();
         return new ResponseData(
                 response.getId(),
                 response.getSpecValue(),
-                // У одиночного выбора вторая сторона пары пуста.
-                Optional.ofNullable(response.getLeftAnswerObject()).map(answerObjectMapper::map).orElse(null),
-                Optional.ofNullable(response.getRightAnswerObject()).map(answerObjectMapper::map).orElse(null),
+                answerObjectMapper.map(Strict.required(
+                        response.getLeftAnswerObject(), "leftAnswerObject", owner)),
+                answerObjectMapper.map(Strict.required(
+                        response.getRightAnswerObject(), "rightAnswerObject", owner)),
                 createdBy == null ? null : createdBy.getInteractionType(),
                 createdBy == null ? null : createdBy.getId(),
                 interactionHasViolations);

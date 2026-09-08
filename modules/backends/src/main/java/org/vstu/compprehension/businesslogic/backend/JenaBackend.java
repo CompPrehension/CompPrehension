@@ -23,7 +23,6 @@ import org.vstu.compprehension.businesslogic.LawFormulation;
 import org.vstu.compprehension.businesslogic.backend.facts.JenaFact;
 import org.vstu.compprehension.businesslogic.backend.facts.JenaFactList;
 import org.vstu.compprehension.businesslogic.backend.util.MakeNamedSkolem;
-import org.vstu.compprehension.utils.Checkpointer;
 
 import java.io.FileNotFoundException;
 import java.io.FileOutputStream;
@@ -593,31 +592,23 @@ public class JenaBackend extends FactBackend {
 
     @Override
     public JenaFactList judge(List<Law> laws, List<BackendFactData> statement, List<BackendFactData> correctAnswer, List<BackendFactData> response, ReasoningOptions reasoningOptions) {
-        Checkpointer ch = new Checkpointer(log);
-
         createOntology();
-        ch.hit("judge: createOntology");
 
         for (Law law : laws) {
             addLaw(law);
         }
-        ch.hit("judge: add laws");
 
         addBackendFacts(statement);
         addBackendFacts(response);
         addBackendFacts(correctAnswer);
-        ch.hit("judge: add facts");
 
 //        debug_dump_model("judge");
 
         callReasoner(reasoningOptions.isRemoveInputFactsFromResult());
-        ch.hit("judge: callReasoner");
 
         debug_dump_model("judged");
 
         JenaFactList facts = new JenaFactList(model);
-        ch.hit("judge: get facts");
-        ch.since_start("judge: completed");
         return facts;
     }
 

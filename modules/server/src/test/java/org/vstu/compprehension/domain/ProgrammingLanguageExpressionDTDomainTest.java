@@ -1,8 +1,9 @@
 package org.vstu.compprehension.domain;
 
+import lombok.RequiredArgsConstructor;
+import org.vstu.compprehension.data.question.AnswerData;
 import org.vstu.compprehension.data.question.AnswerObjectData;
 import org.vstu.compprehension.data.exercise.ExerciseOptionsData;
-import org.vstu.compprehension.data.question.ResponseData;
 import org.vstu.compprehension.data.exercise.ExerciseStageData;
 import org.vstu.compprehension.businesslogic.*;
 import org.vstu.compprehension.businesslogic.Tag;
@@ -54,8 +55,6 @@ public class ProgrammingLanguageExpressionDTDomainTest extends AbstractIntegrati
     private ExerciseRepository exerciseRepository;
     @Autowired
     private UserRepository userRepository;
-    @Autowired
-    private QuestionDataService questionService;
 
     private ExerciseAttemptEntity attempt;
     private ExerciseEntity exercise;
@@ -106,18 +105,18 @@ public class ProgrammingLanguageExpressionDTDomainTest extends AbstractIntegrati
                 q.getMetadata().getDistinctErrorsCount(),
                 q.getMetadata().getSolutionSteps()));
 
-        List<ResponseData> responses = new ArrayList<>();
+        List<AnswerData> responses = new ArrayList<>();
         for (Integer response : sequence) {
             AnswerObjectData answerObject = AnswerObjectData
                     .builder().answerId(response)
                     .domainInfo("token_" + response).build();
-            responses.add(ResponseData.builder().leftAnswerObject(answerObject).rightAnswerObject(answerObject).build());
+            responses.add(AnswerData.of(answerObject, answerObject));
             var domain = q.getDomain();
             var result = domain.judgeQuestion(q, responses, List.of(domain.getTag(outLangStr)), Language.ENGLISH);
             allPassed = allPassed && result.isAnswerCorrect;
             if (!result.isAnswerCorrect) {
                 Assertions.fail(String.format("%s: %s", responses.stream()
-                        .map(ResponseData::getLeftAnswerObject)
+                        .map(AnswerData::getLeftAnswerObject)
                         .map(AnswerObjectData::getDomainInfo).toList(), result.explanation.getChildren()
                         .stream().map(e -> e.toHyperText(Language.ENGLISH).getText())
                         .collect(Collectors.joining("\n"))));

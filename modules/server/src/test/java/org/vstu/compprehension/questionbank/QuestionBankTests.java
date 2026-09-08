@@ -1,6 +1,6 @@
 package org.vstu.compprehension.questionbank;
 
-import lombok.RequiredArgsConstructor;
+import org.springframework.beans.factory.annotation.Autowired;
 import org.vstu.compprehension.businesslogic.*;
 
 import org.vstu.compprehension.data.question.QuestionMetadataData;
@@ -18,12 +18,15 @@ import org.vstu.compprehension.repositories.entity.*;
 import java.util.stream.Collectors;
 
 @Transactional
-@RequiredArgsConstructor
 public class QuestionBankTests extends AbstractIntegrationTest {
-    private final QuestionMetadataRepository questionMetadataRepository;
-    private final QuestionGenerationRequestRepository questionGenerationRequestRepository;
-    private final QuestionBank questionBank;
-    private final Mapper<QuestionMetadataEntity, QuestionMetadataData> questionMetadataMapper;
+    @Autowired
+    private QuestionMetadataRepository questionMetadataRepository;
+    @Autowired
+    private QuestionGenerationRequestRepository questionGenerationRequestRepository;
+    @Autowired
+    private QuestionBank questionBank;
+    @Autowired
+    private Mapper<QuestionMetadataEntity, QuestionMetadataData> questionMetadataMapper;
 
     @Test
     public void isMatchAndFindTopRatedMetadataEqualityTest() {

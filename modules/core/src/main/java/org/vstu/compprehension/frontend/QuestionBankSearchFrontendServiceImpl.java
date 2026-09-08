@@ -1,5 +1,6 @@
 package org.vstu.compprehension.frontend;
 
+import lombok.RequiredArgsConstructor;
 import org.springframework.stereotype.Component;
 import org.vstu.compprehension.businesslogic.QuestionRequest;
 import org.vstu.compprehension.businesslogic.domains.DomainFactory;
@@ -11,14 +12,10 @@ import org.vstu.compprehension.frontend.dto.QuestionBankSearchStatsDto;
 import java.util.Objects;
 
 @Component
-public class QuestionBankSearchFacadeImpl implements QuestionBankSearchFrontendService {
+@RequiredArgsConstructor
+public class QuestionBankSearchFrontendServiceImpl implements QuestionBankSearchFrontendService {
     private final DomainFactory domainFactory;
     private final QuestionBank questionStorage;
-
-    public QuestionBankSearchFacadeImpl(DomainFactory domainFactory, QuestionBank questionStorage) {
-        this.domainFactory = domainFactory;
-        this.questionStorage = questionStorage;
-    }
 
     @Override
     public QuestionBankSearchStatsDto search(QuestionBankSearchRequestDto searchRequest) {

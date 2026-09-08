@@ -1,6 +1,7 @@
 package org.vstu.compprehension.businesslogic.domains.helpers.meaningtree;
 
 
+import org.vstu.compprehension.data.question.AnswerData;
 import org.vstu.compprehension.data.question.BackendFactData;
 import its.model.DomainSolvingModel;
 import its.model.definition.*;
@@ -8,7 +9,6 @@ import its.model.definition.loqi.DomainLoqiWriter;
 import its.model.nodes.DecisionTree;
 import org.apache.commons.lang3.tuple.Pair;
 import org.apache.jena.rdf.model.Model;
-import org.vstu.compprehension.data.question.ResponseData;
 import org.vstu.compprehension.businesslogic.Tag;
 import org.vstu.compprehension.businesslogic.domains.ProgrammingLanguageExpressionDTDomain;
 import org.vstu.compprehension.businesslogic.domains.helpers.ProgrammingLanguageExpressionsSolver;
@@ -68,12 +68,12 @@ public class MeaningTreeRDFTransformer {
     }
 
     public static DomainModel questionToDomainModel(DomainSolvingModel model, List<BackendFactData> facts,
-                                                    List<ResponseData> responses, List<Tag> tags) {
+                                                    List<? extends AnswerData> responses, List<Tag> tags) {
         return questionToDomainModel(model, facts, responses, tags, true);
     }
 
     public static DomainModel questionToDomainModel(DomainSolvingModel model, List<BackendFactData> facts,
-                                                    List<ResponseData> responses, List<Tag> tags, boolean setX) {
+                                                    List<? extends AnswerData> responses, List<Tag> tags, boolean setX) {
         Model base = MeaningTreeRDFHelper.backendFactsToModel(facts);
         Map<String, DecisionTree> decisionTreeMap = model.getDecisionTrees();
         SupportedLanguage language = detectLanguage(tags);

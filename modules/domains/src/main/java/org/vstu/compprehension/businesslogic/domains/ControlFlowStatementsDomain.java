@@ -1,5 +1,6 @@
 package org.vstu.compprehension.businesslogic.domains;
 
+import org.vstu.compprehension.data.question.AnswerData;
 import org.vstu.compprehension.data.question.SupplementaryStepData;
 import org.vstu.compprehension.data.exercise.ExerciseOptionsData;
 import org.vstu.compprehension.data.question.ExplanationTemplateInfoData;
@@ -1021,7 +1022,7 @@ public class ControlFlowStatementsDomain extends JenaReasoningDomain {
     }
 
     @Override
-    public Collection<Fact> responseToFacts(Question question, List<ResponseData> responses) {
+    public Collection<Fact> responseToFacts(Question question, List<? extends AnswerData> responses) {
         var questionDomainType = question.getQuestionDomainType();
         if (questionDomainType.equals(EXECUTION_ORDER_QUESTION_TYPE)) {
 
@@ -1029,12 +1030,11 @@ public class ControlFlowStatementsDomain extends JenaReasoningDomain {
             QuestionData q = question.getQuestionData();
 
             // obtain correct only responses (in different way!)
-            List<ResponseData> responsesByQ = responsesForTrace(q, false);
+            List<AnswerData> responsesByQ = new ArrayList<>(responsesForTrace(q, false));
 
             // append the latest response to list of correct responses
             if (!responses.isEmpty()) {
-                ResponseData latestResponse = responses.get(responses.size() - 1);
-                responsesByQ.add(latestResponse);
+                responsesByQ.add(responses.getLast());
             }
 
             // reassign responses to [[correct] + new]
@@ -1098,12 +1098,12 @@ public class ControlFlowStatementsDomain extends JenaReasoningDomain {
             HashMap<String, MutablePair<String, Integer>> id2exprName = new HashMap<>();
             String prevActIRI = trace;
 
-            ResponseData latestResponse = null;
+            AnswerData latestResponse = null;
             if (!responses.isEmpty()) {
                 latestResponse = responses.get(responses.size() - 1);
             }
 
-            for (ResponseData response : responses) {
+            for (AnswerData response : responses) {
 //                if (response.getInteraction() != null && !response.getInteraction().getViolations().isEmpty())
 //                    // skip responses known to be  erroneous
 //                    continue;
@@ -1533,7 +1533,7 @@ public class ControlFlowStatementsDomain extends JenaReasoningDomain {
     }
 
     @Override
-    public SupplementaryFeedbackGenerationResult judgeSupplementaryQuestion(Question question, SupplementaryStepData supplementaryStep, List<ResponseData> responses, Language language) {
+    public SupplementaryFeedbackGenerationResult judgeSupplementaryQuestion(Question question, SupplementaryStepData supplementaryStep, List<? extends AnswerData> responses, Language language) {
         throw new NotImplementedException();
     }
 
@@ -1891,14 +1891,14 @@ public class ControlFlowStatementsDomain extends JenaReasoningDomain {
         return correctAnswer;
     }
 
-    public Set<Set<String>> possibleViolationsByStep(Question q, List<ResponseData> completedSteps, Language language) {
+    public Set<Set<String>> possibleViolationsByStep(Question q, List<? extends AnswerData> completedSteps, Language language) {
 
         // use existing solution steps if given
         List<AnswerObjectData> correctTraceAnswersObjects = new ArrayList<>();
 
         if (completedSteps != null) {
             // extract answerObjects from given responses
-            correctTraceAnswersObjects.addAll(completedSteps.stream().map(ResponseData::getLeftAnswerObject).collect(Collectors.toList()));
+            correctTraceAnswersObjects.addAll(completedSteps.stream().map(AnswerData::getLeftAnswerObject).collect(Collectors.toList()));
         }
 
         HashMap<String, Set<String>> map = new HashMap<>();

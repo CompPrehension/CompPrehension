@@ -17,21 +17,19 @@ import org.vstu.compprehension.frontend.dto.feedback.FeedbackDto;
 import org.vstu.compprehension.frontend.dto.feedback.FeedbackViolationLawDto;
 import org.vstu.compprehension.frontend.dto.question.QuestionDto;
 import org.vstu.compprehension.businesslogic.Explanation;
-import org.vstu.compprehension.businesslogic.domains.Domain;
 import org.vstu.compprehension.businesslogic.strategies.AbstractStrategyFactory;
 import org.vstu.compprehension.data.exerciseattempt.AttemptSummaryData;
 import org.vstu.compprehension.data.exercise.ExerciseStageData;
+import org.vstu.compprehension.data.question.AnswerData;
 import org.vstu.compprehension.data.question.NewInteractionData;
 import org.vstu.compprehension.data.question.QuestionAttemptContextData;
 import org.vstu.compprehension.data.question.ResponseData;
 import org.vstu.compprehension.data.question.SubmittedAnswerData;
 import org.vstu.compprehension.data.question.ViolationData;
 import org.vstu.compprehension.data.questionoptions.OrderQuestionOptionsData;
-import org.vstu.compprehension.enums.Decision;
 import org.vstu.compprehension.enums.Language;
 import org.vstu.compprehension.enums.QuestionType;
 import org.vstu.compprehension.services.*;
-import org.vstu.compprehension.utils.Checkpointer;
 import org.vstu.compprehension.mappers.Mapper;
 import org.vstu.compprehension.frontend.mappers.FeedbackDtoMapper;
 import org.vstu.compprehension.frontend.mappers.QuestionDtoMapper;
@@ -46,7 +44,7 @@ import static org.vstu.compprehension.enums.InteractionType.SEND_RESPONSE;
 @Service
 @RequiredArgsConstructor
 @Log4j2
-class ExerciseAttemptServiceImpl implements ExerciseAttemptFrontendService {
+class ExerciseAttemptFrontendServiceImpl implements ExerciseAttemptFrontendService {
     private final ExerciseAttemptDataService exerciseAttemptService;
     private final ExerciseDataService exerciseService;
     private final QuestionDataService questionService;
@@ -220,7 +218,7 @@ class ExerciseAttemptServiceImpl implements ExerciseAttemptFrontendService {
                 .toList();
 
         // evaluate new answer
-        val responses = Stream.concat(
+        val responses = Stream.<AnswerData>concat(
                 carriedResponses.stream(),
                 questionService.resolveAnswers(questionId, newAnswers).stream()).toList();
         val judgeResult = domain.judgeQuestion(question, responses, question.getTags(), language);

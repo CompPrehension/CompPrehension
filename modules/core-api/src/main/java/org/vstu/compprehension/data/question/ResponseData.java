@@ -4,6 +4,7 @@ import lombok.AllArgsConstructor;
 import lombok.Builder;
 import lombok.Data;
 import lombok.NoArgsConstructor;
+import org.jetbrains.annotations.NotNull;
 import org.jetbrains.annotations.Nullable;
 import org.vstu.compprehension.enums.InteractionType;
 import org.vstu.compprehension.enums.SpecValue;
@@ -12,19 +13,16 @@ import org.vstu.compprehension.enums.SpecValue;
 @Builder
 @NoArgsConstructor
 @AllArgsConstructor
-public class ResponseData {
+public class ResponseData implements AnswerData {
     private Long id;
     private SpecValue specValue;
-    private AnswerObjectData leftAnswerObject;
-    private AnswerObjectData rightAnswerObject;
+    private @NotNull AnswerObjectData leftAnswerObject;
+    private @NotNull AnswerObjectData rightAnswerObject;
     private @Nullable InteractionType createdByInteractionType;
     private @Nullable Long createdByInteractionId;
 
     /**
      * Были ли нарушения во взаимодействии, которому принадлежит ответ.
-     * <p>
-     * Проекция вместо обратной ссылки на взаимодействие: единственное, что из него
-     * читалось — {@code response.getInteraction().getViolations().isEmpty()}.
      */
     private boolean interactionHasViolations;
 }

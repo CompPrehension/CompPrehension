@@ -22,7 +22,6 @@ public class QuestionRequestLogData {
 
     private List<String> targetConceptNames;
     private List<String> deniedConceptNames;
-    /** Банк вправе считать их «желательными», а не обязательными. */
     private List<String> allowedConceptNames;
 
     private List<String> targetLawNames;

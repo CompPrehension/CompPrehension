@@ -1,5 +1,6 @@
 package org.vstu.compprehension.businesslogic.domains;
 
+import org.vstu.compprehension.data.question.AnswerData;
 import org.vstu.compprehension.data.question.SupplementaryStepData;
 import org.vstu.compprehension.data.exercise.ExerciseOptionsData;
 import org.vstu.compprehension.data.question.ViolationData;
@@ -48,7 +49,7 @@ import java.util.stream.Collectors;
 
 @Log4j2
 public class ControlFlowDTDomain extends DecisionTreeReasoningDomain {
-    @Getter private final DecisionTreeInterface backendInterface = new DecisionTreeInterface();
+    private final DecisionTreeInterface backendInterface = new DecisionTreeInterface();
     protected final LocalizationService localizationService;
     protected final QuestionBank qMetaStorage;
 
@@ -317,7 +318,7 @@ public class ControlFlowDTDomain extends DecisionTreeReasoningDomain {
         }
 
         @Override
-        public DecisionTreeReasonerBackend.Input prepareBackendInfoForJudge(Question question, List<ResponseData> responses, List<Tag> tags) {
+        public DecisionTreeReasonerBackend.Input prepareBackendInfoForJudge(Question question, List<? extends AnswerData> responses, List<Tag> tags) {
             if (question.getMetadata().getVersion() != 2) {
                 throw new UnsupportedOperationException("Unsupported version of CtrlFlow question");
             }
@@ -405,7 +406,7 @@ public class ControlFlowDTDomain extends DecisionTreeReasoningDomain {
             questionModel.getVariables().add(new VariableDef("L0", L0.getName()));
         }
 
-        ObjectDef makeTrace(DomainModel questionModel, List<ResponseData> responses, boolean includeLast) {
+        ObjectDef makeTrace(DomainModel questionModel, List<? extends AnswerData> responses, boolean includeLast) {
             ObjectDef firstTraceAct = findStartOfProgram(questionModel);
 
             ObjectDef currentTraceAct;
@@ -416,7 +417,7 @@ public class ControlFlowDTDomain extends DecisionTreeReasoningDomain {
                 currentTraceAct = firstTraceAct.getRelationshipLink("directlyBeforeOf").getObjects().getFirst();
             }
             for (int i = 0; i < end; i++) {
-                ResponseData response = responses.get(i);
+                AnswerData response = responses.get(i);
                 String domainInfo = response.getLeftAnswerObject().getDomainInfo();
                 ObjectDef cfgNode = questionModel.getObjects().stream()
                         .filter(obj -> obj.getClassName().equals("Node"))
@@ -536,11 +537,11 @@ public class ControlFlowDTDomain extends DecisionTreeReasoningDomain {
     }
 
     @Override
-    public Collection<Fact> responseToFacts(Question question, List<ResponseData> responses) {
+    public Collection<Fact> responseToFacts(Question question, List<? extends AnswerData> responses) {
         var questionDomainType = question.getQuestionDomainType();
         if (questionDomainType.equals(EXECUTION_ORDER_QUESTION_TYPE)) {
             List<Fact> result = new ArrayList<>();
-            for (ResponseData response : responses) {
+            for (AnswerData response : responses) {
                 result.add(new Fact(
                         "owl:NamedIndividual",
                         response.getLeftAnswerObject().getDomainInfo(),
@@ -672,7 +673,7 @@ public class ControlFlowDTDomain extends DecisionTreeReasoningDomain {
     }
 
     @Override
-    public SupplementaryFeedbackGenerationResult judgeSupplementaryQuestion(Question question, SupplementaryStepData supplementaryStep, List<ResponseData> responses, Language language) {
+    public SupplementaryFeedbackGenerationResult judgeSupplementaryQuestion(Question question, SupplementaryStepData supplementaryStep, List<? extends AnswerData> responses, Language language) {
         return null;
     }
 

@@ -1,5 +1,6 @@
 package org.vstu.compprehension.businesslogic;
 
+import org.vstu.compprehension.data.question.AnswerData;
 import org.vstu.compprehension.data.question.BackendFactData;
 import lombok.Getter;
 import lombok.Setter;
@@ -10,7 +11,6 @@ import org.vstu.compprehension.businesslogic.domains.Domain;
 import org.vstu.compprehension.data.question.AnswerObjectData;
 import org.vstu.compprehension.data.question.QuestionData;
 import org.vstu.compprehension.data.question.QuestionMetadataData;
-import org.vstu.compprehension.data.question.ResponseData;
 import org.vstu.compprehension.enums.QuestionType;
 
 import java.util.*;
@@ -113,7 +113,7 @@ public class Question {
      *
      * @return - факты в универсальной форме
      */
-    public Collection<Fact> responseToFacts(List<ResponseData> responses) {
+    public Collection<Fact> responseToFacts(List<? extends AnswerData> responses) {
         return domain.responseToFacts(this, responses);
     }
 

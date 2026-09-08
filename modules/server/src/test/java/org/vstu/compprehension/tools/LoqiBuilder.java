@@ -1,11 +1,12 @@
 package org.vstu.compprehension.tools;
 
+import lombok.RequiredArgsConstructor;
 import org.vstu.compprehension.data.exercise.ExerciseOptionsData;
 import org.vstu.compprehension.data.exercise.ExerciseStageData;
 import lombok.SneakyThrows;
 import lombok.extern.log4j.Log4j2;
+import org.vstu.compprehension.data.question.AnswerData;
 import org.vstu.compprehension.data.question.AnswerObjectData;
-import org.vstu.compprehension.data.question.ResponseData;
 import org.vstu.compprehension.businesslogic.*;
 
 import org.vstu.compprehension.infrastructure.AbstractIntegrationTest;
@@ -42,7 +43,7 @@ import java.util.List;
 @Log4j2
 public class LoqiBuilder extends AbstractIntegrationTest {
     @Autowired
-    DomainFactory domainFactory;
+    private DomainFactory domainFactory;
     @Autowired
     private DomainRepository domainRepository;
     @Autowired
@@ -51,8 +52,6 @@ public class LoqiBuilder extends AbstractIntegrationTest {
     private ExerciseRepository exerciseRepository;
     @Autowired
     private UserRepository userRepository;
-    @Autowired
-    private QuestionDataService questionService;
 
     private ExerciseAttemptEntity attempt;
     private ExerciseEntity exercise;
@@ -108,12 +107,12 @@ public class LoqiBuilder extends AbstractIntegrationTest {
 
         boolean allPassed = true;
         for (Question q : questions) {
-            List<ResponseData> responses = new ArrayList<>();
+            List<AnswerData> responses = new ArrayList<>();
             for (Integer response : sequence) {
                 AnswerObjectData answerObject = AnswerObjectData
                         .builder().answerId(response)
                         .domainInfo("token_" + response).build();
-                responses.add(ResponseData.builder().leftAnswerObject(answerObject).rightAnswerObject(answerObject).build());
+                responses.add(AnswerData.of(answerObject, answerObject));
             }
             DomainModel model = MeaningTreeRDFTransformer.questionToDomainModel(
                     domainSolvingModel, q.getStatementFacts(), responses, List.of(domain.getTag(outLangStr))

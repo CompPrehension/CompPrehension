@@ -18,9 +18,9 @@ public interface QuestionDataService {
 
      @NotNull SupplementaryQuestionDto generateSupplementaryQuestion(long sourceQuestionId, @NotNull ViolationData violation, Language lang);
 
-     SupplementaryFeedbackDto judgeSupplementaryQuestion(Question question, List<ResponseData> responses, Language language);
+     SupplementaryFeedbackDto judgeSupplementaryQuestion(Question question, List<? extends AnswerData> responses, Language language);
 
-     List<ResponseData> resolveAnswers(long questionId, List<SubmittedAnswerData> answers);
+     List<AnswerData> resolveAnswers(long questionId, List<SubmittedAnswerData> answers);
 
      Optional<InteractionResponsesData> findLatestCorrectInteraction(long questionId);
 

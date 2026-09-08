@@ -1,6 +1,7 @@
 package org.vstu.compprehension.domain.dt;
 
 import lombok.RequiredArgsConstructor;
+import org.springframework.beans.factory.annotation.Autowired;
 import org.vstu.compprehension.businesslogic.domains.ControlFlowDTDomain;
 import its.reasoner.nodes.*;
 import jakarta.transaction.Transactional;
@@ -12,9 +13,9 @@ import org.junit.jupiter.api.Test;
 import org.junit.jupiter.api.TestInstance;
 import org.springframework.boot.test.context.SpringBootTest;
 import org.springframework.test.context.ActiveProfiles;
+import org.vstu.compprehension.data.question.AnswerData;
 import org.vstu.compprehension.data.question.QuestionMetadataData;
 import org.vstu.compprehension.entities.QuestionMetadataEntity;
-import org.vstu.compprehension.data.question.ResponseData;
 import org.vstu.compprehension.data.question.AnswerObjectData;
 import org.vstu.compprehension.mappers.Mapper;
 import org.vstu.compprehension.businesslogic.Question;
@@ -41,14 +42,19 @@ import java.util.stream.StreamSupport;
 @TestInstance(TestInstance.Lifecycle.PER_CLASS)
 @ActiveProfiles("test")
 @Transactional
-@RequiredArgsConstructor
 public class CtrlFlowDTTest {
-    private final DomainFactory domainFactory;
-    private final ExerciseAttemptRepository exerciseAttemptRepository;
-    private final ExerciseRepository exerciseRepository;
-    private final QuestionMetadataRepository qMetaRepo;
-    private final UserRepository userRepository;
-    private final Mapper<QuestionMetadataEntity, QuestionMetadataData> questionMetadataMapper;
+    @Autowired
+    private DomainFactory domainFactory;
+    @Autowired
+    private ExerciseAttemptRepository exerciseAttemptRepository;
+    @Autowired
+    private ExerciseRepository exerciseRepository;
+    @Autowired
+    private QuestionMetadataRepository qMetaRepo;
+    @Autowired
+    private UserRepository userRepository;
+    @Autowired
+    private Mapper<QuestionMetadataEntity, QuestionMetadataData> questionMetadataMapper;
 
     private static final boolean DETAILED_TRACE = true;
 
@@ -132,13 +138,13 @@ public class CtrlFlowDTTest {
                                                      boolean everySubTrace, boolean consideredAsCorrect,
                                                      boolean detectUnfinished
     ) {
-        List<ResponseData> responses = new ArrayList<>();
+        List<AnswerData> responses = new ArrayList<>();
         Domain.InterpretSentenceResult result = null;
         int i = 0;
         int last_i = answerObjectIds.size();
         for (var entry : answerObjectIds) {
             AnswerObjectData answerObject = q.getAnswerObject(entry.getKey());  // Allow invalid node IDs in tests (these may change after rebuild);
-            responses.add(ResponseData.builder().leftAnswerObject(answerObject).rightAnswerObject(answerObject).build());
+            responses.add(AnswerData.of(answerObject, answerObject));
             i++;
             boolean is_last = i == last_i;
 
@@ -193,15 +199,15 @@ public class CtrlFlowDTTest {
     }
 
     public Domain.InterpretSentenceResult judgeAtOnceByAnswerObjects(Question q, List<Pair<Integer, String>> answerObjectIds, boolean consideredAsCorrect) {
-        List<ResponseData> responses = answerObjectIds.stream()
+        List<AnswerData> responses = answerObjectIds.stream()
                 .map((entry) -> AnswerObjectData.builder().answerId(entry.getKey())
                         .domainInfo(entry.getValue()).build())
-                .map((answerObject) -> ResponseData.builder().leftAnswerObject(answerObject).rightAnswerObject(answerObject).build())
+                .map((answerObject) -> AnswerData.of(answerObject, answerObject))
                 .toList();
         return judgeAtOnce(q, responses, consideredAsCorrect);
     }
 
-    public String makeJudgeTrace(Domain.InterpretSentenceResult result, List<ResponseData> responses, boolean invalid) {
+    public String makeJudgeTrace(Domain.InterpretSentenceResult result, List<AnswerData> responses, boolean invalid) {
         StringBuilder builder = new StringBuilder();
         if (invalid) {
             builder.append("=====  !!! Invalid solution !!! ==== \n");
@@ -227,7 +233,7 @@ public class CtrlFlowDTTest {
         return builder.toString();
     }
 
-    public Domain.InterpretSentenceResult judgeAtOnce(Question q, List<ResponseData> responses, boolean consideredAsCorrect) {
+    public Domain.InterpretSentenceResult judgeAtOnce(Question q, List<AnswerData> responses, boolean consideredAsCorrect) {
         if (DETAILED_TRACE) {
             System.out.println("Prepared question answers (CFG ids): \n- %s\n".formatted(responses.stream().map(r ->
                     r.getLeftAnswerObject().getDomainInfo()

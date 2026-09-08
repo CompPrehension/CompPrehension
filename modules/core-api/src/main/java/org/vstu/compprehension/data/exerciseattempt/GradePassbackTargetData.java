@@ -15,17 +15,12 @@ public record GradePassbackTargetData(
         @Nullable String ltiLineitemUrl,
         @Nullable CourseTarget course) {
 
-    /**
-     * @param externalCourseId идентификатор курса во внешней системе; null, если курс
-     *                         заведён вручную и с LMS не связан
-     */
     public record CourseTarget(
             long courseId,
             @Nullable String externalCourseId,
             @NotNull EducationResourceTarget educationResource) {
     }
 
-    /** Образовательный ресурс, из которого пришёл курс. */
     public record EducationResourceTarget(
             long id,
             @NotNull EducationResourceType type,

@@ -5,7 +5,6 @@ import lombok.Builder;
 import lombok.Data;
 import lombok.NoArgsConstructor;
 
-/** Подстановка в шаблон объяснения нарушения: имя поля и его значение. */
 @Data
 @Builder
 @NoArgsConstructor

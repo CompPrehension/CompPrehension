@@ -1,6 +1,7 @@
 package org.vstu.compprehension.businesslogic.domains;
 
 import org.vstu.compprehension.enums.RoleInExercise;
+import org.vstu.compprehension.data.question.AnswerData;
 import org.vstu.compprehension.data.question.SupplementaryStepData;
 import org.vstu.compprehension.data.exercise.ExerciseOptionsData;
 import org.vstu.compprehension.data.question.ViolationData;
@@ -340,7 +341,7 @@ public class ProgrammingLanguageExpressionDTDomain extends DecisionTreeReasoning
         @Override
         public DecisionTreeReasonerBackend.Input prepareBackendInfoForJudge(
                 Question question,
-                List<ResponseData> responses,
+                List<? extends AnswerData> responses,
                 List<Tag> tags
         ) {
             var domain = question.getDomain();
@@ -639,14 +640,14 @@ public class ProgrammingLanguageExpressionDTDomain extends DecisionTreeReasoning
     @Override
     public Collection<Fact> responseToFacts(
             Question question,
-            List<ResponseData> responses
+            List<? extends AnswerData> responses
     ) {
         var questionDomainType = question.getQuestionDomainType();
         if (questionDomainType.equals(ProgrammingLanguageExpressionDomain.EVALUATION_ORDER_QUESTION_TYPE)) {
             List<Fact> result = new ArrayList<>();
             int pos = 1;
             HashSet<String> used = new HashSet<>();
-            for (ResponseData response : responses) {
+            for (AnswerData response : responses) {
                 result.add(new Fact(
                         "owl:NamedIndividual",
                         response.getLeftAnswerObject().getDomainInfo(),
@@ -693,7 +694,7 @@ public class ProgrammingLanguageExpressionDTDomain extends DecisionTreeReasoning
             return result;
         } else if (questionDomainType.equals(ProgrammingLanguageExpressionDomain.DEFINE_TYPE_QUESTION_TYPE)) {
             List<Fact> result = new ArrayList<>();
-            for (ResponseData response : responses) {
+            for (AnswerData response : responses) {
                 result.add(new Fact(
                         "owl:NamedIndividual",
                         response.getLeftAnswerObject().getDomainInfo(),
@@ -705,7 +706,7 @@ public class ProgrammingLanguageExpressionDTDomain extends DecisionTreeReasoning
             return result;
         } else if (questionDomainType.equals(ProgrammingLanguageExpressionDomain.OPERANDS_TYPE_QUESTION_TYPE)) {
             List<Fact> result = new ArrayList<>();
-            for (ResponseData response : responses) {
+            for (AnswerData response : responses) {
                 result.add(new Fact(
                         "owl:NamedIndividual",
                         response.getLeftAnswerObject().getDomainInfo(),
@@ -717,7 +718,7 @@ public class ProgrammingLanguageExpressionDTDomain extends DecisionTreeReasoning
             return result;
         } else if (questionDomainType.equals(ProgrammingLanguageExpressionDomain.PRECEDENCE_TYPE_QUESTION_TYPE)) {
             List<Fact> result = new ArrayList<>();
-            for (ResponseData response : responses) {
+            for (AnswerData response : responses) {
                 result.add(new Fact(
                         "owl:NamedIndividual",
                         response.getLeftAnswerObject().getDomainInfo(),
@@ -968,11 +969,11 @@ public class ProgrammingLanguageExpressionDTDomain extends DecisionTreeReasoning
         return skill != null && interactionType != InteractionType.REQUEST_CORRECT_ANSWER;
     }
 
-    private DomainModel mainQuestionToModel(QuestionInteractionData lastMainQuestionInteraction) {
-        List<Tag> tags = lastMainQuestionInteraction.getQuestion().getTags().stream().map(this::getTag).filter(Objects::nonNull).toList();
+    private DomainModel mainQuestionToModel(QuestionData question, QuestionInteractionData lastMainQuestionInteraction) {
+        List<Tag> tags = question.getTags().stream().map(this::getTag).filter(Objects::nonNull).toList();
         return MeaningTreeRDFTransformer.questionToDomainModel(
                 domainSolvingModel,
-                new Question(lastMainQuestionInteraction.getQuestion(), this).getStatementFacts(),
+                question.getStatementFacts(),
                 lastMainQuestionInteraction.getResponses(), tags
         );
     }
@@ -990,8 +991,8 @@ public class ProgrammingLanguageExpressionDTDomain extends DecisionTreeReasoning
     }
 
     @Override
-    public SupplementaryFeedbackGenerationResult judgeSupplementaryQuestion(Question question, SupplementaryStepData supplementaryStep, List<ResponseData> responses, Language language) {
-        return dtSupplementaryQuestionHelper.judgeSupplementaryQuestion(supplementaryStep, responses);
+    public SupplementaryFeedbackGenerationResult judgeSupplementaryQuestion(Question question, SupplementaryStepData supplementaryStep, List<? extends AnswerData> responses, Language language) {
+        return dtSupplementaryQuestionHelper.judgeSupplementaryQuestion(question.getQuestionData(), supplementaryStep, responses);
     }
 
     //-----------Объяснения---------------

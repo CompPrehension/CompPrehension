@@ -1,7 +1,7 @@
 package org.vstu.compprehension.businesslogic.backend;
 
+import org.vstu.compprehension.data.question.AnswerData;
 import org.vstu.compprehension.data.question.BackendFactData;
-import org.vstu.compprehension.data.question.ResponseData;
 import org.vstu.compprehension.businesslogic.DomainToBackendAdapter;
 import org.vstu.compprehension.businesslogic.Law;
 import org.vstu.compprehension.businesslogic.Question;
@@ -106,7 +106,7 @@ public abstract class FactBackend implements Backend<FactBackend.Input, Collecti
         }
 
         @Override
-        public Input prepareBackendInfoForJudge(Question question, List<ResponseData> responses, List<Tag> tags) {
+        public Input prepareBackendInfoForJudge(Question question, List<? extends AnswerData> responses, List<Tag> tags) {
             return new Input(
                 new ArrayList<>(domain.getQuestionNegativeLaws(question.getQuestionDomainType(), tags)),
                 question.getStatementFactsWithSchema(),

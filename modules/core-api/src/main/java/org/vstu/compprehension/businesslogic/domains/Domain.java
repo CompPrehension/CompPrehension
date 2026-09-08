@@ -1,5 +1,6 @@
 package org.vstu.compprehension.businesslogic.domains;
 
+import org.vstu.compprehension.data.question.AnswerData;
 import org.vstu.compprehension.data.question.SupplementaryStepData;
 import org.vstu.compprehension.data.question.ViolationData;
 import org.vstu.compprehension.data.exercise.ExerciseStageData;
@@ -15,7 +16,6 @@ import org.vstu.compprehension.data.question.AnswerObjectData;
 import org.vstu.compprehension.data.exercise.ExerciseOptionsData;
 import org.vstu.compprehension.data.domain.DomainData;
 import org.vstu.compprehension.data.question.QuestionData;
-import org.vstu.compprehension.data.question.ResponseData;
 import org.vstu.compprehension.enums.FeedbackType;
 import org.vstu.compprehension.enums.InteractionType;
 import org.vstu.compprehension.enums.Language;
@@ -60,7 +60,7 @@ public interface Domain {
      * факты в универсальной форме
      * @return - факты в универсальной форме
      */
-    Collection<Fact> responseToFacts(Question question, List<ResponseData> responses);
+    Collection<Fact> responseToFacts(Question question, List<? extends AnswerData> responses);
 
     /** Get statement facts with common domain definitions for reasoning (schema) added */
     Collection<Fact> getQuestionStatementFactsWithSchema(Question q);
@@ -179,7 +179,7 @@ public interface Domain {
      */
     SupplementaryResponseGenerationResult makeSupplementaryQuestion(QuestionData sourceQuestion, ViolationData violation, Language lang);
 
-    SupplementaryFeedbackGenerationResult judgeSupplementaryQuestion(Question question, SupplementaryStepData supplementaryStep, List<ResponseData> responses, Language language);
+    SupplementaryFeedbackGenerationResult judgeSupplementaryQuestion(Question question, SupplementaryStepData supplementaryStep, List<? extends AnswerData> responses, Language language);
 
     /**
      * Get any correct answer at current iteration
@@ -220,7 +220,7 @@ public interface Domain {
      * @param tags Exercise tags
      * @return interpretation of backend's judgement
      */
-    InterpretSentenceResult judgeQuestion(Question question, List<ResponseData> responses, List<Tag> tags, Language language);
+    InterpretSentenceResult judgeQuestion(Question question, List<? extends AnswerData> responses, List<Tag> tags, Language language);
 
     /**
      * Any available correct answer at current iteration

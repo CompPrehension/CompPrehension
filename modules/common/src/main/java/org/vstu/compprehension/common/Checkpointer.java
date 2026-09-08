@@ -1,4 +1,4 @@
-package org.vstu.compprehension.utils;
+package org.vstu.compprehension.common;
 
 import org.apache.logging.log4j.Level;
 import org.apache.logging.log4j.Logger;

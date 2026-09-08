@@ -3,7 +3,7 @@ package org.vstu.compprehension.businesslogic.domains;
 import org.jetbrains.annotations.NotNull;
 import org.vstu.compprehension.services.RandomProvider;
 import org.vstu.compprehension.services.SupplementaryStepDataService;
-import org.vstu.compprehension.data.question.ResponseData;
+import org.vstu.compprehension.data.question.AnswerData;
 import org.vstu.compprehension.services.ExerciseAttemptDataService;
 import org.vstu.compprehension.data.domain.DomainData;
 import org.vstu.compprehension.businesslogic.Question;
@@ -39,7 +39,7 @@ public abstract class JenaReasoningDomain extends DomainBase {
         return question;
     }
 
-    public InterpretSentenceResult judgeQuestion(Question question, List<ResponseData> responses, List<Tag> tags, Language language) {
+    public InterpretSentenceResult judgeQuestion(Question question, List<? extends AnswerData> responses, List<Tag> tags, Language language) {
         var backend = new JenaBackend();
         var output = backend.judge(backendInterface.prepareBackendInfoForJudge(question, responses, tags));
         return backendInterface.interpretJudgeOutput(question, output, language);

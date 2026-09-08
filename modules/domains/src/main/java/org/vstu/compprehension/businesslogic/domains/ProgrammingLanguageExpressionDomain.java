@@ -1,5 +1,6 @@
 package org.vstu.compprehension.businesslogic.domains;
 
+import org.vstu.compprehension.data.question.AnswerData;
 import org.vstu.compprehension.data.question.SupplementaryStepData;
 import org.vstu.compprehension.data.exercise.ExerciseOptionsData;
 import org.vstu.compprehension.data.question.ViolationData;
@@ -1007,13 +1008,13 @@ public class ProgrammingLanguageExpressionDomain extends JenaReasoningDomain {
     }
 
     @Override
-    public Collection<Fact> responseToFacts(Question question, List<ResponseData> responses) {
+    public Collection<Fact> responseToFacts(Question question, List<? extends AnswerData> responses) {
         var questionDomainType = question.getQuestionDomainType();
         if (questionDomainType.equals(EVALUATION_ORDER_QUESTION_TYPE)) {
             List<Fact> result = new ArrayList<>();
             int pos = 1;
             HashSet<String> used = new HashSet<>();
-            for (ResponseData response : responses) {
+            for (AnswerData response : responses) {
                 result.add(new Fact(
                         "owl:NamedIndividual",
                         response.getLeftAnswerObject().getDomainInfo(),
@@ -1060,7 +1061,7 @@ public class ProgrammingLanguageExpressionDomain extends JenaReasoningDomain {
             return result;
         } else if (questionDomainType.equals(DEFINE_TYPE_QUESTION_TYPE)) {
             List<Fact> result = new ArrayList<>();
-            for (ResponseData response : responses) {
+            for (AnswerData response : responses) {
                 result.add(new Fact(
                         "owl:NamedIndividual",
                         response.getLeftAnswerObject().getDomainInfo(),
@@ -1072,7 +1073,7 @@ public class ProgrammingLanguageExpressionDomain extends JenaReasoningDomain {
             return result;
         } else if (questionDomainType.equals(OPERANDS_TYPE_QUESTION_TYPE)) {
             List<Fact> result = new ArrayList<>();
-            for (ResponseData response : responses) {
+            for (AnswerData response : responses) {
                 result.add(new Fact(
                         "owl:NamedIndividual",
                         response.getLeftAnswerObject().getDomainInfo(),
@@ -1084,7 +1085,7 @@ public class ProgrammingLanguageExpressionDomain extends JenaReasoningDomain {
             return result;
         } else if (questionDomainType.equals(PRECEDENCE_TYPE_QUESTION_TYPE)) {
             List<Fact> result = new ArrayList<>();
-            for (ResponseData response : responses) {
+            for (AnswerData response : responses) {
                 result.add(new Fact(
                         "owl:NamedIndividual",
                         response.getLeftAnswerObject().getDomainInfo(),
@@ -1448,15 +1449,15 @@ public class ProgrammingLanguageExpressionDomain extends JenaReasoningDomain {
         return null;
     }
 
-    public Set<String> possibleViolations(Question q, List<ResponseData> completedSteps) {
+    public Set<String> possibleViolations(Question q, List<? extends AnswerData> completedSteps) {
         return possibleViolations(q.getSolutionFacts(), completedSteps);
     }
 
-    public Set<String> possibleViolations(List<BackendFactData> solutionFacts, List<ResponseData> completedSteps) {
+    public Set<String> possibleViolations(List<BackendFactData> solutionFacts, List<? extends AnswerData> completedSteps) {
         Set<String> result = new HashSet<>();
         Set<String> madeSteps = new HashSet<>();
         if (completedSteps != null) {
-            for (ResponseData r : completedSteps) {
+            for (AnswerData r : completedSteps) {
                 madeSteps.add(r.getLeftAnswerObject().getDomainInfo());
                 madeSteps.add(r.getRightAnswerObject().getDomainInfo());
             }
@@ -1519,9 +1520,9 @@ public class ProgrammingLanguageExpressionDomain extends JenaReasoningDomain {
 
     static final String DOMAIN_MODEL_DIRECTORY = RESOURCES_LOCATION + "programming-language-expression-domain-model/";
 
-    private DomainModel mainQuestionToModel(QuestionInteractionData lastMainQuestionInteraction) {
-        List<Tag> tags = lastMainQuestionInteraction.getQuestion().getTags().stream().map(this::getTag).filter(Objects::nonNull).toList();
-        Question q = new Question(lastMainQuestionInteraction.getQuestion(), this);
+    private DomainModel mainQuestionToModel(QuestionData question, QuestionInteractionData lastMainQuestionInteraction) {
+        List<Tag> tags = question.getTags().stream().map(this::getTag).filter(Objects::nonNull).toList();
+        Question q = new Question(question, this);
         q = MeaningTreeOrderQuestionBuilder.fastBuildFromExisting(q, SupportedLanguage.CPP, null);
         return MeaningTreeRDFTransformer.questionToDomainModel(
                 dtSupplementaryQuestionHelper.domainModel,
@@ -1548,9 +1549,9 @@ public class ProgrammingLanguageExpressionDomain extends JenaReasoningDomain {
     }
 
     @Override
-    public SupplementaryFeedbackGenerationResult judgeSupplementaryQuestion(Question question, SupplementaryStepData supplementaryStep, List<ResponseData> responses, Language language) {
+    public SupplementaryFeedbackGenerationResult judgeSupplementaryQuestion(Question question, SupplementaryStepData supplementaryStep, List<? extends AnswerData> responses, Language language) {
         if(supplementaryStep != null) { //FIXME? как правильно определять, как был сгенерирован вопрос?
-            return dtSupplementaryQuestionHelper.judgeSupplementaryQuestion(supplementaryStep, responses);
+            return dtSupplementaryQuestionHelper.judgeSupplementaryQuestion(question.getQuestionData(), supplementaryStep, responses);
         }
         else {
             assert responses.size() == 1;

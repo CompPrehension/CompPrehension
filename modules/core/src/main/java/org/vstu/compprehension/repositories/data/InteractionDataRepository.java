@@ -4,11 +4,11 @@ import lombok.RequiredArgsConstructor;
 import org.jetbrains.annotations.NotNull;
 import org.springframework.stereotype.Repository;
 import org.springframework.transaction.annotation.Transactional;
+import org.vstu.compprehension.data.question.AnswerData;
 import org.vstu.compprehension.data.question.AnswerObjectData;
 import org.vstu.compprehension.data.question.InteractionResponsesData;
 import org.vstu.compprehension.data.question.NewInteractionData;
 import org.vstu.compprehension.data.question.RecordedInteractionData;
-import org.vstu.compprehension.data.question.ResponseData;
 import org.vstu.compprehension.data.question.SubmittedAnswerData;
 import org.vstu.compprehension.data.question.ViolationData;
 import org.vstu.compprehension.entities.AnswerObjectEntity;
@@ -43,19 +43,14 @@ public class InteractionDataRepository {
     private final Mapper<ViolationData, ViolationEntity> violationEntityMapper;
 
     @Transactional(readOnly = true)
-    public @NotNull List<ResponseData> resolveAnswers(long questionId, @NotNull List<SubmittedAnswerData> answers) {
+    public @NotNull List<AnswerData> resolveAnswers(long questionId, @NotNull List<SubmittedAnswerData> answers) {
         var answerObjects = answerObjectsByAnswerId(findQuestion(questionId), questionId);
         return answers.stream()
-                .map(answer -> new ResponseData(
-                        null,
-                        null,
+                .map(answer -> AnswerData.of(
                         answerObjectMapper.map(
                                 requireAnswerObject(answerObjects, answer.leftAnswerId(), questionId)),
                         answerObjectMapper.map(
-                                requireAnswerObject(answerObjects, answer.rightAnswerId(), questionId)),
-                        null,
-                        answer.createdByInteractionId(),
-                        false))
+                                requireAnswerObject(answerObjects, answer.rightAnswerId(), questionId))))
                 .toList();
     }
 
