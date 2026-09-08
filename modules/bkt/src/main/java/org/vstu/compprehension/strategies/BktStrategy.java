@@ -20,6 +20,7 @@ import org.vstu.compprehension.businesslogic.QuestionRequest;
 import org.vstu.compprehension.businesslogic.Skill;
 import org.vstu.compprehension.businesslogic.SkillMasteryState;
 import org.vstu.compprehension.bkt.grpc.SkillState;
+import org.vstu.compprehension.businesslogic.backend.DecisionTreeInterpretSentenceResult;
 import org.vstu.compprehension.businesslogic.domains.Domain;
 import org.vstu.compprehension.businesslogic.domains.DomainBase;
 import org.vstu.compprehension.businesslogic.domains.DomainFactory;
@@ -266,10 +267,13 @@ public class BktStrategy extends StrategyBase {
     }
 
     private void updateUserKnowledgeModel(ExerciseAttemptWithQuestionsData exerciseAttempt, Domain.InterpretSentenceResult judgeResult) {
-        if (judgeResult.decisionTreeTrace == null) return;
+        if (!(judgeResult instanceof DecisionTreeInterpretSentenceResult dtJudgeResult)
+                || dtJudgeResult.decisionTreeTrace == null) {
+            return;
+        }
 
         val domain = domainFactory.getDomain(exerciseAttempt.exercise().domainName());
-        val observedSkills = LeafEngagedSkillsExtractor.extract(judgeResult.decisionTreeTrace);
+        val observedSkills = LeafEngagedSkillsExtractor.extract(dtJudgeResult.decisionTreeTrace);
 
         Set<String> leafEngagedSkills;
         if (judgeResult.isAnswerCorrect) {

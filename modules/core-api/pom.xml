@@ -78,15 +78,5 @@
             <artifactId>StringTermAnnotator</artifactId>
             <version>fa8fed42c6</version>
         </dependency>
-        <dependency>
-            <groupId>com.github.CompPrehension</groupId>
-            <artifactId>its_Reasoner</artifactId>
-            <version>3.0.0-alpha.2</version>
-        </dependency>
-        <dependency>
-            <groupId>com.github.CompPrehension</groupId>
-            <artifactId>its_QuestionGen</artifactId>
-            <version>2.7.6</version>
-        </dependency>
     </dependencies>
 </project>

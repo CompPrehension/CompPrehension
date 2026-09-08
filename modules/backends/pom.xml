@@ -102,7 +102,14 @@
         <dependency>
             <groupId>com.github.CompPrehension</groupId>
             <artifactId>its_DomainModel</artifactId>
-            <version>3.0.0-alpha.5</version>
+        </dependency>
+        <dependency>
+            <groupId>com.github.CompPrehension</groupId>
+            <artifactId>its_Reasoner</artifactId>
+        </dependency>
+        <dependency>
+            <groupId>com.github.CompPrehension</groupId>
+            <artifactId>its_QuestionGen</artifactId>
         </dependency>
     </dependencies>
 </project>

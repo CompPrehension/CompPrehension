@@ -68,6 +68,18 @@
             <version>4.4</version>
             <scope>compile</scope>
         </dependency>
+        <dependency>
+            <groupId>com.github.CompPrehension</groupId>
+            <artifactId>its_DomainModel</artifactId>
+        </dependency>
+        <dependency>
+            <groupId>com.github.CompPrehension</groupId>
+            <artifactId>its_Reasoner</artifactId>
+        </dependency>
+        <dependency>
+            <groupId>com.github.CompPrehension</groupId>
+            <artifactId>its_QuestionGen</artifactId>
+        </dependency>
     </dependencies>
 
 </project>

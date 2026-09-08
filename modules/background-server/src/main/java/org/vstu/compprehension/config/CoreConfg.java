@@ -98,12 +98,6 @@ public class CoreConfg {
                                  @Autowired QuestionBankSearchStatsDtoMapper questionBankSearchStatsDtoMapper) {
         return new QuestionBankImpl(bankDataRepository, questionBankSearchStatsDtoMapper);
     }
-    
-    @Bean
-    @Singleton
-    RandomProvider getRandomProvider() {
-        return new RandomProviderImpl();
-    }
 
     @Bean
     @Singleton

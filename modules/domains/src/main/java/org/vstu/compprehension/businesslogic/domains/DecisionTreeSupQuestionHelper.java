@@ -1,5 +1,8 @@
 package org.vstu.compprehension.businesslogic.domains;
 
+import its.model.definition.ObjectRef;
+import its.reasoner.LearningSituation;
+import org.vstu.compprehension.enums.SupplementaryBranchResult;
 import org.vstu.compprehension.services.SupplementaryStepDataService;
 import org.vstu.compprehension.data.question.SupplementaryStepData;
 import org.vstu.compprehension.data.question.NewSupplementaryStepData;
@@ -35,6 +38,7 @@ import java.net.URL;
 import java.util.ArrayList;
 import java.util.Collections;
 import java.util.List;
+import java.util.Map;
 import java.util.function.Function;
 import java.util.stream.Collectors;
 
@@ -95,7 +99,7 @@ public class DecisionTreeSupQuestionHelper {
         String localizationCode = userLang.toLocaleString(); //FIXME должна быть какая-то проверка на то, какие языки поддерживает модель
         if(latestStep != null){
             latestStep.getSituationInfo().setLocalizationCode(localizationCode);
-            situation = latestStep.getSituationInfo().toQuestioningSituation(situationModel);
+            situation = toQuestioningSituation(latestStep.getSituationInfo(), situationModel);
         }
         else {
             situation = new QuestioningSituation(situationModel, localizationCode);
@@ -117,7 +121,7 @@ public class DecisionTreeSupQuestionHelper {
 
         NewSupplementaryStepData supplementaryChain = new NewSupplementaryStepData(
                 lastInteraction.getId(),
-                new SupplementarySituationData(situation),
+                toSupplementarySituationData(situation),
                 res instanceof  QuestionStateChange
                         ? ((QuestionStateChange) res).getNextState() != null ? ((QuestionStateChange) res).getNextState().getId() : 0
                         : state.getId()
@@ -137,7 +141,7 @@ public class DecisionTreeSupQuestionHelper {
         DomainModel situationModel = mainQuestionToModelTransformer.apply(mainQuestionInteraction);
 
         //создать ситуацию, описывающую контекст задания вспомогательных вопросов
-        QuestioningSituation situation = supplementaryInfo.getSituationInfo().toQuestioningSituation(situationModel);
+        QuestioningSituation situation = toQuestioningSituation(supplementaryInfo.getSituationInfo(), situationModel);
 
         //преобразовать ответы
         List<Integer> answers = null;
@@ -170,7 +174,7 @@ public class DecisionTreeSupQuestionHelper {
 
         NewSupplementaryStepData newSupplementaryChain = new NewSupplementaryStepData(
                 supplementaryInfo.getMainQuestionInteractionId(),
-                new SupplementarySituationData(situation),
+                toSupplementarySituationData(situation),
                 change.getNextState() != null ? change.getNextState().getId() : null
         );
         return new SupplementaryFeedbackGenerationResult(stateChangeAsSupplementaryFeedbackDto(change), newSupplementaryChain);
@@ -249,4 +253,55 @@ public class DecisionTreeSupQuestionHelper {
         }
     }
 
+    private SupplementarySituationData toSupplementarySituationData(QuestioningSituation situation) {
+        var reasoningVariables = situation.getDecisionTreeVariables()
+                .entrySet().stream()
+                .collect(Collectors.toMap(Map.Entry::getKey, e -> e.getValue().getObjectName()));
+        var discussedVariables = situation.getDiscussedVariables();
+        var givenAnswers = situation.getGivenAnswers();
+        var assumedResults = situation.getAssumedResults()
+                .entrySet().stream()
+                .collect(Collectors.toMap(Map.Entry::getKey, e -> fromBranchResult(e.getValue())));
+        var localizationCode = situation.getLocalizationCode();
+        
+        return new SupplementarySituationData(
+                reasoningVariables,
+                discussedVariables,
+                givenAnswers,
+                assumedResults,
+                localizationCode
+        );
+    }
+
+    private QuestioningSituation toQuestioningSituation(SupplementarySituationData situation, DomainModel situationModel) {
+        Map<String, ObjectRef> vars = situation
+                .getReasoningVariables()
+                .entrySet().stream()
+                .collect(Collectors.toMap(Map.Entry::getKey, e -> new ObjectRef(e.getValue())));
+        vars.putAll(LearningSituation.collectDecisionTreeVariables(situationModel));
+
+        var assumedResults = situation.getAssumedResults()
+                .entrySet().stream()
+                .collect(Collectors.toMap(Map.Entry::getKey, e -> toBranchResult(e.getValue())));
+        
+        return new QuestioningSituation(situationModel, vars, situation.getDiscussedVariables(), situation.getGivenAnswers(), assumedResults, situation.getLocalizationCode());
+    }
+
+    private SupplementaryBranchResult fromBranchResult(BranchResult branchResult) {
+        return switch(branchResult) {
+            case BranchResult.CORRECT -> SupplementaryBranchResult.CORRECT;
+            case BranchResult.ERROR -> SupplementaryBranchResult.ERROR;
+            case BranchResult.NULL ->  SupplementaryBranchResult.NULL;
+            default -> throw new IllegalStateException("Unsupported value: " + branchResult);
+        };
+    }
+
+    private BranchResult toBranchResult(SupplementaryBranchResult supBranchResult) {
+        return switch(supBranchResult) {
+            case SupplementaryBranchResult.CORRECT -> BranchResult.CORRECT;
+            case SupplementaryBranchResult.ERROR -> BranchResult.ERROR;
+            case SupplementaryBranchResult.NULL ->  BranchResult.NULL;
+            default -> throw new IllegalStateException("Unsupported value: " + supBranchResult);
+        };
+    }
 }

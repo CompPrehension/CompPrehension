@@ -26,6 +26,7 @@ import org.vstu.compprehension.repositories.entity.ExerciseAttemptRepository;
 import org.vstu.compprehension.repositories.entity.ExerciseRepository;
 import org.vstu.compprehension.repositories.entity.QuestionMetadataRepository;
 import org.vstu.compprehension.repositories.entity.UserRepository;
+import org.vstu.compprehension.businesslogic.backend.DecisionTreeInterpretSentenceResult;
 import org.vstu.compprehension.businesslogic.backend.DecisionTreeReasonerBackend;
 
 import java.util.ArrayList;
@@ -74,6 +75,16 @@ public class CtrlFlowDTTest {
     public Question loadQuestion(String questionName) {
         var metas = qMetaRepo.findByName(questionName);
         return domain.makeQuestion(TestQuestionMetadata.toData(metas.getFirst()), List.of(domain.getTag("Python")), Language.ENGLISH);
+    }
+
+    /**
+     * Достать трассу рассуждения из результата интерпретации ответа:
+     * DT-домены возвращают {@link DecisionTreeInterpretSentenceResult}, трасса хранится в нем.
+     */
+    private DecisionTreeTrace traceOf(Domain.InterpretSentenceResult result) {
+        Assertions.assertInstanceOf(DecisionTreeInterpretSentenceResult.class, result,
+                "Ожидался результат рассуждения по дереву решений");
+        return ((DecisionTreeInterpretSentenceResult) result).decisionTreeTrace;
     }
 
     private String walkDecisionTreeTrace(DecisionTreeTrace trace) {
@@ -174,7 +185,7 @@ public class CtrlFlowDTTest {
                 judgeCore(q, answerObjectIds, everySubTrace, consideredAsCorrect, detectUnfinished);
 
         if (expectedLeafResults != null && !expectedLeafResults.isEmpty()) {
-            List<String> leafResults = collectLeafBranchResults(result.decisionTreeTrace);
+            List<String> leafResults = collectLeafBranchResults(traceOf(result));
             for (String expected : expectedLeafResults) {
                 Assertions.assertTrue(
                         leafResults.contains(expected),
@@ -211,11 +222,11 @@ public class CtrlFlowDTTest {
         ).collect(Collectors.joining(" -> "))));
         builder.append("Judge result: %s\n".formatted(result.isAnswerCorrect));
         builder.append("Variable dump: %s\n".formatted(
-                result.decisionTreeTrace.getFinalVariableSnapshot().entrySet().stream()
+                traceOf(result).getFinalVariableSnapshot().entrySet().stream()
                         .map(varObj -> "%s = %s".formatted(varObj.getKey(), varObj.getValue()))
                         .collect(Collectors.joining("; "))
         ));
-        builder.append("Interpretation trace: %s\n".formatted(walkDecisionTreeTrace(result.decisionTreeTrace)));
+        builder.append("Interpretation trace: %s\n".formatted(walkDecisionTreeTrace(traceOf(result))));
         builder.append("\n===== / ===== \n");
         return builder.toString();
     }
@@ -237,7 +248,7 @@ public class CtrlFlowDTTest {
             System.out.println(makeJudgeTrace(result, responses, !result.isAnswerCorrect));
 
             // Для отладки: показываем также все листовые результаты ветвей
-            List<String> leafResults = collectLeafBranchResults(result.decisionTreeTrace);
+            List<String> leafResults = collectLeafBranchResults(traceOf(result));
             System.out.println("Leaf branch results: " + String.join(", ", leafResults));
         }
         return result;

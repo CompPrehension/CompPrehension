@@ -107,12 +107,6 @@ public class DiConfig {
                                  @Autowired QuestionBankSearchStatsDtoMapper questionBankSearchStatsDtoMapper) {
         return new QuestionBankImpl(bankDataRepository, questionBankSearchStatsDtoMapper);
     }
-    
-    @Bean
-    @SessionScope
-    RandomProvider getRandomProvider() {
-        return new RandomProviderImpl();
-    }
 
     @Bean
     @Singleton

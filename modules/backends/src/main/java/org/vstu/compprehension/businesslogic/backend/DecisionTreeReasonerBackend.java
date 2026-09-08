@@ -300,7 +300,7 @@ public class DecisionTreeReasonerBackend
             }
             List<DecisionTreeTraceElement<?, ?>> traceElements = nestedTraceElements(backendOutput.results);
 
-            InterpretSentenceResult result = new InterpretSentenceResult();
+            DecisionTreeInterpretSentenceResult result = new DecisionTreeInterpretSentenceResult();
             result.isAnswerCorrect = isCorrectAnswer(backendOutput.results);
             result.decisionTreeTrace = backendOutput.results;
             for (DecisionTreeTraceElement<?,?> res : traceElements) {

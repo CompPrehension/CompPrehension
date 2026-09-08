@@ -1,7 +1,6 @@
 package org.vstu.compprehension.entities;
 
 import com.vladmihalcea.hibernate.type.json.JsonType;
-import its.questions.gen.QuestioningSituation;
 import jakarta.persistence.*;
 import lombok.Getter;
 import lombok.NoArgsConstructor;
@@ -14,15 +13,7 @@ import org.vstu.compprehension.data.question.SupplementarySituationData;
 @Entity @Getter @Setter
 @NoArgsConstructor
 @Table(name = "SupplementaryStep")
-public class SupplementaryStepEntity {
-    
-    public SupplementaryStepEntity(InteractionEntity mainQuestionInteraction, QuestioningSituation situation, QuestionEntity supplementaryQuestion, Integer nextStateId){
-        this.mainQuestionInteraction = mainQuestionInteraction;
-        this.situationInfo = new SupplementarySituationData(situation);
-        this.supplementaryQuestion = supplementaryQuestion;
-        this.nextStateId = nextStateId;
-    }
-    
+public class SupplementaryStepEntity {    
     @Id
     @GeneratedValue(strategy = GenerationType.IDENTITY)
     private Long id;
