@@ -125,7 +125,7 @@ public class MoodleRoleSyncService {
                         (a, b) -> a)
                 );
 
-        Set<String> courseCaps = CapabilityMapper.allRelevantCourseCapabilities();
+        Set<String> courseCaps = MoodleCapabilities.allRelevantCourseCapabilities();
         Map<Long, Map<Long, Set<String>>> userCourseCaps = new HashMap<>();
 
         int totalProcessed = 0;
@@ -183,7 +183,7 @@ public class MoodleRoleSyncService {
                 desiredAssignments.add(new CourseRoleAssignment(
                         userId,
                         courseEntry.getKey(),
-                        CapabilityMapper.deriveCourseRole(courseEntry.getValue())
+                        MoodleCapabilities.deriveCourseRole(courseEntry.getValue())
                 ));
             }
         }

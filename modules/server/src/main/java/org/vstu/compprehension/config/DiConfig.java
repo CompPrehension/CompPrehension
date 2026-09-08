@@ -14,6 +14,9 @@ import org.springframework.web.context.annotation.SessionScope;
 import org.vstu.compprehension.services.*;
 import org.vstu.compprehension.service.BktService;
 import org.vstu.compprehension.repositories.data.UserDataRepository;
+import org.vstu.compprehension.data.user.UserAccountData;
+import org.vstu.compprehension.data.user.UserData;
+import org.vstu.compprehension.mappers.Mapper;
 import org.vstu.compprehension.adapters.*;
 import org.vstu.compprehension.businesslogic.backend.Backend;
 import org.vstu.compprehension.businesslogic.backend.DecisionTreeReasonerBackend;
@@ -92,8 +95,9 @@ public class DiConfig {
                                    @Autowired ExternalAccountService externalAccountService,
                                    @Autowired LtiContextProvider ltiContextProvider,
                                    @Autowired CourseDataService courseService,
-                                   @Autowired RoleAssignmentService roleAssignmentService) {
-        return new CachedUserService(new UserServiceImpl(userDataRepository, educationResourceService, externalAccountService, ltiContextProvider, courseService, roleAssignmentService));
+                                   @Autowired RoleAssignmentService roleAssignmentService,
+                                   @Autowired Mapper<UserAccountData, UserData> currentUserMapper) {
+        return new CachedUserService(new UserServiceImpl(userDataRepository, educationResourceService, externalAccountService, ltiContextProvider, courseService, roleAssignmentService, currentUserMapper));
     }
 
     @Bean

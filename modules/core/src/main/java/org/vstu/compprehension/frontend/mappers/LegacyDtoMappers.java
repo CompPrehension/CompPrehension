@@ -1,4 +1,4 @@
-package org.vstu.compprehension.mappers;
+package org.vstu.compprehension.frontend.mappers;
 
 import lombok.val;
 import org.jetbrains.annotations.NotNull;
@@ -31,7 +31,18 @@ import java.util.stream.Collectors;
 import java.util.stream.IntStream;
 import java.util.stream.Stream;
 
-public class Mapper {
+/**
+ * Старый god-класс Data → DTO: статические перегрузки {@code toDto} на все случаи сразу.
+ * <p>
+ * Нарушает соглашения из {@code package-info} этого пакета почти целиком: статика вместо
+ * бина, перегрузки вместо отдельных мапперов, второй аргумент-контекст, обращение к
+ * доменной логике из маппинга. Разбирается на отдельные мапперы; новых методов здесь
+ * не появляется.
+ *
+ * @deprecated разбирается на классы, реализующие {@link Mapper}.
+ */
+@Deprecated
+public class LegacyDtoMappers {
 
     public static @NotNull SurveyDto toDto(@NotNull SurveyData survey) {
         return SurveyDto.builder()
@@ -109,11 +120,11 @@ public class Mapper {
         val responses = lastCorrectInteraction
                 .flatMap(i -> Optional.ofNullable(i.getResponses())).stream()
                 .flatMap(Collection::stream)
-                .map(Mapper::toDto)
+                .map(LegacyDtoMappers::toDto)
                 .toArray(AnswerDto[]::new);
 
         val feedback = lastInteraction
-                .map(i -> Mapper.toFeedbackDto(questionObject, null, correctInteractionsCount, interactionsWithErrorsCount, i.getFeedback().getGrade(), i.getFeedback().getInteractionsLeft(), null, i.getViolations().size() == 0, null, language))
+                .map(i -> LegacyDtoMappers.toFeedbackDto(questionObject, null, correctInteractionsCount, interactionsWithErrorsCount, i.getFeedback().getGrade(), i.getFeedback().getInteractionsLeft(), null, i.getViolations().size() == 0, null, language))
                 .orElse(null);
 
         val answers = question.getAnswerObjects() != null ? question.getAnswerObjects() : new ArrayList<AnswerObjectData>(0);
@@ -232,7 +243,7 @@ public class Mapper {
 
     public static @NotNull SupplementaryQuestionDto toDto(@NotNull SupplementaryResponse response, @NotNull Language language) {
         if(response.getQuestion() != null) {
-            QuestionDto questionDto = Mapper.toDto(response.getQuestion(), language);
+            QuestionDto questionDto = LegacyDtoMappers.toDto(response.getQuestion(), language);
             return questionDto.getAnswers().length > 0 ? SupplementaryQuestionDto.FromQuestion(questionDto)
                     : SupplementaryQuestionDto.FromMessage(new SupplementaryFeedbackDto(FeedbackDto.Message.Success(questionDto.getText().replaceAll("<[^>]*>", "")), SupplementaryFeedbackDto.Action.Finish));
         }

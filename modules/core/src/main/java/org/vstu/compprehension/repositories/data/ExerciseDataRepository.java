@@ -11,6 +11,8 @@ import org.vstu.compprehension.data.exercise.ExerciseSummaryData;
 import org.vstu.compprehension.data.exercise.NewExerciseData;
 import org.vstu.compprehension.entities.DomainEntity;
 import org.vstu.compprehension.entities.ExerciseEntity;
+import org.vstu.compprehension.mappers.Mapper;
+import org.vstu.compprehension.repositories.Strict;
 import org.vstu.compprehension.repositories.entity.DomainRepository;
 import org.vstu.compprehension.repositories.entity.ExerciseAttemptReassignExecutor;
 import org.vstu.compprehension.repositories.entity.ExerciseAttemptRepository;
@@ -32,24 +34,22 @@ public class ExerciseDataRepository {
     private final ExerciseAttemptRepository exerciseAttemptRepository;
     private final ExerciseCourseLinkReassignExecutor linkReassignExecutor;
     private final ExerciseAttemptReassignExecutor attemptReassignExecutor;
+    private final Mapper<ExerciseEntity, ExerciseData> exerciseMapper;
+    private final Mapper<ExerciseEntity, ExerciseSummaryData> exerciseSummaryMapper;
 
     @Transactional(readOnly = true)
     public @NotNull ExerciseData getById(long exerciseId) {
-        return toData(findEntity(exerciseId));
+        return exerciseMapper.map(findEntity(exerciseId));
     }
 
     @Transactional(readOnly = true)
     public @NotNull List<ExerciseSummaryData> findSummariesByCourseId(long courseId) {
-        return exerciseRepository.findAllByCourseId(courseId).stream()
-                .map(ExerciseDataRepository::toSummary)
-                .toList();
+        return exerciseSummaryMapper.mapAll(exerciseRepository.findAllByCourseId(courseId));
     }
 
     @Transactional(readOnly = true)
     public @NotNull List<ExerciseSummaryData> findPublicSummaries() {
-        return exerciseRepository.findAllByIsPublicTrue().stream()
-                .map(ExerciseDataRepository::toSummary)
-                .toList();
+        return exerciseSummaryMapper.mapAll(exerciseRepository.findAllByIsPublicTrue());
     }
 
     @Transactional
@@ -141,33 +141,5 @@ public class ExerciseDataRepository {
 
     private static @NotNull String joinTags(@NotNull List<String> tags) {
         return String.join(", ", tags);
-    }
-
-    // ---------------------------------------------------------------- маппинг
-
-    private static @NotNull ExerciseData toData(@NotNull ExerciseEntity entity) {
-        long id = Strict.required(entity.getId(), "id", "exercise");
-        String owner = "exercise " + id;
-        // getDomain() ленивый, но getName() — это первичный ключ домена,
-        // и его прокси отдаёт сам, без запроса.
-        var domain = Strict.required(entity.getDomain(), "domain", owner);
-        return new ExerciseData(
-                id,
-                Strict.required(entity.getName(), "name", owner),
-                Strict.required(domain.getName(), "domain.name", owner),
-                Strict.required(entity.getBackendId(), "backendId", owner),
-                Strict.required(entity.getStrategyId(), "strategyId", owner),
-                Strict.required(entity.getOptions(), "options", owner),
-                List.copyOf(Strict.required(entity.getStages(), "stages", owner)),
-                List.copyOf(entity.getTags()),
-                entity.isPublic());
-    }
-
-    private static @NotNull ExerciseSummaryData toSummary(@NotNull ExerciseEntity entity) {
-        long id = Strict.required(entity.getId(), "id", "exercise");
-        return new ExerciseSummaryData(
-                id,
-                Strict.required(entity.getName(), "name", "exercise " + id),
-                entity.isPublic());
     }
 }

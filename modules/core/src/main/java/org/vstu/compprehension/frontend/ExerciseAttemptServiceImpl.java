@@ -32,7 +32,7 @@ import org.vstu.compprehension.enums.Language;
 import org.vstu.compprehension.enums.QuestionType;
 import org.vstu.compprehension.services.*;
 import org.vstu.compprehension.utils.Checkpointer;
-import org.vstu.compprehension.mappers.Mapper;
+import org.vstu.compprehension.frontend.mappers.LegacyDtoMappers;
 
 import java.util.*;
 import java.util.stream.Collectors;
@@ -139,7 +139,7 @@ class ExerciseAttemptServiceImpl implements ExerciseAttemptFrontendService {
         val correctAnswers = recorded.latestCorrectInteraction() == null
                 ? new AnswerDto[0]
                 : recorded.latestCorrectInteraction().responses().stream()
-                        .map(Mapper::toDto)
+                        .map(LegacyDtoMappers::toDto)
                         .toArray(AnswerDto[]::new);
 
         // special case for order question
@@ -163,7 +163,7 @@ class ExerciseAttemptServiceImpl implements ExerciseAttemptFrontendService {
         ch.hit("results made");
         ch.since_start("addOrdinaryQuestionAnswer() completed in");
 
-        return Mapper.toFeedbackDto(question,
+        return LegacyDtoMappers.toFeedbackDto(question,
                 messages,
                 recorded.correctInteractionsCount(),
                 recorded.erroneousInteractionsCount(),
@@ -179,7 +179,7 @@ class ExerciseAttemptServiceImpl implements ExerciseAttemptFrontendService {
     @Transactional(propagation = Propagation.REQUIRED)
     public @NotNull QuestionDto generateQuestion(@NotNull Long exAttemptId) {
         val question = questionService.generateQuestion(exAttemptId);
-        return Mapper.toDto(question, userService.getCurrentUser().language());
+        return LegacyDtoMappers.toDto(question, userService.getCurrentUser().language());
     }
 
     @SneakyThrows
@@ -189,7 +189,7 @@ class ExerciseAttemptServiceImpl implements ExerciseAttemptFrontendService {
             throw new Exception("Metadata id is null");
         }
         val question = questionService.generateQuestion(metadataId, lang);
-        return Mapper.toDto(question, userService.getCurrentUser().language());
+        return LegacyDtoMappers.toDto(question, userService.getCurrentUser().language());
     }
 
     @Transactional(propagation = Propagation.REQUIRED)
@@ -204,7 +204,7 @@ class ExerciseAttemptServiceImpl implements ExerciseAttemptFrontendService {
     @Transactional(propagation = Propagation.REQUIRED)
     public @NotNull QuestionDto getQuestion(@NotNull Long questionId) {
         val question = questionService.getQuestion(questionId);
-        return Mapper.toDto(question, userService.getCurrentUser().language());
+        return LegacyDtoMappers.toDto(question, userService.getCurrentUser().language());
     }
 
     @Transactional(propagation = Propagation.REQUIRED)
@@ -257,13 +257,13 @@ class ExerciseAttemptServiceImpl implements ExerciseAttemptFrontendService {
                                         .canCreateSupplementaryQuestion(false).build()).toList()))
                 .toList().toArray(new FeedbackDto.Message[0]);
 
-        return Mapper.toFeedbackDto(question,
+        return LegacyDtoMappers.toFeedbackDto(question,
                 messages,
                 recorded.correctInteractionsCount(),
                 recorded.erroneousInteractionsCount(),
                 outcome.getLeft(),
                 judgeResult.IterationsLeft,
-                recorded.responses().stream().map(Mapper::toDto).toArray(AnswerDto[]::new),
+                recorded.responses().stream().map(LegacyDtoMappers::toDto).toArray(AnswerDto[]::new),
                 /*true*/ judgeResult.violations.isEmpty() && judgeResult.isAnswerCorrect,
                 outcome.getRight(),
                 language);
@@ -298,13 +298,13 @@ class ExerciseAttemptServiceImpl implements ExerciseAttemptFrontendService {
 
     public @Nullable ExerciseAttemptDto getExerciseAttempt(@NotNull Long attemptId) {
         return exerciseAttemptService.findSummary(attemptId)
-                .map(Mapper::toDto)
+                .map(LegacyDtoMappers::toDto)
                 .orElse(null);
     }
 
     public @Nullable ExerciseAttemptDto getExistingExerciseAttempt(@NotNull Long exerciseId, @NotNull Long userId, @Nullable Long courseId) {
         val result = exerciseAttemptService.findIncompleteAttempt(exerciseId, userId, courseId)
-                .map(Mapper::toDto)
+                .map(LegacyDtoMappers::toDto)
                 .orElse(null);
         log.info("Is course attempt exists: {}", result != null);
 
@@ -314,7 +314,7 @@ class ExerciseAttemptServiceImpl implements ExerciseAttemptFrontendService {
     @Transactional(propagation = Propagation.REQUIRED)
     public @NotNull ExerciseAttemptDto createExerciseAttempt(@NotNull Long exerciseId, @NotNull Long userId, @Nullable Long courseId) {
         var ea = exerciseAttemptService.createNewAttempt(exerciseId, userId, courseId);
-        return Mapper.toDto(ea);
+        return LegacyDtoMappers.toDto(ea);
     }
 
     @Transactional(propagation = Propagation.REQUIRED)
@@ -359,6 +359,6 @@ class ExerciseAttemptServiceImpl implements ExerciseAttemptFrontendService {
         }
 
         // Сводка перечитывается: за время цикла у попытки появились вопросы.
-        return Mapper.toDto(exerciseAttemptService.findSummary(ea.attemptId()).orElseThrow());
+        return LegacyDtoMappers.toDto(exerciseAttemptService.findSummary(ea.attemptId()).orElseThrow());
     }
 }

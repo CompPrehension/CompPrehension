@@ -8,20 +8,21 @@ import org.springframework.transaction.annotation.Propagation;
 import org.springframework.transaction.annotation.Transactional;
 import org.vstu.compprehension.businesslogic.QuestionBankSearchRequest;
 import org.vstu.compprehension.businesslogic.storage.SerializableQuestion;
+import org.vstu.compprehension.data.question.QuestionMaskData;
+import org.vstu.compprehension.data.question.QuestionMetadataData;
 import org.vstu.compprehension.data.questionbank.ComplexityStatsData;
 import org.vstu.compprehension.data.questionbank.GenerationRequestGroupData;
 import org.vstu.compprehension.data.questionbank.NewBankQuestionData;
-import org.vstu.compprehension.data.question.QuestionMaskData;
-import org.vstu.compprehension.data.question.QuestionMetadataData;
 import org.vstu.compprehension.data.questionbank.SearchIterationData;
 import org.vstu.compprehension.data.questionbank.SearchQuality;
 import org.vstu.compprehension.entities.QuestionDataEntity;
 import org.vstu.compprehension.entities.QuestionGenerationRequestEntity;
 import org.vstu.compprehension.entities.QuestionMetadataEntity;
 import org.vstu.compprehension.entities.QuestionMetadataSearchRequestEntity;
+import org.vstu.compprehension.mappers.Mapper;
 import org.vstu.compprehension.repositories.entity.QuestionGenerationRequestRepository;
-import org.vstu.compprehension.repositories.entity.QuestionMetadataRepository;
 import org.vstu.compprehension.repositories.entity.QuestionMetadataRepository.QuestionMaskView;
+import org.vstu.compprehension.repositories.entity.QuestionMetadataRepository;
 import org.vstu.compprehension.repositories.entity.QuestionMetadataSearchRequestRepository;
 import org.vstu.compprehension.repositories.entity.SerializedQuestionRepository;
 
@@ -43,6 +44,9 @@ public class QuestionBankDataRepository {
     private final SerializedQuestionRepository serializedQuestionRepository;
     private final QuestionGenerationRequestRepository generationRequestRepository;
     private final QuestionMetadataSearchRequestRepository searchRequestLogRepository;
+    private final Mapper<QuestionMaskView, QuestionMaskData> questionMaskMapper;
+    private final Mapper<QuestionMetadataEntity, QuestionMetadataData> questionMetadataMapper;
+    private final Mapper<QuestionMetadataData, QuestionMetadataEntity> questionMetadataEntityMapper;
 
 
     @Transactional(readOnly = true)
@@ -66,39 +70,42 @@ public class QuestionBankDataRepository {
     @Transactional(readOnly = true)
     public @NotNull List<QuestionMetadataData> findTopRatedUnusedMetadata(
             @NotNull QuestionBankSearchRequest request, int limit) {
-        return toDataWithBodies(metadataRepository.findTopRatedUnusedMetadata(request, limit));
+        var found = metadataRepository.findTopRatedUnusedMetadata(request, limit);
+        fetchBodies(found);
+        return questionMetadataMapper.mapAll(found);
     }
 
     @Transactional(readOnly = true)
     public @NotNull List<QuestionMetadataData> findMetadata(
             @NotNull QuestionBankSearchRequest request, int limit) {
-        return toDataWithBodies(metadataRepository.findMetadata(request, limit));
+        var found = metadataRepository.findMetadata(request, limit);
+        fetchBodies(found);
+        return questionMetadataMapper.mapAll(found);
     }
 
     @Transactional(readOnly = true)
     public @NotNull List<QuestionMetadataData> findMetadataRelaxed(
             @NotNull QuestionBankSearchRequest request, int limit) {
-        return toDataWithBodies(metadataRepository.findMetadataRelaxed(request, limit));
+        var found = metadataRepository.findMetadataRelaxed(request, limit);
+        fetchBodies(found);
+        return questionMetadataMapper.mapAll(found);
     }
 
     @Transactional(readOnly = true)
     public @NotNull List<QuestionMetadataData> findMetadataWithoutBodies(
             @NotNull QuestionBankSearchRequest request, int limit) {
-        return metadataRepository.findMetadata(request, limit).stream()
-                .map(QuestionMetadataMapping::toData)
-                .toList();
+        return questionMetadataMapper.mapAll(metadataRepository.findMetadata(request, limit));
     }
 
     @Transactional(readOnly = true)
     public @NotNull List<QuestionMaskData> findRecentAttemptQuestionMasks(long attemptId, int limit) {
-        return metadataRepository.findRecentAttemptQuestionMasks(attemptId, limit).stream()
-                .map(QuestionBankDataRepository::toData)
-                .toList();
+        return questionMaskMapper.mapAll(
+                metadataRepository.findRecentAttemptQuestionMasks(attemptId, limit));
     }
 
     @Transactional(readOnly = true)
     public @NotNull Optional<QuestionMetadataData> findMetadataById(int metadataId) {
-        return metadataRepository.findByIdFetchingData(metadataId).map(QuestionMetadataMapping::toData);
+        return metadataRepository.findByIdFetchingData(metadataId).map(questionMetadataMapper::map);
     }
 
     @Transactional(readOnly = true)
@@ -140,7 +147,7 @@ public class QuestionBankDataRepository {
             body.setData(question.body());
             bodies.add(body);
             for (QuestionMetadataData meta : question.metadata()) {
-                var entity = QuestionMetadataMapping.toEntity(meta);
+                var entity = questionMetadataEntityMapper.map(meta);
                 entity.setQuestionData(body);
                 metadata.add(entity);
             }
@@ -222,20 +229,11 @@ public class QuestionBankDataRepository {
         return searchRequestLogRepository.save(entity).getQuality();
     }
 
-    private @NotNull List<QuestionMetadataData> toDataWithBodies(
-            @NotNull List<QuestionMetadataEntity> found) {
-        if (found.isEmpty()) {
-            return List.of();
+    /** Тела вопросов лежат в отдельной таблице и подтягиваются одним запросом на всю пачку. */
+    private void fetchBodies(@NotNull List<QuestionMetadataEntity> metadata) {
+        if (!metadata.isEmpty()) {
+            metadataRepository.fetchQuestionData(
+                    metadata.stream().map(QuestionMetadataEntity::getId).toList());
         }
-        metadataRepository.fetchQuestionData(found.stream().map(QuestionMetadataEntity::getId).toList());
-        return found.stream().map(QuestionMetadataMapping::toData).toList();
-    }
-
-    private static @NotNull QuestionMaskData toData(@NotNull QuestionMaskView view) {
-        return new QuestionMaskData(
-                view.getConceptBits() == null ? 0L : view.getConceptBits(),
-                view.getLawBits() == null ? 0L : view.getLawBits(),
-                view.getViolationBits() == null ? 0L : view.getViolationBits(),
-                view.getSkillBits() == null ? 0L : view.getSkillBits());
     }
 }

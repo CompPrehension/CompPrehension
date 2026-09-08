@@ -26,7 +26,7 @@ import org.vstu.compprehension.enums.Language;
 import org.vstu.compprehension.repositories.data.InteractionDataRepository;
 import org.vstu.compprehension.repositories.data.QuestionDataRepository;
 import org.vstu.compprehension.repositories.data.SupplementaryStepDataRepository;
-import org.vstu.compprehension.mappers.Mapper;
+import org.vstu.compprehension.frontend.mappers.LegacyDtoMappers;
 
 import java.util.List;
 import java.util.Optional;
@@ -86,7 +86,7 @@ class QuestionDataServiceImpl implements QuestionDataService {
         if(responseGen.getNewStep() != null){
             supplementaryStepDataRepository.create(responseGen.getNewStep(), supplementaryQuestionId);
         }
-        return Mapper.toDto(responseGen.getResponse(), lang);
+        return LegacyDtoMappers.toDto(responseGen.getResponse(), lang);
     }
 
     public SupplementaryFeedbackDto judgeSupplementaryQuestion(Question question, List<ResponseData> responses, Language language) {

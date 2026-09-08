@@ -11,7 +11,7 @@ import org.springframework.security.core.context.SecurityContextHolder;
 import org.springframework.security.oauth2.core.oidc.OidcIdToken;
 import org.springframework.security.oauth2.core.oidc.user.OidcUser;
 import org.vstu.compprehension.services.*;
-import org.vstu.compprehension.mappers.UserDataMapper;
+import org.vstu.compprehension.mappers.Mapper;
 import org.vstu.compprehension.businesslogic.auth.AuthObjects.SystemRole;
 import org.vstu.compprehension.businesslogic.auth.Role;
 import org.vstu.compprehension.businesslogic.lti.LtiContext;
@@ -39,6 +39,7 @@ public class UserServiceImpl implements UserDataService {
     private final LtiContextProvider ltiContextProvider;
     private final CourseDataService courseService;
     private final RoleAssignmentService roleAssignmentService;
+    private final Mapper<UserAccountData, UserData> currentUserMapper;
 
     public UserServiceImpl(
             UserDataRepository users,
@@ -46,7 +47,8 @@ public class UserServiceImpl implements UserDataService {
             ExternalAccountService externalAccountService,
             LtiContextProvider ltiContextProvider,
             CourseDataService courseService,
-            RoleAssignmentService roleAssignmentService
+            RoleAssignmentService roleAssignmentService,
+            Mapper<UserAccountData, UserData> currentUserMapper
     ) {
         this.users = users;
         this.educationResourceService = educationResourceService;
@@ -54,12 +56,13 @@ public class UserServiceImpl implements UserDataService {
         this.ltiContextProvider = ltiContextProvider;
         this.courseService = courseService;
         this.roleAssignmentService = roleAssignmentService;
+        this.currentUserMapper = currentUserMapper;
     }
 
     @SneakyThrows
     @Override
     public UserData getCurrentUser() {
-        return UserDataMapper.toCurrentUser(signIn());
+        return currentUserMapper.map(signIn());
     }
 
     /**

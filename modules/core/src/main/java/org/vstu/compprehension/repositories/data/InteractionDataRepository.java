@@ -6,7 +6,6 @@ import org.jetbrains.annotations.Nullable;
 import org.springframework.stereotype.Repository;
 import org.springframework.transaction.annotation.Transactional;
 import org.vstu.compprehension.data.question.AnswerObjectData;
-import org.vstu.compprehension.data.question.ExplanationTemplateInfoData;
 import org.vstu.compprehension.data.question.InteractionResponsesData;
 import org.vstu.compprehension.data.question.NewInteractionData;
 import org.vstu.compprehension.data.question.RecordedInteractionData;
@@ -14,11 +13,12 @@ import org.vstu.compprehension.data.question.ResponseData;
 import org.vstu.compprehension.data.question.SubmittedAnswerData;
 import org.vstu.compprehension.data.question.ViolationData;
 import org.vstu.compprehension.entities.AnswerObjectEntity;
-import org.vstu.compprehension.entities.ExplanationTemplateInfoEntity;
 import org.vstu.compprehension.entities.InteractionEntity;
 import org.vstu.compprehension.entities.QuestionEntity;
 import org.vstu.compprehension.entities.ResponseEntity;
 import org.vstu.compprehension.entities.ViolationEntity;
+import org.vstu.compprehension.mappers.Mapper;
+import org.vstu.compprehension.repositories.Strict;
 import org.vstu.compprehension.repositories.entity.InteractionRepository;
 import org.vstu.compprehension.repositories.entity.QuestionRepository;
 import org.vstu.compprehension.repositories.entity.ResponseRepository;
@@ -39,6 +39,9 @@ public class InteractionDataRepository {
     private final QuestionRepository questionRepository;
     private final InteractionRepository interactionRepository;
     private final ResponseRepository responseRepository;
+    private final Mapper<AnswerObjectEntity, AnswerObjectData> answerObjectMapper;
+    private final Mapper<InteractionEntity, InteractionResponsesData> interactionResponsesMapper;
+    private final Mapper<ViolationData, ViolationEntity> violationEntityMapper;
 
     @Transactional(readOnly = true)
     public @NotNull List<ResponseData> resolveAnswers(long questionId,
@@ -48,8 +51,10 @@ public class InteractionDataRepository {
                 .map(answer -> new ResponseData(
                         null,
                         null,
-                        toData(requireAnswerObject(answerObjects, answer.leftAnswerId(), questionId)),
-                        toData(requireAnswerObject(answerObjects, answer.rightAnswerId(), questionId)),
+                        answerObjectMapper.map(
+                                requireAnswerObject(answerObjects, answer.leftAnswerId(), questionId)),
+                        answerObjectMapper.map(
+                                requireAnswerObject(answerObjects, answer.rightAnswerId(), questionId)),
                         null,
                         answer.createdByInteractionId(),
                         false))
@@ -59,7 +64,7 @@ public class InteractionDataRepository {
     @Transactional(readOnly = true)
     public @NotNull Optional<InteractionResponsesData> findLatestCorrectInteraction(long questionId) {
         var interactions = loadInteractions(questionId);
-        return latestCorrect(interactions).map(InteractionDataRepository::toResponses);
+        return latestCorrect(interactions).map(interactionResponsesMapper::map);
     }
 
     @Transactional
@@ -89,7 +94,7 @@ public class InteractionDataRepository {
         var interaction = new InteractionEntity(
                 data.interactionType(),
                 question,
-                data.violations().stream().map(InteractionDataRepository::toEntity).toList(),
+                violationEntityMapper.mapAll(data.violations()),
                 data.correctLaws(),
                 responses,
                 firstGivenHere);
@@ -108,8 +113,8 @@ public class InteractionDataRepository {
                 interaction.getId(),
                 (int) correct,
                 interactions.size() - (int) correct,
-                toResponses(interaction).responses(),
-                latestCorrect(interactions).map(InteractionDataRepository::toResponses).orElse(null));
+                interactionResponsesMapper.map(interaction).responses(),
+                latestCorrect(interactions).map(interactionResponsesMapper::map).orElse(null));
     }
 
     @Transactional
@@ -157,69 +162,5 @@ public class InteractionDataRepository {
                     "Question " + questionId + " has no answer object " + answerId);
         }
         return answerObject;
-    }
-
-    // ---------------------------------------------------------------- маппинг
-
-    private static @NotNull InteractionResponsesData toResponses(@NotNull InteractionEntity interaction) {
-        boolean hasViolations = !interaction.getViolations().isEmpty();
-        return new InteractionResponsesData(
-                interaction.getId(),
-                interaction.getResponses().stream()
-                        .map(response -> toData(response, hasViolations))
-                        .toList());
-    }
-
-    private static @NotNull ResponseData toData(@NotNull ResponseEntity entity,
-                                                boolean interactionHasViolations) {
-        var createdBy = entity.getCreatedByInteraction();
-        return new ResponseData(
-                entity.getId(),
-                entity.getSpecValue(),
-                toData(entity.getLeftAnswerObject()),
-                toData(entity.getRightAnswerObject()),
-                createdBy == null ? null : createdBy.getInteractionType(),
-                createdBy == null ? null : createdBy.getId(),
-                interactionHasViolations);
-    }
-
-    private static @Nullable AnswerObjectData toData(@Nullable AnswerObjectEntity entity) {
-        if (entity == null) {
-            return null;
-        }
-        return AnswerObjectData.builder()
-                .id(entity.getId())
-                .answerId(entity.getAnswerId())
-                .hyperText(entity.getHyperText())
-                .domainInfo(entity.getDomainInfo())
-                .isRightCol(entity.isRightCol())
-                .concept(entity.getConcept())
-                .build();
-    }
-
-    private static @NotNull ViolationEntity toEntity(@NotNull ViolationData data) {
-        var entity = new ViolationEntity();
-        entity.setId(data.getId());
-        entity.setLawName(data.getLawName());
-        entity.setDetailedLawName(data.getDetailedLawName());
-        entity.setViolationFacts(data.getViolationFacts() == null
-                ? new ArrayList<>() : new ArrayList<>(data.getViolationFacts()));
-        entity.setExplanationTemplateInfo(toEntities(data.getExplanationTemplateInfo(), entity));
-        return entity;
-    }
-
-    private static @NotNull List<ExplanationTemplateInfoEntity> toEntities(
-            @Nullable List<ExplanationTemplateInfoData> source, @NotNull ViolationEntity owner) {
-        if (source == null) {
-            return new ArrayList<>();
-        }
-        return source.stream().map(info -> {
-            var entity = new ExplanationTemplateInfoEntity();
-            entity.setId(info.getId());
-            entity.setFieldName(info.getFieldName());
-            entity.setValue(info.getValue());
-            entity.setViolation(owner);
-            return entity;
-        }).collect(Collectors.toCollection(ArrayList::new));
     }
 }

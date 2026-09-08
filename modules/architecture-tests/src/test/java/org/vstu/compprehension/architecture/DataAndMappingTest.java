@@ -34,7 +34,7 @@ public class DataAndMappingTest {
     @ArchTest
     static final ArchRule mappers_should_not_depend_on_repositories_or_services =
             noClasses()
-                    .that().resideInAPackage(MAPPERS)
+                    .that().resideInAnyPackage(MAPPERS)
                     .should().dependOnClassesThat().areAssignableTo(Repository.class)
                     .orShould().dependOnClassesThat().areAnnotatedWith(Service.class)
                     .as("mappers should depend on nothing but other mappers");
@@ -43,7 +43,7 @@ public class DataAndMappingTest {
     @ArchTest
     static final ArchRule mappers_should_not_be_entities =
             noClasses()
-                    .that().resideInAPackage(MAPPERS)
+                    .that().resideInAnyPackage(MAPPERS)
                     .should().beAnnotatedWith(Entity.class)
                     .as("mappers should not be JPA entities");
 

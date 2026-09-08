@@ -7,7 +7,7 @@ import org.vstu.compprehension.enums.Language;
 import org.vstu.compprehension.frontend.dto.UserInfoDto;
 import org.vstu.compprehension.services.ExercisePermissionDataService;
 import org.vstu.compprehension.services.UserDataService;
-import org.vstu.compprehension.mappers.Mapper;
+import org.vstu.compprehension.frontend.mappers.LegacyDtoMappers;
 
 import java.util.Optional;
 
@@ -44,6 +44,6 @@ public class UserFrontendServiceImpl implements UserFrontendService {
     @Override
     public @NotNull UserInfoDto getCurrentUserInfo() {
         var user = userService.getCurrentUser();
-        return Mapper.toDto(user, exercisePermissionService.ofUser(user.id()));
+        return LegacyDtoMappers.toDto(user, exercisePermissionService.ofUser(user.id()));
     }
 }

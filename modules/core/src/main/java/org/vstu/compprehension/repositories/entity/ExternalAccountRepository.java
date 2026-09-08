@@ -37,10 +37,13 @@ public interface ExternalAccountRepository extends JpaRepository<ExternalAccount
     interface ExternalAccountView {
         Long getUserId();
         String getExternalId();
+        Long getEducationResourceId();
     }
 
     @Query("""
-            select ea.id.userId as userId, ea.externalId as externalId
+            select ea.id.userId as userId,
+                   ea.externalId as externalId,
+                   ea.id.educationResourceId as educationResourceId
             from ExternalAccountEntity ea
             where ea.id.educationResourceId = :educationResourceId
             """)

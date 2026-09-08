@@ -7,12 +7,13 @@ import java.util.LinkedHashSet;
 import java.util.Set;
 
 
-public final class CapabilityMapper {
+/** Каталог moodle-прав и вывод роли по ним. Не маппер типов: имя это подчёркивает. */
+public final class MoodleCapabilities {
     public static final String CAP_COURSE_UPDATE = "moodle/course:update";
     public static final String CAP_GRADE_VIEWALL = "moodle/grade:viewall";
     public static final String CAP_LTI_VIEW = "mod/lti:view";
 
-    private CapabilityMapper() {
+    private MoodleCapabilities() {
     }
 
     public static Set<String> allRelevantCourseCapabilities() {

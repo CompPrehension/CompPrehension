@@ -10,9 +10,10 @@ import org.vstu.compprehension.data.cource.CourseSummaryData;
 import org.vstu.compprehension.data.cource.ExternalCourseData;
 import org.vstu.compprehension.entities.course.ExerciseCourseLinkEntity;
 import org.vstu.compprehension.entities.course.ExerciseCourseLinkId;
-import org.vstu.compprehension.entities.ExerciseEntity;
-import org.vstu.compprehension.repositories.entity.CourseRepository;
+import org.vstu.compprehension.mappers.Mapper;
+import org.vstu.compprehension.repositories.Strict;
 import org.vstu.compprehension.repositories.entity.CourseRepository.CourseView;
+import org.vstu.compprehension.repositories.entity.CourseRepository;
 import org.vstu.compprehension.repositories.entity.ExerciseCourseLinkRepository;
 
 import java.util.Collection;
@@ -25,27 +26,30 @@ public class CourseDataRepository {
 
     private final CourseRepository courseRepository;
     private final ExerciseCourseLinkRepository exerciseCourseLinkRepository;
+    private final Mapper<CourseView, CourseSummaryData> courseSummaryMapper;
+    private final Mapper<CourseView, ExternalCourseData> externalCourseMapper;
+    private final Mapper<CourseView, CourseEducationResourceData> courseEducationResourceMapper;
+    private final Mapper<ExerciseCourseLinkEntity, CourseExerciseData> courseExerciseMapper;
 
     @Transactional(readOnly = true)
     public @NotNull List<CourseSummaryData> findAllSummaries() {
-        return toSummaries(courseRepository.findAllCourseViews());
+        return courseSummaryMapper.mapAll(courseRepository.findAllCourseViews());
     }
 
     @Transactional(readOnly = true)
     public @NotNull List<CourseSummaryData> findSummariesByIds(@NotNull Collection<Long> courseIds) {
-        return courseIds.isEmpty() ? List.of() : toSummaries(courseRepository.findCourseViewsByIdIn(courseIds));
+        return courseIds.isEmpty() ? List.of()
+                : courseSummaryMapper.mapAll(courseRepository.findCourseViewsByIdIn(courseIds));
     }
 
     @Transactional(readOnly = true)
     public @NotNull List<CourseSummaryData> findSummariesByExerciseId(long exerciseId) {
-        return toSummaries(exerciseCourseLinkRepository.findCourseViewsByExerciseId(exerciseId));
+        return courseSummaryMapper.mapAll(exerciseCourseLinkRepository.findCourseViewsByExerciseId(exerciseId));
     }
 
     @Transactional(readOnly = true)
     public @NotNull List<ExternalCourseData> findExternalCourses(long educationResourceId) {
-        return courseRepository.findExternalCourses(educationResourceId).stream()
-                .map(CourseDataRepository::toExternalCourse)
-                .toList();
+        return externalCourseMapper.mapAll(courseRepository.findExternalCourses(educationResourceId));
     }
 
     /**
@@ -85,9 +89,8 @@ public class CourseDataRepository {
         if (courseIds.isEmpty()) {
             return List.of();
         }
-        return courseRepository.findEducationResourceRefsByCourseIdIn(courseIds).stream()
-                .map(CourseDataRepository::toEducationResourceRef)
-                .toList();
+        return courseEducationResourceMapper.mapAll(
+                courseRepository.findEducationResourceRefsByCourseIdIn(courseIds));
     }
 
     @Transactional(readOnly = true)
@@ -106,10 +109,8 @@ public class CourseDataRepository {
         if (exerciseIds.isEmpty()) {
             return List.of();
         }
-        return exerciseCourseLinkRepository
-                .findAllByCourseIdAndExerciseIdsFetchingExercise(courseId, exerciseIds).stream()
-                .map(CourseDataRepository::toCourseExercise)
-                .toList();
+        return courseExerciseMapper.mapAll(exerciseCourseLinkRepository
+                .findAllByCourseIdAndExerciseIdsFetchingExercise(courseId, exerciseIds));
     }
 
     @Transactional
@@ -120,43 +121,5 @@ public class CourseDataRepository {
     @Transactional
     public void unlinkExercise(long exerciseId, long courseId) {
         exerciseCourseLinkRepository.deleteByExerciseIdAndCourseId(exerciseId, courseId);
-    }
-
-    // ---------------------------------------------------------------- маппинг
-
-    private static @NotNull List<CourseSummaryData> toSummaries(@NotNull List<CourseView> views) {
-        return views.stream().map(CourseDataRepository::toSummary).toList();
-    }
-
-    private static @NotNull CourseSummaryData toSummary(@NotNull CourseView view) {
-        return new CourseSummaryData(
-                view.getId(),
-                Strict.required(view.getName(), "name", "course " + view.getId()),
-                view.getEducationResourceId(),
-                Strict.required(view.getEducationResourceUrl(), "educationResourceUrl",
-                        "course " + view.getId()));
-    }
-
-    private static @NotNull ExternalCourseData toExternalCourse(@NotNull CourseView view) {
-        long id = view.getId();
-        return new ExternalCourseData(
-                id,
-                Strict.required(view.getName(), "name", "course " + id),
-                Strict.required(view.getExternalCourseId(), "externalCourseId", "course " + id));
-    }
-
-    private static @NotNull CourseEducationResourceData toEducationResourceRef(@NotNull CourseView view) {
-        long courseId = view.getId();
-        return new CourseEducationResourceData(
-                courseId,
-                view.getEducationResourceId());
-    }
-
-    private static @NotNull CourseExerciseData toCourseExercise(@NotNull ExerciseCourseLinkEntity link) {
-        ExerciseEntity exercise = Strict.required(link.getExercise(), "exercise", "exercise course link");
-        long exerciseId = Strict.required(exercise.getId(), "id", "exercise of course link");
-        return new CourseExerciseData(
-                exerciseId,
-                Strict.required(exercise.getName(), "name", "exercise " + exerciseId));
     }
 }

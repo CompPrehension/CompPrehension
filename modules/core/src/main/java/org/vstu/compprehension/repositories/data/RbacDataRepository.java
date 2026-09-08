@@ -6,13 +6,14 @@ import org.jetbrains.annotations.Nullable;
 import org.springframework.stereotype.Repository;
 import org.springframework.transaction.annotation.Transactional;
 import org.vstu.compprehension.businesslogic.auth.Permission;
+import org.vstu.compprehension.businesslogic.auth.PermissionScopeKind;
 import org.vstu.compprehension.businesslogic.auth.Role;
 import org.vstu.compprehension.data.cource.CourseRoleAssignmentData;
 import org.vstu.compprehension.data.cource.CourseRoleGrantData;
-import org.vstu.compprehension.businesslogic.auth.PermissionScopeKind;
 import org.vstu.compprehension.entities.role.PermissionScopeEntity;
 import org.vstu.compprehension.entities.role.RoleEntity;
 import org.vstu.compprehension.entities.role.RoleUserAssignmentEntity;
+import org.vstu.compprehension.mappers.Mapper;
 import org.vstu.compprehension.repositories.entity.PermissionScopeRepository;
 import org.vstu.compprehension.repositories.entity.RbacBulkInsertExecutor;
 import org.vstu.compprehension.repositories.entity.RoleRepository;
@@ -33,6 +34,7 @@ public class RbacDataRepository {
     private final RoleRepository roleRepository;
     private final PermissionScopeRepository scopeRepository;
     private final RbacBulkInsertExecutor bulkInsertExecutor;
+    private final Mapper<RoleUserAssignmentEntity, CourseRoleAssignmentData> courseRoleAssignmentMapper;
 
     @Transactional(readOnly = true)
     public boolean isAuthorizedInAnyScope(long userId, @NotNull String permissionId,
@@ -77,9 +79,8 @@ public class RbacDataRepository {
         if (userIds.isEmpty()) {
             return List.of();
         }
-        return ruaRepository.findCourseAssignmentsInEducationResource(educationResourceId, userIds).stream()
-                .map(RbacDataRepository::toData)
-                .toList();
+        return courseRoleAssignmentMapper.mapAll(
+                ruaRepository.findCourseAssignmentsInEducationResource(educationResourceId, userIds));
     }
 
     @Transactional
@@ -137,21 +138,5 @@ public class RbacDataRepository {
             throw new IllegalStateException(messagePrefix + key);
         }
         return value;
-    }
-
-    // ---------------------------------------------------------------- маппинг
-
-    private static @NotNull CourseRoleAssignmentData toData(@NotNull RoleUserAssignmentEntity entity) {
-        long id = Strict.required(entity.getId(), "id", "role assignment");
-        String owner = "role assignment " + id;
-        var user = Strict.required(entity.getUser(), "user", owner);
-        var role = Strict.required(entity.getRole(), "role", owner);
-        var scope = Strict.required(entity.getPermissionScope(), "permissionScope", owner);
-        return new CourseRoleAssignmentData(
-                id,
-                Strict.required(user.getId(), "user.id", owner),
-                // Область вида COURSE всегда указывает на курс: выборка ограничена ими.
-                Strict.required(scope.getScopeItemId(), "permissionScope.scopeItemId", owner),
-                Strict.required(role.getName(), "role.name", owner));
     }
 }

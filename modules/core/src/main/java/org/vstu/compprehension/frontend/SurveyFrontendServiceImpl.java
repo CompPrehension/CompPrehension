@@ -9,7 +9,7 @@ import org.vstu.compprehension.frontend.dto.survey.SurveyResultDto;
 import org.vstu.compprehension.data.survey.SurveyVoteData;
 import org.vstu.compprehension.repositories.data.SurveyDataRepository;
 import org.vstu.compprehension.services.QuestionDataService;
-import org.vstu.compprehension.mappers.Mapper;
+import org.vstu.compprehension.frontend.mappers.LegacyDtoMappers;
 
 import java.util.List;
 import java.util.NoSuchElementException;
@@ -23,7 +23,7 @@ class SurveyFrontendServiceImpl implements SurveyFrontendService {
 
     @Transactional(readOnly = true)
     public @NotNull SurveyDto getSurvey(@NotNull String surveyId) {
-        return Mapper.toDto(surveys.getById(surveyId));
+        return LegacyDtoMappers.toDto(surveys.getById(surveyId));
     }
 
     @Transactional(readOnly = true)
