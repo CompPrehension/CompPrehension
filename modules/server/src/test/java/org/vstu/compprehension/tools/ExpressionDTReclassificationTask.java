@@ -1,7 +1,7 @@
 package org.vstu.compprehension.tools;
 
+import lombok.RequiredArgsConstructor;
 import org.junit.jupiter.api.Disabled;
-import org.vstu.compprehension.infrastructure.TestQuestionMetadata;
 import org.vstu.compprehension.data.question.QuestionMetadataData;
 
 import org.vstu.compprehension.infrastructure.AbstractIntegrationTest;
@@ -11,12 +11,12 @@ import org.hibernate.SessionFactory;
 import org.junit.jupiter.api.BeforeAll;
 import org.junit.jupiter.api.Test;
 import org.junit.jupiter.api.TestInstance;
-import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.test.annotation.Rollback;
 import org.vstu.compprehension.businesslogic.domains.DomainFactory;
 import org.vstu.compprehension.businesslogic.domains.ProgrammingLanguageExpressionDTDomain;
 import org.vstu.compprehension.businesslogic.domains.helpers.meaningtree.MeaningTreeOrderQuestionBuilder;
 import org.vstu.compprehension.entities.QuestionMetadataEntity;
+import org.vstu.compprehension.mappers.Mapper;
 import org.vstu.compprehension.repositories.entity.QuestionMetadataRepository;
 
 import java.util.ArrayList;
@@ -24,15 +24,13 @@ import java.util.List;
 
 @Disabled("Не работает в test-containers.")
 @TestInstance(TestInstance.Lifecycle.PER_CLASS)
+@RequiredArgsConstructor
 public class ExpressionDTReclassificationTask extends AbstractIntegrationTest {
-    @Autowired
-    DomainFactory domainFactory;
-    @Autowired
-    private QuestionMetadataRepository qMetaRepo;
-    @Autowired
-    private QuestionMetadataRepository qDataRepo;
-    @Autowired
-    private SessionFactory sessionFactory;
+    private final DomainFactory domainFactory;
+    private final QuestionMetadataRepository qMetaRepo;
+    private final SessionFactory sessionFactory;
+    private final Mapper<QuestionMetadataEntity, QuestionMetadataData> questionMetadataToDataMapper;
+    private final Mapper<QuestionMetadataData, QuestionMetadataEntity> questionDataToMetadataMapper;
 
     private ProgrammingLanguageExpressionDTDomain domain;
     public static final String domainId = "ProgrammingLanguageExpressionDTDomain";
@@ -78,7 +76,7 @@ public class ExpressionDTReclassificationTask extends AbstractIntegrationTest {
             System.err.printf("Processing metadata id=%d%n", meta.getId());
             QuestionMetadataData obj;
             try {
-                obj = MeaningTreeOrderQuestionBuilder.metadataRecalculate(domain, TestQuestionMetadata.toData(meta));
+                obj = MeaningTreeOrderQuestionBuilder.metadataRecalculate(domain, questionMetadataToDataMapper.map(meta));
             } catch (Exception e) {
                 e.printStackTrace();
                 obj = null;
@@ -94,7 +92,7 @@ public class ExpressionDTReclassificationTask extends AbstractIntegrationTest {
             obj.setId(meta.getId());
             obj.setGenerationRequestId(meta.getGenerationRequestId());
             obj.setCreatedAt(meta.getCreatedAt());
-            var updated = TestQuestionMetadata.toEntity(obj);
+            var updated = questionDataToMetadataMapper.map(obj);
             updated.setQuestionData(meta.getQuestionData());
             newMeta.add(updated);
             lastId = meta.getId();

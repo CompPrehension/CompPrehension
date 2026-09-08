@@ -1,5 +1,6 @@
 package org.vstu.compprehension.domain.dt;
 
+import lombok.RequiredArgsConstructor;
 import org.vstu.compprehension.businesslogic.domains.ControlFlowDTDomain;
 import its.reasoner.nodes.*;
 import jakarta.transaction.Transactional;
@@ -9,13 +10,13 @@ import org.junit.jupiter.api.BeforeAll;
 import org.junit.jupiter.api.Disabled;
 import org.junit.jupiter.api.Test;
 import org.junit.jupiter.api.TestInstance;
-import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.boot.test.context.SpringBootTest;
 import org.springframework.test.context.ActiveProfiles;
-import org.vstu.compprehension.infrastructure.TestQuestionMetadata;
+import org.vstu.compprehension.data.question.QuestionMetadataData;
+import org.vstu.compprehension.entities.QuestionMetadataEntity;
 import org.vstu.compprehension.data.question.ResponseData;
 import org.vstu.compprehension.data.question.AnswerObjectData;
-import org.vstu.compprehension.services.QuestionDataService;
+import org.vstu.compprehension.mappers.Mapper;
 import org.vstu.compprehension.businesslogic.Question;
 import org.vstu.compprehension.businesslogic.domains.Domain;
 import org.vstu.compprehension.businesslogic.domains.DomainFactory;
@@ -40,19 +41,14 @@ import java.util.stream.StreamSupport;
 @TestInstance(TestInstance.Lifecycle.PER_CLASS)
 @ActiveProfiles("test")
 @Transactional
+@RequiredArgsConstructor
 public class CtrlFlowDTTest {
-    @Autowired
-    DomainFactory domainFactory;
-    @Autowired
-    private ExerciseAttemptRepository exerciseAttemptRepository;
-    @Autowired
-    private ExerciseRepository exerciseRepository;
-    @Autowired
-    private QuestionMetadataRepository qMetaRepo;
-    @Autowired
-    private UserRepository userRepository;
-    @Autowired
-    private QuestionDataService questionService;
+    private final DomainFactory domainFactory;
+    private final ExerciseAttemptRepository exerciseAttemptRepository;
+    private final ExerciseRepository exerciseRepository;
+    private final QuestionMetadataRepository qMetaRepo;
+    private final UserRepository userRepository;
+    private final Mapper<QuestionMetadataEntity, QuestionMetadataData> questionMetadataMapper;
 
     private static final boolean DETAILED_TRACE = true;
 
@@ -74,7 +70,7 @@ public class CtrlFlowDTTest {
 
     public Question loadQuestion(String questionName) {
         var metas = qMetaRepo.findByName(questionName);
-        return domain.makeQuestion(TestQuestionMetadata.toData(metas.getFirst()), List.of(domain.getTag("Python")), Language.ENGLISH);
+        return domain.makeQuestion(questionMetadataMapper.map(metas.getFirst()), List.of(domain.getTag("Python")), Language.ENGLISH);
     }
 
     /**

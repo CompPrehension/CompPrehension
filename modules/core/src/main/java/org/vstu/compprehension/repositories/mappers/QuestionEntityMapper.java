@@ -9,7 +9,6 @@ import org.vstu.compprehension.mappers.Mapping;
 
 public interface QuestionEntityMapper extends Mapping {
 
-    /** Новая строка вопроса: коллекции заводятся пустыми, остальное переносит {@link #apply}. */
     @NotNull QuestionEntity map(@NotNull QuestionData question,
                                 @Nullable QuestionMetadataEntity metadata);
 

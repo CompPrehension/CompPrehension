@@ -54,9 +54,6 @@ public class Main {
 
         //ProgrammingLanguageExpressionDomain domain = (ProgrammingLanguageExpressionDomain) df.getDomain("ProgrammingLanguageExpressionDomain");
 
-        // Генератор работает без базы: описание области задано здесь же, а не читается
-        // из справочника доменов. Раньше ради этих четырёх значений существовала
-        // подделка репозитория сущностей.
         var domainData = new DomainData("expression", "expression", "1.0.0", new DomainOptionsData());
         var domain = new ProgrammingLanguageExpressionDTDomain(
                 domainData,
@@ -64,13 +61,8 @@ public class Main {
                         domainData,
                         new FakeLocalizationService(),
                         new RandomProviderImpl(),
-                        // генератор работает вне попыток: ни этап упражнения, ни язык
-                        // пользователя, ни цепочки вспомогательных вопросов ему не нужны
                         null,
                         null,
-                        // Банк генератору не нужен: он не ищет готовые вопросы,
-                        // а порождает новые. Подставлен пустой, чтобы домен собрался.
-                        // Статистика поиска отсюда недостижима: генератор готовые вопросы не ищет.
                         new QuestionBankImpl(FakeDataAccess.questionBank(), null)
                 ),
                 null,

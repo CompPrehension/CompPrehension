@@ -37,8 +37,6 @@ public class TestUserService implements UserDataService {
         if (userId == null) {
             throw new IllegalStateException("Текущий пользователь не задан: вызовите actingAs(...)");
         }
-        // Тестовый дубль собирает карточку прямо из сущности: настоящий путь входа
-        // (OIDC-токен, запись учётной записи, выдача ролей) здесь не воспроизводится.
         var user = userRepository.findById(userId)
                 .orElseThrow(() -> new NoSuchElementException("Нет пользователя с id " + userId));
         return new UserData(user.getId(), user.getFirstName(), user.getLastName(),
@@ -47,7 +45,6 @@ public class TestUserService implements UserDataService {
 
     @Override
     public void setLanguage(Language language) {
-        // Запись идёт по сущности: getCurrentUser отдаёт отсоединённые данные.
         var user = userRepository.findById(getCurrentUser().id())
                 .orElseThrow(() -> new NoSuchElementException("Нет текущего пользователя"));
         user.setPreferred_language(language);

@@ -52,8 +52,6 @@ public class SurveyDataRepository {
                 vote.surveyQuestionId(), vote.questionId(), userId);
         var answer = surveyAnswerRepository.findById(id).orElseGet(SurveyAnswerEntity::new);
         answer.setSurveyQuestion(surveyQuestion);
-        // Существование вопроса и пользователя доказано вызывающим — он проверил, что
-        // вопрос принадлежит попытке этого пользователя. Поэтому ссылки без запроса.
         answer.setQuestion(questionRepository.getReferenceById(vote.questionId()));
         answer.setUser(userRepository.getReferenceById(userId));
         answer.setResult(vote.answer());

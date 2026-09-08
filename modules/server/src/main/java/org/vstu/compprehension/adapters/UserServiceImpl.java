@@ -65,11 +65,6 @@ public class UserServiceImpl implements UserDataService {
         return currentUserMapper.map(signIn());
     }
 
-    /**
-     * Записать вход и вернуть учётную запись.
-     * <p>
-     * Учётная запись нужна только здесь: наружу пользователь уходит карточкой.
-     */
     private UserAccountData signIn() throws Exception {
         Authentication authentication = SecurityContextHolder.getContext().getAuthentication();
         var parsedIdToken = getToken(authentication);
@@ -84,10 +79,6 @@ public class UserServiceImpl implements UserDataService {
         var existing = users.findByEmail(email).orElse(null);
         boolean isNewUser = existing == null;
 
-        // Запуск из LMS задаёт язык сам, обычный вход язык не трогает. Идентификатор
-        // пользователя в LMS тоже приходит только с LTI-запуском, и обычный вход не
-        // должен его затирать — раньше оба поля просто не записывались, теперь их
-        // прежние значения передаются явно.
         Language language = isLti
                 ? getLtiLanguage(parsedIdToken)
                 : (existing == null ? null : existing.language());

@@ -1,9 +1,10 @@
 package org.vstu.compprehension.domain;
 
+import lombok.RequiredArgsConstructor;
 import org.vstu.compprehension.data.exercise.ExerciseOptionsData;
 import org.vstu.compprehension.data.exercise.ExerciseStageData;
+import org.vstu.compprehension.data.question.QuestionMetadataData;
 import org.vstu.compprehension.data.question.ResponseData;
-import org.vstu.compprehension.infrastructure.TestQuestionMetadata;
 import org.vstu.compprehension.data.question.AnswerObjectData;
 import org.vstu.compprehension.businesslogic.*;
 
@@ -13,6 +14,7 @@ import jakarta.transaction.Transactional;
 import org.junit.jupiter.api.*;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.util.Assert;
+import org.vstu.compprehension.mappers.Mapper;
 import org.vstu.compprehension.services.QuestionDataService;
 import org.vstu.compprehension.businesslogic.domains.Domain;
 import org.vstu.compprehension.businesslogic.domains.DomainFactory;
@@ -40,24 +42,17 @@ import java.util.List;
 
 @TestInstance(TestInstance.Lifecycle.PER_CLASS)
 @Transactional
+@RequiredArgsConstructor
 public class ExpressionDTDomainMetadataValidationTest extends AbstractIntegrationTest {
-    @Autowired
-    DomainFactory domainFactory;
-    @Autowired
-    private DomainRepository domainRepository;
-    @Autowired
-    private ExerciseAttemptRepository exerciseAttemptRepository;
-    @Autowired
-    private ExerciseRepository exerciseRepository;
-    @Autowired
-    private UserRepository userRepository;
-    @Autowired
-    private QuestionDataService questionService;
-    @Autowired
-    private QuestionMetadataRepository qMetaRepo;
-    @Autowired
-    private QuestionBank qBank;
-
+    private final DomainFactory domainFactory;
+    private final DomainRepository domainRepository;
+    private final ExerciseAttemptRepository exerciseAttemptRepository;
+    private final ExerciseRepository exerciseRepository;
+    private final UserRepository userRepository;
+    private final QuestionMetadataRepository qMetaRepo;
+    private final QuestionBank qBank;
+    private final Mapper<QuestionMetadataEntity, QuestionMetadataData> questionMetadataMapper;
+    
     private ExerciseAttemptEntity attempt;
     private ExerciseEntity exercise;
     private ProgrammingLanguageExpressionDTDomain domain;
@@ -206,7 +201,7 @@ public class ExpressionDTDomainMetadataValidationTest extends AbstractIntegratio
 
     public Question prepareQuestion(QuestionMetadataEntity meta) {
         SupportedLanguage lang = MeaningTreeUtils.detectLanguageFromTags(meta.getTagBits(), domain);
-        Question q = meta.getQuestionData().getData().toQuestion(domain, TestQuestionMetadata.toData(meta));
+        Question q = meta.getQuestionData().getData().toQuestion(domain, questionMetadataMapper.map(meta));
         return QuestionDynamicDataAppender.appendQuestionData(q, qBank, lang, domain, Language.ENGLISH);
     }
 

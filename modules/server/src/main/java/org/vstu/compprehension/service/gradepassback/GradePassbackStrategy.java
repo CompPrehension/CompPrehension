@@ -5,9 +5,6 @@ import org.vstu.compprehension.data.exerciseattempt.GradePassbackTargetData;
 
 /**
  * Реализация отвечает за один механизм отправки оценки (LTI AGS, Moodle WS и т.п.).
- * <p>
- * Принимает данные, а не {@code ExerciseAttemptEntity}: отправка асинхронная и идёт
- * в своей транзакции, поэтому обходить ленивые связи попытки здесь нельзя.
  */
 public interface GradePassbackStrategy {
     boolean supports(@NotNull GradePassbackTargetData target);

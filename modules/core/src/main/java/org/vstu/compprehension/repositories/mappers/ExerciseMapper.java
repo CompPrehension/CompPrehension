@@ -16,8 +16,6 @@ class ExerciseMapper implements Mapper<ExerciseEntity, ExerciseData> {
     public @NotNull ExerciseData map(@NotNull ExerciseEntity source) {
         long id = Strict.required(source.getId(), "id", "exercise");
         String owner = "exercise " + id;
-        // getDomain() ленивый, но getName() - это первичный ключ домена,
-        // и его прокси отдаёт сам, без запроса.
         var domain = Strict.required(source.getDomain(), "domain", owner);
         return new ExerciseData(
                 id,

@@ -18,9 +18,6 @@ import org.vstu.compprehension.repositories.data.BktDataRepository;
 import java.util.Collections;
 import java.util.List;
 
-/**
- * Единая точка доступа к python-модели BKT
- */
 @Service
 @RequiredArgsConstructor
 @ConditionalOnBean(BktServiceGrpc.BktServiceBlockingStub.class)
@@ -96,7 +93,6 @@ public class BktService {
         }
     }
 
-    /** Roster студента; null, если BKT для области не настроен или roster пуст. */
     private @Nullable String getRoster(String domainId, Long userId) {
         val roster = bktData.findRoster(domainId, userId).orElse(null);
         return roster == null || roster.isBlank() ? null : roster;

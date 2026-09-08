@@ -5,14 +5,13 @@ import org.jetbrains.annotations.Nullable;
 import org.springframework.stereotype.Component;
 import org.springframework.transaction.annotation.Propagation;
 import org.springframework.transaction.annotation.Transactional;
+import org.vstu.compprehension.data.exercise.ExerciseOptionsData;
 import org.vstu.compprehension.frontend.mappers.ExerciseCardDtoMapper;
-import org.vstu.compprehension.frontend.mappers.ExerciseInfoDtoMapper;
 import org.vstu.compprehension.frontend.mappers.ExerciseListDtoMapper;
 import org.vstu.compprehension.frontend.dto.*;
+import org.vstu.compprehension.mappers.UpdateMapper;
 import org.vstu.compprehension.services.ExercisePermissionDataService;
 import org.vstu.compprehension.services.ExerciseDataService;
-
-import java.util.List;
 
 @Component
 public class ExerciseFrontendServiceImpl implements ExerciseFrontendService {
@@ -20,13 +19,13 @@ public class ExerciseFrontendServiceImpl implements ExerciseFrontendService {
     private final ExercisePermissionDataService exercisePermissionService;
     private final ExerciseCardDtoMapper exerciseCardDtoMapper;
     private final ExerciseListDtoMapper exerciseListDtoMapper;
-    private final ExerciseInfoDtoMapper exerciseInfoDtoMapper;
+    private final UpdateMapper<ExerciseOptionsData, ExerciseInfoDto> exerciseInfoDtoMapper;
 
     public ExerciseFrontendServiceImpl(ExerciseDataService exerciseService,
                                        ExercisePermissionDataService exercisePermissionService,
                                        ExerciseCardDtoMapper exerciseCardDtoMapper,
                                        ExerciseListDtoMapper exerciseListDtoMapper,
-                                       ExerciseInfoDtoMapper exerciseInfoDtoMapper) {
+                                       UpdateMapper<ExerciseOptionsData, ExerciseInfoDto> exerciseInfoDtoMapper) {
         this.exerciseService = exerciseService;
         this.exercisePermissionService = exercisePermissionService;
         this.exerciseCardDtoMapper = exerciseCardDtoMapper;
@@ -41,7 +40,14 @@ public class ExerciseFrontendServiceImpl implements ExerciseFrontendService {
 
     @Override
     public @NotNull ExerciseInfoDto getExerciseShortInfo(long id, @Nullable Long courseId) {
-        return exerciseInfoDtoMapper.map(id, exerciseService.getExerciseOptionsInContext(id, courseId));
+
+        var exerciseOptions = exerciseService.getExerciseOptionsInContext(id, courseId);
+        
+        var result = new ExerciseInfoDto();
+        result.setId(id);
+        exerciseInfoDtoMapper.apply(exerciseOptions, result);
+
+        return result;
     }
 
     @Override

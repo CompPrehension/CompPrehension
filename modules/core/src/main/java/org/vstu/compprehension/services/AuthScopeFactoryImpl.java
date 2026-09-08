@@ -40,9 +40,12 @@ class AuthScopeFactoryImpl implements AuthScopeFactory {
             return new AuthScope(List.of());
         }
         var scopes = new ArrayList<PermissionScope>();
-        distinctCourseIds.forEach(courseId -> scopes.add(PermissionScope.course(courseId)));
-        educationResources.educationResourceIdsOf(distinctCourseIds)
-                .forEach(eduResId -> scopes.add(PermissionScope.educationResource(eduResId)));
+        for (Long courseId : distinctCourseIds) {
+            scopes.add(PermissionScope.course(courseId));
+        }
+        for (Long eduResId : educationResources.educationResourceIdsOf(distinctCourseIds)) {
+            scopes.add(PermissionScope.educationResource(eduResId));
+        }
         return new AuthScope(scopes);
     }
 }

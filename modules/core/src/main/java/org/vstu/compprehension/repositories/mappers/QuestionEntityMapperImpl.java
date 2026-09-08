@@ -43,7 +43,6 @@ class QuestionEntityMapperImpl implements QuestionEntityMapper {
         applyAnswerObjects(question, destination);
     }
 
-    /** Варианты ответа обновляются по месту: уже сохранённые узнаются по идентификатору. */
     private void applyAnswerObjects(@NotNull QuestionData data, @NotNull QuestionEntity target) {
         if (data.getAnswerObjects() == null) {
             return;

@@ -14,17 +14,6 @@ import org.vstu.compprehension.repositories.entity.BktUserDataRepository;
 
 import java.util.Optional;
 
-/**
- * Состояние BKT-модели: roster студента в предметной области.
- * <p>
- * Roster — это строка, которую python-модель отдаёт и принимает как есть; система в неё
- * не заглядывает. Наружу поэтому и выходит строка, а не строка таблицы: всё, что с ней
- * делают, — передают в модель и записывают обратно.
- * <p>
- * Транзакция обязана быть открыта вызывающим ({@code MANDATORY}): чтение roster'а,
- * вызов модели и запись результата — одно целое, и разорвать их значит потерять
- * обновление при параллельном ответе того же студента.
- */
 @Repository
 @RequiredArgsConstructor
 public class BktDataRepository {
@@ -35,23 +24,11 @@ public class BktDataRepository {
     @PersistenceContext
     private EntityManager entityManager;
 
-    /**
-     * Roster студента в области, заводя его из пустого roster'а области при отсутствии.
-     *
-     * @return пусто, если для области BKT не настроен — тогда модель не используется
-     */
     @Transactional(propagation = Propagation.MANDATORY, readOnly = true)
     public @NotNull Optional<String> findRoster(@NotNull String domainId, long userId) {
         return findEntity(domainId, userId).map(BktUserDataEntity::getRoster);
     }
 
-    /**
-     * Записать roster, полученный от модели.
-     * <p>
-     * Строка версионирована: параллельная запись того же roster'а приводит к
-     * {@code ObjectOptimisticLockingFailureException}, и повторить попытку — забота
-     * вызывающего.
-     */
     @Transactional(propagation = Propagation.MANDATORY)
     public void updateRoster(@NotNull String domainId, long userId, @NotNull String roster) {
         findEntity(domainId, userId).ifPresent(entity -> {

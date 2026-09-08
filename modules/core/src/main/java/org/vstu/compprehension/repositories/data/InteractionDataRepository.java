@@ -43,8 +43,7 @@ public class InteractionDataRepository {
     private final Mapper<ViolationData, ViolationEntity> violationEntityMapper;
 
     @Transactional(readOnly = true)
-    public @NotNull List<ResponseData> resolveAnswers(long questionId,
-                                                      @NotNull List<SubmittedAnswerData> answers) {
+    public @NotNull List<ResponseData> resolveAnswers(long questionId, @NotNull List<SubmittedAnswerData> answers) {
         var answerObjects = answerObjectsByAnswerId(findQuestion(questionId), questionId);
         return answers.stream()
                 .map(answer -> new ResponseData(

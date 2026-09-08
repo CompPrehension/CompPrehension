@@ -28,7 +28,6 @@ class ViolationEntityMapper implements Mapper<ViolationData, ViolationEntity> {
         return entity;
     }
 
-    /** Шаблоны объяснений — часть самого нарушения и ссылаются на него обратно. */
     private @NotNull List<ExplanationTemplateInfoEntity> toEntities(
             @Nullable List<ExplanationTemplateInfoData> source, @NotNull ViolationEntity owner) {
         if (source == null) {

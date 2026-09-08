@@ -20,7 +20,6 @@ class CourseRoleAssignmentMapper implements Mapper<RoleUserAssignmentEntity, Cou
         return new CourseRoleAssignmentData(
                 id,
                 Strict.required(user.getId(), "user.id", owner),
-                // Область вида COURSE всегда указывает на курс: выборка ограничена ими.
                 Strict.required(scope.getScopeItemId(), "permissionScope.scopeItemId", owner),
                 Strict.required(role.getName(), "role.name", owner));
     }

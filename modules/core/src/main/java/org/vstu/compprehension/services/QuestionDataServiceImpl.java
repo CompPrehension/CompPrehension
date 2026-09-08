@@ -103,9 +103,6 @@ class QuestionDataServiceImpl implements QuestionDataService {
 
     /**
      * Ответы, пришедшие с фронта, в вид, с которым работают домены.
-     * <p>
-     * В БД при этом ничего не пишется: ответ становится строкой только вместе со
-     * взаимодействием, которое его объясняет.
      */
     public List<ResponseData> resolveAnswers(long questionId, List<SubmittedAnswerData> answers) {
         return interactionDataRepository.resolveAnswers(questionId, answers);
@@ -118,9 +115,6 @@ class QuestionDataServiceImpl implements QuestionDataService {
 
     /**
      * Записать взаимодействие студента с вопросом.
-     * <p>
-     * Оценка выставляется отдельно: её считает стратегия по истории попытки, в которую
-     * входит и это взаимодействие.
      */
     public RecordedInteractionData recordInteraction(NewInteractionData interaction) {
         return interactionDataRepository.record(interaction);
@@ -167,16 +161,6 @@ class QuestionDataServiceImpl implements QuestionDataService {
         return questionDataRepository.findOwnerUserId(questionId);
     }
 
-    /**
-     * Записать вопрос.
-     * <p>
-     * Домен, попытка и журнал запроса в самих данных вопроса не лежат, поэтому
-     * передаются рядом: это единственный сток всех путей генерации, и пропустить
-     * привязку нельзя.
-     *
-     * @param questionRequestLog журнал запроса, если вопрос сгенерирован по запросу
-     * @param exerciseAttemptId  попытка, в рамках которой задан вопрос, если она есть
-     */
     public void saveQuestion(Question question,
                              @Nullable QuestionRequestLogData questionRequestLog,
                              @Nullable Long exerciseAttemptId) {

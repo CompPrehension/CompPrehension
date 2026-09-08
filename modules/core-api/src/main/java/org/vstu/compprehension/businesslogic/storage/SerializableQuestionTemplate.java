@@ -100,7 +100,6 @@ public class SerializableQuestionTemplate {
         private int treeHashCode;
         private long skillBits;
 
-        /** Метаданные в форме, с которой работает банк: без строки таблицы. */
         public QuestionMetadataData toMetadataData() {
             return QuestionMetadataData.builder()
                     .name(this.getName())

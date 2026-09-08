@@ -37,8 +37,6 @@ public class QuestionDynamicDataAppender {
             if (q == null) {
                 return null;
             }
-            // Тело вопроса переписывается в банке: метаданные остаются прежними,
-            // меняется только сериализованный вопрос, на который они ссылаются.
             var body = SerializableQuestion.fromQuestion(q);
             bank.replaceQuestionBody(meta.getId(), body);
             meta.setData(body);

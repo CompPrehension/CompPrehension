@@ -50,10 +50,6 @@ public interface QuestionRepository extends JpaRepository<QuestionEntity, Long> 
 
     /**
      * Порядковый номер вопроса внутри попытки, считая с единицы.
-     * <p>
-     * Раньше это считалось как {@code attempt.getQuestions().indexOf(question) + 1},
-     * то есть ради одного числа поднимались все вопросы попытки. Порядок тот же:
-     * у коллекции нет {@code @OrderBy}, и фактически она приходила в порядке id.
      */
     @Query("""
             select count(q) from QuestionEntity q

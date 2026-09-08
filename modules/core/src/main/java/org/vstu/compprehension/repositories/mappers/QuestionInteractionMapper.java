@@ -24,8 +24,6 @@ class QuestionInteractionMapper implements Mapper<InteractionEntity, QuestionInt
         var data = new QuestionInteractionData();
         data.setId(source.getId());
         data.setInteractionType(source.getInteractionType());
-        // Оценка допускает отсутствие: связь объявлена с @NotFound(IGNORE), и на висячую
-        // ссылку Hibernate подставляет null вместо ошибки.
         data.setFeedback(source.getFeedback() == null ? null
                 : new FeedbackData(source.getFeedback().getId(), source.getFeedback().getGrade(),
                         source.getFeedback().getInteractionsLeft()));

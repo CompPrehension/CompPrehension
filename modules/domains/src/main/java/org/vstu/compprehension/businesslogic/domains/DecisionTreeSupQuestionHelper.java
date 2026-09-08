@@ -86,9 +86,8 @@ public class DecisionTreeSupQuestionHelper {
             return null;
         }
         QuestionInteractionData lastInteraction = interactions.get(interactions.size() - 1);
+
         //Получить последний шаг цепочки вспомогательных вопросов
-        // Шаги цепочки — записи в БД, у взаимодействия в бизнес-логике их нет:
-        // спрашиваем сервис по идентификатору.
         SupplementaryStepData latestStep = supplementaryStepService.findLatestStepOfInteraction(lastInteraction.getId());
 
         //Создать соответствующую ситуации рдф-модель

@@ -1,5 +1,6 @@
 package org.vstu.compprehension.adapters;
 
+import lombok.RequiredArgsConstructor;
 import lombok.extern.log4j.Log4j2;
 import org.springframework.scheduling.annotation.Async;
 import org.springframework.stereotype.Service;
@@ -20,29 +21,12 @@ import java.util.List;
  */
 @Service
 @Log4j2
+@RequiredArgsConstructor
 public class GradePassbackServiceImpl implements GradePassbackService {
 
     private final List<GradePassbackStrategy> strategies;
-    /**
-     * Адресат оценки перечитывается по идентификатору: метод асинхронный и работает
-     * в своей транзакции, так что объект, собранный вызывающим, здесь не годится.
-     * <p>
-     * Через {@code ExerciseAttemptService} получался цикл бинов, который приходилось
-     * разрывать {@code @Lazy}: ExerciseAttemptService -> GradePassbackService ->
-     * ExerciseAttemptService.
-     */
     private final ExerciseAttemptDataRepository exerciseAttemptDataRepository;
     private final AuthService authService;
-
-    public GradePassbackServiceImpl(
-            List<GradePassbackStrategy> strategies,
-            ExerciseAttemptDataRepository exerciseAttemptDataRepository,
-            AuthService authService
-    ) {
-        this.strategies = strategies;
-        this.exerciseAttemptDataRepository = exerciseAttemptDataRepository;
-        this.authService = authService;
-    }
 
     @Async
     @Transactional(propagation = Propagation.REQUIRES_NEW)

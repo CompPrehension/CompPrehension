@@ -3,12 +3,6 @@ package org.vstu.compprehension.utils;
 import org.jetbrains.annotations.NotNull;
 import org.jetbrains.annotations.Nullable;
 
-/**
- * Чтение обязательных полей персистентных типов.
- * <p>
- * Живёт в корне слоя доступа к данным, потому что пользуются им и репозитории,
- * и мапперы из {@code repositories.mappers}.
- */
 public final class Strict {
 
     private Strict() {
