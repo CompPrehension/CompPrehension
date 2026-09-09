@@ -22,7 +22,6 @@ class AttemptQuestionMapperImpl implements AttemptQuestionMapper {
     @Override
     public @NotNull AttemptQuestionData map(@NotNull QuestionEntity question,
                                             @NotNull List<AttemptQuestionInteractionData> interactions) {
-        // Метаданных нет у вопросов, заведённых не через банк заданий.
         var bits = Optional.ofNullable(question.getMetadata())
                 .map(questionMetadataBitsMapper::map)
                 .orElse(null);

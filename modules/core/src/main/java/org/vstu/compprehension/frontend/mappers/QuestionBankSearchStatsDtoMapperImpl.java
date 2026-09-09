@@ -13,7 +13,6 @@ class QuestionBankSearchStatsDtoMapperImpl implements QuestionBankSearchStatsDto
     @Override
     public @NotNull QuestionBankSearchStatsDto map(long count, long topRatedCount,
                                                    @NotNull List<QuestionMetadataData> found) {
-        // В статистику уезжают только имя и идентификатор: тела вопросов здесь не нужны.
         var questions = found.stream()
                 .map(m -> new QuestionBankSearchStatsDto.QuestionMetadataDto(m.getId(), m.getName()))
                 .toList();

@@ -91,7 +91,6 @@ public class ExerciseAttemptDataRepository {
                         q, interactionsByQuestion.getOrDefault(q.getId(), List.of())))
                 .toList();
 
-        // getUser() ленивый, но getId() обслуживается самим прокси и запроса не делает
         return new ExerciseAttemptWithQuestionsData(
                 attempt.getId(), attempt.getUser().getId(), exerciseData, questionsData);
     }
@@ -207,8 +206,6 @@ public class ExerciseAttemptDataRepository {
     public double getFinalGrade(long attemptId) {
         return exerciseAttemptRepository.calculateFinalGrade(attemptId).orElse(0.0);
     }
-
-    // ------------------------------------------------- подготовка данных для мапперов
 
     /** Вопросы попытки в строку не входят и приходят отдельным запросом. */
     private @NotNull List<Long> questionIdsOf(@NotNull AttemptSummaryRow row) {

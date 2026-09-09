@@ -47,35 +47,6 @@ public class QuestionMetadataData {
     @Builder.Default
     private Long skillBitsInPlan = 0L;
 
-    protected QuestionMetadataData(@NotNull QuestionMetadataData other) {
-        this.id = other.id;
-        this.name = other.name;
-        this.domainShortname = other.domainShortname;
-        this.templateId = other.templateId;
-        this.qDataGraph = other.qDataGraph;
-        this.tagBits = other.tagBits;
-        this.conceptBits = other.conceptBits;
-        this.lawBits = other.lawBits;
-        this.skillBits = other.skillBits;
-        this.violationBits = other.violationBits;
-        this.traceConceptBits = other.traceConceptBits;
-        this.solutionStructuralComplexity = other.solutionStructuralComplexity;
-        this.integralComplexity = other.integralComplexity;
-        this.solutionSteps = other.solutionSteps;
-        this.distinctErrorsCount = other.distinctErrorsCount;
-        this.version = other.version;
-        this.structureHash = other.structureHash;
-        this.origin = other.origin;
-        this.originLicense = other.originLicense;
-        this.createdAt = other.createdAt;
-        this.generationRequestId = other.generationRequestId;
-        this.conceptBitsInPlan = other.conceptBitsInPlan;
-        this.conceptBitsInRequest = other.conceptBitsInRequest;
-        this.violationBitsInPlan = other.violationBitsInPlan;
-        this.violationBitsInRequest = other.violationBitsInRequest;
-        this.skillBitsInPlan = other.skillBitsInPlan;
-    }
-
     /** Общие биты понятий из плана и из вопроса. */
     public Long traceConceptsSatisfiedFromPlan() {
         return (traceConceptBits != 0 ? traceConceptBits : conceptBits) & conceptBitsInPlan;

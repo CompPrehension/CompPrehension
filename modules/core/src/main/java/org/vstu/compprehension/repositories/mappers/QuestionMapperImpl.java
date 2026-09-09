@@ -40,7 +40,6 @@ class QuestionMapperImpl implements QuestionMapper {
                 .questionDomainType(question.getQuestionDomainType())
                 .options(question.getOptions())
                 .tags(new ArrayList<>(question.getTags()))
-                // Метаданных нет у вопросов, заведённых не через банк заданий.
                 .metadata(Optional.ofNullable(question.getMetadata())
                         .map(questionMetadataMapper::map)
                         .orElse(null))

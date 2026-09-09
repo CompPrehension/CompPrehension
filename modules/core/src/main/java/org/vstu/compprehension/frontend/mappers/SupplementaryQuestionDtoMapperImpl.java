@@ -23,7 +23,6 @@ class SupplementaryQuestionDtoMapperImpl implements SupplementaryQuestionDtoMapp
             return SupplementaryQuestionDto.FromQuestion(questionDto);
         }
         // TODO вынести в сервисный слой
-        // Вопрос без вариантов ответа спрашивать не о чем: он превращается в сообщение.
         return SupplementaryQuestionDto.FromMessage(new SupplementaryFeedbackDto(
                 FeedbackDto.Message.Success(questionDto.getText().replaceAll("<[^>]*>", "")),
                 SupplementaryFeedbackDto.Action.Finish));

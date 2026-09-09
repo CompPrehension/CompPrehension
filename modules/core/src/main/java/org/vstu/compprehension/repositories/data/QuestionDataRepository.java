@@ -78,14 +78,10 @@ public class QuestionDataRepository {
                                       @Nullable Long exerciseAttemptId) {
         var content = data.getContent();
 
-        // Метаданные приходят из банка заданий и уже существуют, поэтому берутся
-        // ссылкой по идентификатору, без запроса.
         var metadata = content.getMetadata() == null || content.getMetadata().getId() == null
                 ? null
                 : questionMetadataRepository.getReferenceById(content.getMetadata().getId());
 
-        // Идентификатор есть только у вопросов, поднятых из БД: по нему и решается,
-        // обновлять существующую строку или заводить новую.
         var entity = data.getId() == null
                 ? questionEntityMapper.map(data, metadata)
                 : questionRepository.findById(data.getId())
@@ -107,7 +103,6 @@ public class QuestionDataRepository {
 
         questionRepository.save(entity);
 
-        // Варианты ответа сохраняются после вопроса: у новых связь идёт по его id.
         if (entity.getAnswerObjects() != null) {
             for (AnswerObjectEntity answerObject : entity.getAnswerObjects()) {
                 if (answerObject.getQuestion() == null) {

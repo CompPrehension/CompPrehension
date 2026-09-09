@@ -82,8 +82,7 @@ public class CtrlFlowDTTest {
     }
 
     /**
-     * Достать трассу рассуждения из результата интерпретации ответа:
-     * DT-домены возвращают {@link DecisionTreeInterpretSentenceResult}, трасса хранится в нем.
+     * Достать трассу рассуждения из результата интерпретации ответа.
      */
     private DecisionTreeTrace traceOf(Domain.InterpretSentenceResult result) {
         Assertions.assertInstanceOf(DecisionTreeInterpretSentenceResult.class, result,

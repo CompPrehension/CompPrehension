@@ -40,10 +40,7 @@ class QuestionDtoMapperImpl implements QuestionDtoMapper {
         int correctSteps = (int) interactions.stream()
                 .filter(i -> !i.getCorrectLaw().isEmpty()).count();
 
-        // Ответы показываются по последнему верному шагу, обратная связь — по последнему.
-        var lastCorrect = interactions.stream()
-                .filter(i -> i.getFeedback().getInteractionsLeft() >= 0 && i.getViolations().isEmpty())
-                .reduce((first, second) -> second);
+        var lastCorrect = question.latestCorrectInteraction();
         var last = interactions.stream().reduce((first, second) -> second);
 
         AnswerDto[] responses = lastCorrect

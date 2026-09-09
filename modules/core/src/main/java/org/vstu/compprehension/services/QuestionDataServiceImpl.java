@@ -161,8 +161,7 @@ class QuestionDataServiceImpl implements QuestionDataService {
 
         QuestionContentData solved = domain.solveQuestion(content, domain.resolveTags(content.getTags()));
 
-        // Решение дописывает в вопрос факты, и их нужно сохранить явно: вопрос —
-        // отсоединённый контейнер, dirty checking Hibernate за него не работает.
+        // Решение дописывает в вопрос факты, и их нужно сохранить явно
         return saveQuestion(question.withContent(solved), null, null);
     }
 

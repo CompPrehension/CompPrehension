@@ -117,10 +117,7 @@ public class QuestionGenerationRequestEntity {
             columnDefinition = "int GENERATED ALWAYS AS (question_request->>\"$.stepsMax\") VIRTUAL NOT NULL",
             insertable = false, updatable = false)
     private Integer stepsMax;
-    
-    //endregion
 
-    /** Порядок констант значим: в БД статус хранится числом. */
     public enum Status {
         /** Заявка ждёт обработки. */
         ACTUAL,
