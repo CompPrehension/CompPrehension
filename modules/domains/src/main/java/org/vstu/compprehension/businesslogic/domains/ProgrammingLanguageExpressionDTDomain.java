@@ -870,12 +870,7 @@ public class ProgrammingLanguageExpressionDTDomain extends DecisionTreeReasoning
 
     @Override
     public CorrectAnswer getAnyNextCorrectAnswer(QuestionData q, Language language) {
-        Optional<QuestionInteractionData> lastCorrectInteraction = Optional.ofNullable(q.getInteractions()).stream()
-                .flatMap(Collection::stream)
-                .filter(i -> i.getFeedback().getInteractionsLeft() >= 0 && i.getViolations().isEmpty())
-                .reduce((first, second) -> second);
-        List<ResponseData> responses = new ArrayList<>();
-        lastCorrectInteraction.ifPresent(interactionEntity -> responses.addAll(interactionEntity.getResponses()));
+        List<ResponseData> responses = q.latestCorrectResponses();
         List<Integer> responseTokenIndexes = responses.stream()
                 .map(res ->
                         answerObjectToTokenIndex(res.getLeftAnswerObject()))

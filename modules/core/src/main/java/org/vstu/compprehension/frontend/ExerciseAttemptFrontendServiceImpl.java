@@ -18,19 +18,23 @@ import org.vstu.compprehension.frontend.dto.feedback.FeedbackDto;
 import org.vstu.compprehension.frontend.dto.feedback.FeedbackViolationLawDto;
 import org.vstu.compprehension.frontend.dto.question.QuestionDto;
 import org.vstu.compprehension.businesslogic.Explanation;
+import org.vstu.compprehension.businesslogic.domains.Domain;
 import org.vstu.compprehension.businesslogic.domains.DomainFactory;
 import org.vstu.compprehension.businesslogic.strategies.AbstractStrategyFactory;
+import org.vstu.compprehension.businesslogic.strategies.StrategyDecision;
 import org.vstu.compprehension.data.exerciseattempt.AttemptSummaryData;
 import org.vstu.compprehension.data.exercise.ExerciseStageData;
 import org.vstu.compprehension.data.question.AnswerData;
 import org.vstu.compprehension.data.question.NewInteractionAnswerData;
 import org.vstu.compprehension.data.question.NewInteractionData;
 import org.vstu.compprehension.data.question.QuestionAttemptContextData;
+import org.vstu.compprehension.data.question.QuestionData;
 import org.vstu.compprehension.data.question.QuestionInteractionData;
 import org.vstu.compprehension.data.question.ResponseData;
 import org.vstu.compprehension.data.question.SubmittedAnswerData;
 import org.vstu.compprehension.data.question.ViolationData;
 import org.vstu.compprehension.data.questionoptions.OrderQuestionOptionsData;
+import org.vstu.compprehension.enums.InteractionType;
 import org.vstu.compprehension.enums.Language;
 import org.vstu.compprehension.enums.QuestionType;
 import org.vstu.compprehension.services.*;
@@ -104,21 +108,10 @@ class ExerciseAttemptFrontendServiceImpl implements ExerciseAttemptFrontendServi
         muteDeniedExplanations(judgeResult.explanation, context.getQuestionStage());
 
         // add interaction
-        val recorded = questionService.recordInteraction(new NewInteractionData(
-                questionId,
-                SEND_RESPONSE,
-                submittedAnswerMapper.mapAll(answers),
-                orEmpty(judgeResult.violations),
-                orEmpty(judgeResult.correctlyAppliedLaws),
-                judgeResult.IterationsLeft));
-        question = question.withInteraction(recorded);
-
-        var strategy = strategyFactory.getStrategy(context.getStrategyId());
-        var strategyDecision = strategy.gradeAndDecide(context.getAttemptId(), judgeResult);
-        questionService.gradeInteraction(recorded.getId(), strategyDecision.grade());
-        if (context != null) {
-            exerciseAttemptService.ensureAttemptStatus(context.getAttemptId(), strategyDecision.decision());
-        }
+        val graded = recordAndGrade(question, context, SEND_RESPONSE,
+                submittedAnswerMapper.mapAll(answers), judgeResult);
+        question = graded.question();
+        val strategyDecision = graded.decision();
 
         val locale = questionLanguage(context);
         // calculate error message
@@ -135,9 +128,7 @@ class ExerciseAttemptFrontendServiceImpl implements ExerciseAttemptFrontendServi
                 : null;
 
         // return result of the last correct interaction
-        val correctAnswers = question.latestCorrectInteraction()
-                .map(QuestionInteractionData::getResponses).stream()
-                .flatMap(Collection::stream)
+        val correctAnswers = question.latestCorrectResponses().stream()
                 .map(answerDtoMapper::map)
                 .toArray(AnswerDto[]::new);
 
@@ -215,9 +206,7 @@ class ExerciseAttemptFrontendServiceImpl implements ExerciseAttemptFrontendServi
 
         // Подсказка достраивает уже данные студентом ответы, а не начинает решение
         // заново: ответы последнего верного взаимодействия переезжают в это.
-        val alreadyGiven = question.latestCorrectInteraction()
-                .map(QuestionInteractionData::getResponses)
-                .orElseGet(List::of);
+        val alreadyGiven = question.latestCorrectResponses();
         val nextAnswers = correctAnswer.answers.stream()
                 .map(x -> new SubmittedAnswerData(
                         x.getLeft().getAnswerId(), x.getRight().getAnswerId(), null))
@@ -231,21 +220,14 @@ class ExerciseAttemptFrontendServiceImpl implements ExerciseAttemptFrontendServi
                 domain.resolveTags(question.getContent().getTags()), language);
 
         // add interaction
-        val recorded = questionService.recordInteraction(new NewInteractionData(
-                questionId,
-                REQUEST_CORRECT_ANSWER,
+        val graded = recordAndGrade(question, context, REQUEST_CORRECT_ANSWER,
                 Stream.concat(
                         carriedAnswerMapper.mapAll(alreadyGiven).stream(),
                         submittedAnswerMapper.mapAll(nextAnswers).stream()).toList(),
-                orEmpty(judgeResult.violations),
-                orEmpty(judgeResult.correctlyAppliedLaws),
-                judgeResult.IterationsLeft));
-        question = question.withInteraction(recorded);
-
-        var strategy = strategyFactory.getStrategy(context.getStrategyId());
-        var strategyDecision = strategy.gradeAndDecide(context.getAttemptId(), judgeResult);
-        questionService.gradeInteraction(recorded.getId(), strategyDecision.grade());
-        exerciseAttemptService.ensureAttemptStatus(context.getAttemptId(), strategyDecision.decision());
+                judgeResult);
+        question = graded.question();
+        val recorded = graded.interaction();
+        val strategyDecision = graded.decision();
 
         // build feedback message
         val locale = questionLanguage(context);
@@ -267,6 +249,37 @@ class ExerciseAttemptFrontendServiceImpl implements ExerciseAttemptFrontendServi
                 /*true*/ judgeResult.violations.isEmpty() && judgeResult.isAnswerCorrect,
                 strategyDecision.decision(),
                 language);
+    }
+
+    /** Взаимодействие, записанное и оценённое стратегией, вместе с обновлённым вопросом. */
+    private record GradedInteraction(@NotNull QuestionData question,
+                                     @NotNull QuestionInteractionData interaction,
+                                     @NotNull StrategyDecision decision) {
+    }
+
+    /**
+     * Записать взаимодействие студента с вопросом, выставить за него оценку стратегии
+     * и, если стратегия так решила, закрыть попытку.
+     */
+    private @NotNull GradedInteraction recordAndGrade(@NotNull QuestionData question,
+                                                      @NotNull QuestionAttemptContextData context,
+                                                      @NotNull InteractionType interactionType,
+                                                      @NotNull List<NewInteractionAnswerData> answers,
+                                                      @NotNull Domain.InterpretSentenceResult judgeResult) {
+        val recorded = questionService.recordInteraction(new NewInteractionData(
+                question.getId(),
+                interactionType,
+                answers,
+                orEmpty(judgeResult.violations),
+                orEmpty(judgeResult.correctlyAppliedLaws),
+                judgeResult.IterationsLeft));
+
+        val strategy = strategyFactory.getStrategy(context.getStrategyId());
+        val decision = strategy.gradeAndDecide(context.getAttemptId(), judgeResult);
+        questionService.gradeInteraction(recorded.getId(), decision.grade());
+        exerciseAttemptService.ensureAttemptStatus(context.getAttemptId(), decision.decision());
+
+        return new GradedInteraction(question.withInteraction(recorded), recorded, decision);
     }
 
     private static <T> @NotNull List<T> orEmpty(@Nullable List<T> values) {

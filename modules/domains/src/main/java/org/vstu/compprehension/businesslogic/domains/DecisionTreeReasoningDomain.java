@@ -29,13 +29,14 @@ public abstract class DecisionTreeReasoningDomain extends DomainBase {
         return DecisionTreeReasonerBackend.BACKEND_ID;
     }
 
+    @Override
+    public boolean requiresSolving() {
+        return false;
+    }
+
     public QuestionContentData solveQuestion(QuestionContentData question, List<Tag> tags) {
-        var backend = new DecisionTreeReasonerBackend();
-        var backendInterface = getBackendInterface();
-        return backendInterface.updateQuestionAfterSolve(
-            question,
-            backend.solve(backendInterface.prepareBackendInfoForSolve(question, tags))
-        );
+        // Дерево решений считает всё при оценке ответа, отдельного решения вопроса нет
+        return question;
     }
 
     public InterpretSentenceResult judgeQuestion(QuestionData question, List<? extends AnswerData> responses, List<Tag> tags, Language language) {

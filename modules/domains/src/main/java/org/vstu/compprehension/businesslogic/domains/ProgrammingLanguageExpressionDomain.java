@@ -1371,10 +1371,7 @@ QuestionOptionsData orderQuestionOptions = OrderQuestionOptionsData.builder()
     @Override
     public CorrectAnswer getAnyNextCorrectAnswer(QuestionData q, Language language) {
         val content = q.getContent();
-        val lastCorrectInteraction = Optional.of(q.getInteractions()).stream()
-                .flatMap(Collection::stream)
-                .filter(i -> i.getFeedback().getInteractionsLeft() >= 0 && i.getViolations().size() == 0)
-                .reduce((first, second) -> second);
+        val lastCorrectInteraction = q.latestCorrectInteraction();
         /*val lastCorrectInteractionAnswers = lastCorrectInteraction
                 .flatMap(i -> Optional.ofNullable(i.getResponses())).stream()
                 .flatMap(Collection::stream)

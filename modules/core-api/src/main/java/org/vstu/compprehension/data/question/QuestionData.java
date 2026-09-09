@@ -67,6 +67,13 @@ public class QuestionData {
                 .reduce((first, second) -> second);
     }
 
+    /** Ответы последнего верного взаимодействия; пусто, если верных взаимодействий ещё не было. */
+    public @NotNull List<ResponseData> latestCorrectResponses() {
+        return latestCorrectInteraction()
+                .map(QuestionInteractionData::getResponses)
+                .orElseGet(List::of);
+    }
+
     public int correctInteractionsCount() {
         return (int) interactions.stream().filter(QuestionInteractionData::isCorrect).count();
     }

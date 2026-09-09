@@ -487,12 +487,7 @@ public class ObjectsScopeDTDomain extends DecisionTreeReasoningDomain {
     @Override
     public CorrectAnswer getAnyNextCorrectAnswer(QuestionData q, Language language) {
 
-        Optional<QuestionInteractionData> lastCorrectInteraction = Optional.of(q.getInteractions()).stream()
-                .flatMap(Collection::stream)
-                .filter(i -> i.getFeedback().getInteractionsLeft() >= 0 && i.getViolations().isEmpty())
-                .reduce((first, second) -> second);
-        List<ResponseData> responses = new ArrayList<>();
-        lastCorrectInteraction.ifPresent(interactionEntity -> responses.addAll(interactionEntity.getResponses()));
+        List<ResponseData> responses = q.latestCorrectResponses();
 
         if(q.getContent().getQuestionDomainType().equals(LIFE_TIME)) {
             DomainModel situationModel = factsToDomainModel(domainLifeTimeSolvingModel, q.getContent().getStatementFacts());

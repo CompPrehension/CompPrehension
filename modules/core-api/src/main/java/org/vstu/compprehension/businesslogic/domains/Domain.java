@@ -220,6 +220,13 @@ public interface Domain {
     QuestionContentData solveQuestion(QuestionContentData question, List<Tag> tags);
 
     /**
+     * Досчитывает ли домен решение вопроса перед оценкой ответа.
+     */
+    default boolean requiresSolving() {
+        return true;
+    }
+
+    /**
      * @param question current question being solved
      * @param responses new responses from student (to add to solution if correct)
      * @param tags Exercise tags

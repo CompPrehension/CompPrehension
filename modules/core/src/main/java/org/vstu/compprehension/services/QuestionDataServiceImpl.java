@@ -155,6 +155,10 @@ class QuestionDataServiceImpl implements QuestionDataService {
         val question = getQuestion(questionId);
         val content = question.getContent();
         var domain = domainFactory.getDomain(content.getDomainId());
+        if (!domain.requiresSolving()) {
+            return question;
+        }
+
         QuestionContentData solved = domain.solveQuestion(content, domain.resolveTags(content.getTags()));
 
         // Решение дописывает в вопрос факты, и их нужно сохранить явно: вопрос —
