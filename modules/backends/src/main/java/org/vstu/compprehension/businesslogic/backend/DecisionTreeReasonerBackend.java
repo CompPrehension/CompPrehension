@@ -1,5 +1,6 @@
 package org.vstu.compprehension.businesslogic.backend;
 
+import org.vstu.compprehension.businesslogic.domains.DecisionTreeReasoningDomain;
 import org.vstu.compprehension.data.question.ViolationData;
 import io.brookite.termannotations.DomainTermAnnotationProcessor;
 import its.model.TypedVariable;
@@ -127,13 +128,13 @@ public class DecisionTreeReasonerBackend
      * @return объект объяснения в виде агрегированных в него других объяснений
      */
     public static Explanation collectExplanationsFromTrace(Explanation.Type type,
-                                                            DecisionTreeTrace trace,
-                                                            DomainModel domainModel,
-                                                            Domain appDomain,
-                                                            Language lang) {
+                                                           DecisionTreeTrace trace,
+                                                           DomainModel domainModel,
+                                                           DecisionTreeReasoningDomain appDomain,
+                                                           Language lang) {
         DomainTermAnnotationProcessor annotationProcessor = null;
-        if (appDomain instanceof DomainBase domainBase && domainBase.getTermDictionary().isPresent()) {
-            annotationProcessor = new DomainTermAnnotationProcessor(domainBase.getTermDictionary().get(), lang.toLocale());
+        if (appDomain.getTermDictionary().isPresent()) {
+            annotationProcessor = new DomainTermAnnotationProcessor(appDomain.getTermDictionary().get(), lang.toLocale());
         }
         Explanation result = Explanation.aggregate(type, collectExplanations(type, trace, null,
                 AggregationPolicy.Default,
@@ -279,7 +280,7 @@ public class DecisionTreeReasonerBackend
 
     public interface Interface extends DomainToBackendAdapter<Input, Output, DecisionTreeReasonerBackend> {
 
-        Domain getDomain();
+        DecisionTreeReasoningDomain getDomain();
 
         @Override
         default InterpretSentenceResult interpretJudgeOutput(

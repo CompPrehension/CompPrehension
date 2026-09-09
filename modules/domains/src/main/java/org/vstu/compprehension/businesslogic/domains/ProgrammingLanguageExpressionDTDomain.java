@@ -344,7 +344,7 @@ public class ProgrammingLanguageExpressionDTDomain extends DecisionTreeReasoning
     private class DecisionTreeInterface implements DecisionTreeReasonerBackend.Interface {
 
         @Override
-        public Domain getDomain() {
+        public DecisionTreeReasoningDomain getDomain() {
             return ProgrammingLanguageExpressionDTDomain.this;
         }
 

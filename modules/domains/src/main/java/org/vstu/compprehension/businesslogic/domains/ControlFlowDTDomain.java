@@ -231,10 +231,9 @@ public class ControlFlowDTDomain extends DecisionTreeReasoningDomain {
     private class DecisionTreeInterface implements DecisionTreeReasonerBackend.Interface {
 
         @Override
-        public Domain getDomain() {
+        public DecisionTreeReasoningDomain getDomain() {
             return ControlFlowDTDomain.this;
         }
-
 
         @Override
         public InterpretSentenceResult interpretJudgeNotPerformed(QuestionData judgedQuestion, LearningSituation preparedSituation, Language language) {

@@ -34,19 +34,23 @@ public class ProjectClassesLocationProvider implements LocationProvider {
 
     @Override
     public Set<Location> get(Class<?> testClass) {
-        Path modulesDir = findModulesDir();
         Set<Location> locations = new LinkedHashSet<>();
         for (String module : ANALYZED_MODULES) {
-            Path classes = modulesDir.resolve(module).resolve("target").resolve("classes");
-            if (!Files.isDirectory(classes) || isEmpty(classes)) {
-                throw new IllegalStateException(
-                        "Module '" + module + "' has no compiled classes at " + classes + ". "
-                                + "Architecture rules would silently pass on an incomplete class set. "
-                                + "Build the whole reactor first: mvn -DskipTests install");
-            }
-            locations.add(Location.of(classes));
+            locations.add(moduleClasses(module));
         }
         return locations;
+    }
+
+    /** Каталог с классами модуля; падает, если модуль не собран. */
+    static Location moduleClasses(String module) {
+        Path classes = findModulesDir().resolve(module).resolve("target").resolve("classes");
+        if (!Files.isDirectory(classes) || isEmpty(classes)) {
+            throw new IllegalStateException(
+                    "Module '" + module + "' has no compiled classes at " + classes + ". "
+                            + "Architecture rules would silently pass on an incomplete class set. "
+                            + "Build the whole reactor first: mvn -DskipTests install");
+        }
+        return Location.of(classes);
     }
 
     private static boolean isEmpty(Path dir) {

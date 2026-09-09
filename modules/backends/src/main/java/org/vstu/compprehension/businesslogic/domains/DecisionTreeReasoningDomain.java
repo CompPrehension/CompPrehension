@@ -1,18 +1,19 @@
 package org.vstu.compprehension.businesslogic.domains;
 
+import io.brookite.termannotations.DomainTermDictionary;
 import its.model.DomainSolvingModel;
 import org.jetbrains.annotations.NotNull;
-import org.vstu.compprehension.services.RandomProvider;
-import org.vstu.compprehension.data.question.AnswerData;
-import org.vstu.compprehension.services.ExerciseAttemptDataService;
 import org.vstu.compprehension.data.domain.DomainData;
+import org.vstu.compprehension.data.question.AnswerData;
 import org.vstu.compprehension.data.question.QuestionContentData;
 import org.vstu.compprehension.data.question.QuestionData;
 import org.vstu.compprehension.businesslogic.Tag;
 import org.vstu.compprehension.businesslogic.backend.DecisionTreeReasonerBackend;
 import org.vstu.compprehension.enums.Language;
+import org.vstu.compprehension.services.RandomProvider;
 
 import java.util.List;
+import java.util.Optional;
 
 public abstract class DecisionTreeReasoningDomain extends DomainBase {
 
@@ -44,5 +45,9 @@ public abstract class DecisionTreeReasoningDomain extends DomainBase {
         var backendInterface = getBackendInterface();
         var output = backend.judge(backendInterface.prepareBackendInfoForJudge(question, responses, tags));
         return backendInterface.interpretJudgeOutput(question, output, language);
+    }
+
+    public Optional<DomainTermDictionary> getTermDictionary() {
+        return Optional.empty();
     }
 }

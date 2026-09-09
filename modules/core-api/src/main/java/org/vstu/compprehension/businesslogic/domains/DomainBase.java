@@ -1,7 +1,6 @@
 package org.vstu.compprehension.businesslogic.domains;
 
 import org.vstu.compprehension.data.domain.DomainOptionsData;
-import io.brookite.termannotations.DomainTermDictionary;
 import lombok.Getter;
 import lombok.extern.log4j.Log4j2;
 import org.jetbrains.annotations.NotNull;
@@ -9,7 +8,6 @@ import org.jetbrains.annotations.Nullable;
 import org.vstu.compprehension.data.question.GeneratedQuestionData;
 import org.vstu.compprehension.data.question.QuestionContentData;
 import org.vstu.compprehension.data.question.QuestionMetadataData;
-import org.vstu.compprehension.services.ExerciseAttemptDataService;
 import org.vstu.compprehension.services.RandomProvider;
 import org.vstu.compprehension.businesslogic.*;
 import org.vstu.compprehension.data.domain.DomainData;
@@ -203,11 +201,6 @@ public abstract class DomainBase implements Domain {
     @NotNull
     public List<Tag> getAllTags() {
         return new ArrayList<>(getTags().values());
-    }
-
-
-    public Optional<DomainTermDictionary> getTermDictionary() {
-        return Optional.empty();
     }
 
     private static List<Long> splitIntoBits(long value) {

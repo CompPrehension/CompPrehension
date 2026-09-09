@@ -588,7 +588,7 @@ public class DataFlowDTDomain extends DecisionTreeReasoningDomain {
     private class DecisionTreeInterface implements DecisionTreeReasonerBackend.Interface {
 
         @Override
-        public Domain getDomain() {
+        public DecisionTreeReasoningDomain getDomain() {
             return DataFlowDTDomain.this;
         }
 

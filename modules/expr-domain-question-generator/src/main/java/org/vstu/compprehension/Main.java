@@ -50,7 +50,6 @@ public class Main {
     String outputPath;
 
     public void generateQuestionsForExpressionsDomain() {
-        //val df = ApplicationContextProvider.getApplicationContext().getBean(DomainFactory.class);
 
         //ProgrammingLanguageExpressionDomain domain = (ProgrammingLanguageExpressionDomain) df.getDomain("ProgrammingLanguageExpressionDomain");
 

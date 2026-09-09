@@ -781,7 +781,7 @@ public class ObjectsScopeDTDomain extends DecisionTreeReasoningDomain {
     private class DecisionTreeInterface implements DecisionTreeReasonerBackend.Interface {
 
         @Override
-        public Domain getDomain() {
+        public DecisionTreeReasoningDomain getDomain() {
             return ObjectsScopeDTDomain.this;
         }
 
