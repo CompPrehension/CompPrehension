@@ -118,9 +118,9 @@ public class LoqiBuilder extends AbstractIntegrationTest {
                     domainSolvingModel, q.getContent().getStatementFacts(), responses, List.of(domain.getTag(outLangStr))
             );
             var tempDir = Files.createTempDirectory("loqi").toFile();
-            var filename = new File(tempDir, q.getContent().getQuestionName() + ".loqi");
-            MeaningTreeRDFTransformer.dumpModelLoqi(model, filename);
-            log.info("Saved to {}", filename.getAbsolutePath());
+            // var filename = new File(tempDir, q.getContent().getQuestionName() + ".loqi");
+            // MeaningTreeRDFTransformer.dumpModelLoqi(model, filename);
+            // log.info("Saved to {}", filename.getAbsolutePath());
         }
         return allPassed;
     }
