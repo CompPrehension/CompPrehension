@@ -10,6 +10,7 @@ import org.vstu.compprehension.businesslogic.QuestionBankSearchRequest;
 import org.vstu.compprehension.businesslogic.storage.SerializableQuestion;
 import org.vstu.compprehension.data.question.QuestionMaskData;
 import org.vstu.compprehension.data.question.QuestionMetadataData;
+import org.vstu.compprehension.data.question.QuestionMetadataWithData;
 import org.vstu.compprehension.data.questionbank.ComplexityStatsData;
 import org.vstu.compprehension.data.questionbank.GenerationRequestGroupData;
 import org.vstu.compprehension.data.questionbank.NewBankQuestionData;
@@ -46,6 +47,7 @@ public class QuestionBankDataRepository {
     private final QuestionMetadataSearchRequestRepository searchRequestLogRepository;
     private final Mapper<QuestionMaskView, QuestionMaskData> questionMaskMapper;
     private final Mapper<QuestionMetadataEntity, QuestionMetadataData> questionMetadataMapper;
+    private final Mapper<QuestionMetadataEntity, QuestionMetadataWithData> questionMetadataWithDataMapper;
     private final Mapper<QuestionMetadataData, QuestionMetadataEntity> questionMetadataEntityMapper;
 
 
@@ -68,27 +70,27 @@ public class QuestionBankDataRepository {
     }
 
     @Transactional(readOnly = true)
-    public @NotNull List<QuestionMetadataData> findTopRatedUnusedMetadata(
+    public @NotNull List<QuestionMetadataWithData> findTopRatedUnusedMetadata(
             @NotNull QuestionBankSearchRequest request, int limit) {
         var found = metadataRepository.findTopRatedUnusedMetadata(request, limit);
         fetchBodies(found);
-        return questionMetadataMapper.mapAll(found);
+        return questionMetadataWithDataMapper.mapAll(found);
     }
 
     @Transactional(readOnly = true)
-    public @NotNull List<QuestionMetadataData> findMetadata(
+    public @NotNull List<QuestionMetadataWithData> findMetadata(
             @NotNull QuestionBankSearchRequest request, int limit) {
         var found = metadataRepository.findMetadata(request, limit);
         fetchBodies(found);
-        return questionMetadataMapper.mapAll(found);
+        return questionMetadataWithDataMapper.mapAll(found);
     }
 
     @Transactional(readOnly = true)
-    public @NotNull List<QuestionMetadataData> findMetadataRelaxed(
+    public @NotNull List<QuestionMetadataWithData> findMetadataRelaxed(
             @NotNull QuestionBankSearchRequest request, int limit) {
         var found = metadataRepository.findMetadataRelaxed(request, limit);
         fetchBodies(found);
-        return questionMetadataMapper.mapAll(found);
+        return questionMetadataWithDataMapper.mapAll(found);
     }
 
     @Transactional(readOnly = true)
@@ -104,8 +106,10 @@ public class QuestionBankDataRepository {
     }
 
     @Transactional(readOnly = true)
-    public @NotNull Optional<QuestionMetadataData> findMetadataById(int metadataId) {
-        return metadataRepository.findByIdFetchingData(metadataId).map(questionMetadataMapper::map);
+    public @NotNull Optional<QuestionMetadataWithData> findMetadataById(int metadataId) {
+        return metadataRepository.findByIdFetchingData(metadataId)
+                .filter(e -> e.getQuestionData() != null && e.getQuestionData().getData() != null)
+                .map(questionMetadataWithDataMapper::map);
     }
 
     @Transactional(readOnly = true)

@@ -15,6 +15,7 @@ import org.vstu.compprehension.data.questionbank.GenerationRequestGroupData;
 import org.vstu.compprehension.data.questionbank.NewBankQuestionData;
 import org.vstu.compprehension.data.question.QuestionMaskData;
 import org.vstu.compprehension.data.question.QuestionMetadataData;
+import org.vstu.compprehension.data.question.QuestionMetadataWithData;
 import org.vstu.compprehension.data.question.QuestionRequestLogData;
 import org.vstu.compprehension.data.questionbank.SearchIterationData;
 import org.vstu.compprehension.data.questionbank.SearchQuality;
@@ -170,7 +171,7 @@ public class QuestionBankImpl implements QuestionBank {
         }
 
         var searchSteps = new ArrayList<SearchIterationData>(3);
-        List<QuestionMetadataData> foundQuestionMetas;
+        List<QuestionMetadataWithData> foundQuestionMetas;
 
         var preparedQuery = bankSearchRequest.toBuilder()
                 .targetConceptsBitmask(targetConceptsBitmask)
@@ -196,7 +197,7 @@ public class QuestionBankImpl implements QuestionBank {
         // runtime assert to find possible desync between findTopRatedMetadata and isMatch methods
         {
             List<Integer> notMatchedMetadata = null;
-            for (QuestionMetadataData question : foundQuestionMetas) {
+            for (QuestionMetadataWithData question : foundQuestionMetas) {
                 if (!isMatch(question, preparedQuery)) {
                     if (notMatchedMetadata == null)
                         notMatchedMetadata = new ArrayList<>();
@@ -239,7 +240,7 @@ public class QuestionBankImpl implements QuestionBank {
         foundQuestionMetas = foundQuestionMetas.subList(0, Math.min(limit, foundQuestionMetas.size()));
 
         // set concepts from request (for future reference via questions' saved metadata)
-        for (QuestionMetadataData m : foundQuestionMetas) {
+        for (QuestionMetadataWithData m : foundQuestionMetas) {
             m.setConceptBitsInPlan(targetConceptsBitmaskInPlan);
             m.setViolationBitsInPlan(targetViolationsBitmaskInPlan);
             m.setSkillBitsInPlan(targetSkillsBitmaskInPlan);
@@ -260,7 +261,7 @@ public class QuestionBankImpl implements QuestionBank {
     }
 
     /** Вопрос банка вместе с телом; null, если такого нет или его не удалось прочитать. */
-    public @Nullable QuestionMetadataData loadQuestion(int questionMetadataId) {
+    public @Nullable QuestionMetadataWithData loadQuestion(int questionMetadataId) {
         try {
             var questionMeta = bankRepository.findMetadataById(questionMetadataId).orElse(null);
             if (questionMeta != null) {

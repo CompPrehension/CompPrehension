@@ -25,7 +25,7 @@ import org.jetbrains.annotations.NotNull;
 import org.jetbrains.annotations.Nullable;
 import org.vstu.compprehension.services.RandomProvider;
 import org.vstu.compprehension.services.SupplementaryStepDataService;
-import org.vstu.compprehension.data.question.QuestionMetadataData;
+import org.vstu.compprehension.data.question.QuestionMetadataWithData;
 import org.vstu.compprehension.data.question.QuestionInteractionData;
 import org.vstu.compprehension.data.question.QuestionData;
 import org.vstu.compprehension.data.question.AnswerObjectData;
@@ -222,7 +222,7 @@ public class DataFlowDTDomain extends DecisionTreeReasoningDomain {
             conceptNames.add(concept.getName());
         }
 
-        List<QuestionMetadataData> foundQuestions = null;
+        List<QuestionMetadataWithData> foundQuestions = null;
         try {
             
             int generatorThreshold = exerciseOptions.getGeneratorThreshold() != null
@@ -255,7 +255,7 @@ public class DataFlowDTDomain extends DecisionTreeReasoningDomain {
 
     @NotNull
     @Override
-    public GeneratedQuestionData makeQuestion(@NotNull QuestionMetadataData metadata,
+    public GeneratedQuestionData makeQuestion(@NotNull QuestionMetadataWithData metadata,
                                               @NotNull List<Tag> tags,
                                               @NotNull Language userLang) {
         var questionData = metadata.getData();

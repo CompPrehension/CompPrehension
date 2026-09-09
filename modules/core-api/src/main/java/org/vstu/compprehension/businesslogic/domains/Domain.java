@@ -8,7 +8,7 @@ import lombok.AllArgsConstructor;
 import lombok.Data;
 import org.jetbrains.annotations.NotNull;
 import org.jetbrains.annotations.Nullable;
-import org.vstu.compprehension.data.question.QuestionMetadataData;
+import org.vstu.compprehension.data.question.QuestionMetadataWithData;
 import org.vstu.compprehension.businesslogic.*;
 import org.vstu.compprehension.businesslogic.backend.Fact;
 import org.vstu.compprehension.data.question.AnswerObjectData;
@@ -166,7 +166,7 @@ public interface Domain {
      * @param userLang question wording language
      * @return generated question
      */
-    @NotNull GeneratedQuestionData makeQuestion(@NotNull QuestionMetadataData metadata,
+    @NotNull GeneratedQuestionData makeQuestion(@NotNull QuestionMetadataWithData metadata,
                                                 @NotNull List<Tag> tags,
                                                 @NotNull Language userLang);
 

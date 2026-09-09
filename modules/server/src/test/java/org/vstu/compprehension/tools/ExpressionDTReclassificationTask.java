@@ -3,6 +3,7 @@ package org.vstu.compprehension.tools;
 import lombok.RequiredArgsConstructor;
 import org.junit.jupiter.api.Disabled;
 import org.vstu.compprehension.data.question.QuestionMetadataData;
+import org.vstu.compprehension.data.question.QuestionMetadataWithData;
 
 import org.vstu.compprehension.infrastructure.AbstractIntegrationTest;
 
@@ -29,7 +30,7 @@ public class ExpressionDTReclassificationTask extends AbstractIntegrationTest {
     private final DomainFactory domainFactory;
     private final QuestionMetadataRepository qMetaRepo;
     private final SessionFactory sessionFactory;
-    private final Mapper<QuestionMetadataEntity, QuestionMetadataData> questionMetadataToDataMapper;
+    private final Mapper<QuestionMetadataEntity, QuestionMetadataWithData> questionMetadataToDataMapper;
     private final Mapper<QuestionMetadataData, QuestionMetadataEntity> questionDataToMetadataMapper;
 
     private ProgrammingLanguageExpressionDTDomain domain;

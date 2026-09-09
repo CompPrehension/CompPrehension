@@ -26,7 +26,7 @@ import org.apache.jena.riot.RDFDataMgr;
 import org.jetbrains.annotations.NotNull;
 import org.jetbrains.annotations.Nullable;
 import org.vstu.compprehension.services.SupplementaryStepDataService;
-import org.vstu.compprehension.data.question.QuestionMetadataData;
+import org.vstu.compprehension.data.question.QuestionMetadataWithData;
 import org.vstu.compprehension.data.question.QuestionInteractionData;
 import org.vstu.compprehension.data.question.QuestionData;
 import org.vstu.compprehension.data.question.AnswerObjectData;
@@ -224,7 +224,7 @@ public class ProgrammingLanguageExpressionDTDomain extends DecisionTreeReasoning
     }
 
     @Override
-    public @NotNull GeneratedQuestionData makeQuestion(@NotNull QuestionMetadataData metadata,
+    public @NotNull GeneratedQuestionData makeQuestion(@NotNull QuestionMetadataWithData metadata,
                                                        @NotNull List<Tag> tags,
                                                        @NotNull Language userLang) {
         SupportedLanguage lang = MeaningTreeUtils.detectLanguageFromTags(tags.stream().map(Tag::getName).toList());

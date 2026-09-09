@@ -12,6 +12,7 @@ import org.jetbrains.annotations.NotNull;
 import org.jetbrains.annotations.Nullable;
 import org.vstu.compprehension.data.question.GeneratedQuestionData;
 import org.vstu.compprehension.data.question.QuestionMetadataData;
+import org.vstu.compprehension.data.question.QuestionMetadataWithData;
 import org.vstu.compprehension.common.MathHelper;
 import org.vstu.compprehension.common.StringHelper;
 import org.vstu.compprehension.common.Utils;
@@ -236,7 +237,7 @@ public class MeaningTreeOrderQuestionBuilder {
      * @return recalculated metadata
      */
     public static QuestionMetadataData metadataRecalculate(ProgrammingLanguageExpressionDTDomain domain,
-                                                           QuestionMetadataData qMeta) {
+                                                           QuestionMetadataWithData qMeta) {
         GeneratedQuestionData q = qMeta.getData().toQuestion(domain, qMeta);
         MeaningTreeOrderQuestionBuilder builder = MeaningTreeOrderQuestionBuilder.newQuestion(domain).existingQuestion(q);
         SupportedLanguage language = MeaningTreeUtils.detectLanguageFromTags(qMeta.getTagBits(), domain);

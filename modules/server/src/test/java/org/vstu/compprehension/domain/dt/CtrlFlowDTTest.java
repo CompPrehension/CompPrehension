@@ -14,7 +14,7 @@ import org.junit.jupiter.api.TestInstance;
 import org.springframework.boot.test.context.SpringBootTest;
 import org.springframework.test.context.ActiveProfiles;
 import org.vstu.compprehension.data.question.AnswerData;
-import org.vstu.compprehension.data.question.QuestionMetadataData;
+import org.vstu.compprehension.data.question.QuestionMetadataWithData;
 import org.vstu.compprehension.entities.QuestionMetadataEntity;
 import org.vstu.compprehension.data.question.AnswerObjectData;
 import org.vstu.compprehension.mappers.Mapper;
@@ -54,7 +54,7 @@ public class CtrlFlowDTTest {
     @Autowired
     private UserRepository userRepository;
     @Autowired
-    private Mapper<QuestionMetadataEntity, QuestionMetadataData> questionMetadataMapper;
+    private Mapper<QuestionMetadataEntity, QuestionMetadataWithData> questionMetadataMapper;
 
     private static final boolean DETAILED_TRACE = true;
 

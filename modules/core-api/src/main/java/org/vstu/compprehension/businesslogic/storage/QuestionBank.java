@@ -7,6 +7,7 @@ import org.vstu.compprehension.businesslogic.QuestionRequest;
 import org.vstu.compprehension.data.questionbank.GenerationRequestGroupData;
 import org.vstu.compprehension.data.questionbank.NewBankQuestionData;
 import org.vstu.compprehension.data.question.QuestionMetadataData;
+import org.vstu.compprehension.data.question.QuestionMetadataWithData;
 import org.vstu.compprehension.data.question.QuestionRequestLogData;
 import org.vstu.compprehension.businesslogic.QuestionBankSearchRequest;
 
@@ -30,7 +31,7 @@ public interface QuestionBank {
 
     QuestionBankSearchResult searchQuestions(@NotNull QuestionRequest qr, int limit, int generatorThreshold, int generatorAdditionalQuestionsToGenerate);
 
-    @Nullable QuestionMetadataData loadQuestion(int questionMetadataId);
+    @Nullable QuestionMetadataWithData loadQuestion(int questionMetadataId);
 
     boolean questionExists(String questionName);
 

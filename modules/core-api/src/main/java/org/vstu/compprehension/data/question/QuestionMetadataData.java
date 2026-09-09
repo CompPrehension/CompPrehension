@@ -3,8 +3,7 @@ package org.vstu.compprehension.data.question;
 import lombok.Builder;
 import lombok.Data;
 import lombok.NoArgsConstructor;
-import org.jetbrains.annotations.Nullable;
-import org.vstu.compprehension.businesslogic.storage.SerializableQuestion;
+import org.jetbrains.annotations.NotNull;
 
 import java.util.Date;
 
@@ -48,8 +47,34 @@ public class QuestionMetadataData {
     @Builder.Default
     private Long skillBitsInPlan = 0L;
 
-    /** Сериализованный вопрос из банка заданий. */
-    private @Nullable SerializableQuestion data;
+    protected QuestionMetadataData(@NotNull QuestionMetadataData other) {
+        this.id = other.id;
+        this.name = other.name;
+        this.domainShortname = other.domainShortname;
+        this.templateId = other.templateId;
+        this.qDataGraph = other.qDataGraph;
+        this.tagBits = other.tagBits;
+        this.conceptBits = other.conceptBits;
+        this.lawBits = other.lawBits;
+        this.skillBits = other.skillBits;
+        this.violationBits = other.violationBits;
+        this.traceConceptBits = other.traceConceptBits;
+        this.solutionStructuralComplexity = other.solutionStructuralComplexity;
+        this.integralComplexity = other.integralComplexity;
+        this.solutionSteps = other.solutionSteps;
+        this.distinctErrorsCount = other.distinctErrorsCount;
+        this.version = other.version;
+        this.structureHash = other.structureHash;
+        this.origin = other.origin;
+        this.originLicense = other.originLicense;
+        this.createdAt = other.createdAt;
+        this.generationRequestId = other.generationRequestId;
+        this.conceptBitsInPlan = other.conceptBitsInPlan;
+        this.conceptBitsInRequest = other.conceptBitsInRequest;
+        this.violationBitsInPlan = other.violationBitsInPlan;
+        this.violationBitsInRequest = other.violationBitsInRequest;
+        this.skillBitsInPlan = other.skillBitsInPlan;
+    }
 
     /** Общие биты понятий из плана и из вопроса. */
     public Long traceConceptsSatisfiedFromPlan() {

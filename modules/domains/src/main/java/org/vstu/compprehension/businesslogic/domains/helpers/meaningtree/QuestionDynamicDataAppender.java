@@ -1,6 +1,7 @@
 package org.vstu.compprehension.businesslogic.domains.helpers.meaningtree;
 
 import org.vstu.compprehension.data.question.QuestionMetadataData;
+import org.vstu.compprehension.data.question.QuestionMetadataWithData;
 import org.vstu.compprehension.data.question.AnswerObjectData;
 import org.vstu.compprehension.data.question.GeneratedQuestionData;
 import org.vstu.compprehension.businesslogic.Tag;
@@ -22,7 +23,6 @@ public class QuestionDynamicDataAppender {
      * Method create question text and answer objects.
      * Old question format will be automatically converted to new format
      * @param q domain question object
-     * @param attempt exercise attempt
      * @param bank question bank
      * @param lang programming language of question
      * @param domain target domain
@@ -38,7 +38,6 @@ public class QuestionDynamicDataAppender {
             }
             var body = SerializableQuestion.fromQuestion(q);
             bank.replaceQuestionBody(meta.getId(), body);
-            meta.setData(body);
         }
 
         var content = q.getContent();

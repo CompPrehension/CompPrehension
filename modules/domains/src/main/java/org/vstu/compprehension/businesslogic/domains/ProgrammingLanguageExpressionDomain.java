@@ -37,6 +37,7 @@ import org.apache.commons.text.StringEscapeUtils;
 import org.vstu.compprehension.services.RandomProvider;
 import org.vstu.compprehension.services.SupplementaryStepDataService;
 import org.vstu.compprehension.data.question.QuestionMetadataData;
+import org.vstu.compprehension.data.question.QuestionMetadataWithData;
 import org.vstu.compprehension.data.question.QuestionInteractionData;
 import org.vstu.compprehension.data.question.QuestionData;
 import org.vstu.compprehension.data.question.GeneratedQuestionData;
@@ -463,7 +464,7 @@ public class ProgrammingLanguageExpressionDomain extends JenaReasoningDomain {
             conceptNames.add(concept.getName());
         }
 
-        List<QuestionMetadataData> foundQuestions = null;
+        List<QuestionMetadataWithData> foundQuestions = null;
         try {
             
             int generatorThreshold = exerciseOptions.getGeneratorThreshold() != null 
@@ -495,13 +496,13 @@ public class ProgrammingLanguageExpressionDomain extends JenaReasoningDomain {
     }
 
     @Override
-    public @NotNull GeneratedQuestionData makeQuestion(@NotNull QuestionMetadataData metadata,
+    public @NotNull GeneratedQuestionData makeQuestion(@NotNull QuestionMetadataWithData metadata,
                                                        @NotNull List<Tag> tags,
                                                        @NotNull Language userLang) {
         return makeQuestion(metadata, tags, userLang, this);
     }
 
-    public @NotNull GeneratedQuestionData makeQuestion(@NotNull QuestionMetadataData metadata,
+    public @NotNull GeneratedQuestionData makeQuestion(@NotNull QuestionMetadataWithData metadata,
                                                        @NotNull List<Tag> tags,
                                                        @NotNull Language userLang,
                                                        @NotNull DomainBase domain) {
