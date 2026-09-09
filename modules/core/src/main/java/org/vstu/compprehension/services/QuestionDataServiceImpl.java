@@ -7,10 +7,12 @@ import org.jetbrains.annotations.NotNull;
 import org.jetbrains.annotations.Nullable;
 import org.springframework.stereotype.Service;
 import org.vstu.compprehension.data.question.AnswerData;
+import org.vstu.compprehension.data.question.GeneratedQuestionData;
+import org.vstu.compprehension.data.question.QuestionContentData;
+import org.vstu.compprehension.data.question.QuestionData;
 import org.vstu.compprehension.data.question.ViolationData;
 import org.vstu.compprehension.frontend.dto.SupplementaryFeedbackDto;
 import org.vstu.compprehension.frontend.dto.SupplementaryQuestionDto;
-import org.vstu.compprehension.businesslogic.Question;
 import org.vstu.compprehension.businesslogic.QuestionRequest;
 import org.vstu.compprehension.businesslogic.domains.Domain;
 import org.vstu.compprehension.businesslogic.domains.DomainFactory;
@@ -44,7 +46,7 @@ class QuestionDataServiceImpl implements QuestionDataService {
     private final SupplementaryQuestionDtoMapper supplementaryQuestionDtoMapper;
 
 
-    public Question generateQuestion(long exerciseAttemptId) {
+    public QuestionData generateQuestion(long exerciseAttemptId) {
         var context = exerciseAttemptService.getGenerationContext(exerciseAttemptId);
         Domain domain = domainFactory.getDomain(context.domainId());
         AbstractStrategy strategy = strategyFactory.getStrategy(context.strategyId());
@@ -52,13 +54,12 @@ class QuestionDataServiceImpl implements QuestionDataService {
         QuestionRequest qr = strategy.generateQuestionRequest(exerciseAttemptId);
         qr = domain.ensureQuestionRequestValid(qr);
 
-        Question question = domain.makeQuestion(qr, context.exerciseOptions(), context.userLanguage());
+        GeneratedQuestionData generated = domain.makeQuestion(qr, context.exerciseOptions(), context.userLanguage());
 
-        saveQuestion(question, qr.toLogData(), exerciseAttemptId);
-        return question;
+        return saveQuestion(QuestionData.of(generated.getContent()), qr.toLogData(), exerciseAttemptId);
     }
 
-    public Question generateQuestion(int questionMetadataId, Language lang) {
+    public QuestionData generateQuestion(int questionMetadataId, Language lang) {
         var rawQuestion = questionStorage.loadQuestion(questionMetadataId);
         if (rawQuestion == null) {
             throw new RuntimeException("Metadata with id " + questionMetadataId + " not found");
@@ -67,9 +68,8 @@ class QuestionDataServiceImpl implements QuestionDataService {
         var tags = domain.getAllTags().stream()
                 .filter(t -> rawQuestion.getTagBits() != null && (rawQuestion.getTagBits() & t.getBitmask()) != 0)
                 .toList();
-        var question = domain.makeQuestion(rawQuestion, tags, lang);
-        saveQuestion(question);
-        return question;
+        var generated = domain.makeQuestion(rawQuestion, tags, lang);
+        return saveQuestion(QuestionData.of(generated.getContent()), null, null);
     }
 
     public @NotNull SupplementaryQuestionDto generateSupplementaryQuestion(long sourceQuestionId, @NotNull ViolationData violation, Language lang) {
@@ -77,24 +77,29 @@ class QuestionDataServiceImpl implements QuestionDataService {
         val responseGen = domain.makeSupplementaryQuestion(
                 questionDataRepository.findById(sourceQuestionId), violation, lang);
 
-        Long supplementaryQuestionId = null;
-        if(responseGen.getResponse().getQuestion() != null){
-            val supplementary = responseGen.getResponse().getQuestion();
-            saveQuestion(supplementary, null, exerciseAttemptService.findAttemptIdOfQuestion(sourceQuestionId).orElse(null));
-            supplementaryQuestionId = supplementary.getQuestionData().getId();
+        val response = responseGen.getResponse();
+        QuestionData supplementary = null;
+        if (response.getQuestion() != null) {
+            supplementary = saveQuestion(
+                    QuestionData.of(response.getQuestion().getContent()),
+                    null,
+                    exerciseAttemptService.findAttemptIdOfQuestion(sourceQuestionId).orElse(null));
         }
-        if(responseGen.getNewStep() != null){
-            supplementaryStepDataRepository.create(responseGen.getNewStep(), supplementaryQuestionId);
+        if (responseGen.getNewStep() != null) {
+            supplementaryStepDataRepository.create(responseGen.getNewStep(),
+                    supplementary == null ? null : supplementary.getId());
         }
-        return supplementaryQuestionDtoMapper.map(responseGen.getResponse(), lang);
+        return supplementary == null
+                ? SupplementaryQuestionDto.FromMessage(response.getFeedback())
+                : supplementaryQuestionDtoMapper.map(supplementary, lang);
     }
 
-    public SupplementaryFeedbackDto judgeSupplementaryQuestion(Question question, List<? extends AnswerData> responses, Language language) {
-        Domain domain = question.getDomain();
+    public SupplementaryFeedbackDto judgeSupplementaryQuestion(QuestionData question, List<? extends AnswerData> responses, Language language) {
+        Domain domain = domainFactory.getDomain(question.getContent().getDomainId());
         val supplementaryInfo = supplementaryStepDataRepository
-                .findBySupplementaryQuestionId(question.getQuestionData().getId());
+                .findBySupplementaryQuestionId(question.getId());
         val feedbackGen = domain.judgeSupplementaryQuestion(question, supplementaryInfo, responses, language);
-        if(feedbackGen.getNewStep() != null){
+        if (feedbackGen.getNewStep() != null) {
             supplementaryStepDataRepository.create(feedbackGen.getNewStep(), null);
         }
         return feedbackGen.getFeedback();
@@ -114,10 +119,8 @@ class QuestionDataServiceImpl implements QuestionDataService {
         interactionDataRepository.grade(interactionId, grade);
     }
 
-    public Question getQuestion(Long questionId) {
-        return new Question(
-                questionDataRepository.findById(questionId),
-                domainFactory.getDomain(getDomainName(questionId)));
+    public QuestionData getQuestion(Long questionId) {
+        return questionDataRepository.findById(questionId);
     }
 
     /** Имя домена вопроса — скалярным запросом, без подъёма всего вопроса. */
@@ -125,22 +128,15 @@ class QuestionDataServiceImpl implements QuestionDataService {
         return questionDataRepository.getDomainName(questionId);
     }
 
-    public Question getSolvedQuestion(Long questionId) {
+    public QuestionData getSolvedQuestion(Long questionId) {
         val question = getQuestion(questionId);
-        var tags = question.getTags();
-        var domain = question.getDomain();
-        val solved = domain.solveQuestion(question, tags);
+        val content = question.getContent();
+        var domain = domainFactory.getDomain(content.getDomainId());
+        QuestionContentData solved = domain.solveQuestion(content, domain.resolveTags(content.getTags()));
 
-        // Решение дописывает в вопрос факты (FactBackend.updateQuestionAfterSolve),
-        // и до этой строки они сохранялись неявно: вопрос загружен из БД, значит
-        // управляется Hibernate, и изменение уезжало в базу при коммите транзакции.
-        // Запись сделана явной, потому что как только вопрос станет отсоединённым
-        // контейнером (QuestionData), dirty checking перестанет работать и факты
-        // решения молча пропадут. Сейчас, при живом dirty checking, это no-op:
-        // та же строка, та же транзакция.
-        saveQuestion(solved);
-
-        return solved;
+        // Решение дописывает в вопрос факты, и их нужно сохранить явно: вопрос —
+        // отсоединённый контейнер, dirty checking Hibernate за него не работает.
+        return saveQuestion(question.withContent(solved), null, null);
     }
 
     /**
@@ -150,14 +146,9 @@ class QuestionDataServiceImpl implements QuestionDataService {
         return questionDataRepository.findOwnerUserId(questionId);
     }
 
-    public void saveQuestion(Question question,
-                             @Nullable QuestionRequestLogData questionRequestLog,
-                             @Nullable Long exerciseAttemptId) {
-        questionDataRepository.save(question.getQuestionData(), question.getDomain().getName(),
-                questionRequestLog, exerciseAttemptId);
-    }
-
-    private void saveQuestion(Question question) {
-        saveQuestion(question, null, null);
+    public @NotNull QuestionData saveQuestion(@NotNull QuestionData question,
+                                              @Nullable QuestionRequestLogData questionRequestLog,
+                                              @Nullable Long exerciseAttemptId) {
+        return questionDataRepository.save(question, questionRequestLog, exerciseAttemptId);
     }
 }

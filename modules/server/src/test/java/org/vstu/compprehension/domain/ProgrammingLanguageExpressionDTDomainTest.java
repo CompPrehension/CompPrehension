@@ -3,6 +3,7 @@ package org.vstu.compprehension.domain;
 import lombok.RequiredArgsConstructor;
 import org.vstu.compprehension.data.question.AnswerData;
 import org.vstu.compprehension.data.question.AnswerObjectData;
+import org.vstu.compprehension.data.question.QuestionData;
 import org.vstu.compprehension.data.exercise.ExerciseOptionsData;
 import org.vstu.compprehension.data.exercise.ExerciseStageData;
 import org.vstu.compprehension.businesslogic.*;
@@ -92,18 +93,18 @@ public class ProgrammingLanguageExpressionDTDomainTest extends AbstractIntegrati
     }
 
     public boolean generateAndSolve(String expression, SupportedLanguage inLang, SupportedLanguage outLang, List<Integer> sequence) {
-        Question q = MeaningTreeOrderQuestionBuilder.newQuestion(domain).skipMutations(true).expression(expression, inLang).questionOrigin("test", "MIT").buildQuestions(outLang).getLast();
+        QuestionData q = QuestionData.of(MeaningTreeOrderQuestionBuilder.newQuestion(domain).skipMutations(true).expression(expression, inLang).questionOrigin("test", "MIT").buildQuestions(outLang).getLast().getContent());
         String outLangStr = outLang.toString().substring(0, 1).toUpperCase() + outLang.toString().substring(1);
 
         boolean allPassed = true;
         // Check metadata
-        Assert.isTrue(q.getMetadata() != null
-                && q.getMetadata().getIntegralComplexity() >= 0
-                && q.getMetadata().getIntegralComplexity() <= 1, String.format(
+        Assert.isTrue(q.getContent().getMetadata() != null
+                && q.getContent().getMetadata().getIntegralComplexity() >= 0
+                && q.getContent().getMetadata().getIntegralComplexity() <= 1, String.format(
                 "Invalid integral complexity %f, possibleErrors=%d, solutionLength=%d",
-                q.getMetadata().getIntegralComplexity(),
-                q.getMetadata().getDistinctErrorsCount(),
-                q.getMetadata().getSolutionSteps()));
+                q.getContent().getMetadata().getIntegralComplexity(),
+                q.getContent().getMetadata().getDistinctErrorsCount(),
+                q.getContent().getMetadata().getSolutionSteps()));
 
         List<AnswerData> responses = new ArrayList<>();
         for (Integer response : sequence) {
@@ -111,7 +112,6 @@ public class ProgrammingLanguageExpressionDTDomainTest extends AbstractIntegrati
                     .builder().answerId(response)
                     .domainInfo("token_" + response).build();
             responses.add(AnswerData.of(answerObject, answerObject));
-            var domain = q.getDomain();
             var result = domain.judgeQuestion(q, responses, List.of(domain.getTag(outLangStr)), Language.ENGLISH);
             allPassed = allPassed && result.isAnswerCorrect;
             if (!result.isAnswerCorrect) {
@@ -169,20 +169,20 @@ public class ProgrammingLanguageExpressionDTDomainTest extends AbstractIntegrati
                 .stepsMax(10)
                 .complexity(0.8f)
                 .build();
-        Question q = domain.makeQuestion(r, attempt.getExercise().getOptions(), Language.ENGLISH);
+        var q = domain.makeQuestion(r, attempt.getExercise().getOptions(), Language.ENGLISH);
         if (q == null) {
             return;
         }
 
         // Check tree correctness
-        Model m = MeaningTreeRDFHelper.backendFactsToModel(q.getStatementFacts());
+        Model m = MeaningTreeRDFHelper.backendFactsToModel(q.getContent().getStatementFacts());
         RDFDeserializer deserializer = new RDFDeserializer();
         MeaningTree mt = deserializer.deserializeTree(m);
 
         // Check metadata
-        Assert.isTrue(q.getMetadata() != null
-                && q.getMetadata().getIntegralComplexity() >= 0
-                && q.getMetadata().getIntegralComplexity() <= 1, String.format("Invalid integral complexity %f", q.getMetadata().getIntegralComplexity()));
+        Assert.isTrue(q.getContent().getMetadata() != null
+                && q.getContent().getMetadata().getIntegralComplexity() >= 0
+                && q.getContent().getMetadata().getIntegralComplexity() <= 1, String.format("Invalid integral complexity %f", q.getContent().getMetadata().getIntegralComplexity()));
     }
 
     public void testStrictOrderConversion(SupportedLanguage language) {
@@ -206,13 +206,13 @@ public class ProgrammingLanguageExpressionDTDomainTest extends AbstractIntegrati
                 .stepsMax(10)
                 .complexity(0.8f)
                 .build();
-        Question q = domain.makeQuestion(r, attempt.getExercise().getOptions(), Language.ENGLISH);
+        var q = domain.makeQuestion(r, attempt.getExercise().getOptions(), Language.ENGLISH);
         if (q == null) {
             return;
         }
 
         // Check tree correctness
-        Model m = MeaningTreeRDFHelper.backendFactsToModel(q.getStatementFacts());
+        Model m = MeaningTreeRDFHelper.backendFactsToModel(q.getContent().getStatementFacts());
         RDFDeserializer deserializer = new RDFDeserializer();
         MeaningTree mt = deserializer.deserializeTree(m);
         try {
@@ -235,9 +235,9 @@ public class ProgrammingLanguageExpressionDTDomainTest extends AbstractIntegrati
 
 
         // Check metadata
-        Assert.isTrue(q.getMetadata() != null
-                && q.getMetadata().getIntegralComplexity() >= 0
-                && q.getMetadata().getIntegralComplexity() <= 1, String.format("Invalid integral complexity %f", q.getMetadata().getIntegralComplexity()));
+        Assert.isTrue(q.getContent().getMetadata() != null
+                && q.getContent().getMetadata().getIntegralComplexity() >= 0
+                && q.getContent().getMetadata().getIntegralComplexity() <= 1, String.format("Invalid integral complexity %f", q.getContent().getMetadata().getIntegralComplexity()));
 
     }
 

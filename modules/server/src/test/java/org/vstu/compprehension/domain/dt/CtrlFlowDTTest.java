@@ -18,7 +18,7 @@ import org.vstu.compprehension.data.question.QuestionMetadataData;
 import org.vstu.compprehension.entities.QuestionMetadataEntity;
 import org.vstu.compprehension.data.question.AnswerObjectData;
 import org.vstu.compprehension.mappers.Mapper;
-import org.vstu.compprehension.businesslogic.Question;
+import org.vstu.compprehension.data.question.QuestionData;
 import org.vstu.compprehension.businesslogic.domains.Domain;
 import org.vstu.compprehension.businesslogic.domains.DomainFactory;
 import org.vstu.compprehension.enums.Language;
@@ -74,9 +74,11 @@ public class CtrlFlowDTTest {
         exerciseAttemptRepository.save(attempt);
     }
 
-    public Question loadQuestion(String questionName) {
+    public QuestionData loadQuestion(String questionName) {
         var metas = qMetaRepo.findByName(questionName);
-        return domain.makeQuestion(questionMetadataMapper.map(metas.getFirst()), List.of(domain.getTag("Python")), Language.ENGLISH);
+        return QuestionData.of(domain
+                .makeQuestion(questionMetadataMapper.map(metas.getFirst()), List.of(domain.getTag("Python")), Language.ENGLISH)
+                .getContent());
     }
 
     /**
@@ -133,7 +135,7 @@ public class CtrlFlowDTTest {
      * Базовая реализация проверки ответа по шагам.
      * Возвращает итоговый результат интерпретации, чтобы можно было дополнительно его проанализировать.
      */
-    private Domain.InterpretSentenceResult judgeCore(Question q,
+    private Domain.InterpretSentenceResult judgeCore(QuestionData q,
                                                      List<Pair<Integer, String>> answerObjectIds,
                                                      boolean everySubTrace, boolean consideredAsCorrect,
                                                      boolean detectUnfinished
@@ -143,7 +145,7 @@ public class CtrlFlowDTTest {
         int i = 0;
         int last_i = answerObjectIds.size();
         for (var entry : answerObjectIds) {
-            AnswerObjectData answerObject = q.getAnswerObject(entry.getKey());  // Allow invalid node IDs in tests (these may change after rebuild);
+            AnswerObjectData answerObject = q.getContent().getAnswerObject(entry.getKey());  // Allow invalid node IDs in tests (these may change after rebuild);
             responses.add(AnswerData.of(answerObject, answerObject));
             i++;
             boolean is_last = i == last_i;
@@ -165,7 +167,7 @@ public class CtrlFlowDTTest {
         return result;
     }
 
-    public void judgeAndCheck(Question q,
+    public void judgeAndCheck(QuestionData q,
                               List<Pair<Integer, String>> answerObjectIds,
                               boolean everySubTrace, boolean consideredAsCorrect,
                               boolean detectUnfinished
@@ -177,7 +179,7 @@ public class CtrlFlowDTTest {
      * Расширенный вариант judge, который кроме стандартной проверки корректности
      * дополнительно проверяет, что среди листовых результатов трассы есть заданные значения.
      */
-    public void judgeAndCheck(Question q,
+    public void judgeAndCheck(QuestionData q,
                               List<Pair<Integer, String>> answerObjectIds,
                               boolean everySubTrace, boolean consideredAsCorrect,
                               boolean detectUnfinished,
@@ -198,7 +200,7 @@ public class CtrlFlowDTTest {
         }
     }
 
-    public Domain.InterpretSentenceResult judgeAtOnceByAnswerObjects(Question q, List<Pair<Integer, String>> answerObjectIds, boolean consideredAsCorrect) {
+    public Domain.InterpretSentenceResult judgeAtOnceByAnswerObjects(QuestionData q, List<Pair<Integer, String>> answerObjectIds, boolean consideredAsCorrect) {
         List<AnswerData> responses = answerObjectIds.stream()
                 .map((entry) -> AnswerObjectData.builder().answerId(entry.getKey())
                         .domainInfo(entry.getValue()).build())
@@ -233,13 +235,13 @@ public class CtrlFlowDTTest {
         return builder.toString();
     }
 
-    public Domain.InterpretSentenceResult judgeAtOnce(Question q, List<AnswerData> responses, boolean consideredAsCorrect) {
+    public Domain.InterpretSentenceResult judgeAtOnce(QuestionData q, List<AnswerData> responses, boolean consideredAsCorrect) {
         if (DETAILED_TRACE) {
             System.out.println("Prepared question answers (CFG ids): \n- %s\n".formatted(responses.stream().map(r ->
                     r.getLeftAnswerObject().getDomainInfo()
             ).collect(Collectors.joining("\n- "))));
         }
-        var result = q.getDomain().judgeQuestion(q, responses, List.of(domain.getTag("Python")), Language.ENGLISH);
+        var result = domain.judgeQuestion(q, responses, List.of(domain.getTag("Python")), Language.ENGLISH);
 
         System.out.printf("Expected %s solution...%n", consideredAsCorrect? "valid" : "invalid");
 

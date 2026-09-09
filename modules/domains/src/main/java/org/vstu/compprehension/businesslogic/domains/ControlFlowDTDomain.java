@@ -45,6 +45,8 @@ import java.io.StringReader;
 import java.util.*;
 import java.util.function.Predicate;
 import java.util.stream.Collectors;
+import org.vstu.compprehension.data.question.GeneratedQuestionData;
+import org.vstu.compprehension.data.question.QuestionContentData;
 
 @Log4j2
 public class ControlFlowDTDomain extends DecisionTreeReasoningDomain {
@@ -71,7 +73,7 @@ public class ControlFlowDTDomain extends DecisionTreeReasoningDomain {
         put("Python", new Tag("Python", 8L));  	// (2 ^ 3)
     }};
 
-    public DomainModel prepareQuestionModel(Question q, DomainSolvingModel domainSolvingModel) {
+    public DomainModel prepareQuestionModel(QuestionContentData q, DomainSolvingModel domainSolvingModel) {
         var loqiText = q.getStatementFacts().getFirst().getObject();
         DomainModel commonModel = domainSolvingModel.getDomainModel();
         DomainModel resultModel = commonModel.copy();
@@ -230,10 +232,16 @@ public class ControlFlowDTDomain extends DecisionTreeReasoningDomain {
         }
     }
 
-    private static class DecisionTreeInterface implements DecisionTreeReasonerBackend.Interface {
+    private class DecisionTreeInterface implements DecisionTreeReasonerBackend.Interface {
 
         @Override
-        public InterpretSentenceResult interpretJudgeNotPerformed(Question judgedQuestion, LearningSituation preparedSituation, Language language) {
+        public Domain getDomain() {
+            return ControlFlowDTDomain.this;
+        }
+
+
+        @Override
+        public InterpretSentenceResult interpretJudgeNotPerformed(QuestionData judgedQuestion, LearningSituation preparedSituation, Language language) {
             return null;
         }
 
@@ -319,14 +327,14 @@ public class ControlFlowDTDomain extends DecisionTreeReasoningDomain {
         }
 
         @Override
-        public DecisionTreeReasonerBackend.Input prepareBackendInfoForJudge(Question question, List<? extends AnswerData> responses, List<Tag> tags) {
-            if (question.getMetadata().getVersion() != 2) {
+        public DecisionTreeReasonerBackend.Input prepareBackendInfoForJudge(QuestionData question, List<? extends AnswerData> responses, List<Tag> tags) {
+            if (question.getContent().getMetadata().getVersion() != 2) {
                 throw new UnsupportedOperationException("Unsupported version of CtrlFlow question");
             }
-            var domain = (ControlFlowDTDomain) question.getDomain();
+            var domain = ControlFlowDTDomain.this;
             var model = domain.getDomainSolvingModels().getFirst();
 
-            DomainModel questionModel = domain.prepareQuestionModel(question, model);
+            DomainModel questionModel = domain.prepareQuestionModel(question.getContent(), model);
 
             // Строим трассу, попутно проверяя ее с теневой эталонной трассой
             ObjectDef currentTraceAct = makeTrace(questionModel, responses, false);
@@ -480,7 +488,7 @@ public class ControlFlowDTDomain extends DecisionTreeReasoningDomain {
         }
 
         @Override
-        public DecisionTreeReasonerBackend.Input prepareBackendInfoForSolve(Question question, List<Tag> tags) {
+        public DecisionTreeReasonerBackend.Input prepareBackendInfoForSolve(QuestionContentData question, List<Tag> tags) {
             return null;
         }
     }
@@ -540,8 +548,8 @@ public class ControlFlowDTDomain extends DecisionTreeReasoningDomain {
     }
 
     @Override
-    public Collection<Fact> responseToFacts(Question question, List<? extends AnswerData> responses) {
-        var questionDomainType = question.getQuestionDomainType();
+    public Collection<Fact> responseToFacts(QuestionData question, List<? extends AnswerData> responses) {
+        var questionDomainType = question.getContent().getQuestionDomainType();
         if (questionDomainType.equals(EXECUTION_ORDER_QUESTION_TYPE)) {
             List<Fact> result = new ArrayList<>();
             for (AnswerData response : responses) {
@@ -559,8 +567,8 @@ public class ControlFlowDTDomain extends DecisionTreeReasoningDomain {
     }
 
     @Override
-    public Collection<Fact> getQuestionStatementFactsWithSchema(Question q) {
-        return JenaFactList.fromBackendFacts(q.getQuestionData().getStatementFacts());
+    public Collection<Fact> getQuestionStatementFactsWithSchema(QuestionContentData q) {
+        return JenaFactList.fromBackendFacts(q.getStatementFacts());
     }
 
     @Override
@@ -610,9 +618,9 @@ public class ControlFlowDTDomain extends DecisionTreeReasoningDomain {
 
     @NotNull
     @Override
-    public Question makeQuestion(@NotNull QuestionRequest questionRequest,
-                                 @Nullable ExerciseOptionsData exerciseOptions,
-                                 @NotNull Language userLanguage
+    public GeneratedQuestionData makeQuestion(@NotNull QuestionRequest questionRequest,
+                                              @Nullable ExerciseOptionsData exerciseOptions,
+                                              @NotNull Language userLanguage
     ) {
         HashSet<String> conceptNames = new HashSet<>();
         for (Concept concept : questionRequest.getTargetConcepts()) {
@@ -653,13 +661,13 @@ public class ControlFlowDTDomain extends DecisionTreeReasoningDomain {
 
     @NotNull
     @Override
-    public Question makeQuestion(@NotNull QuestionMetadataData metadata,
-                                                                  @NotNull List<Tag> tags, @NotNull Language userLang
+    public GeneratedQuestionData makeQuestion(@NotNull QuestionMetadataData metadata,
+                                              @NotNull List<Tag> tags, @NotNull Language userLang
     ) {
         var result = metadata.getData().toQuestion(this, metadata);
-        result.getQuestionData().setQuestionText(getMessage("question_prompt", userLang)
-                .concat(result.getQuestionData().getQuestionText()));
-        return result;
+        return result.withContent(result.getContent().toBuilder()
+                .questionText(getMessage("question_prompt", userLang).concat(result.getContent().getQuestionText()))
+                .build());
     }
 
     @Override
@@ -676,7 +684,7 @@ public class ControlFlowDTDomain extends DecisionTreeReasoningDomain {
     }
 
     @Override
-    public SupplementaryFeedbackGenerationResult judgeSupplementaryQuestion(Question question, SupplementaryStepData supplementaryStep, List<? extends AnswerData> responses, Language language) {
+    public SupplementaryFeedbackGenerationResult judgeSupplementaryQuestion(QuestionData question, SupplementaryStepData supplementaryStep, List<? extends AnswerData> responses, Language language) {
         return null;
     }
 
@@ -722,8 +730,8 @@ public class ControlFlowDTDomain extends DecisionTreeReasoningDomain {
     }
 
     @Override
-    public CorrectAnswer getAnyNextCorrectAnswer(Question q, Language language) {
-        Optional<QuestionInteractionData> lastCorrectInteraction = Optional.ofNullable(q.getQuestionData().getInteractions()).stream()
+    public CorrectAnswer getAnyNextCorrectAnswer(QuestionData q, Language language) {
+        Optional<QuestionInteractionData> lastCorrectInteraction = Optional.of(q.getInteractions()).stream()
                 .flatMap(Collection::stream)
                 .filter(i -> i.getFeedback().getInteractionsLeft() >= 0 && i.getViolations().isEmpty())
                 .reduce((first, second) -> second);
@@ -731,7 +739,7 @@ public class ControlFlowDTDomain extends DecisionTreeReasoningDomain {
         lastCorrectInteraction.ifPresent(interactionEntity -> responses.addAll(interactionEntity.getResponses()));
         var model = getDomainSolvingModels().getFirst();
         ControlFlowDTDomain.DecisionTreeInterface treeInterface = (ControlFlowDTDomain.DecisionTreeInterface) getBackendInterface();
-        DomainModel questionModel = prepareQuestionModel(q, model);
+        DomainModel questionModel = prepareQuestionModel(q.getContent(), model);
         ObjectDef L0 = treeInterface.makeTrace(questionModel, responses, true);
 
         ObjectDef nextAnswer = L0.getRelationshipLink("directlyBeforeOf").getObjects().getFirst();
@@ -747,9 +755,9 @@ public class ControlFlowDTDomain extends DecisionTreeReasoningDomain {
                 solveRes.trace(), questionModel,
                 this, language
         );
-        AnswerObjectData answer = q.getAnswerObjects().stream().filter(ans -> ans.getDomainInfo().equals(cfgId)).findFirst().orElse(null);
+        AnswerObjectData answer = q.getContent().getAnswerObjects().stream().filter(ans -> ans.getDomainInfo().equals(cfgId)).findFirst().orElse(null);
         correctAnswer.answers = List.of(new CorrectAnswer.Response(answer, answer));
-        correctAnswer.question = q.getQuestionData();
+        correctAnswer.question = q;
         correctAnswer.lawName = null;
         correctAnswer.skillName = solveRes.skills();
         correctAnswer.explanation = explanation;
@@ -919,11 +927,11 @@ public class ControlFlowDTDomain extends DecisionTreeReasoningDomain {
     }
 
     @Override
-    public List<HyperText> getFullSolutionTrace(Question question, Language language) {
+    public List<HyperText> getFullSolutionTrace(QuestionData question, Language language) {
         List<HyperText> trace = new ArrayList<>();
-        var questionModel = prepareQuestionModel(question, this.domainSolvingModel);
+        var questionModel = prepareQuestionModel(question.getContent(), this.domainSolvingModel);
         var treeInterface = (DecisionTreeInterface) getBackendInterface();
-        var responses = responsesForTrace(question.getQuestionData(), true);
+        var responses = responsesForTrace(question, true);
         var lastTraceObj = treeInterface.makeTrace(questionModel, responses, false);
         var referenceA = lastTraceObj.getRelationshipLink("directlyBeforeOf").getObjects().getFirst();
         ObjectDef A = responses.isEmpty() ? null : treeInterface.makeA(questionModel, responses.getLast().getLeftAnswerObject().getDomainInfo(), referenceA);
@@ -1071,7 +1079,7 @@ public class ControlFlowDTDomain extends DecisionTreeReasoningDomain {
     }
 
     @Override
-    protected List<Question> getQuestionTemplates() {
+    protected List<GeneratedQuestionData> getQuestionTemplates() {
         return List.of();
     }
 

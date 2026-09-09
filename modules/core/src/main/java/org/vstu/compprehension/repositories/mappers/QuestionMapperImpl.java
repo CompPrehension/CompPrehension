@@ -5,6 +5,7 @@ import org.jetbrains.annotations.NotNull;
 import org.springframework.stereotype.Component;
 import org.vstu.compprehension.common.Utils;
 import org.vstu.compprehension.data.question.AnswerObjectData;
+import org.vstu.compprehension.data.question.QuestionContentData;
 import org.vstu.compprehension.data.question.QuestionData;
 import org.vstu.compprehension.data.question.QuestionInteractionData;
 import org.vstu.compprehension.data.question.QuestionMetadataData;
@@ -31,31 +32,56 @@ class QuestionMapperImpl implements QuestionMapper {
     @Override
     public @NotNull QuestionData map(@NotNull QuestionEntity question,
                                      @NotNull List<InteractionEntity> interactions) {
-        var data = new QuestionData();
-        data.setId(question.getId());
-        data.setQuestionType(question.getQuestionType());
-        data.setQuestionStatus(question.getQuestionStatus());
-        data.setQuestionText(question.getQuestionText());
-        data.setQuestionName(question.getQuestionName());
-        data.setCreatedAt(question.getCreatedAt());
-        data.setQuestionDomainType(question.getQuestionDomainType());
-        data.setOptions(question.getOptions());
-        data.setTags(new ArrayList<>(question.getTags()));
-        // Метаданных нет у вопросов, заведённых не через банк заданий.
-        data.setMetadata(Optional.ofNullable(question.getMetadata())
-                .map(questionMetadataMapper::map)
-                .orElse(null));
-        data.setStatementFacts(Utils.copy(question.getStatementFacts()));
-        data.setSolutionFacts(Utils.copy(question.getSolutionFacts()));
-        data.setAnswerObjects(question.getAnswerObjects().stream()
-                .map(answerObjectMapper::map)
-                .collect(Collectors.toCollection(ArrayList::new)));
+        var content = QuestionContentData.builder()
+                .domainId(question.getDomainEntity().getName())
+                .questionType(question.getQuestionType())
+                .questionText(question.getQuestionText())
+                .questionName(question.getQuestionName())
+                .questionDomainType(question.getQuestionDomainType())
+                .options(question.getOptions())
+                .tags(new ArrayList<>(question.getTags()))
+                // Метаданных нет у вопросов, заведённых не через банк заданий.
+                .metadata(Optional.ofNullable(question.getMetadata())
+                        .map(questionMetadataMapper::map)
+                        .orElse(null))
+                .statementFacts(Utils.copy(question.getStatementFacts()))
+                .solutionFacts(Utils.copy(question.getSolutionFacts()))
+                .answerObjects(question.getAnswerObjects().stream()
+                        .map(answerObjectMapper::map)
+                        .toList())
+                .build();
 
         var interactionsData = interactions.stream()
                 .sorted(Comparator.comparing(InteractionEntity::getId))
                 .map(questionInteractionMapper::map)
                 .collect(Collectors.toCollection(ArrayList::new));
-        data.setInteractions(interactionsData);
-        return data;
+
+        return QuestionData.builder()
+                .id(question.getId())
+                .questionStatus(question.getQuestionStatus())
+                .createdAt(question.getCreatedAt())
+                .content(content)
+                .interactions(interactionsData)
+                .build();
+    }
+
+    @Override
+    public @NotNull QuestionData map(@NotNull QuestionData question,
+                                     @NotNull QuestionEntity entity) {
+        var answerObjects = question.getContent().getAnswerObjects();
+        var stored = entity.getAnswerObjects() == null ? List.<AnswerObjectEntity>of() : entity.getAnswerObjects();
+
+        var withIds = new ArrayList<AnswerObjectData>(answerObjects.size());
+        for (int i = 0; i < answerObjects.size(); i++) {
+            var source = answerObjects.get(i);
+            withIds.add(source.getId() != null || i >= stored.size()
+                    ? source
+                    : source.toBuilder().id(stored.get(i).getId()).build());
+        }
+
+        return question.toBuilder()
+                .id(entity.getId())
+                .content(question.getContent().toBuilder().answerObjects(withIds).build())
+                .build();
     }
 }

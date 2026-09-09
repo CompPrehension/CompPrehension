@@ -10,6 +10,7 @@ import org.vstu.compprehension.data.question.NewSupplementaryStepData;
 import org.vstu.compprehension.data.question.SupplementarySituationData;
 import org.vstu.compprehension.data.exercise.ExerciseOptionsData;
 import org.vstu.compprehension.data.questionoptions.MatchingQuestionOptionsData;
+import org.vstu.compprehension.data.questionoptions.QuestionOptionsData;
 import org.vstu.compprehension.data.questionoptions.MultiChoiceOptionsData;
 import org.vstu.compprehension.data.questionoptions.SingleChoiceOptionsData;
 import its.model.DomainSolvingModel;
@@ -23,6 +24,8 @@ import kotlin.Pair;
 import lombok.val;
 import org.jetbrains.annotations.Nullable;
 import org.vstu.compprehension.data.question.QuestionInteractionData;
+import org.vstu.compprehension.data.question.GeneratedQuestionData;
+import org.vstu.compprehension.data.question.QuestionContentData;
 import org.vstu.compprehension.data.question.QuestionData;
 import org.vstu.compprehension.data.question.AnswerObjectData;
 import org.vstu.compprehension.frontend.dto.SupplementaryFeedbackDto;
@@ -180,54 +183,58 @@ public class DecisionTreeSupQuestionHelper {
         return new SupplementaryFeedbackGenerationResult(stateChangeAsSupplementaryFeedbackDto(change), newSupplementaryChain);
     }
 
-    private org.vstu.compprehension.businesslogic.Question transformQuestionFormats(Question q, @Nullable ExerciseOptionsData exerciseOptions, Language language){
-        QuestionData generated = new QuestionData();
-        generated.setQuestionText(q.getText());
-        //generated.setQuestionName(String.valueOf(creatorStateId));    //FIXME?
-        generated.setQuestionDomainType(domain.getDefaultQuestionType(true));
-        generated.setAnswerObjects(
-            q.getOptions().stream()
+    private GeneratedQuestionData transformQuestionFormats(Question q, @Nullable ExerciseOptionsData exerciseOptions, Language language){
+        List<AnswerObjectData> answerObjects = q.getOptions().stream()
                 .map(opt -> {
                     AnswerObjectData ans = new AnswerObjectData();
                     ans.setAnswerId(opt.getSecond());
                     ans.setHyperText(opt.getFirst());
                     return ans;
                 })
-                .collect(Collectors.toList())
-        );
+                .collect(Collectors.toCollection(ArrayList::new));
+
+        QuestionType questionType;
+        QuestionOptionsData options;
         switch (q.getType()) {
             case matching -> {
-                List<AnswerObjectData> answers = generated.getAnswerObjects();
-                int matchOptionsShift = answers.size(); //чтобы избежать пересечения с answerId ответов
+                int matchOptionsShift = answerObjects.size(); //чтобы избежать пересечения с answerId ответов
                 for (Pair<String, Integer> m : q.getMatchingOptions()) {
                     AnswerObjectData ans = new AnswerObjectData();
                     ans.setAnswerId(m.getSecond() + matchOptionsShift);
                     ans.setHyperText(m.getFirst());
                     ans.setRightCol(true);
-                    answers.add(ans);
+                    answerObjects.add(ans);
                 }
-                generated.setAnswerObjects(answers);
 
-                generated.setQuestionType(QuestionType.MATCHING);
+                questionType = QuestionType.MATCHING;
                 val opt = new MatchingQuestionOptionsData();
                 opt.setDisplayMode(MatchingQuestionOptionsData.DisplayMode.COMBOBOX);
-                generated.setOptions(opt);
+                options = opt;
             }
             case single -> {
-                generated.setQuestionType(QuestionType.SINGLE_CHOICE);
+                questionType = QuestionType.SINGLE_CHOICE;
                 val opt = new SingleChoiceOptionsData();
                 opt.setDisplayMode(SingleChoiceOptionsData.DisplayMode.RADIO);
-                generated.setOptions(opt);
+                options = opt;
             }
             case multiple -> {
-                generated.setQuestionType(QuestionType.MULTI_CHOICE);
+                questionType = QuestionType.MULTI_CHOICE;
                 val opt = new MultiChoiceOptionsData();
                 opt.setDisplayMode(MultiChoiceOptionsData.DisplayMode.SWITCH);
-                generated.setOptions(opt);
+                options = opt;
             }
+            default -> throw new IllegalStateException("Unsupported question type: " + q.getType());
         }
-        generated.getOptions().setShowSupplementaryQuestions(true);
-        return new org.vstu.compprehension.businesslogic.Question(generated, domain);
+        options.setShowSupplementaryQuestions(true);
+
+        return GeneratedQuestionData.of(QuestionContentData.builder()
+                .domainId(domain.getDomainId())
+                .questionText(q.getText())
+                .questionDomainType(domain.getDefaultQuestionType(true))
+                .questionType(questionType)
+                .options(options)
+                .answerObjects(answerObjects)
+                .build());
     }
 
     private static SupplementaryFeedbackDto stateChangeAsSupplementaryFeedbackDto(QuestionStateChange change){
@@ -244,8 +251,7 @@ public class DecisionTreeSupQuestionHelper {
     }
     private SupplementaryResponse stateResultAsSupplementaryResponse(QuestionStateResult q, @Nullable ExerciseOptionsData exerciseOptions, Language language){
         if(q instanceof Question){
-            org.vstu.compprehension.businesslogic.Question supQuestion = transformQuestionFormats((Question) q, exerciseOptions, language);
-            return new SupplementaryResponse(supQuestion);
+            return new SupplementaryResponse(transformQuestionFormats((Question) q, exerciseOptions, language));
         }
         else {
             QuestionStateChange change = ((QuestionStateChange) q);

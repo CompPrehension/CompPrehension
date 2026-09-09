@@ -14,6 +14,8 @@ import org.vstu.compprehension.businesslogic.backend.Fact;
 import org.vstu.compprehension.data.question.AnswerObjectData;
 import org.vstu.compprehension.data.exercise.ExerciseOptionsData;
 import org.vstu.compprehension.data.domain.DomainData;
+import org.vstu.compprehension.data.question.QuestionContentData;
+import org.vstu.compprehension.data.question.GeneratedQuestionData;
 import org.vstu.compprehension.data.question.QuestionData;
 import org.vstu.compprehension.enums.FeedbackType;
 import org.vstu.compprehension.enums.InteractionType;
@@ -48,15 +50,19 @@ public interface Domain {
     @NotNull List<Tag> getAllTags();
     @Nullable Tag getTag(@NotNull String name);
 
+    @NotNull List<Tag> resolveTags(@NotNull Collection<String> tagNames);
+
+    @NotNull String getQuestionUniqueTemplateName(@NotNull QuestionContentData question);
+
     /**
      * Сформировать из ответов студента (которые были ранее добавлены к вопросу)
      * факты в универсальной форме
      * @return - факты в универсальной форме
      */
-    Collection<Fact> responseToFacts(Question question, List<? extends AnswerData> responses);
+    Collection<Fact> responseToFacts(QuestionData question, List<? extends AnswerData> responses);
 
     /** Get statement facts with common domain definitions for reasoning (schema) added */
-    Collection<Fact> getQuestionStatementFactsWithSchema(Question q);
+    Collection<Fact> getQuestionStatementFactsWithSchema(QuestionContentData q);
 
     /**
      * Get all needed violation Fact verbs for db saving
@@ -150,9 +156,9 @@ public interface Domain {
      * @param userLanguage question wording language
      * @return generated question
      */
-    @NotNull Question makeQuestion(@NotNull QuestionRequest questionRequest,
-                                   @Nullable ExerciseOptionsData exerciseOptions,
-                                   @NotNull Language userLanguage);
+    @NotNull GeneratedQuestionData makeQuestion(@NotNull QuestionRequest questionRequest,
+                                                @Nullable ExerciseOptionsData exerciseOptions,
+                                                @NotNull Language userLanguage);
 
     /**
      * Generate domain question from question data
@@ -160,9 +166,9 @@ public interface Domain {
      * @param userLang question wording language
      * @return generated question
      */
-    @NotNull Question makeQuestion(@NotNull QuestionMetadataData metadata,
-                                   @NotNull List<Tag> tags,
-                                   @NotNull Language userLang);
+    @NotNull GeneratedQuestionData makeQuestion(@NotNull QuestionMetadataData metadata,
+                                                @NotNull List<Tag> tags,
+                                                @NotNull Language userLang);
 
     /**
      * Make supplementary question based on violation in last iteration
@@ -172,21 +178,21 @@ public interface Domain {
      */
     SupplementaryResponseGenerationResult makeSupplementaryQuestion(QuestionData sourceQuestion, ViolationData violation, Language lang);
 
-    SupplementaryFeedbackGenerationResult judgeSupplementaryQuestion(Question question, SupplementaryStepData supplementaryStep, List<? extends AnswerData> responses, Language language);
+    SupplementaryFeedbackGenerationResult judgeSupplementaryQuestion(QuestionData question, SupplementaryStepData supplementaryStep, List<? extends AnswerData> responses, Language language);
 
     /**
      * Get any correct answer at current iteration
      * @param q question
      * @return any correct answer
      */
-    CorrectAnswer getAnyNextCorrectAnswer(Question q, Language language);
+    CorrectAnswer getAnyNextCorrectAnswer(QuestionData q, Language language);
 
     /**
      * Get text description of all steps to right solution
      * @param question tested question
      * @return list of step descriptions
      */
-    List<HyperText> getFullSolutionTrace(Question question, Language language);
+    List<HyperText> getFullSolutionTrace(QuestionData question, Language language);
 
     /** Get concepts with given flags (e.g. visible) organized into two-level hierarchy
      * @param requiredFlags e.g. Concept.FLAG_VISIBLE_TO_TEACHER
@@ -205,7 +211,7 @@ public interface Domain {
      */
     Map<Skill, List<Skill>> getSkillSimplifiedHierarchy(int bitflags);
 
-    Question solveQuestion(Question question, List<Tag> tags);
+    QuestionContentData solveQuestion(QuestionContentData question, List<Tag> tags);
 
     /**
      * @param question current question being solved
@@ -213,7 +219,7 @@ public interface Domain {
      * @param tags Exercise tags
      * @return interpretation of backend's judgement
      */
-    InterpretSentenceResult judgeQuestion(Question question, List<? extends AnswerData> responses, List<Tag> tags, Language language);
+    InterpretSentenceResult judgeQuestion(QuestionData question, List<? extends AnswerData> responses, List<Tag> tags, Language language);
 
     /**
      * Any available correct answer at current iteration

@@ -4,7 +4,7 @@ import org.apache.jena.rdf.model.Model;
 import org.junit.jupiter.api.BeforeAll;
 import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.Test;
-import org.vstu.compprehension.businesslogic.Question;
+import org.vstu.compprehension.data.question.GeneratedQuestionData;
 import org.vstu.compprehension.businesslogic.backend.Fact;
 import org.vstu.compprehension.businesslogic.backend.facts.JenaFact;
 import org.vstu.compprehension.businesslogic.backend.facts.JenaFactList;
@@ -15,7 +15,7 @@ import java.util.List;
 import static org.vstu.compprehension.businesslogic.domains.ControlFlowStatementsDomain.QUESTIONS_CONFIG_PATH;
 
 public class JenaFactListTest {
-    private static List<Question> QUESTIONS = null;
+    private static List<GeneratedQuestionData> QUESTIONS = null;
     JenaFactList fl;
 
     @BeforeAll
@@ -42,9 +42,9 @@ public class JenaFactListTest {
 
     @Test
     public void test_fromFacts() {
-        Question q = QUESTIONS.get(0);
+        GeneratedQuestionData q = QUESTIONS.get(0);
         fl = new JenaFactList();
-        fl.addBackendFacts(q.getStatementFacts());
+        fl.addBackendFacts(q.getContent().getStatementFacts());
         System.out.println(fl.size());
         for (Fact fact : fl) {
             ((JenaFact)fact).updateFactFromStatement();
@@ -58,8 +58,8 @@ public class JenaFactListTest {
         fl = new JenaFactList(schemaModel);
         System.out.println(fl.size());
 
-        Question q = QUESTIONS.get(0);
-        JenaFactList fl2 = JenaFactList.fromBackendFacts(q.getStatementFacts());
+        GeneratedQuestionData q = QUESTIONS.get(0);
+        JenaFactList fl2 = JenaFactList.fromBackendFacts(q.getContent().getStatementFacts());
         System.out.println(fl2.size());
 
         fl.addAll(fl2);
@@ -76,8 +76,8 @@ public class JenaFactListTest {
         fl = new JenaFactList(schemaModel);
         System.out.println(fl.size());
 
-        Question q = QUESTIONS.get(0);
-        fl.addBackendFacts(q.getStatementFacts());
+        GeneratedQuestionData q = QUESTIONS.get(0);
+        fl.addBackendFacts(q.getContent().getStatementFacts());
 
         System.out.println(fl.size());
         for (Fact fact : fl) {

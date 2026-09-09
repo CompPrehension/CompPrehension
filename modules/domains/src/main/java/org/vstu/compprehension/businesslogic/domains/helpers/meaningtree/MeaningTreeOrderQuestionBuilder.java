@@ -10,6 +10,7 @@ import org.apache.commons.lang3.tuple.Pair;
 import org.apache.jena.rdf.model.Model;
 import org.jetbrains.annotations.NotNull;
 import org.jetbrains.annotations.Nullable;
+import org.vstu.compprehension.data.question.GeneratedQuestionData;
 import org.vstu.compprehension.data.question.QuestionMetadataData;
 import org.vstu.compprehension.common.MathHelper;
 import org.vstu.compprehension.common.StringHelper;
@@ -110,22 +111,23 @@ public class MeaningTreeOrderQuestionBuilder {
      * @param q question in domain format
      * @return builder
      */
-    public MeaningTreeOrderQuestionBuilder existingQuestion(Question q) {
+    public MeaningTreeOrderQuestionBuilder existingQuestion(GeneratedQuestionData q) {
+        var meta = q.getContent().getMetadata();
         MeaningTree mt;
-        if (q.getMetadata().getVersion() >= MIN_VERSION) {
+        if (meta.getVersion() >= MIN_VERSION) {
             mt = MeaningTreeRDFHelper.backendFactsToMeaningTree(
-                    q.getQuestionData().getStatementFacts()
+                    q.getContent().getStatementFacts()
             );
         } else {
-            log.info("Converting old-format question with metadata id={}", q.getMetadata().getId());
-            mt = extractExpression(q.getQuestionData().getStatementFacts());
+            log.info("Converting old-format question with metadata id={}", meta.getId());
+            mt = extractExpression(q.getContent().getStatementFacts());
             if (mt != null) {
                 allChecksArePassed = false;
             }
         }
         sourceExpressionTree = mt;
-        existingMetadata = q.getMetadata();
-        questionOrigin(q.getMetadata().getOrigin(), q.getMetadata().getOriginLicense());
+        existingMetadata = meta;
+        questionOrigin(meta.getOrigin(), meta.getOriginLicense());
         return this;
     }
 
@@ -235,7 +237,7 @@ public class MeaningTreeOrderQuestionBuilder {
      */
     public static QuestionMetadataData metadataRecalculate(ProgrammingLanguageExpressionDTDomain domain,
                                                            QuestionMetadataData qMeta) {
-        Question q = qMeta.getData().toQuestion(domain, qMeta);
+        GeneratedQuestionData q = qMeta.getData().toQuestion(domain, qMeta);
         MeaningTreeOrderQuestionBuilder builder = MeaningTreeOrderQuestionBuilder.newQuestion(domain).existingQuestion(q);
         SupportedLanguage language = MeaningTreeUtils.detectLanguageFromTags(qMeta.getTagBits(), domain);
         var data = builder.generateExpressionDataAccurate(builder.sourceExpressionTree, language);
@@ -319,7 +321,7 @@ public class MeaningTreeOrderQuestionBuilder {
      * @param domain домен, под который будет осуществляться генерация
      * @return сгенерированный вопрос
      */
-    public static Question fastBuildFromExisting(Question data, SupportedLanguage lang, ProgrammingLanguageExpressionDTDomain domain) {
+    public static GeneratedQuestionData fastBuildFromExisting(GeneratedQuestionData data, SupportedLanguage lang, ProgrammingLanguageExpressionDTDomain domain) {
         var result = MeaningTreeOrderQuestionBuilder.newQuestion(domain).existingQuestion(data)
                 .buildQuestions(lang);
         if (result.isEmpty()) {
@@ -394,7 +396,7 @@ public class MeaningTreeOrderQuestionBuilder {
      * @param lang target language for metadata
      * @return list of domain questions
      */
-    public List<Question> buildQuestions(SupportedLanguage lang) {
+    public List<GeneratedQuestionData> buildQuestions(SupportedLanguage lang) {
         return build(lang).stream().map(
                 (Pair<SerializableQuestion, SerializableQuestionTemplate.QuestionMetadata> q) ->
                         q.getKey().toQuestion(domain, q.getValue().toMetadataData())).toList();

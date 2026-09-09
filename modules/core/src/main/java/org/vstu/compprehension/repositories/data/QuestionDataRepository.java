@@ -86,14 +86,16 @@ public class QuestionDataRepository {
     }
 
     @Transactional
-    public long save(@NotNull QuestionData data, @NotNull String domainId,
-                     @Nullable QuestionRequestLogData questionRequestLog,
-                     @Nullable Long exerciseAttemptId) {
+    public @NotNull QuestionData save(@NotNull QuestionData data,
+                                      @Nullable QuestionRequestLogData questionRequestLog,
+                                      @Nullable Long exerciseAttemptId) {
+        var content = data.getContent();
+
         // Метаданные приходят из банка заданий и уже существуют, поэтому берутся
         // ссылкой по идентификатору, без запроса.
-        var metadata = data.getMetadata() == null || data.getMetadata().getId() == null
+        var metadata = content.getMetadata() == null || content.getMetadata().getId() == null
                 ? null
-                : questionMetadataRepository.getReferenceById(data.getMetadata().getId());
+                : questionMetadataRepository.getReferenceById(content.getMetadata().getId());
 
         // Идентификатор есть только у вопросов, поднятых из БД: по нему и решается,
         // обновлять существующую строку или заводить новую.
@@ -113,7 +115,7 @@ public class QuestionDataRepository {
             entity.setExerciseAttempt(exerciseAttemptRepository.getReferenceById(exerciseAttemptId));
         }
         if (entity.getDomainEntity() == null) {
-            entity.setDomainEntity(domainRepository.getReferenceById(domainId));
+            entity.setDomainEntity(domainRepository.getReferenceById(content.getDomainId()));
         }
 
         questionRepository.save(entity);
@@ -129,10 +131,6 @@ public class QuestionDataRepository {
                     entity.getAnswerObjects().stream().filter(a -> a.getId() == null)::iterator);
         }
 
-        data.setId(entity.getId());
-        for (int i = 0; i < entity.getAnswerObjects().size() && i < data.getAnswerObjects().size(); i++) {
-            data.getAnswerObjects().get(i).setId(entity.getAnswerObjects().get(i).getId());
-        }
-        return entity.getId();
+        return questionMapper.map(data, entity);
     }
 }

@@ -18,6 +18,7 @@ import org.vstu.compprehension.frontend.dto.feedback.FeedbackDto;
 import org.vstu.compprehension.frontend.dto.feedback.FeedbackViolationLawDto;
 import org.vstu.compprehension.frontend.dto.question.QuestionDto;
 import org.vstu.compprehension.businesslogic.Explanation;
+import org.vstu.compprehension.businesslogic.domains.DomainFactory;
 import org.vstu.compprehension.businesslogic.strategies.AbstractStrategyFactory;
 import org.vstu.compprehension.data.exerciseattempt.AttemptSummaryData;
 import org.vstu.compprehension.data.exercise.ExerciseStageData;
@@ -51,6 +52,7 @@ class ExerciseAttemptFrontendServiceImpl implements ExerciseAttemptFrontendServi
     private final ExerciseAttemptDataService exerciseAttemptService;
     private final ExerciseDataService exerciseService;
     private final QuestionDataService questionService;
+    private final DomainFactory domainFactory;
     private final AbstractStrategyFactory strategyFactory;
     private final LocalizationService localizationService;
     private final UserDataService userService;
@@ -76,7 +78,7 @@ class ExerciseAttemptFrontendServiceImpl implements ExerciseAttemptFrontendServi
     public @NotNull SupplementaryFeedbackDto addSupplementaryQuestionAnswer(@NotNull InteractionDto interaction) {
         val questionId = interaction.getQuestionId();
         val question = questionService.getQuestion(questionId);
-        if (!question.isSupplementary()) {
+        if (!question.getContent().isSupplementary()) {
             throw new Exception("Question with id" + questionId + " isn't supplementary");
         }
 
@@ -99,9 +101,9 @@ class ExerciseAttemptFrontendServiceImpl implements ExerciseAttemptFrontendServi
         var language = currentUser.language();
 
         // evaluate answer
-        val question = questionService.getSolvedQuestion(questionId);
-        val domain = question.getDomain();
-        val tags = question.getTags();
+        var question = questionService.getSolvedQuestion(questionId);
+        val domain = domainFactory.getDomain(question.getContent().getDomainId());
+        val tags = domain.resolveTags(question.getContent().getTags());
         val responses = questionService.resolveAnswers(questionId, answers);
         val judgeResult = domain.judgeQuestion(question, responses, tags, language);
         muteDeniedExplanations(judgeResult.explanation, context.getQuestionStage());
@@ -114,7 +116,7 @@ class ExerciseAttemptFrontendServiceImpl implements ExerciseAttemptFrontendServi
                 orEmpty(judgeResult.violations),
                 orEmpty(judgeResult.correctlyAppliedLaws),
                 judgeResult.IterationsLeft));
-        question.getQuestionData().addInteraction(recorded);
+        question = question.withInteraction(recorded);
 
         var strategy = strategyFactory.getStrategy(context.getStrategyId());
         var strategyDecision = strategy.gradeAndDecide(context.getAttemptId(), judgeResult);
@@ -138,7 +140,7 @@ class ExerciseAttemptFrontendServiceImpl implements ExerciseAttemptFrontendServi
                 : null;
 
         // return result of the last correct interaction
-        val correctAnswers = question.getQuestionData().latestCorrectInteraction()
+        val correctAnswers = question.latestCorrectInteraction()
                 .map(QuestionInteractionData::getResponses).stream()
                 .flatMap(Collection::stream)
                 .map(answerDtoMapper::map)
@@ -147,12 +149,12 @@ class ExerciseAttemptFrontendServiceImpl implements ExerciseAttemptFrontendServi
         // special case for order question
         // force complete answer if the last but one answer is correct
         val isAnswerCorrect = errors.isEmpty() && judgeResult.isAnswerCorrect;
-        val orderQuestionOptions = Utils.tryCast(question.getQuestionData().getOptions(), OrderQuestionOptionsData.class).orElse(null);
-        if (isAnswerCorrect && question.getQuestionData().getQuestionType().equals(QuestionType.ORDER) &&
+        val orderQuestionOptions = Utils.tryCast(question.getContent().getOptions(), OrderQuestionOptionsData.class).orElse(null);
+        if (isAnswerCorrect && question.getContent().getQuestionType().equals(QuestionType.ORDER) &&
                 orderQuestionOptions != null && !orderQuestionOptions.isMultipleSelectionEnabled() &&
-                judgeResult.IterationsLeft == 1 && question.getQuestionData().getAnswerObjects().size() - correctAnswers.length == 1) {
+                judgeResult.IterationsLeft == 1 && question.getContent().getAnswerObjects().size() - correctAnswers.length == 1) {
             val correctAnswersIds = Arrays.stream(correctAnswers).map(a -> a.getAnswer()[0]).collect(Collectors.toSet());
-            val missingAnswer = question.getQuestionData().getAnswerObjects().stream()
+            val missingAnswer = question.getContent().getAnswerObjects().stream()
                     .filter(ao -> !correctAnswersIds.contains(ao.getAnswerId().longValue()))
                     .map(ao -> new AnswerDto(ao.getAnswerId().longValue(), ao.getAnswerId().longValue(), true, null))
                     .findFirst().get();
@@ -163,8 +165,8 @@ class ExerciseAttemptFrontendServiceImpl implements ExerciseAttemptFrontendServi
 
         return feedbackDtoMapper.map(question,
                 messages,
-                question.getQuestionData().correctInteractionsCount(),
-                question.getQuestionData().erroneousInteractionsCount(),
+                question.correctInteractionsCount(),
+                question.erroneousInteractionsCount(),
                 strategyDecision.grade(),
                 judgeResult.IterationsLeft,
                 correctAnswers,
@@ -208,9 +210,9 @@ class ExerciseAttemptFrontendServiceImpl implements ExerciseAttemptFrontendServi
     @Transactional(propagation = Propagation.REQUIRED)
     public @NotNull FeedbackDto generateNextCorrectAnswer(@NotNull Long questionId) {
         // get next correct answer
-        val question = questionService.getSolvedQuestion(questionId);
+        var question = questionService.getSolvedQuestion(questionId);
         val context = exerciseAttemptService.findQuestionContext(questionId).orElseThrow();
-        var domain = question.getDomain();
+        var domain = domainFactory.getDomain(question.getContent().getDomainId());
         var currentUser = userService.getCurrentUser();
         var language = currentUser.language();
         val correctAnswer = domain.getAnyNextCorrectAnswer(question, language);
@@ -218,7 +220,7 @@ class ExerciseAttemptFrontendServiceImpl implements ExerciseAttemptFrontendServi
 
         // Подсказка достраивает уже данные студентом ответы, а не начинает решение
         // заново: ответы последнего верного взаимодействия переезжают в это.
-        val alreadyGiven = question.getQuestionData().latestCorrectInteraction()
+        val alreadyGiven = question.latestCorrectInteraction()
                 .map(QuestionInteractionData::getResponses)
                 .orElseGet(List::of);
         val nextAnswers = correctAnswer.answers.stream()
@@ -230,7 +232,8 @@ class ExerciseAttemptFrontendServiceImpl implements ExerciseAttemptFrontendServi
         val responses = Stream.concat(
                 alreadyGiven.stream(),
                 questionService.resolveAnswers(questionId, nextAnswers).stream()).toList();
-        val judgeResult = domain.judgeQuestion(question, responses, question.getTags(), language);
+        val judgeResult = domain.judgeQuestion(question, responses,
+                domain.resolveTags(question.getContent().getTags()), language);
 
         // add interaction
         val recorded = questionService.recordInteraction(new NewInteractionData(
@@ -242,7 +245,7 @@ class ExerciseAttemptFrontendServiceImpl implements ExerciseAttemptFrontendServi
                 orEmpty(judgeResult.violations),
                 orEmpty(judgeResult.correctlyAppliedLaws),
                 judgeResult.IterationsLeft));
-        question.getQuestionData().addInteraction(recorded);
+        question = question.withInteraction(recorded);
 
         var strategy = strategyFactory.getStrategy(context.getStrategyId());
         var strategyDecision = strategy.gradeAndDecide(context.getAttemptId(), judgeResult);
@@ -261,8 +264,8 @@ class ExerciseAttemptFrontendServiceImpl implements ExerciseAttemptFrontendServi
 
         return feedbackDtoMapper.map(question,
                 messages,
-                question.getQuestionData().correctInteractionsCount(),
-                question.getQuestionData().erroneousInteractionsCount(),
+                question.correctInteractionsCount(),
+                question.erroneousInteractionsCount(),
                 strategyDecision.grade(),
                 judgeResult.IterationsLeft,
                 recorded.getResponses().stream().map(answerDtoMapper::map).toArray(AnswerDto[]::new),

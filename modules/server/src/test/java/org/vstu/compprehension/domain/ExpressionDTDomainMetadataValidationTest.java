@@ -6,6 +6,7 @@ import org.vstu.compprehension.data.exercise.ExerciseStageData;
 import org.vstu.compprehension.data.question.AnswerData;
 import org.vstu.compprehension.data.question.QuestionMetadataData;
 import org.vstu.compprehension.data.question.AnswerObjectData;
+import org.vstu.compprehension.data.question.QuestionData;
 import org.vstu.compprehension.businesslogic.*;
 
 import org.vstu.compprehension.infrastructure.AbstractIntegrationTest;
@@ -103,30 +104,30 @@ public class ExpressionDTDomainMetadataValidationTest extends AbstractIntegratio
                 if (!meta.getDomainShortname().equals("expression_dt")) {
                     continue;
                 }
-                Question q = prepareQuestion(meta);
+                QuestionData q = prepareQuestion(meta);
                 SupportedLanguage lang = MeaningTreeUtils.detectLanguageFromTags(meta.getTagBits(), domain);
                 String text;
                 try {
-                    text = MeaningTreeUtils.viewExpression(MeaningTreeRDFHelper.backendFactsToMeaningTree(q.getStatementFacts()), lang);
+                    text = MeaningTreeUtils.viewExpression(MeaningTreeRDFHelper.backendFactsToMeaningTree(q.getContent().getStatementFacts()), lang);
                 } catch (MeaningTreeException e) {
                     text = meta.getName();
                 }
                 String qInfo = String.format("[Question metadata id %d, lang %s, text: %s]: ", meta.getId(), lang.toString(), text);
                 System.err.println(qInfo.concat("Processing"));
-                List<AnswerObjectData> ansObj = q.getAnswerObjects().stream()
+                List<AnswerObjectData> ansObj = q.getContent().getAnswerObjects().stream()
                         .filter((AnswerObjectData obj) -> !obj.getDomainInfo().equals("end_token")).toList();
                 List<List<AnswerObjectData>> combinations = generateAllCombinations(ansObj);
                 HashSet<Skill> allSkills = new HashSet<>();
                 HashSet<NegativeLaw> allLaws = new HashSet<>();
 
-                HashSet<Skill> questionSkills = new HashSet<>(domain.skillsFromBitmask(q.getMetadata().getSkillBits()));
+                HashSet<Skill> questionSkills = new HashSet<>(domain.skillsFromBitmask(q.getContent().getMetadata().getSkillBits()));
                 for (Skill skill : new HashSet<>(questionSkills)) {
                     if (!skill.getBaseSkills().isEmpty()) {
                         questionSkills.remove(skill);
                         questionSkills.addAll(skill.getBaseSkills());
                     }
                 }
-                HashSet<NegativeLaw> questionLaws = new HashSet<>(domain.negativeLawFromBitmask(q.getMetadata().getSkillBits()).stream().filter(
+                HashSet<NegativeLaw> questionLaws = new HashSet<>(domain.negativeLawFromBitmask(q.getContent().getMetadata().getSkillBits()).stream().filter(
                         (NegativeLaw nLaw) -> nLaw.getLawsImplied() != null && !nLaw.getLawsImplied().isEmpty()).toList());
                 questionLaws.remove(domain.getNegativeLaw("error_base_student_error_early_finish"));
                 boolean foundCorrectSolution = false;
@@ -206,29 +207,30 @@ public class ExpressionDTDomainMetadataValidationTest extends AbstractIntegratio
         return set;
     }
 
-    public Question prepareQuestion(QuestionMetadataEntity meta) {
+    public QuestionData prepareQuestion(QuestionMetadataEntity meta) {
         SupportedLanguage lang = MeaningTreeUtils.detectLanguageFromTags(meta.getTagBits(), domain);
-        Question q = meta.getQuestionData().getData().toQuestion(domain, questionMetadataMapper.map(meta));
-        return QuestionDynamicDataAppender.appendQuestionData(q, qBank, lang, domain, Language.ENGLISH);
+        var q = meta.getQuestionData().getData().toQuestion(domain, questionMetadataMapper.map(meta));
+        return QuestionData.of(
+                QuestionDynamicDataAppender.appendQuestionData(q, qBank, lang, domain, Language.ENGLISH).getContent());
     }
 
-    public Domain.InterpretSentenceResult solve(Question q, SupportedLanguage language, List<AnswerObjectData> answerSequence) {
+    public Domain.InterpretSentenceResult solve(QuestionData q, SupportedLanguage language, List<AnswerObjectData> answerSequence) {
         String outLangStr = language.toString().substring(0, 1).toUpperCase() + language.toString().substring(1);
 
         // Check metadata
-        Assert.isTrue(q.getMetadata() != null
-                && q.getMetadata().getIntegralComplexity() >= 0
-                && q.getMetadata().getIntegralComplexity() <= 1, String.format(
+        Assert.isTrue(q.getContent().getMetadata() != null
+                && q.getContent().getMetadata().getIntegralComplexity() >= 0
+                && q.getContent().getMetadata().getIntegralComplexity() <= 1, String.format(
                 "Invalid integral complexity %f, possibleErrors=%d, solutionLength=%d",
-                q.getMetadata().getIntegralComplexity(),
-                q.getMetadata().getDistinctErrorsCount(),
-                q.getMetadata().getSolutionSteps()));
+                q.getContent().getMetadata().getIntegralComplexity(),
+                q.getContent().getMetadata().getDistinctErrorsCount(),
+                q.getContent().getMetadata().getSolutionSteps()));
 
         List<AnswerData> responses = new ArrayList<>();
         for (AnswerObjectData answerObject : answerSequence) {
             responses.add(AnswerData.of(answerObject, answerObject));
         }
-        return q.getDomain().judgeQuestion(q, responses, List.of(domain.getTag(outLangStr)), Language.ENGLISH);
+        return domain.judgeQuestion(q, responses, List.of(domain.getTag(outLangStr)), Language.ENGLISH);
     }
 
     // Метод для получения всех комбинаций

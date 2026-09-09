@@ -97,7 +97,7 @@ public class LoqiBuilder extends AbstractIntegrationTest {
 
     @SneakyThrows
     public boolean generate(String expression, SupportedLanguage inLang, SupportedLanguage outLang, List<Integer> sequence) {
-        List<Question> questions = MeaningTreeOrderQuestionBuilder
+        var questions = MeaningTreeOrderQuestionBuilder
                 .newQuestion(domain)
                 .expression(expression, inLang)
                 .questionOrigin("test", "MIT")
@@ -106,7 +106,7 @@ public class LoqiBuilder extends AbstractIntegrationTest {
         String outLangStr = outLang.toString().substring(0, 1).toUpperCase() + outLang.toString().substring(1);
 
         boolean allPassed = true;
-        for (Question q : questions) {
+        for (var q : questions) {
             List<AnswerData> responses = new ArrayList<>();
             for (Integer response : sequence) {
                 AnswerObjectData answerObject = AnswerObjectData
@@ -115,10 +115,10 @@ public class LoqiBuilder extends AbstractIntegrationTest {
                 responses.add(AnswerData.of(answerObject, answerObject));
             }
             DomainModel model = MeaningTreeRDFTransformer.questionToDomainModel(
-                    domainSolvingModel, q.getStatementFacts(), responses, List.of(domain.getTag(outLangStr))
+                    domainSolvingModel, q.getContent().getStatementFacts(), responses, List.of(domain.getTag(outLangStr))
             );
             var tempDir = Files.createTempDirectory("loqi").toFile();
-            var filename = new File(tempDir, q.getQuestionName() + ".loqi");
+            var filename = new File(tempDir, q.getContent().getQuestionName() + ".loqi");
             MeaningTreeRDFTransformer.dumpModelLoqi(model, filename);
             log.info("Saved to {}", filename.getAbsolutePath());
         }

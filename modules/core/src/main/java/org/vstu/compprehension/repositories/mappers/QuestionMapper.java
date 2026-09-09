@@ -12,4 +12,7 @@ public interface QuestionMapper extends Mapping {
 
     @NotNull QuestionData map(@NotNull QuestionEntity question,
                               @NotNull List<InteractionEntity> interactions);
+
+    @NotNull QuestionData map(@NotNull QuestionData question,
+                              @NotNull QuestionEntity entity);
 }

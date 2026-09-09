@@ -1,14 +1,13 @@
 package org.vstu.compprehension.data.question;
 
-import org.vstu.compprehension.data.questionoptions.QuestionOptionsData;
-import lombok.Data;
-import lombok.NoArgsConstructor;
+import lombok.Builder;
+import lombok.Value;
 import org.jetbrains.annotations.NotNull;
 import org.jetbrains.annotations.Nullable;
 import org.vstu.compprehension.enums.QuestionStatus;
-import org.vstu.compprehension.enums.QuestionType;
 
 import java.util.ArrayList;
+import java.util.Collections;
 import java.util.Date;
 import java.util.List;
 import java.util.Objects;
@@ -16,33 +15,49 @@ import java.util.Optional;
 import java.util.Set;
 import java.util.stream.Collectors;
 
-@Data
-@NoArgsConstructor
+@Value
 public class QuestionData {
-    private Long id;
-    private QuestionType questionType;
-    private QuestionStatus questionStatus;
-    private String questionText;
-    private String questionName;
-    private Date createdAt;
-    private @Nullable QuestionMetadataData metadata;
-    private String questionDomainType;
-    private QuestionOptionsData options;
-    private @NotNull List<String> tags = new ArrayList<>(0);
-    private List<AnswerObjectData> answerObjects = new ArrayList<>();
-    private @NotNull List<QuestionInteractionData> interactions = new ArrayList<>(0);
-    private List<BackendFactData> statementFacts = new ArrayList<>();
-    private List<BackendFactData> solutionFacts = new ArrayList<>();
+    @Nullable Long id;
+    @Nullable QuestionStatus questionStatus;
+    @Nullable Date createdAt;
+    @NotNull QuestionContentData content;
+    @NotNull List<QuestionInteractionData> interactions;
 
-    public void addInteraction(@NotNull QuestionInteractionData interaction) {
+    @Builder(toBuilder = true)
+    public QuestionData(@Nullable Long id,
+                        @Nullable QuestionStatus questionStatus,
+                        @Nullable Date createdAt,
+                        @NotNull QuestionContentData content,
+                        @Nullable List<QuestionInteractionData> interactions) {
+        this.id = id;
+        this.questionStatus = questionStatus;
+        this.createdAt = createdAt;
+        this.content = Objects.requireNonNull(content, "content");
+        this.interactions = interactions == null || interactions.isEmpty()
+                ? List.of()
+                : Collections.unmodifiableList(new ArrayList<>(interactions));
+    }
+
+    public static @NotNull QuestionData of(@NotNull QuestionContentData content) {
+        return new QuestionData(null, null, null, content, null);
+    }
+
+    public @NotNull QuestionData withContent(@NotNull QuestionContentData newContent) {
+        return new QuestionData(id, questionStatus, createdAt, newContent, interactions);
+    }
+
+    public @NotNull QuestionData withInteraction(@NotNull QuestionInteractionData interaction) {
         Set<Long> movedResponseIds = interaction.getResponses().stream()
                 .map(ResponseData::getId)
                 .filter(Objects::nonNull)
                 .collect(Collectors.toSet());
+
+        var updated = new ArrayList<QuestionInteractionData>(interactions.size() + 1);
         for (QuestionInteractionData previous : interactions) {
-            previous.getResponses().removeIf(response -> movedResponseIds.contains(response.getId()));
+            updated.add(withoutResponses(previous, movedResponseIds));
         }
-        interactions.add(interaction);
+        updated.add(interaction);
+        return new QuestionData(id, questionStatus, createdAt, content, updated);
     }
 
     public @NotNull Optional<QuestionInteractionData> latestCorrectInteraction() {
@@ -58,5 +73,18 @@ public class QuestionData {
 
     public int erroneousInteractionsCount() {
         return interactions.size() - correctInteractionsCount();
+    }
+
+    private static @NotNull QuestionInteractionData withoutResponses(@NotNull QuestionInteractionData interaction,
+                                                                    @NotNull Set<Long> responseIds) {
+        if (responseIds.isEmpty() || interaction.getResponses().stream()
+                .noneMatch(response -> responseIds.contains(response.getId()))) {
+            return interaction;
+        }
+        return interaction.toBuilder()
+                .responses(interaction.getResponses().stream()
+                        .filter(response -> !responseIds.contains(response.getId()))
+                        .collect(Collectors.toCollection(ArrayList::new)))
+                .build();
     }
 }

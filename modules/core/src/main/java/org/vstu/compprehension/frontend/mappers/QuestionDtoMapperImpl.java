@@ -4,8 +4,9 @@ import lombok.RequiredArgsConstructor;
 import org.jetbrains.annotations.NotNull;
 import org.springframework.stereotype.Component;
 import org.vstu.compprehension.businesslogic.HyperText;
-import org.vstu.compprehension.businesslogic.Question;
+import org.vstu.compprehension.businesslogic.domains.DomainFactory;
 import org.vstu.compprehension.data.question.AnswerObjectData;
+import org.vstu.compprehension.data.question.QuestionContentData;
 import org.vstu.compprehension.data.question.QuestionData;
 import org.vstu.compprehension.data.question.QuestionInteractionData;
 import org.vstu.compprehension.data.question.ResponseData;
@@ -17,7 +18,6 @@ import org.vstu.compprehension.frontend.dto.question.OrderQuestionDto;
 import org.vstu.compprehension.frontend.dto.question.QuestionDto;
 import org.vstu.compprehension.mappers.Mapper;
 
-import java.util.ArrayList;
 import java.util.Collection;
 import java.util.List;
 import java.util.Optional;
@@ -27,13 +27,13 @@ import java.util.Optional;
 class QuestionDtoMapperImpl implements QuestionDtoMapper {
 
     private final Mapper<ResponseData, AnswerDto> answerDtoMapper;
+    private final DomainFactory domainFactory;
     private final FeedbackDtoMapper feedbackDtoMapper;
 
     @Override
-    public @NotNull QuestionDto map(@NotNull Question question, @NotNull Language language) {
-        QuestionData data = question.getQuestionData();
-        List<QuestionInteractionData> interactions = data.getInteractions() == null
-                ? List.of() : data.getInteractions();
+    public @NotNull QuestionDto map(@NotNull QuestionData question, @NotNull Language language) {
+        QuestionContentData content = question.getContent();
+        List<QuestionInteractionData> interactions = question.getInteractions();
 
         int stepsWithErrors = (int) interactions.stream()
                 .filter(i -> !i.getViolations().isEmpty()).count();
@@ -58,45 +58,44 @@ class QuestionDtoMapperImpl implements QuestionDtoMapper {
                         i.getViolations().isEmpty(), null, language))
                 .orElse(null);
 
-        List<AnswerObjectData> answers = data.getAnswerObjects() == null
-                ? new ArrayList<>(0) : data.getAnswerObjects();
-        Integer metadataId = data.getMetadata() == null ? -1 : data.getMetadata().getId();
+        List<AnswerObjectData> answers = content.getAnswerObjects();
+        Integer metadataId = content.getMetadata() == null ? -1 : content.getMetadata().getId();
 
-        return switch (data.getQuestionType()) {
+        return switch (content.getQuestionType()) {
             case ORDER -> OrderQuestionDto.builder()
-                    .questionId(data.getId())
+                    .questionId(question.getId())
                     .questionMetadataId(metadataId)
-                    .type(data.getQuestionType().toString())
+                    .type(content.getQuestionType().toString())
                     .answers(toAnswerDtos(answers))
-                    .text(data.getQuestionText())
-                    .options(data.getOptions())
+                    .text(content.getQuestionText())
+                    .options(content.getOptions())
                     .responses(responses)
                     .feedback(feedback)
                     .initialTrace(getSolutionTrace(question, language))
                     .build();
             case MULTI_CHOICE, SINGLE_CHOICE -> QuestionDto.builder()
-                    .questionId(data.getId())
+                    .questionId(question.getId())
                     .questionMetadataId(metadataId)
-                    .type(data.getQuestionType().toString())
+                    .type(content.getQuestionType().toString())
                     .answers(toAnswerDtos(answers))
-                    .text(data.getQuestionText())
-                    .options(data.getOptions())
+                    .text(content.getQuestionText())
+                    .options(content.getOptions())
                     .responses(responses)
                     .feedback(feedback)
                     .build();
             case MATCHING -> MatchingQuestionDto.builder()
-                    .questionId(data.getId())
+                    .questionId(question.getId())
                     .questionMetadataId(metadataId)
-                    .type(data.getQuestionType().toString())
+                    .type(content.getQuestionType().toString())
                     .answers(toAnswerDtos(answers.stream().filter(a -> !a.isRightCol()).toList()))
                     .groups(toAnswerDtos(answers.stream().filter(AnswerObjectData::isRightCol).toList()))
-                    .text(data.getQuestionText())
-                    .options(data.getOptions())
+                    .text(content.getQuestionText())
+                    .options(content.getOptions())
                     .responses(responses)
                     .feedback(feedback)
                     .build();
             default -> throw new UnsupportedOperationException(
-                    "No DTO shape for question type " + data.getQuestionType());
+                    "No DTO shape for question type " + content.getQuestionType());
         };
     }
 
@@ -106,10 +105,9 @@ class QuestionDtoMapperImpl implements QuestionDtoMapper {
                 .toArray(QuestionAnswerDto[]::new);
     }
 
-    private @NotNull String[] getSolutionTrace(@NotNull Question question, @NotNull Language language) {
-        return Optional.of(question.getDomain())
-                .map(domain -> domain.getFullSolutionTrace(question, language)).stream()
-                .flatMap(Collection::stream)
+    private @NotNull String[] getSolutionTrace(@NotNull QuestionData question, @NotNull Language language) {
+        return domainFactory.getDomain(question.getContent().getDomainId())
+                .getFullSolutionTrace(question, language).stream()
                 .map(HyperText::getText)
                 .toArray(String[]::new);
     }

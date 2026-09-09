@@ -2,7 +2,7 @@ package org.vstu.compprehension.businesslogic.domains.helpers.meaningtree;
 
 import org.vstu.compprehension.data.question.QuestionMetadataData;
 import org.vstu.compprehension.data.question.AnswerObjectData;
-import org.vstu.compprehension.businesslogic.Question;
+import org.vstu.compprehension.data.question.GeneratedQuestionData;
 import org.vstu.compprehension.businesslogic.Tag;
 import org.vstu.compprehension.businesslogic.domains.ProgrammingLanguageExpressionDTDomain;
 import org.vstu.compprehension.businesslogic.storage.QuestionBank;
@@ -14,7 +14,6 @@ import org.vstu.meaningtree.utils.tokens.OperatorToken;
 import org.vstu.meaningtree.utils.tokens.Token;
 import org.vstu.meaningtree.utils.tokens.TokenList;
 
-import java.util.ArrayList;
 import java.util.HashMap;
 
 public class QuestionDynamicDataAppender {
@@ -29,9 +28,9 @@ public class QuestionDynamicDataAppender {
      * @param domain target domain
      * @return filled domain question object
      */
-    public static Question appendQuestionData(Question q, QuestionBank bank,
-                                              SupportedLanguage lang, ProgrammingLanguageExpressionDTDomain domain, Language userLang) {
-        var meta = q.getMetadata();
+    public static GeneratedQuestionData appendQuestionData(GeneratedQuestionData q, QuestionBank bank,
+                                                          SupportedLanguage lang, ProgrammingLanguageExpressionDTDomain domain, Language userLang) {
+        var meta = q.getContent().getMetadata();
         if (meta != null && meta.getVersion() < MeaningTreeOrderQuestionBuilder.MIN_VERSION) {
             q = MeaningTreeOrderQuestionBuilder.fastBuildFromExisting(q, lang, domain);
             if (q == null) {
@@ -42,9 +41,10 @@ public class QuestionDynamicDataAppender {
             meta.setData(body);
         }
 
-        q.getQuestionData().setStatementFacts(MeaningTreeRDFHelper.applyRuntimeFixes(q.getStatementFacts()));
-        TokenList tokens = MeaningTreeRDFHelper.backendFactsToTokens(q.getStatementFacts(), lang);
-        q.setAnswerObjects(new ArrayList<>(MeaningTreeOrderQuestionBuilder.generateAnswerObjects(tokens).stream().map(
+        var content = q.getContent();
+        var statementFacts = MeaningTreeRDFHelper.applyRuntimeFixes(content.getStatementFacts());
+        TokenList tokens = MeaningTreeRDFHelper.backendFactsToTokens(statementFacts, lang);
+        var answerObjects = MeaningTreeOrderQuestionBuilder.generateAnswerObjects(tokens).stream().map(
                 (SerializableQuestion.AnswerObject obj) -> {
                     AnswerObjectData ansEntity = new AnswerObjectData();
                     ansEntity.setConcept(obj.getConcept());
@@ -53,9 +53,13 @@ public class QuestionDynamicDataAppender {
                     ansEntity.setAnswerId(obj.getAnswerId());
                     ansEntity.setRightCol(obj.isRightCol());
                     return ansEntity;
-                }).toList()));
-        q.getQuestionData().setQuestionText(questionToHtml(tokens, domain, userLang, q.getMetadata()));
-        return q;
+                }).toList();
+
+        return q.withContent(content.toBuilder()
+                .statementFacts(statementFacts)
+                .answerObjects(answerObjects)
+                .questionText(questionToHtml(tokens, domain, userLang, content.getMetadata()))
+                .build());
     }
 
     /**

@@ -2,9 +2,10 @@ package org.vstu.compprehension.businesslogic.backend;
 
 import org.vstu.compprehension.data.question.AnswerData;
 import org.vstu.compprehension.data.question.BackendFactData;
+import org.vstu.compprehension.data.question.QuestionContentData;
+import org.vstu.compprehension.data.question.QuestionData;
 import org.vstu.compprehension.businesslogic.DomainToBackendAdapter;
 import org.vstu.compprehension.businesslogic.Law;
-import org.vstu.compprehension.businesslogic.Question;
 import org.vstu.compprehension.businesslogic.Tag;
 import org.vstu.compprehension.businesslogic.domains.Domain;
 import org.vstu.compprehension.enums.FeedbackType;
@@ -106,23 +107,24 @@ public abstract class FactBackend implements Backend<FactBackend.Input, Collecti
         }
 
         @Override
-        public Input prepareBackendInfoForJudge(Question question, List<? extends AnswerData> responses, List<Tag> tags) {
+        public Input prepareBackendInfoForJudge(QuestionData question, List<? extends AnswerData> responses, List<Tag> tags) {
+            var content = question.getContent();
             return new Input(
-                new ArrayList<>(domain.getQuestionNegativeLaws(question.getQuestionDomainType(), tags)),
-                question.getStatementFactsWithSchema(),
-                Fact.entitiesToFacts(question.getSolutionFacts()),
-                question.responseToFacts(responses),
+                new ArrayList<>(domain.getQuestionNegativeLaws(content.getQuestionDomainType(), tags)),
+                domain.getQuestionStatementFactsWithSchema(content),
+                Fact.entitiesToFacts(content.getSolutionFacts()),
+                domain.responseToFacts(question, responses),
                 new ReasoningOptions(
                     false,
-                    domain.getViolationVerbs(question.getQuestionDomainType(), question.getStatementFacts()),
-                    question.getQuestionUniqueTemplateName()
+                    domain.getViolationVerbs(content.getQuestionDomainType(), content.getStatementFacts()),
+                    domain.getQuestionUniqueTemplateName(content)
                 )
             );
         }
 
         @Override
         public Domain.InterpretSentenceResult interpretJudgeOutput(
-            Question judgedQuestion,
+            QuestionData judgedQuestion,
             Collection<Fact> backendOutput,
             Language language
         ) {
@@ -132,26 +134,27 @@ public abstract class FactBackend implements Backend<FactBackend.Input, Collecti
         }
 
         @Override
-        public Input prepareBackendInfoForSolve(Question question, List<Tag> tags) {
+        public Input prepareBackendInfoForSolve(QuestionContentData question, List<Tag> tags) {
             return new Input(
                 domain.getQuestionLaws(question.getQuestionDomainType(), tags),
-                question.getStatementFactsWithSchema(),
+                domain.getQuestionStatementFactsWithSchema(question),
                 new ReasoningOptions(
                     false,
                     domain.getSolutionVerbs(question.getQuestionDomainType(), question.getStatementFacts()),
-                    question.getQuestionUniqueTemplateName()
+                    domain.getQuestionUniqueTemplateName(question)
                 ));
         }
 
         @Override
-        public void updateQuestionAfterSolve(Question question, Collection<Fact> solution) {
-            List<BackendFactData> storedSolution = question.getQuestionData().getSolutionFacts();
-            if (storedSolution != null && !storedSolution.isEmpty()) {
-                // add anything set as solution before
+        public QuestionContentData updateQuestionAfterSolve(QuestionContentData question, Collection<Fact> solution) {
+            var storedSolution = question.getSolutionFacts();
+            if (!storedSolution.isEmpty()) {
+                // всё, что было помечено как решение ранее, остаётся
                 solution.addAll(Fact.entitiesToFacts(storedSolution));
             }
-            // save facts to question
-            question.getQuestionData().setSolutionFacts(Fact.factsToEntities(solution));
+            return question.toBuilder()
+                .solutionFacts(Fact.factsToEntities(solution))
+                .build();
         }
     }
 }

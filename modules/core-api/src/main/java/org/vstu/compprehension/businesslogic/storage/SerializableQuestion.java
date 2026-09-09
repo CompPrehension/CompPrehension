@@ -17,7 +17,8 @@ import org.jetbrains.annotations.NotNull;
 import org.jetbrains.annotations.Nullable;
 import org.vstu.compprehension.data.question.QuestionMetadataData;
 import org.vstu.compprehension.data.question.AnswerObjectData;
-import org.vstu.compprehension.businesslogic.Question;
+import org.vstu.compprehension.data.question.GeneratedQuestionData;
+import org.vstu.compprehension.data.question.QuestionContentData;
 import org.vstu.compprehension.businesslogic.domains.Domain;
 import org.vstu.compprehension.enums.QuestionType;
 
@@ -76,89 +77,87 @@ public class SerializableQuestion {
         private String object;
     }
     
-    public static SerializableQuestion fromQuestion(Question question) {
+    public static SerializableQuestion fromQuestion(GeneratedQuestionData question) {
+        var content = question.getContent();
         var builder = SerializableQuestion.builder();
 
         builder.questionData(QuestionData.builder()
-                        .questionType(question.getQuestionType())
-                        .questionText(question.getQuestionText().getText())
-                        .questionName(question.getQuestionName())
-                        .questionDomainType(question.getQuestionDomainType())
-                        .options(question.getQuestionData().getOptions())
-                        .answerObjects(question.getAnswerObjects().stream().map(
-                                answerObjectEntity -> AnswerObject.builder()
-                                        .answerId(answerObjectEntity.getAnswerId())
-                                        .hyperText(answerObjectEntity.getHyperText())
-                                        .domainInfo(answerObjectEntity.getDomainInfo())
-                                        .isRightCol(answerObjectEntity.isRightCol())
-                                        .concept(answerObjectEntity.getConcept())
+                        .questionType(content.getQuestionType())
+                        .questionText(content.getQuestionText())
+                        .questionName(content.getQuestionName())
+                        .questionDomainType(content.getQuestionDomainType())
+                        .options(content.getOptions())
+                        .answerObjects(content.getAnswerObjects().stream().map(
+                                answerObject -> AnswerObject.builder()
+                                        .answerId(answerObject.getAnswerId())
+                                        .hyperText(answerObject.getHyperText())
+                                        .domainInfo(answerObject.getDomainInfo())
+                                        .isRightCol(answerObject.isRightCol())
+                                        .concept(answerObject.getConcept())
                                         .build()
                         ).toList())
-                        .statementFacts(question.getStatementFacts().stream().map(
-                                statementFactEntity -> StatementFact.builder()
-                                        .object(statementFactEntity.getObject())
-                                        .objectType(statementFactEntity.getObjectType())
-                                        .subject(statementFactEntity.getSubject())
-                                        .subjectType(statementFactEntity.getSubjectType())
-                                        .verb(statementFactEntity.getVerb())
+                        .statementFacts(content.getStatementFacts().stream().map(
+                                statementFact -> StatementFact.builder()
+                                        .object(statementFact.getObject())
+                                        .objectType(statementFact.getObjectType())
+                                        .subject(statementFact.getSubject())
+                                        .subjectType(statementFact.getSubjectType())
+                                        .verb(statementFact.getVerb())
                                         .build()
                         ).toList()).build())
                 .concepts(question.getConcepts())
                 .negativeLaws(question.getNegativeLaws())
-                .tags(question.getTagNames())
+                .tags(content.getTags())
                 .build();
 
         return builder.build();
     }
-    
-    public Question toQuestion(@NotNull Domain domain) {
+
+    public GeneratedQuestionData toQuestion(@NotNull Domain domain) {
         return toQuestion(domain, null);
     }
 
-    public Question toQuestion(@NotNull Domain domain, @Nullable QuestionMetadataData qMeta) {
+    public GeneratedQuestionData toQuestion(@NotNull Domain domain, @Nullable QuestionMetadataData qMeta) {
         if (qMeta != null && !domain.getShortName().equals(qMeta.getDomainShortname())) {
             log.info("Domain mismatch: {} vs {}", qMeta.getDomainShortname(), domain.getShortName());
         }
-        
-        var questionData = getQuestionData();
-        // Полное имя: у SerializableQuestion есть свой вложенный QuestionData —
-        // сериализованная полезная нагрузка, это другой тип.
-        var questionEntity = new org.vstu.compprehension.data.question.QuestionData();
-        questionEntity.setQuestionType(questionData.getQuestionType());
-        questionEntity.setQuestionText(questionData.getQuestionText());
-        questionEntity.setQuestionName(questionData.getQuestionName());
-        questionEntity.setQuestionDomainType(questionData.getQuestionDomainType());
-        questionEntity.setMetadata(qMeta);
-        questionEntity.setOptions(questionData.getOptions());
-        questionEntity.setAnswerObjects(questionData.getAnswerObjects()
-                .stream()
-                .map(a -> AnswerObjectData.builder()
-                        .answerId(a.getAnswerId())
-                        .hyperText(a.getHyperText())
-                        .domainInfo(a.getDomainInfo())
-                        .isRightCol(a.isRightCol())
-                        .concept(a.getConcept())
-                        .build())
-                .collect(Collectors.toCollection(ArrayList::new)));
-        questionEntity.setInteractions(new ArrayList<>());
-        // домен проставляет QuestionService при сохранении: здесь нет доступа к БД,
-        // а FK нужен только в момент записи
-        questionEntity.setStatementFacts(questionData.getStatementFacts()
-                .stream()
-                .map(s -> new BackendFactData(
-                        s.getSubjectType(),
-                        s.getSubject(),
-                        s.getVerb(),
-                        s.getObjectType(),
-                        s.getObject()))
-                .collect(Collectors.toCollection(ArrayList::new)));
-        questionEntity.setSolutionFacts(new ArrayList<>());
-        questionEntity.setTags(getTags());
 
-        var result = new Question(questionEntity, domain);
-        result.setConcepts(new ArrayList<>(getConcepts()));
-        result.setNegativeLaws(new ArrayList<>(Optional.ofNullable(getNegativeLaws()).orElse(List.of())));
-        return result;
+        var questionData = getQuestionData();
+        var content = QuestionContentData.builder()
+                .domainId(domain.getDomainId())
+                .questionType(questionData.getQuestionType())
+                .questionText(questionData.getQuestionText())
+                .questionName(questionData.getQuestionName())
+                .questionDomainType(questionData.getQuestionDomainType())
+                .metadata(qMeta)
+                .options(questionData.getOptions())
+                .answerObjects(questionData.getAnswerObjects()
+                        .stream()
+                        .map(a -> AnswerObjectData.builder()
+                                .answerId(a.getAnswerId())
+                                .hyperText(a.getHyperText())
+                                .domainInfo(a.getDomainInfo())
+                                .isRightCol(a.isRightCol())
+                                .concept(a.getConcept())
+                                .build())
+                        .toList())
+                .statementFacts(questionData.getStatementFacts()
+                        .stream()
+                        .map(s -> new BackendFactData(
+                                s.getSubjectType(),
+                                s.getSubject(),
+                                s.getVerb(),
+                                s.getObjectType(),
+                                s.getObject()))
+                        .toList())
+                .tags(getTags())
+                .build();
+
+        return GeneratedQuestionData.builder()
+                .content(content)
+                .concepts(getConcepts())
+                .negativeLaws(getNegativeLaws())
+                .build();
     }
 
     private static Gson gson = new GsonBuilder()

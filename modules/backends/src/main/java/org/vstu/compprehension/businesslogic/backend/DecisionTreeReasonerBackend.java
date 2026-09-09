@@ -19,7 +19,8 @@ import org.springframework.context.annotation.Scope;
 import org.springframework.context.annotation.ScopedProxyMode;
 import org.vstu.compprehension.businesslogic.DomainToBackendAdapter;
 import org.vstu.compprehension.businesslogic.Explanation;
-import org.vstu.compprehension.businesslogic.Question;
+import org.vstu.compprehension.data.question.QuestionContentData;
+import org.vstu.compprehension.data.question.QuestionData;
 import org.vstu.compprehension.businesslogic.domains.Domain;
 import org.vstu.compprehension.businesslogic.domains.DomainBase;
 import org.vstu.compprehension.enums.Language;
@@ -278,9 +279,11 @@ public class DecisionTreeReasonerBackend
 
     public interface Interface extends DomainToBackendAdapter<Input, Output, DecisionTreeReasonerBackend> {
 
+        Domain getDomain();
+
         @Override
         default InterpretSentenceResult interpretJudgeOutput(
-            Question judgedQuestion,
+            QuestionData judgedQuestion,
             Output backendOutput,
             Language language
         ) {
@@ -306,7 +309,7 @@ public class DecisionTreeReasonerBackend
 
             result.explanation = collectExplanationsFromTrace(Explanation.Type.ERROR, backendOutput.results,
                     backendOutput.situation.getDomainModel(),
-                    judgedQuestion.getDomain(), language
+                    getDomain(), language
             );
             if (!result.isAnswerCorrect) {
                 List<ViolationData> mistakes = result.explanation.getDomainLawNames()
@@ -332,7 +335,7 @@ public class DecisionTreeReasonerBackend
          * @param preparedSituation a learning situation that was prepared for this question by {@link #prepareBackendInfoForJudge} 
          */
         InterpretSentenceResult interpretJudgeNotPerformed(
-            Question judgedQuestion,
+            QuestionData judgedQuestion,
             LearningSituation preparedSituation,
             Language language
         );
@@ -407,10 +410,11 @@ public class DecisionTreeReasonerBackend
         }
 
         @Override
-        default void updateQuestionAfterSolve(
-            Question question,
+        default QuestionContentData updateQuestionAfterSolve(
+            QuestionContentData question,
             Output backendOutput
         ) {
+            return question;
         }
     }
 }

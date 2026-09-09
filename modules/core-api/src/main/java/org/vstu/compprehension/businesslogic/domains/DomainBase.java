@@ -6,7 +6,9 @@ import lombok.Getter;
 import lombok.extern.log4j.Log4j2;
 import org.jetbrains.annotations.NotNull;
 import org.jetbrains.annotations.Nullable;
-import org.vstu.compprehension.businesslogic.Question;
+import org.vstu.compprehension.data.question.GeneratedQuestionData;
+import org.vstu.compprehension.data.question.QuestionContentData;
+import org.vstu.compprehension.data.question.QuestionMetadataData;
 import org.vstu.compprehension.services.ExerciseAttemptDataService;
 import org.vstu.compprehension.services.RandomProvider;
 import org.vstu.compprehension.services.SupplementaryStepDataService;
@@ -64,6 +66,21 @@ public abstract class DomainBase implements Domain {
 
     public @Nullable Tag getTag(@NotNull String name) {
         return getTags().get(name);
+    }
+
+    public @NotNull List<Tag> resolveTags(@NotNull Collection<String> tagNames) {
+        return tagNames.stream()
+                .map(this::getTag)
+                .filter(Objects::nonNull)
+                .toList();
+    }
+
+    public @NotNull String getQuestionUniqueTemplateName(@NotNull QuestionContentData question) {
+        return getShortName() + Optional.ofNullable(question.getMetadata())
+                .map(QuestionMetadataData::getTemplateId)
+                .filter(Objects::nonNull)
+                .map(templateId -> ":template-id:" + templateId)
+                .orElse(":question:" + question.getQuestionName());
     }
     public abstract @NotNull Map<String, Tag> getTags();
 
@@ -625,7 +642,7 @@ public abstract class DomainBase implements Domain {
     /**
      * Return all question templates
      */
-    protected abstract List<Question> getQuestionTemplates();
+    protected abstract List<GeneratedQuestionData> getQuestionTemplates();
 
     /**
      * Find a question template in in-memory suite of Domain's `questions`
@@ -637,20 +654,21 @@ public abstract class DomainBase implements Domain {
      * @param forbiddenQuestions texts of question that not suit TODO: use ExerciseAttemptEntity
      * @return new question template
      */
-    public Question findQuestion(List<Tag> tags, Set<String> targetConcepts, Set<String> deniedConcepts, Set<String> targetNegativeLaws, Set<String> deniedNegativeLaws, Set<String> forbiddenQuestions) {
-        List<Question> questions = new ArrayList<>();
+    public GeneratedQuestionData findQuestion(List<Tag> tags, Set<String> targetConcepts, Set<String> deniedConcepts, Set<String> targetNegativeLaws, Set<String> deniedNegativeLaws, Set<String> forbiddenQuestions) {
+        List<GeneratedQuestionData> questions = new ArrayList<>();
 
         int maxSuitCount = 0;
         int minAdditionalCount = 10000;
-        for (Question q : getQuestionTemplates()) {
+        for (GeneratedQuestionData q : getQuestionTemplates()) {
+            var content = q.getContent();
             int targetConceptCount = 0;
             int anotherConcepts = 0;
             boolean suit = true;
-            if (forbiddenQuestions.contains(q.getQuestionName()) || forbiddenQuestions.contains(NAME_PREFIX_IS_HUMAN + q.getQuestionName())) {
+            if (forbiddenQuestions.contains(content.getQuestionName()) || forbiddenQuestions.contains(NAME_PREFIX_IS_HUMAN + content.getQuestionName())) {
                 continue;
             }
             for (Tag tag : tags) {
-                if (!q.getTags().contains(tag.getName())) {
+                if (!content.getTags().contains(tag.getName())) {
                     suit = false;
                     break;
                 }
@@ -690,22 +708,22 @@ public abstract class DomainBase implements Domain {
         }
         if (questions.isEmpty()) {
             return null;
-        } else {
-            for (Question question : questions) {
-                log.info("Отобранный вопрос (из {}): {}", questions.size(), question.getQuestionName());
-            }
-
-            Question question = questions.get(randomProvider.getRandom().nextInt(questions.size()));
-            log.info("В итоге, взят вопрос: {}", question.getQuestionName());
-
-            ///
-            /// add a mark to the question's name: this question is made by human.
-            if (question.getQuestionName() != null && ! question.getQuestionName().startsWith(NAME_PREFIX_IS_HUMAN) ) {
-                question.getQuestionData().setQuestionName(NAME_PREFIX_IS_HUMAN + question.getQuestionName());
-            }
-            ///
-
-            return question;
         }
+
+        for (GeneratedQuestionData question : questions) {
+            log.info("Отобранный вопрос (из {}): {}", questions.size(), question.getContent().getQuestionName());
+        }
+
+        GeneratedQuestionData question = questions.get(randomProvider.getRandom().nextInt(questions.size()));
+        log.info("В итоге, взят вопрос: {}", question.getContent().getQuestionName());
+
+        // пометка в имени: этот вопрос сделан человеком
+        String name = question.getContent().getQuestionName();
+        if (name != null && !name.startsWith(NAME_PREFIX_IS_HUMAN)) {
+            question = question.withContent(question.getContent().toBuilder()
+                    .questionName(NAME_PREFIX_IS_HUMAN + name)
+                    .build());
+        }
+        return question;
     }
 }

@@ -30,6 +30,8 @@ import org.vstu.compprehension.services.SupplementaryStepDataService;
 import org.vstu.compprehension.data.question.QuestionMetadataData;
 import org.vstu.compprehension.data.question.QuestionInteractionData;
 import org.vstu.compprehension.data.question.QuestionData;
+import org.vstu.compprehension.data.question.GeneratedQuestionData;
+import org.vstu.compprehension.data.question.QuestionContentData;
 import org.vstu.compprehension.data.question.AnswerObjectData;
 import org.vstu.compprehension.data.question.ResponseData;
 import org.vstu.compprehension.services.ExerciseAttemptDataService;
@@ -88,7 +90,7 @@ public class ControlFlowStatementsDomain extends JenaReasoningDomain {
     }
 
     public static final String QUESTIONS_CONFIG_PATH = RESOURCES_LOCATION + "control-flow-statements-domain-questions.json";
-    static List<Question> QUESTIONS;
+    static List<GeneratedQuestionData> QUESTIONS;
 
     private static List<String> reasonPropertiesCache = null;
     private static List<String> fieldPropertiesCache = null;
@@ -245,7 +247,7 @@ public class ControlFlowStatementsDomain extends JenaReasoningDomain {
     }
 
     @Override
-    public List<HyperText> getFullSolutionTrace(Question question, Language language) {
+    public List<HyperText> getFullSolutionTrace(QuestionData question, Language language) {
         /// System.out.println("\t\tGetting the trace ...");
 
 //        final String textMode = "text";
@@ -253,21 +255,21 @@ public class ControlFlowStatementsDomain extends JenaReasoningDomain {
 
         ArrayList<HyperText> result = new ArrayList<>();
 
-        String qType = question.getQuestionData().getQuestionDomainType();
+        String qType = question.getContent().getQuestionDomainType();
         if (qType.equals(EXECUTION_ORDER_QUESTION_TYPE) || qType.equals("Type" + EXECUTION_ORDER_QUESTION_TYPE)) {
             HashMap<String, Integer> exprName2ExecTime = new HashMap<>();
-            FactsGraph qg = new FactsGraph(question.getQuestionData().getStatementFacts());
+            FactsGraph qg = new FactsGraph(question.getContent().getStatementFacts());
 
             final List<String> actionKinds = getActionKinds();
 
-            for (ResponseData response : responsesForTrace(question.getQuestionData(), true)) {
+            for (ResponseData response : responsesForTrace(question, true)) {
 
                 AnswerObjectData answerObj = response.getLeftAnswerObject();
                 boolean responseIsWrong = response.isInteractionHasViolations();
 
                 // format a trace line ...
 
-                HyperText htext = _formatTraceLine(question.getQuestionData(), textMode, language, exprName2ExecTime, qg,
+                HyperText htext = _formatTraceLine(question.getContent(), textMode, language, exprName2ExecTime, qg,
                         actionKinds, answerObj, responseIsWrong);
                 result.add(htext);
 //                System.out.println(result.get(result.size() - 1).getText());
@@ -275,7 +277,7 @@ public class ControlFlowStatementsDomain extends JenaReasoningDomain {
         } else {
             ///
             result.addAll(Arrays.asList(
-                    new HyperText("debugging trace line #1 for unknown question Type" + question.getQuestionData().getQuestionDomainType()),
+                    new HyperText("debugging trace line #1 for unknown question Type" + question.getContent().getQuestionDomainType()),
                     new HyperText("trace <b>line</b> #2"),
                     new HyperText("trace <i>line</i> #3")
             ));
@@ -307,7 +309,7 @@ public class ControlFlowStatementsDomain extends JenaReasoningDomain {
         );
     }
 
-    protected HyperText _formatTraceLine(QuestionData question, String textMode, Language lang,
+    protected HyperText _formatTraceLine(QuestionContentData question, String textMode, Language lang,
                                        HashMap<String, Integer> exprName2ExecTime, FactsGraph qg, List<String> actionKinds,
                                        AnswerObjectData answerObj, boolean lineIsWrong) {
 //        AnswerObjectData answerObj = response.getLeftAnswerObject();
@@ -438,11 +440,11 @@ public class ControlFlowStatementsDomain extends JenaReasoningDomain {
     }
 
     @Override
-    public @NotNull Question makeQuestion(@NotNull QuestionRequest questionRequest,
-                                          @Nullable ExerciseOptionsData exerciseOptions,
-                                          @NotNull Language userLanguage) {
+    public @NotNull GeneratedQuestionData makeQuestion(@NotNull QuestionRequest questionRequest,
+                                                       @Nullable ExerciseOptionsData exerciseOptions,
+                                                       @NotNull Language userLanguage) {
 
-        Question res;
+        GeneratedQuestionData res;
         var tags = questionRequest.getTargetTags();
 
         List<QuestionMetadataData> foundQuestions = new ArrayList<>();
@@ -536,16 +538,19 @@ public class ControlFlowStatementsDomain extends JenaReasoningDomain {
                 res = QUESTIONS.get(index);
                 tryCount += 1;
             } while (tryCount <= 20  // avoid infinite search
-                && (questionRequest.getDeniedQuestionNames() != null && questionRequest.getDeniedQuestionNames().contains(res.getQuestionName())));
+                && (questionRequest.getDeniedQuestionNames() != null && questionRequest.getDeniedQuestionNames().contains(res.getContent().getQuestionName())));
             ///
             /// add a mark to the question's name: this question is made by human.
-            if (res.getQuestionName() != null && ! res.getQuestionName().startsWith(NAME_PREFIX_IS_HUMAN) ) {
-                res.getQuestionData().setQuestionName(NAME_PREFIX_IS_HUMAN + res.getQuestionName());
+            String humanName = res.getContent().getQuestionName();
+            if (humanName != null && !humanName.startsWith(NAME_PREFIX_IS_HUMAN)) {
+                res = res.withContent(res.getContent().toBuilder()
+                        .questionName(NAME_PREFIX_IS_HUMAN + humanName)
+                        .build());
             }
             ///
 
         }
-        Question questionCopy = makeQuestion(res, List.of(), userLanguage);
+        GeneratedQuestionData questionCopy = makeQuestion(res, List.of(), userLanguage);
 
         //// patch question text for survey: hide comments
         // questionCopy.getQuestionData().setQuestionText(
@@ -555,15 +560,15 @@ public class ControlFlowStatementsDomain extends JenaReasoningDomain {
         //         )
         // );
 
-        log.info("CtrlFlow domain has prepared the question: {}", questionCopy.getQuestionName());
+        log.info("CtrlFlow domain has prepared the question: {}", questionCopy.getContent().getQuestionName());
 
         return questionCopy;
     }
 
     @Override
-    public @NotNull Question makeQuestion(@NotNull QuestionMetadataData metadata,
-                                          @NotNull List<Tag> tags,
-                                          @NotNull Language userLang) {
+    public @NotNull GeneratedQuestionData makeQuestion(@NotNull QuestionMetadataData metadata,
+                                                       @NotNull List<Tag> tags,
+                                                       @NotNull Language userLang) {
         var questionData = metadata.getData();
         return makeQuestion(questionData.toQuestion(this, metadata), tags, userLang);
     }
@@ -591,8 +596,8 @@ public class ControlFlowStatementsDomain extends JenaReasoningDomain {
         return qr;
     }*/
 
-    protected Question makeQuestion(Question q, List<Tag> tags, Language userLanguage) {
-        QuestionOptionsData orderQuestionOptions = OrderQuestionOptionsData.builder()
+    protected GeneratedQuestionData makeQuestion(GeneratedQuestionData q, List<Tag> tags, Language userLanguage) {
+QuestionOptionsData orderQuestionOptions = OrderQuestionOptionsData.builder()
                 .requireContext(true)
                 .showSupplementaryQuestions(false)
                 .showTrace(true)
@@ -611,9 +616,9 @@ public class ControlFlowStatementsDomain extends JenaReasoningDomain {
                 .requireContext(false)
                 .build();
 
-        QuestionData entity = new QuestionData();
+        var source = q.getContent();
         List<AnswerObjectData> answerObjectEntities = new ArrayList<>();
-        for (AnswerObjectData answerObjectEntity : q.getAnswerObjects()) {
+        for (AnswerObjectData answerObjectEntity : source.getAnswerObjects()) {
             AnswerObjectData newAnswerObjectEntity = new AnswerObjectData();
             newAnswerObjectEntity.setAnswerId(answerObjectEntity.getAnswerId());
             newAnswerObjectEntity.setConcept(answerObjectEntity.getConcept());
@@ -628,48 +633,50 @@ public class ControlFlowStatementsDomain extends JenaReasoningDomain {
             newAnswerObjectEntity.setRightCol(answerObjectEntity.isRightCol());
             answerObjectEntities.add(newAnswerObjectEntity);
         }
-        entity.setAnswerObjects(answerObjectEntities);
-        entity.setQuestionDomainType(q.getQuestionDomainType());
-        entity.setQuestionName(q.getQuestionName());
-        entity.setMetadata(q.getMetadata());
-        entity.setTags(tags.stream().map(Tag::getName).collect(Collectors.toList()));
 
         // DON'T: add schema facts
-        List<BackendFactData> facts = new ArrayList<>(/*getSchemaFacts(true)*/);
         // statement facts are already prepared in the Question's JSON
-        facts.addAll(factsListDeepCopy(q.getStatementFacts()));
-        facts = _patchStatementFacts(facts, userLanguage);
-        entity.setStatementFacts(facts);
-        entity.setQuestionType(q.getQuestionType());
+        List<BackendFactData> facts = _patchStatementFacts(
+                new ArrayList<>(factsListDeepCopy(source.getStatementFacts())), userLanguage);
 
-        switch (q.getQuestionType()) {
+        var content = QuestionContentData.builder()
+                .domainId(getDomainId())
+                .answerObjects(answerObjectEntities)
+                .questionDomainType(source.getQuestionDomainType())
+                .questionName(source.getQuestionName())
+                .metadata(source.getMetadata())
+                .tags(tags.stream().map(Tag::getName).toList())
+                .statementFacts(facts)
+                .questionType(source.getQuestionType());
+
+        switch (source.getQuestionType()) {
             case ORDER:
                 var baseQuestionText = getMessage("ORDER_question_prompt", userLanguage);
-                if (true) {
-                    // DEBUG: add question name as html comment
-                    var name = q.getQuestionName();
-                    name = "<!-- question name: " + name + " -->";
-                    baseQuestionText = name + baseQuestionText;
-                }
-                entity.setQuestionText(baseQuestionText + q.getQuestionText().getText());
-                patchQuestionTextShowValuesInline(entity, userLanguage);  // inject expr values into html
-                entity.setOptions(orderQuestionOptions);
-                return new Question(entity, this);
+                // DEBUG: add question name as html comment
+                baseQuestionText = "<!-- question name: " + source.getQuestionName() + " -->" + baseQuestionText;
+                var ordered = content
+                        .questionText(baseQuestionText + source.getQuestionText())
+                        .options(orderQuestionOptions)
+                        .build();
+                // inject expr values into html
+                return GeneratedQuestionData.of(patchQuestionTextShowValuesInline(ordered, userLanguage));
             case MATCHING:
-                entity.setQuestionText((q.getQuestionText().getText()));
-                entity.setOptions(matchingQuestionOptions);
-                return new Question(entity, this);
+                return GeneratedQuestionData.of(content
+                        .questionText(source.getQuestionText())
+                        .options(matchingQuestionOptions)
+                        .build());
             case MULTI_CHOICE:
-                entity.setQuestionText((q.getQuestionText().getText()));
-                entity.setOptions(multiChoiceQuestionOptions);
-                return new Question(entity, this);
+                return GeneratedQuestionData.of(content
+                        .questionText(source.getQuestionText())
+                        .options(multiChoiceQuestionOptions)
+                        .build());
             default:
-                throw new UnsupportedOperationException("Unknown type in ControlFlowStatementsDomain::makeQuestion: " + q.getQuestionType());
+                throw new UnsupportedOperationException("Unknown type in ControlFlowStatementsDomain::makeQuestion: " + source.getQuestionType());
         }
     }
 
     /** show expr values aside the expressions (on the same line) */
-    public QuestionData patchQuestionTextShowValuesInline(QuestionData question, Language lang) {
+    public QuestionContentData patchQuestionTextShowValuesInline(QuestionContentData question, Language lang) {
         String text = question.getQuestionText();
         if (text.contains("<!-- patched: inline expr values -->"))
             return question;
@@ -738,9 +745,8 @@ public class ControlFlowStatementsDomain extends JenaReasoningDomain {
 
         // add mark that the questions is already processed
         text += "<!-- patched: inline expr values -->";
-        question.setQuestionText(text);
 
-        return question;
+        return question.toBuilder().questionText(text).build();
     }
 
     /** repair stmt_name fields - for global code & return/break/ statements */
@@ -1020,15 +1026,16 @@ public class ControlFlowStatementsDomain extends JenaReasoningDomain {
     }
 
     @Override
-    public Collection<Fact> responseToFacts(Question question, List<? extends AnswerData> responses) {
-        var questionDomainType = question.getQuestionDomainType();
+    public Collection<Fact> responseToFacts(QuestionData question, List<? extends AnswerData> responses) {
+        var content = question.getContent();
+        var questionDomainType = content.getQuestionDomainType();
         if (questionDomainType.equals(EXECUTION_ORDER_QUESTION_TYPE)) {
 
-            // get question
-            QuestionData q = question.getQuestionData();
+            // get question content
+            QuestionContentData q = content;
 
             // obtain correct only responses (in different way!)
-            List<AnswerData> responsesByQ = new ArrayList<>(responsesForTrace(q, false));
+            List<AnswerData> responsesByQ = new ArrayList<>(responsesForTrace(question, false));
 
             // append the latest response to list of correct responses
             if (!responses.isEmpty()) {
@@ -1531,7 +1538,7 @@ public class ControlFlowStatementsDomain extends JenaReasoningDomain {
     }
 
     @Override
-    public SupplementaryFeedbackGenerationResult judgeSupplementaryQuestion(Question question, SupplementaryStepData supplementaryStep, List<? extends AnswerData> responses, Language language) {
+    public SupplementaryFeedbackGenerationResult judgeSupplementaryQuestion(QuestionData question, SupplementaryStepData supplementaryStep, List<? extends AnswerData> responses, Language language) {
         throw new NotImplementedException();
     }
 
@@ -1673,8 +1680,8 @@ public class ControlFlowStatementsDomain extends JenaReasoningDomain {
     }
 
     @Override
-    public CorrectAnswer getAnyNextCorrectAnswer(Question q, Language language) {
-        val lastCorrectInteraction = Optional.ofNullable(q.getQuestionData().getInteractions()).stream()
+    public CorrectAnswer getAnyNextCorrectAnswer(QuestionData q, Language language) {
+        val lastCorrectInteraction = Optional.of(q.getInteractions()).stream()
                 .flatMap(Collection::stream)
                 .filter(i -> i.getFeedback().getInteractionsLeft() >= 0 && i.getViolations().size() == 0) // select only interactions without mistakes
                 .reduce((first, second) -> second);
@@ -1692,7 +1699,7 @@ public class ControlFlowStatementsDomain extends JenaReasoningDomain {
      * @param q question
      * @return solution & statement facts as single model
      */
-    private Model getSolutionModelOfQuestion(Question q) {
+    private Model getSolutionModelOfQuestion(QuestionContentData q) {
         // find next consequent (using solved facts)
         JenaFactList fl = JenaFactList.fromBackendFacts(q.getSolutionFacts());
         fl.addBackendFacts(q.getStatementFacts());
@@ -1700,12 +1707,12 @@ public class ControlFlowStatementsDomain extends JenaReasoningDomain {
     }
 
     @Nullable
-    protected CorrectAnswer getNextCorrectAnswer(Question q, @Nullable List<AnswerObjectData> correctTraceAnswersObjects, Language language) {
-        return getNextCorrectAnswer(q, correctTraceAnswersObjects, modelToOntModel(getSolutionModelOfQuestion(q)), language);
+    protected CorrectAnswer getNextCorrectAnswer(QuestionData q, @Nullable List<AnswerObjectData> correctTraceAnswersObjects, Language language) {
+        return getNextCorrectAnswer(q, correctTraceAnswersObjects, modelToOntModel(getSolutionModelOfQuestion(q.getContent())), language);
     }
 
     @Nullable
-    protected CorrectAnswer getNextCorrectAnswer(Question q, @Nullable List<AnswerObjectData> correctTraceAnswersObjects, OntModel model, Language language) {
+    protected CorrectAnswer getNextCorrectAnswer(QuestionData q, @Nullable List<AnswerObjectData> correctTraceAnswersObjects, OntModel model, Language language) {
 
 
         // get shortcuts to properties
@@ -1769,8 +1776,8 @@ public class ControlFlowStatementsDomain extends JenaReasoningDomain {
                 }
             }
 */
-            String exprName = getActionNameById(q.getQuestionData(), Integer.parseInt(exId), "expr");
-            int exprVal = getValueForExpression(q.getQuestionData(), exprName, count);
+            String exprName = getActionNameById(q.getContent(), Integer.parseInt(exId), "expr");
+            int exprVal = getValueForExpression(q.getContent(), exprName, count);
 
             // use appropriate property name
             if (exprVal == 1)
@@ -1861,7 +1868,7 @@ public class ControlFlowStatementsDomain extends JenaReasoningDomain {
 
         // find question answer
         ArrayList<CorrectAnswer.Response> answers = new ArrayList<>();  // lastCorrectInteractionAnswers;
-        for (AnswerObjectData answer : q.getAnswerObjects()) {
+        for (AnswerObjectData answer : q.getContent().getAnswerObjects()) {
             if (answer.getDomainInfo().startsWith(qaInfoPrefix)) {
                 answers.add(new CorrectAnswer.Response(answer, answer));
                  break; // (?)
@@ -1870,7 +1877,7 @@ public class ControlFlowStatementsDomain extends JenaReasoningDomain {
 
         // make result
         CorrectAnswer correctAnswer = new CorrectAnswer();
-        correctAnswer.question = q.getQuestionData();
+        correctAnswer.question = q;
         correctAnswer.answers = answers;
         correctAnswer.lawName = reasonName; // "No correct law yet, using flow graph";  // answerImpl.lawName;
 
@@ -1889,7 +1896,7 @@ public class ControlFlowStatementsDomain extends JenaReasoningDomain {
         return correctAnswer;
     }
 
-    public Set<Set<String>> possibleViolationsByStep(Question q, List<? extends AnswerData> completedSteps, Language language) {
+    public Set<Set<String>> possibleViolationsByStep(QuestionData q, List<? extends AnswerData> completedSteps, Language language) {
 
         // use existing solution steps if given
         List<AnswerObjectData> correctTraceAnswersObjects = new ArrayList<>();
@@ -1929,17 +1936,14 @@ public class ControlFlowStatementsDomain extends JenaReasoningDomain {
 //        return null;
 //    }
 
-    public List<Question> readQuestions(InputStream inputStream) {
-        List<Question> res = new ArrayList<>();
-        Question[] questions = Arrays.stream(SerializableQuestion.deserializeMany(inputStream))
+    public List<GeneratedQuestionData> readQuestions(InputStream inputStream) {
+        return Arrays.stream(SerializableQuestion.deserializeMany(inputStream))
                 .map(q -> q.toQuestion(this))
-                .toArray(Question[]::new);
-        Collections.addAll(res, questions);
-        return res;
+                .collect(Collectors.toCollection(ArrayList::new));
     }
 
     @Override
-    public List<Question> getQuestionTemplates() {
+    public List<GeneratedQuestionData> getQuestionTemplates() {
         if (QUESTIONS == null) {
             QUESTIONS = readQuestions(this.getClass().getClassLoader().getResourceAsStream(QUESTIONS_CONFIG_PATH));
         }
@@ -1947,7 +1951,7 @@ public class ControlFlowStatementsDomain extends JenaReasoningDomain {
     }
 
     /** return stmt_name or `null` if not an `expr` */
-    private String getActionNameById(QuestionData question, int actionId, String actionRdfType) {
+    private String getActionNameById(QuestionContentData question, int actionId, String actionRdfType) {
         String instance = null;
         for (BackendFactData fact : question.getStatementFacts()) {
             if (fact.getVerb().equals("id") && Integer.parseInt(fact.getObject()) == actionId) {
@@ -1978,7 +1982,7 @@ public class ControlFlowStatementsDomain extends JenaReasoningDomain {
      * @param executionTime 1-based number
      * @return
      */
-    public int getValueForExpression(QuestionData question, String expressionName, int executionTime) {
+    public int getValueForExpression(QuestionContentData question, String expressionName, int executionTime) {
         for (BackendFactData fact : question.getStatementFacts()) {
             if (fact.getSubject().equals(expressionName) && fact.getVerb().equals("not-for-reasoner:expr_values") && fact.getObjectType().equals("List<boolean>")) {
                 String values = fact.getObject();
@@ -2003,8 +2007,8 @@ public class ControlFlowStatementsDomain extends JenaReasoningDomain {
     }
 
     @Override
-    public Collection<Fact> getQuestionStatementFactsWithSchema(Question q) {
-        JenaFactList fl = JenaFactList.fromBackendFacts(q.getQuestionData().getStatementFacts());
+    public Collection<Fact> getQuestionStatementFactsWithSchema(QuestionContentData q) {
+        JenaFactList fl = JenaFactList.fromBackendFacts(q.getStatementFacts());
         fl.addFromModel(getSchemaForSolving());
         return fl;
     }

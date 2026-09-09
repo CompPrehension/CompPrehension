@@ -30,23 +30,21 @@ class QuestionEntityMapperImpl implements QuestionEntityMapper {
     public void apply(@NotNull QuestionData question,
                       @Nullable QuestionMetadataEntity metadata,
                       @NotNull QuestionEntity destination) {
-        destination.setQuestionType(question.getQuestionType());
+        var content = question.getContent();
+        destination.setQuestionType(content.getQuestionType());
         destination.setQuestionStatus(question.getQuestionStatus());
-        destination.setQuestionText(question.getQuestionText());
-        destination.setQuestionName(question.getQuestionName());
-        destination.setQuestionDomainType(question.getQuestionDomainType());
-        destination.setOptions(question.getOptions());
-        destination.setTags(Utils.copy(question.getTags()));
-        destination.setStatementFacts(Utils.copy(question.getStatementFacts()));
-        destination.setSolutionFacts(Utils.copy(question.getSolutionFacts()));
+        destination.setQuestionText(content.getQuestionText());
+        destination.setQuestionName(content.getQuestionName());
+        destination.setQuestionDomainType(content.getQuestionDomainType());
+        destination.setOptions(content.getOptions());
+        destination.setTags(Utils.copy(content.getTags()));
+        destination.setStatementFacts(Utils.copy(content.getStatementFacts()));
+        destination.setSolutionFacts(Utils.copy(content.getSolutionFacts()));
         destination.setMetadata(metadata);
         applyAnswerObjects(question, destination);
     }
 
     private void applyAnswerObjects(@NotNull QuestionData data, @NotNull QuestionEntity target) {
-        if (data.getAnswerObjects() == null) {
-            return;
-        }
         if (target.getAnswerObjects() == null) {
             target.setAnswerObjects(new ArrayList<>());
         }
@@ -54,7 +52,7 @@ class QuestionEntityMapperImpl implements QuestionEntityMapper {
                 .filter(a -> a.getId() != null)
                 .collect(Collectors.toMap(AnswerObjectEntity::getId, a -> a, (a, b) -> a));
 
-        for (AnswerObjectData source : data.getAnswerObjects()) {
+        for (AnswerObjectData source : data.getContent().getAnswerObjects()) {
             var entity = source.getId() == null ? null : existing.get(source.getId());
             if (entity == null) {
                 entity = new AnswerObjectEntity();
