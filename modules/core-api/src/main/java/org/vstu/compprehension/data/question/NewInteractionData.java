@@ -8,8 +8,7 @@ import java.util.List;
 public record NewInteractionData(
         long questionId,
         @NotNull InteractionType interactionType,
-        @NotNull List<Long> carriedResponseIds,
-        @NotNull List<SubmittedAnswerData> answers,
+        @NotNull List<NewInteractionAnswerData> answers,
         @NotNull List<ViolationData> violations,
         @NotNull List<String> correctLaws,
         int interactionsLeft) {

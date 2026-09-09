@@ -11,6 +11,10 @@ import org.vstu.compprehension.enums.QuestionType;
 import java.util.ArrayList;
 import java.util.Date;
 import java.util.List;
+import java.util.Objects;
+import java.util.Optional;
+import java.util.Set;
+import java.util.stream.Collectors;
 
 @Data
 @NoArgsConstructor
@@ -29,4 +33,30 @@ public class QuestionData {
     private @NotNull List<QuestionInteractionData> interactions = new ArrayList<>(0);
     private List<BackendFactData> statementFacts = new ArrayList<>();
     private List<BackendFactData> solutionFacts = new ArrayList<>();
+
+    public void addInteraction(@NotNull QuestionInteractionData interaction) {
+        Set<Long> movedResponseIds = interaction.getResponses().stream()
+                .map(ResponseData::getId)
+                .filter(Objects::nonNull)
+                .collect(Collectors.toSet());
+        for (QuestionInteractionData previous : interactions) {
+            previous.getResponses().removeIf(response -> movedResponseIds.contains(response.getId()));
+        }
+        interactions.add(interaction);
+    }
+
+    public @NotNull Optional<QuestionInteractionData> latestCorrectInteraction() {
+        return interactions.stream()
+                .filter(QuestionInteractionData::isCorrect)
+                .filter(QuestionInteractionData::allowsMoreSteps)
+                .reduce((first, second) -> second);
+    }
+
+    public int correctInteractionsCount() {
+        return (int) interactions.stream().filter(QuestionInteractionData::isCorrect).count();
+    }
+
+    public int erroneousInteractionsCount() {
+        return interactions.size() - correctInteractionsCount();
+    }
 }

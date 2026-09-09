@@ -22,9 +22,7 @@ public interface QuestionDataService {
 
      List<AnswerData> resolveAnswers(long questionId, List<SubmittedAnswerData> answers);
 
-     Optional<InteractionResponsesData> findLatestCorrectInteraction(long questionId);
-
-     RecordedInteractionData recordInteraction(NewInteractionData interaction);
+     QuestionInteractionData recordInteraction(NewInteractionData interaction);
 
      void gradeInteraction(long interactionId, float grade);
 

@@ -22,8 +22,10 @@ import org.vstu.compprehension.businesslogic.strategies.AbstractStrategyFactory;
 import org.vstu.compprehension.data.exerciseattempt.AttemptSummaryData;
 import org.vstu.compprehension.data.exercise.ExerciseStageData;
 import org.vstu.compprehension.data.question.AnswerData;
+import org.vstu.compprehension.data.question.NewInteractionAnswerData;
 import org.vstu.compprehension.data.question.NewInteractionData;
 import org.vstu.compprehension.data.question.QuestionAttemptContextData;
+import org.vstu.compprehension.data.question.QuestionInteractionData;
 import org.vstu.compprehension.data.question.ResponseData;
 import org.vstu.compprehension.data.question.SubmittedAnswerData;
 import org.vstu.compprehension.data.question.ViolationData;
@@ -56,6 +58,8 @@ class ExerciseAttemptFrontendServiceImpl implements ExerciseAttemptFrontendServi
     private final FeedbackDtoMapper feedbackDtoMapper;
     private final Mapper<AttemptSummaryData, ExerciseAttemptDto> exerciseAttemptDtoMapper;
     private final Mapper<ResponseData, AnswerDto> answerDtoMapper;
+    private final Mapper<ResponseData, NewInteractionAnswerData> carriedAnswerMapper;
+    private final Mapper<SubmittedAnswerData, NewInteractionAnswerData> submittedAnswerMapper;
 
     @Override
     public void ensureCanAccessAttempt(long userId, long attemptId) {
@@ -106,15 +110,15 @@ class ExerciseAttemptFrontendServiceImpl implements ExerciseAttemptFrontendServi
         val recorded = questionService.recordInteraction(new NewInteractionData(
                 questionId,
                 SEND_RESPONSE,
-                List.of(),
-                answers,
+                submittedAnswerMapper.mapAll(answers),
                 orEmpty(judgeResult.violations),
                 orEmpty(judgeResult.correctlyAppliedLaws),
                 judgeResult.IterationsLeft));
+        question.getQuestionData().addInteraction(recorded);
 
         var strategy = strategyFactory.getStrategy(context.getStrategyId());
         var strategyDecision = strategy.gradeAndDecide(context.getAttemptId(), judgeResult);
-        questionService.gradeInteraction(recorded.interactionId(), strategyDecision.grade());
+        questionService.gradeInteraction(recorded.getId(), strategyDecision.grade());
         if (context != null) {
             exerciseAttemptService.ensureAttemptStatus(context.getAttemptId(), strategyDecision.decision());
         }
@@ -134,11 +138,11 @@ class ExerciseAttemptFrontendServiceImpl implements ExerciseAttemptFrontendServi
                 : null;
 
         // return result of the last correct interaction
-        val correctAnswers = recorded.latestCorrectInteraction() == null
-                ? new AnswerDto[0]
-                : recorded.latestCorrectInteraction().responses().stream()
-                        .map(answerDtoMapper::map)
-                        .toArray(AnswerDto[]::new);
+        val correctAnswers = question.getQuestionData().latestCorrectInteraction()
+                .map(QuestionInteractionData::getResponses).stream()
+                .flatMap(Collection::stream)
+                .map(answerDtoMapper::map)
+                .toArray(AnswerDto[]::new);
 
         // special case for order question
         // force complete answer if the last but one answer is correct
@@ -159,8 +163,8 @@ class ExerciseAttemptFrontendServiceImpl implements ExerciseAttemptFrontendServi
 
         return feedbackDtoMapper.map(question,
                 messages,
-                recorded.correctInteractionsCount(),
-                recorded.erroneousInteractionsCount(),
+                question.getQuestionData().correctInteractionsCount(),
+                question.getQuestionData().erroneousInteractionsCount(),
                 strategyDecision.grade(),
                 judgeResult.IterationsLeft,
                 correctAnswers,
@@ -214,34 +218,36 @@ class ExerciseAttemptFrontendServiceImpl implements ExerciseAttemptFrontendServi
 
         // Подсказка достраивает уже данные студентом ответы, а не начинает решение
         // заново: ответы последнего верного взаимодействия переезжают в это.
-        val carried = questionService.findLatestCorrectInteraction(questionId).orElse(null);
-        val carriedResponses = carried == null ? List.<ResponseData>of() : carried.responses();
-        val newAnswers = correctAnswer.answers.stream()
-                .map(x -> new SubmittedAnswerData(x.getLeft().getAnswerId(), x.getRight().getAnswerId(), null))
+        val alreadyGiven = question.getQuestionData().latestCorrectInteraction()
+                .map(QuestionInteractionData::getResponses)
+                .orElseGet(List::of);
+        val nextAnswers = correctAnswer.answers.stream()
+                .map(x -> new SubmittedAnswerData(
+                        x.getLeft().getAnswerId(), x.getRight().getAnswerId(), null))
                 .toList();
 
         // evaluate new answer
-        val responses = Stream.<AnswerData>concat(
-                carriedResponses.stream(),
-                questionService.resolveAnswers(questionId, newAnswers).stream()).toList();
+        val responses = Stream.concat(
+                alreadyGiven.stream(),
+                questionService.resolveAnswers(questionId, nextAnswers).stream()).toList();
         val judgeResult = domain.judgeQuestion(question, responses, question.getTags(), language);
 
         // add interaction
         val recorded = questionService.recordInteraction(new NewInteractionData(
                 questionId,
                 REQUEST_CORRECT_ANSWER,
-                carriedResponses.stream().map(ResponseData::getId).toList(),
-                newAnswers,
+                Stream.concat(
+                        carriedAnswerMapper.mapAll(alreadyGiven).stream(),
+                        submittedAnswerMapper.mapAll(nextAnswers).stream()).toList(),
                 orEmpty(judgeResult.violations),
                 orEmpty(judgeResult.correctlyAppliedLaws),
                 judgeResult.IterationsLeft));
+        question.getQuestionData().addInteraction(recorded);
 
         var strategy = strategyFactory.getStrategy(context.getStrategyId());
         var strategyDecision = strategy.gradeAndDecide(context.getAttemptId(), judgeResult);
-        questionService.gradeInteraction(recorded.interactionId(), strategyDecision.grade());
-        if (context != null) {
-            exerciseAttemptService.ensureAttemptStatus(context.getAttemptId(), strategyDecision.decision());
-        }
+        questionService.gradeInteraction(recorded.getId(), strategyDecision.grade());
+        exerciseAttemptService.ensureAttemptStatus(context.getAttemptId(), strategyDecision.decision());
 
         // build feedback message
         val locale = questionLanguage(context);
@@ -255,11 +261,11 @@ class ExerciseAttemptFrontendServiceImpl implements ExerciseAttemptFrontendServi
 
         return feedbackDtoMapper.map(question,
                 messages,
-                recorded.correctInteractionsCount(),
-                recorded.erroneousInteractionsCount(),
+                question.getQuestionData().correctInteractionsCount(),
+                question.getQuestionData().erroneousInteractionsCount(),
                 strategyDecision.grade(),
                 judgeResult.IterationsLeft,
-                recorded.responses().stream().map(answerDtoMapper::map).toArray(AnswerDto[]::new),
+                recorded.getResponses().stream().map(answerDtoMapper::map).toArray(AnswerDto[]::new),
                 /*true*/ judgeResult.violations.isEmpty() && judgeResult.isAnswerCorrect,
                 strategyDecision.decision(),
                 language);

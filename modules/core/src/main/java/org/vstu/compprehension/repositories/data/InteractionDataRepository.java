@@ -6,9 +6,9 @@ import org.springframework.stereotype.Repository;
 import org.springframework.transaction.annotation.Transactional;
 import org.vstu.compprehension.data.question.AnswerData;
 import org.vstu.compprehension.data.question.AnswerObjectData;
-import org.vstu.compprehension.data.question.InteractionResponsesData;
 import org.vstu.compprehension.data.question.NewInteractionData;
-import org.vstu.compprehension.data.question.RecordedInteractionData;
+import org.vstu.compprehension.data.question.NewInteractionAnswerData;
+import org.vstu.compprehension.data.question.QuestionInteractionData;
 import org.vstu.compprehension.data.question.SubmittedAnswerData;
 import org.vstu.compprehension.data.question.ViolationData;
 import org.vstu.compprehension.entities.AnswerObjectEntity;
@@ -23,11 +23,9 @@ import org.vstu.compprehension.repositories.entity.QuestionRepository;
 import org.vstu.compprehension.repositories.entity.ResponseRepository;
 
 import java.util.ArrayList;
-import java.util.Comparator;
 import java.util.List;
 import java.util.Map;
 import java.util.NoSuchElementException;
-import java.util.Optional;
 import java.util.function.Function;
 import java.util.stream.Collectors;
 
@@ -39,7 +37,7 @@ public class InteractionDataRepository {
     private final InteractionRepository interactionRepository;
     private final ResponseRepository responseRepository;
     private final Mapper<AnswerObjectEntity, AnswerObjectData> answerObjectMapper;
-    private final Mapper<InteractionEntity, InteractionResponsesData> interactionResponsesMapper;
+    private final Mapper<InteractionEntity, QuestionInteractionData> questionInteractionMapper;
     private final Mapper<ViolationData, ViolationEntity> violationEntityMapper;
 
     @Transactional(readOnly = true)
@@ -54,26 +52,22 @@ public class InteractionDataRepository {
                 .toList();
     }
 
-    @Transactional(readOnly = true)
-    public @NotNull Optional<InteractionResponsesData> findLatestCorrectInteraction(long questionId) {
-        var interactions = loadInteractions(questionId);
-        return latestCorrect(interactions).map(interactionResponsesMapper::map);
-    }
-
     @Transactional
-    public @NotNull RecordedInteractionData record(@NotNull NewInteractionData data) {
+    public @NotNull QuestionInteractionData record(@NotNull NewInteractionData data) {
         var question = findQuestion(data.questionId());
         var answerObjects = answerObjectsByAnswerId(question, data.questionId());
 
         var responses = new ArrayList<ResponseEntity>();
-        for (Long responseId : data.carriedResponseIds()) {
-            responses.add(responseRepository.findById(responseId).orElseThrow(
-                    () -> new NoSuchElementException("Response " + responseId + " not found")));
-        }
-        for (SubmittedAnswerData answer : data.answers()) {
+        for (NewInteractionAnswerData answer : data.answers()) {
+            if (answer.responseId() != null) {
+                responses.add(existingResponse(answer.responseId()));
+                continue;
+            }
             var response = new ResponseEntity();
-            response.setLeftAnswerObject(requireAnswerObject(answerObjects, answer.leftAnswerId(), data.questionId()));
-            response.setRightAnswerObject(requireAnswerObject(answerObjects, answer.rightAnswerId(), data.questionId()));
+            response.setLeftAnswerObject(
+                    requireAnswerObject(answerObjects, answer.leftAnswerId(), data.questionId()));
+            response.setRightAnswerObject(
+                    requireAnswerObject(answerObjects, answer.rightAnswerId(), data.questionId()));
             if (answer.createdByInteractionId() != null) {
                 response.setCreatedByInteraction(
                         interactionRepository.getReferenceById(answer.createdByInteractionId()));
@@ -95,19 +89,11 @@ public class InteractionDataRepository {
 
         question.getInteractions().add(interaction);
         interactionRepository.save(interaction);
-        // Идентификаторы нужны сразу: счётчики ниже считаются запросом, который
-        // неотправленных вставок не увидит.
+        // Идентификаторы ответов нужны сразу: следующая подсказка ссылается на них,
+        // чтобы перенести уже данные ответы в своё взаимодействие.
         interactionRepository.flush();
 
-        var interactions = loadInteractions(data.questionId());
-        long correct = interactions.stream().filter(i -> i.getViolations().isEmpty()).count();
-
-        return new RecordedInteractionData(
-                interaction.getId(),
-                (int) correct,
-                interactions.size() - (int) correct,
-                interactionResponsesMapper.map(interaction).responses(),
-                latestCorrect(interactions).map(interactionResponsesMapper::map).orElse(null));
+        return questionInteractionMapper.map(interaction);
     }
 
     @Transactional
@@ -119,24 +105,14 @@ public class InteractionDataRepository {
         interactionRepository.save(interaction);
     }
 
+    private @NotNull ResponseEntity existingResponse(long responseId) {
+        return responseRepository.findById(responseId).orElseThrow(
+                () -> new NoSuchElementException("Response " + responseId + " not found"));
+    }
+
     private @NotNull QuestionEntity findQuestion(long questionId) {
         return questionRepository.findByIdFetchingAnswerObjects(questionId)
                 .orElseThrow(() -> new NoSuchElementException("Question " + questionId + " not found"));
-    }
-
-    private @NotNull List<InteractionEntity> loadInteractions(long questionId) {
-        interactionRepository.findAllByQuestionIdFetchingViolations(questionId);
-        return interactionRepository.findAllByQuestionIdFetchingResponses(questionId).stream()
-                .sorted(Comparator.comparing(InteractionEntity::getId))
-                .toList();
-    }
-
-    private static @NotNull Optional<InteractionEntity> latestCorrect(
-            @NotNull List<InteractionEntity> interactions) {
-        return interactions.stream()
-                .filter(i -> i.getFeedback() != null && i.getFeedback().getInteractionsLeft() >= 0)
-                .filter(i -> i.getViolations().isEmpty())
-                .reduce((first, second) -> second);
     }
 
     private static @NotNull Map<Integer, AnswerObjectEntity> answerObjectsByAnswerId(

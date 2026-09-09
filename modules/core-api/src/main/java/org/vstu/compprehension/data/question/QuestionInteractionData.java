@@ -25,4 +25,12 @@ public class QuestionInteractionData {
     private List<ResponseData> responses = new ArrayList<>();
     @Builder.Default
     private List<CorrectLawData> correctLaw = new ArrayList<>();
+
+    public boolean isCorrect() {
+        return violations.isEmpty();
+    }
+
+    public boolean allowsMoreSteps() {
+        return feedback != null && feedback.getInteractionsLeft() >= 0;
+    }
 }

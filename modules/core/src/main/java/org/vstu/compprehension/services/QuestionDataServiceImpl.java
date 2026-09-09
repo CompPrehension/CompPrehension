@@ -17,10 +17,9 @@ import org.vstu.compprehension.businesslogic.domains.DomainFactory;
 import org.vstu.compprehension.businesslogic.storage.QuestionBank;
 import org.vstu.compprehension.businesslogic.strategies.AbstractStrategy;
 import org.vstu.compprehension.businesslogic.strategies.AbstractStrategyFactory;
-import org.vstu.compprehension.data.question.InteractionResponsesData;
 import org.vstu.compprehension.data.question.NewInteractionData;
 import org.vstu.compprehension.data.question.QuestionRequestLogData;
-import org.vstu.compprehension.data.question.RecordedInteractionData;
+import org.vstu.compprehension.data.question.QuestionInteractionData;
 import org.vstu.compprehension.data.question.SubmittedAnswerData;
 import org.vstu.compprehension.enums.Language;
 import org.vstu.compprehension.repositories.data.InteractionDataRepository;
@@ -105,15 +104,8 @@ class QuestionDataServiceImpl implements QuestionDataService {
         return interactionDataRepository.resolveAnswers(questionId, answers);
     }
 
-    /** Ответы последнего взаимодействия, после которого вопрос ещё можно продолжать. */
-    public Optional<InteractionResponsesData> findLatestCorrectInteraction(long questionId) {
-        return interactionDataRepository.findLatestCorrectInteraction(questionId);
-    }
-
-    /**
-     * Записать взаимодействие студента с вопросом.
-     */
-    public RecordedInteractionData recordInteraction(NewInteractionData interaction) {
+    /** Записать взаимодействие студента с вопросом. */
+    public QuestionInteractionData recordInteraction(NewInteractionData interaction) {
         return interactionDataRepository.record(interaction);
     }
 
