@@ -63,19 +63,26 @@ public class ProgrammingLanguageExpressionDTDomain extends DecisionTreeReasoning
     private final ProgrammingLanguageExpressionDomain baseDomain;
     private final LocalizationService localizationService;
     private final QuestionBank qMetaStorage;
+    private final DecisionTreeSupQuestionHelper dtSupplementaryQuestionHelper;
 
     @Getter
     private final DecisionTreeInterface backendInterface = new DecisionTreeInterface();
 
     @SneakyThrows
-    public ProgrammingLanguageExpressionDTDomain(DomainData domainData, ProgrammingLanguageExpressionDomain baseDomain,
-                                                ExerciseAttemptDataService exerciseAttemptService,
-                                                SupplementaryStepDataService supplementaryStepService) {
-        super(domainData, baseDomain.randomProvider, exerciseAttemptService, supplementaryStepService);
+    public ProgrammingLanguageExpressionDTDomain(DomainData domainData,
+                                                 ProgrammingLanguageExpressionDomain baseDomain,
+                                                 SupplementaryStepDataService supplementaryStepService) {
+        super(domainData, baseDomain.randomProvider);
 
         this.baseDomain = baseDomain;
         this.localizationService = baseDomain.localizationService;
         this.qMetaStorage = baseDomain.qMetaStorage;
+        this.dtSupplementaryQuestionHelper = new DecisionTreeSupQuestionHelper(
+                this,
+                domainSolvingModel,
+                this::mainQuestionToModel,
+                supplementaryStepService
+        );
 
         this.concepts = baseDomain.concepts;
         this.positiveLaws = baseDomain.positiveLaws;
@@ -957,13 +964,6 @@ public class ProgrammingLanguageExpressionDTDomain extends DecisionTreeReasoning
                 lastMainQuestionInteraction.getResponses(), tags
         );
     }
-
-    private final DecisionTreeSupQuestionHelper dtSupplementaryQuestionHelper = new DecisionTreeSupQuestionHelper(
-            this,
-            domainSolvingModel,
-            this::mainQuestionToModel,
-            this.getSupplementaryStepService()
-    );
 
     @Override
     public SupplementaryResponseGenerationResult makeSupplementaryQuestion(QuestionData sourceQuestion, ViolationData violation, Language lang) {

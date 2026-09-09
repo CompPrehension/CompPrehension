@@ -50,6 +50,8 @@ import java.util.stream.Collectors;
 public class ControlFlowDTDomain extends DecisionTreeReasoningDomain {
     private final DecisionTreeInterface backendInterface = new DecisionTreeInterface();
     protected final LocalizationService localizationService;
+    private final ExerciseAttemptDataService exerciseAttemptService;
+    private final SupplementaryStepDataService supplementaryStepService;
     protected final QuestionBank qMetaStorage;
 
     static final String RESOURCES_LOCATION = "domains/";
@@ -497,7 +499,9 @@ public class ControlFlowDTDomain extends DecisionTreeReasoningDomain {
                                ExerciseAttemptDataService exerciseAttemptService,
                                SupplementaryStepDataService supplementaryStepService,
                                LocalizationService localizationService, QuestionBank qMetaStorage) {
-        super(domainData, randomProvider, exerciseAttemptService, supplementaryStepService);
+        super(domainData, randomProvider);
+        this.exerciseAttemptService = exerciseAttemptService;
+        this.supplementaryStepService = supplementaryStepService;
         this.qMetaStorage = qMetaStorage;
         this.localizationService = localizationService;
         this.concepts = Map.of();

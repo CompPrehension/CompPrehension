@@ -17,10 +17,8 @@ import java.util.List;
 public abstract class JenaReasoningDomain extends DomainBase {
     private final FactBackend.Interface<JenaBackend> backendInterface;
 
-    protected JenaReasoningDomain(DomainData domainData, RandomProvider randomProvider,
-            ExerciseAttemptDataService exerciseAttemptService,
-            SupplementaryStepDataService supplementaryStepService) {
-        super(domainData, randomProvider, exerciseAttemptService, supplementaryStepService);
+    protected JenaReasoningDomain(DomainData domainData, RandomProvider randomProvider) {
+        super(domainData, randomProvider);
 
         this.backendInterface = new FactBackend.Interface<>(this);
     }

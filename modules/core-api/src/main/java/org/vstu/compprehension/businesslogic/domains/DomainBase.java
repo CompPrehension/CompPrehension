@@ -33,19 +33,10 @@ public abstract class DomainBase implements Domain {
     protected final RandomProvider randomProvider;
     @Getter
     private final DomainData domainData;
-    @Getter
-    private final ExerciseAttemptDataService exerciseAttemptService;
-    @Getter
-    private final SupplementaryStepDataService supplementaryStepService;
 
-    protected DomainBase(DomainData domainData,
-                         RandomProvider randomProvider,
-                         ExerciseAttemptDataService exerciseAttemptService,
-                         SupplementaryStepDataService supplementaryStepService) {
+    protected DomainBase(DomainData domainData, RandomProvider randomProvider) {
         this.domainData = domainData;
         this.randomProvider = randomProvider;
-        this.exerciseAttemptService = exerciseAttemptService;
-        this.supplementaryStepService = supplementaryStepService;
     }
 
     public @NotNull String getDomainId() {

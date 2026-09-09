@@ -102,6 +102,9 @@ public class ProgrammingLanguageExpressionDomain extends JenaReasoningDomain {
 
     public static final String END_EVALUATION = "student_end_evaluation";
     protected final LocalizationService localizationService;
+    private final ExerciseAttemptDataService exerciseAttemptService;
+    private final SupplementaryStepDataService supplementaryStepService;
+    private final DecisionTreeSupQuestionHelper dtSupplementaryQuestionHelper;
     protected final QuestionBank qMetaStorage;
 
     private static final HashMap<String, Tag> tags = new HashMap<>() {{
@@ -122,10 +125,18 @@ public class ProgrammingLanguageExpressionDomain extends JenaReasoningDomain {
             SupplementaryStepDataService supplementaryStepService,
             QuestionBank qMetaStorage) {
 
-        super(domainData, randomProvider, exerciseAttemptService, supplementaryStepService);
+        super(domainData, randomProvider);
 
         this.localizationService = localizationService;
+        this.exerciseAttemptService = exerciseAttemptService;
+        this.supplementaryStepService = supplementaryStepService;
         this.qMetaStorage = qMetaStorage;
+        this.dtSupplementaryQuestionHelper = new DecisionTreeSupQuestionHelper(
+                this,
+                this.getClass().getClassLoader().getResource(DOMAIN_MODEL_DIRECTORY),
+                this::mainQuestionToModel,
+                supplementaryStepService
+        );
 
         fillConcepts();
         readLaws(this.getClass().getClassLoader().getResourceAsStream(LAWS_CONFIG_PATH));
@@ -1531,16 +1542,9 @@ public class ProgrammingLanguageExpressionDomain extends JenaReasoningDomain {
         );
     }
 
-    private final DecisionTreeSupQuestionHelper dtSupplementaryQuestionHelper = new DecisionTreeSupQuestionHelper(
-            this,
-            this.getClass().getClassLoader().getResource(DOMAIN_MODEL_DIRECTORY),
-            this::mainQuestionToModel,
-            this.getSupplementaryStepService()
-    );
-
     @Override
     public SupplementaryResponseGenerationResult makeSupplementaryQuestion(QuestionData sourceQuestion, ViolationData violation, Language lang) {
-        if (getExerciseAttemptService().prefersDecisionTreeSupplementary(sourceQuestion.getId())){
+        if (exerciseAttemptService.prefersDecisionTreeSupplementary(sourceQuestion.getId())){
             return dtSupplementaryQuestionHelper.makeSupplementaryQuestion(sourceQuestion, lang);
         }
         else {

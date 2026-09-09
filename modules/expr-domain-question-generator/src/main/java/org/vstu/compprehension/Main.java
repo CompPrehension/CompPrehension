@@ -65,7 +65,6 @@ public class Main {
                         null,
                         new QuestionBankImpl(FakeDataAccess.questionBank(), null)
                 ),
-                null,
                 null
         );
 

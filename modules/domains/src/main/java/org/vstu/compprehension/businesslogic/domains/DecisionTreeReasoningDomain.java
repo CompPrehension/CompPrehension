@@ -15,10 +15,9 @@ import org.vstu.compprehension.enums.Language;
 import java.util.List;
 
 public abstract class DecisionTreeReasoningDomain extends DomainBase {
-    protected DecisionTreeReasoningDomain(DomainData domainData, RandomProvider randomProvider,
-            ExerciseAttemptDataService exerciseAttemptService,
-            SupplementaryStepDataService supplementaryStepService) {
-        super(domainData, randomProvider, exerciseAttemptService, supplementaryStepService);
+
+    protected DecisionTreeReasoningDomain(DomainData domainData, RandomProvider randomProvider) {
+        super(domainData, randomProvider);
     }
 
     public abstract List<DomainSolvingModel> getDomainSolvingModels();

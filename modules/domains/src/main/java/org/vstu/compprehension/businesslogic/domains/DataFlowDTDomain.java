@@ -87,11 +87,9 @@ public class DataFlowDTDomain extends DecisionTreeReasoningDomain {
             DomainData domainData,
             LocalizationService localizationService,
             RandomProvider randomProvider,
-            ExerciseAttemptDataService exerciseAttemptService,
-            SupplementaryStepDataService supplementaryStepService,
             QuestionBank qMetaStorage
     ) {
-        super(domainData, randomProvider, exerciseAttemptService, supplementaryStepService);
+        super(domainData, randomProvider);
 
         this.localizationService = localizationService;
         this.qMetaStorage = qMetaStorage;

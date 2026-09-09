@@ -69,8 +69,8 @@ public class ObjectsScopeDTDomain extends DecisionTreeReasoningDomain {
     public static final String MESSAGES_CONFIG_PATH = "classpath:/" + RESOURCES_LOCATION + "objects-scope";
 
     protected final LocalizationService localizationService;
-
     protected final QuestionBank qMetaStorage;
+    private final DecisionTreeSupQuestionHelper dtSupplementaryQuestionHelper;
 
     static final String MESSAGE_PREFIX = "objscope_";
 
@@ -106,14 +106,20 @@ public class ObjectsScopeDTDomain extends DecisionTreeReasoningDomain {
             DomainData domainData,
             LocalizationService localizationService,
             RandomProvider randomProvider,
-            ExerciseAttemptDataService exerciseAttemptService,
             SupplementaryStepDataService supplementaryStepService,
             QuestionBank qMetaStorage
     ) {
-        super(domainData, randomProvider, exerciseAttemptService, supplementaryStepService);
+        super(domainData, randomProvider);
 
         this.localizationService = localizationService;
         this.qMetaStorage = qMetaStorage;
+        this.dtSupplementaryQuestionHelper = new DecisionTreeSupQuestionHelper(
+                this,
+                domainLifeTimeSolvingModel,
+                this::mainQuestionToModel,
+                supplementaryStepService
+        );
+        
         positiveLaws = new HashMap<>();
         negativeLaws = new HashMap<>();
 
@@ -754,14 +760,6 @@ public class ObjectsScopeDTDomain extends DecisionTreeReasoningDomain {
                 null);
         return situationModel;
     }
-
-    //------ Наводящие вопросы --------
-    private final DecisionTreeSupQuestionHelper dtSupplementaryQuestionHelper = new DecisionTreeSupQuestionHelper(
-            this,
-            domainLifeTimeSolvingModel,
-            this::mainQuestionToModel,
-            this.getSupplementaryStepService()
-    );
 
     @Override
     public String getDefaultQuestionType(boolean supplementary) {

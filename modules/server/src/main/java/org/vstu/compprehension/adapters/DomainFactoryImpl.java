@@ -54,8 +54,6 @@ public class DomainFactoryImpl implements DomainFactory {
                     controlFlowDomainData,
                     localizationService,
                     randomProvider,
-                    exerciseAttemptService,
-                    supplementaryStepService,
                     questionStorage);
             domainIdToClassMap.put(controlFlowDomain.getDomainId(), controlFlowDomain);
             domainShortNameToClassMap.put(controlFlowDomainData.shortName(), controlFlowDomain);
@@ -69,7 +67,6 @@ public class DomainFactoryImpl implements DomainFactory {
             var dtDomain = new ProgrammingLanguageExpressionDTDomain(
                     dtDomainData,
                     progExprDomain,
-                    exerciseAttemptService,
                     supplementaryStepService);
             domainIdToClassMap.put(dtDomain.getDomainId(), dtDomain);
             domainShortNameToClassMap.put(dtDomainData.shortName(), dtDomain);
@@ -98,7 +95,6 @@ public class DomainFactoryImpl implements DomainFactory {
                     objectsScopeDomainData,
                     localizationService,
                     randomProvider,
-                    exerciseAttemptService,
                     supplementaryStepService,
                     questionStorage);
             domainIdToClassMap.put(objectsScopeDomain.getDomainId(), objectsScopeDomain);
@@ -113,8 +109,6 @@ public class DomainFactoryImpl implements DomainFactory {
                     dataFlowDomainData,
                     localizationService,
                     randomProvider,
-                    exerciseAttemptService,
-                    supplementaryStepService,
                     questionStorage);
             domainIdToClassMap.put(dataFlowDomain.getDomainId(), dataFlowDomain);
             domainShortNameToClassMap.put(dataFlowDomainData.shortName(), dataFlowDomain);
