@@ -43,9 +43,6 @@ logs/
 .playwright-mcp/
 .run/
 
-### Generated domain-model output ###
-**/*-domain-model/out.loqi
-
 ### Local keystore artifacts (never commit private keys/backups) ###
 **/keystore/*.bak
 **/keystore/*.crt

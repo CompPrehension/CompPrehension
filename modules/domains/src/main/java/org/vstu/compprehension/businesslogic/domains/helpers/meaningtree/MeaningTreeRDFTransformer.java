@@ -130,7 +130,7 @@ public class MeaningTreeRDFTransformer {
                 baseTokensToTokens
         );
         situationDomain.validateAndThrow();
-        debugDumpLoqi(situationDomain, "out.loqi", domainModel);
+        // debugDumpLoqi(situationDomain, "out.loqi", domainModel);
         return parseResult.domainModel;
     }
 
