@@ -42,6 +42,7 @@ import java.util.ArrayList;
 import java.util.Collections;
 import java.util.List;
 import java.util.Map;
+import java.util.Objects;
 import java.util.function.BiFunction;
 import java.util.function.Function;
 import java.util.stream.Collectors;
@@ -140,8 +141,14 @@ public class DecisionTreeSupQuestionHelper {
         //получить состояние автомата вопросов, соответствующее данному вопросу
         QuestionState state = supplementaryAutomata.get(supplementaryInfo.getNextStateId());
 
-        QuestionInteractionData mainQuestionInteraction = supplementaryStepService.getMainQuestionInteraction(supplementaryInfo.getMainQuestionInteractionId());
-        DomainModel situationModel = mainQuestionToModelTransformer.apply(question, mainQuestionInteraction);
+        long mainQuestionInteractionId = supplementaryInfo.getMainQuestionInteractionId();
+        QuestionData mainQuestion = supplementaryStepService.getMainQuestionOfInteraction(mainQuestionInteractionId);
+        QuestionInteractionData mainQuestionInteraction = mainQuestion.getInteractions().stream()
+                .filter(i -> Objects.equals(i.getId(), mainQuestionInteractionId))
+                .findFirst()
+                .orElseThrow(() -> new IllegalStateException(
+                        "Interaction " + mainQuestionInteractionId + " is not among interactions of question " + mainQuestion.getId()));
+        DomainModel situationModel = mainQuestionToModelTransformer.apply(mainQuestion, mainQuestionInteraction);
 
         //создать ситуацию, описывающую контекст задания вспомогательных вопросов
         QuestioningSituation situation = toQuestioningSituation(supplementaryInfo.getSituationInfo(), situationModel);

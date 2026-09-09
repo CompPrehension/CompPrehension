@@ -6,7 +6,6 @@ import org.jetbrains.annotations.Nullable;
 import org.springframework.stereotype.Repository;
 import org.springframework.transaction.annotation.Transactional;
 import org.vstu.compprehension.data.question.QuestionData;
-import org.vstu.compprehension.data.question.QuestionInteractionData;
 import org.vstu.compprehension.data.question.QuestionRequestLogData;
 import org.vstu.compprehension.entities.AnswerObjectEntity;
 import org.vstu.compprehension.entities.InteractionEntity;
@@ -29,7 +28,6 @@ import java.util.ArrayList;
 import java.util.Comparator;
 import java.util.List;
 import java.util.NoSuchElementException;
-import java.util.Objects;
 import java.util.Optional;
 import java.util.stream.Collectors;
 
@@ -64,14 +62,10 @@ public class QuestionDataRepository {
     }
 
     @Transactional(readOnly = true)
-    public @NotNull QuestionInteractionData findInteractionById(long interactionId) {
+    public @NotNull QuestionData findByInteractionId(long interactionId) {
         long questionId = interactionRepository.findQuestionId(interactionId)
                 .orElseThrow(() -> new NoSuchElementException("Interaction " + interactionId + " not found"));
-        return findById(questionId).getInteractions().stream()
-                .filter(i -> Objects.equals(i.getId(), interactionId))
-                .findFirst()
-                .orElseThrow(() -> new IllegalStateException(
-                        "Interaction " + interactionId + " is not among interactions of question " + questionId));
+        return findById(questionId);
     }
 
     @Transactional(readOnly = true)
