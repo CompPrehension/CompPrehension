@@ -33,7 +33,6 @@ import org.vstu.compprehension.data.question.AnswerObjectData;
 import org.vstu.compprehension.data.question.ResponseData;
 import org.vstu.compprehension.services.ExerciseAttemptDataService;
 import org.vstu.compprehension.services.LocalizationService;
-import org.vstu.compprehension.frontend.dto.ExerciseSkillDto;
 import org.vstu.compprehension.data.domain.DomainData;
 import org.vstu.compprehension.businesslogic.*;
 import org.vstu.compprehension.businesslogic.backend.DecisionTreeReasonerBackend;
@@ -720,14 +719,6 @@ public class ControlFlowDTDomain extends DecisionTreeReasoningDomain {
 
     @Override
     public CorrectAnswer getAnyNextCorrectAnswer(Question q, Language language) {
-        List<String> deniedSkills = List.of();
-        var exerciseStage = getExerciseStageOf(q);
-        if (exerciseStage.isPresent()) {
-            deniedSkills = exerciseStage.get().getSkills()
-                    .stream()
-                    .filter(s -> RoleInExercise.FORBIDDEN.equals(s.getKind()))
-                    .map(ExerciseSkillDto::getName).toList();
-        }
         Optional<QuestionInteractionData> lastCorrectInteraction = Optional.ofNullable(q.getQuestionData().getInteractions()).stream()
                 .flatMap(Collection::stream)
                 .filter(i -> i.getFeedback().getInteractionsLeft() >= 0 && i.getViolations().isEmpty())
@@ -750,7 +741,7 @@ public class ControlFlowDTDomain extends DecisionTreeReasoningDomain {
         Explanation explanation = DecisionTreeReasonerBackend.collectExplanationsFromTrace(
                 Explanation.Type.HINT,
                 solveRes.trace(), questionModel,
-                this, deniedSkills, language
+                this, language
         );
         AnswerObjectData answer = q.getAnswerObjects().stream().filter(ans -> ans.getDomainInfo().equals(cfgId)).findFirst().orElse(null);
         correctAnswer.answers = List.of(new CorrectAnswer.Response(answer, answer));

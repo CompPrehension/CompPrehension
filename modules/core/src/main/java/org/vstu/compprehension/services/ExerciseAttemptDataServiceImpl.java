@@ -54,45 +54,48 @@ class ExerciseAttemptDataServiceImpl implements ExerciseAttemptDataService {
 
     @Transactional(readOnly = true)
     public Optional<QuestionAttemptContextData> findQuestionContext(long questionId) {
-        return exerciseAttemptDataRepository.findQuestionAttemptContext(questionId);
+        return exerciseAttemptDataRepository.findQuestionAttemptContext(questionId)
+                .map(context -> {
+                    context.setQuestionStage(resolveQuestionStage(context, questionId));
+                    return context;
+                });
     }
 
-    @Transactional(readOnly = true)
-    public Optional<ExerciseStageData> findStageForQuestion(long questionId) {
-        var context = exerciseAttemptDataRepository.findQuestionAttemptContext(questionId).orElse(null);
-        if (context == null || context.stages().isEmpty()) {
-            return Optional.empty();
+    private @NotNull ExerciseStageData resolveQuestionStage(@NotNull QuestionAttemptContextData context, long questionId) {
+        var stages = context.getStages();
+        if (stages.isEmpty()) {
+            throw new IllegalStateException(
+                    "Exercise of attempt " + context.getAttemptId() + " has no stages, question " + questionId);
         }
-        var stages = context.stages();
 
         long questionNumber = exerciseAttemptDataRepository
-                .countQuestionsUpTo(context.attemptId(), questionId);
+                .countQuestionsUpTo(context.getAttemptId(), questionId);
         int questionsPassed = 0;
         ExerciseStageData stage = stages.getFirst();
         for (int i = 0; i < stages.size() && questionsPassed < questionNumber; i++) {
             stage = stages.get(i);
             questionsPassed += stage.getNumberOfQuestions();
         }
-        return Optional.ofNullable(stage);
+        return stage;
     }
 
     @Transactional(readOnly = true)
     public Language findUserLanguageForQuestion(long questionId) {
         return exerciseAttemptDataRepository.findQuestionAttemptContext(questionId)
-                .map(QuestionAttemptContextData::userLanguage)
+                .map(QuestionAttemptContextData::getUserLanguage)
                 .orElse(Language.RUSSIAN);
     }
 
     @Transactional(readOnly = true)
     public Optional<Long> findAttemptIdOfQuestion(long questionId) {
         return exerciseAttemptDataRepository.findQuestionAttemptContext(questionId)
-                .map(QuestionAttemptContextData::attemptId);
+                .map(QuestionAttemptContextData::getAttemptId);
     }
 
     @Transactional(readOnly = true)
     public boolean prefersDecisionTreeSupplementary(long questionId) {
         return exerciseAttemptDataRepository.findQuestionAttemptContext(questionId)
-                .map(QuestionAttemptContextData::preferDecisionTreeSupplementary)
+                .map(QuestionAttemptContextData::isPreferDecisionTreeSupplementary)
                 .orElse(true);
     }
 

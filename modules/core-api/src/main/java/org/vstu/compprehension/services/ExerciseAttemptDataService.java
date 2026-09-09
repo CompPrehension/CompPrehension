@@ -4,7 +4,6 @@ import org.jetbrains.annotations.NotNull;
 import org.jetbrains.annotations.Nullable;
 import org.vstu.compprehension.enums.Decision;
 import org.vstu.compprehension.enums.Language;
-import org.vstu.compprehension.data.exercise.ExerciseStageData;
 import org.vstu.compprehension.data.exercise.ExerciseAttemptWithQuestionsData;
 import org.vstu.compprehension.data.exerciseattempt.AttemptGenerationContextData;
 import org.vstu.compprehension.data.exerciseattempt.AttemptSummaryData;
@@ -18,8 +17,6 @@ public interface ExerciseAttemptDataService {
     @NotNull AttemptGenerationContextData getGenerationContext(long attemptId);
 
     Optional<QuestionAttemptContextData> findQuestionContext(long questionId);
-
-    Optional<ExerciseStageData> findStageForQuestion(long questionId);
 
     Language findUserLanguageForQuestion(long questionId);
 

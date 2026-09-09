@@ -18,15 +18,6 @@
         <maven.compiler.target>21</maven.compiler.target>
     </properties>
 
-    <!--
-        Публичный контракт предметного ядра: Domain/Backend/AbstractStrategy, словарь
-        (Question, Law, Concept, ...), модели data.*, и интерфейсы тех немногих сервисов,
-        которые нужны доменам/бэкендам/стратегиям напрямую. Никаких JPA-сущностей,
-        Spring Data репозиториев и конкретных реализаций сервисов — это остаётся в core.
-        backends/domains/strategies зависят только от этого модуля, а не от core: импорт
-        entities.*/repositories.*/внутреннего сервиса отсюда физически не скомпилируется.
-    -->
-
     <repositories>
         <repository>
             <id>jitpack.io</id>

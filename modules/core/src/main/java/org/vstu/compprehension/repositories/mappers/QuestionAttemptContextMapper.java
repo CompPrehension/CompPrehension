@@ -14,11 +14,13 @@ class QuestionAttemptContextMapper implements Mapper<ExerciseAttemptEntity, Ques
     @Override
     public @NotNull QuestionAttemptContextData map(@NotNull ExerciseAttemptEntity source) {
         var exercise = source.getExercise();
-        return new QuestionAttemptContextData(
-                source.getId(),
-                source.getUser().getPreferred_language(),
-                exercise.getStrategyId(),
-                exercise.getStages() == null ? List.of() : List.copyOf(exercise.getStages()),
-                exercise.getOptions().isPreferDecisionTreeBasedSupplementaryEnabled());
+
+        var context = new QuestionAttemptContextData();
+        context.setAttemptId(source.getId());
+        context.setUserLanguage(source.getUser().getPreferred_language());
+        context.setStrategyId(exercise.getStrategyId());
+        context.setStages(exercise.getStages() == null ? List.of() : List.copyOf(exercise.getStages()));
+        context.setPreferDecisionTreeSupplementary(exercise.getOptions().isPreferDecisionTreeBasedSupplementaryEnabled());
+        return context;
     }
 }

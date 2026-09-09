@@ -12,6 +12,7 @@ import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Propagation;
 import org.springframework.transaction.annotation.Transactional;
 import org.vstu.compprehension.common.Utils;
+import org.vstu.compprehension.enums.RoleInExercise;
 import org.vstu.compprehension.frontend.dto.*;
 import org.vstu.compprehension.frontend.dto.feedback.FeedbackDto;
 import org.vstu.compprehension.frontend.dto.feedback.FeedbackViolationLawDto;
@@ -99,6 +100,7 @@ class ExerciseAttemptFrontendServiceImpl implements ExerciseAttemptFrontendServi
         val tags = question.getTags();
         val responses = questionService.resolveAnswers(questionId, answers);
         val judgeResult = domain.judgeQuestion(question, responses, tags, language);
+        muteDeniedExplanations(judgeResult.explanation, context.getQuestionStage());
 
         // add interaction
         val recorded = questionService.recordInteraction(new NewInteractionData(
@@ -110,11 +112,11 @@ class ExerciseAttemptFrontendServiceImpl implements ExerciseAttemptFrontendServi
                 orEmpty(judgeResult.correctlyAppliedLaws),
                 judgeResult.IterationsLeft));
 
-        var strategy = strategyFactory.getStrategy(context.strategyId());
-        var strategyDecision = strategy.gradeAndDecide(context.attemptId(), judgeResult);
+        var strategy = strategyFactory.getStrategy(context.getStrategyId());
+        var strategyDecision = strategy.gradeAndDecide(context.getAttemptId(), judgeResult);
         questionService.gradeInteraction(recorded.interactionId(), strategyDecision.grade());
         if (context != null) {
-            exerciseAttemptService.ensureAttemptStatus(context.attemptId(), strategyDecision.decision());
+            exerciseAttemptService.ensureAttemptStatus(context.getAttemptId(), strategyDecision.decision());
         }
 
         val locale = questionLanguage(context);
@@ -208,6 +210,7 @@ class ExerciseAttemptFrontendServiceImpl implements ExerciseAttemptFrontendServi
         var currentUser = userService.getCurrentUser();
         var language = currentUser.language();
         val correctAnswer = domain.getAnyNextCorrectAnswer(question, language);
+        muteDeniedExplanations(correctAnswer.explanation, context.getQuestionStage());
 
         // Подсказка достраивает уже данные студентом ответы, а не начинает решение
         // заново: ответы последнего верного взаимодействия переезжают в это.
@@ -233,11 +236,11 @@ class ExerciseAttemptFrontendServiceImpl implements ExerciseAttemptFrontendServi
                 orEmpty(judgeResult.correctlyAppliedLaws),
                 judgeResult.IterationsLeft));
 
-        var strategy = strategyFactory.getStrategy(context.strategyId());
-        var strategyDecision = strategy.gradeAndDecide(context.attemptId(), judgeResult);
+        var strategy = strategyFactory.getStrategy(context.getStrategyId());
+        var strategyDecision = strategy.gradeAndDecide(context.getAttemptId(), judgeResult);
         questionService.gradeInteraction(recorded.interactionId(), strategyDecision.grade());
         if (context != null) {
-            exerciseAttemptService.ensureAttemptStatus(context.attemptId(), strategyDecision.decision());
+            exerciseAttemptService.ensureAttemptStatus(context.getAttemptId(), strategyDecision.decision());
         }
 
         // build feedback message
@@ -266,8 +269,19 @@ class ExerciseAttemptFrontendServiceImpl implements ExerciseAttemptFrontendServi
         return values == null ? List.of() : values;
     }
 
+    private static void muteDeniedExplanations(@Nullable Explanation explanation, @NotNull ExerciseStageData stage) {
+        if (explanation == null) {
+            return;
+        }
+        var deniedSkills = stage.getSkills().stream()
+                .filter(skill -> RoleInExercise.FORBIDDEN.equals(skill.getKind()))
+                .map(ExerciseSkillDto::getName)
+                .toList();
+        explanation.muteDeniedSkills(deniedSkills);
+    }
+
     private static @NotNull Language questionLanguage(@Nullable QuestionAttemptContextData context) {
-        return context == null ? Language.RUSSIAN/*ENGLISH*/ : context.userLanguage();
+        return context == null ? Language.RUSSIAN/*ENGLISH*/ : context.getUserLanguage();
     }
 
     private static @NotNull List<SubmittedAnswerData> toSubmittedAnswers(@Nullable AnswerDto[] answers) {

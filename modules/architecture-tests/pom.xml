@@ -14,13 +14,6 @@
     <artifactId>architecture-tests</artifactId>
     <packaging>jar</packaging>
 
-    <!--
-        Модуль существует только ради ArchUnit-правил. Продакшн-кода в нём нет.
-        Он собирается последним в реакторе и зависит от всех модулей сразу,
-        потому что ни один отдельный модуль не видит всю кодовую базу:
-        server не зависит ни от background-server, ни от bkt.
-    -->
-
     <properties>
         <java.version>21</java.version>
         <maven.compiler.source>21</maven.compiler.source>

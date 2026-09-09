@@ -193,6 +193,29 @@ public class Explanation {
         return new HyperText(details);
     }
 
+    public void muteDeniedSkills(@NotNull Collection<String> deniedSkills) {
+        if (deniedSkills.isEmpty()) {
+            return;
+        }
+        Set<String> denied = new HashSet<>(deniedSkills);
+        muteDeniedLeaves(denied);
+        if (denied.containsAll(getDomainLawNames())) {
+            removeAllMute();
+        }
+    }
+
+    private void muteDeniedLeaves(Set<String> deniedSkills) {
+        if (children.isEmpty()) {
+            if (!Collections.disjoint(getDomainLawNames(), deniedSkills)) {
+                setMuted(true);
+            }
+            return;
+        }
+        for (Explanation child : children) {
+            child.muteDeniedLeaves(deniedSkills);
+        }
+    }
+
     public void removeAllMute() {
         setMuted(false);
         for (Explanation child : children) {

@@ -1,6 +1,5 @@
 package org.vstu.compprehension.businesslogic.backend;
 
-import org.vstu.compprehension.enums.RoleInExercise;
 import org.vstu.compprehension.data.question.ViolationData;
 import io.brookite.termannotations.DomainTermAnnotationProcessor;
 import its.model.TypedVariable;
@@ -18,8 +17,6 @@ import org.springframework.context.annotation.Primary;
 import org.springframework.stereotype.Component;
 import org.springframework.context.annotation.Scope;
 import org.springframework.context.annotation.ScopedProxyMode;
-import org.vstu.compprehension.common.Utils;
-import org.vstu.compprehension.frontend.dto.ExerciseSkillDto;
 import org.vstu.compprehension.businesslogic.DomainToBackendAdapter;
 import org.vstu.compprehension.businesslogic.Explanation;
 import org.vstu.compprehension.businesslogic.Question;
@@ -132,7 +129,6 @@ public class DecisionTreeReasonerBackend
                                                             DecisionTreeTrace trace,
                                                             DomainModel domainModel,
                                                             Domain appDomain,
-                                                            List<String> deniedSkills,
                                                             Language lang) {
         DomainTermAnnotationProcessor annotationProcessor = null;
         if (appDomain instanceof DomainBase domainBase && domainBase.getTermDictionary().isPresent()) {
@@ -140,7 +136,7 @@ public class DecisionTreeReasonerBackend
         }
         Explanation result = Explanation.aggregate(type, collectExplanations(type, trace, null,
                 AggregationPolicy.Default,
-                domainModel, annotationProcessor, deniedSkills, lang));
+                domainModel, annotationProcessor, lang));
         String prefix = Explanation.getCommonPrefix(result.getChildren(), "");
         if (result.getChildren().size() > 1 && !prefix.isEmpty()) {
             result.setRawMessage(new HyperText(prefix.trim().concat(":")));
@@ -150,9 +146,6 @@ public class DecisionTreeReasonerBackend
             result.setCurrentDomainLawName(result.getChildren().getFirst().getCurrentDomainLawName());
         }
         reduceSimilarExplanations(result.getChildren(), type, lang);
-        if (Utils.intersectSets(result.getDomainLawNames(), deniedSkills).size() == result.getDomainLawNames().size()) {
-            result.removeAllMute();
-        }
         return result;
     }
 
@@ -163,7 +156,7 @@ public class DecisionTreeReasonerBackend
                                                          AggregationPolicy policy,
                                                          DomainModel domain,
                                                          DomainTermAnnotationProcessor annotationProcessor,
-                                                         List<String> deniedSkills, Language lang) {
+                                                         Language lang) {
         List<Explanation> traceExplanations = new ArrayList<>(); // временный буфер
         for (DecisionTreeTraceElement<?, ?> element : trace) {
             LearningSituation learningSituation = new LearningSituation(domain, element.getVariablesSnapshot());
@@ -177,9 +170,6 @@ public class DecisionTreeReasonerBackend
                 if (annotationProcessor != null) {
                     var annotatedMessage = annotationProcessor.apply(explanation.getRawMessage().toString(), new DomainTermTooltipVisualizer());
                     explanation.setRawMessage(new HyperText(annotatedMessage));
-                }
-                if (Utils.intersectSets(explanation.getDomainLawNames(), deniedSkills).size() > 0) {
-                    explanation.setMuted(true);
                 }
                 traceExplanations.add(explanation);
             } else {
@@ -205,7 +195,7 @@ public class DecisionTreeReasonerBackend
                 // Собрать с дочерних трасс элементы
                 for (DecisionTreeTrace subTrace : Objects.requireNonNullElse(element.nestedTraces(), new ArrayList<DecisionTreeTrace>())) {
                     traceExplanations.addAll(collectExplanations(type, subTrace, newParent, newPolicy, domain,
-                            annotationProcessor, deniedSkills, lang));
+                            annotationProcessor, lang));
                 }
                 // Если в агрегированной ветви один элемент - хранить в буфере только его, а если вообще нет элементов - удалить ветвь
                 if (newParent != null && (newParent.getChildren().isEmpty() || newParent.getChildren().size() == 1)) {
@@ -314,17 +304,9 @@ public class DecisionTreeReasonerBackend
 
             updateJudgeInterpretationResult(result, backendOutput);
 
-            var exerciseStage = judgedQuestion.getDomain().getExerciseStageOf(judgedQuestion);
-            List<String> deniedSkills = List.of();
-            if (exerciseStage.isPresent()) {
-                deniedSkills = exerciseStage.get().getSkills()
-                        .stream()
-                        .filter(s -> RoleInExercise.FORBIDDEN.equals(s.getKind()))
-                        .map(ExerciseSkillDto::getName).toList();
-            }
             result.explanation = collectExplanationsFromTrace(Explanation.Type.ERROR, backendOutput.results,
                     backendOutput.situation.getDomainModel(),
-                    judgedQuestion.getDomain(), deniedSkills, language
+                    judgedQuestion.getDomain(), language
             );
             if (!result.isAnswerCorrect) {
                 List<ViolationData> mistakes = result.explanation.getDomainLawNames()

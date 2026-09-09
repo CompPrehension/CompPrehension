@@ -1,6 +1,5 @@
 package org.vstu.compprehension.businesslogic.domains;
 
-import org.vstu.compprehension.data.exercise.ExerciseStageData;
 import org.vstu.compprehension.data.domain.DomainOptionsData;
 import io.brookite.termannotations.DomainTermDictionary;
 import lombok.Getter;
@@ -47,13 +46,6 @@ public abstract class DomainBase implements Domain {
         this.randomProvider = randomProvider;
         this.exerciseAttemptService = exerciseAttemptService;
         this.supplementaryStepService = supplementaryStepService;
-    }
-
-    @Override
-    public Optional<ExerciseStageData> getExerciseStageOf(@NotNull Question question) {
-        var questionId = question.getQuestionData().getId();
-        return questionId == null ? Optional.empty()
-                : exerciseAttemptService.findStageForQuestion(questionId);
     }
 
     public @NotNull String getDomainId() {

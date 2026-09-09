@@ -1,6 +1,5 @@
 package org.vstu.compprehension.businesslogic.domains;
 
-import org.vstu.compprehension.enums.RoleInExercise;
 import org.vstu.compprehension.data.question.AnswerData;
 import org.vstu.compprehension.data.question.SupplementaryStepData;
 import org.vstu.compprehension.data.exercise.ExerciseOptionsData;
@@ -34,7 +33,6 @@ import org.vstu.compprehension.data.question.AnswerObjectData;
 import org.vstu.compprehension.data.question.ResponseData;
 import org.vstu.compprehension.services.ExerciseAttemptDataService;
 import org.vstu.compprehension.services.LocalizationService;
-import org.vstu.compprehension.frontend.dto.ExerciseSkillDto;
 import org.vstu.compprehension.data.domain.DomainData;
 import org.vstu.compprehension.businesslogic.*;
 import org.vstu.compprehension.businesslogic.backend.DecisionTreeReasonerBackend;
@@ -374,14 +372,6 @@ public class ProgrammingLanguageExpressionDTDomain extends DecisionTreeReasoning
             ProgrammingLanguageExpressionsSolver.SolveResult solveResult = solver.solveNoVars(preparedSituation.getDomainModel(),
                     domainSolvingModel.decisionTree("earlyfinish")
             );
-            var exerciseStage = judgedQuestion.getDomain().getExerciseStageOf(judgedQuestion);
-            List<String> deniedSkills = List.of();
-            if (exerciseStage.isPresent()) {
-                deniedSkills = exerciseStage.get().getSkills()
-                        .stream()
-                        .filter(s -> RoleInExercise.FORBIDDEN.equals(s.getKind()))
-                        .map(ExerciseSkillDto::getName).toList();
-            }
 
             ViolationData violation = new ViolationData();
             violation.setLawName(STILL_UNEVALUATED_LEFT_VIOLATION_NAME);
@@ -393,7 +383,6 @@ public class ProgrammingLanguageExpressionDTDomain extends DecisionTreeReasoning
                     Explanation.Type.ERROR, solveResult.trace(),
                     preparedSituation.getDomainModel(),
                     domain,
-                    deniedSkills,
                     language);
             result.violations.addAll(result.explanation.getDomainLawNames().stream().map(skill -> {
                 ViolationData v = new ViolationData();
@@ -875,15 +864,6 @@ public class ProgrammingLanguageExpressionDTDomain extends DecisionTreeReasoning
 
     @Override
     public CorrectAnswer getAnyNextCorrectAnswer(Question q, Language language) {
-        var exerciseStage = getExerciseStageOf(q);
-        List<String> deniedSkills = List.of();
-        if (exerciseStage.isPresent()) {
-            deniedSkills = exerciseStage.get().getSkills()
-                    .stream()
-                    .filter(s -> RoleInExercise.FORBIDDEN.equals(s.getKind()))
-                    .map(ExerciseSkillDto::getName).toList();
-        }
-
         Optional<QuestionInteractionData> lastCorrectInteraction = Optional.ofNullable(q.getQuestionData().getInteractions()).stream()
                 .flatMap(Collection::stream)
                 .filter(i -> i.getFeedback().getInteractionsLeft() >= 0 && i.getViolations().isEmpty())
@@ -923,7 +903,7 @@ public class ProgrammingLanguageExpressionDTDomain extends DecisionTreeReasoning
                     Explanation explanation = DecisionTreeReasonerBackend.collectExplanationsFromTrace(
                             Explanation.Type.HINT,
                             solveRes.trace(), domain,
-                            this, deniedSkills, language
+                            this, language
                     );
                     if (explanation.isEmpty()) {
                         explanation.getChildren().add(new Explanation(Explanation.Type.HINT, new HyperText(
@@ -948,7 +928,7 @@ public class ProgrammingLanguageExpressionDTDomain extends DecisionTreeReasoning
         correctAnswer.skillName = List.of();
         correctAnswer.explanation = DecisionTreeReasonerBackend.collectExplanationsFromTrace(Explanation.Type.HINT,
                 solver.solveNoVars(domain, domainSolvingModel.decisionTree("earlyfinish")).trace(),
-                domain, this, deniedSkills, language
+                domain, this, language
                 );
         return correctAnswer;
     }

@@ -3,7 +3,6 @@ package org.vstu.compprehension.businesslogic.domains;
 import org.vstu.compprehension.data.question.AnswerData;
 import org.vstu.compprehension.data.question.SupplementaryStepData;
 import org.vstu.compprehension.data.question.ViolationData;
-import org.vstu.compprehension.data.exercise.ExerciseStageData;
 import org.vstu.compprehension.data.question.BackendFactData;
 import lombok.AllArgsConstructor;
 import lombok.Data;
@@ -34,12 +33,6 @@ public interface Domain {
      * Get domain-defined backend id, which determines the backend used to SOLVE/JUDGE this domain's questions
      */
     @NotNull String getBackendId();
-
-    /**
-     * Этап упражнения, на котором задан вопрос; пусто, если вопрос вне попытки.
-     * TODO используется только для получения denied skills у стадии вопроса. Убрать при первой возможности.
-     */
-    Optional<ExerciseStageData> getExerciseStageOf(@NotNull Question question);
 
     /** Описание предметной области: имя, короткое имя, версия, опции. */
     @NotNull DomainData getDomainData();

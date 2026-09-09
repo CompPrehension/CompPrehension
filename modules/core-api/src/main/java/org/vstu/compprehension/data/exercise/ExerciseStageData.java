@@ -9,6 +9,7 @@ import lombok.Value;
 import lombok.experimental.SuperBuilder;
 import lombok.extern.jackson.Jacksonized;
 import org.jetbrains.annotations.NotNull;
+import org.vstu.compprehension.enums.RoleInExercise;
 import org.vstu.compprehension.frontend.dto.ExerciseConceptDto;
 import org.vstu.compprehension.frontend.dto.ExerciseLawDto;
 import org.vstu.compprehension.frontend.dto.ExerciseSkillDto;
