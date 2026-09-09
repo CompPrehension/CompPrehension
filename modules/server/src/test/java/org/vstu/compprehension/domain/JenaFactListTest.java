@@ -4,6 +4,7 @@ import org.apache.jena.rdf.model.Model;
 import org.junit.jupiter.api.BeforeAll;
 import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.Test;
+import org.vstu.compprehension.data.domain.DomainData;
 import org.vstu.compprehension.data.question.GeneratedQuestionData;
 import org.vstu.compprehension.businesslogic.backend.Fact;
 import org.vstu.compprehension.businesslogic.backend.facts.JenaFact;
@@ -21,7 +22,7 @@ public class JenaFactListTest {
     @BeforeAll
     public static void setUpFirst() {
         ControlFlowStatementsDomain.initVocab();
-        var domain = new ControlFlowStatementsDomain(null, null, null, null);
+        var domain = new ControlFlowStatementsDomain(new DomainData("ControlFlowStatementsDomain", "ControlFlowStatementsDomain", "1.0.0", null), null, null, null);
         QUESTIONS = domain.readQuestions(JenaFactListTest.class.getClassLoader().getResourceAsStream(QUESTIONS_CONFIG_PATH));
     }
 
