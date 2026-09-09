@@ -17,7 +17,7 @@ public interface QuestionDataService {
 
      @NotNull SupplementaryQuestionDto generateSupplementaryQuestion(long sourceQuestionId, @NotNull ViolationData violation, Language lang);
 
-     SupplementaryFeedbackDto judgeSupplementaryQuestion(QuestionData question, List<? extends AnswerData> responses, Language language);
+     SupplementaryFeedbackDto judgeSupplementaryQuestion(long supplementaryQuestionId, List<? extends AnswerData> responses, Language language);
 
      List<AnswerData> resolveAnswers(long questionId, List<SubmittedAnswerData> answers);
 

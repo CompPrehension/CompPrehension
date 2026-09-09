@@ -19,7 +19,6 @@ import lombok.extern.log4j.Log4j2;
 import lombok.val;
 import org.apache.commons.collections4.MultiValuedMap;
 import org.apache.commons.collections4.multimap.HashSetValuedHashMap;
-import org.apache.commons.text.StringSubstitutor;
 import org.apache.jena.ontology.OntModel;
 import org.apache.jena.ontology.OntProperty;
 import org.apache.jena.rdf.model.InfModel;
@@ -35,7 +34,7 @@ import org.jetbrains.annotations.NotNull;
 import org.jetbrains.annotations.Nullable;
 import org.apache.commons.text.StringEscapeUtils;
 import org.vstu.compprehension.services.RandomProvider;
-import org.vstu.compprehension.services.SupplementaryStepDataService;
+import org.vstu.compprehension.businesslogic.SupplementaryStepContext;
 import org.vstu.compprehension.data.question.QuestionMetadataData;
 import org.vstu.compprehension.data.question.QuestionMetadataWithData;
 import org.vstu.compprehension.data.question.QuestionInteractionData;
@@ -44,12 +43,8 @@ import org.vstu.compprehension.data.question.GeneratedQuestionData;
 import org.vstu.compprehension.data.question.QuestionContentData;
 import org.vstu.compprehension.data.question.AnswerObjectData;
 import org.vstu.compprehension.data.question.ResponseData;
-import org.vstu.compprehension.services.ExerciseAttemptDataService;
 import org.vstu.compprehension.services.LocalizationService;
 import org.vstu.compprehension.common.StringHelper;
-import org.vstu.compprehension.frontend.dto.SupplementaryFeedbackDto;
-import org.vstu.compprehension.frontend.dto.feedback.FeedbackDto;
-import org.vstu.compprehension.frontend.dto.feedback.FeedbackViolationLawDto;
 import org.vstu.compprehension.data.domain.DomainData;
 import org.vstu.compprehension.businesslogic.*;
 import org.vstu.compprehension.businesslogic.backend.JenaBackend;
@@ -90,7 +85,6 @@ public class ProgrammingLanguageExpressionDomain extends JenaReasoningDomain {
     static final String RESOURCES_LOCATION = "org/vstu/compprehension/businesslogic/domains/";
     static final String LAWS_CONFIG_PATH = RESOURCES_LOCATION + "programming-language-expression-domain-laws.json";
     static final String QUESTIONS_CONFIG_PATH = RESOURCES_LOCATION + "programming-language-expression-domain-questions.json";
-    static final String SUPPLEMENTARY_CONFIG_PATH = RESOURCES_LOCATION + "programming-language-expression-domain-supplementary-strategy.json";
     public static final String MESSAGES_CONFIG_PATH = "classpath:/" + RESOURCES_LOCATION + "programming-language-expression-domain-messages";
 
     private static final int GENERATED_QUESTIONS_VERSION = 11;
@@ -105,8 +99,6 @@ public class ProgrammingLanguageExpressionDomain extends JenaReasoningDomain {
 
     public static final String END_EVALUATION = "student_end_evaluation";
     protected final LocalizationService localizationService;
-    private final ExerciseAttemptDataService exerciseAttemptService;
-    private final SupplementaryStepDataService supplementaryStepService;
     private final DecisionTreeSupQuestionHelper dtSupplementaryQuestionHelper;
     protected final QuestionBank qMetaStorage;
 
@@ -124,26 +116,20 @@ public class ProgrammingLanguageExpressionDomain extends JenaReasoningDomain {
             DomainData domainData,
             LocalizationService localizationService,
             RandomProvider randomProvider,
-            ExerciseAttemptDataService exerciseAttemptService,
-            SupplementaryStepDataService supplementaryStepService,
             QuestionBank qMetaStorage) {
 
         super(domainData, randomProvider);
 
         this.localizationService = localizationService;
-        this.exerciseAttemptService = exerciseAttemptService;
-        this.supplementaryStepService = supplementaryStepService;
         this.qMetaStorage = qMetaStorage;
         this.dtSupplementaryQuestionHelper = new DecisionTreeSupQuestionHelper(
                 this,
                 this.getClass().getClassLoader().getResource(DOMAIN_MODEL_DIRECTORY),
-                this::mainQuestionToModel,
-                supplementaryStepService
+                this::mainQuestionToModel
         );
 
         fillConcepts();
         readLaws(this.getClass().getClassLoader().getResourceAsStream(LAWS_CONFIG_PATH));
-        readSupplementaryConfig(this.getClass().getClassLoader().getResourceAsStream(SUPPLEMENTARY_CONFIG_PATH));
     }
 
     private void fillConcepts() {
@@ -305,42 +291,6 @@ public class ProgrammingLanguageExpressionDomain extends JenaReasoningDomain {
     private Concept addConcept(String name) {
         Concept concept = new Concept(name);
         return addConcept(concept);
-    }
-
-    public static class SupplementaryAnswerTransition {
-        public String check;
-        public String question;
-        public String detailed_law;
-        public boolean correct;
-    }
-
-    public static class SupplementaryAnswerConfig {
-        public String name;
-        public List<SupplementaryAnswerTransition> transitions;
-    }
-
-    static class SupplementaryConfig {
-        String name;
-        List<SupplementaryAnswerConfig> answers;
-    }
-
-    private HashMap<String, HashMap<String, List<SupplementaryAnswerTransition>>> supplementaryConfig;
-    public  HashMap<String, HashMap<String, List<SupplementaryAnswerTransition>>> getSupplementaryConfig() {
-        return supplementaryConfig;
-    }
-    private void readSupplementaryConfig(InputStream inputStream) {
-        supplementaryConfig = new HashMap<>();
-
-        SupplementaryConfig[] configs = new Gson().fromJson(
-                new InputStreamReader(inputStream, StandardCharsets.UTF_8),
-                SupplementaryConfig[].class);
-
-        for (SupplementaryConfig config : configs) {
-            supplementaryConfig.put(config.name, new HashMap<>());
-            for (SupplementaryAnswerConfig answer : config.answers) {
-                supplementaryConfig.get(config.name).put(answer.name, answer.transitions);
-            }
-        }
     }
 
     private void readLaws(InputStream inputStream) {
@@ -1510,11 +1460,6 @@ QuestionOptionsData orderQuestionOptions = OrderQuestionOptionsData.builder()
         return result;
     }
 
-    /** Тип взаимодействия, в котором обнаружено нарушение, если он известен. */
-    private static InteractionType interactionTypeOf(ViolationData violation) {
-        return violation.getInteractionType();
-    }
-
     @Override
     public boolean needSupplementaryQuestion(String violationLawName, InteractionType interactionType) {
         if (violationLawName.equals("error_base_student_error_in_complex") ||
@@ -1540,303 +1485,15 @@ QuestionOptionsData orderQuestionOptions = OrderQuestionOptionsData.builder()
     }
 
     @Override
-    public SupplementaryResponseGenerationResult makeSupplementaryQuestion(QuestionData sourceQuestion, ViolationData violation, Language lang) {
-        if (exerciseAttemptService.prefersDecisionTreeSupplementary(sourceQuestion.getId())){
-            return dtSupplementaryQuestionHelper.makeSupplementaryQuestion(sourceQuestion, lang);
-        }
-        else {
-            return new SupplementaryResponseGenerationResult(new SupplementaryResponse(makeSupplementaryQuestionBasic(sourceQuestion, violation, lang)), null);
-        }
+    public SupplementaryResponseGenerationResult makeSupplementaryQuestion(QuestionData sourceQuestion, @Nullable SupplementaryStepData latestStep, ViolationData violation, Language lang) {
+        return dtSupplementaryQuestionHelper.makeSupplementaryQuestion(sourceQuestion, latestStep, lang);
     }
 
     @Override
-    public SupplementaryFeedbackGenerationResult judgeSupplementaryQuestion(QuestionData question, SupplementaryStepData supplementaryStep, List<? extends AnswerData> responses, Language language) {
-        if(supplementaryStep != null) { //FIXME? как правильно определять, как был сгенерирован вопрос?
-            return dtSupplementaryQuestionHelper.judgeSupplementaryQuestion(question, supplementaryStep, responses);
-        }
-        else {
-            assert responses.size() == 1;
-            val judgeResult = judgeSupplementaryQuestionBasic(question.getContent(), responses.get(0).getLeftAnswerObject());
-            val violation = judgeResult.violations.stream()
-                    .map(v -> FeedbackViolationLawDto.builder().name(v.getLawName()).canCreateSupplementaryQuestion(this.needSupplementaryQuestion(v.getLawName(), interactionTypeOf(v))).build())
-                    .findFirst()
-                    .orElse(null);
-            val message = judgeResult.isAnswerCorrect
-                    ? FeedbackDto.Message.Success(localizationService.getMessage("exercise_correct-sup-question-answer", language), List.of(violation))
-                    : FeedbackDto.Message.Error(localizationService.getMessage("exercise_wrong-sup-question-answer", language), List.of(violation));
-            val feedback =  new SupplementaryFeedbackDto(
-                    message,
-                    judgeResult.isAnswerCorrect ? SupplementaryFeedbackDto.Action.ContinueAuto : SupplementaryFeedbackDto.Action.ContinueManual);
-            return new SupplementaryFeedbackGenerationResult(feedback, null);
-        }
+    public SupplementaryFeedbackGenerationResult judgeSupplementaryQuestion(QuestionData mainQuestion, SupplementaryStepContext step, List<? extends AnswerData> responses, Language language) {
+        return dtSupplementaryQuestionHelper.judgeSupplementaryQuestion(mainQuestion, step, responses);
     }
 
-
-    public GeneratedQuestionData makeSupplementaryQuestionBasic(QuestionData question, ViolationData violation, Language userLang) {
-        if (!needSupplementaryQuestion(violation.getLawName(), interactionTypeOf(violation))) {
-            return null;
-        }
-
-        HashSet<String> targetConcepts = new HashSet<>();
-        String failedLaw = violation.getLawName().startsWith("error_base") ? "first_OrderOperatorsSupplementary" : violation.getLawName();
-        targetConcepts.add(failedLaw);
-        targetConcepts.add("supplementary");
-
-        if (!supplementaryConfig.containsKey(failedLaw)) {
-            return null;
-        }
-
-        GeneratedQuestionData res = findQuestion(new ArrayList<>(), targetConcepts, new HashSet<>(), new HashSet<>(), new HashSet<>(), new HashSet<>());
-        if (res != null) {
-            GeneratedQuestionData copy = makeQuestion(this, res, List.of(), userLang);
-            return fillSupplementaryAnswerObjects(question, failedLaw, copy, userLang);
-        }
-
-        return null;
-    }
-
-    GeneratedQuestionData fillSupplementaryAnswerObjects(QuestionData originalQuestion, String failedLaw, GeneratedQuestionData supplementaryQuestion, Language lang) {
-        Map<String, List<String>> before = new HashMap<>();
-        MultiValuedMap<String, String> beforeIndirect = new HashSetValuedHashMap<>();
-        Map<String, String> texts = new HashMap<>();
-        Map<String, String> indexes = new HashMap<>();
-        MultiValuedMap<String, String> highPrecedence = new HashSetValuedHashMap<>();
-        MultiValuedMap<String, String> samePrecedenceLeftAssoc = new HashSetValuedHashMap<>();
-        MultiValuedMap<String, String> samePrecedenceRightAssoc = new HashSetValuedHashMap<>();
-        HashSet<String> used = new HashSet<>();
-
-        for (BackendFactData fact : originalQuestion.getContent().getSolutionFacts()) {
-            if (fact.getVerb().equals("before_direct")) {
-                if (!before.containsKey(fact.getObject())) {
-                    before.put(fact.getObject(), new ArrayList<>());
-                }
-                before.get(fact.getObject()).add(fact.getSubject());
-            } else if (fact.getVerb().equals("before")) {
-                beforeIndirect.put(fact.getSubject(), fact.getObject());
-            } else if (fact.getVerb().equals("text")) {
-                texts.put(fact.getSubject(), fact.getObject());
-            } else if (fact.getVerb().equals("index")) {
-                indexes.put(fact.getSubject(), fact.getObject());
-            } else if (fact.getVerb().equals("high_precedence_diff_precedence")) {
-                highPrecedence.put(fact.getSubject(), fact.getObject());
-            } else if (fact.getVerb().equals("high_precedence_left_assoc")) {
-                samePrecedenceLeftAssoc.put(fact.getSubject(), fact.getObject());
-            } else if (fact.getVerb().equals("high_precedence_right_assoc")) {
-                samePrecedenceRightAssoc.put(fact.getSubject(), fact.getObject());
-            }
-        }
-
-        AnswerObjectData failedAnswer = null;
-        if (originalQuestion.getInteractions().isEmpty()) {
-            return null;
-        }
-        QuestionInteractionData interaction = originalQuestion.getInteractions().get(originalQuestion.getInteractions().size() - 1);
-        for (ResponseData response : interaction.getResponses()) {
-            used.add(response.getLeftAnswerObject().getDomainInfo());
-            failedAnswer = response.getLeftAnswerObject();
-        }
-
-        if (failedAnswer == null) {
-            return null;
-        }
-
-        List<BackendFactData> possibleViolationFacts = new ArrayList<>();
-        {
-            BackendFactData factOriginalMistake = new BackendFactData("","","original_mistake", "", failedLaw);
-            possibleViolationFacts.add(factOriginalMistake);
-        }
-
-        Integer failedIndex = Integer.parseInt(indexes.get(failedAnswer.getDomainInfo()));
-
-        HashMap<String, String> templates = new HashMap<>();
-        for (AnswerObjectData origAnswer : originalQuestion.getContent().getAnswerObjects()) {
-            if (origAnswer.getDomainInfo().equals("end_token")) {
-                continue;
-            }
-            String text = texts.get(origAnswer.getDomainInfo());
-            Integer index = Integer.parseInt(indexes.get(origAnswer.getDomainInfo()));
-            String domainInfo = origAnswer.getDomainInfo();
-
-            possibleViolationFacts.add(new BackendFactData(String.valueOf(origAnswer.getAnswerId()), "text", text));
-            possibleViolationFacts.add(new BackendFactData(String.valueOf(origAnswer.getAnswerId()), "index", String.valueOf(index)));
-
-            if (origAnswer.getDomainInfo().equals(failedAnswer.getDomainInfo())) {
-                templates.put("operator", text);
-                templates.put("pos", index.toString());
-                templates.put("operator_domain_info", domainInfo);
-            }
-
-            if (index < failedIndex && !used.contains(origAnswer.getDomainInfo())) {
-                templates.put("left_operator", text);
-                templates.put("left_operator_pos", index.toString());
-                templates.put("left_operator_domain_info", domainInfo);
-
-                if (highPrecedence.containsMapping(failedAnswer.getDomainInfo(), origAnswer.getDomainInfo())) {
-                    templates.put("left_operator_priority", "low");
-                    templates.put("left_operator_correct", "wrong");
-                } else if (highPrecedence.containsMapping(origAnswer.getDomainInfo(), failedAnswer.getDomainInfo())) {
-                    templates.put("left_operator_priority", "high");
-                    templates.put("left_operator_correct", "correct");
-                } else if (samePrecedenceLeftAssoc.containsMapping(origAnswer.getDomainInfo(), failedAnswer.getDomainInfo())) {
-                    templates.put("left_operator_priority", "same");
-                    templates.put("left_operator_associativity", "L");
-                    templates.put("left_operator_correct", "correct");
-                } else {
-                    templates.put("left_operator_priority", "same");
-                    templates.put("left_operator_associativity", "R");
-                    templates.put("left_operator_correct", "wrong");
-                }
-            }
-            if (index > failedIndex && !used.contains(origAnswer.getDomainInfo()) && !templates.containsKey("right_operator")) {
-                templates.put("right_operator", text);
-                templates.put("right_operator_pos", index.toString());
-                templates.put("right_operator_domain_info", domainInfo);
-
-                if (highPrecedence.containsMapping(origAnswer.getDomainInfo(), failedAnswer.getDomainInfo())) {
-                    templates.put("right_operator_priority", "high");
-                    templates.put("right_operator_correct", "correct");
-                } else if (highPrecedence.containsMapping(failedAnswer.getDomainInfo(), origAnswer.getDomainInfo())) {
-                    templates.put("right_operator_priority", "low");
-                    templates.put("right_operator_correct", "wrong");
-                } else if (samePrecedenceRightAssoc.containsMapping(origAnswer.getDomainInfo(), failedAnswer.getDomainInfo())) {
-                    templates.put("right_operator_priority", "same");
-                    templates.put("right_operator_associativity", "R");
-                    templates.put("right_operator_correct", "correct");
-                } else {
-                    templates.put("right_operator_priority", "same");
-                    templates.put("right_operator_associativity", "L");
-                    templates.put("right_operator_correct", "wrong");
-                }
-            }
-            //TODO: check in parenthesis left/right
-            //TODO: check is failed complex beginning and have inner unused
-            //TODO: check operator with strict order
-        }
-
-        StringSubstitutor stringSubstitutor = new StringSubstitutor(templates);
-        stringSubstitutor.setEnableUndefinedVariableException(true);
-
-        try {
-            String text = stringSubstitutor.replace(supplementaryQuestion.getContent().getQuestionText());
-            text = text.replaceAll(getMessage("SAME_PRECEDENCE_TEMPLATE", lang), getMessage("OPERATOR_TEMPLATE", lang));
-
-            supplementaryQuestion = supplementaryQuestion.withContent(
-                    supplementaryQuestion.getContent().toBuilder().questionText(text).build());
-        } catch (IllegalArgumentException ex) {
-            return null;
-        }
-
-        boolean sameAnswers = false;
-        HashSet<String> answerTexts = new HashSet<>();
-        List<AnswerObjectData> answers = new ArrayList<>();
-        for (AnswerObjectData answer : supplementaryQuestion.getContent().getAnswerObjects()) {
-            try {
-                String result = stringSubstitutor.replace(answer.getHyperText());
-                if (answerTexts.contains(result)) {
-                    sameAnswers = true;
-                }
-
-                AnswerObjectData newAnswer = new AnswerObjectData();
-                answerTexts.add(result);
-                newAnswer.setHyperText(result);
-                newAnswer.setAnswerId(answer.getAnswerId());
-
-                List<SupplementaryAnswerTransition> transitions = supplementaryConfig.get(failedLaw).get(answer.getDomainInfo());
-
-                boolean isAnswerCorrect = false;
-                for (SupplementaryAnswerTransition transition : transitions) {
-                    String[] transitionCheckParts = transition.check.split(";");
-                    boolean transitionSuit = false;
-                    if (transition.check.equals("correct")) {
-                        transitionSuit = true;
-                    } else if (transitionCheckParts.length == 3) {
-                        String subject = templates.get(transitionCheckParts[0] + "_domain_info");
-                        String object = templates.get(transitionCheckParts[2] + "_domain_info");
-                        if (transitionCheckParts[1].equals("before")) {
-                            transitionSuit = beforeIndirect.containsMapping(subject, object);
-                        } else if (transitionCheckParts[1].equals("high_precedence")) {
-                            transitionSuit = highPrecedence.containsMapping(subject, object);
-                        } else if (transitionCheckParts[1].equals("same_precedence")) {
-                            transitionSuit = samePrecedenceLeftAssoc.containsMapping(subject, object) || samePrecedenceRightAssoc.containsMapping(subject, object)
-                                    || samePrecedenceLeftAssoc.containsMapping(object, subject) || samePrecedenceRightAssoc.containsMapping(object, subject);
-                        } else if (transitionCheckParts[1].equals("same_precedence_left_assoc")) {
-                            transitionSuit = samePrecedenceLeftAssoc.containsMapping(subject, object);
-                        } else if (transitionCheckParts[1].equals("same_precedence_right_assoc")) {
-                            transitionSuit = samePrecedenceRightAssoc.containsMapping(subject, object);
-                        } else {
-                            throw new IllegalStateException("Supplementary answer correctness check verb is not supported");
-                        }
-                    }
-
-                    if (transitionSuit) {
-                        newAnswer.setDomainInfo(transition.question);
-                        isAnswerCorrect = transition.correct;
-                        if (!isAnswerCorrect) {
-                            BackendFactData mistake = new BackendFactData(String.valueOf(answer.getAnswerId()), "detailed_law", transition.detailed_law);
-                            possibleViolationFacts.add(mistake);
-                        }
-                        break;
-                    }
-                }
-
-                if (newAnswer.getDomainInfo() == null) {
-                    throw new IllegalStateException("Supplementary answer correctness check failed");
-                }
-
-                // skip question with same answers
-                if (sameAnswers && isAnswerCorrect) {
-                    ViolationData violationEntity = new ViolationData();
-                    violationEntity.setLawName(newAnswer.getDomainInfo());
-                    return makeSupplementaryQuestionBasic(originalQuestion, violationEntity, lang);
-                }
-
-                answers.add(newAnswer);
-            } catch (IllegalArgumentException ex) {
-                // pass, this variant should not be used
-            }
-        }
-        return supplementaryQuestion.withContent(supplementaryQuestion.getContent().toBuilder()
-                .answerObjects(answers)
-                .solutionFacts(possibleViolationFacts)
-                .build());
-    }
-
-    public InterpretSentenceResult judgeSupplementaryQuestionBasic(QuestionContentData question, AnswerObjectData answer) {
-        InterpretSentenceResult interpretSentenceResult = new InterpretSentenceResult();
-
-        interpretSentenceResult.violations = new ArrayList<>();
-        interpretSentenceResult.isAnswerCorrect = true;
-
-        ViolationData violationEntity = new ViolationData();
-        if (answer.getDomainInfo() != null) {
-            violationEntity.setLawName(answer.getDomainInfo());
-        }
-
-        List<BackendFactData> violationFacts = new ArrayList<>();
-        violationFacts.addAll(question.getSolutionFacts());
-
-        for (BackendFactData fact : question.getSolutionFacts()) {
-            if (fact.getSubject().equals(String.valueOf(answer.getAnswerId()))) {
-                if (fact.getVerb().equals("detailed_law")) {
-                    violationEntity.setDetailedLawName(fact.getObject());
-                    interpretSentenceResult.isAnswerCorrect = false;
-                    if (violationEntity.getLawName() == null) {
-                        violationEntity.setLawName(fact.getObject());
-                    }
-                } else if (fact.getVerb().equals("text") || fact.getVerb().equals("index")) {
-                    violationFacts.add(fact);
-                }
-            }
-        }
-
-        violationFacts.addAll(question.getSolutionFacts());
-        violationEntity.setViolationFacts(violationFacts);
-        if (violationEntity.getLawName() != null || violationEntity.getDetailedLawName() != null) {
-            interpretSentenceResult.violations.add(violationEntity);
-        }
-
-        return interpretSentenceResult;
-    }
 
     @Override
     public InterpretSentenceResult interpretSentence(Collection<Fact> violations) {

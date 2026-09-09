@@ -62,13 +62,6 @@ public class QuestionDataRepository {
     }
 
     @Transactional(readOnly = true)
-    public @NotNull QuestionData findByInteractionId(long interactionId) {
-        long questionId = interactionRepository.findQuestionId(interactionId)
-                .orElseThrow(() -> new NoSuchElementException("Interaction " + interactionId + " not found"));
-        return findById(questionId);
-    }
-
-    @Transactional(readOnly = true)
     public @NotNull String getDomainName(long questionId) {
         return questionRepository.findDomainName(questionId)
                 .orElseThrow(() -> new NoSuchElementException("Question " + questionId + " not found"));

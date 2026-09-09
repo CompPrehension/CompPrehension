@@ -9,7 +9,6 @@ import org.vstu.compprehension.entities.InteractionEntity;
 
 import java.util.Collection;
 import java.util.List;
-import java.util.Optional;
 
 @Repository
 public interface InteractionRepository extends JpaRepository<InteractionEntity, Long> {
@@ -81,8 +80,4 @@ public interface InteractionRepository extends JpaRepository<InteractionEntity, 
             where i.question.id = :questionId
             """)
     List<InteractionEntity> findAllByQuestionIdFetchingCorrectLaws(@Param("questionId") long questionId);
-
-    /** Вопрос, которому принадлежит взаимодействие. */
-    @Query("select i.question.id from InteractionEntity i where i.id = :interactionId")
-    Optional<Long> findQuestionId(@Param("interactionId") long interactionId);
 }

@@ -83,7 +83,6 @@ class ExerciseDataServiceImpl implements ExerciseDataService {
                         .newQuestionGenerationEnabled(true)
                         .supplementaryQuestionsEnabled(true)
                         .debugButtonEnabled(false)
-                        .preferDecisionTreeBasedSupplementaryEnabled(false)
                         .build(),
                 List.of(new ExerciseStageData(5, 0.5f, new ArrayList<>(), new ArrayList<>(), new ArrayList<>())),
                 List.of(),

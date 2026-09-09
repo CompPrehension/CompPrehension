@@ -3,8 +3,8 @@ package org.vstu.compprehension.businesslogic.domains;
 import its.model.definition.ObjectRef;
 import its.reasoner.LearningSituation;
 import org.vstu.compprehension.enums.SupplementaryBranchResult;
-import org.vstu.compprehension.services.SupplementaryStepDataService;
 import org.vstu.compprehension.data.question.AnswerData;
+import org.vstu.compprehension.businesslogic.SupplementaryStepContext;
 import org.vstu.compprehension.data.question.SupplementaryStepData;
 import org.vstu.compprehension.data.question.NewSupplementaryStepData;
 import org.vstu.compprehension.data.question.SupplementarySituationData;
@@ -42,21 +42,17 @@ import java.util.ArrayList;
 import java.util.Collections;
 import java.util.List;
 import java.util.Map;
-import java.util.Objects;
 import java.util.function.BiFunction;
-import java.util.function.Function;
 import java.util.stream.Collectors;
 
 public class DecisionTreeSupQuestionHelper {
     public DecisionTreeSupQuestionHelper(
             Domain domain,
             DomainSolvingModel domainSolvingModel,
-            BiFunction<QuestionData, QuestionInteractionData, DomainModel> mainQuestionToModelTransformer,
-            SupplementaryStepDataService supplementaryStepService
+            BiFunction<QuestionData, QuestionInteractionData, DomainModel> mainQuestionToModelTransformer
     ) {
         this.domain = domain;
         this.domainModel = domainSolvingModel;
-        this.supplementaryStepService = supplementaryStepService;
         this.supplementaryAutomata = FullBranchStrategy.INSTANCE.buildAndFinalize(
                 domainModel.getDecisionTree().getMainBranch(), new EndQuestionState()
         );
@@ -66,14 +62,12 @@ public class DecisionTreeSupQuestionHelper {
     public DecisionTreeSupQuestionHelper(
             DomainBase domain,
             URL domainModelDirectoryURL,
-            BiFunction<QuestionData, QuestionInteractionData, DomainModel> mainQuestionToModelTransformer,
-            SupplementaryStepDataService supplementaryStepService
+            BiFunction<QuestionData, QuestionInteractionData, DomainModel> mainQuestionToModelTransformer
     ) {
         this(
                 domain,
                 new DomainSolvingModel(domainModelDirectoryURL, DomainSolvingModel.BuildMethod.LOQI),
-                mainQuestionToModelTransformer,
-                supplementaryStepService
+                mainQuestionToModelTransformer
         );
     }
 
@@ -81,19 +75,15 @@ public class DecisionTreeSupQuestionHelper {
     final DomainSolvingModel domainModel ;
     private final QuestionAutomata supplementaryAutomata;
     private final BiFunction<QuestionData, QuestionInteractionData, DomainModel> mainQuestionToModelTransformer;
-    private final SupplementaryStepDataService supplementaryStepService;
 
     //DT = Decision Tree
-    public SupplementaryResponseGenerationResult makeSupplementaryQuestion(QuestionData mainQuestion, Language userLang) {
+    public SupplementaryResponseGenerationResult makeSupplementaryQuestion(QuestionData mainQuestion, @Nullable SupplementaryStepData latestStep, Language userLang) {
         //Получить ошибочную интеракцию с основным вопросом
         List<QuestionInteractionData> interactions = mainQuestion.getInteractions();
         if (interactions == null || interactions.isEmpty()) {
             return null;
         }
         QuestionInteractionData lastInteraction = interactions.get(interactions.size() - 1);
-
-        //Получить последний шаг цепочки вспомогательных вопросов
-        SupplementaryStepData latestStep = supplementaryStepService.findLatestStepOfInteraction(lastInteraction.getId());
 
         //Создать соответствующую ситуации рдф-модель
         DomainModel situationModel = mainQuestionToModelTransformer.apply(mainQuestion, lastInteraction);
@@ -137,18 +127,13 @@ public class DecisionTreeSupQuestionHelper {
         return new SupplementaryResponseGenerationResult(response, supplementaryChain);
     }
 
-    public SupplementaryFeedbackGenerationResult judgeSupplementaryQuestion(QuestionData question, SupplementaryStepData supplementaryInfo, List<? extends AnswerData> responses){
+    public SupplementaryFeedbackGenerationResult judgeSupplementaryQuestion(QuestionData mainQuestion, SupplementaryStepContext stepContext, List<? extends AnswerData> responses){
+        SupplementaryStepData supplementaryInfo = stepContext.step();
+
         //получить состояние автомата вопросов, соответствующее данному вопросу
         QuestionState state = supplementaryAutomata.get(supplementaryInfo.getNextStateId());
 
-        long mainQuestionInteractionId = supplementaryInfo.getMainQuestionInteractionId();
-        QuestionData mainQuestion = supplementaryStepService.getMainQuestionOfInteraction(mainQuestionInteractionId);
-        QuestionInteractionData mainQuestionInteraction = mainQuestion.getInteractions().stream()
-                .filter(i -> Objects.equals(i.getId(), mainQuestionInteractionId))
-                .findFirst()
-                .orElseThrow(() -> new IllegalStateException(
-                        "Interaction " + mainQuestionInteractionId + " is not among interactions of question " + mainQuestion.getId()));
-        DomainModel situationModel = mainQuestionToModelTransformer.apply(mainQuestion, mainQuestionInteraction);
+        DomainModel situationModel = mainQuestionToModelTransformer.apply(mainQuestion, stepContext.mainQuestionInteraction());
 
         //создать ситуацию, описывающую контекст задания вспомогательных вопросов
         QuestioningSituation situation = toQuestioningSituation(supplementaryInfo.getSituationInfo(), situationModel);

@@ -1,6 +1,7 @@
 package org.vstu.compprehension.businesslogic.domains;
 
 import org.vstu.compprehension.data.question.AnswerData;
+import org.vstu.compprehension.businesslogic.SupplementaryStepContext;
 import org.vstu.compprehension.data.question.SupplementaryStepData;
 import org.vstu.compprehension.data.question.ViolationData;
 import org.vstu.compprehension.data.question.BackendFactData;
@@ -172,13 +173,18 @@ public interface Domain {
 
     /**
      * Make supplementary question based on violation in last iteration
-     * @param violation info about mistake
      * @param sourceQuestion source question
+     * @param latestStep последний шаг уже начатой цепочки наводящих вопросов; null, если цепочка ещё не начата
+     * @param violation info about mistake
      * @return supplementary question
      */
-    SupplementaryResponseGenerationResult makeSupplementaryQuestion(QuestionData sourceQuestion, ViolationData violation, Language lang);
+    SupplementaryResponseGenerationResult makeSupplementaryQuestion(QuestionData sourceQuestion, @Nullable SupplementaryStepData latestStep, ViolationData violation, Language lang);
 
-    SupplementaryFeedbackGenerationResult judgeSupplementaryQuestion(QuestionData question, SupplementaryStepData supplementaryStep, List<? extends AnswerData> responses, Language language);
+    /**
+     * @param mainQuestion основной вопрос, по фактам которого выносится вердикт
+     * @param step шаг цепочки вместе с взаимодействием с основным вопросом
+     */
+    SupplementaryFeedbackGenerationResult judgeSupplementaryQuestion(QuestionData mainQuestion, SupplementaryStepContext step, List<? extends AnswerData> responses, Language language);
 
     /**
      * Get any correct answer at current iteration

@@ -17,5 +17,4 @@ public class QuestionAttemptContextData {
     private String strategyId;
     private @NotNull List<ExerciseStageData> stages = new ArrayList<>(0);
     private @NotNull ExerciseStageData questionStage;
-    private boolean preferDecisionTreeSupplementary;
 }

@@ -20,7 +20,6 @@ class QuestionAttemptContextMapper implements Mapper<ExerciseAttemptEntity, Ques
         context.setUserLanguage(source.getUser().getPreferred_language());
         context.setStrategyId(exercise.getStrategyId());
         context.setStages(exercise.getStages() == null ? List.of() : List.copyOf(exercise.getStages()));
-        context.setPreferDecisionTreeSupplementary(exercise.getOptions().isPreferDecisionTreeBasedSupplementaryEnabled());
         return context;
     }
 }

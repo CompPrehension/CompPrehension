@@ -67,7 +67,6 @@ const resources = {
       exercisesettings_qopt_genCorAnsw: "Allow 'generate correct answer' button",
       exercisesettings_qopt_forceShowGenNextQ: "Always show 'generate new question' button",
       exercisesettings_qopt_supQ: "Allow supplementary questions",
-      exercisesettings_qopt_preferDTsup: "Prefer Decision-Tree-based approach to supplementary question generation",
       exercisesettings_qopt_debugBtn: "Enable debug information button",
       exercisesettings_max_concurrent_students: "Maximum expected number of students performing the exercise simultaneously",
       exercisesettings_survey: "Survey",
@@ -213,7 +212,6 @@ const resources = {
       exercisesettings_qopt_genCorAnsw: "Разрешить подсказку следующего шага",
       exercisesettings_qopt_forceShowGenNextQ: "Разрешить неоконченные вопросы",
       exercisesettings_qopt_supQ: "Разрешить вспомогательные вопросы",
-      exercisesettings_qopt_preferDTsup: "Предпочитать генерацию вспомогательных вопросов по дереву рассуждений",
       exercisesettings_qopt_debugBtn: "Включить кнопку для получения отладочной информации",
       exercisesettings_max_concurrent_students: "Максимальное ожидаемое количество студентов, выполняющих упражнение одновременно",
       exercisesettings_survey: "Опрос",
@@ -361,7 +359,6 @@ const resources = {
       exercisesettings_qopt_genCorAnsw: "Allow 'generate correct answer' button",
       exercisesettings_qopt_forceShowGenNextQ: "Always show 'generate new question' button",
       exercisesettings_qopt_supQ: "Allow supplementary questions",
-      exercisesettings_qopt_preferDTsup: "Prefer Decision-Tree-based approach to supplementary question generation",
       exercisesettings_max_concurrent_students: "Maximum expected number of students performing the exercise simultaneously",
       exercisesettings_survey: "Survey",
       exercisesettings_tags: "Tags",
@@ -805,7 +802,6 @@ const TExerciseOptions = intersection([
     newQuestionGenerationEnabled: boolean,
     supplementaryQuestionsEnabled: boolean,
     correctAnswerGenerationEnabled: boolean,
-    preferDecisionTreeBasedSupplementaryEnabled: boolean,
     maxExpectedConcurrentStudents: number
   }),
   partial({
@@ -4344,16 +4340,6 @@ const ExerciseCardElement = observer((props) => {
             label: t("exercisesettings_qopt_supQ"),
             checked: card.options.supplementaryQuestionsEnabled,
             onChange: (x) => store.setCardOption("supplementaryQuestionsEnabled", x.target.checked)
-          }
-        ),
-        /* @__PURE__ */ jsxRuntimeExports.jsx(
-          Form.Check,
-          {
-            type: "checkbox",
-            id: "preferDecisionTreeBasedSupplementaryEnabled",
-            label: t("exercisesettings_qopt_preferDTsup"),
-            checked: card.options.preferDecisionTreeBasedSupplementaryEnabled,
-            onChange: (x) => store.setCardOption("preferDecisionTreeBasedSupplementaryEnabled", x.target.checked)
           }
         ),
         /* @__PURE__ */ jsxRuntimeExports.jsx(

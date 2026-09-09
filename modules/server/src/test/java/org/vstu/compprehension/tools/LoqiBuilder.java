@@ -75,7 +75,7 @@ public class LoqiBuilder extends AbstractIntegrationTest {
         exercise.setTags("");
         exercise.setOptions(new ExerciseOptionsData(null, true,
                 true, true, true, true,
-                true, 7, null, null));
+                7, null, null));
         exercise.setName("test");
         exercise.setStages(Collections.singletonList(new ExerciseStageData()));
         exercise.setStrategyId("StaticStrategy");

@@ -10,6 +10,8 @@ import org.vstu.compprehension.data.question.AnswerData;
 import org.vstu.compprehension.data.question.GeneratedQuestionData;
 import org.vstu.compprehension.data.question.QuestionContentData;
 import org.vstu.compprehension.data.question.QuestionData;
+import org.vstu.compprehension.businesslogic.SupplementaryStepContext;
+import org.vstu.compprehension.data.question.SupplementaryStepData;
 import org.vstu.compprehension.data.question.ViolationData;
 import org.vstu.compprehension.frontend.dto.SupplementaryFeedbackDto;
 import org.vstu.compprehension.frontend.dto.SupplementaryQuestionDto;
@@ -30,6 +32,7 @@ import org.vstu.compprehension.repositories.data.SupplementaryStepDataRepository
 import org.vstu.compprehension.frontend.mappers.SupplementaryQuestionDtoMapper;
 
 import java.util.List;
+import java.util.Objects;
 import java.util.Optional;
 
 @Log4j2
@@ -73,9 +76,12 @@ class QuestionDataServiceImpl implements QuestionDataService {
     }
 
     public @NotNull SupplementaryQuestionDto generateSupplementaryQuestion(long sourceQuestionId, @NotNull ViolationData violation, Language lang) {
-        val domain = domainFactory.getDomain(getDomainName(sourceQuestionId));
-        val responseGen = domain.makeSupplementaryQuestion(
-                questionDataRepository.findById(sourceQuestionId), violation, lang);
+        val sourceQuestion = questionDataRepository.findById(sourceQuestionId);
+        val domain = domainFactory.getDomain(sourceQuestion.getContent().getDomainId());
+        val interactions = sourceQuestion.getInteractions();
+        val latestStep = interactions.isEmpty() ? null
+                : supplementaryStepDataRepository.findLatestStepOfInteraction(interactions.getLast().getId());
+        val responseGen = domain.makeSupplementaryQuestion(sourceQuestion, latestStep, violation, lang);
 
         val response = responseGen.getResponse();
         QuestionData supplementary = null;
@@ -94,15 +100,32 @@ class QuestionDataServiceImpl implements QuestionDataService {
                 : supplementaryQuestionDtoMapper.map(supplementary, lang);
     }
 
-    public SupplementaryFeedbackDto judgeSupplementaryQuestion(QuestionData question, List<? extends AnswerData> responses, Language language) {
-        Domain domain = domainFactory.getDomain(question.getContent().getDomainId());
-        val supplementaryInfo = supplementaryStepDataRepository
-                .findBySupplementaryQuestionId(question.getId());
-        val feedbackGen = domain.judgeSupplementaryQuestion(question, supplementaryInfo, responses, language);
+    public SupplementaryFeedbackDto judgeSupplementaryQuestion(long supplementaryQuestionId, List<? extends AnswerData> responses, Language language) {
+        val step = supplementaryStepDataRepository.findBySupplementaryQuestionId(supplementaryQuestionId);
+        if (step == null) {
+            throw new IllegalArgumentException(
+                    "Question with id " + supplementaryQuestionId + " isn't supplementary");
+        }
+
+        // Наводящий вопрос судится по фактам основного, поэтому сам он не поднимается.
+        val mainQuestion = questionDataRepository.findById(step.getMainQuestionId());
+        val stepContext = new SupplementaryStepContext(step, findInteraction(mainQuestion, step));
+
+        Domain domain = domainFactory.getDomain(mainQuestion.getContent().getDomainId());
+        val feedbackGen = domain.judgeSupplementaryQuestion(mainQuestion, stepContext, responses, language);
         if (feedbackGen.getNewStep() != null) {
             supplementaryStepDataRepository.create(feedbackGen.getNewStep(), null);
         }
         return feedbackGen.getFeedback();
+    }
+
+    private static @NotNull QuestionInteractionData findInteraction(@NotNull QuestionData question,
+                                                                    @NotNull SupplementaryStepData step) {
+        return question.getInteractions().stream()
+                .filter(i -> Objects.equals(i.getId(), step.getMainQuestionInteractionId()))
+                .findFirst()
+                .orElseThrow(() -> new IllegalStateException("Interaction " + step.getMainQuestionInteractionId()
+                        + " is not among interactions of question " + question.getId()));
     }
 
     public List<AnswerData> resolveAnswers(long questionId, List<SubmittedAnswerData> answers) {

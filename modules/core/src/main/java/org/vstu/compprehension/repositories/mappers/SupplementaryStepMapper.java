@@ -15,6 +15,7 @@ class SupplementaryStepMapper implements Mapper<StepRow, SupplementaryStepData> 
         return SupplementaryStepData.builder()
                 .id(entity.getId())
                 .mainQuestionInteractionId(source.getMainQuestionInteractionId())
+                .mainQuestionId(source.getMainQuestionId())
                 .situationInfo(entity.getSituationInfo())
                 .nextStateId(entity.getNextStateId())
                 .build();

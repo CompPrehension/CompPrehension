@@ -71,7 +71,6 @@ const initialCard: ExerciseCard = {
         newQuestionGenerationEnabled: true,
         supplementaryQuestionsEnabled: true,
         correctAnswerGenerationEnabled: true,
-        preferDecisionTreeBasedSupplementaryEnabled: false,
         debugButtonEnabled: true,
         maxExpectedConcurrentStudents: 7,
     },

@@ -89,7 +89,6 @@ export const handlers = [
             correctAnswerGenerationEnabled: true,
             newQuestionGenerationEnabled: true,
             supplementaryQuestionsEnabled: true,
-            preferDecisionTreeBasedSupplementaryEnabled: false,
             maxExpectedConcurrentStudents: 7,
         },
     })),

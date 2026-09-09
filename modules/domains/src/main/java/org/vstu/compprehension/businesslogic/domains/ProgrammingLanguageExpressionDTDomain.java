@@ -25,13 +25,12 @@ import org.apache.jena.rdf.model.ModelFactory;
 import org.apache.jena.riot.RDFDataMgr;
 import org.jetbrains.annotations.NotNull;
 import org.jetbrains.annotations.Nullable;
-import org.vstu.compprehension.services.SupplementaryStepDataService;
+import org.vstu.compprehension.businesslogic.SupplementaryStepContext;
 import org.vstu.compprehension.data.question.QuestionMetadataWithData;
 import org.vstu.compprehension.data.question.QuestionInteractionData;
 import org.vstu.compprehension.data.question.QuestionData;
 import org.vstu.compprehension.data.question.AnswerObjectData;
 import org.vstu.compprehension.data.question.ResponseData;
-import org.vstu.compprehension.services.ExerciseAttemptDataService;
 import org.vstu.compprehension.services.LocalizationService;
 import org.vstu.compprehension.data.domain.DomainData;
 import org.vstu.compprehension.businesslogic.*;
@@ -72,8 +71,7 @@ public class ProgrammingLanguageExpressionDTDomain extends DecisionTreeReasoning
 
     @SneakyThrows
     public ProgrammingLanguageExpressionDTDomain(DomainData domainData,
-                                                 ProgrammingLanguageExpressionDomain baseDomain,
-                                                 SupplementaryStepDataService supplementaryStepService) {
+                                                 ProgrammingLanguageExpressionDomain baseDomain) {
         super(domainData, baseDomain.randomProvider);
 
         this.baseDomain = baseDomain;
@@ -82,8 +80,7 @@ public class ProgrammingLanguageExpressionDTDomain extends DecisionTreeReasoning
         this.dtSupplementaryQuestionHelper = new DecisionTreeSupQuestionHelper(
                 this,
                 domainSolvingModel,
-                this::mainQuestionToModel,
-                supplementaryStepService
+                this::mainQuestionToModel
         );
 
         this.concepts = baseDomain.concepts;
@@ -968,13 +965,13 @@ public class ProgrammingLanguageExpressionDTDomain extends DecisionTreeReasoning
     }
 
     @Override
-    public SupplementaryResponseGenerationResult makeSupplementaryQuestion(QuestionData sourceQuestion, ViolationData violation, Language lang) {
-        return dtSupplementaryQuestionHelper.makeSupplementaryQuestion(sourceQuestion, lang);
+    public SupplementaryResponseGenerationResult makeSupplementaryQuestion(QuestionData sourceQuestion, @Nullable SupplementaryStepData latestStep, ViolationData violation, Language lang) {
+        return dtSupplementaryQuestionHelper.makeSupplementaryQuestion(sourceQuestion, latestStep, lang);
     }
 
     @Override
-    public SupplementaryFeedbackGenerationResult judgeSupplementaryQuestion(QuestionData question, SupplementaryStepData supplementaryStep, List<? extends AnswerData> responses, Language language) {
-        return dtSupplementaryQuestionHelper.judgeSupplementaryQuestion(question, supplementaryStep, responses);
+    public SupplementaryFeedbackGenerationResult judgeSupplementaryQuestion(QuestionData mainQuestion, SupplementaryStepContext step, List<? extends AnswerData> responses, Language language) {
+        return dtSupplementaryQuestionHelper.judgeSupplementaryQuestion(mainQuestion, step, responses);
     }
 
     //-----------Объяснения---------------

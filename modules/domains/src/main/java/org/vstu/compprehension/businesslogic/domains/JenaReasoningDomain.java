@@ -2,7 +2,6 @@ package org.vstu.compprehension.businesslogic.domains;
 
 import org.jetbrains.annotations.NotNull;
 import org.vstu.compprehension.services.RandomProvider;
-import org.vstu.compprehension.services.SupplementaryStepDataService;
 import org.vstu.compprehension.data.question.AnswerData;
 import org.vstu.compprehension.services.ExerciseAttemptDataService;
 import org.vstu.compprehension.data.domain.DomainData;

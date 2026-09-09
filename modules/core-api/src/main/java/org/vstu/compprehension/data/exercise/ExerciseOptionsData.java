@@ -21,7 +21,6 @@ public class ExerciseOptionsData {
     private boolean correctAnswerGenerationEnabled;
     private boolean debugButtonEnabled;
     private boolean forceNewAttemptCreationEnabled;
-    private boolean preferDecisionTreeBasedSupplementaryEnabled;
     @Builder.Default
     private int maxExpectedConcurrentStudents = 10;
     private Integer generatorThreshold;

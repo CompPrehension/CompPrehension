@@ -13,6 +13,7 @@ import org.jetbrains.annotations.Nullable;
 public class SupplementaryStepData {
     private Long id;
     private long mainQuestionInteractionId;
+    private long mainQuestionId;
     private SupplementarySituationData situationInfo;
     private @Nullable Integer nextStateId;
 }

@@ -11,7 +11,6 @@ import org.vstu.compprehension.data.question.QuestionContentData;
 import org.vstu.compprehension.data.question.QuestionMetadataData;
 import org.vstu.compprehension.services.ExerciseAttemptDataService;
 import org.vstu.compprehension.services.RandomProvider;
-import org.vstu.compprehension.services.SupplementaryStepDataService;
 import org.vstu.compprehension.businesslogic.*;
 import org.vstu.compprehension.data.domain.DomainData;
 import org.vstu.compprehension.enums.Language;

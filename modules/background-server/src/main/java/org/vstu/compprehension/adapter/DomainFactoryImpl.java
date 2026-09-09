@@ -21,9 +21,7 @@ public class DomainFactoryImpl implements DomainFactory {
     public DomainFactoryImpl(DomainDataRepository domainDataRepository,
                              LocalizationService localizationService,
                              RandomProvider randomProvider,
-                             QuestionBank questionStorage,
-                             ExerciseAttemptDataService exerciseAttemptService,
-                             SupplementaryStepDataService supplementaryStepService) {
+                             QuestionBank questionStorage) {
 
         var domains = domainDataRepository.findAll();
         {
@@ -35,8 +33,6 @@ public class DomainFactoryImpl implements DomainFactory {
                     progExprDomainData,
                     localizationService,
                     randomProvider,
-                    exerciseAttemptService,
-                    supplementaryStepService,
                     questionStorage);
             domainIdToClassMap.put(progExprDomain.getDomainId(), progExprDomain);
             domainShortNameToClassMap.put(progExprDomainData.shortName(), progExprDomain);
@@ -62,8 +58,7 @@ public class DomainFactoryImpl implements DomainFactory {
                     .orElseThrow();
             var dtDomain = new ProgrammingLanguageExpressionDTDomain(
                     dtDomainData,
-                    progExprDomain,
-                    supplementaryStepService);
+                    progExprDomain);
             domainIdToClassMap.put(dtDomain.getDomainId(), dtDomain);
             domainShortNameToClassMap.put(dtDomainData.shortName(), dtDomain);
         }
@@ -75,8 +70,6 @@ public class DomainFactoryImpl implements DomainFactory {
             var ctrlFlowDomain = new ControlFlowDTDomain(
                     domainData,
                     randomProvider,
-                    exerciseAttemptService,
-                    supplementaryStepService,
                     localizationService,
                     questionStorage);
             domainIdToClassMap.put(ctrlFlowDomain.getDomainId(), ctrlFlowDomain);

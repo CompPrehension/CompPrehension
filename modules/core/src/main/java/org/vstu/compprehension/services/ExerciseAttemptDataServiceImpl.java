@@ -93,13 +93,6 @@ class ExerciseAttemptDataServiceImpl implements ExerciseAttemptDataService {
     }
 
     @Transactional(readOnly = true)
-    public boolean prefersDecisionTreeSupplementary(long questionId) {
-        return exerciseAttemptDataRepository.findQuestionAttemptContext(questionId)
-                .map(QuestionAttemptContextData::isPreferDecisionTreeSupplementary)
-                .orElse(true);
-    }
-
-    @Transactional(readOnly = true)
     public void ensureCanAccessAttempt(long userId, long attemptId) {
         AttemptOwnerData owner = exerciseAttemptDataRepository.findOwnerByAttemptId(attemptId)
                 .orElseThrow(() -> new IllegalArgumentException("No attempt with id " + attemptId));

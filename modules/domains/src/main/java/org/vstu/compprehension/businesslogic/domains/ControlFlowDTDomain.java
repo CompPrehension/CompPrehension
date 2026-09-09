@@ -17,7 +17,6 @@ import its.reasoner.LearningSituation;
 import its.reasoner.nodes.DecisionTreeReasoner;
 import its.reasoner.nodes.DecisionTreeTrace;
 import its.reasoner.nodes.DecisionTreeTraceElement;
-import lombok.Getter;
 import lombok.extern.log4j.Log4j2;
 import lombok.val;
 import org.apache.commons.text.StringSubstitutor;
@@ -25,13 +24,12 @@ import org.jetbrains.annotations.NotNull;
 import org.jetbrains.annotations.Nullable;
 import org.vstu.compprehension.enums.*;
 import org.vstu.compprehension.services.RandomProvider;
-import org.vstu.compprehension.services.SupplementaryStepDataService;
+import org.vstu.compprehension.businesslogic.SupplementaryStepContext;
 import org.vstu.compprehension.data.question.QuestionMetadataWithData;
 import org.vstu.compprehension.data.question.QuestionInteractionData;
 import org.vstu.compprehension.data.question.QuestionData;
 import org.vstu.compprehension.data.question.AnswerObjectData;
 import org.vstu.compprehension.data.question.ResponseData;
-import org.vstu.compprehension.services.ExerciseAttemptDataService;
 import org.vstu.compprehension.services.LocalizationService;
 import org.vstu.compprehension.data.domain.DomainData;
 import org.vstu.compprehension.businesslogic.*;
@@ -52,8 +50,6 @@ import org.vstu.compprehension.data.question.QuestionContentData;
 public class ControlFlowDTDomain extends DecisionTreeReasoningDomain {
     private final DecisionTreeInterface backendInterface = new DecisionTreeInterface();
     protected final LocalizationService localizationService;
-    private final ExerciseAttemptDataService exerciseAttemptService;
-    private final SupplementaryStepDataService supplementaryStepService;
     protected final QuestionBank qMetaStorage;
 
     static final String RESOURCES_LOCATION = "domains/";
@@ -504,12 +500,8 @@ public class ControlFlowDTDomain extends DecisionTreeReasoningDomain {
 
     public ControlFlowDTDomain(DomainData domainData,
                                RandomProvider randomProvider,
-                               ExerciseAttemptDataService exerciseAttemptService,
-                               SupplementaryStepDataService supplementaryStepService,
                                LocalizationService localizationService, QuestionBank qMetaStorage) {
         super(domainData, randomProvider);
-        this.exerciseAttemptService = exerciseAttemptService;
-        this.supplementaryStepService = supplementaryStepService;
         this.qMetaStorage = qMetaStorage;
         this.localizationService = localizationService;
         this.concepts = Map.of();
@@ -671,7 +663,7 @@ public class ControlFlowDTDomain extends DecisionTreeReasoningDomain {
     }
 
     @Override
-    public SupplementaryResponseGenerationResult makeSupplementaryQuestion(QuestionData sourceQuestion, ViolationData violation, Language lang) {
+    public SupplementaryResponseGenerationResult makeSupplementaryQuestion(QuestionData sourceQuestion, @Nullable SupplementaryStepData latestStep, ViolationData violation, Language lang) {
         return null;
     }
 
@@ -684,7 +676,7 @@ public class ControlFlowDTDomain extends DecisionTreeReasoningDomain {
     }
 
     @Override
-    public SupplementaryFeedbackGenerationResult judgeSupplementaryQuestion(QuestionData question, SupplementaryStepData supplementaryStep, List<? extends AnswerData> responses, Language language) {
+    public SupplementaryFeedbackGenerationResult judgeSupplementaryQuestion(QuestionData mainQuestion, SupplementaryStepContext step, List<? extends AnswerData> responses, Language language) {
         return null;
     }
 

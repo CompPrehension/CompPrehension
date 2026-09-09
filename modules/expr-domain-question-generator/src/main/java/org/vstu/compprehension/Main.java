@@ -61,11 +61,8 @@ public class Main {
                         domainData,
                         new FakeLocalizationService(),
                         new RandomProviderImpl(),
-                        null,
-                        null,
                         new QuestionBankImpl(FakeDataAccess.questionBank(), null)
-                ),
-                null
+                )
         );
 
         // Find files in local directory

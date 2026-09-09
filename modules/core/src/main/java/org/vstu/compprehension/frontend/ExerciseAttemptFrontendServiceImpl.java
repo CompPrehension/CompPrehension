@@ -73,21 +73,16 @@ class ExerciseAttemptFrontendServiceImpl implements ExerciseAttemptFrontendServi
         exerciseAttemptService.ensureCanAccessQuestion(userId, questionId);
     }
 
-    @SneakyThrows
     @Transactional(propagation = Propagation.REQUIRED)
     public @NotNull SupplementaryFeedbackDto addSupplementaryQuestionAnswer(@NotNull InteractionDto interaction) {
         val questionId = interaction.getQuestionId();
-        val question = questionService.getQuestion(questionId);
-        if (!question.getContent().isSupplementary()) {
-            throw new Exception("Question with id" + questionId + " isn't supplementary");
-        }
 
         var currentUser = userService.getCurrentUser();
         var language = currentUser.language();
 
         val responses = questionService.resolveAnswers(questionId, toSubmittedAnswers(interaction.getAnswers()));
 
-        return questionService.judgeSupplementaryQuestion(question, responses, language);
+        return questionService.judgeSupplementaryQuestion(questionId, responses, language);
     }
 
     @Transactional(propagation = Propagation.REQUIRED)
