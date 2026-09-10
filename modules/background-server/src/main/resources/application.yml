@@ -4,9 +4,17 @@ spring:
   application:
     name: 'compph-bg'
   datasource:
-    url: '${COMPPH_DB_JDBC_URL}'
-    username: '${COMPPH_DB_USERNAME}'
-    password: '${COMPPH_DB_PASSWORD}'
+    url: "jdbc:mysql://${MYSQL_HOST:localhost}:3306/${MYSQL_DATABASE}?\
+      useSSL=false\
+      &allowPublicKeyRetrieval=true\
+      &rewriteBatchedStatements=true\
+      &useUnicode=yes\
+      &characterEncoding=UTF-8\
+      &useJDBCCompliantTimezoneShift=true\
+      &useLegacyDatetimeCode=false\
+      &serverTimezone=UTC"
+    username: '${MYSQL_USER:root}'
+    password: '${MYSQL_PASSWORD:root1234}'
 
 
 hibernate:
