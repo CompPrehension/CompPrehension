@@ -1,17 +1,15 @@
 package org.vstu.compprehension.adapters;
 
-import com.google.common.collect.Lists;
-import domains.ControlFlowDTDomain;
-import domains.DataFlowDTDomain;
-import domains.ObjectsScopeDTDomain;
+import org.vstu.compprehension.businesslogic.domains.ControlFlowDTDomain;
+import org.vstu.compprehension.businesslogic.domains.DataFlowDTDomain;
+import org.vstu.compprehension.businesslogic.domains.ObjectsScopeDTDomain;
 import org.jetbrains.annotations.NotNull;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Component;
-import org.vstu.compprehension.Service.LocalizationService;
-import org.vstu.compprehension.models.businesslogic.domains.*;
-import org.vstu.compprehension.models.businesslogic.storage.QuestionBank;
-import org.vstu.compprehension.models.repository.DomainRepository;
-import org.vstu.compprehension.utils.RandomProvider;
+import org.vstu.compprehension.services.*;
+import org.vstu.compprehension.businesslogic.domains.*;
+import org.vstu.compprehension.businesslogic.storage.QuestionBank;
+import org.vstu.compprehension.repositories.data.DomainDataRepository;
 
 import javax.inject.Singleton;
 import java.util.HashMap;
@@ -24,88 +22,88 @@ public class DomainFactoryImpl implements DomainFactory {
     private @NotNull HashMap<String, Domain> domainShortNameToClassMap = new HashMap<>(); // TODO remove this
 
     @Autowired
-    public DomainFactoryImpl(DomainRepository domainRepository,
+    public DomainFactoryImpl(DomainDataRepository domainDataRepository,
                              LocalizationService localizationService,
                              RandomProvider randomProvider,
                              QuestionBank questionStorage) {
 
-        var domains = Lists.newArrayList(domainRepository.findAll());
+        var domains = domainDataRepository.findAll();
         {
-            var progExprDomainEntity = domains
-                    .stream().filter(x -> x.getShortName().equals("expression"))
+            var progExprDomainData = domains
+                    .stream().filter(x -> x.shortName().equals("expression"))
                     .findFirst()
                     .orElseThrow();
             var progExprDomain = new ProgrammingLanguageExpressionDomain(
-                    progExprDomainEntity,
+                    progExprDomainData,
                     localizationService,
                     randomProvider,
                     questionStorage);
             domainIdToClassMap.put(progExprDomain.getDomainId(), progExprDomain);
-            domainShortNameToClassMap.put(progExprDomainEntity.getShortName(), progExprDomain);
+            domainShortNameToClassMap.put(progExprDomainData.shortName(), progExprDomain);
         }
         {
-            var controlFlowDomainEntity = domains
-                    .stream().filter(x -> x.getShortName().equals("ctrl_flow"))
+            var controlFlowDomainData = domains
+                    .stream().filter(x -> x.shortName().equals("ctrl_flow"))
                     .findFirst()
                     .orElseThrow();
             var controlFlowDomain = new ControlFlowStatementsDomain(
-                    controlFlowDomainEntity,
+                    controlFlowDomainData,
                     localizationService,
                     randomProvider,
                     questionStorage);
             domainIdToClassMap.put(controlFlowDomain.getDomainId(), controlFlowDomain);
-            domainShortNameToClassMap.put(controlFlowDomainEntity.getShortName(), controlFlowDomain);
+            domainShortNameToClassMap.put(controlFlowDomainData.shortName(), controlFlowDomain);
         }
         {
             var progExprDomain = (ProgrammingLanguageExpressionDomain)domainShortNameToClassMap.get("expression");
-            var dtDomainEntity = domains
-                    .stream().filter(x -> x.getShortName().equals("expression_dt"))
+            var dtDomainData = domains
+                    .stream().filter(x -> x.shortName().equals("expression_dt"))
                     .findFirst()
                     .orElseThrow();
             var dtDomain = new ProgrammingLanguageExpressionDTDomain(
-                    dtDomainEntity,
+                    dtDomainData,
                     progExprDomain);
             domainIdToClassMap.put(dtDomain.getDomainId(), dtDomain);
-            domainShortNameToClassMap.put(dtDomainEntity.getShortName(), dtDomain);
+            domainShortNameToClassMap.put(dtDomainData.shortName(), dtDomain);
         }
         {
-            var domainEntity = domains
-                    .stream().filter(x -> x.getShortName().equals("ctrl_flow_dt25"))
+            var domainData = domains
+                    .stream().filter(x -> x.shortName().equals("ctrl_flow_dt25"))
                     .findFirst()
                     .orElseThrow();
             var ctrlFlowDomain = new ControlFlowDTDomain(
-                    domainEntity,
+                    domainData,
                     randomProvider,
                     localizationService,
                     questionStorage);
             domainIdToClassMap.put(ctrlFlowDomain.getDomainId(), ctrlFlowDomain);
-            domainShortNameToClassMap.put(domainEntity.getShortName(), ctrlFlowDomain);
+            domainShortNameToClassMap.put(domainData.shortName(), ctrlFlowDomain);
         }
         {
-            var objectsScopeDomainEntity = domains
-                    .stream().filter(x -> x.getShortName().equals("obj_scope"))
+            var objectsScopeDomainData = domains
+                    .stream().filter(x -> x.shortName().equals("obj_scope"))
                     .findFirst()
                     .orElseThrow();
             var objectsScopeDomain = new ObjectsScopeDTDomain(
-                    objectsScopeDomainEntity,
+                    objectsScopeDomainData,
                     localizationService,
                     randomProvider,
                     questionStorage);
             domainIdToClassMap.put(objectsScopeDomain.getDomainId(), objectsScopeDomain);
-            domainShortNameToClassMap.put(objectsScopeDomainEntity.getShortName(), objectsScopeDomain);
+            domainShortNameToClassMap.put(objectsScopeDomainData.shortName(), objectsScopeDomain);
         }
         {
-            var dataFlowDomainEntity = domains
-                    .stream().filter(x -> x.getShortName().equals("data_flow"))
+            var dataFlowDomainData = domains
+                    .stream().filter(x -> x.shortName().equals("data_flow"))
                     .findFirst()
                     .orElseThrow();
             var dataFlowDomain = new DataFlowDTDomain(
-                    dataFlowDomainEntity,
+                    dataFlowDomainData,
                     localizationService,
                     randomProvider,
                     questionStorage);
             domainIdToClassMap.put(dataFlowDomain.getDomainId(), dataFlowDomain);
-            domainShortNameToClassMap.put(dataFlowDomainEntity.getShortName(), dataFlowDomain);
+            domainShortNameToClassMap.put(dataFlowDomainData.shortName(), dataFlowDomain);
         }
 
     }

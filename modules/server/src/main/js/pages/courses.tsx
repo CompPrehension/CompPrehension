@@ -59,7 +59,7 @@ export const CoursesPage = observer(() => {
                                 <div className="card-body">
                                     <h5 className="card-title">{c.name}</h5>
                                     <h6 className="card-subtitle text-muted">
-                                        {c.educationResourceName || `#${c.educationResourceId}`}
+                                        {c.educationResourceUrl || `#${c.educationResourceId}`}
                                     </h6>
                                 </div>
                             </div>

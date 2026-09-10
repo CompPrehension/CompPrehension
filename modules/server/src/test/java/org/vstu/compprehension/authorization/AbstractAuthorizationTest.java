@@ -1,5 +1,6 @@
 package org.vstu.compprehension.authorization;
 
+import org.vstu.compprehension.data.question.BackendFactData;
 import org.vstu.compprehension.infrastructure.TestData;
 import org.vstu.compprehension.infrastructure.AbstractIntegrationTest;
 
@@ -13,22 +14,21 @@ import org.springframework.test.web.servlet.MockMvc;
 import org.springframework.test.web.servlet.setup.MockMvcBuilders;
 import org.springframework.transaction.annotation.Transactional;
 import org.springframework.web.context.WebApplicationContext;
-import org.vstu.compprehension.models.businesslogic.storage.SerializableQuestion;
-import org.vstu.compprehension.models.entities.AnswerObjectEntity;
-import org.vstu.compprehension.models.entities.BackendFactEntity;
-import org.vstu.compprehension.models.entities.EnumData.AttemptStatus;
-import org.vstu.compprehension.models.entities.EnumData.QuestionStatus;
-import org.vstu.compprehension.models.entities.ExerciseAttemptEntity;
-import org.vstu.compprehension.models.entities.QuestionEntity;
-import org.vstu.compprehension.models.entities.QuestionMetadataEntity;
-import org.vstu.compprehension.models.repository.AnswerObjectRepository;
-import org.vstu.compprehension.models.repository.CourseRepository;
-import org.vstu.compprehension.models.repository.DomainRepository;
-import org.vstu.compprehension.models.repository.ExerciseAttemptRepository;
-import org.vstu.compprehension.models.repository.ExerciseRepository;
-import org.vstu.compprehension.models.repository.QuestionMetadataRepository;
-import org.vstu.compprehension.models.repository.QuestionRepository;
-import org.vstu.compprehension.models.repository.UserRepository;
+import org.vstu.compprehension.businesslogic.storage.SerializableQuestion;
+import org.vstu.compprehension.entities.AnswerObjectEntity;
+import org.vstu.compprehension.enums.AttemptStatus;
+import org.vstu.compprehension.enums.QuestionStatus;
+import org.vstu.compprehension.entities.ExerciseAttemptEntity;
+import org.vstu.compprehension.entities.QuestionEntity;
+import org.vstu.compprehension.entities.QuestionMetadataEntity;
+import org.vstu.compprehension.repositories.entity.AnswerObjectRepository;
+import org.vstu.compprehension.repositories.entity.CourseRepository;
+import org.vstu.compprehension.repositories.entity.DomainRepository;
+import org.vstu.compprehension.repositories.entity.ExerciseAttemptRepository;
+import org.vstu.compprehension.repositories.entity.ExerciseRepository;
+import org.vstu.compprehension.repositories.entity.QuestionMetadataRepository;
+import org.vstu.compprehension.repositories.entity.QuestionRepository;
+import org.vstu.compprehension.repositories.entity.UserRepository;
 
 import java.util.ArrayList;
 import java.util.stream.Collectors;
@@ -112,7 +112,7 @@ public abstract class AbstractAuthorizationTest extends AbstractIntegrationTest 
         question.setOptions(bankQuestion.getOptions());
         question.setTags(new ArrayList<>(metadata.getQuestionData().getData().getTags()));
         question.setStatementFacts(bankQuestion.getStatementFacts().stream()
-                .map(f -> new BackendFactEntity(
+                .map(f -> new BackendFactData(
                         f.getSubjectType(), f.getSubject(), f.getVerb(), f.getObjectType(), f.getObject()))
                 .collect(Collectors.toCollection(ArrayList::new)));
         question.setSolutionFacts(new ArrayList<>());

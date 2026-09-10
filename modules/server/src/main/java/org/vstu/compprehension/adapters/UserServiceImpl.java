@@ -1,27 +1,25 @@
 package org.vstu.compprehension.adapters;
 
+import lombok.SneakyThrows;
 import lombok.extern.log4j.Log4j2;
 import org.jetbrains.annotations.NotNull;
+import org.jetbrains.annotations.Nullable;
 import org.springframework.security.authentication.AnonymousAuthenticationToken;
 import org.springframework.security.core.Authentication;
 import org.springframework.security.core.GrantedAuthority;
 import org.springframework.security.core.context.SecurityContextHolder;
 import org.springframework.security.oauth2.core.oidc.OidcIdToken;
 import org.springframework.security.oauth2.core.oidc.user.OidcUser;
-import org.vstu.compprehension.Service.RoleAssignmentService;
-import org.vstu.compprehension.Service.CourseService;
-import org.vstu.compprehension.Service.EducationResourceService;
-import org.vstu.compprehension.Service.ExternalAccountService;
-import org.vstu.compprehension.Service.LtiContextProvider;
-import org.vstu.compprehension.Service.UserService;
-import org.vstu.compprehension.models.businesslogic.lti.LtiContext;
-import org.vstu.compprehension.models.entities.EnumData.Language;
-import org.vstu.compprehension.models.businesslogic.auth.AuthObjects.SystemRole;
-import org.vstu.compprehension.models.businesslogic.auth.Role;
-import org.vstu.compprehension.models.entities.UserEntity;
-import org.vstu.compprehension.models.entities.course.CourseEntity;
-import org.vstu.compprehension.models.entities.external_system.EducationResourceEntity;
-import org.vstu.compprehension.models.repository.UserRepository;
+import org.vstu.compprehension.services.*;
+import org.vstu.compprehension.mappers.Mapper;
+import org.vstu.compprehension.businesslogic.auth.AuthObjects.SystemRole;
+import org.vstu.compprehension.businesslogic.auth.Role;
+import org.vstu.compprehension.businesslogic.lti.LtiContext;
+import org.vstu.compprehension.data.user.UserData;
+import org.vstu.compprehension.data.user.UserAccountData;
+import org.vstu.compprehension.data.user.UserAccountUpdateData;
+import org.vstu.compprehension.enums.Language;
+import org.vstu.compprehension.repositories.data.UserDataRepository;
 
 import java.util.Collection;
 import java.util.List;
@@ -30,71 +28,70 @@ import java.util.Set;
 import java.util.stream.Collectors;
 
 @Log4j2
-public class UserServiceImpl implements UserService {
+public class UserServiceImpl implements UserDataService {
     private static final String LTI_VERSION_CLAIM = "https://purl.imsglobal.org/spec/lti/claim/version";
     private static final String LTI_LAUNCH_PRESENTATION_CLAIM = "https://purl.imsglobal.org/spec/lti/claim/launch_presentation";
     private static final String LTI_VERSION_1_3 = "1.3.0";
 
-    private final UserRepository userRepository;
+    private final UserDataRepository users;
     private final EducationResourceService educationResourceService;
     private final ExternalAccountService externalAccountService;
     private final LtiContextProvider ltiContextProvider;
-    private final CourseService courseService;
+    private final CourseDataService courseService;
     private final RoleAssignmentService roleAssignmentService;
+    private final Mapper<UserAccountData, UserData> currentUserMapper;
 
     public UserServiceImpl(
-            UserRepository userRepository,
+            UserDataRepository users,
             EducationResourceService educationResourceService,
             ExternalAccountService externalAccountService,
             LtiContextProvider ltiContextProvider,
-            CourseService courseService,
-            RoleAssignmentService roleAssignmentService
+            CourseDataService courseService,
+            RoleAssignmentService roleAssignmentService,
+            Mapper<UserAccountData, UserData> currentUserMapper
     ) {
-        this.userRepository = userRepository;
+        this.users = users;
         this.educationResourceService = educationResourceService;
         this.externalAccountService = externalAccountService;
         this.ltiContextProvider = ltiContextProvider;
         this.courseService = courseService;
         this.roleAssignmentService = roleAssignmentService;
+        this.currentUserMapper = currentUserMapper;
     }
 
-    public UserEntity getCurrentUser() throws Exception {
+    @SneakyThrows
+    @Override
+    public UserData getCurrentUser() {
+        return currentUserMapper.map(signIn());
+    }
+
+    private UserAccountData signIn() throws Exception {
         Authentication authentication = SecurityContextHolder.getContext().getAuthentication();
         var parsedIdToken = getToken(authentication);
         var externalId = getExternalId(authentication, parsedIdToken);
 
-        var fullName = parsedIdToken.getFullName();
         var email = parsedIdToken.getEmail();
         if (email == null || email.isBlank()) {
             throw new Exception("id_token must contain non-empty email claim");
         }
 
         boolean isLti = LTI_VERSION_1_3.equals(parsedIdToken.getClaimAsString(LTI_VERSION_CLAIM));
+        var existing = users.findByEmail(email).orElse(null);
+        boolean isNewUser = existing == null;
 
-        UserEntity entity = userRepository.findFirstByEmailOrderByIdAsc(email).orElseGet(UserEntity::new);
-        boolean isNewUser = entity.getId() == null;
+        Language language = isLti
+                ? getLtiLanguage(parsedIdToken)
+                : (existing == null ? null : existing.language());
+        String externalUserId = isLti
+                ? parsedIdToken.getSubject()
+                : (existing == null ? null : existing.externalUserId());
 
-        Language language;
-        if (isLti) {
-            language = Optional.ofNullable(parsedIdToken.getClaimAsMap(LTI_LAUNCH_PRESENTATION_CLAIM))
-                    .flatMap(x -> Optional.ofNullable(x.get("locale")))
-                    .map(l -> Language.fromString(l.toString()))
-                    .orElse(null);
-        } else {
-            language = entity.getPreferred_language();
-        }
-
-        entity.setFirstName(fullName);
-        entity.setLogin(email);
-        entity.setPassword(null);
-        entity.setEmail(email);
-        entity.setPreferred_language(Optional.ofNullable(language).orElse(Language.ENGLISH));
-        entity.setExternalId(externalId);
-
-        if (isLti) {
-            entity.setExternalUserId(parsedIdToken.getSubject());
-        }
-        entity = userRepository.save(entity);
+        var account = users.save(new UserAccountUpdateData(
+                email,
+                parsedIdToken.getFullName(),
+                Optional.ofNullable(language).orElse(Language.ENGLISH),
+                externalId,
+                externalUserId));
 
         Set<String> authorities = authentication.getAuthorities().stream()
                 .map(GrantedAuthority::getAuthority)
@@ -102,50 +99,52 @@ public class UserServiceImpl implements UserService {
                 .collect(Collectors.toSet());
 
         if (isLti) {
-            applyLtiRoles(entity, parsedIdToken, authorities);
+            applyLtiRoles(account.id(), parsedIdToken.getSubject(), authorities);
         } else if (isNewUser) {
-            applyKeycloakRoles(entity, authorities);
+            applyKeycloakRoles(account.id(), authorities);
         }
 
-        return entity;
+        return account;
     }
 
-    private void applyLtiRoles(UserEntity user, OidcIdToken parsedIdToken, Set<String> ltiRoles) {
+    private static @Nullable Language getLtiLanguage(@NotNull OidcIdToken parsedIdToken) {
+        return Optional.ofNullable(parsedIdToken.getClaimAsMap(LTI_LAUNCH_PRESENTATION_CLAIM))
+                .flatMap(x -> Optional.ofNullable(x.get("locale")))
+                .map(l -> Language.fromString(l.toString()))
+                .orElse(null);
+    }
+
+    private void applyLtiRoles(long userId, String ltiSubject, Set<String> ltiRoles) {
         LtiContext ctx = ltiContextProvider.getCurrentLtiContext().orElse(null);
         if (ctx == null) return;
 
-        EducationResourceEntity eduRes = educationResourceService.getOrCreateTrusted(ctx.lmsUrl(), ctx.lmsType());
+        long eduResId = educationResourceService.getOrCreateTrustedId(ctx.lmsUrl(), ctx.lmsType());
 
-        // roleAssignmentService.assignGlobalRole(user.getId(), SystemRole.STUDENT);
+        // roleAssignmentService.assignGlobalRole(userId, SystemRole.STUDENT);
 
-        boolean externalAccountNonExists = externalAccountService.findByUserAndEducationResource(
-                user.getId(), eduRes.getId()
-        ).isEmpty();
-        if (externalAccountNonExists) {
-            externalAccountService.createOrGetExisting(user.getId(), eduRes.getId(), parsedIdToken.getSubject());
-        }
+        externalAccountService.createIfAbsent(userId, eduResId, ltiSubject);
 
         Role eduResRole = ltiRoles.contains("ROLE_Administrator") ? SystemRole.EDUCATION_RESOURCE_ADMIN : null;
-        roleAssignmentService.reconcileRoleInEducationResource(user.getId(), eduRes.getId(), eduResRole);
+        roleAssignmentService.reconcileRoleInEducationResource(userId, eduResId, eduResRole);
 
-        CourseEntity course = courseService.resolveOrCreateFromLtiContext(ctx, eduRes.getId());
-        if (course != null) {
+        Long courseId = courseService.resolveOrCreateIdFromLtiContext(ctx, eduResId).orElse(null);
+        if (courseId != null) {
             Role courseRole = mapLtiCourseRole(ltiRoles);
             if (courseRole != null) {
                 roleAssignmentService.reconcileCourseRoleAssignments(
-                        eduRes.getId(),
-                        List.of(user.getId()),
-                        List.of(new RoleAssignmentService.CourseRoleAssignment(user.getId(), course.getId(), courseRole)),
-                        List.of(course.getId()));
+                        eduResId,
+                        List.of(userId),
+                        List.of(new RoleAssignmentService.CourseRoleAssignment(userId, courseId, courseRole)),
+                        List.of(courseId));
             }
         }
     }
 
-    private void applyKeycloakRoles(UserEntity user, Set<String> keycloakRoles) {
-        roleAssignmentService.assignGlobalRole(user.getId(), SystemRole.STUDENT);
+    private void applyKeycloakRoles(long userId, Set<String> keycloakRoles) {
+        roleAssignmentService.assignGlobalRole(userId, SystemRole.STUDENT);
         Role privilegedRole = mapKeycloakGlobalRole(keycloakRoles);
         if (privilegedRole != null) {
-            roleAssignmentService.assignGlobalRole(user.getId(), privilegedRole);
+            roleAssignmentService.assignGlobalRole(userId, privilegedRole);
         }
     }
 
@@ -171,18 +170,16 @@ public class UserServiceImpl implements UserService {
         return SystemRole.STUDENT;
     }
 
+    @SneakyThrows
     @Override
-    public void setLanguage(Language language) throws Exception {
+    public void setLanguage(Language language) {
         Authentication authentication = SecurityContextHolder.getContext().getAuthentication();
         var parsedIdToken = getToken(authentication);
         var email = parsedIdToken.getEmail();
         if (email == null || email.isBlank()) {
             throw new Exception("id_token must contain non-empty email claim");
         }
-
-        var entity = userRepository.findFirstByEmailOrderByIdAsc(email).orElseThrow(() -> new Exception("User not found"));
-        entity.setPreferred_language(language);
-        userRepository.save(entity);
+        users.setLanguage(email, language);
     }
 
     @NotNull

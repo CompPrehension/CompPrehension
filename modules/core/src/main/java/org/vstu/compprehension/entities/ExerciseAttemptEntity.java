@@ -1,0 +1,62 @@
+package org.vstu.compprehension.entities;
+
+import jakarta.persistence.*;
+import lombok.Data;
+import lombok.NoArgsConstructor;
+import lombok.ToString;
+import org.hibernate.annotations.CreationTimestamp;
+import org.hibernate.annotations.UpdateTimestamp;
+import org.vstu.compprehension.enums.AttemptStatus;
+import org.vstu.compprehension.entities.course.CourseEntity;
+
+import java.util.Date;
+import java.util.List;
+
+@Entity
+@Data
+@NoArgsConstructor
+@Table(name = "exercise_attempt")
+public class ExerciseAttemptEntity {
+    //TODO: Нужен ли здесь язык студента
+    @Id
+    @GeneratedValue(strategy = GenerationType.IDENTITY)
+    private Long id;
+
+    @Enumerated(EnumType.ORDINAL)
+    private AttemptStatus attemptStatus;
+
+    @CreationTimestamp
+    @Column(name = "created_at", nullable = false, updatable = false)
+    private Date createdAt;
+
+    @UpdateTimestamp
+    @Column(name = "updated_at", nullable = false)
+    private Date updatedAt;
+
+    @ToString.Exclude
+    @ManyToOne(fetch = FetchType.LAZY)
+    @JoinColumn(name = "exercise_id", nullable = false)
+    private ExerciseEntity exercise;
+
+    @ToString.Exclude
+    @ManyToOne(fetch = FetchType.LAZY)
+    @JoinColumn(name = "course_id", nullable = true)
+    private CourseEntity course;
+
+    @ToString.Exclude
+    @ManyToOne(fetch = FetchType.LAZY)
+    @JoinColumn(name = "user_id", nullable = false)
+    private UserEntity user;
+
+    @ToString.Exclude
+    @OneToMany(mappedBy = "exerciseAttempt", fetch = FetchType.LAZY)
+    private List<QuestionEntity> questions;
+
+    /** LTI AGS lineitem URL для отправки оценки. {@code null} при прямом доступе через Keycloak. */
+    @Column(name = "lti_lineitem_url", length = 512)
+    private String ltiLineitemUrl;
+
+    /** LTI {@code context.id} - идентификатор курса в LMS. {@code null} при прямом доступе через Keycloak. */
+    @Column(name = "lti_context_id", length = 255)
+    private String ltiContextId;
+}

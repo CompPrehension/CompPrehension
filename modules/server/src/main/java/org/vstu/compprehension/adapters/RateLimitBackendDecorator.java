@@ -2,7 +2,7 @@ package org.vstu.compprehension.adapters;
 
 import lombok.SneakyThrows;
 import org.jetbrains.annotations.NotNull;
-import org.vstu.compprehension.models.businesslogic.backend.Backend;
+import org.vstu.compprehension.businesslogic.backend.Backend;
 
 public class RateLimitBackendDecorator<I, O> implements Backend<I, O> {
     private final @NotNull String backendId;

@@ -11,14 +11,17 @@
     <modules>
         <module>modules/server</module>
         <module>modules/common</module>
+        <module>modules/core-api</module>
         <module>modules/core</module>
+        <module>modules/backends</module>
         <module>modules/strategies</module>
-        <module>modules/objects-scope-domain</module>
+        <module>modules/domains</module>
         <module>modules/background-server</module>
         <module>modules/expr-domain-question-generator</module>
         <module>modules/common-spring</module>
         <module>modules/external-api</module>
         <module>modules/bkt</module>
+        <module>modules/architecture-tests</module>
     </modules>
 
     <properties>
@@ -38,6 +41,10 @@
         <log4j2.version>2.20.0</log4j2.version>
         <meaningtree.version>396d39c63f</meaningtree.version>
         <grpc.version>1.72.0</grpc.version>
+        <archunit.version>1.3.0</archunit.version>
+        <its.domainmodel.version>3.0.0-alpha.5</its.domainmodel.version>
+        <its.reasoner.version>3.0.0-alpha.2</its.reasoner.version>
+        <its.questiongen.version>2.7.6</its.questiongen.version>
         <protobuf.version>4.30.2</protobuf.version>
     </properties>
 
@@ -136,6 +143,22 @@
                 <version>${grpc.version}</version>
                 <type>pom</type>
                 <scope>import</scope>
+            </dependency>
+            <!-- ITS libraries -->
+            <dependency>
+                <groupId>com.github.CompPrehension</groupId>
+                <artifactId>its_DomainModel</artifactId>
+                <version>${its.domainmodel.version}</version>
+            </dependency>
+            <dependency>
+                <groupId>com.github.CompPrehension</groupId>
+                <artifactId>its_Reasoner</artifactId>
+                <version>${its.reasoner.version}</version>
+            </dependency>
+            <dependency>
+                <groupId>com.github.CompPrehension</groupId>
+                <artifactId>its_QuestionGen</artifactId>
+                <version>${its.questiongen.version}</version>
             </dependency>
         </dependencies>
     </dependencyManagement>

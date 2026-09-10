@@ -1,29 +1,28 @@
 package org.vstu.compprehension.domain;
 
-import org.vstu.compprehension.*;
-
 import org.apache.jena.rdf.model.Model;
 import org.junit.jupiter.api.BeforeAll;
 import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.Test;
-import org.vstu.compprehension.models.businesslogic.Question;
-import org.vstu.compprehension.models.businesslogic.backend.facts.Fact;
-import org.vstu.compprehension.models.businesslogic.backend.facts.JenaFact;
-import org.vstu.compprehension.models.businesslogic.backend.facts.JenaFactList;
-import org.vstu.compprehension.models.businesslogic.domains.ControlFlowStatementsDomain;
+import org.vstu.compprehension.data.domain.DomainData;
+import org.vstu.compprehension.data.question.GeneratedQuestionData;
+import org.vstu.compprehension.businesslogic.backend.Fact;
+import org.vstu.compprehension.businesslogic.backend.facts.JenaFact;
+import org.vstu.compprehension.businesslogic.backend.facts.JenaFactList;
+import org.vstu.compprehension.businesslogic.domains.ControlFlowStatementsDomain;
 
 import java.util.List;
 
-import static org.vstu.compprehension.models.businesslogic.domains.ControlFlowStatementsDomain.QUESTIONS_CONFIG_PATH;
+import static org.vstu.compprehension.businesslogic.domains.ControlFlowStatementsDomain.QUESTIONS_CONFIG_PATH;
 
 public class JenaFactListTest {
-    private static List<Question> QUESTIONS = null;
+    private static List<GeneratedQuestionData> QUESTIONS = null;
     JenaFactList fl;
 
     @BeforeAll
     public static void setUpFirst() {
         ControlFlowStatementsDomain.initVocab();
-        var domain = new ControlFlowStatementsDomain(null, null, null, null);
+        var domain = new ControlFlowStatementsDomain(new DomainData("ControlFlowStatementsDomain", "ControlFlowStatementsDomain", "1.0.0", null), null, null, null);
         QUESTIONS = domain.readQuestions(JenaFactListTest.class.getClassLoader().getResourceAsStream(QUESTIONS_CONFIG_PATH));
     }
 
@@ -44,9 +43,9 @@ public class JenaFactListTest {
 
     @Test
     public void test_fromFacts() {
-        Question q = QUESTIONS.get(0);
+        GeneratedQuestionData q = QUESTIONS.get(0);
         fl = new JenaFactList();
-        fl.addBackendFacts(q.getStatementFacts());
+        fl.addBackendFacts(q.getContent().getStatementFacts());
         System.out.println(fl.size());
         for (Fact fact : fl) {
             ((JenaFact)fact).updateFactFromStatement();
@@ -60,8 +59,8 @@ public class JenaFactListTest {
         fl = new JenaFactList(schemaModel);
         System.out.println(fl.size());
 
-        Question q = QUESTIONS.get(0);
-        JenaFactList fl2 = JenaFactList.fromBackendFacts(q.getStatementFacts());
+        GeneratedQuestionData q = QUESTIONS.get(0);
+        JenaFactList fl2 = JenaFactList.fromBackendFacts(q.getContent().getStatementFacts());
         System.out.println(fl2.size());
 
         fl.addAll(fl2);
@@ -78,8 +77,8 @@ public class JenaFactListTest {
         fl = new JenaFactList(schemaModel);
         System.out.println(fl.size());
 
-        Question q = QUESTIONS.get(0);
-        fl.addBackendFacts(q.getStatementFacts());
+        GeneratedQuestionData q = QUESTIONS.get(0);
+        fl.addBackendFacts(q.getContent().getStatementFacts());
 
         System.out.println(fl.size());
         for (Fact fact : fl) {

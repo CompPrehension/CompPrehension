@@ -5,35 +5,40 @@ import lombok.val;
 import org.jetbrains.annotations.NotNull;
 import org.jetbrains.annotations.Nullable;
 import org.springframework.data.util.Pair;
-import org.vstu.compprehension.models.businesslogic.Concept;
-import org.vstu.compprehension.models.businesslogic.Law;
-import org.vstu.compprehension.models.businesslogic.QuestionRequest;
-import org.vstu.compprehension.models.businesslogic.domains.ControlFlowStatementsDomain;
-import org.vstu.compprehension.models.businesslogic.domains.Domain;
-import org.vstu.compprehension.models.businesslogic.domains.DomainFactory;
-import org.vstu.compprehension.models.businesslogic.domains.ProgrammingLanguageExpressionDomain;
-import org.vstu.compprehension.models.businesslogic.strategies.AbstractStrategy;
-import org.vstu.compprehension.models.businesslogic.strategies.StrategyOptions;
-import org.vstu.compprehension.models.entities.*;
-import org.vstu.compprehension.models.entities.EnumData.Decision;
-import org.vstu.compprehension.models.entities.EnumData.DisplayingFeedbackType;
-import org.vstu.compprehension.models.entities.EnumData.FeedbackType;
-import org.vstu.compprehension.models.entities.EnumData.Language;
-import org.vstu.compprehension.models.entities.exercise.ExerciseEntity;
-import org.vstu.compprehension.utils.RandomProvider;
+import org.vstu.compprehension.services.ExerciseAttemptDataService;
+import org.vstu.compprehension.data.exerciseattempt.AttemptExerciseData;
+import org.vstu.compprehension.data.exerciseattempt.AttemptQuestionInteractionData;
+import org.vstu.compprehension.data.exerciseattempt.AttemptQuestionData;
+import org.vstu.compprehension.data.exercise.ExerciseAttemptWithQuestionsData;
+import org.vstu.compprehension.businesslogic.Concept;
+import org.vstu.compprehension.businesslogic.Law;
+import org.vstu.compprehension.businesslogic.QuestionRequest;
+import org.vstu.compprehension.businesslogic.domains.ControlFlowStatementsDomain;
+import org.vstu.compprehension.businesslogic.domains.Domain;
+import org.vstu.compprehension.businesslogic.domains.DomainFactory;
+import org.vstu.compprehension.businesslogic.domains.ProgrammingLanguageExpressionDomain;
+import org.vstu.compprehension.businesslogic.strategies.StrategyOptions;
+import org.vstu.compprehension.businesslogic.strategies.StrategyBase;
+import org.vstu.compprehension.enums.Decision;
+import org.vstu.compprehension.enums.DisplayingFeedbackType;
+import org.vstu.compprehension.enums.FeedbackType;
+import org.vstu.compprehension.enums.Language;
+import org.vstu.compprehension.services.RandomProvider;
 
 import java.util.*;
 
 import static java.lang.Math.abs;
 
 @Log4j2
-public class Strategy implements AbstractStrategy {
+public class Strategy extends StrategyBase {
 
     private final DomainFactory domainFactory;
     protected final RandomProvider randomProvider;
     protected final StrategyOptions options;
 
-    public Strategy(DomainFactory domainFactory, RandomProvider randomProvider) {
+    public Strategy(DomainFactory domainFactory, RandomProvider randomProvider,
+                    ExerciseAttemptDataService exerciseAttemptService) {
+        super(exerciseAttemptService);
         this.domainFactory = domainFactory;
         this.randomProvider = randomProvider;
         this.options = StrategyOptions.builder()
@@ -68,13 +73,14 @@ public class Strategy implements AbstractStrategy {
         return options;
     }
 
-    public QuestionRequest generateQuestionRequest(ExerciseAttemptEntity exerciseAttempt) {
+    public QuestionRequest generateQuestionRequest(long exerciseAttemptId) {
+        var exerciseAttempt = getAttempt(exerciseAttemptId);
 
-        ExerciseEntity exercise = exerciseAttempt.getExercise();
-        Domain domain = domainFactory.getDomain(exercise.getDomain().getName());
+        AttemptExerciseData exercise = exerciseAttempt.exercise();
+        Domain domain = domainFactory.getDomain(exercise.domainName());
         HashMap<String, LawNode> tree = getTree(domain);
         // Отдельная ветка для старта (взять некоторую часть возможных законов упражнения) - вопрос из середины графа
-        if(exerciseAttempt.getQuestions() == null || exerciseAttempt.getQuestions().size() == 0){
+        if(exerciseAttempt.questions() == null || exerciseAttempt.questions().size() == 0){
 
 
             ArrayList<String> startTasks = null;
@@ -94,31 +100,31 @@ public class Strategy implements AbstractStrategy {
             return getQuestionRequest(exerciseAttempt, nextNode);
         }
         // Для вопроса вытянуть все интеракции в змейку по дельте (изменения в правильно примененных правилах и ошибки)
-        QuestionEntity qe = null;
+        AttemptQuestionData qe = null;
         // Find last not supplementary question in exercise
-        for (int questionNumber = exerciseAttempt.getQuestions().size() - 1; questionNumber >= 0; --questionNumber) {
-            if (!exerciseAttempt.getQuestions().get(questionNumber).getQuestionDomainType().contains("Supplementary")) {
-                qe = exerciseAttempt.getQuestions().get(questionNumber);
+        for (int questionNumber = exerciseAttempt.questions().size() - 1; questionNumber >= 0; --questionNumber) {
+            if (!exerciseAttempt.questions().get(questionNumber).domainType().contains("Supplementary")) {
+                qe = exerciseAttempt.questions().get(questionNumber);
                 break;
             }
         }
 
-        InteractionEntity lastIE = null;
+        AttemptQuestionInteractionData lastIE = null;
         ArrayList<Pair<Pair<Boolean, Integer>, String>> allLaws = new ArrayList<>();
-        ArrayList<InteractionEntity> ies = new ArrayList<>();
+        ArrayList<AttemptQuestionInteractionData> ies = new ArrayList<>();
 
-        if(qe.getInteractions() != null){
-            ies = new ArrayList<>(qe.getInteractions());
+        if(qe.interactions() != null){
+            ies = new ArrayList<>(qe.interactions());
         }
 
         if(ies.size() == 0){
-            LawNode currentNode = tree.get(qe.getQuestionName());
+            LawNode currentNode = tree.get(qe.name());
             return getQuestionRequest(exerciseAttempt, currentNode);
         }
 
         Collections.sort(ies, new InteractionOrderComparator());
         int iIndex = 0;
-        for(InteractionEntity ie : ies){
+        for(AttemptQuestionInteractionData ie : ies){
             ArrayList<Pair<Boolean, String>> tmp = findInteractionsDelta(lastIE, ie);
 
             for(Pair<Boolean, String> i: tmp){
@@ -187,7 +193,7 @@ public class Strategy implements AbstractStrategy {
 
         float correct = (float) correctLaws.size() / (float)(correctLaws.size() + incorrectLaws.size());
 
-        LawNode currentNode = tree.get(qe.getQuestionName());
+        LawNode currentNode = tree.get(qe.name());
         // Если верно примененных законов в текущем вопросе достаточно (не менее 90%), то берется вопрос из больших
         if(correct > 0.9){
             //Если у узла есть "прямые" большие вопросы
@@ -205,7 +211,7 @@ public class Strategy implements AbstractStrategy {
                 return getQuestionRequest(exerciseAttempt, nextNode);
             } else {
                 //// Если нет больших, проверить усвоенность всех целевых законов
-                ArrayList<QuestionEntity> qes = new ArrayList<>(exerciseAttempt.getQuestions());
+                ArrayList<AttemptQuestionData> qes = new ArrayList<>(exerciseAttempt.questions());
                 Collections.sort(qes, new QuestionOrderComparator());
 
 
@@ -214,12 +220,12 @@ public class Strategy implements AbstractStrategy {
 
                 ArrayList<Pair<Pair<Boolean, Integer>, String>> allLawsHistory = new ArrayList<>();
                 int index = 0;
-                for (QuestionEntity taskqe : qes){
-                    ArrayList<InteractionEntity> taskies = new ArrayList<>(taskqe.getInteractions());
+                for (AttemptQuestionData taskqe : qes){
+                    ArrayList<AttemptQuestionInteractionData> taskies = new ArrayList<>(taskqe.interactions());
 
                     Collections.sort(taskies, new InteractionOrderComparator());
-                    InteractionEntity tasklastIE = null;
-                    for(InteractionEntity ie : taskies){
+                    AttemptQuestionInteractionData tasklastIE = null;
+                    for(AttemptQuestionInteractionData ie : taskies){
                         ArrayList<Pair<Boolean, String>> tmp = findInteractionsDelta(tasklastIE, ie);
                         for(Pair<Boolean, String> law : tmp){
                             allLawsHistory.add(Pair.of(Pair.of(law.getFirst(), index), law.getSecond()));
@@ -343,11 +349,11 @@ public class Strategy implements AbstractStrategy {
     }
 
     @NotNull
-    private QuestionRequest getQuestionRequest(@NotNull ExerciseAttemptEntity exerciseAttempt, @Nullable LawNode nextNode) {
+    private QuestionRequest getQuestionRequest(@NotNull ExerciseAttemptWithQuestionsData exerciseAttempt, @Nullable LawNode nextNode) {
         QuestionRequest qr = new QuestionRequest();
-        qr.setExerciseAttemptId(exerciseAttempt.getId());
-        ExerciseEntity exercise = exerciseAttempt.getExercise();
-        Domain domain = domainFactory.getDomain(exercise.getDomain().getName());
+        qr.setExerciseAttemptId(exerciseAttempt.id());
+        AttemptExerciseData exercise = exerciseAttempt.exercise();
+        Domain domain = domainFactory.getDomain(exercise.domainName());
 
         qr.setComplexity(1);
         qr.setSolvingDuration(30);
@@ -419,14 +425,14 @@ public class Strategy implements AbstractStrategy {
         return qr;
     }
 
-    public DisplayingFeedbackType determineDisplayingFeedbackType(QuestionEntity question) {
+    public DisplayingFeedbackType determineDisplayingFeedbackType(AttemptQuestionData question) {
 
-        List<InteractionEntity> interactions = question.getInteractions();
+        List<AttemptQuestionInteractionData> interactions = question.interactions();
 
         int interactionWithMistakes = 0;
-        for (InteractionEntity i : interactions) {
+        for (AttemptQuestionInteractionData i : interactions) {
 
-            if (i.getViolations() != null || i.getViolations().size() != 0) {
+            if (i.violationLawNames() != null || i.violationLawNames().size() != 0) {
 
                 interactionWithMistakes++;
             }
@@ -441,14 +447,14 @@ public class Strategy implements AbstractStrategy {
         }
     }
 
-    public FeedbackType determineFeedbackType(QuestionEntity question) {
+    public FeedbackType determineFeedbackType(AttemptQuestionData question) {
 
-        List<InteractionEntity> interactions = question.getInteractions();
+        List<AttemptQuestionInteractionData> interactions = question.interactions();
 
         int interactionWithMistakes = 0;
-        for (InteractionEntity i : interactions) {
+        for (AttemptQuestionInteractionData i : interactions) {
 
-            if (i.getViolations() != null || i.getViolations().size() != 0) {
+            if (i.violationLawNames() != null || i.violationLawNames().size() != 0) {
 
                 interactionWithMistakes++;
             }
@@ -462,7 +468,8 @@ public class Strategy implements AbstractStrategy {
     }
 
     @Override
-    public float grade(ExerciseAttemptEntity exerciseAttempt, Domain.InterpretSentenceResult judgeResult) {
+    public float grade(long exerciseAttemptId, Domain.InterpretSentenceResult judgeResult) {
+        var exerciseAttempt = getAttempt(exerciseAttemptId);
 
         val res = getLawGrade(exerciseAttempt);
         if(res.keySet().isEmpty()){
@@ -481,29 +488,30 @@ public class Strategy implements AbstractStrategy {
     }
 
     @Override
-    public Decision decide(ExerciseAttemptEntity exerciseAttempt) {
+    public Decision decide(long exerciseAttemptId) {
+        var exerciseAttempt = getAttempt(exerciseAttemptId);
         // Должно быть задано не менее 3 вопросов и все вопросы должны быть завершены
-        if(exerciseAttempt.getQuestions().size() <= 3 ||
-            exerciseAttempt.getQuestions().stream().anyMatch(q -> q.getId() == exerciseAttempt.getQuestions().get(exerciseAttempt.getQuestions().size() - 1).getId() && (q.getInteractions().size() == 0 || q.getInteractions().get(q.getInteractions().size() - 1).getFeedback().getInteractionsLeft() > 0))){
+        if(exerciseAttempt.questions().size() <= 3 ||
+            exerciseAttempt.questions().stream().anyMatch(q -> q.questionId() == exerciseAttempt.questions().get(exerciseAttempt.questions().size() - 1).questionId() && (q.interactions().size() == 0 || q.interactions().get(q.interactions().size() - 1).interactionsLeft() > 0))){
             return Decision.CONTINUE;
         }
 
-        ExerciseEntity exercise = exerciseAttempt.getExercise();
-        Domain domain = domainFactory.getDomain(exercise.getDomain().getName());
+        AttemptExerciseData exercise = exerciseAttempt.exercise();
+        Domain domain = domainFactory.getDomain(exercise.domainName());
         HashMap<String, LawNode> tree = getTree(domain);
 
         //// Если нет больших, проверить усвоенность всех целевых законов
-        ArrayList<QuestionEntity> qes = new ArrayList<>(exerciseAttempt.getQuestions());
+        ArrayList<AttemptQuestionData> qes = new ArrayList<>(exerciseAttempt.questions());
         Collections.sort(qes, new QuestionOrderComparator());
 
         ArrayList<Pair<Pair<Boolean, Integer>, String>> allLawsHistory = new ArrayList<>();
         int index = 0;
-        for (QuestionEntity taskqe : qes){
-            ArrayList<InteractionEntity> taskies = new ArrayList<>(taskqe.getInteractions());
+        for (AttemptQuestionData taskqe : qes){
+            ArrayList<AttemptQuestionInteractionData> taskies = new ArrayList<>(taskqe.interactions());
 
             Collections.sort(taskies, new InteractionOrderComparator());
-            InteractionEntity tasklastIE = null;
-            for(InteractionEntity ie : taskies){
+            AttemptQuestionInteractionData tasklastIE = null;
+            for(AttemptQuestionInteractionData ie : taskies){
                 ArrayList<Pair<Boolean, String>> tmp = findInteractionsDelta(tasklastIE, ie);
                 for(Pair<Boolean, String> law : tmp){
                     allLawsHistory.add(Pair.of(Pair.of(law.getFirst(), index), law.getSecond()));
@@ -605,17 +613,17 @@ public class Strategy implements AbstractStrategy {
         return nextNodes;
     }
 
-    protected HashMap<String, Float> getLawGrade(ExerciseAttemptEntity exerciseAttempt){
+    protected HashMap<String, Float> getLawGrade(ExerciseAttemptWithQuestionsData exerciseAttempt){
         HashMap<String, Float> res = new HashMap<>();
 
         HashMap<String, ArrayList<Boolean>> conceptAttempt = new HashMap<>();
-        ArrayList<QuestionEntity> questions = new ArrayList<>();
-        questions.addAll(exerciseAttempt.getQuestions());
+        ArrayList<AttemptQuestionData> questions = new ArrayList<>();
+        questions.addAll(exerciseAttempt.questions());
 
-        ArrayList<InteractionEntity> ies = new ArrayList<>();
-        for(QuestionEntity qe : questions){
+        ArrayList<AttemptQuestionInteractionData> ies = new ArrayList<>();
+        for(AttemptQuestionData qe : questions){
 
-            val inter = qe.getInteractions();
+            val inter = qe.interactions();
             if(inter != null) {
                 ies.addAll(inter);
             }
@@ -624,34 +632,34 @@ public class Strategy implements AbstractStrategy {
         Collections.sort(ies, new InteractionOrderComparator());
         Collections.reverse(ies);
 
-        for (InteractionEntity ie : ies){
-            ArrayList<ViolationEntity> mistakes = new ArrayList<>();
-            if (ie.getViolations() != null) {
-                mistakes.addAll(ie.getViolations());
+        for (AttemptQuestionInteractionData ie : ies){
+            ArrayList<String> mistakes = new ArrayList<>();
+            if (ie.violationLawNames() != null) {
+                mistakes.addAll(ie.violationLawNames());
             }
 
-            for(ViolationEntity me : mistakes){
-                if(conceptAttempt.containsKey(me.getLawName())){
-                    conceptAttempt.get(me.getLawName()).add(false);
+            for(String me : mistakes){
+                if(conceptAttempt.containsKey(me)){
+                    conceptAttempt.get(me).add(false);
                 }else{
                     ArrayList<Boolean> newLaw = new ArrayList<>();
                     newLaw.add(false);
-                    conceptAttempt.put(me.getLawName(), newLaw);
+                    conceptAttempt.put(me, newLaw);
                 }
             }
 
-            ArrayList<CorrectLawEntity> correctLaws = new ArrayList<>();
-            if(ie.getCorrectLaw() != null) {
-                correctLaws.addAll(ie.getCorrectLaw());
+            ArrayList<String> correctLaws = new ArrayList<>();
+            if(ie.correctLawNames() != null) {
+                correctLaws.addAll(ie.correctLawNames());
             }
 
-            for(CorrectLawEntity cle : correctLaws){
-                if(conceptAttempt.containsKey(cle.getLawName())){
-                    conceptAttempt.get(cle.getLawName()).add(true);
+            for(String cle : correctLaws){
+                if(conceptAttempt.containsKey(cle)){
+                    conceptAttempt.get(cle).add(true);
                 }else{
                     ArrayList<Boolean> newLaw = new ArrayList<>();
                     newLaw.add(true);
-                    conceptAttempt.put(cle.getLawName(), newLaw);
+                    conceptAttempt.put(cle, newLaw);
                 }
             }
 
@@ -666,24 +674,24 @@ public class Strategy implements AbstractStrategy {
         return res;
     }
 
-    protected ArrayList<Pair<Boolean, String>> findInteractionsDelta(InteractionEntity last, InteractionEntity current){
+    protected ArrayList<Pair<Boolean, String>> findInteractionsDelta(AttemptQuestionInteractionData last, AttemptQuestionInteractionData current){
         ArrayList<Pair<Boolean, String>> result = new ArrayList<>();
 
         ArrayList<String> lastCorrectLaws = new ArrayList<>();
         if(last != null) {
-            for (CorrectLawEntity cle : last.getCorrectLaw()) {
-                lastCorrectLaws.add(cle.getLawName());
+            for (String cle : last.correctLawNames()) {
+                lastCorrectLaws.add(cle);
             }
         }
 
-        for(CorrectLawEntity cle : current.getCorrectLaw()){
-            if(!lastCorrectLaws.contains(cle.getLawName())) {
-                result.add(Pair.of(true, cle.getLawName()));
+        for(String cle : current.correctLawNames()){
+            if(!lastCorrectLaws.contains(cle)) {
+                result.add(Pair.of(true, cle));
             }
         }
 
-        for(ViolationEntity ve : current.getViolations()){
-            result.add(Pair.of(false, ve.getLawName()));
+        for(String ve : current.violationLawNames()){
+            result.add(Pair.of(false, ve));
         }
 
         return result;
@@ -1710,17 +1718,17 @@ public class Strategy implements AbstractStrategy {
 
     }
 
-    class InteractionOrderComparator implements Comparator<InteractionEntity> {
+    class InteractionOrderComparator implements Comparator<AttemptQuestionInteractionData> {
         @Override
-        public int compare(InteractionEntity a, InteractionEntity b) {
-            return Integer.compare(a.getOrderNumber(), b.getOrderNumber());
+        public int compare(AttemptQuestionInteractionData a, AttemptQuestionInteractionData b) {
+            return Integer.compare(a.orderNumber(), b.orderNumber());
         }
     }
 
-    class QuestionOrderComparator implements Comparator<QuestionEntity> {
+    class QuestionOrderComparator implements Comparator<AttemptQuestionData> {
         @Override
-        public int compare(QuestionEntity a, QuestionEntity b) {
-            return a.getId().compareTo(b.getId());
+        public int compare(AttemptQuestionData a, AttemptQuestionData b) {
+            return Long.compare(a.questionId(), b.questionId());
         }
     }
 }

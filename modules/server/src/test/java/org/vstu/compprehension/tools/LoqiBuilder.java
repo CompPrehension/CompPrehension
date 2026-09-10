@@ -1,9 +1,13 @@
 package org.vstu.compprehension.tools;
 
+import lombok.RequiredArgsConstructor;
+import org.vstu.compprehension.data.exercise.ExerciseOptionsData;
+import org.vstu.compprehension.data.exercise.ExerciseStageData;
 import lombok.SneakyThrows;
 import lombok.extern.log4j.Log4j2;
-import org.testcontainers.shaded.org.bouncycastle.oer.its.etsi102941.CaCertificateRekeyingMessage;
-import org.vstu.compprehension.models.businesslogic.*;
+import org.vstu.compprehension.data.question.AnswerData;
+import org.vstu.compprehension.data.question.AnswerObjectData;
+import org.vstu.compprehension.businesslogic.*;
 
 import org.vstu.compprehension.infrastructure.AbstractIntegrationTest;
 
@@ -15,20 +19,17 @@ import org.junit.jupiter.api.BeforeAll;
 import org.junit.jupiter.api.Test;
 import org.junit.jupiter.api.TestInstance;
 import org.springframework.beans.factory.annotation.Autowired;
-import org.vstu.compprehension.Service.QuestionService;
-import org.vstu.compprehension.models.businesslogic.domains.DomainFactory;
-import org.vstu.compprehension.models.businesslogic.domains.ProgrammingLanguageExpressionDTDomain;
-import org.vstu.compprehension.models.businesslogic.domains.helpers.meaningtree.MeaningTreeOrderQuestionBuilder;
-import org.vstu.compprehension.models.businesslogic.domains.helpers.meaningtree.MeaningTreeRDFTransformer;
-import org.vstu.compprehension.models.entities.AnswerObjectEntity;
-import org.vstu.compprehension.models.entities.ExerciseAttemptEntity;
-import org.vstu.compprehension.models.entities.ResponseEntity;
-import org.vstu.compprehension.models.entities.exercise.ExerciseEntity;
-import org.vstu.compprehension.models.entities.exercise.ExerciseOptionsEntity;
-import org.vstu.compprehension.models.entities.exercise.ExerciseStageEntity;
-import org.vstu.compprehension.models.repository.ExerciseAttemptRepository;
-import org.vstu.compprehension.models.repository.ExerciseRepository;
-import org.vstu.compprehension.models.repository.UserRepository;
+import org.vstu.compprehension.services.QuestionDataService;
+import org.vstu.compprehension.businesslogic.domains.DomainFactory;
+import org.vstu.compprehension.businesslogic.domains.ProgrammingLanguageExpressionDTDomain;
+import org.vstu.compprehension.businesslogic.domains.helpers.meaningtree.MeaningTreeOrderQuestionBuilder;
+import org.vstu.compprehension.businesslogic.domains.helpers.meaningtree.MeaningTreeRDFTransformer;
+import org.vstu.compprehension.entities.ExerciseAttemptEntity;
+import org.vstu.compprehension.entities.ExerciseEntity;
+import org.vstu.compprehension.repositories.entity.ExerciseAttemptRepository;
+import org.vstu.compprehension.repositories.entity.DomainRepository;
+import org.vstu.compprehension.repositories.entity.ExerciseRepository;
+import org.vstu.compprehension.repositories.entity.UserRepository;
 import org.vstu.meaningtree.SupportedLanguage;
 
 import java.io.File;
@@ -42,15 +43,15 @@ import java.util.List;
 @Log4j2
 public class LoqiBuilder extends AbstractIntegrationTest {
     @Autowired
-    DomainFactory domainFactory;
+    private DomainFactory domainFactory;
+    @Autowired
+    private DomainRepository domainRepository;
     @Autowired
     private ExerciseAttemptRepository exerciseAttemptRepository;
     @Autowired
     private ExerciseRepository exerciseRepository;
     @Autowired
     private UserRepository userRepository;
-    @Autowired
-    private QuestionService questionService;
 
     private ExerciseAttemptEntity attempt;
     private ExerciseEntity exercise;
@@ -58,7 +59,7 @@ public class LoqiBuilder extends AbstractIntegrationTest {
 
     public static final String domainId = "ProgrammingLanguageExpressionDTDomain";
 
-    private static final String RESOURCES_LOCATION = "org/vstu/compprehension/models/businesslogic/domains/";
+    private static final String RESOURCES_LOCATION = "org/vstu/compprehension/businesslogic/domains/";
     private static final String DOMAIN_MODEL_LOCATION = RESOURCES_LOCATION + "programming-language-expression-domain-model/";
     private final DomainSolvingModel domainSolvingModel = new DomainSolvingModel(
             this.getClass().getClassLoader().getResource(DOMAIN_MODEL_LOCATION),
@@ -69,14 +70,14 @@ public class LoqiBuilder extends AbstractIntegrationTest {
     public void tearUp() {
         domain = (ProgrammingLanguageExpressionDTDomain) domainFactory.getDomain(domainId);
         exercise = new ExerciseEntity();
-        exercise.setDomain(domain.getDomainEntity());
+        exercise.setDomain(domainRepository.findById(domain.getName()).orElseThrow());
         exercise.setBackendId("DTReasoner");
         exercise.setTags("");
-        exercise.setOptions(new ExerciseOptionsEntity(null, true,
+        exercise.setOptions(new ExerciseOptionsData(null, true,
                 true, true, true, true,
-                true, 7, null, null));
+                7, null, null));
         exercise.setName("test");
-        exercise.setStages(Collections.singletonList(new ExerciseStageEntity()));
+        exercise.setStages(Collections.singletonList(new ExerciseStageData()));
         exercise.setStrategyId("StaticStrategy");
         exercise.getStages().getFirst();
         exerciseRepository.save(exercise);
@@ -96,7 +97,7 @@ public class LoqiBuilder extends AbstractIntegrationTest {
 
     @SneakyThrows
     public boolean generate(String expression, SupportedLanguage inLang, SupportedLanguage outLang, List<Integer> sequence) {
-        List<Question> questions = MeaningTreeOrderQuestionBuilder
+        var questions = MeaningTreeOrderQuestionBuilder
                 .newQuestion(domain)
                 .expression(expression, inLang)
                 .questionOrigin("test", "MIT")
@@ -105,21 +106,21 @@ public class LoqiBuilder extends AbstractIntegrationTest {
         String outLangStr = outLang.toString().substring(0, 1).toUpperCase() + outLang.toString().substring(1);
 
         boolean allPassed = true;
-        for (Question q : questions) {
-            List<ResponseEntity> responses = new ArrayList<>();
+        for (var q : questions) {
+            List<AnswerData> responses = new ArrayList<>();
             for (Integer response : sequence) {
-                AnswerObjectEntity answerObject = AnswerObjectEntity
+                AnswerObjectData answerObject = AnswerObjectData
                         .builder().answerId(response)
                         .domainInfo("token_" + response).build();
-                responses.add(ResponseEntity.builder().leftAnswerObject(answerObject).rightAnswerObject(answerObject).build());
+                responses.add(AnswerData.of(answerObject, answerObject));
             }
             DomainModel model = MeaningTreeRDFTransformer.questionToDomainModel(
-                    domainSolvingModel, q.getStatementFacts(), responses, List.of(domain.getTag(outLangStr))
+                    domainSolvingModel, q.getContent().getStatementFacts(), responses, List.of(domain.getTag(outLangStr))
             );
             var tempDir = Files.createTempDirectory("loqi").toFile();
-            var filename = new File(tempDir, q.getQuestionName() + ".loqi");
-            MeaningTreeRDFTransformer.dumpModelLoqi(model, filename);
-            log.info("Saved to {}", filename.getAbsolutePath());
+            // var filename = new File(tempDir, q.getContent().getQuestionName() + ".loqi");
+            // MeaningTreeRDFTransformer.dumpModelLoqi(model, filename);
+            // log.info("Saved to {}", filename.getAbsolutePath());
         }
         return allPassed;
     }

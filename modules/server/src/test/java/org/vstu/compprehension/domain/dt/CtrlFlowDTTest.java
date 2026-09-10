@@ -1,6 +1,8 @@
 package org.vstu.compprehension.domain.dt;
 
-import domains.ControlFlowDTDomain;
+import lombok.RequiredArgsConstructor;
+import org.springframework.beans.factory.annotation.Autowired;
+import org.vstu.compprehension.businesslogic.domains.ControlFlowDTDomain;
 import its.reasoner.nodes.*;
 import jakarta.transaction.Transactional;
 import org.apache.commons.lang3.tuple.Pair;
@@ -9,23 +11,25 @@ import org.junit.jupiter.api.BeforeAll;
 import org.junit.jupiter.api.Disabled;
 import org.junit.jupiter.api.Test;
 import org.junit.jupiter.api.TestInstance;
-import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.boot.test.context.SpringBootTest;
 import org.springframework.test.context.ActiveProfiles;
-import org.vstu.compprehension.Service.QuestionService;
-import org.vstu.compprehension.models.businesslogic.Question;
-import org.vstu.compprehension.models.businesslogic.domains.Domain;
-import org.vstu.compprehension.models.businesslogic.domains.DomainFactory;
-import org.vstu.compprehension.models.entities.AnswerObjectEntity;
-import org.vstu.compprehension.models.entities.EnumData.Language;
-import org.vstu.compprehension.models.entities.ExerciseAttemptEntity;
-import org.vstu.compprehension.models.entities.ResponseEntity;
-import org.vstu.compprehension.models.entities.exercise.ExerciseEntity;
-import org.vstu.compprehension.models.repository.ExerciseAttemptRepository;
-import org.vstu.compprehension.models.repository.ExerciseRepository;
-import org.vstu.compprehension.models.repository.QuestionMetadataRepository;
-import org.vstu.compprehension.models.repository.UserRepository;
-import org.vstu.compprehension.models.businesslogic.backend.DecisionTreeReasonerBackend;
+import org.vstu.compprehension.data.question.AnswerData;
+import org.vstu.compprehension.data.question.QuestionMetadataWithData;
+import org.vstu.compprehension.entities.QuestionMetadataEntity;
+import org.vstu.compprehension.data.question.AnswerObjectData;
+import org.vstu.compprehension.mappers.Mapper;
+import org.vstu.compprehension.data.question.QuestionData;
+import org.vstu.compprehension.businesslogic.domains.Domain;
+import org.vstu.compprehension.businesslogic.domains.DomainFactory;
+import org.vstu.compprehension.enums.Language;
+import org.vstu.compprehension.entities.ExerciseAttemptEntity;
+import org.vstu.compprehension.entities.ExerciseEntity;
+import org.vstu.compprehension.repositories.entity.ExerciseAttemptRepository;
+import org.vstu.compprehension.repositories.entity.ExerciseRepository;
+import org.vstu.compprehension.repositories.entity.QuestionMetadataRepository;
+import org.vstu.compprehension.repositories.entity.UserRepository;
+import org.vstu.compprehension.businesslogic.backend.DecisionTreeInterpretSentenceResult;
+import org.vstu.compprehension.businesslogic.backend.DecisionTreeReasonerBackend;
 
 import java.util.ArrayList;
 import java.util.List;
@@ -40,7 +44,7 @@ import java.util.stream.StreamSupport;
 @Transactional
 public class CtrlFlowDTTest {
     @Autowired
-    DomainFactory domainFactory;
+    private DomainFactory domainFactory;
     @Autowired
     private ExerciseAttemptRepository exerciseAttemptRepository;
     @Autowired
@@ -50,7 +54,7 @@ public class CtrlFlowDTTest {
     @Autowired
     private UserRepository userRepository;
     @Autowired
-    private QuestionService questionService;
+    private Mapper<QuestionMetadataEntity, QuestionMetadataWithData> questionMetadataMapper;
 
     private static final boolean DETAILED_TRACE = true;
 
@@ -70,9 +74,20 @@ public class CtrlFlowDTTest {
         exerciseAttemptRepository.save(attempt);
     }
 
-    public Question loadQuestion(String questionName) {
+    public QuestionData loadQuestion(String questionName) {
         var metas = qMetaRepo.findByName(questionName);
-        return domain.makeQuestion(metas.getFirst(), attempt, List.of(domain.getTag("Python")), Language.ENGLISH);
+        return QuestionData.of(domain
+                .makeQuestion(questionMetadataMapper.map(metas.getFirst()), List.of(domain.getTag("Python")), Language.ENGLISH)
+                .getContent());
+    }
+
+    /**
+     * Достать трассу рассуждения из результата интерпретации ответа.
+     */
+    private DecisionTreeTrace traceOf(Domain.InterpretSentenceResult result) {
+        Assertions.assertInstanceOf(DecisionTreeInterpretSentenceResult.class, result,
+                "Ожидался результат рассуждения по дереву решений");
+        return ((DecisionTreeInterpretSentenceResult) result).decisionTreeTrace;
     }
 
     private String walkDecisionTreeTrace(DecisionTreeTrace trace) {
@@ -119,18 +134,18 @@ public class CtrlFlowDTTest {
      * Базовая реализация проверки ответа по шагам.
      * Возвращает итоговый результат интерпретации, чтобы можно было дополнительно его проанализировать.
      */
-    private Domain.InterpretSentenceResult judgeCore(Question q,
+    private Domain.InterpretSentenceResult judgeCore(QuestionData q,
                                                      List<Pair<Integer, String>> answerObjectIds,
                                                      boolean everySubTrace, boolean consideredAsCorrect,
                                                      boolean detectUnfinished
     ) {
-        List<ResponseEntity> responses = new ArrayList<>();
+        List<AnswerData> responses = new ArrayList<>();
         Domain.InterpretSentenceResult result = null;
         int i = 0;
         int last_i = answerObjectIds.size();
         for (var entry : answerObjectIds) {
-            AnswerObjectEntity answerObject = q.getAnswerObject(entry.getKey());  // Allow invalid node IDs in tests (these may change after rebuild);
-            responses.add(ResponseEntity.builder().leftAnswerObject(answerObject).rightAnswerObject(answerObject).build());
+            AnswerObjectData answerObject = q.getContent().getAnswerObject(entry.getKey());  // Allow invalid node IDs in tests (these may change after rebuild);
+            responses.add(AnswerData.of(answerObject, answerObject));
             i++;
             boolean is_last = i == last_i;
 
@@ -151,7 +166,7 @@ public class CtrlFlowDTTest {
         return result;
     }
 
-    public void judgeAndCheck(Question q,
+    public void judgeAndCheck(QuestionData q,
                               List<Pair<Integer, String>> answerObjectIds,
                               boolean everySubTrace, boolean consideredAsCorrect,
                               boolean detectUnfinished
@@ -163,7 +178,7 @@ public class CtrlFlowDTTest {
      * Расширенный вариант judge, который кроме стандартной проверки корректности
      * дополнительно проверяет, что среди листовых результатов трассы есть заданные значения.
      */
-    public void judgeAndCheck(Question q,
+    public void judgeAndCheck(QuestionData q,
                               List<Pair<Integer, String>> answerObjectIds,
                               boolean everySubTrace, boolean consideredAsCorrect,
                               boolean detectUnfinished,
@@ -173,7 +188,7 @@ public class CtrlFlowDTTest {
                 judgeCore(q, answerObjectIds, everySubTrace, consideredAsCorrect, detectUnfinished);
 
         if (expectedLeafResults != null && !expectedLeafResults.isEmpty()) {
-            List<String> leafResults = collectLeafBranchResults(result.decisionTreeTrace);
+            List<String> leafResults = collectLeafBranchResults(traceOf(result));
             for (String expected : expectedLeafResults) {
                 Assertions.assertTrue(
                         leafResults.contains(expected),
@@ -184,16 +199,16 @@ public class CtrlFlowDTTest {
         }
     }
 
-    public Domain.InterpretSentenceResult judgeAtOnceByAnswerObjects(Question q, List<Pair<Integer, String>> answerObjectIds, boolean consideredAsCorrect) {
-        List<ResponseEntity> responses = answerObjectIds.stream()
-                .map((entry) -> AnswerObjectEntity.builder().answerId(entry.getKey())
+    public Domain.InterpretSentenceResult judgeAtOnceByAnswerObjects(QuestionData q, List<Pair<Integer, String>> answerObjectIds, boolean consideredAsCorrect) {
+        List<AnswerData> responses = answerObjectIds.stream()
+                .map((entry) -> AnswerObjectData.builder().answerId(entry.getKey())
                         .domainInfo(entry.getValue()).build())
-                .map((answerObject) -> ResponseEntity.builder().leftAnswerObject(answerObject).rightAnswerObject(answerObject).build())
+                .map((answerObject) -> AnswerData.of(answerObject, answerObject))
                 .toList();
         return judgeAtOnce(q, responses, consideredAsCorrect);
     }
 
-    public String makeJudgeTrace(Domain.InterpretSentenceResult result, List<ResponseEntity> responses, boolean invalid) {
+    public String makeJudgeTrace(Domain.InterpretSentenceResult result, List<AnswerData> responses, boolean invalid) {
         StringBuilder builder = new StringBuilder();
         if (invalid) {
             builder.append("=====  !!! Invalid solution !!! ==== \n");
@@ -210,22 +225,22 @@ public class CtrlFlowDTTest {
         ).collect(Collectors.joining(" -> "))));
         builder.append("Judge result: %s\n".formatted(result.isAnswerCorrect));
         builder.append("Variable dump: %s\n".formatted(
-                result.decisionTreeTrace.getFinalVariableSnapshot().entrySet().stream()
+                traceOf(result).getFinalVariableSnapshot().entrySet().stream()
                         .map(varObj -> "%s = %s".formatted(varObj.getKey(), varObj.getValue()))
                         .collect(Collectors.joining("; "))
         ));
-        builder.append("Interpretation trace: %s\n".formatted(walkDecisionTreeTrace(result.decisionTreeTrace)));
+        builder.append("Interpretation trace: %s\n".formatted(walkDecisionTreeTrace(traceOf(result))));
         builder.append("\n===== / ===== \n");
         return builder.toString();
     }
 
-    public Domain.InterpretSentenceResult judgeAtOnce(Question q, List<ResponseEntity> responses, boolean consideredAsCorrect) {
+    public Domain.InterpretSentenceResult judgeAtOnce(QuestionData q, List<AnswerData> responses, boolean consideredAsCorrect) {
         if (DETAILED_TRACE) {
             System.out.println("Prepared question answers (CFG ids): \n- %s\n".formatted(responses.stream().map(r ->
                     r.getLeftAnswerObject().getDomainInfo()
             ).collect(Collectors.joining("\n- "))));
         }
-        var result = questionService.judgeQuestion(q, responses, List.of(domain.getTag("Python")));
+        var result = domain.judgeQuestion(q, responses, List.of(domain.getTag("Python")), Language.ENGLISH);
 
         System.out.printf("Expected %s solution...%n", consideredAsCorrect? "valid" : "invalid");
 
@@ -236,7 +251,7 @@ public class CtrlFlowDTTest {
             System.out.println(makeJudgeTrace(result, responses, !result.isAnswerCorrect));
 
             // Для отладки: показываем также все листовые результаты ветвей
-            List<String> leafResults = collectLeafBranchResults(result.decisionTreeTrace);
+            List<String> leafResults = collectLeafBranchResults(traceOf(result));
             System.out.println("Leaf branch results: " + String.join(", ", leafResults));
         }
         return result;

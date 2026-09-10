@@ -5,11 +5,11 @@ import org.vstu.compprehension.infrastructure.TestData;
 import org.springframework.context.annotation.Primary;
 import org.springframework.context.annotation.Profile;
 import org.springframework.stereotype.Component;
-import org.vstu.compprehension.Service.LtiContextProvider;
-import org.vstu.compprehension.models.businesslogic.lti.LtiContext;
-import org.vstu.compprehension.models.businesslogic.lti.LtiCourseContext;
-import org.vstu.compprehension.models.businesslogic.lti.LtiDeepLinkingContext;
-import org.vstu.compprehension.models.entities.EnumData.EducationResourceType;
+import org.vstu.compprehension.services.LtiContextProvider;
+import org.vstu.compprehension.businesslogic.lti.LtiContext;
+import org.vstu.compprehension.businesslogic.lti.LtiCourseContext;
+import org.vstu.compprehension.businesslogic.lti.LtiDeepLinkingContext;
+import org.vstu.compprehension.enums.EducationResourceType;
 
 import java.util.List;
 import java.util.Optional;

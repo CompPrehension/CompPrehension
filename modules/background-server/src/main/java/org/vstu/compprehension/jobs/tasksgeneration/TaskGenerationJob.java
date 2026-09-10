@@ -15,15 +15,13 @@ import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Service;
 import org.vstu.compprehension.common.BatchingIterator;
 import org.vstu.compprehension.common.FileHelper;
-import org.vstu.compprehension.dto.GenerationRequest;
-import org.vstu.compprehension.dto.GenerationRequestGroup;
-import org.vstu.compprehension.models.businesslogic.SourceCodeRepositoryInfo;
-import org.vstu.compprehension.models.businesslogic.storage.QuestionBank;
-import org.vstu.compprehension.models.businesslogic.storage.SerializableQuestionTemplate;
-import org.vstu.compprehension.models.entities.QuestionDataEntity;
-import org.vstu.compprehension.models.entities.QuestionMetadataEntity;
-import org.vstu.compprehension.models.repository.QuestionGenerationRequestRepository;
-import org.vstu.compprehension.models.repository.QuestionMetadataRepository;
+import org.vstu.compprehension.data.questionbank.GenerationRequestData;
+import org.vstu.compprehension.data.questionbank.GenerationRequestGroupData;
+import org.vstu.compprehension.businesslogic.SourceCodeRepositoryInfo;
+import org.vstu.compprehension.businesslogic.storage.QuestionBank;
+import org.vstu.compprehension.businesslogic.storage.SerializableQuestionTemplate;
+import org.vstu.compprehension.data.questionbank.NewBankQuestionData;
+import org.vstu.compprehension.data.question.QuestionMetadataData;
 import org.vstu.compprehension.utils.FileUtility;
 import org.vstu.compprehension.utils.ZipUtility;
 
@@ -47,16 +45,12 @@ import java.util.stream.StreamSupport;
 @Log4j2
 @Service
 public class TaskGenerationJob {
-    private final QuestionMetadataRepository metadataRep;
-    private final QuestionGenerationRequestRepository generatorRequestsQueue;
     private final TaskGenerationJobConfig tasks;
     private final QuestionBank storage;
     private static RepositoriesCrawler repositories; // TODO: make it non-static
 
     @Autowired
-    public TaskGenerationJob(QuestionMetadataRepository metadataRep, QuestionGenerationRequestRepository generatorRequestsQueue, TaskGenerationJobConfig tasks, QuestionBank storage) {
-        this.metadataRep = metadataRep;
-        this.generatorRequestsQueue = generatorRequestsQueue;
+    public TaskGenerationJob(TaskGenerationJobConfig tasks, QuestionBank storage) {
         this.tasks = tasks;
         this.storage = storage;
     }
@@ -101,7 +95,7 @@ public class TaskGenerationJob {
 
     private synchronized void runImpl(TaskGenerationJobConfig.TaskConfig config, TaskGenerationJobConfig.RunMode.Full mode) {
         while (true) {
-            var bankQuestionCount = metadataRep.countByDomainShortname(config.getDomainShortName());
+            var bankQuestionCount = storage.countQuestionsInDomain(config.getDomainShortName());
             if (bankQuestionCount >= mode.enoughQuestions()) {
                 log.info("Reached the limit of problems in the bank, finished job.");
                 break;
@@ -143,7 +137,7 @@ public class TaskGenerationJob {
             }
 
             var generationRequestIds = generationRequests.stream()
-                    .map(GenerationRequestGroup::getGenerationRequestIds)
+                    .map(GenerationRequestGroupData::getGenerationRequestIds)
                     .collect(Collectors.toList());
             log.info("Loaded generation requests with ids: {}", generationRequestIds);
 
@@ -176,8 +170,8 @@ public class TaskGenerationJob {
         }
     }
 
-    private List<GenerationRequestGroup> getGenerationRequests(String domainShortName) {
-        var requests = generatorRequestsQueue.findAllActual(domainShortName, LocalDateTime.now().minusMonths(3));
+    private List<GenerationRequestGroupData> getGenerationRequests(String domainShortName) {
+        var requests = storage.findActualGenerationRequests(domainShortName, LocalDateTime.now().minusMonths(3));
 
         if (!requests.isEmpty()) {
             log.info("Found {} generation request groups", requests.size());
@@ -296,7 +290,7 @@ public class TaskGenerationJob {
 
         // Учесть историю по полностью использованным репозиториям + загруженным недавно -- игнорируем их
         // TODO временно для эксперимента используем только ни разу не обработанные за 24ч репозитории
-        var seenReposNames = metadataRep.findProcessedOrigins(config.getDomainShortName(), LocalDateTime.now().minusHours(24))
+        var seenReposNames = storage.findProcessedOrigins(config.getDomainShortName(), LocalDateTime.now().minusHours(24))
             .stream().map(s -> s.replaceAll("/", "_"))
             .collect(Collectors.toSet());
         if (downloaderConfig.isSkipDownloadedRepositories()) {
@@ -545,7 +539,7 @@ public class TaskGenerationJob {
     }
 
     @SneakyThrows
-    private void saveQuestions(TaskGenerationJobConfig.TaskConfig config, List<Path> generatedRepos, @Nullable List<GenerationRequestGroup> generationRequests) {
+    private void saveQuestions(TaskGenerationJobConfig.TaskConfig config, List<Path> generatedRepos, @Nullable List<GenerationRequestGroupData> generationRequests) {
         var generatorConfig = config.getGenerator();
         if (!generatorConfig.isEnabled()) {
             log.info("generator is disabled by config");
@@ -554,9 +548,9 @@ public class TaskGenerationJob {
 
         log.info("Start saving problems generated from {} repositories ...", generatedRepos.size());
 
-        var questionsGenerated = new HashMap<GenerationRequest, Integer>();
-        var incompletedRequests = new HashMap<GenerationRequestGroup, HashSet<GenerationRequest>>();
-        for (var gr : (generationRequests == null ? List.<GenerationRequestGroup>of() : generationRequests)) {
+        var questionsGenerated = new HashMap<GenerationRequestData, Integer>();
+        var incompletedRequests = new HashMap<GenerationRequestGroupData, HashSet<GenerationRequestData>>();
+        for (var gr : (generationRequests == null ? List.<GenerationRequestGroupData>of() : generationRequests)) {
             incompletedRequests.put(gr, Arrays.stream(gr.getGenerationRequests()).collect(Collectors.toCollection(HashSet::new)));
         }
 
@@ -586,19 +580,19 @@ public class TaskGenerationJob {
                         .map(SerializableQuestionTemplate.QuestionMetadata::getName)
                         .filter(Objects::nonNull)
                         .collect(Collectors.toSet());
-                var existingQuestionNames = metadataRep.findExistingNames(config.getDomainShortName(), questionNames);
+                var existingQuestionNames = storage.findExistingNames(config.getDomainShortName(), questionNames);
 
                 var templateIds = batch.stream()
                         .flatMap(q -> q.getMetadataList().stream())
                         .map(SerializableQuestionTemplate.QuestionMetadata::getTemplateId)
                         .filter(Objects::nonNull)
                         .collect(Collectors.toSet());
-                var existingTemplateIds = metadataRep.findExistingTemplateIds(config.getDomainShortName(), templateIds);
-                var metadataToSave = new ArrayList<QuestionMetadataEntity>(batch.size());
+                var existingTemplateIds = storage.findExistingTemplateIds(config.getDomainShortName(), templateIds);
+                var questionsToSave = new ArrayList<NewBankQuestionData>(batch.size());
 
                 for (var q : batch) {
-                    HashSet<QuestionMetadataEntity> metaList = q.getMetadataList().stream()
-                            .map(SerializableQuestionTemplate.QuestionMetadata::toMetadataEntity)
+                    HashSet<QuestionMetadataData> metaList = q.getMetadataList().stream()
+                            .map(SerializableQuestionTemplate.QuestionMetadata::toMetadataData)
                             .collect(Collectors.toCollection(HashSet::new));
                     if (metaList.isEmpty()) {
                         skippedQuestions.addAndGet(1);
@@ -607,8 +601,8 @@ public class TaskGenerationJob {
                         continue;
                     }
 
-                    var metadataToRemove = new ArrayList<QuestionMetadataEntity>();
-                    for (QuestionMetadataEntity meta : metaList) {
+                    var metadataToRemove = new ArrayList<QuestionMetadataData>();
+                    for (QuestionMetadataData meta : metaList) {
                         if (existingQuestionNames.contains(meta.getName()) || existingTemplateIds.contains(meta.getTemplateId())) {                            
                             log.trace("Template [{}] or problem [{}] already exists. Skipping...", meta.getTemplateId(), meta.getName());
                             metadataToRemove.add(meta);
@@ -624,13 +618,13 @@ public class TaskGenerationJob {
 
                     // Проверить, подходит ли он нам
                     // если да, то сразу импортировать его в боевой банк, создав запись метаданных, записав в них информацию о затребовавших QR-логах, и сохранив данные вопроса в базу данных
-                    HashMap<QuestionMetadataEntity, Integer> matchedMetadata = new HashMap<>();
+                    HashMap<QuestionMetadataData, Integer> matchedMetadata = new HashMap<>();
                     if (generationRequests == null) {
-                        for (QuestionMetadataEntity meta : metaList) {
+                        for (QuestionMetadataData meta : metaList) {
                             matchedMetadata.put(meta, null);
                         }
                     } else {
-                        for (QuestionMetadataEntity meta : metaList) {
+                        for (QuestionMetadataData meta : metaList) {
                             if (matchedMetadata.containsKey(meta))
                                 continue; // already matched
 
@@ -666,19 +660,15 @@ public class TaskGenerationJob {
                     }
 
                     if (generatorConfig.isSaveToDb()) {
-                        // save question data in the database
-                        QuestionDataEntity questionData = new QuestionDataEntity();
-                        questionData.setData(q.getCommonQuestion());
-
-                        // then save metadata
+                        // Тело вопроса одно на все его метаданные: связка уезжает
+                        // в банк целиком, чтобы порядок вставки не размазывался по job'у.
+                        var metadataOfQuestion = new ArrayList<QuestionMetadataData>(matchedMetadata.size());
                         for (var kv : matchedMetadata.entrySet()) {
                             var meta = kv.getKey();
-                            var genRequestId = kv.getValue();
-                            meta.setGenerationRequestId(genRequestId);
-                            meta.setQuestionData(questionData);
-
-                            metadataToSave.add(meta);
+                            meta.setGenerationRequestId(kv.getValue());
+                            metadataOfQuestion.add(meta);
                         }
+                        questionsToSave.add(new NewBankQuestionData(q.getCommonQuestion(), metadataOfQuestion));
 
                         /*
                         log.debug("* * *");
@@ -694,9 +684,8 @@ public class TaskGenerationJob {
                     }
                 }
                 
-                if (!metadataToSave.isEmpty()) {
-                    storage.saveMetadataWithDataEntities(metadataToSave);
-                    savedQuestions.addAndGet(metadataToSave.size());
+                if (!questionsToSave.isEmpty()) {
+                    savedQuestions.addAndGet(storage.saveQuestions(questionsToSave));
                 }
 
                 if (matchesRequest.get() == 0 && !incompletedRequests.isEmpty()) {
@@ -712,7 +701,7 @@ public class TaskGenerationJob {
         if (generationRequests != null) {
             if (generatorConfig.isSaveToDb()) {
                 for (var gr : generationRequests) {
-                    generatorRequestsQueue.updateGenerationRequests(gr.getGenerationRequestIds());
+                    storage.refreshGenerationRequests(gr.getGenerationRequestIds());
                 }
             } else {
                 log.info("Saving updates actually SKIPPED due to DEBUG mode.");

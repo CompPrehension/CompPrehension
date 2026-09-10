@@ -24,7 +24,7 @@ export const DeleteGlobalExerciseModal: React.FC<Props> = ({ exerciseId, onConfi
 
     // Group memberships by educationResource for display.
     const byLms = (memberships ?? []).reduce<Record<string, CourseDto[]>>((acc, m) => {
-        (acc[m.educationResourceName] ??= []).push(m);
+        (acc[m.educationResourceUrl] ??= []).push(m);
         return acc;
     }, {});
 

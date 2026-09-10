@@ -221,7 +221,13 @@
         </dependency>
         <dependency>
             <groupId>org.vstu.compprehension</groupId>
-            <artifactId>objects-scope-domain</artifactId>
+            <artifactId>domains</artifactId>
+            <version>1.0-SNAPSHOT</version>
+            <scope>compile</scope>
+        </dependency>
+        <dependency>
+            <groupId>org.vstu.compprehension</groupId>
+            <artifactId>backends</artifactId>
             <version>1.0-SNAPSHOT</version>
             <scope>compile</scope>
         </dependency>

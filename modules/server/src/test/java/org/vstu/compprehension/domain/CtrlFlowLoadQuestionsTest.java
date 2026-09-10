@@ -1,6 +1,6 @@
 package org.vstu.compprehension.domain;
 
-import domains.ControlFlowDTDomain;
+import org.vstu.compprehension.businesslogic.domains.ControlFlowDTDomain;
 import jakarta.transaction.Transactional;
 import lombok.extern.slf4j.Slf4j;
 import org.junit.jupiter.api.Assertions;
@@ -12,12 +12,11 @@ import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.boot.test.context.SpringBootTest;
 import org.springframework.test.annotation.Commit;
 import org.springframework.test.context.ActiveProfiles;
-import org.vstu.compprehension.models.businesslogic.domains.DomainFactory;
-import org.vstu.compprehension.models.businesslogic.storage.QuestionBank;
-import org.vstu.compprehension.models.businesslogic.storage.SerializableQuestionTemplate;
-import org.vstu.compprehension.models.entities.QuestionDataEntity;
-import org.vstu.compprehension.models.entities.QuestionMetadataEntity;
-import org.vstu.compprehension.models.repository.QuestionMetadataRepository;
+import org.vstu.compprehension.businesslogic.domains.DomainFactory;
+import org.vstu.compprehension.businesslogic.storage.QuestionBank;
+import org.vstu.compprehension.businesslogic.storage.SerializableQuestionTemplate;
+import org.vstu.compprehension.data.questionbank.NewBankQuestionData;
+import org.vstu.compprehension.repositories.entity.QuestionMetadataRepository;
 
 import java.io.IOException;
 import java.nio.file.Files;
@@ -94,30 +93,21 @@ public class CtrlFlowLoadQuestionsTest {
         } catch (IOException e) {
             throw new RuntimeException(e);
         }
-        var metaList = new ArrayList<QuestionMetadataEntity>();
+        var toSave = new ArrayList<NewBankQuestionData>();
         var questions = fileList.stream()
                 .map(SerializableQuestionTemplate::deserialize)
                 .filter(Objects::nonNull).toList();
         for (var q : questions) {
             log.info("Sending question: {}", q.getCommonQuestion().getQuestionData().getQuestionName());
 
-            QuestionDataEntity questionData = new QuestionDataEntity();
-            var metaFound = qMetaRepo.findByName(q.getMetadataList().getFirst().getName());
+            var meta = q.getMetadataList().getFirst().toMetadataData();
+            var metaFound = qMetaRepo.findByName(meta.getName());
             if (!metaFound.isEmpty()) {
-                var replaceQ = metaFound.getFirst().getQuestionData();
-                replaceQ.setData(q.getCommonQuestion());
-                var meta = q.getMetadataList().getFirst().toMetadataEntity();
                 meta.setId(metaFound.getFirst().getId());
-                meta.setQuestionData(replaceQ);
-                metaList.add(meta);
-            } else {
-                questionData.setData(q.getCommonQuestion());
-                var meta = q.getMetadataList().getFirst().toMetadataEntity();
-                meta.setQuestionData(questionData);
-                metaList.add(meta);
             }
+            toSave.add(new NewBankQuestionData(q.getCommonQuestion(), List.of(meta)));
         }
-        storage.saveMetadataWithDataEntities(metaList);
+        storage.saveQuestions(toSave);
         log.info("Saved all questions to DB.");
     }
 }

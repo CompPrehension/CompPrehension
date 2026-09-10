@@ -33,7 +33,7 @@ export const handlers = [
     }),
 
     http.get('/api/course/my', () => HttpResponse.json([
-        { id: 1, name: 'Mocked course', educationResourceId: 1, educationResourceName: 'Mocked LMS' },
+        { id: 1, name: 'Mocked course', educationResourceId: 1, educationResourceUrl: 'https://lms.mocked.local' },
     ])),
 
     http.get('/api/exercise/list', () => HttpResponse.json({
@@ -42,7 +42,7 @@ export const handlers = [
     })),
 
     http.get('/api/course/memberships', () => HttpResponse.json([
-        { id: 1, name: 'Mocked course', educationResourceId: 1, educationResourceName: 'Mocked LMS' },
+        { id: 1, name: 'Mocked course', educationResourceId: 1, educationResourceUrl: 'https://lms.mocked.local' },
     ])),
 
     http.post('/api/course/exercise/add', () => new HttpResponse(null, { status: 200 })),
@@ -89,7 +89,6 @@ export const handlers = [
             correctAnswerGenerationEnabled: true,
             newQuestionGenerationEnabled: true,
             supplementaryQuestionsEnabled: true,
-            preferDecisionTreeBasedSupplementaryEnabled: false,
             maxExpectedConcurrentStudents: 7,
         },
     })),

@@ -1,28 +1,23 @@
 package org.vstu.compprehension.jobs.bankloadtesting;
 
+import lombok.RequiredArgsConstructor;
+import org.vstu.compprehension.data.exercise.ExerciseStageData;
 import lombok.SneakyThrows;
 import lombok.extern.log4j.Log4j2;
-import org.apache.commons.collections4.IteratorUtils;
 import org.apache.logging.log4j.ThreadContext;
 import org.hibernate.exception.LockTimeoutException;
 import org.jetbrains.annotations.Nullable;
 import org.jobrunr.jobs.annotations.Job;
-import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.dao.PessimisticLockingFailureException;
 import org.springframework.stereotype.Service;
-import org.vstu.compprehension.Service.FrontendService;
-import org.vstu.compprehension.dto.ExerciseAttemptDto;
-import org.vstu.compprehension.dto.question.QuestionDto;
-import org.vstu.compprehension.models.entities.EnumData.AttemptStatus;
-import org.vstu.compprehension.models.entities.UserEntity;
-import org.vstu.compprehension.models.entities.exercise.ExerciseStageEntity;
-import org.vstu.compprehension.models.repository.ExerciseRepository;
-import org.vstu.compprehension.models.repository.QuestionGenerationRequestRepository;
-import org.vstu.compprehension.models.repository.QuestionMetadataRepository;
-import org.vstu.compprehension.models.repository.UserRepository;
-import org.vstu.compprehension.utils.RandomProvider;
+import org.vstu.compprehension.frontend.ExerciseAttemptFrontendService;
+import org.vstu.compprehension.frontend.dto.ExerciseAttemptDto;
+import org.vstu.compprehension.frontend.dto.question.QuestionDto;
+import org.vstu.compprehension.repositories.data.ExerciseDataRepository;
+import org.vstu.compprehension.repositories.data.QuestionBankDataRepository;
+import org.vstu.compprehension.repositories.data.UserDataRepository;
+import org.vstu.compprehension.services.RandomProvider;
 import org.vstu.compprehension.utils.transactions.TransactionScope;
-import org.vstu.compprehension.utils.transactions.TransactionScopeFactory;
 
 import java.time.LocalDate;
 import java.util.concurrent.Callable;
@@ -32,29 +27,16 @@ import java.util.concurrent.TimeUnit;
 
 @Log4j2
 @Service
+@RequiredArgsConstructor
 public class BankLoadTestingJob {
-    private final FrontendService frontendService;
-    private final ExerciseRepository exerciseRepository;
-    private final UserRepository userRepository;
+    private final ExerciseAttemptFrontendService frontendService;
+    private final ExerciseDataRepository exercises;
+    private final UserDataRepository users;
+    private final QuestionBankDataRepository bank;
     private final BankLoadTestingJobConfig config;
     private final BankLoadTestingJobBatchConfig batchConfig;
     private final TransactionScope transactionScope;
     private final RandomProvider randomProvider;
-    private final QuestionMetadataRepository questionMetadataRepository;
-    private final QuestionGenerationRequestRepository questionGenerationRequestRepository;
-
-    @Autowired
-    public BankLoadTestingJob(FrontendService frontendService, ExerciseRepository exerciseRepository, UserRepository userRepository, BankLoadTestingJobConfig config, BankLoadTestingJobBatchConfig batchConfig, TransactionScopeFactory transactionScopeFactory, RandomProvider randomProvider, QuestionMetadataRepository questionMetadataRepository, QuestionGenerationRequestRepository questionGenerationRequestRepository) {
-        this.frontendService = frontendService;
-        this.exerciseRepository = exerciseRepository;
-        this.userRepository = userRepository;
-        this.config = config;
-        this.batchConfig = batchConfig;
-        this.transactionScope = transactionScopeFactory.create(TransactionScope.PropagationBehavior.REQUIRES_NEW);
-        this.randomProvider = randomProvider;
-        this.questionMetadataRepository = questionMetadataRepository;
-        this.questionGenerationRequestRepository = questionGenerationRequestRepository;
-    }
 
     @Job(name = "question-bank-load-testing-job", retries = 0)
     public void run() {
@@ -85,10 +67,10 @@ public class BankLoadTestingJob {
         for(int genThreshold = batchConfig.getGeneratorThresholdFrom(); genThreshold <= batchConfig.getGeneratorThresholdTo(); genThreshold += batchConfig.getGeneratorThresholdStep()) {
             for (int safeMargin = batchConfig.getGeneratorAdditionalQuestionsToGenerateFrom(); safeMargin <= batchConfig.getGeneratorAdditionalQuestionsToGenerateTo(); safeMargin += batchConfig.getGeneratorAdditionalQuestionsToGenerateStep()) {
                 // ensure all gen requests cancelled
-                transactionScope.execute(questionGenerationRequestRepository::cancelAllActiveRequests);
+                transactionScope.execute(bank::cancelAllActiveGenerationRequests);
                 
                 log.info("Start cleaning bank from previous attempts");
-                var deletedMetadatas = transactionScope.execute(() -> questionMetadataRepository.deleteMetadataFromDate(LocalDate.now().minusDays(2)));
+                var deletedMetadatas = transactionScope.execute(() -> bank.deleteMetadataFromDate(LocalDate.now().minusDays(2)));
                 log.info("Finish cleaning bank from previous attempts with {} deleted metadatas", deletedMetadatas);
                 
                 log.info("Generating experiment starts with generatorThreshold: {} and additionalQuestionsToGenerate: {}", genThreshold, safeMargin);
@@ -127,7 +109,7 @@ public class BankLoadTestingJob {
                 
                 // завершаем все открытые запросы на генерацию
                 // дожидаемся, пока закончит работу генератор
-                var cancelledCount = transactionScope.execute(questionGenerationRequestRepository::cancelAllActiveRequests);
+                var cancelledCount = transactionScope.execute(bank::cancelAllActiveGenerationRequests);
                 if (cancelledCount != null && cancelledCount > 0) {
                     Thread.sleep(1000 * 30);
                 }
@@ -144,25 +126,19 @@ public class BankLoadTestingJob {
         
         // set overridable settings
         if (config.getGeneratorThreshold() != null) {
-            transactionScope.executeNoResult(() -> {
-                var exercise = exerciseRepository.findById(config.getExerciseId())
-                        .orElseThrow();
-                exercise.getOptions().setGeneratorThreshold(config.getGeneratorThreshold());
-                exercise.getOptions().setGeneratorAdditionalQuestionsToGenerate(config.getGeneratorAdditionalQuestionsToGenerate());
-                exerciseRepository.save(exercise);
-            });
+            transactionScope.executeNoResult(() -> exercises.updateGeneratorSettings(
+                    config.getExerciseId(),
+                    config.getGeneratorThreshold(),
+                    config.getGeneratorAdditionalQuestionsToGenerate()));
         }
 
-        var questionsNumber = transactionScope.execute(() ->exerciseRepository.findById(config.getExerciseId()).orElseThrow()
-                .getStages().stream()
-                .map(ExerciseStageEntity::getNumberOfQuestions)
+        var questionsNumber = transactionScope.execute(() -> exercises.getById(config.getExerciseId())
+                .stages().stream()
+                .map(ExerciseStageData::getNumberOfQuestions)
                 .mapToInt(Integer::intValue)
                 .sum());
 
-        var users = IteratorUtils.toList(userRepository.findAll().iterator());
-        var userIds = users.stream()
-                .map(UserEntity::getId)
-                .sorted()
+        var userIds = users.findAllIds().stream()
                 .limit(config.getUsersCount())
                 .toList();
         if (userIds.isEmpty()) {
@@ -216,7 +192,7 @@ public class BankLoadTestingJob {
 
             // skip delay if generation request was not created
             if (lastGenerationRequestId == null) {
-                lastGenerationRequestId = questionGenerationRequestRepository.getLastRequestByExerciseAttemptId(attemptId).orElse(null);
+                lastGenerationRequestId = bank.findLastGenerationRequestIdOfAttempt(attemptId).orElse(null);
                 if (lastGenerationRequestId == null && config.isSkipDelayForQuestionsWithoutGeneration()) {
                     log.debug("User {} skipped question solve delay because no generation requests have been found", userId);
                     questionSolveDuration = 0;

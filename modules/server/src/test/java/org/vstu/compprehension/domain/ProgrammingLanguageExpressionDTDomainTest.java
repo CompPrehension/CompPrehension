@@ -1,7 +1,13 @@
 package org.vstu.compprehension.domain;
 
-import org.vstu.compprehension.models.businesslogic.*;
-import org.vstu.compprehension.models.businesslogic.Tag;
+import lombok.RequiredArgsConstructor;
+import org.vstu.compprehension.data.question.AnswerData;
+import org.vstu.compprehension.data.question.AnswerObjectData;
+import org.vstu.compprehension.data.question.QuestionData;
+import org.vstu.compprehension.data.exercise.ExerciseOptionsData;
+import org.vstu.compprehension.data.exercise.ExerciseStageData;
+import org.vstu.compprehension.businesslogic.*;
+import org.vstu.compprehension.businesslogic.Tag;
 
 import org.vstu.compprehension.infrastructure.AbstractIntegrationTest;
 
@@ -10,22 +16,19 @@ import org.apache.jena.rdf.model.Model;
 import org.junit.jupiter.api.*;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.util.Assert;
-import org.vstu.compprehension.Service.QuestionService;
-import org.vstu.compprehension.models.businesslogic.domains.DomainFactory;
-import org.vstu.compprehension.models.businesslogic.domains.ProgrammingLanguageExpressionDTDomain;
-import org.vstu.compprehension.models.businesslogic.domains.helpers.meaningtree.MeaningTreeDefaultExpressionConfig;
-import org.vstu.compprehension.models.businesslogic.domains.helpers.meaningtree.MeaningTreeOrderQuestionBuilder;
-import org.vstu.compprehension.models.businesslogic.domains.helpers.meaningtree.MeaningTreeRDFHelper;
-import org.vstu.compprehension.models.entities.AnswerObjectEntity;
-import org.vstu.compprehension.models.entities.EnumData.Language;
-import org.vstu.compprehension.models.entities.ExerciseAttemptEntity;
-import org.vstu.compprehension.models.entities.ResponseEntity;
-import org.vstu.compprehension.models.entities.exercise.ExerciseEntity;
-import org.vstu.compprehension.models.entities.exercise.ExerciseOptionsEntity;
-import org.vstu.compprehension.models.entities.exercise.ExerciseStageEntity;
-import org.vstu.compprehension.models.repository.ExerciseAttemptRepository;
-import org.vstu.compprehension.models.repository.ExerciseRepository;
-import org.vstu.compprehension.models.repository.UserRepository;
+import org.vstu.compprehension.services.QuestionDataService;
+import org.vstu.compprehension.businesslogic.domains.DomainFactory;
+import org.vstu.compprehension.businesslogic.domains.ProgrammingLanguageExpressionDTDomain;
+import org.vstu.compprehension.businesslogic.domains.helpers.meaningtree.MeaningTreeDefaultExpressionConfig;
+import org.vstu.compprehension.businesslogic.domains.helpers.meaningtree.MeaningTreeOrderQuestionBuilder;
+import org.vstu.compprehension.businesslogic.domains.helpers.meaningtree.MeaningTreeRDFHelper;
+import org.vstu.compprehension.enums.Language;
+import org.vstu.compprehension.entities.ExerciseAttemptEntity;
+import org.vstu.compprehension.entities.ExerciseEntity;
+import org.vstu.compprehension.repositories.entity.ExerciseAttemptRepository;
+import org.vstu.compprehension.repositories.entity.DomainRepository;
+import org.vstu.compprehension.repositories.entity.ExerciseRepository;
+import org.vstu.compprehension.repositories.entity.UserRepository;
 import org.vstu.meaningtree.MeaningTree;
 import org.vstu.meaningtree.SupportedLanguage;
 import org.vstu.meaningtree.iterators.utils.NodeInfo;
@@ -46,13 +49,13 @@ public class ProgrammingLanguageExpressionDTDomainTest extends AbstractIntegrati
     @Autowired
     DomainFactory domainFactory;
     @Autowired
+    private DomainRepository domainRepository;
+    @Autowired
     private ExerciseAttemptRepository exerciseAttemptRepository;
     @Autowired
     private ExerciseRepository exerciseRepository;
     @Autowired
     private UserRepository userRepository;
-    @Autowired
-    private QuestionService questionService;
 
     private ExerciseAttemptEntity attempt;
     private ExerciseEntity exercise;
@@ -64,14 +67,14 @@ public class ProgrammingLanguageExpressionDTDomainTest extends AbstractIntegrati
     public void tearUp() {
         domain = (ProgrammingLanguageExpressionDTDomain) domainFactory.getDomain(domainId);
         exercise = new ExerciseEntity();
-        exercise.setDomain(domain.getDomainEntity());
+        exercise.setDomain(domainRepository.findById(domain.getName()).orElseThrow());
         exercise.setBackendId("DTReasoner");
         exercise.setTags("");
-        exercise.setOptions(new ExerciseOptionsEntity(null, true,
+        exercise.setOptions(new ExerciseOptionsData(null, true,
                 true, true, true, true,
-                true, 7, null, null));
+                7, null, null));
         exercise.setName("test");
-        exercise.setStages(Collections.singletonList(new ExerciseStageEntity()));
+        exercise.setStages(Collections.singletonList(new ExerciseStageData()));
         exercise.setStrategyId("StaticStrategy");
         exercise.getStages().getFirst();
         exerciseRepository.save(exercise);
@@ -90,31 +93,31 @@ public class ProgrammingLanguageExpressionDTDomainTest extends AbstractIntegrati
     }
 
     public boolean generateAndSolve(String expression, SupportedLanguage inLang, SupportedLanguage outLang, List<Integer> sequence) {
-        Question q = MeaningTreeOrderQuestionBuilder.newQuestion(domain).skipMutations(true).expression(expression, inLang).questionOrigin("test", "MIT").buildQuestions(outLang).getLast();
+        QuestionData q = QuestionData.of(MeaningTreeOrderQuestionBuilder.newQuestion(domain).skipMutations(true).expression(expression, inLang).questionOrigin("test", "MIT").buildQuestions(outLang).getLast().getContent());
         String outLangStr = outLang.toString().substring(0, 1).toUpperCase() + outLang.toString().substring(1);
 
         boolean allPassed = true;
         // Check metadata
-        Assert.isTrue(q.getMetadata() != null
-                && q.getMetadata().getIntegralComplexity() >= 0
-                && q.getMetadata().getIntegralComplexity() <= 1, String.format(
+        Assert.isTrue(q.getContent().getMetadata() != null
+                && q.getContent().getMetadata().getIntegralComplexity() >= 0
+                && q.getContent().getMetadata().getIntegralComplexity() <= 1, String.format(
                 "Invalid integral complexity %f, possibleErrors=%d, solutionLength=%d",
-                q.getMetadata().getIntegralComplexity(),
-                q.getMetadata().getDistinctErrorsCount(),
-                q.getMetadata().getSolutionSteps()));
+                q.getContent().getMetadata().getIntegralComplexity(),
+                q.getContent().getMetadata().getDistinctErrorsCount(),
+                q.getContent().getMetadata().getSolutionSteps()));
 
-        List<ResponseEntity> responses = new ArrayList<>();
+        List<AnswerData> responses = new ArrayList<>();
         for (Integer response : sequence) {
-            AnswerObjectEntity answerObject = AnswerObjectEntity
+            AnswerObjectData answerObject = AnswerObjectData
                     .builder().answerId(response)
                     .domainInfo("token_" + response).build();
-            responses.add(ResponseEntity.builder().leftAnswerObject(answerObject).rightAnswerObject(answerObject).build());
-            var result = questionService.judgeQuestion(q, responses, List.of(domain.getTag(outLangStr)));
+            responses.add(AnswerData.of(answerObject, answerObject));
+            var result = domain.judgeQuestion(q, responses, List.of(domain.getTag(outLangStr)), Language.ENGLISH);
             allPassed = allPassed && result.isAnswerCorrect;
             if (!result.isAnswerCorrect) {
                 Assertions.fail(String.format("%s: %s", responses.stream()
-                        .map(ResponseEntity::getLeftAnswerObject)
-                        .map(AnswerObjectEntity::getDomainInfo).toList(), result.explanation.getChildren()
+                        .map(AnswerData::getLeftAnswerObject)
+                        .map(AnswerObjectData::getDomainInfo).toList(), result.explanation.getChildren()
                         .stream().map(e -> e.toHyperText(Language.ENGLISH).getText())
                         .collect(Collectors.joining("\n"))));
             }
@@ -166,20 +169,20 @@ public class ProgrammingLanguageExpressionDTDomainTest extends AbstractIntegrati
                 .stepsMax(10)
                 .complexity(0.8f)
                 .build();
-        Question q = domain.makeQuestion(r, attempt, Language.ENGLISH);
+        var q = domain.makeQuestion(r, attempt.getExercise().getOptions(), Language.ENGLISH);
         if (q == null) {
             return;
         }
 
         // Check tree correctness
-        Model m = MeaningTreeRDFHelper.backendFactsToModel(q.getStatementFacts());
+        Model m = MeaningTreeRDFHelper.backendFactsToModel(q.getContent().getStatementFacts());
         RDFDeserializer deserializer = new RDFDeserializer();
         MeaningTree mt = deserializer.deserializeTree(m);
 
         // Check metadata
-        Assert.isTrue(q.getMetadata() != null
-                && q.getMetadata().getIntegralComplexity() >= 0
-                && q.getMetadata().getIntegralComplexity() <= 1, String.format("Invalid integral complexity %f", q.getMetadata().getIntegralComplexity()));
+        Assert.isTrue(q.getContent().getMetadata() != null
+                && q.getContent().getMetadata().getIntegralComplexity() >= 0
+                && q.getContent().getMetadata().getIntegralComplexity() <= 1, String.format("Invalid integral complexity %f", q.getContent().getMetadata().getIntegralComplexity()));
     }
 
     public void testStrictOrderConversion(SupportedLanguage language) {
@@ -203,13 +206,13 @@ public class ProgrammingLanguageExpressionDTDomainTest extends AbstractIntegrati
                 .stepsMax(10)
                 .complexity(0.8f)
                 .build();
-        Question q = domain.makeQuestion(r, attempt, Language.ENGLISH);
+        var q = domain.makeQuestion(r, attempt.getExercise().getOptions(), Language.ENGLISH);
         if (q == null) {
             return;
         }
 
         // Check tree correctness
-        Model m = MeaningTreeRDFHelper.backendFactsToModel(q.getStatementFacts());
+        Model m = MeaningTreeRDFHelper.backendFactsToModel(q.getContent().getStatementFacts());
         RDFDeserializer deserializer = new RDFDeserializer();
         MeaningTree mt = deserializer.deserializeTree(m);
         try {
@@ -232,9 +235,9 @@ public class ProgrammingLanguageExpressionDTDomainTest extends AbstractIntegrati
 
 
         // Check metadata
-        Assert.isTrue(q.getMetadata() != null
-                && q.getMetadata().getIntegralComplexity() >= 0
-                && q.getMetadata().getIntegralComplexity() <= 1, String.format("Invalid integral complexity %f", q.getMetadata().getIntegralComplexity()));
+        Assert.isTrue(q.getContent().getMetadata() != null
+                && q.getContent().getMetadata().getIntegralComplexity() >= 0
+                && q.getContent().getMetadata().getIntegralComplexity() <= 1, String.format("Invalid integral complexity %f", q.getContent().getMetadata().getIntegralComplexity()));
 
     }
 

@@ -4,7 +4,7 @@ export const TCourseDto = io.type({
     id: io.number,
     name: io.string,
     educationResourceId: io.number,
-    educationResourceName: io.string,
+    educationResourceUrl: io.string,
 });
 
 export type CourseDto = io.TypeOf<typeof TCourseDto>;

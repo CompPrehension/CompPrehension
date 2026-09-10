@@ -1,19 +1,22 @@
 package org.vstu.compprehension.adapter;
 
+import lombok.SneakyThrows;
 import org.springframework.stereotype.Component;
-import org.vstu.compprehension.Service.UserService;
-import org.vstu.compprehension.models.entities.EnumData.Language;
-import org.vstu.compprehension.models.entities.UserEntity;
+import org.vstu.compprehension.services.UserDataService;
+import org.vstu.compprehension.enums.Language;
+import org.vstu.compprehension.data.user.UserData;
 
 @Component
-public class UserServiceImpl implements UserService {
+public class UserServiceImpl implements UserDataService {
+    @SneakyThrows
     @Override
-    public UserEntity getCurrentUser() throws Exception {
+    public UserData getCurrentUser() {
         throw new Exception("No user");
     }
 
+    @SneakyThrows
     @Override
-    public void setLanguage(Language language) throws Exception {
+    public void setLanguage(Language language) {
         throw new Exception("No user");
     }
 }

@@ -1,8 +1,8 @@
 package org.vstu.compprehension.config;
 
-import domains.ControlFlowDTDomain;
-import domains.DataFlowDTDomain;
-import domains.ObjectsScopeDTDomain;
+import org.vstu.compprehension.businesslogic.domains.ControlFlowDTDomain;
+import org.vstu.compprehension.businesslogic.domains.DataFlowDTDomain;
+import org.vstu.compprehension.businesslogic.domains.ObjectsScopeDTDomain;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.boot.autoconfigure.web.servlet.DispatcherServletAutoConfiguration;
 import org.springframework.boot.web.servlet.ServletRegistrationBean;
@@ -17,12 +17,12 @@ import org.springframework.web.servlet.config.annotation.InterceptorRegistry;
 import org.springframework.web.servlet.config.annotation.WebMvcConfigurer;
 import org.springframework.web.servlet.i18n.CookieLocaleResolver;
 import org.springframework.web.servlet.i18n.LocaleChangeInterceptor;
-import org.vstu.compprehension.Service.UserService;
+import org.vstu.compprehension.services.UserDataService;
 import org.vstu.compprehension.config.interceptors.RandomSeedSetInterceptor;
 import org.vstu.compprehension.config.logs.LoggableDispatcherServlet;
-import org.vstu.compprehension.models.businesslogic.domains.ControlFlowStatementsDomain;
-import org.vstu.compprehension.models.businesslogic.domains.ProgrammingLanguageExpressionDTDomain;
-import org.vstu.compprehension.models.businesslogic.domains.ProgrammingLanguageExpressionDomain;
+import org.vstu.compprehension.businesslogic.domains.ControlFlowStatementsDomain;
+import org.vstu.compprehension.businesslogic.domains.ProgrammingLanguageExpressionDTDomain;
+import org.vstu.compprehension.businesslogic.domains.ProgrammingLanguageExpressionDomain;
 
 import java.util.Locale;
 
@@ -30,12 +30,12 @@ import java.util.Locale;
 public class WebConfig implements WebMvcConfigurer {
 
     @Bean
-    public ServletRegistrationBean dispatcherRegistration(@Autowired UserService userService) {
+    public ServletRegistrationBean dispatcherRegistration(@Autowired UserDataService userService) {
         return new ServletRegistrationBean(dispatcherServlet(userService));
     }
 
     @Bean(name = DispatcherServletAutoConfiguration.DEFAULT_DISPATCHER_SERVLET_BEAN_NAME)
-    public DispatcherServlet dispatcherServlet(@Autowired UserService userService) {
+    public DispatcherServlet dispatcherServlet(@Autowired UserDataService userService) {
         return new LoggableDispatcherServlet(userService);
     }
 
@@ -69,8 +69,12 @@ public class WebConfig implements WebMvcConfigurer {
         return localeInterceptor;
     }
 
-    @Autowired
-    private RandomSeedSetInterceptor randomSeedSetInterceptor;
+    private final RandomSeedSetInterceptor randomSeedSetInterceptor;
+
+    public WebConfig(RandomSeedSetInterceptor randomSeedSetInterceptor) {
+        this.randomSeedSetInterceptor = randomSeedSetInterceptor;
+    }
+
     @Override
     public void addInterceptors(InterceptorRegistry registry) {
         registry.addInterceptor(randomSeedSetInterceptor);

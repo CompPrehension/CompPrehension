@@ -4,11 +4,14 @@ import com.beust.jcommander.JCommander;
 import com.beust.jcommander.Parameter;
 import com.beust.jcommander.ParameterException;
 import lombok.extern.log4j.Log4j2;
+import org.vstu.compprehension.data.domain.DomainData;
+import org.vstu.compprehension.data.domain.DomainOptionsData;
 import org.vstu.compprehension.adapters.*;
-import org.vstu.compprehension.models.businesslogic.domains.ProgrammingLanguageExpressionDTDomain;
-import org.vstu.compprehension.models.businesslogic.domains.ProgrammingLanguageExpressionDomain;
-import org.vstu.compprehension.models.businesslogic.storage.QuestionBank;
-import org.vstu.compprehension.utils.transactions.TransactionScopeFactoryStub;
+import org.vstu.compprehension.repositories.entity.FakeDataAccess;
+import org.vstu.compprehension.businesslogic.domains.ProgrammingLanguageExpressionDTDomain;
+import org.vstu.compprehension.businesslogic.domains.ProgrammingLanguageExpressionDomain;
+import org.vstu.compprehension.services.RandomProviderImpl;
+import org.vstu.compprehension.services.questionbank.QuestionBankImpl;
 
 import java.io.IOException;
 import java.nio.file.Files;
@@ -47,24 +50,17 @@ public class Main {
     String outputPath;
 
     public void generateQuestionsForExpressionsDomain() {
-        //val df = ApplicationContextProvider.getApplicationContext().getBean(DomainFactory.class);
 
         //ProgrammingLanguageExpressionDomain domain = (ProgrammingLanguageExpressionDomain) df.getDomain("ProgrammingLanguageExpressionDomain");
 
-        var domainEntity = new FakeDomainRepository().findById("").orElseThrow();
+        var domainData = new DomainData("expression", "expression", "1.0.0", new DomainOptionsData());
         var domain = new ProgrammingLanguageExpressionDTDomain(
-                domainEntity,
+                domainData,
                 new ProgrammingLanguageExpressionDomain(
-                        domainEntity,
+                        domainData,
                         new FakeLocalizationService(),
-                        new FakeRandomProvider(),
-                        new QuestionBank(
-                                new FakeQuestionMetadataRepository(),
-                                new FakeQuestionDataRepository(),
-                                null,
-                                null,
-                                new TransactionScopeFactoryStub()
-                        )
+                        new RandomProviderImpl(),
+                        new QuestionBankImpl(FakeDataAccess.questionBank(), null)
                 )
         );
 

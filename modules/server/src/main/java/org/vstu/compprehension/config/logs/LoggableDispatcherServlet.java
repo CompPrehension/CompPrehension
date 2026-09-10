@@ -9,7 +9,7 @@ import org.springframework.web.servlet.DispatcherServlet;
 import org.springframework.web.servlet.HandlerExecutionChain;
 import org.springframework.web.util.ContentCachingResponseWrapper;
 import org.springframework.web.util.WebUtils;
-import org.vstu.compprehension.Service.UserService;
+import org.vstu.compprehension.services.UserDataService;
 import org.vstu.compprehension.config.cache.CachedHttpServletRequest;
 
 import java.io.*;
@@ -20,9 +20,9 @@ import java.util.stream.Collectors;
 
 @Log4j2
 public class LoggableDispatcherServlet extends DispatcherServlet {
-    private final UserService userService;
+    private final UserDataService userService;
 
-    public LoggableDispatcherServlet(UserService userService) {
+    public LoggableDispatcherServlet(UserDataService userService) {
         this.userService = userService;
     }
 
@@ -64,7 +64,7 @@ public class LoggableDispatcherServlet extends DispatcherServlet {
         ThreadContext.put("correlationId", UUID.randomUUID().toString());
         ThreadContext.put("sessionId", requestToCache.getSession().getId());
         ThreadContext.put("userId", userService.tryGetCurrentUser()
-                .map(u -> u.getId().toString()).orElse(null));
+                .map(u -> String.valueOf(u.id())).orElse(null));
 
         var parameters = Collections.list(requestToCache.getParameterNames())
                 .stream()

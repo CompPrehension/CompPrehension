@@ -1,0 +1,126 @@
+package org.vstu.compprehension.businesslogic.domains.helpers.meaningtree;
+
+import org.vstu.compprehension.data.question.QuestionMetadataData;
+import org.vstu.compprehension.data.question.QuestionMetadataWithData;
+import org.vstu.compprehension.data.question.AnswerObjectData;
+import org.vstu.compprehension.data.question.GeneratedQuestionData;
+import org.vstu.compprehension.businesslogic.Tag;
+import org.vstu.compprehension.businesslogic.domains.ProgrammingLanguageExpressionDTDomain;
+import org.vstu.compprehension.businesslogic.storage.QuestionBank;
+import org.vstu.compprehension.businesslogic.storage.SerializableQuestion;
+import org.vstu.compprehension.enums.Language;
+import org.vstu.meaningtree.SupportedLanguage;
+import org.vstu.meaningtree.utils.tokens.ComplexOperatorToken;
+import org.vstu.meaningtree.utils.tokens.OperatorToken;
+import org.vstu.meaningtree.utils.tokens.Token;
+import org.vstu.meaningtree.utils.tokens.TokenList;
+
+import java.util.HashMap;
+
+public class QuestionDynamicDataAppender {
+    /**
+     * Adds dynamic data required for student interaction
+     * Method create question text and answer objects.
+     * Old question format will be automatically converted to new format
+     * @param q domain question object
+     * @param bank question bank
+     * @param lang programming language of question
+     * @param domain target domain
+     * @return filled domain question object
+     */
+    public static GeneratedQuestionData appendQuestionData(GeneratedQuestionData q, QuestionBank bank,
+                                                          SupportedLanguage lang, ProgrammingLanguageExpressionDTDomain domain, Language userLang) {
+        var meta = q.getContent().getMetadata();
+        if (meta != null && meta.getVersion() < MeaningTreeOrderQuestionBuilder.MIN_VERSION) {
+            q = MeaningTreeOrderQuestionBuilder.fastBuildFromExisting(q, lang, domain);
+            if (q == null) {
+                return null;
+            }
+            var body = SerializableQuestion.fromQuestion(q);
+            bank.replaceQuestionBody(meta.getId(), body);
+        }
+
+        var content = q.getContent();
+        var statementFacts = MeaningTreeRDFHelper.applyRuntimeFixes(content.getStatementFacts());
+        TokenList tokens = MeaningTreeRDFHelper.backendFactsToTokens(statementFacts, lang);
+        var answerObjects = MeaningTreeOrderQuestionBuilder.generateAnswerObjects(tokens).stream().map(
+                (SerializableQuestion.AnswerObject obj) -> {
+                    AnswerObjectData ansEntity = new AnswerObjectData();
+                    ansEntity.setConcept(obj.getConcept());
+                    ansEntity.setDomainInfo(obj.getDomainInfo());
+                    ansEntity.setHyperText(obj.getHyperText());
+                    ansEntity.setAnswerId(obj.getAnswerId());
+                    ansEntity.setRightCol(obj.isRightCol());
+                    return ansEntity;
+                }).toList();
+
+        return q.withContent(content.toBuilder()
+                .statementFacts(statementFacts)
+                .answerObjects(answerObjects)
+                .questionText(questionToHtml(tokens, domain, userLang, content.getMetadata()))
+                .build());
+    }
+
+    /**
+     * Creates question HTML representation
+     * @param tokens tokens of question
+     * @param domain target domain
+     * @param lang user locale
+     * @return question html string
+     */
+    static String questionToHtml(TokenList tokens,
+                                 ProgrammingLanguageExpressionDTDomain domain,
+                                 Language lang, QuestionMetadataData metadata
+    ) {
+        StringBuilder sb = new StringBuilder("<div class='comp-ph-question'>");
+        sb.append(domain.getMessage("BASE_QUESTION_TEXT", lang));
+        sb.append("<p class='comp-ph-expr'>");
+        HashMap<Integer, Integer> complexEndingsIds = new HashMap<>();
+        int idx = 0;
+        int answerIdx = -1;
+        for (Token t: tokens) {
+            String tokenValue = t.value;
+            if (t instanceof OperatorToken) {
+                sb.append("<span data-comp-ph-pos='").append(++idx).append("' id='answer_")
+                        .append(complexEndingsIds.containsKey(idx - 1) ? complexEndingsIds.get(idx - 1) : ++answerIdx)
+                        .append("' class='comp-ph-expr-op-btn'").append(">").append(tokenValue).append("</span>");
+
+                if (t instanceof ComplexOperatorToken complex && complex.isOpening()) {
+                    int pos = tokens.findClosingComplex(idx - 1);
+                    if (pos != -1) {
+                        complexEndingsIds.put(pos, answerIdx);
+                    }
+                }
+            } else {
+                sb.append("<span data-comp-ph-pos='").append(++idx).append("' class='comp-ph-expr-const'").append(">").append(tokenValue).append("</span>");
+            }
+        }
+
+        sb.append("<br/><button data-comp-ph-pos='").append(++idx).append("' id='answer_").append(++answerIdx).append("' class='btn comp-ph-complete-btn' data-comp-ph-value=''>").append(
+                lang != null ? domain.getMessage("student_end_evaluation", lang) : "everything is evaluated"
+        ).append("</button>");
+
+        sb.append("<!-- Original expression: ");
+        MeaningTreeUtils.appendJoinTokenValues(sb, " ", tokens);
+        sb.append(' ');
+        sb.append("-->");
+        if (metadata != null) {
+            sb.append("<!-- Metadata id: ");
+            sb.append(metadata.getId());
+            sb.append("-->");
+            sb.append("<!-- Question tags: ");
+            for (Tag tag : domain.tagsFromBitmask(metadata.getTagBits())) {
+                sb.append(tag.getName());
+                sb.append(" ");
+            }
+            sb.append("-->");
+        }
+        sb.append("</p>");
+        sb.append("</div>");
+        return sb.toString().replaceAll("\\*", "&#8727")
+                .replaceAll("\\n", "<br>")
+                .replaceAll("\\t", "&nbsp;&nbsp;&nbsp;&nbsp;");
+    }
+
+
+}

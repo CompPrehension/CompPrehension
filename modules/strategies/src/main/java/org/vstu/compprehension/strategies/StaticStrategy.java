@@ -1,32 +1,35 @@
 package org.vstu.compprehension.strategies;
 
+import org.vstu.compprehension.data.exercise.ExerciseStageData;
 import lombok.extern.log4j.Log4j2;
 import org.jetbrains.annotations.NotNull;
 import org.jetbrains.annotations.Nullable;
 import org.springframework.beans.factory.annotation.Autowired;
-import org.vstu.compprehension.models.businesslogic.Concept;
-import org.vstu.compprehension.models.businesslogic.QuestionRequest;
-import org.vstu.compprehension.models.businesslogic.domains.Domain;
-import org.vstu.compprehension.models.businesslogic.domains.DomainFactory;
-import org.vstu.compprehension.models.businesslogic.strategies.AbstractStrategy;
-import org.vstu.compprehension.models.businesslogic.strategies.StrategyOptions;
-import org.vstu.compprehension.models.entities.EnumData.*;
-import org.vstu.compprehension.models.entities.ExerciseAttemptEntity;
-import org.vstu.compprehension.models.entities.InteractionEntity;
-import org.vstu.compprehension.models.entities.QuestionEntity;
-import org.vstu.compprehension.models.entities.exercise.ExerciseEntity;
-import org.vstu.compprehension.models.entities.exercise.ExerciseStageEntity;
+import org.vstu.compprehension.businesslogic.Concept;
+import org.vstu.compprehension.businesslogic.QuestionRequest;
+import org.vstu.compprehension.businesslogic.domains.Domain;
+import org.vstu.compprehension.businesslogic.domains.DomainFactory;
+import org.vstu.compprehension.businesslogic.strategies.StrategyOptions;
+import org.vstu.compprehension.businesslogic.strategies.StrategyBase;
+import org.vstu.compprehension.enums.Decision;
+import org.vstu.compprehension.enums.InteractionType;
+import org.vstu.compprehension.enums.Language;
+import org.vstu.compprehension.services.ExerciseAttemptDataService;
+import org.vstu.compprehension.data.exerciseattempt.AttemptExerciseData;
+import org.vstu.compprehension.data.exerciseattempt.AttemptQuestionInteractionData;
+import org.vstu.compprehension.data.exerciseattempt.AttemptQuestionData;
 
 import java.util.List;
 
 @Log4j2
-public class StaticStrategy implements AbstractStrategy {
+public class StaticStrategy extends StrategyBase {
 
     private final DomainFactory domainFactory;
     private final StrategyOptions options;
 
     @Autowired
-    public StaticStrategy(DomainFactory domainFactory) {
+    public StaticStrategy(DomainFactory domainFactory, ExerciseAttemptDataService exerciseAttemptService) {
+        super(exerciseAttemptService);
         this.domainFactory = domainFactory;
         this.options = StrategyOptions.builder()
                 .multiStagesEnabled(true)
@@ -65,11 +68,12 @@ public class StaticStrategy implements AbstractStrategy {
     }
 
     @Override
-    public QuestionRequest generateQuestionRequest(ExerciseAttemptEntity exerciseAttempt) {
-        ExerciseEntity exercise = exerciseAttempt.getExercise();
-        Domain domain = domainFactory.getDomain(exercise.getDomain().getName());
+    public QuestionRequest generateQuestionRequest(long exerciseAttemptId) {
+        var exerciseAttempt = getAttempt(exerciseAttemptId);
+        AttemptExerciseData exercise = exerciseAttempt.exercise();
+        Domain domain = domainFactory.getDomain(exercise.domainName());
 
-        ExerciseStageEntity exerciseStage = getStageForNextQuestion(exerciseAttempt);
+        ExerciseStageData exerciseStage = getStageForNextQuestion(exerciseAttempt);
 
         QuestionRequest qr = initQuestionRequest(exerciseAttempt, exerciseStage, domain);
 
@@ -88,28 +92,19 @@ public class StaticStrategy implements AbstractStrategy {
     }
 
     @Override
-    public DisplayingFeedbackType determineDisplayingFeedbackType(QuestionEntity question) {
-        return null;
-    }
-
-    @Override
-    public FeedbackType determineFeedbackType(QuestionEntity question) {
-        return null;
-    }
-
-    @Override
-    public float grade(ExerciseAttemptEntity exerciseAttempt, Domain.InterpretSentenceResult judgeResult) {
+    public float grade(long exerciseAttemptId, Domain.InterpretSentenceResult judgeResult) {
+        var exerciseAttempt = getAttempt(exerciseAttemptId);
         // all questions defined by exercise
-        int nQuestionsExpected = exerciseAttempt.getExercise().getStages().stream().mapToInt(ExerciseStageEntity::getNumberOfQuestions).reduce(Integer::sum).orElse(1);
+        int nQuestionsExpected = exerciseAttempt.exercise().stages().stream().mapToInt(ExerciseStageData::getNumberOfQuestions).reduce(Integer::sum).orElse(1);
         // current progress over all questions
         float cumulativeGrade = 0;
-        for(QuestionEntity q : exerciseAttempt.getQuestions()) {
-            List<InteractionEntity> interactions = q.getInteractions();
+        for(AttemptQuestionData q : exerciseAttempt.questions()) {
+            List<AttemptQuestionInteractionData> interactions = q.interactions();
             int knownInteractions = interactions.size();
             long correctInteractions = interactions.stream()
                     .filter(inter -> inter != null
-                            && inter.getInteractionType() == InteractionType.SEND_RESPONSE
-                            && (inter.getViolations() == null || inter.getViolations().isEmpty())
+                            && inter.type() == InteractionType.SEND_RESPONSE
+                            && (inter.violationLawNames() == null || inter.violationLawNames().isEmpty())
                     )
                     .count();
             if (knownInteractions == 0)
@@ -121,21 +116,22 @@ public class StaticStrategy implements AbstractStrategy {
     }
 
     @Override
-    public Decision decide(ExerciseAttemptEntity exerciseAttempt) {
-        List<QuestionEntity> questions = exerciseAttempt.getQuestions();
+    public Decision decide(long exerciseAttemptId) {
+        var exerciseAttempt = getAttempt(exerciseAttemptId);
+        List<AttemptQuestionData> questions = exerciseAttempt.questions();
 
         // get limit of questions defined by teacher in exercise GUI
-        int minimumQuestionsToAsk = getNumberOfQuestionsToAsk(exerciseAttempt.getExercise());
+        int minimumQuestionsToAsk = getNumberOfQuestionsToAsk(exerciseAttempt.exercise());
 
         // Должно быть задано не менее X вопросов и последний вопрос должен быть завершён (завершение упражнения возможно только в момент завершения вопроса)
         if(questions.size() < minimumQuestionsToAsk ||
-                questions.stream().anyMatch(q -> (long)(q.getId()) == questions.get(questions.size() - 1).getId() && (q.getInteractions().size() == 0 || q.getInteractions().get(q.getInteractions().size() - 1).getFeedback().getInteractionsLeft() > 0))){
+                questions.stream().anyMatch(q -> q.questionId() == questions.get(questions.size() - 1).questionId() && (q.interactions().size() == 0 || q.interactions().get(q.interactions().size() - 1).interactionsLeft() > 0))){
             return Decision.CONTINUE;
         }
 
         // Должно быть задано не менее X вопросов, которые были завершены
         long completedQuestions = questions.stream()
-                .filter(q -> q.getInteractions().size() > 0 && q.getInteractions().get(q.getInteractions().size() - 1).getFeedback().getInteractionsLeft() == 0)
+                .filter(q -> q.interactions().size() > 0 && q.interactions().get(q.interactions().size() - 1).interactionsLeft() == 0)
                 .count();
         if(completedQuestions < minimumQuestionsToAsk)
             return Decision.CONTINUE;
