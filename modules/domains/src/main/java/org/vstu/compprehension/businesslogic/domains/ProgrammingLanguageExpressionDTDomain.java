@@ -9,6 +9,7 @@ import com.google.gson.Gson;
 import com.google.gson.GsonBuilder;
 import com.google.gson.JsonSyntaxException;
 import io.brookite.termannotations.DomainTermDictionary;
+import org.vstu.compprehension.businesslogic.domains.helpers.DomainSolvingModelLoader;
 import its.model.DomainSolvingModel;
 import its.model.definition.DomainModel;
 import its.model.definition.EnumValueRef;
@@ -231,8 +232,9 @@ public class ProgrammingLanguageExpressionDTDomain extends DecisionTreeReasoning
 
     public static final String DOMAIN_MODEL_LOCATION = ProgrammingLanguageExpressionDomain.RESOURCES_LOCATION + "programming-language-expression-domain-model/";
 
-    private final DomainSolvingModel domainSolvingModel = new DomainSolvingModel(
-            Objects.requireNonNull(this.getClass().getClassLoader().getResource(DOMAIN_MODEL_LOCATION)),
+    private final DomainSolvingModel domainSolvingModel = DomainSolvingModelLoader.loadFromClasspath(
+            this.getClass().getClassLoader(),
+            DOMAIN_MODEL_LOCATION,
             DomainSolvingModel.BuildMethod.LOQI).validate();
 
     private final DomainTermDictionary domainTerms = DomainTermDictionary.fromURL(

@@ -13,6 +13,7 @@ import org.vstu.compprehension.data.questionoptions.MatchingQuestionOptionsData;
 import org.vstu.compprehension.data.questionoptions.QuestionOptionsData;
 import org.vstu.compprehension.data.questionoptions.MultiChoiceOptionsData;
 import org.vstu.compprehension.data.questionoptions.SingleChoiceOptionsData;
+import org.vstu.compprehension.businesslogic.domains.helpers.DomainSolvingModelLoader;
 import its.model.DomainSolvingModel;
 import its.model.definition.DomainModel;
 import its.model.nodes.BranchResult;
@@ -66,7 +67,7 @@ public class DecisionTreeSupQuestionHelper {
     ) {
         this(
                 domain,
-                new DomainSolvingModel(domainModelDirectoryURL, DomainSolvingModel.BuildMethod.LOQI),
+                DomainSolvingModelLoader.load(domainModelDirectoryURL, DomainSolvingModel.BuildMethod.LOQI),
                 mainQuestionToModelTransformer
         );
     }

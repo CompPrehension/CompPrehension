@@ -8,6 +8,7 @@ import org.vstu.compprehension.data.questionoptions.QuestionOptionsData;
 import org.vstu.compprehension.data.question.BackendFactData;
 import org.vstu.compprehension.data.questionoptions.OrderQuestionOptionsData;
 import org.vstu.compprehension.businesslogic.domains.helpers.GenerateErrorTextForScopeObjects;
+import org.vstu.compprehension.businesslogic.domains.helpers.DomainSolvingModelLoader;
 import its.model.DomainSolvingModel;
 import its.model.definition.DomainModel;
 import its.model.definition.ObjectDef;
@@ -75,8 +76,9 @@ public class DataFlowDTDomain extends DecisionTreeReasoningDomain {
 
     private static final String DOMAIN_MODEL_LOCATION = RESOURCES_LOCATION + "data-flow-domain-model/";
 
-    private final DomainSolvingModel domainSolvingModel = new DomainSolvingModel(
-            this.getClass().getClassLoader().getResource(DOMAIN_MODEL_LOCATION),
+    private final DomainSolvingModel domainSolvingModel = DomainSolvingModelLoader.loadFromClasspath(
+            this.getClass().getClassLoader(),
+            DOMAIN_MODEL_LOCATION,
             DomainSolvingModel.BuildMethod.DICT_RDF
     ).validate();
 
