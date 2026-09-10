@@ -7,6 +7,7 @@ import org.vstu.compprehension.data.question.ViolationData;
 import org.vstu.compprehension.data.questionoptions.QuestionOptionsData;
 import org.vstu.compprehension.data.question.BackendFactData;
 import org.vstu.compprehension.data.questionoptions.OrderQuestionOptionsData;
+import org.vstu.compprehension.businesslogic.domains.helpers.DomainSolvingModelLoader;
 import its.model.DomainSolvingModel;
 import its.model.definition.DomainModel;
 import its.model.definition.ObjectDef;
@@ -84,18 +85,21 @@ public class ObjectsScopeDTDomain extends DecisionTreeReasoningDomain {
 
     private static final String OBJECTS_VISIBILITY_DOMAIN_MODEL_LOCATION = RESOURCES_LOCATION + "objects-scope-domain-model/objects-visibility-in-line-domain-model/";
 
-    private final DomainSolvingModel domainLifeTimeSolvingModel = new DomainSolvingModel(
-            this.getClass().getClassLoader().getResource(OBJECT_LIFE_TIME_DOMAIN_MODEL_LOCATION),
+    private final DomainSolvingModel domainLifeTimeSolvingModel = DomainSolvingModelLoader.loadFromClasspath(
+            this.getClass().getClassLoader(),
+            OBJECT_LIFE_TIME_DOMAIN_MODEL_LOCATION,
             DomainSolvingModel.BuildMethod.DICT_RDF
     ).validate();
 
-    private final DomainSolvingModel domainObjectVisibilitySolvingModel = new DomainSolvingModel(
-            this.getClass().getClassLoader().getResource(OBJECT_VISIBILITY_DOMAIN_MODEL_LOCATION),
+    private final DomainSolvingModel domainObjectVisibilitySolvingModel = DomainSolvingModelLoader.loadFromClasspath(
+            this.getClass().getClassLoader(),
+            OBJECT_VISIBILITY_DOMAIN_MODEL_LOCATION,
             DomainSolvingModel.BuildMethod.DICT_RDF
     ).validate();
 
-    private final DomainSolvingModel domainObjectsVisibilityInLineSolvingModel = new DomainSolvingModel(
-            this.getClass().getClassLoader().getResource(OBJECTS_VISIBILITY_DOMAIN_MODEL_LOCATION),
+    private final DomainSolvingModel domainObjectsVisibilityInLineSolvingModel = DomainSolvingModelLoader.loadFromClasspath(
+            this.getClass().getClassLoader(),
+            OBJECTS_VISIBILITY_DOMAIN_MODEL_LOCATION,
             DomainSolvingModel.BuildMethod.DICT_RDF
     ).validate();
 

@@ -18,6 +18,7 @@ import org.vstu.compprehension.repositories.data.QuestionBankDataRepository;
 import org.vstu.compprehension.repositories.data.UserDataRepository;
 import org.vstu.compprehension.services.RandomProvider;
 import org.vstu.compprehension.utils.transactions.TransactionScope;
+import org.vstu.compprehension.utils.transactions.TransactionScopeFactory;
 
 import java.time.LocalDate;
 import java.util.concurrent.Callable;
@@ -27,7 +28,6 @@ import java.util.concurrent.TimeUnit;
 
 @Log4j2
 @Service
-@RequiredArgsConstructor
 public class BankLoadTestingJob {
     private final ExerciseAttemptFrontendService frontendService;
     private final ExerciseDataRepository exercises;
@@ -37,6 +37,17 @@ public class BankLoadTestingJob {
     private final BankLoadTestingJobBatchConfig batchConfig;
     private final TransactionScope transactionScope;
     private final RandomProvider randomProvider;
+
+    public BankLoadTestingJob(ExerciseAttemptFrontendService frontendService, ExerciseDataRepository exercises, UserDataRepository users, QuestionBankDataRepository bank, BankLoadTestingJobConfig config, BankLoadTestingJobBatchConfig batchConfig, RandomProvider randomProvider, TransactionScopeFactory transactionScopeFactory) {
+        this.frontendService = frontendService;
+        this.exercises = exercises;
+        this.users = users;
+        this.bank = bank;
+        this.config = config;
+        this.batchConfig = batchConfig;
+        this.randomProvider = randomProvider;
+        this.transactionScope = transactionScopeFactory.create(TransactionScope.PropagationBehavior.REQUIRES_NEW);
+    }
 
     @Job(name = "question-bank-load-testing-job", retries = 0)
     public void run() {

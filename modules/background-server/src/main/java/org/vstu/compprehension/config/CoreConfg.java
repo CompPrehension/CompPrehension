@@ -63,13 +63,6 @@ public class CoreConfg {
     }
 
     @Bean
-    @SessionScope
-    UserDataService getUserService() {
-        // Фоновому серверу пользователь не нужен: заданий от лица студента он не решает.
-        return new UserServiceImpl();
-    }
-
-    @Bean
     @Singleton
     LtiContextProvider getLtiContextProvider() {
         // Background jobs have no LTI request context.

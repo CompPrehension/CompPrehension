@@ -8,11 +8,11 @@ import java.util.concurrent.Callable;
 
 public abstract class DecisionTreeHelper {
     public static DomainSolvingModel buildDomainModelFromLOQI(URL domainURL){
-        return withHandledExceptions(() -> new DomainSolvingModel(domainURL, DomainSolvingModel.BuildMethod.LOQI));
+        return withHandledExceptions(() -> DomainSolvingModelLoader.load(domainURL, DomainSolvingModel.BuildMethod.LOQI));
     }
 
     public static DomainSolvingModel buildDomainModelFromDict(URL domainURL){
-        return withHandledExceptions(() -> new DomainSolvingModel(domainURL, DomainSolvingModel.BuildMethod.DICT_RDF));
+        return withHandledExceptions(() -> DomainSolvingModelLoader.load(domainURL, DomainSolvingModel.BuildMethod.DICT_RDF));
     }
 
     private static <T> T withHandledExceptions(Callable<T> callable){

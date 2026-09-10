@@ -7,6 +7,7 @@ import org.vstu.compprehension.data.question.ViolationData;
 import org.vstu.compprehension.data.question.BackendFactData;
 import com.fasterxml.jackson.databind.JsonNode;
 import com.fasterxml.jackson.databind.ObjectMapper;
+import org.vstu.compprehension.businesslogic.domains.helpers.DomainSolvingModelLoader;
 import its.model.DomainSolvingModel;
 import its.model.definition.*;
 import its.model.definition.build.DomainBuilderUtils;
@@ -59,8 +60,9 @@ public class ControlFlowDTDomain extends DecisionTreeReasoningDomain {
     public static final String DOMAIN_MODEL_LOCATION = RESOURCES_LOCATION + "control-flow-domain-model/";
     public static final String MESSAGES_CONFIG_PATH = "classpath:/" + RESOURCES_LOCATION + "control-flow";
 
-    private final DomainSolvingModel domainSolvingModel = new DomainSolvingModel(
-            Objects.requireNonNull(this.getClass().getClassLoader().getResource(DOMAIN_MODEL_LOCATION)),
+    private final DomainSolvingModel domainSolvingModel = DomainSolvingModelLoader.loadFromClasspath(
+            this.getClass().getClassLoader(),
+            DOMAIN_MODEL_LOCATION,
             DomainSolvingModel.BuildMethod.LOQI).validate();
 
     private static final HashMap<String, Tag> tags = new HashMap<>() {{
