@@ -5,8 +5,8 @@ import org.vstu.compprehension.data.question.SupplementaryStepData;
 import org.vstu.compprehension.data.exercise.ExerciseOptionsData;
 import org.vstu.compprehension.data.question.ViolationData;
 import org.vstu.compprehension.data.question.BackendFactData;
-import com.fasterxml.jackson.databind.JsonNode;
-import com.fasterxml.jackson.databind.ObjectMapper;
+import tools.jackson.databind.JsonNode;
+import tools.jackson.databind.ObjectMapper;
 import org.vstu.compprehension.businesslogic.domains.helpers.DomainSolvingModelLoader;
 import its.model.DomainSolvingModel;
 import its.model.definition.*;
@@ -825,7 +825,7 @@ public class ControlFlowDTDomain extends DecisionTreeReasoningDomain {
             try {
                 JsonNode json = jsonMapper.readTree(funcArgs);
                 List<String> values = new ArrayList<>();
-                json.fields().forEachRemaining(entry -> {
+                json.properties().forEach(entry -> {
                     JsonNode val = entry.getValue();
                     String text = val.isTextual() ? val.asText() : val.toString();
                     if (text.length() > MAX_OUTPUT_LENGTH) {

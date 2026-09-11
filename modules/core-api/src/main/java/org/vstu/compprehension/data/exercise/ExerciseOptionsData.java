@@ -1,5 +1,6 @@
 package org.vstu.compprehension.data.exercise;
 
+import java.io.Serializable;
 import com.fasterxml.jackson.annotation.JsonIgnoreProperties;
 import com.fasterxml.jackson.annotation.JsonInclude;
 import lombok.AllArgsConstructor;
@@ -14,7 +15,7 @@ import lombok.extern.jackson.Jacksonized;
 @SuperBuilder
 @Jacksonized @JsonIgnoreProperties(ignoreUnknown = true)
 @JsonInclude(JsonInclude.Include.NON_NULL)
-public class ExerciseOptionsData {
+public class ExerciseOptionsData implements Serializable {
     private ExerciseSurveyOptionsData surveyOptions;
     private boolean newQuestionGenerationEnabled;
     private boolean supplementaryQuestionsEnabled;
@@ -30,7 +31,7 @@ public class ExerciseOptionsData {
     @AllArgsConstructor @NoArgsConstructor
     @SuperBuilder
     @Jacksonized @JsonIgnoreProperties(ignoreUnknown = true)
-    public static class ExerciseSurveyOptionsData {
+    public static class ExerciseSurveyOptionsData implements Serializable {
         private Boolean enabled;
         private String surveyId;
     }

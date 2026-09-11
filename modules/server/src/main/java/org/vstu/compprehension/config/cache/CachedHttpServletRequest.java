@@ -13,7 +13,7 @@ public class CachedHttpServletRequest extends ContentCachingRequestWrapper {
     private final byte[] cachedBody;
 
     public CachedHttpServletRequest(HttpServletRequest request) throws IOException {
-        super(request);
+        super(request, 0);
         InputStream requestInputStream = request.getInputStream();
         this.cachedBody = StreamUtils.copyToByteArray(requestInputStream);
     }

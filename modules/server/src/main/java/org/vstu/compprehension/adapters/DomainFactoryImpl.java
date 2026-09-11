@@ -11,7 +11,7 @@ import org.vstu.compprehension.businesslogic.domains.*;
 import org.vstu.compprehension.businesslogic.storage.QuestionBank;
 import org.vstu.compprehension.repositories.data.DomainDataRepository;
 
-import javax.inject.Singleton;
+import jakarta.inject.Singleton;
 import java.util.HashMap;
 import java.util.Set;
 

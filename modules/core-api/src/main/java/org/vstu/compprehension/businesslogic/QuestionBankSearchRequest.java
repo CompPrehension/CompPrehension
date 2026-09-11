@@ -1,5 +1,6 @@
 package org.vstu.compprehension.businesslogic;
 
+import java.io.Serializable;
 import lombok.AllArgsConstructor;
 import lombok.Builder;
 import lombok.Getter;
@@ -15,7 +16,7 @@ import java.util.UUID;
 @Getter
 @NoArgsConstructor
 @AllArgsConstructor
-public class QuestionBankSearchRequest {
+public class QuestionBankSearchRequest implements Serializable {
     @Nullable
     private UUID questionRequestId;
     private long deniedConceptsBitmask;

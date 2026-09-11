@@ -2,8 +2,10 @@ package org.vstu.compprehension.architecture;
 
 import com.tngtech.archunit.base.DescribedPredicate;
 import com.tngtech.archunit.core.domain.JavaAnnotation;
+import com.tngtech.archunit.core.domain.JavaClass;
 import com.tngtech.archunit.core.domain.JavaField;
 import com.tngtech.archunit.core.domain.JavaMethod;
+import com.tngtech.archunit.core.domain.JavaModifier;
 import com.tngtech.archunit.core.importer.ImportOption;
 import com.tngtech.archunit.junit.AnalyzeClasses;
 import com.tngtech.archunit.junit.ArchTest;
@@ -14,8 +16,11 @@ import com.tngtech.archunit.lang.SimpleConditionEvent;
 import jakarta.persistence.Entity;
 import org.springframework.data.repository.Repository;
 
+import java.io.Serializable;
+import java.util.LinkedHashSet;
 import java.util.List;
 import java.util.Optional;
+import java.util.Set;
 
 import static com.tngtech.archunit.lang.syntax.ArchRuleDefinition.classes;
 import static com.tngtech.archunit.lang.syntax.ArchRuleDefinition.fields;
@@ -30,6 +35,9 @@ public class PersistenceMappingTest {
             "jakarta.persistence.ManyToOne",
             "jakarta.persistence.OneToOne"
     );
+
+    private static final String HIBERNATE_TYPE = "org.hibernate.annotations.Type";
+    private static final String JSON_TYPE = "io.hypersistence.utils.hibernate.type.json.JsonType";
 
     /** {@code @ManyToOne}/{@code @OneToOne} обязаны объявлять {@code fetch = LAZY} явно. */
     @ArchTest
@@ -65,6 +73,62 @@ public class PersistenceMappingTest {
                     .that().areAnnotatedWith("org.springframework.data.jpa.repository.Query")
                     .should(not_use_constructor_expressions())
                     .as("queries should use interface projections, not constructor expressions");
+
+    @ArchTest
+    static final ArchRule json_columns_must_hold_serializable_values =
+            fields()
+                    .that(are_mapped_with_json_type())
+                    .should(hold_only_serializable_project_classes())
+                    .as("classes stored in JSON columns (and everything reachable from their fields) must implement Serializable, "
+                            + "because hypersistence-utils clones them with Java serialization for dirty checking");
+
+    private static DescribedPredicate<JavaField> are_mapped_with_json_type() {
+        return new DescribedPredicate<>("are mapped with @Type(JsonType.class)") {
+            @Override
+            public boolean test(JavaField field) {
+                return field.tryGetAnnotationOfType(HIBERNATE_TYPE)
+                        .flatMap(annotation -> annotation.get("value"))
+                        .map(PersistenceMappingTest::className)
+                        .filter(JSON_TYPE::equals)
+                        .isPresent();
+            }
+        };
+    }
+
+    private static ArchCondition<JavaField> hold_only_serializable_project_classes() {
+        return new ArchCondition<>("hold only Serializable project classes") {
+            @Override
+            public void check(JavaField field, ConditionEvents events) {
+                Set<JavaClass> visited = new LinkedHashSet<>();
+                collectReachableProjectClasses(field, visited);
+                for (JavaClass reachable : visited) {
+                    if (!reachable.isAssignableTo(Serializable.class)) {
+                        events.add(SimpleConditionEvent.violated(field, String.format(
+                                "%s is stored as JSON but holds %s, which is not Serializable, in %s",
+                                field.getFullName(), reachable.getName(), reachable.getSourceCodeLocation())));
+                    }
+                }
+            }
+        };
+    }
+
+    private static void collectReachableProjectClasses(JavaField field, Set<JavaClass> visited) {
+        for (JavaClass involved : field.getType().getAllInvolvedRawTypes()) {
+            JavaClass type = involved.isArray() ? involved.getBaseComponentType() : involved;
+            if (!type.getPackageName().startsWith(ROOT) || type.isInterface() || type.isEnum() || !visited.add(type)) {
+                continue;
+            }
+            for (JavaField nested : type.getAllFields()) {
+                if (!nested.getModifiers().contains(JavaModifier.STATIC) && !nested.getModifiers().contains(JavaModifier.TRANSIENT)) {
+                    collectReachableProjectClasses(nested, visited);
+                }
+            }
+        }
+    }
+
+    private static String className(Object annotationValue) {
+        return annotationValue instanceof JavaClass javaClass ? javaClass.getName() : String.valueOf(annotationValue);
+    }
 
     private static ArchCondition<JavaMethod> not_use_constructor_expressions() {
         return new ArchCondition<>("not use select new") {

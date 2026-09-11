@@ -4,7 +4,7 @@ import org.vstu.compprehension.businesslogic.domains.ControlFlowDTDomain;
 import org.vstu.compprehension.businesslogic.domains.DataFlowDTDomain;
 import org.vstu.compprehension.businesslogic.domains.ObjectsScopeDTDomain;
 import org.springframework.beans.factory.annotation.Autowired;
-import org.springframework.boot.autoconfigure.web.servlet.DispatcherServletAutoConfiguration;
+import org.springframework.boot.webmvc.autoconfigure.DispatcherServletAutoConfiguration;
 import org.springframework.boot.web.servlet.ServletRegistrationBean;
 import org.springframework.context.MessageSource;
 import org.springframework.context.annotation.Bean;

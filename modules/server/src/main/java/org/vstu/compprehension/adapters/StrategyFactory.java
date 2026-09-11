@@ -7,7 +7,7 @@ import org.springframework.stereotype.Component;
 import org.vstu.compprehension.businesslogic.strategies.AbstractStrategy;
 import org.vstu.compprehension.businesslogic.strategies.AbstractStrategyFactory;
 
-import javax.inject.Singleton;
+import jakarta.inject.Singleton;
 import java.util.HashMap;
 import java.util.List;
 import java.util.Map;

@@ -1,11 +1,11 @@
 # docker build --platform linux/amd64 -t prokudintema/compprehension-server-bg:dev -f server-bg.Dockerfile .
 # docker push prokudintema/compprehension-server-bg
-FROM maven:3.9-eclipse-temurin-21 AS builder
+FROM maven:3.9-eclipse-temurin-25 AS builder
 WORKDIR /src
 COPY . .
 RUN --mount=type=cache,target=/root/.m2 mvn clean package -DskipTests
 
-FROM eclipse-temurin:21-jre
+FROM eclipse-temurin:25-jre
 COPY --from=builder /src/modules/background-server/target/background-server-*.jar app.jar
 COPY --from=builder /src/modules/expr-domain-question-generator/target/expr-domain-question-generator-*.jar /generator/generator.jar
 # COPY ./modules/background-server/target/background-server-*.jar app.jar

@@ -5,8 +5,7 @@ import org.jetbrains.annotations.Nullable;
 import its.model.definition.ThisShouldNotHappen;
 import org.springframework.boot.autoconfigure.condition.ConditionalOnBean;
 import org.springframework.orm.ObjectOptimisticLockingFailureException;
-import org.springframework.retry.annotation.Backoff;
-import org.springframework.retry.annotation.Retryable;
+import org.springframework.resilience.annotation.Retryable;
 import org.springframework.transaction.annotation.Propagation;
 import org.springframework.transaction.annotation.Transactional;
 import lombok.RequiredArgsConstructor;
@@ -27,9 +26,9 @@ public class BktService {
     private final BktDataRepository bktData;
 
     @Retryable(
-            retryFor = { ObjectOptimisticLockingFailureException.class },
-            maxAttempts = 10,
-            backoff = @Backoff(delay = 100)
+            includes = { ObjectOptimisticLockingFailureException.class },
+            maxRetries = 9,
+            delay = 100
     )
     @Transactional(propagation = Propagation.MANDATORY)
     public void updateBktRoster(String domainId, Long userId, boolean correct, List<String> skills) {
