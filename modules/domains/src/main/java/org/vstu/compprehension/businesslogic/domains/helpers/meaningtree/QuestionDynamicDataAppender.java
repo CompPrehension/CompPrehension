@@ -117,9 +117,9 @@ public class QuestionDynamicDataAppender {
         }
         sb.append("</p>");
         sb.append("</div>");
-        return sb.toString().replaceAll("\\*", "&#8727")
-                .replaceAll("\\n", "<br>")
-                .replaceAll("\\t", "&nbsp;&nbsp;&nbsp;&nbsp;");
+        return sb.toString().replace("*", "&#8727")
+                .replace("\n", "<br>")
+                .replace("\t", "&nbsp;&nbsp;&nbsp;&nbsp;");
     }
 
 

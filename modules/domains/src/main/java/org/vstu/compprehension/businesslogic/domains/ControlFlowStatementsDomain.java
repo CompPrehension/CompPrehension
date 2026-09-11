@@ -383,7 +383,7 @@ public class ControlFlowStatementsDomain extends JenaReasoningDomain {
 
         line = replaceInString(lineTpl, replacementMap);
 
-        line = line.replaceAll("  ", " ");  // collapse multiple spaces if any
+        line = line.replace("  ", " ");  // collapse multiple spaces if any
 
         // check if this line is wrong
         if (lineIsWrong) {
@@ -1285,7 +1285,7 @@ QuestionOptionsData orderQuestionOptions = OrderQuestionOptionsData.builder()
                 for (Statement statement : actLinks) {
                     String verb = statement.getPredicate().getLocalName();
                     if (getFieldProperties().contains(verb)) {
-                        String fieldName = verb.replaceAll("field_", "");
+                        String fieldName = verb.replace("field_", "");
                         String value;
                         if (!fieldName.endsWith("_bound")) {
                             // object is just an ordinal string
@@ -1843,7 +1843,7 @@ QuestionOptionsData orderQuestionOptions = OrderQuestionOptionsData.builder()
                 Statement statement = it.next();
                 String verb = statement.getPredicate().getLocalName();
                 if (getFieldProperties().contains(verb)) {
-                    String fieldName = verb.replaceAll("field_", "");
+                    String fieldName = verb.replace("field_", "");
                     String value = statement.getString();
                     value = replaceLocaleMarks(language, value);
                     if (!value.contains("«"))

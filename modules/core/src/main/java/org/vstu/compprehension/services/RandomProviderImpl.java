@@ -1,24 +1,29 @@
 package org.vstu.compprehension.services;
 
-import lombok.Getter;
 import org.springframework.stereotype.Component;
 
-import java.util.Date;
-import java.util.Random;
+import java.util.SplittableRandom;
+import java.util.random.RandomGenerator;
 
 @Component
 public class RandomProviderImpl implements RandomProvider {
-    @Getter
-    private Random random;
+    private final ThreadLocal<RandomGenerator> random;
 
     public RandomProviderImpl() {
-        random = new Random(new Date().getTime());
-    }
-    public RandomProviderImpl(int seed) {
-        random = new Random(seed);
+        random = ThreadLocal.withInitial(SplittableRandom::new);
     }
 
+    public RandomProviderImpl(int seed) {
+        random = ThreadLocal.withInitial(() -> new SplittableRandom(seed));
+    }
+
+    @Override
+    public RandomGenerator getRandom() {
+        return random.get();
+    }
+
+    @Override
     public void reset(int newSeed) {
-        random.setSeed(newSeed);
+        random.set(new SplittableRandom(newSeed));
     }
 }

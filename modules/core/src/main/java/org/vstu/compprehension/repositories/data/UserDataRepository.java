@@ -28,6 +28,13 @@ public class UserDataRepository {
     }
 
     @Transactional(readOnly = true)
+    public @NotNull UserAccountData getById(long id) {
+        return userRepository.findById(id)
+                .map(userAccountMapper::map)
+                .orElseThrow(() -> new NoSuchElementException("User " + id + " not found"));
+    }
+
+    @Transactional(readOnly = true)
     public @NotNull Optional<UserAccountData> findByEmail(@NotNull String email) {
         return userRepository.findFirstByEmailOrderByIdAsc(email).map(userAccountMapper::map);
     }

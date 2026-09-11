@@ -520,7 +520,7 @@ public class ProgrammingLanguageExpressionDTDomain extends DecisionTreeReasoning
                 .create();
 
         for (String file : templatePaths) {
-            file = file.replaceAll("\\\\","/");
+            file = file.replace("\\", "/");
             log.info("Start generating question(s) for template {}", file);
             try {
                 if (qCount > questionsLimit)

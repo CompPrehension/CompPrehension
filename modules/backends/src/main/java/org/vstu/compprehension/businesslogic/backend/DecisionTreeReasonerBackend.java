@@ -362,11 +362,11 @@ public class DecisionTreeReasonerBackend
             {
                 if (expanded.contains("операто ")) {
                     // Fix spelling (note the space at the end).
-                    expanded = expanded.replaceAll("операто ", "оператор ");
+                    expanded = expanded.replace("операто ", "оператор ");
                 }
                 if (expanded.contains("operato ")) {
                     // Fix spelling (note the space at the end).
-                    expanded = expanded.replaceAll("operato ", "operator ");
+                    expanded = expanded.replace("operato ", "operator ");
                 }
             }
             return expanded;
@@ -391,11 +391,11 @@ public class DecisionTreeReasonerBackend
             {
                 if (expanded.contains("операто ")) {
                     // Fix spelling (note the space at the end).
-                    expanded = expanded.replaceAll("операто ", "оператор ");
+                    expanded = expanded.replace("операто ", "оператор ");
                 }
                 if (expanded.contains("operato ")) {
                     // Fix spelling (note the space at the end).
-                    expanded = expanded.replaceAll("operato ", "operator ");
+                    expanded = expanded.replace("operato ", "operator ");
                 }
             }
             Explanation expl = new Explanation(type, expanded);
