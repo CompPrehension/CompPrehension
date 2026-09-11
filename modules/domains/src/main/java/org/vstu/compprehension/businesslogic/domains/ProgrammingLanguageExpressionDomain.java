@@ -2380,8 +2380,9 @@ QuestionOptionsData orderQuestionOptions = OrderQuestionOptionsData.builder()
         return rules;
     }
 
+    @NotNull
     @Override
-    public List<HyperText> getFullSolutionTrace(QuestionData question, Language language) {
+    public List<HyperText> getFullSolutionTrace(@NotNull QuestionData question, @NotNull Language language) {
         ArrayList<HyperText> result = new ArrayList<>();
 
         String qType = question.getContent().getQuestionDomainType();

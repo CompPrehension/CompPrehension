@@ -27,7 +27,6 @@ import org.jetbrains.annotations.Nullable;
 import org.vstu.compprehension.services.RandomProvider;
 import org.vstu.compprehension.businesslogic.SupplementaryStepContext;
 import org.vstu.compprehension.data.question.QuestionMetadataWithData;
-import org.vstu.compprehension.data.question.QuestionInteractionData;
 import org.vstu.compprehension.data.question.QuestionData;
 import org.vstu.compprehension.data.question.AnswerObjectData;
 import org.vstu.compprehension.data.question.ResponseData;
@@ -458,9 +457,10 @@ public class DataFlowDTDomain extends DecisionTreeReasoningDomain {
         return explanation;
     }
 
+    @NotNull
     @Override
-    public List<HyperText> getFullSolutionTrace(QuestionData question, Language language) {
-        return null;
+    public List<HyperText> getFullSolutionTrace(@NotNull QuestionData question, @NotNull Language language) {
+        return List.of();
     }
 
     @NotNull
