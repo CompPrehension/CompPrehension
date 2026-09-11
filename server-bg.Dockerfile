@@ -1,5 +1,5 @@
 # docker build --platform linux/amd64 -t prokudintema/compprehension-server-bg:dev -f server-bg.Dockerfile .
-# docker push prokudintema/compprehension-server-bg
+# docker push prokudintema/compprehension-server-bg:dev
 FROM maven:3.9-eclipse-temurin-25 AS builder
 WORKDIR /src
 COPY . .
