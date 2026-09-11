@@ -6,7 +6,6 @@ import com.fasterxml.jackson.databind.ObjectMapper;
 import org.springframework.http.HttpEntity;
 import org.springframework.http.HttpHeaders;
 import org.springframework.http.MediaType;
-import org.springframework.stereotype.Service;
 import org.springframework.util.LinkedMultiValueMap;
 import org.springframework.util.MultiValueMap;
 import org.springframework.web.client.RestTemplate;
@@ -23,27 +22,25 @@ import java.util.List;
 import java.util.Set;
 import java.util.function.Function;
 
-/**
- * Клиент Moodle WS REST API. Один публичный метод = одна WS-функция:
- */
-@Service
-public class MoodleService {
+class MoodleClientImpl implements MoodleClient {
+    /**
+     * Идентификатор источника оценки для {@code core_grades_update_grades}.
+     */
+    private static final String GRADE_SOURCE = "СompPrehension";
+
     private final RestTemplate restTemplate;
     private final ObjectMapper objectMapper = new ObjectMapper();
+    private final String baseUrl;
+    private final String wsToken;
 
-    public MoodleService(RestTemplate restTemplate) {
+    MoodleClientImpl(RestTemplate restTemplate, String baseUrl, String wsToken) {
         this.restTemplate = restTemplate;
+        this.baseUrl = baseUrl;
+        this.wsToken = wsToken;
     }
 
-    /**
-     * Bulk-запрос: для каждого {@link CourseCapabilityRequest#externalCourseId} проверяет
-     * перечисленные {@link CourseCapabilityRequest#capabilities} и возвращает список юзеров.
-     *
-     * <p>Возвращает плоский список {@link MoodleCapabilityResult} по парам (courseId, capabilityName).
-     */
-    public MoodleWsResult<List<MoodleCapabilityResult>> getUsersWithCapabilityBulk(
-            String baseUrl, String wsToken, List<CourseCapabilityRequest> requests) {
-
+    @Override
+    public MoodleWsResult<List<MoodleCapabilityResult>> getUsersWithCapabilityBulk(List<CourseCapabilityRequest> requests) {
         if (requests == null || requests.isEmpty()) {
             return new MoodleWsResult.Success<>(Collections.emptyList());
         }
@@ -60,19 +57,13 @@ public class MoodleService {
         body.add("options[0][name]", "userfields");
         body.add("options[0][value]", "id");
 
-        return execute(baseUrl, wsToken, "core_enrol_get_enrolled_users_with_capability", body,
+        return execute("core_enrol_get_enrolled_users_with_capability", body,
                 new TypeReference<List<MoodleCapabilityResult>>() {
                 });
     }
 
-    /**
-     * Возвращает подмножество {@code courseIds}, реально существующих в Moodle, через
-     * {@code core_course_get_courses(options[ids][])}. Эта функция итерирует только по
-     * найденным записям курсов, поэтому отсутствующие id просто не попадают в ответ — без
-     * исключения. Удалённые курсы вычисляются как разность {@code courseIds − результат}
-     * за один запрос.
-     */
-    public MoodleWsResult<Set<String>> findExistingCourseIds(String baseUrl, String wsToken, Collection<String> courseIds) {
+    @Override
+    public MoodleWsResult<Set<String>> findExistingCourseIds(Collection<String> courseIds) {
         if (courseIds == null || courseIds.isEmpty()) {
             return new MoodleWsResult.Success<>(Collections.emptySet());
         }
@@ -83,7 +74,7 @@ public class MoodleService {
             body.add(String.format("options[ids][%d]", i++), courseId);
         }
 
-        return execute(baseUrl, wsToken, "core_course_get_courses", body,
+        return execute("core_course_get_courses", body,
                 root -> {
                     if (!root.isArray()) {
                         throw new IllegalStateException("not an array");
@@ -99,13 +90,8 @@ public class MoodleService {
                 });
     }
 
-    /**
-     * LTI-активности курса через {@code mod_lti_get_ltis_by_courses}. Ответ — объект
-     * {@code { "ltis": [...], "warnings": [...] }}; берём узел {@code ltis}.
-     *
-     * <p>Используется для обнаружения активности {@code mod_lti}, соответствующей упражнению
-     */
-    public MoodleWsResult<List<MoodleLtiActivity>> getLtiActivitiesInCourse(String baseUrl, String wsToken, String moodleCourseId) {
+    @Override
+    public MoodleWsResult<List<MoodleLtiActivity>> getLtiActivitiesInCourse(String moodleCourseId) {
         if (moodleCourseId == null || moodleCourseId.isBlank()) {
             return new MoodleWsResult.Success<>(Collections.emptyList());
         }
@@ -113,7 +99,7 @@ public class MoodleService {
         MultiValueMap<String, String> body = new LinkedMultiValueMap<>();
         body.add("courseids[0]", moodleCourseId);
 
-        return execute(baseUrl, wsToken, "mod_lti_get_ltis_by_courses", body,
+        return execute("mod_lti_get_ltis_by_courses", body,
                 root -> {
                     // Ответ - объект { ltis: [...] }; на всякий случай поддерживаем и голый массив.
                     JsonNode ltis = root.isArray() ? root : root.path("ltis");
@@ -125,26 +111,8 @@ public class MoodleService {
                 });
     }
 
-    /**
-     * Идентификатор источника оценки для {@code core_grades_update_grades}.
-     */
-    private static final String GRADE_SOURCE = "СompPrehension";
-
-    /**
-     * Записывает {@link MoodleGrade} в колонку журнала активности {@code mod_lti}
-     * ({@code courseId} + {@code courseModuleId}) для студента {@code studentId}
-     * через {@code core_grades_update_grades}.
-     *
-     * <p>Параметр {@code core_grades_update_grades.activityid} ожидает именно course module id
-     * (cmid), а не instance id строки {@code lti} — Moodle резолвит его через
-     * {@code get_coursemodule_from_id(itemmodule, activityid)}.
-     *
-     * @return {@link MoodleWsResult.Success} с {@code true}, если Moodle вернул код {@code 0}
-     * (GRADE_UPDATE_OK); {@code Success(false)} — на любой иной код
-     */
+    @Override
     public MoodleWsResult<Boolean> updateGradeInCourse(
-            String baseUrl,
-            String wsToken,
             String externalCourseId,
             long courseModuleId,
             String studentId,
@@ -160,18 +128,16 @@ public class MoodleService {
         body.add("grades[0][grade]", String.valueOf(grade.rawScore()));
 
         // GRADE_UPDATE_OK == 0
-        return execute(baseUrl, wsToken, "core_grades_update_grades", body,
+        return execute("core_grades_update_grades", body,
                 root -> root.isNumber() && root.asInt() == 0);
     }
 
     private <T> MoodleWsResult<T> execute(
-            String baseUrl,
-            String wsToken,
             String wsFunction,
             MultiValueMap<String, String> body,
             TypeReference<T> type
     ) {
-        return execute(baseUrl, wsToken, wsFunction, body, root -> objectMapper.convertValue(root, type));
+        return execute(wsFunction, body, root -> objectMapper.convertValue(root, type));
     }
 
     /**
@@ -179,13 +145,11 @@ public class MoodleService {
      * Любой сбой превращается в {@link MoodleWsResult.Failure}; решение, как его трактовать, остаётся за вызывающей стороной.
      */
     private <T> MoodleWsResult<T> execute(
-            String baseUrl,
-            String wsToken,
             String wsFunction,
             MultiValueMap<String, String> body,
             Function<JsonNode, T> payloadExtractor
     ) {
-        URI uri = buildUri(baseUrl, wsToken, wsFunction);
+        URI uri = buildUri(wsFunction);
         String raw;
         try {
             raw = restTemplate.postForObject(uri, formEntity(body), String.class);
@@ -211,7 +175,7 @@ public class MoodleService {
         }
     }
 
-    private static URI buildUri(String baseUrl, String wsToken, String wsFunction) {
+    private URI buildUri(String wsFunction) {
         return URI.create("""
                 %s/webservice/rest/server.php\
                 ?wstoken=%s\

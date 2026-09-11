@@ -14,7 +14,8 @@ import org.vstu.compprehension.repositories.data.CourseDataRepository;
 import org.vstu.compprehension.repositories.data.ExternalSystemDataRepository;
 import org.vstu.compprehension.moodle.request.CourseCapabilityRequest;
 import org.vstu.compprehension.moodle.response.MoodleCapabilityResult;
-import org.vstu.compprehension.moodle.MoodleService;
+import org.vstu.compprehension.moodle.MoodleClient;
+import org.vstu.compprehension.moodle.MoodleClientFactory;
 import org.vstu.compprehension.moodle.response.MoodleUserRef;
 import org.vstu.compprehension.moodle.MoodleWsException;
 import org.vstu.compprehension.moodle.MoodleWsResult;
@@ -42,7 +43,7 @@ public class MoodleRoleSyncService {
     private final ExternalSystemDataRepository externalSystems;
     private final CourseDataRepository courses;
     private final RoleAssignmentService roleAssignmentService;
-    private final MoodleService moodleService;
+    private final MoodleClientFactory moodleClientFactory;
     private final WsFuncMoodleConfig wsFuncMoodleConfig;
     private final MoodleSyncConfig syncConfig;
     private final TransactionScope transactionScope;
@@ -51,7 +52,7 @@ public class MoodleRoleSyncService {
             ExternalSystemDataRepository externalSystems,
             CourseDataRepository courses,
             RoleAssignmentService roleAssignmentService,
-            MoodleService moodleService,
+            MoodleClientFactory moodleClientFactory,
             WsFuncMoodleConfig wsFuncMoodleConfig,
             MoodleSyncConfig syncConfig,
             TransactionScopeFactory transactionScopeFactory
@@ -59,7 +60,7 @@ public class MoodleRoleSyncService {
         this.externalSystems = externalSystems;
         this.courses = courses;
         this.roleAssignmentService = roleAssignmentService;
-        this.moodleService = moodleService;
+        this.moodleClientFactory = moodleClientFactory;
         this.wsFuncMoodleConfig = wsFuncMoodleConfig;
         this.syncConfig = syncConfig;
         this.transactionScope = transactionScopeFactory.create(TransactionScope.PropagationBehavior.REQUIRES_NEW);
@@ -110,7 +111,8 @@ public class MoodleRoleSyncService {
             return;
         }
 
-        CoursePartition partition = detachDeletedCourses(env, wsToken, knownCourses);
+        MoodleClient moodleClient = moodleClientFactory.create(env.url(), wsToken);
+        CoursePartition partition = detachDeletedCourses(env, moodleClient, knownCourses);
         List<ExternalCourseData> liveCourses = partition.live();
         if (liveCourses.isEmpty()) {
             log.info("Moodle role sync: no live Moodle courses for {} after existence check, skipping", env.url());
@@ -139,7 +141,7 @@ public class MoodleRoleSyncService {
             }
 
             MoodleWsResult<List<MoodleCapabilityResult>> capabilityResult =
-                    moodleService.getUsersWithCapabilityBulk(env.url(), wsToken, req);
+                    moodleClient.getUsersWithCapabilityBulk(req);
             List<MoodleCapabilityResult> resp;
             switch (capabilityResult) {
                 case MoodleWsResult.Success<List<MoodleCapabilityResult>> s -> resp = s.value();
@@ -215,14 +217,14 @@ public class MoodleRoleSyncService {
      *
      */
     private CoursePartition detachDeletedCourses(
-            EducationResourceData env, String wsToken, List<ExternalCourseData> knownCourses) {
+            EducationResourceData env, MoodleClient moodleClient, List<ExternalCourseData> knownCourses) {
         Set<String> requestedExtIds = knownCourses.stream()
                 .map(ExternalCourseData::externalCourseId)
                 .collect(Collectors.toSet());
 
         Set<String> existingExtIds;
         try {
-            existingExtIds = moodleService.findExistingCourseIds(env.url(), wsToken, requestedExtIds).orElseThrow();
+            existingExtIds = moodleClient.findExistingCourseIds(requestedExtIds).orElseThrow();
         } catch (MoodleWsException ex) {
             log.warn("Moodle role sync: course existence check failed for {} - aborting environment: {}",
                     env.url(), ex.getMessage());

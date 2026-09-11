@@ -9,7 +9,8 @@ import org.springframework.web.util.UriComponents;
 import org.vstu.compprehension.services.ExternalAccountService;
 import org.vstu.compprehension.moodle.request.MoodleGrade;
 import org.vstu.compprehension.moodle.response.MoodleLtiActivity;
-import org.vstu.compprehension.moodle.MoodleService;
+import org.vstu.compprehension.moodle.MoodleClient;
+import org.vstu.compprehension.moodle.MoodleClientFactory;
 import org.vstu.compprehension.moodle.MoodleWsResult;
 import org.vstu.compprehension.moodle.config.WsFuncMoodleConfig;
 import org.jetbrains.annotations.NotNull;
@@ -38,7 +39,7 @@ public class MoodleDiscoveryGradePassbackStrategy implements GradePassbackStrate
     /** Шкала колонки журнала mod_lti по умолчанию, если активность не вернула grademax. */
     private static final double DEFAULT_GRADE_MAX = 100.0;
 
-    private final MoodleService moodleService;
+    private final MoodleClientFactory moodleClientFactory;
     private final WsFuncMoodleConfig wsFuncMoodleConfig;
     private final ExternalAccountService externalAccountService;
 
@@ -84,10 +85,11 @@ public class MoodleDiscoveryGradePassbackStrategy implements GradePassbackStrate
             return false;
         }
         String moodleUserId = moodleUserIdOrEmpty.get();
+        MoodleClient moodleClient = moodleClientFactory.create(baseUrl, wsToken);
 
         long exerciseId = target.exerciseId();
         MoodleWsResult<List<MoodleLtiActivity>> ltiActivitiesResult =
-                moodleService.getLtiActivitiesInCourse(baseUrl, wsToken, externalCourseId);
+                moodleClient.getLtiActivitiesInCourse(externalCourseId);
         List<MoodleLtiActivity> activities;
         switch (ltiActivitiesResult) {
             case MoodleWsResult.Success<List<MoodleLtiActivity>> s -> activities = s.value();
@@ -114,8 +116,8 @@ public class MoodleDiscoveryGradePassbackStrategy implements GradePassbackStrate
 
         double gradeMax = lti.getGradeMax() != null && lti.getGradeMax() > 0 ? lti.getGradeMax() : DEFAULT_GRADE_MAX;
         MoodleGrade moodleGrade = new MoodleGrade(grade, gradeMax);
-        MoodleWsResult<Boolean> gradeResult = moodleService.updateGradeInCourse(
-                baseUrl, wsToken, externalCourseId, lti.getCourseModuleId(), moodleUserId, moodleGrade);
+        MoodleWsResult<Boolean> gradeResult = moodleClient.updateGradeInCourse(
+                externalCourseId, lti.getCourseModuleId(), moodleUserId, moodleGrade);
         return switch (gradeResult) {
             case MoodleWsResult.Success<Boolean> s -> {
                 if (!s.value()) {
