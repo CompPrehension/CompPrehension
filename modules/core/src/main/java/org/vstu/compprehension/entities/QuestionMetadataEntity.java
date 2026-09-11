@@ -2,7 +2,6 @@ package org.vstu.compprehension.entities;
 
 import jakarta.persistence.*;
 import lombok.*;
-import org.hibernate.annotations.ColumnDefault;
 import org.hibernate.annotations.CreationTimestamp;
 import org.hibernate.annotations.OnDelete;
 import org.hibernate.annotations.OnDeleteAction;
@@ -31,7 +30,6 @@ public class QuestionMetadataEntity {
     private String name;
 
     @Column(name = "domain_shortname", nullable = false, length = 45)
-    @ColumnDefault("'ctrl_flow'")
     private String domainShortname;
 
     @Column(name = "template_id")

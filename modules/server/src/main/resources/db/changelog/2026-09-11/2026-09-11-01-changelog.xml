@@ -194,4 +194,18 @@
         </rollback>
     </changeSet>
 
+    <changeSet id="2026-09-11-08-drop-questions-meta-domain-shortname-default" author="Artem Prokudin">
+        <preConditions onFail="MARK_RAN">
+            <sqlCheck expectedResult="1">
+                select count(*) from information_schema.columns
+                where table_schema = database() and table_name = 'questions_meta'
+                  and column_name = 'domain_shortname' and column_default is not null
+            </sqlCheck>
+        </preConditions>
+        <dropDefaultValue tableName="questions_meta" columnName="domain_shortname"/>
+        <rollback>
+            <addDefaultValue tableName="questions_meta" columnName="domain_shortname" defaultValue="ctrl_flow"/>
+        </rollback>
+    </changeSet>
+
 </databaseChangeLog>
