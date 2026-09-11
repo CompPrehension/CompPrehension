@@ -1,7 +1,7 @@
 package org.vstu.compprehension.entities;
 
 import org.vstu.compprehension.data.question.BackendFactData;
-import com.vladmihalcea.hibernate.type.json.JsonType;
+import io.hypersistence.utils.hibernate.type.json.JsonType;
 import jakarta.persistence.*;
 import lombok.Getter;
 import lombok.NoArgsConstructor;

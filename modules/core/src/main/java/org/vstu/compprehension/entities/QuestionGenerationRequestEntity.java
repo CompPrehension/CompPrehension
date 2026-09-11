@@ -1,6 +1,6 @@
 package org.vstu.compprehension.entities;
 
-import com.vladmihalcea.hibernate.type.json.JsonType;
+import io.hypersistence.utils.hibernate.type.json.JsonType;
 import jakarta.persistence.*;
 import jakarta.persistence.Index;
 import jakarta.persistence.Table;

@@ -31,7 +31,7 @@ import org.vstu.compprehension.repositories.data.QuestionBankDataRepository;
 import org.vstu.compprehension.strategies.*;
 import org.vstu.compprehension.services.RandomProviderImpl;
 
-import javax.inject.Singleton;
+import jakarta.inject.Singleton;
 import java.util.List;
 
 @Configuration

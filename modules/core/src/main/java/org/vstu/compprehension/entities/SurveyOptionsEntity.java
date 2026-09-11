@@ -1,5 +1,6 @@
 package org.vstu.compprehension.entities;
 
+import java.io.Serializable;
 import com.fasterxml.jackson.annotation.JsonInclude;
 import lombok.AllArgsConstructor;
 import lombok.Data;
@@ -14,6 +15,6 @@ import org.jetbrains.annotations.NotNull;
 @SuperBuilder
 @Jacksonized
 @JsonInclude(JsonInclude.Include.NON_NULL)
-public class SurveyOptionsEntity {
+public class SurveyOptionsEntity implements Serializable {
     @NotNull Integer size;
 }

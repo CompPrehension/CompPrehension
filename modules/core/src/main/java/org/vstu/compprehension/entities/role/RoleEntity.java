@@ -24,8 +24,8 @@ public class RoleEntity {
     @ManyToMany(fetch = FetchType.LAZY)
     @JoinTable(
         name = "role_permission",
-        joinColumns = @JoinColumn(name = "role_id", updatable = false),
-        inverseJoinColumns = @JoinColumn(name = "permission_id", updatable = false)
+        joinColumns = @JoinColumn(name = "role_id"),
+        inverseJoinColumns = @JoinColumn(name = "permission_id")
     )
     private List<PermissionEntity> permissions;
 

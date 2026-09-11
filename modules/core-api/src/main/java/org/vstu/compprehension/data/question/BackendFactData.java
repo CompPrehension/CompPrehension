@@ -1,11 +1,12 @@
 package org.vstu.compprehension.data.question;
 
+import java.io.Serializable;
 import lombok.*;
 
 @Getter @Setter
 @EqualsAndHashCode
 @NoArgsConstructor
-public class BackendFactData {
+public class BackendFactData implements Serializable {
     private String object;
     private String objectType;
     private String subject;

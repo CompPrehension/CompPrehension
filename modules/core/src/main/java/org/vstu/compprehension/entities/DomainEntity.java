@@ -1,7 +1,7 @@
 package org.vstu.compprehension.entities;
 
 import org.vstu.compprehension.data.domain.DomainOptionsData;
-import com.vladmihalcea.hibernate.type.json.JsonType;
+import io.hypersistence.utils.hibernate.type.json.JsonType;
 import jakarta.persistence.*;
 import lombok.Data;
 import lombok.NoArgsConstructor;

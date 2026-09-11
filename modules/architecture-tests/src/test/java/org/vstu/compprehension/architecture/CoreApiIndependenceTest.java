@@ -24,7 +24,7 @@ public class CoreApiIndependenceTest {
                     .should().dependOnClassesThat().resideInAnyPackage(
                             "jakarta.persistence..",
                             "org.hibernate..",
-                            "com.vladmihalcea..")
+                            "io.hypersistence..")
                     .as("core-api should not depend on persistence frameworks");
 
     @ArchTest

@@ -1,5 +1,6 @@
 package org.vstu.compprehension.frontend.dto;
 
+import java.io.Serializable;
 import lombok.*;
 import org.vstu.compprehension.enums.RoleInExercise;
 
@@ -7,7 +8,7 @@ import org.vstu.compprehension.enums.RoleInExercise;
 @Builder
 @NoArgsConstructor
 @AllArgsConstructor
-public class ExerciseLawDto {
+public class ExerciseLawDto implements Serializable {
     private String name;
     private RoleInExercise kind;
 }

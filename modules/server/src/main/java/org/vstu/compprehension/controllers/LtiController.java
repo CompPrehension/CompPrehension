@@ -5,7 +5,6 @@ import com.nimbusds.jose.jwk.JWK;
 import com.nimbusds.jose.jwk.JWKSet;
 import com.nimbusds.jose.jwk.KeyUse;
 import com.nimbusds.jose.jwk.RSAKey;
-import com.nimbusds.jose.shaded.json.JSONArray;
 import com.nimbusds.jwt.JWT;
 import com.nimbusds.jwt.JWTParser;
 import jakarta.servlet.http.HttpServletRequest;
@@ -54,6 +53,7 @@ import java.security.spec.PKCS8EncodedKeySpec;
 import java.security.spec.RSAPublicKeySpec;
 import java.text.ParseException;
 import java.util.Arrays;
+import java.util.Collection;
 import java.util.Base64;
 import java.util.Map;
 import java.util.Set;
@@ -241,7 +241,9 @@ public class LtiController {
                 idToken.getJWTClaimsSet().getIssueTime().toInstant(),
                 idToken.getJWTClaimsSet().getExpirationTime().toInstant(),
                 idToken.getJWTClaimsSet().getClaims());
-        JSONArray groups = (JSONArray) claims.get(LTI_CLAIM_ROLES);
+        if (!(claims.get(LTI_CLAIM_ROLES) instanceof Collection<?> groups)) {
+            throw new AuthenticationServiceException("Claim '" + LTI_CLAIM_ROLES + "' is required inside id_token");
+        }
         Set<SimpleGrantedAuthority> mappedAuthorities = groups.stream()
                 .map(role -> new SimpleGrantedAuthority(Arrays.stream(role.toString().split("#"))
                         .reduce((first, second) -> second)

@@ -2,7 +2,7 @@ package org.vstu.compprehension.entities;
 
 import org.vstu.compprehension.data.exercise.ExerciseOptionsData;
 import org.vstu.compprehension.data.exercise.ExerciseStageData;
-import com.vladmihalcea.hibernate.type.json.JsonType;
+import io.hypersistence.utils.hibernate.type.json.JsonType;
 import jakarta.persistence.*;
 import lombok.Data;
 import lombok.NoArgsConstructor;

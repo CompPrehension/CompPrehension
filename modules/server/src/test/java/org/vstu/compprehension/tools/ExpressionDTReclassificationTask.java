@@ -103,7 +103,7 @@ public class ExpressionDTReclassificationTask extends AbstractIntegrationTest {
         try (var session = sessionFactory.openSession()) {
             var transaction = session.beginTransaction();
             for (QuestionMetadataEntity meta : newMeta) {
-                session.saveOrUpdate(meta);
+                session.merge(meta);
             }
             transaction.commit();
         }

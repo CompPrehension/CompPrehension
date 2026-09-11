@@ -1,6 +1,5 @@
 package org.vstu.compprehension.config;
 
-import com.nimbusds.jose.shaded.json.JSONArray;
 import org.springframework.context.annotation.Bean;
 import org.springframework.context.annotation.Configuration;
 import org.springframework.http.HttpStatus;
@@ -23,11 +22,12 @@ import org.springframework.security.web.SecurityFilterChain;
 import org.springframework.security.web.authentication.HttpStatusEntryPoint;
 import org.springframework.security.web.context.HttpSessionSecurityContextRepository;
 import org.springframework.security.web.context.SecurityContextRepository;
-import org.springframework.security.web.util.matcher.AntPathRequestMatcher;
+import org.springframework.security.web.servlet.util.matcher.PathPatternRequestMatcher;
 import org.springframework.web.cors.CorsConfiguration;
 import org.springframework.web.cors.CorsConfigurationSource;
 import org.springframework.web.cors.UrlBasedCorsConfigurationSource;
 
+import java.util.Collection;
 import java.util.List;
 import java.util.Map;
 import java.util.Set;
@@ -49,7 +49,7 @@ public class WebSecurityConfig {
         http.cors(c -> c.configurationSource(corsConfigurationSource()));
         http.csrf(AbstractHttpConfigurer::disable)
                 .authorizeHttpRequests(authorizeRequests -> authorizeRequests
-                        .requestMatchers(new AntPathRequestMatcher("/lti/**")).permitAll()
+                        .requestMatchers("/lti/**").permitAll()
                         .anyRequest().authenticated())
                 .oauth2Login(oauth2Login ->
                     oauth2Login.userInfoEndpoint(userInfoEndpoint -> userInfoEndpoint
@@ -62,7 +62,7 @@ public class WebSecurityConfig {
                           .clearAuthentication(true)
                           .deleteCookies("JSESSIONID"));
         http.exceptionHandling(c ->
-                c.defaultAuthenticationEntryPointFor(getRestAuthenticationEntryPoint(), new AntPathRequestMatcher("/api/**")));
+                c.defaultAuthenticationEntryPointFor(getRestAuthenticationEntryPoint(), PathPatternRequestMatcher.withDefaults().matcher("/api/**")));
         // Required for LTI iframe embedding in Moodle
         http.headers(headers -> headers.frameOptions(HeadersConfigurer.FrameOptionsConfig::disable));
         return http.build();
@@ -111,8 +111,7 @@ public class WebSecurityConfig {
             OidcUser oidcUser = delegate.loadUser(userRequest);
 
             final Map<String, Object> claims = oidcUser.getClaims();
-            final JSONArray groups = (JSONArray)claims.get("groups");
-            if (groups == null)
+            if (!(claims.get("groups") instanceof Collection<?> groups))
                 throw new OAuth2AuthenticationException("Claim 'groups' is required for access_token");
 
             final Set<GrantedAuthority> mappedAuthorities = groups.stream()

@@ -65,7 +65,7 @@ public class JobsConfig {
     }
     
     private <S> void scheduleJob(String jobId, String schedule, org.jobrunr.jobs.lambdas.IocJobLambda<S> iocJob) {
-        jobScheduler.delete(jobId);
+        jobScheduler.deleteRecurringJob(jobId);
         
         if (schedule == null) {
             schedule = "never";

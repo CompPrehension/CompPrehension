@@ -1,5 +1,6 @@
 package org.vstu.compprehension.data.questionoptions;
 
+import java.io.Serializable;
 import com.fasterxml.jackson.annotation.JsonIgnoreProperties;
 import com.fasterxml.jackson.annotation.JsonProperty;
 import lombok.*;
@@ -31,7 +32,7 @@ public class OrderQuestionOptionsData extends QuestionOptionsData {
     @Getter @Setter
     @Builder @Jacksonized
     @JsonIgnoreProperties(ignoreUnknown = true)
-    public static class OrderNumberOptions {
+    public static class OrderNumberOptions implements Serializable {
         @Builder.Default
         private String delimiter = "/";
         @Builder.Default
