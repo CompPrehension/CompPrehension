@@ -6,6 +6,7 @@ import com.vladmihalcea.hibernate.type.json.JsonType;
 import jakarta.persistence.*;
 import lombok.Data;
 import lombok.NoArgsConstructor;
+import org.hibernate.annotations.ColumnDefault;
 import org.hibernate.annotations.CreationTimestamp;
 import org.hibernate.annotations.Type;
 import org.hibernate.annotations.UpdateTimestamp;
@@ -68,6 +69,7 @@ public class ExerciseEntity implements Cloneable {
     private @NotNull String strategyId;
 
     @Column(name = "is_public", nullable = false)
+    @ColumnDefault("0")
     private boolean isPublic;
 
     public List<String> getTags() {

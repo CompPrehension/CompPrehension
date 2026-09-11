@@ -3,6 +3,7 @@ package org.vstu.compprehension.entities.course;
 import jakarta.persistence.*;
 import lombok.Getter;
 import lombok.NoArgsConstructor;
+import org.hibernate.annotations.ColumnDefault;
 import org.hibernate.annotations.CreationTimestamp;
 import org.vstu.compprehension.entities.ExerciseEntity;
 
@@ -27,6 +28,7 @@ public class ExerciseCourseLinkEntity {
 
     @CreationTimestamp
     @Column(name = "linked_at", nullable = false, updatable = false)
+    @ColumnDefault("CURRENT_TIMESTAMP")
     private LocalDateTime linkedAt;
 
     public ExerciseCourseLinkEntity(CourseEntity course, ExerciseEntity exercise) {

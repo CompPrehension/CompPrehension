@@ -1,0 +1,197 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<databaseChangeLog xmlns="http://www.liquibase.org/xml/ns/dbchangelog"
+                   xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance"
+                   xsi:schemaLocation="http://www.liquibase.org/xml/ns/dbchangelog
+                       http://www.liquibase.org/xml/ns/dbchangelog/dbchangelog-4.5.xsd">
+
+    <changeSet id="2026-09-11-01-drop-user-exercise" author="Artem Prokudin">
+        <preConditions onFail="MARK_RAN">
+            <tableExists tableName="user_exercise"/>
+        </preConditions>
+        <dropTable tableName="user_exercise"/>
+        <rollback>
+            <createTable tableName="user_exercise">
+                <column name="exercise_id" type="BIGINT">
+                    <constraints nullable="false" primaryKey="true" primaryKeyName="pk_userexercise"/>
+                </column>
+                <column name="user_id" type="BIGINT">
+                    <constraints nullable="false" primaryKey="true" primaryKeyName="pk_userexercise"/>
+                </column>
+            </createTable>
+            <addForeignKeyConstraint baseColumnNames="exercise_id" baseTableName="user_exercise"
+                                     constraintName="fk_useexe_on_exercise_entity" referencedColumnNames="id"
+                                     referencedTableName="exercise"/>
+            <addForeignKeyConstraint baseColumnNames="user_id" baseTableName="user_exercise"
+                                     constraintName="fk_useexe_on_user_entity" referencedColumnNames="id"
+                                     referencedTableName="user"/>
+        </rollback>
+    </changeSet>
+
+    <changeSet id="2026-09-11-02-drop-text-template-edit" author="Artem Prokudin">
+        <preConditions onFail="MARK_RAN">
+            <tableExists tableName="text_template_edit"/>
+        </preConditions>
+        <dropTable tableName="text_template_edit"/>
+        <rollback>
+            <createTable tableName="text_template_edit">
+                <column name="domain_name" type="VARCHAR(255)">
+                    <constraints nullable="false" primaryKey="true" primaryKeyName="pk_text_template_edit"/>
+                </column>
+                <column name="loc_code" type="VARCHAR(255)">
+                    <constraints nullable="false" primaryKey="true" primaryKeyName="pk_text_template_edit"/>
+                </column>
+                <column name="template_id" type="VARCHAR(255)">
+                    <constraints nullable="false" primaryKey="true" primaryKeyName="pk_text_template_edit"/>
+                </column>
+                <column name="template_location" type="VARCHAR(255)">
+                    <constraints nullable="false" primaryKey="true" primaryKeyName="pk_text_template_edit"/>
+                </column>
+                <column name="sub_location_name" type="VARCHAR(255)">
+                    <constraints nullable="false" primaryKey="true" primaryKeyName="pk_text_template_edit"/>
+                </column>
+                <column name="property_name" type="VARCHAR(255)">
+                    <constraints nullable="false" primaryKey="true" primaryKeyName="pk_text_template_edit"/>
+                </column>
+                <column name="value" type="TEXT"/>
+            </createTable>
+            <addForeignKeyConstraint baseColumnNames="domain_name" baseTableName="text_template_edit"
+                                     constraintName="fk_text_template_edit_on_domain" referencedColumnNames="name"
+                                     referencedTableName="domain"/>
+        </rollback>
+    </changeSet>
+
+    <changeSet id="2026-09-11-03-outdated" author="Artem Prokudin">
+        <preConditions onFail="MARK_RAN">
+            <columnExists tableName="question_request_log" columnName="outdated"/>
+        </preConditions>
+        <dropColumn tableName="question_request_log" columnName="outdated"/>
+        <rollback>
+            <addColumn tableName="question_request_log">
+                <column name="outdated" type="INT" defaultValue="0"/>
+            </addColumn>
+        </rollback>
+    </changeSet>
+
+    <changeSet id="2026-09-11-03-processed-count" author="Artem Prokudin">
+        <preConditions onFail="MARK_RAN">
+            <columnExists tableName="question_request_log" columnName="processed_count"/>
+        </preConditions>
+        <dropColumn tableName="question_request_log" columnName="processed_count"/>
+        <rollback>
+            <addColumn tableName="question_request_log">
+                <column name="processed_count" type="INT"/>
+            </addColumn>
+        </rollback>
+    </changeSet>
+
+    <changeSet id="2026-09-11-03-last-processed-date" author="Artem Prokudin">
+        <preConditions onFail="MARK_RAN">
+            <columnExists tableName="question_request_log" columnName="last_processed_date"/>
+        </preConditions>
+        <dropColumn tableName="question_request_log" columnName="last_processed_date"/>
+        <rollback>
+            <addColumn tableName="question_request_log">
+                <column name="last_processed_date" type="DATETIME(6)"/>
+            </addColumn>
+        </rollback>
+    </changeSet>
+
+    <changeSet id="2026-09-11-03-added-questions" author="Artem Prokudin">
+        <preConditions onFail="MARK_RAN">
+            <columnExists tableName="question_request_log" columnName="added_questions"/>
+        </preConditions>
+        <dropColumn tableName="question_request_log" columnName="added_questions"/>
+        <rollback>
+            <addColumn tableName="question_request_log">
+                <column name="added_questions" type="INT"/>
+            </addColumn>
+        </rollback>
+    </changeSet>
+
+    <changeSet id="2026-09-11-04-drop-redundant-question-request-log-uuid-index" author="Artem Prokudin">
+        <preConditions onFail="MARK_RAN">
+            <indexExists tableName="question_request_log" indexName="ux_question_request_log_uuid"/>
+        </preConditions>
+        <dropIndex tableName="question_request_log" indexName="ux_question_request_log_uuid"/>
+        <rollback>
+            <createIndex tableName="question_request_log" indexName="ux_question_request_log_uuid" unique="true">
+                <column name="id"/>
+            </createIndex>
+        </rollback>
+    </changeSet>
+
+    <changeSet id="2026-09-11-05-unique-interaction-feedback" author="Artem Prokudin">
+        <preConditions onFail="MARK_RAN">
+            <not><indexExists tableName="interaction" indexName="ux_interaction_feedback_id"/></not>
+            <sqlCheck expectedResult="0">
+                select count(*) from (
+                    select feedback_id from interaction
+                    where feedback_id is not null
+                    group by feedback_id having count(*) > 1
+                ) t
+            </sqlCheck>
+        </preConditions>
+        <createIndex tableName="interaction" indexName="ux_interaction_feedback_id" unique="true">
+            <column name="feedback_id"/>
+        </createIndex>
+        <rollback>
+            <dropIndex tableName="interaction" indexName="ux_interaction_feedback_id"/>
+        </rollback>
+    </changeSet>
+
+    <changeSet id="2026-09-11-06-unique-supplementary-step-question" author="Artem Prokudin">
+        <preConditions onFail="MARK_RAN">
+            <not><indexExists tableName="supplementary_step" indexName="ux_supplementary_step_supplementary_question_id"/></not>
+            <sqlCheck expectedResult="0">
+                select count(*) from (
+                    select supplementary_question_id from supplementary_step
+                    where supplementary_question_id is not null
+                    group by supplementary_question_id having count(*) > 1
+                ) t
+            </sqlCheck>
+        </preConditions>
+        <createIndex tableName="supplementary_step" indexName="ux_supplementary_step_supplementary_question_id" unique="true">
+            <column name="supplementary_question_id"/>
+        </createIndex>
+        <rollback>
+            <dropIndex tableName="supplementary_step" indexName="ux_supplementary_step_supplementary_question_id"/>
+        </rollback>
+    </changeSet>
+
+    <changeSet id="2026-09-11-06b-drop-redundant-supplementary-step-question-index" author="Artem Prokudin">
+        <preConditions onFail="MARK_RAN">
+            <indexExists tableName="supplementary_step" indexName="ux_supplementary_step_supplementary_question_id"/>
+            <indexExists tableName="supplementary_step" indexName="fk_supplementary_step_to_supplementary_question"/>
+        </preConditions>
+        <dropIndex tableName="supplementary_step" indexName="fk_supplementary_step_to_supplementary_question"/>
+        <rollback>
+            <createIndex tableName="supplementary_step" indexName="fk_supplementary_step_to_supplementary_question">
+                <column name="supplementary_question_id"/>
+            </createIndex>
+        </rollback>
+    </changeSet>
+
+    <changeSet id="2026-09-11-06c-drop-redundant-interaction-feedback-index" author="Artem Prokudin">
+        <preConditions onFail="MARK_RAN">
+            <indexExists tableName="interaction" indexName="ux_interaction_feedback_id"/>
+            <indexExists tableName="interaction" indexName="FK_INTERACTION_ON_FEEDBACK"/>
+        </preConditions>
+        <dropIndex tableName="interaction" indexName="FK_INTERACTION_ON_FEEDBACK"/>
+        <rollback>
+            <createIndex tableName="interaction" indexName="FK_INTERACTION_ON_FEEDBACK">
+                <column name="feedback_id"/>
+            </createIndex>
+        </rollback>
+    </changeSet>
+
+    <changeSet id="2026-09-11-07-logs-message-index" author="Artem Prokudin">
+        <preConditions onFail="MARK_RAN">
+            <not><indexExists tableName="logs" indexName="idx_message"/></not>
+        </preConditions>
+        <sql>create index idx_message on logs (message(100))</sql>
+        <rollback>
+            <dropIndex tableName="logs" indexName="idx_message"/>
+        </rollback>
+    </changeSet>
+
+</databaseChangeLog>
