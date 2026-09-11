@@ -15,7 +15,9 @@ import java.util.List;
 @Entity
 @Data
 @NoArgsConstructor
-@Table(name = "exercise_attempt")
+@Table(name = "exercise_attempt", indexes = {
+    @Index(name = "idx_exercise_attempt_course", columnList = "course_id")
+})
 public class ExerciseAttemptEntity {
     //TODO: Нужен ли здесь язык студента
     @Id

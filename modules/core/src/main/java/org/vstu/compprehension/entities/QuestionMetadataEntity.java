@@ -2,6 +2,7 @@ package org.vstu.compprehension.entities;
 
 import jakarta.persistence.*;
 import lombok.*;
+import org.hibernate.annotations.ColumnDefault;
 import org.hibernate.annotations.CreationTimestamp;
 import org.hibernate.annotations.OnDelete;
 import org.hibernate.annotations.OnDeleteAction;
@@ -17,6 +18,7 @@ import java.util.Date;
     @Index(name = "questions_meta_search_idx", columnList = "domain_shortname, solution_steps, integral_complexity, template_id, name"),
     @Index(name = "idx_questions_meta_domainshortname_name", columnList = "domain_shortname, name"),
     @Index(name = "idx_questions_meta_domainshortname_templateid", columnList = "domain_shortname, template_id"),
+    @Index(name = "idx_domain_name", columnList = "domain_shortname"),
 })
 public class QuestionMetadataEntity {
     @Id
@@ -28,13 +30,14 @@ public class QuestionMetadataEntity {
     @Column(name = "name")
     private String name;
 
-    @Column(name = "domain_shortname")
+    @Column(name = "domain_shortname", nullable = false, length = 45)
+    @ColumnDefault("'ctrl_flow'")
     private String domainShortname;
 
     @Column(name = "template_id")
     private String templateId;
 
-    @Column(name = "q_data_graph")
+    @Column(name = "q_data_graph", columnDefinition = "TEXT")
     private String qDataGraph;
 
     @Column(name = "tag_bits")
@@ -46,7 +49,7 @@ public class QuestionMetadataEntity {
     @Column(name = "law_bits")
     private Long lawBits;
 
-    @Column(name = "skill_bits")
+    @Column(name = "skill_bits", nullable = false)
     private Long skillBits;
 
     @Column(name = "violation_bits")
@@ -73,21 +76,21 @@ public class QuestionMetadataEntity {
     /** compact representation of meaningful structure; may be used to determine similar questions
      * */
     @Builder.Default
-    @Column(name = "structure_hash")
+    @Column(name = "structure_hash", length = 1023)
     private String structureHash = "";
 
     /**
      * URL or name of GitHub repository from which this question was created
      */
     @Builder.Default
-    @Column(name = "origin")
+    @Column(name = "origin", length = 1023)
     private String origin = "";
 
     /**
      * License type of GitHub repository from which this question was created
      */
     @Builder.Default
-    @Column(name = "origin_license")
+    @Column(name = "origin_license", length = 128)
     private String originLicense = null;
 
     @CreationTimestamp

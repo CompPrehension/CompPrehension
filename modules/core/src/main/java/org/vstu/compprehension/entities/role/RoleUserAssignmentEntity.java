@@ -10,7 +10,9 @@ import org.vstu.compprehension.entities.UserEntity;
 @Getter
 @Setter
 @NoArgsConstructor
-@Table(name = "role_user_assignment")
+@Table(name = "role_user_assignment", uniqueConstraints = {
+    @UniqueConstraint(name = "ux_rua_user_role_scope", columnNames = {"user_id", "role_id", "permission_scope_id"})
+})
 public class RoleUserAssignmentEntity {
     @Id
     @GeneratedValue(strategy = GenerationType.IDENTITY)

@@ -19,8 +19,8 @@ public class SupplementaryStepEntity {
     private Long id;
     
     @ToString.Exclude
-    @ManyToOne(fetch = FetchType.LAZY)
-    @JoinColumn(name = "main_question_interaction_id")
+    @ManyToOne(fetch = FetchType.LAZY, optional = false)
+    @JoinColumn(name = "main_question_interaction_id", nullable = false)
     private InteractionEntity mainQuestionInteraction;
     
     @ToString.Exclude

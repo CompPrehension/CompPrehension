@@ -65,57 +65,57 @@ public class QuestionGenerationRequestEntity {
     
     @Column(name = "domain_shortname",
             columnDefinition = "varchar(255) GENERATED ALWAYS AS (question_request->>\"$.domainShortname\") VIRTUAL NOT NULL",
-            insertable = false, updatable = false)
+            nullable = false, insertable = false, updatable = false)
     private String domainShortname;
     
     @Column(name = "denied_concepts_bitmask",
             columnDefinition = "bigint GENERATED ALWAYS AS (question_request->>\"$.deniedConceptsBitmask\") VIRTUAL NOT NULL",
-            insertable = false, updatable = false)
+            nullable = false, insertable = false, updatable = false)
     private Long deniedConceptsBitmask;
 
     @Column(name = "denied_laws_bitmask",
             columnDefinition = "bigint GENERATED ALWAYS AS (question_request->>\"$.deniedLawsBitmask\") VIRTUAL NOT NULL",
-            insertable = false, updatable = false)
+            nullable = false, insertable = false, updatable = false)
     private Long deniedLawsBitmask;
 
     @Column(name = "denied_skills_bitmask",
             columnDefinition = "bigint GENERATED ALWAYS AS (question_request->>\"$.deniedSkillsBitmask\") VIRTUAL NOT NULL",
-            insertable = false, updatable = false)
+            nullable = false, insertable = false, updatable = false)
     private Long deniedSkillsBitmask;
     
     @Column(name = "target_concepts_bitmask",
             columnDefinition = "bigint GENERATED ALWAYS AS (question_request->>\"$.targetConceptsBitmask\") VIRTUAL NOT NULL",
-            insertable = false, updatable = false)
+            nullable = false, insertable = false, updatable = false)
     private Long targetConceptsBitmask;
     
     @Column(name = "target_laws_bitmask",
             columnDefinition = "bigint GENERATED ALWAYS AS (question_request->>\"$.targetLawsBitmask\") VIRTUAL NOT NULL",
-            insertable = false, updatable = false)
+            nullable = false, insertable = false, updatable = false)
     private Long targetLawsBitmask;
 
     @Column(name = "target_skills_bitmask",
             columnDefinition = "bigint GENERATED ALWAYS AS (question_request->>\"$.targetSkillsBitmask\") VIRTUAL NOT NULL",
-            insertable = false, updatable = false)
+            nullable = false, insertable = false, updatable = false)
     private Long targetSkillsBitmask;
     
     @Column(name = "target_tags_bitmask",
             columnDefinition = "bigint GENERATED ALWAYS AS (question_request->>\"$.targetTagsBitmask\") VIRTUAL NOT NULL",
-            insertable = false, updatable = false)
+            nullable = false, insertable = false, updatable = false)
     private Long targetTagsBitmask;
     
     @Column(name = "complexity",
             columnDefinition = "float GENERATED ALWAYS AS (question_request->>\"$.complexity\") VIRTUAL NOT NULL",
-            insertable = false, updatable = false)    
+            nullable = false, insertable = false, updatable = false)    
     private Float complexity;
     
     @Column(name = "steps_min",
             columnDefinition = "int GENERATED ALWAYS AS (question_request->>\"$.stepsMin\") VIRTUAL NOT NULL",
-            insertable = false, updatable = false)
+            nullable = false, insertable = false, updatable = false)
     private Integer stepsMin;
     
     @Column(name = "steps_max",
             columnDefinition = "int GENERATED ALWAYS AS (question_request->>\"$.stepsMax\") VIRTUAL NOT NULL",
-            insertable = false, updatable = false)
+            nullable = false, insertable = false, updatable = false)
     private Integer stepsMax;
 
     public enum Status {

@@ -4,6 +4,7 @@ import jakarta.persistence.*;
 import lombok.Getter;
 import lombok.NoArgsConstructor;
 import lombok.Setter;
+import org.hibernate.annotations.ColumnDefault;
 import org.vstu.compprehension.enums.EducationResourceTrustStatus;
 import org.vstu.compprehension.enums.EducationResourceType;
 
@@ -32,6 +33,7 @@ public class EducationResourceEntity {
 
     @Enumerated(EnumType.STRING)
     @Column(name = "trust_status", nullable = false, length = 32)
+    @ColumnDefault("'UNTRUSTED'")
     private EducationResourceTrustStatus trustStatus;
 
     public EducationResourceEntity(String url, EducationResourceType type) {
