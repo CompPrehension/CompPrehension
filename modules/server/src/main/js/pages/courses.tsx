@@ -1,7 +1,7 @@
 import React, { useEffect, useState } from 'react';
 import { observer } from 'mobx-react';
 import { Button } from 'react-bootstrap';
-import { useNavigate } from 'react-router-dom';
+import { useNavigate } from 'react-router';
 import { CoursesStore } from '../stores/courses-store';
 import { Header } from '../components/common/header';
 import { Loader } from '../components/common/loader';

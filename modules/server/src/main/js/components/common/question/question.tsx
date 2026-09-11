@@ -22,7 +22,7 @@ type QuestionComponentProps = {
 
 export const QuestionComponent = observer((props: QuestionComponentProps) => {
     const { question, answers, onChanged, getAnswers, getFeedback, isFeedbackLoading, isQuestionFreezed } = props;
-    let questonComponent: JSX.Element;
+    let questonComponent: React.JSX.Element;
     switch(question.type) {
         case 'MATCHING':                
             questonComponent = <MatchingQuestionComponent question={question} onChanged={onChanged} answers={answers} getAnswers={getAnswers} getFeedback={getFeedback}/>;
@@ -39,7 +39,7 @@ export const QuestionComponent = observer((props: QuestionComponentProps) => {
         default:
             // compile-time checking whether the question has `never` type 
             // to ensure that all case branches have been processed
-            return absurd<JSX.Element>(question);
+            return absurd<React.JSX.Element>(question);
     }
 
     const wrapperClassName = [

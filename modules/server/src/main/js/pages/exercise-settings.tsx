@@ -15,7 +15,7 @@ import {ExerciseCardViewModel, ExerciseSettingsStore, ExerciseStageStore} from "
 import {observer} from "mobx-react";
 import {ToggleSwitch} from "../components/common/toggle";
 import {Button, Form} from "react-bootstrap";
-import {Link} from "react-router-dom";
+import {Link} from 'react-router';
 import { LoadFailure } from "../components/common/errors";
 import {Loader} from "../components/common/loader";
 import {useTranslation} from "react-i18next";
