@@ -34,7 +34,7 @@ task-generation:
       enabled :  true  # `false` disables generation for this domain completely.
       
       searcher:
-        github_oauth_token: '${COMPPH_GITHIB_SEARCH_TOKEN}'
+        github-oAuth-token: '${GITHUB_SEARCH_TOKEN:invalid-token}'
         output_folder_path: 'C:/data/compp-gen/expr/downloaded_repos/'
         repositories_to_download: 1
 
@@ -57,7 +57,7 @@ task-generation:
       enabled :  false
 
       searcher:
-        github_oauth_token: '${COMPPH_GITHIB_SEARCH_TOKEN}'
+        github-oAuth-token: '${GITHUB_SEARCH_TOKEN:invalid-token}'
         output_folder_path: 'C:/data/compp-gen/control_flow/downloaded_repos/'
         repositories_to_download: 1
 
@@ -84,7 +84,7 @@ bank-load-testing-batch:
 
 moodle-role-sync:
   # use cron string (like "0 0 * * * *"), "never" or "once"
-  cron-schedule: "*/30 * * * * *"
+  cron-schedule: "never"
   courses-per-batch: 20
   abort-on-empty-response: true
 
