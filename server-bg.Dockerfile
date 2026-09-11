@@ -44,4 +44,4 @@ ENV TASK_GENERATION_PARSER_PATH_TO_EXECUTABLE=/parser/runner.sh \
     TASK_GENERATION_GENERATOR_PATH_TO_EXECUTABLE=/generator/runner.sh \
     TASK_GENERATION_GENERATOR_LOG_LEVEL=INFO
 
-ENTRYPOINT ["java","-jar","/app.jar"]
+ENTRYPOINT ["java","-XX:+UseZGC","-XX:+UseCompactObjectHeaders","-XX:MaxRAMPercentage=75","-jar","/app.jar"]

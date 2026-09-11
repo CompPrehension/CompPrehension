@@ -291,7 +291,7 @@ public class TaskGenerationJob {
         // Учесть историю по полностью использованным репозиториям + загруженным недавно -- игнорируем их
         // TODO временно для эксперимента используем только ни разу не обработанные за 24ч репозитории
         var seenReposNames = storage.findProcessedOrigins(config.getDomainShortName(), LocalDateTime.now().minusHours(24))
-            .stream().map(s -> s.replaceAll("/", "_"))
+            .stream().map(s -> s.replace("/", "_"))
             .collect(Collectors.toSet());
         if (downloaderConfig.isSkipDownloadedRepositories()) {
             // add repo names (on disk) to seenReposNames
@@ -305,7 +305,7 @@ public class TaskGenerationJob {
         int skipped         = 0;
         try (ExecutorService executorService = Executors.newFixedThreadPool(1)) {
             for (var repo : repositories) {
-                var repoId = repo.getFullName().replaceAll("/", "_");
+                var repoId = repo.getFullName().replace("/", "_");
                 if (seenReposNames.contains(repoId)) {
                     skipped++;
                     log.printf(Level.DEBUG, "Skip processed GitHub repo [%3d]: %s", skipped, repo.getFullName());

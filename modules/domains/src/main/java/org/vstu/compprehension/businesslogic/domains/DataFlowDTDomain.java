@@ -445,15 +445,15 @@ public class DataFlowDTDomain extends DecisionTreeReasoningDomain {
 
     private Explanation replaceEnumInExplanation(Explanation explanation, Language language) {
         explanation.setRawMessage(new HyperText(explanation.getRawMessage().getText()
-                .replaceAll("text.right", getMessage("text.right", language))
-                .replaceAll("text.left", getMessage("text.left", language))
-                .replaceAll("text.center", getMessage("text.center", language))
-                .replaceAll("text.inputR", getMessage("text.inputR", language))
-                .replaceAll("text.outputR", getMessage("text.outputR", language))
-                .replaceAll("text.mutableR", getMessage("text.mutableR", language))
-                .replaceAll("text.inputI", getMessage("text.inputI", language))
-                .replaceAll("text.outputI", getMessage("text.outputI", language))
-                .replaceAll("text.mutableI", getMessage("text.mutableI", language))));
+                .replace("text.right", getMessage("text.right", language))
+                .replace("text.left", getMessage("text.left", language))
+                .replace("text.center", getMessage("text.center", language))
+                .replace("text.inputR", getMessage("text.inputR", language))
+                .replace("text.outputR", getMessage("text.outputR", language))
+                .replace("text.mutableR", getMessage("text.mutableR", language))
+                .replace("text.inputI", getMessage("text.inputI", language))
+                .replace("text.outputI", getMessage("text.outputI", language))
+                .replace("text.mutableI", getMessage("text.mutableI", language))));
         return explanation;
     }
 

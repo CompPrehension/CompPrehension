@@ -26,6 +26,7 @@ import org.vstu.compprehension.enums.Language;
 import org.vstu.compprehension.services.RandomProvider;
 
 import java.util.*;
+import java.util.random.RandomGenerator;
 
 import static java.lang.Math.abs;
 
@@ -90,7 +91,7 @@ public class Strategy extends StrategyBase {
                 startTasks = new ArrayList<>(Arrays.asList("alt_i1", "while_2_110",
                         "do_10"));
             }
-            Random random = randomProvider.getRandom();
+            RandomGenerator random = randomProvider.getRandom();
             int nextQuestion = random.ints(0, startTasks.size())
                     .findFirst()
                     .getAsInt();
@@ -198,7 +199,7 @@ public class Strategy extends StrategyBase {
         if(correct > 0.9){
             //Если у узла есть "прямые" большие вопросы
             if(currentNode != null && currentNode.parentNodes != null && currentNode.parentNodes.size() > 0){
-                Random random = randomProvider.getRandom();
+                RandomGenerator random = randomProvider.getRandom();
                 int nextQuestion = 0;
                 if(currentNode.parentNodes.size() > 1) {
                     nextQuestion = random.ints(0, currentNode.parentNodes.size() )
@@ -299,7 +300,7 @@ public class Strategy extends StrategyBase {
                     return new QuestionRequest();
                 }
 
-                Random random = randomProvider.getRandom();
+                RandomGenerator random = randomProvider.getRandom();
                 int nextQuestion = 0;
                 if(currentNode != null && currentNode.parentNodes.size() > 1) {
                     nextQuestion = random.ints(0, currentNode.parentNodes.size())
@@ -329,7 +330,7 @@ public class Strategy extends StrategyBase {
                     return getQuestionRequest(exerciseAttempt, currentNode);
                 }
 
-                Random random = randomProvider.getRandom();
+                RandomGenerator random = randomProvider.getRandom();
                 int nextQuestion = 0;
                 if(nextNodes.size() > 1) {
                     nextQuestion = random.ints(0, nextNodes.size())

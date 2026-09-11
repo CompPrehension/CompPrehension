@@ -9,6 +9,7 @@ import lombok.Setter;
 import lombok.ToString;
 import org.hibernate.annotations.Fetch;
 import org.hibernate.annotations.FetchMode;
+import org.hibernate.annotations.Immutable;
 import org.hibernate.annotations.Type;
 
 import java.util.List;
@@ -37,6 +38,7 @@ public class ViolationEntity {
     @Column(name = "detailed_law_name")
     private String detailedLawName;
 
+    @Immutable
     @Type(JsonType.class)
     @Column(name = "violation_facts", nullable = false)
     private List<BackendFactData> violationFacts;

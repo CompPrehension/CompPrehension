@@ -1,8 +1,8 @@
 package org.vstu.compprehension.services;
 
-import java.util.Random;
+import java.util.random.RandomGenerator;
 
 public interface RandomProvider {
-    Random getRandom();
+    RandomGenerator getRandom();
     void reset(int seed);
 }

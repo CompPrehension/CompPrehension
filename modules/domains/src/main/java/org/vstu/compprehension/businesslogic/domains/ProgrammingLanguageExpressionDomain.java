@@ -725,9 +725,9 @@ QuestionOptionsData orderQuestionOptions = OrderQuestionOptionsData.builder()
 
     public static String QuestionTextToHtml(String text) {
         StringBuilder sb = new StringBuilder(text
-                .replaceAll("\\*", "&#8727")
-                .replaceAll("\\n", "<br>")
-                .replaceAll("\\t", "&nbsp;&nbsp;&nbsp;&nbsp;"));
+                .replace("*", "&#8727")
+                .replace("\n", "<br>")
+                .replace("\t", "&nbsp;&nbsp;&nbsp;&nbsp;"));
         sb.insert(0, "<div class='comp-ph-question'>"); sb.append("</div>");
         return sb.toString();
     }
@@ -1916,7 +1916,7 @@ QuestionOptionsData orderQuestionOptions = OrderQuestionOptionsData.builder()
                     .add(getMessage("AT_POS", lang))
                     .add(reasonPos)
                     .add(getMessage("HAS_VALUE_AND_EVALUATE_OTHER_PART", lang)
-                            .replaceAll("\\$\\{evaluation_result}", reasonText.equals("&&") ? "false" : "true"));
+                            .replace("${evaluation_result}", reasonText.equals("&&") ? "false" : "true"));
         } else if (errorType.equals("error_base_student_error_early_finish")) {
             joiner = new StringJoiner(" ");
             joiner
@@ -2205,7 +2205,7 @@ QuestionOptionsData orderQuestionOptions = OrderQuestionOptionsData.builder()
         int savedCount = 0;
 
         for (String file : ttlTemplatePaths) {
-            file = file.replaceAll("\\\\","/");
+            file = file.replace("\\", "/");
             log.info("Start generating question(s) for template {}", file);
             try {
                 if (qCount > questionsLimit)

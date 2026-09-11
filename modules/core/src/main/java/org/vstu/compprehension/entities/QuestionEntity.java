@@ -11,6 +11,7 @@ import lombok.ToString;
 import org.hibernate.annotations.CreationTimestamp;
 import org.hibernate.annotations.OnDelete;
 import org.hibernate.annotations.OnDeleteAction;
+import org.hibernate.annotations.Immutable;
 import org.hibernate.annotations.Type;
 import org.jetbrains.annotations.NotNull;
 import org.jetbrains.annotations.Nullable;
@@ -58,10 +59,12 @@ public class QuestionEntity {
     @Column(name = "question_domain_type")
     private String questionDomainType;
 
+    @Immutable
     @Type(JsonType.class)
     @Column(name = "options_json", columnDefinition = "json")
     private QuestionOptionsData options;
 
+    @Immutable
     @Type(JsonType.class)
     @Column(name = "tags", columnDefinition = "json", nullable = false)
     @NotNull
@@ -93,11 +96,13 @@ public class QuestionEntity {
     @JoinColumn(name = "domain_name", nullable = false)
     private DomainEntity domainEntity;
 
+    @Immutable
     @Type(JsonType.class)
     @Column(name = "statement_facts", nullable = false)
     @Basic(fetch = FetchType.LAZY)
     private List<BackendFactData> statementFacts = new ArrayList<>();
 
+    @Immutable
     @Type(JsonType.class)
     @Column(name = "solution_facts", nullable = false)
     @Basic(fetch = FetchType.LAZY)

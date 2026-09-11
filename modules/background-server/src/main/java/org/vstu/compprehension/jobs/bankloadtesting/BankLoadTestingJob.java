@@ -162,6 +162,9 @@ public class BankLoadTestingJob {
             executor.submit(() -> {
                 try {
                     ThreadContext.put("userId", String.valueOf(userId));
+                    if (config.getRandomSeed() != null) {
+                        randomProvider.reset((int) (config.getRandomSeed() + userId));
+                    }
                     runUserExerciseAttempt(config, userId, questionsNumber);
                 } catch (Exception e) {
                     log.error("Error in user {} exercise attempt thread: {}", userId, e.getMessage(), e);
