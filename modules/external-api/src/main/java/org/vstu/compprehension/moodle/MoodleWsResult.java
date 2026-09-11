@@ -10,7 +10,7 @@ import java.util.function.Function;
 
 /**
  * Результат вызова Moodle WS REST: {@link Success} с типизированной полезной нагрузкой
- * или {@link Failure} с причиной ошибки. Возвращается публичными методами {@link MoodleService};
+ * или {@link Failure} с причиной ошибки. Возвращается методами {@link MoodleClient};
  * политику на сбой (пустой результат / исключение) решает caller
  */
 public sealed interface MoodleWsResult<T> permits MoodleWsResult.Success, MoodleWsResult.Failure {
