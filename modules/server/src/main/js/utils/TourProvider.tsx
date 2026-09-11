@@ -26,7 +26,7 @@ type TourProviderProps = {
 };
 
 export const TourProvider = ({ steps, children }: TourProviderProps) => {
-  const tourRef = useRef<InstanceType<typeof Shepherd.Tour>>();
+  const tourRef = useRef<InstanceType<typeof Shepherd.Tour>>(undefined);
   const [isReady, setIsReady] = useState(false);
   const isTourCompletedRef = useRef(false);
   const { t } = useTranslation();

@@ -4,7 +4,7 @@ import React from 'react';
 import "./i18n";
 import "./styles/index.css";
 import 'bootstrap/dist/css/bootstrap.min.css';
-import {BrowserRouter as Router, Navigate, Route, Routes} from 'react-router-dom';
+import {BrowserRouter as Router, Navigate, Route, Routes} from 'react-router';
 import {Exercise} from './pages/exercise';
 import {Statistics} from './pages/statistics';
 import {ExercisesList} from './pages/exercises-list';
