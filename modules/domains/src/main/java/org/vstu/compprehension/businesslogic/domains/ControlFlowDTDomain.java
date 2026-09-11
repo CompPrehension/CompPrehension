@@ -914,8 +914,9 @@ public class ControlFlowDTDomain extends DecisionTreeReasoningDomain {
         return message;
     }
 
+    @NotNull
     @Override
-    public List<HyperText> getFullSolutionTrace(QuestionData question, Language language) {
+    public List<HyperText> getFullSolutionTrace(@NotNull QuestionData question, @NotNull Language language) {
         List<HyperText> trace = new ArrayList<>();
         var questionModel = prepareQuestionModel(question.getContent(), this.domainSolvingModel);
         var treeInterface = (DecisionTreeInterface) getBackendInterface();

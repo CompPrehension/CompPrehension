@@ -12,10 +12,4 @@ import org.springframework.context.annotation.Configuration;
 @NoArgsConstructor
 public class MetadataHealthJobConfig {
     private String cronSchedule = "never";
-    private Mode mode = Mode.SKIP_INVALID;
-    
-    public static enum Mode {
-        DELETE_INVALID,
-        SKIP_INVALID,
-    }
 }

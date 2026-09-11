@@ -635,9 +635,10 @@ public class ObjectsScopeDTDomain extends DecisionTreeReasoningDomain {
         return correctAnswer;
     }
 
+    @NotNull
     @Override
-    public List<HyperText> getFullSolutionTrace(QuestionData question, Language language) {
-        return null;
+    public List<HyperText> getFullSolutionTrace(@NotNull QuestionData question, @NotNull Language language) {
+        return List.of();
     }
 
     @NotNull

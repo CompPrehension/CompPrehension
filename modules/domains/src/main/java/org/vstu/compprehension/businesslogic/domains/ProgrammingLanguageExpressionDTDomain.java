@@ -790,8 +790,9 @@ public class ProgrammingLanguageExpressionDTDomain extends DecisionTreeReasoning
         return new HyperText(finalHtml);
     }
 
+    @NotNull
     @Override
-    public List<HyperText> getFullSolutionTrace(QuestionData question, Language language) {
+    public List<HyperText> getFullSolutionTrace(@NotNull QuestionData question, @NotNull Language language) {
         SupportedLanguage plang = MeaningTreeUtils.detectLanguageFromTags(question.getContent().getMetadata().getTagBits(), this);
 
         ArrayList<HyperText> result = new ArrayList<>();

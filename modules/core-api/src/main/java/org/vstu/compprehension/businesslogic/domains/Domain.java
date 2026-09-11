@@ -198,7 +198,7 @@ public interface Domain {
      * @param question tested question
      * @return list of step descriptions
      */
-    List<HyperText> getFullSolutionTrace(QuestionData question, Language language);
+    @NotNull List<HyperText> getFullSolutionTrace(@NotNull QuestionData question, @NotNull Language language);
 
     /** Get concepts with given flags (e.g. visible) organized into two-level hierarchy
      * @param requiredFlags e.g. Concept.FLAG_VISIBLE_TO_TEACHER

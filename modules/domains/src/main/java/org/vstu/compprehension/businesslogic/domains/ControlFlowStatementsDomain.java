@@ -245,8 +245,9 @@ public class ControlFlowStatementsDomain extends JenaReasoningDomain {
                 : EXECUTION_ORDER_QUESTION_TYPE;
     }
 
+    @NotNull
     @Override
-    public List<HyperText> getFullSolutionTrace(QuestionData question, Language language) {
+    public List<HyperText> getFullSolutionTrace(@NotNull QuestionData question, @NotNull Language language) {
         /// System.out.println("\t\tGetting the trace ...");
 
 //        final String textMode = "text";
