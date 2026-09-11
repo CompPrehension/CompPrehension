@@ -276,6 +276,7 @@ class ExerciseAttemptFrontendServiceTest extends AbstractIntegrationTest {
     @Test
     void addQuestionAnswerAcceptsCorrectFirstStepWithoutAttempt() {
         // Arrange.
+        TestUserService.actAs(TestData.Users.GLOBAL_EXERCISE_AUTHOR_ID);
         var bankQuestion = TestData.ExpressionBank.ASSIGN_UNARY_MINUS_PLUS;
         var question = attemptlessQuestion(bankQuestion);
 
@@ -297,6 +298,7 @@ class ExerciseAttemptFrontendServiceTest extends AbstractIntegrationTest {
     @Test
     void addQuestionAnswerRejectsOperatorOutOfOrder() {
         // Arrange.
+        TestUserService.actAs(TestData.Users.GLOBAL_EXERCISE_AUTHOR_ID);
         var bankQuestion = TestData.ExpressionBank.PARENTHESES_AND_UNARY_MINUS;
         var question = attemptlessQuestion(bankQuestion);
 
@@ -318,6 +320,7 @@ class ExerciseAttemptFrontendServiceTest extends AbstractIntegrationTest {
     @Test
     void addQuestionAnswerRejectsEarlyFinish() {
         // Arrange.
+        TestUserService.actAs(TestData.Users.GLOBAL_EXERCISE_AUTHOR_ID);
         var bankQuestion = TestData.ExpressionBank.MEMBER_ACCESS_PLUS;
         var question = attemptlessQuestion(bankQuestion);
 
@@ -336,6 +339,7 @@ class ExerciseAttemptFrontendServiceTest extends AbstractIntegrationTest {
     @Test
     void addQuestionAnswerCompletesQuestionStepByStep() {
         // Arrange.
+        TestUserService.actAs(TestData.Users.GLOBAL_EXERCISE_AUTHOR_ID);
         var bankQuestion = TestData.ExpressionBank.MUL_PLUS_MINUS;
         var question = attemptlessQuestion(bankQuestion);
 
@@ -355,6 +359,7 @@ class ExerciseAttemptFrontendServiceTest extends AbstractIntegrationTest {
     @Test
     void addQuestionAnswerKeepsEarlierCorrectStepsAfterMistake() {
         // Arrange.
+        TestUserService.actAs(TestData.Users.GLOBAL_EXERCISE_AUTHOR_ID);
         var bankQuestion = TestData.ExpressionBank.ASSIGN_UNARY_MINUS_PLUS;
         var question = attemptlessQuestion(bankQuestion);
         var afterFirst = service.addQuestionAnswer(interaction(question, bankQuestion.operatorAt(0)));
@@ -377,6 +382,7 @@ class ExerciseAttemptFrontendServiceTest extends AbstractIntegrationTest {
     @Test
     void generateNextCorrectAnswerWorksForQuestionWithoutAttempt() {
         // Arrange.
+        TestUserService.actAs(TestData.Users.GLOBAL_EXERCISE_AUTHOR_ID);
         var bankQuestion = TestData.ExpressionBank.MEMBER_ACCESS_PLUS;
         var question = attemptlessQuestion(bankQuestion);
 
@@ -398,6 +404,7 @@ class ExerciseAttemptFrontendServiceTest extends AbstractIntegrationTest {
     @Test
     void generateNextCorrectAnswerCarriesOverAnswersAlreadyGiven() {
         // Arrange.
+        TestUserService.actAs(TestData.Users.GLOBAL_EXERCISE_AUTHOR_ID);
         var bankQuestion = TestData.ExpressionBank.ASSIGN_UNARY_MINUS_PLUS;
         var question = attemptlessQuestion(bankQuestion);
         service.addQuestionAnswer(interaction(question, bankQuestion.operatorAt(0)));
@@ -416,6 +423,7 @@ class ExerciseAttemptFrontendServiceTest extends AbstractIntegrationTest {
     @Test
     void generateNextCorrectAnswerSolvesQuestionToTheEnd() {
         // Arrange.
+        TestUserService.actAs(TestData.Users.GLOBAL_EXERCISE_AUTHOR_ID);
         var bankQuestion = TestData.ExpressionBank.MUL_PLUS_MINUS;
         var question = attemptlessQuestion(bankQuestion);
 
@@ -437,6 +445,7 @@ class ExerciseAttemptFrontendServiceTest extends AbstractIntegrationTest {
     @Test
     void generateNextCorrectAnswerIgnoresPreviousMistake() {
         // Arrange.
+        TestUserService.actAs(TestData.Users.GLOBAL_EXERCISE_AUTHOR_ID);
         var bankQuestion = TestData.ExpressionBank.PARENTHESES_AND_UNARY_MINUS;
         var question = attemptlessQuestion(bankQuestion);
         service.addQuestionAnswer(interaction(question, bankQuestion.operatorAt(1)));
@@ -558,6 +567,7 @@ class ExerciseAttemptFrontendServiceTest extends AbstractIntegrationTest {
     @Test
     void generateSupplementaryQuestionAfterPrecedenceMistake() {
         // Arrange.
+        TestUserService.actAs(TestData.Users.GLOBAL_EXERCISE_AUTHOR_ID);
         var bankQuestion = TestData.ExpressionBank.PARENTHESES_AND_UNARY_MINUS;
         var question = attemptlessQuestion(bankQuestion);
         var mistake = service.addQuestionAnswer(interaction(question, bankQuestion.operatorAt(1)));
@@ -579,6 +589,7 @@ class ExerciseAttemptFrontendServiceTest extends AbstractIntegrationTest {
     @Test
     void addSupplementaryQuestionAnswerExplainsWrongMatching() {
         // Arrange.
+        TestUserService.actAs(TestData.Users.GLOBAL_EXERCISE_AUTHOR_ID);
         var bankQuestion = TestData.ExpressionBank.PARENTHESES_AND_UNARY_MINUS;
         var question = attemptlessQuestion(bankQuestion);
         var mistake = service.addQuestionAnswer(interaction(question, bankQuestion.operatorAt(1)));
@@ -598,6 +609,7 @@ class ExerciseAttemptFrontendServiceTest extends AbstractIntegrationTest {
     @Test
     void supplementaryChainContinuesAfterAnsweredStep() {
         // Arrange.
+        TestUserService.actAs(TestData.Users.GLOBAL_EXERCISE_AUTHOR_ID);
         var bankQuestion = TestData.ExpressionBank.PARENTHESES_AND_UNARY_MINUS;
         var question = attemptlessQuestion(bankQuestion);
         var mistake = service.addQuestionAnswer(interaction(question, bankQuestion.operatorAt(1)));
@@ -636,7 +648,6 @@ class ExerciseAttemptFrontendServiceTest extends AbstractIntegrationTest {
     // ---- вспомогательное ----
 
     private QuestionDto attemptlessQuestion(BankQuestion bankQuestion) {
-        TestUserService.actAs(TestData.Users.GLOBAL_EXERCISE_AUTHOR_ID);
         return service.generateQuestionByMetadata(bankQuestion.metadataId(), Language.ENGLISH);
     }
 
