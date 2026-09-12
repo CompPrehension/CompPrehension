@@ -48,38 +48,38 @@ class RoleAssignmentServiceTest extends AbstractIntegrationTest {
     void assignGlobalRoleGrantsPermissionsOfThatRole() {
         // Arrange.
         assertFalse(authService.isAuthorized(
-                TestData.USER_WITHOUT_ROLES_ID, SystemPermission.SOLVE_EXERCISE, authScopes.global()));
+                TestData.Users.WITHOUT_ROLES_ID, SystemPermission.SOLVE_EXERCISE, authScopes.global()));
 
         // Act.
-        roleAssignmentService.assignGlobalRole(TestData.USER_WITHOUT_ROLES_ID, SystemRole.STUDENT);
+        roleAssignmentService.assignGlobalRole(TestData.Users.WITHOUT_ROLES_ID, SystemRole.STUDENT);
         resetPersistenceContext();
 
         // Assert.
-        assertTrue(hasRole(TestData.USER_WITHOUT_ROLES_ID, SystemRole.STUDENT, PermissionScopeKind.GLOBAL, null));
+        assertTrue(hasRole(TestData.Users.WITHOUT_ROLES_ID, SystemRole.STUDENT, PermissionScopeKind.GLOBAL, null));
         assertTrue(authService.isAuthorized(
-                TestData.USER_WITHOUT_ROLES_ID, SystemPermission.SOLVE_EXERCISE, authScopes.global()));
+                TestData.Users.WITHOUT_ROLES_ID, SystemPermission.SOLVE_EXERCISE, authScopes.global()));
     }
 
     /** Повторная выдача той же роли не создаёт второго назначения. */
     @Test
     void assignGlobalRoleIsIdempotent() {
         // Arrange.
-        roleAssignmentService.assignGlobalRole(TestData.USER_WITHOUT_ROLES_ID, SystemRole.STUDENT);
+        roleAssignmentService.assignGlobalRole(TestData.Users.WITHOUT_ROLES_ID, SystemRole.STUDENT);
 
         // Act.
-        roleAssignmentService.assignGlobalRole(TestData.USER_WITHOUT_ROLES_ID, SystemRole.STUDENT);
+        roleAssignmentService.assignGlobalRole(TestData.Users.WITHOUT_ROLES_ID, SystemRole.STUDENT);
         resetPersistenceContext();
 
         // Assert.
         assertEquals(1, countAssignments(
-                TestData.USER_WITHOUT_ROLES_ID, SystemRole.STUDENT, PermissionScopeKind.GLOBAL, null));
+                TestData.Users.WITHOUT_ROLES_ID, SystemRole.STUDENT, PermissionScopeKind.GLOBAL, null));
     }
 
     /** Роль курса нельзя выдать глобально. */
     @Test
     void assignGlobalRoleRejectsCourseOnlyRole() {
         assertThrows(IllegalArgumentException.class,
-                () -> roleAssignmentService.assignGlobalRole(TestData.USER_WITHOUT_ROLES_ID, SystemRole.TEACHER));
+                () -> roleAssignmentService.assignGlobalRole(TestData.Users.WITHOUT_ROLES_ID, SystemRole.TEACHER));
     }
 
     /** Роль в образовательном ресурсе выдаётся. */
@@ -87,29 +87,29 @@ class RoleAssignmentServiceTest extends AbstractIntegrationTest {
     void reconcileAssignsRoleInEducationResource() {
         // Act.
         roleAssignmentService.reconcileRoleInEducationResource(
-                TestData.USER_WITHOUT_ROLES_ID, TestData.EDUCATION_RESOURCE_ID, SystemRole.EDUCATION_RESOURCE_ADMIN);
+                TestData.Users.WITHOUT_ROLES_ID, TestData.EducationResources.ID, SystemRole.EDUCATION_RESOURCE_ADMIN);
         resetPersistenceContext();
 
         // Assert.
-        assertTrue(hasRole(TestData.USER_WITHOUT_ROLES_ID, SystemRole.EDUCATION_RESOURCE_ADMIN,
-                PermissionScopeKind.EDUCATION_RESOURCE, TestData.EDUCATION_RESOURCE_ID));
+        assertTrue(hasRole(TestData.Users.WITHOUT_ROLES_ID, SystemRole.EDUCATION_RESOURCE_ADMIN,
+                PermissionScopeKind.EDUCATION_RESOURCE, TestData.EducationResources.ID));
     }
 
     /** Пустая желаемая роль снимает выданную. */
     @Test
     void reconcileWithNullRemovesRoleInEducationResource() {
         // Arrange.
-        assertTrue(hasRole(TestData.EDUCATION_RESOURCE_ADMIN_ID, SystemRole.EDUCATION_RESOURCE_ADMIN,
-                PermissionScopeKind.EDUCATION_RESOURCE, TestData.EDUCATION_RESOURCE_ID));
+        assertTrue(hasRole(TestData.Users.EDUCATION_RESOURCE_ADMIN_ID, SystemRole.EDUCATION_RESOURCE_ADMIN,
+                PermissionScopeKind.EDUCATION_RESOURCE, TestData.EducationResources.ID));
 
         // Act.
         roleAssignmentService.reconcileRoleInEducationResource(
-                TestData.EDUCATION_RESOURCE_ADMIN_ID, TestData.EDUCATION_RESOURCE_ID, null);
+                TestData.Users.EDUCATION_RESOURCE_ADMIN_ID, TestData.EducationResources.ID, null);
         resetPersistenceContext();
 
         // Assert.
-        assertFalse(hasRole(TestData.EDUCATION_RESOURCE_ADMIN_ID, SystemRole.EDUCATION_RESOURCE_ADMIN,
-                PermissionScopeKind.EDUCATION_RESOURCE, TestData.EDUCATION_RESOURCE_ID));
+        assertFalse(hasRole(TestData.Users.EDUCATION_RESOURCE_ADMIN_ID, SystemRole.EDUCATION_RESOURCE_ADMIN,
+                PermissionScopeKind.EDUCATION_RESOURCE, TestData.EducationResources.ID));
     }
 
     /** Уже выданная роль переживает повторную сверку. */
@@ -117,13 +117,13 @@ class RoleAssignmentServiceTest extends AbstractIntegrationTest {
     void reconcileKeepsAlreadyDesiredRoleInEducationResource() {
         // Act.
         roleAssignmentService.reconcileRoleInEducationResource(
-                TestData.EDUCATION_RESOURCE_ADMIN_ID, TestData.EDUCATION_RESOURCE_ID,
+                TestData.Users.EDUCATION_RESOURCE_ADMIN_ID, TestData.EducationResources.ID,
                 SystemRole.EDUCATION_RESOURCE_ADMIN);
         resetPersistenceContext();
 
         // Assert.
-        assertEquals(1, countAssignments(TestData.EDUCATION_RESOURCE_ADMIN_ID, SystemRole.EDUCATION_RESOURCE_ADMIN,
-                PermissionScopeKind.EDUCATION_RESOURCE, TestData.EDUCATION_RESOURCE_ID));
+        assertEquals(1, countAssignments(TestData.Users.EDUCATION_RESOURCE_ADMIN_ID, SystemRole.EDUCATION_RESOURCE_ADMIN,
+                PermissionScopeKind.EDUCATION_RESOURCE, TestData.EducationResources.ID));
     }
 
     /** Роль курса нельзя выдать в образовательном ресурсе. */
@@ -131,7 +131,7 @@ class RoleAssignmentServiceTest extends AbstractIntegrationTest {
     void reconcileRejectsRoleNotAllowedInEducationResource() {
         assertThrows(IllegalArgumentException.class,
                 () -> roleAssignmentService.reconcileRoleInEducationResource(
-                        TestData.USER_WITHOUT_ROLES_ID, TestData.EDUCATION_RESOURCE_ID, SystemRole.TEACHER));
+                        TestData.Users.WITHOUT_ROLES_ID, TestData.EducationResources.ID, SystemRole.TEACHER));
     }
 
     /** Новое курсовое назначение появляется и сразу действует на проверках прав. */
@@ -139,37 +139,37 @@ class RoleAssignmentServiceTest extends AbstractIntegrationTest {
     void courseReconcileInsertsNewAssignment() {
         // Act.
         reconcileMainCourse(
-                List.of(TestData.USER_WITHOUT_ROLES_ID),
+                List.of(TestData.Users.WITHOUT_ROLES_ID),
                 List.of(new CourseRoleAssignment(
-                        TestData.USER_WITHOUT_ROLES_ID, TestData.MAIN_COURSE_ID, SystemRole.TEACHER)),
-                List.of(TestData.MAIN_COURSE_ID));
+                        TestData.Users.WITHOUT_ROLES_ID, TestData.Courses.MAIN_ID, SystemRole.TEACHER)),
+                List.of(TestData.Courses.MAIN_ID));
 
         // Assert.
-        assertTrue(hasRole(TestData.USER_WITHOUT_ROLES_ID, SystemRole.TEACHER,
-                PermissionScopeKind.COURSE, TestData.MAIN_COURSE_ID));
-        assertTrue(authService.isAuthorized(TestData.USER_WITHOUT_ROLES_ID,
-                SystemPermission.MANAGE_COURSE_CONTENT, authScopes.course(TestData.MAIN_COURSE_ID)));
+        assertTrue(hasRole(TestData.Users.WITHOUT_ROLES_ID, SystemRole.TEACHER,
+                PermissionScopeKind.COURSE, TestData.Courses.MAIN_ID));
+        assertTrue(authService.isAuthorized(TestData.Users.WITHOUT_ROLES_ID,
+                SystemPermission.MANAGE_COURSE_CONTENT, authScopes.course(TestData.Courses.MAIN_ID)));
     }
 
     /** Смена роли в курсе снимает прежнюю. */
     @Test
     void courseReconcileReplacesExistingRole() {
         // Arrange.
-        assertTrue(hasRole(TestData.MAIN_COURSE_ASSISTANT_ID, SystemRole.ASSISTANT,
-                PermissionScopeKind.COURSE, TestData.MAIN_COURSE_ID));
+        assertTrue(hasRole(TestData.Users.MAIN_COURSE_ASSISTANT_ID, SystemRole.ASSISTANT,
+                PermissionScopeKind.COURSE, TestData.Courses.MAIN_ID));
 
         // Act.
         reconcileMainCourse(
-                List.of(TestData.MAIN_COURSE_ASSISTANT_ID),
+                List.of(TestData.Users.MAIN_COURSE_ASSISTANT_ID),
                 List.of(new CourseRoleAssignment(
-                        TestData.MAIN_COURSE_ASSISTANT_ID, TestData.MAIN_COURSE_ID, SystemRole.TEACHER)),
-                List.of(TestData.MAIN_COURSE_ID));
+                        TestData.Users.MAIN_COURSE_ASSISTANT_ID, TestData.Courses.MAIN_ID, SystemRole.TEACHER)),
+                List.of(TestData.Courses.MAIN_ID));
 
         // Assert.
-        assertFalse(hasRole(TestData.MAIN_COURSE_ASSISTANT_ID, SystemRole.ASSISTANT,
-                PermissionScopeKind.COURSE, TestData.MAIN_COURSE_ID));
-        assertTrue(hasRole(TestData.MAIN_COURSE_ASSISTANT_ID, SystemRole.TEACHER,
-                PermissionScopeKind.COURSE, TestData.MAIN_COURSE_ID));
+        assertFalse(hasRole(TestData.Users.MAIN_COURSE_ASSISTANT_ID, SystemRole.ASSISTANT,
+                PermissionScopeKind.COURSE, TestData.Courses.MAIN_ID));
+        assertTrue(hasRole(TestData.Users.MAIN_COURSE_ASSISTANT_ID, SystemRole.TEACHER,
+                PermissionScopeKind.COURSE, TestData.Courses.MAIN_ID));
     }
 
     /** Совпавшее назначение не пересоздаётся. */
@@ -177,64 +177,64 @@ class RoleAssignmentServiceTest extends AbstractIntegrationTest {
     void courseReconcileKeepsMatchingAssignment() {
         // Act.
         reconcileMainCourse(
-                List.of(TestData.MAIN_COURSE_TEACHER_ID),
+                List.of(TestData.Users.MAIN_COURSE_TEACHER_ID),
                 List.of(new CourseRoleAssignment(
-                        TestData.MAIN_COURSE_TEACHER_ID, TestData.MAIN_COURSE_ID, SystemRole.TEACHER)),
-                List.of(TestData.MAIN_COURSE_ID));
+                        TestData.Users.MAIN_COURSE_TEACHER_ID, TestData.Courses.MAIN_ID, SystemRole.TEACHER)),
+                List.of(TestData.Courses.MAIN_ID));
 
         // Assert.
-        assertEquals(1, countAssignments(TestData.MAIN_COURSE_TEACHER_ID, SystemRole.TEACHER,
-                PermissionScopeKind.COURSE, TestData.MAIN_COURSE_ID));
+        assertEquals(1, countAssignments(TestData.Users.MAIN_COURSE_TEACHER_ID, SystemRole.TEACHER,
+                PermissionScopeKind.COURSE, TestData.Courses.MAIN_ID));
     }
 
     /** Назначение в курсе из списка на вычистку снимается, если его нет среди желаемых. */
     @Test
     void courseReconcileSweepsAssignmentWithoutDesiredEntry() {
         // Act.
-        reconcileMainCourse(List.of(TestData.MAIN_COURSE_TEACHER_ID), List.of(), List.of(TestData.MAIN_COURSE_ID));
+        reconcileMainCourse(List.of(TestData.Users.MAIN_COURSE_TEACHER_ID), List.of(), List.of(TestData.Courses.MAIN_ID));
 
         // Assert.
-        assertFalse(hasRole(TestData.MAIN_COURSE_TEACHER_ID, SystemRole.TEACHER,
-                PermissionScopeKind.COURSE, TestData.MAIN_COURSE_ID));
+        assertFalse(hasRole(TestData.Users.MAIN_COURSE_TEACHER_ID, SystemRole.TEACHER,
+                PermissionScopeKind.COURSE, TestData.Courses.MAIN_ID));
     }
 
     /** Курс вне списка на вычистку не трогается. */
     @Test
     void courseReconcileDoesNotSweepCourseOutsideSweepList() {
         // Act.
-        reconcileMainCourse(List.of(TestData.MAIN_COURSE_TEACHER_ID), List.of(), List.of(TestData.OTHER_COURSE_ID));
+        reconcileMainCourse(List.of(TestData.Users.MAIN_COURSE_TEACHER_ID), List.of(), List.of(TestData.Courses.OTHER_ID));
 
         // Assert.
-        assertTrue(hasRole(TestData.MAIN_COURSE_TEACHER_ID, SystemRole.TEACHER,
-                PermissionScopeKind.COURSE, TestData.MAIN_COURSE_ID));
+        assertTrue(hasRole(TestData.Users.MAIN_COURSE_TEACHER_ID, SystemRole.TEACHER,
+                PermissionScopeKind.COURSE, TestData.Courses.MAIN_ID));
     }
 
     /** Пустой список пользователей означает, что сверять нечего. */
     @Test
     void courseReconcileDoesNothingForEmptyUserList() {
         // Act.
-        reconcileMainCourse(List.of(), List.of(), List.of(TestData.MAIN_COURSE_ID));
+        reconcileMainCourse(List.of(), List.of(), List.of(TestData.Courses.MAIN_ID));
 
         // Assert.
-        assertTrue(hasRole(TestData.MAIN_COURSE_TEACHER_ID, SystemRole.TEACHER,
-                PermissionScopeKind.COURSE, TestData.MAIN_COURSE_ID));
+        assertTrue(hasRole(TestData.Users.MAIN_COURSE_TEACHER_ID, SystemRole.TEACHER,
+                PermissionScopeKind.COURSE, TestData.Courses.MAIN_ID));
     }
 
     /** Глобальную роль нельзя выдать в курсе - пакетная вставка проверяет это отдельно. */
     @Test
     void courseReconcileRejectsRoleNotAllowedInCourse() {
         assertThrows(IllegalArgumentException.class, () -> reconcileMainCourse(
-                List.of(TestData.USER_WITHOUT_ROLES_ID),
+                List.of(TestData.Users.WITHOUT_ROLES_ID),
                 List.of(new CourseRoleAssignment(
-                        TestData.USER_WITHOUT_ROLES_ID, TestData.MAIN_COURSE_ID, SystemRole.GLOBAL_ADMIN)),
-                List.of(TestData.MAIN_COURSE_ID)));
+                        TestData.Users.WITHOUT_ROLES_ID, TestData.Courses.MAIN_ID, SystemRole.GLOBAL_ADMIN)),
+                List.of(TestData.Courses.MAIN_ID)));
     }
 
     /** Курсу без области она заводится по ходу назначения. */
     @Test
     void courseReconcileCreatesMissingCourseScope() {
         // Arrange.
-        var eduRes = educationResourceRepository.findById(TestData.EDUCATION_RESOURCE_ID).orElseThrow();
+        var eduRes = educationResourceRepository.findById(TestData.EducationResources.ID).orElseThrow();
         var course = courseRepository.save(new CourseEntity("ext-course-3", "Third test course", eduRes));
         entityManager.flush();
         assertTrue(scopeRepository
@@ -242,15 +242,15 @@ class RoleAssignmentServiceTest extends AbstractIntegrationTest {
 
         // Act.
         reconcileMainCourse(
-                List.of(TestData.USER_WITHOUT_ROLES_ID),
+                List.of(TestData.Users.WITHOUT_ROLES_ID),
                 List.of(new CourseRoleAssignment(
-                        TestData.USER_WITHOUT_ROLES_ID, course.getId(), SystemRole.TEACHER)),
+                        TestData.Users.WITHOUT_ROLES_ID, course.getId(), SystemRole.TEACHER)),
                 List.of(course.getId()));
 
         // Assert.
         assertFalse(scopeRepository
                 .findByKindAndScopeItemIdIn(PermissionScopeKind.COURSE, List.of(course.getId())).isEmpty());
-        assertTrue(hasRole(TestData.USER_WITHOUT_ROLES_ID, SystemRole.TEACHER,
+        assertTrue(hasRole(TestData.Users.WITHOUT_ROLES_ID, SystemRole.TEACHER,
                 PermissionScopeKind.COURSE, course.getId()));
     }
 
@@ -259,7 +259,7 @@ class RoleAssignmentServiceTest extends AbstractIntegrationTest {
                                      List<Long> coursesToSweep) {
         entityManager.flush();
         roleAssignmentService.reconcileCourseRoleAssignments(
-                TestData.EDUCATION_RESOURCE_ID, userIds, desired, coursesToSweep);
+                TestData.EducationResources.ID, userIds, desired, coursesToSweep);
         resetPersistenceContext();
     }
 

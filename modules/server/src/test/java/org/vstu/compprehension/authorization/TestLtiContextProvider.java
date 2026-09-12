@@ -27,7 +27,7 @@ public class TestLtiContextProvider implements LtiContextProvider {
         CONTEXT.set(new LtiContext(
                 null,
                 new LtiCourseContext(externalCourseId, "Test course"),
-                TestData.EDUCATION_RESOURCE_URL,
+                TestData.EducationResources.URL,
                 "Test LMS",
                 EducationResourceType.MOODLE,
                 null));
@@ -36,7 +36,7 @@ public class TestLtiContextProvider implements LtiContextProvider {
     /** Запуск в режиме deep-linking. */
     public static void withDeepLinkingSession() {
         DEEP_LINKING.set(new LtiDeepLinkingContext(
-                TestData.EDUCATION_RESOURCE_URL,
+                TestData.EducationResources.URL,
                 "test-deployment",
                 "https://lms.test.local/lti/contentitem_return.php",
                 null,

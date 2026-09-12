@@ -22,7 +22,7 @@ class QuestionBankControllerAuthorizationTest extends AbstractAuthorizationTest 
                   "limit": 5,
                   "courseId": %s
                 }
-                """.formatted(TestData.DOMAIN_ID, courseId == null ? "null" : courseId.toString());
+                """.formatted(TestData.Exercises.DOMAIN_ID, courseId == null ? "null" : courseId.toString());
     }
 
 
@@ -30,7 +30,7 @@ class QuestionBankControllerAuthorizationTest extends AbstractAuthorizationTest 
     @Test
     void searchForbiddenForGlobalStudent() throws Exception {
         // Arrange.
-        actingAs(TestData.GLOBAL_STUDENT_ID);
+        actingAs(TestData.Users.GLOBAL_STUDENT_ID);
 
         // Act.
         var result = mockMvc.perform(post("/api/question-bank/search")
@@ -45,7 +45,7 @@ class QuestionBankControllerAuthorizationTest extends AbstractAuthorizationTest 
     @Test
     void searchForbiddenForCourseTeacher() throws Exception {
         // Arrange.
-        actingAs(TestData.MAIN_COURSE_TEACHER_ID);
+        actingAs(TestData.Users.MAIN_COURSE_TEACHER_ID);
 
         // Act.
         var result = mockMvc.perform(post("/api/question-bank/search")
@@ -60,7 +60,7 @@ class QuestionBankControllerAuthorizationTest extends AbstractAuthorizationTest 
     @Test
     void searchForbiddenForUserWithoutRoles() throws Exception {
         // Arrange.
-        actingAs(TestData.USER_WITHOUT_ROLES_ID);
+        actingAs(TestData.Users.WITHOUT_ROLES_ID);
 
         // Act.
         var result = mockMvc.perform(post("/api/question-bank/search")
@@ -75,12 +75,12 @@ class QuestionBankControllerAuthorizationTest extends AbstractAuthorizationTest 
     @Test
     void searchAllowedForCourseTeacherInOwnCourse() throws Exception {
         // Arrange.
-        actingAs(TestData.MAIN_COURSE_TEACHER_ID);
+        actingAs(TestData.Users.MAIN_COURSE_TEACHER_ID);
 
         // Act.
         var result = mockMvc.perform(post("/api/question-bank/search")
                 .contentType(MediaType.APPLICATION_JSON)
-                .content(searchRequest(TestData.MAIN_COURSE_ID)));
+                .content(searchRequest(TestData.Courses.MAIN_ID)));
 
         // Assert.
         result.andExpect(status().isOk());
@@ -90,12 +90,12 @@ class QuestionBankControllerAuthorizationTest extends AbstractAuthorizationTest 
     @Test
     void searchForbiddenForTeacherOfAnotherCourse() throws Exception {
         // Arrange.
-        actingAs(TestData.OTHER_COURSE_TEACHER_ID);
+        actingAs(TestData.Users.OTHER_COURSE_TEACHER_ID);
 
         // Act.
         var result = mockMvc.perform(post("/api/question-bank/search")
                 .contentType(MediaType.APPLICATION_JSON)
-                .content(searchRequest(TestData.MAIN_COURSE_ID)));
+                .content(searchRequest(TestData.Courses.MAIN_ID)));
 
         // Assert.
         result.andExpect(status().isForbidden());
@@ -105,12 +105,12 @@ class QuestionBankControllerAuthorizationTest extends AbstractAuthorizationTest 
     @Test
     void searchForbiddenForCourseStudentInOwnCourse() throws Exception {
         // Arrange.
-        actingAs(TestData.MAIN_COURSE_STUDENT_ID);
+        actingAs(TestData.Users.MAIN_COURSE_STUDENT_ID);
 
         // Act.
         var result = mockMvc.perform(post("/api/question-bank/search")
                 .contentType(MediaType.APPLICATION_JSON)
-                .content(searchRequest(TestData.MAIN_COURSE_ID)));
+                .content(searchRequest(TestData.Courses.MAIN_ID)));
 
         // Assert.
         result.andExpect(status().isForbidden());

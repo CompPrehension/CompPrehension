@@ -21,7 +21,7 @@ class QuestionControllerAuthorizationTest extends AbstractAuthorizationTest {
     void getQuestionForbiddenForAnotherStudent() throws Exception {
         // Arrange.
         var question = createQuestion(createMainCourseAttempt());
-        actingAs(TestData.GLOBAL_STUDENT_ID);
+        actingAs(TestData.Users.GLOBAL_STUDENT_ID);
 
         // Act.
         var result = mockMvc.perform(get("/api/question")
@@ -36,7 +36,7 @@ class QuestionControllerAuthorizationTest extends AbstractAuthorizationTest {
     void getQuestionForbiddenForCourseAssistant() throws Exception {
         // Arrange.
         var question = createQuestion(createMainCourseAttempt());
-        actingAs(TestData.MAIN_COURSE_ASSISTANT_ID);
+        actingAs(TestData.Users.MAIN_COURSE_ASSISTANT_ID);
 
         // Act.
         var result = mockMvc.perform(get("/api/question")
@@ -51,7 +51,7 @@ class QuestionControllerAuthorizationTest extends AbstractAuthorizationTest {
     void addQuestionAnswerForbiddenForAnotherStudent() throws Exception {
         // Arrange.
         var question = createQuestion(createMainCourseAttempt());
-        actingAs(TestData.GLOBAL_STUDENT_ID);
+        actingAs(TestData.Users.GLOBAL_STUDENT_ID);
         var body = "{\"questionId\": " + question.getId() + ", \"answers\": []}";
 
         // Act.
@@ -68,7 +68,7 @@ class QuestionControllerAuthorizationTest extends AbstractAuthorizationTest {
     void addSupplementaryQuestionAnswerForbiddenForAnotherStudent() throws Exception {
         // Arrange.
         var question = createQuestion(createMainCourseAttempt());
-        actingAs(TestData.GLOBAL_STUDENT_ID);
+        actingAs(TestData.Users.GLOBAL_STUDENT_ID);
         var body = "{\"questionId\": " + question.getId() + ", \"answers\": []}";
 
         // Act.
@@ -86,7 +86,7 @@ class QuestionControllerAuthorizationTest extends AbstractAuthorizationTest {
         // Arrange.
         var attempt = createMainCourseAttempt();
         var question = createQuestion(attempt);
-        actingAs(TestData.GLOBAL_STUDENT_ID);
+        actingAs(TestData.Users.GLOBAL_STUDENT_ID);
         var body = "{\"questionId\": " + question.getId()
                 + ", \"exerciseAttemptId\": " + attempt.getId() + ", \"violationLaws\": []}";
 
@@ -104,7 +104,7 @@ class QuestionControllerAuthorizationTest extends AbstractAuthorizationTest {
     void generateNextCorrectAnswerForbiddenForAnotherStudent() throws Exception {
         // Arrange.
         var question = createQuestion(createMainCourseAttempt());
-        actingAs(TestData.GLOBAL_STUDENT_ID);
+        actingAs(TestData.Users.GLOBAL_STUDENT_ID);
 
         // Act.
         var result = mockMvc.perform(get("/api/question/generateNextCorrectAnswer")
@@ -119,7 +119,7 @@ class QuestionControllerAuthorizationTest extends AbstractAuthorizationTest {
     void generateQuestionForbiddenForAnotherStudent() throws Exception {
         // Arrange.
         var attempt = createMainCourseAttempt();
-        actingAs(TestData.GLOBAL_STUDENT_ID);
+        actingAs(TestData.Users.GLOBAL_STUDENT_ID);
 
         // Act.
         var result = mockMvc.perform(get("/api/question/generate")
@@ -134,7 +134,7 @@ class QuestionControllerAuthorizationTest extends AbstractAuthorizationTest {
     void generateQuestionForbiddenForCourseAssistant() throws Exception {
         // Arrange.
         var attempt = createMainCourseAttempt();
-        actingAs(TestData.MAIN_COURSE_ASSISTANT_ID);
+        actingAs(TestData.Users.MAIN_COURSE_ASSISTANT_ID);
 
         // Act.
         var result = mockMvc.perform(get("/api/question/generate")
@@ -148,7 +148,7 @@ class QuestionControllerAuthorizationTest extends AbstractAuthorizationTest {
     @Test
     void generateByMetadataForbiddenForCourseTeacher() throws Exception {
         // Arrange.
-        actingAs(TestData.MAIN_COURSE_TEACHER_ID);
+        actingAs(TestData.Users.MAIN_COURSE_TEACHER_ID);
 
         // Act.
         var result = mockMvc.perform(get("/api/question/generateByMetadata")
@@ -162,7 +162,7 @@ class QuestionControllerAuthorizationTest extends AbstractAuthorizationTest {
     @Test
     void generateByMetadataForbiddenForGlobalStudent() throws Exception {
         // Arrange.
-        actingAs(TestData.GLOBAL_STUDENT_ID);
+        actingAs(TestData.Users.GLOBAL_STUDENT_ID);
 
         // Act.
         var result = mockMvc.perform(get("/api/question/generateByMetadata")
@@ -177,7 +177,7 @@ class QuestionControllerAuthorizationTest extends AbstractAuthorizationTest {
     void getQuestionForbiddenForAttemptlessQuestionAndGlobalStudent() throws Exception {
         // Arrange.
         var question = createQuestionWithoutAttempt();
-        actingAs(TestData.GLOBAL_STUDENT_ID);
+        actingAs(TestData.Users.GLOBAL_STUDENT_ID);
 
         // Act.
         var result = mockMvc.perform(get("/api/question")
@@ -192,7 +192,7 @@ class QuestionControllerAuthorizationTest extends AbstractAuthorizationTest {
     void generateNextCorrectAnswerForbiddenForAttemptlessQuestionAndCourseTeacher() throws Exception {
         // Arrange.
         var question = createQuestionWithoutAttempt();
-        actingAs(TestData.MAIN_COURSE_TEACHER_ID);
+        actingAs(TestData.Users.MAIN_COURSE_TEACHER_ID);
 
         // Act.
         var result = mockMvc.perform(get("/api/question/generateNextCorrectAnswer")
@@ -210,6 +210,6 @@ class QuestionControllerAuthorizationTest extends AbstractAuthorizationTest {
 
         // Act & Assert.
         assertDoesNotThrow(() -> exerciseAttemptService
-                .ensureCanAccessQuestion(TestData.GLOBAL_EXERCISE_AUTHOR_ID, question.getId()));
+                .ensureCanAccessQuestion(TestData.Users.GLOBAL_EXERCISE_AUTHOR_ID, question.getId()));
     }
 }

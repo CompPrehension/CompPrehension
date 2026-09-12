@@ -86,23 +86,23 @@ public abstract class AbstractAuthorizationTest extends AbstractIntegrationTest 
 
     /** Незавершённая попытка студента в главном курсе. */
     protected ExerciseAttemptEntity createMainCourseAttempt() {
-        return createAttempt(TestData.MAIN_COURSE_STUDENT_ID, TestData.MAIN_COURSE_EXERCISE_ID, TestData.MAIN_COURSE_ID);
+        return createAttempt(TestData.Users.MAIN_COURSE_STUDENT_ID, TestData.Exercises.MAIN_COURSE_ID, TestData.Courses.MAIN_ID);
     }
 
     /** Попытка вне курса. */
     protected ExerciseAttemptEntity createGlobalPoolAttempt() {
-        return createAttempt(TestData.GLOBAL_STUDENT_ID, TestData.GLOBAL_POOL_EXERCISE_ID, null);
+        return createAttempt(TestData.Users.GLOBAL_STUDENT_ID, TestData.Exercises.GLOBAL_POOL_ID, null);
     }
 
     protected QuestionEntity createQuestion(@Nullable ExerciseAttemptEntity attempt) {
         var metadata = questionMetadataRepository
-                .findById(TestData.EXPRESSION_QUESTION_METADATA_ID)
-                .orElseThrow(() -> new IllegalStateException("Не найден questions_meta с id " + TestData.EXPRESSION_QUESTION_METADATA_ID));
+                .findById(TestData.ExpressionBank.MEMBER_ACCESS_PLUS.metadataId())
+                .orElseThrow(() -> new IllegalStateException("Не найден questions_meta с id " + TestData.ExpressionBank.MEMBER_ACCESS_PLUS.metadataId()));
         var bankQuestion = bankDataOf(metadata);
 
         var question = new QuestionEntity();
         question.setExerciseAttempt(attempt);
-        question.setDomainEntity(domainRepository.findById(TestData.DOMAIN_ID).orElseThrow());
+        question.setDomainEntity(domainRepository.findById(TestData.Exercises.DOMAIN_ID).orElseThrow());
         question.setMetadata(metadata);
         question.setQuestionStatus(QuestionStatus.VIEWED);
         question.setQuestionType(bankQuestion.getQuestionType());

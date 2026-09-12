@@ -34,6 +34,7 @@ import org.vstu.compprehension.data.question.ResponseData;
 import org.vstu.compprehension.data.question.SubmittedAnswerData;
 import org.vstu.compprehension.data.question.ViolationData;
 import org.vstu.compprehension.data.questionoptions.OrderQuestionOptionsData;
+import org.vstu.compprehension.enums.Decision;
 import org.vstu.compprehension.enums.InteractionType;
 import org.vstu.compprehension.enums.Language;
 import org.vstu.compprehension.enums.QuestionType;
@@ -93,9 +94,8 @@ class ExerciseAttemptFrontendServiceImpl implements ExerciseAttemptFrontendServi
     public @NotNull FeedbackDto addQuestionAnswer(@NotNull InteractionDto interaction) {
         val questionId = interaction.getQuestionId();
         val answers = toSubmittedAnswers(interaction.getAnswers());
-        val context = exerciseAttemptService.findQuestionContext(questionId)
-                .orElseThrow();
-        
+        var context = exerciseAttemptService.findQuestionContext(questionId).orElse(null);
+
         var currentUser = userService.getCurrentUser();
         var language = currentUser.language();
 
@@ -105,7 +105,7 @@ class ExerciseAttemptFrontendServiceImpl implements ExerciseAttemptFrontendServi
         val tags = domain.resolveTags(question.getContent().getTags());
         val responses = questionService.resolveAnswers(questionId, answers);
         val judgeResult = domain.judgeQuestion(question, responses, tags, language);
-        muteDeniedExplanations(judgeResult.explanation, context.getQuestionStage());
+        muteDeniedExplanations(judgeResult.explanation, context);
 
         // add interaction
         val graded = recordAndGrade(question, context, SEND_RESPONSE,
@@ -197,12 +197,12 @@ class ExerciseAttemptFrontendServiceImpl implements ExerciseAttemptFrontendServi
     public @NotNull FeedbackDto generateNextCorrectAnswer(@NotNull Long questionId) {
         // get next correct answer
         var question = questionService.getSolvedQuestion(questionId);
-        val context = exerciseAttemptService.findQuestionContext(questionId).orElseThrow();
+        var context = exerciseAttemptService.findQuestionContext(questionId).orElse(null);
         var domain = domainFactory.getDomain(question.getContent().getDomainId());
         var currentUser = userService.getCurrentUser();
         var language = currentUser.language();
         val correctAnswer = domain.getAnyNextCorrectAnswer(question, language);
-        muteDeniedExplanations(correctAnswer.explanation, context.getQuestionStage());
+        muteDeniedExplanations(correctAnswer.explanation, context);
 
         // Подсказка достраивает уже данные студентом ответы, а не начинает решение
         // заново: ответы последнего верного взаимодействия переезжают в это.
@@ -262,7 +262,7 @@ class ExerciseAttemptFrontendServiceImpl implements ExerciseAttemptFrontendServi
      * и, если стратегия так решила, закрыть попытку.
      */
     private @NotNull GradedInteraction recordAndGrade(@NotNull QuestionData question,
-                                                      @NotNull QuestionAttemptContextData context,
+                                                      @Nullable QuestionAttemptContextData context,
                                                       @NotNull InteractionType interactionType,
                                                       @NotNull List<NewInteractionAnswerData> answers,
                                                       @NotNull Domain.InterpretSentenceResult judgeResult) {
@@ -274,10 +274,14 @@ class ExerciseAttemptFrontendServiceImpl implements ExerciseAttemptFrontendServi
                 orEmpty(judgeResult.correctlyAppliedLaws),
                 judgeResult.IterationsLeft));
 
-        val strategy = strategyFactory.getStrategy(context.getStrategyId());
-        val decision = strategy.gradeAndDecide(context.getAttemptId(), judgeResult);
+        val decision = context == null
+                ? new StrategyDecision(1f, Decision.CONTINUE)
+                : strategyFactory.getStrategy(context.getStrategyId())
+                        .gradeAndDecide(context.getAttemptId(), judgeResult);
         questionService.gradeInteraction(recorded.getId(), decision.grade());
-        exerciseAttemptService.ensureAttemptStatus(context.getAttemptId(), decision.decision());
+        if (context != null) {
+            exerciseAttemptService.ensureAttemptStatus(context.getAttemptId(), decision.decision());
+        }
 
         return new GradedInteraction(question.withInteraction(recorded), recorded, decision);
     }
@@ -286,11 +290,11 @@ class ExerciseAttemptFrontendServiceImpl implements ExerciseAttemptFrontendServi
         return values == null ? List.of() : values;
     }
 
-    private static void muteDeniedExplanations(@Nullable Explanation explanation, @NotNull ExerciseStageData stage) {
-        if (explanation == null) {
+    private static void muteDeniedExplanations(@Nullable Explanation explanation, @Nullable QuestionAttemptContextData context) {
+        if (explanation == null || context == null) {
             return;
         }
-        var deniedSkills = stage.getSkills().stream()
+        var deniedSkills = context.getQuestionStage().getSkills().stream()
                 .filter(skill -> RoleInExercise.FORBIDDEN.equals(skill.getKind()))
                 .map(ExerciseSkillDto::getName)
                 .toList();

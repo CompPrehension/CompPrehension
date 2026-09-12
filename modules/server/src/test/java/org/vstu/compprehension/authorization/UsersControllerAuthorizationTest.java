@@ -14,7 +14,7 @@ class UsersControllerAuthorizationTest extends AbstractAuthorizationTest {
     @Test
     void whoamiAllowsGlobalPoolForGlobalExerciseAuthor() throws Exception {
         // Arrange.
-        actingAs(TestData.GLOBAL_EXERCISE_AUTHOR_ID);
+        actingAs(TestData.Users.GLOBAL_EXERCISE_AUTHOR_ID);
 
         // Act.
         var result = mockMvc.perform(get("/api/users/whoami"));
@@ -28,7 +28,7 @@ class UsersControllerAuthorizationTest extends AbstractAuthorizationTest {
     @Test
     void whoamiAllowsGlobalPoolForGlobalAdmin() throws Exception {
         // Arrange.
-        actingAs(TestData.GLOBAL_ADMIN_ID);
+        actingAs(TestData.Users.GLOBAL_ADMIN_ID);
 
         // Act.
         var result = mockMvc.perform(get("/api/users/whoami"));
@@ -42,7 +42,7 @@ class UsersControllerAuthorizationTest extends AbstractAuthorizationTest {
     @Test
     void whoamiDeniesGlobalPoolForGlobalStudent() throws Exception {
         // Arrange.
-        actingAs(TestData.GLOBAL_STUDENT_ID);
+        actingAs(TestData.Users.GLOBAL_STUDENT_ID);
 
         // Act.
         var result = mockMvc.perform(get("/api/users/whoami"));
@@ -56,7 +56,7 @@ class UsersControllerAuthorizationTest extends AbstractAuthorizationTest {
     @Test
     void whoamiDeniesGlobalPoolForCourseTeacher() throws Exception {
         // Arrange.
-        actingAs(TestData.MAIN_COURSE_TEACHER_ID);
+        actingAs(TestData.Users.MAIN_COURSE_TEACHER_ID);
 
         // Act.
         var result = mockMvc.perform(get("/api/users/whoami"));
@@ -70,7 +70,7 @@ class UsersControllerAuthorizationTest extends AbstractAuthorizationTest {
     @Test
     void whoamiIsAvailableForUserWithoutRoles() throws Exception {
         // Arrange.
-        actingAs(TestData.USER_WITHOUT_ROLES_ID);
+        actingAs(TestData.Users.WITHOUT_ROLES_ID);
 
         // Act.
         var result = mockMvc.perform(get("/api/users/whoami"));
@@ -84,14 +84,14 @@ class UsersControllerAuthorizationTest extends AbstractAuthorizationTest {
     @Test
     void whoamiDescribesCurrentUser() throws Exception {
         // Arrange.
-        actingAs(TestData.MAIN_COURSE_STUDENT_ID);
+        actingAs(TestData.Users.MAIN_COURSE_STUDENT_ID);
 
         // Act.
         var result = mockMvc.perform(get("/api/users/whoami"));
 
         // Assert.
         result.andExpect(status().isOk())
-                .andExpect(jsonPath("$.id").value(TestData.MAIN_COURSE_STUDENT_ID))
+                .andExpect(jsonPath("$.id").value(TestData.Users.MAIN_COURSE_STUDENT_ID))
                 .andExpect(jsonPath("$.email").value("main-course-student@test.local"));
     }
 }
