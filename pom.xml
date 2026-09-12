@@ -289,6 +289,7 @@
         <profile>
             <id>tools</id>
             <modules>
+                <module>tools/db</module>
                 <module>tools/reclassify</module>
             </modules>
         </profile>
