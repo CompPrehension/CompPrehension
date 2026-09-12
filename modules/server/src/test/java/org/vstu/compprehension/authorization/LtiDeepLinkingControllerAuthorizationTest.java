@@ -12,7 +12,7 @@ import static org.springframework.test.web.servlet.result.MockMvcResultMatchers.
 
 class LtiDeepLinkingControllerAuthorizationTest extends AbstractAuthorizationTest {
 
-    private static final String BUILD_REQUEST = "{\"exerciseIds\": [%d]}".formatted(TestData.INHERITED_EXERCISE_ID);
+    private static final String BUILD_REQUEST = "{\"exerciseIds\": [%d]}".formatted(TestData.Exercises.INHERITED_ID);
 
     @AfterEach
     void resetLtiContext() {
@@ -23,9 +23,9 @@ class LtiDeepLinkingControllerAuthorizationTest extends AbstractAuthorizationTes
     @Test
     void buildForbiddenForCourseStudent() throws Exception {
         // Arrange.
-        TestLtiContextProvider.launchedFromCourse(TestData.MAIN_COURSE_EXTERNAL_ID);
+        TestLtiContextProvider.launchedFromCourse(TestData.Courses.MAIN_EXTERNAL_ID);
         TestLtiContextProvider.withDeepLinkingSession();
-        actingAs(TestData.MAIN_COURSE_STUDENT_ID);
+        actingAs(TestData.Users.MAIN_COURSE_STUDENT_ID);
 
         // Act.
         var result = mockMvc.perform(post("/api/lti/deep-link/build")
@@ -40,9 +40,9 @@ class LtiDeepLinkingControllerAuthorizationTest extends AbstractAuthorizationTes
     @Test
     void buildForbiddenForCourseAssistant() throws Exception {
         // Arrange.
-        TestLtiContextProvider.launchedFromCourse(TestData.MAIN_COURSE_EXTERNAL_ID);
+        TestLtiContextProvider.launchedFromCourse(TestData.Courses.MAIN_EXTERNAL_ID);
         TestLtiContextProvider.withDeepLinkingSession();
-        actingAs(TestData.MAIN_COURSE_ASSISTANT_ID);
+        actingAs(TestData.Users.MAIN_COURSE_ASSISTANT_ID);
 
         // Act.
         var result = mockMvc.perform(post("/api/lti/deep-link/build")
@@ -57,9 +57,9 @@ class LtiDeepLinkingControllerAuthorizationTest extends AbstractAuthorizationTes
     @Test
     void buildForbiddenForTeacherOfAnotherCourse() throws Exception {
         // Arrange.
-        TestLtiContextProvider.launchedFromCourse(TestData.MAIN_COURSE_EXTERNAL_ID);
+        TestLtiContextProvider.launchedFromCourse(TestData.Courses.MAIN_EXTERNAL_ID);
         TestLtiContextProvider.withDeepLinkingSession();
-        actingAs(TestData.OTHER_COURSE_TEACHER_ID);
+        actingAs(TestData.Users.OTHER_COURSE_TEACHER_ID);
 
         // Act.
         var result = mockMvc.perform(post("/api/lti/deep-link/build")
@@ -74,9 +74,9 @@ class LtiDeepLinkingControllerAuthorizationTest extends AbstractAuthorizationTes
     @Test
     void buildForbiddenForGlobalExerciseAuthor() throws Exception {
         // Arrange.
-        TestLtiContextProvider.launchedFromCourse(TestData.MAIN_COURSE_EXTERNAL_ID);
+        TestLtiContextProvider.launchedFromCourse(TestData.Courses.MAIN_EXTERNAL_ID);
         TestLtiContextProvider.withDeepLinkingSession();
-        actingAs(TestData.GLOBAL_EXERCISE_AUTHOR_ID);
+        actingAs(TestData.Users.GLOBAL_EXERCISE_AUTHOR_ID);
 
         // Act.
         var result = mockMvc.perform(post("/api/lti/deep-link/build")
@@ -91,9 +91,9 @@ class LtiDeepLinkingControllerAuthorizationTest extends AbstractAuthorizationTes
     @Test
     void existingForbiddenForCourseStudent() throws Exception {
         // Arrange.
-        TestLtiContextProvider.launchedFromCourse(TestData.MAIN_COURSE_EXTERNAL_ID);
+        TestLtiContextProvider.launchedFromCourse(TestData.Courses.MAIN_EXTERNAL_ID);
         TestLtiContextProvider.withDeepLinkingSession();
-        actingAs(TestData.MAIN_COURSE_STUDENT_ID);
+        actingAs(TestData.Users.MAIN_COURSE_STUDENT_ID);
 
         // Act.
         var result = mockMvc.perform(get("/api/lti/deep-link/existing"));
@@ -106,8 +106,8 @@ class LtiDeepLinkingControllerAuthorizationTest extends AbstractAuthorizationTes
     @Test
     void buildRejectedWithoutDeepLinkingSession() throws Exception {
         // Arrange.
-        TestLtiContextProvider.launchedFromCourse(TestData.MAIN_COURSE_EXTERNAL_ID);
-        actingAs(TestData.MAIN_COURSE_TEACHER_ID);
+        TestLtiContextProvider.launchedFromCourse(TestData.Courses.MAIN_EXTERNAL_ID);
+        actingAs(TestData.Users.MAIN_COURSE_TEACHER_ID);
 
         // Act.
         var result = mockMvc.perform(post("/api/lti/deep-link/build")
@@ -123,7 +123,7 @@ class LtiDeepLinkingControllerAuthorizationTest extends AbstractAuthorizationTes
     void buildRejectedWithoutLtiContext() throws Exception {
         // Arrange.
         TestLtiContextProvider.withDeepLinkingSession();
-        actingAs(TestData.MAIN_COURSE_TEACHER_ID);
+        actingAs(TestData.Users.MAIN_COURSE_TEACHER_ID);
 
         // Act.
         var result = mockMvc.perform(post("/api/lti/deep-link/build")

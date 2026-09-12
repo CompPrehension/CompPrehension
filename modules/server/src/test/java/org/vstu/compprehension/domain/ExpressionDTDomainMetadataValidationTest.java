@@ -1,6 +1,5 @@
 package org.vstu.compprehension.domain;
 
-import lombok.RequiredArgsConstructor;
 import org.vstu.compprehension.data.exercise.ExerciseOptionsData;
 import org.vstu.compprehension.data.exercise.ExerciseStageData;
 import org.vstu.compprehension.data.question.AnswerData;
@@ -41,6 +40,7 @@ import java.util.Collections;
 import java.util.HashSet;
 import java.util.List;
 
+@Disabled("Не работает в test-containers.")
 @TestInstance(TestInstance.Lifecycle.PER_CLASS)
 @Transactional
 public class ExpressionDTDomainMetadataValidationTest extends AbstractIntegrationTest {

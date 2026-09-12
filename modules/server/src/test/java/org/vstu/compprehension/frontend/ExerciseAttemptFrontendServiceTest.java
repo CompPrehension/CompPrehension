@@ -16,7 +16,7 @@ import org.vstu.compprehension.frontend.dto.question.MatchingQuestionDto;
 import org.vstu.compprehension.frontend.dto.question.QuestionDto;
 import org.vstu.compprehension.infrastructure.AbstractIntegrationTest;
 import org.vstu.compprehension.infrastructure.TestData;
-import org.vstu.compprehension.infrastructure.TestData.BankQuestion;
+import org.vstu.compprehension.infrastructure.TestData.ExpressionBank.BankQuestion;
 
 import java.util.Arrays;
 import java.util.stream.LongStream;
@@ -53,15 +53,15 @@ class ExerciseAttemptFrontendServiceTest extends AbstractIntegrationTest {
     @Test
     void createExerciseAttemptStartsIncompleteWithoutQuestions() {
         // Arrange.
-        TestUserService.actAs(TestData.GLOBAL_STUDENT_ID);
+        TestUserService.actAs(TestData.Users.GLOBAL_STUDENT_ID);
 
         // Act.
-        var attempt = service.createExerciseAttempt(TestData.EXPRESSION_DT_EXERCISE_ID, TestData.GLOBAL_STUDENT_ID, null);
+        var attempt = service.createExerciseAttempt(TestData.Exercises.EXPRESSION_DT_ID, TestData.Users.GLOBAL_STUDENT_ID, null);
 
         // Assert.
         assertNotNull(attempt.getAttemptId());
-        assertEquals(TestData.GLOBAL_STUDENT_ID, attempt.getUserId());
-        assertEquals(TestData.EXPRESSION_DT_EXERCISE_ID, attempt.getExerciseId());
+        assertEquals(TestData.Users.GLOBAL_STUDENT_ID, attempt.getUserId());
+        assertEquals(TestData.Exercises.EXPRESSION_DT_ID, attempt.getExerciseId());
         assertNull(attempt.getCourseId());
         assertEquals(AttemptStatus.INCOMPLETE, attempt.getStatus());
         assertEquals(0, attempt.getQuestionIds().length);
@@ -71,22 +71,22 @@ class ExerciseAttemptFrontendServiceTest extends AbstractIntegrationTest {
     @Test
     void createExerciseAttemptInsideCourseKeepsCourse() {
         // Arrange.
-        TestUserService.actAs(TestData.MAIN_COURSE_STUDENT_ID);
+        TestUserService.actAs(TestData.Users.MAIN_COURSE_STUDENT_ID);
 
         // Act.
-        var attempt = service.createExerciseAttempt(TestData.MAIN_COURSE_EXERCISE_ID, TestData.MAIN_COURSE_STUDENT_ID, TestData.MAIN_COURSE_ID);
+        var attempt = service.createExerciseAttempt(TestData.Exercises.MAIN_COURSE_ID, TestData.Users.MAIN_COURSE_STUDENT_ID, TestData.Courses.MAIN_ID);
 
         // Assert.
-        assertEquals(TestData.MAIN_COURSE_ID, attempt.getCourseId());
-        assertEquals(TestData.MAIN_COURSE_EXERCISE_ID, attempt.getExerciseId());
+        assertEquals(TestData.Courses.MAIN_ID, attempt.getCourseId());
+        assertEquals(TestData.Exercises.MAIN_COURSE_ID, attempt.getExerciseId());
     }
 
     /** Чтение попытки по id. */
     @Test
     void getExerciseAttemptReturnsCreatedAttempt() {
         // Arrange.
-        TestUserService.actAs(TestData.GLOBAL_STUDENT_ID);
-        var created = service.createExerciseAttempt(TestData.EXPRESSION_DT_EXERCISE_ID, TestData.GLOBAL_STUDENT_ID, null);
+        TestUserService.actAs(TestData.Users.GLOBAL_STUDENT_ID);
+        var created = service.createExerciseAttempt(TestData.Exercises.EXPRESSION_DT_ID, TestData.Users.GLOBAL_STUDENT_ID, null);
 
         // Act.
         var loaded = service.getExerciseAttempt(created.getAttemptId());
@@ -103,7 +103,7 @@ class ExerciseAttemptFrontendServiceTest extends AbstractIntegrationTest {
     @Test
     void getExerciseAttemptReturnsNullForUnknownId() {
         // Arrange.
-        TestUserService.actAs(TestData.GLOBAL_STUDENT_ID);
+        TestUserService.actAs(TestData.Users.GLOBAL_STUDENT_ID);
 
         // Act.
         var loaded = service.getExerciseAttempt(Long.MIN_VALUE);
@@ -116,10 +116,10 @@ class ExerciseAttemptFrontendServiceTest extends AbstractIntegrationTest {
     @Test
     void getExistingExerciseAttemptReturnsNullWhenNothingStarted() {
         // Arrange.
-        TestUserService.actAs(TestData.GLOBAL_STUDENT_ID);
+        TestUserService.actAs(TestData.Users.GLOBAL_STUDENT_ID);
 
         // Act.
-        var existing = service.getExistingExerciseAttempt(TestData.EXPRESSION_DT_EXERCISE_ID, TestData.GLOBAL_STUDENT_ID, null);
+        var existing = service.getExistingExerciseAttempt(TestData.Exercises.EXPRESSION_DT_ID, TestData.Users.GLOBAL_STUDENT_ID, null);
 
         // Assert.
         assertNull(existing);
@@ -129,11 +129,11 @@ class ExerciseAttemptFrontendServiceTest extends AbstractIntegrationTest {
     @Test
     void getExistingExerciseAttemptFindsIncompleteAttempt() {
         // Arrange.
-        TestUserService.actAs(TestData.GLOBAL_STUDENT_ID);
-        var created = service.createExerciseAttempt(TestData.EXPRESSION_DT_EXERCISE_ID, TestData.GLOBAL_STUDENT_ID, null);
+        TestUserService.actAs(TestData.Users.GLOBAL_STUDENT_ID);
+        var created = service.createExerciseAttempt(TestData.Exercises.EXPRESSION_DT_ID, TestData.Users.GLOBAL_STUDENT_ID, null);
 
         // Act.
-        var existing = service.getExistingExerciseAttempt(TestData.EXPRESSION_DT_EXERCISE_ID, TestData.GLOBAL_STUDENT_ID, null);
+        var existing = service.getExistingExerciseAttempt(TestData.Exercises.EXPRESSION_DT_ID, TestData.Users.GLOBAL_STUDENT_ID, null);
 
         // Assert.
         assertNotNull(existing);
@@ -144,11 +144,11 @@ class ExerciseAttemptFrontendServiceTest extends AbstractIntegrationTest {
     @Test
     void getExistingExerciseAttemptIgnoresOtherUsersAttempts() {
         // Arrange.
-        TestUserService.actAs(TestData.GLOBAL_STUDENT_ID);
-        service.createExerciseAttempt(TestData.EXPRESSION_DT_EXERCISE_ID, TestData.GLOBAL_STUDENT_ID, null);
+        TestUserService.actAs(TestData.Users.GLOBAL_STUDENT_ID);
+        service.createExerciseAttempt(TestData.Exercises.EXPRESSION_DT_ID, TestData.Users.GLOBAL_STUDENT_ID, null);
 
         // Act.
-        var existing = service.getExistingExerciseAttempt(TestData.EXPRESSION_DT_EXERCISE_ID, TestData.USER_WITHOUT_ROLES_ID, null);
+        var existing = service.getExistingExerciseAttempt(TestData.Exercises.EXPRESSION_DT_ID, TestData.Users.WITHOUT_ROLES_ID, null);
 
         // Assert.
         assertNull(existing);
@@ -158,15 +158,15 @@ class ExerciseAttemptFrontendServiceTest extends AbstractIntegrationTest {
     @Test
     void createSolvedExerciseAttemptGeneratesAllStageQuestions() {
         // Arrange.
-        TestUserService.actAs(TestData.GLOBAL_STUDENT_ID);
+        TestUserService.actAs(TestData.Users.GLOBAL_STUDENT_ID);
 
         // Act.
-        var attempt = service.createSolvedExerciseAttempt(TestData.EXPRESSION_DT_EXERCISE_ID, TestData.GLOBAL_STUDENT_ID, null);
+        var attempt = service.createSolvedExerciseAttempt(TestData.Exercises.EXPRESSION_DT_ID, TestData.Users.GLOBAL_STUDENT_ID, null);
 
         // Assert.
         assertEquals(AttemptStatus.INCOMPLETE, attempt.getStatus());
-        assertEquals(TestData.EXPRESSION_DT_EXERCISE_QUESTIONS, attempt.getQuestionIds().length);
-        assertEquals(TestData.EXPRESSION_DT_EXERCISE_QUESTIONS,
+        assertEquals(TestData.Exercises.EXPRESSION_DT_QUESTIONS, attempt.getQuestionIds().length);
+        assertEquals(TestData.Exercises.EXPRESSION_DT_QUESTIONS,
                 Arrays.stream(attempt.getQuestionIds()).map(id -> service.getQuestion(id).getQuestionMetadataId()).distinct().count());
     }
 
@@ -174,13 +174,13 @@ class ExerciseAttemptFrontendServiceTest extends AbstractIntegrationTest {
     @Test
     void ensureCanAccessAllowsAttemptOwner() {
         // Arrange.
-        TestUserService.actAs(TestData.GLOBAL_STUDENT_ID);
-        var attempt = service.createExerciseAttempt(TestData.EXPRESSION_DT_EXERCISE_ID, TestData.GLOBAL_STUDENT_ID, null);
+        TestUserService.actAs(TestData.Users.GLOBAL_STUDENT_ID);
+        var attempt = service.createExerciseAttempt(TestData.Exercises.EXPRESSION_DT_ID, TestData.Users.GLOBAL_STUDENT_ID, null);
         var question = service.generateQuestion(attempt.getAttemptId());
 
         // Act & Assert.
-        assertDoesNotThrow(() -> service.ensureCanAccessAttempt(TestData.GLOBAL_STUDENT_ID, attempt.getAttemptId()));
-        assertDoesNotThrow(() -> service.ensureCanAccessQuestion(TestData.GLOBAL_STUDENT_ID, question.getQuestionId()));
+        assertDoesNotThrow(() -> service.ensureCanAccessAttempt(TestData.Users.GLOBAL_STUDENT_ID, attempt.getAttemptId()));
+        assertDoesNotThrow(() -> service.ensureCanAccessQuestion(TestData.Users.GLOBAL_STUDENT_ID, question.getQuestionId()));
     }
 
     // ---- генерация вопросов ----
@@ -189,14 +189,14 @@ class ExerciseAttemptFrontendServiceTest extends AbstractIntegrationTest {
     @Test
     void generateQuestionTakesBankQuestionAndAttachesItToAttempt() {
         // Arrange.
-        TestUserService.actAs(TestData.GLOBAL_STUDENT_ID);
-        var attempt = service.createExerciseAttempt(TestData.EXPRESSION_DT_EXERCISE_ID, TestData.GLOBAL_STUDENT_ID, null);
+        TestUserService.actAs(TestData.Users.GLOBAL_STUDENT_ID);
+        var attempt = service.createExerciseAttempt(TestData.Exercises.EXPRESSION_DT_ID, TestData.Users.GLOBAL_STUDENT_ID, null);
 
         // Act.
         var question = service.generateQuestion(attempt.getAttemptId());
 
         // Assert.
-        var bankQuestion = TestData.bankQuestion(question.getQuestionMetadataId());
+        var bankQuestion = TestData.ExpressionBank.byMetadataId(question.getQuestionMetadataId());
         assertEquals(ORDER, question.getType());
         assertEquals(bankQuestion.steps() + 1, question.getAnswers().length);
         assertFalse(question.getText().isBlank());
@@ -207,8 +207,8 @@ class ExerciseAttemptFrontendServiceTest extends AbstractIntegrationTest {
     @Test
     void generateQuestionDoesNotRepeatBankQuestionWithinAttempt() {
         // Arrange.
-        TestUserService.actAs(TestData.GLOBAL_STUDENT_ID);
-        var attempt = service.createExerciseAttempt(TestData.EXPRESSION_DT_EXERCISE_ID, TestData.GLOBAL_STUDENT_ID, null);
+        TestUserService.actAs(TestData.Users.GLOBAL_STUDENT_ID);
+        var attempt = service.createExerciseAttempt(TestData.Exercises.EXPRESSION_DT_ID, TestData.Users.GLOBAL_STUDENT_ID, null);
 
         // Act.
         var first = service.generateQuestion(attempt.getAttemptId());
@@ -225,14 +225,14 @@ class ExerciseAttemptFrontendServiceTest extends AbstractIntegrationTest {
     @Test
     void generateQuestionByMetadataBuildsQuestionWithoutAttempt() {
         // Arrange.
-        TestUserService.actAs(TestData.GLOBAL_EXERCISE_AUTHOR_ID);
+        TestUserService.actAs(TestData.Users.GLOBAL_EXERCISE_AUTHOR_ID);
 
         // Act.
-        var question = service.generateQuestionByMetadata(TestData.MEMBER_ACCESS_PLUS.metadataId(), Language.ENGLISH);
+        var question = service.generateQuestionByMetadata(TestData.ExpressionBank.MEMBER_ACCESS_PLUS.metadataId(), Language.ENGLISH);
 
         // Assert.
         assertNotNull(question.getQuestionId());
-        assertEquals(TestData.MEMBER_ACCESS_PLUS.metadataId(), question.getQuestionMetadataId());
+        assertEquals(TestData.ExpressionBank.MEMBER_ACCESS_PLUS.metadataId(), question.getQuestionMetadataId());
         assertEquals(ORDER, question.getType());
         assertArrayEquals(new String[] { "->", "+", "student_end_evaluation" },
                 Arrays.stream(question.getAnswers()).map(a -> a.getText()).toArray(String[]::new));
@@ -243,7 +243,7 @@ class ExerciseAttemptFrontendServiceTest extends AbstractIntegrationTest {
     @Test
     void generateQuestionByMetadataFailsForUnknownMetadata() {
         // Arrange.
-        TestUserService.actAs(TestData.GLOBAL_EXERCISE_AUTHOR_ID);
+        TestUserService.actAs(TestData.Users.GLOBAL_EXERCISE_AUTHOR_ID);
 
         // Act & Assert.
         var error = assertThrows(RuntimeException.class,
@@ -255,8 +255,8 @@ class ExerciseAttemptFrontendServiceTest extends AbstractIntegrationTest {
     @Test
     void getQuestionReturnsGeneratedQuestion() {
         // Arrange.
-        TestUserService.actAs(TestData.GLOBAL_EXERCISE_AUTHOR_ID);
-        var generated = service.generateQuestionByMetadata(TestData.MUL_PLUS_MINUS.metadataId(), Language.ENGLISH);
+        TestUserService.actAs(TestData.Users.GLOBAL_EXERCISE_AUTHOR_ID);
+        var generated = service.generateQuestionByMetadata(TestData.ExpressionBank.MUL_PLUS_MINUS.metadataId(), Language.ENGLISH);
 
         // Act.
         var loaded = service.getQuestion(generated.getQuestionId());
@@ -276,7 +276,7 @@ class ExerciseAttemptFrontendServiceTest extends AbstractIntegrationTest {
     @Test
     void addQuestionAnswerAcceptsCorrectFirstStepWithoutAttempt() {
         // Arrange.
-        var bankQuestion = TestData.ASSIGN_UNARY_MINUS_PLUS;
+        var bankQuestion = TestData.ExpressionBank.ASSIGN_UNARY_MINUS_PLUS;
         var question = attemptlessQuestion(bankQuestion);
 
         // Act.
@@ -297,7 +297,7 @@ class ExerciseAttemptFrontendServiceTest extends AbstractIntegrationTest {
     @Test
     void addQuestionAnswerRejectsOperatorOutOfOrder() {
         // Arrange.
-        var bankQuestion = TestData.PARENTHESES_AND_UNARY_MINUS;
+        var bankQuestion = TestData.ExpressionBank.PARENTHESES_AND_UNARY_MINUS;
         var question = attemptlessQuestion(bankQuestion);
 
         // Act.
@@ -318,7 +318,7 @@ class ExerciseAttemptFrontendServiceTest extends AbstractIntegrationTest {
     @Test
     void addQuestionAnswerRejectsEarlyFinish() {
         // Arrange.
-        var bankQuestion = TestData.MEMBER_ACCESS_PLUS;
+        var bankQuestion = TestData.ExpressionBank.MEMBER_ACCESS_PLUS;
         var question = attemptlessQuestion(bankQuestion);
 
         // Act.
@@ -336,7 +336,7 @@ class ExerciseAttemptFrontendServiceTest extends AbstractIntegrationTest {
     @Test
     void addQuestionAnswerCompletesQuestionStepByStep() {
         // Arrange.
-        var bankQuestion = TestData.MUL_PLUS_MINUS;
+        var bankQuestion = TestData.ExpressionBank.MUL_PLUS_MINUS;
         var question = attemptlessQuestion(bankQuestion);
 
         // Act.
@@ -355,7 +355,7 @@ class ExerciseAttemptFrontendServiceTest extends AbstractIntegrationTest {
     @Test
     void addQuestionAnswerKeepsEarlierCorrectStepsAfterMistake() {
         // Arrange.
-        var bankQuestion = TestData.ASSIGN_UNARY_MINUS_PLUS;
+        var bankQuestion = TestData.ExpressionBank.ASSIGN_UNARY_MINUS_PLUS;
         var question = attemptlessQuestion(bankQuestion);
         var afterFirst = service.addQuestionAnswer(interaction(question, bankQuestion.operatorAt(0)));
 
@@ -377,7 +377,7 @@ class ExerciseAttemptFrontendServiceTest extends AbstractIntegrationTest {
     @Test
     void generateNextCorrectAnswerWorksForQuestionWithoutAttempt() {
         // Arrange.
-        var bankQuestion = TestData.MEMBER_ACCESS_PLUS;
+        var bankQuestion = TestData.ExpressionBank.MEMBER_ACCESS_PLUS;
         var question = attemptlessQuestion(bankQuestion);
 
         // Act.
@@ -398,7 +398,7 @@ class ExerciseAttemptFrontendServiceTest extends AbstractIntegrationTest {
     @Test
     void generateNextCorrectAnswerCarriesOverAnswersAlreadyGiven() {
         // Arrange.
-        var bankQuestion = TestData.ASSIGN_UNARY_MINUS_PLUS;
+        var bankQuestion = TestData.ExpressionBank.ASSIGN_UNARY_MINUS_PLUS;
         var question = attemptlessQuestion(bankQuestion);
         service.addQuestionAnswer(interaction(question, bankQuestion.operatorAt(0)));
 
@@ -416,7 +416,7 @@ class ExerciseAttemptFrontendServiceTest extends AbstractIntegrationTest {
     @Test
     void generateNextCorrectAnswerSolvesQuestionToTheEnd() {
         // Arrange.
-        var bankQuestion = TestData.MUL_PLUS_MINUS;
+        var bankQuestion = TestData.ExpressionBank.MUL_PLUS_MINUS;
         var question = attemptlessQuestion(bankQuestion);
 
         // Act.
@@ -437,7 +437,7 @@ class ExerciseAttemptFrontendServiceTest extends AbstractIntegrationTest {
     @Test
     void generateNextCorrectAnswerIgnoresPreviousMistake() {
         // Arrange.
-        var bankQuestion = TestData.PARENTHESES_AND_UNARY_MINUS;
+        var bankQuestion = TestData.ExpressionBank.PARENTHESES_AND_UNARY_MINUS;
         var question = attemptlessQuestion(bankQuestion);
         service.addQuestionAnswer(interaction(question, bankQuestion.operatorAt(1)));
 
@@ -458,17 +458,17 @@ class ExerciseAttemptFrontendServiceTest extends AbstractIntegrationTest {
     @Test
     void addQuestionAnswerInsideAttemptIsGradedByStrategy() {
         // Arrange.
-        TestUserService.actAs(TestData.GLOBAL_STUDENT_ID);
-        var attempt = service.createExerciseAttempt(TestData.EXPRESSION_DT_EXERCISE_ID, TestData.GLOBAL_STUDENT_ID, null);
+        TestUserService.actAs(TestData.Users.GLOBAL_STUDENT_ID);
+        var attempt = service.createExerciseAttempt(TestData.Exercises.EXPRESSION_DT_ID, TestData.Users.GLOBAL_STUDENT_ID, null);
         var question = service.generateQuestion(attempt.getAttemptId());
-        var bankQuestion = TestData.bankQuestion(question.getQuestionMetadataId());
+        var bankQuestion = TestData.ExpressionBank.byMetadataId(question.getQuestionMetadataId());
 
         // Act.
         var feedback = service.addQuestionAnswer(interaction(question, bankQuestion.operatorAt(0)));
 
         // Assert.
         assertTrue(feedback.isCorrect());
-        assertEquals(1f / 4 / TestData.EXPRESSION_DT_EXERCISE_QUESTIONS, feedback.getGrade(), GRADE_DELTA);
+        assertEquals(1f / 4 / TestData.Exercises.EXPRESSION_DT_QUESTIONS, feedback.getGrade(), GRADE_DELTA);
         assertEquals(Decision.CONTINUE, feedback.getStrategyDecision());
         assertEquals(AttemptStatus.INCOMPLETE, service.getExerciseAttempt(attempt.getAttemptId()).getStatus());
     }
@@ -477,10 +477,10 @@ class ExerciseAttemptFrontendServiceTest extends AbstractIntegrationTest {
     @Test
     void wrongAnswerInsideAttemptGetsZeroGrade() {
         // Arrange.
-        TestUserService.actAs(TestData.GLOBAL_STUDENT_ID);
-        var attempt = service.createExerciseAttempt(TestData.EXPRESSION_DT_EXERCISE_ID, TestData.GLOBAL_STUDENT_ID, null);
+        TestUserService.actAs(TestData.Users.GLOBAL_STUDENT_ID);
+        var attempt = service.createExerciseAttempt(TestData.Exercises.EXPRESSION_DT_ID, TestData.Users.GLOBAL_STUDENT_ID, null);
         var question = service.generateQuestion(attempt.getAttemptId());
-        var bankQuestion = TestData.bankQuestion(question.getQuestionMetadataId());
+        var bankQuestion = TestData.ExpressionBank.byMetadataId(question.getQuestionMetadataId());
 
         // Act.
         var feedback = service.addQuestionAnswer(interaction(question, bankQuestion.operatorAt(1)));
@@ -495,8 +495,8 @@ class ExerciseAttemptFrontendServiceTest extends AbstractIntegrationTest {
     @Test
     void hintsInsideAttemptDoNotRaiseGrade() {
         // Arrange.
-        TestUserService.actAs(TestData.GLOBAL_STUDENT_ID);
-        var attempt = service.createExerciseAttempt(TestData.EXPRESSION_DT_EXERCISE_ID, TestData.GLOBAL_STUDENT_ID, null);
+        TestUserService.actAs(TestData.Users.GLOBAL_STUDENT_ID);
+        var attempt = service.createExerciseAttempt(TestData.Exercises.EXPRESSION_DT_ID, TestData.Users.GLOBAL_STUDENT_ID, null);
         var question = service.generateQuestion(attempt.getAttemptId());
 
         // Act.
@@ -511,45 +511,45 @@ class ExerciseAttemptFrontendServiceTest extends AbstractIntegrationTest {
     @Test
     void attemptStaysIncompleteWhileStageHasUnansweredQuestions() {
         // Arrange.
-        TestUserService.actAs(TestData.GLOBAL_STUDENT_ID);
-        var attempt = service.createExerciseAttempt(TestData.EXPRESSION_DT_EXERCISE_ID, TestData.GLOBAL_STUDENT_ID, null);
+        TestUserService.actAs(TestData.Users.GLOBAL_STUDENT_ID);
+        var attempt = service.createExerciseAttempt(TestData.Exercises.EXPRESSION_DT_ID, TestData.Users.GLOBAL_STUDENT_ID, null);
         var question = service.generateQuestion(attempt.getAttemptId());
 
         // Act.
-        var feedback = solveByAnswers(question, TestData.bankQuestion(question.getQuestionMetadataId()));
+        var feedback = solveByAnswers(question, TestData.ExpressionBank.byMetadataId(question.getQuestionMetadataId()));
 
         // Assert.
         assertEquals(0, feedback.getStepsLeft());
         assertEquals(Decision.CONTINUE, feedback.getStrategyDecision());
         var inProgress = service.getExerciseAttempt(attempt.getAttemptId());
         assertEquals(AttemptStatus.INCOMPLETE, inProgress.getStatus());
-        assertTrue(inProgress.getQuestionIds().length < TestData.EXPRESSION_DT_EXERCISE_QUESTIONS);
-        assertNotNull(service.getExistingExerciseAttempt(TestData.EXPRESSION_DT_EXERCISE_ID, TestData.GLOBAL_STUDENT_ID, null));
+        assertTrue(inProgress.getQuestionIds().length < TestData.Exercises.EXPRESSION_DT_QUESTIONS);
+        assertNotNull(service.getExistingExerciseAttempt(TestData.Exercises.EXPRESSION_DT_ID, TestData.Users.GLOBAL_STUDENT_ID, null));
     }
 
     /** Решены все вопросы стадии: попытка завершена. */
     @Test
     void completingEveryStageQuestionFinishesAttempt() {
         // Arrange.
-        TestUserService.actAs(TestData.GLOBAL_STUDENT_ID);
-        var attempt = service.createExerciseAttempt(TestData.EXPRESSION_DT_EXERCISE_ID, TestData.GLOBAL_STUDENT_ID, null);
+        TestUserService.actAs(TestData.Users.GLOBAL_STUDENT_ID);
+        var attempt = service.createExerciseAttempt(TestData.Exercises.EXPRESSION_DT_ID, TestData.Users.GLOBAL_STUDENT_ID, null);
         var first = service.generateQuestion(attempt.getAttemptId());
-        var firstBankQuestion = TestData.bankQuestion(first.getQuestionMetadataId());
+        var firstBankQuestion = TestData.ExpressionBank.byMetadataId(first.getQuestionMetadataId());
         solveByAnswers(first, firstBankQuestion);
         var second = service.generateQuestion(attempt.getAttemptId());
-        var secondBankQuestion = TestData.bankQuestion(second.getQuestionMetadataId());
+        var secondBankQuestion = TestData.ExpressionBank.byMetadataId(second.getQuestionMetadataId());
 
         // Act.
         var feedback = solveByAnswers(second, secondBankQuestion);
 
         // Assert.
         assertEquals(Decision.FINISH, feedback.getStrategyDecision());
-        assertEquals((firstBankQuestion.steps() + secondBankQuestion.steps()) / 4f / TestData.EXPRESSION_DT_EXERCISE_QUESTIONS,
+        assertEquals((firstBankQuestion.steps() + secondBankQuestion.steps()) / 4f / TestData.Exercises.EXPRESSION_DT_QUESTIONS,
                 feedback.getGrade(), GRADE_DELTA);
         var finished = service.getExerciseAttempt(attempt.getAttemptId());
         assertEquals(AttemptStatus.COMPLETED_BY_USER, finished.getStatus());
         assertArrayEquals(new Long[] { first.getQuestionId(), second.getQuestionId() }, finished.getQuestionIds());
-        assertNull(service.getExistingExerciseAttempt(TestData.EXPRESSION_DT_EXERCISE_ID, TestData.GLOBAL_STUDENT_ID, null));
+        assertNull(service.getExistingExerciseAttempt(TestData.Exercises.EXPRESSION_DT_ID, TestData.Users.GLOBAL_STUDENT_ID, null));
     }
 
     // ---- дополнительные вопросы ----
@@ -558,7 +558,7 @@ class ExerciseAttemptFrontendServiceTest extends AbstractIntegrationTest {
     @Test
     void generateSupplementaryQuestionAfterPrecedenceMistake() {
         // Arrange.
-        var bankQuestion = TestData.PARENTHESES_AND_UNARY_MINUS;
+        var bankQuestion = TestData.ExpressionBank.PARENTHESES_AND_UNARY_MINUS;
         var question = attemptlessQuestion(bankQuestion);
         var mistake = service.addQuestionAnswer(interaction(question, bankQuestion.operatorAt(1)));
 
@@ -579,7 +579,7 @@ class ExerciseAttemptFrontendServiceTest extends AbstractIntegrationTest {
     @Test
     void addSupplementaryQuestionAnswerExplainsWrongMatching() {
         // Arrange.
-        var bankQuestion = TestData.PARENTHESES_AND_UNARY_MINUS;
+        var bankQuestion = TestData.ExpressionBank.PARENTHESES_AND_UNARY_MINUS;
         var question = attemptlessQuestion(bankQuestion);
         var mistake = service.addQuestionAnswer(interaction(question, bankQuestion.operatorAt(1)));
         var supplementary = (MatchingQuestionDto) service
@@ -598,7 +598,7 @@ class ExerciseAttemptFrontendServiceTest extends AbstractIntegrationTest {
     @Test
     void supplementaryChainContinuesAfterAnsweredStep() {
         // Arrange.
-        var bankQuestion = TestData.PARENTHESES_AND_UNARY_MINUS;
+        var bankQuestion = TestData.ExpressionBank.PARENTHESES_AND_UNARY_MINUS;
         var question = attemptlessQuestion(bankQuestion);
         var mistake = service.addQuestionAnswer(interaction(question, bankQuestion.operatorAt(1)));
         var laws = violationLawsOf(mistake);
@@ -619,10 +619,10 @@ class ExerciseAttemptFrontendServiceTest extends AbstractIntegrationTest {
     @Test
     void supplementaryQuestionInsideAttemptDoesNotBecomeAttemptQuestion() {
         // Arrange.
-        TestUserService.actAs(TestData.GLOBAL_STUDENT_ID);
-        var attempt = service.createExerciseAttempt(TestData.EXPRESSION_DT_EXERCISE_ID, TestData.GLOBAL_STUDENT_ID, null);
+        TestUserService.actAs(TestData.Users.GLOBAL_STUDENT_ID);
+        var attempt = service.createExerciseAttempt(TestData.Exercises.EXPRESSION_DT_ID, TestData.Users.GLOBAL_STUDENT_ID, null);
         var question = service.generateQuestion(attempt.getAttemptId());
-        var bankQuestion = TestData.bankQuestion(question.getQuestionMetadataId());
+        var bankQuestion = TestData.ExpressionBank.byMetadataId(question.getQuestionMetadataId());
         var mistake = service.addQuestionAnswer(interaction(question, bankQuestion.operatorAt(1)));
 
         // Act.
@@ -636,7 +636,7 @@ class ExerciseAttemptFrontendServiceTest extends AbstractIntegrationTest {
     // ---- вспомогательное ----
 
     private QuestionDto attemptlessQuestion(BankQuestion bankQuestion) {
-        TestUserService.actAs(TestData.GLOBAL_EXERCISE_AUTHOR_ID);
+        TestUserService.actAs(TestData.Users.GLOBAL_EXERCISE_AUTHOR_ID);
         return service.generateQuestionByMetadata(bankQuestion.metadataId(), Language.ENGLISH);
     }
 

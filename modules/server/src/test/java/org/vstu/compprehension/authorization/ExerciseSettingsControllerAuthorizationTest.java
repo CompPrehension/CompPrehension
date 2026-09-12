@@ -29,7 +29,7 @@ class ExerciseSettingsControllerAuthorizationTest extends AbstractAuthorizationT
     @Test
     void listGlobalExercisesAllowedForGlobalExerciseAuthor() throws Exception {
         // Arrange.
-        actingAs(TestData.GLOBAL_EXERCISE_AUTHOR_ID);
+        actingAs(TestData.Users.GLOBAL_EXERCISE_AUTHOR_ID);
 
         // Act.
         var result = mockMvc.perform(get("/api/exercise/list"));
@@ -42,7 +42,7 @@ class ExerciseSettingsControllerAuthorizationTest extends AbstractAuthorizationT
     @Test
     void listGlobalExercisesForbiddenForGlobalStudent() throws Exception {
         // Arrange.
-        actingAs(TestData.GLOBAL_STUDENT_ID);
+        actingAs(TestData.Users.GLOBAL_STUDENT_ID);
 
         // Act.
         var result = mockMvc.perform(get("/api/exercise/list"));
@@ -55,11 +55,11 @@ class ExerciseSettingsControllerAuthorizationTest extends AbstractAuthorizationT
     @Test
     void listCourseExercisesAllowedForCourseTeacher() throws Exception {
         // Arrange.
-        actingAs(TestData.MAIN_COURSE_TEACHER_ID);
+        actingAs(TestData.Users.MAIN_COURSE_TEACHER_ID);
 
         // Act.
         var result = mockMvc.perform(get("/api/exercise/list")
-                .param("courseId", String.valueOf(TestData.MAIN_COURSE_ID)));
+                .param("courseId", String.valueOf(TestData.Courses.MAIN_ID)));
 
         // Assert.
         result.andExpect(status().isOk());
@@ -69,11 +69,11 @@ class ExerciseSettingsControllerAuthorizationTest extends AbstractAuthorizationT
     @Test
     void listCourseExercisesForbiddenForCourseStudent() throws Exception {
         // Arrange.
-        actingAs(TestData.MAIN_COURSE_STUDENT_ID);
+        actingAs(TestData.Users.MAIN_COURSE_STUDENT_ID);
 
         // Act.
         var result = mockMvc.perform(get("/api/exercise/list")
-                .param("courseId", String.valueOf(TestData.MAIN_COURSE_ID)));
+                .param("courseId", String.valueOf(TestData.Courses.MAIN_ID)));
 
         // Assert.
         result.andExpect(status().isForbidden());
@@ -83,11 +83,11 @@ class ExerciseSettingsControllerAuthorizationTest extends AbstractAuthorizationT
     @Test
     void listCourseExercisesForbiddenForTeacherOfAnotherCourse() throws Exception {
         // Arrange.
-        actingAs(TestData.OTHER_COURSE_TEACHER_ID);
+        actingAs(TestData.Users.OTHER_COURSE_TEACHER_ID);
 
         // Act.
         var result = mockMvc.perform(get("/api/exercise/list")
-                .param("courseId", String.valueOf(TestData.MAIN_COURSE_ID)));
+                .param("courseId", String.valueOf(TestData.Courses.MAIN_ID)));
 
         // Assert.
         result.andExpect(status().isForbidden());
@@ -97,11 +97,11 @@ class ExerciseSettingsControllerAuthorizationTest extends AbstractAuthorizationT
     @Test
     void getExerciseCardAllowedForGlobalExerciseAuthor() throws Exception {
         // Arrange.
-        actingAs(TestData.GLOBAL_EXERCISE_AUTHOR_ID);
+        actingAs(TestData.Users.GLOBAL_EXERCISE_AUTHOR_ID);
 
         // Act.
         var result = mockMvc.perform(get("/api/exercise")
-                .param("id", String.valueOf(TestData.GLOBAL_POOL_EXERCISE_ID)));
+                .param("id", String.valueOf(TestData.Exercises.GLOBAL_POOL_ID)));
 
         // Assert.
         result.andExpect(status().isOk());
@@ -111,11 +111,11 @@ class ExerciseSettingsControllerAuthorizationTest extends AbstractAuthorizationT
     @Test
     void getExerciseCardForbiddenForGlobalStudent() throws Exception {
         // Arrange.
-        actingAs(TestData.GLOBAL_STUDENT_ID);
+        actingAs(TestData.Users.GLOBAL_STUDENT_ID);
 
         // Act.
         var result = mockMvc.perform(get("/api/exercise")
-                .param("id", String.valueOf(TestData.GLOBAL_POOL_EXERCISE_ID)));
+                .param("id", String.valueOf(TestData.Exercises.GLOBAL_POOL_ID)));
 
         // Assert.
         result.andExpect(status().isForbidden());
@@ -125,12 +125,12 @@ class ExerciseSettingsControllerAuthorizationTest extends AbstractAuthorizationT
     @Test
     void getCourseExerciseCardAllowedForCourseTeacher() throws Exception {
         // Arrange.
-        actingAs(TestData.MAIN_COURSE_TEACHER_ID);
+        actingAs(TestData.Users.MAIN_COURSE_TEACHER_ID);
 
         // Act.
         var result = mockMvc.perform(get("/api/exercise")
-                .param("id", String.valueOf(TestData.MAIN_COURSE_EXERCISE_ID))
-                .param("courseId", String.valueOf(TestData.MAIN_COURSE_ID)));
+                .param("id", String.valueOf(TestData.Exercises.MAIN_COURSE_ID))
+                .param("courseId", String.valueOf(TestData.Courses.MAIN_ID)));
 
         // Assert.
         result.andExpect(status().isOk());
@@ -140,9 +140,9 @@ class ExerciseSettingsControllerAuthorizationTest extends AbstractAuthorizationT
     @Test
     void createGlobalExerciseAllowedForGlobalExerciseAuthor() throws Exception {
         // Arrange.
-        actingAs(TestData.GLOBAL_EXERCISE_AUTHOR_ID);
+        actingAs(TestData.Users.GLOBAL_EXERCISE_AUTHOR_ID);
         var body = objectMapper.writeValueAsString(new NewExerciseRequest(
-                "new exercise", TestData.DOMAIN_ID, TestData.STRATEGY_ID, null));
+                "new exercise", TestData.Exercises.DOMAIN_ID, TestData.Exercises.STRATEGY_ID, null));
 
         // Act.
         var result = mockMvc.perform(put("/api/exercise")
@@ -157,9 +157,9 @@ class ExerciseSettingsControllerAuthorizationTest extends AbstractAuthorizationT
     @Test
     void createGlobalExerciseForbiddenForGlobalStudent() throws Exception {
         // Arrange.
-        actingAs(TestData.GLOBAL_STUDENT_ID);
+        actingAs(TestData.Users.GLOBAL_STUDENT_ID);
         var body = objectMapper.writeValueAsString(new NewExerciseRequest(
-                "new exercise", TestData.DOMAIN_ID, TestData.STRATEGY_ID, null));
+                "new exercise", TestData.Exercises.DOMAIN_ID, TestData.Exercises.STRATEGY_ID, null));
 
         // Act.
         var result = mockMvc.perform(put("/api/exercise")
@@ -174,9 +174,9 @@ class ExerciseSettingsControllerAuthorizationTest extends AbstractAuthorizationT
     @Test
     void createCourseExerciseForbiddenForCourseAssistant() throws Exception {
         // Arrange.
-        actingAs(TestData.MAIN_COURSE_ASSISTANT_ID);
+        actingAs(TestData.Users.MAIN_COURSE_ASSISTANT_ID);
         var body = objectMapper.writeValueAsString(new NewExerciseRequest(
-                "new exercise", TestData.DOMAIN_ID, TestData.STRATEGY_ID, TestData.MAIN_COURSE_ID));
+                "new exercise", TestData.Exercises.DOMAIN_ID, TestData.Exercises.STRATEGY_ID, TestData.Courses.MAIN_ID));
 
         // Act.
         var result = mockMvc.perform(put("/api/exercise")
@@ -191,8 +191,8 @@ class ExerciseSettingsControllerAuthorizationTest extends AbstractAuthorizationT
     @Test
     void updateGlobalExerciseAllowedForGlobalExerciseAuthor() throws Exception {
         // Arrange.
-        actingAs(TestData.GLOBAL_EXERCISE_AUTHOR_ID);
-        var body = objectMapper.writeValueAsString(cardOf(TestData.GLOBAL_POOL_EXERCISE_ID));
+        actingAs(TestData.Users.GLOBAL_EXERCISE_AUTHOR_ID);
+        var body = objectMapper.writeValueAsString(cardOf(TestData.Exercises.GLOBAL_POOL_ID));
 
         // Act.
         var result = mockMvc.perform(post("/api/exercise")
@@ -207,8 +207,8 @@ class ExerciseSettingsControllerAuthorizationTest extends AbstractAuthorizationT
     @Test
     void updateGlobalExerciseForbiddenForGlobalStudent() throws Exception {
         // Arrange.
-        actingAs(TestData.GLOBAL_STUDENT_ID);
-        var body = objectMapper.writeValueAsString(cardOf(TestData.GLOBAL_POOL_EXERCISE_ID));
+        actingAs(TestData.Users.GLOBAL_STUDENT_ID);
+        var body = objectMapper.writeValueAsString(cardOf(TestData.Exercises.GLOBAL_POOL_ID));
 
         // Act.
         var result = mockMvc.perform(post("/api/exercise")
@@ -223,12 +223,12 @@ class ExerciseSettingsControllerAuthorizationTest extends AbstractAuthorizationT
     @Test
     void updateCourseExerciseAllowedForCourseTeacher() throws Exception {
         // Arrange.
-        actingAs(TestData.MAIN_COURSE_TEACHER_ID);
-        var body = objectMapper.writeValueAsString(cardOf(TestData.MAIN_COURSE_EXERCISE_ID));
+        actingAs(TestData.Users.MAIN_COURSE_TEACHER_ID);
+        var body = objectMapper.writeValueAsString(cardOf(TestData.Exercises.MAIN_COURSE_ID));
 
         // Act.
         var result = mockMvc.perform(post("/api/exercise")
-                .param("courseId", String.valueOf(TestData.MAIN_COURSE_ID))
+                .param("courseId", String.valueOf(TestData.Courses.MAIN_ID))
                 .contentType(MediaType.APPLICATION_JSON)
                 .content(body));
 
@@ -240,12 +240,12 @@ class ExerciseSettingsControllerAuthorizationTest extends AbstractAuthorizationT
     @Test
     void updateCourseExerciseForbiddenForCourseAssistant() throws Exception {
         // Arrange.
-        actingAs(TestData.MAIN_COURSE_ASSISTANT_ID);
-        var body = objectMapper.writeValueAsString(cardOf(TestData.MAIN_COURSE_EXERCISE_ID));
+        actingAs(TestData.Users.MAIN_COURSE_ASSISTANT_ID);
+        var body = objectMapper.writeValueAsString(cardOf(TestData.Exercises.MAIN_COURSE_ID));
 
         // Act.
         var result = mockMvc.perform(post("/api/exercise")
-                .param("courseId", String.valueOf(TestData.MAIN_COURSE_ID))
+                .param("courseId", String.valueOf(TestData.Courses.MAIN_ID))
                 .contentType(MediaType.APPLICATION_JSON)
                 .content(body));
 
@@ -260,8 +260,8 @@ class ExerciseSettingsControllerAuthorizationTest extends AbstractAuthorizationT
     @Test
     void updateCourseExerciseRejectedForGlobalExerciseAuthorActingOutsideCourse() throws Exception {
         // Arrange.
-        actingAs(TestData.GLOBAL_EXERCISE_AUTHOR_ID);
-        var body = objectMapper.writeValueAsString(cardOf(TestData.MAIN_COURSE_EXERCISE_ID));
+        actingAs(TestData.Users.GLOBAL_EXERCISE_AUTHOR_ID);
+        var body = objectMapper.writeValueAsString(cardOf(TestData.Exercises.MAIN_COURSE_ID));
 
         // Act.
         var result = mockMvc.perform(post("/api/exercise")
@@ -276,12 +276,12 @@ class ExerciseSettingsControllerAuthorizationTest extends AbstractAuthorizationT
     @Test
     void updateInheritedExerciseRejectedForCourseTeacher() throws Exception {
         // Arrange.
-        actingAs(TestData.MAIN_COURSE_TEACHER_ID);
-        var body = objectMapper.writeValueAsString(cardOf(TestData.INHERITED_EXERCISE_ID));
+        actingAs(TestData.Users.MAIN_COURSE_TEACHER_ID);
+        var body = objectMapper.writeValueAsString(cardOf(TestData.Exercises.INHERITED_ID));
 
         // Act.
         var result = mockMvc.perform(post("/api/exercise")
-                .param("courseId", String.valueOf(TestData.MAIN_COURSE_ID))
+                .param("courseId", String.valueOf(TestData.Courses.MAIN_ID))
                 .contentType(MediaType.APPLICATION_JSON)
                 .content(body));
 
@@ -293,11 +293,11 @@ class ExerciseSettingsControllerAuthorizationTest extends AbstractAuthorizationT
     @Test
     void deleteGlobalExerciseAllowedForGlobalAdmin() throws Exception {
         // Arrange.
-        actingAs(TestData.GLOBAL_ADMIN_ID);
+        actingAs(TestData.Users.GLOBAL_ADMIN_ID);
 
         // Act.
         var result = mockMvc.perform(delete("/api/exercise")
-                .param("id", String.valueOf(TestData.GLOBAL_POOL_EXERCISE_ID)));
+                .param("id", String.valueOf(TestData.Exercises.GLOBAL_POOL_ID)));
 
         // Assert.
         result.andExpect(status().isOk());
@@ -307,11 +307,11 @@ class ExerciseSettingsControllerAuthorizationTest extends AbstractAuthorizationT
     @Test
     void deleteGlobalExerciseForbiddenForGlobalExerciseAuthor() throws Exception {
         // Arrange.
-        actingAs(TestData.GLOBAL_EXERCISE_AUTHOR_ID);
+        actingAs(TestData.Users.GLOBAL_EXERCISE_AUTHOR_ID);
 
         // Act.
         var result = mockMvc.perform(delete("/api/exercise")
-                .param("id", String.valueOf(TestData.GLOBAL_POOL_EXERCISE_ID)));
+                .param("id", String.valueOf(TestData.Exercises.GLOBAL_POOL_ID)));
 
         // Assert.
         result.andExpect(status().isForbidden());
@@ -321,12 +321,12 @@ class ExerciseSettingsControllerAuthorizationTest extends AbstractAuthorizationT
     @Test
     void deleteCourseExerciseAllowedForCourseTeacher() throws Exception {
         // Arrange.
-        actingAs(TestData.MAIN_COURSE_TEACHER_ID);
+        actingAs(TestData.Users.MAIN_COURSE_TEACHER_ID);
 
         // Act.
         var result = mockMvc.perform(delete("/api/exercise")
-                .param("id", String.valueOf(TestData.MAIN_COURSE_EXERCISE_ID))
-                .param("courseId", String.valueOf(TestData.MAIN_COURSE_ID)));
+                .param("id", String.valueOf(TestData.Exercises.MAIN_COURSE_ID))
+                .param("courseId", String.valueOf(TestData.Courses.MAIN_ID)));
 
         // Assert.
         result.andExpect(status().isOk());
@@ -336,12 +336,12 @@ class ExerciseSettingsControllerAuthorizationTest extends AbstractAuthorizationT
     @Test
     void deleteCourseExerciseForbiddenForCourseStudent() throws Exception {
         // Arrange.
-        actingAs(TestData.MAIN_COURSE_STUDENT_ID);
+        actingAs(TestData.Users.MAIN_COURSE_STUDENT_ID);
 
         // Act.
         var result = mockMvc.perform(delete("/api/exercise")
-                .param("id", String.valueOf(TestData.MAIN_COURSE_EXERCISE_ID))
-                .param("courseId", String.valueOf(TestData.MAIN_COURSE_ID)));
+                .param("id", String.valueOf(TestData.Exercises.MAIN_COURSE_ID))
+                .param("courseId", String.valueOf(TestData.Courses.MAIN_ID)));
 
         // Assert.
         result.andExpect(status().isForbidden());
@@ -351,12 +351,12 @@ class ExerciseSettingsControllerAuthorizationTest extends AbstractAuthorizationT
     @Test
     void deleteCourseExerciseForbiddenForTeacherOfAnotherCourse() throws Exception {
         // Arrange.
-        actingAs(TestData.OTHER_COURSE_TEACHER_ID);
+        actingAs(TestData.Users.OTHER_COURSE_TEACHER_ID);
 
         // Act.
         var result = mockMvc.perform(delete("/api/exercise")
-                .param("id", String.valueOf(TestData.MAIN_COURSE_EXERCISE_ID))
-                .param("courseId", String.valueOf(TestData.MAIN_COURSE_ID)));
+                .param("id", String.valueOf(TestData.Exercises.MAIN_COURSE_ID))
+                .param("courseId", String.valueOf(TestData.Courses.MAIN_ID)));
 
         // Assert.
         result.andExpect(status().isForbidden());
@@ -366,11 +366,11 @@ class ExerciseSettingsControllerAuthorizationTest extends AbstractAuthorizationT
     @Test
     void cloneInheritedExerciseAllowedForCourseTeacher() throws Exception {
         // Arrange.
-        actingAs(TestData.MAIN_COURSE_TEACHER_ID);
+        actingAs(TestData.Users.MAIN_COURSE_TEACHER_ID);
 
         // Act.
-        var result = mockMvc.perform(post("/api/exercise/" + TestData.INHERITED_EXERCISE_ID + "/clone")
-                .param("courseId", String.valueOf(TestData.MAIN_COURSE_ID)));
+        var result = mockMvc.perform(post("/api/exercise/" + TestData.Exercises.INHERITED_ID + "/clone")
+                .param("courseId", String.valueOf(TestData.Courses.MAIN_ID)));
 
         // Assert.
         result.andExpect(status().isOk());
@@ -380,11 +380,11 @@ class ExerciseSettingsControllerAuthorizationTest extends AbstractAuthorizationT
     @Test
     void cloneInheritedExerciseForbiddenForCourseAssistant() throws Exception {
         // Arrange.
-        actingAs(TestData.MAIN_COURSE_ASSISTANT_ID);
+        actingAs(TestData.Users.MAIN_COURSE_ASSISTANT_ID);
 
         // Act.
-        var result = mockMvc.perform(post("/api/exercise/" + TestData.INHERITED_EXERCISE_ID + "/clone")
-                .param("courseId", String.valueOf(TestData.MAIN_COURSE_ID)));
+        var result = mockMvc.perform(post("/api/exercise/" + TestData.Exercises.INHERITED_ID + "/clone")
+                .param("courseId", String.valueOf(TestData.Courses.MAIN_ID)));
 
         // Assert.
         result.andExpect(status().isForbidden());
@@ -394,10 +394,10 @@ class ExerciseSettingsControllerAuthorizationTest extends AbstractAuthorizationT
     @Test
     void cloneCourseExerciseToGlobalPoolForbiddenWhenSourceIsNotVisible() throws Exception {
         // Arrange.
-        actingAs(TestData.GLOBAL_EXERCISE_AUTHOR_ID);
+        actingAs(TestData.Users.GLOBAL_EXERCISE_AUTHOR_ID);
 
         // Act.
-        var result = mockMvc.perform(post("/api/exercise/" + TestData.MAIN_COURSE_EXERCISE_ID + "/clone"));
+        var result = mockMvc.perform(post("/api/exercise/" + TestData.Exercises.MAIN_COURSE_ID + "/clone"));
 
         // Assert.
         result.andExpect(status().isForbidden());
@@ -407,7 +407,7 @@ class ExerciseSettingsControllerAuthorizationTest extends AbstractAuthorizationT
     @Test
     void anyEndpointForbiddenForUserWithoutRoles() throws Exception {
         // Arrange.
-        actingAs(TestData.USER_WITHOUT_ROLES_ID);
+        actingAs(TestData.Users.WITHOUT_ROLES_ID);
 
         // Act.
         var result = mockMvc.perform(get("/api/exercise/list"));
@@ -420,11 +420,11 @@ class ExerciseSettingsControllerAuthorizationTest extends AbstractAuthorizationT
     @Test
     void listPermissionsForCourseTeacher() throws Exception {
         // Arrange.
-        actingAs(TestData.MAIN_COURSE_TEACHER_ID);
+        actingAs(TestData.Users.MAIN_COURSE_TEACHER_ID);
 
         // Act.
         var result = mockMvc.perform(get("/api/exercise/list")
-                .param("courseId", String.valueOf(TestData.MAIN_COURSE_ID)));
+                .param("courseId", String.valueOf(TestData.Courses.MAIN_ID)));
 
         // Assert.
         result.andExpect(status().isOk())
@@ -437,11 +437,11 @@ class ExerciseSettingsControllerAuthorizationTest extends AbstractAuthorizationT
     @Test
     void listPermissionsForCourseAssistant() throws Exception {
         // Arrange.
-        actingAs(TestData.MAIN_COURSE_ASSISTANT_ID);
+        actingAs(TestData.Users.MAIN_COURSE_ASSISTANT_ID);
 
         // Act.
         var result = mockMvc.perform(get("/api/exercise/list")
-                .param("courseId", String.valueOf(TestData.MAIN_COURSE_ID)));
+                .param("courseId", String.valueOf(TestData.Courses.MAIN_ID)));
 
         // Assert.
         result.andExpect(status().isOk())
@@ -454,7 +454,7 @@ class ExerciseSettingsControllerAuthorizationTest extends AbstractAuthorizationT
     @Test
     void listPermissionsForGlobalExerciseAuthorOutsideCourse() throws Exception {
         // Arrange.
-        actingAs(TestData.GLOBAL_EXERCISE_AUTHOR_ID);
+        actingAs(TestData.Users.GLOBAL_EXERCISE_AUTHOR_ID);
 
         // Act.
         var result = mockMvc.perform(get("/api/exercise/list"));
@@ -470,12 +470,12 @@ class ExerciseSettingsControllerAuthorizationTest extends AbstractAuthorizationT
     @Test
     void cardPermissionsForInheritedExercise() throws Exception {
         // Arrange.
-        actingAs(TestData.MAIN_COURSE_TEACHER_ID);
+        actingAs(TestData.Users.MAIN_COURSE_TEACHER_ID);
 
         // Act.
         var result = mockMvc.perform(get("/api/exercise")
-                .param("id", String.valueOf(TestData.INHERITED_EXERCISE_ID))
-                .param("courseId", String.valueOf(TestData.MAIN_COURSE_ID)));
+                .param("id", String.valueOf(TestData.Exercises.INHERITED_ID))
+                .param("courseId", String.valueOf(TestData.Courses.MAIN_ID)));
 
         // Assert.
         result.andExpect(status().isOk())
@@ -490,12 +490,12 @@ class ExerciseSettingsControllerAuthorizationTest extends AbstractAuthorizationT
     @Test
     void cardPermissionsForOwnCourseExercise() throws Exception {
         // Arrange.
-        actingAs(TestData.MAIN_COURSE_TEACHER_ID);
+        actingAs(TestData.Users.MAIN_COURSE_TEACHER_ID);
 
         // Act.
         var result = mockMvc.perform(get("/api/exercise")
-                .param("id", String.valueOf(TestData.MAIN_COURSE_EXERCISE_ID))
-                .param("courseId", String.valueOf(TestData.MAIN_COURSE_ID)));
+                .param("id", String.valueOf(TestData.Exercises.MAIN_COURSE_ID))
+                .param("courseId", String.valueOf(TestData.Courses.MAIN_ID)));
 
         // Assert.
         result.andExpect(status().isOk())
@@ -510,11 +510,11 @@ class ExerciseSettingsControllerAuthorizationTest extends AbstractAuthorizationT
     @Test
     void cardPermissionsForGlobalPoolExercise() throws Exception {
         // Arrange.
-        actingAs(TestData.GLOBAL_EXERCISE_AUTHOR_ID);
+        actingAs(TestData.Users.GLOBAL_EXERCISE_AUTHOR_ID);
 
         // Act.
         var result = mockMvc.perform(get("/api/exercise")
-                .param("id", String.valueOf(TestData.GLOBAL_POOL_EXERCISE_ID)));
+                .param("id", String.valueOf(TestData.Exercises.GLOBAL_POOL_ID)));
 
         // Assert.
         result.andExpect(status().isOk())
