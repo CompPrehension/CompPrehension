@@ -284,4 +284,13 @@
             </plugin>
         </plugins>
     </build>
+
+    <profiles>
+        <profile>
+            <id>tools</id>
+            <modules>
+                <module>tools/reclassify</module>
+            </modules>
+        </profile>
+    </profiles>
 </project>

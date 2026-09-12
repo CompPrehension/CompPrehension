@@ -758,7 +758,7 @@ public class MeaningTreeOrderQuestionBuilder {
 
     static List<String> findAllConcepts(Node root, SupportedLanguage toLanguage) {
         ArrayList<String> result = new ArrayList<>();
-        for (NodeInfo child : root) {
+        for (NodeInfo child : root.iterate(true)) {
             Node node = child.node();
             if (node instanceof AddOp) result.add("operator_binary_+");
             else if (node instanceof MulOp) result.add("operator_binary_*");
@@ -922,12 +922,21 @@ public class MeaningTreeOrderQuestionBuilder {
                             continue;
                         }
 
-                        boolean higherRightPrecedence = nearOp.precedence > op.precedence;
+                        // Закрывающая часть того же составного оператора
+                        if (op instanceof ComplexOperatorToken complex && complex.isOpening() && tokens.findClosingComplex(i) == j) {
+                            continue;
+                        }
+
+                        boolean higherRightPrecedence = nearOp.precedence < op.precedence;
                         if (higherRightPrecedence && !hasDifferentPrec) {
                             set.add("error_base_higher_precedence_right");
                             set.add("precedence");
                             hasDifferentPrec = true;
                             // Это не останавливает поиск, так как еще может быть оператор с различной ассоциативностью
+                        }
+                        if (nearOp.precedence > op.precedence) {
+                            // Оператор с меньшим приоритетом ждёт текущий, дальше конкурентов нет
+                            break;
                         }
 
                         if (op.precedence == nearOp.precedence &&
@@ -968,12 +977,21 @@ public class MeaningTreeOrderQuestionBuilder {
                             continue;
                         }
 
-                        boolean higherLeftPrecedence = nearOp.precedence > op.precedence;
+                        // Открывающая часть того же составного оператора
+                        if (op instanceof ComplexOperatorToken complex && complex.isClosing() && tokens.findOpeningComplex(i) == j) {
+                            continue;
+                        }
+
+                        boolean higherLeftPrecedence = nearOp.precedence < op.precedence;
                         if (higherLeftPrecedence && !hasDifferentPrec) {
                             set.add("error_base_higher_precedence_left");
                             set.add("precedence");
                             hasDifferentPrec = true;
                             // Это не останавливает поиск, так как еще может быть оператор с различной ассоциативностью
+                        }
+                        if (nearOp.precedence > op.precedence) {
+                            // Оператор с меньшим приоритетом ждёт текущий, дальше конкурентов нет
+                            break;
                         }
 
                         if (op.precedence == nearOp.precedence &&
@@ -1021,14 +1039,16 @@ public class MeaningTreeOrderQuestionBuilder {
                     set.add("error_base_student_error_unevaluated_operand");
                 }
 
-                // операнд оператора строгого порядка
-                if (op.operandOf() != null && op.operandOf().isStrictOrder) {
+                // операнд оператора строгого порядка, вычисляемый не первым
+                if (op.operandOf() != null && op.operandOf().isStrictOrder
+                        && op.operandPosition() != op.operandOf().getFirstOperandToEvaluation()) {
                     set.add("error_base_student_error_strict_operands_order");
                 }
 
                 // оператор является чьим-то центральным операндом
                 if (op.operandPosition() == OperandPosition.CENTER) {
                     set.add("error_base_enclosing_operators");
+                    set.add("error_base_student_error_unevaluated_operand");
                 }
 
                 if (op.operandOf() != null && op.operandOf() instanceof ComplexOperatorToken) {

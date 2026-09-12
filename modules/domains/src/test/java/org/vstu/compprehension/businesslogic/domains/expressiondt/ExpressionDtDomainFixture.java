@@ -76,15 +76,30 @@ final class ExpressionDtDomainFixture {
         return bankQuestion(bankQuestion, Language.RUSSIAN);
     }
 
+    static QuestionData bankQuestionIn(BankQuestion bankQuestion, String languageTag) {
+        return QuestionData.of(domain().makeQuestion(bankRecord(bankQuestion), List.of(domain().getTag(languageTag)), Language.ENGLISH).getContent());
+    }
+
     static QuestionData expressionQuestion(String expression) {
+        return expressionQuestion(expression, SupportedLanguage.CPP, SupportedLanguage.CPP);
+    }
+
+    static QuestionData expressionQuestion(String expression, SupportedLanguage from, SupportedLanguage to) {
         var generated = MeaningTreeOrderQuestionBuilder.newQuestion(domain())
                 .skipMutations(true)
                 .questionOrigin("test", "MIT")
-                .expression(expression, SupportedLanguage.CPP)
-                .buildQuestions(SupportedLanguage.CPP)
+                .expression(expression, from)
+                .buildQuestions(to)
                 .getLast();
-        var withAnswers = QuestionDynamicDataAppender.appendQuestionData(generated, null, SupportedLanguage.CPP, domain(), Language.RUSSIAN);
+        var withAnswers = QuestionDynamicDataAppender.appendQuestionData(generated, null, to, domain(), Language.RUSSIAN);
         return QuestionData.of(withAnswers.getContent());
+    }
+
+    static AnswerObjectData token(QuestionData question, int index) {
+        return question.getContent().getAnswerObjects().stream()
+                .filter(a -> a.getDomainInfo().equals("token_" + index))
+                .findFirst()
+                .orElseThrow(() -> new IllegalArgumentException("Нет токена " + index + " среди " + question.getContent().getAnswerObjects()));
     }
 
     static List<AnswerObjectData> operators(QuestionData question) {
