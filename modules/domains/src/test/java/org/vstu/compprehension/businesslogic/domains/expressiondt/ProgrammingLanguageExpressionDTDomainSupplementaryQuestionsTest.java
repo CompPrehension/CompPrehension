@@ -1,4 +1,4 @@
-package org.vstu.compprehension.businesslogic.domains;
+package org.vstu.compprehension.businesslogic.domains.expressiondt;
 
 import org.junit.jupiter.api.Test;
 import org.vstu.compprehension.businesslogic.SupplementaryStepContext;
@@ -21,14 +21,14 @@ import static org.junit.jupiter.api.Assertions.assertEquals;
 import static org.junit.jupiter.api.Assertions.assertFalse;
 import static org.junit.jupiter.api.Assertions.assertNotNull;
 import static org.junit.jupiter.api.Assertions.assertNull;
-import static org.vstu.compprehension.businesslogic.domains.ExpressionDtDomainFixture.MEMBER_ACCESS_PLUS;
-import static org.vstu.compprehension.businesslogic.domains.ExpressionDtDomainFixture.PARENTHESES_AND_UNARY_MINUS;
-import static org.vstu.compprehension.businesslogic.domains.ExpressionDtDomainFixture.bankQuestion;
-import static org.vstu.compprehension.businesslogic.domains.ExpressionDtDomainFixture.domain;
-import static org.vstu.compprehension.businesslogic.domains.ExpressionDtDomainFixture.endToken;
-import static org.vstu.compprehension.businesslogic.domains.ExpressionDtDomainFixture.operator;
-import static org.vstu.compprehension.businesslogic.domains.ExpressionDtDomainFixture.operators;
-import static org.vstu.compprehension.businesslogic.domains.ExpressionDtDomainFixture.responses;
+import static org.vstu.compprehension.businesslogic.domains.expressiondt.ExpressionDtDomainFixture.MEMBER_ACCESS_PLUS;
+import static org.vstu.compprehension.businesslogic.domains.expressiondt.ExpressionDtDomainFixture.PARENTHESES_AND_UNARY_MINUS;
+import static org.vstu.compprehension.businesslogic.domains.expressiondt.ExpressionDtDomainFixture.bankQuestion;
+import static org.vstu.compprehension.businesslogic.domains.expressiondt.ExpressionDtDomainFixture.domain;
+import static org.vstu.compprehension.businesslogic.domains.expressiondt.ExpressionDtDomainFixture.endToken;
+import static org.vstu.compprehension.businesslogic.domains.expressiondt.ExpressionDtDomainFixture.operator;
+import static org.vstu.compprehension.businesslogic.domains.expressiondt.ExpressionDtDomainFixture.operators;
+import static org.vstu.compprehension.businesslogic.domains.DomainFixtures.responses;
 
 class ProgrammingLanguageExpressionDTDomainSupplementaryQuestionsTest {
 

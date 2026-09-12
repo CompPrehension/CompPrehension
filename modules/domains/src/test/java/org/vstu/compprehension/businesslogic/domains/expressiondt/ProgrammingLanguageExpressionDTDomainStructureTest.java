@@ -1,30 +1,33 @@
-package org.vstu.compprehension.businesslogic.domains;
+package org.vstu.compprehension.businesslogic.domains.expressiondt;
 
 import org.junit.jupiter.api.Test;
 import org.vstu.compprehension.businesslogic.Concept;
-import org.vstu.compprehension.businesslogic.Law;
 import org.vstu.compprehension.businesslogic.Skill;
+import org.vstu.compprehension.businesslogic.domains.DomainBase;
+import org.vstu.compprehension.businesslogic.domains.DomainStructureContract;
 import org.vstu.compprehension.enums.InteractionType;
 
-import java.util.HashSet;
 import java.util.List;
 import java.util.Set;
-import java.util.stream.Collectors;
 
 import static org.junit.jupiter.api.Assertions.assertEquals;
 import static org.junit.jupiter.api.Assertions.assertFalse;
 import static org.junit.jupiter.api.Assertions.assertNotNull;
-import static org.junit.jupiter.api.Assertions.assertNull;
 import static org.junit.jupiter.api.Assertions.assertTrue;
-import static org.vstu.compprehension.businesslogic.domains.ExpressionDtDomainFixture.CPP_TAG;
-import static org.vstu.compprehension.businesslogic.domains.ExpressionDtDomainFixture.domain;
+import static org.vstu.compprehension.businesslogic.domains.expressiondt.ExpressionDtDomainFixture.CPP_TAG;
+import static org.vstu.compprehension.businesslogic.domains.expressiondt.ExpressionDtDomainFixture.domain;
 
-class ProgrammingLanguageExpressionDTDomainStructureTest {
+class ProgrammingLanguageExpressionDTDomainStructureTest extends DomainStructureContract {
 
     private static final String PRECEDENCE_SKILL = "order_determined_by_precedence";
     private static final String ARITHMETICS_CONCEPT = "arithmetics";
     private static final String BINARY_PLUS_CONCEPT = "operator_binary_+";
     private static final String HIGHER_PRECEDENCE_LAW = "error_base_higher_precedence_left";
+
+    @Override
+    protected DomainBase domain() {
+        return ExpressionDtDomainFixture.domain();
+    }
 
     /** Идентификаторы домена. */
     @Test
@@ -37,80 +40,35 @@ class ProgrammingLanguageExpressionDTDomainStructureTest {
         assertNotNull(domain().getDefaultQuestionType(false));
     }
 
-    /** Умения: непустой набор с уникальными битами и деревом для преподавателя. */
+    /** Ключевые умения, концепты и законы домена на месте. */
     @Test
-    void skillsAreDefinedWithUniqueBits() {
+    void keySkillsConceptsAndLawsAreDefined() {
         // Act.
-        var skills = domain().getAllSkills();
-        var teacherSkills = domain().getSkillSimplifiedHierarchy(Skill.FLAG_VISIBLE_TO_TEACHER);
-
-        // Assert.
-        assertFalse(skills.isEmpty());
-        assertUniqueBits(skills.stream().map(Skill::getBitmask).toList());
-        assertFalse(teacherSkills.isEmpty());
-        assertTrue(teacherSkills.keySet().stream().allMatch(s -> s.hasFlag(Skill.FLAG_VISIBLE_TO_TEACHER)));
         var precedence = domain().getSkill(PRECEDENCE_SKILL);
-        assertNotNull(precedence);
-        assertTrue(precedence.getBitmask() != 0);
-        assertEquals(List.of(precedence), domain().skillsFromBitmask(precedence.getBitmask()));
-        assertNull(domain().getSkill("no_such_skill"));
-    }
-
-    /** Концепты: иерархия, дочерние и биты. */
-    @Test
-    void conceptsFormHierarchyWithBits() {
-        // Act.
-        var concepts = domain().getConcepts();
         var arithmetics = domain().getConcept(ARITHMETICS_CONCEPT);
         var binaryPlus = domain().getConcept(BINARY_PLUS_CONCEPT);
-        var withChildren = domain().getConceptWithChildren(ARITHMETICS_CONCEPT);
+        var law = domain().getNegativeLaw(HIGHER_PRECEDENCE_LAW);
 
         // Assert.
-        assertFalse(concepts.isEmpty());
+        assertNotNull(precedence);
+        assertTrue(precedence.hasFlag(Skill.FLAG_VISIBLE_TO_TEACHER));
+        assertTrue(precedence.getBitmask() != 0);
         assertNotNull(arithmetics);
         assertNotNull(binaryPlus);
         assertTrue(arithmetics.hasFlag(Concept.FLAG_VISIBLE_TO_TEACHER));
         assertTrue(binaryPlus.hasBaseConcept(arithmetics));
-        assertTrue(withChildren.contains(arithmetics));
-        assertTrue(withChildren.contains(binaryPlus));
         assertTrue(binaryPlus.getBitmask() != 0);
-        assertTrue((arithmetics.getSubTreeBitmask() & binaryPlus.getBitmask()) != 0);
         assertEquals(List.of(binaryPlus), domain().conceptsFromBitmask(binaryPlus.getBitmask()));
-        assertFalse(domain().getConceptsSimplifiedHierarchy(Concept.FLAG_VISIBLE_TO_TEACHER).isEmpty());
-        assertNull(domain().getConcept("no_such_concept"));
-    }
-
-    /** Законы: негативные с битами, дерево для преподавателя. */
-    @Test
-    void lawsAreDefinedWithBits() {
-        // Act.
-        var negativeLaws = domain().getNegativeLaws();
-        var positiveLaws = domain().getPositiveLaws();
-        var law = domain().getNegativeLaw(HIGHER_PRECEDENCE_LAW);
-
-        // Assert.
-        assertFalse(negativeLaws.isEmpty());
-        assertFalse(positiveLaws.isEmpty());
         assertNotNull(law);
-        assertEquals(law, domain().getLaw(HIGHER_PRECEDENCE_LAW));
         assertTrue(law.getBitmask() != 0);
-        assertEquals(List.of(law), domain().negativeLawFromBitmask(law.getBitmask()));
-        assertFalse(domain().getLawsSimplifiedHierarchy(Law.FLAG_VISIBLE_TO_TEACHER).isEmpty());
-        assertNull(domain().getLaw("no_such_law"));
+        assertFalse(domain().getPositiveLaws().isEmpty());
     }
 
-    /** Теги: языки программирования с уникальными битами. */
+    /** Теги: языки программирования. */
     @Test
     void tagsCoverProgrammingLanguages() {
-        // Act.
-        var tags = domain().getTags();
-
-        // Assert.
-        assertTrue(tags.keySet().containsAll(Set.of(CPP_TAG, "Python", "Java")));
-        assertUniqueBits(tags.values().stream().map(t -> t.getBitmask()).toList());
-        assertEquals(tags.get(CPP_TAG), domain().getTag(CPP_TAG));
-        assertEquals(List.of(tags.get(CPP_TAG)), domain().resolveTags(List.of(CPP_TAG, "no-such-tag")));
-        assertNull(domain().getTag("no-such-tag"));
+        // Act & Assert.
+        assertTrue(domain().getTags().keySet().containsAll(Set.of(CPP_TAG, "Python", "Java")));
     }
 
     /** Доп. вопросы предлагаются по умениям, но не после подсказки. */
@@ -120,16 +78,5 @@ class ProgrammingLanguageExpressionDTDomainStructureTest {
         assertTrue(domain().needSupplementaryQuestion(PRECEDENCE_SKILL, InteractionType.SEND_RESPONSE));
         assertFalse(domain().needSupplementaryQuestion(PRECEDENCE_SKILL, InteractionType.REQUEST_CORRECT_ANSWER));
         assertFalse(domain().needSupplementaryQuestion("stillUnevaluatedLeft", InteractionType.SEND_RESPONSE));
-    }
-
-    private static void assertUniqueBits(List<Long> bits) {
-        var nonZero = bits.stream().filter(b -> b != 0).toList();
-        assertFalse(nonZero.isEmpty());
-        assertEquals(nonZero.size(), new HashSet<>(nonZero).size(), "повторяющиеся биты: " + duplicates(nonZero));
-    }
-
-    private static Set<Long> duplicates(List<Long> bits) {
-        var seen = new HashSet<Long>();
-        return bits.stream().filter(b -> !seen.add(b)).collect(Collectors.toSet());
     }
 }

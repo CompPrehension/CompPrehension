@@ -1,17 +1,15 @@
-package org.vstu.compprehension.businesslogic.domains;
+package org.vstu.compprehension.businesslogic.domains.expressiondt;
 
 import org.junit.jupiter.params.ParameterizedTest;
 import org.junit.jupiter.params.provider.MethodSource;
 import org.junit.jupiter.api.Test;
 import org.vstu.compprehension.businesslogic.Tag;
-import org.vstu.compprehension.businesslogic.domains.ExpressionDtDomainFixture.BankQuestion;
+import org.vstu.compprehension.businesslogic.domains.Domain;
+import org.vstu.compprehension.businesslogic.domains.DomainFixtures;
+import org.vstu.compprehension.businesslogic.domains.expressiondt.ExpressionDtDomainFixture.BankQuestion;
 import org.vstu.compprehension.data.question.AnswerObjectData;
-import org.vstu.compprehension.data.question.FeedbackData;
 import org.vstu.compprehension.data.question.QuestionData;
-import org.vstu.compprehension.data.question.QuestionInteractionData;
-import org.vstu.compprehension.data.question.ResponseData;
 import org.vstu.compprehension.data.question.ViolationData;
-import org.vstu.compprehension.enums.InteractionType;
 import org.vstu.compprehension.enums.Language;
 
 import java.util.ArrayList;
@@ -23,18 +21,20 @@ import static org.junit.jupiter.api.Assertions.assertFalse;
 import static org.junit.jupiter.api.Assertions.assertNotEquals;
 import static org.junit.jupiter.api.Assertions.assertNull;
 import static org.junit.jupiter.api.Assertions.assertTrue;
-import static org.vstu.compprehension.businesslogic.domains.ExpressionDtDomainFixture.ASSIGN_UNARY_MINUS_PLUS;
-import static org.vstu.compprehension.businesslogic.domains.ExpressionDtDomainFixture.BANK;
-import static org.vstu.compprehension.businesslogic.domains.ExpressionDtDomainFixture.END_TOKEN;
-import static org.vstu.compprehension.businesslogic.domains.ExpressionDtDomainFixture.MEMBER_ACCESS_PLUS;
-import static org.vstu.compprehension.businesslogic.domains.ExpressionDtDomainFixture.MUL_PLUS_MINUS;
-import static org.vstu.compprehension.businesslogic.domains.ExpressionDtDomainFixture.PARENTHESES_AND_UNARY_MINUS;
-import static org.vstu.compprehension.businesslogic.domains.ExpressionDtDomainFixture.bankQuestion;
-import static org.vstu.compprehension.businesslogic.domains.ExpressionDtDomainFixture.domain;
-import static org.vstu.compprehension.businesslogic.domains.ExpressionDtDomainFixture.endToken;
-import static org.vstu.compprehension.businesslogic.domains.ExpressionDtDomainFixture.operator;
-import static org.vstu.compprehension.businesslogic.domains.ExpressionDtDomainFixture.operatorsInOrder;
-import static org.vstu.compprehension.businesslogic.domains.ExpressionDtDomainFixture.responses;
+import static org.vstu.compprehension.businesslogic.domains.expressiondt.ExpressionDtDomainFixture.ASSIGN_UNARY_MINUS_PLUS;
+import static org.vstu.compprehension.businesslogic.domains.expressiondt.ExpressionDtDomainFixture.BANK;
+import static org.vstu.compprehension.businesslogic.domains.expressiondt.ExpressionDtDomainFixture.END_TOKEN;
+import static org.vstu.compprehension.businesslogic.domains.expressiondt.ExpressionDtDomainFixture.MEMBER_ACCESS_PLUS;
+import static org.vstu.compprehension.businesslogic.domains.expressiondt.ExpressionDtDomainFixture.MUL_PLUS_MINUS;
+import static org.vstu.compprehension.businesslogic.domains.expressiondt.ExpressionDtDomainFixture.PARENTHESES_AND_UNARY_MINUS;
+import static org.vstu.compprehension.businesslogic.domains.expressiondt.ExpressionDtDomainFixture.bankQuestion;
+import static org.vstu.compprehension.businesslogic.domains.expressiondt.ExpressionDtDomainFixture.domain;
+import static org.vstu.compprehension.businesslogic.domains.expressiondt.ExpressionDtDomainFixture.endToken;
+import static org.vstu.compprehension.businesslogic.domains.expressiondt.ExpressionDtDomainFixture.operator;
+import static org.vstu.compprehension.businesslogic.domains.expressiondt.ExpressionDtDomainFixture.operatorsInOrder;
+import static org.vstu.compprehension.businesslogic.domains.DomainFixtures.interaction;
+import static org.vstu.compprehension.businesslogic.domains.DomainFixtures.responses;
+import static org.vstu.compprehension.businesslogic.domains.DomainFixtures.violation;
 
 class ProgrammingLanguageExpressionDTDomainJudgeTest {
 
@@ -335,35 +335,7 @@ class ProgrammingLanguageExpressionDTDomainJudgeTest {
         return violations.stream().map(ViolationData::getLawName).toList();
     }
 
-    private static ViolationData violation(String lawName) {
-        var violation = new ViolationData();
-        violation.setLawName(lawName);
-        return violation;
-    }
-
-    private static QuestionInteractionData interaction(long id, List<AnswerObjectData> answers,
-                                                       List<ViolationData> violations, int interactionsLeft) {
-        var responses = answers.stream()
-                .map(a -> ResponseData.builder()
-                        .leftAnswerObject(a)
-                        .rightAnswerObject(a)
-                        .interactionHasViolations(!violations.isEmpty())
-                        .build())
-                .toList();
-        return QuestionInteractionData.builder()
-                .id(id)
-                .interactionType(InteractionType.SEND_RESPONSE)
-                .responses(new ArrayList<>(responses))
-                .violations(new ArrayList<>(violations))
-                .feedback(FeedbackData.builder().interactionsLeft(interactionsLeft).build())
-                .build();
-    }
-
     private static QuestionData withCorrectSteps(QuestionData question, List<AnswerObjectData> given, BankQuestion bankQuestion) {
-        var result = question;
-        for (int step = 1; step <= given.size(); step++) {
-            result = result.withInteraction(interaction(step, given.subList(0, step), List.of(), bankQuestion.steps() - step));
-        }
-        return result;
+        return DomainFixtures.withCorrectSteps(question, given, bankQuestion.steps());
     }
 }

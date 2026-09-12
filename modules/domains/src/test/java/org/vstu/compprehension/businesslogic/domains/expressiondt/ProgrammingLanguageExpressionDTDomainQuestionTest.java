@@ -1,9 +1,9 @@
-package org.vstu.compprehension.businesslogic.domains;
+package org.vstu.compprehension.businesslogic.domains.expressiondt;
 
 import org.junit.jupiter.api.Test;
 import org.junit.jupiter.params.ParameterizedTest;
 import org.junit.jupiter.params.provider.MethodSource;
-import org.vstu.compprehension.businesslogic.domains.ExpressionDtDomainFixture.BankQuestion;
+import org.vstu.compprehension.businesslogic.domains.expressiondt.ExpressionDtDomainFixture.BankQuestion;
 import org.vstu.compprehension.data.question.AnswerObjectData;
 import org.vstu.compprehension.data.questionoptions.OrderQuestionOptionsData;
 import org.vstu.compprehension.enums.Language;
@@ -19,13 +19,13 @@ import static org.junit.jupiter.api.Assertions.assertFalse;
 import static org.junit.jupiter.api.Assertions.assertInstanceOf;
 import static org.junit.jupiter.api.Assertions.assertNotEquals;
 import static org.junit.jupiter.api.Assertions.assertTrue;
-import static org.vstu.compprehension.businesslogic.domains.ExpressionDtDomainFixture.BANK;
-import static org.vstu.compprehension.businesslogic.domains.ExpressionDtDomainFixture.CPP_TAG;
-import static org.vstu.compprehension.businesslogic.domains.ExpressionDtDomainFixture.END_TOKEN;
-import static org.vstu.compprehension.businesslogic.domains.ExpressionDtDomainFixture.MEMBER_ACCESS_PLUS;
-import static org.vstu.compprehension.businesslogic.domains.ExpressionDtDomainFixture.bankRecord;
-import static org.vstu.compprehension.businesslogic.domains.ExpressionDtDomainFixture.cppTags;
-import static org.vstu.compprehension.businesslogic.domains.ExpressionDtDomainFixture.domain;
+import static org.vstu.compprehension.businesslogic.domains.expressiondt.ExpressionDtDomainFixture.BANK;
+import static org.vstu.compprehension.businesslogic.domains.expressiondt.ExpressionDtDomainFixture.CPP_TAG;
+import static org.vstu.compprehension.businesslogic.domains.expressiondt.ExpressionDtDomainFixture.END_TOKEN;
+import static org.vstu.compprehension.businesslogic.domains.expressiondt.ExpressionDtDomainFixture.MEMBER_ACCESS_PLUS;
+import static org.vstu.compprehension.businesslogic.domains.expressiondt.ExpressionDtDomainFixture.bankRecord;
+import static org.vstu.compprehension.businesslogic.domains.expressiondt.ExpressionDtDomainFixture.cppTags;
+import static org.vstu.compprehension.businesslogic.domains.expressiondt.ExpressionDtDomainFixture.domain;
 
 class ProgrammingLanguageExpressionDTDomainQuestionTest {
 
