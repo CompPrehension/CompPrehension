@@ -81,7 +81,8 @@ public class ProgrammingLanguageExpressionDTDomain extends DecisionTreeReasoning
         this.dtSupplementaryQuestionHelper = new DecisionTreeSupQuestionHelper(
                 this,
                 domainSolvingModel,
-                this::mainQuestionToModel
+                this::mainQuestionToModel,
+                this::supplementaryDecisionTree
         );
 
         this.concepts = baseDomain.concepts;
@@ -342,6 +343,7 @@ public class ProgrammingLanguageExpressionDTDomain extends DecisionTreeReasoning
     }
 
     private static final String STILL_UNEVALUATED_LEFT_VIOLATION_NAME = "stillUnevaluatedLeft";
+    private static final String END_TOKEN_DOMAIN_INFO = "end_token";
 
     private class DecisionTreeInterface implements DecisionTreeReasonerBackend.Interface {
 
@@ -960,6 +962,18 @@ public class ProgrammingLanguageExpressionDTDomain extends DecisionTreeReasoning
                 question.getContent().getStatementFacts(),
                 lastMainQuestionInteraction.getResponses(), tags
         );
+    }
+
+    private DecisionTree supplementaryDecisionTree(QuestionData question, QuestionInteractionData lastMainQuestionInteraction) {
+        return isEarlyFinish(lastMainQuestionInteraction)
+                ? domainSolvingModel.decisionTree("earlyfinish")
+                : domainSolvingModel.getDecisionTree();
+    }
+
+    private static boolean isEarlyFinish(QuestionInteractionData interaction) {
+        List<ResponseData> responses = interaction.getResponses();
+        return !responses.isEmpty()
+                && END_TOKEN_DOMAIN_INFO.equals(responses.getLast().getLeftAnswerObject().getDomainInfo());
     }
 
     @Override

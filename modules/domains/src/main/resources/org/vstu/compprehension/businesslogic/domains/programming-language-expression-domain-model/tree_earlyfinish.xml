@@ -10,7 +10,7 @@
                    _RU_hint_prefix="Вычисление выражения можно закончить потому, что "
                    _RU_nextStepExplanation="Неверно. Необходимо проверить, что полностью вычислены все операторы в выражении"
                    _RU_nextStepQuestion="Необходимо определить, полностью ли вычислены все операторы в выражении"
-                   _TEMPLATING_ID="1">
+                   _TEMPLATING_ID="1" _alias="earlyfinish">
         <CycleAggregationNode _EN_asNextStep="You need to find all unevaluated operators in the expression."
                               _EN_endingCause="because ${result ? '' : 'not'} all operators are evaluated."
                               _EN_question="Find all unevaluated operators in the expression."
@@ -41,7 +41,7 @@
                            _RU_description="Найден невычисленный оператор в выражении."
                            _RU_nextStepExplanation="Это неверно. Найден невычисленный оператор в выражении."
                            _RU_nextStepQuestion="Учитывая, что найден невычисленный оператор в выражении, что следует сделать дальше?"
-                           _TEMPLATING_ID="3">
+                           _TEMPLATING_ID="3" _alias="earlyfinish.unevaluated">
                 <CycleAggregationNode
                         _EN_asNextStep="You need to check whether ${Y} is in the operands of ${X}[case='p']. "
                         _EN_endingCause="because ${Y} is ${result ? '' : 'not'} in operands ${X}[case='p']. "
@@ -63,7 +63,7 @@
                                    _RU_description="Найден невычисленный оператор ${Y} внутри ${X}[case='р']."
                                    _RU_nextStepExplanation="Это неверно. Найден невычисленный оператор ${Y} внутри ${X}[case='р']."
                                    _RU_nextStepQuestion="Учитывая, что найден невычисленный оператор ${Y} внутри ${X}[case='р'], что необходимо сделать дальше?"
-                                   _TEMPLATING_ID="5">
+                                   _TEMPLATING_ID="5" _alias="earlyfinish.unevaluated.inside">
                         <QuestionNode
                                 _EN_asNextStep="We need to check that the operator ${Y} has a strict order of evaluation of operands"
                                 _EN_endingCause="the operator ${Y} ${result ? '' : 'not'} has a strict order of evaluation of operands"
