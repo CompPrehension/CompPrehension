@@ -16,6 +16,7 @@ import org.vstu.compprehension.data.questionoptions.SingleChoiceOptionsData;
 import org.vstu.compprehension.businesslogic.domains.helpers.DomainSolvingModelLoader;
 import its.model.DomainSolvingModel;
 import its.model.definition.DomainModel;
+import its.model.nodes.DecisionTree;
 import its.model.nodes.BranchResult;
 import its.questions.gen.QuestioningSituation;
 import its.questions.gen.states.*;
@@ -43,21 +44,35 @@ import java.util.ArrayList;
 import java.util.Collections;
 import java.util.List;
 import java.util.Map;
+import java.util.concurrent.ConcurrentHashMap;
 import java.util.function.BiFunction;
 import java.util.stream.Collectors;
 
 public class DecisionTreeSupQuestionHelper {
+    public interface DecisionTreeSelector {
+        DecisionTree select(QuestionData mainQuestion, QuestionInteractionData lastMainQuestionInteraction);
+    }
+
     public DecisionTreeSupQuestionHelper(
             Domain domain,
             DomainSolvingModel domainSolvingModel,
             BiFunction<QuestionData, QuestionInteractionData, DomainModel> mainQuestionToModelTransformer
     ) {
+        this(domain, domainSolvingModel, mainQuestionToModelTransformer,
+                (question, interaction) -> domainSolvingModel.getDecisionTree());
+    }
+
+    public DecisionTreeSupQuestionHelper(
+            Domain domain,
+            DomainSolvingModel domainSolvingModel,
+            BiFunction<QuestionData, QuestionInteractionData, DomainModel> mainQuestionToModelTransformer,
+            DecisionTreeSelector decisionTreeSelector
+    ) {
         this.domain = domain;
         this.domainModel = domainSolvingModel;
-        this.supplementaryAutomata = FullBranchStrategy.INSTANCE.buildAndFinalize(
-                domainModel.getDecisionTree().getMainBranch(), new EndQuestionState()
-        );
         this.mainQuestionToModelTransformer = mainQuestionToModelTransformer;
+        this.decisionTreeSelector = decisionTreeSelector;
+        automataFor(domainModel.getDecisionTree());
     }
 
     public DecisionTreeSupQuestionHelper(
@@ -74,8 +89,14 @@ public class DecisionTreeSupQuestionHelper {
 
     private final Domain domain;
     final DomainSolvingModel domainModel ;
-    private final QuestionAutomata supplementaryAutomata;
+    private final Map<DecisionTree, QuestionAutomata> automataByTree = new ConcurrentHashMap<>();
     private final BiFunction<QuestionData, QuestionInteractionData, DomainModel> mainQuestionToModelTransformer;
+    private final DecisionTreeSelector decisionTreeSelector;
+
+    private QuestionAutomata automataFor(DecisionTree decisionTree) {
+        return automataByTree.computeIfAbsent(decisionTree, tree ->
+                FullBranchStrategy.INSTANCE.buildAndFinalize(tree.getMainBranch(), new EndQuestionState()));
+    }
 
     //DT = Decision Tree
     public SupplementaryResponseGenerationResult makeSupplementaryQuestion(QuestionData mainQuestion, @Nullable SupplementaryStepData latestStep, Language userLang) {
@@ -85,6 +106,8 @@ public class DecisionTreeSupQuestionHelper {
             return null;
         }
         QuestionInteractionData lastInteraction = interactions.get(interactions.size() - 1);
+        DecisionTree decisionTree = decisionTreeSelector.select(mainQuestion, lastInteraction);
+        QuestionAutomata supplementaryAutomata = automataFor(decisionTree);
 
         //Создать соответствующую ситуации рдф-модель
         DomainModel situationModel = mainQuestionToModelTransformer.apply(mainQuestion, lastInteraction);
@@ -98,7 +121,7 @@ public class DecisionTreeSupQuestionHelper {
         }
         else {
             situation = new QuestioningSituation(situationModel, localizationCode);
-            situation.addAssumedResult(domainModel.getDecisionTree().getMainBranch(), BranchResult.CORRECT);
+            situation.addAssumedResult(decisionTree.getMainBranch(), BranchResult.CORRECT);
         }
 
         //получить состояние автомата вопросов, к которому перешли на последнем шаге
@@ -132,7 +155,8 @@ public class DecisionTreeSupQuestionHelper {
         SupplementaryStepData supplementaryInfo = stepContext.step();
 
         //получить состояние автомата вопросов, соответствующее данному вопросу
-        QuestionState state = supplementaryAutomata.get(supplementaryInfo.getNextStateId());
+        QuestionState state = automataFor(decisionTreeSelector.select(mainQuestion, stepContext.mainQuestionInteraction()))
+                .get(supplementaryInfo.getNextStateId());
 
         DomainModel situationModel = mainQuestionToModelTransformer.apply(mainQuestion, stepContext.mainQuestionInteraction());
 

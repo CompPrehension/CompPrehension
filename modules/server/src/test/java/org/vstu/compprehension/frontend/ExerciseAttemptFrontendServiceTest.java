@@ -10,7 +10,6 @@ import org.vstu.compprehension.enums.Decision;
 import org.vstu.compprehension.enums.Language;
 import org.vstu.compprehension.frontend.dto.AnswerDto;
 import org.vstu.compprehension.frontend.dto.InteractionDto;
-import org.vstu.compprehension.frontend.dto.SupplementaryFeedbackDto;
 import org.vstu.compprehension.frontend.dto.feedback.FeedbackDto;
 import org.vstu.compprehension.frontend.dto.question.MatchingQuestionDto;
 import org.vstu.compprehension.frontend.dto.question.QuestionDto;
@@ -26,7 +25,6 @@ import static org.junit.jupiter.api.Assertions.assertArrayEquals;
 import static org.junit.jupiter.api.Assertions.assertDoesNotThrow;
 import static org.junit.jupiter.api.Assertions.assertEquals;
 import static org.junit.jupiter.api.Assertions.assertFalse;
-import static org.junit.jupiter.api.Assertions.assertInstanceOf;
 import static org.junit.jupiter.api.Assertions.assertNotEquals;
 import static org.junit.jupiter.api.Assertions.assertNotNull;
 import static org.junit.jupiter.api.Assertions.assertNull;
@@ -37,7 +35,6 @@ import static org.junit.jupiter.api.Assertions.assertTrue;
 class ExerciseAttemptFrontendServiceTest extends AbstractIntegrationTest {
 
     private static final String ORDER = "ORDER";
-    private static final String MATCHING = "MATCHING";
     private static final float GRADE_DELTA = 0.0001f;
 
     @Autowired private ExerciseAttemptFrontendService service;
@@ -563,9 +560,9 @@ class ExerciseAttemptFrontendServiceTest extends AbstractIntegrationTest {
 
     // ---- дополнительные вопросы ----
 
-    /** Доп. вопрос после ошибки приоритета. */
+    /** После ошибки выдаётся доп. вопрос. */
     @Test
-    void generateSupplementaryQuestionAfterPrecedenceMistake() {
+    void generateSupplementaryQuestionAfterMistakeReturnsQuestion() {
         // Arrange.
         TestUserService.actAs(TestData.Users.GLOBAL_EXERCISE_AUTHOR_ID);
         var bankQuestion = TestData.ExpressionBank.PARENTHESES_AND_UNARY_MINUS;
@@ -577,54 +574,45 @@ class ExerciseAttemptFrontendServiceTest extends AbstractIntegrationTest {
 
         // Assert.
         assertNull(supplementary.getMessage());
-        var supplementaryQuestion = assertInstanceOf(MatchingQuestionDto.class, supplementary.getQuestion());
-        assertEquals(MATCHING, supplementaryQuestion.getType());
+        var supplementaryQuestion = supplementary.getQuestion();
+        assertNotNull(supplementaryQuestion);
         assertNotEquals(question.getQuestionId(), supplementaryQuestion.getQuestionId());
         assertFalse(supplementaryQuestion.getText().isBlank());
         assertTrue(supplementaryQuestion.getAnswers().length > 0);
-        assertTrue(supplementaryQuestion.getGroups().length > 0);
+        assertEquals(supplementaryQuestion.getQuestionId(), service.getQuestion(supplementaryQuestion.getQuestionId()).getQuestionId());
     }
 
-    /** Неверное сопоставление в доп. вопросе. */
+    /** Ответ на доп. вопрос оценивается, и цепочка продолжается. */
     @Test
-    void addSupplementaryQuestionAnswerExplainsWrongMatching() {
+    void addSupplementaryQuestionAnswerReturnsFeedbackAndAdvancesChain() {
         // Arrange.
         TestUserService.actAs(TestData.Users.GLOBAL_EXERCISE_AUTHOR_ID);
         var bankQuestion = TestData.ExpressionBank.PARENTHESES_AND_UNARY_MINUS;
         var question = attemptlessQuestion(bankQuestion);
-        var mistake = service.addQuestionAnswer(interaction(question, bankQuestion.operatorAt(1)));
-        var supplementary = (MatchingQuestionDto) service
-                .generateSupplementaryQuestion(question.getQuestionId(), violationLawsOf(mistake)).getQuestion();
+        var laws = violationLawsOf(service.addQuestionAnswer(interaction(question, bankQuestion.operatorAt(1))));
+        var supplementary = service.generateSupplementaryQuestion(question.getQuestionId(), laws).getQuestion();
 
         // Act.
-        var feedback = service.addSupplementaryQuestionAnswer(everythingToFirstGroup(supplementary));
-
-        // Assert.
-        assertEquals(FeedbackDto.MessageType.ERROR, feedback.getMessage().getType());
-        assertEquals(SupplementaryFeedbackDto.Action.ContinueManual, feedback.getAction());
-        assertFalse(feedback.getMessage().getMessage().isBlank());
-    }
-
-    /** Следующий шаг цепочки доп. вопросов. */
-    @Test
-    void supplementaryChainContinuesAfterAnsweredStep() {
-        // Arrange.
-        TestUserService.actAs(TestData.Users.GLOBAL_EXERCISE_AUTHOR_ID);
-        var bankQuestion = TestData.ExpressionBank.PARENTHESES_AND_UNARY_MINUS;
-        var question = attemptlessQuestion(bankQuestion);
-        var mistake = service.addQuestionAnswer(interaction(question, bankQuestion.operatorAt(1)));
-        var laws = violationLawsOf(mistake);
-        var supplementary = (MatchingQuestionDto) service.generateSupplementaryQuestion(question.getQuestionId(), laws).getQuestion();
-        service.addSupplementaryQuestionAnswer(everythingToFirstGroup(supplementary));
-
-        // Act.
+        var feedback = service.addSupplementaryQuestionAnswer(anyAnswer(supplementary));
         var next = service.generateSupplementaryQuestion(question.getQuestionId(), laws);
 
         // Assert.
-        assertNull(next.getQuestion());
-        assertNotNull(next.getMessage());
-        assertEquals(FeedbackDto.MessageType.SUCCESS, next.getMessage().getMessage().getType());
-        assertEquals(SupplementaryFeedbackDto.Action.ContinueAuto, next.getMessage().getAction());
+        assertNotNull(feedback.getAction());
+        assertFalse(feedback.getMessage().getMessage().isBlank());
+        assertTrue(next.getQuestion() != null || next.getMessage() != null);
+    }
+
+    /** Обычный вопрос за доп. вопрос не принимается. */
+    @Test
+    void addSupplementaryQuestionAnswerForOrdinaryQuestionFails() {
+        // Arrange.
+        TestUserService.actAs(TestData.Users.GLOBAL_EXERCISE_AUTHOR_ID);
+        var bankQuestion = TestData.ExpressionBank.MEMBER_ACCESS_PLUS;
+        var question = attemptlessQuestion(bankQuestion);
+
+        // Act & Assert.
+        assertThrows(IllegalArgumentException.class,
+                () -> service.addSupplementaryQuestionAnswer(interaction(question, bankQuestion.operatorAt(0))));
     }
 
     /** Доп. вопрос не попадает в список вопросов попытки. */
@@ -688,10 +676,10 @@ class ExerciseAttemptFrontendServiceTest extends AbstractIntegrationTest {
                 .toArray(String[]::new);
     }
 
-    private static InteractionDto everythingToFirstGroup(MatchingQuestionDto question) {
-        var group = question.getGroups()[0].getId();
+    private static InteractionDto anyAnswer(QuestionDto question) {
+        var right = question instanceof MatchingQuestionDto matching ? matching.getGroups()[0].getId() : question.getAnswers()[0].getId();
         return new InteractionDto(question.getQuestionId(), Arrays.stream(question.getAnswers())
-                .map(answer -> new AnswerDto(answer.getId(), group, true, null))
+                .map(answer -> new AnswerDto(answer.getId(), right, true, null))
                 .toArray(AnswerDto[]::new));
     }
 

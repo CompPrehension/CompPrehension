@@ -17,6 +17,7 @@ tree CtrlFlow(L0: TraceAct, A: TraceAct, STATE: State) {
                 conclude: correct [
                     skill="unknown_correct";
                     RU.explanation="Безошибочно.";
+                    EN.explanation="No mistakes.";
                 ];
             };
 
@@ -31,6 +32,7 @@ tree CtrlFlow(L0: TraceAct, A: TraceAct, STATE: State) {
                 conclude: error [
                     skill="current_execution_point_understood";
                     RU.explanation="${A}: уже выполнилось и не должно выполняться два раза подряд.";
+                    EN.explanation="${A} has just been executed and must not be executed twice in a row.";
                 ];
             };
 
@@ -41,6 +43,7 @@ tree CtrlFlow(L0: TraceAct, A: TraceAct, STATE: State) {
                 conclude: error [
                     skill="current_code_block_identified";
                     RU.explanation="${A} не может выполняться сейчас, т.к. по логике выполнения программы находится слишком далеко от текущей позиции ${L0}.";
+                    EN.explanation="${A} cannot be executed now: according to the program logic it is too far from the current position ${L0}.";
                 ];
             };
 
@@ -51,6 +54,7 @@ tree CtrlFlow(L0: TraceAct, A: TraceAct, STATE: State) {
                 conclude: error [
                     skill="unevaluated_conditions_between_points_present";
                     RU.explanation="В программе всё выполняется одно за другим. После ${L0} действие ${A} уже не может выполниться.";
+                    EN.explanation="The program executes its actions one after another. After ${L0} the action ${A} can no longer be executed.";
                 ];
             };
 
@@ -58,6 +62,7 @@ tree CtrlFlow(L0: TraceAct, A: TraceAct, STATE: State) {
             conclude: error [
                 skill="unevaluated_conditions_between_points_present";
                 RU.explanation="Действие ${A} уже выполнилось и не должно выполняться повторно.";
+                EN.explanation="The action ${A} has already been executed and must not be executed again.";
                 ];
         };
 
@@ -95,16 +100,10 @@ ask (STATE.interruption_state != InterruptionType:no_interruption) {
                 ];
             };
 
-            // Если путь завершает текущее прерывание, то не запрещаем выполнять простые действия.
-            ask (P_l0_a->hasEffects.interruption_stop == STATE.interruption_state) out false else {
-                conclude : true [
-                    skill="patch_auto_exit_interruption_2";
-                ];
-            };
             // Если узел завершает текущее прерывание, то не запрещаем выполнять простые действия.
-            ask (P_l0_a->to_->hasEffects.interruption_stop == STATE.interruption_state) out false else {
+            ask (forAny Effect neff {P_l0_a->to_=>hasEffects($neff) and ($neff.interruption_stop == STATE.interruption_state)}) out false else {
                 conclude : true [
-                    skill="path_auto_exit_interruption_3";
+                    skill="patch_auto_exit_interruption_3";
                 ];
             };
             // ^ Заплатка. !!!!!!!!!
@@ -112,6 +111,7 @@ ask (STATE.interruption_state != InterruptionType:no_interruption) {
             conclude : error [
                 skill="transition_matches_interruption_mode";
                 RU.explanation="Сейчас ${A} не может начать выполняться, т.к. могло бы выполняться только при обычном потоке выполнения, когда отсутствует ${STATE.interruption_state}.";
+                EN.explanation="${A} cannot start now: it could be executed only in the usual flow, when there is no ${STATE.interruption_state}.";
             ];
         };
 
@@ -124,6 +124,7 @@ ask (STATE.interruption_state != InterruptionType:no_interruption) {
                 conclude : error [
                     skill="interruption_termination_recognized";
                     RU.explanation="Когда происходит ${STATE.interruption_state}, могут только завершаться составные действия; ${A} не может начать выполняться.";
+                    EN.explanation="While ${STATE.interruption_state} is in progress, only compound actions can end; ${A} cannot start.";
                 ];
             };
 
@@ -146,6 +147,7 @@ ask (STATE.interruption_state != InterruptionType:no_interruption) {
                     conclude : error [
                         skill="interruption_termination_recognized";
                         RU.explanation="Когда происходит ${STATE.interruption_state}, могут только завершаться составные действия; ${A} не может начать выполняться.";
+                        EN.explanation="While ${STATE.interruption_state} is in progress, only compound actions can end; ${A} cannot start.";
                     ];
                 };
                 true -> out;
@@ -161,6 +163,7 @@ ask (STATE.interruption_state != InterruptionType:no_interruption) {
                 // Прерывание пройдено верно.
                 skill = "interruption_can_be_terminated_determined";
                 RU.explanation="${STATE.interruption_state} корректно завершен(о).";
+                EN.explanation="${STATE.interruption_state} has been terminated correctly.";
             ];
         };
 
@@ -179,6 +182,7 @@ ask (STATE.interruption_state != InterruptionType:no_interruption) {
             conclude : error [
                 skill="early_exit_from_compound_detected";
                 RU.explanation="Когда происходит ${STATE.interruption_state}, могут завершаться только уже начавшиеся действия; ${A} сейчас не выполняется.";
+                EN.explanation="While ${STATE.interruption_state} is in progress, only the actions that have already begun can end; ${A} is not being executed now.";
             ];
         };
 
@@ -191,12 +195,14 @@ ask (STATE.interruption_state != InterruptionType:no_interruption) {
                 conclude: error [
                     skill="applicable_compound_exit_determined";
                     RU.explanation="${STATE.interruption_state} в этот раз не может привести в ${A}";
+                    EN.explanation="This time ${STATE.interruption_state} cannot lead to ${A}";
                 ];
             };
 
             conclude : correct [
                 skill="applicable_compound_exit_determined";
                 RU.explanation="${STATE.interruption_state} после действия ${L0} применен(о) верно.";
+                EN.explanation="${STATE.interruption_state} after the action ${L0} has been applied correctly.";
             ];
         };
 
@@ -205,6 +211,7 @@ ask (STATE.interruption_state != InterruptionType:no_interruption) {
         conclude : error [
             skill="multiple_compound_exit_order_understood";
             RU.explanation="Когда происходит ${STATE.interruption_state}, ожидается завершение начавшихся действий; прежде чем завершать ${A}, нужно сначала завершить ${P_l0_a->hasFirstMiddleAction}.";
+            EN.explanation="While ${STATE.interruption_state} is in progress, the actions that have begun are expected to end; before ending ${A}, ${P_l0_a->hasFirstMiddleAction} must be ended first.";
         ];
     };
 };
@@ -236,7 +243,8 @@ ask (P_l0_a.is_direct) out true else {
 
         conclude : error [
             skill="unevaluated_conditions_between_points_present";
-            RU.explanation="Прежде чем ${A} сможет выполниться, как минимум, должно быть вычислено условие ${P_l0_a->hasFirstMiddleCondition}.";
+            RU.explanation="Прежде чем ${A} сможет выполниться, как минимум, должно быть вычислено ${P_l0_a->hasFirstMiddleCondition}.";
+            EN.explanation="Before ${A} can be executed, at least ${P_l0_a->hasFirstMiddleCondition} must be evaluated.";
         ];
     };
 
@@ -245,6 +253,7 @@ ask (P_l0_a.is_direct) out true else {
     conclude : error [
         skill="unevaluated_conditions_between_points_present";
         RU.explanation="Действия выполняются последовательно; прежде чем выполнять ${A}, сначала должно произойти ${P_l0_a->hasFirstMiddleAction}.";
+        EN.explanation="Actions are executed sequentially; before executing ${A}, ${P_l0_a->hasFirstMiddleAction} must happen first.";
     ];
 };
 
@@ -291,14 +300,17 @@ agg and {
             null -> {conclude : false [  // try avoid error here -- когда цикл ни разу не сработал, и просто дублируем сообщение из false-выхода.
                 skill="applicable_transition_with_interruption_found";
                 RU.explanation="Когда происходит ${STATE.interruption_state}, ${A} не может выполняться, т.к. для этого требуется ${P_l0_a->hasConstraints.interruption_mode}.";
+                EN.explanation="While ${STATE.interruption_state} is in progress, ${A} cannot be executed: it requires ${P_l0_a->hasConstraints.interruption_mode}.";
             ];}
             false -> {conclude : error [
                 skill="applicable_transition_with_interruption_found";
                 RU.explanation="Когда происходит ${STATE.interruption_state}, ${A} не может выполняться, т.к. для этого требуется ${P_l0_a->hasConstraints.interruption_mode}.";
+                EN.explanation="While ${STATE.interruption_state} is in progress, ${A} cannot be executed: it requires ${P_l0_a->hasConstraints.interruption_mode}.";
             ];}
             body -> {
                 conclude : error [
                     RU.explanation="Когда происходит ${STATE.interruption_state}, должно выполниться действие ${EP->to_}, но не ${A}";
+                    EN.explanation="While ${STATE.interruption_state} is in progress, the action ${EP->to_} must be executed, not ${A}";
                 ];
             }
         };
@@ -332,15 +344,18 @@ agg and {
 
             null -> {conclude : false [  // try avoid error here -- когда цикл ни разу не сработал, и просто дублируем сообщение из false-выхода.
                 skill="applicable_transition_with_condition_found";
-                RU.explanation="Когда условие ${L0} равно ${L0.condition_value} ${A} не может выполняться, т.к. для этого требуется ${P_l0_a->hasConstraints.condition_value} в условии.";
+                RU.explanation="Когда ${L0} равно ${L0.condition_value}, ${A} не может выполняться, т.к. для этого требуется ${P_l0_a->hasConstraints.condition_value} в условии.";
+                EN.explanation="When ${L0} is ${L0.condition_value}, ${A} cannot be executed: it requires the condition to be ${P_l0_a->hasConstraints.condition_value}.";
             ];}
             false -> {conclude : error [
                 skill="applicable_transition_with_condition_found";
                 RU.explanation="Когда ${L0} равно ${L0.condition_value}, ${A} не может выполняться, т.к. для этого требуется ${P_l0_a->hasConstraints.condition_value} в условии.";
+                EN.explanation="When ${L0} is ${L0.condition_value}, ${A} cannot be executed: it requires the condition to be ${P_l0_a->hasConstraints.condition_value}.";
             ];}
             body -> {
                 conclude : error [
                     RU.explanation="Когда ${L0} равно ${L0.condition_value}, может выполняться ${EP2->to_}, но не ${A}.";
+                    EN.explanation="When ${L0} is ${L0.condition_value}, ${EP2->to_} can be executed, not ${A}.";
                 ];
             }
         };
@@ -370,6 +385,7 @@ agg and {
             conclude : error [
                 skill="function_body_completion_determined";
                 RU.explanation="Функция не может завершиться сейчас. Вместо ${A} нужно завершить ${ExpectedCallAct->hasCFGNode}.";
+                EN.explanation="The function cannot end now. Instead of ${A}, ${ExpectedCallAct->hasCFGNode} must be ended.";
             ];
         };
         // Возврат был именно в ожидаемый вызов? (Тупо используем ожидаемый узел из трассы).
@@ -383,6 +399,7 @@ agg and {
         conclude : error [
             skill="nearest_function_call_in_trace_found";
             RU.explanation="При завершении вызовов сначала завершаются внутренние вызовы согласно стеку вызовов (в обратном порядке). Вместо ${A} нужно завершить ${ExpectedCallAct}.";
+            EN.explanation="Calls end in the reverse order of the call stack: inner calls end first. Instead of ${A}, ${ExpectedCallAct} must be ended.";
         ];
     };  // end of agg branch.
 
@@ -400,6 +417,7 @@ agg and {
         conclude: error [
             skill="unknown_incorrect";
             RU.explanation="Вид ошибки не удалось определить.";
+            EN.explanation="The kind of the mistake could not be determined.";
         ];
     };
 

@@ -57,6 +57,7 @@ public class ControlFlowDTDomain extends DecisionTreeReasoningDomain {
     static final String EXECUTION_ORDER_QUESTION_TYPE = "OrderActs";
     static final String MESSAGE_PREFIX = "ctrlflow_text.";
     static final String DOMAIN_SHORTNAME = "ctrl_flow_dt25";
+    static final String LOCALIZED_NAME = "localizedName";
     public static final String DOMAIN_MODEL_LOCATION = RESOURCES_LOCATION + "control-flow-domain-model/";
     public static final String MESSAGES_CONFIG_PATH = "classpath:/" + RESOURCES_LOCATION + "control-flow";
 
@@ -80,7 +81,29 @@ public class ControlFlowDTDomain extends DecisionTreeReasoningDomain {
             situationModel = DomainLoqiBuilder.buildDomain(reader);
         }
         resultModel.addMerge(situationModel);
+        fillMissingLocalizedNames(resultModel);
         return resultModel;
+    }
+
+    private static void fillMissingLocalizedNames(DomainModel model) {
+        for (ObjectDef object : model.getObjects()) {
+            Map<String, String> localizations = object.getMetadata().getStringLocalizations(LOCALIZED_NAME);
+            if (localizations.isEmpty()) {
+                continue;
+            }
+            String fallback = Arrays.stream(Language.values())
+                    .map(Language::toLocaleString)
+                    .filter(localizations::containsKey)
+                    .findFirst()
+                    .map(localizations::get)
+                    .orElseGet(() -> localizations.values().iterator().next());
+            for (Language language : Language.values()) {
+                String locale = language.toLocaleString();
+                if (!localizations.containsKey(locale)) {
+                    object.getMetadata().add(locale, LOCALIZED_NAME, fallback);
+                }
+            }
+        }
     }
 
     private void fillSkills() {
@@ -1002,7 +1025,7 @@ public class ControlFlowDTDomain extends DecisionTreeReasoningDomain {
                 }
 
                 String nthTime = htmlStyleFormat(formatNthTime(n, language), "number") + " " + getMessage("trace.template.time_text", language);
-                String definition = (String) object.getMetadata().get(language.toLocaleString().toUpperCase(), "localizedName");
+                String definition = object.getMetadata().getString(language.toLocaleString(), LOCALIZED_NAME);
                 var substitutions = Map.of(
                         "structure", htmlStyleFormat(definition, "action"),
                         "action_state", htmlStyleFormat(actionState, "keyword"),

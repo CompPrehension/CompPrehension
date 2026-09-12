@@ -1,4 +1,4 @@
-package dbtools;
+package org.vstu.compprehension.tools.db;
 
 import org.hibernate.boot.model.TypeContributions;
 import org.hibernate.dialect.MySQLDialect;

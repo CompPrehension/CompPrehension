@@ -23,7 +23,7 @@ import org.vstu.compprehension.repositories.entity.QuestionMetadataRepository;
 import java.util.ArrayList;
 import java.util.List;
 
-@Disabled("Не работает в test-containers.")
+@Disabled("Утилита пересчёта метаданных банка в БД.")
 @TestInstance(TestInstance.Lifecycle.PER_CLASS)
 @RequiredArgsConstructor
 public class ExpressionDTReclassificationTask extends AbstractIntegrationTest {

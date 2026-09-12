@@ -173,7 +173,7 @@ public class ProgrammingLanguageExpressionDomain extends JenaReasoningDomain {
         Concept operatorUnaryMinusConcept = addConcept("operator_unary_-", List.of(singleTokenUnaryConcept, arithmetics), "-z", invisible);
         Concept operatorBinaryDivideIntConcept = addConcept("operator_//", List.of(singleTokenBinaryConcept, arithmetics), "x // y", invisible);  // Python only
         Concept operatorMatMulConcept = addConcept("operator_@", List.of(singleTokenBinaryConcept, arithmetics), "x @ y", invisible);  // Python only
-        Concept operatorModConcept = addConcept("operator_mod", List.of(singleTokenBinaryConcept, arithmetics), "x % y", invisible);
+        Concept operatorModConcept = addConcept("operator_%", List.of(singleTokenBinaryConcept, arithmetics), "x % y", invisible);
 
         Concept incrementConcept = addConcept("increment", List.of(unaryConcept), "Инкремент и декремент", flags);
         Concept prefixOperatorConcept = addConcept("prefix", List.of(incrementConcept));
