@@ -34,6 +34,9 @@ final class ExpressionDtDomainFixture {
     static final BankQuestion MUL_PLUS_MINUS = new BankQuestion("mul_plus_minus", "10 * z + c - '0'", List.of("*", "+", "-"));
     static final BankQuestion ASSIGN_UNARY_MINUS_PLUS = new BankQuestion("assign_unary_minus_plus", "pre = -pre + 2", List.of("-", "+", "="));
     static final BankQuestion PARENTHESES_AND_UNARY_MINUS = new BankQuestion("parentheses_and_unary_minus", "(i & -i)", List.of("-", "&"));
+    static final BankQuestion NESTED_TERNARIES = new BankQuestion("nested_ternaries",
+            "STRACE(\"rt_sigprocmask(%s, %#llx, %#x, %d)\", how == SIG_BLOCK_ ? \"SIG_BLOCK\" : how == SIG_UNBLOCK_ ? \"SIG_UNBLOCK\" : how == SIG_SETMASK_ ? \"SIG_SETMASK\" : \"??\", set_addr != 0 ? (long) set : -1, oldset_addr, size)",
+            List.of("token_5", "token_11", "token_13", "token_7", "token_25", "token_27", "token_1", END_TOKEN));
 
     static final List<BankQuestion> BANK = List.of(
             MEMBER_ACCESS_PLUS, MODULO_PLUS, MUL_PLUS_MINUS, ASSIGN_UNARY_MINUS_PLUS, PARENTHESES_AND_UNARY_MINUS);

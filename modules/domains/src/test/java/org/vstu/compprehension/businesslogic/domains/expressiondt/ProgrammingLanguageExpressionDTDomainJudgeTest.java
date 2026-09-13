@@ -3,6 +3,7 @@ package org.vstu.compprehension.businesslogic.domains.expressiondt;
 import org.junit.jupiter.params.ParameterizedTest;
 import org.junit.jupiter.params.provider.MethodSource;
 import org.junit.jupiter.api.Test;
+import org.junit.jupiter.api.Timeout;
 import org.vstu.compprehension.businesslogic.Tag;
 import org.vstu.compprehension.businesslogic.domains.Domain;
 import org.vstu.compprehension.businesslogic.domains.DomainFixtures;
@@ -26,6 +27,7 @@ import static org.vstu.compprehension.businesslogic.domains.expressiondt.Express
 import static org.vstu.compprehension.businesslogic.domains.expressiondt.ExpressionDtDomainFixture.END_TOKEN;
 import static org.vstu.compprehension.businesslogic.domains.expressiondt.ExpressionDtDomainFixture.MEMBER_ACCESS_PLUS;
 import static org.vstu.compprehension.businesslogic.domains.expressiondt.ExpressionDtDomainFixture.MUL_PLUS_MINUS;
+import static org.vstu.compprehension.businesslogic.domains.expressiondt.ExpressionDtDomainFixture.NESTED_TERNARIES;
 import static org.vstu.compprehension.businesslogic.domains.expressiondt.ExpressionDtDomainFixture.PARENTHESES_AND_UNARY_MINUS;
 import static org.vstu.compprehension.businesslogic.domains.expressiondt.ExpressionDtDomainFixture.bankQuestion;
 import static org.vstu.compprehension.businesslogic.domains.expressiondt.ExpressionDtDomainFixture.domain;
@@ -225,6 +227,29 @@ class ProgrammingLanguageExpressionDTDomainJudgeTest {
         }
         var finish = domain().getAnyNextCorrectAnswer(withCorrectSteps(question, given, bankQuestion), Language.ENGLISH);
         assertEquals(END_TOKEN, finish.answers.getFirst().getLeft().getDomainInfo());
+    }
+
+    /** Вложенные тернарные операторы: подсказки обходят невыполняемые ветви, а оставшиеся шаги учитывают опущенные операторы. */
+    @Test
+    @Timeout(60)
+    void hintsForNestedTernariesSkipOmittedBranches() {
+        // Arrange.
+        var question = bankQuestion(NESTED_TERNARIES);
+        var expectedIterationsLeft = List.of(9, 8, 6, 5, 4, 2, 1, 0);
+        var given = new ArrayList<AnswerObjectData>();
+
+        for (int step = 0; step < NESTED_TERNARIES.steps(); step++) {
+            // Act.
+            var hint = domain().getAnyNextCorrectAnswer(DomainFixtures.withCorrectSteps(question, given, 10), Language.ENGLISH);
+            given.add(hint.answers.getFirst().getLeft());
+            var result = judge(question, given);
+
+            // Assert.
+            assertEquals(NESTED_TERNARIES.evaluationOrder().get(step), given.getLast().getDomainInfo());
+            assertTrue(result.isAnswerCorrect, "шаг " + step);
+            assertEquals(List.of(), result.violations);
+            assertEquals(expectedIterationsLeft.get(step), result.IterationsLeft);
+        }
     }
 
     /** Подсказка объясняет выбор на нужном языке. */

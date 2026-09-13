@@ -57,9 +57,9 @@
         <commons-dbcp2.version>2.14.0</commons-dbcp2.version>
         <docker.api.version>1.40</docker.api.version>
         <meaningtree.version>396d39c63f</meaningtree.version>
-        <its.domainmodel.version>3.0.0-alpha.5</its.domainmodel.version>
-        <its.reasoner.version>3.0.0-alpha.2</its.reasoner.version>
-        <its.questiongen.version>2.7.7</its.questiongen.version>
+        <its.domainmodel.version>3.0.0-rc.1</its.domainmodel.version>
+        <its.reasoner.version>3.0.0-rc.2</its.reasoner.version>
+        <its.questiongen.version>3.0.0-rc.1</its.questiongen.version>
 
         <maven-compiler-plugin.version>3.16.0</maven-compiler-plugin.version>
         <maven-surefire-plugin.version>3.6.0</maven-surefire-plugin.version>

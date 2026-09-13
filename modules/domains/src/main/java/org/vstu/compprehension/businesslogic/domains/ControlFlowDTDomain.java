@@ -64,7 +64,7 @@ public class ControlFlowDTDomain extends DecisionTreeReasoningDomain {
     private final DomainSolvingModel domainSolvingModel = DomainSolvingModelLoader.loadFromClasspath(
             this.getClass().getClassLoader(),
             DOMAIN_MODEL_LOCATION,
-            DomainSolvingModel.BuildMethod.LOQI).validate();
+            DomainSolvingModel.BuildMethod.LOQI).validate(false);
 
     private static final HashMap<String, Tag> tags = new HashMap<>() {{
         put("C++", new Tag("C++", 2L));  	// (2 ^ 1)
