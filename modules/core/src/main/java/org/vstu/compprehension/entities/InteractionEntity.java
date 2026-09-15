@@ -53,10 +53,11 @@ public class InteractionEntity {
 
     @ToString.Exclude
     @OneToMany(mappedBy = "interaction", fetch = FetchType.LAZY, cascade = CascadeType.ALL)
+    @OrderBy("id")
     private List<ResponseEntity> responses;
 
     @ToString.Exclude
-    @OneToMany(mappedBy = "createdByInteraction", fetch = FetchType.LAZY, cascade = CascadeType.ALL)
+    @OneToMany(mappedBy = "createdByInteraction", fetch = FetchType.LAZY)
     private List<ResponseEntity> newResponses;
     
     @ToString.Exclude

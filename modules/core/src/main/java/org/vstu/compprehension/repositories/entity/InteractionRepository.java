@@ -59,6 +59,7 @@ public interface InteractionRepository extends JpaRepository<InteractionEntity, 
             left join fetch i.feedback
             left join fetch i.violations
             where i.question.id = :questionId
+            order by i.id
             """)
     List<InteractionEntity> findAllByQuestionIdFetchingViolations(@Param("questionId") long questionId);
 
@@ -70,6 +71,7 @@ public interface InteractionRepository extends JpaRepository<InteractionEntity, 
             left join fetch r.rightAnswerObject
             left join fetch r.createdByInteraction
             where i.question.id = :questionId
+            order by i.id, r.id
             """)
     List<InteractionEntity> findAllByQuestionIdFetchingResponses(@Param("questionId") long questionId);
 
@@ -78,6 +80,7 @@ public interface InteractionRepository extends JpaRepository<InteractionEntity, 
             select distinct i from InteractionEntity i
             left join fetch i.correctLaw
             where i.question.id = :questionId
+            order by i.id
             """)
     List<InteractionEntity> findAllByQuestionIdFetchingCorrectLaws(@Param("questionId") long questionId);
 }

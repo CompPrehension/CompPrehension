@@ -210,8 +210,6 @@ public abstract class DomainBase implements Domain {
         for (int i = 0; i < Long.SIZE; i++) {
             if ((value & mask) != 0) {
                 result.add(mask);
-            } else {
-                result.add(0L);
             }
             mask <<= 1;
         }

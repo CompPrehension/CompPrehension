@@ -128,7 +128,7 @@ public class Explanation {
         int lastCodeClose = commonChildrenPrefix.lastIndexOf("</code>");
         if (lastCodeOpen != -1 && (lastCodeClose == -1 || lastCodeClose < lastCodeOpen)) {
             // Закрытие фрагмента кода обрезано, выйдем за его пределы.
-            int cutPos = lastCodeOpen - 1;  // Минус один пробел слева от кода.
+            int cutPos = Math.max(0, lastCodeOpen - 1);  // Минус один пробел слева от кода.
             commonChildrenPrefix = commonChildrenPrefix.substring(0, cutPos) + " ";
         }
 

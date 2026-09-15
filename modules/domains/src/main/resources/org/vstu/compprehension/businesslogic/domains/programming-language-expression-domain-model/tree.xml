@@ -621,9 +621,9 @@
                                                     _RU_description_null="не существует скобок, окружающих ${X}, но не окружающих ${Y}[case='в']"
                                                     _TEMPLATING_ID="37" _alias="left.predetermining.2">
                                                 <QuestionNode
-                                                        _EN_asNextStep="Необходимо проверить, существуют ли скобки, окружающие ${X}, но не ${Y}"
-                                                        _EN_endingCause="Потому что существуют скобки, окружающие ${X}, но не ${Y}"
-                                                        _EN_question="Существуют ли скобки, окружающие ${X}, но не ${Y}?"
+                                                        _EN_asNextStep="We need to check whether there are parentheses enclosing ${X} but not ${Y}"
+                                                        _EN_endingCause="Because there are parentheses enclosing ${X} but not ${Y}"
+                                                        _EN_question="Are there parentheses enclosing ${X} but not ${Y}?"
                                                         _RU_asNextStep="Необходимо проверить, существуют ли скобки, окружающие ${X}[case='и'], но не ${Y}[case='и']"
                                                         _RU_endingCause="Потому что существуют скобки, окружающие ${X}, но не ${Y}"
                                                         _RU_question="Существуют ли скобки, окружающие ${X}[case='и'], но не ${Y}[case='и']?"
@@ -684,9 +684,9 @@
                                                     _RU_description_null="не существует скобок, окружающих ${Y}, но не окружающих ${X}[case='в']"
                                                     _TEMPLATING_ID="40" _alias="left.predetermining.3">
                                                 <QuestionNode
-                                                        _EN_asNextStep="Необходимо проверить, существуют ли скобки, окружающие ${Y}, но не ${X}"
-                                                        _EN_endingCause="Потому что существуют скобки, окружающие ${Y}, но не ${X}"
-                                                        _EN_question="Существуют ли скобки, окружающие ${Y}, но не ${X}?"
+                                                        _EN_asNextStep="We need to check whether there are parentheses enclosing ${Y} but not ${X}"
+                                                        _EN_endingCause="Because there are parentheses enclosing ${Y} but not ${X}"
+                                                        _EN_question="Are there parentheses enclosing ${Y} but not ${X}?"
                                                         _RU_asNextStep="Необходимо проверить, существуют ли скобки, окружающие ${Y}[case='и'], но не ${X}[case='в']"
                                                         _RU_endingCause="Потому что существуют скобки, окружающие ${Y}, но не ${X}"
                                                         _RU_question="Существуют ли скобки, окружающие ${Y}[case='и'], но не ${X}[case='в']?"
@@ -1265,6 +1265,9 @@
                                                     _RU_description_null="не существует скобок, окружающих ${X}, но не окружающих ${Z}[case='в']"
                                                     _TEMPLATING_ID="77" _alias="right.predetermining.2">
                                                 <QuestionNode
+                                                        _EN_asNextStep="We need to check whether there are parentheses enclosing ${X} but not ${Z}"
+                                                        _EN_endingCause="Because there are parentheses enclosing ${X} but not ${Z}"
+                                                        _EN_question="Are there parentheses enclosing ${X} but not ${Z}?"
                                                         _RU_asNextStep="Необходимо проверить, существуют ли скобки, окружающие ${X}[case='и'], но не ${Z}[case='и']"
                                                         _RU_endingCause="Потому что существуют скобки, окружающие ${X}, но не ${Z}"
                                                         _RU_question="Существуют ли скобки, окружающие ${X}[case='и'], но не ${Z}[case='и']?"
@@ -1325,6 +1328,9 @@
                                                     _RU_description_null="не существует скобок, окружающих ${Z}, но не окружающих ${X}[case='в']"
                                                     _TEMPLATING_ID="80" _alias="right.predetermining.3">
                                                 <QuestionNode
+                                                        _EN_asNextStep="We need to check whether there are parentheses enclosing ${Z} but not ${X}"
+                                                        _EN_endingCause="Because there are parentheses enclosing ${Z} but not ${X}"
+                                                        _EN_question="Are there parentheses enclosing ${Z} but not ${X}?"
                                                         _RU_asNextStep="Необходимо проверить, существуют ли скобки, окружающие ${Z}[case='и'], но не ${X}[case='в']"
                                                         _RU_endingCause="Потому что существуют скобки, окружающие ${Z}, но не ${X}"
                                                         _RU_question="Существуют ли скобки, окружающие ${Z}[case='и'], но не ${X}[case='в']?"
@@ -1942,6 +1948,9 @@
                 </CycleAggregationNode>
             </ThoughtBranch>
             <ThoughtBranch
+                    _EN_description="function call operators with strict argument evaluation order do ${$branchResult == BranchResult:CORRECT ? 'not' : ''} hinder evaluation of ${X}"
+                    _EN_nextStepExplanation="That's incorrect. First of all, we need to find all function calls with several arguments that can hinder evaluation of ${X}"
+                    _EN_nextStepQuestion="Where should we start when determining whether function call operators with strict argument order hinder evaluation of ${X}?"
                     _RU_description="вычислению ${X}[case='р'] ${$branchResult == BranchResult:CORRECT ? 'не' : ''} мешают операторы вызова функций со строгим порядком вычисления аргументов"
                     _RU_nextStepExplanation="Это неверно. Прежде всего необходимо найти все вызовы функций с несколькими аргументами, которые могут помешать вычислению ${X}[case='р']"
                     _RU_nextStepQuestion="С чего надо начать при определении того, мешают ли вычислению ${X}[case='р'] операторы вызова функций со строгим порядком аргументов?"

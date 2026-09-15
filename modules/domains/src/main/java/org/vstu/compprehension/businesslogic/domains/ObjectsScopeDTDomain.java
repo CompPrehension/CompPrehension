@@ -89,19 +89,19 @@ public class ObjectsScopeDTDomain extends DecisionTreeReasoningDomain {
             this.getClass().getClassLoader(),
             OBJECT_LIFE_TIME_DOMAIN_MODEL_LOCATION,
             DomainSolvingModel.BuildMethod.DICT_RDF
-    ).validate();
+    ).validate(false);
 
     private final DomainSolvingModel domainObjectVisibilitySolvingModel = DomainSolvingModelLoader.loadFromClasspath(
             this.getClass().getClassLoader(),
             OBJECT_VISIBILITY_DOMAIN_MODEL_LOCATION,
             DomainSolvingModel.BuildMethod.DICT_RDF
-    ).validate();
+    ).validate(false);
 
     private final DomainSolvingModel domainObjectsVisibilityInLineSolvingModel = DomainSolvingModelLoader.loadFromClasspath(
             this.getClass().getClassLoader(),
             OBJECTS_VISIBILITY_DOMAIN_MODEL_LOCATION,
             DomainSolvingModel.BuildMethod.DICT_RDF
-    ).validate();
+    ).validate(false);
 
     @Getter
     private final DecisionTreeInterface backendInterface = new DecisionTreeInterface();

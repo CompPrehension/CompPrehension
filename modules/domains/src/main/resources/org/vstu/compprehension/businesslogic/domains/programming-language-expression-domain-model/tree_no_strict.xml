@@ -614,9 +614,9 @@
                                                     _RU_description="${result ? '${val('X','и')} находится в скобках, а ${val('Y','и')} - за их пределами' : 'не существует скобок, окружающих ${val('X','и')}, но не окружающих ${val('Y','в')}'}"
                                                     _TEMPLATING_ID="37" _alias="left.predetermining.2">
                                                 <QuestionNode
-                                                        _EN_asNextStep="Необходимо проверить, существуют ли скобки, окружающие ${val('X','и')}, но не ${val('Y','и')}"
-                                                        _EN_endingCause="Потому что существуют скобки, окружающие ${val('X','и')}, но не ${val('Y','и')}"
-                                                        _EN_question="Существуют ли скобки, окружающие ${val('X','и')}, но не ${val('Y','и')}?"
+                                                        _EN_asNextStep="We need to check whether there are parentheses enclosing ${val('X','и')} but not ${val('Y','и')}"
+                                                        _EN_endingCause="Because there are parentheses enclosing ${val('X','и')} but not ${val('Y','и')}"
+                                                        _EN_question="Are there parentheses enclosing ${val('X','и')} but not ${val('Y','и')}?"
                                                         _RU_asNextStep="Необходимо проверить, существуют ли скобки, окружающие ${val('X','и')}, но не ${val('Y','и')}"
                                                         _RU_endingCause="Потому что существуют скобки, окружающие ${val('X','и')}, но не ${val('Y','и')}"
                                                         _RU_question="Существуют ли скобки, окружающие ${val('X','и')}, но не ${val('Y','и')}?"
@@ -670,9 +670,9 @@
                                                     _RU_description="${result ? '${val('Y','и')} находится в скобках, а ${val('X','и')} - за их пределами' : 'не существует скобок, окружающих ${val('Y','и')}, но не окружающих ${val('X','в')}'}"
                                                     _TEMPLATING_ID="39" _alias="left.predetermining.3">
                                                 <QuestionNode
-                                                        _EN_asNextStep="Необходимо проверить, существуют ли скобки, окружающие ${val('Y','и')}, но не ${val('X','в')}"
-                                                        _EN_endingCause="Потому что существуют скобки, окружающие ${val('Y','и')}, но не ${val('X','в')}"
-                                                        _EN_question="Существуют ли скобки, окружающие ${val('Y','и')}, но не ${val('X','в')}?"
+                                                        _EN_asNextStep="We need to check whether there are parentheses enclosing ${val('Y','и')} but not ${val('X','и')}"
+                                                        _EN_endingCause="Because there are parentheses enclosing ${val('Y','и')} but not ${val('X','и')}"
+                                                        _EN_question="Are there parentheses enclosing ${val('Y','и')} but not ${val('X','и')}?"
                                                         _RU_asNextStep="Необходимо проверить, существуют ли скобки, окружающие ${val('Y','и')}, но не ${val('X','в')}"
                                                         _RU_endingCause="Потому что существуют скобки, окружающие ${val('Y','и')}, но не ${val('X','в')}"
                                                         _RU_question="Существуют ли скобки, окружающие ${val('Y','и')}, но не ${val('X','в')}?"
@@ -1260,6 +1260,9 @@
                                                     _RU_description="${result ? '${val('X','и')} находится в скобках, а ${val('Z','и')} - за их пределами' : 'не существует скобок, окружающих ${val('X','и')}, но не окружающих ${val('Z','в')}'}"
                                                     _TEMPLATING_ID="75" _alias="right.predetermining.2">
                                                 <QuestionNode
+                                                        _EN_asNextStep="We need to check whether there are parentheses enclosing ${val('X','и')} but not ${val('Z','и')}"
+                                                        _EN_endingCause="Because there are parentheses enclosing ${val('X','и')} but not ${val('Z','и')}"
+                                                        _EN_question="Are there parentheses enclosing ${val('X','и')} but not ${val('Z','и')}?"
                                                         _RU_asNextStep="Необходимо проверить, существуют ли скобки, окружающие ${val('X','и')}, но не ${val('Z','и')}"
                                                         _RU_endingCause="Потому что существуют скобки, окружающие ${val('X','и')}, но не ${val('Z','и')}"
                                                         _RU_question="Существуют ли скобки, окружающие ${val('X','и')}, но не ${val('Z','и')}?"
@@ -1313,6 +1316,9 @@
                                                     _RU_description="${result ? '${val('Z','и')} находится в скобках, а ${val('X','и')} - за их пределами' : 'не существует скобок, окружающих ${val('Z','и')}, но не окружающих ${val('X','в')}'}"
                                                     _TEMPLATING_ID="77" _alias="right.predetermining.3">
                                                 <QuestionNode
+                                                        _EN_asNextStep="We need to check whether there are parentheses enclosing ${val('Z','и')} but not ${val('X','и')}"
+                                                        _EN_endingCause="Because there are parentheses enclosing ${val('Z','и')} but not ${val('X','и')}"
+                                                        _EN_question="Are there parentheses enclosing ${val('Z','и')} but not ${val('X','и')}?"
                                                         _RU_asNextStep="Необходимо проверить, существуют ли скобки, окружающие ${val('Z','и')}, но не ${val('X','в')}"
                                                         _RU_endingCause="Потому что существуют скобки, окружающие ${val('Z','и')}, но не ${val('X','в')}"
                                                         _RU_question="Существуют ли скобки, окружающие ${val('Z','и')}, но не ${val('X','в')}?"

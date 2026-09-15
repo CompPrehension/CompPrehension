@@ -1,0 +1,298 @@
+{
+  "id": 1748917,
+  "data": {
+    "tags": [
+      "basics",
+      "operators",
+      "order",
+      "evaluation",
+      "errors",
+      "C++",
+      "Python",
+      "Java"
+    ],
+    "concepts": [],
+    "negativeLaws": [],
+    "questionData": {
+      "options": {
+        "showTrace": true,
+        "requireContext": true,
+        "requireAllAnswers": true,
+        "orderNumberOptions": {
+          "position": "BOTTOM",
+          "delimiter": "#"
+        },
+        "multipleSelectionEnabled": false,
+        "showSupplementaryQuestions": true
+      },
+      "questionName": "wp-sx_+_sb_w_c++-1098429591_v",
+      "questionText": "",
+      "questionType": "ORDER",
+      "answerObjects": [],
+      "statementFacts": [
+        {
+          "verb": "hasField",
+          "object": "mt_node_6",
+          "subject": "mt_node_0",
+          "objectType": "rdf:resource",
+          "subjectType": ""
+        },
+        {
+          "verb": "hasField",
+          "object": "mt_node_1",
+          "subject": "mt_node_0",
+          "objectType": "rdf:resource",
+          "subjectType": ""
+        },
+        {
+          "verb": "nodeType",
+          "object": "MeaningTree",
+          "subject": "mt_node_0",
+          "objectType": "rdf:resource",
+          "subjectType": ""
+        },
+        {
+          "verb": "fieldName",
+          "object": "root",
+          "subject": "mt_node_0",
+          "objectType": "rdf:resource",
+          "subjectType": ""
+        },
+        {
+          "verb": "rdf:type",
+          "object": "Node",
+          "subject": "mt_node_0",
+          "objectType": "rdf:resource",
+          "subjectType": ""
+        },
+        {
+          "verb": "nodeType",
+          "object": "SimpleIdentifier",
+          "subject": "mt_node_5",
+          "objectType": "rdf:resource",
+          "subjectType": ""
+        },
+        {
+          "verb": "text",
+          "object": "sb_w",
+          "subject": "mt_node_5",
+          "objectType": "xsd:string",
+          "subjectType": ""
+        },
+        {
+          "verb": "fieldName",
+          "object": "right",
+          "subject": "mt_node_5",
+          "objectType": "rdf:resource",
+          "subjectType": ""
+        },
+        {
+          "verb": "rdf:type",
+          "object": "Node",
+          "subject": "mt_node_5",
+          "objectType": "rdf:resource",
+          "subjectType": ""
+        },
+        {
+          "verb": "rdf:type",
+          "object": "owl:ObjectProperty",
+          "subject": "rdf:type",
+          "objectType": "rdf:resource",
+          "subjectType": ""
+        },
+        {
+          "verb": "rdf:type",
+          "object": "owl:ObjectProperty",
+          "subject": "rdfs:subPropertyOf",
+          "objectType": "rdf:resource",
+          "subjectType": ""
+        },
+        {
+          "verb": "rdf:type",
+          "object": "owl:Class",
+          "subject": "owl:Class",
+          "objectType": "rdf:resource",
+          "subjectType": ""
+        },
+        {
+          "verb": "nodeType",
+          "object": "SimpleIdentifier",
+          "subject": "mt_node_3",
+          "objectType": "rdf:resource",
+          "subjectType": ""
+        },
+        {
+          "verb": "text",
+          "object": "wp",
+          "subject": "mt_node_3",
+          "objectType": "xsd:string",
+          "subjectType": ""
+        },
+        {
+          "verb": "fieldName",
+          "object": "owner",
+          "subject": "mt_node_3",
+          "objectType": "rdf:resource",
+          "subjectType": ""
+        },
+        {
+          "verb": "rdf:type",
+          "object": "Node",
+          "subject": "mt_node_3",
+          "objectType": "rdf:resource",
+          "subjectType": ""
+        },
+        {
+          "verb": "rdf:type",
+          "object": "owl:ObjectProperty",
+          "subject": "rdfs:subClassOf",
+          "objectType": "rdf:resource",
+          "subjectType": ""
+        },
+        {
+          "verb": "hasField",
+          "object": "mt_node_5",
+          "subject": "mt_node_1",
+          "objectType": "rdf:resource",
+          "subjectType": ""
+        },
+        {
+          "verb": "hasField",
+          "object": "mt_node_2",
+          "subject": "mt_node_1",
+          "objectType": "rdf:resource",
+          "subjectType": ""
+        },
+        {
+          "verb": "nodeType",
+          "object": "expressions.math.AddOp",
+          "subject": "mt_node_1",
+          "objectType": "rdf:resource",
+          "subjectType": ""
+        },
+        {
+          "verb": "fieldName",
+          "object": "rootNode",
+          "subject": "mt_node_1",
+          "objectType": "rdf:resource",
+          "subjectType": ""
+        },
+        {
+          "verb": "rdf:type",
+          "object": "Node",
+          "subject": "mt_node_1",
+          "objectType": "rdf:resource",
+          "subjectType": ""
+        },
+        {
+          "verb": "hasFieldList",
+          "object": "rdf:nil",
+          "subject": "mt_node_6",
+          "objectType": "rdf:resource",
+          "subjectType": ""
+        },
+        {
+          "verb": "fieldName",
+          "object": "labels",
+          "subject": "mt_node_6",
+          "objectType": "rdf:resource",
+          "subjectType": ""
+        },
+        {
+          "verb": "rdf:type",
+          "object": "ListNode",
+          "subject": "mt_node_6",
+          "objectType": "rdf:resource",
+          "subjectType": ""
+        },
+        {
+          "verb": "nodeType",
+          "object": "SimpleIdentifier",
+          "subject": "mt_node_4",
+          "objectType": "rdf:resource",
+          "subjectType": ""
+        },
+        {
+          "verb": "text",
+          "object": "sx",
+          "subject": "mt_node_4",
+          "objectType": "xsd:string",
+          "subjectType": ""
+        },
+        {
+          "verb": "fieldName",
+          "object": "member",
+          "subject": "mt_node_4",
+          "objectType": "rdf:resource",
+          "subjectType": ""
+        },
+        {
+          "verb": "rdf:type",
+          "object": "Node",
+          "subject": "mt_node_4",
+          "objectType": "rdf:resource",
+          "subjectType": ""
+        },
+        {
+          "verb": "hasField",
+          "object": "mt_node_0",
+          "subject": "MeaningTree",
+          "objectType": "rdf:resource",
+          "subjectType": ""
+        },
+        {
+          "verb": "hasField",
+          "object": "mt_node_4",
+          "subject": "mt_node_2",
+          "objectType": "rdf:resource",
+          "subjectType": ""
+        },
+        {
+          "verb": "hasField",
+          "object": "mt_node_3",
+          "subject": "mt_node_2",
+          "objectType": "rdf:resource",
+          "subjectType": ""
+        },
+        {
+          "verb": "nodeType",
+          "object": "PointerMemberAccess",
+          "subject": "mt_node_2",
+          "objectType": "rdf:resource",
+          "subjectType": ""
+        },
+        {
+          "verb": "fieldName",
+          "object": "left",
+          "subject": "mt_node_2",
+          "objectType": "rdf:resource",
+          "subjectType": ""
+        },
+        {
+          "verb": "rdf:type",
+          "object": "Node",
+          "subject": "mt_node_2",
+          "objectType": "rdf:resource",
+          "subjectType": ""
+        }
+      ],
+      "questionDomainType": "OrderOperators"
+    }
+  },
+  "name": "wp-sx_+_sb_w_c++-1098429591_v",
+  "origin": "tmux/tmux",
+  "lawBits": 1,
+  "tagBits": 63,
+  "version": 12,
+  "skillBits": 73031352353,
+  "templateId": "wp-sx_+_sb_w_c++",
+  "conceptBits": 549755830272,
+  "originLicense": "Other",
+  "solutionSteps": 3,
+  "violationBits": 2051,
+  "domainShortname": "expression_dt",
+  "traceConceptBits": 549755830272,
+  "integralComplexity": 0.4624063120707361,
+  "distinctErrorsCount": 5,
+  "solutionStructuralComplexity": 4.0
+}

@@ -40,7 +40,7 @@ import java.util.Collections;
 import java.util.HashSet;
 import java.util.List;
 
-@Disabled("Не работает в test-containers.")
+@Disabled("Утилита сверки метаданных банка в БД с решателем.")
 @TestInstance(TestInstance.Lifecycle.PER_CLASS)
 @Transactional
 public class ExpressionDTDomainMetadataValidationTest extends AbstractIntegrationTest {
@@ -127,7 +127,7 @@ public class ExpressionDTDomainMetadataValidationTest extends AbstractIntegratio
                         questionSkills.addAll(skill.getBaseSkills());
                     }
                 }
-                HashSet<NegativeLaw> questionLaws = new HashSet<>(domain.negativeLawFromBitmask(q.getContent().getMetadata().getSkillBits()).stream().filter(
+                HashSet<NegativeLaw> questionLaws = new HashSet<>(domain.negativeLawFromBitmask(q.getContent().getMetadata().getViolationBits()).stream().filter(
                         (NegativeLaw nLaw) -> nLaw.getLawsImplied() != null && !nLaw.getLawsImplied().isEmpty()).toList());
                 questionLaws.remove(domain.getNegativeLaw("error_base_student_error_early_finish"));
                 boolean foundCorrectSolution = false;
