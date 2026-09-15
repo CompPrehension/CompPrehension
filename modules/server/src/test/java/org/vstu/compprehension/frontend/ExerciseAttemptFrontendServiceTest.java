@@ -1,5 +1,7 @@
 package org.vstu.compprehension.frontend;
 
+import jakarta.persistence.EntityManager;
+import jakarta.persistence.PersistenceContext;
 import org.junit.jupiter.api.AfterEach;
 import org.junit.jupiter.api.Test;
 import org.springframework.beans.factory.annotation.Autowired;
@@ -38,6 +40,7 @@ class ExerciseAttemptFrontendServiceTest extends AbstractIntegrationTest {
     private static final float GRADE_DELTA = 0.0001f;
 
     @Autowired private ExerciseAttemptFrontendService service;
+    @PersistenceContext private EntityManager entityManager;
 
     @AfterEach
     void resetCurrentUser() {
@@ -373,6 +376,31 @@ class ExerciseAttemptFrontendServiceTest extends AbstractIntegrationTest {
         assertAnswerIds(feedback, bankQuestion.operatorAt(0));
     }
 
+    /** Порядок ответов взаимодействия переживает перечитывание вопроса из базы. */
+    @Test
+    void addQuestionAnswerKeepsAnswerOrderWhenQuestionIsReloaded() {
+        // Arrange.
+        TestUserService.actAs(TestData.Users.GLOBAL_EXERCISE_AUTHOR_ID);
+        var bankQuestion = TestData.ExpressionBank.ASSIGN_UNARY_MINUS_PLUS;
+        var question = attemptlessQuestion(bankQuestion);
+        var afterFirst = service.addQuestionAnswer(interaction(question, bankQuestion.operatorAt(0)));
+        var afterSecond = service.addQuestionAnswer(
+                interaction(question, afterFirst.getCorrectAnswers(), bankQuestion.operatorAt(1)));
+        resetPersistenceContext();
+
+        // Act.
+        var reloaded = service.getQuestion(question.getQuestionId());
+        var mistake = service.addQuestionAnswer(
+                interaction(question, reloaded.getResponses(), bankQuestion.endEvaluationAnswerId()));
+
+        // Assert.
+        assertAnswerIds(afterSecond, bankQuestion.operatorAt(0), bankQuestion.operatorAt(1));
+        assertArrayEquals(new long[] {bankQuestion.operatorAt(0), bankQuestion.operatorAt(1)},
+                Arrays.stream(reloaded.getResponses()).mapToLong(answer -> answer.getAnswer()[0]).toArray());
+        assertFalse(mistake.isCorrect());
+        assertAnswerIds(mistake, bankQuestion.operatorAt(0), bankQuestion.operatorAt(1));
+    }
+
     // ---- подсказки ----
 
     /** Подсказка для вопроса без попытки. */
@@ -658,6 +686,12 @@ class ExerciseAttemptFrontendServiceTest extends AbstractIntegrationTest {
             given = feedback.getCorrectAnswers();
         }
         return feedback;
+    }
+
+    /** Сброс кэша контекста. */
+    private void resetPersistenceContext() {
+        entityManager.flush();
+        entityManager.clear();
     }
 
     private FeedbackDto solveByHints(QuestionDto question) {

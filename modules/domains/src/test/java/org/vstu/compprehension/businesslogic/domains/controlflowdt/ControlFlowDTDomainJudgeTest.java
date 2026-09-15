@@ -4,11 +4,13 @@ import org.junit.jupiter.api.Test;
 import org.junit.jupiter.params.ParameterizedTest;
 import org.junit.jupiter.params.provider.MethodSource;
 import org.junit.jupiter.params.provider.ValueSource;
+import org.vstu.compprehension.businesslogic.HyperText;
 import org.vstu.compprehension.businesslogic.domains.Domain;
 import org.vstu.compprehension.businesslogic.domains.DomainFixtures;
 import org.vstu.compprehension.businesslogic.domains.controlflowdt.ControlFlowDtDomainFixture.BankQuestion;
 import org.vstu.compprehension.data.question.AnswerObjectData;
 import org.vstu.compprehension.data.question.QuestionData;
+import org.vstu.compprehension.data.question.ResponseData;
 import org.vstu.compprehension.data.question.ViolationData;
 import org.vstu.compprehension.enums.Language;
 
@@ -29,6 +31,7 @@ import static org.vstu.compprehension.businesslogic.domains.DomainFixtures.viola
 import static org.vstu.compprehension.businesslogic.domains.controlflowdt.ControlFlowDtDomainFixture.BANK;
 import static org.vstu.compprehension.businesslogic.domains.controlflowdt.ControlFlowDtDomainFixture.BREAK_IN_FOR;
 import static org.vstu.compprehension.businesslogic.domains.controlflowdt.ControlFlowDtDomainFixture.IF_ELIF;
+import static org.vstu.compprehension.businesslogic.domains.controlflowdt.ControlFlowDtDomainFixture.IF_THEN;
 import static org.vstu.compprehension.businesslogic.domains.controlflowdt.ControlFlowDtDomainFixture.SEQUENCE;
 import static org.vstu.compprehension.businesslogic.domains.controlflowdt.ControlFlowDtDomainFixture.WHILE_NOT_ENTERED;
 import static org.vstu.compprehension.businesslogic.domains.controlflowdt.ControlFlowDtDomainFixture.WHILE_ONE_ITERATION;
@@ -484,6 +487,35 @@ class ControlFlowDTDomainJudgeTest {
         assertFalse(correct.getLast().getText().contains("warning"));
     }
 
+    /** Ошибки вперемешку с верными шагами: в трассе старт, верные шаги по порядку и последняя ошибка. */
+    @Test
+    void solutionTraceKeepsCorrectStepsThroughMistakes() {
+        // Arrange.
+        var question = bankQuestion(IF_THEN);
+        var clicks = List.of("atom_104", "atom_107", "atom_114", "atom_132", "atom_114", "atom_120", "atom_114");
+        var correctSteps = List.of(1, 2, 3, 3, 3, 4, 4);
+
+        for (int step = 0; step < clicks.size(); step++) {
+            var given = new ArrayList<>(question.latestCorrectResponses().stream().map(ResponseData::getLeftAnswerObject).toList());
+            given.add(action(question, clicks.get(step)));
+            var result = judge(question, given);
+            question = question.withInteraction(interaction(step + 1, given, result.violations, result.IterationsLeft));
+            var reference = domain().getFullSolutionTrace(
+                    withCorrectSteps(bankQuestion(IF_THEN), trace(question, IF_THEN, correctSteps.get(step)), IF_THEN), Language.RUSSIAN);
+
+            // Act.
+            var trace = domain().getFullSolutionTrace(question, Language.RUSSIAN);
+
+            // Assert.
+            assertEquals(correctSteps.get(step) == given.size(), result.isAnswerCorrect, "шаг " + step);
+            assertEquals(correctSteps.get(step) + 1 + (result.isAnswerCorrect ? 0 : 1), trace.size(), "шаг " + step);
+            assertEquals(texts(reference), texts(trace.subList(0, reference.size())), "шаг " + step);
+            if (!result.isAnswerCorrect) {
+                assertTrue(trace.getLast().getText().startsWith("<span class=\"warning\">"), trace.getLast().getText());
+            }
+        }
+    }
+
     /** Трасса локализована. */
     @Test
     void solutionTraceIsLocalized() {
@@ -512,6 +544,10 @@ class ControlFlowDTDomainJudgeTest {
         var given = new ArrayList<>(trace(question, bankQuestion, correctSteps));
         given.add(action(question, wrongAction));
         return given;
+    }
+
+    private static List<String> texts(List<HyperText> trace) {
+        return trace.stream().map(HyperText::getText).toList();
     }
 
     private static List<String> lawNames(List<ViolationData> violations) {

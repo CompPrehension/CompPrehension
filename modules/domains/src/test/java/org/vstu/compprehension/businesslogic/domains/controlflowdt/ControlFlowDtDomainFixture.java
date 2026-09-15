@@ -42,6 +42,9 @@ final class ControlFlowDtDomainFixture {
     static final BankQuestion IF_ELIF = new BankQuestion("if_elif",
             List.of("atom_104", "atom_107", "atom_114", "atom_126", "atom_135"),
             Set.of("atom_114", "atom_126"));
+    static final BankQuestion IF_THEN = new BankQuestion("if_then",
+            List.of("atom_104", "atom_107", "atom_114", "atom_120", "atom_132", "atom_136", "atom_140"),
+            Set.of("atom_114"));
     static final BankQuestion WHILE_ONE_ITERATION = new BankQuestion("while_one_iteration",
             List.of("atom_104", "atom_107", "atom_114", "atom_123", "atom_129", "atom_132", "atom_114", "atom_163"),
             Set.of("atom_114", "atom_123"));
@@ -51,7 +54,7 @@ final class ControlFlowDtDomainFixture {
             Set.of("atom_121", "atom_131"));
 
     static final List<BankQuestion> BANK = List.of(
-            SEQUENCE, WHILE_NOT_ENTERED, IF_ELIF, WHILE_ONE_ITERATION, BREAK_IN_FOR);
+            SEQUENCE, WHILE_NOT_ENTERED, IF_ELIF, IF_THEN, WHILE_ONE_ITERATION, BREAK_IN_FOR);
 
     private static final String BANK_LOCATION = "org/vstu/compprehension/businesslogic/domains/controlflowdt/";
     static final List<String> BUNDLES = List.of("domains/control-flow");
