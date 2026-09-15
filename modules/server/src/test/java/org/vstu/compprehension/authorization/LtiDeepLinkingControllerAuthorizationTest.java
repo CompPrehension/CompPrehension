@@ -1,10 +1,13 @@
 package org.vstu.compprehension.authorization;
 
+import org.vstu.compprehension.controllers.LtiDeepLinkingController.DeepLinkBuildRequest;
 import org.vstu.compprehension.infrastructure.TestData;
 
 import org.junit.jupiter.api.AfterEach;
 import org.junit.jupiter.api.Test;
 import org.springframework.http.MediaType;
+
+import java.util.List;
 
 import static org.springframework.test.web.servlet.request.MockMvcRequestBuilders.get;
 import static org.springframework.test.web.servlet.request.MockMvcRequestBuilders.post;
@@ -12,7 +15,8 @@ import static org.springframework.test.web.servlet.result.MockMvcResultMatchers.
 
 class LtiDeepLinkingControllerAuthorizationTest extends AbstractAuthorizationTest {
 
-    private static final String BUILD_REQUEST = "{\"exerciseIds\": [%d]}".formatted(TestData.Exercises.INHERITED_ID);
+    private static final DeepLinkBuildRequest BUILD_REQUEST =
+            new DeepLinkBuildRequest(List.of(TestData.Exercises.INHERITED_ID));
 
     @AfterEach
     void resetLtiContext() {
@@ -30,7 +34,7 @@ class LtiDeepLinkingControllerAuthorizationTest extends AbstractAuthorizationTes
         // Act.
         var result = mockMvc.perform(post("/api/lti/deep-link/build")
                 .contentType(MediaType.APPLICATION_JSON)
-                .content(BUILD_REQUEST));
+                .content(toJson(BUILD_REQUEST)));
 
         // Assert.
         result.andExpect(status().isForbidden());
@@ -47,7 +51,7 @@ class LtiDeepLinkingControllerAuthorizationTest extends AbstractAuthorizationTes
         // Act.
         var result = mockMvc.perform(post("/api/lti/deep-link/build")
                 .contentType(MediaType.APPLICATION_JSON)
-                .content(BUILD_REQUEST));
+                .content(toJson(BUILD_REQUEST)));
 
         // Assert.
         result.andExpect(status().isForbidden());
@@ -64,7 +68,7 @@ class LtiDeepLinkingControllerAuthorizationTest extends AbstractAuthorizationTes
         // Act.
         var result = mockMvc.perform(post("/api/lti/deep-link/build")
                 .contentType(MediaType.APPLICATION_JSON)
-                .content(BUILD_REQUEST));
+                .content(toJson(BUILD_REQUEST)));
 
         // Assert.
         result.andExpect(status().isForbidden());
@@ -81,7 +85,7 @@ class LtiDeepLinkingControllerAuthorizationTest extends AbstractAuthorizationTes
         // Act.
         var result = mockMvc.perform(post("/api/lti/deep-link/build")
                 .contentType(MediaType.APPLICATION_JSON)
-                .content(BUILD_REQUEST));
+                .content(toJson(BUILD_REQUEST)));
 
         // Assert.
         result.andExpect(status().isForbidden());
@@ -112,7 +116,7 @@ class LtiDeepLinkingControllerAuthorizationTest extends AbstractAuthorizationTes
         // Act.
         var result = mockMvc.perform(post("/api/lti/deep-link/build")
                 .contentType(MediaType.APPLICATION_JSON)
-                .content(BUILD_REQUEST));
+                .content(toJson(BUILD_REQUEST)));
 
         // Assert.
         result.andExpect(status().isBadRequest());
@@ -128,7 +132,7 @@ class LtiDeepLinkingControllerAuthorizationTest extends AbstractAuthorizationTes
         // Act.
         var result = mockMvc.perform(post("/api/lti/deep-link/build")
                 .contentType(MediaType.APPLICATION_JSON)
-                .content(BUILD_REQUEST));
+                .content(toJson(BUILD_REQUEST)));
 
         // Assert.
         result.andExpect(status().isBadRequest());

@@ -4,6 +4,8 @@ import org.vstu.compprehension.data.question.BackendFactData;
 import org.vstu.compprehension.infrastructure.TestData;
 import org.vstu.compprehension.infrastructure.AbstractIntegrationTest;
 
+import com.fasterxml.jackson.core.JsonProcessingException;
+import com.fasterxml.jackson.databind.ObjectMapper;
 import jakarta.persistence.EntityManager;
 import jakarta.persistence.PersistenceContext;
 import org.jetbrains.annotations.Nullable;
@@ -49,6 +51,7 @@ public abstract class AbstractAuthorizationTest extends AbstractIntegrationTest 
     @Autowired private QuestionRepository questionRepository;
     @Autowired private QuestionMetadataRepository questionMetadataRepository;
     @Autowired private AnswerObjectRepository answerObjectRepository;
+    private final ObjectMapper objectMapper = new ObjectMapper();
 
     @PersistenceContext private EntityManager entityManager;
 
@@ -69,6 +72,10 @@ public abstract class AbstractAuthorizationTest extends AbstractIntegrationTest 
 
     protected void actingAs(long userId) {
         TestUserService.actAs(userId);
+    }
+
+    protected String toJson(Object body) throws JsonProcessingException {
+        return objectMapper.writeValueAsString(body);
     }
 
     protected ExerciseAttemptEntity createAttempt(long userId, long exerciseId, Long courseId) {

@@ -1,30 +1,30 @@
 package org.vstu.compprehension.authorization;
 
+import org.vstu.compprehension.frontend.dto.QuestionBankSearchRequestDto;
 import org.vstu.compprehension.infrastructure.TestData;
 
 import org.junit.jupiter.api.Test;
 import org.springframework.http.MediaType;
+
+import java.util.List;
 
 import static org.springframework.test.web.servlet.request.MockMvcRequestBuilders.post;
 import static org.springframework.test.web.servlet.result.MockMvcResultMatchers.status;
 
 class QuestionBankControllerAuthorizationTest extends AbstractAuthorizationTest {
 
-    private static String searchRequest(Long courseId) {
-        return """
-                {
-                  "domainId": "%s",
-                  "complexity": 0.5,
-                  "tags": [],
-                  "laws": [],
-                  "concepts": [],
-                  "skills": [],
-                  "limit": 5,
-                  "courseId": %s
-                }
-                """.formatted(TestData.Exercises.DOMAIN_ID, courseId == null ? "null" : courseId.toString());
+    private static QuestionBankSearchRequestDto searchRequest(Long courseId) {
+        return QuestionBankSearchRequestDto.builder()
+                .domainId(TestData.Exercises.DOMAIN_ID)
+                .complexity(0.5f)
+                .tags(List.of())
+                .laws(List.of())
+                .concepts(List.of())
+                .skills(List.of())
+                .limit(5)
+                .courseId(courseId)
+                .build();
     }
-
 
     /** Поиск по банку требует VIEW_EXERCISE в GLOBAL-области. */
     @Test
@@ -35,7 +35,7 @@ class QuestionBankControllerAuthorizationTest extends AbstractAuthorizationTest 
         // Act.
         var result = mockMvc.perform(post("/api/question-bank/search")
                 .contentType(MediaType.APPLICATION_JSON)
-                .content(searchRequest(null)));
+                .content(toJson(searchRequest(null))));
 
         // Assert.
         result.andExpect(status().isForbidden());
@@ -50,7 +50,7 @@ class QuestionBankControllerAuthorizationTest extends AbstractAuthorizationTest 
         // Act.
         var result = mockMvc.perform(post("/api/question-bank/search")
                 .contentType(MediaType.APPLICATION_JSON)
-                .content(searchRequest(null)));
+                .content(toJson(searchRequest(null))));
 
         // Assert.
         result.andExpect(status().isForbidden());
@@ -65,7 +65,7 @@ class QuestionBankControllerAuthorizationTest extends AbstractAuthorizationTest 
         // Act.
         var result = mockMvc.perform(post("/api/question-bank/search")
                 .contentType(MediaType.APPLICATION_JSON)
-                .content(searchRequest(null)));
+                .content(toJson(searchRequest(null))));
 
         // Assert.
         result.andExpect(status().isForbidden());
@@ -80,7 +80,7 @@ class QuestionBankControllerAuthorizationTest extends AbstractAuthorizationTest 
         // Act.
         var result = mockMvc.perform(post("/api/question-bank/search")
                 .contentType(MediaType.APPLICATION_JSON)
-                .content(searchRequest(TestData.Courses.MAIN_ID)));
+                .content(toJson(searchRequest(TestData.Courses.MAIN_ID))));
 
         // Assert.
         result.andExpect(status().isOk());
@@ -95,7 +95,7 @@ class QuestionBankControllerAuthorizationTest extends AbstractAuthorizationTest 
         // Act.
         var result = mockMvc.perform(post("/api/question-bank/search")
                 .contentType(MediaType.APPLICATION_JSON)
-                .content(searchRequest(TestData.Courses.MAIN_ID)));
+                .content(toJson(searchRequest(TestData.Courses.MAIN_ID))));
 
         // Assert.
         result.andExpect(status().isForbidden());
@@ -110,7 +110,7 @@ class QuestionBankControllerAuthorizationTest extends AbstractAuthorizationTest 
         // Act.
         var result = mockMvc.perform(post("/api/question-bank/search")
                 .contentType(MediaType.APPLICATION_JSON)
-                .content(searchRequest(TestData.Courses.MAIN_ID)));
+                .content(toJson(searchRequest(TestData.Courses.MAIN_ID))));
 
         // Assert.
         result.andExpect(status().isForbidden());

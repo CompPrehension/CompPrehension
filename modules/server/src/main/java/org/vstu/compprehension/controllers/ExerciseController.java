@@ -1,6 +1,5 @@
 package org.vstu.compprehension.controllers;
 
-import jakarta.servlet.http.HttpServletRequest;
 import lombok.RequiredArgsConstructor;
 import lombok.extern.log4j.Log4j2;
 import org.jetbrains.annotations.NotNull;
@@ -36,8 +35,7 @@ public class ExerciseController {
     @RequestMapping(value = {"shortInfo"}, method = { RequestMethod.GET })
     @ResponseBody
     public ExerciseInfoDto getExerciseShortInfo(@RequestParam long id,
-                                                @RequestParam(value = "courseId", required = false) Long courseId,
-                                                HttpServletRequest request) throws Exception {
+                                                @RequestParam(value = "courseId", required = false) Long courseId) throws Exception {
         var userId = userService.getCurrentUserId();
         authService.ensureAuthorized(userId, SystemPermission.SOLVE_EXERCISE, authService.courseOrGlobal(courseId));
         return exerciseService.getExerciseShortInfo(id, courseId);
@@ -45,7 +43,7 @@ public class ExerciseController {
 
     @RequestMapping(value = {"getExerciseAttempt"}, method = { RequestMethod.GET })
     @ResponseBody
-    public @NotNull ExerciseAttemptDto getExerciseAttempt(@RequestParam Long attemptId, HttpServletRequest request) throws Exception {
+    public @NotNull ExerciseAttemptDto getExerciseAttempt(@RequestParam Long attemptId) throws Exception {
         var userId = userService.getCurrentUserId();
         exerciseAttemptService.ensureCanAccessAttempt(userId, attemptId);
         var result = exerciseAttemptService.getExerciseAttempt(attemptId);
@@ -58,15 +56,13 @@ public class ExerciseController {
     /**
      * Get existing exercise attempt for current user
      * @param exerciseId Exercise id
-     * @param request Current request
      * @return Existing exercise attempt or null
      * @throws Exception Something got wrong
      */
     @RequestMapping(value = {"getExistingExerciseAttempt"}, method = { RequestMethod.GET })
     @ResponseBody
     public ExerciseAttemptDto getExistingExerciseAttempt(@RequestParam Long exerciseId,
-                                                         @RequestParam(value = "courseId", required = false) Long courseId,
-                                                         HttpServletRequest request) throws Exception {
+                                                         @RequestParam(value = "courseId", required = false) Long courseId) throws Exception {
         var userId = userService.getCurrentUserId();
         ensureCanSolve(userId, exerciseId, courseId);
         return exerciseAttemptService.getExistingExerciseAttempt(exerciseId, userId, courseId);
@@ -75,8 +71,7 @@ public class ExerciseController {
     @RequestMapping(value = {"createExerciseAttempt"}, method = { RequestMethod.GET })
     @ResponseBody
     public ExerciseAttemptDto createExerciseAttempt(@RequestParam Long exerciseId,
-                                                    @RequestParam(value = "courseId", required = false) Long courseId,
-                                                    HttpServletRequest request) throws Exception {
+                                                    @RequestParam(value = "courseId", required = false) Long courseId) throws Exception {
         var userId = userService.getCurrentUserId();
         ensureCanSolve(userId, exerciseId, courseId);
         return exerciseAttemptService.createExerciseAttempt(exerciseId, userId, courseId);
@@ -85,8 +80,7 @@ public class ExerciseController {
     @RequestMapping(value = {"createDebugExerciseAttempt"}, method = { RequestMethod.GET })
     @ResponseBody
     public ExerciseAttemptDto createDebugExerciseAttempt(@RequestParam Long exerciseId,
-                                                         @RequestParam(value = "courseId", required = false) Long courseId,
-                                                         HttpServletRequest request) throws Exception {
+                                                         @RequestParam(value = "courseId", required = false) Long courseId) throws Exception {
         var userId = userService.getCurrentUserId();
         authService.ensureAuthorized(userId, SystemPermission.EDIT_EXERCISE, authService.courseOrGlobal(courseId));
         exerciseService.ensureExerciseExists(exerciseId, courseId);

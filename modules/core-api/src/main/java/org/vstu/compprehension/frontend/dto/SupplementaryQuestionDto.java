@@ -6,11 +6,8 @@ import org.jetbrains.annotations.Nullable;
 import org.vstu.compprehension.frontend.dto.question.QuestionDto;
 
 @Getter @Setter
+@AllArgsConstructor
 public class SupplementaryQuestionDto {
-    private SupplementaryQuestionDto(@Nullable QuestionDto question, @Nullable SupplementaryFeedbackDto message) {
-        this.question = question;
-        this.message  = message;
-    }
     private @Nullable QuestionDto question;
     private @Nullable SupplementaryFeedbackDto message;
 
@@ -19,8 +16,5 @@ public class SupplementaryQuestionDto {
     }
     public static SupplementaryQuestionDto FromMessage(@NotNull SupplementaryFeedbackDto message) {
         return new SupplementaryQuestionDto(null, message);
-    }
-    public static SupplementaryQuestionDto Empty() {
-        return new SupplementaryQuestionDto(null, null);
     }
 }

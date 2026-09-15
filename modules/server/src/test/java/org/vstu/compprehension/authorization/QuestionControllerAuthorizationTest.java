@@ -1,5 +1,9 @@
 package org.vstu.compprehension.authorization;
 
+import org.vstu.compprehension.controllers.QuestionController;
+import org.vstu.compprehension.frontend.dto.AnswerDto;
+import org.vstu.compprehension.frontend.dto.InteractionDto;
+import org.vstu.compprehension.frontend.dto.SupplementaryQuestionRequestDto;
 import org.vstu.compprehension.infrastructure.TestData;
 
 import org.junit.jupiter.api.Test;
@@ -11,6 +15,8 @@ import static org.junit.jupiter.api.Assertions.assertDoesNotThrow;
 import static org.springframework.test.web.servlet.request.MockMvcRequestBuilders.get;
 import static org.springframework.test.web.servlet.request.MockMvcRequestBuilders.post;
 import static org.springframework.test.web.servlet.result.MockMvcResultMatchers.status;
+import static org.springframework.web.servlet.mvc.method.annotation.MvcUriComponentsBuilder.fromMethodCall;
+import static org.springframework.web.servlet.mvc.method.annotation.MvcUriComponentsBuilder.on;
 
 class QuestionControllerAuthorizationTest extends AbstractAuthorizationTest {
 
@@ -24,8 +30,8 @@ class QuestionControllerAuthorizationTest extends AbstractAuthorizationTest {
         actingAs(TestData.Users.GLOBAL_STUDENT_ID);
 
         // Act.
-        var result = mockMvc.perform(get("/api/question")
-                .param("questionId", String.valueOf(question.getId())));
+        var result = mockMvc.perform(get(fromMethodCall(on(QuestionController.class)
+                .getQuestion(question.getId())).build().toUri()));
 
         // Assert.
         result.andExpect(status().isForbidden());
@@ -39,8 +45,8 @@ class QuestionControllerAuthorizationTest extends AbstractAuthorizationTest {
         actingAs(TestData.Users.MAIN_COURSE_ASSISTANT_ID);
 
         // Act.
-        var result = mockMvc.perform(get("/api/question")
-                .param("questionId", String.valueOf(question.getId())));
+        var result = mockMvc.perform(get(fromMethodCall(on(QuestionController.class)
+                .getQuestion(question.getId())).build().toUri()));
 
         // Assert.
         result.andExpect(status().isForbidden());
@@ -52,12 +58,16 @@ class QuestionControllerAuthorizationTest extends AbstractAuthorizationTest {
         // Arrange.
         var question = createQuestion(createMainCourseAttempt());
         actingAs(TestData.Users.GLOBAL_STUDENT_ID);
-        var body = "{\"questionId\": " + question.getId() + ", \"answers\": []}";
+        var interaction = InteractionDto.builder()
+                .questionId(question.getId())
+                .answers(new AnswerDto[0])
+                .build();
 
         // Act.
-        var result = mockMvc.perform(post("/api/question/addQuestionAnswer")
+        var result = mockMvc.perform(post(fromMethodCall(on(QuestionController.class)
+                        .addQuestionAnswer(interaction)).build().toUri())
                 .contentType(MediaType.APPLICATION_JSON)
-                .content(body));
+                .content(toJson(interaction)));
 
         // Assert.
         result.andExpect(status().isForbidden());
@@ -69,12 +79,16 @@ class QuestionControllerAuthorizationTest extends AbstractAuthorizationTest {
         // Arrange.
         var question = createQuestion(createMainCourseAttempt());
         actingAs(TestData.Users.GLOBAL_STUDENT_ID);
-        var body = "{\"questionId\": " + question.getId() + ", \"answers\": []}";
+        var interaction = InteractionDto.builder()
+                .questionId(question.getId())
+                .answers(new AnswerDto[0])
+                .build();
 
         // Act.
-        var result = mockMvc.perform(post("/api/question/addSupplementaryQuestionAnswer")
+        var result = mockMvc.perform(post(fromMethodCall(on(QuestionController.class)
+                        .addSupplementaryQuestionAnswer(interaction)).build().toUri())
                 .contentType(MediaType.APPLICATION_JSON)
-                .content(body));
+                .content(toJson(interaction)));
 
         // Assert.
         result.andExpect(status().isForbidden());
@@ -87,13 +101,17 @@ class QuestionControllerAuthorizationTest extends AbstractAuthorizationTest {
         var attempt = createMainCourseAttempt();
         var question = createQuestion(attempt);
         actingAs(TestData.Users.GLOBAL_STUDENT_ID);
-        var body = "{\"questionId\": " + question.getId()
-                + ", \"exerciseAttemptId\": " + attempt.getId() + ", \"violationLaws\": []}";
+        var questionRequest = SupplementaryQuestionRequestDto.builder()
+                .questionId(question.getId())
+                .exerciseAttemptId(attempt.getId())
+                .violationLaws(new String[0])
+                .build();
 
         // Act.
-        var result = mockMvc.perform(post("/api/question/generateSupplementaryQuestion")
+        var result = mockMvc.perform(post(fromMethodCall(on(QuestionController.class)
+                        .generateSupplementaryQuestion(questionRequest)).build().toUri())
                 .contentType(MediaType.APPLICATION_JSON)
-                .content(body));
+                .content(toJson(questionRequest)));
 
         // Assert.
         result.andExpect(status().isForbidden());
@@ -107,8 +125,8 @@ class QuestionControllerAuthorizationTest extends AbstractAuthorizationTest {
         actingAs(TestData.Users.GLOBAL_STUDENT_ID);
 
         // Act.
-        var result = mockMvc.perform(get("/api/question/generateNextCorrectAnswer")
-                .param("questionId", String.valueOf(question.getId())));
+        var result = mockMvc.perform(get(fromMethodCall(on(QuestionController.class)
+                .generateNextCorrectAnswer(question.getId())).build().toUri()));
 
         // Assert.
         result.andExpect(status().isForbidden());
@@ -122,8 +140,8 @@ class QuestionControllerAuthorizationTest extends AbstractAuthorizationTest {
         actingAs(TestData.Users.GLOBAL_STUDENT_ID);
 
         // Act.
-        var result = mockMvc.perform(get("/api/question/generate")
-                .param("attemptId", String.valueOf(attempt.getId())));
+        var result = mockMvc.perform(get(fromMethodCall(on(QuestionController.class)
+                .generateQuestion(attempt.getId())).build().toUri()));
 
         // Assert.
         result.andExpect(status().isForbidden());
@@ -137,8 +155,8 @@ class QuestionControllerAuthorizationTest extends AbstractAuthorizationTest {
         actingAs(TestData.Users.MAIN_COURSE_ASSISTANT_ID);
 
         // Act.
-        var result = mockMvc.perform(get("/api/question/generate")
-                .param("attemptId", String.valueOf(attempt.getId())));
+        var result = mockMvc.perform(get(fromMethodCall(on(QuestionController.class)
+                .generateQuestion(attempt.getId())).build().toUri()));
 
         // Assert.
         result.andExpect(status().isForbidden());
@@ -151,8 +169,8 @@ class QuestionControllerAuthorizationTest extends AbstractAuthorizationTest {
         actingAs(TestData.Users.MAIN_COURSE_TEACHER_ID);
 
         // Act.
-        var result = mockMvc.perform(get("/api/question/generateByMetadata")
-                .param("metadataId", "1"));
+        var result = mockMvc.perform(get(fromMethodCall(on(QuestionController.class)
+                .generateQuestionByMetadata(1)).build().toUri()));
 
         // Assert.
         result.andExpect(status().isForbidden());
@@ -165,8 +183,8 @@ class QuestionControllerAuthorizationTest extends AbstractAuthorizationTest {
         actingAs(TestData.Users.GLOBAL_STUDENT_ID);
 
         // Act.
-        var result = mockMvc.perform(get("/api/question/generateByMetadata")
-                .param("metadataId", "1"));
+        var result = mockMvc.perform(get(fromMethodCall(on(QuestionController.class)
+                .generateQuestionByMetadata(1)).build().toUri()));
 
         // Assert.
         result.andExpect(status().isForbidden());
@@ -180,8 +198,8 @@ class QuestionControllerAuthorizationTest extends AbstractAuthorizationTest {
         actingAs(TestData.Users.GLOBAL_STUDENT_ID);
 
         // Act.
-        var result = mockMvc.perform(get("/api/question")
-                .param("questionId", String.valueOf(question.getId())));
+        var result = mockMvc.perform(get(fromMethodCall(on(QuestionController.class)
+                .getQuestion(question.getId())).build().toUri()));
 
         // Assert.
         result.andExpect(status().isForbidden());
@@ -195,8 +213,8 @@ class QuestionControllerAuthorizationTest extends AbstractAuthorizationTest {
         actingAs(TestData.Users.MAIN_COURSE_TEACHER_ID);
 
         // Act.
-        var result = mockMvc.perform(get("/api/question/generateNextCorrectAnswer")
-                .param("questionId", String.valueOf(question.getId())));
+        var result = mockMvc.perform(get(fromMethodCall(on(QuestionController.class)
+                .generateNextCorrectAnswer(question.getId())).build().toUri()));
 
         // Assert.
         result.andExpect(status().isForbidden());
