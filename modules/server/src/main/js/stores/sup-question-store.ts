@@ -76,7 +76,17 @@ export class SupplementaryQuestionStore {
             return;
         }
 
-        this.#onQuestionLoaded(dataEither.right.question, dataEither.right.message);
+        const data = dataEither.right;
+        switch (data.kind) {
+            case "QUESTION":
+                this.#onQuestionLoaded(data.question);
+                break;
+            case "FEEDBACK":
+                this.#onFeedbackLoaded(data.feedback);
+                break;
+            default:
+                absurd(data);
+        }
     }
 
     sendAnswers = async () => {
@@ -105,9 +115,9 @@ export class SupplementaryQuestionStore {
         this.answer = newAnswer;
     }
 
-    #onQuestionLoaded = (question?: Question | null, feedback?: SupplementaryFeedback | null) => {
+    #onQuestionLoaded = (question: Question) => {
         // add question id to answers
-        if (question?.options.requireContext) {
+        if (question.options.requireContext) {
             // regex searchs all tags with id='answer_id' and prepends them with question id
             const allMatches = question.text.matchAll(/(<\w.*?\sid\s*?=(['"]))\s*(answer_(\d+?))\2(.*?>)/igm);
             [...allMatches].forEach((match, matchIdx) => {
@@ -118,9 +128,16 @@ export class SupplementaryQuestionStore {
             })
         }
 
-        this.question      = question ?? undefined;
-        this.feedback      = feedback ?? undefined;
-        this.answer        = question?.responses ?? [];
-        this.questionState = !question ? 'COMPLETED' : 'LOADED';
+        this.question      = question;
+        this.feedback      = undefined;
+        this.answer        = question.responses ?? [];
+        this.questionState = 'LOADED';
+    }
+
+    #onFeedbackLoaded = (feedback: SupplementaryFeedback) => {
+        this.question      = undefined;
+        this.feedback      = feedback;
+        this.answer        = [];
+        this.questionState = 'COMPLETED';
     }
 }

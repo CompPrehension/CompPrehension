@@ -1588,7 +1588,6 @@
         "backend": "Jena"
       }
     ],
-    "positiveLaw": "single_token_binary_execution",
     "concepts": [
       {"name": "precedence"},
       {"name": "operator"},
@@ -3227,7 +3226,6 @@
   {
     "name": "type_test_error",
     "positive": false,
-    "positiveLaw": "type_test",
     "formulations": [
       {
         "name": "get_type",
@@ -3323,7 +3321,7 @@
   {
     "name": "error_base_higher_precedence_right",
     "displayName": "Приоритет справа",
-    "bitflags": 2,
+    "flags": ["TARGET_ENABLED"],
     "positive": false,
     "formulations": [
     ],
@@ -3336,7 +3334,7 @@
   {
     "name": "error_base_higher_precedence_left",
     "displayName": "Приоритет слева",
-    "bitflags": 2,
+    "flags": ["TARGET_ENABLED"],
     "positive": false,
     "formulations": [
     ],
@@ -3349,7 +3347,7 @@
   {
     "name": "error_base_higher_precedence_base",
     "displayName": "Приоритет операций",
-    "bitflags": 3,
+    "flags": ["VISIBLE_TO_TEACHER", "TARGET_ENABLED"],
     "positive": false,
     "impliesLaws": [
     	"error_base_higher_precedence_left",
@@ -3366,7 +3364,7 @@
   {
     "name": "error_base_same_precedence_left_associativity_left",
     "displayName": "Левая ассоциативность",
-    "bitflags": 2,
+    "flags": ["TARGET_ENABLED"],
     "positive": false,
     "impliesLaws": [
     	"error_base_unary_having_associativity_left",
@@ -3383,7 +3381,7 @@
   {
     "name": "error_base_unary_having_associativity_left",
     "displayName": "Унарные операции с левой ассоциативностью (постфиксные)",
-    "bitflags": 3,
+    "flags": ["VISIBLE_TO_TEACHER", "TARGET_ENABLED"],
     "positive": false,
     "formulations": [
     ],
@@ -3397,7 +3395,7 @@
   {
     "name": "error_base_binary_having_associativity_left",
     "displayName": "Бинарные операции с левой ассоциативностью",
-    "bitflags": 3,
+    "flags": ["VISIBLE_TO_TEACHER", "TARGET_ENABLED"],
     "positive": false,
     "formulations": [
     ],
@@ -3411,7 +3409,7 @@
   {
     "name": "error_base_same_precedence_right_associativity_right",
     "displayName": "Правая ассоциативность",
-    "bitflags": 2,
+    "flags": ["TARGET_ENABLED"],
     "positive": false,
     "impliesLaws": [
     	"error_base_unary_having_associativity_right",
@@ -3429,7 +3427,7 @@
   {
     "name": "error_base_unary_having_associativity_right",
     "displayName": "Унарные операции с правой ассоциативностью",
-    "bitflags": 3,
+    "flags": ["VISIBLE_TO_TEACHER", "TARGET_ENABLED"],
     "positive": false,
     "formulations": [
     ],
@@ -3443,7 +3441,7 @@
   {
     "name": "error_base_binary_having_associativity_right",
     "displayName": "Бинарные операции с правой ассоциативностью (присваивание)",
-    "bitflags": 3,
+    "flags": ["VISIBLE_TO_TEACHER", "TARGET_ENABLED"],
     "positive": false,
     "formulations": [
     ],
@@ -3457,7 +3455,7 @@
   {
     "name": "error_base_ternary_having_associativity_right",
     "displayName": "Тернарный оператор с правой ассоциативностью (?:) [не в PHP]",
-    "bitflags": 0,
+    "flags": [],
     "positive": false,
     "formulations": [
     ],
@@ -3471,7 +3469,7 @@
   {
     "name": "error_base_student_error_in_complex",
     "displayName": "Сгруппированные операнды ([], (), ?:)",
-    "bitflags": 2,
+    "flags": ["TARGET_ENABLED"],
     "positive": false,
     "impliesLaws": [
       "error_base_parenthesized_operators"
@@ -3488,7 +3486,7 @@
   {
     "name": "error_base_parenthesized_operators",
     "displayName": "Операнды в круглых группирующих скобках",
-    "bitflags": 2,
+    "flags": ["TARGET_ENABLED"],
     "positive": false,
     "formulations": [
     ],
@@ -3502,7 +3500,7 @@
   {
     "name": "error_base_enclosing_operators",
     "displayName": "Группирующие операции ([], f(), ?:)",
-    "bitflags": 3,
+    "flags": ["VISIBLE_TO_TEACHER", "TARGET_ENABLED"],
     "positive": false,
     "formulations": [
     ],
@@ -3516,7 +3514,7 @@
   {
     "name": "error_base_parentheses",
     "displayName": "Группировка скобками",
-    "bitflags": 2,
+    "flags": ["TARGET_ENABLED"],
     "positive": false,
     "impliesLaws": [
     	"error_base_student_error_in_complex"
@@ -3533,7 +3531,7 @@
   {
     "name": "error_base_parentheses_of_func_args",
     "displayName": "Группировка аргументов функции",
-    "bitflags": 2,
+    "flags": ["TARGET_ENABLED"],
     "positive": false,
     "impliesLaws": [
     	"error_base_student_error_in_complex"
@@ -3550,7 +3548,7 @@
   {
     "name": "error_base_grouping_braces",
     "displayName": "Группировка внутри [] и ?:",
-    "bitflags": 2,
+    "flags": ["TARGET_ENABLED"],
     "positive": false,
     "impliesLaws": [
     	"error_base_student_error_in_complex"
@@ -3567,7 +3565,7 @@
   {
     "name": "error_base_student_error_strict_operands_order",
     "displayName": "Операции со строгим порядком выполнения операндов (&&, ||, ?:)",
-    "bitflags": 3,
+    "flags": ["VISIBLE_TO_TEACHER", "TARGET_ENABLED"],
     "positive": false,
     "formulations": [
       {
@@ -3585,7 +3583,7 @@
   {
     "name": "error_base_student_error_unevaluated_operand",
     "displayName": "Невыполненный операнд",
-    "bitflags": 2,
+    "flags": ["TARGET_ENABLED"],
     "positive": false,
     "formulations": [
     ],

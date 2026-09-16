@@ -33,7 +33,7 @@ class QuestionMapperImpl implements QuestionMapper {
     public @NotNull QuestionData map(@NotNull QuestionEntity question,
                                      @NotNull List<InteractionEntity> interactions) {
         var content = QuestionContentData.builder()
-                .domainId(question.getDomainEntity().getName())
+                .domainId(question.getDomainId())
                 .questionType(question.getQuestionType())
                 .questionText(question.getQuestionText())
                 .questionName(question.getQuestionName())

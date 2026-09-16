@@ -14,7 +14,6 @@ import org.vstu.compprehension.businesslogic.*;
 import org.vstu.compprehension.businesslogic.backend.Fact;
 import org.vstu.compprehension.data.question.AnswerObjectData;
 import org.vstu.compprehension.data.exercise.ExerciseOptionsData;
-import org.vstu.compprehension.data.domain.DomainData;
 import org.vstu.compprehension.data.question.QuestionContentData;
 import org.vstu.compprehension.data.question.GeneratedQuestionData;
 import org.vstu.compprehension.data.question.QuestionData;
@@ -27,8 +26,6 @@ import java.util.*;
 
 public interface Domain {
     @NotNull String getDomainId();
-    @NotNull String getName();
-    @NotNull String getShortName();
     @NotNull String getDisplayName(Language language);
     @Nullable String getDescription(Language language);
 
@@ -36,16 +33,6 @@ public interface Domain {
      * Get domain-defined backend id, which determines the backend used to SOLVE/JUDGE this domain's questions
      */
     @NotNull String getBackendId();
-
-    /** Описание предметной области: имя, короткое имя, версия, опции. */
-    @NotNull DomainData getDomainData();
-
-    /**
-     * A temporary method to reuse DB-stored questions between Domains
-     * Is the same as {@link #getShortName()} by default
-     * FIXME - replace back to getShortName()
-     */
-    @NotNull String getShortnameForQuestionSearch();
 
     @NotNull Map<String, Tag> getTags();
     @NotNull List<Tag> getAllTags();
@@ -200,22 +187,20 @@ public interface Domain {
      */
     @NotNull List<HyperText> getFullSolutionTrace(@NotNull QuestionData question, @NotNull Language language);
 
-    /** Get concepts with given flags (e.g. visible) organized into two-level hierarchy
-     * @param requiredFlags e.g. Concept.FLAG_VISIBLE_TO_TEACHER
+    /** Get concepts with all given flags (e.g. visible) organized into two-level hierarchy
      * @return map representing groups of concepts (base concept -> concepts in the group)
      */
-    Map<Concept, List<Concept>> getConceptsSimplifiedHierarchy(int requiredFlags);
+    Map<Concept, List<Concept>> getConceptsSimplifiedHierarchy(DomainItemFlag... requiredFlags);
 
-    /** Get laws with given flags (e.g. visible) organized into two-level hierarchy
-     * @param requiredFlags e.g. Law.FLAG_VISIBLE_TO_TEACHER
+    /** Get laws with all given flags (e.g. visible) organized into two-level hierarchy
      * @return map representing groups of laws (base law -> laws in the group)
      */
-    Map<Law, List<Law>> getLawsSimplifiedHierarchy(int requiredFlags);
+    Map<Law, List<Law>> getLawsSimplifiedHierarchy(DomainItemFlag... requiredFlags);
 
     /** Get skills organized into one-level hierarchy
      * @return map representing groups of skills (base skill -> skills in the group)
      */
-    Map<Skill, List<Skill>> getSkillSimplifiedHierarchy(int bitflags);
+    Map<Skill, List<Skill>> getSkillSimplifiedHierarchy(DomainItemFlag... requiredFlags);
 
     QuestionContentData solveQuestion(QuestionContentData question, List<Tag> tags);
 

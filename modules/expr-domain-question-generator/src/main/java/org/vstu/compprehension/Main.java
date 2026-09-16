@@ -4,8 +4,6 @@ import com.beust.jcommander.JCommander;
 import com.beust.jcommander.Parameter;
 import com.beust.jcommander.ParameterException;
 import lombok.extern.log4j.Log4j2;
-import org.vstu.compprehension.data.domain.DomainData;
-import org.vstu.compprehension.data.domain.DomainOptionsData;
 import org.vstu.compprehension.adapters.*;
 import org.vstu.compprehension.repositories.entity.FakeDataAccess;
 import org.vstu.compprehension.businesslogic.domains.ProgrammingLanguageExpressionDTDomain;
@@ -53,11 +51,8 @@ public class Main {
 
         //ProgrammingLanguageExpressionDomain domain = (ProgrammingLanguageExpressionDomain) df.getDomain("ProgrammingLanguageExpressionDomain");
 
-        var domainData = new DomainData("expression", "expression", "1.0.0", new DomainOptionsData());
         var domain = new ProgrammingLanguageExpressionDTDomain(
-                domainData,
                 new ProgrammingLanguageExpressionDomain(
-                        domainData,
                         new FakeLocalizationService(),
                         new RandomProviderImpl(),
                         new QuestionBankImpl(FakeDataAccess.questionBank(), null)

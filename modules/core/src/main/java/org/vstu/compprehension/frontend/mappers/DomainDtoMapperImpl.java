@@ -3,6 +3,7 @@ package org.vstu.compprehension.frontend.mappers;
 import org.jetbrains.annotations.NotNull;
 import org.springframework.stereotype.Component;
 import org.vstu.compprehension.businesslogic.Concept;
+import org.vstu.compprehension.businesslogic.DomainItemFlag;
 import org.vstu.compprehension.businesslogic.Law;
 import org.vstu.compprehension.businesslogic.Skill;
 import org.vstu.compprehension.businesslogic.domains.Domain;
@@ -33,40 +34,40 @@ class DomainDtoMapperImpl implements DomainDtoMapper {
 
     private List<ConceptTreeItemDto> concepts(Domain domain, Language language) {
         Map<Concept, List<Concept>> hierarchy =
-                domain.getConceptsSimplifiedHierarchy(Concept.FLAG_VISIBLE_TO_TEACHER);
+                domain.getConceptsSimplifiedHierarchy(DomainItemFlag.VISIBLE_TO_TEACHER);
         return hierarchy.entrySet().stream()
                 .map(kv -> new ConceptTreeItemDto(
                         kv.getKey().getName(),
                         domain.getConceptDisplayName(kv.getKey().getName(), language),
-                        kv.getKey().getBitflags(),
+                        kv.getKey().hasFlag(DomainItemFlag.TARGET_ENABLED),
                         kv.getValue().stream()
                                 .map(child -> new ConceptTreeItemDto(
                                         child.getName(),
                                         domain.getConceptDisplayName(child.getName(), language),
-                                        child.getBitflags()))
+                                        child.hasFlag(DomainItemFlag.TARGET_ENABLED)))
                                 .toArray(ConceptTreeItemDto[]::new)))
                 .toList();
     }
 
     private List<LawTreeItemDto> laws(Domain domain, Language language) {
-        Map<Law, List<Law>> hierarchy = domain.getLawsSimplifiedHierarchy(Law.FLAG_VISIBLE_TO_TEACHER);
+        Map<Law, List<Law>> hierarchy = domain.getLawsSimplifiedHierarchy(DomainItemFlag.VISIBLE_TO_TEACHER);
         return hierarchy.entrySet().stream()
                 .map(kv -> new LawTreeItemDto(
                         kv.getKey().getName(),
                         domain.getLawDisplayName(kv.getKey().getName(), language),
-                        kv.getKey().getBitflags(),
+                        kv.getKey().hasFlag(DomainItemFlag.TARGET_ENABLED),
                         kv.getValue().stream()
                                 .map(child -> new LawTreeItemDto(
                                         child.getName(),
                                         domain.getLawDisplayName(child.getName(), language),
-                                        child.getBitflags()))
+                                        child.hasFlag(DomainItemFlag.TARGET_ENABLED)))
                                 .toArray(LawTreeItemDto[]::new)))
                 .toList();
     }
 
     private List<SkillTreeItemDto> skills(Domain domain, Language language) {
         Map<Skill, List<Skill>> hierarchy =
-                domain.getSkillSimplifiedHierarchy(Skill.FLAG_VISIBLE_TO_TEACHER);
+                domain.getSkillSimplifiedHierarchy(DomainItemFlag.VISIBLE_TO_TEACHER);
         return hierarchy.entrySet().stream()
                 .map(kv -> new SkillTreeItemDto(
                         kv.getKey().getName(),
@@ -76,9 +77,9 @@ class DomainDtoMapperImpl implements DomainDtoMapper {
                                         child.getName(),
                                         // Историческое: подпись дочернего умения берётся из законов.
                                         domain.getLawDisplayName(child.getName(), language),
-                                        child.getBitflags()))
+                                        child.hasFlag(DomainItemFlag.TARGET_ENABLED)))
                                 .toArray(SkillTreeItemDto[]::new),
-                        kv.getKey().getBitflags()))
+                        kv.getKey().hasFlag(DomainItemFlag.TARGET_ENABLED)))
                 .toList();
     }
 }

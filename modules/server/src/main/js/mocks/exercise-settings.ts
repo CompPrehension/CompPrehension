@@ -2,7 +2,7 @@ import { Domain, ExerciseCard, Strategy } from '../types/exercise-settings';
 
 export const mockDomains: Domain[] = [
     {
-        id: 'ProgrammingLanguageExpressionDomain',
+        id: 'expression',
         displayName: 'Expressions',
         description: 'Order of evaluation in expressions',
         tags: ['C++', 'basics'],
@@ -10,24 +10,24 @@ export const mockDomains: Domain[] = [
             {
                 name: 'operator_precedence',
                 displayName: 'Operator precedence',
-                bitflags: 1,
+                targetEnabled: false,
                 childs: [
-                    { name: 'operator_binary_precedence', displayName: 'Binary operators', bitflags: 2, childs: [] },
+                    { name: 'operator_binary_precedence', displayName: 'Binary operators', targetEnabled: true, childs: [] },
                 ],
             },
-            { name: 'operator_associativity', displayName: 'Operator associativity', bitflags: 4, childs: [] },
+            { name: 'operator_associativity', displayName: 'Operator associativity', targetEnabled: false, childs: [] },
         ],
         concepts: [
             {
                 name: 'operator',
                 displayName: 'Operator',
-                bitflags: 1,
+                targetEnabled: false,
                 childs: [
-                    { name: 'operator_binary_+', displayName: 'Binary +', bitflags: 2, childs: [] },
-                    { name: 'operator_binary_*', displayName: 'Binary *', bitflags: 4, childs: [] },
+                    { name: 'operator_binary_+', displayName: 'Binary +', targetEnabled: true, childs: [] },
+                    { name: 'operator_binary_*', displayName: 'Binary *', targetEnabled: false, childs: [] },
                 ],
             },
-            { name: 'precedence', displayName: 'Precedence', bitflags: 8, childs: [] },
+            { name: 'precedence', displayName: 'Precedence', targetEnabled: false, childs: [] },
         ],
         skills: [
             {

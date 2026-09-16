@@ -267,13 +267,10 @@ public class DecisionTreeSupQuestionHelper {
         );
     }
     private SupplementaryResponse stateResultAsSupplementaryResponse(QuestionStateResult q, @Nullable ExerciseOptionsData exerciseOptions, Language language){
-        if(q instanceof Question){
-            return new SupplementaryResponse(transformQuestionFormats((Question) q, exerciseOptions, language));
-        }
-        else {
-            QuestionStateChange change = ((QuestionStateChange) q);
-            return new SupplementaryResponse(stateChangeAsSupplementaryFeedbackDto(change));
-        }
+        return switch (q) {
+            case Question question -> new SupplementaryResponse.Question(transformQuestionFormats(question, exerciseOptions, language));
+            case QuestionStateChange questionStateChange -> new SupplementaryResponse.Feedback(stateChangeAsSupplementaryFeedbackDto(questionStateChange));
+        };
     }
 
     private SupplementarySituationData toSupplementarySituationData(QuestioningSituation situation) {

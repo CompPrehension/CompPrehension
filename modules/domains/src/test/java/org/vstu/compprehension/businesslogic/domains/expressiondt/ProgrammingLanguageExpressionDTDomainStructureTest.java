@@ -1,8 +1,7 @@
 package org.vstu.compprehension.businesslogic.domains.expressiondt;
 
 import org.junit.jupiter.api.Test;
-import org.vstu.compprehension.businesslogic.Concept;
-import org.vstu.compprehension.businesslogic.Skill;
+import org.vstu.compprehension.businesslogic.DomainItemFlag;
 import org.vstu.compprehension.businesslogic.domains.DomainBase;
 import org.vstu.compprehension.businesslogic.domains.DomainStructureContract;
 import org.vstu.compprehension.enums.InteractionType;
@@ -33,8 +32,7 @@ class ProgrammingLanguageExpressionDTDomainStructureTest extends DomainStructure
     @Test
     void domainIdentity() {
         // Act & Assert.
-        assertEquals("ProgrammingLanguageExpressionDTDomain", domain().getDomainId());
-        assertEquals("expression_dt", domain().getShortnameForQuestionSearch());
+        assertEquals("expression_dt", domain().getDomainId());
         assertEquals("DTReasoner", domain().getBackendId());
         assertFalse(domain().requiresSolving());
         assertNotNull(domain().getDefaultQuestionType(false));
@@ -51,16 +49,18 @@ class ProgrammingLanguageExpressionDTDomainStructureTest extends DomainStructure
 
         // Assert.
         assertNotNull(precedence);
-        assertTrue(precedence.hasFlag(Skill.FLAG_VISIBLE_TO_TEACHER));
+        assertTrue(precedence.hasFlag(DomainItemFlag.VISIBLE_TO_TEACHER));
         assertTrue(precedence.getBitmask() != 0);
         assertNotNull(arithmetics);
         assertNotNull(binaryPlus);
-        assertTrue(arithmetics.hasFlag(Concept.FLAG_VISIBLE_TO_TEACHER));
+        assertTrue(arithmetics.hasFlag(DomainItemFlag.VISIBLE_TO_TEACHER));
         assertTrue(binaryPlus.hasBaseConcept(arithmetics));
         assertTrue(binaryPlus.getBitmask() != 0);
         assertEquals(List.of(binaryPlus), domain().conceptsFromBitmask(binaryPlus.getBitmask()));
         assertNotNull(law);
         assertTrue(law.getBitmask() != 0);
+        assertTrue(law.hasFlag(DomainItemFlag.TARGET_ENABLED));
+        assertFalse(law.hasFlag(DomainItemFlag.VISIBLE_TO_TEACHER));
         assertFalse(domain().getPositiveLaws().isEmpty());
     }
 

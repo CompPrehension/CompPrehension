@@ -13,14 +13,14 @@ public class ConceptTreeItemDto {
     @Getter @NotNull
     private final String displayName;
     @Getter
-    private final int bitflags;
+    private final boolean targetEnabled;
     @Getter @NotNull
     private final ConceptTreeItemDto[] childs;
 
-    public ConceptTreeItemDto(@NotNull String name, @NotNull String displayName, int bitflags) {
+    public ConceptTreeItemDto(@NotNull String name, @NotNull String displayName, boolean targetEnabled) {
         this.name = name;
         this.displayName = displayName;
-        this.bitflags = bitflags;
+        this.targetEnabled = targetEnabled;
         this.childs = new ConceptTreeItemDto[0];
     }
 }

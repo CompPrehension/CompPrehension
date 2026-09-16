@@ -538,10 +538,10 @@ export class ExerciseSettingsStore {
 
         /*
         const sharedDomainLaws = this.domains.find(z => z.id === card.domainId)?.laws
-            .filter(l => (l.bitflags & DomainConceptFlag.TargetEnabled) === 0) ?? [];
+            .filter(l => !l.targetEnabled) ?? [];
         const sharedDomainConcepts = this.domains.find(z => z.id === card.domainId)?.concepts
             .flatMap(c => [c, ...c.childs])
-            .filter(c => (c.bitflags & DomainConceptFlag.TargetEnabled) === 0) ?? [];
+            .filter(c => !c.targetEnabled) ?? [];
         const sharedDomainSkills = this.domains.find(z => z.id === card.domainId)?.skills
             .flatMap(c => [c, ...c.childs]) ?? [];
         var stageConcepts = card.stages[0].concepts

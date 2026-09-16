@@ -28,8 +28,8 @@ public interface QuestionRepository extends JpaRepository<QuestionEntity, Long> 
             """)
     Optional<QuestionEntity> findByIdFetchingAnswerObjects(@Param("questionId") long questionId);
 
-    @Query("select q.domainEntity.name from QuestionEntity q where q.id = :questionId")
-    Optional<String> findDomainName(@Param("questionId") long questionId);
+    @Query("select q.domainId from QuestionEntity q where q.id = :questionId")
+    Optional<String> findDomainId(@Param("questionId") long questionId);
 
     /**
      * Id пользователя, которому принадлежит попытка, породившая вопрос.

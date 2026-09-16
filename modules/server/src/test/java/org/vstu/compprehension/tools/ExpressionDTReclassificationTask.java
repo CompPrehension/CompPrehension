@@ -34,11 +34,10 @@ public class ExpressionDTReclassificationTask extends AbstractIntegrationTest {
     private final Mapper<QuestionMetadataData, QuestionMetadataEntity> questionDataToMetadataMapper;
 
     private ProgrammingLanguageExpressionDTDomain domain;
-    public static final String domainId = "ProgrammingLanguageExpressionDTDomain";
 
     @BeforeAll
     public void tearUp() {
-        domain = (ProgrammingLanguageExpressionDTDomain) domainFactory.getDomain(domainId);
+        domain = (ProgrammingLanguageExpressionDTDomain) domainFactory.getDomain(ProgrammingLanguageExpressionDTDomain.DOMAIN_ID);
     }
 
     @Test
@@ -70,7 +69,7 @@ public class ExpressionDTReclassificationTask extends AbstractIntegrationTest {
         List<QuestionMetadataEntity> newMeta = new ArrayList<>();
 
         for (QuestionMetadataEntity meta : batchList) {
-            if (!meta.getDomainShortname().equals("expression_dt")) {
+            if (!meta.getDomainShortname().equals(domain.getDomainId())) {
                 continue;
             }
 

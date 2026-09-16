@@ -10,9 +10,6 @@ import org.vstu.compprehension.data.questionoptions.QuestionOptionsData;
 import org.vstu.compprehension.data.questionoptions.MultiChoiceOptionsData;
 import org.vstu.compprehension.data.questionoptions.MatchingQuestionOptionsData;
 import org.vstu.compprehension.data.questionoptions.SingleChoiceOptionsData;
-import com.google.gson.Gson;
-import com.google.gson.GsonBuilder;
-import com.google.gson.typeadapters.RuntimeTypeAdapterFactory;
 import its.model.definition.DomainModel;
 import lombok.SneakyThrows;
 import lombok.extern.log4j.Log4j2;
@@ -45,7 +42,6 @@ import org.vstu.compprehension.data.question.AnswerObjectData;
 import org.vstu.compprehension.data.question.ResponseData;
 import org.vstu.compprehension.services.LocalizationService;
 import org.vstu.compprehension.common.StringHelper;
-import org.vstu.compprehension.data.domain.DomainData;
 import org.vstu.compprehension.businesslogic.*;
 import org.vstu.compprehension.businesslogic.backend.JenaBackend;
 import org.vstu.compprehension.businesslogic.backend.Fact;
@@ -65,8 +61,6 @@ import org.vstu.compprehension.businesslogic.HyperText;
 import org.vstu.meaningtree.SupportedLanguage;
 
 import java.io.InputStream;
-import java.io.InputStreamReader;
-import java.nio.charset.StandardCharsets;
 import java.nio.file.Path;
 import java.util.*;
 import java.util.stream.Collectors;
@@ -77,6 +71,7 @@ import static java.lang.Math.random;
 
 @Log4j2
 public class ProgrammingLanguageExpressionDomain extends JenaReasoningDomain {
+    public static final String DOMAIN_ID = "expression";
     static final String EVALUATION_ORDER_QUESTION_TYPE = "OrderOperators";
     static final String EVALUATION_ORDER_SUPPLEMENTARY_QUESTION_TYPE = "OrderOperatorsSupplementary";
     static final String OPERANDS_TYPE_QUESTION_TYPE = "OperandsType";
@@ -113,12 +108,11 @@ public class ProgrammingLanguageExpressionDomain extends JenaReasoningDomain {
 
     @SneakyThrows
     public ProgrammingLanguageExpressionDomain(
-            DomainData domainData,
             LocalizationService localizationService,
             RandomProvider randomProvider,
             QuestionBank qMetaStorage) {
 
-        super(domainData, randomProvider);
+        super(DOMAIN_ID, randomProvider, new DomainStructure(buildConcepts(), Map.of(), buildLaws()));
 
         this.localizationService = localizationService;
         this.qMetaStorage = qMetaStorage;
@@ -127,214 +121,151 @@ public class ProgrammingLanguageExpressionDomain extends JenaReasoningDomain {
                 this.getClass().getClassLoader().getResource(DOMAIN_MODEL_DIRECTORY),
                 this::mainQuestionToModel
         );
-
-        fillConcepts();
-        readLaws(this.getClass().getClassLoader().getResourceAsStream(LAWS_CONFIG_PATH));
     }
 
-    private void fillConcepts() {
-        concepts = new HashMap<>();
+    private static Map<String, Concept> buildConcepts() {
+        var b = new ConceptsBuilder();
 
-        int flags = Concept.FLAG_VISIBLE_TO_TEACHER | Concept.FLAG_TARGET_ENABLED;
-        int invisible = Concept.FLAG_TARGET_ENABLED;
-        int noFlags = Concept.DEFAULT_FLAGS;
+        var flags = EnumSet.of(DomainItemFlag.VISIBLE_TO_TEACHER, DomainItemFlag.TARGET_ENABLED);
+        var invisible = EnumSet.of(DomainItemFlag.TARGET_ENABLED);
+        var noFlags = EnumSet.noneOf(DomainItemFlag.class);
 
-        Concept operandConcept = addConcept("operand");
-        Concept simpleOperandConcept = addConcept("simple_operand");
-        Concept operatorConcept = addConcept("operator", List.of(operandConcept));
-        Concept variableConcept = addConcept("variable", List.of(simpleOperandConcept));
-        Concept literalConcept = addConcept("literal", List.of(simpleOperandConcept));
-        Concept precedenceConcept = addConcept("precedence");
-        Concept associativityConcept = addConcept("associativity");
-        Concept leftAssociativityConcept = addConcept("left_associativity", List.of(associativityConcept));
-        Concept rightAssociativityConcept = addConcept("right_associativity", List.of(associativityConcept));
-        Concept assignConcept = addConcept("operator_=", List.of(rightAssociativityConcept), "Оператор присваивания", flags);
-        Concept absentAssociativityConcept = addConcept("absent_associativity", List.of(associativityConcept));
-        Concept arityConcept = addConcept("arity");
-        Concept unaryConcept = addConcept("unary", List.of(arityConcept), "Унарные операции", invisible);
-        Concept binaryConcept = addConcept("binary", List.of(arityConcept), "Бинарные операции", invisible);
-        Concept ternaryConcept = addConcept("ternary", List.of(arityConcept));
-        Concept singleTokenOperatorConcept = addConcept("single_token");
-        Concept twoTokenOperatorConcept = addConcept("two_token");
-        Concept singleTokenUnaryConcept = addConcept("single_token_unary", List.of(singleTokenOperatorConcept, unaryConcept));
-        Concept singleTokenBinaryConcept = addConcept("single_token_binary", List.of(singleTokenOperatorConcept, binaryConcept));
-        Concept twoTokenUnaryConcept = addConcept("two_token_unary", List.of(twoTokenOperatorConcept, unaryConcept));
-        Concept twoTokenBinaryConcept = addConcept("two_token_binary", List.of(twoTokenOperatorConcept, binaryConcept));
-        Concept twoTokenTernaryConcept = addConcept("two_token_ternary", List.of(twoTokenOperatorConcept, binaryConcept, ternaryConcept));
-        Concept operatorEvaluationStateConcept = addConcept("operator_evaluation_state");
-        Concept operatorEvaluatingLeftOperandFirstConcept = addConcept("operator_evaluating_left_operand_first", List.of(binaryConcept, operatorEvaluationStateConcept));
+        Concept operandConcept = b.add("operand");
+        Concept simpleOperandConcept = b.add("simple_operand");
+        b.add("operator", 0x1L, List.of(operandConcept), noFlags);
+        b.add("variable", List.of(simpleOperandConcept));
+        b.add("literal", List.of(simpleOperandConcept));
+        b.add("precedence", 0x40L, List.of(), noFlags);
+        Concept associativityConcept = b.add("associativity", 0x80L, List.of(), noFlags);
+        b.add("left_associativity", List.of(associativityConcept));
+        Concept rightAssociativityConcept = b.add("right_associativity", List.of(associativityConcept));
+        b.add("operator_=", 0x2000L, List.of(rightAssociativityConcept), flags);
+        b.add("absent_associativity", List.of(associativityConcept));
+        Concept arityConcept = b.add("arity");
+        Concept unaryConcept = b.add("unary", List.of(arityConcept), invisible);
+        Concept binaryConcept = b.add("binary", List.of(arityConcept), invisible);
+        Concept ternaryConcept = b.add("ternary", List.of(arityConcept));
+        Concept singleTokenOperatorConcept = b.add("single_token");
+        Concept twoTokenOperatorConcept = b.add("two_token");
+        Concept singleTokenUnaryConcept = b.add("single_token_unary", List.of(singleTokenOperatorConcept, unaryConcept));
+        Concept singleTokenBinaryConcept = b.add("single_token_binary", List.of(singleTokenOperatorConcept, binaryConcept));
+        Concept twoTokenUnaryConcept = b.add("two_token_unary", List.of(twoTokenOperatorConcept, unaryConcept));
+        Concept twoTokenBinaryConcept = b.add("two_token_binary", List.of(twoTokenOperatorConcept, binaryConcept));
+        Concept twoTokenTernaryConcept = b.add("two_token_ternary", List.of(twoTokenOperatorConcept, binaryConcept, ternaryConcept));
+        Concept operatorEvaluationStateConcept = b.add("operator_evaluation_state");
+        Concept operatorEvaluatingLeftOperandFirstConcept = b.add("operator_evaluating_left_operand_first", List.of(binaryConcept, operatorEvaluationStateConcept));
 
-        Concept arithmetics = addConcept("arithmetics", List.of(), "Арифметические операции", flags);
-        Concept operatorBinaryPlusConcept = addConcept("operator_binary_+", List.of(singleTokenBinaryConcept, arithmetics), "x + y", invisible);
-        Concept operatorBinaryMinusConcept = addConcept("operator_binary_-", List.of(singleTokenBinaryConcept, arithmetics), "x - y", invisible);
-        Concept operatorBinaryMultipleConcept = addConcept("operator_binary_*", List.of(singleTokenBinaryConcept, arithmetics), "x * y", invisible);
-        Concept operatorBinaryDivideConcept = addConcept("operator_/", List.of(singleTokenBinaryConcept, arithmetics), "x / y", invisible);
-        Concept operatorUnaryPlusConcept = addConcept("operator_unary_+", List.of(singleTokenUnaryConcept, arithmetics), "+z", invisible);
-        Concept operatorUnaryMinusConcept = addConcept("operator_unary_-", List.of(singleTokenUnaryConcept, arithmetics), "-z", invisible);
-        Concept operatorBinaryDivideIntConcept = addConcept("operator_//", List.of(singleTokenBinaryConcept, arithmetics), "x // y", invisible);  // Python only
-        Concept operatorMatMulConcept = addConcept("operator_@", List.of(singleTokenBinaryConcept, arithmetics), "x @ y", invisible);  // Python only
-        Concept operatorModConcept = addConcept("operator_%", List.of(singleTokenBinaryConcept, arithmetics), "x % y", invisible);
+        Concept arithmetics = b.add("arithmetics", List.of(), flags);
+        b.add("operator_binary_+", 0x4000L, List.of(singleTokenBinaryConcept, arithmetics), invisible);
+        b.add("operator_binary_-", 0x400L, List.of(singleTokenBinaryConcept, arithmetics), invisible);
+        b.add("operator_binary_*", 0x20000L, List.of(singleTokenBinaryConcept, arithmetics), invisible);
+        b.add("operator_/", 0x8000L, List.of(singleTokenBinaryConcept, arithmetics), invisible);
+        b.add("operator_unary_+", 0x200000000L, List.of(singleTokenUnaryConcept, arithmetics), invisible);
+        b.add("operator_unary_-", 0x80000L, List.of(singleTokenUnaryConcept, arithmetics), invisible);
+        b.add("operator_//", 0x2000000000000L, List.of(singleTokenBinaryConcept, arithmetics), invisible);  // Python only
+        b.add("operator_@", 0x1000000000000L, List.of(singleTokenBinaryConcept, arithmetics), invisible);  // Python only
+        b.add("operator_%", 0x4000000L, List.of(singleTokenBinaryConcept, arithmetics), invisible);
 
-        Concept incrementConcept = addConcept("increment", List.of(unaryConcept), "Инкремент и декремент", flags);
-        Concept prefixOperatorConcept = addConcept("prefix", List.of(incrementConcept));
-        Concept postfixOperatorConcept = addConcept("postfix", List.of(incrementConcept));
-        Concept operatorPrefixIncrementConcept = addConcept("operator_prefix_++", List.of(singleTokenUnaryConcept, prefixOperatorConcept), "++z", invisible);
-        Concept operatorPrefixDecrementConcept = addConcept("operator_prefix_--", List.of(singleTokenUnaryConcept, prefixOperatorConcept), "--z", invisible);
-        Concept operatorPostfixIncrementConcept = addConcept("operator_postfix_++", List.of(singleTokenUnaryConcept, postfixOperatorConcept), "z++", invisible);
-        Concept operatorPostfixDecrementConcept = addConcept("operator_postfix_--", List.of(singleTokenUnaryConcept, postfixOperatorConcept), "z--", invisible);
+        Concept incrementConcept = b.add("increment", List.of(unaryConcept), flags);
+        Concept prefixOperatorConcept = b.add("prefix", List.of(incrementConcept));
+        Concept postfixOperatorConcept = b.add("postfix", List.of(incrementConcept));
+        b.add("operator_prefix_++", 0x80000000000L, List.of(singleTokenUnaryConcept, prefixOperatorConcept), invisible);
+        b.add("operator_prefix_--", 0x100000000000L, List.of(singleTokenUnaryConcept, prefixOperatorConcept), invisible);
+        b.add("operator_postfix_++", 0x1000000L, List.of(singleTokenUnaryConcept, postfixOperatorConcept), invisible);
+        b.add("operator_postfix_--", 0x8000000L, List.of(singleTokenUnaryConcept, postfixOperatorConcept), invisible);
 
 
-        Concept aug_assignments = addConcept("aug_assignments", List.of(singleTokenBinaryConcept), "Присваивания с обновлением", flags);
-        addConcept("operator_+=", List.of(aug_assignments), "a += b", invisible);
-        addConcept("operator_-=", List.of(aug_assignments), "a -= b", invisible);
-        addConcept("operator_*=", List.of(aug_assignments), "a *= b", invisible);
-        addConcept("operator_/=", List.of(aug_assignments), "a /= b", invisible);
-        addConcept("operator_%=", List.of(aug_assignments), "a %= b", invisible);
-        addConcept("operator_&=", List.of(aug_assignments), "a &= b", invisible);
-        addConcept("operator_|=", List.of(aug_assignments), "a |= b", invisible);
-        addConcept("operator_^=", List.of(aug_assignments), "a ^= b", invisible);
-        addConcept("operator_<<=",List.of(aug_assignments), "a <<= b", invisible);
-        addConcept("operator_>>=",List.of(aug_assignments), "a >>= b", invisible);
-        addConcept("operator_:=", List.of(aug_assignments), "a := b", invisible);  // Python only
+        Concept aug_assignments = b.add("aug_assignments", List.of(singleTokenBinaryConcept), flags);
+        b.add("operator_+=", 0x20000000L, List.of(aug_assignments), invisible);
+        b.add("operator_-=", 0x400000000L, List.of(aug_assignments), invisible);
+        b.add("operator_*=", List.of(aug_assignments), invisible);
+        b.add("operator_/=", 0x800000000L, List.of(aug_assignments), invisible);
+        b.add("operator_%=", List.of(aug_assignments), invisible);
+        b.add("operator_&=", 0x100000000L, List.of(aug_assignments), invisible);
+        b.add("operator_|=", 0x40000000L, List.of(aug_assignments), invisible);
+        b.add("operator_^=", List.of(aug_assignments), invisible);
+        b.add("operator_<<=", 0x1000000000L, List.of(aug_assignments), invisible);
+        b.add("operator_>>=", 0x2000000000L, List.of(aug_assignments), invisible);
+        b.add("operator_:=", 0x200000000000L, List.of(aug_assignments), invisible);  // Python only
 
-        Concept comparison = addConcept("comparison", List.of(singleTokenBinaryConcept), "Операции сравнения", flags);
-        Concept operatorEqualsConcept = addConcept("operator_==", List.of(comparison), "a == b", invisible);
-        Concept operatorInequalConcept = addConcept("operator_!=", List.of(comparison), "a != b", invisible);
-        Concept operatorLtConcept = addConcept("operator_<", List.of(comparison), "a < b", invisible);
-        Concept operatorGtConcept = addConcept("operator_>", List.of(comparison), "a > b", invisible);
-        Concept operatorLeConcept = addConcept("operator_<=", List.of(comparison), "a <= b", invisible);
-        Concept operatorGeConcept = addConcept("operator_>=", List.of(comparison), "a >= b", invisible);
-        Concept operatorEqConcept = addConcept("operator_<=>", List.of(comparison), "a <=> b", invisible);
-        Concept operatorIsConcept = addConcept("operator_is", List.of(comparison), "a is b", invisible);  // Python only
-        Concept operatorInConcept = addConcept("operator_in", List.of(comparison), "a in b", invisible);  // Python only
+        Concept comparison = b.add("comparison", List.of(singleTokenBinaryConcept), flags);
+        b.add("operator_==", 0x4L, List.of(comparison), invisible);
+        b.add("operator_!=", 0x100L, List.of(comparison), invisible);
+        b.add("operator_<", 0x400000L, List.of(comparison), invisible);
+        b.add("operator_>", 0x800000L, List.of(comparison), invisible);
+        b.add("operator_<=", 0x20L, List.of(comparison), invisible);
+        b.add("operator_>=", 0x200L, List.of(comparison), invisible);
+        b.add("operator_<=>", List.of(comparison), invisible);
+        b.add("operator_is", 0x400000000000L, List.of(comparison), invisible);  // Python only
+        b.add("operator_in", 0x800000000000L, List.of(comparison), invisible);  // Python only
 
-        Concept logical = addConcept("logical", List.of(), "Логические операции", flags);
-        addConcept("operator_!", List.of(singleTokenUnaryConcept, logical), "!a", invisible);
-        addConcept("operator_&&", List.of(singleTokenBinaryConcept, logical), "a && b", invisible);
-        addConcept("operator_||", List.of(singleTokenBinaryConcept, logical), "a || b", invisible);
-        addConcept("operator_and", List.of(singleTokenBinaryConcept, logical), "a and b", invisible);  // Python only
-        addConcept("operator_or", List.of(singleTokenBinaryConcept, logical), "a or b", invisible);  // Python only
+        Concept logical = b.add("logical", List.of(), flags);
+        b.add("operator_!", 0x8L, List.of(singleTokenUnaryConcept, logical), invisible);
+        b.add("operator_&&", 0x10L, List.of(singleTokenBinaryConcept, logical), invisible);
+        b.add("operator_||", 0x800L, List.of(singleTokenBinaryConcept, logical), invisible);
+        b.add("operator_and", 0x10L, List.of(singleTokenBinaryConcept, logical), invisible);  // Python only
+        b.add("operator_or", 0x800L, List.of(singleTokenBinaryConcept, logical), invisible);  // Python only
 
-        Concept stream_io = addConcept("stream_io", List.of(), "Потоковый in/out", flags);
-        Concept bitwise = addConcept("bitwise", List.of(), "Побитовые операции", flags);
-        addConcept("operator_~", List.of(singleTokenUnaryConcept, bitwise), "~b", invisible);
-        addConcept("operator_binary_&", List.of(singleTokenBinaryConcept, bitwise), "a & b", invisible);
-        addConcept("operator_|", List.of(singleTokenBinaryConcept, bitwise), "a | b", invisible);
-        addConcept("operator_^", List.of(singleTokenBinaryConcept, bitwise), "a ^ b", invisible);
+        b.add("stream_io", 0x20000000000000L, List.of(), flags);
+        Concept bitwise = b.add("bitwise", List.of(), flags);
+        b.add("operator_~", 0x80000000L, List.of(singleTokenUnaryConcept, bitwise), invisible);
+        b.add("operator_binary_&", 0x2000000L, List.of(singleTokenBinaryConcept, bitwise), invisible);
+        b.add("operator_|", 0x100000L, List.of(singleTokenBinaryConcept, bitwise), invisible);
+        b.add("operator_^", 0x200000L, List.of(singleTokenBinaryConcept, bitwise), invisible);
         // see also stream_io below (duplicates under different category)
-        addConcept("operator_>>", List.of(singleTokenBinaryConcept, bitwise), "a >> b", invisible);
-        addConcept("operator_<<", List.of(singleTokenBinaryConcept, bitwise), "a << b", invisible);
+        b.add("operator_>>", 0x10000000L, List.of(singleTokenBinaryConcept, bitwise), invisible);
+        b.add("operator_<<", 0x40000L, List.of(singleTokenBinaryConcept, bitwise), invisible);
 
-        Concept arrays = addConcept("arrays", List.of(), "Массивы", noFlags);
-        Concept subscriptConcept = addConcept("operator_subscript", List.of(twoTokenBinaryConcept, arrays), "Индексация массива a[i]", flags);
-        Concept collections = addConcept("collection_literal", List.of(arrays), "Литералы коллекций и массивов", flags);
+        Concept arrays = b.add("arrays", List.of(), noFlags);
+        b.add("operator_subscript", 0x40000000000L, List.of(twoTokenBinaryConcept, arrays), flags);
+        b.add("collection_literal", 0x80000000000000L, List.of(arrays), flags);
 
-        Concept pointers = addConcept("pointers", List.of(singleTokenUnaryConcept), "Операции c указателями", flags);
-        addConcept("operator_unary_*", List.of(pointers), "*ptr", invisible);
-        addConcept("operator_&", List.of(pointers), "&val", invisible);
+        Concept pointers = b.add("pointers", List.of(singleTokenUnaryConcept), flags);
+        b.add("operator_unary_*", 0x10000L, List.of(pointers), invisible);
+        b.add("operator_&", 0x1000L, List.of(pointers), invisible);
 
-        Concept fieldAccess = addConcept("object_access", List.of(), "Обращение к полю", flags);
-        addConcept("operator_.", List.of(singleTokenBinaryConcept, fieldAccess), "obj.field", invisible);
-        addConcept("operator_->",List.of(singleTokenBinaryConcept, fieldAccess, pointers), "ptr->field", invisible);
+        Concept fieldAccess = b.add("object_access", List.of(), flags);
+        b.add("operator_.", 0x20000000000L, List.of(singleTokenBinaryConcept, fieldAccess), invisible);
+        b.add("operator_->", 0x8000000000L, List.of(singleTokenBinaryConcept, fieldAccess, pointers), invisible);
 
-        Concept functionCallConcept = addConcept("function_call", List.of(twoTokenUnaryConcept), "Вызов функции", invisible);
-        Concept functionCallConcept_2 = addConcept("operator_function_call", List.of(twoTokenUnaryConcept), "Вызов функции", flags);
-        Concept operatorTernaryConcept = addConcept("operator_?", List.of(twoTokenTernaryConcept, operatorEvaluatingLeftOperandFirstConcept), "Тернарный оператор (?:)", flags);  // c ? a : b
+        b.add("function_call", 0x10000000000L, List.of(twoTokenUnaryConcept), invisible);
+        b.add("operator_function_call", 0x10000000000L, List.of(twoTokenUnaryConcept), flags);
+        b.add("operator_?", 0x4000000000000L, List.of(twoTokenTernaryConcept, operatorEvaluatingLeftOperandFirstConcept), flags);  // c ? a : b
 
-        Concept operatorBinaryCommaConcept = addConcept("operator_,", List.of(singleTokenBinaryConcept), "Запятая между выражениями", flags);
-        Concept operatorNew = addConcept("operator_new", List.of(), "Создание нового динамического объекта или массива", flags);
+        b.add("operator_,", 0x2L, List.of(singleTokenBinaryConcept), flags);
+        b.add("operator_new", 0x40000000000000L, List.of(), flags);
 
-        addConcept("operator_cast", List.of(twoTokenUnaryConcept), "(type)a", flags);
-        addConcept("operator_sizeof", List.of(twoTokenUnaryConcept), "sizeof(int)", flags);
+        b.add("operator_cast", 0x10000000000000L, List.of(twoTokenUnaryConcept), flags);
+        b.add("operator_sizeof", 0x8000000000000L, List.of(twoTokenUnaryConcept), flags);
 
         // currently, absent in the data:
 //        Concept namespace_static = addConcept("namespace_static", List.of(), "Пространство имён", noFlags);
 //        addConcept("operator_:", List.of(singleTokenBinaryConcept, namespace_static), "Class:member", invisible);
 //        addConcept("operator_::", List.of(singleTokenBinaryConcept, namespace_static), "space::member", invisible);
 
-        Concept typeConcept = addConcept("type");
-        Concept operandsTypeConcept = addConcept("operands_type");
-        Concept precedenceTypeConcept = addConcept("precedence_type");
-        Concept systemIntegrationTestConcept = addConcept("SystemIntegrationTest");
-        Concept error = addConcept("error");
-        Concept errorHigherPrecedenceLeft = addConcept("error_base_higher_precedence_left");
-        Concept errorHigherPrecedenceRight = addConcept("error_base_higher_precedence_right");
-        Concept errorSamePrecedenceLeftAssociativityLeft = addConcept("error_base_same_precedence_left_associativity_left");
-        Concept errorSamePrecedenceRightAssociativityRight = addConcept("error_base_same_precedence_right_associativity_right");
-        Concept errorInComplex = addConcept("error_base_student_error_in_complex");
-        Concept errorStrictOperandsOrder = addConcept("error_base_student_error_strict_operands_order");
-        Concept errorUnevaluatedOperand = addConcept("error_base_student_error_unevaluated_operand");
-        Concept errorEarlyFinish = addConcept("error_base_student_error_early_finish");
+        b.add("type");
+        b.add("operands_type");
+        b.add("precedence_type");
+        b.add("SystemIntegrationTest");
+        b.add("error");
+        b.add("error_base_higher_precedence_left");
+        b.add("error_base_higher_precedence_right");
+        b.add("error_base_same_precedence_left_associativity_left");
+        b.add("error_base_same_precedence_right_associativity_right");
+        b.add("error_base_student_error_in_complex");
+        b.add("error_base_student_error_strict_operands_order");
+        b.add("error_base_student_error_unevaluated_operand");
+        b.add("error_base_student_error_early_finish");
 
-        fillConceptTree();
-
-        // assign mask bits to Concepts
-        val name2bit = _getConceptsName2bit();
-        for (Concept t : concepts.values()) {
-            val name = t.getName();
-            if (name2bit.containsKey(name)) {
-                t.setBitmask(name2bit.get(name));
-            }
-        }
+        return b.build();
     }
 
-    private Concept addConcept(String name, List<Concept> baseConcepts, String displayName, int flags) {
-        Concept concept = new Concept(name, /*displayName,*/ baseConcepts, flags);
-        return addConcept(concept);
-    }
-
-    private Concept addConcept(String name, List<Concept> baseConcepts) {
-        Concept concept = new Concept(name, baseConcepts);
-        return addConcept(concept);
-    }
-
-    private Concept addConcept(String name) {
-        Concept concept = new Concept(name);
-        return addConcept(concept);
-    }
-
-    private void readLaws(InputStream inputStream) {
-        positiveLaws = new HashMap<>();
-        negativeLaws = new HashMap<>();
-
-        RuntimeTypeAdapterFactory<Law> runtimeTypeAdapterFactory =
-                RuntimeTypeAdapterFactory
-                        .of(Law.class, "positive")
-                        .registerSubtype(PositiveLaw.class, "true")
-                        .registerSubtype(NegativeLaw.class, "false");
-        Gson gson = new GsonBuilder()
-                .setDateFormat("yyyy-MM-dd'T'HH:mm:ss'Z'")
-                .registerTypeAdapterFactory(runtimeTypeAdapterFactory).create();
-
-        Law[] lawForms = gson.fromJson(
-                new InputStreamReader(inputStream, StandardCharsets.UTF_8),
-                Law[].class);
-
-        for (Law lawForm : lawForms) {
-            if (lawForm.isPositiveLaw()) {
-                positiveLaws.put(lawForm.getName(), (PositiveLaw) lawForm);
-            } else {
-                negativeLaws.put(lawForm.getName(), (NegativeLaw) lawForm);
-            }
-        }
-
-        fillLawsTree();
-
-        // assign mask bits to Laws
-        var name2bit = _getLawsName2bit();
-        for (Law t : positiveLaws.values()) {
-            val name = t.getName();
-            if (name2bit.containsKey(name)) {
-                t.setBitmask(name2bit.get(name));
-            }
-        }
-        name2bit = _getViolationsName2bit();
-        for (Law t : negativeLaws.values()) {
-            val name = t.getName();
-            if (name2bit.containsKey(name)) {
-                t.setBitmask(name2bit.get(name));
-            }
-        }
+    private static Laws buildLaws() {
+        return new LawsBuilder()
+                .addAll(readLawsJson(ProgrammingLanguageExpressionDomain.class.getClassLoader().getResourceAsStream(LAWS_CONFIG_PATH)))
+                .bits(lawBits())
+                .bits(violationBits())
+                .build();
     }
 
     @NotNull
@@ -2160,7 +2091,7 @@ QuestionOptionsData orderQuestionOptions = OrderQuestionOptionsData.builder()
                 .name(questionName)
                 .templateId(templateName)
                 .origin(origin)
-                .domainShortname(this.getShortName())
+                .domainShortname(this.getDomainId())
                 .version(GENERATED_QUESTIONS_VERSION)
                 .tagBits(tagNames.stream().map(this::getTag).filter(Objects::nonNull).map(Tag::getBitmask).reduce((a, b) -> a | b).orElse(0L))
                 .lawBits(lawNames.stream().map(this::getPositiveLaw).filter(Objects::nonNull).map(Law::getBitmask).reduce((a, b) -> a | b).orElse(0L)) // positive only laws
@@ -2468,71 +2399,7 @@ QuestionOptionsData orderQuestionOptions = OrderQuestionOptionsData.builder()
         return responses;
     }
 
-    private HashMap<String, Long> _getConceptsName2bit() {
-        HashMap<String, Long> name2bit = new HashMap<>(26);
-        name2bit.put("operator", 0x1L);  	// (1)
-        name2bit.put("operator_,", 0x2L);  	// (2)
-        name2bit.put("operator_==", 0x4L);  	// (4)
-        name2bit.put("operator_!", 0x8L);  	// (8)
-        name2bit.put("operator_&&", 0x10L);  	// (16)
-        name2bit.put("operator_and", 0x10L);  	// (16)
-        name2bit.put("operator_<=", 0x20L);  	// (32)
-        name2bit.put("precedence", 0x40L);  	// (64)
-        name2bit.put("associativity", 0x80L);  	// (128)
-        name2bit.put("operator_!=", 0x100L);  	// (256)
-        name2bit.put("operator_>=", 0x200L);  	// (512)
-        name2bit.put("operator_binary_-", 0x400L);  	// (1024)
-        name2bit.put("operator_||", 0x800L);  	// (2048)
-        name2bit.put("operator_or", 0x800L);  	// (2048)
-        name2bit.put("operator_&", 0x1000L);  	// (4096)
-        name2bit.put("operator_=", 0x2000L);  	// (8192)
-        name2bit.put("operator_binary_+", 0x4000L);  	// (16384)
-        name2bit.put("operator_/", 0x8000L);  	// (32768)
-        name2bit.put("operator_unary_*", 0x10000L);  	// (65536)
-        name2bit.put("operator_binary_*", 0x20000L);  	// (131072)
-        name2bit.put("operator_<<", 0x40000L);  	// (262144)
-        name2bit.put("operator_unary_-", 0x80000L);  	// (524288)
-        name2bit.put("operator_|", 0x100000L);  	// (1048576)
-        name2bit.put("operator_^", 0x200000L);  	// (2097152)
-        name2bit.put("operator_<", 0x400000L);  	// (4194304)
-        name2bit.put("operator_>", 0x800000L);  	// (8388608)
-        name2bit.put("operator_postfix_++", 0x1000000L);  	// (16777216)
-        name2bit.put("operator_binary_&", 0x2000000L);  	// (33554432)
-        name2bit.put("operator_%", 0x4000000L);  	// (67108864)
-        name2bit.put("operator_postfix_--", 0x8000000L);  	// (134217728)
-        name2bit.put("operator_>>", 0x10000000L);  	// (268435456)
-        name2bit.put("operator_+=", 0x20000000L);  	// (536870912)
-        name2bit.put("operator_|=", 0x40000000L);  	// (1073741824)
-        name2bit.put("operator_~", 0x80000000L);  	// (2147483648)
-        name2bit.put("operator_&=", 0x100000000L);  	// (4294967296)
-        name2bit.put("operator_unary_+", 0x200000000L);  	// (8589934592)
-        name2bit.put("operator_-=", 0x400000000L);  	// (17179869184)
-        name2bit.put("operator_/=", 0x800000000L);  	// (34359738368)
-        name2bit.put("operator_<<=", 0x1000000000L);  	// (68719476736)
-        name2bit.put("operator_>>=", 0x2000000000L);  	// (137438953472)
-        name2bit.put("operator_(", 0x4000000000L);  	// (274877906944)
-        name2bit.put("operator_->", 0x8000000000L);  	// (549755813888)
-        name2bit.put("function_call", 0x10000000000L);  	// (1099511627776)  -- not `operator_function_call` !
-        name2bit.put("operator_function_call", 0x10000000000L);  	// (1099511627776)  -- for probable back compatibility
-        name2bit.put("operator_.", 0x20000000000L);  	// (2199023255552)
-        name2bit.put("operator_subscript", 0x40000000000L);  	// (4398046511104)
-        name2bit.put("operator_prefix_++", 0x80000000000L);  	// (8796093022208)
-        name2bit.put("operator_prefix_--", 0x100000000000L);  	// (17592186044416)
-        name2bit.put("operator_:=", 0x200000000000L);  	// (35184372088832)
-        name2bit.put("operator_is", 0x400000000000L);  	// (70368744177664)
-        name2bit.put("operator_in", 0x800000000000L);  	// (140737488355328)
-        name2bit.put("operator_@", 0x1000000000000L);  	// (281474976710656)
-        name2bit.put("operator_//", 0x2000000000000L);  	// (562949953421312)
-        name2bit.put("operator_?", 0x4000000000000L);  	// (1125899906842624)
-        name2bit.put("operator_sizeof", 0x8000000000000L);
-        name2bit.put("operator_cast", 0x10000000000000L);
-        name2bit.put("stream_io", 0x20000000000000L);
-        name2bit.put("operator_new", 0x40000000000000L);
-        name2bit.put("collection_literal", 0x80000000000000L);
-        return name2bit;
-        // (developer tip: see sqlite2mysql)
-    }
-    private HashMap<String, Long> _getViolationsName2bit() {
+    private static Map<String, Long> violationBits() {
         HashMap<String, Long> name2bit = new HashMap<>(16);
         name2bit.put("error_base_higher_precedence_right", 0x1L);    // (1)
         name2bit.put("error_base_student_error_early_finish", 0x2L);    // (2)
@@ -2552,7 +2419,7 @@ QuestionOptionsData orderQuestionOptions = OrderQuestionOptionsData.builder()
         name2bit.put("error_base_parenthesized_operators", 0x8000L);  	// (16384)
         return name2bit;
     }
-    private HashMap<String, Long> _getLawsName2bit() {
+    private static Map<String, Long> lawBits() {
         HashMap<String, Long> name2bit = new HashMap<>(8);
         name2bit.put("single_token_binary_execution", 0x1L);  	// (1)
         name2bit.put("two_token_binary_execution", 0x2L);  	// (2)

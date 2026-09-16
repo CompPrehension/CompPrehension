@@ -72,7 +72,7 @@ public class QuestionBankSearchFrontendServiceImpl implements QuestionBankSearch
                 .deniedSkills(deniedSkills)
                 .complexity(searchRequest.getComplexity())
                 .targetTags(targetTags)
-                .domainShortname(domain.getShortnameForQuestionSearch())
+                .domainShortname(domain.getDomainId())
                 .build();
         qr = domain.ensureQuestionRequestValid(qr);
 

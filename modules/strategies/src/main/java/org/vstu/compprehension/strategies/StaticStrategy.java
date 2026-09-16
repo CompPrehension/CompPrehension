@@ -71,7 +71,7 @@ public class StaticStrategy extends StrategyBase {
     public QuestionRequest generateQuestionRequest(long exerciseAttemptId) {
         var exerciseAttempt = getAttempt(exerciseAttemptId);
         AttemptExerciseData exercise = exerciseAttempt.exercise();
-        Domain domain = domainFactory.getDomain(exercise.domainName());
+        Domain domain = domainFactory.getDomain(exercise.domainId());
 
         ExerciseStageData exerciseStage = getStageForNextQuestion(exerciseAttempt);
 

@@ -7,7 +7,7 @@ import java.util.List;
 
 public record AttemptExerciseData(
         long id,
-        @NotNull String domainName,
+        @NotNull String domainId,
         @NotNull List<ExerciseStageData> stages,
         @NotNull List<String> tags) {
 }

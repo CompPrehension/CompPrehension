@@ -1,5 +1,6 @@
 package org.vstu.compprehension.authorization;
 
+import org.vstu.compprehension.controllers.CourseController;
 import org.vstu.compprehension.infrastructure.TestData;
 
 import org.junit.jupiter.api.Test;
@@ -10,6 +11,8 @@ import static org.springframework.test.web.servlet.request.MockMvcRequestBuilder
 import static org.springframework.test.web.servlet.request.MockMvcRequestBuilders.post;
 import static org.springframework.test.web.servlet.result.MockMvcResultMatchers.jsonPath;
 import static org.springframework.test.web.servlet.result.MockMvcResultMatchers.status;
+import static org.springframework.web.servlet.mvc.method.annotation.MvcUriComponentsBuilder.fromMethodCall;
+import static org.springframework.web.servlet.mvc.method.annotation.MvcUriComponentsBuilder.on;
 
 class CourseControllerAuthorizationTest extends AbstractAuthorizationTest {
 
@@ -20,7 +23,8 @@ class CourseControllerAuthorizationTest extends AbstractAuthorizationTest {
         actingAs(TestData.Users.GLOBAL_ADMIN_ID);
 
         // Act.
-        var result = mockMvc.perform(get("/api/course/my"));
+        var result = mockMvc.perform(get(fromMethodCall(on(CourseController.class)
+                .getMyCourses()).build().toUri()));
 
         // Assert.
         result.andExpect(status().isOk())
@@ -34,7 +38,8 @@ class CourseControllerAuthorizationTest extends AbstractAuthorizationTest {
         actingAs(TestData.Users.MAIN_COURSE_TEACHER_ID);
 
         // Act.
-        var result = mockMvc.perform(get("/api/course/my"));
+        var result = mockMvc.perform(get(fromMethodCall(on(CourseController.class)
+                .getMyCourses()).build().toUri()));
 
         // Assert.
         result.andExpect(status().isOk())
@@ -49,7 +54,8 @@ class CourseControllerAuthorizationTest extends AbstractAuthorizationTest {
         actingAs(TestData.Users.GLOBAL_EXERCISE_AUTHOR_ID);
 
         // Act.
-        var result = mockMvc.perform(get("/api/course/my"));
+        var result = mockMvc.perform(get(fromMethodCall(on(CourseController.class)
+                .getMyCourses()).build().toUri()));
 
         // Assert.
         result.andExpect(status().isOk())
@@ -63,7 +69,8 @@ class CourseControllerAuthorizationTest extends AbstractAuthorizationTest {
         actingAs(TestData.Users.WITHOUT_ROLES_ID);
 
         // Act.
-        var result = mockMvc.perform(get("/api/course/my"));
+        var result = mockMvc.perform(get(fromMethodCall(on(CourseController.class)
+                .getMyCourses()).build().toUri()));
 
         // Assert.
         result.andExpect(status().isOk())
@@ -77,7 +84,8 @@ class CourseControllerAuthorizationTest extends AbstractAuthorizationTest {
         actingAs(TestData.Users.MAIN_COURSE_STUDENT_ID);
 
         // Act.
-        var result = mockMvc.perform(get("/api/course/my"));
+        var result = mockMvc.perform(get(fromMethodCall(on(CourseController.class)
+                .getMyCourses()).build().toUri()));
 
         // Assert.
         result.andExpect(status().isOk())
@@ -91,7 +99,8 @@ class CourseControllerAuthorizationTest extends AbstractAuthorizationTest {
         actingAs(TestData.Users.MAIN_COURSE_ASSISTANT_ID);
 
         // Act.
-        var result = mockMvc.perform(get("/api/course/my"));
+        var result = mockMvc.perform(get(fromMethodCall(on(CourseController.class)
+                .getMyCourses()).build().toUri()));
 
         // Assert.
         result.andExpect(status().isOk())
@@ -106,7 +115,8 @@ class CourseControllerAuthorizationTest extends AbstractAuthorizationTest {
         actingAs(TestData.Users.EDUCATION_RESOURCE_ADMIN_ID);
 
         // Act.
-        var result = mockMvc.perform(get("/api/course/my"));
+        var result = mockMvc.perform(get(fromMethodCall(on(CourseController.class)
+                .getMyCourses()).build().toUri()));
 
         // Assert.
         result.andExpect(status().isOk())
@@ -120,8 +130,8 @@ class CourseControllerAuthorizationTest extends AbstractAuthorizationTest {
         actingAs(TestData.Users.GLOBAL_EXERCISE_AUTHOR_ID);
 
         // Act.
-        var result = mockMvc.perform(get("/api/course/memberships")
-                .param("exerciseId", String.valueOf(TestData.Exercises.INHERITED_ID)));
+        var result = mockMvc.perform(get(fromMethodCall(on(CourseController.class)
+                .getExerciseMemberships(TestData.Exercises.INHERITED_ID)).build().toUri()));
 
         // Assert.
         result.andExpect(status().isOk());
@@ -134,8 +144,8 @@ class CourseControllerAuthorizationTest extends AbstractAuthorizationTest {
         actingAs(TestData.Users.MAIN_COURSE_TEACHER_ID);
 
         // Act.
-        var result = mockMvc.perform(get("/api/course/memberships")
-                .param("exerciseId", String.valueOf(TestData.Exercises.INHERITED_ID)));
+        var result = mockMvc.perform(get(fromMethodCall(on(CourseController.class)
+                .getExerciseMemberships(TestData.Exercises.INHERITED_ID)).build().toUri()));
 
         // Assert.
         result.andExpect(status().isForbidden());
@@ -148,8 +158,8 @@ class CourseControllerAuthorizationTest extends AbstractAuthorizationTest {
         actingAs(TestData.Users.GLOBAL_STUDENT_ID);
 
         // Act.
-        var result = mockMvc.perform(get("/api/course/memberships")
-                .param("exerciseId", String.valueOf(TestData.Exercises.INHERITED_ID)));
+        var result = mockMvc.perform(get(fromMethodCall(on(CourseController.class)
+                .getExerciseMemberships(TestData.Exercises.INHERITED_ID)).build().toUri()));
 
         // Assert.
         result.andExpect(status().isForbidden());

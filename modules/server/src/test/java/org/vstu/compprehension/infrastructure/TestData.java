@@ -1,5 +1,7 @@
 package org.vstu.compprehension.infrastructure;
 
+import org.vstu.compprehension.businesslogic.domains.ProgrammingLanguageExpressionDTDomain;
+
 import java.util.List;
 
 public final class TestData {
@@ -36,7 +38,7 @@ public final class TestData {
         public static final long EXPRESSION_DT_ID = -5L;
         public static final int EXPRESSION_DT_QUESTIONS = 2;
 
-        public static final String DOMAIN_ID = "ProgrammingLanguageExpressionDTDomain";
+        public static final String DOMAIN_ID = ProgrammingLanguageExpressionDTDomain.DOMAIN_ID;
         public static final String STRATEGY_ID = "StaticStrategy";
         public static final String BACKEND_ID = "ProductionBackend";
     }

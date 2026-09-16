@@ -31,6 +31,7 @@ class QuestionEntityMapperImpl implements QuestionEntityMapper {
                       @Nullable QuestionMetadataEntity metadata,
                       @NotNull QuestionEntity destination) {
         var content = question.getContent();
+        destination.setDomainId(content.getDomainId());
         destination.setQuestionType(content.getQuestionType());
         destination.setQuestionStatus(question.getQuestionStatus());
         destination.setQuestionText(content.getQuestionText());

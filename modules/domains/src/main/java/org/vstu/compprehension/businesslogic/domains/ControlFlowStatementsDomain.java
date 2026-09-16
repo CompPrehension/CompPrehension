@@ -9,9 +9,6 @@ import org.vstu.compprehension.data.questionoptions.QuestionOptionsData;
 import org.vstu.compprehension.data.question.BackendFactData;
 import org.vstu.compprehension.data.questionoptions.MatchingQuestionOptionsData;
 import org.vstu.compprehension.data.questionoptions.OrderQuestionOptionsData;
-import com.google.gson.Gson;
-import com.google.gson.GsonBuilder;
-import com.google.gson.typeadapters.RuntimeTypeAdapterFactory;
 import lombok.SneakyThrows;
 import lombok.extern.log4j.Log4j2;
 import lombok.val;
@@ -35,7 +32,6 @@ import org.vstu.compprehension.data.question.QuestionContentData;
 import org.vstu.compprehension.data.question.AnswerObjectData;
 import org.vstu.compprehension.data.question.ResponseData;
 import org.vstu.compprehension.services.LocalizationService;
-import org.vstu.compprehension.data.domain.DomainData;
 import org.vstu.compprehension.businesslogic.*;
 import org.vstu.compprehension.businesslogic.backend.Fact;
 import org.vstu.compprehension.businesslogic.backend.facts.JenaFactList;
@@ -49,8 +45,6 @@ import org.vstu.compprehension.enums.SearchDirections;
 import org.vstu.compprehension.businesslogic.HyperText;
 
 import java.io.InputStream;
-import java.io.InputStreamReader;
-import java.nio.charset.StandardCharsets;
 import java.text.MessageFormat;
 import java.util.*;
 import java.util.regex.Matcher;
@@ -65,6 +59,7 @@ import static org.vstu.compprehension.businesslogic.domains.helpers.FactsGraph.f
 
 @Log4j2
 public class ControlFlowStatementsDomain extends JenaReasoningDomain {
+    public static final String DOMAIN_ID = "ctrl_flow";
     public static final String LOCALE_KEY_MARK = "!{locale:";
     static final String RESOURCES_LOCATION = "org/vstu/compprehension/businesslogic/domains/";
     static final String EXECUTION_ORDER_QUESTION_TYPE = "OrderActs";
@@ -98,19 +93,13 @@ public class ControlFlowStatementsDomain extends JenaReasoningDomain {
 
     @SneakyThrows
     public ControlFlowStatementsDomain(
-            DomainData domainData,
             LocalizationService localizationService,
             RandomProvider randomProvider,
             QuestionBank qMetaStorage) {
-        super(domainData, randomProvider);
+        super(DOMAIN_ID, randomProvider, new DomainStructure(buildConcepts(), Map.of(), buildLaws()));
 
         this.localizationService = localizationService;
         this.qMetaStorage = qMetaStorage;
-
-        fillConcepts();
-        readLaws(this.getClass().getClassLoader().getResourceAsStream(LAWS_CONFIG_PATH));
-        // using update() as init
-        // OFF: // update();
     }
 
     @NotNull
@@ -137,101 +126,38 @@ public class ControlFlowStatementsDomain extends JenaReasoningDomain {
         }
     }
 
-    private void fillConcepts() {
-        concepts = new HashMap<>();
-        initVocab();
-        addConcepts(getVocabulary().readConcepts());
+    private static Map<String, Concept> buildConcepts() {
+        var b = new ConceptsBuilder();
+        b.addAll(getVocabulary().readConcepts(vocabularyConceptBits()));
 
         // add concepts about expressions present in algorithms
-        int flags = Concept.FLAG_VISIBLE_TO_TEACHER;  // only allowed or denied.
-        int flagsAll = Concept.FLAG_VISIBLE_TO_TEACHER | Concept.FLAG_TARGET_ENABLED;
-        Concept nested_loop = new Concept("nested_loop", List.of(getConcept("loop")), flagsAll);
-        Concept exprC = new Concept("exprs_in_use", List.of(), flags);
-        List<Concept> bases = List.of(exprC);
-        addConcepts(List.of(
-                nested_loop,
-                exprC,
-                new Concept("expr:pointer", bases, flags),
-                new Concept("expr:func_call", bases, flags),
-                new Concept("expr:explicit_cast", bases, flags),
-                new Concept("expr:array", bases, flags),
-                new Concept("expr:class_member_access", bases, flags)
-        ));
+        var flags = EnumSet.of(DomainItemFlag.VISIBLE_TO_TEACHER);  // only allowed or denied.
+        var flagsAll = EnumSet.of(DomainItemFlag.VISIBLE_TO_TEACHER, DomainItemFlag.TARGET_ENABLED);
+        b.add("nested_loop", 0x80000L, List.of(b.get("loop")), flagsAll);
+        List<Concept> bases = List.of(b.add("exprs_in_use", List.of(), flags));
+        b.add("expr:array", 0x10L, bases, flags);
+        b.add("expr:pointer", 0x20L, bases, flags);
+        b.add("expr:func_call", 0x40L, bases, flags);
+        b.add("expr:explicit_cast", 0x80L, bases, flags);
+        b.add("expr:class_member_access", 0x100L, bases, flags);
 
-        fillConceptTree();
-
-        // assign mask bits to Concepts
-        val name2bit = _getConceptsName2bit();
-        for (Concept t : concepts.values()) {
-            val name = t.getName();
-            if (name2bit.containsKey(name)) {
-                t.setBitmask(name2bit.get(name));
-            }
-        }
+        return b.build();
     }
 
-    /**
-     * Read laws for reasoning with jena
-     * @param inputStream file stream to read from
-     */
-    protected void readLaws(InputStream inputStream) {
-        Objects.requireNonNull(inputStream);
-        positiveLaws = new HashMap<>();
-        negativeLaws = new HashMap<>();
-
-        RuntimeTypeAdapterFactory<Law> runtimeTypeAdapterFactory =
-                RuntimeTypeAdapterFactory
-                        .of(Law.class, "positive")
-                        .registerSubtype(PositiveLaw.class, "true")
-                        .registerSubtype(NegativeLaw.class, "false");
-        Gson gson = new GsonBuilder()
-                .setDateFormat("yyyy-MM-dd'T'HH:mm:ss'Z'")
-                .registerTypeAdapterFactory(runtimeTypeAdapterFactory).create();
-
-        Law[] lawForms = gson.fromJson(
-                new InputStreamReader(inputStream, StandardCharsets.UTF_8),
-                Law[].class);
-
-        for (Law lawForm : lawForms) {
-            if (lawForm.isPositiveLaw()) {
-                positiveLaws.put(lawForm.getName(), (PositiveLaw) lawForm);
-            } else {
-                negativeLaws.put(lawForm.getName(), (NegativeLaw) lawForm);
+    private static Laws buildLaws() {
+        Set<String> vocabularyErrors = new LinkedHashSet<>(getVocabulary().classDescendants("Erroneous"));
+        var b = new LawsBuilder();
+        for (Law law : readLawsJson(ControlFlowStatementsDomain.class.getClassLoader().getResourceAsStream(LAWS_CONFIG_PATH))) {
+            // TODO: разобраться. DuplicateOfAct есть и в JSON (bitflags, impliesLaws), и среди Erroneous в словаре;
+            //  словарная пустая версия перекрывает JSON — так было и до рефакторинга.
+            if (!vocabularyErrors.contains(law.getName())) {
+                b.add(law);
             }
         }
-
-        loadNegativeLawsFromVocabulary();
-
-
-        fillLawsTree();
-
-        // assign mask bits to Laws
-//        for (Law t : positiveLaws.values()) {
-//            val name = t.getName();
-//            if (name2bit.containsKey(name)) {
-//                t.setBitmask(name2bit.get(name));
-//            }
-//        }
-        val name2bit = _getViolationsName2bit();
-        for (Law t : negativeLaws.values()) {
-            val name = t.getName();
-            if (name2bit.containsKey(name)) {
-                t.setBitmask(name2bit.get(name));
-            }
+        for (String errClass : vocabularyErrors) {
+            b.add(new NegativeLaw(errClass, List.of(), List.of(), List.of()));
         }
-    }
-
-    /**
-     Make negative laws that name each possible error (iterating over subclasses of "Erroneous" in the vocabulary)
-     and add them to `negativeLaws`.
-     * Called from {@link ControlFlowStatementsDomain}.readLaws() (and descendant classes by default)
-     */
-    protected void loadNegativeLawsFromVocabulary() {
-        // add empty laws that name each possible error
-        // Note: no bits read and written.
-        for (String errClass : getVocabulary().classDescendants("Erroneous")) {
-            negativeLaws.put(errClass, new NegativeLaw(errClass, new ArrayList<>(), new ArrayList<>(), new ArrayList<>(), null));
-        }
+        return b.bits(violationBits()).build();
     }
 
     public Model getSchemaForSolving() {
@@ -2045,17 +1971,12 @@ QuestionOptionsData orderQuestionOptions = OrderQuestionOptionsData.builder()
         }
     }
 
-    private HashMap<String, Long> _getConceptsName2bit() {
+    private static Map<String, Long> vocabularyConceptBits() {
         HashMap<String, Long> name2bit = new HashMap<>(30);
         name2bit.put("pointer", 0x1L);  		// (1)
         name2bit.put("C++", 0x2L);  			// (2)
         name2bit.put("loops", 0x4L);  			// (4)
         name2bit.put("if/else", 0x8L);  		// (8)
-        name2bit.put("expr:array", 0x10L);  	// (16)
-        name2bit.put("expr:pointer", 0x20L);    // (32)
-        name2bit.put("expr:func_call", 0x40L);  // (64)
-        name2bit.put("expr:explicit_cast", 0x80L);  // (128)
-        name2bit.put("expr:class_member_access", 0x100L);  // (256)
         name2bit.put("alternative", 0x200L);    // (512)
         name2bit.put("else", 0x400L);  			// (1024)
         name2bit.put("expr", 0x800L);  			// (2048)
@@ -2066,7 +1987,6 @@ QuestionOptionsData orderQuestionOptions = OrderQuestionOptionsData.builder()
         name2bit.put("while_loop", 0x10000L);   // (65536)
         name2bit.put("for_loop", 0x20000L);     // (131072)
         name2bit.put("else-if", 0x40000L);  	// (262144)
-        name2bit.put("nested_loop", 0x80000L);  // (524288)
         name2bit.put("do_while_loop", 0x100000L);  // (1048576)
         name2bit.put("break", 0x200000L);  		// (2097152)
         name2bit.put("continue", 0x400000L);    // (4194304)
@@ -2079,7 +1999,7 @@ QuestionOptionsData orderQuestionOptions = OrderQuestionOptionsData.builder()
         name2bit.put("foreach_loop", 0x20000000L);  // (536870912)
         return name2bit;
     }
-    private HashMap<String, Long> _getViolationsName2bit() {
+    private static Map<String, Long> violationBits() {
         HashMap<String, Long> name2bit = new HashMap<>(40);
         name2bit.put("DuplicateOfAct", 0x1L);  						// (1)
         name2bit.put("ElseBranchAfterTrueCondition", 0x2L);  		// (2)

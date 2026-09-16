@@ -1,5 +1,6 @@
 package org.vstu.compprehension.authorization;
 
+import org.vstu.compprehension.controllers.ExerciseSettingsController;
 import org.vstu.compprehension.infrastructure.TestData;
 
 import tools.jackson.databind.ObjectMapper;
@@ -19,6 +20,8 @@ import static org.springframework.test.web.servlet.request.MockMvcRequestBuilder
 import static org.springframework.test.web.servlet.request.MockMvcRequestBuilders.put;
 import static org.springframework.test.web.servlet.result.MockMvcResultMatchers.jsonPath;
 import static org.springframework.test.web.servlet.result.MockMvcResultMatchers.status;
+import static org.springframework.web.servlet.mvc.method.annotation.MvcUriComponentsBuilder.fromMethodCall;
+import static org.springframework.web.servlet.mvc.method.annotation.MvcUriComponentsBuilder.on;
 
 class ExerciseSettingsControllerAuthorizationTest extends AbstractAuthorizationTest {
 
@@ -100,8 +103,8 @@ class ExerciseSettingsControllerAuthorizationTest extends AbstractAuthorizationT
         actingAs(TestData.Users.GLOBAL_EXERCISE_AUTHOR_ID);
 
         // Act.
-        var result = mockMvc.perform(get("/api/exercise")
-                .param("id", String.valueOf(TestData.Exercises.GLOBAL_POOL_ID)));
+        var result = mockMvc.perform(get(fromMethodCall(on(ExerciseSettingsController.class)
+                .get(TestData.Exercises.GLOBAL_POOL_ID, null)).build().toUri()));
 
         // Assert.
         result.andExpect(status().isOk());
@@ -114,8 +117,8 @@ class ExerciseSettingsControllerAuthorizationTest extends AbstractAuthorizationT
         actingAs(TestData.Users.GLOBAL_STUDENT_ID);
 
         // Act.
-        var result = mockMvc.perform(get("/api/exercise")
-                .param("id", String.valueOf(TestData.Exercises.GLOBAL_POOL_ID)));
+        var result = mockMvc.perform(get(fromMethodCall(on(ExerciseSettingsController.class)
+                .get(TestData.Exercises.GLOBAL_POOL_ID, null)).build().toUri()));
 
         // Assert.
         result.andExpect(status().isForbidden());
@@ -128,9 +131,8 @@ class ExerciseSettingsControllerAuthorizationTest extends AbstractAuthorizationT
         actingAs(TestData.Users.MAIN_COURSE_TEACHER_ID);
 
         // Act.
-        var result = mockMvc.perform(get("/api/exercise")
-                .param("id", String.valueOf(TestData.Exercises.MAIN_COURSE_ID))
-                .param("courseId", String.valueOf(TestData.Courses.MAIN_ID)));
+        var result = mockMvc.perform(get(fromMethodCall(on(ExerciseSettingsController.class)
+                .get(TestData.Exercises.MAIN_COURSE_ID, TestData.Courses.MAIN_ID)).build().toUri()));
 
         // Assert.
         result.andExpect(status().isOk());
@@ -192,7 +194,8 @@ class ExerciseSettingsControllerAuthorizationTest extends AbstractAuthorizationT
     void updateGlobalExerciseAllowedForGlobalExerciseAuthor() throws Exception {
         // Arrange.
         actingAs(TestData.Users.GLOBAL_EXERCISE_AUTHOR_ID);
-        var body = objectMapper.writeValueAsString(cardOf(TestData.Exercises.GLOBAL_POOL_ID));
+        var card = cardOf(TestData.Exercises.GLOBAL_POOL_ID);
+        var body = objectMapper.writeValueAsString(card);
 
         // Act.
         var result = mockMvc.perform(post("/api/exercise")
@@ -208,7 +211,8 @@ class ExerciseSettingsControllerAuthorizationTest extends AbstractAuthorizationT
     void updateGlobalExerciseForbiddenForGlobalStudent() throws Exception {
         // Arrange.
         actingAs(TestData.Users.GLOBAL_STUDENT_ID);
-        var body = objectMapper.writeValueAsString(cardOf(TestData.Exercises.GLOBAL_POOL_ID));
+        var card = cardOf(TestData.Exercises.GLOBAL_POOL_ID);
+        var body = objectMapper.writeValueAsString(card);
 
         // Act.
         var result = mockMvc.perform(post("/api/exercise")
@@ -224,7 +228,8 @@ class ExerciseSettingsControllerAuthorizationTest extends AbstractAuthorizationT
     void updateCourseExerciseAllowedForCourseTeacher() throws Exception {
         // Arrange.
         actingAs(TestData.Users.MAIN_COURSE_TEACHER_ID);
-        var body = objectMapper.writeValueAsString(cardOf(TestData.Exercises.MAIN_COURSE_ID));
+        var card = cardOf(TestData.Exercises.MAIN_COURSE_ID);
+        var body = objectMapper.writeValueAsString(card);
 
         // Act.
         var result = mockMvc.perform(post("/api/exercise")
@@ -241,7 +246,8 @@ class ExerciseSettingsControllerAuthorizationTest extends AbstractAuthorizationT
     void updateCourseExerciseForbiddenForCourseAssistant() throws Exception {
         // Arrange.
         actingAs(TestData.Users.MAIN_COURSE_ASSISTANT_ID);
-        var body = objectMapper.writeValueAsString(cardOf(TestData.Exercises.MAIN_COURSE_ID));
+        var card = cardOf(TestData.Exercises.MAIN_COURSE_ID);
+        var body = objectMapper.writeValueAsString(card);
 
         // Act.
         var result = mockMvc.perform(post("/api/exercise")
@@ -261,7 +267,8 @@ class ExerciseSettingsControllerAuthorizationTest extends AbstractAuthorizationT
     void updateCourseExerciseRejectedForGlobalExerciseAuthorActingOutsideCourse() throws Exception {
         // Arrange.
         actingAs(TestData.Users.GLOBAL_EXERCISE_AUTHOR_ID);
-        var body = objectMapper.writeValueAsString(cardOf(TestData.Exercises.MAIN_COURSE_ID));
+        var card = cardOf(TestData.Exercises.MAIN_COURSE_ID);
+        var body = objectMapper.writeValueAsString(card);
 
         // Act.
         var result = mockMvc.perform(post("/api/exercise")
@@ -277,7 +284,8 @@ class ExerciseSettingsControllerAuthorizationTest extends AbstractAuthorizationT
     void updateInheritedExerciseRejectedForCourseTeacher() throws Exception {
         // Arrange.
         actingAs(TestData.Users.MAIN_COURSE_TEACHER_ID);
-        var body = objectMapper.writeValueAsString(cardOf(TestData.Exercises.INHERITED_ID));
+        var card = cardOf(TestData.Exercises.INHERITED_ID);
+        var body = objectMapper.writeValueAsString(card);
 
         // Act.
         var result = mockMvc.perform(post("/api/exercise")
@@ -473,9 +481,8 @@ class ExerciseSettingsControllerAuthorizationTest extends AbstractAuthorizationT
         actingAs(TestData.Users.MAIN_COURSE_TEACHER_ID);
 
         // Act.
-        var result = mockMvc.perform(get("/api/exercise")
-                .param("id", String.valueOf(TestData.Exercises.INHERITED_ID))
-                .param("courseId", String.valueOf(TestData.Courses.MAIN_ID)));
+        var result = mockMvc.perform(get(fromMethodCall(on(ExerciseSettingsController.class)
+                .get(TestData.Exercises.INHERITED_ID, TestData.Courses.MAIN_ID)).build().toUri()));
 
         // Assert.
         result.andExpect(status().isOk())
@@ -493,9 +500,8 @@ class ExerciseSettingsControllerAuthorizationTest extends AbstractAuthorizationT
         actingAs(TestData.Users.MAIN_COURSE_TEACHER_ID);
 
         // Act.
-        var result = mockMvc.perform(get("/api/exercise")
-                .param("id", String.valueOf(TestData.Exercises.MAIN_COURSE_ID))
-                .param("courseId", String.valueOf(TestData.Courses.MAIN_ID)));
+        var result = mockMvc.perform(get(fromMethodCall(on(ExerciseSettingsController.class)
+                .get(TestData.Exercises.MAIN_COURSE_ID, TestData.Courses.MAIN_ID)).build().toUri()));
 
         // Assert.
         result.andExpect(status().isOk())
@@ -513,8 +519,8 @@ class ExerciseSettingsControllerAuthorizationTest extends AbstractAuthorizationT
         actingAs(TestData.Users.GLOBAL_EXERCISE_AUTHOR_ID);
 
         // Act.
-        var result = mockMvc.perform(get("/api/exercise")
-                .param("id", String.valueOf(TestData.Exercises.GLOBAL_POOL_ID)));
+        var result = mockMvc.perform(get(fromMethodCall(on(ExerciseSettingsController.class)
+                .get(TestData.Exercises.GLOBAL_POOL_ID, null)).build().toUri()));
 
         // Assert.
         result.andExpect(status().isOk())
@@ -530,7 +536,7 @@ class ExerciseSettingsControllerAuthorizationTest extends AbstractAuthorizationT
         return ExerciseCardDto.builder()
                 .id(exercise.getId())
                 .name(exercise.getName())
-                .domainId(exercise.getDomain().getName())
+                .domainId(exercise.getDomainId())
                 .strategyId(exercise.getStrategyId())
                 .backendId(exercise.getBackendId())
                 .tags(new ArrayList<>())

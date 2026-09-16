@@ -78,7 +78,7 @@ public class Strategy extends StrategyBase {
         var exerciseAttempt = getAttempt(exerciseAttemptId);
 
         AttemptExerciseData exercise = exerciseAttempt.exercise();
-        Domain domain = domainFactory.getDomain(exercise.domainName());
+        Domain domain = domainFactory.getDomain(exercise.domainId());
         HashMap<String, LawNode> tree = getTree(domain);
         // Отдельная ветка для старта (взять некоторую часть возможных законов упражнения) - вопрос из середины графа
         if(exerciseAttempt.questions() == null || exerciseAttempt.questions().size() == 0){
@@ -354,7 +354,7 @@ public class Strategy extends StrategyBase {
         QuestionRequest qr = new QuestionRequest();
         qr.setExerciseAttemptId(exerciseAttempt.id());
         AttemptExerciseData exercise = exerciseAttempt.exercise();
-        Domain domain = domainFactory.getDomain(exercise.domainName());
+        Domain domain = domainFactory.getDomain(exercise.domainId());
 
         qr.setComplexity(1);
         qr.setSolvingDuration(30);
@@ -498,7 +498,7 @@ public class Strategy extends StrategyBase {
         }
 
         AttemptExerciseData exercise = exerciseAttempt.exercise();
-        Domain domain = domainFactory.getDomain(exercise.domainName());
+        Domain domain = domainFactory.getDomain(exercise.domainId());
         HashMap<String, LawNode> tree = getTree(domain);
 
         //// Если нет больших, проверить усвоенность всех целевых законов

@@ -1,25 +1,13 @@
 package org.vstu.compprehension.businesslogic;
 
-import lombok.Getter;
-
 import java.util.List;
 
-public class NegativeLaw extends Law {
-    @Getter
-    String positiveLaw;
-
-    public NegativeLaw(String name, List<LawFormulation> lawFormulations, List<Concept> concepts, List<Tag> tags, String positiveLaw) {
+public final class NegativeLaw extends Law {
+    public NegativeLaw(String name, List<LawFormulation> lawFormulations, List<Concept> concepts, List<Tag> tags) {
         super(name, lawFormulations, concepts, tags, DEFAULT_SALIENCE);
-        this.positiveLaw = positiveLaw;
     }
 
-    public NegativeLaw(String name, List<LawFormulation> lawFormulations, List<Concept> concepts, List<Tag> tags, String positiveLaw, int salience) {
+    public NegativeLaw(String name, List<LawFormulation> lawFormulations, List<Concept> concepts, List<Tag> tags, int salience) {
         super(name, lawFormulations, concepts, tags, salience);
-        this.positiveLaw = positiveLaw;
-    }
-
-    @Override
-    public boolean isPositiveLaw() {
-        return false;
     }
 }

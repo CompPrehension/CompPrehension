@@ -1,5 +1,6 @@
 package org.vstu.compprehension.authorization;
 
+import org.vstu.compprehension.controllers.UsersController;
 import org.vstu.compprehension.infrastructure.TestData;
 
 import org.junit.jupiter.api.Test;
@@ -7,6 +8,8 @@ import org.junit.jupiter.api.Test;
 import static org.springframework.test.web.servlet.request.MockMvcRequestBuilders.get;
 import static org.springframework.test.web.servlet.result.MockMvcResultMatchers.jsonPath;
 import static org.springframework.test.web.servlet.result.MockMvcResultMatchers.status;
+import static org.springframework.web.servlet.mvc.method.annotation.MvcUriComponentsBuilder.fromMethodCall;
+import static org.springframework.web.servlet.mvc.method.annotation.MvcUriComponentsBuilder.on;
 
 class UsersControllerAuthorizationTest extends AbstractAuthorizationTest {
 
@@ -17,7 +20,8 @@ class UsersControllerAuthorizationTest extends AbstractAuthorizationTest {
         actingAs(TestData.Users.GLOBAL_EXERCISE_AUTHOR_ID);
 
         // Act.
-        var result = mockMvc.perform(get("/api/users/whoami"));
+        var result = mockMvc.perform(get(fromMethodCall(on(UsersController.class)
+                .getAll()).build().toUri()));
 
         // Assert.
         result.andExpect(status().isOk())
@@ -31,7 +35,8 @@ class UsersControllerAuthorizationTest extends AbstractAuthorizationTest {
         actingAs(TestData.Users.GLOBAL_ADMIN_ID);
 
         // Act.
-        var result = mockMvc.perform(get("/api/users/whoami"));
+        var result = mockMvc.perform(get(fromMethodCall(on(UsersController.class)
+                .getAll()).build().toUri()));
 
         // Assert.
         result.andExpect(status().isOk())
@@ -45,7 +50,8 @@ class UsersControllerAuthorizationTest extends AbstractAuthorizationTest {
         actingAs(TestData.Users.GLOBAL_STUDENT_ID);
 
         // Act.
-        var result = mockMvc.perform(get("/api/users/whoami"));
+        var result = mockMvc.perform(get(fromMethodCall(on(UsersController.class)
+                .getAll()).build().toUri()));
 
         // Assert.
         result.andExpect(status().isOk())
@@ -59,7 +65,8 @@ class UsersControllerAuthorizationTest extends AbstractAuthorizationTest {
         actingAs(TestData.Users.MAIN_COURSE_TEACHER_ID);
 
         // Act.
-        var result = mockMvc.perform(get("/api/users/whoami"));
+        var result = mockMvc.perform(get(fromMethodCall(on(UsersController.class)
+                .getAll()).build().toUri()));
 
         // Assert.
         result.andExpect(status().isOk())
@@ -73,7 +80,8 @@ class UsersControllerAuthorizationTest extends AbstractAuthorizationTest {
         actingAs(TestData.Users.WITHOUT_ROLES_ID);
 
         // Act.
-        var result = mockMvc.perform(get("/api/users/whoami"));
+        var result = mockMvc.perform(get(fromMethodCall(on(UsersController.class)
+                .getAll()).build().toUri()));
 
         // Assert.
         result.andExpect(status().isOk())
@@ -87,7 +95,8 @@ class UsersControllerAuthorizationTest extends AbstractAuthorizationTest {
         actingAs(TestData.Users.MAIN_COURSE_STUDENT_ID);
 
         // Act.
-        var result = mockMvc.perform(get("/api/users/whoami"));
+        var result = mockMvc.perform(get(fromMethodCall(on(UsersController.class)
+                .getAll()).build().toUri()));
 
         // Assert.
         result.andExpect(status().isOk())

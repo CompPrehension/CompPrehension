@@ -4,6 +4,8 @@ import org.vstu.compprehension.data.question.BackendFactData;
 import org.vstu.compprehension.infrastructure.TestData;
 import org.vstu.compprehension.infrastructure.AbstractIntegrationTest;
 
+import com.fasterxml.jackson.core.JsonProcessingException;
+import com.fasterxml.jackson.databind.ObjectMapper;
 import jakarta.persistence.EntityManager;
 import jakarta.persistence.PersistenceContext;
 import org.jetbrains.annotations.Nullable;
@@ -23,7 +25,6 @@ import org.vstu.compprehension.entities.QuestionEntity;
 import org.vstu.compprehension.entities.QuestionMetadataEntity;
 import org.vstu.compprehension.repositories.entity.AnswerObjectRepository;
 import org.vstu.compprehension.repositories.entity.CourseRepository;
-import org.vstu.compprehension.repositories.entity.DomainRepository;
 import org.vstu.compprehension.repositories.entity.ExerciseAttemptRepository;
 import org.vstu.compprehension.repositories.entity.ExerciseRepository;
 import org.vstu.compprehension.repositories.entity.QuestionMetadataRepository;
@@ -44,11 +45,11 @@ public abstract class AbstractAuthorizationTest extends AbstractIntegrationTest 
     @Autowired private UserRepository userRepository;
     @Autowired private ExerciseRepository exerciseRepository;
     @Autowired private CourseRepository courseRepository;
-    @Autowired private DomainRepository domainRepository;
     @Autowired private ExerciseAttemptRepository exerciseAttemptRepository;
     @Autowired private QuestionRepository questionRepository;
     @Autowired private QuestionMetadataRepository questionMetadataRepository;
     @Autowired private AnswerObjectRepository answerObjectRepository;
+    private final ObjectMapper objectMapper = new ObjectMapper();
 
     @PersistenceContext private EntityManager entityManager;
 
@@ -69,6 +70,10 @@ public abstract class AbstractAuthorizationTest extends AbstractIntegrationTest 
 
     protected void actingAs(long userId) {
         TestUserService.actAs(userId);
+    }
+
+    protected String toJson(Object body) throws JsonProcessingException {
+        return objectMapper.writeValueAsString(body);
     }
 
     protected ExerciseAttemptEntity createAttempt(long userId, long exerciseId, Long courseId) {
@@ -102,7 +107,7 @@ public abstract class AbstractAuthorizationTest extends AbstractIntegrationTest 
 
         var question = new QuestionEntity();
         question.setExerciseAttempt(attempt);
-        question.setDomainEntity(domainRepository.findById(TestData.Exercises.DOMAIN_ID).orElseThrow());
+        question.setDomainId(TestData.Exercises.DOMAIN_ID);
         question.setMetadata(metadata);
         question.setQuestionStatus(QuestionStatus.VIEWED);
         question.setQuestionType(bankQuestion.getQuestionType());

@@ -39,18 +39,18 @@ insert ignore into course (id, name, external_course_id, education_resource_id) 
 insert ignore into exercise (id, name, tags, options_json, stages_json, domain_id, backend_id, strategy_id,
                       created_at, updated_at, is_public)
 values
-    (-1, 'Global pool exercise', '', '{}', '[]', 'ProgrammingLanguageExpressionDTDomain',
+    (-1, 'Global pool exercise', '', '{}', '[]', 'expression_dt',
      'ProductionBackend', 'StaticStrategy', now(), now(), 1),
-    (-2, 'Main course exercise', '', '{}', '[]', 'ProgrammingLanguageExpressionDTDomain',
+    (-2, 'Main course exercise', '', '{}', '[]', 'expression_dt',
      'ProductionBackend', 'StaticStrategy', now(), now(), 0),
-    (-3, 'Inherited exercise', '', '{}', '[]', 'ProgrammingLanguageExpressionDTDomain',
+    (-3, 'Inherited exercise', '', '{}', '[]', 'expression_dt',
      'ProductionBackend', 'StaticStrategy', now(), now(), 1),
-    (-4, 'Other course exercise', '', '{}', '[]', 'ProgrammingLanguageExpressionDTDomain',
+    (-4, 'Other course exercise', '', '{}', '[]', 'expression_dt',
      'ProductionBackend', 'StaticStrategy', now(), now(), 0),
     (-5, 'Expression DT exercise', 'C++',
      '{"newQuestionGenerationEnabled": true, "supplementaryQuestionsEnabled": true, "correctAnswerGenerationEnabled": true, "debugButtonEnabled": true, "forceNewAttemptCreationEnabled": false, "maxExpectedConcurrentStudents": 1}',
      '[{"numberOfQuestions": 2, "complexity": 0.5, "laws": [], "concepts": [], "skills": []}]',
-     'ProgrammingLanguageExpressionDTDomain', 'DTReasoner', 'StaticStrategy', now(), now(), 1);
+     'expression_dt', 'DTReasoner', 'StaticStrategy', now(), now(), 1);
 
 insert ignore into exercise_course_link (exercise_id, course_id) values
     (-2, -1),

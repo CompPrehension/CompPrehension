@@ -2,7 +2,6 @@ import React, {useCallback, useEffect, useMemo, useState} from "react";
 import {
     Domain,
     DomainConcept,
-    DomainConceptFlag,
     DomainLaw,
     DomainSkill,
     ExerciseCardConcept,
@@ -127,16 +126,16 @@ const ExerciseCardElement = observer((props: ExerciseCardElementProps) => {
 
     const currentDomain = domains.find(z => z.id === card.domainId);
     const stageDomainLaws = currentDomain?.laws
-        .filter(l => (l.bitflags & DomainConceptFlag.TargetEnabled) > 0);
+        .filter(l => l.targetEnabled);
     const stageDomainConcepts = currentDomain?.concepts
-        .filter(l => (l.bitflags & DomainConceptFlag.TargetEnabled) > 0);
+        .filter(l => l.targetEnabled);
     const stageDomainSkills = currentDomain?.skills
     const cardLaws = card.stages[0].laws.reduce((acc, i) => (acc[i.name] = i, acc), {} as Record<string, ExerciseCardLaw>);
     const cardConcepts = card.stages[0].concepts.reduce((acc, i) => (acc[i.name] = i, acc), {} as Record<string, ExerciseCardConcept>);
     const sharedDomainLaws = currentDomain?.laws
-        .filter(l => (l.bitflags & DomainConceptFlag.TargetEnabled) === 0);
+        .filter(l => !l.targetEnabled);
     const sharedDomainConcepts = currentDomain?.concepts
-        .filter(c => (c.bitflags & DomainConceptFlag.TargetEnabled) === 0);
+        .filter(c => !c.targetEnabled);
     const sharedDomainSkills : DomainSkill[] = []; // TODO: temporarily disabled due to missing flags in domain skills
     const currentStrategy = strategies.find(s => s.id === card.strategyId);
     const linkType = store.cardLinkType;
@@ -753,5 +752,5 @@ function mapValueToKind(value?: 'Denied' | 'Allowed' | 'Target'): ExerciseCardCo
         : value === 'Target' ? 'TARGETED' : 'PERMITTED'
 }
 function getConceptFlags(c: DomainConcept): ['Denied', 'Allowed'] | ['Denied', 'Allowed', 'Target'] {
-    return (c.bitflags & DomainConceptFlag.TargetEnabled) > 0 ? ['Denied', 'Allowed', 'Target'] : ['Denied', 'Allowed']
+    return c.targetEnabled ? ['Denied', 'Allowed', 'Target'] : ['Denied', 'Allowed']
 }

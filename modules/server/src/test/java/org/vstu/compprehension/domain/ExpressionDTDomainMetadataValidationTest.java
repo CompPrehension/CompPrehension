@@ -28,7 +28,6 @@ import org.vstu.compprehension.entities.ExerciseAttemptEntity;
 import org.vstu.compprehension.entities.QuestionMetadataEntity;
 import org.vstu.compprehension.entities.ExerciseEntity;
 import org.vstu.compprehension.repositories.entity.ExerciseAttemptRepository;
-import org.vstu.compprehension.repositories.entity.DomainRepository;
 import org.vstu.compprehension.repositories.entity.ExerciseRepository;
 import org.vstu.compprehension.repositories.entity.QuestionMetadataRepository;
 import org.vstu.compprehension.repositories.entity.UserRepository;
@@ -47,8 +46,6 @@ public class ExpressionDTDomainMetadataValidationTest extends AbstractIntegratio
     @Autowired
     private DomainFactory domainFactory;
     @Autowired
-    private DomainRepository domainRepository;
-    @Autowired
     private ExerciseAttemptRepository exerciseAttemptRepository;
     @Autowired
     private ExerciseRepository exerciseRepository;
@@ -65,13 +62,11 @@ public class ExpressionDTDomainMetadataValidationTest extends AbstractIntegratio
     private ExerciseEntity exercise;
     private ProgrammingLanguageExpressionDTDomain domain;
 
-    public static final String domainId = "ProgrammingLanguageExpressionDTDomain";
-
     @BeforeAll
     public void tearUp() {
-        domain = (ProgrammingLanguageExpressionDTDomain) domainFactory.getDomain(domainId);
+        domain = (ProgrammingLanguageExpressionDTDomain) domainFactory.getDomain(ProgrammingLanguageExpressionDTDomain.DOMAIN_ID);
         exercise = new ExerciseEntity();
-        exercise.setDomain(domainRepository.findById(domain.getName()).orElseThrow());
+        exercise.setDomainId(domain.getDomainId());
         exercise.setBackendId("DTReasoner");
         exercise.setTags("");
         exercise.setOptions(new ExerciseOptionsData(null, true,
@@ -101,7 +96,7 @@ public class ExpressionDTDomainMetadataValidationTest extends AbstractIntegratio
         for (QuestionMetadataEntity meta : qMetaRepo.findAll()) {
             try {
                 boolean qOk = true;
-                if (!meta.getDomainShortname().equals("expression_dt")) {
+                if (!meta.getDomainShortname().equals(domain.getDomainId())) {
                     continue;
                 }
                 QuestionData q = prepareQuestion(meta);

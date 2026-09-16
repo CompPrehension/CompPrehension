@@ -118,8 +118,8 @@ public class SerializableQuestion {
     }
 
     public GeneratedQuestionData toQuestion(@NotNull Domain domain, @Nullable QuestionMetadataData qMeta) {
-        if (qMeta != null && !domain.getShortName().equals(qMeta.getDomainShortname())) {
-            log.info("Domain mismatch: {} vs {}", qMeta.getDomainShortname(), domain.getShortName());
+        if (qMeta != null && !domain.getDomainId().equals(qMeta.getDomainShortname())) {
+            log.info("Domain mismatch: {} vs {}", qMeta.getDomainShortname(), domain.getDomainId());
         }
 
         var questionData = getQuestionData();

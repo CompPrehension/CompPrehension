@@ -60,7 +60,7 @@ public class ExerciseAttemptDataRepository {
 
     @Transactional(readOnly = true)
     public @NotNull ExerciseAttemptWithQuestionsData getAttemptWithQuestions(long attemptId) {
-        var attempt = exerciseAttemptRepository.findByIdFetchingExerciseAndDomain(attemptId)
+        var attempt = exerciseAttemptRepository.findByIdFetchingExercise(attemptId)
                 .orElseThrow(() -> new NoSuchElementException("Exercise attempt " + attemptId + " not found"));
         var exerciseData = attemptExerciseMapper.map(attempt.getExercise());
 
@@ -97,12 +97,12 @@ public class ExerciseAttemptDataRepository {
 
     @Transactional(readOnly = true)
     public @NotNull AttemptGenerationContextData getGenerationContext(long attemptId) {
-        var attempt = exerciseAttemptRepository.findByIdFetchingExerciseDomainAndUser(attemptId)
+        var attempt = exerciseAttemptRepository.findByIdFetchingExerciseAndUser(attemptId)
                 .orElseThrow(() -> new NoSuchElementException("Exercise attempt " + attemptId + " not found"));
         var exercise = attempt.getExercise();
         return new AttemptGenerationContextData(
                 attempt.getId(),
-                exercise.getDomain().getName(),
+                exercise.getDomainId(),
                 exercise.getStrategyId(),
                 exercise.getOptions(),
                 attempt.getUser().getPreferred_language());

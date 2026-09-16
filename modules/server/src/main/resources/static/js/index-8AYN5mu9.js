@@ -977,18 +977,13 @@ var TDomainSkill = recursion("DomainSkill", () => type({
 var TDomainLaw = recursion("DomainLaw", () => type({
 	name: string,
 	displayName: string,
-	bitflags: number,
+	targetEnabled: boolean,
 	childs: array(TDomainLaw)
 }));
-var DomainConceptFlag = /* @__PURE__ */ function(DomainConceptFlag) {
-	DomainConceptFlag[DomainConceptFlag["VisibleToTeacher"] = 1] = "VisibleToTeacher";
-	DomainConceptFlag[DomainConceptFlag["TargetEnabled"] = 2] = "TargetEnabled";
-	return DomainConceptFlag;
-}({});
 var TDomainConcept = recursion("DomainConcept", () => type({
 	name: string,
 	displayName: string,
-	bitflags: number,
+	targetEnabled: boolean,
 	childs: array(TDomainConcept)
 }));
 var TDomain = type({
@@ -1281,10 +1276,13 @@ var TSupplementaryFeedback = type({
 	message: TFeedbackMessage,
 	action: TSupplementaryFeedbackAction
 });
-var TSupplementaryQuestion = partial({
-	question: union([TQuestion, nullType]),
-	message: union([TSupplementaryFeedback, nullType])
-});
+var TSupplementaryQuestion = union([type({
+	kind: literal("QUESTION"),
+	question: TQuestion
+}), type({
+	kind: literal("FEEDBACK"),
+	feedback: TSupplementaryFeedback
+})]);
 //#endregion
 //#region src/main/js/controllers/exercise/question-controller.ts
 var QuestionController = class {
@@ -1491,7 +1489,16 @@ var SupplementaryQuestionStore = class {
 			this.setQuestionState("LOADED");
 			return;
 		}
-		this.#onQuestionLoaded(dataEither.right.question, dataEither.right.message);
+		const data = dataEither.right;
+		switch (data.kind) {
+			case "QUESTION":
+				this.#onQuestionLoaded(data.question);
+				break;
+			case "FEEDBACK":
+				this.#onFeedbackLoaded(data.feedback);
+				break;
+			default: absurd(data);
+		}
 	};
 	sendAnswers = async () => {
 		const { question } = this;
@@ -1512,14 +1519,20 @@ var SupplementaryQuestionStore = class {
 	setAnswer = (newAnswer) => {
 		this.answer = newAnswer;
 	};
-	#onQuestionLoaded = (question, feedback) => {
-		if (question?.options.requireContext) [...question.text.matchAll(/(<\w.*?\sid\s*?=(['"]))\s*(answer_(\d+?))\2(.*?>)/gim)].forEach((match, matchIdx) => {
+	#onQuestionLoaded = (question) => {
+		if (question.options.requireContext) [...question.text.matchAll(/(<\w.*?\sid\s*?=(['"]))\s*(answer_(\d+?))\2(.*?>)/gim)].forEach((match, matchIdx) => {
 			question.text = question.text.replace(match[0], `${match[1]}question_${question.questionId}_${match[3]}_${matchIdx}${match[2]} data-answer-id='${match[4]}' ${match[5]}`);
 		});
-		this.question = question ?? void 0;
-		this.feedback = feedback ?? void 0;
-		this.answer = question?.responses ?? [];
-		this.questionState = !question ? "COMPLETED" : "LOADED";
+		this.question = question;
+		this.feedback = void 0;
+		this.answer = question.responses ?? [];
+		this.questionState = "LOADED";
+	};
+	#onFeedbackLoaded = (feedback) => {
+		this.question = void 0;
+		this.feedback = feedback;
+		this.answer = [];
+		this.questionState = "COMPLETED";
 	};
 };
 //#endregion
@@ -4337,13 +4350,13 @@ var ExerciseCardElement = observer((props) => {
 	if (store.exercisesLoadStatus === "EXERCISELOADING") return /* @__PURE__ */ (0, import_jsx_runtime.jsx)(Loader, { delay: 200 });
 	if (card == null) return /* @__PURE__ */ (0, import_jsx_runtime.jsx)("div", { children: "No exercise selected" });
 	const currentDomain = domains.find((z) => z.id === card.domainId);
-	const stageDomainLaws = currentDomain?.laws.filter((l) => (l.bitflags & DomainConceptFlag.TargetEnabled) > 0);
-	const stageDomainConcepts = currentDomain?.concepts.filter((l) => (l.bitflags & DomainConceptFlag.TargetEnabled) > 0);
+	const stageDomainLaws = currentDomain?.laws.filter((l) => l.targetEnabled);
+	const stageDomainConcepts = currentDomain?.concepts.filter((l) => l.targetEnabled);
 	const stageDomainSkills = currentDomain?.skills;
 	const cardLaws = card.stages[0].laws.reduce((acc, i) => (acc[i.name] = i, acc), {});
 	const cardConcepts = card.stages[0].concepts.reduce((acc, i) => (acc[i.name] = i, acc), {});
-	const sharedDomainLaws = currentDomain?.laws.filter((l) => (l.bitflags & DomainConceptFlag.TargetEnabled) === 0);
-	const sharedDomainConcepts = currentDomain?.concepts.filter((c) => (c.bitflags & DomainConceptFlag.TargetEnabled) === 0);
+	const sharedDomainLaws = currentDomain?.laws.filter((l) => !l.targetEnabled);
+	const sharedDomainConcepts = currentDomain?.concepts.filter((c) => !c.targetEnabled);
 	const sharedDomainSkills = [];
 	const currentStrategy = strategies.find((s) => s.id === card.strategyId);
 	const linkType = store.cardLinkType;
@@ -5087,7 +5100,7 @@ function mapValueToKind(value) {
 	return value === "Denied" ? "FORBIDDEN" : value === "Target" ? "TARGETED" : "PERMITTED";
 }
 function getConceptFlags(c) {
-	return (c.bitflags & DomainConceptFlag.TargetEnabled) > 0 ? [
+	return c.targetEnabled ? [
 		"Denied",
 		"Allowed",
 		"Target"

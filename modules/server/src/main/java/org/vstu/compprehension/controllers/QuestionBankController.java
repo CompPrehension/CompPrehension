@@ -1,6 +1,5 @@
 package org.vstu.compprehension.controllers;
 
-import jakarta.servlet.http.HttpServletRequest;
 import lombok.RequiredArgsConstructor;
 import lombok.extern.log4j.Log4j2;
 import org.springframework.stereotype.Controller;
@@ -26,8 +25,7 @@ public class QuestionBankController {
 
     @RequestMapping(value = {"search"}, method = { RequestMethod.POST }, produces = "application/json", consumes = "application/json")
     @ResponseBody
-    public QuestionBankSearchStatsDto search(@RequestBody QuestionBankSearchRequestDto searchRequest,
-                                             HttpServletRequest request) throws Exception {
+    public QuestionBankSearchStatsDto search(@RequestBody QuestionBankSearchRequestDto searchRequest) throws Exception {
         var userId = userService.getCurrentUserId();
         authService.ensureAuthorized(userId, SystemPermission.VIEW_EXERCISE, authService.courseOrGlobal(searchRequest.getCourseId()));
         return questionBankSearchService.search(searchRequest);

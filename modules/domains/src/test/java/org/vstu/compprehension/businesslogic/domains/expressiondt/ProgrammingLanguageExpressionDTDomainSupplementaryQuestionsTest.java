@@ -1,9 +1,12 @@
 package org.vstu.compprehension.businesslogic.domains.expressiondt;
 
 import org.junit.jupiter.api.Test;
+import org.vstu.compprehension.businesslogic.SupplementaryResponse;
+import org.vstu.compprehension.businesslogic.SupplementaryResponseGenerationResult;
 import org.vstu.compprehension.businesslogic.SupplementaryStepContext;
 import org.vstu.compprehension.data.question.AnswerData;
 import org.vstu.compprehension.data.question.AnswerObjectData;
+import org.vstu.compprehension.data.question.GeneratedQuestionData;
 import org.vstu.compprehension.data.question.NewSupplementaryStepData;
 import org.vstu.compprehension.data.question.QuestionData;
 import org.vstu.compprehension.data.question.QuestionInteractionData;
@@ -19,8 +22,8 @@ import java.util.List;
 
 import static org.junit.jupiter.api.Assertions.assertEquals;
 import static org.junit.jupiter.api.Assertions.assertFalse;
+import static org.junit.jupiter.api.Assertions.assertInstanceOf;
 import static org.junit.jupiter.api.Assertions.assertNotNull;
-import static org.junit.jupiter.api.Assertions.assertNull;
 import static org.vstu.compprehension.businesslogic.domains.expressiondt.ExpressionDtDomainFixture.MEMBER_ACCESS_PLUS;
 import static org.vstu.compprehension.businesslogic.domains.expressiondt.ExpressionDtDomainFixture.PARENTHESES_AND_UNARY_MINUS;
 import static org.vstu.compprehension.businesslogic.domains.expressiondt.ExpressionDtDomainFixture.bankQuestion;
@@ -48,9 +51,7 @@ class ProgrammingLanguageExpressionDTDomainSupplementaryQuestionsTest {
         var response = domain().makeSupplementaryQuestion(question.withInteraction(mistake), null, new ViolationData(), LANGUAGE);
 
         // Assert.
-        var supplementary = response.getResponse().getQuestion();
-        assertNotNull(supplementary);
-        assertNull(response.getResponse().getFeedback());
+        var supplementary = question(response);
         assertNotNull(response.getNewStep());
         assertEquals(QuestionType.MATCHING, supplementary.getContent().getQuestionType());
         assertFalse(options(supplementary.getContent().getAnswerObjects()).isEmpty());
@@ -65,7 +66,7 @@ class ProgrammingLanguageExpressionDTDomainSupplementaryQuestionsTest {
         var mistake = interaction(question, operator(question, "&"));
         var main = question.withInteraction(mistake);
         var first = domain().makeSupplementaryQuestion(main, null, new ViolationData(), LANGUAGE);
-        var supplementary = first.getResponse().getQuestion().getContent().getAnswerObjects();
+        var supplementary = question(first).getContent().getAnswerObjects();
 
         // Act.
         var feedback = domain().judgeSupplementaryQuestion(main, stepContext(mistake, first.getNewStep()),
@@ -86,15 +87,13 @@ class ProgrammingLanguageExpressionDTDomainSupplementaryQuestionsTest {
         var main = question.withInteraction(mistake);
         var first = domain().makeSupplementaryQuestion(main, null, new ViolationData(), LANGUAGE);
         var answered = domain().judgeSupplementaryQuestion(main, stepContext(mistake, first.getNewStep()),
-                everythingToFirstGroup(first.getResponse().getQuestion().getContent().getAnswerObjects()), LANGUAGE);
+                everythingToFirstGroup(question(first).getContent().getAnswerObjects()), LANGUAGE);
 
         // Act.
         var next = domain().makeSupplementaryQuestion(main, stepData(mistake, answered.getNewStep()), new ViolationData(), LANGUAGE);
 
         // Assert.
-        assertNull(next.getResponse().getQuestion());
-        var feedback = next.getResponse().getFeedback();
-        assertNotNull(feedback);
+        var feedback = feedback(next);
         assertEquals(FeedbackDto.MessageType.SUCCESS, feedback.getMessage().getType());
         assertEquals(SupplementaryFeedbackDto.Action.ContinueAuto, feedback.getAction());
     }
@@ -112,8 +111,7 @@ class ProgrammingLanguageExpressionDTDomainSupplementaryQuestionsTest {
         var response = domain().makeSupplementaryQuestion(question.withInteraction(mistake), null, new ViolationData(), LANGUAGE);
 
         // Assert.
-        var supplementary = response.getResponse().getQuestion();
-        assertNotNull(supplementary);
+        var supplementary = question(response);
         assertEquals(QuestionType.MULTI_CHOICE, supplementary.getContent().getQuestionType());
         assertEquals(operators(question).size(), options(supplementary.getContent().getAnswerObjects()).size());
     }
@@ -126,7 +124,7 @@ class ProgrammingLanguageExpressionDTDomainSupplementaryQuestionsTest {
         var mistake = interaction(question, endToken(question));
         var main = question.withInteraction(mistake);
         var first = domain().makeSupplementaryQuestion(main, null, new ViolationData(), LANGUAGE);
-        var options = options(first.getResponse().getQuestion().getContent().getAnswerObjects());
+        var options = options(question(first).getContent().getAnswerObjects());
 
         // Act.
         var feedback = domain().judgeSupplementaryQuestion(main, stepContext(mistake, first.getNewStep()),
@@ -145,7 +143,7 @@ class ProgrammingLanguageExpressionDTDomainSupplementaryQuestionsTest {
         var mistake = interaction(question, endToken(question));
         var main = question.withInteraction(mistake);
         var first = domain().makeSupplementaryQuestion(main, null, new ViolationData(), LANGUAGE);
-        var options = options(first.getResponse().getQuestion().getContent().getAnswerObjects());
+        var options = options(question(first).getContent().getAnswerObjects());
 
         // Act.
         var feedback = domain().judgeSupplementaryQuestion(main, stepContext(mistake, first.getNewStep()), chosen(options), LANGUAGE);
@@ -154,11 +152,18 @@ class ProgrammingLanguageExpressionDTDomainSupplementaryQuestionsTest {
         // Assert.
         assertEquals(FeedbackDto.MessageType.SUCCESS, feedback.getFeedback().getMessage().getType());
         assertEquals(SupplementaryFeedbackDto.Action.ContinueAuto, feedback.getFeedback().getAction());
-        assertNotNull(next.getResponse().getQuestion());
-        assertNull(next.getResponse().getFeedback());
+        question(next);
     }
 
     // ---- вспомогательное ----
+
+    private static GeneratedQuestionData question(SupplementaryResponseGenerationResult result) {
+        return assertInstanceOf(SupplementaryResponse.Question.class, result.getResponse()).question();
+    }
+
+    private static SupplementaryFeedbackDto feedback(SupplementaryResponseGenerationResult result) {
+        return assertInstanceOf(SupplementaryResponse.Feedback.class, result.getResponse()).feedback();
+    }
 
     private static QuestionInteractionData interaction(QuestionData question, AnswerObjectData... answers) {
         var given = responses(answers);
