@@ -8,8 +8,10 @@ import org.jetbrains.annotations.Nullable;
 import org.springframework.stereotype.Service;
 import org.vstu.compprehension.data.question.AnswerData;
 import org.vstu.compprehension.data.question.GeneratedQuestionData;
+import org.vstu.compprehension.data.question.NewSupplementaryStepData;
 import org.vstu.compprehension.data.question.QuestionContentData;
 import org.vstu.compprehension.data.question.QuestionData;
+import org.vstu.compprehension.businesslogic.SupplementaryResponse;
 import org.vstu.compprehension.businesslogic.SupplementaryStepContext;
 import org.vstu.compprehension.data.question.SupplementaryStepData;
 import org.vstu.compprehension.data.question.ViolationData;
@@ -83,21 +85,20 @@ class QuestionDataServiceImpl implements QuestionDataService {
                 : supplementaryStepDataRepository.findLatestStepOfInteraction(interactions.getLast().getId());
         val responseGen = domain.makeSupplementaryQuestion(sourceQuestion, latestStep, violation, lang);
 
-        val response = responseGen.getResponse();
-        QuestionData supplementary = null;
-        if (response.getQuestion() != null) {
-            supplementary = saveQuestion(
-                    QuestionData.of(response.getQuestion().getContent()),
-                    null,
-                    exerciseAttemptService.findAttemptIdOfQuestion(sourceQuestionId).orElse(null));
-        }
-        if (responseGen.getNewStep() != null) {
-            supplementaryStepDataRepository.create(responseGen.getNewStep(),
-                    supplementary == null ? null : supplementary.getId());
-        }
-        return supplementary == null
-                ? SupplementaryQuestionDto.FromMessage(response.getFeedback())
-                : supplementaryQuestionDtoMapper.map(supplementary, lang);
+        return switch (responseGen.getResponse()) {
+            case SupplementaryResponse.Question(var question) -> {
+                val supplementary = saveQuestion(
+                        QuestionData.of(question.getContent()),
+                        null,
+                        exerciseAttemptService.findAttemptIdOfQuestion(sourceQuestionId).orElse(null));
+                createStep(responseGen.getNewStep(), supplementary.getId());
+                yield supplementaryQuestionDtoMapper.map(supplementary, lang);
+            }
+            case SupplementaryResponse.Feedback(var feedback) -> {
+                createStep(responseGen.getNewStep(), null);
+                yield new SupplementaryQuestionDto.Feedback(feedback);
+            }
+        };
     }
 
     public SupplementaryFeedbackDto judgeSupplementaryQuestion(long supplementaryQuestionId, List<? extends AnswerData> responses, Language language) {
@@ -113,10 +114,14 @@ class QuestionDataServiceImpl implements QuestionDataService {
 
         Domain domain = domainFactory.getDomain(mainQuestion.getContent().getDomainId());
         val feedbackGen = domain.judgeSupplementaryQuestion(mainQuestion, stepContext, responses, language);
-        if (feedbackGen.getNewStep() != null) {
-            supplementaryStepDataRepository.create(feedbackGen.getNewStep(), null);
-        }
+        createStep(feedbackGen.getNewStep(), null);
         return feedbackGen.getFeedback();
+    }
+
+    private void createStep(@Nullable NewSupplementaryStepData step, @Nullable Long supplementaryQuestionId) {
+        if (step != null) {
+            supplementaryStepDataRepository.create(step, supplementaryQuestionId);
+        }
     }
 
     private static @NotNull QuestionInteractionData findInteraction(@NotNull QuestionData question,

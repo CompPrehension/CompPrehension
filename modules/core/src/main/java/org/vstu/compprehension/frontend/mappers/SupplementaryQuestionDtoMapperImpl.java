@@ -20,10 +20,10 @@ class SupplementaryQuestionDtoMapperImpl implements SupplementaryQuestionDtoMapp
                                                 @NotNull Language language) {
         var questionDto = questionDtoMapper.map(question, language);
         if (questionDto.getAnswers().length > 0) {
-            return SupplementaryQuestionDto.FromQuestion(questionDto);
+            return new SupplementaryQuestionDto.Question(questionDto);
         }
         // TODO вынести в сервисный слой
-        return SupplementaryQuestionDto.FromMessage(new SupplementaryFeedbackDto(
+        return new SupplementaryQuestionDto.Feedback(new SupplementaryFeedbackDto(
                 FeedbackDto.Message.Success(questionDto.getText().replaceAll("<[^>]*>", "")),
                 SupplementaryFeedbackDto.Action.Finish));
     }

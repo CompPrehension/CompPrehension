@@ -1281,10 +1281,13 @@ var TSupplementaryFeedback = type({
 	message: TFeedbackMessage,
 	action: TSupplementaryFeedbackAction
 });
-var TSupplementaryQuestion = partial({
-	question: union([TQuestion, nullType]),
-	message: union([TSupplementaryFeedback, nullType])
-});
+var TSupplementaryQuestion = union([type({
+	kind: literal("QUESTION"),
+	question: TQuestion
+}), type({
+	kind: literal("FEEDBACK"),
+	feedback: TSupplementaryFeedback
+})]);
 //#endregion
 //#region src/main/js/controllers/exercise/question-controller.ts
 var QuestionController = class {
@@ -1491,7 +1494,16 @@ var SupplementaryQuestionStore = class {
 			this.setQuestionState("LOADED");
 			return;
 		}
-		this.#onQuestionLoaded(dataEither.right.question, dataEither.right.message);
+		const data = dataEither.right;
+		switch (data.kind) {
+			case "QUESTION":
+				this.#onQuestionLoaded(data.question);
+				break;
+			case "FEEDBACK":
+				this.#onFeedbackLoaded(data.feedback);
+				break;
+			default: absurd(data);
+		}
 	};
 	sendAnswers = async () => {
 		const { question } = this;
@@ -1512,14 +1524,20 @@ var SupplementaryQuestionStore = class {
 	setAnswer = (newAnswer) => {
 		this.answer = newAnswer;
 	};
-	#onQuestionLoaded = (question, feedback) => {
-		if (question?.options.requireContext) [...question.text.matchAll(/(<\w.*?\sid\s*?=(['"]))\s*(answer_(\d+?))\2(.*?>)/gim)].forEach((match, matchIdx) => {
+	#onQuestionLoaded = (question) => {
+		if (question.options.requireContext) [...question.text.matchAll(/(<\w.*?\sid\s*?=(['"]))\s*(answer_(\d+?))\2(.*?>)/gim)].forEach((match, matchIdx) => {
 			question.text = question.text.replace(match[0], `${match[1]}question_${question.questionId}_${match[3]}_${matchIdx}${match[2]} data-answer-id='${match[4]}' ${match[5]}`);
 		});
-		this.question = question ?? void 0;
-		this.feedback = feedback ?? void 0;
-		this.answer = question?.responses ?? [];
-		this.questionState = !question ? "COMPLETED" : "LOADED";
+		this.question = question;
+		this.feedback = void 0;
+		this.answer = question.responses ?? [];
+		this.questionState = "LOADED";
+	};
+	#onFeedbackLoaded = (feedback) => {
+		this.question = void 0;
+		this.feedback = feedback;
+		this.answer = [];
+		this.questionState = "COMPLETED";
 	};
 };
 //#endregion

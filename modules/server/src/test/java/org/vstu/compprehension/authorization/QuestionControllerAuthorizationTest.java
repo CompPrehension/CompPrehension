@@ -16,6 +16,7 @@ import static org.springframework.test.web.servlet.request.MockMvcRequestBuilder
 import static org.springframework.test.web.servlet.request.MockMvcRequestBuilders.post;
 import static org.springframework.test.web.servlet.result.MockMvcResultMatchers.status;
 import static org.springframework.web.servlet.mvc.method.annotation.MvcUriComponentsBuilder.fromMethodCall;
+import static org.springframework.web.servlet.mvc.method.annotation.MvcUriComponentsBuilder.fromMethodName;
 import static org.springframework.web.servlet.mvc.method.annotation.MvcUriComponentsBuilder.on;
 
 class QuestionControllerAuthorizationTest extends AbstractAuthorizationTest {
@@ -108,8 +109,7 @@ class QuestionControllerAuthorizationTest extends AbstractAuthorizationTest {
                 .build();
 
         // Act.
-        var result = mockMvc.perform(post(fromMethodCall(on(QuestionController.class)
-                        .generateSupplementaryQuestion(questionRequest)).build().toUri())
+        var result = mockMvc.perform(post(fromMethodName(QuestionController.class, "generateSupplementaryQuestion", questionRequest).build().toUri())
                 .contentType(MediaType.APPLICATION_JSON)
                 .content(toJson(questionRequest)));
 

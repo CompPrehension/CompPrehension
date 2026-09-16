@@ -12,6 +12,7 @@ import org.vstu.compprehension.enums.Decision;
 import org.vstu.compprehension.enums.Language;
 import org.vstu.compprehension.frontend.dto.AnswerDto;
 import org.vstu.compprehension.frontend.dto.InteractionDto;
+import org.vstu.compprehension.frontend.dto.SupplementaryQuestionDto;
 import org.vstu.compprehension.frontend.dto.feedback.FeedbackDto;
 import org.vstu.compprehension.frontend.dto.question.MatchingQuestionDto;
 import org.vstu.compprehension.frontend.dto.question.QuestionDto;
@@ -27,6 +28,7 @@ import static org.junit.jupiter.api.Assertions.assertArrayEquals;
 import static org.junit.jupiter.api.Assertions.assertDoesNotThrow;
 import static org.junit.jupiter.api.Assertions.assertEquals;
 import static org.junit.jupiter.api.Assertions.assertFalse;
+import static org.junit.jupiter.api.Assertions.assertInstanceOf;
 import static org.junit.jupiter.api.Assertions.assertNotEquals;
 import static org.junit.jupiter.api.Assertions.assertNotNull;
 import static org.junit.jupiter.api.Assertions.assertNull;
@@ -601,9 +603,7 @@ class ExerciseAttemptFrontendServiceTest extends AbstractIntegrationTest {
         var supplementary = service.generateSupplementaryQuestion(question.getQuestionId(), violationLawsOf(mistake));
 
         // Assert.
-        assertNull(supplementary.getMessage());
-        var supplementaryQuestion = supplementary.getQuestion();
-        assertNotNull(supplementaryQuestion);
+        var supplementaryQuestion = supplementaryQuestion(supplementary);
         assertNotEquals(question.getQuestionId(), supplementaryQuestion.getQuestionId());
         assertFalse(supplementaryQuestion.getText().isBlank());
         assertTrue(supplementaryQuestion.getAnswers().length > 0);
@@ -618,16 +618,15 @@ class ExerciseAttemptFrontendServiceTest extends AbstractIntegrationTest {
         var bankQuestion = TestData.ExpressionBank.PARENTHESES_AND_UNARY_MINUS;
         var question = attemptlessQuestion(bankQuestion);
         var laws = violationLawsOf(service.addQuestionAnswer(interaction(question, bankQuestion.operatorAt(1))));
-        var supplementary = service.generateSupplementaryQuestion(question.getQuestionId(), laws).getQuestion();
+        var supplementary = supplementaryQuestion(service.generateSupplementaryQuestion(question.getQuestionId(), laws));
 
         // Act.
         var feedback = service.addSupplementaryQuestionAnswer(anyAnswer(supplementary));
-        var next = service.generateSupplementaryQuestion(question.getQuestionId(), laws);
 
         // Assert.
         assertNotNull(feedback.getAction());
         assertFalse(feedback.getMessage().getMessage().isBlank());
-        assertTrue(next.getQuestion() != null || next.getMessage() != null);
+        assertDoesNotThrow(() -> service.generateSupplementaryQuestion(question.getQuestionId(), laws));
     }
 
     /** Обычный вопрос за доп. вопрос не принимается. */
@@ -657,7 +656,7 @@ class ExerciseAttemptFrontendServiceTest extends AbstractIntegrationTest {
         var supplementary = service.generateSupplementaryQuestion(question.getQuestionId(), violationLawsOf(mistake));
 
         // Assert.
-        assertNotNull(supplementary.getQuestion());
+        supplementaryQuestion(supplementary);
         assertArrayEquals(new Long[] { question.getQuestionId() }, service.getExerciseAttempt(attempt.getAttemptId()).getQuestionIds());
     }
 
@@ -708,6 +707,10 @@ class ExerciseAttemptFrontendServiceTest extends AbstractIntegrationTest {
                 .filter(law -> law.isCanCreateSupplementaryQuestion())
                 .map(law -> law.getName())
                 .toArray(String[]::new);
+    }
+
+    private static QuestionDto supplementaryQuestion(SupplementaryQuestionDto supplementary) {
+        return assertInstanceOf(SupplementaryQuestionDto.Question.class, supplementary).question();
     }
 
     private static InteractionDto anyAnswer(QuestionDto question) {

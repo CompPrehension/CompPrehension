@@ -1,23 +1,11 @@
 package org.vstu.compprehension.businesslogic;
 
-import lombok.Getter;
-import org.jetbrains.annotations.Nullable;
+import org.jetbrains.annotations.NotNull;
 import org.vstu.compprehension.data.question.GeneratedQuestionData;
 import org.vstu.compprehension.frontend.dto.SupplementaryFeedbackDto;
 
-public class SupplementaryResponse {
-    @Getter
-    @Nullable private GeneratedQuestionData question;
-    @Getter
-    @Nullable private SupplementaryFeedbackDto feedback;
+public sealed interface SupplementaryResponse {
+    record Question(@NotNull GeneratedQuestionData question) implements SupplementaryResponse {}
 
-    public SupplementaryResponse(@Nullable GeneratedQuestionData supplementaryQuestion) {
-        this.question = supplementaryQuestion;
-        this.feedback = null;
-    }
-
-    public SupplementaryResponse(@Nullable SupplementaryFeedbackDto supplementaryFeedback) {
-        this.question = null;
-        this.feedback = supplementaryFeedback;
-    }
+    record Feedback(@NotNull SupplementaryFeedbackDto feedback) implements SupplementaryResponse {}
 }
