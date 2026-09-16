@@ -90,89 +90,47 @@ public class DataFlowDTDomain extends DecisionTreeReasoningDomain {
             RandomProvider randomProvider,
             QuestionBank qMetaStorage
     ) {
-        super(domainData, randomProvider);
+        super(domainData, randomProvider, new DomainStructure(buildConcepts(), buildSkills(), Laws.empty()));
 
         this.localizationService = localizationService;
         this.qMetaStorage = qMetaStorage;
-        positiveLaws = new HashMap<>();
-        negativeLaws = new HashMap<>();
-
-        fillConcepts();
-        fillSkills();
     }
 
-    private void fillConcepts() {
-        concepts = new HashMap<>();
+    private static Map<String, Concept> buildConcepts() {
+        var b = new ConceptsBuilder();
 
-        int flags = Concept.FLAG_VISIBLE_TO_TEACHER; //для всех стейджей
         int flagsAll = Concept.FLAG_VISIBLE_TO_TEACHER | Concept.FLAG_TARGET_ENABLED; //для конкретных задач в одном стейдже
-        addConcepts(List.of(
-                new Concept("pointer", List.of(), flagsAll),
-                new Concept("index_access", List.of(), flagsAll),
-                new Concept("assignment", List.of(), flagsAll),
-                new Concept("assignment_with_modification", List.of(), flagsAll),
-                new Concept("prefix_increment_decrement", List.of(), flagsAll),
-                new Concept("postfix_increment_decrement", List.of(), flagsAll),
-                new Concept("ternary_operator", List.of(), flagsAll),
-                new Concept("arithmetic_operator", List.of(), flagsAll),
-                new Concept("logic_operator", List.of(), flagsAll),
-                new Concept("comparison_operator", List.of(), flagsAll),
-                new Concept("function_with_input_data", List.of(), flagsAll),
-                new Concept("function_with_output_data", List.of(), flagsAll),
-                new Concept("function_with_mutable_data", List.of(), flagsAll)
-        ));
+        b.add("pointer", 0x1L, List.of(), flagsAll);
+        b.add("index_access", 0x2L, List.of(), flagsAll);
+        b.add("assignment", 0x4L, List.of(), flagsAll);
+        b.add("assignment_with_modification", 0x8L, List.of(), flagsAll);
+        b.add("prefix_increment_decrement", 0x10L, List.of(), flagsAll);
+        b.add("postfix_increment_decrement", 0x20L, List.of(), flagsAll);
+        b.add("ternary_operator", 0x40L, List.of(), flagsAll);
+        b.add("arithmetic_operator", 0x80L, List.of(), flagsAll);
+        b.add("logic_operator", 0x100L, List.of(), flagsAll);
+        b.add("comparison_operator", 0x200L, List.of(), flagsAll);
+        b.add("function_with_input_data", 0x400L, List.of(), flagsAll);
+        b.add("function_with_output_data", 0x800L, List.of(), flagsAll);
+        b.add("function_with_mutable_data", 0x1000L, List.of(), flagsAll);
 
-        fillConceptTree();
-
-        // assign mask bits to Concepts
-        val name2bit = _getConceptsName2bit();
-        for (Concept t : concepts.values()) {
-            val name = t.getName();
-            if (name2bit.containsKey(name)) {
-                t.setBitmask(name2bit.get(name));
-            }
-        }
+        return b.build();
     }
 
-    public void fillSkills() {
-        skills = new HashMap<>();
+    private static Map<String, Skill> buildSkills() {
+        var b = new SkillsBuilder();
+        int visible = Skill.FLAG_VISIBLE_TO_TEACHER;
 
-        addSkill("input_variable_is_at_operator", Skill.FLAG_VISIBLE_TO_TEACHER);
-        addSkill("output_variable_is_at_operator", Skill.FLAG_VISIBLE_TO_TEACHER);
-        addSkill("mutable_variable_is_at_operator", Skill.FLAG_VISIBLE_TO_TEACHER);
-        addSkill("input_variable_is_in_function_call", Skill.FLAG_VISIBLE_TO_TEACHER);
-        addSkill("output_variable_is_in_function_call", Skill.FLAG_VISIBLE_TO_TEACHER);
-        addSkill("mutable_variable_is_in_function_call", Skill.FLAG_VISIBLE_TO_TEACHER);
-        addSkill("mutable_variable_appears_multiple_times", Skill.FLAG_VISIBLE_TO_TEACHER);
-        addSkill("input_output_variable_appears_multiple_times", Skill.FLAG_VISIBLE_TO_TEACHER);
+        b.add("input_variable_is_at_operator", 0x1L, visible);
+        b.add("output_variable_is_at_operator", 0x2L, visible);
+        b.add("mutable_variable_is_at_operator", 0x4L, visible);
+        b.add("input_variable_is_in_function_call", 0x8L, visible);
+        b.add("output_variable_is_in_function_call", 0x10L, visible);
+        b.add("mutable_variable_is_in_function_call", 0x20L, visible);
+        b.add("mutable_variable_appears_multiple_times", 0x40L, visible);
+        b.add("input_output_variable_appears_multiple_times", 0x80L, visible);
 
-
-        fillSkillTree();
-
-        // assign mask bits to Skills
-        val name2bit = _getSkillsName2bit();
-        for (Skill t : skills.values()) {
-            val name = t.getName();
-            if (name2bit.containsKey(name)) {
-                t.setBitmask(name2bit.get(name));
-            } else {
-                throw new RuntimeException("Invalid bitmask for skill " + name);
-            }
-        }
-    }
-
-    /** Set direct children to skills. This is needed since parents (bases) of skills are stored only */
-    protected void fillSkillTree() {
-        for (Skill skill : skills.values()) {
-            if (skill.getBaseSkills() == null)
-                continue;
-            for (Skill base : skill.getBaseSkills()) {
-                if (base.getChildSkills() == null) {
-                    base.setChildSkills(new HashSet<>());
-                }
-                base.getChildSkills().add(skill);
-            }
-        }
+        return b.build();
     }
 
     @NotNull
@@ -514,37 +472,6 @@ public class DataFlowDTDomain extends DecisionTreeReasoningDomain {
         throw new NotImplementedException();
     }
 
-
-    private HashMap<String, Long> _getConceptsName2bit() {
-        HashMap<String, Long> name2bit = new HashMap<>(13);
-        name2bit.put("pointer", 0x1L);  		// (1)
-        name2bit.put("index_access", 0x2L);  			// (2)
-        name2bit.put("assignment", 0x4L);  			// (4)
-        name2bit.put("assignment_with_modification", 0x8L);  		// (8)
-        name2bit.put("prefix_increment_decrement", 0x10L);  	// (16)
-        name2bit.put("postfix_increment_decrement", 0x20L);    // (32)
-        name2bit.put("ternary_operator", 0x40L);  // (64)
-        name2bit.put("arithmetic_operator", 0x80L);  // (128)
-        name2bit.put("logic_operator", 0x100L);  // (256)
-        name2bit.put("comparison_operator", 0x200L);    // (512)
-        name2bit.put("function_with_input_data", 0x400L);  			// (1024)
-        name2bit.put("function_with_output_data", 0x800L);  			// (2048)
-        name2bit.put("function_with_mutable_data", 0x1000L);  			// (4096)
-        return name2bit;
-    }
-
-    private HashMap<String, Long> _getSkillsName2bit() {
-        HashMap<String, Long> name2bit = new HashMap<>(8);
-        name2bit.put("input_variable_is_at_operator", 0x1L);  	// (1)
-        name2bit.put("output_variable_is_at_operator", 0x2L);  	// (2)
-        name2bit.put("mutable_variable_is_at_operator", 0x4L);  	// (4)
-        name2bit.put("input_variable_is_in_function_call", 0x8L);  		// (8)
-        name2bit.put("output_variable_is_in_function_call", 0x10L);  	// (16)
-        name2bit.put("mutable_variable_is_in_function_call", 0x20L);    // (32)
-        name2bit.put("mutable_variable_appears_multiple_times", 0x40L);  // (64)
-        name2bit.put("input_output_variable_appears_multiple_times", 0x80L);  // (128)
-        return name2bit;
-    }
 
     @Override
     public QuestionRequest ensureQuestionRequestValid(QuestionRequest questionRequest) {

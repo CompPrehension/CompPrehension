@@ -1,16 +1,13 @@
 package org.vstu.compprehension.businesslogic;
 
-import lombok.AllArgsConstructor;
 import lombok.Getter;
-import lombok.Setter;
 import lombok.ToString;
 import org.jetbrains.annotations.Nullable;
 
-import java.util.Collection;
 import java.util.List;
+import java.util.Set;
 
 
-@AllArgsConstructor
 public abstract class Law implements TreeNodeWithBitmask {
     /** When present, this flag enables a concept to be shown to teacher at exercise configuration page. */
     public static final int FLAG_VISIBLE_TO_TEACHER = 1;
@@ -25,9 +22,9 @@ public abstract class Law implements TreeNodeWithBitmask {
 
     @Getter
     String name;
-    @Getter @Setter
+    @Getter
     int bitflags;
-    @Getter @Setter
+    @Getter
     long bitmask = 0;
     @Getter
     @ToString.Exclude
@@ -38,25 +35,22 @@ public abstract class Law implements TreeNodeWithBitmask {
     @Getter
     List<Tag> tags;
 
-    @Getter @Setter
+    @Getter
     int sortOrder = 999;
 
     /**
      * Names of "base" laws that should be enabled automatically when this law is added/enabled.
      */
-    @Getter @Setter
+    @Getter
     List<String> impliesLaws;
 
-    /** Cached references to "base" Law instances — semantically the same as `impliesLaws` */
-    @Getter @Setter
+    @Getter
     @ToString.Exclude
-    Collection<Law> lawsImplied;
+    Set<Law> lawsImplied = Set.of();
 
-    /** Cached references to Law instances */
     @ToString.Exclude
     @Getter
-    @Setter
-    Collection<Law> childLaws = null;
+    Set<Law> childLaws = Set.of();
 
     /**
      * Priority of the law. Higher value means higher priority,
@@ -78,6 +72,20 @@ public abstract class Law implements TreeNodeWithBitmask {
 
     public abstract boolean isPositiveLaw();
 
+    void setBitmask(long bitmask) {
+        this.bitmask = bitmask;
+        this.subTreeBitmaskCache = null;
+    }
+
+    void setLawsImplied(Set<Law> lawsImplied) {
+        this.lawsImplied = Set.copyOf(lawsImplied);
+        this.subTreeBitmaskCache = null;
+    }
+
+    void setChildLaws(Set<Law> childLaws) {
+        this.childLaws = Set.copyOf(childLaws);
+    }
+
     /**
      * @param flagCode flag bitmask (see Law.FLAG_* constants)
      * @return true iff all given bits exist in the law's bitflags
@@ -92,15 +100,11 @@ public abstract class Law implements TreeNodeWithBitmask {
      * @return bits of this law and all lawsImplied
      */
     public long getSubTreeBitmask() {
-        if (lawsImplied == null)
-            return bitmask;
-
         if (subTreeBitmaskCache != null)
             return subTreeBitmaskCache;
 
-        long result =
+        return subTreeBitmaskCache =
                 bitmask | (lawsImplied.stream().map(Law::getSubTreeBitmask).reduce((a, b) -> a | b).orElse(0L));
-        return subTreeBitmaskCache = result;
     }
 
     public static long combineToBitmask(@Nullable Iterable<Law> laws) {

@@ -106,151 +106,101 @@ public class ControlFlowDTDomain extends DecisionTreeReasoningDomain {
         }
     }
 
-    private void fillSkills() {
-        skills = new HashMap<>();
+    private static Map<String, Skill> buildSkills() {
+        var b = new SkillsBuilder();
+        int visible = Skill.FLAG_VISIBLE_TO_TEACHER;
 
-        addSkill("current_execution_point_understood", Skill.FLAG_VISIBLE_TO_TEACHER);
-        addSkill("current_code_block_identified", Skill.FLAG_VISIBLE_TO_TEACHER);
-        addSkill("action_execution_determined", Skill.FLAG_VISIBLE_TO_TEACHER);
-        addSkill("unevaluated_conditions_between_points_present", Skill.FLAG_VISIBLE_TO_TEACHER);
-        addSkill("transition_applicable_regardless_interruption", Skill.FLAG_VISIBLE_TO_TEACHER);
-        addSkill("interruption_type_matched", Skill.FLAG_VISIBLE_TO_TEACHER);
-        addSkill("applicable_transition_with_interruption_found", Skill.FLAG_VISIBLE_TO_TEACHER);
-        addSkill("action_is_condition_recognized", Skill.FLAG_VISIBLE_TO_TEACHER);
-        addSkill("required_condition_value_determined", Skill.FLAG_VISIBLE_TO_TEACHER);
-        addSkill("applicable_transition_with_condition_found", Skill.FLAG_VISIBLE_TO_TEACHER);
-        addSkill("action_is_function_call_recognized", Skill.FLAG_VISIBLE_TO_TEACHER);
-        addSkill("function_body_completion_determined", Skill.FLAG_VISIBLE_TO_TEACHER);
-        addSkill("nearest_function_call_in_trace_found", Skill.FLAG_VISIBLE_TO_TEACHER);
-        addSkill("transition_matches_interruption_mode", Skill.FLAG_VISIBLE_TO_TEACHER);
-        addSkill("compound_structure_boundaries_identified", Skill.FLAG_VISIBLE_TO_TEACHER);
-        addSkill("early_exit_from_compound_detected", Skill.FLAG_VISIBLE_TO_TEACHER);
-        addSkill("multiple_compound_exit_order_understood", Skill.FLAG_VISIBLE_TO_TEACHER);
-        addSkill("applicable_compound_exit_determined", Skill.FLAG_VISIBLE_TO_TEACHER);
-        addSkill("interruption_termination_recognized", Skill.FLAG_VISIBLE_TO_TEACHER);
-        addSkill("interruption_can_be_terminated_determined", Skill.FLAG_VISIBLE_TO_TEACHER);
+        b.add("current_execution_point_understood", 0x1L, visible);
+        b.add("current_code_block_identified", 0x2L, visible);
+        b.add("action_execution_determined", 0x4L, visible);
+        b.add("unevaluated_conditions_between_points_present", 0x8L, visible);
+        b.add("transition_applicable_regardless_interruption", 0x10L, visible);
+        b.add("interruption_type_matched", 0x20L, visible);
+        b.add("applicable_transition_with_interruption_found", 0x40L, visible);
+        b.add("action_is_condition_recognized", 0x80L, visible);
+        b.add("required_condition_value_determined", 0x100L, visible);
+        b.add("applicable_transition_with_condition_found", 0x200L, visible);
+        b.add("action_is_function_call_recognized", 0x400L, visible);
+        b.add("function_body_completion_determined", 0x800L, visible);
+        b.add("nearest_function_call_in_trace_found", 0x1000L, visible);
+        b.add("transition_matches_interruption_mode", 0x2000L, visible);
+        b.add("compound_structure_boundaries_identified", 0x4000L, visible);
+        b.add("early_exit_from_compound_detected", 0x8000L, visible);
+        b.add("multiple_compound_exit_order_understood", 0x10000L, visible);
+        b.add("applicable_compound_exit_determined", 0x20000L, visible);
+        b.add("interruption_termination_recognized", 0x40000L, visible);
+        b.add("interruption_can_be_terminated_determined", 0x80000L, visible);
 
         // для целей отладки, еще не удалены из дерева
-        addSkill("unknown_incorrect");  // неизвестная ошибка
-        addSkill("unknown_correct");   // не знает почему правильно
-        addSkill("patch_stop_as_true");
-        addSkill("patch_auto_exit_interruption");
-        addSkill("patch_auto_exit_interruption_2");
-        addSkill("patch_auto_exit_interruption_3");
+        b.add("unknown_incorrect", 0x100000L);  // неизвестная ошибка
+        b.add("unknown_correct", 0x200000L);   // не знает почему правильно
+        b.add("patch_stop_as_true", 0x400000L);
+        b.add("patch_auto_exit_interruption", 0x800000L);
+        b.add("patch_auto_exit_interruption_2", 0x1000000L);
+        b.add("patch_auto_exit_interruption_3", 0x2000000L);
 
-        fillSkillTree();
-
-        // assign mask bits to Skills
-        var name2bit = _getSkillsName2bit();
-        for (Skill t : skills.values()) {
-            var name = t.getName();
-            if (name2bit.containsKey(name)) {
-                t.setBitmask(name2bit.get(name));
-            } else {
-                throw new RuntimeException("Invalid bitmask for skill " + name);
-            }
-        }
+        return b.build();
     }
 
-    private Concept addConcept(String name, List<Concept> baseConcepts, String displayName, int flags) {
-        Concept concept = new Concept(name, /*displayName,*/ baseConcepts, flags);
-        return addConcept(concept);
-    }
-
-    private Concept addConcept(String name, List<Concept> baseConcepts) {
-        Concept concept = new Concept(name, baseConcepts);
-        return addConcept(concept);
-    }
-
-    private Concept addConcept(String name) {
-        Concept concept = new Concept(name);
-        return addConcept(concept);
-    }
-
-    private void fillConcepts() {
-        concepts = new HashMap<>();
+    private static Map<String, Concept> buildConcepts() {
+        var b = new ConceptsBuilder();
 
         int flags = Concept.FLAG_VISIBLE_TO_TEACHER | Concept.FLAG_TARGET_ENABLED;
         int invisible = Concept.FLAG_TARGET_ENABLED;
-        int noFlags = Concept.DEFAULT_FLAGS;
 
-        Concept exprs = addConcept("expressions");
-        Concept pointers = addConcept("pointers", List.of(exprs), flags);
-        Concept bitwise = addConcept("bitwise", List.of(exprs), flags);
-        Concept memberAccess = addConcept("member_access", List.of(exprs), flags);
-        Concept arrays = addConcept("arrays", List.of(exprs), flags);
-        Concept cast = addConcept("type_casts", List.of(exprs), flags);
-        Concept io = addConcept("io", List.of(exprs), flags);
-        Concept logical = addConcept("logical", List.of(exprs), flags);
-        Concept arithmetic = addConcept("arithmetic", List.of(exprs), flags);
-        Concept objectNew = addConcept("object_new", List.of(exprs), flags);
-        Concept strings = addConcept("strings", List.of(exprs), flags);
-        Concept maps = addConcept("map_collections", List.of(exprs), flags);
-        Concept ternary = addConcept("ternary_conditions", List.of(exprs), flags);
-        Concept functionCall = addConcept("function_call", List.of(exprs));
-        Concept libFunctionCall = addConcept("lib_function_call", List.of(functionCall), flags);     // функции в задаче нет
-        Concept programFunctionCall = addConcept("program_function_call", List.of(functionCall), flags); // функция определена в задаче
+        Concept exprs = b.add("expressions");
+        b.add("pointers", 0x1L, List.of(exprs), flags);
+        b.add("bitwise", 0x2L, List.of(exprs), flags);
+        b.add("member_access", 0x4L, List.of(exprs), flags);
+        b.add("arrays", 0x8L, List.of(exprs), flags);
+        b.add("type_casts", 0x10L, List.of(exprs), flags);
+        b.add("io", 0x20L, List.of(exprs), flags);
+        b.add("logical", 0x40L, List.of(exprs), flags);
+        b.add("arithmetic", 0x80L, List.of(exprs), flags);
+        b.add("object_new", 0x400000000L, List.of(exprs), flags);
+        b.add("strings", 0x800000000L, List.of(exprs), flags);
+        b.add("map_collections", 0x1000000000L, List.of(exprs), flags);
+        b.add("ternary_conditions", 0x100L, List.of(exprs), flags);
+        Concept functionCall = b.add("function_call", List.of(exprs));
+        b.add("lib_function_call", 0x200L, List.of(functionCall), flags);     // функции в задаче нет
+        b.add("program_function_call", 0x400L, List.of(functionCall), flags); // функция определена в задаче
 
-        Concept plain = addConcept("plain_statements");
-        Concept var_decl = addConcept("var_declaration", List.of(plain), flags);
-        Concept assignment = addConcept("assignment", List.of(plain), flags);
-        Concept breakStmt = addConcept("break", List.of(plain), flags);
-        Concept continueStmt = addConcept("continue", List.of(plain), flags);
-        Concept retStmt = addConcept("return", List.of(plain), flags);
-        Concept delStmt = addConcept("delete", List.of(plain), flags);
+        Concept plain = b.add("plain_statements");
+        b.add("var_declaration", 0x800L, List.of(plain), flags);
+        b.add("assignment", 0x1000L, List.of(plain), flags);
+        b.add("break", 0x2000L, List.of(plain), flags);
+        b.add("continue", 0x4000L, List.of(plain), flags);
+        b.add("return", 0x8000L, List.of(plain), flags);
+        b.add("delete", 0x10000L, List.of(plain), flags);
 
-        Concept structures = addConcept("structures");
-        Concept function = addConcept("function", List.of(structures), flags);
-        Concept recursion = addConcept("recursion", List.of(function), flags);
-        Concept struct = addConcept("structure", List.of(structures), flags);
-        Concept oop = addConcept("objects", List.of(structures), flags);
-        Concept cls = addConcept("class", List.of(oop), invisible);
-        Concept field = addConcept("field", List.of(oop), invisible);
-        Concept method = addConcept("method", List.of(oop), invisible);
+        Concept structures = b.add("structures");
+        Concept function = b.add("function", 0x20000L, List.of(structures), flags);
+        b.add("recursion", 0x2000000000L, List.of(function), flags);
+        b.add("structure", 0x40000L, List.of(structures), flags);
+        Concept oop = b.add("objects", List.of(structures), flags);
+        b.add("class", 0x80000L, List.of(oop), invisible);
+        b.add("field", 0x100000L, List.of(oop), invisible);
+        b.add("method", 0x200000L, List.of(oop), invisible);
 
-        Concept loops = addConcept("loops");
-        Concept loopIteration = addConcept("loop_iteration", List.of(loops), flags);
-        Concept forLoop = addConcept("for_loop", List.of(loops));
-        Concept forGeneralLoop = addConcept("general_for_loop", List.of(forLoop), flags);
-        Concept forRangeLoop = addConcept("range_for_loop", List.of(forGeneralLoop), flags);
-        Concept forEachLoop = addConcept("for_each_loop", List.of(forLoop), flags);
-        Concept whileLoop = addConcept("while_loop", List.of(loops), flags);
-        Concept doWhileLoop = addConcept("do_while_loop", List.of(loops), flags);
-        Concept infiniteLoop = addConcept("infinite_loop", List.of(loops), flags);
+        Concept loops = b.add("loops");
+        b.add("loop_iteration", 0x4000000000L, List.of(loops), flags);
+        Concept forLoop = b.add("for_loop", List.of(loops));
+        Concept forGeneralLoop = b.add("general_for_loop", 0x400000L, List.of(forLoop), flags);
+        b.add("range_for_loop", 0x800000L, List.of(forGeneralLoop), flags);
+        b.add("for_each_loop", 0x1000000L, List.of(forLoop), flags);
+        b.add("while_loop", 0x2000000L, List.of(loops), flags);
+        b.add("do_while_loop", 0x4000000L, List.of(loops), flags);
+        b.add("infinite_loop", 0x8000000L, List.of(loops), flags);
 
+        Concept branches = b.add("branches");
+        b.add("if", 0x10000000L, List.of(branches), flags);
+        b.add("else", 0x20000000L, List.of(branches), flags);
+        b.add("elseif", 0x40000000L, List.of(branches), flags);
+        Concept switches = b.add("switch", 0x80000000L, List.of(branches), flags);
+        b.add("fallthrough_case", 0x100000000L, List.of(switches), flags);
+        b.add("default_case", 0x200000000L, List.of(switches), flags);
 
-        Concept branches = addConcept("branches");
-        Concept ifStmt = addConcept("if", List.of(branches), flags);
-        Concept elseStmt = addConcept("else", List.of(branches), flags);
-        Concept elseIfStmt = addConcept("elseif", List.of(branches), flags);
-        Concept switches = addConcept("switch", List.of(branches), flags);
-        Concept fallthrough = addConcept("fallthrough_case", List.of(switches), flags);
-        Concept defaultCaseBlock = addConcept("default_case", List.of(switches), flags);
-
-        fillConceptTree();
-
-        // assign mask bits to Concepts
-        val name2bit = _getConceptsName2bit();
-        for (Concept t : concepts.values()) {
-            val name = t.getName();
-            if (name2bit.containsKey(name)) {
-                t.setBitmask(name2bit.get(name));
-            }
-        }
-    }
-
-    /** Set direct children to skills. This is needed since parents (bases) of skills are stored only */
-    protected void fillSkillTree() {
-        for (Skill skill : skills.values()) {
-            if (skill.getBaseSkills() == null)
-                continue;
-            for (Skill base : skill.getBaseSkills()) {
-                if (base.getChildSkills() == null) {
-                    base.setChildSkills(new HashSet<>());
-                }
-                base.getChildSkills().add(skill);
-            }
-        }
+        return b.build();
     }
 
     private class DecisionTreeInterface implements DecisionTreeReasonerBackend.Interface {
@@ -525,14 +475,9 @@ public class ControlFlowDTDomain extends DecisionTreeReasoningDomain {
     public ControlFlowDTDomain(DomainData domainData,
                                RandomProvider randomProvider,
                                LocalizationService localizationService, QuestionBank qMetaStorage) {
-        super(domainData, randomProvider);
+        super(domainData, randomProvider, new DomainStructure(buildConcepts(), buildSkills(), Laws.empty()));
         this.qMetaStorage = qMetaStorage;
         this.localizationService = localizationService;
-        this.concepts = Map.of();
-        this.positiveLaws = Map.of();
-        this.negativeLaws = Map.of();
-        fillSkills();
-        fillConcepts();
     }
 
     @Override
@@ -1045,39 +990,6 @@ public class ControlFlowDTDomain extends DecisionTreeReasoningDomain {
         return trace;
     }
 
-    private HashMap<String, Long> _getSkillsName2bit() {
-        HashMap<String, Long> name2bit = new HashMap<>(20);
-        name2bit.put("current_execution_point_understood", 0x1L);                      // 1
-        name2bit.put("current_code_block_identified", 0x2L);                           // 2
-        name2bit.put("action_execution_determined", 0x4L);                             // 4
-        name2bit.put("unevaluated_conditions_between_points_present", 0x8L);            // 8
-        name2bit.put("transition_applicable_regardless_interruption", 0x10L);          // 16
-        name2bit.put("interruption_type_matched", 0x20L);                              // 32
-        name2bit.put("applicable_transition_with_interruption_found", 0x40L);          // 64
-        name2bit.put("action_is_condition_recognized", 0x80L);                         // 128
-        name2bit.put("required_condition_value_determined", 0x100L);                   // 256
-        name2bit.put("applicable_transition_with_condition_found", 0x200L);            // 512
-        name2bit.put("action_is_function_call_recognized", 0x400L);                    // 1024
-        name2bit.put("function_body_completion_determined", 0x800L);                   // 2048
-        name2bit.put("nearest_function_call_in_trace_found", 0x1000L);                // 4096
-        name2bit.put("transition_matches_interruption_mode", 0x2000L);                 // 8192
-        name2bit.put("compound_structure_boundaries_identified", 0x4000L);             // 16384
-        name2bit.put("early_exit_from_compound_detected", 0x8000L);                    // 32768
-        name2bit.put("multiple_compound_exit_order_understood", 0x10000L);             // 65536
-        name2bit.put("applicable_compound_exit_determined", 0x20000L);                 // 131072
-        name2bit.put("interruption_termination_recognized", 0x40000L);                 // 262144
-        name2bit.put("interruption_can_be_terminated_determined", 0x80000L);           // 524288
-
-        name2bit.put("unknown_incorrect", 0x100000L);
-        name2bit.put("unknown_correct", 0x200000L);
-        name2bit.put("patch_stop_as_true", 0x400000L);
-        name2bit.put("patch_auto_exit_interruption", 0x800000L);
-        name2bit.put("patch_auto_exit_interruption_2", 0x1000000L);
-        name2bit.put("patch_auto_exit_interruption_3", 0x2000000L);
-
-        return name2bit;
-    }
-
     @Override
     public String getMessage(String base_question_text, Language preferredLanguage) {
         String key = base_question_text;
@@ -1093,60 +1005,5 @@ public class ControlFlowDTDomain extends DecisionTreeReasoningDomain {
     @Override
     protected List<GeneratedQuestionData> getQuestionTemplates() {
         return List.of();
-    }
-
-    private HashMap<String, Long> _getConceptsName2bit() {
-        HashMap<String, Long> name2bit = new HashMap<>(30);
-
-        // Expressions with flags
-        name2bit.put("pointers", 0x1L);                    // 1
-        name2bit.put("bitwise", 0x2L);                     // 2
-        name2bit.put("member_access", 0x4L);               // 4
-        name2bit.put("arrays", 0x8L);                      // 8
-        name2bit.put("type_casts", 0x10L);                 // 16
-        name2bit.put("io", 0x20L);                         // 32
-        name2bit.put("logical", 0x40L);                    // 64
-        name2bit.put("arithmetic", 0x80L);                 // 128
-        name2bit.put("ternary_conditions", 0x100L);        // 256
-        name2bit.put("lib_function_call", 0x200L);         // 512
-        name2bit.put("program_function_call", 0x400L);     // 1024
-
-        // Plain statements with flags
-        name2bit.put("var_declaration", 0x800L);           // 2048
-        name2bit.put("assignment", 0x1000L);               // 4096
-        name2bit.put("break", 0x2000L);                    // 8192
-        name2bit.put("continue", 0x4000L);                 // 16384
-        name2bit.put("return", 0x8000L);                   // 32768
-        name2bit.put("delete", 0x10000L);                  // 65536
-
-        // Structures with flags and invisible
-        name2bit.put("function", 0x20000L);                // 131072
-        name2bit.put("structure", 0x40000L);               // 262144
-        name2bit.put("class", 0x80000L);                   // 524288 (invisible)
-        name2bit.put("field", 0x100000L);                  // 1048576 (invisible)
-        name2bit.put("method", 0x200000L);                 // 2097152 (invisible)
-
-        // Loops with flags
-        name2bit.put("general_for_loop", 0x400000L);       // 4194304
-        name2bit.put("range_for_loop", 0x800000L);         // 8388608
-        name2bit.put("for_each_loop", 0x1000000L);         // 16777216
-        name2bit.put("while_loop", 0x2000000L);            // 33554432
-        name2bit.put("do_while_loop", 0x4000000L);         // 67108864
-        name2bit.put("infinite_loop", 0x8000000L);         // 134217728
-
-        // Branches with flags
-        name2bit.put("if", 0x10000000L);                   // 268435456
-        name2bit.put("else", 0x20000000L);                 // 536870912
-        name2bit.put("elseif", 0x40000000L);               // 1073741824
-        name2bit.put("switch", 0x80000000L);               // 2147483648
-        name2bit.put("fallthrough_case", 0x100000000L);    // 4294967296
-        name2bit.put("default_case", 0x200000000L);        // 8589934592
-        name2bit.put("object_new", 0x400000000L);
-        name2bit.put("strings", 0x800000000L);
-        name2bit.put("map_collections", 0x1000000000L);
-        name2bit.put("recursion", 0x2000000000L);
-        name2bit.put("loop_iteration", 0x4000000000L);
-
-        return name2bit;
     }
 }

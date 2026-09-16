@@ -21,21 +21,17 @@ import java.util.stream.Stream;
 @Log4j2
 public abstract class DomainBase implements Domain {
     public static final String NAME_PREFIX_IS_HUMAN = "[human]";
-    protected Map<String, PositiveLaw> positiveLaws;
-    protected Map<String, NegativeLaw> negativeLaws;
-    /** name to Concept mapping */
-    protected Map<String, Concept> concepts;
-    protected Map<String, Skill> skills;
     @Getter
-    protected String version = "";
+    private final DomainStructure structure;
     @Getter
     protected final RandomProvider randomProvider;
     @Getter
     private final DomainData domainData;
 
-    protected DomainBase(DomainData domainData, RandomProvider randomProvider) {
+    protected DomainBase(DomainData domainData, RandomProvider randomProvider, DomainStructure structure) {
         this.domainData = domainData;
         this.randomProvider = randomProvider;
+        this.structure = structure;
     }
 
     public @NotNull String getDomainId() {
@@ -82,14 +78,14 @@ public abstract class DomainBase implements Domain {
     public abstract @NotNull Map<String, Tag> getTags();
 
     public Collection<PositiveLaw> getPositiveLaws() {
-        return positiveLaws.values();
+        return structure.laws().positive().values();
     }
     public Collection<NegativeLaw> getNegativeLaws() {
-        return negativeLaws.values();
+        return structure.laws().negative().values();
     }
 
     public Collection<Concept> getConcepts() {
-        return concepts.values();
+        return structure.concepts().values();
     }
     public String getConceptDisplayName(String conceptName, Language language) {
         return getMessage(conceptName, "concept.", language);
@@ -104,11 +100,11 @@ public abstract class DomainBase implements Domain {
     }
 
     public @Nullable PositiveLaw getPositiveLaw(String name) {
-        return positiveLaws.getOrDefault(name, null);
+        return structure.laws().positive().get(name);
     }
 
     public @Nullable NegativeLaw getNegativeLaw(String name) {
-        return negativeLaws.getOrDefault(name, null);
+        return structure.laws().negative().get(name);
     }
 
     public @Nullable Law getLaw(String name) {
@@ -132,7 +128,7 @@ public abstract class DomainBase implements Domain {
             for (String name : new HashSet<>(pool)) {
                 pool.remove(name);
                 Law currLaw = getLaw(name);
-                if (currLaw != null && currLaw.getChildLaws() != null) {
+                if (currLaw != null) {
                     // try to add all children of current concept
                     pool.addAll(currLaw.getChildLaws().stream().map(Law::getName).collect(Collectors.toSet()));
                     pool.removeAll(res);  // guard: don't allow infinite recursion.
@@ -178,23 +174,20 @@ public abstract class DomainBase implements Domain {
     }
 
     public Concept getConcept(String name) {
-        return concepts.getOrDefault(name, null);
+        return structure.concepts().get(name);
     }
 
     public List<Concept> getAllConcepts() {
-        return new ArrayList<>(concepts.values());
+        return new ArrayList<>(structure.concepts().values());
     }
 
     public List<Skill> getAllSkills() {
-        if (skills == null) {
-            return List.of();
-        }
-        return new ArrayList<>(skills.values());
+        return new ArrayList<>(structure.skills().values());
     }
 
     public List<Law> getAllLaws() {
-        ArrayList<Law> result = new ArrayList<>(positiveLaws.values());
-        result.addAll(negativeLaws.values());
+        ArrayList<Law> result = new ArrayList<>(structure.laws().positive().values());
+        result.addAll(structure.laws().negative().values());
         return result;
     }
 
@@ -282,7 +275,7 @@ public abstract class DomainBase implements Domain {
     }
 
     public Skill getSkill(String name) {
-        return skills.getOrDefault(name, null);
+        return structure.skills().get(name);
     }
 
     /** Get skills organized into one-level hierarchy
@@ -304,7 +297,7 @@ public abstract class DomainBase implements Domain {
      */
     public Map<Concept, List<Concept>> getConceptsSimplifiedHierarchy(int requiredFlags) {
         Map<Concept, List<Concept>> res = new TreeMap<>();
-        Set<Concept> wanted = this.concepts.values().stream().filter(t -> t.hasFlag(requiredFlags)).collect(Collectors.toSet());
+        Set<Concept> wanted = structure.concepts().values().stream().filter(t -> t.hasFlag(requiredFlags)).collect(Collectors.toSet());
         Set<Concept> added = new HashSet<>();
         for (Concept ct : new ArrayList<>(wanted)) {
             // ensure we are dealing with bottom-level concept
@@ -462,8 +455,8 @@ public abstract class DomainBase implements Domain {
 //            res.addAll(pool.stream().flatMap(n -> tm.get(n).stream()).collect(Collectors.toSet()));
             for (String name : new HashSet<>(pool)) {
                 pool.remove(name);
-                Concept currConcept =  concepts.getOrDefault(name, null);
-                if (currConcept != null && currConcept.getChildConcepts() != null) {
+                Concept currConcept = getConcept(name);
+                if (currConcept != null) {
                     // try to add all children of current concept
                     pool.addAll(currConcept.getChildConcepts().stream().map(Concept::getName).collect(Collectors.toSet()));
                     pool.removeAll(res);  // guard: don't allow infinite recursion.
@@ -472,89 +465,6 @@ public abstract class DomainBase implements Domain {
         }
         return res.stream().map(this::getConcept).filter(Objects::nonNull).collect(Collectors.toSet());
 //        return new ArrayList<>(res);
-    }
-
-
-    protected Concept addConcept(Concept t) {
-        concepts.put(t.getName(), t);
-        return t;
-    }
-
-    protected Skill addSkill(Skill t) {
-        skills.put(t.getName(), t);
-        return t;
-    }
-
-    protected Skill addSkill(String name) {
-        return addSkill(new Skill(name));
-    }
-
-    protected Skill addSkill(String name, List<Skill> baseSkills) {
-        return addSkill(new Skill(name, baseSkills));
-    }
-
-    protected Skill addSkill(String name, int bitflags) {
-        return addSkill(new Skill(name, List.of(), bitflags));
-    }
-
-    protected Skill addSkill(String name, List<Skill> baseSkills, int bitflags) {
-        return addSkill(new Skill(name, baseSkills, bitflags));
-    }
-
-    protected Concept addConcept(String name, List<Concept> bases, int flags) {
-        return addConcept(new Concept(name, bases, flags));
-    }
-
-    protected void addConcepts(Collection<Concept> ts) {
-        for (Concept t : ts)
-            addConcept(t);
-    }
-
-    /** Set direct children to concepts. This is needed since parents (bases) of concepts are stored only */
-    protected void fillConceptTree() {
-        for (Concept concept : concepts.values()) {
-            if (concept.getBaseConcepts() == null)
-                continue;
-            for (Concept base : concept.getBaseConcepts()) {
-                if (base.getChildConcepts() == null) {
-                    base.setChildConcepts(new HashSet<>());
-                }
-                base.getChildConcepts().add(concept);
-            }
-        }
-    }
-
-    /** Set direct children to both positive and negative Laws. This is needed since names of laws are stored only */
-    protected void fillLawsTree() {
-        // set direct implied (base) Laws to each Law
-        for (Law t : positiveLaws.values()) {
-            if (t.getImpliesLaws() == null) {
-                t.setLawsImplied(List.of());
-            } else {
-                t.setLawsImplied(t.getImpliesLaws().stream().map(this::getPositiveLaw).filter(Objects::nonNull).collect(Collectors.toSet()));
-            }
-        }
-        for (Law t : negativeLaws.values()) {
-            if (t.getImpliesLaws() == null) {
-                t.setLawsImplied(List.of());
-            } else {
-                t.setLawsImplied(t.getImpliesLaws().stream().map(this::getNegativeLaw).filter(Objects::nonNull).collect(Collectors.toSet()));
-            }
-        }
-
-        // set direct child Laws to Laws
-        var allLaws = Stream.concat(getPositiveLaws().stream(), getNegativeLaws().stream()).collect(Collectors.toSet());
-        for (Law law : allLaws) {
-            if (law.getLawsImplied() == null)
-                continue;
-            for (Law base : law.getLawsImplied()) {
-                if (base.getChildLaws() == null) {
-                    base.setChildLaws(new HashSet<>());
-                }
-                base.getChildLaws().add(law);
-            }
-        }
-
     }
 
 

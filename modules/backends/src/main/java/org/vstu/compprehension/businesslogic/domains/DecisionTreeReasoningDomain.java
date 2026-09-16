@@ -17,8 +17,8 @@ import java.util.Optional;
 
 public abstract class DecisionTreeReasoningDomain extends DomainBase {
 
-    protected DecisionTreeReasoningDomain(DomainData domainData, RandomProvider randomProvider) {
-        super(domainData, randomProvider);
+    protected DecisionTreeReasoningDomain(DomainData domainData, RandomProvider randomProvider, DomainStructure structure) {
+        super(domainData, randomProvider, structure);
     }
 
     public abstract List<DomainSolvingModel> getDomainSolvingModels();

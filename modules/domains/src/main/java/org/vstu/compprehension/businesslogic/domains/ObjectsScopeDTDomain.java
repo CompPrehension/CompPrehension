@@ -112,7 +112,7 @@ public class ObjectsScopeDTDomain extends DecisionTreeReasoningDomain {
             RandomProvider randomProvider,
             QuestionBank qMetaStorage
     ) {
-        super(domainData, randomProvider);
+        super(domainData, randomProvider, new DomainStructure(buildConcepts(), buildSkills(), Laws.empty()));
 
         this.localizationService = localizationService;
         this.qMetaStorage = qMetaStorage;
@@ -121,84 +121,42 @@ public class ObjectsScopeDTDomain extends DecisionTreeReasoningDomain {
                 domainLifeTimeSolvingModel,
                 this::mainQuestionToModel
         );
-        
-        positiveLaws = new HashMap<>();
-        negativeLaws = new HashMap<>();
-
-        fillConcepts();
-        fillSkills();
     }
 
-    private void fillConcepts() {
-        concepts = new HashMap<>();
+    private static Map<String, Concept> buildConcepts() {
+        var b = new ConceptsBuilder();
 
-        int flags = Concept.FLAG_VISIBLE_TO_TEACHER; //для всех стейджей
         int flagsAll = Concept.FLAG_VISIBLE_TO_TEACHER | Concept.FLAG_TARGET_ENABLED; //для конкретных задач в одном стейдже
-        addConcepts(List.of(
-                new Concept("default_variable", List.of(), flagsAll),
-                new Concept("class_property", List.of(), flagsAll),
-                new Concept("cycle", List.of(), flagsAll),
-                new Concept("recursive_function", List.of(), flagsAll),
-                new Concept("if/else", List.of(), flagsAll),
-                new Concept("structure", List.of(), flagsAll),
-                new Concept("enum", List.of(), flagsAll),
-                new Concept("namespace", List.of(), flagsAll),
-                new Concept("function", List.of(), flagsAll)
-        ));
+        b.add("default_variable", 0x1L, List.of(), flagsAll);
+        b.add("class_property", 0x2L, List.of(), flagsAll);
+        b.add("cycle", 0x4L, List.of(), flagsAll);
+        b.add("recursive_function", 0x8L, List.of(), flagsAll);
+        b.add("if/else", 0x10L, List.of(), flagsAll);
+        b.add("structure", 0x20L, List.of(), flagsAll);
+        b.add("enum", 0x40L, List.of(), flagsAll);
+        b.add("namespace", 0x80L, List.of(), flagsAll);
+        b.add("function", 0x100L, List.of(), flagsAll);
 
-        fillConceptTree();
-
-        // assign mask bits to Concepts
-        val name2bit = _getConceptsName2bit();
-        for (Concept t : concepts.values()) {
-            val name = t.getName();
-            if (name2bit.containsKey(name)) {
-                t.setBitmask(name2bit.get(name));
-            }
-        }
+        return b.build();
     }
 
-    public void fillSkills() {
-        skills = new HashMap<>();
-        addSkill("global_and_static_variable", Skill.FLAG_VISIBLE_TO_TEACHER);
-        addSkill("before_variable_declaration", Skill.FLAG_VISIBLE_TO_TEACHER);
-        addSkill("outside_existence_of_variable", Skill.FLAG_VISIBLE_TO_TEACHER);
-        addSkill("common_visibility_area", Skill.FLAG_VISIBLE_TO_TEACHER);
-        addSkill("variable_access_modifier", Skill.FLAG_VISIBLE_TO_TEACHER);
-        addSkill("variable_overlapping", Skill.FLAG_VISIBLE_TO_TEACHER);
-        addSkill("visibility_of_non_static_variable_in_static_area", Skill.FLAG_VISIBLE_TO_TEACHER);
-        addSkill("visibility_of_variable_that_is_after_and_it_is_not_class", Skill.FLAG_VISIBLE_TO_TEACHER);
-        addSkill("visibility_of_variable_that_is_after_and_it_is_class", Skill.FLAG_VISIBLE_TO_TEACHER);
-        addSkill("global_variable_visibility", Skill.FLAG_VISIBLE_TO_TEACHER);
-        addSkill("static_variable_visibility", Skill.FLAG_VISIBLE_TO_TEACHER);
+    private static Map<String, Skill> buildSkills() {
+        var b = new SkillsBuilder();
+        int visible = Skill.FLAG_VISIBLE_TO_TEACHER;
 
+        b.add("global_and_static_variable", 0x1L, visible);
+        b.add("before_variable_declaration", 0x2L, visible);
+        b.add("outside_existence_of_variable", 0x4L, visible);
+        b.add("common_visibility_area", 0x8L, visible);
+        b.add("variable_access_modifier", 0x10L, visible);
+        b.add("variable_overlapping", 0x20L, visible);
+        b.add("visibility_of_non_static_variable_in_static_area", 0x40L, visible);
+        b.add("visibility_of_variable_that_is_after_and_it_is_not_class", 0x80L, visible);
+        b.add("visibility_of_variable_that_is_after_and_it_is_class", 0x100L, visible);
+        b.add("global_variable_visibility", 0x200L, visible);
+        b.add("static_variable_visibility", 0x400L, visible);
 
-        fillSkillTree();
-
-        // assign mask bits to Skills
-        val name2bit = _getSkillsName2bit();
-        for (Skill t : skills.values()) {
-            val name = t.getName();
-            if (name2bit.containsKey(name)) {
-                t.setBitmask(name2bit.get(name));
-            } else {
-                throw new RuntimeException("Invalid bitmask for skill " + name);
-            }
-        }
-    }
-
-    /** Set direct children to skills. This is needed since parents (bases) of skills are stored only */
-    protected void fillSkillTree() {
-        for (Skill skill : skills.values()) {
-            if (skill.getBaseSkills() == null)
-                continue;
-            for (Skill base : skill.getBaseSkills()) {
-                if (base.getChildSkills() == null) {
-                    base.setChildSkills(new HashSet<>());
-                }
-                base.getChildSkills().add(skill);
-            }
-        }
+        return b.build();
     }
 
     @NotNull
@@ -692,37 +650,6 @@ public class ObjectsScopeDTDomain extends DecisionTreeReasoningDomain {
         throw new NotImplementedException();
     }
 
-
-    private HashMap<String, Long> _getConceptsName2bit() {
-        HashMap<String, Long> name2bit = new HashMap<>(9);
-        name2bit.put("default_variable", 0x1L);  		// (1)
-        name2bit.put("class_property", 0x2L);  			// (2)
-        name2bit.put("cycle", 0x4L);  			// (4)
-        name2bit.put("recursive_function", 0x8L);  		// (8)
-        name2bit.put("if/else", 0x10L);  	// (16)
-        name2bit.put("structure", 0x20L);    // (32)
-        name2bit.put("enum", 0x40L);  // (64)
-        name2bit.put("namespace", 0x80L);  // (128)
-        name2bit.put("function", 0x100L);  // (256)
-        return name2bit;
-    }
-
-    private HashMap<String, Long> _getSkillsName2bit() {
-        HashMap<String, Long> name2bit = new HashMap<>(11);
-        name2bit.put("global_and_static_variable", 0x1L);  	// (1)
-        name2bit.put("before_variable_declaration", 0x2L);  	// (2)
-        name2bit.put("outside_existence_of_variable", 0x4L);  	// (4)
-
-        name2bit.put("common_visibility_area", 0x8L);  	// (8)
-        name2bit.put("variable_access_modifier", 0x10L);  	// (16)
-        name2bit.put("variable_overlapping", 0x20L);  	// (32)
-        name2bit.put("visibility_of_non_static_variable_in_static_area", 0x40L);  	// (64)
-        name2bit.put("visibility_of_variable_that_is_after_and_it_is_not_class", 0x80L);  	// (128)
-        name2bit.put("visibility_of_variable_that_is_after_and_it_is_class", 0x100L);  	// (256)
-        name2bit.put("global_variable_visibility", 0x200L);  	// (512)
-        name2bit.put("static_variable_visibility", 0x400L);  	// (1024)
-        return name2bit;
-    }
 
     @Override
     public QuestionRequest ensureQuestionRequestValid(QuestionRequest questionRequest) {

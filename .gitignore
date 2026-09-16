@@ -57,3 +57,6 @@ modules/bkt/*.png
 modules/server/dev.crt
 modules/server/dev.key
 modules/server/dev.pfx
+
+# graphify
+graphify-out/**

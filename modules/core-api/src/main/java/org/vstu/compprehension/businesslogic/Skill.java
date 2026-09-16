@@ -1,65 +1,60 @@
 package org.vstu.compprehension.businesslogic;
 
-import lombok.Data;
+import lombok.AccessLevel;
 import lombok.EqualsAndHashCode;
-import lombok.Setter;
+import lombok.Getter;
 import lombok.ToString;
 
-import java.util.*;
+import java.util.HashSet;
+import java.util.List;
+import java.util.Set;
 import java.util.stream.Collectors;
 
-@Data
+@Getter
 @EqualsAndHashCode(onlyExplicitlyIncluded = true)
+@ToString(onlyExplicitlyIncluded = true)
 public class Skill implements TreeNodeWithBitmask {
     /** When present, this flag enables a concept to be shown to teacher at exercise configuration page. */
-    public static int FLAG_VISIBLE_TO_TEACHER = 1;
+    public static final int FLAG_VISIBLE_TO_TEACHER = 1;
     /** When present, this flag blocks selection this skill as denied */
     // TODO: implement in frontend
-    public static int FLAG_DENIED_DISABLED = 2;
+    public static final int FLAG_DENIED_DISABLED = 2;
 
     /** All flags are OFF by default */
-    public static int DEFAULT_FLAGS = 0;
+    public static final int DEFAULT_FLAGS = 0;
 
     @EqualsAndHashCode.Include
-    public String name;
+    @ToString.Include
+    private final String name;
+    @ToString.Include
+    private final int bitflags;
+    @ToString.Include
+    private final long bitmask;
+    private final List<Skill> baseSkills;
+    private final int sortOrder = 999;
 
-    int bitflags;
+    private Set<Skill> childSkills = Set.of();
+    @Getter(AccessLevel.NONE)
+    private Long subTreeBitmaskCache = null;
 
-    @Setter
-    long bitmask;
-
-    @Setter
-    int sortOrder = 999;
-
-    @ToString.Exclude
-    List<Skill> baseSkills;
-
-    /** Cached references to Skill instances */
-    @ToString.Exclude
-    @Setter
-    Collection<Skill> childSkills = null;
-
-
-    public Skill(String name) {
-        this.name = name;
-        this.baseSkills = new ArrayList<>();
-        this.bitflags = DEFAULT_FLAGS;
+    public Skill(String name, long bitmask) {
+        this(name, List.of(), DEFAULT_FLAGS, bitmask);
     }
 
-    public Skill(String name, List<Skill> baseSkills, int bitflags) {
+    public Skill(String name, List<Skill> baseSkills, long bitmask) {
+        this(name, baseSkills, DEFAULT_FLAGS, bitmask);
+    }
+
+    public Skill(String name, List<Skill> baseSkills, int bitflags, long bitmask) {
         this.name = name;
         this.bitflags = bitflags;
-        this.baseSkills = new ArrayList<>(baseSkills);
-        for (Skill base : baseSkills) {
-            if (base.childSkills == null) {
-                base.childSkills = new ArrayList<>();
-            }
-            base.childSkills.add(this);
-        }
+        this.bitmask = bitmask;
+        this.baseSkills = List.copyOf(baseSkills);
     }
 
-    public Skill(String name, List<Skill> baseSkills) {
-        this(name, baseSkills, DEFAULT_FLAGS);
+    void setChildSkills(Set<Skill> childSkills) {
+        this.childSkills = Set.copyOf(childSkills);
+        this.subTreeBitmaskCache = null;
     }
 
     public boolean hasFlag(int flagCode) {
@@ -85,26 +80,19 @@ public class Skill implements TreeNodeWithBitmask {
     public boolean hasBaseSkill(Skill skill) {
         if (baseSkills.contains(skill)) {
             return true;
-        } else {
-            // search up along the hierarchy
-            for (Skill baseSkill : baseSkills) {
-                if (baseSkill.hasBaseSkill(skill)) {
-                    return true;
-                }
+        }
+        for (Skill baseSkill : baseSkills) {
+            if (baseSkill.hasBaseSkill(skill)) {
+                return true;
             }
         }
         return false;
     }
 
-    Long subTreeBitmaskCache = null;
-
     /**
      * @return bits of this concept and all childConcepts
      */
     public long getSubTreeBitmask() {
-        if (childSkills == null)
-            return bitmask;
-
         if (subTreeBitmaskCache != null)
             return subTreeBitmaskCache;
 
@@ -116,9 +104,6 @@ public class Skill implements TreeNodeWithBitmask {
      * @return set of child concepts (recursively)
      */
     public Set<Skill> getDescendants() {
-        if (childSkills == null)
-            return Set.of();
-
         Set<Skill> set = new HashSet<>(childSkills);
         for (Skill childSkill : childSkills) {
             set.addAll(childSkill.getDescendants());
@@ -133,10 +118,6 @@ public class Skill implements TreeNodeWithBitmask {
     public Set<Skill> getClosestVisibleParents() {
         if (this.hasFlag(Skill.FLAG_VISIBLE_TO_TEACHER)) {
             return Set.of(this);
-        }
-
-        if (this.baseSkills == null || this.baseSkills.isEmpty()) {
-            return Set.of();
         }
 
         return this.baseSkills.stream()

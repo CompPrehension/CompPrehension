@@ -29,43 +29,24 @@ public class DomainVocabulary {
         //    model.read("data.foo", "TURTLE") ;
     }
 
-    public List<Concept> readConcepts() {
-
+    public List<Concept> readConcepts(Map<String, Long> bits) {
         HashMap<String, HashSet<String>> conceptName2bases = new HashMap<>();
+        HashMap<String, Integer> conceptName2flags = new HashMap<>();
 
-        // make concepts in advance: baseConcepts can be appended after the instance created
-        HashMap<String, Concept> concepts = new HashMap<>();
-        // Resource ConceptClass = SKOS.Concept;
-//         Property subConceptProp = SKOS.broader;
-
-        // find all [top] concepts and recurse from them
-//        ResIterator iter = model.listSubjectsWithProperty(RDFS.subClassOf, ConceptClass);
-//        ResIterator iter = model.listSubjectsWithProperty(RDF.type);  // do not take all subjects: exclude third-party vocabularies
         ResIterator iter = model.listSubjectsWithProperty(model.createProperty(model.expandPrefix(":has_bitflags")));  // consider as concepts only those subjects that were marked so.
         while (iter.hasNext()) {
             Resource conceptNode = iter.nextResource();
-            readConceptFromResource(conceptNode, conceptName2bases, concepts, null);
+            readConceptFromResource(conceptNode, conceptName2bases, conceptName2flags, null);
         }
 
-        // make concepts
-//        HashMap<String, Concept> concepts = new HashMap<>();
-
-        // make concepts in order to create independent earlier
+        LinkedHashMap<String, Concept> concepts = new LinkedHashMap<>();
         while (! conceptName2bases.isEmpty()) {
             boolean nothingFound = true;  // check for circular dependencies
-            for (String name : new HashSet<String>(conceptName2bases.keySet())) {
+            for (String name : new TreeSet<>(conceptName2bases.keySet())) {
                 HashSet<String> bases = conceptName2bases.get(name);
-                if (bases.isEmpty() || concepts.keySet().containsAll(bases)) {
-                    /// System.out.println("Create new: " + name + " - " +  bases);
-
-                    // copy base concepts to new list ...
-                    ArrayList<Concept> baseConcepts = new ArrayList<>();
-                    for (String base : bases) {
-                        baseConcepts.add(concepts.get(base));
-                    }
-                    // fill concept with base concepts that already exist
-                    concepts.get(name).getBaseConcepts().addAll(baseConcepts);
-
+                if (concepts.keySet().containsAll(bases)) {
+                    List<Concept> baseConcepts = bases.stream().sorted().map(concepts::get).toList();
+                    concepts.put(name, new Concept(name, baseConcepts, conceptName2flags.get(name), bits.getOrDefault(name, 0L)));
                     conceptName2bases.remove(name);
                     nothingFound = false;
                 }
@@ -78,28 +59,15 @@ public class DomainVocabulary {
         return new ArrayList<>(concepts.values());
     }
 
-    /**
-     * @param conceptNode RDFNode of concept
-     * @param conceptName2bases [in-out]
-     * @param concepts          [in-out]
-     * @param baseConceptName [optional]
-     */
-    protected void readConceptFromResource(@NotNull Resource conceptNode, @NotNull HashMap<String, HashSet<String>> conceptName2bases, HashMap<String, Concept> concepts, String baseConceptName) {
+    private void readConceptFromResource(@NotNull Resource conceptNode, @NotNull HashMap<String, HashSet<String>> conceptName2bases, @NotNull HashMap<String, Integer> conceptName2flags, String baseConceptName) {
         String name = conceptNode.getLocalName();
 
-        // read flags from resource's field
         int bitflags = Optional.ofNullable(conceptNode.getProperty(
                 model.createProperty(model.expandPrefix(":has_bitflags"))
                 ))
                 .map(statement -> statement.getLiteral().getInt())
                 .orElse(Concept.DEFAULT_FLAGS);
-
-        /// System.out.println("adding: " + name + " - " +  baseConceptName);
-
-        if (!concepts.containsKey(name)) {
-            // do not add any baseConcepts here (we'll add all later)
-            concepts.put(name, new Concept(name, List.of(), bitflags));
-        }
+        conceptName2flags.putIfAbsent(name, bitflags);
 
         boolean shouldNotRecurse = conceptName2bases.containsKey(name);
         conceptName2bases.putIfAbsent(name, new HashSet<>());
@@ -110,11 +78,9 @@ public class DomainVocabulary {
         if (shouldNotRecurse)
             return;
 
-        // find all child concepts
-        ResIterator iter = model.listSubjectsWithProperty(SKOS.broader, conceptNode);
-        while (iter.hasNext()) {
-            Resource childConceptNode = iter.nextResource();
-            readConceptFromResource(childConceptNode, conceptName2bases, concepts, name);
+        ResIterator childIter = model.listSubjectsWithProperty(SKOS.broader, conceptNode);
+        while (childIter.hasNext()) {
+            readConceptFromResource(childIter.nextResource(), conceptName2bases, conceptName2flags, name);
         }
     }
 

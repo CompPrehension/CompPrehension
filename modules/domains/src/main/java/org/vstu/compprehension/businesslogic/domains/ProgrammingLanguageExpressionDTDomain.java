@@ -19,7 +19,6 @@ import its.reasoner.LearningSituation;
 import lombok.Getter;
 import lombok.SneakyThrows;
 import lombok.extern.log4j.Log4j2;
-import lombok.val;
 import org.apache.commons.lang3.tuple.Pair;
 import org.apache.jena.rdf.model.Model;
 import org.apache.jena.rdf.model.ModelFactory;
@@ -73,7 +72,7 @@ public class ProgrammingLanguageExpressionDTDomain extends DecisionTreeReasoning
     @SneakyThrows
     public ProgrammingLanguageExpressionDTDomain(DomainData domainData,
                                                  ProgrammingLanguageExpressionDomain baseDomain) {
-        super(domainData, baseDomain.randomProvider);
+        super(domainData, baseDomain.randomProvider, baseDomain.getStructure().withSkills(buildSkills()));
 
         this.baseDomain = baseDomain;
         this.localizationService = baseDomain.localizationService;
@@ -85,10 +84,6 @@ public class ProgrammingLanguageExpressionDTDomain extends DecisionTreeReasoning
                 this::supplementaryDecisionTree
         );
 
-        this.concepts = baseDomain.concepts;
-        this.positiveLaws = baseDomain.positiveLaws;
-        this.negativeLaws = baseDomain.negativeLaws;
-        fillSkills();
     }
 
     private static final HashMap<String, Tag> tags = new HashMap<>() {{
@@ -111,95 +106,72 @@ public class ProgrammingLanguageExpressionDTDomain extends DecisionTreeReasoning
     }
 
 
-    public void fillSkills() {
-        skills = new HashMap<>();
+    private static Map<String, Skill> buildSkills() {
+        var b = new SkillsBuilder();
+        int visible = Skill.FLAG_VISIBLE_TO_TEACHER;
 
-        addSkill("central_operand_needed", Skill.FLAG_VISIBLE_TO_TEACHER);
-        addSkill("is_central_operand_evaluated", Skill.FLAG_VISIBLE_TO_TEACHER);
+        b.add("central_operand_needed", 0x1L, visible);
+        b.add("is_central_operand_evaluated", 0x2L, visible);
 
-        Skill nearestOperandNeeded = addSkill("nearest_operand_needed", Skill.FLAG_VISIBLE_TO_TEACHER);
-        addSkill("left_operand_needed", List.of(nearestOperandNeeded));
-        addSkill("right_operand_needed", List.of(nearestOperandNeeded));
+        Skill nearestOperandNeeded = b.add("nearest_operand_needed", 0x4L, visible);
+        b.add("left_operand_needed", 0x8L, List.of(nearestOperandNeeded));
+        b.add("right_operand_needed", 0x10L, List.of(nearestOperandNeeded));
 
-        Skill competingOperandPresent = addSkill("competing_operator_present", Skill.FLAG_VISIBLE_TO_TEACHER);
-        addSkill("left_competing_operator_present", List.of(competingOperandPresent));
-        addSkill("right_competing_operator_present", List.of(competingOperandPresent));
+        Skill competingOperandPresent = b.add("competing_operator_present", 0x20L, visible);
+        b.add("left_competing_operator_present", 0x40L, List.of(competingOperandPresent));
+        b.add("right_competing_operator_present", 0x80L, List.of(competingOperandPresent));
 
-        Skill currentOperatorEnclosed = addSkill("current_operator_enclosed", Skill.FLAG_VISIBLE_TO_TEACHER);
-        addSkill("left_operator_enclosed", List.of(currentOperatorEnclosed));
-        addSkill("right_operator_enclosed", List.of(currentOperatorEnclosed));
+        Skill currentOperatorEnclosed = b.add("current_operator_enclosed", 0x100L, visible);
+        b.add("left_operator_enclosed", 0x200L, List.of(currentOperatorEnclosed));
+        b.add("right_operator_enclosed", 0x400L, List.of(currentOperatorEnclosed));
 
-        Skill parenthesizedSkills = addSkill("order_determined_by_parentheses", Skill.FLAG_VISIBLE_TO_TEACHER);
-        addSkill("is_current_parenthesized_left_not", List.of(parenthesizedSkills));
-        addSkill("is_current_parenthesized_right_not", List.of(parenthesizedSkills));
-        addSkill("is_left_parenthesized_current_not", List.of(parenthesizedSkills));
-        addSkill("is_right_parenthesized_current_not", List.of(parenthesizedSkills));
+        Skill parenthesizedSkills = b.add("order_determined_by_parentheses", 0x800L, visible);
+        b.add("is_current_parenthesized_left_not", 0x1000L, List.of(parenthesizedSkills));
+        b.add("is_current_parenthesized_right_not", 0x2000L, List.of(parenthesizedSkills));
+        // (2^14) empty
+        b.add("is_left_parenthesized_current_not", 0x8000L, List.of(parenthesizedSkills));
+        b.add("is_right_parenthesized_current_not", 0x10000L, List.of(parenthesizedSkills));
 
-        Skill prec = addSkill("order_determined_by_precedence", Skill.FLAG_VISIBLE_TO_TEACHER);
-        addSkill("left_competing_to_right_precedence", List.of(prec));
-        addSkill("right_competing_to_left_precedence", List.of(prec));
+        Skill prec = b.add("order_determined_by_precedence", 0x20000L, visible);
+        b.add("left_competing_to_right_precedence", 0x20000000L, List.of(prec));
+        b.add("right_competing_to_left_precedence", 0x40000000L, List.of(prec));
 
-        Skill assoc = addSkill("order_determined_by_associativity");
-        addSkill("left_competing_to_right_associativity", List.of(assoc), Skill.FLAG_VISIBLE_TO_TEACHER);
-        addSkill("right_competing_to_left_associativity", List.of(assoc), Skill.FLAG_VISIBLE_TO_TEACHER);
+        Skill assoc = b.add("order_determined_by_associativity", 0x200000L);
+        b.add("left_competing_to_right_associativity", 0x400000L, List.of(assoc), visible);
+        b.add("right_competing_to_left_associativity", 0x800000L, List.of(assoc), visible);
 
-        Skill associativityWithoutOpposingOperand = addSkill("associativity_without_opposing_operand", Skill.FLAG_VISIBLE_TO_TEACHER);
-        addSkill("associativity_without_left_opposing_operand", List.of(associativityWithoutOpposingOperand));
-        addSkill("associativity_without_right_opposing_operand", List.of(associativityWithoutOpposingOperand));
+        Skill associativityWithoutOpposingOperand = b.add("associativity_without_opposing_operand", 0x40000L, visible);
+        b.add("associativity_without_left_opposing_operand", 0x80000L, List.of(associativityWithoutOpposingOperand));
+        b.add("associativity_without_right_opposing_operand", 0x100000L, List.of(associativityWithoutOpposingOperand));
 
-        Skill strictOrder = addSkill("strict_order_operators_present", Skill.FLAG_VISIBLE_TO_TEACHER);
-        addSkill("expression_strict_order_operators_present", List.of(strictOrder));
-        addSkill("earlyfinish_strict_order_operators_present", List.of(strictOrder));
+        Skill strictOrder = b.add("strict_order_operators_present", 0x1000000L, visible);
+        b.add("expression_strict_order_operators_present", 0x1000000000L, List.of(strictOrder));
+        b.add("earlyfinish_strict_order_operators_present", 0x2000000000L, List.of(strictOrder));
 
-        Skill currentStrictOrder = addSkill("is_current_operator_strict_order", Skill.FLAG_VISIBLE_TO_TEACHER);
-        addSkill(currentStrictOrder.name + "_while_solving", List.of(currentStrictOrder));
-        addSkill(currentStrictOrder.name + "_while_earlyfinish", List.of(currentStrictOrder));
+        Skill currentStrictOrder = b.add("is_current_operator_strict_order", 0x80000000L, visible);
+        b.add("is_current_operator_strict_order_while_solving", 0x100000000000L, List.of(currentStrictOrder));
+        b.add("is_current_operator_strict_order_while_earlyfinish", 0x200000000000L, List.of(currentStrictOrder));
 
-        Skill strictOrderFirstOperandToBeEvaluated = addSkill("strict_order_first_operand_to_be_evaluated", Skill.FLAG_VISIBLE_TO_TEACHER);
-        addSkill(strictOrderFirstOperandToBeEvaluated.name + "_while_solving", List.of(strictOrderFirstOperandToBeEvaluated));
-        addSkill(strictOrderFirstOperandToBeEvaluated.name + "_while_earlyfinish", List.of(strictOrderFirstOperandToBeEvaluated));
+        Skill strictOrderFirstOperandToBeEvaluated = b.add("strict_order_first_operand_to_be_evaluated", 0x2000000L, visible);
+        b.add("strict_order_first_operand_to_be_evaluated_while_solving", 0x4000000000L, List.of(strictOrderFirstOperandToBeEvaluated));
+        b.add("strict_order_first_operand_to_be_evaluated_while_earlyfinish", 0x8000000000L, List.of(strictOrderFirstOperandToBeEvaluated));
 
-        addSkill("is_first_operand_of_strict_order_operator_fully_evaluated", Skill.FLAG_VISIBLE_TO_TEACHER);
+        b.add("is_first_operand_of_strict_order_operator_fully_evaluated", 0x4000000L, visible);
 
-        Skill noOmittedOperandsDespiteStrictOrder = addSkill("no_omitted_operands_despite_strict_order", Skill.FLAG_VISIBLE_TO_TEACHER);
-        addSkill(noOmittedOperandsDespiteStrictOrder.name + "_while_solving", List.of(noOmittedOperandsDespiteStrictOrder));
-        addSkill(noOmittedOperandsDespiteStrictOrder.name + "_while_earlyfinish", List.of(noOmittedOperandsDespiteStrictOrder));
+        Skill noOmittedOperandsDespiteStrictOrder = b.add("no_omitted_operands_despite_strict_order", 0x8000000L, visible);
+        b.add("no_omitted_operands_despite_strict_order_while_solving", 0x10000000000L, List.of(noOmittedOperandsDespiteStrictOrder));
+        b.add("no_omitted_operands_despite_strict_order_while_earlyfinish", 0x20000000000L, List.of(noOmittedOperandsDespiteStrictOrder));
 
-        Skill shouldStrictOrderCurrentOperandBeOmitted = addSkill("should_strict_order_current_operand_be_omitted", Skill.FLAG_VISIBLE_TO_TEACHER);
-        addSkill(shouldStrictOrderCurrentOperandBeOmitted.name + "_while_solving", List.of(shouldStrictOrderCurrentOperandBeOmitted));
-        addSkill(shouldStrictOrderCurrentOperandBeOmitted.name + "_while_earlyfinish", List.of(shouldStrictOrderCurrentOperandBeOmitted));
+        Skill shouldStrictOrderCurrentOperandBeOmitted = b.add("should_strict_order_current_operand_be_omitted", 0x10000000L, visible);
+        b.add("should_strict_order_current_operand_be_omitted_while_solving", 0x40000000000L, List.of(shouldStrictOrderCurrentOperandBeOmitted));
+        b.add("should_strict_order_current_operand_be_omitted_while_earlyfinish", 0x80000000000L, List.of(shouldStrictOrderCurrentOperandBeOmitted));
 
-        addSkill("are_central_operands_strict_order", Skill.FLAG_VISIBLE_TO_TEACHER);
-        addSkill("no_current_in_many_central_operands", Skill.FLAG_VISIBLE_TO_TEACHER);
-        addSkill("no_comma_in_central_operands", Skill.FLAG_VISIBLE_TO_TEACHER);
-        addSkill("previous_central_operands_are_unevaluated", Skill.FLAG_VISIBLE_TO_TEACHER);
+        b.add("are_central_operands_strict_order", 0x100000000L, visible);
+        b.add("no_current_in_many_central_operands", 0x200000000L, visible);
+        b.add("no_comma_in_central_operands", 0x400000000L, visible);
+        b.add("previous_central_operands_are_unevaluated", 0x800000000L, visible);
 
-        fillSkillTree();
-
-        // assign mask bits to Skills
-        val name2bit = _getSkillsName2bit();
-        for (Skill t : skills.values()) {
-            val name = t.getName();
-            if (name2bit.containsKey(name)) {
-                t.setBitmask(name2bit.get(name));
-            } else {
-                throw new RuntimeException("Invalid bitmask for skill " + name);
-            }
-        }
-    }
-
-    /** Set direct children to skills. This is needed since parents (bases) of skills are stored only */
-    protected void fillSkillTree() {
-        for (Skill skill : skills.values()) {
-            if (skill.getBaseSkills() == null)
-                continue;
-            for (Skill base : skill.getBaseSkills()) {
-                if (base.getChildSkills() == null) {
-                    base.setChildSkills(new HashSet<>());
-                }
-                base.getChildSkills().add(skill);
-            }
-        }
+        return b.build();
     }
 
     @NotNull
@@ -1004,56 +976,5 @@ public class ProgrammingLanguageExpressionDTDomain extends DecisionTreeReasoning
 
     private HyperText makeSingleExplanation(ViolationData mistake, FeedbackType feedbackType, Language lang) {
         return new HyperText("WRONG");
-    }
-
-    private HashMap<String, Long> _getSkillsName2bit() {
-        HashMap<String, Long> name2bit = new HashMap<>(32);
-        name2bit.put("central_operand_needed", 0x1L);  	// (1)
-        name2bit.put("is_central_operand_evaluated", 0x2L);  	// (2)
-        name2bit.put("nearest_operand_needed", 0x4L);  	// (4)
-        name2bit.put("left_operand_needed", 0x8L);  	// (8)
-        name2bit.put("right_operand_needed", 0x10L);  	// (16)
-        name2bit.put("competing_operator_present", 0x20L);  	// (32)
-        name2bit.put("left_competing_operator_present", 0x40L);  	// (64)
-        name2bit.put("right_competing_operator_present", 0x80L);  	// (128)
-        name2bit.put("current_operator_enclosed", 0x100L);  	// (256)
-        name2bit.put("left_operator_enclosed", 0x200L);  	// (512)
-        name2bit.put("right_operator_enclosed", 0x400L);  	// (1024)
-        name2bit.put("order_determined_by_parentheses", 0x800L);  	// (2048)
-        name2bit.put("is_current_parenthesized_left_not", 0x1000L);  	// (2^12)
-        name2bit.put("is_current_parenthesized_right_not", 0x2000L);  	// (2^13)
-        // (2^14) empty
-        name2bit.put("is_left_parenthesized_current_not", 0x8000L);  	// (2^15)
-        name2bit.put("is_right_parenthesized_current_not", 0x10000L);  	// (2^16)
-        name2bit.put("order_determined_by_precedence", 0x20000L);  	// (2^17)
-        name2bit.put("associativity_without_opposing_operand", 0x40000L);  	// (2^18)
-        name2bit.put("associativity_without_left_opposing_operand", 0x80000L);  	// (2^19)
-        name2bit.put("associativity_without_right_opposing_operand", 0x100000L);  	// (2^20)
-        name2bit.put("order_determined_by_associativity", 0x200000L);  	// (2^21)
-        name2bit.put("left_competing_to_right_associativity", 0x400000L);  	// (2^22)
-        name2bit.put("right_competing_to_left_associativity", 0x800000L);  	// (2^23)
-        name2bit.put("strict_order_operators_present", 0x1000000L);  	// (2^24)
-        name2bit.put("strict_order_first_operand_to_be_evaluated", 0x2000000L);  	// (2^25)
-        name2bit.put("is_first_operand_of_strict_order_operator_fully_evaluated", 0x4000000L);  	// (2^26)
-        name2bit.put("no_omitted_operands_despite_strict_order", 0x8000000L);  	// (2^27)
-        name2bit.put("should_strict_order_current_operand_be_omitted", 0x10000000L);  	// (2^28)
-        name2bit.put("left_competing_to_right_precedence", 0x20000000L);
-        name2bit.put("right_competing_to_left_precedence", 0x40000000L);
-        name2bit.put("is_current_operator_strict_order", 0x80000000L);
-        name2bit.put("are_central_operands_strict_order", 0x100000000L);
-        name2bit.put("no_current_in_many_central_operands", 0x200000000L);
-        name2bit.put("no_comma_in_central_operands", 0x400000000L);
-        name2bit.put("previous_central_operands_are_unevaluated", 0x800000000L);
-        name2bit.put("expression_strict_order_operators_present", 0x1000000000L);
-        name2bit.put("earlyfinish_strict_order_operators_present", 0x2000000000L);
-        name2bit.put("strict_order_first_operand_to_be_evaluated_while_solving", 0x4000000000L);
-        name2bit.put("strict_order_first_operand_to_be_evaluated_while_earlyfinish", 0x8000000000L);
-        name2bit.put("no_omitted_operands_despite_strict_order_while_solving", 0x10000000000L);
-        name2bit.put("no_omitted_operands_despite_strict_order_while_earlyfinish", 0x20000000000L);
-        name2bit.put("should_strict_order_current_operand_be_omitted_while_solving", 0x40000000000L);
-        name2bit.put("should_strict_order_current_operand_be_omitted_while_earlyfinish", 0x80000000000L);
-        name2bit.put("is_current_operator_strict_order_while_solving", 0x100000000000L);
-        name2bit.put("is_current_operator_strict_order_while_earlyfinish", 0x200000000000L);
-        return name2bit;
     }
 }
