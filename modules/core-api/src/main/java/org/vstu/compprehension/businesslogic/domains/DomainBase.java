@@ -214,25 +214,20 @@ public abstract class DomainBase implements Domain {
     }
 
     public List<NegativeLaw> negativeLawFromBitmask(long bitmask) {
-        List<Long> masks = splitIntoBits(bitmask);
-        List<NegativeLaw> result = new ArrayList<>();
-        for (long mask : masks) {
-            for (Law law : getAllLaws()) {
-                if (law instanceof NegativeLaw negLaw && law.getBitmask() == mask) {
-                    result.add(negLaw);
-                }
-            }
-        }
-        return result;
+        return lawsFromBitmask(structure.laws().negative().values(), bitmask);
     }
 
     public List<PositiveLaw> positiveLawFromBitmask(long bitmask) {
+        return lawsFromBitmask(structure.laws().positive().values(), bitmask);
+    }
+
+    private static <T extends Law> List<T> lawsFromBitmask(Collection<T> laws, long bitmask) {
         List<Long> masks = splitIntoBits(bitmask);
-        List<PositiveLaw> result = new ArrayList<>();
+        List<T> result = new ArrayList<>();
         for (long mask : masks) {
-            for (Law law : getAllLaws()) {
-                if (law instanceof PositiveLaw posLaw && law.getBitmask() == mask) {
-                    result.add(posLaw);
+            for (T law : laws) {
+                if (law.getBitmask() == mask) {
+                    result.add(law);
                 }
             }
         }

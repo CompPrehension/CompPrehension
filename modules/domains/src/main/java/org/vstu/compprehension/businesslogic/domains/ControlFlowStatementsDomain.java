@@ -155,7 +155,7 @@ public class ControlFlowStatementsDomain extends JenaReasoningDomain {
             }
         }
         for (String errClass : vocabularyErrors) {
-            b.add(new NegativeLaw(errClass, List.of(), List.of(), List.of(), null));
+            b.add(new NegativeLaw(errClass, List.of(), List.of(), List.of()));
         }
         return b.bits(violationBits()).build();
     }

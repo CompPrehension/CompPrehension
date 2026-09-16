@@ -8,7 +8,7 @@ import java.util.List;
 import java.util.Set;
 
 
-public abstract class Law implements TreeNodeWithBitmask {
+public sealed abstract class Law implements TreeNodeWithBitmask permits PositiveLaw, NegativeLaw {
     /** When present, this flag enables a concept to be shown to teacher at exercise configuration page. */
     public static final int FLAG_VISIBLE_TO_TEACHER = 1;
     /** When present, this flag enables a concept to be selected as TARGET at exercise configuration page. */
@@ -69,8 +69,6 @@ public abstract class Law implements TreeNodeWithBitmask {
         this.bitflags = DEFAULT_FLAGS;
         this.impliesLaws = null;
     }
-
-    public abstract boolean isPositiveLaw();
 
     void setBitmask(long bitmask) {
         this.bitmask = bitmask;

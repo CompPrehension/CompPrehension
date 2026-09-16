@@ -1588,7 +1588,6 @@
         "backend": "Jena"
       }
     ],
-    "positiveLaw": "single_token_binary_execution",
     "concepts": [
       {"name": "precedence"},
       {"name": "operator"},
@@ -3227,7 +3226,6 @@
   {
     "name": "type_test_error",
     "positive": false,
-    "positiveLaw": "type_test",
     "formulations": [
       {
         "name": "get_type",

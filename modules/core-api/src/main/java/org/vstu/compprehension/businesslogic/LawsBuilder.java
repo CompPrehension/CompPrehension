@@ -18,9 +18,10 @@ public final class LawsBuilder {
     private final Map<String, Long> bits = new HashMap<>();
 
     public LawsBuilder add(Law law) {
-        Law previous = law instanceof PositiveLaw p
-                ? positive.putIfAbsent(p.getName(), p)
-                : negative.putIfAbsent(law.getName(), (NegativeLaw) law);
+        Law previous = switch (law) {
+            case PositiveLaw p -> positive.putIfAbsent(p.getName(), p);
+            case NegativeLaw n -> negative.putIfAbsent(n.getName(), n);
+        };
         if (previous != null) {
             throw new IllegalArgumentException("Duplicate law: " + law.getName());
         }
