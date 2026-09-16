@@ -126,9 +126,9 @@ public class ProgrammingLanguageExpressionDomain extends JenaReasoningDomain {
     private static Map<String, Concept> buildConcepts() {
         var b = new ConceptsBuilder();
 
-        int flags = Concept.FLAG_VISIBLE_TO_TEACHER | Concept.FLAG_TARGET_ENABLED;
-        int invisible = Concept.FLAG_TARGET_ENABLED;
-        int noFlags = Concept.DEFAULT_FLAGS;
+        var flags = EnumSet.of(DomainItemFlag.VISIBLE_TO_TEACHER, DomainItemFlag.TARGET_ENABLED);
+        var invisible = EnumSet.of(DomainItemFlag.TARGET_ENABLED);
+        var noFlags = EnumSet.noneOf(DomainItemFlag.class);
 
         Concept operandConcept = b.add("operand");
         Concept simpleOperandConcept = b.add("simple_operand");

@@ -5,6 +5,7 @@ import java.util.HashMap;
 import java.util.HashSet;
 import java.util.LinkedHashMap;
 import java.util.List;
+import java.util.Set;
 import java.util.Map;
 import java.util.Set;
 
@@ -13,18 +14,18 @@ public final class SkillsBuilder {
     private final Map<Long, Skill> byBit = new HashMap<>();
 
     public Skill add(String name, long bit) {
-        return add(new Skill(name, List.of(), Skill.DEFAULT_FLAGS, bit));
+        return add(new Skill(name, List.of(), Set.of(), bit));
     }
 
-    public Skill add(String name, long bit, int flags) {
+    public Skill add(String name, long bit, Set<DomainItemFlag> flags) {
         return add(new Skill(name, List.of(), flags, bit));
     }
 
     public Skill add(String name, long bit, List<Skill> bases) {
-        return add(new Skill(name, bases, Skill.DEFAULT_FLAGS, bit));
+        return add(new Skill(name, bases, Set.of(), bit));
     }
 
-    public Skill add(String name, long bit, List<Skill> bases, int flags) {
+    public Skill add(String name, long bit, List<Skill> bases, Set<DomainItemFlag> flags) {
         return add(new Skill(name, bases, flags, bit));
     }
 

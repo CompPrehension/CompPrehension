@@ -131,8 +131,8 @@ public class ControlFlowStatementsDomain extends JenaReasoningDomain {
         b.addAll(getVocabulary().readConcepts(vocabularyConceptBits()));
 
         // add concepts about expressions present in algorithms
-        int flags = Concept.FLAG_VISIBLE_TO_TEACHER;  // only allowed or denied.
-        int flagsAll = Concept.FLAG_VISIBLE_TO_TEACHER | Concept.FLAG_TARGET_ENABLED;
+        var flags = EnumSet.of(DomainItemFlag.VISIBLE_TO_TEACHER);  // only allowed or denied.
+        var flagsAll = EnumSet.of(DomainItemFlag.VISIBLE_TO_TEACHER, DomainItemFlag.TARGET_ENABLED);
         b.add("nested_loop", 0x80000L, List.of(b.get("loop")), flagsAll);
         List<Concept> bases = List.of(b.add("exprs_in_use", List.of(), flags));
         b.add("expr:array", 0x10L, bases, flags);

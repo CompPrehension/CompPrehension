@@ -254,23 +254,22 @@ public abstract class DomainBase implements Domain {
     /** Get skills organized into one-level hierarchy
      * @return map representing groups of skills (base skill -> skills in the group)
      */
-    public Map<Skill, List<Skill>> getSkillSimplifiedHierarchy(int bitflags) {
+    public Map<Skill, List<Skill>> getSkillSimplifiedHierarchy(DomainItemFlag... requiredFlags) {
         Map<Skill, List<Skill>> res = new TreeMap<>();
         for (Skill skill : getAllSkills()) {
-            if (skill.hasFlag(bitflags)) {
+            if (skill.hasFlags(requiredFlags)) {
                 res.put(skill, new ArrayList<>());
             }
         }
         return res;
     }
 
-    /** Get concepts with given flags (e.g. visible) organized into two-level hierarchy
-     * @param requiredFlags e.g. Concept.FLAG_VISIBLE_TO_TEACHER
+    /** Get concepts with all given flags (e.g. visible) organized into two-level hierarchy
      * @return map representing groups of concepts (base concept -> concepts in the group)
      */
-    public Map<Concept, List<Concept>> getConceptsSimplifiedHierarchy(int requiredFlags) {
+    public Map<Concept, List<Concept>> getConceptsSimplifiedHierarchy(DomainItemFlag... requiredFlags) {
         Map<Concept, List<Concept>> res = new TreeMap<>();
-        Set<Concept> wanted = structure.concepts().values().stream().filter(t -> t.hasFlag(requiredFlags)).collect(Collectors.toSet());
+        Set<Concept> wanted = structure.concepts().values().stream().filter(t -> t.hasFlags(requiredFlags)).collect(Collectors.toSet());
         Set<Concept> added = new HashSet<>();
         for (Concept ct : new ArrayList<>(wanted)) {
             // ensure we are dealing with bottom-level concept
@@ -336,18 +335,17 @@ public abstract class DomainBase implements Domain {
         return res;
     }
 
-    /** Get laws with given flags (e.g. visible) organized into two-level hierarchy
-     * @param requiredFlags e.g. Law.FLAG_VISIBLE_TO_TEACHER
+    /** Get laws with all given flags (e.g. visible) organized into two-level hierarchy
      * @return map representing groups of laws (base law -> laws in the group)
      */
-    public Map<Law, List<Law>> getLawsSimplifiedHierarchy(int requiredFlags) {
+    public Map<Law, List<Law>> getLawsSimplifiedHierarchy(DomainItemFlag... requiredFlags) {
         Map<Law, List<Law>> res = new TreeMap<>();
         Set<Law> wanted = Stream.concat(this.getPositiveLaws().stream(), this.getNegativeLaws().stream())
-                .filter(t -> t.hasFlag(requiredFlags)).collect(Collectors.toSet());
+                .filter(t -> t.hasFlags(requiredFlags)).collect(Collectors.toSet());
         Set<Law> added = new HashSet<>();
         for (Law ct : new ArrayList<>(wanted)) {
             // ensure we are dealing with bottom-level law
-            Collection<Law> children = (Collection<Law>) this.getLawWithChildren(ct.getName());
+            var children = this.getLawWithChildren(ct.getName());
             children.remove(ct);
             boolean hasChildren =
                     children.stream().anyMatch(wanted::contains);

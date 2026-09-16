@@ -187,22 +187,20 @@ public interface Domain {
      */
     @NotNull List<HyperText> getFullSolutionTrace(@NotNull QuestionData question, @NotNull Language language);
 
-    /** Get concepts with given flags (e.g. visible) organized into two-level hierarchy
-     * @param requiredFlags e.g. Concept.FLAG_VISIBLE_TO_TEACHER
+    /** Get concepts with all given flags (e.g. visible) organized into two-level hierarchy
      * @return map representing groups of concepts (base concept -> concepts in the group)
      */
-    Map<Concept, List<Concept>> getConceptsSimplifiedHierarchy(int requiredFlags);
+    Map<Concept, List<Concept>> getConceptsSimplifiedHierarchy(DomainItemFlag... requiredFlags);
 
-    /** Get laws with given flags (e.g. visible) organized into two-level hierarchy
-     * @param requiredFlags e.g. Law.FLAG_VISIBLE_TO_TEACHER
+    /** Get laws with all given flags (e.g. visible) organized into two-level hierarchy
      * @return map representing groups of laws (base law -> laws in the group)
      */
-    Map<Law, List<Law>> getLawsSimplifiedHierarchy(int requiredFlags);
+    Map<Law, List<Law>> getLawsSimplifiedHierarchy(DomainItemFlag... requiredFlags);
 
     /** Get skills organized into one-level hierarchy
      * @return map representing groups of skills (base skill -> skills in the group)
      */
-    Map<Skill, List<Skill>> getSkillSimplifiedHierarchy(int bitflags);
+    Map<Skill, List<Skill>> getSkillSimplifiedHierarchy(DomainItemFlag... requiredFlags);
 
     QuestionContentData solveQuestion(QuestionContentData question, List<Tag> tags);
 

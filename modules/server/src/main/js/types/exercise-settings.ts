@@ -155,31 +155,26 @@ export const TDomainSkill : io.Type<DomainSkill> = io.recursion('DomainSkill', (
 export type DomainLaw = {
     name: string,
     displayName: string,
-    bitflags: number,
+    targetEnabled: boolean,
     childs: DomainLaw[],
 }
 export const TDomainLaw : io.Type<DomainLaw> = io.recursion('DomainLaw', () => io.type({
     name: io.string,
     displayName: io.string,
-    bitflags: io.number,
+    targetEnabled: io.boolean,
     childs: io.array(TDomainLaw),
 }))
-
-export enum DomainConceptFlag {
-    VisibleToTeacher = 1,
-    TargetEnabled = 1 << 1,
-}
 
 export type DomainConcept = {
     name: string,
     displayName: string,
-    bitflags: number,
+    targetEnabled: boolean,
     childs: DomainConcept[],
 }
 export const TDomainConcept : io.Type<DomainConcept> = io.recursion('DomainConcept', () => io.type({
     name: io.string,
     displayName: io.string,
-    bitflags: io.number,
+    targetEnabled: io.boolean,
     childs: io.array(TDomainConcept),
 }))
 

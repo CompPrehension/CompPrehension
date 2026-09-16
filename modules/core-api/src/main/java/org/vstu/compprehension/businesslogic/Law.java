@@ -1,5 +1,6 @@
 package org.vstu.compprehension.businesslogic;
 
+import lombok.AccessLevel;
 import lombok.Getter;
 import lombok.ToString;
 import org.jetbrains.annotations.Nullable;
@@ -9,21 +10,13 @@ import java.util.Set;
 
 
 public sealed abstract class Law implements TreeNodeWithBitmask permits PositiveLaw, NegativeLaw {
-    /** When present, this flag enables a concept to be shown to teacher at exercise configuration page. */
-    public static final int FLAG_VISIBLE_TO_TEACHER = 1;
-    /** When present, this flag enables a concept to be selected as TARGET at exercise configuration page. */
-    public static final int FLAG_TARGET_ENABLED = 2;
-
-    /** All flags are OFF by default */
-    public static final int DEFAULT_FLAGS = 0;
-
 
     static final int DEFAULT_SALIENCE = 0;
 
     @Getter
     String name;
-    @Getter
-    int bitflags;
+    @Getter(AccessLevel.NONE)
+    Set<DomainItemFlag> flags;
     @Getter
     long bitmask = 0;
     @Getter
@@ -66,7 +59,7 @@ public sealed abstract class Law implements TreeNodeWithBitmask permits Positive
         this.tags = tags;
         this.salience = salience;
         // default values
-        this.bitflags = DEFAULT_FLAGS;
+        this.flags = Set.of();
         this.impliesLaws = null;
     }
 
@@ -84,12 +77,22 @@ public sealed abstract class Law implements TreeNodeWithBitmask permits Positive
         this.childLaws = Set.copyOf(childLaws);
     }
 
-    /**
-     * @param flagCode flag bitmask (see Law.FLAG_* constants)
-     * @return true iff all given bits exist in the law's bitflags
-     */
-    public boolean hasFlag(int flagCode) {
-    	return (bitflags & flagCode) != 0;
+    public Set<DomainItemFlag> getFlags() {
+        return flags == null ? Set.of() : flags;
+    }
+
+    public boolean hasFlag(DomainItemFlag flag) {
+        return getFlags().contains(flag);
+    }
+
+    public boolean hasFlags(DomainItemFlag... requiredFlags) {
+        var flags = getFlags();
+        for (var flag : requiredFlags) {
+            if (!flags.contains(flag)) {
+                return false;
+            }
+        }
+        return true;
     }
 
     Long subTreeBitmaskCache = null;

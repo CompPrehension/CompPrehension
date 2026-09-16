@@ -1,9 +1,8 @@
 package org.vstu.compprehension.businesslogic.domains.controlflowdt;
 
 import org.junit.jupiter.api.Test;
-import org.vstu.compprehension.businesslogic.Concept;
+import org.vstu.compprehension.businesslogic.DomainItemFlag;
 import org.vstu.compprehension.businesslogic.QuestionRequest;
-import org.vstu.compprehension.businesslogic.Skill;
 import org.vstu.compprehension.businesslogic.domains.DomainBase;
 import org.vstu.compprehension.businesslogic.domains.DomainStructureContract;
 import org.vstu.compprehension.enums.InteractionType;
@@ -44,7 +43,7 @@ class ControlFlowDTDomainStructureTest extends DomainStructureContract {
     @Test
     void teacherSeesLearningSkillsButNotDebugOnes() {
         // Act.
-        var teacherSkills = domain().getSkillSimplifiedHierarchy(Skill.FLAG_VISIBLE_TO_TEACHER).keySet();
+        var teacherSkills = domain().getSkillSimplifiedHierarchy(DomainItemFlag.VISIBLE_TO_TEACHER).keySet();
         var condition = domain().getSkill(CONDITION_SKILL);
         var debug = domain().getSkill(DEBUG_SKILL);
 
@@ -70,15 +69,15 @@ class ControlFlowDTDomainStructureTest extends DomainStructureContract {
         // Assert.
         assertNotNull(loops);
         assertEquals(0, loops.getBitmask());
-        assertFalse(loops.hasFlag(Concept.FLAG_VISIBLE_TO_TEACHER));
+        assertFalse(loops.hasFlag(DomainItemFlag.VISIBLE_TO_TEACHER));
         assertNotNull(whileLoop);
-        assertTrue(whileLoop.hasFlag(Concept.FLAG_VISIBLE_TO_TEACHER));
-        assertTrue(whileLoop.hasFlag(Concept.FLAG_TARGET_ENABLED));
+        assertTrue(whileLoop.hasFlag(DomainItemFlag.VISIBLE_TO_TEACHER));
+        assertTrue(whileLoop.hasFlag(DomainItemFlag.TARGET_ENABLED));
         assertTrue(loopChildren.contains(whileLoop));
         assertTrue(loopChildren.contains(rangeFor));
         assertNotNull(cls);
-        assertFalse(cls.hasFlag(Concept.FLAG_VISIBLE_TO_TEACHER));
-        assertTrue(cls.hasFlag(Concept.FLAG_TARGET_ENABLED));
+        assertFalse(cls.hasFlag(DomainItemFlag.VISIBLE_TO_TEACHER));
+        assertTrue(cls.hasFlag(DomainItemFlag.TARGET_ENABLED));
     }
 
     /** Законов у домена нет. */

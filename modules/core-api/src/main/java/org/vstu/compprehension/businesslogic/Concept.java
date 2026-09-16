@@ -13,19 +13,11 @@ import java.util.Set;
 @EqualsAndHashCode(onlyExplicitlyIncluded = true)
 @ToString(onlyExplicitlyIncluded = true)
 public class Concept implements TreeNodeWithBitmask {
-    /** When present, this flag enables a concept to be shown to teacher at exercise configuration page. */
-    public static final int FLAG_VISIBLE_TO_TEACHER = 1;
-    /** When present, this flag enables a concept to be selected as TARGET at exercise configuration page. */
-    public static final int FLAG_TARGET_ENABLED = 2;
-
-    /** All flags are OFF by default */
-    public static final int DEFAULT_FLAGS = 0;
-
     @EqualsAndHashCode.Include
     @ToString.Include
     private final String name;
     @ToString.Include
-    private final int bitflags;
+    private final Set<DomainItemFlag> flags;
     @ToString.Include
     private final long bitmask;
     private final List<Concept> baseConcepts;
@@ -36,24 +28,24 @@ public class Concept implements TreeNodeWithBitmask {
     private Long subTreeBitmaskCache = null;
 
     public Concept(String name) {
-        this(name, List.of(), DEFAULT_FLAGS, 0L);
+        this(name, List.of(), Set.of(), 0L);
     }
 
-    public Concept(String name, int bitflags) {
-        this(name, List.of(), bitflags, 0L);
+    public Concept(String name, Set<DomainItemFlag> flags) {
+        this(name, List.of(), flags, 0L);
     }
 
     public Concept(String name, List<Concept> baseConcepts) {
-        this(name, baseConcepts, DEFAULT_FLAGS, 0L);
+        this(name, baseConcepts, Set.of(), 0L);
     }
 
-    public Concept(String name, List<Concept> baseConcepts, int bitflags) {
-        this(name, baseConcepts, bitflags, 0L);
+    public Concept(String name, List<Concept> baseConcepts, Set<DomainItemFlag> flags) {
+        this(name, baseConcepts, flags, 0L);
     }
 
-    public Concept(String name, List<Concept> baseConcepts, int bitflags, long bitmask) {
+    public Concept(String name, List<Concept> baseConcepts, Set<DomainItemFlag> flags, long bitmask) {
         this.name = name;
-        this.bitflags = bitflags;
+        this.flags = Set.copyOf(flags);
         this.bitmask = bitmask;
         this.baseConcepts = List.copyOf(baseConcepts);
     }
@@ -75,8 +67,17 @@ public class Concept implements TreeNodeWithBitmask {
         return false;
     }
 
-    public boolean hasFlag(int flagCode) {
-    	return (bitflags & flagCode) != 0;
+    public boolean hasFlag(DomainItemFlag flag) {
+        return flags.contains(flag);
+    }
+
+    public boolean hasFlags(DomainItemFlag... requiredFlags) {
+        for (var flag : requiredFlags) {
+            if (!flags.contains(flag)) {
+                return false;
+            }
+        }
+        return true;
     }
 
     /**

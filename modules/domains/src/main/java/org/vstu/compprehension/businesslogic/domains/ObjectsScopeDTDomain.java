@@ -125,7 +125,7 @@ public class ObjectsScopeDTDomain extends DecisionTreeReasoningDomain {
     private static Map<String, Concept> buildConcepts() {
         var b = new ConceptsBuilder();
 
-        int flagsAll = Concept.FLAG_VISIBLE_TO_TEACHER | Concept.FLAG_TARGET_ENABLED; //для конкретных задач в одном стейдже
+        var flagsAll = EnumSet.of(DomainItemFlag.VISIBLE_TO_TEACHER, DomainItemFlag.TARGET_ENABLED); //для конкретных задач в одном стейдже
         b.add("default_variable", 0x1L, List.of(), flagsAll);
         b.add("class_property", 0x2L, List.of(), flagsAll);
         b.add("cycle", 0x4L, List.of(), flagsAll);
@@ -141,7 +141,7 @@ public class ObjectsScopeDTDomain extends DecisionTreeReasoningDomain {
 
     private static Map<String, Skill> buildSkills() {
         var b = new SkillsBuilder();
-        int visible = Skill.FLAG_VISIBLE_TO_TEACHER;
+        var visible = EnumSet.of(DomainItemFlag.VISIBLE_TO_TEACHER);
 
         b.add("global_and_static_variable", 0x1L, visible);
         b.add("before_variable_declaration", 0x2L, visible);

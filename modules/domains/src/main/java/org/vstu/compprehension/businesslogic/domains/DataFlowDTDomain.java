@@ -98,7 +98,7 @@ public class DataFlowDTDomain extends DecisionTreeReasoningDomain {
     private static Map<String, Concept> buildConcepts() {
         var b = new ConceptsBuilder();
 
-        int flagsAll = Concept.FLAG_VISIBLE_TO_TEACHER | Concept.FLAG_TARGET_ENABLED; //для конкретных задач в одном стейдже
+        var flagsAll = EnumSet.of(DomainItemFlag.VISIBLE_TO_TEACHER, DomainItemFlag.TARGET_ENABLED); //для конкретных задач в одном стейдже
         b.add("pointer", 0x1L, List.of(), flagsAll);
         b.add("index_access", 0x2L, List.of(), flagsAll);
         b.add("assignment", 0x4L, List.of(), flagsAll);
@@ -118,7 +118,7 @@ public class DataFlowDTDomain extends DecisionTreeReasoningDomain {
 
     private static Map<String, Skill> buildSkills() {
         var b = new SkillsBuilder();
-        int visible = Skill.FLAG_VISIBLE_TO_TEACHER;
+        var visible = EnumSet.of(DomainItemFlag.VISIBLE_TO_TEACHER);
 
         b.add("input_variable_is_at_operator", 0x1L, visible);
         b.add("output_variable_is_at_operator", 0x2L, visible);

@@ -107,7 +107,7 @@ public class ControlFlowDTDomain extends DecisionTreeReasoningDomain {
 
     private static Map<String, Skill> buildSkills() {
         var b = new SkillsBuilder();
-        int visible = Skill.FLAG_VISIBLE_TO_TEACHER;
+        var visible = EnumSet.of(DomainItemFlag.VISIBLE_TO_TEACHER);
 
         b.add("current_execution_point_understood", 0x1L, visible);
         b.add("current_code_block_identified", 0x2L, visible);
@@ -144,8 +144,8 @@ public class ControlFlowDTDomain extends DecisionTreeReasoningDomain {
     private static Map<String, Concept> buildConcepts() {
         var b = new ConceptsBuilder();
 
-        int flags = Concept.FLAG_VISIBLE_TO_TEACHER | Concept.FLAG_TARGET_ENABLED;
-        int invisible = Concept.FLAG_TARGET_ENABLED;
+        var flags = EnumSet.of(DomainItemFlag.VISIBLE_TO_TEACHER, DomainItemFlag.TARGET_ENABLED);
+        var invisible = EnumSet.of(DomainItemFlag.TARGET_ENABLED);
 
         Concept exprs = b.add("expressions");
         b.add("pointers", 0x1L, List.of(exprs), flags);

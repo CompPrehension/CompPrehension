@@ -13,14 +13,14 @@ public class LawTreeItemDto {
     private String name;
     @NotNull
     private String displayName;
-    private int bitflags;
+    private boolean targetEnabled;
     @NotNull
     private final LawTreeItemDto[] childs;
 
-    public LawTreeItemDto(@NotNull String name, @NotNull String displayName, int bitflags) {
+    public LawTreeItemDto(@NotNull String name, @NotNull String displayName, boolean targetEnabled) {
         this.name = name;
         this.displayName = displayName;
-        this.bitflags = bitflags;
+        this.targetEnabled = targetEnabled;
         this.childs = new LawTreeItemDto[0];
     }
 }

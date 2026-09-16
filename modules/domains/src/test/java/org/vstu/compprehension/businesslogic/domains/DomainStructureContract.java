@@ -1,7 +1,7 @@
 package org.vstu.compprehension.businesslogic.domains;
 
 import org.junit.jupiter.api.Test;
-import org.vstu.compprehension.businesslogic.Concept;
+import org.vstu.compprehension.businesslogic.DomainItemFlag;
 import org.vstu.compprehension.businesslogic.Law;
 import org.vstu.compprehension.businesslogic.Skill;
 import org.vstu.compprehension.businesslogic.Tag;
@@ -124,17 +124,17 @@ public abstract class DomainStructureContract {
     @Test
     protected void teacherHierarchiesContainOnlyTeacherVisibleRoots() {
         // Act.
-        var skills = domain().getSkillSimplifiedHierarchy(Skill.FLAG_VISIBLE_TO_TEACHER);
-        var concepts = domain().getConceptsSimplifiedHierarchy(Concept.FLAG_VISIBLE_TO_TEACHER);
-        var laws = domain().getLawsSimplifiedHierarchy(Law.FLAG_VISIBLE_TO_TEACHER);
+        var skills = domain().getSkillSimplifiedHierarchy(DomainItemFlag.VISIBLE_TO_TEACHER);
+        var concepts = domain().getConceptsSimplifiedHierarchy(DomainItemFlag.VISIBLE_TO_TEACHER);
+        var laws = domain().getLawsSimplifiedHierarchy(DomainItemFlag.VISIBLE_TO_TEACHER);
 
         // Assert.
         assertFalse(skills.isEmpty());
         assertFalse(concepts.isEmpty());
-        assertTrue(skills.keySet().stream().allMatch(s -> s.hasFlag(Skill.FLAG_VISIBLE_TO_TEACHER)));
-        assertTrue(concepts.keySet().stream().allMatch(c -> c.hasFlag(Concept.FLAG_VISIBLE_TO_TEACHER)));
-        assertTrue(laws.keySet().stream().allMatch(l -> l.hasFlag(Law.FLAG_VISIBLE_TO_TEACHER)));
-        assertTrue(concepts.values().stream().flatMap(List::stream).allMatch(c -> c.hasFlag(Concept.FLAG_VISIBLE_TO_TEACHER)));
+        assertTrue(skills.keySet().stream().allMatch(s -> s.hasFlag(DomainItemFlag.VISIBLE_TO_TEACHER)));
+        assertTrue(concepts.keySet().stream().allMatch(c -> c.hasFlag(DomainItemFlag.VISIBLE_TO_TEACHER)));
+        assertTrue(laws.keySet().stream().allMatch(l -> l.hasFlag(DomainItemFlag.VISIBLE_TO_TEACHER)));
+        assertTrue(concepts.values().stream().flatMap(List::stream).allMatch(c -> c.hasFlag(DomainItemFlag.VISIBLE_TO_TEACHER)));
     }
 
     protected static void assertUniqueBits(List<Long> bits) {

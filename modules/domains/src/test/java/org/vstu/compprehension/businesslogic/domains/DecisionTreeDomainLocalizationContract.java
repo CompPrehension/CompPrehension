@@ -3,9 +3,7 @@ package org.vstu.compprehension.businesslogic.domains;
 import its.model.definition.MetadataPropertyValue;
 import its.model.nodes.DecisionTreeElement;
 import org.junit.jupiter.api.Test;
-import org.vstu.compprehension.businesslogic.Concept;
-import org.vstu.compprehension.businesslogic.Law;
-import org.vstu.compprehension.businesslogic.Skill;
+import org.vstu.compprehension.businesslogic.DomainItemFlag;
 import org.vstu.compprehension.enums.Language;
 
 import java.io.IOException;
@@ -133,7 +131,7 @@ public abstract class DecisionTreeDomainLocalizationContract {
     protected void teacherVisibleConceptsHaveDisplayNames() {
         // Arrange.
         var names = new ArrayList<String>();
-        domain().getConceptsSimplifiedHierarchy(Concept.FLAG_VISIBLE_TO_TEACHER).forEach((parent, children) -> {
+        domain().getConceptsSimplifiedHierarchy(DomainItemFlag.VISIBLE_TO_TEACHER).forEach((parent, children) -> {
             names.add(parent.getName());
             children.forEach(child -> names.add(child.getName()));
         });
@@ -148,7 +146,7 @@ public abstract class DecisionTreeDomainLocalizationContract {
     protected void teacherVisibleLawsHaveDisplayNames() {
         // Arrange.
         var names = new ArrayList<String>();
-        domain().getLawsSimplifiedHierarchy(Law.FLAG_VISIBLE_TO_TEACHER).forEach((parent, children) -> {
+        domain().getLawsSimplifiedHierarchy(DomainItemFlag.VISIBLE_TO_TEACHER).forEach((parent, children) -> {
             names.add(parent.getName());
             children.forEach(child -> names.add(child.getName()));
         });
@@ -163,7 +161,7 @@ public abstract class DecisionTreeDomainLocalizationContract {
         // Arrange.
         var parents = new ArrayList<String>();
         var children = new ArrayList<String>();
-        domain().getSkillSimplifiedHierarchy(Skill.FLAG_VISIBLE_TO_TEACHER).forEach((parent, nested) -> {
+        domain().getSkillSimplifiedHierarchy(DomainItemFlag.VISIBLE_TO_TEACHER).forEach((parent, nested) -> {
             parents.add(parent.getName());
             nested.forEach(child -> children.add(child.getName()));
         });

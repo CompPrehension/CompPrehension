@@ -9,6 +9,7 @@ import org.apache.jena.vocabulary.RDFS;
 import org.apache.jena.vocabulary.SKOS;
 import org.jetbrains.annotations.NotNull;
 import org.vstu.compprehension.businesslogic.Concept;
+import org.vstu.compprehension.businesslogic.DomainItemFlag;
 
 import java.util.*;
 
@@ -31,7 +32,7 @@ public class DomainVocabulary {
 
     public List<Concept> readConcepts(Map<String, Long> bits) {
         HashMap<String, HashSet<String>> conceptName2bases = new HashMap<>();
-        HashMap<String, Integer> conceptName2flags = new HashMap<>();
+        HashMap<String, Set<DomainItemFlag>> conceptName2flags = new HashMap<>();
 
         ResIterator iter = model.listSubjectsWithProperty(model.createProperty(model.expandPrefix(":has_bitflags")));  // consider as concepts only those subjects that were marked so.
         while (iter.hasNext()) {
@@ -59,15 +60,15 @@ public class DomainVocabulary {
         return new ArrayList<>(concepts.values());
     }
 
-    private void readConceptFromResource(@NotNull Resource conceptNode, @NotNull HashMap<String, HashSet<String>> conceptName2bases, @NotNull HashMap<String, Integer> conceptName2flags, String baseConceptName) {
+    private void readConceptFromResource(@NotNull Resource conceptNode, @NotNull HashMap<String, HashSet<String>> conceptName2bases, @NotNull HashMap<String, Set<DomainItemFlag>> conceptName2flags, String baseConceptName) {
         String name = conceptNode.getLocalName();
 
-        int bitflags = Optional.ofNullable(conceptNode.getProperty(
+        var flags = Optional.ofNullable(conceptNode.getProperty(
                 model.createProperty(model.expandPrefix(":has_bitflags"))
                 ))
-                .map(statement -> statement.getLiteral().getInt())
-                .orElse(Concept.DEFAULT_FLAGS);
-        conceptName2flags.putIfAbsent(name, bitflags);
+                .map(statement -> DomainItemFlag.fromBitflags(statement.getLiteral().getInt()))
+                .orElse(Set.of());
+        conceptName2flags.putIfAbsent(name, flags);
 
         boolean shouldNotRecurse = conceptName2bases.containsKey(name);
         conceptName2bases.putIfAbsent(name, new HashSet<>());

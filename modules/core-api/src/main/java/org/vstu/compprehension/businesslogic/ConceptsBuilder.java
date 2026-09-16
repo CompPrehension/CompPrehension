@@ -6,6 +6,7 @@ import java.util.HashMap;
 import java.util.HashSet;
 import java.util.LinkedHashMap;
 import java.util.List;
+import java.util.Set;
 import java.util.Map;
 import java.util.Set;
 
@@ -20,11 +21,11 @@ public final class ConceptsBuilder {
         return add(new Concept(name, bases));
     }
 
-    public Concept add(String name, List<Concept> bases, int flags) {
+    public Concept add(String name, List<Concept> bases, Set<DomainItemFlag> flags) {
         return add(new Concept(name, bases, flags));
     }
 
-    public Concept add(String name, long bit, List<Concept> bases, int flags) {
+    public Concept add(String name, long bit, List<Concept> bases, Set<DomainItemFlag> flags) {
         return add(new Concept(name, bases, flags, bit));
     }
 

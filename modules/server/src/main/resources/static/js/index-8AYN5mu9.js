@@ -977,18 +977,13 @@ var TDomainSkill = recursion("DomainSkill", () => type({
 var TDomainLaw = recursion("DomainLaw", () => type({
 	name: string,
 	displayName: string,
-	bitflags: number,
+	targetEnabled: boolean,
 	childs: array(TDomainLaw)
 }));
-var DomainConceptFlag = /* @__PURE__ */ function(DomainConceptFlag) {
-	DomainConceptFlag[DomainConceptFlag["VisibleToTeacher"] = 1] = "VisibleToTeacher";
-	DomainConceptFlag[DomainConceptFlag["TargetEnabled"] = 2] = "TargetEnabled";
-	return DomainConceptFlag;
-}({});
 var TDomainConcept = recursion("DomainConcept", () => type({
 	name: string,
 	displayName: string,
-	bitflags: number,
+	targetEnabled: boolean,
 	childs: array(TDomainConcept)
 }));
 var TDomain = type({
@@ -4355,13 +4350,13 @@ var ExerciseCardElement = observer((props) => {
 	if (store.exercisesLoadStatus === "EXERCISELOADING") return /* @__PURE__ */ (0, import_jsx_runtime.jsx)(Loader, { delay: 200 });
 	if (card == null) return /* @__PURE__ */ (0, import_jsx_runtime.jsx)("div", { children: "No exercise selected" });
 	const currentDomain = domains.find((z) => z.id === card.domainId);
-	const stageDomainLaws = currentDomain?.laws.filter((l) => (l.bitflags & DomainConceptFlag.TargetEnabled) > 0);
-	const stageDomainConcepts = currentDomain?.concepts.filter((l) => (l.bitflags & DomainConceptFlag.TargetEnabled) > 0);
+	const stageDomainLaws = currentDomain?.laws.filter((l) => l.targetEnabled);
+	const stageDomainConcepts = currentDomain?.concepts.filter((l) => l.targetEnabled);
 	const stageDomainSkills = currentDomain?.skills;
 	const cardLaws = card.stages[0].laws.reduce((acc, i) => (acc[i.name] = i, acc), {});
 	const cardConcepts = card.stages[0].concepts.reduce((acc, i) => (acc[i.name] = i, acc), {});
-	const sharedDomainLaws = currentDomain?.laws.filter((l) => (l.bitflags & DomainConceptFlag.TargetEnabled) === 0);
-	const sharedDomainConcepts = currentDomain?.concepts.filter((c) => (c.bitflags & DomainConceptFlag.TargetEnabled) === 0);
+	const sharedDomainLaws = currentDomain?.laws.filter((l) => !l.targetEnabled);
+	const sharedDomainConcepts = currentDomain?.concepts.filter((c) => !c.targetEnabled);
 	const sharedDomainSkills = [];
 	const currentStrategy = strategies.find((s) => s.id === card.strategyId);
 	const linkType = store.cardLinkType;
@@ -5105,7 +5100,7 @@ function mapValueToKind(value) {
 	return value === "Denied" ? "FORBIDDEN" : value === "Target" ? "TARGETED" : "PERMITTED";
 }
 function getConceptFlags(c) {
-	return (c.bitflags & DomainConceptFlag.TargetEnabled) > 0 ? [
+	return c.targetEnabled ? [
 		"Denied",
 		"Allowed",
 		"Target"

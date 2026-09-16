@@ -107,7 +107,7 @@ public class ProgrammingLanguageExpressionDTDomain extends DecisionTreeReasoning
 
     private static Map<String, Skill> buildSkills() {
         var b = new SkillsBuilder();
-        int visible = Skill.FLAG_VISIBLE_TO_TEACHER;
+        var visible = EnumSet.of(DomainItemFlag.VISIBLE_TO_TEACHER);
 
         b.add("central_operand_needed", 0x1L, visible);
         b.add("is_central_operand_evaluated", 0x2L, visible);

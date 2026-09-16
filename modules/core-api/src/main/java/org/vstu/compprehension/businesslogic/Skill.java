@@ -14,20 +14,11 @@ import java.util.stream.Collectors;
 @EqualsAndHashCode(onlyExplicitlyIncluded = true)
 @ToString(onlyExplicitlyIncluded = true)
 public class Skill implements TreeNodeWithBitmask {
-    /** When present, this flag enables a concept to be shown to teacher at exercise configuration page. */
-    public static final int FLAG_VISIBLE_TO_TEACHER = 1;
-    /** When present, this flag blocks selection this skill as denied */
-    // TODO: implement in frontend
-    public static final int FLAG_DENIED_DISABLED = 2;
-
-    /** All flags are OFF by default */
-    public static final int DEFAULT_FLAGS = 0;
-
     @EqualsAndHashCode.Include
     @ToString.Include
     private final String name;
     @ToString.Include
-    private final int bitflags;
+    private final Set<DomainItemFlag> flags;
     @ToString.Include
     private final long bitmask;
     private final List<Skill> baseSkills;
@@ -38,16 +29,16 @@ public class Skill implements TreeNodeWithBitmask {
     private Long subTreeBitmaskCache = null;
 
     public Skill(String name, long bitmask) {
-        this(name, List.of(), DEFAULT_FLAGS, bitmask);
+        this(name, List.of(), Set.of(), bitmask);
     }
 
     public Skill(String name, List<Skill> baseSkills, long bitmask) {
-        this(name, baseSkills, DEFAULT_FLAGS, bitmask);
+        this(name, baseSkills, Set.of(), bitmask);
     }
 
-    public Skill(String name, List<Skill> baseSkills, int bitflags, long bitmask) {
+    public Skill(String name, List<Skill> baseSkills, Set<DomainItemFlag> flags, long bitmask) {
         this.name = name;
-        this.bitflags = bitflags;
+        this.flags = Set.copyOf(flags);
         this.bitmask = bitmask;
         this.baseSkills = List.copyOf(baseSkills);
     }
@@ -57,8 +48,17 @@ public class Skill implements TreeNodeWithBitmask {
         this.subTreeBitmaskCache = null;
     }
 
-    public boolean hasFlag(int flagCode) {
-        return (bitflags & flagCode) != 0;
+    public boolean hasFlag(DomainItemFlag flag) {
+        return flags.contains(flag);
+    }
+
+    public boolean hasFlags(DomainItemFlag... requiredFlags) {
+        for (var flag : requiredFlags) {
+            if (!flags.contains(flag)) {
+                return false;
+            }
+        }
+        return true;
     }
 
     public static long combineToBitmask(List<Skill> targetSkills) {
@@ -112,11 +112,11 @@ public class Skill implements TreeNodeWithBitmask {
     }
 
     /**
-     * Recursively searches for the closest ancestors with the {@code FLAG_VISIBLE_TO_TEACHER} flag.
+     * Recursively searches for the closest ancestors with the {@code VISIBLE_TO_TEACHER} flag.
      * @return A set of the closest visible ancestors (maybe empty)
      */
     public Set<Skill> getClosestVisibleParents() {
-        if (this.hasFlag(Skill.FLAG_VISIBLE_TO_TEACHER)) {
+        if (this.hasFlag(DomainItemFlag.VISIBLE_TO_TEACHER)) {
             return Set.of(this);
         }
 
