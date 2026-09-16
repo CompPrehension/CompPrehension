@@ -2,6 +2,7 @@ package org.vstu.compprehension.frontend;
 
 import org.junit.jupiter.api.Test;
 import org.springframework.beans.factory.annotation.Autowired;
+import org.vstu.compprehension.businesslogic.domains.ControlFlowDTDomain;
 import org.vstu.compprehension.enums.Language;
 import org.vstu.compprehension.frontend.dto.DomainDto;
 import org.vstu.compprehension.frontend.dto.StrategyDto;
@@ -18,7 +19,6 @@ import static org.junit.jupiter.api.Assertions.assertTrue;
 class ReferenceTableFrontendServiceTest extends AbstractIntegrationTest {
 
     private static final String HIDDEN_STRATEGY_ID = "GradeConfidenceBaseStrategy_Manual50Autogen50";
-    private static final String CONTROL_FLOW_DT_DOMAIN_ID = "ControlFlowDTDomain";
 
     @Autowired private ReferenceTableFrontendService service;
 
@@ -54,7 +54,7 @@ class ReferenceTableFrontendServiceTest extends AbstractIntegrationTest {
         var domains = service.getDomains(Language.ENGLISH);
 
         // Assert.
-        assertTrue(domains.stream().anyMatch(d -> d.getId().equals(CONTROL_FLOW_DT_DOMAIN_ID)));
+        assertTrue(domains.stream().anyMatch(d -> d.getId().equals(ControlFlowDTDomain.DOMAIN_ID)));
         assertTrue(domains.stream().noneMatch(d -> d.getDisplayName().isBlank()));
         var expression = findDomain(domains, TestData.Exercises.DOMAIN_ID);
         assertTrue(expression.getTags().contains("C++"));

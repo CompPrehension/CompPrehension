@@ -87,9 +87,8 @@ public class ExerciseEntity implements Cloneable {
     @Enumerated(EnumType.ORDINAL)
     private Language language;
 
-    @ManyToOne(fetch = FetchType.LAZY)
-    @JoinColumn(name = "domain_id", nullable = false)
-    private DomainEntity domain;
+    @Column(name = "domain_id", nullable = false)
+    private String domainId;
 
     @OneToMany(mappedBy = "exercise", fetch = FetchType.LAZY)
     private List<ExerciseAttemptEntity> exerciseAttempts;
@@ -103,7 +102,7 @@ public class ExerciseEntity implements Cloneable {
             copy.setUpdatedAt(null);
             copy.setPublic(false);
             copy.setName(this.name);
-            copy.setDomain(this.domain);
+            copy.setDomainId(this.domainId);
             copy.setBackendId(this.backendId);
             copy.setStrategyId(this.strategyId);
             copy.setLanguage(this.language);

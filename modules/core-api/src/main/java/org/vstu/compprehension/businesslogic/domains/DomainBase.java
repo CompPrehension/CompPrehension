@@ -1,6 +1,5 @@
 package org.vstu.compprehension.businesslogic.domains;
 
-import org.vstu.compprehension.data.domain.DomainOptionsData;
 import lombok.Getter;
 import lombok.extern.log4j.Log4j2;
 import org.jetbrains.annotations.NotNull;
@@ -10,7 +9,6 @@ import org.vstu.compprehension.data.question.QuestionContentData;
 import org.vstu.compprehension.data.question.QuestionMetadataData;
 import org.vstu.compprehension.services.RandomProvider;
 import org.vstu.compprehension.businesslogic.*;
-import org.vstu.compprehension.data.domain.DomainData;
 import org.vstu.compprehension.enums.Language;
 
 import java.util.*;
@@ -25,37 +23,17 @@ public abstract class DomainBase implements Domain {
     private final DomainStructure structure;
     @Getter
     protected final RandomProvider randomProvider;
-    @Getter
-    private final DomainData domainData;
+    private final String domainId;
 
-    protected DomainBase(DomainData domainData, RandomProvider randomProvider, DomainStructure structure) {
-        this.domainData = domainData;
+    protected DomainBase(String domainId, RandomProvider randomProvider, DomainStructure structure) {
+        this.domainId = domainId;
         this.randomProvider = randomProvider;
         this.structure = structure;
     }
 
     public @NotNull String getDomainId() {
-        return domainData.name();
+        return domainId;
     }
-    @NotNull
-    public String getName() {
-        return domainData.name();
-    }
-    @NotNull
-    public String getShortName() {
-        return domainData.shortName();  // same as name by default
-    }
-
-    /**
-     * A temporary method to reuse DB-stored questions between Domains
-     * Is the same as {@link #getShortName()} by default
-     * FIXME - replace back to getShortName()
-     */
-    @NotNull
-    public String getShortnameForQuestionSearch(){
-        return getShortName();
-    }
-    public DomainOptionsData getOptions() { return domainData.options(); }
 
     public @Nullable Tag getTag(@NotNull String name) {
         return getTags().get(name);
@@ -69,7 +47,7 @@ public abstract class DomainBase implements Domain {
     }
 
     public @NotNull String getQuestionUniqueTemplateName(@NotNull QuestionContentData question) {
-        return getShortName() + Optional.ofNullable(question.getMetadata())
+        return getDomainId() + Optional.ofNullable(question.getMetadata())
                 .map(QuestionMetadataData::getTemplateId)
                 .filter(Objects::nonNull)
                 .map(templateId -> ":template-id:" + templateId)

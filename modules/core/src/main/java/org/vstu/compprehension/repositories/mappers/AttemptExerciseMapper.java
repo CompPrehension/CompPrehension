@@ -15,7 +15,7 @@ class AttemptExerciseMapper implements Mapper<ExerciseEntity, AttemptExerciseDat
     public @NotNull AttemptExerciseData map(@NotNull ExerciseEntity source) {
         return new AttemptExerciseData(
                 source.getId(),
-                source.getDomain().getName(),
+                source.getDomainId(),
                 source.getStages() == null ? List.of() : List.copyOf(source.getStages()),
                 source.getTags());
     }

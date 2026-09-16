@@ -8,8 +8,6 @@ import org.vstu.compprehension.businesslogic.domains.ProgrammingLanguageExpressi
 import org.vstu.compprehension.businesslogic.domains.ProgrammingLanguageExpressionDomain;
 import org.vstu.compprehension.businesslogic.domains.helpers.meaningtree.MeaningTreeOrderQuestionBuilder;
 import org.vstu.compprehension.businesslogic.domains.helpers.meaningtree.QuestionDynamicDataAppender;
-import org.vstu.compprehension.data.domain.DomainData;
-import org.vstu.compprehension.data.domain.DomainOptionsData;
 import org.vstu.compprehension.data.question.AnswerObjectData;
 import org.vstu.compprehension.data.question.QuestionData;
 import org.vstu.compprehension.data.question.QuestionMetadataWithData;
@@ -48,9 +46,7 @@ final class ExpressionDtDomainFixture {
 
     private static final class Holder {
         private static final ProgrammingLanguageExpressionDTDomain DOMAIN = new ProgrammingLanguageExpressionDTDomain(
-                new DomainData("ProgrammingLanguageExpressionDTDomain", "expression_dt", "1", new DomainOptionsData()),
                 new ProgrammingLanguageExpressionDomain(
-                        new DomainData("ProgrammingLanguageExpressionDomain", "expression", "1", new DomainOptionsData()),
                         new BundleLocalizationService(BUNDLES.toArray(String[]::new)),
                         new SeededRandomProvider(),
                         null));

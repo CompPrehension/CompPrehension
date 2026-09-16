@@ -9,11 +9,9 @@ import org.vstu.compprehension.data.exercise.ExerciseCardUpdateData;
 import org.vstu.compprehension.data.exercise.ExerciseData;
 import org.vstu.compprehension.data.exercise.ExerciseSummaryData;
 import org.vstu.compprehension.data.exercise.NewExerciseData;
-import org.vstu.compprehension.entities.DomainEntity;
 import org.vstu.compprehension.entities.ExerciseEntity;
 import org.vstu.compprehension.mappers.Mapper;
 import org.vstu.compprehension.utils.Strict;
-import org.vstu.compprehension.repositories.entity.DomainRepository;
 import org.vstu.compprehension.repositories.entity.ExerciseAttemptReassignExecutor;
 import org.vstu.compprehension.repositories.entity.ExerciseAttemptRepository;
 import org.vstu.compprehension.repositories.entity.ExerciseCourseLinkReassignExecutor;
@@ -29,7 +27,6 @@ import java.util.NoSuchElementException;
 @RequiredArgsConstructor
 public class ExerciseDataRepository {
     private final ExerciseRepository exerciseRepository;
-    private final DomainRepository domainRepository;
     private final ExerciseCourseLinkRepository exerciseCourseLinkRepository;
     private final ExerciseAttemptRepository exerciseAttemptRepository;
     private final ExerciseCourseLinkReassignExecutor linkReassignExecutor;
@@ -55,7 +52,7 @@ public class ExerciseDataRepository {
     @Transactional
     public long create(@NotNull NewExerciseData exercise) {
         var entity = new ExerciseEntity();
-        entity.setDomain(findDomain(exercise.domainId()));
+        entity.setDomainId(exercise.domainId());
         entity.setName(exercise.name());
         entity.setBackendId(exercise.backendId());
         entity.setStrategyId(exercise.strategyId());
@@ -77,7 +74,7 @@ public class ExerciseDataRepository {
     public void updateCard(@NotNull ExerciseCardUpdateData card) {
         var entity = findEntity(card.id());
         entity.setName(card.name());
-        entity.setDomain(findDomain(card.domainId()));
+        entity.setDomainId(card.domainId());
         entity.setBackendId(card.backendId());
         entity.setStrategyId(card.strategyId());
         entity.setOptions(card.options());
@@ -132,11 +129,6 @@ public class ExerciseDataRepository {
     private @NotNull ExerciseEntity findEntity(long exerciseId) {
         return exerciseRepository.findById(exerciseId)
                 .orElseThrow(() -> new NoSuchElementException("Exercise " + exerciseId + " not found"));
-    }
-
-    private @NotNull DomainEntity findDomain(@NotNull String domainId) {
-        return domainRepository.findById(domainId)
-                .orElseThrow(() -> new NoSuchElementException("Domain " + domainId + " not found"));
     }
 
     private static @NotNull String joinTags(@NotNull List<String> tags) {

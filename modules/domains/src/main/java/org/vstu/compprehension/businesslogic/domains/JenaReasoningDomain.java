@@ -9,7 +9,6 @@ import org.vstu.compprehension.businesslogic.PositiveLaw;
 import org.vstu.compprehension.services.RandomProvider;
 import org.vstu.compprehension.data.question.AnswerData;
 import org.vstu.compprehension.services.ExerciseAttemptDataService;
-import org.vstu.compprehension.data.domain.DomainData;
 import org.vstu.compprehension.data.question.QuestionContentData;
 import org.vstu.compprehension.data.question.QuestionData;
 import org.vstu.compprehension.businesslogic.Tag;
@@ -27,8 +26,8 @@ import java.util.Objects;
 public abstract class JenaReasoningDomain extends DomainBase {
     private final FactBackend.Interface<JenaBackend> backendInterface;
 
-    protected JenaReasoningDomain(DomainData domainData, RandomProvider randomProvider, DomainStructure structure) {
-        super(domainData, randomProvider, structure);
+    protected JenaReasoningDomain(String domainId, RandomProvider randomProvider, DomainStructure structure) {
+        super(domainId, randomProvider, structure);
 
         this.backendInterface = new FactBackend.Interface<>(this);
     }

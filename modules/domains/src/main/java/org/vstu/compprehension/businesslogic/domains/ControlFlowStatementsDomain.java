@@ -32,7 +32,6 @@ import org.vstu.compprehension.data.question.QuestionContentData;
 import org.vstu.compprehension.data.question.AnswerObjectData;
 import org.vstu.compprehension.data.question.ResponseData;
 import org.vstu.compprehension.services.LocalizationService;
-import org.vstu.compprehension.data.domain.DomainData;
 import org.vstu.compprehension.businesslogic.*;
 import org.vstu.compprehension.businesslogic.backend.Fact;
 import org.vstu.compprehension.businesslogic.backend.facts.JenaFactList;
@@ -60,6 +59,7 @@ import static org.vstu.compprehension.businesslogic.domains.helpers.FactsGraph.f
 
 @Log4j2
 public class ControlFlowStatementsDomain extends JenaReasoningDomain {
+    public static final String DOMAIN_ID = "ctrl_flow";
     public static final String LOCALE_KEY_MARK = "!{locale:";
     static final String RESOURCES_LOCATION = "org/vstu/compprehension/businesslogic/domains/";
     static final String EXECUTION_ORDER_QUESTION_TYPE = "OrderActs";
@@ -93,11 +93,10 @@ public class ControlFlowStatementsDomain extends JenaReasoningDomain {
 
     @SneakyThrows
     public ControlFlowStatementsDomain(
-            DomainData domainData,
             LocalizationService localizationService,
             RandomProvider randomProvider,
             QuestionBank qMetaStorage) {
-        super(domainData, randomProvider, new DomainStructure(buildConcepts(), Map.of(), buildLaws()));
+        super(DOMAIN_ID, randomProvider, new DomainStructure(buildConcepts(), Map.of(), buildLaws()));
 
         this.localizationService = localizationService;
         this.qMetaStorage = qMetaStorage;

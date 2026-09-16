@@ -147,8 +147,8 @@ class QuestionDataServiceImpl implements QuestionDataService {
     }
 
     /** Имя домена вопроса — скалярным запросом, без подъёма всего вопроса. */
-    private @NotNull String getDomainName(long questionId) {
-        return questionDataRepository.getDomainName(questionId);
+    private @NotNull String getDomainId(long questionId) {
+        return questionDataRepository.getDomainId(questionId);
     }
 
     public QuestionData getSolvedQuestion(Long questionId) {

@@ -14,7 +14,6 @@ import org.vstu.compprehension.entities.QuestionMetadataEntity;
 import org.vstu.compprehension.entities.QuestionRequestLogEntity;
 import org.vstu.compprehension.mappers.Mapper;
 import org.vstu.compprehension.repositories.entity.AnswerObjectRepository;
-import org.vstu.compprehension.repositories.entity.DomainRepository;
 import org.vstu.compprehension.repositories.entity.ExerciseAttemptRepository;
 import org.vstu.compprehension.repositories.entity.InteractionRepository;
 import org.vstu.compprehension.repositories.entity.QuestionMetadataRepository;
@@ -39,7 +38,6 @@ public class QuestionDataRepository {
     private final InteractionRepository interactionRepository;
     private final ViolationRepository violationRepository;
     private final AnswerObjectRepository answerObjectRepository;
-    private final DomainRepository domainRepository;
     private final ExerciseAttemptRepository exerciseAttemptRepository;
     private final QuestionMetadataRepository questionMetadataRepository;
     private final QuestionRequestLogRepository questionRequestLogRepository;
@@ -62,8 +60,8 @@ public class QuestionDataRepository {
     }
 
     @Transactional(readOnly = true)
-    public @NotNull String getDomainName(long questionId) {
-        return questionRepository.findDomainName(questionId)
+    public @NotNull String getDomainId(long questionId) {
+        return questionRepository.findDomainId(questionId)
                 .orElseThrow(() -> new NoSuchElementException("Question " + questionId + " not found"));
     }
 
@@ -96,9 +94,6 @@ public class QuestionDataRepository {
         }
         if (exerciseAttemptId != null) {
             entity.setExerciseAttempt(exerciseAttemptRepository.getReferenceById(exerciseAttemptId));
-        }
-        if (entity.getDomainEntity() == null) {
-            entity.setDomainEntity(domainRepository.getReferenceById(content.getDomainId()));
         }
 
         questionRepository.save(entity);

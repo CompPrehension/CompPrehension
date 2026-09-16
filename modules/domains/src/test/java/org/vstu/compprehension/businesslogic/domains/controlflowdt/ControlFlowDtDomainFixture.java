@@ -4,8 +4,6 @@ import org.vstu.compprehension.businesslogic.domains.ControlFlowDTDomain;
 import org.vstu.compprehension.businesslogic.domains.DomainFixtures;
 import org.vstu.compprehension.businesslogic.domains.DomainFixtures.BundleLocalizationService;
 import org.vstu.compprehension.businesslogic.domains.DomainFixtures.SeededRandomProvider;
-import org.vstu.compprehension.data.domain.DomainData;
-import org.vstu.compprehension.data.domain.DomainOptionsData;
 import org.vstu.compprehension.data.question.AnswerObjectData;
 import org.vstu.compprehension.data.question.QuestionData;
 import org.vstu.compprehension.data.question.QuestionMetadataWithData;
@@ -61,7 +59,6 @@ final class ControlFlowDtDomainFixture {
 
     private static final class Holder {
         private static final ControlFlowDTDomain DOMAIN = new ControlFlowDTDomain(
-                new DomainData("ControlFlowDTDomain", "ctrl_flow_dt25", "2", new DomainOptionsData()),
                 new SeededRandomProvider(),
                 new BundleLocalizationService(BUNDLES.toArray(String[]::new)),
                 null);

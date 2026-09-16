@@ -91,10 +91,8 @@ public class QuestionEntity {
     @Nullable
     private ExerciseAttemptEntity exerciseAttempt;
 
-    @ToString.Exclude
-    @ManyToOne(fetch = FetchType.LAZY)
-    @JoinColumn(name = "domain_name", nullable = false)
-    private DomainEntity domainEntity;
+    @Column(name = "domain_name", nullable = false)
+    private String domainId;
 
     @Immutable
     @Type(JsonType.class)

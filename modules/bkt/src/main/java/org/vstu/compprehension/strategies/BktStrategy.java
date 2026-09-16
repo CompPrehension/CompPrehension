@@ -87,7 +87,7 @@ public class BktStrategy extends StrategyBase {
     public QuestionRequest generateQuestionRequest(long exerciseAttemptId) {
         var attempt = getAttempt(exerciseAttemptId);
         val exercise = attempt.exercise();
-        val domain = domainFactory.getDomain(exercise.domainName());
+        val domain = domainFactory.getDomain(exercise.domainId());
 
         val stageTargetSkills = getStageForNextQuestion(attempt).getSkills()
                 .stream()
@@ -135,7 +135,7 @@ public class BktStrategy extends StrategyBase {
         updateUserKnowledgeModel(attempt, judgeResult);
 
         val exercise = attempt.exercise();
-        val domain = (DomainBase) domainFactory.getDomain(exercise.domainName());
+        val domain = (DomainBase) domainFactory.getDomain(exercise.domainId());
 
         val targetSkills = getTargetSkills(attempt);
 
@@ -222,7 +222,7 @@ public class BktStrategy extends StrategyBase {
     public Decision decide(long exerciseAttemptId) {
         var exerciseAttempt = getAttempt(exerciseAttemptId);
         val exercise = exerciseAttempt.exercise();
-        val domain = domainFactory.getDomain(exercise.domainName());
+        val domain = domainFactory.getDomain(exercise.domainId());
 
         val targetSkills = getTargetSkills(exerciseAttempt);
 
@@ -272,7 +272,7 @@ public class BktStrategy extends StrategyBase {
             return;
         }
 
-        val domain = domainFactory.getDomain(exerciseAttempt.exercise().domainName());
+        val domain = domainFactory.getDomain(exerciseAttempt.exercise().domainId());
         val observedSkills = LeafEngagedSkillsExtractor.extract(dtJudgeResult.decisionTreeTrace);
 
         Set<String> leafEngagedSkills;
@@ -331,7 +331,7 @@ public class BktStrategy extends StrategyBase {
         //  вместе с деревом, запрашиваться у домена и использоваться.
         //  Но редактор пока этого не поддерживает (и не понятно, когда его доработают),
         //  поэтому пока захардкодил связи между навыками тут для домена выражений
-        if (!domain.getShortName().equals("expression_dt")) return Collections.emptyList();
+        if (!domain.getDomainId().equals("expression_dt")) return Collections.emptyList();
         return observedSkills
                 .stream()
                 .distinct()

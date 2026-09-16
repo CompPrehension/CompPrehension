@@ -80,7 +80,7 @@ public class    GradeConfidenceBaseStrategy extends StrategyBase {
         var exerciseAttempt = getAttempt(exerciseAttemptId);
 
         AttemptExerciseData exercise = exerciseAttempt.exercise();
-        Domain domain = domainFactory.getDomain(exercise.domainName());
+        Domain domain = domainFactory.getDomain(exercise.domainId());
 
 
         ExerciseStageData exerciseStage = exercise.stages().get(0);
@@ -461,7 +461,7 @@ public class    GradeConfidenceBaseStrategy extends StrategyBase {
         if (allLawsUsage.isEmpty()) {
 
             // получить законы из домена (все подряд)
-            Domain domain = domainFactory.getDomain(exercise.domainName());
+            Domain domain = domainFactory.getDomain(exercise.domainId());
 
             Collection<NegativeLaw> targetLaws = domain.getNegativeLaws();
             for (NegativeLaw currentTargetLaw : targetLaws) {

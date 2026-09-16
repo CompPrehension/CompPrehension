@@ -50,7 +50,7 @@ public class CtrlFlowLoadQuestionsTest {
 
     @BeforeAll
     public void tearUp() {
-        domain = (ControlFlowDTDomain) domainFactory.getDomain("ControlFlowDTDomain");
+        domain = (ControlFlowDTDomain) domainFactory.getDomain(ControlFlowDTDomain.DOMAIN_ID);
     }
 
     public static List<String> findFiles(Path path, String[] fileExtensions) throws IOException {

@@ -31,20 +31,18 @@ public interface ExerciseAttemptRepository extends JpaRepository<ExerciseAttempt
 
     @Query("""
             select a from ExerciseAttemptEntity a
-            join fetch a.exercise e
-            join fetch e.domain
+            join fetch a.exercise
             where a.id = :attemptId
             """)
-    Optional<ExerciseAttemptEntity> findByIdFetchingExerciseAndDomain(@Param("attemptId") long attemptId);
+    Optional<ExerciseAttemptEntity> findByIdFetchingExercise(@Param("attemptId") long attemptId);
 
     @Query("""
             select a from ExerciseAttemptEntity a
-            join fetch a.exercise e
-            join fetch e.domain
+            join fetch a.exercise
             left join fetch a.user
             where a.id = :attemptId
             """)
-    Optional<ExerciseAttemptEntity> findByIdFetchingExerciseDomainAndUser(@Param("attemptId") long attemptId);
+    Optional<ExerciseAttemptEntity> findByIdFetchingExerciseAndUser(@Param("attemptId") long attemptId);
 
     interface AttemptSummaryRow {
         Long getAttemptId();

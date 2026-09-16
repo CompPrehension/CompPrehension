@@ -27,7 +27,6 @@ import org.vstu.compprehension.businesslogic.domains.helpers.meaningtree.Meaning
 import org.vstu.compprehension.entities.ExerciseAttemptEntity;
 import org.vstu.compprehension.entities.ExerciseEntity;
 import org.vstu.compprehension.repositories.entity.ExerciseAttemptRepository;
-import org.vstu.compprehension.repositories.entity.DomainRepository;
 import org.vstu.compprehension.repositories.entity.ExerciseRepository;
 import org.vstu.compprehension.repositories.entity.UserRepository;
 import org.vstu.meaningtree.SupportedLanguage;
@@ -45,8 +44,6 @@ public class LoqiBuilder extends AbstractIntegrationTest {
     @Autowired
     private DomainFactory domainFactory;
     @Autowired
-    private DomainRepository domainRepository;
-    @Autowired
     private ExerciseAttemptRepository exerciseAttemptRepository;
     @Autowired
     private ExerciseRepository exerciseRepository;
@@ -57,7 +54,6 @@ public class LoqiBuilder extends AbstractIntegrationTest {
     private ExerciseEntity exercise;
     private ProgrammingLanguageExpressionDTDomain domain;
 
-    public static final String domainId = "ProgrammingLanguageExpressionDTDomain";
 
     private static final String RESOURCES_LOCATION = "org/vstu/compprehension/businesslogic/domains/";
     private static final String DOMAIN_MODEL_LOCATION = RESOURCES_LOCATION + "programming-language-expression-domain-model/";
@@ -69,9 +65,9 @@ public class LoqiBuilder extends AbstractIntegrationTest {
 
     @BeforeAll
     public void tearUp() {
-        domain = (ProgrammingLanguageExpressionDTDomain) domainFactory.getDomain(domainId);
+        domain = (ProgrammingLanguageExpressionDTDomain) domainFactory.getDomain(ProgrammingLanguageExpressionDTDomain.DOMAIN_ID);
         exercise = new ExerciseEntity();
-        exercise.setDomain(domainRepository.findById(domain.getName()).orElseThrow());
+        exercise.setDomainId(domain.getDomainId());
         exercise.setBackendId("DTReasoner");
         exercise.setTags("");
         exercise.setOptions(new ExerciseOptionsData(null, true,

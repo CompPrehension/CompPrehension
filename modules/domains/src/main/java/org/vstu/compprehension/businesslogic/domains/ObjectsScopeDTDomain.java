@@ -31,7 +31,6 @@ import org.vstu.compprehension.data.question.AnswerObjectData;
 import org.vstu.compprehension.data.question.ResponseData;
 import org.vstu.compprehension.services.LocalizationService;
 import org.vstu.compprehension.common.StringHelper;
-import org.vstu.compprehension.data.domain.DomainData;
 import org.vstu.compprehension.businesslogic.*;
 import org.vstu.compprehension.businesslogic.backend.DecisionTreeReasonerBackend;
 import org.vstu.compprehension.businesslogic.backend.JenaBackend;
@@ -57,6 +56,7 @@ import org.vstu.compprehension.data.question.QuestionContentData;
 @Log4j2
 public class ObjectsScopeDTDomain extends DecisionTreeReasoningDomain {
 
+    public static final String DOMAIN_ID = "obj_scope";
     static final String END_ANSWER = "EndObject";
 
     static final String LIFE_TIME = "LifeTime";
@@ -107,12 +107,11 @@ public class ObjectsScopeDTDomain extends DecisionTreeReasoningDomain {
     private final DecisionTreeInterface backendInterface = new DecisionTreeInterface();
 
     public ObjectsScopeDTDomain(
-            DomainData domainData,
             LocalizationService localizationService,
             RandomProvider randomProvider,
             QuestionBank qMetaStorage
     ) {
-        super(domainData, randomProvider, new DomainStructure(buildConcepts(), buildSkills(), Laws.empty()));
+        super(DOMAIN_ID, randomProvider, new DomainStructure(buildConcepts(), buildSkills(), Laws.empty()));
 
         this.localizationService = localizationService;
         this.qMetaStorage = qMetaStorage;

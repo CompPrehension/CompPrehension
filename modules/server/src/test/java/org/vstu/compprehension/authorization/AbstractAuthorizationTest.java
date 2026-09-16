@@ -25,7 +25,6 @@ import org.vstu.compprehension.entities.QuestionEntity;
 import org.vstu.compprehension.entities.QuestionMetadataEntity;
 import org.vstu.compprehension.repositories.entity.AnswerObjectRepository;
 import org.vstu.compprehension.repositories.entity.CourseRepository;
-import org.vstu.compprehension.repositories.entity.DomainRepository;
 import org.vstu.compprehension.repositories.entity.ExerciseAttemptRepository;
 import org.vstu.compprehension.repositories.entity.ExerciseRepository;
 import org.vstu.compprehension.repositories.entity.QuestionMetadataRepository;
@@ -46,7 +45,6 @@ public abstract class AbstractAuthorizationTest extends AbstractIntegrationTest 
     @Autowired private UserRepository userRepository;
     @Autowired private ExerciseRepository exerciseRepository;
     @Autowired private CourseRepository courseRepository;
-    @Autowired private DomainRepository domainRepository;
     @Autowired private ExerciseAttemptRepository exerciseAttemptRepository;
     @Autowired private QuestionRepository questionRepository;
     @Autowired private QuestionMetadataRepository questionMetadataRepository;
@@ -109,7 +107,7 @@ public abstract class AbstractAuthorizationTest extends AbstractIntegrationTest 
 
         var question = new QuestionEntity();
         question.setExerciseAttempt(attempt);
-        question.setDomainEntity(domainRepository.findById(TestData.Exercises.DOMAIN_ID).orElseThrow());
+        question.setDomainId(TestData.Exercises.DOMAIN_ID);
         question.setMetadata(metadata);
         question.setQuestionStatus(QuestionStatus.VIEWED);
         question.setQuestionType(bankQuestion.getQuestionType());

@@ -3,7 +3,6 @@ package org.vstu.compprehension.businesslogic.domains;
 import io.brookite.termannotations.DomainTermDictionary;
 import its.model.DomainSolvingModel;
 import org.jetbrains.annotations.NotNull;
-import org.vstu.compprehension.data.domain.DomainData;
 import org.vstu.compprehension.data.question.AnswerData;
 import org.vstu.compprehension.data.question.QuestionContentData;
 import org.vstu.compprehension.data.question.QuestionData;
@@ -17,8 +16,8 @@ import java.util.Optional;
 
 public abstract class DecisionTreeReasoningDomain extends DomainBase {
 
-    protected DecisionTreeReasoningDomain(DomainData domainData, RandomProvider randomProvider, DomainStructure structure) {
-        super(domainData, randomProvider, structure);
+    protected DecisionTreeReasoningDomain(String domainId, RandomProvider randomProvider, DomainStructure structure) {
+        super(domainId, randomProvider, structure);
     }
 
     public abstract List<DomainSolvingModel> getDomainSolvingModels();

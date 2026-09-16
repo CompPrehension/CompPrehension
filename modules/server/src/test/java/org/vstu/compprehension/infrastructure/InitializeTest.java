@@ -1,14 +1,11 @@
 package org.vstu.compprehension.infrastructure;
 
-import org.vstu.compprehension.data.domain.DomainOptionsData;
-
 import org.junit.jupiter.api.Test;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.transaction.annotation.Transactional;
-import org.vstu.compprehension.entities.DomainEntity;
-import org.vstu.compprehension.repositories.entity.DomainRepository;
-
-import java.util.stream.Collectors;
+import org.vstu.compprehension.entities.external_system.EducationResourceEntity;
+import org.vstu.compprehension.enums.EducationResourceType;
+import org.vstu.compprehension.repositories.entity.EducationResourceRepository;
 
 import static org.junit.jupiter.api.Assertions.assertFalse;
 import static org.junit.jupiter.api.Assertions.assertTrue;
@@ -16,49 +13,26 @@ import static org.junit.jupiter.api.Assertions.assertTrue;
 @Transactional
 public class InitializeTest extends AbstractIntegrationTest {
 
-    private static final String FAKE_DOMAIN = "##TEST_TRANSACTION_ROLLBACK##";
+    private static final String FAKE_URL = "##TEST_TRANSACTION_ROLLBACK##";
 
     @Autowired
-    private DomainRepository domainRepository;
+    private EducationResourceRepository educationResourceRepository;
 
-    private void createTestData() {
-        var newDomain = new DomainEntity();
-        newDomain.setName(FAKE_DOMAIN);
-        newDomain.setShortName(FAKE_DOMAIN);
-        newDomain.setVersion("1");
-        newDomain.setOptions(new DomainOptionsData());
-
-        domainRepository.save(newDomain);
-    }
-
-    private java.util.Set<String> domainNames() {
-        return domainRepository.findAll().stream()
-                .map(DomainEntity::getName)
-                .collect(Collectors.toSet());
-    }
-
-    /** Домены заводятся миграциями. */
-    @Test
-    public void migrationsCreateKnownDomains() {
-        var domainNames = domainNames();
-
-        assertTrue(domainNames.contains("ControlFlowStatementsDomain"));
-        assertTrue(domainNames.contains("ControlFlowStatementsDTDomain"));
-        assertTrue(domainNames.contains("ProgrammingLanguageExpressionDomain"));
-        assertTrue(domainNames.contains("ProgrammingLanguageExpressionDTDomain"));
+    private boolean hasFakeResource() {
+        return educationResourceRepository.findByUrlAndType(FAKE_URL, EducationResourceType.UNKNOWN).isPresent();
     }
 
     /** Записанное тестом видно ему самому. */
     @Test
-    public void fakeDomainExists() {
-        createTestData();
+    public void fakeResourceExists() {
+        educationResourceRepository.save(new EducationResourceEntity(FAKE_URL, EducationResourceType.UNKNOWN));
 
-        assertTrue(domainNames().contains(FAKE_DOMAIN));
+        assertTrue(hasFakeResource());
     }
 
     /** Соседнему тесту не видно: транзакция откатывается. */
     @Test
-    public void noFakeDomain() {
-        assertFalse(domainNames().contains(FAKE_DOMAIN));
+    public void noFakeResource() {
+        assertFalse(hasFakeResource());
     }
 }

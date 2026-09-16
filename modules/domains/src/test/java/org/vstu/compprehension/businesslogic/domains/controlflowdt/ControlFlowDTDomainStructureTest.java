@@ -35,9 +35,7 @@ class ControlFlowDTDomainStructureTest extends DomainStructureContract {
     @Test
     void domainIdentity() {
         // Act & Assert.
-        assertEquals("ControlFlowDTDomain", domain().getDomainId());
-        assertEquals("ctrl_flow_dt25", domain().getShortName());
-        assertEquals("ctrl_flow_dt25", domain().getShortnameForQuestionSearch());
+        assertEquals("ctrl_flow_dt25", domain().getDomainId());
         assertEquals("DTReasoner", domain().getBackendId());
         assertFalse(domain().requiresSolving());
     }

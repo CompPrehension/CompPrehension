@@ -14,7 +14,6 @@ import org.vstu.compprehension.businesslogic.*;
 import org.vstu.compprehension.businesslogic.backend.Fact;
 import org.vstu.compprehension.data.question.AnswerObjectData;
 import org.vstu.compprehension.data.exercise.ExerciseOptionsData;
-import org.vstu.compprehension.data.domain.DomainData;
 import org.vstu.compprehension.data.question.QuestionContentData;
 import org.vstu.compprehension.data.question.GeneratedQuestionData;
 import org.vstu.compprehension.data.question.QuestionData;
@@ -27,8 +26,6 @@ import java.util.*;
 
 public interface Domain {
     @NotNull String getDomainId();
-    @NotNull String getName();
-    @NotNull String getShortName();
     @NotNull String getDisplayName(Language language);
     @Nullable String getDescription(Language language);
 
@@ -36,16 +33,6 @@ public interface Domain {
      * Get domain-defined backend id, which determines the backend used to SOLVE/JUDGE this domain's questions
      */
     @NotNull String getBackendId();
-
-    /** Описание предметной области: имя, короткое имя, версия, опции. */
-    @NotNull DomainData getDomainData();
-
-    /**
-     * A temporary method to reuse DB-stored questions between Domains
-     * Is the same as {@link #getShortName()} by default
-     * FIXME - replace back to getShortName()
-     */
-    @NotNull String getShortnameForQuestionSearch();
 
     @NotNull Map<String, Tag> getTags();
     @NotNull List<Tag> getAllTags();

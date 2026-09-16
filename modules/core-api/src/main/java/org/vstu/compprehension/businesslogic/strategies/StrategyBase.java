@@ -136,8 +136,7 @@ public abstract class StrategyBase implements AbstractStrategy {
     protected QuestionRequest initQuestionRequest(ExerciseAttemptWithQuestionsData exerciseAttempt, ExerciseStageData exerciseStage, Domain domain) {
         QuestionRequest qr = new QuestionRequest();
         qr.setExerciseAttemptId(exerciseAttempt.id());
-        // // qr.setDomainShortname(domain.getShortName());
-        qr.setDomainShortname(domain.getShortnameForQuestionSearch());
+        qr.setDomainShortname(domain.getDomainId());
 
         // concepts
         List<ExerciseConceptDto> exConcepts = exerciseStage.getConcepts();

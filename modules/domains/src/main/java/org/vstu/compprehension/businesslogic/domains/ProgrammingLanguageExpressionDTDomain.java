@@ -32,7 +32,6 @@ import org.vstu.compprehension.data.question.QuestionData;
 import org.vstu.compprehension.data.question.AnswerObjectData;
 import org.vstu.compprehension.data.question.ResponseData;
 import org.vstu.compprehension.services.LocalizationService;
-import org.vstu.compprehension.data.domain.DomainData;
 import org.vstu.compprehension.businesslogic.*;
 import org.vstu.compprehension.businesslogic.backend.DecisionTreeReasonerBackend;
 import org.vstu.compprehension.businesslogic.backend.Fact;
@@ -59,6 +58,7 @@ import org.vstu.compprehension.data.question.QuestionContentData;
 @Log4j2
 public class ProgrammingLanguageExpressionDTDomain extends DecisionTreeReasoningDomain {
     public static final String MESSAGES_CONFIG_PATH = "classpath:/" + ProgrammingLanguageExpressionDomain.RESOURCES_LOCATION + "programming-language-expression-domain-dt-messages";
+    public static final String DOMAIN_ID = "expression_dt";
     static final String MESSAGE_PREFIX = "expr_domain_dt.";
 
     private final ProgrammingLanguageExpressionDomain baseDomain;
@@ -70,9 +70,8 @@ public class ProgrammingLanguageExpressionDTDomain extends DecisionTreeReasoning
     private final DecisionTreeInterface backendInterface = new DecisionTreeInterface();
 
     @SneakyThrows
-    public ProgrammingLanguageExpressionDTDomain(DomainData domainData,
-                                                 ProgrammingLanguageExpressionDomain baseDomain) {
-        super(domainData, baseDomain.randomProvider, baseDomain.getStructure().withSkills(buildSkills()));
+    public ProgrammingLanguageExpressionDTDomain(ProgrammingLanguageExpressionDomain baseDomain) {
+        super(DOMAIN_ID, baseDomain.randomProvider, baseDomain.getStructure().withSkills(buildSkills()));
 
         this.baseDomain = baseDomain;
         this.localizationService = baseDomain.localizationService;
@@ -172,12 +171,6 @@ public class ProgrammingLanguageExpressionDTDomain extends DecisionTreeReasoning
         b.add("previous_central_operands_are_unevaluated", 0x800000000L, visible);
 
         return b.build();
-    }
-
-    @NotNull
-    @Override
-    public String getShortnameForQuestionSearch() {
-        return "expression_dt";
     }
 
     @Override

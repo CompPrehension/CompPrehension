@@ -2,7 +2,7 @@ import { Domain, ExerciseCard, Strategy } from '../types/exercise-settings';
 
 export const mockDomains: Domain[] = [
     {
-        id: 'ProgrammingLanguageExpressionDomain',
+        id: 'expression',
         displayName: 'Expressions',
         description: 'Order of evaluation in expressions',
         tags: ['C++', 'basics'],

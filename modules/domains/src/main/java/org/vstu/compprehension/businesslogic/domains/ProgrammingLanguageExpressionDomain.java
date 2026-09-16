@@ -42,7 +42,6 @@ import org.vstu.compprehension.data.question.AnswerObjectData;
 import org.vstu.compprehension.data.question.ResponseData;
 import org.vstu.compprehension.services.LocalizationService;
 import org.vstu.compprehension.common.StringHelper;
-import org.vstu.compprehension.data.domain.DomainData;
 import org.vstu.compprehension.businesslogic.*;
 import org.vstu.compprehension.businesslogic.backend.JenaBackend;
 import org.vstu.compprehension.businesslogic.backend.Fact;
@@ -72,6 +71,7 @@ import static java.lang.Math.random;
 
 @Log4j2
 public class ProgrammingLanguageExpressionDomain extends JenaReasoningDomain {
+    public static final String DOMAIN_ID = "expression";
     static final String EVALUATION_ORDER_QUESTION_TYPE = "OrderOperators";
     static final String EVALUATION_ORDER_SUPPLEMENTARY_QUESTION_TYPE = "OrderOperatorsSupplementary";
     static final String OPERANDS_TYPE_QUESTION_TYPE = "OperandsType";
@@ -108,12 +108,11 @@ public class ProgrammingLanguageExpressionDomain extends JenaReasoningDomain {
 
     @SneakyThrows
     public ProgrammingLanguageExpressionDomain(
-            DomainData domainData,
             LocalizationService localizationService,
             RandomProvider randomProvider,
             QuestionBank qMetaStorage) {
 
-        super(domainData, randomProvider, new DomainStructure(buildConcepts(), Map.of(), buildLaws()));
+        super(DOMAIN_ID, randomProvider, new DomainStructure(buildConcepts(), Map.of(), buildLaws()));
 
         this.localizationService = localizationService;
         this.qMetaStorage = qMetaStorage;
@@ -2092,7 +2091,7 @@ QuestionOptionsData orderQuestionOptions = OrderQuestionOptionsData.builder()
                 .name(questionName)
                 .templateId(templateName)
                 .origin(origin)
-                .domainShortname(this.getShortName())
+                .domainShortname(this.getDomainId())
                 .version(GENERATED_QUESTIONS_VERSION)
                 .tagBits(tagNames.stream().map(this::getTag).filter(Objects::nonNull).map(Tag::getBitmask).reduce((a, b) -> a | b).orElse(0L))
                 .lawBits(lawNames.stream().map(this::getPositiveLaw).filter(Objects::nonNull).map(Law::getBitmask).reduce((a, b) -> a | b).orElse(0L)) // positive only laws

@@ -536,7 +536,7 @@ class ExerciseSettingsControllerAuthorizationTest extends AbstractAuthorizationT
         return ExerciseCardDto.builder()
                 .id(exercise.getId())
                 .name(exercise.getName())
-                .domainId(exercise.getDomain().getName())
+                .domainId(exercise.getDomainId())
                 .strategyId(exercise.getStrategyId())
                 .backendId(exercise.getBackendId())
                 .tags(new ArrayList<>())

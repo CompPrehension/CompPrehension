@@ -33,8 +33,7 @@ class ProgrammingLanguageExpressionDTDomainStructureTest extends DomainStructure
     @Test
     void domainIdentity() {
         // Act & Assert.
-        assertEquals("ProgrammingLanguageExpressionDTDomain", domain().getDomainId());
-        assertEquals("expression_dt", domain().getShortnameForQuestionSearch());
+        assertEquals("expression_dt", domain().getDomainId());
         assertEquals("DTReasoner", domain().getBackendId());
         assertFalse(domain().requiresSolving());
         assertNotNull(domain().getDefaultQuestionType(false));

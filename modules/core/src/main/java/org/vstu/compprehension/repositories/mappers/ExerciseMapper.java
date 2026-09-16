@@ -16,11 +16,10 @@ class ExerciseMapper implements Mapper<ExerciseEntity, ExerciseData> {
     public @NotNull ExerciseData map(@NotNull ExerciseEntity source) {
         long id = Strict.required(source.getId(), "id", "exercise");
         String owner = "exercise " + id;
-        var domain = Strict.required(source.getDomain(), "domain", owner);
         return new ExerciseData(
                 id,
                 Strict.required(source.getName(), "name", owner),
-                Strict.required(domain.getName(), "domain.name", owner),
+                Strict.required(source.getDomainId(), "domainId", owner),
                 Strict.required(source.getBackendId(), "backendId", owner),
                 Strict.required(source.getStrategyId(), "strategyId", owner),
                 Strict.required(source.getOptions(), "options", owner),

@@ -32,7 +32,6 @@ import org.vstu.compprehension.data.question.QuestionData;
 import org.vstu.compprehension.data.question.AnswerObjectData;
 import org.vstu.compprehension.data.question.ResponseData;
 import org.vstu.compprehension.services.LocalizationService;
-import org.vstu.compprehension.data.domain.DomainData;
 import org.vstu.compprehension.businesslogic.*;
 import org.vstu.compprehension.businesslogic.backend.DecisionTreeReasonerBackend;
 import org.vstu.compprehension.businesslogic.backend.Fact;
@@ -56,7 +55,7 @@ public class ControlFlowDTDomain extends DecisionTreeReasoningDomain {
     static final String RESOURCES_LOCATION = "domains/";
     static final String EXECUTION_ORDER_QUESTION_TYPE = "OrderActs";
     static final String MESSAGE_PREFIX = "ctrlflow_text.";
-    static final String DOMAIN_SHORTNAME = "ctrl_flow_dt25";
+    public static final String DOMAIN_ID = "ctrl_flow_dt25";
     static final String LOCALIZED_NAME = "localizedName";
     public static final String DOMAIN_MODEL_LOCATION = RESOURCES_LOCATION + "control-flow-domain-model/";
     public static final String MESSAGES_CONFIG_PATH = "classpath:/" + RESOURCES_LOCATION + "control-flow";
@@ -472,10 +471,9 @@ public class ControlFlowDTDomain extends DecisionTreeReasoningDomain {
                                 && pathInfo.getRelationshipLink("to_").getObjects().getFirst().equals(to)).findFirst();
     }
 
-    public ControlFlowDTDomain(DomainData domainData,
-                               RandomProvider randomProvider,
+    public ControlFlowDTDomain(RandomProvider randomProvider,
                                LocalizationService localizationService, QuestionBank qMetaStorage) {
-        super(domainData, randomProvider, new DomainStructure(buildConcepts(), buildSkills(), Laws.empty()));
+        super(DOMAIN_ID, randomProvider, new DomainStructure(buildConcepts(), buildSkills(), Laws.empty()));
         this.qMetaStorage = qMetaStorage;
         this.localizationService = localizationService;
     }
@@ -550,12 +548,6 @@ public class ControlFlowDTDomain extends DecisionTreeReasoningDomain {
     @Override
     public Collection<PositiveLaw> getQuestionPositiveLaws(String questionDomainType, List<Tag> tags) {
         return List.of();
-    }
-
-    @NotNull
-    @Override
-    public String getShortName() {
-        return DOMAIN_SHORTNAME;
     }
 
     @Override
