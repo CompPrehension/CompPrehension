@@ -13,7 +13,7 @@ import org.vstu.compprehension.data.exerciseattempt.AttemptQuestionData;
 import org.vstu.compprehension.data.exerciseattempt.AttemptQuestionInteractionData;
 import org.vstu.compprehension.data.exerciseattempt.AttemptSummaryData;
 import org.vstu.compprehension.data.exerciseattempt.GradePassbackTargetData;
-import org.vstu.compprehension.data.question.QuestionAttemptContextData;
+import org.vstu.compprehension.data.question.ExerciseAttemptContextData;
 import org.vstu.compprehension.entities.ExerciseAttemptEntity;
 import org.vstu.compprehension.entities.ExerciseEntity;
 import org.vstu.compprehension.entities.QuestionEntity;
@@ -30,9 +30,7 @@ import org.vstu.compprehension.repositories.entity.InteractionRepository.Interac
 import org.vstu.compprehension.repositories.entity.InteractionRepository;
 import org.vstu.compprehension.repositories.entity.QuestionRepository;
 import org.vstu.compprehension.repositories.entity.UserRepository;
-import org.vstu.compprehension.repositories.mappers.AttemptQuestionInteractionMapper;
 import org.vstu.compprehension.repositories.mappers.AttemptQuestionMapper;
-import org.vstu.compprehension.repositories.mappers.AttemptSummaryMapper;
 
 import java.util.ArrayList;
 import java.util.List;
@@ -50,13 +48,11 @@ public class ExerciseAttemptDataRepository {
     private final ExerciseRepository exerciseRepository;
     private final UserRepository userRepository;
     private final CourseRepository courseRepository;
-    private final AttemptSummaryMapper attemptSummaryMapper;
-    private final Mapper<ExerciseAttemptEntity, QuestionAttemptContextData> questionAttemptContextMapper;
+    private final Mapper<ExerciseAttemptEntity, ExerciseAttemptContextData> attemptContextMapper;
     private final Mapper<GradePassbackTargetRow, GradePassbackTargetData> gradePassbackTargetMapper;
     private final Mapper<AttemptOwner, AttemptOwnerData> attemptOwnerMapper;
     private final Mapper<ExerciseEntity, AttemptExerciseData> attemptExerciseMapper;
     private final AttemptQuestionMapper attemptQuestionMapper;
-    private final AttemptQuestionInteractionMapper attemptInteractionMapper;
 
     @Transactional(readOnly = true)
     public @NotNull ExerciseAttemptWithQuestionsData getAttemptWithQuestions(long attemptId) {
@@ -80,7 +76,7 @@ public class ExerciseAttemptDataRepository {
         Map<Long, List<AttemptQuestionInteractionData>> interactionsByQuestion = interactionRows.stream()
                 .collect(Collectors.groupingBy(
                         InteractionRow::getQuestionId,
-                        Collectors.mapping(row -> attemptInteractionMapper.map(
+                        Collectors.mapping(row -> toInteractionData(
                                 row,
                                 violationsByInteraction.getOrDefault(row.getInteractionId(), List.of()),
                                 correctLawsByInteraction.getOrDefault(row.getInteractionId(), List.of())
@@ -109,9 +105,9 @@ public class ExerciseAttemptDataRepository {
     }
 
     @Transactional(readOnly = true)
-    public @NotNull Optional<QuestionAttemptContextData> findQuestionAttemptContext(long questionId) {
+    public @NotNull Optional<ExerciseAttemptContextData> findAttemptContextByQuestionId(long questionId) {
         return exerciseAttemptRepository.findByQuestionIdFetchingExerciseAndUser(questionId)
-                .map(questionAttemptContextMapper::map);
+                .map(attemptContextMapper::map);
     }
 
     @Transactional(readOnly = true)
@@ -137,7 +133,7 @@ public class ExerciseAttemptDataRepository {
     @Transactional(readOnly = true)
     public @NotNull Optional<AttemptSummaryData> findSummary(long attemptId) {
         return exerciseAttemptRepository.findSummaryRow(attemptId)
-                .map(row -> attemptSummaryMapper.map(row, questionIdsOf(row)));
+                .map(this::toSummaryData);
     }
 
     /**
@@ -149,7 +145,7 @@ public class ExerciseAttemptDataRepository {
         var row = courseId != null
                 ? exerciseAttemptRepository.findSummaryRowWithStatusByCourse(exerciseId, courseId, userId, status)
                 : exerciseAttemptRepository.findSummaryRowWithStatus(exerciseId, userId, status);
-        return row.map(summaryRow -> attemptSummaryMapper.map(summaryRow, questionIdsOf(summaryRow)));
+        return row.map(this::toSummaryData);
     }
 
     /**
@@ -208,8 +204,26 @@ public class ExerciseAttemptDataRepository {
     }
 
     /** Вопросы попытки в строку не входят и приходят отдельным запросом. */
-    private @NotNull List<Long> questionIdsOf(@NotNull AttemptSummaryRow row) {
-        return exerciseAttemptRepository.findNonSupplementaryQuestionIds(row.getAttemptId());
+    private @NotNull AttemptSummaryData toSummaryData(@NotNull AttemptSummaryRow row) {
+        return new AttemptSummaryData(
+                row.getAttemptId(),
+                row.getUserId(),
+                row.getExerciseId(),
+                row.getCourseId(),
+                row.getStatus(),
+                exerciseAttemptRepository.findNonSupplementaryQuestionIds(row.getAttemptId()));
+    }
+
+    private static @NotNull AttemptQuestionInteractionData toInteractionData(@NotNull InteractionRow row,
+                                                                             @NotNull List<String> violationLawNames,
+                                                                             @NotNull List<String> correctLawNames) {
+        return new AttemptQuestionInteractionData(
+                row.getInteractionId(),
+                row.getOrderNumber() == null ? 0 : row.getOrderNumber(),
+                row.getInteractionType(),
+                row.getInteractionsLeft(),
+                violationLawNames,
+                correctLawNames);
     }
 
     private static Map<Long, List<String>> groupLawNames(List<InteractionLawRow> rows) {

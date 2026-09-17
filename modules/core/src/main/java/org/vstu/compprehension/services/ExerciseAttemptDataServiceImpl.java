@@ -14,6 +14,7 @@ import org.vstu.compprehension.data.exerciseattempt.AttemptGenerationContextData
 import org.vstu.compprehension.data.exercise.ExerciseAttemptWithQuestionsData;
 import org.vstu.compprehension.data.exerciseattempt.AttemptOwnerData;
 import org.vstu.compprehension.data.exerciseattempt.AttemptSummaryData;
+import org.vstu.compprehension.data.question.ExerciseAttemptContextData;
 import org.vstu.compprehension.data.question.QuestionAttemptContextData;
 import org.vstu.compprehension.repositories.data.ExerciseAttemptDataRepository;
 
@@ -54,22 +55,19 @@ class ExerciseAttemptDataServiceImpl implements ExerciseAttemptDataService {
 
     @Transactional(readOnly = true)
     public Optional<QuestionAttemptContextData> findQuestionContext(long questionId) {
-        return exerciseAttemptDataRepository.findQuestionAttemptContext(questionId)
-                .map(context -> {
-                    context.setQuestionStage(resolveQuestionStage(context, questionId));
-                    return context;
-                });
+        return exerciseAttemptDataRepository.findAttemptContextByQuestionId(questionId)
+                .map(attempt -> new QuestionAttemptContextData(attempt, resolveQuestionStage(attempt, questionId)));
     }
 
-    private @NotNull ExerciseStageData resolveQuestionStage(@NotNull QuestionAttemptContextData context, long questionId) {
-        var stages = context.getStages();
+    private @NotNull ExerciseStageData resolveQuestionStage(@NotNull ExerciseAttemptContextData attempt, long questionId) {
+        var stages = attempt.stages();
         if (stages.isEmpty()) {
             throw new IllegalStateException(
-                    "Exercise of attempt " + context.getAttemptId() + " has no stages, question " + questionId);
+                    "Exercise of attempt " + attempt.attemptId() + " has no stages, question " + questionId);
         }
 
         long questionNumber = exerciseAttemptDataRepository
-                .countQuestionsUpTo(context.getAttemptId(), questionId);
+                .countQuestionsUpTo(attempt.attemptId(), questionId);
         int questionsPassed = 0;
         ExerciseStageData stage = stages.getFirst();
         for (int i = 0; i < stages.size() && questionsPassed < questionNumber; i++) {
@@ -81,15 +79,15 @@ class ExerciseAttemptDataServiceImpl implements ExerciseAttemptDataService {
 
     @Transactional(readOnly = true)
     public Language findUserLanguageForQuestion(long questionId) {
-        return exerciseAttemptDataRepository.findQuestionAttemptContext(questionId)
-                .map(QuestionAttemptContextData::getUserLanguage)
+        return exerciseAttemptDataRepository.findAttemptContextByQuestionId(questionId)
+                .map(ExerciseAttemptContextData::userLanguage)
                 .orElse(Language.RUSSIAN);
     }
 
     @Transactional(readOnly = true)
     public Optional<Long> findAttemptIdOfQuestion(long questionId) {
-        return exerciseAttemptDataRepository.findQuestionAttemptContext(questionId)
-                .map(QuestionAttemptContextData::getAttemptId);
+        return exerciseAttemptDataRepository.findAttemptContextByQuestionId(questionId)
+                .map(ExerciseAttemptContextData::attemptId);
     }
 
     @Transactional(readOnly = true)

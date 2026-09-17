@@ -5,9 +5,11 @@ import org.springframework.stereotype.Component;
 import org.vstu.compprehension.businesslogic.QuestionRequest;
 import org.vstu.compprehension.businesslogic.domains.DomainFactory;
 import org.vstu.compprehension.businesslogic.storage.QuestionBank;
+import org.vstu.compprehension.data.questionbank.QuestionBankSearchStatsData;
 import org.vstu.compprehension.enums.RoleInExercise;
 import org.vstu.compprehension.frontend.dto.QuestionBankSearchRequestDto;
 import org.vstu.compprehension.frontend.dto.QuestionBankSearchStatsDto;
+import org.vstu.compprehension.mappers.Mapper;
 
 import java.util.Objects;
 
@@ -16,6 +18,7 @@ import java.util.Objects;
 public class QuestionBankSearchFrontendServiceImpl implements QuestionBankSearchFrontendService {
     private final DomainFactory domainFactory;
     private final QuestionBank questionStorage;
+    private final Mapper<QuestionBankSearchStatsData, QuestionBankSearchStatsDto> statsDtoMapper;
 
     @Override
     public QuestionBankSearchStatsDto search(QuestionBankSearchRequestDto searchRequest) {
@@ -81,6 +84,6 @@ public class QuestionBankSearchFrontendServiceImpl implements QuestionBankSearch
             throw new IllegalArgumentException("Limit must be in range [0, 100]");
         }
 
-        return questionStorage.getStatsByQuestionRequest(qr, questionsLimit);
+        return statsDtoMapper.map(questionStorage.getStatsByQuestionRequest(qr, questionsLimit));
     }
 }

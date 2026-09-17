@@ -4,7 +4,6 @@ import lombok.RequiredArgsConstructor;
 import lombok.SneakyThrows;
 import lombok.extern.log4j.Log4j2;
 import lombok.val;
-import org.apache.commons.lang3.ArrayUtils;
 import org.apache.commons.lang3.tuple.Pair;
 import org.jetbrains.annotations.NotNull;
 import org.jetbrains.annotations.Nullable;
@@ -15,7 +14,6 @@ import org.vstu.compprehension.common.Utils;
 import org.vstu.compprehension.enums.RoleInExercise;
 import org.vstu.compprehension.frontend.dto.*;
 import org.vstu.compprehension.frontend.dto.feedback.FeedbackDto;
-import org.vstu.compprehension.frontend.dto.feedback.FeedbackViolationLawDto;
 import org.vstu.compprehension.frontend.dto.question.QuestionDto;
 import org.vstu.compprehension.businesslogic.Explanation;
 import org.vstu.compprehension.businesslogic.domains.Domain;
@@ -24,7 +22,7 @@ import org.vstu.compprehension.businesslogic.strategies.AbstractStrategyFactory;
 import org.vstu.compprehension.businesslogic.strategies.StrategyDecision;
 import org.vstu.compprehension.data.exerciseattempt.AttemptSummaryData;
 import org.vstu.compprehension.data.exercise.ExerciseStageData;
-import org.vstu.compprehension.data.question.AnswerData;
+import org.vstu.compprehension.data.question.AnswerFeedbackData;
 import org.vstu.compprehension.data.question.NewInteractionAnswerData;
 import org.vstu.compprehension.data.question.NewInteractionData;
 import org.vstu.compprehension.data.question.QuestionAttemptContextData;
@@ -64,7 +62,6 @@ class ExerciseAttemptFrontendServiceImpl implements ExerciseAttemptFrontendServi
     private final QuestionDtoMapper questionDtoMapper;
     private final FeedbackDtoMapper feedbackDtoMapper;
     private final Mapper<AttemptSummaryData, ExerciseAttemptDto> exerciseAttemptDtoMapper;
-    private final Mapper<ResponseData, AnswerDto> answerDtoMapper;
     private final Mapper<ResponseData, NewInteractionAnswerData> carriedAnswerMapper;
     private final Mapper<SubmittedAnswerData, NewInteractionAnswerData> submittedAnswerMapper;
 
@@ -92,8 +89,10 @@ class ExerciseAttemptFrontendServiceImpl implements ExerciseAttemptFrontendServi
 
     @Transactional(propagation = Propagation.REQUIRED)
     public @NotNull FeedbackDto addQuestionAnswer(@NotNull InteractionDto interaction) {
-        val questionId = interaction.getQuestionId();
-        val answers = toSubmittedAnswers(interaction.getAnswers());
+        return addQuestionAnswer(interaction.getQuestionId(), toSubmittedAnswers(interaction.getAnswers()));
+    }
+
+    private @NotNull FeedbackDto addQuestionAnswer(long questionId, @NotNull List<SubmittedAnswerData> answers) {
         var context = exerciseAttemptService.findQuestionContext(questionId).orElse(null);
 
         var currentUser = userService.getCurrentUser();
@@ -116,21 +115,19 @@ class ExerciseAttemptFrontendServiceImpl implements ExerciseAttemptFrontendServi
         val locale = questionLanguage(context);
         // calculate error message
         val violations = judgeResult.violations.stream()
-                .map(v -> FeedbackViolationLawDto.builder().name(v.getLawName()).canCreateSupplementaryQuestion(domain.needSupplementaryQuestion(v.getLawName(), v.getInteractionType())).build())
-                .filter(Objects::nonNull).toList();
+                .map(v -> new AnswerFeedbackData.Law(v.getLawName(), domain.needSupplementaryQuestion(v.getLawName(), v.getInteractionType())))
+                .toList();
         Collection<Explanation> explanationSource = judgeResult.explanation.getRawMessage().isEmpty() ? judgeResult.explanation.getChildren() : List.of(judgeResult.explanation);
         val errors = explanationSource.stream().map(e -> Pair.of(
-                violations.stream().filter(v -> e.getDomainLawNames().contains(v.getName())).toList(),
+                violations.stream().filter(v -> e.getDomainLawNames().contains(v.name())).toList(),
                 e.toHyperText(locale).getText())).toList();
-        val messages = !errors.isEmpty() && !judgeResult.isAnswerCorrect ? errors.stream().map(pair -> FeedbackDto.Message.Error(pair.getRight(), pair.getLeft())).toArray(FeedbackDto.Message[]::new)
-                : judgeResult.IterationsLeft == 0 && judgeResult.isAnswerCorrect ? new FeedbackDto.Message[] { FeedbackDto.Message.Success(localizationService.getMessage("exercise_correct-last-question-answer", locale), violations) }
-                : judgeResult.IterationsLeft > 0 && judgeResult.isAnswerCorrect ? new FeedbackDto.Message[] { FeedbackDto.Message.Success(localizationService.getMessage("exercise_correct-question-answer", locale), violations) }
+        val messages = !errors.isEmpty() && !judgeResult.isAnswerCorrect ? errors.stream().map(pair -> AnswerFeedbackData.Message.error(pair.getRight(), pair.getLeft())).toList()
+                : judgeResult.IterationsLeft == 0 && judgeResult.isAnswerCorrect ? List.of(AnswerFeedbackData.Message.success(localizationService.getMessage("exercise_correct-last-question-answer", locale), violations))
+                : judgeResult.IterationsLeft > 0 && judgeResult.isAnswerCorrect ? List.of(AnswerFeedbackData.Message.success(localizationService.getMessage("exercise_correct-question-answer", locale), violations))
                 : null;
 
         // return result of the last correct interaction
-        val correctAnswers = question.latestCorrectResponses().stream()
-                .map(answerDtoMapper::map)
-                .toArray(AnswerDto[]::new);
+        val correctAnswers = question.latestCorrectResponses();
 
         // special case for order question
         // force complete answer if the last but one answer is correct
@@ -138,27 +135,21 @@ class ExerciseAttemptFrontendServiceImpl implements ExerciseAttemptFrontendServi
         val orderQuestionOptions = Utils.tryCast(question.getContent().getOptions(), OrderQuestionOptionsData.class).orElse(null);
         if (isAnswerCorrect && question.getContent().getQuestionType().equals(QuestionType.ORDER) &&
                 orderQuestionOptions != null && !orderQuestionOptions.isMultipleSelectionEnabled() &&
-                judgeResult.IterationsLeft == 1 && question.getContent().getAnswerObjects().size() - correctAnswers.length == 1) {
-            val correctAnswersIds = Arrays.stream(correctAnswers).map(a -> a.getAnswer()[0]).collect(Collectors.toSet());
+                judgeResult.IterationsLeft == 1 && question.getContent().getAnswerObjects().size() - correctAnswers.size() == 1) {
+            val correctAnswersIds = correctAnswers.stream().map(r -> r.getLeftAnswerObject().getAnswerId()).collect(Collectors.toSet());
             val missingAnswer = question.getContent().getAnswerObjects().stream()
-                    .filter(ao -> !correctAnswersIds.contains(ao.getAnswerId().longValue()))
-                    .map(ao -> new AnswerDto(ao.getAnswerId().longValue(), ao.getAnswerId().longValue(), true, null))
+                    .filter(ao -> !correctAnswersIds.contains(ao.getAnswerId()))
+                    .map(ao -> new SubmittedAnswerData(ao.getAnswerId(), ao.getAnswerId(), null))
                     .findFirst().get();
-            val newAnswer = ArrayUtils.add(correctAnswers, missingAnswer);
-            val res = addQuestionAnswer(new InteractionDto(questionId, newAnswer));
-            return res;
+            val completedAnswer = Stream.concat(
+                    correctAnswers.stream().map(r -> new SubmittedAnswerData(
+                            r.getLeftAnswerObject().getAnswerId(), r.getRightAnswerObject().getAnswerId(), r.getCreatedByInteractionId())),
+                    Stream.of(missingAnswer)).toList();
+            return addQuestionAnswer(questionId, completedAnswer);
         }
 
-        return feedbackDtoMapper.map(question,
-                messages,
-                question.correctInteractionsCount(),
-                question.erroneousInteractionsCount(),
-                strategyDecision.grade(),
-                judgeResult.IterationsLeft,
-                correctAnswers,
-                isAnswerCorrect,
-                strategyDecision.decision(),
-                language);
+        return feedbackDtoMapper.map(new AnswerFeedbackData(question, messages, correctAnswers, isAnswerCorrect,
+                judgeResult.IterationsLeft, strategyDecision.grade(), strategyDecision.decision()), language);
     }
 
     @SneakyThrows
@@ -232,23 +223,13 @@ class ExerciseAttemptFrontendServiceImpl implements ExerciseAttemptFrontendServi
         // build feedback message
         val locale = questionLanguage(context);
         val messages = correctAnswer.explanation.getChildren().stream()
-                .map(e -> FeedbackDto.Message.Success(e.toHyperText(locale).getText(),
-                        e.getDomainLawNames().stream().map(law ->
-                                FeedbackViolationLawDto.builder()
-                                        .name(law)
-                                        .canCreateSupplementaryQuestion(false).build()).toList()))
-                .toList().toArray(new FeedbackDto.Message[0]);
+                .map(e -> AnswerFeedbackData.Message.success(e.toHyperText(locale).getText(),
+                        e.getDomainLawNames().stream().map(law -> new AnswerFeedbackData.Law(law, false)).toList()))
+                .toList();
 
-        return feedbackDtoMapper.map(question,
-                messages,
-                question.correctInteractionsCount(),
-                question.erroneousInteractionsCount(),
-                strategyDecision.grade(),
-                judgeResult.IterationsLeft,
-                recorded.getResponses().stream().map(answerDtoMapper::map).toArray(AnswerDto[]::new),
+        return feedbackDtoMapper.map(new AnswerFeedbackData(question, messages, recorded.getResponses(),
                 /*true*/ judgeResult.violations.isEmpty() && judgeResult.isAnswerCorrect,
-                strategyDecision.decision(),
-                language);
+                judgeResult.IterationsLeft, strategyDecision.grade(), strategyDecision.decision()), language);
     }
 
     /** Взаимодействие, записанное и оценённое стратегией, вместе с обновлённым вопросом. */
@@ -276,11 +257,11 @@ class ExerciseAttemptFrontendServiceImpl implements ExerciseAttemptFrontendServi
 
         val decision = context == null
                 ? new StrategyDecision(1f, Decision.CONTINUE)
-                : strategyFactory.getStrategy(context.getStrategyId())
-                        .gradeAndDecide(context.getAttemptId(), judgeResult);
+                : strategyFactory.getStrategy(context.strategyId())
+                        .gradeAndDecide(context.attemptId(), judgeResult);
         questionService.gradeInteraction(recorded.getId(), decision.grade());
         if (context != null) {
-            exerciseAttemptService.ensureAttemptStatus(context.getAttemptId(), decision.decision());
+            exerciseAttemptService.ensureAttemptStatus(context.attemptId(), decision.decision());
         }
 
         return new GradedInteraction(question.withInteraction(recorded), recorded, decision);
@@ -294,7 +275,7 @@ class ExerciseAttemptFrontendServiceImpl implements ExerciseAttemptFrontendServi
         if (explanation == null || context == null) {
             return;
         }
-        var deniedSkills = context.getQuestionStage().getSkills().stream()
+        var deniedSkills = context.questionStage().getSkills().stream()
                 .filter(skill -> RoleInExercise.FORBIDDEN.equals(skill.getKind()))
                 .map(ExerciseSkillDto::getName)
                 .toList();
@@ -302,7 +283,7 @@ class ExerciseAttemptFrontendServiceImpl implements ExerciseAttemptFrontendServi
     }
 
     private static @NotNull Language questionLanguage(@Nullable QuestionAttemptContextData context) {
-        return context == null ? Language.RUSSIAN/*ENGLISH*/ : context.getUserLanguage();
+        return context == null ? Language.RUSSIAN/*ENGLISH*/ : context.userLanguage();
     }
 
     private static @NotNull List<SubmittedAnswerData> toSubmittedAnswers(@Nullable AnswerDto[] answers) {

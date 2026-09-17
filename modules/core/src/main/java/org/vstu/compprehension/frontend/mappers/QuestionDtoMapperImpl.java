@@ -5,6 +5,7 @@ import org.jetbrains.annotations.NotNull;
 import org.springframework.stereotype.Component;
 import org.vstu.compprehension.businesslogic.HyperText;
 import org.vstu.compprehension.businesslogic.domains.DomainFactory;
+import org.vstu.compprehension.data.question.AnswerFeedbackData;
 import org.vstu.compprehension.data.question.AnswerObjectData;
 import org.vstu.compprehension.data.question.QuestionContentData;
 import org.vstu.compprehension.data.question.QuestionData;
@@ -35,11 +36,6 @@ class QuestionDtoMapperImpl implements QuestionDtoMapper {
         QuestionContentData content = question.getContent();
         List<QuestionInteractionData> interactions = question.getInteractions();
 
-        int stepsWithErrors = (int) interactions.stream()
-                .filter(i -> !i.getViolations().isEmpty()).count();
-        int correctSteps = (int) interactions.stream()
-                .filter(i -> !i.getCorrectLaw().isEmpty()).count();
-
         var lastCorrect = question.latestCorrectInteraction();
         var last = interactions.stream().reduce((first, second) -> second);
 
@@ -50,9 +46,9 @@ class QuestionDtoMapperImpl implements QuestionDtoMapper {
                 .toArray(AnswerDto[]::new);
 
         var feedback = last
-                .map(i -> feedbackDtoMapper.map(question, null, correctSteps, stepsWithErrors,
-                        i.getFeedback().getGrade(), i.getFeedback().getInteractionsLeft(), null,
-                        i.getViolations().isEmpty(), null, language))
+                .map(i -> feedbackDtoMapper.map(new AnswerFeedbackData(question, null, null,
+                        i.isCorrect(), i.getFeedback().getInteractionsLeft(), i.getFeedback().getGrade(), null),
+                        language))
                 .orElse(null);
 
         List<AnswerObjectData> answers = content.getAnswerObjects();
