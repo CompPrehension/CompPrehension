@@ -49,16 +49,23 @@ class QuestionEntityMapperImpl implements QuestionEntityMapper {
         if (target.getAnswerObjects() == null) {
             target.setAnswerObjects(new ArrayList<>());
         }
-        var existing = target.getAnswerObjects().stream()
+        var byId = target.getAnswerObjects().stream()
                 .filter(a -> a.getId() != null)
                 .collect(Collectors.toMap(AnswerObjectEntity::getId, a -> a, (a, b) -> a));
+        var byAnswerId = target.getAnswerObjects().stream()
+                .filter(a -> a.getAnswerId() != null)
+                .collect(Collectors.toMap(AnswerObjectEntity::getAnswerId, a -> a, (a, b) -> a));
 
         for (AnswerObjectData source : data.getContent().getAnswerObjects()) {
-            var entity = source.getId() == null ? null : existing.get(source.getId());
+            var entity = source.getId() == null ? null : byId.get(source.getId());
+            if (entity == null) {
+                entity = byAnswerId.get(source.getAnswerId());
+            }
             if (entity == null) {
                 entity = new AnswerObjectEntity();
                 entity.setQuestion(target);
                 target.getAnswerObjects().add(entity);
+                byAnswerId.put(source.getAnswerId(), entity);
             }
             entity.setAnswerId(source.getAnswerId());
             entity.setHyperText(source.getHyperText());

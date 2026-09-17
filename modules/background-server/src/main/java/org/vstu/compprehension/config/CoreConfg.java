@@ -1,6 +1,5 @@
 package org.vstu.compprehension.config;
 
-import org.vstu.compprehension.frontend.mappers.QuestionBankSearchStatsDtoMapper;
 import com.google.common.cache.Cache;
 import com.google.common.cache.CacheBuilder;
 import org.springframework.beans.factory.annotation.Autowired;
@@ -87,9 +86,8 @@ public class CoreConfg {
 
     @Bean
     @Singleton
-    QuestionBank getQuestionBank(@Autowired QuestionBankDataRepository bankDataRepository,
-                                 @Autowired QuestionBankSearchStatsDtoMapper questionBankSearchStatsDtoMapper) {
-        return new QuestionBankImpl(bankDataRepository, questionBankSearchStatsDtoMapper);
+    QuestionBank getQuestionBank(@Autowired QuestionBankDataRepository bankDataRepository) {
+        return new QuestionBankImpl(bankDataRepository);
     }
 
     @Bean

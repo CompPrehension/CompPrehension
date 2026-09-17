@@ -55,7 +55,7 @@ public class Main {
                 new ProgrammingLanguageExpressionDomain(
                         new FakeLocalizationService(),
                         new RandomProviderImpl(),
-                        new QuestionBankImpl(FakeDataAccess.questionBank(), null)
+                        new QuestionBankImpl(FakeDataAccess.questionBank())
                 )
         );
 

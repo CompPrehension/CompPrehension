@@ -1,14 +1,24 @@
 package org.vstu.compprehension.frontend.mappers;
 
 import org.jetbrains.annotations.NotNull;
+import org.springframework.stereotype.Component;
 import org.vstu.compprehension.data.question.QuestionMetadataData;
+import org.vstu.compprehension.data.questionbank.QuestionBankSearchStatsData;
 import org.vstu.compprehension.frontend.dto.QuestionBankSearchStatsDto;
-import org.vstu.compprehension.mappers.Mapping;
+import org.vstu.compprehension.mappers.Mapper;
 
-import java.util.List;
+@Component
+class QuestionBankSearchStatsDtoMapper implements Mapper<QuestionBankSearchStatsData, QuestionBankSearchStatsDto> {
 
-public interface QuestionBankSearchStatsDtoMapper extends Mapping {
+    @Override
+    public @NotNull QuestionBankSearchStatsDto map(@NotNull QuestionBankSearchStatsData source) {
+        return new QuestionBankSearchStatsDto(
+                source.count(),
+                source.topRatedCount(),
+                source.found().stream().map(this::map).toList());
+    }
 
-    @NotNull QuestionBankSearchStatsDto map(long count, long topRatedCount,
-                                            @NotNull List<QuestionMetadataData> found);
+    private @NotNull QuestionBankSearchStatsDto.QuestionMetadataDto map(@NotNull QuestionMetadataData source) {
+        return new QuestionBankSearchStatsDto.QuestionMetadataDto(source.getId(), source.getName());
+    }
 }

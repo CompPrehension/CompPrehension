@@ -7,12 +7,11 @@ import org.jetbrains.annotations.Nullable;
 import org.vstu.compprehension.businesslogic.storage.QuestionBank;
 import org.vstu.compprehension.businesslogic.storage.QuestionBankSearchResult;
 import org.vstu.compprehension.businesslogic.storage.SerializableQuestion;
-import org.vstu.compprehension.frontend.dto.QuestionBankSearchStatsDto;
-import org.vstu.compprehension.frontend.mappers.QuestionBankSearchStatsDtoMapper;
 import org.vstu.compprehension.businesslogic.QuestionBankSearchRequest;
 import org.vstu.compprehension.businesslogic.QuestionRequest;
 import org.vstu.compprehension.data.questionbank.GenerationRequestGroupData;
 import org.vstu.compprehension.data.questionbank.NewBankQuestionData;
+import org.vstu.compprehension.data.questionbank.QuestionBankSearchStatsData;
 import org.vstu.compprehension.data.question.QuestionMaskData;
 import org.vstu.compprehension.data.question.QuestionMetadataData;
 import org.vstu.compprehension.data.question.QuestionMetadataWithData;
@@ -32,12 +31,9 @@ import java.util.Set;
 public class QuestionBankImpl implements QuestionBank {
     private final QuestionBankDataRepository bankRepository;
     private final QuestionMetadataManager questionMetadataManager;
-    private final QuestionBankSearchStatsDtoMapper questionBankSearchStatsDtoMapper;
 
-    public QuestionBankImpl(QuestionBankDataRepository bankRepository,
-                            QuestionBankSearchStatsDtoMapper questionBankSearchStatsDtoMapper) {
+    public QuestionBankImpl(QuestionBankDataRepository bankRepository) {
         this.bankRepository = bankRepository;
-        this.questionBankSearchStatsDtoMapper = questionBankSearchStatsDtoMapper;
         this.questionMetadataManager = new QuestionMetadataManager(bankRepository);
     }
 
@@ -112,11 +108,11 @@ public class QuestionBankImpl implements QuestionBank {
         return bankRepository.countQuestions(bankSearchRequest);
     }
 
-    public QuestionBankSearchStatsDto getStatsByQuestionRequest(QuestionRequest qr, int limit) {
+    public QuestionBankSearchStatsData getStatsByQuestionRequest(QuestionRequest qr, int limit) {
         var bankSearchRequest = createBankSearchRequest(qr);
-        var ordinaryCount = bankRepository.countQuestions(bankSearchRequest);
-        var topRatedCount = bankRepository.countTopRatedQuestions(bankSearchRequest);
-        return questionBankSearchStatsDtoMapper.map(ordinaryCount, topRatedCount,
+        return new QuestionBankSearchStatsData(
+                bankRepository.countQuestions(bankSearchRequest),
+                bankRepository.countTopRatedQuestions(bankSearchRequest),
                 bankRepository.findMetadataWithoutBodies(bankSearchRequest, limit));
     }
 

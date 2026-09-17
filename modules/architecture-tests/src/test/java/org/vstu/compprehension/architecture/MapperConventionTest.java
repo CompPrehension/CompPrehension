@@ -58,8 +58,7 @@ public class MapperConventionTest {
      */
     private static final Set<String> DTO_BUILDERS_OUTSIDE_MAPPERS = Set.of(
             ROOT + ".businesslogic.domains.DecisionTreeSupQuestionHelper",
-            ROOT + ".businesslogic.domains.ProgrammingLanguageExpressionDomain",
-            ROOT + ".frontend.ExerciseAttemptFrontendServiceImpl"
+            ROOT + ".businesslogic.domains.ProgrammingLanguageExpressionDomain"
     );
 
     /**
@@ -182,7 +181,8 @@ public class MapperConventionTest {
                     .as("consumers should depend on Mapper/UpdateMapper, not on a mapper implementation");
 
     /**
-     * В репозитории не должно быть реализаций маппинга.
+     * В репозитории не должно быть реализаций маппинга над JPA-сущностями;
+     * плоские проекции запросов репозиторий собирает в данные сам.
      */
     @ArchTest
     static final ArchRule data_repositories_should_not_declare_mapping_methods =
@@ -435,7 +435,7 @@ public class MapperConventionTest {
                     var model = mentioned.stream().filter(MapperConventionTest::isDataModel).findFirst();
                     if (persistence.isPresent() && model.isPresent()) {
                         events.add(SimpleConditionEvent.violated(method, String.format(
-                                "%s mentions both %s and %s, which makes it a mapper; move it into a *Mapper "
+                                "%s mentions both %s and %s, which makes it an entity mapper; move it into a *Mapper "
                                         + "class in repositories.mappers, in %s",
                                 method.getFullName(), persistence.get().getName(), model.get().getName(),
                                 method.getSourceCodeLocation())));
@@ -502,9 +502,7 @@ public class MapperConventionTest {
     }
 
     private static boolean isPersistenceType(JavaClass type) {
-        String name = type.getName();
         String pkg = type.getPackageName();
-        return pkg.equals(ROOT + ".entities") || pkg.startsWith(ROOT + ".entities.")
-                || name.startsWith(ROOT + ".repositories.entity.");
+        return pkg.equals(ROOT + ".entities") || pkg.startsWith(ROOT + ".entities.");
     }
 }

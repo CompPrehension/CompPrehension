@@ -2,7 +2,7 @@ package org.vstu.compprehension.businesslogic.storage;
 
 import org.jetbrains.annotations.NotNull;
 import org.jetbrains.annotations.Nullable;
-import org.vstu.compprehension.frontend.dto.QuestionBankSearchStatsDto;
+import org.vstu.compprehension.data.questionbank.QuestionBankSearchStatsData;
 import org.vstu.compprehension.businesslogic.QuestionRequest;
 import org.vstu.compprehension.data.questionbank.GenerationRequestGroupData;
 import org.vstu.compprehension.data.questionbank.NewBankQuestionData;
@@ -27,7 +27,7 @@ public interface QuestionBank {
 
     int countQuestions(QuestionRequest qr);
 
-    QuestionBankSearchStatsDto getStatsByQuestionRequest(QuestionRequest qr, int limit);
+    QuestionBankSearchStatsData getStatsByQuestionRequest(QuestionRequest qr, int limit);
 
     QuestionBankSearchResult searchQuestions(@NotNull QuestionRequest qr, int limit, int generatorThreshold, int generatorAdditionalQuestionsToGenerate);
 
