@@ -4,6 +4,7 @@ import org.junit.jupiter.api.AfterEach;
 import org.junit.jupiter.api.Test;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.transaction.annotation.Transactional;
+import org.vstu.compprehension.authorization.TestLtiContextProvider;
 import org.vstu.compprehension.authorization.TestUserService;
 import org.vstu.compprehension.enums.Language;
 import org.vstu.compprehension.infrastructure.AbstractIntegrationTest;
@@ -24,6 +25,7 @@ class UserFrontendServiceTest extends AbstractIntegrationTest {
     @AfterEach
     void resetCurrentUser() {
         TestUserService.reset();
+        TestLtiContextProvider.reset();
     }
 
     /** Id текущего пользователя. */
@@ -120,5 +122,26 @@ class UserFrontendServiceTest extends AbstractIntegrationTest {
 
         TestUserService.actAs(TestData.Users.GLOBAL_STUDENT_ID);
         assertFalse(service.getCurrentUserInfo().getPermissions().canViewGlobalPool());
+    }
+
+    /** Вне LTI-сессии isLtiMode выключен. */
+    @Test
+    void isLtiModeIsFalseOutsideLtiSession() {
+        // Arrange.
+        TestUserService.actAs(TestData.Users.GLOBAL_STUDENT_ID);
+
+        // Act & Assert.
+        assertFalse(service.getCurrentUserInfo().getPermissions().isLtiMode());
+    }
+
+    /** Пользователь, запущенный из LTI, помечен isLtiMode. */
+    @Test
+    void isLtiModeIsTrueInsideLtiSession() {
+        // Arrange.
+        TestLtiContextProvider.launchedFromCourse(TestData.Courses.MAIN_EXTERNAL_ID);
+        TestUserService.actAs(TestData.Users.GLOBAL_STUDENT_ID);
+
+        // Act & Assert.
+        assertTrue(service.getCurrentUserInfo().getPermissions().isLtiMode());
     }
 }

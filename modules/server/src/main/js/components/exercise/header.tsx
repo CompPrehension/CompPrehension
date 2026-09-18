@@ -24,17 +24,18 @@ export const ExerciseHeader = observer(() => {
         return null;
     }
     const currentQuestionIdx = currentAttempt.questionIds.findIndex(id => currentQuestion.question?.questionId === id);
+    const questionTitle = currentQuestionIdx !== -1 ? t('question_header', { questionNumber: currentQuestionIdx + 1 }) : '';
 
     return (
         <Header
-            text={currentQuestionIdx !== -1 ? t('question_header', { questionNumber: currentQuestionIdx + 1 }) : ''}
+            crumbs={questionTitle ? [{ label: questionTitle }] : []}
             pagination={<Pagination />}
             languageHint={t('language_header')}
             language={user.language}
             userHint={t('signedin_as_header')}
             user={user.displayName}
             onLanguageClicked={null/*onLangClicked*/}
-            logoutLabel={t('logout_header')}
+            logoutLabel={!user?.permissions.isLtiMode ? t('logout_header') : null}
         />
     );
 });

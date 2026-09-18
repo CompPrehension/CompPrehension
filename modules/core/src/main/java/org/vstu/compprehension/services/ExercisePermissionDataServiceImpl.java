@@ -16,6 +16,7 @@ class ExercisePermissionDataServiceImpl implements ExercisePermissionDataService
     private final AuthScopeFactory authScopes;
     private final ExerciseDataService exerciseService;
     private final CourseDataService courseService;
+    private final LtiContextProvider ltiContextProvider;
 
     public void ensureCanViewExercise(long userId, long exerciseId) {
         if (exerciseService.isExercisePublic(exerciseId) && authService.isAuthorized(userId, SystemPermission.VIEW_EXERCISE, authScopes.global())) {
@@ -54,8 +55,10 @@ class ExercisePermissionDataServiceImpl implements ExercisePermissionDataService
     }
 
     public UserPermissionsData ofUser(long userId) {
+        boolean isLtiMode = ltiContextProvider.getCurrentLtiContext().isPresent();
         return new UserPermissionsData(
-                authService.getPermissions(userId, authScopes.global()).contains(SystemPermission.VIEW_EXERCISE)
+                authService.getPermissions(userId, authScopes.global()).contains(SystemPermission.VIEW_EXERCISE),
+                isLtiMode
         );
     }
 }

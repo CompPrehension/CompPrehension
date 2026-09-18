@@ -44,6 +44,36 @@ body ul {
   margin-bottom: 0;
 }
 
+.comp-ph-header {
+  row-gap: .5rem;
+}
+
+.comp-ph-header-crumbs {
+  display: flex;
+  align-items: center;
+  flex-wrap: wrap;
+  gap: .5rem;
+}
+
+.comp-ph-header-brand {
+  font-weight: 600;
+  color: #31708f;
+  text-decoration: none;
+}
+
+.comp-ph-header-brand:hover {
+  color: #245a72;
+  text-decoration: underline;
+}
+
+.comp-ph-header-crumb-sep {
+  color: rgb(0 0 0 / 35%);
+}
+
+.comp-ph-header-title {
+  margin: 0;
+}
+
 .comp-ph-question p {
   margin-top: 10px;
   margin-bottom: 10px;
