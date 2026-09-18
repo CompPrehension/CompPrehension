@@ -35,7 +35,7 @@ export const CoursesPage = observer(() => {
                         userHint={t('signedin_as_header')}
                         user={user.displayName}
                         userHref={null}
-                        logoutLabel={t('logout_header')} />
+                        logoutLabel={user?.permissions.canLogout ? t('logout_header') : null} />
             </div>
             {user.permissions.canViewGlobalPool && (
                 <div className="mb-3">

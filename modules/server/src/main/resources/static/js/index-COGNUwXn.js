@@ -1395,7 +1395,10 @@ var TLanguage = keyof({
 });
 //#endregion
 //#region src/main/js/types/user-info.ts
-var TUserPermissions = type({ canViewGlobalPool: boolean }, "UserPermissions");
+var TUserPermissions = type({
+	canViewGlobalPool: boolean,
+	canLogout: boolean
+}, "UserPermissions");
 var TUserInfo = type({
 	id: number,
 	displayName: string,
@@ -3099,7 +3102,7 @@ var ExerciseHeader = observer(() => {
 		userHint: t("signedin_as_header"),
 		user: user.displayName,
 		onLanguageClicked: null,
-		logoutLabel: t("logout_header")
+		logoutLabel: user?.permissions.canLogout ? t("logout_header") : null
 	});
 });
 //#endregion
@@ -4310,7 +4313,7 @@ var ExerciseSettings = observer(() => {
 				userHint: t("signedin_as_header"),
 				user: user.displayName,
 				userHref: null,
-				logoutLabel: t("logout_header")
+				logoutLabel: user?.permissions.canLogout ? t("logout_header") : null
 			})
 		}), /* @__PURE__ */ (0, import_jsx_runtime.jsxs)("div", {
 			className: "flex-xl-nowrap row",
@@ -5350,7 +5353,7 @@ var GlobalPool = observer(() => {
 					userHint: t("signedin_as_header"),
 					user: user.displayName,
 					userHref: null,
-					logoutLabel: t("logout_header")
+					logoutLabel: user?.permissions.canLogout ? t("logout_header") : null
 				})
 			}),
 			store.loadStatus === "FAILED" && store.error && /* @__PURE__ */ (0, import_jsx_runtime.jsx)(LoadFailure, {
@@ -5643,7 +5646,7 @@ var CoursePage = observer(() => {
 					userHint: t("signedin_as_header"),
 					user: user.displayName,
 					userHref: null,
-					logoutLabel: t("logout_header")
+					logoutLabel: user?.permissions.canLogout ? t("logout_header") : null
 				})
 			}),
 			isDeepLink && !inIframe && /* @__PURE__ */ (0, import_jsx_runtime.jsx)("div", {
@@ -5741,7 +5744,7 @@ var CoursesPage = observer(() => {
 					userHint: t("signedin_as_header"),
 					user: user.displayName,
 					userHref: null,
-					logoutLabel: t("logout_header")
+					logoutLabel: user?.permissions.canLogout ? t("logout_header") : null
 				})
 			}),
 			user.permissions.canViewGlobalPool && /* @__PURE__ */ (0, import_jsx_runtime.jsx)("div", {

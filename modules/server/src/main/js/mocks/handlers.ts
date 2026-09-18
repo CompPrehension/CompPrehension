@@ -24,7 +24,7 @@ export const handlers = [
         displayName: 'front user',
         email: 'test@mail.ru',
         language: 'EN',
-        permissions: { canViewGlobalPool: true },
+        permissions: { canViewGlobalPool: true, canLogout: true, },
     })),
 
     http.post('/api/users/language', async ({ request }) => {

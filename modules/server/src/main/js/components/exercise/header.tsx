@@ -34,7 +34,7 @@ export const ExerciseHeader = observer(() => {
             userHint={t('signedin_as_header')}
             user={user.displayName}
             onLanguageClicked={null/*onLangClicked*/}
-            logoutLabel={t('logout_header')}
+            logoutLabel={user?.permissions.canLogout ? t('logout_header') : null}
         />
     );
 });
