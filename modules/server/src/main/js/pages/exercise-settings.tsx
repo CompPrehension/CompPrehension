@@ -18,9 +18,9 @@ import {Link} from 'react-router';
 import { LoadFailure } from "../components/common/errors";
 import {Loader} from "../components/common/loader";
 import {useTranslation} from "react-i18next";
-import {Header} from "../components/common/header";
+import {PageLayout} from "../components/common/page-layout";
 import { API_URL } from "../appconfig";
-import { useCurrentUser, useSession } from "../hooks/session-context";
+import { useCurrentUser } from "../hooks/session-context";
 import { useCourseId } from "../hooks/use-course-id";
 import { ExerciseRowBadge } from "../components/exercise/exercise-row-badge";
 import { DeleteGlobalExerciseModal } from "../components/exercise/delete-global-exercise-modal";
@@ -29,7 +29,6 @@ export const ExerciseSettings = observer(() => {
     const [exerciseStore] = useState(() => new ExerciseSettingsStore());
     const { t } = useTranslation();
     const user = useCurrentUser();
-    const session = useSession();
     const courseId = useCourseId();
     const canCreate = exerciseStore.permissions.canCreateExercise;
     useEffect(() => {
@@ -49,12 +48,6 @@ export const ExerciseSettings = observer(() => {
         })()
     }, [exerciseStore]);
 
-    const onLangClicked = useCallback(() => {
-        const currentLang = user?.language;
-        const newLang = currentLang === "RU" ? "EN" : "RU";
-        session.changeLanguage(newLang);
-    }, [session, user]);
-
     if (exerciseStore.exercisesLoadStatus === 'LOADING') {
         return <Loader />;
     }
@@ -62,21 +55,21 @@ export const ExerciseSettings = observer(() => {
     if (!user)
         return <Loader />;
 
+    const parent = courseId != null
+        ? { label: t('course_page_title', { id: courseId }), to: `/pages/course?courseId=${courseId}` }
+        : { label: t('globalPool_page_title'), to: '/pages/global-pool' };
+
     return (
-        <div className="container-fluid">
-            <div className="pt-1 pb-3">
-                <Header text={t('exercisesettings_title')}
-                        languageHint={t('language_header')}
-                        language={user?.language ?? "EN"}
-                        onLanguageClicked={onLangClicked}
-                        userHint={t('signedin_as_header')}
-                        user={user.displayName}
-                        userHref={null}
-                        logoutLabel={user?.permissions.canLogout ? t('logout_header') : null} />
-            </div>
+        <PageLayout title={t('exercisesettings_title')} parent={parent}>
             <div className="flex-xl-nowrap row">
                 <div className="col-xl-3 col-md-3 col-12 d-flex flex-column">
-                    {canCreate && <Button variant="primary" className="mb-3" onClick={onNewExerciseClicked}>Create new</Button>}
+                    {canCreate && <Button variant="primary" className="mb-3" onClick={onNewExerciseClicked}>{t('exercisesettings_createNew')}</Button>}
+                    {user.permissions.canViewGlobalPool && courseId != null && (
+                        <Button variant="outline-secondary" className="mb-3"
+                                onClick={() => window.open(`${window.location.origin}/pages/global-pool`, '_blank')?.focus()}>
+                            {t('exercisesettings_openGlobalPool')}
+                        </Button>
+                    )}
                     <div className="list-group">
                         {exerciseStore.exercises?.map(e =>
                             <Link key={e.id}
@@ -101,7 +94,7 @@ export const ExerciseSettings = observer(() => {
                     />
                 </div>
             </div>
-        </div>
+        </PageLayout>
     );
 })
 
@@ -122,7 +115,7 @@ const ExerciseCardElement = observer((props: ExerciseCardElementProps) => {
         return <Loader delay={200} />;
 
     if (card == null)
-        return (<div>No exercise selected</div>);
+        return (<div>{t('exercisesettings_noExerciseSelected')}</div>);
 
     const currentDomain = domains.find(z => z.id === card.domainId);
     const stageDomainLaws = currentDomain?.laws

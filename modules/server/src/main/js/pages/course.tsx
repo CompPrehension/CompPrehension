@@ -3,10 +3,10 @@ import { observer } from 'mobx-react';
 import { Button, Form } from 'react-bootstrap';
 import { Link, useNavigate, useSearchParams } from 'react-router';
 import { CourseStore } from '../stores/course-store';
-import { Header } from '../components/common/header';
+import { PageLayout } from '../components/common/page-layout';
 import { Loader } from '../components/common/loader';
 import { LoadFailure } from '../components/common/errors';
-import { useCurrentUser, useSession } from '../hooks/session-context';
+import { useCurrentUser } from '../hooks/session-context';
 import { useCourseId } from '../hooks/use-course-id';
 import { ImportFromGlobalModal } from '../components/exercise/import-from-global-modal';
 import { useTranslation } from 'react-i18next';
@@ -112,7 +112,6 @@ export const CoursePage = observer(() => {
     const [store] = useState(() => new CourseStore());
     const navigate = useNavigate();
     const user = useCurrentUser();
-    const session = useSession();
     const courseId = useCourseId();
     const [searchParams] = useSearchParams();
     const [showImportModal, setShowImportModal] = useState(false);
@@ -124,11 +123,6 @@ export const CoursePage = observer(() => {
     useEffect(() => {
         if (courseId != null) store.loadCourse(courseId);
     }, [courseId, store]);
-
-    const onLangClicked = () => {
-        const newLang = user?.language === 'RU' ? 'EN' : 'RU';
-        session.changeLanguage(newLang);
-    };
 
     if (!user) return <Loader />;
     if (courseId == null) return <div>{t('course_page_courseIdRequired')}</div>;
@@ -145,17 +139,7 @@ export const CoursePage = observer(() => {
     const reload = () => store.loadCourse(courseId);
 
     return (
-        <div className="container-fluid">
-            <div className="pt-1 pb-3">
-                <Header text={t('course_page_title', { id: courseId })}
-                        languageHint={t('language_header')}
-                        language={user?.language ?? "EN"}
-                        onLanguageClicked={onLangClicked}
-                        userHint={t('signedin_as_header')}
-                        user={user.displayName}
-                        userHref={null}
-                        logoutLabel={user?.permissions.canLogout ? t('logout_header') : null} />
-            </div>
+        <PageLayout title={t('course_page_title', { id: courseId })}>
             {isDeepLink && !inIframe && (
                 <div className="alert alert-info">{t('deeplink_blockHint')}</div>
             )}
@@ -196,6 +180,6 @@ export const CoursePage = observer(() => {
                     onClose={() => setShowImportModal(false)}
                     onImported={reload} />
             )}
-        </div>
+        </PageLayout>
     );
 });

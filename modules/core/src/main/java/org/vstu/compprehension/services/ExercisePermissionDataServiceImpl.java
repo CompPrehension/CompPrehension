@@ -55,10 +55,10 @@ class ExercisePermissionDataServiceImpl implements ExercisePermissionDataService
     }
 
     public UserPermissionsData ofUser(long userId) {
-        boolean canLogout = ltiContextProvider.getCurrentLtiContext().isEmpty();
+        boolean isLtiMode = ltiContextProvider.getCurrentLtiContext().isPresent();
         return new UserPermissionsData(
                 authService.getPermissions(userId, authScopes.global()).contains(SystemPermission.VIEW_EXERCISE),
-                canLogout
+                isLtiMode
         );
     }
 }

@@ -31,6 +31,8 @@ const resources = {
             exercise_supquestion_next_question: "Next question",
 
             exercisesettings_title: "Exercise settings",
+            exercisesettings_createNew: "Create new exercise",
+            exercisesettings_noExerciseSelected: "No exercise selected",
             exercisesettings_name: "Name",
             exercisesettings_domain: "Domain",
             exercisesettings_strategy: "Strategy",
@@ -60,7 +62,8 @@ const resources = {
             exercisesettings_save: "Save",
             exercisesettings_saveNopen: "Save & Open",
             exercisesettings_open: "Open",
-            exercisesettings_genDebugAtt: "Generate debug attempt",            
+            exercisesettings_genDebugAtt: "Generate debug attempt",
+            exercisesettings_openGlobalPool: "Open global exercise pool",
             exercisesettings_optDenied: "Denied",
             exercisesettings_optAllowed: "Allowed",
             exercisesettings_optTarget: "Target",
@@ -127,7 +130,6 @@ const resources = {
             deleteModal_confirm: "Delete",
 
             courses_page_title: "Courses",
-            courses_page_globalPoolBtn: "Global exercise pool",
             courses_page_empty: "No courses available",
 
             course_page_title: "Course #{{id}}",
@@ -202,6 +204,8 @@ const resources = {
             exercise_supquestion_next_question: "Следующий вопрос",
 
             exercisesettings_title: "Настройка упражнений",
+            exercisesettings_createNew: "Создать новое упражнение",
+            exercisesettings_noExerciseSelected: "Не выбрано упражнение",
             exercisesettings_name: "Название",
             exercisesettings_domain: "Домен",
             exercisesettings_strategy: "Стратегия",
@@ -232,6 +236,7 @@ const resources = {
             exercisesettings_saveNopen: "Сохранить & Открыть",
             exercisesettings_open: "Открыть",
             exercisesettings_genDebugAtt: "Создать отладочную попытку",
+            exercisesettings_openGlobalPool: "Открыть глобальный пул упражнений",
             exercisesettings_optDenied: "Запрет",
             exercisesettings_optAllowed: "Разреш.",
             exercisesettings_optTarget: "Цель",
@@ -299,7 +304,6 @@ const resources = {
             deleteModal_confirm: "Удалить",
 
             courses_page_title: "Курсы",
-            courses_page_globalPoolBtn: "Глобальный пул упражнений",
             courses_page_empty: "Нет доступных курсов",
 
             course_page_title: "Курс #{{id}}",
@@ -374,6 +378,8 @@ const resources = {
             exercise_supquestion_next_question: "Następne pytanie",
 
             exercisesettings_title: "Exercise settings",
+            exercisesettings_createNew: "Create new exercise",
+            exercisesettings_noExerciseSelected: "No exercise selected",
             exercisesettings_name: "Name",
             exercisesettings_domain: "Domain",
             exercisesettings_strategy: "Strategy",
@@ -401,6 +407,7 @@ const resources = {
             exercisesettings_saveNopen: "Save & Open",
             exercisesettings_open: "Open",
             exercisesettings_genDebugAtt: "Generate debug attempt",
+            exercisesettings_openGlobalPool: "Open global exercise pool",
             exercisesettings_optDenied: "Denied",
             exercisesettings_optAllowed: "Allowed",
             exercisesettings_optTarget: "Target",
@@ -427,7 +434,6 @@ const resources = {
             deleteModal_confirm: "Usuń",
 
             courses_page_title: "Kursy",
-            courses_page_globalPoolBtn: "Globalna pula ćwiczeń",
             courses_page_empty: "Brak dostępnych kursów",
 
             course_page_title: "Kurs #{{id}}",

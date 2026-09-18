@@ -3,45 +3,29 @@ import { observer } from 'mobx-react';
 import { Button } from 'react-bootstrap';
 import { useNavigate } from 'react-router';
 import { CoursesStore } from '../stores/courses-store';
-import { Header } from '../components/common/header';
+import { PageLayout } from '../components/common/page-layout';
 import { Loader } from '../components/common/loader';
 import { LoadFailure } from '../components/common/errors';
-import { useCurrentUser, useSession } from '../hooks/session-context';
+import { useCurrentUser } from '../hooks/session-context';
 import { useTranslation } from 'react-i18next';
 
 export const CoursesPage = observer(() => {
     const [store] = useState(() => new CoursesStore());
     const navigate = useNavigate();
     const user = useCurrentUser();
-    const session = useSession();
     const { t } = useTranslation();
 
     useEffect(() => { store.loadMyCourses(); }, [store]);
 
-    const onLangClicked = () => {
-        const newLang = user?.language === 'RU' ? 'EN' : 'RU';
-        session.changeLanguage(newLang);
-    };
-
     if (!user || store.loadStatus === 'LOADING') return <Loader />;
 
     return (
-        <div className="container-fluid">
-            <div className="pt-1 pb-3">
-                <Header text={t('courses_page_title')}
-                        languageHint={t('language_header')}
-                        language={user.language ?? 'EN'}
-                        onLanguageClicked={onLangClicked}
-                        userHint={t('signedin_as_header')}
-                        user={user.displayName}
-                        userHref={null}
-                        logoutLabel={user?.permissions.canLogout ? t('logout_header') : null} />
-            </div>
+        <PageLayout>
             {user.permissions.canViewGlobalPool && (
                 <div className="mb-3">
                     <Button variant="outline-primary"
                             onClick={() => navigate('/pages/global-pool')}>
-                        {t('courses_page_globalPoolBtn')}
+                        {t('globalPool_page_title')}
                     </Button>
                 </div>
             )}
@@ -67,6 +51,6 @@ export const CoursesPage = observer(() => {
                     ))}
                 </div>
             )}
-        </div>
+        </PageLayout>
     );
 });

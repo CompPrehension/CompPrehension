@@ -3,11 +3,11 @@ import { Language, TLanguage } from './language'
 
 export type UserPermissions = {
     canViewGlobalPool: boolean,
-    canLogout: boolean,
+    isLtiMode: boolean,
 }
 export const TUserPermissions: io.Type<UserPermissions> = io.type({
     canViewGlobalPool: io.boolean,
-    canLogout: io.boolean,
+    isLtiMode: io.boolean,
 }, 'UserPermissions')
 
 export type UserInfo = {

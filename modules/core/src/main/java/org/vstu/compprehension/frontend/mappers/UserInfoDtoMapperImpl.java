@@ -28,6 +28,6 @@ class UserInfoDtoMapperImpl implements UserInfoDtoMapper {
     }
 
     private @NotNull UserPermissionsDto map(@NotNull UserPermissionsData source) {
-        return new UserPermissionsDto(source.canViewGlobalPool(), source.canLogout());
+        return new UserPermissionsDto(source.canViewGlobalPool(), source.isLtiMode());
     }
 }

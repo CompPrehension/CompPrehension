@@ -124,24 +124,24 @@ class UserFrontendServiceTest extends AbstractIntegrationTest {
         assertFalse(service.getCurrentUserInfo().getPermissions().canViewGlobalPool());
     }
 
-    /** Вне LTI-сессии выход из аккаунта разрешён. */
+    /** Вне LTI-сессии isLtiMode выключен. */
     @Test
-    void canLogoutIsTrueOutsideLtiSession() {
+    void isLtiModeIsFalseOutsideLtiSession() {
         // Arrange.
         TestUserService.actAs(TestData.Users.GLOBAL_STUDENT_ID);
 
         // Act & Assert.
-        assertTrue(service.getCurrentUserInfo().getPermissions().canLogout());
+        assertFalse(service.getCurrentUserInfo().getPermissions().isLtiMode());
     }
 
-    /** Пользователь, запущенный из LTI, не может выйти из аккаунта. */
+    /** Пользователь, запущенный из LTI, помечен isLtiMode. */
     @Test
-    void canLogoutIsFalseInsideLtiSession() {
+    void isLtiModeIsTrueInsideLtiSession() {
         // Arrange.
         TestLtiContextProvider.launchedFromCourse(TestData.Courses.MAIN_EXTERNAL_ID);
         TestUserService.actAs(TestData.Users.GLOBAL_STUDENT_ID);
 
         // Act & Assert.
-        assertFalse(service.getCurrentUserInfo().getPermissions().canLogout());
+        assertTrue(service.getCurrentUserInfo().getPermissions().isLtiMode());
     }
 }

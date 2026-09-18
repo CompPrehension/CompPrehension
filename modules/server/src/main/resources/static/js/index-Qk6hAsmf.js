@@ -65,6 +65,8 @@ instance.use(initReactI18next).init({
 			exercise_supquestion_send_answer: "Send answer",
 			exercise_supquestion_next_question: "Next question",
 			exercisesettings_title: "Exercise settings",
+			exercisesettings_createNew: "Create new exercise",
+			exercisesettings_noExerciseSelected: "No exercise selected",
 			exercisesettings_name: "Name",
 			exercisesettings_domain: "Domain",
 			exercisesettings_strategy: "Strategy",
@@ -95,6 +97,7 @@ instance.use(initReactI18next).init({
 			exercisesettings_saveNopen: "Save & Open",
 			exercisesettings_open: "Open",
 			exercisesettings_genDebugAtt: "Generate debug attempt",
+			exercisesettings_openGlobalPool: "Open global exercise pool",
 			exercisesettings_optDenied: "Denied",
 			exercisesettings_optAllowed: "Allowed",
 			exercisesettings_optTarget: "Target",
@@ -144,7 +147,6 @@ instance.use(initReactI18next).init({
 			deleteModal_cancel: "Cancel",
 			deleteModal_confirm: "Delete",
 			courses_page_title: "Courses",
-			courses_page_globalPoolBtn: "Global exercise pool",
 			courses_page_empty: "No courses available",
 			course_page_title: "Course #{{id}}",
 			course_page_courseIdRequired: "courseId is required",
@@ -208,6 +210,8 @@ instance.use(initReactI18next).init({
 			exercise_supquestion_send_answer: "Отправить ответ",
 			exercise_supquestion_next_question: "Следующий вопрос",
 			exercisesettings_title: "Настройка упражнений",
+			exercisesettings_createNew: "Создать новое упражнение",
+			exercisesettings_noExerciseSelected: "Не выбрано упражнение",
 			exercisesettings_name: "Название",
 			exercisesettings_domain: "Домен",
 			exercisesettings_strategy: "Стратегия",
@@ -238,6 +242,7 @@ instance.use(initReactI18next).init({
 			exercisesettings_saveNopen: "Сохранить & Открыть",
 			exercisesettings_open: "Открыть",
 			exercisesettings_genDebugAtt: "Создать отладочную попытку",
+			exercisesettings_openGlobalPool: "Открыть глобальный пул упражнений",
 			exercisesettings_optDenied: "Запрет",
 			exercisesettings_optAllowed: "Разреш.",
 			exercisesettings_optTarget: "Цель",
@@ -287,7 +292,6 @@ instance.use(initReactI18next).init({
 			deleteModal_cancel: "Отмена",
 			deleteModal_confirm: "Удалить",
 			courses_page_title: "Курсы",
-			courses_page_globalPoolBtn: "Глобальный пул упражнений",
 			courses_page_empty: "Нет доступных курсов",
 			course_page_title: "Курс #{{id}}",
 			course_page_courseIdRequired: "Требуется courseId",
@@ -351,6 +355,8 @@ instance.use(initReactI18next).init({
 			exercise_supquestion_send_answer: "Wyślij odpowiedź",
 			exercise_supquestion_next_question: "Następne pytanie",
 			exercisesettings_title: "Exercise settings",
+			exercisesettings_createNew: "Create new exercise",
+			exercisesettings_noExerciseSelected: "No exercise selected",
 			exercisesettings_name: "Name",
 			exercisesettings_domain: "Domain",
 			exercisesettings_strategy: "Strategy",
@@ -378,6 +384,7 @@ instance.use(initReactI18next).init({
 			exercisesettings_saveNopen: "Save & Open",
 			exercisesettings_open: "Open",
 			exercisesettings_genDebugAtt: "Generate debug attempt",
+			exercisesettings_openGlobalPool: "Open global exercise pool",
 			exercisesettings_optDenied: "Denied",
 			exercisesettings_optAllowed: "Allowed",
 			exercisesettings_optTarget: "Target",
@@ -400,7 +407,6 @@ instance.use(initReactI18next).init({
 			deleteModal_cancel: "Anuluj",
 			deleteModal_confirm: "Usuń",
 			courses_page_title: "Kursy",
-			courses_page_globalPoolBtn: "Globalna pula ćwiczeń",
 			courses_page_empty: "Brak dostępnych kursów",
 			course_page_title: "Kurs #{{id}}",
 			course_page_courseIdRequired: "Wymagany jest courseId",
@@ -1397,7 +1403,7 @@ var TLanguage = keyof({
 //#region src/main/js/types/user-info.ts
 var TUserPermissions = type({
 	canViewGlobalPool: boolean,
-	canLogout: boolean
+	isLtiMode: boolean
 }, "UserPermissions");
 var TUserInfo = type({
 	id: number,
@@ -2968,10 +2974,30 @@ var Pagination = observer(() => {
 //#endregion
 //#region src/main/js/components/common/header.tsx
 var Header = observer((props) => {
-	const { text, pagination, languageHint, language, onLanguageClicked, userHint, user, onUserClicked, userHref, logoutLabel } = props;
+	const { crumbs, pagination, languageHint, language, onLanguageClicked, userHint, user, onUserClicked, userHref, logoutLabel } = props;
 	return /* @__PURE__ */ (0, import_jsx_runtime.jsxs)(Navbar_default, {
-		className: "px-0",
-		children: [text && /* @__PURE__ */ (0, import_jsx_runtime.jsx)("h5", { children: text }) || null, /* @__PURE__ */ (0, import_jsx_runtime.jsxs)(Navbar_default.Collapse, {
+		className: "px-0 flex-wrap comp-ph-header",
+		children: [crumbs && crumbs.length > 0 && /* @__PURE__ */ (0, import_jsx_runtime.jsx)("div", {
+			className: "comp-ph-header-crumbs",
+			children: crumbs.map((crumb, i) => {
+				const isCurrent = i === crumbs.length - 1;
+				return /* @__PURE__ */ (0, import_jsx_runtime.jsxs)(import_react.Fragment, { children: [i > 0 && /* @__PURE__ */ (0, import_jsx_runtime.jsx)("span", {
+					className: "comp-ph-header-crumb-sep",
+					children: "›"
+				}), isCurrent ? /* @__PURE__ */ (0, import_jsx_runtime.jsx)("h5", {
+					className: "mb-0 comp-ph-header-title",
+					children: crumb.label
+				}) : /* @__PURE__ */ (0, import_jsx_runtime.jsx)("a", {
+					href: "#",
+					className: "comp-ph-header-brand",
+					onClick: (e) => {
+						e.preventDefault();
+						crumb.onClick?.();
+					},
+					children: crumb.label
+				})] }, i);
+			})
+		}), /* @__PURE__ */ (0, import_jsx_runtime.jsxs)(Navbar_default.Collapse, {
 			className: "justify-content-end",
 			children: [
 				pagination,
@@ -3094,15 +3120,16 @@ var ExerciseHeader = observer(() => {
 	const { currentAttempt, exercise, currentQuestion } = exerciseStore;
 	if (!currentAttempt || !exercise || !user) return null;
 	const currentQuestionIdx = currentAttempt.questionIds.findIndex((id) => currentQuestion.question?.questionId === id);
+	const questionTitle = currentQuestionIdx !== -1 ? t("question_header", { questionNumber: currentQuestionIdx + 1 }) : "";
 	return /* @__PURE__ */ (0, import_jsx_runtime.jsx)(Header, {
-		text: currentQuestionIdx !== -1 ? t("question_header", { questionNumber: currentQuestionIdx + 1 }) : "",
+		crumbs: questionTitle ? [{ label: questionTitle }] : [],
 		pagination: /* @__PURE__ */ (0, import_jsx_runtime.jsx)(Pagination, {}),
 		languageHint: t("language_header"),
 		language: user.language,
 		userHint: t("signedin_as_header"),
 		user: user.displayName,
 		onLanguageClicked: null,
-		logoutLabel: user?.permissions.canLogout ? t("logout_header") : null
+		logoutLabel: !user?.permissions.isLtiMode ? t("logout_header") : null
 	});
 });
 //#endregion
@@ -4210,6 +4237,55 @@ var ExerciseSettingsStore = class {
 	}
 };
 //#endregion
+//#region src/main/js/components/common/site-header.tsx
+/**
+* Общий хедер сайтовых страниц.
+*/
+var SiteHeader = observer(({ title, parent }) => {
+	const user = useCurrentUser();
+	const session = useSession();
+	const navigate = useNavigate();
+	const { t } = useTranslation();
+	if (!user) return null;
+	const { isLtiMode } = user.permissions;
+	const onLanguageClicked = () => {
+		session.changeLanguage(user.language === "RU" ? "EN" : "RU");
+	};
+	const crumbs = [];
+	if (!isLtiMode) crumbs.push({
+		label: t("courses_page_title"),
+		onClick: () => navigate("/pages/courses")
+	});
+	if (parent) crumbs.push({
+		label: parent.label,
+		onClick: () => navigate(parent.to)
+	});
+	if (title) crumbs.push({ label: title });
+	return /* @__PURE__ */ (0, import_jsx_runtime.jsx)(Header, {
+		crumbs,
+		languageHint: t("language_header"),
+		language: user.language,
+		onLanguageClicked,
+		userHint: t("signedin_as_header"),
+		user: user.displayName,
+		userHref: null,
+		logoutLabel: !isLtiMode ? t("logout_header") : null
+	});
+});
+//#endregion
+//#region src/main/js/components/common/page-layout.tsx
+/** Общая обвязка сайтовых страниц. */
+var PageLayout = ({ title, parent, children }) => /* @__PURE__ */ (0, import_jsx_runtime.jsxs)("div", {
+	className: "container-fluid",
+	children: [/* @__PURE__ */ (0, import_jsx_runtime.jsx)("div", {
+		className: "pt-1 pb-3",
+		children: /* @__PURE__ */ (0, import_jsx_runtime.jsx)(SiteHeader, {
+			title,
+			parent
+		})
+	}), children]
+});
+//#endregion
 //#region src/main/js/hooks/use-course-id.ts
 function useCourseId() {
 	const [params] = useSearchParams();
@@ -4280,7 +4356,6 @@ var ExerciseSettings = observer(() => {
 	const [exerciseStore] = (0, import_react.useState)(() => new ExerciseSettingsStore());
 	const { t } = useTranslation();
 	const user = useCurrentUser();
-	const session = useSession();
 	const courseId = useCourseId();
 	const canCreate = exerciseStore.permissions.canCreateExercise;
 	(0, import_react.useEffect)(() => {
@@ -4295,45 +4370,46 @@ var ExerciseSettings = observer(() => {
 			await exerciseStore.createNewExecise();
 		})();
 	}, [exerciseStore]);
-	const onLangClicked = (0, import_react.useCallback)(() => {
-		const newLang = user?.language === "RU" ? "EN" : "RU";
-		session.changeLanguage(newLang);
-	}, [session, user]);
 	if (exerciseStore.exercisesLoadStatus === "LOADING") return /* @__PURE__ */ (0, import_jsx_runtime.jsx)(Loader, {});
 	if (!user) return /* @__PURE__ */ (0, import_jsx_runtime.jsx)(Loader, {});
-	return /* @__PURE__ */ (0, import_jsx_runtime.jsxs)("div", {
-		className: "container-fluid",
-		children: [/* @__PURE__ */ (0, import_jsx_runtime.jsx)("div", {
-			className: "pt-1 pb-3",
-			children: /* @__PURE__ */ (0, import_jsx_runtime.jsx)(Header, {
-				text: t("exercisesettings_title"),
-				languageHint: t("language_header"),
-				language: user?.language ?? "EN",
-				onLanguageClicked: onLangClicked,
-				userHint: t("signedin_as_header"),
-				user: user.displayName,
-				userHref: null,
-				logoutLabel: user?.permissions.canLogout ? t("logout_header") : null
-			})
-		}), /* @__PURE__ */ (0, import_jsx_runtime.jsxs)("div", {
+	const parent = courseId != null ? {
+		label: t("course_page_title", { id: courseId }),
+		to: `/pages/course?courseId=${courseId}`
+	} : {
+		label: t("globalPool_page_title"),
+		to: "/pages/global-pool"
+	};
+	return /* @__PURE__ */ (0, import_jsx_runtime.jsx)(PageLayout, {
+		title: t("exercisesettings_title"),
+		parent,
+		children: /* @__PURE__ */ (0, import_jsx_runtime.jsxs)("div", {
 			className: "flex-xl-nowrap row",
 			children: [/* @__PURE__ */ (0, import_jsx_runtime.jsxs)("div", {
 				className: "col-xl-3 col-md-3 col-12 d-flex flex-column",
-				children: [canCreate && /* @__PURE__ */ (0, import_jsx_runtime.jsx)(Button, {
-					variant: "primary",
-					className: "mb-3",
-					onClick: onNewExerciseClicked,
-					children: "Create new"
-				}), /* @__PURE__ */ (0, import_jsx_runtime.jsx)("div", {
-					className: "list-group",
-					children: exerciseStore.exercises?.map((e) => /* @__PURE__ */ (0, import_jsx_runtime.jsx)(Link, {
-						className: `list-group-item ${e.id === exerciseStore.currentCard?.id && "active" || ""}`,
-						to: `?exerciseId=${e.id}${courseId != null ? `&courseId=${courseId}` : ""}`,
-						onClick: () => exerciseStore.loadExercise(e.id),
-						title: e.name,
-						children: e.name.length > 22 ? `${e.name.substring(0, 22)}...` : e.name
-					}, e.id))
-				})]
+				children: [
+					canCreate && /* @__PURE__ */ (0, import_jsx_runtime.jsx)(Button, {
+						variant: "primary",
+						className: "mb-3",
+						onClick: onNewExerciseClicked,
+						children: t("exercisesettings_createNew")
+					}),
+					user.permissions.canViewGlobalPool && courseId != null && /* @__PURE__ */ (0, import_jsx_runtime.jsx)(Button, {
+						variant: "outline-secondary",
+						className: "mb-3",
+						onClick: () => window.open(`${window.location.origin}/pages/global-pool`, "_blank")?.focus(),
+						children: t("exercisesettings_openGlobalPool")
+					}),
+					/* @__PURE__ */ (0, import_jsx_runtime.jsx)("div", {
+						className: "list-group",
+						children: exerciseStore.exercises?.map((e) => /* @__PURE__ */ (0, import_jsx_runtime.jsx)(Link, {
+							className: `list-group-item ${e.id === exerciseStore.currentCard?.id && "active" || ""}`,
+							to: `?exerciseId=${e.id}${courseId != null ? `&courseId=${courseId}` : ""}`,
+							onClick: () => exerciseStore.loadExercise(e.id),
+							title: e.name,
+							children: e.name.length > 22 ? `${e.name.substring(0, 22)}...` : e.name
+						}, e.id))
+					})
+				]
 			}), /* @__PURE__ */ (0, import_jsx_runtime.jsxs)("div", {
 				className: "col-xl-9 col-md-9 col-12",
 				children: [exerciseStore.storeState.tag === "ERROR" && /* @__PURE__ */ (0, import_jsx_runtime.jsx)(LoadFailure, { error: exerciseStore.storeState.error }), /* @__PURE__ */ (0, import_jsx_runtime.jsx)(ExerciseCardElement, {
@@ -4344,14 +4420,14 @@ var ExerciseSettings = observer(() => {
 					strategies: exerciseStore.strategies ?? []
 				})]
 			})]
-		})]
+		})
 	});
 });
 var ExerciseCardElement = observer((props) => {
 	const { card, domains, strategies, store } = props;
 	const { t } = useTranslation();
 	if (store.exercisesLoadStatus === "EXERCISELOADING") return /* @__PURE__ */ (0, import_jsx_runtime.jsx)(Loader, { delay: 200 });
-	if (card == null) return /* @__PURE__ */ (0, import_jsx_runtime.jsx)("div", { children: "No exercise selected" });
+	if (card == null) return /* @__PURE__ */ (0, import_jsx_runtime.jsx)("div", { children: t("exercisesettings_noExerciseSelected") });
 	const currentDomain = domains.find((z) => z.id === card.domainId);
 	const stageDomainLaws = currentDomain?.laws.filter((l) => l.targetEnabled);
 	const stageDomainConcepts = currentDomain?.concepts.filter((l) => l.targetEnabled);
@@ -5330,32 +5406,14 @@ var GlobalPool = observer(() => {
 	const [store] = (0, import_react.useState)(() => new GlobalPoolStore());
 	const navigate = useNavigate();
 	const user = useCurrentUser();
-	const session = useSession();
 	const { t } = useTranslation();
 	(0, import_react.useEffect)(() => {
 		store.loadGlobalPool();
 	}, [store]);
-	const onLangClicked = () => {
-		const newLang = user?.language === "RU" ? "EN" : "RU";
-		session.changeLanguage(newLang);
-	};
 	if (!user || store.loadStatus === "LOADING") return /* @__PURE__ */ (0, import_jsx_runtime.jsx)(Loader, {});
-	return /* @__PURE__ */ (0, import_jsx_runtime.jsxs)("div", {
-		className: "container-fluid",
+	return /* @__PURE__ */ (0, import_jsx_runtime.jsxs)(PageLayout, {
+		title: t("globalPool_page_title"),
 		children: [
-			/* @__PURE__ */ (0, import_jsx_runtime.jsx)("div", {
-				className: "pt-1 pb-3",
-				children: /* @__PURE__ */ (0, import_jsx_runtime.jsx)(Header, {
-					text: t("globalPool_page_title"),
-					languageHint: t("language_header"),
-					language: user?.language ?? "EN",
-					onLanguageClicked: onLangClicked,
-					userHint: t("signedin_as_header"),
-					user: user.displayName,
-					userHref: null,
-					logoutLabel: user?.permissions.canLogout ? t("logout_header") : null
-				})
-			}),
 			store.loadStatus === "FAILED" && store.error && /* @__PURE__ */ (0, import_jsx_runtime.jsx)(LoadFailure, {
 				error: store.error,
 				onRetry: () => store.loadGlobalPool()
@@ -5612,7 +5670,6 @@ var CoursePage = observer(() => {
 	const [store] = (0, import_react.useState)(() => new CourseStore());
 	const navigate = useNavigate();
 	const user = useCurrentUser();
-	const session = useSession();
 	const courseId = useCourseId();
 	const [searchParams] = useSearchParams();
 	const [showImportModal, setShowImportModal] = (0, import_react.useState)(false);
@@ -5622,10 +5679,6 @@ var CoursePage = observer(() => {
 	(0, import_react.useEffect)(() => {
 		if (courseId != null) store.loadCourse(courseId);
 	}, [courseId, store]);
-	const onLangClicked = () => {
-		const newLang = user?.language === "RU" ? "EN" : "RU";
-		session.changeLanguage(newLang);
-	};
 	if (!user) return /* @__PURE__ */ (0, import_jsx_runtime.jsx)(Loader, {});
 	if (courseId == null) return /* @__PURE__ */ (0, import_jsx_runtime.jsx)("div", { children: t("course_page_courseIdRequired") });
 	if (store.loadStatus === "LOADING") return /* @__PURE__ */ (0, import_jsx_runtime.jsx)(Loader, {});
@@ -5633,22 +5686,9 @@ var CoursePage = observer(() => {
 	const { canCreateExercise, canImportInherit, canImportClone } = store.permissions;
 	const canImport = canImportInherit || canImportClone;
 	const reload = () => store.loadCourse(courseId);
-	return /* @__PURE__ */ (0, import_jsx_runtime.jsxs)("div", {
-		className: "container-fluid",
+	return /* @__PURE__ */ (0, import_jsx_runtime.jsxs)(PageLayout, {
+		title: t("course_page_title", { id: courseId }),
 		children: [
-			/* @__PURE__ */ (0, import_jsx_runtime.jsx)("div", {
-				className: "pt-1 pb-3",
-				children: /* @__PURE__ */ (0, import_jsx_runtime.jsx)(Header, {
-					text: t("course_page_title", { id: courseId }),
-					languageHint: t("language_header"),
-					language: user?.language ?? "EN",
-					onLanguageClicked: onLangClicked,
-					userHint: t("signedin_as_header"),
-					user: user.displayName,
-					userHref: null,
-					logoutLabel: user?.permissions.canLogout ? t("logout_header") : null
-				})
-			}),
 			isDeepLink && !inIframe && /* @__PURE__ */ (0, import_jsx_runtime.jsx)("div", {
 				className: "alert alert-info",
 				children: t("deeplink_blockHint")
@@ -5721,69 +5761,45 @@ var CoursesPage = observer(() => {
 	const [store] = (0, import_react.useState)(() => new CoursesStore());
 	const navigate = useNavigate();
 	const user = useCurrentUser();
-	const session = useSession();
 	const { t } = useTranslation();
 	(0, import_react.useEffect)(() => {
 		store.loadMyCourses();
 	}, [store]);
-	const onLangClicked = () => {
-		const newLang = user?.language === "RU" ? "EN" : "RU";
-		session.changeLanguage(newLang);
-	};
 	if (!user || store.loadStatus === "LOADING") return /* @__PURE__ */ (0, import_jsx_runtime.jsx)(Loader, {});
-	return /* @__PURE__ */ (0, import_jsx_runtime.jsxs)("div", {
-		className: "container-fluid",
-		children: [
-			/* @__PURE__ */ (0, import_jsx_runtime.jsx)("div", {
-				className: "pt-1 pb-3",
-				children: /* @__PURE__ */ (0, import_jsx_runtime.jsx)(Header, {
-					text: t("courses_page_title"),
-					languageHint: t("language_header"),
-					language: user.language ?? "EN",
-					onLanguageClicked: onLangClicked,
-					userHint: t("signedin_as_header"),
-					user: user.displayName,
-					userHref: null,
-					logoutLabel: user?.permissions.canLogout ? t("logout_header") : null
+	return /* @__PURE__ */ (0, import_jsx_runtime.jsxs)(PageLayout, { children: [user.permissions.canViewGlobalPool && /* @__PURE__ */ (0, import_jsx_runtime.jsx)("div", {
+		className: "mb-3",
+		children: /* @__PURE__ */ (0, import_jsx_runtime.jsx)(Button, {
+			variant: "outline-primary",
+			onClick: () => navigate("/pages/global-pool"),
+			children: t("globalPool_page_title")
+		})
+	}), store.loadStatus === "FAILED" && store.error ? /* @__PURE__ */ (0, import_jsx_runtime.jsx)(LoadFailure, {
+		error: store.error,
+		onRetry: () => store.loadMyCourses()
+	}) : store.courses.length === 0 ? /* @__PURE__ */ (0, import_jsx_runtime.jsx)("div", {
+		className: "alert alert-info",
+		children: t("courses_page_empty")
+	}) : /* @__PURE__ */ (0, import_jsx_runtime.jsx)("div", {
+		className: "row row-cols-1 row-cols-md-2 row-cols-lg-3",
+		children: store.courses.map((c) => /* @__PURE__ */ (0, import_jsx_runtime.jsx)("div", {
+			className: "col mb-4",
+			children: /* @__PURE__ */ (0, import_jsx_runtime.jsx)("div", {
+				className: "card h-100",
+				role: "button",
+				onClick: () => navigate(`/pages/course?courseId=${c.id}`),
+				children: /* @__PURE__ */ (0, import_jsx_runtime.jsxs)("div", {
+					className: "card-body",
+					children: [/* @__PURE__ */ (0, import_jsx_runtime.jsx)("h5", {
+						className: "card-title",
+						children: c.name
+					}), /* @__PURE__ */ (0, import_jsx_runtime.jsx)("h6", {
+						className: "card-subtitle text-muted",
+						children: c.educationResourceUrl || `#${c.educationResourceId}`
+					})]
 				})
-			}),
-			user.permissions.canViewGlobalPool && /* @__PURE__ */ (0, import_jsx_runtime.jsx)("div", {
-				className: "mb-3",
-				children: /* @__PURE__ */ (0, import_jsx_runtime.jsx)(Button, {
-					variant: "outline-primary",
-					onClick: () => navigate("/pages/global-pool"),
-					children: t("courses_page_globalPoolBtn")
-				})
-			}),
-			store.loadStatus === "FAILED" && store.error ? /* @__PURE__ */ (0, import_jsx_runtime.jsx)(LoadFailure, {
-				error: store.error,
-				onRetry: () => store.loadMyCourses()
-			}) : store.courses.length === 0 ? /* @__PURE__ */ (0, import_jsx_runtime.jsx)("div", {
-				className: "alert alert-info",
-				children: t("courses_page_empty")
-			}) : /* @__PURE__ */ (0, import_jsx_runtime.jsx)("div", {
-				className: "row row-cols-1 row-cols-md-2 row-cols-lg-3",
-				children: store.courses.map((c) => /* @__PURE__ */ (0, import_jsx_runtime.jsx)("div", {
-					className: "col mb-4",
-					children: /* @__PURE__ */ (0, import_jsx_runtime.jsx)("div", {
-						className: "card h-100",
-						role: "button",
-						onClick: () => navigate(`/pages/course?courseId=${c.id}`),
-						children: /* @__PURE__ */ (0, import_jsx_runtime.jsxs)("div", {
-							className: "card-body",
-							children: [/* @__PURE__ */ (0, import_jsx_runtime.jsx)("h5", {
-								className: "card-title",
-								children: c.name
-							}), /* @__PURE__ */ (0, import_jsx_runtime.jsx)("h6", {
-								className: "card-subtitle text-muted",
-								children: c.educationResourceUrl || `#${c.educationResourceId}`
-							})]
-						})
-					})
-				}, c.id))
 			})
-		]
-	});
+		}, c.id))
+	})] });
 });
 //#endregion
 //#region src/main/js/components/common/error-boundary.tsx
