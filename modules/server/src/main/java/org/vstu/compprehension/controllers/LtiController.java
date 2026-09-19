@@ -30,6 +30,7 @@ import org.springframework.web.bind.annotation.RequestMapping;
 import org.springframework.web.bind.annotation.RequestMethod;
 import org.springframework.web.bind.annotation.RequestParam;
 import org.springframework.web.bind.annotation.ResponseBody;
+import org.apache.commons.lang3.StringUtils;
 import org.apache.commons.lang3.tuple.Pair;
 import org.vstu.compprehension.frontend.AuthFrontendService;
 import org.vstu.compprehension.frontend.CourseFrontendService;
@@ -38,12 +39,15 @@ import org.vstu.compprehension.frontend.UserFrontendService;
 import org.vstu.compprehension.service.lti.LtiContextInitializer;
 import org.vstu.compprehension.businesslogic.auth.AuthObjects.SystemPermission;
 import org.vstu.compprehension.common.StringHelper;
+import org.vstu.compprehension.config.EducationResourceTrustProperties;
 import org.vstu.compprehension.config.LtiRegistrationsProperties;
 import org.vstu.compprehension.businesslogic.lti.LtiContext;
+import org.vstu.compprehension.enums.EducationResourceTrustStatus;
 import org.vstu.compprehension.services.LtiContextProvider;
 import org.vstu.compprehension.utils.HttpRequestHelper;
 import org.vstu.compprehension.utils.SessionHelper;
 
+import java.net.URI;
 import java.net.URLEncoder;
 import java.nio.charset.StandardCharsets;
 import java.security.KeyFactory;
@@ -55,6 +59,7 @@ import java.text.ParseException;
 import java.util.Arrays;
 import java.util.Collection;
 import java.util.Base64;
+import java.util.Locale;
 import java.util.Map;
 import java.util.Set;
 import java.util.UUID;
@@ -68,6 +73,7 @@ public class LtiController {
     private final SecurityContextRepository securityContextRepository;
     private final SecurityContextHolderStrategy securityContextHolderStrategy;
     private final LtiRegistrationsProperties ltiRegistrations;
+    private final EducationResourceTrustProperties educationResourceTrust;
     private final CourseFrontendService courseService;
     private final EducationResourceFrontendService educationResourceFacade;
     private final LtiContextInitializer ltiContextInitializer;
@@ -221,8 +227,42 @@ public class LtiController {
     private Long resolveCourseFromContext(LtiContext ctx) {
         if (ctx.course() == null || ctx.course().courseId() == null) return null;
 
-        long eduResourceId = educationResourceFacade.getOrCreateTrustedId(ctx.lmsUrl(), ctx.lmsType());
+        long eduResourceId = getOrCreateTrustedEducationResourceId(ctx);
         return courseService.resolveOrCreateIdFromLtiContext(ctx, eduResourceId).orElse(null);
+    }
+
+    private long getOrCreateTrustedEducationResourceId(LtiContext ctx) {
+        if (ctx.lmsUrl() == null) {
+            throw new SecurityException("LTI launch has no valid issuer url");
+        }
+        var trustStatus = trustStatusOf(ctx.lmsUrl(), educationResourceTrust.getTrustedHosts());
+        var educationResource = educationResourceFacade.getOrCreate(ctx.lmsUrl(), ctx.lmsType(), trustStatus);
+        if (educationResource.trustStatus() != EducationResourceTrustStatus.TRUSTED) {
+            throw new SecurityException(String.format("EducationResource %s is not trusted", educationResource.url()));
+        }
+        return educationResource.id();
+    }
+
+    static EducationResourceTrustStatus trustStatusOf(String url, Collection<String> trustedHosts) {
+        String host;
+        try {
+            host = URI.create(url.trim()).getHost();
+        } catch (IllegalArgumentException ex) {
+            return EducationResourceTrustStatus.UNTRUSTED;
+        }
+        if (host == null) {
+            return EducationResourceTrustStatus.UNTRUSTED;
+        }
+        var normalizedHost = normalizeHost(host);
+        var trusted = trustedHosts.stream()
+                .map(LtiController::normalizeHost)
+                .filter(trustedHost -> !trustedHost.isEmpty())
+                .anyMatch(trustedHost -> normalizedHost.equals(trustedHost) || normalizedHost.endsWith("." + trustedHost));
+        return trusted ? EducationResourceTrustStatus.TRUSTED : EducationResourceTrustStatus.UNTRUSTED;
+    }
+
+    private static String normalizeHost(String host) {
+        return StringUtils.strip(host.trim().toLowerCase(Locale.ROOT), ".");
     }
 
     private void authenticateFromLti13ResourceLinkRequest(HttpServletRequest request, HttpServletResponse response) throws AuthenticationException, ParseException {
@@ -253,12 +293,13 @@ public class LtiController {
         OAuth2User user = new DefaultOidcUser(mappedAuthorities, oidcToken);
         OAuth2AuthenticationToken authentication = new OAuth2AuthenticationToken(user, mappedAuthorities, "mdl");
 
+        ltiContextInitializer.init(claims);
+        ltiProvider.getCurrentLtiContext().ifPresent(this::getOrCreateTrustedEducationResourceId);
+
         SecurityContext context = securityContextHolderStrategy.createEmptyContext();
         context.setAuthentication(authentication);
         securityContextHolderStrategy.setContext(context);
         securityContextRepository.saveContext(context, request, response);
-
-        ltiContextInitializer.init(claims);
 
         log.info("user '{}:{}' is successfully authenticated from LTI with authorities {}", oidcToken.getFullName(), user.getName(), mappedAuthorities);
     }

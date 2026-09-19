@@ -23,12 +23,8 @@ class EducationResourceServiceImpl implements EducationResourceService {
     }
 
     @Transactional
-    public long getOrCreateTrustedId(@NotNull String url, @NotNull EducationResourceType type) {
-        var resource = externalSystems.findEducationResource(url, type)
-                .orElseGet(() -> externalSystems.createEducationResourceIfAbsent(url, type));
-        if (resource.trustStatus() != EducationResourceTrustStatus.TRUSTED) {
-            throw new SecurityException(String.format("EducationResource %s is not trusted", resource.url()));
-        }
-        return resource.id();
+    public @NotNull EducationResourceData getOrCreate(@NotNull String url, @NotNull EducationResourceType type, @NotNull EducationResourceTrustStatus trustStatus) {
+        return externalSystems.findEducationResource(url, type)
+                .orElseGet(() -> externalSystems.createEducationResourceIfAbsent(url, type, trustStatus));
     }
 }

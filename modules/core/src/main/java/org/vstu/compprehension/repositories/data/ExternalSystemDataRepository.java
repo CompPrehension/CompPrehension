@@ -48,8 +48,8 @@ public class ExternalSystemDataRepository {
 
     @Transactional
     public @NotNull EducationResourceData createEducationResourceIfAbsent(
-            @NotNull String url, @NotNull EducationResourceType type) {
-        educationResourceRepository.createIfAbsent(url, type.name());
+            @NotNull String url, @NotNull EducationResourceType type, @NotNull EducationResourceTrustStatus trustStatus) {
+        educationResourceRepository.createIfAbsent(url, type.name(), trustStatus.name());
         return findEducationResource(url, type)
                 .orElseThrow(() -> new IllegalStateException(
                         "Education resource " + type + " " + url + " not found after insert"));

@@ -24,10 +24,15 @@ public class TestLtiContextProvider implements LtiContextProvider {
 
     /** Запуск из курса, заданного в data.sql. */
     public static void launchedFromCourse(String externalCourseId) {
+        launchedFromLms(TestData.EducationResources.URL, externalCourseId);
+    }
+
+    /** Запуск из курса произвольной LMS. */
+    public static void launchedFromLms(String lmsUrl, String externalCourseId) {
         CONTEXT.set(new LtiContext(
                 null,
                 new LtiCourseContext(externalCourseId, "Test course"),
-                TestData.EducationResources.URL,
+                lmsUrl,
                 "Test LMS",
                 EducationResourceType.MOODLE,
                 null));

@@ -20,8 +20,8 @@ public interface EducationResourceRepository extends JpaRepository<EducationReso
 
     @Modifying(clearAutomatically = true)
     @Query(value = """
-            INSERT IGNORE INTO education_resource (url, type)
-            VALUES (:url, :type)
+            INSERT IGNORE INTO education_resource (url, type, trust_status)
+            VALUES (:url, :type, :trustStatus)
             """, nativeQuery = true)
-    int createIfAbsent(@Param("url") String url, @Param("type") String type);
+    int createIfAbsent(@Param("url") String url, @Param("type") String type, @Param("trustStatus") String trustStatus);
 }

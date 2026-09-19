@@ -118,7 +118,8 @@ public class UserServiceImpl implements UserDataService {
         LtiContext ctx = ltiContextProvider.getCurrentLtiContext().orElse(null);
         if (ctx == null) return;
 
-        long eduResId = educationResourceService.getOrCreateTrustedId(ctx.lmsUrl(), ctx.lmsType());
+        long eduResId = educationResourceService.findIdByUrlAndType(ctx.lmsUrl(), ctx.lmsType())
+                .orElseThrow(() -> new SecurityException(String.format("EducationResource %s is not registered", ctx.lmsUrl())));
 
         // roleAssignmentService.assignGlobalRole(userId, SystemRole.STUDENT);
 
