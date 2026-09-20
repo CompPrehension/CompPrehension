@@ -2,8 +2,8 @@ package org.vstu.compprehension.businesslogic.domains.expressiondt;
 
 import org.junit.jupiter.api.Test;
 import org.vstu.compprehension.businesslogic.DomainItemFlag;
-import org.vstu.compprehension.businesslogic.domains.DomainBase;
-import org.vstu.compprehension.businesslogic.domains.DomainStructureContract;
+import org.vstu.compprehension.businesslogic.domains.DecisionTreeReasoningDomain;
+import org.vstu.compprehension.businesslogic.domains.DecisionTreeDomainStructureContract;
 import org.vstu.compprehension.enums.InteractionType;
 
 import java.util.List;
@@ -16,7 +16,7 @@ import static org.junit.jupiter.api.Assertions.assertTrue;
 import static org.vstu.compprehension.businesslogic.domains.expressiondt.ExpressionDtDomainFixture.CPP_TAG;
 import static org.vstu.compprehension.businesslogic.domains.expressiondt.ExpressionDtDomainFixture.domain;
 
-class ProgrammingLanguageExpressionDTDomainStructureTest extends DomainStructureContract {
+class ProgrammingLanguageExpressionDTDomainStructureTest extends DecisionTreeDomainStructureContract {
 
     private static final String PRECEDENCE_SKILL = "order_determined_by_precedence";
     private static final String ARITHMETICS_CONCEPT = "arithmetics";
@@ -24,7 +24,7 @@ class ProgrammingLanguageExpressionDTDomainStructureTest extends DomainStructure
     private static final String HIGHER_PRECEDENCE_LAW = "error_base_higher_precedence_left";
 
     @Override
-    protected DomainBase domain() {
+    protected DecisionTreeReasoningDomain domain() {
         return ExpressionDtDomainFixture.domain();
     }
 

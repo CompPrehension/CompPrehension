@@ -343,9 +343,7 @@ public final class Reclassify {
 
     private static ProgrammingLanguageExpressionDTDomain newDomain() {
         return new ProgrammingLanguageExpressionDTDomain(
-                new DomainData("ProgrammingLanguageExpressionDTDomain", DOMAIN_SHORTNAME, "1", new DomainOptionsData()),
                 new ProgrammingLanguageExpressionDomain(
-                        new DomainData("ProgrammingLanguageExpressionDomain", "expression", "1", new DomainOptionsData()),
                         new KeyLocalizationService(),
                         new SeededRandomProvider(),
                         null));
