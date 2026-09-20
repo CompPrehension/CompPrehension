@@ -137,6 +137,7 @@ public class ControlFlowDTDomain extends DecisionTreeReasoningDomain {
         b.add("patch_auto_exit_interruption", 0x800000L);
         b.add("patch_auto_exit_interruption_2", 0x1000000L);
         b.add("patch_auto_exit_interruption_3", 0x2000000L);
+        b.add("selected_transition_without_any_constraint", 0x4000000L);
 
         return b.build();
     }

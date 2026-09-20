@@ -301,7 +301,7 @@
                         <BranchResultNode
                                 _EN_explanation="${X} should be evaluated because it is the top-level operator whose evaluation cannot be blocked"
                                 _RU_explanation="${X} должен вычислиться, потому что он является верхним оператором выражения и не может быть блокирован"
-                                _TEMPLATING_ID="24" _skill="is_current_operator_strict_order_earlyfinish"
+                                _TEMPLATING_ID="24" _skill="is_current_operator_strict_order_while_earlyfinish"
                                 value="ERROR"/>
                     </Outcome>
                 </CycleAggregationNode>

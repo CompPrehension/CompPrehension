@@ -190,23 +190,7 @@ public abstract class DecisionTreeDomainLocalizationContract {
     }
 
     protected List<DecisionTreeElement> decisionTreeElements() {
-        var elements = new ArrayList<DecisionTreeElement>();
-        for (var model : domain().getDomainSolvingModels()) {
-            for (var tree : model.getDecisionTrees().values()) {
-                collect(tree, elements, new HashSet<>());
-            }
-        }
-        return elements;
-    }
-
-    private static void collect(DecisionTreeElement element, List<DecisionTreeElement> into, Set<DecisionTreeElement> seen) {
-        if (!seen.add(element)) {
-            return;
-        }
-        into.add(element);
-        for (var linked : element.getLinkedElements()) {
-            collect(linked, into, seen);
-        }
+        return DecisionTreeElements.of(domain());
     }
 
     protected static Map<String, Set<String>> localizedProperties(DecisionTreeElement element) {

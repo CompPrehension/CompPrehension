@@ -3,8 +3,8 @@ package org.vstu.compprehension.businesslogic.domains.controlflowdt;
 import org.junit.jupiter.api.Test;
 import org.vstu.compprehension.businesslogic.DomainItemFlag;
 import org.vstu.compprehension.businesslogic.QuestionRequest;
-import org.vstu.compprehension.businesslogic.domains.DomainBase;
-import org.vstu.compprehension.businesslogic.domains.DomainStructureContract;
+import org.vstu.compprehension.businesslogic.domains.DecisionTreeReasoningDomain;
+import org.vstu.compprehension.businesslogic.domains.DecisionTreeDomainStructureContract;
 import org.vstu.compprehension.enums.InteractionType;
 
 import java.util.List;
@@ -16,7 +16,7 @@ import static org.junit.jupiter.api.Assertions.assertNotNull;
 import static org.junit.jupiter.api.Assertions.assertTrue;
 import static org.vstu.compprehension.businesslogic.domains.controlflowdt.ControlFlowDtDomainFixture.domain;
 
-class ControlFlowDTDomainStructureTest extends DomainStructureContract {
+class ControlFlowDTDomainStructureTest extends DecisionTreeDomainStructureContract {
 
     private static final String CONDITION_SKILL = "required_condition_value_determined";
     private static final String DEBUG_SKILL = "unknown_incorrect";
@@ -26,7 +26,7 @@ class ControlFlowDTDomainStructureTest extends DomainStructureContract {
     private static final String CLASS_CONCEPT = "class";
 
     @Override
-    protected DomainBase domain() {
+    protected DecisionTreeReasoningDomain domain() {
         return ControlFlowDtDomainFixture.domain();
     }
 
