@@ -62,7 +62,7 @@ const SwitchMultiChoiceQuestionComponent = observer((props: MultiChoiceQuestionC
                                           inputAttributes={{ 'data-answer-id': a.id }}
                                           onChange={val => onSwitched(a.id, val)} />
                         </div>
-                        <div>{a.text}</div>                        
+                        <div dangerouslySetInnerHTML={{ __html: a.text }} />
                     </div>)}
             </p>
         </div>

@@ -2208,7 +2208,7 @@ var SwitchMultiChoiceQuestionComponent = observer((props) => {
 					inputAttributes: { "data-answer-id": a.id },
 					onChange: (val) => onSwitched(a.id, val)
 				})
-			}), /* @__PURE__ */ (0, import_jsx_runtime.jsx)("div", { children: a.text })]
+			}), /* @__PURE__ */ (0, import_jsx_runtime.jsx)("div", { dangerouslySetInnerHTML: { __html: a.text } })]
 		}))
 	})] });
 });
