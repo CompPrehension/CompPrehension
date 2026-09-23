@@ -4,7 +4,6 @@ import lombok.Builder;
 import lombok.Value;
 import org.jetbrains.annotations.NotNull;
 import org.jetbrains.annotations.Nullable;
-import org.vstu.compprehension.enums.QuestionStatus;
 
 import java.util.ArrayList;
 import java.util.Collections;
@@ -18,19 +17,16 @@ import java.util.stream.Collectors;
 @Value
 public class QuestionData {
     @Nullable Long id;
-    @Nullable QuestionStatus questionStatus;
     @Nullable Date createdAt;
     @NotNull QuestionContentData content;
     @NotNull List<QuestionInteractionData> interactions;
 
     @Builder(toBuilder = true)
     public QuestionData(@Nullable Long id,
-                        @Nullable QuestionStatus questionStatus,
                         @Nullable Date createdAt,
                         @NotNull QuestionContentData content,
                         @Nullable List<QuestionInteractionData> interactions) {
         this.id = id;
-        this.questionStatus = questionStatus;
         this.createdAt = createdAt;
         this.content = Objects.requireNonNull(content, "content");
         this.interactions = interactions == null || interactions.isEmpty()
@@ -39,11 +35,11 @@ public class QuestionData {
     }
 
     public static @NotNull QuestionData of(@NotNull QuestionContentData content) {
-        return new QuestionData(null, null, null, content, null);
+        return new QuestionData(null, null, content, null);
     }
 
     public @NotNull QuestionData withContent(@NotNull QuestionContentData newContent) {
-        return new QuestionData(id, questionStatus, createdAt, newContent, interactions);
+        return new QuestionData(id, createdAt, newContent, interactions);
     }
 
     public @NotNull QuestionData withInteraction(@NotNull QuestionInteractionData interaction) {
@@ -57,7 +53,7 @@ public class QuestionData {
             updated.add(withoutResponses(previous, movedResponseIds));
         }
         updated.add(interaction);
-        return new QuestionData(id, questionStatus, createdAt, content, updated);
+        return new QuestionData(id, createdAt, content, updated);
     }
 
     public @NotNull Optional<QuestionInteractionData> latestCorrectInteraction() {

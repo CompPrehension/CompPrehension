@@ -1,5 +1,6 @@
 package org.vstu.compprehension.domain;
 
+import org.vstu.compprehension.enums.AttemptStatus;
 import org.vstu.compprehension.data.exercise.ExerciseOptionsData;
 import org.vstu.compprehension.data.exercise.ExerciseStageData;
 import org.vstu.compprehension.data.question.AnswerData;
@@ -80,6 +81,7 @@ public class ExpressionDTDomainMetadataValidationTest extends AbstractIntegratio
         attempt = new ExerciseAttemptEntity();
         attempt.setQuestions(List.of());
         attempt.setExercise(exercise);
+        attempt.setAttemptStatus(AttemptStatus.INCOMPLETE);
         attempt.setUser(userRepository.findAll().iterator().next());
         exerciseAttemptRepository.save(attempt);
     }

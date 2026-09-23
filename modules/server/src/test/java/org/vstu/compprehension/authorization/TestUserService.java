@@ -39,7 +39,7 @@ public class TestUserService implements UserDataService {
         }
         var user = userRepository.findById(userId)
                 .orElseThrow(() -> new NoSuchElementException("Нет пользователя с id " + userId));
-        return new UserData(user.getId(), user.getFirstName(), user.getLastName(),
+        return new UserData(user.getId(), user.getFirstName(),
                 user.getEmail(), user.getPreferred_language());
     }
 

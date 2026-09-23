@@ -22,7 +22,6 @@ class ViolationEntityMapper implements Mapper<ViolationData, ViolationEntity> {
         var entity = new ViolationEntity();
         entity.setId(source.getId());
         entity.setLawName(source.getLawName());
-        entity.setDetailedLawName(source.getDetailedLawName());
         entity.setViolationFacts(Utils.copy(source.getViolationFacts()));
         entity.setExplanationTemplateInfo(toEntities(source.getExplanationTemplateInfo(), entity));
         return entity;

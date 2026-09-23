@@ -16,7 +16,6 @@ public class QuestionMetadataData {
     private String name;
     private String domainShortname;
     private String templateId;
-    private String qDataGraph;
     private Long tagBits;
     private Long conceptBits;
     private Long lawBits;
@@ -28,8 +27,6 @@ public class QuestionMetadataData {
     private Integer solutionSteps;
     private Integer distinctErrorsCount;
     private Integer version;
-    @Builder.Default
-    private String structureHash = "";
     @Builder.Default
     private String origin = "";
     @Builder.Default

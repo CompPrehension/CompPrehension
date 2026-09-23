@@ -687,7 +687,6 @@ public class MeaningTreeOrderQuestionBuilder {
                 .version(TARGET_VERSION)
                 .treeHashCode(input.hash)
                 .language(language.toString())
-                .structureHash(metadata != null ? metadata.getStructureHash() : "")
                 .origin(questionOrigin)
                 .originLicense(originLicense)
                 .build();

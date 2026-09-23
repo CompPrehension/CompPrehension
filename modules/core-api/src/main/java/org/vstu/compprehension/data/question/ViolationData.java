@@ -16,7 +16,6 @@ import java.util.List;
 public class ViolationData {
     private Long id;
     private String lawName;
-    private String detailedLawName;
     private InteractionType interactionType;
     @Builder.Default
     private List<BackendFactData> violationFacts = new ArrayList<>();

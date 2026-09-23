@@ -7,17 +7,14 @@ import org.vstu.compprehension.data.user.UserData;
 import org.vstu.compprehension.frontend.dto.UserInfoDto;
 import org.vstu.compprehension.frontend.dto.UserPermissionsDto;
 
-import java.util.stream.Collectors;
-import java.util.stream.Stream;
+import java.util.Objects;
 
 @Component
 class UserInfoDtoMapperImpl implements UserInfoDtoMapper {
 
     @Override
     public @NotNull UserInfoDto map(@NotNull UserData user, @NotNull UserPermissionsData permissions) {
-        String displayName = Stream.of(user.firstName(), user.lastName())
-                .filter(part -> part != null && !part.isEmpty())
-                .collect(Collectors.joining(" "));
+        String displayName = Objects.requireNonNullElse(user.firstName(), "");
         return UserInfoDto.builder()
                 .id(user.id())
                 .displayName(displayName)

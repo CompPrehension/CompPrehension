@@ -6,13 +6,12 @@ import lombok.NoArgsConstructor;
 import lombok.ToString;
 import org.vstu.compprehension.enums.Language;
 
-import java.util.Date;
 import java.util.List;
 
 @Entity
 @Data
 @NoArgsConstructor
-@Table(name = "User", indexes = {
+@Table(name = "user", indexes = {
     @Index(columnList = "external_id", name = "external_id_hidx"),
 })
 public class UserEntity {
@@ -20,23 +19,11 @@ public class UserEntity {
     @GeneratedValue(strategy = GenerationType.IDENTITY)
     private Long id;
 
-    @Column(name = "firstName")
+    @Column(name = "first_name")
     private String firstName;
 
-    @Column(name = "lastName")
-    private String lastName;
-
-    @Column(name = "password")
-    private String password;
-
-    @Column(name = "email")
+    @Column(name = "email", nullable = false)
     private String email;
-
-    @Column(name = "birthdate")
-    private Date birthdate;
-
-    @Column(name = "login")
-    private String login;
 
     @Column(name = "external_id")
     private String externalId;
@@ -48,7 +35,7 @@ public class UserEntity {
     @Column(name = "external_user_id")
     private String externalUserId;
 
-    @Column(name = "preferred_language")
+    @Column(name = "preferred_language", nullable = false)
     @Enumerated(EnumType.ORDINAL)
     private Language preferred_language;
 

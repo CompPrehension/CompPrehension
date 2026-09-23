@@ -10,7 +10,7 @@ import java.util.List;
 @NoArgsConstructor
 @Builder
 @Table(
-    name = "AnswerObject",
+    name = "answer_object",
     uniqueConstraints = {
         @UniqueConstraint(
             name="uk_answerId__questionId",
@@ -27,13 +27,13 @@ public class AnswerObjectEntity {
     @Column(name = "answer_id", nullable = false)
     private Integer answerId;
 
-    @Column(name = "hyperText")
+    @Column(name = "hyper_text", nullable = false)
     private String hyperText;
 
-    @Column(name = "domainInfo", length = 1000)
+    @Column(name = "domain_info", length = 1000)
     private String domainInfo;
 
-    @Column(name = "isRightCol")
+    @Column(name = "is_right_col", nullable = false)
     private boolean isRightCol;
 
     @Column(name = "concept")
@@ -48,7 +48,7 @@ public class AnswerObjectEntity {
     private List<ResponseEntity> responsesRight;
 
     @ManyToOne(cascade = CascadeType.ALL, fetch = FetchType.LAZY)
-    @JoinColumn(name = "question_id")
+    @JoinColumn(name = "question_id", nullable = false)
     private QuestionEntity question;
     
 }

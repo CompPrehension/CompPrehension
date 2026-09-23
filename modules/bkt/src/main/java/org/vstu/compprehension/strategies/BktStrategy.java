@@ -107,15 +107,9 @@ public class BktStrategy extends StrategyBase {
         ExerciseStageData exerciseStage = getStageForNextQuestion(attempt);
         QuestionRequest qr = initQuestionRequest(attempt, exerciseStage, domain);
 
-        Concept badConcept = domain.getConcept("SystemIntegrationTest");
-        if (badConcept != null) {
-            qr.getDeniedConcepts().add(badConcept);
-        }
-
         if (!questionTargetSkills.isEmpty()) {
 
             // Заменяем Target-skills на список от BKT
-            qr.setTargetSkills(new ArrayList<>(questionTargetSkills));
             val denied = new HashSet<>(qr.getDeniedSkills());
             Set<Skill> allowed = new HashSet<>();
             allowed.addAll(qr.getAllowedSkills());
@@ -123,7 +117,10 @@ public class BktStrategy extends StrategyBase {
             questionTargetSkills.forEach(allowed::remove);
             denied.forEach(allowed::remove);
 
-            qr.setAllowedSkills(List.copyOf(allowed));
+            qr = qr.toBuilder()
+                    .targetSkills(questionTargetSkills)
+                    .allowedSkills(List.copyOf(allowed))
+                    .build();
         }
 
         return adjustQuestionRequest(qr, attempt);

@@ -32,6 +32,7 @@ import org.vstu.compprehension.repositories.data.InteractionDataRepository;
 import org.vstu.compprehension.repositories.data.QuestionDataRepository;
 import org.vstu.compprehension.repositories.data.SupplementaryStepDataRepository;
 import org.vstu.compprehension.frontend.mappers.SupplementaryQuestionDtoMapper;
+import org.vstu.compprehension.mappers.Mapper;
 
 import java.util.List;
 import java.util.Objects;
@@ -48,6 +49,7 @@ class QuestionDataServiceImpl implements QuestionDataService {
     private final ExerciseAttemptDataService exerciseAttemptService;
     private final DomainFactory domainFactory;
     private final QuestionBank questionStorage;
+    private final Mapper<QuestionRequest, QuestionRequestLogData> questionRequestLogMapper;
     private final SupplementaryQuestionDtoMapper supplementaryQuestionDtoMapper;
 
 
@@ -61,7 +63,7 @@ class QuestionDataServiceImpl implements QuestionDataService {
 
         GeneratedQuestionData generated = domain.makeQuestion(qr, context.exerciseOptions(), context.userLanguage());
 
-        return saveQuestion(QuestionData.of(generated.getContent()), qr.toLogData(), exerciseAttemptId);
+        return saveQuestion(QuestionData.of(generated.getContent()), questionRequestLogMapper.map(qr), exerciseAttemptId);
     }
 
     public QuestionData generateQuestion(int questionMetadataId, Language lang) {

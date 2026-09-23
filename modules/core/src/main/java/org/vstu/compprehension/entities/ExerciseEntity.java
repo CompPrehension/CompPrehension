@@ -12,8 +12,6 @@ import org.hibernate.annotations.Type;
 import org.hibernate.annotations.UpdateTimestamp;
 import org.jetbrains.annotations.NotNull;
 import org.vstu.compprehension.common.StringHelper;
-import org.vstu.compprehension.enums.ExerciseType;
-import org.vstu.compprehension.enums.Language;
 
 import java.util.ArrayList;
 import java.util.Arrays;
@@ -24,22 +22,15 @@ import java.util.stream.Collectors;
 @Entity
 @Data
 @NoArgsConstructor
-@Table(name = "Exercise")
+@Table(name = "exercise")
 public class ExerciseEntity implements Cloneable {
     @Id
     @GeneratedValue(strategy = GenerationType.IDENTITY)
     private Long id;
 
-    //TODO: name и shortname
-    @Column(name = "name")
+    @Column(name = "name", nullable = false)
     private String name;
     
-    @Column(name = "maxRetries")
-    private Integer maxRetries;
-
-    @Column(name = "useGuidingQuestions")
-    private Boolean useGuidingQuestions;
-
     @CreationTimestamp
     @Column(name = "created_at", nullable = false, updatable = false)
     private Date createdAt;
@@ -47,9 +38,6 @@ public class ExerciseEntity implements Cloneable {
     @UpdateTimestamp
     @Column(name = "updated_at", nullable = false)
     private Date updatedAt;
-
-    @Column(name = "hidden")
-    private Boolean hidden;
 
     @Column(name = "tags", nullable = false)
     private String tags;
@@ -79,14 +67,6 @@ public class ExerciseEntity implements Cloneable {
     }
 
 
-    @Column(name = "exerciseType")
-    @Enumerated(EnumType.ORDINAL)
-    private ExerciseType exerciseType;
-
-    @Column(name = "language_id")
-    @Enumerated(EnumType.ORDINAL)
-    private Language language;
-
     @Column(name = "domain_id", nullable = false)
     private String domainId;
 
@@ -105,12 +85,7 @@ public class ExerciseEntity implements Cloneable {
             copy.setDomainId(this.domainId);
             copy.setBackendId(this.backendId);
             copy.setStrategyId(this.strategyId);
-            copy.setLanguage(this.language);
-            copy.setMaxRetries(this.maxRetries);
-            copy.setUseGuidingQuestions(this.useGuidingQuestions);
-            copy.setHidden(this.hidden);
             copy.setTags(this.tags);
-            copy.setExerciseType(this.exerciseType);
             copy.setOptions(this.options);
             copy.setStages(this.stages == null ? new ArrayList<>() : new ArrayList<>(this.stages));
             copy.setExerciseAttempts(null);

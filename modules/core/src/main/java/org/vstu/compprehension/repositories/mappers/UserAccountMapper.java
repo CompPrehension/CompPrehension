@@ -17,7 +17,6 @@ class UserAccountMapper implements Mapper<UserEntity, UserAccountData> {
         return new UserAccountData(
                 id,
                 source.getFirstName(),
-                source.getLastName(),
                 Strict.required(source.getEmail(), "email", owner),
                 Strict.required(source.getPreferred_language(), "preferred_language", owner),
                 source.getExternalId(),

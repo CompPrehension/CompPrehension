@@ -400,9 +400,9 @@ public class QuestionMetadataComplexQueriesRepositoryImpl implements QuestionMet
                                 "AND q.solution_steps BETWEEN :stepsMin AND :stepsMax " +
 
                                 "order by " +
-                                " (COALESCE(:deniedQuestionMetaIds) IS NULL OR q.name NOT IN (:deniedQuestionMetaIds)) DESC, " +
+                                " (COALESCE(:deniedQuestionMetaIds) IS NULL OR q.id NOT IN (:deniedQuestionMetaIds)) DESC, " +
                                 " (COALESCE(:deniedQuestionNames) IS NULL OR q.name NOT IN (:deniedQuestionNames)) DESC, " +
-                                " (COALESCE(:deniedQuestionTemplateIds) IS NULL OR q.name NOT IN (:deniedQuestionTemplateIds)) DESC, " +
+                                " (COALESCE(:deniedQuestionTemplateIds) IS NULL OR q.template_id NOT IN (:deniedQuestionTemplateIds)) DESC, " +
                                 " abs(q.integral_complexity - :complexity) DIV :complWindow ASC, " +
                                 " q.integral_complexity <= :complexity + :complWindow DESC, " +
                                 " bit_count(q.concept_bits & :deniedConceptBits) + bit_count(q.violation_bits & :deniedLawBits) + bit_count(q.skill_bits & :deniedSkillBits) ASC, " +

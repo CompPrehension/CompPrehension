@@ -115,7 +115,6 @@ public class SerializableQuestionTemplate {
                     .solutionSteps(this.getSolutionSteps())
                     .distinctErrorsCount(this.getDistinctErrorsCount())
                     .version(this.getVersion())
-                    .structureHash(this.getStructureHash())
                     .origin(this.getOrigin())
                     .originLicense(this.getOriginLicense())
                     .skillBits(this.getSkillBits())

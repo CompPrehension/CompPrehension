@@ -26,56 +26,47 @@ public class QuestionMetadataEntity {
     private Integer id;
 
     // @Lob
-    @Column(name = "name")
+    @Column(name = "name", nullable = false)
     private String name;
 
     @Column(name = "domain_shortname", nullable = false, length = 45)
     private String domainShortname;
 
-    @Column(name = "template_id")
+    @Column(name = "template_id", nullable = false)
     private String templateId;
 
-    @Column(name = "q_data_graph", columnDefinition = "TEXT")
-    private String qDataGraph;
-
-    @Column(name = "tag_bits")
+    @Column(name = "tag_bits", nullable = false)
     private Long tagBits;
 
-    @Column(name = "concept_bits")
+    @Column(name = "concept_bits", nullable = false)
     private Long conceptBits;
 
-    @Column(name = "law_bits")
+    @Column(name = "law_bits", nullable = false)
     private Long lawBits;
 
     @Column(name = "skill_bits", nullable = false)
     private Long skillBits;
 
-    @Column(name = "violation_bits")
+    @Column(name = "violation_bits", nullable = false)
     private Long violationBits;
 
-    @Column(name = "trace_concept_bits")
+    @Column(name = "trace_concept_bits", nullable = false)
     private Long traceConceptBits;
 
-    @Column(name = "solution_structural_complexity")
+    @Column(name = "solution_structural_complexity", nullable = false)
     private Double solutionStructuralComplexity;
 
-    @Column(name = "integral_complexity")
+    @Column(name = "integral_complexity", nullable = false)
     private Double integralComplexity;
 
-    @Column(name = "solution_steps")
+    @Column(name = "solution_steps", nullable = false)
     private Integer solutionSteps;
 
-    @Column(name = "distinct_errors_count")
+    @Column(name = "distinct_errors_count", nullable = false)
     private Integer distinctErrorsCount;
 
-    @Column(name = "_version")
+    @Column(name = "_version", nullable = false)
     private Integer version;
-
-    /** compact representation of meaningful structure; may be used to determine similar questions
-     * */
-    @Builder.Default
-    @Column(name = "structure_hash", length = 1023)
-    private String structureHash = "";
 
     /**
      * URL or name of GitHub repository from which this question was created

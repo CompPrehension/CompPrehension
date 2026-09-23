@@ -15,19 +15,16 @@ import java.util.stream.Collectors;
 @Entity
 @Getter @Setter
 @NoArgsConstructor
-@Table(name = "Interaction")
+@Table(name = "interaction")
 public class InteractionEntity {
     @Id
     @GeneratedValue(strategy = GenerationType.IDENTITY)
     private Long id;
 
-    @Column(name = "orderNumber")
+    @Column(name = "order_number", nullable = false)
     private int orderNumber;
 
-    @Column(name = "lastSupplementaryQuestion")
-    private String lastSupplementaryQuestion;
-
-    @Column(name = "interactionType")
+    @Column(name = "interaction_type", nullable = false)
     @Enumerated(EnumType.STRING)
     private InteractionType interactionType;
 
@@ -39,7 +36,7 @@ public class InteractionEntity {
     // @NotFound(IGNORE)в Hibernate несовместим с ленивой загрузкой.
     // TODO убрать @NotFound и починить висячие ссылки на feedback в данных.
     @OneToOne(cascade = CascadeType.ALL, fetch = FetchType.EAGER)
-    @JoinColumn(name = "feedback_id", referencedColumnName = "id")
+    @JoinColumn(name = "feedback_id", referencedColumnName = "id", nullable = false)
     @NotFound(action = NotFoundAction.IGNORE)
     private FeedbackEntity feedback;
 

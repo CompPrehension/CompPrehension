@@ -34,7 +34,7 @@ public class SurveyQuestionEntity {
     private Object options;
 
     @ManyToOne(fetch = FetchType.LAZY)
-    @JoinColumn(name = "survey_id")
+    @JoinColumn(name = "survey_id", nullable = false)
     @ToString.Exclude
     private SurveyEntity survey;
 }

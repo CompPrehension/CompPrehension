@@ -19,7 +19,6 @@ import org.springframework.web.context.WebApplicationContext;
 import org.vstu.compprehension.businesslogic.storage.SerializableQuestion;
 import org.vstu.compprehension.entities.AnswerObjectEntity;
 import org.vstu.compprehension.enums.AttemptStatus;
-import org.vstu.compprehension.enums.QuestionStatus;
 import org.vstu.compprehension.entities.ExerciseAttemptEntity;
 import org.vstu.compprehension.entities.QuestionEntity;
 import org.vstu.compprehension.entities.QuestionMetadataEntity;
@@ -109,7 +108,6 @@ public abstract class AbstractAuthorizationTest extends AbstractIntegrationTest 
         question.setExerciseAttempt(attempt);
         question.setDomainId(TestData.Exercises.DOMAIN_ID);
         question.setMetadata(metadata);
-        question.setQuestionStatus(QuestionStatus.VIEWED);
         question.setQuestionType(bankQuestion.getQuestionType());
         question.setQuestionText(bankQuestion.getQuestionText());
         question.setQuestionName(bankQuestion.getQuestionName());
