@@ -2,11 +2,12 @@ package org.vstu.compprehension.frontend;
 
 import org.jetbrains.annotations.NotNull;
 import org.springframework.stereotype.Component;
-import org.vstu.compprehension.businesslogic.lti.LtiContext;
 import org.vstu.compprehension.frontend.dto.ExerciseRefDto;
 import org.vstu.compprehension.frontend.dto.course.CourseDto;
+import org.vstu.compprehension.frontend.dto.course.CreateCourseDto;
 import org.vstu.compprehension.data.cource.CourseExerciseData;
 import org.vstu.compprehension.data.cource.CourseSummaryData;
+import org.vstu.compprehension.data.cource.CreateCourseData;
 import org.vstu.compprehension.mappers.Mapper;
 import org.vstu.compprehension.services.CourseDataService;
 
@@ -54,8 +55,9 @@ public class CourseFrontendServiceImpl implements CourseFrontendService {
     }
 
     @Override
-    public @NotNull Optional<Long> resolveOrCreateIdFromLtiContext(@NotNull LtiContext ctx, long educationResourceId) {
-        return courseService.resolveOrCreateIdFromLtiContext(ctx, educationResourceId);
+    public long getOrCreate(@NotNull CreateCourseDto course) {
+        return courseService.getOrCreate(new CreateCourseData(
+                course.educationResourceId(), course.externalCourseId(), course.name()));
     }
 
     @Override

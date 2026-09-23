@@ -1,9 +1,9 @@
 package org.vstu.compprehension.frontend;
 
 import org.jetbrains.annotations.NotNull;
-import org.vstu.compprehension.businesslogic.lti.LtiContext;
 import org.vstu.compprehension.frontend.dto.ExerciseRefDto;
 import org.vstu.compprehension.frontend.dto.course.CourseDto;
+import org.vstu.compprehension.frontend.dto.course.CreateCourseDto;
 
 import java.util.Collection;
 import java.util.List;
@@ -20,7 +20,7 @@ public interface CourseFrontendService {
 
     void linkExerciseWithCourseIfMissing(long exerciseId, long courseId);
 
-    @NotNull Optional<Long> resolveOrCreateIdFromLtiContext(@NotNull LtiContext ctx, long educationResourceId);
+    long getOrCreate(@NotNull CreateCourseDto course);
 
     @NotNull Optional<Long> findCourseIdByExternalIdAndResourceId(@NotNull String externalCourseId, long educationResourceId);
 

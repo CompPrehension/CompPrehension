@@ -2,8 +2,8 @@ package org.vstu.compprehension.services;
 
 import org.vstu.compprehension.data.cource.CourseSummaryData;
 import org.jetbrains.annotations.NotNull;
-import org.vstu.compprehension.businesslogic.lti.LtiContext;
 import org.vstu.compprehension.data.cource.CourseExerciseData;
+import org.vstu.compprehension.data.cource.CreateCourseData;
 import org.vstu.compprehension.frontend.dto.course.CourseDto;
 
 import java.util.Collection;
@@ -13,7 +13,7 @@ import java.util.Optional;
 public interface CourseDataService {
     @NotNull Optional<Long> findCourseIdByExternalIdAndResourceId(@NotNull String externalCourseId, long educationResourceId);
 
-    @NotNull Optional<Long> resolveOrCreateIdFromLtiContext(@NotNull LtiContext ctx, long educationResourceId);
+    long getOrCreate(@NotNull CreateCourseData course);
 
     void linkExerciseWithCourseIfMissing(long exerciseId, long courseId);
 

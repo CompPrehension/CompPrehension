@@ -15,6 +15,7 @@ import org.vstu.compprehension.authorization.TestLtiContextProvider;
 import org.vstu.compprehension.entities.external_system.EducationResourceEntity;
 import org.vstu.compprehension.enums.EducationResourceTrustStatus;
 import org.vstu.compprehension.enums.EducationResourceType;
+import org.vstu.compprehension.frontend.CourseFrontendService;
 import org.vstu.compprehension.frontend.EducationResourceFrontendService;
 import org.vstu.compprehension.infrastructure.AbstractIntegrationTest;
 import org.vstu.compprehension.infrastructure.TestData;
@@ -42,6 +43,7 @@ class LtiControllerTest extends AbstractIntegrationTest {
     @Autowired private WebApplicationContext webApplicationContext;
     @Autowired private EducationResourceRepository educationResourceRepository;
     @Autowired private EducationResourceFrontendService educationResourceService;
+    @Autowired private CourseFrontendService courseService;
 
     private MockMvc mockMvc;
 
@@ -69,6 +71,21 @@ class LtiControllerTest extends AbstractIntegrationTest {
         // Assert.
         result.andExpect(status().is3xxRedirection())
                 .andExpect(redirectedUrl("/pages/exercise-settings?courseId=" + TestData.Courses.MAIN_ID));
+    }
+
+    /** Запуск вне курса курс не создаёт. */
+    @Test
+    void launchWithoutCourseDoesNotCreateCourse() throws Exception {
+        // Arrange.
+        TestLtiContextProvider.launchedFromLms(TestData.EducationResources.URL, null);
+
+        // Act.
+        var result = launchExerciseSettings();
+
+        // Assert.
+        result.andExpect(status().is3xxRedirection())
+                .andExpect(redirectedUrl("/pages/exercise-settings?courseId=null"));
+        assertEquals(2, courseService.getUserCourses(TestData.Users.GLOBAL_ADMIN_ID).size());
     }
 
     /** LMS на поддомене доверенного хоста регистрируется доверенной. */

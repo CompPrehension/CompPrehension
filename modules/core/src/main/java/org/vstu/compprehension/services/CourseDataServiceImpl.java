@@ -7,10 +7,9 @@ import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
 import org.vstu.compprehension.frontend.dto.course.CourseDto;
 import org.vstu.compprehension.businesslogic.auth.AuthObjects.SystemPermission;
-import org.vstu.compprehension.businesslogic.lti.LtiContext;
-import org.vstu.compprehension.businesslogic.lti.LtiCourseContext;
 import org.vstu.compprehension.data.cource.CourseExerciseData;
 import org.vstu.compprehension.data.cource.CourseSummaryData;
+import org.vstu.compprehension.data.cource.CreateCourseData;
 import org.vstu.compprehension.businesslogic.auth.PermissionScopeKind;
 import org.vstu.compprehension.repositories.data.CourseDataRepository;
 import org.vstu.compprehension.repositories.data.ExerciseDataRepository;
@@ -38,19 +37,13 @@ import java.util.stream.Collectors;
     }
 
     @Transactional
-    public @NotNull Optional<Long> resolveOrCreateIdFromLtiContext(
-            @NotNull LtiContext ctx, long educationResourceId) {
-        LtiCourseContext ltiCourse = ctx.course();
-        if (ltiCourse == null || ltiCourse.courseId() == null) {
-            return Optional.empty();
-        }
-        String externalCourseId = ltiCourse.courseId();
-        String courseName = ltiCourse.courseName() != null
-                ? ltiCourse.courseName()
-                : String.format("id_%s", externalCourseId);
-        return Optional.of(courses.findIdByExternalId(externalCourseId, educationResourceId)
+    public long getOrCreate(@NotNull CreateCourseData course) {
+        String courseName = course.name() != null
+                ? course.name()
+                : String.format("id_%s", course.externalCourseId());
+        return courses.findIdByExternalId(course.externalCourseId(), course.educationResourceId())
                 .orElseGet(() -> courses.createIfAbsentAndGetId(
-                        externalCourseId, courseName, educationResourceId)));
+                        course.externalCourseId(), courseName, course.educationResourceId()));
     }
 
     @Transactional

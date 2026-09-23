@@ -36,6 +36,7 @@ import org.vstu.compprehension.frontend.AuthFrontendService;
 import org.vstu.compprehension.frontend.CourseFrontendService;
 import org.vstu.compprehension.frontend.EducationResourceFrontendService;
 import org.vstu.compprehension.frontend.UserFrontendService;
+import org.vstu.compprehension.frontend.dto.course.CreateCourseDto;
 import org.vstu.compprehension.service.lti.LtiContextInitializer;
 import org.vstu.compprehension.businesslogic.auth.AuthObjects.SystemPermission;
 import org.vstu.compprehension.common.StringHelper;
@@ -217,7 +218,7 @@ public class LtiController {
         if (courseId == null) {
             throw new IllegalArgumentException("Absent information on the contextId");
         }
-        authService.ensureAuthorized(userId, SystemPermission.MANAGE_COURSE_CONTENT, authService.course(courseId));
+        authService.ensureAuthorized(userId, SystemPermission.MANAGE_COURSE_CONTENT, authService.getCourseScope(courseId));
 
         String redirectUrl = String.format("/pages/course?courseId=%d&lti=deeplink", courseId);
         log.info("Redirect to configure-course, url:{}", redirectUrl);
@@ -228,7 +229,7 @@ public class LtiController {
         if (ctx.course() == null || ctx.course().courseId() == null) return null;
 
         long eduResourceId = getOrCreateTrustedEducationResourceId(ctx);
-        return courseService.resolveOrCreateIdFromLtiContext(ctx, eduResourceId).orElse(null);
+        return courseService.getOrCreate(new CreateCourseDto(eduResourceId, ctx.course().courseId(), ctx.course().courseName()));
     }
 
     private long getOrCreateTrustedEducationResourceId(LtiContext ctx) {

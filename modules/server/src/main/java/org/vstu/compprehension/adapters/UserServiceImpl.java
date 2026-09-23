@@ -15,6 +15,8 @@ import org.vstu.compprehension.mappers.Mapper;
 import org.vstu.compprehension.businesslogic.auth.AuthObjects.SystemRole;
 import org.vstu.compprehension.businesslogic.auth.Role;
 import org.vstu.compprehension.businesslogic.lti.LtiContext;
+import org.vstu.compprehension.businesslogic.lti.LtiCourseContext;
+import org.vstu.compprehension.data.cource.CreateCourseData;
 import org.vstu.compprehension.data.user.UserData;
 import org.vstu.compprehension.data.user.UserAccountData;
 import org.vstu.compprehension.data.user.UserAccountUpdateData;
@@ -128,8 +130,9 @@ public class UserServiceImpl implements UserDataService {
         Role eduResRole = ltiRoles.contains("ROLE_Administrator") ? SystemRole.EDUCATION_RESOURCE_ADMIN : null;
         roleAssignmentService.reconcileRoleInEducationResource(userId, eduResId, eduResRole);
 
-        Long courseId = courseService.resolveOrCreateIdFromLtiContext(ctx, eduResId).orElse(null);
-        if (courseId != null) {
+        LtiCourseContext ltiCourse = ctx.course();
+        if (ltiCourse != null && ltiCourse.courseId() != null) {
+            long courseId = courseService.getOrCreate(new CreateCourseData(eduResId, ltiCourse.courseId(), ltiCourse.courseName()));
             Role courseRole = mapLtiCourseRole(ltiRoles);
             if (courseRole != null) {
                 roleAssignmentService.reconcileCourseRoleAssignments(
