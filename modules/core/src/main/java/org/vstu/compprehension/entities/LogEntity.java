@@ -5,7 +5,7 @@ import jakarta.persistence.*;
 import java.util.Date;
 
 @Entity
-@Table(name = "Logs", indexes = {
+@Table(name = "logs", indexes = {
     @Index(name = "idx_date", columnList = "date DESC"),
     @Index(name = "idx_app", columnList = "app"),
     @Index(name = "idx_level", columnList = "level")

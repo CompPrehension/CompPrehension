@@ -11,15 +11,15 @@ import lombok.*;
 @Entity
 @Data
 @NoArgsConstructor @AllArgsConstructor @Builder
-@Table(name = "Feedback")
+@Table(name = "feedback")
 public class FeedbackEntity {
     @Id
     @GeneratedValue(strategy = GenerationType.IDENTITY)
     private Long id;
 
-    @Column(name = "grade")
+    @Column(name = "grade", nullable = false)
     private float grade;
 
-    @Column(name = "interactions_left")
+    @Column(name = "interactions_left", nullable = false)
     private int interactionsLeft;
 }

@@ -54,7 +54,7 @@ public final class Reclassify {
             SELECT qm.id, qm.name, qm.domain_shortname, qm.template_id, qm.tag_bits, qm.concept_bits, qm.law_bits,
                    qm.skill_bits, qm.violation_bits, qm.trace_concept_bits, qm.solution_structural_complexity,
                    qm.integral_complexity, qm.solution_steps, qm.distinct_errors_count, qm._version, qm.origin,
-                   qm.origin_license, qm.structure_hash, qd.data
+                   qm.origin_license, qd.data
             FROM questions_meta qm JOIN questions_data qd ON qd.id = qm.question_data_id
             WHERE qm.domain_shortname = ? AND qm._version = ? AND qm.id > ?
             ORDER BY qm.id LIMIT ?
@@ -156,7 +156,6 @@ public final class Reclassify {
         record.setVersion(row.getInt("_version"));
         record.setOrigin(row.getString("origin"));
         record.setOriginLicense(row.getString("origin_license"));
-        record.setStructureHash(row.getString("structure_hash"));
         record.setData(SerializableQuestion.deserializeFromString(row.getString("data")));
         return record;
     }

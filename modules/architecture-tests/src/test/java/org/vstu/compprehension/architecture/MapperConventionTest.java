@@ -41,6 +41,7 @@ import static org.vstu.compprehension.architecture.ArchitecturePackages.DTO;
 import static org.vstu.compprehension.architecture.ArchitecturePackages.FRONTEND_MAPPERS;
 import static org.vstu.compprehension.architecture.ArchitecturePackages.ROOT;
 import static org.vstu.compprehension.architecture.ArchitecturePackages.SERVICES;
+import static org.vstu.compprehension.architecture.ArchitecturePackages.SERVICE_MAPPERS;
 
 /**
  * Соглашения о маппингах.
@@ -81,7 +82,7 @@ public class MapperConventionTest {
     static final ArchRule mapping_interfaces_should_extend_the_marker =
             classes()
                     .that().areInterfaces()
-                    .and().resideInAnyPackage(DATA_MAPPERS, FRONTEND_MAPPERS)
+                    .and().resideInAnyPackage(DATA_MAPPERS, FRONTEND_MAPPERS, SERVICE_MAPPERS)
                     .should().beAssignableTo(Mapping.class)
                     .as("a mapper interface should extend Mapping, or the rules stop seeing it");
 
@@ -92,13 +93,13 @@ public class MapperConventionTest {
                     .that(are_mapper_implementations())
                     .should(be_named_and_placed_like_a_mapper())
                     .as("mapper implementations should be named *Mapper or *MapperImpl and reside in "
-                            + DATA_MAPPERS + " or " + FRONTEND_MAPPERS);
+                            + DATA_MAPPERS + ", " + FRONTEND_MAPPERS + " or " + SERVICE_MAPPERS);
 
     /** А в пакетах маппинга не должно быть ничего постороннего. */
     @ArchTest
     static final ArchRule mapper_packages_should_hold_only_mappings =
             classes()
-                    .that().resideInAnyPackage(DATA_MAPPERS, FRONTEND_MAPPERS)
+                    .that().resideInAnyPackage(DATA_MAPPERS, FRONTEND_MAPPERS, SERVICE_MAPPERS)
                     .and(are_not_listed_in(NON_MAPPERS_IN_MAPPER_PACKAGES))
                     .should(be_a_mapping())
                     .as("mapper packages should hold mapping interfaces and their implementations");
@@ -273,7 +274,8 @@ public class MapperConventionTest {
                             item.getName(), item.getSourceCodeLocation())));
                 }
                 String pkg = item.getPackageName();
-                if (!pkg.equals(ROOT + ".repositories.mappers") && !pkg.equals(ROOT + ".frontend.mappers")) {
+                if (!pkg.equals(ROOT + ".repositories.mappers") && !pkg.equals(ROOT + ".frontend.mappers")
+                        && !pkg.equals(ROOT + ".services.mappers")) {
                     events.add(SimpleConditionEvent.violated(item, String.format(
                             "%s is a mapper but lives in %s, in %s",
                             item.getName(), pkg, item.getSourceCodeLocation())));

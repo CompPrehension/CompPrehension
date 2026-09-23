@@ -1,7 +1,6 @@
 package org.vstu.compprehension.entities;
 
 import lombok.*;
-import org.vstu.compprehension.enums.SpecValue;
 
 import jakarta.persistence.*;
 
@@ -9,31 +8,27 @@ import jakarta.persistence.*;
 @Data
 @NoArgsConstructor @AllArgsConstructor
 @Builder
-@Table(name = "Response")
+@Table(name = "response")
 public class ResponseEntity {
     @Id
     @GeneratedValue(strategy = GenerationType.IDENTITY)
     private Long id;
 
-    @Column(name = "leftSpecValue")
-    @Enumerated(EnumType.ORDINAL)
-    private SpecValue specValue;
-
     @ManyToOne(fetch = FetchType.LAZY)
-    @JoinColumn(name = "leftObject_id")
+    @JoinColumn(name = "left_object_id", nullable = false)
     private AnswerObjectEntity leftAnswerObject;
 
     @ManyToOne(fetch = FetchType.LAZY)
-    @JoinColumn(name = "rightObject_id")
+    @JoinColumn(name = "right_object_id", nullable = false)
     private AnswerObjectEntity rightAnswerObject;
 
     @ToString.Exclude
     @ManyToOne(cascade = CascadeType.ALL, fetch = FetchType.LAZY)
-    @JoinColumn(name = "created_by_interaction_id")
+    @JoinColumn(name = "created_by_interaction_id", nullable = false)
     private InteractionEntity createdByInteraction;
 
     @ToString.Exclude
     @ManyToOne(cascade = CascadeType.ALL, fetch = FetchType.LAZY)
-    @JoinColumn(name = "interaction_id")
+    @JoinColumn(name = "interaction_id", nullable = false)
     private InteractionEntity interaction;
 }

@@ -77,10 +77,6 @@ public class StaticStrategy extends StrategyBase {
 
         QuestionRequest qr = initQuestionRequest(exerciseAttempt, exerciseStage, domain);
 
-        Concept badConcept = domain.getConcept("SystemIntegrationTest");
-        if (badConcept != null)
-            qr.getDeniedConcepts().add(badConcept);
-
 //        Random random = domain.getRandomProvider().getRandom();
 //
 //        //  * (0.8 .. 1.2)

@@ -7,7 +7,6 @@ import lombok.NoArgsConstructor;
 import org.jetbrains.annotations.NotNull;
 import org.jetbrains.annotations.Nullable;
 import org.vstu.compprehension.enums.InteractionType;
-import org.vstu.compprehension.enums.SpecValue;
 
 @Data
 @Builder
@@ -15,7 +14,6 @@ import org.vstu.compprehension.enums.SpecValue;
 @AllArgsConstructor
 public class ResponseData implements AnswerData {
     private Long id;
-    private SpecValue specValue;
     private @NotNull AnswerObjectData leftAnswerObject;
     private @NotNull AnswerObjectData rightAnswerObject;
     private @Nullable InteractionType createdByInteractionType;

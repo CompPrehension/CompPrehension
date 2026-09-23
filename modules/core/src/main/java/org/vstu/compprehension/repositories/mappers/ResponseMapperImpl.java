@@ -22,7 +22,6 @@ class ResponseMapperImpl implements ResponseMapper {
         var owner = "response " + response.getId();
         return new ResponseData(
                 response.getId(),
-                response.getSpecValue(),
                 answerObjectMapper.map(Strict.required(
                         response.getLeftAnswerObject(), "leftAnswerObject", owner)),
                 answerObjectMapper.map(Strict.required(

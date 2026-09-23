@@ -10,7 +10,6 @@ import org.vstu.compprehension.enums.Language;
 public record UserAccountData(
         long id,
         @Nullable String firstName,
-        @Nullable String lastName,
         @NotNull String email,
         @NotNull Language language,
         @Nullable String externalId,

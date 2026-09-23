@@ -297,7 +297,10 @@ public class Strategy extends StrategyBase {
                 ArrayList<LawNode>nextNodes = getNextNodes(tree, correctLaws);
                 //Все законы усвоены
                 if(nextNodes.size() == 0){
-                    return new QuestionRequest();
+                    return QuestionRequest.builder()
+                            .domainShortname(domain.getDomainId())
+                            .exerciseAttemptId(exerciseAttempt.id())
+                            .build();
                 }
 
                 RandomGenerator random = randomProvider.getRandom();
@@ -351,15 +354,8 @@ public class Strategy extends StrategyBase {
 
     @NotNull
     private QuestionRequest getQuestionRequest(@NotNull ExerciseAttemptWithQuestionsData exerciseAttempt, @Nullable LawNode nextNode) {
-        QuestionRequest qr = new QuestionRequest();
-        qr.setExerciseAttemptId(exerciseAttempt.id());
         AttemptExerciseData exercise = exerciseAttempt.exercise();
         Domain domain = domainFactory.getDomain(exercise.domainId());
-
-        qr.setComplexity(1);
-        qr.setSolvingDuration(30);
-//        qr.setDeniedConcepts(new ArrayList<>());
-        qr.setAllowedConcepts(new ArrayList<>());
 
         List<Law> laws = new ArrayList<>(domain.getNegativeLaws()); //domainEntity.getLaws();
         List<Law> targetLaws = new ArrayList<>();
@@ -369,7 +365,6 @@ public class Strategy extends StrategyBase {
                 targetLaws.add(l);
             }
         }
-        qr.setTargetLaws(targetLaws);
 
         ArrayList<Concept> concepts = new ArrayList<>(domain.getConcepts());
         ArrayList<Concept> targetConcepts = new ArrayList<>();
@@ -388,8 +383,15 @@ public class Strategy extends StrategyBase {
                 deniedConcepts.add(c);
             }
         }
-        qr.setTargetConcepts(targetConcepts);
-        qr.setDeniedConcepts(deniedConcepts);
+        QuestionRequest qr = QuestionRequest.builder()
+                .exerciseAttemptId(exerciseAttempt.id())
+                .domainShortname(domain.getDomainId())
+                .complexity(1)
+                .solvingDuration(30)
+                .targetLaws(targetLaws)
+                .targetConcepts(targetConcepts)
+                .deniedConcepts(deniedConcepts)
+                .build();
 
         log.info("Желаемый вопрос:");
         log.info("\t{}", nextNode != null ? nextNode.nodeName : "");

@@ -20,7 +20,6 @@ class ViolationMapperImpl implements ViolationMapper {
         var data = new ViolationData();
         data.setId(violation.getId());
         data.setLawName(violation.getLawName());
-        data.setDetailedLawName(violation.getDetailedLawName());
         data.setInteractionType(owner.getInteractionType());
         data.setViolationFacts(Utils.copy(violation.getViolationFacts()));
         data.setExplanationTemplateInfo(violation.getExplanationTemplateInfo().stream()

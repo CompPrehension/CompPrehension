@@ -17,7 +17,7 @@ import java.util.List;
 @Entity
 @Getter @Setter
 @NoArgsConstructor
-@Table(name = "Violation")
+@Table(name = "violation")
 public class ViolationEntity {
     @Id
     @GeneratedValue(strategy = GenerationType.IDENTITY)
@@ -28,15 +28,12 @@ public class ViolationEntity {
     @JoinColumn(name = "interaction_id", referencedColumnName = "id", nullable = false)
     private InteractionEntity interaction;
 
-    @OneToMany(mappedBy = "violation", fetch = FetchType.EAGER)
+    @OneToMany(mappedBy = "violation", fetch = FetchType.EAGER, cascade = CascadeType.ALL)
     @Fetch(value = FetchMode.SUBSELECT)
     private List<ExplanationTemplateInfoEntity> explanationTemplateInfo;
 
     @Column(name = "law_name", nullable = false)
     private String lawName;
-
-    @Column(name = "detailed_law_name")
-    private String detailedLawName;
 
     @Immutable
     @Type(JsonType.class)

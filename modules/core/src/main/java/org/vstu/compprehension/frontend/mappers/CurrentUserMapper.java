@@ -14,7 +14,6 @@ class CurrentUserMapper implements Mapper<UserAccountData, UserData> {
         return new UserData(
                 source.id(),
                 source.firstName(),
-                source.lastName(),
                 source.email(),
                 source.language());
     }

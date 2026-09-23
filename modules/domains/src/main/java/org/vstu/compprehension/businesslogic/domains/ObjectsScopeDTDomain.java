@@ -243,7 +243,7 @@ public class ObjectsScopeDTDomain extends DecisionTreeReasoningDomain {
             // search again if nothing found with "TO_COMPLEX"
             SearchDirections lawsSearchDir = questionRequest.getLawsSearchDirection();
             if (foundQuestions.isEmpty() && lawsSearchDir == SearchDirections.TO_COMPLEX) {
-                questionRequest.setLawsSearchDirection(SearchDirections.TO_SIMPLE);
+                questionRequest = questionRequest.toBuilder().lawsSearchDirection(SearchDirections.TO_SIMPLE).build();
                 foundQuestions = qMetaStorage.searchQuestions(questionRequest, 1, generatorThreshold, generatorAdditionalQuestionsToGenerate).getQuestions();
             }
         } catch (Exception e) {

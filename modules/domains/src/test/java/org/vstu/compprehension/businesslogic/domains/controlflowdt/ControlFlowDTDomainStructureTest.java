@@ -109,7 +109,7 @@ class ControlFlowDTDomainStructureTest extends DecisionTreeDomainStructureContra
     @Test
     void questionRequestIsLimitedBySteps() {
         // Arrange.
-        var request = QuestionRequest.builder().stepsMin(0).stepsMax(100).build();
+        var request = QuestionRequest.builder().domainShortname(domain().getDomainId()).stepsMin(0).stepsMax(100).build();
 
         // Act.
         var valid = domain().ensureQuestionRequestValid(request);

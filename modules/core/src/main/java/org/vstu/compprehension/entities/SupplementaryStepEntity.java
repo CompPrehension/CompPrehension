@@ -12,7 +12,7 @@ import org.vstu.compprehension.data.question.SupplementarySituationData;
 
 @Entity @Getter @Setter
 @NoArgsConstructor
-@Table(name = "SupplementaryStep")
+@Table(name = "supplementary_step")
 public class SupplementaryStepEntity {    
     @Id
     @GeneratedValue(strategy = GenerationType.IDENTITY)

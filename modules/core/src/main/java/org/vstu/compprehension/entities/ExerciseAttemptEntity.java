@@ -19,11 +19,11 @@ import java.util.List;
     @Index(name = "idx_exercise_attempt_course", columnList = "course_id")
 })
 public class ExerciseAttemptEntity {
-    //TODO: Нужен ли здесь язык студента
     @Id
     @GeneratedValue(strategy = GenerationType.IDENTITY)
     private Long id;
 
+    @Column(name = "attempt_status", nullable = false)
     @Enumerated(EnumType.ORDINAL)
     private AttemptStatus attemptStatus;
 

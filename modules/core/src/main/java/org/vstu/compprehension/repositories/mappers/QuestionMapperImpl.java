@@ -57,7 +57,6 @@ class QuestionMapperImpl implements QuestionMapper {
 
         return QuestionData.builder()
                 .id(question.getId())
-                .questionStatus(question.getQuestionStatus())
                 .createdAt(question.getCreatedAt())
                 .content(content)
                 .interactions(interactionsData)

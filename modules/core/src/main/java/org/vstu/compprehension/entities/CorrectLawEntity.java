@@ -8,7 +8,7 @@ import lombok.Setter;
 @Entity
 @Getter @Setter
 @NoArgsConstructor
-@Table(name = "CorrectLaw")
+@Table(name = "correct_law")
 public class CorrectLawEntity {
     @Id
     @GeneratedValue(strategy = GenerationType.IDENTITY)

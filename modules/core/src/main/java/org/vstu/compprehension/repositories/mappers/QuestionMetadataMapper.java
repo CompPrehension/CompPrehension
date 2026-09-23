@@ -23,7 +23,6 @@ class QuestionMetadataMapper implements Mapper<QuestionMetadataEntity, QuestionM
         destination.setName(source.getName());
         destination.setDomainShortname(source.getDomainShortname());
         destination.setTemplateId(source.getTemplateId());
-        destination.setQDataGraph(source.getQDataGraph());
         destination.setTagBits(source.getTagBits());
         destination.setConceptBits(source.getConceptBits());
         destination.setLawBits(source.getLawBits());
@@ -35,7 +34,6 @@ class QuestionMetadataMapper implements Mapper<QuestionMetadataEntity, QuestionM
         destination.setSolutionSteps(source.getSolutionSteps());
         destination.setDistinctErrorsCount(source.getDistinctErrorsCount());
         destination.setVersion(source.getVersion());
-        destination.setStructureHash(source.getStructureHash());
         destination.setOrigin(source.getOrigin());
         destination.setOriginLicense(source.getOriginLicense());
         destination.setCreatedAt(source.getCreatedAt());

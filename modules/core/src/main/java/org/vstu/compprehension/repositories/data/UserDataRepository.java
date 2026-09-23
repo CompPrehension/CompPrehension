@@ -44,9 +44,7 @@ public class UserDataRepository {
         var entity = userRepository.findFirstByEmailOrderByIdAsc(update.email())
                 .orElseGet(UserEntity::new);
         entity.setEmail(update.email());
-        entity.setLogin(update.email());
         entity.setFirstName(update.fullName());
-        entity.setPassword(null);
         entity.setPreferred_language(update.language());
         entity.setExternalId(update.externalId());
         entity.setExternalUserId(update.externalUserId());

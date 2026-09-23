@@ -1,6 +1,7 @@
 package org.vstu.compprehension.tools;
 
 import lombok.RequiredArgsConstructor;
+import org.vstu.compprehension.enums.AttemptStatus;
 import org.vstu.compprehension.data.exercise.ExerciseOptionsData;
 import org.vstu.compprehension.data.exercise.ExerciseStageData;
 import lombok.SneakyThrows;
@@ -81,6 +82,7 @@ public class LoqiBuilder extends AbstractIntegrationTest {
         attempt = new ExerciseAttemptEntity();
         attempt.setQuestions(List.of());
         attempt.setExercise(exercise);
+        attempt.setAttemptStatus(AttemptStatus.INCOMPLETE);
         attempt.setUser(userRepository.findAll().iterator().next());
         exerciseAttemptRepository.save(attempt);
         exerciseRepository.save(exercise);

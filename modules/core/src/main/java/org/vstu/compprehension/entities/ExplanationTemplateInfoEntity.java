@@ -10,13 +10,13 @@ import lombok.*;
 @Entity
 @Data
 @NoArgsConstructor
-@Table(name = "ExplanationTemplateInfo")
+@Table(name = "explanation_template_info")
 public class ExplanationTemplateInfoEntity {
     @Id
     @GeneratedValue(strategy = GenerationType.IDENTITY)
     private Long id;
 
-    @Column(name = "fieldName")
+    @Column(name = "field_name")
     private String fieldName;
 
     @Column(name = "value")

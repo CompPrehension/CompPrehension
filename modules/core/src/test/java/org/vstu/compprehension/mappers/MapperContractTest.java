@@ -17,7 +17,8 @@ import static org.junit.jupiter.api.Assertions.assertNotSame;
 class MapperContractTest {
 
     private static final MapperContract CONTRACT = MapperContract
-            .forPackages("org.vstu.compprehension.frontend.mappers", "org.vstu.compprehension.repositories.mappers")
+            .forPackages("org.vstu.compprehension.frontend.mappers", "org.vstu.compprehension.repositories.mappers",
+                    "org.vstu.compprehension.services.mappers")
             .subtype(Law.class, PositiveLaw.class)
             .ignore("CourseRoleAssignmentMapper", "role")
             .ignore("DomainDtoMapperImpl", "tags", "concepts", "laws", "skills")
@@ -27,6 +28,7 @@ class MapperContractTest {
             .ignore("QuestionMetadataEntityMapper",
                     "conceptBitsInPlan", "conceptBitsInRequest", "skillBitsInPlan",
                     "violationBitsInPlan", "violationBitsInRequest")
+            .ignore("QuestionRequestLogMapper", "targetTags")
             .ignore("UserInfoDtoMapperImpl", "language");
 
     /** Исключения выше ссылаются на существующие мапперы. */

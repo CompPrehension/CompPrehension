@@ -15,7 +15,6 @@ import org.hibernate.annotations.Immutable;
 import org.hibernate.annotations.Type;
 import org.jetbrains.annotations.NotNull;
 import org.jetbrains.annotations.Nullable;
-import org.vstu.compprehension.enums.QuestionStatus;
 import org.vstu.compprehension.enums.QuestionType;
 
 import java.util.ArrayList;
@@ -24,19 +23,17 @@ import java.util.List;
 
 @Entity @Getter @Setter
 @NoArgsConstructor
-@Table(name = "Question")
+@Table(name = "question")
 public class QuestionEntity {
     @Id
     @GeneratedValue(strategy = GenerationType.IDENTITY)
     private Long id;
 
+    @Column(name = "question_type", nullable = false)
     @Enumerated(EnumType.ORDINAL)
     private QuestionType questionType;
 
-    @Enumerated(EnumType.ORDINAL)
-    private QuestionStatus questionStatus;
-
-    @Column(name = "question_text", columnDefinition = "TEXT")
+    @Column(name = "question_text", columnDefinition = "TEXT", nullable = false)
     private String questionText;
 
     @Column(name = "question_name", length = 255)
@@ -56,12 +53,12 @@ public class QuestionEntity {
     /**
      * Kind of question within Domain
      */
-    @Column(name = "question_domain_type")
+    @Column(name = "question_domain_type", nullable = false)
     private String questionDomainType;
 
     @Immutable
     @Type(JsonType.class)
-    @Column(name = "options_json", columnDefinition = "json")
+    @Column(name = "options_json", columnDefinition = "json", nullable = false)
     private QuestionOptionsData options;
 
     @Immutable

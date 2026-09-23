@@ -33,7 +33,6 @@ class QuestionEntityMapperImpl implements QuestionEntityMapper {
         var content = question.getContent();
         destination.setDomainId(content.getDomainId());
         destination.setQuestionType(content.getQuestionType());
-        destination.setQuestionStatus(question.getQuestionStatus());
         destination.setQuestionText(content.getQuestionText());
         destination.setQuestionName(content.getQuestionName());
         destination.setQuestionDomainType(content.getQuestionDomainType());
