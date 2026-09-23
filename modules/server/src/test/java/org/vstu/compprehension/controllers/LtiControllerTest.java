@@ -11,6 +11,7 @@ import org.springframework.test.web.servlet.ResultActions;
 import org.springframework.test.web.servlet.setup.MockMvcBuilders;
 import org.springframework.transaction.annotation.Transactional;
 import org.springframework.web.context.WebApplicationContext;
+import org.vstu.compprehension.adapters.LtiContextHolder;
 import org.vstu.compprehension.authorization.TestLtiContextProvider;
 import org.vstu.compprehension.entities.external_system.EducationResourceEntity;
 import org.vstu.compprehension.enums.EducationResourceTrustStatus;
@@ -24,6 +25,7 @@ import org.vstu.compprehension.repositories.entity.EducationResourceRepository;
 import java.time.Instant;
 import java.util.Date;
 import java.util.List;
+import java.util.Optional;
 
 import static org.hamcrest.Matchers.notNullValue;
 import static org.hamcrest.Matchers.nullValue;
@@ -85,7 +87,7 @@ class LtiControllerTest extends AbstractIntegrationTest {
         // Assert.
         result.andExpect(status().is3xxRedirection())
                 .andExpect(redirectedUrl("/pages/exercise-settings?courseId=null"));
-        assertEquals(2, courseService.getUserCourses(TestData.Users.GLOBAL_ADMIN_ID).size());
+        assertEquals(2, courseService.getUserCourses(TestData.Users.ADMIN_ID).size());
     }
 
     /** LMS на поддомене доверенного хоста регистрируется доверенной. */
@@ -130,6 +132,22 @@ class LtiControllerTest extends AbstractIntegrationTest {
         result.andExpect(status().isForbidden())
                 .andExpect(request().sessionAttribute(SPRING_SECURITY_CONTEXT_KEY, nullValue()));
         assertEquals(EducationResourceTrustStatus.UNTRUSTED, trustStatusOf("https://moodle.untrusted.test"));
+    }
+
+    /** После отказа недоверенной LMS в сессии не остаётся её LTI-контекста. */
+    @Test
+    void launchFromUntrustedLmsClearsSessionLtiContext() throws Exception {
+        // Arrange.
+        TestLtiContextProvider.launchedFromLms("https://moodle.untrusted.test", NEW_EXTERNAL_COURSE_ID);
+
+        // Act.
+        var result = launchExerciseSettings().andReturn();
+
+        // Assert.
+        // Контроллер берёт контекст из TestLtiContextProvider, а сессионный LtiContextHolder заполняется из id_token.
+        var holder = (LtiContextHolder) result.getRequest().getSession().getAttribute("scopedTarget.ltiContextHolder");
+        assertEquals(Optional.empty(), holder.getCurrentLtiContext());
+        assertEquals(Optional.empty(), holder.getCurrentDeepLinkingContext());
     }
 
     /** Доверенный хост сравнивается по границе домена, а не по подстроке. */

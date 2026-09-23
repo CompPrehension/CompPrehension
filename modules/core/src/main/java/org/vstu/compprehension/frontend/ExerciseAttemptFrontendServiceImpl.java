@@ -66,16 +66,6 @@ class ExerciseAttemptFrontendServiceImpl implements ExerciseAttemptFrontendServi
     private final Mapper<ResponseData, NewInteractionAnswerData> carriedAnswerMapper;
     private final Mapper<SubmittedAnswerData, NewInteractionAnswerData> submittedAnswerMapper;
 
-    @Override
-    public void ensureCanAccessAttempt(long userId, long attemptId) {
-        exerciseAttemptService.ensureCanAccessAttempt(userId, attemptId);
-    }
-
-    @Override
-    public void ensureCanAccessQuestion(long userId, long questionId) {
-        exerciseAttemptService.ensureCanAccessQuestion(userId, questionId);
-    }
-
     @Transactional(propagation = Propagation.REQUIRED)
     public @NotNull SupplementaryFeedbackDto addSupplementaryQuestionAnswer(@NotNull InteractionDto interaction) {
         val questionId = interaction.getQuestionId();

@@ -19,16 +19,16 @@ class EducationResourceFrontendServiceTest extends AbstractIntegrationTest {
 
     @Autowired private EducationResourceFrontendService service;
 
-    /** Поиск по адресу и типу. */
+    /** Поиск доверенного ресурса по адресу и типу. */
     @Test
-    void findIdByUrlAndTypeFindsKnownResource() {
+    void findTrustedIdByUrlAndTypeFindsKnownResource() {
         // Act & Assert.
         assertEquals(Optional.of(TestData.EducationResources.ID),
-                service.findIdByUrlAndType(TestData.EducationResources.URL, EducationResourceType.MOODLE));
+                service.findTrustedIdByUrlAndType(TestData.EducationResources.URL, EducationResourceType.MOODLE));
         assertEquals(Optional.empty(),
-                service.findIdByUrlAndType(TestData.EducationResources.URL, EducationResourceType.UNKNOWN));
+                service.findTrustedIdByUrlAndType(TestData.EducationResources.URL, EducationResourceType.UNKNOWN));
         assertEquals(Optional.empty(),
-                service.findIdByUrlAndType(NEW_LMS_URL, EducationResourceType.MOODLE));
+                service.findTrustedIdByUrlAndType(NEW_LMS_URL, EducationResourceType.MOODLE));
     }
 
     /** Существующий ресурс возвращается со своим статусом, переданный статус игнорируется. */
@@ -54,6 +54,6 @@ class EducationResourceFrontendServiceTest extends AbstractIntegrationTest {
         assertEquals(EducationResourceTrustStatus.TRUSTED, created.trustStatus());
         assertEquals(NEW_LMS_URL, created.url());
         assertEquals(created, again);
-        assertEquals(Optional.of(created.id()), service.findIdByUrlAndType(NEW_LMS_URL, EducationResourceType.MOODLE));
+        assertEquals(Optional.of(created.id()), service.findTrustedIdByUrlAndType(NEW_LMS_URL, EducationResourceType.MOODLE));
     }
 }

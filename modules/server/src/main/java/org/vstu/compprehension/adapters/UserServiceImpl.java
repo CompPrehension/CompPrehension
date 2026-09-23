@@ -120,8 +120,8 @@ public class UserServiceImpl implements UserDataService {
         LtiContext ctx = ltiContextProvider.getCurrentLtiContext().orElse(null);
         if (ctx == null) return;
 
-        long eduResId = educationResourceService.findIdByUrlAndType(ctx.lmsUrl(), ctx.lmsType())
-                .orElseThrow(() -> new SecurityException(String.format("EducationResource %s is not registered", ctx.lmsUrl())));
+        long eduResId = educationResourceService.findTrustedIdByUrlAndType(ctx.lmsUrl(), ctx.lmsType())
+                .orElseThrow(() -> new SecurityException(String.format("EducationResource %s is not trusted", ctx.lmsUrl())));
 
         // roleAssignmentService.assignGlobalRole(userId, SystemRole.STUDENT);
 
@@ -146,20 +146,11 @@ public class UserServiceImpl implements UserDataService {
 
     private void applyKeycloakRoles(long userId, Set<String> keycloakRoles) {
         roleAssignmentService.assignGlobalRole(userId, SystemRole.STUDENT);
-        Role privilegedRole = mapKeycloakGlobalRole(keycloakRoles);
-        if (privilegedRole != null) {
-            roleAssignmentService.assignGlobalRole(userId, privilegedRole);
-        }
-    }
-
-    private Role mapKeycloakGlobalRole(Collection<String> keycloakRoles) {
         if (keycloakRoles.contains("ROLE_Administrator")) {
-            return SystemRole.GLOBAL_ADMIN;
+            roleAssignmentService.assignRootRole(userId, SystemRole.ADMIN);
+        } else if (keycloakRoles.contains("ROLE_Teacher")) {
+            roleAssignmentService.assignGlobalRole(userId, SystemRole.GLOBAL_EXERCISE_AUTHOR);
         }
-        if (keycloakRoles.contains("ROLE_Teacher")) {
-            return SystemRole.GLOBAL_EXERCISE_AUTHOR;
-        }
-        return null;
     }
 
     private Role mapLtiCourseRole(Collection<String> ltiRoles) {

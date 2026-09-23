@@ -218,7 +218,7 @@ public class LtiController {
         if (courseId == null) {
             throw new IllegalArgumentException("Absent information on the contextId");
         }
-        authService.ensureAuthorized(userId, SystemPermission.MANAGE_COURSE_CONTENT, authService.getCourseScope(courseId));
+        authService.ensureAuthorized(userId, SystemPermission.CREATE_LMS_ACTIVITY, authService.getCourseScope(courseId));
 
         String redirectUrl = String.format("/pages/course?courseId=%d&lti=deeplink", courseId);
         log.info("Redirect to configure-course, url:{}", redirectUrl);
@@ -295,7 +295,13 @@ public class LtiController {
         OAuth2AuthenticationToken authentication = new OAuth2AuthenticationToken(user, mappedAuthorities, "mdl");
 
         ltiContextInitializer.init(claims);
-        ltiProvider.getCurrentLtiContext().ifPresent(this::getOrCreateTrustedEducationResourceId);
+        try {
+            ltiProvider.getCurrentLtiContext().ifPresent(this::getOrCreateTrustedEducationResourceId);
+        } catch (SecurityException ex) {
+            // Контекст сессионный: без очистки в уже аутентифицированной сессии остался бы запуск из недоверенной LMS.
+            ltiContextInitializer.clear();
+            throw ex;
+        }
 
         SecurityContext context = securityContextHolderStrategy.createEmptyContext();
         context.setAuthentication(authentication);

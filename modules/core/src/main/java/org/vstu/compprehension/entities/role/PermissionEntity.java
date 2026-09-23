@@ -3,8 +3,6 @@ package org.vstu.compprehension.entities.role;
 import jakarta.persistence.*;
 import lombok.Getter;
 import lombok.NoArgsConstructor;
-import org.vstu.compprehension.businesslogic.auth.Permission;
-import org.vstu.compprehension.entities.converters.PermissionConverter;
 
 @Entity
 @Getter
@@ -15,11 +13,10 @@ public class PermissionEntity {
     @GeneratedValue(strategy = GenerationType.IDENTITY)
     private Long id;
 
-    @Convert(converter = PermissionConverter.class)
     @Column(name = "name", nullable = false, unique = true, length = 64, updatable = false)
-    private Permission name;
+    private String name;
 
-    public PermissionEntity(Permission name) {
+    public PermissionEntity(String name) {
         this.name = name;
     }
 }

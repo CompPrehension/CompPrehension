@@ -21,9 +21,11 @@ public interface CourseDataService {
 
     @NotNull List<CourseExerciseData> getExercisesInCourseOrThrow(long courseId, @NotNull Collection<Long> exerciseIds);
 
-    void ensureExerciseInCourse(long exerciseId, long courseId);
+    @NotNull List<CourseSummaryData> getAllCourses();
 
-    @NotNull List<CourseSummaryData> getUserCourses(long userId);
+    @NotNull List<CourseSummaryData> getCoursesByIds(@NotNull Collection<Long> courseIds);
+
+    @NotNull List<Long> findCourseIdsByEducationResourceIds(@NotNull Collection<Long> educationResourceIds);
 
     @NotNull List<CourseSummaryData> getExerciseMemberships(long exerciseId);
 

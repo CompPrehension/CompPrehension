@@ -19,8 +19,8 @@ public class EducationResourceFrontendServiceImpl implements EducationResourceFr
     private final Mapper<EducationResourceData, EducationResourceDto> educationResourceMapper;
 
     @Override
-    public Optional<Long> findIdByUrlAndType(@NotNull String url, @NotNull EducationResourceType type) {
-        return educationResourceService.findIdByUrlAndType(url, type);
+    public @NotNull Optional<Long> findTrustedIdByUrlAndType(@NotNull String url, @NotNull EducationResourceType type) {
+        return educationResourceService.findTrustedIdByUrlAndType(url, type);
     }
 
     @Override

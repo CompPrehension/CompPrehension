@@ -18,8 +18,10 @@ class EducationResourceServiceImpl implements EducationResourceService {
     private final ExternalSystemDataRepository externalSystems;
 
     @Transactional(readOnly = true)
-    public @NotNull Optional<Long> findIdByUrlAndType(@NotNull String url, @NotNull EducationResourceType type) {
-        return externalSystems.findEducationResource(url, type).map(EducationResourceData::id);
+    public @NotNull Optional<Long> findTrustedIdByUrlAndType(@NotNull String url, @NotNull EducationResourceType type) {
+        return externalSystems.findEducationResource(url, type)
+                .filter(resource -> resource.trustStatus() == EducationResourceTrustStatus.TRUSTED)
+                .map(EducationResourceData::id);
     }
 
     @Transactional

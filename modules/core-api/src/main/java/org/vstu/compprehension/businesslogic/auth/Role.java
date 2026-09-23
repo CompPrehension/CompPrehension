@@ -11,5 +11,7 @@ public interface Role {
 
     Set<Permission> getPermissions();
 
+    Set<Capability> getCapabilities();
+
     boolean isAllowedIn(PermissionScopeKind kind);
 }

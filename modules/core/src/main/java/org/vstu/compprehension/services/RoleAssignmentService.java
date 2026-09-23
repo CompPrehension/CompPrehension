@@ -42,6 +42,12 @@ public class RoleAssignmentService {
     }
 
     @Transactional
+    public void assignRootRole(long userId, @NotNull Role role) {
+        ensureRoleAllowedIn(role, PermissionScopeKind.ROOT);
+        rbac.grantRole(userId, role, PermissionScopeKind.ROOT, null);
+    }
+
+    @Transactional
     public void reconcileRoleInEducationResource(long userId, Long educationResourceId,
                                                  @Nullable Role desiredRole) {
         rbac.revokeRolesInScopeExcept(

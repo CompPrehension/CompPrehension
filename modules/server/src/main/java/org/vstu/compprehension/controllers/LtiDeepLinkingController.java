@@ -95,13 +95,13 @@ public class LtiDeepLinkingController {
         if (course == null || course.courseId() == null) {
             throw new IllegalArgumentException("No course in LTI context");
         }
-        long eduResId = educationResourceService.findIdByUrlAndType(ctx.lmsUrl(), ctx.lmsType())
-                .orElseThrow(() -> new IllegalArgumentException("Unknown education resource"));
+        long eduResId = educationResourceService.findTrustedIdByUrlAndType(ctx.lmsUrl(), ctx.lmsType())
+                .orElseThrow(() -> new SecurityException(String.format("EducationResource %s is not trusted", ctx.lmsUrl())));
         long courseId = courseService.findCourseIdByExternalIdAndResourceId(course.courseId(), eduResId)
                 .orElseThrow(() -> new IllegalArgumentException("Course not found for LTI context"));
 
         long userId = userService.getCurrentUserId();
-        authService.ensureAuthorized(userId, SystemPermission.MANAGE_COURSE_CONTENT, authService.course(courseId));
+        authService.ensureAuthorized(userId, SystemPermission.CREATE_LMS_ACTIVITY, authService.getCourseScope(courseId));
         return courseId;
     }
 }

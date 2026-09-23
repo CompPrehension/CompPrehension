@@ -18,20 +18,26 @@ import java.util.Optional;
 @Component
 public class CourseFrontendServiceImpl implements CourseFrontendService {
     private final CourseDataService courseService;
+    private final AuthFrontendService authService;
     private final Mapper<CourseSummaryData, CourseDto> courseDtoMapper;
     private final Mapper<CourseExerciseData, ExerciseRefDto> exerciseRefDtoMapper;
 
     public CourseFrontendServiceImpl(CourseDataService courseService,
+                                     AuthFrontendService authService,
                                      Mapper<CourseSummaryData, CourseDto> courseDtoMapper,
                                      Mapper<CourseExerciseData, ExerciseRefDto> exerciseRefDtoMapper) {
         this.courseService = courseService;
+        this.authService = authService;
         this.courseDtoMapper = courseDtoMapper;
         this.exerciseRefDtoMapper = exerciseRefDtoMapper;
     }
 
     @Override
     public @NotNull List<CourseDto> getUserCourses(long userId) {
-        return courseDtoMapper.mapAll(courseService.getUserCourses(userId));
+        var courses = authService.canViewAllCourses(userId)
+                ? courseService.getAllCourses()
+                : courseService.getCoursesByIds(authService.findVisibleCourseIds(userId));
+        return courseDtoMapper.mapAll(courses);
     }
 
     @Override

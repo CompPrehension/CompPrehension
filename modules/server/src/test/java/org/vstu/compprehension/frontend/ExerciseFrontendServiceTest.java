@@ -32,6 +32,7 @@ class ExerciseFrontendServiceTest extends AbstractIntegrationTest {
 
     @Autowired private ExerciseFrontendService service;
     @Autowired private ExerciseAttemptFrontendService attemptService;
+    @Autowired private AuthFrontendService authService;
 
     // ---- карточка ----
 
@@ -71,7 +72,7 @@ class ExerciseFrontendServiceTest extends AbstractIntegrationTest {
     @Test
     void globalAdminCanDeletePoolExercise() {
         // Act.
-        var permissions = service.getExerciseCard(TestData.Exercises.GLOBAL_POOL_ID, null, TestData.Users.GLOBAL_ADMIN_ID).getPermissions();
+        var permissions = service.getExerciseCard(TestData.Exercises.GLOBAL_POOL_ID, null, TestData.Users.ADMIN_ID).getPermissions();
 
         // Assert.
         assertTrue(permissions.canEdit());
@@ -129,28 +130,11 @@ class ExerciseFrontendServiceTest extends AbstractIntegrationTest {
     void copyToGlobalPoolRequiresGlobalCreatePermission() {
         // Act.
         var teacher = service.getExerciseCard(TestData.Exercises.MAIN_COURSE_ID, TestData.Courses.MAIN_ID, TestData.Users.MAIN_COURSE_TEACHER_ID).getPermissions();
-        var admin = service.getExerciseCard(TestData.Exercises.MAIN_COURSE_ID, TestData.Courses.MAIN_ID, TestData.Users.GLOBAL_ADMIN_ID).getPermissions();
+        var admin = service.getExerciseCard(TestData.Exercises.MAIN_COURSE_ID, TestData.Courses.MAIN_ID, TestData.Users.ADMIN_ID).getPermissions();
 
         // Assert.
         assertFalse(teacher.canCopyToGlobalPool());
         assertTrue(admin.canCopyToGlobalPool());
-    }
-
-    /** Упражнение курса недоступно без контекста курса. */
-    @Test
-    void getExerciseCardOfCourseExerciseWithoutCourseFails() {
-        // Act & Assert.
-        var error = assertThrows(IllegalStateException.class,
-                () -> service.getExerciseCard(TestData.Exercises.MAIN_COURSE_ID, null, TestData.Users.GLOBAL_ADMIN_ID));
-        assertEquals("exercise_not_in_global_pool", error.getMessage());
-    }
-
-    /** Упражнение не привязано к курсу. */
-    @Test
-    void getExerciseCardOfExerciseOutsideCourseFails() {
-        // Act & Assert.
-        assertThrows(IllegalStateException.class,
-                () -> service.getExerciseCard(TestData.Exercises.GLOBAL_POOL_ID, TestData.Courses.MAIN_ID, TestData.Users.MAIN_COURSE_TEACHER_ID));
     }
 
     /** Несуществующее упражнение. */
@@ -158,7 +142,7 @@ class ExerciseFrontendServiceTest extends AbstractIntegrationTest {
     void getExerciseCardOfUnknownExerciseFails() {
         // Act & Assert.
         assertThrows(NoSuchElementException.class,
-                () -> service.getExerciseCard(Long.MIN_VALUE, null, TestData.Users.GLOBAL_ADMIN_ID));
+                () -> service.getExerciseCard(Long.MIN_VALUE, null, TestData.Users.ADMIN_ID));
     }
 
     /** Краткая информация: id и опции. */
@@ -177,25 +161,24 @@ class ExerciseFrontendServiceTest extends AbstractIntegrationTest {
         assertEquals(1, info.getOptions().getMaxExpectedConcurrentStudents());
     }
 
-    /** Проверка существования в контексте. */
+    /** Публичность упражнения. */
     @Test
-    void ensureExerciseExistsChecksContext() {
+    void isExercisePublicDistinguishesPoolAndCourseExercises() {
         // Act & Assert.
-        assertDoesNotThrow(() -> service.ensureExerciseExists(TestData.Exercises.GLOBAL_POOL_ID, null));
-        assertDoesNotThrow(() -> service.ensureExerciseExists(TestData.Exercises.MAIN_COURSE_ID, TestData.Courses.MAIN_ID));
-        assertThrows(IllegalStateException.class, () -> service.ensureExerciseExists(TestData.Exercises.MAIN_COURSE_ID, null));
-        assertThrows(NoSuchElementException.class, () -> service.ensureExerciseExists(Long.MIN_VALUE, null));
+        assertTrue(service.isExercisePublic(TestData.Exercises.GLOBAL_POOL_ID));
+        assertFalse(service.isExercisePublic(TestData.Exercises.MAIN_COURSE_ID));
+        assertThrows(NoSuchElementException.class, () -> service.isExercisePublic(Long.MIN_VALUE));
     }
 
     /** Просмотр открыт тем, кому доступен пул или курс. */
     @Test
     void ensureCanViewExerciseChecksPoolAndCourses() {
         // Act & Assert.
-        assertDoesNotThrow(() -> service.ensureCanViewExercise(TestData.Users.GLOBAL_EXERCISE_AUTHOR_ID, TestData.Exercises.GLOBAL_POOL_ID));
-        assertDoesNotThrow(() -> service.ensureCanViewExercise(TestData.Users.MAIN_COURSE_TEACHER_ID, TestData.Exercises.MAIN_COURSE_ID));
-        assertDoesNotThrow(() -> service.ensureCanViewExercise(TestData.Users.MAIN_COURSE_ASSISTANT_ID, TestData.Exercises.INHERITED_ID));
-        assertThrows(SecurityException.class, () -> service.ensureCanViewExercise(TestData.Users.OTHER_COURSE_TEACHER_ID, TestData.Exercises.MAIN_COURSE_ID));
-        assertThrows(SecurityException.class, () -> service.ensureCanViewExercise(TestData.Users.GLOBAL_STUDENT_ID, TestData.Exercises.GLOBAL_POOL_ID));
+        assertDoesNotThrow(() -> authService.ensureCanViewExercise(TestData.Users.GLOBAL_EXERCISE_AUTHOR_ID, TestData.Exercises.GLOBAL_POOL_ID));
+        assertDoesNotThrow(() -> authService.ensureCanViewExercise(TestData.Users.MAIN_COURSE_TEACHER_ID, TestData.Exercises.MAIN_COURSE_ID));
+        assertDoesNotThrow(() -> authService.ensureCanViewExercise(TestData.Users.MAIN_COURSE_ASSISTANT_ID, TestData.Exercises.INHERITED_ID));
+        assertThrows(SecurityException.class, () -> authService.ensureCanViewExercise(TestData.Users.OTHER_COURSE_TEACHER_ID, TestData.Exercises.MAIN_COURSE_ID));
+        assertThrows(SecurityException.class, () -> authService.ensureCanViewExercise(TestData.Users.GLOBAL_STUDENT_ID, TestData.Exercises.GLOBAL_POOL_ID));
     }
 
     // ---- список ----
@@ -262,7 +245,7 @@ class ExerciseFrontendServiceTest extends AbstractIntegrationTest {
         var id = service.createExerciseAndGetId("Pool exercise", TestData.Exercises.DOMAIN_ID, TestData.Exercises.STRATEGY_ID, null);
 
         // Assert.
-        var card = service.getExerciseCard(id, null, TestData.Users.GLOBAL_ADMIN_ID);
+        var card = service.getExerciseCard(id, null, TestData.Users.ADMIN_ID);
         assertEquals("Pool exercise", card.getName());
         assertEquals(TestData.Exercises.DOMAIN_ID, card.getDomainId());
         assertEquals(TestData.Exercises.STRATEGY_ID, card.getStrategyId());
@@ -277,7 +260,7 @@ class ExerciseFrontendServiceTest extends AbstractIntegrationTest {
         assertTrue(card.getOptions().isCorrectAnswerGenerationEnabled());
         assertTrue(card.getOptions().isForceNewAttemptCreationEnabled());
         assertFalse(card.getOptions().isDebugButtonEnabled());
-        assertTrue(ids(service.listExercises(null, TestData.Users.GLOBAL_ADMIN_ID).exercises()).contains(id));
+        assertTrue(ids(service.listExercises(null, TestData.Users.ADMIN_ID).exercises()).contains(id));
     }
 
     /** Новое упражнение в курсе: приватное и привязанное. */
@@ -291,7 +274,7 @@ class ExerciseFrontendServiceTest extends AbstractIntegrationTest {
         assertFalse(card.isPublic());
         assertTrue(card.getPermissions().canEdit());
         assertTrue(ids(service.listExercises(TestData.Courses.MAIN_ID, TestData.Users.MAIN_COURSE_TEACHER_ID).exercises()).contains(id));
-        assertFalse(ids(service.listExercises(null, TestData.Users.GLOBAL_ADMIN_ID).exercises()).contains(id));
+        assertFalse(ids(service.listExercises(null, TestData.Users.ADMIN_ID).exercises()).contains(id));
     }
 
     /** Неизвестный домен. */
@@ -338,7 +321,7 @@ class ExerciseFrontendServiceTest extends AbstractIntegrationTest {
                 .build(), null);
 
         // Assert.
-        var card = service.getExerciseCard(id, null, TestData.Users.GLOBAL_ADMIN_ID);
+        var card = service.getExerciseCard(id, null, TestData.Users.ADMIN_ID);
         assertEquals("After", card.getName());
         assertEquals(DT_BACKEND_ID, card.getBackendId());
         assertEquals(List.of("C++", "basics"), card.getTags());
@@ -366,7 +349,7 @@ class ExerciseFrontendServiceTest extends AbstractIntegrationTest {
     @Test
     void saveExerciseCardOfPoolExerciseFromGlobalPool() {
         // Arrange.
-        var card = service.getExerciseCard(TestData.Exercises.INHERITED_ID, null, TestData.Users.GLOBAL_ADMIN_ID);
+        var card = service.getExerciseCard(TestData.Exercises.INHERITED_ID, null, TestData.Users.ADMIN_ID);
 
         // Act.
         service.saveExerciseCard(ExerciseCardDto.builder()
@@ -391,14 +374,14 @@ class ExerciseFrontendServiceTest extends AbstractIntegrationTest {
     @Test
     void cloneCourseExerciseToGlobalPool() {
         // Arrange.
-        var source = service.getExerciseCard(TestData.Exercises.MAIN_COURSE_ID, TestData.Courses.MAIN_ID, TestData.Users.GLOBAL_ADMIN_ID);
+        var source = service.getExerciseCard(TestData.Exercises.MAIN_COURSE_ID, TestData.Courses.MAIN_ID, TestData.Users.ADMIN_ID);
 
         // Act.
         var cloneId = service.cloneExerciseAndGetId(TestData.Exercises.MAIN_COURSE_ID, null);
 
         // Assert.
         assertNotEquals(source.getId(), cloneId);
-        var clone = service.getExerciseCard(cloneId, null, TestData.Users.GLOBAL_ADMIN_ID);
+        var clone = service.getExerciseCard(cloneId, null, TestData.Users.ADMIN_ID);
         assertTrue(clone.isPublic());
         assertEquals(source.getName(), clone.getName());
         assertEquals(source.getDomainId(), clone.getDomainId());
@@ -407,8 +390,8 @@ class ExerciseFrontendServiceTest extends AbstractIntegrationTest {
         assertEquals(source.getTags(), clone.getTags());
         assertEquals(source.getStages().size(), clone.getStages().size());
         assertEquals(source.getOptions(), clone.getOptions());
-        assertFalse(service.getExerciseCard(TestData.Exercises.MAIN_COURSE_ID, TestData.Courses.MAIN_ID, TestData.Users.GLOBAL_ADMIN_ID).isPublic());
-        assertTrue(ids(service.listExercises(null, TestData.Users.GLOBAL_ADMIN_ID).exercises()).contains(cloneId));
+        assertFalse(service.getExerciseCard(TestData.Exercises.MAIN_COURSE_ID, TestData.Courses.MAIN_ID, TestData.Users.ADMIN_ID).isPublic());
+        assertTrue(ids(service.listExercises(null, TestData.Users.ADMIN_ID).exercises()).contains(cloneId));
     }
 
     /** Копия из пула в курс: приватная и привязанная к курсу. */
@@ -423,7 +406,7 @@ class ExerciseFrontendServiceTest extends AbstractIntegrationTest {
         assertEquals("Global pool exercise", clone.getName());
         assertTrue(clone.getPermissions().canEdit());
         assertTrue(ids(service.listExercises(TestData.Courses.MAIN_ID, TestData.Users.MAIN_COURSE_TEACHER_ID).exercises()).contains(cloneId));
-        assertFalse(ids(service.listExercises(null, TestData.Users.GLOBAL_ADMIN_ID).exercises()).contains(cloneId));
+        assertFalse(ids(service.listExercises(null, TestData.Users.ADMIN_ID).exercises()).contains(cloneId));
     }
 
     /** Дубликат в том же курсе запрещён. */
@@ -456,8 +439,8 @@ class ExerciseFrontendServiceTest extends AbstractIntegrationTest {
         service.deleteExercise(id, null);
 
         // Assert.
-        assertThrows(NoSuchElementException.class, () -> service.getExerciseCard(id, null, TestData.Users.GLOBAL_ADMIN_ID));
-        assertFalse(ids(service.listExercises(null, TestData.Users.GLOBAL_ADMIN_ID).exercises()).contains(id));
+        assertThrows(NoSuchElementException.class, () -> service.getExerciseCard(id, null, TestData.Users.ADMIN_ID));
+        assertFalse(ids(service.listExercises(null, TestData.Users.ADMIN_ID).exercises()).contains(id));
     }
 
     /** Удаление упражнения курса. */
@@ -508,7 +491,7 @@ class ExerciseFrontendServiceTest extends AbstractIntegrationTest {
         service.deleteExercise(TestData.Exercises.INHERITED_ID, null);
 
         // Assert.
-        assertThrows(NoSuchElementException.class, () -> service.getExerciseCard(TestData.Exercises.INHERITED_ID, null, TestData.Users.GLOBAL_ADMIN_ID));
+        assertThrows(NoSuchElementException.class, () -> service.getExerciseCard(TestData.Exercises.INHERITED_ID, null, TestData.Users.ADMIN_ID));
         var courseExercises = service.listExercises(TestData.Courses.MAIN_ID, TestData.Users.MAIN_COURSE_TEACHER_ID).exercises();
         var copy = courseExercises.stream()
                 .filter(e -> e.getName().equals("Inherited exercise"))

@@ -76,7 +76,7 @@ insert ignore into permission_scope (id, kind, scope_item_id) values
 insert ignore into role_user_assignment (user_id, role_id, permission_scope_id)
 select u.id, r.id, ps.id
 from (
-    select -1 as user_id, 'GLOBAL_ADMIN'           as role_name, 'GLOBAL' as scope_kind, null as scope_item union all
+    select -1 as user_id, 'ADMIN'                  as role_name, 'ROOT'   as scope_kind, null as scope_item union all
     select -2, 'GLOBAL_EXERCISE_AUTHOR', 'GLOBAL', null union all
     select -3, 'STUDENT',                'GLOBAL', null union all
     select -4, 'TEACHER',                'COURSE', -1   union all

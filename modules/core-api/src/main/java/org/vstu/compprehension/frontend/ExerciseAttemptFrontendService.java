@@ -8,10 +8,6 @@ import org.vstu.compprehension.frontend.dto.feedback.FeedbackDto;
 import org.vstu.compprehension.frontend.dto.question.QuestionDto;
 
 public interface ExerciseAttemptFrontendService {
-    void ensureCanAccessAttempt(long userId, long attemptId);
-
-    void ensureCanAccessQuestion(long userId, long questionId);
-
     @NotNull SupplementaryFeedbackDto addSupplementaryQuestionAnswer(@NotNull InteractionDto interaction);
 
     @NotNull FeedbackDto addQuestionAnswer(@NotNull InteractionDto interaction);

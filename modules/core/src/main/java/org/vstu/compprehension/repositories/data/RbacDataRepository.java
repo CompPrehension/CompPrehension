@@ -43,6 +43,11 @@ public class RbacDataRepository {
     }
 
     @Transactional(readOnly = true)
+    public boolean isAuthorizedIgnoringScope(long userId, @NotNull String permissionId) {
+        return ruaRepository.isAuthorizedIgnoringScope(userId, permissionId) != 0L;
+    }
+
+    @Transactional(readOnly = true)
     public @NotNull List<String> findPermissionIdsInAnyScope(long userId,
                                                              @NotNull Collection<String> scopeKeys) {
         return ruaRepository.findPermissionIdsInAnyScope(userId, scopeKeys);
@@ -57,7 +62,7 @@ public class RbacDataRepository {
     @Transactional(readOnly = true)
     public @NotNull List<Long> findScopeItemIdsWithPermission(long userId, @NotNull Permission permission,
                                                               @NotNull PermissionScopeKind kind) {
-        return ruaRepository.findScopeItemIdsWithPermission(userId, permission, kind);
+        return ruaRepository.findScopeItemIdsWithPermission(userId, permission.id(), kind);
     }
 
     @Transactional

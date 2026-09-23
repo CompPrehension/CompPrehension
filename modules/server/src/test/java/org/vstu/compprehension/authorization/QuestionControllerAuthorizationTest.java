@@ -9,7 +9,7 @@ import org.vstu.compprehension.infrastructure.TestData;
 import org.junit.jupiter.api.Test;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.http.MediaType;
-import org.vstu.compprehension.services.ExerciseAttemptDataService;
+import org.vstu.compprehension.frontend.AuthFrontendService;
 
 import static org.junit.jupiter.api.Assertions.assertDoesNotThrow;
 import static org.springframework.test.web.servlet.request.MockMvcRequestBuilders.get;
@@ -21,7 +21,7 @@ import static org.springframework.web.servlet.mvc.method.annotation.MvcUriCompon
 
 class QuestionControllerAuthorizationTest extends AbstractAuthorizationTest {
 
-    @Autowired private ExerciseAttemptDataService exerciseAttemptService;
+    @Autowired private AuthFrontendService authService;
 
     /** Вопрос принадлежит чужой попытке. */
     @Test
@@ -38,9 +38,9 @@ class QuestionControllerAuthorizationTest extends AbstractAuthorizationTest {
         result.andExpect(status().isForbidden());
     }
 
-    /** Привилегия на чужие вопросы держится на EDIT_EXERCISE. */
+    /** Ассистент читает чужие вопросы своего курса по VIEW_OTHER_ATTEMPTS. */
     @Test
-    void getQuestionForbiddenForCourseAssistant() throws Exception {
+    void getQuestionAllowedForCourseAssistant() throws Exception {
         // Arrange.
         var question = createQuestion(createMainCourseAttempt());
         actingAs(TestData.Users.MAIN_COURSE_ASSISTANT_ID);
@@ -48,6 +48,72 @@ class QuestionControllerAuthorizationTest extends AbstractAuthorizationTest {
         // Act.
         var result = mockMvc.perform(get(fromMethodCall(on(QuestionController.class)
                 .getQuestion(question.getId())).build().toUri()));
+
+        // Assert.
+        result.andExpect(status().isOk());
+    }
+
+    /** Преподаватель читает чужие вопросы своего курса. */
+    @Test
+    void getQuestionAllowedForCourseTeacher() throws Exception {
+        // Arrange.
+        var question = createQuestion(createMainCourseAttempt());
+        actingAs(TestData.Users.MAIN_COURSE_TEACHER_ID);
+
+        // Act.
+        var result = mockMvc.perform(get(fromMethodCall(on(QuestionController.class)
+                .getQuestion(question.getId())).build().toUri()));
+
+        // Assert.
+        result.andExpect(status().isOk());
+    }
+
+    /** Преподаватель не отвечает за студента. */
+    @Test
+    void addQuestionAnswerForbiddenForCourseTeacher() throws Exception {
+        // Arrange.
+        var question = createQuestion(createMainCourseAttempt());
+        actingAs(TestData.Users.MAIN_COURSE_TEACHER_ID);
+        var interaction = InteractionDto.builder()
+                .questionId(question.getId())
+                .answers(new AnswerDto[0])
+                .build();
+
+        // Act.
+        var result = mockMvc.perform(post(fromMethodCall(on(QuestionController.class)
+                        .addQuestionAnswer(interaction)).build().toUri())
+                .contentType(MediaType.APPLICATION_JSON)
+                .content(toJson(interaction)));
+
+        // Assert.
+        result.andExpect(status().isForbidden());
+    }
+
+    /** Подсказка пишется в попытку, поэтому преподавателю по чужому вопросу закрыта. */
+    @Test
+    void generateNextCorrectAnswerForbiddenForCourseTeacher() throws Exception {
+        // Arrange.
+        var question = createQuestion(createMainCourseAttempt());
+        actingAs(TestData.Users.MAIN_COURSE_TEACHER_ID);
+
+        // Act.
+        var result = mockMvc.perform(get(fromMethodCall(on(QuestionController.class)
+                .generateNextCorrectAnswer(question.getId())).build().toUri()));
+
+        // Assert.
+        result.andExpect(status().isForbidden());
+    }
+
+    /** Преподаватель не продолжает чужую попытку. */
+    @Test
+    void generateQuestionForbiddenForCourseTeacher() throws Exception {
+        // Arrange.
+        var attempt = createMainCourseAttempt();
+        actingAs(TestData.Users.MAIN_COURSE_TEACHER_ID);
+
+        // Act.
+        var result = mockMvc.perform(get(fromMethodCall(on(QuestionController.class)
+                .generateQuestion(attempt.getId())).build().toUri()));
 
         // Assert.
         result.andExpect(status().isForbidden());
@@ -162,11 +228,25 @@ class QuestionControllerAuthorizationTest extends AbstractAuthorizationTest {
         result.andExpect(status().isForbidden());
     }
 
-    /** Генерация по метаданным требует EDIT_EXERCISE в GLOBAL-области. */
+    /** DEBUG_BANK_QUESTION из области курса открывает генерацию по метаданным. */
     @Test
-    void generateByMetadataForbiddenForCourseTeacher() throws Exception {
+    void generateByMetadataAllowedForCourseTeacher() throws Exception {
         // Arrange.
         actingAs(TestData.Users.MAIN_COURSE_TEACHER_ID);
+
+        // Act.
+        var result = mockMvc.perform(get(fromMethodCall(on(QuestionController.class)
+                .generateQuestionByMetadata(TestData.ExpressionBank.MEMBER_ACCESS_PLUS.metadataId())).build().toUri()));
+
+        // Assert.
+        result.andExpect(status().isOk());
+    }
+
+    /** У ассистента DEBUG_BANK_QUESTION нет. */
+    @Test
+    void generateByMetadataForbiddenForCourseAssistant() throws Exception {
+        // Arrange.
+        actingAs(TestData.Users.MAIN_COURSE_ASSISTANT_ID);
 
         // Act.
         var result = mockMvc.perform(get(fromMethodCall(on(QuestionController.class)
@@ -205,12 +285,12 @@ class QuestionControllerAuthorizationTest extends AbstractAuthorizationTest {
         result.andExpect(status().isForbidden());
     }
 
-    /** Преподавателю курса недоступен вопрос без попытки. */
+    /** Ассистенту курса недоступен вопрос без попытки. */
     @Test
-    void generateNextCorrectAnswerForbiddenForAttemptlessQuestionAndCourseTeacher() throws Exception {
+    void generateNextCorrectAnswerForbiddenForAttemptlessQuestionAndCourseAssistant() throws Exception {
         // Arrange.
         var question = createQuestionWithoutAttempt();
-        actingAs(TestData.Users.MAIN_COURSE_TEACHER_ID);
+        actingAs(TestData.Users.MAIN_COURSE_ASSISTANT_ID);
 
         // Act.
         var result = mockMvc.perform(get(fromMethodCall(on(QuestionController.class)
@@ -227,7 +307,18 @@ class QuestionControllerAuthorizationTest extends AbstractAuthorizationTest {
         var question = createQuestionWithoutAttempt();
 
         // Act & Assert.
-        assertDoesNotThrow(() -> exerciseAttemptService
-                .ensureCanAccessQuestion(TestData.Users.GLOBAL_EXERCISE_AUTHOR_ID, question.getId()));
+        assertDoesNotThrow(() -> authService
+                .ensureCanReadQuestion(TestData.Users.GLOBAL_EXERCISE_AUTHOR_ID, question.getId()));
+    }
+
+    /** Преподавателю курса вопрос без попытки открыт. */
+    @Test
+    void attemptlessQuestionIsAccessibleToCourseTeacher() {
+        // Arrange.
+        var question = createQuestionWithoutAttempt();
+
+        // Act & Assert.
+        assertDoesNotThrow(() -> authService
+                .ensureCanReadQuestion(TestData.Users.MAIN_COURSE_TEACHER_ID, question.getId()));
     }
 }

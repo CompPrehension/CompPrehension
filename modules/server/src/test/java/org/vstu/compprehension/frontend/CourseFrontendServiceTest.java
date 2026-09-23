@@ -11,6 +11,7 @@ import org.vstu.compprehension.infrastructure.AbstractIntegrationTest;
 import org.vstu.compprehension.infrastructure.TestData;
 
 import java.util.List;
+import java.util.NoSuchElementException;
 import java.util.Optional;
 import java.util.Set;
 import java.util.stream.Collectors;
@@ -34,7 +35,7 @@ class CourseFrontendServiceTest extends AbstractIntegrationTest {
     @Test
     void getUserCoursesForGlobalAdminReturnsAllCourses() {
         // Act.
-        var courses = service.getUserCourses(TestData.Users.GLOBAL_ADMIN_ID);
+        var courses = service.getUserCourses(TestData.Users.ADMIN_ID);
 
         // Assert.
         assertEquals(Set.of(TestData.Courses.MAIN_ID, TestData.Courses.OTHER_ID), ids(courses));
@@ -145,7 +146,31 @@ class CourseFrontendServiceTest extends AbstractIntegrationTest {
         assertTrue(service.getExerciseMemberships(TestData.Exercises.INHERITED_ID).isEmpty());
         assertFalse(exerciseIds(exerciseService.listExercises(TestData.Courses.MAIN_ID, TestData.Users.MAIN_COURSE_TEACHER_ID).exercises())
                 .contains(TestData.Exercises.INHERITED_ID));
-        assertDoesNotThrow(() -> exerciseService.getExerciseCard(TestData.Exercises.INHERITED_ID, null, TestData.Users.GLOBAL_ADMIN_ID));
+        assertDoesNotThrow(() -> exerciseService.getExerciseCard(TestData.Exercises.INHERITED_ID, null, TestData.Users.ADMIN_ID));
+    }
+
+    /** Собственное упражнение курса при удалении из курса удаляется целиком. */
+    @Test
+    void removeOwnExerciseFromCourseDeletesExercise() {
+        // Act.
+        service.removeExerciseFromCourse(TestData.Exercises.MAIN_COURSE_ID, TestData.Courses.MAIN_ID);
+
+        // Assert.
+        assertThrows(NoSuchElementException.class, () -> exerciseService.isExercisePublic(TestData.Exercises.MAIN_COURSE_ID));
+    }
+
+    /** Приватное упражнение, привязанное к нескольким курсам, при удалении из одного только отвязывается. */
+    @Test
+    void removeOwnExerciseLinkedToAnotherCourseKeepsExercise() {
+        // Arrange.
+        service.linkExerciseWithCourseIfMissing(TestData.Exercises.MAIN_COURSE_ID, TestData.Courses.OTHER_ID);
+
+        // Act.
+        service.removeExerciseFromCourse(TestData.Exercises.MAIN_COURSE_ID, TestData.Courses.MAIN_ID);
+
+        // Assert.
+        assertEquals(Set.of(TestData.Courses.OTHER_ID), ids(service.getExerciseMemberships(TestData.Exercises.MAIN_COURSE_ID)));
+        assertFalse(exerciseService.isExercisePublic(TestData.Exercises.MAIN_COURSE_ID));
     }
 
     /** Отвязка непривязанного не падает. */
@@ -234,7 +259,7 @@ class CourseFrontendServiceTest extends AbstractIntegrationTest {
 
         // Assert.
         assertEquals(TestData.Courses.MAIN_ID, courseId);
-        assertEquals("Main test course", find(service.getUserCourses(TestData.Users.GLOBAL_ADMIN_ID), TestData.Courses.MAIN_ID).getName());
+        assertEquals("Main test course", find(service.getUserCourses(TestData.Users.ADMIN_ID), TestData.Courses.MAIN_ID).getName());
     }
 
     /** Отсутствующий курс создаётся. */
@@ -246,7 +271,7 @@ class CourseFrontendServiceTest extends AbstractIntegrationTest {
 
         // Assert.
         assertNotEquals(TestData.Courses.MAIN_ID, courseId);
-        var created = find(service.getUserCourses(TestData.Users.GLOBAL_ADMIN_ID), courseId);
+        var created = find(service.getUserCourses(TestData.Users.ADMIN_ID), courseId);
         assertEquals("New course", created.getName());
         assertEquals(TestData.EducationResources.ID, created.getEducationResourceId());
         assertEquals(Optional.of(courseId), service.findCourseIdByExternalIdAndResourceId("ext-course-new", TestData.EducationResources.ID));
@@ -264,7 +289,7 @@ class CourseFrontendServiceTest extends AbstractIntegrationTest {
 
         // Assert.
         assertEquals(first, second);
-        assertEquals(3, service.getUserCourses(TestData.Users.GLOBAL_ADMIN_ID).size());
+        assertEquals(3, service.getUserCourses(TestData.Users.ADMIN_ID).size());
     }
 
     /** Без имени курс называется по внешнему id. */
@@ -275,7 +300,7 @@ class CourseFrontendServiceTest extends AbstractIntegrationTest {
                 new CreateCourseDto(TestData.EducationResources.ID, "ext-course-unnamed", null));
 
         // Assert.
-        assertEquals("id_ext-course-unnamed", find(service.getUserCourses(TestData.Users.GLOBAL_ADMIN_ID), courseId).getName());
+        assertEquals("id_ext-course-unnamed", find(service.getUserCourses(TestData.Users.ADMIN_ID), courseId).getName());
     }
 
     // ---- вспомогательное ----

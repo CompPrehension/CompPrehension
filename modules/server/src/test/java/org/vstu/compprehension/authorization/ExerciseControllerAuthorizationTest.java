@@ -152,7 +152,7 @@ class ExerciseControllerAuthorizationTest extends AbstractAuthorizationTest {
         result.andExpect(status().isConflict());
     }
 
-    /** Отладочная попытка требует EDIT_EXERCISE. */
+    /** Отладочная попытка требует CREATE_DEBUG_ATTEMPT. */
     @Test
     void createDebugAttemptForbiddenForCourseStudent() throws Exception {
         // Arrange.
@@ -166,7 +166,7 @@ class ExerciseControllerAuthorizationTest extends AbstractAuthorizationTest {
         result.andExpect(status().isForbidden());
     }
 
-    /** У ассистента EDIT_EXERCISE нет. */
+    /** У ассистента CREATE_DEBUG_ATTEMPT нет. */
     @Test
     void createDebugAttemptForbiddenForCourseAssistant() throws Exception {
         // Arrange.
@@ -195,7 +195,7 @@ class ExerciseControllerAuthorizationTest extends AbstractAuthorizationTest {
         result.andExpect(status().isOk());
     }
 
-    /** Преподаватель читает чужие попытки своего курса по EDIT_EXERCISE. */
+    /** Преподаватель читает чужие попытки своего курса по VIEW_OTHER_ATTEMPTS. */
     @Test
     void getAttemptAllowedForCourseTeacher() throws Exception {
         // Arrange.
@@ -210,9 +210,9 @@ class ExerciseControllerAuthorizationTest extends AbstractAuthorizationTest {
         result.andExpect(status().isOk());
     }
 
-    /** У ассистента EDIT_EXERCISE нет, чужие попытки закрыты. */
+    /** Ассистент читает чужие попытки своего курса по VIEW_OTHER_ATTEMPTS. */
     @Test
-    void getAttemptForbiddenForCourseAssistant() throws Exception {
+    void getAttemptAllowedForCourseAssistant() throws Exception {
         // Arrange.
         var attempt = createMainCourseAttempt();
         actingAs(TestData.Users.MAIN_COURSE_ASSISTANT_ID);
@@ -222,7 +222,7 @@ class ExerciseControllerAuthorizationTest extends AbstractAuthorizationTest {
                 .getExerciseAttempt(attempt.getId())).build().toUri()));
 
         // Assert.
-        result.andExpect(status().isForbidden());
+        result.andExpect(status().isOk());
     }
 
     /** Студент не видит попыток других студентов. */

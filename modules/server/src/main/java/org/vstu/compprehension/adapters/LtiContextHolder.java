@@ -86,6 +86,12 @@ public class LtiContextHolder implements LtiContextProvider, LtiContextInitializ
         this.deepLinkingContext = parseDeepLinkingContext(claims, lmsUrl, agsEndpoint);
     }
 
+    @Override
+    public void clear() {
+        this.context = null;
+        this.deepLinkingContext = null;
+    }
+
     private static LtiDeepLinkingContext parseDeepLinkingContext(Map<String, Object> claims, String lmsUrl, Map<?, ?> agsEndpoint) {
         Map<?, ?> settings = (Map<?, ?>) claims.get(LTI_CLAIM_DEEP_LINKING);
         if (settings == null) {

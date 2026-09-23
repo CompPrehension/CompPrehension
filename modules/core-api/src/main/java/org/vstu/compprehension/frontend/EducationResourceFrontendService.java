@@ -8,7 +8,7 @@ import org.vstu.compprehension.frontend.dto.EducationResourceDto;
 import java.util.Optional;
 
 public interface EducationResourceFrontendService {
-    Optional<Long> findIdByUrlAndType(@NotNull String url, @NotNull EducationResourceType type);
+    @NotNull Optional<Long> findTrustedIdByUrlAndType(@NotNull String url, @NotNull EducationResourceType type);
 
     @NotNull EducationResourceDto getOrCreate(@NotNull String url, @NotNull EducationResourceType type, @NotNull EducationResourceTrustStatus trustStatus);
 }
