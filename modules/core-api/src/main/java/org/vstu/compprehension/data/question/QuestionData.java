@@ -70,6 +70,12 @@ public class QuestionData {
                 .orElseGet(List::of);
     }
 
+    public @NotNull List<AnswerData> findLatestCorrectAnswers() {
+        return latestCorrectInteraction()
+                .map(QuestionInteractionData::getAnswers)
+                .orElseGet(List::of);
+    }
+
     public int correctInteractionsCount() {
         return (int) interactions.stream().filter(QuestionInteractionData::isCorrect).count();
     }
@@ -87,7 +93,7 @@ public class QuestionData {
         return interaction.toBuilder()
                 .responses(interaction.getResponses().stream()
                         .filter(response -> !responseIds.contains(response.getId()))
-                        .collect(Collectors.toCollection(ArrayList::new)))
+                        .toList())
                 .build();
     }
 }

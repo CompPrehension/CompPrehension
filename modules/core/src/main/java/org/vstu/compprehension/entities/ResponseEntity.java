@@ -3,6 +3,7 @@ package org.vstu.compprehension.entities;
 import lombok.*;
 
 import jakarta.persistence.*;
+import org.jetbrains.annotations.Nullable;
 
 @Entity
 @Data
@@ -19,8 +20,12 @@ public class ResponseEntity {
     private AnswerObjectEntity leftAnswerObject;
 
     @ManyToOne(fetch = FetchType.LAZY)
-    @JoinColumn(name = "right_object_id", nullable = false)
+    @JoinColumn(name = "right_object_id")
     private AnswerObjectEntity rightAnswerObject;
+
+    @Nullable
+    @Column(name = "answer_value", nullable = true)
+    private Integer value;
 
     @ToString.Exclude
     @ManyToOne(cascade = CascadeType.ALL, fetch = FetchType.LAZY)

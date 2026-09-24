@@ -2599,7 +2599,7 @@ var SupQuestion = observer((props) => {
 			onClick: onSubmitted,
 			children: t("exercise_supquestion_send_answer")
 		}),
-		showMessageFeedback && /* @__PURE__ */ (0, import_jsx_runtime.jsx)(import_jsx_runtime.Fragment, { children: store.feedback.message.message }),
+		showMessageFeedback && /* @__PURE__ */ (0, import_jsx_runtime.jsx)("div", { dangerouslySetInnerHTML: { __html: store.feedback.message.message } }),
 		showQuestionFeedback && /* @__PURE__ */ (0, import_jsx_runtime.jsx)("div", {
 			className: "mt-2",
 			children: /* @__PURE__ */ (0, import_jsx_runtime.jsx)(ShortFeedbackAlert, { message: store.feedback.message })

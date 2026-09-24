@@ -35,7 +35,7 @@ import static org.vstu.compprehension.businesslogic.domains.expressiondt.Express
 import static org.vstu.compprehension.businesslogic.domains.expressiondt.ExpressionDtDomainFixture.operator;
 import static org.vstu.compprehension.businesslogic.domains.expressiondt.ExpressionDtDomainFixture.operatorsInOrder;
 import static org.vstu.compprehension.businesslogic.domains.DomainFixtures.interaction;
-import static org.vstu.compprehension.businesslogic.domains.DomainFixtures.responses;
+import static org.vstu.compprehension.businesslogic.domains.DomainFixtures.answers;
 import static org.vstu.compprehension.businesslogic.domains.DomainFixtures.violation;
 
 class ProgrammingLanguageExpressionDTDomainJudgeTest {
@@ -190,7 +190,7 @@ class ProgrammingLanguageExpressionDTDomainJudgeTest {
         // Arrange.
         var question = bankQuestion(MEMBER_ACCESS_PLUS);
         var tags = domain().resolveTags(question.getContent().getTags());
-        var wrong = responses(operator(question, "+"));
+        var wrong = answers(operator(question, "+"));
 
         // Act.
         var english = domain().judgeQuestion(question, wrong, tags, Language.ENGLISH).explanation.toHyperText(Language.ENGLISH).getText();
@@ -218,15 +218,15 @@ class ProgrammingLanguageExpressionDTDomainJudgeTest {
 
             // Assert.
             assertEquals(1, hint.answers.size());
-            assertEquals(expected.getHyperText(), hint.answers.getFirst().getLeft().getHyperText());
-            assertEquals(hint.answers.getFirst().getLeft(), hint.answers.getFirst().getRight());
+            assertEquals(expected.getHyperText(), hint.answers.getFirst().left().getHyperText());
+            assertEquals(hint.answers.getFirst().left(), hint.answers.getFirst().right());
             assertFalse(hint.skillName.isEmpty());
             assertNull(hint.lawName);
             assertFalse(hint.explanation.getChildren().isEmpty());
             given.add(expected);
         }
         var finish = domain().getAnyNextCorrectAnswer(withCorrectSteps(question, given, bankQuestion), Language.ENGLISH);
-        assertEquals(END_TOKEN, finish.answers.getFirst().getLeft().getDomainInfo());
+        assertEquals(END_TOKEN, finish.answers.getFirst().left().getDomainInfo());
     }
 
     /** Вложенные тернарные операторы: подсказки обходят невыполняемые ветви, а оставшиеся шаги учитывают опущенные операторы. */
@@ -241,7 +241,7 @@ class ProgrammingLanguageExpressionDTDomainJudgeTest {
         for (int step = 0; step < NESTED_TERNARIES.steps(); step++) {
             // Act.
             var hint = domain().getAnyNextCorrectAnswer(DomainFixtures.withCorrectSteps(question, given, 10), Language.ENGLISH);
-            given.add(hint.answers.getFirst().getLeft());
+            given.add(hint.answers.getFirst().left());
             var result = judge(question, given);
 
             // Assert.
@@ -280,7 +280,7 @@ class ProgrammingLanguageExpressionDTDomainJudgeTest {
         var hint = domain().getAnyNextCorrectAnswer(mistaken, Language.ENGLISH);
 
         // Assert.
-        assertEquals("-", hint.answers.getFirst().getLeft().getHyperText());
+        assertEquals("-", hint.answers.getFirst().left().getHyperText());
     }
 
     // ---- getFullSolutionTrace ----
@@ -353,7 +353,7 @@ class ProgrammingLanguageExpressionDTDomainJudgeTest {
 
     private static Domain.InterpretSentenceResult judge(QuestionData question, List<AnswerObjectData> answers) {
         List<Tag> tags = domain().resolveTags(question.getContent().getTags());
-        return domain().judgeQuestion(question, responses(answers), tags, Language.ENGLISH);
+        return domain().judgeQuestion(question, answers(answers), tags, Language.ENGLISH);
     }
 
     private static List<String> lawNames(List<ViolationData> violations) {

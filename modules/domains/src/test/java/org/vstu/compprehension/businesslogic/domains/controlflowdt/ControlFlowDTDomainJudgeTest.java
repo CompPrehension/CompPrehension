@@ -10,7 +10,7 @@ import org.vstu.compprehension.businesslogic.domains.DomainFixtures;
 import org.vstu.compprehension.businesslogic.domains.controlflowdt.ControlFlowDtDomainFixture.BankQuestion;
 import org.vstu.compprehension.data.question.AnswerObjectData;
 import org.vstu.compprehension.data.question.QuestionData;
-import org.vstu.compprehension.data.question.ResponseData;
+import org.vstu.compprehension.data.question.AnswerData;
 import org.vstu.compprehension.data.question.ViolationData;
 import org.vstu.compprehension.enums.Language;
 
@@ -26,7 +26,7 @@ import static org.junit.jupiter.api.Assertions.assertNull;
 import static org.junit.jupiter.api.Assertions.assertThrows;
 import static org.junit.jupiter.api.Assertions.assertTrue;
 import static org.vstu.compprehension.businesslogic.domains.DomainFixtures.interaction;
-import static org.vstu.compprehension.businesslogic.domains.DomainFixtures.responses;
+import static org.vstu.compprehension.businesslogic.domains.DomainFixtures.answers;
 import static org.vstu.compprehension.businesslogic.domains.DomainFixtures.violation;
 import static org.vstu.compprehension.businesslogic.domains.controlflowdt.ControlFlowDtDomainFixture.BANK;
 import static org.vstu.compprehension.businesslogic.domains.controlflowdt.ControlFlowDtDomainFixture.BREAK_IN_FOR;
@@ -325,7 +325,7 @@ class ControlFlowDTDomainJudgeTest {
     void judgeQuestionExplainsMistakeInRequestedLanguage() {
         // Arrange.
         var question = bankQuestion(SEQUENCE);
-        var wrong = responses(action(question, "atom_107"));
+        var wrong = answers(action(question, "atom_107"));
 
         // Act.
         var english = domain().judgeQuestion(question, wrong, List.of(), Language.ENGLISH).explanation.toHyperText(Language.ENGLISH).getText();
@@ -369,8 +369,8 @@ class ControlFlowDTDomainJudgeTest {
 
             // Assert.
             assertEquals(1, hint.answers.size());
-            assertEquals(expected, hint.answers.getFirst().getLeft());
-            assertEquals(expected, hint.answers.getFirst().getRight());
+            assertEquals(expected, hint.answers.getFirst().left());
+            assertEquals(expected, hint.answers.getFirst().right());
             assertFalse(hint.skillName.isEmpty());
             assertNull(hint.lawName);
             given.add(expected);
@@ -389,7 +389,7 @@ class ControlFlowDTDomainJudgeTest {
         var hint = domain().getAnyNextCorrectAnswer(mistaken, Language.RUSSIAN);
 
         // Assert.
-        assertEquals("atom_104", hint.answers.getFirst().getLeft().getDomainInfo());
+        assertEquals("atom_104", hint.answers.getFirst().left().getDomainInfo());
     }
 
     /** Подсказка о выходе из цикла объясняет завершение прерывания. */
@@ -403,7 +403,7 @@ class ControlFlowDTDomainJudgeTest {
         var hint = domain().getAnyNextCorrectAnswer(afterBreak, Language.RUSSIAN);
 
         // Assert.
-        assertEquals("atom_186", hint.answers.getFirst().getLeft().getDomainInfo());
+        assertEquals("atom_186", hint.answers.getFirst().left().getDomainInfo());
         assertTrue(hint.skillName.contains(INTERRUPTION_TERMINATED_SKILL));
         assertTrue(hint.explanation.toHyperText(Language.RUSSIAN).getText().contains("прерывание цикла"));
     }
@@ -496,7 +496,7 @@ class ControlFlowDTDomainJudgeTest {
         var correctSteps = List.of(1, 2, 3, 3, 3, 4, 4);
 
         for (int step = 0; step < clicks.size(); step++) {
-            var given = new ArrayList<>(question.latestCorrectResponses().stream().map(ResponseData::getLeftAnswerObject).toList());
+            var given = new ArrayList<>(question.findLatestCorrectAnswers().stream().map(AnswerData::left).toList());
             given.add(action(question, clicks.get(step)));
             var result = judge(question, given);
             question = question.withInteraction(interaction(step + 1, given, result.violations, result.IterationsLeft));
@@ -537,7 +537,7 @@ class ControlFlowDTDomainJudgeTest {
     // ---- вспомогательное ----
 
     private static Domain.InterpretSentenceResult judge(QuestionData question, List<AnswerObjectData> answers) {
-        return domain().judgeQuestion(question, responses(answers), List.of(), Language.RUSSIAN);
+        return domain().judgeQuestion(question, answers(answers), List.of(), Language.RUSSIAN);
     }
 
     private static List<AnswerObjectData> withMistake(QuestionData question, BankQuestion bankQuestion, int correctSteps, String wrongAction) {

@@ -1,6 +1,7 @@
 package org.vstu.compprehension.businesslogic.domains;
 
 import its.model.definition.MetadataPropertyValue;
+import its.model.nodes.CycleAggregationNode;
 import its.model.nodes.DecisionTreeElement;
 import org.junit.jupiter.api.Test;
 import org.vstu.compprehension.businesslogic.DomainItemFlag;
@@ -85,6 +86,56 @@ public abstract class DecisionTreeDomainLocalizationContract {
 
         // Assert.
         assertEquals(List.of(), russianInEnglish);
+    }
+
+    /** Описание ветки цикла называет перебираемый объект, иначе строки сопоставления неотличимы. */
+    @Test
+    protected void cycleBranchDescriptionsReferToCycleVariable() {
+        // Arrange.
+        var cycles = decisionTreeElements().stream()
+                .filter(CycleAggregationNode.class::isInstance)
+                .map(CycleAggregationNode.class::cast)
+                .toList();
+
+        // Act.
+        var anonymous = new ArrayList<String>();
+        for (var cycle : cycles) {
+            var variable = "${" + cycle.getVariable().getVarName() + "}";
+            var branch = cycle.getThoughtBranch();
+            for (var entry : branch.getMetadata().getEntries()) {
+                if (entry.getLocCode() != null && "description".equals(entry.getPropertyName())
+                        && !String.valueOf(entry.getValue()).contains(variable)) {
+                    anonymous.add(entry.getLocCode() + " description without " + variable + " at " + describe(branch));
+                }
+            }
+        }
+
+        // Assert.
+        assertEquals(List.of(), anonymous);
+    }
+
+    /** Тексты самого узла цикла не ссылаются на перебираемый объект: на уровне узла он ещё не выбран. */
+    @Test
+    protected void cycleNodeTextsDoNotReferToCycleVariable() {
+        // Arrange.
+        var cycles = decisionTreeElements().stream()
+                .filter(CycleAggregationNode.class::isInstance)
+                .map(CycleAggregationNode.class::cast)
+                .toList();
+
+        // Act.
+        var unbound = new ArrayList<String>();
+        for (var cycle : cycles) {
+            var variable = "${" + cycle.getVariable().getVarName() + "}";
+            for (var entry : cycle.getMetadata().getEntries()) {
+                if (entry.getLocCode() != null && String.valueOf(entry.getValue()).contains(variable)) {
+                    unbound.add(entry.getLocCode() + " " + entry.getPropertyName() + " with " + variable + " at " + describe(cycle));
+                }
+            }
+        }
+
+        // Assert.
+        assertEquals(List.of(), unbound);
     }
 
     /** Файлы сообщений домена содержат одинаковые ключи на обоих языках. */

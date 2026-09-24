@@ -22,7 +22,6 @@ public interface ExerciseAttemptDataService {
 
     Optional<Long> findAttemptIdOfQuestion(long questionId);
 
-
     void ensureCanAccessAttempt(long userId, long attemptId);
 
     void ensureCanAccessQuestion(long userId, long questionId);

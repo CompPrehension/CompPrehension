@@ -225,7 +225,7 @@ public class ExpressionDTDomainMetadataValidationTest extends AbstractIntegratio
 
         List<AnswerData> responses = new ArrayList<>();
         for (AnswerObjectData answerObject : answerSequence) {
-            responses.add(AnswerData.of(answerObject, answerObject));
+            responses.add(new AnswerData.Pair(answerObject, answerObject));
         }
         return domain.judgeQuestion(q, responses, List.of(domain.getTag(outLangStr)), Language.ENGLISH);
     }

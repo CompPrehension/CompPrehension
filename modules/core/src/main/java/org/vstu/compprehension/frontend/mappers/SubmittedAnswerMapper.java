@@ -11,10 +11,6 @@ class SubmittedAnswerMapper implements Mapper<SubmittedAnswerData, NewInteractio
 
     @Override
     public @NotNull NewInteractionAnswerData map(@NotNull SubmittedAnswerData source) {
-        return new NewInteractionAnswerData(
-                null,
-                source.leftAnswerId(),
-                source.rightAnswerId(),
-                source.createdByInteractionId());
+        return new NewInteractionAnswerData(null, source);
     }
 }

@@ -1,21 +1,23 @@
 <DecisionTree>
     <InputVariables/>
-    <ThoughtBranch _EN_description="all operators in the expression are fully evaluated"
+    <ThoughtBranch _EN_description="${$branchResult == BranchResult:CORRECT ? 'all' : 'not all'} operators in the expression are fully evaluated"
                    _EN_error_prefix="Expression evaluation cannot be finished now because "
                    _EN_hint_prefix="Expression evaluation can be finished because "
                    _EN_nextStepExplanation="Incorrect. It is necessary to check if all operators in the expression are completely evaluated"
                    _EN_nextStepQuestion="It is necessary to determine whether all operators in the expression are fully evaluated"
-                   _RU_description="полностью вычислены все операторы в выражении"
+                   _RU_description="${$branchResult == BranchResult:CORRECT ? 'все' : 'не все'} операторы в выражении вычислены полностью"
                    _RU_error_prefix="Вычисление выражения нельзя закончить потому, что "
                    _RU_hint_prefix="Вычисление выражения можно закончить потому, что "
                    _RU_nextStepExplanation="Неверно. Необходимо проверить, что полностью вычислены все операторы в выражении"
                    _RU_nextStepQuestion="Необходимо определить, полностью ли вычислены все операторы в выражении"
                    _TEMPLATING_ID="1" _alias="earlyfinish">
-        <CycleAggregationNode _EN_asNextStep="You need to find all unevaluated operators in the expression."
-                              _EN_endingCause="because ${result ? '' : 'not'} all operators are evaluated."
+        <CycleAggregationNode _EN_description="unevaluated operators ${$branchResult == BranchResult:CORRECT ? 'do not prevent' : 'prevent'} finishing the expression evaluation"
+                              _EN_asNextStep="You need to find all unevaluated operators in the expression."
+                              _EN_endingCause="Because of the presence or absence of unevaluated operators in the expression"
                               _EN_question="Find all unevaluated operators in the expression."
+                              _RU_description="закончить вычисление выражения ${$branchResult == BranchResult:CORRECT ? 'не' : ''} мешают невычисленные операторы"
                               _RU_asNextStep="Необходимо найти все невычисленные операторы в выражении."
-                              _RU_endingCause=" потому что ${result ? '' : 'не'} все операторы вычислены."
+                              _RU_endingCause="Из-за наличия или отсутствия в выражении невычисленных операторов"
                               _RU_question="Найдите все невычисленные операторы в выражении." _TEMPLATING_ID="2"
                               operator="AND">
             <DecisionTreeVarDecl name="X" type="operator"/>
@@ -35,20 +37,42 @@
                     </Compare>
                 </LogicalOr>
             </SelectorExpression>
-            <ThoughtBranch _EN_description="An unevaluated operator in the expression has been found."
-                           _EN_nextStepExplanation="That is incorrect. An unevaluated operator in the expression has been found."
-                           _EN_nextStepQuestion="Given that we found an unevaluated operator in the expression, what should we do next?"
-                           _RU_description="Найден невычисленный оператор в выражении."
-                           _RU_nextStepExplanation="Это неверно. Найден невычисленный оператор в выражении."
-                           _RU_nextStepQuestion="Учитывая, что найден невычисленный оператор в выражении, что следует сделать дальше?"
+            <FindError priority="1"
+                       _EN_explanation="${$checked} has already been evaluated."
+                       _RU_explanation="${$checked}[case='и'] уже вычислен.">
+                <Expression>
+                    <LogicalOr>
+                        <Compare operator="Equal">
+                            <GetPropertyValue propertyName="state">
+                                <Variable name="checked"/>
+                            </GetPropertyValue>
+                            <Enum owner="state" value="evaluated"/>
+                        </Compare>
+                        <Compare operator="Equal">
+                            <GetPropertyValue propertyName="state">
+                                <Variable name="checked"/>
+                            </GetPropertyValue>
+                            <Enum owner="state" value="used"/>
+                        </Compare>
+                    </LogicalOr>
+                </Expression>
+            </FindError>
+            <ThoughtBranch _EN_description="${X} does ${$branchResult == BranchResult:CORRECT ? 'not' : ''} prevent finishing the expression evaluation"
+                           _EN_nextStepExplanation="That is incorrect: the unevaluated ${X} has been found in the expression."
+                           _EN_nextStepQuestion="Given that the unevaluated ${X} has been found in the expression, what should we do next?"
+                           _RU_description="${X}[case='и'] ${$branchResult == BranchResult:CORRECT ? 'не' : ''} мешает закончить вычисление выражения"
+                           _RU_nextStepExplanation="Это неверно: в выражении найден невычисленный ${X}."
+                           _RU_nextStepQuestion="Учитывая, что в выражении найден невычисленный ${X}, что следует сделать дальше?"
                            _TEMPLATING_ID="3" _alias="earlyfinish.unevaluated">
                 <CycleAggregationNode
-                        _EN_asNextStep="You need to check whether ${Y} is in the operands of ${X}[case='p']. "
-                        _EN_endingCause="because ${Y} is ${result ? '' : 'not'} in operands ${X}[case='p']. "
-                        _EN_question="Determine if ${Y} is in operands ${X}[case='p']?"
-                        _RU_asNextStep="Необходимо проверить, находится ли ${Y} в операндах ${X}[case='р']. "
-                        _RU_endingCause="потому что ${Y} ${result ? '' : 'не'} находится в операндах ${X}[case='р']. "
-                        _RU_question="Определите, находится ли ${Y} в операндах ${X}[case='р']?" _TEMPLATING_ID="4"
+                        _EN_description="${X} does ${$branchResult == BranchResult:CORRECT ? 'not' : ''} require evaluation"
+                        _EN_asNextStep="You need to find all operators whose operands contain ${X}."
+                        _EN_endingCause="Because of whether ${X} requires evaluation inside the operators whose operands contain it"
+                        _EN_question="Find all operators whose operands contain ${X}."
+                        _RU_description="${X}[case='и'] ${$branchResult == BranchResult:CORRECT ? 'не' : ''} требует вычисления"
+                        _RU_asNextStep="Необходимо найти все операторы, в операндах которых находится ${X}."
+                        _RU_endingCause="Из-за того, требует ли ${X} вычисления внутри операторов, в операндах которых он находится"
+                        _RU_question="Найдите все операторы, в операндах которых находится ${X}." _TEMPLATING_ID="4"
                         operator="OR">
                     <DecisionTreeVarDecl name="Y" type="operator"/>
                     <SelectorExpression>
@@ -57,20 +81,38 @@
                             <Variable name="Y"/>
                         </CheckRelationship>
                     </SelectorExpression>
-                    <ThoughtBranch _EN_description="Found unevaluated operator ${Y} inside ${X}[case='р']."
-                                   _EN_nextStepExplanation="That's incorrect. Found unevaluated operator ${Y} inside ${X}[case='р']."
-                                   _EN_nextStepQuestion="Given that unevaluated operator ${Y} inside ${X}[case='р'] was found, what should be done next?"
-                                   _RU_description="Найден невычисленный оператор ${Y} внутри ${X}[case='р']."
-                                   _RU_nextStepExplanation="Это неверно. Найден невычисленный оператор ${Y} внутри ${X}[case='р']."
-                                   _RU_nextStepQuestion="Учитывая, что найден невычисленный оператор ${Y} внутри ${X}[case='р'], что необходимо сделать дальше?"
+                    <FindError priority="1"
+                               _EN_explanation="${$checked} is inside the operands of ${X}, not the other way around."
+                               _RU_explanation="${$checked}[case='и'] находится в операндах ${X}[case='р'], а не наоборот.">
+                        <Expression>
+                            <LogicalAnd>
+                                <CheckRelationship relationshipName="isInOperandOf">
+                                    <Variable name="checked"/>
+                                    <DecisionTreeVar name="X"/>
+                                </CheckRelationship>
+                                <ExistenceQuantifier type="operator" varName="parent">
+                                    <CheckRelationship relationshipName="isInOperandOf">
+                                        <DecisionTreeVar name="X"/>
+                                        <Variable name="parent"/>
+                                    </CheckRelationship>
+                                </ExistenceQuantifier>
+                            </LogicalAnd>
+                        </Expression>
+                    </FindError>
+                    <ThoughtBranch _EN_description="${X} does ${$branchResult == BranchResult:CORRECT ? 'not' : ''} require evaluation inside ${Y}"
+                                   _EN_nextStepExplanation="That's incorrect: ${X} is inside ${Y}."
+                                   _EN_nextStepQuestion="Given that ${X} is inside ${Y}, what should be done next?"
+                                   _RU_description="${X}[case='и'] ${$branchResult == BranchResult:CORRECT ? 'не' : ''} требует вычисления внутри ${Y}[case='р']"
+                                   _RU_nextStepExplanation="Это неверно: ${X} находится внутри ${Y}[case='р']."
+                                   _RU_nextStepQuestion="Учитывая, что ${X} находится внутри ${Y}[case='р'], что необходимо сделать дальше?"
                                    _TEMPLATING_ID="5" _alias="earlyfinish.unevaluated.inside">
                         <QuestionNode
-                                _EN_asNextStep="We need to check that the operator ${Y} has a strict order of evaluation of operands"
-                                _EN_endingCause="the operator ${Y} ${result ? '' : 'not'} has a strict order of evaluation of operands"
-                                _EN_question="Does the operator ${Y} have a strict order of evaluation of operands?"
-                                _RU_asNextStep="Необходимо проверить, что оператор ${Y} имеет строгий порядок вычисления операндов"
-                                _RU_endingCause="оператор ${Y} ${result ? '' : 'не'} имеет строгий порядок вычисления операндов"
-                                _RU_question="Имеет ли оператор ${Y} имеет строгий порядок вычисления операндов?"
+                                _EN_asNextStep="We need to check that ${Y} has a strict order of evaluation of operands"
+                                _EN_endingCause="Because of the order of evaluation of the operands of ${Y}"
+                                _EN_question="Does ${Y} have a strict order of evaluation of operands?"
+                                _RU_asNextStep="Необходимо проверить, что ${Y} имеет строгий порядок вычисления операндов"
+                                _RU_endingCause="Из-за порядка вычисления операндов ${Y}[case='р']"
+                                _RU_question="Имеет ли ${Y} строгий порядок вычисления операндов?"
                                 _TEMPLATING_ID="6">
                             <Expression>
                                 <CheckClass>
@@ -80,11 +122,11 @@
                             </Expression>
                             <Outcome
                                     _EN_explanation="${Y} is not a strict order operator, and it has not yet been evaluated"
-                                    _EN_nextStepExplanation="That's incorrect. ${Y} is not a strict order operator"
+                                    _EN_nextStepExplanation="That's incorrect: ${Y} is not a strict order operator"
                                     _EN_nextStepQuestion="Given that ${Y} is not a strict order operator, and it has not yet been evaluated, what should you do next?"
                                     _EN_text="${Y} is not a strict order operator"
-                                    _RU_explanation="${Y} не является оператором строгого порядка вычисления операндов, и ${X} является верхним оператором выражения и не может быть блокирован"
-                                    _RU_nextStepExplanation="Это неверно. ${Y} не является оператором строго порядка вычисления операндов"
+                                    _RU_explanation="${Y} не является оператором строгого порядка вычисления операндов"
+                                    _RU_nextStepExplanation="Это неверно: ${Y} не является оператором строгого порядка вычисления операндов"
                                     _RU_nextStepQuestion="Учитывая, что ${Y} не является оператором строгого порядка вычисления операндов, и он еще не вычислен, что следует делать дальше?"
                                     _RU_text="${Y} не является оператором строгого порядка вычисления операндов"
                                     _TEMPLATING_ID="7" value="false">
@@ -94,21 +136,21 @@
                                         _TEMPLATING_ID="8" _skill="earlyfinish_strict_order_operators_present"
                                         value="ERROR"/>
                             </Outcome>
-                            <Outcome _EN_explanation="The ${Y} operator has a strict operator evaluation order"
-                                     _EN_nextStepExplanation="That's incorrect. The ${Y} operator does not have a strict operator evaluation order"
-                                     _EN_nextStepQuestion="Given that the ${Y} operator does not have a strict operator evaluation order?"
-                                     _EN_text="The ${Y} operator has a strict operator evaluation order"
-                                     _RU_explanation="Оператор ${Y} имеет строгий порядок вычисления операторов"
-                                     _RU_nextStepExplanation="Это неверно. Оператор ${Y} не имеет строгого порядка вычисления операторов"
-                                     _RU_nextStepQuestion="Учитывая, что оператор ${Y} не имеет строгого порядка вычисления операторов?"
-                                     _RU_text="Оператор ${Y} имеет строгий порядок вычисления операторов"
+                            <Outcome _EN_explanation="${Y} has a strict order of evaluation of operands"
+                                     _EN_nextStepExplanation="That's incorrect: ${Y} has a strict order of evaluation of operands"
+                                     _EN_nextStepQuestion="Given that ${Y} has a strict order of evaluation of operands, what should you do next?"
+                                     _EN_text="${Y} has a strict order of evaluation of operands"
+                                     _RU_explanation="${Y} имеет строгий порядок вычисления операндов"
+                                     _RU_nextStepExplanation="Это неверно: ${Y} имеет строгий порядок вычисления операндов"
+                                     _RU_nextStepQuestion="Учитывая, что ${Y} имеет строгий порядок вычисления операндов, что следует сделать дальше?"
+                                     _RU_text="${Y} имеет строгий порядок вычисления операндов"
                                      _TEMPLATING_ID="9" value="true">
                                 <QuestionNode
                                         _EN_asNextStep="We need to check that ${X} is in the first operand of ${Y}[case='p'] to be evaluated"
-                                        _EN_endingCause="because ${X} ${result ? 'is' : 'is not'} in the first operand of ${Y}[case='p'] to be evaluated"
+                                        _EN_endingCause="Because of the position of ${X} relative to the first evaluated operand of ${Y}"
                                         _EN_question="Is ${X} in the first operand of ${Y}[case='p'] to be evaluated?"
                                         _RU_asNextStep="Необходимо проверить, что ${X} находится в первом вычисляемом операнде ${Y}[case='р']"
-                                        _RU_endingCause="потому что ${X} ${result ? 'есть' : 'отсутствует'} в первом вычисляемом операнде ${Y}[case='р']"
+                                        _RU_endingCause="Из-за положения ${X}[case='р'] относительно первого вычисляемого операнда ${Y}[case='р']"
                                         _RU_question="Находится ли ${X} в первом вычисляемом операнде ${Y}[case='р']?"
                                         _TEMPLATING_ID="10">
                                     <Expression>
@@ -126,11 +168,11 @@
                                         </CheckRelationship>
                                     </Expression>
                                     <Outcome _EN_explanation="${X} is in the first operand of ${Y}[case='p']"
-                                             _EN_nextStepExplanation="That's incorrect. ${X} is in the first operand of ${Y}[case='p']"
+                                             _EN_nextStepExplanation="That's incorrect: ${X} is in the first operand of ${Y}[case='p']"
                                              _EN_nextStepQuestion="Given that ${X} is in the first operand of ${Y}[case='p'], what should you do next?"
                                              _EN_text="${X} is in the first operand of ${Y}[case='p']"
                                              _RU_explanation="${X} находится в первом вычисляемом операнде ${Y}[case='р']"
-                                             _RU_nextStepExplanation="Это неверно. ${X} находится в первом вычисляемом операнде ${Y}[case='р']"
+                                             _RU_nextStepExplanation="Это неверно: ${X} находится в первом вычисляемом операнде ${Y}[case='р']"
                                              _RU_nextStepQuestion="Учитывая, что ${X} находится в первом вычисляемом операнде ${Y}[case='р'], что нужно сделать дальше?"
                                              _RU_text="${X} находится в первом вычисляемом операнде ${Y}[case='р']"
                                              _TEMPLATING_ID="11" value="true">
@@ -142,20 +184,20 @@
                                                 value="ERROR"/>
                                     </Outcome>
                                     <Outcome _EN_explanation="${X} is not in the first operand of ${Y}[case='p']."
-                                             _EN_nextStepExplanation="That is incorrect. ${X} is not in the first operand of ${Y}[case='p']."
+                                             _EN_nextStepExplanation="That is incorrect: ${X} is not in the first operand of ${Y}[case='p']."
                                              _EN_nextStepQuestion="Given that ${X} is not in the first operand of ${Y}[case='p'], what follows?"
                                              _EN_text="${X} is not in the first operand of ${Y}[case='p']."
                                              _RU_explanation="${X} не находится в первом вычисляемом операнде ${Y}[case='р']."
-                                             _RU_nextStepExplanation="Это неверно. ${X} не находится в первом вычисляемом операнде ${Y}[case='р']."
+                                             _RU_nextStepExplanation="Это неверно: ${X} не находится в первом вычисляемом операнде ${Y}[case='р']."
                                              _RU_nextStepQuestion="Учитывая, что ${X} не находится в первом вычисляемом операнде ${Y}[case='р'], что следует дальше?"
                                              _RU_text="${X} не находится в первом вычисляемом операнде ${Y}[case='р']."
                                              _TEMPLATING_ID="13" value="false">
                                         <QuestionNode
                                                 _EN_asNextStep="We need to check that the required value for the ${X=&gt;isInOperandOf(Y).placement}[case='р'] operand in ${Y}[case='п'] is any for evaluating the right operand."
-                                                _EN_endingCause="because the required value for the ${X=&gt;isInOperandOf(Y).placement}[case='р'] operand in ${Y}[case='п'] is ${result ? '' : 'not'} any for evaluating the right operand."
+                                                _EN_endingCause="Because of the value required of the ${X=&gt;isInOperandOf(Y).placement} operand of ${Y}"
                                                 _EN_question="Make sure that the required value for the ${X=&gt;isInOperandOf(Y).placement}[case='р'] operand in ${Y}[case='п'] is any for evaluating the right operand."
                                                 _RU_asNextStep="Необходимо проверить, что требуемое значение для ${X=&gt;isInOperandOf(Y).placement}[case='р'] операнда в ${Y}[case='п'] - любое для вычисления правого операнда."
-                                                _RU_endingCause="потому что требуемое значение для ${X=&gt;isInOperandOf(Y).placement}[case='р'] операнда в ${Y}[case='п'] - ${result ? '' : 'не'} любое для вычисления правого операнда."
+                                                _RU_endingCause="Из-за требуемого значения ${X=&gt;isInOperandOf(Y).placement}[case='р'] операнда ${Y}[case='р']"
                                                 _RU_question="Убедитесь, что требуемое значение для ${X=&gt;isInOperandOf(Y).placement}[case='р'] операнда в ${Y}[case='п'] - любое для вычисления правого операнда."
                                                 _TEMPLATING_ID="14">
                                             <Expression>
@@ -206,10 +248,10 @@
                                                     _TEMPLATING_ID="17" value="false">
                                                 <QuestionNode
                                                         _EN_asNextStep="Check that the required value for the ${X=&gt;isInOperandOf(Y).placement}[case='р'] operand in ${Y}[case='п'] to evaluate the right operand is equivalent to that for ${Y}[case='п']"
-                                                        _EN_endingCause="because the required value for the ${X=&gt;isInOperandOf(Y).placement}[case='р'] operand in ${Y}[case='п'] to evaluate the right operand of ${result ? '' : 'not'} is equivalent to this value for ${Y}[case='п']"
+                                                        _EN_endingCause="Because of the value of ${X} required to evaluate the right operand of ${Y}"
                                                         _EN_question="Check that the required value for the ${X=&gt;isInOperandOf(Y).placement}[case='р'] operand in ${Y}[case='п'] to evaluate the right operand is equivalent to that for ${Y}[case='п']"
                                                         _RU_asNextStep="Необходимо проверить, что требуемое значение для ${X=&gt;isInOperandOf(Y).placement}[case='р'] операнда в ${Y}[case='п'] для вычисления правого операнда эквивалентно таковому значению для ${Y}[case='п']"
-                                                        _RU_endingCause="потому что требуемое значение для ${X=&gt;isInOperandOf(Y).placement}[case='р'] операнда в ${Y}[case='п'] для вычисления правого операнда ${result ? '' : 'не'} эквивалентно таковому значению для ${Y}[case='п']"
+                                                        _RU_endingCause="Из-за значения ${X}[case='р'], требуемого для вычисления правого операнда ${Y}[case='р']"
                                                         _RU_question="Проверьте, что требуемое значение для ${X=&gt;isInOperandOf(Y).placement}[case='р'] операнда в ${Y}[case='п'] для вычисления правого операнда эквивалентно таковому значению для ${Y}[case='п']"
                                                         _TEMPLATING_ID="18">
                                                     <Expression>
@@ -269,7 +311,7 @@
                                                             _EN_nextStepExplanation="This is incorrect. The required value for the ${X=&gt;isInOperandOf(Y).placement}[case='р'] operand in ${Y}[case='п'] to evaluate the right operand is equivalent to that of ${Y}[case='п']"
                                                             _EN_nextStepQuestion="Given that the required value for the ${X=&gt;isInOperandOf(Y).placement}[case='р'] operand in ${Y}[case='п'] for evaluating the right operand is equivalent to that of ${Y}[case='п'], what should be done next?"
                                                             _EN_text="The required value for the ${X=&gt;isInOperandOf(Y).placement}[case='р'] operand in ${Y}[case='п'] for evaluating the right operand is equivalent to that of ${Y}[case='п']"
-                                                            _RU_explanation="Невычисленный ${X} не имеет требуемое значение для вычисления правого операнда ${Y}[case='п']"
+                                                            _RU_explanation="Невычисленный ${X} не имеет требуемого значения для вычисления правого операнда ${Y}[case='п']"
                                                             _RU_nextStepExplanation="Это неверно. Требуемое значение для ${X=&gt;isInOperandOf(Y).placement}[case='р'] операнда в ${Y}[case='п'] для вычисления правого операнда эквивалентно таковому значению для ${Y}[case='п']"
                                                             _RU_nextStepQuestion="Учитывая, что требуемое значение для ${X=&gt;isInOperandOf(Y).placement}[case='р'] операнда в ${Y}[case='п'] для вычисления правого операнда эквивалентно таковому значению для ${Y}[case='п'], что следует делать дальше?"
                                                             _RU_text="Требуемое значение для ${X=&gt;isInOperandOf(Y).placement}[case='р'] операнда в ${Y}[case='п'] для вычисления правого операнда эквивалентно таковому значению для ${Y}[case='п']"
@@ -289,14 +331,14 @@
                             </Outcome>
                         </QuestionNode>
                     </ThoughtBranch>
-                    <Outcome _EN_explanation="No unevaluated statements inside ${X}[case='p']"
-                             _EN_nextStepExplanation="That's incorrect. There are no unevaluated statements inside ${X}[case='p']"
-                             _EN_nextStepQuestion="Given that there are no unevaluated statements inside ${X}[case='p'], what should you do next?"
-                             _EN_text="No unevaluated statement found inside ${X}[case='p']"
-                             _RU_explanation="Нет невычисленных операторов внутри ${X}[case='р']"
-                             _RU_nextStepExplanation="Это неверно. Нет невычисленных операторов внутри ${X}[case='р']"
-                             _RU_nextStepQuestion="Учитывая, что нет невычисленных операторов внутри                     ${X}[case='р'], что следует делать дальше?"
-                             _RU_text="Не найден невычисленный оператор внутри ${X}[case='р']" _TEMPLATING_ID="23"
+                    <Outcome _EN_explanation="${X} is not in the operands of any other operator"
+                             _EN_nextStepExplanation="That's incorrect: ${X} is not in the operands of any other operator"
+                             _EN_nextStepQuestion="Given that ${X} is not in the operands of any other operator, what should you do next?"
+                             _EN_text="${X} is not in the operands of any other operator"
+                             _RU_explanation="${X} не находится в операндах других операторов"
+                             _RU_nextStepExplanation="Это неверно: ${X} не находится в операндах других операторов"
+                             _RU_nextStepQuestion="Учитывая, что ${X} не находится в операндах других операторов, что следует делать дальше?"
+                             _RU_text="${X} не находится в операндах других операторов" _TEMPLATING_ID="23"
                              value="NULL">
                         <BranchResultNode
                                 _EN_explanation="${X} should be evaluated because it is the top-level operator whose evaluation cannot be blocked"

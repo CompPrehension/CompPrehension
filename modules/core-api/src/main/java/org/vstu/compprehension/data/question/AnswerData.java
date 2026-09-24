@@ -3,15 +3,22 @@ package org.vstu.compprehension.data.question;
 import org.jetbrains.annotations.NotNull;
 
 /**
- * Ответ студента — пара объектов ответа.
+ * Ответ студента: пара объектов ответа либо выбор значения для объекта ответа.
  */
-public interface AnswerData {
+public sealed interface AnswerData permits AnswerData.Pair, AnswerData.Choice {
 
-    @NotNull AnswerObjectData getLeftAnswerObject();
+    @NotNull AnswerObjectData left();
 
-    @NotNull AnswerObjectData getRightAnswerObject();
+    @NotNull AnswerObjectData right();
 
-    static @NotNull AnswerData of(@NotNull AnswerObjectData left, @NotNull AnswerObjectData right) {
-        return new AnswerPair(left, right);
+    record Pair(@NotNull AnswerObjectData left, @NotNull AnswerObjectData right) implements AnswerData {
+    }
+
+    record Choice(@NotNull AnswerObjectData left, int value) implements AnswerData {
+
+        @Override
+        public @NotNull AnswerObjectData right() {
+            return left;
+        }
     }
 }

@@ -22,6 +22,7 @@ import org.vstu.compprehension.businesslogic.strategies.AbstractStrategyFactory;
 import org.vstu.compprehension.businesslogic.strategies.StrategyDecision;
 import org.vstu.compprehension.data.exerciseattempt.AttemptSummaryData;
 import org.vstu.compprehension.data.exercise.ExerciseStageData;
+import org.vstu.compprehension.data.question.AnswerData;
 import org.vstu.compprehension.data.question.AnswerFeedbackData;
 import org.vstu.compprehension.data.question.NewInteractionAnswerData;
 import org.vstu.compprehension.data.question.NewInteractionData;
@@ -82,24 +83,36 @@ class ExerciseAttemptFrontendServiceImpl implements ExerciseAttemptFrontendServi
         var currentUser = userService.getCurrentUser();
         var language = currentUser.language();
 
-        val responses = questionService.resolveAnswers(questionId, toSubmittedAnswers(interaction.getAnswers()));
+        val answers = toSubmittedAnswers(questionService.getQuestionType(questionId), interaction.getAnswers());
+        val responses = questionService.resolveAnswers(questionId, answers);
 
         return questionService.judgeSupplementaryQuestion(questionId, responses, language);
     }
 
     @Transactional(propagation = Propagation.REQUIRED)
     public @NotNull FeedbackDto addQuestionAnswer(@NotNull InteractionDto interaction) {
-        return addQuestionAnswer(interaction.getQuestionId(), toSubmittedAnswers(interaction.getAnswers()));
+        var questionId = interaction.getQuestionId();
+        var question = questionService.getSolvedQuestion(questionId);
+        return addQuestionAnswer(question, toSubmittedAnswers(question.getContent().getQuestionType(), interaction.getAnswers()));
     }
 
     private @NotNull FeedbackDto addQuestionAnswer(long questionId, @NotNull List<SubmittedAnswerData> answers) {
+        var question = questionService.getSolvedQuestion(questionId);
+        return addQuestionAnswer(question, answers);
+    }
+
+    private @NotNull FeedbackDto addQuestionAnswer(QuestionData question, @NotNull List<SubmittedAnswerData> answers) {
+        var questionId = question.getId();
+        if (questionId == null) {
+            throw new IllegalArgumentException("Question Id is null");
+        }
+
         var context = exerciseAttemptService.findQuestionContext(questionId).orElse(null);
 
         var currentUser = userService.getCurrentUser();
         var language = currentUser.language();
 
         // evaluate answer
-        var question = questionService.getSolvedQuestion(questionId);
         val domain = domainFactory.getDomain(question.getContent().getDomainId());
         val tags = domain.resolveTags(question.getContent().getTags());
         val responses = questionService.resolveAnswers(questionId, answers);
@@ -136,14 +149,14 @@ class ExerciseAttemptFrontendServiceImpl implements ExerciseAttemptFrontendServi
         if (isAnswerCorrect && question.getContent().getQuestionType().equals(QuestionType.ORDER) &&
                 orderQuestionOptions != null && !orderQuestionOptions.isMultipleSelectionEnabled() &&
                 judgeResult.IterationsLeft == 1 && question.getContent().getAnswerObjects().size() - correctAnswers.size() == 1) {
-            val correctAnswersIds = correctAnswers.stream().map(r -> r.getLeftAnswerObject().getAnswerId()).collect(Collectors.toSet());
+            val correctAnswersIds = correctAnswers.stream().map(r -> r.getAnswer().left().getAnswerId()).collect(Collectors.toSet());
             val missingAnswer = question.getContent().getAnswerObjects().stream()
                     .filter(ao -> !correctAnswersIds.contains(ao.getAnswerId()))
-                    .map(ao -> new SubmittedAnswerData(ao.getAnswerId(), ao.getAnswerId(), null))
+                    .<SubmittedAnswerData>map(ao -> new SubmittedAnswerData.Pair(ao.getAnswerId(), ao.getAnswerId(), null))
                     .findFirst().get();
             val completedAnswer = Stream.concat(
-                    correctAnswers.stream().map(r -> new SubmittedAnswerData(
-                            r.getLeftAnswerObject().getAnswerId(), r.getRightAnswerObject().getAnswerId(), r.getCreatedByInteractionId())),
+                    correctAnswers.stream().<SubmittedAnswerData>map(r -> new SubmittedAnswerData.Pair(
+                            r.getAnswer().left().getAnswerId(), r.getAnswer().right().getAnswerId(), r.getCreatedByInteractionId())),
                     Stream.of(missingAnswer)).toList();
             return addQuestionAnswer(questionId, completedAnswer);
         }
@@ -199,13 +212,12 @@ class ExerciseAttemptFrontendServiceImpl implements ExerciseAttemptFrontendServi
         // заново: ответы последнего верного взаимодействия переезжают в это.
         val alreadyGiven = question.latestCorrectResponses();
         val nextAnswers = correctAnswer.answers.stream()
-                .map(x -> new SubmittedAnswerData(
-                        x.getLeft().getAnswerId(), x.getRight().getAnswerId(), null))
+                .map(ExerciseAttemptFrontendServiceImpl::toSubmittedAnswer)
                 .toList();
 
         // evaluate new answer
         val responses = Stream.concat(
-                alreadyGiven.stream(),
+                alreadyGiven.stream().map(ResponseData::getAnswer),
                 questionService.resolveAnswers(questionId, nextAnswers).stream()).toList();
         val judgeResult = domain.judgeQuestion(question, responses,
                 domain.resolveTags(question.getContent().getTags()), language);
@@ -286,13 +298,27 @@ class ExerciseAttemptFrontendServiceImpl implements ExerciseAttemptFrontendServi
         return context == null ? Language.RUSSIAN/*ENGLISH*/ : context.userLanguage();
     }
 
-    private static @NotNull List<SubmittedAnswerData> toSubmittedAnswers(@Nullable AnswerDto[] answers) {
+    private static @NotNull List<SubmittedAnswerData> toSubmittedAnswers(@NotNull QuestionType questionType,
+                                                                      @Nullable AnswerDto[] answers) {
         return answers == null ? List.of() : Arrays.stream(answers)
-                .map(answer -> new SubmittedAnswerData(
-                        answer.getAnswer()[0].intValue(),
-                        answer.getAnswer()[1].intValue(),
-                        answer.getCreatedByInteraction()))
+                .map(answer -> toSubmittedAnswer(questionType, answer))
                 .toList();
+    }
+
+    private static @NotNull SubmittedAnswerData toSubmittedAnswer(@NotNull AnswerData answer) {
+        return switch (answer) {
+            case AnswerData.Pair pair -> new SubmittedAnswerData.Pair(pair.left().getAnswerId(), pair.right().getAnswerId(), null);
+            case AnswerData.Choice choice -> new SubmittedAnswerData.Choice(choice.left().getAnswerId(), choice.value(), null);
+        };
+    }
+
+    private static @NotNull SubmittedAnswerData toSubmittedAnswer(@NotNull QuestionType questionType,
+                                                                  @NotNull AnswerDto answer) {
+        var left = answer.getAnswer()[0].intValue();
+        var right = answer.getAnswer()[1].intValue();
+        return questionType == QuestionType.MULTI_CHOICE
+                ? new SubmittedAnswerData.Choice(left, right, answer.getCreatedByInteraction())
+                : new SubmittedAnswerData.Pair(left, right, answer.getCreatedByInteraction());
     }
 
     public @Nullable ExerciseAttemptDto getExerciseAttempt(@NotNull Long attemptId) {

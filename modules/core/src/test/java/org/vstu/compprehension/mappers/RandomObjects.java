@@ -113,6 +113,10 @@ final class RandomObjects {
             }
             return null;
         }
+        if (raw.isSealed()) {
+            Class<?>[] permitted = raw.getPermittedSubclasses();
+            return next(ResolvableType.forClass(permitted[random.nextInt(permitted.length)]), depth, path, slot);
+        }
         if (raw.isInterface()) {
             return proxy(raw, depth, path);
         }

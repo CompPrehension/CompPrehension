@@ -2,6 +2,7 @@ package org.vstu.compprehension.frontend.mappers;
 
 import org.jetbrains.annotations.NotNull;
 import org.springframework.stereotype.Component;
+import org.vstu.compprehension.data.question.AnswerData;
 import org.vstu.compprehension.data.question.ResponseData;
 import org.vstu.compprehension.enums.InteractionType;
 import org.vstu.compprehension.frontend.dto.AnswerDto;
@@ -16,8 +17,15 @@ class AnswerDtoMapper implements Mapper<ResponseData, AnswerDto> {
                 .isCreatedByUser(source.getCreatedByInteractionType() == InteractionType.SEND_RESPONSE)
                 .createdByInteraction(source.getCreatedByInteractionId())
                 .answer(new Long[] {
-                        (long) source.getLeftAnswerObject().getAnswerId(),
-                        (long) source.getRightAnswerObject().getAnswerId() })
+                        (long) source.getAnswer().left().getAnswerId(),
+                        (long) toRightElement(source.getAnswer()) })
                 .build();
+    }
+
+    private int toRightElement(@NotNull AnswerData answer) {
+        return switch (answer) {
+            case AnswerData.Pair pair -> pair.right().getAnswerId();
+            case AnswerData.Choice choice -> choice.value();
+        };
     }
 }

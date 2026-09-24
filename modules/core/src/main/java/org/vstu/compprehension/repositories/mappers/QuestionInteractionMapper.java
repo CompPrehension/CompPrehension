@@ -9,9 +9,6 @@ import org.vstu.compprehension.data.question.QuestionInteractionData;
 import org.vstu.compprehension.entities.InteractionEntity;
 import org.vstu.compprehension.mappers.Mapper;
 
-import java.util.ArrayList;
-import java.util.stream.Collectors;
-
 @Component
 @RequiredArgsConstructor
 class QuestionInteractionMapper implements Mapper<InteractionEntity, QuestionInteractionData> {
@@ -21,23 +18,22 @@ class QuestionInteractionMapper implements Mapper<InteractionEntity, QuestionInt
 
     @Override
     public @NotNull QuestionInteractionData map(@NotNull InteractionEntity source) {
-        var data = new QuestionInteractionData();
-        data.setId(source.getId());
-        data.setInteractionType(source.getInteractionType());
-        data.setFeedback(source.getFeedback() == null ? null
-                : new FeedbackData(source.getFeedback().getId(), source.getFeedback().getGrade(),
-                        source.getFeedback().getInteractionsLeft()));
-        data.setViolations(source.getViolations().stream()
-                .map(violation -> violationMapper.map(violation, source))
-                .collect(Collectors.toCollection(ArrayList::new)));
-        data.setCorrectLaw(source.getCorrectLaw().stream()
-                .map(law -> new CorrectLawData(law.getId(), law.getLawName()))
-                .collect(Collectors.toCollection(ArrayList::new)));
-
         boolean hasViolations = !source.getViolations().isEmpty();
-        data.setResponses(source.getResponses().stream()
-                .map(response -> responseMapper.map(response, hasViolations))
-                .collect(Collectors.toCollection(ArrayList::new)));
-        return data;
+        return QuestionInteractionData.builder()
+                .id(source.getId())
+                .interactionType(source.getInteractionType())
+                .feedback(source.getFeedback() == null ? null
+                        : new FeedbackData(source.getFeedback().getId(), source.getFeedback().getGrade(),
+                                source.getFeedback().getInteractionsLeft()))
+                .violations(source.getViolations().stream()
+                        .map(violation -> violationMapper.map(violation, source))
+                        .toList())
+                .correctLaw(source.getCorrectLaw().stream()
+                        .map(law -> new CorrectLawData(law.getId(), law.getLawName()))
+                        .toList())
+                .responses(source.getResponses().stream()
+                        .map(response -> responseMapper.map(response, hasViolations))
+                        .toList())
+                .build();
     }
 }

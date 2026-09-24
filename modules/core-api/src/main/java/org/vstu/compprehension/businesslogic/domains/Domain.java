@@ -5,14 +5,11 @@ import org.vstu.compprehension.businesslogic.SupplementaryStepContext;
 import org.vstu.compprehension.data.question.SupplementaryStepData;
 import org.vstu.compprehension.data.question.ViolationData;
 import org.vstu.compprehension.data.question.BackendFactData;
-import lombok.AllArgsConstructor;
-import lombok.Data;
 import org.jetbrains.annotations.NotNull;
 import org.jetbrains.annotations.Nullable;
 import org.vstu.compprehension.data.question.QuestionMetadataWithData;
 import org.vstu.compprehension.businesslogic.*;
 import org.vstu.compprehension.businesslogic.backend.Fact;
-import org.vstu.compprehension.data.question.AnswerObjectData;
 import org.vstu.compprehension.data.exercise.ExerciseOptionsData;
 import org.vstu.compprehension.data.question.QuestionContentData;
 import org.vstu.compprehension.data.question.GeneratedQuestionData;
@@ -230,7 +227,7 @@ public interface Domain {
         /**
          * Correct answer objects
          */
-        public List<Response> answers;
+        public List<AnswerData> answers;
         /**
          * Text explanation why it has chosen
          */
@@ -243,13 +240,6 @@ public interface Domain {
          * Skill names for this answer
          */
         public List<String> skillName;
-
-        @AllArgsConstructor
-        @Data
-        public static class Response {
-            private AnswerObjectData left;
-            private AnswerObjectData right;
-        }
     }
 
     /**

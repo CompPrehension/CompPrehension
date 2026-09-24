@@ -2,6 +2,7 @@ package org.vstu.compprehension.repositories.entity;
 
 import org.springframework.data.jpa.repository.JpaRepository;
 import org.springframework.data.jpa.repository.Query;
+import org.vstu.compprehension.enums.QuestionType;
 import org.springframework.data.repository.query.Param;
 import org.springframework.stereotype.Repository;
 import org.vstu.compprehension.entities.QuestionEntity;
@@ -30,6 +31,9 @@ public interface QuestionRepository extends JpaRepository<QuestionEntity, Long> 
 
     @Query("select q.domainId from QuestionEntity q where q.id = :questionId")
     Optional<String> findDomainId(@Param("questionId") long questionId);
+
+    @Query("select q.questionType from QuestionEntity q where q.id = :questionId")
+    Optional<QuestionType> findQuestionType(@Param("questionId") long questionId);
 
     /**
      * Id пользователя, которому принадлежит попытка, породившая вопрос.

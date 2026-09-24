@@ -80,7 +80,7 @@ public class MeaningTreeRDFTransformer {
         TokenList tokens = tokenize(facts, language);
         TokenList selected = new TokenList(responses.stream()
                 .map((r) -> {
-                    String fullTokenName = base.getResource(BASE_TTL_PREF + r.getLeftAnswerObject().getDomainInfo()).getLocalName();
+                    String fullTokenName = base.getResource(BASE_TTL_PREF + r.left().getDomainInfo()).getLocalName();
                     String[] tokenName = fullTokenName.split("_");
                     if (fullTokenName.equals("end_token") || fullTokenName.equals("student_end_evaluation")) {
                         return new EndToken();

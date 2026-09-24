@@ -5,6 +5,9 @@ import org.junit.jupiter.api.Test;
 import org.junit.jupiter.api.TestFactory;
 import org.vstu.compprehension.businesslogic.Law;
 import org.vstu.compprehension.businesslogic.PositiveLaw;
+import org.vstu.compprehension.entities.AnswerObjectEntity;
+import org.vstu.compprehension.entities.InteractionEntity;
+import org.vstu.compprehension.entities.ResponseEntity;
 
 import java.util.ArrayList;
 import java.util.Arrays;
@@ -20,8 +23,11 @@ class MapperContractTest {
             .forPackages("org.vstu.compprehension.frontend.mappers", "org.vstu.compprehension.repositories.mappers",
                     "org.vstu.compprehension.services.mappers")
             .subtype(Law.class, PositiveLaw.class)
+            .value(ResponseEntity.class, MapperContractTest::response)
+            .ignore("AnswerDtoMapper", "answer")
             .ignore("CourseRoleAssignmentMapper", "role")
             .ignore("DomainDtoMapperImpl", "tags", "concepts", "laws", "skills")
+            .ignore("FeedbackDtoMapperImpl", "correctAnswers")
             .ignore("QuestionEntityMapperImpl", "id", "createdAt", "interactions")
             .ignore("QuestionMapperImpl", "id")
             .unordered("QuestionMapperImpl", "interactions")
@@ -152,5 +158,19 @@ class MapperContractTest {
     @TestFactory
     Stream<DynamicNode> applyToleratesNullsInNullableFields() {
         return CONTRACT.forEachApply((mapping, seed) -> mapping.invoke(mapping.argumentsWithNulls(seed)));
+    }
+
+    /** Ответ из базы: ровно одно из «правый объект» и «значение». */
+    private static ResponseEntity response(RandomObjects random) {
+        var response = new ResponseEntity();
+        response.setId(random.next(Long.class));
+        response.setLeftAnswerObject(random.next(AnswerObjectEntity.class));
+        if (random.nextInt(2) == 0) {
+            response.setRightAnswerObject(random.next(AnswerObjectEntity.class));
+        } else {
+            response.setValue(random.next(Integer.class));
+        }
+        response.setCreatedByInteraction(random.next(InteractionEntity.class));
+        return response;
     }
 }

@@ -12,6 +12,7 @@ import org.vstu.compprehension.entities.InteractionEntity;
 import org.vstu.compprehension.entities.QuestionEntity;
 import org.vstu.compprehension.entities.QuestionMetadataEntity;
 import org.vstu.compprehension.entities.QuestionRequestLogEntity;
+import org.vstu.compprehension.enums.QuestionType;
 import org.vstu.compprehension.mappers.Mapper;
 import org.vstu.compprehension.repositories.entity.AnswerObjectRepository;
 import org.vstu.compprehension.repositories.entity.ExerciseAttemptRepository;
@@ -62,6 +63,12 @@ public class QuestionDataRepository {
     @Transactional(readOnly = true)
     public @NotNull String getDomainId(long questionId) {
         return questionRepository.findDomainId(questionId)
+                .orElseThrow(() -> new NoSuchElementException("Question " + questionId + " not found"));
+    }
+
+    @Transactional(readOnly = true)
+    public @NotNull QuestionType getQuestionType(long questionId) {
+        return questionRepository.findQuestionType(questionId)
                 .orElseThrow(() -> new NoSuchElementException("Question " + questionId + " not found"));
     }
 
