@@ -308,7 +308,7 @@ public final class Reclassify {
     }
 
     private static List<AnswerData> responses(List<AnswerObjectData> answers) {
-        return answers.stream().map(a -> AnswerData.of(a, a)).collect(Collectors.toList());
+        return answers.stream().<AnswerData>map(a -> new AnswerData.Pair(a, a)).collect(Collectors.toList());
     }
 
     private static String tagOf(SupportedLanguage language) {

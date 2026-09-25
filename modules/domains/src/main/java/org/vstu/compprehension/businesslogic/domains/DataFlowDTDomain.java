@@ -29,7 +29,6 @@ import org.vstu.compprehension.businesslogic.SupplementaryStepContext;
 import org.vstu.compprehension.data.question.QuestionMetadataWithData;
 import org.vstu.compprehension.data.question.QuestionData;
 import org.vstu.compprehension.data.question.AnswerObjectData;
-import org.vstu.compprehension.data.question.ResponseData;
 import org.vstu.compprehension.services.LocalizationService;
 import org.vstu.compprehension.common.StringHelper;
 import org.vstu.compprehension.businesslogic.*;
@@ -152,10 +151,10 @@ public class DataFlowDTDomain extends DecisionTreeReasoningDomain {
             for (AnswerData response : responses) {
                 result.add(new Fact(
                         "owl:NamedIndividual",
-                        response.getLeftAnswerObject().getDomainInfo(),
+                        response.left().getDomainInfo(),
                         "var...",
                         "xsd:string",
-                        response.getRightAnswerObject().getDomainInfo()
+                        response.right().getDomainInfo()
                 ));
             }
             return result;
@@ -317,12 +316,12 @@ public class DataFlowDTDomain extends DecisionTreeReasoningDomain {
     @Override
     public CorrectAnswer getAnyNextCorrectAnswer(QuestionData q, Language language) {
 
-        List<ResponseData> responses = q.latestCorrectResponses();
+        List<AnswerData> responses = q.findLatestCorrectAnswers();
 
         var solvingModel = getDomainSolvingModels().getFirst();
         DomainModel situationModel = factsToDomainModel(solvingModel, q.getContent().getStatementFacts());
-        for (ResponseData response : responses) {
-            String[] objects = response.getLeftAnswerObject().getDomainInfo().split(":");
+        for (AnswerData response : responses) {
+            String[] objects = response.left().getDomainInfo().split(":");
             LearningSituation learningSituation = new LearningSituation(
                     situationModel.copy(),
                     new HashMap<>(Map.of(
@@ -367,7 +366,7 @@ public class DataFlowDTDomain extends DecisionTreeReasoningDomain {
                             .findFirst()
                             .orElse(null);
                     CorrectAnswer correctAnswer = new CorrectAnswer();
-                    correctAnswer.answers = List.of(new CorrectAnswer.Response(answer, answer));
+                    correctAnswer.answers = List.of(new AnswerData.Pair(answer, answer));
                     correctAnswer.question = q;
                     correctAnswer.lawName = null;
                     correctAnswer.skillName = null;
@@ -387,7 +386,7 @@ public class DataFlowDTDomain extends DecisionTreeReasoningDomain {
                 .orElse(null);
 
         CorrectAnswer correctAnswer = new CorrectAnswer();
-        correctAnswer.answers = List.of(new CorrectAnswer.Response(answer, answer));
+        correctAnswer.answers = List.of(new AnswerData.Pair(answer, answer));
         correctAnswer.question = q;
         correctAnswer.lawName = null;
         correctAnswer.skillName = null;
@@ -533,7 +532,7 @@ public class DataFlowDTDomain extends DecisionTreeReasoningDomain {
             AnswerData lastResponse = responses.getLast();
             for (AnswerData response : responses) {
                 if(response != lastResponse) {
-                    String[] objects = response.getLeftAnswerObject().getDomainInfo().split(":");
+                    String[] objects = response.left().getDomainInfo().split(":");
                     LearningSituation learningSituation = new LearningSituation(
                             situationModel.copy(),
                             new HashMap<>(Map.of(
@@ -551,7 +550,7 @@ public class DataFlowDTDomain extends DecisionTreeReasoningDomain {
                     }
                 }
             }
-            String[] objects = lastResponse.getLeftAnswerObject().getDomainInfo().split(":");
+            String[] objects = lastResponse.left().getDomainInfo().split(":");
             newVariable(situationModel, "var", objects[0]);
             newVariable(situationModel, "answer", objects[1]);
 

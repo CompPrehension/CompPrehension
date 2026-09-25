@@ -1,5 +1,6 @@
 package org.vstu.compprehension.data.question;
 
+import org.jetbrains.annotations.NotNull;
 import org.jetbrains.annotations.Nullable;
 
 /**
@@ -7,7 +8,5 @@ import org.jetbrains.annotations.Nullable;
  */
 public record NewInteractionAnswerData(
         @Nullable Long responseId,
-        int leftAnswerId,
-        int rightAnswerId,
-        @Nullable Long createdByInteractionId) {
+        @NotNull SubmittedAnswerData answer) {
 }

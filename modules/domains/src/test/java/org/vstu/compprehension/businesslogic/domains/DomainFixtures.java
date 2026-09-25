@@ -4,6 +4,7 @@ import com.google.gson.Gson;
 import com.google.gson.JsonParser;
 import org.jetbrains.annotations.NotNull;
 import org.vstu.compprehension.businesslogic.storage.SerializableQuestion;
+import org.vstu.compprehension.data.question.AnswerData;
 import org.vstu.compprehension.data.question.AnswerObjectData;
 import org.vstu.compprehension.data.question.FeedbackData;
 import org.vstu.compprehension.data.question.QuestionData;
@@ -48,14 +49,20 @@ public final class DomainFixtures {
         }
     }
 
-    public static List<ResponseData> responses(List<AnswerObjectData> answers) {
+    public static List<AnswerData> answers(List<AnswerObjectData> answers) {
         return answers.stream()
-                .map(a -> ResponseData.builder().leftAnswerObject(a).rightAnswerObject(a).build())
+                .<AnswerData>map(a -> new AnswerData.Pair(a, a))
                 .toList();
     }
 
+    public static List<AnswerData> answers(AnswerObjectData... answers) {
+        return answers(Arrays.asList(answers));
+    }
+
     public static List<ResponseData> responses(AnswerObjectData... answers) {
-        return responses(Arrays.asList(answers));
+        return Arrays.stream(answers)
+                .map(a -> ResponseData.builder().answer(new AnswerData.Pair(a, a)).build())
+                .toList();
     }
 
     public static ViolationData violation(String lawName) {
@@ -68,8 +75,7 @@ public final class DomainFixtures {
                                                       List<ViolationData> violations, int interactionsLeft) {
         var responses = answers.stream()
                 .map(a -> ResponseData.builder()
-                        .leftAnswerObject(a)
-                        .rightAnswerObject(a)
+                        .answer(new AnswerData.Pair(a, a))
                         .interactionHasViolations(!violations.isEmpty())
                         .build())
                 .toList();

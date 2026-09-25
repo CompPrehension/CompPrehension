@@ -19,6 +19,8 @@ import its.model.definition.DomainModel;
 import its.model.nodes.DecisionTree;
 import its.model.nodes.BranchResult;
 import its.questions.gen.QuestioningSituation;
+import its.questions.gen.dialog.DialogDriver;
+import its.questions.gen.dialog.DialogStep;
 import its.questions.gen.states.*;
 import its.questions.gen.strategies.FullBranchStrategy;
 import its.questions.gen.strategies.QuestionAutomata;
@@ -54,7 +56,7 @@ public class DecisionTreeSupQuestionHelper {
     }
 
     public DecisionTreeSupQuestionHelper(
-            Domain domain,
+            DomainBase domain,
             DomainSolvingModel domainSolvingModel,
             BiFunction<QuestionData, QuestionInteractionData, DomainModel> mainQuestionToModelTransformer
     ) {
@@ -63,7 +65,7 @@ public class DecisionTreeSupQuestionHelper {
     }
 
     public DecisionTreeSupQuestionHelper(
-            Domain domain,
+            DomainBase domain,
             DomainSolvingModel domainSolvingModel,
             BiFunction<QuestionData, QuestionInteractionData, DomainModel> mainQuestionToModelTransformer,
             DecisionTreeSelector decisionTreeSelector
@@ -87,7 +89,11 @@ public class DecisionTreeSupQuestionHelper {
         );
     }
 
-    private final Domain domain;
+    private static final MultiChoiceOptionsData MULTIPLE_CHOICE_OPTIONS = MultiChoiceOptionsData.builder()
+            .displayMode(MultiChoiceOptionsData.DisplayMode.SWITCH)
+            .build();
+
+    private final DomainBase domain;
     final DomainSolvingModel domainModel ;
     private final Map<DecisionTree, QuestionAutomata> automataByTree = new ConcurrentHashMap<>();
     private final BiFunction<QuestionData, QuestionInteractionData, DomainModel> mainQuestionToModelTransformer;
@@ -124,30 +130,21 @@ public class DecisionTreeSupQuestionHelper {
             situation.addAssumedResult(decisionTree.getMainBranch(), BranchResult.CORRECT);
         }
 
-        //получить состояние автомата вопросов, к которому перешли на последнем шаге
-        QuestionState state = latestStep != null ? supplementaryAutomata.get(latestStep.getNextStateId()) : supplementaryAutomata.getInitState();
-
-
-        //Получить вопрос
-        QuestionStateResult res = state.getQuestion(situation);
-        while(res instanceof QuestionStateChange &&
-                ((QuestionStateChange) res).getExplanation() == null &&
-                ((QuestionStateChange) res).getNextState() != null && !(((QuestionStateChange) res).getNextState() instanceof EndQuestionState)){
-            state = ((QuestionStateChange) res).getNextState();
-            res = state.getQuestion(situation);
-        }
+        DialogStep step = latestStep == null
+                ? DialogDriver.start(supplementaryAutomata, situation)
+                : DialogDriver.resume(findState(supplementaryAutomata, latestStep), situation);
 
         NewSupplementaryStepData supplementaryChain = new NewSupplementaryStepData(
                 lastInteraction.getId(),
                 toSupplementarySituationData(situation),
-                res instanceof  QuestionStateChange
-                        ? ((QuestionStateChange) res).getNextState() != null ? ((QuestionStateChange) res).getNextState().getId() : 0
-                        : state.getId()
+                toNextStateId(step)
         );
 
         // Попытка и связь шага со сгенерированным вопросом проставляются сервисом
         // после сохранения: у домена нет ни сущности попытки, ни сущности вопроса.
-        SupplementaryResponse response = stateResultAsSupplementaryResponse(res, null, userLang);
+        SupplementaryResponse response = step.getQuestion() != null && step.getExplanations().isEmpty()
+                ? new SupplementaryResponse.Question(transformQuestionFormats(step.getQuestion(), null, userLang))
+                : new SupplementaryResponse.Feedback(toSupplementaryFeedbackDto(step));
         return new SupplementaryResponseGenerationResult(response, supplementaryChain);
     }
 
@@ -169,11 +166,12 @@ public class DecisionTreeSupQuestionHelper {
             switch (q.getType()) {
                 case single -> {
                     assert responses.size() == 1;
-                    answers = List.of(responses.get(0).getLeftAnswerObject().getAnswerId());
+                    answers = List.of(responses.get(0).left().getAnswerId());
                 }
                 case multiple -> {
                     answers = responses.stream()
-                        .map(AnswerData::getLeftAnswerObject)
+                        .filter(r -> r instanceof AnswerData.Choice choice && MULTIPLE_CHOICE_OPTIONS.isSelected(choice.value()))
+                        .map(AnswerData::left)
                         .map(AnswerObjectData::getAnswerId)
                         .collect(Collectors.toList());
                 }
@@ -181,15 +179,14 @@ public class DecisionTreeSupQuestionHelper {
                     answers = new ArrayList<>(Collections.nCopies(q.getOptions().size(), 0));
                     for (AnswerData r : responses) {
                         answers.set(
-                            r.getLeftAnswerObject().getAnswerId(),
-                            r.getRightAnswerObject().getAnswerId() - q.getOptions().size()
+                            r.left().getAnswerId(),
+                            r.right().getAnswerId() - q.getOptions().size()
                         );
                     }
                 }
             }
         }
 
-        //получить фидбек ответа и изменение состояния
         QuestionStateChange change = state.proceedWithAnswer(situation, answers);
 
         NewSupplementaryStepData newSupplementaryChain = new NewSupplementaryStepData(
@@ -197,7 +194,15 @@ public class DecisionTreeSupQuestionHelper {
                 toSupplementarySituationData(situation),
                 change.getNextState() != null ? change.getNextState().getId() : null
         );
-        return new SupplementaryFeedbackGenerationResult(stateChangeAsSupplementaryFeedbackDto(change), newSupplementaryChain);
+        return new SupplementaryFeedbackGenerationResult(toSupplementaryFeedbackDto(change), newSupplementaryChain);
+    }
+
+    private static @Nullable QuestionState findState(QuestionAutomata automata, SupplementaryStepData step) {
+        return step.getNextStateId() == null ? null : automata.get(step.getNextStateId());
+    }
+
+    private static @Nullable Integer toNextStateId(DialogStep step) {
+        return step.getState() == null ? null : step.getState().getId();
     }
 
     private GeneratedQuestionData transformQuestionFormats(Question q, @Nullable ExerciseOptionsData exerciseOptions, Language language){
@@ -236,13 +241,11 @@ public class DecisionTreeSupQuestionHelper {
             }
             case multiple -> {
                 questionType = QuestionType.MULTI_CHOICE;
-                val opt = new MultiChoiceOptionsData();
-                opt.setDisplayMode(MultiChoiceOptionsData.DisplayMode.SWITCH);
-                options = opt;
+                options = MULTIPLE_CHOICE_OPTIONS;
+                Collections.shuffle(answerObjects, domain.randomProvider.getRandom());
             }
             default -> throw new IllegalStateException("Unsupported question type: " + q.getType());
         }
-        options.setShowSupplementaryQuestions(true);
 
         return GeneratedQuestionData.of(QuestionContentData.builder()
                 .domainId(domain.getDomainId())
@@ -254,23 +257,27 @@ public class DecisionTreeSupQuestionHelper {
                 .build());
     }
 
-    private static SupplementaryFeedbackDto stateChangeAsSupplementaryFeedbackDto(QuestionStateChange change){
-        Explanation expl = change.getExplanation();
-        return new SupplementaryFeedbackDto(
-                new FeedbackDto.Message(expl != null && expl.getType() == ExplanationType.Error ? FeedbackDto.MessageType.ERROR : FeedbackDto.MessageType.SUCCESS, expl != null ? expl.getText() : "...", List.of(
-                        new FeedbackViolationLawDto("", true))),
-                change.getNextState() == null ||
-                        change.getNextState() instanceof EndQuestionState ||
-                        (change.getNextState() instanceof RedirectQuestionState && ((RedirectQuestionState) change.getNextState()).redirectsTo() instanceof EndQuestionState)
-                        ? SupplementaryFeedbackDto.Action.Finish
-                        : expl != null && expl.getShouldPause() ? SupplementaryFeedbackDto.Action.ContinueManual : SupplementaryFeedbackDto.Action.ContinueAuto
-        );
+    private static SupplementaryFeedbackDto toSupplementaryFeedbackDto(QuestionStateChange change){
+        List<Explanation> explanations = change.getExplanation() == null ? List.of() : List.of(change.getExplanation());
+        return toSupplementaryFeedbackDto(explanations, change.getNextState() == null);
     }
-    private SupplementaryResponse stateResultAsSupplementaryResponse(QuestionStateResult q, @Nullable ExerciseOptionsData exerciseOptions, Language language){
-        return switch (q) {
-            case Question question -> new SupplementaryResponse.Question(transformQuestionFormats(question, exerciseOptions, language));
-            case QuestionStateChange questionStateChange -> new SupplementaryResponse.Feedback(stateChangeAsSupplementaryFeedbackDto(questionStateChange));
-        };
+
+    private static SupplementaryFeedbackDto toSupplementaryFeedbackDto(DialogStep step){
+        return toSupplementaryFeedbackDto(step.getExplanations(), step.isFinished());
+    }
+
+    private static SupplementaryFeedbackDto toSupplementaryFeedbackDto(List<Explanation> explanations, boolean isFinished){
+        boolean isError = explanations.stream().anyMatch(e -> e.getType() == ExplanationType.Error);
+        String text = explanations.isEmpty()
+                ? "..."
+                : explanations.stream().map(Explanation::getText).collect(Collectors.joining("\n"));
+        return new SupplementaryFeedbackDto(
+                new FeedbackDto.Message(isError ? FeedbackDto.MessageType.ERROR : FeedbackDto.MessageType.SUCCESS, text, List.of(
+                        new FeedbackViolationLawDto("", true))),
+                isFinished
+                        ? SupplementaryFeedbackDto.Action.Finish
+                        : explanations.stream().anyMatch(Explanation::getShouldPause) ? SupplementaryFeedbackDto.Action.ContinueManual : SupplementaryFeedbackDto.Action.ContinueAuto
+        );
     }
 
     private SupplementarySituationData toSupplementarySituationData(QuestioningSituation situation) {

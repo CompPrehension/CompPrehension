@@ -111,7 +111,7 @@ public class LoqiBuilder extends AbstractIntegrationTest {
                 AnswerObjectData answerObject = AnswerObjectData
                         .builder().answerId(response)
                         .domainInfo("token_" + response).build();
-                responses.add(AnswerData.of(answerObject, answerObject));
+                responses.add(new AnswerData.Pair(answerObject, answerObject));
             }
             DomainModel model = MeaningTreeRDFTransformer.questionToDomainModel(
                     domainSolvingModel, q.getContent().getStatementFacts(), responses, List.of(domain.getTag(outLangStr))

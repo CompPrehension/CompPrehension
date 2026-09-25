@@ -1,30 +1,38 @@
 package org.vstu.compprehension.data.question;
 
-import lombok.AllArgsConstructor;
 import lombok.Builder;
-import lombok.Data;
-import lombok.NoArgsConstructor;
+import lombok.Value;
+import org.jetbrains.annotations.NotNull;
 import org.jetbrains.annotations.Nullable;
 import org.vstu.compprehension.enums.InteractionType;
-import org.vstu.compprehension.data.exerciseattempt.AttemptQuestionInteractionData;
 
-import java.util.ArrayList;
 import java.util.List;
 
-@Data
-@Builder(toBuilder = true)
-@NoArgsConstructor
-@AllArgsConstructor
+@Value
 public class QuestionInteractionData {
-    private Long id;
-    private InteractionType interactionType;
-    private @Nullable FeedbackData feedback;
-    @Builder.Default
-    private List<ViolationData> violations = new ArrayList<>();
-    @Builder.Default
-    private List<ResponseData> responses = new ArrayList<>();
-    @Builder.Default
-    private List<CorrectLawData> correctLaw = new ArrayList<>();
+    Long id;
+    InteractionType interactionType;
+    @Nullable FeedbackData feedback;
+    @NotNull List<ViolationData> violations;
+    @NotNull List<ResponseData> responses;
+    @NotNull List<CorrectLawData> correctLaw;
+    @NotNull List<AnswerData> answers;
+
+    @Builder(toBuilder = true)
+    public QuestionInteractionData(Long id,
+                                   InteractionType interactionType,
+                                   @Nullable FeedbackData feedback,
+                                   @Nullable List<ViolationData> violations,
+                                   @Nullable List<ResponseData> responses,
+                                   @Nullable List<CorrectLawData> correctLaw) {
+        this.id = id;
+        this.interactionType = interactionType;
+        this.feedback = feedback;
+        this.violations = violations == null ? List.of() : List.copyOf(violations);
+        this.responses = responses == null ? List.of() : List.copyOf(responses);
+        this.correctLaw = correctLaw == null ? List.of() : List.copyOf(correctLaw);
+        this.answers = this.responses.stream().map(ResponseData::getAnswer).toList();
+    }
 
     public boolean isCorrect() {
         return violations.isEmpty();

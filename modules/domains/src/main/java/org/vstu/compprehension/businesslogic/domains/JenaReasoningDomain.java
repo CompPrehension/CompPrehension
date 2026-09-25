@@ -8,6 +8,9 @@ import org.vstu.compprehension.businesslogic.NegativeLaw;
 import org.vstu.compprehension.businesslogic.PositiveLaw;
 import org.vstu.compprehension.services.RandomProvider;
 import org.vstu.compprehension.data.question.AnswerData;
+import org.vstu.compprehension.data.question.AnswerObjectData;
+import org.vstu.compprehension.data.questionoptions.MultiChoiceOptionsData;
+import org.vstu.compprehension.enums.QuestionType;
 import org.vstu.compprehension.services.ExerciseAttemptDataService;
 import org.vstu.compprehension.data.question.QuestionContentData;
 import org.vstu.compprehension.data.question.QuestionData;
@@ -30,6 +33,16 @@ public abstract class JenaReasoningDomain extends DomainBase {
         super(domainId, randomProvider, structure);
 
         this.backendInterface = new FactBackend.Interface<>(this);
+    }
+
+    protected static @NotNull AnswerData toCorrectAnswer(@NotNull QuestionContentData content,
+                                                       @NotNull AnswerObjectData answer) {
+        if (content.getQuestionType() != QuestionType.MULTI_CHOICE) {
+            return new AnswerData.Pair(answer, answer);
+        }
+        return new AnswerData.Choice(answer, content.getOptions() instanceof MultiChoiceOptionsData options
+                ? options.selectedValue()
+                : MultiChoiceOptionsData.SWITCH_ON);
     }
 
     protected static List<Law> readLawsJson(InputStream inputStream) {

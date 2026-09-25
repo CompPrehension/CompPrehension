@@ -132,7 +132,7 @@ const SupQuestion = observer((props: SupQuestionProps) => {
                 <Button variant="primary" onClick={onSubmitted}>{t('exercise_supquestion_send_answer')}</Button>
             }
             {showMessageFeedback &&
-                <>{store.feedback!.message.message}</>
+                <div dangerouslySetInnerHTML={{ __html: store.feedback!.message.message }} />
             }
             {showQuestionFeedback &&
                 <div className='mt-2'>

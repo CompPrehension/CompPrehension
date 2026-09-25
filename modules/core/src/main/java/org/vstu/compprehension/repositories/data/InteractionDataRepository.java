@@ -16,6 +16,7 @@ import org.vstu.compprehension.entities.InteractionEntity;
 import org.vstu.compprehension.entities.QuestionEntity;
 import org.vstu.compprehension.entities.ResponseEntity;
 import org.vstu.compprehension.entities.ViolationEntity;
+import org.vstu.compprehension.enums.QuestionType;
 import org.vstu.compprehension.mappers.Mapper;
 import org.vstu.compprehension.utils.Strict;
 import org.vstu.compprehension.repositories.entity.InteractionRepository;
@@ -42,13 +43,21 @@ public class InteractionDataRepository {
 
     @Transactional(readOnly = true)
     public @NotNull List<AnswerData> resolveAnswers(long questionId, @NotNull List<SubmittedAnswerData> answers) {
-        var answerObjects = answerObjectsByAnswerId(findQuestion(questionId), questionId);
+        var question = findQuestion(questionId);
+        var answerObjects = answerObjectsByAnswerId(question, questionId);
+
         return answers.stream()
-                .map(answer -> AnswerData.of(
-                        answerObjectMapper.map(
-                                requireAnswerObject(answerObjects, answer.leftAnswerId(), questionId)),
-                        answerObjectMapper.map(
-                                requireAnswerObject(answerObjects, answer.rightAnswerId(), questionId))))
+                .<AnswerData>map(answer -> {
+                    ensureAnswerMatchesQuestion(questionId, question.getQuestionType(), answer);
+
+                    var left = answerObjectMapper.map(
+                            requireAnswerObject(answerObjects, answer.leftAnswerId(), questionId));
+                    return switch (answer) {
+                        case SubmittedAnswerData.Pair pair -> new AnswerData.Pair(left, answerObjectMapper.map(
+                                requireAnswerObject(answerObjects, pair.rightAnswerId(), questionId)));
+                        case SubmittedAnswerData.Choice choice -> new AnswerData.Choice(left, choice.value());
+                    };
+                })
                 .toList();
     }
 
@@ -63,14 +72,19 @@ public class InteractionDataRepository {
                 responses.add(existingResponse(answer.responseId()));
                 continue;
             }
+            var submitted = answer.answer();
+            ensureAnswerMatchesQuestion(data.questionId(), question.getQuestionType(), submitted);
             var response = new ResponseEntity();
             response.setLeftAnswerObject(
-                    requireAnswerObject(answerObjects, answer.leftAnswerId(), data.questionId()));
-            response.setRightAnswerObject(
-                    requireAnswerObject(answerObjects, answer.rightAnswerId(), data.questionId()));
-            if (answer.createdByInteractionId() != null) {
+                    requireAnswerObject(answerObjects, submitted.leftAnswerId(), data.questionId()));
+            switch (submitted) {
+                case SubmittedAnswerData.Pair pair -> response.setRightAnswerObject(
+                        requireAnswerObject(answerObjects, pair.rightAnswerId(), data.questionId()));
+                case SubmittedAnswerData.Choice choice -> response.setValue(choice.value());
+            }
+            if (submitted.createdByInteractionId() != null) {
                 response.setCreatedByInteraction(
-                        interactionRepository.getReferenceById(answer.createdByInteractionId()));
+                        interactionRepository.getReferenceById(submitted.createdByInteractionId()));
             }
             responses.add(response);
         }
@@ -113,6 +127,15 @@ public class InteractionDataRepository {
     private @NotNull QuestionEntity findQuestion(long questionId) {
         return questionRepository.findByIdFetchingAnswerObjects(questionId)
                 .orElseThrow(() -> new NoSuchElementException("Question " + questionId + " not found"));
+    }
+
+    private static void ensureAnswerMatchesQuestion(long questionId, @NotNull QuestionType questionType,
+                                                    @NotNull SubmittedAnswerData answer) {
+        var expectsChoice = questionType == QuestionType.MULTI_CHOICE;
+        if (expectsChoice != (answer instanceof SubmittedAnswerData.Choice)) {
+            throw new IllegalArgumentException(
+                    "Question " + questionId + " of type " + questionType + " does not accept " + answer);
+        }
     }
 
     private static @NotNull Map<Integer, AnswerObjectEntity> answerObjectsByAnswerId(

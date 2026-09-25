@@ -7,6 +7,7 @@ import org.junit.jupiter.api.Test;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.transaction.annotation.Transactional;
 import org.vstu.compprehension.authorization.TestUserService;
+import org.vstu.compprehension.data.questionoptions.MultiChoiceOptionsData;
 import org.vstu.compprehension.enums.AttemptStatus;
 import org.vstu.compprehension.enums.Decision;
 import org.vstu.compprehension.enums.Language;
@@ -39,6 +40,7 @@ import static org.junit.jupiter.api.Assertions.assertTrue;
 class ExerciseAttemptFrontendServiceTest extends AbstractIntegrationTest {
 
     private static final String ORDER = "ORDER";
+    private static final String MULTI_CHOICE = "MULTI_CHOICE";
     private static final float GRADE_DELTA = 0.0001f;
 
     @Autowired private ExerciseAttemptFrontendService service;
@@ -627,6 +629,27 @@ class ExerciseAttemptFrontendServiceTest extends AbstractIntegrationTest {
         assertNotNull(feedback.getAction());
         assertFalse(feedback.getMessage().getMessage().isBlank());
         assertDoesNotThrow(() -> service.generateSupplementaryQuestion(question.getQuestionId(), laws));
+    }
+
+    /** Переключатели доп. вопроса с множественным выбором читаются как значения, а не как объекты ответа. */
+    @Test
+    void multiChoiceSupplementaryAnswerIsReadAsSwitchValues() {
+        // Arrange.
+        TestUserService.actAs(TestData.Users.GLOBAL_EXERCISE_AUTHOR_ID);
+        var bankQuestion = TestData.ExpressionBank.MEMBER_ACCESS_PLUS;
+        var question = attemptlessQuestion(bankQuestion);
+        var laws = violationLawsOf(service.addQuestionAnswer(interaction(question, bankQuestion.endEvaluationAnswerId())));
+        var supplementary = supplementaryQuestion(service.generateSupplementaryQuestion(question.getQuestionId(), laws));
+        var everythingSwitchedOn = new InteractionDto(supplementary.getQuestionId(), Arrays.stream(supplementary.getAnswers())
+                .map(answer -> new AnswerDto(answer.getId(), (long) MultiChoiceOptionsData.SWITCH_ON, true, null))
+                .toArray(AnswerDto[]::new));
+
+        // Act.
+        var feedback = service.addSupplementaryQuestionAnswer(everythingSwitchedOn);
+
+        // Assert.
+        assertEquals(MULTI_CHOICE, supplementary.getType());
+        assertEquals(FeedbackDto.MessageType.SUCCESS, feedback.getMessage().getType());
     }
 
     /** Обычный вопрос за доп. вопрос не принимается. */

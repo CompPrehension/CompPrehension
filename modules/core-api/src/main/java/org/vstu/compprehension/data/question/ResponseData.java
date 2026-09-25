@@ -12,10 +12,9 @@ import org.vstu.compprehension.enums.InteractionType;
 @Builder
 @NoArgsConstructor
 @AllArgsConstructor
-public class ResponseData implements AnswerData {
+public class ResponseData {
     private Long id;
-    private @NotNull AnswerObjectData leftAnswerObject;
-    private @NotNull AnswerObjectData rightAnswerObject;
+    private @NotNull AnswerData answer;
     private @Nullable InteractionType createdByInteractionType;
     private @Nullable Long createdByInteractionId;
 

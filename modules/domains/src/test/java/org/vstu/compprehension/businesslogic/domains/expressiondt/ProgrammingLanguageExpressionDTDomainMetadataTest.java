@@ -22,7 +22,7 @@ import java.util.stream.Stream;
 import static org.junit.jupiter.api.Assertions.assertEquals;
 import static org.junit.jupiter.api.Assertions.assertNotNull;
 import static org.junit.jupiter.api.Assertions.assertTrue;
-import static org.vstu.compprehension.businesslogic.domains.DomainFixtures.responses;
+import static org.vstu.compprehension.businesslogic.domains.DomainFixtures.answers;
 import static org.vstu.compprehension.businesslogic.domains.expressiondt.ExpressionDtDomainFixture.BANK;
 import static org.vstu.compprehension.businesslogic.domains.expressiondt.ExpressionDtDomainFixture.cppTags;
 import static org.vstu.compprehension.businesslogic.domains.expressiondt.ExpressionDtDomainFixture.domain;
@@ -102,7 +102,7 @@ class ProgrammingLanguageExpressionDTDomainMetadataTest {
     }
 
     private static Domain.InterpretSentenceResult judge(QuestionData question, List<AnswerObjectData> answers) {
-        return domain().judgeQuestion(question, responses(answers), cppTags(), Language.ENGLISH);
+        return domain().judgeQuestion(question, answers(answers), cppTags(), Language.ENGLISH);
     }
 
     private static Set<String> lawsKnownToDecisionTrees() {

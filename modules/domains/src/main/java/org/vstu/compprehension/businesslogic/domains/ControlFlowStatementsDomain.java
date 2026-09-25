@@ -1,6 +1,7 @@
 package org.vstu.compprehension.businesslogic.domains;
 
 import org.vstu.compprehension.data.question.AnswerData;
+import org.vstu.compprehension.data.question.ResponseData;
 import org.vstu.compprehension.data.question.SupplementaryStepData;
 import org.vstu.compprehension.data.exercise.ExerciseOptionsData;
 import org.vstu.compprehension.data.question.ExplanationTemplateInfoData;
@@ -30,7 +31,6 @@ import org.vstu.compprehension.data.question.QuestionData;
 import org.vstu.compprehension.data.question.GeneratedQuestionData;
 import org.vstu.compprehension.data.question.QuestionContentData;
 import org.vstu.compprehension.data.question.AnswerObjectData;
-import org.vstu.compprehension.data.question.ResponseData;
 import org.vstu.compprehension.services.LocalizationService;
 import org.vstu.compprehension.businesslogic.*;
 import org.vstu.compprehension.businesslogic.backend.Fact;
@@ -190,7 +190,7 @@ public class ControlFlowStatementsDomain extends JenaReasoningDomain {
 
             for (ResponseData response : responsesForTrace(question, true)) {
 
-                AnswerObjectData answerObj = response.getLeftAnswerObject();
+                AnswerObjectData answerObj = response.getAnswer().left();
                 boolean responseIsWrong = response.isInteractionHasViolations();
 
                 // format a trace line ...
@@ -238,7 +238,7 @@ public class ControlFlowStatementsDomain extends JenaReasoningDomain {
     protected HyperText _formatTraceLine(QuestionContentData question, String textMode, Language lang,
                                        HashMap<String, Integer> exprName2ExecTime, FactsGraph qg, List<String> actionKinds,
                                        AnswerObjectData answerObj, boolean lineIsWrong) {
-//        AnswerObjectData answerObj = response.getLeftAnswerObject();
+//        AnswerObjectData answerObj = response.left();
         String domainInfo = answerObj.getDomainInfo();
         AnswerDomainInfo info = new AnswerDomainInfo(domainInfo).invoke();
         String line;
@@ -961,7 +961,7 @@ QuestionOptionsData orderQuestionOptions = OrderQuestionOptionsData.builder()
             QuestionContentData q = content;
 
             // obtain correct only responses (in different way!)
-            List<AnswerData> responsesByQ = new ArrayList<>(responsesForTrace(question, false));
+            List<AnswerData> responsesByQ = new ArrayList<>(responsesForTrace(question, false).stream().map(ResponseData::getAnswer).toList());
 
             // append the latest response to list of correct responses
             if (!responses.isEmpty()) {
@@ -1041,7 +1041,7 @@ QuestionOptionsData orderQuestionOptions = OrderQuestionOptionsData.builder()
                 boolean isLatest = (response == latestResponse);
 
                 trace_index ++;
-                AnswerObjectData ao = response.getLeftAnswerObject();
+                AnswerObjectData ao = response.left();
                 String domainInfo = ao.getDomainInfo();
                 ///
                 /// System.out.println("Adding act from response: " + ao.getHyperText());
@@ -1608,8 +1608,8 @@ QuestionOptionsData orderQuestionOptions = OrderQuestionOptionsData.builder()
     @Override
     public CorrectAnswer getAnyNextCorrectAnswer(QuestionData q, Language language) {
         // In Ordering Question, we need left answer objects only.
-        val lastCorrectInteractionAnswers = q.latestCorrectResponses().stream()
-                .map(ResponseData::getLeftAnswerObject)
+        val lastCorrectInteractionAnswers = q.findLatestCorrectAnswers().stream()
+                .map(AnswerData::left)
                 .collect(Collectors.toList());
 
         return getNextCorrectAnswer(q, lastCorrectInteractionAnswers, language);
@@ -1689,7 +1689,7 @@ QuestionOptionsData orderQuestionOptions = OrderQuestionOptionsData.builder()
             }
 /*          old variant, using student's progress on the question
             for (ResponseData response : responsesForTrace(q.getQuestionData(), false)) {
-                AnswerObjectData answerObj = response.getLeftAnswerObject();
+                AnswerObjectData answerObj = response.getAnswer().left();
                 String domainInfo = answerObj.getDomainInfo();
                 if (domainInfo.startsWith(qaInfoPrefix)) {
                     ++ count;
@@ -1787,10 +1787,10 @@ QuestionOptionsData orderQuestionOptions = OrderQuestionOptionsData.builder()
         //// System.out.println("next correct answer found: " + qaInfoPrefix);
 
         // find question answer
-        ArrayList<CorrectAnswer.Response> answers = new ArrayList<>();  // lastCorrectInteractionAnswers;
+        ArrayList<AnswerData> answers = new ArrayList<>();  // lastCorrectInteractionAnswers;
         for (AnswerObjectData answer : q.getContent().getAnswerObjects()) {
             if (answer.getDomainInfo().startsWith(qaInfoPrefix)) {
-                answers.add(new CorrectAnswer.Response(answer, answer));
+                answers.add(toCorrectAnswer(q.getContent(), answer));
                  break; // (?)
             }
         }
@@ -1823,7 +1823,7 @@ QuestionOptionsData orderQuestionOptions = OrderQuestionOptionsData.builder()
 
         if (completedSteps != null) {
             // extract answerObjects from given responses
-            correctTraceAnswersObjects.addAll(completedSteps.stream().map(AnswerData::getLeftAnswerObject).collect(Collectors.toList()));
+            correctTraceAnswersObjects.addAll(completedSteps.stream().map(AnswerData::left).collect(Collectors.toList()));
         }
 
         HashMap<String, Set<String>> map = new HashMap<>();
@@ -1835,7 +1835,7 @@ QuestionOptionsData orderQuestionOptions = OrderQuestionOptionsData.builder()
                 break;
 
             // grow our virtual trace
-            correctTraceAnswersObjects.add(currentAct.answers.get(0).getLeft());
+            correctTraceAnswersObjects.add(currentAct.answers.get(0).left());
 
             // find violations possible on this step
             final Set<String> possibleViolations = possibleMistakesByLaw(currentAct.lawName);

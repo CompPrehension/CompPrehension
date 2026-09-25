@@ -1,6 +1,7 @@
 package org.vstu.compprehension.businesslogic.domains;
 
 import org.vstu.compprehension.data.question.AnswerData;
+import org.vstu.compprehension.data.question.ResponseData;
 import org.vstu.compprehension.data.question.SupplementaryStepData;
 import org.vstu.compprehension.data.exercise.ExerciseOptionsData;
 import org.vstu.compprehension.data.question.ViolationData;
@@ -30,7 +31,6 @@ import org.vstu.compprehension.data.question.QuestionMetadataWithData;
 import org.vstu.compprehension.data.question.QuestionInteractionData;
 import org.vstu.compprehension.data.question.QuestionData;
 import org.vstu.compprehension.data.question.AnswerObjectData;
-import org.vstu.compprehension.data.question.ResponseData;
 import org.vstu.compprehension.services.LocalizationService;
 import org.vstu.compprehension.businesslogic.*;
 import org.vstu.compprehension.businesslogic.backend.DecisionTreeReasonerBackend;
@@ -310,7 +310,7 @@ public class ControlFlowDTDomain extends DecisionTreeReasoningDomain {
             ObjectDef currentTraceAct = makeTrace(questionModel, responses, false);
             ObjectDef referenceA = currentTraceAct.getRelationshipLink("directlyBeforeOf").getObjects().getFirst();
 
-            ObjectDef A = makeA(questionModel, responses.getLast().getLeftAnswerObject().getDomainInfo(), referenceA);
+            ObjectDef A = makeA(questionModel, responses.getLast().left().getDomainInfo(), referenceA);
             ObjectDef L0 = currentTraceAct;
 
             updateModelState(domain, questionModel, L0, A);
@@ -397,7 +397,7 @@ public class ControlFlowDTDomain extends DecisionTreeReasoningDomain {
             }
             for (int i = 0; i < end; i++) {
                 AnswerData response = responses.get(i);
-                String domainInfo = response.getLeftAnswerObject().getDomainInfo();
+                String domainInfo = response.left().getDomainInfo();
                 ObjectDef cfgNode = questionModel.getObjects().stream()
                         .filter(obj -> obj.getClassName().equals("Node"))
                         .filter(obj -> obj.getPropertyValue("id", Map.of()).equals(domainInfo))
@@ -515,10 +515,10 @@ public class ControlFlowDTDomain extends DecisionTreeReasoningDomain {
             for (AnswerData response : responses) {
                 result.add(new Fact(
                         "owl:NamedIndividual",
-                        response.getLeftAnswerObject().getDomainInfo(),
+                        response.left().getDomainInfo(),
                         "hasAnswer",
                         "xsd:string",
-                        response.getRightAnswerObject().getDomainInfo()
+                        response.right().getDomainInfo()
                 ));
             }
             return result;
@@ -685,7 +685,7 @@ public class ControlFlowDTDomain extends DecisionTreeReasoningDomain {
 
     @Override
     public CorrectAnswer getAnyNextCorrectAnswer(QuestionData q, Language language) {
-        List<ResponseData> responses = q.latestCorrectResponses();
+        List<AnswerData> responses = q.findLatestCorrectAnswers();
         var model = getDomainSolvingModels().getFirst();
         ControlFlowDTDomain.DecisionTreeInterface treeInterface = (ControlFlowDTDomain.DecisionTreeInterface) getBackendInterface();
         DomainModel questionModel = prepareQuestionModel(q.getContent(), model);
@@ -705,7 +705,7 @@ public class ControlFlowDTDomain extends DecisionTreeReasoningDomain {
                 this, language
         );
         AnswerObjectData answer = q.getContent().getAnswerObjects().stream().filter(ans -> ans.getDomainInfo().equals(cfgId)).findFirst().orElse(null);
-        correctAnswer.answers = List.of(new CorrectAnswer.Response(answer, answer));
+        correctAnswer.answers = List.of(new AnswerData.Pair(answer, answer));
         correctAnswer.question = q;
         correctAnswer.lawName = null;
         correctAnswer.skillName = solveRes.skills();
@@ -882,9 +882,9 @@ public class ControlFlowDTDomain extends DecisionTreeReasoningDomain {
         var questionModel = prepareQuestionModel(question.getContent(), this.domainSolvingModel);
         var treeInterface = (DecisionTreeInterface) getBackendInterface();
         var responses = responsesForTrace(question, true);
-        var lastTraceObj = treeInterface.makeTrace(questionModel, responses, false);
+        var lastTraceObj = treeInterface.makeTrace(questionModel, responses.stream().map(ResponseData::getAnswer).toList(), false);
         var referenceA = lastTraceObj.getRelationshipLink("directlyBeforeOf").getObjects().getFirst();
-        ObjectDef A = responses.isEmpty() ? null : treeInterface.makeA(questionModel, responses.getLast().getLeftAnswerObject().getDomainInfo(), referenceA);
+        ObjectDef A = responses.isEmpty() ? null : treeInterface.makeA(questionModel, responses.getLast().getAnswer().left().getDomainInfo(), referenceA);
         List<ObjectDef> traceObjects = new ArrayList<>(questionModel.getObjects()
                 .stream()
                 .filter(obj -> obj.getClassName().equals("TraceAct")).toList());

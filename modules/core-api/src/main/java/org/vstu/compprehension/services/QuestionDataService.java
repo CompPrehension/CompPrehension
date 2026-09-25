@@ -4,6 +4,7 @@ import org.jetbrains.annotations.NotNull;
 import org.jetbrains.annotations.Nullable;
 import org.vstu.compprehension.data.question.*;
 import org.vstu.compprehension.enums.Language;
+import org.vstu.compprehension.enums.QuestionType;
 import org.vstu.compprehension.frontend.dto.SupplementaryFeedbackDto;
 import org.vstu.compprehension.frontend.dto.SupplementaryQuestionDto;
 
@@ -18,6 +19,8 @@ public interface QuestionDataService {
      @NotNull SupplementaryQuestionDto generateSupplementaryQuestion(long sourceQuestionId, @NotNull ViolationData violation, Language lang);
 
      SupplementaryFeedbackDto judgeSupplementaryQuestion(long supplementaryQuestionId, List<? extends AnswerData> responses, Language language);
+
+     QuestionType getQuestionType(long questionId);
 
      List<AnswerData> resolveAnswers(long questionId, List<SubmittedAnswerData> answers);
 

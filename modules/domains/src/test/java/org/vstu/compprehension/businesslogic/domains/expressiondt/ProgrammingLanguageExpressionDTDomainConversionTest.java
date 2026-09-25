@@ -19,7 +19,7 @@ import java.util.List;
 import static org.junit.jupiter.api.Assertions.assertEquals;
 import static org.junit.jupiter.api.Assertions.assertNotNull;
 import static org.junit.jupiter.api.Assertions.assertTrue;
-import static org.vstu.compprehension.businesslogic.domains.DomainFixtures.responses;
+import static org.vstu.compprehension.businesslogic.domains.DomainFixtures.answers;
 import static org.vstu.compprehension.businesslogic.domains.expressiondt.ExpressionDtDomainFixture.MEMBER_ACCESS_PLUS;
 import static org.vstu.compprehension.businesslogic.domains.expressiondt.ExpressionDtDomainFixture.bankQuestionIn;
 import static org.vstu.compprehension.businesslogic.domains.expressiondt.ExpressionDtDomainFixture.domain;
@@ -114,7 +114,7 @@ class ProgrammingLanguageExpressionDTDomainConversionTest {
     }
 
     private static Domain.InterpretSentenceResult judge(QuestionData question, List<AnswerObjectData> answers) {
-        return domain().judgeQuestion(question, responses(answers), domain().resolveTags(question.getContent().getTags()), Language.ENGLISH);
+        return domain().judgeQuestion(question, answers(answers), domain().resolveTags(question.getContent().getTags()), Language.ENGLISH);
     }
 
     private static String tagOf(SupportedLanguage language) {

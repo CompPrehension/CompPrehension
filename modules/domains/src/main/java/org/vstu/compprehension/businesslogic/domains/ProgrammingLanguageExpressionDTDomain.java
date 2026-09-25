@@ -1,6 +1,7 @@
 package org.vstu.compprehension.businesslogic.domains;
 
 import org.vstu.compprehension.data.question.AnswerData;
+import org.vstu.compprehension.data.question.ResponseData;
 import org.vstu.compprehension.data.question.SupplementaryStepData;
 import org.vstu.compprehension.data.exercise.ExerciseOptionsData;
 import org.vstu.compprehension.data.question.ViolationData;
@@ -30,7 +31,6 @@ import org.vstu.compprehension.data.question.QuestionMetadataWithData;
 import org.vstu.compprehension.data.question.QuestionInteractionData;
 import org.vstu.compprehension.data.question.QuestionData;
 import org.vstu.compprehension.data.question.AnswerObjectData;
-import org.vstu.compprehension.data.question.ResponseData;
 import org.vstu.compprehension.services.LocalizationService;
 import org.vstu.compprehension.businesslogic.*;
 import org.vstu.compprehension.businesslogic.backend.DecisionTreeReasonerBackend;
@@ -614,7 +614,7 @@ public class ProgrammingLanguageExpressionDTDomain extends DecisionTreeReasoning
             for (AnswerData response : responses) {
                 result.add(new Fact(
                         "owl:NamedIndividual",
-                        response.getLeftAnswerObject().getDomainInfo(),
+                        response.left().getDomainInfo(),
                         "student_pos_number",
                         "xsd:int",
                         String.valueOf(pos)
@@ -625,10 +625,10 @@ public class ProgrammingLanguageExpressionDTDomain extends DecisionTreeReasoning
                             earlier,
                             "student_pos_less",
                             "owl:NamedIndividual",
-                            response.getLeftAnswerObject().getDomainInfo()
+                            response.left().getDomainInfo()
                     ));
                 }
-                if (response.getLeftAnswerObject().getDomainInfo().equals("end_token")) {
+                if (response.left().getDomainInfo().equals("end_token")) {
                     result.add(new Fact(
                             "owl:NamedIndividual",
                             "end_token",
@@ -637,7 +637,7 @@ public class ProgrammingLanguageExpressionDTDomain extends DecisionTreeReasoning
                             "true"
                     ));
                 }
-                used.add(response.getLeftAnswerObject().getDomainInfo());
+                used.add(response.left().getDomainInfo());
                 pos = pos + 1;
             }
 
@@ -661,10 +661,10 @@ public class ProgrammingLanguageExpressionDTDomain extends DecisionTreeReasoning
             for (AnswerData response : responses) {
                 result.add(new Fact(
                         "owl:NamedIndividual",
-                        response.getLeftAnswerObject().getDomainInfo(),
+                        response.left().getDomainInfo(),
                         "student_type",
                         "xsd:string",
-                        response.getRightAnswerObject().getDomainInfo()
+                        response.right().getDomainInfo()
                 ));
             }
             return result;
@@ -673,10 +673,10 @@ public class ProgrammingLanguageExpressionDTDomain extends DecisionTreeReasoning
             for (AnswerData response : responses) {
                 result.add(new Fact(
                         "owl:NamedIndividual",
-                        response.getLeftAnswerObject().getDomainInfo(),
+                        response.left().getDomainInfo(),
                         "student_operand_type",
                         "xsd:string",
-                        response.getRightAnswerObject().getDomainInfo()
+                        response.right().getDomainInfo()
                 ));
             }
             return result;
@@ -685,10 +685,10 @@ public class ProgrammingLanguageExpressionDTDomain extends DecisionTreeReasoning
             for (AnswerData response : responses) {
                 result.add(new Fact(
                         "owl:NamedIndividual",
-                        response.getLeftAnswerObject().getDomainInfo(),
+                        response.left().getDomainInfo(),
                         "student_precedence_type",
                         "xsd:string",
-                        response.getRightAnswerObject().getDomainInfo()
+                        response.right().getDomainInfo()
                 ));
             }
             return result;
@@ -801,7 +801,7 @@ public class ProgrammingLanguageExpressionDTDomain extends DecisionTreeReasoning
 
             for (ResponseData response : baseDomain.responsesForTrace(question, true)) {
                 // format a trace line ...
-                AnswerObjectData answerObj = response.getLeftAnswerObject();
+                AnswerObjectData answerObj = response.getAnswer().left();
                 String domainInfo = answerObj.getDomainInfo();
                 if (domainInfo.equals("end_token")) {
                     continue;
@@ -840,10 +840,10 @@ public class ProgrammingLanguageExpressionDTDomain extends DecisionTreeReasoning
 
     @Override
     public CorrectAnswer getAnyNextCorrectAnswer(QuestionData q, Language language) {
-        List<ResponseData> responses = q.latestCorrectResponses();
+        List<AnswerData> responses = q.findLatestCorrectAnswers();
         List<Integer> responseTokenIndexes = responses.stream()
                 .map(res ->
-                        answerObjectToTokenIndex(res.getLeftAnswerObject()))
+                        answerObjectToTokenIndex(res.left()))
                 .toList();
         List<Tag> tags = resolveTags(q.getContent().getTags());
         DomainModel domain = MeaningTreeRDFTransformer.questionToDomainModel(
@@ -882,7 +882,7 @@ public class ProgrammingLanguageExpressionDTDomain extends DecisionTreeReasoning
                     }
 
                     CorrectAnswer correctAnswer = new CorrectAnswer();
-                    correctAnswer.answers = List.of(new CorrectAnswer.Response(answer, answer));
+                    correctAnswer.answers = List.of(new AnswerData.Pair(answer, answer));
                     correctAnswer.question = q;
                     correctAnswer.lawName = null;
                     correctAnswer.skillName = solveRes.skills();
@@ -893,7 +893,7 @@ public class ProgrammingLanguageExpressionDTDomain extends DecisionTreeReasoning
         }
         AnswerObjectData everythingIsEvaluated = q.getContent().getAnswerObjects().getLast();
         CorrectAnswer correctAnswer = new CorrectAnswer();
-        correctAnswer.answers = List.of(new CorrectAnswer.Response(everythingIsEvaluated, everythingIsEvaluated));
+        correctAnswer.answers = List.of(new AnswerData.Pair(everythingIsEvaluated, everythingIsEvaluated));
         correctAnswer.question = q;
         correctAnswer.lawName = null;
         correctAnswer.skillName = List.of();
@@ -925,7 +925,7 @@ public class ProgrammingLanguageExpressionDTDomain extends DecisionTreeReasoning
         return MeaningTreeRDFTransformer.questionToDomainModel(
                 domainSolvingModel,
                 question.getContent().getStatementFacts(),
-                lastMainQuestionInteraction.getResponses(), tags
+                lastMainQuestionInteraction.getAnswers(), tags
         );
     }
 
@@ -936,9 +936,9 @@ public class ProgrammingLanguageExpressionDTDomain extends DecisionTreeReasoning
     }
 
     private static boolean isEarlyFinish(QuestionInteractionData interaction) {
-        List<ResponseData> responses = interaction.getResponses();
+        List<AnswerData> responses = interaction.getAnswers();
         return !responses.isEmpty()
-                && END_TOKEN_DOMAIN_INFO.equals(responses.getLast().getLeftAnswerObject().getDomainInfo());
+                && END_TOKEN_DOMAIN_INFO.equals(responses.getLast().left().getDomainInfo());
     }
 
     @Override

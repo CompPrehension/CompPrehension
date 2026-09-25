@@ -28,6 +28,7 @@ import org.vstu.compprehension.data.question.QuestionRequestLogData;
 import org.vstu.compprehension.data.question.QuestionInteractionData;
 import org.vstu.compprehension.data.question.SubmittedAnswerData;
 import org.vstu.compprehension.enums.Language;
+import org.vstu.compprehension.enums.QuestionType;
 import org.vstu.compprehension.repositories.data.InteractionDataRepository;
 import org.vstu.compprehension.repositories.data.QuestionDataRepository;
 import org.vstu.compprehension.repositories.data.SupplementaryStepDataRepository;
@@ -133,6 +134,10 @@ class QuestionDataServiceImpl implements QuestionDataService {
                 .findFirst()
                 .orElseThrow(() -> new IllegalStateException("Interaction " + step.getMainQuestionInteractionId()
                         + " is not among interactions of question " + question.getId()));
+    }
+
+    public QuestionType getQuestionType(long questionId) {
+        return questionDataRepository.getQuestionType(questionId);
     }
 
     public List<AnswerData> resolveAnswers(long questionId, List<SubmittedAnswerData> answers) {

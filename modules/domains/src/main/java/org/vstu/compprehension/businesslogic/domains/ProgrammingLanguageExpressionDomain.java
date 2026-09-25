@@ -1,6 +1,7 @@
 package org.vstu.compprehension.businesslogic.domains;
 
 import org.vstu.compprehension.data.question.AnswerData;
+import org.vstu.compprehension.data.question.ResponseData;
 import org.vstu.compprehension.data.question.SupplementaryStepData;
 import org.vstu.compprehension.data.exercise.ExerciseOptionsData;
 import org.vstu.compprehension.data.question.ViolationData;
@@ -39,7 +40,6 @@ import org.vstu.compprehension.data.question.QuestionData;
 import org.vstu.compprehension.data.question.GeneratedQuestionData;
 import org.vstu.compprehension.data.question.QuestionContentData;
 import org.vstu.compprehension.data.question.AnswerObjectData;
-import org.vstu.compprehension.data.question.ResponseData;
 import org.vstu.compprehension.services.LocalizationService;
 import org.vstu.compprehension.common.StringHelper;
 import org.vstu.compprehension.businesslogic.*;
@@ -905,7 +905,7 @@ QuestionOptionsData orderQuestionOptions = OrderQuestionOptionsData.builder()
             for (AnswerData response : responses) {
                 result.add(new Fact(
                         "owl:NamedIndividual",
-                        response.getLeftAnswerObject().getDomainInfo(),
+                        response.left().getDomainInfo(),
                         "student_pos_number",
                         "xsd:int",
                         String.valueOf(pos)
@@ -916,10 +916,10 @@ QuestionOptionsData orderQuestionOptions = OrderQuestionOptionsData.builder()
                             earlier,
                             "student_pos_less",
                             "owl:NamedIndividual",
-                            response.getLeftAnswerObject().getDomainInfo()
+                            response.left().getDomainInfo()
                     ));
                 }
-                if (response.getLeftAnswerObject().getDomainInfo().equals("end_token")) {
+                if (response.left().getDomainInfo().equals("end_token")) {
                     result.add(new Fact(
                             "owl:NamedIndividual",
                             "end_token",
@@ -928,7 +928,7 @@ QuestionOptionsData orderQuestionOptions = OrderQuestionOptionsData.builder()
                             "true"
                     ));
                 }
-                used.add(response.getLeftAnswerObject().getDomainInfo());
+                used.add(response.left().getDomainInfo());
                 pos = pos + 1;
             }
 
@@ -952,10 +952,10 @@ QuestionOptionsData orderQuestionOptions = OrderQuestionOptionsData.builder()
             for (AnswerData response : responses) {
                 result.add(new Fact(
                         "owl:NamedIndividual",
-                        response.getLeftAnswerObject().getDomainInfo(),
+                        response.left().getDomainInfo(),
                         "student_type",
                         "xsd:string",
-                        response.getRightAnswerObject().getDomainInfo()
+                        response.right().getDomainInfo()
                 ));
             }
             return result;
@@ -964,10 +964,10 @@ QuestionOptionsData orderQuestionOptions = OrderQuestionOptionsData.builder()
             for (AnswerData response : responses) {
                 result.add(new Fact(
                         "owl:NamedIndividual",
-                        response.getLeftAnswerObject().getDomainInfo(),
+                        response.left().getDomainInfo(),
                         "student_operand_type",
                         "xsd:string",
-                        response.getRightAnswerObject().getDomainInfo()
+                        response.right().getDomainInfo()
                 ));
             }
             return result;
@@ -976,10 +976,10 @@ QuestionOptionsData orderQuestionOptions = OrderQuestionOptionsData.builder()
             for (AnswerData response : responses) {
                 result.add(new Fact(
                         "owl:NamedIndividual",
-                        response.getLeftAnswerObject().getDomainInfo(),
+                        response.left().getDomainInfo(),
                         "student_precedence_type",
                         "xsd:string",
-                        response.getRightAnswerObject().getDomainInfo()
+                        response.right().getDomainInfo()
                 ));
             }
             return result;
@@ -1304,15 +1304,15 @@ QuestionOptionsData orderQuestionOptions = OrderQuestionOptionsData.builder()
         val content = q.getContent();
         val lastCorrectInteraction = q.latestCorrectInteraction();
         /*val lastCorrectInteractionAnswers = lastCorrectInteraction
-                .flatMap(i -> Optional.ofNullable(i.getResponses())).stream()
+                .flatMap(i -> Optional.ofNullable(i.getAnswers())).stream()
                 .flatMap(Collection::stream)
-                .map(r -> new CorrectAnswer.Response(r.getLeftAnswerObject(), r.getRightAnswerObject(), r.getCreatedByInteraction().getInteractionType() == InteractionType.SEND_RESPONSE))
+                .map(r -> new CorrectAnswer.Response(r.left(), r.right(), r.getCreatedByInteraction().getInteractionType() == InteractionType.SEND_RESPONSE))
                 .collect(Collectors.toList());*/
 
         val solution = Fact.entitiesToFacts(content.getSolutionFacts());
         assert solution != null;
         solution.addAll(lastCorrectInteraction
-                .flatMap(i -> Optional.ofNullable(responseToFacts(q, i.getResponses()))).stream()
+                .flatMap(i -> Optional.ofNullable(responseToFacts(q, i.getAnswers()))).stream()
                 .flatMap(Collection::stream)
                 .collect(Collectors.toList()));
 
@@ -1320,8 +1320,8 @@ QuestionOptionsData orderQuestionOptions = OrderQuestionOptionsData.builder()
         for (AnswerObjectData answer : content.getAnswerObjects()) {
             for (CorrectAnswerImpl answerImpl : correctAnswerImpls) {
                 if (answerImpl.domainID.equals(answer.getDomainInfo())) {
-                    val answers = new ArrayList<CorrectAnswer.Response>();
-                    answers.add(new CorrectAnswer.Response(answer, answer));
+                    val answers = new ArrayList<AnswerData>();
+                    answers.add(toCorrectAnswer(content, answer));
 
                     CorrectAnswer correctAnswer = new CorrectAnswer();
                     correctAnswer.question = q;
@@ -1344,8 +1344,8 @@ QuestionOptionsData orderQuestionOptions = OrderQuestionOptionsData.builder()
         Set<String> madeSteps = new HashSet<>();
         if (completedSteps != null) {
             for (AnswerData r : completedSteps) {
-                madeSteps.add(r.getLeftAnswerObject().getDomainInfo());
-                madeSteps.add(r.getRightAnswerObject().getDomainInfo());
+                madeSteps.add(r.left().getDomainInfo());
+                madeSteps.add(r.right().getDomainInfo());
             }
         }
         for (BackendFactData f : solutionFacts) {
@@ -1408,7 +1408,7 @@ QuestionOptionsData orderQuestionOptions = OrderQuestionOptionsData.builder()
         return MeaningTreeRDFTransformer.questionToDomainModel(
                 dtSupplementaryQuestionHelper.domainModel,
                 q.getContent().getStatementFacts(),
-                lastMainQuestionInteraction.getResponses(), tags
+                lastMainQuestionInteraction.getAnswers(), tags
         );
     }
 
@@ -2324,7 +2324,7 @@ QuestionOptionsData orderQuestionOptions = OrderQuestionOptionsData.builder()
                 StringJoiner builder = new StringJoiner(" ");
                 builder.add("<span>" + getMessage("OPERATOR", language) + "</span>");
                 // format a trace line ...
-                AnswerObjectData answerObj = response.getLeftAnswerObject();
+                AnswerObjectData answerObj = response.getAnswer().left();
                 String domainInfo = answerObj.getDomainInfo();
                 if (domainInfo.equals("end_token")) {
                     continue;
