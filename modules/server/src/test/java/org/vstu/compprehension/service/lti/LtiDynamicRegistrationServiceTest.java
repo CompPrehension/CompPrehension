@@ -208,6 +208,24 @@ class LtiDynamicRegistrationServiceTest extends AbstractIntegrationTest {
         ltiRegistrationService.ensureInviteUsable(invite.token());
     }
 
+    /** Ранее недоверенная LMS после регистрации по ссылке становится доверенной. */
+    @Test
+    void registerOfUntrustedLmsMakesItTrusted() {
+        // Arrange.
+        educationResourceService.getOrCreate(LMS_ISSUER, EducationResourceType.MOODLE, EducationResourceTrustStatus.UNTRUSTED);
+        var invite = ltiRegistrationService.createInvite(TestData.Users.ADMIN_ID);
+        expectPlatformConfiguration(PLATFORM_CONFIGURATION);
+        lms.expect(requestTo(REGISTRATION_ENDPOINT))
+                .andRespond(withSuccess(TOOL_REGISTRATION_RESPONSE, MediaType.APPLICATION_JSON));
+
+        // Act.
+        service.register(invite.token(), OPENID_CONFIGURATION_URL, REGISTRATION_TOKEN);
+
+        // Assert.
+        assertEquals(EducationResourceTrustStatus.TRUSTED, trustStatusOf(LMS_ISSUER));
+        assertTrue(ltiRegistrationService.findByIssuer(LMS_ISSUER).isPresent());
+    }
+
     private void expectPlatformConfiguration(String configuration) {
         lms.expect(requestTo(OPENID_CONFIGURATION_URL))
                 .andExpect(method(HttpMethod.GET))

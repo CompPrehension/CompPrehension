@@ -187,7 +187,7 @@ public class ExerciseAttemptDataRepository {
             return false;
         }
         attempt.setAttemptStatus(AttemptStatus.COMPLETED_BY_USER);
-        exerciseAttemptRepository.save(attempt);
+        exerciseAttemptRepository.saveAndFlush(attempt);
         return true;
     }
 

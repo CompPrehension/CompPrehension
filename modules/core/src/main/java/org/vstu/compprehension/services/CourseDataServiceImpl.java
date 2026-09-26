@@ -21,7 +21,7 @@ import java.util.stream.Collectors;
 @Service
 @RequiredArgsConstructor
 @Log4j2
-    class CourseDataServiceImpl implements CourseDataService {
+class CourseDataServiceImpl implements CourseDataService {
 
     private final CourseDataRepository courses;
     private final ExerciseDataRepository exercises;

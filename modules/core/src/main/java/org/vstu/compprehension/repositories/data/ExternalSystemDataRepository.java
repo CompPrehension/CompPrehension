@@ -82,10 +82,12 @@ public class ExternalSystemDataRepository {
     @Transactional
     public @NotNull EducationResourceData updateEducationResourceTrustStatus(
             long educationResourceId, @NotNull EducationResourceTrustStatus trustStatus) {
-        var entity = educationResourceRepository.findById(educationResourceId)
-                .orElseThrow(() -> new IllegalStateException("Education resource " + educationResourceId + " not found"));
-        entity.setTrustStatus(trustStatus);
-        return educationResourceMapper.map(entity);
+        if (educationResourceRepository.updateTrustStatus(educationResourceId, trustStatus) != 1) {
+            throw new IllegalStateException("Education resource " + educationResourceId + " not found");
+        }
+        return educationResourceRepository.findById(educationResourceId)
+                .map(educationResourceMapper::map)
+                .orElseThrow(() -> new IllegalStateException("Education resource " + educationResourceId + " not found after update"));
     }
 
     @Transactional(readOnly = true)
@@ -157,10 +159,10 @@ public class ExternalSystemDataRepository {
 
     @Transactional
     public void markLtiRegistrationInviteUsed(long inviteId, long registrationId, @NotNull Instant usedAt) {
-        var invite = ltiRegistrationInviteRepository.findById(inviteId)
-                .orElseThrow(() -> new IllegalStateException("LTI registration invite " + inviteId + " not found"));
-        invite.setUsedAt(usedAt);
-        invite.setRegistration(ltiRegistrationRepository.getReferenceById(registrationId));
+        var registration = ltiRegistrationRepository.getReferenceById(registrationId);
+        if (ltiRegistrationInviteRepository.markUsed(inviteId, registration, usedAt) != 1) {
+            throw new IllegalStateException("LTI registration invite " + inviteId + " not found");
+        }
     }
 
     private static boolean isUsable(@NotNull LtiRegistrationInviteEntity invite, @NotNull Instant now) {

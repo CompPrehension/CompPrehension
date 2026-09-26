@@ -169,7 +169,7 @@ public class QuestionBankDataRepository {
         var entity = new QuestionDataEntity();
         entity.setData(body);
         metadata.setQuestionData(serializedQuestionRepository.save(entity));
-        metadataRepository.save(metadata);
+        metadataRepository.saveAndFlush(metadata);
     }
 
 

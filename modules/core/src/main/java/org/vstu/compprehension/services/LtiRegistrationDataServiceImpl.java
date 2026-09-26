@@ -46,9 +46,12 @@ class LtiRegistrationDataServiceImpl implements LtiRegistrationDataService {
         byte[] tokenBytes = new byte[INVITE_TOKEN_BYTES];
         RANDOM.nextBytes(tokenBytes);
         String token = Base64.getUrlEncoder().withoutPadding().encodeToString(tokenBytes);
+
         var now = Instant.now();
         var expiresAt = now.plus(INVITE_TTL);
+
         externalSystems.createLtiRegistrationInvite(hash(token), createdByUserId, now, expiresAt);
+
         return new LtiRegistrationInviteData(token, expiresAt);
     }
 

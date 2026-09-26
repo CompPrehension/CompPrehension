@@ -24,4 +24,8 @@ public interface EducationResourceRepository extends JpaRepository<EducationReso
             VALUES (:url, :type, :trustStatus)
             """, nativeQuery = true)
     int createIfAbsent(@Param("url") String url, @Param("type") String type, @Param("trustStatus") String trustStatus);
+
+    @Modifying(clearAutomatically = true, flushAutomatically = true)
+    @Query("update EducationResourceEntity r set r.trustStatus = :trustStatus where r.id = :id")
+    int updateTrustStatus(@Param("id") long id, @Param("trustStatus") EducationResourceTrustStatus trustStatus);
 }

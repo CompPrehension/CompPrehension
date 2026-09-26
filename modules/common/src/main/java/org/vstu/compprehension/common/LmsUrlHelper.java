@@ -11,10 +11,7 @@ public final class LmsUrlHelper {
     }
 
     /**
-     * Канонический URL LMS для записи в {@code EducationResourceEntity.url}:
-     * {@code scheme://authority} из LTI issuer claim (например {@code http://localhost:8081}),
-     * в нижнем регистре, без path/query/fragment и trailing slash. Этот же формат ожидают
-     * {@code WsFuncMoodleConfig.base-url} и {@code LtiRegistrationsProperties.issuer-url}.
+     * Канонический URL LMS.
      */
     public static @Nullable String toCanonicalLmsUrl(@Nullable String issuer) {
         if (issuer == null || issuer.isBlank()) {
