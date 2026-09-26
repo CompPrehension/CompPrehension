@@ -28,7 +28,9 @@ public final class AuthObjects {
         VIEW_OTHER_ATTEMPTS,
 
         COPY_EXERCISE_TO_GLOBAL_POOL,
-        VIEW_EXERCISE_USAGE;
+        VIEW_EXERCISE_USAGE,
+
+        REGISTER_LMS;
 
         @Override
         public String id() {

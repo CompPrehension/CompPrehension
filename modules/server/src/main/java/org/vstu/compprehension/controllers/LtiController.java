@@ -31,18 +31,18 @@ import org.springframework.web.bind.annotation.RequestMapping;
 import org.springframework.web.bind.annotation.RequestMethod;
 import org.springframework.web.bind.annotation.RequestParam;
 import org.springframework.web.bind.annotation.ResponseBody;
-import org.apache.commons.lang3.tuple.Pair;
 import org.vstu.compprehension.frontend.AuthFrontendService;
 import org.vstu.compprehension.frontend.CourseFrontendService;
 import org.vstu.compprehension.frontend.EducationResourceFrontendService;
 import org.vstu.compprehension.frontend.UserFrontendService;
 import org.vstu.compprehension.frontend.dto.course.CreateCourseDto;
+import org.vstu.compprehension.service.lti.DeepLinkingResponseService;
 import org.vstu.compprehension.service.lti.LtiContextInitializer;
 import org.vstu.compprehension.service.lti.LtiIdTokenVerifier;
 import org.vstu.compprehension.service.lti.LtiPendingLogins;
+import org.vstu.compprehension.service.lti.LtiRegistrationRegistry;
 import org.vstu.compprehension.businesslogic.auth.AuthObjects.SystemPermission;
 import org.vstu.compprehension.common.StringHelper;
-import org.vstu.compprehension.config.LtiRegistrationsProperties;
 import org.vstu.compprehension.businesslogic.lti.LtiContext;
 import org.vstu.compprehension.enums.EducationResourceTrustStatus;
 import org.vstu.compprehension.services.LtiContextProvider;
@@ -71,7 +71,7 @@ import java.util.stream.Collectors;
 public class LtiController {
     private final SecurityContextRepository securityContextRepository;
     private final SecurityContextHolderStrategy securityContextHolderStrategy;
-    private final LtiRegistrationsProperties ltiRegistrations;
+    private final LtiRegistrationRegistry ltiRegistrations;
     private final CourseFrontendService courseService;
     private final EducationResourceFrontendService educationResourceFacade;
     private final LtiContextInitializer ltiContextInitializer;
@@ -86,8 +86,8 @@ public class LtiController {
     @ResponseBody
     public String jwks() {
         KeyFactory rsa = KeyFactory.getInstance("RSA");
-        var jwks = ltiRegistrations.getRegistrations().entrySet().stream()
-                .map(e -> buildJwk(e.getKey(), e.getValue().getPrivateKeyPkcs8Base64(), rsa))
+        var jwks = ltiRegistrations.getToolPrivateKeysByKeyId().entrySet().stream()
+                .map(e -> buildJwk(e.getKey(), e.getValue(), rsa))
                 .toList();
         return new JWKSet(jwks).toString();
     }
@@ -107,6 +107,9 @@ public class LtiController {
 
     // LTI 1.3 standard claim URLs
     private static final String LTI_CLAIM_ROLES = "https://purl.imsglobal.org/spec/lti/claim/roles";
+    private static final String LTI_CLAIM_MESSAGE_TYPE = "https://purl.imsglobal.org/spec/lti/claim/message_type";
+    private static final String LTI_CLAIM_CUSTOM = "https://purl.imsglobal.org/spec/lti/claim/custom";
+    private static final String LTI_MESSAGE_TYPE_DEEP_LINKING = "LtiDeepLinkingRequest";
 
     @Data
     @Builder
@@ -134,19 +137,23 @@ public class LtiController {
                 .targetLinkUri(formDataParams.get("target_link_uri"))
                 .build();
 
-        var registration = ltiRegistrations.findByIssuerUrl(params.issuer)
-                .orElseThrow(() -> new SecurityException(String.format("LTI issuer %s is not registered", params.issuer)))
-                .registration();
-        if (!registration.getClientId().equals(params.clientId)) {
+        if (params.issuer == null) {
+            throw new SecurityException("LTI login has no issuer");
+        }
+        var platform = ltiRegistrations.findByIssuer(params.issuer)
+                .orElseThrow(() -> new SecurityException(String.format("LTI issuer %s is not registered", params.issuer)));
+        if (!platform.clientId().equals(params.clientId)) {
             throw new SecurityException(String.format("LTI client_id %s is not registered for issuer %s", params.clientId, params.issuer));
         }
         String state = UUID.randomUUID().toString();
         String nonce = UUID.randomUUID().toString();
         ltiPendingLogins.savePendingLogin(state, nonce);
 
+        String authorizationEndpoint = platform.authorizationEndpoint();
         String redirectUrl = String.format(
-                "%s/mod/lti/auth.php?client_id=%s&response_type=%s&scope=%s&redirect_uri=%s&login_hint=%s&nonce=%s&state=%s&lti_message_hint=%s&response_mode=%s",
-                registration.getIssuerUrl(),
+                "%s%sclient_id=%s&response_type=%s&scope=%s&redirect_uri=%s&login_hint=%s&nonce=%s&state=%s&lti_message_hint=%s&response_mode=%s",
+                authorizationEndpoint,
+                authorizationEndpoint.contains("?") ? "&" : "?",
                 URLEncoder.encode(params.clientId, StandardCharsets.UTF_8),
                 "id_token",
                 "openid",
@@ -161,31 +168,64 @@ public class LtiController {
         response.sendRedirect(redirectUrl);
     }
 
-    @SneakyThrows
+    /** Единая точка запуска: куда вести, решает сам запуск (см. {@link #resolveLaunchTarget}). */
+    @RequestMapping(method = {RequestMethod.POST, RequestMethod.GET}, path = {"1_3/launch"})
+    public void launch(@RequestParam(required = false) Long id, HttpServletRequest request, HttpServletResponse response) {
+        handleLaunch(LaunchTarget.EXERCISE, id, request, response);
+    }
+
+    // Старые адреса запуска: на них указывают уже созданные в LMS активности.
+
     @RequestMapping(method = {RequestMethod.POST, RequestMethod.GET}, path = {"1_3/exercise"})
     public void exercise(@RequestParam(required = false) Long id, HttpServletRequest request, HttpServletResponse response) {
-        authenticateFromLti13ResourceLinkRequest(request, response);
+        handleLaunch(LaunchTarget.EXERCISE, id, request, response);
+    }
 
+    @RequestMapping(method = {RequestMethod.POST, RequestMethod.GET}, path = {"1_3/exercise-settings"})
+    public void exerciseSettings(HttpServletRequest request, HttpServletResponse response) {
+        handleLaunch(LaunchTarget.EXERCISE_SETTINGS, null, request, response);
+    }
+
+    @RequestMapping(method = {RequestMethod.POST, RequestMethod.GET}, path = {"1_3/configure-course"})
+    public void configureCourse(HttpServletRequest request, HttpServletResponse response) {
+        handleLaunch(LaunchTarget.DEEP_LINKING, null, request, response);
+    }
+
+    private enum LaunchTarget {
+        EXERCISE,
+        EXERCISE_SETTINGS,
+        DEEP_LINKING
+    }
+
+    @SneakyThrows
+    private void handleLaunch(@NotNull LaunchTarget defaultTarget, @Nullable Long fallbackExerciseId,
+                              HttpServletRequest request, HttpServletResponse response) {
+        Jwt idToken = authenticateFromLti13ResourceLinkRequest(request, response);
         LtiContext ctx = ltiProvider.getCurrentLtiContext()
                 .orElseThrow(() -> new IllegalArgumentException("LTI context absent"));
 
-        Pair<Long, Long> exerciseAndCourse = resolveExerciseAndCourse(ctx, id);
-
-        Long exId = exerciseAndCourse.getLeft();
-        Long courseId = exerciseAndCourse.getRight();
-
-        String redirectUrl = String.format(
-                "/pages/exercise?exerciseId=%d&courseId=%d",
-                exId, courseId
-        );
-        log.info("Redirect to exercise, url:{}", redirectUrl);
+        String redirectUrl = switch (resolveLaunchTarget(idToken, defaultTarget)) {
+            case EXERCISE -> resolveExerciseUrl(ctx, fallbackExerciseId);
+            case EXERCISE_SETTINGS -> resolveExerciseSettingsUrl(ctx);
+            case DEEP_LINKING -> resolveDeepLinkingUrl(ctx);
+        };
+        log.info("LTI launch redirect, url:{}", redirectUrl);
         response.sendRedirect(redirectUrl);
     }
 
-    /**
-     * @return (exerciseId, courseId)
-     */
-    private Pair<Long, Long> resolveExerciseAndCourse(LtiContext ctx, Long fallbackExerciseId) {
+    private static @NotNull LaunchTarget resolveLaunchTarget(@NotNull Jwt idToken, @NotNull LaunchTarget defaultTarget) {
+        if (LTI_MESSAGE_TYPE_DEEP_LINKING.equals(idToken.getClaimAsString(LTI_CLAIM_MESSAGE_TYPE))) {
+            return LaunchTarget.DEEP_LINKING;
+        }
+        Map<String, Object> custom = idToken.getClaimAsMap(LTI_CLAIM_CUSTOM);
+        if (custom != null && DeepLinkingResponseService.CUSTOM_PAGE_EXERCISE_SETTINGS
+                .equals(custom.get(DeepLinkingResponseService.CUSTOM_PAGE))) {
+            return LaunchTarget.EXERCISE_SETTINGS;
+        }
+        return defaultTarget;
+    }
+
+    private @NotNull String resolveExerciseUrl(@NotNull LtiContext ctx, @Nullable Long fallbackExerciseId) {
         Long exerciseId = ctx.exerciseId() != null ? ctx.exerciseId() : fallbackExerciseId;
         if (exerciseId == null)
             throw new IllegalArgumentException("exerciseId is not provided: set custom parameter 'exercise_id' in Moodle activity or use ?id= query param");
@@ -195,42 +235,23 @@ public class LtiController {
             throw new IllegalArgumentException("Absent information on the contextId");
 
         courseService.linkExerciseWithCourseIfMissing(exerciseId, courseId);
-        return Pair.of(exerciseId, courseId);
+        return String.format("/pages/exercise?exerciseId=%d&courseId=%d", exerciseId, courseId);
     }
 
-    @SneakyThrows
-    @RequestMapping(method = {RequestMethod.POST, RequestMethod.GET}, path = {"1_3/exercise-settings"})
-    public void exerciseSettings(HttpServletRequest request, HttpServletResponse response) {
-        authenticateFromLti13ResourceLinkRequest(request, response);
-
-        Long courseId = ltiProvider.getCurrentLtiContext()
-                .map(this::resolveCourseFromContext)
-                .orElse(null);
-
-        String redirectUrl = String.format("/pages/exercise-settings?courseId=%s", courseId);
-        log.info("Redirect to exercise-settings, url:{}", redirectUrl);
-        response.sendRedirect(redirectUrl);
+    private @NotNull String resolveExerciseSettingsUrl(@NotNull LtiContext ctx) {
+        return String.format("/pages/exercise-settings?courseId=%s", resolveCourseFromContext(ctx));
     }
 
-    @SneakyThrows
-    @RequestMapping(method = {RequestMethod.POST, RequestMethod.GET}, path = {"1_3/configure-course"})
-    public void configureCourse(HttpServletRequest request, HttpServletResponse response) {
-        authenticateFromLti13ResourceLinkRequest(request, response);
-
+    private @NotNull String resolveDeepLinkingUrl(@NotNull LtiContext ctx) {
         // Триггерит upsert пользователя + назначение RBAC-роли (LTI Instructor -> Teacher в scope курса).
         long userId = userService.getCurrentUserId();
 
-        LtiContext ctx = ltiProvider.getCurrentLtiContext()
-                .orElseThrow(() -> new IllegalArgumentException("LTI context absent"));
         Long courseId = resolveCourseFromContext(ctx);
         if (courseId == null) {
             throw new IllegalArgumentException("Absent information on the contextId");
         }
         authService.ensureAuthorized(userId, SystemPermission.CREATE_LMS_ACTIVITY, authService.getCourseScope(courseId));
-
-        String redirectUrl = String.format("/pages/course?courseId=%d&lti=deeplink", courseId);
-        log.info("Redirect to configure-course, url:{}", redirectUrl);
-        response.sendRedirect(redirectUrl);
+        return String.format("/pages/course?courseId=%d&lti=deeplink", courseId);
     }
 
     private Long resolveCourseFromContext(LtiContext ctx) {
@@ -254,7 +275,7 @@ public class LtiController {
         return educationResource.id();
     }
 
-    private void authenticateFromLti13ResourceLinkRequest(HttpServletRequest request, HttpServletResponse response) throws AuthenticationException {
+    private @NotNull Jwt authenticateFromLti13ResourceLinkRequest(HttpServletRequest request, HttpServletResponse response) throws AuthenticationException {
         Map<String, String> formDataParams = HttpRequestHelper.getAllRequestParams(request);
         String rawIdToken = formDataParams.get("id_token");
         if (StringHelper.isNullOrWhitespace(rawIdToken)) {
@@ -293,6 +314,7 @@ public class LtiController {
         securityContextRepository.saveContext(context, request, response);
 
         log.info("user '{}:{}' is successfully authenticated from LTI with authorities {}", oidcToken.getFullName(), user.getName(), mappedAuthorities);
+        return idToken;
     }
 
     private void ensureLaunchStartedByOwnLogin(@Nullable String state, @NotNull Jwt idToken) {

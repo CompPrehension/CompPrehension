@@ -126,6 +126,16 @@ public class AuthFrontendServiceImpl implements AuthFrontendService {
     }
 
     @Override
+    public boolean canRegisterLms(long userId) {
+        return authService.isAuthorized(userId, SystemPermission.REGISTER_LMS, authScopeFactory.root());
+    }
+
+    @Override
+    public void ensureCanRegisterLms(long userId) {
+        authService.ensureAuthorized(userId, SystemPermission.REGISTER_LMS, authScopeFactory.root());
+    }
+
+    @Override
     public boolean canViewAllCourses(long userId) {
         return authService.isAuthorized(userId, SystemPermission.VIEW_COURSE, authScopeFactory.root());
     }

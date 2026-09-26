@@ -21,12 +21,20 @@ export const CoursesPage = observer(() => {
 
     return (
         <PageLayout>
-            {user.permissions.canViewGlobalPool && (
-                <div className="mb-3">
-                    <Button variant="outline-primary"
-                            onClick={() => navigate('/pages/global-pool')}>
-                        {t('globalPool_page_title')}
-                    </Button>
+            {(user.permissions.canViewGlobalPool || user.permissions.canRegisterLms) && (
+                <div className="mb-3 d-flex" style={{ gap: '0.5rem' }}>
+                    {user.permissions.canViewGlobalPool && (
+                        <Button variant="outline-primary"
+                                onClick={() => navigate('/pages/global-pool')}>
+                            {t('globalPool_page_title')}
+                        </Button>
+                    )}
+                    {user.permissions.canRegisterLms && (
+                        <Button variant="outline-secondary"
+                                onClick={() => navigate('/pages/lti-registrations')}>
+                            {t('ltiRegistrations_page_title')}
+                        </Button>
+                    )}
                 </div>
             )}
             {store.loadStatus === 'FAILED' && store.error ? (

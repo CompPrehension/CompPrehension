@@ -12,8 +12,6 @@ import org.springframework.security.oauth2.jwt.JwtException;
 import org.springframework.security.oauth2.jwt.JwtValidators;
 import org.springframework.security.oauth2.jwt.NimbusJwtDecoder;
 import org.springframework.stereotype.Service;
-import org.vstu.compprehension.config.LtiRegistrationsProperties;
-import org.vstu.compprehension.config.LtiRegistrationsProperties.Registration;
 
 import java.security.KeyFactory;
 import java.security.interfaces.RSAPublicKey;
@@ -30,20 +28,19 @@ import java.util.concurrent.ConcurrentHashMap;
 @Service
 public class LtiIdTokenVerifier {
 
-    private final LtiRegistrationsProperties ltiRegistrations;
-    private final Map<String, JwtDecoder> decodersByRegistrationName = new ConcurrentHashMap<>();
+    private final LtiRegistrationRegistry ltiRegistrations;
+    private final Map<LtiPlatform, JwtDecoder> decodersByPlatform = new ConcurrentHashMap<>();
 
-    public LtiIdTokenVerifier(LtiRegistrationsProperties ltiRegistrations) {
+    public LtiIdTokenVerifier(LtiRegistrationRegistry ltiRegistrations) {
         this.ltiRegistrations = ltiRegistrations;
     }
 
     public @NotNull Jwt verify(@NotNull String rawIdToken) {
         // До проверки подписи iss нужен только для выбора регистрации, чьим ключом проверять.
         var issuer = readUnverifiedIssuer(rawIdToken);
-        var registration = ltiRegistrations.findByIssuerUrl(issuer)
+        var platform = ltiRegistrations.findByIssuer(issuer)
                 .orElseThrow(() -> new SecurityException(String.format("LTI issuer %s is not registered", issuer)));
-        var decoder = decodersByRegistrationName.computeIfAbsent(
-                registration.name(), name -> createDecoder(registration.registration()));
+        var decoder = decodersByPlatform.computeIfAbsent(platform, LtiIdTokenVerifier::createDecoder);
         try {
             return decoder.decode(rawIdToken);
         } catch (JwtException ex) {
@@ -64,18 +61,18 @@ public class LtiIdTokenVerifier {
         return issuer;
     }
 
-    private static @NotNull JwtDecoder createDecoder(@NotNull Registration registration) {
-        var decoder = registration.getPlatformPublicKeyBase64() != null
-                ? NimbusJwtDecoder.withPublicKey(loadPublicKey(registration.getPlatformPublicKeyBase64()))
+    private static @NotNull JwtDecoder createDecoder(@NotNull LtiPlatform platform) {
+        var decoder = platform.platformPublicKeyBase64() != null
+                ? NimbusJwtDecoder.withPublicKey(loadPublicKey(platform.platformPublicKeyBase64()))
                         .signatureAlgorithm(SignatureAlgorithm.RS256)
                         .build()
-                : NimbusJwtDecoder.withJwkSetUri(registration.getPlatformJwksUrl())
+                : NimbusJwtDecoder.withJwkSetUri(platform.platformJwksUrl())
                         .jwsAlgorithm(SignatureAlgorithm.RS256)
                         .build();
         decoder.setJwtValidator(new DelegatingOAuth2TokenValidator<>(
-                JwtValidators.createDefaultWithIssuer(registration.getIssuerUrl()),
+                JwtValidators.createDefaultWithIssuer(platform.issuer()),
                 new JwtClaimValidator<List<String>>(JwtClaimNames.AUD,
-                        audience -> audience != null && audience.contains(registration.getClientId()))));
+                        audience -> audience != null && audience.contains(platform.clientId()))));
         return decoder;
     }
 

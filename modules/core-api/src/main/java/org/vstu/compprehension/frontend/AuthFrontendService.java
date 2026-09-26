@@ -38,6 +38,10 @@ public interface AuthFrontendService {
 
     boolean canViewGlobalPool(long userId);
 
+    boolean canRegisterLms(long userId);
+
+    void ensureCanRegisterLms(long userId);
+
     boolean canViewAllCourses(long userId);
 
     @NotNull Set<Long> findVisibleCourseIds(long userId);

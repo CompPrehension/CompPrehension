@@ -19,7 +19,6 @@ import org.vstu.compprehension.businesslogic.auth.AuthObjects.SystemPermission;
 import org.vstu.compprehension.service.lti.DeepLinkingResponseService;
 import org.vstu.compprehension.services.LtiContextProvider;
 
-import java.net.URI;
 import java.util.ArrayList;
 import java.util.List;
 
@@ -85,14 +84,7 @@ public class LtiDeepLinkingController {
         if (body == null || body.title() == null || body.title().isBlank()) {
             throw new IllegalArgumentException("title must not be blank");
         }
-        if (dl.targetLinkUri() == null) {
-            throw new IllegalArgumentException("Deep-linking launch has no target_link_uri");
-        }
-        // target_link_uri — публичный адрес нашего /lti/1_3/configure-course, как он записан в LMS;
-        // адрес текущего запроса за прокси может оказаться внутренним.
-        String settingsUrl = URI.create(dl.targetLinkUri()).resolve("/lti/1_3/exercise-settings").toString();
-
-        String jwt = deepLinkingResponseService.buildSignedSettingsLinkResponse(dl, settingsUrl, body.title());
+        String jwt = deepLinkingResponseService.buildSignedSettingsLinkResponse(dl, body.title());
         return new DeepLinkBuildResponse(jwt, dl.deepLinkReturnUrl());
     }
 

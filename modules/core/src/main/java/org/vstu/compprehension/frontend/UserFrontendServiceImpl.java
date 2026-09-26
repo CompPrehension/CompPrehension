@@ -46,7 +46,8 @@ public class UserFrontendServiceImpl implements UserFrontendService {
         var user = userService.getCurrentUser();
         var permissions = new UserPermissionsData(
                 authService.canViewGlobalPool(user.id()),
-                ltiContextProvider.getCurrentLtiContext().isPresent());
+                ltiContextProvider.getCurrentLtiContext().isPresent(),
+                authService.canRegisterLms(user.id()));
         return userInfoDtoMapper.map(user, permissions);
     }
 }

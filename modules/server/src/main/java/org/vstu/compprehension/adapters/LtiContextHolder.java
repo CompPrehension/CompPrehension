@@ -2,6 +2,7 @@ package org.vstu.compprehension.adapters;
 
 import org.springframework.stereotype.Component;
 import org.springframework.web.context.annotation.SessionScope;
+import org.vstu.compprehension.common.LmsUrlHelper;
 import org.vstu.compprehension.service.lti.LtiContextInitializer;
 import org.vstu.compprehension.services.LtiContextProvider;
 import org.vstu.compprehension.businesslogic.lti.LtiContext;
@@ -10,9 +11,7 @@ import org.vstu.compprehension.businesslogic.lti.LtiDeepLinkingContext;
 import org.vstu.compprehension.enums.EducationResourceType;
 
 import java.io.Serializable;
-import java.net.URI;
 import java.util.List;
-import java.util.Locale;
 import java.util.Map;
 import java.util.Optional;
 
@@ -26,7 +25,6 @@ public class LtiContextHolder implements LtiContextProvider, LtiContextInitializ
     private static final String LTI_CLAIM_CUSTOM        = "https://purl.imsglobal.org/spec/lti/claim/custom";
     private static final String LTI_CLAIM_DEEP_LINKING  = "https://purl.imsglobal.org/spec/lti-dl/claim/deep_linking_settings";
     private static final String LTI_CLAIM_DEPLOYMENT_ID = "https://purl.imsglobal.org/spec/lti/claim/deployment_id";
-    private static final String LTI_CLAIM_TARGET_LINK_URI = "https://purl.imsglobal.org/spec/lti/claim/target_link_uri";
 
     private LtiContext context;
     private LtiDeepLinkingContext deepLinkingContext;
@@ -45,7 +43,7 @@ public class LtiContextHolder implements LtiContextProvider, LtiContextInitializ
     public void init(Map<String, Object> claims) {
 
         String issuer = (String) claims.get("iss");
-        String lmsUrl = canonicalLmsUrl(issuer);
+        String lmsUrl = LmsUrlHelper.toCanonicalLmsUrl(issuer);
 
         String lmsName = null;
         EducationResourceType lmsType = EducationResourceType.UNKNOWN;
@@ -102,7 +100,6 @@ public class LtiContextHolder implements LtiContextProvider, LtiContextInitializ
         String deepLinkReturnUrl = asString(settings.get("deep_link_return_url"));
         String data = asString(settings.get("data"));
         String deploymentId = asString(claims.get(LTI_CLAIM_DEPLOYMENT_ID));
-        String targetLinkUri = asString(claims.get(LTI_CLAIM_TARGET_LINK_URI));
 
         String lineitemsUrl = null;
         List<String> scopes = null;
@@ -114,33 +111,10 @@ public class LtiContextHolder implements LtiContextProvider, LtiContextInitializ
             }
         }
 
-        return new LtiDeepLinkingContext(lmsUrl, deploymentId, deepLinkReturnUrl, targetLinkUri, data, lineitemsUrl, scopes);
+        return new LtiDeepLinkingContext(lmsUrl, deploymentId, deepLinkReturnUrl, data, lineitemsUrl, scopes);
     }
 
     private static String asString(Object value) {
         return value != null ? String.valueOf(value) : null;
-    }
-
-    /**
-     * Канонический URL LMS для записи в {@code EducationResourceEntity.url}:
-     * {@code scheme://authority} из LTI issuer claim (например {@code http://localhost:8081}),
-     * в нижнем регистре, без path/query/fragment и trailing slash. Этот же формат ожидают
-     * {@code WsFuncMoodleConfig.base-url} и {@code LtiRegistrationsProperties.issuer-url}.
-     */
-    private static String canonicalLmsUrl(String issuer) {
-        if (issuer == null || issuer.isBlank()) {
-            return null;
-        }
-        try {
-            URI uri = URI.create(issuer.trim());
-            String scheme = uri.getScheme();
-            String authority = uri.getAuthority();
-            if (scheme == null || authority == null) {
-                return null;
-            }
-            return (scheme + "://" + authority).toLowerCase(Locale.ROOT);
-        } catch (IllegalArgumentException ex) {
-            return null;
-        }
     }
 }

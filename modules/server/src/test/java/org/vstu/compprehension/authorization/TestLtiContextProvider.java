@@ -44,7 +44,6 @@ public class TestLtiContextProvider implements LtiContextProvider {
                 TestData.EducationResources.URL,
                 "test-deployment",
                 "https://lms.test.local/lti/contentitem_return.php",
-                "https://tool.test/lti/1_3/configure-course",
                 null,
                 null,
                 List.of()));

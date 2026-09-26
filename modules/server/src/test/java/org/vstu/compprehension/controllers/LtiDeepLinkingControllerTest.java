@@ -29,11 +29,10 @@ class LtiDeepLinkingControllerTest extends AbstractAuthorizationTest {
         TestLtiContextProvider.reset();
     }
 
-    /** Активность настройки открывает страницу упражнений на адресе инструмента из запуска и не имеет колонки оценок. */
+    /** Активность настройки запускается по адресу инструмента, страницу выбирает custom-параметр; оценок у неё нет. */
     @Test
     void buildSettingsLinkReturnsSingleSettingsActivity() throws Exception {
         // Arrange.
-        // TestLtiContextProvider задаёт target_link_uri запуска https://tool.test/lti/1_3/configure-course.
         TestLtiContextProvider.launchedFromCourse(TestData.Courses.MAIN_EXTERNAL_ID);
         TestLtiContextProvider.withDeepLinkingSession();
         actingAs(TestData.Users.MAIN_COURSE_TEACHER_ID);
@@ -52,9 +51,9 @@ class LtiDeepLinkingControllerTest extends AbstractAuthorizationTest {
         var item = (Map<?, ?>) items.get(0);
         assertEquals("ltiResourceLink", item.get("type"));
         assertEquals("Настройка упражнений", item.get("title"));
-        assertEquals("https://tool.test/lti/1_3/exercise-settings", item.get("url"));
+        assertEquals(Map.of("compph_page", "exercise-settings"), item.get("custom"));
+        assertFalse(item.containsKey("url"));
         assertFalse(item.containsKey("lineItem"));
-        assertFalse(item.containsKey("custom"));
     }
 
     /** Ответ выпущен «в прошлом»: Moodle не допускает iat позже своих часов даже на секунду. */

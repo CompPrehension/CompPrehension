@@ -24514,6 +24514,45 @@ var Form_default = Object.assign(Form, {
 	FloatingLabel
 });
 //#endregion
+//#region node_modules/react-bootstrap/esm/InputGroupText.js
+var InputGroupText = /*#__PURE__*/ import_react.forwardRef(({ className, bsPrefix, as: Component = "span", ...props }, ref) => {
+	bsPrefix = useBootstrapPrefix(bsPrefix, "input-group-text");
+	return /*#__PURE__*/ (0, import_jsx_runtime.jsx)(Component, {
+		ref,
+		className: (0, import_classnames.default)(className, bsPrefix),
+		...props
+	});
+});
+InputGroupText.displayName = "InputGroupText";
+//#endregion
+//#region node_modules/react-bootstrap/esm/InputGroup.js
+var InputGroupCheckbox = (props) => /*#__PURE__*/ (0, import_jsx_runtime.jsx)(InputGroupText, { children: /*#__PURE__*/ (0, import_jsx_runtime.jsx)(FormCheckInput, {
+	type: "checkbox",
+	...props
+}) });
+var InputGroupRadio = (props) => /*#__PURE__*/ (0, import_jsx_runtime.jsx)(InputGroupText, { children: /*#__PURE__*/ (0, import_jsx_runtime.jsx)(FormCheckInput, {
+	type: "radio",
+	...props
+}) });
+var InputGroup = /*#__PURE__*/ import_react.forwardRef(({ bsPrefix, size, hasValidation, className, as: Component = "div", ...props }, ref) => {
+	bsPrefix = useBootstrapPrefix(bsPrefix, "input-group");
+	const contextValue = (0, import_react.useMemo)(() => ({}), []);
+	return /*#__PURE__*/ (0, import_jsx_runtime.jsx)(context$1.Provider, {
+		value: contextValue,
+		children: /*#__PURE__*/ (0, import_jsx_runtime.jsx)(Component, {
+			ref,
+			...props,
+			className: (0, import_classnames.default)(className, bsPrefix, size && `${bsPrefix}-${size}`, hasValidation && "has-validation")
+		})
+	});
+});
+InputGroup.displayName = "InputGroup";
+var InputGroup_default = Object.assign(InputGroup, {
+	Text: InputGroupText,
+	Radio: InputGroupRadio,
+	Checkbox: InputGroupCheckbox
+});
+//#endregion
 //#region node_modules/@restart/ui/node_modules/@restart/hooks/esm/useMergedRefs.js
 var toFnRef = (ref) => !ref || typeof ref === "function" ? ref : (value) => {
 	ref.current = value;
@@ -43406,4 +43445,4 @@ pe.Step = me ? class {
 	}
 };
 //#endregion
-export { Alert_default, Badge, BrowserRouter, Bug, Button, Dropdown_default, Droppable, Form_default, Link, ListGroup_default, Modal_default, Navbar_default, Navigate, Pagination_default, Popover, PopoverContent, PopoverTrigger, ResizeMirror, Route, Routes, Spinner, StateManagedSelect$1, Table, Type, X$1 as X, absurd, action, array, autorun, boolean, chain, components, configure, esm_default, failure, fromArray, import_lib, initReactI18next, instance, intersection, isLeft, isNonEmpty, isNone, isRight, keyof, left, literal, makeAutoObservable, map$1 as map, nullType, number, observable, observer, partial, pe, pipe, recursion, require_client, require_jsx_runtime, require_react, right, string, success, toJS, tuple, type, undefinedType, union, untracked, useNavigate, useSearchParams, useTranslation };
+export { Alert_default, Badge, BrowserRouter, Bug, Button, Dropdown_default, Droppable, Form_default, InputGroup_default, Link, ListGroup_default, Modal_default, Navbar_default, Navigate, Pagination_default, Popover, PopoverContent, PopoverTrigger, ResizeMirror, Route, Routes, Spinner, StateManagedSelect$1, Table, Type, X$1 as X, absurd, action, array, autorun, boolean, chain, components, configure, esm_default, failure, fromArray, import_lib, initReactI18next, instance, intersection, isLeft, isNonEmpty, isNone, isRight, keyof, left, literal, makeAutoObservable, map$1 as map, nullType, number, observable, observer, partial, pe, pipe, recursion, require_client, require_jsx_runtime, require_react, right, string, success, toJS, tuple, type, undefinedType, union, untracked, useNavigate, useSearchParams, useTranslation };

@@ -13,6 +13,7 @@ import {ExerciseSettings} from './pages/exercise-settings';
 import {StrategySettings} from './pages/strategy-settings';
 import {QuestionPage} from './pages/question';
 import {GlobalPool} from './pages/global-pool';
+import {LtiRegistrationsPage} from './pages/lti-registrations';
 import {CoursePage} from './pages/course';
 import {CoursesPage} from './pages/courses';
 import {SessionProvider} from './hooks/session-context';
@@ -35,6 +36,7 @@ const Home = () => (
                     <Route path="/pages/question" element={<QuestionPage />} />
                     <Route path="/pages/exercises-list" element={<ExercisesList />} />
                     <Route path="/pages/global-pool" element={<GlobalPool />} />
+                    <Route path="/pages/lti-registrations" element={<LtiRegistrationsPage />} />
                     <Route path="/pages/course" element={<CoursePage />} />
                     <Route path="/pages/courses" element={<CoursesPage />} />
                     <Route path="/" element={<Navigate to="/pages/courses" replace />} />

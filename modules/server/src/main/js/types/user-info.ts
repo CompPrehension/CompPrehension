@@ -4,10 +4,12 @@ import { Language, TLanguage } from './language'
 export type UserPermissions = {
     canViewGlobalPool: boolean,
     isLtiMode: boolean,
+    canRegisterLms: boolean,
 }
 export const TUserPermissions: io.Type<UserPermissions> = io.type({
     canViewGlobalPool: io.boolean,
     isLtiMode: io.boolean,
+    canRegisterLms: io.boolean,
 }, 'UserPermissions')
 
 export type UserInfo = {

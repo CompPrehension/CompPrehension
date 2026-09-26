@@ -130,6 +130,20 @@ class UserFrontendServiceTest extends AbstractIntegrationTest {
         assertFalse(service.getCurrentUserInfo().getPermissions().canViewGlobalPool());
     }
 
+    /** Подключать LMS может только админ системы. */
+    @Test
+    void canRegisterLmsOnlyForAdmin() {
+        // Act & Assert.
+        TestUserService.actAs(TestData.Users.ADMIN_ID);
+        assertTrue(service.getCurrentUserInfo().getPermissions().canRegisterLms());
+
+        TestUserService.actAs(TestData.Users.EDUCATION_RESOURCE_ADMIN_ID);
+        assertFalse(service.getCurrentUserInfo().getPermissions().canRegisterLms());
+
+        TestUserService.actAs(TestData.Users.GLOBAL_EXERCISE_AUTHOR_ID);
+        assertFalse(service.getCurrentUserInfo().getPermissions().canRegisterLms());
+    }
+
     /** Вне LTI-сессии isLtiMode выключен. */
     @Test
     void isLtiModeIsFalseOutsideLtiSession() {

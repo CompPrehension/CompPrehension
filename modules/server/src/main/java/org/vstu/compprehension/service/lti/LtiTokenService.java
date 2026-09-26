@@ -15,9 +15,6 @@ import org.springframework.http.ResponseEntity;
 import org.springframework.stereotype.Service;
 import org.springframework.util.LinkedMultiValueMap;
 import org.springframework.web.client.RestTemplate;
-import org.vstu.compprehension.config.LtiRegistrationsProperties;
-import org.vstu.compprehension.config.LtiRegistrationsProperties.Registration;
-import org.vstu.compprehension.config.LtiRegistrationsProperties.RegistrationWithName;
 
 import java.security.KeyFactory;
 import java.security.interfaces.RSAPrivateKey;
@@ -45,21 +42,21 @@ public class LtiTokenService {
 
     private final RestTemplate restTemplate;
     private final ObjectMapper objectMapper = new ObjectMapper();
-    private final LtiRegistrationsProperties ltiRegistrations;
+    private final LtiRegistrationRegistry ltiRegistrations;
 
-    public LtiTokenService(RestTemplate restTemplate, LtiRegistrationsProperties ltiRegistrations) {
+    public LtiTokenService(RestTemplate restTemplate, LtiRegistrationRegistry ltiRegistrations) {
         this.restTemplate = restTemplate;
         this.ltiRegistrations = ltiRegistrations;
     }
 
     /**
      * Получает access token у LMS по её issuer URL для запрошенного scope. Регистрация ищется по
-     * issuer URL; token endpoint — {@code issuerUrl + /mod/lti/token.php}.
+     * issuer URL, token endpoint берётся из неё.
      */
     public String obtainAccessToken(String issuerUrl, String scope) throws Exception {
-        RegistrationWithName regWithName = requireRegistration(issuerUrl);
-        String tokenEndpoint = String.format("%s/mod/lti/token.php", issuerUrl);
-        String assertion = buildClientAssertionJwt(tokenEndpoint, regWithName.registration(), regWithName.name());
+        LtiPlatform platform = ltiRegistrations.requireByIssuer(issuerUrl);
+        String tokenEndpoint = platform.tokenEndpoint();
+        String assertion = buildClientAssertionJwt(platform);
 
         LinkedMultiValueMap<String, String> form = new LinkedMultiValueMap<>();
         form.add("grant_type", "client_credentials");
@@ -90,33 +87,26 @@ public class LtiTokenService {
         return accessToken;
     }
 
-    public RegistrationWithName requireRegistration(String issuerUrl) {
-        return ltiRegistrations.findByIssuerUrl(issuerUrl)
-                .orElseThrow(() -> new IllegalStateException(String.format(
-                        "LTI registration not configured for issuer %s — добавьте compprehension.lti.registrations.<name>.* в env",
-                        issuerUrl)));
-    }
-
-    /** Приватный RSA-ключ регистрации из PKCS8 base64. */
-    public RSAPrivateKey loadPrivateKey(Registration reg) throws Exception {
-        byte[] keyBytes = Base64.getDecoder().decode(reg.getPrivateKeyPkcs8Base64());
+    /** Приватный RSA-ключ инструмента для этой LMS из PKCS8 base64. */
+    public RSAPrivateKey loadPrivateKey(LtiPlatform platform) throws Exception {
+        byte[] keyBytes = Base64.getDecoder().decode(platform.toolPrivateKeyPkcs8Base64());
         return (RSAPrivateKey) KeyFactory.getInstance("RSA")
                 .generatePrivate(new PKCS8EncodedKeySpec(keyBytes));
     }
 
-    private String buildClientAssertionJwt(String tokenEndpoint, Registration reg, String kid) throws Exception {
+    private String buildClientAssertionJwt(LtiPlatform platform) throws Exception {
         Date now = new Date();
         JWTClaimsSet claims = new JWTClaimsSet.Builder()
-                .issuer(reg.getClientId())
-                .subject(reg.getClientId())
-                .audience(tokenEndpoint)
+                .issuer(platform.clientId())
+                .subject(platform.clientId())
+                .audience(platform.tokenEndpoint())
                 .issueTime(new Date(now.getTime() - ISSUED_AT_BACKDATE_MS))
                 .expirationTime(new Date(now.getTime() + ASSERTION_TTL_MS))
                 .jwtID(UUID.randomUUID().toString())
                 .build();
 
-        SignedJWT jwt = new SignedJWT(new JWSHeader.Builder(JWSAlgorithm.RS256).keyID(kid).build(), claims);
-        jwt.sign(new RSASSASigner(loadPrivateKey(reg)));
+        SignedJWT jwt = new SignedJWT(new JWSHeader.Builder(JWSAlgorithm.RS256).keyID(platform.toolKeyId()).build(), claims);
+        jwt.sign(new RSASSASigner(loadPrivateKey(platform)));
         return jwt.serialize();
     }
 }

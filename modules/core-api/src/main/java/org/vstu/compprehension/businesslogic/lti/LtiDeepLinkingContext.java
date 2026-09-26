@@ -6,7 +6,6 @@ public record LtiDeepLinkingContext(
         String platformIssuer,
         String deploymentId,
         String deepLinkReturnUrl,
-        String targetLinkUri,
         String data,
         String lineitemsUrl,
         List<String> agsScopes

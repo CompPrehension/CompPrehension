@@ -23,8 +23,26 @@ import java.util.Optional;
 @ConfigurationProperties(prefix = "compprehension.lti")
 @Setter
 public class LtiRegistrationsProperties {
+    /** {@code kid} общего ключа инструмента в JWKS; имя регистрации из env совпадать с ним не может. */
+    public static final String TOOL_KEY_ID = "tool";
+
     @Getter
     private Map<String, Registration> registrations = new HashMap<>();
+
+    /**
+     * Общий ключ инструмента (PKCS8 DER в base64) для LMS, подключённых динамической регистрацией: их регистрации
+     * хранятся в БД, своего ключа у них нет. Без него динамическая регистрация недоступна.
+     */
+    @Getter
+    private String toolPrivateKeyPkcs8Base64;
+
+    /**
+     * Публичный адрес инструмента без {@code /} на конце, например {@code https://dev.compprehension.ru}: из него
+     * строятся адреса, которые сообщаются LMS при динамической регистрации. Без него динамическая регистрация
+     * недоступна.
+     */
+    @Getter
+    private String toolBaseUrl;
 
     private Map<String, RegistrationWithName> byIssuerUrl = Map.of();
 
@@ -36,6 +54,9 @@ public class LtiRegistrationsProperties {
     void init() {
         var index = new HashMap<String, RegistrationWithName>();
         registrations.forEach((name, reg) -> {
+            if (TOOL_KEY_ID.equalsIgnoreCase(name)) {
+                throw new IllegalStateException("LTI registration name '" + name + "' is reserved for the tool key");
+            }
             if (reg.getIssuerUrl() == null || reg.getIssuerUrl().isBlank()) {
                 throw new IllegalStateException("LTI registration '" + name + "': issuer-url is required");
             }

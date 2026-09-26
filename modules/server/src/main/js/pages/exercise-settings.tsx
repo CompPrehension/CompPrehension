@@ -83,12 +83,12 @@ export const ExerciseSettings = observer(() => {
                             </Dropdown.Toggle>
                             <Dropdown.Menu className="w-100">
                                 {canImport && (
-                                    <Dropdown.Item onClick={() => setShowImportModal(true)}>
+                                    <Dropdown.Item className="text-wrap" onClick={() => setShowImportModal(true)}>
                                         {t('course_page_importBtn')}
                                     </Dropdown.Item>
                                 )}
                                 {canOpenGlobalPool && (
-                                    <Dropdown.Item onClick={() => window.open(`${window.location.origin}/pages/global-pool`, '_blank')?.focus()}>
+                                    <Dropdown.Item className="text-wrap" onClick={() => window.open(`${window.location.origin}/pages/global-pool`, '_blank')?.focus()}>
                                         {t('exercisesettings_openGlobalPool')}
                                     </Dropdown.Item>
                                 )}
