@@ -15,21 +15,23 @@ import org.vstu.compprehension.data.exerciseattempt.AttemptOwnerData;
 import org.vstu.compprehension.data.exerciseattempt.AttemptSummaryData;
 import org.vstu.compprehension.data.question.ExerciseAttemptContextData;
 import org.vstu.compprehension.data.question.QuestionAttemptContextData;
+import org.vstu.compprehension.data.outbox.AttemptFinishedEvent;
 import org.vstu.compprehension.repositories.data.ExerciseAttemptDataRepository;
 
+import java.time.Instant;
 import java.util.Optional;
 
 @Service
 class ExerciseAttemptDataServiceImpl implements ExerciseAttemptDataService {
     private final LtiContextProvider ltiContextProvider;
-    private final GradePassbackService gradePassbackService;
+    private final OutboxDataService outboxDataService;
     private final ExerciseAttemptDataRepository exerciseAttemptDataRepository;
 
     public ExerciseAttemptDataServiceImpl(LtiContextProvider ltiContextProvider,
-                                          GradePassbackService gradePassbackService,
+                                          OutboxDataService outboxDataService,
                                           ExerciseAttemptDataRepository exerciseAttemptDataRepository) {
         this.ltiContextProvider = ltiContextProvider;
-        this.gradePassbackService = gradePassbackService;
+        this.outboxDataService = outboxDataService;
         this.exerciseAttemptDataRepository = exerciseAttemptDataRepository;
     }
 
@@ -120,6 +122,7 @@ class ExerciseAttemptDataServiceImpl implements ExerciseAttemptDataService {
         if (!exerciseAttemptDataRepository.finishIfIncomplete(attemptId)) {
             return;
         }
-        gradePassbackService.passGrade(attemptId, exerciseAttemptDataRepository.getFinalGrade(attemptId));
+        outboxDataService.publish(new AttemptFinishedEvent(
+                attemptId, exerciseAttemptDataRepository.getFinalGrade(attemptId), Instant.now()));
     }
 }

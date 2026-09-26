@@ -10,7 +10,7 @@ import org.springframework.context.MessageSource;
 import org.springframework.context.annotation.Bean;
 import org.springframework.context.annotation.Configuration;
 import org.springframework.context.support.ReloadableResourceBundleMessageSource;
-import org.springframework.scheduling.annotation.EnableAsync;
+import org.springframework.scheduling.annotation.EnableScheduling;
 import org.springframework.web.servlet.DispatcherServlet;
 import org.springframework.web.servlet.LocaleResolver;
 import org.springframework.web.servlet.config.annotation.InterceptorRegistry;
@@ -26,7 +26,7 @@ import org.vstu.compprehension.businesslogic.domains.ProgrammingLanguageExpressi
 
 import java.util.Locale;
 
-@Configuration @EnableAsync
+@Configuration @EnableScheduling
 public class WebConfig implements WebMvcConfigurer {
 
     @Bean
