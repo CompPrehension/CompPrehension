@@ -1,16 +1,23 @@
 package org.vstu.compprehension.controllers;
 
+import com.nimbusds.jose.JWSAlgorithm;
+import com.nimbusds.jose.JWSHeader;
+import com.nimbusds.jose.crypto.RSASSASigner;
 import com.nimbusds.jwt.JWTClaimsSet;
 import com.nimbusds.jwt.PlainJWT;
+import com.nimbusds.jwt.SignedJWT;
 import org.junit.jupiter.api.AfterEach;
 import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.Test;
 import org.springframework.beans.factory.annotation.Autowired;
+import org.springframework.beans.factory.annotation.Value;
+import org.springframework.mock.web.MockHttpSession;
 import org.springframework.test.web.servlet.MockMvc;
 import org.springframework.test.web.servlet.ResultActions;
 import org.springframework.test.web.servlet.setup.MockMvcBuilders;
 import org.springframework.transaction.annotation.Transactional;
 import org.springframework.web.context.WebApplicationContext;
+import org.springframework.web.util.UriComponentsBuilder;
 import org.vstu.compprehension.adapters.LtiContextHolder;
 import org.vstu.compprehension.authorization.TestLtiContextProvider;
 import org.vstu.compprehension.entities.external_system.EducationResourceEntity;
@@ -22,7 +29,12 @@ import org.vstu.compprehension.infrastructure.AbstractIntegrationTest;
 import org.vstu.compprehension.infrastructure.TestData;
 import org.vstu.compprehension.repositories.entity.EducationResourceRepository;
 
+import java.security.KeyFactory;
+import java.security.KeyPairGenerator;
+import java.security.PrivateKey;
+import java.security.spec.PKCS8EncodedKeySpec;
 import java.time.Instant;
+import java.util.Base64;
 import java.util.Date;
 import java.util.List;
 import java.util.Optional;
@@ -30,6 +42,8 @@ import java.util.Optional;
 import static org.hamcrest.Matchers.notNullValue;
 import static org.hamcrest.Matchers.nullValue;
 import static org.junit.jupiter.api.Assertions.assertEquals;
+import static org.junit.jupiter.api.Assertions.assertNotNull;
+import static org.junit.jupiter.api.Assertions.assertTrue;
 import static org.springframework.security.test.web.servlet.setup.SecurityMockMvcConfigurers.springSecurity;
 import static org.springframework.security.web.context.HttpSessionSecurityContextRepository.SPRING_SECURITY_CONTEXT_KEY;
 import static org.springframework.test.web.servlet.request.MockMvcRequestBuilders.post;
@@ -40,12 +54,20 @@ import static org.springframework.test.web.servlet.result.MockMvcResultMatchers.
 @Transactional
 class LtiControllerTest extends AbstractIntegrationTest {
 
+    // Регистрация LMS из application-test.properties.
+    private static final String REGISTERED_ISSUER = "https://lms.test.local";
+    private static final String REGISTERED_CLIENT_ID = "test-client";
+
+    private static final String NEW_LMS_URL = "https://new-lms.test.local";
     private static final String NEW_EXTERNAL_COURSE_ID = "ext-course-new";
 
     @Autowired private WebApplicationContext webApplicationContext;
     @Autowired private EducationResourceRepository educationResourceRepository;
     @Autowired private EducationResourceFrontendService educationResourceService;
     @Autowired private CourseFrontendService courseService;
+
+    @Value("${test.lti.platform-private-key-pkcs8-base64}")
+    private String platformPrivateKeyBase64;
 
     private MockMvc mockMvc;
 
@@ -61,18 +83,56 @@ class LtiControllerTest extends AbstractIntegrationTest {
         TestLtiContextProvider.reset();
     }
 
+    // ---- login ----
+
+    /** Логин зарегистрированной LMS уводит на её авторизацию с нашими state и nonce. */
+    @Test
+    void loginRedirectsToRegisteredLms() throws Exception {
+        // Act.
+        var login = startLogin(REGISTERED_ISSUER, REGISTERED_CLIENT_ID);
+
+        // Assert.
+        assertTrue(login.redirectUrl().startsWith(REGISTERED_ISSUER + "/mod/lti/auth.php?"));
+        assertNotNull(login.state());
+        assertNotNull(login.nonce());
+    }
+
+    /** Логин незарегистрированной LMS отклоняется, а не становится открытым редиректом. */
+    @Test
+    void loginFromUnregisteredIssuerIsForbidden() throws Exception {
+        // Act.
+        var result = performLogin("https://evil.test", REGISTERED_CLIENT_ID);
+
+        // Assert.
+        result.andExpect(status().isForbidden());
+    }
+
+    /** Логин с чужим client_id отклоняется. */
+    @Test
+    void loginWithForeignClientIdIsForbidden() throws Exception {
+        // Act.
+        var result = performLogin(REGISTERED_ISSUER, "foreign-client");
+
+        // Assert.
+        result.andExpect(status().isForbidden());
+    }
+
+    // ---- доверие к LMS ----
+
     /** Уже доверенная LMS пропускается без изменений. */
     @Test
     void launchFromKnownTrustedLmsRedirectsToCourse() throws Exception {
         // Arrange.
         TestLtiContextProvider.launchedFromCourse(TestData.Courses.MAIN_EXTERNAL_ID);
+        var login = startLogin(REGISTERED_ISSUER, REGISTERED_CLIENT_ID);
 
         // Act.
-        var result = launchExerciseSettings();
+        var result = launchExerciseSettings(login, sign(validClaims(login.nonce()).build(), platformPrivateKey()));
 
         // Assert.
         result.andExpect(status().is3xxRedirection())
-                .andExpect(redirectedUrl("/pages/exercise-settings?courseId=" + TestData.Courses.MAIN_ID));
+                .andExpect(redirectedUrl("/pages/exercise-settings?courseId=" + TestData.Courses.MAIN_ID))
+                .andExpect(request().sessionAttribute(SPRING_SECURITY_CONTEXT_KEY, notNullValue()));
     }
 
     /** Запуск вне курса курс не создаёт. */
@@ -80,9 +140,10 @@ class LtiControllerTest extends AbstractIntegrationTest {
     void launchWithoutCourseDoesNotCreateCourse() throws Exception {
         // Arrange.
         TestLtiContextProvider.launchedFromLms(TestData.EducationResources.URL, null);
+        var login = startLogin(REGISTERED_ISSUER, REGISTERED_CLIENT_ID);
 
         // Act.
-        var result = launchExerciseSettings();
+        var result = launchExerciseSettings(login, sign(validClaims(login.nonce()).build(), platformPrivateKey()));
 
         // Assert.
         result.andExpect(status().is3xxRedirection())
@@ -90,58 +151,50 @@ class LtiControllerTest extends AbstractIntegrationTest {
         assertEquals(2, courseService.getUserCourses(TestData.Users.ADMIN_ID).size());
     }
 
-    /** LMS на поддомене доверенного хоста регистрируется доверенной. */
+    /** Первый подписанный запуск новой LMS регистрирует её доверенной. */
     @Test
-    void launchFromNewLmsOnTrustedSubdomainCreatesTrustedResource() throws Exception {
+    void launchFromNewLmsCreatesTrustedResource() throws Exception {
         // Arrange.
-        TestLtiContextProvider.launchedFromLms("https://moodle.trusted.test", NEW_EXTERNAL_COURSE_ID);
+        TestLtiContextProvider.launchedFromLms(NEW_LMS_URL, NEW_EXTERNAL_COURSE_ID);
+        var login = startLogin(REGISTERED_ISSUER, REGISTERED_CLIENT_ID);
 
         // Act.
-        var result = launchExerciseSettings();
+        var result = launchExerciseSettings(login, sign(validClaims(login.nonce()).build(), platformPrivateKey()));
 
         // Assert.
         result.andExpect(status().is3xxRedirection())
                 .andExpect(request().sessionAttribute(SPRING_SECURITY_CONTEXT_KEY, notNullValue()));
-        assertEquals(EducationResourceTrustStatus.TRUSTED, trustStatusOf("https://moodle.trusted.test"));
+        assertEquals(EducationResourceTrustStatus.TRUSTED, trustStatusOf(NEW_LMS_URL));
     }
 
-    /** Сам доверенный хост тоже доверенный. */
+    /** Недоверенная LMS остаётся закрытой, сессия не аутентифицируется. */
     @Test
-    void launchFromNewLmsOnTrustedHostCreatesTrustedResource() throws Exception {
+    void launchFromUntrustedLmsIsForbidden() throws Exception {
         // Arrange.
-        TestLtiContextProvider.launchedFromLms("https://trusted.test:8443", NEW_EXTERNAL_COURSE_ID);
+        educationResourceService.getOrCreate(NEW_LMS_URL, EducationResourceType.MOODLE, EducationResourceTrustStatus.UNTRUSTED);
+        TestLtiContextProvider.launchedFromLms(NEW_LMS_URL, NEW_EXTERNAL_COURSE_ID);
+        var login = startLogin(REGISTERED_ISSUER, REGISTERED_CLIENT_ID);
 
         // Act.
-        var result = launchExerciseSettings();
-
-        // Assert.
-        result.andExpect(status().is3xxRedirection());
-        assertEquals(EducationResourceTrustStatus.TRUSTED, trustStatusOf("https://trusted.test:8443"));
-    }
-
-    /** Чужая LMS регистрируется недоверенной, запуск отклоняется, сессия не аутентифицируется. */
-    @Test
-    void launchFromNewUntrustedLmsIsForbidden() throws Exception {
-        // Arrange.
-        TestLtiContextProvider.launchedFromLms("https://moodle.untrusted.test", NEW_EXTERNAL_COURSE_ID);
-
-        // Act.
-        var result = launchExerciseSettings();
+        var result = launchExerciseSettings(login, sign(validClaims(login.nonce()).build(), platformPrivateKey()));
 
         // Assert.
         result.andExpect(status().isForbidden())
                 .andExpect(request().sessionAttribute(SPRING_SECURITY_CONTEXT_KEY, nullValue()));
-        assertEquals(EducationResourceTrustStatus.UNTRUSTED, trustStatusOf("https://moodle.untrusted.test"));
+        assertEquals(EducationResourceTrustStatus.UNTRUSTED, trustStatusOf(NEW_LMS_URL));
     }
 
     /** После отказа недоверенной LMS в сессии не остаётся её LTI-контекста. */
     @Test
     void launchFromUntrustedLmsClearsSessionLtiContext() throws Exception {
         // Arrange.
-        TestLtiContextProvider.launchedFromLms("https://moodle.untrusted.test", NEW_EXTERNAL_COURSE_ID);
+        educationResourceService.getOrCreate(NEW_LMS_URL, EducationResourceType.MOODLE, EducationResourceTrustStatus.UNTRUSTED);
+        TestLtiContextProvider.launchedFromLms(NEW_LMS_URL, NEW_EXTERNAL_COURSE_ID);
+        var login = startLogin(REGISTERED_ISSUER, REGISTERED_CLIENT_ID);
 
         // Act.
-        var result = launchExerciseSettings().andReturn();
+        var result = launchExerciseSettings(login, sign(validClaims(login.nonce()).build(), platformPrivateKey()))
+                .andReturn();
 
         // Assert.
         // Контроллер берёт контекст из TestLtiContextProvider, а сессионный LtiContextHolder заполняется из id_token.
@@ -150,49 +203,203 @@ class LtiControllerTest extends AbstractIntegrationTest {
         assertEquals(Optional.empty(), holder.getCurrentDeepLinkingContext());
     }
 
-    /** Доверенный хост сравнивается по границе домена, а не по подстроке. */
+    /** Заблокированная LMS остаётся заблокированной. */
     @Test
-    void launchFromLookalikeHostIsForbidden() throws Exception {
+    void launchFromBannedLmsIsForbidden() throws Exception {
         // Arrange.
-        TestLtiContextProvider.launchedFromLms("https://eviltrusted.test", NEW_EXTERNAL_COURSE_ID);
+        educationResourceService.getOrCreate(NEW_LMS_URL, EducationResourceType.MOODLE, EducationResourceTrustStatus.BANNED);
+        TestLtiContextProvider.launchedFromLms(NEW_LMS_URL, NEW_EXTERNAL_COURSE_ID);
+        var login = startLogin(REGISTERED_ISSUER, REGISTERED_CLIENT_ID);
 
         // Act.
-        var result = launchExerciseSettings();
+        var result = launchExerciseSettings(login, sign(validClaims(login.nonce()).build(), platformPrivateKey()));
 
         // Assert.
         result.andExpect(status().isForbidden());
-        assertEquals(EducationResourceTrustStatus.UNTRUSTED, trustStatusOf("https://eviltrusted.test"));
+        assertEquals(EducationResourceTrustStatus.BANNED, trustStatusOf(NEW_LMS_URL));
     }
 
-    /** Статус уже существующей LMS не пересчитывается по доверенным хостам. */
+    // ---- проверка id_token ----
+
+    /** Неподписанный токен отклоняется. */
     @Test
-    void launchFromBannedLmsOnTrustedHostIsForbidden() throws Exception {
+    void launchWithUnsignedTokenIsForbidden() throws Exception {
         // Arrange.
-        var url = "https://banned.trusted.test";
-        educationResourceService.getOrCreate(url, EducationResourceType.MOODLE, EducationResourceTrustStatus.BANNED);
-        TestLtiContextProvider.launchedFromLms(url, NEW_EXTERNAL_COURSE_ID);
+        TestLtiContextProvider.launchedFromCourse(TestData.Courses.MAIN_EXTERNAL_ID);
+        var login = startLogin(REGISTERED_ISSUER, REGISTERED_CLIENT_ID);
+        var idToken = new PlainJWT(validClaims(login.nonce()).build()).serialize();
 
         // Act.
-        var result = launchExerciseSettings();
+        var result = launchExerciseSettings(login, idToken);
+
+        // Assert.
+        result.andExpect(status().isForbidden())
+                .andExpect(request().sessionAttribute(SPRING_SECURITY_CONTEXT_KEY, nullValue()));
+    }
+
+    /** Токен, подписанный не ключом LMS, отклоняется. */
+    @Test
+    void launchWithTokenSignedByForeignKeyIsForbidden() throws Exception {
+        // Arrange.
+        TestLtiContextProvider.launchedFromCourse(TestData.Courses.MAIN_EXTERNAL_ID);
+        var login = startLogin(REGISTERED_ISSUER, REGISTERED_CLIENT_ID);
+        var foreignKey = KeyPairGenerator.getInstance("RSA").generateKeyPair().getPrivate();
+
+        // Act.
+        var result = launchExerciseSettings(login, sign(validClaims(login.nonce()).build(), foreignKey));
+
+        // Assert.
+        result.andExpect(status().isForbidden())
+                .andExpect(request().sessionAttribute(SPRING_SECURITY_CONTEXT_KEY, nullValue()));
+    }
+
+    /** Токен, выданный другому инструменту, отклоняется. */
+    @Test
+    void launchWithTokenForForeignClientIsForbidden() throws Exception {
+        // Arrange.
+        TestLtiContextProvider.launchedFromCourse(TestData.Courses.MAIN_EXTERNAL_ID);
+        var login = startLogin(REGISTERED_ISSUER, REGISTERED_CLIENT_ID);
+        var claims = validClaims(login.nonce()).audience("foreign-client").build();
+
+        // Act.
+        var result = launchExerciseSettings(login, sign(claims, platformPrivateKey()));
 
         // Assert.
         result.andExpect(status().isForbidden());
-        assertEquals(EducationResourceTrustStatus.BANNED, trustStatusOf(url));
     }
 
-    private ResultActions launchExerciseSettings() throws Exception {
-        return mockMvc.perform(post("/lti/1_3/exercise-settings").param("id_token", idToken()));
+    /** Токен незарегистрированной LMS отклоняется. */
+    @Test
+    void launchWithTokenFromUnregisteredIssuerIsForbidden() throws Exception {
+        // Arrange.
+        TestLtiContextProvider.launchedFromCourse(TestData.Courses.MAIN_EXTERNAL_ID);
+        var login = startLogin(REGISTERED_ISSUER, REGISTERED_CLIENT_ID);
+        var claims = validClaims(login.nonce()).issuer("https://evil.test").build();
+
+        // Act.
+        var result = launchExerciseSettings(login, sign(claims, platformPrivateKey()));
+
+        // Assert.
+        result.andExpect(status().isForbidden());
     }
 
-    private static String idToken() {
+    /** Просроченный токен отклоняется. */
+    @Test
+    void launchWithExpiredTokenIsForbidden() throws Exception {
+        // Arrange.
+        TestLtiContextProvider.launchedFromCourse(TestData.Courses.MAIN_EXTERNAL_ID);
+        var login = startLogin(REGISTERED_ISSUER, REGISTERED_CLIENT_ID);
+        var tenMinutesAgo = Instant.now().minusSeconds(600);
+        var claims = validClaims(login.nonce())
+                .issueTime(Date.from(tenMinutesAgo.minusSeconds(300)))
+                .expirationTime(Date.from(tenMinutesAgo))
+                .build();
+
+        // Act.
+        var result = launchExerciseSettings(login, sign(claims, platformPrivateKey()));
+
+        // Assert.
+        result.andExpect(status().isForbidden());
+    }
+
+    // ---- state и nonce ----
+
+    /** Запуск без логина через наш /login отклоняется. */
+    @Test
+    void launchWithUnknownStateIsForbidden() throws Exception {
+        // Arrange.
+        TestLtiContextProvider.launchedFromCourse(TestData.Courses.MAIN_EXTERNAL_ID);
+        var login = startLogin(REGISTERED_ISSUER, REGISTERED_CLIENT_ID);
+        var foreignLogin = new Login(login.session(), login.redirectUrl(), "unknown-state", login.nonce());
+
+        // Act.
+        var result = launchExerciseSettings(foreignLogin, sign(validClaims(login.nonce()).build(), platformPrivateKey()));
+
+        // Assert.
+        result.andExpect(status().isForbidden())
+                .andExpect(request().sessionAttribute(SPRING_SECURITY_CONTEXT_KEY, nullValue()));
+    }
+
+    /** Токен с чужим nonce отклоняется. */
+    @Test
+    void launchWithForeignNonceIsForbidden() throws Exception {
+        // Arrange.
+        TestLtiContextProvider.launchedFromCourse(TestData.Courses.MAIN_EXTERNAL_ID);
+        var login = startLogin(REGISTERED_ISSUER, REGISTERED_CLIENT_ID);
+
+        // Act.
+        var result = launchExerciseSettings(login, sign(validClaims("foreign-nonce").build(), platformPrivateKey()));
+
+        // Assert.
+        result.andExpect(status().isForbidden());
+    }
+
+    /** Один логин пропускает только один запуск: перехваченный токен повторно не принимается. */
+    @Test
+    void launchReplayIsForbidden() throws Exception {
+        // Arrange.
+        TestLtiContextProvider.launchedFromCourse(TestData.Courses.MAIN_EXTERNAL_ID);
+        var login = startLogin(REGISTERED_ISSUER, REGISTERED_CLIENT_ID);
+        var idToken = sign(validClaims(login.nonce()).build(), platformPrivateKey());
+        launchExerciseSettings(login, idToken).andExpect(status().is3xxRedirection());
+
+        // Act.
+        var result = launchExerciseSettings(login, idToken);
+
+        // Assert.
+        result.andExpect(status().isForbidden());
+    }
+
+    private record Login(MockHttpSession session, String redirectUrl, String state, String nonce) {
+    }
+
+    private Login startLogin(String issuer, String clientId) throws Exception {
+        var result = performLogin(issuer, clientId).andExpect(status().is3xxRedirection()).andReturn();
+        var redirectUrl = result.getResponse().getRedirectedUrl();
+        var query = UriComponentsBuilder.fromUriString(redirectUrl).build().getQueryParams();
+        // Логин начинает новую сессию, запуск должен прийти в неё.
+        var session = (MockHttpSession) result.getRequest().getSession(false);
+        return new Login(session, redirectUrl, query.getFirst("state"), query.getFirst("nonce"));
+    }
+
+    private ResultActions performLogin(String issuer, String clientId) throws Exception {
+        return mockMvc.perform(post("/lti/1_3/login")
+                .param("iss", issuer)
+                .param("client_id", clientId)
+                .param("login_hint", "lti-user")
+                .param("lti_message_hint", "message-hint")
+                .param("target_link_uri", "https://tool.test/lti/1_3/exercise-settings"));
+    }
+
+    private ResultActions launchExerciseSettings(Login login, String idToken) throws Exception {
+        return mockMvc.perform(post("/lti/1_3/exercise-settings")
+                .session(login.session())
+                .param("id_token", idToken)
+                .param("state", login.state()));
+    }
+
+    private static JWTClaimsSet.Builder validClaims(String nonce) {
         var now = Instant.now();
-        return new PlainJWT(new JWTClaimsSet.Builder()
+        return new JWTClaimsSet.Builder()
+                .issuer(REGISTERED_ISSUER)
+                .audience(REGISTERED_CLIENT_ID)
                 .subject("lti-user")
                 .issueTime(Date.from(now))
                 .expirationTime(Date.from(now.plusSeconds(300)))
+                .claim("nonce", nonce)
                 .claim("https://purl.imsglobal.org/spec/lti/claim/roles",
-                        List.of("http://purl.imsglobal.org/vocab/lis/v2/membership#Instructor"))
-                .build()).serialize();
+                        List.of("http://purl.imsglobal.org/vocab/lis/v2/membership#Instructor"));
+    }
+
+    private static String sign(JWTClaimsSet claims, PrivateKey key) throws Exception {
+        var jwt = new SignedJWT(new JWSHeader.Builder(JWSAlgorithm.RS256).build(), claims);
+        jwt.sign(new RSASSASigner(key));
+        return jwt.serialize();
+    }
+
+    private PrivateKey platformPrivateKey() throws Exception {
+        return KeyFactory.getInstance("RSA").generatePrivate(
+                new PKCS8EncodedKeySpec(Base64.getDecoder().decode(platformPrivateKeyBase64)));
     }
 
     private EducationResourceTrustStatus trustStatusOf(String url) {

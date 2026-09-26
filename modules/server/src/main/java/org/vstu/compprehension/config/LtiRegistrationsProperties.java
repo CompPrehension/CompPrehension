@@ -45,6 +45,13 @@ public class LtiRegistrationsProperties {
             if (reg.getPrivateKeyPkcs8Base64() == null || reg.getPrivateKeyPkcs8Base64().isBlank()) {
                 throw new IllegalStateException("LTI registration '" + name + "': private-key-pkcs8-base64 is required");
             }
+            if (reg.getPlatformJwksUrl() != null && reg.getPlatformPublicKeyBase64() != null) {
+                throw new IllegalStateException("LTI registration '" + name
+                        + "': platform-jwks-url and platform-public-key-base64 are mutually exclusive");
+            }
+            if (reg.getPlatformJwksUrl() == null && reg.getPlatformPublicKeyBase64() == null) {
+                reg.setPlatformJwksUrl(reg.getIssuerUrl() + "/mod/lti/certs.php");
+            }
             var prev = index.put(reg.getIssuerUrl(), new RegistrationWithName(name, reg));
             if (prev != null) {
                 throw new IllegalStateException("LTI registrations have duplicate issuer-url: " + reg.getIssuerUrl());
@@ -62,6 +69,13 @@ public class LtiRegistrationsProperties {
         private String clientId;
         /** RSA private key (PKCS8 DER) в base64; парная public key публикуется в JWKS. */
         private String privateKeyPkcs8Base64;
+        /**
+         * JWKS LMS, которым проверяется подпись id_token. По умолчанию — {@code issuerUrl + /mod/lti/certs.php}
+         * (адрес Moodle). Не задаётся вместе с {@link #platformPublicKeyBase64}.
+         */
+        private String platformJwksUrl;
+        /** Статический RSA public key LMS (X.509 DER) в base64 вместо JWKS: для LMS без JWKS и для тестов. */
+        private String platformPublicKeyBase64;
     }
 
     /** Пара (имя регистрации, её настройки) — удобный возврат из find-методов. */
