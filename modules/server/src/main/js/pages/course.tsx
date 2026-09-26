@@ -27,8 +27,8 @@ const DeepLinkReturnForm: React.FC<{ jwt: string; returnUrl: string }> = ({ jwt,
 };
 
 /**
- * Shown inside Moodle's "Select content" iframe: pick course exercises and push them
- * back to Moodle, which creates the External Tool activities.
+ * Shown inside Moodle's "Select content" iframe. Two separate actions, each ending the deep-linking session:
+ * push the picked course exercises back to Moodle, or add an activity that opens the course exercise settings.
  */
 const DeepLinkSelection: React.FC<{ exercises: { id: number; name: string }[] }> = ({ exercises }) => {
     const { t } = useTranslation();
@@ -64,7 +64,17 @@ const DeepLinkSelection: React.FC<{ exercises: { id: number; name: string }[] }>
         }
         setSubmitting(true);
         setError(null);
-        const res = await deepLinkingController.build(Array.from(selected));
+        await sendResponse(deepLinkingController.build(Array.from(selected)));
+    };
+
+    const submitSettingsLink = async () => {
+        setSubmitting(true);
+        setError(null);
+        await sendResponse(deepLinkingController.buildSettingsLink(t('deeplink_settingsActivityTitle')));
+    };
+
+    const sendResponse = async (request: ReturnType<typeof deepLinkingController.build>) => {
+        const res = await request;
         if (E.isRight(res)) {
             setPayload(res.right); // mounts DeepLinkReturnForm -> navigates the iframe to Moodle
         } else {
@@ -80,6 +90,8 @@ const DeepLinkSelection: React.FC<{ exercises: { id: number; name: string }[] }>
     return (
         <div className="container-fluid p-3">
             <h5>{t('deeplink_title')}</h5>
+
+            <h6 className="mt-3">{t('deeplink_exercisesTitle')}</h6>
             <p className="text-muted">{t('deeplink_hint')}</p>
             {exercises.length === 0 && <div className="text-muted mb-3">{t('deeplink_empty')}</div>}
             <ul className="list-group mb-3">
@@ -98,12 +110,23 @@ const DeepLinkSelection: React.FC<{ exercises: { id: number; name: string }[] }>
                     );
                 })}
             </ul>
-            {error && <div className="alert alert-danger">{error}</div>}
             <Button variant="primary"
                     disabled={submitting || selected.size === 0}
                     onClick={submit}>
                 {submitting ? t('deeplink_submitting') : t('deeplink_addBtn')}
             </Button>
+
+            <hr className="my-4" />
+
+            <h6>{t('deeplink_settingsTitle')}</h6>
+            <p className="text-muted">{t('deeplink_settingsHint')}</p>
+            <Button variant="outline-secondary"
+                    disabled={submitting}
+                    onClick={submitSettingsLink}>
+                {submitting ? t('deeplink_submitting') : t('deeplink_settingsBtn')}
+            </Button>
+
+            {error && <div className="alert alert-danger mt-3">{error}</div>}
         </div>
     );
 };

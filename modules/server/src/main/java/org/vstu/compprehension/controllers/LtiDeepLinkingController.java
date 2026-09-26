@@ -19,6 +19,7 @@ import org.vstu.compprehension.businesslogic.auth.AuthObjects.SystemPermission;
 import org.vstu.compprehension.service.lti.DeepLinkingResponseService;
 import org.vstu.compprehension.services.LtiContextProvider;
 
+import java.net.URI;
 import java.util.ArrayList;
 import java.util.List;
 
@@ -35,6 +36,9 @@ public class LtiDeepLinkingController {
     private final DeepLinkingResponseService deepLinkingResponseService;
 
     public record DeepLinkBuildRequest(List<Long> exerciseIds) {
+    }
+
+    public record DeepLinkSettingsLinkRequest(String title) {
     }
 
     public record DeepLinkBuildResponse(String jwt, String returnUrl) {
@@ -64,6 +68,31 @@ public class LtiDeepLinkingController {
                         .toList();
 
         String jwt = deepLinkingResponseService.buildSignedResponse(dl, items);
+        return new DeepLinkBuildResponse(jwt, dl.deepLinkReturnUrl());
+    }
+
+    /**
+     * Собирает подписанный {@code LtiDeepLinkingResponse} с активностью, которая открывает страницу настройки
+     * упражнений курса: без неё в новый курс не попасть, чтобы наполнить его упражнениями.
+     */
+    @SneakyThrows
+    @PostMapping("build-settings-link")
+    @ResponseBody
+    public DeepLinkBuildResponse buildSettingsLink(@RequestBody DeepLinkSettingsLinkRequest body) {
+        LtiDeepLinkingContext dl = requireDeepLinking();
+        requireAuthorizedCourse();
+
+        if (body == null || body.title() == null || body.title().isBlank()) {
+            throw new IllegalArgumentException("title must not be blank");
+        }
+        if (dl.targetLinkUri() == null) {
+            throw new IllegalArgumentException("Deep-linking launch has no target_link_uri");
+        }
+        // target_link_uri — публичный адрес нашего /lti/1_3/configure-course, как он записан в LMS;
+        // адрес текущего запроса за прокси может оказаться внутренним.
+        String settingsUrl = URI.create(dl.targetLinkUri()).resolve("/lti/1_3/exercise-settings").toString();
+
+        String jwt = deepLinkingResponseService.buildSignedSettingsLinkResponse(dl, settingsUrl, body.title());
         return new DeepLinkBuildResponse(jwt, dl.deepLinkReturnUrl());
     }
 

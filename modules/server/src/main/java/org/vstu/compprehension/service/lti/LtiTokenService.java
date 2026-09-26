@@ -38,6 +38,11 @@ public class LtiTokenService {
 
     private static final long ASSERTION_TTL_MS = 60_000;
 
+    /**
+     * На сколько раньше текущего момента выставляется {@code iat} подписываемых для LMS токенов.
+     */
+    public static final long ISSUED_AT_BACKDATE_MS = 60_000;
+
     private final RestTemplate restTemplate;
     private final ObjectMapper objectMapper = new ObjectMapper();
     private final LtiRegistrationsProperties ltiRegistrations;
@@ -105,7 +110,7 @@ public class LtiTokenService {
                 .issuer(reg.getClientId())
                 .subject(reg.getClientId())
                 .audience(tokenEndpoint)
-                .issueTime(now)
+                .issueTime(new Date(now.getTime() - ISSUED_AT_BACKDATE_MS))
                 .expirationTime(new Date(now.getTime() + ASSERTION_TTL_MS))
                 .jwtID(UUID.randomUUID().toString())
                 .build();

@@ -68,10 +68,6 @@ public class DeepLinkingResponseService {
      * а {@code /lti/1_3/exercise} приоритетно читает custom-claim {@code exercise_id}.
      */
     public String buildSignedResponse(LtiDeepLinkingContext dl, List<DeepLinkItem> items) throws Exception {
-        RegistrationWithName regWithName = tokenService.requireRegistration(dl.platformIssuer());
-        Registration reg = regWithName.registration();
-        String kid = regWithName.name();
-
         List<Map<String, Object>> contentItems = new ArrayList<>(items.size());
         for (DeepLinkItem item : items) {
             String title = (item.title() != null && !item.title().isBlank())
@@ -86,12 +82,32 @@ public class DeepLinkingResponseService {
                     "tag", TAG_PREFIX + item.exerciseId()));
             contentItems.add(ci);
         }
+        return signResponse(dl, contentItems);
+    }
+
+    /**
+     * Строит и подписывает {@code LtiDeepLinkingResponse} с одной ссылкой на страницу настройки упражнений
+     * курса. У item свой {@code url}: Moodle запускает такую активность по нему, а не по Tool URL инструмента.
+     * Колонки оценок у неё нет.
+     */
+    public String buildSignedSettingsLinkResponse(LtiDeepLinkingContext dl, String settingsUrl, String title) throws Exception {
+        Map<String, Object> ci = new LinkedHashMap<>();
+        ci.put("type", "ltiResourceLink");
+        ci.put("title", title);
+        ci.put("url", settingsUrl);
+        return signResponse(dl, List.of(ci));
+    }
+
+    private String signResponse(LtiDeepLinkingContext dl, List<Map<String, Object>> contentItems) throws Exception {
+        RegistrationWithName regWithName = tokenService.requireRegistration(dl.platformIssuer());
+        Registration reg = regWithName.registration();
+        String kid = regWithName.name();
 
         Date now = new Date();
         JWTClaimsSet.Builder claims = new JWTClaimsSet.Builder()
                 .issuer(reg.getClientId())
                 .audience(dl.platformIssuer())
-                .issueTime(now)
+                .issueTime(new Date(now.getTime() - LtiTokenService.ISSUED_AT_BACKDATE_MS))
                 .expirationTime(new Date(now.getTime() + 300_000))
                 .jwtID(UUID.randomUUID().toString())
                 .claim("nonce", UUID.randomUUID().toString())

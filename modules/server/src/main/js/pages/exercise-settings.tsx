@@ -13,8 +13,8 @@ import {
 import {ExerciseCardViewModel, ExerciseSettingsStore, ExerciseStageStore} from "../stores/exercise-settings-store";
 import {observer} from "mobx-react";
 import {ToggleSwitch} from "../components/common/toggle";
-import {Button, Form} from "react-bootstrap";
-import {Link} from 'react-router';
+import {Button, Dropdown, Form} from "react-bootstrap";
+import {Link, useNavigate} from 'react-router';
 import { LoadFailure } from "../components/common/errors";
 import {Loader} from "../components/common/loader";
 import {useTranslation} from "react-i18next";
@@ -24,13 +24,18 @@ import { useCurrentUser } from "../hooks/session-context";
 import { useCourseId } from "../hooks/use-course-id";
 import { ExerciseRowBadge } from "../components/exercise/exercise-row-badge";
 import { DeleteGlobalExerciseModal } from "../components/exercise/delete-global-exercise-modal";
+import { ImportFromGlobalModal } from "../components/exercise/import-from-global-modal";
 
 export const ExerciseSettings = observer(() => {
     const [exerciseStore] = useState(() => new ExerciseSettingsStore());
     const { t } = useTranslation();
     const user = useCurrentUser();
     const courseId = useCourseId();
+    const navigate = useNavigate();
+    const [showImportModal, setShowImportModal] = useState(false);
     const canCreate = exerciseStore.permissions.canCreateExercise;
+    const { canImportInherit, canImportClone } = exerciseStore.permissions;
+    const canImport = courseId != null && (canImportInherit || canImportClone);
     useEffect(() => {
         (async () => {
             await exerciseStore.loadExercises(courseId);
@@ -48,12 +53,19 @@ export const ExerciseSettings = observer(() => {
         })()
     }, [exerciseStore]);
 
+    const onExerciseImported = async (importedExerciseId: number) => {
+        navigate(`?exerciseId=${importedExerciseId}&courseId=${courseId}`);
+        await exerciseStore.loadImportedExercise(importedExerciseId);
+    };
+
     if (exerciseStore.exercisesLoadStatus === 'LOADING') {
         return <Loader />;
     }
 
     if (!user)
         return <Loader />;
+
+    const canOpenGlobalPool = user.permissions.canViewGlobalPool && courseId != null;
 
     const parent = courseId != null
         ? { label: t('course_page_title', { id: courseId }), to: `/pages/course?courseId=${courseId}` }
@@ -64,11 +76,24 @@ export const ExerciseSettings = observer(() => {
             <div className="flex-xl-nowrap row">
                 <div className="col-xl-3 col-md-3 col-12 d-flex flex-column">
                     {canCreate && <Button variant="primary" className="mb-3" onClick={onNewExerciseClicked}>{t('exercisesettings_createNew')}</Button>}
-                    {user.permissions.canViewGlobalPool && courseId != null && (
-                        <Button variant="outline-secondary" className="mb-3"
-                                onClick={() => window.open(`${window.location.origin}/pages/global-pool`, '_blank')?.focus()}>
-                            {t('exercisesettings_openGlobalPool')}
-                        </Button>
+                    {(canImport || canOpenGlobalPool) && (
+                        <Dropdown className="mb-3">
+                            <Dropdown.Toggle variant="outline-secondary" className="w-100">
+                                {t('exercisesettings_globalPoolMenu')}
+                            </Dropdown.Toggle>
+                            <Dropdown.Menu className="w-100">
+                                {canImport && (
+                                    <Dropdown.Item onClick={() => setShowImportModal(true)}>
+                                        {t('course_page_importBtn')}
+                                    </Dropdown.Item>
+                                )}
+                                {canOpenGlobalPool && (
+                                    <Dropdown.Item onClick={() => window.open(`${window.location.origin}/pages/global-pool`, '_blank')?.focus()}>
+                                        {t('exercisesettings_openGlobalPool')}
+                                    </Dropdown.Item>
+                                )}
+                            </Dropdown.Menu>
+                        </Dropdown>
                     )}
                     <div className="list-group">
                         {exerciseStore.exercises?.map(e =>
@@ -94,6 +119,14 @@ export const ExerciseSettings = observer(() => {
                     />
                 </div>
             </div>
+            {canImport && showImportModal && courseId != null && (
+                <ImportFromGlobalModal
+                    courseId={courseId}
+                    canInherit={canImportInherit}
+                    canClone={canImportClone}
+                    onClose={() => setShowImportModal(false)}
+                    onImported={onExerciseImported} />
+            )}
         </PageLayout>
     );
 })

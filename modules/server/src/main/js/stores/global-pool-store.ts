@@ -32,12 +32,13 @@ export class GlobalPoolStore {
         this.loadStatus = 'LOADED';
     }
 
-    async importToCourse(exerciseId: number, targetCourseId: number, mode: ImportMode): Promise<boolean> {
+    /** Returns the id of the exercise now in the course (the pool exercise itself or its clone), or null on failure. */
+    async importToCourse(exerciseId: number, targetCourseId: number, mode: ImportMode): Promise<number | null> {
         if (mode === 'INHERIT') {
             const r = await courseController.addExerciseToCourse(exerciseId, targetCourseId);
-            return E.isRight(r);
+            return E.isRight(r) ? exerciseId : null;
         }
         const r = await exerciseSettingsController.cloneExercise(exerciseId, targetCourseId);
-        return E.isRight(r);
+        return E.isRight(r) ? r.right : null;
     }
 }

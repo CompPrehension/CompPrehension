@@ -26,6 +26,7 @@ public class LtiContextHolder implements LtiContextProvider, LtiContextInitializ
     private static final String LTI_CLAIM_CUSTOM        = "https://purl.imsglobal.org/spec/lti/claim/custom";
     private static final String LTI_CLAIM_DEEP_LINKING  = "https://purl.imsglobal.org/spec/lti-dl/claim/deep_linking_settings";
     private static final String LTI_CLAIM_DEPLOYMENT_ID = "https://purl.imsglobal.org/spec/lti/claim/deployment_id";
+    private static final String LTI_CLAIM_TARGET_LINK_URI = "https://purl.imsglobal.org/spec/lti/claim/target_link_uri";
 
     private LtiContext context;
     private LtiDeepLinkingContext deepLinkingContext;
@@ -101,6 +102,7 @@ public class LtiContextHolder implements LtiContextProvider, LtiContextInitializ
         String deepLinkReturnUrl = asString(settings.get("deep_link_return_url"));
         String data = asString(settings.get("data"));
         String deploymentId = asString(claims.get(LTI_CLAIM_DEPLOYMENT_ID));
+        String targetLinkUri = asString(claims.get(LTI_CLAIM_TARGET_LINK_URI));
 
         String lineitemsUrl = null;
         List<String> scopes = null;
@@ -112,7 +114,7 @@ public class LtiContextHolder implements LtiContextProvider, LtiContextInitializ
             }
         }
 
-        return new LtiDeepLinkingContext(lmsUrl, deploymentId, deepLinkReturnUrl, data, lineitemsUrl, scopes);
+        return new LtiDeepLinkingContext(lmsUrl, deploymentId, deepLinkReturnUrl, targetLinkUri, data, lineitemsUrl, scopes);
     }
 
     private static String asString(Object value) {
