@@ -107,21 +107,41 @@ class UserFrontendServiceTest extends AbstractIntegrationTest {
         assertTrue(info.getDisplayName().isEmpty());
     }
 
-    /** Глобальный пул виден тем, у кого VIEW_EXERCISE в GLOBAL. */
+    /** Глобальный пул виден тем, у кого есть VIEW_GLOBAL_POOL в любой области. */
     @Test
-    void canViewGlobalPoolFollowsGlobalViewPermission() {
+    void canViewGlobalPoolFollowsViewGlobalPoolPermission() {
         // Act & Assert.
         TestUserService.actAs(TestData.Users.GLOBAL_EXERCISE_AUTHOR_ID);
         assertTrue(service.getCurrentUserInfo().getPermissions().canViewGlobalPool());
 
-        TestUserService.actAs(TestData.Users.GLOBAL_ADMIN_ID);
+        TestUserService.actAs(TestData.Users.ADMIN_ID);
         assertTrue(service.getCurrentUserInfo().getPermissions().canViewGlobalPool());
 
         TestUserService.actAs(TestData.Users.MAIN_COURSE_TEACHER_ID);
+        assertTrue(service.getCurrentUserInfo().getPermissions().canViewGlobalPool());
+
+        TestUserService.actAs(TestData.Users.EDUCATION_RESOURCE_ADMIN_ID);
+        assertTrue(service.getCurrentUserInfo().getPermissions().canViewGlobalPool());
+
+        TestUserService.actAs(TestData.Users.MAIN_COURSE_ASSISTANT_ID);
         assertFalse(service.getCurrentUserInfo().getPermissions().canViewGlobalPool());
 
         TestUserService.actAs(TestData.Users.GLOBAL_STUDENT_ID);
         assertFalse(service.getCurrentUserInfo().getPermissions().canViewGlobalPool());
+    }
+
+    /** Подключать LMS может только админ системы. */
+    @Test
+    void canRegisterLmsOnlyForAdmin() {
+        // Act & Assert.
+        TestUserService.actAs(TestData.Users.ADMIN_ID);
+        assertTrue(service.getCurrentUserInfo().getPermissions().canRegisterLms());
+
+        TestUserService.actAs(TestData.Users.EDUCATION_RESOURCE_ADMIN_ID);
+        assertFalse(service.getCurrentUserInfo().getPermissions().canRegisterLms());
+
+        TestUserService.actAs(TestData.Users.GLOBAL_EXERCISE_AUTHOR_ID);
+        assertFalse(service.getCurrentUserInfo().getPermissions().canRegisterLms());
     }
 
     /** Вне LTI-сессии isLtiMode выключен. */

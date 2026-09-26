@@ -9,6 +9,7 @@ import org.springframework.web.bind.annotation.RequestParam;
 import org.springframework.web.bind.annotation.ResponseBody;
 import org.vstu.compprehension.frontend.AuthFrontendService;
 import org.vstu.compprehension.frontend.CourseFrontendService;
+import org.vstu.compprehension.frontend.ExerciseFrontendService;
 import org.vstu.compprehension.frontend.UserFrontendService;
 import org.vstu.compprehension.frontend.dto.course.CourseDto;
 import org.vstu.compprehension.businesslogic.auth.AuthObjects.SystemPermission;
@@ -20,6 +21,7 @@ import java.util.List;
 @RequiredArgsConstructor
 public class CourseController {
     private final CourseFrontendService courseService;
+    private final ExerciseFrontendService exerciseService;
     private final UserFrontendService userService;
     private final AuthFrontendService authService;
 
@@ -35,7 +37,7 @@ public class CourseController {
     @ResponseBody
     public List<CourseDto> getExerciseMemberships(@RequestParam("exerciseId") long exerciseId) {
         var userId = userService.getCurrentUserId();
-        authService.ensureAuthorized(userId, SystemPermission.VIEW_EXERCISE, authService.global());
+        authService.ensureAuthorized(userId, SystemPermission.VIEW_EXERCISE_USAGE, authService.getGlobalScope());
         return courseService.getExerciseMemberships(exerciseId);
     }
 
@@ -45,7 +47,7 @@ public class CourseController {
     public void add(@RequestParam("exerciseId") long exerciseId,
                     @RequestParam("courseId") long courseId) {
         var userId = userService.getCurrentUserId();
-        authService.ensureAuthorized(userId, SystemPermission.MANAGE_COURSE_CONTENT, authService.course(courseId));
+        authService.ensureAuthorized(userId, SystemPermission.LINK_POOL_EXERCISE_TO_COURSE, authService.getCourseScope(courseId));
         courseService.addExerciseToCourse(exerciseId, courseId);
     }
 
@@ -55,7 +57,11 @@ public class CourseController {
     public void remove(@RequestParam("exerciseId") long exerciseId,
                        @RequestParam("courseId") long courseId) {
         var userId = userService.getCurrentUserId();
-        authService.ensureAuthorized(userId, SystemPermission.MANAGE_COURSE_CONTENT, authService.course(courseId));
+        if (exerciseService.isExercisePublic(exerciseId)) {
+            authService.ensureAuthorized(userId, SystemPermission.LINK_POOL_EXERCISE_TO_COURSE, authService.getCourseScope(courseId));
+        } else {
+            authService.ensureAuthorized(userId, SystemPermission.DELETE_EXERCISE, authService.getExerciseScope(exerciseId, courseId));
+        }
         courseService.removeExerciseFromCourse(exerciseId, courseId);
     }
 }

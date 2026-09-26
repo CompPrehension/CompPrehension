@@ -16,8 +16,6 @@ import org.springframework.http.MediaType;
 import org.springframework.http.ResponseEntity;
 import org.springframework.stereotype.Service;
 import org.springframework.web.client.RestTemplate;
-import org.vstu.compprehension.config.LtiRegistrationsProperties.Registration;
-import org.vstu.compprehension.config.LtiRegistrationsProperties.RegistrationWithName;
 import org.vstu.compprehension.businesslogic.lti.LtiDeepLinkingContext;
 
 import java.net.URI;
@@ -49,13 +47,20 @@ public class DeepLinkingResponseService {
     private static final String LINEITEM_READONLY_SCOPE = "https://purl.imsglobal.org/spec/lti-ags/scope/lineitem.readonly";
     private static final String TAG_PREFIX = "compph_exercise_";
 
+    /** Custom-параметр активности, который открывает не упражнение, а другую страницу. */
+    public static final String CUSTOM_PAGE = "compph_page";
+    public static final String CUSTOM_PAGE_EXERCISE_SETTINGS = "exercise-settings";
+
     private final RestTemplate restTemplate;
     private final ObjectMapper objectMapper = new ObjectMapper();
     private final LtiTokenService tokenService;
+    private final LtiRegistrationRegistry ltiRegistrations;
 
-    public DeepLinkingResponseService(RestTemplate restTemplate, LtiTokenService tokenService) {
+    public DeepLinkingResponseService(RestTemplate restTemplate, LtiTokenService tokenService,
+                                      LtiRegistrationRegistry ltiRegistrations) {
         this.restTemplate = restTemplate;
         this.tokenService = tokenService;
+        this.ltiRegistrations = ltiRegistrations;
     }
 
     /** Одно упражнение тренажёра, отдаваемое в Moodle как content item. */
@@ -68,10 +73,6 @@ public class DeepLinkingResponseService {
      * а {@code /lti/1_3/exercise} приоритетно читает custom-claim {@code exercise_id}.
      */
     public String buildSignedResponse(LtiDeepLinkingContext dl, List<DeepLinkItem> items) throws Exception {
-        RegistrationWithName regWithName = tokenService.requireRegistration(dl.platformIssuer());
-        Registration reg = regWithName.registration();
-        String kid = regWithName.name();
-
         List<Map<String, Object>> contentItems = new ArrayList<>(items.size());
         for (DeepLinkItem item : items) {
             String title = (item.title() != null && !item.title().isBlank())
@@ -86,16 +87,34 @@ public class DeepLinkingResponseService {
                     "tag", TAG_PREFIX + item.exerciseId()));
             contentItems.add(ci);
         }
+        return signResponse(dl, contentItems);
+    }
+
+    /**
+     * Строит и подписывает {@code LtiDeepLinkingResponse} с одной активностью, которая открывает страницу
+     * настройки упражнений курса. Запускается она по обычному адресу инструмента, страницу выбирает
+     * custom-параметр {@link #CUSTOM_PAGE}. Колонки оценок у неё нет.
+     */
+    public String buildSignedSettingsLinkResponse(LtiDeepLinkingContext dl, String title) throws Exception {
+        Map<String, Object> ci = new LinkedHashMap<>();
+        ci.put("type", "ltiResourceLink");
+        ci.put("title", title);
+        ci.put("custom", Map.of(CUSTOM_PAGE, CUSTOM_PAGE_EXERCISE_SETTINGS));
+        return signResponse(dl, List.of(ci));
+    }
+
+    private String signResponse(LtiDeepLinkingContext dl, List<Map<String, Object>> contentItems) throws Exception {
+        LtiPlatform platform = ltiRegistrations.requireByIssuer(dl.platformIssuer());
 
         Date now = new Date();
         JWTClaimsSet.Builder claims = new JWTClaimsSet.Builder()
-                .issuer(reg.getClientId())
+                .issuer(platform.clientId())
                 .audience(dl.platformIssuer())
-                .issueTime(now)
+                .issueTime(new Date(now.getTime() - LtiTokenService.ISSUED_AT_BACKDATE_MS))
                 .expirationTime(new Date(now.getTime() + 300_000))
                 .jwtID(UUID.randomUUID().toString())
                 .claim("nonce", UUID.randomUUID().toString())
-                .claim("azp", reg.getClientId())
+                .claim("azp", platform.clientId())
                 .claim(CLAIM_DEPLOYMENT_ID, dl.deploymentId())
                 .claim(CLAIM_MSG_TYPE, "LtiDeepLinkingResponse")
                 .claim(CLAIM_VERSION, "1.3.0")
@@ -105,9 +124,9 @@ public class DeepLinkingResponseService {
         }
 
         SignedJWT jwt = new SignedJWT(
-                new JWSHeader.Builder(JWSAlgorithm.RS256).keyID(kid).type(JOSEObjectType.JWT).build(),
+                new JWSHeader.Builder(JWSAlgorithm.RS256).keyID(platform.toolKeyId()).type(JOSEObjectType.JWT).build(),
                 claims.build());
-        jwt.sign(new RSASSASigner(tokenService.loadPrivateKey(reg)));
+        jwt.sign(new RSASSASigner(tokenService.loadPrivateKey(platform)));
         return jwt.serialize();
     }
 

@@ -16,7 +16,7 @@ import java.util.Optional;
 public interface ExerciseAttemptRepository extends JpaRepository<ExerciseAttemptEntity, Long> {
 
     interface AttemptOwner {
-        Long getUserId();
+        long getUserId();
         Long getCourseId();
     }
 

@@ -44,6 +44,7 @@ class ExerciseAttemptFrontendServiceTest extends AbstractIntegrationTest {
     private static final float GRADE_DELTA = 0.0001f;
 
     @Autowired private ExerciseAttemptFrontendService service;
+    @Autowired private AuthFrontendService authService;
     @PersistenceContext private EntityManager entityManager;
 
     @AfterEach
@@ -183,8 +184,10 @@ class ExerciseAttemptFrontendServiceTest extends AbstractIntegrationTest {
         var question = service.generateQuestion(attempt.getAttemptId());
 
         // Act & Assert.
-        assertDoesNotThrow(() -> service.ensureCanAccessAttempt(TestData.Users.GLOBAL_STUDENT_ID, attempt.getAttemptId()));
-        assertDoesNotThrow(() -> service.ensureCanAccessQuestion(TestData.Users.GLOBAL_STUDENT_ID, question.getQuestionId()));
+        assertDoesNotThrow(() -> authService.ensureCanReadAttempt(TestData.Users.GLOBAL_STUDENT_ID, attempt.getAttemptId()));
+        assertDoesNotThrow(() -> authService.ensureCanWriteAttempt(TestData.Users.GLOBAL_STUDENT_ID, attempt.getAttemptId()));
+        assertDoesNotThrow(() -> authService.ensureCanReadQuestion(TestData.Users.GLOBAL_STUDENT_ID, question.getQuestionId()));
+        assertDoesNotThrow(() -> authService.ensureCanWriteQuestion(TestData.Users.GLOBAL_STUDENT_ID, question.getQuestionId()));
     }
 
     // ---- генерация вопросов ----

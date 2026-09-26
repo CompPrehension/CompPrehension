@@ -6,17 +6,13 @@ import org.jetbrains.annotations.NotNull;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
 import org.vstu.compprehension.frontend.dto.course.CourseDto;
-import org.vstu.compprehension.businesslogic.auth.AuthObjects.SystemPermission;
-import org.vstu.compprehension.businesslogic.lti.LtiContext;
-import org.vstu.compprehension.businesslogic.lti.LtiCourseContext;
 import org.vstu.compprehension.data.cource.CourseExerciseData;
 import org.vstu.compprehension.data.cource.CourseSummaryData;
-import org.vstu.compprehension.businesslogic.auth.PermissionScopeKind;
+import org.vstu.compprehension.data.cource.CreateCourseData;
 import org.vstu.compprehension.repositories.data.CourseDataRepository;
 import org.vstu.compprehension.repositories.data.ExerciseDataRepository;
 
 import java.util.Collection;
-import java.util.HashSet;
 import java.util.List;
 import java.util.Optional;
 import java.util.Set;
@@ -29,8 +25,6 @@ class CourseDataServiceImpl implements CourseDataService {
 
     private final CourseDataRepository courses;
     private final ExerciseDataRepository exercises;
-    private final AuthService authService;
-    private final AuthScopeFactory authScopes;
 
     @Transactional(readOnly = true)
     public @NotNull Optional<Long> findCourseIdByExternalIdAndResourceId(@NotNull String externalCourseId, long educationResourceId) {
@@ -38,19 +32,13 @@ class CourseDataServiceImpl implements CourseDataService {
     }
 
     @Transactional
-    public @NotNull Optional<Long> resolveOrCreateIdFromLtiContext(
-            @NotNull LtiContext ctx, long educationResourceId) {
-        LtiCourseContext ltiCourse = ctx.course();
-        if (ltiCourse == null || ltiCourse.courseId() == null) {
-            return Optional.empty();
-        }
-        String externalCourseId = ltiCourse.courseId();
-        String courseName = ltiCourse.courseName() != null
-                ? ltiCourse.courseName()
-                : String.format("id_%s", externalCourseId);
-        return Optional.of(courses.findIdByExternalId(externalCourseId, educationResourceId)
+    public long getOrCreate(@NotNull CreateCourseData course) {
+        String courseName = course.name() != null
+                ? course.name()
+                : String.format("id_%s", course.externalCourseId());
+        return courses.findIdByExternalId(course.externalCourseId(), course.educationResourceId())
                 .orElseGet(() -> courses.createIfAbsentAndGetId(
-                        externalCourseId, courseName, educationResourceId)));
+                        course.externalCourseId(), courseName, course.educationResourceId()));
     }
 
     @Transactional
@@ -80,28 +68,18 @@ class CourseDataServiceImpl implements CourseDataService {
     }
 
     @Transactional(readOnly = true)
-    public void ensureExerciseInCourse(long exerciseId, long courseId) {
-        if (!courses.isExerciseInCourse(exerciseId, courseId)) {
-            throw new IllegalStateException(String.format(
-                    "There is no relation between the course (id=%s) and the exercise (id=%s)",
-                    courseId, exerciseId));
-        }
+    public @NotNull List<CourseSummaryData> getAllCourses() {
+        return courses.findAllSummaries();
     }
 
     @Transactional(readOnly = true)
-    public @NotNull List<CourseSummaryData> getUserCourses(long userId) {
-        if (authService.isAuthorized(userId, SystemPermission.VIEW_COURSE, authScopes.global())) {
-            return courses.findAllSummaries();
-        }
-
-        var courseIds = new HashSet<>(authService.findScopeItemIdsWithPermission(
-                userId, SystemPermission.VIEW_COURSE, PermissionScopeKind.COURSE));
-
-        var educationResourceIds = authService.findScopeItemIdsWithPermission(
-                userId, SystemPermission.VIEW_COURSE, PermissionScopeKind.EDUCATION_RESOURCE);
-        courseIds.addAll(courses.findIdsByEducationResourceIds(educationResourceIds));
-
+    public @NotNull List<CourseSummaryData> getCoursesByIds(@NotNull Collection<Long> courseIds) {
         return courses.findSummariesByIds(courseIds);
+    }
+
+    @Transactional(readOnly = true)
+    public @NotNull List<Long> findCourseIdsByEducationResourceIds(@NotNull Collection<Long> educationResourceIds) {
+        return courses.findIdsByEducationResourceIds(educationResourceIds);
     }
 
     @Transactional(readOnly = true)
@@ -120,5 +98,9 @@ class CourseDataServiceImpl implements CourseDataService {
     @Transactional
     public void removeExerciseFromCourse(long exerciseId, long courseId) {
         courses.unlinkExercise(exerciseId, courseId);
+        // Приватное упражнение без курсов недостижимо, но пока оно привязано к другим курсам, удалять его нельзя.
+        if (!exercises.getById(exerciseId).isPublic() && courses.findCourseIdsByExerciseId(exerciseId).isEmpty()) {
+            exercises.delete(exerciseId);
+        }
     }
 }

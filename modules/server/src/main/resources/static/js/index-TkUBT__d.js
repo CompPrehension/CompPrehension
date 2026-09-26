@@ -1,5 +1,5 @@
 import { __toESM } from "./rolldown-runtime-ClB4ozQ6.js";
-import { Alert_default, Badge, BrowserRouter, Bug, Button, Droppable, Form_default, Link, ListGroup_default, Modal_default, Navbar_default, Navigate, Pagination_default, Popover, PopoverContent, PopoverTrigger, ResizeMirror, Route, Routes, Spinner, StateManagedSelect$1, Table, Type, X, absurd, action, array, autorun, boolean, chain, components, configure, esm_default, failure, fromArray, import_lib, initReactI18next, instance, intersection, isLeft, isNonEmpty, isNone, isRight, keyof, left, literal, makeAutoObservable, map, nullType, number, observable, observer, partial, pe, pipe, recursion, require_client, require_jsx_runtime, require_react, right, string, success, toJS, tuple, type, undefinedType, union, untracked, useNavigate, useSearchParams, useTranslation } from "./vendor-Bg5-e7iL.js";
+import { Alert_default, Badge, BrowserRouter, Bug, Button, Dropdown_default, Droppable, Form_default, InputGroup_default, Link, ListGroup_default, Modal_default, Navbar_default, Navigate, Pagination_default, Popover, PopoverContent, PopoverTrigger, ResizeMirror, Route, Routes, Spinner, StateManagedSelect$1, Table, Type, X, absurd, action, array, autorun, boolean, chain, components, configure, esm_default, failure, fromArray, import_lib, initReactI18next, instance, intersection, isLeft, isNonEmpty, isNone, isRight, keyof, left, literal, makeAutoObservable, map, nullType, number, observable, observer, partial, pe, pipe, recursion, require_client, require_jsx_runtime, require_react, right, string, success, toJS, tuple, type, undefinedType, union, untracked, useNavigate, useSearchParams, useTranslation } from "./vendor-C622PKTd.js";
 //#region \0vite/modulepreload-polyfill.js
 (function polyfill() {
 	const relList = document.createElement("link").relList;
@@ -98,6 +98,7 @@ instance.use(initReactI18next).init({
 			exercisesettings_open: "Open",
 			exercisesettings_genDebugAtt: "Generate debug attempt",
 			exercisesettings_openGlobalPool: "Open global exercise pool",
+			exercisesettings_globalPoolMenu: "Global pool",
 			exercisesettings_optDenied: "Denied",
 			exercisesettings_optAllowed: "Allowed",
 			exercisesettings_optTarget: "Target",
@@ -153,7 +154,21 @@ instance.use(initReactI18next).init({
 			course_page_createExerciseBtn: "Create new exercise in course",
 			course_page_importBtn: "Import from global pool",
 			course_page_empty: "This course has no exercises yet",
-			deeplink_title: "Add exercises to the Moodle course",
+			ltiRegistrations_page_title: "LMS connections",
+			ltiRegistrations_connectTitle: "Connect an LMS",
+			ltiRegistrations_connectHint: "Create a one-time link and give it to the LMS administrator: in Moodle it is pasted into “Site administration → Plugins → External tool → Manage tools → Add LTI Advantage”. The link works once and expires in 24 hours.",
+			ltiRegistrations_createInviteBtn: "Create registration link",
+			ltiRegistrations_copyBtn: "Copy",
+			ltiRegistrations_inviteExpires: "Valid until {{date}}",
+			ltiRegistrations_listTitle: "Connected by registration link",
+			ltiRegistrations_empty: "No LMS connected by registration link yet.",
+			ltiRegistrations_lmsColumn: "LMS",
+			ltiRegistrations_createdColumn: "Connected",
+			ltiRegistrations_deleteBtn: "Delete",
+			ltiRegistrations_cancelBtn: "Cancel",
+			ltiRegistrations_deleteTitle: "Delete LMS registration",
+			ltiRegistrations_deleteBody: "{{lms}} will stop being connected: launches, deep linking and grade passback from it will stop working until it is connected again with a new link. Courses and attempts stay.",
+			deeplink_title: "Add to the Moodle course",
 			deeplink_hint: "Select exercises — Moodle will create an External Tool activity for each.",
 			deeplink_blockHint: "Fill the course with exercises, then in Moodle: “Add an activity or resource” → “CompPrehension” → “Select content” — Moodle will create the activities automatically.",
 			deeplink_addBtn: "Add selected to Moodle",
@@ -161,7 +176,12 @@ instance.use(initReactI18next).init({
 			deeplink_submitting: "Sending…",
 			deeplink_error: "Failed to prepare the Moodle response",
 			deeplink_selectAtLeastOne: "Select at least one exercise",
-			deeplink_empty: "This course has no exercises yet — add some first.",
+			deeplink_empty: "This course has no exercises yet — add the settings activity below and fill the course there.",
+			deeplink_exercisesTitle: "Exercises",
+			deeplink_settingsTitle: "Course exercise settings",
+			deeplink_settingsHint: "Adds an activity for teachers where course exercises are created and imported. It has no grades; hide it from students in Moodle.",
+			deeplink_settingsBtn: "Add settings activity",
+			deeplink_settingsActivityTitle: "CompPrehension: exercise settings",
 			globalPool_page_title: "Global exercise pool",
 			globalPool_page_createBtn: "Create new exercise in pool",
 			globalPool_page_empty: "Pool is empty",
@@ -243,6 +263,7 @@ instance.use(initReactI18next).init({
 			exercisesettings_open: "Открыть",
 			exercisesettings_genDebugAtt: "Создать отладочную попытку",
 			exercisesettings_openGlobalPool: "Открыть глобальный пул упражнений",
+			exercisesettings_globalPoolMenu: "Глобальный пул",
 			exercisesettings_optDenied: "Запрет",
 			exercisesettings_optAllowed: "Разреш.",
 			exercisesettings_optTarget: "Цель",
@@ -298,7 +319,21 @@ instance.use(initReactI18next).init({
 			course_page_createExerciseBtn: "Создать новое упражнение в курсе",
 			course_page_importBtn: "Импортировать из глобального пула",
 			course_page_empty: "В этом курсе пока нет упражнений",
-			deeplink_title: "Добавить упражнения в курс Moodle",
+			ltiRegistrations_page_title: "Подключения LMS",
+			ltiRegistrations_connectTitle: "Подключить LMS",
+			ltiRegistrations_connectHint: "Создайте одноразовую ссылку и передайте её администратору LMS: в Moodle она вставляется в «Администрирование → Плагины → Внешний инструмент → Управление инструментами → Add LTI Advantage». Ссылка срабатывает один раз и действует 24 часа.",
+			ltiRegistrations_createInviteBtn: "Создать ссылку регистрации",
+			ltiRegistrations_copyBtn: "Скопировать",
+			ltiRegistrations_inviteExpires: "Действует до {{date}}",
+			ltiRegistrations_listTitle: "Подключены по ссылке регистрации",
+			ltiRegistrations_empty: "По ссылке регистрации пока не подключено ни одной LMS.",
+			ltiRegistrations_lmsColumn: "LMS",
+			ltiRegistrations_createdColumn: "Подключена",
+			ltiRegistrations_deleteBtn: "Удалить",
+			ltiRegistrations_cancelBtn: "Отмена",
+			ltiRegistrations_deleteTitle: "Удалить регистрацию LMS",
+			ltiRegistrations_deleteBody: "{{lms}} перестанет быть подключённой: запуски, deep linking и передача оценок из неё перестанут работать, пока её не подключат заново новой ссылкой. Курсы и попытки сохранятся.",
+			deeplink_title: "Добавить в курс Moodle",
 			deeplink_hint: "Выберите упражнения — Moodle создаст по активности «Внешний инструмент» на каждое.",
 			deeplink_blockHint: "Наполните курс упражнениями, затем в Moodle: «Добавить элемент курса» → «CompPrehension» → «Выбрать содержимое» — Moodle создаст активности автоматически.",
 			deeplink_addBtn: "Добавить выбранные в Moodle",
@@ -306,7 +341,12 @@ instance.use(initReactI18next).init({
 			deeplink_submitting: "Отправка…",
 			deeplink_error: "Не удалось подготовить ответ для Moodle",
 			deeplink_selectAtLeastOne: "Выберите хотя бы одно упражнение",
-			deeplink_empty: "В курсе пока нет упражнений — сначала добавьте их.",
+			deeplink_empty: "В курсе пока нет упражнений — добавьте активность настройки ниже и наполните курс в ней.",
+			deeplink_exercisesTitle: "Упражнения",
+			deeplink_settingsTitle: "Настройка упражнений курса",
+			deeplink_settingsHint: "Добавит в курс активность для преподавателя, в которой создаются и импортируются упражнения курса. Оценок у неё нет; скройте её от студентов в Moodle.",
+			deeplink_settingsBtn: "Добавить активность настройки",
+			deeplink_settingsActivityTitle: "CompPrehension: настройка упражнений",
 			globalPool_page_title: "Глобальный пул упражнений",
 			globalPool_page_createBtn: "Создать новое упражнение в пуле",
 			globalPool_page_empty: "Пул пуст",
@@ -385,6 +425,7 @@ instance.use(initReactI18next).init({
 			exercisesettings_open: "Open",
 			exercisesettings_genDebugAtt: "Generate debug attempt",
 			exercisesettings_openGlobalPool: "Open global exercise pool",
+			exercisesettings_globalPoolMenu: "Globalna pula",
 			exercisesettings_optDenied: "Denied",
 			exercisesettings_optAllowed: "Allowed",
 			exercisesettings_optTarget: "Target",
@@ -413,7 +454,21 @@ instance.use(initReactI18next).init({
 			course_page_createExerciseBtn: "Utwórz nowe ćwiczenie w kursie",
 			course_page_importBtn: "Importuj z globalnej puli",
 			course_page_empty: "Ten kurs nie ma jeszcze ćwiczeń",
-			deeplink_title: "Dodaj ćwiczenia do kursu Moodle",
+			ltiRegistrations_page_title: "Połączenia LMS",
+			ltiRegistrations_connectTitle: "Podłącz LMS",
+			ltiRegistrations_connectHint: "Utwórz jednorazowy link i przekaż go administratorowi LMS: w Moodle wkleja się go w „Administracja → Wtyczki → Narzędzie zewnętrzne → Zarządzaj narzędziami → Add LTI Advantage”. Link działa raz i wygasa po 24 godzinach.",
+			ltiRegistrations_createInviteBtn: "Utwórz link rejestracyjny",
+			ltiRegistrations_copyBtn: "Kopiuj",
+			ltiRegistrations_inviteExpires: "Ważny do {{date}}",
+			ltiRegistrations_listTitle: "Podłączone linkiem rejestracyjnym",
+			ltiRegistrations_empty: "Żaden LMS nie został jeszcze podłączony linkiem rejestracyjnym.",
+			ltiRegistrations_lmsColumn: "LMS",
+			ltiRegistrations_createdColumn: "Podłączono",
+			ltiRegistrations_deleteBtn: "Usuń",
+			ltiRegistrations_cancelBtn: "Anuluj",
+			ltiRegistrations_deleteTitle: "Usuń rejestrację LMS",
+			ltiRegistrations_deleteBody: "{{lms}} przestanie być podłączony: uruchomienia, deep linking i przekazywanie ocen przestaną działać, dopóki nie zostanie ponownie podłączony nowym linkiem. Kursy i próby pozostaną.",
+			deeplink_title: "Dodaj do kursu Moodle",
 			deeplink_hint: "Wybierz ćwiczenia — Moodle utworzy dla każdego aktywność „Narzędzie zewnętrzne”.",
 			deeplink_blockHint: "Wypełnij kurs ćwiczeniami, a następnie w Moodle: „Dodaj aktywność lub zasób” → „CompPrehension” → „Wybierz zawartość” — Moodle utworzy aktywności automatycznie.",
 			deeplink_addBtn: "Dodaj wybrane do Moodle",
@@ -421,7 +476,12 @@ instance.use(initReactI18next).init({
 			deeplink_submitting: "Wysyłanie…",
 			deeplink_error: "Nie udało się przygotować odpowiedzi dla Moodle",
 			deeplink_selectAtLeastOne: "Wybierz co najmniej jedno ćwiczenie",
-			deeplink_empty: "Ten kurs nie ma jeszcze ćwiczeń — najpierw je dodaj.",
+			deeplink_empty: "Ten kurs nie ma jeszcze ćwiczeń — dodaj poniżej aktywność ustawień i wypełnij w niej kurs.",
+			deeplink_exercisesTitle: "Ćwiczenia",
+			deeplink_settingsTitle: "Ustawienia ćwiczeń kursu",
+			deeplink_settingsHint: "Dodaje aktywność dla nauczycieli, w której tworzy się i importuje ćwiczenia kursu. Nie ma ocen; ukryj ją przed studentami w Moodle.",
+			deeplink_settingsBtn: "Dodaj aktywność ustawień",
+			deeplink_settingsActivityTitle: "CompPrehension: ustawienia ćwiczeń",
 			globalPool_page_title: "Globalna pula ćwiczeń",
 			globalPool_page_createBtn: "Utwórz nowe ćwiczenie w puli",
 			globalPool_page_empty: "Pula jest pusta",
@@ -1403,7 +1463,8 @@ var TLanguage = keyof({
 //#region src/main/js/types/user-info.ts
 var TUserPermissions = type({
 	canViewGlobalPool: boolean,
-	isLtiMode: boolean
+	isLtiMode: boolean,
+	canRegisterLms: boolean
 }, "UserPermissions");
 var TUserInfo = type({
 	id: number,
@@ -1437,9 +1498,40 @@ var DeepLinkingController = class {
 	build(exerciseIds) {
 		return ajaxPost(`/api/lti/deep-link/build`, { exerciseIds }, TDeepLinkBuildResponse);
 	}
+	/** Build a signed LtiDeepLinkingResponse with one activity opening the course exercise settings. */
+	buildSettingsLink(title) {
+		return ajaxPost(`/api/lti/deep-link/build-settings-link`, { title }, TDeepLinkBuildResponse);
+	}
 	/** exercise_id's already added to the Moodle course as activities (AGS-based dedup). */
 	existing() {
 		return ajaxGet(`/api/lti/deep-link/existing`, TDeepLinkExistingResponse);
+	}
+};
+//#endregion
+//#region src/main/js/controllers/lti/lti-registration-controller.ts
+var TLtiRegistration = type({
+	id: number,
+	lmsUrl: string,
+	issuer: string,
+	clientId: string,
+	createdAt: string
+});
+var TLtiRegistrationInvite = type({
+	token: string,
+	expiresAt: string
+});
+var LtiRegistrationController = class {
+	/** LMS connected by dynamic registration. */
+	getRegistrations() {
+		return ajaxGet(`/api/lti/registrations`, array(TLtiRegistration));
+	}
+	/** One-time link for the LMS administrator ("Add LTI Advantage" in Moodle). */
+	createInvite() {
+		return ajaxPost(`/api/lti/registrations/invites`, {}, TLtiRegistrationInvite);
+	}
+	/** The LMS stops being connected; it can be connected again with a new link. */
+	deleteRegistration(registrationId) {
+		return ajaxDelete(`/api/lti/registrations/${registrationId}`);
 	}
 };
 //#endregion
@@ -1447,6 +1539,7 @@ var DeepLinkingController = class {
 var courseController = new CourseController();
 var deepLinkingController = new DeepLinkingController();
 var exerciseController = new ExerciseController();
+var ltiRegistrationController = new LtiRegistrationController();
 var exerciseSettingsController = new ExerciseSettingsController();
 var questionController = new QuestionController();
 var surveyController = new SurveyController();
@@ -3987,6 +4080,17 @@ var ExerciseSettingsStore = class {
 		}
 		this.exercisesLoadStatus = "LOADED";
 	}
+	/** After an exercise was imported into the course elsewhere: refresh the list and open the imported card. */
+	async loadImportedExercise(exerciseId) {
+		if (this.exercisesLoadStatus !== "LOADED") throw new Error("Exercises must be loaded first");
+		this.exercisesLoadStatus = "EXERCISELOADING";
+		const [rawExercise, newExercisesList] = await Promise.all([exerciseSettingsController.getExercise(exerciseId, this.courseId), exerciseSettingsController.listExercises(this.courseId)]);
+		if (isRight(rawExercise) && isRight(newExercisesList)) {
+			this.currentCard = this.toCardViewModel(rawExercise.right);
+			this.applyExerciseList(newExercisesList.right);
+		}
+		this.exercisesLoadStatus = "LOADED";
+	}
 	async cloneCurrentToCourse(targetCourseId) {
 		if (!this.currentCard) return;
 		const result = await exerciseSettingsController.cloneExercise(this.currentCard.id, targetCourseId);
@@ -4351,13 +4455,139 @@ var DeleteGlobalExerciseModal = ({ exerciseId, onConfirm, onCancel }) => {
 	});
 };
 //#endregion
+//#region src/main/js/stores/global-pool-store.ts
+var GlobalPoolStore = class {
+	exercises = [];
+	permissions = noExerciseListPermissions;
+	loadStatus = "NONE";
+	error = null;
+	constructor() {
+		makeAutoObservable(this);
+	}
+	async loadGlobalPool() {
+		this.loadStatus = "LOADING";
+		this.error = null;
+		const r = await exerciseSettingsController.listExercises(null);
+		if (isLeft(r)) {
+			this.error = r.left;
+			this.loadStatus = "FAILED";
+			return;
+		}
+		this.exercises = r.right.exercises;
+		this.permissions = r.right.permissions;
+		this.loadStatus = "LOADED";
+	}
+	/** Returns the id of the exercise now in the course (the pool exercise itself or its clone), or null on failure. */
+	async importToCourse(exerciseId, targetCourseId, mode) {
+		if (mode === "INHERIT") {
+			const r = await courseController.addExerciseToCourse(exerciseId, targetCourseId);
+			return isRight(r) ? exerciseId : null;
+		}
+		const r = await exerciseSettingsController.cloneExercise(exerciseId, targetCourseId);
+		return isRight(r) ? r.right : null;
+	}
+};
+//#endregion
+//#region src/main/js/components/exercise/import-from-global-modal.tsx
+var ImportFromGlobalModal = observer(({ courseId, canInherit, canClone, onClose, onImported }) => {
+	const { t } = useTranslation();
+	const [store] = (0, import_react.useState)(() => new GlobalPoolStore());
+	const [mode, setMode] = (0, import_react.useState)(canInherit ? "INHERIT" : "CLONE");
+	const [busyId, setBusyId] = (0, import_react.useState)(null);
+	const modeAllowed = mode === "INHERIT" ? canInherit : canClone;
+	(0, import_react.useEffect)(() => {
+		store.loadGlobalPool();
+	}, [store]);
+	const onImportClick = async (exerciseId) => {
+		setBusyId(exerciseId);
+		const importedExerciseId = await store.importToCourse(exerciseId, courseId, mode);
+		setBusyId(null);
+		if (importedExerciseId != null) {
+			onImported?.(importedExerciseId);
+			onClose();
+		}
+	};
+	const inheritWarning = /* @__PURE__ */ (0, import_jsx_runtime.jsxs)("div", {
+		className: "alert alert-warning py-1 px-2 mb-0 mt-2 small",
+		children: [
+			/* @__PURE__ */ (0, import_jsx_runtime.jsx)("strong", { children: t("importModal_inherit_label") }),
+			" ",
+			t("importModal_inherit_body")
+		]
+	});
+	const cloneHint = /* @__PURE__ */ (0, import_jsx_runtime.jsxs)("div", {
+		className: "alert alert-info py-1 px-2 mb-0 mt-2 small",
+		children: [
+			/* @__PURE__ */ (0, import_jsx_runtime.jsx)("strong", { children: t("importModal_clone_label") }),
+			" ",
+			t("importModal_clone_body")
+		]
+	});
+	return /* @__PURE__ */ (0, import_jsx_runtime.jsxs)(Modal, {
+		show: true,
+		size: "lg",
+		title: t("importModal_title"),
+		closeButton: true,
+		handleClose: onClose,
+		secondaryBtnTitle: t("importModal_cancel"),
+		handleSecondaryBtnClicked: onClose,
+		children: [
+			/* @__PURE__ */ (0, import_jsx_runtime.jsxs)("div", {
+				className: "mb-3",
+				children: [
+					/* @__PURE__ */ (0, import_jsx_runtime.jsx)("label", {
+						className: "fw-bold me-2",
+						children: t("importModal_modeLabel")
+					}),
+					/* @__PURE__ */ (0, import_jsx_runtime.jsxs)("div", {
+						className: "btn-group",
+						role: "group",
+						children: [/* @__PURE__ */ (0, import_jsx_runtime.jsx)(Button, {
+							variant: mode === "INHERIT" ? "warning" : "outline-warning",
+							size: "sm",
+							disabled: !canInherit,
+							onClick: () => setMode("INHERIT"),
+							children: t("importModal_inherit_btn")
+						}), /* @__PURE__ */ (0, import_jsx_runtime.jsx)(Button, {
+							variant: mode === "CLONE" ? "success" : "outline-success",
+							size: "sm",
+							disabled: !canClone,
+							onClick: () => setMode("CLONE"),
+							children: t("importModal_clone_btn")
+						})]
+					}),
+					mode === "INHERIT" ? inheritWarning : cloneHint
+				]
+			}),
+			store.loadStatus === "LOADING" && /* @__PURE__ */ (0, import_jsx_runtime.jsx)("div", { children: t("importModal_loading") }),
+			/* @__PURE__ */ (0, import_jsx_runtime.jsx)("ul", {
+				className: "list-group",
+				children: store.exercises.map((e) => /* @__PURE__ */ (0, import_jsx_runtime.jsxs)("li", {
+					className: "list-group-item d-flex justify-content-between align-items-center",
+					children: [/* @__PURE__ */ (0, import_jsx_runtime.jsx)("span", { children: e.name }), /* @__PURE__ */ (0, import_jsx_runtime.jsx)(Button, {
+						variant: "success",
+						size: "sm",
+						disabled: busyId !== null || !modeAllowed,
+						onClick: () => onImportClick(e.id),
+						children: busyId === e.id ? t("importModal_importing") : t("importModal_import")
+					})]
+				}, e.id))
+			})
+		]
+	});
+});
+//#endregion
 //#region src/main/js/pages/exercise-settings.tsx
 var ExerciseSettings = observer(() => {
 	const [exerciseStore] = (0, import_react.useState)(() => new ExerciseSettingsStore());
 	const { t } = useTranslation();
 	const user = useCurrentUser();
 	const courseId = useCourseId();
+	const navigate = useNavigate();
+	const [showImportModal, setShowImportModal] = (0, import_react.useState)(false);
 	const canCreate = exerciseStore.permissions.canCreateExercise;
+	const { canImportInherit, canImportClone } = exerciseStore.permissions;
+	const canImport = courseId != null && (canImportInherit || canImportClone);
 	(0, import_react.useEffect)(() => {
 		(async () => {
 			await exerciseStore.loadExercises(courseId);
@@ -4370,8 +4600,13 @@ var ExerciseSettings = observer(() => {
 			await exerciseStore.createNewExecise();
 		})();
 	}, [exerciseStore]);
+	const onExerciseImported = async (importedExerciseId) => {
+		navigate(`?exerciseId=${importedExerciseId}&courseId=${courseId}`);
+		await exerciseStore.loadImportedExercise(importedExerciseId);
+	};
 	if (exerciseStore.exercisesLoadStatus === "LOADING") return /* @__PURE__ */ (0, import_jsx_runtime.jsx)(Loader, {});
 	if (!user) return /* @__PURE__ */ (0, import_jsx_runtime.jsx)(Loader, {});
+	const canOpenGlobalPool = user.permissions.canViewGlobalPool && courseId != null;
 	const parent = courseId != null ? {
 		label: t("course_page_title", { id: courseId }),
 		to: `/pages/course?courseId=${courseId}`
@@ -4379,10 +4614,10 @@ var ExerciseSettings = observer(() => {
 		label: t("globalPool_page_title"),
 		to: "/pages/global-pool"
 	};
-	return /* @__PURE__ */ (0, import_jsx_runtime.jsx)(PageLayout, {
+	return /* @__PURE__ */ (0, import_jsx_runtime.jsxs)(PageLayout, {
 		title: t("exercisesettings_title"),
 		parent,
-		children: /* @__PURE__ */ (0, import_jsx_runtime.jsxs)("div", {
+		children: [/* @__PURE__ */ (0, import_jsx_runtime.jsxs)("div", {
 			className: "flex-xl-nowrap row",
 			children: [/* @__PURE__ */ (0, import_jsx_runtime.jsxs)("div", {
 				className: "col-xl-3 col-md-3 col-12 d-flex flex-column",
@@ -4393,11 +4628,24 @@ var ExerciseSettings = observer(() => {
 						onClick: onNewExerciseClicked,
 						children: t("exercisesettings_createNew")
 					}),
-					user.permissions.canViewGlobalPool && courseId != null && /* @__PURE__ */ (0, import_jsx_runtime.jsx)(Button, {
-						variant: "outline-secondary",
+					(canImport || canOpenGlobalPool) && /* @__PURE__ */ (0, import_jsx_runtime.jsxs)(Dropdown_default, {
 						className: "mb-3",
-						onClick: () => window.open(`${window.location.origin}/pages/global-pool`, "_blank")?.focus(),
-						children: t("exercisesettings_openGlobalPool")
+						children: [/* @__PURE__ */ (0, import_jsx_runtime.jsx)(Dropdown_default.Toggle, {
+							variant: "outline-secondary",
+							className: "w-100",
+							children: t("exercisesettings_globalPoolMenu")
+						}), /* @__PURE__ */ (0, import_jsx_runtime.jsxs)(Dropdown_default.Menu, {
+							className: "w-100",
+							children: [canImport && /* @__PURE__ */ (0, import_jsx_runtime.jsx)(Dropdown_default.Item, {
+								className: "text-wrap",
+								onClick: () => setShowImportModal(true),
+								children: t("course_page_importBtn")
+							}), canOpenGlobalPool && /* @__PURE__ */ (0, import_jsx_runtime.jsx)(Dropdown_default.Item, {
+								className: "text-wrap",
+								onClick: () => window.open(`${window.location.origin}/pages/global-pool`, "_blank")?.focus(),
+								children: t("exercisesettings_openGlobalPool")
+							})]
+						})]
 					}),
 					/* @__PURE__ */ (0, import_jsx_runtime.jsx)("div", {
 						className: "list-group",
@@ -4420,7 +4668,13 @@ var ExerciseSettings = observer(() => {
 					strategies: exerciseStore.strategies ?? []
 				})]
 			})]
-		})
+		}), canImport && showImportModal && courseId != null && /* @__PURE__ */ (0, import_jsx_runtime.jsx)(ImportFromGlobalModal, {
+			courseId,
+			canInherit: canImportInherit,
+			canClone: canImportClone,
+			onClose: () => setShowImportModal(false),
+			onImported: onExerciseImported
+		})]
 	});
 });
 var ExerciseCardElement = observer((props) => {
@@ -5369,38 +5623,6 @@ var QuestionPage = observer(() => {
 	})] });
 });
 //#endregion
-//#region src/main/js/stores/global-pool-store.ts
-var GlobalPoolStore = class {
-	exercises = [];
-	permissions = noExerciseListPermissions;
-	loadStatus = "NONE";
-	error = null;
-	constructor() {
-		makeAutoObservable(this);
-	}
-	async loadGlobalPool() {
-		this.loadStatus = "LOADING";
-		this.error = null;
-		const r = await exerciseSettingsController.listExercises(null);
-		if (isLeft(r)) {
-			this.error = r.left;
-			this.loadStatus = "FAILED";
-			return;
-		}
-		this.exercises = r.right.exercises;
-		this.permissions = r.right.permissions;
-		this.loadStatus = "LOADED";
-	}
-	async importToCourse(exerciseId, targetCourseId, mode) {
-		if (mode === "INHERIT") {
-			const r = await courseController.addExerciseToCourse(exerciseId, targetCourseId);
-			return isRight(r);
-		}
-		const r = await exerciseSettingsController.cloneExercise(exerciseId, targetCourseId);
-		return isRight(r);
-	}
-};
-//#endregion
 //#region src/main/js/pages/global-pool.tsx
 var GlobalPool = observer(() => {
 	const [store] = (0, import_react.useState)(() => new GlobalPoolStore());
@@ -5441,6 +5663,128 @@ var GlobalPool = observer(() => {
 	});
 });
 //#endregion
+//#region src/main/js/pages/lti-registrations.tsx
+/** Admin page: connect an LMS by a one-time dynamic registration link and see the connected ones. */
+var LtiRegistrationsPage = () => {
+	const { t } = useTranslation();
+	const user = useCurrentUser();
+	const [registrations, setRegistrations] = (0, import_react.useState)(null);
+	const [loadError, setLoadError] = (0, import_react.useState)(null);
+	const [invite, setInvite] = (0, import_react.useState)(null);
+	const [inviteError, setInviteError] = (0, import_react.useState)(null);
+	const [creatingInvite, setCreatingInvite] = (0, import_react.useState)(false);
+	const [registrationToDelete, setRegistrationToDelete] = (0, import_react.useState)(null);
+	const [deleteError, setDeleteError] = (0, import_react.useState)(null);
+	const loadRegistrations = (0, import_react.useCallback)(async () => {
+		setLoadError(null);
+		const res = await ltiRegistrationController.getRegistrations();
+		if (isRight(res)) setRegistrations(res.right);
+		else setLoadError(res.left);
+	}, []);
+	(0, import_react.useEffect)(() => {
+		loadRegistrations();
+	}, [loadRegistrations]);
+	const createInvite = async () => {
+		setCreatingInvite(true);
+		setInviteError(null);
+		const res = await ltiRegistrationController.createInvite();
+		if (isRight(res)) setInvite(res.right);
+		else setInviteError(res.left);
+		setCreatingInvite(false);
+	};
+	const deleteRegistration = async (registration) => {
+		setRegistrationToDelete(null);
+		setDeleteError(null);
+		const res = await ltiRegistrationController.deleteRegistration(registration.id);
+		if (isLeft(res)) setDeleteError(res.left);
+		await loadRegistrations();
+	};
+	if (!user) return /* @__PURE__ */ (0, import_jsx_runtime.jsx)(Loader, {});
+	const inviteUrl = invite ? `${window.location.origin}/lti/1_3/register/${invite.token}` : null;
+	return /* @__PURE__ */ (0, import_jsx_runtime.jsxs)(PageLayout, {
+		title: t("ltiRegistrations_page_title"),
+		children: [
+			/* @__PURE__ */ (0, import_jsx_runtime.jsx)("h5", { children: t("ltiRegistrations_connectTitle") }),
+			/* @__PURE__ */ (0, import_jsx_runtime.jsx)("p", {
+				className: "text-muted",
+				children: t("ltiRegistrations_connectHint")
+			}),
+			/* @__PURE__ */ (0, import_jsx_runtime.jsx)(Button, {
+				variant: "primary",
+				className: "mb-3",
+				disabled: creatingInvite,
+				onClick: createInvite,
+				children: t("ltiRegistrations_createInviteBtn")
+			}),
+			inviteError && /* @__PURE__ */ (0, import_jsx_runtime.jsx)(LoadFailure, { error: inviteError }),
+			inviteUrl && invite && /* @__PURE__ */ (0, import_jsx_runtime.jsxs)("div", {
+				className: "mb-4",
+				children: [/* @__PURE__ */ (0, import_jsx_runtime.jsxs)(InputGroup_default, { children: [/* @__PURE__ */ (0, import_jsx_runtime.jsx)(Form_default.Control, {
+					readOnly: true,
+					value: inviteUrl,
+					onFocus: (e) => e.target.select()
+				}), /* @__PURE__ */ (0, import_jsx_runtime.jsx)(Button, {
+					variant: "outline-secondary",
+					onClick: () => navigator.clipboard.writeText(inviteUrl),
+					children: t("ltiRegistrations_copyBtn")
+				})] }), /* @__PURE__ */ (0, import_jsx_runtime.jsx)(Form_default.Text, {
+					muted: true,
+					children: t("ltiRegistrations_inviteExpires", { date: new Date(invite.expiresAt).toLocaleString() })
+				})]
+			}),
+			/* @__PURE__ */ (0, import_jsx_runtime.jsx)("h5", {
+				className: "mt-4",
+				children: t("ltiRegistrations_listTitle")
+			}),
+			loadError && /* @__PURE__ */ (0, import_jsx_runtime.jsx)(LoadFailure, {
+				error: loadError,
+				onRetry: loadRegistrations
+			}),
+			deleteError && /* @__PURE__ */ (0, import_jsx_runtime.jsx)(LoadFailure, { error: deleteError }),
+			registrations == null && !loadError && /* @__PURE__ */ (0, import_jsx_runtime.jsx)(Loader, {}),
+			registrations?.length === 0 && /* @__PURE__ */ (0, import_jsx_runtime.jsx)("div", {
+				className: "text-muted",
+				children: t("ltiRegistrations_empty")
+			}),
+			registrations != null && registrations.length > 0 && /* @__PURE__ */ (0, import_jsx_runtime.jsxs)(Table, {
+				size: "sm",
+				striped: true,
+				children: [/* @__PURE__ */ (0, import_jsx_runtime.jsx)("thead", { children: /* @__PURE__ */ (0, import_jsx_runtime.jsxs)("tr", { children: [
+					/* @__PURE__ */ (0, import_jsx_runtime.jsx)("th", { children: t("ltiRegistrations_lmsColumn") }),
+					/* @__PURE__ */ (0, import_jsx_runtime.jsx)("th", { children: "Client ID" }),
+					/* @__PURE__ */ (0, import_jsx_runtime.jsx)("th", { children: t("ltiRegistrations_createdColumn") }),
+					/* @__PURE__ */ (0, import_jsx_runtime.jsx)("th", {})
+				] }) }), /* @__PURE__ */ (0, import_jsx_runtime.jsx)("tbody", { children: registrations.map((r) => /* @__PURE__ */ (0, import_jsx_runtime.jsxs)("tr", { children: [
+					/* @__PURE__ */ (0, import_jsx_runtime.jsx)("td", { children: r.lmsUrl }),
+					/* @__PURE__ */ (0, import_jsx_runtime.jsx)("td", { children: r.clientId }),
+					/* @__PURE__ */ (0, import_jsx_runtime.jsx)("td", { children: new Date(r.createdAt).toLocaleString() }),
+					/* @__PURE__ */ (0, import_jsx_runtime.jsx)("td", {
+						className: "text-end",
+						children: /* @__PURE__ */ (0, import_jsx_runtime.jsx)(Button, {
+							variant: "outline-danger",
+							size: "sm",
+							onClick: () => setRegistrationToDelete(r),
+							children: t("ltiRegistrations_deleteBtn")
+						})
+					})
+				] }, r.id)) })]
+			}),
+			registrationToDelete && /* @__PURE__ */ (0, import_jsx_runtime.jsx)(Modal, {
+				show: true,
+				title: t("ltiRegistrations_deleteTitle"),
+				closeButton: true,
+				handleClose: () => setRegistrationToDelete(null),
+				primaryBtnTitle: t("ltiRegistrations_deleteBtn"),
+				primaryBtnVariant: "danger",
+				handlePrimaryBtnClicked: () => deleteRegistration(registrationToDelete),
+				secondaryBtnTitle: t("ltiRegistrations_cancelBtn"),
+				handleSecondaryBtnClicked: () => setRegistrationToDelete(null),
+				children: /* @__PURE__ */ (0, import_jsx_runtime.jsx)("p", { children: t("ltiRegistrations_deleteBody", { lms: registrationToDelete.lmsUrl }) })
+			})
+		]
+	});
+};
+//#endregion
 //#region src/main/js/stores/course-store.ts
 var CourseStore = class {
 	courseId = null;
@@ -5467,95 +5811,6 @@ var CourseStore = class {
 	}
 };
 //#endregion
-//#region src/main/js/components/exercise/import-from-global-modal.tsx
-var ImportFromGlobalModal = observer(({ courseId, canInherit, canClone, onClose, onImported }) => {
-	const { t } = useTranslation();
-	const [store] = (0, import_react.useState)(() => new GlobalPoolStore());
-	const [mode, setMode] = (0, import_react.useState)(canInherit ? "INHERIT" : "CLONE");
-	const [busyId, setBusyId] = (0, import_react.useState)(null);
-	const modeAllowed = mode === "INHERIT" ? canInherit : canClone;
-	(0, import_react.useEffect)(() => {
-		store.loadGlobalPool();
-	}, [store]);
-	const onImportClick = async (exerciseId) => {
-		setBusyId(exerciseId);
-		const ok = await store.importToCourse(exerciseId, courseId, mode);
-		setBusyId(null);
-		if (ok) {
-			onImported?.();
-			onClose();
-		}
-	};
-	const inheritWarning = /* @__PURE__ */ (0, import_jsx_runtime.jsxs)("div", {
-		className: "alert alert-warning py-1 px-2 mb-0 mt-2 small",
-		children: [
-			/* @__PURE__ */ (0, import_jsx_runtime.jsx)("strong", { children: t("importModal_inherit_label") }),
-			" ",
-			t("importModal_inherit_body")
-		]
-	});
-	const cloneHint = /* @__PURE__ */ (0, import_jsx_runtime.jsxs)("div", {
-		className: "alert alert-info py-1 px-2 mb-0 mt-2 small",
-		children: [
-			/* @__PURE__ */ (0, import_jsx_runtime.jsx)("strong", { children: t("importModal_clone_label") }),
-			" ",
-			t("importModal_clone_body")
-		]
-	});
-	return /* @__PURE__ */ (0, import_jsx_runtime.jsxs)(Modal, {
-		show: true,
-		size: "lg",
-		title: t("importModal_title"),
-		closeButton: true,
-		handleClose: onClose,
-		secondaryBtnTitle: t("importModal_cancel"),
-		handleSecondaryBtnClicked: onClose,
-		children: [
-			/* @__PURE__ */ (0, import_jsx_runtime.jsxs)("div", {
-				className: "mb-3",
-				children: [
-					/* @__PURE__ */ (0, import_jsx_runtime.jsx)("label", {
-						className: "fw-bold me-2",
-						children: t("importModal_modeLabel")
-					}),
-					/* @__PURE__ */ (0, import_jsx_runtime.jsxs)("div", {
-						className: "btn-group",
-						role: "group",
-						children: [/* @__PURE__ */ (0, import_jsx_runtime.jsx)(Button, {
-							variant: mode === "INHERIT" ? "warning" : "outline-warning",
-							size: "sm",
-							disabled: !canInherit,
-							onClick: () => setMode("INHERIT"),
-							children: t("importModal_inherit_btn")
-						}), /* @__PURE__ */ (0, import_jsx_runtime.jsx)(Button, {
-							variant: mode === "CLONE" ? "success" : "outline-success",
-							size: "sm",
-							disabled: !canClone,
-							onClick: () => setMode("CLONE"),
-							children: t("importModal_clone_btn")
-						})]
-					}),
-					mode === "INHERIT" ? inheritWarning : cloneHint
-				]
-			}),
-			store.loadStatus === "LOADING" && /* @__PURE__ */ (0, import_jsx_runtime.jsx)("div", { children: t("importModal_loading") }),
-			/* @__PURE__ */ (0, import_jsx_runtime.jsx)("ul", {
-				className: "list-group",
-				children: store.exercises.map((e) => /* @__PURE__ */ (0, import_jsx_runtime.jsxs)("li", {
-					className: "list-group-item d-flex justify-content-between align-items-center",
-					children: [/* @__PURE__ */ (0, import_jsx_runtime.jsx)("span", { children: e.name }), /* @__PURE__ */ (0, import_jsx_runtime.jsx)(Button, {
-						variant: "success",
-						size: "sm",
-						disabled: busyId !== null || !modeAllowed,
-						onClick: () => onImportClick(e.id),
-						children: busyId === e.id ? t("importModal_importing") : t("importModal_import")
-					})]
-				}, e.id))
-			})
-		]
-	});
-});
-//#endregion
 //#region src/main/js/pages/course.tsx
 /** Hidden form that auto-POSTs the signed deep-linking response back to Moodle. */
 var DeepLinkReturnForm = ({ jwt, returnUrl }) => {
@@ -5575,8 +5830,8 @@ var DeepLinkReturnForm = ({ jwt, returnUrl }) => {
 	});
 };
 /**
-* Shown inside Moodle's "Select content" iframe: pick course exercises and push them
-* back to Moodle, which creates the External Tool activities.
+* Shown inside Moodle's "Select content" iframe. Two separate actions, each ending the deep-linking session:
+* push the picked course exercises back to Moodle, or add an activity that opens the course exercise settings.
 */
 var DeepLinkSelection = ({ exercises }) => {
 	const { t } = useTranslation();
@@ -5606,7 +5861,15 @@ var DeepLinkSelection = ({ exercises }) => {
 		}
 		setSubmitting(true);
 		setError(null);
-		const res = await deepLinkingController.build(Array.from(selected));
+		await sendResponse(deepLinkingController.build(Array.from(selected)));
+	};
+	const submitSettingsLink = async () => {
+		setSubmitting(true);
+		setError(null);
+		await sendResponse(deepLinkingController.buildSettingsLink(t("deeplink_settingsActivityTitle")));
+	};
+	const sendResponse = async (request) => {
+		const res = await request;
 		if (isRight(res)) setPayload(res.right);
 		else {
 			setError(t("deeplink_error"));
@@ -5621,6 +5884,10 @@ var DeepLinkSelection = ({ exercises }) => {
 		className: "container-fluid p-3",
 		children: [
 			/* @__PURE__ */ (0, import_jsx_runtime.jsx)("h5", { children: t("deeplink_title") }),
+			/* @__PURE__ */ (0, import_jsx_runtime.jsx)("h6", {
+				className: "mt-3",
+				children: t("deeplink_exercisesTitle")
+			}),
 			/* @__PURE__ */ (0, import_jsx_runtime.jsx)("p", {
 				className: "text-muted",
 				children: t("deeplink_hint")
@@ -5653,15 +5920,27 @@ var DeepLinkSelection = ({ exercises }) => {
 					}, e.id);
 				})
 			}),
-			error && /* @__PURE__ */ (0, import_jsx_runtime.jsx)("div", {
-				className: "alert alert-danger",
-				children: error
-			}),
 			/* @__PURE__ */ (0, import_jsx_runtime.jsx)(Button, {
 				variant: "primary",
 				disabled: submitting || selected.size === 0,
 				onClick: submit,
 				children: submitting ? t("deeplink_submitting") : t("deeplink_addBtn")
+			}),
+			/* @__PURE__ */ (0, import_jsx_runtime.jsx)("hr", { className: "my-4" }),
+			/* @__PURE__ */ (0, import_jsx_runtime.jsx)("h6", { children: t("deeplink_settingsTitle") }),
+			/* @__PURE__ */ (0, import_jsx_runtime.jsx)("p", {
+				className: "text-muted",
+				children: t("deeplink_settingsHint")
+			}),
+			/* @__PURE__ */ (0, import_jsx_runtime.jsx)(Button, {
+				variant: "outline-secondary",
+				disabled: submitting,
+				onClick: submitSettingsLink,
+				children: submitting ? t("deeplink_submitting") : t("deeplink_settingsBtn")
+			}),
+			error && /* @__PURE__ */ (0, import_jsx_runtime.jsx)("div", {
+				className: "alert alert-danger mt-3",
+				children: error
 			})
 		]
 	});
@@ -5766,13 +6045,18 @@ var CoursesPage = observer(() => {
 		store.loadMyCourses();
 	}, [store]);
 	if (!user || store.loadStatus === "LOADING") return /* @__PURE__ */ (0, import_jsx_runtime.jsx)(Loader, {});
-	return /* @__PURE__ */ (0, import_jsx_runtime.jsxs)(PageLayout, { children: [user.permissions.canViewGlobalPool && /* @__PURE__ */ (0, import_jsx_runtime.jsx)("div", {
-		className: "mb-3",
-		children: /* @__PURE__ */ (0, import_jsx_runtime.jsx)(Button, {
+	return /* @__PURE__ */ (0, import_jsx_runtime.jsxs)(PageLayout, { children: [(user.permissions.canViewGlobalPool || user.permissions.canRegisterLms) && /* @__PURE__ */ (0, import_jsx_runtime.jsxs)("div", {
+		className: "mb-3 d-flex",
+		style: { gap: "0.5rem" },
+		children: [user.permissions.canViewGlobalPool && /* @__PURE__ */ (0, import_jsx_runtime.jsx)(Button, {
 			variant: "outline-primary",
 			onClick: () => navigate("/pages/global-pool"),
 			children: t("globalPool_page_title")
-		})
+		}), user.permissions.canRegisterLms && /* @__PURE__ */ (0, import_jsx_runtime.jsx)(Button, {
+			variant: "outline-secondary",
+			onClick: () => navigate("/pages/lti-registrations"),
+			children: t("ltiRegistrations_page_title")
+		})]
 	}), store.loadStatus === "FAILED" && store.error ? /* @__PURE__ */ (0, import_jsx_runtime.jsx)(LoadFailure, {
 		error: store.error,
 		onRetry: () => store.loadMyCourses()
@@ -5880,6 +6164,10 @@ var Home = () => /* @__PURE__ */ (0, import_jsx_runtime.jsxs)(import_jsx_runtime
 		/* @__PURE__ */ (0, import_jsx_runtime.jsx)(Route, {
 			path: "/pages/global-pool",
 			element: /* @__PURE__ */ (0, import_jsx_runtime.jsx)(GlobalPool, {})
+		}),
+		/* @__PURE__ */ (0, import_jsx_runtime.jsx)(Route, {
+			path: "/pages/lti-registrations",
+			element: /* @__PURE__ */ (0, import_jsx_runtime.jsx)(LtiRegistrationsPage, {})
 		}),
 		/* @__PURE__ */ (0, import_jsx_runtime.jsx)(Route, {
 			path: "/pages/course",

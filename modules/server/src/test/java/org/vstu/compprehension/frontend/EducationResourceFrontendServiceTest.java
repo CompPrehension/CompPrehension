@@ -3,6 +3,7 @@ package org.vstu.compprehension.frontend;
 import org.junit.jupiter.api.Test;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.transaction.annotation.Transactional;
+import org.vstu.compprehension.enums.EducationResourceTrustStatus;
 import org.vstu.compprehension.enums.EducationResourceType;
 import org.vstu.compprehension.infrastructure.AbstractIntegrationTest;
 import org.vstu.compprehension.infrastructure.TestData;
@@ -10,8 +11,6 @@ import org.vstu.compprehension.infrastructure.TestData;
 import java.util.Optional;
 
 import static org.junit.jupiter.api.Assertions.assertEquals;
-import static org.junit.jupiter.api.Assertions.assertThrows;
-import static org.junit.jupiter.api.Assertions.assertTrue;
 
 @Transactional
 class EducationResourceFrontendServiceTest extends AbstractIntegrationTest {
@@ -20,34 +19,41 @@ class EducationResourceFrontendServiceTest extends AbstractIntegrationTest {
 
     @Autowired private EducationResourceFrontendService service;
 
-    /** Поиск по адресу и типу. */
+    /** Поиск доверенного ресурса по адресу и типу. */
     @Test
-    void findIdByUrlAndTypeFindsKnownResource() {
+    void findTrustedIdByUrlAndTypeFindsKnownResource() {
         // Act & Assert.
         assertEquals(Optional.of(TestData.EducationResources.ID),
-                service.findIdByUrlAndType(TestData.EducationResources.URL, EducationResourceType.MOODLE));
+                service.findTrustedIdByUrlAndType(TestData.EducationResources.URL, EducationResourceType.MOODLE));
         assertEquals(Optional.empty(),
-                service.findIdByUrlAndType(TestData.EducationResources.URL, EducationResourceType.UNKNOWN));
+                service.findTrustedIdByUrlAndType(TestData.EducationResources.URL, EducationResourceType.UNKNOWN));
         assertEquals(Optional.empty(),
-                service.findIdByUrlAndType(NEW_LMS_URL, EducationResourceType.MOODLE));
+                service.findTrustedIdByUrlAndType(NEW_LMS_URL, EducationResourceType.MOODLE));
     }
 
-    /** Доверенный ресурс возвращается как есть. */
+    /** Существующий ресурс возвращается со своим статусом, переданный статус игнорируется. */
     @Test
-    void getOrCreateTrustedIdReturnsTrustedResource() {
+    void getOrCreateKeepsTrustStatusOfExistingResource() {
         // Act.
-        var id = service.getOrCreateTrustedId(TestData.EducationResources.URL, EducationResourceType.MOODLE);
+        var resource = service.getOrCreate(TestData.EducationResources.URL, EducationResourceType.MOODLE,
+                EducationResourceTrustStatus.UNTRUSTED);
 
         // Assert.
-        assertEquals(TestData.EducationResources.ID, id);
-        assertEquals(id, service.getOrCreateTrustedId(TestData.EducationResources.URL, EducationResourceType.MOODLE));
+        assertEquals(TestData.EducationResources.ID, resource.id());
+        assertEquals(EducationResourceTrustStatus.TRUSTED, resource.trustStatus());
     }
 
-    /** Новый ресурс создаётся недоверенным и не пропускается. */
+    /** Новый ресурс создаётся с переданным статусом и повторно не пересоздаётся. */
     @Test
-    void getOrCreateTrustedIdCreatesUntrustedResourceAndRejectsIt() {
-        // Act & Assert.
-        assertThrows(SecurityException.class, () -> service.getOrCreateTrustedId(NEW_LMS_URL, EducationResourceType.MOODLE));
-        assertTrue(service.findIdByUrlAndType(NEW_LMS_URL, EducationResourceType.MOODLE).isPresent());
+    void getOrCreateCreatesResourceWithGivenTrustStatus() {
+        // Act.
+        var created = service.getOrCreate(NEW_LMS_URL, EducationResourceType.MOODLE, EducationResourceTrustStatus.TRUSTED);
+        var again = service.getOrCreate(NEW_LMS_URL, EducationResourceType.MOODLE, EducationResourceTrustStatus.UNTRUSTED);
+
+        // Assert.
+        assertEquals(EducationResourceTrustStatus.TRUSTED, created.trustStatus());
+        assertEquals(NEW_LMS_URL, created.url());
+        assertEquals(created, again);
+        assertEquals(Optional.of(created.id()), service.findTrustedIdByUrlAndType(NEW_LMS_URL, EducationResourceType.MOODLE));
     }
 }

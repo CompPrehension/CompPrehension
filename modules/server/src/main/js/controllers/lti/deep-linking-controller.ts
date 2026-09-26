@@ -20,6 +20,11 @@ export class DeepLinkingController {
         return ajaxPost(`${API_URL}/api/lti/deep-link/build`, { exerciseIds }, TDeepLinkBuildResponse);
     }
 
+    /** Build a signed LtiDeepLinkingResponse with one activity opening the course exercise settings. */
+    buildSettingsLink(title: string): PromiseEither<RequestError, DeepLinkBuildResponse> {
+        return ajaxPost(`${API_URL}/api/lti/deep-link/build-settings-link`, { title }, TDeepLinkBuildResponse);
+    }
+
     /** exercise_id's already added to the Moodle course as activities (AGS-based dedup). */
     existing(): PromiseEither<RequestError, DeepLinkExistingResponse> {
         return ajaxGet(`${API_URL}/api/lti/deep-link/existing`, TDeepLinkExistingResponse);

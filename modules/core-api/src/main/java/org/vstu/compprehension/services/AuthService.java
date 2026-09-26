@@ -10,6 +10,10 @@ public interface AuthService {
 
     void ensureAuthorized(long userId, @NotNull Permission permission, @NotNull AuthScope scope);
 
+    boolean isAuthorized(long userId, @NotNull Capability capability);
+
+    void ensureAuthorized(long userId, @NotNull Capability capability);
+
     PermissionList getPermissions(long userId,  @NotNull AuthScope scope);
 
     boolean hasRole(long userId, Role role, PermissionScope scope);

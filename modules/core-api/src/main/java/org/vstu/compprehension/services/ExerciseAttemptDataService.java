@@ -6,6 +6,7 @@ import org.vstu.compprehension.enums.Decision;
 import org.vstu.compprehension.enums.Language;
 import org.vstu.compprehension.data.exercise.ExerciseAttemptWithQuestionsData;
 import org.vstu.compprehension.data.exerciseattempt.AttemptGenerationContextData;
+import org.vstu.compprehension.data.exerciseattempt.AttemptOwnerData;
 import org.vstu.compprehension.data.exerciseattempt.AttemptSummaryData;
 import org.vstu.compprehension.data.question.QuestionAttemptContextData;
 
@@ -22,9 +23,10 @@ public interface ExerciseAttemptDataService {
 
     Optional<Long> findAttemptIdOfQuestion(long questionId);
 
-    void ensureCanAccessAttempt(long userId, long attemptId);
 
-    void ensureCanAccessQuestion(long userId, long questionId);
+    Optional<AttemptOwnerData> findOwnerByAttemptId(long attemptId);
+
+    Optional<AttemptOwnerData> findOwnerByQuestionId(long questionId);
 
     Optional<AttemptSummaryData> findSummary(long attemptId);
 

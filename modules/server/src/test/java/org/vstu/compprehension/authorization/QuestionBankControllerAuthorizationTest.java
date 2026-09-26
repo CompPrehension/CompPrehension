@@ -26,7 +26,7 @@ class QuestionBankControllerAuthorizationTest extends AbstractAuthorizationTest 
                 .build();
     }
 
-    /** Поиск по банку требует VIEW_EXERCISE в GLOBAL-области. */
+    /** Поиск по банку вне курса требует VIEW_GLOBAL_POOL. */
     @Test
     void searchForbiddenForGlobalStudent() throws Exception {
         // Arrange.
@@ -41,11 +41,26 @@ class QuestionBankControllerAuthorizationTest extends AbstractAuthorizationTest 
         result.andExpect(status().isForbidden());
     }
 
-    /** Без courseId проверка идёт в GLOBAL, где прав у преподавателя нет. */
+    /** Без courseId поиск идёт по VIEW_GLOBAL_POOL, который есть у преподавателя. */
     @Test
-    void searchForbiddenForCourseTeacher() throws Exception {
+    void searchInGlobalPoolAllowedForCourseTeacher() throws Exception {
         // Arrange.
         actingAs(TestData.Users.MAIN_COURSE_TEACHER_ID);
+
+        // Act.
+        var result = mockMvc.perform(post("/api/question-bank/search")
+                .contentType(MediaType.APPLICATION_JSON)
+                .content(toJson(searchRequest(null))));
+
+        // Assert.
+        result.andExpect(status().isOk());
+    }
+
+    /** У ассистента VIEW_GLOBAL_POOL нет. */
+    @Test
+    void searchInGlobalPoolForbiddenForCourseAssistant() throws Exception {
+        // Arrange.
+        actingAs(TestData.Users.MAIN_COURSE_ASSISTANT_ID);
 
         // Act.
         var result = mockMvc.perform(post("/api/question-bank/search")
@@ -101,7 +116,7 @@ class QuestionBankControllerAuthorizationTest extends AbstractAuthorizationTest 
         result.andExpect(status().isForbidden());
     }
 
-    /** У студента VIEW_EXERCISE нет и в своём курсе. */
+    /** У студента SEARCH_QUESTION_BANK нет и в своём курсе. */
     @Test
     void searchForbiddenForCourseStudentInOwnCourse() throws Exception {
         // Arrange.

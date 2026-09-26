@@ -103,7 +103,7 @@ public class QuestionDataRepository {
             entity.setExerciseAttempt(exerciseAttemptRepository.getReferenceById(exerciseAttemptId));
         }
 
-        questionRepository.save(entity);
+        questionRepository.saveAndFlush(entity);
 
         if (entity.getAnswerObjects() != null) {
             for (AnswerObjectEntity answerObject : entity.getAnswerObjects()) {

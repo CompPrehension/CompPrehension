@@ -4,4 +4,6 @@ import java.util.Map;
 
 public interface LtiContextInitializer {
     void init(Map<String, Object> claims);
+
+    void clear();
 }
