@@ -80,7 +80,7 @@ public class ExerciseDataRepository {
         entity.setOptions(card.options());
         entity.setStages(new ArrayList<>(card.stages()));
         entity.setTags(joinTags(card.tags()));
-        exerciseRepository.save(entity);
+        exerciseRepository.saveAndFlush(entity);
     }
 
     @Transactional
@@ -93,7 +93,7 @@ public class ExerciseDataRepository {
         // Настройки лежат в json-колонке: Hibernate не увидит правку внутри объекта,
         // если не переприсвоить поле.
         entity.setOptions(options);
-        exerciseRepository.save(entity);
+        exerciseRepository.saveAndFlush(entity);
     }
 
     @Transactional

@@ -7,11 +7,9 @@ import org.vstu.compprehension.frontend.dto.ExerciseInfoDto;
 import org.vstu.compprehension.frontend.dto.ExerciseListDto;
 
 public interface ExerciseFrontendService {
-    void ensureCanViewExercise(long userId, long exerciseId);
-
     @NotNull ExerciseInfoDto getExerciseShortInfo(long id, @Nullable Long courseId);
 
-    void ensureExerciseExists(long exerciseId, @Nullable Long courseId);
+    boolean isExercisePublic(long exerciseId);
 
     @NotNull ExerciseCardDto getExerciseCard(long exerciseId, @Nullable Long courseId, long userId);
 

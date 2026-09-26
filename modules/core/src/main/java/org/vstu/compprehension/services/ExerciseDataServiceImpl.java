@@ -39,31 +39,13 @@ class ExerciseDataServiceImpl implements ExerciseDataService {
         return exercises.getById(exerciseId);
     }
 
-    @Transactional(readOnly = true)
-    public @NotNull ExerciseOptionsData getExerciseOptionsInContext(long exerciseId, @Nullable Long courseId) {
-        return getExerciseInContext(exerciseId, courseId).options();
-    }
-
-    @Transactional(readOnly = true)
-    public @NotNull ExerciseData getExerciseInContext(long exerciseId, @Nullable Long courseId) {
-        var exercise = exercises.getById(exerciseId);
-        if (courseId == null) {
-            if (!exercise.isPublic()) {
-                throw new IllegalStateException("exercise_not_in_global_pool");
-            }
-        } else {
-            courseService.ensureExerciseInCourse(exerciseId, courseId);
-        }
-        return exercise;
-    }
-
     public boolean isInheritedInCourse(@NotNull ExerciseData exercise, @Nullable Long courseId) {
         return courseId != null && exercise.isPublic();
     }
 
     @Transactional(readOnly = true)
     public void ensureNotInheritedInCourse(long exerciseId, @Nullable Long courseId) {
-        if (isInheritedInCourse(getExerciseInContext(exerciseId, courseId), courseId)) {
+        if (isInheritedInCourse(getExercise(exerciseId), courseId)) {
             throw new IllegalStateException("inherited_exercise_is_read_only");
         }
     }

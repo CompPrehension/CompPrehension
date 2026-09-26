@@ -1,39 +1,34 @@
-package org.vstu.compprehension.adapters;
+package org.vstu.compprehension.service.gradepassback;
 
 import lombok.RequiredArgsConstructor;
 import lombok.extern.log4j.Log4j2;
-import org.springframework.scheduling.annotation.Async;
+import org.jetbrains.annotations.NotNull;
 import org.springframework.stereotype.Service;
-import org.springframework.transaction.annotation.Propagation;
-import org.springframework.transaction.annotation.Transactional;
-import org.vstu.compprehension.services.AuthService;
-import org.vstu.compprehension.services.GradePassbackService;
 import org.vstu.compprehension.businesslogic.auth.AuthObjects.SystemRole;
-import org.vstu.compprehension.data.exerciseattempt.GradePassbackTargetData;
 import org.vstu.compprehension.businesslogic.auth.PermissionScope;
+import org.vstu.compprehension.data.outbox.AttemptFinishedEvent;
 import org.vstu.compprehension.repositories.data.ExerciseAttemptDataRepository;
-import org.vstu.compprehension.service.gradepassback.GradePassbackStrategy;
+import org.vstu.compprehension.service.outbox.OutboxEventHandler;
+import org.vstu.compprehension.services.AuthService;
 
 import java.util.List;
 
 /**
- * Реализует out-port {@link GradePassbackService}, делегируя первой подходящей стратегии.
+ * Отправляет оценку завершённой попытки во внешнюю систему подходящими стратегиями.
  */
 @Service
 @Log4j2
 @RequiredArgsConstructor
-public class GradePassbackServiceImpl implements GradePassbackService {
+public class GradePassbackEventHandler implements OutboxEventHandler<AttemptFinishedEvent> {
 
     private final List<GradePassbackStrategy> strategies;
     private final ExerciseAttemptDataRepository exerciseAttemptDataRepository;
     private final AuthService authService;
 
-    @Async
-    @Transactional(propagation = Propagation.REQUIRES_NEW)
     @Override
-    public void passGrade(long attemptId, double grade) {
-        GradePassbackTargetData target = exerciseAttemptDataRepository
-                .findGradePassbackTarget(attemptId).orElse(null);
+    public void handle(@NotNull AttemptFinishedEvent event) {
+        long attemptId = event.attemptId();
+        var target = exerciseAttemptDataRepository.findGradePassbackTarget(attemptId).orElse(null);
         if (target == null) {
             log.warn("Attempt {} not found for grade passback", attemptId);
             return;
@@ -50,17 +45,19 @@ public class GradePassbackServiceImpl implements GradePassbackService {
         }
 
         boolean anyStrategySupported = false;
-        for (GradePassbackStrategy s : strategies) {
-            if (s.supports(target)) {
+        for (GradePassbackStrategy strategy : strategies) {
+            if (strategy.supports(target)) {
                 anyStrategySupported = true;
-                String strategyName = s.getClass().getSimpleName();
+                String strategyName = strategy.getClass().getSimpleName();
                 log.info("Grade passback for attempt {} via {}", attemptId, strategyName);
-                boolean sent = s.passGrade(target, grade);
-                if (sent) {
-                    log.info("Grade passback success for attempt {} via {}", attemptId, strategyName);
-                } else {
-                    log.warn("Grade passback via {} failed for attempt {}", strategyName, attemptId);
+                try {
+                    strategy.passGrade(target, event.grade(), event.finishedAt());
+                } catch (RuntimeException ex) {
+                    throw new IllegalStateException(
+                            "Grade passback via " + strategyName + " failed for attempt " + attemptId + ": " + ex.getMessage(),
+                            ex);
                 }
+                log.info("Grade passback success for attempt {} via {}", attemptId, strategyName);
             }
         }
         if (!anyStrategySupported) {

@@ -11,7 +11,7 @@ type Props = {
     canInherit: boolean;
     canClone: boolean;
     onClose: () => void;
-    onImported?: () => void;
+    onImported?: (importedExerciseId: number) => void;
 };
 
 export const ImportFromGlobalModal = observer(({ courseId, canInherit, canClone, onClose, onImported }: Props) => {
@@ -25,10 +25,10 @@ export const ImportFromGlobalModal = observer(({ courseId, canInherit, canClone,
 
     const onImportClick = async (exerciseId: number) => {
         setBusyId(exerciseId);
-        const ok = await store.importToCourse(exerciseId, courseId, mode);
+        const importedExerciseId = await store.importToCourse(exerciseId, courseId, mode);
         setBusyId(null);
-        if (ok) {
-            onImported?.();
+        if (importedExerciseId != null) {
+            onImported?.(importedExerciseId);
             onClose();
         }
     };

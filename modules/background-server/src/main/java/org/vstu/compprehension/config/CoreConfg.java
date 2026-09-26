@@ -80,12 +80,6 @@ public class CoreConfg {
 
     @Bean
     @Singleton
-    GradePassbackService getGradePassbackService() {
-        return (attempt, grade) -> { };
-    }
-
-    @Bean
-    @Singleton
     QuestionBank getQuestionBank(@Autowired QuestionBankDataRepository bankDataRepository) {
         return new QuestionBankImpl(bankDataRepository);
     }

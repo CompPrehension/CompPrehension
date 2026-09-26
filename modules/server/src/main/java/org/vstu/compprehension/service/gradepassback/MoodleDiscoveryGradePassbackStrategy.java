@@ -1,7 +1,6 @@
 package org.vstu.compprehension.service.gradepassback;
 
 import lombok.RequiredArgsConstructor;
-import lombok.extern.log4j.Log4j2;
 import org.springframework.core.annotation.Order;
 import org.springframework.stereotype.Service;
 import org.springframework.util.MultiValueMap;
@@ -17,6 +16,7 @@ import org.jetbrains.annotations.NotNull;
 import org.vstu.compprehension.data.exerciseattempt.GradePassbackTargetData;
 import org.vstu.compprehension.enums.EducationResourceType;
 
+import java.time.Instant;
 import java.util.List;
 import java.util.Optional;
 
@@ -32,7 +32,6 @@ import java.util.Optional;
  */
 @Service
 @Order(2)
-@Log4j2
 @RequiredArgsConstructor
 public class MoodleDiscoveryGradePassbackStrategy implements GradePassbackStrategy {
 
@@ -61,7 +60,7 @@ public class MoodleDiscoveryGradePassbackStrategy implements GradePassbackStrate
     }
 
     @Override
-    public boolean passGrade(@NotNull GradePassbackTargetData target, double grade) {
+    public void passGrade(@NotNull GradePassbackTargetData target, double grade, @NotNull Instant gradedAt) {
         // Вызывается только после supports(), а тот уже отсеял попытки без курса.
         var course = target.course();
         var eduRes = course.educationResource();
@@ -72,17 +71,14 @@ public class MoodleDiscoveryGradePassbackStrategy implements GradePassbackStrate
                 .map(r -> r.registration().getWebserviceToken())
                 .orElse(null);
         if (wsToken == null) {
-            log.warn("No WS-moodle registration for {} — cannot pass grade for attempt {}",
-                    baseUrl, target.attemptId());
-            return false;
+            throw new IllegalStateException("No WS-moodle registration for " + baseUrl);
         }
 
         Optional<String> moodleUserIdOrEmpty = externalAccountService
                 .findExternalId(target.userId(), eduRes.id());
         if (moodleUserIdOrEmpty.isEmpty()) {
-            log.warn("No external account linking user {} to {} — cannot pass grade for attempt {}",
-                    target.userId(), baseUrl, target.attemptId());
-            return false;
+            throw new IllegalStateException(
+                    "No external account linking user " + target.userId() + " to " + baseUrl);
         }
         String moodleUserId = moodleUserIdOrEmpty.get();
         MoodleClient moodleClient = moodleClientFactory.create(baseUrl, wsToken);
@@ -93,45 +89,39 @@ public class MoodleDiscoveryGradePassbackStrategy implements GradePassbackStrate
         List<MoodleLtiActivity> activities;
         switch (ltiActivitiesResult) {
             case MoodleWsResult.Success<List<MoodleLtiActivity>> s -> activities = s.value();
-            case MoodleWsResult.Failure<List<MoodleLtiActivity>> f -> {
-                log.warn("Failed to fetch mod_lti activities for course {} ({}) [{}]: {} — cannot pass grade for attempt {}",
-                        externalCourseId, baseUrl, f.errorcode(), f.message(), target.attemptId());
-                return false;
-            }
+            case MoodleWsResult.Failure<List<MoodleLtiActivity>> f -> throw new IllegalStateException(String.format(
+                    "Failed to fetch mod_lti activities for course %s (%s) [%s]: %s",
+                    externalCourseId, baseUrl, f.errorcode(), f.message()));
         }
         Optional<MoodleLtiActivity> activity = activities.stream()
                 .filter(a -> matchesExercise(a, exerciseId))
                 .findFirst();
         if (activity.isEmpty()) {
-            log.warn("No mod_lti activity for exercise {} in course {} ({}) — cannot pass grade for attempt {}",
-                    exerciseId, externalCourseId, baseUrl, target.attemptId());
-            return false;
+            throw new IllegalStateException(String.format(
+                    "No mod_lti activity for exercise %d in course %s (%s)", exerciseId, externalCourseId, baseUrl));
         }
         MoodleLtiActivity lti = activity.get();
         if (lti.getCourseModuleId() == null) {
-            log.warn("mod_lti activity {} for exercise {} in course {} ({}) has no course module id — cannot pass grade for attempt {}",
-                    lti.getId(), exerciseId, externalCourseId, baseUrl, target.attemptId());
-            return false;
+            throw new IllegalStateException(String.format(
+                    "mod_lti activity %s for exercise %d in course %s (%s) has no course module id",
+                    lti.getId(), exerciseId, externalCourseId, baseUrl));
         }
 
         double gradeMax = lti.getGradeMax() != null && lti.getGradeMax() > 0 ? lti.getGradeMax() : DEFAULT_GRADE_MAX;
         MoodleGrade moodleGrade = new MoodleGrade(grade, gradeMax);
         MoodleWsResult<Boolean> gradeResult = moodleClient.updateGradeInCourse(
                 externalCourseId, lti.getCourseModuleId(), moodleUserId, moodleGrade);
-        return switch (gradeResult) {
+        switch (gradeResult) {
             case MoodleWsResult.Success<Boolean> s -> {
                 if (!s.value()) {
-                    log.warn("Moodle returned non-OK code updating grade for attempt {} (course {}, {})",
-                            target.attemptId(), externalCourseId, baseUrl);
+                    throw new IllegalStateException(String.format(
+                            "Moodle returned non-OK code updating grade (course %s, %s)", externalCourseId, baseUrl));
                 }
-                yield s.value();
             }
-            case MoodleWsResult.Failure<Boolean> f -> {
-                log.warn("Failed to update grade for attempt {} (course {}, {}) [{}]: {}",
-                        target.attemptId(), externalCourseId, baseUrl, f.errorcode(), f.message());
-                yield false;
-            }
-        };
+            case MoodleWsResult.Failure<Boolean> f -> throw new IllegalStateException(String.format(
+                    "Failed to update grade (course %s, %s) [%s]: %s",
+                    externalCourseId, baseUrl, f.errorcode(), f.message()));
+        }
     }
 
     /**

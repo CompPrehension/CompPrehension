@@ -6,9 +6,9 @@ public record PermissionScope(PermissionScopeKind kind, Long itemId) {
         if (kind == null) {
             throw new IllegalArgumentException("Scope kind must not be null");
         }
-        if (kind == PermissionScopeKind.GLOBAL) {
+        if (kind == PermissionScopeKind.ROOT || kind == PermissionScopeKind.GLOBAL) {
             if (itemId != null) {
-                throw new IllegalArgumentException("GLOBAL scope must not carry an itemId");
+                throw new IllegalArgumentException(kind + " scope must not carry an itemId");
             }
         } else if (itemId == null) {
             throw new IllegalArgumentException(kind + " scope requires a non-null itemId");
@@ -17,6 +17,10 @@ public record PermissionScope(PermissionScopeKind kind, Long itemId) {
 
     public String queryKey() {
         return kind.name() + ":" + (itemId == null ? 0 : itemId);
+    }
+
+    public static PermissionScope root() {
+        return new PermissionScope(PermissionScopeKind.ROOT, null);
     }
 
     public static PermissionScope global() {

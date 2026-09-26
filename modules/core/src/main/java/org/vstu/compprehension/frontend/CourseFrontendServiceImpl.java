@@ -2,11 +2,12 @@ package org.vstu.compprehension.frontend;
 
 import org.jetbrains.annotations.NotNull;
 import org.springframework.stereotype.Component;
-import org.vstu.compprehension.businesslogic.lti.LtiContext;
 import org.vstu.compprehension.frontend.dto.ExerciseRefDto;
 import org.vstu.compprehension.frontend.dto.course.CourseDto;
+import org.vstu.compprehension.frontend.dto.course.CreateCourseDto;
 import org.vstu.compprehension.data.cource.CourseExerciseData;
 import org.vstu.compprehension.data.cource.CourseSummaryData;
+import org.vstu.compprehension.data.cource.CreateCourseData;
 import org.vstu.compprehension.mappers.Mapper;
 import org.vstu.compprehension.services.CourseDataService;
 
@@ -17,20 +18,26 @@ import java.util.Optional;
 @Component
 public class CourseFrontendServiceImpl implements CourseFrontendService {
     private final CourseDataService courseService;
+    private final AuthFrontendService authService;
     private final Mapper<CourseSummaryData, CourseDto> courseDtoMapper;
     private final Mapper<CourseExerciseData, ExerciseRefDto> exerciseRefDtoMapper;
 
     public CourseFrontendServiceImpl(CourseDataService courseService,
+                                     AuthFrontendService authService,
                                      Mapper<CourseSummaryData, CourseDto> courseDtoMapper,
                                      Mapper<CourseExerciseData, ExerciseRefDto> exerciseRefDtoMapper) {
         this.courseService = courseService;
+        this.authService = authService;
         this.courseDtoMapper = courseDtoMapper;
         this.exerciseRefDtoMapper = exerciseRefDtoMapper;
     }
 
     @Override
     public @NotNull List<CourseDto> getUserCourses(long userId) {
-        return courseDtoMapper.mapAll(courseService.getUserCourses(userId));
+        var courses = authService.canViewAllCourses(userId)
+                ? courseService.getAllCourses()
+                : courseService.getCoursesByIds(authService.findVisibleCourseIds(userId));
+        return courseDtoMapper.mapAll(courses);
     }
 
     @Override
@@ -54,8 +61,9 @@ public class CourseFrontendServiceImpl implements CourseFrontendService {
     }
 
     @Override
-    public @NotNull Optional<Long> resolveOrCreateIdFromLtiContext(@NotNull LtiContext ctx, long educationResourceId) {
-        return courseService.resolveOrCreateIdFromLtiContext(ctx, educationResourceId);
+    public long getOrCreate(@NotNull CreateCourseDto course) {
+        return courseService.getOrCreate(new CreateCourseData(
+                course.educationResourceId(), course.externalCourseId(), course.name()));
     }
 
     @Override

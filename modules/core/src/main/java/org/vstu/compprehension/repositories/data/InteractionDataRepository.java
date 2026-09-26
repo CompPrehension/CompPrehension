@@ -116,7 +116,7 @@ public class InteractionDataRepository {
                 () -> new NoSuchElementException("Interaction " + interactionId + " not found"));
         Strict.required(interaction.getFeedback(), "feedback", "interaction " + interactionId)
                 .setGrade(grade);
-        interactionRepository.save(interaction);
+        interactionRepository.saveAndFlush(interaction);
     }
 
     private @NotNull ResponseEntity existingResponse(long responseId) {

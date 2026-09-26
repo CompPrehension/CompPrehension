@@ -48,7 +48,7 @@ public class UserDataRepository {
         entity.setPreferred_language(update.language());
         entity.setExternalId(update.externalId());
         entity.setExternalUserId(update.externalUserId());
-        return userAccountMapper.map(userRepository.save(entity));
+        return userAccountMapper.map(userRepository.saveAndFlush(entity));
     }
 
     @Transactional
@@ -56,6 +56,6 @@ public class UserDataRepository {
         var entity = userRepository.findFirstByEmailOrderByIdAsc(email)
                 .orElseThrow(() -> new NoSuchElementException("User " + email + " not found"));
         entity.setPreferred_language(language);
-        userRepository.save(entity);
+        userRepository.saveAndFlush(entity);
     }
 }

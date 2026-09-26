@@ -19,13 +19,6 @@ public record AuthScope(List<PermissionScope> scopes) {
         return scopes.isEmpty();
     }
 
-    /** Отбрасывает области, в которых право неприменимо. */
-    public AuthScope allowing(Permission permission) {
-        return new AuthScope(scopes.stream()
-                .filter(scope -> permission.isAllowedIn(scope.kind()))
-                .toList());
-    }
-
     /** Ключи строк {@code permission_scope}. */
     public List<String> queryKeys() {
         return scopes.stream().map(PermissionScope::queryKey).toList();

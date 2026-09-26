@@ -1,0 +1,37 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<databaseChangeLog xmlns="http://www.liquibase.org/xml/ns/dbchangelog"
+                   xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance"
+                   xsi:schemaLocation="http://www.liquibase.org/xml/ns/dbchangelog
+                       http://www.liquibase.org/xml/ns/dbchangelog/dbchangelog-4.5.xsd">
+    <changeSet id="2026-09-26-01-education-resource-url-scheme" author="Artem Prokudin">
+        <preConditions onFail="HALT"
+                       onFailMessage="education_resource: host-only LMS has an https:// duplicate that is already referenced; merge them manually">
+            <sqlCheck expectedResult="0">
+                select count(*)
+                from education_resource old_er
+                join education_resource dup
+                    on dup.type = old_er.type and dup.url = concat('https://', lower(old_er.url))
+                where old_er.url not like '%://%'
+                  and (exists(select 1 from course c where c.education_resource_id = dup.id)
+                    or exists(select 1 from external_account ea where ea.education_resource_id = dup.id)
+                    or exists(select 1 from permission_scope ps
+                              where ps.kind = 'EDUCATION_RESOURCE' and ps.scope_item_id = dup.id))
+            </sqlCheck>
+        </preConditions>
+        <sql>
+            delete dup
+            from education_resource dup
+            join education_resource old_er
+                on old_er.type = dup.type and dup.url = concat('https://', lower(old_er.url))
+            where old_er.url not like '%://%';
+
+            update education_resource
+            set url = concat('https://', lower(url))
+            where url not like '%://%';
+        </sql>
+        <rollback>
+            <!-- Необратимо: старый формат адреса код больше не понимает, а удалённые дубликаты не восстановить. -->
+        </rollback>
+    </changeSet>
+
+</databaseChangeLog>

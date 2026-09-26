@@ -4,7 +4,6 @@ import org.vstu.compprehension.data.exercise.ExerciseSummaryData;
 import org.jetbrains.annotations.NotNull;
 import org.jetbrains.annotations.Nullable;
 import org.vstu.compprehension.data.exercise.ExerciseData;
-import org.vstu.compprehension.data.exercise.ExerciseOptionsData;
 import org.vstu.compprehension.frontend.dto.ExerciseCardDto;
 import org.vstu.compprehension.frontend.dto.ExerciseDto;
 
@@ -14,10 +13,6 @@ public interface ExerciseDataService {
     boolean isExercisePublic(long exerciseId);
 
     @NotNull ExerciseData getExercise(long exerciseId);
-
-    @NotNull ExerciseOptionsData getExerciseOptionsInContext(long exerciseId, @Nullable Long courseId);
-
-    @NotNull ExerciseData getExerciseInContext(long exerciseId, @Nullable Long courseId);
 
     boolean isInheritedInCourse(@NotNull ExerciseData exercise, @Nullable Long courseId);
 

@@ -41,27 +41,30 @@ public class LtiAgsGradePassbackStrategy implements GradePassbackStrategy {
     }
 
     @Override
-    public boolean passGrade(@NotNull GradePassbackTargetData target, double grade) {
+    public void passGrade(@NotNull GradePassbackTargetData target, double grade, @NotNull Instant gradedAt) {
         String lineitemUrl = target.ltiLineitemUrl();
-        try {
-            String moodleBaseUrl = extractMoodleBaseUrl(lineitemUrl);
+        String moodleBaseUrl = extractMoodleBaseUrl(lineitemUrl);
 
-            String externalUserId = target.externalUserId();
-            if (externalUserId == null || externalUserId.isBlank()) {
-                throw new IllegalStateException(
-                        "No externalUserId for user " + target.userId()
-                                + " — пользователь должен войти через LTI до отправки оценки");
-            }
-
-            String accessToken = tokenService.obtainAccessToken(moodleBaseUrl, SCORE_SCOPE);
-            return postScore(lineitemUrl, externalUserId, grade, accessToken);
-        } catch (Exception e) {
-            log.error("LTI AGS grade passback failed for attempt {}: {}", target.attemptId(), e.getMessage(), e);
-            return false;
+        String externalUserId = target.externalUserId();
+        if (externalUserId == null || externalUserId.isBlank()) {
+            throw new IllegalStateException(
+                    "No externalUserId for user " + target.userId()
+                            + " — пользователь должен войти через LTI до отправки оценки");
         }
+
+        String accessToken;
+        try {
+            accessToken = tokenService.obtainAccessToken(moodleBaseUrl, SCORE_SCOPE);
+        } catch (Exception ex) {
+            throw new IllegalStateException(
+                    "Could not obtain AGS access token from " + moodleBaseUrl + ": " + ex.getMessage(), ex);
+        }
+        postScore(lineitemUrl, externalUserId, grade, gradedAt, accessToken);
     }
 
-    private boolean postScore(String lineitemUrl, String moodleUserId, double grade, String accessToken) {
+    /** Ответы 4xx/5xx RestTemplate сам превращает в исключение с кодом и телом ответа. */
+    private void postScore(String lineitemUrl, String moodleUserId, double grade, Instant gradedAt,
+                              String accessToken) {
         // Insert /scores into the PATH before any query string (e.g. ?type_id=1)
         URI uri = URI.create(lineitemUrl);
         String path = uri.getPath().replaceAll("/+$", "") + "/scores";
@@ -74,7 +77,8 @@ public class LtiAgsGradePassbackStrategy implements GradePassbackStrategy {
                 "scoreMaximum", 1.0,
                 "activityProgress", "Completed",
                 "gradingProgress", "FullyGraded",
-                "timestamp", Instant.now().truncatedTo(ChronoUnit.SECONDS).toString()
+                // LMS игнорирует оценку со временем старше уже полученной: повтор старой отправки не перезапишет новую.
+                "timestamp", gradedAt.truncatedTo(ChronoUnit.SECONDS).toString()
         );
 
         HttpHeaders headers = new HttpHeaders();
@@ -86,7 +90,10 @@ public class LtiAgsGradePassbackStrategy implements GradePassbackStrategy {
         ResponseEntity<String> scoreResponse = restTemplate.postForEntity(
                 URI.create(scoresUrl), new HttpEntity<>(scorePayload, headers), String.class);
         log.debug("AGS score response: status={}, body={}", scoreResponse.getStatusCode(), scoreResponse.getBody());
-        return scoreResponse.getStatusCode().is2xxSuccessful();
+        if (!scoreResponse.getStatusCode().is2xxSuccessful()) {
+            throw new IllegalStateException("AGS score was not accepted: " + scoreResponse.getStatusCode()
+                    + " " + scoreResponse.getBody());
+        }
     }
 
     /** {@code http://moodle/mod/lti/services.php/2/lineitems/3/lineitem} -> {@code http://moodle}. */

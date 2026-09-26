@@ -75,6 +75,13 @@ class RoleAssignmentServiceTest extends AbstractIntegrationTest {
                 TestData.Users.WITHOUT_ROLES_ID, SystemRole.STUDENT, PermissionScopeKind.GLOBAL, null));
     }
 
+    /** Студента нельзя выдать в ROOT: иначе он решал бы упражнения любого курса. */
+    @Test
+    void assignRootRoleRejectsStudent() {
+        assertThrows(IllegalArgumentException.class,
+                () -> roleAssignmentService.assignRootRole(TestData.Users.WITHOUT_ROLES_ID, SystemRole.STUDENT));
+    }
+
     /** Роль курса нельзя выдать глобально. */
     @Test
     void assignGlobalRoleRejectsCourseOnlyRole() {
@@ -148,7 +155,7 @@ class RoleAssignmentServiceTest extends AbstractIntegrationTest {
         assertTrue(hasRole(TestData.Users.WITHOUT_ROLES_ID, SystemRole.TEACHER,
                 PermissionScopeKind.COURSE, TestData.Courses.MAIN_ID));
         assertTrue(authService.isAuthorized(TestData.Users.WITHOUT_ROLES_ID,
-                SystemPermission.MANAGE_COURSE_CONTENT, authScopes.course(TestData.Courses.MAIN_ID)));
+                SystemPermission.LINK_POOL_EXERCISE_TO_COURSE, authScopes.course(TestData.Courses.MAIN_ID)));
     }
 
     /** Смена роли в курсе снимает прежнюю. */
@@ -226,7 +233,7 @@ class RoleAssignmentServiceTest extends AbstractIntegrationTest {
         assertThrows(IllegalArgumentException.class, () -> reconcileMainCourse(
                 List.of(TestData.Users.WITHOUT_ROLES_ID),
                 List.of(new CourseRoleAssignment(
-                        TestData.Users.WITHOUT_ROLES_ID, TestData.Courses.MAIN_ID, SystemRole.GLOBAL_ADMIN)),
+                        TestData.Users.WITHOUT_ROLES_ID, TestData.Courses.MAIN_ID, SystemRole.ADMIN)),
                 List.of(TestData.Courses.MAIN_ID)));
     }
 

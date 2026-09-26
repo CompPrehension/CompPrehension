@@ -37,6 +37,9 @@ public class LtiDeepLinkingController {
     public record DeepLinkBuildRequest(List<Long> exerciseIds) {
     }
 
+    public record DeepLinkSettingsLinkRequest(String title) {
+    }
+
     public record DeepLinkBuildResponse(String jwt, String returnUrl) {
     }
 
@@ -68,6 +71,24 @@ public class LtiDeepLinkingController {
     }
 
     /**
+     * Собирает подписанный {@code LtiDeepLinkingResponse} с активностью, которая открывает страницу настройки
+     * упражнений курса: без неё в новый курс не попасть, чтобы наполнить его упражнениями.
+     */
+    @SneakyThrows
+    @PostMapping("build-settings-link")
+    @ResponseBody
+    public DeepLinkBuildResponse buildSettingsLink(@RequestBody DeepLinkSettingsLinkRequest body) {
+        LtiDeepLinkingContext dl = requireDeepLinking();
+        requireAuthorizedCourse();
+
+        if (body == null || body.title() == null || body.title().isBlank()) {
+            throw new IllegalArgumentException("title must not be blank");
+        }
+        String jwt = deepLinkingResponseService.buildSignedSettingsLinkResponse(dl, body.title());
+        return new DeepLinkBuildResponse(jwt, dl.deepLinkReturnUrl());
+    }
+
+    /**
      * exercise_id уже добавленных в курс активностей (через AGS line items) — чтобы фронт
      * пометил их как добавленные. Fail-soft: при недоступности AGS вернёт пустой список.
      */
@@ -95,13 +116,13 @@ public class LtiDeepLinkingController {
         if (course == null || course.courseId() == null) {
             throw new IllegalArgumentException("No course in LTI context");
         }
-        long eduResId = educationResourceService.findIdByUrlAndType(ctx.lmsUrl(), ctx.lmsType())
-                .orElseThrow(() -> new IllegalArgumentException("Unknown education resource"));
+        long eduResId = educationResourceService.findTrustedIdByUrlAndType(ctx.lmsUrl(), ctx.lmsType())
+                .orElseThrow(() -> new SecurityException(String.format("EducationResource %s is not trusted", ctx.lmsUrl())));
         long courseId = courseService.findCourseIdByExternalIdAndResourceId(course.courseId(), eduResId)
                 .orElseThrow(() -> new IllegalArgumentException("Course not found for LTI context"));
 
         long userId = userService.getCurrentUserId();
-        authService.ensureAuthorized(userId, SystemPermission.MANAGE_COURSE_CONTENT, authService.course(courseId));
+        authService.ensureAuthorized(userId, SystemPermission.CREATE_LMS_ACTIVITY, authService.getCourseScope(courseId));
         return courseId;
     }
 }

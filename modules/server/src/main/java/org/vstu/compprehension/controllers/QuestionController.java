@@ -13,7 +13,7 @@ import org.vstu.compprehension.frontend.dto.SupplementaryQuestionDto;
 import org.vstu.compprehension.frontend.dto.SupplementaryQuestionRequestDto;
 import org.vstu.compprehension.frontend.dto.feedback.FeedbackDto;
 import org.vstu.compprehension.frontend.dto.question.QuestionDto;
-import org.vstu.compprehension.businesslogic.auth.AuthObjects.SystemPermission;
+import org.vstu.compprehension.businesslogic.auth.AuthObjects.SystemCapability;
 
 @Controller
 @RequestMapping("api/question")
@@ -35,7 +35,7 @@ public class QuestionController {
     @ResponseBody
     public FeedbackDto addQuestionAnswer(@RequestBody InteractionDto interaction) throws Exception {
         var userId = userService.getCurrentUserId();
-        exerciseAttemptService.ensureCanAccessQuestion(userId, interaction.getQuestionId());
+        authService.ensureCanWriteQuestion(userId, interaction.getQuestionId());
         return exerciseAttemptService.addQuestionAnswer(interaction);
     }
 
@@ -50,7 +50,7 @@ public class QuestionController {
     @ResponseBody
     public SupplementaryFeedbackDto addSupplementaryQuestionAnswer(@RequestBody InteractionDto interaction) throws Exception {
         var userId = userService.getCurrentUserId();
-        exerciseAttemptService.ensureCanAccessQuestion(userId, interaction.getQuestionId());
+        authService.ensureCanWriteQuestion(userId, interaction.getQuestionId());
         return exerciseAttemptService.addSupplementaryQuestionAnswer(interaction);
     }
 
@@ -64,7 +64,7 @@ public class QuestionController {
     @ResponseBody
     public QuestionDto generateQuestion(@RequestParam Long attemptId) throws Exception {
         var userId = userService.getCurrentUserId();
-        exerciseAttemptService.ensureCanAccessAttempt(userId, attemptId);
+        authService.ensureCanWriteAttempt(userId, attemptId);
         return exerciseAttemptService.generateQuestion(attemptId);
     }
 
@@ -78,7 +78,7 @@ public class QuestionController {
     @ResponseBody
     public QuestionDto generateQuestionByMetadata(@RequestParam Integer metadataId) throws Exception {
         var userId = userService.getCurrentUserId();
-        authService.ensureAuthorized(userId, SystemPermission.EDIT_EXERCISE, authService.global());
+        authService.ensureAuthorized(userId, SystemCapability.DEBUG_BANK_QUESTION);
 
         return exerciseAttemptService.generateQuestionByMetadata(metadataId, userService.getCurrentUserLanguage());
     }
@@ -93,7 +93,7 @@ public class QuestionController {
     @ResponseBody
     public SupplementaryQuestionDto generateSupplementaryQuestion(@RequestBody SupplementaryQuestionRequestDto questionRequest) throws Exception {
         var userId = userService.getCurrentUserId();
-        exerciseAttemptService.ensureCanAccessQuestion(userId, questionRequest.getQuestionId());
+        authService.ensureCanWriteQuestion(userId, questionRequest.getQuestionId());
         return exerciseAttemptService.generateSupplementaryQuestion(questionRequest.getQuestionId(), questionRequest.getViolationLaws());
     }
 
@@ -107,7 +107,7 @@ public class QuestionController {
     @ResponseBody
     public QuestionDto getQuestion(@RequestParam Long questionId) throws Exception {
         var userId = userService.getCurrentUserId();
-        exerciseAttemptService.ensureCanAccessQuestion(userId, questionId);
+        authService.ensureCanReadQuestion(userId, questionId);
         return exerciseAttemptService.getQuestion(questionId);
     }
 
@@ -121,7 +121,7 @@ public class QuestionController {
     @ResponseBody
     public FeedbackDto generateNextCorrectAnswer(@RequestParam Long questionId) throws Exception {
         var userId = userService.getCurrentUserId();
-        exerciseAttemptService.ensureCanAccessQuestion(userId, questionId);
+        authService.ensureCanWriteQuestion(userId, questionId);
         return exerciseAttemptService.generateNextCorrectAnswer(questionId);
     }
 }

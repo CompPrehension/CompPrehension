@@ -12,6 +12,7 @@ import org.vstu.compprehension.frontend.QuestionBankSearchFrontendService;
 import org.vstu.compprehension.frontend.UserFrontendService;
 import org.vstu.compprehension.frontend.dto.QuestionBankSearchRequestDto;
 import org.vstu.compprehension.frontend.dto.QuestionBankSearchStatsDto;
+import org.vstu.compprehension.businesslogic.auth.AuthObjects.SystemCapability;
 import org.vstu.compprehension.businesslogic.auth.AuthObjects.SystemPermission;
 
 @Controller
@@ -27,7 +28,12 @@ public class QuestionBankController {
     @ResponseBody
     public QuestionBankSearchStatsDto search(@RequestBody QuestionBankSearchRequestDto searchRequest) throws Exception {
         var userId = userService.getCurrentUserId();
-        authService.ensureAuthorized(userId, SystemPermission.VIEW_EXERCISE, authService.courseOrGlobal(searchRequest.getCourseId()));
+        var courseId = searchRequest.getCourseId();
+        if (courseId == null) {
+            authService.ensureAuthorized(userId, SystemCapability.VIEW_GLOBAL_POOL);
+        } else {
+            authService.ensureAuthorized(userId, SystemPermission.SEARCH_QUESTION_BANK, authService.getCourseScope(courseId));
+        }
         return questionBankSearchService.search(searchRequest);
     }
 }

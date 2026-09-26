@@ -47,7 +47,7 @@ public final class TestData {
         private Users() {
         }
 
-        public static final long GLOBAL_ADMIN_ID = -1L;
+        public static final long ADMIN_ID = -1L;
         public static final long GLOBAL_EXERCISE_AUTHOR_ID = -2L;
         public static final long GLOBAL_STUDENT_ID = -3L;
         public static final long MAIN_COURSE_TEACHER_ID = -4L;

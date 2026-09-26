@@ -20,7 +20,7 @@ class CourseControllerAuthorizationTest extends AbstractAuthorizationTest {
     @Test
     void myCoursesReturnsAllCoursesForGlobalAdmin() throws Exception {
         // Arrange.
-        actingAs(TestData.Users.GLOBAL_ADMIN_ID);
+        actingAs(TestData.Users.ADMIN_ID);
 
         // Act.
         var result = mockMvc.perform(get(fromMethodCall(on(CourseController.class)
@@ -123,7 +123,7 @@ class CourseControllerAuthorizationTest extends AbstractAuthorizationTest {
                 .andExpect(jsonPath("$", hasSize(2)));
     }
 
-    /** Список курсов упражнения требует VIEW_EXERCISE в GLOBAL-области. */
+    /** Список курсов упражнения требует VIEW_EXERCISE_USAGE в GLOBAL-области. */
     @Test
     void membershipsAllowedForGlobalExerciseAuthor() throws Exception {
         // Arrange.
@@ -165,7 +165,7 @@ class CourseControllerAuthorizationTest extends AbstractAuthorizationTest {
         result.andExpect(status().isForbidden());
     }
 
-    /** Наследование упражнения из пула требует MANAGE_COURSE_CONTENT. */
+    /** Наследование упражнения из пула требует LINK_POOL_EXERCISE_TO_COURSE. */
     @Test
     void addExerciseToCourseAllowedForCourseTeacher() throws Exception {
         // Arrange.
@@ -180,7 +180,7 @@ class CourseControllerAuthorizationTest extends AbstractAuthorizationTest {
         result.andExpect(status().isOk());
     }
 
-    /** У ассистента MANAGE_COURSE_CONTENT нет. */
+    /** У ассистента LINK_POOL_EXERCISE_TO_COURSE нет. */
     @Test
     void addExerciseToCourseForbiddenForCourseAssistant() throws Exception {
         // Arrange.
@@ -195,7 +195,7 @@ class CourseControllerAuthorizationTest extends AbstractAuthorizationTest {
         result.andExpect(status().isForbidden());
     }
 
-    /** MANAGE_COURSE_CONTENT действует только в своём курсе. */
+    /** LINK_POOL_EXERCISE_TO_COURSE действует только в своём курсе. */
     @Test
     void addExerciseToCourseForbiddenForTeacherOfAnotherCourse() throws Exception {
         // Arrange.
@@ -225,7 +225,7 @@ class CourseControllerAuthorizationTest extends AbstractAuthorizationTest {
         result.andExpect(status().isConflict());
     }
 
-    /** Отвязка упражнения тоже требует MANAGE_COURSE_CONTENT. */
+    /** Отвязка упражнения тоже требует LINK_POOL_EXERCISE_TO_COURSE. */
     @Test
     void removeExerciseFromCourseAllowedForCourseTeacher() throws Exception {
         // Arrange.
@@ -268,5 +268,50 @@ class CourseControllerAuthorizationTest extends AbstractAuthorizationTest {
 
         // Assert.
         result.andExpect(status().isForbidden());
+    }
+
+    /** Собственное упражнение курса удаляется из курса по DELETE_EXERCISE. */
+    @Test
+    void removeOwnExerciseFromCourseAllowedForCourseTeacher() throws Exception {
+        // Arrange.
+        actingAs(TestData.Users.MAIN_COURSE_TEACHER_ID);
+
+        // Act.
+        var result = mockMvc.perform(delete("/api/course/exercise/remove")
+                .param("exerciseId", String.valueOf(TestData.Exercises.MAIN_COURSE_ID))
+                .param("courseId", String.valueOf(TestData.Courses.MAIN_ID)));
+
+        // Assert.
+        result.andExpect(status().isOk());
+    }
+
+    /** У ассистента DELETE_EXERCISE нет. */
+    @Test
+    void removeOwnExerciseFromCourseForbiddenForCourseAssistant() throws Exception {
+        // Arrange.
+        actingAs(TestData.Users.MAIN_COURSE_ASSISTANT_ID);
+
+        // Act.
+        var result = mockMvc.perform(delete("/api/course/exercise/remove")
+                .param("exerciseId", String.valueOf(TestData.Exercises.MAIN_COURSE_ID))
+                .param("courseId", String.valueOf(TestData.Courses.MAIN_ID)));
+
+        // Assert.
+        result.andExpect(status().isForbidden());
+    }
+
+    /** Свой courseId не открывает удаление упражнения чужого курса. */
+    @Test
+    void removeOwnExerciseOfAnotherCourseRejectedForTeacherActingInOwnCourse() throws Exception {
+        // Arrange.
+        actingAs(TestData.Users.OTHER_COURSE_TEACHER_ID);
+
+        // Act.
+        var result = mockMvc.perform(delete("/api/course/exercise/remove")
+                .param("exerciseId", String.valueOf(TestData.Exercises.MAIN_COURSE_ID))
+                .param("courseId", String.valueOf(TestData.Courses.OTHER_ID)));
+
+        // Assert.
+        result.andExpect(status().isConflict());
     }
 }

@@ -13,7 +13,7 @@ import static org.springframework.web.servlet.mvc.method.annotation.MvcUriCompon
 
 class UsersControllerAuthorizationTest extends AbstractAuthorizationTest {
 
-    /** Флаг пула держится на VIEW_EXERCISE в GLOBAL-области. */
+    /** Флаг пула держится на VIEW_GLOBAL_POOL. */
     @Test
     void whoamiAllowsGlobalPoolForGlobalExerciseAuthor() throws Exception {
         // Arrange.
@@ -32,7 +32,7 @@ class UsersControllerAuthorizationTest extends AbstractAuthorizationTest {
     @Test
     void whoamiAllowsGlobalPoolForGlobalAdmin() throws Exception {
         // Arrange.
-        actingAs(TestData.Users.GLOBAL_ADMIN_ID);
+        actingAs(TestData.Users.ADMIN_ID);
 
         // Act.
         var result = mockMvc.perform(get(fromMethodCall(on(UsersController.class)
@@ -43,7 +43,7 @@ class UsersControllerAuthorizationTest extends AbstractAuthorizationTest {
                 .andExpect(jsonPath("$.permissions.canViewGlobalPool").value(true));
     }
 
-    /** У студента VIEW_EXERCISE нет. */
+    /** У студента VIEW_GLOBAL_POOL нет. */
     @Test
     void whoamiDeniesGlobalPoolForGlobalStudent() throws Exception {
         // Arrange.
@@ -58,11 +58,26 @@ class UsersControllerAuthorizationTest extends AbstractAuthorizationTest {
                 .andExpect(jsonPath("$.permissions.canViewGlobalPool").value(false));
     }
 
-    /** Права в курсе глобальный пул не открывают. */
+    /** VIEW_GLOBAL_POOL из роли в курсе открывает глобальный пул. */
     @Test
-    void whoamiDeniesGlobalPoolForCourseTeacher() throws Exception {
+    void whoamiAllowsGlobalPoolForCourseTeacher() throws Exception {
         // Arrange.
         actingAs(TestData.Users.MAIN_COURSE_TEACHER_ID);
+
+        // Act.
+        var result = mockMvc.perform(get(fromMethodCall(on(UsersController.class)
+                .getAll()).build().toUri()));
+
+        // Assert.
+        result.andExpect(status().isOk())
+                .andExpect(jsonPath("$.permissions.canViewGlobalPool").value(true));
+    }
+
+    /** У ассистента курса глобального пула нет. */
+    @Test
+    void whoamiDeniesGlobalPoolForCourseAssistant() throws Exception {
+        // Arrange.
+        actingAs(TestData.Users.MAIN_COURSE_ASSISTANT_ID);
 
         // Act.
         var result = mockMvc.perform(get(fromMethodCall(on(UsersController.class)

@@ -301,7 +301,7 @@ class ExerciseSettingsControllerAuthorizationTest extends AbstractAuthorizationT
     @Test
     void deleteGlobalExerciseAllowedForGlobalAdmin() throws Exception {
         // Arrange.
-        actingAs(TestData.Users.GLOBAL_ADMIN_ID);
+        actingAs(TestData.Users.ADMIN_ID);
 
         // Act.
         var result = mockMvc.perform(delete("/api/exercise")
@@ -529,6 +529,91 @@ class ExerciseSettingsControllerAuthorizationTest extends AbstractAuthorizationT
                 .andExpect(jsonPath("$.permissions.canCloneToCourse").value(false))
                 .andExpect(jsonPath("$.permissions.canUnlinkFromCourse").value(false))
                 .andExpect(jsonPath("$.permissions.canCopyToGlobalPool").value(false));
+    }
+
+    /** Преподаватель курса видит глобальный пул по VIEW_GLOBAL_POOL. */
+    @Test
+    void listGlobalExercisesAllowedForCourseTeacher() throws Exception {
+        // Arrange.
+        actingAs(TestData.Users.MAIN_COURSE_TEACHER_ID);
+
+        // Act.
+        var result = mockMvc.perform(get("/api/exercise/list"));
+
+        // Assert.
+        result.andExpect(status().isOk())
+                .andExpect(jsonPath("$.permissions.canCreateExercise").value(false));
+    }
+
+    /** Админ образовательного ресурса видит глобальный пул. */
+    @Test
+    void listGlobalExercisesAllowedForEducationResourceAdmin() throws Exception {
+        // Arrange.
+        actingAs(TestData.Users.EDUCATION_RESOURCE_ADMIN_ID);
+
+        // Act.
+        var result = mockMvc.perform(get("/api/exercise/list"));
+
+        // Assert.
+        result.andExpect(status().isOk());
+    }
+
+    /** У ассистента VIEW_GLOBAL_POOL нет. */
+    @Test
+    void listGlobalExercisesForbiddenForCourseAssistant() throws Exception {
+        // Arrange.
+        actingAs(TestData.Users.MAIN_COURSE_ASSISTANT_ID);
+
+        // Act.
+        var result = mockMvc.perform(get("/api/exercise/list"));
+
+        // Assert.
+        result.andExpect(status().isForbidden());
+    }
+
+    /** Карточка упражнения пула открыта преподавателю курса только на просмотр. */
+    @Test
+    void globalPoolCardIsReadOnlyForCourseTeacher() throws Exception {
+        // Arrange.
+        actingAs(TestData.Users.MAIN_COURSE_TEACHER_ID);
+
+        // Act.
+        var result = mockMvc.perform(get(fromMethodCall(on(ExerciseSettingsController.class)
+                .get(TestData.Exercises.GLOBAL_POOL_ID, null)).build().toUri()));
+
+        // Assert.
+        result.andExpect(status().isOk())
+                .andExpect(jsonPath("$.permissions.canEdit").value(false))
+                .andExpect(jsonPath("$.permissions.canDelete").value(false))
+                .andExpect(jsonPath("$.permissions.canCopyToGlobalPool").value(false));
+    }
+
+    /** Карточка упражнения пула закрыта ассистенту. */
+    @Test
+    void globalPoolCardForbiddenForCourseAssistant() throws Exception {
+        // Arrange.
+        actingAs(TestData.Users.MAIN_COURSE_ASSISTANT_ID);
+
+        // Act.
+        var result = mockMvc.perform(get(fromMethodCall(on(ExerciseSettingsController.class)
+                .get(TestData.Exercises.GLOBAL_POOL_ID, null)).build().toUri()));
+
+        // Assert.
+        result.andExpect(status().isForbidden());
+    }
+
+    /** Клонирование упражнения пула в свой курс не требует прав в GLOBAL. */
+    @Test
+    void cloneGlobalPoolExerciseToCourseAllowedForCourseTeacher() throws Exception {
+        // Arrange.
+        actingAs(TestData.Users.MAIN_COURSE_TEACHER_ID);
+
+        // Act.
+        var result = mockMvc.perform(post("/api/exercise/" + TestData.Exercises.GLOBAL_POOL_ID + "/clone")
+                .param("courseId", String.valueOf(TestData.Courses.MAIN_ID)));
+
+        // Assert.
+        result.andExpect(status().isOk());
     }
 
     private ExerciseCardDto cardOf(long exerciseId) {

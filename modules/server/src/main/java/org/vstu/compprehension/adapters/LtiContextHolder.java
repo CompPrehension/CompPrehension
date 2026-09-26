@@ -2,6 +2,7 @@ package org.vstu.compprehension.adapters;
 
 import org.springframework.stereotype.Component;
 import org.springframework.web.context.annotation.SessionScope;
+import org.vstu.compprehension.common.LmsUrlHelper;
 import org.vstu.compprehension.service.lti.LtiContextInitializer;
 import org.vstu.compprehension.services.LtiContextProvider;
 import org.vstu.compprehension.businesslogic.lti.LtiContext;
@@ -10,9 +11,7 @@ import org.vstu.compprehension.businesslogic.lti.LtiDeepLinkingContext;
 import org.vstu.compprehension.enums.EducationResourceType;
 
 import java.io.Serializable;
-import java.net.URI;
 import java.util.List;
-import java.util.Locale;
 import java.util.Map;
 import java.util.Optional;
 
@@ -44,7 +43,7 @@ public class LtiContextHolder implements LtiContextProvider, LtiContextInitializ
     public void init(Map<String, Object> claims) {
 
         String issuer = (String) claims.get("iss");
-        String lmsUrl = canonicalLmsUrl(issuer);
+        String lmsUrl = LmsUrlHelper.toCanonicalLmsUrl(issuer);
 
         String lmsName = null;
         EducationResourceType lmsType = EducationResourceType.UNKNOWN;
@@ -86,6 +85,12 @@ public class LtiContextHolder implements LtiContextProvider, LtiContextInitializ
         this.deepLinkingContext = parseDeepLinkingContext(claims, lmsUrl, agsEndpoint);
     }
 
+    @Override
+    public void clear() {
+        this.context = null;
+        this.deepLinkingContext = null;
+    }
+
     private static LtiDeepLinkingContext parseDeepLinkingContext(Map<String, Object> claims, String lmsUrl, Map<?, ?> agsEndpoint) {
         Map<?, ?> settings = (Map<?, ?>) claims.get(LTI_CLAIM_DEEP_LINKING);
         if (settings == null) {
@@ -111,28 +116,5 @@ public class LtiContextHolder implements LtiContextProvider, LtiContextInitializ
 
     private static String asString(Object value) {
         return value != null ? String.valueOf(value) : null;
-    }
-
-    /**
-     * Канонический URL LMS для записи в {@code EducationResourceEntity.url}:
-     * {@code scheme://authority} из LTI issuer claim (например {@code http://localhost:8081}),
-     * в нижнем регистре, без path/query/fragment и trailing slash. Этот же формат ожидают
-     * {@code WsFuncMoodleConfig.base-url} и {@code LtiRegistrationsProperties.issuer-url}.
-     */
-    private static String canonicalLmsUrl(String issuer) {
-        if (issuer == null || issuer.isBlank()) {
-            return null;
-        }
-        try {
-            URI uri = URI.create(issuer.trim());
-            String scheme = uri.getScheme();
-            String authority = uri.getAuthority();
-            if (scheme == null || authority == null) {
-                return null;
-            }
-            return (scheme + "://" + authority).toLowerCase(Locale.ROOT);
-        } catch (IllegalArgumentException ex) {
-            return null;
-        }
     }
 }

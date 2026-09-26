@@ -6,7 +6,6 @@ import org.jetbrains.annotations.Nullable;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Propagation;
 import org.springframework.transaction.annotation.Transactional;
-import org.vstu.compprehension.businesslogic.auth.AuthObjects.SystemPermission;
 import org.vstu.compprehension.enums.AttemptStatus;
 import org.vstu.compprehension.enums.Decision;
 import org.vstu.compprehension.enums.Language;
@@ -16,30 +15,23 @@ import org.vstu.compprehension.data.exerciseattempt.AttemptOwnerData;
 import org.vstu.compprehension.data.exerciseattempt.AttemptSummaryData;
 import org.vstu.compprehension.data.question.ExerciseAttemptContextData;
 import org.vstu.compprehension.data.question.QuestionAttemptContextData;
+import org.vstu.compprehension.data.outbox.AttemptFinishedEvent;
 import org.vstu.compprehension.repositories.data.ExerciseAttemptDataRepository;
 
+import java.time.Instant;
 import java.util.Optional;
 
 @Service
 class ExerciseAttemptDataServiceImpl implements ExerciseAttemptDataService {
     private final LtiContextProvider ltiContextProvider;
-    private final GradePassbackService gradePassbackService;
-    private final CourseDataService courseService;
-    private final AuthService authService;
-    private final AuthScopeFactory authScopes;
+    private final OutboxDataService outboxDataService;
     private final ExerciseAttemptDataRepository exerciseAttemptDataRepository;
 
     public ExerciseAttemptDataServiceImpl(LtiContextProvider ltiContextProvider,
-                                          GradePassbackService gradePassbackService,
-                                          CourseDataService courseService,
-                                          AuthService authService,
-                                          AuthScopeFactory authScopes,
+                                          OutboxDataService outboxDataService,
                                           ExerciseAttemptDataRepository exerciseAttemptDataRepository) {
         this.ltiContextProvider = ltiContextProvider;
-        this.gradePassbackService = gradePassbackService;
-        this.courseService = courseService;
-        this.authService = authService;
-        this.authScopes = authScopes;
+        this.outboxDataService = outboxDataService;
         this.exerciseAttemptDataRepository = exerciseAttemptDataRepository;
     }
 
@@ -91,29 +83,13 @@ class ExerciseAttemptDataServiceImpl implements ExerciseAttemptDataService {
     }
 
     @Transactional(readOnly = true)
-    public void ensureCanAccessAttempt(long userId, long attemptId) {
-        AttemptOwnerData owner = exerciseAttemptDataRepository.findOwnerByAttemptId(attemptId)
-                .orElseThrow(() -> new IllegalArgumentException("No attempt with id " + attemptId));
-        ensureOwnerOrPrivileged(userId, owner, attemptId);
+    public Optional<AttemptOwnerData> findOwnerByAttemptId(long attemptId) {
+        return exerciseAttemptDataRepository.findOwnerByAttemptId(attemptId);
     }
 
     @Transactional(readOnly = true)
-    public void ensureCanAccessQuestion(long userId, long questionId) {
-        AttemptOwnerData owner = exerciseAttemptDataRepository.findOwnerByQuestionId(questionId)
-                .orElse(null);
-        ensureOwnerOrPrivileged(userId, owner, questionId);
-    }
-
-    private void ensureOwnerOrPrivileged(long userId, @Nullable AttemptOwnerData owner, long targetId) {
-        if (owner != null && owner.userId() != null && owner.userId() == userId) {
-            authService.ensureAuthorized(userId, SystemPermission.SOLVE_EXERCISE, authScopes.courseOrGlobal(owner.courseId()));
-            return;
-        }
-        if (authService.isAuthorized(userId, SystemPermission.EDIT_EXERCISE, authScopes.courseOrGlobal(owner != null ? owner.courseId() : null))) {
-            return;
-        }
-        throw new SecurityException(String.format(
-                "User %s is not allowed to access attempt data %s", userId, targetId));
+    public Optional<AttemptOwnerData> findOwnerByQuestionId(long questionId) {
+        return exerciseAttemptDataRepository.findOwnerByQuestionId(questionId);
     }
 
     @Transactional(readOnly = true)
@@ -131,9 +107,6 @@ class ExerciseAttemptDataServiceImpl implements ExerciseAttemptDataService {
     @Transactional(propagation = Propagation.REQUIRED)
     public @NotNull AttemptSummaryData createNewAttempt(long exerciseId, long userId,
                                                         @Nullable Long courseId) {
-        if (courseId != null) {
-            courseService.ensureExerciseInCourse(exerciseId, courseId);
-        }
         var lti = ltiContextProvider.getCurrentLtiContext().orElse(null);
         return exerciseAttemptDataRepository.create(
                 exerciseId, userId, courseId,
@@ -149,6 +122,7 @@ class ExerciseAttemptDataServiceImpl implements ExerciseAttemptDataService {
         if (!exerciseAttemptDataRepository.finishIfIncomplete(attemptId)) {
             return;
         }
-        gradePassbackService.passGrade(attemptId, exerciseAttemptDataRepository.getFinalGrade(attemptId));
+        outboxDataService.publish(new AttemptFinishedEvent(
+                attemptId, exerciseAttemptDataRepository.getFinalGrade(attemptId), Instant.now()));
     }
 }

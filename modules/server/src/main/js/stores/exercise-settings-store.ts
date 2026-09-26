@@ -229,6 +229,23 @@ export class ExerciseSettingsStore {
         this.exercisesLoadStatus = 'LOADED';
     }
 
+    /** After an exercise was imported into the course elsewhere: refresh the list and open the imported card. */
+    async loadImportedExercise(exerciseId: number) {
+        if (this.exercisesLoadStatus !== 'LOADED')
+            throw new Error("Exercises must be loaded first");
+
+        this.exercisesLoadStatus = 'EXERCISELOADING';
+        const [rawExercise, newExercisesList] = await Promise.all([
+            exerciseSettingsController.getExercise(exerciseId, this.courseId),
+            exerciseSettingsController.listExercises(this.courseId),
+        ]);
+        if (E.isRight(rawExercise) && E.isRight(newExercisesList)) {
+            this.currentCard = this.toCardViewModel(rawExercise.right);
+            this.applyExerciseList(newExercisesList.right);
+        }
+        this.exercisesLoadStatus = 'LOADED';
+    }
+
     async cloneCurrentToCourse(targetCourseId: number) {
         if (!this.currentCard) return;
         const result = await exerciseSettingsController.cloneExercise(this.currentCard.id, targetCourseId);
