@@ -4,6 +4,7 @@ import jakarta.persistence.*;
 import lombok.Data;
 import lombok.NoArgsConstructor;
 import lombok.ToString;
+import org.jetbrains.annotations.Nullable;
 import org.vstu.compprehension.enums.Language;
 
 import java.util.List;
@@ -11,9 +12,7 @@ import java.util.List;
 @Entity
 @Data
 @NoArgsConstructor
-@Table(name = "user", indexes = {
-    @Index(columnList = "external_id", name = "external_id_hidx"),
-})
+@Table(name = "user")
 public class UserEntity {
     @Id
     @GeneratedValue(strategy = GenerationType.IDENTITY)
@@ -25,15 +24,11 @@ public class UserEntity {
     @Column(name = "email", nullable = false)
     private String email;
 
-    @Column(name = "external_id")
-    private String externalId;
+    @Column(name = "idp_issuer")
+    private @Nullable String idpIssuer;
 
-    /**
-     * Идентификатор пользователя во внешней LMS (например Moodle {@code sub} из LTI JWT).
-     * Используется для grade passback как получатель оценки.
-     */
-    @Column(name = "external_user_id")
-    private String externalUserId;
+    @Column(name = "idp_subject")
+    private @Nullable String idpSubject;
 
     @Column(name = "preferred_language", nullable = false)
     @Enumerated(EnumType.ORDINAL)

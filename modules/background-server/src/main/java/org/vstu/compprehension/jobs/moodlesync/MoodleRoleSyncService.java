@@ -8,7 +8,7 @@ import org.vstu.compprehension.common.BatchingIterator;
 import org.vstu.compprehension.enums.EducationResourceType;
 import org.vstu.compprehension.enums.EducationResourceTrustStatus;
 import org.vstu.compprehension.data.cource.EducationResourceData;
-import org.vstu.compprehension.data.user.ExternalAccountData;
+import org.vstu.compprehension.data.user.EducationResourceUserData;
 import org.vstu.compprehension.data.cource.ExternalCourseData;
 import org.vstu.compprehension.repositories.data.CourseDataRepository;
 import org.vstu.compprehension.repositories.data.ExternalSystemDataRepository;
@@ -91,7 +91,7 @@ public class MoodleRoleSyncService {
     void syncRolesInEnvironment(EducationResourceData env) {
         log.info("Moodle role sync: starting for {}", env.url());
 
-        List<ExternalAccountData> accounts = externalSystems.findExternalAccounts(env.id());
+        List<EducationResourceUserData> accounts = externalSystems.findEducationResourceUsers(env.id());
         if (accounts.isEmpty()) {
             log.info("Moodle role sync: no external accounts for {}, skipping", env.url());
             return;
@@ -246,14 +246,14 @@ public class MoodleRoleSyncService {
     private record CoursePartition(List<ExternalCourseData> live, List<ExternalCourseData> detached) {
     }
 
-    private Map<Long, Long> buildUserIdByMoodleIdMap(List<ExternalAccountData> accounts) {
+    private Map<Long, Long> buildUserIdByMoodleIdMap(List<EducationResourceUserData> accounts) {
         Map<Long, Long> result = new HashMap<>();
         for (var account : accounts) {
             Long moodleId;
             try {
                 moodleId = Long.parseLong(account.externalId());
             } catch (NumberFormatException ignore) {
-                log.warn("ExternalAccount externalId is not numeric: {} - skip", account.externalId());
+                log.warn("EducationResourceUser externalId is not numeric: {} - skip", account.externalId());
                 continue;
             }
             result.put(moodleId, account.userId());

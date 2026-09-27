@@ -1,0 +1,104 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<databaseChangeLog xmlns="http://www.liquibase.org/xml/ns/dbchangelog"
+                   xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance"
+                   xsi:schemaLocation="http://www.liquibase.org/xml/ns/dbchangelog
+                       http://www.liquibase.org/xml/ns/dbchangelog/dbchangelog-4.5.xsd">
+
+    <changeSet id="2026-09-27-02-education-resource-user" author="Artem Prokudin">
+        <sql>
+            rename table external_account to education_resource_user;
+
+            alter table education_resource_user
+                drop foreign key fk_external_account_user,
+                drop foreign key fk_external_account_education_resource;
+
+            alter table education_resource_user
+                drop index fk_external_account_education_resource,
+                add column full_name varchar(255) null,
+                add column email     varchar(255) null,
+                add unique key ux_education_resource_user_external_id (education_resource_id, external_id),
+                add constraint fk_education_resource_user_user
+                    foreign key (user_id) references user (id),
+                add constraint fk_education_resource_user_education_resource
+                    foreign key (education_resource_id) references education_resource (id);
+        </sql>
+        <rollback>
+            <sql>
+                alter table education_resource_user
+                    drop foreign key fk_education_resource_user_user,
+                    drop foreign key fk_education_resource_user_education_resource;
+
+                alter table education_resource_user
+                    add key fk_external_account_education_resource (education_resource_id),
+                    drop index ux_education_resource_user_external_id,
+                    drop column full_name,
+                    drop column email,
+                    add constraint fk_external_account_user
+                        foreign key (user_id) references user (id),
+                    add constraint fk_external_account_education_resource
+                        foreign key (education_resource_id) references education_resource (id);
+
+                rename table education_resource_user to external_account;
+            </sql>
+        </rollback>
+    </changeSet>
+
+    <!-- До этой миграции user.external_id хранил issuer + '_' + sub последнего входа;
+         issuer провайдера входа на сайт вида https://host/realms/realm. -->
+    <changeSet id="2026-09-27-02-user-idp-identity" author="Artem Prokudin">
+        <sql>
+            alter table user
+                add column idp_issuer  varchar(255) null,
+                add column idp_subject varchar(255) null,
+                add unique key ux_user_idp_identity (idp_issuer, idp_subject);
+
+            update user
+            set idp_subject = substring_index(external_id, '_', -1),
+                idp_issuer  = substring(external_id, 1,
+                                        char_length(external_id) - char_length(substring_index(external_id, '_', -1)) - 1)
+            where external_id like '%/realms/%';
+        </sql>
+        <rollback>
+            <sql>
+                alter table user
+                    drop index ux_user_idp_identity,
+                    drop column idp_issuer,
+                    drop column idp_subject;
+            </sql>
+        </rollback>
+    </changeSet>
+
+    <changeSet id="2026-09-27-02-education-resource-user-from-last-lti-launch" author="Artem Prokudin">
+        <sql>
+            insert ignore into education_resource_user (user_id, education_resource_id, external_id, full_name, email)
+            select u.id, er.id, substring(u.external_id, char_length(er.url) + 2), u.first_name, u.email
+            from user u
+            join education_resource er on u.external_id like concat(er.url, '\_%');
+        </sql>
+        <rollback/>
+    </changeSet>
+
+    <changeSet id="2026-09-27-02-drop-user-external-ids" author="Artem Prokudin">
+        <sql>
+            alter table user
+                drop index external_id_hidx,
+                drop column external_id,
+                drop column external_user_id;
+        </sql>
+        <rollback>
+            <sql>
+                alter table user
+                    add column external_id      varchar(255) null,
+                    add column external_user_id varchar(255) null,
+                    add index external_id_hidx (external_id);
+
+                update user u
+                join education_resource_user eru on eru.user_id = u.id
+                join education_resource er       on er.id = eru.education_resource_id
+                set u.external_id      = concat(er.url, '_', eru.external_id),
+                    u.external_user_id = eru.external_id;
+            </sql>
+        </rollback>
+    </changeSet>
+
+</databaseChangeLog>

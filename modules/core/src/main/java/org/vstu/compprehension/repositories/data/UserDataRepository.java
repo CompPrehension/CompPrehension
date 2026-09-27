@@ -7,8 +7,12 @@ import org.springframework.transaction.annotation.Transactional;
 import org.vstu.compprehension.data.user.UserAccountData;
 import org.vstu.compprehension.data.user.UserAccountUpdateData;
 import org.vstu.compprehension.entities.UserEntity;
+import org.vstu.compprehension.entities.external_system.EducationResourceUserEntity;
 import org.vstu.compprehension.enums.Language;
 import org.vstu.compprehension.mappers.Mapper;
+import org.vstu.compprehension.mappers.UpdateMapper;
+import org.vstu.compprehension.repositories.entity.EducationResourceRepository;
+import org.vstu.compprehension.repositories.entity.EducationResourceUserRepository;
 import org.vstu.compprehension.repositories.entity.UserRepository;
 
 import java.util.List;
@@ -20,7 +24,11 @@ import java.util.Optional;
 public class UserDataRepository {
 
     private final UserRepository userRepository;
+    private final EducationResourceRepository educationResourceRepository;
+    private final EducationResourceUserRepository educationResourceUserRepository;
     private final Mapper<UserEntity, UserAccountData> userAccountMapper;
+    private final UpdateMapper<UserAccountUpdateData, UserEntity> userProfileMapper;
+    private final UpdateMapper<UserAccountUpdateData, EducationResourceUserEntity> educationResourceUserProfileMapper;
 
     @Transactional(readOnly = true)
     public @NotNull List<Long> findAllIds() {
@@ -35,26 +43,62 @@ public class UserDataRepository {
     }
 
     @Transactional(readOnly = true)
-    public @NotNull Optional<UserAccountData> findByEmail(@NotNull String email) {
-        return userRepository.findFirstByEmailOrderByIdAsc(email).map(userAccountMapper::map);
+    public @NotNull Optional<UserAccountData> findByIdpIdentity(@NotNull String issuer, @NotNull String subject) {
+        return userRepository.findByIdpIssuerAndIdpSubject(issuer, subject).map(userAccountMapper::map);
+    }
+
+    @Transactional(readOnly = true)
+    public @NotNull Optional<UserAccountData> findByEducationResourceUser(long educationResourceId,
+                                                                         @NotNull String externalId) {
+        return userRepository.findByEducationResourceUser(educationResourceId, externalId).map(userAccountMapper::map);
     }
 
     @Transactional
-    public @NotNull UserAccountData save(@NotNull UserAccountUpdateData update) {
-        var entity = userRepository.findFirstByEmailOrderByIdAsc(update.email())
-                .orElseGet(UserEntity::new);
-        entity.setEmail(update.email());
-        entity.setFirstName(update.fullName());
-        entity.setPreferred_language(update.language());
-        entity.setExternalId(update.externalId());
-        entity.setExternalUserId(update.externalUserId());
+    public @NotNull UserAccountData createIdpUser(@NotNull String issuer, @NotNull String subject,
+                                                 @NotNull UserAccountUpdateData profile) {
+        var entity = new UserEntity();
+        entity.setIdpIssuer(issuer);
+        entity.setIdpSubject(subject);
+        userProfileMapper.apply(profile, entity);
+        return userAccountMapper.map(userRepository.save(entity));
+    }
+
+    @Transactional
+    public @NotNull UserAccountData createEducationResourceUser(long educationResourceId, @NotNull String externalId,
+                                                               @NotNull UserAccountUpdateData profile) {
+        var user = new UserEntity();
+        userProfileMapper.apply(profile, user);
+        userRepository.save(user);
+
+        var educationResourceUser = new EducationResourceUserEntity(
+                user, educationResourceRepository.getReferenceById(educationResourceId), externalId);
+        educationResourceUserProfileMapper.apply(profile, educationResourceUser);
+        educationResourceUserRepository.save(educationResourceUser);
+        return userAccountMapper.map(user);
+    }
+
+    @Transactional
+    public @NotNull UserAccountData updateProfile(long userId, @NotNull UserAccountUpdateData profile) {
+        var entity = userRepository.findById(userId)
+                .orElseThrow(() -> new NoSuchElementException("User " + userId + " not found"));
+        userProfileMapper.apply(profile, entity);
         return userAccountMapper.map(userRepository.saveAndFlush(entity));
     }
 
     @Transactional
-    public void setLanguage(@NotNull String email, @NotNull Language language) {
-        var entity = userRepository.findFirstByEmailOrderByIdAsc(email)
-                .orElseThrow(() -> new NoSuchElementException("User " + email + " not found"));
+    public void updateEducationResourceUserProfile(long educationResourceId, @NotNull String externalId,
+                                                   @NotNull UserAccountUpdateData profile) {
+        if (educationResourceUserRepository.updateProfile(
+                educationResourceId, externalId, profile.fullName(), profile.email()) != 1) {
+            throw new NoSuchElementException(
+                    "User " + externalId + " of education resource " + educationResourceId + " not found");
+        }
+    }
+
+    @Transactional
+    public void setLanguage(long userId, @NotNull Language language) {
+        var entity = userRepository.findById(userId)
+                .orElseThrow(() -> new NoSuchElementException("User " + userId + " not found"));
         entity.setPreferred_language(language);
         userRepository.saveAndFlush(entity);
     }

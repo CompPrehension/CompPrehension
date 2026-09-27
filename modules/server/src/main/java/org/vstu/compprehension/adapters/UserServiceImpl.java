@@ -25,6 +25,7 @@ import org.vstu.compprehension.repositories.data.UserDataRepository;
 
 import java.util.Collection;
 import java.util.List;
+import java.util.NoSuchElementException;
 import java.util.Optional;
 import java.util.Set;
 import java.util.stream.Collectors;
@@ -37,7 +38,6 @@ public class UserServiceImpl implements UserDataService {
 
     private final UserDataRepository users;
     private final EducationResourceService educationResourceService;
-    private final ExternalAccountService externalAccountService;
     private final LtiContextProvider ltiContextProvider;
     private final CourseDataService courseService;
     private final RoleAssignmentService roleAssignmentService;
@@ -46,7 +46,6 @@ public class UserServiceImpl implements UserDataService {
     public UserServiceImpl(
             UserDataRepository users,
             EducationResourceService educationResourceService,
-            ExternalAccountService externalAccountService,
             LtiContextProvider ltiContextProvider,
             CourseDataService courseService,
             RoleAssignmentService roleAssignmentService,
@@ -54,7 +53,6 @@ public class UserServiceImpl implements UserDataService {
     ) {
         this.users = users;
         this.educationResourceService = educationResourceService;
-        this.externalAccountService = externalAccountService;
         this.ltiContextProvider = ltiContextProvider;
         this.courseService = courseService;
         this.roleAssignmentService = roleAssignmentService;
@@ -70,42 +68,57 @@ public class UserServiceImpl implements UserDataService {
     private UserAccountData signIn() throws Exception {
         Authentication authentication = SecurityContextHolder.getContext().getAuthentication();
         var parsedIdToken = getToken(authentication);
-        var externalId = getExternalId(authentication, parsedIdToken);
 
         var email = parsedIdToken.getEmail();
         if (email == null || email.isBlank()) {
             throw new Exception("id_token must contain non-empty email claim");
         }
 
-        boolean isLti = LTI_VERSION_1_3.equals(parsedIdToken.getClaimAsString(LTI_VERSION_CLAIM));
-        var existing = users.findByEmail(email).orElse(null);
-        boolean isNewUser = existing == null;
-
-        Language language = isLti
-                ? getLtiLanguage(parsedIdToken)
-                : (existing == null ? null : existing.language());
-        String externalUserId = isLti
-                ? parsedIdToken.getSubject()
-                : (existing == null ? null : existing.externalUserId());
-
-        var account = users.save(new UserAccountUpdateData(
-                email,
-                parsedIdToken.getFullName(),
-                Optional.ofNullable(language).orElse(Language.ENGLISH),
-                externalId,
-                externalUserId));
-
         Set<String> authorities = authentication.getAuthorities().stream()
                 .map(GrantedAuthority::getAuthority)
                 .filter(r -> !r.isEmpty())
                 .collect(Collectors.toSet());
 
-        if (isLti) {
-            applyLtiRoles(account.id(), parsedIdToken.getSubject(), authorities);
-        } else if (isNewUser) {
-            applyKeycloakRoles(account.id(), authorities);
+        return isLti(parsedIdToken)
+                ? signInFromLti(parsedIdToken, email, authorities)
+                : signInFromIdp(parsedIdToken, email, authorities);
+    }
+
+    private UserAccountData signInFromIdp(OidcIdToken token, String email, Set<String> idpRoles) {
+        var existing = users.findByIdpIdentity(getIssuer(token), token.getSubject());
+        if (existing.isPresent()) {
+            var account = existing.get();
+            return users.updateProfile(account.id(),
+                    new UserAccountUpdateData(email, token.getFullName(), account.language()));
         }
 
+        var account = users.createIdpUser(getIssuer(token), token.getSubject(),
+                new UserAccountUpdateData(email, token.getFullName(), Language.ENGLISH));
+        applyIdpRoles(account.id(), idpRoles);
+        return account;
+    }
+
+    private UserAccountData signInFromLti(OidcIdToken token, String email, Set<String> ltiRoles) {
+        LtiContext ctx = getLtiContext();
+        long eduResId = findTrustedEducationResourceId(ctx);
+        var profile = new UserAccountUpdateData(email, token.getFullName(),
+                Optional.ofNullable(getLtiLanguage(token)).orElse(Language.ENGLISH));
+
+        var externalId = token.getSubject();
+        if (externalId == null) {
+            throw new IllegalStateException("LTI token without required sub claim");
+        }
+
+        var existing = users.findByEducationResourceUser(eduResId, externalId);
+        UserAccountData account;
+        if (existing.isPresent()) {
+            users.updateEducationResourceUserProfile(eduResId, externalId, profile);
+            account = users.updateProfile(existing.get().id(), profile);
+        } else {
+            account = users.createEducationResourceUser(eduResId, externalId, profile);
+        }
+
+        applyLtiRoles(account.id(), eduResId, ctx, ltiRoles);
         return account;
     }
 
@@ -116,16 +129,18 @@ public class UserServiceImpl implements UserDataService {
                 .orElse(null);
     }
 
-    private void applyLtiRoles(long userId, String ltiSubject, Set<String> ltiRoles) {
-        LtiContext ctx = ltiContextProvider.getCurrentLtiContext().orElse(null);
-        if (ctx == null) return;
+    private LtiContext getLtiContext() {
+        return ltiContextProvider.getCurrentLtiContext()
+                .orElseThrow(() -> new IllegalStateException("LTI id_token without LTI launch context"));
+    }
 
-        long eduResId = educationResourceService.findTrustedIdByUrlAndType(ctx.lmsUrl(), ctx.lmsType())
+    private long findTrustedEducationResourceId(LtiContext ctx) {
+        return educationResourceService.findTrustedIdByUrlAndType(ctx.lmsUrl(), ctx.lmsType())
                 .orElseThrow(() -> new SecurityException(String.format("EducationResource %s is not trusted", ctx.lmsUrl())));
+    }
 
+    private void applyLtiRoles(long userId, long eduResId, LtiContext ctx, Set<String> ltiRoles) {
         // roleAssignmentService.assignGlobalRole(userId, SystemRole.STUDENT);
-
-        externalAccountService.createIfAbsent(userId, eduResId, ltiSubject);
 
         Role eduResRole = ltiRoles.contains("ROLE_Administrator") ? SystemRole.EDUCATION_RESOURCE_ADMIN : null;
         roleAssignmentService.reconcileRoleInEducationResource(userId, eduResId, eduResRole);
@@ -144,11 +159,11 @@ public class UserServiceImpl implements UserDataService {
         }
     }
 
-    private void applyKeycloakRoles(long userId, Set<String> keycloakRoles) {
+    private void applyIdpRoles(long userId, Set<String> idpRoles) {
         roleAssignmentService.assignGlobalRole(userId, SystemRole.STUDENT);
-        if (keycloakRoles.contains("ROLE_Administrator")) {
+        if (idpRoles.contains("ROLE_Administrator")) {
             roleAssignmentService.assignRootRole(userId, SystemRole.ADMIN);
-        } else if (keycloakRoles.contains("ROLE_Teacher")) {
+        } else if (idpRoles.contains("ROLE_Teacher")) {
             roleAssignmentService.assignGlobalRole(userId, SystemRole.GLOBAL_EXERCISE_AUTHOR);
         }
     }
@@ -169,12 +184,19 @@ public class UserServiceImpl implements UserDataService {
     @Override
     public void setLanguage(Language language) {
         Authentication authentication = SecurityContextHolder.getContext().getAuthentication();
-        var parsedIdToken = getToken(authentication);
-        var email = parsedIdToken.getEmail();
-        if (email == null || email.isBlank()) {
-            throw new Exception("id_token must contain non-empty email claim");
-        }
-        users.setLanguage(email, language);
+        var token = getToken(authentication);
+        var account = isLti(token)
+                ? users.findByEducationResourceUser(findTrustedEducationResourceId(getLtiContext()), token.getSubject())
+                : users.findByIdpIdentity(getIssuer(token), token.getSubject());
+        users.setLanguage(account.orElseThrow(() -> new NoSuchElementException("Signed-in user not found")).id(), language);
+    }
+
+    private static String getIssuer(OidcIdToken token) {
+        return token.getIssuer().toString();
+    }
+
+    private static boolean isLti(OidcIdToken token) {
+        return LTI_VERSION_1_3.equals(token.getClaimAsString(LTI_VERSION_CLAIM));
     }
 
     @NotNull
@@ -192,10 +214,5 @@ public class UserServiceImpl implements UserDataService {
             throw new Exception("No id_token found");
         }
         return parsedIdToken;
-    }
-
-    private static String getExternalId(Authentication authentication, OidcIdToken token) {
-        var principalName = authentication.getName();
-        return token.getIssuer() + "_" + principalName;
     }
 }

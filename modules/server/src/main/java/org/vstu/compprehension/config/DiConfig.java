@@ -92,12 +92,11 @@ public class DiConfig {
     @SessionScope
     UserDataService getUserService(@Autowired UserDataRepository userDataRepository,
                                    @Autowired EducationResourceService educationResourceService,
-                                   @Autowired ExternalAccountService externalAccountService,
                                    @Autowired LtiContextProvider ltiContextProvider,
                                    @Autowired CourseDataService courseService,
                                    @Autowired RoleAssignmentService roleAssignmentService,
                                    @Autowired Mapper<UserAccountData, UserData> currentUserMapper) {
-        return new CachedUserService(new UserServiceImpl(userDataRepository, educationResourceService, externalAccountService, ltiContextProvider, courseService, roleAssignmentService, currentUserMapper));
+        return new CachedUserService(new UserServiceImpl(userDataRepository, educationResourceService, ltiContextProvider, courseService, roleAssignmentService, currentUserMapper));
     }
 
     @Bean

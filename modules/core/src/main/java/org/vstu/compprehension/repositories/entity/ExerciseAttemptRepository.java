@@ -108,7 +108,7 @@ public interface ExerciseAttemptRepository extends JpaRepository<ExerciseAttempt
 
     @Query("""
             select a.id as attemptId, e.id as exerciseId,
-                   u.id as userId, u.externalUserId as externalUserId,
+                   u.id as userId, eru.externalId as externalUserId,
                    a.ltiLineitemUrl as ltiLineitemUrl,
                    c.id as courseId, c.externalCourseId as externalCourseId,
                    er.id as educationResourceId, er.type as educationResourceType,
@@ -118,6 +118,8 @@ public interface ExerciseAttemptRepository extends JpaRepository<ExerciseAttempt
             join a.exercise e
             left join a.course c
             left join c.educationResource er
+            left join EducationResourceUserEntity eru
+                   on eru.id.userId = u.id and eru.id.educationResourceId = er.id
             where a.id = :attemptId
             """)
     Optional<GradePassbackTargetRow> findGradePassbackTargetRow(@Param("attemptId") long attemptId);

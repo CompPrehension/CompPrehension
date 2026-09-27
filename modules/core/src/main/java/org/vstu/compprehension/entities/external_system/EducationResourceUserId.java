@@ -13,7 +13,7 @@ import java.io.Serializable;
 @NoArgsConstructor
 @AllArgsConstructor
 @EqualsAndHashCode
-public class ExternalAccountId implements Serializable {
+public class EducationResourceUserId implements Serializable {
     private Long userId;
     private Long educationResourceId;
 }
