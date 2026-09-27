@@ -1,5 +1,7 @@
 package org.vstu.compprehension.config;
 
+import org.jetbrains.annotations.NotNull;
+import org.jetbrains.annotations.Nullable;
 import org.springframework.context.annotation.Bean;
 import org.springframework.context.annotation.Configuration;
 import org.springframework.http.HttpStatus;
@@ -38,10 +40,14 @@ import static java.util.Collections.singletonList;
 @Configuration
 @EnableWebSecurity
 public class WebSecurityConfig {
-    private final KeycloakLogoutHandler keycloakLogoutHandler;
+    private static final String LOGOUT_RETURN_PARAMETER = "returnTo";
+    private static final String APP_PAGES_PREFIX = "/pages/";
+    private static final String DEFAULT_PAGE = "/pages/courses";
 
-    public WebSecurityConfig(KeycloakLogoutHandler keycloakLogoutHandler) {
-        this.keycloakLogoutHandler = keycloakLogoutHandler;
+    private final OidcLogoutHandler oidcLogoutHandler;
+
+    public WebSecurityConfig(OidcLogoutHandler oidcLogoutHandler) {
+        this.oidcLogoutHandler = oidcLogoutHandler;
     }
 
     @Bean
@@ -56,8 +62,9 @@ public class WebSecurityConfig {
                                 .oidcUserService(this.oidcUserService())
                         )
                 )
-                .logout((logout) -> logout.addLogoutHandler(keycloakLogoutHandler)
-                          .logoutSuccessUrl("/pages/courses")
+                .logout((logout) -> logout.addLogoutHandler(oidcLogoutHandler)
+                          .logoutSuccessHandler((request, response, authentication) ->
+                                  response.sendRedirect(resolvePageAfterLogout(request.getParameter(LOGOUT_RETURN_PARAMETER))))
                           .invalidateHttpSession(true)
                           .clearAuthentication(true)
                           .deleteCookies("JSESSIONID"));
@@ -66,6 +73,10 @@ public class WebSecurityConfig {
         // Required for LTI iframe embedding in Moodle
         http.headers(headers -> headers.frameOptions(HeadersConfigurer.FrameOptionsConfig::disable));
         return http.build();
+    }
+
+    private static @NotNull String resolvePageAfterLogout(@Nullable String requestedPage) {
+        return requestedPage != null && requestedPage.startsWith(APP_PAGES_PREFIX) ? requestedPage : DEFAULT_PAGE;
     }
 
     private AuthenticationEntryPoint getRestAuthenticationEntryPoint() {

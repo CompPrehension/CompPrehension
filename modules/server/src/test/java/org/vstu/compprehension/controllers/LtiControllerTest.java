@@ -450,6 +450,26 @@ class LtiControllerTest extends AbstractIntegrationTest {
         result.andExpect(status().isForbidden());
     }
 
+    // ---- выход ----
+
+    /** Пользователь, пришедший из LMS, может выйти: сессия закрывается, а LMS как провайдер входа не опрашивается. */
+    @Test
+    void logoutAfterLaunchEndsSession() throws Exception {
+        // Arrange.
+        TestLtiContextProvider.launchedFromCourse(TestData.Courses.MAIN_EXTERNAL_ID);
+        var login = startLogin(REGISTERED_ISSUER, REGISTERED_CLIENT_ID);
+        launchExerciseSettings(login, sign(validClaims(login.nonce()).build(), platformPrivateKey()))
+                .andExpect(status().is3xxRedirection());
+
+        // Act.
+        var result = mockMvc.perform(get("/logout").session(login.session()));
+
+        // Assert.
+        result.andExpect(status().is3xxRedirection())
+                .andExpect(redirectedUrl("/pages/courses"));
+        assertTrue(login.session().isInvalid());
+    }
+
     private record Login(MockHttpSession session, String redirectUrl, String state, String nonce) {
     }
 

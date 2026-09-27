@@ -44,6 +44,10 @@ instance.use(initReactI18next).init({
 			language_header: "Language",
 			signedin_as_header: "Signed in as",
 			logout_header: "Logout",
+			logoutModal_title: "Log out",
+			logoutModal_question: "Are you sure you want to log out?",
+			logoutModal_lmsWarning: "The trainer was opened from a learning management system. After logging out, this page will stop working. To log in again, go back to your course and reopen the trainer via its link.",
+			logoutModal_cancel: "Cancel",
 			nextCorrectAnswerBtn: "I'm confused, tell me the next correct step",
 			generateNextQuestion_nextQuestion: "Next question",
 			generateNextQuestion_warning: "Warning",
@@ -216,6 +220,10 @@ instance.use(initReactI18next).init({
 			language_header: "Язык",
 			signedin_as_header: "Пользователь",
 			logout_header: "Выйти",
+			logoutModal_title: "Выход из системы",
+			logoutModal_question: "Вы уверены, что хотите выйти?",
+			logoutModal_lmsWarning: "Тренажер был открыт из системы дистанционного обучения. После выхода эта страница перестанет работать. Для повторного входа вернитесь в курс и повторно откройте тренажер по ссылке.",
+			logoutModal_cancel: "Отмена",
 			nextCorrectAnswerBtn: "Я в замешательстве, подскажи следующий шаг",
 			generateNextQuestion_nextQuestion: "Следующий вопрос",
 			generateNextQuestion_warning: "Предупреждение",
@@ -388,6 +396,10 @@ instance.use(initReactI18next).init({
 			language_header: "Język",
 			signedin_as_header: "Zalogowany jako",
 			logout_header: "Wyloguj się",
+			logoutModal_title: "Wylogowanie",
+			logoutModal_question: "Czy na pewno chcesz się wylogować?",
+			logoutModal_lmsWarning: "Trenażer został otwarty z platformy e-learningowej. Po wylogowaniu ta strona przestanie działać. Aby zalogować się ponownie, wróć do kursu i ponownie otwórz trenażer za pomocą linku.",
+			logoutModal_cancel: "Anuluj",
 			nextCorrectAnswerBtn: "Nie wiem co robić dalej, podpowiedz mi następny poprawny krok",
 			generateNextQuestion_nextQuestion: "Następne pytanie",
 			generateNextQuestion_warning: "Ostrzeżenie",
@@ -3098,7 +3110,7 @@ var Pagination = observer(() => {
 //#endregion
 //#region src/main/js/components/common/header.tsx
 var Header = observer((props) => {
-	const { crumbs, pagination, languageHint, language, onLanguageClicked, userHint, user, onUserClicked, userHref, logoutLabel } = props;
+	const { crumbs, pagination, languageHint, language, onLanguageClicked, userHint, user, onUserClicked, userHref, logoutLabel, onLogoutClicked } = props;
 	return /* @__PURE__ */ (0, import_jsx_runtime.jsxs)(Navbar_default, {
 		className: "px-0 flex-wrap comp-ph-header",
 		children: [crumbs && crumbs.length > 0 && /* @__PURE__ */ (0, import_jsx_runtime.jsx)("div", {
@@ -3154,6 +3166,10 @@ var Header = observer((props) => {
 					className: "px-2",
 					children: /* @__PURE__ */ (0, import_jsx_runtime.jsx)("a", {
 						href: "/logout",
+						onClick: onLogoutClicked ? (e) => {
+							e.preventDefault();
+							onLogoutClicked();
+						} : void 0,
 						children: logoutLabel
 					})
 				})
@@ -4381,22 +4397,23 @@ var SiteHeader = observer(({ title, parent }) => {
 	const session = useSession();
 	const navigate = useNavigate();
 	const { t } = useTranslation();
+	const [isLogoutConfirmationShown, setLogoutConfirmationShown] = import_react.useState(false);
 	if (!user) return null;
 	const { isLtiMode } = user.permissions;
 	const onLanguageClicked = () => {
 		session.changeLanguage(user.language === "RU" ? "EN" : "RU");
 	};
-	const crumbs = [];
-	if (!isLtiMode) crumbs.push({
+	const crumbs = [{
 		label: t("courses_page_title"),
 		onClick: () => navigate("/pages/courses")
-	});
+	}];
 	if (parent) crumbs.push({
 		label: parent.label,
 		onClick: () => navigate(parent.to)
 	});
 	if (title) crumbs.push({ label: title });
-	return /* @__PURE__ */ (0, import_jsx_runtime.jsx)(Header, {
+	const hideLogoutConfirmation = () => setLogoutConfirmationShown(false);
+	return /* @__PURE__ */ (0, import_jsx_runtime.jsxs)(import_jsx_runtime.Fragment, { children: [/* @__PURE__ */ (0, import_jsx_runtime.jsx)(Header, {
 		crumbs,
 		languageHint: t("language_header"),
 		language: user.language,
@@ -4404,8 +4421,26 @@ var SiteHeader = observer(({ title, parent }) => {
 		userHint: t("signedin_as_header"),
 		user: user.displayName,
 		userHref: null,
-		logoutLabel: !isLtiMode ? t("logout_header") : null
-	});
+		logoutLabel: t("logout_header"),
+		onLogoutClicked: () => setLogoutConfirmationShown(true)
+	}), /* @__PURE__ */ (0, import_jsx_runtime.jsxs)(Modal, {
+		show: isLogoutConfirmationShown,
+		title: t("logoutModal_title"),
+		closeButton: true,
+		handleClose: hideLogoutConfirmation,
+		primaryBtnTitle: t("logout_header"),
+		primaryBtnVariant: "danger",
+		handlePrimaryBtnClicked: () => window.location.assign(`/logout?returnTo=${encodeURIComponent(window.location.pathname + window.location.search)}`),
+		secondaryBtnTitle: t("logoutModal_cancel"),
+		handleSecondaryBtnClicked: hideLogoutConfirmation,
+		children: [/* @__PURE__ */ (0, import_jsx_runtime.jsx)("p", {
+			className: isLtiMode ? void 0 : "mb-0",
+			children: t("logoutModal_question")
+		}), isLtiMode && /* @__PURE__ */ (0, import_jsx_runtime.jsx)("div", {
+			className: "alert alert-warning mb-0",
+			children: t("logoutModal_lmsWarning")
+		})]
+	})] });
 });
 //#endregion
 //#region src/main/js/components/common/page-layout.tsx
