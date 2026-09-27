@@ -95,15 +95,15 @@ public class AuthFrontendServiceImpl implements AuthFrontendService {
 
     @Override
     public @NotNull ExerciseCardPermissionsData getExerciseCardPermissions(long userId, @NotNull ExerciseData exercise, @Nullable Long courseId) {
-        var global = authService.getPermissions(userId, authScopeFactory.global());
-        var scoped = courseId == null ? global : authService.getPermissions(userId, authScopeFactory.course(courseId));
+        var scoped = authService.getPermissions(userId,
+                courseId == null ? authScopeFactory.global() : authScopeFactory.course(courseId));
         boolean inherited = exerciseService.isInheritedInCourse(exercise, courseId);
 
         return new ExerciseCardPermissionsData(
                 !inherited && scoped.contains(SystemPermission.EDIT_EXERCISE),
                 !inherited && scoped.contains(SystemPermission.DELETE_EXERCISE),
                 inherited && scoped.contains(SystemPermission.CREATE_EXERCISE),
-                !exercise.isPublic() && global.contains(SystemPermission.COPY_EXERCISE_TO_GLOBAL_POOL),
+                !exercise.isPublic() && authService.isAuthorized(userId, SystemCapability.COPY_EXERCISE_TO_GLOBAL_POOL),
                 inherited && scoped.contains(SystemPermission.LINK_POOL_EXERCISE_TO_COURSE)
         );
     }

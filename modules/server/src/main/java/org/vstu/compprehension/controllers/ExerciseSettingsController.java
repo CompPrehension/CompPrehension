@@ -76,7 +76,7 @@ public class ExerciseSettingsController {
                       @RequestParam(value = "courseId", required = false) Long courseId) {
         var userId = userService.getCurrentUserId();
         if (courseId == null) {
-            authService.ensureAuthorized(userId, SystemPermission.COPY_EXERCISE_TO_GLOBAL_POOL, authService.getGlobalScope());
+            authService.ensureAuthorized(userId, SystemCapability.COPY_EXERCISE_TO_GLOBAL_POOL);
         } else {
             authService.ensureAuthorized(userId, SystemPermission.CREATE_EXERCISE, authService.getCourseScope(courseId));
         }

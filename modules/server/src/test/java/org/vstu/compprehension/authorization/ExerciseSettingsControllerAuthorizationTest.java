@@ -509,7 +509,7 @@ class ExerciseSettingsControllerAuthorizationTest extends AbstractAuthorizationT
                 .andExpect(jsonPath("$.permissions.canDelete").value(true))
                 .andExpect(jsonPath("$.permissions.canCloneToCourse").value(false))
                 .andExpect(jsonPath("$.permissions.canUnlinkFromCourse").value(false))
-                .andExpect(jsonPath("$.permissions.canCopyToGlobalPool").value(false));
+                .andExpect(jsonPath("$.permissions.canCopyToGlobalPool").value(true));
     }
 
     /** Флаги карточки упражнения пула у автора пула. */
@@ -614,6 +614,40 @@ class ExerciseSettingsControllerAuthorizationTest extends AbstractAuthorizationT
 
         // Assert.
         result.andExpect(status().isOk());
+    }
+
+    /** Преподаватель курса выкладывает своё упражнение в пул, видит его там и подключает к курсу. */
+    @Test
+    void courseTeacherCopiesOwnExerciseToGlobalPoolAndLinksItToCourse() throws Exception {
+        // Arrange.
+        actingAs(TestData.Users.MAIN_COURSE_TEACHER_ID);
+
+        // Act.
+        var copyId = Long.parseLong(mockMvc.perform(post("/api/exercise/" + TestData.Exercises.MAIN_COURSE_ID + "/clone"))
+                .andExpect(status().isOk())
+                .andReturn().getResponse().getContentAsString());
+        var pool = mockMvc.perform(get("/api/exercise/list"));
+        var link = mockMvc.perform(post("/api/course/exercise/add")
+                .param("exerciseId", String.valueOf(copyId))
+                .param("courseId", String.valueOf(TestData.Courses.MAIN_ID)));
+
+        // Assert.
+        pool.andExpect(status().isOk())
+                .andExpect(jsonPath("$.exercises[?(@.id == " + copyId + ")]").exists());
+        link.andExpect(status().isOk());
+    }
+
+    /** Ассистент курса не пополняет пул. */
+    @Test
+    void cloneCourseExerciseToGlobalPoolForbiddenForCourseAssistant() throws Exception {
+        // Arrange.
+        actingAs(TestData.Users.MAIN_COURSE_ASSISTANT_ID);
+
+        // Act.
+        var result = mockMvc.perform(post("/api/exercise/" + TestData.Exercises.MAIN_COURSE_ID + "/clone"));
+
+        // Assert.
+        result.andExpect(status().isForbidden());
     }
 
     private ExerciseCardDto cardOf(long exerciseId) {
