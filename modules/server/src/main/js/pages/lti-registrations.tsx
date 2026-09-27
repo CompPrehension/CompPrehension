@@ -1,5 +1,5 @@
-import React, { useCallback, useEffect, useState } from 'react';
-import { Button, Form, InputGroup, Table } from 'react-bootstrap';
+import React, { useCallback, useEffect, useMemo, useState } from 'react';
+import { Badge, Button, Form, InputGroup, Table } from 'react-bootstrap';
 import { useTranslation } from 'react-i18next';
 import * as E from 'fp-ts/lib/Either';
 import { PageLayout } from '../components/common/page-layout';
@@ -8,7 +8,7 @@ import { LoadFailure } from '../components/common/errors';
 import { Modal } from '../components/common/modal';
 import { useCurrentUser } from '../hooks/session-context';
 import { ltiRegistrationController } from '../controllers';
-import { LtiRegistration, LtiRegistrationInvite } from '../controllers/lti/lti-registration-controller';
+import { ConfiguredLtiRegistration, LtiRegistration, LtiRegistrationInvite } from '../controllers/lti/lti-registration-controller';
 import { RequestError } from '../types/request-error';
 
 /** Admin page: connect an LMS by a one-time dynamic registration link and see the connected ones. */
@@ -20,6 +20,8 @@ export const LtiRegistrationsPage = () => {
     const [invite, setInvite] = useState<LtiRegistrationInvite | null>(null);
     const [inviteError, setInviteError] = useState<RequestError | null>(null);
     const [creatingInvite, setCreatingInvite] = useState(false);
+    const [configured, setConfigured] = useState<ConfiguredLtiRegistration[] | null>(null);
+    const [configuredError, setConfiguredError] = useState<RequestError | null>(null);
     const [registrationToDelete, setRegistrationToDelete] = useState<LtiRegistration | null>(null);
     const [deleteError, setDeleteError] = useState<RequestError | null>(null);
 
@@ -33,7 +35,21 @@ export const LtiRegistrationsPage = () => {
         }
     }, []);
 
+    const loadConfigured = useCallback(async () => {
+        setConfiguredError(null);
+        const res = await ltiRegistrationController.getConfiguredRegistrations();
+        if (E.isRight(res)) {
+            setConfigured(res.right);
+        } else {
+            setConfiguredError(res.left);
+        }
+    }, []);
+
+    // On launch the server looks the LMS up in its settings first: a link registration with the same issuer is unused.
+    const configuredIssuers = useMemo(() => new Set(configured?.map(c => c.issuer)), [configured]);
+
     useEffect(() => { loadRegistrations(); }, [loadRegistrations]);
+    useEffect(() => { loadConfigured(); }, [loadConfigured]);
 
     const createInvite = async () => {
         setCreatingInvite(true);
@@ -101,7 +117,14 @@ export const LtiRegistrationsPage = () => {
                     <tbody>
                         {registrations.map(r => (
                             <tr key={r.id}>
-                                <td>{r.lmsUrl}</td>
+                                <td>
+                                    {r.lmsUrl}
+                                    {configuredIssuers.has(r.issuer) && (
+                                        <Badge bg="warning" text="dark" className="ms-2" title={t('ltiRegistrations_overriddenHint')}>
+                                            {t('ltiRegistrations_overridden')}
+                                        </Badge>
+                                    )}
+                                </td>
                                 <td>{r.clientId}</td>
                                 <td>{new Date(r.createdAt).toLocaleString()}</td>
                                 <td className="text-end">
@@ -113,6 +136,33 @@ export const LtiRegistrationsPage = () => {
                         ))}
                     </tbody>
                 </Table>
+            )}
+            {configuredError && <LoadFailure error={configuredError} onRetry={loadConfigured} />}
+            {configured != null && configured.length > 0 && (
+                <>
+                    <h5 className="mt-4">{t('ltiRegistrations_configuredTitle')}</h5>
+                    <p className="text-muted">{t('ltiRegistrations_configuredHint')}</p>
+                    <Table size="sm" striped>
+                        <thead>
+                            <tr>
+                                <th>{t('ltiRegistrations_nameColumn')}</th>
+                                <th>{t('ltiRegistrations_lmsColumn')}</th>
+                                <th>Client ID</th>
+                                <th>{t('ltiRegistrations_platformKeyColumn')}</th>
+                            </tr>
+                        </thead>
+                        <tbody>
+                            {configured.map(r => (
+                                <tr key={r.name}>
+                                    <td>{r.name}</td>
+                                    <td>{r.issuer}</td>
+                                    <td>{r.clientId}</td>
+                                    <td>{r.platformJwksUrl ?? t('ltiRegistrations_platformKeyInSettings')}</td>
+                                </tr>
+                            ))}
+                        </tbody>
+                    </Table>
+                </>
             )}
             {registrationToDelete && (
                 <Modal show={true}

@@ -164,6 +164,13 @@ instance.use(initReactI18next).init({
 			ltiRegistrations_empty: "No LMS connected by registration link yet.",
 			ltiRegistrations_lmsColumn: "LMS",
 			ltiRegistrations_createdColumn: "Connected",
+			ltiRegistrations_configuredTitle: "Connected in server settings",
+			ltiRegistrations_configuredHint: "These connections are set by the server environment variables COMPPREHENSION_LTI_REGISTRATIONS_<NAME>_*: they are changed or removed only by editing the variables and restarting the server.",
+			ltiRegistrations_nameColumn: "Name",
+			ltiRegistrations_platformKeyColumn: "LMS key",
+			ltiRegistrations_platformKeyInSettings: "Public key in settings",
+			ltiRegistrations_overridden: "Overridden by server settings",
+			ltiRegistrations_overriddenHint: "The same LMS is connected in the server settings: the settings are used, this registration is not.",
 			ltiRegistrations_deleteBtn: "Delete",
 			ltiRegistrations_cancelBtn: "Cancel",
 			ltiRegistrations_deleteTitle: "Delete LMS registration",
@@ -329,6 +336,13 @@ instance.use(initReactI18next).init({
 			ltiRegistrations_empty: "По ссылке регистрации пока не подключено ни одной LMS.",
 			ltiRegistrations_lmsColumn: "LMS",
 			ltiRegistrations_createdColumn: "Подключена",
+			ltiRegistrations_configuredTitle: "Подключены в настройках сервера",
+			ltiRegistrations_configuredHint: "Эти подключения заданы переменными окружения сервера COMPPREHENSION_LTI_REGISTRATIONS_<ИМЯ>_*: изменить или удалить их можно только правкой переменных и перезапуском сервера.",
+			ltiRegistrations_nameColumn: "Имя",
+			ltiRegistrations_platformKeyColumn: "Ключ LMS",
+			ltiRegistrations_platformKeyInSettings: "Открытый ключ в настройках",
+			ltiRegistrations_overridden: "Перекрыта настройкой сервера",
+			ltiRegistrations_overriddenHint: "Эта же LMS подключена в настройках сервера: действует настройка, а эта регистрация не используется.",
 			ltiRegistrations_deleteBtn: "Удалить",
 			ltiRegistrations_cancelBtn: "Отмена",
 			ltiRegistrations_deleteTitle: "Удалить регистрацию LMS",
@@ -464,6 +478,13 @@ instance.use(initReactI18next).init({
 			ltiRegistrations_empty: "Żaden LMS nie został jeszcze podłączony linkiem rejestracyjnym.",
 			ltiRegistrations_lmsColumn: "LMS",
 			ltiRegistrations_createdColumn: "Podłączono",
+			ltiRegistrations_configuredTitle: "Podłączone w ustawieniach serwera",
+			ltiRegistrations_configuredHint: "Te połączenia są ustawione zmiennymi środowiskowymi serwera COMPPREHENSION_LTI_REGISTRATIONS_<NAZWA>_*: można je zmienić lub usunąć tylko edytując zmienne i restartując serwer.",
+			ltiRegistrations_nameColumn: "Nazwa",
+			ltiRegistrations_platformKeyColumn: "Klucz LMS",
+			ltiRegistrations_platformKeyInSettings: "Klucz publiczny w ustawieniach",
+			ltiRegistrations_overridden: "Zastąpiona ustawieniami serwera",
+			ltiRegistrations_overriddenHint: "Ten sam LMS jest podłączony w ustawieniach serwera: obowiązują ustawienia, a ta rejestracja nie jest używana.",
 			ltiRegistrations_deleteBtn: "Usuń",
 			ltiRegistrations_cancelBtn: "Anuluj",
 			ltiRegistrations_deleteTitle: "Usuń rejestrację LMS",
@@ -1516,6 +1537,12 @@ var TLtiRegistration = type({
 	clientId: string,
 	createdAt: string
 });
+var TConfiguredLtiRegistration = type({
+	name: string,
+	issuer: string,
+	clientId: string,
+	platformJwksUrl: union([string, nullType])
+});
 var TLtiRegistrationInvite = type({
 	token: string,
 	expiresAt: string
@@ -1524,6 +1551,10 @@ var LtiRegistrationController = class {
 	/** LMS connected by dynamic registration. */
 	getRegistrations() {
 		return ajaxGet(`/api/lti/registrations`, array(TLtiRegistration));
+	}
+	/** LMS connected in the server settings (environment variables); read-only here. */
+	getConfiguredRegistrations() {
+		return ajaxGet(`/api/lti/registrations/configured`, array(TConfiguredLtiRegistration));
 	}
 	/** One-time link for the LMS administrator ("Add LTI Advantage" in Moodle). */
 	createInvite() {
@@ -5673,6 +5704,8 @@ var LtiRegistrationsPage = () => {
 	const [invite, setInvite] = (0, import_react.useState)(null);
 	const [inviteError, setInviteError] = (0, import_react.useState)(null);
 	const [creatingInvite, setCreatingInvite] = (0, import_react.useState)(false);
+	const [configured, setConfigured] = (0, import_react.useState)(null);
+	const [configuredError, setConfiguredError] = (0, import_react.useState)(null);
 	const [registrationToDelete, setRegistrationToDelete] = (0, import_react.useState)(null);
 	const [deleteError, setDeleteError] = (0, import_react.useState)(null);
 	const loadRegistrations = (0, import_react.useCallback)(async () => {
@@ -5681,9 +5714,19 @@ var LtiRegistrationsPage = () => {
 		if (isRight(res)) setRegistrations(res.right);
 		else setLoadError(res.left);
 	}, []);
+	const loadConfigured = (0, import_react.useCallback)(async () => {
+		setConfiguredError(null);
+		const res = await ltiRegistrationController.getConfiguredRegistrations();
+		if (isRight(res)) setConfigured(res.right);
+		else setConfiguredError(res.left);
+	}, []);
+	const configuredIssuers = (0, import_react.useMemo)(() => new Set(configured?.map((c) => c.issuer)), [configured]);
 	(0, import_react.useEffect)(() => {
 		loadRegistrations();
 	}, [loadRegistrations]);
+	(0, import_react.useEffect)(() => {
+		loadConfigured();
+	}, [loadConfigured]);
 	const createInvite = async () => {
 		setCreatingInvite(true);
 		setInviteError(null);
@@ -5755,7 +5798,13 @@ var LtiRegistrationsPage = () => {
 					/* @__PURE__ */ (0, import_jsx_runtime.jsx)("th", { children: t("ltiRegistrations_createdColumn") }),
 					/* @__PURE__ */ (0, import_jsx_runtime.jsx)("th", {})
 				] }) }), /* @__PURE__ */ (0, import_jsx_runtime.jsx)("tbody", { children: registrations.map((r) => /* @__PURE__ */ (0, import_jsx_runtime.jsxs)("tr", { children: [
-					/* @__PURE__ */ (0, import_jsx_runtime.jsx)("td", { children: r.lmsUrl }),
+					/* @__PURE__ */ (0, import_jsx_runtime.jsxs)("td", { children: [r.lmsUrl, configuredIssuers.has(r.issuer) && /* @__PURE__ */ (0, import_jsx_runtime.jsx)(Badge, {
+						bg: "warning",
+						text: "dark",
+						className: "ms-2",
+						title: t("ltiRegistrations_overriddenHint"),
+						children: t("ltiRegistrations_overridden")
+					})] }),
 					/* @__PURE__ */ (0, import_jsx_runtime.jsx)("td", { children: r.clientId }),
 					/* @__PURE__ */ (0, import_jsx_runtime.jsx)("td", { children: new Date(r.createdAt).toLocaleString() }),
 					/* @__PURE__ */ (0, import_jsx_runtime.jsx)("td", {
@@ -5769,6 +5818,35 @@ var LtiRegistrationsPage = () => {
 					})
 				] }, r.id)) })]
 			}),
+			configuredError && /* @__PURE__ */ (0, import_jsx_runtime.jsx)(LoadFailure, {
+				error: configuredError,
+				onRetry: loadConfigured
+			}),
+			configured != null && configured.length > 0 && /* @__PURE__ */ (0, import_jsx_runtime.jsxs)(import_jsx_runtime.Fragment, { children: [
+				/* @__PURE__ */ (0, import_jsx_runtime.jsx)("h5", {
+					className: "mt-4",
+					children: t("ltiRegistrations_configuredTitle")
+				}),
+				/* @__PURE__ */ (0, import_jsx_runtime.jsx)("p", {
+					className: "text-muted",
+					children: t("ltiRegistrations_configuredHint")
+				}),
+				/* @__PURE__ */ (0, import_jsx_runtime.jsxs)(Table, {
+					size: "sm",
+					striped: true,
+					children: [/* @__PURE__ */ (0, import_jsx_runtime.jsx)("thead", { children: /* @__PURE__ */ (0, import_jsx_runtime.jsxs)("tr", { children: [
+						/* @__PURE__ */ (0, import_jsx_runtime.jsx)("th", { children: t("ltiRegistrations_nameColumn") }),
+						/* @__PURE__ */ (0, import_jsx_runtime.jsx)("th", { children: t("ltiRegistrations_lmsColumn") }),
+						/* @__PURE__ */ (0, import_jsx_runtime.jsx)("th", { children: "Client ID" }),
+						/* @__PURE__ */ (0, import_jsx_runtime.jsx)("th", { children: t("ltiRegistrations_platformKeyColumn") })
+					] }) }), /* @__PURE__ */ (0, import_jsx_runtime.jsx)("tbody", { children: configured.map((r) => /* @__PURE__ */ (0, import_jsx_runtime.jsxs)("tr", { children: [
+						/* @__PURE__ */ (0, import_jsx_runtime.jsx)("td", { children: r.name }),
+						/* @__PURE__ */ (0, import_jsx_runtime.jsx)("td", { children: r.issuer }),
+						/* @__PURE__ */ (0, import_jsx_runtime.jsx)("td", { children: r.clientId }),
+						/* @__PURE__ */ (0, import_jsx_runtime.jsx)("td", { children: r.platformJwksUrl ?? t("ltiRegistrations_platformKeyInSettings") })
+					] }, r.name)) })]
+				})
+			] }),
 			registrationToDelete && /* @__PURE__ */ (0, import_jsx_runtime.jsx)(Modal, {
 				show: true,
 				title: t("ltiRegistrations_deleteTitle"),

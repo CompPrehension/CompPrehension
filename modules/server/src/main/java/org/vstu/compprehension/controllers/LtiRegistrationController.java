@@ -2,6 +2,8 @@ package org.vstu.compprehension.controllers;
 
 import lombok.RequiredArgsConstructor;
 import lombok.extern.log4j.Log4j2;
+import org.jetbrains.annotations.NotNull;
+import org.jetbrains.annotations.Nullable;
 import org.springframework.http.HttpStatus;
 import org.springframework.http.MediaType;
 import org.springframework.http.ResponseEntity;
@@ -14,6 +16,7 @@ import org.springframework.web.bind.annotation.RequestParam;
 import org.springframework.web.bind.annotation.ResponseBody;
 import org.springframework.web.client.RestClientException;
 import org.springframework.web.util.HtmlUtils;
+import org.vstu.compprehension.config.LtiRegistrationsProperties;
 import org.vstu.compprehension.frontend.AuthFrontendService;
 import org.vstu.compprehension.frontend.LtiRegistrationFrontendService;
 import org.vstu.compprehension.frontend.UserFrontendService;
@@ -32,6 +35,11 @@ public class LtiRegistrationController {
     private final LtiRegistrationFrontendService ltiRegistrationService;
     private final UserFrontendService userService;
     private final AuthFrontendService authService;
+    private final LtiRegistrationsProperties ltiRegistrations;
+
+    public record ConfiguredLtiRegistrationResponse(@NotNull String name, @NotNull String issuer,
+                                                    @NotNull String clientId, @Nullable String platformJwksUrl) {
+    }
 
     /**
      * Ссылка динамической регистрации: её открывает LMS ("Add LTI Advantage" в Moodle), добавив адрес своих
@@ -62,6 +70,16 @@ public class LtiRegistrationController {
     public List<LtiRegistrationDto> getRegistrations() {
         authService.ensureCanRegisterLms(userService.getCurrentUserId());
         return ltiRegistrationService.getAll();
+    }
+
+    @GetMapping("api/lti/registrations/configured")
+    @ResponseBody
+    public List<ConfiguredLtiRegistrationResponse> getConfiguredRegistrations() {
+        authService.ensureCanRegisterLms(userService.getCurrentUserId());
+        return ltiRegistrations.getRegistrations().entrySet().stream()
+                .map(entry -> new ConfiguredLtiRegistrationResponse(entry.getKey(), entry.getValue().getIssuerUrl(),
+                        entry.getValue().getClientId(), entry.getValue().getPlatformJwksUrl()))
+                .toList();
     }
 
     @PostMapping("api/lti/registrations/invites")

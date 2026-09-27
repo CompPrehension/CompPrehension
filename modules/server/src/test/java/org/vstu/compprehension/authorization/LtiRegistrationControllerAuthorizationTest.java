@@ -10,7 +10,9 @@ import org.vstu.compprehension.services.LtiRegistrationDataService;
 
 import static org.hamcrest.Matchers.containsString;
 import static org.hamcrest.Matchers.matchesPattern;
+import static org.hamcrest.Matchers.not;
 import static org.hamcrest.Matchers.notNullValue;
+import static org.hamcrest.Matchers.nullValue;
 import static org.junit.jupiter.api.Assertions.assertEquals;
 import static org.junit.jupiter.api.Assertions.assertThrows;
 import static org.junit.jupiter.api.Assertions.assertTrue;
@@ -77,6 +79,39 @@ class LtiRegistrationControllerAuthorizationTest extends AbstractAuthorizationTe
 
         // Act.
         var result = mockMvc.perform(get("/api/lti/registrations"));
+
+        // Assert.
+        result.andExpect(status().isForbidden());
+    }
+
+    /** Админ видит LMS, подключённые в настройках сервера, но не их приватные ключи. */
+    @Test
+    void getConfiguredRegistrationsAllowedForAdmin() throws Exception {
+        // Arrange.
+        actingAs(TestData.Users.ADMIN_ID);
+
+        // Act.
+        var result = mockMvc.perform(get("/api/lti/registrations/configured"));
+
+        // Assert.
+        // Регистрация test задана в application-test.properties открытым ключом LMS, поэтому без JWKS.
+        result.andExpect(status().isOk())
+                .andExpect(jsonPath("$.length()").value(1))
+                .andExpect(jsonPath("$[0].name").value("test"))
+                .andExpect(jsonPath("$[0].issuer").value(TestData.EducationResources.URL))
+                .andExpect(jsonPath("$[0].clientId").value("test-client"))
+                .andExpect(jsonPath("$[0].platformJwksUrl").value(nullValue()))
+                .andExpect(content().string(not(containsString("private"))));
+    }
+
+    /** Преподавателю LMS из настроек сервера не видны. */
+    @Test
+    void getConfiguredRegistrationsForbiddenForTeacher() throws Exception {
+        // Arrange.
+        actingAs(TestData.Users.MAIN_COURSE_TEACHER_ID);
+
+        // Act.
+        var result = mockMvc.perform(get("/api/lti/registrations/configured"));
 
         // Assert.
         result.andExpect(status().isForbidden());
