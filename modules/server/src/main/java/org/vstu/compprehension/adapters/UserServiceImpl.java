@@ -135,8 +135,8 @@ public class UserServiceImpl implements UserDataService {
     }
 
     private long findTrustedEducationResourceId(LtiContext ctx) {
-        return educationResourceService.findTrustedIdByUrlAndType(ctx.lmsUrl(), ctx.lmsType())
-                .orElseThrow(() -> new SecurityException(String.format("EducationResource %s is not trusted", ctx.lmsUrl())));
+        educationResourceService.ensureTrusted(ctx.educationResourceId());
+        return ctx.educationResourceId();
     }
 
     private void applyLtiRoles(long userId, long eduResId, LtiContext ctx, Set<String> ltiRoles) {

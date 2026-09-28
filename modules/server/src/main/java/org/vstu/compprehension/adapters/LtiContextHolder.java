@@ -2,13 +2,12 @@ package org.vstu.compprehension.adapters;
 
 import org.springframework.stereotype.Component;
 import org.springframework.web.context.annotation.SessionScope;
-import org.vstu.compprehension.common.LmsUrlHelper;
 import org.vstu.compprehension.service.lti.LtiContextInitializer;
+import org.vstu.compprehension.service.lti.LtiPlatform;
 import org.vstu.compprehension.services.LtiContextProvider;
 import org.vstu.compprehension.businesslogic.lti.LtiContext;
 import org.vstu.compprehension.businesslogic.lti.LtiCourseContext;
 import org.vstu.compprehension.businesslogic.lti.LtiDeepLinkingContext;
-import org.vstu.compprehension.enums.EducationResourceType;
 
 import java.io.Serializable;
 import java.util.List;
@@ -21,7 +20,6 @@ public class LtiContextHolder implements LtiContextProvider, LtiContextInitializ
 
     private static final String LTI_CLAIM_CONTEXT       = "https://purl.imsglobal.org/spec/lti/claim/context";
     private static final String LTI_CLAIM_AGS           = "https://purl.imsglobal.org/spec/lti-ags/claim/endpoint";
-    private static final String LTI_CLAIM_TOOL_PLATFORM = "https://purl.imsglobal.org/spec/lti/claim/tool_platform";
     private static final String LTI_CLAIM_CUSTOM        = "https://purl.imsglobal.org/spec/lti/claim/custom";
     private static final String LTI_CLAIM_DEEP_LINKING  = "https://purl.imsglobal.org/spec/lti-dl/claim/deep_linking_settings";
     private static final String LTI_CLAIM_DEPLOYMENT_ID = "https://purl.imsglobal.org/spec/lti/claim/deployment_id";
@@ -40,20 +38,7 @@ public class LtiContextHolder implements LtiContextProvider, LtiContextInitializ
     }
 
     @Override
-    public void init(Map<String, Object> claims) {
-
-        String issuer = (String) claims.get("iss");
-        String lmsUrl = LmsUrlHelper.toCanonicalLmsUrl(issuer);
-
-        String lmsName = null;
-        EducationResourceType lmsType = EducationResourceType.UNKNOWN;
-        Map<?, ?> toolPlatform = (Map<?, ?>) claims.get(LTI_CLAIM_TOOL_PLATFORM);
-        if (toolPlatform != null) {
-            Object name = toolPlatform.get("name");
-            if (name != null) lmsName = String.valueOf(name);
-            Object familyCode = toolPlatform.get("product_family_code");
-            lmsType = EducationResourceType.fromString(familyCode != null ? String.valueOf(familyCode) : null);
-        }
+    public void init(Map<String, Object> claims, LtiPlatform platform) {
 
         LtiCourseContext course = null;
         Map<?, ?> ltiContext = (Map<?, ?>) claims.get(LTI_CLAIM_CONTEXT);
@@ -80,9 +65,10 @@ public class LtiContextHolder implements LtiContextProvider, LtiContextInitializ
             }
         }
 
-        this.context = new LtiContext(lineitemUrl, course, lmsUrl, lmsName, lmsType, exerciseId);
+        this.context = new LtiContext(lineitemUrl, platform.issuer(), platform.clientId(), platform.educationResourceId(),
+                course, exerciseId);
 
-        this.deepLinkingContext = parseDeepLinkingContext(claims, lmsUrl, agsEndpoint);
+        this.deepLinkingContext = parseDeepLinkingContext(claims, platform.issuer(), platform.clientId(), agsEndpoint);
     }
 
     @Override
@@ -91,7 +77,8 @@ public class LtiContextHolder implements LtiContextProvider, LtiContextInitializ
         this.deepLinkingContext = null;
     }
 
-    private static LtiDeepLinkingContext parseDeepLinkingContext(Map<String, Object> claims, String lmsUrl, Map<?, ?> agsEndpoint) {
+    private static LtiDeepLinkingContext parseDeepLinkingContext(Map<String, Object> claims, String issuer, String clientId,
+                                                                 Map<?, ?> agsEndpoint) {
         Map<?, ?> settings = (Map<?, ?>) claims.get(LTI_CLAIM_DEEP_LINKING);
         if (settings == null) {
             return null;
@@ -111,7 +98,7 @@ public class LtiContextHolder implements LtiContextProvider, LtiContextInitializ
             }
         }
 
-        return new LtiDeepLinkingContext(lmsUrl, deploymentId, deepLinkReturnUrl, data, lineitemsUrl, scopes);
+        return new LtiDeepLinkingContext(issuer, clientId, deploymentId, deepLinkReturnUrl, data, lineitemsUrl, scopes);
     }
 
     private static String asString(Object value) {

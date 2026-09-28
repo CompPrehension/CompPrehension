@@ -19,6 +19,7 @@ import org.vstu.compprehension.frontend.AuthFrontendService;
 import org.vstu.compprehension.infrastructure.AbstractIntegrationTest;
 import org.vstu.compprehension.infrastructure.TestData;
 import org.vstu.compprehension.mappers.Mapper;
+import org.vstu.compprehension.repositories.data.ExternalSystemDataRepository;
 import org.vstu.compprehension.repositories.data.UserDataRepository;
 import org.vstu.compprehension.services.CourseDataService;
 import org.vstu.compprehension.services.EducationResourceService;
@@ -40,6 +41,7 @@ class UserSignInTest extends AbstractIntegrationTest {
 
     @Autowired private UserDataRepository users;
     @Autowired private EducationResourceService educationResourceService;
+    @Autowired private ExternalSystemDataRepository externalSystems;
     @Autowired private LtiContextProvider ltiContextProvider;
     @Autowired private CourseDataService courseService;
     @Autowired private RoleAssignmentService roleAssignmentService;
@@ -64,10 +66,11 @@ class UserSignInTest extends AbstractIntegrationTest {
     @Test
     void sameEmailFromTwoLmsGivesTwoUsers() {
         // Arrange.
-        educationResourceService.getOrCreate(OTHER_LMS_URL, EducationResourceType.MOODLE, EducationResourceTrustStatus.TRUSTED);
+        var otherLms = externalSystems.createEducationResourceIfAbsent(
+                OTHER_LMS_URL, EducationResourceType.MOODLE, EducationResourceTrustStatus.TRUSTED);
         TestLtiContextProvider.launchedFromCourse(TestData.Courses.MAIN_EXTERNAL_ID);
         long fromMainLms = signInFromLti("7", "teacher@vstu.ru").id();
-        TestLtiContextProvider.launchedFromLms(OTHER_LMS_URL, "other-lms-course");
+        TestLtiContextProvider.launchedFromLms(otherLms.id(), "other-lms-course");
 
         // Act.
         long fromOtherLms = signInFromLti("7", "teacher@vstu.ru").id();

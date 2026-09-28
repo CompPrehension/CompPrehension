@@ -1,0 +1,98 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<databaseChangeLog xmlns="http://www.liquibase.org/xml/ns/dbchangelog"
+                   xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance"
+                   xsi:schemaLocation="http://www.liquibase.org/xml/ns/dbchangelog
+                       http://www.liquibase.org/xml/ns/dbchangelog/dbchangelog-4.5.xsd">
+
+    <changeSet id="2026-09-27-03-lti-registration-per-client" author="Artem Prokudin">
+        <sql>
+            alter table lti_registration
+                add key ix_lti_registration_education_resource (education_resource_id);
+
+            alter table lti_registration
+                drop index ux_lti_registration_education_resource,
+                drop index ux_lti_registration_issuer,
+                add unique key ux_lti_registration_issuer_client (issuer, client_id),
+                modify jwks_uri varchar(1024) null,
+                add column platform_public_key varchar(2048) null after jwks_uri,
+                add column method varchar(20) not null default 'LINK' after deployment_id;
+
+            alter table lti_registration
+                alter column method drop default;
+        </sql>
+        <rollback>
+            <sql>
+                alter table lti_registration
+                    drop column method,
+                    drop column platform_public_key,
+                    modify jwks_uri varchar(1024) not null,
+                    drop index ux_lti_registration_issuer_client,
+                    add unique key ux_lti_registration_issuer (issuer),
+                    add unique key ux_lti_registration_education_resource (education_resource_id);
+
+                alter table lti_registration
+                    drop index ix_lti_registration_education_resource;
+            </sql>
+        </rollback>
+    </changeSet>
+
+    <!-- До этой миграции у LMS была одна регистрация, а адрес колонки журнала Moodle начинается с её issuer. -->
+    <changeSet id="2026-09-27-03-exercise-attempt-lti-client" author="Artem Prokudin">
+        <sql>
+            alter table exercise_attempt
+                add column lti_issuer    varchar(512) null after lti_lineitem_url,
+                add column lti_client_id varchar(255) null after lti_issuer,
+                drop column lti_context_id;
+
+            update exercise_attempt a
+            join lti_registration r on a.lti_lineitem_url like concat(r.issuer, '/mod/lti/%')
+            set a.lti_issuer    = r.issuer,
+                a.lti_client_id = r.client_id;
+        </sql>
+        <rollback>
+            <sql>
+                alter table exercise_attempt
+                    add column lti_context_id varchar(255) null after lti_lineitem_url,
+                    drop column lti_client_id,
+                    drop column lti_issuer;
+            </sql>
+        </rollback>
+    </changeSet>
+
+    <!-- URL LMS в education_resource раньше обрезался до хоста; LMS из подкаталога получает свой путь. -->
+    <changeSet id="2026-09-27-03-education-resource-url-with-path" author="Artem Prokudin">
+        <sql>
+            update education_resource er
+            join lti_registration r on r.education_resource_id = er.id
+            set er.url = concat(lower(substring_index(r.issuer, '/', 3)),
+                                trim(trailing '/' from substring(r.issuer, char_length(substring_index(r.issuer, '/', 3)) + 1)));
+        </sql>
+        <rollback>
+            <sql>
+                update education_resource er
+                join lti_registration r on r.education_resource_id = er.id
+                set er.url = lower(substring_index(r.issuer, '/', 3));
+            </sql>
+        </rollback>
+    </changeSet>
+
+    <changeSet id="2026-09-27-03-lti-registration-description" author="Artem Prokudin">
+        <sql>
+            alter table lti_registration
+                add column description varchar(255) null after client_id;
+
+            alter table lti_registration_invite
+                add column description varchar(255) null after token_hash;
+        </sql>
+        <rollback>
+            <sql>
+                alter table lti_registration_invite
+                    drop column description;
+
+                alter table lti_registration
+                    drop column description;
+            </sql>
+        </rollback>
+    </changeSet>
+
+</databaseChangeLog>

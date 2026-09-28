@@ -10,6 +10,7 @@ import org.springframework.stereotype.Service;
 import org.springframework.web.client.RestTemplate;
 import org.jetbrains.annotations.NotNull;
 import org.vstu.compprehension.data.exerciseattempt.GradePassbackTargetData;
+import org.vstu.compprehension.service.lti.LtiRegistrationRegistry;
 import org.vstu.compprehension.service.lti.LtiTokenService;
 
 import java.net.URI;
@@ -29,10 +30,13 @@ public class LtiAgsGradePassbackStrategy implements GradePassbackStrategy {
 
     private final RestTemplate restTemplate;
     private final LtiTokenService tokenService;
+    private final LtiRegistrationRegistry ltiRegistrations;
 
-    public LtiAgsGradePassbackStrategy(RestTemplate restTemplate, LtiTokenService tokenService) {
+    public LtiAgsGradePassbackStrategy(RestTemplate restTemplate, LtiTokenService tokenService,
+                                       LtiRegistrationRegistry ltiRegistrations) {
         this.restTemplate = restTemplate;
         this.tokenService = tokenService;
+        this.ltiRegistrations = ltiRegistrations;
     }
 
     @Override
@@ -54,7 +58,11 @@ public class LtiAgsGradePassbackStrategy implements GradePassbackStrategy {
 
         String accessToken;
         try {
-            accessToken = tokenService.obtainAccessToken(moodleBaseUrl, SCORE_SCOPE);
+            var platform = target.ltiIssuer() != null && target.ltiClientId() != null
+                    ? ltiRegistrations.requireByIssuerAndClientId(target.ltiIssuer(), target.ltiClientId())
+                    : ltiRegistrations.findSingleByIssuer(moodleBaseUrl).orElseThrow(() -> new IllegalStateException(
+                            "The attempt does not name its LTI tool, and LMS " + moodleBaseUrl + " has no single one"));
+            accessToken = tokenService.obtainAccessToken(platform, SCORE_SCOPE);
         } catch (Exception ex) {
             throw new IllegalStateException(
                     "Could not obtain AGS access token from " + moodleBaseUrl + ": " + ex.getMessage(), ex);

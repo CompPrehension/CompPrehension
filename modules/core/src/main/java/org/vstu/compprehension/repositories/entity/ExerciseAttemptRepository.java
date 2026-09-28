@@ -99,6 +99,8 @@ public interface ExerciseAttemptRepository extends JpaRepository<ExerciseAttempt
         Long getUserId();
         String getExternalUserId();
         String getLtiLineitemUrl();
+        String getLtiIssuer();
+        String getLtiClientId();
         Long getCourseId();
         String getExternalCourseId();
         Long getEducationResourceId();
@@ -110,6 +112,7 @@ public interface ExerciseAttemptRepository extends JpaRepository<ExerciseAttempt
             select a.id as attemptId, e.id as exerciseId,
                    u.id as userId, eru.externalId as externalUserId,
                    a.ltiLineitemUrl as ltiLineitemUrl,
+                   a.ltiIssuer as ltiIssuer, a.ltiClientId as ltiClientId,
                    c.id as courseId, c.externalCourseId as externalCourseId,
                    er.id as educationResourceId, er.type as educationResourceType,
                    er.url as educationResourceUrl

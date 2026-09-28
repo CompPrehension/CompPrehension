@@ -18,13 +18,13 @@ import org.vstu.compprehension.enums.EducationResourceType;
 import org.vstu.compprehension.infrastructure.AbstractIntegrationTest;
 import org.vstu.compprehension.infrastructure.TestData;
 import org.vstu.compprehension.repositories.data.ExerciseAttemptDataRepository;
+import org.vstu.compprehension.repositories.data.ExternalSystemDataRepository;
 import org.vstu.compprehension.repositories.entity.EducationResourceRepository;
 import org.vstu.compprehension.repositories.entity.EducationResourceUserRepository;
 import org.vstu.compprehension.repositories.entity.ExerciseAttemptRepository;
 import org.vstu.compprehension.repositories.entity.OutboxEventRepository;
 import org.vstu.compprehension.repositories.entity.UserRepository;
 import org.vstu.compprehension.service.outbox.OutboxProcessor;
-import org.vstu.compprehension.services.EducationResourceService;
 import org.vstu.compprehension.services.ExerciseAttemptDataService;
 
 import java.time.Instant;
@@ -51,7 +51,7 @@ class GradePassbackEventHandlerTest extends AbstractIntegrationTest {
     @Autowired private UserRepository userRepository;
     @Autowired private EducationResourceRepository educationResourceRepository;
     @Autowired private EducationResourceUserRepository educationResourceUserRepository;
-    @Autowired private EducationResourceService educationResourceService;
+    @Autowired private ExternalSystemDataRepository externalSystems;
 
     private final List<Long> createdAttemptIds = new ArrayList<>();
 
@@ -177,7 +177,7 @@ class GradePassbackEventHandlerTest extends AbstractIntegrationTest {
     void gradeIsSentForStudentAccountInCourseLms() {
         // Arrange.
         var student = userRepository.getReferenceById(TestData.Users.MAIN_COURSE_STUDENT_ID);
-        var otherLms = educationResourceService.getOrCreate(
+        var otherLms = externalSystems.createEducationResourceIfAbsent(
                 "https://other-lms.test.local", EducationResourceType.MOODLE, EducationResourceTrustStatus.TRUSTED);
         educationResourceUserRepository.save(new EducationResourceUserEntity(
                 student, educationResourceRepository.getReferenceById(otherLms.id()), "other-lms-student"));
@@ -194,7 +194,7 @@ class GradePassbackEventHandlerTest extends AbstractIntegrationTest {
 
     private long createAttempt(long userId) {
         long attemptId = exerciseAttemptDataRepository.create(TestData.Exercises.MAIN_COURSE_ID,
-                userId, TestData.Courses.MAIN_ID, null, null).attemptId();
+                userId, TestData.Courses.MAIN_ID, null, null, null).attemptId();
         createdAttemptIds.add(attemptId);
         return attemptId;
     }

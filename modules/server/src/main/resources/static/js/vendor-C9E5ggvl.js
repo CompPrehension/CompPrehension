@@ -13,7 +13,7 @@ Object.freeze(EMPTY_ARRAY);
 var EMPTY_OBJECT = {};
 Object.freeze(EMPTY_OBJECT);
 var plainObjectString = /*#__PURE__*/ Object.toString();
-var noop$7 = () => {};
+var noop$8 = () => {};
 function isFunction$2(fn) {
 	return typeof fn === "function";
 }
@@ -169,10 +169,10 @@ var Atom = class {
 	}
 };
 var isAtom = /*#__PURE__*/ createInstanceofPredicate("Atom", Atom);
-function createAtom(name, onBecomeObservedHandler = noop$7, onBecomeUnobservedHandler = noop$7) {
+function createAtom(name, onBecomeObservedHandler = noop$8, onBecomeUnobservedHandler = noop$8) {
 	const atom = new Atom(name);
-	if (onBecomeObservedHandler !== noop$7) atom.onBOL = /* @__PURE__ */ new Set([onBecomeObservedHandler]);
-	if (onBecomeUnobservedHandler !== noop$7) atom.onBUOL = /* @__PURE__ */ new Set([onBecomeUnobservedHandler]);
+	if (onBecomeObservedHandler !== noop$8) atom.onBOL = /* @__PURE__ */ new Set([onBecomeObservedHandler]);
+	if (onBecomeUnobservedHandler !== noop$8) atom.onBUOL = /* @__PURE__ */ new Set([onBecomeUnobservedHandler]);
 	return atom;
 }
 var compareDefault = Object.is;
@@ -1590,7 +1590,7 @@ var flow$1 = /*#__PURE__*/ assign$1(function flow(arg1, arg2) {
 				if (pendingPromise) cancelPromise(pendingPromise);
 				const res = gen.return(void 0);
 				const yieldedPromise = Promise.resolve(res.value);
-				yieldedPromise.then(noop$7, noop$7);
+				yieldedPromise.then(noop$8, noop$8);
 				cancelPromise(yieldedPromise);
 				rejector(new FlowCancellationError());
 			} catch (e) {
@@ -15854,7 +15854,7 @@ var transformOptions = (options) => {
 	if (options.supportedLngs && !options.supportedLngs.includes("cimode")) options.supportedLngs = options.supportedLngs.concat(["cimode"]);
 	return options;
 };
-var noop$6 = () => {};
+var noop$7 = () => {};
 var bindMemberFunctions = (inst) => {
 	Object.getOwnPropertyNames(Object.getPrototypeOf(inst)).forEach((mem) => {
 		if (typeof inst[mem] === "function") inst[mem] = inst[mem].bind(inst);
@@ -15947,7 +15947,7 @@ var instance = class I18n extends EventEmitter {
 			});
 		}
 		this.format = this.options.interpolation.format;
-		if (!callback) callback = noop$6;
+		if (!callback) callback = noop$7;
 		if (this.options.fallbackLng && !this.services.languageDetector && !this.options.lng) {
 			const codes = this.services.languageUtils.getFallbackCodes(this.options.fallbackLng);
 			if (codes.length > 0 && codes[0] !== "dev") this.options.lng = codes[0];
@@ -15990,7 +15990,7 @@ var instance = class I18n extends EventEmitter {
 		else setTimeout(load, 0);
 		return deferred;
 	}
-	loadResources(language, callback = noop$6) {
+	loadResources(language, callback = noop$7) {
 		let usedCallback = callback;
 		const usedLng = isString$1(language) ? language : this.language;
 		if (typeof language === "function") usedCallback = language;
@@ -16026,7 +16026,7 @@ var instance = class I18n extends EventEmitter {
 		}
 		if (!lngs) lngs = this.languages;
 		if (!ns) ns = this.options.ns;
-		if (!callback) callback = noop$6;
+		if (!callback) callback = noop$7;
 		this.services.backendConnector.reload(lngs, ns, (err) => {
 			deferred.resolve();
 			callback(err);
@@ -16289,7 +16289,7 @@ var instance = class I18n extends EventEmitter {
 		instance.createInstance = I18n.createInstance;
 		return instance;
 	}
-	cloneInstance(options = {}, callback = noop$6) {
+	cloneInstance(options = {}, callback = noop$7) {
 		const forkResourceStore = options.forkResourceStore;
 		if (forkResourceStore) delete options.forkResourceStore;
 		const mergedOptions = {
@@ -16783,7 +16783,7 @@ function createBrowserHistory(options = {}) {
 	}
 	return getUrlBasedHistory(createBrowserLocation, createBrowserHref, null, options);
 }
-function invariant$4(value, message) {
+function invariant$5(value, message) {
 	if (value === false || value === null || typeof value === "undefined") throw new Error(message);
 }
 function warning$6(cond, message) {
@@ -16966,7 +16966,7 @@ function getUrlBasedHistory(getLocation, createHref, validateLocation, options =
 function createBrowserURLImpl(windowImpl, to, isAbsolute = false) {
 	let base = "http://localhost";
 	if (windowImpl) base = windowImpl.location.origin !== "null" ? windowImpl.location.origin : windowImpl.location.href;
-	invariant$4(base, "No window.location.(origin|href) available to create URL");
+	invariant$5(base, "No window.location.(origin|href) available to create URL");
 	let href = typeof to === "string" ? to : createPath(to);
 	href = href.replace(/ $/, "%20");
 	if (!isAbsolute && PROTOCOL_RELATIVE_URL_REGEX.test(href)) href = base + href;
@@ -17047,13 +17047,13 @@ function flattenRoutes(routes, branches = [], parentsMeta = [], parentPath = "",
 		};
 		if (meta.relativePath.startsWith("/")) {
 			if (!meta.relativePath.startsWith(parentPath) && hasParentOptionalSegments) return;
-			invariant$4(meta.relativePath.startsWith(parentPath), `Absolute route path "${meta.relativePath}" nested under path "${parentPath}" is not valid. An absolute child route path must start with the combined path of all its parent routes.`);
+			invariant$5(meta.relativePath.startsWith(parentPath), `Absolute route path "${meta.relativePath}" nested under path "${parentPath}" is not valid. An absolute child route path must start with the combined path of all its parent routes.`);
 			meta.relativePath = meta.relativePath.slice(parentPath.length);
 		}
 		let path = joinPaths([parentPath, meta.relativePath]);
 		let routesMeta = parentsMeta.concat(meta);
 		if (route.children && route.children.length > 0) {
-			invariant$4(route.index !== true, `Index routes must not have child routes. Please remove all child routes from route path "${path}".`);
+			invariant$5(route.index !== true, `Index routes must not have child routes. Please remove all child routes from route path "${path}".`);
 			flattenRoutes(route.children, branches, routesMeta, path, hasParentOptionalSegments);
 		}
 		if (route.path == null && !route.index) return;
@@ -17275,9 +17275,9 @@ function resolveTo(toArg, routePathnames, locationPathname, isPathRelative = fal
 	if (typeof toArg === "string") to = parsePath(toArg);
 	else {
 		to = { ...toArg };
-		invariant$4(!to.pathname || !to.pathname.includes("?"), getInvalidPathError("?", "pathname", "search", to));
-		invariant$4(!to.pathname || !to.pathname.includes("#"), getInvalidPathError("#", "pathname", "hash", to));
-		invariant$4(!to.search || !to.search.includes("#"), getInvalidPathError("#", "search", "hash", to));
+		invariant$5(!to.pathname || !to.pathname.includes("?"), getInvalidPathError("?", "pathname", "search", to));
+		invariant$5(!to.pathname || !to.pathname.includes("#"), getInvalidPathError("#", "pathname", "hash", to));
+		invariant$5(!to.search || !to.search.includes("#"), getInvalidPathError("#", "search", "hash", to));
 	}
 	let isEmptyPath = toArg === "" || to.pathname === "";
 	let toPathname = isEmptyPath ? "/" : to.pathname;
@@ -17571,7 +17571,7 @@ function decodeRouteErrorResponseDigest(digest) {
 * @returns The resolved href string
 */
 function useHref(to, { relative } = {}) {
-	invariant$4(useInRouterContext(), `useHref() may be used only in the context of a <Router> component.`);
+	invariant$5(useInRouterContext(), `useHref() may be used only in the context of a <Router> component.`);
 	let { basename, navigator } = import_react.useContext(NavigationContext);
 	let { hash, pathname, search } = useResolvedPath(to, { relative });
 	let joinedPathname = pathname;
@@ -17621,7 +17621,7 @@ function useInRouterContext() {
 * @returns The current {@link Location} object
 */
 function useLocation() {
-	invariant$4(useInRouterContext(), `useLocation() may be used only in the context of a <Router> component.`);
+	invariant$5(useInRouterContext(), `useLocation() may be used only in the context of a <Router> component.`);
 	return import_react.useContext(LocationContext).location;
 }
 var navigateEffectWarning = "You should call navigate() in a React.useEffect(), not when your component is first rendered.";
@@ -17780,7 +17780,7 @@ function useNavigate() {
 	return isDataRoute ? useNavigateStable() : useNavigateUnstable();
 }
 function useNavigateUnstable() {
-	invariant$4(useInRouterContext(), `useNavigate() may be used only in the context of a <Router> component.`);
+	invariant$5(useInRouterContext(), `useNavigate() may be used only in the context of a <Router> component.`);
 	let dataRouterContext = import_react.useContext(DataRouterContext);
 	let { basename, navigator } = import_react.useContext(NavigationContext);
 	let { matches } = import_react.useContext(RouteContext);
@@ -17884,7 +17884,7 @@ function useRoutes(routes, locationArg) {
 	return useRoutesImpl(routes, locationArg);
 }
 function useRoutesImpl(routes, locationArg, dataRouterOpts) {
-	invariant$4(useInRouterContext(), `useRoutes() may be used only in the context of a <Router> component.`);
+	invariant$5(useInRouterContext(), `useRoutes() may be used only in the context of a <Router> component.`);
 	let { navigator } = import_react.useContext(NavigationContext);
 	let { matches: parentMatches } = import_react.useContext(RouteContext);
 	let routeMatch = parentMatches[parentMatches.length - 1];
@@ -17896,7 +17896,7 @@ function useRoutesImpl(routes, locationArg, dataRouterOpts) {
 	let location;
 	if (locationArg) {
 		let parsedLocationArg = typeof locationArg === "string" ? parsePath(locationArg) : locationArg;
-		invariant$4(parentPathnameBase === "/" || parsedLocationArg.pathname?.startsWith(parentPathnameBase), `When overriding the location using \`<Routes location>\` or \`useRoutes(routes, location)\`, the location pathname must begin with the portion of the URL pathname that was matched by all parent routes. The current pathname base is "${parentPathnameBase}" but pathname "${parsedLocationArg.pathname}" was given in the \`location\` prop.`);
+		invariant$5(parentPathnameBase === "/" || parsedLocationArg.pathname?.startsWith(parentPathnameBase), `When overriding the location using \`<Routes location>\` or \`useRoutes(routes, location)\`, the location pathname must begin with the portion of the URL pathname that was matched by all parent routes. The current pathname base is "${parentPathnameBase}" but pathname "${parsedLocationArg.pathname}" was given in the \`location\` prop.`);
 		location = parsedLocationArg;
 	} else location = locationFromContext;
 	let pathname = location.pathname || "/";
@@ -18021,7 +18021,7 @@ function _renderMatches(matches, parentMatches = [], dataRouterOpts) {
 	let errors = dataRouterState?.errors;
 	if (errors != null) {
 		let errorIndex = renderedMatches.findIndex((m) => m.route.id && errors?.[m.route.id] !== void 0);
-		invariant$4(errorIndex >= 0, `Could not find a matching route for errors on route IDs: ${Object.keys(errors).join(",")}`);
+		invariant$5(errorIndex >= 0, `Could not find a matching route for errors on route IDs: ${Object.keys(errors).join(",")}`);
 		renderedMatches = renderedMatches.slice(0, Math.min(renderedMatches.length, errorIndex + 1));
 	}
 	let renderFallback = false;
@@ -18109,23 +18109,23 @@ function getDataRouterConsoleError$1(hookName) {
 }
 function useDataRouterContext$2(hookName) {
 	let ctx = import_react.useContext(DataRouterContext);
-	invariant$4(ctx, getDataRouterConsoleError$1(hookName));
+	invariant$5(ctx, getDataRouterConsoleError$1(hookName));
 	return ctx;
 }
 function useDataRouterState$1(hookName) {
 	let state = import_react.useContext(DataRouterStateContext);
-	invariant$4(state, getDataRouterConsoleError$1(hookName));
+	invariant$5(state, getDataRouterConsoleError$1(hookName));
 	return state;
 }
 function useRouteContext(hookName) {
 	let route = import_react.useContext(RouteContext);
-	invariant$4(route, getDataRouterConsoleError$1(hookName));
+	invariant$5(route, getDataRouterConsoleError$1(hookName));
 	return route;
 }
 function useCurrentRouteId(hookName) {
 	let route = useRouteContext(hookName);
 	let thisRoute = route.matches[route.matches.length - 1];
-	invariant$4(thisRoute.route.id, `${hookName} can only be used on routes that contain a unique "id"`);
+	invariant$5(thisRoute.route.id, `${hookName} can only be used on routes that contain a unique "id"`);
 	return thisRoute.route.id;
 }
 /**
@@ -18296,7 +18296,7 @@ function DataRoutes({ routes, manifest, future, state, isStatic, onError }) {
 *
 */
 function Navigate({ to, replace, state, relative }) {
-	invariant$4(useInRouterContext(), `<Navigate> may be used only in the context of a <Router> component.`);
+	invariant$5(useInRouterContext(), `<Navigate> may be used only in the context of a <Router> component.`);
 	let { static: isStatic, navigator } = import_react.useContext(NavigationContext);
 	warning$6(!isStatic, "<Navigate> must not be used on the initial render in a <StaticRouter>. This is a no-op, but you should modify your code so the <Navigate> is only ever rendered in response to some user interaction or state change.");
 	let { matches } = import_react.useContext(RouteContext);
@@ -18377,7 +18377,7 @@ function Navigate({ to, replace, state, relative }) {
 * @returns {void}
 */
 function Route(props) {
-	invariant$4(false, "A <Route> is only ever to be used as the child of <Routes> element, never rendered directly. Please wrap your <Route> in a <Routes>.");
+	invariant$5(false, "A <Route> is only ever to be used as the child of <Routes> element, never rendered directly. Please wrap your <Route> in a <Routes>.");
 }
 /**
 * Provides location context for the rest of the app.
@@ -18401,7 +18401,7 @@ function Route(props) {
 * not match the {@link props.basename}
 */
 function Router({ basename: basenameProp = "/", children = null, location: locationProp, navigationType = "POP", navigator, static: staticProp = false, useTransitions }) {
-	invariant$4(!useInRouterContext(), "You cannot render a <Router> inside another <Router>. You should never have more than one in your app.");
+	invariant$5(!useInRouterContext(), "You cannot render a <Router> inside another <Router>. You should never have more than one in your app.");
 	let basename = basenameProp.replace(/^\/*/, "/");
 	let navigationContext = import_react.useMemo(() => ({
 		basename,
@@ -18494,9 +18494,9 @@ function createRoutesFromChildren(children, parentPath = []) {
 			routes.push.apply(routes, createRoutesFromChildren(element.props.children, treePath));
 			return;
 		}
-		invariant$4(element.type === Route, `[${typeof element.type === "string" ? element.type : element.type.name}] is not a <Route> component. All component children of <Routes> must be a <Route> or <React.Fragment>`);
+		invariant$5(element.type === Route, `[${typeof element.type === "string" ? element.type : element.type.name}] is not a <Route> component. All component children of <Routes> must be a <Route> or <React.Fragment>`);
 		let props = element.props;
-		invariant$4(!props.index || !props.children, "An index route cannot have child routes.");
+		invariant$5(!props.index || !props.children, "An index route cannot have child routes.");
 		let route = {
 			id: props.id || treePath.join("-"),
 			caseSensitive: props.caseSensitive,
@@ -18673,7 +18673,7 @@ function getFormSubmissionInfo(target, basename) {
 *
 * @license MIT
 */
-function invariant$3(value, message) {
+function invariant$4(value, message) {
 	if (value === false || value === null || typeof value === "undefined") throw new Error(message);
 }
 //#endregion
@@ -18929,19 +18929,19 @@ function dedupeLinkDescriptors(descriptors, preloads) {
 */
 function useDataRouterContext$1() {
 	let context = import_react.useContext(DataRouterContext);
-	invariant$3(context, "You must render this element inside a <DataRouterContext.Provider> element");
+	invariant$4(context, "You must render this element inside a <DataRouterContext.Provider> element");
 	return context;
 }
 function useDataRouterStateContext() {
 	let context = import_react.useContext(DataRouterStateContext);
-	invariant$3(context, "You must render this element inside a <DataRouterStateContext.Provider> element");
+	invariant$4(context, "You must render this element inside a <DataRouterStateContext.Provider> element");
 	return context;
 }
 var FrameworkContext = import_react.createContext(void 0);
 FrameworkContext.displayName = "FrameworkContext";
 function useFrameworkContext() {
 	let context = import_react.useContext(FrameworkContext);
-	invariant$3(context, "You must render this element inside a <HydratedRouter> element");
+	invariant$4(context, "You must render this element inside a <HydratedRouter> element");
 	return context;
 }
 function usePrefetchBehavior(prefetch, theirElementProps) {
@@ -19594,12 +19594,12 @@ function getDataRouterConsoleError(hookName) {
 }
 function useDataRouterContext(hookName) {
 	let ctx = import_react.useContext(DataRouterContext);
-	invariant$4(ctx, getDataRouterConsoleError(hookName));
+	invariant$5(ctx, getDataRouterConsoleError(hookName));
 	return ctx;
 }
 function useDataRouterState(hookName) {
 	let state = import_react.useContext(DataRouterStateContext);
-	invariant$4(state, getDataRouterConsoleError(hookName));
+	invariant$5(state, getDataRouterConsoleError(hookName));
 	return state;
 }
 /**
@@ -19880,7 +19880,7 @@ function useSubmit() {
 function useFormAction(action, { relative } = {}) {
 	let { basename } = import_react.useContext(NavigationContext);
 	let routeContext = import_react.useContext(RouteContext);
-	invariant$4(routeContext, "useFormAction must be used inside a RouteContext");
+	invariant$5(routeContext, "useFormAction must be used inside a RouteContext");
 	let [match] = routeContext.matches.slice(-1);
 	let path = { ...useResolvedPath(action ? action : ".", { relative }) };
 	let location = useLocation();
@@ -20052,7 +20052,7 @@ function usePageShow(callback, options) {
 */
 function useViewTransitionState(to, { relative } = {}) {
 	let vtContext = import_react.useContext(ViewTransitionContext);
-	invariant$4(vtContext != null, "`useViewTransitionState` must be used within `react-router/dom`'s `RouterProvider`.  Did you accidentally import `RouterProvider` from `react-router`?");
+	invariant$5(vtContext != null, "`useViewTransitionState` must be used within `react-router/dom`'s `RouterProvider`.  Did you accidentally import `RouterProvider` from `react-router`?");
 	let { basename } = useDataRouterContext("useViewTransitionState");
 	let path = useResolvedPath(to, { relative });
 	if (!vtContext.isTransitioning) return false;
@@ -20465,7 +20465,9 @@ function _objectWithoutPropertiesLoose$10(r, e) {
 	}
 	return t;
 }
-(/* @__PURE__ */ __commonJSMin(((exports, module) => {
+//#endregion
+//#region node_modules/uncontrollable/lib/esm/utils.js
+var import_browser = /* @__PURE__ */ __toESM((/* @__PURE__ */ __commonJSMin(((exports, module) => {
 	/**
 	* Use invariant() to assert state which your program assumes to be true.
 	*
@@ -20500,7 +20502,7 @@ function _objectWithoutPropertiesLoose$10(r, e) {
 		}
 	};
 	module.exports = invariant;
-})))();
+})))());
 function defaultKey(key) {
 	return "default" + key.charAt(0).toUpperCase() + key.substr(1);
 }
@@ -21105,7 +21107,7 @@ var Transition = /*#__PURE__*/ function(_React$Component) {
 }(import_react.Component);
 Transition.contextType = TransitionGroupContext_default;
 Transition.propTypes = {};
-function noop$5() {}
+function noop$6() {}
 Transition.defaultProps = {
 	in: false,
 	mountOnEnter: false,
@@ -21113,12 +21115,12 @@ Transition.defaultProps = {
 	appear: false,
 	enter: true,
 	exit: true,
-	onEnter: noop$5,
-	onEntering: noop$5,
-	onEntered: noop$5,
-	onExit: noop$5,
-	onExiting: noop$5,
-	onExited: noop$5
+	onEnter: noop$6,
+	onEntering: noop$6,
+	onEntered: noop$6,
+	onExit: noop$6,
+	onExiting: noop$6,
+	onExited: noop$6
 };
 Transition.UNMOUNTED = UNMOUNTED;
 Transition.EXITED = EXITED;
@@ -21853,6 +21855,20 @@ var Button = /*#__PURE__*/ import_react.forwardRef(({ as, bsPrefix, variant = "p
 });
 Button.displayName = "Button";
 //#endregion
+//#region node_modules/react-bootstrap/esm/ButtonGroup.js
+var ButtonGroup = /*#__PURE__*/ import_react.forwardRef(({ bsPrefix, size, vertical = false, className, role = "group", as: Component = "div", ...rest }, ref) => {
+	const prefix = useBootstrapPrefix(bsPrefix, "btn-group");
+	let baseClass = prefix;
+	if (vertical) baseClass = `${prefix}-vertical`;
+	return /*#__PURE__*/ (0, import_jsx_runtime.jsx)(Component, {
+		...rest,
+		ref,
+		role,
+		className: (0, import_classnames.default)(className, baseClass, size && `${prefix}-${size}`)
+	});
+});
+ButtonGroup.displayName = "ButtonGroup";
+//#endregion
 //#region node_modules/@restart/hooks/esm/useUpdatedRef.js
 /**
 * Returns a ref that is immediately updated with the new value
@@ -21879,6 +21895,18 @@ function useWillUnmount$1(fn) {
 }
 //#endregion
 //#region node_modules/react-bootstrap/esm/ElementChildren.js
+/**
+* Iterates through children that are typically specified as `props.children`,
+* but only maps over children that are "valid elements".
+*
+* The mapFunction provided index will be normalised to the components mapped,
+* so an invalid component would not increase the index.
+*
+*/
+function map$3(children, func) {
+	let index = 0;
+	return import_react.Children.map(children, (child) => /*#__PURE__*/ import_react.isValidElement(child) ? func(child, index++) : child);
+}
 /**
 * Finds whether a component's `children` prop includes a React element of the
 * specified type.
@@ -23505,7 +23533,7 @@ var import_warning = /* @__PURE__ */ __toESM((/* @__PURE__ */ __commonJSMin(((ex
 	}
 	module.exports = warning;
 })))());
-var noop$4 = () => {};
+var noop$5 = () => {};
 function isLeftClickEvent(event) {
 	return event.button === 0;
 }
@@ -23528,7 +23556,7 @@ var InitialTriggerEvents = {
 * @param {boolean=} options.disabled
 * @param {string=}  options.clickTrigger The DOM event name (click, mousedown, etc) to attach listeners on
 */
-function useClickOutside(ref, onClickOutside = noop$4, { disabled, clickTrigger = "click" } = {}) {
+function useClickOutside(ref, onClickOutside = noop$5, { disabled, clickTrigger = "click" } = {}) {
 	const preventMouseClickOutsideRef = (0, import_react.useRef)(false);
 	const waitingForTrigger = (0, import_react.useRef)(false);
 	const handleMouseCapture = (0, import_react.useCallback)((e) => {
@@ -23562,7 +23590,7 @@ function useClickOutside(ref, onClickOutside = noop$4, { disabled, clickTrigger 
 			handleMouse(e);
 		});
 		let mobileSafariHackListeners = [];
-		if ("ontouchstart" in doc.documentElement) mobileSafariHackListeners = [].slice.call(doc.body.children).map((el) => listen(el, "mousemove", noop$4));
+		if ("ontouchstart" in doc.documentElement) mobileSafariHackListeners = [].slice.call(doc.body.children).map((el) => listen(el, "mousemove", noop$5));
 		return () => {
 			removeInitialTriggerListener?.();
 			removeMouseCaptureListener();
@@ -23629,7 +23657,7 @@ function _objectWithoutPropertiesLoose$6(r, e) {
 	}
 	return t;
 }
-var noop$3 = () => {};
+var noop$4 = () => {};
 /**
 * @memberOf Dropdown
 * @param {object}  options
@@ -23662,7 +23690,7 @@ function useDropdownMenu(options = {}) {
 		popperConfig
 	}));
 	const menuProps = Object.assign({
-		ref: setMenu || noop$3,
+		ref: setMenu || noop$4,
 		"aria-labelledby": toggleElement == null ? void 0 : toggleElement.id
 	}, popper.attributes.popper, { style: popper.styles.popper });
 	const metadata = {
@@ -23753,7 +23781,7 @@ var isRoleMenu = (el) => {
 	var _el$getAttribute;
 	return ((_el$getAttribute = el.getAttribute("role")) == null ? void 0 : _el$getAttribute.toLowerCase()) === "menu";
 };
-var noop$2 = () => {};
+var noop$3 = () => {};
 /**
 * Wires up Dropdown toggle functionality, returning a set a props to attach
 * to the element that functions as the dropdown toggle (generally a button).
@@ -23762,13 +23790,13 @@ var noop$2 = () => {};
 */
 function useDropdownToggle() {
 	const id = $c7eafbbe1ea5834e$export$619500959fc48b26();
-	const { show = false, toggle = noop$2, setToggle, menuElement } = (0, import_react.useContext)(DropdownContext$1) || {};
+	const { show = false, toggle = noop$3, setToggle, menuElement } = (0, import_react.useContext)(DropdownContext$1) || {};
 	const handleClick = (0, import_react.useCallback)((e) => {
 		toggle(!show, e);
 	}, [show, toggle]);
 	const props = {
 		id,
-		ref: setToggle || noop$2,
+		ref: setToggle || noop$3,
 		onClick: handleClick,
 		"aria-expanded": !!show
 	};
@@ -24671,7 +24699,7 @@ function _objectWithoutPropertiesLoose$3(r, e) {
 	}
 	return t;
 }
-var noop$1 = () => {};
+var noop$2 = () => {};
 var EVENT_KEY_ATTR = dataAttr("event-key");
 var Nav = /*#__PURE__*/ import_react.forwardRef((_ref, ref) => {
 	let { as: Component = "div", onSelect, activeKey, role, onKeyDown } = _ref, props = _objectWithoutPropertiesLoose$3(_ref, _excluded$10);
@@ -24737,8 +24765,8 @@ var Nav = /*#__PURE__*/ import_react.forwardRef((_ref, ref) => {
 			value: {
 				role,
 				activeKey: makeEventKey(activeKey),
-				getControlledId: getControlledId || noop$1,
-				getControllerId: getControllerId || noop$1
+				getControlledId: getControlledId || noop$2,
+				getControllerId: getControllerId || noop$2
 			},
 			children: /*#__PURE__*/ (0, import_jsx_runtime.jsx)(Component, Object.assign({}, props, {
 				onKeyDown: handleKeyDown,
@@ -26172,6 +26200,69 @@ var Table = /*#__PURE__*/ import_react.forwardRef(({ bsPrefix, className, stripe
 	return table;
 });
 Table.displayName = "Table";
+//#endregion
+//#region node_modules/react-bootstrap/esm/ToggleButton.js
+var noop$1 = () => void 0;
+var ToggleButton = /*#__PURE__*/ import_react.forwardRef(({ bsPrefix, name, className, checked, type, onChange, value, disabled, id, inputRef, ...props }, ref) => {
+	bsPrefix = useBootstrapPrefix(bsPrefix, "btn-check");
+	return /*#__PURE__*/ (0, import_jsx_runtime.jsxs)(import_jsx_runtime.Fragment, { children: [/*#__PURE__*/ (0, import_jsx_runtime.jsx)("input", {
+		className: bsPrefix,
+		name,
+		type,
+		value,
+		ref: inputRef,
+		autoComplete: "off",
+		checked: !!checked,
+		disabled: !!disabled,
+		onChange: onChange || noop$1,
+		id
+	}), /*#__PURE__*/ (0, import_jsx_runtime.jsx)(Button, {
+		...props,
+		ref,
+		className: (0, import_classnames.default)(className, disabled && "disabled"),
+		type: void 0,
+		role: void 0,
+		as: "label",
+		htmlFor: id
+	})] });
+});
+ToggleButton.displayName = "ToggleButton";
+//#endregion
+//#region node_modules/react-bootstrap/esm/ToggleButtonGroup.js
+var ToggleButtonGroup = /*#__PURE__*/ import_react.forwardRef((props, ref) => {
+	const { children, type = "radio", name, value, onChange, vertical = false, ...controlledProps } = useUncontrolled(props, { value: "onChange" });
+	const getValues = () => value == null ? [] : [].concat(value);
+	const handleToggle = (inputVal, event) => {
+		if (!onChange) return;
+		const values = getValues();
+		const isActive = values.indexOf(inputVal) !== -1;
+		if (type === "radio") {
+			if (!isActive) onChange(inputVal, event);
+			return;
+		}
+		if (isActive) onChange(values.filter((n) => n !== inputVal), event);
+		else onChange([...values, inputVal], event);
+	};
+	type === "radio" && !name && (0, import_browser.default)(false);
+	return /*#__PURE__*/ (0, import_jsx_runtime.jsx)(ButtonGroup, {
+		...controlledProps,
+		ref,
+		vertical,
+		children: map$3(children, (child) => {
+			const values = getValues();
+			const { value: childVal, onChange: childOnChange } = child.props;
+			const handler = (e) => handleToggle(childVal, e);
+			return /*#__PURE__*/ import_react.cloneElement(child, {
+				type,
+				name: child.name || name,
+				checked: values.indexOf(childVal) !== -1,
+				onChange: createChainedFunction(childOnChange, handler)
+			});
+		})
+	});
+});
+ToggleButtonGroup.displayName = "ToggleButtonGroup";
+var ToggleButtonGroup_default = Object.assign(ToggleButtonGroup, { Button: ToggleButton });
 //#endregion
 //#region node_modules/lucide-react/dist/esm/shared/src/utils/toKebabCase.mjs
 /**
@@ -43445,4 +43536,4 @@ pe.Step = me ? class {
 	}
 };
 //#endregion
-export { Alert_default, Badge, BrowserRouter, Bug, Button, Dropdown_default, Droppable, Form_default, InputGroup_default, Link, ListGroup_default, Modal_default, Navbar_default, Navigate, Pagination_default, Popover, PopoverContent, PopoverTrigger, ResizeMirror, Route, Routes, Spinner, StateManagedSelect$1, Table, Type, X$1 as X, absurd, action, array, autorun, boolean, chain, components, configure, esm_default, failure, fromArray, import_lib, initReactI18next, instance, intersection, isLeft, isNonEmpty, isNone, isRight, keyof, left, literal, makeAutoObservable, map$1 as map, nullType, number, observable, observer, partial, pe, pipe, recursion, require_client, require_jsx_runtime, require_react, right, string, success, toJS, tuple, type, undefinedType, union, untracked, useNavigate, useSearchParams, useTranslation };
+export { Alert_default, Badge, BrowserRouter, Bug, Button, Dropdown_default, Droppable, Form_default, InputGroup_default, Link, ListGroup_default, Modal_default, Navbar_default, Navigate, Pagination_default, Popover, PopoverContent, PopoverTrigger, ResizeMirror, Route, Routes, Spinner, StateManagedSelect$1, Table, ToggleButton, ToggleButtonGroup_default, Type, X$1 as X, absurd, action, array, autorun, boolean, chain, components, configure, esm_default, failure, fromArray, import_lib, initReactI18next, instance, intersection, isLeft, isNonEmpty, isNone, isRight, keyof, left, literal, makeAutoObservable, map$1 as map, nullType, number, observable, observer, partial, pe, pipe, recursion, require_client, require_jsx_runtime, require_react, right, string, success, toJS, tuple, type, undefinedType, union, untracked, useNavigate, useSearchParams, useTranslation };

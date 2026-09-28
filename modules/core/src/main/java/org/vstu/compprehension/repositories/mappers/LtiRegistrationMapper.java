@@ -2,6 +2,7 @@ package org.vstu.compprehension.repositories.mappers;
 
 import org.jetbrains.annotations.NotNull;
 import org.springframework.stereotype.Component;
+import org.vstu.compprehension.data.lti.LtiPlatformKeyData;
 import org.vstu.compprehension.data.lti.LtiRegistrationData;
 import org.vstu.compprehension.entities.external_system.LtiRegistrationEntity;
 import org.vstu.compprehension.mappers.Mapper;
@@ -21,10 +22,18 @@ class LtiRegistrationMapper implements Mapper<LtiRegistrationEntity, LtiRegistra
                 Strict.required(educationResource.getUrl(), "educationResource.url", owner),
                 Strict.required(source.getIssuer(), "issuer", owner),
                 Strict.required(source.getClientId(), "clientId", owner),
+                source.getDescription(),
                 source.getDeploymentId(),
+                Strict.required(source.getMethod(), "method", owner),
                 Strict.required(source.getAuthorizationEndpoint(), "authorizationEndpoint", owner),
                 Strict.required(source.getTokenEndpoint(), "tokenEndpoint", owner),
-                Strict.required(source.getJwksUri(), "jwksUri", owner),
+                toPlatformKey(source, owner),
                 Strict.required(source.getCreatedAt(), "createdAt", owner));
+    }
+
+    private @NotNull LtiPlatformKeyData toPlatformKey(@NotNull LtiRegistrationEntity source, @NotNull String owner) {
+        return source.getPlatformPublicKey() != null
+                ? new LtiPlatformKeyData.PublicKey(source.getPlatformPublicKey())
+                : new LtiPlatformKeyData.Jwks(Strict.required(source.getJwksUri(), "jwksUri", owner));
     }
 }

@@ -17,8 +17,10 @@ import java.time.Instant;
 import java.util.Map;
 import java.util.Set;
 
+import static org.junit.jupiter.api.Assertions.assertDoesNotThrow;
 import static org.springframework.test.web.client.match.MockRestRequestMatchers.method;
 import static org.springframework.test.web.client.match.MockRestRequestMatchers.requestTo;
+import static org.springframework.test.web.client.response.MockRestResponseCreators.withServerError;
 import static org.springframework.test.web.client.response.MockRestResponseCreators.withSuccess;
 
 class OidcLogoutHandlerTest {
@@ -58,6 +60,20 @@ class OidcLogoutHandlerTest {
         handler.logout(new MockHttpServletRequest(), new MockHttpServletResponse(), signedInUser());
 
         // Assert.
+        provider.verify();
+    }
+
+    /** Недоступный провайдер входа не мешает выйти локально. */
+    @Test
+    void logoutSurvivesProviderFailure() {
+        // Arrange.
+        var handler = new OidcLogoutHandler(restTemplate, new InMemoryClientRegistrationRepository(
+                registration(Map.of("end_session_endpoint", END_SESSION_ENDPOINT))));
+        provider.expect(requestTo(END_SESSION_ENDPOINT + "?id_token_hint=" + ID_TOKEN))
+                .andRespond(withServerError());
+
+        // Act & Assert.
+        assertDoesNotThrow(() -> handler.logout(new MockHttpServletRequest(), new MockHttpServletResponse(), signedInUser()));
         provider.verify();
     }
 

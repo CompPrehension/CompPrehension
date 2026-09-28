@@ -104,7 +104,7 @@ public class DeepLinkingResponseService {
     }
 
     private String signResponse(LtiDeepLinkingContext dl, List<Map<String, Object>> contentItems) throws Exception {
-        LtiPlatform platform = ltiRegistrations.requireByIssuer(dl.platformIssuer());
+        LtiPlatform platform = ltiRegistrations.requireByIssuerAndClientId(dl.platformIssuer(), dl.clientId());
 
         Date now = new Date();
         JWTClaimsSet.Builder claims = new JWTClaimsSet.Builder()
@@ -140,7 +140,8 @@ public class DeepLinkingResponseService {
             return Set.of();
         }
         try {
-            String accessToken = tokenService.obtainAccessToken(dl.platformIssuer(), LINEITEM_READONLY_SCOPE);
+            String accessToken = tokenService.obtainAccessToken(
+                    ltiRegistrations.requireByIssuerAndClientId(dl.platformIssuer(), dl.clientId()), LINEITEM_READONLY_SCOPE);
 
             HttpHeaders headers = new HttpHeaders();
             headers.setBearerAuth(accessToken);

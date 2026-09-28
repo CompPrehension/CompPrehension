@@ -4,8 +4,10 @@ import org.jetbrains.annotations.Nullable;
 
 import java.net.URI;
 import java.util.Locale;
+import java.util.regex.Pattern;
 
 public final class LmsUrlHelper {
+    private static final Pattern TRAILING_SLASHES = Pattern.compile("/+$");
 
     private LmsUrlHelper() {
     }
@@ -24,7 +26,8 @@ public final class LmsUrlHelper {
             if (scheme == null || authority == null) {
                 return null;
             }
-            return (scheme + "://" + authority).toLowerCase(Locale.ROOT);
+            String path = uri.getRawPath() == null ? "" : TRAILING_SLASHES.matcher(uri.getRawPath()).replaceAll("");
+            return (scheme + "://" + authority).toLowerCase(Locale.ROOT) + path;
         } catch (IllegalArgumentException ex) {
             return null;
         }

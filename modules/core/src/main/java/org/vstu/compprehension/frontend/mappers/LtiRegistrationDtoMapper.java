@@ -16,6 +16,8 @@ class LtiRegistrationDtoMapper implements Mapper<LtiRegistrationData, LtiRegistr
                 source.educationResourceUrl(),
                 source.issuer(),
                 source.clientId(),
+                source.description(),
+                source.method(),
                 source.createdAt());
     }
 }

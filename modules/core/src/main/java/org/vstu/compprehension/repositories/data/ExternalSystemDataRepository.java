@@ -2,9 +2,11 @@ package org.vstu.compprehension.repositories.data;
 
 import lombok.RequiredArgsConstructor;
 import org.jetbrains.annotations.NotNull;
+import org.jetbrains.annotations.Nullable;
 import org.springframework.stereotype.Repository;
 import org.springframework.transaction.annotation.Transactional;
 import org.vstu.compprehension.data.cource.EducationResourceData;
+import org.vstu.compprehension.data.lti.LtiPlatformKeyData;
 import org.vstu.compprehension.data.lti.LtiRegistrationData;
 import org.vstu.compprehension.data.lti.NewLtiRegistrationData;
 import org.vstu.compprehension.data.user.EducationResourceUserData;
@@ -13,6 +15,7 @@ import org.vstu.compprehension.entities.external_system.LtiRegistrationEntity;
 import org.vstu.compprehension.entities.external_system.LtiRegistrationInviteEntity;
 import org.vstu.compprehension.enums.EducationResourceTrustStatus;
 import org.vstu.compprehension.enums.EducationResourceType;
+import org.vstu.compprehension.enums.LtiRegistrationMethod;
 import org.vstu.compprehension.mappers.Mapper;
 import org.vstu.compprehension.repositories.entity.EducationResourceRepository;
 import org.vstu.compprehension.repositories.entity.EducationResourceUserRepository;
@@ -44,6 +47,11 @@ public class ExternalSystemDataRepository {
             @NotNull String url, @NotNull EducationResourceType type) {
         return educationResourceRepository.findByUrlAndType(url, type)
                 .map(educationResourceMapper::map);
+    }
+
+    @Transactional(readOnly = true)
+    public @NotNull Optional<EducationResourceData> findEducationResource(long id) {
+        return educationResourceRepository.findById(id).map(educationResourceMapper::map);
     }
 
     @Transactional(readOnly = true)
@@ -80,8 +88,13 @@ public class ExternalSystemDataRepository {
     }
 
     @Transactional(readOnly = true)
-    public @NotNull Optional<LtiRegistrationData> findLtiRegistration(@NotNull String issuer) {
-        return ltiRegistrationRepository.findByIssuer(issuer).map(ltiRegistrationMapper::map);
+    public @NotNull Optional<LtiRegistrationData> findLtiRegistration(@NotNull String issuer, @NotNull String clientId) {
+        return ltiRegistrationRepository.findByIssuerAndClientId(issuer, clientId).map(ltiRegistrationMapper::map);
+    }
+
+    @Transactional(readOnly = true)
+    public @NotNull List<LtiRegistrationData> findLtiRegistrations(@NotNull String issuer) {
+        return ltiRegistrationMapper.mapAll(ltiRegistrationRepository.findAllByIssuer(issuer));
     }
 
     @Transactional(readOnly = true)
@@ -89,25 +102,28 @@ public class ExternalSystemDataRepository {
         return ltiRegistrationMapper.mapAll(ltiRegistrationRepository.findAllByOrderByCreatedAtDesc());
     }
 
-    @Transactional(readOnly = true)
-    public boolean existsLtiRegistration(long educationResourceId) {
-        return ltiRegistrationRepository.existsByEducationResourceId(educationResourceId);
-    }
-
     @Transactional
     public @NotNull LtiRegistrationData createLtiRegistration(long educationResourceId,
-                                                              @NotNull NewLtiRegistrationData registration) {
+                                                              @NotNull NewLtiRegistrationData registration,
+                                                              @Nullable String description,
+                                                              @NotNull LtiRegistrationMethod method) {
         var entity = new LtiRegistrationEntity();
         entity.setEducationResource(educationResourceRepository.getReferenceById(educationResourceId));
         entity.setIssuer(registration.issuer());
         entity.setClientId(registration.clientId());
+        entity.setDescription(description);
         entity.setDeploymentId(registration.deploymentId());
+        entity.setMethod(method);
         entity.setAuthorizationEndpoint(registration.authorizationEndpoint());
         entity.setTokenEndpoint(registration.tokenEndpoint());
-        entity.setJwksUri(registration.jwksUri());
+        switch (registration.platformKey()) {
+            case LtiPlatformKeyData.Jwks jwks -> entity.setJwksUri(jwks.url());
+            case LtiPlatformKeyData.PublicKey key -> entity.setPlatformPublicKey(key.x509Base64());
+        }
         ltiRegistrationRepository.saveAndFlush(entity);
-        return findLtiRegistration(registration.issuer())
-                .orElseThrow(() -> new IllegalStateException("LTI registration " + registration.issuer() + " not found after insert"));
+        return findLtiRegistration(registration.issuer(), registration.clientId())
+                .orElseThrow(() -> new IllegalStateException("LTI registration " + registration.issuer() + " "
+                        + registration.clientId() + " not found after insert"));
     }
 
     /** Использованные ссылки остаются использованными, теряя только связь с удалённой регистрацией. */
@@ -121,10 +137,11 @@ public class ExternalSystemDataRepository {
     }
 
     @Transactional
-    public void createLtiRegistrationInvite(@NotNull String tokenHash, long createdByUserId,
+    public void createLtiRegistrationInvite(@NotNull String tokenHash, @Nullable String description, long createdByUserId,
                                             @NotNull Instant createdAt, @NotNull Instant expiresAt) {
         var entity = new LtiRegistrationInviteEntity();
         entity.setTokenHash(tokenHash);
+        entity.setDescription(description);
         entity.setCreatedBy(userRepository.getReferenceById(createdByUserId));
         entity.setCreatedAt(createdAt);
         entity.setExpiresAt(expiresAt);
@@ -144,6 +161,18 @@ public class ExternalSystemDataRepository {
         return ltiRegistrationInviteRepository.findLockedByTokenHash(tokenHash)
                 .filter(invite -> isUsable(invite, now))
                 .map(LtiRegistrationInviteEntity::getId);
+    }
+
+    @Transactional(readOnly = true)
+    public @NotNull Optional<String> findLtiRegistrationInviteDescription(long inviteId) {
+        return ltiRegistrationInviteRepository.findById(inviteId).map(LtiRegistrationInviteEntity::getDescription);
+    }
+
+    @Transactional
+    public void updateLtiRegistrationDescription(long registrationId, @Nullable String description) {
+        if (ltiRegistrationRepository.updateDescription(registrationId, description) != 1) {
+            throw new NoSuchElementException("LTI registration " + registrationId + " not found");
+        }
     }
 
     @Transactional

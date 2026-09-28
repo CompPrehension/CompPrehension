@@ -2,7 +2,6 @@ package org.vstu.compprehension.controllers;
 
 import lombok.RequiredArgsConstructor;
 import lombok.extern.log4j.Log4j2;
-import org.jetbrains.annotations.NotNull;
 import org.jetbrains.annotations.Nullable;
 import org.springframework.http.HttpStatus;
 import org.springframework.http.MediaType;
@@ -12,17 +11,21 @@ import org.springframework.web.bind.annotation.DeleteMapping;
 import org.springframework.web.bind.annotation.GetMapping;
 import org.springframework.web.bind.annotation.PathVariable;
 import org.springframework.web.bind.annotation.PostMapping;
+import org.springframework.web.bind.annotation.PutMapping;
+import org.springframework.web.bind.annotation.RequestBody;
 import org.springframework.web.bind.annotation.RequestParam;
 import org.springframework.web.bind.annotation.ResponseBody;
 import org.springframework.web.client.RestClientException;
 import org.springframework.web.util.HtmlUtils;
-import org.vstu.compprehension.config.LtiRegistrationsProperties;
 import org.vstu.compprehension.frontend.AuthFrontendService;
 import org.vstu.compprehension.frontend.LtiRegistrationFrontendService;
 import org.vstu.compprehension.frontend.UserFrontendService;
 import org.vstu.compprehension.frontend.dto.LtiRegistrationDto;
 import org.vstu.compprehension.frontend.dto.LtiRegistrationInviteDto;
+import org.vstu.compprehension.frontend.dto.LtiToolConfigurationDto;
+import org.vstu.compprehension.frontend.dto.NewLtiRegistrationDto;
 import org.vstu.compprehension.service.lti.LtiDynamicRegistrationService;
+import org.vstu.compprehension.service.lti.LtiToolConfigurationService;
 
 import java.util.List;
 
@@ -32,13 +35,12 @@ import java.util.List;
 public class LtiRegistrationController {
 
     private final LtiDynamicRegistrationService dynamicRegistrationService;
+    private final LtiToolConfigurationService toolConfigurationService;
     private final LtiRegistrationFrontendService ltiRegistrationService;
     private final UserFrontendService userService;
     private final AuthFrontendService authService;
-    private final LtiRegistrationsProperties ltiRegistrations;
 
-    public record ConfiguredLtiRegistrationResponse(@NotNull String name, @NotNull String issuer,
-                                                    @NotNull String clientId, @Nullable String platformJwksUrl) {
+    public record DescriptionRequest(@Nullable String description) {
     }
 
     /**
@@ -72,23 +74,34 @@ public class LtiRegistrationController {
         return ltiRegistrationService.getAll();
     }
 
-    @GetMapping("api/lti/registrations/configured")
+    @GetMapping("api/lti/tool-configuration")
     @ResponseBody
-    public List<ConfiguredLtiRegistrationResponse> getConfiguredRegistrations() {
+    public LtiToolConfigurationDto getToolConfiguration() {
         authService.ensureCanRegisterLms(userService.getCurrentUserId());
-        return ltiRegistrations.getRegistrations().entrySet().stream()
-                .map(entry -> new ConfiguredLtiRegistrationResponse(entry.getKey(), entry.getValue().getIssuerUrl(),
-                        entry.getValue().getClientId(), entry.getValue().getPlatformJwksUrl()))
-                .toList();
+        return ltiRegistrationService.getToolConfiguration();
+    }
+
+    @PostMapping("api/lti/registrations")
+    @ResponseBody
+    public LtiRegistrationDto registerManually(@RequestBody NewLtiRegistrationDto registration) {
+        authService.ensureCanRegisterLms(userService.getCurrentUserId());
+        return ltiRegistrationService.registerManually(registration);
     }
 
     @PostMapping("api/lti/registrations/invites")
     @ResponseBody
-    public LtiRegistrationInviteDto createInvite() {
+    public LtiRegistrationInviteDto createInvite(@RequestBody DescriptionRequest request) {
         var userId = userService.getCurrentUserId();
         authService.ensureCanRegisterLms(userId);
-        dynamicRegistrationService.ensureConfigured();
-        return ltiRegistrationService.createInvite(userId);
+        toolConfigurationService.ensureConfigured();
+        return ltiRegistrationService.createInvite(userId, request.description());
+    }
+
+    @PutMapping("api/lti/registrations/{registrationId}/description")
+    @ResponseBody
+    public void updateDescription(@PathVariable long registrationId, @RequestBody DescriptionRequest request) {
+        authService.ensureCanRegisterLms(userService.getCurrentUserId());
+        ltiRegistrationService.updateDescription(registrationId, request.description());
     }
 
     @DeleteMapping("api/lti/registrations/{registrationId}")

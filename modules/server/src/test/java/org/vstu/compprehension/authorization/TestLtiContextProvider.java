@@ -9,7 +9,6 @@ import org.vstu.compprehension.services.LtiContextProvider;
 import org.vstu.compprehension.businesslogic.lti.LtiContext;
 import org.vstu.compprehension.businesslogic.lti.LtiCourseContext;
 import org.vstu.compprehension.businesslogic.lti.LtiDeepLinkingContext;
-import org.vstu.compprehension.enums.EducationResourceType;
 
 import java.util.List;
 import java.util.Optional;
@@ -24,17 +23,17 @@ public class TestLtiContextProvider implements LtiContextProvider {
 
     /** Запуск из курса, заданного в data.sql. */
     public static void launchedFromCourse(String externalCourseId) {
-        launchedFromLms(TestData.EducationResources.URL, externalCourseId);
+        launchedFromLms(TestData.EducationResources.ID, externalCourseId);
     }
 
     /** Запуск из курса произвольной LMS. */
-    public static void launchedFromLms(String lmsUrl, String externalCourseId) {
+    public static void launchedFromLms(long educationResourceId, String externalCourseId) {
         CONTEXT.set(new LtiContext(
                 null,
+                TestData.EducationResources.URL,
+                "test-client",
+                educationResourceId,
                 new LtiCourseContext(externalCourseId, "Test course"),
-                lmsUrl,
-                "Test LMS",
-                EducationResourceType.MOODLE,
                 null));
     }
 
@@ -42,6 +41,7 @@ public class TestLtiContextProvider implements LtiContextProvider {
     public static void withDeepLinkingSession() {
         DEEP_LINKING.set(new LtiDeepLinkingContext(
                 TestData.EducationResources.URL,
+                "test-client",
                 "test-deployment",
                 "https://lms.test.local/lti/contentitem_return.php",
                 null,

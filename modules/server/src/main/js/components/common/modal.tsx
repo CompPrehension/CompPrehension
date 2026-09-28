@@ -11,6 +11,7 @@ export type ModalProps = {
     size?: 'sm' | 'lg' | 'xl',
     primaryBtnTitle?: string | null,
     primaryBtnVariant?: string | null,
+    primaryBtnDisabled?: boolean,
     handlePrimaryBtnClicked?: (() => void) | null,
     secondaryBtnTitle?: string | null,
     handleSecondaryBtnClicked?: (() => void) | null,
@@ -22,6 +23,7 @@ export type ModalProps = {
 export const Modal = (props: ModalProps) => {
     const { title, primaryBtnTitle,
         primaryBtnVariant,
+        primaryBtnDisabled,
         handlePrimaryBtnClicked,
         secondaryBtnTitle,
         handleSecondaryBtnClicked,
@@ -47,7 +49,7 @@ export const Modal = (props: ModalProps) => {
                 {(secondaryBtnTitle || primaryBtnTitle)
                     ? <RBModal.Footer>
                         {secondaryBtnTitle && <Button variant="secondary" onClick={handleSecondaryBtnClicked ?? undefined}>{secondaryBtnTitle}</Button>}
-                        {primaryBtnTitle && <Button variant={primaryBtnVariant ?? "primary"} onClick={handlePrimaryBtnClicked ?? undefined}>{primaryBtnTitle}</Button>}
+                        {primaryBtnTitle && <Button variant={primaryBtnVariant ?? "primary"} disabled={primaryBtnDisabled} onClick={handlePrimaryBtnClicked ?? undefined}>{primaryBtnTitle}</Button>}
                       </RBModal.Footer>
                     : null}            
             </ModalWrapper>

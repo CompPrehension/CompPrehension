@@ -9,7 +9,7 @@ import org.springframework.http.MediaType;
 import org.springframework.stereotype.Service;
 import org.springframework.web.client.RestTemplate;
 import org.vstu.compprehension.common.LmsUrlHelper;
-import org.vstu.compprehension.config.LtiRegistrationsProperties;
+import org.vstu.compprehension.data.lti.LtiPlatformKeyData;
 import org.vstu.compprehension.data.lti.LtiRegistrationData;
 import org.vstu.compprehension.data.lti.NewLtiRegistrationData;
 import org.vstu.compprehension.enums.EducationResourceType;
@@ -23,8 +23,7 @@ import java.util.List;
 import java.util.Map;
 
 /**
- * LTI Dynamic Registration (IMS): LMS открывает нашу ссылку регистрации, мы берём её настройки
- * ({@code openid_configuration}), сообщаем ей свои адреса и ключи и сохраняем выданный client_id.
+ * LTI Dynamic Registration (IMS).
  */
 @Service
 @Log4j2
@@ -40,30 +39,21 @@ public class LtiDynamicRegistrationService {
 
     private final RestTemplate restTemplate;
     private final ObjectMapper objectMapper = new ObjectMapper();
-    private final LtiRegistrationsProperties ltiRegistrations;
+    private final LtiToolConfigurationService tool;
     private final LtiRegistrationDataService ltiRegistrationService;
 
     public LtiDynamicRegistrationService(RestTemplate restTemplate,
-                                         LtiRegistrationsProperties ltiRegistrations,
+                                         LtiToolConfigurationService tool,
                                          LtiRegistrationDataService ltiRegistrationService) {
         this.restTemplate = restTemplate;
-        this.ltiRegistrations = ltiRegistrations;
+        this.tool = tool;
         this.ltiRegistrationService = ltiRegistrationService;
-    }
-
-    public void ensureConfigured() {
-        if (ltiRegistrations.getToolBaseUrl() == null || ltiRegistrations.getToolPrivateKeyPkcs8Base64() == null) {
-            throw new IllegalStateException("LTI dynamic registration is not configured: set "
-                    + "compprehension.lti.tool-base-url and compprehension.lti.tool-private-key-pkcs8-base64");
-        }
     }
 
     public @NotNull LtiRegistrationData register(@NotNull String inviteToken,
                                                  @NotNull String openidConfigurationUrl,
                                                  @Nullable String registrationToken) {
-        ensureConfigured();
-        // Ссылку проверяем до любых запросов наружу: адреса LMS приходят из запроса, и без годной ссылки
-        // сервер не должен ходить по ним.
+        tool.ensureConfigured();
         ltiRegistrationService.ensureInviteUsable(inviteToken);
 
         JsonNode platformConfiguration = fetchJson(openidConfigurationUrl);
@@ -71,11 +61,6 @@ public class LtiDynamicRegistrationService {
         if (!openidConfigurationUrl.startsWith(issuer.endsWith("/") ? issuer : issuer + "/")) {
             throw new SecurityException(String.format(
                     "openid_configuration %s does not belong to issuer %s", openidConfigurationUrl, issuer));
-        }
-        if (ltiRegistrationService.findByIssuer(issuer).isPresent()
-                || ltiRegistrations.findByIssuerUrl(issuer).isPresent()) {
-            throw new IllegalStateException(String.format(
-                    "LMS %s is already registered: delete the existing registration first", issuer));
         }
         String lmsUrl = LmsUrlHelper.toCanonicalLmsUrl(issuer);
         if (lmsUrl == null) {
@@ -95,17 +80,16 @@ public class LtiDynamicRegistrationService {
                 deploymentId,
                 requireText(platformConfiguration, "authorization_endpoint"),
                 requireText(platformConfiguration, "token_endpoint"),
-                requireText(platformConfiguration, "jwks_uri")));
+                new LtiPlatformKeyData.Jwks(requireText(platformConfiguration, "jwks_uri"))));
         log.info("LMS {} registered dynamically, client_id {}", issuer, registration.clientId());
         return registration;
     }
 
     private @NotNull JsonNode postRegistration(@NotNull String registrationEndpoint, @Nullable String registrationToken) {
-        String baseUrl = ltiRegistrations.getToolBaseUrl();
-        String launchUrl = baseUrl + "/lti/1_3/launch";
+        String launchUrl = tool.getLaunchUrl();
 
         Map<String, Object> toolConfiguration = new LinkedHashMap<>();
-        toolConfiguration.put("domain", URI.create(baseUrl).getAuthority());
+        toolConfiguration.put("domain", URI.create(tool.getBaseUrl()).getAuthority());
         toolConfiguration.put("target_link_uri", launchUrl);
         toolConfiguration.put("claims", List.of("iss", "sub", "name", "given_name", "family_name", "email"));
         toolConfiguration.put("messages", List.of(Map.of(
@@ -117,10 +101,10 @@ public class LtiDynamicRegistrationService {
         body.put("application_type", "web");
         body.put("response_types", List.of("id_token"));
         body.put("grant_types", List.of("implicit", "client_credentials"));
-        body.put("initiate_login_uri", baseUrl + "/lti/1_3/login");
+        body.put("initiate_login_uri", tool.getLoginUrl());
         body.put("redirect_uris", List.of(launchUrl));
         body.put("client_name", TOOL_NAME);
-        body.put("jwks_uri", baseUrl + "/lti/1_3/jwks");
+        body.put("jwks_uri", tool.getJwksUrl());
         body.put("token_endpoint_auth_method", "private_key_jwt");
         body.put("scope", AGS_SCOPES);
         body.put(TOOL_CONFIGURATION, toolConfiguration);

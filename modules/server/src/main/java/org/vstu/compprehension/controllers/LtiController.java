@@ -31,6 +31,7 @@ import org.springframework.web.bind.annotation.RequestMapping;
 import org.springframework.web.bind.annotation.RequestMethod;
 import org.springframework.web.bind.annotation.RequestParam;
 import org.springframework.web.bind.annotation.ResponseBody;
+import org.vstu.compprehension.config.LtiToolProperties;
 import org.vstu.compprehension.frontend.AuthFrontendService;
 import org.vstu.compprehension.frontend.CourseFrontendService;
 import org.vstu.compprehension.frontend.EducationResourceFrontendService;
@@ -41,24 +42,19 @@ import org.vstu.compprehension.service.lti.LtiContextInitializer;
 import org.vstu.compprehension.service.lti.LtiIdTokenVerifier;
 import org.vstu.compprehension.service.lti.LtiPendingLogins;
 import org.vstu.compprehension.service.lti.LtiRegistrationRegistry;
+import org.vstu.compprehension.service.lti.LtiToolConfigurationService;
 import org.vstu.compprehension.businesslogic.auth.AuthObjects.SystemPermission;
 import org.vstu.compprehension.common.StringHelper;
 import org.vstu.compprehension.businesslogic.lti.LtiContext;
-import org.vstu.compprehension.enums.EducationResourceTrustStatus;
 import org.vstu.compprehension.services.LtiContextProvider;
 import org.vstu.compprehension.utils.HttpRequestHelper;
 import org.vstu.compprehension.utils.SessionHelper;
 
 import java.net.URLEncoder;
 import java.nio.charset.StandardCharsets;
-import java.security.KeyFactory;
-import java.security.interfaces.RSAPrivateCrtKey;
-import java.security.interfaces.RSAPublicKey;
-import java.security.spec.PKCS8EncodedKeySpec;
-import java.security.spec.RSAPublicKeySpec;
 import java.util.Arrays;
 import java.util.Collection;
-import java.util.Base64;
+import java.util.List;
 import java.util.Map;
 import java.util.Set;
 import java.util.UUID;
@@ -72,6 +68,7 @@ public class LtiController {
     private final SecurityContextRepository securityContextRepository;
     private final SecurityContextHolderStrategy securityContextHolderStrategy;
     private final LtiRegistrationRegistry ltiRegistrations;
+    private final LtiToolConfigurationService toolConfiguration;
     private final CourseFrontendService courseService;
     private final EducationResourceFrontendService educationResourceFacade;
     private final LtiContextInitializer ltiContextInitializer;
@@ -81,28 +78,17 @@ public class LtiController {
     private final UserFrontendService userService;
     private final AuthFrontendService authService;
 
-    @SneakyThrows
     @GetMapping(value = "1_3/jwks", produces = "application/json")
     @ResponseBody
     public String jwks() {
-        KeyFactory rsa = KeyFactory.getInstance("RSA");
-        var jwks = ltiRegistrations.getToolPrivateKeysByKeyId().entrySet().stream()
-                .map(e -> buildJwk(e.getKey(), e.getValue(), rsa))
+        List<JWK> jwks = toolConfiguration.findPublicKey().stream()
+                .<JWK>map(key -> new RSAKey.Builder(key)
+                        .keyUse(KeyUse.SIGNATURE)
+                        .algorithm(JWSAlgorithm.RS256)
+                        .keyID(LtiToolProperties.TOOL_KEY_ID)
+                        .build())
                 .toList();
         return new JWKSet(jwks).toString();
-    }
-
-    @SneakyThrows
-    private JWK buildJwk(String kid, String privateKeyBase64, KeyFactory rsa) {
-        byte[] keyBytes = Base64.getDecoder().decode(privateKeyBase64);
-        RSAPrivateCrtKey privateKey = (RSAPrivateCrtKey) rsa.generatePrivate(new PKCS8EncodedKeySpec(keyBytes));
-        RSAPublicKeySpec publicKeySpec = new RSAPublicKeySpec(privateKey.getModulus(), privateKey.getPublicExponent());
-        RSAPublicKey publicKey = (RSAPublicKey) rsa.generatePublic(publicKeySpec);
-        return new RSAKey.Builder(publicKey)
-                .keyUse(KeyUse.SIGNATURE)
-                .algorithm(JWSAlgorithm.RS256)
-                .keyID(kid)
-                .build();
     }
 
     // LTI 1.3 standard claim URLs
@@ -140,11 +126,12 @@ public class LtiController {
         if (params.issuer == null) {
             throw new SecurityException("LTI login has no issuer");
         }
-        var platform = ltiRegistrations.findByIssuer(params.issuer)
-                .orElseThrow(() -> new SecurityException(String.format("LTI issuer %s is not registered", params.issuer)));
-        if (!platform.clientId().equals(params.clientId)) {
-            throw new SecurityException(String.format("LTI client_id %s is not registered for issuer %s", params.clientId, params.issuer));
-        }
+        // client_id в запросе входа по LTI 1.3 необязателен.
+        var platform = (params.clientId != null
+                ? ltiRegistrations.findByIssuerAndClientId(params.issuer, params.clientId)
+                : ltiRegistrations.findSingleByIssuer(params.issuer))
+                .orElseThrow(() -> new SecurityException(String.format(
+                        "LTI client_id %s is not registered for issuer %s", params.clientId, params.issuer)));
         String state = UUID.randomUUID().toString();
         String nonce = UUID.randomUUID().toString();
         ltiPendingLogins.savePendingLogin(state, nonce);
@@ -154,7 +141,7 @@ public class LtiController {
                 "%s%sclient_id=%s&response_type=%s&scope=%s&redirect_uri=%s&login_hint=%s&nonce=%s&state=%s&lti_message_hint=%s&response_mode=%s",
                 authorizationEndpoint,
                 authorizationEndpoint.contains("?") ? "&" : "?",
-                URLEncoder.encode(params.clientId, StandardCharsets.UTF_8),
+                URLEncoder.encode(platform.clientId(), StandardCharsets.UTF_8),
                 "id_token",
                 "openid",
                 URLEncoder.encode(params.targetLinkUri, StandardCharsets.UTF_8),
@@ -254,25 +241,12 @@ public class LtiController {
         return String.format("/pages/course?courseId=%d&lti=deeplink", courseId);
     }
 
+    /** Доверие к LMS проверено при аутентификации запуска. */
     private Long resolveCourseFromContext(LtiContext ctx) {
         if (ctx.course() == null || ctx.course().courseId() == null) return null;
 
-        long eduResourceId = getOrCreateTrustedEducationResourceId(ctx);
-        return courseService.getOrCreate(new CreateCourseDto(eduResourceId, ctx.course().courseId(), ctx.course().courseName()));
-    }
-
-    private long getOrCreateTrustedEducationResourceId(LtiContext ctx) {
-        if (ctx.lmsUrl() == null) {
-            throw new SecurityException("LTI launch has no valid issuer url");
-        }
-        // Подпись запуска уже проверена ключом зарегистрированной LMS, поэтому новая LMS сразу доверенная.
-        // Статус уже известной LMS не меняется: UNTRUSTED и BANNED остаются закрытыми.
-        var educationResource = educationResourceFacade.getOrCreate(
-                ctx.lmsUrl(), ctx.lmsType(), EducationResourceTrustStatus.TRUSTED);
-        if (educationResource.trustStatus() != EducationResourceTrustStatus.TRUSTED) {
-            throw new SecurityException(String.format("EducationResource %s is not trusted", educationResource.url()));
-        }
-        return educationResource.id();
+        return courseService.getOrCreate(new CreateCourseDto(
+                ctx.educationResourceId(), ctx.course().courseId(), ctx.course().courseName()));
     }
 
     private @NotNull Jwt authenticateFromLti13ResourceLinkRequest(HttpServletRequest request, HttpServletResponse response) throws AuthenticationException {
@@ -282,7 +256,8 @@ public class LtiController {
             throw new AuthenticationServiceException("No 'id_token' inside request params");
         }
 
-        Jwt idToken = ltiIdTokenVerifier.verify(rawIdToken);
+        var verified = ltiIdTokenVerifier.verify(rawIdToken);
+        Jwt idToken = verified.idToken();
         ensureLaunchStartedByOwnLogin(formDataParams.get("state"), idToken);
         final Map<String, Object> claims = idToken.getClaims();
 
@@ -299,9 +274,9 @@ public class LtiController {
         OAuth2User user = new DefaultOidcUser(mappedAuthorities, oidcToken);
         OAuth2AuthenticationToken authentication = new OAuth2AuthenticationToken(user, mappedAuthorities, "mdl");
 
-        ltiContextInitializer.init(claims);
+        ltiContextInitializer.init(claims, verified.platform());
         try {
-            ltiProvider.getCurrentLtiContext().ifPresent(this::getOrCreateTrustedEducationResourceId);
+            ltiProvider.getCurrentLtiContext().ifPresent(ctx -> educationResourceFacade.ensureTrusted(ctx.educationResourceId()));
         } catch (SecurityException ex) {
             // Контекст сессионный: без очистки в уже аутентифицированной сессии остался бы запуск из недоверенной LMS.
             ltiContextInitializer.clear();

@@ -1,5 +1,6 @@
 package org.vstu.compprehension.service.lti;
 
+import com.nimbusds.jwt.JWTClaimsSet;
 import com.nimbusds.jwt.JWTParser;
 import org.jetbrains.annotations.NotNull;
 import org.springframework.security.oauth2.core.DelegatingOAuth2TokenValidator;
@@ -12,12 +13,10 @@ import org.springframework.security.oauth2.jwt.JwtException;
 import org.springframework.security.oauth2.jwt.JwtValidators;
 import org.springframework.security.oauth2.jwt.NimbusJwtDecoder;
 import org.springframework.stereotype.Service;
+import org.vstu.compprehension.common.RsaKeyHelper;
+import org.vstu.compprehension.data.lti.LtiPlatformKeyData;
 
-import java.security.KeyFactory;
-import java.security.interfaces.RSAPublicKey;
-import java.security.spec.X509EncodedKeySpec;
 import java.text.ParseException;
-import java.util.Base64;
 import java.util.List;
 import java.util.Map;
 import java.util.concurrent.ConcurrentHashMap;
@@ -35,53 +34,59 @@ public class LtiIdTokenVerifier {
         this.ltiRegistrations = ltiRegistrations;
     }
 
-    public @NotNull Jwt verify(@NotNull String rawIdToken) {
-        // До проверки подписи iss нужен только для выбора регистрации, чьим ключом проверять.
-        var issuer = readUnverifiedIssuer(rawIdToken);
-        var platform = ltiRegistrations.findByIssuer(issuer)
-                .orElseThrow(() -> new SecurityException(String.format("LTI issuer %s is not registered", issuer)));
+    public @NotNull VerifiedLtiIdToken verify(@NotNull String rawIdToken) {
+        // До проверки подписи iss и client_id нужны только для выбора регистрации, чьим ключом проверять.
+        var claims = readUnverifiedClaims(rawIdToken);
+        var issuer = claims.getIssuer();
+        if (issuer == null) {
+            throw new SecurityException("LTI id_token has no issuer");
+        }
+        var clientId = readClientId(claims);
+        var platform = ltiRegistrations.findByIssuerAndClientId(issuer, clientId)
+                .orElseThrow(() -> new SecurityException(String.format(
+                        "LTI tool with client_id %s is not registered for issuer %s", clientId, issuer)));
         var decoder = decodersByPlatform.computeIfAbsent(platform, LtiIdTokenVerifier::createDecoder);
         try {
-            return decoder.decode(rawIdToken);
+            return new VerifiedLtiIdToken(decoder.decode(rawIdToken), platform);
         } catch (JwtException ex) {
             throw new SecurityException("Invalid LTI id_token: " + ex.getMessage(), ex);
         }
     }
 
-    private static @NotNull String readUnverifiedIssuer(@NotNull String rawIdToken) {
-        String issuer;
+    private static @NotNull JWTClaimsSet readUnverifiedClaims(@NotNull String rawIdToken) {
         try {
-            issuer = JWTParser.parse(rawIdToken).getJWTClaimsSet().getIssuer();
+            return JWTParser.parse(rawIdToken).getJWTClaimsSet();
         } catch (ParseException ex) {
             throw new SecurityException("Malformed LTI id_token", ex);
         }
-        if (issuer == null) {
-            throw new SecurityException("LTI id_token has no issuer");
+    }
+
+    /** По OpenID Connect при нескольких адресатах токена client_id указывается в azp. */
+    private static @NotNull String readClientId(@NotNull JWTClaimsSet claims) {
+        Object authorizedParty = claims.getClaim("azp");
+        if (authorizedParty != null) {
+            return authorizedParty.toString();
         }
-        return issuer;
+        var audience = claims.getAudience();
+        if (audience.size() != 1) {
+            throw new SecurityException("LTI id_token must name the tool in azp or in a single aud");
+        }
+        return audience.getFirst();
     }
 
     private static @NotNull JwtDecoder createDecoder(@NotNull LtiPlatform platform) {
-        var decoder = platform.platformPublicKeyBase64() != null
-                ? NimbusJwtDecoder.withPublicKey(loadPublicKey(platform.platformPublicKeyBase64()))
-                        .signatureAlgorithm(SignatureAlgorithm.RS256)
-                        .build()
-                : NimbusJwtDecoder.withJwkSetUri(platform.platformJwksUrl())
-                        .jwsAlgorithm(SignatureAlgorithm.RS256)
-                        .build();
+        var decoder = switch (platform.platformKey()) {
+            case LtiPlatformKeyData.Jwks jwks -> NimbusJwtDecoder.withJwkSetUri(jwks.url())
+                    .jwsAlgorithm(SignatureAlgorithm.RS256)
+                    .build();
+            case LtiPlatformKeyData.PublicKey key -> NimbusJwtDecoder.withPublicKey(RsaKeyHelper.parsePublicKey(key.x509Base64()))
+                    .signatureAlgorithm(SignatureAlgorithm.RS256)
+                    .build();
+        };
         decoder.setJwtValidator(new DelegatingOAuth2TokenValidator<>(
                 JwtValidators.createDefaultWithIssuer(platform.issuer()),
                 new JwtClaimValidator<List<String>>(JwtClaimNames.AUD,
                         audience -> audience != null && audience.contains(platform.clientId()))));
         return decoder;
-    }
-
-    private static @NotNull RSAPublicKey loadPublicKey(@NotNull String publicKeyBase64) {
-        try {
-            byte[] keyBytes = Base64.getDecoder().decode(publicKeyBase64);
-            return (RSAPublicKey) KeyFactory.getInstance("RSA").generatePublic(new X509EncodedKeySpec(keyBytes));
-        } catch (Exception ex) {
-            throw new IllegalStateException("Invalid LTI platform public key", ex);
-        }
     }
 }

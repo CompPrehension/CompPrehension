@@ -12,5 +12,5 @@ public record NewLtiRegistrationData(
         @Nullable String deploymentId,
         @NotNull String authorizationEndpoint,
         @NotNull String tokenEndpoint,
-        @NotNull String jwksUri) {
+        @NotNull LtiPlatformKeyData platformKey) {
 }
