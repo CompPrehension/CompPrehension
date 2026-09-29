@@ -70,7 +70,7 @@ public class DeepLinkingResponseService {
     /**
      * Строит и подписывает {@code LtiDeepLinkingResponse} с одним {@code ltiResourceLink}
      * на упражнение. URL у item не задаётся — Moodle подставит launch URL инструмента,
-     * а {@code /lti/1_3/exercise} приоритетно читает custom-claim {@code exercise_id}.
+     * а {@code /lti/launch} приоритетно читает custom-claim {@code exercise_id}.
      */
     public String buildSignedResponse(LtiDeepLinkingContext dl, List<DeepLinkItem> items) throws Exception {
         List<Map<String, Object>> contentItems = new ArrayList<>(items.size());

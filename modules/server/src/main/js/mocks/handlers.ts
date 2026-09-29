@@ -181,9 +181,9 @@ export const handlers = [
     }])),
 
     http.get('/api/lti/tool-configuration', () => HttpResponse.json({
-        launchUrl: 'https://localhost:4200/lti/1_3/launch',
-        loginUrl: 'https://localhost:4200/lti/1_3/login',
-        jwksUrl: 'https://localhost:4200/lti/1_3/jwks',
+        launchUrl: 'https://localhost:4200/lti/launch',
+        loginUrl: 'https://localhost:4200/lti/login',
+        jwksUrl: 'https://localhost:4200/lti/jwks',
         publicKeyPem: '-----BEGIN PUBLIC KEY-----\nMIIBIjANBgkqhkiG9w0BAQEFAAOCAQ8AMIIBCgKCAQEAnNqNDdHlU/e1R/dP/ddG\n-----END PUBLIC KEY-----\n',
     })),
 

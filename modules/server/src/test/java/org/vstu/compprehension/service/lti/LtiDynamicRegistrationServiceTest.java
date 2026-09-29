@@ -96,9 +96,9 @@ class LtiDynamicRegistrationServiceTest extends AbstractIntegrationTest {
         lms.expect(requestTo(REGISTRATION_ENDPOINT))
                 .andExpect(method(HttpMethod.POST))
                 .andExpect(header("Authorization", "Bearer " + REGISTRATION_TOKEN))
-                .andExpect(jsonPath("$.initiate_login_uri").value(TOOL_BASE_URL + "/lti/1_3/login"))
-                .andExpect(jsonPath("$.redirect_uris[0]").value(TOOL_BASE_URL + "/lti/1_3/launch"))
-                .andExpect(jsonPath("$.jwks_uri").value(TOOL_BASE_URL + "/lti/1_3/jwks"))
+                .andExpect(jsonPath("$.initiate_login_uri").value(TOOL_BASE_URL + "/lti/login"))
+                .andExpect(jsonPath("$.redirect_uris[0]").value(TOOL_BASE_URL + "/lti/launch"))
+                .andExpect(jsonPath("$.jwks_uri").value(TOOL_BASE_URL + "/lti/jwks"))
                 .andExpect(jsonPath("$['https://purl.imsglobal.org/spec/lti-tool-configuration'].messages[0].type")
                         .value("LtiDeepLinkingRequest"))
                 .andRespond(withSuccess(TOOL_REGISTRATION_RESPONSE, MediaType.APPLICATION_JSON));

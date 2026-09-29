@@ -60,22 +60,22 @@ LTI Dynamic Registration: LMS и CompPrehension сами обмениваютс�
 
 | поле | значение |
 |---|---|
-| Tool URL | `<сервер>/lti/1_3/launch` |
+| Tool URL | `<сервер>/lti/launch` |
 | LTI version | LTI 1.3 |
 | Public key type | **Keyset URL** (см. ниже) |
-| Public keyset | `<сервер>/lti/1_3/jwks` |
-| Initiate login URL | `<сервер>/lti/1_3/login` |
-| Redirection URI(s) | `<сервер>/lti/1_3/launch` |
+| Public keyset | `<сервер>/lti/jwks` |
+| Initiate login URL | `<сервер>/lti/login` |
+| Redirection URI(s) | `<сервер>/lti/launch` |
 | Tool configuration usage | показывать в выборе активностей |
 | Default launch container | New window |
 | Supports Deep Linking | да |
-| Content Selection URL | `<сервер>/lti/1_3/launch` |
+| Content Selection URL | `<сервер>/lti/launch` |
 | IMS LTI Assignment and Grade Services | Use this service for grade sync and column management |
 | Share launcher's name / email | Always — **без email пользователя не пустит** |
 | Accept grades from the tool | Always |
 | Custom parameters | пусто |
 
-`/lti/1_3/launch` сам разбирает, что пришло: выбор контента, упражнение или настройку упражнений.
+`/lti/launch` сам разбирает, что пришло: выбор контента, упражнение или настройку упражнений.
 
 Custom parameters на уровне инструмента задавать нежелательно: они перекрывают параметры активностей, и все
 активности откроют одно и то же упражнение.
@@ -85,9 +85,9 @@ Moodle), **Client ID** и **Deployment ID** — они нужны на стор�
 
 #### Вид ключа: Keyset URL или RSA key
 
-**Keyset URL — основной вариант.** Moodle сам забирает наш открытый ключ с `<сервер>/lti/1_3/jwks`,
+**Keyset URL — основной вариант.** Moodle сам забирает наш открытый ключ с `<сервер>/lti/jwks`,
 копировать ключ руками не нужно, а после смены ключа на нашей стороне Moodle возьмёт новый оттуда же.
-Условие: сервер Moodle должен достучаться до нашего `/lti/1_3/jwks` по HTTPS.
+Условие: сервер Moodle должен достучаться до нашего `/lti/jwks` по HTTPS.
 
 **RSA key — запасной вариант**, когда Moodle до нашего сервера не достаёт (например, сервер запущен
 локально). Тогда в поле Public key вставляется открытый ключ в PEM (`-----BEGIN PUBLIC KEY-----…`),
@@ -150,7 +150,7 @@ openssl pkey -in tool.pem -pubout
 | «…is already registered» | этот инструмент (Platform ID + Client ID) уже подключён |
 | «Создать ссылку регистрации» отвечает 409 | не заданы `COMPPREHENSION_LTI_TOOL_BASE_URL` и `…_TOOL_PRIVATE_KEY_PKCS8_BASE64` |
 | инструмента нет в списке активностей курса | Tool configuration usage не «Show in activity chooser…» |
-| 403 на `/lti/1_3/login` | инструмент не подключён: нет пары Platform ID + Client ID на странице «Подключения LMS» |
+| 403 на `/lti/login` | инструмент не подключён: нет пары Platform ID + Client ID на странице «Подключения LMS» |
 | 403 на запуске: `Invalid LTI id_token` | ключ LMS недоступен по адресу JWKS подключения или токен подписан другим ключом |
 | 403 на запуске: `does not match a login` | запуск пришёл в другую сессию: браузер не отправил cookie (открывайте в новом окне, сервер — только по HTTPS) |
 | 403 на запуске: `is not trusted` | LMS в базе `UNTRUSTED` или `BANNED` |

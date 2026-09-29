@@ -178,16 +178,16 @@ class LtiRegistrationControllerAuthorizationTest extends AbstractAuthorizationTe
     void toolConfigurationShowsAddressesAndPublishedKey() throws Exception {
         // Arrange.
         actingAs(TestData.Users.ADMIN_ID);
-        var jwks = JWKSet.parse(mockMvc.perform(get("/lti/1_3/jwks")).andReturn().getResponse().getContentAsString());
+        var jwks = JWKSet.parse(mockMvc.perform(get("/lti/jwks")).andReturn().getResponse().getContentAsString());
 
         // Act.
         var result = mockMvc.perform(get("/api/lti/tool-configuration"));
 
         // Assert.
         result.andExpect(status().isOk())
-                .andExpect(jsonPath("$.launchUrl").value("https://tool.test/lti/1_3/launch"))
-                .andExpect(jsonPath("$.loginUrl").value("https://tool.test/lti/1_3/login"))
-                .andExpect(jsonPath("$.jwksUrl").value("https://tool.test/lti/1_3/jwks"));
+                .andExpect(jsonPath("$.launchUrl").value("https://tool.test/lti/launch"))
+                .andExpect(jsonPath("$.loginUrl").value("https://tool.test/lti/login"))
+                .andExpect(jsonPath("$.jwksUrl").value("https://tool.test/lti/jwks"));
         var pem = JsonPath.<String>read(result.andReturn().getResponse().getContentAsString(), "$.publicKeyPem");
         assertEquals(jwks.getKeys().getFirst().toRSAKey().toRSAPublicKey(), RsaKeyHelper.parsePublicKey(pem));
     }
@@ -241,7 +241,7 @@ class LtiRegistrationControllerAuthorizationTest extends AbstractAuthorizationTe
     @Test
     void registerWithUnknownInviteShowsForbiddenPage() throws Exception {
         // Act.
-        var result = mockMvc.perform(get("/lti/1_3/register/unknown-invite")
+        var result = mockMvc.perform(get("/lti/register/unknown-invite")
                 .param("openid_configuration", "https://lms.test.local/mod/lti/openid-configuration.php"));
 
         // Assert.

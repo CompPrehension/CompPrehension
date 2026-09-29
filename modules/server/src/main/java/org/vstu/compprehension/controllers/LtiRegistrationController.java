@@ -47,7 +47,7 @@ public class LtiRegistrationController {
      * Ссылка динамической регистрации: её открывает LMS ("Add LTI Advantage" в Moodle), добавив адрес своих
      * настроек и токен регистрации. Ответ — страница в окне LMS, поэтому и ошибки отдаются страницей.
      */
-    @GetMapping(value = "lti/1_3/register/{inviteToken}", produces = MediaType.TEXT_HTML_VALUE)
+    @GetMapping(value = "lti/register/{inviteToken}", produces = MediaType.TEXT_HTML_VALUE)
     @ResponseBody
     public ResponseEntity<String> register(@PathVariable String inviteToken,
                                            @RequestParam("openid_configuration") String openidConfigurationUrl,

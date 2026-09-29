@@ -78,7 +78,7 @@ public class LtiController {
     private final UserFrontendService userService;
     private final AuthFrontendService authService;
 
-    @GetMapping(value = "1_3/jwks", produces = "application/json")
+    @GetMapping(value = "jwks", produces = "application/json")
     @ResponseBody
     public String jwks() {
         List<JWK> jwks = toolConfiguration.findPublicKey().stream()
@@ -109,8 +109,8 @@ public class LtiController {
     }
 
     @SneakyThrows
-    @RequestMapping(method = RequestMethod.POST, path = {"1_3/login"})
-    public void login1_3(HttpServletRequest request, HttpServletResponse response) {
+    @RequestMapping(method = RequestMethod.POST, path = {"login"})
+    public void login(HttpServletRequest request, HttpServletResponse response) {
         SessionHelper.ensureNewSession(request);
 
         Map<String, String> formDataParams = HttpRequestHelper.getAllRequestParams(request);
@@ -156,26 +156,20 @@ public class LtiController {
     }
 
     /** Единая точка запуска: куда вести, решает сам запуск (см. {@link #resolveLaunchTarget}). */
-    @RequestMapping(method = {RequestMethod.POST, RequestMethod.GET}, path = {"1_3/launch"})
+    @SneakyThrows
+    @RequestMapping(method = {RequestMethod.POST, RequestMethod.GET}, path = {"launch"})
     public void launch(@RequestParam(required = false) Long id, HttpServletRequest request, HttpServletResponse response) {
-        handleLaunch(LaunchTarget.EXERCISE, id, request, response);
-    }
+        Jwt idToken = authenticateFromLti13ResourceLinkRequest(request, response);
+        LtiContext ctx = ltiProvider.getCurrentLtiContext()
+                .orElseThrow(() -> new IllegalArgumentException("LTI context absent"));
 
-    // Старые адреса запуска: на них указывают уже созданные в LMS активности.
-
-    @RequestMapping(method = {RequestMethod.POST, RequestMethod.GET}, path = {"1_3/exercise"})
-    public void exercise(@RequestParam(required = false) Long id, HttpServletRequest request, HttpServletResponse response) {
-        handleLaunch(LaunchTarget.EXERCISE, id, request, response);
-    }
-
-    @RequestMapping(method = {RequestMethod.POST, RequestMethod.GET}, path = {"1_3/exercise-settings"})
-    public void exerciseSettings(HttpServletRequest request, HttpServletResponse response) {
-        handleLaunch(LaunchTarget.EXERCISE_SETTINGS, null, request, response);
-    }
-
-    @RequestMapping(method = {RequestMethod.POST, RequestMethod.GET}, path = {"1_3/configure-course"})
-    public void configureCourse(HttpServletRequest request, HttpServletResponse response) {
-        handleLaunch(LaunchTarget.DEEP_LINKING, null, request, response);
+        String redirectUrl = switch (resolveLaunchTarget(idToken)) {
+            case EXERCISE -> resolveExerciseUrl(ctx, id);
+            case EXERCISE_SETTINGS -> resolveExerciseSettingsUrl(ctx);
+            case DEEP_LINKING -> resolveDeepLinkingUrl(ctx);
+        };
+        log.info("LTI launch redirect, url:{}", redirectUrl);
+        response.sendRedirect(redirectUrl);
     }
 
     private enum LaunchTarget {
@@ -184,23 +178,7 @@ public class LtiController {
         DEEP_LINKING
     }
 
-    @SneakyThrows
-    private void handleLaunch(@NotNull LaunchTarget defaultTarget, @Nullable Long fallbackExerciseId,
-                              HttpServletRequest request, HttpServletResponse response) {
-        Jwt idToken = authenticateFromLti13ResourceLinkRequest(request, response);
-        LtiContext ctx = ltiProvider.getCurrentLtiContext()
-                .orElseThrow(() -> new IllegalArgumentException("LTI context absent"));
-
-        String redirectUrl = switch (resolveLaunchTarget(idToken, defaultTarget)) {
-            case EXERCISE -> resolveExerciseUrl(ctx, fallbackExerciseId);
-            case EXERCISE_SETTINGS -> resolveExerciseSettingsUrl(ctx);
-            case DEEP_LINKING -> resolveDeepLinkingUrl(ctx);
-        };
-        log.info("LTI launch redirect, url:{}", redirectUrl);
-        response.sendRedirect(redirectUrl);
-    }
-
-    private static @NotNull LaunchTarget resolveLaunchTarget(@NotNull Jwt idToken, @NotNull LaunchTarget defaultTarget) {
+    private static @NotNull LaunchTarget resolveLaunchTarget(@NotNull Jwt idToken) {
         if (LTI_MESSAGE_TYPE_DEEP_LINKING.equals(idToken.getClaimAsString(LTI_CLAIM_MESSAGE_TYPE))) {
             return LaunchTarget.DEEP_LINKING;
         }
@@ -209,7 +187,7 @@ public class LtiController {
                 .equals(custom.get(DeepLinkingResponseService.CUSTOM_PAGE))) {
             return LaunchTarget.EXERCISE_SETTINGS;
         }
-        return defaultTarget;
+        return LaunchTarget.EXERCISE;
     }
 
     private @NotNull String resolveExerciseUrl(@NotNull LtiContext ctx, @Nullable Long fallbackExerciseId) {

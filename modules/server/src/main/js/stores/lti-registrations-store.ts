@@ -18,7 +18,7 @@ export class LtiInviteForm {
     }
 
     get inviteUrl(): string | null {
-        return this.invite ? `${window.location.origin}/lti/1_3/register/${this.invite.token}` : null;
+        return this.invite ? `${window.location.origin}/lti/register/${this.invite.token}` : null;
     }
 
     setDescription(description: string) {

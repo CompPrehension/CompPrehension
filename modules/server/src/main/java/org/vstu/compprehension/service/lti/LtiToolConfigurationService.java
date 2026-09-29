@@ -35,15 +35,15 @@ public class LtiToolConfigurationService implements LtiToolConfigurationProvider
     }
 
     public @NotNull String getLaunchUrl() {
-        return getBaseUrl() + "/lti/1_3/launch";
+        return getBaseUrl() + "/lti/launch";
     }
 
     public @NotNull String getLoginUrl() {
-        return getBaseUrl() + "/lti/1_3/login";
+        return getBaseUrl() + "/lti/login";
     }
 
     public @NotNull String getJwksUrl() {
-        return getBaseUrl() + "/lti/1_3/jwks";
+        return getBaseUrl() + "/lti/jwks";
     }
 
     public @NotNull Optional<RSAPublicKey> findPublicKey() {

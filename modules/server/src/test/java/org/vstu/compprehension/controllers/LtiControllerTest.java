@@ -159,7 +159,7 @@ class LtiControllerTest extends AbstractIntegrationTest {
     @Test
     void jwksPublishesToolKey() throws Exception {
         // Act.
-        var result = mockMvc.perform(get("/lti/1_3/jwks"));
+        var result = mockMvc.perform(get("/lti/jwks"));
 
         // Assert.
         result.andExpect(status().isOk())
@@ -176,7 +176,7 @@ class LtiControllerTest extends AbstractIntegrationTest {
         var login = startLogin(REGISTERED_ISSUER, REGISTERED_CLIENT_ID);
 
         // Act.
-        var result = launchExerciseSettings(login, sign(validClaims(login.nonce()).build(), platformPrivateKey()));
+        var result = launch(login, sign(settingsPageClaims(login.nonce()).build(), platformPrivateKey()));
 
         // Assert.
         result.andExpect(status().is3xxRedirection())
@@ -192,7 +192,7 @@ class LtiControllerTest extends AbstractIntegrationTest {
         var login = startLogin(REGISTERED_ISSUER, REGISTERED_CLIENT_ID);
 
         // Act.
-        var result = launchExerciseSettings(login, sign(validClaims(login.nonce()).build(), platformPrivateKey()));
+        var result = launch(login, sign(settingsPageClaims(login.nonce()).build(), platformPrivateKey()));
 
         // Assert.
         result.andExpect(status().is3xxRedirection())
@@ -206,11 +206,11 @@ class LtiControllerTest extends AbstractIntegrationTest {
         // Arrange.
         TestLtiContextProvider.launchedFromCourse(TestData.Courses.MAIN_EXTERNAL_ID);
         var login = startLogin(REGISTERED_ISSUER, REGISTERED_CLIENT_ID);
-        // В validClaims нет claim tool_platform с типом LMS.
-        var idToken = sign(validClaims(login.nonce()).build(), platformPrivateKey());
+        // В settingsPageClaims нет claim tool_platform с типом LMS.
+        var idToken = sign(settingsPageClaims(login.nonce()).build(), platformPrivateKey());
 
         // Act.
-        var result = launchExerciseSettings(login, idToken).andReturn();
+        var result = launch(login, idToken).andReturn();
 
         // Assert.
         // Контроллер берёт контекст из TestLtiContextProvider, а сессионный LtiContextHolder заполняется из id_token.
@@ -228,7 +228,7 @@ class LtiControllerTest extends AbstractIntegrationTest {
         var login = startLogin(REGISTERED_ISSUER, REGISTERED_CLIENT_ID);
 
         // Act.
-        var result = launchExerciseSettings(login, sign(validClaims(login.nonce()).build(), platformPrivateKey()));
+        var result = launch(login, sign(validClaims(login.nonce()).build(), platformPrivateKey()));
 
         // Assert.
         result.andExpect(status().isForbidden())
@@ -246,7 +246,7 @@ class LtiControllerTest extends AbstractIntegrationTest {
         var login = startLogin(REGISTERED_ISSUER, REGISTERED_CLIENT_ID);
 
         // Act.
-        var result = launchExerciseSettings(login, sign(validClaims(login.nonce()).build(), platformPrivateKey()))
+        var result = launch(login, sign(validClaims(login.nonce()).build(), platformPrivateKey()))
                 .andReturn();
 
         // Assert.
@@ -266,7 +266,7 @@ class LtiControllerTest extends AbstractIntegrationTest {
         var login = startLogin(REGISTERED_ISSUER, REGISTERED_CLIENT_ID);
 
         // Act.
-        var result = launchExerciseSettings(login, sign(validClaims(login.nonce()).build(), platformPrivateKey()));
+        var result = launch(login, sign(validClaims(login.nonce()).build(), platformPrivateKey()));
 
         // Assert.
         result.andExpect(status().isForbidden());
@@ -283,7 +283,7 @@ class LtiControllerTest extends AbstractIntegrationTest {
         var login = startLogin(REGISTERED_ISSUER, REGISTERED_CLIENT_ID);
 
         // Act.
-        var result = mockMvc.perform(post("/lti/1_3/launch")
+        var result = mockMvc.perform(post("/lti/launch")
                 .session(login.session())
                 .param("id", String.valueOf(TestData.Exercises.MAIN_COURSE_ID))
                 .param("id_token", sign(validClaims(login.nonce()).build(), platformPrivateKey()))
@@ -306,25 +306,7 @@ class LtiControllerTest extends AbstractIntegrationTest {
                 .build();
 
         // Act.
-        var result = launch("/lti/1_3/launch", login, sign(claims, platformPrivateKey()));
-
-        // Assert.
-        result.andExpect(status().is3xxRedirection())
-                .andExpect(redirectedUrl("/pages/exercise-settings?courseId=" + TestData.Courses.MAIN_ID));
-    }
-
-    /** Старый адрес упражнения тоже понимает custom-параметр страницы: Tool URL старых инструментов — /exercise. */
-    @Test
-    void legacyExerciseLaunchWithSettingsPageOpensExerciseSettings() throws Exception {
-        // Arrange.
-        TestLtiContextProvider.launchedFromCourse(TestData.Courses.MAIN_EXTERNAL_ID);
-        var login = startLogin(REGISTERED_ISSUER, REGISTERED_CLIENT_ID);
-        var claims = validClaims(login.nonce())
-                .claim(CUSTOM_CLAIM, Map.of("compph_page", "exercise-settings"))
-                .build();
-
-        // Act.
-        var result = launch("/lti/1_3/exercise", login, sign(claims, platformPrivateKey()));
+        var result = launch(login, sign(claims, platformPrivateKey()));
 
         // Assert.
         result.andExpect(status().is3xxRedirection())
@@ -343,7 +325,7 @@ class LtiControllerTest extends AbstractIntegrationTest {
                 .build();
 
         // Act.
-        var result = launch("/lti/1_3/launch", login, sign(claims, platformPrivateKey()));
+        var result = launch(login, sign(claims, platformPrivateKey()));
 
         // Assert.
         result.andExpect(status().is3xxRedirection())
@@ -361,7 +343,7 @@ class LtiControllerTest extends AbstractIntegrationTest {
         var idToken = new PlainJWT(validClaims(login.nonce()).build()).serialize();
 
         // Act.
-        var result = launchExerciseSettings(login, idToken);
+        var result = launch(login, idToken);
 
         // Assert.
         result.andExpect(status().isForbidden())
@@ -377,7 +359,7 @@ class LtiControllerTest extends AbstractIntegrationTest {
         var foreignKey = KeyPairGenerator.getInstance("RSA").generateKeyPair().getPrivate();
 
         // Act.
-        var result = launchExerciseSettings(login, sign(validClaims(login.nonce()).build(), foreignKey));
+        var result = launch(login, sign(validClaims(login.nonce()).build(), foreignKey));
 
         // Assert.
         result.andExpect(status().isForbidden())
@@ -393,7 +375,7 @@ class LtiControllerTest extends AbstractIntegrationTest {
         var claims = validClaims(login.nonce()).audience("foreign-client").build();
 
         // Act.
-        var result = launchExerciseSettings(login, sign(claims, platformPrivateKey()));
+        var result = launch(login, sign(claims, platformPrivateKey()));
 
         // Assert.
         result.andExpect(status().isForbidden());
@@ -406,10 +388,10 @@ class LtiControllerTest extends AbstractIntegrationTest {
         registerSecondTool("course-tool");
         TestLtiContextProvider.launchedFromCourse(TestData.Courses.MAIN_EXTERNAL_ID);
         var login = startLogin(REGISTERED_ISSUER, "course-tool");
-        var claims = validClaims(login.nonce()).audience("course-tool").build();
+        var claims = settingsPageClaims(login.nonce()).audience("course-tool").build();
 
         // Act.
-        var result = launchExerciseSettings(login, sign(claims, platformPrivateKey()));
+        var result = launch(login, sign(claims, platformPrivateKey()));
 
         // Assert.
         result.andExpect(status().is3xxRedirection())
@@ -426,7 +408,7 @@ class LtiControllerTest extends AbstractIntegrationTest {
         var claims = validClaims(login.nonce()).audience(List.of(REGISTERED_CLIENT_ID, "course-tool")).build();
 
         // Act.
-        var result = launchExerciseSettings(login, sign(claims, platformPrivateKey()));
+        var result = launch(login, sign(claims, platformPrivateKey()));
 
         // Assert.
         result.andExpect(status().isForbidden());
@@ -441,7 +423,7 @@ class LtiControllerTest extends AbstractIntegrationTest {
         var claims = validClaims(login.nonce()).issuer("https://evil.test").build();
 
         // Act.
-        var result = launchExerciseSettings(login, sign(claims, platformPrivateKey()));
+        var result = launch(login, sign(claims, platformPrivateKey()));
 
         // Assert.
         result.andExpect(status().isForbidden());
@@ -460,7 +442,7 @@ class LtiControllerTest extends AbstractIntegrationTest {
                 .build();
 
         // Act.
-        var result = launchExerciseSettings(login, sign(claims, platformPrivateKey()));
+        var result = launch(login, sign(claims, platformPrivateKey()));
 
         // Assert.
         result.andExpect(status().isForbidden());
@@ -477,7 +459,7 @@ class LtiControllerTest extends AbstractIntegrationTest {
         var foreignLogin = new Login(login.session(), login.redirectUrl(), "unknown-state", login.nonce());
 
         // Act.
-        var result = launchExerciseSettings(foreignLogin, sign(validClaims(login.nonce()).build(), platformPrivateKey()));
+        var result = launch(foreignLogin, sign(validClaims(login.nonce()).build(), platformPrivateKey()));
 
         // Assert.
         result.andExpect(status().isForbidden())
@@ -492,7 +474,7 @@ class LtiControllerTest extends AbstractIntegrationTest {
         var login = startLogin(REGISTERED_ISSUER, REGISTERED_CLIENT_ID);
 
         // Act.
-        var result = launchExerciseSettings(login, sign(validClaims("foreign-nonce").build(), platformPrivateKey()));
+        var result = launch(login, sign(validClaims("foreign-nonce").build(), platformPrivateKey()));
 
         // Assert.
         result.andExpect(status().isForbidden());
@@ -504,11 +486,11 @@ class LtiControllerTest extends AbstractIntegrationTest {
         // Arrange.
         TestLtiContextProvider.launchedFromCourse(TestData.Courses.MAIN_EXTERNAL_ID);
         var login = startLogin(REGISTERED_ISSUER, REGISTERED_CLIENT_ID);
-        var idToken = sign(validClaims(login.nonce()).build(), platformPrivateKey());
-        launchExerciseSettings(login, idToken).andExpect(status().is3xxRedirection());
+        var idToken = sign(settingsPageClaims(login.nonce()).build(), platformPrivateKey());
+        launch(login, idToken).andExpect(status().is3xxRedirection());
 
         // Act.
-        var result = launchExerciseSettings(login, idToken);
+        var result = launch(login, idToken);
 
         // Assert.
         result.andExpect(status().isForbidden());
@@ -522,7 +504,7 @@ class LtiControllerTest extends AbstractIntegrationTest {
         // Arrange.
         TestLtiContextProvider.launchedFromCourse(TestData.Courses.MAIN_EXTERNAL_ID);
         var login = startLogin(REGISTERED_ISSUER, REGISTERED_CLIENT_ID);
-        launchExerciseSettings(login, sign(validClaims(login.nonce()).build(), platformPrivateKey()))
+        launch(login, sign(settingsPageClaims(login.nonce()).build(), platformPrivateKey()))
                 .andExpect(status().is3xxRedirection());
 
         // Act.
@@ -547,26 +529,27 @@ class LtiControllerTest extends AbstractIntegrationTest {
     }
 
     private ResultActions performLogin(String issuer, String clientId) throws Exception {
-        var request = post("/lti/1_3/login")
+        var request = post("/lti/login")
                 .param("iss", issuer)
                 .param("login_hint", "lti-user")
                 .param("lti_message_hint", "message-hint")
-                .param("target_link_uri", "https://tool.test/lti/1_3/exercise-settings");
+                .param("target_link_uri", "https://tool.test/lti/launch");
         if (clientId != null) {
             request.param("client_id", clientId);
         }
         return mockMvc.perform(request);
     }
 
-    private ResultActions launchExerciseSettings(Login login, String idToken) throws Exception {
-        return launch("/lti/1_3/exercise-settings", login, idToken);
-    }
-
-    private ResultActions launch(String path, Login login, String idToken) throws Exception {
-        return mockMvc.perform(post(path)
+    private ResultActions launch(Login login, String idToken) throws Exception {
+        return mockMvc.perform(post("/lti/launch")
                 .session(login.session())
                 .param("id_token", idToken)
                 .param("state", login.state()));
+    }
+
+    /** Запуск страницы настройки упражнений курса: ей не нужен id упражнения. */
+    private static JWTClaimsSet.Builder settingsPageClaims(String nonce) {
+        return validClaims(nonce).claim(CUSTOM_CLAIM, Map.of("compph_page", "exercise-settings"));
     }
 
     private static JWTClaimsSet.Builder validClaims(String nonce) {

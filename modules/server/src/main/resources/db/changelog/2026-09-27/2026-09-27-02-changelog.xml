@@ -43,8 +43,6 @@
         </rollback>
     </changeSet>
 
-    <!-- До этой миграции user.external_id хранил issuer + '_' + sub последнего входа;
-         issuer провайдера входа на сайт вида https://host/realms/realm. -->
     <changeSet id="2026-09-27-02-user-idp-identity" author="Artem Prokudin">
         <sql>
             alter table user

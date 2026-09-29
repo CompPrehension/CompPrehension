@@ -36,7 +36,6 @@
         </rollback>
     </changeSet>
 
-    <!-- До этой миграции у LMS была одна регистрация, а адрес колонки журнала Moodle начинается с её issuer. -->
     <changeSet id="2026-09-27-03-exercise-attempt-lti-client" author="Artem Prokudin">
         <sql>
             alter table exercise_attempt
@@ -59,7 +58,6 @@
         </rollback>
     </changeSet>
 
-    <!-- URL LMS в education_resource раньше обрезался до хоста; LMS из подкаталога получает свой путь. -->
     <changeSet id="2026-09-27-03-education-resource-url-with-path" author="Artem Prokudin">
         <sql>
             update education_resource er

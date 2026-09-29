@@ -23,8 +23,6 @@
         </rollback>
     </changeSet>
 
-    <!-- 2026-08-29-03-migrate-legacy-user-role превратил LTI-преподавателей в глобальных авторов.
-         У учёток Keycloak issuer вида https://host/realms/realm, у LTI — адрес LMS. -->
     <changeSet id="2026-09-27-01-revoke-legacy-lti-global-exercise-author" author="Artem Prokudin">
         <sql>
             delete rua from role_user_assignment rua
