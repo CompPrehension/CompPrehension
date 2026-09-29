@@ -2,6 +2,7 @@ package org.vstu.compprehension.controllers;
 
 import lombok.RequiredArgsConstructor;
 import lombok.extern.log4j.Log4j2;
+import org.jetbrains.annotations.Nullable;
 import org.springframework.http.HttpStatus;
 import org.springframework.http.MediaType;
 import org.springframework.http.ResponseEntity;
@@ -10,6 +11,8 @@ import org.springframework.web.bind.annotation.DeleteMapping;
 import org.springframework.web.bind.annotation.GetMapping;
 import org.springframework.web.bind.annotation.PathVariable;
 import org.springframework.web.bind.annotation.PostMapping;
+import org.springframework.web.bind.annotation.PutMapping;
+import org.springframework.web.bind.annotation.RequestBody;
 import org.springframework.web.bind.annotation.RequestParam;
 import org.springframework.web.bind.annotation.ResponseBody;
 import org.springframework.web.client.RestClientException;
@@ -19,7 +22,10 @@ import org.vstu.compprehension.frontend.LtiRegistrationFrontendService;
 import org.vstu.compprehension.frontend.UserFrontendService;
 import org.vstu.compprehension.frontend.dto.LtiRegistrationDto;
 import org.vstu.compprehension.frontend.dto.LtiRegistrationInviteDto;
+import org.vstu.compprehension.frontend.dto.LtiToolConfigurationDto;
+import org.vstu.compprehension.frontend.dto.NewLtiRegistrationDto;
 import org.vstu.compprehension.service.lti.LtiDynamicRegistrationService;
+import org.vstu.compprehension.service.lti.LtiToolConfigurationService;
 
 import java.util.List;
 
@@ -29,15 +35,19 @@ import java.util.List;
 public class LtiRegistrationController {
 
     private final LtiDynamicRegistrationService dynamicRegistrationService;
+    private final LtiToolConfigurationService toolConfigurationService;
     private final LtiRegistrationFrontendService ltiRegistrationService;
     private final UserFrontendService userService;
     private final AuthFrontendService authService;
+
+    public record DescriptionRequest(@Nullable String description) {
+    }
 
     /**
      * Ссылка динамической регистрации: её открывает LMS ("Add LTI Advantage" в Moodle), добавив адрес своих
      * настроек и токен регистрации. Ответ — страница в окне LMS, поэтому и ошибки отдаются страницей.
      */
-    @GetMapping(value = "lti/1_3/register/{inviteToken}", produces = MediaType.TEXT_HTML_VALUE)
+    @GetMapping(value = "lti/register/{inviteToken}", produces = MediaType.TEXT_HTML_VALUE)
     @ResponseBody
     public ResponseEntity<String> register(@PathVariable String inviteToken,
                                            @RequestParam("openid_configuration") String openidConfigurationUrl,
@@ -64,13 +74,34 @@ public class LtiRegistrationController {
         return ltiRegistrationService.getAll();
     }
 
+    @GetMapping("api/lti/tool-configuration")
+    @ResponseBody
+    public LtiToolConfigurationDto getToolConfiguration() {
+        authService.ensureCanRegisterLms(userService.getCurrentUserId());
+        return ltiRegistrationService.getToolConfiguration();
+    }
+
+    @PostMapping("api/lti/registrations")
+    @ResponseBody
+    public LtiRegistrationDto registerManually(@RequestBody NewLtiRegistrationDto registration) {
+        authService.ensureCanRegisterLms(userService.getCurrentUserId());
+        return ltiRegistrationService.registerManually(registration);
+    }
+
     @PostMapping("api/lti/registrations/invites")
     @ResponseBody
-    public LtiRegistrationInviteDto createInvite() {
+    public LtiRegistrationInviteDto createInvite(@RequestBody DescriptionRequest request) {
         var userId = userService.getCurrentUserId();
         authService.ensureCanRegisterLms(userId);
-        dynamicRegistrationService.ensureConfigured();
-        return ltiRegistrationService.createInvite(userId);
+        toolConfigurationService.ensureConfigured();
+        return ltiRegistrationService.createInvite(userId, request.description());
+    }
+
+    @PutMapping("api/lti/registrations/{registrationId}/description")
+    @ResponseBody
+    public void updateDescription(@PathVariable long registrationId, @RequestBody DescriptionRequest request) {
+        authService.ensureCanRegisterLms(userService.getCurrentUserId());
+        ltiRegistrationService.updateDescription(registrationId, request.description());
     }
 
     @DeleteMapping("api/lti/registrations/{registrationId}")

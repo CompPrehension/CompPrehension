@@ -2,12 +2,14 @@ package org.vstu.compprehension.services;
 
 import lombok.RequiredArgsConstructor;
 import org.jetbrains.annotations.NotNull;
+import org.jetbrains.annotations.Nullable;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
 import org.vstu.compprehension.data.lti.LtiRegistrationData;
 import org.vstu.compprehension.data.lti.LtiRegistrationInviteData;
 import org.vstu.compprehension.data.lti.NewLtiRegistrationData;
 import org.vstu.compprehension.enums.EducationResourceTrustStatus;
+import org.vstu.compprehension.enums.LtiRegistrationMethod;
 import org.vstu.compprehension.repositories.data.ExternalSystemDataRepository;
 
 import java.nio.charset.StandardCharsets;
@@ -32,8 +34,13 @@ class LtiRegistrationDataServiceImpl implements LtiRegistrationDataService {
     private final ExternalSystemDataRepository externalSystems;
 
     @Transactional(readOnly = true)
-    public @NotNull Optional<LtiRegistrationData> findByIssuer(@NotNull String issuer) {
-        return externalSystems.findLtiRegistration(issuer);
+    public @NotNull Optional<LtiRegistrationData> findByIssuerAndClientId(@NotNull String issuer, @NotNull String clientId) {
+        return externalSystems.findLtiRegistration(issuer, clientId);
+    }
+
+    @Transactional(readOnly = true)
+    public @NotNull List<LtiRegistrationData> findAllByIssuer(@NotNull String issuer) {
+        return externalSystems.findLtiRegistrations(issuer);
     }
 
     @Transactional(readOnly = true)
@@ -42,7 +49,7 @@ class LtiRegistrationDataServiceImpl implements LtiRegistrationDataService {
     }
 
     @Transactional
-    public @NotNull LtiRegistrationInviteData createInvite(long createdByUserId) {
+    public @NotNull LtiRegistrationInviteData createInvite(long createdByUserId, @Nullable String description) {
         byte[] tokenBytes = new byte[INVITE_TOKEN_BYTES];
         RANDOM.nextBytes(tokenBytes);
         String token = Base64.getUrlEncoder().withoutPadding().encodeToString(tokenBytes);
@@ -50,7 +57,7 @@ class LtiRegistrationDataServiceImpl implements LtiRegistrationDataService {
         var now = Instant.now();
         var expiresAt = now.plus(INVITE_TTL);
 
-        externalSystems.createLtiRegistrationInvite(hash(token), createdByUserId, now, expiresAt);
+        externalSystems.createLtiRegistrationInvite(hash(token), description, createdByUserId, now, expiresAt);
 
         return new LtiRegistrationInviteData(token, expiresAt);
     }
@@ -73,12 +80,31 @@ class LtiRegistrationDataServiceImpl implements LtiRegistrationDataService {
         var now = Instant.now();
         long inviteId = externalSystems.lockUsableLtiRegistrationInvite(hash(inviteToken), now)
                 .orElseThrow(() -> new SecurityException("LTI registration link is unknown, expired or already used"));
-        if (externalSystems.findLtiRegistration(registration.issuer()).isPresent()) {
-            throw new IllegalStateException(String.format(
-                    "LMS %s is already registered: delete the existing registration first", registration.issuer()));
-        }
+        var description = externalSystems.findLtiRegistrationInviteDescription(inviteId).orElse(null);
+        var created = register(registration, description, LtiRegistrationMethod.LINK);
+        externalSystems.markLtiRegistrationInviteUsed(inviteId, created.id(), now);
+        return created;
+    }
 
-        // Ссылку выдал наш администратор — это и есть одобрение LMS, поэтому она становится доверенной.
+    @Transactional
+    public @NotNull LtiRegistrationData registerManually(@NotNull NewLtiRegistrationData registration,
+                                                         @Nullable String description) {
+        return register(registration, description, LtiRegistrationMethod.MANUAL);
+    }
+
+    @Transactional
+    public void updateDescription(long registrationId, @Nullable String description) {
+        externalSystems.updateLtiRegistrationDescription(registrationId, description);
+    }
+
+    /** Регистрацию заводит администратор, поэтому LMS становится доверенной. */
+    private @NotNull LtiRegistrationData register(@NotNull NewLtiRegistrationData registration,
+                                                  @Nullable String description,
+                                                  @NotNull LtiRegistrationMethod method) {
+        if (externalSystems.findLtiRegistration(registration.issuer(), registration.clientId()).isPresent()) {
+            throw new IllegalStateException(String.format("Tool with client_id %s of LMS %s is already registered",
+                    registration.clientId(), registration.issuer()));
+        }
         var educationResource = externalSystems.findEducationResource(registration.lmsUrl(), registration.lmsType())
                 .orElseGet(() -> externalSystems.createEducationResourceIfAbsent(
                         registration.lmsUrl(), registration.lmsType(), EducationResourceTrustStatus.TRUSTED));
@@ -89,14 +115,7 @@ class LtiRegistrationDataServiceImpl implements LtiRegistrationDataService {
             educationResource = externalSystems.updateEducationResourceTrustStatus(
                     educationResource.id(), EducationResourceTrustStatus.TRUSTED);
         }
-        if (externalSystems.existsLtiRegistration(educationResource.id())) {
-            throw new IllegalStateException(String.format(
-                    "LMS %s is already registered: delete the existing registration first", registration.lmsUrl()));
-        }
-
-        var created = externalSystems.createLtiRegistration(educationResource.id(), registration);
-        externalSystems.markLtiRegistrationInviteUsed(inviteId, created.id(), now);
-        return created;
+        return externalSystems.createLtiRegistration(educationResource.id(), registration, description, method);
     }
 
     private static @NotNull String hash(@NotNull String inviteToken) {

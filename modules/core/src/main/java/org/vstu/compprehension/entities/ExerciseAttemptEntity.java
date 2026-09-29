@@ -58,7 +58,10 @@ public class ExerciseAttemptEntity {
     @Column(name = "lti_lineitem_url", length = 512)
     private String ltiLineitemUrl;
 
-    /** LTI {@code context.id} - идентификатор курса в LMS. {@code null} при прямом доступе через Keycloak. */
-    @Column(name = "lti_context_id", length = 255)
-    private String ltiContextId;
+    /** Вместе с {@code ltiClientId} — инструмент LMS, через который создана колонка журнала: оценку в неё принимают только от его имени. */
+    @Column(name = "lti_issuer", length = 512)
+    private String ltiIssuer;
+
+    @Column(name = "lti_client_id", length = 255)
+    private String ltiClientId;
 }

@@ -1,0 +1,37 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<databaseChangeLog xmlns="http://www.liquibase.org/xml/ns/dbchangelog"
+                   xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance"
+                   xsi:schemaLocation="http://www.liquibase.org/xml/ns/dbchangelog
+                       http://www.liquibase.org/xml/ns/dbchangelog/dbchangelog-4.5.xsd">
+
+    <changeSet id="2026-09-27-01-course-teacher-copies-to-global-pool" author="Artem Prokudin">
+        <sql>
+            insert into role_permission (role_id, permission_id)
+            select r.id, p.id
+            from role r
+            join permission p on p.name = 'COPY_EXERCISE_TO_GLOBAL_POOL'
+            where r.name in ('EDUCATION_RESOURCE_ADMIN', 'TEACHER');
+        </sql>
+        <rollback>
+            <sql>
+                delete rp from role_permission rp
+                join role r       on r.id = rp.role_id
+                join permission p on p.id = rp.permission_id
+                where r.name in ('EDUCATION_RESOURCE_ADMIN', 'TEACHER')
+                  and p.name = 'COPY_EXERCISE_TO_GLOBAL_POOL';
+            </sql>
+        </rollback>
+    </changeSet>
+
+    <changeSet id="2026-09-27-01-revoke-legacy-lti-global-exercise-author" author="Artem Prokudin">
+        <sql>
+            delete rua from role_user_assignment rua
+            join role r on r.id = rua.role_id
+            join user u on u.id = rua.user_id
+            where r.name = 'GLOBAL_EXERCISE_AUTHOR'
+              and u.external_id not like '%/realms/%';
+        </sql>
+        <rollback/>
+    </changeSet>
+
+</databaseChangeLog>

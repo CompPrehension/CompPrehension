@@ -11,7 +11,5 @@ public record UserAccountData(
         long id,
         @Nullable String firstName,
         @NotNull String email,
-        @NotNull Language language,
-        @Nullable String externalId,
-        @Nullable String externalUserId) {
+        @NotNull Language language) {
 }

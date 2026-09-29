@@ -32,6 +32,13 @@ INSERT IGNORE INTO questions_meta (id, name, domain_shortname, tag_bits, concept
 insert ignore into education_resource (id, url, type, trust_status)
 values (-1, 'https://lms.test.local', 'MOODLE', 'TRUSTED');
 
+-- LMS without JWKS: its public key is stored, the matching private key is test.lti.platform-private-key-pkcs8-base64
+insert ignore into lti_registration (id, education_resource_id, issuer, client_id, deployment_id, method,
+                                     authorization_endpoint, token_endpoint, jwks_uri, platform_public_key, created_at)
+values (-1, -1, 'https://lms.test.local', 'test-client', null, 'MANUAL',
+        'https://lms.test.local/mod/lti/auth.php', 'https://lms.test.local/mod/lti/token.php', null,
+        'MIIBIjANBgkqhkiG9w0BAQEFAAOCAQ8AMIIBCgKCAQEAuWipPhyOLz0MY3ty/NPPRivN0lKte1osjM+KiSCMPilPvGSg8DUYsEtcZbYyrtUUZ3+YCKd5+iU01P3lpS3b8SgTJner29XCmWltXxmoQQNdYoseTguELNeNXlmNxR+OVtYwO24vZfG3/2epx03OvGlbo06CSeoMLv5kLXwxNLhLs0nApBor4u0j28r4TQYY3gl3RhaViI971PUprBUBsX3m9V0vB1P+qcVF3g7gtWsC0CZynQ67e+NUR8ofGlQ/DOnWRLVIV4vcix/u+I8BG9j5+z0CCFNbcHX6Dl8eaiHOCC2kwcEFGEB0rnZ4eLZD7KXv9gZ8R+TcumamnABJ5wIDAQAB', '2026-01-01 00:00:00');
+
 insert ignore into course (id, name, external_course_id, education_resource_id) values
     (-1, 'Main test course',  'ext-course-1', -1),
     (-2, 'Other test course', 'ext-course-2', -1);

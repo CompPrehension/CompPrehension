@@ -1,5 +1,5 @@
 import { __toESM } from "./rolldown-runtime-ClB4ozQ6.js";
-import { Alert_default, Badge, BrowserRouter, Bug, Button, Dropdown_default, Droppable, Form_default, InputGroup_default, Link, ListGroup_default, Modal_default, Navbar_default, Navigate, Pagination_default, Popover, PopoverContent, PopoverTrigger, ResizeMirror, Route, Routes, Spinner, StateManagedSelect$1, Table, Type, X, absurd, action, array, autorun, boolean, chain, components, configure, esm_default, failure, fromArray, import_lib, initReactI18next, instance, intersection, isLeft, isNonEmpty, isNone, isRight, keyof, left, literal, makeAutoObservable, map, nullType, number, observable, observer, partial, pe, pipe, recursion, require_client, require_jsx_runtime, require_react, right, string, success, toJS, tuple, type, undefinedType, union, untracked, useNavigate, useSearchParams, useTranslation } from "./vendor-C622PKTd.js";
+import { Alert_default, Badge, BrowserRouter, Bug, Button, Dropdown_default, Droppable, Form_default, InputGroup_default, Link, ListGroup_default, Modal_default, Navbar_default, Navigate, Pagination_default, Popover, PopoverContent, PopoverTrigger, ResizeMirror, Route, Routes, Spinner, StateManagedSelect$1, Table, ToggleButton, ToggleButtonGroup_default, Type, X, absurd, action, array, autorun, boolean, chain, components, configure, esm_default, failure, fromArray, import_lib, initReactI18next, instance, intersection, isLeft, isNonEmpty, isNone, isRight, keyof, left, literal, makeAutoObservable, map, nullType, number, observable, observer, partial, pe, pipe, recursion, require_client, require_jsx_runtime, require_react, right, string, success, toJS, tuple, type, undefinedType, union, untracked, useNavigate, useSearchParams, useTranslation } from "./vendor-C9E5ggvl.js";
 //#region \0vite/modulepreload-polyfill.js
 (function polyfill() {
 	const relList = document.createElement("link").relList;
@@ -44,6 +44,10 @@ instance.use(initReactI18next).init({
 			language_header: "Language",
 			signedin_as_header: "Signed in as",
 			logout_header: "Logout",
+			logoutModal_title: "Log out",
+			logoutModal_question: "Are you sure you want to log out?",
+			logoutModal_lmsWarning: "The trainer was opened from a learning management system. After logging out, this page will stop working. To log in again, go back to your course and reopen the trainer via its link.",
+			logoutModal_cancel: "Cancel",
 			nextCorrectAnswerBtn: "I'm confused, tell me the next correct step",
 			generateNextQuestion_nextQuestion: "Next question",
 			generateNextQuestion_warning: "Warning",
@@ -155,19 +159,41 @@ instance.use(initReactI18next).init({
 			course_page_importBtn: "Import from global pool",
 			course_page_empty: "This course has no exercises yet",
 			ltiRegistrations_page_title: "LMS connections",
-			ltiRegistrations_connectTitle: "Connect an LMS",
-			ltiRegistrations_connectHint: "Create a one-time link and give it to the LMS administrator: in Moodle it is pasted into “Site administration → Plugins → External tool → Manage tools → Add LTI Advantage”. The link works once and expires in 24 hours.",
+			ltiRegistrations_connectTitle: "Connect by link",
+			ltiRegistrations_connectHint: "Create a one-time link for adding LTI Advantage. The link works once and expires in 24 hours.",
 			ltiRegistrations_createInviteBtn: "Create registration link",
 			ltiRegistrations_copyBtn: "Copy",
 			ltiRegistrations_inviteExpires: "Valid until {{date}}",
-			ltiRegistrations_listTitle: "Connected by registration link",
-			ltiRegistrations_empty: "No LMS connected by registration link yet.",
+			ltiRegistrations_empty: "No LMS connected yet.",
 			ltiRegistrations_lmsColumn: "LMS",
 			ltiRegistrations_createdColumn: "Connected",
+			ltiRegistrations_descriptionColumn: "Description",
+			ltiRegistrations_editBtn: "Edit",
+			ltiRegistrations_editTitle: "Tool description",
+			ltiRegistrations_saveBtn: "Save",
+			ltiRegistrations_methodColumn: "Connected by",
+			ltiRegistrations_methodLink: "Registration link",
+			ltiRegistrations_methodManual: "By hand",
+			ltiRegistrations_manualTitle: "Connect by hand",
+			ltiRegistrations_manualDefaultsHint: "For Moodle the addresses below may be left empty: the standard ones are used.",
+			ltiRegistrations_platformKeyLabel: "LMS key: the tool checks launches from the LMS with it",
+			ltiRegistrations_platformKeyJwks: "Keyset URL (JWKS)",
+			ltiRegistrations_platformKeyPublic: "Public key (PEM)",
+			ltiRegistrations_setupTitle: "How to set up in Moodle",
+			ltiRegistrations_setupOpen: "In Moodle open Site administration → Plugins → External tool → Manage tools → configure a tool manually (a course tool: course → More → LTI External tools) and fill in:",
+			ltiRegistrations_setupEnabled: "enabled",
+			ltiRegistrations_setupEmpty: "leave empty",
+			ltiRegistrations_setupEmailNote: "— without the user's email the launch is refused",
+			ltiRegistrations_setupRsaKey: "If Moodle cannot reach this server, choose Public key type RSA key and paste this key into Public key:",
+			ltiRegistrations_setupBack: "After saving, «View configuration details» of the tool in Moodle shows Platform ID, Client ID and Deployment ID: enter them in «Connect by hand».",
+			ltiRegistrations_authorizationLabel: "Authentication request URL",
+			ltiRegistrations_tokenLabel: "Access token URL",
+			ltiRegistrations_manualBtn: "Connect",
 			ltiRegistrations_deleteBtn: "Delete",
 			ltiRegistrations_cancelBtn: "Cancel",
-			ltiRegistrations_deleteTitle: "Delete LMS registration",
-			ltiRegistrations_deleteBody: "{{lms}} will stop being connected: launches, deep linking and grade passback from it will stop working until it is connected again with a new link. Courses and attempts stay.",
+			ltiRegistrations_closeBtn: "Close",
+			ltiRegistrations_deleteTitle: "Delete tool registration",
+			ltiRegistrations_deleteBody: "Launches, deep linking and grade passback through the tool {{clientId}} of {{lms}} will stop working. Courses and attempts stay. Delete the tool in the LMS too: a new registration creates a new tool there.",
 			deeplink_title: "Add to the Moodle course",
 			deeplink_hint: "Select exercises — Moodle will create an External Tool activity for each.",
 			deeplink_blockHint: "Fill the course with exercises, then in Moodle: “Add an activity or resource” → “CompPrehension” → “Select content” — Moodle will create the activities automatically.",
@@ -209,6 +235,10 @@ instance.use(initReactI18next).init({
 			language_header: "Язык",
 			signedin_as_header: "Пользователь",
 			logout_header: "Выйти",
+			logoutModal_title: "Выход из системы",
+			logoutModal_question: "Вы уверены, что хотите выйти?",
+			logoutModal_lmsWarning: "Тренажер был открыт из системы дистанционного обучения. После выхода эта страница перестанет работать. Для повторного входа вернитесь в курс и повторно откройте тренажер по ссылке.",
+			logoutModal_cancel: "Отмена",
 			nextCorrectAnswerBtn: "Я в замешательстве, подскажи следующий шаг",
 			generateNextQuestion_nextQuestion: "Следующий вопрос",
 			generateNextQuestion_warning: "Предупреждение",
@@ -320,19 +350,41 @@ instance.use(initReactI18next).init({
 			course_page_importBtn: "Импортировать из глобального пула",
 			course_page_empty: "В этом курсе пока нет упражнений",
 			ltiRegistrations_page_title: "Подключения LMS",
-			ltiRegistrations_connectTitle: "Подключить LMS",
-			ltiRegistrations_connectHint: "Создайте одноразовую ссылку и передайте её администратору LMS: в Moodle она вставляется в «Администрирование → Плагины → Внешний инструмент → Управление инструментами → Add LTI Advantage». Ссылка срабатывает один раз и действует 24 часа.",
+			ltiRegistrations_connectTitle: "Подключить по ссылке",
+			ltiRegistrations_connectHint: "Создайте одноразовую ссылку для добавления LTI Advantage. Ссылка срабатывает один раз и действует 24 часа.",
 			ltiRegistrations_createInviteBtn: "Создать ссылку регистрации",
 			ltiRegistrations_copyBtn: "Скопировать",
 			ltiRegistrations_inviteExpires: "Действует до {{date}}",
-			ltiRegistrations_listTitle: "Подключены по ссылке регистрации",
-			ltiRegistrations_empty: "По ссылке регистрации пока не подключено ни одной LMS.",
+			ltiRegistrations_empty: "Пока не подключено ни одной LMS.",
 			ltiRegistrations_lmsColumn: "LMS",
 			ltiRegistrations_createdColumn: "Подключена",
+			ltiRegistrations_descriptionColumn: "Описание",
+			ltiRegistrations_editBtn: "Изменить",
+			ltiRegistrations_editTitle: "Описание инструмента",
+			ltiRegistrations_saveBtn: "Сохранить",
+			ltiRegistrations_methodColumn: "Способ",
+			ltiRegistrations_methodLink: "По ссылке",
+			ltiRegistrations_methodManual: "Вручную",
+			ltiRegistrations_manualTitle: "Подключить вручную",
+			ltiRegistrations_manualDefaultsHint: "Для Moodle адреса ниже можно не заполнять: будут взяты стандартные.",
+			ltiRegistrations_platformKeyLabel: "Ключ LMS: им тренажёр проверяет запуски из LMS",
+			ltiRegistrations_platformKeyJwks: "Адрес ключей (JWKS)",
+			ltiRegistrations_platformKeyPublic: "Открытый ключ (PEM)",
+			ltiRegistrations_setupTitle: "Как настроить в Moodle",
+			ltiRegistrations_setupOpen: "В Moodle откройте Администрирование → Плагины → Внешний инструмент → «Управление инструментами» → «настроить инструмент вручную» (курсовой инструмент: курс → «Ещё» → «LTI External tools») и заполните:",
+			ltiRegistrations_setupEnabled: "включить",
+			ltiRegistrations_setupEmpty: "оставить пустым",
+			ltiRegistrations_setupEmailNote: "— без email пользователя запуск не пройдёт",
+			ltiRegistrations_setupRsaKey: "Если Moodle не может достучаться до этого сервера, выберите Public key type «RSA key» и вставьте в Public key этот ключ:",
+			ltiRegistrations_setupBack: "После сохранения значок «View configuration details» у инструмента в Moodle покажет Platform ID, Client ID и Deployment ID: введите их в «Подключить вручную».",
+			ltiRegistrations_authorizationLabel: "Адрес запроса аутентификации",
+			ltiRegistrations_tokenLabel: "Адрес получения токена",
+			ltiRegistrations_manualBtn: "Подключить",
 			ltiRegistrations_deleteBtn: "Удалить",
 			ltiRegistrations_cancelBtn: "Отмена",
-			ltiRegistrations_deleteTitle: "Удалить регистрацию LMS",
-			ltiRegistrations_deleteBody: "{{lms}} перестанет быть подключённой: запуски, deep linking и передача оценок из неё перестанут работать, пока её не подключат заново новой ссылкой. Курсы и попытки сохранятся.",
+			ltiRegistrations_closeBtn: "Закрыть",
+			ltiRegistrations_deleteTitle: "Удалить регистрацию инструмента",
+			ltiRegistrations_deleteBody: "Запуски, deep linking и передача оценок через инструмент {{clientId}} из {{lms}} перестанут работать. Курсы и попытки сохранятся. Удалите инструмент и в LMS: новая регистрация создаёт там новый инструмент.",
 			deeplink_title: "Добавить в курс Moodle",
 			deeplink_hint: "Выберите упражнения — Moodle создаст по активности «Внешний инструмент» на каждое.",
 			deeplink_blockHint: "Наполните курс упражнениями, затем в Moodle: «Добавить элемент курса» → «CompPrehension» → «Выбрать содержимое» — Moodle создаст активности автоматически.",
@@ -374,6 +426,10 @@ instance.use(initReactI18next).init({
 			language_header: "Język",
 			signedin_as_header: "Zalogowany jako",
 			logout_header: "Wyloguj się",
+			logoutModal_title: "Wylogowanie",
+			logoutModal_question: "Czy na pewno chcesz się wylogować?",
+			logoutModal_lmsWarning: "Trenażer został otwarty z platformy e-learningowej. Po wylogowaniu ta strona przestanie działać. Aby zalogować się ponownie, wróć do kursu i ponownie otwórz trenażer za pomocą linku.",
+			logoutModal_cancel: "Anuluj",
 			nextCorrectAnswerBtn: "Nie wiem co robić dalej, podpowiedz mi następny poprawny krok",
 			generateNextQuestion_nextQuestion: "Następne pytanie",
 			generateNextQuestion_warning: "Ostrzeżenie",
@@ -455,19 +511,41 @@ instance.use(initReactI18next).init({
 			course_page_importBtn: "Importuj z globalnej puli",
 			course_page_empty: "Ten kurs nie ma jeszcze ćwiczeń",
 			ltiRegistrations_page_title: "Połączenia LMS",
-			ltiRegistrations_connectTitle: "Podłącz LMS",
-			ltiRegistrations_connectHint: "Utwórz jednorazowy link i przekaż go administratorowi LMS: w Moodle wkleja się go w „Administracja → Wtyczki → Narzędzie zewnętrzne → Zarządzaj narzędziami → Add LTI Advantage”. Link działa raz i wygasa po 24 godzinach.",
+			ltiRegistrations_connectTitle: "Podłącz linkiem",
+			ltiRegistrations_connectHint: "Utwórz jednorazowy link do dodania LTI Advantage. Link działa raz i wygasa po 24 godzinach.",
 			ltiRegistrations_createInviteBtn: "Utwórz link rejestracyjny",
 			ltiRegistrations_copyBtn: "Kopiuj",
 			ltiRegistrations_inviteExpires: "Ważny do {{date}}",
-			ltiRegistrations_listTitle: "Podłączone linkiem rejestracyjnym",
-			ltiRegistrations_empty: "Żaden LMS nie został jeszcze podłączony linkiem rejestracyjnym.",
+			ltiRegistrations_empty: "Żaden LMS nie jest jeszcze podłączony.",
 			ltiRegistrations_lmsColumn: "LMS",
 			ltiRegistrations_createdColumn: "Podłączono",
+			ltiRegistrations_descriptionColumn: "Opis",
+			ltiRegistrations_editBtn: "Edytuj",
+			ltiRegistrations_editTitle: "Opis narzędzia",
+			ltiRegistrations_saveBtn: "Zapisz",
+			ltiRegistrations_methodColumn: "Sposób",
+			ltiRegistrations_methodLink: "Linkiem",
+			ltiRegistrations_methodManual: "Ręcznie",
+			ltiRegistrations_manualTitle: "Podłącz ręcznie",
+			ltiRegistrations_manualDefaultsHint: "Dla Moodle poniższe adresy można zostawić puste: zostaną użyte standardowe.",
+			ltiRegistrations_platformKeyLabel: "Klucz LMS: trenażer sprawdza nim uruchomienia z LMS",
+			ltiRegistrations_platformKeyJwks: "Adres kluczy (JWKS)",
+			ltiRegistrations_platformKeyPublic: "Klucz publiczny (PEM)",
+			ltiRegistrations_setupTitle: "Jak skonfigurować w Moodle",
+			ltiRegistrations_setupOpen: "W Moodle otwórz Administracja witryny → Wtyczki → Narzędzie zewnętrzne → Zarządzaj narzędziami → skonfiguruj narzędzie ręcznie (narzędzie kursu: kurs → Więcej → LTI External tools) i wypełnij:",
+			ltiRegistrations_setupEnabled: "włączone",
+			ltiRegistrations_setupEmpty: "pozostaw puste",
+			ltiRegistrations_setupEmailNote: "— bez adresu e-mail użytkownika uruchomienie zostanie odrzucone",
+			ltiRegistrations_setupRsaKey: "Jeśli Moodle nie może połączyć się z tym serwerem, wybierz Public key type «RSA key» i wklej ten klucz w Public key:",
+			ltiRegistrations_setupBack: "Po zapisaniu ikona «View configuration details» narzędzia w Moodle pokaże Platform ID, Client ID i Deployment ID: wpisz je w «Podłącz ręcznie».",
+			ltiRegistrations_authorizationLabel: "Adres żądania uwierzytelnienia",
+			ltiRegistrations_tokenLabel: "Adres uzyskania tokenu",
+			ltiRegistrations_manualBtn: "Podłącz",
 			ltiRegistrations_deleteBtn: "Usuń",
 			ltiRegistrations_cancelBtn: "Anuluj",
-			ltiRegistrations_deleteTitle: "Usuń rejestrację LMS",
-			ltiRegistrations_deleteBody: "{{lms}} przestanie być podłączony: uruchomienia, deep linking i przekazywanie ocen przestaną działać, dopóki nie zostanie ponownie podłączony nowym linkiem. Kursy i próby pozostaną.",
+			ltiRegistrations_closeBtn: "Zamknij",
+			ltiRegistrations_deleteTitle: "Usuń rejestrację narzędzia",
+			ltiRegistrations_deleteBody: "Uruchomienia, deep linking i przekazywanie ocen przez narzędzie {{clientId}} z {{lms}} przestaną działać. Kursy i próby zostaną. Usuń narzędzie także w LMS: nowa rejestracja tworzy tam nowe narzędzie.",
 			deeplink_title: "Dodaj do kursu Moodle",
 			deeplink_hint: "Wybierz ćwiczenia — Moodle utworzy dla każdego aktywność „Narzędzie zewnętrzne”.",
 			deeplink_blockHint: "Wypełnij kurs ćwiczeniami, a następnie w Moodle: „Dodaj aktywność lub zasób” → „CompPrehension” → „Wybierz zawartość” — Moodle utworzy aktywności automatycznie.",
@@ -737,7 +815,7 @@ function isNullOrUndefined(value) {
 //#endregion
 //#region src/main/js/components/common/modal.tsx
 var Modal = (props) => {
-	const { title, primaryBtnTitle, primaryBtnVariant, handlePrimaryBtnClicked, secondaryBtnTitle, handleSecondaryBtnClicked, children, closeButton, show, handleClose, type, size } = props;
+	const { title, primaryBtnTitle, primaryBtnVariant, primaryBtnDisabled, handlePrimaryBtnClicked, secondaryBtnTitle, handleSecondaryBtnClicked, children, closeButton, show, handleClose, type, size } = props;
 	return /* @__PURE__ */ (0, import_jsx_runtime.jsx)(Optional, {
 		isVisible: show ?? true,
 		children: /* @__PURE__ */ (0, import_jsx_runtime.jsxs)(ModalWrapper, {
@@ -760,6 +838,7 @@ var Modal = (props) => {
 					children: secondaryBtnTitle
 				}), primaryBtnTitle && /* @__PURE__ */ (0, import_jsx_runtime.jsx)(Button, {
 					variant: primaryBtnVariant ?? "primary",
+					disabled: primaryBtnDisabled,
 					onClick: handlePrimaryBtnClicked ?? void 0,
 					children: primaryBtnTitle
 				})] }) : null
@@ -1514,22 +1593,45 @@ var TLtiRegistration = type({
 	lmsUrl: string,
 	issuer: string,
 	clientId: string,
+	description: union([string, nullType]),
+	method: keyof({
+		LINK: null,
+		MANUAL: null
+	}),
 	createdAt: string
+});
+var TLtiToolConfiguration = type({
+	launchUrl: string,
+	loginUrl: string,
+	jwksUrl: string,
+	publicKeyPem: string
 });
 var TLtiRegistrationInvite = type({
 	token: string,
 	expiresAt: string
 });
 var LtiRegistrationController = class {
-	/** LMS connected by dynamic registration. */
+	/** Tools of connected LMS, however they were connected. */
 	getRegistrations() {
 		return ajaxGet(`/api/lti/registrations`, array(TLtiRegistration));
 	}
-	/** One-time link for the LMS administrator ("Add LTI Advantage" in Moodle). */
-	createInvite() {
-		return ajaxPost(`/api/lti/registrations/invites`, {}, TLtiRegistrationInvite);
+	/** What to enter in the LMS when the tool is registered there by hand. */
+	getToolConfiguration() {
+		return ajaxGet(`/api/lti/tool-configuration`, TLtiToolConfiguration);
 	}
-	/** The LMS stops being connected; it can be connected again with a new link. */
+	/** A tool registered in the LMS by hand, e.g. a Moodle course tool. */
+	registerManually(registration) {
+		return ajaxPost(`/api/lti/registrations`, registration, TLtiRegistration);
+	}
+	/** One-time link for the LMS administrator ("Add LTI Advantage" in Moodle). */
+	createInvite(description) {
+		return ajaxPost(`/api/lti/registrations/invites`, { description }, TLtiRegistrationInvite);
+	}
+	/** A description tells apart several tools of the same LMS; an empty one clears it. */
+	updateDescription(registrationId, description) {
+		return ajaxPut(`/api/lti/registrations/${registrationId}/description`, { description });
+	}
+	/** The tool stops being connected; launches through it are refused. */
 	deleteRegistration(registrationId) {
 		return ajaxDelete(`/api/lti/registrations/${registrationId}`);
 	}
@@ -3067,7 +3169,7 @@ var Pagination = observer(() => {
 //#endregion
 //#region src/main/js/components/common/header.tsx
 var Header = observer((props) => {
-	const { crumbs, pagination, languageHint, language, onLanguageClicked, userHint, user, onUserClicked, userHref, logoutLabel } = props;
+	const { crumbs, pagination, languageHint, language, onLanguageClicked, userHint, user, onUserClicked, userHref, logoutLabel, onLogoutClicked } = props;
 	return /* @__PURE__ */ (0, import_jsx_runtime.jsxs)(Navbar_default, {
 		className: "px-0 flex-wrap comp-ph-header",
 		children: [crumbs && crumbs.length > 0 && /* @__PURE__ */ (0, import_jsx_runtime.jsx)("div", {
@@ -3123,6 +3225,10 @@ var Header = observer((props) => {
 					className: "px-2",
 					children: /* @__PURE__ */ (0, import_jsx_runtime.jsx)("a", {
 						href: "/logout",
+						onClick: onLogoutClicked ? (e) => {
+							e.preventDefault();
+							onLogoutClicked();
+						} : void 0,
 						children: logoutLabel
 					})
 				})
@@ -4350,22 +4456,23 @@ var SiteHeader = observer(({ title, parent }) => {
 	const session = useSession();
 	const navigate = useNavigate();
 	const { t } = useTranslation();
+	const [isLogoutConfirmationShown, setLogoutConfirmationShown] = import_react.useState(false);
 	if (!user) return null;
 	const { isLtiMode } = user.permissions;
 	const onLanguageClicked = () => {
 		session.changeLanguage(user.language === "RU" ? "EN" : "RU");
 	};
-	const crumbs = [];
-	if (!isLtiMode) crumbs.push({
+	const crumbs = [{
 		label: t("courses_page_title"),
 		onClick: () => navigate("/pages/courses")
-	});
+	}];
 	if (parent) crumbs.push({
 		label: parent.label,
 		onClick: () => navigate(parent.to)
 	});
 	if (title) crumbs.push({ label: title });
-	return /* @__PURE__ */ (0, import_jsx_runtime.jsx)(Header, {
+	const hideLogoutConfirmation = () => setLogoutConfirmationShown(false);
+	return /* @__PURE__ */ (0, import_jsx_runtime.jsxs)(import_jsx_runtime.Fragment, { children: [/* @__PURE__ */ (0, import_jsx_runtime.jsx)(Header, {
 		crumbs,
 		languageHint: t("language_header"),
 		language: user.language,
@@ -4373,8 +4480,26 @@ var SiteHeader = observer(({ title, parent }) => {
 		userHint: t("signedin_as_header"),
 		user: user.displayName,
 		userHref: null,
-		logoutLabel: !isLtiMode ? t("logout_header") : null
-	});
+		logoutLabel: t("logout_header"),
+		onLogoutClicked: () => setLogoutConfirmationShown(true)
+	}), /* @__PURE__ */ (0, import_jsx_runtime.jsxs)(Modal, {
+		show: isLogoutConfirmationShown,
+		title: t("logoutModal_title"),
+		closeButton: true,
+		handleClose: hideLogoutConfirmation,
+		primaryBtnTitle: t("logout_header"),
+		primaryBtnVariant: "danger",
+		handlePrimaryBtnClicked: () => window.location.assign(`/logout?returnTo=${encodeURIComponent(window.location.pathname + window.location.search)}`),
+		secondaryBtnTitle: t("logoutModal_cancel"),
+		handleSecondaryBtnClicked: hideLogoutConfirmation,
+		children: [/* @__PURE__ */ (0, import_jsx_runtime.jsx)("p", {
+			className: isLtiMode ? void 0 : "mb-0",
+			children: t("logoutModal_question")
+		}), isLtiMode && /* @__PURE__ */ (0, import_jsx_runtime.jsx)("div", {
+			className: "alert alert-warning mb-0",
+			children: t("logoutModal_lmsWarning")
+		})]
+	})] });
 });
 //#endregion
 //#region src/main/js/components/common/page-layout.tsx
@@ -5663,127 +5788,569 @@ var GlobalPool = observer(() => {
 	});
 });
 //#endregion
-//#region src/main/js/pages/lti-registrations.tsx
-/** Admin page: connect an LMS by a one-time dynamic registration link and see the connected ones. */
-var LtiRegistrationsPage = () => {
+//#region src/main/js/components/lti-registrations/invite-modal.tsx
+var InviteModal = observer(({ form, onClose }) => {
 	const { t } = useTranslation();
-	const user = useCurrentUser();
-	const [registrations, setRegistrations] = (0, import_react.useState)(null);
-	const [loadError, setLoadError] = (0, import_react.useState)(null);
-	const [invite, setInvite] = (0, import_react.useState)(null);
-	const [inviteError, setInviteError] = (0, import_react.useState)(null);
-	const [creatingInvite, setCreatingInvite] = (0, import_react.useState)(false);
-	const [registrationToDelete, setRegistrationToDelete] = (0, import_react.useState)(null);
-	const [deleteError, setDeleteError] = (0, import_react.useState)(null);
-	const loadRegistrations = (0, import_react.useCallback)(async () => {
-		setLoadError(null);
-		const res = await ltiRegistrationController.getRegistrations();
-		if (isRight(res)) setRegistrations(res.right);
-		else setLoadError(res.left);
-	}, []);
-	(0, import_react.useEffect)(() => {
-		loadRegistrations();
-	}, [loadRegistrations]);
-	const createInvite = async () => {
-		setCreatingInvite(true);
-		setInviteError(null);
-		const res = await ltiRegistrationController.createInvite();
-		if (isRight(res)) setInvite(res.right);
-		else setInviteError(res.left);
-		setCreatingInvite(false);
-	};
-	const deleteRegistration = async (registration) => {
-		setRegistrationToDelete(null);
-		setDeleteError(null);
-		const res = await ltiRegistrationController.deleteRegistration(registration.id);
-		if (isLeft(res)) setDeleteError(res.left);
-		await loadRegistrations();
-	};
-	if (!user) return /* @__PURE__ */ (0, import_jsx_runtime.jsx)(Loader, {});
-	const inviteUrl = invite ? `${window.location.origin}/lti/1_3/register/${invite.token}` : null;
-	return /* @__PURE__ */ (0, import_jsx_runtime.jsxs)(PageLayout, {
-		title: t("ltiRegistrations_page_title"),
+	const { invite, inviteUrl } = form;
+	return /* @__PURE__ */ (0, import_jsx_runtime.jsxs)(Modal, {
+		show: true,
+		size: "lg",
+		title: t("ltiRegistrations_connectTitle"),
+		closeButton: true,
+		handleClose: onClose,
+		primaryBtnTitle: invite ? null : t("ltiRegistrations_createInviteBtn"),
+		primaryBtnDisabled: form.creating,
+		handlePrimaryBtnClicked: () => form.createInvite(),
+		secondaryBtnTitle: invite ? t("ltiRegistrations_closeBtn") : t("ltiRegistrations_cancelBtn"),
+		handleSecondaryBtnClicked: onClose,
 		children: [
-			/* @__PURE__ */ (0, import_jsx_runtime.jsx)("h5", { children: t("ltiRegistrations_connectTitle") }),
 			/* @__PURE__ */ (0, import_jsx_runtime.jsx)("p", {
 				className: "text-muted",
 				children: t("ltiRegistrations_connectHint")
 			}),
-			/* @__PURE__ */ (0, import_jsx_runtime.jsx)(Button, {
-				variant: "primary",
-				className: "mb-3",
-				disabled: creatingInvite,
-				onClick: createInvite,
-				children: t("ltiRegistrations_createInviteBtn")
+			invite && inviteUrl ? /* @__PURE__ */ (0, import_jsx_runtime.jsxs)(import_jsx_runtime.Fragment, { children: [/* @__PURE__ */ (0, import_jsx_runtime.jsxs)(InputGroup_default, { children: [/* @__PURE__ */ (0, import_jsx_runtime.jsx)(Form_default.Control, {
+				readOnly: true,
+				value: inviteUrl,
+				onFocus: (e) => e.target.select()
+			}), /* @__PURE__ */ (0, import_jsx_runtime.jsx)(Button, {
+				variant: "outline-secondary",
+				onClick: () => navigator.clipboard.writeText(inviteUrl),
+				children: t("ltiRegistrations_copyBtn")
+			})] }), /* @__PURE__ */ (0, import_jsx_runtime.jsx)(Form_default.Text, {
+				muted: true,
+				children: t("ltiRegistrations_inviteExpires", { date: new Date(invite.expiresAt).toLocaleString() })
+			})] }) : /* @__PURE__ */ (0, import_jsx_runtime.jsxs)(Form_default.Group, { children: [/* @__PURE__ */ (0, import_jsx_runtime.jsx)(Form_default.Label, { children: t("ltiRegistrations_descriptionColumn") }), /* @__PURE__ */ (0, import_jsx_runtime.jsx)(Form_default.Control, {
+				value: form.description,
+				maxLength: 255,
+				autoFocus: true,
+				onChange: (e) => form.setDescription(e.target.value)
+			})] }),
+			form.error && /* @__PURE__ */ (0, import_jsx_runtime.jsx)(LoadFailure, { error: form.error })
+		]
+	});
+});
+//#endregion
+//#region src/main/js/components/lti-registrations/manual-registration-modal.tsx
+var ManualRegistrationModal = observer(({ form, onSubmit, onClose }) => {
+	const { t } = useTranslation();
+	const defaults = form.moodleDefaults;
+	const field = (name, label, options = {}) => /* @__PURE__ */ (0, import_jsx_runtime.jsxs)(Form_default.Group, {
+		className: "mb-2",
+		children: [/* @__PURE__ */ (0, import_jsx_runtime.jsx)(Form_default.Label, { children: label }), /* @__PURE__ */ (0, import_jsx_runtime.jsx)(Form_default.Control, {
+			value: form.fields[name],
+			required: options.required,
+			placeholder: options.placeholder,
+			onChange: (e) => form.setField(name, e.target.value)
+		})]
+	});
+	return /* @__PURE__ */ (0, import_jsx_runtime.jsxs)(Modal, {
+		show: true,
+		size: "lg",
+		title: t("ltiRegistrations_manualTitle"),
+		closeButton: true,
+		handleClose: onClose,
+		primaryBtnTitle: t("ltiRegistrations_manualBtn"),
+		primaryBtnDisabled: !form.canSubmit,
+		handlePrimaryBtnClicked: onSubmit,
+		secondaryBtnTitle: t("ltiRegistrations_cancelBtn"),
+		handleSecondaryBtnClicked: onClose,
+		children: [
+			field("issuer", "Platform ID", {
+				required: true,
+				placeholder: "https://moodle.example.org"
 			}),
-			inviteError && /* @__PURE__ */ (0, import_jsx_runtime.jsx)(LoadFailure, { error: inviteError }),
-			inviteUrl && invite && /* @__PURE__ */ (0, import_jsx_runtime.jsxs)("div", {
-				className: "mb-4",
-				children: [/* @__PURE__ */ (0, import_jsx_runtime.jsxs)(InputGroup_default, { children: [/* @__PURE__ */ (0, import_jsx_runtime.jsx)(Form_default.Control, {
-					readOnly: true,
-					value: inviteUrl,
-					onFocus: (e) => e.target.select()
-				}), /* @__PURE__ */ (0, import_jsx_runtime.jsx)(Button, {
-					variant: "outline-secondary",
-					onClick: () => navigator.clipboard.writeText(inviteUrl),
-					children: t("ltiRegistrations_copyBtn")
-				})] }), /* @__PURE__ */ (0, import_jsx_runtime.jsx)(Form_default.Text, {
-					muted: true,
-					children: t("ltiRegistrations_inviteExpires", { date: new Date(invite.expiresAt).toLocaleString() })
-				})]
+			field("clientId", "Client ID", { required: true }),
+			field("description", t("ltiRegistrations_descriptionColumn")),
+			field("deploymentId", "Deployment ID"),
+			/* @__PURE__ */ (0, import_jsx_runtime.jsx)(Form_default.Text, {
+				muted: true,
+				className: "d-block mb-2",
+				children: t("ltiRegistrations_manualDefaultsHint")
 			}),
-			/* @__PURE__ */ (0, import_jsx_runtime.jsx)("h5", {
-				className: "mt-4",
-				children: t("ltiRegistrations_listTitle")
+			/* @__PURE__ */ (0, import_jsx_runtime.jsxs)(Form_default.Group, {
+				className: "mb-2",
+				children: [
+					/* @__PURE__ */ (0, import_jsx_runtime.jsx)(Form_default.Label, {
+						className: "d-block",
+						children: t("ltiRegistrations_platformKeyLabel")
+					}),
+					/* @__PURE__ */ (0, import_jsx_runtime.jsxs)(ToggleButtonGroup_default, {
+						type: "radio",
+						name: "platformKeyType",
+						size: "sm",
+						className: "mb-2",
+						value: form.fields.platformKeyType,
+						onChange: (type) => form.setPlatformKeyType(type),
+						children: [/* @__PURE__ */ (0, import_jsx_runtime.jsx)(ToggleButton, {
+							id: "platform-key-jwks",
+							value: "JWKS",
+							variant: "outline-secondary",
+							children: t("ltiRegistrations_platformKeyJwks")
+						}), /* @__PURE__ */ (0, import_jsx_runtime.jsx)(ToggleButton, {
+							id: "platform-key-public",
+							value: "PUBLIC_KEY",
+							variant: "outline-secondary",
+							children: t("ltiRegistrations_platformKeyPublic")
+						})]
+					}),
+					form.fields.platformKeyType === "JWKS" ? /* @__PURE__ */ (0, import_jsx_runtime.jsx)(Form_default.Control, {
+						value: form.fields.platformKey,
+						placeholder: defaults.jwksUri,
+						onChange: (e) => form.setField("platformKey", e.target.value)
+					}) : /* @__PURE__ */ (0, import_jsx_runtime.jsx)(Form_default.Control, {
+						as: "textarea",
+						rows: 8,
+						className: "font-monospace",
+						required: true,
+						value: form.fields.platformKey,
+						placeholder: "-----BEGIN PUBLIC KEY-----",
+						onChange: (e) => form.setField("platformKey", e.target.value)
+					})
+				]
 			}),
-			loadError && /* @__PURE__ */ (0, import_jsx_runtime.jsx)(LoadFailure, {
-				error: loadError,
-				onRetry: loadRegistrations
+			field("authorizationEndpoint", t("ltiRegistrations_authorizationLabel"), { placeholder: defaults.authorizationEndpoint }),
+			field("tokenEndpoint", t("ltiRegistrations_tokenLabel"), { placeholder: defaults.tokenEndpoint }),
+			form.error && /* @__PURE__ */ (0, import_jsx_runtime.jsx)(LoadFailure, { error: form.error })
+		]
+	});
+});
+//#endregion
+//#region src/main/js/components/lti-registrations/description-modal.tsx
+var DescriptionModal = observer(({ form, onSave, onClose }) => {
+	const { t } = useTranslation();
+	const { registration } = form;
+	return /* @__PURE__ */ (0, import_jsx_runtime.jsxs)(Modal, {
+		show: true,
+		title: t("ltiRegistrations_editTitle"),
+		closeButton: true,
+		handleClose: onClose,
+		primaryBtnTitle: t("ltiRegistrations_saveBtn"),
+		primaryBtnDisabled: form.saving,
+		handlePrimaryBtnClicked: onSave,
+		secondaryBtnTitle: t("ltiRegistrations_cancelBtn"),
+		handleSecondaryBtnClicked: onClose,
+		children: [
+			/* @__PURE__ */ (0, import_jsx_runtime.jsxs)("p", {
+				className: "text-muted",
+				children: [
+					registration.lmsUrl,
+					", Client ID ",
+					registration.clientId
+				]
 			}),
-			deleteError && /* @__PURE__ */ (0, import_jsx_runtime.jsx)(LoadFailure, { error: deleteError }),
-			registrations == null && !loadError && /* @__PURE__ */ (0, import_jsx_runtime.jsx)(Loader, {}),
-			registrations?.length === 0 && /* @__PURE__ */ (0, import_jsx_runtime.jsx)("div", {
+			/* @__PURE__ */ (0, import_jsx_runtime.jsx)(Form_default.Control, {
+				value: form.description,
+				maxLength: 255,
+				autoFocus: true,
+				onChange: (e) => form.setDescription(e.target.value)
+			}),
+			form.error && /* @__PURE__ */ (0, import_jsx_runtime.jsx)(LoadFailure, { error: form.error })
+		]
+	});
+});
+//#endregion
+//#region src/main/js/components/lti-registrations/tool-setup-modal.tsx
+var CopyableValue = ({ value, multiline }) => {
+	const { t } = useTranslation();
+	return /* @__PURE__ */ (0, import_jsx_runtime.jsxs)(InputGroup_default, {
+		size: "sm",
+		children: [multiline ? /* @__PURE__ */ (0, import_jsx_runtime.jsx)(Form_default.Control, {
+			readOnly: true,
+			value,
+			onFocus: (e) => e.target.select(),
+			as: "textarea",
+			rows: 9,
+			className: "font-monospace"
+		}) : /* @__PURE__ */ (0, import_jsx_runtime.jsx)(Form_default.Control, {
+			readOnly: true,
+			value,
+			onFocus: (e) => e.target.select()
+		}), /* @__PURE__ */ (0, import_jsx_runtime.jsx)(Button, {
+			variant: "outline-secondary",
+			onClick: () => navigator.clipboard.writeText(value),
+			children: t("ltiRegistrations_copyBtn")
+		})]
+	});
+};
+/** Moodle field labels and option names are given as Moodle shows them in English. */
+var ToolSetupModal = observer(({ hint, onClose }) => {
+	const { t } = useTranslation();
+	const { configuration } = hint;
+	const rows = configuration ? [
+		["Tool URL", /* @__PURE__ */ (0, import_jsx_runtime.jsx)(CopyableValue, { value: configuration.launchUrl })],
+		["LTI version", "LTI 1.3"],
+		["Public key type", "Keyset URL"],
+		["Public keyset", /* @__PURE__ */ (0, import_jsx_runtime.jsx)(CopyableValue, { value: configuration.jwksUrl })],
+		["Initiate login URL", /* @__PURE__ */ (0, import_jsx_runtime.jsx)(CopyableValue, { value: configuration.loginUrl })],
+		["Redirection URI(s)", /* @__PURE__ */ (0, import_jsx_runtime.jsx)(CopyableValue, { value: configuration.launchUrl })],
+		["Tool configuration usage", "Show in activity chooser and as a preconfigured tool"],
+		["Default launch container", "New window"],
+		["Supports Deep Linking (Content-Item Message)", t("ltiRegistrations_setupEnabled")],
+		["Content Selection URL", /* @__PURE__ */ (0, import_jsx_runtime.jsx)(CopyableValue, { value: configuration.launchUrl })],
+		["IMS LTI Assignment and Grade Services", "Use this service for grade sync and column management"],
+		["Share launcher's name with tool", "Always"],
+		["Share launcher's email with tool", /* @__PURE__ */ (0, import_jsx_runtime.jsxs)(import_jsx_runtime.Fragment, { children: ["Always ", /* @__PURE__ */ (0, import_jsx_runtime.jsx)(Form_default.Text, {
+			muted: true,
+			children: t("ltiRegistrations_setupEmailNote")
+		})] })],
+		["Accept grades from the tool", "Always"],
+		["Custom parameters", t("ltiRegistrations_setupEmpty")]
+	] : [];
+	return /* @__PURE__ */ (0, import_jsx_runtime.jsxs)(Modal, {
+		show: true,
+		size: "xl",
+		title: t("ltiRegistrations_setupTitle"),
+		closeButton: true,
+		handleClose: onClose,
+		secondaryBtnTitle: t("ltiRegistrations_closeBtn"),
+		handleSecondaryBtnClicked: onClose,
+		children: [
+			hint.error && /* @__PURE__ */ (0, import_jsx_runtime.jsx)(LoadFailure, { error: hint.error }),
+			!hint.error && !configuration && /* @__PURE__ */ (0, import_jsx_runtime.jsx)(Loader, {}),
+			configuration && /* @__PURE__ */ (0, import_jsx_runtime.jsxs)(import_jsx_runtime.Fragment, { children: [
+				/* @__PURE__ */ (0, import_jsx_runtime.jsx)("p", { children: t("ltiRegistrations_setupOpen") }),
+				/* @__PURE__ */ (0, import_jsx_runtime.jsx)(Table, {
+					size: "sm",
+					className: "align-middle",
+					children: /* @__PURE__ */ (0, import_jsx_runtime.jsx)("tbody", { children: rows.map(([label, value]) => /* @__PURE__ */ (0, import_jsx_runtime.jsxs)("tr", { children: [/* @__PURE__ */ (0, import_jsx_runtime.jsx)("td", {
+						className: "text-nowrap",
+						children: label
+					}), /* @__PURE__ */ (0, import_jsx_runtime.jsx)("td", {
+						className: "w-100",
+						children: value
+					})] }, label)) })
+				}),
+				/* @__PURE__ */ (0, import_jsx_runtime.jsx)("p", {
+					className: "mb-1",
+					children: t("ltiRegistrations_setupRsaKey")
+				}),
+				/* @__PURE__ */ (0, import_jsx_runtime.jsx)("div", {
+					className: "mb-3",
+					children: /* @__PURE__ */ (0, import_jsx_runtime.jsx)(CopyableValue, {
+						value: configuration.publicKeyPem,
+						multiline: true
+					})
+				}),
+				/* @__PURE__ */ (0, import_jsx_runtime.jsx)("p", {
+					className: "mb-0",
+					children: t("ltiRegistrations_setupBack")
+				})
+			] })
+		]
+	});
+});
+//#endregion
+//#region src/main/js/stores/lti-registrations-store.ts
+/** One-time registration link for the LMS administrator. */
+var LtiInviteForm = class {
+	description = "";
+	invite = null;
+	creating = false;
+	error = null;
+	constructor() {
+		makeAutoObservable(this);
+	}
+	get inviteUrl() {
+		return this.invite ? `${window.location.origin}/lti/register/${this.invite.token}` : null;
+	}
+	setDescription(description) {
+		this.description = description;
+	}
+	async createInvite() {
+		this.creating = true;
+		this.error = null;
+		const res = await ltiRegistrationController.createInvite(this.description);
+		if (isRight(res)) this.invite = res.right;
+		else this.error = res.left;
+		this.creating = false;
+	}
+};
+/** What to enter in Moodle when the tool is registered there by hand. */
+var LtiToolSetupHint = class {
+	configuration = null;
+	error = null;
+	constructor() {
+		makeAutoObservable(this);
+	}
+	async load() {
+		const res = await ltiRegistrationController.getToolConfiguration();
+		if (isRight(res)) this.configuration = res.right;
+		else this.error = res.left;
+	}
+};
+/** A tool registered in the LMS by hand; Moodle addresses are used for the address fields left empty. */
+var LtiManualRegistrationForm = class {
+	fields = {
+		issuer: "",
+		clientId: "",
+		description: "",
+		deploymentId: "",
+		authorizationEndpoint: "",
+		tokenEndpoint: "",
+		platformKeyType: "JWKS",
+		platformKey: ""
+	};
+	submitting = false;
+	error = null;
+	constructor() {
+		makeAutoObservable(this);
+	}
+	get moodleDefaults() {
+		const issuer = this.fields.issuer.trim() || "<Platform ID>";
+		return {
+			authorizationEndpoint: `${issuer}/mod/lti/auth.php`,
+			tokenEndpoint: `${issuer}/mod/lti/token.php`,
+			jwksUri: `${issuer}/mod/lti/certs.php`
+		};
+	}
+	get canSubmit() {
+		return !this.submitting && this.fields.issuer.trim() !== "" && this.fields.clientId.trim() !== "" && (this.fields.platformKeyType === "JWKS" || this.fields.platformKey.trim() !== "");
+	}
+	setField(field, value) {
+		this.fields[field] = value;
+	}
+	setPlatformKeyType(type) {
+		this.fields.platformKeyType = type;
+		this.fields.platformKey = "";
+	}
+	/** Returns whether the tool got connected. */
+	async submit() {
+		this.submitting = true;
+		this.error = null;
+		const defaults = this.moodleDefaults;
+		const res = await ltiRegistrationController.registerManually({
+			...this.fields,
+			issuer: this.fields.issuer.trim(),
+			authorizationEndpoint: this.fields.authorizationEndpoint.trim() || defaults.authorizationEndpoint,
+			tokenEndpoint: this.fields.tokenEndpoint.trim() || defaults.tokenEndpoint,
+			platformKey: this.fields.platformKey.trim() || (this.fields.platformKeyType === "JWKS" ? defaults.jwksUri : "")
+		});
+		this.submitting = false;
+		if (isLeft(res)) {
+			this.error = res.left;
+			return false;
+		}
+		return true;
+	}
+};
+var LtiDescriptionForm = class {
+	registration;
+	description;
+	saving = false;
+	error = null;
+	constructor(registration) {
+		this.registration = registration;
+		this.description = registration.description ?? "";
+		makeAutoObservable(this);
+	}
+	setDescription(description) {
+		this.description = description;
+	}
+	/** Returns whether the description got saved. */
+	async save() {
+		this.saving = true;
+		this.error = null;
+		const res = await ltiRegistrationController.updateDescription(this.registration.id, this.description);
+		this.saving = false;
+		if (isLeft(res)) {
+			this.error = res.left;
+			return false;
+		}
+		return true;
+	}
+};
+/** LMS connections page: the connected tools and the dialogs that change them. */
+var LtiRegistrationsStore = class {
+	registrations = [];
+	loadStatus = "NONE";
+	error = null;
+	inviteForm = null;
+	manualForm = null;
+	setupHint = null;
+	descriptionForm = null;
+	registrationToDelete = null;
+	deleteError = null;
+	constructor() {
+		makeAutoObservable(this);
+	}
+	async loadRegistrations() {
+		this.loadStatus = "LOADING";
+		this.error = null;
+		const res = await ltiRegistrationController.getRegistrations();
+		if (isLeft(res)) {
+			this.error = res.left;
+			this.loadStatus = "FAILED";
+			return;
+		}
+		this.registrations = res.right;
+		this.loadStatus = "LOADED";
+	}
+	openInviteForm() {
+		this.inviteForm = new LtiInviteForm();
+	}
+	closeInviteForm() {
+		this.inviteForm = null;
+	}
+	openManualForm() {
+		this.manualForm = new LtiManualRegistrationForm();
+	}
+	closeManualForm() {
+		this.manualForm = null;
+	}
+	async registerManually(form) {
+		if (await form.submit()) {
+			this.manualForm = null;
+			await this.loadRegistrations();
+		}
+	}
+	openSetupHint() {
+		this.setupHint = new LtiToolSetupHint();
+		this.setupHint.load();
+	}
+	closeSetupHint() {
+		this.setupHint = null;
+	}
+	openDescriptionForm(registration) {
+		this.descriptionForm = new LtiDescriptionForm(registration);
+	}
+	closeDescriptionForm() {
+		this.descriptionForm = null;
+	}
+	async saveDescription(form) {
+		if (await form.save()) {
+			this.descriptionForm = null;
+			await this.loadRegistrations();
+		}
+	}
+	askToDelete(registration) {
+		this.deleteError = null;
+		this.registrationToDelete = registration;
+	}
+	cancelDelete() {
+		this.registrationToDelete = null;
+	}
+	async deleteRegistration(registration) {
+		this.registrationToDelete = null;
+		const res = await ltiRegistrationController.deleteRegistration(registration.id);
+		if (isLeft(res)) this.deleteError = res.left;
+		await this.loadRegistrations();
+	}
+};
+//#endregion
+//#region src/main/js/pages/lti-registrations.tsx
+/** Admin page: the connected LMS tools and connecting new ones by a registration link or by hand. */
+var LtiRegistrationsPage = observer(() => {
+	const { t } = useTranslation();
+	const user = useCurrentUser();
+	const [store] = (0, import_react.useState)(() => new LtiRegistrationsStore());
+	(0, import_react.useEffect)(() => {
+		store.loadRegistrations();
+	}, [store]);
+	if (!user) return /* @__PURE__ */ (0, import_jsx_runtime.jsx)(Loader, {});
+	const { registrations, inviteForm, manualForm, setupHint, descriptionForm, registrationToDelete } = store;
+	return /* @__PURE__ */ (0, import_jsx_runtime.jsxs)(PageLayout, {
+		title: t("ltiRegistrations_page_title"),
+		children: [
+			/* @__PURE__ */ (0, import_jsx_runtime.jsxs)("div", {
+				className: "mb-3 d-flex",
+				style: { gap: "0.5rem" },
+				children: [
+					/* @__PURE__ */ (0, import_jsx_runtime.jsx)(Button, {
+						variant: "primary",
+						onClick: () => store.openInviteForm(),
+						children: t("ltiRegistrations_connectTitle")
+					}),
+					/* @__PURE__ */ (0, import_jsx_runtime.jsx)(Button, {
+						variant: "outline-primary",
+						onClick: () => store.openManualForm(),
+						children: t("ltiRegistrations_manualTitle")
+					}),
+					/* @__PURE__ */ (0, import_jsx_runtime.jsx)(Button, {
+						variant: "outline-secondary",
+						onClick: () => store.openSetupHint(),
+						children: t("ltiRegistrations_setupTitle")
+					})
+				]
+			}),
+			store.loadStatus === "FAILED" && store.error && /* @__PURE__ */ (0, import_jsx_runtime.jsx)(LoadFailure, {
+				error: store.error,
+				onRetry: () => store.loadRegistrations()
+			}),
+			store.deleteError && /* @__PURE__ */ (0, import_jsx_runtime.jsx)(LoadFailure, { error: store.deleteError }),
+			store.loadStatus === "LOADING" && registrations.length === 0 && /* @__PURE__ */ (0, import_jsx_runtime.jsx)(Loader, {}),
+			store.loadStatus === "LOADED" && registrations.length === 0 && /* @__PURE__ */ (0, import_jsx_runtime.jsx)("div", {
 				className: "text-muted",
 				children: t("ltiRegistrations_empty")
 			}),
-			registrations != null && registrations.length > 0 && /* @__PURE__ */ (0, import_jsx_runtime.jsxs)(Table, {
+			registrations.length > 0 && /* @__PURE__ */ (0, import_jsx_runtime.jsxs)(Table, {
 				size: "sm",
 				striped: true,
 				children: [/* @__PURE__ */ (0, import_jsx_runtime.jsx)("thead", { children: /* @__PURE__ */ (0, import_jsx_runtime.jsxs)("tr", { children: [
 					/* @__PURE__ */ (0, import_jsx_runtime.jsx)("th", { children: t("ltiRegistrations_lmsColumn") }),
+					/* @__PURE__ */ (0, import_jsx_runtime.jsx)("th", { children: t("ltiRegistrations_descriptionColumn") }),
 					/* @__PURE__ */ (0, import_jsx_runtime.jsx)("th", { children: "Client ID" }),
+					/* @__PURE__ */ (0, import_jsx_runtime.jsx)("th", { children: t("ltiRegistrations_methodColumn") }),
 					/* @__PURE__ */ (0, import_jsx_runtime.jsx)("th", { children: t("ltiRegistrations_createdColumn") }),
 					/* @__PURE__ */ (0, import_jsx_runtime.jsx)("th", {})
 				] }) }), /* @__PURE__ */ (0, import_jsx_runtime.jsx)("tbody", { children: registrations.map((r) => /* @__PURE__ */ (0, import_jsx_runtime.jsxs)("tr", { children: [
 					/* @__PURE__ */ (0, import_jsx_runtime.jsx)("td", { children: r.lmsUrl }),
+					/* @__PURE__ */ (0, import_jsx_runtime.jsx)("td", { children: r.description ?? "—" }),
 					/* @__PURE__ */ (0, import_jsx_runtime.jsx)("td", { children: r.clientId }),
+					/* @__PURE__ */ (0, import_jsx_runtime.jsx)("td", { children: t(r.method === "LINK" ? "ltiRegistrations_methodLink" : "ltiRegistrations_methodManual") }),
 					/* @__PURE__ */ (0, import_jsx_runtime.jsx)("td", { children: new Date(r.createdAt).toLocaleString() }),
-					/* @__PURE__ */ (0, import_jsx_runtime.jsx)("td", {
-						className: "text-end",
-						children: /* @__PURE__ */ (0, import_jsx_runtime.jsx)(Button, {
+					/* @__PURE__ */ (0, import_jsx_runtime.jsxs)("td", {
+						className: "text-end text-nowrap",
+						children: [/* @__PURE__ */ (0, import_jsx_runtime.jsx)(Button, {
+							variant: "outline-secondary",
+							size: "sm",
+							className: "me-2",
+							onClick: () => store.openDescriptionForm(r),
+							children: t("ltiRegistrations_editBtn")
+						}), /* @__PURE__ */ (0, import_jsx_runtime.jsx)(Button, {
 							variant: "outline-danger",
 							size: "sm",
-							onClick: () => setRegistrationToDelete(r),
+							onClick: () => store.askToDelete(r),
 							children: t("ltiRegistrations_deleteBtn")
-						})
+						})]
 					})
 				] }, r.id)) })]
+			}),
+			inviteForm && /* @__PURE__ */ (0, import_jsx_runtime.jsx)(InviteModal, {
+				form: inviteForm,
+				onClose: () => store.closeInviteForm()
+			}),
+			manualForm && /* @__PURE__ */ (0, import_jsx_runtime.jsx)(ManualRegistrationModal, {
+				form: manualForm,
+				onSubmit: () => store.registerManually(manualForm),
+				onClose: () => store.closeManualForm()
+			}),
+			setupHint && /* @__PURE__ */ (0, import_jsx_runtime.jsx)(ToolSetupModal, {
+				hint: setupHint,
+				onClose: () => store.closeSetupHint()
+			}),
+			descriptionForm && /* @__PURE__ */ (0, import_jsx_runtime.jsx)(DescriptionModal, {
+				form: descriptionForm,
+				onSave: () => store.saveDescription(descriptionForm),
+				onClose: () => store.closeDescriptionForm()
 			}),
 			registrationToDelete && /* @__PURE__ */ (0, import_jsx_runtime.jsx)(Modal, {
 				show: true,
 				title: t("ltiRegistrations_deleteTitle"),
 				closeButton: true,
-				handleClose: () => setRegistrationToDelete(null),
+				handleClose: () => store.cancelDelete(),
 				primaryBtnTitle: t("ltiRegistrations_deleteBtn"),
 				primaryBtnVariant: "danger",
-				handlePrimaryBtnClicked: () => deleteRegistration(registrationToDelete),
+				handlePrimaryBtnClicked: () => store.deleteRegistration(registrationToDelete),
 				secondaryBtnTitle: t("ltiRegistrations_cancelBtn"),
-				handleSecondaryBtnClicked: () => setRegistrationToDelete(null),
-				children: /* @__PURE__ */ (0, import_jsx_runtime.jsx)("p", { children: t("ltiRegistrations_deleteBody", { lms: registrationToDelete.lmsUrl }) })
+				handleSecondaryBtnClicked: () => store.cancelDelete(),
+				children: /* @__PURE__ */ (0, import_jsx_runtime.jsx)("p", { children: t("ltiRegistrations_deleteBody", {
+					lms: registrationToDelete.lmsUrl,
+					clientId: registrationToDelete.clientId
+				}) })
 			})
 		]
 	});
-};
+});
 //#endregion
 //#region src/main/js/stores/course-store.ts
 var CourseStore = class {

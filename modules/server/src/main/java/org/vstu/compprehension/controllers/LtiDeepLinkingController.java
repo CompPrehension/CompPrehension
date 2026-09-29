@@ -110,15 +110,14 @@ public class LtiDeepLinkingController {
     private long requireAuthorizedCourse() {
         LtiContext ctx = ltiProvider.getCurrentLtiContext()
                 .orElseThrow(() -> new IllegalArgumentException("LTI context absent"));
-        // Read-only: education resource и курс уже созданы (и проверены на trusted) при LTI-запуске,
-        // на котором основана эта deep-linking-сессия, поэтому здесь только lookup без side effects.
+        // Read-only: курс уже создан при LTI-запуске, на котором основана эта deep-linking-сессия,
+        // поэтому здесь только lookup без side effects.
         LtiCourseContext course = ctx.course();
         if (course == null || course.courseId() == null) {
             throw new IllegalArgumentException("No course in LTI context");
         }
-        long eduResId = educationResourceService.findTrustedIdByUrlAndType(ctx.lmsUrl(), ctx.lmsType())
-                .orElseThrow(() -> new SecurityException(String.format("EducationResource %s is not trusted", ctx.lmsUrl())));
-        long courseId = courseService.findCourseIdByExternalIdAndResourceId(course.courseId(), eduResId)
+        educationResourceService.ensureTrusted(ctx.educationResourceId());
+        long courseId = courseService.findCourseIdByExternalIdAndResourceId(course.courseId(), ctx.educationResourceId())
                 .orElseThrow(() -> new IllegalArgumentException("Course not found for LTI context"));
 
         long userId = userService.getCurrentUserId();

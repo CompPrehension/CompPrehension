@@ -170,6 +170,23 @@ export const handlers = [
         });
     }),
 
+    http.get('/api/lti/registrations', () => HttpResponse.json([{
+        id: 1,
+        lmsUrl: 'https://moodle.example.org',
+        issuer: 'https://moodle.example.org',
+        clientId: 'hWaijgsuC4fZ3a2',
+        description: 'Site tool',
+        method: 'LINK',
+        createdAt: '2026-09-27T10:00:00Z',
+    }])),
+
+    http.get('/api/lti/tool-configuration', () => HttpResponse.json({
+        launchUrl: 'https://localhost:4200/lti/launch',
+        loginUrl: 'https://localhost:4200/lti/login',
+        jwksUrl: 'https://localhost:4200/lti/jwks',
+        publicKeyPem: '-----BEGIN PUBLIC KEY-----\nMIIBIjANBgkqhkiG9w0BAQEFAAOCAQ8AMIIBCgKCAQEAnNqNDdHlU/e1R/dP/ddG\n-----END PUBLIC KEY-----\n',
+    })),
+
     // everything the mocks do not cover answers like the real backend would for a gap in
     // the data, which keeps the ui on its error paths instead of hanging
     http.all('/api/*', ({ request }) =>

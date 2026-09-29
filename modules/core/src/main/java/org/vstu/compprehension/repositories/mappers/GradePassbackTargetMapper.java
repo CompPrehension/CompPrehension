@@ -24,6 +24,8 @@ class GradePassbackTargetMapper implements Mapper<GradePassbackTargetRow, GradeP
                 source.getUserId(),
                 source.getExternalUserId(),
                 source.getLtiLineitemUrl(),
+                source.getLtiIssuer(),
+                source.getLtiClientId(),
                 course);
     }
 }

@@ -25,9 +25,9 @@ import java.util.UUID;
 
 /**
  * Единая точка получения OAuth2 {@code client_credentials} service-токена у LMS и подписи
- * client_assertion ключом LTI-регистрации (RS256, {@code kid} = имя регистрации). Используется
+ * client_assertion ключом инструмента (RS256). Используется
  * как для grade passback (AGS score), так и для чтения AGS line items при deep-linking - оба
- * сценария ходят к {@code <issuer>/mod/lti/token.php} тем же ключом, отличаясь только scope.
+ * сценария ходят к token endpoint регистрации тем же ключом, отличаясь только scope.
  */
 @Service
 @Log4j2
@@ -42,19 +42,13 @@ public class LtiTokenService {
 
     private final RestTemplate restTemplate;
     private final ObjectMapper objectMapper = new ObjectMapper();
-    private final LtiRegistrationRegistry ltiRegistrations;
 
-    public LtiTokenService(RestTemplate restTemplate, LtiRegistrationRegistry ltiRegistrations) {
+    public LtiTokenService(RestTemplate restTemplate) {
         this.restTemplate = restTemplate;
-        this.ltiRegistrations = ltiRegistrations;
     }
 
-    /**
-     * Получает access token у LMS по её issuer URL для запрошенного scope. Регистрация ищется по
-     * issuer URL, token endpoint берётся из неё.
-     */
-    public String obtainAccessToken(String issuerUrl, String scope) throws Exception {
-        LtiPlatform platform = ltiRegistrations.requireByIssuer(issuerUrl);
+    /** Получает access token у LMS от имени инструмента {@code platform} для запрошенного scope. */
+    public String obtainAccessToken(LtiPlatform platform, String scope) throws Exception {
         String tokenEndpoint = platform.tokenEndpoint();
         String assertion = buildClientAssertionJwt(platform);
 

@@ -22,13 +22,16 @@ import org.vstu.compprehension.adapters.LtiContextHolder;
 import org.vstu.compprehension.authorization.TestLtiContextProvider;
 import org.vstu.compprehension.authorization.TestUserService;
 import org.vstu.compprehension.entities.external_system.EducationResourceEntity;
+import org.vstu.compprehension.entities.external_system.LtiRegistrationEntity;
 import org.vstu.compprehension.enums.EducationResourceTrustStatus;
 import org.vstu.compprehension.enums.EducationResourceType;
+import org.vstu.compprehension.enums.LtiRegistrationMethod;
 import org.vstu.compprehension.frontend.CourseFrontendService;
-import org.vstu.compprehension.frontend.EducationResourceFrontendService;
 import org.vstu.compprehension.infrastructure.AbstractIntegrationTest;
 import org.vstu.compprehension.infrastructure.TestData;
+import org.vstu.compprehension.repositories.data.ExternalSystemDataRepository;
 import org.vstu.compprehension.repositories.entity.EducationResourceRepository;
+import org.vstu.compprehension.repositories.entity.LtiRegistrationRepository;
 
 import java.security.KeyFactory;
 import java.security.KeyPairGenerator;
@@ -59,7 +62,7 @@ import static org.springframework.test.web.servlet.result.MockMvcResultMatchers.
 @Transactional
 class LtiControllerTest extends AbstractIntegrationTest {
 
-    // Регистрация LMS из application-test.properties.
+    // Регистрация LMS из data.sql.
     private static final String REGISTERED_ISSUER = "https://lms.test.local";
     private static final String REGISTERED_CLIENT_ID = "test-client";
 
@@ -71,8 +74,9 @@ class LtiControllerTest extends AbstractIntegrationTest {
 
     @Autowired private WebApplicationContext webApplicationContext;
     @Autowired private EducationResourceRepository educationResourceRepository;
-    @Autowired private EducationResourceFrontendService educationResourceService;
+    @Autowired private ExternalSystemDataRepository externalSystems;
     @Autowired private CourseFrontendService courseService;
+    @Autowired private LtiRegistrationRepository ltiRegistrationRepository;
 
     @Value("${test.lti.platform-private-key-pkcs8-base64}")
     private String platformPrivateKeyBase64;
@@ -126,18 +130,40 @@ class LtiControllerTest extends AbstractIntegrationTest {
         result.andExpect(status().isForbidden());
     }
 
-    // ---- JWKS ----
-
-    /** JWKS публикует ключи регистраций из env и общий ключ инструмента для динамических регистраций. */
+    /** LMS может не передать client_id при входе: тогда вход идёт через её единственный инструмент. */
     @Test
-    void jwksPublishesConfiguredAndSharedToolKeys() throws Exception {
+    void loginWithoutClientIdUsesTheOnlyToolOfLms() throws Exception {
         // Act.
-        var result = mockMvc.perform(get("/lti/1_3/jwks"));
+        var login = startLogin(REGISTERED_ISSUER, null);
 
         // Assert.
-        // Имена ключей: регистрация "test" из application-test.properties и общий ключ "tool".
+        assertTrue(login.redirectUrl().contains("client_id=" + REGISTERED_CLIENT_ID + "&"));
+    }
+
+    /** Вход без client_id из LMS с несколькими инструментами отклоняется: инструмент не угадывается. */
+    @Test
+    void loginWithoutClientIdToLmsWithSeveralToolsIsForbidden() throws Exception {
+        // Arrange.
+        registerSecondTool("course-tool");
+
+        // Act.
+        var result = performLogin(REGISTERED_ISSUER, null);
+
+        // Assert.
+        result.andExpect(status().isForbidden());
+    }
+
+    // ---- JWKS ----
+
+    /** JWKS публикует один ключ инструмента: им подписываются запросы ко всем подключённым LMS. */
+    @Test
+    void jwksPublishesToolKey() throws Exception {
+        // Act.
+        var result = mockMvc.perform(get("/lti/jwks"));
+
+        // Assert.
         result.andExpect(status().isOk())
-                .andExpect(jsonPath("$.keys[*].kid", containsInAnyOrder("test", "tool")));
+                .andExpect(jsonPath("$.keys[*].kid", containsInAnyOrder("tool")));
     }
 
     // ---- доверие к LMS ----
@@ -150,7 +176,7 @@ class LtiControllerTest extends AbstractIntegrationTest {
         var login = startLogin(REGISTERED_ISSUER, REGISTERED_CLIENT_ID);
 
         // Act.
-        var result = launchExerciseSettings(login, sign(validClaims(login.nonce()).build(), platformPrivateKey()));
+        var result = launch(login, sign(settingsPageClaims(login.nonce()).build(), platformPrivateKey()));
 
         // Assert.
         result.andExpect(status().is3xxRedirection())
@@ -162,11 +188,11 @@ class LtiControllerTest extends AbstractIntegrationTest {
     @Test
     void launchWithoutCourseDoesNotCreateCourse() throws Exception {
         // Arrange.
-        TestLtiContextProvider.launchedFromLms(TestData.EducationResources.URL, null);
+        TestLtiContextProvider.launchedFromLms(TestData.EducationResources.ID, null);
         var login = startLogin(REGISTERED_ISSUER, REGISTERED_CLIENT_ID);
 
         // Act.
-        var result = launchExerciseSettings(login, sign(validClaims(login.nonce()).build(), platformPrivateKey()));
+        var result = launch(login, sign(settingsPageClaims(login.nonce()).build(), platformPrivateKey()));
 
         // Assert.
         result.andExpect(status().is3xxRedirection())
@@ -174,32 +200,35 @@ class LtiControllerTest extends AbstractIntegrationTest {
         assertEquals(2, courseService.getUserCourses(TestData.Users.ADMIN_ID).size());
     }
 
-    /** Первый подписанный запуск новой LMS регистрирует её доверенной. */
+    /** Запуск относится к LMS своей регистрации, даже если LMS не сообщила в токене свой тип. */
     @Test
-    void launchFromNewLmsCreatesTrustedResource() throws Exception {
+    void launchWithoutPlatformTypeBelongsToLmsOfRegistration() throws Exception {
         // Arrange.
-        TestLtiContextProvider.launchedFromLms(NEW_LMS_URL, NEW_EXTERNAL_COURSE_ID);
+        TestLtiContextProvider.launchedFromCourse(TestData.Courses.MAIN_EXTERNAL_ID);
         var login = startLogin(REGISTERED_ISSUER, REGISTERED_CLIENT_ID);
+        // В settingsPageClaims нет claim tool_platform с типом LMS.
+        var idToken = sign(settingsPageClaims(login.nonce()).build(), platformPrivateKey());
 
         // Act.
-        var result = launchExerciseSettings(login, sign(validClaims(login.nonce()).build(), platformPrivateKey()));
+        var result = launch(login, idToken).andReturn();
 
         // Assert.
-        result.andExpect(status().is3xxRedirection())
-                .andExpect(request().sessionAttribute(SPRING_SECURITY_CONTEXT_KEY, notNullValue()));
-        assertEquals(EducationResourceTrustStatus.TRUSTED, trustStatusOf(NEW_LMS_URL));
+        // Контроллер берёт контекст из TestLtiContextProvider, а сессионный LtiContextHolder заполняется из id_token.
+        var holder = (LtiContextHolder) result.getRequest().getSession().getAttribute("scopedTarget.ltiContextHolder");
+        assertEquals(TestData.EducationResources.ID, holder.getCurrentLtiContext().orElseThrow().educationResourceId());
     }
 
     /** Недоверенная LMS остаётся закрытой, сессия не аутентифицируется. */
     @Test
     void launchFromUntrustedLmsIsForbidden() throws Exception {
         // Arrange.
-        educationResourceService.getOrCreate(NEW_LMS_URL, EducationResourceType.MOODLE, EducationResourceTrustStatus.UNTRUSTED);
-        TestLtiContextProvider.launchedFromLms(NEW_LMS_URL, NEW_EXTERNAL_COURSE_ID);
+        var lms = externalSystems.createEducationResourceIfAbsent(
+                NEW_LMS_URL, EducationResourceType.MOODLE, EducationResourceTrustStatus.UNTRUSTED);
+        TestLtiContextProvider.launchedFromLms(lms.id(), NEW_EXTERNAL_COURSE_ID);
         var login = startLogin(REGISTERED_ISSUER, REGISTERED_CLIENT_ID);
 
         // Act.
-        var result = launchExerciseSettings(login, sign(validClaims(login.nonce()).build(), platformPrivateKey()));
+        var result = launch(login, sign(validClaims(login.nonce()).build(), platformPrivateKey()));
 
         // Assert.
         result.andExpect(status().isForbidden())
@@ -211,12 +240,13 @@ class LtiControllerTest extends AbstractIntegrationTest {
     @Test
     void launchFromUntrustedLmsClearsSessionLtiContext() throws Exception {
         // Arrange.
-        educationResourceService.getOrCreate(NEW_LMS_URL, EducationResourceType.MOODLE, EducationResourceTrustStatus.UNTRUSTED);
-        TestLtiContextProvider.launchedFromLms(NEW_LMS_URL, NEW_EXTERNAL_COURSE_ID);
+        var lms = externalSystems.createEducationResourceIfAbsent(
+                NEW_LMS_URL, EducationResourceType.MOODLE, EducationResourceTrustStatus.UNTRUSTED);
+        TestLtiContextProvider.launchedFromLms(lms.id(), NEW_EXTERNAL_COURSE_ID);
         var login = startLogin(REGISTERED_ISSUER, REGISTERED_CLIENT_ID);
 
         // Act.
-        var result = launchExerciseSettings(login, sign(validClaims(login.nonce()).build(), platformPrivateKey()))
+        var result = launch(login, sign(validClaims(login.nonce()).build(), platformPrivateKey()))
                 .andReturn();
 
         // Assert.
@@ -230,12 +260,13 @@ class LtiControllerTest extends AbstractIntegrationTest {
     @Test
     void launchFromBannedLmsIsForbidden() throws Exception {
         // Arrange.
-        educationResourceService.getOrCreate(NEW_LMS_URL, EducationResourceType.MOODLE, EducationResourceTrustStatus.BANNED);
-        TestLtiContextProvider.launchedFromLms(NEW_LMS_URL, NEW_EXTERNAL_COURSE_ID);
+        var lms = externalSystems.createEducationResourceIfAbsent(
+                NEW_LMS_URL, EducationResourceType.MOODLE, EducationResourceTrustStatus.BANNED);
+        TestLtiContextProvider.launchedFromLms(lms.id(), NEW_EXTERNAL_COURSE_ID);
         var login = startLogin(REGISTERED_ISSUER, REGISTERED_CLIENT_ID);
 
         // Act.
-        var result = launchExerciseSettings(login, sign(validClaims(login.nonce()).build(), platformPrivateKey()));
+        var result = launch(login, sign(validClaims(login.nonce()).build(), platformPrivateKey()));
 
         // Assert.
         result.andExpect(status().isForbidden());
@@ -252,7 +283,7 @@ class LtiControllerTest extends AbstractIntegrationTest {
         var login = startLogin(REGISTERED_ISSUER, REGISTERED_CLIENT_ID);
 
         // Act.
-        var result = mockMvc.perform(post("/lti/1_3/launch")
+        var result = mockMvc.perform(post("/lti/launch")
                 .session(login.session())
                 .param("id", String.valueOf(TestData.Exercises.MAIN_COURSE_ID))
                 .param("id_token", sign(validClaims(login.nonce()).build(), platformPrivateKey()))
@@ -275,25 +306,7 @@ class LtiControllerTest extends AbstractIntegrationTest {
                 .build();
 
         // Act.
-        var result = launch("/lti/1_3/launch", login, sign(claims, platformPrivateKey()));
-
-        // Assert.
-        result.andExpect(status().is3xxRedirection())
-                .andExpect(redirectedUrl("/pages/exercise-settings?courseId=" + TestData.Courses.MAIN_ID));
-    }
-
-    /** Старый адрес упражнения тоже понимает custom-параметр страницы: Tool URL старых инструментов — /exercise. */
-    @Test
-    void legacyExerciseLaunchWithSettingsPageOpensExerciseSettings() throws Exception {
-        // Arrange.
-        TestLtiContextProvider.launchedFromCourse(TestData.Courses.MAIN_EXTERNAL_ID);
-        var login = startLogin(REGISTERED_ISSUER, REGISTERED_CLIENT_ID);
-        var claims = validClaims(login.nonce())
-                .claim(CUSTOM_CLAIM, Map.of("compph_page", "exercise-settings"))
-                .build();
-
-        // Act.
-        var result = launch("/lti/1_3/exercise", login, sign(claims, platformPrivateKey()));
+        var result = launch(login, sign(claims, platformPrivateKey()));
 
         // Assert.
         result.andExpect(status().is3xxRedirection())
@@ -312,7 +325,7 @@ class LtiControllerTest extends AbstractIntegrationTest {
                 .build();
 
         // Act.
-        var result = launch("/lti/1_3/launch", login, sign(claims, platformPrivateKey()));
+        var result = launch(login, sign(claims, platformPrivateKey()));
 
         // Assert.
         result.andExpect(status().is3xxRedirection())
@@ -330,7 +343,7 @@ class LtiControllerTest extends AbstractIntegrationTest {
         var idToken = new PlainJWT(validClaims(login.nonce()).build()).serialize();
 
         // Act.
-        var result = launchExerciseSettings(login, idToken);
+        var result = launch(login, idToken);
 
         // Assert.
         result.andExpect(status().isForbidden())
@@ -346,7 +359,7 @@ class LtiControllerTest extends AbstractIntegrationTest {
         var foreignKey = KeyPairGenerator.getInstance("RSA").generateKeyPair().getPrivate();
 
         // Act.
-        var result = launchExerciseSettings(login, sign(validClaims(login.nonce()).build(), foreignKey));
+        var result = launch(login, sign(validClaims(login.nonce()).build(), foreignKey));
 
         // Assert.
         result.andExpect(status().isForbidden())
@@ -362,7 +375,40 @@ class LtiControllerTest extends AbstractIntegrationTest {
         var claims = validClaims(login.nonce()).audience("foreign-client").build();
 
         // Act.
-        var result = launchExerciseSettings(login, sign(claims, platformPrivateKey()));
+        var result = launch(login, sign(claims, platformPrivateKey()));
+
+        // Assert.
+        result.andExpect(status().isForbidden());
+    }
+
+    /** У одной LMS несколько инструментов, например курсовые инструменты Moodle: каждый запускается по своей регистрации. */
+    @Test
+    void launchThroughSecondToolOfSameLmsIsAccepted() throws Exception {
+        // Arrange.
+        registerSecondTool("course-tool");
+        TestLtiContextProvider.launchedFromCourse(TestData.Courses.MAIN_EXTERNAL_ID);
+        var login = startLogin(REGISTERED_ISSUER, "course-tool");
+        var claims = settingsPageClaims(login.nonce()).audience("course-tool").build();
+
+        // Act.
+        var result = launch(login, sign(claims, platformPrivateKey()));
+
+        // Assert.
+        result.andExpect(status().is3xxRedirection())
+                .andExpect(request().sessionAttribute(SPRING_SECURITY_CONTEXT_KEY, notNullValue()));
+    }
+
+    /** Токен для нескольких адресатов без azp не говорит, какому инструменту он выдан, — отклоняется. */
+    @Test
+    void launchWithSeveralAudiencesWithoutAzpIsForbidden() throws Exception {
+        // Arrange.
+        registerSecondTool("course-tool");
+        TestLtiContextProvider.launchedFromCourse(TestData.Courses.MAIN_EXTERNAL_ID);
+        var login = startLogin(REGISTERED_ISSUER, REGISTERED_CLIENT_ID);
+        var claims = validClaims(login.nonce()).audience(List.of(REGISTERED_CLIENT_ID, "course-tool")).build();
+
+        // Act.
+        var result = launch(login, sign(claims, platformPrivateKey()));
 
         // Assert.
         result.andExpect(status().isForbidden());
@@ -377,7 +423,7 @@ class LtiControllerTest extends AbstractIntegrationTest {
         var claims = validClaims(login.nonce()).issuer("https://evil.test").build();
 
         // Act.
-        var result = launchExerciseSettings(login, sign(claims, platformPrivateKey()));
+        var result = launch(login, sign(claims, platformPrivateKey()));
 
         // Assert.
         result.andExpect(status().isForbidden());
@@ -396,7 +442,7 @@ class LtiControllerTest extends AbstractIntegrationTest {
                 .build();
 
         // Act.
-        var result = launchExerciseSettings(login, sign(claims, platformPrivateKey()));
+        var result = launch(login, sign(claims, platformPrivateKey()));
 
         // Assert.
         result.andExpect(status().isForbidden());
@@ -413,7 +459,7 @@ class LtiControllerTest extends AbstractIntegrationTest {
         var foreignLogin = new Login(login.session(), login.redirectUrl(), "unknown-state", login.nonce());
 
         // Act.
-        var result = launchExerciseSettings(foreignLogin, sign(validClaims(login.nonce()).build(), platformPrivateKey()));
+        var result = launch(foreignLogin, sign(validClaims(login.nonce()).build(), platformPrivateKey()));
 
         // Assert.
         result.andExpect(status().isForbidden())
@@ -428,7 +474,7 @@ class LtiControllerTest extends AbstractIntegrationTest {
         var login = startLogin(REGISTERED_ISSUER, REGISTERED_CLIENT_ID);
 
         // Act.
-        var result = launchExerciseSettings(login, sign(validClaims("foreign-nonce").build(), platformPrivateKey()));
+        var result = launch(login, sign(validClaims("foreign-nonce").build(), platformPrivateKey()));
 
         // Assert.
         result.andExpect(status().isForbidden());
@@ -440,14 +486,34 @@ class LtiControllerTest extends AbstractIntegrationTest {
         // Arrange.
         TestLtiContextProvider.launchedFromCourse(TestData.Courses.MAIN_EXTERNAL_ID);
         var login = startLogin(REGISTERED_ISSUER, REGISTERED_CLIENT_ID);
-        var idToken = sign(validClaims(login.nonce()).build(), platformPrivateKey());
-        launchExerciseSettings(login, idToken).andExpect(status().is3xxRedirection());
+        var idToken = sign(settingsPageClaims(login.nonce()).build(), platformPrivateKey());
+        launch(login, idToken).andExpect(status().is3xxRedirection());
 
         // Act.
-        var result = launchExerciseSettings(login, idToken);
+        var result = launch(login, idToken);
 
         // Assert.
         result.andExpect(status().isForbidden());
+    }
+
+    // ---- выход ----
+
+    /** Пользователь, пришедший из LMS, может выйти: сессия закрывается, а LMS как провайдер входа не опрашивается. */
+    @Test
+    void logoutAfterLaunchEndsSession() throws Exception {
+        // Arrange.
+        TestLtiContextProvider.launchedFromCourse(TestData.Courses.MAIN_EXTERNAL_ID);
+        var login = startLogin(REGISTERED_ISSUER, REGISTERED_CLIENT_ID);
+        launch(login, sign(settingsPageClaims(login.nonce()).build(), platformPrivateKey()))
+                .andExpect(status().is3xxRedirection());
+
+        // Act.
+        var result = mockMvc.perform(get("/logout").session(login.session()));
+
+        // Assert.
+        result.andExpect(status().is3xxRedirection())
+                .andExpect(redirectedUrl("/pages/courses"));
+        assertTrue(login.session().isInvalid());
     }
 
     private record Login(MockHttpSession session, String redirectUrl, String state, String nonce) {
@@ -463,23 +529,27 @@ class LtiControllerTest extends AbstractIntegrationTest {
     }
 
     private ResultActions performLogin(String issuer, String clientId) throws Exception {
-        return mockMvc.perform(post("/lti/1_3/login")
+        var request = post("/lti/login")
                 .param("iss", issuer)
-                .param("client_id", clientId)
                 .param("login_hint", "lti-user")
                 .param("lti_message_hint", "message-hint")
-                .param("target_link_uri", "https://tool.test/lti/1_3/exercise-settings"));
+                .param("target_link_uri", "https://tool.test/lti/launch");
+        if (clientId != null) {
+            request.param("client_id", clientId);
+        }
+        return mockMvc.perform(request);
     }
 
-    private ResultActions launchExerciseSettings(Login login, String idToken) throws Exception {
-        return launch("/lti/1_3/exercise-settings", login, idToken);
-    }
-
-    private ResultActions launch(String path, Login login, String idToken) throws Exception {
-        return mockMvc.perform(post(path)
+    private ResultActions launch(Login login, String idToken) throws Exception {
+        return mockMvc.perform(post("/lti/launch")
                 .session(login.session())
                 .param("id_token", idToken)
                 .param("state", login.state()));
+    }
+
+    /** Запуск страницы настройки упражнений курса: ей не нужен id упражнения. */
+    private static JWTClaimsSet.Builder settingsPageClaims(String nonce) {
+        return validClaims(nonce).claim(CUSTOM_CLAIM, Map.of("compph_page", "exercise-settings"));
     }
 
     private static JWTClaimsSet.Builder validClaims(String nonce) {
@@ -504,6 +574,21 @@ class LtiControllerTest extends AbstractIntegrationTest {
     private PrivateKey platformPrivateKey() throws Exception {
         return KeyFactory.getInstance("RSA").generatePrivate(
                 new PKCS8EncodedKeySpec(Base64.getDecoder().decode(platformPrivateKeyBase64)));
+    }
+
+    /** Ключ LMS тот же, что у регистрации из data.sql: у тестовой LMS нет JWKS. */
+    private void registerSecondTool(String clientId) {
+        var registered = ltiRegistrationRepository.findByIssuerAndClientId(REGISTERED_ISSUER, REGISTERED_CLIENT_ID)
+                .orElseThrow();
+        var tool = new LtiRegistrationEntity();
+        tool.setEducationResource(registered.getEducationResource());
+        tool.setIssuer(REGISTERED_ISSUER);
+        tool.setClientId(clientId);
+        tool.setMethod(LtiRegistrationMethod.MANUAL);
+        tool.setAuthorizationEndpoint(registered.getAuthorizationEndpoint());
+        tool.setTokenEndpoint(registered.getTokenEndpoint());
+        tool.setPlatformPublicKey(registered.getPlatformPublicKey());
+        ltiRegistrationRepository.saveAndFlush(tool);
     }
 
     private EducationResourceTrustStatus trustStatusOf(String url) {

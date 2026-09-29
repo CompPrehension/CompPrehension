@@ -70,7 +70,7 @@ public class DeepLinkingResponseService {
     /**
      * Строит и подписывает {@code LtiDeepLinkingResponse} с одним {@code ltiResourceLink}
      * на упражнение. URL у item не задаётся — Moodle подставит launch URL инструмента,
-     * а {@code /lti/1_3/exercise} приоритетно читает custom-claim {@code exercise_id}.
+     * а {@code /lti/launch} приоритетно читает custom-claim {@code exercise_id}.
      */
     public String buildSignedResponse(LtiDeepLinkingContext dl, List<DeepLinkItem> items) throws Exception {
         List<Map<String, Object>> contentItems = new ArrayList<>(items.size());
@@ -104,7 +104,7 @@ public class DeepLinkingResponseService {
     }
 
     private String signResponse(LtiDeepLinkingContext dl, List<Map<String, Object>> contentItems) throws Exception {
-        LtiPlatform platform = ltiRegistrations.requireByIssuer(dl.platformIssuer());
+        LtiPlatform platform = ltiRegistrations.requireByIssuerAndClientId(dl.platformIssuer(), dl.clientId());
 
         Date now = new Date();
         JWTClaimsSet.Builder claims = new JWTClaimsSet.Builder()
@@ -140,7 +140,8 @@ public class DeepLinkingResponseService {
             return Set.of();
         }
         try {
-            String accessToken = tokenService.obtainAccessToken(dl.platformIssuer(), LINEITEM_READONLY_SCOPE);
+            String accessToken = tokenService.obtainAccessToken(
+                    ltiRegistrations.requireByIssuerAndClientId(dl.platformIssuer(), dl.clientId()), LINEITEM_READONLY_SCOPE);
 
             HttpHeaders headers = new HttpHeaders();
             headers.setBearerAuth(accessToken);

@@ -4,16 +4,18 @@ import jakarta.persistence.*;
 import lombok.Getter;
 import lombok.NoArgsConstructor;
 import lombok.Setter;
+import org.jetbrains.annotations.NotNull;
+import org.jetbrains.annotations.Nullable;
 import org.vstu.compprehension.entities.UserEntity;
 
 @Entity
 @Getter
 @Setter
 @NoArgsConstructor
-@Table(name = "external_account")
-public class ExternalAccountEntity {
+@Table(name = "education_resource_user")
+public class EducationResourceUserEntity {
     @EmbeddedId
-    private ExternalAccountId id;
+    private EducationResourceUserId id;
 
     @MapsId("userId")
     @ManyToOne(fetch = FetchType.LAZY, optional = false)
@@ -28,8 +30,15 @@ public class ExternalAccountEntity {
     @Column(name = "external_id", nullable = false, length = 255)
     private String externalId;
 
-    public ExternalAccountEntity(UserEntity user, EducationResourceEntity educationResource, String externalId) {
-        this.id = new ExternalAccountId();
+    @Column(name = "full_name")
+    private @Nullable String fullName;
+
+    @Column(name = "email")
+    private @Nullable String email;
+
+    public EducationResourceUserEntity(@NotNull UserEntity user, @NotNull EducationResourceEntity educationResource,
+                                       @NotNull String externalId) {
+        this.id = new EducationResourceUserId(user.getId(), educationResource.getId());
         this.user = user;
         this.educationResource = educationResource;
         this.externalId = externalId;

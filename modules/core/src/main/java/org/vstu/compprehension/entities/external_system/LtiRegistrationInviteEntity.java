@@ -22,6 +22,10 @@ public class LtiRegistrationInviteEntity {
     @Column(name = "token_hash", nullable = false, unique = true, length = 64, updatable = false)
     private String tokenHash;
 
+    /** Переходит в регистрацию, созданную по этой ссылке. */
+    @Column(name = "description", length = 255, updatable = false)
+    private String description;
+
     @ManyToOne(fetch = FetchType.LAZY, optional = false)
     @JoinColumn(name = "created_by_user_id", nullable = false, updatable = false)
     private UserEntity createdBy;

@@ -20,9 +20,11 @@ export type HeaderProps = {
     userHref?: string | null,
     onUserClicked?: (() => void) | null,
     logoutLabel?: string | null,
+    /** Задан — ссылка выхода вызывает его вместо перехода на /logout. */
+    onLogoutClicked?: (() => void) | null,
 }
 export const Header = observer((props: HeaderProps) => {
-    const { crumbs, pagination, languageHint, language, onLanguageClicked, userHint, user, onUserClicked, userHref, logoutLabel } = props;
+    const { crumbs, pagination, languageHint, language, onLanguageClicked, userHint, user, onUserClicked, userHref, logoutLabel, onLogoutClicked } = props;
 
     return (
         <Navbar className="px-0 flex-wrap comp-ph-header">
@@ -52,7 +54,7 @@ export const Header = observer((props: HeaderProps) => {
                 </Navbar.Text>
                 {logoutLabel && (
                     <Navbar.Text className="px-2">
-                        <a href="/logout">{logoutLabel}</a>
+                        <a href="/logout" onClick={onLogoutClicked ? e => { e.preventDefault(); onLogoutClicked(); } : undefined}>{logoutLabel}</a>
                     </Navbar.Text>
                 )}
             </Navbar.Collapse>

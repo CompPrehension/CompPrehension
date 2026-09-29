@@ -7,15 +7,23 @@ import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.boot.test.context.TestConfiguration;
 import org.springframework.context.annotation.Bean;
 import org.springframework.transaction.PlatformTransactionManager;
+import org.springframework.transaction.annotation.Transactional;
 import org.springframework.transaction.support.TransactionTemplate;
 import org.vstu.compprehension.data.exerciseattempt.GradePassbackTargetData;
 import org.vstu.compprehension.data.outbox.AttemptFinishedEvent;
+import org.vstu.compprehension.entities.external_system.EducationResourceUserEntity;
 import org.vstu.compprehension.enums.Decision;
+import org.vstu.compprehension.enums.EducationResourceTrustStatus;
+import org.vstu.compprehension.enums.EducationResourceType;
 import org.vstu.compprehension.infrastructure.AbstractIntegrationTest;
 import org.vstu.compprehension.infrastructure.TestData;
 import org.vstu.compprehension.repositories.data.ExerciseAttemptDataRepository;
+import org.vstu.compprehension.repositories.data.ExternalSystemDataRepository;
+import org.vstu.compprehension.repositories.entity.EducationResourceRepository;
+import org.vstu.compprehension.repositories.entity.EducationResourceUserRepository;
 import org.vstu.compprehension.repositories.entity.ExerciseAttemptRepository;
 import org.vstu.compprehension.repositories.entity.OutboxEventRepository;
+import org.vstu.compprehension.repositories.entity.UserRepository;
 import org.vstu.compprehension.service.outbox.OutboxProcessor;
 import org.vstu.compprehension.services.ExerciseAttemptDataService;
 
@@ -40,6 +48,10 @@ class GradePassbackEventHandlerTest extends AbstractIntegrationTest {
     @Autowired private OutboxEventRepository outboxEventRepository;
     @Autowired private PlatformTransactionManager transactionManager;
     @Autowired private RecordingLms lms;
+    @Autowired private UserRepository userRepository;
+    @Autowired private EducationResourceRepository educationResourceRepository;
+    @Autowired private EducationResourceUserRepository educationResourceUserRepository;
+    @Autowired private ExternalSystemDataRepository externalSystems;
 
     private final List<Long> createdAttemptIds = new ArrayList<>();
 
@@ -55,6 +67,7 @@ class GradePassbackEventHandlerTest extends AbstractIntegrationTest {
     static class RecordingLms implements GradePassbackStrategy {
         final List<Long> gradedAttemptIds = new ArrayList<>();
         final List<Instant> gradedAt = new ArrayList<>();
+        final List<String> gradedExternalUserIds = new ArrayList<>();
         final Set<Long> failingAttemptIds = new HashSet<>();
 
         @Override
@@ -69,6 +82,7 @@ class GradePassbackEventHandlerTest extends AbstractIntegrationTest {
             }
             gradedAttemptIds.add(target.attemptId());
             this.gradedAt.add(gradedAt);
+            gradedExternalUserIds.add(target.externalUserId());
         }
     }
 
@@ -78,6 +92,7 @@ class GradePassbackEventHandlerTest extends AbstractIntegrationTest {
         exerciseAttemptRepository.deleteAllById(createdAttemptIds);
         lms.gradedAttemptIds.clear();
         lms.gradedAt.clear();
+        lms.gradedExternalUserIds.clear();
         lms.failingAttemptIds.clear();
     }
 
@@ -156,9 +171,30 @@ class GradePassbackEventHandlerTest extends AbstractIntegrationTest {
         assertTrue(lms.gradedAttemptIds.isEmpty());
     }
 
+    /** У студента учётки в нескольких LMS — оценка уходит за его учётку в LMS курса. */
+    @Test
+    @Transactional
+    void gradeIsSentForStudentAccountInCourseLms() {
+        // Arrange.
+        var student = userRepository.getReferenceById(TestData.Users.MAIN_COURSE_STUDENT_ID);
+        var otherLms = externalSystems.createEducationResourceIfAbsent(
+                "https://other-lms.test.local", EducationResourceType.MOODLE, EducationResourceTrustStatus.TRUSTED);
+        educationResourceUserRepository.save(new EducationResourceUserEntity(
+                student, educationResourceRepository.getReferenceById(otherLms.id()), "other-lms-student"));
+        educationResourceUserRepository.save(new EducationResourceUserEntity(
+                student, educationResourceRepository.getReferenceById(TestData.EducationResources.ID), "course-lms-student"));
+        long attemptId = createAttempt(TestData.Users.MAIN_COURSE_STUDENT_ID);
+
+        // Act.
+        handler.handle(new AttemptFinishedEvent(attemptId, 1.0, Instant.now()));
+
+        // Assert.
+        assertEquals(List.of("course-lms-student"), lms.gradedExternalUserIds);
+    }
+
     private long createAttempt(long userId) {
         long attemptId = exerciseAttemptDataRepository.create(TestData.Exercises.MAIN_COURSE_ID,
-                userId, TestData.Courses.MAIN_ID, null, null).attemptId();
+                userId, TestData.Courses.MAIN_ID, null, null, null).attemptId();
         createdAttemptIds.add(attemptId);
         return attemptId;
     }

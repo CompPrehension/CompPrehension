@@ -153,7 +153,8 @@ public class ExerciseAttemptDataRepository {
      */
     @Transactional
     public @NotNull AttemptSummaryData create(long exerciseId, long userId, @Nullable Long courseId,
-                                              @Nullable String ltiLineitemUrl, @Nullable String ltiContextId) {
+                                              @Nullable String ltiLineitemUrl,
+                                              @Nullable String ltiIssuer, @Nullable String ltiClientId) {
         if (courseId != null) {
             exerciseAttemptRepository.changeExistingAttemptsStatusByCourse(
                     exerciseId, courseId, userId, AttemptStatus.INCOMPLETE, AttemptStatus.COMPLETED_BY_SYSTEM);
@@ -169,7 +170,8 @@ public class ExerciseAttemptDataRepository {
         attempt.setAttemptStatus(AttemptStatus.INCOMPLETE);
         attempt.setQuestions(new ArrayList<>());
         attempt.setLtiLineitemUrl(ltiLineitemUrl);
-        attempt.setLtiContextId(ltiContextId);
+        attempt.setLtiIssuer(ltiIssuer);
+        attempt.setLtiClientId(ltiClientId);
 
         exerciseAttemptRepository.save(attempt);
         return new AttemptSummaryData(attempt.getId(), userId, exerciseId, courseId,

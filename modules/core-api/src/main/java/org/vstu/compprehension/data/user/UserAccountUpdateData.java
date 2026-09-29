@@ -5,12 +5,10 @@ import org.jetbrains.annotations.Nullable;
 import org.vstu.compprehension.enums.Language;
 
 /**
- * Запрос на обновление пользователя.
+ * Профиль пользователя, каким его передал источник входа.
  */
 public record UserAccountUpdateData(
         @NotNull String email,
         @Nullable String fullName,
-        @NotNull Language language,
-        @Nullable String externalId,
-        @Nullable String externalUserId) {
+        @NotNull Language language) {
 }

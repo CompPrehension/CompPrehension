@@ -13,6 +13,8 @@ public record GradePassbackTargetData(
         long userId,
         @Nullable String externalUserId,
         @Nullable String ltiLineitemUrl,
+        @Nullable String ltiIssuer,
+        @Nullable String ltiClientId,
         @Nullable CourseTarget course) {
 
     public record CourseTarget(

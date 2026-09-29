@@ -5,7 +5,6 @@ import org.springframework.core.annotation.Order;
 import org.springframework.stereotype.Service;
 import org.springframework.util.MultiValueMap;
 import org.springframework.web.util.UriComponents;
-import org.vstu.compprehension.services.ExternalAccountService;
 import org.vstu.compprehension.moodle.request.MoodleGrade;
 import org.vstu.compprehension.moodle.response.MoodleLtiActivity;
 import org.vstu.compprehension.moodle.MoodleClient;
@@ -40,7 +39,6 @@ public class MoodleDiscoveryGradePassbackStrategy implements GradePassbackStrate
 
     private final MoodleClientFactory moodleClientFactory;
     private final WsFuncMoodleConfig wsFuncMoodleConfig;
-    private final ExternalAccountService externalAccountService;
 
     @Override
     public boolean supports(@NotNull GradePassbackTargetData target) {
@@ -74,13 +72,11 @@ public class MoodleDiscoveryGradePassbackStrategy implements GradePassbackStrate
             throw new IllegalStateException("No WS-moodle registration for " + baseUrl);
         }
 
-        Optional<String> moodleUserIdOrEmpty = externalAccountService
-                .findExternalId(target.userId(), eduRes.id());
-        if (moodleUserIdOrEmpty.isEmpty()) {
+        String moodleUserId = target.externalUserId();
+        if (moodleUserId == null) {
             throw new IllegalStateException(
-                    "No external account linking user " + target.userId() + " to " + baseUrl);
+                    "No account of user " + target.userId() + " in " + baseUrl);
         }
-        String moodleUserId = moodleUserIdOrEmpty.get();
         MoodleClient moodleClient = moodleClientFactory.create(baseUrl, wsToken);
 
         long exerciseId = target.exerciseId();

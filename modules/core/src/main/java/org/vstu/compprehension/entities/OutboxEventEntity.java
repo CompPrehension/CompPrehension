@@ -12,7 +12,10 @@ import java.time.Instant;
 @Getter
 @Setter
 @NoArgsConstructor
-@Table(name = "outbox_event")
+@Table(name = "outbox_event", indexes = {
+    @Index(name = "ix_outbox_event_due", columnList = "status, next_attempt_at"),
+    @Index(name = "ix_outbox_event_ordering", columnList = "ordering_key, status, id")
+})
 public class OutboxEventEntity {
     @Id
     @GeneratedValue(strategy = GenerationType.IDENTITY)

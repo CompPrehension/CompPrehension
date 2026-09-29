@@ -5,9 +5,9 @@ import org.vstu.compprehension.controllers.LtiDeepLinkingController.DeepLinkBuil
 import org.vstu.compprehension.enums.EducationResourceTrustStatus;
 import org.vstu.compprehension.enums.EducationResourceType;
 import org.vstu.compprehension.frontend.CourseFrontendService;
-import org.vstu.compprehension.frontend.EducationResourceFrontendService;
 import org.vstu.compprehension.frontend.dto.course.CreateCourseDto;
 import org.vstu.compprehension.infrastructure.TestData;
+import org.vstu.compprehension.repositories.data.ExternalSystemDataRepository;
 import org.vstu.compprehension.services.RoleAssignmentService;
 
 import org.junit.jupiter.api.AfterEach;
@@ -28,7 +28,7 @@ class LtiDeepLinkingControllerAuthorizationTest extends AbstractAuthorizationTes
     private static final String UNTRUSTED_LMS_URL = "https://moodle.untrusted.test";
     private static final String UNTRUSTED_EXTERNAL_COURSE_ID = "ext-untrusted-course";
 
-    @Autowired private EducationResourceFrontendService educationResourceService;
+    @Autowired private ExternalSystemDataRepository externalSystems;
     @Autowired private CourseFrontendService courseService;
     @Autowired private RoleAssignmentService roleAssignmentService;
 
@@ -156,12 +156,12 @@ class LtiDeepLinkingControllerAuthorizationTest extends AbstractAuthorizationTes
     @Test
     void buildForbiddenForAdminOfUntrustedLms() throws Exception {
         // Arrange.
-        var resource = educationResourceService.getOrCreate(
+        var resource = externalSystems.createEducationResourceIfAbsent(
                 UNTRUSTED_LMS_URL, EducationResourceType.MOODLE, EducationResourceTrustStatus.UNTRUSTED);
         courseService.getOrCreate(new CreateCourseDto(resource.id(), UNTRUSTED_EXTERNAL_COURSE_ID, null));
         roleAssignmentService.reconcileRoleInEducationResource(
                 TestData.Users.MAIN_COURSE_TEACHER_ID, resource.id(), SystemRole.EDUCATION_RESOURCE_ADMIN);
-        TestLtiContextProvider.launchedFromLms(UNTRUSTED_LMS_URL, UNTRUSTED_EXTERNAL_COURSE_ID);
+        TestLtiContextProvider.launchedFromLms(resource.id(), UNTRUSTED_EXTERNAL_COURSE_ID);
         TestLtiContextProvider.withDeepLinkingSession();
         actingAs(TestData.Users.MAIN_COURSE_TEACHER_ID);
 

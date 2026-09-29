@@ -18,8 +18,6 @@ class UserAccountMapper implements Mapper<UserEntity, UserAccountData> {
                 id,
                 source.getFirstName(),
                 Strict.required(source.getEmail(), "email", owner),
-                Strict.required(source.getPreferred_language(), "preferred_language", owner),
-                source.getExternalId(),
-                source.getExternalUserId());
+                Strict.required(source.getPreferred_language(), "preferred_language", owner));
     }
 }

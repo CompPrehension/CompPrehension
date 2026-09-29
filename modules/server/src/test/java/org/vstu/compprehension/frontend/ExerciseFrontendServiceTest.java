@@ -109,7 +109,7 @@ class ExerciseFrontendServiceTest extends AbstractIntegrationTest {
         assertTrue(permissions.canUnlinkFromCourse());
     }
 
-    /** Своё упражнение курса преподаватель правит и удаляет. */
+    /** Своё упражнение курса преподаватель правит, удаляет и копирует в пул. */
     @Test
     void courseExerciseIsEditableForTeacher() {
         // Act.
@@ -121,20 +121,20 @@ class ExerciseFrontendServiceTest extends AbstractIntegrationTest {
         assertTrue(permissions.canEdit());
         assertTrue(permissions.canDelete());
         assertFalse(permissions.canCloneToCourse());
-        assertFalse(permissions.canCopyToGlobalPool());
+        assertTrue(permissions.canCopyToGlobalPool());
         assertFalse(permissions.canUnlinkFromCourse());
     }
 
-    /** Копировать в пул может только автор пула. */
+    /** Пополнять пул упражнениями курса может преподаватель курса, но не ассистент. */
     @Test
-    void copyToGlobalPoolRequiresGlobalCreatePermission() {
+    void copyToGlobalPoolAllowedForTeacherButNotAssistant() {
         // Act.
         var teacher = service.getExerciseCard(TestData.Exercises.MAIN_COURSE_ID, TestData.Courses.MAIN_ID, TestData.Users.MAIN_COURSE_TEACHER_ID).getPermissions();
-        var admin = service.getExerciseCard(TestData.Exercises.MAIN_COURSE_ID, TestData.Courses.MAIN_ID, TestData.Users.ADMIN_ID).getPermissions();
+        var assistant = service.getExerciseCard(TestData.Exercises.MAIN_COURSE_ID, TestData.Courses.MAIN_ID, TestData.Users.MAIN_COURSE_ASSISTANT_ID).getPermissions();
 
         // Assert.
-        assertFalse(teacher.canCopyToGlobalPool());
-        assertTrue(admin.canCopyToGlobalPool());
+        assertTrue(teacher.canCopyToGlobalPool());
+        assertFalse(assistant.canCopyToGlobalPool());
     }
 
     /** Несуществующее упражнение. */

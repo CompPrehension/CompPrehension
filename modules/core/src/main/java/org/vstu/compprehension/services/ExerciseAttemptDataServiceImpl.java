@@ -111,7 +111,8 @@ class ExerciseAttemptDataServiceImpl implements ExerciseAttemptDataService {
         return exerciseAttemptDataRepository.create(
                 exerciseId, userId, courseId,
                 lti == null ? null : lti.lineitemUrl(),
-                lti == null || lti.course() == null ? null : lti.course().courseId());
+                lti == null ? null : lti.issuer(),
+                lti == null ? null : lti.clientId());
     }
 
     @Transactional(propagation = Propagation.REQUIRED)

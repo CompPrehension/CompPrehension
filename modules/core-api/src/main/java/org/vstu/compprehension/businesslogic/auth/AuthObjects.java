@@ -27,7 +27,6 @@ public final class AuthObjects {
         CREATE_DEBUG_ATTEMPT,
         VIEW_OTHER_ATTEMPTS,
 
-        COPY_EXERCISE_TO_GLOBAL_POOL,
         VIEW_EXERCISE_USAGE,
 
         REGISTER_LMS;
@@ -40,6 +39,7 @@ public final class AuthObjects {
 
     public enum SystemCapability implements Capability {
         VIEW_GLOBAL_POOL,
+        COPY_EXERCISE_TO_GLOBAL_POOL,
         DEBUG_BANK_QUESTION;
 
         @Override
@@ -63,10 +63,10 @@ public final class AuthObjects {
                 SystemPermission.SOLVE_EXERCISE,
                 SystemPermission.CREATE_DEBUG_ATTEMPT,
                 SystemPermission.VIEW_OTHER_ATTEMPTS,
-                SystemPermission.COPY_EXERCISE_TO_GLOBAL_POOL,
                 SystemPermission.VIEW_EXERCISE_USAGE
         ), EnumSet.of(
                 SystemCapability.VIEW_GLOBAL_POOL,
+                SystemCapability.COPY_EXERCISE_TO_GLOBAL_POOL,
                 SystemCapability.DEBUG_BANK_QUESTION
         ), EnumSet.of(PermissionScopeKind.GLOBAL)),
 
@@ -85,6 +85,7 @@ public final class AuthObjects {
                 SystemPermission.VIEW_OTHER_ATTEMPTS
         ), EnumSet.of(
                 SystemCapability.VIEW_GLOBAL_POOL,
+                SystemCapability.COPY_EXERCISE_TO_GLOBAL_POOL,
                 SystemCapability.DEBUG_BANK_QUESTION
         ), EnumSet.of(PermissionScopeKind.EDUCATION_RESOURCE)),
 
@@ -103,6 +104,7 @@ public final class AuthObjects {
                 SystemPermission.VIEW_OTHER_ATTEMPTS
         ), EnumSet.of(
                 SystemCapability.VIEW_GLOBAL_POOL,
+                SystemCapability.COPY_EXERCISE_TO_GLOBAL_POOL,
                 SystemCapability.DEBUG_BANK_QUESTION
         ), EnumSet.of(PermissionScopeKind.COURSE)),
 
