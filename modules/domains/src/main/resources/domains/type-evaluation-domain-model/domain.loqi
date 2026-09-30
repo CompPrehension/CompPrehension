@@ -1,0 +1,309 @@
+//-------------------STATIC (CLASS) SECTION-------------------
+//------------------------------------------------------------
+
+////// Перечисления //////
+
+enum OperandPlacement {
+	left [
+		RU.localizedName = "левый" ;
+		EN.localizedName = "left" ;
+	],
+	right [
+		RU.localizedName = "правый" ;
+		EN.localizedName = "right" ;
+	],
+} [
+	RU.localizedName = "положение операнда" ;
+	EN.localizedName = "operand position" ;
+]
+
+enum OperationGroup {
+	arithmetic [
+		RU.localizedName = "арифметическая операция" ;
+		EN.localizedName = "arithmetic operation" ;
+	],
+	comparison [
+		RU.localizedName = "сравнение" ;
+		EN.localizedName = "comparison" ;
+	],
+	logical [
+		RU.localizedName = "логическая операция" ;
+		EN.localizedName = "logical operation" ;
+	],
+	indexing [
+		RU.localizedName = "обращение по индексу" ;
+		EN.localizedName = "indexing" ;
+	],
+	slicing [
+		RU.localizedName = "срез" ;
+		EN.localizedName = "slicing" ;
+	],
+	call [
+		RU.localizedName = "вызов функции" ;
+		EN.localizedName = "function call" ;
+	],
+} [
+	RU.localizedName = "вид операции" ;
+	EN.localizedName = "operation kind" ;
+]
+
+// Как операция над нечисловыми операндами применяется к последовательностям.
+enum SequenceUse {
+	concatenation [
+		RU.localizedName = "склеивание" ;
+		EN.localizedName = "concatenation" ;
+	],
+	repetition [
+		RU.localizedName = "повторение" ;
+		EN.localizedName = "repetition" ;
+	],
+	inapplicable [
+		RU.localizedName = "неприменима" ;
+		EN.localizedName = "inapplicable" ;
+	],
+} [
+	RU.localizedName = "применение к последовательностям" ;
+	EN.localizedName = "sequence use" ;
+]
+
+enum ComparisonKind {
+	equality [
+		RU.localizedName = "проверка на равенство" ;
+		EN.localizedName = "equality check" ;
+	],
+	ordering [
+		RU.localizedName = "сравнение по порядку" ;
+		EN.localizedName = "ordering comparison" ;
+	],
+	membership [
+		RU.localizedName = "проверка вхождения" ;
+		EN.localizedName = "membership test" ;
+	],
+} [
+	RU.localizedName = "вид сравнения" ;
+	EN.localizedName = "comparison kind" ;
+]
+
+enum ArgumentRequirement {
+	none [
+		RU.localizedName = "без аргумента" ;
+		EN.localizedName = "no argument" ;
+	],
+	any [
+		RU.localizedName = "любой аргумент" ;
+		EN.localizedName = "any argument" ;
+	],
+	sized [
+		RU.localizedName = "коллекция или строка" ;
+		EN.localizedName = "collection or string" ;
+	],
+	numberOrText [
+		RU.localizedName = "число или строка" ;
+		EN.localizedName = "number or string" ;
+	],
+} [
+	RU.localizedName = "требование к аргументу" ;
+	EN.localizedName = "argument requirement" ;
+]
+
+enum FixedResult {
+	number [
+		RU.localizedName = "число" ;
+		EN.localizedName = "number" ;
+	],
+	text [
+		RU.localizedName = "строка" ;
+		EN.localizedName = "string" ;
+	],
+} [
+	RU.localizedName = "тип результата функции" ;
+	EN.localizedName = "function result type" ;
+]
+
+////// Типы //////
+
+// Типы в ситуации интернированы: одинаковый тип — один объект, поэтому равенство типов — равенство объектов.
+// Ранг задаёт порядок арифметических преобразований и сравним только внутри одного языка.
+class Type {
+	class prop isArithmetic: bool = false ;
+	class prop conversionRank: int = 0 ;
+} [
+	RU.localizedName = "тип" ;
+	EN.localizedName = "type" ;
+]
+
+class NumericType : Type {
+} [
+	RU.localizedName = "числовой тип" ;
+	EN.localizedName = "numeric type" ;
+]
+
+class IntegerType : NumericType {
+	isArithmetic = true ;
+} [
+	RU.localizedName = "целый тип" ;
+	EN.localizedName = "integer type" ;
+]
+
+class FloatingType : NumericType {
+	isArithmetic = true ;
+} [
+	RU.localizedName = "вещественный тип" ;
+	EN.localizedName = "floating-point type" ;
+]
+
+class BooleanType : Type {
+} [
+	RU.localizedName = "логический тип" ;
+	EN.localizedName = "boolean type" ;
+]
+
+class SequenceType : Type {
+	rel elementType(Type) ;
+} [
+	RU.localizedName = "последовательность" ;
+	EN.localizedName = "sequence" ;
+]
+
+class TextType : SequenceType {
+} [
+	RU.localizedName = "строковый тип" ;
+	EN.localizedName = "string type" ;
+]
+
+class ListType : SequenceType {
+} [
+	RU.localizedName = "список" ;
+	EN.localizedName = "list" ;
+]
+
+class TupleType : SequenceType {
+	rel itemType<index : int>(Type) ;
+} [
+	RU.localizedName = "кортеж" ;
+	EN.localizedName = "tuple" ;
+]
+
+class MappingType : Type {
+	rel keyType(Type) ;
+	rel valueType(Type) ;
+} [
+	RU.localizedName = "словарь" ;
+	EN.localizedName = "dictionary" ;
+]
+
+class NoneType : Type {
+} [
+	RU.localizedName = "отсутствие значения" ;
+	EN.localizedName = "no value" ;
+]
+
+class ErrorType : Type {
+} [
+	RU.localizedName = "ошибка типа" ;
+	EN.localizedName = "type error" ;
+]
+
+////// Выражения //////
+
+// Факты о значениях известны студенту: программа остановлена в точке, где вычисляется выражение.
+class Expr {
+	obj prop isTruthy: bool ;
+	obj prop isNumericText: bool ;
+	obj prop intValue: int ;
+
+	// Только для уже решённых подвыражений: тип проверяемой операции в ситуацию не попадает.
+	rel hasType(Type) ;
+} [
+	RU.localizedName = "выражение" ;
+	EN.localizedName = "expression" ;
+]
+
+class Variable : Expr {
+} [
+	RU.localizedName = "переменная" ;
+	EN.localizedName = "variable" ;
+]
+
+class Literal : Expr {
+} [
+	RU.localizedName = "литерал" ;
+	EN.localizedName = "literal" ;
+]
+
+class Operation : Expr {
+	class prop group: OperationGroup ;
+
+	rel hasOperand<placement : OperandPlacement>(Expr) ;
+} [
+	RU.localizedName = "операция" ;
+	EN.localizedName = "operation" ;
+]
+
+// Ранг результата — наибольший из рангов операндов и minResultRank.
+class ArithmeticOperation : Operation {
+	class prop minResultRank: int ;
+	class prop isTrueDivision: bool = false ;
+	class prop concatenatesSequences: bool = false ;
+	class prop repeatsSequence: bool = false ;
+	class prop isFloorDivision: bool = false ;
+
+	group = OperationGroup:arithmetic ;
+} [
+	RU.localizedName = "арифметическая операция" ;
+	EN.localizedName = "arithmetic operation" ;
+]
+
+class ComparisonOperation : Operation {
+	class prop comparisonKind: ComparisonKind ;
+	class prop comparesAnyTypes: bool = false ;
+
+	group = OperationGroup:comparison ;
+} [
+	RU.localizedName = "сравнение" ;
+	EN.localizedName = "comparison" ;
+]
+
+class LogicalOperation : Operation {
+	class prop returnsOperand: bool = false ;
+	class prop returnsLeftWhenLeftTruthy: bool = false ;
+
+	group = OperationGroup:logical ;
+} [
+	RU.localizedName = "логическая операция" ;
+	EN.localizedName = "logical operation" ;
+]
+
+class NegationOperation : Operation {
+	group = OperationGroup:logical ;
+} [
+	RU.localizedName = "логическое отрицание" ;
+	EN.localizedName = "logical negation" ;
+]
+
+class IndexingOperation : Operation {
+	group = OperationGroup:indexing ;
+} [
+	RU.localizedName = "обращение по индексу" ;
+	EN.localizedName = "indexing" ;
+]
+
+class SlicingOperation : Operation {
+	group = OperationGroup:slicing ;
+} [
+	RU.localizedName = "срез" ;
+	EN.localizedName = "slicing" ;
+]
+
+class CallOperation : Operation {
+	class prop fixedResult: FixedResult ;
+	// Для числового результата: ранг его типа, как у Type.conversionRank.
+	class prop resultRank: int ;
+	class prop argumentRequirement: ArgumentRequirement ;
+	class prop readsUserInput: bool = false ;
+
+	group = OperationGroup:call ;
+} [
+	RU.localizedName = "вызов функции" ;
+	EN.localizedName = "function call" ;
+]

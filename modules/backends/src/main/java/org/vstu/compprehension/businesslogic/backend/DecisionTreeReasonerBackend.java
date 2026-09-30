@@ -8,6 +8,7 @@ import its.model.definition.DomainModel;
 import its.model.nodes.*;
 import its.questions.gen.formulations.TemplatingUtils;
 import its.reasoner.LearningSituation;
+import its.reasoner.nodes.AggregationDecisionTreeTraceElement;
 import its.reasoner.nodes.DecisionTreeReasoner;
 import its.reasoner.nodes.DecisionTreeTrace;
 import its.reasoner.nodes.DecisionTreeTraceElement;
@@ -151,6 +152,17 @@ public class DecisionTreeReasonerBackend
         return result;
     }
 
+    // Агрегацию объясняют только ветви с её же итогом: при верном итоге or/hyp ошибки неподошедших ветвей
+    // не показываются, при ошибочном итоге and — подсказки удачных ветвей.
+    private static Collection<DecisionTreeTrace> explainedNestedTraces(DecisionTreeTraceElement<?, ?> element) {
+        if (element instanceof AggregationDecisionTreeTraceElement<?> aggregation) {
+            return aggregation.nestedTraces().stream()
+                    .filter(branch -> branch.getBranchResult() == aggregation.getNodeResult())
+                    .toList();
+        }
+        return Objects.requireNonNullElse(element.nestedTraces(), List.of());
+    }
+
     // Рекурсивный сбор объяснений для очередной трассы дерева
     private static List<Explanation> collectExplanations(Explanation.Type type,
                                                          DecisionTreeTrace trace,
@@ -195,7 +207,7 @@ public class DecisionTreeReasonerBackend
                     }
                 }
                 // Собрать с дочерних трасс элементы
-                for (DecisionTreeTrace subTrace : Objects.requireNonNullElse(element.nestedTraces(), new ArrayList<DecisionTreeTrace>())) {
+                for (DecisionTreeTrace subTrace : explainedNestedTraces(element)) {
                     traceExplanations.addAll(collectExplanations(type, subTrace, newParent, newPolicy, domain,
                             annotationProcessor, lang));
                 }

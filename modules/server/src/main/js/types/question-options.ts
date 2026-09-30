@@ -56,7 +56,11 @@ type DnDMatchingQuestionOptions = MergeIntersections<QuestionOptions & {
     dropzoneStyle: string,
     dropzoneHtml: string,
 }>
-export type MatchingQuestionOptions = ComboboxMatchingQuestionOptions | DnDMatchingQuestionOptions
+type InlineMatchingQuestionOptions = MergeIntersections<QuestionOptions & {
+    multipleSelectionEnabled: boolean,
+    displayMode: 'inline',
+}>
+export type MatchingQuestionOptions = ComboboxMatchingQuestionOptions | DnDMatchingQuestionOptions | InlineMatchingQuestionOptions
 export const TMatchingQuestionOptions: io.Type<MatchingQuestionOptions> = io.intersection([
     TQuestionOptions,
     io.type({
@@ -71,6 +75,9 @@ export const TMatchingQuestionOptions: io.Type<MatchingQuestionOptions> = io.int
             draggableStyle: io.string,
             dropzoneStyle: io.string,
             dropzoneHtml: io.string,
+        }),
+        io.type({
+            displayMode: io.literal('inline'),
         }),
     ]),
 ], 'MatchingQuestionOptions')

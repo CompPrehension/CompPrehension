@@ -1,0 +1,263 @@
+//-------------------STATIC (CLASS) SECTION-------------------
+//------------------------------------------------------------
+
+////// Типы //////
+
+class py_int : IntegerType {
+	conversionRank = 2 ;
+} [
+	text = "int" ;
+]
+
+class py_float : FloatingType {
+	conversionRank = 3 ;
+} [
+	text = "float" ;
+]
+
+// bool в Python — подтип int и участвует в арифметике.
+class py_bool : BooleanType {
+	isArithmetic = true ;
+	conversionRank = 1 ;
+} [
+	text = "bool" ;
+]
+
+class py_str : TextType {
+} [
+	text = "str" ;
+]
+
+class py_list : ListType {
+} [
+	text = "list" ;
+]
+
+class py_tuple : TupleType {
+} [
+	text = "tuple" ;
+]
+
+class py_dict : MappingType {
+} [
+	text = "dict" ;
+]
+
+class py_NoneType : NoneType {
+} [
+	text = "None" ;
+]
+
+class py_TypeError : ErrorType {
+} [
+	RU.localizedName = "ошибка (TypeError)" ;
+	EN.localizedName = "error (TypeError)" ;
+]
+
+////// Арифметика //////
+
+class py_add : ArithmeticOperation {
+	minResultRank = 2 ;
+	concatenatesSequences = true ;
+} [
+	text = "+" ;
+	RU.localizedName = "оператор +" ;
+	EN.localizedName = "operator +" ;
+]
+
+class py_sub : ArithmeticOperation {
+	minResultRank = 2 ;
+} [
+	text = "-" ;
+	RU.localizedName = "оператор -" ;
+	EN.localizedName = "operator -" ;
+]
+
+class py_mul : ArithmeticOperation {
+	minResultRank = 2 ;
+	repeatsSequence = true ;
+} [
+	text = "*" ;
+	RU.localizedName = "оператор *" ;
+	EN.localizedName = "operator *" ;
+]
+
+class py_truediv : ArithmeticOperation {
+	isTrueDivision = true ;
+	minResultRank = 3 ;
+} [
+	text = "/" ;
+	RU.localizedName = "оператор /" ;
+	EN.localizedName = "operator /" ;
+]
+
+class py_floordiv : ArithmeticOperation {
+	minResultRank = 2 ;
+	isFloorDivision = true ;
+} [
+	text = "//" ;
+	RU.localizedName = "оператор //" ;
+	EN.localizedName = "operator //" ;
+]
+
+class py_mod : ArithmeticOperation {
+	minResultRank = 2 ;
+} [
+	text = "%" ;
+	RU.localizedName = "оператор %" ;
+	EN.localizedName = "operator %" ;
+]
+
+////// Сравнения //////
+
+class py_eq : ComparisonOperation {
+	comparisonKind = ComparisonKind:equality ;
+	comparesAnyTypes = true ;
+} [
+	text = "==" ;
+	RU.localizedName = "оператор ==" ;
+	EN.localizedName = "operator ==" ;
+]
+
+class py_ne : ComparisonOperation {
+	comparisonKind = ComparisonKind:equality ;
+	comparesAnyTypes = true ;
+} [
+	text = "!=" ;
+	RU.localizedName = "оператор !=" ;
+	EN.localizedName = "operator !=" ;
+]
+
+class py_lt : ComparisonOperation {
+	comparisonKind = ComparisonKind:ordering ;
+} [
+	text = "<" ;
+	RU.localizedName = "оператор <" ;
+	EN.localizedName = "operator <" ;
+]
+
+class py_le : ComparisonOperation {
+	comparisonKind = ComparisonKind:ordering ;
+} [
+	text = "<=" ;
+	RU.localizedName = "оператор <=" ;
+	EN.localizedName = "operator <=" ;
+]
+
+class py_gt : ComparisonOperation {
+	comparisonKind = ComparisonKind:ordering ;
+} [
+	text = ">" ;
+	RU.localizedName = "оператор >" ;
+	EN.localizedName = "operator >" ;
+]
+
+class py_ge : ComparisonOperation {
+	comparisonKind = ComparisonKind:ordering ;
+} [
+	text = ">=" ;
+	RU.localizedName = "оператор >=" ;
+	EN.localizedName = "operator >=" ;
+]
+
+class py_in : ComparisonOperation {
+	comparisonKind = ComparisonKind:membership ;
+} [
+	text = "in" ;
+	RU.localizedName = "оператор in" ;
+	EN.localizedName = "operator in" ;
+]
+
+////// Логика //////
+
+class py_or : LogicalOperation {
+	returnsOperand = true ;
+	returnsLeftWhenLeftTruthy = true ;
+} [
+	text = "or" ;
+	RU.localizedName = "оператор or" ;
+	EN.localizedName = "operator or" ;
+]
+
+class py_and : LogicalOperation {
+	returnsOperand = true ;
+	returnsLeftWhenLeftTruthy = false ;
+} [
+	text = "and" ;
+	RU.localizedName = "оператор and" ;
+	EN.localizedName = "operator and" ;
+]
+
+class py_not : NegationOperation {
+} [
+	text = "not" ;
+	RU.localizedName = "оператор not" ;
+	EN.localizedName = "operator not" ;
+]
+
+////// Индексация, срез //////
+
+class py_index : IndexingOperation {
+} [
+	text = "[]" ;
+	RU.localizedName = "обращение по индексу" ;
+	EN.localizedName = "indexing" ;
+]
+
+class py_slice : SlicingOperation {
+} [
+	text = "[:]" ;
+	RU.localizedName = "срез" ;
+	EN.localizedName = "slice" ;
+]
+
+////// Встроенные функции //////
+
+class py_len : CallOperation {
+	fixedResult = FixedResult:number ;
+	resultRank = 2 ;
+	argumentRequirement = ArgumentRequirement:sized ;
+} [
+	text = "len" ;
+	RU.localizedName = "функция len" ;
+	EN.localizedName = "function len" ;
+]
+
+class py_input : CallOperation {
+	fixedResult = FixedResult:text ;
+	argumentRequirement = ArgumentRequirement:none ;
+	readsUserInput = true ;
+} [
+	text = "input" ;
+	RU.localizedName = "функция input" ;
+	EN.localizedName = "function input" ;
+]
+
+class py_int_call : CallOperation {
+	fixedResult = FixedResult:number ;
+	resultRank = 2 ;
+	argumentRequirement = ArgumentRequirement:numberOrText ;
+} [
+	text = "int" ;
+	RU.localizedName = "функция int" ;
+	EN.localizedName = "function int" ;
+]
+
+class py_float_call : CallOperation {
+	fixedResult = FixedResult:number ;
+	resultRank = 3 ;
+	argumentRequirement = ArgumentRequirement:numberOrText ;
+} [
+	text = "float" ;
+	RU.localizedName = "функция float" ;
+	EN.localizedName = "function float" ;
+]
+
+class py_str_call : CallOperation {
+	fixedResult = FixedResult:text ;
+	argumentRequirement = ArgumentRequirement:any ;
+} [
+	text = "str" ;
+	RU.localizedName = "функция str" ;
+	EN.localizedName = "function str" ;
+]

@@ -1340,12 +1340,16 @@ var TOrderQuestionOptions = intersection([
 var TMatchingQuestionOptions = intersection([
 	TQuestionOptions,
 	type({ multipleSelectionEnabled: boolean }),
-	union([type({ displayMode: literal("combobox") }), type({
-		displayMode: literal("dragNdrop"),
-		draggableStyle: string,
-		dropzoneStyle: string,
-		dropzoneHtml: string
-	})])
+	union([
+		type({ displayMode: literal("combobox") }),
+		type({
+			displayMode: literal("dragNdrop"),
+			draggableStyle: string,
+			dropzoneStyle: string,
+			dropzoneHtml: string
+		}),
+		type({ displayMode: literal("inline") })
+	])
 ], "MatchingQuestionOptions");
 var TSingleChoiceQuestionOptions = intersection([TQuestionOptions, type({ displayMode: keyof({
 	"radio": null,
@@ -2097,6 +2101,81 @@ function answerSlotId(node) {
 	return +attribs["data-answer-id"];
 }
 //#endregion
+//#region src/main/js/components/common/question/inline-matching-question.tsx
+var EXPRESSION_PART_CLASS = "comp-ph-expr-part";
+var isExpressionPart = (node) => (node.attribs.class ?? "").split(/\s+/).includes(EXPRESSION_PART_CLASS);
+function collectSlotIds(nodes, into) {
+	for (const node of nodes) {
+		const slotId = answerSlotId(node);
+		if (slotId !== null) into.push(slotId);
+		if (node instanceof import_lib.Element) collectSlotIds(node.children, into);
+	}
+	return into;
+}
+/**
+* Menus sit right in the question text. A part of an expression holds its own slot and nested parts:
+* its menu opens only after every nested part is answered, and an accepted answer can no longer be changed.
+*/
+var InlineMatchingQuestionComponent = observer((props) => {
+	const { question, getAnswers, getFeedback, onChanged } = props;
+	if (question.options.displayMode !== "inline") return null;
+	const { groups = [] } = question;
+	const accepted = new Set((getFeedback?.()?.correctAnswers ?? []).map((a) => a.answer[0]));
+	const choose = (slotId, groupId) => {
+		const otherAnswers = getAnswers().filter((a) => a.answer[0] !== slotId);
+		onChanged([...otherAnswers, {
+			answer: [slotId, groupId],
+			isCreatedByUser: true
+		}]);
+	};
+	const renderSlot = (slot, slotId, disabled) => {
+		const chosen = groups.find((g) => g.id === getAnswers().find((a) => a.answer[0] === slotId)?.answer[1]);
+		return /* @__PURE__ */ (0, import_jsx_runtime.jsxs)(Dropdown_default, {
+			id: slot.attribs.id,
+			drop: "end",
+			className: "comp-ph-expr-slot",
+			children: [/* @__PURE__ */ (0, import_jsx_runtime.jsx)(Dropdown_default.Toggle, {
+				as: "button",
+				type: "button",
+				disabled,
+				children: chosen ? /* @__PURE__ */ (0, import_jsx_runtime.jsx)("span", { dangerouslySetInnerHTML: { __html: chosen.text } }) : "..."
+			}), /* @__PURE__ */ (0, import_jsx_runtime.jsx)(Dropdown_default.Menu, {
+				popperConfig: { strategy: "fixed" },
+				children: groups.map((g) => /* @__PURE__ */ (0, import_jsx_runtime.jsx)(Dropdown_default.Item, {
+					as: "button",
+					type: "button",
+					onClick: () => choose(slotId, g.id),
+					children: /* @__PURE__ */ (0, import_jsx_runtime.jsx)("span", { dangerouslySetInnerHTML: { __html: g.text } })
+				}, g.id))
+			})]
+		}, `slot-${slotId}`);
+	};
+	const parserOptions = { replace: (node) => {
+		if (!(node instanceof import_lib.Element)) return;
+		const slotId = answerSlotId(node);
+		if (slotId !== null) return renderSlot(node, slotId, accepted.has(slotId));
+		if (!isExpressionPart(node)) return;
+		const children = node.children;
+		const ownSlot = children.find((child) => answerSlotId(child) !== null);
+		const ownSlotId = ownSlot ? answerSlotId(ownSlot) : null;
+		const nestedSlotIds = collectSlotIds(children, []).filter((id) => id !== ownSlotId);
+		const solved = ownSlotId !== null && accepted.has(ownSlotId);
+		const blocked = nestedSlotIds.some((id) => !accepted.has(id));
+		return /* @__PURE__ */ (0, import_jsx_runtime.jsx)("span", {
+			...(0, import_lib.attributesToProps)(node.attribs),
+			className: `${node.attribs.class}${solved ? " solved" : ""}`,
+			children: children.map((child, index) => child === ownSlot && ownSlotId !== null ? renderSlot(ownSlot, ownSlotId, solved || blocked) : /* @__PURE__ */ (0, import_jsx_runtime.jsx)(import_react.Fragment, { children: (0, import_lib.domToReact)([child], parserOptions) }, index))
+		});
+	} };
+	return /* @__PURE__ */ (0, import_jsx_runtime.jsx)("div", {
+		id: `question_${question.questionId}`,
+		children: /* @__PURE__ */ (0, import_jsx_runtime.jsx)("div", {
+			className: "comp-ph-question-text",
+			children: esm_default(question.text, parserOptions)
+		})
+	});
+});
+//#endregion
 //#region src/main/js/components/common/question/matching-question.tsx
 /**
 * The store owns the answers, so the selects are controlled by it: `defaultValue` would
@@ -2111,6 +2190,7 @@ var MatchingQuestionComponent = observer((props) => {
 		case options.displayMode === "combobox" && !options.requireContext: return /* @__PURE__ */ (0, import_jsx_runtime.jsx)(ComboboxMatchingQuestionComponent, { ...props });
 		case options.displayMode === "combobox" && options.requireContext: return /* @__PURE__ */ (0, import_jsx_runtime.jsx)(ComboboxMatchingQuestionWithCtxComponent, { ...props });
 		case options.displayMode === "dragNdrop": return /* @__PURE__ */ (0, import_jsx_runtime.jsx)(DragAndDropMatchingQuestionComponent, { ...props });
+		case options.displayMode === "inline": return /* @__PURE__ */ (0, import_jsx_runtime.jsx)(InlineMatchingQuestionComponent, { ...props });
 	}
 	return /* @__PURE__ */ (0, import_jsx_runtime.jsx)("div", { children: "Not Implemented" });
 });

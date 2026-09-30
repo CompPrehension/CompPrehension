@@ -8,6 +8,7 @@ import { Answer } from "../../../types/answer";
 import { Feedback } from "../../../types/feedback";
 import { MatchingQuestion } from "../../../types/question";
 import { answerSlotId } from "./answer-slot";
+import { InlineMatchingQuestionComponent } from "./inline-matching-question";
 
 type GroupOption = { value: number, label: string };
 
@@ -36,7 +37,9 @@ export const MatchingQuestionComponent = observer((props: MatchingQuestionCompon
         case options.displayMode === "combobox" && options.requireContext:
             return <ComboboxMatchingQuestionWithCtxComponent {...props}/>;
         case options.displayMode === "dragNdrop":
-            return <DragAndDropMatchingQuestionComponent {...props}/>;              
+            return <DragAndDropMatchingQuestionComponent {...props}/>;
+        case options.displayMode === "inline":
+            return <InlineMatchingQuestionComponent {...props}/>;
     }
     return (<div>Not Implemented</div>);
 });
