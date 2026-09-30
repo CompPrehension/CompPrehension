@@ -11,13 +11,6 @@ class GradePassbackTargetMapper implements Mapper<GradePassbackTargetRow, GradeP
 
     @Override
     public @NotNull GradePassbackTargetData map(@NotNull GradePassbackTargetRow source) {
-        var course = source.getCourseId() == null ? null : new GradePassbackTargetData.CourseTarget(
-                source.getCourseId(),
-                source.getExternalCourseId(),
-                new GradePassbackTargetData.EducationResourceTarget(
-                        source.getEducationResourceId(),
-                        source.getEducationResourceType(),
-                        source.getEducationResourceUrl()));
         return new GradePassbackTargetData(
                 source.getAttemptId(),
                 source.getExerciseId(),
@@ -26,6 +19,6 @@ class GradePassbackTargetMapper implements Mapper<GradePassbackTargetRow, GradeP
                 source.getLtiLineitemUrl(),
                 source.getLtiIssuer(),
                 source.getLtiClientId(),
-                course);
+                source.getCourseId());
     }
 }

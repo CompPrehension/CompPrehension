@@ -7,7 +7,6 @@ import org.springframework.transaction.annotation.Transactional;
 import org.vstu.compprehension.data.cource.CourseEducationResourceData;
 import org.vstu.compprehension.data.cource.CourseExerciseData;
 import org.vstu.compprehension.data.cource.CourseSummaryData;
-import org.vstu.compprehension.data.cource.ExternalCourseData;
 import org.vstu.compprehension.entities.course.ExerciseCourseLinkEntity;
 import org.vstu.compprehension.entities.course.ExerciseCourseLinkId;
 import org.vstu.compprehension.mappers.Mapper;
@@ -27,7 +26,6 @@ public class CourseDataRepository {
     private final CourseRepository courseRepository;
     private final ExerciseCourseLinkRepository exerciseCourseLinkRepository;
     private final Mapper<CourseView, CourseSummaryData> courseSummaryMapper;
-    private final Mapper<CourseView, ExternalCourseData> externalCourseMapper;
     private final Mapper<CourseView, CourseEducationResourceData> courseEducationResourceMapper;
     private final Mapper<ExerciseCourseLinkEntity, CourseExerciseData> courseExerciseMapper;
 
@@ -45,21 +43,6 @@ public class CourseDataRepository {
     @Transactional(readOnly = true)
     public @NotNull List<CourseSummaryData> findSummariesByExerciseId(long exerciseId) {
         return courseSummaryMapper.mapAll(exerciseCourseLinkRepository.findCourseViewsByExerciseId(exerciseId));
-    }
-
-    @Transactional(readOnly = true)
-    public @NotNull List<ExternalCourseData> findExternalCourses(long educationResourceId) {
-        return externalCourseMapper.mapAll(courseRepository.findExternalCourses(educationResourceId));
-    }
-
-    /**
-     * Отвязать курсы от внешней системы.
-     */
-    @Transactional
-    public void detachFromExternalSystem(@NotNull Collection<Long> courseIds) {
-        if (!courseIds.isEmpty()) {
-            courseRepository.detachFromExternalSystem(courseIds);
-        }
     }
 
     @Transactional(readOnly = true)

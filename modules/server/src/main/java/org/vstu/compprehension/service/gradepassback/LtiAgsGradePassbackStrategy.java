@@ -9,9 +9,9 @@ import org.springframework.http.ResponseEntity;
 import org.springframework.stereotype.Service;
 import org.springframework.web.client.RestTemplate;
 import org.jetbrains.annotations.NotNull;
+import org.vstu.compprehension.adapters.lti.LtiServiceTokenClient;
 import org.vstu.compprehension.data.exerciseattempt.GradePassbackTargetData;
 import org.vstu.compprehension.service.lti.LtiRegistrationRegistry;
-import org.vstu.compprehension.service.lti.LtiTokenService;
 
 import java.net.URI;
 import java.time.Instant;
@@ -29,13 +29,13 @@ public class LtiAgsGradePassbackStrategy implements GradePassbackStrategy {
     private static final String SCORE_SCOPE = "https://purl.imsglobal.org/spec/lti-ags/scope/score";
 
     private final RestTemplate restTemplate;
-    private final LtiTokenService tokenService;
+    private final LtiServiceTokenClient tokenClient;
     private final LtiRegistrationRegistry ltiRegistrations;
 
-    public LtiAgsGradePassbackStrategy(RestTemplate restTemplate, LtiTokenService tokenService,
+    public LtiAgsGradePassbackStrategy(RestTemplate restTemplate, LtiServiceTokenClient tokenClient,
                                        LtiRegistrationRegistry ltiRegistrations) {
         this.restTemplate = restTemplate;
-        this.tokenService = tokenService;
+        this.tokenClient = tokenClient;
         this.ltiRegistrations = ltiRegistrations;
     }
 
@@ -62,7 +62,7 @@ public class LtiAgsGradePassbackStrategy implements GradePassbackStrategy {
                     ? ltiRegistrations.requireByIssuerAndClientId(target.ltiIssuer(), target.ltiClientId())
                     : ltiRegistrations.findSingleByIssuer(moodleBaseUrl).orElseThrow(() -> new IllegalStateException(
                             "The attempt does not name its LTI tool, and LMS " + moodleBaseUrl + " has no single one"));
-            accessToken = tokenService.obtainAccessToken(platform, SCORE_SCOPE);
+            accessToken = tokenClient.obtainAccessToken(platform.tokenEndpoint(), platform.clientId(), SCORE_SCOPE);
         } catch (Exception ex) {
             throw new IllegalStateException(
                     "Could not obtain AGS access token from " + moodleBaseUrl + ": " + ex.getMessage(), ex);

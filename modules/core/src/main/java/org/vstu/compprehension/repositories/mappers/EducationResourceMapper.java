@@ -17,7 +17,6 @@ class EducationResourceMapper implements Mapper<EducationResourceEntity, Educati
         return new EducationResourceData(
                 id,
                 Strict.required(source.getUrl(), "url", owner),
-                Strict.required(source.getType(), "type", owner),
                 Strict.required(source.getTrustStatus(), "trustStatus", owner));
     }
 }

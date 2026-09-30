@@ -3,9 +3,8 @@ package org.vstu.compprehension.infrastructure;
 import org.junit.jupiter.api.Test;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.transaction.annotation.Transactional;
-import org.vstu.compprehension.entities.external_system.EducationResourceEntity;
-import org.vstu.compprehension.enums.EducationResourceType;
-import org.vstu.compprehension.repositories.entity.EducationResourceRepository;
+import org.vstu.compprehension.enums.EducationResourceTrustStatus;
+import org.vstu.compprehension.repositories.data.ExternalSystemDataRepository;
 
 import static org.junit.jupiter.api.Assertions.assertFalse;
 import static org.junit.jupiter.api.Assertions.assertTrue;
@@ -16,16 +15,16 @@ public class InitializeTest extends AbstractIntegrationTest {
     private static final String FAKE_URL = "##TEST_TRANSACTION_ROLLBACK##";
 
     @Autowired
-    private EducationResourceRepository educationResourceRepository;
+    private ExternalSystemDataRepository externalSystems;
 
     private boolean hasFakeResource() {
-        return educationResourceRepository.findByUrlAndType(FAKE_URL, EducationResourceType.UNKNOWN).isPresent();
+        return externalSystems.findEducationResource(FAKE_URL).isPresent();
     }
 
     /** Записанное тестом видно ему самому. */
     @Test
     public void fakeResourceExists() {
-        educationResourceRepository.save(new EducationResourceEntity(FAKE_URL, EducationResourceType.UNKNOWN));
+        externalSystems.createEducationResourceIfAbsent(FAKE_URL, EducationResourceTrustStatus.UNTRUSTED);
 
         assertTrue(hasFakeResource());
     }

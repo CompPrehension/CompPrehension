@@ -17,6 +17,7 @@ import org.springframework.web.bind.annotation.RequestParam;
 import org.springframework.web.bind.annotation.ResponseBody;
 import org.springframework.web.client.RestClientException;
 import org.springframework.web.util.HtmlUtils;
+import org.vstu.compprehension.adapters.lti.LtiToolConfigurationService;
 import org.vstu.compprehension.frontend.AuthFrontendService;
 import org.vstu.compprehension.frontend.LtiRegistrationFrontendService;
 import org.vstu.compprehension.frontend.UserFrontendService;
@@ -25,7 +26,6 @@ import org.vstu.compprehension.frontend.dto.LtiRegistrationInviteDto;
 import org.vstu.compprehension.frontend.dto.LtiToolConfigurationDto;
 import org.vstu.compprehension.frontend.dto.NewLtiRegistrationDto;
 import org.vstu.compprehension.service.lti.LtiDynamicRegistrationService;
-import org.vstu.compprehension.service.lti.LtiToolConfigurationService;
 
 import java.util.List;
 

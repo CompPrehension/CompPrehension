@@ -14,7 +14,6 @@ import org.vstu.compprehension.authorization.TestLtiContextProvider;
 import org.vstu.compprehension.data.user.UserAccountData;
 import org.vstu.compprehension.data.user.UserData;
 import org.vstu.compprehension.enums.EducationResourceTrustStatus;
-import org.vstu.compprehension.enums.EducationResourceType;
 import org.vstu.compprehension.frontend.AuthFrontendService;
 import org.vstu.compprehension.infrastructure.AbstractIntegrationTest;
 import org.vstu.compprehension.infrastructure.TestData;
@@ -67,7 +66,7 @@ class UserSignInTest extends AbstractIntegrationTest {
     void sameEmailFromTwoLmsGivesTwoUsers() {
         // Arrange.
         var otherLms = externalSystems.createEducationResourceIfAbsent(
-                OTHER_LMS_URL, EducationResourceType.MOODLE, EducationResourceTrustStatus.TRUSTED);
+                OTHER_LMS_URL, EducationResourceTrustStatus.TRUSTED);
         TestLtiContextProvider.launchedFromCourse(TestData.Courses.MAIN_EXTERNAL_ID);
         long fromMainLms = signInFromLti("7", "teacher@vstu.ru").id();
         TestLtiContextProvider.launchedFromLms(otherLms.id(), "other-lms-course");

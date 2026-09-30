@@ -29,8 +29,8 @@ INSERT IGNORE INTO questions_meta (id, name, domain_shortname, tag_bits, concept
 INSERT IGNORE INTO questions_meta (id, name, domain_shortname, tag_bits, concept_bits, law_bits, skill_bits, violation_bits, trace_concept_bits, solution_structural_complexity, integral_complexity, solution_steps, distinct_errors_count, _version, origin, template_id, question_data_id, created_at, generation_request_id) VALUES (-1004, 'format_is_type_1743065_v11', 'ctrl_flow', 6, 31488, 63, 0, 125, 23040, 2, 0.4398, 17, 6, 6, null, 'format_is_type_1743065', -1004, '2020-01-01 00:00:00', null);
 INSERT IGNORE INTO questions_meta (id, name, domain_shortname, tag_bits, concept_bits, law_bits, skill_bits, violation_bits, trace_concept_bits, solution_structural_complexity, integral_complexity, solution_steps, distinct_errors_count, _version, origin, template_id, question_data_id, created_at, generation_request_id) VALUES (-1005, 'format_is_type_1743065_v10', 'ctrl_flow', 6, 31488, 171, 0, 633, 23040, 2, 0.3891, 14, 6, 6, null, 'format_is_type_1743065', -1005, '2020-01-01 00:00:00', null);
 
-insert ignore into education_resource (id, url, type, trust_status)
-values (-1, 'https://lms.test.local', 'MOODLE', 'TRUSTED');
+insert ignore into education_resource (id, url, trust_status)
+values (-1, 'https://lms.test.local', 'TRUSTED');
 
 -- LMS without JWKS: its public key is stored, the matching private key is test.lti.platform-private-key-pkcs8-base64
 insert ignore into lti_registration (id, education_resource_id, issuer, client_id, deployment_id, method,

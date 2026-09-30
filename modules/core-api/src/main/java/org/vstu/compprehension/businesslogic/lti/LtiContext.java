@@ -1,12 +1,15 @@
 package org.vstu.compprehension.businesslogic.lti;
 
+import org.jetbrains.annotations.NotNull;
+import org.jetbrains.annotations.Nullable;
 
 public record LtiContext(
-        String lineitemUrl,
-        String issuer,
-        String clientId,
+        @Nullable String lineitemUrl,
+        @NotNull String issuer,
+        @NotNull String clientId,
         long educationResourceId,
-        LtiCourseContext course,
-        Long exerciseId
+        @Nullable LtiCourseContext course,
+        @Nullable Long exerciseId,
+        @Nullable String membershipsUrl
 ) {
 }

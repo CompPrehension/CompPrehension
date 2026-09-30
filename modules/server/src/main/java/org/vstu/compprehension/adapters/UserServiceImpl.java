@@ -15,6 +15,7 @@ import org.vstu.compprehension.mappers.Mapper;
 import org.vstu.compprehension.businesslogic.auth.AuthObjects.SystemRole;
 import org.vstu.compprehension.businesslogic.auth.Role;
 import org.vstu.compprehension.businesslogic.lti.LtiContext;
+import org.vstu.compprehension.businesslogic.lti.LtiCourseRoles;
 import org.vstu.compprehension.businesslogic.lti.LtiCourseContext;
 import org.vstu.compprehension.data.cource.CreateCourseData;
 import org.vstu.compprehension.data.user.UserData;
@@ -35,6 +36,7 @@ public class UserServiceImpl implements UserDataService {
     private static final String LTI_VERSION_CLAIM = "https://purl.imsglobal.org/spec/lti/claim/version";
     private static final String LTI_LAUNCH_PRESENTATION_CLAIM = "https://purl.imsglobal.org/spec/lti/claim/launch_presentation";
     private static final String LTI_VERSION_1_3 = "1.3.0";
+    private static final String AUTHORITY_PREFIX = "ROLE_";
 
     private final UserDataRepository users;
     private final EducationResourceService educationResourceService;
@@ -146,16 +148,13 @@ public class UserServiceImpl implements UserDataService {
         roleAssignmentService.reconcileRoleInEducationResource(userId, eduResId, eduResRole);
 
         LtiCourseContext ltiCourse = ctx.course();
-        if (ltiCourse != null && ltiCourse.courseId() != null) {
+        if (ltiCourse != null) {
             long courseId = courseService.getOrCreate(new CreateCourseData(eduResId, ltiCourse.courseId(), ltiCourse.courseName()));
-            Role courseRole = mapLtiCourseRole(ltiRoles);
-            if (courseRole != null) {
-                roleAssignmentService.reconcileCourseRoleAssignments(
-                        eduResId,
-                        List.of(userId),
-                        List.of(new RoleAssignmentService.CourseRoleAssignment(userId, courseId, courseRole)),
-                        List.of(courseId));
-            }
+            roleAssignmentService.reconcileCourseRoleAssignments(
+                    eduResId,
+                    List.of(userId),
+                    List.of(new RoleAssignmentService.CourseRoleAssignment(userId, courseId, mapLtiCourseRole(ltiRoles))),
+                    List.of(courseId));
         }
     }
 
@@ -168,16 +167,11 @@ public class UserServiceImpl implements UserDataService {
         }
     }
 
-    private Role mapLtiCourseRole(Collection<String> ltiRoles) {
-        if (ltiRoles.contains("ROLE_Instructor")
-            || ltiRoles.contains("ROLE_ContentDeveloper")
-            || ltiRoles.contains("ROLE_Mentor")) {
-            return SystemRole.TEACHER;
-        }
-        if (ltiRoles.contains("ROLE_TeachingAssistant")) {
-            return SystemRole.ASSISTANT;
-        }
-        return SystemRole.STUDENT;
+    /** Полномочия запуска — LTI-роли с префиксом Spring Security {@code ROLE_}. */
+    private static Role mapLtiCourseRole(Collection<String> authorities) {
+        return LtiCourseRoles.resolveCourseRole(authorities.stream()
+                .map(authority -> authority.startsWith(AUTHORITY_PREFIX) ? authority.substring(AUTHORITY_PREFIX.length()) : authority)
+                .toList());
     }
 
     @SneakyThrows

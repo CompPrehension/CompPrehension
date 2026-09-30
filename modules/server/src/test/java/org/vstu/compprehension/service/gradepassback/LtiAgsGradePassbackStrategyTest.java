@@ -11,6 +11,8 @@ import org.springframework.test.web.client.MockRestServiceServer;
 import org.springframework.transaction.annotation.Transactional;
 import org.springframework.web.client.RestTemplate;
 import org.springframework.web.util.UriComponentsBuilder;
+import org.vstu.compprehension.adapters.lti.LtiServiceTokenClient;
+import org.vstu.compprehension.adapters.lti.LtiToolKeyProvider;
 import org.vstu.compprehension.data.exerciseattempt.GradePassbackTargetData;
 import org.vstu.compprehension.entities.external_system.LtiRegistrationEntity;
 import org.vstu.compprehension.enums.LtiRegistrationMethod;
@@ -18,7 +20,6 @@ import org.vstu.compprehension.infrastructure.AbstractIntegrationTest;
 import org.vstu.compprehension.infrastructure.TestData;
 import org.vstu.compprehension.repositories.entity.LtiRegistrationRepository;
 import org.vstu.compprehension.service.lti.LtiRegistrationRegistry;
-import org.vstu.compprehension.service.lti.LtiTokenService;
 
 import java.io.IOException;
 import java.net.URLDecoder;
@@ -40,6 +41,7 @@ class LtiAgsGradePassbackStrategyTest extends AbstractIntegrationTest {
     private static final String LINEITEM = LMS + "/mod/lti/services.php/2/lineitems/3/lineitem?type_id=1";
 
     @Autowired private LtiRegistrationRegistry ltiRegistrations;
+    @Autowired private LtiToolKeyProvider toolKeys;
     @Autowired private LtiRegistrationRepository ltiRegistrationRepository;
 
     private MockRestServiceServer lms;
@@ -50,7 +52,7 @@ class LtiAgsGradePassbackStrategyTest extends AbstractIntegrationTest {
         // Свой RestTemplate: общий бин из контекста подменять нельзя, контекст переиспользуется другими тестами.
         var restTemplate = new RestTemplate();
         lms = MockRestServiceServer.bindTo(restTemplate).build();
-        strategy = new LtiAgsGradePassbackStrategy(restTemplate, new LtiTokenService(restTemplate), ltiRegistrations);
+        strategy = new LtiAgsGradePassbackStrategy(restTemplate, new LtiServiceTokenClient(restTemplate, toolKeys), ltiRegistrations);
     }
 
     /** У LMS два инструмента: токен для оценки просится от имени того, через который начата попытка. */

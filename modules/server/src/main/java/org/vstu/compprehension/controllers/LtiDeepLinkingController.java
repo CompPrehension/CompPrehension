@@ -50,7 +50,6 @@ public class LtiDeepLinkingController {
      * Собирает подписанный {@code LtiDeepLinkingResponse} для выбранных упражнений курса.
      * Фронт авто-сабмитит {@code jwt} формой на {@code returnUrl} (Moodle создаёт активности).
      */
-    @SneakyThrows
     @PostMapping("build")
     @ResponseBody
     public DeepLinkBuildResponse build(@RequestBody DeepLinkBuildRequest body) {
@@ -74,7 +73,6 @@ public class LtiDeepLinkingController {
      * Собирает подписанный {@code LtiDeepLinkingResponse} с активностью, которая открывает страницу настройки
      * упражнений курса: без неё в новый курс не попасть, чтобы наполнить его упражнениями.
      */
-    @SneakyThrows
     @PostMapping("build-settings-link")
     @ResponseBody
     public DeepLinkBuildResponse buildSettingsLink(@RequestBody DeepLinkSettingsLinkRequest body) {

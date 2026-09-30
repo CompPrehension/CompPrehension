@@ -11,7 +11,6 @@ import org.vstu.compprehension.data.lti.LtiPlatformKeyData;
 import org.vstu.compprehension.data.lti.LtiRegistrationInviteData;
 import org.vstu.compprehension.data.lti.LtiToolConfigurationData;
 import org.vstu.compprehension.data.lti.NewLtiRegistrationData;
-import org.vstu.compprehension.enums.EducationResourceType;
 import org.vstu.compprehension.enums.LtiPlatformKeyType;
 import org.vstu.compprehension.frontend.dto.LtiRegistrationDto;
 import org.vstu.compprehension.frontend.dto.LtiRegistrationInviteDto;
@@ -55,8 +54,6 @@ public class LtiRegistrationFrontendServiceImpl implements LtiRegistrationFronte
         String deploymentId = registration.deploymentId();
         return registrationDtoMapper.map(ltiRegistrationService.registerManually(new NewLtiRegistrationData(
                 lmsUrl,
-                // Вручную подключают только Moodle: от типа LMS зависит, как ей отправляются оценки.
-                EducationResourceType.MOODLE,
                 issuer,
                 requireText(registration.clientId(), "clientId"),
                 deploymentId == null || deploymentId.isBlank() ? null : deploymentId.trim(),

@@ -71,6 +71,7 @@ LTI Dynamic Registration: LMS и CompPrehension сами обмениваютс�
 | Supports Deep Linking | да |
 | Content Selection URL | `<сервер>/lti/launch` |
 | IMS LTI Assignment and Grade Services | Use this service for grade sync and column management |
+| IMS LTI Names and Role Provisioning | Use this service to retrieve members' information as per privacy settings |
 | Share launcher's name / email | Always — **без email пользователя не пустит** |
 | Accept grades from the tool | Always |
 | Custom parameters | пусто |
@@ -120,6 +121,25 @@ openssl pkey -in tool.pem -pubout
 инструмента) и срок действия проверяются при каждом запуске. Подключение делает LMS доверенной — его
 заводит наш администратор. Заблокированную (`BANNED`) LMS подключение не разблокирует, а LMS со
 статусом `UNTRUSTED` или `BANNED` в `education_resource` не пускается.
+
+## Роли в курсах
+
+Роль в курсе выдаётся при каждом запуске по LTI-ролям пользователя: TeachingAssistant — ассистент,
+Instructor и ContentDeveloper — преподаватель, остальные — студент.
+
+Между запусками состав курса сверяется со списком участников в LMS (LTI Names and Role Provisioning, NRPS):
+отчисленный из курса теряет роль, новый участник получает роль по списку. Роль участника, уже работающего
+в курсе, синхронизация не меняет — её уточняет следующий запуск. Moodle при запуске проверяет права в самом
+элементе курса, а в списке участников — права в курсе, поэтому учитель без права редактирования приходит
+в списке как Learner. Сверяет фоновый сервер задачей
+`lti-membership-sync` (по умолчанию выключена, расписание — `lti-membership-sync.cron-schedule`); ему нужен тот же
+ключ инструмента `COMPPREHENSION_LTI_TOOL_PRIVATE_KEY_PKCS8_BASE64`, что и основному серверу.
+
+- Адрес списка LMS присылает при запуске, поэтому курс начинает сверяться после первого запуска из него.
+- Сверяются только пользователи, хоть раз входившие через эту LMS: остальных участников синхронизация не создаёт,
+  а роли, выданные не через LMS, не трогает.
+- В Moodle у инструмента должна быть включена служба **IMS LTI Names and Role Provisioning**. Подключение по ссылке
+  её запрашивает; у инструментов, подключённых раньше или вручную, включите её в настройках инструмента.
 
 ## 3. Активности в курсе
 

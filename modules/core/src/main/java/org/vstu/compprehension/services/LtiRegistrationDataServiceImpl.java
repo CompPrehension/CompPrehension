@@ -105,9 +105,9 @@ class LtiRegistrationDataServiceImpl implements LtiRegistrationDataService {
             throw new IllegalStateException(String.format("Tool with client_id %s of LMS %s is already registered",
                     registration.clientId(), registration.issuer()));
         }
-        var educationResource = externalSystems.findEducationResource(registration.lmsUrl(), registration.lmsType())
+        var educationResource = externalSystems.findEducationResource(registration.lmsUrl())
                 .orElseGet(() -> externalSystems.createEducationResourceIfAbsent(
-                        registration.lmsUrl(), registration.lmsType(), EducationResourceTrustStatus.TRUSTED));
+                        registration.lmsUrl(), EducationResourceTrustStatus.TRUSTED));
         if (educationResource.trustStatus() == EducationResourceTrustStatus.BANNED) {
             throw new SecurityException(String.format("LMS %s is banned", registration.lmsUrl()));
         }

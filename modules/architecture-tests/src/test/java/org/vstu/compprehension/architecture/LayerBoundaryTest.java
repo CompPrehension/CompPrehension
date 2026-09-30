@@ -1,11 +1,15 @@
 package org.vstu.compprehension.architecture;
 
+import com.tngtech.archunit.base.DescribedPredicate;
+import com.tngtech.archunit.core.domain.JavaClass;
 import com.tngtech.archunit.core.importer.ImportOption;
 import com.tngtech.archunit.junit.AnalyzeClasses;
 import com.tngtech.archunit.junit.ArchTest;
 import com.tngtech.archunit.lang.ArchRule;
 import jakarta.persistence.Entity;
 import org.springframework.data.repository.Repository;
+
+import java.util.Set;
 
 import static com.tngtech.archunit.lang.syntax.ArchRuleDefinition.noClasses;
 import static org.vstu.compprehension.architecture.ArchitecturePackages.*;
@@ -71,6 +75,29 @@ public class LayerBoundaryTest {
                     .should().dependOnClassesThat().areAnnotatedWith(Entity.class)
                     .as("JPA entities should not leak out of the data access layer");
 
+    /** Задачи, которые пока сами ходят в данные, минуя слой приложения. */
+    private static final Set<String> JOBS_WITH_DIRECT_DATA_ACCESS = Set.of(
+            ROOT + ".jobs.bankloadtesting.BankLoadTestingJob",
+            ROOT + ".jobs.metadatahealth.MetadataHealthJob"
+    );
+
+    /** Задача по расписанию только запускает сценарий слоя приложения: логика и данные живут там. */
+    @ArchTest
+    static final ArchRule jobs_should_not_access_repositories =
+            noClasses()
+                    .that().resideInAPackage(JOBS)
+                    .and(are_not_listed_in(JOBS_WITH_DIRECT_DATA_ACCESS))
+                    .should().dependOnClassesThat().resideInAPackage(REPOSITORIES)
+                    .as("jobs should not access repositories");
+
+    /** Сценарий зависит от порта, а не от того, как порт реализован. */
+    @ArchTest
+    static final ArchRule application_services_should_not_depend_on_adapters =
+            noClasses()
+                    .that().resideInAPackage(APPLICATION_SERVICES)
+                    .should().dependOnClassesThat().resideInAPackage(ADAPTERS)
+                    .as("application services should depend on ports, not on adapters");
+
     /** Слой приложения не знает, что поверх него стоит HTTP. */
     @ArchTest
     static final ArchRule services_should_not_depend_on_controllers =
@@ -78,4 +105,13 @@ public class LayerBoundaryTest {
                     .that().resideInAnyPackage(SERVICES)
                     .should().dependOnClassesThat().resideInAPackage(CONTROLLERS)
                     .as("services should not depend on controllers");
+
+    private static DescribedPredicate<JavaClass> are_not_listed_in(Set<String> frozen) {
+        return new DescribedPredicate<>("are not on the not-yet-migrated list") {
+            @Override
+            public boolean test(JavaClass item) {
+                return !frozen.contains(item.getName());
+            }
+        };
+    }
 }

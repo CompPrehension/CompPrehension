@@ -6,7 +6,6 @@ import lombok.NoArgsConstructor;
 import lombok.Setter;
 import org.hibernate.annotations.ColumnDefault;
 import org.vstu.compprehension.enums.EducationResourceTrustStatus;
-import org.vstu.compprehension.enums.EducationResourceType;
 
 @Entity
 @Getter
@@ -15,8 +14,8 @@ import org.vstu.compprehension.enums.EducationResourceType;
 @Table(
     name = "education_resource",
     uniqueConstraints = @UniqueConstraint(
-        name = "ux_education_resource_url_type",
-        columnNames = {"url", "type"}
+        name = "ux_education_resource_url",
+        columnNames = {"url"}
     )
 )
 public class EducationResourceEntity {
@@ -28,17 +27,7 @@ public class EducationResourceEntity {
     private String url;
 
     @Enumerated(EnumType.STRING)
-    @Column(name = "type", nullable = false, length = 64)
-    private EducationResourceType type;
-
-    @Enumerated(EnumType.STRING)
     @Column(name = "trust_status", nullable = false, length = 32)
     @ColumnDefault("'UNTRUSTED'")
     private EducationResourceTrustStatus trustStatus;
-
-    public EducationResourceEntity(String url, EducationResourceType type) {
-        this.url = url;
-        this.type = type;
-        this.trustStatus = EducationResourceTrustStatus.UNTRUSTED;
-    }
 }

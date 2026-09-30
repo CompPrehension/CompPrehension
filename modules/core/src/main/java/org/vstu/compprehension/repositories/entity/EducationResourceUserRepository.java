@@ -8,6 +8,7 @@ import org.springframework.stereotype.Repository;
 import org.vstu.compprehension.entities.external_system.EducationResourceUserEntity;
 import org.vstu.compprehension.entities.external_system.EducationResourceUserId;
 
+import java.util.Collection;
 import java.util.List;
 
 @Repository
@@ -37,6 +38,8 @@ public interface EducationResourceUserRepository extends JpaRepository<Education
                    eru.id.educationResourceId as educationResourceId
             from EducationResourceUserEntity eru
             where eru.id.educationResourceId = :educationResourceId
+              and eru.externalId in :externalIds
             """)
-    List<EducationResourceUserView> findUsersByEducationResourceId(@Param("educationResourceId") long educationResourceId);
+    List<EducationResourceUserView> findUsersByExternalIds(@Param("educationResourceId") long educationResourceId,
+                                                           @Param("externalIds") Collection<String> externalIds);
 }
