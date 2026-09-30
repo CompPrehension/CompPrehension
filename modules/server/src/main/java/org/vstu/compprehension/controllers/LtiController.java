@@ -216,7 +216,7 @@ public class LtiController {
         long courseId = courseService.getOrCreate(new CreateCourseDto(
                 ctx.educationResourceId(), ctx.course().courseId(), ctx.course().courseName()));
         if (ctx.membershipsUrl() != null) {
-            courseService.rememberMembershipSource(courseId, ctx.issuer(), ctx.clientId(), ctx.membershipsUrl());
+            courseService.saveLtiCourseMembership(courseId, ctx.issuer(), ctx.clientId(), ctx.membershipsUrl());
         }
         return courseId;
     }

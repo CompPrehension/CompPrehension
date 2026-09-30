@@ -60,7 +60,7 @@ class CourseMembershipSyncServiceTest extends AbstractIntegrationTest {
         linkToLms(TestData.Users.WITHOUT_ROLES_ID, "8");
         linkToLms(TestData.Users.OTHER_COURSE_TEACHER_ID, "7");
         linkToLms(TestData.Users.GLOBAL_STUDENT_ID, "3");
-        membershipService.rememberSource(TestData.Courses.MAIN_ID, ISSUER, CLIENT_ID, MAIN_COURSE_MEMBERS);
+        membershipService.saveLtiCourseMembership(TestData.Courses.MAIN_ID, ISSUER, CLIENT_ID, MAIN_COURSE_MEMBERS);
         TestLtiMembershipProvider.hasMembers(MAIN_COURSE_MEMBERS,
                 active("8", INSTRUCTOR), active("7", LEARNER), active("3", INSTRUCTOR, TEACHING_ASSISTANT));
 
@@ -82,7 +82,7 @@ class CourseMembershipSyncServiceTest extends AbstractIntegrationTest {
     void existingMemberKeepsCourseRole() {
         // Arrange.
         linkToLms(TestData.Users.MAIN_COURSE_TEACHER_ID, "4");
-        membershipService.rememberSource(TestData.Courses.MAIN_ID, ISSUER, CLIENT_ID, MAIN_COURSE_MEMBERS);
+        membershipService.saveLtiCourseMembership(TestData.Courses.MAIN_ID, ISSUER, CLIENT_ID, MAIN_COURSE_MEMBERS);
         TestLtiMembershipProvider.hasMembers(MAIN_COURSE_MEMBERS, active("4", LEARNER));
 
         // Act.
@@ -98,7 +98,7 @@ class CourseMembershipSyncServiceTest extends AbstractIntegrationTest {
     void mentorIsNotCourseTeacher() {
         // Arrange.
         linkToLms(TestData.Users.WITHOUT_ROLES_ID, "8");
-        membershipService.rememberSource(TestData.Courses.MAIN_ID, ISSUER, CLIENT_ID, MAIN_COURSE_MEMBERS);
+        membershipService.saveLtiCourseMembership(TestData.Courses.MAIN_ID, ISSUER, CLIENT_ID, MAIN_COURSE_MEMBERS);
         TestLtiMembershipProvider.hasMembers(MAIN_COURSE_MEMBERS, active("8", MENTOR));
 
         // Act.
@@ -114,7 +114,7 @@ class CourseMembershipSyncServiceTest extends AbstractIntegrationTest {
     void repeatedMemberGetsCourseRole() {
         // Arrange.
         linkToLms(TestData.Users.WITHOUT_ROLES_ID, "8");
-        membershipService.rememberSource(TestData.Courses.MAIN_ID, ISSUER, CLIENT_ID, MAIN_COURSE_MEMBERS);
+        membershipService.saveLtiCourseMembership(TestData.Courses.MAIN_ID, ISSUER, CLIENT_ID, MAIN_COURSE_MEMBERS);
         TestLtiMembershipProvider.hasMembers(MAIN_COURSE_MEMBERS, active("8", LEARNER), active("8", LEARNER));
 
         // Act.
@@ -130,7 +130,7 @@ class CourseMembershipSyncServiceTest extends AbstractIntegrationTest {
         // Arrange.
         linkToLms(TestData.Users.MAIN_COURSE_STUDENT_ID, "6");
         linkToLms(TestData.Users.MAIN_COURSE_ASSISTANT_ID, "5");
-        membershipService.rememberSource(TestData.Courses.MAIN_ID, ISSUER, CLIENT_ID, MAIN_COURSE_MEMBERS);
+        membershipService.saveLtiCourseMembership(TestData.Courses.MAIN_ID, ISSUER, CLIENT_ID, MAIN_COURSE_MEMBERS);
         TestLtiMembershipProvider.hasMembers(MAIN_COURSE_MEMBERS, new LtiCourseMemberData("6", List.of(LEARNER), false));
 
         // Act.
@@ -149,7 +149,7 @@ class CourseMembershipSyncServiceTest extends AbstractIntegrationTest {
     void usersOutsideLmsAreLeftAlone() {
         // Arrange.
         long usersBefore = userRepository.count();
-        membershipService.rememberSource(TestData.Courses.MAIN_ID, ISSUER, CLIENT_ID, MAIN_COURSE_MEMBERS);
+        membershipService.saveLtiCourseMembership(TestData.Courses.MAIN_ID, ISSUER, CLIENT_ID, MAIN_COURSE_MEMBERS);
         TestLtiMembershipProvider.hasMembers(MAIN_COURSE_MEMBERS, active("never-launched", INSTRUCTOR));
 
         // Act.
@@ -166,8 +166,8 @@ class CourseMembershipSyncServiceTest extends AbstractIntegrationTest {
         // Arrange.
         linkToLms(TestData.Users.MAIN_COURSE_STUDENT_ID, "6");
         linkToLms(TestData.Users.WITHOUT_ROLES_ID, "8");
-        membershipService.rememberSource(TestData.Courses.MAIN_ID, ISSUER, CLIENT_ID, MAIN_COURSE_MEMBERS);
-        membershipService.rememberSource(TestData.Courses.OTHER_ID, ISSUER, CLIENT_ID, OTHER_COURSE_MEMBERS);
+        membershipService.saveLtiCourseMembership(TestData.Courses.MAIN_ID, ISSUER, CLIENT_ID, MAIN_COURSE_MEMBERS);
+        membershipService.saveLtiCourseMembership(TestData.Courses.OTHER_ID, ISSUER, CLIENT_ID, OTHER_COURSE_MEMBERS);
         TestLtiMembershipProvider.isUnavailable(MAIN_COURSE_MEMBERS);
         TestLtiMembershipProvider.hasMembers(OTHER_COURSE_MEMBERS, active("8", LEARNER));
 
@@ -185,7 +185,7 @@ class CourseMembershipSyncServiceTest extends AbstractIntegrationTest {
     void courseOfRemovedToolIsNotSynced() {
         // Arrange.
         linkToLms(TestData.Users.MAIN_COURSE_STUDENT_ID, "6");
-        membershipService.rememberSource(TestData.Courses.MAIN_ID, ISSUER, "removed-tool", MAIN_COURSE_MEMBERS);
+        membershipService.saveLtiCourseMembership(TestData.Courses.MAIN_ID, ISSUER, "removed-tool", MAIN_COURSE_MEMBERS);
         // Запроси синхронизация этот список, пустой ответ отнял бы у студента роль.
         TestLtiMembershipProvider.hasMembers(MAIN_COURSE_MEMBERS);
 
@@ -201,7 +201,7 @@ class CourseMembershipSyncServiceTest extends AbstractIntegrationTest {
     void courseOfBannedLmsIsNotSynced() {
         // Arrange.
         linkToLms(TestData.Users.MAIN_COURSE_STUDENT_ID, "6");
-        membershipService.rememberSource(TestData.Courses.MAIN_ID, ISSUER, CLIENT_ID, MAIN_COURSE_MEMBERS);
+        membershipService.saveLtiCourseMembership(TestData.Courses.MAIN_ID, ISSUER, CLIENT_ID, MAIN_COURSE_MEMBERS);
         TestLtiMembershipProvider.hasMembers(MAIN_COURSE_MEMBERS);
         educationResourceRepository.updateTrustStatus(TestData.EducationResources.ID, EducationResourceTrustStatus.BANNED);
 

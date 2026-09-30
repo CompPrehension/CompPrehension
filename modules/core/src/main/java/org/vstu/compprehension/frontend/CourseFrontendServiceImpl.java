@@ -82,8 +82,8 @@ public class CourseFrontendServiceImpl implements CourseFrontendService {
     }
 
     @Override
-    public void rememberMembershipSource(long courseId, @NotNull String issuer, @NotNull String clientId,
-                                         @NotNull String membershipsUrl) {
-        membershipService.rememberSource(courseId, issuer, clientId, membershipsUrl);
+    public void saveLtiCourseMembership(long courseId, @NotNull String issuer, @NotNull String clientId,
+                                        @NotNull String membershipsUrl) {
+        membershipService.saveLtiCourseMembership(courseId, issuer, clientId, membershipsUrl);
     }
 }

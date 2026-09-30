@@ -19,8 +19,8 @@ public class LtiCourseMembershipDataRepository {
     private final Mapper<LtiCourseMembershipSourceView, LtiCourseMembershipSourceData> sourceMapper;
 
     @Transactional
-    public void rememberSource(long courseId, @NotNull String issuer, @NotNull String clientId,
-                               @NotNull String membershipsUrl) {
+    public void saveLtiCourseMembership(long courseId, @NotNull String issuer, @NotNull String clientId,
+                                        @NotNull String membershipsUrl) {
         repository.upsert(courseId, issuer, clientId, membershipsUrl);
     }
 

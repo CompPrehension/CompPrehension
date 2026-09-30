@@ -13,8 +13,8 @@ class LtiCourseMembershipDataServiceImpl implements LtiCourseMembershipDataServi
     private final LtiCourseMembershipDataRepository memberships;
 
     @Transactional
-    public void rememberSource(long courseId, @NotNull String issuer, @NotNull String clientId,
-                               @NotNull String membershipsUrl) {
-        memberships.rememberSource(courseId, issuer, clientId, membershipsUrl);
+    public void saveLtiCourseMembership(long courseId, @NotNull String issuer, @NotNull String clientId,
+                                        @NotNull String membershipsUrl) {
+        memberships.saveLtiCourseMembership(courseId, issuer, clientId, membershipsUrl);
     }
 }
