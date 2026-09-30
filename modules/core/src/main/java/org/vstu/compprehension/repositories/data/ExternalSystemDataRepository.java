@@ -14,7 +14,6 @@ import org.vstu.compprehension.entities.external_system.EducationResourceEntity;
 import org.vstu.compprehension.entities.external_system.LtiRegistrationEntity;
 import org.vstu.compprehension.entities.external_system.LtiRegistrationInviteEntity;
 import org.vstu.compprehension.enums.EducationResourceTrustStatus;
-import org.vstu.compprehension.enums.EducationResourceType;
 import org.vstu.compprehension.enums.LtiRegistrationMethod;
 import org.vstu.compprehension.mappers.Mapper;
 import org.vstu.compprehension.repositories.entity.EducationResourceRepository;
@@ -25,6 +24,7 @@ import org.vstu.compprehension.repositories.entity.LtiRegistrationRepository;
 import org.vstu.compprehension.repositories.entity.UserRepository;
 
 import java.time.Instant;
+import java.util.Collection;
 import java.util.List;
 import java.util.NoSuchElementException;
 import java.util.Optional;
@@ -43,9 +43,8 @@ public class ExternalSystemDataRepository {
     private final Mapper<LtiRegistrationEntity, LtiRegistrationData> ltiRegistrationMapper;
 
     @Transactional(readOnly = true)
-    public @NotNull Optional<EducationResourceData> findEducationResource(
-            @NotNull String url, @NotNull EducationResourceType type) {
-        return educationResourceRepository.findByUrlAndType(url, type)
+    public @NotNull Optional<EducationResourceData> findEducationResource(@NotNull String url) {
+        return educationResourceRepository.findByUrl(url)
                 .map(educationResourceMapper::map);
     }
 
@@ -55,25 +54,21 @@ public class ExternalSystemDataRepository {
     }
 
     @Transactional(readOnly = true)
-    public @NotNull List<EducationResourceData> findEducationResources(
-            @NotNull EducationResourceType type, @NotNull EducationResourceTrustStatus trustStatus) {
-        return educationResourceMapper.mapAll(
-                educationResourceRepository.findByTypeAndTrustStatus(type, trustStatus));
-    }
-
-    @Transactional(readOnly = true)
-    public @NotNull List<EducationResourceUserData> findEducationResourceUsers(long educationResourceId) {
+    public @NotNull List<EducationResourceUserData> findEducationResourceUsers(
+            long educationResourceId, @NotNull Collection<String> externalIds) {
+        if (externalIds.isEmpty()) {
+            return List.of();
+        }
         return educationResourceUserMapper.mapAll(
-                educationResourceUserRepository.findUsersByEducationResourceId(educationResourceId));
+                educationResourceUserRepository.findUsersByExternalIds(educationResourceId, externalIds));
     }
 
     @Transactional
     public @NotNull EducationResourceData createEducationResourceIfAbsent(
-            @NotNull String url, @NotNull EducationResourceType type, @NotNull EducationResourceTrustStatus trustStatus) {
-        educationResourceRepository.createIfAbsent(url, type.name(), trustStatus.name());
-        return findEducationResource(url, type)
-                .orElseThrow(() -> new IllegalStateException(
-                        "Education resource " + type + " " + url + " not found after insert"));
+            @NotNull String url, @NotNull EducationResourceTrustStatus trustStatus) {
+        educationResourceRepository.createIfAbsent(url, trustStatus.name());
+        return findEducationResource(url)
+                .orElseThrow(() -> new IllegalStateException("Education resource " + url + " not found after insert"));
     }
 
     @Transactional

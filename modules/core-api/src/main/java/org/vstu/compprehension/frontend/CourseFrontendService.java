@@ -22,6 +22,9 @@ public interface CourseFrontendService {
 
     long getOrCreate(@NotNull CreateCourseDto course);
 
+    void rememberMembershipSource(long courseId, @NotNull String issuer, @NotNull String clientId,
+                                  @NotNull String membershipsUrl);
+
     @NotNull Optional<Long> findCourseIdByExternalIdAndResourceId(@NotNull String externalCourseId, long educationResourceId);
 
     @NotNull List<ExerciseRefDto> getExerciseRefsInCourseOrThrow(long courseId, @NotNull Collection<Long> exerciseIds);

@@ -15,24 +15,12 @@ import java.util.Optional;
 public interface CourseRepository extends JpaRepository<CourseEntity, Long> {
     interface CourseView {
         long getId();
-        String getExternalCourseId();
         String getName();
         long getEducationResourceId();
         String getEducationResourceUrl();
     }
 
     Optional<CourseEntity> findByExternalCourseIdAndEducationResourceId(String externalCourseId, Long educationResourceId);
-
-    @Query("""
-            select c.id as id, c.name as name, c.externalCourseId as externalCourseId, c.educationResource.id as educationResourceId, c.educationResource.url as educationResourceUrl
-            from CourseEntity c
-            where c.educationResource.id = :educationResourceId and c.externalCourseId is not null
-            """)
-    List<CourseView> findExternalCourses(@Param("educationResourceId") long educationResourceId);
-
-    @Modifying(clearAutomatically = true)
-    @Query("update CourseEntity c set c.externalCourseId = null where c.id in :courseIds")
-    int detachFromExternalSystem(@Param("courseIds") Collection<Long> courseIds);
 
     @Query("""
             select c.id as id, c.name as name,

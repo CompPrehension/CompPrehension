@@ -1,10 +1,6 @@
 package org.vstu.compprehension.controllers;
 
-import com.nimbusds.jose.JWSAlgorithm;
-import com.nimbusds.jose.jwk.JWK;
 import com.nimbusds.jose.jwk.JWKSet;
-import com.nimbusds.jose.jwk.KeyUse;
-import com.nimbusds.jose.jwk.RSAKey;
 import jakarta.servlet.http.HttpServletRequest;
 import jakarta.servlet.http.HttpServletResponse;
 import lombok.Builder;
@@ -31,7 +27,8 @@ import org.springframework.web.bind.annotation.RequestMapping;
 import org.springframework.web.bind.annotation.RequestMethod;
 import org.springframework.web.bind.annotation.RequestParam;
 import org.springframework.web.bind.annotation.ResponseBody;
-import org.vstu.compprehension.config.LtiToolProperties;
+import org.vstu.compprehension.adapters.lti.LtiToolKey;
+import org.vstu.compprehension.adapters.lti.LtiToolKeyProvider;
 import org.vstu.compprehension.frontend.AuthFrontendService;
 import org.vstu.compprehension.frontend.CourseFrontendService;
 import org.vstu.compprehension.frontend.EducationResourceFrontendService;
@@ -42,7 +39,6 @@ import org.vstu.compprehension.service.lti.LtiContextInitializer;
 import org.vstu.compprehension.service.lti.LtiIdTokenVerifier;
 import org.vstu.compprehension.service.lti.LtiPendingLogins;
 import org.vstu.compprehension.service.lti.LtiRegistrationRegistry;
-import org.vstu.compprehension.service.lti.LtiToolConfigurationService;
 import org.vstu.compprehension.businesslogic.auth.AuthObjects.SystemPermission;
 import org.vstu.compprehension.common.StringHelper;
 import org.vstu.compprehension.businesslogic.lti.LtiContext;
@@ -54,7 +50,6 @@ import java.net.URLEncoder;
 import java.nio.charset.StandardCharsets;
 import java.util.Arrays;
 import java.util.Collection;
-import java.util.List;
 import java.util.Map;
 import java.util.Set;
 import java.util.UUID;
@@ -65,10 +60,12 @@ import java.util.stream.Collectors;
 @Log4j2
 @RequiredArgsConstructor
 public class LtiController {
+    private static final String EMPTY_JWKS = new JWKSet().toString();
+
     private final SecurityContextRepository securityContextRepository;
     private final SecurityContextHolderStrategy securityContextHolderStrategy;
     private final LtiRegistrationRegistry ltiRegistrations;
-    private final LtiToolConfigurationService toolConfiguration;
+    private final LtiToolKeyProvider toolKeys;
     private final CourseFrontendService courseService;
     private final EducationResourceFrontendService educationResourceFacade;
     private final LtiContextInitializer ltiContextInitializer;
@@ -81,14 +78,7 @@ public class LtiController {
     @GetMapping(value = "jwks", produces = "application/json")
     @ResponseBody
     public String jwks() {
-        List<JWK> jwks = toolConfiguration.findPublicKey().stream()
-                .<JWK>map(key -> new RSAKey.Builder(key)
-                        .keyUse(KeyUse.SIGNATURE)
-                        .algorithm(JWSAlgorithm.RS256)
-                        .keyID(LtiToolProperties.TOOL_KEY_ID)
-                        .build())
-                .toList();
-        return new JWKSet(jwks).toString();
+        return toolKeys.findKey().map(LtiToolKey::getPublicJwks).orElse(EMPTY_JWKS);
     }
 
     // LTI 1.3 standard claim URLs
@@ -221,10 +211,14 @@ public class LtiController {
 
     /** Доверие к LMS проверено при аутентификации запуска. */
     private Long resolveCourseFromContext(LtiContext ctx) {
-        if (ctx.course() == null || ctx.course().courseId() == null) return null;
+        if (ctx.course() == null) return null;
 
-        return courseService.getOrCreate(new CreateCourseDto(
+        long courseId = courseService.getOrCreate(new CreateCourseDto(
                 ctx.educationResourceId(), ctx.course().courseId(), ctx.course().courseName()));
+        if (ctx.membershipsUrl() != null) {
+            courseService.rememberMembershipSource(courseId, ctx.issuer(), ctx.clientId(), ctx.membershipsUrl());
+        }
+        return courseId;
     }
 
     private @NotNull Jwt authenticateFromLti13ResourceLinkRequest(HttpServletRequest request, HttpServletResponse response) throws AuthenticationException {

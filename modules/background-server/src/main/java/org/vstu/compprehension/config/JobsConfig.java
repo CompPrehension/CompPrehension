@@ -8,10 +8,10 @@ import org.springframework.context.annotation.Configuration;
 import org.vstu.compprehension.jobs.bankloadtesting.BankLoadTestingJob;
 import org.vstu.compprehension.jobs.bankloadtesting.BankLoadTestingJobBatchConfig;
 import org.vstu.compprehension.jobs.bankloadtesting.BankLoadTestingJobConfig;
+import org.vstu.compprehension.jobs.ltimembership.LtiMembershipSyncJob;
+import org.vstu.compprehension.jobs.ltimembership.LtiMembershipSyncJobConfig;
 import org.vstu.compprehension.jobs.metadatahealth.MetadataHealthJob;
 import org.vstu.compprehension.jobs.metadatahealth.MetadataHealthJobConfig;
-import org.vstu.compprehension.jobs.moodlesync.MoodleRoleSyncJob;
-import org.vstu.compprehension.jobs.moodlesync.MoodleSyncConfig;
 import org.vstu.compprehension.jobs.tasksgeneration.TaskGenerationJob;
 import org.vstu.compprehension.jobs.tasksgeneration.TaskGenerationJobConfig;
 
@@ -24,7 +24,7 @@ public class JobsConfig {
     private final MetadataHealthJobConfig metadataHealthJobConfig;
     private final BankLoadTestingJobConfig bankLoadTestingJobConfig;
     private final BankLoadTestingJobBatchConfig bankLoadTestingJobBatchConfig;
-    private final MoodleSyncConfig moodleSyncConfig;
+    private final LtiMembershipSyncJobConfig ltiMembershipSyncJobConfig;
 
     @PostConstruct
     public void jobsConfig() {
@@ -56,11 +56,11 @@ public class JobsConfig {
             scheduleJob(jobId, schedule, BankLoadTestingJob::runBatch);
         }
 
-        // MoodleRoleSyncJob
+        // LtiMembershipSyncJob
         {
-            var jobId = "MoodleRoleSyncJob";
-            var schedule = moodleSyncConfig.getCronSchedule();
-            scheduleJob(jobId, schedule, MoodleRoleSyncJob::run);
+            var jobId = "LtiMembershipSyncJob";
+            var schedule = ltiMembershipSyncJobConfig.getCronSchedule();
+            scheduleJob(jobId, schedule, LtiMembershipSyncJob::run);
         }
     }
     

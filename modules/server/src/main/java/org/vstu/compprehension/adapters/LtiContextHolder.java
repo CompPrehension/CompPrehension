@@ -23,6 +23,7 @@ public class LtiContextHolder implements LtiContextProvider, LtiContextInitializ
     private static final String LTI_CLAIM_CUSTOM        = "https://purl.imsglobal.org/spec/lti/claim/custom";
     private static final String LTI_CLAIM_DEEP_LINKING  = "https://purl.imsglobal.org/spec/lti-dl/claim/deep_linking_settings";
     private static final String LTI_CLAIM_DEPLOYMENT_ID = "https://purl.imsglobal.org/spec/lti/claim/deployment_id";
+    private static final String LTI_CLAIM_NRPS          = "https://purl.imsglobal.org/spec/lti-nrps/claim/namesroleservice";
 
     private LtiContext context;
     private LtiDeepLinkingContext deepLinkingContext;
@@ -65,8 +66,11 @@ public class LtiContextHolder implements LtiContextProvider, LtiContextInitializ
             }
         }
 
+        Map<?, ?> nrps = (Map<?, ?>) claims.get(LTI_CLAIM_NRPS);
+        String membershipsUrl = nrps == null ? null : asString(nrps.get("context_memberships_url"));
+
         this.context = new LtiContext(lineitemUrl, platform.issuer(), platform.clientId(), platform.educationResourceId(),
-                course, exerciseId);
+                course, exerciseId, membershipsUrl);
 
         this.deepLinkingContext = parseDeepLinkingContext(claims, platform.issuer(), platform.clientId(), agsEndpoint);
     }

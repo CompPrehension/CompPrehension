@@ -24,13 +24,13 @@ import org.vstu.compprehension.authorization.TestUserService;
 import org.vstu.compprehension.entities.external_system.EducationResourceEntity;
 import org.vstu.compprehension.entities.external_system.LtiRegistrationEntity;
 import org.vstu.compprehension.enums.EducationResourceTrustStatus;
-import org.vstu.compprehension.enums.EducationResourceType;
 import org.vstu.compprehension.enums.LtiRegistrationMethod;
 import org.vstu.compprehension.frontend.CourseFrontendService;
 import org.vstu.compprehension.infrastructure.AbstractIntegrationTest;
 import org.vstu.compprehension.infrastructure.TestData;
 import org.vstu.compprehension.repositories.data.ExternalSystemDataRepository;
 import org.vstu.compprehension.repositories.entity.EducationResourceRepository;
+import org.vstu.compprehension.repositories.entity.LtiCourseMembershipRepository;
 import org.vstu.compprehension.repositories.entity.LtiRegistrationRepository;
 
 import java.security.KeyFactory;
@@ -68,6 +68,8 @@ class LtiControllerTest extends AbstractIntegrationTest {
 
     private static final String MESSAGE_TYPE_CLAIM = "https://purl.imsglobal.org/spec/lti/claim/message_type";
     private static final String CUSTOM_CLAIM = "https://purl.imsglobal.org/spec/lti/claim/custom";
+    private static final String NRPS_CLAIM = "https://purl.imsglobal.org/spec/lti-nrps/claim/namesroleservice";
+    private static final String MEMBERSHIPS_URL = REGISTERED_ISSUER + "/mod/lti/services.php/CourseSection/1/bindings/1/memberships";
 
     private static final String NEW_LMS_URL = "https://new-lms.test.local";
     private static final String NEW_EXTERNAL_COURSE_ID = "ext-course-new";
@@ -77,6 +79,7 @@ class LtiControllerTest extends AbstractIntegrationTest {
     @Autowired private ExternalSystemDataRepository externalSystems;
     @Autowired private CourseFrontendService courseService;
     @Autowired private LtiRegistrationRepository ltiRegistrationRepository;
+    @Autowired private LtiCourseMembershipRepository ltiCourseMembershipRepository;
 
     @Value("${test.lti.platform-private-key-pkcs8-base64}")
     private String platformPrivateKeyBase64;
@@ -218,12 +221,52 @@ class LtiControllerTest extends AbstractIntegrationTest {
         assertEquals(TestData.EducationResources.ID, holder.getCurrentLtiContext().orElseThrow().educationResourceId());
     }
 
+    /** Запуск из курса запоминает адрес списка его участников: по нему роли в курсе сверяются между запусками. */
+    @Test
+    void launchRemembersCourseMembershipsAddress() throws Exception {
+        // Arrange.
+        TestLtiContextProvider.launchedFromCourseWithMemberships(TestData.Courses.MAIN_EXTERNAL_ID, MEMBERSHIPS_URL);
+        var login = startLogin(REGISTERED_ISSUER, REGISTERED_CLIENT_ID);
+        var claims = settingsPageClaims(login.nonce())
+                .claim(NRPS_CLAIM, Map.of("context_memberships_url", MEMBERSHIPS_URL))
+                .build();
+
+        // Act.
+        var result = launch(login, sign(claims, platformPrivateKey())).andReturn();
+
+        // Assert.
+        // Контроллер берёт контекст из TestLtiContextProvider, а сессионный LtiContextHolder заполняется из id_token.
+        var holder = (LtiContextHolder) result.getRequest().getSession().getAttribute("scopedTarget.ltiContextHolder");
+        assertEquals(MEMBERSHIPS_URL, holder.getCurrentLtiContext().orElseThrow().membershipsUrl());
+        var source = ltiCourseMembershipRepository.findById(TestData.Courses.MAIN_ID).orElseThrow();
+        assertEquals(MEMBERSHIPS_URL, source.getMembershipsUrl());
+        assertEquals(REGISTERED_CLIENT_ID, source.getClientId());
+    }
+
+    /** Новый адрес списка участников из следующего запуска заменяет прежний. */
+    @Test
+    void relaunchUpdatesCourseMembershipsAddress() throws Exception {
+        // Arrange.
+        TestLtiContextProvider.launchedFromCourseWithMemberships(TestData.Courses.MAIN_EXTERNAL_ID, MEMBERSHIPS_URL);
+        var firstLogin = startLogin(REGISTERED_ISSUER, REGISTERED_CLIENT_ID);
+        launch(firstLogin, sign(settingsPageClaims(firstLogin.nonce()).build(), platformPrivateKey()));
+        TestLtiContextProvider.launchedFromCourseWithMemberships(TestData.Courses.MAIN_EXTERNAL_ID, MEMBERSHIPS_URL + "?v=2");
+        var secondLogin = startLogin(REGISTERED_ISSUER, REGISTERED_CLIENT_ID);
+
+        // Act.
+        launch(secondLogin, sign(settingsPageClaims(secondLogin.nonce()).build(), platformPrivateKey()));
+
+        // Assert.
+        assertEquals(MEMBERSHIPS_URL + "?v=2",
+                ltiCourseMembershipRepository.findById(TestData.Courses.MAIN_ID).orElseThrow().getMembershipsUrl());
+    }
+
     /** Недоверенная LMS остаётся закрытой, сессия не аутентифицируется. */
     @Test
     void launchFromUntrustedLmsIsForbidden() throws Exception {
         // Arrange.
         var lms = externalSystems.createEducationResourceIfAbsent(
-                NEW_LMS_URL, EducationResourceType.MOODLE, EducationResourceTrustStatus.UNTRUSTED);
+                NEW_LMS_URL, EducationResourceTrustStatus.UNTRUSTED);
         TestLtiContextProvider.launchedFromLms(lms.id(), NEW_EXTERNAL_COURSE_ID);
         var login = startLogin(REGISTERED_ISSUER, REGISTERED_CLIENT_ID);
 
@@ -241,7 +284,7 @@ class LtiControllerTest extends AbstractIntegrationTest {
     void launchFromUntrustedLmsClearsSessionLtiContext() throws Exception {
         // Arrange.
         var lms = externalSystems.createEducationResourceIfAbsent(
-                NEW_LMS_URL, EducationResourceType.MOODLE, EducationResourceTrustStatus.UNTRUSTED);
+                NEW_LMS_URL, EducationResourceTrustStatus.UNTRUSTED);
         TestLtiContextProvider.launchedFromLms(lms.id(), NEW_EXTERNAL_COURSE_ID);
         var login = startLogin(REGISTERED_ISSUER, REGISTERED_CLIENT_ID);
 
@@ -261,7 +304,7 @@ class LtiControllerTest extends AbstractIntegrationTest {
     void launchFromBannedLmsIsForbidden() throws Exception {
         // Arrange.
         var lms = externalSystems.createEducationResourceIfAbsent(
-                NEW_LMS_URL, EducationResourceType.MOODLE, EducationResourceTrustStatus.BANNED);
+                NEW_LMS_URL, EducationResourceTrustStatus.BANNED);
         TestLtiContextProvider.launchedFromLms(lms.id(), NEW_EXTERNAL_COURSE_ID);
         var login = startLogin(REGISTERED_ISSUER, REGISTERED_CLIENT_ID);
 
@@ -592,7 +635,7 @@ class LtiControllerTest extends AbstractIntegrationTest {
     }
 
     private EducationResourceTrustStatus trustStatusOf(String url) {
-        return educationResourceRepository.findByUrlAndType(url, EducationResourceType.MOODLE)
+        return educationResourceRepository.findByUrl(url)
                 .map(EducationResourceEntity::getTrustStatus)
                 .orElseThrow();
     }

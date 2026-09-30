@@ -8,12 +8,12 @@ import org.springframework.http.MediaType;
 import org.springframework.test.web.client.MockRestServiceServer;
 import org.springframework.transaction.annotation.Transactional;
 import org.springframework.web.client.RestTemplate;
-import org.vstu.compprehension.config.LtiToolProperties;
+import org.vstu.compprehension.adapters.lti.LtiMembershipClient;
+import org.vstu.compprehension.adapters.lti.LtiToolConfigurationService;
 import org.vstu.compprehension.data.lti.LtiPlatformKeyData;
 import org.vstu.compprehension.data.lti.LtiRegistrationData;
 import org.vstu.compprehension.entities.external_system.LtiRegistrationInviteEntity;
 import org.vstu.compprehension.enums.EducationResourceTrustStatus;
-import org.vstu.compprehension.enums.EducationResourceType;
 import org.vstu.compprehension.infrastructure.AbstractIntegrationTest;
 import org.vstu.compprehension.infrastructure.TestData;
 import org.vstu.compprehension.repositories.data.ExternalSystemDataRepository;
@@ -29,6 +29,7 @@ import java.util.HexFormat;
 import java.util.Set;
 import java.util.stream.Collectors;
 
+import static org.hamcrest.Matchers.containsString;
 import static org.junit.jupiter.api.Assertions.assertEquals;
 import static org.junit.jupiter.api.Assertions.assertThrows;
 import static org.junit.jupiter.api.Assertions.assertTrue;
@@ -85,8 +86,8 @@ class LtiDynamicRegistrationServiceTest extends AbstractIntegrationTest {
     }
 
     /**
-     * Регистрация сообщает LMS наши адреса, сохраняет выданный client_id и описание из ссылки, делает LMS доверенной
-     * и гасит ссылку.
+     * Регистрация сообщает LMS наши адреса и нужные службы (оценки, участники курса), сохраняет выданный client_id
+     * и описание из ссылки, делает LMS доверенной и гасит ссылку.
      */
     @Test
     void registerCreatesTrustedRegistrationAndUsesInvite() {
@@ -99,6 +100,7 @@ class LtiDynamicRegistrationServiceTest extends AbstractIntegrationTest {
                 .andExpect(jsonPath("$.initiate_login_uri").value(TOOL_BASE_URL + "/lti/login"))
                 .andExpect(jsonPath("$.redirect_uris[0]").value(TOOL_BASE_URL + "/lti/launch"))
                 .andExpect(jsonPath("$.jwks_uri").value(TOOL_BASE_URL + "/lti/jwks"))
+                .andExpect(jsonPath("$.scope").value(containsString(LtiMembershipClient.SCOPE)))
                 .andExpect(jsonPath("$['https://purl.imsglobal.org/spec/lti-tool-configuration'].messages[0].type")
                         .value("LtiDeepLinkingRequest"))
                 .andRespond(withSuccess(TOOL_REGISTRATION_RESPONSE, MediaType.APPLICATION_JSON));
@@ -116,7 +118,6 @@ class LtiDynamicRegistrationServiceTest extends AbstractIntegrationTest {
         assertThrows(SecurityException.class, () -> ltiRegistrationService.ensureInviteUsable(invite.token()));
 
         var platform = ltiRegistrationRegistry.requireByIssuerAndClientId(LMS_ISSUER, "dynamic-client");
-        assertEquals(LtiToolProperties.TOOL_KEY_ID, platform.toolKeyId());
         assertEquals(LMS_ISSUER + "/mod/lti/auth.php", platform.authorizationEndpoint());
         assertEquals(new LtiPlatformKeyData.Jwks(LMS_ISSUER + "/mod/lti/certs.php"), platform.platformKey());
     }
@@ -204,7 +205,7 @@ class LtiDynamicRegistrationServiceTest extends AbstractIntegrationTest {
     @Test
     void registerOfBannedLmsIsForbidden() {
         // Arrange.
-        externalSystems.createEducationResourceIfAbsent(LMS_ISSUER, EducationResourceType.MOODLE, EducationResourceTrustStatus.BANNED);
+        externalSystems.createEducationResourceIfAbsent(LMS_ISSUER, EducationResourceTrustStatus.BANNED);
         var invite = ltiRegistrationService.createInvite(TestData.Users.ADMIN_ID, null);
         expectPlatformConfiguration(PLATFORM_CONFIGURATION);
         lms.expect(requestTo(REGISTRATION_ENDPOINT))
@@ -222,7 +223,7 @@ class LtiDynamicRegistrationServiceTest extends AbstractIntegrationTest {
     @Test
     void registerOfUntrustedLmsMakesItTrusted() {
         // Arrange.
-        externalSystems.createEducationResourceIfAbsent(LMS_ISSUER, EducationResourceType.MOODLE, EducationResourceTrustStatus.UNTRUSTED);
+        externalSystems.createEducationResourceIfAbsent(LMS_ISSUER, EducationResourceTrustStatus.UNTRUSTED);
         var invite = ltiRegistrationService.createInvite(TestData.Users.ADMIN_ID, null);
         expectPlatformConfiguration(PLATFORM_CONFIGURATION);
         lms.expect(requestTo(REGISTRATION_ENDPOINT))
@@ -243,7 +244,7 @@ class LtiDynamicRegistrationServiceTest extends AbstractIntegrationTest {
     }
 
     private EducationResourceTrustStatus trustStatusOf(String url) {
-        var resource = educationResourceRepository.findByUrlAndType(url, EducationResourceType.MOODLE);
+        var resource = educationResourceRepository.findByUrl(url);
         assertTrue(resource.isPresent());
         return resource.get().getTrustStatus();
     }

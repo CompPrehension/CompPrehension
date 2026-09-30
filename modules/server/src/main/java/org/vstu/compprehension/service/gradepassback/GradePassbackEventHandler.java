@@ -35,7 +35,7 @@ public class GradePassbackEventHandler implements OutboxEventHandler<AttemptFini
         }
 
         long userId = target.userId();
-        Long courseId = target.course() == null ? null : target.course().courseId();
+        Long courseId = target.courseId();
         boolean isStudent = courseId != null
                 && authService.hasRole(userId, SystemRole.STUDENT, PermissionScope.course(courseId));
         if (!isStudent) {

@@ -14,6 +14,15 @@ public final class ArchitecturePackages {
     /** Слой приложения. */
     public static final String[] SERVICES = {ROOT + ".services..", ROOT + ".service.."};
 
+    /** Сценарии слоя приложения, общие для обоих приложений. */
+    public static final String APPLICATION_SERVICES = ROOT + ".services..";
+
+    /** Реализации портов: внешние системы и окружение приложения. */
+    public static final String ADAPTERS = ROOT + ".adapters..";
+
+    /** Задачи фонового сервера по расписанию. */
+    public static final String JOBS = ROOT + ".jobs..";
+
     /** Слой доступа к данным. */
     public static final String REPOSITORIES = ROOT + ".repositories..";
 

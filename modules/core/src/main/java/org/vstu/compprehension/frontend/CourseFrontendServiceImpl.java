@@ -10,6 +10,7 @@ import org.vstu.compprehension.data.cource.CourseSummaryData;
 import org.vstu.compprehension.data.cource.CreateCourseData;
 import org.vstu.compprehension.mappers.Mapper;
 import org.vstu.compprehension.services.CourseDataService;
+import org.vstu.compprehension.services.LtiCourseMembershipDataService;
 
 import java.util.Collection;
 import java.util.List;
@@ -21,15 +22,18 @@ public class CourseFrontendServiceImpl implements CourseFrontendService {
     private final AuthFrontendService authService;
     private final Mapper<CourseSummaryData, CourseDto> courseDtoMapper;
     private final Mapper<CourseExerciseData, ExerciseRefDto> exerciseRefDtoMapper;
+    private final LtiCourseMembershipDataService membershipService;
 
     public CourseFrontendServiceImpl(CourseDataService courseService,
                                      AuthFrontendService authService,
                                      Mapper<CourseSummaryData, CourseDto> courseDtoMapper,
-                                     Mapper<CourseExerciseData, ExerciseRefDto> exerciseRefDtoMapper) {
+                                     Mapper<CourseExerciseData, ExerciseRefDto> exerciseRefDtoMapper,
+                                     LtiCourseMembershipDataService membershipService) {
         this.courseService = courseService;
         this.authService = authService;
         this.courseDtoMapper = courseDtoMapper;
         this.exerciseRefDtoMapper = exerciseRefDtoMapper;
+        this.membershipService = membershipService;
     }
 
     @Override
@@ -75,5 +79,11 @@ public class CourseFrontendServiceImpl implements CourseFrontendService {
     public @NotNull List<ExerciseRefDto> getExerciseRefsInCourseOrThrow(long courseId, @NotNull Collection<Long> exerciseIds) {
         return exerciseRefDtoMapper.mapAll(
                 courseService.getExercisesInCourseOrThrow(courseId, exerciseIds));
+    }
+
+    @Override
+    public void rememberMembershipSource(long courseId, @NotNull String issuer, @NotNull String clientId,
+                                         @NotNull String membershipsUrl) {
+        membershipService.rememberSource(courseId, issuer, clientId, membershipsUrl);
     }
 }

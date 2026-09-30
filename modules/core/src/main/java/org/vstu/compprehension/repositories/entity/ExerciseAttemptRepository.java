@@ -6,7 +6,6 @@ import org.springframework.data.jpa.repository.Query;
 import org.springframework.data.repository.query.Param;
 import org.springframework.stereotype.Repository;
 import org.vstu.compprehension.enums.AttemptStatus;
-import org.vstu.compprehension.enums.EducationResourceType;
 import org.vstu.compprehension.entities.ExerciseAttemptEntity;
 
 import java.util.List;
@@ -102,10 +101,6 @@ public interface ExerciseAttemptRepository extends JpaRepository<ExerciseAttempt
         String getLtiIssuer();
         String getLtiClientId();
         Long getCourseId();
-        String getExternalCourseId();
-        Long getEducationResourceId();
-        EducationResourceType getEducationResourceType();
-        String getEducationResourceUrl();
     }
 
     @Query("""
@@ -113,9 +108,7 @@ public interface ExerciseAttemptRepository extends JpaRepository<ExerciseAttempt
                    u.id as userId, eru.externalId as externalUserId,
                    a.ltiLineitemUrl as ltiLineitemUrl,
                    a.ltiIssuer as ltiIssuer, a.ltiClientId as ltiClientId,
-                   c.id as courseId, c.externalCourseId as externalCourseId,
-                   er.id as educationResourceId, er.type as educationResourceType,
-                   er.url as educationResourceUrl
+                   c.id as courseId
             from ExerciseAttemptEntity a
             join a.user u
             join a.exercise e

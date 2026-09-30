@@ -28,13 +28,23 @@ public class TestLtiContextProvider implements LtiContextProvider {
 
     /** Запуск из курса произвольной LMS. */
     public static void launchedFromLms(long educationResourceId, String externalCourseId) {
+        launched(educationResourceId, externalCourseId, null);
+    }
+
+    /** Запуск из курса, заданного в data.sql, в котором LMS сообщила адрес списка участников. */
+    public static void launchedFromCourseWithMemberships(String externalCourseId, String membershipsUrl) {
+        launched(TestData.EducationResources.ID, externalCourseId, membershipsUrl);
+    }
+
+    private static void launched(long educationResourceId, String externalCourseId, String membershipsUrl) {
         CONTEXT.set(new LtiContext(
                 null,
                 TestData.EducationResources.URL,
                 "test-client",
                 educationResourceId,
-                new LtiCourseContext(externalCourseId, "Test course"),
-                null));
+                externalCourseId == null ? null : new LtiCourseContext(externalCourseId, "Test course"),
+                null,
+                membershipsUrl));
     }
 
     /** Запуск в режиме deep-linking. */

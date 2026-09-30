@@ -88,6 +88,13 @@ public class RbacDataRepository {
                 ruaRepository.findCourseAssignmentsInEducationResource(educationResourceId, userIds));
     }
 
+    @Transactional(readOnly = true)
+    public @NotNull List<CourseRoleAssignmentData> findCourseRoleAssignmentsOfEducationResourceUsers(
+            long courseId, long educationResourceId) {
+        return courseRoleAssignmentMapper.mapAll(
+                ruaRepository.findCourseAssignmentsOfEducationResourceUsers(courseId, educationResourceId));
+    }
+
     @Transactional
     public void applyCourseRoleChanges(@NotNull Collection<CourseRoleGrantData> grants,
                                        @NotNull Collection<Long> assignmentIdsToRevoke) {

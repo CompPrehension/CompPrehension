@@ -8,11 +8,12 @@ import org.springframework.http.HttpHeaders;
 import org.springframework.http.MediaType;
 import org.springframework.stereotype.Service;
 import org.springframework.web.client.RestTemplate;
+import org.vstu.compprehension.adapters.lti.LtiMembershipClient;
+import org.vstu.compprehension.adapters.lti.LtiToolConfigurationService;
 import org.vstu.compprehension.common.LmsUrlHelper;
 import org.vstu.compprehension.data.lti.LtiPlatformKeyData;
 import org.vstu.compprehension.data.lti.LtiRegistrationData;
 import org.vstu.compprehension.data.lti.NewLtiRegistrationData;
-import org.vstu.compprehension.enums.EducationResourceType;
 import org.vstu.compprehension.services.LtiRegistrationDataService;
 import tools.jackson.databind.JsonNode;
 import tools.jackson.databind.ObjectMapper;
@@ -30,11 +31,11 @@ import java.util.Map;
 public class LtiDynamicRegistrationService {
 
     private static final String TOOL_CONFIGURATION = "https://purl.imsglobal.org/spec/lti-tool-configuration";
-    private static final String PLATFORM_CONFIGURATION = "https://purl.imsglobal.org/spec/lti-platform-configuration";
-    private static final String AGS_SCOPES = String.join(" ",
+    private static final String SERVICE_SCOPES = String.join(" ",
             "https://purl.imsglobal.org/spec/lti-ags/scope/lineitem",
             "https://purl.imsglobal.org/spec/lti-ags/scope/lineitem.readonly",
-            "https://purl.imsglobal.org/spec/lti-ags/scope/score");
+            "https://purl.imsglobal.org/spec/lti-ags/scope/score",
+            LtiMembershipClient.SCOPE);
     private static final String TOOL_NAME = "CompPrehension";
 
     private final RestTemplate restTemplate;
@@ -73,8 +74,6 @@ public class LtiDynamicRegistrationService {
 
         var registration = ltiRegistrationService.registerByInvite(inviteToken, new NewLtiRegistrationData(
                 lmsUrl,
-                EducationResourceType.fromString(
-                        platformConfiguration.path(PLATFORM_CONFIGURATION).path("product_family_code").asText(null)),
                 issuer,
                 requireText(toolRegistration, "client_id"),
                 deploymentId,
@@ -106,7 +105,7 @@ public class LtiDynamicRegistrationService {
         body.put("client_name", TOOL_NAME);
         body.put("jwks_uri", tool.getJwksUrl());
         body.put("token_endpoint_auth_method", "private_key_jwt");
-        body.put("scope", AGS_SCOPES);
+        body.put("scope", SERVICE_SCOPES);
         body.put(TOOL_CONFIGURATION, toolConfiguration);
 
         HttpHeaders headers = new HttpHeaders();

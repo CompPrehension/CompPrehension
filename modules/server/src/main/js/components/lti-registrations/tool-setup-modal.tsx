@@ -44,6 +44,7 @@ export const ToolSetupModal = observer(({ hint, onClose }: Props) => {
         ['Supports Deep Linking (Content-Item Message)', t('ltiRegistrations_setupEnabled')],
         ['Content Selection URL', <CopyableValue value={configuration.launchUrl} />],
         ['IMS LTI Assignment and Grade Services', 'Use this service for grade sync and column management'],
+        ['IMS LTI Names and Role Provisioning', "Use this service to retrieve members' information as per privacy settings"],
         ["Share launcher's name with tool", 'Always'],
         ["Share launcher's email with tool", <>Always <Form.Text muted>{t('ltiRegistrations_setupEmailNote')}</Form.Text></>],
         ['Accept grades from the tool', 'Always'],

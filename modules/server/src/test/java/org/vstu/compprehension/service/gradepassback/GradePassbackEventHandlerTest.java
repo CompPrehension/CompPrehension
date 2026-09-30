@@ -14,7 +14,6 @@ import org.vstu.compprehension.data.outbox.AttemptFinishedEvent;
 import org.vstu.compprehension.entities.external_system.EducationResourceUserEntity;
 import org.vstu.compprehension.enums.Decision;
 import org.vstu.compprehension.enums.EducationResourceTrustStatus;
-import org.vstu.compprehension.enums.EducationResourceType;
 import org.vstu.compprehension.infrastructure.AbstractIntegrationTest;
 import org.vstu.compprehension.infrastructure.TestData;
 import org.vstu.compprehension.repositories.data.ExerciseAttemptDataRepository;
@@ -178,7 +177,7 @@ class GradePassbackEventHandlerTest extends AbstractIntegrationTest {
         // Arrange.
         var student = userRepository.getReferenceById(TestData.Users.MAIN_COURSE_STUDENT_ID);
         var otherLms = externalSystems.createEducationResourceIfAbsent(
-                "https://other-lms.test.local", EducationResourceType.MOODLE, EducationResourceTrustStatus.TRUSTED);
+                "https://other-lms.test.local", EducationResourceTrustStatus.TRUSTED);
         educationResourceUserRepository.save(new EducationResourceUserEntity(
                 student, educationResourceRepository.getReferenceById(otherLms.id()), "other-lms-student"));
         educationResourceUserRepository.save(new EducationResourceUserEntity(

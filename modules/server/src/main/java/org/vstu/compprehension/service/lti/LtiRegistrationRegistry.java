@@ -2,23 +2,20 @@ package org.vstu.compprehension.service.lti;
 
 import org.jetbrains.annotations.NotNull;
 import org.springframework.stereotype.Service;
-import org.vstu.compprehension.config.LtiToolProperties;
 import org.vstu.compprehension.data.lti.LtiRegistrationData;
 import org.vstu.compprehension.services.LtiRegistrationDataService;
 
 import java.util.Optional;
 
 /**
- * Подключённые LMS вместе с ключом инструмента.
+ * Подключённые LMS.
  */
 @Service
 public class LtiRegistrationRegistry {
 
-    private final LtiToolProperties toolProperties;
     private final LtiRegistrationDataService ltiRegistrationService;
 
-    public LtiRegistrationRegistry(LtiToolProperties toolProperties, LtiRegistrationDataService ltiRegistrationService) {
-        this.toolProperties = toolProperties;
+    public LtiRegistrationRegistry(LtiRegistrationDataService ltiRegistrationService) {
         this.ltiRegistrationService = ltiRegistrationService;
     }
 
@@ -37,16 +34,8 @@ public class LtiRegistrationRegistry {
         return registrations.size() == 1 ? Optional.of(toPlatform(registrations.getFirst())) : Optional.empty();
     }
 
-    public @NotNull Optional<String> findToolPrivateKey() {
-        return Optional.ofNullable(toolProperties.getToolPrivateKeyPkcs8Base64());
-    }
-
     private @NotNull LtiPlatform toPlatform(@NotNull LtiRegistrationData registration) {
-        var toolKey = findToolPrivateKey().orElseThrow(() -> new IllegalStateException(
-                "LMS " + registration.issuer() + " is registered, but compprehension.lti.tool-private-key-pkcs8-base64 is not set"));
         return new LtiPlatform(
-                LtiToolProperties.TOOL_KEY_ID,
-                toolKey,
                 registration.issuer(),
                 registration.clientId(),
                 registration.educationResourceId(),

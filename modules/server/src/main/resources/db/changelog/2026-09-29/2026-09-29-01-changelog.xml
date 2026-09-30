@@ -1,0 +1,44 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<databaseChangeLog xmlns="http://www.liquibase.org/xml/ns/dbchangelog"
+                   xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance"
+                   xsi:schemaLocation="http://www.liquibase.org/xml/ns/dbchangelog
+                       http://www.liquibase.org/xml/ns/dbchangelog/dbchangelog-4.5.xsd">
+
+    <changeSet id="2026-09-29-01-lti-course-membership" author="Artem Prokudin">
+        <sql>
+            create table lti_course_membership
+            (
+                course_id       bigint        not null primary key,
+                issuer          varchar(512)  not null,
+                client_id       varchar(255)  not null,
+                memberships_url varchar(1024) not null,
+                updated_at      datetime(6)   not null,
+                constraint fk_lti_course_membership_course
+                    foreign key (course_id) references course (id) on delete cascade
+            );
+        </sql>
+        <rollback>
+            <sql>
+                drop table lti_course_membership;
+            </sql>
+        </rollback>
+    </changeSet>
+
+    <changeSet id="2026-09-29-01-drop-education-resource-type" author="Artem Prokudin">
+        <sql>
+            alter table education_resource
+                drop index ux_education_resource_url_type,
+                drop column type,
+                add unique key ux_education_resource_url (url);
+        </sql>
+        <rollback>
+            <sql>
+                alter table education_resource
+                    drop index ux_education_resource_url,
+                    add column type varchar(64) not null default 'MOODLE' after url,
+                    add unique key ux_education_resource_url_type (url, type);
+            </sql>
+        </rollback>
+    </changeSet>
+
+</databaseChangeLog>

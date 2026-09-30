@@ -7,8 +7,6 @@ import org.vstu.compprehension.data.lti.LtiPlatformKeyData;
  * Подключённая LMS.
  */
 public record LtiPlatform(
-        @NotNull String toolKeyId,
-        @NotNull String toolPrivateKeyPkcs8Base64,
         @NotNull String issuer,
         @NotNull String clientId,
         long educationResourceId,

@@ -9,7 +9,6 @@ import org.vstu.compprehension.common.RsaKeyHelper;
 import org.vstu.compprehension.data.lti.LtiPlatformKeyData;
 import org.vstu.compprehension.data.lti.LtiRegistrationData;
 import org.vstu.compprehension.data.lti.NewLtiRegistrationData;
-import org.vstu.compprehension.enums.EducationResourceType;
 import org.vstu.compprehension.infrastructure.TestData;
 import org.vstu.compprehension.services.LtiRegistrationDataService;
 
@@ -357,7 +356,7 @@ class LtiRegistrationControllerAuthorizationTest extends AbstractAuthorizationTe
 
     private LtiRegistrationData registerLms(String inviteToken) {
         return ltiRegistrationService.registerByInvite(inviteToken, new NewLtiRegistrationData(
-                REGISTERED_LMS, EducationResourceType.MOODLE, REGISTERED_LMS, "registered-client", null,
+                REGISTERED_LMS, REGISTERED_LMS, "registered-client", null,
                 REGISTERED_LMS + "/mod/lti/auth.php", REGISTERED_LMS + "/mod/lti/token.php",
                 new LtiPlatformKeyData.Jwks(REGISTERED_LMS + "/mod/lti/certs.php")));
     }

@@ -2,12 +2,7 @@ package org.vstu.compprehension.service.lti;
 
 import tools.jackson.databind.JsonNode;
 import tools.jackson.databind.ObjectMapper;
-import com.nimbusds.jose.JOSEObjectType;
-import com.nimbusds.jose.JWSAlgorithm;
-import com.nimbusds.jose.JWSHeader;
-import com.nimbusds.jose.crypto.RSASSASigner;
 import com.nimbusds.jwt.JWTClaimsSet;
-import com.nimbusds.jwt.SignedJWT;
 import lombok.extern.log4j.Log4j2;
 import org.springframework.http.HttpEntity;
 import org.springframework.http.HttpHeaders;
@@ -16,6 +11,8 @@ import org.springframework.http.MediaType;
 import org.springframework.http.ResponseEntity;
 import org.springframework.stereotype.Service;
 import org.springframework.web.client.RestTemplate;
+import org.vstu.compprehension.adapters.lti.LtiServiceTokenClient;
+import org.vstu.compprehension.adapters.lti.LtiToolKeyProvider;
 import org.vstu.compprehension.businesslogic.lti.LtiDeepLinkingContext;
 
 import java.net.URI;
@@ -32,7 +29,7 @@ import java.util.UUID;
  * Сборка и подпись ответа LTI 1.3 Deep Linking ({@code LtiDeepLinkingResponse}) и
  * чтение уже добавленных в курс активностей через AGS line items (для дедубликаци).
  *
- * <p>Подпись и client_credentials-токен делаются тем же ключом регистрации, что и в
+ * <p>Подпись и client_credentials-токен делаются тем же ключом инструмента, что и в
  * {@link org.vstu.compprehension.service.gradepassback.LtiAgsGradePassbackStrategy}.
  */
 @Service
@@ -53,13 +50,15 @@ public class DeepLinkingResponseService {
 
     private final RestTemplate restTemplate;
     private final ObjectMapper objectMapper = new ObjectMapper();
-    private final LtiTokenService tokenService;
+    private final LtiServiceTokenClient tokenClient;
+    private final LtiToolKeyProvider toolKeys;
     private final LtiRegistrationRegistry ltiRegistrations;
 
-    public DeepLinkingResponseService(RestTemplate restTemplate, LtiTokenService tokenService,
-                                      LtiRegistrationRegistry ltiRegistrations) {
+    public DeepLinkingResponseService(RestTemplate restTemplate, LtiServiceTokenClient tokenClient,
+                                      LtiToolKeyProvider toolKeys, LtiRegistrationRegistry ltiRegistrations) {
         this.restTemplate = restTemplate;
-        this.tokenService = tokenService;
+        this.tokenClient = tokenClient;
+        this.toolKeys = toolKeys;
         this.ltiRegistrations = ltiRegistrations;
     }
 
@@ -72,7 +71,7 @@ public class DeepLinkingResponseService {
      * на упражнение. URL у item не задаётся — Moodle подставит launch URL инструмента,
      * а {@code /lti/launch} приоритетно читает custom-claim {@code exercise_id}.
      */
-    public String buildSignedResponse(LtiDeepLinkingContext dl, List<DeepLinkItem> items) throws Exception {
+    public String buildSignedResponse(LtiDeepLinkingContext dl, List<DeepLinkItem> items) {
         List<Map<String, Object>> contentItems = new ArrayList<>(items.size());
         for (DeepLinkItem item : items) {
             String title = (item.title() != null && !item.title().isBlank())
@@ -95,7 +94,7 @@ public class DeepLinkingResponseService {
      * настройки упражнений курса. Запускается она по обычному адресу инструмента, страницу выбирает
      * custom-параметр {@link #CUSTOM_PAGE}. Колонки оценок у неё нет.
      */
-    public String buildSignedSettingsLinkResponse(LtiDeepLinkingContext dl, String title) throws Exception {
+    public String buildSignedSettingsLinkResponse(LtiDeepLinkingContext dl, String title) {
         Map<String, Object> ci = new LinkedHashMap<>();
         ci.put("type", "ltiResourceLink");
         ci.put("title", title);
@@ -103,14 +102,14 @@ public class DeepLinkingResponseService {
         return signResponse(dl, List.of(ci));
     }
 
-    private String signResponse(LtiDeepLinkingContext dl, List<Map<String, Object>> contentItems) throws Exception {
+    private String signResponse(LtiDeepLinkingContext dl, List<Map<String, Object>> contentItems) {
         LtiPlatform platform = ltiRegistrations.requireByIssuerAndClientId(dl.platformIssuer(), dl.clientId());
 
         Date now = new Date();
         JWTClaimsSet.Builder claims = new JWTClaimsSet.Builder()
                 .issuer(platform.clientId())
                 .audience(dl.platformIssuer())
-                .issueTime(new Date(now.getTime() - LtiTokenService.ISSUED_AT_BACKDATE_MS))
+                .issueTime(new Date(now.getTime() - LtiServiceTokenClient.ISSUED_AT_BACKDATE_MS))
                 .expirationTime(new Date(now.getTime() + 300_000))
                 .jwtID(UUID.randomUUID().toString())
                 .claim("nonce", UUID.randomUUID().toString())
@@ -123,11 +122,9 @@ public class DeepLinkingResponseService {
             claims.claim(CLAIM_DL_DATA, dl.data());
         }
 
-        SignedJWT jwt = new SignedJWT(
-                new JWSHeader.Builder(JWSAlgorithm.RS256).keyID(platform.toolKeyId()).type(JOSEObjectType.JWT).build(),
-                claims.build());
-        jwt.sign(new RSASSASigner(tokenService.loadPrivateKey(platform)));
-        return jwt.serialize();
+        return toolKeys.findKey()
+                .orElseThrow(() -> new IllegalStateException("Deep linking response cannot be signed: LTI tool key is not set"))
+                .sign(claims.build());
     }
 
     /**
@@ -140,8 +137,9 @@ public class DeepLinkingResponseService {
             return Set.of();
         }
         try {
-            String accessToken = tokenService.obtainAccessToken(
-                    ltiRegistrations.requireByIssuerAndClientId(dl.platformIssuer(), dl.clientId()), LINEITEM_READONLY_SCOPE);
+            var platform = ltiRegistrations.requireByIssuerAndClientId(dl.platformIssuer(), dl.clientId());
+            String accessToken = tokenClient.obtainAccessToken(
+                    platform.tokenEndpoint(), platform.clientId(), LINEITEM_READONLY_SCOPE);
 
             HttpHeaders headers = new HttpHeaders();
             headers.setBearerAuth(accessToken);

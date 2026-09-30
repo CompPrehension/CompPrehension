@@ -149,6 +149,22 @@ public interface RoleUserAssignmentRepository extends JpaRepository<RoleUserAssi
     );
 
     @Query("""
+            select rua from RoleUserAssignmentEntity rua
+            join fetch rua.user u
+            join fetch rua.role r
+            join fetch rua.permissionScope ps
+            where ps.kind = PermissionScopeKind.COURSE
+              and ps.scopeItemId = :courseId
+              and exists (
+                  select 1 from EducationResourceUserEntity eru
+                  where eru.id.userId = u.id and eru.id.educationResourceId = :eduResId)
+            """)
+    List<RoleUserAssignmentEntity> findCourseAssignmentsOfEducationResourceUsers(
+            @Param("courseId") long courseId,
+            @Param("eduResId") long eduResId
+    );
+
+    @Query("""
             select distinct ps.scopeItemId
             from RoleUserAssignmentEntity rua
             join rua.role r

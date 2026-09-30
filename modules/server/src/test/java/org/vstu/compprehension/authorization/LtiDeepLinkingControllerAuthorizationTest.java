@@ -3,7 +3,6 @@ package org.vstu.compprehension.authorization;
 import org.vstu.compprehension.businesslogic.auth.AuthObjects.SystemRole;
 import org.vstu.compprehension.controllers.LtiDeepLinkingController.DeepLinkBuildRequest;
 import org.vstu.compprehension.enums.EducationResourceTrustStatus;
-import org.vstu.compprehension.enums.EducationResourceType;
 import org.vstu.compprehension.frontend.CourseFrontendService;
 import org.vstu.compprehension.frontend.dto.course.CreateCourseDto;
 import org.vstu.compprehension.infrastructure.TestData;
@@ -157,7 +156,7 @@ class LtiDeepLinkingControllerAuthorizationTest extends AbstractAuthorizationTes
     void buildForbiddenForAdminOfUntrustedLms() throws Exception {
         // Arrange.
         var resource = externalSystems.createEducationResourceIfAbsent(
-                UNTRUSTED_LMS_URL, EducationResourceType.MOODLE, EducationResourceTrustStatus.UNTRUSTED);
+                UNTRUSTED_LMS_URL, EducationResourceTrustStatus.UNTRUSTED);
         courseService.getOrCreate(new CreateCourseDto(resource.id(), UNTRUSTED_EXTERNAL_COURSE_ID, null));
         roleAssignmentService.reconcileRoleInEducationResource(
                 TestData.Users.MAIN_COURSE_TEACHER_ID, resource.id(), SystemRole.EDUCATION_RESOURCE_ADMIN);

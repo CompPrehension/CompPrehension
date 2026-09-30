@@ -1,6 +1,7 @@
 package org.vstu.compprehension.services;
 
 import lombok.RequiredArgsConstructor;
+import lombok.extern.log4j.Log4j2;
 import org.jetbrains.annotations.NotNull;
 import org.jetbrains.annotations.Nullable;
 import org.springframework.stereotype.Service;
@@ -24,6 +25,7 @@ import java.util.Set;
  * Сервис выдачи и синхронизации ролей.
  */
 @Service
+@Log4j2
 @RequiredArgsConstructor
 public class RoleAssignmentService {
 
@@ -118,6 +120,34 @@ public class RoleAssignmentService {
         }
 
         rbac.applyCourseRoleChanges(grants, toRevoke);
+    }
+
+    /**
+     * Сверяет состав курса: из пользователей образовательного ресурса роль в курсе теряют те, кого нет
+     * в {@code roleOfMember}, а участники без роли получают указанную. Имеющаяся роль участника не меняется.
+     */
+    @Transactional
+    public void reconcileCourseMembers(long educationResourceId, long courseId,
+                                       @NotNull Map<Long, Role> roleOfMember) {
+        roleOfMember.values().forEach(role -> ensureRoleAllowedIn(role, PermissionScopeKind.COURSE));
+
+        Set<Long> withRole = new HashSet<>();
+        List<CourseRoleAssignmentData> toRevoke = new ArrayList<>();
+        for (var current : rbac.findCourseRoleAssignmentsOfEducationResourceUsers(courseId, educationResourceId)) {
+            if (roleOfMember.containsKey(current.userId())) {
+                withRole.add(current.userId());
+            } else {
+                toRevoke.add(current);
+            }
+        }
+        List<CourseRoleGrantData> grants = roleOfMember.entrySet().stream()
+                .filter(member -> !withRole.contains(member.getKey()))
+                .map(member -> new CourseRoleGrantData(member.getKey(), courseId, member.getValue()))
+                .toList();
+
+        rbac.applyCourseRoleChanges(grants, toRevoke.stream().map(CourseRoleAssignmentData::id).toList());
+        grants.forEach(grant -> log.info("Course {}: user {} granted role {}", courseId, grant.userId(), grant.role().id()));
+        toRevoke.forEach(revoked -> log.info("Course {}: user {} lost role {}", courseId, revoked.userId(), revoked.role().id()));
     }
 
     private static void ensureRoleAllowedIn(@NotNull Role role, @NotNull PermissionScopeKind kind) {

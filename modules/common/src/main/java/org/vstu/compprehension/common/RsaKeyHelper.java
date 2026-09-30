@@ -19,15 +19,21 @@ public final class RsaKeyHelper {
     private RsaKeyHelper() {
     }
 
-    /** Открытая часть ключа RSA, заданного в PKCS8 DER в base64. */
-    public static @NotNull RSAPublicKey derivePublicKey(@NotNull String privateKeyPkcs8Base64) {
+    /** Приватный ключ RSA в PKCS8 DER, base64. */
+    public static @NotNull RSAPrivateCrtKey parsePrivateKey(@NotNull String pkcs8Base64) {
         try {
-            var rsa = KeyFactory.getInstance("RSA");
-            var privateKey = (RSAPrivateCrtKey) rsa.generatePrivate(
-                    new PKCS8EncodedKeySpec(Base64.getDecoder().decode(privateKeyPkcs8Base64)));
-            return (RSAPublicKey) rsa.generatePublic(
-                    new RSAPublicKeySpec(privateKey.getModulus(), privateKey.getPublicExponent()));
+            return (RSAPrivateCrtKey) KeyFactory.getInstance("RSA").generatePrivate(
+                    new PKCS8EncodedKeySpec(Base64.getDecoder().decode(pkcs8Base64)));
         } catch (GeneralSecurityException | IllegalArgumentException | ClassCastException ex) {
+            throw new IllegalStateException("Invalid RSA private key", ex);
+        }
+    }
+
+    public static @NotNull RSAPublicKey derivePublicKey(@NotNull RSAPrivateCrtKey privateKey) {
+        try {
+            return (RSAPublicKey) KeyFactory.getInstance("RSA").generatePublic(
+                    new RSAPublicKeySpec(privateKey.getModulus(), privateKey.getPublicExponent()));
+        } catch (GeneralSecurityException ex) {
             throw new IllegalStateException("Invalid RSA private key", ex);
         }
     }
