@@ -14,8 +14,10 @@ import { SupplementaryQuestionStore } from "./sup-question-store";
  */
 export class QuestionStore {
     isFeedbackVisible: boolean = true;
-    isQuestionFreezed: boolean = false;
     feedback?: Feedback = undefined;
+    /** Explanation of the misconception the student named as the reason for the answer. */
+    clarificationExplanation?: string = undefined;
+    isClarificationSending: boolean = false;
     question?: Question = undefined;
     lastAnswer: ReadonlyArray<Answer> = [];
     answersHistory: Array<ReadonlyArray<Answer>> = [];
@@ -25,6 +27,11 @@ export class QuestionStore {
 
     constructor() {
         makeAutoObservable(this);
+    }
+
+    /** The student answers the clarifying question before going on with the question. */
+    get isQuestionFreezed() {
+        return !!this.feedback?.clarification;
     }
 
     private onQuestionLoaded = (question: Question) => {
@@ -43,6 +50,7 @@ export class QuestionStore {
         this.question = question;
         this.supplementaryQuestion = new SupplementaryQuestionStore(question.questionId);
         this.feedback = question.feedback ?? undefined;
+        this.clarificationExplanation = undefined;
         this.isFeedbackVisible = true;
         this.answersHistory = [];
         this.lastAnswer = question.responses ?? [];
@@ -54,6 +62,7 @@ export class QuestionStore {
 
     private onAnswerEvaluated(feedback: Feedback) {
         this.feedback = feedback;
+        this.clarificationExplanation = undefined;
         this.isFeedbackVisible = true;
         if (feedback && feedback.correctAnswers) {
             this.setFullAnswer(feedback.correctAnswers, false);
@@ -141,6 +150,27 @@ export class QuestionStore {
         }
 
         this.onAnswerEvaluated(feedbackEither.right);
+    }
+
+    answerClarification = async (hypothesis: string | null) => {
+        const { question, feedback } = this;
+        if (!question || !feedback) {
+            return;
+        }
+
+        this.setValidStoreState();
+
+        this.isClarificationSending = true;
+        const answerEither = await questionController.answerClarification({ questionId: question.questionId, hypothesis });
+        this.isClarificationSending = false;
+
+        if (E.isLeft(answerEither)) {
+            this.setErrorStoreState(answerEither.left);
+            return;
+        }
+
+        this.feedback = { ...feedback, clarification: null };
+        this.clarificationExplanation = answerEither.right.explanation ?? undefined;
     }
 
     private sendAnswersImpl = async (questionId: number, answers: readonly Answer[]) => {

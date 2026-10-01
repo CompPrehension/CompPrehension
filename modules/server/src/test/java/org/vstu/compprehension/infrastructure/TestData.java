@@ -92,4 +92,16 @@ public final class TestData {
                     .orElseThrow(() -> new IllegalArgumentException("Нет вопроса банка с metadataId " + metadataId));
         }
     }
+
+    /** Вопрос домена типов выражений: total / len(grades), где total — int, grades — list[int]. */
+    public static final class TypeEvaluationBank {
+        private TypeEvaluationBank() {
+        }
+
+        public static final int AVERAGE_OF_GRADES_METADATA_ID = -2001;
+        public static final long LEN_SLOT = 0;
+        public static final long DIV_SLOT = 1;
+        public static final long INT_TYPE = 100;
+        public static final long LIST_INT_TYPE = 103;
+    }
 }

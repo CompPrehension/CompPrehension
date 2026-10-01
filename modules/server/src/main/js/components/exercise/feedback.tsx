@@ -9,6 +9,7 @@ import {Alert, Badge} from "react-bootstrap";
 import {useTranslation} from "react-i18next";
 import {isNullOrUndefined} from "../../utils/helpers";
 import {ParsedMessage} from "./domain-terms";
+import {Clarification} from "./clarification";
 
 
 type FeedbackProps = { 
@@ -57,6 +58,7 @@ export const Feedback = observer(({ store, showExtendedFeedback }: FeedbackProps
                   }
                 />
               ))}
+              <Clarification store={store} />
             </div>
             {showExtendedFeedback && (
               <div>

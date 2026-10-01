@@ -28,6 +28,9 @@ public interface QuestionDataService {
 
      void gradeInteraction(long interactionId, float grade);
 
+     /** Записать ответ студента на уточняющий вопрос взаимодействия; без гипотезы — другая причина. */
+     void answerClarification(long interactionId, @Nullable String hypothesis);
+
      QuestionData getQuestion(Long questionId);
 
      QuestionData getSolvedQuestion(Long questionId);

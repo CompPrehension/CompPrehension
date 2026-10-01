@@ -2,7 +2,8 @@ import { HttpResponse, delay, http } from 'msw';
 import { ExerciseCard } from '../types/exercise-settings';
 import { Interaction } from '../types/interaction';
 import { mockBackends, mockCard, mockDomains, mockStrategies, saveMockCard } from './exercise-settings';
-import { Grade, gradeAnswers, mockAttempt, mockQuestions, nextCorrectAnswer, recordAnswers, resetAnswers } from './questions';
+import { ClarificationAnswer } from '../types/feedback';
+import { Grade, answerClarification, gradeAnswers, mockAttempt, mockQuestions, nextCorrectAnswer, recordAnswers, resetAnswers } from './questions';
 
 /** Pretend the backend is thinking, so loading states are actually visible. */
 const THINKING_MS = 800;
@@ -160,6 +161,12 @@ export const handlers = [
         const graded = gradeAnswers(interaction.questionId, interaction.answers);
         recordAnswers(interaction.questionId, interaction.answers);
         return HttpResponse.json(feedback(graded));
+    }),
+
+    http.post('/api/question/answerClarification', async ({ request }) => {
+        await delay(THINKING_MS);
+        const answer = await request.json() as ClarificationAnswer;
+        return HttpResponse.json({ explanation: answerClarification(answer.questionId, answer.hypothesis) });
     }),
 
     http.post('/api/question/addSupplementaryQuestionAnswer', async () => {

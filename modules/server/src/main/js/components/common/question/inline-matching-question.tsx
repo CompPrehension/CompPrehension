@@ -52,8 +52,8 @@ export const InlineMatchingQuestionComponent = observer((props: InlineMatchingQu
     const renderSlot = (slot: Element, slotId: number, disabled: boolean) => {
         const chosen = groups.find(g => g.id === getAnswers().find(a => a.answer[0] === slotId)?.answer[1]);
         return (
-            // The id keeps the wrapper's "freezed/finished" styles working for the slot.
-            <Dropdown key={`slot-${slotId}`} id={slot.attribs.id} drop="end" className="comp-ph-expr-slot">
+            // The id and data-answer-id keep the wrapper's "freezed/finished" styles working for the slot.
+            <Dropdown key={`slot-${slotId}`} id={slot.attribs.id} data-answer-id={slotId} drop="end" className="comp-ph-expr-slot">
                 <Dropdown.Toggle as="button" type="button" disabled={disabled}>
                     {chosen ? <span dangerouslySetInnerHTML={{ __html: chosen.text }} /> : '...'}
                 </Dropdown.Toggle>

@@ -1,6 +1,6 @@
 import { Answer } from '../types/answer';
-import { FeedbackMessage } from '../types/feedback';
-import { Question } from '../types/question';
+import { Clarification, FeedbackMessage } from '../types/feedback';
+import { MatchingQuestion, Question } from '../types/question';
 
 const longAnswer = 'answer1 answer1 answer1answer1answer1answer1answer1 answer1answer1 answer1 answer1 answer1answer1answer1answer1answer1 answer1answer1 answer1 answer1 answer1answer1answer1answer1answer1 answer1answer1 answer1 answer1 answer1answer1answer1answer1answer1 answer1answer1 answer1 answer1 answer1answer1answer1answer1answer1 answer1answer1 ';
 const dragStyles = {
@@ -13,9 +13,17 @@ const groups = [
     { id: 1, text: '<div style="width:50px;height: 100px;">group2 group2 group2 group2<div/>' },
 ];
 
+/** A clarifying question as the backend keeps it: every reason comes with the explanation of its misconception. */
+export type MockClarification = {
+    prompt: string,
+    options: { hypothesis: string, reason: string, explanation: string }[],
+};
+
 export type MockQuestion = {
     question: Question,
     correctAnswers: [number, number][],
+    // keyed by a wrong answer pair that several misconceptions explain
+    clarifications?: Record<string, MockClarification>,
 };
 
 export const mockQuestions: Record<number, MockQuestion> = {
@@ -190,6 +198,36 @@ export const mockQuestions: Record<number, MockQuestion> = {
     },
 };
 
+// total / len(grades): int for the division is explained both by "the result takes an operand's type" and by C-style division
+mockQuestions[11] = {
+    question: {
+        ...(mockQuestions[10].question as MatchingQuestion),
+        questionId: 11,
+        questionMetadataId: 11,
+        text: mockQuestions[10].question.text.split('<div class="comp-ph-code">')[0] + "<div class=\"comp-ph-code\"><pre><code><span class=\"n\">grades</span> <span class=\"o\">=</span> <span class=\"p\">[</span><span class=\"mi\">5</span><span class=\"p\">,</span> <span class=\"mi\">4</span><span class=\"p\">,</span> <span class=\"mi\">5</span><span class=\"p\">]</span>\n<span class=\"n\">total</span> <span class=\"o\">=</span> <span class=\"mi\">14</span>\n<span class=\"c1\"># ... вы находитесь здесь ...</span></code></pre></div><div class=\"comp-ph-typed-expr\" style=\"--depth:2\"><span class=\"comp-ph-expr-part\" style=\"--lvl:2\"><span class=\"comp-ph-expr-slot\" id=\"answer_1\"></span><span class=\"comp-ph-expr-token\">total</span><span class=\"comp-ph-expr-token\">/</span><span class=\"comp-ph-expr-part\" style=\"--lvl:1\"><span class=\"comp-ph-expr-slot\" id=\"answer_0\"></span><span class=\"comp-ph-expr-token\">len</span><span class=\"comp-ph-expr-token\">(</span><span class=\"comp-ph-expr-token\">grades</span><span class=\"comp-ph-expr-token\">)</span></span></span></div>",
+        groups: [{ id: 100, text: 'int' }, { id: 101, text: 'float' }, { id: 102, text: 'str' }, { id: 103, text: 'list[int]' }, { id: 104, text: 'TypeError' }],
+        responses: [],
+    },
+    correctAnswers: [[0, 100], [1, 101]],
+    clarifications: {
+        '1:100': {
+            prompt: 'Why did you choose the type int?',
+            options: [
+                {
+                    hypothesis: 'operand_type',
+                    reason: 'The result takes the type of one of the operands.',
+                    explanation: "The result of / does not take an operand's type: it is always floating-point.",
+                },
+                {
+                    hypothesis: 'c_style_division',
+                    reason: 'Dividing integers gives an integer.',
+                    explanation: 'Dividing integers with / keeps the fractional part; integer division is //.',
+                },
+            ],
+        },
+    },
+};
+
 export const mockAttempt = {
     attemptId: -1,
     exerciseId: -1,
@@ -217,6 +255,7 @@ export function resetAnswers(questionId: number) {
 
 export type Grade = {
     isCorrect: boolean,
+    clarification: Clarification | null,
     grade: number,
     correctAnswers: Answer[],
     correctSteps: number,
@@ -235,8 +274,16 @@ export function gradeAnswers(questionId: number, submitted: Answer[]): Grade {
     const taken = submitted.filter(a => !previous.has(key(a.answer)));
     const wrong = taken.filter(a => !isRight(a));
 
+    const clarification = wrong
+        .map(a => mockQuestions[questionId]?.clarifications?.[key(a.answer)])
+        .find(c => c !== undefined);
+    pendingClarifications[questionId] = clarification;
+
     return {
         isCorrect: wrong.length === 0,
+        clarification: clarification
+            ? { prompt: clarification.prompt, options: clarification.options.map(({ hypothesis, reason }) => ({ hypothesis, reason })) }
+            : null,
         grade: expected.length === 0 ? 1 : correctAnswers.length / expected.length,
         correctAnswers,
         correctSteps: correctAnswers.length,
@@ -248,6 +295,15 @@ export function gradeAnswers(questionId: number, submitted: Answer[]): Grade {
             violationLaws: [{ name: 'mocked_law', canCreateSupplementaryQuestion: true }],
         })),
     };
+}
+
+const pendingClarifications: Record<number, MockClarification | undefined> = {};
+
+/** Explanation of the misconception the student named; null for another reason. */
+export function answerClarification(questionId: number, hypothesis: string | null): string | null {
+    const clarification = pendingClarifications[questionId];
+    pendingClarifications[questionId] = undefined;
+    return clarification?.options.find(o => o.hypothesis === hypothesis)?.explanation ?? null;
 }
 
 export function nextCorrectAnswer(questionId: number): Answer[] {

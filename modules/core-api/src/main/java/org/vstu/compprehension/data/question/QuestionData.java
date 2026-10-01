@@ -76,6 +76,14 @@ public class QuestionData {
                 .orElseGet(List::of);
     }
 
+    /** Уточняющий вопрос к последнему ответу, на который студент ещё не ответил. */
+    public @NotNull Optional<HypothesisClarificationData> pendingClarification() {
+        return interactions.isEmpty() ? Optional.empty()
+                : Optional.ofNullable(interactions.getLast().getClarification())
+                        .filter(clarification -> !clarification.isAnswered())
+                        .map(InteractionClarificationData::content);
+    }
+
     public int correctInteractionsCount() {
         return (int) interactions.stream().filter(QuestionInteractionData::isCorrect).count();
     }

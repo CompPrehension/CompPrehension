@@ -1,6 +1,8 @@
 package org.vstu.compprehension.businesslogic.domains;
 
 import org.vstu.compprehension.data.question.AnswerData;
+import org.vstu.compprehension.data.question.AnswerHypothesisData;
+import org.vstu.compprehension.data.question.HypothesisClarificationData;
 import org.vstu.compprehension.businesslogic.SupplementaryStepContext;
 import org.vstu.compprehension.data.question.SupplementaryStepData;
 import org.vstu.compprehension.data.question.ViolationData;
@@ -284,5 +286,11 @@ public interface Domain {
          * Supplementary can generate new violations even on correct variant.
          */
         public boolean isAnswerCorrect;
+
+        @NotNull
+        public List<AnswerHypothesisData> hypotheses = new ArrayList<>();
+
+        @Nullable
+        public HypothesisClarificationData clarification = null;
     }
 }

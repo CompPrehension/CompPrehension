@@ -2,9 +2,12 @@ package org.vstu.compprehension.repositories.data;
 
 import lombok.RequiredArgsConstructor;
 import org.jetbrains.annotations.NotNull;
+import org.jetbrains.annotations.Nullable;
 import org.springframework.stereotype.Repository;
 import org.springframework.transaction.annotation.Transactional;
 import org.vstu.compprehension.data.question.AnswerData;
+import org.vstu.compprehension.data.question.AnswerHypothesisData;
+import org.vstu.compprehension.data.question.HypothesisClarificationData;
 import org.vstu.compprehension.data.question.AnswerObjectData;
 import org.vstu.compprehension.data.question.NewInteractionData;
 import org.vstu.compprehension.data.question.NewInteractionAnswerData;
@@ -12,18 +15,22 @@ import org.vstu.compprehension.data.question.QuestionInteractionData;
 import org.vstu.compprehension.data.question.SubmittedAnswerData;
 import org.vstu.compprehension.data.question.ViolationData;
 import org.vstu.compprehension.entities.AnswerObjectEntity;
+import org.vstu.compprehension.entities.InteractionClarificationEntity;
 import org.vstu.compprehension.entities.InteractionEntity;
+import org.vstu.compprehension.entities.InteractionHypothesisEntity;
 import org.vstu.compprehension.entities.QuestionEntity;
 import org.vstu.compprehension.entities.ResponseEntity;
 import org.vstu.compprehension.entities.ViolationEntity;
 import org.vstu.compprehension.enums.QuestionType;
 import org.vstu.compprehension.mappers.Mapper;
 import org.vstu.compprehension.utils.Strict;
+import org.vstu.compprehension.repositories.entity.InteractionClarificationRepository;
 import org.vstu.compprehension.repositories.entity.InteractionRepository;
 import org.vstu.compprehension.repositories.entity.QuestionRepository;
 import org.vstu.compprehension.repositories.entity.ResponseRepository;
 
 import java.util.ArrayList;
+import java.util.Date;
 import java.util.List;
 import java.util.Map;
 import java.util.NoSuchElementException;
@@ -40,6 +47,9 @@ public class InteractionDataRepository {
     private final Mapper<AnswerObjectEntity, AnswerObjectData> answerObjectMapper;
     private final Mapper<InteractionEntity, QuestionInteractionData> questionInteractionMapper;
     private final Mapper<ViolationData, ViolationEntity> violationEntityMapper;
+    private final Mapper<AnswerHypothesisData, InteractionHypothesisEntity> hypothesisEntityMapper;
+    private final Mapper<HypothesisClarificationData, InteractionClarificationEntity> clarificationEntityMapper;
+    private final InteractionClarificationRepository clarificationRepository;
 
     @Transactional(readOnly = true)
     public @NotNull List<AnswerData> resolveAnswers(long questionId, @NotNull List<SubmittedAnswerData> answers) {
@@ -97,6 +107,8 @@ public class InteractionDataRepository {
                 question,
                 violationEntityMapper.mapAll(data.violations()),
                 data.correctLaws(),
+                hypothesisEntityMapper.mapAll(data.hypotheses()),
+                data.clarification() == null ? null : clarificationEntityMapper.map(data.clarification()),
                 responses,
                 firstGivenHere);
         interaction.getFeedback().setInteractionsLeft(data.interactionsLeft());
@@ -108,6 +120,15 @@ public class InteractionDataRepository {
         interactionRepository.flush();
 
         return questionInteractionMapper.map(interaction);
+    }
+
+    @Transactional
+    public void answerClarification(long interactionId, @Nullable String hypothesis) {
+        var clarification = clarificationRepository.findByInteractionId(interactionId).orElseThrow(
+                () -> new NoSuchElementException("Interaction " + interactionId + " has no clarification"));
+        clarification.setAnsweredAt(new Date());
+        clarification.setChosenHypothesis(hypothesis);
+        clarificationRepository.saveAndFlush(clarification);
     }
 
     @Transactional

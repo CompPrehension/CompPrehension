@@ -36,6 +36,29 @@ export const TFeedbackMessage: io.Type<FeedbackMessage> = io.union([
     }),
 ])
 
+/** A question about the reasoning behind an answer that several misconceptions explain. */
+export type Clarification = {
+    prompt: string,
+    options: { hypothesis: string, reason: string }[],
+}
+const TClarification: io.Type<Clarification> = io.type({
+    prompt: io.string,
+    options: io.array(io.type({ hypothesis: io.string, reason: io.string })),
+})
+
+/** No hypothesis means the student named another reason. */
+export type ClarificationAnswer = {
+    questionId: number,
+    hypothesis: string | null,
+}
+
+export type ClarificationFeedback = {
+    explanation: string | null,
+}
+export const TClarificationFeedback: io.Type<ClarificationFeedback> = io.type({
+    explanation: io.union([io.string, io.null]),
+}, 'ClarificationFeedback')
+
 export type Feedback = {
     isCorrect: boolean,
     grade?: number | null,   
@@ -45,6 +68,7 @@ export type Feedback = {
     stepsWithErrors?: number | null,
     messages?: FeedbackMessage[] | null,
     strategyDecision?: 'CONTINUE' | 'FINISH' | null,
+    clarification?: Clarification | null,
 } 
 export const TFeedback: io.Type<Feedback> = io.intersection([
     io.type({
@@ -66,6 +90,7 @@ export const TFeedback: io.Type<Feedback> = io.intersection([
             }),
             io.null,
         ]),
+        clarification: io.union([TClarification, io.null]),
     }),
 ], 'Feedback');
 

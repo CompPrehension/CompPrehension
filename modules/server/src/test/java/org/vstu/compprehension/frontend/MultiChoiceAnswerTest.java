@@ -84,7 +84,7 @@ class MultiChoiceAnswerTest extends AbstractIntegrationTest {
         questionService.recordInteraction(new NewInteractionData(question.getId(), InteractionType.SEND_RESPONSE,
                 List.of(new NewInteractionAnswerData(null,
                         new SubmittedAnswerData.Choice(OPTION_ID, MultiChoiceOptionsData.SWITCH_ON, null))),
-                List.of(), List.of(), 0));
+                List.of(), List.of(), List.of(), null, 0));
         entityManager.flush();
         entityManager.clear();
 

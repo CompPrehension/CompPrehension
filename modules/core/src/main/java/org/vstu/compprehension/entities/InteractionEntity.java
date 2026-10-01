@@ -50,6 +50,14 @@ public class InteractionEntity {
 
     @ToString.Exclude
     @OneToMany(mappedBy = "interaction", fetch = FetchType.LAZY, cascade = CascadeType.ALL)
+    private List<InteractionHypothesisEntity> hypotheses;
+
+    @ToString.Exclude
+    @OneToOne(mappedBy = "interaction", fetch = FetchType.LAZY, cascade = CascadeType.ALL)
+    private InteractionClarificationEntity clarification;
+
+    @ToString.Exclude
+    @OneToMany(mappedBy = "interaction", fetch = FetchType.LAZY, cascade = CascadeType.ALL)
     @OrderBy("id")
     private List<ResponseEntity> responses;
 
@@ -71,6 +79,8 @@ public class InteractionEntity {
             QuestionEntity question,
             List<ViolationEntity> violations,
             List<String> correctlyAppliedLaws,
+            List<InteractionHypothesisEntity> hypotheses,
+            InteractionClarificationEntity clarification,
             List<ResponseEntity> allResponses,
             List<ResponseEntity> newResponses){
         this.setQuestion(question);
@@ -80,6 +90,16 @@ public class InteractionEntity {
         this.setViolations(new ArrayList<>(violations));
         for(val m : this.getViolations()) {
             m.setInteraction(this);
+        }
+
+        this.setHypotheses(new ArrayList<>(hypotheses));
+        for(val h : this.getHypotheses()) {
+            h.setInteraction(this);
+        }
+
+        this.setClarification(clarification);
+        if (clarification != null) {
+            clarification.setInteraction(this);
         }
 
         this.setResponses(new ArrayList<>(allResponses));

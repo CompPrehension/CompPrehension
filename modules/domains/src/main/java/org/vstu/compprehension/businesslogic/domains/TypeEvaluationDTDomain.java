@@ -194,6 +194,20 @@ public class TypeEvaluationDTDomain extends DecisionTreeReasoningDomain {
         }
 
         @Override
+        public @NotNull String makeClarificationPrompt(@NotNull QuestionData judgedQuestion,
+                                                       @NotNull DecisionTreeReasonerBackend.Output backendOutput,
+                                                       @NotNull Language language) {
+            var answeredType = backendOutput.situation().getDomainModel().getVariables()
+                    .get(ANSWER_VARIABLE).getValueObjectName();
+            var typeName = judgedQuestion.getContent().getAnswerObjects().stream()
+                    .filter(answer -> answer.isRightCol() && answer.getDomainInfo().equals(answeredType))
+                    .map(AnswerObjectData::getHyperText)
+                    .findFirst()
+                    .orElseThrow(() -> new IllegalStateException("No answer option for type " + answeredType));
+            return getMessage("clarification_prompt", language).replace("${type}", typeName);
+        }
+
+        @Override
         public void updateJudgeInterpretationResult(InterpretSentenceResult interpretationResult,
                                                     DecisionTreeReasonerBackend.Output backendOutput) {
             var unsolved = countUnsolvedOperations(backendOutput.situation().getDomainModel());

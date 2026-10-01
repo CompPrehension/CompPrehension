@@ -8,12 +8,16 @@ import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.transaction.annotation.Transactional;
 import org.vstu.compprehension.authorization.TestUserService;
 import org.vstu.compprehension.data.questionoptions.MultiChoiceOptionsData;
+import org.vstu.compprehension.entities.InteractionClarificationEntity;
+import org.vstu.compprehension.entities.InteractionHypothesisEntity;
 import org.vstu.compprehension.enums.AttemptStatus;
 import org.vstu.compprehension.enums.Decision;
 import org.vstu.compprehension.enums.Language;
 import org.vstu.compprehension.frontend.dto.AnswerDto;
 import org.vstu.compprehension.frontend.dto.InteractionDto;
 import org.vstu.compprehension.frontend.dto.SupplementaryQuestionDto;
+import org.vstu.compprehension.frontend.dto.feedback.ClarificationAnswerDto;
+import org.vstu.compprehension.frontend.dto.feedback.ClarificationDto;
 import org.vstu.compprehension.frontend.dto.feedback.FeedbackDto;
 import org.vstu.compprehension.frontend.dto.question.MatchingQuestionDto;
 import org.vstu.compprehension.frontend.dto.question.QuestionDto;
@@ -22,6 +26,9 @@ import org.vstu.compprehension.infrastructure.TestData;
 import org.vstu.compprehension.infrastructure.TestData.ExpressionBank.BankQuestion;
 
 import java.util.Arrays;
+import java.util.List;
+import java.util.Set;
+import java.util.stream.Collectors;
 import java.util.stream.LongStream;
 import java.util.stream.Stream;
 
@@ -493,6 +500,134 @@ class ExerciseAttemptFrontendServiceTest extends AbstractIntegrationTest {
         assertAnswerIds(feedback, bankQuestion.operatorAt(0));
     }
 
+    // ---- гипотезы о рассуждении студента ----
+
+    /** Ответ студента сохраняется вместе с гипотезой, которой объясняется его рассуждение. */
+    @Test
+    void addQuestionAnswerRecordsHypothesesOfStudentReasoning() {
+        // Arrange.
+        TestUserService.actAs(TestData.Users.GLOBAL_EXERCISE_AUTHOR_ID);
+        var question = service.generateQuestionByMetadata(
+                TestData.TypeEvaluationBank.AVERAGE_OF_GRADES_METADATA_ID, Language.ENGLISH);
+        var lengthAsList = new AnswerDto(TestData.TypeEvaluationBank.LEN_SLOT,
+                TestData.TypeEvaluationBank.LIST_INT_TYPE, true, null);
+
+        // Act.
+        var feedback = service.addQuestionAnswer(
+                new InteractionDto(question.getQuestionId(), new AnswerDto[] { lengthAsList }));
+
+        // Assert.
+        assertFalse(feedback.isCorrect());
+        resetPersistenceContext();
+        assertEquals(List.of("argument_type:false"), recordedHypotheses(question.getQuestionId()));
+    }
+
+    /** Подсказку дала система, поэтому гипотез о рассуждении студента у неё нет. */
+    @Test
+    void generateNextCorrectAnswerRecordsNoHypotheses() {
+        // Arrange.
+        TestUserService.actAs(TestData.Users.GLOBAL_EXERCISE_AUTHOR_ID);
+        var question = service.generateQuestionByMetadata(
+                TestData.TypeEvaluationBank.AVERAGE_OF_GRADES_METADATA_ID, Language.ENGLISH);
+
+        // Act.
+        var feedback = service.generateNextCorrectAnswer(question.getQuestionId());
+
+        // Assert.
+        assertTrue(feedback.isCorrect());
+        assertEquals(1, feedback.getCorrectAnswers().length);
+        assertArrayEquals(new Long[] { TestData.TypeEvaluationBank.LEN_SLOT, TestData.TypeEvaluationBank.INT_TYPE },
+                feedback.getCorrectAnswers()[0].getAnswer());
+        resetPersistenceContext();
+        assertEquals(List.of(), recordedHypotheses(question.getQuestionId()));
+    }
+
+    // ---- уточняющий вопрос о рассуждении студента ----
+
+    /** Ошибку, которую объясняют два заблуждения, сопровождает вопрос о причине с вариантами-заблуждениями. */
+    @Test
+    void addQuestionAnswerAsksClarificationForAmbiguousError() {
+        // Arrange.
+        TestUserService.actAs(TestData.Users.GLOBAL_EXERCISE_AUTHOR_ID);
+        var question = typeEvaluationQuestion();
+
+        // Act.
+        var feedback = answerIntegerForTrueDivision(question);
+
+        // Assert.
+        assertFalse(feedback.isCorrect());
+        assertNotNull(feedback.getClarification());
+        assertFalse(feedback.getClarification().prompt().isBlank());
+        assertEquals(Set.of("operand_type", "c_style_division"), feedback.getClarification().options().stream()
+                .map(ClarificationDto.Option::hypothesis)
+                .collect(Collectors.toSet()));
+    }
+
+    /** Уточнение без ответа возвращается с перезагруженным вопросом, чтобы студент не пропустил его. */
+    @Test
+    void getQuestionReturnsClarificationAwaitingAnswer() {
+        // Arrange.
+        TestUserService.actAs(TestData.Users.GLOBAL_EXERCISE_AUTHOR_ID);
+        var question = typeEvaluationQuestion();
+        var asked = answerIntegerForTrueDivision(question).getClarification();
+        resetPersistenceContext();
+
+        // Act.
+        var reloaded = service.getQuestion(question.getQuestionId());
+
+        // Assert.
+        assertEquals(asked, reloaded.getFeedback().getClarification());
+    }
+
+    /** Выбранная студентом причина записывается, и он получает объяснение именно этого заблуждения. */
+    @Test
+    void answerClarificationRecordsChosenHypothesisAndExplainsIt() {
+        // Arrange.
+        TestUserService.actAs(TestData.Users.GLOBAL_EXERCISE_AUTHOR_ID);
+        var question = typeEvaluationQuestion();
+        answerIntegerForTrueDivision(question);
+
+        // Act.
+        var feedback = service.answerClarification(
+                new ClarificationAnswerDto(question.getQuestionId(), "c_style_division"));
+
+        // Assert.
+        assertNotNull(feedback.explanation());
+        resetPersistenceContext();
+        assertEquals(List.of("c_style_division"), answeredClarifications(question.getQuestionId()));
+        assertNull(service.getQuestion(question.getQuestionId()).getFeedback().getClarification());
+    }
+
+    /** «Другая причина» тоже закрывает уточнение, но гипотезу не подтверждает. */
+    @Test
+    void answerClarificationWithOtherReasonRecordsNoHypothesis() {
+        // Arrange.
+        TestUserService.actAs(TestData.Users.GLOBAL_EXERCISE_AUTHOR_ID);
+        var question = typeEvaluationQuestion();
+        answerIntegerForTrueDivision(question);
+
+        // Act.
+        var feedback = service.answerClarification(new ClarificationAnswerDto(question.getQuestionId(), null));
+
+        // Assert.
+        assertNull(feedback.explanation());
+        resetPersistenceContext();
+        assertEquals(Arrays.asList((String) null), answeredClarifications(question.getQuestionId()));
+    }
+
+    /** Причину, которой не было среди вариантов, выбрать нельзя. */
+    @Test
+    void answerClarificationRejectsHypothesisNotOffered() {
+        // Arrange.
+        TestUserService.actAs(TestData.Users.GLOBAL_EXERCISE_AUTHOR_ID);
+        var question = typeEvaluationQuestion();
+        answerIntegerForTrueDivision(question);
+        var answer = new ClarificationAnswerDto(question.getQuestionId(), "rule");
+
+        // Act & Assert.
+        assertThrows(IllegalArgumentException.class, () -> service.answerClarification(answer));
+    }
+
     // ---- оценка стратегией внутри попытки ----
 
     /** Верный ответ в попытке оценивается стратегией. */
@@ -744,6 +879,45 @@ class ExerciseAttemptFrontendServiceTest extends AbstractIntegrationTest {
         return new InteractionDto(question.getQuestionId(), Arrays.stream(question.getAnswers())
                 .map(answer -> new AnswerDto(answer.getId(), right, true, null))
                 .toArray(AnswerDto[]::new));
+    }
+
+    private QuestionDto typeEvaluationQuestion() {
+        return service.generateQuestionByMetadata(
+                TestData.TypeEvaluationBank.AVERAGE_OF_GRADES_METADATA_ID, Language.ENGLISH);
+    }
+
+    /** Верный тип len(grades), затем int для total / len(grades): ошибка, которую объясняют два заблуждения. */
+    private FeedbackDto answerIntegerForTrueDivision(QuestionDto question) {
+        var lengthAsInt = new AnswerDto(TestData.TypeEvaluationBank.LEN_SLOT, TestData.TypeEvaluationBank.INT_TYPE, true, null);
+        var afterLength = service.addQuestionAnswer(
+                new InteractionDto(question.getQuestionId(), new AnswerDto[] { lengthAsInt }));
+        assertTrue(afterLength.isCorrect());
+        var divisionAsInt = new AnswerDto(TestData.TypeEvaluationBank.DIV_SLOT, TestData.TypeEvaluationBank.INT_TYPE, true, null);
+        return service.addQuestionAnswer(new InteractionDto(question.getQuestionId(),
+                Stream.concat(Arrays.stream(afterLength.getCorrectAnswers()), Stream.of(divisionAsInt))
+                        .toArray(AnswerDto[]::new)));
+    }
+
+    private List<String> answeredClarifications(long questionId) {
+        return entityManager.createQuery("""
+                        select c from InteractionClarificationEntity c
+                        where c.interaction.question.id = :questionId and c.answeredAt is not null
+                        order by c.id""", InteractionClarificationEntity.class)
+                .setParameter("questionId", questionId)
+                .getResultStream()
+                .map(InteractionClarificationEntity::getChosenHypothesis)
+                .toList();
+    }
+
+    private List<String> recordedHypotheses(long questionId) {
+        return entityManager.createQuery("""
+                        select h from InteractionHypothesisEntity h
+                        where h.interaction.question.id = :questionId
+                        order by h.id""", InteractionHypothesisEntity.class)
+                .setParameter("questionId", questionId)
+                .getResultStream()
+                .map(h -> h.getName() + ":" + h.isCorrect())
+                .toList();
     }
 
     private static void assertAnswerIds(FeedbackDto feedback, long... expected) {

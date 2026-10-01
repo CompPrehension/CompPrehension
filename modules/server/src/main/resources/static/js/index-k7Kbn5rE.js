@@ -66,6 +66,7 @@ instance.use(initReactI18next).init({
 			exercise_completed: "Exercise completed",
 			exercise_supquestion_gotit: "Got it",
 			exercise_supquestion_details: "More details",
+			clarification_other_reason: "Another reason",
 			exercise_supquestion_send_answer: "Send answer",
 			exercise_supquestion_next_question: "Next question",
 			exercisesettings_title: "Exercise settings",
@@ -257,6 +258,7 @@ instance.use(initReactI18next).init({
 			exercise_completed: "Упражнение завершено",
 			exercise_supquestion_gotit: "Понятно",
 			exercise_supquestion_details: "Разобраться подробнее",
+			clarification_other_reason: "Другая причина",
 			exercise_supquestion_send_answer: "Отправить ответ",
 			exercise_supquestion_next_question: "Следующий вопрос",
 			exercisesettings_title: "Настройка упражнений",
@@ -448,6 +450,7 @@ instance.use(initReactI18next).init({
 			exercise_completed: "Ćwiczenie zakończone",
 			exercise_supquestion_gotit: "Oczywiście!",
 			exercise_supquestion_details: "Zobacz szczegóły",
+			clarification_other_reason: "Inny powód",
 			exercise_supquestion_send_answer: "Wyślij odpowiedź",
 			exercise_supquestion_next_question: "Następne pytanie",
 			exercisesettings_title: "Exercise settings",
@@ -1299,6 +1302,14 @@ var TFeedbackMessage = union([type({
 	message: string,
 	violationLaws: union([array(TFeedbackViolationLaw), nullType])
 })]);
+var TClarification = type({
+	prompt: string,
+	options: array(type({
+		hypothesis: string,
+		reason: string
+	}))
+});
+var TClarificationFeedback = type({ explanation: union([string, nullType]) }, "ClarificationFeedback");
 var TFeedback = intersection([type({ isCorrect: boolean }), partial({
 	isCorrect: boolean,
 	grade: union([number, nullType]),
@@ -1311,7 +1322,8 @@ var TFeedback = intersection([type({ isCorrect: boolean }), partial({
 	strategyDecision: union([keyof({
 		"CONTINUE": null,
 		"FINISH": null
-	}), nullType])
+	}), nullType]),
+	clarification: union([TClarification, nullType])
 })], "Feedback");
 var TOrderQuestionFeedback = intersection([TFeedback, partial({ trace: union([array(string), nullType]) })]);
 //#endregion
@@ -1452,6 +1464,9 @@ var QuestionController = class {
 	}
 	addQuestionAnswer(interaction) {
 		return ajaxPost(`/api/question/addQuestionAnswer`, interaction, TFeedback);
+	}
+	answerClarification(answer) {
+		return ajaxPost(`/api/question/answerClarification`, answer, TClarificationFeedback);
 	}
 	addSupplementaryQuestionAnswer(interaction) {
 		return ajaxPost(`/api/question/addSupplementaryQuestionAnswer`, interaction, TSupplementaryFeedback);
@@ -1750,8 +1765,10 @@ var SupplementaryQuestionStore = class {
 */
 var QuestionStore = class {
 	isFeedbackVisible = true;
-	isQuestionFreezed = false;
 	feedback = void 0;
+	/** Explanation of the misconception the student named as the reason for the answer. */
+	clarificationExplanation = void 0;
+	isClarificationSending = false;
 	question = void 0;
 	lastAnswer = [];
 	answersHistory = [];
@@ -1761,6 +1778,10 @@ var QuestionStore = class {
 	constructor() {
 		makeAutoObservable(this);
 	}
+	/** The student answers the clarifying question before going on with the question. */
+	get isQuestionFreezed() {
+		return !!this.feedback?.clarification;
+	}
 	onQuestionLoaded = (question) => {
 		if (question.options.requireContext) [...question.text.matchAll(/(<\w.*?\sid\s*?=(['"]))\s*(answer_(\d+?))\2(.*?>)/gim)].forEach((match, matchIdx) => {
 			question.text = question.text.replace(match[0], `${match[1]}question_${question.questionId}_${match[3]}_${matchIdx}${match[2]} data-answer-id='${match[4]}' ${match[5]}`);
@@ -1768,6 +1789,7 @@ var QuestionStore = class {
 		this.question = question;
 		this.supplementaryQuestion = new SupplementaryQuestionStore(question.questionId);
 		this.feedback = question.feedback ?? void 0;
+		this.clarificationExplanation = void 0;
 		this.isFeedbackVisible = true;
 		this.answersHistory = [];
 		this.lastAnswer = question.responses ?? [];
@@ -1775,6 +1797,7 @@ var QuestionStore = class {
 	};
 	onAnswerEvaluated(feedback) {
 		this.feedback = feedback;
+		this.clarificationExplanation = void 0;
 		this.isFeedbackVisible = true;
 		if (feedback && feedback.correctAnswers) {
 			this.setFullAnswer(feedback.correctAnswers, false);
@@ -1838,6 +1861,26 @@ var QuestionStore = class {
 			return;
 		}
 		this.onAnswerEvaluated(feedbackEither.right);
+	};
+	answerClarification = async (hypothesis) => {
+		const { question, feedback } = this;
+		if (!question || !feedback) return;
+		this.setValidStoreState();
+		this.isClarificationSending = true;
+		const answerEither = await questionController.answerClarification({
+			questionId: question.questionId,
+			hypothesis
+		});
+		this.isClarificationSending = false;
+		if (isLeft(answerEither)) {
+			this.setErrorStoreState(answerEither.left);
+			return;
+		}
+		this.feedback = {
+			...feedback,
+			clarification: null
+		};
+		this.clarificationExplanation = answerEither.right.explanation ?? void 0;
 	};
 	sendAnswersImpl = async (questionId, answers) => {
 		const body = toJS({
@@ -2132,6 +2175,7 @@ var InlineMatchingQuestionComponent = observer((props) => {
 		const chosen = groups.find((g) => g.id === getAnswers().find((a) => a.answer[0] === slotId)?.answer[1]);
 		return /* @__PURE__ */ (0, import_jsx_runtime.jsxs)(Dropdown_default, {
 			id: slot.attribs.id,
+			"data-answer-id": slotId,
 			drop: "end",
 			className: "comp-ph-expr-slot",
 			children: [/* @__PURE__ */ (0, import_jsx_runtime.jsx)(Dropdown_default.Toggle, {
@@ -2955,6 +2999,46 @@ function DomainTerm({ term, explanation }) {
 	});
 }
 //#endregion
+//#region src/main/js/components/exercise/clarification.tsx
+/**
+* Asks why the student chose an answer that several misconceptions explain; the question stays frozen
+* until the student names a reason. Then shows the explanation of the named misconception.
+*/
+var Clarification = observer(({ store }) => {
+	const { t } = useTranslation();
+	const clarification = store.feedback?.clarification;
+	if (clarification) return /* @__PURE__ */ (0, import_jsx_runtime.jsxs)(Alert_default, {
+		variant: "warning",
+		className: "comp-ph-clarification",
+		children: [/* @__PURE__ */ (0, import_jsx_runtime.jsx)("div", {
+			className: "mb-2 fw-semibold",
+			children: clarification.prompt
+		}), /* @__PURE__ */ (0, import_jsx_runtime.jsxs)("div", {
+			className: "d-flex flex-column align-items-start gap-2",
+			children: [clarification.options.map((option) => /* @__PURE__ */ (0, import_jsx_runtime.jsx)(Button, {
+				variant: "outline-dark",
+				size: "sm",
+				className: "text-start",
+				disabled: store.isClarificationSending,
+				onClick: () => store.answerClarification(option.hypothesis),
+				children: option.reason
+			}, option.hypothesis)), /* @__PURE__ */ (0, import_jsx_runtime.jsx)(Button, {
+				variant: "outline-secondary",
+				size: "sm",
+				disabled: store.isClarificationSending,
+				onClick: () => store.answerClarification(null),
+				children: t("clarification_other_reason")
+			})]
+		})]
+	});
+	if (store.clarificationExplanation) return /* @__PURE__ */ (0, import_jsx_runtime.jsx)(Alert_default, {
+		variant: "info",
+		className: "comp-ph-clarification-explanation",
+		children: /* @__PURE__ */ (0, import_jsx_runtime.jsx)(ParsedMessage, { html: store.clarificationExplanation })
+	});
+	return null;
+});
+//#endregion
 //#region src/main/js/components/exercise/feedback.tsx
 var Feedback = observer(({ store, showExtendedFeedback }) => {
 	const { feedback, isFeedbackVisible, question } = store;
@@ -2975,13 +3059,13 @@ var Feedback = observer(({ store, showExtendedFeedback }) => {
 	if (feedbackMessages !== null && store.questionState === "COMPLETED") feedbackMessages?.push(defaultFeedbackMessage);
 	return /* @__PURE__ */ (0, import_jsx_runtime.jsx)("div", {
 		className: "comp-ph-feedback-wrapper mt-2",
-		children: isFeedbackVisible && /* @__PURE__ */ (0, import_jsx_runtime.jsxs)(import_jsx_runtime.Fragment, { children: [/* @__PURE__ */ (0, import_jsx_runtime.jsx)("div", {
+		children: isFeedbackVisible && /* @__PURE__ */ (0, import_jsx_runtime.jsxs)(import_jsx_runtime.Fragment, { children: [/* @__PURE__ */ (0, import_jsx_runtime.jsxs)("div", {
 			className: "mb-3",
-			children: feedbackMessages?.map((m, i) => /* @__PURE__ */ (0, import_jsx_runtime.jsx)(FeedbackAlert, {
+			children: [feedbackMessages?.map((m, i) => /* @__PURE__ */ (0, import_jsx_runtime.jsx)(FeedbackAlert, {
 				message: m,
 				supQuestionStore: store.supplementaryQuestion,
 				showGenerateSupQuestion: showExtendedFeedback && question.options.showSupplementaryQuestions && m.type === "ERROR" && m.violationLaws?.every((e) => e.canCreateSupplementaryQuestion)
-			}, i))
+			}, i)), /* @__PURE__ */ (0, import_jsx_runtime.jsx)(Clarification, { store })]
 		}), showExtendedFeedback && /* @__PURE__ */ (0, import_jsx_runtime.jsxs)("div", { children: [
 			feedback.grade !== null && /* @__PURE__ */ (0, import_jsx_runtime.jsxs)(import_jsx_runtime.Fragment, { children: [/* @__PURE__ */ (0, import_jsx_runtime.jsxs)(Badge, {
 				className: "comp-ph-feedback-grade",
@@ -3082,7 +3166,7 @@ var GenerateNextAnswerBtn = observer(({ store }) => {
 	const { question, feedback } = store;
 	const isFeedbackLoading = store.questionState === "ANSWER_EVALUATING";
 	const isQuestionLoading = store.questionState === "LOADING";
-	if (!question || isFeedbackLoading || isQuestionLoading || feedback?.stepsLeft === 0) return null;
+	if (!question || isFeedbackLoading || isQuestionLoading || store.isQuestionFreezed || feedback?.stepsLeft === 0) return null;
 	const onClicked = () => {
 		store.generateNextCorrectAnswer();
 	};

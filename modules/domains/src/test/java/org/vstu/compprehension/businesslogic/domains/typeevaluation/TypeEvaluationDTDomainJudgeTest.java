@@ -7,15 +7,21 @@ import org.vstu.compprehension.businesslogic.Explanation;
 import org.vstu.compprehension.businesslogic.domains.TypeEvaluationDTDomain;
 import org.vstu.compprehension.businesslogic.domains.typeevaluation.TypeEvaluationDomainFixture.BankQuestion;
 import org.vstu.compprehension.data.question.AnswerData;
+import org.vstu.compprehension.data.question.AnswerHypothesisData;
+import org.vstu.compprehension.data.question.HypothesisClarificationData;
 import org.vstu.compprehension.data.question.ViolationData;
 import org.vstu.compprehension.enums.Language;
 
 import java.util.ArrayList;
 import java.util.List;
+import java.util.Set;
+import java.util.stream.Collectors;
 import java.util.stream.Stream;
 
 import static org.junit.jupiter.api.Assertions.assertEquals;
 import static org.junit.jupiter.api.Assertions.assertFalse;
+import static org.junit.jupiter.api.Assertions.assertNotNull;
+import static org.junit.jupiter.api.Assertions.assertNull;
 import static org.junit.jupiter.api.Assertions.assertTrue;
 import static org.vstu.compprehension.businesslogic.domains.typeevaluation.TypeEvaluationDomainFixture.AVERAGE_OF_GRADES;
 import static org.vstu.compprehension.businesslogic.domains.typeevaluation.TypeEvaluationDomainFixture.BANK;
@@ -71,9 +77,12 @@ class TypeEvaluationDTDomainJudgeTest {
         assertEquals(2, result.IterationsLeft);
     }
 
-    /** Ответ int на деление целых объясняется двумя гипотезами, и студент видит оба объяснения. */
+    /**
+     * Ответ int на деление целых объясняется двумя заблуждениями: какое из них у студента, неизвестно,
+     * поэтому он видит только правило, а обе гипотезы остаются в результате.
+     */
     @Test
-    void integerForTrueDivisionShowsBothHypotheses() {
+    void integerForTrueDivisionIsAmbiguousAndShowsOnlyRule() {
         // Arrange.
         var question = question(AVERAGE_OF_GRADES);
         var responses = new ArrayList<AnswerData>(solution(question, AVERAGE_OF_GRADES, 1));
@@ -84,14 +93,16 @@ class TypeEvaluationDTDomainJudgeTest {
 
         // Assert.
         assertFalse(result.isAnswerCorrect);
+        assertEquals(Set.of(new AnswerHypothesisData("operand_type", false),
+                new AnswerHypothesisData("c_style_division", false)), Set.copyOf(result.hypotheses));
         assertEquals(List.of("true_division_result"), lawNames(result.violations));
-        assertEquals(2, messages(result.explanation).size(), messages(result.explanation).toString());
+        assertEquals(List.of("Деление через / даёт вещественное число."), messages(result.explanation));
         assertEquals(1, result.IterationsLeft);
     }
 
-    /** Тип левого операнда у or с ложным левым объясняется неверной истинностью и перепутанными and/or. */
+    /** Тип левого операнда у or с ложным левым объясняется неверной истинностью и перепутанными and/or — показывается правило. */
     @Test
-    void leftOperandTypeForFalsyOrShowsBothHypotheses() {
+    void leftOperandTypeForFalsyOrIsAmbiguousAndShowsOnlyRule() {
         // Arrange.
         var question = question(EMPTY_NAME_OR_NAMES);
 
@@ -100,13 +111,50 @@ class TypeEvaluationDTDomainJudgeTest {
 
         // Assert.
         assertFalse(result.isAnswerCorrect);
+        assertEquals(Set.of(new AnswerHypothesisData("truthiness_misjudged", false),
+                new AnswerHypothesisData("and_or_confused", false)), Set.copyOf(result.hypotheses));
         assertEquals(List.of("logical_returned_operand"), lawNames(result.violations));
-        assertEquals(2, messages(result.explanation).size(), messages(result.explanation).toString());
+        assertEquals(List.of("Операции and и or возвращают один из операндов, здесь — правый."),
+                messages(result.explanation));
     }
 
-    /** Верный ответ, к которому ведёт и ошибочное рассуждение, засчитывается без объяснений ошибок. */
+    /** Ошибку, которую объясняет единственное заблуждение, студенту объясняет именно оно. */
     @Test
-    void correctAnswerAlsoReachedByMisconceptionHasNoErrorExplanation() {
+    void errorWithSingleHypothesisShowsItsExplanation() {
+        // Arrange.
+        var question = question(FIRST_CHAR_PLUS_ONE);
+
+        // Act.
+        var result = judge(question, List.of(answer(question, "op_first", "t_int")));
+
+        // Assert.
+        assertFalse(result.isAnswerCorrect);
+        assertEquals(List.of(new AnswerHypothesisData("index_type", false)), result.hypotheses);
+        assertEquals(List.of("Результат — элемент последовательности, а не индекс."), messages(result.explanation));
+        assertNull(result.clarification);
+    }
+
+    /** Ответ, который не объясняет ни одно из известных рассуждений, остаётся ошибкой без гипотез. */
+    @Test
+    void unexplainedErrorHasNoHypotheses() {
+        // Arrange.
+        var question = question(AVERAGE_OF_GRADES);
+
+        // Act.
+        var result = judge(question, List.of(answer(question, "op_len", "t_float")));
+
+        // Assert.
+        assertFalse(result.isAnswerCorrect);
+        assertEquals(List.of(), result.hypotheses);
+        assertEquals(List.of("length_applicability"), lawNames(result.violations));
+    }
+
+    /**
+     * Верный ответ, к которому ведёт и ошибочное рассуждение, засчитывается без объяснений ошибок,
+     * но сохраняет гипотезу-заблуждение: такие ответы не подтверждают знание правила.
+     */
+    @Test
+    void correctAnswerAlsoReachedByMisconceptionKeepsMisconceptionHypothesis() {
         // Arrange.
         var question = question(FIRST_CHAR_PLUS_ONE);
 
@@ -115,8 +163,54 @@ class TypeEvaluationDTDomainJudgeTest {
 
         // Assert.
         assertTrue(result.isAnswerCorrect);
+        assertEquals(Set.of(new AnswerHypothesisData("rule", true),
+                new AnswerHypothesisData("container_type", false),
+                new AnswerHypothesisData("nesting_level_skipped", false)), Set.copyOf(result.hypotheses));
         assertEquals(List.of(), result.violations);
         assertEquals(List.of(), messages(result.explanation));
+        assertNull(result.clarification);
+    }
+
+    /** Студента, ошибку которого объясняют два заблуждения, спрашивают, почему он выбрал этот тип. */
+    @Test
+    void ambiguousErrorAsksWhyTypeWasChosen() {
+        // Arrange.
+        var question = question(AVERAGE_OF_GRADES);
+        var responses = new ArrayList<AnswerData>(solution(question, AVERAGE_OF_GRADES, 1));
+        responses.add(answer(question, "op_div", "t_int"));
+
+        // Act.
+        var result = judge(question, responses);
+
+        // Assert.
+        assertNotNull(result.clarification);
+        assertEquals("Почему вы выбрали тип int?", result.clarification.prompt());
+        assertEquals(Set.of(
+                new HypothesisClarificationData.Option("operand_type",
+                        "Результат берёт тип одного из операндов.",
+                        "Результат деления через / не берёт тип операнда: он всегда вещественный."),
+                new HypothesisClarificationData.Option("c_style_division",
+                        "Деление целых чисел даёт целое число.",
+                        "Деление целых чисел через / не отбрасывает дробную часть; целочисленное деление — это //.")),
+                Set.copyOf(result.clarification.options()));
+    }
+
+    /** Причина «неверная истинность» называет ту истинность левого операнда, которую студент ему приписал. */
+    @Test
+    void truthinessReasonNamesTruthinessStudentAssumed() {
+        // Arrange.
+        var question = question(EMPTY_NAME_OR_NAMES);
+
+        // Act.
+        var result = judge(question, List.of(answer(question, "op_or", "t_str")));
+
+        // Assert.
+        assertNotNull(result.clarification);
+        var reasons = result.clarification.options().stream()
+                .collect(Collectors.toMap(HypothesisClarificationData.Option::hypothesis,
+                        HypothesisClarificationData.Option::reason));
+        assertEquals("Левый операнд истинный.", reasons.get("truthiness_misjudged"));
+        assertEquals("or возвращает первый ложный операнд, а and — первый истинный.", reasons.get("and_or_confused"));
     }
 
     /** Подсказка называет первую часть выражения, готовую к ответу, её эталонный тип и объясняет правило. */

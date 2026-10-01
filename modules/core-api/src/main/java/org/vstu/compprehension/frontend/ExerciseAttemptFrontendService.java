@@ -4,6 +4,8 @@ import org.jetbrains.annotations.NotNull;
 import org.jetbrains.annotations.Nullable;
 import org.vstu.compprehension.enums.Language;
 import org.vstu.compprehension.frontend.dto.*;
+import org.vstu.compprehension.frontend.dto.feedback.ClarificationAnswerDto;
+import org.vstu.compprehension.frontend.dto.feedback.ClarificationFeedbackDto;
 import org.vstu.compprehension.frontend.dto.feedback.FeedbackDto;
 import org.vstu.compprehension.frontend.dto.question.QuestionDto;
 
@@ -21,6 +23,8 @@ public interface ExerciseAttemptFrontendService {
     @NotNull QuestionDto getQuestion(@NotNull Long questionId);
 
     @NotNull FeedbackDto generateNextCorrectAnswer(@NotNull Long questionId);
+
+    @NotNull ClarificationFeedbackDto answerClarification(@NotNull ClarificationAnswerDto answer);
 
     @Nullable ExerciseAttemptDto getExerciseAttempt(@NotNull Long attemptId);
 

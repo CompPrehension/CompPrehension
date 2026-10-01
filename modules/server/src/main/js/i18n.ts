@@ -31,6 +31,7 @@ const resources = {
             exercise_completed: "Exercise completed",
             exercise_supquestion_gotit: "Got it",
             exercise_supquestion_details: "More details",
+            clarification_other_reason: "Another reason",
             exercise_supquestion_send_answer: "Send answer",
             exercise_supquestion_next_question: "Next question",
 
@@ -250,6 +251,7 @@ const resources = {
             exercise_completed: "Упражнение завершено",
             exercise_supquestion_gotit: "Понятно",
             exercise_supquestion_details: "Разобраться подробнее",            
+            clarification_other_reason: "Другая причина",
             exercise_supquestion_send_answer: "Отправить ответ",
             exercise_supquestion_next_question: "Следующий вопрос",
 
@@ -470,6 +472,7 @@ const resources = {
             exercise_completed: "Ćwiczenie zakończone",
             exercise_supquestion_gotit: "Oczywiście!",
             exercise_supquestion_details: "Zobacz szczegóły",
+            clarification_other_reason: "Inny powód",
             exercise_supquestion_send_answer: "Wyślij odpowiedź",
             exercise_supquestion_next_question: "Następne pytanie",
 

@@ -13,6 +13,8 @@ import org.springframework.transaction.annotation.Transactional;
 import org.vstu.compprehension.common.Utils;
 import org.vstu.compprehension.enums.RoleInExercise;
 import org.vstu.compprehension.frontend.dto.*;
+import org.vstu.compprehension.frontend.dto.feedback.ClarificationAnswerDto;
+import org.vstu.compprehension.frontend.dto.feedback.ClarificationFeedbackDto;
 import org.vstu.compprehension.frontend.dto.feedback.FeedbackDto;
 import org.vstu.compprehension.frontend.dto.question.QuestionDto;
 import org.vstu.compprehension.businesslogic.Explanation;
@@ -24,6 +26,7 @@ import org.vstu.compprehension.data.exerciseattempt.AttemptSummaryData;
 import org.vstu.compprehension.data.exercise.ExerciseStageData;
 import org.vstu.compprehension.data.question.AnswerData;
 import org.vstu.compprehension.data.question.AnswerFeedbackData;
+import org.vstu.compprehension.data.question.HypothesisClarificationData;
 import org.vstu.compprehension.data.question.NewInteractionAnswerData;
 import org.vstu.compprehension.data.question.NewInteractionData;
 import org.vstu.compprehension.data.question.QuestionAttemptContextData;
@@ -62,6 +65,7 @@ class ExerciseAttemptFrontendServiceImpl implements ExerciseAttemptFrontendServi
     private final UserDataService userService;
     private final QuestionDtoMapper questionDtoMapper;
     private final FeedbackDtoMapper feedbackDtoMapper;
+    private final RandomProvider randomProvider;
     private final Mapper<AttemptSummaryData, ExerciseAttemptDto> exerciseAttemptDtoMapper;
     private final Mapper<ResponseData, NewInteractionAnswerData> carriedAnswerMapper;
     private final Mapper<SubmittedAnswerData, NewInteractionAnswerData> submittedAnswerMapper;
@@ -188,6 +192,20 @@ class ExerciseAttemptFrontendServiceImpl implements ExerciseAttemptFrontendServi
     }
 
     @Transactional(propagation = Propagation.REQUIRED)
+    public @NotNull ClarificationFeedbackDto answerClarification(@NotNull ClarificationAnswerDto answer) {
+        var question = questionService.getQuestion(answer.questionId());
+        var clarification = question.pendingClarification().orElseThrow(() -> new IllegalStateException(
+                "Question " + answer.questionId() + " has no clarification awaiting an answer"));
+        var chosen = answer.hypothesis() == null ? null : clarification.options().stream()
+                .filter(option -> option.hypothesis().equals(answer.hypothesis()))
+                .findFirst()
+                .orElseThrow(() -> new IllegalArgumentException(
+                        "Hypothesis " + answer.hypothesis() + " is not among the clarification options"));
+        questionService.answerClarification(question.getInteractions().getLast().getId(), answer.hypothesis());
+        return new ClarificationFeedbackDto(chosen == null ? null : chosen.explanation());
+    }
+
+    @Transactional(propagation = Propagation.REQUIRED)
     public @NotNull FeedbackDto generateNextCorrectAnswer(@NotNull Long questionId) {
         // get next correct answer
         var question = questionService.getSolvedQuestion(questionId);
@@ -255,6 +273,9 @@ class ExerciseAttemptFrontendServiceImpl implements ExerciseAttemptFrontendServi
                 answers,
                 orEmpty(judgeResult.violations),
                 orEmpty(judgeResult.correctlyAppliedLaws),
+                // Подсказку дала система: гипотезы о её ответе ничего не говорят о рассуждении студента.
+                interactionType == SEND_RESPONSE ? judgeResult.hypotheses : List.of(),
+                interactionType == SEND_RESPONSE ? withShuffledOptions(judgeResult.clarification) : null,
                 judgeResult.IterationsLeft));
 
         val decision = context == null
@@ -267,6 +288,16 @@ class ExerciseAttemptFrontendServiceImpl implements ExerciseAttemptFrontendServi
         }
 
         return new GradedInteraction(question.withInteraction(recorded), recorded, decision);
+    }
+
+    // Порядок вариантов влияет на выбор студента, поэтому он случайный; сохраняется показанный порядок.
+    private @Nullable HypothesisClarificationData withShuffledOptions(@Nullable HypothesisClarificationData clarification) {
+        if (clarification == null) {
+            return null;
+        }
+        var options = new ArrayList<>(clarification.options());
+        Collections.shuffle(options, randomProvider.getRandom());
+        return new HypothesisClarificationData(clarification.prompt(), options);
     }
 
     private static <T> @NotNull List<T> orEmpty(@Nullable List<T> values) {

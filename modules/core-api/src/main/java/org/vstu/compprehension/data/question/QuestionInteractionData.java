@@ -17,6 +17,7 @@ public class QuestionInteractionData {
     @NotNull List<ResponseData> responses;
     @NotNull List<CorrectLawData> correctLaw;
     @NotNull List<AnswerData> answers;
+    @Nullable InteractionClarificationData clarification;
 
     @Builder(toBuilder = true)
     public QuestionInteractionData(Long id,
@@ -24,7 +25,8 @@ public class QuestionInteractionData {
                                    @Nullable FeedbackData feedback,
                                    @Nullable List<ViolationData> violations,
                                    @Nullable List<ResponseData> responses,
-                                   @Nullable List<CorrectLawData> correctLaw) {
+                                   @Nullable List<CorrectLawData> correctLaw,
+                                   @Nullable InteractionClarificationData clarification) {
         this.id = id;
         this.interactionType = interactionType;
         this.feedback = feedback;
@@ -32,6 +34,7 @@ public class QuestionInteractionData {
         this.responses = responses == null ? List.of() : List.copyOf(responses);
         this.correctLaw = correctLaw == null ? List.of() : List.copyOf(correctLaw);
         this.answers = this.responses.stream().map(ResponseData::getAnswer).toList();
+        this.clarification = clarification;
     }
 
     public boolean isCorrect() {

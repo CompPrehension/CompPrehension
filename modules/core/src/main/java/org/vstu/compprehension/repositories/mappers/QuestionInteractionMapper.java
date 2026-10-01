@@ -5,6 +5,7 @@ import org.jetbrains.annotations.NotNull;
 import org.springframework.stereotype.Component;
 import org.vstu.compprehension.data.question.CorrectLawData;
 import org.vstu.compprehension.data.question.FeedbackData;
+import org.vstu.compprehension.data.question.InteractionClarificationData;
 import org.vstu.compprehension.data.question.QuestionInteractionData;
 import org.vstu.compprehension.entities.InteractionEntity;
 import org.vstu.compprehension.mappers.Mapper;
@@ -34,6 +35,9 @@ class QuestionInteractionMapper implements Mapper<InteractionEntity, QuestionInt
                 .responses(source.getResponses().stream()
                         .map(response -> responseMapper.map(response, hasViolations))
                         .toList())
+                .clarification(source.getClarification() == null ? null
+                        : new InteractionClarificationData(source.getClarification().getContent(),
+                                source.getClarification().getAnsweredAt() != null))
                 .build();
     }
 }
