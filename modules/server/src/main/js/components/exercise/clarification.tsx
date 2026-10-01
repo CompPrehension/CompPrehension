@@ -26,7 +26,7 @@ export const Clarification = observer(({ store }: ClarificationProps) => {
                         <Button key={option.hypothesis} variant='outline-dark' size='sm' className='text-start'
                                 disabled={store.isClarificationSending}
                                 onClick={() => store.answerClarification(option.hypothesis)}>
-                            {option.reason}
+                            <div dangerouslySetInnerHTML={{ __html: option.reason }}></div>
                         </Button>
                     )}
                     <Button variant='outline-secondary' size='sm' disabled={store.isClarificationSending}

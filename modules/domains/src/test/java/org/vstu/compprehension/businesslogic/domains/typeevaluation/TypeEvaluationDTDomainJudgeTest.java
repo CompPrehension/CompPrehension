@@ -82,10 +82,10 @@ class TypeEvaluationDTDomainJudgeTest {
 
     /**
      * Ответ int на деление целых объясняется двумя заблуждениями: какое из них у студента, неизвестно,
-     * поэтому он видит только правило, а обе гипотезы остаются в результате.
+     * поэтому до его выбора он видит только, что тип неверен, а обе гипотезы остаются в результате.
      */
     @Test
-    void integerForTrueDivisionIsAmbiguousAndShowsOnlyRule() {
+    void integerForTrueDivisionIsAmbiguousAndShowsOnlyErrorStatement() {
         // Arrange.
         var question = question(AVERAGE_OF_GRADES);
         var responses = new ArrayList<AnswerData>(solution(question, AVERAGE_OF_GRADES, 1));
@@ -99,17 +99,16 @@ class TypeEvaluationDTDomainJudgeTest {
         assertEquals(Set.of(new AnswerHypothesisData("operand_type", false),
                 new AnswerHypothesisData("c_style_division", false)), Set.copyOf(result.hypotheses));
         assertEquals(List.of("true_division_result"), lawNames(result.violations));
-        assertEquals(List.of("<code>total / len(grades)</code> не может иметь тип <code>int</code>, потому что оператор <code>/</code> сохраняет дробную часть"
-                + " и при целых операндах."), messages(result.explanation));
+        assertEquals(List.of("Выражение <code>total / len(grades)</code> не может иметь тип <code>int</code>."), messages(result.explanation));
         assertEquals(1, result.IterationsLeft);
     }
 
     /**
      * Тип левого операнда у or с ложным левым объясняется неверной истинностью, перепутанными and/or и тем, что правый
-     * операнд names прочитан как похожая name: студент видит общее объяснение, а не одно из трёх.
+     * операнд names прочитан как похожая name: до выбора причины студент видит только, что тип неверен, а не одно из трёх объяснений.
      */
     @Test
-    void leftOperandTypeForFalsyOrIsAmbiguousAndShowsGeneralExplanation() {
+    void leftOperandTypeForFalsyOrIsAmbiguousAndShowsOnlyErrorStatement() {
         // Arrange.
         var question = question(EMPTY_NAME_OR_NAMES);
 
@@ -122,9 +121,7 @@ class TypeEvaluationDTDomainJudgeTest {
                 new AnswerHypothesisData("and_or_confused", false),
                 new AnswerHypothesisData("variable_confused", false)), Set.copyOf(result.hypotheses));
         assertEquals(Set.of("logical_returned_operand", "operand_identification"), Set.copyOf(lawNames(result.violations)));
-        assertEquals(List.of("<code>name or names</code> не может иметь тип <code>str</code>, потому что такой тип"
-                + " получается, только если прочитать выражение не так, как оно написано, или применить к нему другое"
-                + " правило."), messages(result.explanation));
+        assertEquals(List.of("Выражение <code>name or names</code> не может иметь тип <code>str</code>."), messages(result.explanation));
     }
 
     /** Ошибку, которую объясняет единственное заблуждение, студенту объясняет именно оно. */
@@ -139,7 +136,7 @@ class TypeEvaluationDTDomainJudgeTest {
         // Assert.
         assertFalse(result.isAnswerCorrect);
         assertEquals(List.of(new AnswerHypothesisData("index_type", false)), result.hypotheses);
-        assertEquals(List.of("<code>line[0]</code> не может иметь тип <code>int</code>, потому что индекс лишь указывает"
+        assertEquals(List.of("Выражение <code>line[0]</code> не может иметь тип <code>int</code>, потому что индекс лишь указывает"
                 + " позицию, а результат обращения — сам элемент последовательности."), messages(result.explanation));
         assertNull(result.clarification);
     }
@@ -154,7 +151,7 @@ class TypeEvaluationDTDomainJudgeTest {
         var result = judge(question, List.of(answer(question, "op_key", "t_str")));
 
         // Assert.
-        assertEquals(List.of("<code>student[\"grades\"]</code> не может иметь тип <code>str</code>, потому что по ключу"
+        assertEquals(List.of("Выражение <code>student[\"grades\"]</code> не может иметь тип <code>str</code>, потому что по ключу"
                 + " из словаря возвращается хранящееся под ним значение, а не сам ключ."), messages(result.explanation));
     }
 
@@ -212,11 +209,11 @@ class TypeEvaluationDTDomainJudgeTest {
         assertEquals(Set.of(
                 new HypothesisClarificationData.Option("operand_type",
                         "Результат берёт тип одного из операндов.",
-                        "<code>total / len(grades)</code> не может иметь тип <code>int</code>, потому что оператор <code>/</code> не берёт тип результата у операндов:"
+                        "Выражение <code>total / len(grades)</code> не может иметь тип <code>int</code>, потому что оператор <code>/</code> не берёт тип результата у операндов:"
                                 + " деление может дать дробную часть, даже когда операнды целые."),
                 new HypothesisClarificationData.Option("c_style_division",
                         "Деление целых чисел даёт целое число.",
-                        "<code>total / len(grades)</code> не может иметь тип <code>int</code>, потому что оператор <code>/</code> сохраняет дробную часть"
+                        "Выражение <code>total / len(grades)</code> не может иметь тип <code>int</code>, потому что оператор <code>/</code> сохраняет дробную часть"
                                 + " и при целых операндах — отбрасывает её только целочисленное деление.")),
                 Set.copyOf(result.clarification.options()));
     }
@@ -252,13 +249,13 @@ class TypeEvaluationDTDomainJudgeTest {
         assertFalse(result.isAnswerCorrect);
         assertEquals(List.of(new AnswerHypothesisData("variable_confused", false)), result.hypotheses);
         assertEquals(List.of("operand_identification"), lawNames(result.violations));
-        assertEquals(List.of("<code>len(grades)</code> не может иметь тип <code>TypeError</code>, потому что в выражении"
+        assertEquals(List.of("Выражение <code>len(grades)</code> не может иметь тип <code>TypeError</code>, потому что в выражении"
                 + " стоит <code>grades</code>, а не <code>grade</code>."), messages(result.explanation));
         assertNull(result.clarification);
     }
 
     /**
-     * Ответ, который объясняют и заблуждение, и прочтение похожей переменной, получает общее объяснение верхнего уровня,
+     * Ответ, который объясняют и заблуждение, и прочтение похожей переменной, получает только утверждение, что тип неверен,
      * уточняющий вопрос с обеими причинами и нарушения обоих навыков.
      */
     @Test
@@ -275,9 +272,7 @@ class TypeEvaluationDTDomainJudgeTest {
                 new AnswerHypothesisData("variable_confused", false)), Set.copyOf(result.hypotheses));
         assertEquals(Set.of("sequence_operation_applicability", "operand_identification"),
                 Set.copyOf(lawNames(result.violations)));
-        assertEquals(List.of("<code>grades + 1</code> не может иметь тип <code>int</code>, потому что такой тип получается,"
-                + " только если прочитать выражение не так, как оно написано, или применить к нему другое правило."),
-                messages(result.explanation));
+        assertEquals(List.of("Выражение <code>grades + 1</code> не может иметь тип <code>int</code>."), messages(result.explanation));
         assertNotNull(result.clarification);
         assertEquals(Set.of("Результат берёт тип одного из операндов.", "В выражении используется <code>grade</code>."),
                 result.clarification.options().stream()

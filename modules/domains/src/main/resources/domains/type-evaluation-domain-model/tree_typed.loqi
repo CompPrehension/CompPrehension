@@ -1443,10 +1443,12 @@ tpg Typed(E: Operation, Old: Expr, New: Expr, T: Type) {
     } as operationGroup
 }
 [
-    RU.error_prefix = "${E} не может иметь тип ${T}, потому что ";
-    EN.error_prefix = "${E} cannot have the type ${T} because ";
-    RU.hint_prefix = "${E} имеет тип ${T}, потому что ";
-    EN.hint_prefix = "${E} has the type ${T} because ";
+    RU.error_prefix = "Выражение ${E} не может иметь тип ${T}, потому что ";
+    EN.error_prefix = "The expression ${E} cannot have the type ${T} because ";
+    RU.hint_prefix = "Выражение ${E} имеет тип ${T}, потому что ";
+    EN.hint_prefix = "The expression ${E} has the type ${T} because ";
+    RU.error_statement = "Выражение ${E} не может иметь тип ${T}.";
+    EN.error_statement = "The expression ${E} cannot have the type ${T}.";
 ]
 
 // Навык — последняя развилка перед выводом correct/error, у которой к таким выводам ведут хотя бы два выхода.
@@ -1497,70 +1499,4 @@ meta for sizedArgumentCheck [
 ]
 meta for convertibleArgumentCheck [
     skill = "conversion_applicability";
-]
-
-// Общее объяснение hyp — для ошибки, которую объясняют несколько гипотез: каким заблуждением рассуждал студент, неизвестно.
-meta for trueDivisionHypotheses [
-    RU.explanation = "${A.class()} сохраняет дробную часть и при целых операндах.";
-    EN.explanation = "the ${A.class()} does not drop the fractional part even for integer operands.";
-]
-meta for floatResultHypotheses [
-    RU.explanation = "среди операндов есть вещественный, а ${A.class()} с вещественным операндом не даёт целого результата.";
-    EN.explanation = "one of the operands is floating-point, and the ${A.class()} with a floating-point operand does not give an integer result.";
-]
-meta for integerResultHypotheses [
-    RU.explanation = "в арифметике логические значения ведут себя как числа 0 и 1, поэтому ${A.class()} не даёт логического значения.";
-    EN.explanation = "in arithmetic, boolean values behave as the numbers 0 and 1, so the ${A.class()} does not give a boolean.";
-]
-meta for repetitionHypotheses [
-    RU.explanation = "умножение последовательности на целое число допустимо: оно повторяет последовательность.";
-    EN.explanation = "multiplying a sequence by an integer is allowed: it repeats the sequence.";
-]
-meta for inapplicableSequenceOperationHypotheses [
-    RU.explanation = "${A.class()} нельзя применить к операндам типов ${L} и ${R}: операнды не приводятся к общему типу сами.";
-    EN.explanation = "the ${A.class()} cannot be applied to operands of types ${L} and ${R}: the operands are not converted to a common type by themselves.";
-]
-meta for leftOperandHypotheses [
-    RU.explanation = "левый операнд ${Left.isTruthy ? 'истинный' : 'ложный'}, а ${B.class()} на таком операнде останавливается.";
-    EN.explanation = "the left operand is ${Left.isTruthy ? 'truthy' : 'falsy'}, and the ${B.class()} stops at such an operand.";
-]
-meta for rightOperandHypotheses [
-    RU.explanation = "левый операнд ${Left.isTruthy ? 'истинный' : 'ложный'}, а ${B.class()} на таком операнде не останавливается.";
-    EN.explanation = "the left operand is ${Left.isTruthy ? 'truthy' : 'falsy'}, and the ${B.class()} does not stop at such an operand.";
-]
-meta for inapplicableEqualityHypotheses [
-    RU.explanation = "${C.class()} не применим к значениям типов ${L} и ${R}.";
-    EN.explanation = "the ${C.class()} cannot be applied to values of types ${L} and ${R}.";
-]
-meta for inapplicableOrderingHypotheses [
-    RU.explanation = "значения типов ${L} и ${R} нельзя сравнить по порядку.";
-    EN.explanation = "values of types ${L} and ${R} cannot be ordered.";
-]
-meta for inapplicableMembershipHypotheses [
-    RU.explanation = "в значении типа ${R} нельзя искать значение типа ${L}.";
-    EN.explanation = "a value of type ${L} cannot be searched for in a value of type ${R}.";
-]
-meta for mappingValueHypotheses [
-    RU.explanation = "обращение по ключу достаёт из словаря одно значение, хранящееся под этим ключом.";
-    EN.explanation = "access by key takes out of the dictionary the single value stored under that key.";
-]
-meta for tupleElementHypotheses [
-    RU.explanation = "обращение по индексу берёт из кортежа ровно один элемент на позиции индекса.";
-    EN.explanation = "indexing takes exactly one element of the tuple, the one at the index position.";
-]
-meta for sequenceElementHypotheses [
-    RU.explanation = "обращение по индексу берёт из ${X} ровно один элемент на позиции индекса.";
-    EN.explanation = "indexing takes exactly one element of ${X}, the one at the index position.";
-]
-meta for inapplicableIndexingHypotheses [
-    RU.explanation = "к значению типа ${X} нельзя обратиться по индексу типа ${I}.";
-    EN.explanation = "a value of type ${X} cannot be indexed with an index of type ${I}.";
-]
-meta for inapplicableLengthHypotheses [
-    RU.explanation = "у значения типа ${A} нет элементов, которые можно было бы посчитать.";
-    EN.explanation = "a value of type ${A} has no elements that could be counted.";
-]
-meta for inapplicableConversionHypotheses [
-    RU.explanation = "в число преобразуются только числа и строки, а здесь аргумент типа ${A}.";
-    EN.explanation = "only numbers and strings can be converted to a number, while here the argument has type ${A}.";
 ]

@@ -60,16 +60,12 @@ tpg ExprType(E: Operation, T: Type) {
     } as readings
 }
 [
-    RU.error_prefix = "${E} не может иметь тип ${T}, потому что ";
-    EN.error_prefix = "${E} cannot have the type ${T} because ";
-    RU.hint_prefix = "${E} имеет тип ${T}, потому что ";
-    EN.hint_prefix = "${E} has the type ${T} because ";
-]
-
-// Общее объяснение — для ошибки, которую объясняют и прочтение выражения, и заблуждение: что из них у студента, неизвестно.
-meta for readings [
-    RU.explanation = "такой тип получается, только если прочитать выражение не так, как оно написано, или применить к нему другое правило.";
-    EN.explanation = "this type comes out only if the expression is read differently from how it is written or another rule is applied to it.";
+    RU.error_prefix = "Выражение ${E} не может иметь тип ${T}, потому что ";
+    EN.error_prefix = "The expression ${E} cannot have the type ${T} because ";
+    RU.hint_prefix = "Выражение ${E} имеет тип ${T}, потому что ";
+    EN.hint_prefix = "The expression ${E} has the type ${T} because ";
+    RU.error_statement = "Выражение ${E} не может иметь тип ${T}.";
+    EN.error_statement = "The expression ${E} cannot have the type ${T}.";
 ]
 
 // Навык — последняя развилка перед выводом correct/error, у которой к таким выводам ведут хотя бы два выхода.

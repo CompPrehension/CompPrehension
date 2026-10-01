@@ -6,6 +6,7 @@ import its.model.nodes.BranchAggregationNode;
 import its.model.nodes.BranchResult;
 import its.model.nodes.BranchResultNode;
 import its.model.nodes.CycleAggregationNode;
+import its.model.nodes.DecisionTree;
 import its.model.nodes.DecisionTreeNode;
 import its.model.nodes.LinkNode;
 import its.model.nodes.Outcome;
@@ -41,33 +42,26 @@ class TypeEvaluationTreeHypothesesTest {
     }
 
     /**
-     * Если одну ошибку могут объяснить несколько заблуждений, у hyp есть общее объяснение на обоих языках:
-     * иначе студент увидит несколько взаимоисключающих объяснений.
+     * У дерева с гипотезами есть утверждение об ошибке на обоих языках: его студент видит вместо объяснения,
+     * пока не выбрал, какая из нескольких причин привела его к ответу.
      */
     @Test
-    void ambiguousHypothesesHaveGeneralExplanation() {
+    void treesWithHypothesesHaveErrorStatement() {
         // Arrange.
-        var ambiguous = hypothesisAggregations().stream()
-                .filter(aggregation -> branchesOf(aggregation).stream()
-                        .filter(branch -> conclusions(branch.getStart()).stream()
-                                .anyMatch(conclusion -> conclusion.getValue() == BranchResult.ERROR))
-                        .count() > 1)
+        var treesWithHypotheses = TypeEvaluationTreeFixture.trees().stream()
+                .filter(tree -> !hypothesisAggregations(tree).isEmpty())
                 .toList();
 
         // Act.
-        var withoutExplanation = ambiguous.stream()
-                .filter(aggregation -> aggregation.getMetadata().get("RU", "explanation") == null
-                        || aggregation.getMetadata().get("EN", "explanation") == null)
-                .map(aggregation -> branchesOf(aggregation).stream()
-                        .flatMap(branch -> conclusions(branch.getStart()).stream())
-                        .map(conclusion -> conclusion.getMetadata().getString("hypothesis"))
-                        .toList()
-                        .toString())
+        var withoutStatement = treesWithHypotheses.stream()
+                .filter(tree -> tree.getMainBranch().getMetadata().get("RU", "error_statement") == null
+                        || tree.getMainBranch().getMetadata().get("EN", "error_statement") == null)
+                .map(tree -> tree.getMainBranch().getDescription())
                 .toList();
 
         // Assert.
-        assertFalse(ambiguous.isEmpty());
-        assertEquals(List.of(), withoutExplanation);
+        assertFalse(treesWithHypotheses.isEmpty());
+        assertEquals(List.of(), withoutStatement);
     }
 
     /**
@@ -97,10 +91,14 @@ class TypeEvaluationTreeHypothesesTest {
     }
 
     private static @NotNull List<AggregationNode> hypothesisAggregations() {
+        return TypeEvaluationTreeFixture.trees().stream()
+                .flatMap(tree -> hypothesisAggregations(tree).stream())
+                .toList();
+    }
+
+    private static @NotNull List<AggregationNode> hypothesisAggregations(@NotNull DecisionTree tree) {
         var found = new ArrayList<AggregationNode>();
-        for (var tree : TypeEvaluationTreeFixture.trees()) {
-            collectHypothesisAggregations(tree.getMainBranch().getStart(), found);
-        }
+        collectHypothesisAggregations(tree.getMainBranch().getStart(), found);
         return found;
     }
 

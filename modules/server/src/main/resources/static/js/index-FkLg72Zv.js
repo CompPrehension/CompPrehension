@@ -3021,7 +3021,7 @@ var Clarification = observer(({ store }) => {
 				className: "text-start",
 				disabled: store.isClarificationSending,
 				onClick: () => store.answerClarification(option.hypothesis),
-				children: option.reason
+				children: /* @__PURE__ */ (0, import_jsx_runtime.jsx)("div", { dangerouslySetInnerHTML: { __html: option.reason } })
 			}, option.hypothesis)), /* @__PURE__ */ (0, import_jsx_runtime.jsx)(Button, {
 				variant: "outline-secondary",
 				size: "sm",

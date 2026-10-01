@@ -20,7 +20,7 @@ import static org.junit.jupiter.api.Assertions.assertEquals;
 
 class TypeEvaluationDTDomainStructureTest extends DecisionTreeDomainStructureContract {
 
-    private static final List<String> TEMPLATE_KEYS = List.of("explanation", "reason", "error_prefix", "hint_prefix");
+    private static final List<String> TEMPLATE_KEYS = List.of("explanation", "reason", "error_prefix", "hint_prefix", "error_statement");
     private static final Pattern PLACEHOLDER = Pattern.compile("\\$\\{[^}]*}");
     private static final Pattern PYTHON_WORDS = Pattern.compile("\\b(Python|True|False|None)\\b");
     private static final Pattern LATIN = Pattern.compile("[A-Za-z]");

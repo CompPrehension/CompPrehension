@@ -204,7 +204,7 @@ public class DecisionTreeReasonerBackend
 
     /**
      * Ошибочный ответ объясняют несколько гипотез, и неизвестно, какая из них у студента: ближайшая hyp-агрегация,
-     * в которой лежат все эти гипотезы. Её общее объяснение заменяет объяснения гипотез.
+     * в которой лежат все эти гипотезы. Вместо объяснений гипотез в ней показывается только утверждение об ошибке.
      */
     private static @Nullable AggregationDecisionTreeTraceElement<?> findAmbiguity(@NotNull DecisionTreeTrace trace) {
         if (trace.getBranchResult() != BranchResult.ERROR) {
@@ -307,7 +307,8 @@ public class DecisionTreeReasonerBackend
         return value;
     }
 
-    // Гипотезы могут относиться к разным навыкам (прочтение выражения и правило): тогда у общего объяснения навыка нет,
+    // Причину ошибки студент выберет в уточняющем вопросе, поэтому до выбора объяснение только констатирует ошибку.
+    // Гипотезы могут относиться к разным навыкам (прочтение выражения и правило): тогда у объяснения навыка нет,
     // нарушения берутся из самих гипотез.
     private static @NotNull Explanation extractAmbiguousErrorExplanation(@NotNull AggregationDecisionTreeTraceElement<?> aggregation,
                                                                          @NotNull String localizationCode,
@@ -315,8 +316,14 @@ public class DecisionTreeReasonerBackend
         var skills = errorBranches(hypothesisBranchesInside(aggregation)).stream()
                 .map(branch -> requireBranchMeta(branch, "skill"))
                 .collect(Collectors.toSet());
-        var explanation = new Explanation(Explanation.Type.ERROR, interpretExplanationTemplate(
-                aggregation.getNode(), Explanation.Type.ERROR, localizationCode, learningSituation));
+        var tree = aggregation.getNode().getDecisionTree();
+        var statement = tree.getMainBranch().getMetadata().get(localizationCode, "error_statement");
+        if (statement == null) {
+            throw new IllegalStateException("Decision tree with hypotheses has no " + localizationCode
+                    + " 'error_statement' metadata");
+        }
+        var explanation = new Explanation(Explanation.Type.ERROR,
+                TemplatingUtils.interpret(statement.toString(), learningSituation, localizationCode, Map.of()));
         if (skills.size() == 1) {
             explanation.setCurrentDomainLawName(skills.iterator().next());
         }
@@ -354,7 +361,7 @@ public class DecisionTreeReasonerBackend
                 // одиночное объяснение по заданному типу объяснения
                 explanation = Interface.extractExplanation(res,
                         lang.toLocaleString(), learningSituation);
-            } else if (element == ambiguity && element.getNode().getMetadata().containsAny("explanation")) {
+            } else if (element == ambiguity) {
                 explanation = extractAmbiguousErrorExplanation(ambiguity, lang.toLocaleString(), learningSituation);
             }
             if (explanation != null) {
