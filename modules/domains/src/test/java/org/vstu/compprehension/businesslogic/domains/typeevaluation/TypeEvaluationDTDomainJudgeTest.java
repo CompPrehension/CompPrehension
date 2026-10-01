@@ -27,6 +27,7 @@ import static org.vstu.compprehension.businesslogic.domains.typeevaluation.TypeE
 import static org.vstu.compprehension.businesslogic.domains.typeevaluation.TypeEvaluationDomainFixture.BANK;
 import static org.vstu.compprehension.businesslogic.domains.typeevaluation.TypeEvaluationDomainFixture.EMPTY_NAME_OR_NAMES;
 import static org.vstu.compprehension.businesslogic.domains.typeevaluation.TypeEvaluationDomainFixture.FIRST_CHAR_PLUS_ONE;
+import static org.vstu.compprehension.businesslogic.domains.typeevaluation.TypeEvaluationDomainFixture.STUDENT_FIRST_GRADE;
 import static org.vstu.compprehension.businesslogic.domains.typeevaluation.TypeEvaluationDomainFixture.answer;
 import static org.vstu.compprehension.businesslogic.domains.typeevaluation.TypeEvaluationDomainFixture.domain;
 import static org.vstu.compprehension.businesslogic.domains.typeevaluation.TypeEvaluationDomainFixture.judge;
@@ -96,7 +97,8 @@ class TypeEvaluationDTDomainJudgeTest {
         assertEquals(Set.of(new AnswerHypothesisData("operand_type", false),
                 new AnswerHypothesisData("c_style_division", false)), Set.copyOf(result.hypotheses));
         assertEquals(List.of("true_division_result"), lawNames(result.violations));
-        assertEquals(List.of("Деление через / даёт вещественное число."), messages(result.explanation));
+        assertEquals(List.of("<code>total / len(grades)</code> не может иметь тип <code>int</code>, потому что оператор <code>/</code> не отбрасывает дробную часть"
+                + " даже у целых операндов."), messages(result.explanation));
         assertEquals(1, result.IterationsLeft);
     }
 
@@ -114,8 +116,8 @@ class TypeEvaluationDTDomainJudgeTest {
         assertEquals(Set.of(new AnswerHypothesisData("truthiness_misjudged", false),
                 new AnswerHypothesisData("and_or_confused", false)), Set.copyOf(result.hypotheses));
         assertEquals(List.of("logical_returned_operand"), lawNames(result.violations));
-        assertEquals(List.of("Операции and и or возвращают один из операндов, здесь — правый."),
-                messages(result.explanation));
+        assertEquals(List.of("<code>name or names</code> не может иметь тип <code>str</code>, потому что левый операнд"
+                + " ложный, а оператор <code>or</code> на таком операнде не останавливается."), messages(result.explanation));
     }
 
     /** Ошибку, которую объясняет единственное заблуждение, студенту объясняет именно оно. */
@@ -130,8 +132,23 @@ class TypeEvaluationDTDomainJudgeTest {
         // Assert.
         assertFalse(result.isAnswerCorrect);
         assertEquals(List.of(new AnswerHypothesisData("index_type", false)), result.hypotheses);
-        assertEquals(List.of("Результат — элемент последовательности, а не индекс."), messages(result.explanation));
+        assertEquals(List.of("<code>line[0]</code> не может иметь тип <code>int</code>, потому что индекс лишь указывает"
+                + " позицию, а результат обращения — сам элемент последовательности."), messages(result.explanation));
         assertNull(result.clarification);
+    }
+
+    /** Объяснение называет часть выражения так, как она написана в коде, — с кавычками и скобками. */
+    @Test
+    void explanationNamesExpressionPartAsWrittenInCode() {
+        // Arrange.
+        var question = question(STUDENT_FIRST_GRADE);
+
+        // Act.
+        var result = judge(question, List.of(answer(question, "op_key", "t_str")));
+
+        // Assert.
+        assertEquals(List.of("<code>student[\"grades\"]</code> не может иметь тип <code>str</code>, потому что по ключу"
+                + " из словаря возвращается хранящееся под ним значение, а не сам ключ."), messages(result.explanation));
     }
 
     /** Ответ, который не объясняет ни одно из известных рассуждений, остаётся ошибкой без гипотез. */
@@ -188,10 +205,12 @@ class TypeEvaluationDTDomainJudgeTest {
         assertEquals(Set.of(
                 new HypothesisClarificationData.Option("operand_type",
                         "Результат берёт тип одного из операндов.",
-                        "Результат деления через / не берёт тип операнда: он всегда вещественный."),
+                        "<code>total / len(grades)</code> не может иметь тип <code>int</code>, потому что оператор <code>/</code> не берёт тип результата у операндов:"
+                                + " деление может дать дробную часть, даже когда операнды целые."),
                 new HypothesisClarificationData.Option("c_style_division",
                         "Деление целых чисел даёт целое число.",
-                        "Деление целых чисел через / не отбрасывает дробную часть; целочисленное деление — это //.")),
+                        "<code>total / len(grades)</code> не может иметь тип <code>int</code>, потому что оператор <code>/</code> не отбрасывает дробную часть"
+                                + " даже у целых операндов — так делает только целочисленное деление <code>//</code>.")),
                 Set.copyOf(result.clarification.options()));
     }
 

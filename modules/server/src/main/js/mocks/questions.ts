@@ -216,12 +216,12 @@ mockQuestions[11] = {
                 {
                     hypothesis: 'operand_type',
                     reason: 'The result takes the type of one of the operands.',
-                    explanation: "The result of / does not take an operand's type: it is always floating-point.",
+                    explanation: '<code>total / len(grades)</code> cannot have the type <code>int</code> because the operator <code>/</code> does not take the result type from its operands: division can produce a fractional part even when the operands are integers.',
                 },
                 {
                     hypothesis: 'c_style_division',
                     reason: 'Dividing integers gives an integer.',
-                    explanation: 'Dividing integers with / keeps the fractional part; integer division is //.',
+                    explanation: '<code>total / len(grades)</code> cannot have the type <code>int</code> because the operator <code>/</code> does not drop the fractional part even for integer operands — only integer division <code>//</code> does that.',
                 },
             ],
         },

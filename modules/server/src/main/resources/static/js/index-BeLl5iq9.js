@@ -3058,7 +3058,7 @@ var Feedback = observer(({ store, showExtendedFeedback }) => {
 	const feedbackMessages = feedback.messages;
 	if (feedbackMessages !== null && store.questionState === "COMPLETED") feedbackMessages?.push(defaultFeedbackMessage);
 	return /* @__PURE__ */ (0, import_jsx_runtime.jsx)("div", {
-		className: "comp-ph-feedback-wrapper mt-2",
+		className: "comp-ph-feedback-wrapper mt-3",
 		children: isFeedbackVisible && /* @__PURE__ */ (0, import_jsx_runtime.jsxs)(import_jsx_runtime.Fragment, { children: [/* @__PURE__ */ (0, import_jsx_runtime.jsxs)("div", {
 			className: "mb-3",
 			children: [feedbackMessages?.map((m, i) => /* @__PURE__ */ (0, import_jsx_runtime.jsx)(FeedbackAlert, {

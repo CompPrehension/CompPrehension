@@ -71,7 +71,7 @@
           "subject": "question",
           "verb": "hasLoqi",
           "objectType": "xsd:string",
-          "object": "obj t_int : py_int {}\nobj t_float : py_float {}\nobj t_str : py_str { elementType(t_str); }\nobj t_error : py_TypeError {}\nobj line : Variable { hasType(t_str); }\nobj zero : Literal { hasType(t_int); intValue = 0; }\nobj one : Literal { hasType(t_int); intValue = 1; }\nobj op_first : py_index { hasOperand<OperandPlacement:left>(line); hasOperand<OperandPlacement:right>(zero); } [ expectedType = \"t_str\" ]\nobj op_add : py_add { hasOperand<OperandPlacement:left>(op_first); hasOperand<OperandPlacement:right>(one); } [ expectedType = \"t_error\" ]"
+          "object": "obj t_int : py_int {}\nobj t_float : py_float {}\nobj t_str : py_str { elementType(t_str); }\nobj t_error : py_TypeError {}\nobj line : Variable { hasType(t_str); } [ text = \"line\" ]\nobj zero : Literal { hasType(t_int); intValue = 0; } [ text = \"0\" ]\nobj one : Literal { hasType(t_int); intValue = 1; } [ text = \"1\" ]\nobj op_first : py_index { hasOperand<OperandPlacement:left>(line); hasOperand<OperandPlacement:right>(zero); } [ text = \"line[0]\"; expectedType = \"t_str\" ]\nobj op_add : py_add { hasOperand<OperandPlacement:left>(op_first); hasOperand<OperandPlacement:right>(one); } [ text = \"line[0] + 1\"; expectedType = \"t_error\" ]"
         }
       ],
       "questionDomainType": "ExpressionTypes"

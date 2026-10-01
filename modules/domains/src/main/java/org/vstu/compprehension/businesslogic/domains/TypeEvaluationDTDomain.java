@@ -70,6 +70,8 @@ public class TypeEvaluationDTDomain extends DecisionTreeReasoningDomain {
     private static final String SITUATION_FACT_VERB = "hasLoqi";
     // Эталонный тип операции хранится в метаданных: выражения дерева метаданные не читают, поэтому подсмотреть его нельзя.
     private static final String EXPECTED_TYPE = "expectedType";
+    private static final String LOCALIZED_NAME = "localizedName";
+    private static final String SOURCE_TEXT = "text";
     private static final String HAS_TYPE = "hasType";
     private static final String HAS_OPERAND = "hasOperand";
     private static final String OPERATION_VARIABLE = "E";
@@ -237,7 +239,36 @@ public class TypeEvaluationDTDomain extends DecisionTreeReasoningDomain {
         try (var reader = new StringReader(situationLoqi)) {
             model.addMerge(DomainLoqiBuilder.buildDomain(reader));
         }
+        nameObjectsAsStudentSeesThem(model, question.getAnswerObjects());
         return model;
+    }
+
+    // Объяснения дерева называют объекты так, как их видит студент: типы и части выражения — подписями вариантов
+    // и слотов, а всё, у чего есть текст из кода (метаданные text), — этим текстом.
+    private static void nameObjectsAsStudentSeesThem(@NotNull DomainModel model, @NotNull List<AnswerObjectData> answerObjects) {
+        for (var answer : answerObjects) {
+            var object = model.getObjects().get(answer.getDomainInfo());
+            if (object != null) {
+                setDisplayName(object, answer.getHyperText());
+            }
+        }
+        for (var object : model.getObjects()) {
+            var text = object.getMetadata().getString(SOURCE_TEXT);
+            if (text != null) {
+                setDisplayName(object, text);
+            }
+        }
+    }
+
+    private static void setDisplayName(@NotNull ObjectDef object, @NotNull String text) {
+        var name = "<code>" + escapeHtml(text) + "</code>";
+        for (var language : Language.values()) {
+            object.getMetadata().add(language.toLocaleString(), LOCALIZED_NAME, name);
+        }
+    }
+
+    private static @NotNull String escapeHtml(@NotNull String text) {
+        return text.replace("&", "&amp;").replace("<", "&lt;").replace(">", "&gt;");
     }
 
     private static @NotNull String findModelTag(@NotNull Collection<String> questionTags) {

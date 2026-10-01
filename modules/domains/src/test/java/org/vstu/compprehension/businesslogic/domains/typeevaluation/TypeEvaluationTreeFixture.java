@@ -6,15 +6,19 @@ import its.model.definition.loqi.DomainLoqiBuilder;
 import its.model.nodes.AggregationMethod;
 import its.model.nodes.BranchResult;
 import its.model.nodes.DecisionTree;
+import its.questions.gen.formulations.TemplatingUtils;
 import its.reasoner.LearningSituation;
 import its.reasoner.nodes.AggregationDecisionTreeTraceElement;
 import its.reasoner.nodes.DecisionTreeReasoner;
 import its.reasoner.nodes.DecisionTreeTrace;
 import its.reasoner.nodes.DecisionTreeTraceElement;
 import org.jetbrains.annotations.NotNull;
+import org.vstu.compprehension.businesslogic.backend.DecisionTreeReasonerBackend;
 import org.vstu.compprehension.businesslogic.domains.helpers.DomainSolvingModelLoader;
 
 import java.io.StringReader;
+import java.util.List;
+import java.util.Map;
 import java.util.Set;
 import java.util.TreeSet;
 import java.util.stream.Collectors;
@@ -37,6 +41,8 @@ final class TypeEvaluationTreeFixture {
             obj t_dict_str_int : py_dict { keyType(t_str); valueType(t_int); }
             obj t_error : py_TypeError {}
             """;
+
+    private static final List<String> LANGUAGES = List.of("RU", "EN");
 
     static final String RULE = "rule";
     static final String OPERAND_TYPE = "operand_type";
@@ -68,10 +74,12 @@ final class TypeEvaluationTreeFixture {
             model.addMerge(DomainLoqiBuilder.buildDomain(reader));
         }
         model.validateAndThrow();
+        nameUnnamedObjects(model);
         var variables = model.getVariables().stream().collect(Collectors.toMap(
                 variable -> variable.getName(),
                 variable -> variable.getValueObject().getReference()));
         DecisionTreeTrace trace = DecisionTreeReasoner.solve(MODEL.getDecisionTree(), new LearningSituation(model, variables));
+        renderExplanations(model, trace);
 
         var hypotheses = new TreeSet<String>();
         var skills = new TreeSet<String>();
@@ -92,5 +100,38 @@ final class TypeEvaluationTreeFixture {
             skills.add(fallbackSkill);
         }
         return new Verdict(trace.getBranchResult(), hypotheses, skills);
+    }
+
+    // Домен называет объекты текстом вопроса; здесь вопроса нет, поэтому имя объекта в модели.
+    private static void nameUnnamedObjects(@NotNull DomainModel model) {
+        for (var object : model.getObjects()) {
+            for (var language : LANGUAGES) {
+                if (object.getMetadata().get(language, "localizedName") == null) {
+                    object.getMetadata().add(language, "localizedName", "<code>" + object.getName() + "</code>");
+                }
+            }
+        }
+    }
+
+    // Шаблон объяснения с ошибкой иначе всплыл бы только у студента: рендерим всё, что трасса может показать.
+    private static void renderExplanations(@NotNull DomainModel model, @NotNull DecisionTreeTrace trace) {
+        var mainBranch = MODEL.getDecisionTree().getMainBranch().getMetadata();
+        var start = new LearningSituation(model, trace.getFirst().getVariablesSnapshot());
+        for (var element : DecisionTreeReasonerBackend.nestedTraceElements(trace)) {
+            var situation = new LearningSituation(model, element.getVariablesSnapshot());
+            for (var language : LANGUAGES) {
+                for (var key : List.of("explanation", "reason")) {
+                    var template = element.getNode().getMetadata().get(language, key);
+                    if (template != null) {
+                        TemplatingUtils.interpret(template.toString(), situation, language, Map.of());
+                    }
+                }
+            }
+        }
+        for (var language : LANGUAGES) {
+            for (var key : List.of("error_prefix", "hint_prefix")) {
+                TemplatingUtils.interpret(mainBranch.get(language, key).toString(), start, language, Map.of());
+            }
+        }
     }
 }

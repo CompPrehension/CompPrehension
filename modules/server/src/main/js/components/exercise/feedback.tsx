@@ -39,7 +39,7 @@ export const Feedback = observer(({ store, showExtendedFeedback }: FeedbackProps
     }
 
     return (
-      <div className='comp-ph-feedback-wrapper mt-2'>
+      <div className='comp-ph-feedback-wrapper mt-3'>
         {isFeedbackVisible && (
           <>
             <div className='mb-3'>
@@ -137,4 +137,3 @@ export const FeedbackAlert = observer((props: FeedbackAlertProps) => {
       </Alert>
     );
 })
-

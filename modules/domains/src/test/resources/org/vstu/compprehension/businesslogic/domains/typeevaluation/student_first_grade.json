@@ -78,7 +78,7 @@
           "subject": "question",
           "verb": "hasLoqi",
           "objectType": "xsd:string",
-          "object": "obj t_int : py_int {}\nobj t_str : py_str { elementType(t_str); }\nobj t_list_int : py_list { elementType(t_int); }\nobj t_dict_str_list_int : py_dict { keyType(t_str); valueType(t_list_int); }\nobj t_error : py_TypeError {}\nobj student : Variable { hasType(t_dict_str_list_int); }\nobj key : Literal { hasType(t_str); }\nobj zero : Literal { hasType(t_int); intValue = 0; }\nobj op_key : py_index { hasOperand<OperandPlacement:left>(student); hasOperand<OperandPlacement:right>(key); } [ expectedType = \"t_list_int\" ]\nobj op_first : py_index { hasOperand<OperandPlacement:left>(op_key); hasOperand<OperandPlacement:right>(zero); } [ expectedType = \"t_int\" ]"
+          "object": "obj t_int : py_int {}\nobj t_str : py_str { elementType(t_str); }\nobj t_list_int : py_list { elementType(t_int); }\nobj t_dict_str_list_int : py_dict { keyType(t_str); valueType(t_list_int); }\nobj t_error : py_TypeError {}\nobj student : Variable { hasType(t_dict_str_list_int); } [ text = \"student\" ]\nobj key : Literal { hasType(t_str); } [ text = \"\\\"grades\\\"\" ]\nobj zero : Literal { hasType(t_int); intValue = 0; } [ text = \"0\" ]\nobj op_key : py_index { hasOperand<OperandPlacement:left>(student); hasOperand<OperandPlacement:right>(key); } [ text = \"student[\\\"grades\\\"]\"; expectedType = \"t_list_int\" ]\nobj op_first : py_index { hasOperand<OperandPlacement:left>(op_key); hasOperand<OperandPlacement:right>(zero); } [ text = \"student[\\\"grades\\\"][0]\"; expectedType = \"t_int\" ]"
         }
       ],
       "questionDomainType": "ExpressionTypes"

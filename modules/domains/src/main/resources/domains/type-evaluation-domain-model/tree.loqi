@@ -29,8 +29,8 @@ tpg ExprType(E: Operation, T: Type) {
                                         conclude: correct [
                                             skill = "true_division_result";
                                             hypothesis = "rule";
-                                            RU.explanation = "Деление через / всегда даёт вещественное число, даже для целых операндов.";
-                                            EN.explanation = "Division with / always gives a floating-point number, even for integer operands.";
+                                            RU.explanation = "${A.class()} не отбрасывает дробную часть даже у целых операндов, поэтому частное — вещественное число.";
+                                            EN.explanation = "the ${A.class()} keeps the fractional part even for integer operands, so the quotient is a floating-point number.";
                                         ];
                                     };
                                     conclude: null
@@ -40,8 +40,8 @@ tpg ExprType(E: Operation, T: Type) {
                                         conclude: error [
                                             skill = "true_division_result";
                                             hypothesis = "operand_type";
-                                            RU.explanation = "Результат деления через / не берёт тип операнда: он всегда вещественный.";
-                                            EN.explanation = "The result of / does not take an operand's type: it is always floating-point.";
+                                            RU.explanation = "${A.class()} не берёт тип результата у операндов: деление может дать дробную часть, даже когда операнды целые.";
+                                            EN.explanation = "the ${A.class()} does not take the result type from its operands: division can produce a fractional part even when the operands are integers.";
                                             RU.reason = "Результат берёт тип одного из операндов.";
                                             EN.reason = "The result takes the type of one of the operands.";
                                         ];
@@ -53,8 +53,8 @@ tpg ExprType(E: Operation, T: Type) {
                                         conclude: error [
                                             skill = "true_division_result";
                                             hypothesis = "c_style_division";
-                                            RU.explanation = "Деление целых чисел через / не отбрасывает дробную часть; целочисленное деление — это //.";
-                                            EN.explanation = "Dividing integers with / keeps the fractional part; integer division is //.";
+                                            RU.explanation = "${A.class()} не отбрасывает дробную часть даже у целых операндов — так делает только целочисленное деление <code>//</code>.";
+                                            EN.explanation = "the ${A.class()} does not drop the fractional part even for integer operands — only integer division <code>//</code> does that.";
                                             RU.reason = "Деление целых чисел даёт целое число.";
                                             EN.reason = "Dividing integers gives an integer.";
                                         ];
@@ -66,8 +66,8 @@ tpg ExprType(E: Operation, T: Type) {
                                 null -> {
                                     conclude: error [
                                         skill = "true_division_result";
-                                        RU.explanation = "Такой тип не получается из операндов: деление через / даёт вещественное число.";
-                                        EN.explanation = "This type cannot be obtained from the operands: division with / gives a floating-point number.";
+                                        RU.explanation = "ни у одного из операндов (${L}, ${R}) нет такого типа, и ${A.class()} его не создаёт.";
+                                        EN.explanation = "neither operand (${L}, ${R}) has this type, and the ${A.class()} does not create it.";
                                     ]
                                 };
                             } as trueDivisionHypotheses
@@ -81,8 +81,8 @@ tpg ExprType(E: Operation, T: Type) {
                                                 conclude: correct [
                                                     skill = "numeric_result_type";
                                                     hypothesis = "rule";
-                                                    RU.explanation = "Если хотя бы один операнд вещественный, результат тоже вещественный.";
-                                                    EN.explanation = "If at least one operand is floating-point, the result is floating-point too.";
+                                                    RU.explanation = "среди операндов (${L}, ${R}) есть вещественный, а ${A.class()} с вещественным операндом даёт вещественный результат.";
+                                                    EN.explanation = "one of the operands (${L}, ${R}) is floating-point, and the ${A.class()} with a floating-point operand gives a floating-point result.";
                                                 ];
                                             };
                                             conclude: null
@@ -92,8 +92,8 @@ tpg ExprType(E: Operation, T: Type) {
                                                 conclude: error [
                                                     skill = "numeric_result_type";
                                                     hypothesis = "operand_type";
-                                                    RU.explanation = "Результат берёт не тип любого из операндов: при вещественном операнде он вещественный.";
-                                                    EN.explanation = "The result does not take the type of just any operand: with a floating-point operand it is floating-point.";
+                                                    RU.explanation = "среди операндов есть вещественный, а ${A.class()} с вещественным операндом не сохраняет тип второго операнда.";
+                                                    EN.explanation = "one of the operands is floating-point, and the ${A.class()} with a floating-point operand does not keep the type of the other operand.";
                                                     RU.reason = "Результат берёт тип одного из операндов.";
                                                     EN.reason = "The result takes the type of one of the operands.";
                                                 ];
@@ -105,8 +105,8 @@ tpg ExprType(E: Operation, T: Type) {
                                                 conclude: error [
                                                     skill = "numeric_result_type";
                                                     hypothesis = "floor_division_gives_integer";
-                                                    RU.explanation = "Операция // округляет значение вниз, но не меняет тип: при вещественном операнде результат вещественный.";
-                                                    EN.explanation = "The // operation rounds the value down but keeps the type: with a floating-point operand the result is floating-point.";
+                                                    RU.explanation = "${A.class()} округляет значение вниз, но тип не меняет: вещественный операнд не становится целым.";
+                                                    EN.explanation = "the ${A.class()} rounds the value down but does not change its type: a floating-point operand does not become an integer.";
                                                     RU.reason = "Операция // всегда даёт целое число.";
                                                     EN.reason = "The // operation always gives an integer.";
                                                 ];
@@ -118,8 +118,8 @@ tpg ExprType(E: Operation, T: Type) {
                                         null -> {
                                             conclude: error [
                                                 skill = "numeric_result_type";
-                                                RU.explanation = "Такой тип не получается из операндов: при вещественном операнде результат вещественный.";
-                                                EN.explanation = "This type cannot be obtained from the operands: with a floating-point operand the result is floating-point.";
+                                                RU.explanation = "ни у одного из операндов (${L}, ${R}) нет такого типа, и ${A.class()} его не создаёт.";
+                                                EN.explanation = "neither operand (${L}, ${R}) has this type, and the ${A.class()} does not create it.";
                                             ]
                                         };
                                     } as floatResultHypotheses
@@ -131,8 +131,8 @@ tpg ExprType(E: Operation, T: Type) {
                                                 conclude: correct [
                                                     skill = "numeric_result_type";
                                                     hypothesis = "rule";
-                                                    RU.explanation = "Арифметика над целыми числами даёт целое число.";
-                                                    EN.explanation = "Arithmetic on integers gives an integer.";
+                                                    RU.explanation = "оба операнда целые или логические (${L}, ${R}), а ${A.class()} над ними даёт целое число.";
+                                                    EN.explanation = "both operands are integers or booleans (${L}, ${R}), and the ${A.class()} on them gives an integer.";
                                                 ];
                                             };
                                             conclude: null
@@ -142,8 +142,8 @@ tpg ExprType(E: Operation, T: Type) {
                                                 conclude: error [
                                                     skill = "numeric_result_type";
                                                     hypothesis = "operand_type";
-                                                    RU.explanation = "Результат берёт не тип любого из операндов: здесь он целый.";
-                                                    EN.explanation = "The result does not take the type of just any operand: here it is an integer.";
+                                                    RU.explanation = "в арифметике логические значения ведут себя как числа 0 и 1, поэтому ${A.class()} не сохраняет логический тип операнда.";
+                                                    EN.explanation = "in arithmetic, boolean values behave as the numbers 0 and 1, so the ${A.class()} does not keep an operand's boolean type.";
                                                     RU.reason = "Результат берёт тип одного из операндов.";
                                                     EN.reason = "The result takes the type of one of the operands.";
                                                 ];
@@ -155,8 +155,8 @@ tpg ExprType(E: Operation, T: Type) {
                                                 conclude: error [
                                                     skill = "numeric_result_type";
                                                     hypothesis = "boolean_arithmetic_stays_boolean";
-                                                    RU.explanation = "В арифметике логические значения ведут себя как целые числа, поэтому результат целый.";
-                                                    EN.explanation = "In arithmetic, boolean values behave as integers, so the result is an integer.";
+                                                    RU.explanation = "${A.class()} работает с True и False как с числами 1 и 0, и результат перестаёт быть логическим значением.";
+                                                    EN.explanation = "the ${A.class()} treats True and False as the numbers 1 and 0, so the result is no longer a boolean.";
                                                     RU.reason = "Арифметика над логическими значениями даёт логическое значение.";
                                                     EN.reason = "Arithmetic on booleans gives a boolean.";
                                                 ];
@@ -168,8 +168,8 @@ tpg ExprType(E: Operation, T: Type) {
                                         null -> {
                                             conclude: error [
                                                 skill = "numeric_result_type";
-                                                RU.explanation = "Такой тип не получается из операндов: арифметика над целыми числами даёт целое число.";
-                                                EN.explanation = "This type cannot be obtained from the operands: arithmetic on integers gives an integer.";
+                                                RU.explanation = "ни у одного из операндов (${L}, ${R}) нет такого типа, и ${A.class()} его не создаёт.";
+                                                EN.explanation = "neither operand (${L}, ${R}) has this type, and the ${A.class()} does not create it.";
                                             ]
                                         };
                                     } as integerResultHypotheses
@@ -193,8 +193,8 @@ tpg ExprType(E: Operation, T: Type) {
                                         conclude: correct [
                                             skill = "sequence_operation_applicability";
                                             hypothesis = "rule";
-                                            RU.explanation = "Сложение двух последовательностей одного типа склеивает их, тип сохраняется.";
-                                            EN.explanation = "Adding two sequences of the same type concatenates them; the type is kept.";
+                                            RU.explanation = "${A.class()} склеивает две последовательности одного типа (${L}), и тип при этом сохраняется.";
+                                            EN.explanation = "the ${A.class()} concatenates two sequences of the same type (${L}), and the type is kept.";
                                         ];
                                     };
                                     conclude: null
@@ -204,8 +204,8 @@ tpg ExprType(E: Operation, T: Type) {
                                         conclude: error [
                                             skill = "sequence_operation_applicability";
                                             hypothesis = "numeric_text_addition";
-                                            RU.explanation = "Строки, похожие на числа, остаются строками: + их склеивает, а не складывает.";
-                                            EN.explanation = "Strings that look like numbers are still strings: + concatenates them instead of adding.";
+                                            RU.explanation = "оба операнда — строки, пусть и похожие на числа, а ${A.class()} строки склеивает, а не складывает как числа.";
+                                            EN.explanation = "both operands are strings, even though they look like numbers, and the ${A.class()} concatenates strings instead of adding them as numbers.";
                                         ];
                                     };
                                     conclude: null
@@ -215,8 +215,8 @@ tpg ExprType(E: Operation, T: Type) {
                                 null -> {
                                     conclude: error [
                                         skill = "sequence_operation_applicability";
-                                        RU.explanation = "Такой тип не получается из операндов: сложение последовательностей одного типа даёт тот же тип.";
-                                        EN.explanation = "This type cannot be obtained from the operands: adding sequences of the same type gives that type.";
+                                        RU.explanation = "ни у одного из операндов (${L}, ${R}) нет такого типа, и ${A.class()} его не создаёт.";
+                                        EN.explanation = "neither operand (${L}, ${R}) has this type, and the ${A.class()} does not create it.";
                                     ]
                                 };
                             }
@@ -228,8 +228,8 @@ tpg ExprType(E: Operation, T: Type) {
                                         conclude: correct [
                                             skill = "sequence_operation_applicability";
                                             hypothesis = "rule";
-                                            RU.explanation = "Умножение последовательности на целое число повторяет её, тип сохраняется.";
-                                            EN.explanation = "Multiplying a sequence by an integer repeats it; the type is kept.";
+                                            RU.explanation = "умножение последовательности на целое число повторяет её, и тип последовательности сохраняется.";
+                                            EN.explanation = "multiplying a sequence by an integer repeats it, and the sequence type is kept.";
                                         ];
                                     };
                                     conclude: null
@@ -239,8 +239,8 @@ tpg ExprType(E: Operation, T: Type) {
                                         conclude: error [
                                             skill = "sequence_operation_applicability";
                                             hypothesis = "operand_type";
-                                            RU.explanation = "Результат повторения — последовательность, а не число.";
-                                            EN.explanation = "The result of repetition is a sequence, not a number.";
+                                            RU.explanation = "${A.class()} между последовательностью и целым числом повторяет последовательность, а не перемножает числа.";
+                                            EN.explanation = "the ${A.class()} between a sequence and an integer repeats the sequence instead of multiplying numbers.";
                                             RU.reason = "Результат берёт тип одного из операндов.";
                                             EN.reason = "The result takes the type of one of the operands.";
                                         ];
@@ -252,8 +252,8 @@ tpg ExprType(E: Operation, T: Type) {
                                         conclude: error [
                                             skill = "sequence_operation_applicability";
                                             hypothesis = "repetition_impossible";
-                                            RU.explanation = "Последовательность можно умножить на целое число: это повторение.";
-                                            EN.explanation = "A sequence can be multiplied by an integer: that is repetition.";
+                                            RU.explanation = "умножение последовательности на целое число допустимо: оно повторяет последовательность.";
+                                            EN.explanation = "multiplying a sequence by an integer is allowed: it repeats the sequence.";
                                             RU.reason = "Последовательность нельзя умножить на число.";
                                             EN.reason = "A sequence cannot be multiplied by a number.";
                                         ];
@@ -265,8 +265,8 @@ tpg ExprType(E: Operation, T: Type) {
                                 null -> {
                                     conclude: error [
                                         skill = "sequence_operation_applicability";
-                                        RU.explanation = "Такой тип не получается из операндов: повторение даёт последовательность того же типа.";
-                                        EN.explanation = "This type cannot be obtained from the operands: repetition gives a sequence of the same type.";
+                                        RU.explanation = "ни у одного из операндов (${L}, ${R}) нет такого типа, и ${A.class()} его не создаёт.";
+                                        EN.explanation = "neither operand (${L}, ${R}) has this type, and the ${A.class()} does not create it.";
                                     ]
                                 };
                             } as repetitionHypotheses
@@ -278,8 +278,8 @@ tpg ExprType(E: Operation, T: Type) {
                                         conclude: correct [
                                             skill = "sequence_operation_applicability";
                                             hypothesis = "rule";
-                                            RU.explanation = "Операция неприменима к операндам таких типов — возникает ошибка.";
-                                            EN.explanation = "The operation cannot be applied to operands of these types, so an error occurs.";
+                                            RU.explanation = "${A.class()} нельзя применить к операндам типов ${L} и ${R}, поэтому возникает ошибка.";
+                                            EN.explanation = "the ${A.class()} cannot be applied to operands of types ${L} and ${R}, so an error occurs.";
                                         ];
                                     };
                                     conclude: null
@@ -289,8 +289,8 @@ tpg ExprType(E: Operation, T: Type) {
                                         conclude: error [
                                             skill = "sequence_operation_applicability";
                                             hypothesis = "operand_type";
-                                            RU.explanation = "Операция неприменима к операндам таких типов, результата нет — возникает ошибка.";
-                                            EN.explanation = "The operation cannot be applied to operands of these types; there is no result, an error occurs.";
+                                            RU.explanation = "${A.class()} нельзя применить к операндам типов ${L} и ${R}, и ни один из операндов не может стать его результатом.";
+                                            EN.explanation = "the ${A.class()} cannot be applied to operands of types ${L} and ${R}, and neither operand can become its result.";
                                             RU.reason = "Результат берёт тип одного из операндов.";
                                             EN.reason = "The result takes the type of one of the operands.";
                                         ];
@@ -302,8 +302,8 @@ tpg ExprType(E: Operation, T: Type) {
                                         conclude: error [
                                             skill = "sequence_operation_applicability";
                                             hypothesis = "implicit_text_conversion";
-                                            RU.explanation = "Число само не превращается в строку: строку и число нельзя сложить без явного преобразования.";
-                                            EN.explanation = "A number does not turn into a string by itself: a string and a number cannot be added without an explicit conversion.";
+                                            RU.explanation = "Python не превращает число в строку сам: ${A.class()} не склеивает строку с числом без явного <code>str(...)</code>.";
+                                            EN.explanation = "Python does not turn a number into a string by itself: the ${A.class()} does not join a string with a number without an explicit <code>str(...)</code>.";
                                             RU.reason = "При сложении со строкой число само превращается в строку.";
                                             EN.reason = "When added to a string, a number turns into a string by itself.";
                                         ];
@@ -315,8 +315,8 @@ tpg ExprType(E: Operation, T: Type) {
                                 null -> {
                                     conclude: error [
                                         skill = "sequence_operation_applicability";
-                                        RU.explanation = "Такой тип не получается: операция неприменима к операндам таких типов, возникает ошибка.";
-                                        EN.explanation = "This type cannot be obtained: the operation cannot be applied to operands of these types, an error occurs.";
+                                        RU.explanation = "${A.class()} нельзя применить к операндам типов ${L} и ${R}.";
+                                        EN.explanation = "the ${A.class()} cannot be applied to operands of types ${L} and ${R}.";
                                     ]
                                 };
                             } as inapplicableSequenceOperationHypotheses
@@ -336,8 +336,8 @@ tpg ExprType(E: Operation, T: Type) {
                                 conclude: correct [
                                     skill = "negation_result";
                                     hypothesis = "rule";
-                                    RU.explanation = "Логическое отрицание всегда даёт логическое значение.";
-                                    EN.explanation = "Logical negation always gives a boolean value.";
+                                    RU.explanation = "${E.class()} лишь сообщает, ложен ли операнд, и отвечает True или False.";
+                                    EN.explanation = "the ${E.class()} only tells whether the operand is falsy and answers True or False.";
                                 ];
                             };
                             conclude: null
@@ -347,8 +347,8 @@ tpg ExprType(E: Operation, T: Type) {
                                 conclude: error [
                                     skill = "negation_result";
                                     hypothesis = "operand_type";
-                                    RU.explanation = "Отрицание не сохраняет тип операнда: результат всегда логический.";
-                                    EN.explanation = "Negation does not keep the operand's type: the result is always boolean.";
+                                    RU.explanation = "${E.class()} не возвращает свой операнд, а лишь сообщает, ложен ли он.";
+                                    EN.explanation = "the ${E.class()} does not return its operand; it only tells whether the operand is falsy.";
                                 ];
                             };
                             conclude: null
@@ -358,8 +358,8 @@ tpg ExprType(E: Operation, T: Type) {
                         null -> {
                             conclude: error [
                                 skill = "negation_result";
-                                RU.explanation = "Такой тип не получается: логическое отрицание даёт логическое значение.";
-                                EN.explanation = "This type cannot be obtained: logical negation gives a boolean value.";
+                                RU.explanation = "${E.class()} лишь сообщает, ложен ли операнд, и не создаёт значений такого типа.";
+                                EN.explanation = "the ${E.class()} only tells whether the operand is falsy and does not create values of this type.";
                             ]
                         };
                     }
@@ -376,8 +376,8 @@ tpg ExprType(E: Operation, T: Type) {
                                         conclude: correct [
                                             skill = "boolean_logical_result";
                                             hypothesis = "rule";
-                                            RU.explanation = "Логические операции дают логическое значение.";
-                                            EN.explanation = "Logical operations give a boolean value.";
+                                            RU.explanation = "в этом языке ${B.class()} вычисляет истинность всего выражения и отвечает логическим значением.";
+                                            EN.explanation = "in this language the ${B.class()} evaluates the truth of the whole expression and answers with a boolean.";
                                         ];
                                     };
                                     conclude: null
@@ -387,8 +387,8 @@ tpg ExprType(E: Operation, T: Type) {
                                         conclude: error [
                                             skill = "boolean_logical_result";
                                             hypothesis = "operand_type";
-                                            RU.explanation = "Логическая операция не возвращает операнд: результат всегда логический.";
-                                            EN.explanation = "A logical operation does not return an operand: the result is always boolean.";
+                                            RU.explanation = "в этом языке ${B.class()} не возвращает операнд, а вычисляет истинность всего выражения.";
+                                            EN.explanation = "in this language the ${B.class()} does not return an operand; it evaluates the truth of the whole expression.";
                                         ];
                                     };
                                     conclude: null
@@ -398,8 +398,8 @@ tpg ExprType(E: Operation, T: Type) {
                                 null -> {
                                     conclude: error [
                                         skill = "boolean_logical_result";
-                                        RU.explanation = "Такой тип не получается: логические операции дают логическое значение.";
-                                        EN.explanation = "This type cannot be obtained: logical operations give a boolean value.";
+                                        RU.explanation = "в этом языке ${B.class()} вычисляет только истинность выражения и не создаёт значений такого типа.";
+                                        EN.explanation = "in this language the ${B.class()} only evaluates the truth of the expression and does not create values of this type.";
                                     ]
                                 };
                             }
@@ -415,8 +415,8 @@ tpg ExprType(E: Operation, T: Type) {
                                                 conclude: correct [
                                                     skill = "logical_returned_operand";
                                                     hypothesis = "rule";
-                                                    RU.explanation = "Результат — левый операнд: or возвращает его, если он истинный, а and — если он ложный.";
-                                                    EN.explanation = "The result is the left operand: or returns it when it is truthy, and returns it when it is falsy.";
+                                                    RU.explanation = "левый операнд ${B->hasOperand<OperandPlacement:left>.isTruthy ? 'истинный' : 'ложный'}, а ${B.class()} на таком операнде останавливается и возвращает его.";
+                                                    EN.explanation = "the left operand is ${B->hasOperand<OperandPlacement:left>.isTruthy ? 'truthy' : 'falsy'}, and the ${B.class()} stops at such an operand and returns it.";
                                                 ];
                                             };
                                             conclude: null
@@ -426,8 +426,8 @@ tpg ExprType(E: Operation, T: Type) {
                                                 conclude: error [
                                                     skill = "logical_returned_operand";
                                                     hypothesis = "logical_gives_boolean";
-                                                    RU.explanation = "and и or не превращают результат в логическое значение: они возвращают один из операндов.";
-                                                    EN.explanation = "and and or do not turn the result into a boolean: they return one of the operands.";
+                                                    RU.explanation = "${B.class()} в Python не превращает результат в True или False — он возвращает один из операндов как есть.";
+                                                    EN.explanation = "in Python the ${B.class()} does not turn the result into True or False — it returns one of the operands as is.";
                                                     RU.reason = "and и or всегда дают True или False.";
                                                     EN.reason = "and and or always give True or False.";
                                                 ];
@@ -439,8 +439,8 @@ tpg ExprType(E: Operation, T: Type) {
                                                 conclude: error [
                                                     skill = "logical_returned_operand";
                                                     hypothesis = "truthiness_misjudged";
-                                                    RU.explanation = "Истинность левого операнда определена неверно: пустые строки и коллекции, 0 и None ложны, остальное истинно.";
-                                                    EN.explanation = "The truthiness of the left operand is misjudged: empty strings and collections, 0 and None are falsy, everything else is truthy.";
+                                                    RU.explanation = "левый операнд ${B->hasOperand<OperandPlacement:left>.isTruthy ? 'истинный' : 'ложный'} (пустые строки и коллекции, 0 и None ложны, остальное истинно), а ${B.class()} на таком операнде останавливается.";
+                                                    EN.explanation = "the left operand is ${B->hasOperand<OperandPlacement:left>.isTruthy ? 'truthy' : 'falsy'} (empty strings and collections, 0 and None are falsy, everything else is truthy), and the ${B.class()} stops at such an operand.";
                                                     RU.reason = "Левый операнд ${B->hasOperand<OperandPlacement:left>.isTruthy ? 'ложный' : 'истинный'}.";
                                                     EN.reason = "The left operand is ${B->hasOperand<OperandPlacement:left>.isTruthy ? 'falsy' : 'truthy'}.";
                                                 ];
@@ -452,8 +452,8 @@ tpg ExprType(E: Operation, T: Type) {
                                                 conclude: error [
                                                     skill = "logical_returned_operand";
                                                     hypothesis = "and_or_confused";
-                                                    RU.explanation = "Правила and и or перепутаны: or возвращает первый истинный операнд, а and — первый ложный.";
-                                                    EN.explanation = "The rules of and and or are mixed up: or returns the first truthy operand, and returns the first falsy one.";
+                                                    RU.explanation = "${B.class()} останавливается на первом ${B.returnsLeftWhenLeftTruthy ? 'истинном' : 'ложном'} операнде, а на первом ${B.returnsLeftWhenLeftTruthy ? 'ложном' : 'истинном'} останавливается ${B.returnsLeftWhenLeftTruthy ? 'and' : 'or'}.";
+                                                    EN.explanation = "the ${B.class()} stops at the first ${B.returnsLeftWhenLeftTruthy ? 'truthy' : 'falsy'} operand; it is ${B.returnsLeftWhenLeftTruthy ? 'and' : 'or'} that stops at the first ${B.returnsLeftWhenLeftTruthy ? 'falsy' : 'truthy'} one.";
                                                     RU.reason = "or возвращает первый ложный операнд, а and — первый истинный.";
                                                     EN.reason = "or returns the first falsy operand, and and returns the first truthy one.";
                                                 ];
@@ -465,8 +465,8 @@ tpg ExprType(E: Operation, T: Type) {
                                         null -> {
                                             conclude: error [
                                                 skill = "logical_returned_operand";
-                                                RU.explanation = "Такой тип не получается: and и or возвращают один из операндов, здесь — левый.";
-                                                EN.explanation = "This type cannot be obtained: and and or return one of the operands, here the left one.";
+                                                RU.explanation = "${B.class()} возвращает один из своих операндов, а ни один из них (${L}, ${R}) не имеет такого типа.";
+                                                EN.explanation = "the ${B.class()} returns one of its operands, and neither of them (${L}, ${R}) has this type.";
                                             ]
                                         };
                                     } as leftOperandHypotheses
@@ -478,8 +478,8 @@ tpg ExprType(E: Operation, T: Type) {
                                                 conclude: correct [
                                                     skill = "logical_returned_operand";
                                                     hypothesis = "rule";
-                                                    RU.explanation = "Результат — правый операнд: or возвращает его, если левый ложный, а and — если левый истинный.";
-                                                    EN.explanation = "The result is the right operand: or returns it when the left one is falsy, and returns it when the left one is truthy.";
+                                                    RU.explanation = "левый операнд ${B->hasOperand<OperandPlacement:left>.isTruthy ? 'истинный' : 'ложный'}, ${B.class()} на таком операнде не останавливается и возвращает правый операнд.";
+                                                    EN.explanation = "the left operand is ${B->hasOperand<OperandPlacement:left>.isTruthy ? 'truthy' : 'falsy'}, so the ${B.class()} does not stop at it and returns the right operand.";
                                                 ];
                                             };
                                             conclude: null
@@ -489,8 +489,8 @@ tpg ExprType(E: Operation, T: Type) {
                                                 conclude: error [
                                                     skill = "logical_returned_operand";
                                                     hypothesis = "logical_gives_boolean";
-                                                    RU.explanation = "and и or не превращают результат в логическое значение: они возвращают один из операндов.";
-                                                    EN.explanation = "and and or do not turn the result into a boolean: they return one of the operands.";
+                                                    RU.explanation = "${B.class()} в Python не превращает результат в True или False — он возвращает один из операндов как есть.";
+                                                    EN.explanation = "in Python the ${B.class()} does not turn the result into True or False — it returns one of the operands as is.";
                                                     RU.reason = "and и or всегда дают True или False.";
                                                     EN.reason = "and and or always give True or False.";
                                                 ];
@@ -502,8 +502,8 @@ tpg ExprType(E: Operation, T: Type) {
                                                 conclude: error [
                                                     skill = "logical_returned_operand";
                                                     hypothesis = "truthiness_misjudged";
-                                                    RU.explanation = "Истинность левого операнда определена неверно: пустые строки и коллекции, 0 и None ложны, остальное истинно.";
-                                                    EN.explanation = "The truthiness of the left operand is misjudged: empty strings and collections, 0 and None are falsy, everything else is truthy.";
+                                                    RU.explanation = "левый операнд ${B->hasOperand<OperandPlacement:left>.isTruthy ? 'истинный' : 'ложный'} (пустые строки и коллекции, 0 и None ложны, остальное истинно), а ${B.class()} на таком операнде не останавливается.";
+                                                    EN.explanation = "the left operand is ${B->hasOperand<OperandPlacement:left>.isTruthy ? 'truthy' : 'falsy'} (empty strings and collections, 0 and None are falsy, everything else is truthy), and the ${B.class()} does not stop at such an operand.";
                                                     RU.reason = "Левый операнд ${B->hasOperand<OperandPlacement:left>.isTruthy ? 'ложный' : 'истинный'}.";
                                                     EN.reason = "The left operand is ${B->hasOperand<OperandPlacement:left>.isTruthy ? 'falsy' : 'truthy'}.";
                                                 ];
@@ -515,8 +515,8 @@ tpg ExprType(E: Operation, T: Type) {
                                                 conclude: error [
                                                     skill = "logical_returned_operand";
                                                     hypothesis = "and_or_confused";
-                                                    RU.explanation = "Правила and и or перепутаны: or возвращает первый истинный операнд, а and — первый ложный.";
-                                                    EN.explanation = "The rules of and and or are mixed up: or returns the first truthy operand, and returns the first falsy one.";
+                                                    RU.explanation = "${B.class()} останавливается на первом ${B.returnsLeftWhenLeftTruthy ? 'истинном' : 'ложном'} операнде, а на первом ${B.returnsLeftWhenLeftTruthy ? 'ложном' : 'истинном'} останавливается ${B.returnsLeftWhenLeftTruthy ? 'and' : 'or'}.";
+                                                    EN.explanation = "the ${B.class()} stops at the first ${B.returnsLeftWhenLeftTruthy ? 'truthy' : 'falsy'} operand; it is ${B.returnsLeftWhenLeftTruthy ? 'and' : 'or'} that stops at the first ${B.returnsLeftWhenLeftTruthy ? 'falsy' : 'truthy'} one.";
                                                     RU.reason = "or возвращает первый ложный операнд, а and — первый истинный.";
                                                     EN.reason = "or returns the first falsy operand, and and returns the first truthy one.";
                                                 ];
@@ -528,8 +528,8 @@ tpg ExprType(E: Operation, T: Type) {
                                         null -> {
                                             conclude: error [
                                                 skill = "logical_returned_operand";
-                                                RU.explanation = "Такой тип не получается: and и or возвращают один из операндов, здесь — правый.";
-                                                EN.explanation = "This type cannot be obtained: and and or return one of the operands, here the right one.";
+                                                RU.explanation = "${B.class()} возвращает один из своих операндов, а ни один из них (${L}, ${R}) не имеет такого типа.";
+                                                EN.explanation = "the ${B.class()} returns one of its operands, and neither of them (${L}, ${R}) has this type.";
                                             ]
                                         };
                                     } as rightOperandHypotheses
@@ -555,8 +555,8 @@ tpg ExprType(E: Operation, T: Type) {
                                         conclude: correct [
                                             skill = "equality_comparison";
                                             hypothesis = "rule";
-                                            RU.explanation = "Проверка на равенство даёт логическое значение.";
-                                            EN.explanation = "An equality check gives a boolean value.";
+                                            RU.explanation = "${C.class()} сравнивает значения и отвечает True или False.";
+                                            EN.explanation = "the ${C.class()} compares the values and answers True or False.";
                                         ];
                                     };
                                     conclude: null
@@ -566,8 +566,8 @@ tpg ExprType(E: Operation, T: Type) {
                                         conclude: error [
                                             skill = "equality_comparison";
                                             hypothesis = "operand_type";
-                                            RU.explanation = "Проверка на равенство даёт логическое значение, а не тип операнда.";
-                                            EN.explanation = "An equality check gives a boolean value, not an operand's type.";
+                                            RU.explanation = "${C.class()} не возвращает сравниваемые значения, а только сообщает результат сравнения.";
+                                            EN.explanation = "the ${C.class()} does not return the compared values; it only reports the result of the comparison.";
                                         ];
                                     };
                                     conclude: null
@@ -577,8 +577,8 @@ tpg ExprType(E: Operation, T: Type) {
                                 null -> {
                                     conclude: error [
                                         skill = "equality_comparison";
-                                        RU.explanation = "Такой тип не получается: проверка на равенство даёт логическое значение.";
-                                        EN.explanation = "This type cannot be obtained: an equality check gives a boolean value.";
+                                        RU.explanation = "${C.class()} сообщает только результат сравнения и не создаёт значений такого типа.";
+                                        EN.explanation = "the ${C.class()} only reports the result of the comparison and does not create values of this type.";
                                     ]
                                 };
                             }
@@ -590,8 +590,8 @@ tpg ExprType(E: Operation, T: Type) {
                                         conclude: correct [
                                             skill = "equality_comparison";
                                             hypothesis = "rule";
-                                            RU.explanation = "Значения таких типов нельзя проверить на равенство — возникает ошибка.";
-                                            EN.explanation = "Values of these types cannot be checked for equality, so an error occurs.";
+                                            RU.explanation = "${C.class()} не применим к значениям типов ${L} и ${R}, поэтому возникает ошибка.";
+                                            EN.explanation = "the ${C.class()} cannot be applied to values of types ${L} and ${R}, so an error occurs.";
                                         ];
                                     };
                                     conclude: null
@@ -601,8 +601,8 @@ tpg ExprType(E: Operation, T: Type) {
                                         conclude: error [
                                             skill = "equality_comparison";
                                             hypothesis = "inapplicable_comparison_gives_boolean";
-                                            RU.explanation = "Значения таких типов нельзя проверить на равенство: возникает ошибка, а не True или False.";
-                                            EN.explanation = "Values of these types cannot be checked for equality: an error occurs instead of True or False.";
+                                            RU.explanation = "${C.class()} не применим к значениям типов ${L} и ${R}, поэтому сравнение не дойдёт до True или False.";
+                                            EN.explanation = "the ${C.class()} cannot be applied to values of types ${L} and ${R}, so the comparison never gets to True or False.";
                                             RU.reason = "Проверка на равенство всегда даёт True или False.";
                                             EN.reason = "An equality check always gives True or False.";
                                         ];
@@ -614,8 +614,8 @@ tpg ExprType(E: Operation, T: Type) {
                                         conclude: error [
                                             skill = "equality_comparison";
                                             hypothesis = "operand_type";
-                                            RU.explanation = "Значения таких типов нельзя проверить на равенство: результата нет, возникает ошибка.";
-                                            EN.explanation = "Values of these types cannot be checked for equality: there is no result, an error occurs.";
+                                            RU.explanation = "${C.class()} не применим к значениям типов ${L} и ${R}, а сравнение и не возвращает свои операнды.";
+                                            EN.explanation = "the ${C.class()} cannot be applied to values of types ${L} and ${R}, and a comparison does not return its operands anyway.";
                                             RU.reason = "Результат берёт тип одного из операндов.";
                                             EN.reason = "The result takes the type of one of the operands.";
                                         ];
@@ -627,8 +627,8 @@ tpg ExprType(E: Operation, T: Type) {
                                 null -> {
                                     conclude: error [
                                         skill = "equality_comparison";
-                                        RU.explanation = "Такой тип не получается: значения таких типов нельзя проверить на равенство, возникает ошибка.";
-                                        EN.explanation = "This type cannot be obtained: values of these types cannot be checked for equality, an error occurs.";
+                                        RU.explanation = "${C.class()} не применим к значениям типов ${L} и ${R}.";
+                                        EN.explanation = "the ${C.class()} cannot be applied to values of types ${L} and ${R}.";
                                     ]
                                 };
                             } as inapplicableEqualityHypotheses
@@ -644,8 +644,8 @@ tpg ExprType(E: Operation, T: Type) {
                                         conclude: correct [
                                             skill = "ordering_comparison";
                                             hypothesis = "rule";
-                                            RU.explanation = "Сравнение по порядку даёт логическое значение.";
-                                            EN.explanation = "An ordering comparison gives a boolean value.";
+                                            RU.explanation = "${C.class()} сравнивает значения по порядку и отвечает True или False.";
+                                            EN.explanation = "the ${C.class()} compares the values by order and answers True or False.";
                                         ];
                                     };
                                     conclude: null
@@ -655,8 +655,8 @@ tpg ExprType(E: Operation, T: Type) {
                                         conclude: error [
                                             skill = "ordering_comparison";
                                             hypothesis = "operand_type";
-                                            RU.explanation = "Сравнение по порядку даёт логическое значение, а не тип операнда.";
-                                            EN.explanation = "An ordering comparison gives a boolean value, not an operand's type.";
+                                            RU.explanation = "${C.class()} не возвращает сравниваемые значения, а только сообщает результат сравнения.";
+                                            EN.explanation = "the ${C.class()} does not return the compared values; it only reports the result of the comparison.";
                                         ];
                                     };
                                     conclude: null
@@ -666,8 +666,8 @@ tpg ExprType(E: Operation, T: Type) {
                                 null -> {
                                     conclude: error [
                                         skill = "ordering_comparison";
-                                        RU.explanation = "Такой тип не получается: сравнение по порядку даёт логическое значение.";
-                                        EN.explanation = "This type cannot be obtained: an ordering comparison gives a boolean value.";
+                                        RU.explanation = "${C.class()} сообщает только результат сравнения и не создаёт значений такого типа.";
+                                        EN.explanation = "the ${C.class()} only reports the result of the comparison and does not create values of this type.";
                                     ]
                                 };
                             }
@@ -679,8 +679,8 @@ tpg ExprType(E: Operation, T: Type) {
                                         conclude: correct [
                                             skill = "ordering_comparison";
                                             hypothesis = "rule";
-                                            RU.explanation = "По порядку сравниваются только числа между собой или последовательности одного вида — здесь возникает ошибка.";
-                                            EN.explanation = "Only numbers with numbers or sequences of the same kind can be ordered, so an error occurs here.";
+                                            RU.explanation = "по порядку сравниваются только числа между собой и последовательности одного вида, а здесь значения типов ${L} и ${R}, поэтому возникает ошибка.";
+                                            EN.explanation = "only numbers with numbers or sequences of the same kind can be ordered, while here the values have types ${L} and ${R}, so an error occurs.";
                                         ];
                                     };
                                     conclude: null
@@ -690,8 +690,8 @@ tpg ExprType(E: Operation, T: Type) {
                                         conclude: error [
                                             skill = "ordering_comparison";
                                             hypothesis = "inapplicable_comparison_gives_boolean";
-                                            RU.explanation = "Значения таких типов нельзя сравнивать по порядку: возникает ошибка, а не True или False.";
-                                            EN.explanation = "Values of these types cannot be ordered: an error occurs instead of True or False.";
+                                            RU.explanation = "значения типов ${L} и ${R} нельзя сравнить по порядку, поэтому ${C.class()} не дойдёт до True или False.";
+                                            EN.explanation = "values of types ${L} and ${R} cannot be ordered, so the ${C.class()} never gets to True or False.";
                                             RU.reason = "Сравнение по порядку всегда даёт True или False.";
                                             EN.reason = "An ordering comparison always gives True or False.";
                                         ];
@@ -703,8 +703,8 @@ tpg ExprType(E: Operation, T: Type) {
                                         conclude: error [
                                             skill = "ordering_comparison";
                                             hypothesis = "operand_type";
-                                            RU.explanation = "Значения таких типов нельзя сравнивать по порядку: результата нет, возникает ошибка.";
-                                            EN.explanation = "Values of these types cannot be ordered: there is no result, an error occurs.";
+                                            RU.explanation = "значения типов ${L} и ${R} нельзя сравнить по порядку, а сравнение и не возвращает свои операнды.";
+                                            EN.explanation = "values of types ${L} and ${R} cannot be ordered, and a comparison does not return its operands anyway.";
                                             RU.reason = "Результат берёт тип одного из операндов.";
                                             EN.reason = "The result takes the type of one of the operands.";
                                         ];
@@ -716,8 +716,8 @@ tpg ExprType(E: Operation, T: Type) {
                                 null -> {
                                     conclude: error [
                                         skill = "ordering_comparison";
-                                        RU.explanation = "Такой тип не получается: значения таких типов нельзя сравнивать по порядку, возникает ошибка.";
-                                        EN.explanation = "This type cannot be obtained: values of these types cannot be ordered, an error occurs.";
+                                        RU.explanation = "значения типов ${L} и ${R} нельзя сравнить по порядку.";
+                                        EN.explanation = "values of types ${L} and ${R} cannot be ordered.";
                                     ]
                                 };
                             } as inapplicableOrderingHypotheses
@@ -733,8 +733,8 @@ tpg ExprType(E: Operation, T: Type) {
                                         conclude: correct [
                                             skill = "membership_test";
                                             hypothesis = "rule";
-                                            RU.explanation = "Проверка вхождения даёт логическое значение.";
-                                            EN.explanation = "A membership test gives a boolean value.";
+                                            RU.explanation = "${C.class()} проверяет, есть ли левый операнд в правом (${R}), и отвечает True или False.";
+                                            EN.explanation = "the ${C.class()} checks whether the left operand occurs in the right one (${R}) and answers True or False.";
                                         ];
                                     };
                                     conclude: null
@@ -744,8 +744,8 @@ tpg ExprType(E: Operation, T: Type) {
                                         conclude: error [
                                             skill = "membership_test";
                                             hypothesis = "operand_type";
-                                            RU.explanation = "Проверка вхождения даёт логическое значение, а не найденный элемент или тип операнда.";
-                                            EN.explanation = "A membership test gives a boolean value, not the found element or an operand's type.";
+                                            RU.explanation = "${C.class()} не возвращает найденный элемент или коллекцию, а только сообщает, есть ли элемент.";
+                                            EN.explanation = "the ${C.class()} does not return the found element or the collection; it only reports whether the element is there.";
                                         ];
                                     };
                                     conclude: null
@@ -755,8 +755,8 @@ tpg ExprType(E: Operation, T: Type) {
                                 null -> {
                                     conclude: error [
                                         skill = "membership_test";
-                                        RU.explanation = "Такой тип не получается: проверка вхождения даёт логическое значение.";
-                                        EN.explanation = "This type cannot be obtained: a membership test gives a boolean value.";
+                                        RU.explanation = "${C.class()} сообщает только, есть ли элемент, и не создаёт значений такого типа.";
+                                        EN.explanation = "the ${C.class()} only reports whether the element is there and does not create values of this type.";
                                     ]
                                 };
                             }
@@ -768,8 +768,8 @@ tpg ExprType(E: Operation, T: Type) {
                                         conclude: correct [
                                             skill = "membership_test";
                                             hypothesis = "rule";
-                                            RU.explanation = "Вхождение проверяется только в коллекции или строке, причём в строке ищут только строку — здесь возникает ошибка.";
-                                            EN.explanation = "Membership is tested only in a collection or a string, and only a string can be searched in a string, so an error occurs here.";
+                                            RU.explanation = "в значении типа ${R} нельзя искать значение типа ${L}: искать можно в коллекции или строке, а в строке — только строку; поэтому возникает ошибка.";
+                                            EN.explanation = "a value of type ${L} cannot be searched for in a value of type ${R}: one can search only in a collection or a string, and only for a string in a string; so an error occurs.";
                                         ];
                                     };
                                     conclude: null
@@ -779,8 +779,8 @@ tpg ExprType(E: Operation, T: Type) {
                                         conclude: error [
                                             skill = "membership_test";
                                             hypothesis = "inapplicable_comparison_gives_boolean";
-                                            RU.explanation = "Здесь вхождение проверить нельзя: правый операнд не коллекция или в строке ищут не строку — возникает ошибка, а не True или False.";
-                                            EN.explanation = "Membership cannot be tested here: the right operand is not a collection or a non-string is searched in a string, so an error occurs instead of True or False.";
+                                            RU.explanation = "в значении типа ${R} нельзя искать значение типа ${L}, поэтому проверка не дойдёт до True или False.";
+                                            EN.explanation = "a value of type ${L} cannot be searched for in a value of type ${R}, so the check never gets to True or False.";
                                             RU.reason = "Проверка вхождения всегда даёт True или False.";
                                             EN.reason = "A membership test always gives True or False.";
                                         ];
@@ -792,8 +792,8 @@ tpg ExprType(E: Operation, T: Type) {
                                         conclude: error [
                                             skill = "membership_test";
                                             hypothesis = "operand_type";
-                                            RU.explanation = "Здесь вхождение проверить нельзя: результата нет, возникает ошибка.";
-                                            EN.explanation = "Membership cannot be tested here: there is no result, an error occurs.";
+                                            RU.explanation = "в значении типа ${R} нельзя искать значение типа ${L}, а проверка вхождения и не возвращает свои операнды.";
+                                            EN.explanation = "a value of type ${L} cannot be searched for in a value of type ${R}, and a membership test does not return its operands anyway.";
                                             RU.reason = "Результат берёт тип одного из операндов.";
                                             EN.reason = "The result takes the type of one of the operands.";
                                         ];
@@ -805,8 +805,8 @@ tpg ExprType(E: Operation, T: Type) {
                                 null -> {
                                     conclude: error [
                                         skill = "membership_test";
-                                        RU.explanation = "Такой тип не получается: здесь вхождение проверить нельзя, возникает ошибка.";
-                                        EN.explanation = "This type cannot be obtained: membership cannot be tested here, an error occurs.";
+                                        RU.explanation = "в значении типа ${R} нельзя искать значение типа ${L}.";
+                                        EN.explanation = "a value of type ${L} cannot be searched for in a value of type ${R}.";
                                     ]
                                 };
                             } as inapplicableMembershipHypotheses
@@ -829,8 +829,8 @@ tpg ExprType(E: Operation, T: Type) {
                                 conclude: correct [
                                     skill = "mapping_value_access";
                                     hypothesis = "rule";
-                                    RU.explanation = "Обращение к словарю по ключу даёт значение, хранящееся под этим ключом.";
-                                    EN.explanation = "Accessing a dictionary by key gives the value stored under that key.";
+                                    RU.explanation = "по ключу из словаря типа ${X} берётся хранящееся под ним значение, а значения там имеют тип ${M->valueType}.";
+                                    EN.explanation = "accessing a dictionary of type ${X} by key takes the value stored under that key, and its values have type ${M->valueType}.";
                                 ];
                             };
                             conclude: null
@@ -840,8 +840,8 @@ tpg ExprType(E: Operation, T: Type) {
                                 conclude: error [
                                     skill = "mapping_value_access";
                                     hypothesis = "key_instead_of_value";
-                                    RU.explanation = "По ключу возвращается значение, а не сам ключ.";
-                                    EN.explanation = "Access by key returns the value, not the key itself.";
+                                    RU.explanation = "по ключу из словаря возвращается хранящееся под ним значение, а не сам ключ.";
+                                    EN.explanation = "accessing a dictionary by key returns the value stored under that key, not the key itself.";
                                     RU.reason = "Обращение к словарю по ключу даёт тип ключа.";
                                     EN.reason = "Accessing a dictionary by key gives the key type.";
                                 ];
@@ -853,8 +853,8 @@ tpg ExprType(E: Operation, T: Type) {
                                 conclude: error [
                                     skill = "mapping_value_access";
                                     hypothesis = "container_type";
-                                    RU.explanation = "Обращение по ключу даёт одно значение, а не словарь.";
-                                    EN.explanation = "Access by key gives a single value, not the dictionary.";
+                                    RU.explanation = "обращение по ключу достаёт из словаря одно значение, а не словарь целиком.";
+                                    EN.explanation = "access by key takes a single value out of the dictionary, not the whole dictionary.";
                                     RU.reason = "Обращение к словарю по ключу даёт словарь.";
                                     EN.reason = "Accessing a dictionary by key gives a dictionary.";
                                 ];
@@ -866,8 +866,8 @@ tpg ExprType(E: Operation, T: Type) {
                         null -> {
                             conclude: error [
                                 skill = "mapping_value_access";
-                                RU.explanation = "Такой тип не получается: обращение к словарю по ключу даёт тип значений словаря.";
-                                EN.explanation = "This type cannot be obtained: accessing a dictionary by key gives the type of its values.";
+                                RU.explanation = "в словаре типа ${X} ни ключи, ни значения не имеют такого типа.";
+                                EN.explanation = "neither the keys nor the values of the dictionary of type ${X} have this type.";
                             ]
                         };
                     } as mappingValueHypotheses
@@ -884,8 +884,8 @@ tpg ExprType(E: Operation, T: Type) {
                                                 conclude: correct [
                                                     skill = "indexed_element_type";
                                                     hypothesis = "rule";
-                                                    RU.explanation = "Элемент кортежа по индексу имеет тип, стоящий в кортеже на этой позиции; позиции считаются с нуля.";
-                                                    EN.explanation = "A tuple element accessed by index has the type at that position; positions count from zero.";
+                                                    RU.explanation = "на позиции ${E->hasOperand<OperandPlacement:right>.intValue} кортежа типа ${X} стоит элемент этого типа (позиции считаются с нуля).";
+                                                    EN.explanation = "the tuple of type ${X} holds an element of this type at position ${E->hasOperand<OperandPlacement:right>.intValue} (positions count from zero).";
                                                 ];
                                             };
                                             conclude: null
@@ -895,8 +895,8 @@ tpg ExprType(E: Operation, T: Type) {
                                                 conclude: error [
                                                     skill = "indexed_element_type";
                                                     hypothesis = "container_type";
-                                                    RU.explanation = "Обращение по индексу берёт один элемент, а не часть кортежа: часть даёт срез.";
-                                                    EN.explanation = "Indexing takes a single element, not part of the tuple: a part is given by slicing.";
+                                                    RU.explanation = "обращение по индексу берёт из кортежа один элемент, а не кортеж; часть кортежа даёт срез.";
+                                                    EN.explanation = "indexing takes a single element out of the tuple, not a tuple; a part of the tuple is given by slicing.";
                                                     RU.reason = "Обращение к кортежу по индексу даёт кортеж.";
                                                     EN.reason = "Indexing a tuple gives a tuple.";
                                                 ];
@@ -908,8 +908,8 @@ tpg ExprType(E: Operation, T: Type) {
                                                 conclude: error [
                                                     skill = "indexed_element_type";
                                                     hypothesis = "index_type";
-                                                    RU.explanation = "Результат — элемент кортежа, а не индекс.";
-                                                    EN.explanation = "The result is a tuple element, not the index.";
+                                                    RU.explanation = "индекс лишь указывает позицию, а результат обращения — сам элемент кортежа.";
+                                                    EN.explanation = "the index only points at a position; the result of indexing is the tuple element itself.";
                                                     RU.reason = "Обращение по индексу даёт тип индекса.";
                                                     EN.reason = "Indexing gives the type of the index.";
                                                 ];
@@ -921,8 +921,8 @@ tpg ExprType(E: Operation, T: Type) {
                                         null -> {
                                             conclude: error [
                                                 skill = "indexed_element_type";
-                                                RU.explanation = "Такой тип не получается: элемент кортежа имеет тип, стоящий на позиции индекса.";
-                                                EN.explanation = "This type cannot be obtained: a tuple element has the type at the index position.";
+                                                RU.explanation = "на позиции ${E->hasOperand<OperandPlacement:right>.intValue} кортежа типа ${X} стоит элемент другого типа (позиции считаются с нуля).";
+                                                EN.explanation = "the tuple of type ${X} holds an element of a different type at position ${E->hasOperand<OperandPlacement:right>.intValue} (positions count from zero).";
                                             ]
                                         };
                                     } as tupleElementHypotheses
@@ -935,8 +935,8 @@ tpg ExprType(E: Operation, T: Type) {
                                                 conclude: correct [
                                                     skill = "indexed_element_type";
                                                     hypothesis = "rule";
-                                                    RU.explanation = "Обращение по индексу даёт один элемент последовательности; элемент строки — тоже строка.";
-                                                    EN.explanation = "Indexing gives a single element of the sequence; an element of a string is a string too.";
+                                                    RU.explanation = "обращение по индексу берёт один элемент из ${X}, а элементы там имеют тип ${S->elementType}.";
+                                                    EN.explanation = "indexing takes a single element of ${X}, and its elements have type ${S->elementType}.";
                                                 ];
                                             };
                                             conclude: null
@@ -946,8 +946,8 @@ tpg ExprType(E: Operation, T: Type) {
                                                 conclude: error [
                                                     skill = "indexed_element_type";
                                                     hypothesis = "container_type";
-                                                    RU.explanation = "Обращение по индексу берёт один элемент, а не часть последовательности: часть даёт срез.";
-                                                    EN.explanation = "Indexing takes a single element, not part of the sequence: a part is given by slicing.";
+                                                    RU.explanation = "обращение по индексу берёт из последовательности один элемент, а не последовательность; часть последовательности даёт срез.";
+                                                    EN.explanation = "indexing takes a single element out of the sequence, not a sequence; a part of the sequence is given by slicing.";
                                                     RU.reason = "Обращение по индексу даёт последовательность того же типа.";
                                                     EN.reason = "Indexing gives a sequence of the same type.";
                                                 ];
@@ -959,8 +959,8 @@ tpg ExprType(E: Operation, T: Type) {
                                                 conclude: error [
                                                     skill = "indexed_element_type";
                                                     hypothesis = "index_type";
-                                                    RU.explanation = "Результат — элемент последовательности, а не индекс.";
-                                                    EN.explanation = "The result is an element of the sequence, not the index.";
+                                                    RU.explanation = "индекс лишь указывает позицию, а результат обращения — сам элемент последовательности.";
+                                                    EN.explanation = "the index only points at a position; the result of indexing is the sequence element itself.";
                                                     RU.reason = "Обращение по индексу даёт тип индекса.";
                                                     EN.reason = "Indexing gives the type of the index.";
                                                 ];
@@ -972,8 +972,8 @@ tpg ExprType(E: Operation, T: Type) {
                                                 conclude: error [
                                                     skill = "indexed_element_type";
                                                     hypothesis = "nesting_level_skipped";
-                                                    RU.explanation = "Одно обращение по индексу снимает только один уровень вложенности: элемент вложенного списка — сам список.";
-                                                    EN.explanation = "One indexing removes only one level of nesting: an element of a nested list is a list itself.";
+                                                    RU.explanation = "одно обращение по индексу достаёт элемент из ${X}, а не элемент этого элемента.";
+                                                    EN.explanation = "one indexing takes an element of ${X}, not an element of that element.";
                                                     RU.reason = "Обращение по индексу доходит до самых внутренних элементов.";
                                                     EN.reason = "Indexing reaches the innermost elements.";
                                                 ];
@@ -985,8 +985,8 @@ tpg ExprType(E: Operation, T: Type) {
                                         null -> {
                                             conclude: error [
                                                 skill = "indexed_element_type";
-                                                RU.explanation = "Такой тип не получается: обращение по индексу даёт тип элементов последовательности.";
-                                                EN.explanation = "This type cannot be obtained: indexing gives the type of the sequence elements.";
+                                                RU.explanation = "в последовательности типа ${X} нет элементов такого типа.";
+                                                EN.explanation = "a sequence of type ${X} has no elements of this type.";
                                             ]
                                         };
                                     } as sequenceElementHypotheses
@@ -1000,8 +1000,8 @@ tpg ExprType(E: Operation, T: Type) {
                                         conclude: correct [
                                             skill = "indexing_applicability";
                                             hypothesis = "rule";
-                                            RU.explanation = "По индексу можно обращаться только к последовательности с целым индексом или к словарю — здесь возникает ошибка.";
-                                            EN.explanation = "Only a sequence with an integer index or a dictionary can be indexed, so an error occurs here.";
+                                            RU.explanation = "по индексу обращаются к последовательности с целым индексом или к словарю, а здесь значение типа ${X} и индекс типа ${I}, поэтому возникает ошибка.";
+                                            EN.explanation = "only a sequence with an integer index or a dictionary can be indexed, while here the value has type ${X} and the index has type ${I}, so an error occurs.";
                                         ];
                                     };
                                     conclude: null
@@ -1011,8 +1011,8 @@ tpg ExprType(E: Operation, T: Type) {
                                         conclude: error [
                                             skill = "indexing_applicability";
                                             hypothesis = "index_type_ignored";
-                                            RU.explanation = "Индекс последовательности должен быть целым числом, иначе возникает ошибка.";
-                                            EN.explanation = "A sequence index must be an integer, otherwise an error occurs.";
+                                            RU.explanation = "индекс последовательности должен быть целым числом, а здесь он типа ${I}.";
+                                            EN.explanation = "a sequence index must be an integer, while here it has type ${I}.";
                                             RU.reason = "Индекс может быть любого типа.";
                                             EN.reason = "An index can be of any type.";
                                         ];
@@ -1024,8 +1024,8 @@ tpg ExprType(E: Operation, T: Type) {
                                         conclude: error [
                                             skill = "indexing_applicability";
                                             hypothesis = "container_type";
-                                            RU.explanation = "У такого значения нельзя взять элемент по индексу: результата нет, возникает ошибка.";
-                                            EN.explanation = "An element cannot be taken from such a value by index: there is no result, an error occurs.";
+                                            RU.explanation = "к значению типа ${X} нельзя обратиться по индексу типа ${I}, и обращение не возвращает само значение.";
+                                            EN.explanation = "a value of type ${X} cannot be indexed with an index of type ${I}, and indexing does not return the value itself.";
                                             RU.reason = "Результат берёт тип значения, к которому обращаются по индексу.";
                                             EN.reason = "The result takes the type of the indexed value.";
                                         ];
@@ -1037,8 +1037,8 @@ tpg ExprType(E: Operation, T: Type) {
                                         conclude: error [
                                             skill = "indexing_applicability";
                                             hypothesis = "index_type";
-                                            RU.explanation = "Обращение по индексу здесь невозможно: результата нет, возникает ошибка.";
-                                            EN.explanation = "Indexing is impossible here: there is no result, an error occurs.";
+                                            RU.explanation = "к значению типа ${X} нельзя обратиться по индексу типа ${I}, и индекс не становится результатом обращения.";
+                                            EN.explanation = "a value of type ${X} cannot be indexed with an index of type ${I}, and the index does not become the result of indexing.";
                                             RU.reason = "Обращение по индексу даёт тип индекса.";
                                             EN.reason = "Indexing gives the type of the index.";
                                         ];
@@ -1050,8 +1050,8 @@ tpg ExprType(E: Operation, T: Type) {
                                 null -> {
                                     conclude: error [
                                         skill = "indexing_applicability";
-                                        RU.explanation = "Такой тип не получается: обращение по индексу здесь невозможно, возникает ошибка.";
-                                        EN.explanation = "This type cannot be obtained: indexing is impossible here, an error occurs.";
+                                        RU.explanation = "к значению типа ${X} нельзя обратиться по индексу типа ${I}.";
+                                        EN.explanation = "a value of type ${X} cannot be indexed with an index of type ${I}.";
                                     ]
                                 };
                             } as inapplicableIndexingHypotheses
@@ -1076,8 +1076,8 @@ tpg ExprType(E: Operation, T: Type) {
                                 conclude: correct [
                                     skill = "slice_result";
                                     hypothesis = "rule";
-                                    RU.explanation = "Срез даёт часть последовательности того же типа.";
-                                    EN.explanation = "Slicing gives part of the sequence of the same type.";
+                                    RU.explanation = "срез берёт часть последовательности ${X} и сохраняет её тип.";
+                                    EN.explanation = "slicing takes a part of the sequence ${X} and keeps its type.";
                                 ];
                             };
                             conclude: null
@@ -1087,8 +1087,8 @@ tpg ExprType(E: Operation, T: Type) {
                                 conclude: error [
                                     skill = "slice_result";
                                     hypothesis = "slice_as_index";
-                                    RU.explanation = "Срез берёт часть последовательности, а не один элемент: один элемент даёт обращение по индексу.";
-                                    EN.explanation = "Slicing takes part of the sequence, not a single element: a single element is given by indexing.";
+                                    RU.explanation = "срез через двоеточие берёт часть последовательности, а не один элемент; один элемент даёт обращение по индексу без двоеточия.";
+                                    EN.explanation = "slicing with a colon takes a part of the sequence, not a single element; a single element is given by indexing without a colon.";
                                 ];
                             };
                             conclude: null
@@ -1098,8 +1098,8 @@ tpg ExprType(E: Operation, T: Type) {
                         null -> {
                             conclude: error [
                                 skill = "slice_result";
-                                RU.explanation = "Такой тип не получается: срез даёт последовательность того же типа.";
-                                EN.explanation = "This type cannot be obtained: slicing gives a sequence of the same type.";
+                                RU.explanation = "срез не меняет тип последовательности ${X}.";
+                                EN.explanation = "slicing does not change the type of the sequence ${X}.";
                             ]
                         };
                     }
@@ -1111,8 +1111,8 @@ tpg ExprType(E: Operation, T: Type) {
                                 conclude: correct [
                                     skill = "slice_result";
                                     hypothesis = "rule";
-                                    RU.explanation = "Срез можно взять только у последовательности — здесь возникает ошибка.";
-                                    EN.explanation = "Only a sequence can be sliced, so an error occurs here.";
+                                    RU.explanation = "срез можно взять только у последовательности, а здесь значение типа ${X}, поэтому возникает ошибка.";
+                                    EN.explanation = "only a sequence can be sliced, while here the value has type ${X}, so an error occurs.";
                                 ];
                             };
                             conclude: null
@@ -1122,8 +1122,8 @@ tpg ExprType(E: Operation, T: Type) {
                                 conclude: error [
                                     skill = "slice_result";
                                     hypothesis = "container_type";
-                                    RU.explanation = "У такого значения нельзя взять срез: результата нет, возникает ошибка.";
-                                    EN.explanation = "Such a value cannot be sliced: there is no result, an error occurs.";
+                                    RU.explanation = "у значения типа ${X} нельзя взять срез, и оно само не может стать результатом.";
+                                    EN.explanation = "a value of type ${X} cannot be sliced, and it cannot become the result itself.";
                                 ];
                             };
                             conclude: null
@@ -1133,8 +1133,8 @@ tpg ExprType(E: Operation, T: Type) {
                         null -> {
                             conclude: error [
                                 skill = "slice_result";
-                                RU.explanation = "Такой тип не получается: срез здесь невозможен, возникает ошибка.";
-                                EN.explanation = "This type cannot be obtained: slicing is impossible here, an error occurs.";
+                                RU.explanation = "у значения типа ${X} нельзя взять срез.";
+                                EN.explanation = "a value of type ${X} cannot be sliced.";
                             ]
                         };
                     }
@@ -1152,8 +1152,8 @@ tpg ExprType(E: Operation, T: Type) {
                                 conclude: correct [
                                     skill = "call_fixed_result";
                                     hypothesis = "rule";
-                                    RU.explanation = "Функция всегда возвращает значение своего типа; функция ввода — строку.";
-                                    EN.explanation = "The function always returns a value of its own type; the input function returns a string.";
+                                    RU.explanation = "${F.class()} всегда возвращает ${F.fixedResult == FixedResult:text ? 'строку' : 'число'}, что бы ни ввели.";
+                                    EN.explanation = "the ${F.class()} always returns ${F.fixedResult == FixedResult:text ? 'a string' : 'a number'}, whatever is typed in.";
                                 ];
                             };
                             conclude: null
@@ -1163,8 +1163,8 @@ tpg ExprType(E: Operation, T: Type) {
                                 conclude: error [
                                     skill = "call_fixed_result";
                                     hypothesis = "input_returns_number";
-                                    RU.explanation = "Функция ввода возвращает строку, даже если введено число; число из неё получают явным преобразованием.";
-                                    EN.explanation = "The input function returns a string even if a number was typed; a number is obtained by an explicit conversion.";
+                                    RU.explanation = "${F.class()} возвращает введённый текст как строку, даже если ввели цифры; число из неё получают явным преобразованием, например <code>int(...)</code>.";
+                                    EN.explanation = "the ${F.class()} returns the typed text as a string even if digits were typed; a number is obtained from it by an explicit conversion such as <code>int(...)</code>.";
                                 ];
                             };
                             conclude: null
@@ -1174,8 +1174,8 @@ tpg ExprType(E: Operation, T: Type) {
                         null -> {
                             conclude: error [
                                 skill = "call_fixed_result";
-                                RU.explanation = "Такой тип не получается: функция всегда возвращает значение своего типа.";
-                                EN.explanation = "This type cannot be obtained: the function always returns a value of its own type.";
+                                RU.explanation = "${F.class()} всегда возвращает ${F.fixedResult == FixedResult:text ? 'строку' : 'число'}, что бы ни ввели.";
+                                EN.explanation = "the ${F.class()} always returns ${F.fixedResult == FixedResult:text ? 'a string' : 'a number'}, whatever is typed in.";
                             ]
                         };
                     }
@@ -1188,8 +1188,8 @@ tpg ExprType(E: Operation, T: Type) {
                                 conclude: correct [
                                     skill = "call_fixed_result";
                                     hypothesis = "rule";
-                                    RU.explanation = "Функция возвращает значение своего типа, какого бы типа ни был аргумент.";
-                                    EN.explanation = "The function returns a value of its own type whatever the argument type is.";
+                                    RU.explanation = "${F.class()} преобразует аргумент любого типа в ${F.fixedResult == FixedResult:text ? 'строку' : 'число'}.";
+                                    EN.explanation = "the ${F.class()} converts an argument of any type into ${F.fixedResult == FixedResult:text ? 'a string' : 'a number'}.";
                                 ];
                             };
                             conclude: null
@@ -1199,8 +1199,8 @@ tpg ExprType(E: Operation, T: Type) {
                                 conclude: error [
                                     skill = "call_fixed_result";
                                     hypothesis = "argument_type";
-                                    RU.explanation = "Функция не сохраняет тип аргумента: она возвращает значение своего типа.";
-                                    EN.explanation = "The function does not keep the argument type: it returns a value of its own type.";
+                                    RU.explanation = "${F.class()} не возвращает аргумент как есть, а создаёт из него новое значение.";
+                                    EN.explanation = "the ${F.class()} does not return its argument as is; it creates a new value from it.";
                                 ];
                             };
                             conclude: null
@@ -1210,8 +1210,8 @@ tpg ExprType(E: Operation, T: Type) {
                         null -> {
                             conclude: error [
                                 skill = "call_fixed_result";
-                                RU.explanation = "Такой тип не получается: функция возвращает значение своего типа.";
-                                EN.explanation = "This type cannot be obtained: the function returns a value of its own type.";
+                                RU.explanation = "${F.class()} для аргумента любого типа возвращает ${F.fixedResult == FixedResult:text ? 'строку' : 'число'}.";
+                                EN.explanation = "the ${F.class()} returns ${F.fixedResult == FixedResult:text ? 'a string' : 'a number'} for an argument of any type.";
                             ]
                         };
                     }
@@ -1226,8 +1226,8 @@ tpg ExprType(E: Operation, T: Type) {
                                         conclude: correct [
                                             skill = "length_applicability";
                                             hypothesis = "rule";
-                                            RU.explanation = "Длина коллекции или строки — целое число.";
-                                            EN.explanation = "The length of a collection or a string is an integer.";
+                                            RU.explanation = "${F.class()} считает элементы в значении типа ${A} и возвращает их количество — целое число.";
+                                            EN.explanation = "the ${F.class()} counts the elements of a value of type ${A} and returns their number, an integer.";
                                         ];
                                     };
                                     conclude: null
@@ -1237,8 +1237,8 @@ tpg ExprType(E: Operation, T: Type) {
                                         conclude: error [
                                             skill = "length_applicability";
                                             hypothesis = "argument_type";
-                                            RU.explanation = "Длина — целое число, а не значение того же типа, что и аргумент.";
-                                            EN.explanation = "A length is an integer, not a value of the argument type.";
+                                            RU.explanation = "${F.class()} не возвращает свой аргумент, а считает в нём элементы.";
+                                            EN.explanation = "the ${F.class()} does not return its argument; it counts its elements.";
                                         ];
                                     };
                                     conclude: null
@@ -1248,8 +1248,8 @@ tpg ExprType(E: Operation, T: Type) {
                                 null -> {
                                     conclude: error [
                                         skill = "length_applicability";
-                                        RU.explanation = "Такой тип не получается: длина — целое число.";
-                                        EN.explanation = "This type cannot be obtained: a length is an integer.";
+                                        RU.explanation = "${F.class()} возвращает количество элементов в значении типа ${A}, а не значение такого типа.";
+                                        EN.explanation = "the ${F.class()} returns the number of elements of a value of type ${A}, not a value of this type.";
                                     ]
                                 };
                             }
@@ -1261,8 +1261,8 @@ tpg ExprType(E: Operation, T: Type) {
                                         conclude: correct [
                                             skill = "length_applicability";
                                             hypothesis = "rule";
-                                            RU.explanation = "Длина есть только у коллекции или строки — здесь возникает ошибка.";
-                                            EN.explanation = "Only a collection or a string has a length, so an error occurs here.";
+                                            RU.explanation = "у значения типа ${A} нет элементов, которые можно было бы посчитать, поэтому возникает ошибка.";
+                                            EN.explanation = "a value of type ${A} has no elements that could be counted, so an error occurs.";
                                         ];
                                     };
                                     conclude: null
@@ -1272,8 +1272,8 @@ tpg ExprType(E: Operation, T: Type) {
                                         conclude: error [
                                             skill = "length_applicability";
                                             hypothesis = "inapplicable_call_gives_result";
-                                            RU.explanation = "У такого значения нет длины: возникает ошибка, а не число.";
-                                            EN.explanation = "Such a value has no length: an error occurs instead of a number.";
+                                            RU.explanation = "у значения типа ${A} нет элементов, которые можно было бы посчитать.";
+                                            EN.explanation = "a value of type ${A} has no elements that could be counted.";
                                             RU.reason = "len всегда даёт целое число.";
                                             EN.reason = "len always gives an integer.";
                                         ];
@@ -1285,8 +1285,8 @@ tpg ExprType(E: Operation, T: Type) {
                                         conclude: error [
                                             skill = "length_applicability";
                                             hypothesis = "argument_type";
-                                            RU.explanation = "У такого значения нет длины: результата нет, возникает ошибка.";
-                                            EN.explanation = "Such a value has no length: there is no result, an error occurs.";
+                                            RU.explanation = "у значения типа ${A} нет элементов, которые можно было бы посчитать, а свой аргумент ${F.class()} не возвращает.";
+                                            EN.explanation = "a value of type ${A} has no elements that could be counted, and the ${F.class()} does not return its argument.";
                                             RU.reason = "Результат берёт тип аргумента.";
                                             EN.reason = "The result takes the type of the argument.";
                                         ];
@@ -1298,8 +1298,8 @@ tpg ExprType(E: Operation, T: Type) {
                                 null -> {
                                     conclude: error [
                                         skill = "length_applicability";
-                                        RU.explanation = "Такой тип не получается: у такого значения нет длины, возникает ошибка.";
-                                        EN.explanation = "This type cannot be obtained: such a value has no length, an error occurs.";
+                                        RU.explanation = "у значения типа ${A} нет длины.";
+                                        EN.explanation = "a value of type ${A} has no length.";
                                     ]
                                 };
                             } as inapplicableLengthHypotheses
@@ -1316,8 +1316,8 @@ tpg ExprType(E: Operation, T: Type) {
                                         conclude: correct [
                                             skill = "conversion_applicability";
                                             hypothesis = "rule";
-                                            RU.explanation = "Преобразование числа или строки даёт значение того типа, в который преобразуют.";
-                                            EN.explanation = "Converting a number or a string gives a value of the target type.";
+                                            RU.explanation = "${F.class()} преобразует значение типа ${A} в значение своего типа.";
+                                            EN.explanation = "the ${F.class()} converts a value of type ${A} into a value of its own type.";
                                         ];
                                     };
                                     conclude: null
@@ -1327,8 +1327,8 @@ tpg ExprType(E: Operation, T: Type) {
                                         conclude: error [
                                             skill = "conversion_applicability";
                                             hypothesis = "argument_type";
-                                            RU.explanation = "Преобразование меняет тип: результат имеет тип, в который преобразуют, а не тип аргумента.";
-                                            EN.explanation = "A conversion changes the type: the result has the target type, not the argument type.";
+                                            RU.explanation = "${F.class()} не возвращает аргумент как есть, а преобразует его.";
+                                            EN.explanation = "the ${F.class()} does not return its argument as is; it converts it.";
                                         ];
                                     };
                                     conclude: null
@@ -1338,8 +1338,8 @@ tpg ExprType(E: Operation, T: Type) {
                                 null -> {
                                     conclude: error [
                                         skill = "conversion_applicability";
-                                        RU.explanation = "Такой тип не получается: преобразование даёт значение того типа, в который преобразуют.";
-                                        EN.explanation = "This type cannot be obtained: a conversion gives a value of the target type.";
+                                        RU.explanation = "${F.class()} преобразует аргумент в значение своего типа, и этот тип не зависит от аргумента.";
+                                        EN.explanation = "the ${F.class()} converts its argument into a value of its own type, and that type does not depend on the argument.";
                                     ]
                                 };
                             }
@@ -1351,8 +1351,8 @@ tpg ExprType(E: Operation, T: Type) {
                                         conclude: correct [
                                             skill = "conversion_applicability";
                                             hypothesis = "rule";
-                                            RU.explanation = "В число преобразуются только числа и строки — здесь возникает ошибка.";
-                                            EN.explanation = "Only numbers and strings can be converted to a number, so an error occurs here.";
+                                            RU.explanation = "в число преобразуются только числа и строки, а здесь аргумент типа ${A}, поэтому возникает ошибка.";
+                                            EN.explanation = "only numbers and strings can be converted to a number, while here the argument has type ${A}, so an error occurs.";
                                         ];
                                     };
                                     conclude: null
@@ -1362,8 +1362,8 @@ tpg ExprType(E: Operation, T: Type) {
                                         conclude: error [
                                             skill = "conversion_applicability";
                                             hypothesis = "inapplicable_call_gives_result";
-                                            RU.explanation = "Такое значение нельзя преобразовать в число: возникает ошибка, а не число.";
-                                            EN.explanation = "Such a value cannot be converted to a number: an error occurs instead of a number.";
+                                            RU.explanation = "в число преобразуются только числа и строки, а здесь аргумент типа ${A}.";
+                                            EN.explanation = "only numbers and strings can be converted to a number, while here the argument has type ${A}.";
                                             RU.reason = "Преобразование всегда даёт значение нужного типа.";
                                             EN.reason = "A conversion always gives a value of the target type.";
                                         ];
@@ -1375,8 +1375,8 @@ tpg ExprType(E: Operation, T: Type) {
                                         conclude: error [
                                             skill = "conversion_applicability";
                                             hypothesis = "argument_type";
-                                            RU.explanation = "Такое значение нельзя преобразовать в число: результата нет, возникает ошибка.";
-                                            EN.explanation = "Such a value cannot be converted to a number: there is no result, an error occurs.";
+                                            RU.explanation = "в число преобразуются только числа и строки, а здесь аргумент типа ${A}; свой аргумент ${F.class()} тоже не возвращает.";
+                                            EN.explanation = "only numbers and strings can be converted to a number, while here the argument has type ${A}; the ${F.class()} does not return its argument either.";
                                             RU.reason = "Результат берёт тип аргумента.";
                                             EN.reason = "The result takes the type of the argument.";
                                         ];
@@ -1388,8 +1388,8 @@ tpg ExprType(E: Operation, T: Type) {
                                 null -> {
                                     conclude: error [
                                         skill = "conversion_applicability";
-                                        RU.explanation = "Такой тип не получается: такое значение нельзя преобразовать в число, возникает ошибка.";
-                                        EN.explanation = "This type cannot be obtained: such a value cannot be converted to a number, an error occurs.";
+                                        RU.explanation = "значение типа ${A} нельзя преобразовать в число.";
+                                        EN.explanation = "a value of type ${A} cannot be converted to a number.";
                                     ]
                                 };
                             } as inapplicableConversionHypotheses
@@ -1400,6 +1400,12 @@ tpg ExprType(E: Operation, T: Type) {
         };
     } as operationGroup
 }
+[
+    RU.error_prefix = "${E} не может иметь тип ${T}, потому что ";
+    EN.error_prefix = "${E} cannot have the type ${T} because ";
+    RU.hint_prefix = "${E} имеет тип ${T}, потому что ";
+    EN.hint_prefix = "${E} has the type ${T} because ";
+]
 
 // Навык — последняя развилка перед выводом correct/error, у которой к таким выводам ведут хотя бы два выхода.
 meta for divisionSemantics [
@@ -1453,66 +1459,66 @@ meta for convertibleArgumentCheck [
 
 // Общее объяснение hyp — для ошибки, которую объясняют несколько гипотез: каким заблуждением рассуждал студент, неизвестно.
 meta for trueDivisionHypotheses [
-    RU.explanation = "Деление через / даёт вещественное число.";
-    EN.explanation = "Division with / gives a floating-point number.";
+    RU.explanation = "${A.class()} не отбрасывает дробную часть даже у целых операндов.";
+    EN.explanation = "the ${A.class()} does not drop the fractional part even for integer operands.";
 ]
 meta for floatResultHypotheses [
-    RU.explanation = "При вещественном операнде результат вещественный.";
-    EN.explanation = "With a floating-point operand the result is floating-point.";
+    RU.explanation = "среди операндов есть вещественный, а ${A.class()} с вещественным операндом не даёт целого результата.";
+    EN.explanation = "one of the operands is floating-point, and the ${A.class()} with a floating-point operand does not give an integer result.";
 ]
 meta for integerResultHypotheses [
-    RU.explanation = "Арифметика над целыми числами даёт целое число.";
-    EN.explanation = "Arithmetic on integers gives an integer.";
+    RU.explanation = "в арифметике логические значения ведут себя как числа 0 и 1, поэтому ${A.class()} не даёт логического значения.";
+    EN.explanation = "in arithmetic, boolean values behave as the numbers 0 and 1, so the ${A.class()} does not give a boolean.";
 ]
 meta for repetitionHypotheses [
-    RU.explanation = "Повторение даёт последовательность того же типа.";
-    EN.explanation = "Repetition gives a sequence of the same type.";
+    RU.explanation = "умножение последовательности на целое число допустимо: оно повторяет последовательность.";
+    EN.explanation = "multiplying a sequence by an integer is allowed: it repeats the sequence.";
 ]
 meta for inapplicableSequenceOperationHypotheses [
-    RU.explanation = "Операция неприменима к операндам таких типов, возникает ошибка.";
-    EN.explanation = "The operation cannot be applied to operands of these types, an error occurs.";
+    RU.explanation = "${A.class()} нельзя применить к операндам типов ${L} и ${R}: Python не приводит их к общему типу сам.";
+    EN.explanation = "the ${A.class()} cannot be applied to operands of types ${L} and ${R}: Python does not convert them to a common type by itself.";
 ]
 meta for leftOperandHypotheses [
-    RU.explanation = "Операции and и or возвращают один из операндов, здесь — левый.";
-    EN.explanation = "The operations and and or return one of the operands, here the left one.";
+    RU.explanation = "левый операнд ${B->hasOperand<OperandPlacement:left>.isTruthy ? 'истинный' : 'ложный'}, а ${B.class()} на таком операнде останавливается.";
+    EN.explanation = "the left operand is ${B->hasOperand<OperandPlacement:left>.isTruthy ? 'truthy' : 'falsy'}, and the ${B.class()} stops at such an operand.";
 ]
 meta for rightOperandHypotheses [
-    RU.explanation = "Операции and и or возвращают один из операндов, здесь — правый.";
-    EN.explanation = "The operations and and or return one of the operands, here the right one.";
+    RU.explanation = "левый операнд ${B->hasOperand<OperandPlacement:left>.isTruthy ? 'истинный' : 'ложный'}, а ${B.class()} на таком операнде не останавливается.";
+    EN.explanation = "the left operand is ${B->hasOperand<OperandPlacement:left>.isTruthy ? 'truthy' : 'falsy'}, and the ${B.class()} does not stop at such an operand.";
 ]
 meta for inapplicableEqualityHypotheses [
-    RU.explanation = "Значения таких типов нельзя проверить на равенство, возникает ошибка.";
-    EN.explanation = "Values of these types cannot be checked for equality, an error occurs.";
+    RU.explanation = "${C.class()} не применим к значениям типов ${L} и ${R}.";
+    EN.explanation = "the ${C.class()} cannot be applied to values of types ${L} and ${R}.";
 ]
 meta for inapplicableOrderingHypotheses [
-    RU.explanation = "Значения таких типов нельзя сравнивать по порядку, возникает ошибка.";
-    EN.explanation = "Values of these types cannot be ordered, an error occurs.";
+    RU.explanation = "значения типов ${L} и ${R} нельзя сравнить по порядку.";
+    EN.explanation = "values of types ${L} and ${R} cannot be ordered.";
 ]
 meta for inapplicableMembershipHypotheses [
-    RU.explanation = "Здесь вхождение проверить нельзя, возникает ошибка.";
-    EN.explanation = "Membership cannot be tested here, an error occurs.";
+    RU.explanation = "в значении типа ${R} нельзя искать значение типа ${L}.";
+    EN.explanation = "a value of type ${L} cannot be searched for in a value of type ${R}.";
 ]
 meta for mappingValueHypotheses [
-    RU.explanation = "Обращение к словарю по ключу даёт тип значений словаря.";
-    EN.explanation = "Accessing a dictionary by key gives the type of its values.";
+    RU.explanation = "обращение по ключу достаёт из словаря одно значение, хранящееся под этим ключом.";
+    EN.explanation = "access by key takes out of the dictionary the single value stored under that key.";
 ]
 meta for tupleElementHypotheses [
-    RU.explanation = "Элемент кортежа имеет тип, стоящий на позиции индекса.";
-    EN.explanation = "A tuple element has the type at the index position.";
+    RU.explanation = "обращение по индексу берёт из кортежа ровно один элемент на позиции индекса.";
+    EN.explanation = "indexing takes exactly one element of the tuple, the one at the index position.";
 ]
 meta for sequenceElementHypotheses [
-    RU.explanation = "Обращение по индексу даёт тип элементов последовательности.";
-    EN.explanation = "Indexing gives the type of the sequence elements.";
+    RU.explanation = "обращение по индексу берёт из ${X} ровно один элемент на позиции индекса.";
+    EN.explanation = "indexing takes exactly one element of ${X}, the one at the index position.";
 ]
 meta for inapplicableIndexingHypotheses [
-    RU.explanation = "Обращение по индексу здесь невозможно, возникает ошибка.";
-    EN.explanation = "Indexing is impossible here, an error occurs.";
+    RU.explanation = "к значению типа ${X} нельзя обратиться по индексу типа ${I}.";
+    EN.explanation = "a value of type ${X} cannot be indexed with an index of type ${I}.";
 ]
 meta for inapplicableLengthHypotheses [
-    RU.explanation = "У такого значения нет длины, возникает ошибка.";
-    EN.explanation = "Such a value has no length, an error occurs.";
+    RU.explanation = "у значения типа ${A} нет элементов, которые можно было бы посчитать.";
+    EN.explanation = "a value of type ${A} has no elements that could be counted.";
 ]
 meta for inapplicableConversionHypotheses [
-    RU.explanation = "Такое значение нельзя преобразовать в число, возникает ошибка.";
-    EN.explanation = "Such a value cannot be converted to a number, an error occurs.";
+    RU.explanation = "в число преобразуются только числа и строки, а здесь аргумент типа ${A}.";
+    EN.explanation = "only numbers and strings can be converted to a number, while here the argument has type ${A}.";
 ]

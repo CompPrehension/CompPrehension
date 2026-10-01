@@ -219,7 +219,11 @@ class Expr {
 	EN.localizedName = "expression" ;
 ]
 
+// Переменные условия, а не только выражения: студент может спутать операнд с переменной из кода.
 class Variable : Expr {
+	// Сходство имён считает генератор вопроса (в LOQI нет строк) и пишет его в одну сторону.
+	rel looksLike(Variable) ;
+	rel lookedLikeBy(Variable) : opposite to looksLike ;
 } [
 	RU.localizedName = "переменная" ;
 	EN.localizedName = "variable" ;

@@ -79,7 +79,7 @@
           "subject": "question",
           "verb": "hasLoqi",
           "objectType": "xsd:string",
-          "object": "obj t_int : py_int {}\nobj t_bool : py_bool {}\nobj t_str : py_str { elementType(t_str); }\nobj t_list_str : py_list { elementType(t_str); }\nobj t_error : py_TypeError {}\nobj name : Variable { hasType(t_str); isTruthy = false; }\nobj names : Variable { hasType(t_list_str); isTruthy = true; }\nobj op_or : py_or { hasOperand<OperandPlacement:left>(name); hasOperand<OperandPlacement:right>(names); } [ expectedType = \"t_list_str\" ]\nobj op_len : py_len { hasOperand<OperandPlacement:left>(op_or); } [ expectedType = \"t_int\" ]"
+          "object": "obj t_int : py_int {}\nobj t_bool : py_bool {}\nobj t_str : py_str { elementType(t_str); }\nobj t_list_str : py_list { elementType(t_str); }\nobj t_error : py_TypeError {}\nobj name : Variable { hasType(t_str); isTruthy = false; looksLike(names); } [ text = \"name\" ]\nobj names : Variable { hasType(t_list_str); isTruthy = true; } [ text = \"names\" ]\nobj op_or : py_or { hasOperand<OperandPlacement:left>(name); hasOperand<OperandPlacement:right>(names); } [ text = \"name or names\"; expectedType = \"t_list_str\" ]\nobj op_len : py_len { hasOperand<OperandPlacement:left>(op_or); } [ text = \"len(name or names)\"; expectedType = \"t_int\" ]"
         }
       ],
       "questionDomainType": "ExpressionTypes"
