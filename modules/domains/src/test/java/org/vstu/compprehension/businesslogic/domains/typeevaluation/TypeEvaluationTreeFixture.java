@@ -5,6 +5,7 @@ import its.model.definition.DomainModel;
 import its.model.definition.loqi.DomainLoqiBuilder;
 import its.model.nodes.AggregationMethod;
 import its.model.nodes.BranchResult;
+import its.model.nodes.BranchResultNode;
 import its.model.nodes.DecisionTree;
 import its.questions.gen.formulations.TemplatingUtils;
 import its.reasoner.LearningSituation;
@@ -12,11 +13,13 @@ import its.reasoner.nodes.AggregationDecisionTreeTraceElement;
 import its.reasoner.nodes.DecisionTreeReasoner;
 import its.reasoner.nodes.DecisionTreeTrace;
 import its.reasoner.nodes.DecisionTreeTraceElement;
+import its.reasoner.nodes.RedirectedBranchResultDecisionTreeTraceElement;
 import org.jetbrains.annotations.NotNull;
 import org.vstu.compprehension.businesslogic.backend.DecisionTreeReasonerBackend;
 import org.vstu.compprehension.businesslogic.domains.helpers.DomainSolvingModelLoader;
 
 import java.io.StringReader;
+import java.util.Collection;
 import java.util.List;
 import java.util.Map;
 import java.util.Set;
@@ -58,6 +61,11 @@ final class TypeEvaluationTreeFixture {
         return MODEL.getDecisionTree();
     }
 
+    /** Основное дерево и деревья, которые оно вызывает. */
+    static @NotNull Collection<DecisionTree> trees() {
+        return MODEL.getDecisionTrees().values();
+    }
+
     static @NotNull Verdict judge(@NotNull String operation, @NotNull String leftType,
                                   @NotNull String rightType, @NotNull String answerType) {
         return judgeSituation(TYPES + """
@@ -78,26 +86,33 @@ final class TypeEvaluationTreeFixture {
         var variables = model.getVariables().stream().collect(Collectors.toMap(
                 variable -> variable.getName(),
                 variable -> variable.getValueObject().getReference()));
-        DecisionTreeTrace trace = DecisionTreeReasoner.solve(MODEL.getDecisionTree(), new LearningSituation(model, variables));
+        DecisionTreeTrace trace = DecisionTreeReasoner.solve(MODEL.getDecisionTree(),
+                new LearningSituation(model, variables, MODEL));
         renderExplanations(model, trace);
 
         var hypotheses = new TreeSet<String>();
         var skills = new TreeSet<String>();
-        for (DecisionTreeTraceElement<?, ?> element : trace) {
+        var unexplainedSkills = new TreeSet<String>();
+        for (DecisionTreeTraceElement<?, ?> element : DecisionTreeReasonerBackend.nestedTraceElements(trace)) {
             if (element instanceof AggregationDecisionTreeTraceElement<?> aggregation
                     && aggregation.getNode().getAggregationMethod() == AggregationMethod.HYP) {
-                for (DecisionTreeTrace branch : aggregation.getBranchTraceMap().values()) {
-                    if (branch.getBranchResult() != BranchResult.NULL) {
-                        hypotheses.add(branch.getResultingNode().getMetadata().getString("hypothesis"));
+                for (DecisionTreeTrace branch : aggregation.nestedTraces()) {
+                    // Ветвь «как написано» — не гипотеза, а вызов дерева typed со своими гипотезами.
+                    var hypothesis = branch.getResultingNode().getMetadata().getString("hypothesis");
+                    if (branch.getBranchResult() != BranchResult.NULL && hypothesis != null) {
+                        hypotheses.add(hypothesis);
                         skills.add(branch.getResultingNode().getMetadata().getString("skill"));
                     }
                 }
             }
+            // Ответ, который не объяснил ни один способ рассуждения, относится к навыку запасного вывода правила.
+            if (element.getNode() instanceof BranchResultNode conclusion && conclusion.getValue() == BranchResult.NULL
+                    && conclusion.getMetadata().getString("skill") != null) {
+                unexplainedSkills.add(conclusion.getMetadata().getString("skill"));
+            }
         }
-        // Если ни одна гипотеза не объяснила ответ, навык несёт запасной вывод после hyp.
-        var fallbackSkill = trace.getResultingNode().getMetadata().getString("skill");
-        if (fallbackSkill != null) {
-            skills.add(fallbackSkill);
+        if (hypotheses.isEmpty()) {
+            skills.addAll(unexplainedSkills);
         }
         return new Verdict(trace.getBranchResult(), hypotheses, skills);
     }
@@ -115,9 +130,13 @@ final class TypeEvaluationTreeFixture {
 
     // Шаблон объяснения с ошибкой иначе всплыл бы только у студента: рендерим всё, что трасса может показать.
     private static void renderExplanations(@NotNull DomainModel model, @NotNull DecisionTreeTrace trace) {
-        var mainBranch = MODEL.getDecisionTree().getMainBranch().getMetadata();
         var start = new LearningSituation(model, trace.getFirst().getVariablesSnapshot());
         for (var element : DecisionTreeReasonerBackend.nestedTraceElements(trace)) {
+            // Вывод через вызов дерева указывает на конечный узел вызванного дерева, но с переменными вызывающего:
+            // этот узел объясняется во вложенной трассе, как и в бэкенде.
+            if (element instanceof RedirectedBranchResultDecisionTreeTraceElement) {
+                continue;
+            }
             var situation = new LearningSituation(model, element.getVariablesSnapshot());
             for (var language : LANGUAGES) {
                 for (var key : List.of("explanation", "reason")) {
@@ -128,9 +147,12 @@ final class TypeEvaluationTreeFixture {
                 }
             }
         }
-        for (var language : LANGUAGES) {
-            for (var key : List.of("error_prefix", "hint_prefix")) {
-                TemplatingUtils.interpret(mainBranch.get(language, key).toString(), start, language, Map.of());
+        for (var tree : MODEL.getDecisionTrees().values()) {
+            for (var language : LANGUAGES) {
+                for (var key : List.of("error_prefix", "hint_prefix")) {
+                    var prefix = tree.getMainBranch().getMetadata().get(language, key);
+                    TemplatingUtils.interpret(prefix.toString(), start, language, Map.of());
+                }
             }
         }
     }

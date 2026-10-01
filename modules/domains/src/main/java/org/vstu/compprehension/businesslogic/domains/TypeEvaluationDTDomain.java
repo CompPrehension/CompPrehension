@@ -118,6 +118,7 @@ public class TypeEvaluationDTDomain extends DecisionTreeReasoningDomain {
         b.add("call_fixed_result", 0x2000L, visible);
         b.add("length_applicability", 0x4000L, visible);
         b.add("conversion_applicability", 0x8000L, visible);
+        b.add("operand_identification", 0x10000L, visible);
 
         return b.build();
     }
@@ -169,7 +170,7 @@ public class TypeEvaluationDTDomain extends DecisionTreeReasoningDomain {
                 model.getVariables().add(new VariableDef(OPERATION_VARIABLE, operation.getName()));
                 model.getVariables().add(new VariableDef(ANSWER_VARIABLE, judged.right().getDomainInfo()));
             }
-            return new DecisionTreeReasonerBackend.Input(model, domainSolvingModel.getDecisionTree());
+            return new DecisionTreeReasonerBackend.Input(model, domainSolvingModel.getDecisionTree(), domainSolvingModel);
         }
 
         @Override
@@ -339,7 +340,7 @@ public class TypeEvaluationDTDomain extends DecisionTreeReasoningDomain {
 
         model.getVariables().add(new VariableDef(OPERATION_VARIABLE, slot.getDomainInfo()));
         model.getVariables().add(new VariableDef(ANSWER_VARIABLE, expectedType));
-        var situation = new LearningSituation(model, LearningSituation.collectDecisionTreeVariables(model));
+        var situation = new LearningSituation(model, LearningSituation.collectDecisionTreeVariables(model), domainSolvingModel);
         var trace = DecisionTreeReasoner.solve(domainSolvingModel.getDecisionTree(), situation);
 
         var correctAnswer = new CorrectAnswer();

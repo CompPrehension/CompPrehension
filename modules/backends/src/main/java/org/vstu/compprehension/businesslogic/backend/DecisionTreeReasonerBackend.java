@@ -5,6 +5,7 @@ import org.vstu.compprehension.data.question.AnswerHypothesisData;
 import org.vstu.compprehension.data.question.HypothesisClarificationData;
 import org.vstu.compprehension.data.question.ViolationData;
 import io.brookite.termannotations.DomainTermAnnotationProcessor;
+import its.model.DomainSolvingModel;
 import its.model.TypedVariable;
 import its.model.definition.DomainModel;
 import its.model.nodes.*;
@@ -17,6 +18,7 @@ import its.reasoner.nodes.DecisionTreeTraceElement;
 import lombok.extern.log4j.Log4j2;
 import org.apache.commons.lang3.tuple.Pair;
 import org.jetbrains.annotations.NotNull;
+import org.jetbrains.annotations.Nullable;
 import org.springframework.context.annotation.Primary;
 import org.springframework.stereotype.Component;
 import org.springframework.context.annotation.Scope;
@@ -80,11 +82,17 @@ public class DecisionTreeReasonerBackend
      * Information, needed to perform a decision-tree based reasoning
      * @param situationDomainModel combined question and domain data, described in the {@link DomainModel} form
      * @param decisionTree a decision tree structure that describes the reasoning process
+     * @param solvingModel all decision trees of the domain, if the tree calls other trees by name
      */
     public record Input(
         DomainModel situationDomainModel,
-        DecisionTree decisionTree
-    ){}
+        DecisionTree decisionTree,
+        @Nullable DomainSolvingModel solvingModel
+    ){
+        public Input(DomainModel situationDomainModel, DecisionTree decisionTree) {
+            this(situationDomainModel, decisionTree, null);
+        }
+    }
 
     /**
      * Aggregation policy for creating explanation messages
@@ -141,9 +149,10 @@ public class DecisionTreeReasonerBackend
         if (appDomain.getTermDictionary().isPresent()) {
             annotationProcessor = new DomainTermAnnotationProcessor(appDomain.getTermDictionary().get(), lang.toLocale());
         }
+        var ambiguity = type == Explanation.Type.ERROR ? findAmbiguity(trace) : null;
         Explanation result = Explanation.aggregate(type, collectExplanations(type, trace, null,
                 AggregationPolicy.Default,
-                domainModel, annotationProcessor, lang));
+                domainModel, annotationProcessor, lang, ambiguity));
         String prefix = Explanation.getCommonPrefix(result.getChildren(), "");
         if (result.getChildren().size() > 1 && !prefix.isEmpty()) {
             result.setRawMessage(new HyperText(prefix.trim().concat(":")));
@@ -157,52 +166,108 @@ public class DecisionTreeReasonerBackend
     }
 
     /**
-     * hyp-агрегации, объясняющие ответ студента.
-     * Внутрь других агрегаций заходит только по ветвям с их итогом — остальные ответ не объясняют.
+     * Гипотезы о рассуждении студента: ветви hyp-агрегаций, объяснившие ответ. Ветвь, на пути объяснения которой
+     * есть свои hyp (например, вызов дерева со своими гипотезами), — не гипотеза, а набор вложенных гипотез.
      */
-    private static @NotNull List<AggregationDecisionTreeTraceElement<?>> findHypothesisAggregations(
-            @NotNull DecisionTreeTrace trace) {
-        List<AggregationDecisionTreeTraceElement<?>> found = new ArrayList<>();
-        findHypothesisAggregations(trace, found);
+    private static @NotNull List<DecisionTreeTrace> collectHypothesisBranches(@NotNull DecisionTreeTrace trace) {
+        List<DecisionTreeTrace> found = new ArrayList<>();
+        collectHypothesisBranches(trace, found);
         return found;
     }
 
-    private static void findHypothesisAggregations(@NotNull DecisionTreeTrace trace,
-                                                   @NotNull List<AggregationDecisionTreeTraceElement<?>> found) {
+    // Внутрь других агрегаций заходит только по ветвям с их итогом — остальные ответ не объясняют.
+    // Возвращает, встретилась ли в трассе hyp-агрегация.
+    private static boolean collectHypothesisBranches(@NotNull DecisionTreeTrace trace, @NotNull List<DecisionTreeTrace> found) {
+        boolean hasHypotheses = false;
+        for (DecisionTreeTraceElement<?, ?> element : trace) {
+            if (element instanceof AggregationDecisionTreeTraceElement<?> aggregation && isHypothesisAggregation(aggregation)) {
+                hasHypotheses = true;
+                for (DecisionTreeTrace branch : explainingHypothesisBranches(aggregation)) {
+                    if (!collectHypothesisBranches(branch, found)) {
+                        found.add(branch);
+                    }
+                }
+                continue;
+            }
+            for (DecisionTreeTrace subTrace : explainedNestedTraces(element)) {
+                hasHypotheses |= collectHypothesisBranches(subTrace, found);
+            }
+        }
+        return hasHypotheses;
+    }
+
+    private static @NotNull List<DecisionTreeTrace> errorBranches(@NotNull List<DecisionTreeTrace> hypothesisBranches) {
+        return hypothesisBranches.stream()
+                .filter(branch -> branch.getBranchResult() == BranchResult.ERROR)
+                .toList();
+    }
+
+    /**
+     * Ошибочный ответ объясняют несколько гипотез, и неизвестно, какая из них у студента: ближайшая hyp-агрегация,
+     * в которой лежат все эти гипотезы. Её общее объяснение заменяет объяснения гипотез.
+     */
+    private static @Nullable AggregationDecisionTreeTraceElement<?> findAmbiguity(@NotNull DecisionTreeTrace trace) {
+        if (trace.getBranchResult() != BranchResult.ERROR) {
+            return null;
+        }
+        var errors = errorBranches(collectHypothesisBranches(trace));
+        if (errors.size() < 2) {
+            return null;
+        }
+        return findInnermostAggregationWith(trace, errors);
+    }
+
+    private static @Nullable AggregationDecisionTreeTraceElement<?> findInnermostAggregationWith(
+            @NotNull DecisionTreeTrace trace, @NotNull List<DecisionTreeTrace> errors) {
+        for (var aggregation : findHypothesisAggregations(trace)) {
+            var inside = Collections.newSetFromMap(new IdentityHashMap<DecisionTreeTrace, Boolean>());
+            inside.addAll(hypothesisBranchesInside(aggregation));
+            if (!inside.containsAll(errors)) {
+                continue;
+            }
+            for (DecisionTreeTrace branch : explainingHypothesisBranches(aggregation)) {
+                var deeper = findInnermostAggregationWith(branch, errors);
+                if (deeper != null) {
+                    return deeper;
+                }
+            }
+            return aggregation;
+        }
+        return null;
+    }
+
+    private static @NotNull List<DecisionTreeTrace> hypothesisBranchesInside(@NotNull AggregationDecisionTreeTraceElement<?> aggregation) {
+        List<DecisionTreeTrace> found = new ArrayList<>();
+        for (DecisionTreeTrace branch : explainingHypothesisBranches(aggregation)) {
+            if (!collectHypothesisBranches(branch, found)) {
+                found.add(branch);
+            }
+        }
+        return found;
+    }
+
+    // hyp-агрегации трассы, ближайшие к её началу: в их ветви не заходит.
+    private static @NotNull List<AggregationDecisionTreeTraceElement<?>> findHypothesisAggregations(
+            @NotNull DecisionTreeTrace trace) {
+        List<AggregationDecisionTreeTraceElement<?>> found = new ArrayList<>();
         for (DecisionTreeTraceElement<?, ?> element : trace) {
             if (element instanceof AggregationDecisionTreeTraceElement<?> aggregation && isHypothesisAggregation(aggregation)) {
                 found.add(aggregation);
                 continue;
             }
             for (DecisionTreeTrace subTrace : explainedNestedTraces(element)) {
-                findHypothesisAggregations(subTrace, found);
+                found.addAll(findHypothesisAggregations(subTrace));
             }
         }
-    }
-
-    /** Гипотезы о рассуждении студента: ветви hyp-агрегаций, объяснившие ответ. */
-    private static @NotNull List<AnswerHypothesisData> collectHypotheses(
-            @NotNull List<AggregationDecisionTreeTraceElement<?>> hypothesisAggregations) {
-        return hypothesisAggregations.stream()
-                .flatMap(aggregation -> explainingHypothesisBranches(aggregation).stream())
-                .map(branch -> new AnswerHypothesisData(
-                        requireBranchMeta(branch, "hypothesis"),
-                        branch.getBranchResult() == BranchResult.CORRECT))
-                .toList();
-    }
-
-    // Ошибку объясняют несколько гипотез: каким из заблуждений рассуждал студент, неизвестно.
-    private static boolean isAmbiguousError(@NotNull AggregationDecisionTreeTraceElement<?> aggregation) {
-        return aggregation.getNodeResult() == BranchResult.ERROR
-                && explainingHypothesisBranches(aggregation).size() > 1;
+        return found;
     }
 
     /** Варианты уточняющего вопроса: причина ответа по каждой гипотезе и объяснение этого заблуждения. */
     private static @NotNull List<HypothesisClarificationData.Option> collectClarificationOptions(
-            @NotNull AggregationDecisionTreeTraceElement<?> aggregation,
+            @NotNull List<DecisionTreeTrace> errorBranches,
             @NotNull DomainModel domainModel,
             @NotNull String localizationCode) {
-        return explainingHypothesisBranches(aggregation).stream()
+        return errorBranches.stream()
                 .map(branch -> {
                     var situation = new LearningSituation(domainModel, branch.getResultingElement().getVariablesSnapshot());
                     var conclusion = (BranchResultNode) branch.getResultingElement().getNode();
@@ -213,7 +278,9 @@ public class DecisionTreeReasonerBackend
                     }
                     return new HypothesisClarificationData.Option(
                             requireBranchMeta(branch, "hypothesis"),
-                            TemplatingUtils.interpret(reason.toString(), situation, localizationCode, Map.of()),
+                            // Причина — отдельная фраза, но может начинаться с подстановки, а названия в модели строчные.
+                            TemplatingUtils.capitalize(
+                                    TemplatingUtils.interpret(reason.toString(), situation, localizationCode, Map.of())),
                             Interface.extractExplanation(conclusion, localizationCode, situation).getRawMessage().getText());
                 })
                 .toList();
@@ -240,31 +307,19 @@ public class DecisionTreeReasonerBackend
         return value;
     }
 
-    /**
-     * Ошибку объясняют несколько гипотез, а узел hyp задаёт общее объяснение: показывается только оно,
-     * потому что неизвестно, каким из заблуждений рассуждал студент.
-     */
-    private static boolean hasAmbiguousErrorExplanation(@NotNull DecisionTreeTraceElement<?, ?> element) {
-        return element instanceof AggregationDecisionTreeTraceElement<?> aggregation
-                && isHypothesisAggregation(aggregation)
-                && isAmbiguousError(aggregation)
-                && aggregation.getNode().getMetadata().containsAny("explanation");
-    }
-
-    // Все ветви hyp висят под одной развилкой, поэтому навык общего объяснения — их общий навык.
+    // Гипотезы могут относиться к разным навыкам (прочтение выражения и правило): тогда у общего объяснения навыка нет,
+    // нарушения берутся из самих гипотез.
     private static @NotNull Explanation extractAmbiguousErrorExplanation(@NotNull AggregationDecisionTreeTraceElement<?> aggregation,
                                                                          @NotNull String localizationCode,
                                                                          @NotNull LearningSituation learningSituation) {
-        var skills = explainingHypothesisBranches(aggregation).stream()
+        var skills = errorBranches(hypothesisBranchesInside(aggregation)).stream()
                 .map(branch -> requireBranchMeta(branch, "skill"))
                 .collect(Collectors.toSet());
-        if (skills.size() != 1) {
-            throw new IllegalStateException("Hypotheses of " + aggregation.getNode().getDescription()
-                    + " belong to different skills " + skills);
-        }
         var explanation = new Explanation(Explanation.Type.ERROR, interpretExplanationTemplate(
                 aggregation.getNode(), Explanation.Type.ERROR, localizationCode, learningSituation));
-        explanation.setCurrentDomainLawName(skills.iterator().next());
+        if (skills.size() == 1) {
+            explanation.setCurrentDomainLawName(skills.iterator().next());
+        }
         return explanation;
     }
 
@@ -286,7 +341,8 @@ public class DecisionTreeReasonerBackend
                                                          AggregationPolicy policy,
                                                          DomainModel domain,
                                                          DomainTermAnnotationProcessor annotationProcessor,
-                                                         Language lang) {
+                                                         Language lang,
+                                                         @Nullable AggregationDecisionTreeTraceElement<?> ambiguity) {
         List<Explanation> traceExplanations = new ArrayList<>(); // временный буфер
         for (DecisionTreeTraceElement<?, ?> element : trace) {
             LearningSituation learningSituation = new LearningSituation(domain, element.getVariablesSnapshot());
@@ -298,9 +354,8 @@ public class DecisionTreeReasonerBackend
                 // одиночное объяснение по заданному типу объяснения
                 explanation = Interface.extractExplanation(res,
                         lang.toLocaleString(), learningSituation);
-            } else if (type == Explanation.Type.ERROR && hasAmbiguousErrorExplanation(element)) {
-                explanation = extractAmbiguousErrorExplanation((AggregationDecisionTreeTraceElement<?>) element,
-                        lang.toLocaleString(), learningSituation);
+            } else if (element == ambiguity && element.getNode().getMetadata().containsAny("explanation")) {
+                explanation = extractAmbiguousErrorExplanation(ambiguity, lang.toLocaleString(), learningSituation);
             }
             if (explanation != null) {
                 if (annotationProcessor != null) {
@@ -331,7 +386,7 @@ public class DecisionTreeReasonerBackend
                 // Собрать с дочерних трасс элементы
                 for (DecisionTreeTrace subTrace : explainedNestedTraces(element)) {
                     traceExplanations.addAll(collectExplanations(type, subTrace, newParent, newPolicy, domain,
-                            annotationProcessor, lang));
+                            annotationProcessor, lang, ambiguity));
                 }
                 // Если в агрегированной ветви один элемент - хранить в буфере только его, а если вообще нет элементов - удалить ветвь
                 if (newParent != null && (newParent.getChildren().isEmpty() || newParent.getChildren().size() == 1)) {
@@ -408,7 +463,8 @@ public class DecisionTreeReasonerBackend
 
         LearningSituation situation = new LearningSituation(
             situationModel,
-            LearningSituation.collectDecisionTreeVariables(situationModel)
+            LearningSituation.collectDecisionTreeVariables(situationModel),
+            questionData.solvingModel
         );
 
         if(situation.getDecisionTreeVariables().keySet().containsAll(
@@ -452,19 +508,20 @@ public class DecisionTreeReasonerBackend
             DecisionTreeInterpretSentenceResult result = new DecisionTreeInterpretSentenceResult();
             result.isAnswerCorrect = isCorrectAnswer(backendOutput.results);
             result.decisionTreeTrace = backendOutput.results;
-            var hypothesisAggregations = findHypothesisAggregations(backendOutput.results);
-            result.hypotheses = collectHypotheses(hypothesisAggregations);
-            var ambiguous = hypothesisAggregations.stream()
-                    .filter(DecisionTreeReasonerBackend::isAmbiguousError)
+            var hypothesisBranches = collectHypothesisBranches(backendOutput.results);
+            // Одна гипотеза может прийти из разных прочтений выражения (например, правило) — в ответе она одна.
+            result.hypotheses = hypothesisBranches.stream()
+                    .map(branch -> new AnswerHypothesisData(
+                            requireBranchMeta(branch, "hypothesis"),
+                            branch.getBranchResult() == BranchResult.CORRECT))
+                    .distinct()
                     .toList();
-            if (ambiguous.size() > 1) {
-                throw new IllegalStateException("An answer is ambiguously explained by several hyp aggregations: "
-                        + ambiguous.stream().map(aggregation -> aggregation.getNode().getDescription()).toList());
-            }
-            if (!ambiguous.isEmpty()) {
+            var errorBranches = errorBranches(hypothesisBranches);
+            // Верный ответ, к которому ведёт и заблуждение, пока не уточняем.
+            if (!result.isAnswerCorrect && errorBranches.size() > 1) {
                 result.clarification = new HypothesisClarificationData(
                         makeClarificationPrompt(judgedQuestion, backendOutput, language),
-                        collectClarificationOptions(ambiguous.getFirst(),
+                        collectClarificationOptions(errorBranches,
                                 backendOutput.situation.getDomainModel(), language.toLocaleString()));
             }
             for (DecisionTreeTraceElement<?,?> res : traceElements) {
@@ -483,7 +540,9 @@ public class DecisionTreeReasonerBackend
                     getDomain(), language
             );
             if (!result.isAnswerCorrect) {
-                List<ViolationData> mistakes = result.explanation.getDomainLawNames()
+                var violatedSkills = new LinkedHashSet<>(result.explanation.getDomainLawNames());
+                errorBranches.forEach(branch -> violatedSkills.add(requireBranchMeta(branch, "skill")));
+                List<ViolationData> mistakes = violatedSkills
                         .stream().map(errorName -> {
                             ViolationData violation = new ViolationData();
                             violation.setLawName(errorName);

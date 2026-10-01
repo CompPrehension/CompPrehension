@@ -1,8 +1,12 @@
 package org.vstu.compprehension.businesslogic.domains.typeevaluation;
 
+import its.model.nodes.AggregationNode;
 import its.model.nodes.BranchAggregationNode;
 import its.model.nodes.BranchResult;
 import its.model.nodes.BranchResultNode;
+import its.model.nodes.BranchResultRedirectingNode;
+import its.model.nodes.CycleAggregationNode;
+import its.model.nodes.DecisionTree;
 import its.model.nodes.DecisionTreeNode;
 import its.model.nodes.LinkNode;
 import its.model.nodes.Outcome;
@@ -12,6 +16,7 @@ import org.jetbrains.annotations.Nullable;
 import org.junit.jupiter.api.Test;
 
 import java.util.ArrayList;
+import java.util.Collection;
 import java.util.HashMap;
 import java.util.HashSet;
 import java.util.List;
@@ -27,7 +32,7 @@ class TypeEvaluationTreeSkillsTest {
     @Test
     void conclusionSkillIsSkillOfItsLastFork() {
         // Act.
-        var walk = SkillWalk.of(TypeEvaluationTreeFixture.tree().getMainBranch());
+        var walk = SkillWalk.of(TypeEvaluationTreeFixture.trees());
 
         // Assert.
         assertTrue(walk.checkedConclusions > 0);
@@ -38,7 +43,7 @@ class TypeEvaluationTreeSkillsTest {
     @Test
     void annotatedForksAreExactlyLastForks() {
         // Act.
-        var walk = SkillWalk.of(TypeEvaluationTreeFixture.tree().getMainBranch());
+        var walk = SkillWalk.of(TypeEvaluationTreeFixture.trees());
 
         // Assert.
         assertEquals(List.of(), walk.annotatedForksNeverLast());
@@ -52,9 +57,11 @@ class TypeEvaluationTreeSkillsTest {
         private final Map<DecisionTreeNode, Boolean> reachesVerdict = new HashMap<>();
         private int checkedConclusions;
 
-        static @NotNull SkillWalk of(@NotNull ThoughtBranch mainBranch) {
+        static @NotNull SkillWalk of(@NotNull Collection<DecisionTree> trees) {
             var walk = new SkillWalk();
-            walk.visit(mainBranch.getStart(), null, false);
+            for (var tree : trees) {
+                walk.visit(tree.getMainBranch().getStart(), null, false);
+            }
             return walk;
         }
 
@@ -65,13 +72,18 @@ class TypeEvaluationTreeSkillsTest {
                 }
                 return;
             }
-            if (node instanceof BranchAggregationNode aggregation) {
-                for (ThoughtBranch branch : aggregation.getThoughtBranches()) {
+            // Вывод через вызов другого дерева несёт итог того дерева; оно обходится само.
+            if (node instanceof BranchResultRedirectingNode) {
+                return;
+            }
+            if (node instanceof AggregationNode aggregation) {
+                for (ThoughtBranch branch : branchesOf(aggregation)) {
                     visit(branch.getStart(), lastFork, false);
                 }
-                // Выводы по исходам correct/error лишь передают итог hyp наверх и своего навыка не несут.
+                // Выходы агрегации своего навыка не несут: correct/error передают её итог, а запасной вывод
+                // по null стоит там, где ответ не объяснило ни одно рассуждение.
                 for (Outcome<BranchResult> outcome : aggregation.getOutcomes()) {
-                    visit(outcome.getNode(), lastFork, outcome.getKey() != BranchResult.NULL);
+                    visit(outcome.getNode(), lastFork, true);
                 }
                 return;
             }
@@ -119,8 +131,10 @@ class TypeEvaluationTreeSkillsTest {
             boolean reaches = false;
             if (node instanceof BranchResultNode result) {
                 reaches = result.getValue() != BranchResult.NULL;
-            } else if (node instanceof BranchAggregationNode aggregation) {
-                reaches = aggregation.getThoughtBranches().stream().anyMatch(branch -> reachesVerdict(branch.getStart()))
+            } else if (node instanceof BranchResultRedirectingNode) {
+                reaches = true;
+            } else if (node instanceof AggregationNode aggregation) {
+                reaches = branchesOf(aggregation).stream().anyMatch(branch -> reachesVerdict(branch.getStart()))
                         || aggregation.getOutcomes().stream().anyMatch(outcome -> reachesVerdict(outcome.getNode()));
             } else if (node instanceof LinkNode<?> link) {
                 for (Outcome<?> outcome : link.getOutcomes()) {
@@ -129,6 +143,16 @@ class TypeEvaluationTreeSkillsTest {
             }
             reachesVerdict.put(node, reaches);
             return reaches;
+        }
+
+        private static @NotNull List<ThoughtBranch> branchesOf(@NotNull AggregationNode aggregation) {
+            if (aggregation instanceof BranchAggregationNode branches) {
+                return branches.getThoughtBranches();
+            }
+            if (aggregation instanceof CycleAggregationNode cycle) {
+                return List.of(cycle.getThoughtBranch());
+            }
+            throw new IllegalStateException("Неподдерживаемая агрегация: " + aggregation);
         }
 
         private static @Nullable String skillOf(@NotNull DecisionTreeNode node) {

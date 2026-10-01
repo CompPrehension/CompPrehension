@@ -1,0 +1,1566 @@
+// Тип операции E, в которой операнд Old прочитан как New (Old == New == E — выражение как написано).
+// Каждая ветвь правила типизации заканчивается hyp по способам рассуждения студента: ветвь сравнивает ответ T
+// со своим выводом и даёт null, если этот способ к T не приводит. Все ветви одного hyp — под одной развилкой,
+// поэтому гипотезы различаются объяснением, но не навыком. Если ответ не объяснил ни один способ, дерево даёт null:
+// ошибкой его делает основное дерево, когда и прочтения выражения его не объяснили.
+// TODO: верный ответ, к которому ведёт и ошибочная гипотеза, hyp засчитывает как верный; уточнять такие случаи
+//  вопросом — ценная метрика для эксперимента (открытый вопрос: какой вес гипотезы считать высоким).
+
+lambda leftOf(E: Operation, Old: Expr, New: Expr) = E->hasOperand<OperandPlacement:left> == Old ? New : E->hasOperand<OperandPlacement:left>;
+
+lambda rightOf(E: Operation, Old: Expr, New: Expr) = E->hasOperand<OperandPlacement:right> == Old ? New : E->hasOperand<OperandPlacement:right>;
+
+lambda maxOf(a: int, b: int) = a > b ? a : b;
+
+lambda arithmeticResultRank(E: ArithmeticOperation, L: Type, R: Type) = maxOf(maxOf(L.conversionRank, R.conversionRank), E.minResultRank);
+
+lambda orderable(L: Type, R: Type) = L.isArithmetic and R.isArithmetic or L is class:SequenceType and L.class() == R.class();
+
+lambda givesFixedResult(F: CallOperation, T: Type) = F.fixedResult == FixedResult:text and T is class:TextType or F.fixedResult == FixedResult:number and T.isArithmetic and T.conversionRank == F.resultRank;
+
+tpg Typed(E: Operation, Old: Expr, New: Expr, T: Type) {
+    ask (E.group) {
+        OperationGroup:arithmetic -> {
+            var A : ArithmeticOperation = (E as class:ArithmeticOperation);
+            var Left : Expr = leftOf(E, Old, New);
+            var Right : Expr = rightOf(E, Old, New);
+            var L : Type = (Left->hasType);
+            var R : Type = (Right->hasType);
+
+            ask (L.isArithmetic and R.isArithmetic) {
+                true -> {
+                    ask (A.isTrueDivision) {
+                        true -> {
+                            agg hyp {
+                                _ -> {
+                                    ask (T.isArithmetic and T.conversionRank == arithmeticResultRank(A, L, R)) out false else {
+                                        conclude: correct [
+                                            skill = "true_division_result";
+                                            hypothesis = "rule";
+                                            RU.explanation = "${A.class()} сохраняет дробную часть и при целых операндах, поэтому частное — вещественное число.";
+                                            EN.explanation = "the ${A.class()} keeps the fractional part even for integer operands, so the quotient is a floating-point number.";
+                                        ];
+                                    };
+                                    conclude: null
+                                };
+                                _ -> {
+                                    ask (T == L or T == R) out false else {
+                                        conclude: error [
+                                            skill = "true_division_result";
+                                            hypothesis = "operand_type";
+                                            RU.explanation = "${A.class()} не берёт тип результата у операндов: деление может дать дробную часть, даже когда операнды целые.";
+                                            EN.explanation = "the ${A.class()} does not take the result type from its operands: division can produce a fractional part even when the operands are integers.";
+                                            RU.reason = "Результат берёт тип одного из операндов.";
+                                            EN.reason = "The result takes the type of one of the operands.";
+                                        ];
+                                    };
+                                    conclude: null
+                                };
+                                _ -> {
+                                    ask (T.isArithmetic and T.conversionRank == maxOf(L.conversionRank, R.conversionRank)) out false else {
+                                        conclude: error [
+                                            skill = "true_division_result";
+                                            hypothesis = "c_style_division";
+                                            RU.explanation = "${A.class()} сохраняет дробную часть и при целых операндах — отбрасывает её только целочисленное деление.";
+                                            EN.explanation = "the ${A.class()} does not drop the fractional part even for integer operands — only integer division does that.";
+                                            RU.reason = "Деление целых чисел даёт целое число.";
+                                            EN.reason = "Dividing integers gives an integer.";
+                                        ];
+                                    };
+                                    conclude: null
+                                };
+                                correct -> { conclude: correct };
+                                error -> { conclude: error };
+                                null -> {
+                                    conclude: null [
+                                        skill = "true_division_result";
+                                        RU.explanation = "ни у одного из операндов (${L}, ${R}) нет такого типа, и ${A.class()} его не создаёт.";
+                                        EN.explanation = "neither operand (${L}, ${R}) has this type, and the ${A.class()} does not create it.";
+                                    ]
+                                };
+                            } as trueDivisionHypotheses
+                        };
+                        false -> {
+                            ask (L is class:FloatingType or R is class:FloatingType) {
+                                true -> {
+                                    agg hyp {
+                                        _ -> {
+                                            ask (T.isArithmetic and T.conversionRank == arithmeticResultRank(A, L, R)) out false else {
+                                                conclude: correct [
+                                                    skill = "numeric_result_type";
+                                                    hypothesis = "rule";
+                                                    RU.explanation = "среди операндов (${L}, ${R}) есть вещественный, а ${A.class()} с вещественным операндом даёт вещественный результат.";
+                                                    EN.explanation = "one of the operands (${L}, ${R}) is floating-point, and the ${A.class()} with a floating-point operand gives a floating-point result.";
+                                                ];
+                                            };
+                                            conclude: null
+                                        };
+                                        _ -> {
+                                            ask (T == L or T == R) out false else {
+                                                conclude: error [
+                                                    skill = "numeric_result_type";
+                                                    hypothesis = "operand_type";
+                                                    RU.explanation = "среди операндов есть вещественный, а ${A.class()} с вещественным операндом не сохраняет тип второго операнда.";
+                                                    EN.explanation = "one of the operands is floating-point, and the ${A.class()} with a floating-point operand does not keep the type of the other operand.";
+                                                    RU.reason = "Результат берёт тип одного из операндов.";
+                                                    EN.reason = "The result takes the type of one of the operands.";
+                                                ];
+                                            };
+                                            conclude: null
+                                        };
+                                        _ -> {
+                                            ask (A.isFloorDivision and T is class:IntegerType) out false else {
+                                                conclude: error [
+                                                    skill = "numeric_result_type";
+                                                    hypothesis = "floor_division_gives_integer";
+                                                    RU.explanation = "${A.class()} округляет значение вниз, но тип не меняет: вещественный операнд не становится целым.";
+                                                    EN.explanation = "the ${A.class()} rounds the value down but does not change its type: a floating-point operand does not become an integer.";
+                                                    RU.reason = "Целочисленное деление всегда даёт целое число.";
+                                                    EN.reason = "Integer division always gives an integer.";
+                                                ];
+                                            };
+                                            conclude: null
+                                        };
+                                        correct -> { conclude: correct };
+                                        error -> { conclude: error };
+                                        null -> {
+                                            conclude: null [
+                                                skill = "numeric_result_type";
+                                                RU.explanation = "ни у одного из операндов (${L}, ${R}) нет такого типа, и ${A.class()} его не создаёт.";
+                                                EN.explanation = "neither operand (${L}, ${R}) has this type, and the ${A.class()} does not create it.";
+                                            ]
+                                        };
+                                    } as floatResultHypotheses
+                                };
+                                false -> {
+                                    agg hyp {
+                                        _ -> {
+                                            ask (T.isArithmetic and T.conversionRank == arithmeticResultRank(A, L, R)) out false else {
+                                                conclude: correct [
+                                                    skill = "numeric_result_type";
+                                                    hypothesis = "rule";
+                                                    RU.explanation = "оба операнда целые или логические (${L}, ${R}), а ${A.class()} над ними даёт целое число.";
+                                                    EN.explanation = "both operands are integers or booleans (${L}, ${R}), and the ${A.class()} on them gives an integer.";
+                                                ];
+                                            };
+                                            conclude: null
+                                        };
+                                        _ -> {
+                                            ask (T == L or T == R) out false else {
+                                                conclude: error [
+                                                    skill = "numeric_result_type";
+                                                    hypothesis = "operand_type";
+                                                    RU.explanation = "в арифметике логические значения ведут себя как числа 0 и 1, поэтому ${A.class()} не сохраняет логический тип операнда.";
+                                                    EN.explanation = "in arithmetic, boolean values behave as the numbers 0 and 1, so the ${A.class()} does not keep an operand's boolean type.";
+                                                    RU.reason = "Результат берёт тип одного из операндов.";
+                                                    EN.reason = "The result takes the type of one of the operands.";
+                                                ];
+                                            };
+                                            conclude: null
+                                        };
+                                        _ -> {
+                                            ask (L is class:BooleanType and R is class:BooleanType and T is class:BooleanType) out false else {
+                                                conclude: error [
+                                                    skill = "numeric_result_type";
+                                                    hypothesis = "boolean_arithmetic_stays_boolean";
+                                                    RU.explanation = "${A.class()} работает с логическими значениями как с числами 1 и 0, и результат перестаёт быть логическим значением.";
+                                                    EN.explanation = "the ${A.class()} treats boolean values as the numbers 1 and 0, so the result is no longer a boolean.";
+                                                    RU.reason = "Арифметика над логическими значениями даёт логическое значение.";
+                                                    EN.reason = "Arithmetic on booleans gives a boolean.";
+                                                ];
+                                            };
+                                            conclude: null
+                                        };
+                                        correct -> { conclude: correct };
+                                        error -> { conclude: error };
+                                        null -> {
+                                            conclude: null [
+                                                skill = "numeric_result_type";
+                                                RU.explanation = "ни у одного из операндов (${L}, ${R}) нет такого типа, и ${A.class()} его не создаёт.";
+                                                EN.explanation = "neither operand (${L}, ${R}) has this type, and the ${A.class()} does not create it.";
+                                            ]
+                                        };
+                                    } as integerResultHypotheses
+                                };
+                            } as floatPromotion
+                        };
+                    } as divisionSemantics
+                };
+                false -> {
+                    // Одна развилка с тремя исходами, а не цепочка проверок: иначе навык неприменимой операции
+                    // достался бы последней проверке в цепочке.
+                    ask ((A.concatenatesSequences and L is class:SequenceType and L == R)
+                            ? SequenceUse:concatenation
+                            : ((A.repeatsSequence and (L is class:SequenceType and R is class:IntegerType or L is class:IntegerType and R is class:SequenceType))
+                                ? SequenceUse:repetition
+                                : SequenceUse:inapplicable)) {
+                        SequenceUse:concatenation -> {
+                            agg hyp {
+                                _ -> {
+                                    ask (T == L) out false else {
+                                        conclude: correct [
+                                            skill = "sequence_operation_applicability";
+                                            hypothesis = "rule";
+                                            RU.explanation = "${A.class()} склеивает две последовательности одного типа (${L}), и тип при этом сохраняется.";
+                                            EN.explanation = "the ${A.class()} concatenates two sequences of the same type (${L}), and the type is kept.";
+                                        ];
+                                    };
+                                    conclude: null
+                                };
+                                _ -> {
+                                    ask (T is class:IntegerType and Left.isNumericText and Right.isNumericText) out false else {
+                                        conclude: error [
+                                            skill = "sequence_operation_applicability";
+                                            hypothesis = "numeric_text_addition";
+                                            RU.explanation = "оба операнда — строки, пусть и похожие на числа, а ${A.class()} строки склеивает, а не складывает как числа.";
+                                            EN.explanation = "both operands are strings, even though they look like numbers, and the ${A.class()} concatenates strings instead of adding them as numbers.";
+                                            RU.reason = "Строки из цифр складываются как числа.";
+                                            EN.reason = "Strings of digits are added as numbers.";
+                                        ];
+                                    };
+                                    conclude: null
+                                };
+                                correct -> { conclude: correct };
+                                error -> { conclude: error };
+                                null -> {
+                                    conclude: null [
+                                        skill = "sequence_operation_applicability";
+                                        RU.explanation = "ни у одного из операндов (${L}, ${R}) нет такого типа, и ${A.class()} его не создаёт.";
+                                        EN.explanation = "neither operand (${L}, ${R}) has this type, and the ${A.class()} does not create it.";
+                                    ]
+                                };
+                            }
+                        };
+                        SequenceUse:repetition -> {
+                            agg hyp {
+                                _ -> {
+                                    ask (T == (L is class:SequenceType ? L : R)) out false else {
+                                        conclude: correct [
+                                            skill = "sequence_operation_applicability";
+                                            hypothesis = "rule";
+                                            RU.explanation = "умножение последовательности на целое число повторяет её, и тип последовательности сохраняется.";
+                                            EN.explanation = "multiplying a sequence by an integer repeats it, and the sequence type is kept.";
+                                        ];
+                                    };
+                                    conclude: null
+                                };
+                                _ -> {
+                                    ask (T == L or T == R) out false else {
+                                        conclude: error [
+                                            skill = "sequence_operation_applicability";
+                                            hypothesis = "operand_type";
+                                            RU.explanation = "${A.class()} между последовательностью и целым числом повторяет последовательность, а не перемножает числа.";
+                                            EN.explanation = "the ${A.class()} between a sequence and an integer repeats the sequence instead of multiplying numbers.";
+                                            RU.reason = "Результат берёт тип одного из операндов.";
+                                            EN.reason = "The result takes the type of one of the operands.";
+                                        ];
+                                    };
+                                    conclude: null
+                                };
+                                _ -> {
+                                    ask (T is class:ErrorType) out false else {
+                                        conclude: error [
+                                            skill = "sequence_operation_applicability";
+                                            hypothesis = "repetition_impossible";
+                                            RU.explanation = "умножение последовательности на целое число допустимо: оно повторяет последовательность.";
+                                            EN.explanation = "multiplying a sequence by an integer is allowed: it repeats the sequence.";
+                                            RU.reason = "Последовательность нельзя умножить на число.";
+                                            EN.reason = "A sequence cannot be multiplied by a number.";
+                                        ];
+                                    };
+                                    conclude: null
+                                };
+                                correct -> { conclude: correct };
+                                error -> { conclude: error };
+                                null -> {
+                                    conclude: null [
+                                        skill = "sequence_operation_applicability";
+                                        RU.explanation = "ни у одного из операндов (${L}, ${R}) нет такого типа, и ${A.class()} его не создаёт.";
+                                        EN.explanation = "neither operand (${L}, ${R}) has this type, and the ${A.class()} does not create it.";
+                                    ]
+                                };
+                            } as repetitionHypotheses
+                        };
+                        SequenceUse:inapplicable -> {
+                            agg hyp {
+                                _ -> {
+                                    ask (T is class:ErrorType) out false else {
+                                        conclude: correct [
+                                            skill = "sequence_operation_applicability";
+                                            hypothesis = "rule";
+                                            RU.explanation = "${A.class()} нельзя применить к операндам типов ${L} и ${R}, поэтому возникает ошибка.";
+                                            EN.explanation = "the ${A.class()} cannot be applied to operands of types ${L} and ${R}, so an error occurs.";
+                                        ];
+                                    };
+                                    conclude: null
+                                };
+                                _ -> {
+                                    ask (T == L or T == R) out false else {
+                                        conclude: error [
+                                            skill = "sequence_operation_applicability";
+                                            hypothesis = "operand_type";
+                                            RU.explanation = "${A.class()} нельзя применить к операндам типов ${L} и ${R}, и ни один из операндов не может стать его результатом.";
+                                            EN.explanation = "the ${A.class()} cannot be applied to operands of types ${L} and ${R}, and neither operand can become its result.";
+                                            RU.reason = "Результат берёт тип одного из операндов.";
+                                            EN.reason = "The result takes the type of one of the operands.";
+                                        ];
+                                    };
+                                    conclude: null
+                                };
+                                _ -> {
+                                    ask (A.concatenatesSequences and T is class:TextType and (L is class:TextType and R.isArithmetic or L.isArithmetic and R is class:TextType)) out false else {
+                                        conclude: error [
+                                            skill = "sequence_operation_applicability";
+                                            hypothesis = "implicit_text_conversion";
+                                            RU.explanation = "${A.class()} сам не превращает число в строку: склеить их можно только после явного преобразования числа в строку.";
+                                            EN.explanation = "the ${A.class()} does not turn a number into a string by itself: they can be joined only after an explicit conversion of the number to a string.";
+                                            RU.reason = "При сложении со строкой число само превращается в строку.";
+                                            EN.reason = "When added to a string, a number turns into a string by itself.";
+                                        ];
+                                    };
+                                    conclude: null
+                                };
+                                correct -> { conclude: correct };
+                                error -> { conclude: error };
+                                null -> {
+                                    conclude: null [
+                                        skill = "sequence_operation_applicability";
+                                        RU.explanation = "${A.class()} нельзя применить к операндам типов ${L} и ${R}.";
+                                        EN.explanation = "the ${A.class()} cannot be applied to operands of types ${L} and ${R}.";
+                                    ]
+                                };
+                            } as inapplicableSequenceOperationHypotheses
+                        };
+                    } as sequenceApplicability
+                };
+            } as numericOperands
+        };
+        OperationGroup:logical -> {
+            var Left : Expr = leftOf(E, Old, New);
+            var L : Type = (Left->hasType);
+
+            ask (E is class:NegationOperation) {
+                true -> {
+                    agg hyp {
+                        _ -> {
+                            ask (T is class:BooleanType) out false else {
+                                conclude: correct [
+                                    skill = "negation_result";
+                                    hypothesis = "rule";
+                                    RU.explanation = "${E.class()} лишь сообщает, ложен ли операнд, и отвечает логическим значением.";
+                                    EN.explanation = "the ${E.class()} only tells whether the operand is falsy and answers with a boolean.";
+                                ];
+                            };
+                            conclude: null
+                        };
+                        _ -> {
+                            ask (T == L) out false else {
+                                conclude: error [
+                                    skill = "negation_result";
+                                    hypothesis = "operand_type";
+                                    RU.explanation = "${E.class()} не возвращает свой операнд, а лишь сообщает, ложен ли он.";
+                                    EN.explanation = "the ${E.class()} does not return its operand; it only tells whether the operand is falsy.";
+                                    RU.reason = "Результат берёт тип операнда.";
+                                    EN.reason = "The result takes the type of the operand.";
+                                ];
+                            };
+                            conclude: null
+                        };
+                        correct -> { conclude: correct };
+                        error -> { conclude: error };
+                        null -> {
+                            conclude: null [
+                                skill = "negation_result";
+                                RU.explanation = "${E.class()} лишь сообщает, ложен ли операнд, и не создаёт значений такого типа.";
+                                EN.explanation = "the ${E.class()} only tells whether the operand is falsy and does not create values of this type.";
+                            ]
+                        };
+                    }
+                };
+                false -> {
+                    var B : LogicalOperation = (E as class:LogicalOperation);
+                    var Right : Expr = rightOf(E, Old, New);
+                    var R : Type = (Right->hasType);
+
+                    ask (B.returnsOperand) {
+                        false -> {
+                            agg hyp {
+                                _ -> {
+                                    ask (T is class:BooleanType) out false else {
+                                        conclude: correct [
+                                            skill = "boolean_logical_result";
+                                            hypothesis = "rule";
+                                            RU.explanation = "в этом языке ${B.class()} вычисляет истинность всего выражения и отвечает логическим значением.";
+                                            EN.explanation = "in this language the ${B.class()} evaluates the truth of the whole expression and answers with a boolean.";
+                                        ];
+                                    };
+                                    conclude: null
+                                };
+                                _ -> {
+                                    ask (T == L or T == R) out false else {
+                                        conclude: error [
+                                            skill = "boolean_logical_result";
+                                            hypothesis = "operand_type";
+                                            RU.explanation = "в этом языке ${B.class()} не возвращает операнд, а вычисляет истинность всего выражения.";
+                                            EN.explanation = "in this language the ${B.class()} does not return an operand; it evaluates the truth of the whole expression.";
+                                            RU.reason = "Результат берёт тип одного из операндов.";
+                                            EN.reason = "The result takes the type of one of the operands.";
+                                        ];
+                                    };
+                                    conclude: null
+                                };
+                                correct -> { conclude: correct };
+                                error -> { conclude: error };
+                                null -> {
+                                    conclude: null [
+                                        skill = "boolean_logical_result";
+                                        RU.explanation = "в этом языке ${B.class()} вычисляет только истинность выражения и не создаёт значений такого типа.";
+                                        EN.explanation = "in this language the ${B.class()} only evaluates the truth of the expression and does not create values of this type.";
+                                    ]
+                                };
+                            }
+                        };
+                        true -> {
+                            // Какой операнд вернётся, решают вместе истинность левого операнда и вид операции,
+                            // поэтому это одна развилка: ошибка в любой из двух частей даёт один и тот же ответ.
+                            ask (Left.isTruthy == B.returnsLeftWhenLeftTruthy) {
+                                true -> {
+                                    agg hyp {
+                                        _ -> {
+                                            ask (T == L) out false else {
+                                                conclude: correct [
+                                                    skill = "logical_returned_operand";
+                                                    hypothesis = "rule";
+                                                    RU.explanation = "левый операнд ${Left.isTruthy ? 'истинный' : 'ложный'}, а ${B.class()} на таком операнде останавливается и возвращает его.";
+                                                    EN.explanation = "the left operand is ${Left.isTruthy ? 'truthy' : 'falsy'}, and the ${B.class()} stops at such an operand and returns it.";
+                                                ];
+                                            };
+                                            conclude: null
+                                        };
+                                        _ -> {
+                                            ask (T is class:BooleanType) out false else {
+                                                conclude: error [
+                                                    skill = "logical_returned_operand";
+                                                    hypothesis = "logical_gives_boolean";
+                                                    RU.explanation = "${B.class()} не превращает результат в логическое значение — он возвращает один из операндов как есть.";
+                                                    EN.explanation = "the ${B.class()} does not turn the result into a boolean — it returns one of the operands as is.";
+                                                    RU.reason = "Логические операции всегда дают логическое значение.";
+                                                    EN.reason = "Logical operations always give a boolean.";
+                                                ];
+                                            };
+                                            conclude: null
+                                        };
+                                        _ -> {
+                                            ask (T == R) out false else {
+                                                conclude: error [
+                                                    skill = "logical_returned_operand";
+                                                    hypothesis = "truthiness_misjudged";
+                                                    RU.explanation = "левый операнд ${Left.isTruthy ? 'истинный' : 'ложный'}, а ${B.class()} на таком операнде останавливается.";
+                                                    EN.explanation = "the left operand is ${Left.isTruthy ? 'truthy' : 'falsy'}, and the ${B.class()} stops at such an operand.";
+                                                    RU.reason = "Левый операнд ${Left.isTruthy ? 'ложный' : 'истинный'}.";
+                                                    EN.reason = "The left operand is ${Left.isTruthy ? 'falsy' : 'truthy'}.";
+                                                ];
+                                            };
+                                            conclude: null
+                                        };
+                                        _ -> {
+                                            ask (T == R) out false else {
+                                                conclude: error [
+                                                    skill = "logical_returned_operand";
+                                                    hypothesis = "and_or_confused";
+                                                    RU.explanation = "${B.class()} останавливается на первом ${B.returnsLeftWhenLeftTruthy ? 'истинном' : 'ложном'} операнде, а не на первом ${B.returnsLeftWhenLeftTruthy ? 'ложном' : 'истинном'}.";
+                                                    EN.explanation = "the ${B.class()} stops at the first ${B.returnsLeftWhenLeftTruthy ? 'truthy' : 'falsy'} operand, not at the first ${B.returnsLeftWhenLeftTruthy ? 'falsy' : 'truthy'} one.";
+                                                    RU.reason = "Возвращается первый ${B.returnsLeftWhenLeftTruthy ? 'ложный' : 'истинный'} операнд.";
+                                                    EN.reason = "The first ${B.returnsLeftWhenLeftTruthy ? 'falsy' : 'truthy'} operand is returned.";
+                                                ];
+                                            };
+                                            conclude: null
+                                        };
+                                        correct -> { conclude: correct };
+                                        error -> { conclude: error };
+                                        null -> {
+                                            conclude: null [
+                                                skill = "logical_returned_operand";
+                                                RU.explanation = "${B.class()} возвращает один из своих операндов, а ни один из них (${L}, ${R}) не имеет такого типа.";
+                                                EN.explanation = "the ${B.class()} returns one of its operands, and neither of them (${L}, ${R}) has this type.";
+                                            ]
+                                        };
+                                    } as leftOperandHypotheses
+                                };
+                                false -> {
+                                    agg hyp {
+                                        _ -> {
+                                            ask (T == R) out false else {
+                                                conclude: correct [
+                                                    skill = "logical_returned_operand";
+                                                    hypothesis = "rule";
+                                                    RU.explanation = "левый операнд ${Left.isTruthy ? 'истинный' : 'ложный'}, ${B.class()} на таком операнде не останавливается и возвращает правый операнд.";
+                                                    EN.explanation = "the left operand is ${Left.isTruthy ? 'truthy' : 'falsy'}, so the ${B.class()} does not stop at it and returns the right operand.";
+                                                ];
+                                            };
+                                            conclude: null
+                                        };
+                                        _ -> {
+                                            ask (T is class:BooleanType) out false else {
+                                                conclude: error [
+                                                    skill = "logical_returned_operand";
+                                                    hypothesis = "logical_gives_boolean";
+                                                    RU.explanation = "${B.class()} не превращает результат в логическое значение — он возвращает один из операндов как есть.";
+                                                    EN.explanation = "the ${B.class()} does not turn the result into a boolean — it returns one of the operands as is.";
+                                                    RU.reason = "Логические операции всегда дают логическое значение.";
+                                                    EN.reason = "Logical operations always give a boolean.";
+                                                ];
+                                            };
+                                            conclude: null
+                                        };
+                                        _ -> {
+                                            ask (T == L) out false else {
+                                                conclude: error [
+                                                    skill = "logical_returned_operand";
+                                                    hypothesis = "truthiness_misjudged";
+                                                    RU.explanation = "левый операнд ${Left.isTruthy ? 'истинный' : 'ложный'}, а ${B.class()} на таком операнде не останавливается.";
+                                                    EN.explanation = "the left operand is ${Left.isTruthy ? 'truthy' : 'falsy'}, and the ${B.class()} does not stop at such an operand.";
+                                                    RU.reason = "Левый операнд ${Left.isTruthy ? 'ложный' : 'истинный'}.";
+                                                    EN.reason = "The left operand is ${Left.isTruthy ? 'falsy' : 'truthy'}.";
+                                                ];
+                                            };
+                                            conclude: null
+                                        };
+                                        _ -> {
+                                            ask (T == L) out false else {
+                                                conclude: error [
+                                                    skill = "logical_returned_operand";
+                                                    hypothesis = "and_or_confused";
+                                                    RU.explanation = "${B.class()} останавливается на первом ${B.returnsLeftWhenLeftTruthy ? 'истинном' : 'ложном'} операнде, а не на первом ${B.returnsLeftWhenLeftTruthy ? 'ложном' : 'истинном'}.";
+                                                    EN.explanation = "the ${B.class()} stops at the first ${B.returnsLeftWhenLeftTruthy ? 'truthy' : 'falsy'} operand, not at the first ${B.returnsLeftWhenLeftTruthy ? 'falsy' : 'truthy'} one.";
+                                                    RU.reason = "Возвращается первый ${B.returnsLeftWhenLeftTruthy ? 'ложный' : 'истинный'} операнд.";
+                                                    EN.reason = "The first ${B.returnsLeftWhenLeftTruthy ? 'falsy' : 'truthy'} operand is returned.";
+                                                ];
+                                            };
+                                            conclude: null
+                                        };
+                                        correct -> { conclude: correct };
+                                        error -> { conclude: error };
+                                        null -> {
+                                            conclude: null [
+                                                skill = "logical_returned_operand";
+                                                RU.explanation = "${B.class()} возвращает один из своих операндов, а ни один из них (${L}, ${R}) не имеет такого типа.";
+                                                EN.explanation = "the ${B.class()} returns one of its operands, and neither of them (${L}, ${R}) has this type.";
+                                            ]
+                                        };
+                                    } as rightOperandHypotheses
+                                };
+                            } as returnedOperand
+                        };
+                    } as logicalResultKind
+                };
+            } as negationCheck
+        };
+        OperationGroup:comparison -> {
+            var C : ComparisonOperation = (E as class:ComparisonOperation);
+            var Left : Expr = leftOf(E, Old, New);
+            var Right : Expr = rightOf(E, Old, New);
+            var L : Type = (Left->hasType);
+            var R : Type = (Right->hasType);
+
+            ask (C.comparisonKind) {
+                ComparisonKind:equality -> {
+                    ask (C.comparesAnyTypes or orderable(L, R)) {
+                        true -> {
+                            agg hyp {
+                                _ -> {
+                                    ask (T is class:BooleanType) out false else {
+                                        conclude: correct [
+                                            skill = "equality_comparison";
+                                            hypothesis = "rule";
+                                            RU.explanation = "${C.class()} сравнивает значения и отвечает логическим значением.";
+                                            EN.explanation = "the ${C.class()} compares the values and answers with a boolean.";
+                                        ];
+                                    };
+                                    conclude: null
+                                };
+                                _ -> {
+                                    ask (T == L or T == R) out false else {
+                                        conclude: error [
+                                            skill = "equality_comparison";
+                                            hypothesis = "operand_type";
+                                            RU.explanation = "${C.class()} не возвращает сравниваемые значения, а только сообщает результат сравнения.";
+                                            EN.explanation = "the ${C.class()} does not return the compared values; it only reports the result of the comparison.";
+                                            RU.reason = "Результат берёт тип одного из операндов.";
+                                            EN.reason = "The result takes the type of one of the operands.";
+                                        ];
+                                    };
+                                    conclude: null
+                                };
+                                correct -> { conclude: correct };
+                                error -> { conclude: error };
+                                null -> {
+                                    conclude: null [
+                                        skill = "equality_comparison";
+                                        RU.explanation = "${C.class()} сообщает только результат сравнения и не создаёт значений такого типа.";
+                                        EN.explanation = "the ${C.class()} only reports the result of the comparison and does not create values of this type.";
+                                    ]
+                                };
+                            }
+                        };
+                        false -> {
+                            agg hyp {
+                                _ -> {
+                                    ask (T is class:ErrorType) out false else {
+                                        conclude: correct [
+                                            skill = "equality_comparison";
+                                            hypothesis = "rule";
+                                            RU.explanation = "${C.class()} не применим к значениям типов ${L} и ${R}, поэтому возникает ошибка.";
+                                            EN.explanation = "the ${C.class()} cannot be applied to values of types ${L} and ${R}, so an error occurs.";
+                                        ];
+                                    };
+                                    conclude: null
+                                };
+                                _ -> {
+                                    ask (T is class:BooleanType) out false else {
+                                        conclude: error [
+                                            skill = "equality_comparison";
+                                            hypothesis = "inapplicable_comparison_gives_boolean";
+                                            RU.explanation = "${C.class()} не применим к значениям типов ${L} и ${R}, поэтому сравнение не дойдёт до логического значения.";
+                                            EN.explanation = "the ${C.class()} cannot be applied to values of types ${L} and ${R}, so the comparison never gets to a boolean.";
+                                            RU.reason = "Проверка на равенство всегда даёт логическое значение.";
+                                            EN.reason = "An equality check always gives a boolean.";
+                                        ];
+                                    };
+                                    conclude: null
+                                };
+                                _ -> {
+                                    ask (T == L or T == R) out false else {
+                                        conclude: error [
+                                            skill = "equality_comparison";
+                                            hypothesis = "operand_type";
+                                            RU.explanation = "${C.class()} не применим к значениям типов ${L} и ${R}, а сравнение и не возвращает свои операнды.";
+                                            EN.explanation = "the ${C.class()} cannot be applied to values of types ${L} and ${R}, and a comparison does not return its operands anyway.";
+                                            RU.reason = "Результат берёт тип одного из операндов.";
+                                            EN.reason = "The result takes the type of one of the operands.";
+                                        ];
+                                    };
+                                    conclude: null
+                                };
+                                correct -> { conclude: correct };
+                                error -> { conclude: error };
+                                null -> {
+                                    conclude: null [
+                                        skill = "equality_comparison";
+                                        RU.explanation = "${C.class()} не применим к значениям типов ${L} и ${R}.";
+                                        EN.explanation = "the ${C.class()} cannot be applied to values of types ${L} and ${R}.";
+                                    ]
+                                };
+                            } as inapplicableEqualityHypotheses
+                        };
+                    } as equalityApplicability
+                };
+                ComparisonKind:ordering -> {
+                    ask (orderable(L, R)) {
+                        true -> {
+                            agg hyp {
+                                _ -> {
+                                    ask (T is class:BooleanType) out false else {
+                                        conclude: correct [
+                                            skill = "ordering_comparison";
+                                            hypothesis = "rule";
+                                            RU.explanation = "${C.class()} сравнивает значения по порядку и отвечает логическим значением.";
+                                            EN.explanation = "the ${C.class()} compares the values by order and answers with a boolean.";
+                                        ];
+                                    };
+                                    conclude: null
+                                };
+                                _ -> {
+                                    ask (T == L or T == R) out false else {
+                                        conclude: error [
+                                            skill = "ordering_comparison";
+                                            hypothesis = "operand_type";
+                                            RU.explanation = "${C.class()} не возвращает сравниваемые значения, а только сообщает результат сравнения.";
+                                            EN.explanation = "the ${C.class()} does not return the compared values; it only reports the result of the comparison.";
+                                            RU.reason = "Результат берёт тип одного из операндов.";
+                                            EN.reason = "The result takes the type of one of the operands.";
+                                        ];
+                                    };
+                                    conclude: null
+                                };
+                                correct -> { conclude: correct };
+                                error -> { conclude: error };
+                                null -> {
+                                    conclude: null [
+                                        skill = "ordering_comparison";
+                                        RU.explanation = "${C.class()} сообщает только результат сравнения и не создаёт значений такого типа.";
+                                        EN.explanation = "the ${C.class()} only reports the result of the comparison and does not create values of this type.";
+                                    ]
+                                };
+                            }
+                        };
+                        false -> {
+                            agg hyp {
+                                _ -> {
+                                    ask (T is class:ErrorType) out false else {
+                                        conclude: correct [
+                                            skill = "ordering_comparison";
+                                            hypothesis = "rule";
+                                            RU.explanation = "по порядку сравниваются только числа между собой и последовательности одного вида, а здесь значения типов ${L} и ${R}, поэтому возникает ошибка.";
+                                            EN.explanation = "only numbers with numbers or sequences of the same kind can be ordered, while here the values have types ${L} and ${R}, so an error occurs.";
+                                        ];
+                                    };
+                                    conclude: null
+                                };
+                                _ -> {
+                                    ask (T is class:BooleanType) out false else {
+                                        conclude: error [
+                                            skill = "ordering_comparison";
+                                            hypothesis = "inapplicable_comparison_gives_boolean";
+                                            RU.explanation = "значения типов ${L} и ${R} нельзя сравнить по порядку, поэтому ${C.class()} не дойдёт до логического значения.";
+                                            EN.explanation = "values of types ${L} and ${R} cannot be ordered, so the ${C.class()} never gets to a boolean.";
+                                            RU.reason = "Сравнение по порядку всегда даёт логическое значение.";
+                                            EN.reason = "An ordering comparison always gives a boolean.";
+                                        ];
+                                    };
+                                    conclude: null
+                                };
+                                _ -> {
+                                    ask (T == L or T == R) out false else {
+                                        conclude: error [
+                                            skill = "ordering_comparison";
+                                            hypothesis = "operand_type";
+                                            RU.explanation = "значения типов ${L} и ${R} нельзя сравнить по порядку, а сравнение и не возвращает свои операнды.";
+                                            EN.explanation = "values of types ${L} and ${R} cannot be ordered, and a comparison does not return its operands anyway.";
+                                            RU.reason = "Результат берёт тип одного из операндов.";
+                                            EN.reason = "The result takes the type of one of the operands.";
+                                        ];
+                                    };
+                                    conclude: null
+                                };
+                                correct -> { conclude: correct };
+                                error -> { conclude: error };
+                                null -> {
+                                    conclude: null [
+                                        skill = "ordering_comparison";
+                                        RU.explanation = "значения типов ${L} и ${R} нельзя сравнить по порядку.";
+                                        EN.explanation = "values of types ${L} and ${R} cannot be ordered.";
+                                    ]
+                                };
+                            } as inapplicableOrderingHypotheses
+                        };
+                    } as orderingApplicability
+                };
+                ComparisonKind:membership -> {
+                    ask ((R is class:SequenceType or R is class:MappingType) and (not (R is class:TextType) or L is class:TextType)) {
+                        true -> {
+                            agg hyp {
+                                _ -> {
+                                    ask (T is class:BooleanType) out false else {
+                                        conclude: correct [
+                                            skill = "membership_test";
+                                            hypothesis = "rule";
+                                            RU.explanation = "${C.class()} проверяет, есть ли левый операнд в правом (${R}), и отвечает логическим значением.";
+                                            EN.explanation = "the ${C.class()} checks whether the left operand occurs in the right one (${R}) and answers with a boolean.";
+                                        ];
+                                    };
+                                    conclude: null
+                                };
+                                _ -> {
+                                    ask (T == L or T == R) out false else {
+                                        conclude: error [
+                                            skill = "membership_test";
+                                            hypothesis = "operand_type";
+                                            RU.explanation = "${C.class()} не возвращает найденный элемент или коллекцию, а только сообщает, есть ли элемент.";
+                                            EN.explanation = "the ${C.class()} does not return the found element or the collection; it only reports whether the element is there.";
+                                            RU.reason = "Результат берёт тип одного из операндов.";
+                                            EN.reason = "The result takes the type of one of the operands.";
+                                        ];
+                                    };
+                                    conclude: null
+                                };
+                                correct -> { conclude: correct };
+                                error -> { conclude: error };
+                                null -> {
+                                    conclude: null [
+                                        skill = "membership_test";
+                                        RU.explanation = "${C.class()} сообщает только, есть ли элемент, и не создаёт значений такого типа.";
+                                        EN.explanation = "the ${C.class()} only reports whether the element is there and does not create values of this type.";
+                                    ]
+                                };
+                            }
+                        };
+                        false -> {
+                            agg hyp {
+                                _ -> {
+                                    ask (T is class:ErrorType) out false else {
+                                        conclude: correct [
+                                            skill = "membership_test";
+                                            hypothesis = "rule";
+                                            RU.explanation = "в значении типа ${R} нельзя искать значение типа ${L}: искать можно в коллекции или строке, а в строке — только строку; поэтому возникает ошибка.";
+                                            EN.explanation = "a value of type ${L} cannot be searched for in a value of type ${R}: one can search only in a collection or a string, and only for a string in a string; so an error occurs.";
+                                        ];
+                                    };
+                                    conclude: null
+                                };
+                                _ -> {
+                                    ask (T is class:BooleanType) out false else {
+                                        conclude: error [
+                                            skill = "membership_test";
+                                            hypothesis = "inapplicable_comparison_gives_boolean";
+                                            RU.explanation = "в значении типа ${R} нельзя искать значение типа ${L}, поэтому проверка не дойдёт до логического значения.";
+                                            EN.explanation = "a value of type ${L} cannot be searched for in a value of type ${R}, so the check never gets to a boolean.";
+                                            RU.reason = "Проверка вхождения всегда даёт логическое значение.";
+                                            EN.reason = "A membership test always gives a boolean.";
+                                        ];
+                                    };
+                                    conclude: null
+                                };
+                                _ -> {
+                                    ask (T == L or T == R) out false else {
+                                        conclude: error [
+                                            skill = "membership_test";
+                                            hypothesis = "operand_type";
+                                            RU.explanation = "в значении типа ${R} нельзя искать значение типа ${L}, а проверка вхождения и не возвращает свои операнды.";
+                                            EN.explanation = "a value of type ${L} cannot be searched for in a value of type ${R}, and a membership test does not return its operands anyway.";
+                                            RU.reason = "Результат берёт тип одного из операндов.";
+                                            EN.reason = "The result takes the type of one of the operands.";
+                                        ];
+                                    };
+                                    conclude: null
+                                };
+                                correct -> { conclude: correct };
+                                error -> { conclude: error };
+                                null -> {
+                                    conclude: null [
+                                        skill = "membership_test";
+                                        RU.explanation = "в значении типа ${R} нельзя искать значение типа ${L}.";
+                                        EN.explanation = "a value of type ${L} cannot be searched for in a value of type ${R}.";
+                                    ]
+                                };
+                            } as inapplicableMembershipHypotheses
+                        };
+                    } as membershipApplicability
+                };
+            } as comparisonKindSwitch
+        };
+        OperationGroup:indexing -> {
+            var Left : Expr = leftOf(E, Old, New);
+            var Right : Expr = rightOf(E, Old, New);
+            var X : Type = (Left->hasType);
+            var I : Type = (Right->hasType);
+
+            // Порядок развилок задаёт навыки: словарь — отдельно, неприменимость — до выбора вида элемента.
+            ask (X is class:MappingType) {
+                true -> {
+                    var M : MappingType = (X as class:MappingType);
+                    agg hyp {
+                        _ -> {
+                            ask (T == M->valueType) out false else {
+                                conclude: correct [
+                                    skill = "mapping_value_access";
+                                    hypothesis = "rule";
+                                    RU.explanation = "по ключу из словаря типа ${X} берётся хранящееся под ним значение, а значения там имеют тип ${M->valueType}.";
+                                    EN.explanation = "accessing a dictionary of type ${X} by key takes the value stored under that key, and its values have type ${M->valueType}.";
+                                ];
+                            };
+                            conclude: null
+                        };
+                        _ -> {
+                            ask (T == M->keyType) out false else {
+                                conclude: error [
+                                    skill = "mapping_value_access";
+                                    hypothesis = "key_instead_of_value";
+                                    RU.explanation = "по ключу из словаря возвращается хранящееся под ним значение, а не сам ключ.";
+                                    EN.explanation = "accessing a dictionary by key returns the value stored under that key, not the key itself.";
+                                    RU.reason = "Обращение к словарю по ключу даёт тип ключа.";
+                                    EN.reason = "Accessing a dictionary by key gives the key type.";
+                                ];
+                            };
+                            conclude: null
+                        };
+                        _ -> {
+                            ask (T == X) out false else {
+                                conclude: error [
+                                    skill = "mapping_value_access";
+                                    hypothesis = "container_type";
+                                    RU.explanation = "обращение по ключу достаёт из словаря одно значение, а не словарь целиком.";
+                                    EN.explanation = "access by key takes a single value out of the dictionary, not the whole dictionary.";
+                                    RU.reason = "Обращение к словарю по ключу даёт словарь.";
+                                    EN.reason = "Accessing a dictionary by key gives a dictionary.";
+                                ];
+                            };
+                            conclude: null
+                        };
+                        correct -> { conclude: correct };
+                        error -> { conclude: error };
+                        null -> {
+                            conclude: null [
+                                skill = "mapping_value_access";
+                                RU.explanation = "в словаре типа ${X} ни ключи, ни значения не имеют такого типа.";
+                                EN.explanation = "neither the keys nor the values of the dictionary of type ${X} have this type.";
+                            ]
+                        };
+                    } as mappingValueHypotheses
+                };
+                false -> {
+                    ask (X is class:SequenceType and I is class:IntegerType) {
+                        true -> {
+                            ask (X is class:TupleType) {
+                                true -> {
+                                    var TT : TupleType = (X as class:TupleType);
+                                    agg hyp {
+                                        _ -> {
+                                            ask (T == TT->itemType<Right.intValue>) out false else {
+                                                conclude: correct [
+                                                    skill = "indexed_element_type";
+                                                    hypothesis = "rule";
+                                                    RU.explanation = "элемент с индексом ${Right.intValue} в кортеже типа ${X} имеет этот тип.";
+                                                    EN.explanation = "the element with index ${Right.intValue} in the tuple of type ${X} has this type.";
+                                                ];
+                                            };
+                                            conclude: null
+                                        };
+                                        _ -> {
+                                            ask (T == X) out false else {
+                                                conclude: error [
+                                                    skill = "indexed_element_type";
+                                                    hypothesis = "container_type";
+                                                    RU.explanation = "обращение по индексу берёт из кортежа один элемент, а не кортеж; часть кортежа даёт срез.";
+                                                    EN.explanation = "indexing takes a single element out of the tuple, not a tuple; a part of the tuple is given by slicing.";
+                                                    RU.reason = "Обращение к кортежу по индексу даёт кортеж.";
+                                                    EN.reason = "Indexing a tuple gives a tuple.";
+                                                ];
+                                            };
+                                            conclude: null
+                                        };
+                                        _ -> {
+                                            ask (T == I) out false else {
+                                                conclude: error [
+                                                    skill = "indexed_element_type";
+                                                    hypothesis = "index_type";
+                                                    RU.explanation = "индекс лишь указывает позицию, а результат обращения — сам элемент кортежа.";
+                                                    EN.explanation = "the index only points at a position; the result of indexing is the tuple element itself.";
+                                                    RU.reason = "Обращение по индексу даёт тип индекса.";
+                                                    EN.reason = "Indexing gives the type of the index.";
+                                                ];
+                                            };
+                                            conclude: null
+                                        };
+                                        correct -> { conclude: correct };
+                                        error -> { conclude: error };
+                                        null -> {
+                                            conclude: null [
+                                                skill = "indexed_element_type";
+                                                RU.explanation = "элемент с индексом ${Right.intValue} в кортеже типа ${X} имеет другой тип.";
+                                                EN.explanation = "the element with index ${Right.intValue} in the tuple of type ${X} has a different type.";
+                                            ]
+                                        };
+                                    } as tupleElementHypotheses
+                                };
+                                false -> {
+                                    var S : SequenceType = (X as class:SequenceType);
+                                    agg hyp {
+                                        _ -> {
+                                            ask (T == S->elementType) out false else {
+                                                conclude: correct [
+                                                    skill = "indexed_element_type";
+                                                    hypothesis = "rule";
+                                                    RU.explanation = "обращение по индексу берёт один элемент из ${X}, а элементы там имеют тип ${S->elementType}.";
+                                                    EN.explanation = "indexing takes a single element of ${X}, and its elements have type ${S->elementType}.";
+                                                ];
+                                            };
+                                            conclude: null
+                                        };
+                                        _ -> {
+                                            ask (T == X) out false else {
+                                                conclude: error [
+                                                    skill = "indexed_element_type";
+                                                    hypothesis = "container_type";
+                                                    RU.explanation = "обращение по индексу берёт из последовательности один элемент, а не последовательность; часть последовательности даёт срез.";
+                                                    EN.explanation = "indexing takes a single element out of the sequence, not a sequence; a part of the sequence is given by slicing.";
+                                                    RU.reason = "Обращение по индексу даёт последовательность того же типа.";
+                                                    EN.reason = "Indexing gives a sequence of the same type.";
+                                                ];
+                                            };
+                                            conclude: null
+                                        };
+                                        _ -> {
+                                            ask (T == I) out false else {
+                                                conclude: error [
+                                                    skill = "indexed_element_type";
+                                                    hypothesis = "index_type";
+                                                    RU.explanation = "индекс лишь указывает позицию, а результат обращения — сам элемент последовательности.";
+                                                    EN.explanation = "the index only points at a position; the result of indexing is the sequence element itself.";
+                                                    RU.reason = "Обращение по индексу даёт тип индекса.";
+                                                    EN.reason = "Indexing gives the type of the index.";
+                                                ];
+                                            };
+                                            conclude: null
+                                        };
+                                        _ -> {
+                                            ask (S->elementType is class:SequenceType and T == (S->elementType as class:SequenceType)->elementType) out false else {
+                                                conclude: error [
+                                                    skill = "indexed_element_type";
+                                                    hypothesis = "nesting_level_skipped";
+                                                    RU.explanation = "одно обращение по индексу достаёт элемент из ${X}, а не элемент этого элемента.";
+                                                    EN.explanation = "one indexing takes an element of ${X}, not an element of that element.";
+                                                    RU.reason = "Обращение по индексу доходит до самых внутренних элементов.";
+                                                    EN.reason = "Indexing reaches the innermost elements.";
+                                                ];
+                                            };
+                                            conclude: null
+                                        };
+                                        correct -> { conclude: correct };
+                                        error -> { conclude: error };
+                                        null -> {
+                                            conclude: null [
+                                                skill = "indexed_element_type";
+                                                RU.explanation = "в последовательности типа ${X} нет элементов такого типа.";
+                                                EN.explanation = "a sequence of type ${X} has no elements of this type.";
+                                            ]
+                                        };
+                                    } as sequenceElementHypotheses
+                                };
+                            } as tupleCheck
+                        };
+                        false -> {
+                            agg hyp {
+                                _ -> {
+                                    ask (T is class:ErrorType) out false else {
+                                        conclude: correct [
+                                            skill = "indexing_applicability";
+                                            hypothesis = "rule";
+                                            RU.explanation = "по индексу обращаются к последовательности с целым индексом или к словарю, а здесь значение типа ${X} и индекс типа ${I}, поэтому возникает ошибка.";
+                                            EN.explanation = "only a sequence with an integer index or a dictionary can be indexed, while here the value has type ${X} and the index has type ${I}, so an error occurs.";
+                                        ];
+                                    };
+                                    conclude: null
+                                };
+                                _ -> {
+                                    ask (X is class:SequenceType and T == (X as class:SequenceType)->elementType) out false else {
+                                        conclude: error [
+                                            skill = "indexing_applicability";
+                                            hypothesis = "index_type_ignored";
+                                            RU.explanation = "индекс последовательности должен быть целым числом, а здесь он типа ${I}.";
+                                            EN.explanation = "a sequence index must be an integer, while here it has type ${I}.";
+                                            RU.reason = "Индекс может быть любого типа.";
+                                            EN.reason = "An index can be of any type.";
+                                        ];
+                                    };
+                                    conclude: null
+                                };
+                                _ -> {
+                                    ask (T == X) out false else {
+                                        conclude: error [
+                                            skill = "indexing_applicability";
+                                            hypothesis = "container_type";
+                                            RU.explanation = "к значению типа ${X} нельзя обратиться по индексу типа ${I}, и обращение не возвращает само значение.";
+                                            EN.explanation = "a value of type ${X} cannot be indexed with an index of type ${I}, and indexing does not return the value itself.";
+                                            RU.reason = "Результат берёт тип значения, к которому обращаются по индексу.";
+                                            EN.reason = "The result takes the type of the indexed value.";
+                                        ];
+                                    };
+                                    conclude: null
+                                };
+                                _ -> {
+                                    ask (T == I) out false else {
+                                        conclude: error [
+                                            skill = "indexing_applicability";
+                                            hypothesis = "index_type";
+                                            RU.explanation = "к значению типа ${X} нельзя обратиться по индексу типа ${I}, и индекс не становится результатом обращения.";
+                                            EN.explanation = "a value of type ${X} cannot be indexed with an index of type ${I}, and the index does not become the result of indexing.";
+                                            RU.reason = "Обращение по индексу даёт тип индекса.";
+                                            EN.reason = "Indexing gives the type of the index.";
+                                        ];
+                                    };
+                                    conclude: null
+                                };
+                                correct -> { conclude: correct };
+                                error -> { conclude: error };
+                                null -> {
+                                    conclude: null [
+                                        skill = "indexing_applicability";
+                                        RU.explanation = "к значению типа ${X} нельзя обратиться по индексу типа ${I}.";
+                                        EN.explanation = "a value of type ${X} cannot be indexed with an index of type ${I}.";
+                                    ]
+                                };
+                            } as inapplicableIndexingHypotheses
+                        };
+                    } as sequenceIndexApplicability
+                };
+            } as mappingCheck
+        };
+        OperationGroup:slicing -> {
+            var Left : Expr = leftOf(E, Old, New);
+            var X : Type = (Left->hasType);
+
+            // Срез кортежа даёт новый тип кортежа из части позиций; в модели такого вывода пока нет.
+            ask (X is class:TupleType) out false else {
+                conclude: null
+            };
+            ask (X is class:SequenceType) {
+                true -> {
+                    var S : SequenceType = (X as class:SequenceType);
+                    agg hyp {
+                        _ -> {
+                            ask (T == X) out false else {
+                                conclude: correct [
+                                    skill = "slice_result";
+                                    hypothesis = "rule";
+                                    RU.explanation = "срез берёт часть последовательности ${X} и сохраняет её тип.";
+                                    EN.explanation = "slicing takes a part of the sequence ${X} and keeps its type.";
+                                ];
+                            };
+                            conclude: null
+                        };
+                        _ -> {
+                            ask (T == S->elementType) out false else {
+                                conclude: error [
+                                    skill = "slice_result";
+                                    hypothesis = "slice_as_index";
+                                    RU.explanation = "срез берёт часть последовательности, а не один элемент; один элемент даёт обращение по индексу.";
+                                    EN.explanation = "slicing takes a part of the sequence, not a single element; a single element is given by indexing.";
+                                    RU.reason = "Срез даёт один элемент последовательности.";
+                                    EN.reason = "Slicing gives a single element of the sequence.";
+                                ];
+                            };
+                            conclude: null
+                        };
+                        correct -> { conclude: correct };
+                        error -> { conclude: error };
+                        null -> {
+                            conclude: null [
+                                skill = "slice_result";
+                                RU.explanation = "срез не меняет тип последовательности ${X}.";
+                                EN.explanation = "slicing does not change the type of the sequence ${X}.";
+                            ]
+                        };
+                    }
+                };
+                false -> {
+                    agg hyp {
+                        _ -> {
+                            ask (T is class:ErrorType) out false else {
+                                conclude: correct [
+                                    skill = "slice_result";
+                                    hypothesis = "rule";
+                                    RU.explanation = "срез можно взять только у последовательности, а здесь значение типа ${X}, поэтому возникает ошибка.";
+                                    EN.explanation = "only a sequence can be sliced, while here the value has type ${X}, so an error occurs.";
+                                ];
+                            };
+                            conclude: null
+                        };
+                        _ -> {
+                            ask (T == X) out false else {
+                                conclude: error [
+                                    skill = "slice_result";
+                                    hypothesis = "container_type";
+                                    RU.explanation = "у значения типа ${X} нельзя взять срез, и оно само не может стать результатом.";
+                                    EN.explanation = "a value of type ${X} cannot be sliced, and it cannot become the result itself.";
+                                    RU.reason = "Результат берёт тип значения, у которого берут срез.";
+                                    EN.reason = "The result takes the type of the sliced value.";
+                                ];
+                            };
+                            conclude: null
+                        };
+                        correct -> { conclude: correct };
+                        error -> { conclude: error };
+                        null -> {
+                            conclude: null [
+                                skill = "slice_result";
+                                RU.explanation = "у значения типа ${X} нельзя взять срез.";
+                                EN.explanation = "a value of type ${X} cannot be sliced.";
+                            ]
+                        };
+                    }
+                };
+            } as sliceApplicability
+        };
+        OperationGroup:call -> {
+            var F : CallOperation = (E as class:CallOperation);
+
+            ask (F.argumentRequirement) {
+                ArgumentRequirement:none -> {
+                    agg hyp {
+                        _ -> {
+                            ask (givesFixedResult(F, T)) out false else {
+                                conclude: correct [
+                                    skill = "call_fixed_result";
+                                    hypothesis = "rule";
+                                    RU.explanation = "${F.class()} всегда возвращает ${F.fixedResult == FixedResult:text ? 'строку' : 'число'}, что бы ни ввели.";
+                                    EN.explanation = "the ${F.class()} always returns ${F.fixedResult == FixedResult:text ? 'a string' : 'a number'}, whatever is typed in.";
+                                ];
+                            };
+                            conclude: null
+                        };
+                        _ -> {
+                            ask (F.readsUserInput and T.isArithmetic) out false else {
+                                conclude: error [
+                                    skill = "call_fixed_result";
+                                    hypothesis = "input_returns_number";
+                                    RU.explanation = "${F.class()} возвращает введённый текст как строку, даже если ввели цифры; чтобы получить число, строку нужно явно преобразовать.";
+                                    EN.explanation = "the ${F.class()} returns the typed text as a string even if digits were typed; to get a number, the string has to be converted explicitly.";
+                                    RU.reason = "${F.class()} возвращает число, если ввели цифры.";
+                                    EN.reason = "The ${F.class()} returns a number if digits are typed in.";
+                                ];
+                            };
+                            conclude: null
+                        };
+                        correct -> { conclude: correct };
+                        error -> { conclude: error };
+                        null -> {
+                            conclude: null [
+                                skill = "call_fixed_result";
+                                RU.explanation = "${F.class()} всегда возвращает ${F.fixedResult == FixedResult:text ? 'строку' : 'число'}, что бы ни ввели.";
+                                EN.explanation = "the ${F.class()} always returns ${F.fixedResult == FixedResult:text ? 'a string' : 'a number'}, whatever is typed in.";
+                            ]
+                        };
+                    }
+                };
+                ArgumentRequirement:any -> {
+                    var Left : Expr = leftOf(E, Old, New);
+                    var A : Type = (Left->hasType);
+                    agg hyp {
+                        _ -> {
+                            ask (givesFixedResult(F, T)) out false else {
+                                conclude: correct [
+                                    skill = "call_fixed_result";
+                                    hypothesis = "rule";
+                                    RU.explanation = "${F.class()} преобразует аргумент любого типа в ${F.fixedResult == FixedResult:text ? 'строку' : 'число'}.";
+                                    EN.explanation = "the ${F.class()} converts an argument of any type into ${F.fixedResult == FixedResult:text ? 'a string' : 'a number'}.";
+                                ];
+                            };
+                            conclude: null
+                        };
+                        _ -> {
+                            ask (T == A) out false else {
+                                conclude: error [
+                                    skill = "call_fixed_result";
+                                    hypothesis = "argument_type";
+                                    RU.explanation = "${F.class()} не возвращает аргумент как есть, а создаёт из него новое значение.";
+                                    EN.explanation = "the ${F.class()} does not return its argument as is; it creates a new value from it.";
+                                    RU.reason = "Результат берёт тип аргумента.";
+                                    EN.reason = "The result takes the type of the argument.";
+                                ];
+                            };
+                            conclude: null
+                        };
+                        correct -> { conclude: correct };
+                        error -> { conclude: error };
+                        null -> {
+                            conclude: null [
+                                skill = "call_fixed_result";
+                                RU.explanation = "${F.class()} для аргумента любого типа возвращает ${F.fixedResult == FixedResult:text ? 'строку' : 'число'}.";
+                                EN.explanation = "the ${F.class()} returns ${F.fixedResult == FixedResult:text ? 'a string' : 'a number'} for an argument of any type.";
+                            ]
+                        };
+                    }
+                };
+                ArgumentRequirement:sized -> {
+                    var Left : Expr = leftOf(E, Old, New);
+                    var A : Type = (Left->hasType);
+                    ask (A is class:SequenceType or A is class:MappingType) {
+                        true -> {
+                            agg hyp {
+                                _ -> {
+                                    ask (givesFixedResult(F, T)) out false else {
+                                        conclude: correct [
+                                            skill = "length_applicability";
+                                            hypothesis = "rule";
+                                            RU.explanation = "${F.class()} считает элементы в значении типа ${A} и возвращает их количество — целое число.";
+                                            EN.explanation = "the ${F.class()} counts the elements of a value of type ${A} and returns their number, an integer.";
+                                        ];
+                                    };
+                                    conclude: null
+                                };
+                                _ -> {
+                                    ask (T == A) out false else {
+                                        conclude: error [
+                                            skill = "length_applicability";
+                                            hypothesis = "argument_type";
+                                            RU.explanation = "${F.class()} не возвращает свой аргумент, а считает в нём элементы.";
+                                            EN.explanation = "the ${F.class()} does not return its argument; it counts its elements.";
+                                            RU.reason = "Результат берёт тип аргумента.";
+                                            EN.reason = "The result takes the type of the argument.";
+                                        ];
+                                    };
+                                    conclude: null
+                                };
+                                correct -> { conclude: correct };
+                                error -> { conclude: error };
+                                null -> {
+                                    conclude: null [
+                                        skill = "length_applicability";
+                                        RU.explanation = "${F.class()} возвращает количество элементов в значении типа ${A}, а не значение такого типа.";
+                                        EN.explanation = "the ${F.class()} returns the number of elements of a value of type ${A}, not a value of this type.";
+                                    ]
+                                };
+                            }
+                        };
+                        false -> {
+                            agg hyp {
+                                _ -> {
+                                    ask (T is class:ErrorType) out false else {
+                                        conclude: correct [
+                                            skill = "length_applicability";
+                                            hypothesis = "rule";
+                                            RU.explanation = "у значения типа ${A} нет элементов, которые можно было бы посчитать, поэтому возникает ошибка.";
+                                            EN.explanation = "a value of type ${A} has no elements that could be counted, so an error occurs.";
+                                        ];
+                                    };
+                                    conclude: null
+                                };
+                                _ -> {
+                                    ask (givesFixedResult(F, T)) out false else {
+                                        conclude: error [
+                                            skill = "length_applicability";
+                                            hypothesis = "inapplicable_call_gives_result";
+                                            RU.explanation = "у значения типа ${A} нет элементов, которые можно было бы посчитать.";
+                                            EN.explanation = "a value of type ${A} has no elements that could be counted.";
+                                            RU.reason = "Подсчёт элементов всегда даёт целое число.";
+                                            EN.reason = "Counting elements always gives an integer.";
+                                        ];
+                                    };
+                                    conclude: null
+                                };
+                                _ -> {
+                                    ask (T == A) out false else {
+                                        conclude: error [
+                                            skill = "length_applicability";
+                                            hypothesis = "argument_type";
+                                            RU.explanation = "у значения типа ${A} нет элементов, которые можно было бы посчитать, а свой аргумент ${F.class()} не возвращает.";
+                                            EN.explanation = "a value of type ${A} has no elements that could be counted, and the ${F.class()} does not return its argument.";
+                                            RU.reason = "Результат берёт тип аргумента.";
+                                            EN.reason = "The result takes the type of the argument.";
+                                        ];
+                                    };
+                                    conclude: null
+                                };
+                                correct -> { conclude: correct };
+                                error -> { conclude: error };
+                                null -> {
+                                    conclude: null [
+                                        skill = "length_applicability";
+                                        RU.explanation = "у значения типа ${A} нет длины.";
+                                        EN.explanation = "a value of type ${A} has no length.";
+                                    ]
+                                };
+                            } as inapplicableLengthHypotheses
+                        };
+                    } as sizedArgumentCheck
+                };
+                ArgumentRequirement:numberOrText -> {
+                    var Left : Expr = leftOf(E, Old, New);
+                    var A : Type = (Left->hasType);
+                    ask (A.isArithmetic or A is class:TextType) {
+                        true -> {
+                            agg hyp {
+                                _ -> {
+                                    ask (givesFixedResult(F, T)) out false else {
+                                        conclude: correct [
+                                            skill = "conversion_applicability";
+                                            hypothesis = "rule";
+                                            RU.explanation = "${F.class()} преобразует значение типа ${A} в значение своего типа.";
+                                            EN.explanation = "the ${F.class()} converts a value of type ${A} into a value of its own type.";
+                                        ];
+                                    };
+                                    conclude: null
+                                };
+                                _ -> {
+                                    ask (T == A) out false else {
+                                        conclude: error [
+                                            skill = "conversion_applicability";
+                                            hypothesis = "argument_type";
+                                            RU.explanation = "${F.class()} не возвращает аргумент как есть, а преобразует его.";
+                                            EN.explanation = "the ${F.class()} does not return its argument as is; it converts it.";
+                                            RU.reason = "Результат берёт тип аргумента.";
+                                            EN.reason = "The result takes the type of the argument.";
+                                        ];
+                                    };
+                                    conclude: null
+                                };
+                                correct -> { conclude: correct };
+                                error -> { conclude: error };
+                                null -> {
+                                    conclude: null [
+                                        skill = "conversion_applicability";
+                                        RU.explanation = "${F.class()} преобразует аргумент в значение своего типа, и этот тип не зависит от аргумента.";
+                                        EN.explanation = "the ${F.class()} converts its argument into a value of its own type, and that type does not depend on the argument.";
+                                    ]
+                                };
+                            }
+                        };
+                        false -> {
+                            agg hyp {
+                                _ -> {
+                                    ask (T is class:ErrorType) out false else {
+                                        conclude: correct [
+                                            skill = "conversion_applicability";
+                                            hypothesis = "rule";
+                                            RU.explanation = "в число преобразуются только числа и строки, а здесь аргумент типа ${A}, поэтому возникает ошибка.";
+                                            EN.explanation = "only numbers and strings can be converted to a number, while here the argument has type ${A}, so an error occurs.";
+                                        ];
+                                    };
+                                    conclude: null
+                                };
+                                _ -> {
+                                    ask (givesFixedResult(F, T)) out false else {
+                                        conclude: error [
+                                            skill = "conversion_applicability";
+                                            hypothesis = "inapplicable_call_gives_result";
+                                            RU.explanation = "в число преобразуются только числа и строки, а здесь аргумент типа ${A}.";
+                                            EN.explanation = "only numbers and strings can be converted to a number, while here the argument has type ${A}.";
+                                            RU.reason = "Преобразование всегда даёт значение нужного типа.";
+                                            EN.reason = "A conversion always gives a value of the target type.";
+                                        ];
+                                    };
+                                    conclude: null
+                                };
+                                _ -> {
+                                    ask (T == A) out false else {
+                                        conclude: error [
+                                            skill = "conversion_applicability";
+                                            hypothesis = "argument_type";
+                                            RU.explanation = "в число преобразуются только числа и строки, а здесь аргумент типа ${A}; свой аргумент ${F.class()} тоже не возвращает.";
+                                            EN.explanation = "only numbers and strings can be converted to a number, while here the argument has type ${A}; the ${F.class()} does not return its argument either.";
+                                            RU.reason = "Результат берёт тип аргумента.";
+                                            EN.reason = "The result takes the type of the argument.";
+                                        ];
+                                    };
+                                    conclude: null
+                                };
+                                correct -> { conclude: correct };
+                                error -> { conclude: error };
+                                null -> {
+                                    conclude: null [
+                                        skill = "conversion_applicability";
+                                        RU.explanation = "значение типа ${A} нельзя преобразовать в число.";
+                                        EN.explanation = "a value of type ${A} cannot be converted to a number.";
+                                    ]
+                                };
+                            } as inapplicableConversionHypotheses
+                        };
+                    } as convertibleArgumentCheck
+                };
+            } as argumentRequirementSwitch
+        };
+    } as operationGroup
+}
+[
+    RU.error_prefix = "${E} не может иметь тип ${T}, потому что ";
+    EN.error_prefix = "${E} cannot have the type ${T} because ";
+    RU.hint_prefix = "${E} имеет тип ${T}, потому что ";
+    EN.hint_prefix = "${E} has the type ${T} because ";
+]
+
+// Навык — последняя развилка перед выводом correct/error, у которой к таким выводам ведут хотя бы два выхода.
+meta for divisionSemantics [
+    skill = "true_division_result";
+]
+meta for floatPromotion [
+    skill = "numeric_result_type";
+]
+meta for sequenceApplicability [
+    skill = "sequence_operation_applicability";
+]
+meta for negationCheck [
+    skill = "negation_result";
+]
+meta for logicalResultKind [
+    skill = "boolean_logical_result";
+]
+meta for returnedOperand [
+    skill = "logical_returned_operand";
+]
+meta for equalityApplicability [
+    skill = "equality_comparison";
+]
+meta for orderingApplicability [
+    skill = "ordering_comparison";
+]
+meta for membershipApplicability [
+    skill = "membership_test";
+]
+meta for mappingCheck [
+    skill = "mapping_value_access";
+]
+meta for sequenceIndexApplicability [
+    skill = "indexing_applicability";
+]
+meta for tupleCheck [
+    skill = "indexed_element_type";
+]
+meta for sliceApplicability [
+    skill = "slice_result";
+]
+meta for argumentRequirementSwitch [
+    skill = "call_fixed_result";
+]
+meta for sizedArgumentCheck [
+    skill = "length_applicability";
+]
+meta for convertibleArgumentCheck [
+    skill = "conversion_applicability";
+]
+
+// Общее объяснение hyp — для ошибки, которую объясняют несколько гипотез: каким заблуждением рассуждал студент, неизвестно.
+meta for trueDivisionHypotheses [
+    RU.explanation = "${A.class()} сохраняет дробную часть и при целых операндах.";
+    EN.explanation = "the ${A.class()} does not drop the fractional part even for integer operands.";
+]
+meta for floatResultHypotheses [
+    RU.explanation = "среди операндов есть вещественный, а ${A.class()} с вещественным операндом не даёт целого результата.";
+    EN.explanation = "one of the operands is floating-point, and the ${A.class()} with a floating-point operand does not give an integer result.";
+]
+meta for integerResultHypotheses [
+    RU.explanation = "в арифметике логические значения ведут себя как числа 0 и 1, поэтому ${A.class()} не даёт логического значения.";
+    EN.explanation = "in arithmetic, boolean values behave as the numbers 0 and 1, so the ${A.class()} does not give a boolean.";
+]
+meta for repetitionHypotheses [
+    RU.explanation = "умножение последовательности на целое число допустимо: оно повторяет последовательность.";
+    EN.explanation = "multiplying a sequence by an integer is allowed: it repeats the sequence.";
+]
+meta for inapplicableSequenceOperationHypotheses [
+    RU.explanation = "${A.class()} нельзя применить к операндам типов ${L} и ${R}: операнды не приводятся к общему типу сами.";
+    EN.explanation = "the ${A.class()} cannot be applied to operands of types ${L} and ${R}: the operands are not converted to a common type by themselves.";
+]
+meta for leftOperandHypotheses [
+    RU.explanation = "левый операнд ${Left.isTruthy ? 'истинный' : 'ложный'}, а ${B.class()} на таком операнде останавливается.";
+    EN.explanation = "the left operand is ${Left.isTruthy ? 'truthy' : 'falsy'}, and the ${B.class()} stops at such an operand.";
+]
+meta for rightOperandHypotheses [
+    RU.explanation = "левый операнд ${Left.isTruthy ? 'истинный' : 'ложный'}, а ${B.class()} на таком операнде не останавливается.";
+    EN.explanation = "the left operand is ${Left.isTruthy ? 'truthy' : 'falsy'}, and the ${B.class()} does not stop at such an operand.";
+]
+meta for inapplicableEqualityHypotheses [
+    RU.explanation = "${C.class()} не применим к значениям типов ${L} и ${R}.";
+    EN.explanation = "the ${C.class()} cannot be applied to values of types ${L} and ${R}.";
+]
+meta for inapplicableOrderingHypotheses [
+    RU.explanation = "значения типов ${L} и ${R} нельзя сравнить по порядку.";
+    EN.explanation = "values of types ${L} and ${R} cannot be ordered.";
+]
+meta for inapplicableMembershipHypotheses [
+    RU.explanation = "в значении типа ${R} нельзя искать значение типа ${L}.";
+    EN.explanation = "a value of type ${L} cannot be searched for in a value of type ${R}.";
+]
+meta for mappingValueHypotheses [
+    RU.explanation = "обращение по ключу достаёт из словаря одно значение, хранящееся под этим ключом.";
+    EN.explanation = "access by key takes out of the dictionary the single value stored under that key.";
+]
+meta for tupleElementHypotheses [
+    RU.explanation = "обращение по индексу берёт из кортежа ровно один элемент на позиции индекса.";
+    EN.explanation = "indexing takes exactly one element of the tuple, the one at the index position.";
+]
+meta for sequenceElementHypotheses [
+    RU.explanation = "обращение по индексу берёт из ${X} ровно один элемент на позиции индекса.";
+    EN.explanation = "indexing takes exactly one element of ${X}, the one at the index position.";
+]
+meta for inapplicableIndexingHypotheses [
+    RU.explanation = "к значению типа ${X} нельзя обратиться по индексу типа ${I}.";
+    EN.explanation = "a value of type ${X} cannot be indexed with an index of type ${I}.";
+]
+meta for inapplicableLengthHypotheses [
+    RU.explanation = "у значения типа ${A} нет элементов, которые можно было бы посчитать.";
+    EN.explanation = "a value of type ${A} has no elements that could be counted.";
+]
+meta for inapplicableConversionHypotheses [
+    RU.explanation = "в число преобразуются только числа и строки, а здесь аргумент типа ${A}.";
+    EN.explanation = "only numbers and strings can be converted to a number, while here the argument has type ${A}.";
+]

@@ -132,32 +132,32 @@ class py_lt : ComparisonOperation {
 	comparisonKind = ComparisonKind:ordering ;
 } [
 	text = "<" ;
-	RU.localizedName = "оператор <" ;
-	EN.localizedName = "operator <" ;
+	RU.localizedName = "оператор <code>&lt;</code>" ;
+	EN.localizedName = "operator <code>&lt;</code>" ;
 ]
 
 class py_le : ComparisonOperation {
 	comparisonKind = ComparisonKind:ordering ;
 } [
 	text = "<=" ;
-	RU.localizedName = "оператор <=" ;
-	EN.localizedName = "operator <=" ;
+	RU.localizedName = "оператор <code>&lt;=</code>" ;
+	EN.localizedName = "operator <code>&lt;=</code>" ;
 ]
 
 class py_gt : ComparisonOperation {
 	comparisonKind = ComparisonKind:ordering ;
 } [
 	text = ">" ;
-	RU.localizedName = "оператор <code>></code>" ;
-	EN.localizedName = "operator <code>></code>" ;
+	RU.localizedName = "оператор <code>&gt;</code>" ;
+	EN.localizedName = "operator <code>&gt;</code>" ;
 ]
 
 class py_ge : ComparisonOperation {
 	comparisonKind = ComparisonKind:ordering ;
 } [
 	text = ">=" ;
-	RU.localizedName = "оператор <code>>=</code>" ;
-	EN.localizedName = "operator <code>>=</code>" ;
+	RU.localizedName = "оператор <code>&gt;=</code>" ;
+	EN.localizedName = "operator <code>&gt;=</code>" ;
 ]
 
 class py_in : ComparisonOperation {
