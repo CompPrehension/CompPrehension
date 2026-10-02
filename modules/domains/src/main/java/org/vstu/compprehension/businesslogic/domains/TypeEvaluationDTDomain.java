@@ -76,6 +76,7 @@ public class TypeEvaluationDTDomain extends DecisionTreeReasoningDomain {
     private static final String HAS_OPERAND = "hasOperand";
     private static final String OPERATION_VARIABLE = "E";
     private static final String ANSWER_VARIABLE = "T";
+    private static final String EVALUATION_ERROR_CLASS = "EvaluationError";
     public static final String EVALUATION_ORDER_VIOLATION = "evaluation_order";
 
     private static final Map<String, Tag> TAGS = Map.of("Python", new Tag("Python", 1L));
@@ -200,14 +201,17 @@ public class TypeEvaluationDTDomain extends DecisionTreeReasoningDomain {
         public @NotNull String makeClarificationPrompt(@NotNull QuestionData judgedQuestion,
                                                        @NotNull DecisionTreeReasonerBackend.Output backendOutput,
                                                        @NotNull Language language) {
-            var answeredType = backendOutput.situation().getDomainModel().getVariables()
-                    .get(ANSWER_VARIABLE).getValueObjectName();
-            var typeName = judgedQuestion.getContent().getAnswerObjects().stream()
-                    .filter(answer -> answer.isRightCol() && answer.getDomainInfo().equals(answeredType))
+            var model = backendOutput.situation().getDomainModel();
+            var answeredOutcome = model.getVariables().get(ANSWER_VARIABLE).getValueObjectName();
+            var outcomeName = judgedQuestion.getContent().getAnswerObjects().stream()
+                    .filter(answer -> answer.isRightCol() && answer.getDomainInfo().equals(answeredOutcome))
                     .map(AnswerObjectData::getHyperText)
                     .findFirst()
-                    .orElseThrow(() -> new IllegalStateException("No answer option for type " + answeredType));
-            return getMessage("clarification_prompt", language).replace("${type}", typeName);
+                    .orElseThrow(() -> new IllegalStateException("No answer option for outcome " + answeredOutcome));
+            var prompt = model.getObjects().get(answeredOutcome).isInstanceOf(EVALUATION_ERROR_CLASS)
+                    ? "clarification_prompt_error"
+                    : "clarification_prompt";
+            return getMessage(prompt, language).replace("${type}", outcomeName);
         }
 
         @Override

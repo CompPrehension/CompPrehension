@@ -9,6 +9,7 @@ import java.util.Set;
 
 import static org.junit.jupiter.api.Assertions.assertEquals;
 import static org.junit.jupiter.api.Assertions.assertTrue;
+import static org.vstu.compprehension.businesslogic.domains.typeevaluation.TypeEvaluationTreeFixture.INAPPLICABLE_ASSUMED;
 import static org.vstu.compprehension.businesslogic.domains.typeevaluation.TypeEvaluationTreeFixture.OPERAND_TYPE;
 import static org.vstu.compprehension.businesslogic.domains.typeevaluation.TypeEvaluationTreeFixture.RULE;
 import static org.vstu.compprehension.businesslogic.domains.typeevaluation.TypeEvaluationTreeFixture.TYPES;
@@ -139,14 +140,23 @@ class TypeEvaluationArithmeticTreeTest {
         assertEquals(Set.of(OPERAND_TYPE, "implicit_text_conversion"), verdict.hypotheses());
     }
 
-    /** Ответ «ошибка» на повторение списка объясняется тем, что студент считает повторение недопустимым. */
-    @Test
-    void errorAnswerForRepetitionIsRepetitionImpossible() {
+    /** Ответ «ошибка» на допустимую арифметику объясняется тем, что студент счёл операцию неприменимой к этим операндам. */
+    @ParameterizedTest
+    @CsvSource({
+            "py_truediv, t_int, t_int,   true_division_result",
+            "py_add,     t_int, t_float, numeric_result_type",
+            "py_add,     t_int, t_int,   numeric_result_type",
+            "py_add,     t_str, t_str,   sequence_operation_applicability",
+            "py_mul,     t_list_int, t_int, sequence_operation_applicability",
+    })
+    void errorForApplicableArithmeticIsInapplicableAssumed(String operation, String leftType, String rightType, String skill) {
         // Act.
-        var verdict = judge("py_mul", "t_list_int", "t_int", "t_error");
+        var verdict = judge(operation, leftType, rightType, "t_error");
 
         // Assert.
         assertEquals(BranchResult.ERROR, verdict.result());
-        assertEquals(Set.of("repetition_impossible"), verdict.hypotheses());
+        assertEquals(Set.of(INAPPLICABLE_ASSUMED), verdict.hypotheses());
+        assertEquals(Set.of(skill), verdict.skills());
     }
+
 }

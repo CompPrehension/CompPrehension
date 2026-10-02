@@ -12,6 +12,7 @@ import java.util.Set;
 
 import static org.junit.jupiter.api.Assertions.assertEquals;
 import static org.junit.jupiter.api.Assertions.assertTrue;
+import static org.vstu.compprehension.businesslogic.domains.typeevaluation.TypeEvaluationTreeFixture.INAPPLICABLE_ASSUMED;
 import static org.vstu.compprehension.businesslogic.domains.typeevaluation.TypeEvaluationTreeFixture.RULE;
 import static org.vstu.compprehension.businesslogic.domains.typeevaluation.TypeEvaluationTreeFixture.TYPES;
 import static org.vstu.compprehension.businesslogic.domains.typeevaluation.TypeEvaluationTreeFixture.judgeSituation;
@@ -128,6 +129,23 @@ class TypeEvaluationCallTreeTest {
         assertEquals(BranchResult.ERROR, verdict.result());
         assertEquals(Set.of(ARGUMENT_TYPE), verdict.hypotheses());
         assertEquals(Set.of("call_fixed_result"), verdict.skills());
+    }
+
+    /** Ответ «ошибка» на допустимый вызов объясняется тем, что студент счёл функцию неприменимой к аргументу. */
+    @ParameterizedTest
+    @CsvSource({
+            "py_str_call, t_list_int, call_fixed_result",
+            "py_len,      t_list_int, length_applicability",
+            "py_int_call, t_str,      conversion_applicability",
+    })
+    void errorForApplicableCallIsInapplicableAssumed(String function, String argumentType, String skill) {
+        // Act.
+        var verdict = judgeCall(function, argumentType, "t_error");
+
+        // Assert.
+        assertEquals(BranchResult.ERROR, verdict.result());
+        assertEquals(Set.of(INAPPLICABLE_ASSUMED), verdict.hypotheses());
+        assertEquals(Set.of(skill), verdict.skills());
     }
 
     private static @NotNull Verdict judgeCall(@NotNull String function, @NotNull String argumentType,

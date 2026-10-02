@@ -11,6 +11,7 @@ import java.util.Set;
 
 import static org.junit.jupiter.api.Assertions.assertEquals;
 import static org.junit.jupiter.api.Assertions.assertTrue;
+import static org.vstu.compprehension.businesslogic.domains.typeevaluation.TypeEvaluationTreeFixture.INAPPLICABLE_ASSUMED;
 import static org.vstu.compprehension.businesslogic.domains.typeevaluation.TypeEvaluationTreeFixture.RULE;
 import static org.vstu.compprehension.businesslogic.domains.typeevaluation.TypeEvaluationTreeFixture.TYPES;
 import static org.vstu.compprehension.businesslogic.domains.typeevaluation.TypeEvaluationTreeFixture.judgeSituation;
@@ -140,6 +141,46 @@ class TypeEvaluationIndexingTreeTest {
 
         // Assert.
         assertEquals(BranchResult.NULL, verdict.result());
+    }
+
+    /** Ответ «ошибка» на допустимое обращение по индексу объясняется тем, что студент счёл его неприменимым. */
+    @ParameterizedTest
+    @CsvSource({
+            "t_dict_str_int, t_str, mapping_value_access",
+            "t_list_int,     t_int, indexed_element_type",
+    })
+    void errorForApplicableIndexingIsInapplicableAssumed(String containerType, String indexType, String skill) {
+        // Act.
+        var verdict = judgeIndexing(containerType, indexType, "t_error");
+
+        // Assert.
+        assertEquals(BranchResult.ERROR, verdict.result());
+        assertEquals(Set.of(INAPPLICABLE_ASSUMED), verdict.hypotheses());
+        assertEquals(Set.of(skill), verdict.skills());
+    }
+
+    /** Ответ «ошибка» на обращение к кортежу по индексу объясняется тем, что студент счёл его неприменимым. */
+    @Test
+    void errorForTupleIndexingIsInapplicableAssumed() {
+        // Act.
+        var verdict = judgeTupleIndexing(0, "t_error");
+
+        // Assert.
+        assertEquals(BranchResult.ERROR, verdict.result());
+        assertEquals(Set.of(INAPPLICABLE_ASSUMED), verdict.hypotheses());
+        assertEquals(Set.of(ELEMENT_SKILL), verdict.skills());
+    }
+
+    /** Ответ «ошибка» на срез последовательности объясняется тем, что студент счёл срез неприменимым. */
+    @Test
+    void errorForSequenceSlicingIsInapplicableAssumed() {
+        // Act.
+        var verdict = judgeSlicing("t_list_int", "t_error");
+
+        // Assert.
+        assertEquals(BranchResult.ERROR, verdict.result());
+        assertEquals(Set.of(INAPPLICABLE_ASSUMED), verdict.hypotheses());
+        assertEquals(Set.of("slice_result"), verdict.skills());
     }
 
     private static @NotNull Verdict judgeIndexing(@NotNull String containerType, @NotNull String indexType,

@@ -9,6 +9,7 @@ import java.util.Set;
 
 import static org.junit.jupiter.api.Assertions.assertEquals;
 import static org.junit.jupiter.api.Assertions.assertTrue;
+import static org.vstu.compprehension.businesslogic.domains.typeevaluation.TypeEvaluationTreeFixture.INAPPLICABLE_ASSUMED;
 import static org.vstu.compprehension.businesslogic.domains.typeevaluation.TypeEvaluationTreeFixture.OPERAND_TYPE;
 import static org.vstu.compprehension.businesslogic.domains.typeevaluation.TypeEvaluationTreeFixture.RULE;
 import static org.vstu.compprehension.businesslogic.domains.typeevaluation.TypeEvaluationTreeFixture.judge;
@@ -104,4 +105,21 @@ class TypeEvaluationComparisonTreeTest {
         assertEquals(Set.of(), verdict.hypotheses());
         assertEquals(Set.of("equality_comparison"), verdict.skills());
     }
+    /** Ответ «ошибка» на допустимое сравнение объясняется тем, что студент счёл сравнение неприменимым к этим значениям. */
+    @ParameterizedTest
+    @CsvSource({
+            "py_eq, t_int, t_str,      equality_comparison",
+            "py_lt, t_int, t_float,    ordering_comparison",
+            "py_in, t_int, t_list_int, membership_test",
+    })
+    void errorForApplicableComparisonIsInapplicableAssumed(String operation, String leftType, String rightType, String skill) {
+        // Act.
+        var verdict = judge(operation, leftType, rightType, "t_error");
+
+        // Assert.
+        assertEquals(BranchResult.ERROR, verdict.result());
+        assertEquals(Set.of(INAPPLICABLE_ASSUMED), verdict.hypotheses());
+        assertEquals(Set.of(skill), verdict.skills());
+    }
+
 }

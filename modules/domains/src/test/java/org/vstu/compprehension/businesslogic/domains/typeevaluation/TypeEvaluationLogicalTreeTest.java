@@ -11,6 +11,7 @@ import java.util.Set;
 
 import static org.junit.jupiter.api.Assertions.assertEquals;
 import static org.junit.jupiter.api.Assertions.assertTrue;
+import static org.vstu.compprehension.businesslogic.domains.typeevaluation.TypeEvaluationTreeFixture.INAPPLICABLE_ASSUMED;
 import static org.vstu.compprehension.businesslogic.domains.typeevaluation.TypeEvaluationTreeFixture.OPERAND_TYPE;
 import static org.vstu.compprehension.businesslogic.domains.typeevaluation.TypeEvaluationTreeFixture.RULE;
 import static org.vstu.compprehension.businesslogic.domains.typeevaluation.TypeEvaluationTreeFixture.TYPES;
@@ -108,6 +109,36 @@ class TypeEvaluationLogicalTreeTest {
         // Assert.
         assertEquals(BranchResult.ERROR, verdict.result());
         assertEquals(Set.of(OPERAND_TYPE), verdict.hypotheses());
+        assertEquals(Set.of("negation_result"), verdict.skills());
+    }
+
+    /** Ответ «ошибка» на and или or объясняется тем, что студент счёл операцию неприменимой к этим операндам. */
+    @ParameterizedTest
+    @CsvSource({
+            "py_or,  true",
+            "py_or,  false",
+            "py_and, true",
+            "py_and, false",
+    })
+    void errorForReturningLogicalOperationIsInapplicableAssumed(String operation, boolean leftTruthy) {
+        // Act.
+        var verdict = judgeLogical(operation, "t_str", leftTruthy, "t_list_int", "t_error");
+
+        // Assert.
+        assertEquals(BranchResult.ERROR, verdict.result());
+        assertEquals(Set.of(INAPPLICABLE_ASSUMED), verdict.hypotheses());
+        assertEquals(Set.of(RETURNED_OPERAND_SKILL), verdict.skills());
+    }
+
+    /** Ответ «ошибка» на отрицание объясняется тем, что студент счёл его неприменимым к операнду. */
+    @Test
+    void errorForNegationIsInapplicableAssumed() {
+        // Act.
+        var verdict = judgeNegation("t_list_int", "t_error");
+
+        // Assert.
+        assertEquals(BranchResult.ERROR, verdict.result());
+        assertEquals(Set.of(INAPPLICABLE_ASSUMED), verdict.hypotheses());
         assertEquals(Set.of("negation_result"), verdict.skills());
     }
 

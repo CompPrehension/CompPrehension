@@ -120,11 +120,18 @@ enum FixedResult {
 	EN.localizedName = "function result type" ;
 ]
 
-////// Типы //////
+////// Итоги вычисления //////
 
-// Типы в ситуации интернированы: одинаковый тип — один объект, поэтому равенство типов — равенство объектов.
+// Итог вычисления части выражения — ответ студента: значение какого-то типа или ошибка.
+// Итоги в ситуации интернированы: одинаковый итог — один объект, поэтому равенство итогов — равенство объектов.
+class Outcome {
+} [
+	RU.localizedName = "итог вычисления" ;
+	EN.localizedName = "evaluation outcome" ;
+]
+
 // Ранг задаёт порядок арифметических преобразований и сравним только внутри одного языка.
-class Type {
+class Type : Outcome {
 	class prop isArithmetic: bool = false ;
 	class prop conversionRank: int = 0 ;
 } [
@@ -198,10 +205,11 @@ class NoneType : Type {
 	EN.localizedName = "no value" ;
 ]
 
-class ErrorType : Type {
+// Ошибку задаёт тег языка. В компилируемых языках код вопроса всегда компилируется, и класса ошибки в теге нет.
+class EvaluationError : Outcome {
 } [
-	RU.localizedName = "ошибка типа" ;
-	EN.localizedName = "type error" ;
+	RU.localizedName = "ошибка" ;
+	EN.localizedName = "error" ;
 ]
 
 ////// Выражения //////

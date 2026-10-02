@@ -8,6 +8,7 @@ import java.util.Set;
 import static org.junit.jupiter.api.Assertions.assertEquals;
 import static org.junit.jupiter.api.Assertions.assertFalse;
 import static org.junit.jupiter.api.Assertions.assertTrue;
+import static org.vstu.compprehension.businesslogic.domains.typeevaluation.TypeEvaluationTreeFixture.INAPPLICABLE_ASSUMED;
 import static org.vstu.compprehension.businesslogic.domains.typeevaluation.TypeEvaluationTreeFixture.OPERAND_TYPE;
 import static org.vstu.compprehension.businesslogic.domains.typeevaluation.TypeEvaluationTreeFixture.RULE;
 import static org.vstu.compprehension.businesslogic.domains.typeevaluation.TypeEvaluationTreeFixture.TYPES;
@@ -25,7 +26,10 @@ class TypeEvaluationReadingTreeTest {
             obj one : Literal { hasType(t_int); intValue = 1; }
             """;
 
-    /** Ошибку в len(grades), которая верна для len(grade), объясняет то, что студент прочитал grade вместо grades. */
+    /**
+     * Ответ «ошибка» на len(grades), верный для len(grade), объясняют и прочтение grade вместо grades,
+     * и мнение, что len неприменима к списку.
+     */
     @Test
     void errorForLengthOfLookalikeVariableIsVariableConfused() {
         // Act.
@@ -36,8 +40,8 @@ class TypeEvaluationReadingTreeTest {
 
         // Assert.
         assertEquals(BranchResult.ERROR, verdict.result());
-        assertEquals(Set.of(VARIABLE_CONFUSED), verdict.hypotheses());
-        assertEquals(Set.of(OPERAND_IDENTIFICATION), verdict.skills());
+        assertEquals(Set.of(VARIABLE_CONFUSED, INAPPLICABLE_ASSUMED), verdict.hypotheses());
+        assertEquals(Set.of(OPERAND_IDENTIFICATION, "length_applicability"), verdict.skills());
     }
 
     /** Похожую переменную дерево находит в обе стороны: связь сходства записана один раз. */
@@ -51,7 +55,7 @@ class TypeEvaluationReadingTreeTest {
 
         // Assert.
         assertEquals(BranchResult.ERROR, verdict.result());
-        assertEquals(Set.of(VARIABLE_CONFUSED), verdict.hypotheses());
+        assertTrue(verdict.hypotheses().contains(VARIABLE_CONFUSED), verdict.hypotheses().toString());
     }
 
     /** Ответ int на grades + 1 объясняют и тип операнда, и прочитанная вместо grades переменная grade. */
@@ -68,7 +72,7 @@ class TypeEvaluationReadingTreeTest {
         assertEquals(Set.of(OPERAND_TYPE, VARIABLE_CONFUSED), verdict.hypotheses());
     }
 
-    /** Ошибку в total / 2, которая верна для totals / 2, объясняет прочитанная вместо total переменная totals. */
+    /** Ответ «ошибка» на total / 2, верный для totals / 2, объясняет в том числе прочитанная вместо total переменная totals. */
     @Test
     void errorForDivisionOfLookalikeVariableIsVariableConfused() {
         // Act.
@@ -82,7 +86,7 @@ class TypeEvaluationReadingTreeTest {
 
         // Assert.
         assertEquals(BranchResult.ERROR, verdict.result());
-        assertEquals(Set.of(VARIABLE_CONFUSED), verdict.hypotheses());
+        assertEquals(Set.of(VARIABLE_CONFUSED, INAPPLICABLE_ASSUMED), verdict.hypotheses());
     }
 
     /** Верный ответ остаётся верным, даже если в условии есть похожая переменная. */
@@ -100,9 +104,9 @@ class TypeEvaluationReadingTreeTest {
         assertFalse(verdict.hypotheses().contains(VARIABLE_CONFUSED), verdict.hypotheses().toString());
     }
 
-    /** Без похожих имён ошибочный тип не списывается на путаницу переменных и остаётся необъяснённым. */
+    /** Без похожих имён ответ «ошибка» не списывается на путаницу переменных. */
     @Test
-    void errorWithoutLookalikeVariableIsUnexplained() {
+    void errorWithoutLookalikeVariableIsNotVariableConfused() {
         // Act.
         var verdict = judgeSituation(TYPES + """
                 obj grade : Variable { hasType(t_int); }
@@ -113,6 +117,6 @@ class TypeEvaluationReadingTreeTest {
 
         // Assert.
         assertEquals(BranchResult.ERROR, verdict.result());
-        assertEquals(Set.of(), verdict.hypotheses());
+        assertEquals(Set.of(INAPPLICABLE_ASSUMED), verdict.hypotheses());
     }
 }

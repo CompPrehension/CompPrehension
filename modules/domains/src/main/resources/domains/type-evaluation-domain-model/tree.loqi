@@ -4,7 +4,7 @@
 
 lambda looksAlike(A: Variable, B: Variable) = A=>looksLike(B) or A=>lookedLikeBy(B);
 
-tpg ExprType(E: Operation, T: Type) {
+tpg ExprType(E: Operation, T: Outcome) {
     // Тип среза кортежа зависит от границ, а арифметики в LOQI нет: такие ответы дерево не оценивает.
     ask (E is class:SlicingOperation and E->hasOperand<OperandPlacement:left>->hasType is class:TupleType) out false else {
         conclude: null
@@ -61,12 +61,12 @@ tpg ExprType(E: Operation, T: Type) {
     } as readings
 }
 [
-    RU.error_prefix = "Выражение ${E} не может иметь тип ${T}, потому что ";
-    EN.error_prefix = "The expression ${E} cannot have the type ${T} because ";
-    RU.hint_prefix = "Выражение ${E} имеет тип ${T}, потому что ";
-    EN.hint_prefix = "The expression ${E} has the type ${T} because ";
-    RU.error_statement = "Выражение ${E} не может иметь тип ${T}.";
-    EN.error_statement = "The expression ${E} cannot have the type ${T}.";
+    RU.error_prefix = "Выражение ${E} ${T is class:EvaluationError ? 'не может вызвать ошибку' : 'не может иметь тип'} ${T}, потому что ";
+    EN.error_prefix = "The expression ${E} ${T is class:EvaluationError ? 'cannot cause the error' : 'cannot have the type'} ${T} because ";
+    RU.hint_prefix = "Выражение ${E} ${T is class:EvaluationError ? 'вызывает ошибку' : 'имеет тип'} ${T}, потому что ";
+    EN.hint_prefix = "The expression ${E} ${T is class:EvaluationError ? 'causes the error' : 'has the type'} ${T} because ";
+    RU.error_statement = "Выражение ${E} ${T is class:EvaluationError ? 'не может вызвать ошибку' : 'не может иметь тип'} ${T}.";
+    EN.error_statement = "The expression ${E} ${T is class:EvaluationError ? 'cannot cause the error' : 'cannot have the type'} ${T}.";
 ]
 
 // Навык — последняя развилка перед выводом correct/error, у которой к таким выводам ведут хотя бы два выхода.

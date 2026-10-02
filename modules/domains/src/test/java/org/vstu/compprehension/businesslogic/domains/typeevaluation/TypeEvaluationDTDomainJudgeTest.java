@@ -258,9 +258,34 @@ class TypeEvaluationDTDomainJudgeTest {
                 + " операнд — <code>names</code>, а не <code>name</code>.", option.explanation());
     }
 
-    /** Ошибку, которая верна для похожей переменной из условия, объясняют тем, что в выражении стоит другая переменная. */
+    /** Ответ «ошибка» на допустимую операцию объясняют правилом применимости, которому операнды подходят. */
     @Test
-    void errorForLookalikeVariableNamesTheVariableInExpression() {
+    void errorForApplicableOperationExplainsApplicabilityRule() {
+        // Arrange.
+        var question = question(AVERAGE_OF_GRADES);
+        var responses = new ArrayList<AnswerData>(solution(question, AVERAGE_OF_GRADES, 1));
+        responses.add(answer(question, "op_div", "t_error"));
+
+        // Act.
+        var result = judge(question, responses);
+
+        // Assert.
+        assertFalse(result.isAnswerCorrect);
+        assertEquals(List.of(new AnswerHypothesisData("inapplicable_assumed", false)), result.hypotheses);
+        assertEquals(List.of("true_division_result"), lawNames(result.violations));
+        assertEquals(List.of("Выражение <code>total / len(grades)</code> не может вызвать ошибку <code>TypeError</code>, потому что"
+                + " оператор <code>/</code> применяется к числам, а оба операнда — числа: <code>int</code> и <code>int</code>."
+                + " Следовательно, операция допустима."),
+                messages(result.explanation));
+        assertNull(result.clarification);
+    }
+
+    /**
+     * Ответ «ошибка», который объясняют и похожая переменная из условия, и мнение, что операция неприменима,
+     * получает утверждение, что ошибки не будет, и вопрос, почему студент её ожидал.
+     */
+    @Test
+    void errorExplainedByLookalikeAndApplicabilityAsksWhyErrorWasExpected() {
         // Arrange.
         var question = question(GRADE_COUNT);
 
@@ -269,11 +294,24 @@ class TypeEvaluationDTDomainJudgeTest {
 
         // Assert.
         assertFalse(result.isAnswerCorrect);
-        assertEquals(List.of(new AnswerHypothesisData("variable_confused", false)), result.hypotheses);
-        assertEquals(List.of("operand_identification"), lawNames(result.violations));
-        assertEquals(List.of("Выражение <code>len(grades)</code> не может иметь тип <code>TypeError</code>, потому что в выражении"
-                + " стоит <code>grades</code>, а не <code>grade</code>."), messages(result.explanation));
-        assertNull(result.clarification);
+        assertEquals(Set.of(new AnswerHypothesisData("variable_confused", false),
+                new AnswerHypothesisData("inapplicable_assumed", false)), Set.copyOf(result.hypotheses));
+        assertEquals(Set.of("operand_identification", "length_applicability"), Set.copyOf(lawNames(result.violations)));
+        assertEquals(List.of("Выражение <code>len(grades)</code> не может вызвать ошибку <code>TypeError</code>."),
+                messages(result.explanation));
+        assertNotNull(result.clarification);
+        assertEquals("Почему вы решили, что здесь возникнет ошибка TypeError?", result.clarification.prompt());
+        assertEquals(Set.of(
+                new HypothesisClarificationData.Option("variable_confused",
+                        "Мне показалось, что в выражении стоит <code>grade</code>, а не <code>grades</code>.",
+                        "Выражение <code>len(grades)</code> не может вызвать ошибку <code>TypeError</code>, потому что в выражении"
+                                + " стоит <code>grades</code>, а не <code>grade</code>."),
+                new HypothesisClarificationData.Option("inapplicable_assumed",
+                        "Функция <code>len</code> не применяется к аргументу этого типа.",
+                        "Выражение <code>len(grades)</code> не может вызвать ошибку <code>TypeError</code>, потому что у значения"
+                                + " типа <code>list[int]</code> есть элементы, и функция <code>len</code> их считает."
+                                + " Следовательно, операция допустима.")),
+                Set.copyOf(result.clarification.options()));
     }
 
     /**
@@ -333,6 +371,23 @@ class TypeEvaluationDTDomainJudgeTest {
         assertEquals("op_div", answer.left().getDomainInfo());
         assertEquals("t_float", answer.right().getDomainInfo());
         assertTrue(hint.skillName.contains("true_division_result"), hint.skillName.toString());
+    }
+
+    /** Если часть выражения вызывает ошибку, подсказка говорит об ошибке, а не о типе. */
+    @Test
+    void hintForFailingOperationSaysItCausesError() {
+        // Arrange.
+        var question = withCorrectAnswers(question(FIRST_CHAR_PLUS_ONE), solution(question(FIRST_CHAR_PLUS_ONE), FIRST_CHAR_PLUS_ONE, 1), 1);
+
+        // Act.
+        var hint = domain().getAnyNextCorrectAnswer(question, Language.RUSSIAN);
+
+        // Assert.
+        var answer = hint.answers.getFirst();
+        assertEquals("op_add", answer.left().getDomainInfo());
+        assertEquals("t_error", answer.right().getDomainInfo());
+        assertEquals(List.of("Выражение <code>line[0] + 1</code> вызывает ошибку <code>TypeError</code>, потому что оператор"
+                + " <code>+</code> нельзя применить к операндам типов <code>str</code> и <code>int</code>."), messages(hint.explanation));
     }
 
     private static List<String> lawNames(List<ViolationData> violations) {

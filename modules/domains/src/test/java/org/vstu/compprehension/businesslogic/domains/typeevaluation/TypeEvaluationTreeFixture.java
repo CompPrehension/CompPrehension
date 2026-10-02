@@ -49,6 +49,7 @@ final class TypeEvaluationTreeFixture {
 
     static final String RULE = "rule";
     static final String OPERAND_TYPE = "operand_type";
+    static final String INAPPLICABLE_ASSUMED = "inapplicable_assumed";
 
     /** Вердикт дерева: итог, виды гипотез с выводом не null и навыки, к которым отнесены выводы. */
     record Verdict(@NotNull BranchResult result, @NotNull Set<String> hypotheses, @NotNull Set<String> skills) {

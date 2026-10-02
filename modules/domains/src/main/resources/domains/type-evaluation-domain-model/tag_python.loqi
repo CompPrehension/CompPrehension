@@ -48,7 +48,7 @@ class py_NoneType : NoneType {
 	text = "None" ;
 ]
 
-class py_TypeError : ErrorType {
+class py_TypeError : EvaluationError {
 } [
 	RU.localizedName = "ошибка (TypeError)" ;
 	EN.localizedName = "error (TypeError)" ;
