@@ -209,12 +209,12 @@ class TypeEvaluationDTDomainJudgeTest {
         assertEquals(Set.of(
                 new HypothesisClarificationData.Option("operand_type",
                         "Результат берёт тип одного из операндов.",
-                        "Выражение <code>total / len(grades)</code> не может иметь тип <code>int</code>, потому что оператор <code>/</code> не берёт тип результата у операндов:"
-                                + " деление может дать дробную часть, даже когда операнды целые."),
+                        "Выражение <code>total / len(grades)</code> не может иметь тип <code>int</code>, потому что оператор <code>/</code> всегда"
+                                + " возвращает вещественный результат."),
                 new HypothesisClarificationData.Option("c_style_division",
                         "Деление целых чисел даёт целое число.",
-                        "Выражение <code>total / len(grades)</code> не может иметь тип <code>int</code>, потому что оператор <code>/</code> сохраняет дробную часть"
-                                + " и при целых операндах — отбрасывает её только целочисленное деление.")),
+                        "Выражение <code>total / len(grades)</code> не может иметь тип <code>int</code>, потому что оператор <code>/</code> всегда возвращает"
+                                + " вещественный результат.")),
                 Set.copyOf(result.clarification.options()));
     }
 
@@ -234,6 +234,28 @@ class TypeEvaluationDTDomainJudgeTest {
                         HypothesisClarificationData.Option::reason));
         assertEquals("Левый операнд истинный.", reasons.get("truthiness_misjudged"));
         assertEquals("Возвращается первый ложный операнд.", reasons.get("and_or_confused"));
+    }
+
+    /**
+     * Похожая переменная может стоять в том же выражении, что и спутанная с ней, поэтому причина называет, какой операнд
+     * студент прочитал не так.
+     */
+    @Test
+    void lookalikeReasonNamesOperandWhenBothVariablesAreInExpression() {
+        // Arrange.
+        var question = question(EMPTY_NAME_OR_NAMES);
+
+        // Act.
+        var result = judge(question, List.of(answer(question, "op_or", "t_str")));
+
+        // Assert.
+        assertNotNull(result.clarification);
+        var option = result.clarification.options().stream()
+                .filter(o -> o.hypothesis().equals("variable_confused"))
+                .findFirst().orElseThrow();
+        assertEquals("Мне показалось, что правый операнд — <code>name</code>, а не <code>names</code>.", option.reason());
+        assertEquals("Выражение <code>name or names</code> не может иметь тип <code>str</code>, потому что правый"
+                + " операнд — <code>names</code>, а не <code>name</code>.", option.explanation());
     }
 
     /** Ошибку, которая верна для похожей переменной из условия, объясняют тем, что в выражении стоит другая переменная. */
@@ -274,7 +296,7 @@ class TypeEvaluationDTDomainJudgeTest {
                 Set.copyOf(lawNames(result.violations)));
         assertEquals(List.of("Выражение <code>grades + 1</code> не может иметь тип <code>int</code>."), messages(result.explanation));
         assertNotNull(result.clarification);
-        assertEquals(Set.of("Результат берёт тип одного из операндов.", "В выражении используется <code>grade</code>."),
+        assertEquals(Set.of("Результат берёт тип одного из операндов.", "Мне показалось, что левый операнд — <code>grade</code>, а не <code>grades</code>."),
                 result.clarification.options().stream()
                         .map(HypothesisClarificationData.Option::reason)
                         .collect(Collectors.toSet()));

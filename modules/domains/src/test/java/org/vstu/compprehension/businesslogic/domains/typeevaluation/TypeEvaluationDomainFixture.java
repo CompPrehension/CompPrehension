@@ -42,9 +42,16 @@ final class TypeEvaluationDomainFixture {
             List.of(new Step("op_len", "t_int"), new Step("op_mul", "t_int")));
     static final BankQuestion GRADES_PLUS_ONE = new BankQuestion("grades_plus_one",
             List.of(new Step("op_add", "t_error")));
+    static final BankQuestion AVERAGE_BY_SUBJECT = new BankQuestion("average_by_subject",
+            List.of(new Step("op_total", "t_int"), new Step("op_grades", "t_list_int"), new Step("op_len", "t_int"),
+                    new Step("op_or", "t_int"), new Step("op_div", "t_float")));
+    static final BankQuestion AGE_NEXT_YEAR = new BankQuestion("age_next_year",
+            List.of(new Step("op_greeting", "t_str"), new Step("op_int", "t_int"), new Step("op_next", "t_int"),
+                    new Step("op_str", "t_str"), new Step("op_message", "t_str")));
 
     static final List<BankQuestion> BANK = List.of(
-            AVERAGE_OF_GRADES, EMPTY_NAME_OR_NAMES, STUDENT_FIRST_GRADE, FIRST_CHAR_PLUS_ONE, GRADE_COUNT, GRADES_PLUS_ONE);
+            AVERAGE_OF_GRADES, EMPTY_NAME_OR_NAMES, STUDENT_FIRST_GRADE, FIRST_CHAR_PLUS_ONE, GRADE_COUNT, GRADES_PLUS_ONE,
+            AVERAGE_BY_SUBJECT, AGE_NEXT_YEAR);
 
     private static final class Holder {
         private static final TypeEvaluationDTDomain DOMAIN = new TypeEvaluationDTDomain(

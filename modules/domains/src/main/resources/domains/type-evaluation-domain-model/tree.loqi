@@ -31,10 +31,11 @@ tpg ExprType(E: Operation, T: Type) {
                                             conclude: error [
                                                 skill = "operand_identification";
                                                 hypothesis = "variable_confused";
-                                                RU.explanation = "в выражении стоит ${O}, а не ${V}.";
-                                                EN.explanation = "the expression uses ${O}, not ${V}.";
-                                                RU.reason = "В выражении используется ${V}.";
-                                                EN.reason = "The expression uses ${V}.";
+                                                // У двух операндов место называется явно: похожая переменная может стоять в том же выражении.
+                                                RU.explanation = "${(E is class:CallOperation or E is class:NegationOperation) ? 'в выражении стоит' : (E=>hasOperand<OperandPlacement:left>(O) ? 'левый операнд —' : 'правый операнд —')} ${O}, а не ${V}.";
+                                                EN.explanation = "${(E is class:CallOperation or E is class:NegationOperation) ? 'the expression uses' : (E=>hasOperand<OperandPlacement:left>(O) ? 'the left operand is' : 'the right operand is')} ${O}, not ${V}.";
+                                                RU.reason = "Мне показалось, что ${(E is class:CallOperation or E is class:NegationOperation) ? 'в выражении стоит' : (E=>hasOperand<OperandPlacement:left>(O) ? 'левый операнд —' : 'правый операнд —')} ${V}, а не ${O}.";
+                                                EN.reason = "It seemed to me that ${(E is class:CallOperation or E is class:NegationOperation) ? 'the expression uses' : (E=>hasOperand<OperandPlacement:left>(O) ? 'the left operand is' : 'the right operand is')} ${V}, not ${O}.";
                                             ]
                                         };
                                     } as operandIdentification

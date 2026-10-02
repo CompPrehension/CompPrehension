@@ -37,8 +37,8 @@ tpg Typed(E: Operation, Old: Expr, New: Expr, T: Type) {
                                         conclude: correct [
                                             skill = "true_division_result";
                                             hypothesis = "rule";
-                                            RU.explanation = "${A.class()} сохраняет дробную часть и при целых операндах, поэтому частное — вещественное число.";
-                                            EN.explanation = "the ${A.class()} keeps the fractional part even for integer operands, so the quotient is a floating-point number.";
+                                            RU.explanation = "${A.class()} всегда возвращает вещественный результат.";
+                                            EN.explanation = "the ${A.class()} always returns a floating-point result.";
                                         ];
                                     };
                                     conclude: null
@@ -48,8 +48,8 @@ tpg Typed(E: Operation, Old: Expr, New: Expr, T: Type) {
                                         conclude: error [
                                             skill = "true_division_result";
                                             hypothesis = "operand_type";
-                                            RU.explanation = "${A.class()} не берёт тип результата у операндов: деление может дать дробную часть, даже когда операнды целые.";
-                                            EN.explanation = "the ${A.class()} does not take the result type from its operands: division can produce a fractional part even when the operands are integers.";
+                                            RU.explanation = "${A.class()} всегда возвращает вещественный результат.";
+                                            EN.explanation = "the ${A.class()} always returns a floating-point result.";
                                             RU.reason = "Результат берёт тип одного из операндов.";
                                             EN.reason = "The result takes the type of one of the operands.";
                                         ];
@@ -61,8 +61,8 @@ tpg Typed(E: Operation, Old: Expr, New: Expr, T: Type) {
                                         conclude: error [
                                             skill = "true_division_result";
                                             hypothesis = "c_style_division";
-                                            RU.explanation = "${A.class()} сохраняет дробную часть и при целых операндах — отбрасывает её только целочисленное деление.";
-                                            EN.explanation = "the ${A.class()} does not drop the fractional part even for integer operands — only integer division does that.";
+                                            RU.explanation = "${A.class()} всегда возвращает вещественный результат.";
+                                            EN.explanation = "the ${A.class()} always returns a floating-point result.";
                                             RU.reason = "Деление целых чисел даёт целое число.";
                                             EN.reason = "Dividing integers gives an integer.";
                                         ];

@@ -301,7 +301,7 @@ class SlicingOperation : Operation {
 
 class CallOperation : Operation {
 	class prop fixedResult: FixedResult ;
-	// Для числового результата: ранг его типа, как у Type.conversionRank.
+	// Ранг типа результата, как у Type.conversionRank: 0 — результат не число.
 	class prop resultRank: int ;
 	class prop argumentRequirement: ArgumentRequirement ;
 	class prop readsUserInput: bool = false ;

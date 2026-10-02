@@ -1,0 +1,133 @@
+{
+  "id": 8,
+  "data": {
+    "tags": [
+      "Python"
+    ],
+    "concepts": [
+      "arithmetic",
+      "function_call",
+      "numbers",
+      "strings",
+      "lists"
+    ],
+    "negativeLaws": [],
+    "questionData": {
+      "options": {
+        "requireContext": true,
+        "displayMode": "INLINE",
+        "multipleSelectionEnabled": true,
+        "showSupplementaryQuestions": false
+      },
+      "questionName": "age_next_year",
+      "questionText": "<div class=\"comp-ph-code\"><pre><code><span class=\"n\">name</span> <span class=\"o\">=</span> <span class=\"nb\">input</span><span class=\"p\">(</span><span class=\"s2\">&quot;Как вас зовут? &quot;</span><span class=\"p\">)</span>\n<span class=\"n\">age</span> <span class=\"o\">=</span> <span class=\"nb\">input</span><span class=\"p\">(</span><span class=\"s2\">&quot;Сколько вам лет? &quot;</span><span class=\"p\">)</span>\n<span class=\"n\">names</span> <span class=\"o\">=</span> <span class=\"p\">[</span><span class=\"s2\">&quot;Анна&quot;</span><span class=\"p\">,</span> <span class=\"s2\">&quot;Борис&quot;</span><span class=\"p\">,</span> <span class=\"n\">name</span><span class=\"p\">]</span>\n<span class=\"n\">ages</span> <span class=\"o\">=</span> <span class=\"p\">[</span><span class=\"mi\">19</span><span class=\"p\">,</span> <span class=\"mi\">20</span><span class=\"p\">,</span> <span class=\"nb\">int</span><span class=\"p\">(</span><span class=\"n\">age</span><span class=\"p\">)]</span>\n<span class=\"c1\"># ... вы находитесь здесь ...</span></code></pre></div><div class=\"comp-ph-typed-expr\" style=\"--depth:4\"><span class=\"comp-ph-expr-part\" style=\"--lvl:4\"><span class=\"comp-ph-expr-slot\" id=\"answer_4\"></span><span class=\"comp-ph-expr-part\" style=\"--lvl:1\"><span class=\"comp-ph-expr-slot\" id=\"answer_0\"></span><span class=\"comp-ph-expr-token\">name</span><span class=\"comp-ph-expr-token\">+</span><span class=\"comp-ph-expr-token\">&quot;, через год вам будет &quot;</span></span><span class=\"comp-ph-expr-token\">+</span><span class=\"comp-ph-expr-part\" style=\"--lvl:3\"><span class=\"comp-ph-expr-slot\" id=\"answer_3\"></span><span class=\"comp-ph-expr-token\">str</span><span class=\"comp-ph-expr-token\">(</span><span class=\"comp-ph-expr-part\" style=\"--lvl:2\"><span class=\"comp-ph-expr-slot\" id=\"answer_2\"></span><span class=\"comp-ph-expr-part\" style=\"--lvl:1\"><span class=\"comp-ph-expr-slot\" id=\"answer_1\"></span><span class=\"comp-ph-expr-token\">int</span><span class=\"comp-ph-expr-token\">(</span><span class=\"comp-ph-expr-token\">age</span><span class=\"comp-ph-expr-token\">)</span></span><span class=\"comp-ph-expr-token\">+</span><span class=\"comp-ph-expr-token\">1</span></span><span class=\"comp-ph-expr-token\">)</span></span></span></div>",
+      "questionType": "MATCHING",
+      "answerObjects": [
+        {
+          "answerId": 0,
+          "hyperText": "name + \", через год вам будет \"",
+          "domainInfo": "op_greeting",
+          "isRightCol": false,
+          "concept": "operation"
+        },
+        {
+          "answerId": 1,
+          "hyperText": "int(age)",
+          "domainInfo": "op_int",
+          "isRightCol": false,
+          "concept": "operation"
+        },
+        {
+          "answerId": 2,
+          "hyperText": "int(age) + 1",
+          "domainInfo": "op_next",
+          "isRightCol": false,
+          "concept": "operation"
+        },
+        {
+          "answerId": 3,
+          "hyperText": "str(int(age) + 1)",
+          "domainInfo": "op_str",
+          "isRightCol": false,
+          "concept": "operation"
+        },
+        {
+          "answerId": 4,
+          "hyperText": "name + \", через год вам будет \" + str(int(age) + 1)",
+          "domainInfo": "op_message",
+          "isRightCol": false,
+          "concept": "operation"
+        },
+        {
+          "answerId": 100,
+          "hyperText": "int",
+          "domainInfo": "t_int",
+          "isRightCol": true,
+          "concept": "type"
+        },
+        {
+          "answerId": 101,
+          "hyperText": "float",
+          "domainInfo": "t_float",
+          "isRightCol": true,
+          "concept": "type"
+        },
+        {
+          "answerId": 102,
+          "hyperText": "bool",
+          "domainInfo": "t_bool",
+          "isRightCol": true,
+          "concept": "type"
+        },
+        {
+          "answerId": 103,
+          "hyperText": "str",
+          "domainInfo": "t_str",
+          "isRightCol": true,
+          "concept": "type"
+        },
+        {
+          "answerId": 104,
+          "hyperText": "list[int]",
+          "domainInfo": "t_list_int",
+          "isRightCol": true,
+          "concept": "type"
+        },
+        {
+          "answerId": 105,
+          "hyperText": "list[str]",
+          "domainInfo": "t_list_str",
+          "isRightCol": true,
+          "concept": "type"
+        },
+        {
+          "answerId": 106,
+          "hyperText": "TypeError",
+          "domainInfo": "t_error",
+          "isRightCol": true,
+          "concept": "type"
+        }
+      ],
+      "statementFacts": [
+        {
+          "subjectType": "owl:NamedIndividual",
+          "subject": "question",
+          "verb": "hasLoqi",
+          "objectType": "xsd:string",
+          "object": "obj t_int : py_int {}\nobj t_float : py_float {}\nobj t_bool : py_bool {}\nobj t_str : py_str { elementType(t_str); }\nobj t_list_int : py_list { elementType(t_int); }\nobj t_list_str : py_list { elementType(t_str); }\nobj t_error : py_TypeError {}\nobj name : Variable { hasType(t_str); isTruthy = true; isNumericText = false; looksLike(names); } [ text = \"name\" ]\nobj age : Variable { hasType(t_str); isTruthy = true; isNumericText = true; looksLike(ages); } [ text = \"age\" ]\nobj names : Variable { hasType(t_list_str); isTruthy = true; } [ text = \"names\" ]\nobj ages : Variable { hasType(t_list_int); isTruthy = true; } [ text = \"ages\" ]\nobj greeting : Literal { hasType(t_str); isTruthy = true; isNumericText = false; } [ text = \"\\\", через год вам будет \\\"\" ]\nobj one : Literal { hasType(t_int); isTruthy = true; intValue = 1; } [ text = \"1\" ]\nobj op_greeting : py_add { hasOperand<OperandPlacement:left>(name); hasOperand<OperandPlacement:right>(greeting); isTruthy = true; isNumericText = false; } [ text = \"name + \\\", через год вам будет \\\"\"; expectedType = \"t_str\" ]\nobj op_int : py_int_call { hasOperand<OperandPlacement:left>(age); isTruthy = true; } [ text = \"int(age)\"; expectedType = \"t_int\" ]\nobj op_next : py_add { hasOperand<OperandPlacement:left>(op_int); hasOperand<OperandPlacement:right>(one); isTruthy = true; } [ text = \"int(age) + 1\"; expectedType = \"t_int\" ]\nobj op_str : py_str_call { hasOperand<OperandPlacement:left>(op_next); isTruthy = true; isNumericText = true; } [ text = \"str(int(age) + 1)\"; expectedType = \"t_str\" ]\nobj op_message : py_add { hasOperand<OperandPlacement:left>(op_greeting); hasOperand<OperandPlacement:right>(op_str); } [ text = \"name + \\\", через год вам будет \\\" + str(int(age) + 1)\"; expectedType = \"t_str\" ]"
+        }
+      ],
+      "questionDomainType": "ExpressionTypes"
+    }
+  },
+  "name": "age_next_year",
+  "origin": "manual",
+  "version": 1,
+  "domainShortname": "type_eval_dt",
+  "tagBits": 1,
+  "conceptBits": 3841,
+  "skillBits": 106502,
+  "lawBits": 0,
+  "violationBits": 0,
+  "solutionSteps": 5
+}

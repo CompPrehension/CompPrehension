@@ -225,6 +225,7 @@ class py_len : CallOperation {
 
 class py_input : CallOperation {
 	fixedResult = FixedResult:text ;
+	resultRank = 0 ;
 	argumentRequirement = ArgumentRequirement:none ;
 	readsUserInput = true ;
 } [
@@ -255,6 +256,7 @@ class py_float_call : CallOperation {
 
 class py_str_call : CallOperation {
 	fixedResult = FixedResult:text ;
+	resultRank = 0 ;
 	argumentRequirement = ArgumentRequirement:any ;
 } [
 	text = "str" ;
