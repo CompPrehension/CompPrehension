@@ -150,7 +150,7 @@ export const handlers = [
         await delay(THINKING_MS);
         const questionId = Number(new URL(request.url).searchParams.get('questionId'));
         const answers = nextCorrectAnswer(questionId);
-        const graded = gradeAnswers(questionId, answers);
+        const graded = gradeAnswers(questionId, answers, true);
         recordAnswers(questionId, answers);
         return HttpResponse.json(feedback(graded));
     }),

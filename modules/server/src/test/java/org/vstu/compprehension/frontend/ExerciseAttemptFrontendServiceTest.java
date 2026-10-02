@@ -1,13 +1,20 @@
 package org.vstu.compprehension.frontend;
 
+import com.fasterxml.jackson.core.JsonProcessingException;
+import com.fasterxml.jackson.core.type.TypeReference;
+import com.fasterxml.jackson.databind.ObjectMapper;
 import jakarta.persistence.EntityManager;
 import jakarta.persistence.PersistenceContext;
 import org.junit.jupiter.api.AfterEach;
 import org.junit.jupiter.api.Test;
+import org.junit.jupiter.params.ParameterizedTest;
+import org.junit.jupiter.params.provider.CsvSource;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.transaction.annotation.Transactional;
 import org.vstu.compprehension.authorization.TestUserService;
+import org.vstu.compprehension.businesslogic.strategies.AbstractStrategyFactory;
 import org.vstu.compprehension.data.questionoptions.MultiChoiceOptionsData;
+import org.vstu.compprehension.entities.ExerciseEntity;
 import org.vstu.compprehension.entities.InteractionClarificationEntity;
 import org.vstu.compprehension.entities.InteractionHypothesisEntity;
 import org.vstu.compprehension.enums.AttemptStatus;
@@ -22,11 +29,12 @@ import org.vstu.compprehension.frontend.dto.feedback.FeedbackDto;
 import org.vstu.compprehension.frontend.dto.question.MatchingQuestionDto;
 import org.vstu.compprehension.frontend.dto.question.QuestionDto;
 import org.vstu.compprehension.infrastructure.AbstractIntegrationTest;
-import org.vstu.compprehension.infrastructure.TestData;
 import org.vstu.compprehension.infrastructure.TestData.ExpressionBank.BankQuestion;
+import org.vstu.compprehension.infrastructure.TestData;
 
 import java.util.Arrays;
 import java.util.List;
+import java.util.Map;
 import java.util.Set;
 import java.util.stream.Collectors;
 import java.util.stream.LongStream;
@@ -52,6 +60,7 @@ class ExerciseAttemptFrontendServiceTest extends AbstractIntegrationTest {
 
     @Autowired private ExerciseAttemptFrontendService service;
     @Autowired private AuthFrontendService authService;
+    @Autowired private AbstractStrategyFactory strategyFactory;
     @PersistenceContext private EntityManager entityManager;
 
     @AfterEach
@@ -366,6 +375,7 @@ class ExerciseAttemptFrontendServiceTest extends AbstractIntegrationTest {
         assertEquals(bankQuestion.steps(), feedback.getCorrectSteps());
         assertEquals(0, feedback.getStepsWithErrors());
         assertAnswerIds(feedback, bankQuestion.evaluationOrder());
+        assertNull(feedback.getMessages(), "о решении задачи сообщает интерфейс, у последнего ответа своего сообщения нет");
         assertEquals(bankQuestion.steps(), service.getQuestion(question.getQuestionId()).getResponses().length);
     }
 
@@ -579,6 +589,25 @@ class ExerciseAttemptFrontendServiceTest extends AbstractIntegrationTest {
         assertEquals(asked, reloaded.getFeedback().getClarification());
     }
 
+    /** Перезагруженный вопрос сообщает уже принятые ответы: по ним интерфейс открывает следующие части выражения. */
+    @Test
+    void getQuestionReturnsAcceptedAnswers() {
+        // Arrange.
+        TestUserService.actAs(TestData.Users.GLOBAL_EXERCISE_AUTHOR_ID);
+        var question = typeEvaluationQuestion();
+        var lengthAsInt = new AnswerDto(TestData.TypeEvaluationBank.LEN_SLOT, TestData.TypeEvaluationBank.INT_TYPE, true, null);
+        service.addQuestionAnswer(new InteractionDto(question.getQuestionId(), new AnswerDto[] { lengthAsInt }));
+        resetPersistenceContext();
+
+        // Act.
+        var reloaded = service.getQuestion(question.getQuestionId());
+
+        // Assert.
+        assertEquals(1, reloaded.getFeedback().getCorrectAnswers().length);
+        assertArrayEquals(new Long[] { TestData.TypeEvaluationBank.LEN_SLOT, TestData.TypeEvaluationBank.INT_TYPE },
+                reloaded.getFeedback().getCorrectAnswers()[0].getAnswer());
+    }
+
     /** Выбранная студентом причина записывается, и он получает объяснение именно этого заблуждения. */
     @Test
     void answerClarificationRecordsChosenHypothesisAndExplainsIt() {
@@ -626,6 +655,116 @@ class ExerciseAttemptFrontendServiceTest extends AbstractIntegrationTest {
 
         // Act & Assert.
         assertThrows(IllegalArgumentException.class, () -> service.answerClarification(answer));
+    }
+
+    // ---- уточнение рассуждения при верном ответе ----
+
+    /** По умолчанию верный ответ не уточняется, даже если к нему ведёт и заблуждение. */
+    @Test
+    void correctAnswerReachedByMisconceptionIsNotClarifiedByDefault() {
+        // Arrange.
+        TestUserService.actAs(TestData.Users.GLOBAL_STUDENT_ID);
+        var attempt = service.createExerciseAttempt(TestData.Exercises.TYPE_EVALUATION_ID, TestData.Users.GLOBAL_STUDENT_ID, null);
+        var question = gradeCountQuestion(attempt.getAttemptId());
+
+        // Act.
+        var feedback = answerProductAsInteger(question);
+
+        // Assert.
+        assertTrue(feedback.isCorrect());
+        assertNull(feedback.getClarification());
+    }
+
+    /** Если стратегия спрашивает всегда, верный ответ, к которому ведёт и заблуждение, сопровождает вопрос о рассуждении. */
+    @Test
+    void correctAnswerReachedByMisconceptionIsClarifiedWhenStrategyAlwaysAsks() {
+        // Arrange.
+        setStrategySettings("{\"correctAnswerClarification\": {\"mode\": \"ALWAYS\"}}");
+        TestUserService.actAs(TestData.Users.GLOBAL_STUDENT_ID);
+        var attempt = service.createExerciseAttempt(TestData.Exercises.TYPE_EVALUATION_ID, TestData.Users.GLOBAL_STUDENT_ID, null);
+        var question = gradeCountQuestion(attempt.getAttemptId());
+
+        // Act.
+        var feedback = answerProductAsInteger(question);
+
+        // Assert.
+        assertTrue(feedback.isCorrect());
+        assertNotNull(feedback.getClarification());
+        assertEquals(Set.of("rule", "operand_type"), feedback.getClarification().options().stream()
+                .map(ClarificationDto.Option::hypothesis)
+                .collect(Collectors.toSet()));
+    }
+
+    /** До серии верных ответов заданной длины верный ответ уточняется, после — нет; серия считается до этого ответа. */
+    @ParameterizedTest
+    @CsvSource({
+            "1, false",
+            "2, true",
+    })
+    void correctAnswerIsClarifiedUntilStreakOfCorrectAnswers(int streakLength, boolean isClarified) {
+        // Arrange.
+        setStrategySettings("{\"correctAnswerClarification\": {\"mode\": \"UNTIL_STREAK\", \"streakLength\": "
+                + streakLength + "}}");
+        TestUserService.actAs(TestData.Users.GLOBAL_STUDENT_ID);
+        var attempt = service.createExerciseAttempt(TestData.Exercises.TYPE_EVALUATION_ID, TestData.Users.GLOBAL_STUDENT_ID, null);
+        var question = gradeCountQuestion(attempt.getAttemptId());
+
+        // Act.
+        var feedback = answerProductAsInteger(question);
+
+        // Assert.
+        assertTrue(feedback.isCorrect());
+        assertEquals(isClarified, feedback.getClarification() != null);
+    }
+
+    /** Выбравший заблуждение после верного ответа узнаёт, что ответ верен, а рассуждение ошибочно. */
+    @Test
+    void answerClarificationOfCorrectAnswerExplainsMisreasoning() {
+        // Arrange.
+        setStrategySettings("{\"correctAnswerClarification\": {\"mode\": \"ALWAYS\"}}");
+        TestUserService.actAs(TestData.Users.GLOBAL_STUDENT_ID);
+        var attempt = service.createExerciseAttempt(TestData.Exercises.TYPE_EVALUATION_ID, TestData.Users.GLOBAL_STUDENT_ID, null);
+        var question = gradeCountQuestion(attempt.getAttemptId());
+        answerProductAsInteger(question);
+
+        // Act.
+        var feedback = service.answerClarification(new ClarificationAnswerDto(question.getQuestionId(), "operand_type"));
+
+        // Assert.
+        assertEquals("Выражение <code>len(grades) * grade</code> действительно имеет тип <code>int</code>, но рассуждение"
+                + " ошибочно: тип результата задают правила арифметики, а не тип операнда, и оператор <code>*</code>"
+                + " над целыми операндами даёт целое число.", feedback.explanation());
+        resetPersistenceContext();
+        assertEquals(List.of("operand_type"), answeredClarifications(question.getQuestionId()));
+    }
+
+    /**
+     * Верный ответ продолжает серию, только если студент подтвердил верное рассуждение: заблуждение или
+     * «другая причина» её обрывают, и следующий верный ответ снова уточняется.
+     */
+    @ParameterizedTest
+    @CsvSource(value = {
+            "rule,         false",
+            "operand_type, true",
+            "null,         true",
+    }, nullValues = "null")
+    void clarificationAnswerDecidesWhetherStreakContinues(String chosenHypothesis, boolean isNextClarified) {
+        // Arrange.
+        setStrategySettings("{\"correctAnswerClarification\": {\"mode\": \"ALWAYS\"}}");
+        TestUserService.actAs(TestData.Users.GLOBAL_STUDENT_ID);
+        var attempt = service.createExerciseAttempt(TestData.Exercises.TYPE_EVALUATION_ID, TestData.Users.GLOBAL_STUDENT_ID, null);
+        var question = gradeCountQuestion(attempt.getAttemptId());
+        answerProductAsInteger(question);
+        service.answerClarification(new ClarificationAnswerDto(question.getQuestionId(), chosenHypothesis));
+        setStrategySettings("{\"correctAnswerClarification\": {\"mode\": \"UNTIL_STREAK\", \"streakLength\": 1}}");
+        resetPersistenceContext();
+
+        // Act.
+        var isClarified = strategyFactory.getStrategy(TestData.Exercises.STRATEGY_ID)
+                .shouldClarifyCorrectAnswer(attempt.getAttemptId());
+
+        // Assert.
+        assertEquals(isNextClarified, isClarified);
     }
 
     // ---- оценка стратегией внутри попытки ----
@@ -895,6 +1034,37 @@ class ExerciseAttemptFrontendServiceTest extends AbstractIntegrationTest {
         var divisionAsInt = new AnswerDto(TestData.TypeEvaluationBank.DIV_SLOT, TestData.TypeEvaluationBank.INT_TYPE, true, null);
         return service.addQuestionAnswer(new InteractionDto(question.getQuestionId(),
                 Stream.concat(Arrays.stream(afterLength.getCorrectAnswers()), Stream.of(divisionAsInt))
+                        .toArray(AnswerDto[]::new)));
+    }
+
+    private void setStrategySettings(String settings) {
+        var exercise = entityManager.find(ExerciseEntity.class, TestData.Exercises.TYPE_EVALUATION_ID);
+        try {
+            exercise.setOptions(exercise.getOptions().withStrategySettings(new ObjectMapper().readValue(settings,
+                    new TypeReference<Map<String, Object>>() {
+                    })));
+        } catch (JsonProcessingException e) {
+            throw new IllegalArgumentException(e);
+        }
+        entityManager.flush();
+    }
+
+    private QuestionDto gradeCountQuestion(long attemptId) {
+        var question = service.generateQuestion(attemptId);
+        assertEquals(TestData.TypeEvaluationBank.GRADE_COUNT_METADATA_ID, question.getQuestionMetadataId());
+        return question;
+    }
+
+    // len(grades) — int без заблуждений, затем len(grades) * grade — int, к которому ведёт и заблуждение «тип операнда».
+    private FeedbackDto answerProductAsInteger(QuestionDto question) {
+        var lengthAsInt = new AnswerDto(TestData.TypeEvaluationBank.LEN_SLOT, TestData.TypeEvaluationBank.INT_TYPE, true, null);
+        var afterLength = service.addQuestionAnswer(
+                new InteractionDto(question.getQuestionId(), new AnswerDto[] { lengthAsInt }));
+        assertTrue(afterLength.isCorrect());
+        assertNull(afterLength.getClarification());
+        var productAsInt = new AnswerDto(TestData.TypeEvaluationBank.MUL_SLOT, TestData.TypeEvaluationBank.INT_TYPE, true, null);
+        return service.addQuestionAnswer(new InteractionDto(question.getQuestionId(),
+                Stream.concat(Arrays.stream(afterLength.getCorrectAnswers()), Stream.of(productAsInt))
                         .toArray(AnswerDto[]::new)));
     }
 

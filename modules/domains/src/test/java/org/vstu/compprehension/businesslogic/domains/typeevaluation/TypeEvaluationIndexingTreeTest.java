@@ -31,6 +31,7 @@ class TypeEvaluationIndexingTreeTest {
             "t_dict_str_int,  t_str, t_int",
             "t_list_int,      t_str, t_error",
             "t_int,           t_int, t_error",
+            "t_dict_str_int,  t_list_int, t_error",
     })
     void answerByIndexingRuleIsCorrect(String container, String index, String answer) {
         // Act.
@@ -97,6 +98,21 @@ class TypeEvaluationIndexingTreeTest {
     void elementTypeForTextIndexIsIndexTypeIgnored() {
         // Act.
         var verdict = judgeIndexing("t_list_int", "t_str", "t_int");
+
+        // Assert.
+        assertEquals(BranchResult.ERROR, verdict.result());
+        assertEquals(Set.of("index_type_ignored"), verdict.hypotheses());
+        assertEquals(Set.of("indexing_applicability"), verdict.skills());
+    }
+
+    /**
+     * Тип значения словаря в ответе на обращение по ключу изменяемого типа объясняется тем, что студент не проверил
+     * тип ключа: такое обращение — ошибка, а не значение.
+     */
+    @Test
+    void valueTypeForMutableDictionaryKeyIsIndexTypeIgnored() {
+        // Act.
+        var verdict = judgeIndexing("t_dict_str_int", "t_list_int", "t_int");
 
         // Assert.
         assertEquals(BranchResult.ERROR, verdict.result());

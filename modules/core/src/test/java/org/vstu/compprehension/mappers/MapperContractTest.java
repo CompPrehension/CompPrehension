@@ -5,6 +5,8 @@ import org.junit.jupiter.api.Test;
 import org.junit.jupiter.api.TestFactory;
 import org.vstu.compprehension.businesslogic.Law;
 import org.vstu.compprehension.businesslogic.PositiveLaw;
+import org.vstu.compprehension.businesslogic.strategies.settings.CommonStrategySettings;
+import org.vstu.compprehension.businesslogic.strategies.settings.StrategySettingsType;
 import org.vstu.compprehension.data.outbox.OutboxEventType;
 import org.vstu.compprehension.entities.AnswerObjectEntity;
 import org.vstu.compprehension.entities.InteractionEntity;
@@ -25,6 +27,7 @@ class MapperContractTest {
                     "org.vstu.compprehension.services.mappers")
             .subtype(Law.class, PositiveLaw.class)
             .value(ResponseEntity.class, MapperContractTest::response)
+            .value(StrategySettingsType.class, () -> CommonStrategySettings.TYPE)
             .value("ClaimedOutboxEventMapper", String.class, OutboxEventType.ATTEMPT_FINISHED::name)
             .ignore("AnswerDtoMapper", "answer")
             .ignore("CourseRoleAssignmentMapper", "role")

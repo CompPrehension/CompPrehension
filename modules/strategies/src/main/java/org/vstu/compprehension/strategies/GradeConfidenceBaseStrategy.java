@@ -1,5 +1,6 @@
 package org.vstu.compprehension.strategies;
 
+import org.vstu.compprehension.businesslogic.strategies.settings.CommonStrategySettings;
 import org.vstu.compprehension.data.exercise.ExerciseStageData;
 import lombok.extern.log4j.Log4j2;
 import org.jetbrains.annotations.NotNull;
@@ -26,7 +27,7 @@ import org.vstu.compprehension.businesslogic.strategies.StrategyBase;
 import java.util.*;
 
 @Log4j2
-public class    GradeConfidenceBaseStrategy extends StrategyBase {
+public class    GradeConfidenceBaseStrategy extends StrategyBase<CommonStrategySettings> {
 
     private final DomainFactory domainFactory;
     protected StrategyOptions options;
@@ -37,7 +38,7 @@ public class    GradeConfidenceBaseStrategy extends StrategyBase {
     protected static int DEFAULT_LAW_COUNT = 2 /*5*/;
 
     public GradeConfidenceBaseStrategy(DomainFactory domainFactory, ExerciseAttemptDataService exerciseAttemptService) {
-        super(exerciseAttemptService);
+        super(exerciseAttemptService, CommonStrategySettings.TYPE);
         this.domainFactory = domainFactory;
         this.options = StrategyOptions.builder()
                 .multiStagesEnabled(false)

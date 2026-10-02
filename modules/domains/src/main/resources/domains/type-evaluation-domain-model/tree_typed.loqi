@@ -181,8 +181,8 @@ tpg Typed(E: Operation, Old: Expr, New: Expr, T: Outcome) {
                                                 conclude: error [
                                                     skill = "numeric_result_type";
                                                     hypothesis = "operand_type";
-                                                    RU.explanation = "в арифметике логические значения ведут себя как числа 0 и 1, поэтому ${A.class()} не сохраняет логический тип операнда.";
-                                                    EN.explanation = "in arithmetic, boolean values behave as the numbers 0 and 1, so the ${A.class()} does not keep an operand's boolean type.";
+                                                    RU.explanation = "${(L is class:BooleanType or R is class:BooleanType) ? 'в арифметике логические значения ведут себя как числа 0 и 1, поэтому' : 'тип результата задают правила арифметики, а не тип операнда, и'} ${A.class()} ${(L is class:BooleanType or R is class:BooleanType) ? 'не сохраняет логический тип операнда.' : 'над целыми операндами даёт целое число.'}";
+                                                    EN.explanation = "${(L is class:BooleanType or R is class:BooleanType) ? 'in arithmetic, boolean values behave as the numbers 0 and 1, so' : 'the result type is set by the rules of arithmetic, not by an operand type, and'} the ${A.class()} ${(L is class:BooleanType or R is class:BooleanType) ? 'does not keep the boolean type of an operand.' : 'gives an integer for integer operands.'}";
                                                     RU.reason = "Результат берёт тип одного из операндов.";
                                                     EN.reason = "The result takes the type of one of the operands.";
                                                 ];
@@ -994,7 +994,8 @@ tpg Typed(E: Operation, Old: Expr, New: Expr, T: Outcome) {
             var I : Type = (Right->hasType);
 
             // Порядок развилок задаёт навыки: словарь — отдельно, неприменимость — до выбора вида элемента.
-            ask (X is class:MappingType) {
+            // Словарь с ключом изменяемого типа — неприменимость.
+            ask (X is class:MappingType and I.isHashable) {
                 true -> {
                     var M : MappingType = (X as class:MappingType);
                     agg hyp {
@@ -1040,8 +1041,8 @@ tpg Typed(E: Operation, Old: Expr, New: Expr, T: Outcome) {
                                 conclude: error [
                                     skill = "mapping_value_access";
                                     hypothesis = "inapplicable_assumed";
-                                    RU.explanation = "к словарю обращаются по ключу, а здесь словарь типа ${X} и ключ типа ${I}. Следовательно, операция допустима.";
-                                    EN.explanation = "a dictionary is accessed by key, and here the dictionary has type ${X} and the key has type ${I}. Therefore, the operation is valid.";
+                                    RU.explanation = "к словарю обращаются по ключу неизменяемого типа, а здесь словарь типа ${X} и ключ типа ${I}. Следовательно, операция допустима.";
+                                    EN.explanation = "a dictionary is accessed by a key of an immutable type, and here the dictionary has type ${X} and the key has type ${I}. Therefore, the operation is valid.";
                                     RU.reason = "${E.class()} не применяется к значениям этих типов.";
                                     EN.reason = "${E.class()} does not apply to values of these types.";
                                 ];
@@ -1213,19 +1214,20 @@ tpg Typed(E: Operation, Old: Expr, New: Expr, T: Outcome) {
                                         conclude: correct [
                                             skill = "indexing_applicability";
                                             hypothesis = "rule";
-                                            RU.explanation = "по индексу обращаются к последовательности с целым индексом или к словарю, а здесь значение типа ${X} и индекс типа ${I}.";
-                                            EN.explanation = "only a sequence with an integer index or a dictionary can be indexed, while here the value has type ${X} and the index has type ${I}.";
+                                            RU.explanation = "к последовательности обращаются по целому индексу, а к словарю — по ключу неизменяемого типа; здесь же значение типа ${X} и индекс типа ${I}.";
+                                            EN.explanation = "a sequence is indexed by an integer and a dictionary by a key of an immutable type, while here the value has type ${X} and the index has type ${I}.";
                                         ];
                                     };
                                     conclude: null
                                 };
                                 _ -> {
-                                    ask (X is class:SequenceType and T == (X as class:SequenceType)->elementType) out false else {
+                                    ask (X is class:SequenceType and T == (X as class:SequenceType)->elementType
+                                            or X is class:MappingType and T == (X as class:MappingType)->valueType) out false else {
                                         conclude: error [
                                             skill = "indexing_applicability";
                                             hypothesis = "index_type_ignored";
-                                            RU.explanation = "индекс последовательности должен быть целым числом, а здесь он типа ${I}.";
-                                            EN.explanation = "a sequence index must be an integer, while here it has type ${I}.";
+                                            RU.explanation = "${X is class:MappingType ? 'ключ словаря должен быть неизменяемого типа' : 'индекс последовательности должен быть целым числом'}, а здесь он типа ${I}.";
+                                            EN.explanation = "${X is class:MappingType ? 'a dictionary key must be of an immutable type' : 'a sequence index must be an integer'}, while here it has type ${I}.";
                                             RU.reason = "Индекс может быть любого типа.";
                                             EN.reason = "An index can be of any type.";
                                         ];
@@ -1686,6 +1688,8 @@ tpg Typed(E: Operation, Old: Expr, New: Expr, T: Outcome) {
     EN.error_prefix = "The expression ${E} ${T is class:EvaluationError ? 'cannot cause the error' : 'cannot have the type'} ${T} because ";
     RU.hint_prefix = "Выражение ${E} ${T is class:EvaluationError ? 'вызывает ошибку' : 'имеет тип'} ${T}, потому что ";
     EN.hint_prefix = "The expression ${E} ${T is class:EvaluationError ? 'causes the error' : 'has the type'} ${T} because ";
+    RU.misreasoning_prefix = "Выражение ${E} действительно ${T is class:EvaluationError ? 'вызывает ошибку' : 'имеет тип'} ${T}, но рассуждение ошибочно: ";
+    EN.misreasoning_prefix = "The expression ${E} does ${T is class:EvaluationError ? 'cause the error' : 'have the type'} ${T}, but the reasoning is wrong: ";
     RU.error_statement = "Выражение ${E} ${T is class:EvaluationError ? 'не может вызвать ошибку' : 'не может иметь тип'} ${T}.";
     EN.error_statement = "The expression ${E} ${T is class:EvaluationError ? 'cannot cause the error' : 'cannot have the type'} ${T}.";
 ]

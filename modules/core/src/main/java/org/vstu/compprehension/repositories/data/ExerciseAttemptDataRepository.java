@@ -225,7 +225,8 @@ public class ExerciseAttemptDataRepository {
                 row.getInteractionType(),
                 row.getInteractionsLeft(),
                 violationLawNames,
-                correctLawNames);
+                correctLawNames,
+                row.getReasoningConfirmed());
     }
 
     private static Map<Long, List<String>> groupLawNames(List<InteractionLawRow> rows) {

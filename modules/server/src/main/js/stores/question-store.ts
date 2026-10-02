@@ -15,7 +15,12 @@ import { SupplementaryQuestionStore } from "./sup-question-store";
 export class QuestionStore {
     isFeedbackVisible: boolean = true;
     feedback?: Feedback = undefined;
-    /** Explanation of the misconception the student named as the reason for the answer. */
+    /**
+     * Evaluation of an answer that waits for the student to name the reason behind it. Knowing whether the answer
+     * is right would bias the choice, so nothing of the evaluation is shown or applied until then.
+     */
+    pendingFeedback?: Feedback = undefined;
+    /** Explanation of the reason the student named; shown instead of the messages about the answer. */
     clarificationExplanation?: string = undefined;
     isClarificationSending: boolean = false;
     question?: Question = undefined;
@@ -31,7 +36,7 @@ export class QuestionStore {
 
     /** The student answers the clarifying question before going on with the question. */
     get isQuestionFreezed() {
-        return !!this.feedback?.clarification;
+        return !!this.pendingFeedback;
     }
 
     private onQuestionLoaded = (question: Question) => {
@@ -49,18 +54,28 @@ export class QuestionStore {
 
         this.question = question;
         this.supplementaryQuestion = new SupplementaryQuestionStore(question.questionId);
-        this.feedback = question.feedback ?? undefined;
+        this.feedback = question.feedback?.clarification ? undefined : question.feedback ?? undefined;
+        this.pendingFeedback = question.feedback?.clarification ? question.feedback : undefined;
         this.clarificationExplanation = undefined;
         this.isFeedbackVisible = true;
         this.answersHistory = [];
         this.lastAnswer = question.responses ?? [];
 
-        if (question.feedback && question.feedback.stepsLeft === 0) {
+        if (this.feedback && this.feedback.stepsLeft === 0) {
             this.setQuestionState('COMPLETED');
         }
     }
 
     private onAnswerEvaluated(feedback: Feedback) {
+        if (feedback.clarification) {
+            this.pendingFeedback = feedback;
+            this.clarificationExplanation = undefined;
+            return;
+        }
+        this.applyFeedback(feedback);
+    }
+
+    private applyFeedback(feedback: Feedback) {
         this.feedback = feedback;
         this.clarificationExplanation = undefined;
         this.isFeedbackVisible = true;
@@ -153,8 +168,8 @@ export class QuestionStore {
     }
 
     answerClarification = async (hypothesis: string | null) => {
-        const { question, feedback } = this;
-        if (!question || !feedback) {
+        const { question, pendingFeedback } = this;
+        if (!question || !pendingFeedback) {
             return;
         }
 
@@ -169,7 +184,8 @@ export class QuestionStore {
             return;
         }
 
-        this.feedback = { ...feedback, clarification: null };
+        this.pendingFeedback = undefined;
+        this.applyFeedback({ ...pendingFeedback, clarification: null });
         this.clarificationExplanation = answerEither.right.explanation ?? undefined;
     }
 

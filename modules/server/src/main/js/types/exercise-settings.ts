@@ -1,6 +1,6 @@
 import { NonEmptyArray } from 'fp-ts/lib/NonEmptyArray';
 import * as io from 'io-ts'
-import { ExerciseOptions, TExerciseOptions } from './exercise-options';
+import { ExerciseOptions, StrategySettingValues, TExerciseOptions, TStrategySettingValues } from './exercise-options';
 import { nonEmptyArray } from './utils';
 
 export type ExerciseListItem = {
@@ -197,12 +197,29 @@ export const TDomain : io.Type<Domain> = io.type({
     tags: io.array(io.string),
 })
 
+/** A field of the strategy settings form; its name is the key in the stored settings. */
+export type StrategySettingField =
+    | { kind: 'FLAG', name: string, label: string }
+    | { kind: 'NUMERIC', name: string, label: string, min: number, max: number }
+    | { kind: 'CHOICE', name: string, label: string, options: { value: string, label: string }[] }
+    | { kind: 'GROUP', name: string, label: string, fields: StrategySettingField[] }
+export const TStrategySettingField: io.Type<StrategySettingField> = io.recursion('StrategySettingField', () => io.union([
+    io.type({ kind: io.literal('FLAG'), name: io.string, label: io.string }),
+    io.type({ kind: io.literal('NUMERIC'), name: io.string, label: io.string, min: io.number, max: io.number }),
+    io.type({ kind: io.literal('CHOICE'), name: io.string, label: io.string, options: io.array(io.type({ value: io.string, label: io.string })) }),
+    io.type({ kind: io.literal('GROUP'), name: io.string, label: io.string, fields: io.array(TStrategySettingField) }),
+]))
+
 export type Strategy = {
     id: string,
     displayName: string,
     description: string | null,
     options: {
         multiStagesEnabled: boolean,
+    },
+    settings: {
+        fields: StrategySettingField[],
+        defaults: StrategySettingValues,
     },
 }
 export const TStrategy: io.Type<Strategy> = io.type({
@@ -211,6 +228,10 @@ export const TStrategy: io.Type<Strategy> = io.type({
     description: io.union([io.string, io.null]),
     options: io.type({
         multiStagesEnabled: io.boolean,
+    }),
+    settings: io.type({
+        fields: io.array(TStrategySettingField),
+        defaults: TStrategySettingValues,
     }),
 })
 

@@ -128,8 +128,8 @@ class ExerciseAttemptFrontendServiceImpl implements ExerciseAttemptFrontendServi
         val errors = explanationSource.stream().map(e -> Pair.of(
                 violations.stream().filter(v -> e.getDomainLawNames().contains(v.name())).toList(),
                 e.toHyperText(locale).getText())).toList();
+        // The last correct answer has no message of its own: the question being solved is the message.
         val messages = !errors.isEmpty() && !judgeResult.isAnswerCorrect ? errors.stream().map(pair -> AnswerFeedbackData.Message.error(pair.getRight(), pair.getLeft())).toList()
-                : judgeResult.IterationsLeft == 0 && judgeResult.isAnswerCorrect ? List.of(AnswerFeedbackData.Message.success(localizationService.getMessage("exercise_correct-last-question-answer", locale), violations))
                 : judgeResult.IterationsLeft > 0 && judgeResult.isAnswerCorrect ? List.of(AnswerFeedbackData.Message.success(localizationService.getMessage("exercise_correct-question-answer", locale), violations))
                 : null;
 
@@ -275,7 +275,7 @@ class ExerciseAttemptFrontendServiceImpl implements ExerciseAttemptFrontendServi
                 orEmpty(judgeResult.correctlyAppliedLaws),
                 // Подсказку дала система: гипотезы о её ответе ничего не говорят о рассуждении студента.
                 interactionType == SEND_RESPONSE ? judgeResult.hypotheses : List.of(),
-                interactionType == SEND_RESPONSE ? withShuffledOptions(judgeResult.clarification) : null,
+                interactionType == SEND_RESPONSE ? withShuffledOptions(chooseClarification(judgeResult, context)) : null,
                 judgeResult.IterationsLeft));
 
         val decision = context == null
@@ -288,6 +288,19 @@ class ExerciseAttemptFrontendServiceImpl implements ExerciseAttemptFrontendServi
         }
 
         return new GradedInteraction(question.withInteraction(recorded), recorded, decision);
+    }
+
+    // Неверный ответ уточняется всегда, верный — если так решит стратегия: решение опирается на ответы до этого.
+    private @Nullable HypothesisClarificationData chooseClarification(@NotNull Domain.InterpretSentenceResult judgeResult,
+                                                                      @Nullable QuestionAttemptContextData context) {
+        if (judgeResult.clarification != null) {
+            return judgeResult.clarification;
+        }
+        if (judgeResult.correctAnswerClarification != null && context != null
+                && strategyFactory.getStrategy(context.strategyId()).shouldClarifyCorrectAnswer(context.attemptId())) {
+            return judgeResult.correctAnswerClarification;
+        }
+        return null;
     }
 
     // Порядок вариантов влияет на выбор студента, поэтому он случайный; сохраняется показанный порядок.

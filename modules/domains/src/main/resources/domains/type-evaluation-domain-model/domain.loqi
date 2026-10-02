@@ -134,6 +134,8 @@ class Outcome {
 class Type : Outcome {
 	class prop isArithmetic: bool = false ;
 	class prop conversionRank: int = 0 ;
+	// Значение такого типа может быть ключом словаря.
+	class prop isHashable: bool = true ;
 } [
 	RU.localizedName = "тип" ;
 	EN.localizedName = "type" ;

@@ -29,6 +29,7 @@ class py_str : TextType {
 ]
 
 class py_list : ListType {
+	isHashable = false ;
 } [
 	text = "list" ;
 ]
@@ -39,6 +40,7 @@ class py_tuple : TupleType {
 ]
 
 class py_dict : MappingType {
+	isHashable = false ;
 } [
 	text = "dict" ;
 ]

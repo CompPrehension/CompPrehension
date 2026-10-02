@@ -150,7 +150,7 @@ final class TypeEvaluationTreeFixture {
         }
         for (var tree : MODEL.getDecisionTrees().values()) {
             for (var language : LANGUAGES) {
-                for (var key : List.of("error_prefix", "hint_prefix", "error_statement")) {
+                for (var key : List.of("error_prefix", "hint_prefix", "error_statement", "misreasoning_prefix")) {
                     var prefix = tree.getMainBranch().getMetadata().get(language, key);
                     TemplatingUtils.interpret(prefix.toString(), start, language, Map.of());
                 }

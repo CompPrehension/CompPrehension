@@ -19,6 +19,7 @@ public interface InteractionRepository extends JpaRepository<InteractionEntity, 
         Integer getOrderNumber();
         InteractionType getInteractionType();
         Integer getInteractionsLeft();
+        Boolean getReasoningConfirmed();
     }
 
     interface InteractionLawRow {
@@ -29,9 +30,14 @@ public interface InteractionRepository extends JpaRepository<InteractionEntity, 
     @Query("""
             select i.question.id as questionId, i.id as interactionId,
                    i.orderNumber as orderNumber, i.interactionType as interactionType,
-                   f.interactionsLeft as interactionsLeft
+                   f.interactionsLeft as interactionsLeft,
+                   case when c.id is null then null
+                        when exists (select h.id from InteractionHypothesisEntity h
+                                     where h.interaction = i and h.name = c.chosenHypothesis and h.isCorrect = true)
+                        then true else false end as reasoningConfirmed
             from InteractionEntity i
             left join i.feedback f
+            left join InteractionClarificationEntity c on c.interaction = i
             where i.question.id in :questionIds
             order by i.id
             """)

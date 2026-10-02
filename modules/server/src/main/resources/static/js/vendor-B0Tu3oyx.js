@@ -26857,6 +26857,15 @@ var __assign$1 = function() {
 	};
 	return __assign$1.apply(this, arguments);
 };
+var __spreadArray$3 = function(to, from, pack) {
+	if (pack || arguments.length === 2) {
+		for (var i = 0, l = from.length, ar; i < l; i++) if (ar || !(i in from)) {
+			if (!ar) ar = Array.prototype.slice.call(from, 0, i);
+			ar[i] = from[i];
+		}
+	}
+	return to.concat(ar || Array.prototype.slice.call(from));
+};
 /**
 * @category Decode error
 * @since 1.0.0
@@ -26975,6 +26984,93 @@ function getInterfaceTypeName(props) {
 function getPartialTypeName(inner) {
 	return "Partial<".concat(inner, ">");
 }
+function enumerableRecord(keys, domain, codomain, name) {
+	if (name === void 0) name = "{ [K in ".concat(domain.name, "]: ").concat(codomain.name, " }");
+	var len = keys.length;
+	var props = {};
+	for (var i = 0; i < len; i++) props[keys[i]] = codomain;
+	var exactCodec = strict(props, name);
+	return new DictionaryType(name, function(u) {
+		return exactCodec.is(u);
+	}, exactCodec.validate, exactCodec.encode, domain, codomain);
+}
+/**
+* @internal
+*/
+function getDomainKeys(domain) {
+	var _a;
+	if (isLiteralC(domain)) {
+		var literal_1 = domain.value;
+		if (string.is(literal_1)) return _a = {}, _a[literal_1] = null, _a;
+	} else if (isKeyofC(domain)) return domain.keys;
+	else if (isUnionC(domain)) {
+		var keys = domain.types.map(function(type) {
+			return getDomainKeys(type);
+		});
+		return keys.some(undefinedType.is) ? void 0 : Object.assign.apply(Object, __spreadArray$3([{}], keys, false));
+	}
+}
+function stripNonDomainKeys(o, domain) {
+	var keys = Object.keys(o);
+	var len = keys.length;
+	var shouldStrip = false;
+	var r = {};
+	for (var i = 0; i < len; i++) {
+		var k = keys[i];
+		if (domain.is(k)) r[k] = o[k];
+		else shouldStrip = true;
+	}
+	return shouldStrip ? r : o;
+}
+function nonEnumerableRecord(domain, codomain, name) {
+	if (name === void 0) name = "{ [K in ".concat(domain.name, "]: ").concat(codomain.name, " }");
+	return new DictionaryType(name, function(u) {
+		if (UnknownRecord.is(u)) return Object.keys(u).every(function(k) {
+			return !domain.is(k) || codomain.is(u[k]);
+		});
+		return isAnyC(codomain) && Array.isArray(u);
+	}, function(u, c) {
+		if (UnknownRecord.is(u)) {
+			var a = {};
+			var errors = [];
+			var keys = Object.keys(u);
+			var len = keys.length;
+			var changed = false;
+			for (var i = 0; i < len; i++) {
+				var k = keys[i];
+				var ok = u[k];
+				var domainResult = domain.validate(k, appendContext(c, k, domain, k));
+				if (isLeft(domainResult)) changed = true;
+				else {
+					var vk = domainResult.right;
+					changed = changed || vk !== k;
+					k = vk;
+					var codomainResult = codomain.validate(ok, appendContext(c, k, codomain, ok));
+					if (isLeft(codomainResult)) pushAll(errors, codomainResult.left);
+					else {
+						var vok = codomainResult.right;
+						changed = changed || vok !== ok;
+						a[k] = vok;
+					}
+				}
+			}
+			return errors.length > 0 ? failures(errors) : success(changed ? a : u);
+		}
+		if (isAnyC(codomain) && Array.isArray(u)) return success(u);
+		return failure(u, c);
+	}, domain.encode === identity && codomain.encode === identity ? function(a) {
+		return stripNonDomainKeys(a, domain);
+	} : function(a) {
+		var s = {};
+		var keys = Object.keys(stripNonDomainKeys(a, domain));
+		var len = keys.length;
+		for (var i = 0; i < len; i++) {
+			var k = keys[i];
+			s[String(domain.encode(k))] = codomain.encode(a[k]);
+		}
+		return s;
+	}, domain, codomain);
+}
 function getUnionName(codecs) {
 	return "(" + codecs.map(function(type) {
 		return type.name;
@@ -27000,6 +27096,34 @@ function mergeAll(base, us) {
 		for (var k in u) if (!hasOwnProperty.call(r, k) || baseIsNotADictionary || u[k] !== base[k]) r[k] = u[k];
 	}
 	return r;
+}
+function getProps(codec) {
+	switch (codec._tag) {
+		case "RefinementType":
+		case "ReadonlyType": return getProps(codec.type);
+		case "InterfaceType":
+		case "StrictType":
+		case "PartialType": return codec.props;
+		case "IntersectionType": return codec.types.reduce(function(props, type) {
+			return Object.assign(props, getProps(type));
+		}, {});
+	}
+}
+function stripKeys(o, props) {
+	var keys = Object.getOwnPropertyNames(o);
+	var shouldStrip = false;
+	var r = {};
+	for (var i = 0; i < keys.length; i++) {
+		var key = keys[i];
+		if (!hasOwnProperty.call(props, key)) shouldStrip = true;
+		else r[key] = o[key];
+	}
+	return shouldStrip ? r : o;
+}
+function getExactTypeName(codec) {
+	if (isTypeC(codec)) return "{| ".concat(getNameFromProps(codec.props), " |}");
+	else if (isPartialC(codec)) return getPartialTypeName("{| ".concat(getNameFromProps(codec.props), " |}"));
+	return "Exact<".concat(codec.name, ">");
 }
 function isNonEmpty$2(as) {
 	return as.length > 0;
@@ -27041,11 +27165,20 @@ function intersectTags(a, b) {
 	}
 	return r;
 }
+function isAnyC(codec) {
+	return codec._tag === "AnyType";
+}
 function isLiteralC(codec) {
 	return codec._tag === "LiteralType";
 }
+function isKeyofC(codec) {
+	return codec._tag === "KeyofType";
+}
 function isTypeC(codec) {
 	return codec._tag === "InterfaceType";
+}
+function isPartialC(codec) {
+	return codec._tag === "PartialType";
 }
 function isStrictC(codec) {
 	return codec._tag === "StrictType";
@@ -27627,7 +27760,10 @@ function partial(props, name) {
 		return s;
 	}, props);
 }
-(function(_super) {
+/**
+* @since 1.0.0
+*/
+var DictionaryType = function(_super) {
 	__extends(DictionaryType, _super);
 	function DictionaryType(name, is, validate, encode, domain, codomain) {
 		var _this = _super.call(this, name, is, validate, encode) || this;
@@ -27640,7 +27776,15 @@ function partial(props, name) {
 		return _this;
 	}
 	return DictionaryType;
-})(Type);
+}(Type);
+/**
+* @category combinators
+* @since 1.7.1
+*/
+function record(domain, codomain, name) {
+	var keys = getDomainKeys(domain);
+	return keys ? enumerableRecord(Object.keys(keys), domain, codomain, name) : nonEnumerableRecord(domain, codomain, name);
+}
 /**
 * @since 1.0.0
 */
@@ -27829,7 +27973,19 @@ function tuple(codecs, name) {
 	}
 	return ReadonlyArrayType;
 })(Type);
-(function(_super) {
+/**
+* Strips additional properties, equivalent to `exact(type(props))`.
+*
+* @category combinators
+* @since 1.0.0
+*/
+var strict = function(props, name) {
+	return exact(type(props), name);
+};
+/**
+* @since 1.1.0
+*/
+var ExactType = function(_super) {
 	__extends(ExactType, _super);
 	function ExactType(name, is, validate, encode, type) {
 		var _this = _super.call(this, name, is, validate, encode) || this;
@@ -27841,7 +27997,26 @@ function tuple(codecs, name) {
 		return _this;
 	}
 	return ExactType;
-})(Type);
+}(Type);
+/**
+* Strips additional properties.
+*
+* @category combinators
+* @since 1.1.0
+*/
+function exact(codec, name) {
+	if (name === void 0) name = getExactTypeName(codec);
+	var props = getProps(codec);
+	return new ExactType(name, codec.is, function(u, c) {
+		var e = UnknownRecord.validate(u, c);
+		if (isLeft(e)) return e;
+		var ce = codec.validate(u, c);
+		if (isLeft(ce)) return ce;
+		return right(stripKeys(ce.right, props));
+	}, function(a) {
+		return codec.encode(stripKeys(a, props));
+	}, codec);
+}
 new (function(_super) {
 	__extends(FunctionType, _super);
 	function FunctionType() {
@@ -43536,4 +43711,4 @@ pe.Step = me ? class {
 	}
 };
 //#endregion
-export { Alert_default, Badge, BrowserRouter, Bug, Button, Dropdown_default, Droppable, Form_default, InputGroup_default, Link, ListGroup_default, Modal_default, Navbar_default, Navigate, Pagination_default, Popover, PopoverContent, PopoverTrigger, ResizeMirror, Route, Routes, Spinner, StateManagedSelect$1, Table, ToggleButton, ToggleButtonGroup_default, Type, X$1 as X, absurd, action, array, autorun, boolean, chain, components, configure, esm_default, failure, fromArray, import_lib, initReactI18next, instance, intersection, isLeft, isNonEmpty, isNone, isRight, keyof, left, literal, makeAutoObservable, map$1 as map, nullType, number, observable, observer, partial, pe, pipe, recursion, require_client, require_jsx_runtime, require_react, right, string, success, toJS, tuple, type, undefinedType, union, untracked, useNavigate, useSearchParams, useTranslation };
+export { Alert_default, Badge, BrowserRouter, Bug, Button, Dropdown_default, Droppable, Form_default, InputGroup_default, Link, ListGroup_default, Modal_default, Navbar_default, Navigate, Pagination_default, Popover, PopoverContent, PopoverTrigger, ResizeMirror, Route, Routes, Spinner, StateManagedSelect$1, Table, ToggleButton, ToggleButtonGroup_default, Type, X$1 as X, absurd, action, array, autorun, boolean, chain, components, configure, esm_default, failure, fromArray, import_lib, initReactI18next, instance, intersection, isLeft, isNonEmpty, isNone, isRight, keyof, left, literal, makeAutoObservable, map$1 as map, nullType, number, observable, observer, partial, pe, pipe, record, recursion, require_client, require_jsx_runtime, require_react, right, string, success, toJS, tuple, type, undefinedType, union, untracked, useNavigate, useSearchParams, useTranslation };

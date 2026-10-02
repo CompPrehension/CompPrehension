@@ -3,19 +3,15 @@ import React from "react";
 import { Alert, Button } from "react-bootstrap";
 import { useTranslation } from "react-i18next";
 import { QuestionStore } from "../../stores/question-store";
-import { ParsedMessage } from "./domain-terms";
 
 type ClarificationProps = {
     store: QuestionStore,
 }
 
-/**
- * Asks why the student chose an answer that several misconceptions explain; the question stays frozen
- * until the student names a reason. Then shows the explanation of the named misconception.
- */
+/** Asks why the student chose an answer that several hypotheses explain; the question stays frozen until then. */
 export const Clarification = observer(({ store }: ClarificationProps) => {
     const { t } = useTranslation();
-    const clarification = store.feedback?.clarification;
+    const clarification = store.pendingFeedback?.clarification;
 
     if (clarification) {
         return (
@@ -34,14 +30,6 @@ export const Clarification = observer(({ store }: ClarificationProps) => {
                         {t('clarification_other_reason')}
                     </Button>
                 </div>
-            </Alert>
-        );
-    }
-
-    if (store.clarificationExplanation) {
-        return (
-            <Alert variant='info' className='comp-ph-clarification-explanation'>
-                <ParsedMessage html={store.clarificationExplanation} />
             </Alert>
         );
     }

@@ -1,5 +1,6 @@
 package org.vstu.compprehension.strategies;
 
+import org.vstu.compprehension.businesslogic.strategies.settings.CommonStrategySettings;
 import org.vstu.compprehension.data.exercise.ExerciseStageData;
 import lombok.extern.log4j.Log4j2;
 import lombok.val;
@@ -33,7 +34,7 @@ import java.util.stream.Collectors;
 import java.util.stream.Stream;
 
 @Log4j2
-public class BktStrategy extends StrategyBase {
+public class BktStrategy extends StrategyBase<CommonStrategySettings> {
 
     private final BktService bktService;
     private final DomainFactory domainFactory;
@@ -42,7 +43,7 @@ public class BktStrategy extends StrategyBase {
     @Autowired
     public BktStrategy(BktService bktService, DomainFactory domainFactory,
                        ExerciseAttemptDataService exerciseAttemptService) {
-        super(exerciseAttemptService);
+        super(exerciseAttemptService, CommonStrategySettings.TYPE);
         this.bktService = bktService;
         this.domainFactory = domainFactory;
         this.options = StrategyOptions.builder()

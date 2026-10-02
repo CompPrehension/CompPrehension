@@ -45,8 +45,9 @@ class QuestionDtoMapperImpl implements QuestionDtoMapper {
                 .map(answerDtoMapper::map)
                 .toArray(AnswerDto[]::new);
 
+        // Принятые ответы — те же, что сразу после ответа: по ним интерфейс открывает следующие шаги.
         var feedback = last
-                .map(i -> feedbackDtoMapper.map(new AnswerFeedbackData(question, null, null,
+                .map(i -> feedbackDtoMapper.map(new AnswerFeedbackData(question, null, question.latestCorrectResponses(),
                         i.isCorrect(), i.getFeedback().getInteractionsLeft(), i.getFeedback().getGrade(), null),
                         language))
                 .orElse(null);

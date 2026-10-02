@@ -292,5 +292,9 @@ public interface Domain {
 
         @Nullable
         public HypothesisClarificationData clarification = null;
+
+        /** Вопрос о рассуждении, приведшем к верному ответу, к которому ведут и заблуждения: задаётся по решению стратегии. */
+        @Nullable
+        public HypothesisClarificationData correctAnswerClarification = null;
     }
 }

@@ -14,20 +14,64 @@ import org.vstu.compprehension.businesslogic.Law;
 import org.vstu.compprehension.businesslogic.QuestionRequest;
 import org.vstu.compprehension.businesslogic.Skill;
 import org.vstu.compprehension.businesslogic.domains.Domain;
+import org.vstu.compprehension.businesslogic.strategies.settings.StrategySettings;
+import org.vstu.compprehension.businesslogic.strategies.settings.StrategySettingsType;
 import org.vstu.compprehension.data.exerciseattempt.AttemptExerciseData;
 import org.vstu.compprehension.data.exerciseattempt.AttemptQuestionData;
+import org.vstu.compprehension.data.exerciseattempt.AttemptQuestionInteractionData;
+import org.vstu.compprehension.enums.InteractionType;
 import org.vstu.compprehension.data.exercise.ExerciseAttemptWithQuestionsData;
 
 import java.util.*;
 import java.util.stream.Collectors;
 import java.util.stream.Stream;
 
-public abstract class StrategyBase implements AbstractStrategy {
+public abstract class StrategyBase<S extends Record & StrategySettings> implements AbstractStrategy {
 
     private final ExerciseAttemptDataService exerciseAttemptService;
+    private final @NotNull StrategySettingsType<S> settingsType;
 
-    protected StrategyBase(ExerciseAttemptDataService exerciseAttemptService) {
+    protected StrategyBase(ExerciseAttemptDataService exerciseAttemptService, @NotNull StrategySettingsType<S> settingsType) {
         this.exerciseAttemptService = exerciseAttemptService;
+        this.settingsType = settingsType;
+    }
+
+    @Override
+    public @NotNull StrategySettingsType<S> getSettingsType() {
+        return settingsType;
+    }
+
+    protected @NotNull S getSettings(@NotNull ExerciseAttemptWithQuestionsData attempt) {
+        return settingsType.read(attempt.exercise().strategySettings());
+    }
+
+    @Override
+    public boolean shouldClarifyCorrectAnswer(long exerciseAttemptId) {
+        var attempt = getAttempt(exerciseAttemptId);
+        var clarification = getSettings(attempt).correctAnswerClarification();
+        return switch (clarification.mode()) {
+            case NEVER -> false;
+            case ALWAYS -> true;
+            case UNTIL_STREAK -> countConfirmedCorrectStreak(attempt) < clarification.streakLength();
+        };
+    }
+
+    // Серия — последние подряд верные ответы студента, рассуждение которых, если о нём спрашивали, подтвердилось.
+    // Неверный ответ, подсказка и неподтверждённое рассуждение её обрывают.
+    private static int countConfirmedCorrectStreak(@NotNull ExerciseAttemptWithQuestionsData attempt) {
+        var latestFirst = attempt.questions().stream()
+                .flatMap(question -> question.interactions().stream())
+                .sorted(Comparator.comparingLong(AttemptQuestionInteractionData::interactionId).reversed())
+                .toList();
+        int streak = 0;
+        for (var interaction : latestFirst) {
+            if (interaction.type() != InteractionType.SEND_RESPONSE || !interaction.violationLawNames().isEmpty()
+                    || Boolean.FALSE.equals(interaction.isReasoningConfirmed())) {
+                break;
+            }
+            streak++;
+        }
+        return streak;
     }
 
     protected @NotNull ExerciseAttemptWithQuestionsData getAttempt(long exerciseAttemptId) {

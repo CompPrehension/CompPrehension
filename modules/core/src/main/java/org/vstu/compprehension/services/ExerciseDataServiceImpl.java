@@ -9,6 +9,7 @@ import org.springframework.transaction.annotation.Transactional;
 import org.vstu.compprehension.frontend.dto.ExerciseCardDto;
 import org.vstu.compprehension.frontend.dto.ExerciseDto;
 import org.vstu.compprehension.businesslogic.domains.DomainFactory;
+import org.vstu.compprehension.businesslogic.strategies.AbstractStrategyFactory;
 import org.vstu.compprehension.data.exercise.ExerciseCardUpdateData;
 import org.vstu.compprehension.data.exercise.ExerciseData;
 import org.vstu.compprehension.data.exercise.ExerciseOptionsData;
@@ -27,6 +28,7 @@ class ExerciseDataServiceImpl implements ExerciseDataService {
 
     private final ExerciseDataRepository exercises;
     private final DomainFactory domainFactory;
+    private final AbstractStrategyFactory strategyFactory;
     private final CourseDataService courseService;
 
     @Transactional(readOnly = true)
@@ -113,6 +115,8 @@ class ExerciseDataServiceImpl implements ExerciseDataService {
     @Transactional
     public void saveExerciseCard(@NotNull ExerciseCardDto card) {
         var backendId = domainFactory.getDomain(card.getDomainId()).getBackendId();
+        var options = card.getOptions().withStrategySettings(strategyFactory.getStrategy(card.getStrategyId())
+                .getSettingsType().normalize(card.getOptions().getStrategySettings()));
 
         exercises.updateCard(new ExerciseCardUpdateData(
                 card.getId(),
@@ -120,7 +124,7 @@ class ExerciseDataServiceImpl implements ExerciseDataService {
                 card.getDomainId(),
                 backendId,
                 card.getStrategyId(),
-                card.getOptions(),
+                options,
                 card.getStages().stream()
                         .map(s -> new ExerciseStageData(s.getNumberOfQuestions(), s.getComplexity(),
                                 s.getLaws(), s.getConcepts(), s.getSkills()))

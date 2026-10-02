@@ -34,6 +34,7 @@ import org.vstu.compprehension.businesslogic.HyperText;
 
 import java.util.*;
 import java.util.stream.Collectors;
+import java.util.stream.Stream;
 
 import static org.vstu.compprehension.businesslogic.domains.Domain.InterpretSentenceResult;
 
@@ -262,28 +263,67 @@ public class DecisionTreeReasonerBackend
         return found;
     }
 
-    /** Варианты уточняющего вопроса: причина ответа по каждой гипотезе и объяснение этого заблуждения. */
+    /** Варианты уточняющего вопроса: причина ответа по каждой гипотезе и объяснение, которое студент увидит, выбрав её. */
     private static @NotNull List<HypothesisClarificationData.Option> collectClarificationOptions(
-            @NotNull List<DecisionTreeTrace> errorBranches,
+            @NotNull List<DecisionTreeTrace> branches,
+            boolean isAnswerCorrect,
             @NotNull DomainModel domainModel,
             @NotNull String localizationCode) {
-        return errorBranches.stream()
-                .map(branch -> {
-                    var situation = new LearningSituation(domainModel, branch.getResultingElement().getVariablesSnapshot());
-                    var conclusion = (BranchResultNode) branch.getResultingElement().getNode();
-                    var reason = conclusion.getMetadata().get(localizationCode, "reason");
-                    if (reason == null) {
-                        throw new IllegalStateException("Hypothesis branch concluded by " + conclusion.getDescription()
-                                + " has no " + localizationCode + " 'reason' metadata");
-                    }
-                    return new HypothesisClarificationData.Option(
-                            requireBranchMeta(branch, "hypothesis"),
-                            // Причина — отдельная фраза, но может начинаться с подстановки, а названия в модели строчные.
-                            TemplatingUtils.capitalize(
-                                    TemplatingUtils.interpret(reason.toString(), situation, localizationCode, Map.of())),
-                            Interface.extractExplanation(conclusion, localizationCode, situation).getRawMessage().getText());
-                })
-                .toList();
+        // Одна гипотеза может прийти из разных прочтений выражения — вариант по ней один.
+        var options = new LinkedHashMap<String, HypothesisClarificationData.Option>();
+        for (DecisionTreeTrace branch : branches) {
+            var hypothesis = requireBranchMeta(branch, "hypothesis");
+            if (!options.containsKey(hypothesis)) {
+                makeClarificationOption(branch, hypothesis, isAnswerCorrect, domainModel, localizationCode)
+                        .ifPresent(option -> options.put(hypothesis, option));
+            }
+        }
+        return List.copyOf(options.values());
+    }
+
+    // Верное рассуждение без своей причины называется правилом из объяснения. Вывод верного прочтения без объяснения
+    // вариантом не становится: правило, по которому прочитанное выражение даёт ответ, приходит своей ветвью.
+    private static @NotNull Optional<HypothesisClarificationData.Option> makeClarificationOption(
+            @NotNull DecisionTreeTrace branch,
+            @NotNull String hypothesis,
+            boolean isAnswerCorrect,
+            @NotNull DomainModel domainModel,
+            @NotNull String localizationCode) {
+        var situation = new LearningSituation(domainModel, branch.getResultingElement().getVariablesSnapshot());
+        var conclusion = (BranchResultNode) branch.getResultingElement().getNode();
+        boolean isCorrectReasoning = branch.getBranchResult() == BranchResult.CORRECT;
+        var reason = conclusion.getMetadata().get(localizationCode, "reason");
+        if (reason == null && isCorrectReasoning) {
+            reason = conclusion.getMetadata().get(localizationCode, "explanation");
+            if (reason == null) {
+                return Optional.empty();
+            }
+        }
+        if (reason == null) {
+            throw new IllegalStateException("Hypothesis branch concluded by " + conclusion.getDescription()
+                    + " has no " + localizationCode + " 'reason' metadata");
+        }
+        var explanation = isAnswerCorrect && !isCorrectReasoning
+                ? interpretMisreasoningExplanation(conclusion, localizationCode, situation)
+                : Interface.extractExplanation(conclusion, localizationCode, situation).getRawMessage().getText();
+        return Optional.of(new HypothesisClarificationData.Option(
+                hypothesis,
+                // Причина — отдельная фраза, но может начинаться с подстановки, а названия в модели строчные.
+                TemplatingUtils.capitalize(TemplatingUtils.interpret(reason.toString(), situation, localizationCode, Map.of())),
+                explanation));
+    }
+
+    // Заблуждение привело к верному ответу: рамка ошибки («не может иметь тип») здесь неверна.
+    private static @NotNull String interpretMisreasoningExplanation(@NotNull BranchResultNode conclusion,
+                                                                    @NotNull String localizationCode,
+                                                                    @NotNull LearningSituation situation) {
+        var prefix = conclusion.getDecisionTree().getMainBranch().getMetadata().get(localizationCode, "misreasoning_prefix");
+        if (prefix == null) {
+            throw new IllegalStateException("Decision tree with hypotheses has no " + localizationCode
+                    + " 'misreasoning_prefix' metadata");
+        }
+        var explanation = conclusion.getMetadata().get(localizationCode, "explanation");
+        return TemplatingUtils.interpret(prefix.toString() + explanation, situation, localizationCode, Map.of());
     }
 
     private static boolean isHypothesisAggregation(@NotNull AggregationDecisionTreeTraceElement<?> aggregation) {
@@ -524,12 +564,23 @@ public class DecisionTreeReasonerBackend
                     .distinct()
                     .toList();
             var errorBranches = errorBranches(hypothesisBranches);
-            // Верный ответ, к которому ведёт и заблуждение, пока не уточняем.
+            var domainModel = backendOutput.situation.getDomainModel();
             if (!result.isAnswerCorrect && errorBranches.size() > 1) {
                 result.clarification = new HypothesisClarificationData(
                         makeClarificationPrompt(judgedQuestion, backendOutput, language),
-                        collectClarificationOptions(errorBranches,
-                                backendOutput.situation.getDomainModel(), language.toLocaleString()));
+                        collectClarificationOptions(errorBranches, false, domainModel, language.toLocaleString()));
+            }
+            if (result.isAnswerCorrect && !errorBranches.isEmpty()) {
+                var correctBranches = hypothesisBranches.stream()
+                        .filter(branch -> branch.getBranchResult() == BranchResult.CORRECT)
+                        .toList();
+                var correctOptions = collectClarificationOptions(correctBranches, true, domainModel, language.toLocaleString());
+                if (!correctOptions.isEmpty()) {
+                    result.correctAnswerClarification = new HypothesisClarificationData(
+                            makeClarificationPrompt(judgedQuestion, backendOutput, language),
+                            Stream.concat(correctOptions.stream(), collectClarificationOptions(errorBranches, true,
+                                    domainModel, language.toLocaleString()).stream()).toList());
+                }
             }
             for (DecisionTreeTraceElement<?,?> res : traceElements) {
                 String[] resSkill = res.getNode().getMetadata().containsAny("skill") && res.getNode().getMetadata().get("skill") != null ?

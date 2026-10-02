@@ -1,5 +1,6 @@
 package org.vstu.compprehension.strategies;
 
+import org.vstu.compprehension.businesslogic.strategies.settings.CommonStrategySettings;
 import org.vstu.compprehension.data.exercise.ExerciseStageData;
 import lombok.extern.log4j.Log4j2;
 import org.jetbrains.annotations.NotNull;
@@ -22,14 +23,14 @@ import org.vstu.compprehension.data.exerciseattempt.AttemptQuestionData;
 import java.util.List;
 
 @Log4j2
-public class StaticStrategy extends StrategyBase {
+public class StaticStrategy extends StrategyBase<CommonStrategySettings> {
 
     private final DomainFactory domainFactory;
     private final StrategyOptions options;
 
     @Autowired
     public StaticStrategy(DomainFactory domainFactory, ExerciseAttemptDataService exerciseAttemptService) {
-        super(exerciseAttemptService);
+        super(exerciseAttemptService, CommonStrategySettings.TYPE);
         this.domainFactory = domainFactory;
         this.options = StrategyOptions.builder()
                 .multiStagesEnabled(true)

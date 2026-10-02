@@ -1,5 +1,5 @@
 import { __toESM } from "./rolldown-runtime-ClB4ozQ6.js";
-import { Alert_default, Badge, BrowserRouter, Bug, Button, Dropdown_default, Droppable, Form_default, InputGroup_default, Link, ListGroup_default, Modal_default, Navbar_default, Navigate, Pagination_default, Popover, PopoverContent, PopoverTrigger, ResizeMirror, Route, Routes, Spinner, StateManagedSelect$1, Table, ToggleButton, ToggleButtonGroup_default, Type, X, absurd, action, array, autorun, boolean, chain, components, configure, esm_default, failure, fromArray, import_lib, initReactI18next, instance, intersection, isLeft, isNonEmpty, isNone, isRight, keyof, left, literal, makeAutoObservable, map, nullType, number, observable, observer, partial, pe, pipe, recursion, require_client, require_jsx_runtime, require_react, right, string, success, toJS, tuple, type, undefinedType, union, untracked, useNavigate, useSearchParams, useTranslation } from "./vendor-C9E5ggvl.js";
+import { Alert_default, Badge, BrowserRouter, Bug, Button, Dropdown_default, Droppable, Form_default, InputGroup_default, Link, ListGroup_default, Modal_default, Navbar_default, Navigate, Pagination_default, Popover, PopoverContent, PopoverTrigger, ResizeMirror, Route, Routes, Spinner, StateManagedSelect$1, Table, ToggleButton, ToggleButtonGroup_default, Type, X, absurd, action, array, autorun, boolean, chain, components, configure, esm_default, failure, fromArray, import_lib, initReactI18next, instance, intersection, isLeft, isNonEmpty, isNone, isRight, keyof, left, literal, makeAutoObservable, map, nullType, number, observable, observer, partial, pe, pipe, record, recursion, require_client, require_jsx_runtime, require_react, right, string, success, toJS, tuple, type, undefinedType, union, untracked, useNavigate, useSearchParams, useTranslation } from "./vendor-B0Tu3oyx.js";
 //#region \0vite/modulepreload-polyfill.js
 (function polyfill() {
 	const relList = document.createElement("link").relList;
@@ -58,7 +58,7 @@ instance.use(initReactI18next).init({
 			correctsteps_feeback: "Correct steps",
 			stepswitherrors_feeback: "Steps with errors",
 			stepsleft_feeback: "Steps left",
-			issolved_feeback: "Everything operator is already evaluated. Task is solved",
+			issolved_feeback: "Task solved!",
 			foundExisitingAttempt_title: "Found existing attempt",
 			foundExisitingAttempt_descr: "Would you like to continue the existing attempt or start a new one",
 			foundExisitingAttempt_continueattempt: "Continue",
@@ -250,7 +250,7 @@ instance.use(initReactI18next).init({
 			correctsteps_feeback: "Правильных шагов",
 			stepswitherrors_feeback: "Шагов с ошибками",
 			stepsleft_feeback: "Шагов осталось",
-			issolved_feeback: "Все действия программы выполнены. Задача решена",
+			issolved_feeback: "Задача решена!",
 			foundExisitingAttempt_title: "Найдена неоконченная попытка",
 			foundExisitingAttempt_descr: "Вы хотите продолжить существующую попытку или начать новую",
 			foundExisitingAttempt_continueattempt: "Продолжить",
@@ -442,7 +442,7 @@ instance.use(initReactI18next).init({
 			correctsteps_feeback: "Poprawne kroki",
 			stepswitherrors_feeback: "Kroki z błędami",
 			stepsleft_feeback: "Pozostałe kroki",
-			issolved_feeback: "Rozwiązane",
+			issolved_feeback: "Zadanie rozwiązane!",
 			foundExisitingAttempt_title: "Znaleziono już istniejące podejście",
 			foundExisitingAttempt_descr: "Czy chcesz kontynuować dotychczasowe podejście, czy rozpocząć nowe",
 			foundExisitingAttempt_continueattempt: "Kontynuuj",
@@ -1020,6 +1020,12 @@ var TCourseDto = type({
 });
 //#endregion
 //#region src/main/js/types/exercise-options.ts
+var TStrategySettingValues = recursion("StrategySettingValues", () => record(string, union([
+	boolean,
+	number,
+	string,
+	TStrategySettingValues
+])));
 var TExerciseOptions = intersection([type({
 	forceNewAttemptCreationEnabled: boolean,
 	debugButtonEnabled: boolean,
@@ -1027,10 +1033,13 @@ var TExerciseOptions = intersection([type({
 	supplementaryQuestionsEnabled: boolean,
 	correctAnswerGenerationEnabled: boolean,
 	maxExpectedConcurrentStudents: number
-}), partial({ surveyOptions: type({
-	enabled: boolean,
-	surveyId: string
-}) })], "ExerciseOptions");
+}), partial({
+	surveyOptions: type({
+		enabled: boolean,
+		surveyId: string
+	}),
+	strategySettings: TStrategySettingValues
+})], "ExerciseOptions");
 //#endregion
 //#region src/main/js/types/utils.ts
 /**
@@ -1143,11 +1152,44 @@ var TDomain = type({
 	concepts: array(TDomainConcept),
 	tags: array(string)
 });
+var TStrategySettingField = recursion("StrategySettingField", () => union([
+	type({
+		kind: literal("FLAG"),
+		name: string,
+		label: string
+	}),
+	type({
+		kind: literal("NUMERIC"),
+		name: string,
+		label: string,
+		min: number,
+		max: number
+	}),
+	type({
+		kind: literal("CHOICE"),
+		name: string,
+		label: string,
+		options: array(type({
+			value: string,
+			label: string
+		}))
+	}),
+	type({
+		kind: literal("GROUP"),
+		name: string,
+		label: string,
+		fields: array(TStrategySettingField)
+	})
+]));
 var TStrategy = type({
 	id: string,
 	displayName: string,
 	description: union([string, nullType]),
-	options: type({ multiStagesEnabled: boolean })
+	options: type({ multiStagesEnabled: boolean }),
+	settings: type({
+		fields: array(TStrategySettingField),
+		defaults: TStrategySettingValues
+	})
 });
 var TQuestionBankSearchResult = type({
 	count: number,
@@ -1766,7 +1808,12 @@ var SupplementaryQuestionStore = class {
 var QuestionStore = class {
 	isFeedbackVisible = true;
 	feedback = void 0;
-	/** Explanation of the misconception the student named as the reason for the answer. */
+	/**
+	* Evaluation of an answer that waits for the student to name the reason behind it. Knowing whether the answer
+	* is right would bias the choice, so nothing of the evaluation is shown or applied until then.
+	*/
+	pendingFeedback = void 0;
+	/** Explanation of the reason the student named; shown instead of the messages about the answer. */
 	clarificationExplanation = void 0;
 	isClarificationSending = false;
 	question = void 0;
@@ -1780,7 +1827,7 @@ var QuestionStore = class {
 	}
 	/** The student answers the clarifying question before going on with the question. */
 	get isQuestionFreezed() {
-		return !!this.feedback?.clarification;
+		return !!this.pendingFeedback;
 	}
 	onQuestionLoaded = (question) => {
 		if (question.options.requireContext) [...question.text.matchAll(/(<\w.*?\sid\s*?=(['"]))\s*(answer_(\d+?))\2(.*?>)/gim)].forEach((match, matchIdx) => {
@@ -1788,14 +1835,23 @@ var QuestionStore = class {
 		});
 		this.question = question;
 		this.supplementaryQuestion = new SupplementaryQuestionStore(question.questionId);
-		this.feedback = question.feedback ?? void 0;
+		this.feedback = question.feedback?.clarification ? void 0 : question.feedback ?? void 0;
+		this.pendingFeedback = question.feedback?.clarification ? question.feedback : void 0;
 		this.clarificationExplanation = void 0;
 		this.isFeedbackVisible = true;
 		this.answersHistory = [];
 		this.lastAnswer = question.responses ?? [];
-		if (question.feedback && question.feedback.stepsLeft === 0) this.setQuestionState("COMPLETED");
+		if (this.feedback && this.feedback.stepsLeft === 0) this.setQuestionState("COMPLETED");
 	};
 	onAnswerEvaluated(feedback) {
+		if (feedback.clarification) {
+			this.pendingFeedback = feedback;
+			this.clarificationExplanation = void 0;
+			return;
+		}
+		this.applyFeedback(feedback);
+	}
+	applyFeedback(feedback) {
 		this.feedback = feedback;
 		this.clarificationExplanation = void 0;
 		this.isFeedbackVisible = true;
@@ -1863,8 +1919,8 @@ var QuestionStore = class {
 		this.onAnswerEvaluated(feedbackEither.right);
 	};
 	answerClarification = async (hypothesis) => {
-		const { question, feedback } = this;
-		if (!question || !feedback) return;
+		const { question, pendingFeedback } = this;
+		if (!question || !pendingFeedback) return;
 		this.setValidStoreState();
 		this.isClarificationSending = true;
 		const answerEither = await questionController.answerClarification({
@@ -1876,10 +1932,11 @@ var QuestionStore = class {
 			this.setErrorStoreState(answerEither.left);
 			return;
 		}
-		this.feedback = {
-			...feedback,
+		this.pendingFeedback = void 0;
+		this.applyFeedback({
+			...pendingFeedback,
 			clarification: null
-		};
+		});
 		this.clarificationExplanation = answerEither.right.explanation ?? void 0;
 	};
 	sendAnswersImpl = async (questionId, answers) => {
@@ -3000,13 +3057,10 @@ function DomainTerm({ term, explanation }) {
 }
 //#endregion
 //#region src/main/js/components/exercise/clarification.tsx
-/**
-* Asks why the student chose an answer that several misconceptions explain; the question stays frozen
-* until the student names a reason. Then shows the explanation of the named misconception.
-*/
+/** Asks why the student chose an answer that several hypotheses explain; the question stays frozen until then. */
 var Clarification = observer(({ store }) => {
 	const { t } = useTranslation();
-	const clarification = store.feedback?.clarification;
+	const clarification = store.pendingFeedback?.clarification;
 	if (clarification) return /* @__PURE__ */ (0, import_jsx_runtime.jsxs)(Alert_default, {
 		variant: "warning",
 		className: "comp-ph-clarification",
@@ -3031,11 +3085,6 @@ var Clarification = observer(({ store }) => {
 			})]
 		})]
 	});
-	if (store.clarificationExplanation) return /* @__PURE__ */ (0, import_jsx_runtime.jsx)(Alert_default, {
-		variant: "info",
-		className: "comp-ph-clarification-explanation",
-		children: /* @__PURE__ */ (0, import_jsx_runtime.jsx)(ParsedMessage, { html: store.clarificationExplanation })
-	});
 	return null;
 });
 //#endregion
@@ -3049,23 +3098,32 @@ var Feedback = observer(({ store, showExtendedFeedback }) => {
 		className: "mt-2",
 		children: /* @__PURE__ */ (0, import_jsx_runtime.jsx)(Loader, {})
 	});
-	if (!feedback || isQuestionLoading || !question) return null;
+	if (isQuestionLoading || !question) return null;
+	if (store.isQuestionFreezed) return /* @__PURE__ */ (0, import_jsx_runtime.jsx)("div", {
+		className: "comp-ph-feedback-wrapper mt-3",
+		children: /* @__PURE__ */ (0, import_jsx_runtime.jsx)(Clarification, { store })
+	});
+	if (!feedback) return null;
 	const defaultFeedbackMessage = {
 		type: "SUCCESS",
 		message: t("issolved_feeback"),
 		violationLaws: []
 	};
-	const feedbackMessages = feedback.messages;
-	if (feedbackMessages !== null && store.questionState === "COMPLETED") feedbackMessages?.push(defaultFeedbackMessage);
+	const answerMessages = store.clarificationExplanation ? [{
+		type: feedback.isCorrect ? "SUCCESS" : "ERROR",
+		message: store.clarificationExplanation,
+		violationLaws: feedback.messages?.flatMap((m) => m.violationLaws ?? []) ?? null
+	}] : feedback.messages;
+	const feedbackMessages = store.questionState === "COMPLETED" ? [...answerMessages ?? [], defaultFeedbackMessage] : answerMessages;
 	return /* @__PURE__ */ (0, import_jsx_runtime.jsx)("div", {
 		className: "comp-ph-feedback-wrapper mt-3",
-		children: isFeedbackVisible && /* @__PURE__ */ (0, import_jsx_runtime.jsxs)(import_jsx_runtime.Fragment, { children: [/* @__PURE__ */ (0, import_jsx_runtime.jsxs)("div", {
+		children: isFeedbackVisible && /* @__PURE__ */ (0, import_jsx_runtime.jsxs)(import_jsx_runtime.Fragment, { children: [/* @__PURE__ */ (0, import_jsx_runtime.jsx)("div", {
 			className: "mb-3",
-			children: [feedbackMessages?.map((m, i) => /* @__PURE__ */ (0, import_jsx_runtime.jsx)(FeedbackAlert, {
+			children: feedbackMessages?.map((m, i) => /* @__PURE__ */ (0, import_jsx_runtime.jsx)(FeedbackAlert, {
 				message: m,
 				supQuestionStore: store.supplementaryQuestion,
 				showGenerateSupQuestion: showExtendedFeedback && question.options.showSupplementaryQuestions && m.type === "ERROR" && m.violationLaws?.every((e) => e.canCreateSupplementaryQuestion)
-			}, i)), /* @__PURE__ */ (0, import_jsx_runtime.jsx)(Clarification, { store })]
+			}, i))
 		}), showExtendedFeedback && /* @__PURE__ */ (0, import_jsx_runtime.jsxs)("div", { children: [
 			feedback.grade !== null && /* @__PURE__ */ (0, import_jsx_runtime.jsxs)(import_jsx_runtime.Fragment, { children: [/* @__PURE__ */ (0, import_jsx_runtime.jsxs)(Badge, {
 				className: "comp-ph-feedback-grade",
@@ -3973,7 +4031,7 @@ var Exercise = observer(() => {
 										children: exerciseStore.exercise?.options.correctAnswerGenerationEnabled && /* @__PURE__ */ (0, import_jsx_runtime.jsx)(GenerateNextAnswerBtn, { store: exerciseStore.currentQuestion })
 									})
 								}), /* @__PURE__ */ (0, import_jsx_runtime.jsx)(Optional, {
-									isVisible: survey == null && (exerciseStore.exercise?.options.newQuestionGenerationEnabled || exerciseStore.currentQuestion.questionState === "COMPLETED") || survey != null && survey.questions[exerciseStore.currentQuestion.question?.questionId ?? -1]?.status === "COMPLETED",
+									isVisible: !exerciseStore.currentQuestion.isQuestionFreezed && (survey == null && (exerciseStore.exercise?.options.newQuestionGenerationEnabled || exerciseStore.currentQuestion.questionState === "COMPLETED") || survey != null && survey.questions[exerciseStore.currentQuestion.question?.questionId ?? -1]?.status === "COMPLETED"),
 									children: /* @__PURE__ */ (0, import_jsx_runtime.jsx)("div", {
 										className: "mt-2",
 										children: /* @__PURE__ */ (0, import_jsx_runtime.jsx)(GenerateNextQuestionBtn, {})
@@ -4424,7 +4482,23 @@ var ExerciseSettingsStore = class {
 			this.currentCard.stages[0].concepts = [];
 			this.currentCard.stages.splice(1);
 			this.currentCard.strategyId = strategyId;
+			this.currentCard.options.strategySettings = this.copyStrategyDefaults(strategyId);
 		}
+	}
+	/** Sets one strategy setting; the path leads through setting groups to the field. */
+	setCardStrategySetting(path, value) {
+		if (!this.currentCard) return;
+		const settings = this.currentCard.options.strategySettings ?? this.copyStrategyDefaults(this.currentCard.strategyId);
+		let group = settings;
+		for (const name of path.slice(0, -1)) {
+			if (typeof group[name] !== "object") group[name] = {};
+			group = group[name];
+		}
+		group[path[path.length - 1]] = value;
+		this.currentCard.options.strategySettings = settings;
+	}
+	copyStrategyDefaults(strategyId) {
+		return structuredClone(toJS(this.strategies?.find((s) => s.id === strategyId)?.settings.defaults ?? {}));
 	}
 	setCardStageComplexity(stageIdx, rawComplexity) {
 		if (!this.currentCard || !this.currentCard.stages[stageIdx]) return;
@@ -4866,6 +4940,65 @@ var ImportFromGlobalModal = observer(({ courseId, canInherit, canClone, onClose,
 	});
 });
 //#endregion
+//#region src/main/js/components/exercise/strategy-settings-form.tsx
+/**
+* Settings that the exercise strategy declares, rendered from their description. A value missing in the exercise
+* is shown as the strategy default: the exercise may have been saved before the strategy got the setting.
+*/
+var StrategySettingsForm = observer(({ fields, values, defaults, path = [], onChange }) => /* @__PURE__ */ (0, import_jsx_runtime.jsx)(import_jsx_runtime.Fragment, { children: fields.map((field) => {
+	const fieldPath = [...path, field.name];
+	const id = `strategy-setting-${fieldPath.join("-")}`;
+	const value = values[field.name] ?? defaults[field.name];
+	switch (field.kind) {
+		case "FLAG": return /* @__PURE__ */ (0, import_jsx_runtime.jsx)(Form_default.Check, {
+			type: "checkbox",
+			id,
+			label: field.label,
+			checked: value === true,
+			onChange: (e) => onChange(fieldPath, e.target.checked)
+		}, field.name);
+		case "NUMERIC": return /* @__PURE__ */ (0, import_jsx_runtime.jsxs)(Form_default.Group, {
+			className: "mb-2",
+			controlId: id,
+			children: [/* @__PURE__ */ (0, import_jsx_runtime.jsx)(Form_default.Label, { children: field.label }), /* @__PURE__ */ (0, import_jsx_runtime.jsx)(Form_default.Control, {
+				type: "number",
+				min: field.min,
+				max: field.max,
+				value: typeof value === "number" ? value : "",
+				onChange: (e) => onChange(fieldPath, +e.target.value)
+			})]
+		}, field.name);
+		case "CHOICE": return /* @__PURE__ */ (0, import_jsx_runtime.jsxs)(Form_default.Group, {
+			className: "mb-2",
+			controlId: id,
+			children: [/* @__PURE__ */ (0, import_jsx_runtime.jsx)(Form_default.Label, { children: field.label }), /* @__PURE__ */ (0, import_jsx_runtime.jsx)(Form_default.Select, {
+				value: typeof value === "string" ? value : "",
+				onChange: (e) => onChange(fieldPath, e.target.value),
+				children: field.options.map((option) => /* @__PURE__ */ (0, import_jsx_runtime.jsx)("option", {
+					value: option.value,
+					children: option.label
+				}, option.value))
+			})]
+		}, field.name);
+		case "GROUP": return /* @__PURE__ */ (0, import_jsx_runtime.jsxs)("fieldset", {
+			className: "mb-2",
+			children: [/* @__PURE__ */ (0, import_jsx_runtime.jsx)("legend", {
+				className: "fs-6 mb-1",
+				children: field.label
+			}), /* @__PURE__ */ (0, import_jsx_runtime.jsx)(StrategySettingsForm, {
+				fields: field.fields,
+				values: isGroup(values[field.name]) ? values[field.name] : {},
+				defaults: isGroup(defaults[field.name]) ? defaults[field.name] : {},
+				path: fieldPath,
+				onChange
+			})]
+		}, field.name);
+	}
+}) }));
+function isGroup(value) {
+	return typeof value === "object";
+}
+//#endregion
 //#region src/main/js/pages/exercise-settings.tsx
 var ExerciseSettings = observer(() => {
 	const [exerciseStore] = (0, import_react.useState)(() => new ExerciseSettingsStore());
@@ -5062,6 +5195,15 @@ var ExerciseCardElement = observer((props) => {
 								id: "strategyDescription",
 								className: "form-text text-muted",
 								children: currentStrategy?.description ?? ""
+							}),
+							currentStrategy && currentStrategy.settings.fields.length > 0 && /* @__PURE__ */ (0, import_jsx_runtime.jsx)("div", {
+								className: "mt-2 ps-3 border-start",
+								children: /* @__PURE__ */ (0, import_jsx_runtime.jsx)(StrategySettingsForm, {
+									fields: currentStrategy.settings.fields,
+									values: card.options.strategySettings ?? {},
+									defaults: currentStrategy.settings.defaults,
+									onChange: (path, value) => store.setCardStrategySetting(path, value)
+								})
 							})
 						]
 					}),

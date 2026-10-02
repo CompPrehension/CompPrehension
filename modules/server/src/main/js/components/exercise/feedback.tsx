@@ -26,17 +26,37 @@ export const Feedback = observer(({ store, showExtendedFeedback }: FeedbackProps
         return <div className="mt-2"><Loader /></div>;
     }
 
-    if (!feedback || isQuestionLoading || !question) {
+    if (isQuestionLoading || !question) {
+        return null;
+    }
+
+    if (store.isQuestionFreezed) {
+        return (
+            <div className='comp-ph-feedback-wrapper mt-3'>
+                <Clarification store={store} />
+            </div>
+        );
+    }
+
+    if (!feedback) {
         return null;
     }
 
     const defaultFeedbackMessage: FeedbackSuccessMessage = { type: 'SUCCESS',
          message: t('issolved_feeback'), violationLaws: [] };
 
-    const feedbackMessages = feedback.messages;
-    if (feedbackMessages !== null && store.questionState === 'COMPLETED') {
-        feedbackMessages?.push(defaultFeedbackMessage);
-    }
+    // The explanation of the named reason already says whether the answer is right, so it replaces the messages.
+    const answerMessages: FeedbackMessage[] | null | undefined = store.clarificationExplanation
+        ? [{
+            type: feedback.isCorrect ? 'SUCCESS' : 'ERROR',
+            message: store.clarificationExplanation,
+            violationLaws: feedback.messages?.flatMap(m => m.violationLaws ?? []) ?? null,
+        }]
+        : feedback.messages;
+    // A new list rather than a push: changing observable feedback while rendering re-renders forever.
+    const feedbackMessages = store.questionState === 'COMPLETED'
+        ? [...(answerMessages ?? []), defaultFeedbackMessage]
+        : answerMessages;
 
     return (
       <div className='comp-ph-feedback-wrapper mt-3'>
@@ -58,7 +78,6 @@ export const Feedback = observer(({ store, showExtendedFeedback }: FeedbackProps
                   }
                 />
               ))}
-              <Clarification store={store} />
             </div>
             {showExtendedFeedback && (
               <div>

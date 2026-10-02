@@ -1,6 +1,11 @@
 package org.vstu.compprehension.frontend;
 
+import com.fasterxml.jackson.core.JsonProcessingException;
+import com.fasterxml.jackson.core.type.TypeReference;
+import com.fasterxml.jackson.databind.json.JsonMapper;
 import org.junit.jupiter.api.Test;
+import org.junit.jupiter.params.ParameterizedTest;
+import org.junit.jupiter.params.provider.ValueSource;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.transaction.annotation.Transactional;
 import org.vstu.compprehension.data.exercise.ExerciseOptionsData;
@@ -13,6 +18,7 @@ import org.vstu.compprehension.infrastructure.AbstractIntegrationTest;
 import org.vstu.compprehension.infrastructure.TestData;
 
 import java.util.List;
+import java.util.Map;
 import java.util.NoSuchElementException;
 import java.util.Set;
 import java.util.stream.Collectors;
@@ -29,6 +35,7 @@ import static org.junit.jupiter.api.Assertions.assertTrue;
 class ExerciseFrontendServiceTest extends AbstractIntegrationTest {
 
     private static final String DT_BACKEND_ID = "DTReasoner";
+    private static final JsonMapper JSON = JsonMapper.builder().build();
 
     @Autowired private ExerciseFrontendService service;
     @Autowired private ExerciseAttemptFrontendService attemptService;
@@ -191,7 +198,8 @@ class ExerciseFrontendServiceTest extends AbstractIntegrationTest {
 
         // Assert.
         assertEquals(
-                Set.of(TestData.Exercises.GLOBAL_POOL_ID, TestData.Exercises.INHERITED_ID, TestData.Exercises.EXPRESSION_DT_ID),
+                Set.of(TestData.Exercises.GLOBAL_POOL_ID, TestData.Exercises.INHERITED_ID, TestData.Exercises.EXPRESSION_DT_ID,
+                        TestData.Exercises.TYPE_EVALUATION_ID),
                 ids(list.exercises()));
         assertTrue(list.exercises().stream().allMatch(ExerciseDto::isPublic));
         assertTrue(list.permissions().canCreateExercise());
@@ -306,6 +314,7 @@ class ExerciseFrontendServiceTest extends AbstractIntegrationTest {
                 .debugButtonEnabled(true)
                 .forceNewAttemptCreationEnabled(false)
                 .maxExpectedConcurrentStudents(3)
+                .strategySettings(json("{\"correctAnswerClarification\": {\"mode\": \"UNTIL_STREAK\", \"streakLength\": 5}}"))
                 .build();
 
         // Act.
@@ -332,6 +341,39 @@ class ExerciseFrontendServiceTest extends AbstractIntegrationTest {
         assertEquals(RoleInExercise.TARGETED, card.getStages().getFirst().getSkills().getFirst().getKind());
         assertEquals(options, card.getOptions());
         assertTrue(card.isPublic());
+    }
+
+    /** Настройки стратегии, которых преподаватель не задал, сохраняются со значениями по умолчанию. */
+    @Test
+    void saveExerciseCardCompletesStrategySettingsWithDefaults() {
+        // Arrange.
+        var id = service.createExerciseAndGetId("Settings", TestData.Exercises.DOMAIN_ID, TestData.Exercises.STRATEGY_ID, null);
+        var card = service.getExerciseCard(id, null, TestData.Users.ADMIN_ID);
+        var options = card.getOptions().withStrategySettings(json("{\"correctAnswerClarification\": {\"mode\": \"ALWAYS\"}}"));
+
+        // Act.
+        service.saveExerciseCard(withOptions(card, options), null);
+
+        // Assert.
+        assertEquals(json("{\"correctAnswerClarification\": {\"mode\": \"ALWAYS\", \"streakLength\": 7}}"),
+                service.getExerciseCard(id, null, TestData.Users.ADMIN_ID).getOptions().getStrategySettings());
+    }
+
+    /** Настройки, которых у стратегии нет или со значением вне допустимого, не сохраняются. */
+    @ParameterizedTest
+    @ValueSource(strings = {
+            "{\"unknownSetting\": true}",
+            "{\"correctAnswerClarification\": {\"streakLength\": 0}}",
+            "{\"correctAnswerClarification\": {\"mode\": \"SOMETIMES\"}}",
+    })
+    void saveExerciseCardRejectsInvalidStrategySettings(String settings) {
+        // Arrange.
+        var id = service.createExerciseAndGetId("Settings", TestData.Exercises.DOMAIN_ID, TestData.Exercises.STRATEGY_ID, null);
+        var card = service.getExerciseCard(id, null, TestData.Users.ADMIN_ID);
+        var options = card.getOptions().withStrategySettings(json(settings));
+
+        // Act & Assert.
+        assertThrows(IllegalArgumentException.class, () -> service.saveExerciseCard(withOptions(card, options), null));
     }
 
     /** Унаследованное упражнение в курсе не сохранить. */
@@ -510,5 +552,27 @@ class ExerciseFrontendServiceTest extends AbstractIntegrationTest {
 
     private static ExerciseDto find(List<ExerciseDto> exercises, long id) {
         return exercises.stream().filter(e -> e.getId() == id).findFirst().orElseThrow();
+    }
+
+    private static ExerciseCardDto withOptions(ExerciseCardDto card, ExerciseOptionsData options) {
+        return ExerciseCardDto.builder()
+                .id(card.getId())
+                .name(card.getName())
+                .domainId(card.getDomainId())
+                .strategyId(card.getStrategyId())
+                .backendId(card.getBackendId())
+                .tags(card.getTags())
+                .stages(card.getStages())
+                .options(options)
+                .build();
+    }
+
+    private static Map<String, Object> json(String text) {
+        try {
+            return JSON.readValue(text, new TypeReference<>() {
+            });
+        } catch (JsonProcessingException e) {
+            throw new IllegalArgumentException(e);
+        }
     }
 }

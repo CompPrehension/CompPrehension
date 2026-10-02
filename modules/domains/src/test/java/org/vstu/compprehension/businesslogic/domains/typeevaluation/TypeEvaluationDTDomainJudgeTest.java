@@ -218,6 +218,80 @@ class TypeEvaluationDTDomainJudgeTest {
                 Set.copyOf(result.clarification.options()));
     }
 
+    /**
+     * Верный ответ, к которому ведут и правило, и заблуждения, можно уточнить: варианты — верное рассуждение
+     * и каждое заблуждение, а выбравший заблуждение узнаёт, что ответ верен, но рассуждение ошибочно.
+     */
+    @Test
+    void correctAnswerReachedByMisconceptionsOffersReasoningClarification() {
+        // Arrange.
+        var question = question(FIRST_CHAR_PLUS_ONE);
+
+        // Act.
+        var result = judge(question, List.of(answer(question, "op_first", "t_str")));
+
+        // Assert.
+        assertTrue(result.isAnswerCorrect);
+        assertNull(result.clarification);
+        assertNotNull(result.correctAnswerClarification);
+        assertEquals("Почему вы выбрали тип str?", result.correctAnswerClarification.prompt());
+        assertEquals(Set.of(
+                new HypothesisClarificationData.Option("rule",
+                        "Обращение по индексу берёт один элемент из <code>str</code>, а элементы там имеют тип <code>str</code>.",
+                        "Выражение <code>line[0]</code> имеет тип <code>str</code>, потому что обращение по индексу берёт один"
+                                + " элемент из <code>str</code>, а элементы там имеют тип <code>str</code>."),
+                new HypothesisClarificationData.Option("container_type",
+                        "Обращение по индексу даёт последовательность того же типа.",
+                        "Выражение <code>line[0]</code> действительно имеет тип <code>str</code>, но рассуждение ошибочно:"
+                                + " обращение по индексу берёт из последовательности один элемент, а не последовательность;"
+                                + " часть последовательности даёт срез."),
+                new HypothesisClarificationData.Option("nesting_level_skipped",
+                        "Обращение по индексу доходит до самых внутренних элементов.",
+                        "Выражение <code>line[0]</code> действительно имеет тип <code>str</code>, но рассуждение ошибочно:"
+                                + " одно обращение по индексу достаёт элемент из <code>str</code>, а не элемент этого элемента.")),
+                Set.copyOf(result.correctAnswerClarification.options()));
+    }
+
+    /**
+     * Заблуждение «результат берёт тип операнда», приведшее к верному целому типу произведения целых чисел,
+     * объясняется правилами арифметики, а не поведением логических значений.
+     */
+    @Test
+    void operandTypeReasoningForIntegerProductExplainsArithmeticRule() {
+        // Arrange.
+        var question = question(GRADE_COUNT);
+        var responses = new ArrayList<AnswerData>(solution(question, GRADE_COUNT, 1));
+        responses.add(answer(question, "op_mul", "t_int"));
+
+        // Act.
+        var result = judge(question, responses);
+
+        // Assert.
+        assertTrue(result.isAnswerCorrect);
+        assertNotNull(result.correctAnswerClarification);
+        var option = result.correctAnswerClarification.options().stream()
+                .filter(o -> o.hypothesis().equals("operand_type"))
+                .findFirst().orElseThrow();
+        assertEquals("Выражение <code>len(grades) * grade</code> действительно имеет тип <code>int</code>, но рассуждение"
+                + " ошибочно: тип результата задают правила арифметики, а не тип операнда, и оператор <code>*</code>"
+                + " над целыми операндами даёт целое число.", option.explanation());
+    }
+
+    /** Верный ответ, к которому не ведёт ни одно заблуждение, уточнять нечего. */
+    @Test
+    void correctAnswerReachedOnlyByRuleHasNoReasoningClarification() {
+        // Arrange.
+        var question = question(AVERAGE_OF_GRADES);
+
+        // Act.
+        var result = judge(question, List.of(answer(question, "op_len", "t_int")));
+
+        // Assert.
+        assertTrue(result.isAnswerCorrect);
+        assertEquals(List.of(new AnswerHypothesisData("rule", true)), result.hypotheses);
+        assertNull(result.correctAnswerClarification);
+    }
+
     /** Причина «неверная истинность» называет ту истинность левого операнда, которую студент ему приписал. */
     @Test
     void truthinessReasonNamesTruthinessStudentAssumed() {

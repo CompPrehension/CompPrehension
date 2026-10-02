@@ -1,5 +1,6 @@
 package org.vstu.compprehension.strategies;
 
+import org.vstu.compprehension.businesslogic.strategies.settings.CommonStrategySettings;
 import lombok.extern.log4j.Log4j2;
 import lombok.val;
 import org.jetbrains.annotations.NotNull;
@@ -31,7 +32,7 @@ import java.util.random.RandomGenerator;
 import static java.lang.Math.abs;
 
 @Log4j2
-public class Strategy extends StrategyBase {
+public class Strategy extends StrategyBase<CommonStrategySettings> {
 
     private final DomainFactory domainFactory;
     protected final RandomProvider randomProvider;
@@ -39,7 +40,7 @@ public class Strategy extends StrategyBase {
 
     public Strategy(DomainFactory domainFactory, RandomProvider randomProvider,
                     ExerciseAttemptDataService exerciseAttemptService) {
-        super(exerciseAttemptService);
+        super(exerciseAttemptService, CommonStrategySettings.TYPE);
         this.domainFactory = domainFactory;
         this.randomProvider = randomProvider;
         this.options = StrategyOptions.builder()

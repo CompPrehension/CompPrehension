@@ -12,5 +12,7 @@ public record AttemptQuestionInteractionData(
         @Nullable InteractionType type,
         @Nullable Integer interactionsLeft,
         @NotNull List<String> violationLawNames,
-        @NotNull List<String> correctLawNames) {
+        @NotNull List<String> correctLawNames,
+        // null — о рассуждении не спрашивали; false — выбрано заблуждение, «другая причина» или вопрос без ответа.
+        @Nullable Boolean isReasoningConfirmed) {
 }

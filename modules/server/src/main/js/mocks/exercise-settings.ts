@@ -47,12 +47,40 @@ export const mockStrategies: Strategy[] = [
         displayName: 'Static strategy',
         description: 'Hands out questions in a fixed order',
         options: { multiStagesEnabled: true },
+        settings: {
+            fields: [{
+                kind: 'GROUP', name: 'correctAnswerClarification', label: 'Ask about reasoning behind correct answers',
+                fields: [
+                    { kind: 'CHOICE', name: 'mode', label: 'Mode', options: [
+                        { value: 'NEVER', label: 'Never' },
+                        { value: 'ALWAYS', label: 'Always' },
+                        { value: 'UNTIL_STREAK', label: 'Until a streak of correct answers' },
+                    ] },
+                    { kind: 'NUMERIC', name: 'streakLength', label: 'Correct answer streak length', min: 1, max: 2147483647 },
+                ],
+            }],
+            defaults: { correctAnswerClarification: { mode: 'NEVER', streakLength: 7 } },
+        },
     },
     {
         id: 'GradeConfidenceBaseStrategy',
         displayName: 'Grade confidence strategy',
         description: null,
         options: { multiStagesEnabled: false },
+        settings: {
+            fields: [{
+                kind: 'GROUP', name: 'correctAnswerClarification', label: 'Ask about reasoning behind correct answers',
+                fields: [
+                    { kind: 'CHOICE', name: 'mode', label: 'Mode', options: [
+                        { value: 'NEVER', label: 'Never' },
+                        { value: 'ALWAYS', label: 'Always' },
+                        { value: 'UNTIL_STREAK', label: 'Until a streak of correct answers' },
+                    ] },
+                    { kind: 'NUMERIC', name: 'streakLength', label: 'Correct answer streak length', min: 1, max: 2147483647 },
+                ],
+            }],
+            defaults: { correctAnswerClarification: { mode: 'NEVER', streakLength: 7 } },
+        },
     },
 ];
 

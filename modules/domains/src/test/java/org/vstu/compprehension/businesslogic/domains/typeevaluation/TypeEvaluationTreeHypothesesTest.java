@@ -16,6 +16,7 @@ import org.junit.jupiter.api.Test;
 
 import java.util.ArrayList;
 import java.util.List;
+import java.util.stream.Stream;
 
 import static org.junit.jupiter.api.Assertions.assertEquals;
 import static org.junit.jupiter.api.Assertions.assertFalse;
@@ -42,11 +43,11 @@ class TypeEvaluationTreeHypothesesTest {
     }
 
     /**
-     * У дерева с гипотезами есть утверждение об ошибке на обоих языках: его студент видит вместо объяснения,
-     * пока не выбрал, какая из нескольких причин привела его к ответу.
+     * У дерева с гипотезами на обоих языках есть утверждение об ошибке и рамка ошибочного рассуждения: первое студент
+     * видит, пока не выбрал причину неверного ответа, второе — выбрав заблуждение, которое привело к верному ответу.
      */
     @Test
-    void treesWithHypothesesHaveErrorStatement() {
+    void treesWithHypothesesHaveErrorStatementAndMisreasoningFrame() {
         // Arrange.
         var treesWithHypotheses = TypeEvaluationTreeFixture.trees().stream()
                 .filter(tree -> !hypothesisAggregations(tree).isEmpty())
@@ -54,8 +55,8 @@ class TypeEvaluationTreeHypothesesTest {
 
         // Act.
         var withoutStatement = treesWithHypotheses.stream()
-                .filter(tree -> tree.getMainBranch().getMetadata().get("RU", "error_statement") == null
-                        || tree.getMainBranch().getMetadata().get("EN", "error_statement") == null)
+                .filter(tree -> Stream.of("RU", "EN").anyMatch(language -> Stream.of("error_statement", "misreasoning_prefix")
+                        .anyMatch(key -> tree.getMainBranch().getMetadata().get(language, key) == null)))
                 .map(tree -> tree.getMainBranch().getDescription())
                 .toList();
 

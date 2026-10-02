@@ -22,7 +22,7 @@ export type MockClarification = {
 export type MockQuestion = {
     question: Question,
     correctAnswers: [number, number][],
-    // keyed by a wrong answer pair that several misconceptions explain
+    // keyed by an answer pair that several hypotheses explain; a correct pair is clarified as the strategy "always" does
     clarifications?: Record<string, MockClarification>,
 };
 
@@ -195,6 +195,23 @@ export const mockQuestions: Record<number, MockQuestion> = {
             options: { requireContext: true, showSupplementaryQuestions: false, displayMode: 'inline', multipleSelectionEnabled: true },
         },
         correctAnswers: [[0, 102], [1, 100]],
+        clarifications: {
+            '1:100': {
+                prompt: 'Why did you choose the type int?',
+                options: [
+                    {
+                        hypothesis: 'rule',
+                        reason: 'Indexing takes one element out of <code>list[int]</code>, and its elements have the type <code>int</code>.',
+                        explanation: 'The expression <code>student["grades"][0]</code> has the type <code>int</code> because indexing takes one element out of <code>list[int]</code>, and its elements have the type <code>int</code>.',
+                    },
+                    {
+                        hypothesis: 'index_type',
+                        reason: 'Indexing gives the type of the index.',
+                        explanation: 'The expression <code>student["grades"][0]</code> does have the type <code>int</code>, but the reasoning is wrong: an index only points to a position, and the result of indexing is the element of the sequence itself.',
+                    },
+                ],
+            },
+        },
     },
 };
 
@@ -216,12 +233,12 @@ mockQuestions[11] = {
                 {
                     hypothesis: 'operand_type',
                     reason: 'The result takes the type of one of the operands.',
-                    explanation: '<code>total / len(grades)</code> cannot have the type <code>int</code> because the operator <code>/</code> does not take the result type from its operands: division can produce a fractional part even when the operands are integers.',
+                    explanation: 'The expression <code>total / len(grades)</code> cannot have the type <code>int</code> because the operator <code>/</code> always returns a floating-point result.',
                 },
                 {
                     hypothesis: 'c_style_division',
                     reason: 'Dividing integers gives an integer.',
-                    explanation: '<code>total / len(grades)</code> cannot have the type <code>int</code> because the operator <code>/</code> does not drop the fractional part even for integer operands — only integer division <code>//</code> does that.',
+                    explanation: 'The expression <code>total / len(grades)</code> cannot have the type <code>int</code> because the operator <code>/</code> always returns a floating-point result.',
                 },
             ],
         },
@@ -261,10 +278,11 @@ export type Grade = {
     correctSteps: number,
     stepsWithErrors: number,
     stepsLeft: number,
-    messages: FeedbackMessage[],
+    messages: FeedbackMessage[] | null,
 };
 
-export function gradeAnswers(questionId: number, submitted: Answer[]): Grade {
+/** A hint is the system's answer, so like the backend it is never clarified. */
+export function gradeAnswers(questionId: number, submitted: Answer[], isHint = false): Grade {
     const expected = mockQuestions[questionId]?.correctAnswers ?? [];
     const isRight = (a: Answer) => expected.some(pair => key(pair) === key(a.answer));
 
@@ -274,7 +292,8 @@ export function gradeAnswers(questionId: number, submitted: Answer[]): Grade {
     const taken = submitted.filter(a => !previous.has(key(a.answer)));
     const wrong = taken.filter(a => !isRight(a));
 
-    const clarification = wrong
+    const stepsLeft = expected.filter(pair => !settled.has(pair[0])).length;
+    const clarification = isHint ? undefined : taken
         .map(a => mockQuestions[questionId]?.clarifications?.[key(a.answer)])
         .find(c => c !== undefined);
     pendingClarifications[questionId] = clarification;
@@ -288,12 +307,15 @@ export function gradeAnswers(questionId: number, submitted: Answer[]): Grade {
         correctAnswers,
         correctSteps: correctAnswers.length,
         stepsWithErrors: submitted.length - correctAnswers.length,
-        stepsLeft: expected.filter(pair => !settled.has(pair[0])).length,
-        messages: wrong.map(a => ({
-            type: 'ERROR',
-            message: `${key(a.answer)} is not one of the expected pairs`,
-            violationLaws: [{ name: 'mocked_law', canCreateSupplementaryQuestion: true }],
-        })),
+        stepsLeft,
+        // Like the backend: a right answer is confirmed, except the last one.
+        messages: wrong.length === 0
+            ? stepsLeft === 0 ? null : [{ type: 'SUCCESS', message: 'Correct, keep doing...', violationLaws: [] }]
+            : wrong.map(a => ({
+                type: 'ERROR',
+                message: `${key(a.answer)} is not one of the expected pairs`,
+                violationLaws: [{ name: 'mocked_law', canCreateSupplementaryQuestion: true }],
+            })),
     };
 }
 
