@@ -21,13 +21,11 @@ import org.vstu.compprehension.businesslogic.QuestionRequest;
 import org.vstu.compprehension.businesslogic.Skill;
 import org.vstu.compprehension.businesslogic.SkillMasteryState;
 import org.vstu.compprehension.bkt.grpc.SkillState;
-import org.vstu.compprehension.businesslogic.backend.DecisionTreeInterpretSentenceResult;
 import org.vstu.compprehension.businesslogic.domains.Domain;
 import org.vstu.compprehension.businesslogic.domains.DomainBase;
 import org.vstu.compprehension.businesslogic.domains.DomainFactory;
 import org.vstu.compprehension.businesslogic.strategies.StrategyOptions;
 import org.vstu.compprehension.businesslogic.strategies.StrategyBase;
-import org.vstu.compprehension.strategies.util.LeafEngagedSkillsExtractor;
 
 import java.util.*;
 import java.util.stream.Collectors;
@@ -128,9 +126,9 @@ public class BktStrategy extends StrategyBase<CommonStrategySettings> {
     }
 
     @Override
-    public float grade(long exerciseAttemptId, Domain.InterpretSentenceResult judgeResult) {
+    public float grade(long exerciseAttemptId) {
         var attempt = getAttempt(exerciseAttemptId);
-        updateUserKnowledgeModel(attempt, judgeResult);
+        updateUserKnowledgeModel(attempt);
 
         val exercise = attempt.exercise();
         val domain = (DomainBase) domainFactory.getDomain(exercise.domainId());
@@ -191,8 +189,7 @@ public class BktStrategy extends StrategyBase<CommonStrategySettings> {
             val interactions = q.interactions();
             val totalInteractions = interactions.size();
             val correctInteractions = interactions.stream()
-                    .filter(i -> i != null &&
-                            (i.violationLawNames() == null || i.violationLawNames().isEmpty()))
+                    .filter(i -> i != null && i.isCorrect())
                     .count();
             val accuracy = totalInteractions == 0
                     ? 0f
@@ -264,29 +261,23 @@ public class BktStrategy extends StrategyBase<CommonStrategySettings> {
         return Decision.FINISH;
     }
 
-    private void updateUserKnowledgeModel(ExerciseAttemptWithQuestionsData exerciseAttempt, Domain.InterpretSentenceResult judgeResult) {
-        if (!(judgeResult instanceof DecisionTreeInterpretSentenceResult dtJudgeResult)
-                || dtJudgeResult.decisionTreeTrace == null) {
-            return;
-        }
-
+    // Оценивается только что записанный ответ — последнее взаимодействие попытки. Уточнения по нему ещё не было,
+    // поэтому у неверного ответа засчитано только то, что верно при любом рассуждении.
+    private void updateUserKnowledgeModel(ExerciseAttemptWithQuestionsData exerciseAttempt) {
         val domain = domainFactory.getDomain(exerciseAttempt.exercise().domainId());
-        val observedSkills = LeafEngagedSkillsExtractor.extract(dtJudgeResult.decisionTreeTrace);
-
-        Set<String> leafEngagedSkills;
-        if (judgeResult.isAnswerCorrect) {
-            leafEngagedSkills = observedSkills.getCorrectlyApplied();
-        } else {
-            leafEngagedSkills = observedSkills.getViolated();
-        }
-        val engagedSkills = calculateEngagedSkills(domain, leafEngagedSkills, judgeResult.isAnswerCorrect)
+        val answered = exerciseAttempt.questions().stream()
+                .flatMap(question -> question.interactions().stream())
+                .max(Comparator.comparingLong(AttemptQuestionInteractionData::interactionId))
+                .orElseThrow(() -> new IllegalStateException("Attempt " + exerciseAttempt.id() + " has no answers to grade"));
+        Set<String> observedSkills = new HashSet<>(answered.isCorrect() ? answered.correctLawNames() : answered.violationLawNames());
+        val engagedSkills = calculateEngagedSkills(domain, observedSkills, answered.isCorrect())
                 .stream()
                 .map(Skill::getName)
                 .toList();
         bktService.updateBktRoster(
                 domain.getDomainId(),
                 exerciseAttempt.userId(),
-                judgeResult.isAnswerCorrect,
+                answered.isCorrect(),
                 engagedSkills
         );
     }

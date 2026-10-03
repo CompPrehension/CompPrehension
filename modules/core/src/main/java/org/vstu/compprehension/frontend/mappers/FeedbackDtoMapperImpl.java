@@ -7,8 +7,8 @@ import org.springframework.stereotype.Component;
 import org.vstu.compprehension.businesslogic.HyperText;
 import org.vstu.compprehension.businesslogic.domains.DomainFactory;
 import org.vstu.compprehension.data.question.AnswerFeedbackData;
-import org.vstu.compprehension.data.question.HypothesisClarificationData;
 import org.vstu.compprehension.data.question.QuestionData;
+import org.vstu.compprehension.data.question.QuestionInteractionData;
 import org.vstu.compprehension.data.question.ResponseData;
 import org.vstu.compprehension.enums.Language;
 import org.vstu.compprehension.enums.QuestionType;
@@ -20,6 +20,7 @@ import org.vstu.compprehension.frontend.dto.feedback.OrderQuestionFeedbackDto;
 import org.vstu.compprehension.mappers.Mapper;
 
 import java.util.List;
+import java.util.Objects;
 
 @Component
 @RequiredArgsConstructor
@@ -43,13 +44,17 @@ class FeedbackDtoMapperImpl implements FeedbackDtoMapper {
                 .correctAnswers(toAnswerDtos(feedback.correctAnswers()))
                 .messages(toMessageDtos(feedback.messages()))
                 .strategyDecision(feedback.strategyDecision())
-                .clarification(question.pendingClarification().map(this::map).orElse(null))
+                .clarification(question.findInteractionAwaitingClarification().map(this::toClarificationDto).orElse(null))
                 .build();
     }
 
-    private @NotNull ClarificationDto map(@NotNull HypothesisClarificationData source) {
-        return new ClarificationDto(source.prompt(), source.options().stream()
-                .map(option -> new ClarificationDto.Option(option.hypothesis(), option.reason()))
+    private @NotNull ClarificationDto toClarificationDto(@NotNull QuestionInteractionData interaction) {
+        var content = Objects.requireNonNull(interaction.getClarification()).content();
+        var reasonings = interaction.getReasonings();
+        return new ClarificationDto(content.prompt(), content.options().stream()
+                .map(option -> new ClarificationDto.Option(option.reasoning(),
+                        Objects.requireNonNull(reasonings.get(option.reasoning()).hypothesis()),
+                        Objects.requireNonNull(reasonings.get(option.reasoning()).reason())))
                 .toList());
     }
 

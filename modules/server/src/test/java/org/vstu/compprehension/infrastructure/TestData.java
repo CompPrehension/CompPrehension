@@ -95,6 +95,14 @@ public final class TestData {
         }
     }
 
+    /** Вопрос домена потока управления на онтологии. */
+    public static final class ControlFlowBank {
+        private ControlFlowBank() {
+        }
+
+        public static final int FORMAT_FREE_METADATA_ID = -1001;
+    }
+
     /** Вопрос домена типов выражений: total / len(grades), где total — int, grades — list[int]. */
     public static final class TypeEvaluationBank {
         private TypeEvaluationBank() {
@@ -105,6 +113,7 @@ public final class TestData {
         public static final long DIV_SLOT = 1;
         public static final long INT_TYPE = 100;
         public static final long LIST_INT_TYPE = 103;
+        public static final long ERROR_TYPE = 104;
 
         /** len(grades) * grade: к верному int для произведения ведёт и заблуждение «тип операнда». */
         public static final int GRADE_COUNT_METADATA_ID = -2003;

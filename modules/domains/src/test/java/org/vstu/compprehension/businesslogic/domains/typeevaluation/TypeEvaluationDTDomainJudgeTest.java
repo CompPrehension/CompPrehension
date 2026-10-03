@@ -4,27 +4,30 @@ import org.junit.jupiter.api.Test;
 import org.junit.jupiter.params.ParameterizedTest;
 import org.junit.jupiter.params.provider.MethodSource;
 import org.vstu.compprehension.businesslogic.Explanation;
+import org.vstu.compprehension.businesslogic.domains.Judgement;
+import org.vstu.compprehension.businesslogic.domains.Reasoning;
 import org.vstu.compprehension.businesslogic.domains.TypeEvaluationDTDomain;
 import org.vstu.compprehension.businesslogic.domains.typeevaluation.TypeEvaluationDomainFixture.BankQuestion;
 import org.vstu.compprehension.data.question.AnswerData;
-import org.vstu.compprehension.data.question.AnswerHypothesisData;
-import org.vstu.compprehension.data.question.HypothesisClarificationData;
 import org.vstu.compprehension.data.question.ViolationData;
 import org.vstu.compprehension.enums.Language;
 
 import java.util.ArrayList;
 import java.util.List;
+import java.util.Map;
 import java.util.Set;
 import java.util.stream.Collectors;
 import java.util.stream.Stream;
 
 import static org.junit.jupiter.api.Assertions.assertEquals;
 import static org.junit.jupiter.api.Assertions.assertFalse;
-import static org.junit.jupiter.api.Assertions.assertNotNull;
-import static org.junit.jupiter.api.Assertions.assertNull;
 import static org.junit.jupiter.api.Assertions.assertTrue;
+import static org.vstu.compprehension.businesslogic.domains.DomainFixtures.appliedLaws;
+import static org.vstu.compprehension.businesslogic.domains.DomainFixtures.onlyReasoning;
+import static org.vstu.compprehension.businesslogic.domains.DomainFixtures.violations;
 import static org.vstu.compprehension.businesslogic.domains.typeevaluation.TypeEvaluationDomainFixture.AVERAGE_OF_GRADES;
 import static org.vstu.compprehension.businesslogic.domains.typeevaluation.TypeEvaluationDomainFixture.BANK;
+import static org.vstu.compprehension.businesslogic.domains.typeevaluation.TypeEvaluationDomainFixture.COUNT_PLUS_TOTAL;
 import static org.vstu.compprehension.businesslogic.domains.typeevaluation.TypeEvaluationDomainFixture.EMPTY_NAME_OR_NAMES;
 import static org.vstu.compprehension.businesslogic.domains.typeevaluation.TypeEvaluationDomainFixture.FIRST_CHAR_PLUS_ONE;
 import static org.vstu.compprehension.businesslogic.domains.typeevaluation.TypeEvaluationDomainFixture.GRADES_PLUS_ONE;
@@ -43,7 +46,7 @@ class TypeEvaluationDTDomainJudgeTest {
         return BANK.stream();
     }
 
-    /** Эталонные типы, выбранные в порядке вычисления, принимаются шаг за шагом до конца. */
+    /** Эталонные типы, выбранные в порядке вычисления, принимаются шаг за шагом до конца и засчитывают навыки. */
     @ParameterizedTest
     @MethodSource("bank")
     void referenceTypesAreAcceptedInEvaluationOrder(BankQuestion bankQuestion) {
@@ -56,10 +59,10 @@ class TypeEvaluationDTDomainJudgeTest {
             var result = judge(question, solution(question, bankQuestion, step));
 
             // Assert.
-            assertTrue(result.isAnswerCorrect, bankQuestion.file() + " на шаге " + step);
-            assertEquals(List.of(), result.violations);
-            assertEquals(steps - step, result.IterationsLeft);
-            assertFalse(result.domainSkills.isEmpty());
+            assertTrue(result.isAnswerCorrect(), bankQuestion.file() + " на шаге " + step);
+            assertEquals(List.of(), violations(result));
+            assertEquals(steps - step, result.stepsLeft());
+            assertFalse(appliedLaws(result).isEmpty(), bankQuestion.file() + " на шаге " + step);
         }
     }
 
@@ -73,16 +76,17 @@ class TypeEvaluationDTDomainJudgeTest {
         var result = judge(question, List.of(answer(question, "op_div", "t_float")));
 
         // Assert.
-        assertFalse(result.isAnswerCorrect);
-        assertEquals(List.of(TypeEvaluationDTDomain.EVALUATION_ORDER_VIOLATION), lawNames(result.violations));
-        assertEquals(List.of(), result.domainSkills);
-        assertEquals(List.of(domain().getMessage("operands_first", Language.RUSSIAN)), messages(result.explanation));
-        assertEquals(2, result.IterationsLeft);
+        assertFalse(result.isAnswerCorrect());
+        assertEquals(List.of(TypeEvaluationDTDomain.EVALUATION_ORDER_VIOLATION), lawNames(violations(result)));
+        assertEquals(List.of(), appliedLaws(result));
+        assertEquals(List.of(domain().getMessage("operands_first", Language.RUSSIAN)),
+                messages(onlyReasoning(result).explanation()));
+        assertEquals(2, result.stepsLeft());
     }
 
     /**
-     * Ответ int на деление целых объясняется двумя заблуждениями: какое из них у студента, неизвестно,
-     * поэтому до его выбора он видит только, что тип неверен, а обе гипотезы остаются в результате.
+     * Ответ int на деление целых объясняется двумя заблуждениями одного навыка: какое из них у студента, неизвестно,
+     * поэтому до его выбора ему говорят только, что тип неверен, а нарушение навыка засчитывается сразу.
      */
     @Test
     void integerForTrueDivisionIsAmbiguousAndShowsOnlyErrorStatement() {
@@ -95,33 +99,39 @@ class TypeEvaluationDTDomainJudgeTest {
         var result = judge(question, responses);
 
         // Assert.
-        assertFalse(result.isAnswerCorrect);
-        assertEquals(Set.of(new AnswerHypothesisData("operand_type", false),
-                new AnswerHypothesisData("c_style_division", false)), Set.copyOf(result.hypotheses));
-        assertEquals(List.of("true_division_result"), lawNames(result.violations));
-        assertEquals(List.of("Выражение <code>total / len(grades)</code> не может иметь тип <code>int</code>."), messages(result.explanation));
-        assertEquals(1, result.IterationsLeft);
+        assertFalse(result.isAnswerCorrect());
+        assertEquals(Set.of(new Hypothesis("operand_type", false), new Hypothesis("c_style_division", false)),
+                hypotheses(result));
+        assertEquals(List.of("true_division_result"), lawNames(violations(result)));
+        assertEquals(List.of("Выражение <code>total / len(grades)</code> не может иметь тип <code>int</code>."),
+                messages(result.inquiry().statement()));
+        assertEquals(1, result.stepsLeft());
     }
 
     /**
      * Тип левого операнда у or с ложным левым объясняется неверной истинностью, перепутанными and/or и тем, что правый
-     * операнд names прочитан как похожая name: до выбора причины студент видит только, что тип неверен, а не одно из трёх объяснений.
+     * операнд names прочитан как похожая name. Навыки у этих причин разные, и пока студент не назвал свою, ни один из
+     * них не засчитывается нарушенным.
      */
     @Test
-    void leftOperandTypeForFalsyOrIsAmbiguousAndShowsOnlyErrorStatement() {
+    void leftOperandTypeForFalsyOrIsAmbiguousAndCountsNoSkillUntilReasonIsNamed() {
         // Arrange.
         var question = question(EMPTY_NAME_OR_NAMES);
+        var responses = List.<AnswerData>of(answer(question, "op_or", "t_str"));
 
         // Act.
-        var result = judge(question, List.of(answer(question, "op_or", "t_str")));
+        var result = judge(question, responses);
 
         // Assert.
-        assertFalse(result.isAnswerCorrect);
-        assertEquals(Set.of(new AnswerHypothesisData("truthiness_misjudged", false),
-                new AnswerHypothesisData("and_or_confused", false),
-                new AnswerHypothesisData("variable_confused", false)), Set.copyOf(result.hypotheses));
-        assertEquals(Set.of("logical_returned_operand", "operand_identification"), Set.copyOf(lawNames(result.violations)));
-        assertEquals(List.of("Выражение <code>name or names</code> не может иметь тип <code>str</code>."), messages(result.explanation));
+        assertFalse(result.isAnswerCorrect());
+        assertEquals(Map.of(
+                        "truthiness_misjudged", List.of("logical_returned_operand"),
+                        "and_or_confused", List.of("logical_returned_operand"),
+                        "variable_confused", List.of("operand_identification")),
+                violationsByHypothesis(result));
+        assertEquals(List.of(), violations(result));
+        assertEquals(List.of("Выражение <code>name or names</code> не может иметь тип <code>str</code>."),
+                messages(result.inquiry().statement()));
     }
 
     /** Ошибку, которую объясняет единственное заблуждение, студенту объясняет именно оно. */
@@ -134,11 +144,11 @@ class TypeEvaluationDTDomainJudgeTest {
         var result = judge(question, List.of(answer(question, "op_first", "t_int")));
 
         // Assert.
-        assertFalse(result.isAnswerCorrect);
-        assertEquals(List.of(new AnswerHypothesisData("index_type", false)), result.hypotheses);
+        assertFalse(result.isAnswerCorrect());
+        assertEquals(Set.of(new Hypothesis("index_type", false)), hypotheses(result));
         assertEquals(List.of("Выражение <code>line[0]</code> не может иметь тип <code>int</code>, потому что индекс лишь указывает"
-                + " позицию, а результат обращения — сам элемент последовательности."), messages(result.explanation));
-        assertNull(result.clarification);
+                + " позицию, а результат обращения — сам элемент последовательности."),
+                messages(onlyReasoning(result).explanation()));
     }
 
     /** Объяснение называет часть выражения так, как она написана в коде, — с кавычками и скобками. */
@@ -152,7 +162,8 @@ class TypeEvaluationDTDomainJudgeTest {
 
         // Assert.
         assertEquals(List.of("Выражение <code>student[\"grades\"]</code> не может иметь тип <code>str</code>, потому что по ключу"
-                + " из словаря возвращается хранящееся под ним значение, а не сам ключ."), messages(result.explanation));
+                + " из словаря возвращается хранящееся под ним значение, а не сам ключ."),
+                messages(onlyReasoning(result).explanation()));
     }
 
     /** Ответ, который не объясняет ни одно из известных рассуждений, остаётся ошибкой без гипотез. */
@@ -165,13 +176,13 @@ class TypeEvaluationDTDomainJudgeTest {
         var result = judge(question, List.of(answer(question, "op_len", "t_float")));
 
         // Assert.
-        assertFalse(result.isAnswerCorrect);
-        assertEquals(List.of(), result.hypotheses);
-        assertEquals(List.of("length_applicability"), lawNames(result.violations));
+        assertFalse(result.isAnswerCorrect());
+        assertEquals(Set.of(), hypotheses(result));
+        assertEquals(List.of("length_applicability"), lawNames(violations(result)));
     }
 
     /**
-     * Верный ответ, к которому ведёт и ошибочное рассуждение, засчитывается без объяснений ошибок,
+     * Верный ответ, к которому ведёт и ошибочное рассуждение, засчитывается без нарушений,
      * но сохраняет гипотезу-заблуждение: такие ответы не подтверждают знание правила.
      */
     @Test
@@ -183,16 +194,13 @@ class TypeEvaluationDTDomainJudgeTest {
         var result = judge(question, List.of(answer(question, "op_first", "t_str")));
 
         // Assert.
-        assertTrue(result.isAnswerCorrect);
-        assertEquals(Set.of(new AnswerHypothesisData("rule", true),
-                new AnswerHypothesisData("container_type", false),
-                new AnswerHypothesisData("nesting_level_skipped", false)), Set.copyOf(result.hypotheses));
-        assertEquals(List.of(), result.violations);
-        assertEquals(List.of(), messages(result.explanation));
-        assertNull(result.clarification);
+        assertTrue(result.isAnswerCorrect());
+        assertEquals(Set.of(new Hypothesis("rule", true), new Hypothesis("container_type", false),
+                new Hypothesis("nesting_level_skipped", false)), hypotheses(result));
+        assertEquals(List.of(), violations(result));
     }
 
-    /** Студента, ошибку которого объясняют два заблуждения, спрашивают, почему он выбрал этот тип. */
+    /** Ошибку, которую объясняют два заблуждения, можно уточнить: студента спрашивают, почему он выбрал тип, и предлагают обе причины. */
     @Test
     void ambiguousErrorAsksWhyTypeWasChosen() {
         // Arrange.
@@ -204,18 +212,17 @@ class TypeEvaluationDTDomainJudgeTest {
         var result = judge(question, responses);
 
         // Assert.
-        assertNotNull(result.clarification);
-        assertEquals("Почему вы выбрали тип int?", result.clarification.prompt());
+        assertEquals("Почему вы выбрали тип <code>int</code>?", result.inquiry().prompt());
         assertEquals(Set.of(
-                new HypothesisClarificationData.Option("operand_type",
+                new Offered("operand_type",
                         "Результат берёт тип одного из операндов.",
                         "Выражение <code>total / len(grades)</code> не может иметь тип <code>int</code>, потому что оператор <code>/</code> всегда"
                                 + " возвращает вещественный результат."),
-                new HypothesisClarificationData.Option("c_style_division",
+                new Offered("c_style_division",
                         "Деление целых чисел даёт целое число.",
                         "Выражение <code>total / len(grades)</code> не может иметь тип <code>int</code>, потому что оператор <code>/</code> всегда возвращает"
                                 + " вещественный результат.")),
-                Set.copyOf(result.clarification.options()));
+                offered(result));
     }
 
     /**
@@ -226,30 +233,29 @@ class TypeEvaluationDTDomainJudgeTest {
     void correctAnswerReachedByMisconceptionsOffersReasoningClarification() {
         // Arrange.
         var question = question(FIRST_CHAR_PLUS_ONE);
+        var responses = List.<AnswerData>of(answer(question, "op_first", "t_str"));
 
         // Act.
-        var result = judge(question, List.of(answer(question, "op_first", "t_str")));
+        var result = judge(question, responses);
 
         // Assert.
-        assertTrue(result.isAnswerCorrect);
-        assertNull(result.clarification);
-        assertNotNull(result.correctAnswerClarification);
-        assertEquals("Почему вы выбрали тип str?", result.correctAnswerClarification.prompt());
+        assertTrue(result.isAnswerCorrect());
+        assertEquals("Почему вы выбрали тип <code>str</code>?", result.inquiry().prompt());
         assertEquals(Set.of(
-                new HypothesisClarificationData.Option("rule",
+                new Offered("rule",
                         "Обращение по индексу берёт один элемент из <code>str</code>, а элементы там имеют тип <code>str</code>.",
                         "Выражение <code>line[0]</code> имеет тип <code>str</code>, потому что обращение по индексу берёт один"
                                 + " элемент из <code>str</code>, а элементы там имеют тип <code>str</code>."),
-                new HypothesisClarificationData.Option("container_type",
+                new Offered("container_type",
                         "Обращение по индексу даёт последовательность того же типа.",
                         "Выражение <code>line[0]</code> действительно имеет тип <code>str</code>, но рассуждение ошибочно:"
                                 + " обращение по индексу берёт из последовательности один элемент, а не последовательность;"
                                 + " часть последовательности даёт срез."),
-                new HypothesisClarificationData.Option("nesting_level_skipped",
+                new Offered("nesting_level_skipped",
                         "Обращение по индексу доходит до самых внутренних элементов.",
                         "Выражение <code>line[0]</code> действительно имеет тип <code>str</code>, но рассуждение ошибочно:"
                                 + " одно обращение по индексу достаёт элемент из <code>str</code>, а не элемент этого элемента.")),
-                Set.copyOf(result.correctAnswerClarification.options()));
+                offered(result));
     }
 
     /**
@@ -267,14 +273,11 @@ class TypeEvaluationDTDomainJudgeTest {
         var result = judge(question, responses);
 
         // Assert.
-        assertTrue(result.isAnswerCorrect);
-        assertNotNull(result.correctAnswerClarification);
-        var option = result.correctAnswerClarification.options().stream()
-                .filter(o -> o.hypothesis().equals("operand_type"))
-                .findFirst().orElseThrow();
+        assertTrue(result.isAnswerCorrect());
         assertEquals("Выражение <code>len(grades) * grade</code> действительно имеет тип <code>int</code>, но рассуждение"
                 + " ошибочно: тип результата задают правила арифметики, а не тип операнда, и оператор <code>*</code>"
-                + " над целыми операндами даёт целое число.", option.explanation());
+                + " над целыми операндами даёт целое число.",
+                reasoning(result, "operand_type").explanation().getRawMessage().getText());
     }
 
     /** Верный ответ, к которому не ведёт ни одно заблуждение, уточнять нечего. */
@@ -287,9 +290,8 @@ class TypeEvaluationDTDomainJudgeTest {
         var result = judge(question, List.of(answer(question, "op_len", "t_int")));
 
         // Assert.
-        assertTrue(result.isAnswerCorrect);
-        assertEquals(List.of(new AnswerHypothesisData("rule", true)), result.hypotheses);
-        assertNull(result.correctAnswerClarification);
+        assertTrue(result.isAnswerCorrect());
+        assertEquals(Set.of(new Hypothesis("rule", true)), hypotheses(result));
     }
 
     /** Причина «неверная истинность» называет ту истинность левого операнда, которую студент ему приписал. */
@@ -302,12 +304,8 @@ class TypeEvaluationDTDomainJudgeTest {
         var result = judge(question, List.of(answer(question, "op_or", "t_str")));
 
         // Assert.
-        assertNotNull(result.clarification);
-        var reasons = result.clarification.options().stream()
-                .collect(Collectors.toMap(HypothesisClarificationData.Option::hypothesis,
-                        HypothesisClarificationData.Option::reason));
-        assertEquals("Левый операнд истинный.", reasons.get("truthiness_misjudged"));
-        assertEquals("Возвращается первый ложный операнд.", reasons.get("and_or_confused"));
+        assertEquals("Левый операнд истинный.", reasoning(result, "truthiness_misjudged").reason());
+        assertEquals("Возвращается первый ложный операнд.", reasoning(result, "and_or_confused").reason());
     }
 
     /**
@@ -323,13 +321,33 @@ class TypeEvaluationDTDomainJudgeTest {
         var result = judge(question, List.of(answer(question, "op_or", "t_str")));
 
         // Assert.
-        assertNotNull(result.clarification);
-        var option = result.clarification.options().stream()
-                .filter(o -> o.hypothesis().equals("variable_confused"))
-                .findFirst().orElseThrow();
-        assertEquals("Мне показалось, что правый операнд — <code>name</code>, а не <code>names</code>.", option.reason());
+        var lookalike = reasoning(result, "variable_confused");
+        assertEquals("Мне показалось, что правый операнд — <code>name</code>, а не <code>names</code>.", lookalike.reason());
         assertEquals("Выражение <code>name or names</code> не может иметь тип <code>str</code>, потому что правый"
-                + " операнд — <code>names</code>, а не <code>name</code>.", option.explanation());
+                + " операнд — <code>names</code>, а не <code>name</code>.", lookalike.explanation().getRawMessage().getText());
+    }
+
+    /**
+     * Если похожие переменные есть у обоих операндов, путаница каждого из них — своё рассуждение с той же гипотезой:
+     * причины называют разные операнды, и о каждой можно спросить отдельно.
+     */
+    @Test
+    void lookalikesOfBothOperandsAreSeparateReasonings() {
+        // Arrange.
+        var question = question(COUNT_PLUS_TOTAL);
+
+        // Act.
+        var result = judge(question, List.of(answer(question, "op_add", "t_error")));
+
+        // Assert.
+        assertFalse(result.isAnswerCorrect());
+        assertEquals(Set.of(
+                        "Мне показалось, что левый операнд — <code>counts</code>, а не <code>count</code>.",
+                        "Мне показалось, что правый операнд — <code>totals</code>, а не <code>total</code>."),
+                result.reasonings().stream()
+                        .filter(reasoning -> "variable_confused".equals(reasoning.hypothesis()))
+                        .map(Reasoning::reason)
+                        .collect(Collectors.toSet()));
     }
 
     /** Ответ «ошибка» на допустимую операцию объясняют правилом применимости, которому операнды подходят. */
@@ -344,74 +362,71 @@ class TypeEvaluationDTDomainJudgeTest {
         var result = judge(question, responses);
 
         // Assert.
-        assertFalse(result.isAnswerCorrect);
-        assertEquals(List.of(new AnswerHypothesisData("inapplicable_assumed", false)), result.hypotheses);
-        assertEquals(List.of("true_division_result"), lawNames(result.violations));
+        assertFalse(result.isAnswerCorrect());
+        assertEquals(Set.of(new Hypothesis("inapplicable_assumed", false)), hypotheses(result));
+        assertEquals(List.of("true_division_result"), lawNames(violations(result)));
         assertEquals(List.of("Выражение <code>total / len(grades)</code> не может вызвать ошибку <code>TypeError</code>, потому что"
                 + " оператор <code>/</code> применяется к числам, а оба операнда — числа: <code>int</code> и <code>int</code>."
                 + " Следовательно, операция допустима."),
-                messages(result.explanation));
-        assertNull(result.clarification);
+                messages(onlyReasoning(result).explanation()));
     }
 
     /**
      * Ответ «ошибка», который объясняют и похожая переменная из условия, и мнение, что операция неприменима,
-     * получает утверждение, что ошибки не будет, и вопрос, почему студент её ожидал.
+     * получает утверждение, что ошибки не будет, и вопрос, почему студент её ожидал. У причин разные навыки,
+     * поэтому до ответа на вопрос ни один из них не засчитывается нарушенным.
      */
     @Test
     void errorExplainedByLookalikeAndApplicabilityAsksWhyErrorWasExpected() {
         // Arrange.
         var question = question(GRADE_COUNT);
+        var responses = List.<AnswerData>of(answer(question, "op_len", "t_error"));
 
         // Act.
-        var result = judge(question, List.of(answer(question, "op_len", "t_error")));
+        var result = judge(question, responses);
 
         // Assert.
-        assertFalse(result.isAnswerCorrect);
-        assertEquals(Set.of(new AnswerHypothesisData("variable_confused", false),
-                new AnswerHypothesisData("inapplicable_assumed", false)), Set.copyOf(result.hypotheses));
-        assertEquals(Set.of("operand_identification", "length_applicability"), Set.copyOf(lawNames(result.violations)));
+        assertFalse(result.isAnswerCorrect());
+        assertEquals(Map.of("variable_confused", List.of("operand_identification"),
+                "inapplicable_assumed", List.of("length_applicability")), violationsByHypothesis(result));
+        assertEquals(List.of(), violations(result));
         assertEquals(List.of("Выражение <code>len(grades)</code> не может вызвать ошибку <code>TypeError</code>."),
-                messages(result.explanation));
-        assertNotNull(result.clarification);
-        assertEquals("Почему вы решили, что здесь возникнет ошибка TypeError?", result.clarification.prompt());
+                messages(result.inquiry().statement()));
+        assertEquals("Почему вы решили, что здесь возникнет ошибка <code>TypeError</code>?", result.inquiry().prompt());
         assertEquals(Set.of(
-                new HypothesisClarificationData.Option("variable_confused",
+                new Offered("variable_confused",
                         "Мне показалось, что в выражении стоит <code>grade</code>, а не <code>grades</code>.",
                         "Выражение <code>len(grades)</code> не может вызвать ошибку <code>TypeError</code>, потому что в выражении"
                                 + " стоит <code>grades</code>, а не <code>grade</code>."),
-                new HypothesisClarificationData.Option("inapplicable_assumed",
+                new Offered("inapplicable_assumed",
                         "Функция <code>len</code> не применяется к аргументу этого типа.",
                         "Выражение <code>len(grades)</code> не может вызвать ошибку <code>TypeError</code>, потому что у значения"
                                 + " типа <code>list[int]</code> есть элементы, и функция <code>len</code> их считает."
                                 + " Следовательно, операция допустима.")),
-                Set.copyOf(result.clarification.options()));
+                offered(result));
     }
 
     /**
      * Ответ, который объясняют и заблуждение, и прочтение похожей переменной, получает только утверждение, что тип неверен,
-     * уточняющий вопрос с обеими причинами и нарушения обоих навыков.
+     * и уточняющий вопрос с обеими причинами; у каждой причины свой нарушенный навык.
      */
     @Test
     void errorExplainedByMisconceptionAndReadingAsksWhichOne() {
         // Arrange.
         var question = question(GRADES_PLUS_ONE);
+        var responses = List.<AnswerData>of(answer(question, "op_add", "t_int"));
 
         // Act.
-        var result = judge(question, List.of(answer(question, "op_add", "t_int")));
+        var result = judge(question, responses);
 
         // Assert.
-        assertFalse(result.isAnswerCorrect);
-        assertEquals(Set.of(new AnswerHypothesisData("operand_type", false),
-                new AnswerHypothesisData("variable_confused", false)), Set.copyOf(result.hypotheses));
-        assertEquals(Set.of("sequence_operation_applicability", "operand_identification"),
-                Set.copyOf(lawNames(result.violations)));
-        assertEquals(List.of("Выражение <code>grades + 1</code> не может иметь тип <code>int</code>."), messages(result.explanation));
-        assertNotNull(result.clarification);
+        assertFalse(result.isAnswerCorrect());
+        assertEquals(Map.of("operand_type", List.of("sequence_operation_applicability"),
+                "variable_confused", List.of("operand_identification")), violationsByHypothesis(result));
+        assertEquals(List.of("Выражение <code>grades + 1</code> не может иметь тип <code>int</code>."),
+                messages(result.inquiry().statement()));
         assertEquals(Set.of("Результат берёт тип одного из операндов.", "Мне показалось, что левый операнд — <code>grade</code>, а не <code>grades</code>."),
-                result.clarification.options().stream()
-                        .map(HypothesisClarificationData.Option::reason)
-                        .collect(Collectors.toSet()));
+                offered(result).stream().map(Offered::reason).collect(Collectors.toSet()));
     }
 
     /** Подсказка называет первую часть выражения, готовую к ответу, её эталонный тип и объясняет правило. */
@@ -462,6 +477,40 @@ class TypeEvaluationDTDomainJudgeTest {
         assertEquals("t_error", answer.right().getDomainInfo());
         assertEquals(List.of("Выражение <code>line[0] + 1</code> вызывает ошибку <code>TypeError</code>, потому что оператор"
                 + " <code>+</code> нельзя применить к операндам типов <code>str</code> и <code>int</code>."), messages(hint.explanation));
+    }
+
+    private record Hypothesis(String name, boolean isCorrect) {
+    }
+
+    private static Set<Hypothesis> hypotheses(Judgement judgement) {
+        return judgement.reasonings().stream()
+                .filter(reasoning -> reasoning.hypothesis() != null)
+                .map(reasoning -> new Hypothesis(reasoning.hypothesis(), reasoning.isCorrect()))
+                .collect(Collectors.toSet());
+    }
+
+    private static Reasoning reasoning(Judgement judgement, String hypothesis) {
+        return judgement.reasonings().stream()
+                .filter(reasoning -> hypothesis.equals(reasoning.hypothesis()))
+                .findFirst()
+                .orElseThrow(() -> new AssertionError("Нет рассуждения " + hypothesis + " среди " + judgement.reasonings()));
+    }
+
+    private static Map<String, List<String>> violationsByHypothesis(Judgement judgement) {
+        return judgement.reasonings().stream()
+                .collect(Collectors.toMap(Reasoning::hypothesis, reasoning -> lawNames(reasoning.violations())));
+    }
+
+    // Рассуждение, о котором можно спросить студента, — так, как его увидит уточняющий вопрос.
+    private record Offered(String hypothesis, String reason, String explanation) {
+    }
+
+    private static Set<Offered> offered(Judgement judgement) {
+        return judgement.reasonings().stream()
+                .filter(reasoning -> reasoning.hypothesis() != null && reasoning.reason() != null)
+                .map(reasoning -> new Offered(reasoning.hypothesis(), reasoning.reason(),
+                        reasoning.explanation().getRawMessage().getText()))
+                .collect(Collectors.toSet());
     }
 
     private static List<String> lawNames(List<ViolationData> violations) {

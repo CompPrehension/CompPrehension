@@ -76,12 +76,12 @@ public class QuestionData {
                 .orElseGet(List::of);
     }
 
-    /** Уточняющий вопрос к последнему ответу, на который студент ещё не ответил. */
-    public @NotNull Optional<HypothesisClarificationData> pendingClarification() {
+    /** Последний ответ, если студент ещё не ответил на уточняющий вопрос к нему. */
+    public @NotNull Optional<QuestionInteractionData> findInteractionAwaitingClarification() {
         return interactions.isEmpty() ? Optional.empty()
-                : Optional.ofNullable(interactions.getLast().getClarification())
-                        .filter(clarification -> !clarification.isAnswered())
-                        .map(InteractionClarificationData::content);
+                : Optional.of(interactions.getLast())
+                        .filter(interaction -> interaction.getClarification() != null
+                                && !interaction.getClarification().isAnswered());
     }
 
     public int correctInteractionsCount() {

@@ -10,9 +10,8 @@ public record NewInteractionData(
         long questionId,
         @NotNull InteractionType interactionType,
         @NotNull List<NewInteractionAnswerData> answers,
-        @NotNull List<ViolationData> violations,
-        @NotNull List<String> correctLaws,
-        @NotNull List<AnswerHypothesisData> hypotheses,
+        boolean isCorrect,
+        @NotNull List<InteractionReasoningData> reasonings,
         @Nullable HypothesisClarificationData clarification,
         int interactionsLeft) {
 }

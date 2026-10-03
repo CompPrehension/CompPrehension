@@ -1062,7 +1062,7 @@ QuestionOptionsData orderQuestionOptions = OrderQuestionOptionsData.builder()
         return result;
     }
 
-    public ProcessSolutionResult processSolution(Collection<Fact> solution) {
+    private int countStepsLeft(Collection<Fact> solution) {
         Map<String, String> studentPos = new HashMap<>();
         Map<String, String> unevalOp = new HashMap<>();
         HashSet<String> isOperand = new HashSet<>();
@@ -1105,10 +1105,7 @@ QuestionOptionsData orderQuestionOptions = OrderQuestionOptionsData.builder()
             IterationsLeft++;
         }
 
-        InterpretSentenceResult result = new InterpretSentenceResult();
-        result.CountCorrectOptions = getCorrectAnswers(solution).size();
-        result.IterationsLeft = IterationsLeft;
-        return result;
+        return IterationsLeft;
     }
 
     HyperText getCorrectExplanation(QuestionContentData q, AnswerObjectData answer, Language language) {
@@ -1424,7 +1421,7 @@ QuestionOptionsData orderQuestionOptions = OrderQuestionOptionsData.builder()
 
 
     @Override
-    public InterpretSentenceResult interpretSentence(Collection<Fact> violations) {
+    protected @NotNull Judgement interpretViolations(@NotNull Collection<Fact> violations, @NotNull Language language) {
         List<ViolationData> mistakes = new ArrayList<>();
 
         String questionType = "";
@@ -1629,15 +1626,11 @@ QuestionOptionsData orderQuestionOptions = OrderQuestionOptionsData.builder()
             }
         }
 
-        InterpretSentenceResult result = new InterpretSentenceResult();
-        result.violations = mistakes;
-        result.correctlyAppliedLaws = calculateCorrectlyAppliedLaws(violations);
-        result.isAnswerCorrect = mistakes.isEmpty();
-
-        ProcessSolutionResult processResult = processSolution(violations);
-        result.CountCorrectOptions = processResult.CountCorrectOptions;
-        result.IterationsLeft = processResult.IterationsLeft + (result.isAnswerCorrect ? 0 : 1);
-        return result;
+        boolean isAnswerCorrect = mistakes.isEmpty();
+        return new Judgement(new Reasoning(null, isAnswerCorrect, null,
+                makeExplanation(mistakes, FeedbackType.EXPLANATION, language), mistakes,
+                calculateCorrectlyAppliedLaws(violations)),
+                countStepsLeft(violations) + (isAnswerCorrect ? 0 : 1));
     }
 
     List<String> calculateCorrectlyAppliedLaws(Collection<Fact> violations) {

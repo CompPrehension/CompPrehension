@@ -18,15 +18,18 @@ import org.vstu.compprehension.frontend.dto.feedback.ClarificationFeedbackDto;
 import org.vstu.compprehension.frontend.dto.feedback.FeedbackDto;
 import org.vstu.compprehension.frontend.dto.question.QuestionDto;
 import org.vstu.compprehension.businesslogic.Explanation;
-import org.vstu.compprehension.businesslogic.domains.Domain;
 import org.vstu.compprehension.businesslogic.domains.DomainFactory;
+import org.vstu.compprehension.businesslogic.domains.Judgement;
+import org.vstu.compprehension.businesslogic.domains.Reasoning;
 import org.vstu.compprehension.businesslogic.strategies.AbstractStrategyFactory;
 import org.vstu.compprehension.businesslogic.strategies.StrategyDecision;
 import org.vstu.compprehension.data.exerciseattempt.AttemptSummaryData;
 import org.vstu.compprehension.data.exercise.ExerciseStageData;
 import org.vstu.compprehension.data.question.AnswerData;
 import org.vstu.compprehension.data.question.AnswerFeedbackData;
+import org.vstu.compprehension.data.question.CountedLawsData;
 import org.vstu.compprehension.data.question.HypothesisClarificationData;
+import org.vstu.compprehension.data.question.InteractionReasoningData;
 import org.vstu.compprehension.data.question.NewInteractionAnswerData;
 import org.vstu.compprehension.data.question.NewInteractionData;
 import org.vstu.compprehension.data.question.QuestionAttemptContextData;
@@ -47,6 +50,7 @@ import org.vstu.compprehension.frontend.mappers.QuestionDtoMapper;
 
 import java.util.*;
 import java.util.stream.Collectors;
+import java.util.stream.IntStream;
 import java.util.stream.Stream;
 
 import static org.vstu.compprehension.enums.InteractionType.REQUEST_CORRECT_ANSWER;
@@ -110,27 +114,28 @@ class ExerciseAttemptFrontendServiceImpl implements ExerciseAttemptFrontendServi
         val domain = domainFactory.getDomain(question.getContent().getDomainId());
         val tags = domain.resolveTags(question.getContent().getTags());
         val responses = questionService.resolveAnswers(questionId, answers);
-        val judgeResult = domain.judgeQuestion(question, responses, tags, language);
-        muteDeniedExplanations(judgeResult.explanation, context);
+        val judgement = domain.judgeAnswer(question, responses, tags, language);
+        val explanation = explainAnswer(judgement);
+        muteDeniedExplanations(explanation, context);
 
         // add interaction
-        val graded = recordAndGrade(question, context, SEND_RESPONSE,
-                submittedAnswerMapper.mapAll(answers), judgeResult);
+        val graded = recordAndGrade(question, context, SEND_RESPONSE, submittedAnswerMapper.mapAll(answers), judgement,
+                chooseClarification(judgement, context));
         question = graded.question();
         val strategyDecision = graded.decision();
 
         val locale = questionLanguage(context);
         // calculate error message
-        val violations = judgeResult.violations.stream()
+        val violations = graded.interaction().getViolations().stream()
                 .map(v -> new AnswerFeedbackData.Law(v.getLawName(), domain.needSupplementaryQuestion(v.getLawName(), v.getInteractionType())))
                 .toList();
-        Collection<Explanation> explanationSource = judgeResult.explanation.getRawMessage().isEmpty() ? judgeResult.explanation.getChildren() : List.of(judgeResult.explanation);
+        Collection<Explanation> explanationSource = explanation.getRawMessage().isEmpty() ? explanation.getChildren() : List.of(explanation);
         val errors = explanationSource.stream().map(e -> Pair.of(
                 violations.stream().filter(v -> e.getDomainLawNames().contains(v.name())).toList(),
                 e.toHyperText(locale).getText())).toList();
         // The last correct answer has no message of its own: the question being solved is the message.
-        val messages = !errors.isEmpty() && !judgeResult.isAnswerCorrect ? errors.stream().map(pair -> AnswerFeedbackData.Message.error(pair.getRight(), pair.getLeft())).toList()
-                : judgeResult.IterationsLeft > 0 && judgeResult.isAnswerCorrect ? List.of(AnswerFeedbackData.Message.success(localizationService.getMessage("exercise_correct-question-answer", locale), violations))
+        val messages = !errors.isEmpty() && !judgement.isAnswerCorrect() ? errors.stream().map(pair -> AnswerFeedbackData.Message.error(pair.getRight(), pair.getLeft())).toList()
+                : judgement.stepsLeft() > 0 && judgement.isAnswerCorrect() ? List.of(AnswerFeedbackData.Message.success(localizationService.getMessage("exercise_correct-question-answer", locale), violations))
                 : null;
 
         // return result of the last correct interaction
@@ -138,11 +143,11 @@ class ExerciseAttemptFrontendServiceImpl implements ExerciseAttemptFrontendServi
 
         // special case for order question
         // force complete answer if the last but one answer is correct
-        val isAnswerCorrect = errors.isEmpty() && judgeResult.isAnswerCorrect;
+        val isAnswerCorrect = errors.isEmpty() && judgement.isAnswerCorrect();
         val orderQuestionOptions = Utils.tryCast(question.getContent().getOptions(), OrderQuestionOptionsData.class).orElse(null);
         if (isAnswerCorrect && question.getContent().getQuestionType().equals(QuestionType.ORDER) &&
                 orderQuestionOptions != null && !orderQuestionOptions.isMultipleSelectionEnabled() &&
-                judgeResult.IterationsLeft == 1 && question.getContent().getAnswerObjects().size() - correctAnswers.size() == 1) {
+                judgement.stepsLeft() == 1 && question.getContent().getAnswerObjects().size() - correctAnswers.size() == 1) {
             val correctAnswersIds = correctAnswers.stream().map(r -> r.getAnswer().left().getAnswerId()).collect(Collectors.toSet());
             val missingAnswer = question.getContent().getAnswerObjects().stream()
                     .filter(ao -> !correctAnswersIds.contains(ao.getAnswerId()))
@@ -156,7 +161,7 @@ class ExerciseAttemptFrontendServiceImpl implements ExerciseAttemptFrontendServi
         }
 
         return feedbackDtoMapper.map(new AnswerFeedbackData(question, messages, correctAnswers, isAnswerCorrect,
-                judgeResult.IterationsLeft, strategyDecision.grade(), strategyDecision.decision()), language);
+                judgement.stepsLeft(), strategyDecision.grade(), strategyDecision.decision()), language);
     }
 
     @SneakyThrows
@@ -194,14 +199,15 @@ class ExerciseAttemptFrontendServiceImpl implements ExerciseAttemptFrontendServi
     @Transactional(propagation = Propagation.REQUIRED)
     public @NotNull ClarificationFeedbackDto answerClarification(@NotNull ClarificationAnswerDto answer) {
         var question = questionService.getQuestion(answer.questionId());
-        var clarification = question.pendingClarification().orElseThrow(() -> new IllegalStateException(
+        var interaction = question.findInteractionAwaitingClarification().orElseThrow(() -> new IllegalStateException(
                 "Question " + answer.questionId() + " has no clarification awaiting an answer"));
-        var chosen = answer.hypothesis() == null ? null : clarification.options().stream()
-                .filter(option -> option.hypothesis().equals(answer.hypothesis()))
+        var chosen = answer.option() == null ? null : Objects.requireNonNull(interaction.getClarification()).content()
+                .options().stream()
+                .filter(option -> option.reasoning() == answer.option())
                 .findFirst()
                 .orElseThrow(() -> new IllegalArgumentException(
-                        "Hypothesis " + answer.hypothesis() + " is not among the clarification options"));
-        questionService.answerClarification(question.getInteractions().getLast().getId(), answer.hypothesis());
+                        "Reasoning " + answer.option() + " is not among the clarification options"));
+        questionService.answerClarification(interaction.getId(), chosen == null ? null : chosen.reasoning());
         return new ClarificationFeedbackDto(chosen == null ? null : chosen.explanation());
     }
 
@@ -227,7 +233,7 @@ class ExerciseAttemptFrontendServiceImpl implements ExerciseAttemptFrontendServi
         val responses = Stream.concat(
                 alreadyGiven.stream().map(ResponseData::getAnswer),
                 questionService.resolveAnswers(questionId, nextAnswers).stream()).toList();
-        val judgeResult = domain.judgeQuestion(question, responses,
+        val judgement = domain.judgeAnswer(question, responses,
                 domain.resolveTags(question.getContent().getTags()), language);
 
         // add interaction
@@ -235,7 +241,7 @@ class ExerciseAttemptFrontendServiceImpl implements ExerciseAttemptFrontendServi
                 Stream.concat(
                         carriedAnswerMapper.mapAll(alreadyGiven).stream(),
                         submittedAnswerMapper.mapAll(nextAnswers).stream()).toList(),
-                judgeResult);
+                judgement, null);
         question = graded.question();
         val recorded = graded.interaction();
         val strategyDecision = graded.decision();
@@ -248,8 +254,8 @@ class ExerciseAttemptFrontendServiceImpl implements ExerciseAttemptFrontendServi
                 .toList();
 
         return feedbackDtoMapper.map(new AnswerFeedbackData(question, messages, recorded.getResponses(),
-                /*true*/ judgeResult.violations.isEmpty() && judgeResult.isAnswerCorrect,
-                judgeResult.IterationsLeft, strategyDecision.grade(), strategyDecision.decision()), language);
+                /*true*/ recorded.isCorrect(),
+                judgement.stepsLeft(), strategyDecision.grade(), strategyDecision.decision()), language);
     }
 
     /** Взаимодействие, записанное и оценённое стратегией, вместе с обновлённым вопросом. */
@@ -266,22 +272,22 @@ class ExerciseAttemptFrontendServiceImpl implements ExerciseAttemptFrontendServi
                                                       @Nullable QuestionAttemptContextData context,
                                                       @NotNull InteractionType interactionType,
                                                       @NotNull List<NewInteractionAnswerData> answers,
-                                                      @NotNull Domain.InterpretSentenceResult judgeResult) {
+                                                      @NotNull Judgement judgement,
+                                                      @Nullable HypothesisClarificationData clarification) {
+        val reasonings = judgement.reasonings().stream().map(Reasoning::toData).toList();
         val recorded = questionService.recordInteraction(new NewInteractionData(
                 question.getId(),
                 interactionType,
                 answers,
-                orEmpty(judgeResult.violations),
-                orEmpty(judgeResult.correctlyAppliedLaws),
-                // Подсказку дала система: гипотезы о её ответе ничего не говорят о рассуждении студента.
-                interactionType == SEND_RESPONSE ? judgeResult.hypotheses : List.of(),
-                interactionType == SEND_RESPONSE ? withShuffledOptions(chooseClarification(judgeResult, context)) : null,
-                judgeResult.IterationsLeft));
+                judgement.isAnswerCorrect(),
+                interactionType == SEND_RESPONSE ? reasonings : List.of(toSystemReasoning(judgement.isAnswerCorrect(), reasonings)),
+                withShuffledOptions(clarification),
+                judgement.stepsLeft()));
 
         val decision = context == null
                 ? new StrategyDecision(1f, Decision.CONTINUE)
                 : strategyFactory.getStrategy(context.strategyId())
-                        .gradeAndDecide(context.attemptId(), judgeResult);
+                        .gradeAndDecide(context.attemptId());
         questionService.gradeInteraction(recorded.getId(), decision.grade());
         if (context != null) {
             exerciseAttemptService.ensureAttemptStatus(context.attemptId(), decision.decision());
@@ -290,17 +296,50 @@ class ExerciseAttemptFrontendServiceImpl implements ExerciseAttemptFrontendServi
         return new GradedInteraction(question.withInteraction(recorded), recorded, decision);
     }
 
-    // Неверный ответ уточняется всегда, верный — если так решит стратегия: решение опирается на ответы до этого.
-    private @Nullable HypothesisClarificationData chooseClarification(@NotNull Domain.InterpretSentenceResult judgeResult,
+    // Неверный ответ, который объясняют несколько рассуждений, уточняется всегда. Верный — если к нему ведут и
+    // заблуждения, а спросить решит стратегия: решение опирается на ответы до этого.
+    private @Nullable HypothesisClarificationData chooseClarification(@NotNull Judgement judgement,
                                                                       @Nullable QuestionAttemptContextData context) {
-        if (judgeResult.clarification != null) {
-            return judgeResult.clarification;
+        var inquiry = judgement.inquiry();
+        if (inquiry == null) {
+            return null;
         }
-        if (judgeResult.correctAnswerClarification != null && context != null
-                && strategyFactory.getStrategy(context.strategyId()).shouldClarifyCorrectAnswer(context.attemptId())) {
-            return judgeResult.correctAnswerClarification;
+        var reasonings = judgement.reasonings();
+        var offered = IntStream.range(0, reasonings.size())
+                .filter(i -> reasonings.get(i).reason() != null)
+                .boxed()
+                .toList();
+        boolean isAsked = judgement.isAnswerCorrect()
+                ? offered.stream().anyMatch(i -> reasonings.get(i).isCorrect())
+                        && reasonings.stream().anyMatch(reasoning -> !reasoning.isCorrect())
+                        && context != null
+                        && strategyFactory.getStrategy(context.strategyId()).shouldClarifyCorrectAnswer(context.attemptId())
+                : offered.size() > 1;
+        if (!isAsked) {
+            return null;
         }
-        return null;
+        return new HypothesisClarificationData(inquiry.prompt(), offered.stream()
+                .map(i -> new HypothesisClarificationData.Option(i, reasonings.get(i).explanation().getRawMessage().getText()))
+                .toList());
+    }
+
+    // Верный ответ объяснять не нужно, каким бы рассуждением студент к нему ни пришёл. Пока студент не назвал
+    // причину неверного ответа из нескольких возможных, ответ объясняется без неё.
+    private static @NotNull Explanation explainAnswer(@NotNull Judgement judgement) {
+        if (judgement.isAnswerCorrect()) {
+            return Explanation.empty(Explanation.Type.ERROR);
+        }
+        var reasonings = judgement.reasonings();
+        return reasonings.size() == 1
+                ? reasonings.getFirst().explanation()
+                : Objects.requireNonNull(judgement.inquiry()).statement();
+    }
+
+    // Подсказку дала система: рассуждения, которыми к её ответу мог бы прийти студент, о нём ничего не говорят.
+    private static @NotNull InteractionReasoningData toSystemReasoning(boolean isAnswerCorrect,
+                                                                       @NotNull List<InteractionReasoningData> reasonings) {
+        var counted = new CountedLawsData(isAnswerCorrect, reasonings, null);
+        return new InteractionReasoningData(null, isAnswerCorrect, null, counted.getViolations(), counted.getAppliedLaws());
     }
 
     // Порядок вариантов влияет на выбор студента, поэтому он случайный; сохраняется показанный порядок.
@@ -311,10 +350,6 @@ class ExerciseAttemptFrontendServiceImpl implements ExerciseAttemptFrontendServi
         var options = new ArrayList<>(clarification.options());
         Collections.shuffle(options, randomProvider.getRandom());
         return new HypothesisClarificationData(clarification.prompt(), options);
-    }
-
-    private static <T> @NotNull List<T> orEmpty(@Nullable List<T> values) {
-        return values == null ? List.of() : values;
     }
 
     private static void muteDeniedExplanations(@Nullable Explanation explanation, @Nullable QuestionAttemptContextData context) {

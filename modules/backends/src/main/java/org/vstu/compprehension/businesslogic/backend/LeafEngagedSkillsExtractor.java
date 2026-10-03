@@ -1,4 +1,4 @@
-package org.vstu.compprehension.strategies.util;
+package org.vstu.compprehension.businesslogic.backend;
 
 import its.model.nodes.BranchResult;
 import its.model.nodes.DecisionTreeElement;

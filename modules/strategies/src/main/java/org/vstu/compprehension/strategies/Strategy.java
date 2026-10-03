@@ -472,7 +472,7 @@ public class Strategy extends StrategyBase<CommonStrategySettings> {
     }
 
     @Override
-    public float grade(long exerciseAttemptId, Domain.InterpretSentenceResult judgeResult) {
+    public float grade(long exerciseAttemptId) {
         var exerciseAttempt = getAttempt(exerciseAttemptId);
 
         val res = getLawGrade(exerciseAttempt);

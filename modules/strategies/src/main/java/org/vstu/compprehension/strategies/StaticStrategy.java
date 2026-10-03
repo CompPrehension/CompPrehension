@@ -89,7 +89,7 @@ public class StaticStrategy extends StrategyBase<CommonStrategySettings> {
     }
 
     @Override
-    public float grade(long exerciseAttemptId, Domain.InterpretSentenceResult judgeResult) {
+    public float grade(long exerciseAttemptId) {
         var exerciseAttempt = getAttempt(exerciseAttemptId);
         // all questions defined by exercise
         int nQuestionsExpected = exerciseAttempt.exercise().stages().stream().mapToInt(ExerciseStageData::getNumberOfQuestions).reduce(Integer::sum).orElse(1);
@@ -101,7 +101,7 @@ public class StaticStrategy extends StrategyBase<CommonStrategySettings> {
             long correctInteractions = interactions.stream()
                     .filter(inter -> inter != null
                             && inter.type() == InteractionType.SEND_RESPONSE
-                            && (inter.violationLawNames() == null || inter.violationLawNames().isEmpty())
+                            && inter.isCorrect()
                     )
                     .count();
             if (knownInteractions == 0)

@@ -335,7 +335,7 @@ public class ProgrammingLanguageExpressionDTDomain extends DecisionTreeReasoning
         }
 
         @Override
-        public InterpretSentenceResult interpretJudgeNotPerformed(
+        public Judgement interpretJudgeNotPerformed(
                 QuestionData judgedQuestion,
                 LearningSituation preparedSituation,
                 Language language
@@ -348,49 +348,38 @@ public class ProgrammingLanguageExpressionDTDomain extends DecisionTreeReasoning
                     domainSolvingModel.decisionTree("earlyfinish")
             );
 
+            int stepsLeft = calculateLeftInteractions(preparedSituation);
+            if (stepsLeft == 0) {
+                // Достигли полного завершения задачи.
+                // Ошибок уже быть не может — сбросим их все.
+                return new Judgement(new Reasoning(null, true, null, Explanation.empty(Explanation.Type.HINT),
+                        List.of(), List.of()), stepsLeft);
+            }
+
             ViolationData violation = new ViolationData();
             violation.setLawName(STILL_UNEVALUATED_LEFT_VIOLATION_NAME);
             violation.setViolationFacts(new ArrayList<>());
-            InterpretSentenceResult result = new InterpretSentenceResult();
-            result.violations = new ArrayList<>(List.of(violation));
+            var violations = new ArrayList<>(List.of(violation));
 
-            result.explanation = DecisionTreeReasonerBackend.collectExplanationsFromTrace(
+            var explanation = DecisionTreeReasonerBackend.collectExplanationsFromTrace(
                     Explanation.Type.ERROR, solveResult.trace(),
                     preparedSituation.getDomainModel(),
                     getDomain(),
                     language);
-            result.violations.addAll(result.explanation.getDomainLawNames().stream().map(skill -> {
+            violations.addAll(explanation.getDomainLawNames().stream().map(skill -> {
                 ViolationData v = new ViolationData();
                 v.setLawName(skill);
                 v.setViolationFacts(new ArrayList<>());
                 return v;
             }).toList());
-            updateInterpretationResult(result, preparedSituation);
-            return result;
+            return new Judgement(new Reasoning(null, false, null, explanation, violations, List.of()), stepsLeft);
         }
 
         @Override
-        public void updateJudgeInterpretationResult(
-                InterpretSentenceResult interpretationResult,
-                DecisionTreeReasonerBackend.Output backendOutput
-        ) {
-            updateInterpretationResult(interpretationResult, backendOutput.situation());
-        }
-
-        private void updateInterpretationResult(
-                InterpretSentenceResult interpretationResult,
-                LearningSituation situation
-        ) {
-            interpretationResult.CountCorrectOptions = 1; //TODO? Непонятно зачем оно надо
-            interpretationResult.IterationsLeft = calculateLeftInteractions(situation);
-
-            if (interpretationResult.IterationsLeft == 0) {
-                // Достигли полного завершения задачи.
-                // Ошибок уже быть не может — сбросим их все.
-                interpretationResult.isAnswerCorrect = true;
-                interpretationResult.violations = List.of();
-                interpretationResult.explanation = Explanation.empty(Explanation.Type.HINT);
-            }
+        public int countStepsLeft(@NotNull QuestionData judgedQuestion,
+                                  @NotNull DecisionTreeReasonerBackend.Output backendOutput,
+                                  boolean isAnswerCorrect) {
+            return calculateLeftInteractions(backendOutput.situation());
         }
 
         public int calculateLeftInteractions(LearningSituation situation) {
@@ -952,11 +941,6 @@ public class ProgrammingLanguageExpressionDTDomain extends DecisionTreeReasoning
     }
 
     //-----------Объяснения---------------
-
-    @Override
-    public InterpretSentenceResult interpretSentence(Collection<Fact> violations) {
-        return null; //FIXME удалить?
-    }
 
     @Override
     public Explanation makeExplanation(List<ViolationData> mistakes, FeedbackType feedbackType, Language lang) {

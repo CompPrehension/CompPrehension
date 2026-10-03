@@ -1149,8 +1149,7 @@ QuestionOptionsData orderQuestionOptions = OrderQuestionOptionsData.builder()
     }
 
     @Override
-    public InterpretSentenceResult interpretSentence(Collection<Fact> violations) {
-        InterpretSentenceResult result = new InterpretSentenceResult();
+    protected @NotNull Judgement interpretViolations(@NotNull Collection<Fact> violations, @NotNull Language language) {
         List<ViolationData> mistakes = new ArrayList<>();
         HashSet<String> mistakeTypes = new HashSet<>();
 
@@ -1322,7 +1321,6 @@ QuestionOptionsData orderQuestionOptions = OrderQuestionOptionsData.builder()
             }
         }
 
-        result.violations = mistakes;
         mistakeTypes.clear();
 
         // reason - наследник связи consequent (вычисляется ризонером для latest акта)
@@ -1333,12 +1331,11 @@ QuestionOptionsData orderQuestionOptions = OrderQuestionOptionsData.builder()
         }
         // add possible but not taken mistakes
         correctlyAppliedLaws.addAll(notHappenedMistakes(correctlyAppliedLaws, violations));
-        result.correctlyAppliedLaws = correctlyAppliedLaws;
 
-        ProcessSolutionResult processResult = processSolution(violations);
-        result.CountCorrectOptions = processResult.CountCorrectOptions;
-        result.IterationsLeft = processResult.IterationsLeft; // + (mistakes.isEmpty() ? 0 : 1);
-        return result;
+        // Ответ верен, если ризонер не нашёл в нём нарушений.
+        return new Judgement(new Reasoning(null, mistakes.isEmpty(), null,
+                makeExplanation(mistakes, FeedbackType.EXPLANATION, language), mistakes, correctlyAppliedLaws),
+                countStepsLeft(violations));
     }
 
     Set<String> possibleMistakesByLaw(String correctLaw) {
@@ -1484,18 +1481,14 @@ QuestionOptionsData orderQuestionOptions = OrderQuestionOptionsData.builder()
         return new JenaFactList(factsModel);
     }
 
-    public ProcessSolutionResult processSolution(Collection<Fact> solution) {
+    private int countStepsLeft(Collection<Fact> solution) {
         OntModel model = factsAndSchemaToOntModel(solution);
 
-        return processSolution(model);
+        return countStepsLeft(model);
     }
 
     /** receive solution as model */
-    protected ProcessSolutionResult processSolution(OntModel model) {
-        InterpretSentenceResult result = new InterpretSentenceResult();
-        // there is always one correct answer
-        result.CountCorrectOptions = 1;
-
+    protected int countStepsLeft(OntModel model) {
         // retrieving full solution path ...
         int pathLen = 0;
         try {
@@ -1598,11 +1591,10 @@ QuestionOptionsData orderQuestionOptions = OrderQuestionOptionsData.builder()
             }
         } catch (AssertionFailedError error) {
             pathLen = 99;
-            log.debug("WARN: processSolution(): cannot find entry_point, fallback to: pathLen = {}", pathLen);
+            log.debug("WARN: countStepsLeft(): cannot find entry_point, fallback to: pathLen = {}", pathLen);
         }
 
-        result.IterationsLeft = Math.max(0, pathLen);  // guard for negative pathLen: end of question (same as 0)
-        return result;
+        return Math.max(0, pathLen);  // guard for negative pathLen: end of question (same as 0)
     }
 
     @Override

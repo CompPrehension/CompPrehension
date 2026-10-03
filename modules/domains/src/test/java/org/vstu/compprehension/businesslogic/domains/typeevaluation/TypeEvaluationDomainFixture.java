@@ -1,10 +1,10 @@
 package org.vstu.compprehension.businesslogic.domains.typeevaluation;
 
 import org.jetbrains.annotations.NotNull;
-import org.vstu.compprehension.businesslogic.domains.Domain.InterpretSentenceResult;
 import org.vstu.compprehension.businesslogic.domains.DomainFixtures;
 import org.vstu.compprehension.businesslogic.domains.DomainFixtures.BundleLocalizationService;
 import org.vstu.compprehension.businesslogic.domains.DomainFixtures.SeededRandomProvider;
+import org.vstu.compprehension.businesslogic.domains.Judgement;
 import org.vstu.compprehension.businesslogic.domains.TypeEvaluationDTDomain;
 import org.vstu.compprehension.data.question.AnswerData;
 import org.vstu.compprehension.data.question.AnswerObjectData;
@@ -49,9 +49,13 @@ final class TypeEvaluationDomainFixture {
             List.of(new Step("op_greeting", "t_str"), new Step("op_int", "t_int"), new Step("op_next", "t_int"),
                     new Step("op_str", "t_str"), new Step("op_message", "t_str")));
 
+    /** count + total, где у обоих операндов в условии есть похожие списки counts и totals. */
+    static final BankQuestion COUNT_PLUS_TOTAL = new BankQuestion("count_plus_total",
+            List.of(new Step("op_add", "t_int")));
+
     static final List<BankQuestion> BANK = List.of(
             AVERAGE_OF_GRADES, EMPTY_NAME_OR_NAMES, STUDENT_FIRST_GRADE, FIRST_CHAR_PLUS_ONE, GRADE_COUNT, GRADES_PLUS_ONE,
-            AVERAGE_BY_SUBJECT, AGE_NEXT_YEAR);
+            AVERAGE_BY_SUBJECT, AGE_NEXT_YEAR, COUNT_PLUS_TOTAL);
 
     private static final class Holder {
         private static final TypeEvaluationDTDomain DOMAIN = new TypeEvaluationDTDomain(
@@ -83,8 +87,8 @@ final class TypeEvaluationDomainFixture {
                 .toList();
     }
 
-    static @NotNull InterpretSentenceResult judge(@NotNull QuestionData question, @NotNull List<AnswerData> responses) {
-        return domain().judgeQuestion(question, responses,
+    static @NotNull Judgement judge(@NotNull QuestionData question, @NotNull List<AnswerData> responses) {
+        return domain().judgeAnswer(question, responses,
                 domain().resolveTags(question.getContent().getTags()), Language.RUSSIAN);
     }
 
@@ -98,7 +102,7 @@ final class TypeEvaluationDomainFixture {
                 .id(1L)
                 .interactionType(InteractionType.SEND_RESPONSE)
                 .responses(new ArrayList<>(responses))
-                .violations(new ArrayList<>())
+                .isCorrect(true)
                 .feedback(FeedbackData.builder().interactionsLeft(interactionsLeft).build())
                 .build());
     }

@@ -461,11 +461,6 @@ public class DataFlowDTDomain extends DecisionTreeReasoningDomain {
 
     //-----------Объяснения---------------
     @Override
-    public InterpretSentenceResult interpretSentence(Collection<Fact> violations) {
-        throw new NotImplementedException();
-    }
-
-    @Override
     public Explanation makeExplanation(List<ViolationData> mistakes, FeedbackType feedbackType, Language lang) {
         throw new NotImplementedException();
     }
@@ -561,74 +556,51 @@ public class DataFlowDTDomain extends DecisionTreeReasoningDomain {
         }
 
         @Override
-        public InterpretSentenceResult interpretJudgeOutput(QuestionData judgedQuestion, DecisionTreeReasonerBackend.Output backendOutput, Language language) {
+        public Judgement interpretJudgeOutput(QuestionData judgedQuestion, DecisionTreeReasonerBackend.Output backendOutput, Language language) {
             var realDomain = DataFlowDTDomain.this;
 
             if(!backendOutput.isReasoningDone()){
                 return interpretJudgeNotPerformed(judgedQuestion, backendOutput.situation(), language);
             }
-            InterpretSentenceResult result = new InterpretSentenceResult();
-            updateJudgeInterpretationResult(result, backendOutput);
+            int stepsLeft = calculateLeftInteractions(backendOutput.situation());
 
-            result.explanation = GenerateErrorTextForScopeObjects.generateErrorExplanation(
+            var explanation = GenerateErrorTextForScopeObjects.generateErrorExplanation(
                     backendOutput.results(),
                     backendOutput.situation().getDomainModel(),
                     language
             );
-            result.explanation = realDomain.replaceEnumInExplanation(result.explanation, language);
-            result.explanation.setCurrentDomainLawName("incorrectAnswer");
+            explanation = realDomain.replaceEnumInExplanation(explanation, language);
+            explanation.setCurrentDomainLawName("incorrectAnswer");
 
-            result.violations = new ArrayList<>();
-            result.correctlyAppliedLaws = new ArrayList<>();
-            result.isAnswerCorrect = result.explanation.getRawMessage().isEmpty();
-            if(!result.isAnswerCorrect) {
+            var violations = new ArrayList<ViolationData>();
+            boolean isAnswerCorrect = explanation.getRawMessage().isEmpty();
+            if(!isAnswerCorrect) {
                 ViolationData v = new ViolationData();
                 v.setLawName("incorrectAnswer");
                 v.setViolationFacts(new ArrayList<>());
-                result.violations.add(v);
+                violations.add(v);
             } else {
-                result.IterationsLeft--;
+                stepsLeft--;
             }
-            return result;
+            return new Judgement(new Reasoning(null, isAnswerCorrect, null, explanation, violations, List.of()),
+                    stepsLeft);
         }
 
         @Override
-        public InterpretSentenceResult interpretJudgeNotPerformed(
+        public Judgement interpretJudgeNotPerformed(
                 QuestionData judgedQuestion,
                 LearningSituation preparedSituation,
                 Language language
         ) {
-            InterpretSentenceResult result = new InterpretSentenceResult();
-            result.violations = new ArrayList<>();
-            result.explanation = new Explanation(
-                    Explanation.Type.ERROR,
-                    ""
-            );
-            return result;
+            return new Judgement(new Reasoning(null, false, null, new Explanation(Explanation.Type.ERROR, ""),
+                    List.of(), List.of()), 0);
         }
 
         @Override
-        public void updateJudgeInterpretationResult(
-                InterpretSentenceResult interpretationResult,
-                DecisionTreeReasonerBackend.Output backendOutput
-        ) {
-            updateInterpretationResult(interpretationResult, backendOutput.situation());
-        }
-
-        private void updateInterpretationResult(
-                InterpretSentenceResult interpretationResult,
-                LearningSituation situation
-        ) {
-            interpretationResult.CountCorrectOptions = 1;
-            interpretationResult.IterationsLeft = calculateLeftInteractions(situation);
-
-            if (interpretationResult.IterationsLeft == 0) {
-                // Достигли полного завершения задачи.
-                // Ошибок уже быть не может — сбросим их все.
-                interpretationResult.isAnswerCorrect = true;
-                interpretationResult.violations = List.of();
-                interpretationResult.explanation = Explanation.empty(Explanation.Type.HINT);
-            }
+        public int countStepsLeft(@NotNull QuestionData judgedQuestion,
+                                  @NotNull DecisionTreeReasonerBackend.Output backendOutput,
+                                  boolean isAnswerCorrect) {
+            return calculateLeftInteractions(backendOutput.situation());
         }
 
         public int calculateLeftInteractions(LearningSituation situation) {

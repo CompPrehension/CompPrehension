@@ -197,7 +197,7 @@ export const mockQuestions: Record<number, MockQuestion> = {
         correctAnswers: [[0, 102], [1, 100]],
         clarifications: {
             '1:100': {
-                prompt: 'Why did you choose the type int?',
+                prompt: 'Why did you choose the type <code>int</code>?',
                 options: [
                     {
                         hypothesis: 'rule',
@@ -228,7 +228,7 @@ mockQuestions[11] = {
     correctAnswers: [[0, 100], [1, 101]],
     clarifications: {
         '1:100': {
-            prompt: 'Why did you choose the type int?',
+            prompt: 'Why did you choose the type <code>int</code>?',
             options: [
                 {
                     hypothesis: 'operand_type',
@@ -301,7 +301,7 @@ export function gradeAnswers(questionId: number, submitted: Answer[], isHint = f
     return {
         isCorrect: wrong.length === 0,
         clarification: clarification
-            ? { prompt: clarification.prompt, options: clarification.options.map(({ hypothesis, reason }) => ({ hypothesis, reason })) }
+            ? { prompt: clarification.prompt, options: clarification.options.map(({ hypothesis, reason }, id) => ({ id, hypothesis, reason })) }
             : null,
         grade: expected.length === 0 ? 1 : correctAnswers.length / expected.length,
         correctAnswers,
@@ -322,10 +322,10 @@ export function gradeAnswers(questionId: number, submitted: Answer[], isHint = f
 const pendingClarifications: Record<number, MockClarification | undefined> = {};
 
 /** Explanation of the misconception the student named; null for another reason. */
-export function answerClarification(questionId: number, hypothesis: string | null): string | null {
+export function answerClarification(questionId: number, option: number | null): string | null {
     const clarification = pendingClarifications[questionId];
     pendingClarifications[questionId] = undefined;
-    return clarification?.options.find(o => o.hypothesis === hypothesis)?.explanation ?? null;
+    return option === null ? null : clarification?.options[option]?.explanation ?? null;
 }
 
 export function nextCorrectAnswer(questionId: number): Answer[] {

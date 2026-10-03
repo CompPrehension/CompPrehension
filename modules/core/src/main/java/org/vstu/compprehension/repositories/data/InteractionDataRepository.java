@@ -6,21 +6,17 @@ import org.jetbrains.annotations.Nullable;
 import org.springframework.stereotype.Repository;
 import org.springframework.transaction.annotation.Transactional;
 import org.vstu.compprehension.data.question.AnswerData;
-import org.vstu.compprehension.data.question.AnswerHypothesisData;
 import org.vstu.compprehension.data.question.HypothesisClarificationData;
 import org.vstu.compprehension.data.question.AnswerObjectData;
 import org.vstu.compprehension.data.question.NewInteractionData;
 import org.vstu.compprehension.data.question.NewInteractionAnswerData;
 import org.vstu.compprehension.data.question.QuestionInteractionData;
 import org.vstu.compprehension.data.question.SubmittedAnswerData;
-import org.vstu.compprehension.data.question.ViolationData;
 import org.vstu.compprehension.entities.AnswerObjectEntity;
 import org.vstu.compprehension.entities.InteractionClarificationEntity;
 import org.vstu.compprehension.entities.InteractionEntity;
-import org.vstu.compprehension.entities.InteractionHypothesisEntity;
 import org.vstu.compprehension.entities.QuestionEntity;
 import org.vstu.compprehension.entities.ResponseEntity;
-import org.vstu.compprehension.entities.ViolationEntity;
 import org.vstu.compprehension.enums.QuestionType;
 import org.vstu.compprehension.mappers.Mapper;
 import org.vstu.compprehension.utils.Strict;
@@ -46,8 +42,6 @@ public class InteractionDataRepository {
     private final ResponseRepository responseRepository;
     private final Mapper<AnswerObjectEntity, AnswerObjectData> answerObjectMapper;
     private final Mapper<InteractionEntity, QuestionInteractionData> questionInteractionMapper;
-    private final Mapper<ViolationData, ViolationEntity> violationEntityMapper;
-    private final Mapper<AnswerHypothesisData, InteractionHypothesisEntity> hypothesisEntityMapper;
     private final Mapper<HypothesisClarificationData, InteractionClarificationEntity> clarificationEntityMapper;
     private final InteractionClarificationRepository clarificationRepository;
 
@@ -105,9 +99,8 @@ public class InteractionDataRepository {
         var interaction = new InteractionEntity(
                 data.interactionType(),
                 question,
-                violationEntityMapper.mapAll(data.violations()),
-                data.correctLaws(),
-                hypothesisEntityMapper.mapAll(data.hypotheses()),
+                data.isCorrect(),
+                data.reasonings(),
                 data.clarification() == null ? null : clarificationEntityMapper.map(data.clarification()),
                 responses,
                 firstGivenHere);
@@ -123,11 +116,11 @@ public class InteractionDataRepository {
     }
 
     @Transactional
-    public void answerClarification(long interactionId, @Nullable String hypothesis) {
+    public void answerClarification(long interactionId, @Nullable Integer chosenReasoning) {
         var clarification = clarificationRepository.findByInteractionId(interactionId).orElseThrow(
                 () -> new NoSuchElementException("Interaction " + interactionId + " has no clarification"));
         clarification.setAnsweredAt(new Date());
-        clarification.setChosenHypothesis(hypothesis);
+        clarification.setChosenReasoning(chosenReasoning);
         clarificationRepository.saveAndFlush(clarification);
     }
 

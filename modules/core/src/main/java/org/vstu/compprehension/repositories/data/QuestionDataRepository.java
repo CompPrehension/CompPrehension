@@ -20,7 +20,6 @@ import org.vstu.compprehension.repositories.entity.InteractionRepository;
 import org.vstu.compprehension.repositories.entity.QuestionMetadataRepository;
 import org.vstu.compprehension.repositories.entity.QuestionRepository;
 import org.vstu.compprehension.repositories.entity.QuestionRequestLogRepository;
-import org.vstu.compprehension.repositories.entity.ViolationRepository;
 import org.vstu.compprehension.repositories.mappers.QuestionEntityMapper;
 import org.vstu.compprehension.repositories.mappers.QuestionMapper;
 
@@ -37,7 +36,6 @@ public class QuestionDataRepository {
 
     private final QuestionRepository questionRepository;
     private final InteractionRepository interactionRepository;
-    private final ViolationRepository violationRepository;
     private final AnswerObjectRepository answerObjectRepository;
     private final ExerciseAttemptRepository exerciseAttemptRepository;
     private final QuestionMetadataRepository questionMetadataRepository;
@@ -52,10 +50,8 @@ public class QuestionDataRepository {
                 .orElseThrow(() -> new NoSuchElementException("Question " + questionId + " not found"));
 
         questionRepository.findByIdFetchingAnswerObjects(questionId);
-        violationRepository.findAllByQuestionIdFetchingTemplates(questionId);
-        var interactions = interactionRepository.findAllByQuestionIdFetchingViolations(questionId);
+        var interactions = interactionRepository.findAllByQuestionIdFetchingFeedback(questionId);
         interactionRepository.findAllByQuestionIdFetchingResponses(questionId);
-        interactionRepository.findAllByQuestionIdFetchingCorrectLaws(questionId);
 
         return questionMapper.map(question, interactions);
     }

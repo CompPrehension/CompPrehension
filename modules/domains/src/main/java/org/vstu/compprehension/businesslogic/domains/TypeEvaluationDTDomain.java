@@ -76,7 +76,6 @@ public class TypeEvaluationDTDomain extends DecisionTreeReasoningDomain {
     private static final String HAS_OPERAND = "hasOperand";
     private static final String OPERATION_VARIABLE = "E";
     private static final String ANSWER_VARIABLE = "T";
-    private static final String EVALUATION_ERROR_CLASS = "EvaluationError";
     public static final String EVALUATION_ORDER_VIOLATION = "evaluation_order";
 
     private static final Map<String, Tag> TAGS = Map.of("Python", new Tag("Python", 1L));
@@ -180,46 +179,23 @@ public class TypeEvaluationDTDomain extends DecisionTreeReasoningDomain {
         }
 
         @Override
-        public InterpretSentenceResult interpretJudgeNotPerformed(QuestionData judgedQuestion,
-                                                                  LearningSituation preparedSituation,
-                                                                  Language language) {
-            // Нарушение нужно, чтобы ответ не в порядке вычисления не попал в историю верных ответов.
+        public Judgement interpretJudgeNotPerformed(QuestionData judgedQuestion,
+                                                    LearningSituation preparedSituation,
+                                                    Language language) {
             var violation = new ViolationData();
             violation.setLawName(EVALUATION_ORDER_VIOLATION);
-            var result = new InterpretSentenceResult();
-            result.isAnswerCorrect = false;
-            result.violations = List.of(violation);
-            result.correctlyAppliedLaws = List.of();
-            result.explanation = Explanation.aggregate(Explanation.Type.ERROR,
+            var explanation = Explanation.aggregate(Explanation.Type.ERROR,
                     List.of(new Explanation(Explanation.Type.ERROR, getMessage("operands_first", language))));
-            result.CountCorrectOptions = 1;
-            result.IterationsLeft = countUnsolvedOperations(preparedSituation.getDomainModel());
-            return result;
+            return new Judgement(new Reasoning(null, false, null, explanation, List.of(violation), List.of()),
+                    countUnsolvedOperations(preparedSituation.getDomainModel()));
         }
 
         @Override
-        public @NotNull String makeClarificationPrompt(@NotNull QuestionData judgedQuestion,
-                                                       @NotNull DecisionTreeReasonerBackend.Output backendOutput,
-                                                       @NotNull Language language) {
-            var model = backendOutput.situation().getDomainModel();
-            var answeredOutcome = model.getVariables().get(ANSWER_VARIABLE).getValueObjectName();
-            var outcomeName = judgedQuestion.getContent().getAnswerObjects().stream()
-                    .filter(answer -> answer.isRightCol() && answer.getDomainInfo().equals(answeredOutcome))
-                    .map(AnswerObjectData::getHyperText)
-                    .findFirst()
-                    .orElseThrow(() -> new IllegalStateException("No answer option for outcome " + answeredOutcome));
-            var prompt = model.getObjects().get(answeredOutcome).isInstanceOf(EVALUATION_ERROR_CLASS)
-                    ? "clarification_prompt_error"
-                    : "clarification_prompt";
-            return getMessage(prompt, language).replace("${type}", outcomeName);
-        }
-
-        @Override
-        public void updateJudgeInterpretationResult(InterpretSentenceResult interpretationResult,
-                                                    DecisionTreeReasonerBackend.Output backendOutput) {
+        public int countStepsLeft(@NotNull QuestionData judgedQuestion,
+                                  @NotNull DecisionTreeReasonerBackend.Output backendOutput,
+                                  boolean isAnswerCorrect) {
             var unsolved = countUnsolvedOperations(backendOutput.situation().getDomainModel());
-            interpretationResult.CountCorrectOptions = 1;
-            interpretationResult.IterationsLeft = interpretationResult.isAnswerCorrect ? unsolved - 1 : unsolved;
+            return isAnswerCorrect ? unsolved - 1 : unsolved;
         }
     }
 
@@ -432,11 +408,6 @@ public class TypeEvaluationDTDomain extends DecisionTreeReasoningDomain {
     @Override
     public Collection<PositiveLaw> getQuestionPositiveLaws(String questionDomainType, List<Tag> tags) {
         return List.of();
-    }
-
-    @Override
-    public InterpretSentenceResult interpretSentence(Collection<Fact> violations) {
-        return null;
     }
 
     @Override

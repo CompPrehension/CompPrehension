@@ -4,6 +4,7 @@ import org.springframework.data.jpa.repository.JpaRepository;
 import org.springframework.data.jpa.repository.Query;
 import org.springframework.data.repository.query.Param;
 import org.springframework.stereotype.Repository;
+import org.vstu.compprehension.data.question.InteractionReasoningData;
 import org.vstu.compprehension.enums.InteractionType;
 import org.vstu.compprehension.entities.InteractionEntity;
 
@@ -19,22 +20,18 @@ public interface InteractionRepository extends JpaRepository<InteractionEntity, 
         Integer getOrderNumber();
         InteractionType getInteractionType();
         Integer getInteractionsLeft();
-        Boolean getReasoningConfirmed();
-    }
-
-    interface InteractionLawRow {
-        Long getInteractionId();
-        String getLawName();
+        boolean getIsCorrect();
+        List<InteractionReasoningData> getReasonings();
+        Long getClarificationId();
+        Integer getChosenReasoning();
     }
 
     @Query("""
             select i.question.id as questionId, i.id as interactionId,
                    i.orderNumber as orderNumber, i.interactionType as interactionType,
                    f.interactionsLeft as interactionsLeft,
-                   case when c.id is null then null
-                        when exists (select h.id from InteractionHypothesisEntity h
-                                     where h.interaction = i and h.name = c.chosenHypothesis and h.isCorrect = true)
-                        then true else false end as reasoningConfirmed
+                   i.isCorrect as isCorrect, i.reasonings as reasonings,
+                   c.id as clarificationId, c.chosenReasoning as chosenReasoning
             from InteractionEntity i
             left join i.feedback f
             left join InteractionClarificationEntity c on c.interaction = i
@@ -43,31 +40,15 @@ public interface InteractionRepository extends JpaRepository<InteractionEntity, 
             """)
     List<InteractionRow> findRowsByQuestionIdIn(@Param("questionIds") Collection<Long> questionIds);
 
-    @Query("""
-            select v.interaction.id as interactionId, v.lawName as lawName
-            from ViolationEntity v
-            where v.interaction.id in :interactionIds
-            order by v.id
-            """)
-    List<InteractionLawRow> findViolationLawsByInteractionIdIn(@Param("interactionIds") Collection<Long> interactionIds);
-
-    @Query("""
-            select cl.interaction.id as interactionId, cl.lawName as lawName
-            from CorrectLawEntity cl
-            where cl.interaction.id in :interactionIds
-            order by cl.id
-            """)
-    List<InteractionLawRow> findCorrectLawsByInteractionIdIn(@Param("interactionIds") Collection<Long> interactionIds);
-
-    /** Взаимодействия вопроса с оценкой и нарушениями. */
+    /** Взаимодействия вопроса с оценкой и уточняющим вопросом. */
     @Query("""
             select distinct i from InteractionEntity i
             left join fetch i.feedback
-            left join fetch i.violations
+            left join fetch i.clarification
             where i.question.id = :questionId
             order by i.id
             """)
-    List<InteractionEntity> findAllByQuestionIdFetchingViolations(@Param("questionId") long questionId);
+    List<InteractionEntity> findAllByQuestionIdFetchingFeedback(@Param("questionId") long questionId);
 
     /** Взаимодействия вопроса с ответами студента и выбранными вариантами. */
     @Query("""
@@ -80,13 +61,4 @@ public interface InteractionRepository extends JpaRepository<InteractionEntity, 
             order by i.id, r.id
             """)
     List<InteractionEntity> findAllByQuestionIdFetchingResponses(@Param("questionId") long questionId);
-
-    /** Взаимодействия вопроса с верно применёнными законами. */
-    @Query("""
-            select distinct i from InteractionEntity i
-            left join fetch i.correctLaw
-            where i.question.id = :questionId
-            order by i.id
-            """)
-    List<InteractionEntity> findAllByQuestionIdFetchingCorrectLaws(@Param("questionId") long questionId);
 }

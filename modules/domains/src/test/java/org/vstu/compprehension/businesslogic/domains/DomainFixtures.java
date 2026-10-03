@@ -4,10 +4,12 @@ import com.google.gson.Gson;
 import com.google.gson.JsonParser;
 import org.jetbrains.annotations.NotNull;
 import org.vstu.compprehension.businesslogic.storage.SerializableQuestion;
+import org.vstu.compprehension.data.question.CountedLawsData;
 import org.vstu.compprehension.data.question.AnswerData;
 import org.vstu.compprehension.data.question.AnswerObjectData;
 import org.vstu.compprehension.data.question.FeedbackData;
 import org.vstu.compprehension.data.question.QuestionData;
+import org.vstu.compprehension.data.question.InteractionReasoningData;
 import org.vstu.compprehension.data.question.QuestionInteractionData;
 import org.vstu.compprehension.data.question.QuestionMetadataWithData;
 import org.vstu.compprehension.data.question.ResponseData;
@@ -83,9 +85,33 @@ public final class DomainFixtures {
                 .id(id)
                 .interactionType(InteractionType.SEND_RESPONSE)
                 .responses(new ArrayList<>(responses))
-                .violations(new ArrayList<>(violations))
+                .isCorrect(violations.isEmpty())
+                .reasonings(List.of(new InteractionReasoningData(null, violations.isEmpty(), null, violations, List.of())))
                 .feedback(FeedbackData.builder().interactionsLeft(interactionsLeft).build())
                 .build();
+    }
+
+    /** Единственное рассуждение ответа: домен, не различающий рассуждения, объясняет им сам ответ. */
+    public static Reasoning onlyReasoning(Judgement judgement) {
+        if (judgement.reasonings().size() != 1) {
+            throw new IllegalStateException("Ответ объясняют несколько рассуждений: " + judgement.reasonings());
+        }
+        return judgement.reasonings().getFirst();
+    }
+
+    /** Нарушения, которые засчитываются за ответ сразу, до уточнения рассуждения. */
+    public static List<ViolationData> violations(Judgement judgement) {
+        return countedLaws(judgement).getViolations();
+    }
+
+    /** Законы, которые засчитываются за ответ как применённые верно, до уточнения рассуждения. */
+    public static List<String> appliedLaws(Judgement judgement) {
+        return countedLaws(judgement).getAppliedLaws();
+    }
+
+    private static CountedLawsData countedLaws(Judgement judgement) {
+        return new CountedLawsData(judgement.isAnswerCorrect(),
+                judgement.reasonings().stream().map(Reasoning::toData).toList(), null);
     }
 
     public static QuestionData withCorrectSteps(QuestionData question, List<AnswerObjectData> given, int totalSteps) {

@@ -1,0 +1,266 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<databaseChangeLog xmlns="http://www.liquibase.org/xml/ns/dbchangelog"
+                   xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance"
+                   xsi:schemaLocation="http://www.liquibase.org/xml/ns/dbchangelog
+                       http://www.liquibase.org/xml/ns/dbchangelog/dbchangelog-4.5.xsd">
+
+    <!--
+        Взаимодействие хранит вердикт и рассуждения, которыми студент мог прийти к ответу (JSON), а уточнение —
+        номер выбранного рассуждения, и его варианты ссылаются на рассуждения по номеру. Нарушения, применённые законы
+        и гипотезы раньше лежали в трёх таблицах без связи между собой; у старых взаимодействий с несколькими гипотезами
+        общий список нарушений получает каждая, а причину — из варианта уточнения по этой гипотезе.
+    -->
+    <changeSet id="2026-10-02-01-interaction-reasonings" author="Artem Prokudin">
+        <sql>
+            alter table interaction
+                add column is_correct tinyint(1) null,
+                add column reasonings json       null;
+
+            -- Вердикт раньше не хранился: ответ считался верным, если у него нет нарушений.
+            update interaction i
+            set i.is_correct = not exists (select 1 from violation v where v.interaction_id = i.id);
+
+            create temporary table tmp_interaction_violations as
+            select v.interaction_id,
+                   json_arrayagg(json_object(
+                           'lawName', v.law_name,
+                           'violationFacts', v.violation_facts,
+                           'explanationTemplateInfo', coalesce(
+                                   (select json_arrayagg(json_object('id', t.id, 'fieldName', t.field_name,
+                                                                     'value', t.value))
+                                    from explanation_template_info t
+                                    where t.violation_id = v.id),
+                                   json_array()))) as violations
+            from violation v
+            group by v.interaction_id;
+
+            create temporary table tmp_interaction_applied_laws as
+            select cl.interaction_id, json_arrayagg(cl.law_name) as applied_laws
+            from correct_law cl
+            group by cl.interaction_id;
+
+            create temporary table tmp_clarification_options as
+            select c.id as clarification_id, c.interaction_id, o.option_index, o.hypothesis, o.reason, o.explanation
+            from interaction_clarification c,
+                 json_table(c.content, '$.options[*]' columns (
+                     option_index for ordinality,
+                     hypothesis varchar(255) path '$.hypothesis',
+                     reason text path '$.reason',
+                     explanation text path '$.explanation')) o;
+
+            update interaction i
+                join (select h.interaction_id,
+                             json_arrayagg(json_object(
+                                     'hypothesis', h.name,
+                                     'isCorrect', if(h.is_correct, cast('true' as json), cast('false' as json)),
+                                     'reason', (select o.reason
+                                                from tmp_clarification_options o
+                                                where o.interaction_id = h.interaction_id and o.hypothesis = h.name
+                                                limit 1),
+                                     'violations', coalesce(cast(tv.violations as json), json_array()),
+                                     'appliedLaws', coalesce(cast(ta.applied_laws as json), json_array()))) as reasonings
+                      from interaction_hypothesis h
+                               left join tmp_interaction_violations tv on tv.interaction_id = h.interaction_id
+                               left join tmp_interaction_applied_laws ta on ta.interaction_id = h.interaction_id
+                      group by h.interaction_id) r on r.interaction_id = i.id
+            set i.reasonings = r.reasonings;
+
+            update interaction i
+                left join tmp_interaction_violations tv on tv.interaction_id = i.id
+                left join tmp_interaction_applied_laws ta on ta.interaction_id = i.id
+            set i.reasonings = json_array(json_object(
+                    'hypothesis', null,
+                    'isCorrect', if(i.is_correct, cast('true' as json), cast('false' as json)),
+                    'reason', null,
+                    'violations', coalesce(cast(tv.violations as json), json_array()),
+                    'appliedLaws', coalesce(cast(ta.applied_laws as json), json_array())))
+            where i.reasonings is null;
+
+            drop temporary table tmp_interaction_violations;
+            drop temporary table tmp_interaction_applied_laws;
+
+            alter table interaction
+                modify column is_correct tinyint(1) not null,
+                modify column reasonings json       not null;
+
+            alter table interaction_clarification
+                add column chosen_reasoning int null;
+
+            -- В имени гипотезы «_» — подстановочный знак json_search, поэтому он экранируется.
+            update interaction_clarification c
+                join interaction i on i.id = c.interaction_id
+            set c.chosen_reasoning = cast(regexp_substr(json_unquote(json_search(
+                    i.reasonings, 'one', replace(c.chosen_hypothesis, '_', '\\_'), null, '$[*].hypothesis')),
+                    '[0-9]+') as unsigned)
+            where c.chosen_hypothesis is not null;
+
+            update interaction_clarification c
+                join (select distinct o.clarification_id,
+                                      json_arrayagg(json_object('reasoning', o.reasoning, 'explanation', o.explanation))
+                                          over (partition by o.clarification_id order by o.option_index
+                                              rows between unbounded preceding and unbounded following) as options
+                      from (select t.clarification_id, t.option_index, t.explanation,
+                                   cast(regexp_substr(json_unquote(json_search(
+                                           i.reasonings, 'one', replace(t.hypothesis, '_', '\\_'), null,
+                                           '$[*].hypothesis')), '[0-9]+') as unsigned) as reasoning
+                            from tmp_clarification_options t
+                                     join interaction i on i.id = t.interaction_id) o) n on n.clarification_id = c.id
+            set c.content = json_set(c.content, '$.options', n.options);
+
+            drop temporary table tmp_clarification_options;
+
+            alter table interaction_clarification
+                drop column chosen_hypothesis;
+        </sql>
+        <rollback>
+            <sql>
+                alter table interaction_clarification
+                    add column chosen_hypothesis varchar(255) null;
+
+                update interaction_clarification c
+                    join interaction i on i.id = c.interaction_id
+                set c.chosen_hypothesis = json_unquote(json_extract(
+                        i.reasonings, concat('$[', c.chosen_reasoning, '].hypothesis')))
+                where c.chosen_reasoning is not null;
+
+                create temporary table tmp_clarification_options as
+                select c.id as clarification_id, o.option_index,
+                       json_object('hypothesis', json_extract(i.reasonings, concat('$[', o.reasoning, '].hypothesis')),
+                                   'reason', json_extract(i.reasonings, concat('$[', o.reasoning, '].reason')),
+                                   'explanation', o.explanation) as content_option
+                from interaction_clarification c
+                         join interaction i on i.id = c.interaction_id,
+                     json_table(c.content, '$.options[*]' columns (
+                         option_index for ordinality,
+                         reasoning int path '$.reasoning',
+                         explanation text path '$.explanation')) o;
+
+                update interaction_clarification c
+                    join (select distinct o.clarification_id,
+                                          json_arrayagg(o.content_option)
+                                              over (partition by o.clarification_id order by o.option_index
+                                                  rows between unbounded preceding and unbounded following) as options
+                          from tmp_clarification_options o) n on n.clarification_id = c.id
+                set c.content = json_set(c.content, '$.options', n.options);
+
+                drop temporary table tmp_clarification_options;
+
+                alter table interaction_clarification
+                    drop column chosen_reasoning;
+
+                alter table interaction
+                    drop column is_correct,
+                    drop column reasonings;
+            </sql>
+        </rollback>
+    </changeSet>
+
+    <changeSet id="2026-10-02-01-drop-interaction-laws" author="Artem Prokudin">
+        <sql>
+            drop table explanation_template_info;
+            drop table violation;
+            drop table correct_law;
+            drop table interaction_hypothesis;
+        </sql>
+        <rollback>
+            <!-- Таблицы восстанавливаются из рассуждений: нарушения — у рассуждений с итогом ответа, одинаковые
+                 у разных рассуждений один раз; применённые законы и гипотезы — по всем рассуждениям. -->
+            <sql>
+                create table violation
+                (
+                    id              bigint       not null auto_increment primary key,
+                    interaction_id  bigint       not null,
+                    law_name        varchar(255) not null,
+                    violation_facts json         not null,
+                    tmp_source      varchar(64)  null,
+                    key FK_VIOLATION_ON_INTERACTION (interaction_id),
+                    constraint FK_VIOLATION_ON_INTERACTION
+                        foreign key (interaction_id) references interaction (id)
+                );
+
+                create table explanation_template_info
+                (
+                    id           bigint       not null auto_increment primary key,
+                    field_name   varchar(255) null,
+                    value        varchar(255) null,
+                    violation_id bigint       not null,
+                    key FK_EXPLANATIONTEMPLATEINFO_ON_VIOLATION (violation_id),
+                    constraint FK_EXPLANATIONTEMPLATEINFO_ON_VIOLATION
+                        foreign key (violation_id) references violation (id)
+                );
+
+                create table correct_law
+                (
+                    id             bigint       not null auto_increment primary key,
+                    interaction_id bigint       not null,
+                    law_name       varchar(255) not null,
+                    key FK_CORRECTLAW_ON_INTERACTION (interaction_id),
+                    constraint FK_CORRECTLAW_ON_INTERACTION
+                        foreign key (interaction_id) references interaction (id)
+                );
+
+                create table interaction_hypothesis
+                (
+                    id             bigint       not null auto_increment primary key,
+                    interaction_id bigint       not null,
+                    name           varchar(255) not null,
+                    is_correct     tinyint(1)   not null,
+                    constraint fk_interaction_hypothesis_interaction
+                        foreign key (interaction_id) references interaction (id)
+                );
+
+                insert into violation (interaction_id, law_name, violation_facts, tmp_source)
+                select interaction_id, law_name, violation_facts, tmp_source
+                from (select i.id                                                                    as interaction_id,
+                             jt.law_name,
+                             coalesce(jt.violation_facts, json_array())                              as violation_facts,
+                             concat(jt.reasoning_index - 1, ':', jt.violation_index - 1)             as tmp_source,
+                             dense_rank() over (partition by i.id, jt.law_name,
+                                 md5(cast(coalesce(jt.violation_facts, json_array()) as char))
+                                 order by jt.reasoning_index)                                        as reasoning_rank
+                      from interaction i,
+                           json_table(i.reasonings, '$[*]' columns (
+                               reasoning_index for ordinality,
+                               is_correct tinyint(1) path '$.isCorrect',
+                               nested path '$.violations[*]' columns (
+                                   violation_index for ordinality,
+                                   law_name varchar(255) path '$.lawName',
+                                   violation_facts json path '$.violationFacts'))) jt
+                      where jt.law_name is not null
+                        and jt.is_correct = i.is_correct) restored
+                where reasoning_rank = 1
+                order by interaction_id, tmp_source;
+
+                insert into explanation_template_info (field_name, value, violation_id)
+                select t.field_name, t.value, v.id
+                from violation v
+                         join interaction i on i.id = v.interaction_id,
+                     json_table(json_extract(i.reasonings, concat(
+                             '$[', substring_index(v.tmp_source, ':', 1), '].violations[',
+                             substring_index(v.tmp_source, ':', -1), '].explanationTemplateInfo')),
+                         '$[*]' columns (
+                             field_name varchar(255) path '$.fieldName',
+                             value varchar(255) path '$.value')) t
+                order by v.id;
+
+                alter table violation
+                    drop column tmp_source;
+
+                insert into correct_law (interaction_id, law_name)
+                select distinct i.id, jt.law_name
+                from interaction i,
+                     json_table(i.reasonings, '$[*].appliedLaws[*]' columns (
+                         law_name varchar(255) path '$')) jt;
+
+                insert into interaction_hypothesis (interaction_id, name, is_correct)
+                select distinct i.id, jt.hypothesis, jt.is_correct
+                from interaction i,
+                     json_table(i.reasonings, '$[*]' columns (
+                         hypothesis varchar(255) path '$.hypothesis',
+                         is_correct tinyint(1) path '$.isCorrect')) jt
+                where jt.hypothesis is not null;
+            </sql>
+        </rollback>
+    </changeSet>
+
+</databaseChangeLog>

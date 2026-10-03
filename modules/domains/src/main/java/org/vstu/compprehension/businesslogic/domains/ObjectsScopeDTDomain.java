@@ -639,11 +639,6 @@ public class ObjectsScopeDTDomain extends DecisionTreeReasoningDomain {
 
     //-----------Объяснения---------------
     @Override
-    public InterpretSentenceResult interpretSentence(Collection<Fact> violations) {
-        throw new NotImplementedException();
-    }
-
-    @Override
     public Explanation makeExplanation(List<ViolationData> mistakes, FeedbackType feedbackType, Language lang) {
         throw new NotImplementedException();
     }
@@ -780,137 +775,102 @@ public class ObjectsScopeDTDomain extends DecisionTreeReasoningDomain {
         }
 
         @Override
-        public InterpretSentenceResult interpretJudgeOutput(QuestionData judgedQuestion, DecisionTreeReasonerBackend.Output backendOutput, Language language) {
+        public Judgement interpretJudgeOutput(QuestionData judgedQuestion, DecisionTreeReasonerBackend.Output backendOutput, Language language) {
             if(!backendOutput.isReasoningDone()){
                 return interpretJudgeNotPerformed(judgedQuestion, backendOutput.situation(), language);
             }
-            InterpretSentenceResult result = new InterpretSentenceResult();
-            updateInterpretationResult(judgedQuestion.getContent().getQuestionDomainType(), result, backendOutput.situation());
+            var questionDomainType = judgedQuestion.getContent().getQuestionDomainType();
+            int stepsLeft = countStepsLeft(questionDomainType, backendOutput.situation());
 
-            result.explanation = GenerateErrorTextForScopeObjects.generateErrorExplanation(
+            var explanation = GenerateErrorTextForScopeObjects.generateErrorExplanation(
                     backendOutput.results(),
                     backendOutput.situation().getDomainModel(),
                     language
             );
-            result.violations = new ArrayList<>();
-            result.correctlyAppliedLaws = new ArrayList<>();
-            result.isAnswerCorrect = result.explanation.getRawMessage().isEmpty();
+            boolean isAnswerCorrect = explanation.getRawMessage().isEmpty();
 
-            if(judgedQuestion.getContent().getQuestionDomainType().equals(LIFE_TIME)) {
-                result.explanation.setCurrentDomainLawName("incorrectStep");
-                if(!result.isAnswerCorrect) {
+            String lawName = questionDomainType.equals(LIFE_TIME) ? "incorrectStep"
+                    : questionDomainType.equals(OBJECT_VISIBILITY) ? "incorrectLine"
+                    : questionDomainType.equals(OBJECTS_VISIBILITY) ? "incorrectVariable"
+                    : null;
+            var violations = new ArrayList<ViolationData>();
+            if (lawName != null) {
+                explanation.setCurrentDomainLawName(lawName);
+                if(!isAnswerCorrect) {
                     ViolationData v = new ViolationData();
-                    v.setLawName("incorrectStep");
+                    v.setLawName(lawName);
                     v.setViolationFacts(new ArrayList<>());
-                    result.violations.add(v);
-                }
-            } else if (judgedQuestion.getContent().getQuestionDomainType().equals(OBJECT_VISIBILITY)) {
-                result.explanation.setCurrentDomainLawName("incorrectLine");
-                if(!result.isAnswerCorrect) {
-                    ViolationData v = new ViolationData();
-                    v.setLawName("incorrectLine");
-                    v.setViolationFacts(new ArrayList<>());
-                    result.violations.add(v);
-                }
-            } else if(judgedQuestion.getContent().getQuestionDomainType().equals(OBJECTS_VISIBILITY)) {
-                result.explanation.setCurrentDomainLawName("incorrectVariable");
-                if(!result.isAnswerCorrect) {
-                    ViolationData v = new ViolationData();
-                    v.setLawName("incorrectVariable");
-                    v.setViolationFacts(new ArrayList<>());
-                    result.violations.add(v);
+                    violations.add(v);
                 }
             }
-            return result;
+            return new Judgement(new Reasoning(null, isAnswerCorrect, null, explanation, violations, List.of()),
+                    stepsLeft);
         }
 
         @Override
-        public InterpretSentenceResult interpretJudgeNotPerformed(
+        public Judgement interpretJudgeNotPerformed(
                 QuestionData judgedQuestion,
                 LearningSituation preparedSituation,
                 Language language
         ) {
             var realDomain = ObjectsScopeDTDomain.this;
-            
-            if(judgedQuestion.getContent().getQuestionDomainType().equals(LIFE_TIME)) {
-                DecisionTreeTrace decisionTreeTrace = DecisionTreeReasoner.solve(
-                        realDomain.domainLifeTimeSolvingModel.decisionTree("all"),
-                        preparedSituation
-                );
+            var questionDomainType = judgedQuestion.getContent().getQuestionDomainType();
 
-                InterpretSentenceResult result = new InterpretSentenceResult();
-                result.violations = new ArrayList<>();
-                result.explanation = GenerateErrorTextForScopeObjects.generateErrorExplanation(
-                        decisionTreeTrace,
-                        preparedSituation.getDomainModel(),
-                        language
-                );
-                result.explanation.setCurrentDomainLawName("incorrectSteps");
-
-                updateInterpretationResult(judgedQuestion.getContent().getQuestionDomainType(), result, preparedSituation);
-                if(!result.explanation.getRawMessage().isEmpty()) {
-                    ViolationData v = new ViolationData();
-                    v.setLawName("incorrectSteps");
-                    v.setViolationFacts(new ArrayList<>());
-                    result.violations.add(v);
-                }
-                return result;
-            } else if (judgedQuestion.getContent().getQuestionDomainType().equals(OBJECT_VISIBILITY)) {
-                DecisionTreeTrace decisionTreeTrace = DecisionTreeReasoner.solve(
-                        realDomain.domainObjectVisibilitySolvingModel.decisionTree("all"),
-                        preparedSituation
-                );
-
-                InterpretSentenceResult result = new InterpretSentenceResult();
-                result.violations = new ArrayList<>();
-                result.explanation = GenerateErrorTextForScopeObjects.generateErrorExplanation(
-                        decisionTreeTrace,
-                        preparedSituation.getDomainModel(),
-                        language
-                );
-                result.explanation.setCurrentDomainLawName("incorrectLines");
-
-                updateInterpretationResult(judgedQuestion.getContent().getQuestionDomainType(), result, preparedSituation);
-                if(!result.explanation.getRawMessage().isEmpty()) {
-                    ViolationData v = new ViolationData();
-                    v.setLawName("incorrectLines");
-                    v.setViolationFacts(new ArrayList<>());
-                    result.violations.add(v);
-                }
-                return result;
-            } else if(judgedQuestion.getContent().getQuestionDomainType().equals(OBJECTS_VISIBILITY)) {
+            DomainSolvingModel solvingModel;
+            String lawName;
+            if(questionDomainType.equals(LIFE_TIME)) {
+                solvingModel = realDomain.domainLifeTimeSolvingModel;
+                lawName = "incorrectSteps";
+            } else if (questionDomainType.equals(OBJECT_VISIBILITY)) {
+                solvingModel = realDomain.domainObjectVisibilitySolvingModel;
+                lawName = "incorrectLines";
+            } else {
                 return null;
             }
-            return null;
+            DecisionTreeTrace decisionTreeTrace = DecisionTreeReasoner.solve(
+                    solvingModel.decisionTree("all"),
+                    preparedSituation
+            );
+
+            int stepsLeft = countStepsLeft(questionDomainType, preparedSituation);
+            if (stepsLeft == 0) {
+                // Достигли полного завершения задачи.
+                // Ошибок уже быть не может — сбросим их все.
+                return new Judgement(new Reasoning(null, true, null, Explanation.empty(Explanation.Type.HINT),
+                        List.of(), List.of()), stepsLeft);
+            }
+            var explanation = GenerateErrorTextForScopeObjects.generateErrorExplanation(
+                    decisionTreeTrace,
+                    preparedSituation.getDomainModel(),
+                    language
+            );
+            explanation.setCurrentDomainLawName(lawName);
+            var violations = new ArrayList<ViolationData>();
+            if(!explanation.getRawMessage().isEmpty()) {
+                ViolationData v = new ViolationData();
+                v.setLawName(lawName);
+                v.setViolationFacts(new ArrayList<>());
+                violations.add(v);
+            }
+            return new Judgement(new Reasoning(null, false, null, explanation, violations, List.of()), stepsLeft);
         }
 
         @Override
-        public void updateJudgeInterpretationResult(
-                InterpretSentenceResult interpretationResult,
-                DecisionTreeReasonerBackend.Output backendOutput
-        ) {}
+        public int countStepsLeft(@NotNull QuestionData judgedQuestion,
+                                  @NotNull DecisionTreeReasonerBackend.Output backendOutput,
+                                  boolean isAnswerCorrect) {
+            return countStepsLeft(judgedQuestion.getContent().getQuestionDomainType(), backendOutput.situation());
+        }
 
-        private void updateInterpretationResult(
-                String questionDomainType,
-                InterpretSentenceResult interpretationResult,
-                LearningSituation situation
-        ) {
-            interpretationResult.CountCorrectOptions = 1;
+        private int countStepsLeft(String questionDomainType, LearningSituation situation) {
             if(questionDomainType.equals(LIFE_TIME)) {
-                interpretationResult.IterationsLeft = calculateLeftInteractionsInLifeTime(situation);
+                return calculateLeftInteractionsInLifeTime(situation);
             } else if (questionDomainType.equals(OBJECT_VISIBILITY)) {
-                interpretationResult.IterationsLeft = calculateLeftInteractionsObjectVisibility(situation);
+                return calculateLeftInteractionsObjectVisibility(situation);
             } else if (questionDomainType.equals(OBJECTS_VISIBILITY)) {
-                interpretationResult.IterationsLeft = calculateLeftInteractionsObjectsVisibility(situation);
+                return calculateLeftInteractionsObjectsVisibility(situation);
             }
-
-            if (interpretationResult.IterationsLeft == 0) {
-                // Достигли полного завершения задачи.
-                // Ошибок уже быть не может — сбросим их все.
-                interpretationResult.isAnswerCorrect = true;
-                interpretationResult.violations = List.of();
-                interpretationResult.explanation = Explanation.empty(Explanation.Type.HINT);
-            }
+            return 0;
         }
 
         public int calculateLeftInteractionsInLifeTime(LearningSituation situation) {

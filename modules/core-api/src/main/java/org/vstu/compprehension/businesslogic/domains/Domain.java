@@ -1,8 +1,6 @@
 package org.vstu.compprehension.businesslogic.domains;
 
 import org.vstu.compprehension.data.question.AnswerData;
-import org.vstu.compprehension.data.question.AnswerHypothesisData;
-import org.vstu.compprehension.data.question.HypothesisClarificationData;
 import org.vstu.compprehension.businesslogic.SupplementaryStepContext;
 import org.vstu.compprehension.data.question.SupplementaryStepData;
 import org.vstu.compprehension.data.question.ViolationData;
@@ -90,12 +88,6 @@ public interface Domain {
      * @return list of positive laws
      */
     Collection<PositiveLaw> getQuestionPositiveLaws(String questionDomainType, List<Tag> tags);
-
-    /**
-     * Evaluate one iteration, collect info and find violations
-     * @param violations violation facts
-     */
-    InterpretSentenceResult interpretSentence(Collection<Fact> violations);
 
     /**
      * Generate explanation of violations
@@ -214,9 +206,9 @@ public interface Domain {
      * @param question current question being solved
      * @param responses new responses from student (to add to solution if correct)
      * @param tags Exercise tags
-     * @return interpretation of backend's judgement
      */
-    InterpretSentenceResult judgeQuestion(QuestionData question, List<? extends AnswerData> responses, List<Tag> tags, Language language);
+    @NotNull Judgement judgeAnswer(@NotNull QuestionData question, @NotNull List<? extends AnswerData> responses,
+                                   @NotNull List<Tag> tags, @NotNull Language language);
 
     /**
      * Any available correct answer at current iteration
@@ -242,59 +234,5 @@ public interface Domain {
          * Skill names for this answer
          */
         public List<String> skillName;
-    }
-
-    /**
-     * Statistics for current step of question evaluation
-     */
-    class ProcessSolutionResult {
-        /**
-         * Number of correct variants at current step
-         */
-        public int CountCorrectOptions;
-        /**
-         * Shortest number of steps (iterations) left
-         */
-        public int IterationsLeft;
-
-        /**
-         * For debug purposes
-         */
-        public Map<String, String> debugInfo = new HashMap<>();
-    }
-    /**
-     * Info about one iteration
-     */
-    class InterpretSentenceResult extends ProcessSolutionResult {
-        /**
-         * All violations
-         */
-        public List<ViolationData> violations;
-
-        public List<String> domainSkills = new ArrayList<>();
-
-        public List<String> domainNegativeLaws = new ArrayList<>();
-
-        public Explanation explanation;
-        /**
-         * List of all negative laws that not occurred
-         * (all answers where this answer would be the cause of the violation)
-         */
-        public List<String> correctlyAppliedLaws;
-        /**
-         * Is answer on question is correct.
-         * Supplementary can generate new violations even on correct variant.
-         */
-        public boolean isAnswerCorrect;
-
-        @NotNull
-        public List<AnswerHypothesisData> hypotheses = new ArrayList<>();
-
-        @Nullable
-        public HypothesisClarificationData clarification = null;
-
-        /** Вопрос о рассуждении, приведшем к верному ответу, к которому ведут и заблуждения: задаётся по решению стратегии. */
-        @Nullable
-        public HypothesisClarificationData correctAnswerClarification = null;
     }
 }

@@ -167,7 +167,7 @@ export class QuestionStore {
         this.onAnswerEvaluated(feedbackEither.right);
     }
 
-    answerClarification = async (hypothesis: string | null) => {
+    answerClarification = async (option: number | null) => {
         const { question, pendingFeedback } = this;
         if (!question || !pendingFeedback) {
             return;
@@ -176,7 +176,7 @@ export class QuestionStore {
         this.setValidStoreState();
 
         this.isClarificationSending = true;
-        const answerEither = await questionController.answerClarification({ questionId: question.questionId, hypothesis });
+        const answerEither = await questionController.answerClarification({ questionId: question.questionId, option });
         this.isClarificationSending = false;
 
         if (E.isLeft(answerEither)) {

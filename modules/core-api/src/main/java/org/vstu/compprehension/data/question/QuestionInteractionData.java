@@ -13,32 +13,34 @@ public class QuestionInteractionData {
     Long id;
     InteractionType interactionType;
     @Nullable FeedbackData feedback;
-    @NotNull List<ViolationData> violations;
+    boolean isCorrect;
+    @NotNull List<InteractionReasoningData> reasonings;
     @NotNull List<ResponseData> responses;
-    @NotNull List<CorrectLawData> correctLaw;
     @NotNull List<AnswerData> answers;
     @Nullable InteractionClarificationData clarification;
+    @NotNull List<ViolationData> violations;
+    @NotNull List<String> appliedLaws;
 
     @Builder(toBuilder = true)
     public QuestionInteractionData(Long id,
                                    InteractionType interactionType,
                                    @Nullable FeedbackData feedback,
-                                   @Nullable List<ViolationData> violations,
+                                   boolean isCorrect,
+                                   @Nullable List<InteractionReasoningData> reasonings,
                                    @Nullable List<ResponseData> responses,
-                                   @Nullable List<CorrectLawData> correctLaw,
                                    @Nullable InteractionClarificationData clarification) {
         this.id = id;
         this.interactionType = interactionType;
         this.feedback = feedback;
-        this.violations = violations == null ? List.of() : List.copyOf(violations);
+        this.isCorrect = isCorrect;
+        this.reasonings = reasonings == null ? List.of() : List.copyOf(reasonings);
         this.responses = responses == null ? List.of() : List.copyOf(responses);
-        this.correctLaw = correctLaw == null ? List.of() : List.copyOf(correctLaw);
         this.answers = this.responses.stream().map(ResponseData::getAnswer).toList();
         this.clarification = clarification;
-    }
-
-    public boolean isCorrect() {
-        return violations.isEmpty();
+        var counted = new CountedLawsData(isCorrect, this.reasonings,
+                clarification == null ? null : clarification.chosenReasoning());
+        this.violations = counted.getViolations();
+        this.appliedLaws = counted.getAppliedLaws();
     }
 
     public boolean allowsMoreSteps() {

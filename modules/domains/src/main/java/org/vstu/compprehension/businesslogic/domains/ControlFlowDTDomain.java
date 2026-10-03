@@ -211,7 +211,7 @@ public class ControlFlowDTDomain extends DecisionTreeReasoningDomain {
         }
 
         @Override
-        public InterpretSentenceResult interpretJudgeNotPerformed(QuestionData judgedQuestion, LearningSituation preparedSituation, Language language) {
+        public Judgement interpretJudgeNotPerformed(QuestionData judgedQuestion, LearningSituation preparedSituation, Language language) {
             return null;
         }
 
@@ -271,29 +271,22 @@ public class ControlFlowDTDomain extends DecisionTreeReasoningDomain {
         }
 
         @Override
-        public void updateJudgeInterpretationResult(InterpretSentenceResult interpretationResult, DecisionTreeReasonerBackend.Output backendOutput) {
+        public int countStepsLeft(@NotNull QuestionData judgedQuestion,
+                                  @NotNull DecisionTreeReasonerBackend.Output backendOutput,
+                                  boolean isAnswerCorrect) {
             ObjectDef L0TraceAct = backendOutput.situation().getDecisionTreeVariables().get("L0")
                     .findIn(backendOutput.situation().getDomainModel());
 
             // Если ответ правильный, берём следующий за L0 элемент трассы (идентичен A по позиции, но имеет связи трассы)
-            ObjectDef traceActForCount = interpretationResult.isAnswerCorrect
+            ObjectDef traceActForCount = isAnswerCorrect
                     ? L0TraceAct.getRelationshipLink("directlyBeforeOf").getObjects().getFirst()
                     : L0TraceAct;
 
-            interpretationResult.CountCorrectOptions = 1;
             int finishButtonEnabled = 1; // Note: set 0 if using explicit "Finish the problem" button.
 
-            interpretationResult.IterationsLeft = calculateInteractionsLeft(
+            return calculateInteractionsLeft(
                     backendOutput.situation().getDomainModel(),
                     traceActForCount) - finishButtonEnabled;
-
-            if (interpretationResult.IterationsLeft == 0) {
-                // Достигли полного завершения задачи.
-                // Ошибок уже быть не может — сбросим их все.
-                interpretationResult.isAnswerCorrect = true;
-                interpretationResult.violations = List.of();
-                interpretationResult.explanation = Explanation.empty(Explanation.Type.HINT);
-            }
         }
 
         @Override
@@ -549,11 +542,6 @@ public class ControlFlowDTDomain extends DecisionTreeReasoningDomain {
     @Override
     public Collection<PositiveLaw> getQuestionPositiveLaws(String questionDomainType, List<Tag> tags) {
         return List.of();
-    }
-
-    @Override
-    public InterpretSentenceResult interpretSentence(Collection<Fact> violations) {
-        return null; // не нужно для DT
     }
 
     @Override

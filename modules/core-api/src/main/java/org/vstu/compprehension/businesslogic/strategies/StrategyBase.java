@@ -65,7 +65,7 @@ public abstract class StrategyBase<S extends Record & StrategySettings> implemen
                 .toList();
         int streak = 0;
         for (var interaction : latestFirst) {
-            if (interaction.type() != InteractionType.SEND_RESPONSE || !interaction.violationLawNames().isEmpty()
+            if (interaction.type() != InteractionType.SEND_RESPONSE || !interaction.isCorrect()
                     || Boolean.FALSE.equals(interaction.isReasoningConfirmed())) {
                 break;
             }

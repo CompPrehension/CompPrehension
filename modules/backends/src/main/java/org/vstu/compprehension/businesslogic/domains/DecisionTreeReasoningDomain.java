@@ -21,7 +21,7 @@ public abstract class DecisionTreeReasoningDomain extends DomainBase {
     }
 
     public abstract List<DomainSolvingModel> getDomainSolvingModels();
-    
+
     public abstract DecisionTreeReasonerBackend.Interface getBackendInterface();
 
     @NotNull
@@ -39,10 +39,11 @@ public abstract class DecisionTreeReasoningDomain extends DomainBase {
         return question;
     }
 
-    public InterpretSentenceResult judgeQuestion(QuestionData question, List<? extends AnswerData> responses, List<Tag> tags, Language language) {
-        var backend = new DecisionTreeReasonerBackend();
+    @Override
+    public @NotNull Judgement judgeAnswer(@NotNull QuestionData question, @NotNull List<? extends AnswerData> responses,
+                                          @NotNull List<Tag> tags, @NotNull Language language) {
         var backendInterface = getBackendInterface();
-        var output = backend.judge(backendInterface.prepareBackendInfoForJudge(question, responses, tags));
+        var output = new DecisionTreeReasonerBackend().judge(backendInterface.prepareBackendInfoForJudge(question, responses, tags));
         return backendInterface.interpretJudgeOutput(question, output, language);
     }
 

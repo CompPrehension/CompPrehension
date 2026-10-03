@@ -3,7 +3,7 @@ package org.vstu.compprehension.businesslogic.domains.expressiondt;
 import org.junit.jupiter.api.Test;
 import org.junit.jupiter.params.ParameterizedTest;
 import org.junit.jupiter.params.provider.EnumSource;
-import org.vstu.compprehension.businesslogic.domains.Domain;
+import org.vstu.compprehension.businesslogic.domains.Judgement;
 import org.vstu.compprehension.businesslogic.domains.helpers.meaningtree.MeaningTreeRDFHelper;
 import org.vstu.compprehension.data.question.AnswerObjectData;
 import org.vstu.compprehension.data.question.QuestionData;
@@ -63,7 +63,7 @@ class ProgrammingLanguageExpressionDTDomainConversionTest {
             hasValues |= info.node().hasLabel(Label.VALUE);
         }
         assertTrue(hasValues, "у операндов нет значений");
-        assertTrue(judge(question, List.of(token(question, 1))).isAnswerCorrect);
+        assertTrue(judge(question, List.of(token(question, 1))).isAnswerCorrect());
     }
 
     /** Переведённый на Python вопрос решается в порядке вычисления C++. */
@@ -106,15 +106,15 @@ class ProgrammingLanguageExpressionDTDomainConversionTest {
         for (var index : tokens) {
             given.add(token(question, index));
             var result = judge(question, given);
-            assertTrue(result.isAnswerCorrect, "шаг token_" + index + ": " + result.explanation.toHyperText(Language.ENGLISH).getText());
-            assertEquals(tokens.size() - given.size(), result.IterationsLeft);
+            assertTrue(result.isAnswerCorrect(), "шаг token_" + index + ": " + result.reasonings());
+            assertEquals(tokens.size() - given.size(), result.stepsLeft());
         }
         given.add(endToken(question));
-        assertEquals(0, judge(question, given).IterationsLeft);
+        assertEquals(0, judge(question, given).stepsLeft());
     }
 
-    private static Domain.InterpretSentenceResult judge(QuestionData question, List<AnswerObjectData> answers) {
-        return domain().judgeQuestion(question, answers(answers), domain().resolveTags(question.getContent().getTags()), Language.ENGLISH);
+    private static Judgement judge(QuestionData question, List<AnswerObjectData> answers) {
+        return domain().judgeAnswer(question, answers(answers), domain().resolveTags(question.getContent().getTags()), Language.ENGLISH);
     }
 
     private static String tagOf(SupportedLanguage language) {

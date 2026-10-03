@@ -12,8 +12,12 @@ public record HypothesisClarificationData(@NotNull String prompt, @NotNull List<
         options = List.copyOf(options);
     }
 
-    /** Вариант ответа: гипотеза, её формулировка для студента и объяснение этого заблуждения. */
-    public record Option(@NotNull String hypothesis, @NotNull String reason, @NotNull String explanation)
-            implements Serializable {
+    /**
+     * Вариант ответа: рассуждение взаимодействия, гипотезу и причину которого видит студент.
+     *
+     * @param reasoning   номер рассуждения взаимодействия
+     * @param explanation объяснение, которое студент увидит, выбрав вариант
+     */
+    public record Option(int reasoning, @NotNull String explanation) implements Serializable {
     }
 }

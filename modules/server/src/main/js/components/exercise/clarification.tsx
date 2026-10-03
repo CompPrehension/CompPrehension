@@ -16,12 +16,12 @@ export const Clarification = observer(({ store }: ClarificationProps) => {
     if (clarification) {
         return (
             <Alert variant='warning' className='comp-ph-clarification'>
-                <div className='mb-2 fw-semibold'>{clarification.prompt}</div>
+                <div className='mb-2 fw-semibold' dangerouslySetInnerHTML={{ __html: clarification.prompt }}></div>
                 <div className='d-flex flex-column align-items-start gap-2'>
                     {clarification.options.map(option =>
-                        <Button key={option.hypothesis} variant='outline-dark' size='sm' className='text-start'
+                        <Button key={option.id} variant='outline-dark' size='sm' className='text-start'
                                 disabled={store.isClarificationSending}
-                                onClick={() => store.answerClarification(option.hypothesis)}>
+                                onClick={() => store.answerClarification(option.id)}>
                             <div dangerouslySetInnerHTML={{ __html: option.reason }}></div>
                         </Button>
                     )}

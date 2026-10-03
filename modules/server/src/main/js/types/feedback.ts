@@ -39,17 +39,18 @@ export const TFeedbackMessage: io.Type<FeedbackMessage> = io.union([
 /** A question about the reasoning behind an answer that several misconceptions explain. */
 export type Clarification = {
     prompt: string,
-    options: { hypothesis: string, reason: string }[],
+    // Options are told apart by id: two of them may share a hypothesis.
+    options: { id: number, hypothesis: string, reason: string }[],
 }
 const TClarification: io.Type<Clarification> = io.type({
     prompt: io.string,
-    options: io.array(io.type({ hypothesis: io.string, reason: io.string })),
+    options: io.array(io.type({ id: io.number, hypothesis: io.string, reason: io.string })),
 })
 
-/** No hypothesis means the student named another reason. */
+/** No option means the student named another reason. */
 export type ClarificationAnswer = {
     questionId: number,
-    hypothesis: string | null,
+    option: number | null,
 }
 
 export type ClarificationFeedback = {

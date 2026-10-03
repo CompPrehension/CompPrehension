@@ -5,7 +5,7 @@ import org.junit.jupiter.params.ParameterizedTest;
 import org.junit.jupiter.params.provider.MethodSource;
 import org.junit.jupiter.params.provider.ValueSource;
 import org.vstu.compprehension.businesslogic.HyperText;
-import org.vstu.compprehension.businesslogic.domains.Domain;
+import org.vstu.compprehension.businesslogic.domains.Judgement;
 import org.vstu.compprehension.businesslogic.domains.DomainFixtures;
 import org.vstu.compprehension.businesslogic.domains.controlflowdt.ControlFlowDtDomainFixture.BankQuestion;
 import org.vstu.compprehension.data.question.AnswerObjectData;
@@ -25,7 +25,10 @@ import static org.junit.jupiter.api.Assertions.assertNotEquals;
 import static org.junit.jupiter.api.Assertions.assertNull;
 import static org.junit.jupiter.api.Assertions.assertThrows;
 import static org.junit.jupiter.api.Assertions.assertTrue;
+import static org.vstu.compprehension.businesslogic.domains.DomainFixtures.appliedLaws;
 import static org.vstu.compprehension.businesslogic.domains.DomainFixtures.interaction;
+import static org.vstu.compprehension.businesslogic.domains.DomainFixtures.onlyReasoning;
+import static org.vstu.compprehension.businesslogic.domains.DomainFixtures.violations;
 import static org.vstu.compprehension.businesslogic.domains.DomainFixtures.answers;
 import static org.vstu.compprehension.businesslogic.domains.DomainFixtures.violation;
 import static org.vstu.compprehension.businesslogic.domains.controlflowdt.ControlFlowDtDomainFixture.BANK;
@@ -74,11 +77,11 @@ class ControlFlowDTDomainJudgeTest {
             var result = judge(question, given);
 
             // Assert.
-            assertTrue(result.isAnswerCorrect, bankQuestion.file() + " на шаге " + step);
-            assertEquals(List.of(), result.violations);
-            assertEquals(bankQuestion.steps() - given.size(), result.IterationsLeft);
-            assertFalse(result.domainSkills.isEmpty());
-            assertTrue(result.explanation.toHyperText(Language.RUSSIAN).getText().isBlank());
+            assertTrue(result.isAnswerCorrect(), bankQuestion.file() + " на шаге " + step);
+            assertEquals(List.of(), violations(result));
+            assertEquals(bankQuestion.steps() - given.size(), result.stepsLeft());
+            assertFalse(appliedLaws(result).isEmpty());
+            assertTrue(onlyReasoning(result).explanation().toHyperText(Language.RUSSIAN).getText().isBlank());
         }
     }
 
@@ -94,7 +97,7 @@ class ControlFlowDTDomainJudgeTest {
             var result = judge(question, trace(question, bankQuestion, step + 1));
 
             // Assert.
-            assertEquals(bankQuestion.isCondition(step - 1), result.domainSkills.contains(CONDITION_VALUE_SKILL),
+            assertEquals(bankQuestion.isCondition(step - 1), appliedLaws(result).contains(CONDITION_VALUE_SKILL),
                     bankQuestion.file() + " на шаге " + step);
         }
     }
@@ -110,10 +113,10 @@ class ControlFlowDTDomainJudgeTest {
         var result = judge(question, List.of(action(question, bankQuestion.action(1))));
 
         // Assert.
-        assertFalse(result.isAnswerCorrect);
-        assertEquals(bankQuestion.steps(), result.IterationsLeft);
-        assertEquals(List.of(SEQUENTIAL_ORDER_SKILL), lawNames(result.violations));
-        assertTrue(result.explanation.toHyperText(Language.RUSSIAN).getText().contains("сначала должно произойти"));
+        assertFalse(result.isAnswerCorrect());
+        assertEquals(bankQuestion.steps(), result.stepsLeft());
+        assertEquals(List.of(SEQUENTIAL_ORDER_SKILL), lawNames(violations(result)));
+        assertTrue(onlyReasoning(result).explanation().toHyperText(Language.RUSSIAN).getText().contains("сначала должно произойти"));
     }
 
     /** Повтор только что выполненного действия отклоняется. */
@@ -128,10 +131,10 @@ class ControlFlowDTDomainJudgeTest {
         var result = judge(question, List.of(first, first));
 
         // Assert.
-        assertFalse(result.isAnswerCorrect);
-        assertEquals(bankQuestion.steps() - 1, result.IterationsLeft);
-        assertEquals(List.of(REPEATED_ACTION_SKILL), lawNames(result.violations));
-        assertTrue(result.explanation.toHyperText(Language.RUSSIAN).getText().contains("два раза подряд"));
+        assertFalse(result.isAnswerCorrect());
+        assertEquals(bankQuestion.steps() - 1, result.stepsLeft());
+        assertEquals(List.of(REPEATED_ACTION_SKILL), lawNames(violations(result)));
+        assertTrue(onlyReasoning(result).explanation().toHyperText(Language.RUSSIAN).getText().contains("два раза подряд"));
     }
 
     /** Возврат к давно выполненному действию отклоняется. */
@@ -144,9 +147,9 @@ class ControlFlowDTDomainJudgeTest {
         var result = judge(question, withMistake(question, WHILE_NOT_ENTERED, 4, "atom_111"));
 
         // Assert.
-        assertFalse(result.isAnswerCorrect);
-        assertEquals(List.of(SEQUENTIAL_ORDER_SKILL), lawNames(result.violations));
-        assertTrue(result.explanation.toHyperText(Language.RUSSIAN).getText().contains("не должно выполняться повторно"));
+        assertFalse(result.isAnswerCorrect());
+        assertEquals(List.of(SEQUENTIAL_ORDER_SKILL), lawNames(violations(result)));
+        assertTrue(onlyReasoning(result).explanation().toHyperText(Language.RUSSIAN).getText().contains("не должно выполняться повторно"));
     }
 
     /** Действие после цикла без вычисления его условия отклоняется. */
@@ -159,11 +162,11 @@ class ControlFlowDTDomainJudgeTest {
         var result = judge(question, withMistake(question, WHILE_NOT_ENTERED, 3, "atom_140"));
 
         // Assert.
-        assertFalse(result.isAnswerCorrect);
-        assertEquals(2, result.IterationsLeft);
-        assertEquals(List.of(SEQUENTIAL_ORDER_SKILL), lawNames(result.violations));
-        assertTrue(result.explanation.toHyperText(Language.RUSSIAN).getText().contains("должно быть вычислено"));
-        assertTrue(result.explanation.toHyperText(Language.RUSSIAN).getText().contains("s < n"));
+        assertFalse(result.isAnswerCorrect());
+        assertEquals(2, result.stepsLeft());
+        assertEquals(List.of(SEQUENTIAL_ORDER_SKILL), lawNames(violations(result)));
+        assertTrue(onlyReasoning(result).explanation().toHyperText(Language.RUSSIAN).getText().contains("должно быть вычислено"));
+        assertTrue(onlyReasoning(result).explanation().toHyperText(Language.RUSSIAN).getText().contains("s < n"));
     }
 
     /** Тело цикла при ложном условии отклоняется. */
@@ -176,10 +179,10 @@ class ControlFlowDTDomainJudgeTest {
         var result = judge(question, withMistake(question, WHILE_NOT_ENTERED, 4, "atom_124"));
 
         // Assert.
-        assertFalse(result.isAnswerCorrect);
-        assertEquals(1, result.IterationsLeft);
-        assertEquals(List.of(CONDITION_TRANSITION_SKILL), lawNames(result.violations));
-        assertTrue(result.explanation.toHyperText(Language.RUSSIAN).getText().contains("равно ложь"));
+        assertFalse(result.isAnswerCorrect());
+        assertEquals(1, result.stepsLeft());
+        assertEquals(List.of(CONDITION_TRANSITION_SKILL), lawNames(violations(result)));
+        assertTrue(onlyReasoning(result).explanation().toHyperText(Language.RUSSIAN).getText().contains("равно ложь"));
     }
 
     /** Ветка then при ложном условии отклоняется. */
@@ -192,8 +195,8 @@ class ControlFlowDTDomainJudgeTest {
         var result = judge(question, withMistake(question, IF_ELIF, 3, "atom_120"));
 
         // Assert.
-        assertFalse(result.isAnswerCorrect);
-        assertEquals(List.of(CONDITION_TRANSITION_SKILL), lawNames(result.violations));
+        assertFalse(result.isAnswerCorrect());
+        assertEquals(List.of(CONDITION_TRANSITION_SKILL), lawNames(violations(result)));
     }
 
     /** Ветка else при истинном условии отклоняется. */
@@ -206,9 +209,9 @@ class ControlFlowDTDomainJudgeTest {
         var result = judge(question, withMistake(question, IF_ELIF, 4, "atom_144"));
 
         // Assert.
-        assertFalse(result.isAnswerCorrect);
-        assertEquals(List.of(CONDITION_TRANSITION_SKILL), lawNames(result.violations));
-        assertTrue(result.explanation.toHyperText(Language.RUSSIAN).getText().contains("равно истина"));
+        assertFalse(result.isAnswerCorrect());
+        assertEquals(List.of(CONDITION_TRANSITION_SKILL), lawNames(violations(result)));
+        assertTrue(onlyReasoning(result).explanation().toHyperText(Language.RUSSIAN).getText().contains("равно истина"));
     }
 
     /** Ветка уже отвергнутого условия отклоняется как далёкая от точки выполнения. */
@@ -221,9 +224,9 @@ class ControlFlowDTDomainJudgeTest {
         var result = judge(question, withMistake(question, IF_ELIF, 4, "atom_120"));
 
         // Assert.
-        assertFalse(result.isAnswerCorrect);
-        assertEquals(List.of(FAR_AWAY_ACTION_SKILL), lawNames(result.violations));
-        assertTrue(result.explanation.toHyperText(Language.RUSSIAN).getText().contains("слишком далеко"));
+        assertFalse(result.isAnswerCorrect());
+        assertEquals(List.of(FAR_AWAY_ACTION_SKILL), lawNames(violations(result)));
+        assertTrue(onlyReasoning(result).explanation().toHyperText(Language.RUSSIAN).getText().contains("слишком далеко"));
     }
 
     /** Выход из цикла после тела без повторной проверки условия отклоняется. */
@@ -236,10 +239,10 @@ class ControlFlowDTDomainJudgeTest {
         var result = judge(question, withMistake(question, WHILE_ONE_ITERATION, 6, "atom_163"));
 
         // Assert.
-        assertFalse(result.isAnswerCorrect);
-        assertEquals(2, result.IterationsLeft);
-        assertEquals(List.of(SEQUENTIAL_ORDER_SKILL), lawNames(result.violations));
-        assertTrue(result.explanation.toHyperText(Language.RUSSIAN).getText().contains("x > 5"));
+        assertFalse(result.isAnswerCorrect());
+        assertEquals(2, result.stepsLeft());
+        assertEquals(List.of(SEQUENTIAL_ORDER_SKILL), lawNames(violations(result)));
+        assertTrue(onlyReasoning(result).explanation().toHyperText(Language.RUSSIAN).getText().contains("x > 5"));
     }
 
     /** Новая итерация после ложного условия цикла отклоняется. */
@@ -252,9 +255,9 @@ class ControlFlowDTDomainJudgeTest {
         var result = judge(question, withMistake(question, WHILE_ONE_ITERATION, 7, "atom_123"));
 
         // Assert.
-        assertFalse(result.isAnswerCorrect);
-        assertEquals(1, result.IterationsLeft);
-        assertEquals(List.of(CONDITION_TRANSITION_SKILL), lawNames(result.violations));
+        assertFalse(result.isAnswerCorrect());
+        assertEquals(1, result.stepsLeft());
+        assertEquals(List.of(CONDITION_TRANSITION_SKILL), lawNames(violations(result)));
     }
 
     /** Выход из цикла по break засчитывает завершение прерывания. */
@@ -267,9 +270,9 @@ class ControlFlowDTDomainJudgeTest {
         var result = judge(question, trace(question, BREAK_IN_FOR));
 
         // Assert.
-        assertTrue(result.isAnswerCorrect);
-        assertEquals(0, result.IterationsLeft);
-        assertTrue(result.domainSkills.contains(INTERRUPTION_TERMINATED_SKILL));
+        assertTrue(result.isAnswerCorrect());
+        assertEquals(0, result.stepsLeft());
+        assertTrue(appliedLaws(result).contains(INTERRUPTION_TERMINATED_SKILL));
     }
 
     /** break раньше предшествующего действия тела отклоняется. */
@@ -282,9 +285,9 @@ class ControlFlowDTDomainJudgeTest {
         var result = judge(question, withMistake(question, BREAK_IN_FOR, 10, "atom_140"));
 
         // Assert.
-        assertFalse(result.isAnswerCorrect);
-        assertEquals(3, result.IterationsLeft);
-        assertEquals(List.of(SEQUENTIAL_ORDER_SKILL), lawNames(result.violations));
+        assertFalse(result.isAnswerCorrect());
+        assertEquals(3, result.stepsLeft());
+        assertEquals(List.of(SEQUENTIAL_ORDER_SKILL), lawNames(violations(result)));
     }
 
     /** Выход из цикла посреди итерации без break отклоняется. */
@@ -297,10 +300,10 @@ class ControlFlowDTDomainJudgeTest {
         var result = judge(question, withMistake(question, BREAK_IN_FOR, 6, "atom_186"));
 
         // Assert.
-        assertFalse(result.isAnswerCorrect);
-        assertEquals(7, result.IterationsLeft);
-        assertTrue(lawNames(result.violations).contains(SEQUENTIAL_ORDER_SKILL));
-        assertTrue(lawNames(result.violations).contains(INTERRUPTION_TRANSITION_SKILL));
+        assertFalse(result.isAnswerCorrect());
+        assertEquals(7, result.stepsLeft());
+        assertTrue(lawNames(violations(result)).contains(SEQUENTIAL_ORDER_SKILL));
+        assertTrue(lawNames(violations(result)).contains(INTERRUPTION_TRANSITION_SKILL));
     }
 
     /** Продолжение цикла после break отклоняется как переход, недопустимый при прерывании. */
@@ -314,10 +317,10 @@ class ControlFlowDTDomainJudgeTest {
         var result = judge(question, withMistake(question, BREAK_IN_FOR, 12, loopAction));
 
         // Assert.
-        assertFalse(result.isAnswerCorrect);
-        assertEquals(1, result.IterationsLeft);
-        assertEquals(List.of(INTERRUPTION_MODE_SKILL), lawNames(result.violations));
-        assertTrue(result.explanation.toHyperText(Language.RUSSIAN).getText().contains("прерывание цикла"));
+        assertFalse(result.isAnswerCorrect());
+        assertEquals(1, result.stepsLeft());
+        assertEquals(List.of(INTERRUPTION_MODE_SKILL), lawNames(violations(result)));
+        assertTrue(onlyReasoning(result).explanation().toHyperText(Language.RUSSIAN).getText().contains("прерывание цикла"));
     }
 
     /** Объяснение ошибки локализовано. */
@@ -328,8 +331,8 @@ class ControlFlowDTDomainJudgeTest {
         var wrong = answers(action(question, "atom_107"));
 
         // Act.
-        var english = domain().judgeQuestion(question, wrong, List.of(), Language.ENGLISH).explanation.toHyperText(Language.ENGLISH).getText();
-        var russian = domain().judgeQuestion(question, wrong, List.of(), Language.RUSSIAN).explanation.toHyperText(Language.RUSSIAN).getText();
+        var english = onlyReasoning(domain().judgeAnswer(question, wrong, List.of(), Language.ENGLISH)).explanation().toHyperText(Language.ENGLISH).getText();
+        var russian = onlyReasoning(domain().judgeAnswer(question, wrong, List.of(), Language.RUSSIAN)).explanation().toHyperText(Language.RUSSIAN).getText();
 
         // Assert.
         assertFalse(english.isBlank());
@@ -499,7 +502,7 @@ class ControlFlowDTDomainJudgeTest {
             var given = new ArrayList<>(question.findLatestCorrectAnswers().stream().map(AnswerData::left).toList());
             given.add(action(question, clicks.get(step)));
             var result = judge(question, given);
-            question = question.withInteraction(interaction(step + 1, given, result.violations, result.IterationsLeft));
+            question = question.withInteraction(interaction(step + 1, given, violations(result), result.stepsLeft()));
             var reference = domain().getFullSolutionTrace(
                     withCorrectSteps(bankQuestion(IF_THEN), trace(question, IF_THEN, correctSteps.get(step)), IF_THEN), Language.RUSSIAN);
 
@@ -507,10 +510,10 @@ class ControlFlowDTDomainJudgeTest {
             var trace = domain().getFullSolutionTrace(question, Language.RUSSIAN);
 
             // Assert.
-            assertEquals(correctSteps.get(step) == given.size(), result.isAnswerCorrect, "шаг " + step);
-            assertEquals(correctSteps.get(step) + 1 + (result.isAnswerCorrect ? 0 : 1), trace.size(), "шаг " + step);
+            assertEquals(correctSteps.get(step) == given.size(), result.isAnswerCorrect(), "шаг " + step);
+            assertEquals(correctSteps.get(step) + 1 + (result.isAnswerCorrect() ? 0 : 1), trace.size(), "шаг " + step);
             assertEquals(texts(reference), texts(trace.subList(0, reference.size())), "шаг " + step);
-            if (!result.isAnswerCorrect) {
+            if (!result.isAnswerCorrect()) {
                 assertTrue(trace.getLast().getText().startsWith("<span class=\"warning\">"), trace.getLast().getText());
             }
         }
@@ -536,8 +539,8 @@ class ControlFlowDTDomainJudgeTest {
 
     // ---- вспомогательное ----
 
-    private static Domain.InterpretSentenceResult judge(QuestionData question, List<AnswerObjectData> answers) {
-        return domain().judgeQuestion(question, answers(answers), List.of(), Language.RUSSIAN);
+    private static Judgement judge(QuestionData question, List<AnswerObjectData> answers) {
+        return domain().judgeAnswer(question, answers(answers), List.of(), Language.RUSSIAN);
     }
 
     private static List<AnswerObjectData> withMistake(QuestionData question, BankQuestion bankQuestion, int correctSteps, String wrongAction) {

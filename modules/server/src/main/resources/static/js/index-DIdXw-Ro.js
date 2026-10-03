@@ -1347,6 +1347,7 @@ var TFeedbackMessage = union([type({
 var TClarification = type({
 	prompt: string,
 	options: array(type({
+		id: number,
 		hypothesis: string,
 		reason: string
 	}))
@@ -1918,14 +1919,14 @@ var QuestionStore = class {
 		}
 		this.onAnswerEvaluated(feedbackEither.right);
 	};
-	answerClarification = async (hypothesis) => {
+	answerClarification = async (option) => {
 		const { question, pendingFeedback } = this;
 		if (!question || !pendingFeedback) return;
 		this.setValidStoreState();
 		this.isClarificationSending = true;
 		const answerEither = await questionController.answerClarification({
 			questionId: question.questionId,
-			hypothesis
+			option
 		});
 		this.isClarificationSending = false;
 		if (isLeft(answerEither)) {
@@ -3066,7 +3067,7 @@ var Clarification = observer(({ store }) => {
 		className: "comp-ph-clarification",
 		children: [/* @__PURE__ */ (0, import_jsx_runtime.jsx)("div", {
 			className: "mb-2 fw-semibold",
-			children: clarification.prompt
+			dangerouslySetInnerHTML: { __html: clarification.prompt }
 		}), /* @__PURE__ */ (0, import_jsx_runtime.jsxs)("div", {
 			className: "d-flex flex-column align-items-start gap-2",
 			children: [clarification.options.map((option) => /* @__PURE__ */ (0, import_jsx_runtime.jsx)(Button, {
@@ -3074,9 +3075,9 @@ var Clarification = observer(({ store }) => {
 				size: "sm",
 				className: "text-start",
 				disabled: store.isClarificationSending,
-				onClick: () => store.answerClarification(option.hypothesis),
+				onClick: () => store.answerClarification(option.id),
 				children: /* @__PURE__ */ (0, import_jsx_runtime.jsx)("div", { dangerouslySetInnerHTML: { __html: option.reason } })
-			}, option.hypothesis)), /* @__PURE__ */ (0, import_jsx_runtime.jsx)(Button, {
+			}, option.id)), /* @__PURE__ */ (0, import_jsx_runtime.jsx)(Button, {
 				variant: "outline-secondary",
 				size: "sm",
 				disabled: store.isClarificationSending,

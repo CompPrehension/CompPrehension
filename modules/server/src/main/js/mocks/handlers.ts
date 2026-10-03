@@ -166,7 +166,7 @@ export const handlers = [
     http.post('/api/question/answerClarification', async ({ request }) => {
         await delay(THINKING_MS);
         const answer = await request.json() as ClarificationAnswer;
-        return HttpResponse.json({ explanation: answerClarification(answer.questionId, answer.hypothesis) });
+        return HttpResponse.json({ explanation: answerClarification(answer.questionId, answer.option) });
     }),
 
     http.post('/api/question/addSupplementaryQuestionAnswer', async () => {

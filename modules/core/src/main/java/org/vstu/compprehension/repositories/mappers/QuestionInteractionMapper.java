@@ -3,7 +3,6 @@ package org.vstu.compprehension.repositories.mappers;
 import lombok.RequiredArgsConstructor;
 import org.jetbrains.annotations.NotNull;
 import org.springframework.stereotype.Component;
-import org.vstu.compprehension.data.question.CorrectLawData;
 import org.vstu.compprehension.data.question.FeedbackData;
 import org.vstu.compprehension.data.question.InteractionClarificationData;
 import org.vstu.compprehension.data.question.QuestionInteractionData;
@@ -14,30 +13,25 @@ import org.vstu.compprehension.mappers.Mapper;
 @RequiredArgsConstructor
 class QuestionInteractionMapper implements Mapper<InteractionEntity, QuestionInteractionData> {
 
-    private final ViolationMapper violationMapper;
     private final ResponseMapper responseMapper;
 
     @Override
     public @NotNull QuestionInteractionData map(@NotNull InteractionEntity source) {
-        boolean hasViolations = !source.getViolations().isEmpty();
         return QuestionInteractionData.builder()
                 .id(source.getId())
                 .interactionType(source.getInteractionType())
                 .feedback(source.getFeedback() == null ? null
                         : new FeedbackData(source.getFeedback().getId(), source.getFeedback().getGrade(),
                                 source.getFeedback().getInteractionsLeft()))
-                .violations(source.getViolations().stream()
-                        .map(violation -> violationMapper.map(violation, source))
-                        .toList())
-                .correctLaw(source.getCorrectLaw().stream()
-                        .map(law -> new CorrectLawData(law.getId(), law.getLawName()))
-                        .toList())
+                .isCorrect(source.isCorrect())
+                .reasonings(source.getReasonings())
                 .responses(source.getResponses().stream()
-                        .map(response -> responseMapper.map(response, hasViolations))
+                        .map(response -> responseMapper.map(response, !source.isCorrect()))
                         .toList())
                 .clarification(source.getClarification() == null ? null
                         : new InteractionClarificationData(source.getClarification().getContent(),
-                                source.getClarification().getAnsweredAt() != null))
+                                source.getClarification().getAnsweredAt() != null,
+                                source.getClarification().getChosenReasoning()))
                 .build();
     }
 }

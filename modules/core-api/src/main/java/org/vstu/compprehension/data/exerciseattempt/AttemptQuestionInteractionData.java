@@ -11,6 +11,7 @@ public record AttemptQuestionInteractionData(
         int orderNumber,
         @Nullable InteractionType type,
         @Nullable Integer interactionsLeft,
+        boolean isCorrect,
         @NotNull List<String> violationLawNames,
         @NotNull List<String> correctLawNames,
         // null — о рассуждении не спрашивали; false — выбрано заблуждение, «другая причина» или вопрос без ответа.
