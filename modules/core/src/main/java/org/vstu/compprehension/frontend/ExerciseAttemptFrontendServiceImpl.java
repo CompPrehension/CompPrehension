@@ -22,6 +22,7 @@ import org.vstu.compprehension.businesslogic.domains.DomainFactory;
 import org.vstu.compprehension.businesslogic.domains.Judgement;
 import org.vstu.compprehension.businesslogic.domains.Reasoning;
 import org.vstu.compprehension.businesslogic.strategies.AbstractStrategyFactory;
+import org.vstu.compprehension.businesslogic.strategies.AnswerReaction;
 import org.vstu.compprehension.businesslogic.strategies.StrategyDecision;
 import org.vstu.compprehension.data.exerciseattempt.AttemptSummaryData;
 import org.vstu.compprehension.data.exercise.ExerciseStageData;
@@ -45,12 +46,12 @@ import org.vstu.compprehension.enums.Language;
 import org.vstu.compprehension.enums.QuestionType;
 import org.vstu.compprehension.services.*;
 import org.vstu.compprehension.mappers.Mapper;
+import org.vstu.compprehension.mappers.UpdateMapper;
 import org.vstu.compprehension.frontend.mappers.FeedbackDtoMapper;
 import org.vstu.compprehension.frontend.mappers.QuestionDtoMapper;
 
 import java.util.*;
 import java.util.stream.Collectors;
-import java.util.stream.IntStream;
 import java.util.stream.Stream;
 
 import static org.vstu.compprehension.enums.InteractionType.REQUEST_CORRECT_ANSWER;
@@ -73,6 +74,8 @@ class ExerciseAttemptFrontendServiceImpl implements ExerciseAttemptFrontendServi
     private final Mapper<AttemptSummaryData, ExerciseAttemptDto> exerciseAttemptDtoMapper;
     private final Mapper<ResponseData, NewInteractionAnswerData> carriedAnswerMapper;
     private final Mapper<SubmittedAnswerData, NewInteractionAnswerData> submittedAnswerMapper;
+    private final UpdateMapper<Reasoning, InteractionReasoningData> reasoningMapper;
+    private final UpdateMapper<Judgement.Verdict, InteractionReasoningData> verdictMapper;
 
     @Transactional(propagation = Propagation.REQUIRED)
     public @NotNull SupplementaryFeedbackDto addSupplementaryQuestionAnswer(@NotNull InteractionDto interaction) {
@@ -115,12 +118,30 @@ class ExerciseAttemptFrontendServiceImpl implements ExerciseAttemptFrontendServi
         val tags = domain.resolveTags(question.getContent().getTags());
         val responses = questionService.resolveAnswers(questionId, answers);
         val judgement = domain.judgeAnswer(question, responses, tags, language);
-        val explanation = explainAnswer(judgement);
+        Explanation explanation;
+        List<InteractionReasoningData> reasonings;
+        HypothesisClarificationData clarification;
+        switch (judgement) {
+            // Ход мысли не установлен: выбирать нечего, неверный ответ объясняется самим вердиктом.
+            case Judgement.Verdict verdict -> {
+                explanation = verdict.isAnswerCorrect() ? Explanation.empty(Explanation.Type.ERROR) : verdict.explanation();
+                reasonings = List.of(toReasoningData(verdict));
+                clarification = null;
+            }
+            case Judgement.Reasoned reasoned -> {
+                var reaction = context == null
+                        ? reactToDebuggedAnswer(reasoned)
+                        : strategyFactory.getStrategy(context.strategyId()).reactToAnswer(context.attemptId(), reasoned);
+                explanation = explainAnswer(reasoned, reaction.reply());
+                reasonings = toReasoningData(reasoned, reaction.probable());
+                clarification = toClarification(reasoned, reaction.reply());
+            }
+        }
         muteDeniedExplanations(explanation, context);
 
         // add interaction
         val graded = recordAndGrade(question, context, SEND_RESPONSE, submittedAnswerMapper.mapAll(answers), judgement,
-                chooseClarification(judgement, context));
+                reasonings, clarification);
         question = graded.question();
         val strategyDecision = graded.decision();
 
@@ -237,11 +258,15 @@ class ExerciseAttemptFrontendServiceImpl implements ExerciseAttemptFrontendServi
                 domain.resolveTags(question.getContent().getTags()), language);
 
         // add interaction
+        val reasonings = switch (judgement) {
+            case Judgement.Verdict verdict -> List.of(toReasoningData(verdict));
+            case Judgement.Reasoned reasoned -> toReasoningData(reasoned, reasoned.collectReasoningIds());
+        };
         val graded = recordAndGrade(question, context, REQUEST_CORRECT_ANSWER,
                 Stream.concat(
                         carriedAnswerMapper.mapAll(alreadyGiven).stream(),
                         submittedAnswerMapper.mapAll(nextAnswers).stream()).toList(),
-                judgement, null);
+                judgement, List.of(toSystemReasoning(judgement.isAnswerCorrect(), reasonings)), null);
         question = graded.question();
         val recorded = graded.interaction();
         val strategyDecision = graded.decision();
@@ -273,14 +298,14 @@ class ExerciseAttemptFrontendServiceImpl implements ExerciseAttemptFrontendServi
                                                       @NotNull InteractionType interactionType,
                                                       @NotNull List<NewInteractionAnswerData> answers,
                                                       @NotNull Judgement judgement,
+                                                      @NotNull List<InteractionReasoningData> reasonings,
                                                       @Nullable HypothesisClarificationData clarification) {
-        val reasonings = judgement.reasonings().stream().map(Reasoning::toData).toList();
         val recorded = questionService.recordInteraction(new NewInteractionData(
                 question.getId(),
                 interactionType,
                 answers,
                 judgement.isAnswerCorrect(),
-                interactionType == SEND_RESPONSE ? reasonings : List.of(toSystemReasoning(judgement.isAnswerCorrect(), reasonings)),
+                reasonings,
                 withShuffledOptions(clarification),
                 judgement.stepsLeft()));
 
@@ -296,50 +321,76 @@ class ExerciseAttemptFrontendServiceImpl implements ExerciseAttemptFrontendServi
         return new GradedInteraction(question.withInteraction(recorded), recorded, decision);
     }
 
-    // Неверный ответ, который объясняют несколько рассуждений, уточняется всегда. Верный — если к нему ведут и
-    // заблуждения, а спросить решит стратегия: решение опирается на ответы до этого.
-    private @Nullable HypothesisClarificationData chooseClarification(@NotNull Judgement judgement,
-                                                                      @Nullable QuestionAttemptContextData context) {
-        var inquiry = judgement.inquiry();
-        if (inquiry == null) {
-            return null;
-        }
-        var reasonings = judgement.reasonings();
-        var offered = IntStream.range(0, reasonings.size())
-                .filter(i -> reasonings.get(i).reason() != null)
-                .boxed()
+    private @NotNull List<InteractionReasoningData> toReasoningData(@NotNull Judgement.Reasoned judgement,
+                                                                   @NotNull Set<Integer> probable) {
+        return judgement.reasonings().stream()
+                .map(reasoning -> {
+                    var data = new InteractionReasoningData();
+                    reasoningMapper.apply(reasoning, data);
+                    data.setProbable(probable.contains(reasoning.id()));
+                    return data;
+                })
                 .toList();
-        boolean isAsked = judgement.isAnswerCorrect()
-                ? offered.stream().anyMatch(i -> reasonings.get(i).isCorrect())
-                        && reasonings.stream().anyMatch(reasoning -> !reasoning.isCorrect())
-                        && context != null
-                        && strategyFactory.getStrategy(context.strategyId()).shouldClarifyCorrectAnswer(context.attemptId())
-                : offered.size() > 1;
-        if (!isAsked) {
+    }
+
+    // Вердикт — единственное, что известно об ответе, поэтому он допущен.
+    private @NotNull InteractionReasoningData toReasoningData(@NotNull Judgement.Verdict verdict) {
+        var data = new InteractionReasoningData();
+        verdictMapper.apply(verdict, data);
+        data.setProbable(true);
+        return data;
+    }
+
+    // Вне попытки вопрос отлаживают по банку: допускаются все рассуждения, и о любом ответе спрашивают, если вариантов
+    // несколько, — так видны все гипотезы.
+    private static @NotNull AnswerReaction reactToDebuggedAnswer(@NotNull Judgement.Reasoned judgement) {
+        var options = judgement.reasonings().stream()
+                .filter(reasoning -> reasoning.reason() != null)
+                .map(Reasoning::id)
+                .toList();
+        AnswerReaction.Reply reply = options.size() > 1 ? new AnswerReaction.Reply.Clarify(options)
+                : !judgement.isAnswerCorrect() && judgement.reasonings().size() == 1
+                ? new AnswerReaction.Reply.Explain(judgement.reasonings().getFirst().id())
+                : new AnswerReaction.Reply.Acknowledge();
+        return new AnswerReaction(judgement.collectReasoningIds(), reply);
+    }
+
+    private static @Nullable HypothesisClarificationData toClarification(@NotNull Judgement.Reasoned judgement,
+                                                                         @NotNull AnswerReaction.Reply reply) {
+        if (!(reply instanceof AnswerReaction.Reply.Clarify clarify)) {
             return null;
         }
-        return new HypothesisClarificationData(inquiry.prompt(), offered.stream()
-                .map(i -> new HypothesisClarificationData.Option(i, reasonings.get(i).explanation().getRawMessage().getText()))
+        return new HypothesisClarificationData(judgement.inquiry().prompt(), clarify.options().stream()
+                .map(judgement::getReasoning)
+                .map(reasoning -> {
+                    if (reasoning.reason() == null) {
+                        throw new IllegalStateException("Reasoning " + reasoning.id() + " has no reason to offer");
+                    }
+                    return new HypothesisClarificationData.Option(reasoning.id(), reasoning.explanation().getRawMessage().getText());
+                })
                 .toList());
     }
 
-    // Верный ответ объяснять не нужно, каким бы рассуждением студент к нему ни пришёл. Пока студент не назвал
-    // причину неверного ответа из нескольких возможных, ответ объясняется без неё.
-    private static @NotNull Explanation explainAnswer(@NotNull Judgement judgement) {
+    // Верный ответ объяснять не нужно, каким бы рассуждением студент к нему ни пришёл. Пока рассуждение неверного
+    // ответа не известно, студент видит только вердикт.
+    private static @NotNull Explanation explainAnswer(@NotNull Judgement.Reasoned judgement, @NotNull AnswerReaction.Reply reply) {
         if (judgement.isAnswerCorrect()) {
+            if (reply instanceof AnswerReaction.Reply.Explain) {
+                throw new IllegalStateException("A correct answer is not explained by a reasoning");
+            }
             return Explanation.empty(Explanation.Type.ERROR);
         }
-        var reasonings = judgement.reasonings();
-        return reasonings.size() == 1
-                ? reasonings.getFirst().explanation()
-                : Objects.requireNonNull(judgement.inquiry()).statement();
+        return reply instanceof AnswerReaction.Reply.Explain explain
+                ? judgement.getReasoning(explain.reasoning()).explanation()
+                : judgement.inquiry().statement();
     }
 
     // Подсказку дала система: рассуждения, которыми к её ответу мог бы прийти студент, о нём ничего не говорят.
     private static @NotNull InteractionReasoningData toSystemReasoning(boolean isAnswerCorrect,
                                                                        @NotNull List<InteractionReasoningData> reasonings) {
         var counted = new CountedLawsData(isAnswerCorrect, reasonings, null);
-        return new InteractionReasoningData(List.of(), isAnswerCorrect, null, counted.getViolations(), counted.getAppliedLaws());
+        return new InteractionReasoningData(0, List.of(), true, isAnswerCorrect, null, counted.getViolations(),
+                counted.getAppliedLaws());
     }
 
     // Порядок вариантов влияет на выбор студента, поэтому он случайный; сохраняется показанный порядок.

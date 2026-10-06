@@ -28,7 +28,10 @@ import static org.junit.jupiter.api.Assertions.assertTrue;
 
 class TypeEvaluationTreeSkillsTest {
 
-    /** Навык каждого вывода correct/error — навык последней развилки перед ним, у которой к таким выводам ведут хотя бы два выхода. */
+    /**
+     * Навык каждого вывода correct/error — навык последней развилки перед ним: проверки, у которой к таким выводам ведут
+     * хотя бы два выхода, или решения студента — агрегации, размеченной навыком, среди ветвей которой есть неверный выход.
+     */
     @Test
     void conclusionSkillIsSkillOfItsLastFork() {
         // Act.
@@ -78,8 +81,13 @@ class TypeEvaluationTreeSkillsTest {
                 return;
             }
             if (node instanceof AggregationNode aggregation) {
+                var fork = lastFork;
+                if (skillOf(aggregation) != null) {
+                    annotatedForks.add(aggregation);
+                    fork = aggregation;
+                }
                 for (ThoughtBranch branch : branchesOf(aggregation)) {
-                    visit(branch.getStart(), lastFork, false);
+                    visit(branch.getStart(), fork, false);
                 }
                 // Обычно выходы агрегации своего навыка не несут: correct/error передают её итог, а запасной вывод
                 // по null стоит там, где ответ не объяснило ни одно рассуждение.

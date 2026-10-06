@@ -314,7 +314,8 @@ class ExerciseFrontendServiceTest extends AbstractIntegrationTest {
                 .debugButtonEnabled(true)
                 .forceNewAttemptCreationEnabled(false)
                 .maxExpectedConcurrentStudents(3)
-                .strategySettings(json("{\"correctAnswerClarification\": {\"mode\": \"UNTIL_STREAK\", \"streakLength\": 5}}"))
+                .strategySettings(json("{\"reasoningSelection\": \"ALL\", \"wrongAnswerClarification\": \"ALWAYS\","
+                        + " \"correctAnswerClarification\": {\"mode\": \"UNTIL_STREAK\", \"streakLength\": 5}}"))
                 .build();
 
         // Act.
@@ -355,7 +356,8 @@ class ExerciseFrontendServiceTest extends AbstractIntegrationTest {
         service.saveExerciseCard(withOptions(card, options), null);
 
         // Assert.
-        assertEquals(json("{\"correctAnswerClarification\": {\"mode\": \"ALWAYS\", \"streakLength\": 7}}"),
+        assertEquals(json("{\"reasoningSelection\": \"FEWEST_ERRORS\", \"wrongAnswerClarification\": \"WHEN_AMBIGUOUS\","
+                        + " \"correctAnswerClarification\": {\"mode\": \"ALWAYS\", \"streakLength\": 7}}"),
                 service.getExerciseCard(id, null, TestData.Users.ADMIN_ID).getOptions().getStrategySettings());
     }
 

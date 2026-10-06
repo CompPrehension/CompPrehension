@@ -106,7 +106,7 @@ class ProgrammingLanguageExpressionDTDomainConversionTest {
         for (var index : tokens) {
             given.add(token(question, index));
             var result = judge(question, given);
-            assertTrue(result.isAnswerCorrect(), "шаг token_" + index + ": " + result.reasonings());
+            assertTrue(result.isAnswerCorrect(), "шаг token_" + index + ": " + result);
             assertEquals(tokens.size() - given.size(), result.stepsLeft());
         }
         given.add(endToken(question));

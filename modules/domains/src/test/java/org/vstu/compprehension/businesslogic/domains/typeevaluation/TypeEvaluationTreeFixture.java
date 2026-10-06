@@ -22,6 +22,7 @@ import java.io.StringReader;
 import java.util.Collection;
 import java.util.List;
 import java.util.Map;
+import java.util.Objects;
 import java.util.Set;
 import java.util.TreeSet;
 import java.util.stream.Collectors;
@@ -95,36 +96,45 @@ final class TypeEvaluationTreeFixture {
                 new LearningSituation(model, variables, MODEL));
         renderExplanations(model, trace);
 
+        var paths = DecisionTreeReasonerBackend.collectHypothesisPaths(trace);
         var hypotheses = new TreeSet<String>();
         var skills = new TreeSet<String>();
-        var unexplainedSkills = new TreeSet<String>();
-        for (DecisionTreeTraceElement<?, ?> element : DecisionTreeReasonerBackend.nestedTraceElements(trace)) {
-            if (element instanceof AggregationDecisionTreeTraceElement<?> aggregation
-                    && aggregation.getNode().getAggregationMethod() == AggregationMethod.HYP) {
-                for (DecisionTreeTrace branch : aggregation.nestedTraces()) {
-                    // Ветвь «как написано» — не гипотеза, а вызов дерева typed со своими гипотезами.
-                    var hypothesis = branch.getResultingNode().getMetadata().getString("hypothesis");
-                    if (branch.getBranchResult() != BranchResult.NULL && hypothesis != null) {
-                        hypotheses.add(hypothesis);
-                        skills.add(branch.getResultingNode().getMetadata().getString("skill"));
-                    }
-                }
+        for (var step : paths.stream().flatMap(List::stream).toList()) {
+            if (DecisionTreeReasonerBackend.isAssumption(step)) {
+                hypotheses.add(step.getNode().getMetadata().getString("hypothesis"));
             }
-            // Ответ, который не объяснил ни один способ рассуждения, относится к навыку запасного вывода правила.
-            if (element.getNode() instanceof BranchResultNode conclusion && conclusion.getValue() == BranchResult.NULL
-                    && conclusion.getMetadata().getString("skill") != null) {
-                unexplainedSkills.add(conclusion.getMetadata().getString("skill"));
-            }
+            skills.add(step.getNode().getMetadata().getString("skill"));
         }
-        if (hypotheses.isEmpty()) {
-            skills.addAll(unexplainedSkills);
+        // Ответ, который не объяснил ни один способ рассуждения, относится к навыку запасного вывода правила.
+        if (paths.isEmpty()) {
+            collectUnexplainedSkills(trace, skills);
         }
-        var reasonings = DecisionTreeReasonerBackend.collectHypothesisPaths(trace).stream()
+        var reasonings = paths.stream()
                 .map(path -> path.stream()
+                        .filter(DecisionTreeReasonerBackend::isAssumption)
                         .map(step -> step.getNode().getMetadata().getString("hypothesis"))
                         .collect(Collectors.toSet()))
                 .collect(Collectors.toSet());
         return new Verdict(trace.getBranchResult(), hypotheses, reasonings, skills);
+    }
+
+    // Запасные выводы and без вывода с ошибочной частью не в счёт: это чужое допущение, к ответу не ведущее.
+    private static void collectUnexplainedSkills(@NotNull DecisionTreeTrace trace, @NotNull Set<String> skills) {
+        for (DecisionTreeTraceElement<?, ?> element : trace) {
+            if (element.getNode() instanceof BranchResultNode conclusion && conclusion.getValue() == BranchResult.NULL
+                    && conclusion.getMetadata().getString("skill") != null) {
+                skills.add(conclusion.getMetadata().getString("skill"));
+            }
+            if (element instanceof AggregationDecisionTreeTraceElement<?> aggregation
+                    && aggregation.getNode().getAggregationMethod() == AggregationMethod.AND
+                    && aggregation.getNodeResult() == BranchResult.NULL
+                    && aggregation.nestedTraces().stream().anyMatch(branch -> branch.getBranchResult() == BranchResult.ERROR)) {
+                continue;
+            }
+            for (DecisionTreeTrace nested : Objects.requireNonNullElse(element.nestedTraces(), List.<DecisionTreeTrace>of())) {
+                collectUnexplainedSkills(nested, skills);
+            }
+        }
     }
 
     // Домен называет объекты текстом вопроса; здесь вопроса нет, поэтому имя объекта в модели.

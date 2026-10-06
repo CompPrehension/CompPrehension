@@ -352,8 +352,8 @@ public class ProgrammingLanguageExpressionDTDomain extends DecisionTreeReasoning
             if (stepsLeft == 0) {
                 // Достигли полного завершения задачи.
                 // Ошибок уже быть не может — сбросим их все.
-                return new Judgement(new Reasoning(List.of(), true, null, Explanation.empty(Explanation.Type.HINT),
-                        List.of(), List.of()), stepsLeft);
+                return new Judgement.Verdict(true, Explanation.empty(Explanation.Type.HINT),
+                        List.of(), List.of(), stepsLeft);
             }
 
             ViolationData violation = new ViolationData();
@@ -372,7 +372,7 @@ public class ProgrammingLanguageExpressionDTDomain extends DecisionTreeReasoning
                 v.setViolationFacts(new ArrayList<>());
                 return v;
             }).toList());
-            return new Judgement(new Reasoning(List.of(), false, null, explanation, violations, List.of()), stepsLeft);
+            return new Judgement.Verdict(false, explanation, violations, List.of(), stepsLeft);
         }
 
         @Override

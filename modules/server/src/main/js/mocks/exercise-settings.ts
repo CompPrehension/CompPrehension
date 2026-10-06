@@ -41,46 +41,49 @@ export const mockDomains: Domain[] = [
     },
 ];
 
+const commonStrategySettings: Strategy['settings'] = {
+    fields: [
+        { kind: 'CHOICE', name: 'reasoningSelection', label: 'Reasonings to admit', options: [
+            { value: 'FEWEST_ERRORS', label: 'Most probable — with the fewest errors' },
+            { value: 'ALL', label: 'All' },
+        ] },
+        { kind: 'CHOICE', name: 'wrongAnswerClarification', label: 'Ask about reasoning behind wrong answers', options: [
+            { value: 'WHEN_AMBIGUOUS', label: 'If there are several reasons' },
+            { value: 'ALWAYS', label: 'Always if there is a reason' },
+        ] },
+        {
+            kind: 'GROUP', name: 'correctAnswerClarification', label: 'Ask about reasoning behind correct answers',
+            fields: [
+                { kind: 'CHOICE', name: 'mode', label: 'Mode', options: [
+                    { value: 'NEVER', label: 'Never' },
+                    { value: 'ALWAYS', label: 'Always' },
+                    { value: 'UNTIL_STREAK', label: 'Until a streak of correct answers' },
+                ] },
+                { kind: 'NUMERIC', name: 'streakLength', label: 'Correct answer streak length', min: 1, max: 2147483647 },
+            ],
+        },
+    ],
+    defaults: {
+        reasoningSelection: 'FEWEST_ERRORS',
+        wrongAnswerClarification: 'WHEN_AMBIGUOUS',
+        correctAnswerClarification: { mode: 'NEVER', streakLength: 7 },
+    },
+};
+
 export const mockStrategies: Strategy[] = [
     {
         id: 'StaticStrategy',
         displayName: 'Static strategy',
         description: 'Hands out questions in a fixed order',
         options: { multiStagesEnabled: true },
-        settings: {
-            fields: [{
-                kind: 'GROUP', name: 'correctAnswerClarification', label: 'Ask about reasoning behind correct answers',
-                fields: [
-                    { kind: 'CHOICE', name: 'mode', label: 'Mode', options: [
-                        { value: 'NEVER', label: 'Never' },
-                        { value: 'ALWAYS', label: 'Always' },
-                        { value: 'UNTIL_STREAK', label: 'Until a streak of correct answers' },
-                    ] },
-                    { kind: 'NUMERIC', name: 'streakLength', label: 'Correct answer streak length', min: 1, max: 2147483647 },
-                ],
-            }],
-            defaults: { correctAnswerClarification: { mode: 'NEVER', streakLength: 7 } },
-        },
+        settings: commonStrategySettings,
     },
     {
         id: 'GradeConfidenceBaseStrategy',
         displayName: 'Grade confidence strategy',
         description: null,
         options: { multiStagesEnabled: false },
-        settings: {
-            fields: [{
-                kind: 'GROUP', name: 'correctAnswerClarification', label: 'Ask about reasoning behind correct answers',
-                fields: [
-                    { kind: 'CHOICE', name: 'mode', label: 'Mode', options: [
-                        { value: 'NEVER', label: 'Never' },
-                        { value: 'ALWAYS', label: 'Always' },
-                        { value: 'UNTIL_STREAK', label: 'Until a streak of correct answers' },
-                    ] },
-                    { kind: 'NUMERIC', name: 'streakLength', label: 'Correct answer streak length', min: 1, max: 2147483647 },
-                ],
-            }],
-            defaults: { correctAnswerClarification: { mode: 'NEVER', streakLength: 7 } },
-        },
+        settings: commonStrategySettings,
     },
 ];
 

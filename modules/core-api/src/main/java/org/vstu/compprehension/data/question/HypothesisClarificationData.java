@@ -15,7 +15,7 @@ public record HypothesisClarificationData(@NotNull String prompt, @NotNull List<
     /**
      * Вариант ответа: рассуждение взаимодействия, гипотезу и причину которого видит студент.
      *
-     * @param reasoning   номер рассуждения взаимодействия
+     * @param reasoning   идентификатор рассуждения взаимодействия
      * @param explanation объяснение, которое студент увидит, выбрав вариант
      */
     public record Option(int reasoning, @NotNull String explanation) implements Serializable {

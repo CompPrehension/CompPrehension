@@ -1,0 +1,96 @@
+// Числовая арифметика: развилка «истинное ли деление». Приняв «/» за деление нацело, студент дальше считает тип
+// результата как у остальных операций.
+
+lambda maxOf(a: int, b: int) = a > b ? a : b;
+
+lambda isNumber(T: Outcome) = T is class:Type and (T as class:Type).isArithmetic;
+
+lambda isNumberOfRank(T: Outcome, rank: int) = isNumber(T) and (T as class:Type).conversionRank == rank;
+
+tpg NumericResult(E: Operation, L: Type, R: Type, T: Outcome) {
+    var A : ArithmeticOperation = (E as class:ArithmeticOperation);
+    ask (A.isTrueDivision) {
+        true -> {
+            agg hyp {
+                _ -> {
+                    agg hyp {
+                        _ -> {
+                            ask (isNumberOfRank(T, maxOf(maxOf(L.conversionRank, R.conversionRank), A.minResultRank))) out false else {
+                                conclude: correct [
+                                    skill = "true_division_result";
+                                    hypothesis = "rule";
+                                    RU.explanation = "${A.class()} всегда возвращает вещественный результат.";
+                                    EN.explanation = "the ${A.class()} always returns a floating-point result.";
+                                ];
+                            };
+                            conclude: null
+                        };
+                        _ -> {
+                            ask (T == L or T == R) out false else {
+                                conclude: error [
+                                    skill = "true_division_result";
+                                    hypothesis = "operand_type";
+                                    RU.explanation = "${A.class()} всегда возвращает вещественный результат.";
+                                    EN.explanation = "the ${A.class()} always returns a floating-point result.";
+                                    RU.reason = "Результат берёт тип одного из операндов.";
+                                    EN.reason = "The result takes the type of one of the operands.";
+                                ];
+                            };
+                            conclude: null
+                        };
+                        correct -> { conclude: correct };
+                        error -> { conclude: error };
+                        null -> {
+                            conclude: null [
+                                skill = "true_division_result";
+                                RU.explanation = "ни у одного из операндов (${L}, ${R}) нет такого типа, и ${A.class()} его не создаёт.";
+                                EN.explanation = "neither operand (${L}, ${R}) has this type, and the ${A.class()} does not create it.";
+                            ]
+                        };
+                    } as trueDivisionHypotheses
+                };
+                _ -> {
+                    agg and {
+                        _ -> {
+                            conclude: error [
+                                skill = "true_division_result";
+                                hypothesis = "c_style_division";
+                                RU.explanation = "${A.class()} всегда возвращает вещественный результат.";
+                                EN.explanation = "the ${A.class()} always returns a floating-point result.";
+                                RU.reason = "Деление целых чисел даёт целое число.";
+                                EN.reason = "Dividing integers gives an integer.";
+                            ]
+                        };
+                        _ -> {
+                            conclude: subcall("numeric_rank", E, L, R, T)
+                        };
+                        correct -> { conclude: correct };
+                        error -> { conclude: error };
+                        null -> { conclude: null };
+                    }
+                };
+                correct -> { conclude: correct };
+                error -> { conclude: error };
+                null -> { conclude: null };
+            }
+        };
+        false -> {
+            conclude: subcall("numeric_rank", E, L, R, T)
+        };
+    } as divisionSemantics
+}
+[
+    RU.error_prefix = "Выражение ${E} ${T is class:EvaluationError ? 'не может вызвать ошибку' : 'не может иметь тип'} ${T}, потому что ";
+    EN.error_prefix = "The expression ${E} ${T is class:EvaluationError ? 'cannot cause the error' : 'cannot have the type'} ${T} because ";
+    RU.hint_prefix = "Выражение ${E} ${T is class:EvaluationError ? 'вызывает ошибку' : 'имеет тип'} ${T}, потому что ";
+    EN.hint_prefix = "The expression ${E} ${T is class:EvaluationError ? 'causes the error' : 'has the type'} ${T} because ";
+    RU.misreasoning_prefix = "Выражение ${E} действительно ${T is class:EvaluationError ? 'вызывает ошибку' : 'имеет тип'} ${T}, но рассуждение ошибочно: ";
+    EN.misreasoning_prefix = "The expression ${E} does ${T is class:EvaluationError ? 'cause the error' : 'have the type'} ${T}, but the reasoning is wrong: ";
+    RU.error_statement = "Выражение ${E} ${T is class:EvaluationError ? 'не может вызвать ошибку' : 'не может иметь тип'} ${T}.";
+    EN.error_statement = "The expression ${E} ${T is class:EvaluationError ? 'cannot cause the error' : 'cannot have the type'} ${T}.";
+]
+
+// Навык — последняя развилка перед выводом correct/error, у которой к таким выводам ведут хотя бы два выхода.
+meta for divisionSemantics [
+    skill = "true_division_result";
+]

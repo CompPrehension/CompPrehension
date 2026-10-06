@@ -42,6 +42,31 @@ class TypeEvaluationLogicalTreeTest {
         assertTrue(verdict.hypotheses().contains(RULE), verdict.hypotheses().toString());
     }
 
+    /**
+     * К верному типу у or с операндами разных типов ведут и две ошибки сразу: неверная истинность левого операнда
+     * и перепутанные and/or возвращают тот же операнд, что и правило.
+     */
+    @Test
+    void correctAnswerOfOrIsReachedByTwoCancellingErrors() {
+        // Act.
+        var verdict = judgeLogical("py_or", "t_str", true, "t_list_int", "t_str");
+
+        // Assert.
+        assertEquals(BranchResult.CORRECT, verdict.result());
+        assertEquals(Set.of(Set.of(RULE), Set.of(TRUTHINESS_MISJUDGED, AND_OR_CONFUSED)), verdict.reasonings());
+    }
+
+    /** Если операнды одного типа, ответ объясняет и одна ошибка, поэтому две ошибки сразу в рассуждения не входят. */
+    @Test
+    void cancellingErrorsAreNotAddedWhenOneErrorExplainsAnswer() {
+        // Act.
+        var verdict = judgeLogical("py_and", "t_int", true, "t_int", "t_int");
+
+        // Assert.
+        assertEquals(BranchResult.CORRECT, verdict.result());
+        assertEquals(Set.of(Set.of(RULE), Set.of(TRUTHINESS_MISJUDGED), Set.of(AND_OR_CONFUSED)), verdict.reasonings());
+    }
+
     /** Тип правого операнда у or с истинным левым объясняется и неверной истинностью, и перепутанными and/or. */
     @Test
     void otherOperandTypeForTruthyOrHasTwoHypotheses() {

@@ -12,8 +12,6 @@ lambda rightOf(E: Operation, Old: Expr, New: Expr) = E->hasOperand<OperandPlacem
 
 lambda maxOf(a: int, b: int) = a > b ? a : b;
 
-lambda arithmeticResultRank(E: ArithmeticOperation, L: Type, R: Type) = maxOf(maxOf(L.conversionRank, R.conversionRank), E.minResultRank);
-
 lambda orderable(L: Type, R: Type) = L.isArithmetic and R.isArithmetic or L is class:SequenceType and L.class() == R.class();
 
 // Ответ может быть ошибкой, а свойства чисел есть только у типов.
@@ -34,201 +32,29 @@ tpg Typed(E: Operation, Old: Expr, New: Expr, T: Outcome) {
 
             ask (L.isArithmetic and R.isArithmetic) {
                 true -> {
-                    ask (A.isTrueDivision) {
-                        true -> {
-                            agg hyp {
-                                _ -> {
-                                    ask (isNumberOfRank(T, arithmeticResultRank(A, L, R))) out false else {
-                                        conclude: correct [
-                                            skill = "true_division_result";
-                                            hypothesis = "rule";
-                                            RU.explanation = "${A.class()} всегда возвращает вещественный результат.";
-                                            EN.explanation = "the ${A.class()} always returns a floating-point result.";
-                                        ];
-                                    };
-                                    conclude: null
-                                };
-                                _ -> {
-                                    ask (T == L or T == R) out false else {
-                                        conclude: error [
-                                            skill = "true_division_result";
-                                            hypothesis = "operand_type";
-                                            RU.explanation = "${A.class()} всегда возвращает вещественный результат.";
-                                            EN.explanation = "the ${A.class()} always returns a floating-point result.";
-                                            RU.reason = "Результат берёт тип одного из операндов.";
-                                            EN.reason = "The result takes the type of one of the operands.";
-                                        ];
-                                    };
-                                    conclude: null
-                                };
-                                _ -> {
-                                    ask (isNumberOfRank(T, maxOf(L.conversionRank, R.conversionRank))) out false else {
-                                        conclude: error [
-                                            skill = "true_division_result";
-                                            hypothesis = "c_style_division";
-                                            RU.explanation = "${A.class()} всегда возвращает вещественный результат.";
-                                            EN.explanation = "the ${A.class()} always returns a floating-point result.";
-                                            RU.reason = "Деление целых чисел даёт целое число.";
-                                            EN.reason = "Dividing integers gives an integer.";
-                                        ];
-                                    };
-                                    conclude: null
-                                };
-                                _ -> {
-                                    ask (T is class:EvaluationError) out false else {
-                                        conclude: error [
-                                            skill = "true_division_result";
-                                            hypothesis = "inapplicable_assumed";
-                                            RU.explanation = "${A.class()} применяется к числам, а оба операнда — числа: ${L} и ${R}. Следовательно, операция допустима.";
-                                            EN.explanation = "the ${A.class()} applies to numbers, and both operands are numbers: ${L} and ${R}. Therefore, the operation is valid.";
-                                            RU.reason = "${A.class()} не применяется к операндам этих типов.";
-                                            EN.reason = "The ${A.class()} does not apply to operands of these types.";
-                                        ];
-                                    };
-                                    conclude: null
-                                };
-                                correct -> { conclude: correct };
-                                error -> { conclude: error };
-                                null -> {
-                                    conclude: null [
-                                        skill = "true_division_result";
-                                        RU.explanation = "ни у одного из операндов (${L}, ${R}) нет такого типа, и ${A.class()} его не создаёт.";
-                                        EN.explanation = "neither operand (${L}, ${R}) has this type, and the ${A.class()} does not create it.";
-                                    ]
-                                };
-                            } as trueDivisionHypotheses
+                    // Числа: студент посчитал результат — верно или с заблуждениями о делении и типе результата — или
+                    // решил, что операция к числам неприменима.
+                    agg hyp {
+                        _ -> {
+                            conclude: subcall("numeric_result", E, L, R, T)
                         };
-                        false -> {
-                            ask (L is class:FloatingType or R is class:FloatingType) {
-                                true -> {
-                                    agg hyp {
-                                        _ -> {
-                                            ask (isNumberOfRank(T, arithmeticResultRank(A, L, R))) out false else {
-                                                conclude: correct [
-                                                    skill = "numeric_result_type";
-                                                    hypothesis = "rule";
-                                                    RU.explanation = "среди операндов (${L}, ${R}) есть вещественный, а ${A.class()} с вещественным операндом даёт вещественный результат.";
-                                                    EN.explanation = "one of the operands (${L}, ${R}) is floating-point, and the ${A.class()} with a floating-point operand gives a floating-point result.";
-                                                ];
-                                            };
-                                            conclude: null
-                                        };
-                                        _ -> {
-                                            ask (T == L or T == R) out false else {
-                                                conclude: error [
-                                                    skill = "numeric_result_type";
-                                                    hypothesis = "operand_type";
-                                                    RU.explanation = "среди операндов есть вещественный, а ${A.class()} с вещественным операндом не сохраняет тип второго операнда.";
-                                                    EN.explanation = "one of the operands is floating-point, and the ${A.class()} with a floating-point operand does not keep the type of the other operand.";
-                                                    RU.reason = "Результат берёт тип одного из операндов.";
-                                                    EN.reason = "The result takes the type of one of the operands.";
-                                                ];
-                                            };
-                                            conclude: null
-                                        };
-                                        _ -> {
-                                            ask (A.isFloorDivision and T is class:IntegerType) out false else {
-                                                conclude: error [
-                                                    skill = "numeric_result_type";
-                                                    hypothesis = "floor_division_gives_integer";
-                                                    RU.explanation = "${A.class()} округляет значение вниз, но тип не меняет: вещественный операнд не становится целым.";
-                                                    EN.explanation = "the ${A.class()} rounds the value down but does not change its type: a floating-point operand does not become an integer.";
-                                                    RU.reason = "Целочисленное деление всегда даёт целое число.";
-                                                    EN.reason = "Integer division always gives an integer.";
-                                                ];
-                                            };
-                                            conclude: null
-                                        };
-                                        _ -> {
-                                            ask (T is class:EvaluationError) out false else {
-                                                conclude: error [
-                                                    skill = "numeric_result_type";
-                                                    hypothesis = "inapplicable_assumed";
-                                                    RU.explanation = "${A.class()} применяется к числам, а оба операнда — числа: ${L} и ${R}. Следовательно, операция допустима.";
-                                                    EN.explanation = "the ${A.class()} applies to numbers, and both operands are numbers: ${L} and ${R}. Therefore, the operation is valid.";
-                                                    RU.reason = "${A.class()} не применяется к операндам этих типов.";
-                                                    EN.reason = "The ${A.class()} does not apply to operands of these types.";
-                                                ];
-                                            };
-                                            conclude: null
-                                        };
-                                        correct -> { conclude: correct };
-                                        error -> { conclude: error };
-                                        null -> {
-                                            conclude: null [
-                                                skill = "numeric_result_type";
-                                                RU.explanation = "ни у одного из операндов (${L}, ${R}) нет такого типа, и ${A.class()} его не создаёт.";
-                                                EN.explanation = "neither operand (${L}, ${R}) has this type, and the ${A.class()} does not create it.";
-                                            ]
-                                        };
-                                    } as floatResultHypotheses
-                                };
-                                false -> {
-                                    agg hyp {
-                                        _ -> {
-                                            ask (isNumberOfRank(T, arithmeticResultRank(A, L, R))) out false else {
-                                                conclude: correct [
-                                                    skill = "numeric_result_type";
-                                                    hypothesis = "rule";
-                                                    RU.explanation = "оба операнда целые или логические (${L}, ${R}), а ${A.class()} над ними даёт целое число.";
-                                                    EN.explanation = "both operands are integers or booleans (${L}, ${R}), and the ${A.class()} on them gives an integer.";
-                                                ];
-                                            };
-                                            conclude: null
-                                        };
-                                        _ -> {
-                                            ask (T == L or T == R) out false else {
-                                                conclude: error [
-                                                    skill = "numeric_result_type";
-                                                    hypothesis = "operand_type";
-                                                    RU.explanation = "${(L is class:BooleanType or R is class:BooleanType) ? 'в арифметике логические значения ведут себя как числа 0 и 1, поэтому' : 'тип результата задают правила арифметики, а не тип операнда, и'} ${A.class()} ${(L is class:BooleanType or R is class:BooleanType) ? 'не сохраняет логический тип операнда.' : 'над целыми операндами даёт целое число.'}";
-                                                    EN.explanation = "${(L is class:BooleanType or R is class:BooleanType) ? 'in arithmetic, boolean values behave as the numbers 0 and 1, so' : 'the result type is set by the rules of arithmetic, not by an operand type, and'} the ${A.class()} ${(L is class:BooleanType or R is class:BooleanType) ? 'does not keep the boolean type of an operand.' : 'gives an integer for integer operands.'}";
-                                                    RU.reason = "Результат берёт тип одного из операндов.";
-                                                    EN.reason = "The result takes the type of one of the operands.";
-                                                ];
-                                            };
-                                            conclude: null
-                                        };
-                                        _ -> {
-                                            ask (L is class:BooleanType and R is class:BooleanType and T is class:BooleanType) out false else {
-                                                conclude: error [
-                                                    skill = "numeric_result_type";
-                                                    hypothesis = "boolean_arithmetic_stays_boolean";
-                                                    RU.explanation = "${A.class()} работает с логическими значениями как с числами 1 и 0, и результат перестаёт быть логическим значением.";
-                                                    EN.explanation = "the ${A.class()} treats boolean values as the numbers 1 and 0, so the result is no longer a boolean.";
-                                                    RU.reason = "Арифметика над логическими значениями даёт логическое значение.";
-                                                    EN.reason = "Arithmetic on booleans gives a boolean.";
-                                                ];
-                                            };
-                                            conclude: null
-                                        };
-                                        _ -> {
-                                            ask (T is class:EvaluationError) out false else {
-                                                conclude: error [
-                                                    skill = "numeric_result_type";
-                                                    hypothesis = "inapplicable_assumed";
-                                                    RU.explanation = "${A.class()} применяется к числам, а оба операнда — числа: ${L} и ${R}. Следовательно, операция допустима.";
-                                                    EN.explanation = "the ${A.class()} applies to numbers, and both operands are numbers: ${L} and ${R}. Therefore, the operation is valid.";
-                                                    RU.reason = "${A.class()} не применяется к операндам этих типов.";
-                                                    EN.reason = "The ${A.class()} does not apply to operands of these types.";
-                                                ];
-                                            };
-                                            conclude: null
-                                        };
-                                        correct -> { conclude: correct };
-                                        error -> { conclude: error };
-                                        null -> {
-                                            conclude: null [
-                                                skill = "numeric_result_type";
-                                                RU.explanation = "ни у одного из операндов (${L}, ${R}) нет такого типа, и ${A.class()} его не создаёт.";
-                                                EN.explanation = "neither operand (${L}, ${R}) has this type, and the ${A.class()} does not create it.";
-                                            ]
-                                        };
-                                    } as integerResultHypotheses
-                                };
-                            } as floatPromotion
+                        _ -> {
+                            ask (T is class:EvaluationError) out false else {
+                                conclude: error [
+                                    skill = "numeric_result_type";
+                                    hypothesis = "inapplicable_assumed";
+                                    RU.explanation = "${A.class()} применяется к числам, а оба операнда — числа: ${L} и ${R}. Следовательно, операция допустима.";
+                                    EN.explanation = "the ${A.class()} applies to numbers, and both operands are numbers: ${L} and ${R}. Therefore, the operation is valid.";
+                                    RU.reason = "${A.class()} не применяется к операндам этих типов.";
+                                    EN.reason = "The ${A.class()} does not apply to operands of these types.";
+                                ];
+                            };
+                            conclude: null
                         };
-                    } as divisionSemantics
+                        correct -> { conclude: correct };
+                        error -> { conclude: error };
+                        null -> { conclude: null };
+                    }
                 };
                 false -> {
                     // Одна развилка с тремя исходами, а не цепочка проверок: иначе навык неприменимой операции
@@ -517,160 +343,68 @@ tpg Typed(E: Operation, Old: Expr, New: Expr, T: Outcome) {
                             }
                         };
                         true -> {
-                            // Какой операнд вернётся, решают вместе истинность левого операнда и вид операции,
-                            // поэтому это одна развилка: ошибка в любой из двух частей даёт один и тот же ответ.
-                            ask (Left.isTruthy == B.returnsLeftWhenLeftTruthy) {
-                                true -> {
-                                    agg hyp {
-                                        _ -> {
-                                            ask (T == L) out false else {
-                                                conclude: correct [
-                                                    skill = "logical_returned_operand";
-                                                    hypothesis = "rule";
-                                                    RU.explanation = "левый операнд ${Left.isTruthy ? 'истинный' : 'ложный'}, а ${B.class()} на таком операнде останавливается и возвращает его.";
-                                                    EN.explanation = "the left operand is ${Left.isTruthy ? 'truthy' : 'falsy'}, and the ${B.class()} stops at such an operand and returns it.";
-                                                ];
-                                            };
-                                            conclude: null
-                                        };
-                                        _ -> {
-                                            ask (T is class:BooleanType) out false else {
-                                                conclude: error [
-                                                    skill = "logical_returned_operand";
-                                                    hypothesis = "logical_gives_boolean";
-                                                    RU.explanation = "${B.class()} не превращает результат в логическое значение — он возвращает один из операндов как есть.";
-                                                    EN.explanation = "the ${B.class()} does not turn the result into a boolean — it returns one of the operands as is.";
-                                                    RU.reason = "Логические операции всегда дают логическое значение.";
-                                                    EN.reason = "Logical operations always give a boolean.";
-                                                ];
-                                            };
-                                            conclude: null
-                                        };
-                                        _ -> {
-                                            ask (T == R) out false else {
-                                                conclude: error [
-                                                    skill = "logical_returned_operand";
-                                                    hypothesis = "truthiness_misjudged";
-                                                    RU.explanation = "левый операнд ${Left.isTruthy ? 'истинный' : 'ложный'}, а ${B.class()} на таком операнде останавливается.";
-                                                    EN.explanation = "the left operand is ${Left.isTruthy ? 'truthy' : 'falsy'}, and the ${B.class()} stops at such an operand.";
-                                                    RU.reason = "Левый операнд ${Left.isTruthy ? 'ложный' : 'истинный'}.";
-                                                    EN.reason = "The left operand is ${Left.isTruthy ? 'falsy' : 'truthy'}.";
-                                                ];
-                                            };
-                                            conclude: null
-                                        };
-                                        _ -> {
-                                            ask (T == R) out false else {
-                                                conclude: error [
-                                                    skill = "logical_returned_operand";
-                                                    hypothesis = "and_or_confused";
-                                                    RU.explanation = "${B.class()} останавливается на первом ${B.returnsLeftWhenLeftTruthy ? 'истинном' : 'ложном'} операнде, а не на первом ${B.returnsLeftWhenLeftTruthy ? 'ложном' : 'истинном'}.";
-                                                    EN.explanation = "the ${B.class()} stops at the first ${B.returnsLeftWhenLeftTruthy ? 'truthy' : 'falsy'} operand, not at the first ${B.returnsLeftWhenLeftTruthy ? 'falsy' : 'truthy'} one.";
-                                                    RU.reason = "Возвращается первый ${B.returnsLeftWhenLeftTruthy ? 'ложный' : 'истинный'} операнд.";
-                                                    EN.reason = "The first ${B.returnsLeftWhenLeftTruthy ? 'falsy' : 'truthy'} operand is returned.";
-                                                ];
-                                            };
-                                            conclude: null
-                                        };
-                                        _ -> {
-                                            ask (T is class:EvaluationError) out false else {
-                                                conclude: error [
-                                                    skill = "logical_returned_operand";
-                                                    hypothesis = "inapplicable_assumed";
-                                                    RU.explanation = "${B.class()} применяется к значениям любых типов: у каждого значения есть истинность. Следовательно, операция допустима.";
-                                                    EN.explanation = "the ${B.class()} applies to values of any types: every value is either truthy or falsy. Therefore, the operation is valid.";
-                                                    RU.reason = "${B.class()} не применяется к операндам этих типов.";
-                                                    EN.reason = "The ${B.class()} does not apply to operands of these types.";
-                                                ];
-                                            };
-                                            conclude: null
-                                        };
-                                        correct -> { conclude: correct };
-                                        error -> { conclude: error };
-                                        null -> {
-                                            conclude: null [
-                                                skill = "logical_returned_operand";
-                                                RU.explanation = "${B.class()} возвращает один из своих операндов, а ни один из них (${L}, ${R}) не имеет такого типа.";
-                                                EN.explanation = "the ${B.class()} returns one of its operands, and neither of them (${L}, ${R}) has this type.";
-                                            ]
-                                        };
-                                    } as leftOperandHypotheses
+                            // Какой операнд вернётся, решают два решения студента: истинен ли левый операнд и на каком
+                            // операнде останавливается операция. Ошибка в одном из них даёт другой операнд, в обоих — снова верный.
+                            var Returned : Expr = (Left.isTruthy == B.returnsLeftWhenLeftTruthy) ? Left : Right;
+                            var Other : Expr = (Left.isTruthy == B.returnsLeftWhenLeftTruthy) ? Right : Left;
+                            agg hyp {
+                                _ -> {
+                                    conclude: subcall("returned_operand", E, Left, Returned, Other, T)
                                 };
-                                false -> {
-                                    agg hyp {
+                                _ -> {
+                                    agg and {
                                         _ -> {
-                                            ask (T == R) out false else {
-                                                conclude: correct [
-                                                    skill = "logical_returned_operand";
-                                                    hypothesis = "rule";
-                                                    RU.explanation = "левый операнд ${Left.isTruthy ? 'истинный' : 'ложный'}, ${B.class()} на таком операнде не останавливается и возвращает правый операнд.";
-                                                    EN.explanation = "the left operand is ${Left.isTruthy ? 'truthy' : 'falsy'}, so the ${B.class()} does not stop at it and returns the right operand.";
-                                                ];
-                                            };
-                                            conclude: null
+                                            conclude: error [
+                                                skill = "logical_returned_operand";
+                                                hypothesis = "truthiness_misjudged";
+                                                RU.explanation = "левый операнд ${Left.isTruthy ? 'истинный' : 'ложный'}, а ${B.class()} на таком операнде ${Returned == Left ? 'останавливается' : 'не останавливается'}.";
+                                                EN.explanation = "the left operand is ${Left.isTruthy ? 'truthy' : 'falsy'}, and the ${B.class()} ${Returned == Left ? 'stops' : 'does not stop'} at such an operand.";
+                                                RU.reason = "Левый операнд ${Left.isTruthy ? 'ложный' : 'истинный'}.";
+                                                EN.reason = "The left operand is ${Left.isTruthy ? 'falsy' : 'truthy'}.";
+                                            ]
                                         };
                                         _ -> {
-                                            ask (T is class:BooleanType) out false else {
-                                                conclude: error [
-                                                    skill = "logical_returned_operand";
-                                                    hypothesis = "logical_gives_boolean";
-                                                    RU.explanation = "${B.class()} не превращает результат в логическое значение — он возвращает один из операндов как есть.";
-                                                    EN.explanation = "the ${B.class()} does not turn the result into a boolean — it returns one of the operands as is.";
-                                                    RU.reason = "Логические операции всегда дают логическое значение.";
-                                                    EN.reason = "Logical operations always give a boolean.";
-                                                ];
-                                            };
-                                            conclude: null
-                                        };
-                                        _ -> {
-                                            ask (T == L) out false else {
-                                                conclude: error [
-                                                    skill = "logical_returned_operand";
-                                                    hypothesis = "truthiness_misjudged";
-                                                    RU.explanation = "левый операнд ${Left.isTruthy ? 'истинный' : 'ложный'}, а ${B.class()} на таком операнде не останавливается.";
-                                                    EN.explanation = "the left operand is ${Left.isTruthy ? 'truthy' : 'falsy'}, and the ${B.class()} does not stop at such an operand.";
-                                                    RU.reason = "Левый операнд ${Left.isTruthy ? 'ложный' : 'истинный'}.";
-                                                    EN.reason = "The left operand is ${Left.isTruthy ? 'falsy' : 'truthy'}.";
-                                                ];
-                                            };
-                                            conclude: null
-                                        };
-                                        _ -> {
-                                            ask (T == L) out false else {
-                                                conclude: error [
-                                                    skill = "logical_returned_operand";
-                                                    hypothesis = "and_or_confused";
-                                                    RU.explanation = "${B.class()} останавливается на первом ${B.returnsLeftWhenLeftTruthy ? 'истинном' : 'ложном'} операнде, а не на первом ${B.returnsLeftWhenLeftTruthy ? 'ложном' : 'истинном'}.";
-                                                    EN.explanation = "the ${B.class()} stops at the first ${B.returnsLeftWhenLeftTruthy ? 'truthy' : 'falsy'} operand, not at the first ${B.returnsLeftWhenLeftTruthy ? 'falsy' : 'truthy'} one.";
-                                                    RU.reason = "Возвращается первый ${B.returnsLeftWhenLeftTruthy ? 'ложный' : 'истинный'} операнд.";
-                                                    EN.reason = "The first ${B.returnsLeftWhenLeftTruthy ? 'falsy' : 'truthy'} operand is returned.";
-                                                ];
-                                            };
-                                            conclude: null
-                                        };
-                                        _ -> {
-                                            ask (T is class:EvaluationError) out false else {
-                                                conclude: error [
-                                                    skill = "logical_returned_operand";
-                                                    hypothesis = "inapplicable_assumed";
-                                                    RU.explanation = "${B.class()} применяется к значениям любых типов: у каждого значения есть истинность. Следовательно, операция допустима.";
-                                                    EN.explanation = "the ${B.class()} applies to values of any types: every value is either truthy or falsy. Therefore, the operation is valid.";
-                                                    RU.reason = "${B.class()} не применяется к операндам этих типов.";
-                                                    EN.reason = "The ${B.class()} does not apply to operands of these types.";
-                                                ];
-                                            };
-                                            conclude: null
+                                            conclude: subcall("returned_operand", E, Left, Other, Returned, T)
                                         };
                                         correct -> { conclude: correct };
                                         error -> { conclude: error };
-                                        null -> {
-                                            conclude: null [
-                                                skill = "logical_returned_operand";
-                                                RU.explanation = "${B.class()} возвращает один из своих операндов, а ни один из них (${L}, ${R}) не имеет такого типа.";
-                                                EN.explanation = "the ${B.class()} returns one of its operands, and neither of them (${L}, ${R}) has this type.";
-                                            ]
-                                        };
-                                    } as rightOperandHypotheses
+                                        null -> { conclude: null };
+                                    }
+                                };
+                                _ -> {
+                                    ask (T is class:BooleanType) out false else {
+                                        conclude: error [
+                                            skill = "logical_returned_operand";
+                                            hypothesis = "logical_gives_boolean";
+                                            RU.explanation = "${B.class()} не превращает результат в логическое значение — он возвращает один из операндов как есть.";
+                                            EN.explanation = "the ${B.class()} does not turn the result into a boolean — it returns one of the operands as is.";
+                                            RU.reason = "Логические операции всегда дают логическое значение.";
+                                            EN.reason = "Logical operations always give a boolean.";
+                                        ];
+                                    };
+                                    conclude: null
+                                };
+                                _ -> {
+                                    ask (T is class:EvaluationError) out false else {
+                                        conclude: error [
+                                            skill = "logical_returned_operand";
+                                            hypothesis = "inapplicable_assumed";
+                                            RU.explanation = "${B.class()} применяется к значениям любых типов: у каждого значения есть истинность. Следовательно, операция допустима.";
+                                            EN.explanation = "the ${B.class()} applies to values of any types: every value is either truthy or falsy. Therefore, the operation is valid.";
+                                            RU.reason = "${B.class()} не применяется к операндам этих типов.";
+                                            EN.reason = "The ${B.class()} does not apply to operands of these types.";
+                                        ];
+                                    };
+                                    conclude: null
+                                };
+                                correct -> { conclude: correct };
+                                error -> { conclude: error };
+                                null -> {
+                                    conclude: null [
+                                        skill = "logical_returned_operand";
+                                        RU.explanation = "${B.class()} возвращает один из своих операндов, а ни один из них (${L}, ${R}) не имеет такого типа.";
+                                        EN.explanation = "the ${B.class()} returns one of its operands, and neither of them (${L}, ${R}) has this type.";
+                                    ]
                                 };
                             } as returnedOperand
                         };
@@ -1708,10 +1442,7 @@ tpg Typed(E: Operation, Old: Expr, New: Expr, T: Outcome) {
 ]
 
 // Навык — последняя развилка перед выводом correct/error, у которой к таким выводам ведут хотя бы два выхода.
-meta for divisionSemantics [
-    skill = "true_division_result";
-]
-meta for floatPromotion [
+meta for numericOperands [
     skill = "numeric_result_type";
 ]
 meta for sequenceApplicability [

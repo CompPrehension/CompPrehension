@@ -36,7 +36,7 @@ import static org.vstu.compprehension.businesslogic.domains.expressiondt.Express
 import static org.vstu.compprehension.businesslogic.domains.expressiondt.ExpressionDtDomainFixture.operatorsInOrder;
 import static org.vstu.compprehension.businesslogic.domains.DomainFixtures.appliedLaws;
 import static org.vstu.compprehension.businesslogic.domains.DomainFixtures.interaction;
-import static org.vstu.compprehension.businesslogic.domains.DomainFixtures.onlyReasoning;
+import static org.vstu.compprehension.businesslogic.domains.DomainFixtures.verdict;
 import static org.vstu.compprehension.businesslogic.domains.DomainFixtures.violations;
 import static org.vstu.compprehension.businesslogic.domains.DomainFixtures.answers;
 import static org.vstu.compprehension.businesslogic.domains.DomainFixtures.violation;
@@ -110,7 +110,7 @@ class ProgrammingLanguageExpressionDTDomainJudgeTest {
         assertEquals(bankQuestion.steps(), result.stepsLeft());
         assertTrue(lawNames(violations(result)).contains(EARLY_FINISH_VIOLATION));
         assertTrue(lawNames(violations(result)).contains(EARLY_FINISH_SKILL));
-        assertFalse(onlyReasoning(result).explanation().toHyperText(Language.ENGLISH).getText().isBlank());
+        assertFalse(verdict(result).explanation().toHyperText(Language.ENGLISH).getText().isBlank());
     }
 
     /** Второй по порядку оператор первым не принимается. */
@@ -128,7 +128,7 @@ class ProgrammingLanguageExpressionDTDomainJudgeTest {
         assertFalse(result.isAnswerCorrect());
         assertEquals(bankQuestion.steps(), result.stepsLeft());
         assertFalse(violations(result).isEmpty());
-        assertFalse(onlyReasoning(result).explanation().toHyperText(Language.ENGLISH).getText().isBlank());
+        assertFalse(verdict(result).explanation().toHyperText(Language.ENGLISH).getText().isBlank());
     }
 
     /** Оператор слева с большим приоритетом: `->` раньше `+`. */
@@ -195,8 +195,8 @@ class ProgrammingLanguageExpressionDTDomainJudgeTest {
         var wrong = answers(operator(question, "+"));
 
         // Act.
-        var english = onlyReasoning(domain().judgeAnswer(question, wrong, tags, Language.ENGLISH)).explanation().toHyperText(Language.ENGLISH).getText();
-        var russian = onlyReasoning(domain().judgeAnswer(question, wrong, tags, Language.RUSSIAN)).explanation().toHyperText(Language.RUSSIAN).getText();
+        var english = verdict(domain().judgeAnswer(question, wrong, tags, Language.ENGLISH)).explanation().toHyperText(Language.ENGLISH).getText();
+        var russian = verdict(domain().judgeAnswer(question, wrong, tags, Language.RUSSIAN)).explanation().toHyperText(Language.RUSSIAN).getText();
 
         // Assert.
         assertTrue(english.contains("cannot be evaluated yet"));

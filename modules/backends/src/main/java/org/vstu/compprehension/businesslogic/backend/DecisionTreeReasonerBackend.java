@@ -4,6 +4,7 @@ import org.vstu.compprehension.businesslogic.domains.DecisionTreeReasoningDomain
 import org.vstu.compprehension.businesslogic.domains.Judgement;
 import org.vstu.compprehension.businesslogic.domains.Reasoning;
 import org.vstu.compprehension.businesslogic.domains.ReasoningInquiry;
+import org.vstu.compprehension.data.question.Assumption;
 import org.vstu.compprehension.data.question.ViolationData;
 import io.brookite.termannotations.DomainTermAnnotationProcessor;
 import its.model.DomainSolvingModel;
@@ -166,12 +167,27 @@ public class DecisionTreeReasonerBackend
     }
 
     /**
-     * Рассуждения студента, которыми дерево объяснило ответ: шаги каждого — выводы с гипотезой, от внешнего
-     * к вложенному. Рассуждение ветвится на hyp по ветвям с выводом не null: это разные способы рассуждать.
-     * В остальные агрегации заходит только по ветвям с их итогом — прочие ответ не объясняют. Пусто — гипотез нет.
+     * Рассуждения студента, которыми дерево объяснило ответ: шаги каждого — выводы с гипотезой и верные выводы
+     * с навыком, от внешнего к вложенному. Рассуждение ветвится на hyp по ветвям с выводом не null: это разные способы
+     * рассуждать. В остальные агрегации заходит только по ветвям с их итогом — прочие ответ не объясняют.
+     * Рассуждение без гипотез — не рассуждение студента, а проверка ответа; если гипотез нет нигде, результат пуст.
      */
     public static @NotNull List<List<DecisionTreeTraceElement<?, ?>>> collectHypothesisPaths(@NotNull DecisionTreeTrace trace) {
-        return collectPaths(trace).stream().filter(path -> !path.isEmpty()).toList();
+        return collectPaths(trace).stream().filter(path -> path.stream().anyMatch(DecisionTreeReasonerBackend::isAssumption)).toList();
+    }
+
+    /** Шаг рассуждения — допущение студента: вывод, названный гипотезой. */
+    public static boolean isAssumption(@NotNull DecisionTreeTraceElement<?, ?> step) {
+        return step.getNode().getMetadata().getString("hypothesis") != null;
+    }
+
+    private static @NotNull List<List<DecisionTreeTraceElement<?, ?>>> combine(
+            @NotNull List<List<DecisionTreeTraceElement<?, ?>>> prefixes,
+            @NotNull List<List<DecisionTreeTraceElement<?, ?>>> continuations) {
+        return prefixes.stream()
+                .flatMap(prefix -> continuations.stream()
+                        .map(continuation -> Stream.concat(prefix.stream(), continuation.stream()).toList()))
+                .toList();
     }
 
     private static @NotNull List<List<DecisionTreeTraceElement<?, ?>>> collectPaths(@NotNull DecisionTreeTrace trace) {
@@ -185,25 +201,34 @@ public class DecisionTreeReasonerBackend
             if (branches.isEmpty()) {
                 continue;
             }
+            // Ветви and — ошибки, совершённые одновременно: части одного рассуждения. Ветви остальных
+            // агрегаций — разные способы прийти к ответу.
+            if (element instanceof AggregationDecisionTreeTraceElement<?> aggregation
+                    && aggregation.getNode().getAggregationMethod() == AggregationMethod.AND) {
+                for (DecisionTreeTrace branch : branches) {
+                    paths = combine(paths, collectPaths(branch));
+                }
+                continue;
+            }
             var alternatives = new ArrayList<List<DecisionTreeTraceElement<?, ?>>>();
             for (DecisionTreeTrace branch : branches) {
                 var branchPaths = collectPaths(branch);
-                if (isHypothesis && branchPaths.stream().anyMatch(List::isEmpty)) {
+                if (isHypothesis && branchPaths.stream().anyMatch(path -> path.stream().noneMatch(DecisionTreeReasonerBackend::isAssumption))) {
                     throw new IllegalStateException("Hypothesis branch concluded by "
                             + branch.getResultingElement().getNode().getDescription() + " has no 'hypothesis' metadata");
                 }
                 alternatives.addAll(branchPaths);
             }
-            paths = paths.stream()
-                    .flatMap(path -> alternatives.stream()
-                            .map(alternative -> Stream.concat(path.stream(), alternative.stream()).toList()))
-                    .toList();
+            paths = combine(paths, alternatives);
         }
-        // Вывод, к которому пришла трасса, — внешнее допущение по отношению к рассуждениям внутри неё. Вывод через
-        // вызов другого дерева — это вывод того дерева, он уже есть во вложенной трассе.
+        // Вывод, к которому пришла трасса, — внешнее допущение по отношению к рассуждениям внутри неё; верный вывод
+        // с навыком засчитывает этот навык. Вывод через вызов другого дерева — это вывод того дерева, он уже есть
+        // во вложенной трассе.
         var last = trace.getLast();
+        var meta = last.getNode().getMetadata();
         if (!(last instanceof RedirectedBranchResultDecisionTreeTraceElement) && last.getNode() instanceof BranchResultNode
-                && last.getNodeResult() != BranchResult.NULL && last.getNode().getMetadata().getString("hypothesis") != null) {
+                && last.getNodeResult() != BranchResult.NULL
+                && (meta.getString("hypothesis") != null || last.getNodeResult() == BranchResult.CORRECT && meta.getString("skill") != null)) {
             paths = paths.stream()
                     .map(path -> Stream.concat(Stream.<DecisionTreeTraceElement<?, ?>>of(last), path.stream()).toList())
                     .toList();
@@ -211,16 +236,22 @@ public class DecisionTreeReasonerBackend
         return paths;
     }
 
-    /** Рассуждение по всей трассе, ход мысли в котором не установлен. */
-    private static @NotNull Reasoning makeUnexplainedReasoning(@NotNull DecisionTreeTrace trace,
-                                                               boolean isAnswerCorrect,
-                                                               @NotNull DomainModel domainModel,
-                                                               @NotNull DecisionTreeReasoningDomain appDomain,
-                                                               @NotNull Language lang) {
+    /** Вердикт по всей трассе, ход мысли в которой не установлен. */
+    private static @NotNull Judgement.Verdict makeVerdict(@NotNull DecisionTreeTrace trace,
+                                                          boolean isAnswerCorrect,
+                                                          int stepsLeft,
+                                                          @NotNull DomainModel domainModel,
+                                                          @NotNull DecisionTreeReasoningDomain appDomain,
+                                                          @NotNull Language lang) {
+        // Ответ, после которого шагов не осталось, завершает задачу: ошибок в нём быть не может.
+        if (stepsLeft == 0) {
+            return new Judgement.Verdict(true, Explanation.empty(Explanation.Type.HINT), List.of(),
+                    collectAppliedLaws(trace), stepsLeft);
+        }
         var explanation = collectExplanationsFromTrace(Explanation.Type.ERROR, trace, domainModel, appDomain, lang);
         var violations = isAnswerCorrect ? List.<ViolationData>of()
                 : explanation.getDomainLawNames().stream().map(DecisionTreeReasonerBackend::makeViolation).toList();
-        return new Reasoning(List.of(), isAnswerCorrect, null, explanation, violations, collectAppliedLaws(trace));
+        return new Judgement.Verdict(isAnswerCorrect, explanation, violations, collectAppliedLaws(trace), stepsLeft);
     }
 
     /** Рассуждения, которыми студент мог прийти к ответу: по одному на каждый путь, объяснивший ответ. */
@@ -231,7 +262,7 @@ public class DecisionTreeReasonerBackend
                                                            @NotNull Language lang) {
         var reasonings = new ArrayList<Reasoning>();
         for (var path : paths) {
-            addReasoning(reasonings, makeReasoning(path, isAnswerCorrect, domainModel, appDomain, lang));
+            addReasoning(reasonings, makeReasoning(reasonings.size(), path, isAnswerCorrect, domainModel, appDomain, lang));
         }
         return reasonings;
     }
@@ -241,12 +272,12 @@ public class DecisionTreeReasonerBackend
     private static void addReasoning(@NotNull List<Reasoning> reasonings, @NotNull Reasoning added) {
         for (int i = 0; i < reasonings.size(); i++) {
             var known = reasonings.get(i);
-            if (!known.hypotheses().equals(added.hypotheses())
+            if (!known.assumptions().equals(added.assumptions())
                     || known.reason() != null && added.reason() != null && !known.reason().equals(added.reason())) {
                 continue;
             }
             var kept = known.reason() != null ? known : added;
-            reasonings.set(i, new Reasoning(kept.hypotheses(), kept.isCorrect(), kept.reason(), kept.explanation(),
+            reasonings.set(i, new Reasoning(known.id(), kept.assumptions(), kept.reason(), kept.explanation(),
                     union(known.violations(), added.violations()), union(known.appliedLaws(), added.appliedLaws())));
             return;
         }
@@ -257,16 +288,19 @@ public class DecisionTreeReasonerBackend
         return Stream.concat(left.stream(), right.stream()).distinct().toList();
     }
 
-    // Ошибочное рассуждение студенту называют его ошибочные шаги по порядку, верное — все шаги. Верный шаг без своей
-    // причины называется правилом из объяснения; рассуждение без причины на выбор не предлагается.
-    private static @NotNull Reasoning makeReasoning(@NotNull List<DecisionTreeTraceElement<?, ?>> path,
+    // Ошибочное рассуждение студенту называют его ошибочные допущения по порядку, верное — все допущения. Верное
+    // допущение без своей причины называется правилом из объяснения; рассуждение без причины на выбор не предлагается.
+    // Засчитываются навыки всех верных шагов, в том числе выводов-проверок без гипотезы.
+    private static @NotNull Reasoning makeReasoning(int id,
+                                                    @NotNull List<DecisionTreeTraceElement<?, ?>> path,
                                                     boolean isAnswerCorrect,
                                                     @NotNull DomainModel domainModel,
                                                     @NotNull DecisionTreeReasoningDomain appDomain,
                                                     @NotNull Language lang) {
         var localizationCode = lang.toLocaleString();
-        boolean isCorrect = path.stream().allMatch(step -> step.getNodeResult() == BranchResult.CORRECT);
-        var told = isCorrect ? path : path.stream().filter(step -> step.getNodeResult() == BranchResult.ERROR).toList();
+        var assumed = path.stream().filter(DecisionTreeReasonerBackend::isAssumption).toList();
+        boolean isCorrect = assumed.stream().allMatch(step -> step.getNodeResult() == BranchResult.CORRECT);
+        var told = isCorrect ? assumed : assumed.stream().filter(step -> step.getNodeResult() == BranchResult.ERROR).toList();
 
         var reasons = new ArrayList<String>();
         var explanations = new ArrayList<String>();
@@ -291,7 +325,10 @@ public class DecisionTreeReasonerBackend
             }
         }
 
-        var hypotheses = path.stream().map(step -> step.getNode().getMetadata().getString("hypothesis")).toList();
+        var assumptions = assumed.stream()
+                .map(step -> new Assumption(step.getNode().getMetadata().getString("hypothesis"),
+                        step.getNodeResult() == BranchResult.CORRECT))
+                .toList();
         var violations = isCorrect ? List.<ViolationData>of()
                 : told.stream().map(step -> makeViolation(requireSkill(step))).toList();
         var appliedLaws = path.stream()
@@ -300,7 +337,7 @@ public class DecisionTreeReasonerBackend
                 .distinct()
                 .sorted()
                 .toList();
-        return new Reasoning(hypotheses, isCorrect, reasons.isEmpty() ? null : String.join(" ", reasons),
+        return new Reasoning(id, assumptions, reasons.isEmpty() ? null : String.join(" ", reasons),
                 makeReasoningExplanation(told.getFirst(), explanations, isCorrect, isAnswerCorrect, domainModel, appDomain, lang),
                 violations, appliedLaws);
     }
@@ -404,9 +441,16 @@ public class DecisionTreeReasonerBackend
     }
 
     // Агрегацию объясняют только ветви с её же итогом: при верном итоге or/hyp ошибки неподошедших ветвей
-    // не показываются, при ошибочном итоге and — подсказки удачных ветвей.
+    // не показываются, при ошибочном итоге and — подсказки удачных ветвей. And без вывода с ошибочной частью —
+    // чужое допущение, к ответу не ведущее: объяснять в нём нечего, иначе необъяснённый ответ получил бы объяснения
+    // чужих допущений. Без ошибочной части это рассуждение правильного решения, и его запасной вывод объясняет ответ.
     private static Collection<DecisionTreeTrace> explainedNestedTraces(DecisionTreeTraceElement<?, ?> element) {
         if (element instanceof AggregationDecisionTreeTraceElement<?> aggregation) {
+            if (aggregation.getNode().getAggregationMethod() == AggregationMethod.AND
+                    && aggregation.getNodeResult() == BranchResult.NULL
+                    && aggregation.nestedTraces().stream().anyMatch(branch -> branch.getBranchResult() == BranchResult.ERROR)) {
+                return List.of();
+            }
             return aggregation.nestedTraces().stream()
                     .filter(branch -> branch.getBranchResult() == aggregation.getNodeResult())
                     .toList();
@@ -586,18 +630,13 @@ public class DecisionTreeReasonerBackend
             boolean isAnswerCorrect = isCorrectAnswer(trace);
             int stepsLeft = countStepsLeft(judgedQuestion, backendOutput, isAnswerCorrect);
             var paths = collectHypothesisPaths(trace);
-            if (!paths.isEmpty()) {
-                return new Judgement(makeReasonings(paths, isAnswerCorrect, domainModel, getDomain(), language), stepsLeft,
-                        makeInquiry(trace.getResultingElement().getNode().getDecisionTree(), backendOutput.situation,
-                                isAnswerCorrect, getDomain(), language));
+            if (paths.isEmpty()) {
+                return makeVerdict(trace, isAnswerCorrect, stepsLeft, domainModel, getDomain(), language);
             }
-            var reasoning = makeUnexplainedReasoning(trace, isAnswerCorrect, domainModel, getDomain(), language);
-            // Ответ, после которого шагов не осталось, завершает задачу: ошибок в нём быть не может.
-            if (stepsLeft == 0) {
-                reasoning = new Reasoning(List.of(), true, null, Explanation.empty(Explanation.Type.HINT), List.of(),
-                        reasoning.appliedLaws());
-            }
-            return new Judgement(reasoning, stepsLeft);
+            return new Judgement.Reasoned(makeReasonings(paths, isAnswerCorrect, domainModel, getDomain(), language),
+                    makeInquiry(trace.getResultingElement().getNode().getDecisionTree(), backendOutput.situation,
+                            isAnswerCorrect, getDomain(), language),
+                    stepsLeft);
         }
 
         /**

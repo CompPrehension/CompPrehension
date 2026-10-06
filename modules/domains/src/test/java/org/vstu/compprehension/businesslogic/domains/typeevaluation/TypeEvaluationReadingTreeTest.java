@@ -6,7 +6,6 @@ import org.junit.jupiter.api.Test;
 import java.util.Set;
 
 import static org.junit.jupiter.api.Assertions.assertEquals;
-import static org.junit.jupiter.api.Assertions.assertFalse;
 import static org.junit.jupiter.api.Assertions.assertTrue;
 import static org.vstu.compprehension.businesslogic.domains.typeevaluation.TypeEvaluationTreeFixture.INAPPLICABLE_ASSUMED;
 import static org.vstu.compprehension.businesslogic.domains.typeevaluation.TypeEvaluationTreeFixture.OPERAND_TYPE;
@@ -129,7 +128,10 @@ class TypeEvaluationReadingTreeTest {
         assertTrue(verdict.reasonings().contains(Set.of(VARIABLE_CONFUSED, OPERAND_TYPE)), verdict.reasonings().toString());
     }
 
-    /** Верный ответ остаётся верным, даже если в условии есть похожая переменная. */
+    /**
+     * Верный ответ остаётся верным, даже если в условии есть похожая переменная: путаница ведёт к нему только вместе
+     * с заблуждением, и такие ошибочные рассуждения сохраняются.
+     */
     @Test
     void correctAnswerWithLookalikeVariableIsAccepted() {
         // Act.
@@ -140,8 +142,8 @@ class TypeEvaluationReadingTreeTest {
 
         // Assert.
         assertEquals(BranchResult.CORRECT, verdict.result());
-        assertTrue(verdict.hypotheses().contains(RULE), verdict.hypotheses().toString());
-        assertFalse(verdict.hypotheses().contains(VARIABLE_CONFUSED), verdict.hypotheses().toString());
+        assertEquals(Set.of(Set.of(RULE), Set.of(VARIABLE_CONFUSED, "argument_type"),
+                Set.of(VARIABLE_CONFUSED, "inapplicable_call_gives_result")), verdict.reasonings());
     }
 
     /** Без похожих имён ответ «ошибка» не списывается на путаницу переменных. */

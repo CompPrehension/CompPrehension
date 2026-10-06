@@ -21,8 +21,8 @@
             <DecisionTreeVarDecl name="step" type="Step"/>
             <ThoughtBranch _alias="Тело" type="bool" paramName="step" _RU_description="ветка цикла"
                            _RU_nextStepQuestion="вопрос ветки цикла" _RU_nextStepExplanation="объяснения ветки цикла">
-                <BranchAggregationNode _id="1" _alias="AND" operator="and" _RU_description="описание and"
-                                       _RU_asNextStep="шаблон and" _RU_endingCause="конечность and">
+                <BranchAggregationNode _id="1" _alias="OR: глобальная или статическая" operator="or" _RU_description="описание or"
+                                       _RU_asNextStep="шаблон or" _RU_endingCause="конечность or">
                     <ThoughtBranch _alias="Ветка1" type="bool"
                                    _RU_description="переменная ${$branchResult==BranchResult:NULL ? &amp;#039;не&amp;#039; : &amp;#039;&amp;#039;} является глобальной">
                         <QuestionNode _id="2" _skill="static skill" _alias="var является глобальной переменной?"

@@ -219,6 +219,7 @@ public class ExerciseAttemptDataRepository {
                 row.getIsCorrect(),
                 counted.getViolations().stream().map(ViolationData::getLawName).toList(),
                 counted.getAppliedLaws(),
-                row.getClarificationId() == null ? null : chosen != null && reasonings.get(chosen).isCorrect());
+                row.getClarificationId() == null ? null : chosen != null && reasonings.stream()
+                        .anyMatch(reasoning -> reasoning.getId() == chosen && reasoning.isCorrect()));
     }
 }

@@ -27,7 +27,7 @@ import static org.junit.jupiter.api.Assertions.assertThrows;
 import static org.junit.jupiter.api.Assertions.assertTrue;
 import static org.vstu.compprehension.businesslogic.domains.DomainFixtures.appliedLaws;
 import static org.vstu.compprehension.businesslogic.domains.DomainFixtures.interaction;
-import static org.vstu.compprehension.businesslogic.domains.DomainFixtures.onlyReasoning;
+import static org.vstu.compprehension.businesslogic.domains.DomainFixtures.verdict;
 import static org.vstu.compprehension.businesslogic.domains.DomainFixtures.violations;
 import static org.vstu.compprehension.businesslogic.domains.DomainFixtures.answers;
 import static org.vstu.compprehension.businesslogic.domains.DomainFixtures.violation;
@@ -81,7 +81,7 @@ class ControlFlowDTDomainJudgeTest {
             assertEquals(List.of(), violations(result));
             assertEquals(bankQuestion.steps() - given.size(), result.stepsLeft());
             assertFalse(appliedLaws(result).isEmpty());
-            assertTrue(onlyReasoning(result).explanation().toHyperText(Language.RUSSIAN).getText().isBlank());
+            assertTrue(verdict(result).explanation().toHyperText(Language.RUSSIAN).getText().isBlank());
         }
     }
 
@@ -116,7 +116,7 @@ class ControlFlowDTDomainJudgeTest {
         assertFalse(result.isAnswerCorrect());
         assertEquals(bankQuestion.steps(), result.stepsLeft());
         assertEquals(List.of(SEQUENTIAL_ORDER_SKILL), lawNames(violations(result)));
-        assertTrue(onlyReasoning(result).explanation().toHyperText(Language.RUSSIAN).getText().contains("сначала должно произойти"));
+        assertTrue(verdict(result).explanation().toHyperText(Language.RUSSIAN).getText().contains("сначала должно произойти"));
     }
 
     /** Повтор только что выполненного действия отклоняется. */
@@ -134,7 +134,7 @@ class ControlFlowDTDomainJudgeTest {
         assertFalse(result.isAnswerCorrect());
         assertEquals(bankQuestion.steps() - 1, result.stepsLeft());
         assertEquals(List.of(REPEATED_ACTION_SKILL), lawNames(violations(result)));
-        assertTrue(onlyReasoning(result).explanation().toHyperText(Language.RUSSIAN).getText().contains("два раза подряд"));
+        assertTrue(verdict(result).explanation().toHyperText(Language.RUSSIAN).getText().contains("два раза подряд"));
     }
 
     /** Возврат к давно выполненному действию отклоняется. */
@@ -149,7 +149,7 @@ class ControlFlowDTDomainJudgeTest {
         // Assert.
         assertFalse(result.isAnswerCorrect());
         assertEquals(List.of(SEQUENTIAL_ORDER_SKILL), lawNames(violations(result)));
-        assertTrue(onlyReasoning(result).explanation().toHyperText(Language.RUSSIAN).getText().contains("не должно выполняться повторно"));
+        assertTrue(verdict(result).explanation().toHyperText(Language.RUSSIAN).getText().contains("не должно выполняться повторно"));
     }
 
     /** Действие после цикла без вычисления его условия отклоняется. */
@@ -165,8 +165,8 @@ class ControlFlowDTDomainJudgeTest {
         assertFalse(result.isAnswerCorrect());
         assertEquals(2, result.stepsLeft());
         assertEquals(List.of(SEQUENTIAL_ORDER_SKILL), lawNames(violations(result)));
-        assertTrue(onlyReasoning(result).explanation().toHyperText(Language.RUSSIAN).getText().contains("должно быть вычислено"));
-        assertTrue(onlyReasoning(result).explanation().toHyperText(Language.RUSSIAN).getText().contains("s < n"));
+        assertTrue(verdict(result).explanation().toHyperText(Language.RUSSIAN).getText().contains("должно быть вычислено"));
+        assertTrue(verdict(result).explanation().toHyperText(Language.RUSSIAN).getText().contains("s < n"));
     }
 
     /** Тело цикла при ложном условии отклоняется. */
@@ -182,7 +182,7 @@ class ControlFlowDTDomainJudgeTest {
         assertFalse(result.isAnswerCorrect());
         assertEquals(1, result.stepsLeft());
         assertEquals(List.of(CONDITION_TRANSITION_SKILL), lawNames(violations(result)));
-        assertTrue(onlyReasoning(result).explanation().toHyperText(Language.RUSSIAN).getText().contains("равно ложь"));
+        assertTrue(verdict(result).explanation().toHyperText(Language.RUSSIAN).getText().contains("равно ложь"));
     }
 
     /** Ветка then при ложном условии отклоняется. */
@@ -211,7 +211,7 @@ class ControlFlowDTDomainJudgeTest {
         // Assert.
         assertFalse(result.isAnswerCorrect());
         assertEquals(List.of(CONDITION_TRANSITION_SKILL), lawNames(violations(result)));
-        assertTrue(onlyReasoning(result).explanation().toHyperText(Language.RUSSIAN).getText().contains("равно истина"));
+        assertTrue(verdict(result).explanation().toHyperText(Language.RUSSIAN).getText().contains("равно истина"));
     }
 
     /** Ветка уже отвергнутого условия отклоняется как далёкая от точки выполнения. */
@@ -226,7 +226,7 @@ class ControlFlowDTDomainJudgeTest {
         // Assert.
         assertFalse(result.isAnswerCorrect());
         assertEquals(List.of(FAR_AWAY_ACTION_SKILL), lawNames(violations(result)));
-        assertTrue(onlyReasoning(result).explanation().toHyperText(Language.RUSSIAN).getText().contains("слишком далеко"));
+        assertTrue(verdict(result).explanation().toHyperText(Language.RUSSIAN).getText().contains("слишком далеко"));
     }
 
     /** Выход из цикла после тела без повторной проверки условия отклоняется. */
@@ -242,7 +242,7 @@ class ControlFlowDTDomainJudgeTest {
         assertFalse(result.isAnswerCorrect());
         assertEquals(2, result.stepsLeft());
         assertEquals(List.of(SEQUENTIAL_ORDER_SKILL), lawNames(violations(result)));
-        assertTrue(onlyReasoning(result).explanation().toHyperText(Language.RUSSIAN).getText().contains("x > 5"));
+        assertTrue(verdict(result).explanation().toHyperText(Language.RUSSIAN).getText().contains("x > 5"));
     }
 
     /** Новая итерация после ложного условия цикла отклоняется. */
@@ -320,7 +320,7 @@ class ControlFlowDTDomainJudgeTest {
         assertFalse(result.isAnswerCorrect());
         assertEquals(1, result.stepsLeft());
         assertEquals(List.of(INTERRUPTION_MODE_SKILL), lawNames(violations(result)));
-        assertTrue(onlyReasoning(result).explanation().toHyperText(Language.RUSSIAN).getText().contains("прерывание цикла"));
+        assertTrue(verdict(result).explanation().toHyperText(Language.RUSSIAN).getText().contains("прерывание цикла"));
     }
 
     /** Объяснение ошибки локализовано. */
@@ -331,8 +331,8 @@ class ControlFlowDTDomainJudgeTest {
         var wrong = answers(action(question, "atom_107"));
 
         // Act.
-        var english = onlyReasoning(domain().judgeAnswer(question, wrong, List.of(), Language.ENGLISH)).explanation().toHyperText(Language.ENGLISH).getText();
-        var russian = onlyReasoning(domain().judgeAnswer(question, wrong, List.of(), Language.RUSSIAN)).explanation().toHyperText(Language.RUSSIAN).getText();
+        var english = verdict(domain().judgeAnswer(question, wrong, List.of(), Language.ENGLISH)).explanation().toHyperText(Language.ENGLISH).getText();
+        var russian = verdict(domain().judgeAnswer(question, wrong, List.of(), Language.RUSSIAN)).explanation().toHyperText(Language.RUSSIAN).getText();
 
         // Assert.
         assertFalse(english.isBlank());

@@ -34,7 +34,7 @@ public class InteractionClarificationEntity {
     @Column(name = "answered_at")
     private Date answeredAt;
 
-    // Номер в рассуждениях взаимодействия; null при ответе — студент назвал другую причину.
+    // Идентификатор рассуждения взаимодействия; null при ответе — студент назвал другую причину.
     @Column(name = "chosen_reasoning")
     private Integer chosenReasoning;
 }

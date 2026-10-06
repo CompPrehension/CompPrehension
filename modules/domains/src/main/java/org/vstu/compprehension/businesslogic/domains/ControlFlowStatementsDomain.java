@@ -1333,8 +1333,8 @@ QuestionOptionsData orderQuestionOptions = OrderQuestionOptionsData.builder()
         correctlyAppliedLaws.addAll(notHappenedMistakes(correctlyAppliedLaws, violations));
 
         // Ответ верен, если ризонер не нашёл в нём нарушений.
-        return new Judgement(new Reasoning(List.of(), mistakes.isEmpty(), null,
-                makeExplanation(mistakes, FeedbackType.EXPLANATION, language), mistakes, correctlyAppliedLaws),
+        return new Judgement.Verdict(mistakes.isEmpty(),
+                makeExplanation(mistakes, FeedbackType.EXPLANATION, language), mistakes, correctlyAppliedLaws,
                 countStepsLeft(violations));
     }
 

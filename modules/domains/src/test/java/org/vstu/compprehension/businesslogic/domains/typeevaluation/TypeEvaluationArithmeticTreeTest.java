@@ -162,10 +162,24 @@ class TypeEvaluationArithmeticTreeTest {
         assertEquals(Set.of(OPERAND_TYPE), verdict.hypotheses());
     }
 
+    /**
+     * Приняв «/» за деление нацело, студент дальше считает тип результата как у остальных операций и может ошибиться
+     * и там: ответ int на float / int объясняет и тип операнда, и такое сочетание двух ошибок.
+     */
+    @Test
+    void integerDivisionBeliefContinuesIntoResultType() {
+        // Act.
+        var verdict = judge("py_truediv", "t_float", "t_int", "t_int");
+
+        // Assert.
+        assertEquals(BranchResult.ERROR, verdict.result());
+        assertEquals(Set.of(Set.of(OPERAND_TYPE), Set.of("c_style_division", OPERAND_TYPE)), verdict.reasonings());
+    }
+
     /** Ответ «ошибка» на допустимую арифметику объясняется тем, что студент счёл операцию неприменимой к этим операндам. */
     @ParameterizedTest
     @CsvSource({
-            "py_truediv, t_int, t_int,   true_division_result",
+            "py_truediv, t_int, t_int,   numeric_result_type",
             "py_add,     t_int, t_float, numeric_result_type",
             "py_add,     t_int, t_int,   numeric_result_type",
             "py_add,     t_str, t_str,   sequence_operation_applicability",

@@ -1,21 +1,11 @@
-// Ответ студента объясняется прочтениями выражения: выражение как написано (правило и заблуждения — дерево typed)
-// или выражение, в котором операнд прочитан как похожая на него переменная из условия. Прочтение объясняет ответ T,
+// Ответ студента объясняется тем, какие операнды он видит: выражение как написано (правило и заблуждения — дерево typed)
+// или выражение, в котором один операнд прочитан как похожая на него переменная из условия. Прочтение объясняет ответ T,
 // если к T на нём ведёт правило или заблуждение. Если ни одно прочтение ответ не объяснило, он ошибочен по запасному выводу.
 
 lambda looksAlike(A: Variable, B: Variable) = A=>looksLike(B) or A=>lookedLikeBy(B);
 
-// Операнд O прочитан как похожая на него переменная V.
-fragment variableConfused() {
-    conclude: error [
-        skill = "operand_identification";
-        hypothesis = "variable_confused";
-        // У двух операндов место называется явно: похожая переменная может стоять в том же выражении.
-        RU.explanation = "${(E is class:CallOperation or E is class:NegationOperation) ? 'в выражении стоит' : (E=>hasOperand<OperandPlacement:left>(O) ? 'левый операнд —' : 'правый операнд —')} ${O}, а не ${V}.";
-        EN.explanation = "${(E is class:CallOperation or E is class:NegationOperation) ? 'the expression uses' : (E=>hasOperand<OperandPlacement:left>(O) ? 'the left operand is' : 'the right operand is')} ${O}, not ${V}.";
-        RU.reason = "Мне показалось, что ${(E is class:CallOperation or E is class:NegationOperation) ? 'в выражении стоит' : (E=>hasOperand<OperandPlacement:left>(O) ? 'левый операнд —' : 'правый операнд —')} ${V}, а не ${O}.";
-        EN.reason = "It seemed to me that ${(E is class:CallOperation or E is class:NegationOperation) ? 'the expression uses' : (E=>hasOperand<OperandPlacement:left>(O) ? 'the left operand is' : 'the right operand is')} ${V}, not ${O}.";
-    ]
-}
+// У одного из операндов есть похожая переменная: студент мог их перепутать.
+lambda hasLookalikeOperand(E: Operation) = forAny Variable o {(E=>hasOperand<OperandPlacement:left>($o) or E=>hasOperand<OperandPlacement:right>($o)) and forAny Variable v {looksAlike($v, $o)}};
 
 tpg ExprType(E: Operation, T: Outcome) {
     // Тип среза кортежа зависит от границ, а арифметики в LOQI нет: такие ответы дерево не оценивает.
@@ -24,46 +14,54 @@ tpg ExprType(E: Operation, T: Outcome) {
     };
     agg hyp {
         _ -> {
-            conclude: subcall("typed", E, E, E, T)
+            ask (hasLookalikeOperand(E)) {
+                true -> {
+                    // Перепутать было что, и студент не перепутал: распознавание операндов применено верно.
+                    agg and {
+                        _ -> {
+                            conclude: correct [
+                                skill = "operand_identification";
+                            ]
+                        };
+                        _ -> {
+                            conclude: subcall("typed", E, E, E, T)
+                        };
+                        correct -> { conclude: correct };
+                        error -> { conclude: error };
+                        null -> { conclude: null };
+                    }
+                };
+                false -> {
+                    conclude: subcall("typed", E, E, E, T)
+                };
+            } as lookalikeOperands
         };
         _ -> {
             cycle hyp (E=>hasOperand<OperandPlacement:left>($O) or E=>hasOperand<OperandPlacement:right>($O)) with Expr O {
                 _ -> {
-                    cycle hyp ($V == O or O is class:Variable and looksAlike($V, (O as class:Variable))) with Variable V {
+                    cycle hyp (O is class:Variable and looksAlike($V, (O as class:Variable))) with Variable V {
                         _ -> {
-                            ask (V == O) {
-                                true -> {
-                                    ask (subcall("typed", E, O, V, T) == true) out false else {
-                                        conclude: correct [
-                                            skill = "operand_identification";
-                                            hypothesis = "rule";
-                                        ]
-                                    };
-                                    conclude: null
+                            // Два одновременных допущения: операнд перепутан, и тип перепутанного выражения студент
+                            // получил так, как получил. Если к ответу оно не ведёт, рассуждения нет.
+                            agg and {
+                                _ -> {
+                                    conclude: error [
+                                        skill = "operand_identification";
+                                        hypothesis = "variable_confused";
+                                        // У двух операндов место называется явно: похожая переменная может стоять в том же выражении.
+                                        RU.explanation = "${(E is class:CallOperation or E is class:NegationOperation) ? 'в выражении стоит' : (E=>hasOperand<OperandPlacement:left>(O) ? 'левый операнд —' : 'правый операнд —')} ${O}, а не ${V}.";
+                                        EN.explanation = "${(E is class:CallOperation or E is class:NegationOperation) ? 'the expression uses' : (E=>hasOperand<OperandPlacement:left>(O) ? 'the left operand is' : 'the right operand is')} ${O}, not ${V}.";
+                                        RU.reason = "Мне показалось, что ${(E is class:CallOperation or E is class:NegationOperation) ? 'в выражении стоит' : (E=>hasOperand<OperandPlacement:left>(O) ? 'левый операнд —' : 'правый операнд —')} ${V}, а не ${O}.";
+                                        EN.reason = "It seemed to me that ${(E is class:CallOperation or E is class:NegationOperation) ? 'the expression uses' : (E=>hasOperand<OperandPlacement:left>(O) ? 'the left operand is' : 'the right operand is')} ${V}, not ${O}.";
+                                    ]
                                 };
-                                false -> {
-                                    ask (subcall("typed", E, O, V, T) == true) {
-                                        true -> {
-                                            fragment:variableConfused()
-                                        };
-                                        false -> {
-                                            // Заблуждение — второе допущение рассуждения: оно нужно, только если на прочтении
-                                            // с похожей переменной к ответу не ведёт верное правило, и остаётся в трассе.
-                                            agg and {
-                                                _ -> {
-                                                    conclude: subcall("typed", E, O, V, T)
-                                                };
-                                                error -> {
-                                                    fragment:variableConfused()
-                                                };
-                                                null -> {
-                                                    conclude: null
-                                                };
-                                            }
-                                        };
-                                    } as confusionReading
+                                _ -> {
+                                    conclude: subcall("typed", E, O, V, T)
                                 };
-                            } as operandIdentification
+                                correct -> { conclude: correct };
+                                error -> { conclude: error };
+                                null -> { conclude: null };
+                            }
                         };
                         correct -> { conclude: correct };
                         error -> { conclude: error };
@@ -93,11 +91,11 @@ tpg ExprType(E: Operation, T: Outcome) {
     EN.clarification_prompt = "Why did you ${T is class:EvaluationError ? 'decide that this causes the error' : 'choose the type'} ${T}?";
 ]
 
-// Навык — последняя развилка перед выводом correct/error, у которой к таким выводам ведут хотя бы два выхода.
-meta for operandIdentification [
+// Навык вывода — навык последней развилки перед ним: проверки или решения студента «какие операнды он видит».
+meta for readings [
     skill = "operand_identification";
 ]
 
-meta for confusionReading [
+meta for lookalikeOperands [
     skill = "operand_identification";
 ]

@@ -33,6 +33,8 @@ import java.util.ResourceBundle;
 import java.util.SplittableRandom;
 import java.util.random.RandomGenerator;
 
+import static org.junit.jupiter.api.Assertions.assertInstanceOf;
+
 public final class DomainFixtures {
 
     private DomainFixtures() {
@@ -86,13 +88,23 @@ public final class DomainFixtures {
                 .interactionType(InteractionType.SEND_RESPONSE)
                 .responses(new ArrayList<>(responses))
                 .isCorrect(violations.isEmpty())
-                .reasonings(List.of(new InteractionReasoningData(List.of(), violations.isEmpty(), null, violations, List.of())))
+                .reasonings(List.of(new InteractionReasoningData(0, List.of(), true, violations.isEmpty(), null, violations, List.of())))
                 .feedback(FeedbackData.builder().interactionsLeft(interactionsLeft).build())
                 .build();
     }
 
-    /** Единственное рассуждение ответа: домен, не различающий рассуждения, объясняет им сам ответ. */
-    public static Reasoning onlyReasoning(Judgement judgement) {
+    /** Вердикт, в котором ход мысли студента не установлен. */
+    public static Judgement.Verdict verdict(Judgement judgement) {
+        return assertInstanceOf(Judgement.Verdict.class, judgement);
+    }
+
+    /** Вердикт, в котором ответ объясняют рассуждения студента. */
+    public static Judgement.Reasoned reasoned(Judgement judgement) {
+        return assertInstanceOf(Judgement.Reasoned.class, judgement);
+    }
+
+    /** Единственное рассуждение, которым объясняется ответ. */
+    public static Reasoning onlyReasoning(Judgement.Reasoned judgement) {
         if (judgement.reasonings().size() != 1) {
             throw new IllegalStateException("Ответ объясняют несколько рассуждений: " + judgement.reasonings());
         }
@@ -109,9 +121,17 @@ public final class DomainFixtures {
         return countedLaws(judgement).getAppliedLaws();
     }
 
+    // Отбор вероятных рассуждений делает тренажёр, а не домен: здесь в счёт идут все рассуждения.
     private static CountedLawsData countedLaws(Judgement judgement) {
-        return new CountedLawsData(judgement.isAnswerCorrect(),
-                judgement.reasonings().stream().map(Reasoning::toData).toList(), null);
+        var reasonings = switch (judgement) {
+            case Judgement.Verdict verdict -> List.of(new InteractionReasoningData(0, List.of(), true,
+                    verdict.isAnswerCorrect(), null, verdict.violations(), verdict.appliedLaws()));
+            case Judgement.Reasoned reasoned -> reasoned.reasonings().stream()
+                    .map(reasoning -> new InteractionReasoningData(reasoning.id(), reasoning.assumptions(), true,
+                            reasoning.isCorrect(), reasoning.reason(), reasoning.violations(), reasoning.appliedLaws()))
+                    .toList();
+        };
+        return new CountedLawsData(judgement.isAnswerCorrect(), reasonings, null);
     }
 
     public static QuestionData withCorrectSteps(QuestionData question, List<AnswerObjectData> given, int totalSteps) {

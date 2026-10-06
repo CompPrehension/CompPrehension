@@ -9,6 +9,7 @@ import org.vstu.compprehension.businesslogic.domains.Reasoning;
 import org.vstu.compprehension.businesslogic.domains.TypeEvaluationDTDomain;
 import org.vstu.compprehension.businesslogic.domains.typeevaluation.TypeEvaluationDomainFixture.BankQuestion;
 import org.vstu.compprehension.data.question.AnswerData;
+import org.vstu.compprehension.data.question.Assumption;
 import org.vstu.compprehension.data.question.ViolationData;
 import org.vstu.compprehension.enums.Language;
 
@@ -24,6 +25,8 @@ import static org.junit.jupiter.api.Assertions.assertFalse;
 import static org.junit.jupiter.api.Assertions.assertTrue;
 import static org.vstu.compprehension.businesslogic.domains.DomainFixtures.appliedLaws;
 import static org.vstu.compprehension.businesslogic.domains.DomainFixtures.onlyReasoning;
+import static org.vstu.compprehension.businesslogic.domains.DomainFixtures.reasoned;
+import static org.vstu.compprehension.businesslogic.domains.DomainFixtures.verdict;
 import static org.vstu.compprehension.businesslogic.domains.DomainFixtures.violations;
 import static org.vstu.compprehension.businesslogic.domains.typeevaluation.TypeEvaluationDomainFixture.AVERAGE_OF_GRADES;
 import static org.vstu.compprehension.businesslogic.domains.typeevaluation.TypeEvaluationDomainFixture.BANK;
@@ -80,7 +83,7 @@ class TypeEvaluationDTDomainJudgeTest {
         assertEquals(List.of(TypeEvaluationDTDomain.EVALUATION_ORDER_VIOLATION), lawNames(violations(result)));
         assertEquals(List.of(), appliedLaws(result));
         assertEquals(List.of(domain().getMessage("operands_first", Language.RUSSIAN)),
-                messages(onlyReasoning(result).explanation()));
+                messages(verdict(result).explanation()));
         assertEquals(2, result.stepsLeft());
     }
 
@@ -104,7 +107,7 @@ class TypeEvaluationDTDomainJudgeTest {
                 hypotheses(result));
         assertEquals(List.of("true_division_result"), lawNames(violations(result)));
         assertEquals(List.of("Выражение <code>total / len(grades)</code> не может иметь тип <code>int</code>."),
-                messages(result.inquiry().statement()));
+                messages(reasoned(result).inquiry().statement()));
         assertEquals(1, result.stepsLeft());
     }
 
@@ -131,7 +134,7 @@ class TypeEvaluationDTDomainJudgeTest {
                 violationsByHypothesis(result));
         assertEquals(List.of(), violations(result));
         assertEquals(List.of("Выражение <code>name or names</code> не может иметь тип <code>str</code>."),
-                messages(result.inquiry().statement()));
+                messages(reasoned(result).inquiry().statement()));
     }
 
     /** Ошибку, которую объясняет единственное заблуждение, студенту объясняет именно оно. */
@@ -148,7 +151,7 @@ class TypeEvaluationDTDomainJudgeTest {
         assertEquals(Set.of(new Hypothesis("index_type", false)), hypotheses(result));
         assertEquals(List.of("Выражение <code>line[0]</code> не может иметь тип <code>int</code>, потому что индекс лишь указывает"
                 + " позицию, а результат обращения — сам элемент последовательности."),
-                messages(onlyReasoning(result).explanation()));
+                messages(onlyReasoning(reasoned(result)).explanation()));
     }
 
     /** Объяснение называет часть выражения так, как она написана в коде, — с кавычками и скобками. */
@@ -163,7 +166,28 @@ class TypeEvaluationDTDomainJudgeTest {
         // Assert.
         assertEquals(List.of("Выражение <code>student[\"grades\"]</code> не может иметь тип <code>str</code>, потому что по ключу"
                 + " из словаря возвращается хранящееся под ним значение, а не сам ключ."),
-                messages(onlyReasoning(result).explanation()));
+                messages(onlyReasoning(reasoned(result)).explanation()));
+    }
+
+    /**
+     * Распознавание операндов засчитывается за верный ответ, только если было что путать: у len(grades) есть похожая
+     * переменная grade, у len(grades) в задаче о среднем — нет.
+     */
+    @Test
+    void operandIdentificationIsAppliedOnlyWhenOperandHasLookalike() {
+        // Arrange.
+        var withLookalike = question(GRADE_COUNT);
+        var withoutLookalike = question(AVERAGE_OF_GRADES);
+
+        // Act.
+        var lookalikeResult = judge(withLookalike, solution(withLookalike, GRADE_COUNT, 1));
+        var plainResult = judge(withoutLookalike, solution(withoutLookalike, AVERAGE_OF_GRADES, 1));
+
+        // Assert.
+        assertTrue(lookalikeResult.isAnswerCorrect());
+        assertTrue(appliedLaws(lookalikeResult).contains("operand_identification"), appliedLaws(lookalikeResult).toString());
+        assertTrue(plainResult.isAnswerCorrect());
+        assertFalse(appliedLaws(plainResult).contains("operand_identification"), appliedLaws(plainResult).toString());
     }
 
     /** Ответ, который не объясняет ни одно из известных рассуждений, остаётся ошибкой без гипотез. */
@@ -179,6 +203,28 @@ class TypeEvaluationDTDomainJudgeTest {
         assertFalse(result.isAnswerCorrect());
         assertEquals(Set.of(), hypotheses(result));
         assertEquals(List.of("length_applicability"), lawNames(violations(result)));
+    }
+
+    /**
+     * Ответ, который не объясняет ни одно рассуждение, объясняется только по выражению как написано: прочтения
+     * с похожими переменными к нему не ведут, и их допущения студенту не показываются и не засчитываются.
+     */
+    @Test
+    void unexplainedAnswerIsExplainedWithoutLookalikeReadings() {
+        // Arrange.
+        var question = question(COUNT_PLUS_TOTAL);
+
+        // Act.
+        var result = judge(question, List.of(answer(question, "op_add", "t_str")));
+
+        // Assert.
+        assertFalse(result.isAnswerCorrect());
+        assertEquals(Set.of(), hypotheses(result));
+        assertEquals(List.of("Выражение <code>count + total</code> не может иметь тип <code>str</code>, потому что ни у"
+                        + " одного из операндов (<code>int</code>, <code>int</code>) нет такого типа, и оператор <code>+</code>"
+                        + " его не создаёт."),
+                messages(verdict(result).explanation()));
+        assertEquals(List.of("numeric_result_type"), lawNames(violations(result)));
     }
 
     /**
@@ -212,7 +258,7 @@ class TypeEvaluationDTDomainJudgeTest {
         var result = judge(question, responses);
 
         // Assert.
-        assertEquals("Почему вы выбрали тип <code>int</code>?", result.inquiry().prompt());
+        assertEquals("Почему вы выбрали тип <code>int</code>?", reasoned(result).inquiry().prompt());
         assertEquals(Set.of(
                 new Offered("operand_type",
                         "Результат берёт тип одного из операндов.",
@@ -240,7 +286,7 @@ class TypeEvaluationDTDomainJudgeTest {
 
         // Assert.
         assertTrue(result.isAnswerCorrect());
-        assertEquals("Почему вы выбрали тип <code>str</code>?", result.inquiry().prompt());
+        assertEquals("Почему вы выбрали тип <code>str</code>?", reasoned(result).inquiry().prompt());
         assertEquals(Set.of(
                 new Offered("rule",
                         "Обращение по индексу берёт один элемент из <code>str</code>, а элементы там имеют тип <code>str</code>.",
@@ -344,7 +390,7 @@ class TypeEvaluationDTDomainJudgeTest {
         assertEquals(Set.of(
                         "Мне показалось, что левый операнд — <code>counts</code>, а не <code>count</code>.",
                         "Мне показалось, что правый операнд — <code>totals</code>, а не <code>total</code>."),
-                result.reasonings().stream()
+                reasoned(result).reasonings().stream()
                         .filter(reasoning -> "variable_confused".equals(nameOf(reasoning)))
                         .map(Reasoning::reason)
                         .collect(Collectors.toSet()));
@@ -387,8 +433,9 @@ class TypeEvaluationDTDomainJudgeTest {
                                 + " нельзя применить к операндам типов <code>int</code> и <code>list[int]</code>, и ни один"
                                 + " из операндов не может стать его результатом.")),
                 offered(result));
+        assertEquals(Set.of(2L), reasoned(result).reasonings().stream().map(Reasoning::countErrors).collect(Collectors.toSet()));
         assertEquals(Set.of("operand_identification", "sequence_operation_applicability"),
-                result.reasonings().stream().flatMap(reasoning -> lawNames(reasoning.violations()).stream())
+                reasoned(result).reasonings().stream().flatMap(reasoning -> lawNames(reasoning.violations()).stream())
                         .collect(Collectors.toSet()));
     }
 
@@ -406,11 +453,11 @@ class TypeEvaluationDTDomainJudgeTest {
         // Assert.
         assertFalse(result.isAnswerCorrect());
         assertEquals(Set.of(new Hypothesis("inapplicable_assumed", false)), hypotheses(result));
-        assertEquals(List.of("true_division_result"), lawNames(violations(result)));
+        assertEquals(List.of("numeric_result_type"), lawNames(violations(result)));
         assertEquals(List.of("Выражение <code>total / len(grades)</code> не может вызвать ошибку <code>TypeError</code>, потому что"
                 + " оператор <code>/</code> применяется к числам, а оба операнда — числа: <code>int</code> и <code>int</code>."
                 + " Следовательно, операция допустима."),
-                messages(onlyReasoning(result).explanation()));
+                messages(onlyReasoning(reasoned(result)).explanation()));
     }
 
     /**
@@ -433,8 +480,8 @@ class TypeEvaluationDTDomainJudgeTest {
                 "inapplicable_assumed", List.of("length_applicability")), violationsByHypothesis(result));
         assertEquals(List.of(), violations(result));
         assertEquals(List.of("Выражение <code>len(grades)</code> не может вызвать ошибку <code>TypeError</code>."),
-                messages(result.inquiry().statement()));
-        assertEquals("Почему вы решили, что здесь возникнет ошибка <code>TypeError</code>?", result.inquiry().prompt());
+                messages(reasoned(result).inquiry().statement()));
+        assertEquals("Почему вы решили, что здесь возникнет ошибка <code>TypeError</code>?", reasoned(result).inquiry().prompt());
         assertEquals(Set.of(
                 new Offered("variable_confused",
                         "Мне показалось, что в выражении стоит <code>grade</code>, а не <code>grades</code>.",
@@ -466,7 +513,7 @@ class TypeEvaluationDTDomainJudgeTest {
         assertEquals(Map.of("operand_type", List.of("sequence_operation_applicability"),
                 "variable_confused", List.of("operand_identification")), violationsByHypothesis(result));
         assertEquals(List.of("Выражение <code>grades + 1</code> не может иметь тип <code>int</code>."),
-                messages(result.inquiry().statement()));
+                messages(reasoned(result).inquiry().statement()));
         assertEquals(Set.of("Результат берёт тип одного из операндов.", "Мне показалось, что левый операнд — <code>grade</code>, а не <code>grades</code>."),
                 offered(result).stream().map(Offered::reason).collect(Collectors.toSet()));
     }
@@ -526,25 +573,29 @@ class TypeEvaluationDTDomainJudgeTest {
 
     // Рассуждение называется своими гипотезами через « + », от внешнего допущения к вложенному.
     private static String nameOf(Reasoning reasoning) {
-        return String.join(" + ", reasoning.hypotheses());
+        return reasoning.assumptions().stream().map(Assumption::hypothesis).collect(Collectors.joining(" + "));
     }
 
+    // Вердикт без хода мысли гипотез не называет.
     private static Set<Hypothesis> hypotheses(Judgement judgement) {
-        return judgement.reasonings().stream()
-                .filter(reasoning -> !reasoning.hypotheses().isEmpty())
-                .map(reasoning -> new Hypothesis(nameOf(reasoning), reasoning.isCorrect()))
-                .collect(Collectors.toSet());
+        return switch (judgement) {
+            case Judgement.Verdict verdict -> Set.of();
+            case Judgement.Reasoned reasoned -> reasoned.reasonings().stream()
+                    .map(reasoning -> new Hypothesis(nameOf(reasoning), reasoning.isCorrect()))
+                    .collect(Collectors.toSet());
+        };
     }
 
     private static Reasoning reasoning(Judgement judgement, String hypothesis) {
-        return judgement.reasonings().stream()
+        var reasonings = reasoned(judgement).reasonings();
+        return reasonings.stream()
                 .filter(reasoning -> hypothesis.equals(nameOf(reasoning)))
                 .findFirst()
-                .orElseThrow(() -> new AssertionError("Нет рассуждения " + hypothesis + " среди " + judgement.reasonings()));
+                .orElseThrow(() -> new AssertionError("Нет рассуждения " + hypothesis + " среди " + reasonings));
     }
 
     private static Map<String, List<String>> violationsByHypothesis(Judgement judgement) {
-        return judgement.reasonings().stream()
+        return reasoned(judgement).reasonings().stream()
                 .collect(Collectors.toMap(TypeEvaluationDTDomainJudgeTest::nameOf, reasoning -> lawNames(reasoning.violations())));
     }
 
@@ -553,8 +604,8 @@ class TypeEvaluationDTDomainJudgeTest {
     }
 
     private static Set<Offered> offered(Judgement judgement) {
-        return judgement.reasonings().stream()
-                .filter(reasoning -> !reasoning.hypotheses().isEmpty() && reasoning.reason() != null)
+        return reasoned(judgement).reasonings().stream()
+                .filter(reasoning -> reasoning.reason() != null)
                 .map(reasoning -> new Offered(nameOf(reasoning), reasoning.reason(),
                         reasoning.explanation().getRawMessage().getText()))
                 .collect(Collectors.toSet());

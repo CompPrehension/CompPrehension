@@ -27,7 +27,7 @@ class ClarificationControllerTest extends AbstractAuthorizationTest {
     @Autowired private ExerciseAttemptFrontendService service;
     @Autowired private QuestionDataService questionDataService;
 
-    /** Варианты уточняющего вопроса приходят с номерами, и ответ номером выбирает именно этот вариант. */
+    /** Варианты уточняющего вопроса приходят с идентификаторами, и ответ идентификатором выбирает именно этот вариант. */
     @Test
     void clarificationOptionIsChosenByItsNumber() throws Exception {
         // Arrange.

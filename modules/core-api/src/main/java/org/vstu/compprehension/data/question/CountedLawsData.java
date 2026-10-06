@@ -18,31 +18,33 @@ public final class CountedLawsData {
 
     // Верный ответ засчитывается по верным рассуждениям: заблуждение, которое тоже к нему ведёт, его не портит,
     // даже если студент назвал его в уточнении. У неверного ответа засчитывается известное рассуждение —
-    // единственное или выбранное студентом, а пока оно неизвестно — только законы, общие для всех рассуждений.
+    // единственное отобранное или выбранное студентом, а пока оно неизвестно — только законы, общие для отобранных.
     public CountedLawsData(boolean isAnswerCorrect,
                            @NotNull List<InteractionReasoningData> reasonings,
                            @Nullable Integer chosenReasoning) {
         if (isAnswerCorrect) {
             var correct = reasonings.stream().filter(InteractionReasoningData::isCorrect).toList();
-            this.violations = correct.stream().flatMap(reasoning -> reasoning.violations().stream()).distinct().toList();
-            this.appliedLaws = correct.stream().flatMap(reasoning -> reasoning.appliedLaws().stream()).distinct().toList();
+            this.violations = correct.stream().flatMap(reasoning -> reasoning.getViolations().stream()).distinct().toList();
+            this.appliedLaws = correct.stream().flatMap(reasoning -> reasoning.getAppliedLaws().stream()).distinct().toList();
             return;
         }
-        var known = reasonings.size() == 1 ? reasonings.getFirst()
-                : chosenReasoning != null ? reasonings.get(chosenReasoning)
+        var probable = reasonings.stream().filter(InteractionReasoningData::isProbable).toList();
+        var known = chosenReasoning != null
+                ? reasonings.stream().filter(reasoning -> reasoning.getId() == chosenReasoning).findFirst().orElseThrow()
+                : probable.size() == 1 ? probable.getFirst()
                 : null;
         if (known != null) {
-            this.violations = known.violations();
-            this.appliedLaws = known.appliedLaws();
+            this.violations = known.getViolations();
+            this.appliedLaws = known.getAppliedLaws();
             return;
         }
-        var commonViolated = intersect(reasonings, reasoning -> reasoning.violations().stream()
+        var commonViolated = intersect(probable, reasoning -> reasoning.getViolations().stream()
                 .map(ViolationData::getLawName).toList());
-        this.violations = reasonings.isEmpty() ? List.of() : reasonings.getFirst().violations().stream()
+        this.violations = probable.isEmpty() ? List.of() : probable.getFirst().getViolations().stream()
                 .filter(violation -> commonViolated.contains(violation.getLawName()))
                 .toList();
-        var commonApplied = intersect(reasonings, InteractionReasoningData::appliedLaws);
-        this.appliedLaws = reasonings.isEmpty() ? List.of() : reasonings.getFirst().appliedLaws().stream()
+        var commonApplied = intersect(probable, InteractionReasoningData::getAppliedLaws);
+        this.appliedLaws = probable.isEmpty() ? List.of() : probable.getFirst().getAppliedLaws().stream()
                 .filter(commonApplied::contains)
                 .toList();
     }

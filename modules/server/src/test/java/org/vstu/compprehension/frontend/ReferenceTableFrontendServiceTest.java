@@ -93,14 +93,23 @@ class ReferenceTableFrontendServiceTest extends AbstractIntegrationTest {
         var strategy = find(service.getStrategies(Language.RUSSIAN), TestData.Exercises.STRATEGY_ID);
 
         // Assert.
-        assertEquals(List.of(new StrategySettingsDto.Group("correctAnswerClarification", "Уточнять рассуждение при верном ответе",
-                List.of(new StrategySettingsDto.Choice("mode", "Режим", List.of(
-                                new StrategySettingsDto.Option("NEVER", "Никогда"),
-                                new StrategySettingsDto.Option("ALWAYS", "Всегда"),
-                                new StrategySettingsDto.Option("UNTIL_STREAK", "До серии верных ответов"))),
-                        new StrategySettingsDto.Numeric("streakLength", "Длина серии верных ответов", 1, Integer.MAX_VALUE)))),
+        assertEquals(List.of(
+                        new StrategySettingsDto.Choice("reasoningSelection", "Какие рассуждения допускать", List.of(
+                                new StrategySettingsDto.Option("FEWEST_ERRORS", "Самые вероятные — с наименьшим числом ошибок"),
+                                new StrategySettingsDto.Option("ALL", "Все"))),
+                        new StrategySettingsDto.Choice("wrongAnswerClarification", "Уточнять рассуждение при неверном ответе", List.of(
+                                new StrategySettingsDto.Option("WHEN_AMBIGUOUS", "Если причин несколько"),
+                                new StrategySettingsDto.Option("ALWAYS", "Всегда, если есть причина"))),
+                        new StrategySettingsDto.Group("correctAnswerClarification", "Уточнять рассуждение при верном ответе",
+                                List.of(new StrategySettingsDto.Choice("mode", "Режим", List.of(
+                                                new StrategySettingsDto.Option("NEVER", "Никогда"),
+                                                new StrategySettingsDto.Option("ALWAYS", "Всегда"),
+                                                new StrategySettingsDto.Option("UNTIL_STREAK", "До серии верных ответов"))),
+                                        new StrategySettingsDto.Numeric("streakLength", "Длина серии верных ответов", 1, Integer.MAX_VALUE)))),
                 strategy.getSettings().fields());
-        assertEquals(Map.of("correctAnswerClarification", Map.of("mode", "NEVER", "streakLength", 7)),
+        assertEquals(Map.of("reasoningSelection", "FEWEST_ERRORS",
+                        "wrongAnswerClarification", "WHEN_AMBIGUOUS",
+                        "correctAnswerClarification", Map.of("mode", "NEVER", "streakLength", 7)),
                 strategy.getSettings().defaults());
     }
 

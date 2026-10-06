@@ -53,7 +53,9 @@ class FeedbackDtoMapperImpl implements FeedbackDtoMapper {
         var reasonings = interaction.getReasonings();
         return new ClarificationDto(content.prompt(), content.options().stream()
                 .map(option -> new ClarificationDto.Option(option.reasoning(),
-                        Objects.requireNonNull(reasonings.get(option.reasoning()).reason())))
+                        Objects.requireNonNull(reasonings.stream()
+                                .filter(reasoning -> reasoning.getId() == option.reasoning())
+                                .findFirst().orElseThrow().getReason())))
                 .toList());
     }
 

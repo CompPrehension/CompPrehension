@@ -129,7 +129,10 @@ class TypeEvaluationTreeHypothesesTest {
         throw new IllegalStateException("Неподдерживаемая агрегация: " + aggregation);
     }
 
-    /** Выводы correct/error ветви рассуждения; выходы агрегаций лишь передают её итог и не в счёт. */
+    /**
+     * Выводы correct/error ветви рассуждения; выходы агрегаций лишь передают её итог и не в счёт. Верный вывод в ветви
+     * and — проверка части рассуждения, засчитывающая навык, а не способ рассуждать, поэтому тоже не в счёт.
+     */
     private static @NotNull List<BranchResultNode> conclusions(@NotNull DecisionTreeNode node) {
         if (node instanceof BranchResultNode result) {
             return result.getValue() == BranchResult.NULL ? List.of() : List.of(result);
@@ -137,6 +140,10 @@ class TypeEvaluationTreeHypothesesTest {
         var found = new ArrayList<BranchResultNode>();
         if (node instanceof AggregationNode aggregation) {
             for (ThoughtBranch branch : branchesOf(aggregation)) {
+                if (aggregation.getAggregationMethod() == AggregationMethod.AND
+                        && branch.getStart() instanceof BranchResultNode result && result.getValue() == BranchResult.CORRECT) {
+                    continue;
+                }
                 found.addAll(conclusions(branch.getStart()));
             }
         } else if (node instanceof LinkNode<?> link) {

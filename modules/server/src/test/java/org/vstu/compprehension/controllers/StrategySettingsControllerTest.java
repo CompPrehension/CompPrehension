@@ -53,7 +53,7 @@ class StrategySettingsControllerTest extends AbstractAuthorizationTest {
         // Assert.
         result.andExpect(status().isOk())
                 .andExpect(jsonPath("$[?(@.id == '" + TestData.Exercises.STRATEGY_ID + "')].settings.fields[0].kind",
-                        hasItem("GROUP")))
+                        hasItem("CHOICE")))
                 .andExpect(jsonPath("$[?(@.id == '" + TestData.Exercises.STRATEGY_ID + "')]"
                         + ".settings.defaults.correctAnswerClarification.mode", hasItem("NEVER")));
     }

@@ -1,36 +1,66 @@
 package org.vstu.compprehension.businesslogic.domains;
 
 import org.jetbrains.annotations.NotNull;
-import org.jetbrains.annotations.Nullable;
+import org.vstu.compprehension.businesslogic.Explanation;
+import org.vstu.compprehension.data.question.ViolationData;
 
 import java.util.List;
+import java.util.Set;
+import java.util.stream.Collectors;
 
-/**
- * Вердикт домена по ответу на шаге вопроса: рассуждения, которыми студент мог к нему прийти.
- *
- * @param inquiry есть, если домен различает рассуждения; тогда у каждого рассуждения есть гипотезы
- */
-public record Judgement(@NotNull List<Reasoning> reasonings, int stepsLeft, @Nullable ReasoningInquiry inquiry) {
+/** Вердикт домена по ответу на шаге вопроса. */
+public sealed interface Judgement {
 
-    public Judgement {
-        if (reasonings.isEmpty()) {
-            throw new IllegalArgumentException("An answer is judged by at least one reasoning");
+    int stepsLeft();
+
+    boolean isAnswerCorrect();
+
+    /** Ход мысли студента не установлен: домен объясняет сам ответ. */
+    record Verdict(boolean isAnswerCorrect,
+                   @NotNull Explanation explanation,
+                   @NotNull List<ViolationData> violations,
+                   @NotNull List<String> appliedLaws,
+                   int stepsLeft) implements Judgement {
+
+        public Verdict {
+            violations = List.copyOf(violations);
+            appliedLaws = List.copyOf(appliedLaws);
         }
-        if (inquiry == null && (reasonings.size() > 1 || !reasonings.getFirst().hypotheses().isEmpty())) {
-            throw new IllegalArgumentException("Reasonings with hypotheses need an inquiry");
-        }
-        if (inquiry != null && reasonings.stream().anyMatch(reasoning -> reasoning.hypotheses().isEmpty())) {
-            throw new IllegalArgumentException("An inquiry is made only about reasonings with hypotheses");
-        }
-        reasonings = List.copyOf(reasonings);
     }
 
-    /** Вердикт, в котором ход мысли студента не установлен. */
-    public Judgement(@NotNull Reasoning reasoning, int stepsLeft) {
-        this(List.of(reasoning), stepsLeft, null);
-    }
+    /**
+     * Ответ объясняют рассуждения, которыми студент мог к нему прийти.
+     *
+     * @param inquiry как говорить со студентом об ответе, пока его рассуждение неизвестно
+     */
+    record Reasoned(@NotNull List<Reasoning> reasonings,
+                    @NotNull ReasoningInquiry inquiry,
+                    int stepsLeft) implements Judgement {
 
-    public boolean isAnswerCorrect() {
-        return reasonings.stream().anyMatch(Reasoning::isCorrect);
+        public Reasoned {
+            if (reasonings.isEmpty()) {
+                throw new IllegalArgumentException("An answer is explained by at least one reasoning");
+            }
+            if (reasonings.stream().map(Reasoning::id).distinct().count() != reasonings.size()) {
+                throw new IllegalArgumentException("Reasonings of a judgement have distinct ids");
+            }
+            reasonings = List.copyOf(reasonings);
+        }
+
+        @Override
+        public boolean isAnswerCorrect() {
+            return reasonings.stream().anyMatch(Reasoning::isCorrect);
+        }
+
+        public @NotNull Set<Integer> collectReasoningIds() {
+            return reasonings.stream().map(Reasoning::id).collect(Collectors.toUnmodifiableSet());
+        }
+
+        public @NotNull Reasoning getReasoning(int id) {
+            return reasonings.stream()
+                    .filter(reasoning -> reasoning.id() == id)
+                    .findFirst()
+                    .orElseThrow(() -> new IllegalArgumentException("No reasoning " + id + " in the judgement"));
+        }
     }
 }

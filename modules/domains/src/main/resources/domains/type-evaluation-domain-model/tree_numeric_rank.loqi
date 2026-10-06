@@ -1,0 +1,130 @@
+// Тип результата числовой арифметики без истинного деления: развилки «есть ли вещественный операнд» и «откуда берётся
+// тип результата» — правило или заблуждение. Истинное деление попадает сюда, только если студент принял «/» за деление
+// нацело: тогда ранг результата он считает по рангам операндов, без вещественного минимума операции.
+
+lambda maxOf(a: int, b: int) = a > b ? a : b;
+
+lambda isNumber(T: Outcome) = T is class:Type and (T as class:Type).isArithmetic;
+
+lambda isNumberOfRank(T: Outcome, rank: int) = isNumber(T) and (T as class:Type).conversionRank == rank;
+
+tpg NumericRank(E: Operation, L: Type, R: Type, T: Outcome) {
+    var A : ArithmeticOperation = (E as class:ArithmeticOperation);
+    ask (L is class:FloatingType or R is class:FloatingType) {
+        true -> {
+            agg hyp {
+                _ -> {
+                    ask (isNumberOfRank(T, (A.isTrueDivision ? maxOf(L.conversionRank, R.conversionRank) : maxOf(maxOf(L.conversionRank, R.conversionRank), A.minResultRank)))) out false else {
+                        conclude: correct [
+                            skill = "numeric_result_type";
+                            hypothesis = "rule";
+                            RU.explanation = "среди операндов (${L}, ${R}) есть вещественный, а ${A.class()} с вещественным операндом даёт вещественный результат.";
+                            EN.explanation = "one of the operands (${L}, ${R}) is floating-point, and the ${A.class()} with a floating-point operand gives a floating-point result.";
+                        ];
+                    };
+                    conclude: null
+                };
+                _ -> {
+                    ask (T == L or T == R) out false else {
+                        conclude: error [
+                            skill = "numeric_result_type";
+                            hypothesis = "operand_type";
+                            RU.explanation = "среди операндов есть вещественный, а ${A.class()} с вещественным операндом не сохраняет тип второго операнда.";
+                            EN.explanation = "one of the operands is floating-point, and the ${A.class()} with a floating-point operand does not keep the type of the other operand.";
+                            RU.reason = "Результат берёт тип одного из операндов.";
+                            EN.reason = "The result takes the type of one of the operands.";
+                        ];
+                    };
+                    conclude: null
+                };
+                _ -> {
+                    ask (A.isFloorDivision and T is class:IntegerType) out false else {
+                        conclude: error [
+                            skill = "numeric_result_type";
+                            hypothesis = "floor_division_gives_integer";
+                            RU.explanation = "${A.class()} округляет значение вниз, но тип не меняет: вещественный операнд не становится целым.";
+                            EN.explanation = "the ${A.class()} rounds the value down but does not change its type: a floating-point operand does not become an integer.";
+                            RU.reason = "Целочисленное деление всегда даёт целое число.";
+                            EN.reason = "Integer division always gives an integer.";
+                        ];
+                    };
+                    conclude: null
+                };
+                correct -> { conclude: correct };
+                error -> { conclude: error };
+                null -> {
+                    conclude: null [
+                        skill = "numeric_result_type";
+                        RU.explanation = "ни у одного из операндов (${L}, ${R}) нет такого типа, и ${A.class()} его не создаёт.";
+                        EN.explanation = "neither operand (${L}, ${R}) has this type, and the ${A.class()} does not create it.";
+                    ]
+                };
+            } as floatResultHypotheses
+        };
+        false -> {
+            agg hyp {
+                _ -> {
+                    ask (isNumberOfRank(T, (A.isTrueDivision ? maxOf(L.conversionRank, R.conversionRank) : maxOf(maxOf(L.conversionRank, R.conversionRank), A.minResultRank)))) out false else {
+                        conclude: correct [
+                            skill = "numeric_result_type";
+                            hypothesis = "rule";
+                            RU.explanation = "оба операнда целые или логические (${L}, ${R}), а ${A.class()} над ними даёт целое число.";
+                            EN.explanation = "both operands are integers or booleans (${L}, ${R}), and the ${A.class()} on them gives an integer.";
+                        ];
+                    };
+                    conclude: null
+                };
+                _ -> {
+                    ask (T == L or T == R) out false else {
+                        conclude: error [
+                            skill = "numeric_result_type";
+                            hypothesis = "operand_type";
+                            RU.explanation = "${(L is class:BooleanType or R is class:BooleanType) ? 'в арифметике логические значения ведут себя как числа 0 и 1, поэтому' : 'тип результата задают правила арифметики, а не тип операнда, и'} ${A.class()} ${(L is class:BooleanType or R is class:BooleanType) ? 'не сохраняет логический тип операнда.' : 'над целыми операндами даёт целое число.'}";
+                            EN.explanation = "${(L is class:BooleanType or R is class:BooleanType) ? 'in arithmetic, boolean values behave as the numbers 0 and 1, so' : 'the result type is set by the rules of arithmetic, not by an operand type, and'} the ${A.class()} ${(L is class:BooleanType or R is class:BooleanType) ? 'does not keep the boolean type of an operand.' : 'gives an integer for integer operands.'}";
+                            RU.reason = "Результат берёт тип одного из операндов.";
+                            EN.reason = "The result takes the type of one of the operands.";
+                        ];
+                    };
+                    conclude: null
+                };
+                _ -> {
+                    ask (L is class:BooleanType and R is class:BooleanType and T is class:BooleanType) out false else {
+                        conclude: error [
+                            skill = "numeric_result_type";
+                            hypothesis = "boolean_arithmetic_stays_boolean";
+                            RU.explanation = "${A.class()} работает с логическими значениями как с числами 1 и 0, и результат перестаёт быть логическим значением.";
+                            EN.explanation = "the ${A.class()} treats boolean values as the numbers 1 and 0, so the result is no longer a boolean.";
+                            RU.reason = "Арифметика над логическими значениями даёт логическое значение.";
+                            EN.reason = "Arithmetic on booleans gives a boolean.";
+                        ];
+                    };
+                    conclude: null
+                };
+                correct -> { conclude: correct };
+                error -> { conclude: error };
+                null -> {
+                    conclude: null [
+                        skill = "numeric_result_type";
+                        RU.explanation = "ни у одного из операндов (${L}, ${R}) нет такого типа, и ${A.class()} его не создаёт.";
+                        EN.explanation = "neither operand (${L}, ${R}) has this type, and the ${A.class()} does not create it.";
+                    ]
+                };
+            } as integerResultHypotheses
+        };
+    } as floatPromotion
+}
+[
+    RU.error_prefix = "Выражение ${E} ${T is class:EvaluationError ? 'не может вызвать ошибку' : 'не может иметь тип'} ${T}, потому что ";
+    EN.error_prefix = "The expression ${E} ${T is class:EvaluationError ? 'cannot cause the error' : 'cannot have the type'} ${T} because ";
+    RU.hint_prefix = "Выражение ${E} ${T is class:EvaluationError ? 'вызывает ошибку' : 'имеет тип'} ${T}, потому что ";
+    EN.hint_prefix = "The expression ${E} ${T is class:EvaluationError ? 'causes the error' : 'has the type'} ${T} because ";
+    RU.misreasoning_prefix = "Выражение ${E} действительно ${T is class:EvaluationError ? 'вызывает ошибку' : 'имеет тип'} ${T}, но рассуждение ошибочно: ";
+    EN.misreasoning_prefix = "The expression ${E} does ${T is class:EvaluationError ? 'cause the error' : 'have the type'} ${T}, but the reasoning is wrong: ";
+    RU.error_statement = "Выражение ${E} ${T is class:EvaluationError ? 'не может вызвать ошибку' : 'не может иметь тип'} ${T}.";
+    EN.error_statement = "The expression ${E} ${T is class:EvaluationError ? 'cannot cause the error' : 'cannot have the type'} ${T}.";
+]
+
+// Навык — последняя развилка перед выводом correct/error, у которой к таким выводам ведут хотя бы два выхода.
+meta for floatPromotion [
+    skill = "numeric_result_type";
+]

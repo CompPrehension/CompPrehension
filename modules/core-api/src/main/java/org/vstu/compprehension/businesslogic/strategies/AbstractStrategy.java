@@ -3,6 +3,7 @@ package org.vstu.compprehension.businesslogic.strategies;
 import org.jetbrains.annotations.NotNull;
 import org.jetbrains.annotations.Nullable;
 import org.vstu.compprehension.businesslogic.QuestionRequest;
+import org.vstu.compprehension.businesslogic.domains.Judgement;
 import org.vstu.compprehension.businesslogic.strategies.settings.StrategySettingsType;
 import org.vstu.compprehension.enums.Decision;
 import org.vstu.compprehension.enums.Language;
@@ -20,8 +21,8 @@ public interface AbstractStrategy {
     /** Настройки, которые преподаватель задаёт стратегии в упражнении. */
     @NotNull StrategySettingsType<?> getSettingsType();
 
-    /** Спросить ли студента о рассуждении, если к его верному ответу ведут и заблуждения. */
-    boolean shouldClarifyCorrectAnswer(long exerciseAttemptId);
+    /** Как тренажёр реагирует на ответ студента, который объясняют рассуждения; ответ ещё не записан в попытку. */
+    @NotNull AnswerReaction reactToAnswer(long exerciseAttemptId, @NotNull Judgement.Reasoned judgement);
 
     QuestionRequest generateQuestionRequest(long exerciseAttemptId);
 

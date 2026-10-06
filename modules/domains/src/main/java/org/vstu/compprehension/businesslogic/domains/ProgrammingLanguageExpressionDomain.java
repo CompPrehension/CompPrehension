@@ -1627,9 +1627,9 @@ QuestionOptionsData orderQuestionOptions = OrderQuestionOptionsData.builder()
         }
 
         boolean isAnswerCorrect = mistakes.isEmpty();
-        return new Judgement(new Reasoning(List.of(), isAnswerCorrect, null,
+        return new Judgement.Verdict(isAnswerCorrect,
                 makeExplanation(mistakes, FeedbackType.EXPLANATION, language), mistakes,
-                calculateCorrectlyAppliedLaws(violations)),
+                calculateCorrectlyAppliedLaws(violations),
                 countStepsLeft(violations) + (isAnswerCorrect ? 0 : 1));
     }
 
