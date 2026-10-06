@@ -86,7 +86,7 @@ public final class DomainFixtures {
                 .interactionType(InteractionType.SEND_RESPONSE)
                 .responses(new ArrayList<>(responses))
                 .isCorrect(violations.isEmpty())
-                .reasonings(List.of(new InteractionReasoningData(null, violations.isEmpty(), null, violations, List.of())))
+                .reasonings(List.of(new InteractionReasoningData(List.of(), violations.isEmpty(), null, violations, List.of())))
                 .feedback(FeedbackData.builder().interactionsLeft(interactionsLeft).build())
                 .build();
     }

@@ -26,9 +26,17 @@ class TypeEvaluationReadingTreeTest {
             obj one : Literal { hasType(t_int); intValue = 1; }
             """;
 
+    // count = 3; total = 14; counts = [1, 2]; totals = [5, 9]
+    private static final String COUNTS = TYPES + """
+            obj count : Variable { hasType(t_int); }
+            obj counts : Variable { hasType(t_list_int); looksLike(count); }
+            obj total : Variable { hasType(t_int); }
+            obj totals : Variable { hasType(t_list_int); looksLike(total); }
+            """;
+
     /**
-     * Ответ «ошибка» на len(grades), верный для len(grade), объясняют и прочтение grade вместо grades,
-     * и мнение, что len неприменима к списку.
+     * Ответ «ошибка» на len(grades), верный для len(grade), объясняют и прочтение grade вместо grades с верным
+     * правилом, и мнение, что len неприменима к списку.
      */
     @Test
     void errorForLengthOfLookalikeVariableIsVariableConfused() {
@@ -40,7 +48,7 @@ class TypeEvaluationReadingTreeTest {
 
         // Assert.
         assertEquals(BranchResult.ERROR, verdict.result());
-        assertEquals(Set.of(VARIABLE_CONFUSED, INAPPLICABLE_ASSUMED), verdict.hypotheses());
+        assertEquals(Set.of(Set.of(VARIABLE_CONFUSED), Set.of(INAPPLICABLE_ASSUMED)), verdict.reasonings());
         assertEquals(Set.of(OPERAND_IDENTIFICATION, "length_applicability"), verdict.skills());
     }
 
@@ -58,7 +66,7 @@ class TypeEvaluationReadingTreeTest {
         assertTrue(verdict.hypotheses().contains(VARIABLE_CONFUSED), verdict.hypotheses().toString());
     }
 
-    /** Ответ int на grades + 1 объясняют и тип операнда, и прочитанная вместо grades переменная grade. */
+    /** Ответ int на grades + 1 объясняют и тип операнда, и прочитанная вместо grades переменная grade с верным правилом. */
     @Test
     void answerExplainedByMisconceptionAndReadingHasBothHypotheses() {
         // Act.
@@ -69,7 +77,7 @@ class TypeEvaluationReadingTreeTest {
 
         // Assert.
         assertEquals(BranchResult.ERROR, verdict.result());
-        assertEquals(Set.of(OPERAND_TYPE, VARIABLE_CONFUSED), verdict.hypotheses());
+        assertEquals(Set.of(Set.of(OPERAND_TYPE), Set.of(VARIABLE_CONFUSED)), verdict.reasonings());
     }
 
     /** Ответ «ошибка» на total / 2, верный для totals / 2, объясняет в том числе прочитанная вместо total переменная totals. */
@@ -86,7 +94,39 @@ class TypeEvaluationReadingTreeTest {
 
         // Assert.
         assertEquals(BranchResult.ERROR, verdict.result());
-        assertEquals(Set.of(VARIABLE_CONFUSED, INAPPLICABLE_ASSUMED), verdict.hypotheses());
+        assertEquals(Set.of(Set.of(VARIABLE_CONFUSED), Set.of(INAPPLICABLE_ASSUMED)), verdict.reasonings());
+    }
+
+    /**
+     * Ответ list[int] на count + total объясняют только сочетания ошибок: операнд прочитан как похожий список,
+     * а результат взят по типу операнда или число добавлено в конец списка.
+     */
+    @Test
+    void answerExplainedOnlyByConfusionWithMisconceptionCombinesThem() {
+        // Act.
+        var verdict = judgeSituation(COUNTS + """
+                var E = obj op : py_add { hasOperand<OperandPlacement:left>(count); hasOperand<OperandPlacement:right>(total); }
+                var T = t_list_int
+                """);
+
+        // Assert.
+        assertEquals(BranchResult.ERROR, verdict.result());
+        assertEquals(Set.of(Set.of(VARIABLE_CONFUSED, OPERAND_TYPE), Set.of(VARIABLE_CONFUSED, "element_appended")),
+                verdict.reasonings());
+    }
+
+    /** Верный ответ int на count + total, к которому ведёт и путаница с заблуждением, остаётся верным. */
+    @Test
+    void correctAnswerReachedByCombinedErrorsKeepsMisreasoning() {
+        // Act.
+        var verdict = judgeSituation(COUNTS + """
+                var E = obj op : py_add { hasOperand<OperandPlacement:left>(count); hasOperand<OperandPlacement:right>(total); }
+                var T = t_int
+                """);
+
+        // Assert.
+        assertEquals(BranchResult.CORRECT, verdict.result());
+        assertTrue(verdict.reasonings().contains(Set.of(VARIABLE_CONFUSED, OPERAND_TYPE)), verdict.reasonings().toString());
     }
 
     /** Верный ответ остаётся верным, даже если в условии есть похожая переменная. */

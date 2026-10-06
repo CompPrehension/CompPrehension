@@ -186,7 +186,7 @@ public class TypeEvaluationDTDomain extends DecisionTreeReasoningDomain {
             violation.setLawName(EVALUATION_ORDER_VIOLATION);
             var explanation = Explanation.aggregate(Explanation.Type.ERROR,
                     List.of(new Explanation(Explanation.Type.ERROR, getMessage("operands_first", language))));
-            return new Judgement(new Reasoning(null, false, null, explanation, List.of(violation), List.of()),
+            return new Judgement(new Reasoning(List.of(), false, null, explanation, List.of(violation), List.of()),
                     countUnsolvedOperations(preparedSituation.getDomainModel()));
         }
 

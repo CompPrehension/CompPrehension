@@ -26,6 +26,7 @@ import org.vstu.compprehension.frontend.dto.InteractionDto;
 import org.vstu.compprehension.frontend.dto.SupplementaryQuestionDto;
 import org.vstu.compprehension.frontend.dto.feedback.ClarificationAnswerDto;
 import org.vstu.compprehension.frontend.dto.feedback.ClarificationDto;
+import org.vstu.compprehension.data.question.InteractionReasoningData;
 import org.vstu.compprehension.frontend.dto.feedback.FeedbackDto;
 import org.vstu.compprehension.frontend.dto.question.MatchingQuestionDto;
 import org.vstu.compprehension.frontend.dto.question.QuestionDto;
@@ -587,9 +588,7 @@ class ExerciseAttemptFrontendServiceTest extends AbstractIntegrationTest {
         assertFalse(feedback.isCorrect());
         assertNotNull(feedback.getClarification());
         assertFalse(feedback.getClarification().prompt().isBlank());
-        assertEquals(Set.of("operand_type", "c_style_division"), feedback.getClarification().options().stream()
-                .map(ClarificationDto.Option::hypothesis)
-                .collect(Collectors.toSet()));
+        assertEquals(Set.of("operand_type", "c_style_division"), offeredHypotheses(question.getQuestionId(), feedback));
     }
 
     /** Уточнение без ответа возвращается с перезагруженным вопросом, чтобы студент не пропустил его. */
@@ -642,12 +641,10 @@ class ExerciseAttemptFrontendServiceTest extends AbstractIntegrationTest {
         var countedBeforeReason = lastInteraction(attempt.getAttemptId()).violationLawNames();
 
         // Act.
-        service.answerClarification(new ClarificationAnswerDto(question.getQuestionId(), optionOf(feedback, "variable_confused")));
+        service.answerClarification(new ClarificationAnswerDto(question.getQuestionId(), optionOf(question.getQuestionId(), feedback, "variable_confused")));
 
         // Assert.
-        assertEquals(Set.of("variable_confused", "inapplicable_assumed"), feedback.getClarification().options().stream()
-                .map(ClarificationDto.Option::hypothesis)
-                .collect(Collectors.toSet()));
+        assertEquals(Set.of("variable_confused", "inapplicable_assumed"), offeredHypotheses(question.getQuestionId(), feedback));
         assertEquals(List.of(), countedBeforeReason);
         var counted = lastInteraction(attempt.getAttemptId());
         assertFalse(counted.isCorrect());
@@ -664,7 +661,7 @@ class ExerciseAttemptFrontendServiceTest extends AbstractIntegrationTest {
 
         // Act.
         var feedback = service.answerClarification(
-                new ClarificationAnswerDto(question.getQuestionId(), optionOf(asked, "c_style_division")));
+                new ClarificationAnswerDto(question.getQuestionId(), optionOf(question.getQuestionId(), asked, "c_style_division")));
 
         // Assert.
         assertNotNull(feedback.explanation());
@@ -736,9 +733,8 @@ class ExerciseAttemptFrontendServiceTest extends AbstractIntegrationTest {
         // Assert.
         assertTrue(feedback.isCorrect());
         assertNotNull(feedback.getClarification());
-        assertEquals(Set.of("rule", "operand_type"), feedback.getClarification().options().stream()
-                .map(ClarificationDto.Option::hypothesis)
-                .collect(Collectors.toSet()));
+        assertEquals(Set.of("rule", "operand_type", "variable_confused + operand_type"),
+                offeredHypotheses(question.getQuestionId(), feedback));
     }
 
     /** До серии верных ответов заданной длины верный ответ уточняется, после — нет; серия считается до этого ответа. */
@@ -774,14 +770,14 @@ class ExerciseAttemptFrontendServiceTest extends AbstractIntegrationTest {
         var asked = answerProductAsInteger(question);
 
         // Act.
-        var feedback = service.answerClarification(new ClarificationAnswerDto(question.getQuestionId(), optionOf(asked, "operand_type")));
+        var feedback = service.answerClarification(new ClarificationAnswerDto(question.getQuestionId(), optionOf(question.getQuestionId(), asked, "operand_type")));
 
         // Assert.
         assertEquals("Выражение <code>len(grades) * grade</code> действительно имеет тип <code>int</code>, но рассуждение"
                 + " ошибочно: тип результата задают правила арифметики, а не тип операнда, и оператор <code>*</code>"
                 + " над целыми операндами даёт целое число.", feedback.explanation());
         resetPersistenceContext();
-        assertEquals(List.of("operand_type"), answeredClarifications(question.getQuestionId()));
+        assertEquals(List.of("rule", "operand_type"), answeredClarifications(question.getQuestionId()));
     }
 
     /**
@@ -801,7 +797,7 @@ class ExerciseAttemptFrontendServiceTest extends AbstractIntegrationTest {
         var attempt = service.createExerciseAttempt(TestData.Exercises.TYPE_EVALUATION_ID, TestData.Users.GLOBAL_STUDENT_ID, null);
         var question = gradeCountQuestion(attempt.getAttemptId());
         var asked = answerProductAsInteger(question);
-        service.answerClarification(new ClarificationAnswerDto(question.getQuestionId(), optionOf(asked, chosenHypothesis)));
+        service.answerClarification(new ClarificationAnswerDto(question.getQuestionId(), optionOf(question.getQuestionId(), asked, chosenHypothesis)));
         setStrategySettings("{\"correctAnswerClarification\": {\"mode\": \"UNTIL_STREAK\", \"streakLength\": 1}}");
         resetPersistenceContext();
 
@@ -1083,13 +1079,27 @@ class ExerciseAttemptFrontendServiceTest extends AbstractIntegrationTest {
                 .toArray(AnswerDto[]::new));
     }
 
-    // Номер варианта с этой гипотезой в заданном вопросе; без гипотезы — «другая причина».
-    private static Integer optionOf(FeedbackDto feedback, String hypothesis) {
-        return hypothesis == null ? null : feedback.getClarification().options().stream()
-                .filter(option -> option.hypothesis().equals(hypothesis))
+    // Номер варианта с этими гипотезами в заданном вопросе; без гипотез — «другая причина».
+    private Integer optionOf(long questionId, FeedbackDto feedback, String hypotheses) {
+        var reasonings = questionDataService.getQuestion(questionId).getInteractions().getLast().getReasonings();
+        return hypotheses == null ? null : feedback.getClarification().options().stream()
+                .filter(option -> nameOf(reasonings.get(option.id())).equals(hypotheses))
                 .map(ClarificationDto.Option::id)
                 .findFirst()
                 .orElseThrow();
+    }
+
+    // Вариант уточнения называет рассуждение последнего ответа своим номером.
+    private Set<String> offeredHypotheses(long questionId, FeedbackDto feedback) {
+        var reasonings = questionDataService.getQuestion(questionId).getInteractions().getLast().getReasonings();
+        return feedback.getClarification().options().stream()
+                .map(option -> nameOf(reasonings.get(option.id())))
+                .collect(Collectors.toSet());
+    }
+
+    // Рассуждение называется своими гипотезами через « + », от внешнего допущения к вложенному.
+    private static String nameOf(InteractionReasoningData reasoning) {
+        return String.join(" + ", reasoning.hypotheses());
     }
 
     private QuestionDto typeEvaluationQuestion() {
@@ -1131,13 +1141,20 @@ class ExerciseAttemptFrontendServiceTest extends AbstractIntegrationTest {
         return question;
     }
 
-    // len(grades) — int без заблуждений, затем len(grades) * grade — int, к которому ведёт и заблуждение «тип операнда».
+    // len(grades) — int, к которому ведёт и путаница grade с grades вместе с заблуждением: если стратегия уточняет
+    // верные ответы, студент подтверждает верное рассуждение. Затем len(grades) * grade — int, к которому ведёт
+    // и заблуждение «тип операнда».
     private FeedbackDto answerProductAsInteger(QuestionDto question) {
         var lengthAsInt = new AnswerDto(TestData.TypeEvaluationBank.LEN_SLOT, TestData.TypeEvaluationBank.INT_TYPE, true, null);
         var afterLength = service.addQuestionAnswer(
                 new InteractionDto(question.getQuestionId(), new AnswerDto[] { lengthAsInt }));
         assertTrue(afterLength.isCorrect());
-        assertNull(afterLength.getClarification());
+        if (afterLength.getClarification() != null) {
+            assertEquals(Set.of("rule", "variable_confused + argument_type", "variable_confused + inapplicable_call_gives_result"),
+                    offeredHypotheses(question.getQuestionId(), afterLength));
+            service.answerClarification(new ClarificationAnswerDto(question.getQuestionId(),
+                    optionOf(question.getQuestionId(), afterLength, "rule")));
+        }
         var productAsInt = new AnswerDto(TestData.TypeEvaluationBank.MUL_SLOT, TestData.TypeEvaluationBank.INT_TYPE, true, null);
         return service.addQuestionAnswer(new InteractionDto(question.getQuestionId(),
                 Stream.concat(Arrays.stream(afterLength.getCorrectAnswers()), Stream.of(productAsInt))
@@ -1149,7 +1166,7 @@ class ExerciseAttemptFrontendServiceTest extends AbstractIntegrationTest {
                 .filter(interaction -> interaction.getClarification() != null && interaction.getClarification().isAnswered())
                 .map(interaction -> {
                     var chosen = interaction.getClarification().chosenReasoning();
-                    return chosen == null ? null : interaction.getReasonings().get(chosen).hypothesis();
+                    return chosen == null ? null : nameOf(interaction.getReasonings().get(chosen));
                 })
                 .toList();
     }
@@ -1157,8 +1174,8 @@ class ExerciseAttemptFrontendServiceTest extends AbstractIntegrationTest {
     private List<String> recordedHypotheses(long questionId) {
         return questionDataService.getQuestion(questionId).getInteractions().stream()
                 .flatMap(interaction -> interaction.getReasonings().stream())
-                .filter(reasoning -> reasoning.hypothesis() != null)
-                .map(reasoning -> reasoning.hypothesis() + ":" + reasoning.isCorrect())
+                .filter(reasoning -> !reasoning.hypotheses().isEmpty())
+                .map(reasoning -> nameOf(reasoning) + ":" + reasoning.isCorrect())
                 .toList();
     }
 

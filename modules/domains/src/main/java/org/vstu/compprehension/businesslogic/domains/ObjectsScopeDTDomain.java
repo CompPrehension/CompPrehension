@@ -803,7 +803,7 @@ public class ObjectsScopeDTDomain extends DecisionTreeReasoningDomain {
                     violations.add(v);
                 }
             }
-            return new Judgement(new Reasoning(null, isAnswerCorrect, null, explanation, violations, List.of()),
+            return new Judgement(new Reasoning(List.of(), isAnswerCorrect, null, explanation, violations, List.of()),
                     stepsLeft);
         }
 
@@ -836,7 +836,7 @@ public class ObjectsScopeDTDomain extends DecisionTreeReasoningDomain {
             if (stepsLeft == 0) {
                 // Достигли полного завершения задачи.
                 // Ошибок уже быть не может — сбросим их все.
-                return new Judgement(new Reasoning(null, true, null, Explanation.empty(Explanation.Type.HINT),
+                return new Judgement(new Reasoning(List.of(), true, null, Explanation.empty(Explanation.Type.HINT),
                         List.of(), List.of()), stepsLeft);
             }
             var explanation = GenerateErrorTextForScopeObjects.generateErrorExplanation(
@@ -852,7 +852,7 @@ public class ObjectsScopeDTDomain extends DecisionTreeReasoningDomain {
                 v.setViolationFacts(new ArrayList<>());
                 violations.add(v);
             }
-            return new Judgement(new Reasoning(null, false, null, explanation, violations, List.of()), stepsLeft);
+            return new Judgement(new Reasoning(List.of(), false, null, explanation, violations, List.of()), stepsLeft);
         }
 
         @Override

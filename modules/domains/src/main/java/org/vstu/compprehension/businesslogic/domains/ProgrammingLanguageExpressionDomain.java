@@ -1627,7 +1627,7 @@ QuestionOptionsData orderQuestionOptions = OrderQuestionOptionsData.builder()
         }
 
         boolean isAnswerCorrect = mistakes.isEmpty();
-        return new Judgement(new Reasoning(null, isAnswerCorrect, null,
+        return new Judgement(new Reasoning(List.of(), isAnswerCorrect, null,
                 makeExplanation(mistakes, FeedbackType.EXPLANATION, language), mistakes,
                 calculateCorrectlyAppliedLaws(violations)),
                 countStepsLeft(violations) + (isAnswerCorrect ? 0 : 1));

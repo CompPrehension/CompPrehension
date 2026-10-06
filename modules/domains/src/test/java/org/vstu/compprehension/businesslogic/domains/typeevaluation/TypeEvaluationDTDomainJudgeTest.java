@@ -345,8 +345,50 @@ class TypeEvaluationDTDomainJudgeTest {
                         "Мне показалось, что левый операнд — <code>counts</code>, а не <code>count</code>.",
                         "Мне показалось, что правый операнд — <code>totals</code>, а не <code>total</code>."),
                 result.reasonings().stream()
-                        .filter(reasoning -> "variable_confused".equals(reasoning.hypothesis()))
+                        .filter(reasoning -> "variable_confused".equals(nameOf(reasoning)))
                         .map(Reasoning::reason)
+                        .collect(Collectors.toSet()));
+    }
+
+    /**
+     * Ответ list[int] на count + total объясняют только сочетания ошибок: студенту предлагают их как причины
+     * из двух частей и объясняют обе ошибки.
+     */
+    @Test
+    void answerExplainedByCombinedErrorsOffersBothParts() {
+        // Arrange.
+        var question = question(COUNT_PLUS_TOTAL);
+
+        // Act.
+        var result = judge(question, List.of(answer(question, "op_add", "t_list_int")));
+
+        // Assert.
+        assertFalse(result.isAnswerCorrect());
+        assertEquals(Set.of(
+                new Offered("variable_confused + operand_type",
+                        "Мне показалось, что левый операнд — <code>counts</code>, а не <code>count</code>."
+                                + " Результат берёт тип одного из операндов.",
+                        "Выражение <code>count + total</code> не может иметь тип <code>list[int]</code>, потому что левый"
+                                + " операнд — <code>count</code>, а не <code>counts</code>. Кроме того, оператор <code>+</code>"
+                                + " нельзя применить к операндам типов <code>list[int]</code> и <code>int</code>, и ни один"
+                                + " из операндов не может стать его результатом."),
+                new Offered("variable_confused + element_appended",
+                        "Мне показалось, что левый операнд — <code>counts</code>, а не <code>count</code>."
+                                + " Оператор <code>+</code> добавляет элемент в конец списка.",
+                        "Выражение <code>count + total</code> не может иметь тип <code>list[int]</code>, потому что левый"
+                                + " операнд — <code>count</code>, а не <code>counts</code>. Кроме того, оператор <code>+</code>"
+                                + " соединяет два списка и не добавляет к списку <code>list[int]</code> отдельный элемент"
+                                + " типа <code>int</code>."),
+                new Offered("variable_confused + operand_type",
+                        "Мне показалось, что правый операнд — <code>totals</code>, а не <code>total</code>."
+                                + " Результат берёт тип одного из операндов.",
+                        "Выражение <code>count + total</code> не может иметь тип <code>list[int]</code>, потому что правый"
+                                + " операнд — <code>total</code>, а не <code>totals</code>. Кроме того, оператор <code>+</code>"
+                                + " нельзя применить к операндам типов <code>int</code> и <code>list[int]</code>, и ни один"
+                                + " из операндов не может стать его результатом.")),
+                offered(result));
+        assertEquals(Set.of("operand_identification", "sequence_operation_applicability"),
+                result.reasonings().stream().flatMap(reasoning -> lawNames(reasoning.violations()).stream())
                         .collect(Collectors.toSet()));
     }
 
@@ -482,23 +524,28 @@ class TypeEvaluationDTDomainJudgeTest {
     private record Hypothesis(String name, boolean isCorrect) {
     }
 
+    // Рассуждение называется своими гипотезами через « + », от внешнего допущения к вложенному.
+    private static String nameOf(Reasoning reasoning) {
+        return String.join(" + ", reasoning.hypotheses());
+    }
+
     private static Set<Hypothesis> hypotheses(Judgement judgement) {
         return judgement.reasonings().stream()
-                .filter(reasoning -> reasoning.hypothesis() != null)
-                .map(reasoning -> new Hypothesis(reasoning.hypothesis(), reasoning.isCorrect()))
+                .filter(reasoning -> !reasoning.hypotheses().isEmpty())
+                .map(reasoning -> new Hypothesis(nameOf(reasoning), reasoning.isCorrect()))
                 .collect(Collectors.toSet());
     }
 
     private static Reasoning reasoning(Judgement judgement, String hypothesis) {
         return judgement.reasonings().stream()
-                .filter(reasoning -> hypothesis.equals(reasoning.hypothesis()))
+                .filter(reasoning -> hypothesis.equals(nameOf(reasoning)))
                 .findFirst()
                 .orElseThrow(() -> new AssertionError("Нет рассуждения " + hypothesis + " среди " + judgement.reasonings()));
     }
 
     private static Map<String, List<String>> violationsByHypothesis(Judgement judgement) {
         return judgement.reasonings().stream()
-                .collect(Collectors.toMap(Reasoning::hypothesis, reasoning -> lawNames(reasoning.violations())));
+                .collect(Collectors.toMap(TypeEvaluationDTDomainJudgeTest::nameOf, reasoning -> lawNames(reasoning.violations())));
     }
 
     // Рассуждение, о котором можно спросить студента, — так, как его увидит уточняющий вопрос.
@@ -507,8 +554,8 @@ class TypeEvaluationDTDomainJudgeTest {
 
     private static Set<Offered> offered(Judgement judgement) {
         return judgement.reasonings().stream()
-                .filter(reasoning -> reasoning.hypothesis() != null && reasoning.reason() != null)
-                .map(reasoning -> new Offered(reasoning.hypothesis(), reasoning.reason(),
+                .filter(reasoning -> !reasoning.hypotheses().isEmpty() && reasoning.reason() != null)
+                .map(reasoning -> new Offered(nameOf(reasoning), reasoning.reason(),
                         reasoning.explanation().getRawMessage().getText()))
                 .collect(Collectors.toSet());
     }

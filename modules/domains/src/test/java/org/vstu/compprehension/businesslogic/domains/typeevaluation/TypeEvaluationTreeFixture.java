@@ -51,8 +51,12 @@ final class TypeEvaluationTreeFixture {
     static final String OPERAND_TYPE = "operand_type";
     static final String INAPPLICABLE_ASSUMED = "inapplicable_assumed";
 
-    /** Вердикт дерева: итог, виды гипотез с выводом не null и навыки, к которым отнесены выводы. */
-    record Verdict(@NotNull BranchResult result, @NotNull Set<String> hypotheses, @NotNull Set<String> skills) {
+    /**
+     * Вердикт дерева: итог, виды гипотез с выводом не null, рассуждения (гипотезы каждого пути, которым дерево
+     * объяснило ответ) и навыки, к которым отнесены выводы.
+     */
+    record Verdict(@NotNull BranchResult result, @NotNull Set<String> hypotheses, @NotNull Set<Set<String>> reasonings,
+                   @NotNull Set<String> skills) {
     }
 
     private TypeEvaluationTreeFixture() {
@@ -115,7 +119,12 @@ final class TypeEvaluationTreeFixture {
         if (hypotheses.isEmpty()) {
             skills.addAll(unexplainedSkills);
         }
-        return new Verdict(trace.getBranchResult(), hypotheses, skills);
+        var reasonings = DecisionTreeReasonerBackend.collectHypothesisPaths(trace).stream()
+                .map(path -> path.stream()
+                        .map(step -> step.getNode().getMetadata().getString("hypothesis"))
+                        .collect(Collectors.toSet()))
+                .collect(Collectors.toSet());
+        return new Verdict(trace.getBranchResult(), hypotheses, reasonings, skills);
     }
 
     // Домен называет объекты текстом вопроса; здесь вопроса нет, поэтому имя объекта в модели.

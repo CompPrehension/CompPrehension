@@ -140,6 +140,28 @@ class TypeEvaluationArithmeticTreeTest {
         assertEquals(Set.of(OPERAND_TYPE, "implicit_text_conversion"), verdict.hypotheses());
     }
 
+    /** Ответ list[int] на сложение списка чисел с числом объясняется и типом операнда, и добавлением элемента в конец списка. */
+    @Test
+    void listAnswerForListPlusElementHasElementAppended() {
+        // Act.
+        var verdict = judge("py_add", "t_list_int", "t_int", "t_list_int");
+
+        // Assert.
+        assertEquals(BranchResult.ERROR, verdict.result());
+        assertEquals(Set.of(OPERAND_TYPE, "element_appended"), verdict.hypotheses());
+        assertEquals(Set.of(SEQUENCE_OPERATION_SKILL), verdict.skills());
+    }
+
+    /** Список, сложенный с числом другого типа, не объясняют добавлением элемента: элемент такого списка — не это число. */
+    @Test
+    void listPlusForeignNumberIsNotElementAppended() {
+        // Act.
+        var verdict = judge("py_add", "t_list_int", "t_float", "t_list_int");
+
+        // Assert.
+        assertEquals(Set.of(OPERAND_TYPE), verdict.hypotheses());
+    }
+
     /** Ответ «ошибка» на допустимую арифметику объясняется тем, что студент счёл операцию неприменимой к этим операндам. */
     @ParameterizedTest
     @CsvSource({

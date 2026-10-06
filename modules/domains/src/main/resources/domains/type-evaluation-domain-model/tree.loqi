@@ -1,8 +1,21 @@
 // Ответ студента объясняется прочтениями выражения: выражение как написано (правило и заблуждения — дерево typed)
 // или выражение, в котором операнд прочитан как похожая на него переменная из условия. Прочтение объясняет ответ T,
-// если по правилам оно даёт ровно T. Если ни одно прочтение ответ не объяснило, он ошибочен по запасному выводу.
+// если к T на нём ведёт правило или заблуждение. Если ни одно прочтение ответ не объяснило, он ошибочен по запасному выводу.
 
 lambda looksAlike(A: Variable, B: Variable) = A=>looksLike(B) or A=>lookedLikeBy(B);
+
+// Операнд O прочитан как похожая на него переменная V.
+fragment variableConfused() {
+    conclude: error [
+        skill = "operand_identification";
+        hypothesis = "variable_confused";
+        // У двух операндов место называется явно: похожая переменная может стоять в том же выражении.
+        RU.explanation = "${(E is class:CallOperation or E is class:NegationOperation) ? 'в выражении стоит' : (E=>hasOperand<OperandPlacement:left>(O) ? 'левый операнд —' : 'правый операнд —')} ${O}, а не ${V}.";
+        EN.explanation = "${(E is class:CallOperation or E is class:NegationOperation) ? 'the expression uses' : (E=>hasOperand<OperandPlacement:left>(O) ? 'the left operand is' : 'the right operand is')} ${O}, not ${V}.";
+        RU.reason = "Мне показалось, что ${(E is class:CallOperation or E is class:NegationOperation) ? 'в выражении стоит' : (E=>hasOperand<OperandPlacement:left>(O) ? 'левый операнд —' : 'правый операнд —')} ${V}, а не ${O}.";
+        EN.reason = "It seemed to me that ${(E is class:CallOperation or E is class:NegationOperation) ? 'the expression uses' : (E=>hasOperand<OperandPlacement:left>(O) ? 'the left operand is' : 'the right operand is')} ${V}, not ${O}.";
+    ]
+}
 
 tpg ExprType(E: Operation, T: Outcome) {
     // Тип среза кортежа зависит от границ, а арифметики в LOQI нет: такие ответы дерево не оценивает.
@@ -18,32 +31,39 @@ tpg ExprType(E: Operation, T: Outcome) {
                 _ -> {
                     cycle hyp ($V == O or O is class:Variable and looksAlike($V, (O as class:Variable))) with Variable V {
                         _ -> {
-                            ask (subcall("typed", E, O, V, T) == true) {
+                            ask (V == O) {
                                 true -> {
-                                    ask (V == O) {
-                                        true -> {
-                                            conclude: correct [
-                                                skill = "operand_identification";
-                                                hypothesis = "rule";
-                                            ]
-                                        };
-                                        false -> {
-                                            conclude: error [
-                                                skill = "operand_identification";
-                                                hypothesis = "variable_confused";
-                                                // У двух операндов место называется явно: похожая переменная может стоять в том же выражении.
-                                                RU.explanation = "${(E is class:CallOperation or E is class:NegationOperation) ? 'в выражении стоит' : (E=>hasOperand<OperandPlacement:left>(O) ? 'левый операнд —' : 'правый операнд —')} ${O}, а не ${V}.";
-                                                EN.explanation = "${(E is class:CallOperation or E is class:NegationOperation) ? 'the expression uses' : (E=>hasOperand<OperandPlacement:left>(O) ? 'the left operand is' : 'the right operand is')} ${O}, not ${V}.";
-                                                RU.reason = "Мне показалось, что ${(E is class:CallOperation or E is class:NegationOperation) ? 'в выражении стоит' : (E=>hasOperand<OperandPlacement:left>(O) ? 'левый операнд —' : 'правый операнд —')} ${V}, а не ${O}.";
-                                                EN.reason = "It seemed to me that ${(E is class:CallOperation or E is class:NegationOperation) ? 'the expression uses' : (E=>hasOperand<OperandPlacement:left>(O) ? 'the left operand is' : 'the right operand is')} ${V}, not ${O}.";
-                                            ]
-                                        };
-                                    } as operandIdentification
-                                };
-                                false -> {
+                                    ask (subcall("typed", E, O, V, T) == true) out false else {
+                                        conclude: correct [
+                                            skill = "operand_identification";
+                                            hypothesis = "rule";
+                                        ]
+                                    };
                                     conclude: null
                                 };
-                            }
+                                false -> {
+                                    ask (subcall("typed", E, O, V, T) == true) {
+                                        true -> {
+                                            fragment:variableConfused()
+                                        };
+                                        false -> {
+                                            // Заблуждение — второе допущение рассуждения: оно нужно, только если на прочтении
+                                            // с похожей переменной к ответу не ведёт верное правило, и остаётся в трассе.
+                                            agg and {
+                                                _ -> {
+                                                    conclude: subcall("typed", E, O, V, T)
+                                                };
+                                                error -> {
+                                                    fragment:variableConfused()
+                                                };
+                                                null -> {
+                                                    conclude: null
+                                                };
+                                            }
+                                        };
+                                    } as confusionReading
+                                };
+                            } as operandIdentification
                         };
                         correct -> { conclude: correct };
                         error -> { conclude: error };
@@ -75,5 +95,9 @@ tpg ExprType(E: Operation, T: Outcome) {
 
 // Навык — последняя развилка перед выводом correct/error, у которой к таким выводам ведут хотя бы два выхода.
 meta for operandIdentification [
+    skill = "operand_identification";
+]
+
+meta for confusionReading [
     skill = "operand_identification";
 ]

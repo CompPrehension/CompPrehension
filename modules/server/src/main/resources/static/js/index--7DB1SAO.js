@@ -1348,7 +1348,6 @@ var TClarification = type({
 	prompt: string,
 	options: array(type({
 		id: number,
-		hypothesis: string,
 		reason: string
 	}))
 });

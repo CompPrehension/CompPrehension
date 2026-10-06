@@ -377,6 +377,19 @@ tpg Typed(E: Operation, Old: Expr, New: Expr, T: Outcome) {
                                     };
                                     conclude: null
                                 };
+                                _ -> {
+                                    ask (A.concatenatesSequences and L is class:ListType and (L as class:ListType)->elementType == R and T == L) out false else {
+                                        conclude: error [
+                                            skill = "sequence_operation_applicability";
+                                            hypothesis = "element_appended";
+                                            RU.explanation = "${A.class()} соединяет два списка и не добавляет к списку ${L} отдельный элемент типа ${R}.";
+                                            EN.explanation = "the ${A.class()} joins two lists and does not add a single element of type ${R} to a list ${L}.";
+                                            RU.reason = "${A.class()} добавляет элемент в конец списка.";
+                                            EN.reason = "The ${A.class()} adds an element to the end of a list.";
+                                        ];
+                                    };
+                                    conclude: null
+                                };
                                 correct -> { conclude: correct };
                                 error -> { conclude: error };
                                 null -> {

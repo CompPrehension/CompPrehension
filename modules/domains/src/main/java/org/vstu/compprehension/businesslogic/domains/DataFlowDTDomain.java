@@ -582,7 +582,7 @@ public class DataFlowDTDomain extends DecisionTreeReasoningDomain {
             } else {
                 stepsLeft--;
             }
-            return new Judgement(new Reasoning(null, isAnswerCorrect, null, explanation, violations, List.of()),
+            return new Judgement(new Reasoning(List.of(), isAnswerCorrect, null, explanation, violations, List.of()),
                     stepsLeft);
         }
 
@@ -592,7 +592,7 @@ public class DataFlowDTDomain extends DecisionTreeReasoningDomain {
                 LearningSituation preparedSituation,
                 Language language
         ) {
-            return new Judgement(new Reasoning(null, false, null, new Explanation(Explanation.Type.ERROR, ""),
+            return new Judgement(new Reasoning(List.of(), false, null, new Explanation(Explanation.Type.ERROR, ""),
                     List.of(), List.of()), 0);
         }
 

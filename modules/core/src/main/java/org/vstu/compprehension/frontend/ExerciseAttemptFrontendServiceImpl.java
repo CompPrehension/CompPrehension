@@ -339,7 +339,7 @@ class ExerciseAttemptFrontendServiceImpl implements ExerciseAttemptFrontendServi
     private static @NotNull InteractionReasoningData toSystemReasoning(boolean isAnswerCorrect,
                                                                        @NotNull List<InteractionReasoningData> reasonings) {
         var counted = new CountedLawsData(isAnswerCorrect, reasonings, null);
-        return new InteractionReasoningData(null, isAnswerCorrect, null, counted.getViolations(), counted.getAppliedLaws());
+        return new InteractionReasoningData(List.of(), isAnswerCorrect, null, counted.getViolations(), counted.getAppliedLaws());
     }
 
     // Порядок вариантов влияет на выбор студента, поэтому он случайный; сохраняется показанный порядок.

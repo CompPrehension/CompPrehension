@@ -46,8 +46,7 @@ class ClarificationControllerTest extends AbstractAuthorizationTest {
         result.andExpect(status().isOk())
                 .andExpect(jsonPath("$.explanation").isNotEmpty());
         var answered = questionDataService.getQuestion(questionId).getInteractions().getLast();
-        assertEquals(second.path("hypothesis").asString(),
-                answered.getReasonings().get(answered.getClarification().chosenReasoning()).hypothesis());
+        assertEquals(second.path("id").asInt(), answered.getClarification().chosenReasoning());
     }
 
     // len(grades) — int, затем total / len(grades) — int: ошибка, которую объясняют два заблуждения.

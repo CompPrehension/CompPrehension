@@ -16,7 +16,7 @@ const groups = [
 /** A clarifying question as the backend keeps it: every reason comes with the explanation of its misconception. */
 export type MockClarification = {
     prompt: string,
-    options: { hypothesis: string, reason: string, explanation: string }[],
+    options: { reason: string, explanation: string }[],
 };
 
 export type MockQuestion = {
@@ -200,12 +200,10 @@ export const mockQuestions: Record<number, MockQuestion> = {
                 prompt: 'Why did you choose the type <code>int</code>?',
                 options: [
                     {
-                        hypothesis: 'rule',
                         reason: 'Indexing takes one element out of <code>list[int]</code>, and its elements have the type <code>int</code>.',
                         explanation: 'The expression <code>student["grades"][0]</code> has the type <code>int</code> because indexing takes one element out of <code>list[int]</code>, and its elements have the type <code>int</code>.',
                     },
                     {
-                        hypothesis: 'index_type',
                         reason: 'Indexing gives the type of the index.',
                         explanation: 'The expression <code>student["grades"][0]</code> does have the type <code>int</code>, but the reasoning is wrong: an index only points to a position, and the result of indexing is the element of the sequence itself.',
                     },
@@ -231,12 +229,10 @@ mockQuestions[11] = {
             prompt: 'Why did you choose the type <code>int</code>?',
             options: [
                 {
-                    hypothesis: 'operand_type',
                     reason: 'The result takes the type of one of the operands.',
                     explanation: 'The expression <code>total / len(grades)</code> cannot have the type <code>int</code> because the operator <code>/</code> always returns a floating-point result.',
                 },
                 {
-                    hypothesis: 'c_style_division',
                     reason: 'Dividing integers gives an integer.',
                     explanation: 'The expression <code>total / len(grades)</code> cannot have the type <code>int</code> because the operator <code>/</code> always returns a floating-point result.',
                 },
@@ -301,7 +297,7 @@ export function gradeAnswers(questionId: number, submitted: Answer[], isHint = f
     return {
         isCorrect: wrong.length === 0,
         clarification: clarification
-            ? { prompt: clarification.prompt, options: clarification.options.map(({ hypothesis, reason }, id) => ({ id, hypothesis, reason })) }
+            ? { prompt: clarification.prompt, options: clarification.options.map(({ reason }, id) => ({ id, reason })) }
             : null,
         grade: expected.length === 0 ? 1 : correctAnswers.length / expected.length,
         correctAnswers,

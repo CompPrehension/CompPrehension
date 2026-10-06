@@ -67,7 +67,8 @@ class TypeEvaluationTreeSkillsTest {
 
         private void visit(@NotNull DecisionTreeNode node, @Nullable DecisionTreeNode lastFork, boolean relaysAggregation) {
             if (node instanceof BranchResultNode result) {
-                if (result.getValue() != BranchResult.NULL && !relaysAggregation) {
+                // Выход агрегации может и не только передать её итог, а сделать свой вывод — его навык проверяется.
+                if (result.getValue() != BranchResult.NULL && (!relaysAggregation || skillOf(result) != null)) {
                     checkConclusion(result, lastFork);
                 }
                 return;
@@ -80,7 +81,7 @@ class TypeEvaluationTreeSkillsTest {
                 for (ThoughtBranch branch : branchesOf(aggregation)) {
                     visit(branch.getStart(), lastFork, false);
                 }
-                // Выходы агрегации своего навыка не несут: correct/error передают её итог, а запасной вывод
+                // Обычно выходы агрегации своего навыка не несут: correct/error передают её итог, а запасной вывод
                 // по null стоит там, где ответ не объяснило ни одно рассуждение.
                 for (Outcome<BranchResult> outcome : aggregation.getOutcomes()) {
                     visit(outcome.getNode(), lastFork, true);
