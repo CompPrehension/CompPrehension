@@ -15,7 +15,6 @@ import org.vstu.compprehension.enums.Language;
 import org.vstu.compprehension.frontend.dto.AnswerDto;
 import org.vstu.compprehension.frontend.dto.QuestionAnswerDto;
 import org.vstu.compprehension.frontend.dto.question.MatchingQuestionDto;
-import org.vstu.compprehension.frontend.dto.question.OrderQuestionDto;
 import org.vstu.compprehension.frontend.dto.question.QuestionDto;
 import org.vstu.compprehension.mappers.Mapper;
 
@@ -53,10 +52,11 @@ class QuestionDtoMapperImpl implements QuestionDtoMapper {
                 .orElse(null);
 
         List<AnswerObjectData> answers = content.getAnswerObjects();
+        var initialTrace = content.getOptions().isShowTrace() ? getSolutionTrace(question, language) : null;
         Integer metadataId = content.getMetadata() == null ? -1 : content.getMetadata().getId();
 
         return switch (content.getQuestionType()) {
-            case ORDER -> OrderQuestionDto.builder()
+            case ORDER, MULTI_CHOICE, SINGLE_CHOICE -> QuestionDto.builder()
                     .questionId(question.getId())
                     .questionMetadataId(metadataId)
                     .type(content.getQuestionType().toString())
@@ -65,17 +65,7 @@ class QuestionDtoMapperImpl implements QuestionDtoMapper {
                     .options(content.getOptions())
                     .responses(responses)
                     .feedback(feedback)
-                    .initialTrace(getSolutionTrace(question, language))
-                    .build();
-            case MULTI_CHOICE, SINGLE_CHOICE -> QuestionDto.builder()
-                    .questionId(question.getId())
-                    .questionMetadataId(metadataId)
-                    .type(content.getQuestionType().toString())
-                    .answers(toAnswerDtos(answers))
-                    .text(content.getQuestionText())
-                    .options(content.getOptions())
-                    .responses(responses)
-                    .feedback(feedback)
+                    .initialTrace(initialTrace)
                     .build();
             case MATCHING -> MatchingQuestionDto.builder()
                     .questionId(question.getId())
@@ -87,6 +77,7 @@ class QuestionDtoMapperImpl implements QuestionDtoMapper {
                     .options(content.getOptions())
                     .responses(responses)
                     .feedback(feedback)
+                    .initialTrace(initialTrace)
                     .build();
             default -> throw new UnsupportedOperationException(
                     "No DTO shape for question type " + content.getQuestionType());

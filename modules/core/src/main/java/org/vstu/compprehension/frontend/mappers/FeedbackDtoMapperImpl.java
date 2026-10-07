@@ -11,12 +11,10 @@ import org.vstu.compprehension.data.question.QuestionData;
 import org.vstu.compprehension.data.question.QuestionInteractionData;
 import org.vstu.compprehension.data.question.ResponseData;
 import org.vstu.compprehension.enums.Language;
-import org.vstu.compprehension.enums.QuestionType;
 import org.vstu.compprehension.frontend.dto.AnswerDto;
 import org.vstu.compprehension.frontend.dto.feedback.ClarificationDto;
 import org.vstu.compprehension.frontend.dto.feedback.FeedbackDto;
 import org.vstu.compprehension.frontend.dto.feedback.FeedbackKnowledgeDto;
-import org.vstu.compprehension.frontend.dto.feedback.OrderQuestionFeedbackDto;
 import org.vstu.compprehension.mappers.Mapper;
 
 import java.util.List;
@@ -32,10 +30,7 @@ class FeedbackDtoMapperImpl implements FeedbackDtoMapper {
     @Override
     public @NotNull FeedbackDto map(@NotNull AnswerFeedbackData feedback, @NotNull Language language) {
         QuestionData question = feedback.question();
-        FeedbackDto.FeedbackDtoBuilder<?, ?> builder = question.getContent().getQuestionType() == QuestionType.ORDER
-                ? OrderQuestionFeedbackDto.builder().trace(getSolutionTrace(question, language))
-                : FeedbackDto.builder();
-        return builder
+        return FeedbackDto.builder()
                 .isCorrect(feedback.correct())
                 .grade(feedback.grade())
                 .correctSteps(question.correctInteractionsCount())
@@ -45,6 +40,7 @@ class FeedbackDtoMapperImpl implements FeedbackDtoMapper {
                 .messages(toMessageDtos(feedback.messages()))
                 .strategyDecision(feedback.strategyDecision())
                 .clarification(question.findInteractionAwaitingClarification().map(this::toClarificationDto).orElse(null))
+                .trace(question.getContent().getOptions().isShowTrace() ? getSolutionTrace(question, language) : null)
                 .build();
     }
 

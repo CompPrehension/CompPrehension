@@ -97,8 +97,8 @@ tpg Typed(E: Operation, Old: Expr, New: Expr, T: Outcome) {
                                             hypothesis = "inapplicable_assumed";
                                             RU.explanation = "${A.class()} соединяет последовательности одного вида, а оба операнда имеют тип ${L}. Следовательно, операция допустима.";
                                             EN.explanation = "the ${A.class()} joins sequences of the same kind, and both operands have type ${L}. Therefore, the operation is valid.";
-                                            RU.reason = "${A.class()} не соединяет последовательности.";
-                                            EN.reason = "The ${A.class()} does not join sequences.";
+                                            RU.reason = "${A.class()} не соединяет значения типа ${L}.";
+                                            EN.reason = "The ${A.class()} does not join values of type ${L}.";
                                         ];
                                     };
                                     conclude: null

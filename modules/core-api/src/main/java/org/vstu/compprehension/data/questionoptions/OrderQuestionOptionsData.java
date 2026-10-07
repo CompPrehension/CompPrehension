@@ -12,10 +12,6 @@ import lombok.extern.jackson.Jacksonized;
 @SuperBuilder @Jacksonized
 @JsonIgnoreProperties(ignoreUnknown = true)
 public class OrderQuestionOptionsData extends QuestionOptionsData {
-    /// Show answer trace
-    @Builder.Default
-    private boolean showTrace = false;
-
     /// Same answers can be selected several times
     @Builder.Default
     private boolean multipleSelectionEnabled = true;

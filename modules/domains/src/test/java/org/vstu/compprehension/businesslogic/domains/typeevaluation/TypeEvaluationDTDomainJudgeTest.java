@@ -28,6 +28,7 @@ import static org.vstu.compprehension.businesslogic.domains.DomainFixtures.onlyR
 import static org.vstu.compprehension.businesslogic.domains.DomainFixtures.reasoned;
 import static org.vstu.compprehension.businesslogic.domains.DomainFixtures.verdict;
 import static org.vstu.compprehension.businesslogic.domains.DomainFixtures.violations;
+import static org.vstu.compprehension.businesslogic.domains.typeevaluation.TypeEvaluationDomainFixture.AGE_NEXT_YEAR;
 import static org.vstu.compprehension.businesslogic.domains.typeevaluation.TypeEvaluationDomainFixture.AVERAGE_OF_GRADES;
 import static org.vstu.compprehension.businesslogic.domains.typeevaluation.TypeEvaluationDomainFixture.BANK;
 import static org.vstu.compprehension.businesslogic.domains.typeevaluation.TypeEvaluationDomainFixture.COUNT_PLUS_TOTAL;
@@ -269,6 +270,22 @@ class TypeEvaluationDTDomainJudgeTest {
                         "Выражение <code>total / len(grades)</code> не может иметь тип <code>int</code>, потому что оператор <code>/</code> всегда возвращает"
                                 + " вещественный результат.")),
                 offered(result));
+    }
+
+    /** Ошибку на склеивании двух строк студенту объясняют названием типа, а не словом «последовательности», которого первокурсник не знает. */
+    @Test
+    void errorOnJoiningStringsOffersReasonInTermsOfType() {
+        // Arrange.
+        var question = question(AGE_NEXT_YEAR);
+
+        // Act.
+        var result = judge(question, List.of(answer(question, "op_greeting", "t_error")));
+
+        // Assert.
+        var reason = offered(result).stream()
+                .filter(offered -> offered.hypothesis().equals("inapplicable_assumed"))
+                .findFirst().orElseThrow().reason();
+        assertEquals("Оператор <code>+</code> не соединяет значения типа <code>str</code>.", reason);
     }
 
     /**

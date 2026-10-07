@@ -15,7 +15,8 @@
         "requireContext": true,
         "displayMode": "INLINE",
         "multipleSelectionEnabled": true,
-        "showSupplementaryQuestions": false
+        "showSupplementaryQuestions": false,
+        "showTrace": true
       },
       "questionName": "count_plus_total",
       "questionText": "<div class=\"comp-ph-code\"><pre><code><span class=\"n\">count</span> <span class=\"o\">=</span> <span class=\"mi\">3</span>\n<span class=\"n\">total</span> <span class=\"o\">=</span> <span class=\"mi\">14</span>\n<span class=\"n\">counts</span> <span class=\"o\">=</span> <span class=\"p\">[</span><span class=\"mi\">1</span><span class=\"p\">,</span> <span class=\"mi\">2</span><span class=\"p\">]</span>\n<span class=\"n\">totals</span> <span class=\"o\">=</span> <span class=\"p\">[</span><span class=\"mi\">5</span><span class=\"p\">,</span> <span class=\"mi\">9</span><span class=\"p\">]</span>\n<span class=\"c1\"># ... вы находитесь здесь ...</span></code></pre></div><div class=\"comp-ph-typed-expr\" style=\"--depth:1\"><span class=\"comp-ph-expr-part\" style=\"--lvl:1\"><span class=\"comp-ph-expr-slot\" id=\"answer_0\"></span><span class=\"comp-ph-expr-token\">count</span><span class=\"comp-ph-expr-token\">+</span><span class=\"comp-ph-expr-token\">total</span></span></div>",
@@ -70,7 +71,7 @@
           "subject": "question",
           "verb": "hasLoqi",
           "objectType": "xsd:string",
-          "object": "obj t_int : py_int {}\nobj t_float : py_float {}\nobj t_str : py_str { elementType(t_str); }\nobj t_list_int : py_list { elementType(t_int); }\nobj t_error : py_TypeError {}\nobj count : Variable { hasType(t_int); } [ text = \"count\" ]\nobj counts : Variable { hasType(t_list_int); looksLike(count); } [ text = \"counts\" ]\nobj total : Variable { hasType(t_int); } [ text = \"total\" ]\nobj totals : Variable { hasType(t_list_int); looksLike(total); } [ text = \"totals\" ]\nobj op_add : py_add { hasOperand<OperandPlacement:left>(count); hasOperand<OperandPlacement:right>(total); } [ text = \"count + total\"; expectedType = \"t_int\" ]"
+          "object": "obj t_int : py_int {}\nobj t_float : py_float {}\nobj t_str : py_str { elementType(t_str); }\nobj t_list_int : py_list { elementType(t_int); }\nobj t_error : py_TypeError {}\nobj count : Variable { hasType(t_int); } [ text = \"count\" ]\nobj counts : Variable { hasType(t_list_int); looksLike(count); } [ text = \"counts\" ]\nobj total : Variable { hasType(t_int); } [ text = \"total\" ]\nobj totals : Variable { hasType(t_list_int); looksLike(total); } [ text = \"totals\" ]\nobj op_add : py_add { hasOperand<OperandPlacement:left>(count); hasOperand<OperandPlacement:right>(total); } [ text = \"count + total\"; expectedType = \"t_int\"; value = \"17\" ]"
         }
       ],
       "questionDomainType": "ExpressionTypes"

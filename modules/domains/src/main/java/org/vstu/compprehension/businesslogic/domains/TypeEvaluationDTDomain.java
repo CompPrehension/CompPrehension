@@ -70,8 +70,12 @@ public class TypeEvaluationDTDomain extends DecisionTreeReasoningDomain {
     private static final String SITUATION_FACT_VERB = "hasLoqi";
     // Эталонный тип операции хранится в метаданных: выражения дерева метаданные не читают, поэтому подсмотреть его нельзя.
     private static final String EXPECTED_TYPE = "expectedType";
+    // Значение операции в записи языка вопроса. Необязательно: для статически типизированных языков или значений,
+    // зависящих от ввода пользователя, его нет.
+    private static final String VALUE = "value";
     private static final String LOCALIZED_NAME = "localizedName";
     private static final String SOURCE_TEXT = "text";
+    private static final String EVALUATION_ERROR_CLASS = "EvaluationError";
     private static final String HAS_TYPE = "hasType";
     private static final String HAS_OPERAND = "hasOperand";
     private static final String OPERATION_VARIABLE = "E";
@@ -344,11 +348,18 @@ public class TypeEvaluationDTDomain extends DecisionTreeReasoningDomain {
         content.getAnswerObjects().stream()
                 .filter(AnswerObjectData::isRightCol)
                 .forEach(option -> typeNames.put(option.getDomainInfo(), option.getHyperText()));
+        var model = prepareQuestionModel(content);
         return question.findLatestCorrectAnswers().stream()
                 .sorted(Comparator.comparingInt(answer -> answer.left().getAnswerId()))
-                .map(answer -> new HyperText(getMessage("trace.template", language)
-                        .replace("${expression}", answer.left().getHyperText())
-                        .replace("${type}", typeNames.getOrDefault(answer.right().getDomainInfo(), answer.right().getHyperText()))))
+                .map(answer -> {
+                    var value = model.getObjects().get(answer.left().getDomainInfo()).getMetadata().getString(VALUE);
+                    var isError = model.getObjects().get(answer.right().getDomainInfo()).isInstanceOf(EVALUATION_ERROR_CLASS);
+                    var template = getMessage(isError ? "trace.template.error" : value == null ? "trace.template" : "trace.template.value", language);
+                    return new HyperText(template
+                            .replace("${expression}", answer.left().getHyperText())
+                            .replace("${value}", value == null ? "" : escapeHtml(value))
+                            .replace("${type}", typeNames.getOrDefault(answer.right().getDomainInfo(), answer.right().getHyperText())));
+                })
                 .toList();
     }
 

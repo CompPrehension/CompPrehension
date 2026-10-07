@@ -16,7 +16,8 @@
         "requireContext": true,
         "displayMode": "INLINE",
         "multipleSelectionEnabled": true,
-        "showSupplementaryQuestions": false
+        "showSupplementaryQuestions": false,
+        "showTrace": true
       },
       "questionName": "student_first_grade",
       "questionText": "<div class=\"comp-ph-code\"><pre><code><span class=\"n\">student</span> <span class=\"o\">=</span> <span class=\"p\">{</span><span class=\"s2\">&quot;grades&quot;</span><span class=\"p\">:</span> <span class=\"p\">[</span><span class=\"mi\">5</span><span class=\"p\">,</span> <span class=\"mi\">4</span><span class=\"p\">,</span> <span class=\"mi\">5</span><span class=\"p\">]}</span>\n<span class=\"c1\"># ... вы находитесь здесь ...</span></code></pre></div><div class=\"comp-ph-typed-expr\" style=\"--depth:2\"><span class=\"comp-ph-expr-part\" style=\"--lvl:2\"><span class=\"comp-ph-expr-slot\" id=\"answer_1\"></span><span class=\"comp-ph-expr-part\" style=\"--lvl:1\"><span class=\"comp-ph-expr-slot\" id=\"answer_0\"></span><span class=\"comp-ph-expr-token\">student</span><span class=\"comp-ph-expr-token\">[</span><span class=\"comp-ph-expr-token\">&quot;grades&quot;</span><span class=\"comp-ph-expr-token\">]</span></span><span class=\"comp-ph-expr-token\">[</span><span class=\"comp-ph-expr-token\">0</span><span class=\"comp-ph-expr-token\">]</span></span></div>",
@@ -78,7 +79,7 @@
           "subject": "question",
           "verb": "hasLoqi",
           "objectType": "xsd:string",
-          "object": "obj t_int : py_int {}\nobj t_str : py_str { elementType(t_str); }\nobj t_list_int : py_list { elementType(t_int); }\nobj t_dict_str_list_int : py_dict { keyType(t_str); valueType(t_list_int); }\nobj t_error : py_TypeError {}\nobj student : Variable { hasType(t_dict_str_list_int); } [ text = \"student\" ]\nobj key : Literal { hasType(t_str); } [ text = \"\\\"grades\\\"\" ]\nobj zero : Literal { hasType(t_int); intValue = 0; } [ text = \"0\" ]\nobj op_key : py_index { hasOperand<OperandPlacement:left>(student); hasOperand<OperandPlacement:right>(key); } [ text = \"student[\\\"grades\\\"]\"; expectedType = \"t_list_int\" ]\nobj op_first : py_index { hasOperand<OperandPlacement:left>(op_key); hasOperand<OperandPlacement:right>(zero); } [ text = \"student[\\\"grades\\\"][0]\"; expectedType = \"t_int\" ]"
+          "object": "obj t_int : py_int {}\nobj t_str : py_str { elementType(t_str); }\nobj t_list_int : py_list { elementType(t_int); }\nobj t_dict_str_list_int : py_dict { keyType(t_str); valueType(t_list_int); }\nobj t_error : py_TypeError {}\nobj student : Variable { hasType(t_dict_str_list_int); } [ text = \"student\" ]\nobj key : Literal { hasType(t_str); } [ text = \"\\\"grades\\\"\" ]\nobj zero : Literal { hasType(t_int); intValue = 0; } [ text = \"0\" ]\nobj op_key : py_index { hasOperand<OperandPlacement:left>(student); hasOperand<OperandPlacement:right>(key); } [ text = \"student[\\\"grades\\\"]\"; expectedType = \"t_list_int\"; value = \"[5, 4, 5]\" ]\nobj op_first : py_index { hasOperand<OperandPlacement:left>(op_key); hasOperand<OperandPlacement:right>(zero); } [ text = \"student[\\\"grades\\\"][0]\"; expectedType = \"t_int\"; value = \"5\" ]"
         }
       ],
       "questionDomainType": "ExpressionTypes"

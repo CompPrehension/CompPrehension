@@ -1365,19 +1365,18 @@ var TFeedback = intersection([type({ isCorrect: boolean }), partial({
 		"CONTINUE": null,
 		"FINISH": null
 	}), nullType]),
-	clarification: union([TClarification, nullType])
+	clarification: union([TClarification, nullType]),
+	trace: union([array(string), nullType])
 })], "Feedback");
-var TOrderQuestionFeedback = intersection([TFeedback, partial({ trace: union([array(string), nullType]) })]);
 //#endregion
 //#region src/main/js/types/question-options.ts
-var TQuestionOptions = type({
+var TQuestionOptions = intersection([type({
 	requireContext: boolean,
 	showSupplementaryQuestions: boolean
-}, "QuestionOptions");
+}), partial({ showTrace: boolean })], "QuestionOptions");
 var TOrderQuestionOptions = intersection([
 	TQuestionOptions,
 	type({
-		showTrace: boolean,
 		multipleSelectionEnabled: boolean,
 		requireAllAnswers: boolean
 	}),
@@ -1428,7 +1427,7 @@ var TQuestionAnswer = type({
 	id: number,
 	text: THtml
 }, "QuestionAnswer");
-var TQuestionBase = type({
+var TQuestionBase = intersection([type({
 	questionId: number,
 	questionMetadataId: number,
 	type: TQuestionType,
@@ -1437,16 +1436,11 @@ var TQuestionBase = type({
 	answers: array(TQuestionAnswer),
 	responses: union([array(TAnswer), nullType]),
 	feedback: union([TFeedback, nullType])
-}, "QuestionBase");
-var TOrderQuestion = intersection([
-	TQuestionBase,
-	type({
-		type: literal("ORDER"),
-		options: TOrderQuestionOptions,
-		feedback: union([TOrderQuestionFeedback, nullType])
-	}),
-	partial({ initialTrace: union([array(string), nullType]) })
-], "OrderQuestion");
+}), partial({ initialTrace: union([array(string), nullType]) })], "QuestionBase");
+var TOrderQuestion = intersection([TQuestionBase, type({
+	type: literal("ORDER"),
+	options: TOrderQuestionOptions
+})], "OrderQuestion");
 var TSingleChoiceQuestion = intersection([TQuestionBase, type({
 	type: literal("SINGLE_CHOICE"),
 	options: TSingleChoiceQuestionOptions
@@ -2710,20 +2704,12 @@ var OrderQuestionComponent = observer((props) => {
 			});
 		});
 	}, [question.questionId, answersCount]);
-	const trace = getFeedback()?.trace ?? (getAnswers().length === 0 ? question.initialTrace : null);
-	const isTraceVisible = options.showTrace && !isNullOrUndefined(trace) && trace.length > 0;
-	return /* @__PURE__ */ (0, import_jsx_runtime.jsxs)("div", {
+	return /* @__PURE__ */ (0, import_jsx_runtime.jsx)("div", {
 		id: `question_${question.questionId}`,
-		children: [/* @__PURE__ */ (0, import_jsx_runtime.jsx)("div", {
+		children: /* @__PURE__ */ (0, import_jsx_runtime.jsx)("div", {
 			className: "comp-ph-question-text",
 			dangerouslySetInnerHTML: { __html: question.text }
-		}), /* @__PURE__ */ (0, import_jsx_runtime.jsx)(Optional, {
-			isVisible: isTraceVisible,
-			children: /* @__PURE__ */ (0, import_jsx_runtime.jsx)("div", { children: /* @__PURE__ */ (0, import_jsx_runtime.jsx)("table", {
-				className: "comp-ph-trace",
-				children: /* @__PURE__ */ (0, import_jsx_runtime.jsx)("tbody", { children: trace?.map((t, idx) => /* @__PURE__ */ (0, import_jsx_runtime.jsx)("tr", { children: /* @__PURE__ */ (0, import_jsx_runtime.jsx)("td", { dangerouslySetInnerHTML: { __html: t } }) }, idx)) })
-			}) })
-		})]
+		})
 	});
 });
 //#endregion
@@ -2805,6 +2791,16 @@ var RadioSingleChoiceQuestionWithCtxComponent = observer((props) => {
 	});
 });
 //#endregion
+//#region src/main/js/components/common/question/solution-trace.tsx
+var SolutionTraceComponent = observer((props) => {
+	const { trace } = props;
+	if (!trace || trace.length === 0) return null;
+	return /* @__PURE__ */ (0, import_jsx_runtime.jsx)("div", { children: /* @__PURE__ */ (0, import_jsx_runtime.jsx)("table", {
+		className: "comp-ph-trace",
+		children: /* @__PURE__ */ (0, import_jsx_runtime.jsx)("tbody", { children: trace.map((t, idx) => /* @__PURE__ */ (0, import_jsx_runtime.jsx)("tr", { children: /* @__PURE__ */ (0, import_jsx_runtime.jsx)("td", { dangerouslySetInnerHTML: { __html: t } }) }, idx)) })
+	}) });
+});
+//#endregion
 //#region src/main/js/components/common/question/question.tsx
 var QuestionComponent = observer((props) => {
 	const { question, answers, onChanged, getAnswers, getFeedback, isFeedbackLoading, isQuestionFreezed } = props;
@@ -2853,9 +2849,10 @@ var QuestionComponent = observer((props) => {
 		isFeedbackLoading && "comp-ph-question-wrapper--loading-feedback" || "",
 		isQuestionFreezed && "comp-ph-question-wrapper--freezed" || ""
 	].join(" ");
-	return /* @__PURE__ */ (0, import_jsx_runtime.jsx)("div", {
+	const trace = getFeedback()?.trace ?? (getAnswers().length === 0 ? question.initialTrace : null);
+	return /* @__PURE__ */ (0, import_jsx_runtime.jsxs)("div", {
 		className: wrapperClassName,
-		children: questonComponent
+		children: [questonComponent, question.options.showTrace && /* @__PURE__ */ (0, import_jsx_runtime.jsx)(SolutionTraceComponent, { trace })]
 	});
 });
 //#endregion

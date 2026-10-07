@@ -27,6 +27,8 @@ public class FeedbackDto {
     private Message[] messages;
     private Decision strategyDecision;
     private ClarificationDto clarification;
+    @Nullable
+    private String[] trace;
 
     public enum MessageType {
         @JsonProperty("ERROR")

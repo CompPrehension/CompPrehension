@@ -4,14 +4,19 @@ import { MergeIntersections } from './utils';
 export type QuestionOptions = {
     requireContext: boolean,
     showSupplementaryQuestions: boolean,
+    showTrace?: boolean,
 }
-export const TQuestionOptions : io.Type<QuestionOptions> = io.type({
-    requireContext: io.boolean,
-    showSupplementaryQuestions: io.boolean,
-}, 'QuestionOptions');
+export const TQuestionOptions : io.Type<QuestionOptions> = io.intersection([
+    io.type({
+        requireContext: io.boolean,
+        showSupplementaryQuestions: io.boolean,
+    }),
+    io.partial({
+        showTrace: io.boolean,
+    }),
+], 'QuestionOptions');
 
 export type OrderQuestionOptions = MergeIntersections<QuestionOptions & {
-    showTrace: boolean,
     multipleSelectionEnabled: boolean,
     requireAllAnswers: boolean,
     orderNumberOptions?: {
@@ -23,7 +28,6 @@ export type OrderQuestionOptions = MergeIntersections<QuestionOptions & {
 export const TOrderQuestionOptions : io.Type<OrderQuestionOptions> = io.intersection([
     TQuestionOptions,
     io.type({
-        showTrace: io.boolean,
         multipleSelectionEnabled: io.boolean,
         requireAllAnswers: io.boolean,        
     }),

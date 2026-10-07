@@ -590,6 +590,26 @@ class ExerciseAttemptFrontendServiceTest extends AbstractIntegrationTest {
         assertEquals(List.of(), recordedHypotheses(question.getQuestionId()));
     }
 
+    /** Студент видит трассу решения вопроса на типы: значение верно решённой части выражения и после обновления страницы. */
+    @Test
+    void typeEvaluationTraceShowsValueOfSolvedOperationAndSurvivesReload() {
+        // Arrange.
+        TestUserService.actAs(TestData.Users.GLOBAL_EXERCISE_AUTHOR_ID);
+        var question = service.generateQuestionByMetadata(
+                TestData.TypeEvaluationBank.AVERAGE_OF_GRADES_METADATA_ID, Language.ENGLISH);
+        var lengthAsInt = new AnswerDto(TestData.TypeEvaluationBank.LEN_SLOT, TestData.TypeEvaluationBank.INT_TYPE, true, null);
+
+        // Act.
+        var feedback = service.addQuestionAnswer(new InteractionDto(question.getQuestionId(), new AnswerDto[] { lengthAsInt }));
+
+        // Assert.
+        var expectedTrace = new String[] { "<code>len(grades)</code> вычислено: значение <code>3</code>, тип <code>int</code>" };
+        assertArrayEquals(new String[0], question.getInitialTrace());
+        assertArrayEquals(expectedTrace, feedback.getTrace());
+        resetPersistenceContext();
+        assertArrayEquals(expectedTrace, service.getQuestion(question.getQuestionId()).getFeedback().getTrace());
+    }
+
     // ---- уточняющий вопрос о рассуждении студента ----
 
     /** Ошибку, которую объясняют два заблуждения, сопровождает вопрос о причине с вариантами-заблуждениями. */

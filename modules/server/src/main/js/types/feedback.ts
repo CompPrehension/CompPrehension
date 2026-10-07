@@ -1,6 +1,5 @@
 import * as io from 'io-ts';
 import { Answer, TAnswer } from './answer';
-import { MergeIntersections } from './utils';
 
 export type FeedbackKnowledge = {
     name: string,
@@ -69,6 +68,7 @@ export type Feedback = {
     messages?: FeedbackMessage[] | null,
     strategyDecision?: 'CONTINUE' | 'FINISH' | null,
     clarification?: Clarification | null,
+    trace?: string[] | null,
 } 
 export const TFeedback: io.Type<Feedback> = io.intersection([
     io.type({
@@ -91,16 +91,7 @@ export const TFeedback: io.Type<Feedback> = io.intersection([
             io.null,
         ]),
         clarification: io.union([TClarification, io.null]),
+        trace: io.union([io.array(io.string), io.null]),
     }),
 ], 'Feedback');
 
-
-export type OrderQuestionFeedback = MergeIntersections<Feedback & {
-    trace?: string[] | null,
-}>
-export const TOrderQuestionFeedback: io.Type<Feedback> = io.intersection([
-    TFeedback,
-    io.partial({
-        trace: io.union([io.array(io.string), io.null]),
-    }),
-]);

@@ -1,6 +1,6 @@
 import { MatchingQuestionOptions, MultiChoiceQuestionOptions, OrderQuestionOptions, QuestionOptions, SingleChoiceQuestionOptions, TMatchingQuestionOptions, TMultiChoiceQuestionOptions, TOrderQuestionOptions, TQuestionOptions, TSingleChoiceQuestionOptions } from "./question-options";
 import * as io from 'io-ts'
-import { Feedback, OrderQuestionFeedback, TFeedback, TOrderQuestionFeedback } from "./feedback";
+import { Feedback, TFeedback } from "./feedback";
 import { MergeIntersectionsDeep } from "./utils";
 import { TOptionalRequestResult } from "../utils/helpers";
 import { Answer, TAnswer } from "./answer";
@@ -34,8 +34,9 @@ type QuestionBase = {
     answers: QuestionAnswer[],
     responses: Answer[] | null,
     feedback: Feedback | null,
+    initialTrace?: string[] | null,
 }
-const TQuestionBase : io.Type<QuestionBase> = io.type({
+const TQuestionBase : io.Type<QuestionBase> = io.intersection([io.type({
     questionId: io.number,
     questionMetadataId: io.number,
     type: TQuestionType,
@@ -44,23 +45,19 @@ const TQuestionBase : io.Type<QuestionBase> = io.type({
     answers: io.array(TQuestionAnswer),
     responses: io.union([io.array(TAnswer), io.null]),
     feedback: io.union([TFeedback, io.null]),
-}, 'QuestionBase');
+}), io.partial({
+    initialTrace: io.union([io.array(io.string), io.null]),
+})], 'QuestionBase');
 
 export type OrderQuestion = MergeIntersectionsDeep<QuestionBase & {
     type: 'ORDER',
     options: OrderQuestionOptions,
-    initialTrace?: string[] | null,
-    feedback: OrderQuestionFeedback | null,
 }>
 const TOrderQuestion : io.Type<OrderQuestion> = io.intersection([
     TQuestionBase,
     io.type({
         type: io.literal("ORDER"),
         options: TOrderQuestionOptions,
-        feedback: io.union([TOrderQuestionFeedback, io.null]),
-    }),
-    io.partial({
-        initialTrace: io.union([io.array(io.string), io.null]),
     }),
 ], 'OrderQuestion')
 
