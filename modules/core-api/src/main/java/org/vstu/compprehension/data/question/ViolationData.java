@@ -19,7 +19,7 @@ import java.util.List;
 @AllArgsConstructor
 public class ViolationData implements Serializable {
     private Long id;
-    private String lawName;
+    private String knowledgeName;
     private InteractionType interactionType;
     @Builder.Default
     private List<BackendFactData> violationFacts = new ArrayList<>();

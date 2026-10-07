@@ -106,7 +106,7 @@ public class QuestionController {
     public SupplementaryQuestionDto generateSupplementaryQuestion(@RequestBody SupplementaryQuestionRequestDto questionRequest) throws Exception {
         var userId = userService.getCurrentUserId();
         authService.ensureCanWriteQuestion(userId, questionRequest.getQuestionId());
-        return exerciseAttemptService.generateSupplementaryQuestion(questionRequest.getQuestionId(), questionRequest.getViolationLaws());
+        return exerciseAttemptService.generateSupplementaryQuestion(questionRequest.getQuestionId(), questionRequest.getViolatedKnowledge());
     }
 
     /**

@@ -19,12 +19,12 @@ public sealed interface Judgement {
     record Verdict(boolean isAnswerCorrect,
                    @NotNull Explanation explanation,
                    @NotNull List<ViolationData> violations,
-                   @NotNull List<String> appliedLaws,
+                   @NotNull List<String> appliedKnowledge,
                    int stepsLeft) implements Judgement {
 
         public Verdict {
             violations = List.copyOf(violations);
-            appliedLaws = List.copyOf(appliedLaws);
+            appliedKnowledge = List.copyOf(appliedKnowledge);
         }
     }
 

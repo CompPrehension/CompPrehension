@@ -694,8 +694,8 @@ public class ObjectsScopeDTDomain extends DecisionTreeReasoningDomain {
     }
 
     @Override
-    public boolean needSupplementaryQuestion(String violationLawName, InteractionType interactionType) {
-        return violationLawName.equals("incorrectStep");
+    public boolean needSupplementaryQuestion(String violatedKnowledgeName, InteractionType interactionType) {
+        return violatedKnowledgeName.equals("incorrectStep");
     }
 
     @Override
@@ -795,10 +795,10 @@ public class ObjectsScopeDTDomain extends DecisionTreeReasoningDomain {
                     : null;
             var violations = new ArrayList<ViolationData>();
             if (lawName != null) {
-                explanation.setCurrentDomainLawName(lawName);
+                explanation.setCurrentKnowledgeName(lawName);
                 if(!isAnswerCorrect) {
                     ViolationData v = new ViolationData();
-                    v.setLawName(lawName);
+                    v.setKnowledgeName(lawName);
                     v.setViolationFacts(new ArrayList<>());
                     violations.add(v);
                 }
@@ -844,11 +844,11 @@ public class ObjectsScopeDTDomain extends DecisionTreeReasoningDomain {
                     preparedSituation.getDomainModel(),
                     language
             );
-            explanation.setCurrentDomainLawName(lawName);
+            explanation.setCurrentKnowledgeName(lawName);
             var violations = new ArrayList<ViolationData>();
             if(!explanation.getRawMessage().isEmpty()) {
                 ViolationData v = new ViolationData();
-                v.setLawName(lawName);
+                v.setKnowledgeName(lawName);
                 v.setViolationFacts(new ArrayList<>());
                 violations.add(v);
             }

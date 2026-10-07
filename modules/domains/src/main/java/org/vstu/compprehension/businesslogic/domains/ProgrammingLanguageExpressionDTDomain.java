@@ -71,6 +71,8 @@ public class ProgrammingLanguageExpressionDTDomain extends DecisionTreeReasoning
 
     @SneakyThrows
     public ProgrammingLanguageExpressionDTDomain(ProgrammingLanguageExpressionDomain baseDomain) {
+        // Исключение из «либо законы, либо навыки»: законы базового домена нужны для подбора вопросов (биты нарушений
+        // в метаданных и поиск по банку), ответ же оценивается по навыкам.
         super(DOMAIN_ID, baseDomain.randomProvider, baseDomain.getStructure().withSkills(buildSkills()));
 
         this.baseDomain = baseDomain;
@@ -357,7 +359,7 @@ public class ProgrammingLanguageExpressionDTDomain extends DecisionTreeReasoning
             }
 
             ViolationData violation = new ViolationData();
-            violation.setLawName(STILL_UNEVALUATED_LEFT_VIOLATION_NAME);
+            violation.setKnowledgeName(STILL_UNEVALUATED_LEFT_VIOLATION_NAME);
             violation.setViolationFacts(new ArrayList<>());
             var violations = new ArrayList<>(List.of(violation));
 
@@ -366,9 +368,9 @@ public class ProgrammingLanguageExpressionDTDomain extends DecisionTreeReasoning
                     preparedSituation.getDomainModel(),
                     getDomain(),
                     language);
-            violations.addAll(explanation.getDomainLawNames().stream().map(skill -> {
+            violations.addAll(explanation.getKnowledgeNames().stream().map(skill -> {
                 ViolationData v = new ViolationData();
-                v.setLawName(skill);
+                v.setKnowledgeName(skill);
                 v.setViolationFacts(new ArrayList<>());
                 return v;
             }).toList());
@@ -904,8 +906,8 @@ public class ProgrammingLanguageExpressionDTDomain extends DecisionTreeReasoning
     //----------Вспомогательные вопросы------------
 
     @Override
-    public boolean needSupplementaryQuestion(String violationLawName, InteractionType interactionType) {
-        Skill skill = getSkill(violationLawName);
+    public boolean needSupplementaryQuestion(String violatedKnowledgeName, InteractionType interactionType) {
+        Skill skill = getSkill(violatedKnowledgeName);
         return skill != null && interactionType != InteractionType.REQUEST_CORRECT_ANSWER;
     }
 

@@ -34,7 +34,7 @@ import org.vstu.compprehension.data.question.QuestionData;
 import org.vstu.compprehension.data.question.AnswerObjectData;
 import org.vstu.compprehension.frontend.dto.SupplementaryFeedbackDto;
 import org.vstu.compprehension.frontend.dto.feedback.FeedbackDto;
-import org.vstu.compprehension.frontend.dto.feedback.FeedbackViolationLawDto;
+import org.vstu.compprehension.frontend.dto.feedback.FeedbackKnowledgeDto;
 import org.vstu.compprehension.businesslogic.SupplementaryFeedbackGenerationResult;
 import org.vstu.compprehension.businesslogic.SupplementaryResponse;
 import org.vstu.compprehension.businesslogic.SupplementaryResponseGenerationResult;
@@ -273,7 +273,7 @@ public class DecisionTreeSupQuestionHelper {
                 : explanations.stream().map(Explanation::getText).collect(Collectors.joining("\n"));
         return new SupplementaryFeedbackDto(
                 new FeedbackDto.Message(isError ? FeedbackDto.MessageType.ERROR : FeedbackDto.MessageType.SUCCESS, text, List.of(
-                        new FeedbackViolationLawDto("", true))),
+                        new FeedbackKnowledgeDto("", true))),
                 isFinished
                         ? SupplementaryFeedbackDto.Action.Finish
                         : explanations.stream().anyMatch(Explanation::getShouldPause) ? SupplementaryFeedbackDto.Action.ContinueManual : SupplementaryFeedbackDto.Action.ContinueAuto

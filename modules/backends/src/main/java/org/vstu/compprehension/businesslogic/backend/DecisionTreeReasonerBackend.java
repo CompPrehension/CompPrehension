@@ -159,8 +159,8 @@ public class DecisionTreeReasonerBackend
             result.setRawMessage(new HyperText(prefix.trim().concat(":")));
         }
         // Если в ветви все объяснения принадлежат одному навыку, то у всей ветви этот навык
-        if (result.getChildren().stream().map(Explanation::getDomainLawNames).collect(Collectors.toSet()).size() == 1) {
-            result.setCurrentDomainLawName(result.getChildren().getFirst().getCurrentDomainLawName());
+        if (result.getChildren().stream().map(Explanation::getKnowledgeNames).collect(Collectors.toSet()).size() == 1) {
+            result.setCurrentKnowledgeName(result.getChildren().getFirst().getCurrentKnowledgeName());
         }
         reduceSimilarExplanations(result.getChildren(), type, lang);
         return result;
@@ -250,7 +250,7 @@ public class DecisionTreeReasonerBackend
         }
         var explanation = collectExplanationsFromTrace(Explanation.Type.ERROR, trace, domainModel, appDomain, lang);
         var violations = isAnswerCorrect ? List.<ViolationData>of()
-                : explanation.getDomainLawNames().stream().map(DecisionTreeReasonerBackend::makeViolation).toList();
+                : explanation.getKnowledgeNames().stream().map(DecisionTreeReasonerBackend::makeViolation).toList();
         return new Judgement.Verdict(isAnswerCorrect, explanation, violations, collectAppliedLaws(trace), stepsLeft);
     }
 
@@ -268,7 +268,7 @@ public class DecisionTreeReasonerBackend
     }
 
     // Одно рассуждение может прийти из разных прочтений выражения. Это одно рассуждение, если причина у него та же или
-    // у одного из прочтений своей причины нет; законы прочтений объединяются.
+    // у одного из прочтений своей причины нет; знания прочтений объединяются.
     private static void addReasoning(@NotNull List<Reasoning> reasonings, @NotNull Reasoning added) {
         for (int i = 0; i < reasonings.size(); i++) {
             var known = reasonings.get(i);
@@ -278,7 +278,7 @@ public class DecisionTreeReasonerBackend
             }
             var kept = known.reason() != null ? known : added;
             reasonings.set(i, new Reasoning(known.id(), kept.assumptions(), kept.reason(), kept.explanation(),
-                    union(known.violations(), added.violations()), union(known.appliedLaws(), added.appliedLaws())));
+                    union(known.violations(), added.violations()), union(known.appliedKnowledge(), added.appliedKnowledge())));
             return;
         }
         reasonings.add(added);
@@ -331,7 +331,7 @@ public class DecisionTreeReasonerBackend
                 .toList();
         var violations = isCorrect ? List.<ViolationData>of()
                 : told.stream().map(step -> makeViolation(requireSkill(step))).toList();
-        var appliedLaws = path.stream()
+        var appliedKnowledge = path.stream()
                 .filter(step -> step.getNodeResult() == BranchResult.CORRECT)
                 .flatMap(step -> Arrays.stream(requireSkill(step).split(";")))
                 .distinct()
@@ -339,7 +339,7 @@ public class DecisionTreeReasonerBackend
                 .toList();
         return new Reasoning(id, assumptions, reasons.isEmpty() ? null : String.join(" ", reasons),
                 makeReasoningExplanation(told.getFirst(), explanations, isCorrect, isAnswerCorrect, domainModel, appDomain, lang),
-                violations, appliedLaws);
+                violations, appliedKnowledge);
     }
 
     // Объяснения шагов продолжают рамку дерева первого шага: рамку ошибки, подсказки или, если к верному ответу
@@ -371,7 +371,7 @@ public class DecisionTreeReasonerBackend
         }
         var explanation = new Explanation(type,
                 prefix + String.join(" " + utilLoc.get(localizationCode).get("besides"), explanations));
-        explanation.setCurrentDomainLawName(firstStep.getNode().getMetadata().getString("skill"));
+        explanation.setCurrentKnowledgeName(firstStep.getNode().getMetadata().getString("skill"));
         return annotateTerms(explanation, appDomain, lang);
     }
 
@@ -386,7 +386,7 @@ public class DecisionTreeReasonerBackend
 
     private static @NotNull ViolationData makeViolation(@NotNull String lawName) {
         var violation = new ViolationData();
-        violation.setLawName(lawName);
+        violation.setKnowledgeName(lawName);
         violation.setViolationFacts(new ArrayList<>());
         return violation;
     }
@@ -529,8 +529,8 @@ public class DecisionTreeReasonerBackend
                     .toList());
             reduceSimilarExplanations(parent.getChildren(), type, lang);
             // Если в ветви все объяснения принадлежат одному навыку, то у всей ветви этот навык
-            if (parent.getChildren().stream().map(Explanation::getDomainLawNames).collect(Collectors.toSet()).size() == 1) {
-                parent.setCurrentDomainLawName(parent.getChildren().getFirst().getCurrentDomainLawName());
+            if (parent.getChildren().stream().map(Explanation::getKnowledgeNames).collect(Collectors.toSet()).size() == 1) {
+                parent.setCurrentKnowledgeName(parent.getChildren().getFirst().getCurrentKnowledgeName());
             }
             return List.of();
         }
@@ -541,9 +541,9 @@ public class DecisionTreeReasonerBackend
         Map<String, Integer> skillCounter = new HashMap<>();
         List<Explanation> deleteCandidates = new ArrayList<>();
         for (Explanation item : explanations) {
-            int total = skillCounter.getOrDefault(item.getCurrentDomainLawName(), 0) + 1;
-            skillCounter.put(item.getCurrentDomainLawName(), total);
-            if (total > MAX_SIMILAR_EXPLANATION_COUNT && item.getCurrentDomainLawName() != null) {
+            int total = skillCounter.getOrDefault(item.getCurrentKnowledgeName(), 0) + 1;
+            skillCounter.put(item.getCurrentKnowledgeName(), total);
+            if (total > MAX_SIMILAR_EXPLANATION_COUNT && item.getCurrentKnowledgeName() != null) {
                 deleteCandidates.add(item);
             }
         }
@@ -690,7 +690,7 @@ public class DecisionTreeReasonerBackend
                     interpretExplanationTemplate(resultNode, type, localizationCode, learningSituation));
             if (resultNode.getMetadata().containsAny("skill")) {
                 String skillName = resultNode.getMetadata().getString("skill");
-                expl.setCurrentDomainLawName(skillName);
+                expl.setCurrentKnowledgeName(skillName);
             }
             if (resultNode.getMetadata().containsAny("muted")
                     && resultNode.getMetadata().get("muted").toString().toLowerCase().trim().equals("true")) {

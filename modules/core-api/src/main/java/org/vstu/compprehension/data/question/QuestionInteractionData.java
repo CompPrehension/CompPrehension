@@ -19,7 +19,7 @@ public class QuestionInteractionData {
     @NotNull List<AnswerData> answers;
     @Nullable InteractionClarificationData clarification;
     @NotNull List<ViolationData> violations;
-    @NotNull List<String> appliedLaws;
+    @NotNull List<String> appliedKnowledge;
 
     @Builder(toBuilder = true)
     public QuestionInteractionData(Long id,
@@ -37,10 +37,10 @@ public class QuestionInteractionData {
         this.responses = responses == null ? List.of() : List.copyOf(responses);
         this.answers = this.responses.stream().map(ResponseData::getAnswer).toList();
         this.clarification = clarification;
-        var counted = new CountedLawsData(isCorrect, this.reasonings,
+        var counted = new CountedKnowledgeData(isCorrect, this.reasonings,
                 clarification == null ? null : clarification.chosenReasoning());
         this.violations = counted.getViolations();
-        this.appliedLaws = counted.getAppliedLaws();
+        this.appliedKnowledge = counted.getAppliedKnowledge();
     }
 
     public boolean allowsMoreSteps() {

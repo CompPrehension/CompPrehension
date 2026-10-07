@@ -190,7 +190,7 @@ class QuestionControllerAuthorizationTest extends AbstractAuthorizationTest {
         var questionRequest = SupplementaryQuestionRequestDto.builder()
                 .questionId(question.getId())
                 .exerciseAttemptId(attempt.getId())
-                .violationLaws(new String[0])
+                .violatedKnowledge(new String[0])
                 .build();
 
         // Act.

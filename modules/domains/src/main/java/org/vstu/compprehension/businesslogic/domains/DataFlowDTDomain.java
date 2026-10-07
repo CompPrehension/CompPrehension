@@ -498,7 +498,7 @@ public class DataFlowDTDomain extends DecisionTreeReasoningDomain {
     }
 
     @Override
-    public boolean needSupplementaryQuestion(String violationLawName, InteractionType interactionType) {
+    public boolean needSupplementaryQuestion(String violatedKnowledgeName, InteractionType interactionType) {
         return false;
     }
 
@@ -570,13 +570,13 @@ public class DataFlowDTDomain extends DecisionTreeReasoningDomain {
                     language
             );
             explanation = realDomain.replaceEnumInExplanation(explanation, language);
-            explanation.setCurrentDomainLawName("incorrectAnswer");
+            explanation.setCurrentKnowledgeName("incorrectAnswer");
 
             var violations = new ArrayList<ViolationData>();
             boolean isAnswerCorrect = explanation.getRawMessage().isEmpty();
             if(!isAnswerCorrect) {
                 ViolationData v = new ViolationData();
-                v.setLawName("incorrectAnswer");
+                v.setKnowledgeName("incorrectAnswer");
                 v.setViolationFacts(new ArrayList<>());
                 violations.add(v);
             } else {

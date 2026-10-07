@@ -631,7 +631,7 @@ public class ControlFlowDTDomain extends DecisionTreeReasoningDomain {
     }
 
     @Override
-    public boolean needSupplementaryQuestion(String violationLawName, InteractionType interactionType) {
+    public boolean needSupplementaryQuestion(String violatedKnowledgeName, InteractionType interactionType) {
         return false;
     }
 

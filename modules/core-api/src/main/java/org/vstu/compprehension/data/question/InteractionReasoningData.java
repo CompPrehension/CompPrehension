@@ -27,5 +27,5 @@ public class InteractionReasoningData implements Serializable {
     private boolean correct;
     private @Nullable String reason;
     private @NotNull List<ViolationData> violations = List.of();
-    private @NotNull List<String> appliedLaws = List.of();
+    private @NotNull List<String> appliedKnowledge = List.of();
 }

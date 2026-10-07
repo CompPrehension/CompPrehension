@@ -28,7 +28,7 @@ import org.vstu.compprehension.data.exerciseattempt.AttemptSummaryData;
 import org.vstu.compprehension.data.exercise.ExerciseStageData;
 import org.vstu.compprehension.data.question.AnswerData;
 import org.vstu.compprehension.data.question.AnswerFeedbackData;
-import org.vstu.compprehension.data.question.CountedLawsData;
+import org.vstu.compprehension.data.question.CountedKnowledgeData;
 import org.vstu.compprehension.data.question.HypothesisClarificationData;
 import org.vstu.compprehension.data.question.InteractionReasoningData;
 import org.vstu.compprehension.data.question.NewInteractionAnswerData;
@@ -148,11 +148,11 @@ class ExerciseAttemptFrontendServiceImpl implements ExerciseAttemptFrontendServi
         val locale = questionLanguage(context);
         // calculate error message
         val violations = graded.interaction().getViolations().stream()
-                .map(v -> new AnswerFeedbackData.Law(v.getLawName(), domain.needSupplementaryQuestion(v.getLawName(), v.getInteractionType())))
+                .map(v -> new AnswerFeedbackData.Knowledge(v.getKnowledgeName(), domain.needSupplementaryQuestion(v.getKnowledgeName(), v.getInteractionType())))
                 .toList();
         Collection<Explanation> explanationSource = explanation.getRawMessage().isEmpty() ? explanation.getChildren() : List.of(explanation);
         val errors = explanationSource.stream().map(e -> Pair.of(
-                violations.stream().filter(v -> e.getDomainLawNames().contains(v.name())).toList(),
+                violations.stream().filter(v -> e.getKnowledgeNames().contains(v.name())).toList(),
                 e.toHyperText(locale).getText())).toList();
         // The last correct answer has no message of its own: the question being solved is the message.
         val messages = !errors.isEmpty() && !judgement.isAnswerCorrect() ? errors.stream().map(pair -> AnswerFeedbackData.Message.error(pair.getRight(), pair.getLeft())).toList()
@@ -203,9 +203,9 @@ class ExerciseAttemptFrontendServiceImpl implements ExerciseAttemptFrontendServi
     }
 
     @Transactional(propagation = Propagation.REQUIRED)
-    public @NotNull SupplementaryQuestionDto generateSupplementaryQuestion(@NotNull Long questionId, @NotNull String[] violationLaws) {
+    public @NotNull SupplementaryQuestionDto generateSupplementaryQuestion(@NotNull Long questionId, @NotNull String[] violatedKnowledge) {
         val violation = new ViolationData(); //TODO: make normal choice
-        violation.setLawName(violationLaws[0]);
+        violation.setKnowledgeName(violatedKnowledge[0]);
 
         var language = exerciseAttemptService.findUserLanguageForQuestion(questionId);
         return questionService.generateSupplementaryQuestion(questionId, violation, language);
@@ -275,7 +275,7 @@ class ExerciseAttemptFrontendServiceImpl implements ExerciseAttemptFrontendServi
         val locale = questionLanguage(context);
         val messages = correctAnswer.explanation.getChildren().stream()
                 .map(e -> AnswerFeedbackData.Message.success(e.toHyperText(locale).getText(),
-                        e.getDomainLawNames().stream().map(law -> new AnswerFeedbackData.Law(law, false)).toList()))
+                        e.getKnowledgeNames().stream().map(knowledge -> new AnswerFeedbackData.Knowledge(knowledge, false)).toList()))
                 .toList();
 
         return feedbackDtoMapper.map(new AnswerFeedbackData(question, messages, recorded.getResponses(),
@@ -388,9 +388,9 @@ class ExerciseAttemptFrontendServiceImpl implements ExerciseAttemptFrontendServi
     // Подсказку дала система: рассуждения, которыми к её ответу мог бы прийти студент, о нём ничего не говорят.
     private static @NotNull InteractionReasoningData toSystemReasoning(boolean isAnswerCorrect,
                                                                        @NotNull List<InteractionReasoningData> reasonings) {
-        var counted = new CountedLawsData(isAnswerCorrect, reasonings, null);
+        var counted = new CountedKnowledgeData(isAnswerCorrect, reasonings, null);
         return new InteractionReasoningData(0, List.of(), true, isAnswerCorrect, null, counted.getViolations(),
-                counted.getAppliedLaws());
+                counted.getAppliedKnowledge());
     }
 
     // Порядок вариантов влияет на выбор студента, поэтому он случайный; сохраняется показанный порядок.

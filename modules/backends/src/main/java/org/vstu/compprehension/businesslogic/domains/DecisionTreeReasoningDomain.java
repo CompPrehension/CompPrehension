@@ -1,5 +1,7 @@
 package org.vstu.compprehension.businesslogic.domains;
 
+import java.util.Collection;
+import org.vstu.compprehension.businesslogic.DomainKnowledge;
 import io.brookite.termannotations.DomainTermDictionary;
 import its.model.DomainSolvingModel;
 import org.jetbrains.annotations.NotNull;
@@ -15,6 +17,11 @@ import java.util.List;
 import java.util.Optional;
 
 public abstract class DecisionTreeReasoningDomain extends DomainBase {
+
+    @Override
+    public @NotNull Collection<? extends DomainKnowledge> getKnowledge() {
+        return getAllSkills();
+    }
 
     protected DecisionTreeReasoningDomain(String domainId, RandomProvider randomProvider, DomainStructure structure) {
         super(domainId, randomProvider, structure);

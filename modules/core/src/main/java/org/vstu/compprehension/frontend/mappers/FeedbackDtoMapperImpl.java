@@ -15,7 +15,7 @@ import org.vstu.compprehension.enums.QuestionType;
 import org.vstu.compprehension.frontend.dto.AnswerDto;
 import org.vstu.compprehension.frontend.dto.feedback.ClarificationDto;
 import org.vstu.compprehension.frontend.dto.feedback.FeedbackDto;
-import org.vstu.compprehension.frontend.dto.feedback.FeedbackViolationLawDto;
+import org.vstu.compprehension.frontend.dto.feedback.FeedbackKnowledgeDto;
 import org.vstu.compprehension.frontend.dto.feedback.OrderQuestionFeedbackDto;
 import org.vstu.compprehension.mappers.Mapper;
 
@@ -68,13 +68,13 @@ class FeedbackDtoMapperImpl implements FeedbackDtoMapper {
     }
 
     private @NotNull FeedbackDto.Message map(@NotNull AnswerFeedbackData.Message source) {
-        List<FeedbackViolationLawDto> laws = source.laws() == null ? null
-                : source.laws().stream().map(this::map).toList();
+        List<FeedbackKnowledgeDto> laws = source.knowledge() == null ? null
+                : source.knowledge().stream().map(this::map).toList();
         return new FeedbackDto.Message(FeedbackDto.MessageType.valueOf(source.type().name()), source.text(), laws);
     }
 
-    private @NotNull FeedbackViolationLawDto map(@NotNull AnswerFeedbackData.Law source) {
-        return new FeedbackViolationLawDto(source.name(), source.canCreateSupplementaryQuestion());
+    private @NotNull FeedbackKnowledgeDto map(@NotNull AnswerFeedbackData.Knowledge source) {
+        return new FeedbackKnowledgeDto(source.name(), source.canCreateSupplementaryQuestion());
     }
 
     private @NotNull String[] getSolutionTrace(@NotNull QuestionData question, @NotNull Language language) {

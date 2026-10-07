@@ -1,5 +1,6 @@
 package org.vstu.compprehension.businesslogic.domains;
 
+import org.vstu.compprehension.businesslogic.DomainKnowledge;
 import com.google.gson.GsonBuilder;
 import com.google.gson.typeadapters.RuntimeTypeAdapterFactory;
 import org.jetbrains.annotations.NotNull;
@@ -29,6 +30,13 @@ import java.util.List;
 import java.util.Objects;
 
 public abstract class JenaReasoningDomain extends DomainBase {
+
+    // Ответ оценивается по отрицательным законам: нарушенные — допущенные ошибки, применённые — ошибки, которых студент
+    // избежал.
+    @Override
+    public @NotNull Collection<? extends DomainKnowledge> getKnowledge() {
+        return getNegativeLaws();
+    }
     private final FactBackend.Interface<JenaBackend> backendInterface;
 
     protected JenaReasoningDomain(String domainId, RandomProvider randomProvider, DomainStructure structure) {

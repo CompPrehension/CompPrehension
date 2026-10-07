@@ -43,14 +43,14 @@ export const Feedback = observer(({ store, showExtendedFeedback }: FeedbackProps
     }
 
     const defaultFeedbackMessage: FeedbackSuccessMessage = { type: 'SUCCESS',
-         message: t('issolved_feeback'), violationLaws: [] };
+         message: t('issolved_feeback'), knowledge: [] };
 
     // The explanation of the named reason already says whether the answer is right, so it replaces the messages.
     const answerMessages: FeedbackMessage[] | null | undefined = store.clarificationExplanation
         ? [{
             type: feedback.isCorrect ? 'SUCCESS' : 'ERROR',
             message: store.clarificationExplanation,
-            violationLaws: feedback.messages?.flatMap(m => m.violationLaws ?? []) ?? null,
+            knowledge: feedback.messages?.flatMap(m => m.knowledge ?? []) ?? null,
         }]
         : feedback.messages;
     // A new list rather than a push: changing observable feedback while rendering re-renders forever.
@@ -72,7 +72,7 @@ export const Feedback = observer(({ store, showExtendedFeedback }: FeedbackProps
                     showExtendedFeedback &&
                     question.options.showSupplementaryQuestions &&
                     m.type === 'ERROR' &&
-                    m.violationLaws?.every(
+                    m.knowledge?.every(
                       (e) => e.canCreateSupplementaryQuestion
                     )
                   }
@@ -140,16 +140,16 @@ export const FeedbackAlert = observer((props: FeedbackAlertProps) => {
     return (
       <Alert variant={variant} className={variant === 'danger' ? 'comp-ph-feedback-error' : 'comp-ph-feedback-success'}>
         <div
-          data-domain-laws={message.violationLaws?.map((v) => v.name).join(';')}
+          data-domain-knowledge={message.knowledge?.map((v) => v.name).join(';')}
         >
           <ParsedMessage html={message.message} />
         </div>
         {(showGenerateSupQuestion &&
           message.type === 'ERROR' &&
-          message.violationLaws && (
+          message.knowledge && (
             <GenerateSupQuestion
               store={supQuestionStore!}
-              violationLaw={message.violationLaws}
+              knowledge={message.knowledge}
             />
           )) ||
           null}

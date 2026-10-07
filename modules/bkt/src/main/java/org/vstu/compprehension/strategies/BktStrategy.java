@@ -269,7 +269,7 @@ public class BktStrategy extends StrategyBase<CommonStrategySettings> {
                 .flatMap(question -> question.interactions().stream())
                 .max(Comparator.comparingLong(AttemptQuestionInteractionData::interactionId))
                 .orElseThrow(() -> new IllegalStateException("Attempt " + exerciseAttempt.id() + " has no answers to grade"));
-        Set<String> observedSkills = new HashSet<>(answered.isCorrect() ? answered.correctLawNames() : answered.violationLawNames());
+        Set<String> observedSkills = new HashSet<>(answered.isCorrect() ? answered.appliedKnowledge() : answered.violatedKnowledge());
         val engagedSkills = calculateEngagedSkills(domain, observedSkills, answered.isCorrect())
                 .stream()
                 .map(Skill::getName)

@@ -20,7 +20,7 @@ public record Reasoning(int id,
                         @Nullable String reason,
                         @NotNull Explanation explanation,
                         @NotNull List<ViolationData> violations,
-                        @NotNull List<String> appliedLaws) {
+                        @NotNull List<String> appliedKnowledge) {
 
     public Reasoning {
         if (assumptions.isEmpty()) {
@@ -28,7 +28,7 @@ public record Reasoning(int id,
         }
         assumptions = List.copyOf(assumptions);
         violations = List.copyOf(violations);
-        appliedLaws = List.copyOf(appliedLaws);
+        appliedKnowledge = List.copyOf(appliedKnowledge);
     }
 
     public boolean isCorrect() {

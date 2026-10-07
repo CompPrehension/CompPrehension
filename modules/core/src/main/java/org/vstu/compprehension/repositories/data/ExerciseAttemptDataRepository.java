@@ -25,7 +25,7 @@ import org.vstu.compprehension.repositories.entity.ExerciseAttemptRepository.Att
 import org.vstu.compprehension.repositories.entity.ExerciseAttemptRepository.GradePassbackTargetRow;
 import org.vstu.compprehension.repositories.entity.ExerciseAttemptRepository;
 import org.vstu.compprehension.repositories.entity.ExerciseRepository;
-import org.vstu.compprehension.data.question.CountedLawsData;
+import org.vstu.compprehension.data.question.CountedKnowledgeData;
 import org.vstu.compprehension.data.question.ViolationData;
 import org.vstu.compprehension.repositories.entity.InteractionRepository.InteractionRow;
 import org.vstu.compprehension.repositories.entity.InteractionRepository;
@@ -210,15 +210,15 @@ public class ExerciseAttemptDataRepository {
     private static @NotNull AttemptQuestionInteractionData toInteractionData(@NotNull InteractionRow row) {
         var reasonings = row.getReasonings();
         var chosen = row.getChosenReasoning();
-        var counted = new CountedLawsData(row.getIsCorrect(), reasonings, chosen);
+        var counted = new CountedKnowledgeData(row.getIsCorrect(), reasonings, chosen);
         return new AttemptQuestionInteractionData(
                 row.getInteractionId(),
                 row.getOrderNumber() == null ? 0 : row.getOrderNumber(),
                 row.getInteractionType(),
                 row.getInteractionsLeft(),
                 row.getIsCorrect(),
-                counted.getViolations().stream().map(ViolationData::getLawName).toList(),
-                counted.getAppliedLaws(),
+                counted.getViolations().stream().map(ViolationData::getKnowledgeName).toList(),
+                counted.getAppliedKnowledge(),
                 row.getClarificationId() == null ? null : chosen != null && reasonings.stream()
                         .anyMatch(reasoning -> reasoning.getId() == chosen && reasoning.isCorrect()));
     }

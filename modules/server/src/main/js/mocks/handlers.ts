@@ -172,7 +172,7 @@ export const handlers = [
     http.post('/api/question/addSupplementaryQuestionAnswer', async () => {
         await delay(THINKING_MS);
         return HttpResponse.json({
-            message: { type: 'SUCCESS', message: 'test', violationLaws: [] },
+            message: { type: 'SUCCESS', message: 'test', knowledge: [] },
             action: 'CONTINUE_AUTO',
         });
     }),

@@ -1,5 +1,6 @@
 package org.vstu.compprehension.businesslogic.domains;
 
+import org.vstu.compprehension.businesslogic.DomainKnowledge;
 import org.vstu.compprehension.data.question.AnswerData;
 import org.vstu.compprehension.businesslogic.SupplementaryStepContext;
 import org.vstu.compprehension.data.question.SupplementaryStepData;
@@ -100,11 +101,11 @@ public interface Domain {
 
     /**
      * Check that violation has supplementary questions
-     * @param violationLawName name of the violated law
+     * @param violatedKnowledgeName name of the violated law
      * @param interactionType   type of the interaction the violation was detected in, if known
      * @return violation has supplementary questions
      */
-    boolean needSupplementaryQuestion(String violationLawName, @Nullable InteractionType interactionType);
+    boolean needSupplementaryQuestion(String violatedKnowledgeName, @Nullable InteractionType interactionType);
 
     Collection<Concept> getConcepts();
     @Nullable Concept getConcept(String name);
@@ -116,6 +117,9 @@ public interface Domain {
     String getLawDisplayName(String lawName, Language language);
 
     @Nullable Skill getSkill(String name);
+
+    /** Знания, по которым домен оценивает ответы. */
+    @NotNull Collection<? extends DomainKnowledge> getKnowledge();
     String getSkillDisplayName(String skillName, Language language);
 
     @Nullable String getDefaultQuestionType();

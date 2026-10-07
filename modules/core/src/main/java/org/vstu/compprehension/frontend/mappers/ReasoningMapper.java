@@ -16,6 +16,6 @@ class ReasoningMapper implements UpdateMapper<Reasoning, InteractionReasoningDat
         destination.setCorrect(source.isCorrect());
         destination.setReason(source.reason());
         destination.setViolations(source.violations());
-        destination.setAppliedLaws(source.appliedLaws());
+        destination.setAppliedKnowledge(source.appliedKnowledge());
     }
 }

@@ -306,11 +306,11 @@ export function gradeAnswers(questionId: number, submitted: Answer[], isHint = f
         stepsLeft,
         // Like the backend: a right answer is confirmed, except the last one.
         messages: wrong.length === 0
-            ? stepsLeft === 0 ? null : [{ type: 'SUCCESS', message: 'Correct, keep doing...', violationLaws: [] }]
+            ? stepsLeft === 0 ? null : [{ type: 'SUCCESS', message: 'Correct, keep doing...', knowledge: [] }]
             : wrong.map(a => ({
                 type: 'ERROR',
                 message: `${key(a.answer)} is not one of the expected pairs`,
-                violationLaws: [{ name: 'mocked_law', canCreateSupplementaryQuestion: true }],
+                knowledge: [{ name: 'mocked_knowledge', canCreateSupplementaryQuestion: true }],
             })),
     };
 }

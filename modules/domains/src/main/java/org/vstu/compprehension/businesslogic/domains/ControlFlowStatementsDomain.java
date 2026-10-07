@@ -737,7 +737,7 @@ QuestionOptionsData orderQuestionOptions = OrderQuestionOptionsData.builder()
     }
 
     public HyperText makeExplanation(ViolationData violation, FeedbackType feedbackType, Language userLang) {
-        String lawName = violation.getLawName();
+        String lawName = violation.getKnowledgeName();
         String msg = getMessage(lawName, userLang);
 
         if (msg == null) {
@@ -1289,7 +1289,7 @@ QuestionOptionsData orderQuestionOptions = OrderQuestionOptionsData.builder()
 
 
                     ViolationData violationEntity = new ViolationData();
-                    violationEntity.setLawName(mistakeType);
+                    violationEntity.setKnowledgeName(mistakeType);
 
                     List<ExplanationTemplateInfoData> templates = new ArrayList<>();
                     placeholders.forEach((name, value) -> {
@@ -1451,7 +1451,7 @@ QuestionOptionsData orderQuestionOptions = OrderQuestionOptionsData.builder()
     }
 
     @Override
-    public boolean needSupplementaryQuestion(String violationLawName, InteractionType interactionType) {
+    public boolean needSupplementaryQuestion(String violatedKnowledgeName, InteractionType interactionType) {
         return false;
     }
 

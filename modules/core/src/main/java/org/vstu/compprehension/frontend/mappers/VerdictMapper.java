@@ -13,6 +13,6 @@ class VerdictMapper implements UpdateMapper<Judgement.Verdict, InteractionReason
     public void apply(@NotNull Judgement.Verdict source, @NotNull InteractionReasoningData destination) {
         destination.setCorrect(source.isAnswerCorrect());
         destination.setViolations(source.violations());
-        destination.setAppliedLaws(source.appliedLaws());
+        destination.setAppliedKnowledge(source.appliedKnowledge());
     }
 }

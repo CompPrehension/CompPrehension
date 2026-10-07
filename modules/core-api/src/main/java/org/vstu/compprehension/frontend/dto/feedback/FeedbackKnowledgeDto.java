@@ -8,7 +8,7 @@ import lombok.NoArgsConstructor;
 @Data
 @Builder
 @NoArgsConstructor @AllArgsConstructor
-public class FeedbackViolationLawDto {
+public class FeedbackKnowledgeDto {
     private String name;
     private boolean canCreateSupplementaryQuestion;
 }

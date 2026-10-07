@@ -183,7 +183,7 @@ public class TypeEvaluationDTDomain extends DecisionTreeReasoningDomain {
                                                     LearningSituation preparedSituation,
                                                     Language language) {
             var violation = new ViolationData();
-            violation.setLawName(EVALUATION_ORDER_VIOLATION);
+            violation.setKnowledgeName(EVALUATION_ORDER_VIOLATION);
             var explanation = Explanation.aggregate(Explanation.Type.ERROR,
                     List.of(new Explanation(Explanation.Type.ERROR, getMessage("operands_first", language))));
             return new Judgement.Verdict(false, explanation, List.of(violation), List.of(),
@@ -473,7 +473,7 @@ public class TypeEvaluationDTDomain extends DecisionTreeReasoningDomain {
     }
 
     @Override
-    public boolean needSupplementaryQuestion(String violationLawName, @Nullable InteractionType interactionType) {
+    public boolean needSupplementaryQuestion(String violatedKnowledgeName, @Nullable InteractionType interactionType) {
         return false;
     }
 

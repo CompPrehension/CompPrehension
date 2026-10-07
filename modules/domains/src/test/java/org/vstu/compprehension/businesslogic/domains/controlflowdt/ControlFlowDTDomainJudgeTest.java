@@ -25,7 +25,7 @@ import static org.junit.jupiter.api.Assertions.assertNotEquals;
 import static org.junit.jupiter.api.Assertions.assertNull;
 import static org.junit.jupiter.api.Assertions.assertThrows;
 import static org.junit.jupiter.api.Assertions.assertTrue;
-import static org.vstu.compprehension.businesslogic.domains.DomainFixtures.appliedLaws;
+import static org.vstu.compprehension.businesslogic.domains.DomainFixtures.appliedKnowledge;
 import static org.vstu.compprehension.businesslogic.domains.DomainFixtures.interaction;
 import static org.vstu.compprehension.businesslogic.domains.DomainFixtures.verdict;
 import static org.vstu.compprehension.businesslogic.domains.DomainFixtures.violations;
@@ -80,7 +80,7 @@ class ControlFlowDTDomainJudgeTest {
             assertTrue(result.isAnswerCorrect(), bankQuestion.file() + " на шаге " + step);
             assertEquals(List.of(), violations(result));
             assertEquals(bankQuestion.steps() - given.size(), result.stepsLeft());
-            assertFalse(appliedLaws(result).isEmpty());
+            assertFalse(appliedKnowledge(result).isEmpty());
             assertTrue(verdict(result).explanation().toHyperText(Language.RUSSIAN).getText().isBlank());
         }
     }
@@ -97,7 +97,7 @@ class ControlFlowDTDomainJudgeTest {
             var result = judge(question, trace(question, bankQuestion, step + 1));
 
             // Assert.
-            assertEquals(bankQuestion.isCondition(step - 1), appliedLaws(result).contains(CONDITION_VALUE_SKILL),
+            assertEquals(bankQuestion.isCondition(step - 1), appliedKnowledge(result).contains(CONDITION_VALUE_SKILL),
                     bankQuestion.file() + " на шаге " + step);
         }
     }
@@ -272,7 +272,7 @@ class ControlFlowDTDomainJudgeTest {
         // Assert.
         assertTrue(result.isAnswerCorrect());
         assertEquals(0, result.stepsLeft());
-        assertTrue(appliedLaws(result).contains(INTERRUPTION_TERMINATED_SKILL));
+        assertTrue(appliedKnowledge(result).contains(INTERRUPTION_TERMINATED_SKILL));
     }
 
     /** break раньше предшествующего действия тела отклоняется. */
@@ -554,7 +554,7 @@ class ControlFlowDTDomainJudgeTest {
     }
 
     private static List<String> lawNames(List<ViolationData> violations) {
-        return violations.stream().map(ViolationData::getLawName).toList();
+        return violations.stream().map(ViolationData::getKnowledgeName).toList();
     }
 
     private static QuestionData withCorrectSteps(QuestionData question, List<AnswerObjectData> given, BankQuestion bankQuestion) {

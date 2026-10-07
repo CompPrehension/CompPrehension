@@ -357,7 +357,7 @@ class ExerciseAttemptFrontendServiceTest extends AbstractIntegrationTest {
         assertEquals(1, feedback.getStepsWithErrors());
         assertEquals(0, feedback.getCorrectAnswers().length);
         assertSingleMessage(feedback, FeedbackDto.MessageType.ERROR);
-        assertTrue(feedback.getMessages()[0].getViolationLaws().stream()
+        assertTrue(feedback.getMessages()[0].getKnowledge().stream()
                 .anyMatch(law -> law.getName().equals("left_competing_to_right_precedence") && law.isCanCreateSupplementaryQuestion()));
     }
 
@@ -377,7 +377,7 @@ class ExerciseAttemptFrontendServiceTest extends AbstractIntegrationTest {
         assertEquals(bankQuestion.steps(), feedback.getStepsLeft());
         assertEquals(1, feedback.getStepsWithErrors());
         assertSingleMessage(feedback, FeedbackDto.MessageType.ERROR);
-        assertFalse(feedback.getMessages()[0].getViolationLaws().isEmpty());
+        assertFalse(feedback.getMessages()[0].getKnowledge().isEmpty());
     }
 
     /** Полное решение по шагам. */
@@ -656,7 +656,7 @@ class ExerciseAttemptFrontendServiceTest extends AbstractIntegrationTest {
         var question = gradeCountQuestion(attempt.getAttemptId());
         var lengthAsError = new AnswerDto(TestData.TypeEvaluationBank.LEN_SLOT, TestData.TypeEvaluationBank.ERROR_TYPE, true, null);
         var feedback = service.addQuestionAnswer(new InteractionDto(question.getQuestionId(), new AnswerDto[] { lengthAsError }));
-        var countedBeforeReason = lastInteraction(attempt.getAttemptId()).violationLawNames();
+        var countedBeforeReason = lastInteraction(attempt.getAttemptId()).violatedKnowledge();
 
         // Act.
         service.answerClarification(new ClarificationAnswerDto(question.getQuestionId(), optionOf(question.getQuestionId(), feedback, "variable_confused")));
@@ -666,7 +666,7 @@ class ExerciseAttemptFrontendServiceTest extends AbstractIntegrationTest {
         assertEquals(List.of(), countedBeforeReason);
         var counted = lastInteraction(attempt.getAttemptId());
         assertFalse(counted.isCorrect());
-        assertEquals(List.of("operand_identification"), counted.violationLawNames());
+        assertEquals(List.of("operand_identification"), counted.violatedKnowledge());
     }
 
     /** Выбранная студентом причина записывается, и он получает объяснение именно этого заблуждения. */
@@ -745,7 +745,7 @@ class ExerciseAttemptFrontendServiceTest extends AbstractIntegrationTest {
                         .stream()
                         .collect(Collectors.toMap(ExerciseAttemptFrontendServiceTest::nameOf,
                                 InteractionReasoningData::isProbable)));
-        assertEquals(List.of("numeric_result_type"), lastInteraction(attempt.getAttemptId()).violationLawNames());
+        assertEquals(List.of("numeric_result_type"), lastInteraction(attempt.getAttemptId()).violatedKnowledge());
     }
 
     /** Рассуждения ответа хранятся под теми же ключами, под которыми их записала миграция: прежние ответы читаются так же. */
@@ -764,7 +764,7 @@ class ExerciseAttemptFrontendServiceTest extends AbstractIntegrationTest {
                 .getSingleResult();
 
         // Assert.
-        assertEquals(Set.of("id", "assumptions", "isProbable", "isCorrect", "reason", "violations", "appliedLaws"),
+        assertEquals(Set.of("id", "assumptions", "isProbable", "isCorrect", "reason", "violations", "appliedKnowledge"),
                 Set.copyOf(new ObjectMapper().readValue(keys, new TypeReference<List<String>>() {
                 })));
     }
@@ -953,6 +953,27 @@ class ExerciseAttemptFrontendServiceTest extends AbstractIntegrationTest {
 
     // ---- оценка стратегией внутри попытки ----
 
+    /**
+     * Стратегия оценки по уверенности оценивает ответ и в домене на навыках: знания такого домена для неё — его навыки,
+     * а не законы, которых у домена нет.
+     */
+    @Test
+    void gradeConfidenceStrategyGradesAnswerInSkillDomain() {
+        // Arrange.
+        var exercise = entityManager.find(ExerciseEntity.class, TestData.Exercises.TYPE_EVALUATION_ID);
+        exercise.setStrategyId("GradeConfidenceBaseStrategy");
+        entityManager.flush();
+        TestUserService.actAs(TestData.Users.GLOBAL_STUDENT_ID);
+        var attempt = service.createExerciseAttempt(TestData.Exercises.TYPE_EVALUATION_ID, TestData.Users.GLOBAL_STUDENT_ID, null);
+        var question = service.generateQuestion(attempt.getAttemptId());
+
+        // Act.
+        var feedback = service.addQuestionAnswer(anyAnswer(question));
+
+        // Assert.
+        assertFalse(Float.isNaN(feedback.getGrade()));
+    }
+
     /** Верный ответ в попытке оценивается стратегией. */
     @Test
     void addQuestionAnswerInsideAttemptIsGradedByStrategy() {
@@ -1004,7 +1025,7 @@ class ExerciseAttemptFrontendServiceTest extends AbstractIntegrationTest {
 
         // Assert.
         var answered = attemptDataService.getAttemptWithQuestions(attempt.getAttemptId()).questions().getFirst();
-        assertFalse(answered.interactions().getLast().correctLawNames().isEmpty());
+        assertFalse(answered.interactions().getLast().appliedKnowledge().isEmpty());
     }
 
     /** Подсказки не дают баллов. */
@@ -1080,7 +1101,7 @@ class ExerciseAttemptFrontendServiceTest extends AbstractIntegrationTest {
         var mistake = service.addQuestionAnswer(interaction(question, bankQuestion.operatorAt(1)));
 
         // Act.
-        var supplementary = service.generateSupplementaryQuestion(question.getQuestionId(), violationLawsOf(mistake));
+        var supplementary = service.generateSupplementaryQuestion(question.getQuestionId(), knowledgeOf(mistake));
 
         // Assert.
         var supplementaryQuestion = supplementaryQuestion(supplementary);
@@ -1097,7 +1118,7 @@ class ExerciseAttemptFrontendServiceTest extends AbstractIntegrationTest {
         TestUserService.actAs(TestData.Users.GLOBAL_EXERCISE_AUTHOR_ID);
         var bankQuestion = TestData.ExpressionBank.PARENTHESES_AND_UNARY_MINUS;
         var question = attemptlessQuestion(bankQuestion);
-        var laws = violationLawsOf(service.addQuestionAnswer(interaction(question, bankQuestion.operatorAt(1))));
+        var laws = knowledgeOf(service.addQuestionAnswer(interaction(question, bankQuestion.operatorAt(1))));
         var supplementary = supplementaryQuestion(service.generateSupplementaryQuestion(question.getQuestionId(), laws));
 
         // Act.
@@ -1116,7 +1137,7 @@ class ExerciseAttemptFrontendServiceTest extends AbstractIntegrationTest {
         TestUserService.actAs(TestData.Users.GLOBAL_EXERCISE_AUTHOR_ID);
         var bankQuestion = TestData.ExpressionBank.MEMBER_ACCESS_PLUS;
         var question = attemptlessQuestion(bankQuestion);
-        var laws = violationLawsOf(service.addQuestionAnswer(interaction(question, bankQuestion.endEvaluationAnswerId())));
+        var laws = knowledgeOf(service.addQuestionAnswer(interaction(question, bankQuestion.endEvaluationAnswerId())));
         var supplementary = supplementaryQuestion(service.generateSupplementaryQuestion(question.getQuestionId(), laws));
         var everythingSwitchedOn = new InteractionDto(supplementary.getQuestionId(), Arrays.stream(supplementary.getAnswers())
                 .map(answer -> new AnswerDto(answer.getId(), (long) MultiChoiceOptionsData.SWITCH_ON, true, null))
@@ -1154,7 +1175,7 @@ class ExerciseAttemptFrontendServiceTest extends AbstractIntegrationTest {
         var mistake = service.addQuestionAnswer(interaction(question, bankQuestion.operatorAt(1)));
 
         // Act.
-        var supplementary = service.generateSupplementaryQuestion(question.getQuestionId(), violationLawsOf(mistake));
+        var supplementary = service.generateSupplementaryQuestion(question.getQuestionId(), knowledgeOf(mistake));
 
         // Assert.
         supplementaryQuestion(supplementary);
@@ -1202,9 +1223,9 @@ class ExerciseAttemptFrontendServiceTest extends AbstractIntegrationTest {
         return feedback;
     }
 
-    private static String[] violationLawsOf(FeedbackDto mistake) {
+    private static String[] knowledgeOf(FeedbackDto mistake) {
         return Arrays.stream(mistake.getMessages())
-                .flatMap(message -> message.getViolationLaws().stream())
+                .flatMap(message -> message.getKnowledge().stream())
                 .filter(law -> law.isCanCreateSupplementaryQuestion())
                 .map(law -> law.getName())
                 .toArray(String[]::new);

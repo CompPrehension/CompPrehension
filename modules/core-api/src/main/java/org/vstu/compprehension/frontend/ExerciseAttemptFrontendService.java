@@ -18,7 +18,7 @@ public interface ExerciseAttemptFrontendService {
 
     @NotNull QuestionDto generateQuestionByMetadata(Integer metadataId, Language lang);
 
-    @NotNull SupplementaryQuestionDto generateSupplementaryQuestion(@NotNull Long questionId, @NotNull String[] violationLaws);
+    @NotNull SupplementaryQuestionDto generateSupplementaryQuestion(@NotNull Long questionId, @NotNull String[] violatedKnowledge);
 
     @NotNull QuestionDto getQuestion(@NotNull Long questionId);
 

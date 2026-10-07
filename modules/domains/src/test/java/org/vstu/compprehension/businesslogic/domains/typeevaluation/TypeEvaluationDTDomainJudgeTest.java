@@ -23,7 +23,7 @@ import java.util.stream.Stream;
 import static org.junit.jupiter.api.Assertions.assertEquals;
 import static org.junit.jupiter.api.Assertions.assertFalse;
 import static org.junit.jupiter.api.Assertions.assertTrue;
-import static org.vstu.compprehension.businesslogic.domains.DomainFixtures.appliedLaws;
+import static org.vstu.compprehension.businesslogic.domains.DomainFixtures.appliedKnowledge;
 import static org.vstu.compprehension.businesslogic.domains.DomainFixtures.onlyReasoning;
 import static org.vstu.compprehension.businesslogic.domains.DomainFixtures.reasoned;
 import static org.vstu.compprehension.businesslogic.domains.DomainFixtures.verdict;
@@ -65,7 +65,7 @@ class TypeEvaluationDTDomainJudgeTest {
             assertTrue(result.isAnswerCorrect(), bankQuestion.file() + " на шаге " + step);
             assertEquals(List.of(), violations(result));
             assertEquals(steps - step, result.stepsLeft());
-            assertFalse(appliedLaws(result).isEmpty(), bankQuestion.file() + " на шаге " + step);
+            assertFalse(appliedKnowledge(result).isEmpty(), bankQuestion.file() + " на шаге " + step);
         }
     }
 
@@ -81,7 +81,7 @@ class TypeEvaluationDTDomainJudgeTest {
         // Assert.
         assertFalse(result.isAnswerCorrect());
         assertEquals(List.of(TypeEvaluationDTDomain.EVALUATION_ORDER_VIOLATION), lawNames(violations(result)));
-        assertEquals(List.of(), appliedLaws(result));
+        assertEquals(List.of(), appliedKnowledge(result));
         assertEquals(List.of(domain().getMessage("operands_first", Language.RUSSIAN)),
                 messages(verdict(result).explanation()));
         assertEquals(2, result.stepsLeft());
@@ -185,9 +185,9 @@ class TypeEvaluationDTDomainJudgeTest {
 
         // Assert.
         assertTrue(lookalikeResult.isAnswerCorrect());
-        assertTrue(appliedLaws(lookalikeResult).contains("operand_identification"), appliedLaws(lookalikeResult).toString());
+        assertTrue(appliedKnowledge(lookalikeResult).contains("operand_identification"), appliedKnowledge(lookalikeResult).toString());
         assertTrue(plainResult.isAnswerCorrect());
-        assertFalse(appliedLaws(plainResult).contains("operand_identification"), appliedLaws(plainResult).toString());
+        assertFalse(appliedKnowledge(plainResult).contains("operand_identification"), appliedKnowledge(plainResult).toString());
     }
 
     /** Ответ, который не объясняет ни одно из известных рассуждений, остаётся ошибкой без гипотез. */
@@ -612,7 +612,7 @@ class TypeEvaluationDTDomainJudgeTest {
     }
 
     private static List<String> lawNames(List<ViolationData> violations) {
-        return violations.stream().map(ViolationData::getLawName).distinct().toList();
+        return violations.stream().map(ViolationData::getKnowledgeName).distinct().toList();
     }
 
     private static List<String> messages(Explanation explanation) {

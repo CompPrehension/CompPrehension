@@ -33,7 +33,7 @@ class ObjectsScopeDTDomainJudgeTest {
 
         // Assert.
         assertFalse(judgement.isAnswerCorrect());
-        assertEquals(List.of("incorrectSteps"), violations(judgement).stream().map(ViolationData::getLawName).toList());
+        assertEquals(List.of("incorrectSteps"), violations(judgement).stream().map(ViolationData::getKnowledgeName).toList());
         var explanation = verdict(judgement).explanation().toHyperText(Language.RUSSIAN).getText();
         assertTrue(explanation.contains("\"b\" существует, так как является глобальной"), explanation);
     }

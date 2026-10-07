@@ -4,7 +4,7 @@ import com.google.gson.Gson;
 import com.google.gson.JsonParser;
 import org.jetbrains.annotations.NotNull;
 import org.vstu.compprehension.businesslogic.storage.SerializableQuestion;
-import org.vstu.compprehension.data.question.CountedLawsData;
+import org.vstu.compprehension.data.question.CountedKnowledgeData;
 import org.vstu.compprehension.data.question.AnswerData;
 import org.vstu.compprehension.data.question.AnswerObjectData;
 import org.vstu.compprehension.data.question.FeedbackData;
@@ -71,7 +71,7 @@ public final class DomainFixtures {
 
     public static ViolationData violation(String lawName) {
         var violation = new ViolationData();
-        violation.setLawName(lawName);
+        violation.setKnowledgeName(lawName);
         return violation;
     }
 
@@ -113,25 +113,25 @@ public final class DomainFixtures {
 
     /** Нарушения, которые засчитываются за ответ сразу, до уточнения рассуждения. */
     public static List<ViolationData> violations(Judgement judgement) {
-        return countedLaws(judgement).getViolations();
+        return countedKnowledge(judgement).getViolations();
     }
 
-    /** Законы, которые засчитываются за ответ как применённые верно, до уточнения рассуждения. */
-    public static List<String> appliedLaws(Judgement judgement) {
-        return countedLaws(judgement).getAppliedLaws();
+    /** Знания, которые засчитываются за ответ как применённые верно, до уточнения рассуждения. */
+    public static List<String> appliedKnowledge(Judgement judgement) {
+        return countedKnowledge(judgement).getAppliedKnowledge();
     }
 
     // Отбор вероятных рассуждений делает тренажёр, а не домен: здесь в счёт идут все рассуждения.
-    private static CountedLawsData countedLaws(Judgement judgement) {
+    private static CountedKnowledgeData countedKnowledge(Judgement judgement) {
         var reasonings = switch (judgement) {
             case Judgement.Verdict verdict -> List.of(new InteractionReasoningData(0, List.of(), true,
-                    verdict.isAnswerCorrect(), null, verdict.violations(), verdict.appliedLaws()));
+                    verdict.isAnswerCorrect(), null, verdict.violations(), verdict.appliedKnowledge()));
             case Judgement.Reasoned reasoned -> reasoned.reasonings().stream()
                     .map(reasoning -> new InteractionReasoningData(reasoning.id(), reasoning.assumptions(), true,
-                            reasoning.isCorrect(), reasoning.reason(), reasoning.violations(), reasoning.appliedLaws()))
+                            reasoning.isCorrect(), reasoning.reason(), reasoning.violations(), reasoning.appliedKnowledge()))
                     .toList();
         };
-        return new CountedLawsData(judgement.isAnswerCorrect(), reasonings, null);
+        return new CountedKnowledgeData(judgement.isAnswerCorrect(), reasonings, null);
     }
 
     public static QuestionData withCorrectSteps(QuestionData question, List<AnswerObjectData> given, int totalSteps) {

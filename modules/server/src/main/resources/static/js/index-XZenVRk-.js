@@ -1331,18 +1331,18 @@ var TAnswer = intersection([type({
 }), partial({ createdByInteraction: union([number, nullType]) })]);
 //#endregion
 //#region src/main/js/types/feedback.ts
-var TFeedbackViolationLaw = type({
+var TFeedbackKnowledge = type({
 	name: string,
 	canCreateSupplementaryQuestion: boolean
 });
 var TFeedbackMessage = union([type({
 	type: literal("SUCCESS"),
 	message: string,
-	violationLaws: union([array(TFeedbackViolationLaw), nullType])
+	knowledge: union([array(TFeedbackKnowledge), nullType])
 }), type({
 	type: literal("ERROR"),
 	message: string,
-	violationLaws: union([array(TFeedbackViolationLaw), nullType])
+	knowledge: union([array(TFeedbackKnowledge), nullType])
 })]);
 var TClarification = type({
 	prompt: string,
@@ -1742,12 +1742,12 @@ var SupplementaryQuestionStore = class {
 		if (!this.question) return null;
 		return this.question.type === "SINGLE_CHOICE" ? "IMPLICIT" : "EXPLICIT";
 	}
-	generateSupplementaryQuestion = async (violationLaws) => {
-		if (violationLaws.length === 0) throw new Error("violationLaws mist be non-empty");
+	generateSupplementaryQuestion = async (violatedKnowledge) => {
+		if (violatedKnowledge.length === 0) throw new Error("violatedKnowledge must be non-empty");
 		this.setQuestionState("LOADING");
 		const questionRequest = {
 			questionId: this.sourceQuestionId,
-			violationLaws
+			violatedKnowledge
 		};
 		const dataEither = await questionController.generateSupplementaryQuestion(questionRequest);
 		if (isLeft(dataEither)) {
@@ -2861,16 +2861,16 @@ var QuestionComponent = observer((props) => {
 //#endregion
 //#region src/main/js/components/exercise/generate-sup-question.tsx
 var GenerateSupQuestion = observer((props) => {
-	const { violationLaw, store } = props;
+	const { knowledge, store } = props;
 	const [isModalVisible, setIsModalVisible] = (0, import_react.useState)(false);
 	const [isButtonsVisible, setIsButtonsVisible] = (0, import_react.useState)(true);
 	const [isAllVisible, setAllVisible] = (0, import_react.useState)(true);
-	const [currentViolationLaw, setCurrentViolationLaw] = (0, import_react.useState)(violationLaw);
+	const [currentKnowledge, setCurrentKnowledge] = (0, import_react.useState)(knowledge);
 	const { t } = useTranslation();
 	const onDetailsClicked = async () => {
 		setIsButtonsVisible(false);
 		setIsModalVisible(true);
-		await store.generateSupplementaryQuestion(currentViolationLaw.map((v) => v.name));
+		await store.generateSupplementaryQuestion(currentKnowledge.map((v) => v.name));
 		if (!store.question || store.feedback?.action === "FINISH") {
 			console.log(`no need to generate sup question`);
 			setAllVisible(false);
@@ -2897,14 +2897,14 @@ var GenerateSupQuestion = observer((props) => {
 		await tryContinueAuto();
 	};
 	const onNextQuestionClicked = async () => {
-		const newViolationLaw = store.feedback?.message?.violationLaws || null;
-		if (!newViolationLaw) {
+		const newKnowledge = store.feedback?.message?.knowledge || null;
+		if (!newKnowledge) {
 			console.log(`empty violation laws`);
 			setAllVisible(false);
 			return;
 		}
-		setCurrentViolationLaw(newViolationLaw);
-		await store.generateSupplementaryQuestion(newViolationLaw.map((v) => v.name));
+		setCurrentKnowledge(newKnowledge);
+		await store.generateSupplementaryQuestion(newKnowledge.map((v) => v.name));
 		await tryContinueAuto();
 	};
 	return /* @__PURE__ */ (0, import_jsx_runtime.jsxs)(Optional, {
@@ -2955,7 +2955,7 @@ var SupQuestion = observer((props) => {
 	const showSendAnswerButton = store.questionSubmitMode === "EXPLICIT" && store.canSendQuestionAnswers;
 	const showQuestionFeedback = store.questionState === "COMPLETED" && !!store.feedback && !!questionData;
 	const showMessageFeedback = store.questionState === "COMPLETED" && !!store.feedback && !questionData;
-	const showNextQBtn = store.feedback?.action === "CONTINUE_MANUAL" && (showQuestionFeedback || showMessageFeedback) && !!store.feedback?.message.violationLaws;
+	const showNextQBtn = store.feedback?.action === "CONTINUE_MANUAL" && (showQuestionFeedback || showMessageFeedback) && !!store.feedback?.message.knowledge;
 	return /* @__PURE__ */ (0, import_jsx_runtime.jsxs)(import_jsx_runtime.Fragment, { children: [
 		questionData && /* @__PURE__ */ (0, import_jsx_runtime.jsx)(QuestionComponent, {
 			question: questionData,
@@ -3107,12 +3107,12 @@ var Feedback = observer(({ store, showExtendedFeedback }) => {
 	const defaultFeedbackMessage = {
 		type: "SUCCESS",
 		message: t("issolved_feeback"),
-		violationLaws: []
+		knowledge: []
 	};
 	const answerMessages = store.clarificationExplanation ? [{
 		type: feedback.isCorrect ? "SUCCESS" : "ERROR",
 		message: store.clarificationExplanation,
-		violationLaws: feedback.messages?.flatMap((m) => m.violationLaws ?? []) ?? null
+		knowledge: feedback.messages?.flatMap((m) => m.knowledge ?? []) ?? null
 	}] : feedback.messages;
 	const feedbackMessages = store.questionState === "COMPLETED" ? [...answerMessages ?? [], defaultFeedbackMessage] : answerMessages;
 	return /* @__PURE__ */ (0, import_jsx_runtime.jsx)("div", {
@@ -3122,7 +3122,7 @@ var Feedback = observer(({ store, showExtendedFeedback }) => {
 			children: feedbackMessages?.map((m, i) => /* @__PURE__ */ (0, import_jsx_runtime.jsx)(FeedbackAlert, {
 				message: m,
 				supQuestionStore: store.supplementaryQuestion,
-				showGenerateSupQuestion: showExtendedFeedback && question.options.showSupplementaryQuestions && m.type === "ERROR" && m.violationLaws?.every((e) => e.canCreateSupplementaryQuestion)
+				showGenerateSupQuestion: showExtendedFeedback && question.options.showSupplementaryQuestions && m.type === "ERROR" && m.knowledge?.every((e) => e.canCreateSupplementaryQuestion)
 			}, i))
 		}), showExtendedFeedback && /* @__PURE__ */ (0, import_jsx_runtime.jsxs)("div", { children: [
 			feedback.grade !== null && /* @__PURE__ */ (0, import_jsx_runtime.jsxs)(import_jsx_runtime.Fragment, { children: [/* @__PURE__ */ (0, import_jsx_runtime.jsxs)(Badge, {
@@ -3172,11 +3172,11 @@ var FeedbackAlert = observer((props) => {
 		variant,
 		className: variant === "danger" ? "comp-ph-feedback-error" : "comp-ph-feedback-success",
 		children: [/* @__PURE__ */ (0, import_jsx_runtime.jsx)("div", {
-			"data-domain-laws": message.violationLaws?.map((v) => v.name).join(";"),
+			"data-domain-knowledge": message.knowledge?.map((v) => v.name).join(";"),
 			children: /* @__PURE__ */ (0, import_jsx_runtime.jsx)(ParsedMessage, { html: message.message })
-		}), showGenerateSupQuestion && message.type === "ERROR" && message.violationLaws && /* @__PURE__ */ (0, import_jsx_runtime.jsx)(GenerateSupQuestion, {
+		}), showGenerateSupQuestion && message.type === "ERROR" && message.knowledge && /* @__PURE__ */ (0, import_jsx_runtime.jsx)(GenerateSupQuestion, {
 			store: supQuestionStore,
-			violationLaw: message.violationLaws
+			knowledge: message.knowledge
 		}) || null]
 	});
 });

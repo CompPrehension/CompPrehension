@@ -40,16 +40,16 @@ public class FeedbackDto {
     public static class Message {
         @NotNull private MessageType type;
         @NotNull private String message;
-        @Nullable private List<FeedbackViolationLawDto> violationLaws;
+        @Nullable private List<FeedbackKnowledgeDto> knowledge;
 
         public static Message Success(@NotNull String message) {
             return new Message(MessageType.SUCCESS, message, null);
         }
-        public static Message Success(@NotNull String message, @Nullable List<FeedbackViolationLawDto> violationLaw) {
-            return new Message(MessageType.SUCCESS, message, violationLaw);
+        public static Message Success(@NotNull String message, @Nullable List<FeedbackKnowledgeDto> knowledge) {
+            return new Message(MessageType.SUCCESS, message, knowledge);
         }
-        public static Message Error(@NotNull String message, @Nullable List<FeedbackViolationLawDto> violationLaw) {
-            return new Message(MessageType.ERROR, message, violationLaw);
+        public static Message Error(@NotNull String message, @Nullable List<FeedbackKnowledgeDto> knowledge) {
+            return new Message(MessageType.ERROR, message, knowledge);
         }
     }
 }

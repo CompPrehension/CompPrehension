@@ -34,7 +34,7 @@ import static org.vstu.compprehension.businesslogic.domains.expressiondt.Express
 import static org.vstu.compprehension.businesslogic.domains.expressiondt.ExpressionDtDomainFixture.endToken;
 import static org.vstu.compprehension.businesslogic.domains.expressiondt.ExpressionDtDomainFixture.operator;
 import static org.vstu.compprehension.businesslogic.domains.expressiondt.ExpressionDtDomainFixture.operatorsInOrder;
-import static org.vstu.compprehension.businesslogic.domains.DomainFixtures.appliedLaws;
+import static org.vstu.compprehension.businesslogic.domains.DomainFixtures.appliedKnowledge;
 import static org.vstu.compprehension.businesslogic.domains.DomainFixtures.interaction;
 import static org.vstu.compprehension.businesslogic.domains.DomainFixtures.verdict;
 import static org.vstu.compprehension.businesslogic.domains.DomainFixtures.violations;
@@ -73,7 +73,7 @@ class ProgrammingLanguageExpressionDTDomainJudgeTest {
             assertTrue(result.isAnswerCorrect(), bankQuestion.expression() + " на шаге " + operator.getHyperText());
             assertEquals(List.of(), violations(result));
             assertEquals(bankQuestion.steps() - given.size(), result.stepsLeft());
-            assertFalse(appliedLaws(result).isEmpty());
+            assertFalse(appliedKnowledge(result).isEmpty());
         }
     }
 
@@ -359,7 +359,7 @@ class ProgrammingLanguageExpressionDTDomainJudgeTest {
     }
 
     private static List<String> lawNames(List<ViolationData> violations) {
-        return violations.stream().map(ViolationData::getLawName).toList();
+        return violations.stream().map(ViolationData::getKnowledgeName).toList();
     }
 
     private static QuestionData withCorrectSteps(QuestionData question, List<AnswerObjectData> given, BankQuestion bankQuestion) {

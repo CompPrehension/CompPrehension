@@ -2,11 +2,11 @@ import * as io from 'io-ts';
 import { Answer, TAnswer } from './answer';
 import { MergeIntersections } from './utils';
 
-export type FeedbackViolationLaw = {
+export type FeedbackKnowledge = {
     name: string,
     canCreateSupplementaryQuestion: boolean,
 }
-const TFeedbackViolationLaw: io.Type<FeedbackViolationLaw> = io.type({
+const TFeedbackKnowledge: io.Type<FeedbackKnowledge> = io.type({
     name: io.string,
     canCreateSupplementaryQuestion: io.boolean,
 })
@@ -14,12 +14,12 @@ const TFeedbackViolationLaw: io.Type<FeedbackViolationLaw> = io.type({
 export type FeedbackSuccessMessage = {
     type: 'SUCCESS',
     message: string,
-    violationLaws: FeedbackViolationLaw[] | null,
+    knowledge: FeedbackKnowledge[] | null,
 }
 export type FeedbackErrorMessage = {
     type: 'ERROR',
     message: string,
-    violationLaws: FeedbackViolationLaw[] | null,
+    knowledge: FeedbackKnowledge[] | null,
 }
 
 export type FeedbackMessage = FeedbackSuccessMessage | FeedbackErrorMessage
@@ -27,12 +27,12 @@ export const TFeedbackMessage: io.Type<FeedbackMessage> = io.union([
     io.type({
             type: io.literal('SUCCESS'),
             message: io.string,
-            violationLaws: io.union([io.array(TFeedbackViolationLaw), io.null])
+            knowledge: io.union([io.array(TFeedbackKnowledge), io.null])
         }),    
     io.type({
         type: io.literal('ERROR'),
         message: io.string,
-        violationLaws: io.union([io.array(TFeedbackViolationLaw), io.null]),
+        knowledge: io.union([io.array(TFeedbackKnowledge), io.null]),
     }),
 ])
 

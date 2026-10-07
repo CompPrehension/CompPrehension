@@ -148,7 +148,7 @@ public class    GradeConfidenceBaseStrategy extends StrategyBase<CommonStrategyS
             HashMap<String, List<Boolean>> allLawsError = new HashMap<>();
 
             for (AttemptQuestionInteractionData inter: inters) {
-                for (String vio: inter.violationLawNames()) {
+                for (String vio: inter.violatedKnowledge()) {
                     allLawsError.put(
                             vio,
                             Optional.ofNullable(allLaws.get(vio)).orElse(new ArrayList<>()));
@@ -328,7 +328,7 @@ public class    GradeConfidenceBaseStrategy extends StrategyBase<CommonStrategyS
         for(int i = 0; i < interactions.size(); i++){
 
             ArrayList<String> correctLaws = new ArrayList<>();
-            correctLaws.addAll(interactions.get(i).correctLawNames());
+            correctLaws.addAll(interactions.get(i).appliedKnowledge());
             for(int j = 0; j < correctLaws.size(); j++){
                 if(!result.contains(correctLaws.get(j))){
                     result.add(correctLaws.get(j));
@@ -461,12 +461,11 @@ public class    GradeConfidenceBaseStrategy extends StrategyBase<CommonStrategyS
         }
         if (allLawsUsage.isEmpty()) {
 
-            // получить законы из домена (все подряд)
+            // получить знания из домена (все подряд)
             Domain domain = domainFactory.getDomain(exercise.domainId());
 
-            Collection<NegativeLaw> targetLaws = domain.getNegativeLaws();
-            for (NegativeLaw currentTargetLaw : targetLaws) {
-                allLawsUsage.put(currentTargetLaw.getName(), new ArrayList<>());
+            for (var knowledge : domain.getKnowledge()) {
+                allLawsUsage.put(knowledge.getName(), new ArrayList<>());
             }
         }
 
@@ -481,7 +480,7 @@ public class    GradeConfidenceBaseStrategy extends StrategyBase<CommonStrategyS
 
             for (AttemptQuestionInteractionData currentInteraction : allInteractions) {
 
-                List<String> allViolations = currentInteraction.violationLawNames();
+                List<String> allViolations = currentInteraction.violatedKnowledge();
                 for (String currentViolation : allViolations) {
 
                     if(allLawsUsage.containsKey(currentViolation)){
@@ -490,7 +489,7 @@ public class    GradeConfidenceBaseStrategy extends StrategyBase<CommonStrategyS
 
                 }
 
-                List<String> allLaws = currentInteraction.correctLawNames();
+                List<String> allLaws = currentInteraction.appliedKnowledge();
                 for (String currentLaw : allLaws) {
 
                     if (allLawsUsage.containsKey(currentLaw)) {

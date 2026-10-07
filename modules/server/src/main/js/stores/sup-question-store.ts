@@ -60,14 +60,14 @@ export class SupplementaryQuestionStore {
         return this.question.type === 'SINGLE_CHOICE' ? 'IMPLICIT' : 'EXPLICIT';
     }
 
-    generateSupplementaryQuestion = async (violationLaws: string[]) => {
-        if (violationLaws.length === 0)
-            throw new Error("violationLaws mist be non-empty");
+    generateSupplementaryQuestion = async (violatedKnowledge: string[]) => {
+        if (violatedKnowledge.length === 0)
+            throw new Error("violatedKnowledge must be non-empty");
 
         this.setQuestionState('LOADING');
         const questionRequest: SupplementaryQuestionRequest = {
             questionId: this.sourceQuestionId,
-            violationLaws: violationLaws as NonEmptyArray<string>,
+            violatedKnowledge: violatedKnowledge as NonEmptyArray<string>,
         };
         const dataEither = await questionController.generateSupplementaryQuestion(questionRequest);
 
