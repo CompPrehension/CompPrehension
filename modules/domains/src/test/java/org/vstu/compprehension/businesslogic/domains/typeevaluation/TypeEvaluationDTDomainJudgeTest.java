@@ -35,8 +35,10 @@ import static org.vstu.compprehension.businesslogic.domains.typeevaluation.TypeE
 import static org.vstu.compprehension.businesslogic.domains.typeevaluation.TypeEvaluationDomainFixture.EMPTY_NAME_OR_NAMES;
 import static org.vstu.compprehension.businesslogic.domains.typeevaluation.TypeEvaluationDomainFixture.FIRST_CHAR_PLUS_ONE;
 import static org.vstu.compprehension.businesslogic.domains.typeevaluation.TypeEvaluationDomainFixture.GRADES_PLUS_ONE;
+import static org.vstu.compprehension.businesslogic.domains.typeevaluation.TypeEvaluationDomainFixture.OOP_TEXT_APPEND;
 import static org.vstu.compprehension.businesslogic.domains.typeevaluation.TypeEvaluationDomainFixture.GRADE_COUNT;
 import static org.vstu.compprehension.businesslogic.domains.typeevaluation.TypeEvaluationDomainFixture.STUDENT_FIRST_GRADE;
+import static org.vstu.compprehension.businesslogic.domains.typeevaluation.TypeEvaluationDomainFixture.STUDENT_NAME;
 import static org.vstu.compprehension.businesslogic.domains.typeevaluation.TypeEvaluationDomainFixture.answer;
 import static org.vstu.compprehension.businesslogic.domains.typeevaluation.TypeEvaluationDomainFixture.domain;
 import static org.vstu.compprehension.businesslogic.domains.typeevaluation.TypeEvaluationDomainFixture.judge;
@@ -88,9 +90,25 @@ class TypeEvaluationDTDomainJudgeTest {
         assertEquals(2, result.stepsLeft());
     }
 
+    /** Создание объекта оценивается сразу: имя класса в нём — не часть выражения, которую решает студент. */
+    @Test
+    void constructionIsJudgedWithoutSolvingClassName() {
+        // Arrange.
+        var question = question(STUDENT_NAME);
+
+        // Act.
+        var result = judge(question, List.of(answer(question, "op_new", "t_student")));
+
+        // Assert.
+        assertTrue(result.isAnswerCorrect());
+        assertEquals(List.of(), violations(result));
+        assertEquals(1, result.stepsLeft());
+    }
+
     /**
-     * Ответ int на деление целых объясняется двумя заблуждениями одного навыка: какое из них у студента, неизвестно,
-     * поэтому до его выбора ему говорят только, что тип неверен, а нарушение навыка засчитывается сразу.
+     * Ответ int на деление целых объясняется двумя заблуждениями разных навыков — взятым типом операнда и делением по
+     * правилам другого языка: какое из них у студента, неизвестно, поэтому до его выбора ему говорят только, что тип
+     * неверен, и ни один навык нарушенным не засчитывается.
      */
     @Test
     void integerForTrueDivisionIsAmbiguousAndShowsOnlyErrorStatement() {
@@ -104,16 +122,16 @@ class TypeEvaluationDTDomainJudgeTest {
 
         // Assert.
         assertFalse(result.isAnswerCorrect());
-        assertEquals(Set.of(new Hypothesis("operand_type", false), new Hypothesis("c_style_division", false)),
+        assertEquals(Set.of(new Hypothesis("operand_type", false), new Hypothesis("foreign_semantics", false)),
                 hypotheses(result));
-        assertEquals(List.of("true_division_result"), lawNames(violations(result)));
+        assertEquals(List.of(), violations(result));
         assertEquals(List.of("Выражение <code>total / len(grades)</code> не может иметь тип <code>int</code>."),
                 messages(reasoned(result).inquiry().statement()));
         assertEquals(1, result.stepsLeft());
     }
 
     /**
-     * Тип левого операнда у or с ложным левым объясняется неверной истинностью, перепутанными and/or и тем, что правый
+     * Тип левого операнда у or с ложным левым объясняется неверной истинностью, прочтением or как and и тем, что правый
      * операнд names прочитан как похожая name. Навыки у этих причин разные, и пока студент не назвал свою, ни один из
      * них не засчитывается нарушенным.
      */
@@ -130,8 +148,8 @@ class TypeEvaluationDTDomainJudgeTest {
         assertFalse(result.isAnswerCorrect());
         assertEquals(Map.of(
                         "truthiness_misjudged", List.of("logical_returned_operand"),
-                        "and_or_confused", List.of("logical_returned_operand"),
-                        "variable_confused", List.of("operand_identification")),
+                        "operator_confused", List.of("operator_identification"),
+                        "name_confused", List.of("operand_identification")),
                 violationsByHypothesis(result));
         assertEquals(List.of(), violations(result));
         assertEquals(List.of("Выражение <code>name or names</code> не может иметь тип <code>str</code>."),
@@ -265,11 +283,48 @@ class TypeEvaluationDTDomainJudgeTest {
                         "Результат берёт тип одного из операндов.",
                         "Выражение <code>total / len(grades)</code> не может иметь тип <code>int</code>, потому что оператор <code>/</code> всегда"
                                 + " возвращает вещественный результат."),
-                new Offered("c_style_division",
-                        "Деление целых чисел даёт целое число.",
-                        "Выражение <code>total / len(grades)</code> не может иметь тип <code>int</code>, потому что оператор <code>/</code> всегда возвращает"
-                                + " вещественный результат.")),
+                new Offered("foreign_semantics",
+                        "Оператор <code>/</code> над целыми числами даёт целое число.",
+                        "Выражение <code>total / len(grades)</code> не может иметь тип <code>int</code>, потому что оператор <code>/</code> всегда"
+                                + " возвращает вещественный результат, даже для целых чисел.")),
                 offered(result));
+    }
+
+    /**
+     * Причина «правило другого языка» называет, что студент думает об операторе, — как причина «добавляет элемент в конец»:
+     * о других языках в ней ни слова.
+     */
+    @Test
+    void foreignSemanticsReasonSaysWhatOperatorDoes() {
+        // Arrange.
+        var question = question(GRADES_PLUS_ONE);
+
+        // Act.
+        var result = judge(question, List.of(answer(question, "op_add", "t_list_int")));
+
+        // Assert.
+        assertEquals("Оператор <code>+</code> прибавляет число к каждому элементу списка.",
+                reasoning(result, "foreign_semantics").reason());
+        assertEquals("Оператор <code>+</code> добавляет элемент в конец списка.", reasoning(result, "element_appended").reason());
+    }
+
+    /**
+     * Приписав строке метод списка, студент дальше рассуждает о методе, которого у строки нет: рассуждение на этом
+     * заканчивается, и ему объясняют только, что такого метода нет.
+     */
+    @Test
+    void valueForForeignMethodIsExplainedOnlyByMissingMethod() {
+        // Arrange.
+        var question = question(OOP_TEXT_APPEND);
+
+        // Act.
+        var result = judge(question, List.of(answer(question, "op_append", "t_str")));
+
+        // Assert.
+        var reasoning = onlyReasoning(reasoned(result));
+        assertEquals(List.of(new Assumption("foreign_member", false)), reasoning.assumptions());
+        assertEquals(List.of("Выражение <code>name.append(\"!\")</code> не может иметь тип <code>str</code>, потому что у"
+                + " <code>str</code> нет метода <code>append</code>."), messages(reasoning.explanation()));
     }
 
     /** Ошибку на склеивании двух строк студенту объясняют названием типа, а не словом «последовательности», которого первокурсник не знает. */
@@ -368,7 +423,8 @@ class TypeEvaluationDTDomainJudgeTest {
 
         // Assert.
         assertEquals("Левый операнд истинный.", reasoning(result, "truthiness_misjudged").reason());
-        assertEquals("Возвращается первый ложный операнд.", reasoning(result, "and_or_confused").reason());
+        assertEquals("Мне показалось, что в выражении стоит оператор <code>and</code>, а не оператор <code>or</code>.",
+                reasoning(result, "operator_confused").reason());
     }
 
     /**
@@ -384,7 +440,7 @@ class TypeEvaluationDTDomainJudgeTest {
         var result = judge(question, List.of(answer(question, "op_or", "t_str")));
 
         // Assert.
-        var lookalike = reasoning(result, "variable_confused");
+        var lookalike = reasoning(result, "name_confused");
         assertEquals("Мне показалось, что правый операнд — <code>name</code>, а не <code>names</code>.", lookalike.reason());
         assertEquals("Выражение <code>name or names</code> не может иметь тип <code>str</code>, потому что правый"
                 + " операнд — <code>names</code>, а не <code>name</code>.", lookalike.explanation().getRawMessage().getText());
@@ -408,7 +464,7 @@ class TypeEvaluationDTDomainJudgeTest {
                         "Мне показалось, что левый операнд — <code>counts</code>, а не <code>count</code>.",
                         "Мне показалось, что правый операнд — <code>totals</code>, а не <code>total</code>."),
                 reasoned(result).reasonings().stream()
-                        .filter(reasoning -> "variable_confused".equals(nameOf(reasoning)))
+                        .filter(reasoning -> "name_confused".equals(nameOf(reasoning)))
                         .map(Reasoning::reason)
                         .collect(Collectors.toSet()));
     }
@@ -428,21 +484,21 @@ class TypeEvaluationDTDomainJudgeTest {
         // Assert.
         assertFalse(result.isAnswerCorrect());
         assertEquals(Set.of(
-                new Offered("variable_confused + operand_type",
+                new Offered("name_confused + operand_type",
                         "Мне показалось, что левый операнд — <code>counts</code>, а не <code>count</code>."
                                 + " Результат берёт тип одного из операндов.",
                         "Выражение <code>count + total</code> не может иметь тип <code>list[int]</code>, потому что левый"
                                 + " операнд — <code>count</code>, а не <code>counts</code>. Кроме того, оператор <code>+</code>"
                                 + " нельзя применить к операндам типов <code>list[int]</code> и <code>int</code>, и ни один"
                                 + " из операндов не может стать его результатом."),
-                new Offered("variable_confused + element_appended",
+                new Offered("name_confused + element_appended",
                         "Мне показалось, что левый операнд — <code>counts</code>, а не <code>count</code>."
                                 + " Оператор <code>+</code> добавляет элемент в конец списка.",
                         "Выражение <code>count + total</code> не может иметь тип <code>list[int]</code>, потому что левый"
                                 + " операнд — <code>count</code>, а не <code>counts</code>. Кроме того, оператор <code>+</code>"
                                 + " соединяет два списка и не добавляет к списку <code>list[int]</code> отдельный элемент"
                                 + " типа <code>int</code>."),
-                new Offered("variable_confused + operand_type",
+                new Offered("name_confused + operand_type",
                         "Мне показалось, что правый операнд — <code>totals</code>, а не <code>total</code>."
                                 + " Результат берёт тип одного из операндов.",
                         "Выражение <code>count + total</code> не может иметь тип <code>list[int]</code>, потому что правый"
@@ -493,14 +549,14 @@ class TypeEvaluationDTDomainJudgeTest {
 
         // Assert.
         assertFalse(result.isAnswerCorrect());
-        assertEquals(Map.of("variable_confused", List.of("operand_identification"),
+        assertEquals(Map.of("name_confused", List.of("operand_identification"),
                 "inapplicable_assumed", List.of("length_applicability")), violationsByHypothesis(result));
         assertEquals(List.of(), violations(result));
         assertEquals(List.of("Выражение <code>len(grades)</code> не может вызвать ошибку <code>TypeError</code>."),
                 messages(reasoned(result).inquiry().statement()));
         assertEquals("Почему вы решили, что здесь возникнет ошибка <code>TypeError</code>?", reasoned(result).inquiry().prompt());
         assertEquals(Set.of(
-                new Offered("variable_confused",
+                new Offered("name_confused",
                         "Мне показалось, что в выражении стоит <code>grade</code>, а не <code>grades</code>.",
                         "Выражение <code>len(grades)</code> не может вызвать ошибку <code>TypeError</code>, потому что в выражении"
                                 + " стоит <code>grades</code>, а не <code>grade</code>."),
@@ -528,7 +584,7 @@ class TypeEvaluationDTDomainJudgeTest {
         // Assert.
         assertFalse(result.isAnswerCorrect());
         assertEquals(Map.of("operand_type", List.of("sequence_operation_applicability"),
-                "variable_confused", List.of("operand_identification")), violationsByHypothesis(result));
+                "name_confused", List.of("operand_identification")), violationsByHypothesis(result));
         assertEquals(List.of("Выражение <code>grades + 1</code> не может иметь тип <code>int</code>."),
                 messages(reasoned(result).inquiry().statement()));
         assertEquals(Set.of("Результат берёт тип одного из операндов.", "Мне показалось, что левый операнд — <code>grade</code>, а не <code>grades</code>."),

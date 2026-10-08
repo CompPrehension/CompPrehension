@@ -80,7 +80,7 @@
           "subject": "question",
           "verb": "hasLoqi",
           "objectType": "xsd:string",
-          "object": "obj t_int : py_int {}\nobj t_bool : py_bool {}\nobj t_str : py_str { elementType(t_str); }\nobj t_list_str : py_list { elementType(t_str); }\nobj t_error : py_TypeError {}\nobj name : Variable { hasType(t_str); isTruthy = false; looksLike(names); } [ text = \"name\" ]\nobj names : Variable { hasType(t_list_str); isTruthy = true; } [ text = \"names\" ]\nobj op_or : py_or { hasOperand<OperandPlacement:left>(name); hasOperand<OperandPlacement:right>(names); } [ text = \"name or names\"; expectedType = \"t_list_str\"; value = \"['anon']\" ]\nobj op_len : py_len { hasOperand<OperandPlacement:left>(op_or); } [ text = \"len(name or names)\"; expectedType = \"t_int\"; value = \"1\" ]"
+          "object": "obj t_int : py_int {}\nobj t_bool : py_bool {}\nobj t_str : py_str { elementType(t_str); }\nobj t_list_str : py_list { elementType(t_str); }\nobj t_error : py_TypeError {}\nobj name : Variable { hasType(t_str); isTruthy = false; looksLike(names); } [ text = \"name\" ]\nobj names : Variable { hasType(t_list_str); isTruthy = true; } [ text = \"names\" ]\nobj op_or : py_or { hasOperand<OperandPlacement:left>(name); hasOperand<OperandPlacement:right>(names); } [ text = \"name or names\"; expectedType = \"t_list_str\"; value = \"['anon']\" ]\nobj op_len : py_len { hasOperand<OperandPlacement:left>(op_or); } [ text = \"len(name or names)\"; expectedType = \"t_int\"; value = \"1\" ]\nobj op_or_as_py_and : py_and { hasOperand<OperandPlacement:left>(name); hasOperand<OperandPlacement:right>(names); similarOperatorOf(op_or); } [ text = \"name or names\" ]"
         }
       ],
       "questionDomainType": "ExpressionTypes"

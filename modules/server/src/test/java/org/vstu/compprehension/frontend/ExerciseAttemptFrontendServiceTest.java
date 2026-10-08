@@ -313,7 +313,7 @@ class ExerciseAttemptFrontendServiceTest extends AbstractIntegrationTest {
 
         // Assert.
         assertTrue(feedback.isCorrect());
-        assertEquals(Set.of("rule", "variable_confused + argument_type", "variable_confused + inapplicable_call_gives_result"),
+        assertEquals(Set.of("rule", "name_confused + argument_type", "name_confused + inapplicable_call_gives_result"),
                 offeredHypotheses(question.getQuestionId(), feedback));
     }
 
@@ -626,7 +626,7 @@ class ExerciseAttemptFrontendServiceTest extends AbstractIntegrationTest {
         assertFalse(feedback.isCorrect());
         assertNotNull(feedback.getClarification());
         assertFalse(feedback.getClarification().prompt().isBlank());
-        assertEquals(Set.of("operand_type", "c_style_division"), offeredHypotheses(question.getQuestionId(), feedback));
+        assertEquals(Set.of("operand_type", "foreign_semantics"), offeredHypotheses(question.getQuestionId(), feedback));
     }
 
     /** Уточнение без ответа возвращается с перезагруженным вопросом, чтобы студент не пропустил его. */
@@ -679,10 +679,10 @@ class ExerciseAttemptFrontendServiceTest extends AbstractIntegrationTest {
         var countedBeforeReason = lastInteraction(attempt.getAttemptId()).violatedKnowledge();
 
         // Act.
-        service.answerClarification(new ClarificationAnswerDto(question.getQuestionId(), optionOf(question.getQuestionId(), feedback, "variable_confused")));
+        service.answerClarification(new ClarificationAnswerDto(question.getQuestionId(), optionOf(question.getQuestionId(), feedback, "name_confused")));
 
         // Assert.
-        assertEquals(Set.of("variable_confused", "inapplicable_assumed"), offeredHypotheses(question.getQuestionId(), feedback));
+        assertEquals(Set.of("name_confused", "inapplicable_assumed"), offeredHypotheses(question.getQuestionId(), feedback));
         assertEquals(List.of(), countedBeforeReason);
         var counted = lastInteraction(attempt.getAttemptId());
         assertFalse(counted.isCorrect());
@@ -699,12 +699,12 @@ class ExerciseAttemptFrontendServiceTest extends AbstractIntegrationTest {
 
         // Act.
         var feedback = service.answerClarification(
-                new ClarificationAnswerDto(question.getQuestionId(), optionOf(question.getQuestionId(), asked, "c_style_division")));
+                new ClarificationAnswerDto(question.getQuestionId(), optionOf(question.getQuestionId(), asked, "foreign_semantics")));
 
         // Assert.
         assertNotNull(feedback.explanation());
         resetPersistenceContext();
-        assertEquals(List.of("c_style_division"), answeredClarifications(question.getQuestionId()));
+        assertEquals(List.of("foreign_semantics"), answeredClarifications(question.getQuestionId()));
         assertNull(service.getQuestion(question.getQuestionId()).getFeedback().getClarification());
     }
 
@@ -760,7 +760,7 @@ class ExerciseAttemptFrontendServiceTest extends AbstractIntegrationTest {
         // Assert.
         assertFalse(feedback.isCorrect());
         assertNull(feedback.getClarification());
-        assertEquals(Map.of("inapplicable_assumed", true, "variable_confused + inapplicable_assumed", false),
+        assertEquals(Map.of("inapplicable_assumed", true, "name_confused + inapplicable_assumed", false),
                 questionDataService.getQuestion(question.getQuestionId()).getInteractions().getLast().getReasonings()
                         .stream()
                         .collect(Collectors.toMap(ExerciseAttemptFrontendServiceTest::nameOf,
@@ -811,7 +811,7 @@ class ExerciseAttemptFrontendServiceTest extends AbstractIntegrationTest {
 
         // Assert.
         assertFalse(feedback.isCorrect());
-        assertEquals(Set.of("inapplicable_assumed", "variable_confused + inapplicable_assumed"),
+        assertEquals(Set.of("inapplicable_assumed", "name_confused + inapplicable_assumed"),
                 offeredHypotheses(question.getQuestionId(), feedback));
         assertTrue(questionDataService.getQuestion(question.getQuestionId()).getInteractions().getLast().getReasonings()
                 .stream().allMatch(InteractionReasoningData::isProbable));
@@ -831,7 +831,7 @@ class ExerciseAttemptFrontendServiceTest extends AbstractIntegrationTest {
 
         // Assert.
         assertTrue(feedback.isCorrect());
-        assertEquals(Set.of("rule", "operand_type", "variable_confused + operand_type"),
+        assertEquals(Set.of("rule", "operand_type", "name_confused + operand_type"),
                 offeredHypotheses(question.getQuestionId(), feedback));
     }
 
@@ -946,7 +946,7 @@ class ExerciseAttemptFrontendServiceTest extends AbstractIntegrationTest {
     @ParameterizedTest
     @CsvSource(value = {
             "rule,                              false",
-            "variable_confused + argument_type, true",
+            "name_confused + argument_type, true",
             "null,                              true",
     }, nullValues = "null")
     void clarificationAnswerDecidesWhetherStreakContinues(String chosenHypothesis, boolean isNextClarified) {
@@ -1337,7 +1337,7 @@ class ExerciseAttemptFrontendServiceTest extends AbstractIntegrationTest {
                 new InteractionDto(question.getQuestionId(), new AnswerDto[] { lengthAsInt }));
         assertTrue(afterLength.isCorrect());
         if (afterLength.getClarification() != null) {
-            assertEquals(Set.of("rule", "variable_confused + argument_type", "variable_confused + inapplicable_call_gives_result"),
+            assertEquals(Set.of("rule", "name_confused + argument_type", "name_confused + inapplicable_call_gives_result"),
                     offeredHypotheses(question.getQuestionId(), afterLength));
             service.answerClarification(new ClarificationAnswerDto(question.getQuestionId(),
                     optionOf(question.getQuestionId(), afterLength, "rule")));

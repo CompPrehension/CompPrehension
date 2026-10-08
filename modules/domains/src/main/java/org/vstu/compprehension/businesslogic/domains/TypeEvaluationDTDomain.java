@@ -123,6 +123,15 @@ public class TypeEvaluationDTDomain extends DecisionTreeReasoningDomain {
         b.add("length_applicability", 0x4000L, visible);
         b.add("conversion_applicability", 0x8000L, visible);
         b.add("operand_identification", 0x10000L, visible);
+        b.add("field_access", 0x20000L, visible);
+        b.add("object_construction", 0x40000L, visible);
+        b.add("method_call", 0x80000L, visible);
+        b.add("member_lookup", 0x100000L, visible);
+        b.add("member_visibility", 0x200000L, visible);
+        b.add("static_member_access", 0x400000L, visible);
+        b.add("error_kind", 0x800000L, visible);
+        b.add("operator_identification", 0x1000000L, visible);
+        b.add("language_semantics_transfer", 0x2000000L, visible);
 
         return b.build();
     }
@@ -141,6 +150,9 @@ public class TypeEvaluationDTDomain extends DecisionTreeReasoningDomain {
         b.add("indexing", 0x40L, List.of(operations), flags);
         b.add("slicing", 0x80L, List.of(operations), flags);
         b.add("function_call", 0x100L, List.of(operations), flags);
+        b.add("field_access", 0x8000L, List.of(operations), flags);
+        b.add("method_call", 0x10000L, List.of(operations), flags);
+        b.add("object_creation", 0x20000L, List.of(operations), flags);
 
         Concept types = b.add("types");
         b.add("numbers", 0x200L, List.of(types), flags);
@@ -149,6 +161,12 @@ public class TypeEvaluationDTDomain extends DecisionTreeReasoningDomain {
         b.add("tuples", 0x1000L, List.of(types), flags);
         b.add("dicts", 0x2000L, List.of(types), flags);
         b.add("type_errors", 0x4000L, List.of(types), flags);
+        b.add("missing_member_errors", 0x200000L, List.of(types), flags);
+
+        Concept objects = b.add("objects");
+        b.add("static_members", 0x40000L, List.of(objects), flags);
+        b.add("inheritance", 0x80000L, List.of(objects), flags);
+        b.add("visibility", 0x100000L, List.of(objects), flags);
 
         return b.build();
     }
@@ -276,11 +294,12 @@ public class TypeEvaluationDTDomain extends DecisionTreeReasoningDomain {
         }
     }
 
+    // Ждать нужно только операнды, которые решает студент: у имени класса типа нет и не будет.
     private static boolean areOperandsSolved(@NotNull ObjectDef operation) {
         return operation.getRelationshipLinks().stream()
                 .filter(link -> link.getRelationshipName().equals(HAS_OPERAND))
                 .flatMap(link -> link.getObjects().stream())
-                .allMatch(TypeEvaluationDTDomain::hasType);
+                .allMatch(operand -> !isOperation(operand) || hasType(operand));
     }
 
     private static boolean hasType(@NotNull ObjectDef expression) {
@@ -288,9 +307,13 @@ public class TypeEvaluationDTDomain extends DecisionTreeReasoningDomain {
                 .anyMatch(link -> link.getRelationshipName().equals(HAS_TYPE));
     }
 
+    private static boolean isOperation(@NotNull ObjectDef expression) {
+        return expression.getMetadata().getString(EXPECTED_TYPE) != null;
+    }
+
     private static @NotNull List<ObjectDef> findOperations(@NotNull DomainModel model) {
         return model.getObjects().stream()
-                .filter(object -> object.getMetadata().getString(EXPECTED_TYPE) != null)
+                .filter(TypeEvaluationDTDomain::isOperation)
                 .toList();
     }
 

@@ -1,0 +1,141 @@
+// Обращение E к члену M того, что стоит слева от точки (Owner, тип C; R — значение поля или результат метода):
+// студент считает, что член у типа есть, и решает, виден ли он оттуда, где стоит выражение.
+// T — ответ студента; Old и New — как в typed.
+
+// Выражение стоит в методе наследника класса, объявившего член M.
+lambda isEnclosedInHeirOfDeclarer(E: Operation, M: Member) = forAny ClassType d {$d=>declares(M) and forAny ClassType s {E=>enclosedIn($s) and $s=>inheritsFrom($d)}};
+
+// Закрытый член виден в методах объявившего его класса, защищённый — ещё и в методах наследников.
+lambda isAccessibleFrom(E: Operation, M: Member) = M.visibility == Visibility:public
+        or M.visibility == Visibility:protected and (not (E as class:MemberAccess).protectedRestricted
+            or forAny ClassType d {$d=>declares(M) and (E=>enclosedIn($d) or forAny ClassType s {E=>enclosedIn($s) and $s=>inheritsFrom($d)})})
+        or M.visibility == Visibility:private and forAny ClassType d {$d=>declares(M) and E=>enclosedIn($d)};
+
+tpg MemberFound(E: Operation, Old: CodeElement, New: CodeElement, Owner: Expr, M: Member, C: Type, R: Outcome, T: Outcome) {
+    ask (isAccessibleFrom(E, M)) {
+        true -> {
+            agg hyp {
+                _ -> {
+                    conclude: subcall("member_accessible", E, Old, New, Owner, M, C, R, T)
+                };
+                _ -> {
+                    agg and {
+                        _ -> {
+                            ask (M.visibility == Visibility:protected) out false else {
+                                conclude: error [
+                                    skill = "member_visibility";
+                                    hypothesis = "protected_assumed_restricted";
+                                    RU.explanation = "${M} — ${M is class:Field ? 'защищённое поле' : 'защищённый метод'}, но защищённость здесь не запрещает обращаться к нему откуда угодно.";
+                                    EN.explanation = "${M} is a protected ${M is class:Field ? 'field' : 'method'}, but being protected does not forbid accessing it from anywhere here.";
+                                    RU.reason = "К защищённому члену нельзя обратиться снаружи класса.";
+                                    EN.reason = "A protected member cannot be accessed from outside the class.";
+                                ];
+                            };
+                            conclude: null
+                        };
+                        _ -> {
+                            conclude: subcall("missing_member_reported", E, T)
+                        };
+                        correct -> { conclude: correct };
+                        error -> { conclude: error };
+                        null -> { conclude: null };
+                    }
+                };
+                correct -> { conclude: correct };
+                error -> { conclude: error };
+                null -> { conclude: null };
+            }
+        };
+        false -> {
+            agg hyp {
+                _ -> {
+                    agg and {
+                        _ -> {
+                            conclude: correct [
+                                skill = "member_visibility";
+                                hypothesis = "rule";
+                                RU.explanation = "${M} — ${M.visibility == Visibility:private ? (M is class:Field ? 'закрытое поле' : 'закрытый метод') : (M is class:Field ? 'защищённое поле' : 'защищённый метод')}: к нему можно обратиться только в методах ${M.visibility == Visibility:private ? 'своего класса' : 'своего класса и его наследников'}.";
+                                EN.explanation = "${M} is a ${M.visibility == Visibility:private ? 'private' : 'protected'} ${M is class:Field ? 'field' : 'method'}: it can be accessed only in the methods of ${M.visibility == Visibility:private ? 'its class' : 'its class and its subclasses'}.";
+                            ]
+                        };
+                        _ -> {
+                            conclude: subcall("missing_member_reported", E, T)
+                        };
+                        correct -> { conclude: correct };
+                        error -> { conclude: error };
+                        null -> { conclude: null };
+                    }
+                };
+                _ -> {
+                    agg and {
+                        _ -> {
+                            ask (M.visibility == Visibility:private and not isEnclosedInHeirOfDeclarer(E, M)) out false else {
+                                conclude: error [
+                                    skill = "member_visibility";
+                                    hypothesis = "private_assumed_accessible";
+                                    RU.explanation = "${M} — ${M.visibility == Visibility:private ? (M is class:Field ? 'закрытое поле' : 'закрытый метод') : (M is class:Field ? 'защищённое поле' : 'защищённый метод')}: к нему можно обратиться только в методах ${M.visibility == Visibility:private ? 'своего класса' : 'своего класса и его наследников'}.";
+                                    EN.explanation = "${M} is a ${M.visibility == Visibility:private ? 'private' : 'protected'} ${M is class:Field ? 'field' : 'method'}: it can be accessed only in the methods of ${M.visibility == Visibility:private ? 'its class' : 'its class and its subclasses'}.";
+                                    RU.reason = "К закрытому члену можно обратиться откуда угодно.";
+                                    EN.reason = "A private member can be accessed from anywhere.";
+                                ];
+                            };
+                            conclude: null
+                        };
+                        _ -> {
+                            conclude: subcall("member_accessible", E, Old, New, Owner, M, C, R, T)
+                        };
+                        correct -> { conclude: correct };
+                        error -> { conclude: error };
+                        null -> { conclude: null };
+                    }
+                };
+                _ -> {
+                    agg and {
+                        _ -> {
+                            ask (M.visibility == Visibility:private and isEnclosedInHeirOfDeclarer(E, M)) out false else {
+                                conclude: error [
+                                    skill = "member_visibility";
+                                    hypothesis = "private_inherited_assumed_accessible";
+                                    RU.explanation = "${M} — закрытый член родительского класса: в методах наследника к нему не обратиться.";
+                                    EN.explanation = "${M} is a private member of the parent class: it cannot be accessed in the methods of a subclass.";
+                                    RU.reason = "Наследник может обращаться к закрытым членам родителя.";
+                                    EN.reason = "A subclass can access the private members of its parent.";
+                                ];
+                            };
+                            conclude: null
+                        };
+                        _ -> {
+                            conclude: subcall("member_accessible", E, Old, New, Owner, M, C, R, T)
+                        };
+                        correct -> { conclude: correct };
+                        error -> { conclude: error };
+                        null -> { conclude: null };
+                    }
+                };
+                correct -> { conclude: correct };
+                error -> { conclude: error };
+                null -> {
+                    conclude: null [
+                        skill = "member_visibility";
+                        RU.explanation = "${M} — ${M.visibility == Visibility:private ? (M is class:Field ? 'закрытое поле' : 'закрытый метод') : (M is class:Field ? 'защищённое поле' : 'защищённый метод')}: к нему можно обратиться только в методах ${M.visibility == Visibility:private ? 'своего класса' : 'своего класса и его наследников'}.";
+                        EN.explanation = "${M} is a ${M.visibility == Visibility:private ? 'private' : 'protected'} ${M is class:Field ? 'field' : 'method'}: it can be accessed only in the methods of ${M.visibility == Visibility:private ? 'its class' : 'its class and its subclasses'}.";
+                    ]
+                };
+            }
+        };
+    } as memberAccessibility
+}
+[
+    RU.error_prefix = "Выражение ${E} ${T is class:EvaluationError ? 'не может вызвать ошибку' : 'не может иметь тип'} ${T}, потому что ";
+    EN.error_prefix = "The expression ${E} ${T is class:EvaluationError ? 'cannot cause the error' : 'cannot have the type'} ${T} because ";
+    RU.hint_prefix = "Выражение ${E} ${T is class:EvaluationError ? 'вызывает ошибку' : 'имеет тип'} ${T}, потому что ";
+    EN.hint_prefix = "The expression ${E} ${T is class:EvaluationError ? 'causes the error' : 'has the type'} ${T} because ";
+    RU.misreasoning_prefix = "Выражение ${E} действительно ${T is class:EvaluationError ? 'вызывает ошибку' : 'имеет тип'} ${T}, но рассуждение ошибочно: ";
+    EN.misreasoning_prefix = "The expression ${E} does ${T is class:EvaluationError ? 'cause the error' : 'have the type'} ${T}, but the reasoning is wrong: ";
+    RU.error_statement = "Выражение ${E} ${T is class:EvaluationError ? 'не может вызвать ошибку' : 'не может иметь тип'} ${T}.";
+    EN.error_statement = "The expression ${E} ${T is class:EvaluationError ? 'cannot cause the error' : 'cannot have the type'} ${T}.";
+]
+
+meta for memberAccessibility [
+    skill = "member_visibility";
+]

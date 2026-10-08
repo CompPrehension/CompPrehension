@@ -1,11 +1,25 @@
-// Ответ студента объясняется тем, какие операнды он видит: выражение как написано (правило и заблуждения — дерево typed)
-// или выражение, в котором один операнд прочитан как похожая на него переменная из условия. Прочтение объясняет ответ T,
+// Ответ студента объясняется тем, какие операнды он видит: выражение как написано (правило и заблуждения — дерево typed),
+// выражение, в котором операнд или член прочитан как похожее на него имя из условия, или сама операция, прочитанная
+// как похожий оператор либо по правилам другого языка. Прочтение объясняет ответ T,
 // если к T на нём ведёт правило или заблуждение. Если ни одно прочтение ответ не объяснило, он ошибочен по запасному выводу.
 
-lambda looksAlike(A: Variable, B: Variable) = A=>looksLike(B) or A=>lookedLikeBy(B);
+// Операция другого языка совпадает с написанной везде, кроме своего особого случая: прочтение ею различимо, только
+// если меняет вердикт по ответу студента. Похожий оператор — всегда другая операция, его прочтение не отсеивается.
+lambda changesVerdict(E: Operation, A: Operation, T: Outcome) = not (subcall("typed", A, A, A, T) == subcall("typed", E, E, E, T));
 
-// У одного из операндов есть похожая переменная: студент мог их перепутать.
-lambda hasLookalikeOperand(E: Operation) = forAny Variable o {(E=>hasOperand<OperandPlacement:left>($o) or E=>hasOperand<OperandPlacement:right>($o)) and forAny Variable v {looksAlike($v, $o)}};
+lambda looksAlike(A: CodeElement, B: CodeElement) = A=>looksLike(B) or A=>lookedLikeBy(B);
+
+// Часть операции, названная в коде: операнд или член, к которому обращаются.
+lambda isPartOf(E: Operation, O: CodeElement) = O is class:Expr and (E=>hasOperand<OperandPlacement:left>((O as class:Expr)) or E=>hasOperand<OperandPlacement:right>((O as class:Expr)))
+        or O is class:Member and E is class:MemberAccess and (E as class:MemberAccess)=>accesses((O as class:Member));
+
+// Спутать можно имена одного вида. Класс и переменную — только слева от точки: у имени класса нет типа.
+lambda canBeReadAs(E: Operation, O: CodeElement, V: CodeElement) = looksAlike(V, O) and (O is class:Field and V is class:Field
+        or O is class:Method and V is class:Method
+        or O is class:Expr and V is class:Expr and (E is class:MemberAccess or not (O is class:ClassReference or V is class:ClassReference)));
+
+// У одной из частей операции есть похожее имя: студент мог их перепутать.
+lambda hasLookalikePart(E: Operation) = forAny CodeElement o {isPartOf(E, $o) and forAny CodeElement v {canBeReadAs(E, $o, $v)}};
 
 tpg ExprType(E: Operation, T: Outcome) {
     // Тип среза кортежа зависит от границ, а арифметики в LOQI нет: такие ответы дерево не оценивает.
@@ -14,7 +28,7 @@ tpg ExprType(E: Operation, T: Outcome) {
     };
     agg hyp {
         _ -> {
-            ask (hasLookalikeOperand(E)) {
+            ask (hasLookalikePart(E)) {
                 true -> {
                     // Перепутать было что, и студент не перепутал: распознавание операндов применено верно.
                     agg and {
@@ -37,9 +51,9 @@ tpg ExprType(E: Operation, T: Outcome) {
             } as lookalikeOperands
         };
         _ -> {
-            cycle hyp (E=>hasOperand<OperandPlacement:left>($O) or E=>hasOperand<OperandPlacement:right>($O)) with Expr O {
+            cycle hyp (isPartOf(E, $O)) with CodeElement O {
                 _ -> {
-                    cycle hyp (O is class:Variable and looksAlike($V, (O as class:Variable))) with Variable V {
+                    cycle hyp (canBeReadAs(E, O, $V)) with CodeElement V {
                         _ -> {
                             // Два одновременных допущения: операнд перепутан, и тип перепутанного выражения студент
                             // получил так, как получил. Если к ответу оно не ведёт, рассуждения нет.
@@ -47,12 +61,12 @@ tpg ExprType(E: Operation, T: Outcome) {
                                 _ -> {
                                     conclude: error [
                                         skill = "operand_identification";
-                                        hypothesis = "variable_confused";
+                                        hypothesis = "name_confused";
                                         // У двух операндов место называется явно: похожая переменная может стоять в том же выражении.
-                                        RU.explanation = "${(E is class:CallOperation or E is class:NegationOperation) ? 'в выражении стоит' : (E=>hasOperand<OperandPlacement:left>(O) ? 'левый операнд —' : 'правый операнд —')} ${O}, а не ${V}.";
-                                        EN.explanation = "${(E is class:CallOperation or E is class:NegationOperation) ? 'the expression uses' : (E=>hasOperand<OperandPlacement:left>(O) ? 'the left operand is' : 'the right operand is')} ${O}, not ${V}.";
-                                        RU.reason = "Мне показалось, что ${(E is class:CallOperation or E is class:NegationOperation) ? 'в выражении стоит' : (E=>hasOperand<OperandPlacement:left>(O) ? 'левый операнд —' : 'правый операнд —')} ${V}, а не ${O}.";
-                                        EN.reason = "It seemed to me that ${(E is class:CallOperation or E is class:NegationOperation) ? 'the expression uses' : (E=>hasOperand<OperandPlacement:left>(O) ? 'the left operand is' : 'the right operand is')} ${V}, not ${O}.";
+                                        RU.explanation = "${(E is class:CallOperation or E is class:NegationOperation or E is class:MemberAccess) ? 'в выражении стоит' : (E=>hasOperand<OperandPlacement:left>(O) ? 'левый операнд —' : 'правый операнд —')} ${O is class:ClassReference ? 'класс ' : (O is class:Field ? 'поле ' : (O is class:Method ? 'метод ' : (V is class:ClassReference ? 'переменная ' : '')))}${O}, а не ${V is class:ClassReference ? 'класс ' : (V is class:Field ? 'поле ' : (V is class:Method ? 'метод ' : (O is class:ClassReference ? 'переменная ' : '')))}${V}.";
+                                        EN.explanation = "${(E is class:CallOperation or E is class:NegationOperation or E is class:MemberAccess) ? 'the expression uses' : (E=>hasOperand<OperandPlacement:left>(O) ? 'the left operand is' : 'the right operand is')} ${O is class:ClassReference ? 'the class ' : (O is class:Field ? 'the field ' : (O is class:Method ? 'the method ' : (V is class:ClassReference ? 'the variable ' : '')))}${O}, not ${V is class:ClassReference ? 'the class ' : (V is class:Field ? 'the field ' : (V is class:Method ? 'the method ' : (O is class:ClassReference ? 'the variable ' : '')))}${V}.";
+                                        RU.reason = "Мне показалось, что ${(E is class:CallOperation or E is class:NegationOperation or E is class:MemberAccess) ? 'в выражении стоит' : (E=>hasOperand<OperandPlacement:left>(O) ? 'левый операнд —' : 'правый операнд —')} ${V is class:ClassReference ? 'класс ' : (V is class:Field ? 'поле ' : (V is class:Method ? 'метод ' : (O is class:ClassReference ? 'переменная ' : '')))}${V}, а не ${O is class:ClassReference ? 'класс ' : (O is class:Field ? 'поле ' : (O is class:Method ? 'метод ' : (V is class:ClassReference ? 'переменная ' : '')))}${O}.";
+                                        EN.reason = "It seemed to me that ${(E is class:CallOperation or E is class:NegationOperation or E is class:MemberAccess) ? 'the expression uses' : (E=>hasOperand<OperandPlacement:left>(O) ? 'the left operand is' : 'the right operand is')} ${V is class:ClassReference ? 'the class ' : (V is class:Field ? 'the field ' : (V is class:Method ? 'the method ' : (O is class:ClassReference ? 'the variable ' : '')))}${V}, not ${O is class:ClassReference ? 'the class ' : (O is class:Field ? 'the field ' : (O is class:Method ? 'the method ' : (V is class:ClassReference ? 'the variable ' : '')))}${O}.";
                                     ]
                                 };
                                 _ -> {
@@ -72,6 +86,62 @@ tpg ExprType(E: Operation, T: Outcome) {
                 error -> { conclude: error };
                 null -> { conclude: null };
             }
+        };
+        _ -> {
+            cycle hyp (E=>similarOperator($A)) with Operation A {
+                _ -> {
+                    agg and {
+                        _ -> {
+                            conclude: error [
+                                skill = "operator_identification";
+                                hypothesis = "operator_confused";
+                                RU.explanation = "в выражении стоит ${E.class()}, а не ${A.class()}.";
+                                EN.explanation = "the expression uses the ${E.class()}, not the ${A.class()}.";
+                                RU.reason = "Мне показалось, что в выражении стоит ${A.class()}, а не ${E.class()}.";
+                                EN.reason = "It seemed to me that the expression uses the ${A.class()}, not the ${E.class()}.";
+                            ]
+                        };
+                        _ -> {
+                            conclude: subcall("typed", A, A, A, T)
+                        };
+                        correct -> { conclude: correct };
+                        error -> { conclude: error };
+                        null -> { conclude: null };
+                    }
+                };
+                correct -> { conclude: correct };
+                error -> { conclude: error };
+                null -> { conclude: null };
+            } as similarOperators
+        };
+        _ -> {
+            cycle hyp (E=>foreignVariant($A) and changesVerdict(E, $A, T)) with Operation A {
+                _ -> {
+                    // Правила других языков пока есть только у арифметики; чем именно они отличаются, задают свойства класса.
+                    var F : ArithmeticOperation = (A as class:ArithmeticOperation);
+                    agg and {
+                        _ -> {
+                            conclude: error [
+                                skill = "language_semantics_transfer";
+                                hypothesis = "foreign_semantics";
+                                RU.explanation = "${E.class()} ${F.appliesElementwise ? 'соединяет два списка и не прибавляет число к каждому элементу списка' : (F.convertsNumberToText ? 'сам не превращает число в строку: склеить их можно только после явного преобразования числа в строку' : (F.addsNumericText ? 'строки склеивает, а не складывает как числа, даже если они похожи на числа' : 'всегда возвращает вещественный результат, даже для целых чисел'))}.";
+                                EN.explanation = "the ${E.class()} ${F.appliesElementwise ? 'joins two lists and does not add the number to every element of the list' : (F.convertsNumberToText ? 'does not turn a number into a string by itself: they can be joined only after an explicit conversion of the number to a string' : (F.addsNumericText ? 'joins strings instead of adding them as numbers, even if they look like numbers' : 'always returns a floating-point result, even for integers'))}.";
+                                RU.reason = "${E.class()} ${F.appliesElementwise ? 'прибавляет число к каждому элементу списка' : (F.convertsNumberToText ? 'сам превращает число в строку и склеивает их' : (F.addsNumericText ? 'складывает строки из цифр как числа' : 'над целыми числами даёт целое число'))}.";
+                                EN.reason = "The ${E.class()} ${F.appliesElementwise ? 'adds the number to every element of the list' : (F.convertsNumberToText ? 'turns the number into a string by itself and joins them' : (F.addsNumericText ? 'adds digit strings as numbers' : 'gives an integer for integers'))}.";
+                            ]
+                        };
+                        _ -> {
+                            conclude: subcall("typed", A, A, A, T)
+                        };
+                        correct -> { conclude: correct };
+                        error -> { conclude: error };
+                        null -> { conclude: null };
+                    }
+                };
+                correct -> { conclude: correct };
+                error -> { conclude: error };
+                null -> { conclude: null };
+            } as foreignVariants
         };
         correct -> { conclude: correct };
         error -> { conclude: error };
@@ -98,4 +168,13 @@ meta for readings [
 
 meta for lookalikeOperands [
     skill = "operand_identification";
+]
+
+// Решения студента «какую операцию он видит»: похожий оператор и перенос правил другого языка — разные навыки.
+meta for similarOperators [
+    skill = "operator_identification";
+]
+
+meta for foreignVariants [
+    skill = "language_semantics_transfer";
 ]

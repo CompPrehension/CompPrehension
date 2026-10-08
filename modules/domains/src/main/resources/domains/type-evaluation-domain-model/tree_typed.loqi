@@ -1,4 +1,4 @@
-// Тип операции E, в которой операнд Old прочитан как New (Old == New == E — выражение как написано).
+// Тип операции E, в которой операнд или член Old прочитан как New (Old == New == E — выражение как написано).
 // Каждая ветвь правила типизации заканчивается hyp по способам рассуждения студента: ветвь сравнивает ответ T
 // со своим выводом и даёт null, если этот способ к T не приводит. Все ветви одного hyp — под одной развилкой,
 // поэтому гипотезы различаются объяснением, но не навыком. Если ответ не объяснил ни один способ, дерево даёт null:
@@ -6,9 +6,14 @@
 // TODO: верный ответ, к которому ведёт и ошибочная гипотеза, hyp засчитывает как верный; уточнять такие случаи
 //  вопросом — ценная метрика для эксперимента (открытый вопрос: какой вес гипотезы считать высоким).
 
-lambda leftOf(E: Operation, Old: Expr, New: Expr) = E->hasOperand<OperandPlacement:left> == Old ? New : E->hasOperand<OperandPlacement:left>;
+lambda leftOf(E: Operation, Old: CodeElement, New: CodeElement) = E->hasOperand<OperandPlacement:left> == Old ? (New as class:Expr) : E->hasOperand<OperandPlacement:left>;
 
-lambda rightOf(E: Operation, Old: Expr, New: Expr) = E->hasOperand<OperandPlacement:right> == Old ? New : E->hasOperand<OperandPlacement:right>;
+lambda rightOf(E: Operation, Old: CodeElement, New: CodeElement) = E->hasOperand<OperandPlacement:right> == Old ? (New as class:Expr) : E->hasOperand<OperandPlacement:right>;
+
+lambda memberOf(E: Operation, Old: CodeElement, New: CodeElement) = (E as class:MemberAccess)->accesses == Old ? (New as class:Member) : (E as class:MemberAccess)->accesses;
+
+// Итог обращения к члену, если оно допустимо: значение поля или результат метода.
+lambda resultOf(M: Member) = M is class:Field ? (M as class:Field)->hasType : (M as class:Method)->returns;
 
 lambda maxOf(a: int, b: int) = a > b ? a : b;
 
@@ -17,11 +22,17 @@ lambda orderable(L: Type, R: Type) = L.isArithmetic and R.isArithmetic or L is c
 // Ответ может быть ошибкой, а свойства чисел есть только у типов.
 lambda isNumber(T: Outcome) = T is class:Type and (T as class:Type).isArithmetic;
 
+// Тип, у которого ищется член: класс, если к члену обращаются через имя класса, иначе тип объекта.
+lambda ownerTypeOf(Owner: Expr) = Owner is class:ClassReference ? (Owner as class:ClassReference)->refersTo : Owner->hasType;
+
+lambda hasMember(C: Type, M: Member) = C=>declares(M) or C is class:ClassType and forAny ClassType p {(C as class:ClassType)=>inheritsFrom($p) and $p=>declares(M)};
+
+
 lambda isNumberOfRank(T: Outcome, rank: int) = isNumber(T) and (T as class:Type).conversionRank == rank;
 
 lambda givesFixedResult(F: CallOperation, T: Outcome) = F.fixedResult == FixedResult:text and T is class:TextType or F.fixedResult == FixedResult:number and isNumberOfRank(T, F.resultRank);
 
-tpg Typed(E: Operation, Old: Expr, New: Expr, T: Outcome) {
+tpg Typed(E: Operation, Old: CodeElement, New: CodeElement, T: Outcome) {
     ask (E.group) {
         OperationGroup:arithmetic -> {
             var A : ArithmeticOperation = (E as class:ArithmeticOperation);
@@ -39,17 +50,24 @@ tpg Typed(E: Operation, Old: Expr, New: Expr, T: Outcome) {
                             conclude: subcall("numeric_result", E, L, R, T)
                         };
                         _ -> {
-                            ask (T is class:EvaluationError) out false else {
-                                conclude: error [
-                                    skill = "numeric_result_type";
-                                    hypothesis = "inapplicable_assumed";
-                                    RU.explanation = "${A.class()} применяется к числам, а оба операнда — числа: ${L} и ${R}. Следовательно, операция допустима.";
-                                    EN.explanation = "the ${A.class()} applies to numbers, and both operands are numbers: ${L} and ${R}. Therefore, the operation is valid.";
-                                    RU.reason = "${A.class()} не применяется к операндам этих типов.";
-                                    EN.reason = "The ${A.class()} does not apply to operands of these types.";
-                                ];
-                            };
-                            conclude: null
+                            agg and {
+                                _ -> {
+                                    conclude: error [
+                                        skill = "numeric_result_type";
+                                        hypothesis = "inapplicable_assumed";
+                                        RU.explanation = "${A.class()} применяется к числам, а оба операнда — числа: ${L} и ${R}. Следовательно, операция допустима.";
+                                        EN.explanation = "the ${A.class()} applies to numbers, and both operands are numbers: ${L} and ${R}. Therefore, the operation is valid.";
+                                        RU.reason = "${A.class()} не применяется к операндам этих типов.";
+                                        EN.reason = "The ${A.class()} does not apply to operands of these types.";
+                                    ]
+                                };
+                                _ -> {
+                                    conclude: subcall("inapplicable_reported", E, T)
+                                };
+                                correct -> { conclude: correct };
+                                error -> { conclude: error };
+                                null -> { conclude: null };
+                            }
                         };
                         correct -> { conclude: correct };
                         error -> { conclude: error };
@@ -57,13 +75,20 @@ tpg Typed(E: Operation, Old: Expr, New: Expr, T: Outcome) {
                     }
                 };
                 false -> {
-                    // Одна развилка с тремя исходами, а не цепочка проверок: иначе навык неприменимой операции
-                    // достался бы последней проверке в цепочке.
+                    // Одна развилка, а не цепочка проверок: иначе навык неприменимой операции достался бы последней
+                    // проверке в цепочке. Склеивание с числом, строки из цифр и поэлементное сложение бывают только
+                    // у операций других языков, которыми студент может прочитать операцию.
                     ask ((A.concatenatesSequences and L is class:SequenceType and L == R)
                             ? SequenceUse:concatenation
                             : ((A.repeatsSequence and (L is class:SequenceType and R is class:IntegerType or L is class:IntegerType and R is class:SequenceType))
                                 ? SequenceUse:repetition
-                                : SequenceUse:inapplicable)) {
+                                : ((A.convertsNumberToText and (L is class:TextType and R.isArithmetic or L.isArithmetic and R is class:TextType))
+                                    ? SequenceUse:textConversion
+                                    : ((A.addsNumericText and L is class:TextType and R is class:TextType)
+                                        ? SequenceUse:numericText
+                                        : ((A.appliesElementwise and (L is class:ListType and R.isArithmetic or L.isArithmetic and R is class:ListType))
+                                            ? SequenceUse:elementwise
+                                            : SequenceUse:inapplicable))))) {
                         SequenceUse:concatenation -> {
                             agg hyp {
                                 _ -> {
@@ -78,30 +103,24 @@ tpg Typed(E: Operation, Old: Expr, New: Expr, T: Outcome) {
                                     conclude: null
                                 };
                                 _ -> {
-                                    ask (T is class:IntegerType and Left.isNumericText and Right.isNumericText) out false else {
-                                        conclude: error [
-                                            skill = "sequence_operation_applicability";
-                                            hypothesis = "numeric_text_addition";
-                                            RU.explanation = "оба операнда — строки, пусть и похожие на числа, а ${A.class()} строки склеивает, а не складывает как числа.";
-                                            EN.explanation = "both operands are strings, even though they look like numbers, and the ${A.class()} concatenates strings instead of adding them as numbers.";
-                                            RU.reason = "Строки из цифр складываются как числа.";
-                                            EN.reason = "Strings of digits are added as numbers.";
-                                        ];
-                                    };
-                                    conclude: null
-                                };
-                                _ -> {
-                                    ask (T is class:EvaluationError) out false else {
-                                        conclude: error [
-                                            skill = "sequence_operation_applicability";
-                                            hypothesis = "inapplicable_assumed";
-                                            RU.explanation = "${A.class()} соединяет последовательности одного вида, а оба операнда имеют тип ${L}. Следовательно, операция допустима.";
-                                            EN.explanation = "the ${A.class()} joins sequences of the same kind, and both operands have type ${L}. Therefore, the operation is valid.";
-                                            RU.reason = "${A.class()} не соединяет значения типа ${L}.";
-                                            EN.reason = "The ${A.class()} does not join values of type ${L}.";
-                                        ];
-                                    };
-                                    conclude: null
+                                    agg and {
+                                        _ -> {
+                                            conclude: error [
+                                                skill = "sequence_operation_applicability";
+                                                hypothesis = "inapplicable_assumed";
+                                                RU.explanation = "${A.class()} соединяет последовательности одного вида, а оба операнда имеют тип ${L}. Следовательно, операция допустима.";
+                                                EN.explanation = "the ${A.class()} joins sequences of the same kind, and both operands have type ${L}. Therefore, the operation is valid.";
+                                                RU.reason = "${A.class()} не соединяет значения типа ${L}.";
+                                                EN.reason = "The ${A.class()} does not join values of type ${L}.";
+                                            ]
+                                        };
+                                        _ -> {
+                                            conclude: subcall("inapplicable_reported", E, T)
+                                        };
+                                        correct -> { conclude: correct };
+                                        error -> { conclude: error };
+                                        null -> { conclude: null };
+                                    }
                                 };
                                 correct -> { conclude: correct };
                                 error -> { conclude: error };
@@ -141,17 +160,24 @@ tpg Typed(E: Operation, Old: Expr, New: Expr, T: Outcome) {
                                     conclude: null
                                 };
                                 _ -> {
-                                    ask (T is class:EvaluationError) out false else {
-                                        conclude: error [
-                                            skill = "sequence_operation_applicability";
-                                            hypothesis = "inapplicable_assumed";
-                                            RU.explanation = "умножение последовательности на целое число повторяет её. Следовательно, операция допустима.";
-                                            EN.explanation = "multiplying a sequence by an integer repeats it. Therefore, the operation is valid.";
-                                            RU.reason = "Последовательность нельзя умножить на число.";
-                                            EN.reason = "A sequence cannot be multiplied by a number.";
-                                        ];
-                                    };
-                                    conclude: null
+                                    agg and {
+                                        _ -> {
+                                            conclude: error [
+                                                skill = "sequence_operation_applicability";
+                                                hypothesis = "inapplicable_assumed";
+                                                RU.explanation = "умножение последовательности на целое число повторяет её. Следовательно, операция допустима.";
+                                                EN.explanation = "multiplying a sequence by an integer repeats it. Therefore, the operation is valid.";
+                                                RU.reason = "Последовательность нельзя умножить на число.";
+                                                EN.reason = "A sequence cannot be multiplied by a number.";
+                                            ]
+                                        };
+                                        _ -> {
+                                            conclude: subcall("inapplicable_reported", E, T)
+                                        };
+                                        correct -> { conclude: correct };
+                                        error -> { conclude: error };
+                                        null -> { conclude: null };
+                                    }
                                 };
                                 correct -> { conclude: correct };
                                 error -> { conclude: error };
@@ -164,18 +190,79 @@ tpg Typed(E: Operation, Old: Expr, New: Expr, T: Outcome) {
                                 };
                             } as repetitionHypotheses
                         };
-                        SequenceUse:inapplicable -> {
+                        SequenceUse:textConversion -> {
                             agg hyp {
                                 _ -> {
-                                    ask (T is class:EvaluationError) out false else {
+                                    ask (T == (L is class:TextType ? L : R)) out false else {
                                         conclude: correct [
                                             skill = "sequence_operation_applicability";
                                             hypothesis = "rule";
-                                            RU.explanation = "${A.class()} нельзя применить к операндам типов ${L} и ${R}.";
-                                            EN.explanation = "the ${A.class()} cannot be applied to operands of types ${L} and ${R}.";
+                                            RU.explanation = "${A.class()} превращает число в строку и склеивает строки.";
+                                            EN.explanation = "the ${A.class()} turns the number into a string and joins the strings.";
                                         ];
                                     };
                                     conclude: null
+                                };
+                                correct -> { conclude: correct };
+                                error -> { conclude: error };
+                                null -> { conclude: null };
+                            }
+                        };
+                        SequenceUse:numericText -> {
+                            agg hyp {
+                                _ -> {
+                                    ask (T is class:IntegerType and Left.isNumericText and Right.isNumericText) out false else {
+                                        conclude: correct [
+                                            skill = "sequence_operation_applicability";
+                                            hypothesis = "rule";
+                                            RU.explanation = "${A.class()} складывает строки из цифр как числа.";
+                                            EN.explanation = "the ${A.class()} adds digit strings as numbers.";
+                                        ];
+                                    };
+                                    conclude: null
+                                };
+                                correct -> { conclude: correct };
+                                error -> { conclude: error };
+                                null -> { conclude: null };
+                            }
+                        };
+                        SequenceUse:elementwise -> {
+                            agg hyp {
+                                _ -> {
+                                    ask (T == (L is class:ListType ? L : R)) out false else {
+                                        conclude: correct [
+                                            skill = "sequence_operation_applicability";
+                                            hypothesis = "rule";
+                                            RU.explanation = "${A.class()} прибавляет число к каждому элементу списка, и результат остаётся списком.";
+                                            EN.explanation = "the ${A.class()} adds the number to every element of the list, and the result stays a list.";
+                                        ];
+                                    };
+                                    conclude: null
+                                };
+                                correct -> { conclude: correct };
+                                error -> { conclude: error };
+                                null -> { conclude: null };
+                            }
+                        };
+                        SequenceUse:inapplicable -> {
+                            agg hyp {
+                                _ -> {
+                                    agg and {
+                                        _ -> {
+                                            conclude: correct [
+                                                skill = "sequence_operation_applicability";
+                                                hypothesis = "rule";
+                                                RU.explanation = "${A.class()} нельзя применить к операндам типов ${L} и ${R}.";
+                                                EN.explanation = "the ${A.class()} cannot be applied to operands of types ${L} and ${R}.";
+                                            ]
+                                        };
+                                        _ -> {
+                                            conclude: subcall("inapplicable_reported", E, T)
+                                        };
+                                        correct -> { conclude: correct };
+                                        error -> { conclude: error };
+                                        null -> { conclude: null };
+                                    }
                                 };
                                 _ -> {
                                     ask (T == L or T == R) out false else {
@@ -186,19 +273,6 @@ tpg Typed(E: Operation, Old: Expr, New: Expr, T: Outcome) {
                                             EN.explanation = "the ${A.class()} cannot be applied to operands of types ${L} and ${R}, and neither operand can become its result.";
                                             RU.reason = "Результат берёт тип одного из операндов.";
                                             EN.reason = "The result takes the type of one of the operands.";
-                                        ];
-                                    };
-                                    conclude: null
-                                };
-                                _ -> {
-                                    ask (A.concatenatesSequences and T is class:TextType and (L is class:TextType and R.isArithmetic or L.isArithmetic and R is class:TextType)) out false else {
-                                        conclude: error [
-                                            skill = "sequence_operation_applicability";
-                                            hypothesis = "implicit_text_conversion";
-                                            RU.explanation = "${A.class()} сам не превращает число в строку: склеить их можно только после явного преобразования числа в строку.";
-                                            EN.explanation = "the ${A.class()} does not turn a number into a string by itself: they can be joined only after an explicit conversion of the number to a string.";
-                                            RU.reason = "При сложении со строкой число само превращается в строку.";
-                                            EN.reason = "When added to a string, a number turns into a string by itself.";
                                         ];
                                     };
                                     conclude: null
@@ -263,17 +337,24 @@ tpg Typed(E: Operation, Old: Expr, New: Expr, T: Outcome) {
                             conclude: null
                         };
                         _ -> {
-                            ask (T is class:EvaluationError) out false else {
-                                conclude: error [
-                                    skill = "negation_result";
-                                    hypothesis = "inapplicable_assumed";
-                                    RU.explanation = "${E.class()} применяется к значению любого типа: у каждого значения есть истинность. Следовательно, операция допустима.";
-                                    EN.explanation = "the ${E.class()} applies to a value of any type: every value is either truthy or falsy. Therefore, the operation is valid.";
-                                    RU.reason = "${E.class()} не применяется к операнду этого типа.";
-                                    EN.reason = "The ${E.class()} does not apply to an operand of this type.";
-                                ];
-                            };
-                            conclude: null
+                            agg and {
+                                _ -> {
+                                    conclude: error [
+                                        skill = "negation_result";
+                                        hypothesis = "inapplicable_assumed";
+                                        RU.explanation = "${E.class()} применяется к значению любого типа: у каждого значения есть истинность. Следовательно, операция допустима.";
+                                        EN.explanation = "the ${E.class()} applies to a value of any type: every value is either truthy or falsy. Therefore, the operation is valid.";
+                                        RU.reason = "${E.class()} не применяется к операнду этого типа.";
+                                        EN.reason = "The ${E.class()} does not apply to an operand of this type.";
+                                    ]
+                                };
+                                _ -> {
+                                    conclude: subcall("inapplicable_reported", E, T)
+                                };
+                                correct -> { conclude: correct };
+                                error -> { conclude: error };
+                                null -> { conclude: null };
+                            }
                         };
                         correct -> { conclude: correct };
                         error -> { conclude: error };
@@ -319,17 +400,24 @@ tpg Typed(E: Operation, Old: Expr, New: Expr, T: Outcome) {
                                     conclude: null
                                 };
                                 _ -> {
-                                    ask (T is class:EvaluationError) out false else {
-                                        conclude: error [
-                                            skill = "boolean_logical_result";
-                                            hypothesis = "inapplicable_assumed";
-                                            RU.explanation = "${B.class()} применяется к значениям любых типов: у каждого значения есть истинность. Следовательно, операция допустима.";
-                                            EN.explanation = "the ${B.class()} applies to values of any types: every value is either truthy or falsy. Therefore, the operation is valid.";
-                                            RU.reason = "${B.class()} не применяется к операндам этих типов.";
-                                            EN.reason = "The ${B.class()} does not apply to operands of these types.";
-                                        ];
-                                    };
-                                    conclude: null
+                                    agg and {
+                                        _ -> {
+                                            conclude: error [
+                                                skill = "boolean_logical_result";
+                                                hypothesis = "inapplicable_assumed";
+                                                RU.explanation = "${B.class()} применяется к значениям любых типов: у каждого значения есть истинность. Следовательно, операция допустима.";
+                                                EN.explanation = "the ${B.class()} applies to values of any types: every value is either truthy or falsy. Therefore, the operation is valid.";
+                                                RU.reason = "${B.class()} не применяется к операндам этих типов.";
+                                                EN.reason = "The ${B.class()} does not apply to operands of these types.";
+                                            ]
+                                        };
+                                        _ -> {
+                                            conclude: subcall("inapplicable_reported", E, T)
+                                        };
+                                        correct -> { conclude: correct };
+                                        error -> { conclude: error };
+                                        null -> { conclude: null };
+                                    }
                                 };
                                 correct -> { conclude: correct };
                                 error -> { conclude: error };
@@ -343,13 +431,14 @@ tpg Typed(E: Operation, Old: Expr, New: Expr, T: Outcome) {
                             }
                         };
                         true -> {
-                            // Какой операнд вернётся, решают два решения студента: истинен ли левый операнд и на каком
-                            // операнде останавливается операция. Ошибка в одном из них даёт другой операнд, в обоих — снова верный.
+                            // Какой операнд вернётся, решает истинность левого операнда; на каком операнде останавливается
+                            // операция, решает прочтение операции (and как or) в основном дереве. Ошибка в одном из этих
+                            // решений даёт другой операнд, в обоих — снова верный.
                             var Returned : Expr = (Left.isTruthy == B.returnsLeftWhenLeftTruthy) ? Left : Right;
                             var Other : Expr = (Left.isTruthy == B.returnsLeftWhenLeftTruthy) ? Right : Left;
                             agg hyp {
                                 _ -> {
-                                    conclude: subcall("returned_operand", E, Left, Returned, Other, T)
+                                    conclude: subcall("operand_returned", E, Left, Returned, T)
                                 };
                                 _ -> {
                                     agg and {
@@ -364,7 +453,7 @@ tpg Typed(E: Operation, Old: Expr, New: Expr, T: Outcome) {
                                             ]
                                         };
                                         _ -> {
-                                            conclude: subcall("returned_operand", E, Left, Other, Returned, T)
+                                            conclude: subcall("operand_returned", E, Left, Other, T)
                                         };
                                         correct -> { conclude: correct };
                                         error -> { conclude: error };
@@ -385,17 +474,24 @@ tpg Typed(E: Operation, Old: Expr, New: Expr, T: Outcome) {
                                     conclude: null
                                 };
                                 _ -> {
-                                    ask (T is class:EvaluationError) out false else {
-                                        conclude: error [
-                                            skill = "logical_returned_operand";
-                                            hypothesis = "inapplicable_assumed";
-                                            RU.explanation = "${B.class()} применяется к значениям любых типов: у каждого значения есть истинность. Следовательно, операция допустима.";
-                                            EN.explanation = "the ${B.class()} applies to values of any types: every value is either truthy or falsy. Therefore, the operation is valid.";
-                                            RU.reason = "${B.class()} не применяется к операндам этих типов.";
-                                            EN.reason = "The ${B.class()} does not apply to operands of these types.";
-                                        ];
-                                    };
-                                    conclude: null
+                                    agg and {
+                                        _ -> {
+                                            conclude: error [
+                                                skill = "logical_returned_operand";
+                                                hypothesis = "inapplicable_assumed";
+                                                RU.explanation = "${B.class()} применяется к значениям любых типов: у каждого значения есть истинность. Следовательно, операция допустима.";
+                                                EN.explanation = "the ${B.class()} applies to values of any types: every value is either truthy or falsy. Therefore, the operation is valid.";
+                                                RU.reason = "${B.class()} не применяется к операндам этих типов.";
+                                                EN.reason = "The ${B.class()} does not apply to operands of these types.";
+                                            ]
+                                        };
+                                        _ -> {
+                                            conclude: subcall("inapplicable_reported", E, T)
+                                        };
+                                        correct -> { conclude: correct };
+                                        error -> { conclude: error };
+                                        null -> { conclude: null };
+                                    }
                                 };
                                 correct -> { conclude: correct };
                                 error -> { conclude: error };
@@ -449,17 +545,24 @@ tpg Typed(E: Operation, Old: Expr, New: Expr, T: Outcome) {
                                     conclude: null
                                 };
                                 _ -> {
-                                    ask (T is class:EvaluationError) out false else {
-                                        conclude: error [
-                                            skill = "equality_comparison";
-                                            hypothesis = "inapplicable_assumed";
-                                            RU.explanation = "${C.comparesAnyTypes ? 'на равенство можно сравнивать значения любых типов' : 'на равенство можно сравнивать числа между собой и последовательности одного вида'}. Следовательно, операция допустима.";
-                                            EN.explanation = "${C.comparesAnyTypes ? 'values of any types can be compared for equality' : 'numbers with numbers and sequences of the same kind can be compared for equality'}. Therefore, the operation is valid.";
-                                            RU.reason = "${C.class()} не применяется к значениям этих типов.";
-                                            EN.reason = "The ${C.class()} does not apply to values of these types.";
-                                        ];
-                                    };
-                                    conclude: null
+                                    agg and {
+                                        _ -> {
+                                            conclude: error [
+                                                skill = "equality_comparison";
+                                                hypothesis = "inapplicable_assumed";
+                                                RU.explanation = "${C.comparesAnyTypes ? 'на равенство можно сравнивать значения любых типов' : 'на равенство можно сравнивать числа между собой и последовательности одного вида'}. Следовательно, операция допустима.";
+                                                EN.explanation = "${C.comparesAnyTypes ? 'values of any types can be compared for equality' : 'numbers with numbers and sequences of the same kind can be compared for equality'}. Therefore, the operation is valid.";
+                                                RU.reason = "${C.class()} не применяется к значениям этих типов.";
+                                                EN.reason = "The ${C.class()} does not apply to values of these types.";
+                                            ]
+                                        };
+                                        _ -> {
+                                            conclude: subcall("inapplicable_reported", E, T)
+                                        };
+                                        correct -> { conclude: correct };
+                                        error -> { conclude: error };
+                                        null -> { conclude: null };
+                                    }
                                 };
                                 correct -> { conclude: correct };
                                 error -> { conclude: error };
@@ -475,15 +578,22 @@ tpg Typed(E: Operation, Old: Expr, New: Expr, T: Outcome) {
                         false -> {
                             agg hyp {
                                 _ -> {
-                                    ask (T is class:EvaluationError) out false else {
-                                        conclude: correct [
-                                            skill = "equality_comparison";
-                                            hypothesis = "rule";
-                                            RU.explanation = "${C.class()} не применим к значениям типов ${L} и ${R}.";
-                                            EN.explanation = "the ${C.class()} cannot be applied to values of types ${L} and ${R}.";
-                                        ];
-                                    };
-                                    conclude: null
+                                    agg and {
+                                        _ -> {
+                                            conclude: correct [
+                                                skill = "equality_comparison";
+                                                hypothesis = "rule";
+                                                RU.explanation = "${C.class()} не применим к значениям типов ${L} и ${R}.";
+                                                EN.explanation = "the ${C.class()} cannot be applied to values of types ${L} and ${R}.";
+                                            ]
+                                        };
+                                        _ -> {
+                                            conclude: subcall("inapplicable_reported", E, T)
+                                        };
+                                        correct -> { conclude: correct };
+                                        error -> { conclude: error };
+                                        null -> { conclude: null };
+                                    }
                                 };
                                 _ -> {
                                     ask (T is class:BooleanType) out false else {
@@ -553,17 +663,24 @@ tpg Typed(E: Operation, Old: Expr, New: Expr, T: Outcome) {
                                     conclude: null
                                 };
                                 _ -> {
-                                    ask (T is class:EvaluationError) out false else {
-                                        conclude: error [
-                                            skill = "ordering_comparison";
-                                            hypothesis = "inapplicable_assumed";
-                                            RU.explanation = "по порядку можно сравнивать числа между собой и последовательности одного вида, а здесь значения типов ${L} и ${R}. Следовательно, операция допустима.";
-                                            EN.explanation = "numbers with numbers and sequences of the same kind can be ordered, and here the values have types ${L} and ${R}. Therefore, the operation is valid.";
-                                            RU.reason = "${C.class()} не применяется к значениям этих типов.";
-                                            EN.reason = "The ${C.class()} does not apply to values of these types.";
-                                        ];
-                                    };
-                                    conclude: null
+                                    agg and {
+                                        _ -> {
+                                            conclude: error [
+                                                skill = "ordering_comparison";
+                                                hypothesis = "inapplicable_assumed";
+                                                RU.explanation = "по порядку можно сравнивать числа между собой и последовательности одного вида, а здесь значения типов ${L} и ${R}. Следовательно, операция допустима.";
+                                                EN.explanation = "numbers with numbers and sequences of the same kind can be ordered, and here the values have types ${L} and ${R}. Therefore, the operation is valid.";
+                                                RU.reason = "${C.class()} не применяется к значениям этих типов.";
+                                                EN.reason = "The ${C.class()} does not apply to values of these types.";
+                                            ]
+                                        };
+                                        _ -> {
+                                            conclude: subcall("inapplicable_reported", E, T)
+                                        };
+                                        correct -> { conclude: correct };
+                                        error -> { conclude: error };
+                                        null -> { conclude: null };
+                                    }
                                 };
                                 correct -> { conclude: correct };
                                 error -> { conclude: error };
@@ -579,15 +696,22 @@ tpg Typed(E: Operation, Old: Expr, New: Expr, T: Outcome) {
                         false -> {
                             agg hyp {
                                 _ -> {
-                                    ask (T is class:EvaluationError) out false else {
-                                        conclude: correct [
-                                            skill = "ordering_comparison";
-                                            hypothesis = "rule";
-                                            RU.explanation = "по порядку сравниваются только числа между собой и последовательности одного вида, а здесь значения типов ${L} и ${R}.";
-                                            EN.explanation = "only numbers with numbers or sequences of the same kind can be ordered, while here the values have types ${L} and ${R}.";
-                                        ];
-                                    };
-                                    conclude: null
+                                    agg and {
+                                        _ -> {
+                                            conclude: correct [
+                                                skill = "ordering_comparison";
+                                                hypothesis = "rule";
+                                                RU.explanation = "по порядку сравниваются только числа между собой и последовательности одного вида, а здесь значения типов ${L} и ${R}.";
+                                                EN.explanation = "only numbers with numbers or sequences of the same kind can be ordered, while here the values have types ${L} and ${R}.";
+                                            ]
+                                        };
+                                        _ -> {
+                                            conclude: subcall("inapplicable_reported", E, T)
+                                        };
+                                        correct -> { conclude: correct };
+                                        error -> { conclude: error };
+                                        null -> { conclude: null };
+                                    }
                                 };
                                 _ -> {
                                     ask (T is class:BooleanType) out false else {
@@ -657,17 +781,24 @@ tpg Typed(E: Operation, Old: Expr, New: Expr, T: Outcome) {
                                     conclude: null
                                 };
                                 _ -> {
-                                    ask (T is class:EvaluationError) out false else {
-                                        conclude: error [
-                                            skill = "membership_test";
-                                            hypothesis = "inapplicable_assumed";
-                                            RU.explanation = "искать можно в коллекции или строке, а здесь ищут значение типа ${L} в значении типа ${R}. Следовательно, операция допустима.";
-                                            EN.explanation = "one can search in a collection or a string, and here a value of type ${L} is searched for in a value of type ${R}. Therefore, the operation is valid.";
-                                            RU.reason = "${C.class()} не применяется к значениям этих типов.";
-                                            EN.reason = "The ${C.class()} does not apply to values of these types.";
-                                        ];
-                                    };
-                                    conclude: null
+                                    agg and {
+                                        _ -> {
+                                            conclude: error [
+                                                skill = "membership_test";
+                                                hypothesis = "inapplicable_assumed";
+                                                RU.explanation = "искать можно в коллекции или строке, а здесь ищут значение типа ${L} в значении типа ${R}. Следовательно, операция допустима.";
+                                                EN.explanation = "one can search in a collection or a string, and here a value of type ${L} is searched for in a value of type ${R}. Therefore, the operation is valid.";
+                                                RU.reason = "${C.class()} не применяется к значениям этих типов.";
+                                                EN.reason = "The ${C.class()} does not apply to values of these types.";
+                                            ]
+                                        };
+                                        _ -> {
+                                            conclude: subcall("inapplicable_reported", E, T)
+                                        };
+                                        correct -> { conclude: correct };
+                                        error -> { conclude: error };
+                                        null -> { conclude: null };
+                                    }
                                 };
                                 correct -> { conclude: correct };
                                 error -> { conclude: error };
@@ -683,15 +814,22 @@ tpg Typed(E: Operation, Old: Expr, New: Expr, T: Outcome) {
                         false -> {
                             agg hyp {
                                 _ -> {
-                                    ask (T is class:EvaluationError) out false else {
-                                        conclude: correct [
-                                            skill = "membership_test";
-                                            hypothesis = "rule";
-                                            RU.explanation = "в значении типа ${R} нельзя искать значение типа ${L}: искать можно в коллекции или строке, а в строке — только строку.";
-                                            EN.explanation = "a value of type ${L} cannot be searched for in a value of type ${R}: one can search only in a collection or a string, and only for a string in a string.";
-                                        ];
-                                    };
-                                    conclude: null
+                                    agg and {
+                                        _ -> {
+                                            conclude: correct [
+                                                skill = "membership_test";
+                                                hypothesis = "rule";
+                                                RU.explanation = "в значении типа ${R} нельзя искать значение типа ${L}: искать можно в коллекции или строке, а в строке — только строку.";
+                                                EN.explanation = "a value of type ${L} cannot be searched for in a value of type ${R}: one can search only in a collection or a string, and only for a string in a string.";
+                                            ]
+                                        };
+                                        _ -> {
+                                            conclude: subcall("inapplicable_reported", E, T)
+                                        };
+                                        correct -> { conclude: correct };
+                                        error -> { conclude: error };
+                                        null -> { conclude: null };
+                                    }
                                 };
                                 _ -> {
                                     ask (T is class:BooleanType) out false else {
@@ -784,17 +922,24 @@ tpg Typed(E: Operation, Old: Expr, New: Expr, T: Outcome) {
                             conclude: null
                         };
                         _ -> {
-                            ask (T is class:EvaluationError) out false else {
-                                conclude: error [
-                                    skill = "mapping_value_access";
-                                    hypothesis = "inapplicable_assumed";
-                                    RU.explanation = "к словарю обращаются по ключу неизменяемого типа, а здесь словарь типа ${X} и ключ типа ${I}. Следовательно, операция допустима.";
-                                    EN.explanation = "a dictionary is accessed by a key of an immutable type, and here the dictionary has type ${X} and the key has type ${I}. Therefore, the operation is valid.";
-                                    RU.reason = "${E.class()} не применяется к значениям этих типов.";
-                                    EN.reason = "${E.class()} does not apply to values of these types.";
-                                ];
-                            };
-                            conclude: null
+                            agg and {
+                                _ -> {
+                                    conclude: error [
+                                        skill = "mapping_value_access";
+                                        hypothesis = "inapplicable_assumed";
+                                        RU.explanation = "к словарю обращаются по ключу неизменяемого типа, а здесь словарь типа ${X} и ключ типа ${I}. Следовательно, операция допустима.";
+                                        EN.explanation = "a dictionary is accessed by a key of an immutable type, and here the dictionary has type ${X} and the key has type ${I}. Therefore, the operation is valid.";
+                                        RU.reason = "${E.class()} не применяется к значениям этих типов.";
+                                        EN.reason = "${E.class()} does not apply to values of these types.";
+                                    ]
+                                };
+                                _ -> {
+                                    conclude: subcall("inapplicable_reported", E, T)
+                                };
+                                correct -> { conclude: correct };
+                                error -> { conclude: error };
+                                null -> { conclude: null };
+                            }
                         };
                         correct -> { conclude: correct };
                         error -> { conclude: error };
@@ -852,17 +997,24 @@ tpg Typed(E: Operation, Old: Expr, New: Expr, T: Outcome) {
                                             conclude: null
                                         };
                                         _ -> {
-                                            ask (T is class:EvaluationError) out false else {
-                                                conclude: error [
-                                                    skill = "indexed_element_type";
-                                                    hypothesis = "inapplicable_assumed";
-                                                    RU.explanation = "к последовательности обращаются по целому индексу, а здесь последовательность типа ${X} и индекс типа ${I}. Следовательно, операция допустима.";
-                                                    EN.explanation = "a sequence is accessed by an integer index, and here the sequence has type ${X} and the index has type ${I}. Therefore, the operation is valid.";
-                                                    RU.reason = "${E.class()} не применяется к значениям этих типов.";
-                                                    EN.reason = "${E.class()} does not apply to values of these types.";
-                                                ];
-                                            };
-                                            conclude: null
+                                            agg and {
+                                                _ -> {
+                                                    conclude: error [
+                                                        skill = "indexed_element_type";
+                                                        hypothesis = "inapplicable_assumed";
+                                                        RU.explanation = "к последовательности обращаются по целому индексу, а здесь последовательность типа ${X} и индекс типа ${I}. Следовательно, операция допустима.";
+                                                        EN.explanation = "a sequence is accessed by an integer index, and here the sequence has type ${X} and the index has type ${I}. Therefore, the operation is valid.";
+                                                        RU.reason = "${E.class()} не применяется к значениям этих типов.";
+                                                        EN.reason = "${E.class()} does not apply to values of these types.";
+                                                    ]
+                                                };
+                                                _ -> {
+                                                    conclude: subcall("inapplicable_reported", E, T)
+                                                };
+                                                correct -> { conclude: correct };
+                                                error -> { conclude: error };
+                                                null -> { conclude: null };
+                                            }
                                         };
                                         correct -> { conclude: correct };
                                         error -> { conclude: error };
@@ -929,17 +1081,24 @@ tpg Typed(E: Operation, Old: Expr, New: Expr, T: Outcome) {
                                             conclude: null
                                         };
                                         _ -> {
-                                            ask (T is class:EvaluationError) out false else {
-                                                conclude: error [
-                                                    skill = "indexed_element_type";
-                                                    hypothesis = "inapplicable_assumed";
-                                                    RU.explanation = "к последовательности обращаются по целому индексу, а здесь последовательность типа ${X} и индекс типа ${I}. Следовательно, операция допустима.";
-                                                    EN.explanation = "a sequence is accessed by an integer index, and here the sequence has type ${X} and the index has type ${I}. Therefore, the operation is valid.";
-                                                    RU.reason = "${E.class()} не применяется к значениям этих типов.";
-                                                    EN.reason = "${E.class()} does not apply to values of these types.";
-                                                ];
-                                            };
-                                            conclude: null
+                                            agg and {
+                                                _ -> {
+                                                    conclude: error [
+                                                        skill = "indexed_element_type";
+                                                        hypothesis = "inapplicable_assumed";
+                                                        RU.explanation = "к последовательности обращаются по целому индексу, а здесь последовательность типа ${X} и индекс типа ${I}. Следовательно, операция допустима.";
+                                                        EN.explanation = "a sequence is accessed by an integer index, and here the sequence has type ${X} and the index has type ${I}. Therefore, the operation is valid.";
+                                                        RU.reason = "${E.class()} не применяется к значениям этих типов.";
+                                                        EN.reason = "${E.class()} does not apply to values of these types.";
+                                                    ]
+                                                };
+                                                _ -> {
+                                                    conclude: subcall("inapplicable_reported", E, T)
+                                                };
+                                                correct -> { conclude: correct };
+                                                error -> { conclude: error };
+                                                null -> { conclude: null };
+                                            }
                                         };
                                         correct -> { conclude: correct };
                                         error -> { conclude: error };
@@ -957,15 +1116,22 @@ tpg Typed(E: Operation, Old: Expr, New: Expr, T: Outcome) {
                         false -> {
                             agg hyp {
                                 _ -> {
-                                    ask (T is class:EvaluationError) out false else {
-                                        conclude: correct [
-                                            skill = "indexing_applicability";
-                                            hypothesis = "rule";
-                                            RU.explanation = "к последовательности обращаются по целому индексу, а к словарю — по ключу неизменяемого типа; здесь же значение типа ${X} и индекс типа ${I}.";
-                                            EN.explanation = "a sequence is indexed by an integer and a dictionary by a key of an immutable type, while here the value has type ${X} and the index has type ${I}.";
-                                        ];
-                                    };
-                                    conclude: null
+                                    agg and {
+                                        _ -> {
+                                            conclude: correct [
+                                                skill = "indexing_applicability";
+                                                hypothesis = "rule";
+                                                RU.explanation = "к последовательности обращаются по целому индексу, а к словарю — по ключу неизменяемого типа; здесь же значение типа ${X} и индекс типа ${I}.";
+                                                EN.explanation = "a sequence is indexed by an integer and a dictionary by a key of an immutable type, while here the value has type ${X} and the index has type ${I}.";
+                                            ]
+                                        };
+                                        _ -> {
+                                            conclude: subcall("inapplicable_reported", E, T)
+                                        };
+                                        correct -> { conclude: correct };
+                                        error -> { conclude: error };
+                                        null -> { conclude: null };
+                                    }
                                 };
                                 _ -> {
                                     ask (X is class:SequenceType and T == (X as class:SequenceType)->elementType
@@ -1059,17 +1225,24 @@ tpg Typed(E: Operation, Old: Expr, New: Expr, T: Outcome) {
                             conclude: null
                         };
                         _ -> {
-                            ask (T is class:EvaluationError) out false else {
-                                conclude: error [
-                                    skill = "slice_result";
-                                    hypothesis = "inapplicable_assumed";
-                                    RU.explanation = "срез можно взять у любой последовательности, а значение типа ${X} — последовательность. Следовательно, операция допустима.";
-                                    EN.explanation = "any sequence can be sliced, and a value of type ${X} is a sequence. Therefore, the operation is valid.";
-                                    RU.reason = "${E.class()} не применяется к значению этого типа.";
-                                    EN.reason = "${E.class()} does not apply to a value of this type.";
-                                ];
-                            };
-                            conclude: null
+                            agg and {
+                                _ -> {
+                                    conclude: error [
+                                        skill = "slice_result";
+                                        hypothesis = "inapplicable_assumed";
+                                        RU.explanation = "срез можно взять у любой последовательности, а значение типа ${X} — последовательность. Следовательно, операция допустима.";
+                                        EN.explanation = "any sequence can be sliced, and a value of type ${X} is a sequence. Therefore, the operation is valid.";
+                                        RU.reason = "${E.class()} не применяется к значению этого типа.";
+                                        EN.reason = "${E.class()} does not apply to a value of this type.";
+                                    ]
+                                };
+                                _ -> {
+                                    conclude: subcall("inapplicable_reported", E, T)
+                                };
+                                correct -> { conclude: correct };
+                                error -> { conclude: error };
+                                null -> { conclude: null };
+                            }
                         };
                         correct -> { conclude: correct };
                         error -> { conclude: error };
@@ -1085,15 +1258,22 @@ tpg Typed(E: Operation, Old: Expr, New: Expr, T: Outcome) {
                 false -> {
                     agg hyp {
                         _ -> {
-                            ask (T is class:EvaluationError) out false else {
-                                conclude: correct [
-                                    skill = "slice_result";
-                                    hypothesis = "rule";
-                                    RU.explanation = "срез можно взять только у последовательности, а здесь значение типа ${X}.";
-                                    EN.explanation = "only a sequence can be sliced, while here the value has type ${X}.";
-                                ];
-                            };
-                            conclude: null
+                            agg and {
+                                _ -> {
+                                    conclude: correct [
+                                        skill = "slice_result";
+                                        hypothesis = "rule";
+                                        RU.explanation = "срез можно взять только у последовательности, а здесь значение типа ${X}.";
+                                        EN.explanation = "only a sequence can be sliced, while here the value has type ${X}.";
+                                    ]
+                                };
+                                _ -> {
+                                    conclude: subcall("inapplicable_reported", E, T)
+                                };
+                                correct -> { conclude: correct };
+                                error -> { conclude: error };
+                                null -> { conclude: null };
+                            }
                         };
                         _ -> {
                             ask (T == X) out false else {
@@ -1191,17 +1371,24 @@ tpg Typed(E: Operation, Old: Expr, New: Expr, T: Outcome) {
                             conclude: null
                         };
                         _ -> {
-                            ask (T is class:EvaluationError) out false else {
-                                conclude: error [
-                                    skill = "call_fixed_result";
-                                    hypothesis = "inapplicable_assumed";
-                                    RU.explanation = "${F.class()} принимает аргумент любого типа. Следовательно, операция допустима.";
-                                    EN.explanation = "the ${F.class()} accepts an argument of any type. Therefore, the operation is valid.";
-                                    RU.reason = "${F.class()} не применяется к аргументу этого типа.";
-                                    EN.reason = "The ${F.class()} does not apply to an argument of this type.";
-                                ];
-                            };
-                            conclude: null
+                            agg and {
+                                _ -> {
+                                    conclude: error [
+                                        skill = "call_fixed_result";
+                                        hypothesis = "inapplicable_assumed";
+                                        RU.explanation = "${F.class()} принимает аргумент любого типа. Следовательно, операция допустима.";
+                                        EN.explanation = "the ${F.class()} accepts an argument of any type. Therefore, the operation is valid.";
+                                        RU.reason = "${F.class()} не применяется к аргументу этого типа.";
+                                        EN.reason = "The ${F.class()} does not apply to an argument of this type.";
+                                    ]
+                                };
+                                _ -> {
+                                    conclude: subcall("inapplicable_reported", E, T)
+                                };
+                                correct -> { conclude: correct };
+                                error -> { conclude: error };
+                                null -> { conclude: null };
+                            }
                         };
                         correct -> { conclude: correct };
                         error -> { conclude: error };
@@ -1245,17 +1432,24 @@ tpg Typed(E: Operation, Old: Expr, New: Expr, T: Outcome) {
                                     conclude: null
                                 };
                                 _ -> {
-                                    ask (T is class:EvaluationError) out false else {
-                                        conclude: error [
-                                            skill = "length_applicability";
-                                            hypothesis = "inapplicable_assumed";
-                                            RU.explanation = "у значения типа ${A} есть элементы, и ${F.class()} их считает. Следовательно, операция допустима.";
-                                            EN.explanation = "a value of type ${A} has elements, and the ${F.class()} counts them. Therefore, the operation is valid.";
-                                            RU.reason = "${F.class()} не применяется к аргументу этого типа.";
-                                            EN.reason = "The ${F.class()} does not apply to an argument of this type.";
-                                        ];
-                                    };
-                                    conclude: null
+                                    agg and {
+                                        _ -> {
+                                            conclude: error [
+                                                skill = "length_applicability";
+                                                hypothesis = "inapplicable_assumed";
+                                                RU.explanation = "у значения типа ${A} есть элементы, и ${F.class()} их считает. Следовательно, операция допустима.";
+                                                EN.explanation = "a value of type ${A} has elements, and the ${F.class()} counts them. Therefore, the operation is valid.";
+                                                RU.reason = "${F.class()} не применяется к аргументу этого типа.";
+                                                EN.reason = "The ${F.class()} does not apply to an argument of this type.";
+                                            ]
+                                        };
+                                        _ -> {
+                                            conclude: subcall("inapplicable_reported", E, T)
+                                        };
+                                        correct -> { conclude: correct };
+                                        error -> { conclude: error };
+                                        null -> { conclude: null };
+                                    }
                                 };
                                 correct -> { conclude: correct };
                                 error -> { conclude: error };
@@ -1271,15 +1465,22 @@ tpg Typed(E: Operation, Old: Expr, New: Expr, T: Outcome) {
                         false -> {
                             agg hyp {
                                 _ -> {
-                                    ask (T is class:EvaluationError) out false else {
-                                        conclude: correct [
-                                            skill = "length_applicability";
-                                            hypothesis = "rule";
-                                            RU.explanation = "у значения типа ${A} нет элементов, которые можно было бы посчитать.";
-                                            EN.explanation = "a value of type ${A} has no elements that could be counted.";
-                                        ];
-                                    };
-                                    conclude: null
+                                    agg and {
+                                        _ -> {
+                                            conclude: correct [
+                                                skill = "length_applicability";
+                                                hypothesis = "rule";
+                                                RU.explanation = "у значения типа ${A} нет элементов, которые можно было бы посчитать.";
+                                                EN.explanation = "a value of type ${A} has no elements that could be counted.";
+                                            ]
+                                        };
+                                        _ -> {
+                                            conclude: subcall("inapplicable_reported", E, T)
+                                        };
+                                        correct -> { conclude: correct };
+                                        error -> { conclude: error };
+                                        null -> { conclude: null };
+                                    }
                                 };
                                 _ -> {
                                     ask (givesFixedResult(F, T)) out false else {
@@ -1351,17 +1552,24 @@ tpg Typed(E: Operation, Old: Expr, New: Expr, T: Outcome) {
                                     conclude: null
                                 };
                                 _ -> {
-                                    ask (T is class:EvaluationError) out false else {
-                                        conclude: error [
-                                            skill = "conversion_applicability";
-                                            hypothesis = "inapplicable_assumed";
-                                            RU.explanation = "в число преобразуются числа и строки, а здесь аргумент типа ${A}. Следовательно, операция допустима.";
-                                            EN.explanation = "numbers and strings can be converted to a number, and here the argument has type ${A}. Therefore, the operation is valid.";
-                                            RU.reason = "${F.class()} не применяется к аргументу этого типа.";
-                                            EN.reason = "The ${F.class()} does not apply to an argument of this type.";
-                                        ];
-                                    };
-                                    conclude: null
+                                    agg and {
+                                        _ -> {
+                                            conclude: error [
+                                                skill = "conversion_applicability";
+                                                hypothesis = "inapplicable_assumed";
+                                                RU.explanation = "в число преобразуются числа и строки, а здесь аргумент типа ${A}. Следовательно, операция допустима.";
+                                                EN.explanation = "numbers and strings can be converted to a number, and here the argument has type ${A}. Therefore, the operation is valid.";
+                                                RU.reason = "${F.class()} не применяется к аргументу этого типа.";
+                                                EN.reason = "The ${F.class()} does not apply to an argument of this type.";
+                                            ]
+                                        };
+                                        _ -> {
+                                            conclude: subcall("inapplicable_reported", E, T)
+                                        };
+                                        correct -> { conclude: correct };
+                                        error -> { conclude: error };
+                                        null -> { conclude: null };
+                                    }
                                 };
                                 correct -> { conclude: correct };
                                 error -> { conclude: error };
@@ -1377,15 +1585,22 @@ tpg Typed(E: Operation, Old: Expr, New: Expr, T: Outcome) {
                         false -> {
                             agg hyp {
                                 _ -> {
-                                    ask (T is class:EvaluationError) out false else {
-                                        conclude: correct [
-                                            skill = "conversion_applicability";
-                                            hypothesis = "rule";
-                                            RU.explanation = "в число преобразуются только числа и строки, а здесь аргумент типа ${A}.";
-                                            EN.explanation = "only numbers and strings can be converted to a number, while here the argument has type ${A}.";
-                                        ];
-                                    };
-                                    conclude: null
+                                    agg and {
+                                        _ -> {
+                                            conclude: correct [
+                                                skill = "conversion_applicability";
+                                                hypothesis = "rule";
+                                                RU.explanation = "в число преобразуются только числа и строки, а здесь аргумент типа ${A}.";
+                                                EN.explanation = "only numbers and strings can be converted to a number, while here the argument has type ${A}.";
+                                            ]
+                                        };
+                                        _ -> {
+                                            conclude: subcall("inapplicable_reported", E, T)
+                                        };
+                                        correct -> { conclude: correct };
+                                        error -> { conclude: error };
+                                        null -> { conclude: null };
+                                    }
                                 };
                                 _ -> {
                                     ask (givesFixedResult(F, T)) out false else {
@@ -1427,6 +1642,155 @@ tpg Typed(E: Operation, Old: Expr, New: Expr, T: Outcome) {
                     } as convertibleArgumentCheck
                 };
             } as argumentRequirementSwitch
+        };
+        OperationGroup:memberAccess -> {
+            var Owner : Expr = leftOf(E, Old, New);
+            var M : Member = memberOf(E, Old, New);
+            var C : Type = ownerTypeOf(Owner);
+            var R : Outcome = resultOf(M);
+
+            ask (hasMember(C, M)) {
+                true -> {
+                    agg hyp {
+                        _ -> {
+                            conclude: subcall("member_found", E, Old, New, Owner, M, C, R, T)
+                        };
+                        _ -> {
+                            agg and {
+                                _ -> {
+                                    ask (not C=>declares(M)) out false else {
+                                        conclude: error [
+                                            skill = "member_lookup";
+                                            hypothesis = "inheritance_ignored";
+                                            RU.explanation = "${C} наследует ${M is class:Field ? 'поле' : 'метод'} ${M} от родительского класса. Следовательно, обращение допустимо.";
+                                            EN.explanation = "${C} inherits the ${M is class:Field ? 'field' : 'method'} ${M} from its parent class. Therefore, the access is valid.";
+                                            RU.reason = "Члены родительского класса наследнику недоступны.";
+                                            EN.reason = "Members of the parent class are not available in a subclass.";
+                                        ];
+                                    };
+                                    conclude: null
+                                };
+                                _ -> {
+                                    conclude: subcall("missing_member_reported", E, T)
+                                };
+                                correct -> { conclude: correct };
+                                error -> { conclude: error };
+                                null -> { conclude: null };
+                            }
+                        };
+                        _ -> {
+                            agg and {
+                                _ -> {
+                                    ask (C=>declares(M) and not M.isStatic and M.visibility != Visibility:protected) out false else {
+                                        conclude: error [
+                                            skill = "member_lookup";
+                                            hypothesis = "missing_member_assumed";
+                                            RU.explanation = "у ${C} есть ${M is class:Field ? 'поле' : 'метод'} ${M}. Следовательно, обращение допустимо.";
+                                            EN.explanation = "${C} has the ${M is class:Field ? 'field' : 'method'} ${M}. Therefore, the access is valid.";
+                                            RU.reason = "У ${C} нет ${M is class:Field ? 'поля' : 'метода'} ${M}.";
+                                            EN.reason = "${C} has no ${M is class:Field ? 'field' : 'method'} ${M}.";
+                                        ];
+                                    };
+                                    conclude: null
+                                };
+                                _ -> {
+                                    conclude: subcall("missing_member_reported", E, T)
+                                };
+                                correct -> { conclude: correct };
+                                error -> { conclude: error };
+                                null -> { conclude: null };
+                            }
+                        };
+                        correct -> { conclude: correct };
+                        error -> { conclude: error };
+                        null -> { conclude: null };
+                    }
+                };
+                false -> {
+                    agg hyp {
+                        _ -> {
+                            agg and {
+                                _ -> {
+                                    conclude: correct [
+                                        skill = "member_lookup";
+                                        hypothesis = "rule";
+                                        RU.explanation = "у ${C} нет ${M is class:Field ? 'поля' : 'метода'} ${M}.";
+                                        EN.explanation = "${C} has no ${M is class:Field ? 'field' : 'method'} ${M}.";
+                                    ]
+                                };
+                                _ -> {
+                                    conclude: subcall("missing_member_reported", E, T)
+                                };
+                                correct -> { conclude: correct };
+                                error -> { conclude: error };
+                                null -> { conclude: null };
+                            }
+                        };
+                        _ -> {
+                            // Решив, что член есть, студент дальше рассуждает о том, чего у типа нет: что он думает о
+                            // результате такого члена, проверить и объяснить нельзя, поэтому рассуждение здесь заканчивается.
+                            ask (T is class:Type) out false else {
+                                conclude: error [
+                                    skill = "member_lookup";
+                                    hypothesis = "foreign_member";
+                                    RU.explanation = "у ${C} нет ${M is class:Field ? 'поля' : 'метода'} ${M}.";
+                                    EN.explanation = "${C} has no ${M is class:Field ? 'field' : 'method'} ${M}.";
+                                    RU.reason = "У ${C} есть ${M is class:Field ? 'поле' : 'метод'} ${M}.";
+                                    EN.reason = "${C} has the ${M is class:Field ? 'field' : 'method'} ${M}.";
+                                ];
+                            };
+                            conclude: null
+                        };
+                        correct -> { conclude: correct };
+                        error -> { conclude: error };
+                        null -> {
+                            conclude: null [
+                                skill = "member_lookup";
+                                RU.explanation = "у ${C} нет ${M is class:Field ? 'поля' : 'метода'} ${M}.";
+                                EN.explanation = "${C} has no ${M is class:Field ? 'field' : 'method'} ${M}.";
+                            ]
+                        };
+                    }
+                };
+            } as memberLookup
+        };
+        OperationGroup:construction -> {
+            var K : ClassType = ((leftOf(E, Old, New) as class:ClassReference)->refersTo);
+            agg hyp {
+                _ -> {
+                    ask (T == K) out false else {
+                        conclude: correct [
+                            skill = "object_construction";
+                            hypothesis = "rule";
+                            RU.explanation = "вызов класса ${K} создаёт и возвращает новый объект этого класса.";
+                            EN.explanation = "calling the class ${K} creates and returns a new object of this class.";
+                        ];
+                    };
+                    conclude: null
+                };
+                _ -> {
+                    ask (T is class:NoneType) out false else {
+                        conclude: error [
+                            skill = "object_construction";
+                            hypothesis = "constructor_returns_none";
+                            RU.explanation = "вызов класса ${K} возвращает созданный объект, хотя сам конструктор ничего не возвращает.";
+                            EN.explanation = "calling the class ${K} returns the created object, even though the constructor itself returns nothing.";
+                            RU.reason = "Конструктор ничего не возвращает, поэтому и вызов класса ничего не даёт.";
+                            EN.reason = "The constructor returns nothing, so calling the class gives nothing either.";
+                        ];
+                    };
+                    conclude: null
+                };
+                correct -> { conclude: correct };
+                error -> { conclude: error };
+                null -> {
+                    conclude: null [
+                        skill = "object_construction";
+                        RU.explanation = "вызов класса ${K} создаёт объект этого класса.";
+                        EN.explanation = "calling the class ${K} creates an object of this class.";
+                    ]
+                };
+            } as constructionHypotheses
         };
     } as operationGroup
 }
@@ -1486,4 +1850,14 @@ meta for sizedArgumentCheck [
 ]
 meta for convertibleArgumentCheck [
     skill = "conversion_applicability";
+]
+// Обращение к члену — цепочка решений: есть ли член у типа с учётом родителей (здесь), доступен ли он отсюда
+// (member_found), можно ли обратиться к нему так, как написано (member_accessible), какой у него результат
+// (member_result). Неверное решение продолжается по той ветке, в которую студент попал, поэтому заблуждения складываются.
+meta for memberLookup [
+    skill = "member_lookup";
+]
+// Создание объекта не ветвится: решение студента — какой итог даёт вызов класса.
+meta for constructionHypotheses [
+    skill = "object_construction";
 ]

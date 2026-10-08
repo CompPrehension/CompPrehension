@@ -3,9 +3,11 @@ package org.vstu.compprehension.businesslogic.domains.typeevaluation;
 import its.model.DomainSolvingModel;
 import its.model.definition.DomainModel;
 import its.model.definition.loqi.DomainLoqiBuilder;
+import its.model.expressions.literals.StringLiteral;
 import its.model.nodes.AggregationMethod;
 import its.model.nodes.BranchResult;
 import its.model.nodes.BranchResultNode;
+import its.model.nodes.BranchResultRedirectingNode;
 import its.model.nodes.DecisionTree;
 import its.questions.gen.formulations.TemplatingUtils;
 import its.reasoner.LearningSituation;
@@ -44,6 +46,7 @@ final class TypeEvaluationTreeFixture {
             obj t_tuple_str_int : py_tuple { itemType<0>(t_str); itemType<1>(t_int); }
             obj t_dict_str_int : py_dict { keyType(t_str); valueType(t_int); }
             obj t_error : py_TypeError {}
+            obj t_attribute_error : py_AttributeError {}
             """;
 
     private static final List<String> LANGUAGES = List.of("RU", "EN");
@@ -72,14 +75,39 @@ final class TypeEvaluationTreeFixture {
         return MODEL.getDecisionTrees().values();
     }
 
+    /** Дерево, которое вызывает вывод через subcall: первый аргумент вызова — имя дерева. */
+    static @NotNull DecisionTree calledTree(@NotNull BranchResultRedirectingNode call) {
+        var name = ((StringLiteral) call.getCall().getArguments().getFirst()).getValue();
+        return Objects.requireNonNull(MODEL.getDecisionTrees().get(name), name);
+    }
+
+    /**
+     * Операция op с операндами a и b. Прочтения операции (см. {@link #similarOperator}, {@link #foreignVariant}) кладёт
+     * в ситуацию генератор — те, что студент может спутать; без них дерево операцию не перечитывает.
+     */
     static @NotNull Verdict judge(@NotNull String operation, @NotNull String leftType,
-                                  @NotNull String rightType, @NotNull String answerType) {
+                                  @NotNull String rightType, @NotNull String answerType, @NotNull String... readings) {
         return judgeSituation(TYPES + """
                 obj a : Variable { hasType(%s); }
                 obj b : Variable { hasType(%s); }
                 var E = obj op : %s { hasOperand<OperandPlacement:left>(a); hasOperand<OperandPlacement:right>(b); }
                 var T = %s
-                """.formatted(leftType, rightType, operation, answerType));
+                """.formatted(leftType, rightType, operation, answerType) + String.join("", readings));
+    }
+
+    /** Прочтение операции op с операндами a и b как похожего оператора. */
+    static @NotNull String similarOperator(@NotNull String operationClass) {
+        return reading(operationClass, "similarOperatorOf");
+    }
+
+    /** Прочтение операции op с операндами a и b по правилам другого языка. */
+    static @NotNull String foreignVariant(@NotNull String operationClass) {
+        return reading(operationClass, "foreignVariantOf");
+    }
+
+    private static @NotNull String reading(@NotNull String operationClass, @NotNull String relation) {
+        return "obj op_as_%s : %s { hasOperand<OperandPlacement:left>(a); hasOperand<OperandPlacement:right>(b); %s(op); }\n"
+                .formatted(operationClass, operationClass, relation);
     }
 
     static @NotNull Verdict judgeSituation(@NotNull String situationLoqi) {

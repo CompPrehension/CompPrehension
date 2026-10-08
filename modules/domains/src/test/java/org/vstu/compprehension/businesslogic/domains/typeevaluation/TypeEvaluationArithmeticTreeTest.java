@@ -13,6 +13,7 @@ import static org.vstu.compprehension.businesslogic.domains.typeevaluation.TypeE
 import static org.vstu.compprehension.businesslogic.domains.typeevaluation.TypeEvaluationTreeFixture.OPERAND_TYPE;
 import static org.vstu.compprehension.businesslogic.domains.typeevaluation.TypeEvaluationTreeFixture.RULE;
 import static org.vstu.compprehension.businesslogic.domains.typeevaluation.TypeEvaluationTreeFixture.TYPES;
+import static org.vstu.compprehension.businesslogic.domains.typeevaluation.TypeEvaluationTreeFixture.foreignVariant;
 import static org.vstu.compprehension.businesslogic.domains.typeevaluation.TypeEvaluationTreeFixture.judge;
 import static org.vstu.compprehension.businesslogic.domains.typeevaluation.TypeEvaluationTreeFixture.judgeSituation;
 
@@ -21,6 +22,7 @@ class TypeEvaluationArithmeticTreeTest {
     private static final String TRUE_DIVISION_SKILL = "true_division_result";
     private static final String NUMERIC_RESULT_SKILL = "numeric_result_type";
     private static final String SEQUENCE_OPERATION_SKILL = "sequence_operation_applicability";
+    private static final String LANGUAGE_TRANSFER_SKILL = "language_semantics_transfer";
 
     /** Ответ по правилу типизации Python засчитывается. */
     @ParameterizedTest
@@ -42,16 +44,19 @@ class TypeEvaluationArithmeticTreeTest {
         assertTrue(verdict.hypotheses().contains(RULE), verdict.hypotheses().toString());
     }
 
-    /** Ответ int на деление целых объясняется двумя гипотезами — взят тип операнда и деление как в C — и снижает навык деления. */
+    /**
+     * Ответ int на деление целых объясняется двумя гипотезами: взят тип операнда или «/» прочитан как деление, которое
+     * над целыми даёт целое, как в некоторых других языках. Навыки у них разные: деление и перенос правил языка.
+     */
     @Test
     void integerAnswerForTrueDivisionHasTwoHypotheses() {
         // Act.
-        var verdict = judge("py_truediv", "t_int", "t_int", "t_int");
+        var verdict = judge("py_truediv", "t_int", "t_int", "t_int", foreignVariant("py_integer_division"));
 
         // Assert.
         assertEquals(BranchResult.ERROR, verdict.result());
-        assertEquals(Set.of(OPERAND_TYPE, "c_style_division"), verdict.hypotheses());
-        assertEquals(Set.of(TRUE_DIVISION_SKILL), verdict.skills());
+        assertEquals(Set.of(OPERAND_TYPE, "foreign_semantics"), verdict.hypotheses());
+        assertEquals(Set.of(TRUE_DIVISION_SKILL, LANGUAGE_TRANSFER_SKILL), verdict.skills());
     }
 
     /** Тип, к которому не ведёт ни одно рассуждение, — ошибка без гипотез, объясняемая правилом деления. */
@@ -112,68 +117,74 @@ class TypeEvaluationArithmeticTreeTest {
         assertEquals(Set.of(RULE, OPERAND_TYPE), verdict.hypotheses());
     }
 
-    /** Ответ int на сложение строк-чисел объясняется тем, что студент сложил их как числа. */
+    /** Ответ int на сложение строк из цифр объясняется сложением как в других языках, где «+» складывает их как числа. */
     @Test
-    void integerAnswerForNumericStringsIsNumericTextAddition() {
+    void integerAnswerForNumericStringsIsAdditionOfOtherLanguages() {
         // Act.
         var verdict = judgeSituation(TYPES + """
                 obj a : Literal { hasType(t_str); isNumericText = true; }
                 obj b : Literal { hasType(t_str); isNumericText = true; }
                 var E = obj op : py_add { hasOperand<OperandPlacement:left>(a); hasOperand<OperandPlacement:right>(b); }
                 var T = t_int
-                """);
+                """ + foreignVariant("py_add_numeric_text"));
 
         // Assert.
         assertEquals(BranchResult.ERROR, verdict.result());
-        assertEquals(Set.of("numeric_text_addition"), verdict.hypotheses());
-        assertEquals(Set.of(SEQUENCE_OPERATION_SKILL), verdict.skills());
+        assertEquals(Set.of("foreign_semantics"), verdict.hypotheses());
+        assertEquals(Set.of(LANGUAGE_TRANSFER_SKILL), verdict.skills());
     }
 
-    /** Ответ str на сложение строки с числом объясняется и типом операнда, и неявным приведением числа к строке. */
+    /** Ответ str на сложение строки с числом объясняется и типом операнда, и сложением, которое само превращает число в строку. */
     @Test
     void textAnswerForTextPlusNumberHasTwoHypotheses() {
         // Act.
-        var verdict = judge("py_add", "t_str", "t_int", "t_str");
+        var verdict = judge("py_add", "t_str", "t_int", "t_str", foreignVariant("py_add_text_conversion"));
 
         // Assert.
         assertEquals(BranchResult.ERROR, verdict.result());
-        assertEquals(Set.of(OPERAND_TYPE, "implicit_text_conversion"), verdict.hypotheses());
-    }
-
-    /** Ответ list[int] на сложение списка чисел с числом объясняется и типом операнда, и добавлением элемента в конец списка. */
-    @Test
-    void listAnswerForListPlusElementHasElementAppended() {
-        // Act.
-        var verdict = judge("py_add", "t_list_int", "t_int", "t_list_int");
-
-        // Assert.
-        assertEquals(BranchResult.ERROR, verdict.result());
-        assertEquals(Set.of(OPERAND_TYPE, "element_appended"), verdict.hypotheses());
-        assertEquals(Set.of(SEQUENCE_OPERATION_SKILL), verdict.skills());
-    }
-
-    /** Список, сложенный с числом другого типа, не объясняют добавлением элемента: элемент такого списка — не это число. */
-    @Test
-    void listPlusForeignNumberIsNotElementAppended() {
-        // Act.
-        var verdict = judge("py_add", "t_list_int", "t_float", "t_list_int");
-
-        // Assert.
-        assertEquals(Set.of(OPERAND_TYPE), verdict.hypotheses());
+        assertEquals(Set.of(OPERAND_TYPE, "foreign_semantics"), verdict.hypotheses());
     }
 
     /**
-     * Приняв «/» за деление нацело, студент дальше считает тип результата как у остальных операций и может ошибиться
-     * и там: ответ int на float / int объясняет и тип операнда, и такое сочетание двух ошибок.
+     * Ответ list[int] на сложение списка чисел с числом объясняется типом операнда, добавлением элемента в конец списка
+     * и поэлементным сложением, как в некоторых других языках.
      */
     @Test
-    void integerDivisionBeliefContinuesIntoResultType() {
+    void listAnswerForListPlusElementHasThreeHypotheses() {
         // Act.
-        var verdict = judge("py_truediv", "t_float", "t_int", "t_int");
+        var verdict = judge("py_add", "t_list_int", "t_int", "t_list_int", foreignVariant("py_add_elementwise"));
 
         // Assert.
         assertEquals(BranchResult.ERROR, verdict.result());
-        assertEquals(Set.of(Set.of(OPERAND_TYPE), Set.of("c_style_division", OPERAND_TYPE)), verdict.reasonings());
+        assertEquals(Set.of(OPERAND_TYPE, "element_appended", "foreign_semantics"), verdict.hypotheses());
+        assertEquals(Set.of(SEQUENCE_OPERATION_SKILL, LANGUAGE_TRANSFER_SKILL), verdict.skills());
+    }
+
+    /**
+     * Список, сложенный с числом другого типа, не объясняют добавлением элемента: элемент такого списка — не это число.
+     * Поэлементное сложение и тип операнда его объясняют.
+     */
+    @Test
+    void listPlusForeignNumberIsNotElementAppended() {
+        // Act.
+        var verdict = judge("py_add", "t_list_int", "t_float", "t_list_int", foreignVariant("py_add_elementwise"));
+
+        // Assert.
+        assertEquals(Set.of(OPERAND_TYPE, "foreign_semantics"), verdict.hypotheses());
+    }
+
+    /**
+     * Прочтение операции по правилам другого языка не предлагается, если оно не меняет вердикт: над float «/» и в
+     * других языках даёт float, поэтому ответ int на float / int объясняет только взятый тип операнда.
+     */
+    @Test
+    void foreignReadingThatKeepsVerdictIsNotOffered() {
+        // Act.
+        var verdict = judge("py_truediv", "t_float", "t_int", "t_int", foreignVariant("py_integer_division"));
+
+        // Assert.
+        assertEquals(BranchResult.ERROR, verdict.result());
+        assertEquals(Set.of(Set.of(OPERAND_TYPE)), verdict.reasonings());
     }
 
     /** Ответ «ошибка» на допустимую арифметику объясняется тем, что студент счёл операцию неприменимой к этим операндам. */
@@ -193,6 +204,18 @@ class TypeEvaluationArithmeticTreeTest {
         assertEquals(BranchResult.ERROR, verdict.result());
         assertEquals(Set.of(INAPPLICABLE_ASSUMED), verdict.hypotheses());
         assertEquals(Set.of(skill), verdict.skills());
+    }
+
+    /** Ответ AttributeError на str + int объясняется путаницей видов ошибок: операция неприменима, но ошибка другая. */
+    @Test
+    void errorOfOtherKindForInapplicableArithmeticIsErrorKindConfused() {
+        // Act.
+        var verdict = judge("py_add", "t_str", "t_int", "t_attribute_error");
+
+        // Assert.
+        assertEquals(BranchResult.ERROR, verdict.result());
+        assertEquals(Set.of("error_kind_confused"), verdict.hypotheses());
+        assertEquals(Set.of("error_kind"), verdict.skills());
     }
 
 }

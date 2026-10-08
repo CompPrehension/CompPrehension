@@ -53,9 +53,33 @@ final class TypeEvaluationDomainFixture {
     static final BankQuestion COUNT_PLUS_TOTAL = new BankQuestion("count_plus_total",
             List.of(new Step("op_add", "t_int")));
 
+    /** Student("Ann").name: операнд создания объекта — имя класса, а не часть выражения со слотом. */
+    static final BankQuestion STUDENT_NAME = new BankQuestion("student_name",
+            List.of(new Step("op_new", "t_student"), new Step("op_name", "t_str")));
+
+    static final BankQuestion OOP_LIST_APPEND = new BankQuestion("oop_list_append",
+            List.of(new Step("op_append", "t_none")));
+    static final BankQuestion OOP_SPLIT_WORDS = new BankQuestion("oop_split_words",
+            List.of(new Step("op_split", "t_list_str"), new Step("op_len", "t_int")));
+    static final BankQuestion OOP_STUDENT_AVERAGE = new BankQuestion("oop_student_average",
+            List.of(new Step("op_grades", "t_list_int"), new Step("op_len", "t_int"), new Step("op_average", "t_float"),
+                    new Step("op_add", "t_float")));
+    static final BankQuestion OOP_STATIC_COUNTER = new BankQuestion("oop_static_counter",
+            List.of(new Step("op_count", "t_int"), new Step("op_add", "t_int")));
+    static final BankQuestion OOP_FIELD_VIA_CLASS = new BankQuestion("oop_field_via_class",
+            List.of(new Step("op_name", "t_attribute_error")));
+    static final BankQuestion OOP_TEXT_APPEND = new BankQuestion("oop_text_append",
+            List.of(new Step("op_append", "t_attribute_error")));
+    static final BankQuestion OOP_INHERITED_NAME = new BankQuestion("oop_inherited_name",
+            List.of(new Step("op_name", "t_str"), new Step("op_upper", "t_str")));
+    static final BankQuestion OOP_PRIVATE_BALANCE = new BankQuestion("oop_private_balance",
+            List.of(new Step("op_balance", "t_attribute_error")));
+
     static final List<BankQuestion> BANK = List.of(
             AVERAGE_OF_GRADES, EMPTY_NAME_OR_NAMES, STUDENT_FIRST_GRADE, FIRST_CHAR_PLUS_ONE, GRADE_COUNT, GRADES_PLUS_ONE,
-            AVERAGE_BY_SUBJECT, AGE_NEXT_YEAR, COUNT_PLUS_TOTAL);
+            AVERAGE_BY_SUBJECT, AGE_NEXT_YEAR, COUNT_PLUS_TOTAL, STUDENT_NAME, OOP_LIST_APPEND, OOP_SPLIT_WORDS,
+            OOP_STUDENT_AVERAGE, OOP_STATIC_COUNTER, OOP_FIELD_VIA_CLASS, OOP_TEXT_APPEND, OOP_INHERITED_NAME,
+            OOP_PRIVATE_BALANCE);
 
     private static final class Holder {
         private static final TypeEvaluationDTDomain DOMAIN = new TypeEvaluationDTDomain(

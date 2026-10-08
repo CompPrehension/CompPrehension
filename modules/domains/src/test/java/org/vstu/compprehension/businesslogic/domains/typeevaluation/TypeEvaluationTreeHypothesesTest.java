@@ -5,6 +5,7 @@ import its.model.nodes.AggregationNode;
 import its.model.nodes.BranchAggregationNode;
 import its.model.nodes.BranchResult;
 import its.model.nodes.BranchResultNode;
+import its.model.nodes.BranchResultRedirectingNode;
 import its.model.nodes.CycleAggregationNode;
 import its.model.nodes.DecisionTree;
 import its.model.nodes.DecisionTreeNode;
@@ -129,27 +130,35 @@ class TypeEvaluationTreeHypothesesTest {
         throw new IllegalStateException("Неподдерживаемая агрегация: " + aggregation);
     }
 
-    /**
-     * Выводы correct/error ветви рассуждения; выходы агрегаций лишь передают её итог и не в счёт. Верный вывод в ветви
-     * and — проверка части рассуждения, засчитывающая навык, а не способ рассуждать, поэтому тоже не в счёт.
-     */
     private static @NotNull List<BranchResultNode> conclusions(@NotNull DecisionTreeNode node) {
+        return conclusions(node, false);
+    }
+
+    /**
+     * Выводы correct/error ветви рассуждения; выходы агрегаций лишь передают её итог и не в счёт. Верный вывод в части
+     * and — проверка части рассуждения, засчитывающая навык (например, верно выбранный вид ошибки), а не способ
+     * рассуждать, поэтому тоже не в счёт. Вложенные hyp проверяются сами по себе, вызванное дерево — продолжение ветви.
+     */
+    private static @NotNull List<BranchResultNode> conclusions(@NotNull DecisionTreeNode node, boolean isPartOfAnd) {
         if (node instanceof BranchResultNode result) {
-            return result.getValue() == BranchResult.NULL ? List.of() : List.of(result);
+            return result.getValue() == BranchResult.NULL || isPartOfAnd && result.getValue() == BranchResult.CORRECT
+                    ? List.of() : List.of(result);
         }
         var found = new ArrayList<BranchResultNode>();
         if (node instanceof AggregationNode aggregation) {
+            if (aggregation.getAggregationMethod() == AggregationMethod.HYP) {
+                return found;
+            }
+            boolean isAnd = isPartOfAnd || aggregation.getAggregationMethod() == AggregationMethod.AND;
             for (ThoughtBranch branch : branchesOf(aggregation)) {
-                if (aggregation.getAggregationMethod() == AggregationMethod.AND
-                        && branch.getStart() instanceof BranchResultNode result && result.getValue() == BranchResult.CORRECT) {
-                    continue;
-                }
-                found.addAll(conclusions(branch.getStart()));
+                found.addAll(conclusions(branch.getStart(), isAnd));
             }
         } else if (node instanceof LinkNode<?> link) {
             for (Outcome<?> outcome : link.getOutcomes()) {
-                found.addAll(conclusions(outcome.getNode()));
+                found.addAll(conclusions(outcome.getNode(), isPartOfAnd));
             }
+        } else if (node instanceof BranchResultRedirectingNode call) {
+            found.addAll(conclusions(TypeEvaluationTreeFixture.calledTree(call).getMainBranch().getStart(), isPartOfAnd));
         }
         return found;
     }

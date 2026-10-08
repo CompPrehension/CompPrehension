@@ -15,7 +15,7 @@ import static org.vstu.compprehension.businesslogic.domains.typeevaluation.TypeE
 
 class TypeEvaluationReadingTreeTest {
 
-    private static final String VARIABLE_CONFUSED = "variable_confused";
+    private static final String NAME_CONFUSED = "name_confused";
     private static final String OPERAND_IDENTIFICATION = "operand_identification";
 
     // grade = 5; grades = [5, 4, 5]
@@ -33,6 +33,21 @@ class TypeEvaluationReadingTreeTest {
             obj totals : Variable { hasType(t_list_int); looksLike(total); }
             """;
 
+    // class Student: name: str; grade: int; grades: list[int]; def average(self) -> float; def averages(self) -> list[int];
+    // def names(self) -> list[int]; student = Student(...)
+    private static final String STUDENT = TYPES + """
+            obj name : Field { hasType(t_str); isStatic = false; visibility = Visibility:public; looksLike(names); }
+            obj grade : Field { hasType(t_int); isStatic = false; visibility = Visibility:public; looksLike(grades); }
+            obj grades : Field { hasType(t_list_int); isStatic = false; visibility = Visibility:public; }
+            obj average : Method { returns(t_float); isStatic = false; visibility = Visibility:public; mutatesReceiver = false; looksLike(averages); }
+            obj averages : Method { returns(t_list_int); isStatic = false; visibility = Visibility:public; mutatesReceiver = false; }
+            obj names : Method { returns(t_list_int); isStatic = false; visibility = Visibility:public; mutatesReceiver = false; }
+            obj t_student : py_class { declares(name); declares(grade); declares(grades); declares(average); declares(averages); declares(names); }
+            obj Student : ClassReference { refersTo(t_student); looksLike(student); }
+            obj student : Variable { hasType(t_student); }
+            obj one : Literal { hasType(t_int); intValue = 1; }
+            """;
+
     /**
      * Ответ «ошибка» на len(grades), верный для len(grade), объясняют и прочтение grade вместо grades с верным
      * правилом, и мнение, что len неприменима к списку.
@@ -47,7 +62,7 @@ class TypeEvaluationReadingTreeTest {
 
         // Assert.
         assertEquals(BranchResult.ERROR, verdict.result());
-        assertEquals(Set.of(Set.of(VARIABLE_CONFUSED), Set.of(INAPPLICABLE_ASSUMED)), verdict.reasonings());
+        assertEquals(Set.of(Set.of(NAME_CONFUSED), Set.of(INAPPLICABLE_ASSUMED)), verdict.reasonings());
         assertEquals(Set.of(OPERAND_IDENTIFICATION, "length_applicability"), verdict.skills());
     }
 
@@ -62,7 +77,7 @@ class TypeEvaluationReadingTreeTest {
 
         // Assert.
         assertEquals(BranchResult.ERROR, verdict.result());
-        assertTrue(verdict.hypotheses().contains(VARIABLE_CONFUSED), verdict.hypotheses().toString());
+        assertTrue(verdict.hypotheses().contains(NAME_CONFUSED), verdict.hypotheses().toString());
     }
 
     /** Ответ int на grades + 1 объясняют и тип операнда, и прочитанная вместо grades переменная grade с верным правилом. */
@@ -76,7 +91,7 @@ class TypeEvaluationReadingTreeTest {
 
         // Assert.
         assertEquals(BranchResult.ERROR, verdict.result());
-        assertEquals(Set.of(Set.of(OPERAND_TYPE), Set.of(VARIABLE_CONFUSED)), verdict.reasonings());
+        assertEquals(Set.of(Set.of(OPERAND_TYPE), Set.of(NAME_CONFUSED)), verdict.reasonings());
     }
 
     /** Ответ «ошибка» на total / 2, верный для totals / 2, объясняет в том числе прочитанная вместо total переменная totals. */
@@ -93,7 +108,7 @@ class TypeEvaluationReadingTreeTest {
 
         // Assert.
         assertEquals(BranchResult.ERROR, verdict.result());
-        assertEquals(Set.of(Set.of(VARIABLE_CONFUSED), Set.of(INAPPLICABLE_ASSUMED)), verdict.reasonings());
+        assertEquals(Set.of(Set.of(NAME_CONFUSED), Set.of(INAPPLICABLE_ASSUMED)), verdict.reasonings());
     }
 
     /**
@@ -110,7 +125,7 @@ class TypeEvaluationReadingTreeTest {
 
         // Assert.
         assertEquals(BranchResult.ERROR, verdict.result());
-        assertEquals(Set.of(Set.of(VARIABLE_CONFUSED, OPERAND_TYPE), Set.of(VARIABLE_CONFUSED, "element_appended")),
+        assertEquals(Set.of(Set.of(NAME_CONFUSED, OPERAND_TYPE), Set.of(NAME_CONFUSED, "element_appended")),
                 verdict.reasonings());
     }
 
@@ -125,7 +140,7 @@ class TypeEvaluationReadingTreeTest {
 
         // Assert.
         assertEquals(BranchResult.CORRECT, verdict.result());
-        assertTrue(verdict.reasonings().contains(Set.of(VARIABLE_CONFUSED, OPERAND_TYPE)), verdict.reasonings().toString());
+        assertTrue(verdict.reasonings().contains(Set.of(NAME_CONFUSED, OPERAND_TYPE)), verdict.reasonings().toString());
     }
 
     /**
@@ -142,8 +157,8 @@ class TypeEvaluationReadingTreeTest {
 
         // Assert.
         assertEquals(BranchResult.CORRECT, verdict.result());
-        assertEquals(Set.of(Set.of(RULE), Set.of(VARIABLE_CONFUSED, "argument_type"),
-                Set.of(VARIABLE_CONFUSED, "inapplicable_call_gives_result")), verdict.reasonings());
+        assertEquals(Set.of(Set.of(RULE), Set.of(NAME_CONFUSED, "argument_type"),
+                Set.of(NAME_CONFUSED, "inapplicable_call_gives_result")), verdict.reasonings());
     }
 
     /** Без похожих имён ответ «ошибка» не списывается на путаницу переменных. */
@@ -160,5 +175,96 @@ class TypeEvaluationReadingTreeTest {
         // Assert.
         assertEquals(BranchResult.ERROR, verdict.result());
         assertEquals(Set.of(INAPPLICABLE_ASSUMED), verdict.hypotheses());
+    }
+
+    /**
+     * Тип поля в ответ на Student.name объясняют и вера, что поле объекта читается через класс, и прочтение класса
+     * Student как похожей переменной student.
+     */
+    @Test
+    void fieldTypeForInstanceFieldViaClassIsClassReadAsVariable() {
+        // Act.
+        var verdict = judgeSituation(STUDENT + """
+                var E = obj op : py_field_access { hasOperand<OperandPlacement:left>(Student); accesses(name); }
+                var T = t_str
+                """);
+
+        // Assert.
+        assertEquals(BranchResult.ERROR, verdict.result());
+        assertEquals(Set.of(Set.of("instance_member_via_class"), Set.of(NAME_CONFUSED)), verdict.reasonings());
+    }
+
+    /**
+     * Ответ TypeError на student.average() объясняет прочтение объекта student как похожего класса Student, а также
+     * мнение, что метода нет, с путаницей видов ошибок — и само по себе, и вместе с тем же прочтением.
+     */
+    @Test
+    void errorForMethodOfObjectIsVariableReadAsClass() {
+        // Act.
+        var verdict = judgeSituation(STUDENT + """
+                var E = obj op : py_method_call { hasOperand<OperandPlacement:left>(student); accesses(average); }
+                var T = t_error
+                """);
+
+        // Assert.
+        assertEquals(BranchResult.ERROR, verdict.result());
+        assertEquals(Set.of(Set.of(NAME_CONFUSED), Set.of("missing_member_assumed", "error_kind_confused"),
+                Set.of(NAME_CONFUSED, "missing_member_assumed", "error_kind_confused")), verdict.reasonings());
+    }
+
+    /** Вне обращения к члену переменная не читается как похожий на неё класс: у имени класса нет типа. */
+    @Test
+    void variableIsNotReadAsClassOutsideMemberAccess() {
+        // Act.
+        var verdict = judgeSituation(STUDENT + """
+                var E = obj op : py_add { hasOperand<OperandPlacement:left>(student); hasOperand<OperandPlacement:right>(one); }
+                var T = t_error
+                """);
+
+        // Assert.
+        assertEquals(BranchResult.CORRECT, verdict.result());
+        assertEquals(Set.of(Set.of(RULE)), verdict.reasonings());
+    }
+
+    /** Ответ list[int] на student.grade объясняет прочтение поля grade как похожего поля grades. */
+    @Test
+    void fieldTypeOfLookalikeFieldIsNameConfused() {
+        // Act.
+        var verdict = judgeSituation(STUDENT + """
+                var E = obj op : py_field_access { hasOperand<OperandPlacement:left>(student); accesses(grade); }
+                var T = t_list_int
+                """);
+
+        // Assert.
+        assertEquals(BranchResult.ERROR, verdict.result());
+        assertEquals(Set.of(Set.of(NAME_CONFUSED)), verdict.reasonings());
+    }
+
+    /** Ответ list[int] на student.average() объясняет прочтение метода average как похожего метода averages. */
+    @Test
+    void resultOfLookalikeMethodIsNameConfused() {
+        // Act.
+        var verdict = judgeSituation(STUDENT + """
+                var E = obj op : py_method_call { hasOperand<OperandPlacement:left>(student); accesses(average); }
+                var T = t_list_int
+                """);
+
+        // Assert.
+        assertEquals(BranchResult.ERROR, verdict.result());
+        assertEquals(Set.of(Set.of(NAME_CONFUSED)), verdict.reasonings());
+    }
+
+    /** Поле не читается как похожий на него метод: путаются только имена одного вида. */
+    @Test
+    void fieldIsNotReadAsLookalikeMethod() {
+        // Act.
+        var verdict = judgeSituation(STUDENT + """
+                var E = obj op : py_field_access { hasOperand<OperandPlacement:left>(student); accesses(name); }
+                var T = t_list_int
+                """);
+
+        // Assert.
+        assertEquals(BranchResult.ERROR, verdict.result());
+        assertEquals(Set.of(), verdict.reasonings());
     }
 }

@@ -16,7 +16,6 @@ import org.jetbrains.annotations.Nullable;
 import org.junit.jupiter.api.Test;
 
 import java.util.ArrayList;
-import java.util.Collection;
 import java.util.HashMap;
 import java.util.HashSet;
 import java.util.List;
@@ -31,11 +30,12 @@ class TypeEvaluationTreeSkillsTest {
     /**
      * Навык каждого вывода correct/error — навык последней развилки перед ним: проверки, у которой к таким выводам ведут
      * хотя бы два выхода, или решения студента — агрегации, размеченной навыком, среди ветвей которой есть неверный выход.
+     * Вызванное дерево — продолжение рассуждения вызывающего: до своей первой развилки оно наследует его развилку.
      */
     @Test
     void conclusionSkillIsSkillOfItsLastFork() {
         // Act.
-        var walk = SkillWalk.of(TypeEvaluationTreeFixture.trees());
+        var walk = SkillWalk.of(TypeEvaluationTreeFixture.tree());
 
         // Assert.
         assertTrue(walk.checkedConclusions > 0);
@@ -46,7 +46,7 @@ class TypeEvaluationTreeSkillsTest {
     @Test
     void annotatedForksAreExactlyLastForks() {
         // Act.
-        var walk = SkillWalk.of(TypeEvaluationTreeFixture.trees());
+        var walk = SkillWalk.of(TypeEvaluationTreeFixture.tree());
 
         // Assert.
         assertEquals(List.of(), walk.annotatedForksNeverLast());
@@ -60,11 +60,9 @@ class TypeEvaluationTreeSkillsTest {
         private final Map<DecisionTreeNode, Boolean> reachesVerdict = new HashMap<>();
         private int checkedConclusions;
 
-        static @NotNull SkillWalk of(@NotNull Collection<DecisionTree> trees) {
+        static @NotNull SkillWalk of(@NotNull DecisionTree mainTree) {
             var walk = new SkillWalk();
-            for (var tree : trees) {
-                walk.visit(tree.getMainBranch().getStart(), null, false);
-            }
+            walk.visit(mainTree.getMainBranch().getStart(), null, false);
             return walk;
         }
 
@@ -76,8 +74,8 @@ class TypeEvaluationTreeSkillsTest {
                 }
                 return;
             }
-            // Вывод через вызов другого дерева несёт итог того дерева; оно обходится само.
-            if (node instanceof BranchResultRedirectingNode) {
+            if (node instanceof BranchResultRedirectingNode call) {
+                visit(TypeEvaluationTreeFixture.calledTree(call).getMainBranch().getStart(), lastFork, false);
                 return;
             }
             if (node instanceof AggregationNode aggregation) {

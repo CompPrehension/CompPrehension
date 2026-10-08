@@ -1,5 +1,5 @@
-// Числовая арифметика: развилка «истинное ли деление». Приняв «/» за деление нацело, студент дальше считает тип
-// результата как у остальных операций.
+// Числовая арифметика: развилка «истинное ли деление». Прочитав «/» как деление, которое над целыми даёт целое,
+// студент попадает сюда с другой операцией (прочтения операции — в основном дереве).
 
 lambda maxOf(a: int, b: int) = a > b ? a : b;
 
@@ -13,66 +13,39 @@ tpg NumericResult(E: Operation, L: Type, R: Type, T: Outcome) {
         true -> {
             agg hyp {
                 _ -> {
-                    agg hyp {
-                        _ -> {
-                            ask (isNumberOfRank(T, maxOf(maxOf(L.conversionRank, R.conversionRank), A.minResultRank))) out false else {
-                                conclude: correct [
-                                    skill = "true_division_result";
-                                    hypothesis = "rule";
-                                    RU.explanation = "${A.class()} всегда возвращает вещественный результат.";
-                                    EN.explanation = "the ${A.class()} always returns a floating-point result.";
-                                ];
-                            };
-                            conclude: null
-                        };
-                        _ -> {
-                            ask (T == L or T == R) out false else {
-                                conclude: error [
-                                    skill = "true_division_result";
-                                    hypothesis = "operand_type";
-                                    RU.explanation = "${A.class()} всегда возвращает вещественный результат.";
-                                    EN.explanation = "the ${A.class()} always returns a floating-point result.";
-                                    RU.reason = "Результат берёт тип одного из операндов.";
-                                    EN.reason = "The result takes the type of one of the operands.";
-                                ];
-                            };
-                            conclude: null
-                        };
-                        correct -> { conclude: correct };
-                        error -> { conclude: error };
-                        null -> {
-                            conclude: null [
-                                skill = "true_division_result";
-                                RU.explanation = "ни у одного из операндов (${L}, ${R}) нет такого типа, и ${A.class()} его не создаёт.";
-                                EN.explanation = "neither operand (${L}, ${R}) has this type, and the ${A.class()} does not create it.";
-                            ]
-                        };
-                    } as trueDivisionHypotheses
+                    ask (isNumberOfRank(T, maxOf(maxOf(L.conversionRank, R.conversionRank), A.minResultRank))) out false else {
+                        conclude: correct [
+                            skill = "true_division_result";
+                            hypothesis = "rule";
+                            RU.explanation = "${A.class()} всегда возвращает вещественный результат.";
+                            EN.explanation = "the ${A.class()} always returns a floating-point result.";
+                        ];
+                    };
+                    conclude: null
                 };
                 _ -> {
-                    agg and {
-                        _ -> {
-                            conclude: error [
-                                skill = "true_division_result";
-                                hypothesis = "c_style_division";
-                                RU.explanation = "${A.class()} всегда возвращает вещественный результат.";
-                                EN.explanation = "the ${A.class()} always returns a floating-point result.";
-                                RU.reason = "Деление целых чисел даёт целое число.";
-                                EN.reason = "Dividing integers gives an integer.";
-                            ]
-                        };
-                        _ -> {
-                            conclude: subcall("numeric_rank", E, L, R, T)
-                        };
-                        correct -> { conclude: correct };
-                        error -> { conclude: error };
-                        null -> { conclude: null };
-                    }
+                    ask (T == L or T == R) out false else {
+                        conclude: error [
+                            skill = "true_division_result";
+                            hypothesis = "operand_type";
+                            RU.explanation = "${A.class()} всегда возвращает вещественный результат.";
+                            EN.explanation = "the ${A.class()} always returns a floating-point result.";
+                            RU.reason = "Результат берёт тип одного из операндов.";
+                            EN.reason = "The result takes the type of one of the operands.";
+                        ];
+                    };
+                    conclude: null
                 };
                 correct -> { conclude: correct };
                 error -> { conclude: error };
-                null -> { conclude: null };
-            }
+                null -> {
+                    conclude: null [
+                        skill = "true_division_result";
+                        RU.explanation = "ни у одного из операндов (${L}, ${R}) нет такого типа, и ${A.class()} его не создаёт.";
+                        EN.explanation = "neither operand (${L}, ${R}) has this type, and the ${A.class()} does not create it.";
+                    ]
+                };
+            } as trueDivisionHypotheses
         };
         false -> {
             conclude: subcall("numeric_rank", E, L, R, T)

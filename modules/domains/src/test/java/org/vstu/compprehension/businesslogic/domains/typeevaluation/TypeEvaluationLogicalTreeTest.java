@@ -15,13 +15,14 @@ import static org.vstu.compprehension.businesslogic.domains.typeevaluation.TypeE
 import static org.vstu.compprehension.businesslogic.domains.typeevaluation.TypeEvaluationTreeFixture.OPERAND_TYPE;
 import static org.vstu.compprehension.businesslogic.domains.typeevaluation.TypeEvaluationTreeFixture.RULE;
 import static org.vstu.compprehension.businesslogic.domains.typeevaluation.TypeEvaluationTreeFixture.TYPES;
+import static org.vstu.compprehension.businesslogic.domains.typeevaluation.TypeEvaluationTreeFixture.similarOperator;
 import static org.vstu.compprehension.businesslogic.domains.typeevaluation.TypeEvaluationTreeFixture.judgeSituation;
 
 class TypeEvaluationLogicalTreeTest {
 
     private static final String RETURNED_OPERAND_SKILL = "logical_returned_operand";
     private static final String TRUTHINESS_MISJUDGED = "truthiness_misjudged";
-    private static final String AND_OR_CONFUSED = "and_or_confused";
+    private static final String OPERATOR_CONFUSED = "operator_confused";
 
     /** and и or возвращают операнд, выбранный по истинности левого: or — первый истинный, and — первый ложный. */
     @ParameterizedTest
@@ -49,46 +50,46 @@ class TypeEvaluationLogicalTreeTest {
     @Test
     void correctAnswerOfOrIsReachedByTwoCancellingErrors() {
         // Act.
-        var verdict = judgeLogical("py_or", "t_str", true, "t_list_int", "t_str");
+        var verdict = judgeLogical("py_or", "t_str", true, "t_list_int", "t_str", similarOperator("py_and"));
 
         // Assert.
         assertEquals(BranchResult.CORRECT, verdict.result());
-        assertEquals(Set.of(Set.of(RULE), Set.of(TRUTHINESS_MISJUDGED, AND_OR_CONFUSED)), verdict.reasonings());
+        assertEquals(Set.of(Set.of(RULE), Set.of(TRUTHINESS_MISJUDGED, OPERATOR_CONFUSED)), verdict.reasonings());
     }
 
     /** Если операнды одного типа, ответ объясняет и одна ошибка, поэтому две ошибки сразу в рассуждения не входят. */
     @Test
     void cancellingErrorsAreNotAddedWhenOneErrorExplainsAnswer() {
         // Act.
-        var verdict = judgeLogical("py_and", "t_int", true, "t_int", "t_int");
+        var verdict = judgeLogical("py_and", "t_int", true, "t_int", "t_int", similarOperator("py_or"));
 
         // Assert.
         assertEquals(BranchResult.CORRECT, verdict.result());
-        assertEquals(Set.of(Set.of(RULE), Set.of(TRUTHINESS_MISJUDGED), Set.of(AND_OR_CONFUSED)), verdict.reasonings());
+        assertEquals(Set.of(Set.of(RULE), Set.of(TRUTHINESS_MISJUDGED), Set.of(OPERATOR_CONFUSED)), verdict.reasonings());
     }
 
     /** Тип правого операнда у or с истинным левым объясняется и неверной истинностью, и перепутанными and/or. */
     @Test
     void otherOperandTypeForTruthyOrHasTwoHypotheses() {
         // Act.
-        var verdict = judgeLogical("py_or", "t_str", true, "t_list_int", "t_list_int");
+        var verdict = judgeLogical("py_or", "t_str", true, "t_list_int", "t_list_int", similarOperator("py_and"));
 
         // Assert.
         assertEquals(BranchResult.ERROR, verdict.result());
-        assertEquals(Set.of(TRUTHINESS_MISJUDGED, AND_OR_CONFUSED), verdict.hypotheses());
-        assertEquals(Set.of(RETURNED_OPERAND_SKILL), verdict.skills());
+        assertEquals(Set.of(TRUTHINESS_MISJUDGED, OPERATOR_CONFUSED), verdict.hypotheses());
+        assertEquals(Set.of(RETURNED_OPERAND_SKILL, "operator_identification"), verdict.skills());
     }
 
     /** Тип левого операнда у and с истинным левым объясняется и неверной истинностью, и перепутанными and/or. */
     @Test
     void otherOperandTypeForTruthyAndHasTwoHypotheses() {
         // Act.
-        var verdict = judgeLogical("py_and", "t_int", true, "t_str", "t_int");
+        var verdict = judgeLogical("py_and", "t_int", true, "t_str", "t_int", similarOperator("py_or"));
 
         // Assert.
         assertEquals(BranchResult.ERROR, verdict.result());
-        assertEquals(Set.of(TRUTHINESS_MISJUDGED, AND_OR_CONFUSED), verdict.hypotheses());
-        assertEquals(Set.of(RETURNED_OPERAND_SKILL), verdict.skills());
+        assertEquals(Set.of(TRUTHINESS_MISJUDGED, OPERATOR_CONFUSED), verdict.hypotheses());
+        assertEquals(Set.of(RETURNED_OPERAND_SKILL, "operator_identification"), verdict.skills());
     }
 
     /** Ответ bool на or над небулевыми операндами объясняется верой в то, что and/or дают логическое значение. */
@@ -168,13 +169,14 @@ class TypeEvaluationLogicalTreeTest {
     }
 
     private static @NotNull Verdict judgeLogical(@NotNull String operation, @NotNull String leftType, boolean leftTruthy,
-                                                 @NotNull String rightType, @NotNull String answerType) {
+                                                 @NotNull String rightType, @NotNull String answerType,
+                                                 @NotNull String... readings) {
         return judgeSituation(TYPES + """
                 obj a : Variable { hasType(%s); isTruthy = %s; }
                 obj b : Variable { hasType(%s); }
                 var E = obj op : %s { hasOperand<OperandPlacement:left>(a); hasOperand<OperandPlacement:right>(b); }
                 var T = %s
-                """.formatted(leftType, leftTruthy, rightType, operation, answerType));
+                """.formatted(leftType, leftTruthy, rightType, operation, answerType) + String.join("", readings));
     }
 
     private static @NotNull Verdict judgeNegation(@NotNull String operandType, @NotNull String answerType) {

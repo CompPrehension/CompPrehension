@@ -79,7 +79,7 @@
           "subject": "question",
           "verb": "hasLoqi",
           "objectType": "xsd:string",
-          "object": "obj t_int : py_int {}\nobj t_float : py_float {}\nobj t_str : py_str { elementType(t_str); }\nobj t_list_int : py_list { elementType(t_int); }\nobj t_error : py_TypeError {}\nobj grades : Variable { hasType(t_list_int); } [ text = \"grades\" ]\nobj total : Variable { hasType(t_int); } [ text = \"total\" ]\nobj op_len : py_len { hasOperand<OperandPlacement:left>(grades); } [ text = \"len(grades)\"; expectedType = \"t_int\"; value = \"3\" ]\nobj op_div : py_truediv { hasOperand<OperandPlacement:left>(total); hasOperand<OperandPlacement:right>(op_len); } [ text = \"total / len(grades)\"; expectedType = \"t_float\"; value = \"4.666666666666667\" ]"
+          "object": "obj t_int : py_int {}\nobj t_float : py_float {}\nobj t_str : py_str { elementType(t_str); }\nobj t_list_int : py_list { elementType(t_int); }\nobj t_error : py_TypeError {}\nobj grades : Variable { hasType(t_list_int); } [ text = \"grades\" ]\nobj total : Variable { hasType(t_int); } [ text = \"total\" ]\nobj op_len : py_len { hasOperand<OperandPlacement:left>(grades); } [ text = \"len(grades)\"; expectedType = \"t_int\"; value = \"3\" ]\nobj op_div : py_truediv { hasOperand<OperandPlacement:left>(total); hasOperand<OperandPlacement:right>(op_len); } [ text = \"total / len(grades)\"; expectedType = \"t_float\"; value = \"4.666666666666667\" ]\nobj op_div_as_py_integer_division : py_integer_division { hasOperand<OperandPlacement:left>(total); hasOperand<OperandPlacement:right>(op_len); foreignVariantOf(op_div); } [ text = \"total / len(grades)\" ]"
         }
       ],
       "questionDomainType": "ExpressionTypes"

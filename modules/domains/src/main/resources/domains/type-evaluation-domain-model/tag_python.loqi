@@ -50,10 +50,20 @@ class py_NoneType : NoneType {
 	text = "None" ;
 ]
 
-class py_TypeError : EvaluationError {
+// Имя класса — метаданные text объекта типа.
+class py_class : ClassType {
+}
+
+class py_TypeError : InapplicableOperationError {
 } [
 	RU.localizedName = "ошибка (TypeError)" ;
 	EN.localizedName = "error (TypeError)" ;
+]
+
+class py_AttributeError : MissingMemberError {
+} [
+	RU.localizedName = "ошибка (AttributeError)" ;
+	EN.localizedName = "error (AttributeError)" ;
 ]
 
 ////// Арифметика //////
@@ -108,6 +118,47 @@ class py_mod : ArithmeticOperation {
 	text = "%" ;
 	RU.localizedName = "оператор <code>%</code>" ;
 	EN.localizedName = "operator <code>%</code>" ;
+]
+
+////// Операции других языков //////
+// В коде вопроса их нет: так студент может прочитать операцию, перенося опыт другого языка.
+
+class py_add_text_conversion : ArithmeticOperation {
+	minResultRank = 2 ;
+	concatenatesSequences = true ;
+	convertsNumberToText = true ;
+} [
+	text = "+" ;
+	RU.localizedName = "оператор <code>+</code>" ;
+	EN.localizedName = "operator <code>+</code>" ;
+]
+
+class py_add_numeric_text : ArithmeticOperation {
+	minResultRank = 2 ;
+	addsNumericText = true ;
+} [
+	text = "+" ;
+	RU.localizedName = "оператор <code>+</code>" ;
+	EN.localizedName = "operator <code>+</code>" ;
+]
+
+class py_add_elementwise : ArithmeticOperation {
+	minResultRank = 2 ;
+	concatenatesSequences = true ;
+	appliesElementwise = true ;
+} [
+	text = "+" ;
+	RU.localizedName = "оператор <code>+</code>" ;
+	EN.localizedName = "operator <code>+</code>" ;
+]
+
+class py_integer_division : ArithmeticOperation {
+	minResultRank = 2 ;
+	truncatesIntegerDivision = true ;
+} [
+	text = "/" ;
+	RU.localizedName = "оператор <code>/</code>" ;
+	EN.localizedName = "operator <code>/</code>" ;
 ]
 
 ////// Сравнения //////
@@ -264,4 +315,29 @@ class py_str_call : CallOperation {
 	text = "str" ;
 	RU.localizedName = "функция <code>str</code>" ;
 	EN.localizedName = "function <code>str</code>" ;
+]
+
+////// Члены классов //////
+
+// Защищённость — только соглашение об именах (_x): интерпретатор обращение не запрещает.
+class py_field_access : FieldAccess {
+	protectedRestricted = false ;
+} [
+	text = "." ;
+	RU.localizedName = "обращение к полю" ;
+	EN.localizedName = "field access" ;
+]
+
+class py_method_call : MethodCall {
+	protectedRestricted = false ;
+} [
+	text = "." ;
+	RU.localizedName = "вызов метода" ;
+	EN.localizedName = "method call" ;
+]
+
+class py_constructor_call : ConstructorCall {
+} [
+	RU.localizedName = "создание объекта" ;
+	EN.localizedName = "object creation" ;
 ]
