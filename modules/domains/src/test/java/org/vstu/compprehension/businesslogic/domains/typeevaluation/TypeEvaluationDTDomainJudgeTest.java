@@ -35,7 +35,9 @@ import static org.vstu.compprehension.businesslogic.domains.typeevaluation.TypeE
 import static org.vstu.compprehension.businesslogic.domains.typeevaluation.TypeEvaluationDomainFixture.EMPTY_NAME_OR_NAMES;
 import static org.vstu.compprehension.businesslogic.domains.typeevaluation.TypeEvaluationDomainFixture.FIRST_CHAR_PLUS_ONE;
 import static org.vstu.compprehension.businesslogic.domains.typeevaluation.TypeEvaluationDomainFixture.GRADES_PLUS_ONE;
+import static org.vstu.compprehension.businesslogic.domains.typeevaluation.TypeEvaluationDomainFixture.OOP_FIELD_VIA_CLASS;
 import static org.vstu.compprehension.businesslogic.domains.typeevaluation.TypeEvaluationDomainFixture.OOP_INHERITED_NAME;
+import static org.vstu.compprehension.businesslogic.domains.typeevaluation.TypeEvaluationDomainFixture.OOP_PRIVATE_BALANCE;
 import static org.vstu.compprehension.businesslogic.domains.typeevaluation.TypeEvaluationDomainFixture.OOP_TEXT_APPEND;
 import static org.vstu.compprehension.businesslogic.domains.typeevaluation.TypeEvaluationDomainFixture.GRADE_COUNT;
 import static org.vstu.compprehension.businesslogic.domains.typeevaluation.TypeEvaluationDomainFixture.STUDENT_FIRST_GRADE;
@@ -226,8 +228,8 @@ class TypeEvaluationDTDomainJudgeTest {
     }
 
     /**
-     * Ответ, который не объясняет ни одно рассуждение, объясняется только по выражению как написано: прочтения
-     * с похожими переменными к нему не ведут, и их допущения студенту не показываются и не засчитываются.
+     * Ответу, к которому не ведёт ни одно рассуждение, говорится только, что он неверен: допущения прочтений
+     * с похожими переменными не показываются и не засчитываются, а нарушен навык, на котором решение разошлось с ответом.
      */
     @Test
     void unexplainedAnswerIsExplainedWithoutLookalikeReadings() {
@@ -240,29 +242,88 @@ class TypeEvaluationDTDomainJudgeTest {
         // Assert.
         assertFalse(result.isAnswerCorrect());
         assertEquals(Set.of(), hypotheses(result));
-        assertEquals(List.of("Выражение <code>count + total</code> не может иметь тип <code>str</code>, потому что ни у"
-                        + " одного из операндов (<code>int</code>, <code>int</code>) нет такого типа, и оператор <code>+</code>"
-                        + " его не создаёт."),
+        assertEquals(List.of("Выражение <code>count + total</code> не может иметь тип <code>str</code>."),
                 messages(verdict(result).explanation()));
         assertEquals(List.of("numeric_result_type"), lawNames(violations(result)));
     }
 
-    /** Объяснение неверного ответа на обращение к полю не подсказывает верный ответ: тип поля в нём не называется. */
+    /** Объяснение заблуждения о результате обращения к полю не подсказывает верный ответ: тип поля в нём не называется. */
     @Test
-    void wrongFieldTypeExplanationDoesNotNameFieldType() {
+    void ownerTypeExplanationDoesNotNameFieldType() {
         // Arrange.
         var question = question(OOP_INHERITED_NAME);
 
         // Act.
-        var unexplained = judge(question, List.of(answer(question, "op_name", "t_int")));
-        var ownerType = judge(question, List.of(answer(question, "op_name", "t_student")));
+        var result = judge(question, List.of(answer(question, "op_name", "t_student")));
 
         // Assert.
-        assertEquals(List.of("Выражение <code>student.name</code> не может иметь тип <code>int</code>, потому что поле"
-                + " <code>name</code> имеет другой тип."), messages(verdict(unexplained).explanation()));
         assertEquals(List.of("Выражение <code>student.name</code> не может иметь тип <code>Student</code>, потому что"
-                        + " обращение к полю даёт значение поля <code>name</code>, а не то, у чего поле берут."),
-                messages(onlyReasoning(reasoned(ownerType)).explanation()));
+                        + " <code>student.name</code> возвращает значение поля <code>name</code>, а не сам объект"
+                        + " <code>student</code>."),
+                messages(onlyReasoning(reasoned(result)).explanation()));
+    }
+
+    /**
+     * Ответ Student на Student.name объясняется одной ошибкой — результат взят у того, что стоит слева от точки, —
+     * и объяснение называет обе причины: поля у класса нет, и даже у объекта результатом было бы значение поля.
+     * Прочтение класса как переменной вместе с той же ошибкой остаётся более длинным рассуждением.
+     */
+    @Test
+    void classTypeForFieldViaClassIsOwnerType() {
+        // Arrange.
+        var question = question(OOP_FIELD_VIA_CLASS);
+
+        // Act.
+        var result = judge(question, List.of(answer(question, "op_name", "t_student")));
+
+        // Assert.
+        assertEquals(Set.of(new Hypothesis("owner_type", false), new Hypothesis("name_confused + owner_type", false)),
+                hypotheses(result));
+        var reasoning = reasoning(result, "owner_type");
+        assertEquals("Результат того же типа, что и <code>Student</code>.", reasoning.reason());
+        assertEquals(List.of("Выражение <code>Student.name</code> не может иметь тип <code>Student</code>, потому что"
+                + " у класса <code>Student</code> нет поля <code>name</code>: оно есть только у объектов этого класса."
+                + " И даже у объекта обращение к полю дало бы значение поля, а не сам объект."),
+                messages(reasoning.explanation()));
+    }
+
+    /**
+     * Ответ Account на account.__balance снаружи класса объясняется одной ошибкой — результат взят у того, что стоит
+     * слева, — и объяснение называет обе причины: поле закрыто, и даже в своём классе результатом было бы значение поля.
+     */
+    @Test
+    void ownerTypeForPrivateFieldOutsideIsOwnerType() {
+        // Arrange.
+        var question = question(OOP_PRIVATE_BALANCE);
+
+        // Act.
+        var result = judge(question, List.of(answer(question, "op_balance", "t_account")));
+
+        // Assert.
+        var reasoning = onlyReasoning(reasoned(result));
+        assertEquals(List.of(new Assumption("owner_type", false)), reasoning.assumptions());
+        assertEquals("Результат того же типа, что и <code>account</code>.", reasoning.reason());
+        assertEquals(List.of("Выражение <code>account.__balance</code> не может иметь тип <code>Account</code>, потому что"
+                + " <code>__balance</code> — закрытое поле: к нему можно обратиться только в методах своего класса."
+                + " И даже там обращение к полю дало бы значение поля, а не сам объект."), messages(reasoning.explanation()));
+    }
+
+    /**
+     * Случайный тип в ответ на обращение к полю объекта через класс не объясняется тонкостью задачи — тем, что поле
+     * принадлежит объекту: к такому ответу она отношения не имеет.
+     */
+    @Test
+    void unexplainedAnswerForFieldViaClassIsOnlyStatement() {
+        // Arrange.
+        var question = question(OOP_FIELD_VIA_CLASS);
+
+        // Act.
+        var result = judge(question, List.of(answer(question, "op_name", "t_int")));
+
+        // Assert.
+        assertEquals(List.of("Выражение <code>Student.name</code> не может иметь тип <code>int</code>."),
+                messages(verdict(result).explanation()));
+        assertEquals(List.of("static_member_access"), lawNames(violations(result)));
     }
 
     /**

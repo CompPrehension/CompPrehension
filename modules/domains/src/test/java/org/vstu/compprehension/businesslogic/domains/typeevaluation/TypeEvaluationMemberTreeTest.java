@@ -293,17 +293,17 @@ class TypeEvaluationMemberTreeTest {
     }
 
     /**
-     * Ошибку отсутствующего члена при вызове метода объекта через класс объясняют верное решение с путаницей видов
-     * ошибок и мнение, что такого метода у класса нет.
+     * Ошибку отсутствующего члена при вызове метода объекта через класс объясняет только путаница видов ошибок:
+     * у класса такого метода действительно нет, и считать так — не заблуждение.
      */
     @Test
-    void missingMemberErrorForInstanceMethodViaClassIsErrorKindConfusedOrMissingMember() {
+    void missingMemberErrorForInstanceMethodViaClassIsOnlyErrorKindConfused() {
         // Act.
         var verdict = judgeMethodCall("Person", "average", "t_attribute_error");
 
         // Assert.
         assertEquals(BranchResult.ERROR, verdict.result());
-        assertEquals(Set.of(Set.of("error_kind_confused"), Set.of("missing_member_assumed")), verdict.reasonings());
+        assertEquals(Set.of(Set.of("error_kind_confused")), verdict.reasonings());
     }
 
     /** Ошибка при вызове статического метода через класс объясняется верой, что метод вызывают только у объекта. */
@@ -344,46 +344,58 @@ class TypeEvaluationMemberTreeTest {
     }
 
     /**
-     * Тип объекта в ответ на закрытое поле снаружи не объясняется: обращение не состоится, и заблуждения о его
-     * результате не разбираются.
+     * Тип объекта в ответ на закрытое поле — снаружи класса или в методе наследника — объясняется одной ошибкой:
+     * результат взят у того, что стоит слева, о закрытости поля студент мог и не подумать.
      */
-    @Test
-    void ownerTypeForPrivateFieldOutsideIsNotExplained() {
+    @ParameterizedTest
+    @CsvSource({
+            "person,  '',        t_person",
+            "student, t_student, t_student",
+    })
+    void ownerTypeForPrivateFieldIsOwnerType(String owner, String enclosingClass, String answer) {
         // Act.
-        var verdict = judgeFieldAccess("person", "secret", "", "t_person");
+        var verdict = judgeFieldAccess(owner, "secret", enclosingClass, answer);
 
         // Assert.
         assertEquals(BranchResult.ERROR, verdict.result());
-        assertEquals(Set.of(), verdict.reasonings());
+        assertEquals(Set.of(Set.of("owner_type")), verdict.reasonings());
+        assertEquals(Set.of(VISIBILITY_SKILL), verdict.skills());
     }
 
     /**
-     * Тип класса в ответ на Person.average() не объясняется: при вызове через класс нет объекта, о котором говорят
-     * заблуждения о результате метода.
+     * Тип класса в ответ на обращение через класс к члену объекта объясняется одной ошибкой — результат взят у того,
+     * что стоит слева от точки, — без заблуждений о результате обращения, которое не состоится.
      */
-    @Test
-    void receiverTypeForInstanceMethodViaClassIsNotExplained() {
+    @ParameterizedTest
+    @CsvSource({
+            "py_field_access, name",
+            "py_method_call,  average",
+    })
+    void classTypeForInstanceMemberViaClassIsOwnerType(String access, String member) {
         // Act.
-        var verdict = judgeMethodCall("Person", "average", "t_person");
+        var verdict = judgeSituation(SITUATION + """
+                var E = obj op : %s { hasOperand<OperandPlacement:left>(Person); accesses(%s); }
+                var T = t_person
+                """.formatted(access, member));
 
         // Assert.
         assertEquals(BranchResult.ERROR, verdict.result());
-        assertEquals(Set.of(), verdict.reasonings());
+        assertEquals(Set.of(Set.of("owner_type")), verdict.reasonings());
+        assertEquals(Set.of(STATIC_ACCESS_SKILL), verdict.skills());
     }
 
     /**
-     * Верный ответ TypeError на Person.average() даёт и сочетание двух заблуждений: метода у класса нет, а об
-     * отсутствующем члене сообщает TypeError. Такое ошибочное рассуждение сохраняется.
+     * Верный ответ TypeError на Person.average() не приписывает студенту мнение, что метода у класса нет: при вызове
+     * через класс так и есть, это не заблуждение.
      */
     @Test
-    void correctAnswerReachedByTwoMisconceptionsKeepsMisreasoning() {
+    void correctAnswerForInstanceMethodViaClassHasOnlyRule() {
         // Act.
         var verdict = judgeMethodCall("Person", "average", "t_error");
 
         // Assert.
         assertEquals(BranchResult.CORRECT, verdict.result());
-        assertTrue(verdict.reasonings().contains(Set.of("missing_member_assumed", "error_kind_confused")),
-                verdict.reasonings().toString());
+        assertEquals(Set.of(Set.of(RULE)), verdict.reasonings());
     }
 
     /** Вызов класса создаёт объект этого класса. */

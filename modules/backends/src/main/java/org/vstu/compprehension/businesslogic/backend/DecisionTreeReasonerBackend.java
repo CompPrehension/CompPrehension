@@ -238,6 +238,7 @@ public class DecisionTreeReasonerBackend
 
     /** Вердикт по всей трассе, ход мысли в которой не установлен. */
     private static @NotNull Judgement.Verdict makeVerdict(@NotNull DecisionTreeTrace trace,
+                                                          @NotNull LearningSituation situation,
                                                           boolean isAnswerCorrect,
                                                           int stepsLeft,
                                                           @NotNull DomainModel domainModel,
@@ -251,7 +252,22 @@ public class DecisionTreeReasonerBackend
         var explanation = collectExplanationsFromTrace(Explanation.Type.ERROR, trace, domainModel, appDomain, lang);
         var violations = isAnswerCorrect ? List.<ViolationData>of()
                 : explanation.getKnowledgeNames().stream().map(DecisionTreeReasonerBackend::makeViolation).toList();
+        // К неверному ответу не ведёт ни одно рассуждение студента: запасные выводы объясняют развилки правильного
+        // решения и к ответу отношения не имеют, поэтому студенту говорится только, что ответ неверен.
+        // Навыки, на которых решение разошлось с ответом, остаются нарушенными.
+        if (!isAnswerCorrect && hasHypotheses(trace)) {
+            var statement = makeErrorStatement(trace.getResultingElement().getNode().getDecisionTree(), situation, appDomain, lang);
+            if (explanation.getKnowledgeNames().size() == 1) {
+                statement.setCurrentKnowledgeName(explanation.getKnowledgeNames().iterator().next());
+            }
+            explanation = statement;
+        }
         return new Judgement.Verdict(isAnswerCorrect, explanation, violations, collectAppliedLaws(trace), stepsLeft);
+    }
+
+    private static boolean hasHypotheses(@NotNull DecisionTreeTrace trace) {
+        return nestedTraceElements(trace).stream().anyMatch(element ->
+                element instanceof AggregationDecisionTreeTraceElement<?> aggregation && isHypothesisAggregation(aggregation));
     }
 
     /** Рассуждения, которыми студент мог прийти к ответу: по одному на каждый путь, объяснивший ответ. */
@@ -421,11 +437,17 @@ public class DecisionTreeReasonerBackend
                                                          boolean isAnswerCorrect,
                                                          @NotNull DecisionTreeReasoningDomain appDomain,
                                                          @NotNull Language lang) {
-        var localizationCode = lang.toLocaleString();
         var statement = isAnswerCorrect ? Explanation.empty(Explanation.Type.ERROR)
-                : annotateTerms(new Explanation(Explanation.Type.ERROR,
-                        interpretTreeMeta(tree, "error_statement", situation, localizationCode)), appDomain, lang);
-        return new ReasoningInquiry(interpretTreeMeta(tree, "clarification_prompt", situation, localizationCode), statement);
+                : makeErrorStatement(tree, situation, appDomain, lang);
+        return new ReasoningInquiry(interpretTreeMeta(tree, "clarification_prompt", situation, lang.toLocaleString()), statement);
+    }
+
+    private static @NotNull Explanation makeErrorStatement(@NotNull DecisionTree tree,
+                                                           @NotNull LearningSituation situation,
+                                                           @NotNull DecisionTreeReasoningDomain appDomain,
+                                                           @NotNull Language lang) {
+        return annotateTerms(new Explanation(Explanation.Type.ERROR,
+                interpretTreeMeta(tree, "error_statement", situation, lang.toLocaleString())), appDomain, lang);
     }
 
     private static @NotNull String interpretTreeMeta(@NotNull DecisionTree tree,
@@ -631,7 +653,7 @@ public class DecisionTreeReasonerBackend
             int stepsLeft = countStepsLeft(judgedQuestion, backendOutput, isAnswerCorrect);
             var paths = collectHypothesisPaths(trace);
             if (paths.isEmpty()) {
-                return makeVerdict(trace, isAnswerCorrect, stepsLeft, domainModel, getDomain(), language);
+                return makeVerdict(trace, backendOutput.situation, isAnswerCorrect, stepsLeft, domainModel, getDomain(), language);
             }
             return new Judgement.Reasoned(makeReasonings(paths, isAnswerCorrect, domainModel, getDomain(), language),
                     makeInquiry(trace.getResultingElement().getNode().getDecisionTree(), backendOutput.situation,

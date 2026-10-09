@@ -1681,7 +1681,9 @@ tpg Typed(E: Operation, Old: CodeElement, New: CodeElement, T: Outcome) {
                         _ -> {
                             agg and {
                                 _ -> {
-                                    ask (C=>declares(M) and not M.isStatic and M.visibility != Visibility:protected) out false else {
+                                    // Через имя класса члена объекта действительно нет: считать его отсутствующим — не заблуждение.
+                                    ask (C=>declares(M) and not M.isStatic and M.visibility != Visibility:protected
+                                            and not (Owner is class:ClassReference)) out false else {
                                         conclude: error [
                                             skill = "member_lookup";
                                             hypothesis = "missing_member_assumed";

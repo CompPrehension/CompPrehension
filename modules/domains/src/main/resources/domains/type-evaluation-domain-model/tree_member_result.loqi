@@ -24,10 +24,10 @@ tpg MemberResult(E: Operation, Old: CodeElement, New: CodeElement, Owner: Expr, 
                         conclude: error [
                             skill = "field_access";
                             hypothesis = "owner_type";
-                            RU.explanation = "обращение к полю даёт значение поля ${M}, а не то, у чего поле берут.";
-                            EN.explanation = "a field access gives the value of the field ${M}, not the value the field is taken from.";
-                            RU.reason = "Результат берёт тип того, у чего берут поле.";
-                            EN.reason = "The result takes the type of what the field is taken from.";
+                            RU.explanation = "${E} возвращает значение поля ${M}, а не сам объект ${Owner}.";
+                            EN.explanation = "${E} returns the value of the field ${M}, not the object ${Owner} itself.";
+                            RU.reason = "Результат того же типа, что и ${Owner}.";
+                            EN.reason = "The result has the same type as ${Owner}.";
                         ];
                     };
                     conclude: null

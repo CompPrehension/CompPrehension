@@ -196,7 +196,8 @@ class TypeEvaluationReadingTreeTest {
 
     /**
      * Ответ TypeError на student.average() объясняет прочтение объекта student как похожего класса Student, а также
-     * мнение, что метода нет, с путаницей видов ошибок — и само по себе, и вместе с тем же прочтением.
+     * мнение, что метода нет, с путаницей видов ошибок — и само по себе, и вместе с прочтением метода average как
+     * похожего averages.
      */
     @Test
     void errorForMethodOfObjectIsVariableReadAsClass() {

@@ -62,6 +62,32 @@ tpg MemberAccessible(E: Operation, Old: CodeElement, New: CodeElement, Owner: Ex
                     };
                     conclude: null
                 };
+                _ -> {
+                    ask (M is class:Field and T == C) out false else {
+                        conclude: error [
+                            skill = "static_member_access";
+                            hypothesis = "owner_type";
+                            RU.explanation = "у класса ${Owner} нет поля ${M}: оно есть только у объектов этого класса. И даже у объекта обращение к полю дало бы значение поля, а не сам объект.";
+                            EN.explanation = "the class ${Owner} has no field ${M}: only objects of this class have it. And even on an object, accessing the field would give the value of the field, not the object itself.";
+                            RU.reason = "Результат того же типа, что и ${Owner}.";
+                            EN.reason = "The result has the same type as ${Owner}.";
+                        ];
+                    };
+                    conclude: null
+                };
+                _ -> {
+                    ask (M is class:Method and T == C) out false else {
+                        conclude: error [
+                            skill = "static_member_access";
+                            hypothesis = "owner_type";
+                            RU.explanation = "метод ${M} вызывают у объекта, а не у класса ${Owner}. И даже у объекта вызов вернул бы результат метода, а не сам объект.";
+                            EN.explanation = "the method ${M} is called on an object, not on the class ${Owner}. And even on an object, the call would return the result of the method, not the object itself.";
+                            RU.reason = "Результат того же типа, что и ${Owner}.";
+                            EN.reason = "The result has the same type as ${Owner}.";
+                        ];
+                    };
+                    conclude: null
+                };
                 correct -> { conclude: correct };
                 error -> { conclude: error };
                 null -> {
